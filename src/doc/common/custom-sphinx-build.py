@@ -38,6 +38,14 @@ useless_chatter = (
     )
 
 
+if any('multidoc_first_pass=1' in arg for arg in sys.argv):
+    useless_chatter += (
+        re.compile('^None:[0-9]*: WARNING: citation not found: '),
+        )
+
+
+
+
 class SageSphinxLogger(object):
     """
     This implements the file object interface to serve as sys.stdout
@@ -129,7 +137,7 @@ class SageSphinxLogger(object):
     def write(self, str):
         try:
             self._write(str)
-        except:
+        except StandardError:
             import traceback
             traceback.print_exc(file=self._stream)
 

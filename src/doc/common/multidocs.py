@@ -20,7 +20,7 @@
     - the javascript index;
     - the citations.
 """
-import cPickle, os, sys, shutil
+import cPickle, os, sys, shutil, re, tempfile
 import sphinx
 from sphinx.util.console import bold
 
@@ -72,7 +72,9 @@ def merge_environment(app, env):
             # needed by env.check_consistency (sphinx.environement, line 1734)
             for ind in newalldoc:
                 # treat subdocument source as orphaned file and don't complain
-                env.metadata[ind] = {'orphan'}
+                md = env.metadata.get(ind, set())
+                md.add('orphan')
+                env.metadata[ind] = md
             # merge the citations
             newcite = {}
             for ind, (path, tag) in docenv.citations.iteritems():
@@ -187,14 +189,30 @@ def fix_path_html(app, pagename, templatename, ctx, event_arg):
     ctx['pathto'] = sage_pathto
 
 
+def citation_dir(app):
+    citedir = re.sub('/doc/output/[^/]*/', '/doc/output/inventory/', app.outdir)
+    if not os.path.isdir(citedir):
+        os.makedirs(os.path.abspath(citedir))
+    return citedir
+
 def write_citations(app, citations):
     """
-    Pickle the citation in a file
+    Pickle the citation in a file.
+
+    Atomic except on Windows, where you need to upgrade to a real filesystem.
     """
     import cPickle
-    file = open(os.path.join(app.outdir, CITE_FILENAME), 'wb')
-    cPickle.dump(citations, file)
-    file.close()
+    outdir = citation_dir(app)
+    fd, tmp = tempfile.mkstemp(dir=outdir)
+    os.close(fd)
+    with open(tmp, 'wb') as file:
+        cPickle.dump(citations, file)
+    citation  = os.path.join(outdir, CITE_FILENAME)
+    try:
+        os.rename(tmp, citation)
+    except OSError:  # your OS sucks and cannot do atomic file replacement
+        os.unlink(citation)
+        os.rename(tmp, citation)
     app.info("Saved pickle file: %s"%CITE_FILENAME)
 
 
@@ -204,20 +222,14 @@ def fetch_citation(app, env):
     references.
     """
     app.builder.info(bold('loading cross citations... '), nonl=1)
-    filename = os.path.join(app.outdir, '..', CITE_FILENAME)
+    filename = os.path.join(citation_dir(app), '..', CITE_FILENAME)
     if not os.path.exists(filename):
         return
     import cPickle
     file = open(filename, 'rb')
-    try:
-        cache = cPickle.load(file)
-    except:
-        app.warn("Cache file '%s' is corrupted; ignoring it..."% filename)
-        return
-    else:
-        app.builder.info("done (%s citations)."%len(cache))
-    finally:
-        file.close()
+    cache = cPickle.load(file)
+    file.close()
+    app.builder.info("done (%s citations)."%len(cache))
     cite = env.citations
     for ind, (path, tag) in cache.iteritems():
         if ind not in cite: # don't override local citation

@@ -115,6 +115,7 @@ multidocs_subdoc_list = [
     'rings',
     'rings_numerical',
     'rings_standard',
+    'sat',
     'schemes',
     'semirings',
     'stats',

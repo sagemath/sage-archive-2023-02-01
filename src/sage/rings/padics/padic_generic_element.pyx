@@ -1015,7 +1015,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: r._shifted_log(4)
             5 + 3*5^2 + 4*5^3 + O(5^4)
             sage: r._shifted_log(100)
-            5 + 3*5^2 + 4*5^3 + 4*5^4 + O(5^5)
+            5 + 3*5^2 + 4*5^3 + O(5^5)
 
             sage: r = Zp(5,prec=4,type='fixed-mod')(5)
             sage: r._shifted_log(5)
@@ -1030,8 +1030,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
         if check and alpha<=0:
             raise ValueError, 'Input value (=%s) should have strictly positive valuation' % self
 
-        if (aprec>=R.precision_cap()+1):
-            aprec=R.precision_cap()+1
+        # The largest reasonable amount of absolute precision
+        # is the valuation of self plus the precision cap.
+        if (aprec>=R.precision_cap()+alpha):
+            aprec=R.precision_cap()+alpha
 
         e=R.ramification_index()
         p=R.prime()
@@ -1417,6 +1419,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         p=self.parent().prime()
         e=self.parent().ramification_index()
         val=self.valuation()
+
         # Copied the bound from a previous implementation
         cdef long max_term = ((p-1)*(aprec-1))//((p-1)*val - 1) + 1
         cdef long n

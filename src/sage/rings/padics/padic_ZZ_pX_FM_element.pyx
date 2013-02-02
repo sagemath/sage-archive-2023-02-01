@@ -937,27 +937,48 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         return ans
 
     def add_bigoh(self, absprec):
-       if not PY_TYPE_CHECK(absprec, Integer):
-           absprec = Integer(absprec)
-       cdef pAdicZZpXFMElement ans = self._new_c()
-       cdef ZZ_pX_c tmp
-       cdef ntl_ZZ_pContext_class c
-       cdef unsigned long aprec
-       if self.prime_pow.e == 1:
-           if mpz_fits_ulong_p((<Integer>absprec).value) == 0:
-               if mpz_sgn((<Integer>absprec).value) < 0:
-                   return ans # assumes _new_c() initializes to 0
-               return self # absprec > prec_cap
-           aprec = mpz_get_ui((<Integer>absprec).value)
-           if aprec >= self.prime_pow.prec_cap:
-               return self
-           c = self.prime_pow.get_context(aprec)
-           c.restore_c()
-           ZZ_pX_conv_modulus(tmp, self.value, c.x)
-           ZZ_pX_conv_modulus(ans.value, tmp, (<ntl_ZZ_pContext_class>self.prime_pow.get_top_context()).x)
-       else:
-           raise NotImplementedError
-       return ans
+        """
+        Returns a new element truncated modulo \pi^absprec.
+        This is only implemented for unramified extension at
+        this point.
+
+        INPUT::
+            - self -- a p-adic element
+            - absprec -- an integer
+
+        OUTPUT::
+            - element -- a new element truncated modulo \pi^absprec.
+
+        EXAMPLES::
+            sage: R=Zp(7,4,'fixed-mod')
+            sage: a = R(1+7+7^2);
+            sage: a.add_bigoh(1)
+            1 + O(7^4)
+        """
+        if not PY_TYPE_CHECK(absprec, Integer):
+            absprec = Integer(absprec)
+        if mpz_cmp_ui((<Integer>absprec).value, self.prime_pow.prec_cap) >= 0:
+            return self
+
+        cdef pAdicZZpXFMElement ans = self._new_c()
+        cdef ZZ_pX_c tmp
+        cdef ntl_ZZ_pContext_class c
+        cdef unsigned long aprec
+        if self.prime_pow.e == 1:
+            if mpz_fits_ulong_p((<Integer>absprec).value) == 0:
+                if mpz_sgn((<Integer>absprec).value) < 0:
+                    return ans # assumes _new_c() initializes to 0
+                return self # absprec > prec_cap
+            aprec = mpz_get_ui((<Integer>absprec).value)
+            if aprec >= self.prime_pow.prec_cap:
+                return self
+            c = self.prime_pow.get_context(aprec)
+            c.restore_c()
+            ZZ_pX_conv_modulus(tmp, self.value, c.x)
+            ZZ_pX_conv_modulus(ans.value, tmp, (<ntl_ZZ_pContext_class>self.prime_pow.get_top_context()).x)
+        else:
+            raise NotImplementedError
+        return ans
 
     def _integer_(self, Z=None):
         """

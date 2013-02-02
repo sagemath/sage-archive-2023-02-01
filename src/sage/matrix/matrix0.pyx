@@ -840,6 +840,14 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A[1:3].is_immutable()
             True
 
+        Slices that result in zero rows or zero columns are supported too::
+
+            sage: m = identity_matrix(QQ, 4)[4:,:]
+            sage: m.nrows(), m.ncols()
+            (0, 4)
+            sage: m * vector(QQ, 4)
+            ()
+
         TESTS:
 
         If we're given lists as arguments, we should throw an
@@ -980,7 +988,7 @@ cdef class Matrix(sage.structure.element.Matrix):
                 col_list = [col]
 
             if len(row_list) == 0 or len(col_list) == 0:
-                return self.new_matrix(nrows=0,ncols=0)
+                return self.new_matrix(nrows=len(row_list), ncols=len(col_list))
 
             return self.matrix_from_rows_and_columns(row_list,col_list)
 

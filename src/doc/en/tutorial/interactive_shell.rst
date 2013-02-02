@@ -432,8 +432,8 @@ commands" in IPython:
 For more, type ``%quickref`` to get a quick reference guide to
 IPython.  As of this writing (April 2011), Sage uses version 0.9.1 of
 IPython, and the `documentation for its magic commands
-<http://ipython.scipy.org/doc/rel-0.9.1/html/interactive/reference.html#magic-commands>`_
-is available online.
+<http://ipython.org/ipython-doc/dev/interactive/tutorial.html#magic-functions>`_
+is available online. Various slightly advanced aspects of magic command system are documented `here <http://ipython.org/ipython-doc/stable/interactive/reference.html#magic-command-system>`_ in IPython.
 
 Errors and Exceptions
 =====================

@@ -1598,6 +1598,12 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
             sage: mut_type.class_size()
             Warning: This method uses a formula which has not been proved correct.
             504
+
+        Check that :trac:`14048` is fixed::
+
+            sage: mut_type = QuiverMutationType( ['F',4,(2,1)] )
+            sage: mut_type.class_size()
+            90
         """
         if not self.is_mutation_finite():
             return infinity
@@ -1716,9 +1722,9 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
             elif self.is_affine():
                 return 60
             elif self.is_elliptic():
-                if twist == (1,2):
+                if self._twist == [1,2]:
                     return 90
-                if twist == (1,1) or twist == (2,2):
+                if self._twist == [1,1] or self._twist == [2,2]:
                     return 35
 
         # type G
@@ -1728,9 +1734,9 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract,UniqueRepresent
             elif self.is_affine():
                 return 6
             elif self.is_elliptic():
-                if twist == (1,3):
+                if self._twist == [1,3]:
                     return 7
-                if twist == (1,1) or twist == (3,3):
+                if self._twist == [1,1] or self._twist == [3,3]:
                     return 2
 
         # type X

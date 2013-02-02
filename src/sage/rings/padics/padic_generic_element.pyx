@@ -990,7 +990,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         r = sage.rings.arith.rational_reconstruction(alpha, m)
         return (Rational(p)**self.valuation())*r
 
-    def _shifted_log(self, prec, check = True):
+    def _shifted_log(self, aprec, change_frac = False, check=True):
         r"""
         Returns `-\log(1-x)`.
 
@@ -998,7 +998,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         - ``self`` -- a p-adic element
         - ``prec`` -- integer. Adds terms of the series only up to
-          the indicated power of precision `p^\mbox{prec}`
+          the indicated power of precision `p^\mbox{prec}`. We assume that
+          prec is smaller than absolute precision cap.
+        - ``change_frac`` -- If true, we return the result in the fraction
+          field of self.
 
         OUTPUT:
 
@@ -1008,96 +1011,108 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: r = Qp(5,prec=4)(5)
             sage: r._shifted_log(2)
-            5 + 3*5^2 + 2*5^3 + 2*5^4 + O(5^5)
+            5 + O(5^2)
             sage: r._shifted_log(4)
+            5 + 3*5^2 + 4*5^3 + O(5^4)
+            sage: r._shifted_log(100)
             5 + 3*5^2 + 4*5^3 + 4*5^4 + O(5^5)
+
+            sage: r = Zp(5,prec=4,type='fixed-mod')(5)
+            sage: r._shifted_log(5)
+            5 + 3*5^2 + 4*5^3 + O(5^4)
 
         """
         alpha=self.valuation()
+        if change_frac:
+            R = self.parent().fraction_field()
+        else:
+            R = self.parent()
         if check and alpha<=0:
             raise ValueError, 'Input value (=%s) should have strictly positive valuation' % self
 
-        if hasattr(self.parent(),'_rat_inverses'):
-            inv_integers=self.parent()._rat_inverses
-        else:
-            inv_integers= [QQ(0)]+[1/QQ(ii) for ii in range(1,self.parent().precision_cap()+1)]
-            self.parent()._rat_inverses=inv_integers
-        e=self.parent().ramification_index()
-        p=self.parent().prime()
+        if (aprec>=R.precision_cap()+1):
+            aprec=R.precision_cap()+1
 
-        if hasattr(self,'lift'):
-            x=QQ(self.lift())
-        else:
-            x=self
+        e=R.ramification_index()
+        p=R.prime()
+
+        x=self
 
         # Compute the power series using Horner's method
-        # One needs to add n2 = floor( prec/alpha ) terms for sure,
-        # but some extra terms are needed depending of what n2 is.
-        # At the end of the first loop we calculate the other
-        # coefficients that contribute up to the requested precision.
+        # We are using powerseries of log. We want to add all the terms
+        # x^n/n such that v(x^n/n) <=prec.
+        # If we rewrite n=p^a u with u a padic unit, then we want u<= floor( (prec+a*v(p))/v(x)*p^a)
+        # We calculate this sum as a nested sum: a in [0..inf] and u units in the above range.
+        total=0
+        a=0
+        p2a=1       # p^a
+        x2pa = x    # x^(p^a)
+        if R.is_capped_relative():
+            x2p_p = x**p/p    # x^p/p
+        else:
+            xu=x.unit_part()
+            pu=R(p).unit_part()
+            x2p_p=((xu**p)/(pu))*R.uniformizer_pow(p*x.valuation()-e)
 
-        total=x.parent()(0)
-        n1=1
-        k=0
-        p2k=1
-        n2=p2k*((prec+k*e)/(p2k*alpha)).floor()
-        # The while block gets executed at least once, and usually only
-        # once. Sometimes a few more coefficients are needed to get the
-        # requested precision.
-        while n1 <= n2:
-            new=0
-            xx=x**(p2k)
-            for n in range(n2,n1-1,-p2k):
-                new*=xx
-                try:
-                    new += inv_integers[n]
-                except IndexError:
-                    new +1/QQ(n)
-            # The integer n is not necessarily n1 in subsequent loops,
-            # since n decreases by -p2k at each iteration.
-            new*=x**(n-1)
-            n1=n2+1
-            total+=new
-            k+=1
-            p2k*=p
-            # Compute the next range of coefficients
-            n2=p2k*((prec+k*e)/(p2k*alpha)).floor()
-        try:
-            if hasattr(self,'add_bigoh'):
-                return self.parent()(x*total).add_bigoh(self.precision_absolute())
-            else:
-                return self.parent()(x*total)
-        except:
-            return x*total
+        while True:
+            upper_u = ((aprec+a*e)/(alpha*p2a)).floor()
+            if upper_u==0:
+                break
+            inner_sum = R(0)
+            for u in xrange(upper_u,0,-1):
+                # We want u to be a p-adic unit
+                if u%p==0:
+                    new_term = 0
+                else:
+                    new_term = 1/R(u)
 
+                # This hack is to deal with rings that don't lift to fields
+                if u>1 or x2p_p.is_zero():
+                    inner_sum = (inner_sum+new_term)*x2pa
+                else:
+                    inner_sum = (inner_sum+new_term)*(x2p_p**a)*(x**(p2a-a*p))
 
+            total += inner_sum
 
-    def log(self, branch = None,  prec = None):
+            # Now increase the power of p
+            a += 1
+            p2a = p2a*p
+            x2pa = x2pa**p
+
+        if hasattr(self,'add_bigoh'):
+            return R(total).add_bigoh(aprec)
+        else:
+            return R(total)
+
+    def log(self, branch = None,  aprec = None, change_frac=False):
         r"""
-        Compute the `p`-adic logarithm of any unit in `\ZZ_p`. (See below for
+        Compute the `p`-adic logarithm of any unit in R (a p-adic ring). (See below for
         normalization.)
 
         The usual power series for log with values in the additive group of
-        `\ZZ_p` only converges for 1-units (units congruent to 1 modulo `p`).
+        `R` only converges for 1-units (units congruent to 1 modulo `p`).
         However, there is a unique extension of log to a homomorphism defined
         on all the units. If `u = a \cdot v` is a unit with `v \equiv 1
         \pmod{p}` and `a` a Teichmuller representative, then we define `log(u)
         = log(v)`.  This is the correct extension because the units `U` of
-        `\ZZ_p` split as a product `U = V \times \langle w \rangle`, where `V`
-        is the subgroup of 1-units and `w` is a `(p-1)`-st root of unity.  The
+        `R` split as a product `U = V \times \langle w \rangle`, where `V`
+        is the subgroup of 1-units and `w` is fundamental root of unity.  The
         `\langle w \rangle` factor is torsion, so must go to 0 under any
-        homomorphism to the torsion free group `(\ZZ_p, +)`.
+        homomorphism to the torsion free group `(Frac(R), +)`.
 
         INPUTS:
 
         - ``self`` -- a `p`-adic element
         - ``branch`` -- A choice of branch, i.e. a choice of logarithm of the
           uniformizer.  This choice can be made arbitrarily.
-        - ``prec`` -- integer (default: None) if specified, computes only up to
+        - ``aprec`` -- integer (default: None) if specified, computes only up to
           the indicated absolute precision indicated as a power of `p`. This parameter
           is at most the precision cap of the parent, and will be ignored if larger.
           The precision of ``self`` is left unchanged.
-
+        - ``change_frac`` -- In general the codomain of log should be in the p-adic field,
+          however, for most nieghborhoods of 1, it lies in the ring of integers. This flag
+          decides if the codomain should be the same as the input (default) or should it
+          change to the fraction field of the input.
 
         NOTES:
 
@@ -1208,9 +1223,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: R = ZpCA(7,10)
             sage: x = R(123456789)/R(3); x
             5 + 3*7^2 + 4*7^3 + 3*7^4 + 5*7^5 + 6*7^6 + 7^9 + O(7^10)
-            sage: x.log(prec = 5)
+            sage: x.log(aprec = 5)
             7 + 3*7^2 + 4*7^3 + 3*7^4 + O(7^5)
-            sage: x.log(prec = 7)
+            sage: x.log(aprec = 7)
             7 + 3*7^2 + 4*7^3 + 3*7^4 + 7^5 + 3*7^6 + O(7^7)
             sage: x.log()
             7 + 3*7^2 + 4*7^3 + 3*7^4 + 7^5 + 3*7^6 + 7^7 + 3*7^8 + 4*7^9 + O(7^10)
@@ -1223,6 +1238,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
         - Genya Zaytman (2007-02-14): adapted to new p-adic class
         - Amnon Besser, Marc Masdeu (2012-02-21): complete rewrite, valid for
           generic p-adic rings.
+        - Soroosh Yazdani (2013-02-1): Fixed a precision issue in _shifted_log.
+          This should really fix the issue with divisions.
         """
         if self.is_zero():
             return ValueError,'Log is not defined at zero'
@@ -1237,7 +1254,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 try:
                     u_log=self.parent()._log_u
                 except AttributeError:
-                    u_log=-((self.parent().uniformizer()**e)/p).log(prec = self.parent().precision_cap())
+                    u_log=-((self.parent().uniformizer()**e)/p).log(aprec = self.parent().precision_cap())
                     self.parent()._log_u=u_log
                 unif_log=(branch-u_log)/e
             else:
@@ -1250,18 +1267,19 @@ cdef class pAdicGenericElement(LocalGenericElement):
         if (y-1).valuation()>0:
             denom=Integer(1)
         else:
-            y=y**(q-1)
+            y=y**(q-1) # Is it better to multiply it by Teichmuller element?
             denom=Integer(q-1)
 
         # if prec is None or prec > self.parent().precision_cap():
         #     prec=self.parent().precision_cap()
-        if prec is None or prec > self.precision_absolute():
-            prec=self.precision_absolute()
+        if aprec is None or aprec > y.precision_absolute():
+            aprec=y.precision_absolute()
 
 
-        # Need to be able to carry computations in higher precision.
+        # Cute optimization, however we need to be able to carry computations
+        # in higher precision.
         # Otherwise this will lose precision, so we deactivate it for now.
-        if False:
+        r"""
             k=0
             y1 = y**p
             while (y1-1).valuation()>(y-1).valuation():
@@ -1269,16 +1287,19 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 k+=1
                 denom*=p
                 y1 = y**p
-            return total-((1-y)._shifted_log(prec = prec+1+k, check = False))/denom
+            return total-((1-y)._shifted_log(aprec = aprec+1+k, check = False))/denom
+        """
 
+        retval = total-((1-y)._shifted_log(aprec = aprec, change_frac=change_frac))/denom
+        if not(change_frac):
+            retval=self.parent()(retval)
         if hasattr(self,'add_bigoh'):
-            return (total-((1-y)._shifted_log(prec = prec+1, check = False))/denom).add_bigoh(prec)
+            return retval.add_bigoh(aprec)
         else:
-            return total-((1-y)._shifted_log(prec = prec+1, check = False))/denom
+            return retval
 
 
-
-    def exp(self, prec = None):
+    def exp(self, aprec = None):
         r"""
         Compute the `p`-adic exponential of any element of `\ZZ_p` where the
         series converges.
@@ -1355,8 +1376,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
         p=self.parent().prime()
         if self.valuation()<=QQ(1)/(p-1):
             raise ValueError, 'Exponential does not converge for that input.'
-        if prec is None or prec > self.parent().precision_cap():
-            prec=self.parent().precision_cap()
+        if aprec is None or aprec > self.parent().precision_cap():
+            aprec=self.parent().precision_cap()
 
         if hasattr(self,'lift'):
             y=QQ(self.lift())
@@ -1367,9 +1388,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 exp_p=self.parent()(p)._exp(self.parent().precision_cap())
                 self.parent()._exp_p=exp_p
             return (exp_p**Integer(y/p)).add_bigoh(self.precision_absolute())
-        return self._exp(prec)
+        return self._exp(aprec)
 
-    def _exp(self, prec):
+    def _exp(self, aprec):
         r"""
         Does the actual computation of the exponential power series, using
         Horner's evaluation and only one division.
@@ -1377,7 +1398,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         INPUT:
 
         - ``self`` -- a `p`-adic element
-        - ``prec`` -- the precison to which to compute the exponential
+        - ``aprec`` -- the precison to which to compute the exponential
 
         EXAMPLES::
 
@@ -1390,35 +1411,60 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         - Genya Zaytman (2007-02-15)
         - Amnon Besser, Marc Masdeu (2012-02-23): Complete rewrite
+        - Soroosh Yazdani (2013-02-01): Added the code for capped relative
         """
+        R=self.parent()
         p=self.parent().prime()
         e=self.parent().ramification_index()
         val=self.valuation()
         # Copied the bound from a previous implementation
-        cdef long max_term = ((p-1)*(prec-1))//((p-1)*val - 1) + 1
+        cdef long max_term = ((p-1)*(aprec-1))//((p-1)*val - 1) + 1
         cdef long n
+
         if hasattr(self,'lift'):
-            x=QQ(self.lift())
+            x=self.lift()
         else:
             x=self
-        term=x.parent()(1)
-        factor=Integer(1)
-        for n in range(max_term,0,-1):
-            factor *= n
-            term *= x
-            term += factor
-        if not term.parent() is QQ:
-            if e ==1 :
-                vfact=factor.valuation(p)
-            else:
-                vfact=self.parent()(factor).ordp()
-            fact1=factor/(p**vfact)
-            term1=(term<<(-e*vfact)).lift_to_precision(self.parent().precision_cap())
-            return term1 / fact1
+
+        # If we can do this over integers, then so much the better.
+        if R.is_capped_relative() or hasattr(self,'lift'):
+            term=1
+            factor=Integer(1)
+            for n in range(max_term,0,-1):
+                factor *= n
+                term *= x
+                term += factor
+
+            return R(term/factor)
         else:
-            fact1=factor
-            term1=term
-            return self.parent()(term1/fact1)
+            # We do what capped_rel would have done.
+            xu = self.unit_part()
+            xv = val
+            pu = R(p).unit_part()
+            fact_u = R(1)
+            fact_v = 0
+            pv = e
+            cur_u = R(1)
+            cur_v = 0
+            for n in xrange(max_term,0,-1):
+                # First we multiply the terms. The units multiply and
+                # and the valuations add.
+                if n%p!=0:
+                    fact_u *= n
+                else:
+                    valn = Integer(n).valuation(p)
+                    fact_v += e*valn
+                    fact_u *= R(n//(p**valn)).unit_part()
+                cur_u *= xu
+                cur_v += xv
+
+                # Now we add them.
+                new_v = min(cur_v,fact_v)
+                cur_u = cur_u*R.uniformiser_pow(cur_v-new_v)+ fact_u*R.uniformiser_pow(fact_v-new_v)
+                cur_v = new_v
+
+            return (cur_u/fact_u)*R.uniformiser_pow(cur_v-fact_v)
+
 
     def square_root(self, extend = True, all = False):
         r"""

@@ -109,7 +109,7 @@ To compute the fourth derivative of :math:`\sin(x^2)`:
     16*x^4*sin(x^2) - 48*x^2*cos(x^2) - 12*sin(x^2)
 
 To compute the partial derivatives of :math:`x^2+17y^2` with
-respect to *x* and *y*, respectively:
+respect to `x` and `y`, respectively:
 
 ::
 
@@ -210,7 +210,7 @@ the notation :math:`x=x_{1}`, :math:`y=x_{2}`):
 
 This is hard to read, but it says that
 
-.. math:: -2x'(0) + 2s^2*X(s) - 2sx(0) - 2Y(s) + 6X(s) = 0
+.. math:: -2x'(0) + 2s^2 \cdot X(s) - 2sx(0) - 2Y(s) + 6X(s) = 0
 
 
 (where the Laplace transform of a lower case function like
@@ -303,30 +303,30 @@ give :math:`f(x,y(x))\approx
 \frac{y(x+h)-y(x)}{h}`. Now solve
 for :math:`y(x+h)`:
 
-.. math::   y(x+h) \approx y(x) + h*f(x,y(x)).
+.. math::   y(x+h) \approx y(x) + h\cdot f(x,y(x)).
 
 
-If we call :math:`h f(x,y(x))` the "correction term" (for lack of
+If we call :math:`h \cdot f(x,y(x))` the "correction term" (for lack of
 anything better), call :math:`y(x)` the "old value of *y*", and
 call :math:`y(x+h)` the "new value of *y*", then this
 approximation can be re-expressed as
 
-.. math::   y_{new} \approx y_{old} + h*f(x,y_{old}).
+.. math::   y_{new} \approx y_{old} + h\cdot f(x,y_{old}).
 
 
-If we break the interval from *a* to *b* into *n* steps, so that
+If we break the interval from `a` to `b` into `n` steps, so that
 :math:`h=\frac{b-a}{n}`, then we can record the information for
 this method in a table.
 
-============== ==================   ================
-:math:`x`      :math:`y`            :math:`hf(x,y)`
-============== ==================   ================
-:math:`a`      :math:`c`            :math:`hf(a,c)`
-:math:`a+h`    :math:`c+hf(a,c)`    ...
+============== =======================   =====================
+:math:`x`      :math:`y`                 :math:`h\cdot f(x,y)`
+============== =======================   =====================
+:math:`a`      :math:`c`                 :math:`h\cdot f(a,c)`
+:math:`a+h`    :math:`c+h\cdot f(a,c)`         ...
 :math:`a+2h`   ...
 ...
-:math:`b=a+nh` ???                  ...
-============== ==================   ================
+:math:`b=a+nh` ???                             ...
+============== =======================   =====================
 
 
 The goal is to fill out all the blanks of the table, one row at a

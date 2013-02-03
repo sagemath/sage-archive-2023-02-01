@@ -729,6 +729,11 @@ def integral(x, *args, **kwds):
         sage: t.simplify_exp()  # long time
         1/2*sqrt(pi)*e^(1/4)
 
+    An integral which used to return -1 before maxima 5.28. See :trac:`12842`::
+
+        sage: f = e^(-2*x)/sqrt(1-e^(-2*x))
+        sage: integrate(f, x, 0, infinity)
+        1
 
     """
     if hasattr(x, 'integral'):

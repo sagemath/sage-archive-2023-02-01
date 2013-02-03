@@ -21,6 +21,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent
 from sage.categories.crystals import Crystals
+from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.categories.finite_crystals import FiniteCrystals
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.rings.integer import Integer
@@ -128,7 +129,10 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
         if self._cartan_type.is_affine():
             self.extended = True
-            Parent.__init__(self, category = Crystals())
+            if all(i>=0 for i in starting_weight):
+                Parent.__init__(self, category = HighestWeightCrystals())
+            else:
+                Parent.__init__(self, category = Crystals())
         else:
             self.extended = False
             Parent.__init__(self, category = FiniteCrystals())

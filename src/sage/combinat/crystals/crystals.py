@@ -30,12 +30,12 @@ of the type `T` weight lattice such that:
 
 
 This crystal actually models a representation of a Lie algebra if
-it satisfies some further local conditions due to Stembridge [St2003].
+it satisfies some further local conditions due to Stembridge [St2003]_.
 
 REFERENCES:
 
-    .. [St2003] J. Stembridge, *A local characterization of simply-laced crystals*,
-       Trans. Amer. Math. Soc. 355 (2003), no. 12, 4807-4823.
+.. [St2003] J. Stembridge, *A local characterization of simply-laced crystals*,
+   Trans. Amer. Math. Soc. 355 (2003), no. 12, 4807-4823.
 
 EXAMPLES:
 
@@ -96,27 +96,18 @@ See also the categories :class:`Crystals`, :class:`ClassicalCrystals`,
 :class:`FiniteCrystals`, :class:`HighestWeightCrystals`.
 
 
-Caveat: this crystal library, although relatively featureful for
-classical crystals, is still in an early development stage, and the
-syntax details may be subject to changes.
+.. TODO::
 
-TODO:
+    -  Vocabulary and conventions:
 
--  Vocabulary and conventions:
+       -  For a classical crystal: connected / highest weight /
+          irreducible
 
-   -  For a classical crystal: connected / highest weight /
-      irreducible
+       -  ...
 
-   -  ...
+    -  Layout instructions for plot() for rank 2 types
 
--  More introductory doc explaining the mathematical background
-
--  Layout instructions for plot() for rank 2 types
-
--  Littelmann paths and/or alcove paths (this would give us the
-   exceptional types)
-
--  RestrictionOfCrystal
+    -  RestrictionOfCrystal
 
 
 Most of the above features (except Littelmann/alcove paths) are in
@@ -153,24 +144,24 @@ inspiration.
 from sage.combinat.backtrack import GenericBacktracker
 
 class CrystalBacktracker(GenericBacktracker):
-    def __init__(self, crystal):
-        """
-        Time complexity: `O(nf)` amortized for each produced
-        element, where `n` is the size of the index set, and f is
+    def __init__(self, crystal, index_set=None):
+        r"""
+        Time complexity: `O(nF)` amortized for each produced
+        element, where `n` is the size of the index set, and `F` is
         the cost of computing `e` and `f` operators.
 
-        Memory complexity: O(depth of the crystal)
+        Memory complexity: `O(D)` where `D` is the depth of the crystal.
 
         Principle of the algorithm:
 
-        Let C be a classical crystal. It's an acyclic graph where all
+        Let `C` be a classical crystal. It's an acyclic graph where all
         connected component has a unique element without predecessors (the
         highest weight element for this component). Let's assume for
-        simplicity that C is irreducible (i.e. connected) with highest
-        weight element u.
+        simplicity that `C` is irreducible (i.e. connected) with highest
+        weight element `u`.
 
         One can define a natural spanning tree of `C` by taking
-        `u` as rot of the tree, and for any other element
+        `u` as the root of the tree, and for any other element
         `y` taking as ancestor the element `x` such that
         there is an `i`-arrow from `x` to `y` with
         `i` minimal. Then, a path from `u` to `y`
@@ -182,7 +173,7 @@ class CrystalBacktracker(GenericBacktracker):
         search walk through this spanning tree. In practice, this can be
         achieved recursively as follow: take an element `x`, and
         consider in turn each successor `y = f_i(x)`, ignoring
-        those such that `y = f_j(x')` for some `x'` and
+        those such that `y = f_j(x^{\prime})` for some `x^{\prime}` and
         `j<i` (this can be tested by computing `e_j(y)`
         for `j<i`).
 
@@ -193,13 +184,20 @@ class CrystalBacktracker(GenericBacktracker):
             sage: CB = CrystalBacktracker(C)
             sage: len(list(CB))
             1617
+            sage: CB = CrystalBacktracker(C, [1,2])
+            sage: len(list(CB))
+            8
         """
         GenericBacktracker.__init__(self, None, None)
         self._crystal = crystal
+        if index_set is None:
+            self._index_set = crystal.index_set()
+        else:
+            self._index_set = index_set
 
     def _rec(self, x, state):
         """
-        Returns an iterator for the (immediate) children of x in the search
+        Return an iterator for the (immediate) children of ``x`` in the search
         tree.
 
         EXAMPLES::
@@ -218,13 +216,13 @@ class CrystalBacktracker(GenericBacktracker):
             return
 
         # Run through the children y of x
-        for i in self._crystal.index_set():
+        for i in self._index_set:
             y = x.f(i)
             if y is None:
                 continue
             # Ignore those which can be reached by an arrow with smaller label
             hasParent = False
-            for j in x.index_set():
+            for j in self._index_set:
                 if j == i:
                     break
                 if not y.e(j) is None:
@@ -235,3 +233,4 @@ class CrystalBacktracker(GenericBacktracker):
 
             # yield y and all elements further below
             yield y, "n/a", True
+

@@ -846,7 +846,11 @@ class TransitiveIdealGraded(TransitiveIdeal):
     INPUT:
 
     - ``relation``: a function (or callable) returning a list (or iterable)
+
     - ``generators``: a list (or iterable)
+
+    - ``max_depth`` -- (Default: infinity) Specifies the maximal depth to
+      which elements are computed
 
     Returns the set `S` of elements that can be obtained by repeated
     application of ``relation`` on the elements of ``generators``.
@@ -898,7 +902,7 @@ class TransitiveIdealGraded(TransitiveIdeal):
           [[3, 1, 2, 4], [2, 1, 3, 4], [2, 1, 4, 3], [3, 2, 1, 4], [2, 3, 1, 4], [3, 1, 4, 2], [2, 3, 4, 1], [3, 4, 1, 2], [3, 2, 4, 1], [2, 4, 1, 3], [2, 4, 3, 1], [4, 3, 1, 2], [4, 2, 1, 3], [3, 4, 2, 1], [4, 2, 3, 1], [4, 3, 2, 1]]
 
     """
-    def __init__(self, succ, generators):
+    def __init__(self, succ, generators, max_depth=float("inf")):
         r"""
         TESTS::
 
@@ -911,10 +915,11 @@ class TransitiveIdealGraded(TransitiveIdeal):
         """
         self._succ = succ
         self._generators = generators
+        self._max_depth = max_depth
 
     def __iter__(self):
         r"""
-        Returns an iterator on the elements of self.
+        Returns an iterator on the elements of ``self``.
 
         TESTS::
 
@@ -929,10 +934,14 @@ class TransitiveIdealGraded(TransitiveIdeal):
             sage: C = TransitiveIdeal(lambda x: [], (1,2))
             sage: list(C) # indirect doctest
             [1, 2]
+
+            sage: [i for i in TransitiveIdealGraded(lambda i: [i+1] if i<10 else [], [0], max_depth=1).__iter__()]
+            [0, 1]
         """
         current_level = self._generators
         known = set(current_level)
-        while len(current_level) > 0:
+        depth = 0
+        while len(current_level) > 0 and depth <= self._max_depth:
             next_level = set()
             for x in current_level:
                 yield x
@@ -942,4 +951,6 @@ class TransitiveIdealGraded(TransitiveIdeal):
                     next_level.add(y)
                     known.add(y)
             current_level = next_level
+            depth += 1
         return
+

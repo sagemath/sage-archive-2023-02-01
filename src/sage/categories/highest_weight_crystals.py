@@ -152,6 +152,35 @@ class HighestWeightCrystals(Category_singleton):
             """
             return [g for g in self if g.is_lowest_weight()]
 
+        def __iter__(self, index_set=None, max_depth = float("inf")):
+            """
+            Returns the iterator of ``self``.
+
+            INPUT:
+
+            - ``index_set`` -- (Default: ``None``) The index set; if ``None``
+              then use the index set of the crystal
+
+            - ``max_depth`` -- (Default: infinity) The maximum depth to build
+
+            EXAMPLES::
+
+                sage: C = CrystalOfLSPaths(['A',2,1],[0,1,0])
+                sage: [p for p in C.__iter__(max_depth=3)]
+                [(Lambda[1],), (Lambda[0] - Lambda[1] + Lambda[2],), (2*Lambda[0] - Lambda[2],),
+                (-Lambda[0] + 2*Lambda[2] - delta,),
+                (1/2*Lambda[0] + Lambda[1] - Lambda[2] - 1/2*delta, -1/2*Lambda[0] + Lambda[2] - 1/2*delta),
+                (-Lambda[0] + Lambda[1] + 1/2*Lambda[2] - delta, Lambda[0] - 1/2*Lambda[2])]
+                sage: [p for p in C.__iter__(index_set=[0, 1], max_depth=3)]
+                [(Lambda[1],), (Lambda[0] - Lambda[1] + Lambda[2],), (-Lambda[0] + 2*Lambda[2] - delta,)]
+            """
+            if index_set is None:
+                index_set = self.index_set()
+            from sage.combinat.backtrack import TransitiveIdealGraded
+            return TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set],
+                                         self.module_generators, max_depth).__iter__()
+
     class ElementMethods:
 
         pass
+

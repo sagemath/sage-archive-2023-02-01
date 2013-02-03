@@ -188,9 +188,16 @@ class Crystals(Category_singleton):
             """
             return self.weight_lattice_realization().fundamental_weights()
 
-        def __iter__(self):
+        def __iter__(self, index_set=None, max_depth=float('inf')):
             """
             Returns the iterator of ``self``.
+
+            INPUT:
+
+            - ``index_set`` -- (Default: ``None``) The index set; if ``None``
+              then use the index set of the crystal
+
+            - ``max_depth`` -- (Default: infinity) The maximum depth to build
 
             EXAMPLES::
 
@@ -208,15 +215,104 @@ class Crystals(Category_singleton):
                 (Lambda[1] - Lambda[2],)
                 sage: g.next()
                 (Lambda[0] - Lambda[1],)
-            """
-            from sage.combinat.backtrack import TransitiveIdeal
-            return TransitiveIdeal(lambda x: [x.f(i) for i in self.index_set()]
-                                           + [x.e(i) for i in self.index_set()], self.module_generators).__iter__()
+                sage: h = C.__iter__(index_set=[1,2])
+                sage: h.next()
+                (-Lambda[0] + Lambda[2],)
+                sage: h.next()
+                (Lambda[1] - Lambda[2],)
+                sage: h.next()
+                (Lambda[0] - Lambda[1],)
+                sage: h.next()
+                Traceback (most recent call last):
+                ...
+                StopIteration
+                sage: g = C.__iter__(max_depth=1)
+                sage: g.next()
+                (-Lambda[0] + Lambda[2],)
+                sage: g.next()
+                (Lambda[1] - Lambda[2],)
+                sage: g.next()
+                (Lambda[0] - Lambda[1] + delta,)
+                sage: h.next()
+                Traceback (most recent call last):
+                ...
+                StopIteration
 
+            """
+            if index_set is None:
+                index_set = self.index_set()
+            if max_depth < float('inf'):
+                from sage.combinat.backtrack import TransitiveIdealGraded
+                return TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set]
+                                                     + [x.e(i) for i in index_set],
+                                             self.module_generators, max_depth).__iter__()
+            from sage.combinat.backtrack import TransitiveIdeal
+            return TransitiveIdeal(lambda x: [x.f(i) for i in index_set]
+                                           + [x.e(i) for i in index_set],
+                                   self.module_generators).__iter__()
+
+        def subcrystal(self, index_set=None, generators=None, max_depth=float("inf"),
+                       direction="both"):
+            r"""
+            Construct the subcrystal from ``generators`` using `e_i` and `f_i`
+            for all `i` in ``index_set``.
+
+            INPUT:
+
+            - ``index_set`` -- (Default: ``None``) The index set; if ``None``
+              then use the index set of the crystal
+
+            - ``generators`` -- (Default: ``None``) The list of generators; if
+              ``None`` then use the module generators of the crystal
+
+            - ``max_depth`` -- (Default: infinity) The maximum depth to build
+
+            - ``direction`` -- (Default: ``'both'``) The direction to build
+              the subcrystal. It can be one of the following:
+
+              - ``'both'`` - Using both `e_i` and `f_i`
+              - ``'upper'`` - Using `e_i`
+              - ``'lower'`` - Using `f_i`
+
+            EXAMPLES::
+
+                sage: C = KirillovReshetikhinCrystal(['A',3,1], 1, 2)
+                sage: S = list(C.subcrystal(index_set=[1,2])); S
+                [[[1, 1]], [[1, 2]], [[1, 3]], [[2, 2]], [[2, 3]], [[3, 3]]]
+                sage: C.cardinality()
+                10
+                sage: len(S)
+                6
+                sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)]))
+                [[[1, 4]], [[2, 4]], [[1, 3]], [[2, 3]]]
+                sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)], max_depth=1))
+                [[[1, 4]], [[2, 4]], [[1, 3]]]
+                sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)], direction='upper'))
+                [[[1, 4]], [[1, 3]]]
+                sage: list(C.subcrystal(index_set=[1,3], generators=[C(1,4)], direction='lower'))
+                [[[1, 4]], [[2, 4]]]
+            """
+            if index_set is None:
+                index_set = self.index_set()
+            if generators is None:
+                generators = self.module_generators
+            from sage.combinat.backtrack import TransitiveIdealGraded
+
+            if direction == 'both':
+                return TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set]
+                                                     + [x.e(i) for i in index_set],
+                                             generators, max_depth)
+            if direction == 'upper':
+                return TransitiveIdealGraded(lambda x: [x.e(i) for i in index_set],
+                                             generators, max_depth)
+            if direction == 'lower':
+                return TransitiveIdealGraded(lambda x: [x.f(i) for i in index_set],
+                                             generators, max_depth)
+            raise ValueError("direction must be either 'both', 'upper', or 'lower'")
 
         def crystal_morphism(self, g, index_set = None, automorphism = lambda i : i, direction = 'down', direction_image = 'down',
                              similarity_factor = None, similarity_factor_domain = None, cached = False, acyclic = True):
-            """
+            r"""
             Constructs a morphism from the crystal ``self`` to another crystal.
             The input `g` can either be a function of a (sub)set of elements of self to
             element in another crystal or a dictionary between certain elements.
@@ -359,9 +455,16 @@ class Crystals(Category_singleton):
             else:
                 return CachedFunction(morphism)
 
-        def digraph(self):
+        def digraph(self, subset=None, index_set=None):
             """
-            Returns the DiGraph associated to self.
+            Returns the DiGraph associated to ``self``.
+
+            INPUT:
+
+            - ``subset`` -- (Optional) A subset of vertices for
+              which the digraph should be constructed
+
+            - ``index_set`` -- (Optional) The index set to draw arrows
 
             EXAMPLES::
 
@@ -390,21 +493,72 @@ class Crystals(Category_singleton):
                 sage: C.cartan_type()._index_set_coloring[4]="purple"
                 sage: view(G, pdflatex=True, tightpage=True)  #optional - dot2tex graphviz
 
+            Here is an example of how to take the top part up to a given depth of an infinite dimensional
+            crystal::
+
+                sage: C = CartanType(['C',2,1])
+                sage: La = C.root_system().weight_lattice().fundamental_weights()
+                sage: T = HighestWeightCrystal(La[0])
+                sage: S = [b for b in T.__iter__(max_depth=3)]
+                sage: G = T.digraph(subset=S); G
+                Digraph on 5 vertices
+                sage: G.vertices()
+                [(1/2*Lambda[0] + Lambda[1] - Lambda[2] - 1/2*delta, -1/2*Lambda[0] + Lambda[1] - 1/2*delta),
+                (-Lambda[0] + 2*Lambda[1] - delta,), (Lambda[0] - 2*Lambda[1] + 2*Lambda[2] - delta,),
+                (1/2*Lambda[0] - Lambda[1] + Lambda[2] - 1/2*delta, -1/2*Lambda[0] + Lambda[1] - 1/2*delta), (Lambda[0],)]
+
+            Here is a way to construct a picture of a Demazure crystal using
+            the ``subset`` option::
+
+                sage: B = CrystalOfTableaux(['A',2], shape=[2,1])
+                sage: C = CombinatorialFreeModule(QQ,B)
+                sage: t = B.highest_weight_vector()
+                sage: b = C(t)
+                sage: D = B.demazure_operator(b,[2,1]); D
+                B[[[1, 1], [3]]] + B[[[1, 2], [2]]] + B[[[1, 3], [2]]] + B[[[1, 3], [3]]] + B[[[1, 1], [2]]]
+                sage: G = B.digraph(subset=D.support())
+                sage: G.vertices()
+                [[[1, 1], [2]], [[1, 2], [2]], [[1, 3], [2]], [[1, 1], [3]], [[1, 3], [3]]]
+                sage: view(G, pdflatex=True, tightpage=True)  #optional - dot2tex graphviz
+
+            We can also choose to display particular arrows using the
+            ``index_set`` option::
+
+                sage: C = KirillovReshetikhinCrystal(['D',4,1], 2, 1)
+                sage: G = C.digraph(index_set=[1,3])
+                sage: len(G.edges())
+                20
+                sage: view(G, pdflatex=True, tightpage=True)  #optional - dot2tex graphviz
+
             TODO: add more tests
             """
             from sage.graphs.all import DiGraph
+            from sage.categories.highest_weight_crystals import HighestWeightCrystals
             d = {}
-            for x in self:
+            if self in HighestWeightCrystals:
+                f = lambda (u,v,label): ({})
+            else:
+                f = lambda (u,v,label): ({"backward":label ==0})
+
+            # Parse optional arguments
+            if subset is None:
+                subset = self
+            if index_set is None:
+                index_set = self.index_set()
+
+            for x in subset:
                 d[x] = {}
-                for i in self.index_set():
+                for i in index_set:
                     child = x.f(i)
-                    if child is None:
+                    if child is None or child not in subset:
                         continue
                     d[x][child]=i
             G = DiGraph(d)
             if have_dot2tex():
-                G.set_latex_options(format="dot2tex", edge_labels = True, color_by_label = self.cartan_type()._index_set_coloring,
-                                    edge_options = lambda (u,v,label): ({"backward":label ==0}))
+                G.set_latex_options(format="dot2tex",
+                                    edge_labels = True,
+                                    color_by_label = self.cartan_type()._index_set_coloring,
+                                    edge_options = f)
             return G
 
         def latex_file(self, filename):
@@ -460,8 +614,7 @@ class Crystals(Category_singleton):
                 print "dot2tex not available.  Install after running \'sage -sh\'"
                 return
             G=self.digraph()
-            G.set_latex_options(format="dot2tex", edge_labels = True,
-                                edge_options = lambda (u,v,label): ({"backward":label ==0}), **options)
+            G.set_latex_options(**options)
             return G._latex_()
 
         latex = _latex_

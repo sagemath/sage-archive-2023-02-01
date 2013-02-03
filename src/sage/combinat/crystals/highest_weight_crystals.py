@@ -22,6 +22,7 @@ from sage.structure.parent import Parent
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.crystals.letters import CrystalOfLetters
 from sage.combinat.crystals.tensor_product import TensorProductOfCrystals, CrystalOfWords
+from sage.combinat.crystals.littelmann_path import CrystalOfLSPaths
 
 
 def HighestWeightCrystal(dominant_weight):
@@ -31,9 +32,6 @@ def HighestWeightCrystal(dominant_weight):
     This is currently only implemented for crystals of type `E_6` and `E_7`.
 
     TODO: implement highest weight crystals for classical types `A_n`, `B_n`, `C_n`, `D_n` using tableaux.
-
-    TODO: implement the Littelmann path model or alcove model to obtain a realization
-    for any highest weight crystal of given type (even affine).
 
     EXAMPLES::
 
@@ -81,6 +79,14 @@ def HighestWeightCrystal(dominant_weight):
         sage: T = HighestWeightCrystal(La[7])
         sage: T.cardinality()
         56
+
+        sage: C = CartanType(['C',2,1])
+        sage: La = C.root_system().weight_lattice().fundamental_weights()
+        sage: T = HighestWeightCrystal(La[1])
+        sage: [p for p in T.__iter__(max_depth=3)]
+        [(Lambda[1],), (Lambda[0] - Lambda[1] + Lambda[2],), (-Lambda[0] + Lambda[1] + Lambda[2] - delta,),
+        (Lambda[0] + Lambda[1] - Lambda[2],), (-Lambda[0] + 3*Lambda[1] - Lambda[2] - delta,), (2*Lambda[0] - Lambda[1],),
+        (-Lambda[1] + 2*Lambda[2] - delta,)]
     """
     cartan_type = dominant_weight.parent().cartan_type()
     if cartan_type.is_finite() and cartan_type.type() in ['A','B','C','D']:
@@ -89,6 +95,8 @@ def HighestWeightCrystal(dominant_weight):
         return FiniteDimensionalHighestWeightCrystal_TypeE6(dominant_weight)
     elif cartan_type == CartanType(['E',7]):
         return FiniteDimensionalHighestWeightCrystal_TypeE7(dominant_weight)
+    elif cartan_type.is_affine():
+        return CrystalOfLSPaths(cartan_type,[dominant_weight[i] for i in cartan_type.index_set()])
     else:
         raise NotImplementedError
 

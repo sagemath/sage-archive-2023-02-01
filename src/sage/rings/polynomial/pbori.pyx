@@ -7573,10 +7573,10 @@ def ll_red_nf_noredsb_single_recursive_call(BooleanPolynomial p, BooleSet reduct
     t = pb_ll_red_nf_noredsb_single_recursive_call(p._pbpoly, reductors._pbset)
     return new_BP_from_PBPoly(p._parent, t)
 
-def mod_mon_set(BooleSet as, BooleSet vs):
+def mod_mon_set(BooleSet a_s, BooleSet v_s):
     cdef PBSet b
-    b = pb_mod_mon_set((<BooleSet>as)._pbset, (<BooleSet>vs)._pbset)
-    return new_BS_from_PBSet(b, as._ring)
+    b = pb_mod_mon_set(a_s._pbset, v_s._pbset)
+    return new_BS_from_PBSet(b, a_s._ring)
 
 
 def parallel_reduce(BooleanPolynomialVector inp, GroebnerStrategy strat, \

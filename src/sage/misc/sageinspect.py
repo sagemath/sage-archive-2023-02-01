@@ -112,14 +112,14 @@ Unfortunately, there is no argspec extractable from builtins::
     sage: sage_getdef(str.find, 'find')
     'find( [noargspec] )'
 
-By :trac:`9976`, introspection also works for interactively
+By :trac:`9976` and :trac:`14017`, introspection also works for interactively
 defined Cython code, and with rather tricky argument lines::
 
-    sage: cython('def foo(x, a=\')"\', b={not (2+1==3):\'bar\'}): return')
+    sage: cython('def foo(unsigned int x=1, a=\')"\', b={not (2+1==3):\'bar\'}, *args, **kwds): return')
     sage: print sage_getsource(foo)
-    def foo(x, a=')"', b={not (2+1==3):'bar'}): return
+    def foo(unsigned int x=1, a=')"', b={not (2+1==3):'bar'}, *args, **kwds): return
     sage: sage_getargspec(foo)
-    ArgSpec(args=['x', 'a', 'b'], varargs=None, keywords=None, defaults=(')"', {False: 'bar'}))
+    ArgSpec(args=['x', 'a', 'b'], varargs='args', keywords='kwds', defaults=(1, ')"', {False: 'bar'}))
 
 """
 
@@ -171,6 +171,9 @@ File:\ (?P<FILENAME>.*?)                    # match File: then filename
 (?P<ORIGINAL>.*)                            # the original docstring is the end
 \Z                                          # anchor to the end of the string
 ''', re.MULTILINE | re.DOTALL | re.VERBOSE)
+
+# Parse Python identifiers
+__identifier_re = re.compile(r"^[^\d\W]\w*")
 
 def _extract_embedded_position(docstring):
     r"""
@@ -717,7 +720,141 @@ def _grep_first_pair_of_parentheses(s):
             escaped = not escaped
         else:
             escaped = False
-    raise SyntaxError, "The given string does not contain balanced parentheses"
+    raise SyntaxError("The given string does not contain balanced parentheses")
+
+def _split_syntactical_unit(s):
+    """
+    Split off a sub-expression from the start of a given string.
+
+    INPUT:
+
+    - ``s``, a string
+
+    OUTPUT:
+
+    A pair ``unit, s2``, such that ``unit`` is the string representation of a
+    string (single or double quoted) or of a sub-expression surrounded by
+    brackets (round, square or curly brackets), or of an identifier, or a
+    single character, if none of the above is available. The given string ``s``
+    is obtained by appending some whitespace followed by ``s2`` to ``unit``.
+
+    Blank space between the units is removed.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import _split_syntactical_unit
+        sage: s = "(Hel) lo_1=[)\"!\" ] '''? {world} '''?"
+        sage: while s:
+        ...    u, s = _split_syntactical_unit(s)
+        ...    print u
+        ...
+        (Hel)
+        lo_1
+        =
+        [)"!"]
+        '''? {world} '''
+        ?
+
+    If the string ends before the unit is completed (mispatching parentheses
+    or missing quotation mark), then a syntax error is raised::
+
+        sage: s = "'''({SAGE}]"
+        sage: _split_syntactical_unit(s)
+        Traceback (most recent call last):
+        ...
+        SyntaxError: EOF while scanning string literal
+        sage: s = "({SAGE}]"
+        sage: _split_syntactical_unit(s)
+        Traceback (most recent call last):
+        ...
+        SyntaxError: Syntactical group starting with '(' did not end with ')'
+
+    Numbers are not recognised:::
+
+        sage: _split_syntactical_unit('123')
+        ('1', '23')
+
+    """
+    s = s.strip()
+    if not s:
+        return s
+    # Split a given string at the next unescaped quotation mark
+    def split_string(s, quot):
+        escaped = False
+        l = len(quot)
+        for i in range(len(s)):
+            if s[i] == '\\':
+                escaped = not escaped
+                continue
+            if not escaped and s[i:i+l] == quot:
+                return s[:i], s[i+l:]
+            escaped = False
+        raise SyntaxError("EOF while scanning string literal")
+    # 1. s is a triple-quoted string
+    if s.startswith('"""'):
+        a,b = split_string(s[3:], '"""')
+        return '"""'+a+'"""', b.strip()
+    if s.startswith('r"""'):
+        a,b = split_string(s[4:], '"""')
+        return 'r"""'+a+'"""', b.strip()
+    if s.startswith("'''"):
+        a,b = split_string(s[3:], "'''")
+        return "'''"+a+"'''", b.strip()
+    if s.startswith("r'''"):
+        a,b = split_string(s[4:], "'''")
+        return "r'''"+a+"'''", b.strip()
+
+    # 2. s is a single-quoted string
+    if s.startswith('"'):
+        a,b = split_string(s[1:], '"')
+        return '"'+a+'"', b.strip()
+    if s.startswith("'"):
+        a,b = split_string(s[1:], "'")
+        return "'"+a+"'", b.strip()
+    if s.startswith('r"'):
+        a,b = split_string(s[2:], '"')
+        return 'r"'+a+'"', b.strip()
+    if s.startswith("r'"):
+        a,b = split_string(s[2:], "'")
+        return "r'"+a+"'", b.strip()
+
+    # 3. s is not a string
+    start = s[0]
+    out = [start]
+    if start == '(':
+        stop = ')'
+    elif start == '[':
+        stop = ']'
+    elif start == '{':
+        stop = '}'
+    elif start == '\\':
+        # note that python would raise a syntax error
+        # if the line contains anything but whitespace
+        # after the backslash. But we assume here that
+        # the input is syntactically correct.
+        return _split_syntactical_unit(s[1:])
+    elif start == '#':
+        linebreak = s.index(os.linesep)
+        if linebreak == -1:
+            return '',''
+        return '', s[linebreak:].strip()
+    else:
+        M = __identifier_re.search(s)
+        if M is None:
+            return s[0], s[1:].strip()
+        return M.group(), s[M.end():].strip()
+
+    s = s[1:]
+    while s:
+        tmp_group, s = _split_syntactical_unit(s)
+        out.append(tmp_group)
+        s = s.strip()
+        if s.startswith(stop):
+            out.append(stop)
+            return ''.join(out), s[1:].strip()
+        elif tmp_group==stop:
+            return ''.join(out), s
+    raise SyntaxError("Syntactical group starting with %s did not end with %s"%(repr(start),repr(stop)))
 
 def _sage_getargspec_from_ast(source):
     r"""
@@ -767,103 +904,203 @@ def _sage_getargspec_cython(source):
 
     INPUT:
 
-    ``source`` - a string of Cython code
+    - ``source`` - a string; the function's (or method's) source code
+      definition.  The function's body is ignored. The definition may
+      contain type definitions for the function arguments.
 
     OUTPUT:
 
-    A tuple (``args``, None, None, ``argdefs``), where ``args`` is the
-    list of arguments and ``argdefs`` is their default values (as
-    strings, so 2 is represented as '2', etc.).
+    - an instance of :obj:`inspect.ArgSpec`, i.e., a named tuple
 
     EXAMPLES::
 
         sage: from sage.misc.sageinspect import _sage_getargspec_cython as sgc
-        sage: sgc("cpdef double abc(self, x=None, base=0):")
-        (['self', 'x', 'base'], None, None, (None, 0))
+        sage: sgc("cpdef double abc(self, Element x=None, Parent base=0):")
+        ArgSpec(args=['self', 'x', 'base'], varargs=None, keywords=None, defaults=(None, 0))
         sage: sgc("def __init__(self, x=None, unsigned int base=0):")
-        (['self', 'x', 'base'], None, None, (None, 0))
-        sage: sgc('def o(p, *q, r={}, **s) except? -1:')
-        (['p', '*q', 'r', '**s'], None, None, ({},))
+        ArgSpec(args=['self', 'x', 'base'], varargs=None, keywords=None, defaults=(None, 0))
+        sage: sgc('def o(p, r={}, *q, **s) except? -1:')
+        ArgSpec(args=['p', 'r'], varargs='q', keywords='s', defaults=({},))
         sage: sgc('cpdef how(r=(None, "u:doing?")):')
-        (['r'], None, None, ((None, 'u:doing?'),))
+        ArgSpec(args=['r'], varargs=None, keywords=None, defaults=((None, 'u:doing?'),))
         sage: sgc('def _(x="):"):')
-        (['x'], None, None, ('):',))
-        sage: sgc('def f(z = {(1,2,3): True}):\n    return z')
-        (['z'], None, None, ({(1, 2, 3): True},))
-        sage: sgc('def f(double x, z = {(1,2,3): True}):\n    return z')
+        ArgSpec(args=['x'], varargs=None, keywords=None, defaults=('):',))
+        sage: sgc('def f(z = {(1, 2, 3): True}):\n    return z')
+        ArgSpec(args=['z'], varargs=None, keywords=None, defaults=({(1, 2, 3): True},))
+        sage: sgc('def f(double x, z = {(1, 2, 3): True}):\n    return z')
+        ArgSpec(args=['x', 'z'], varargs=None, keywords=None, defaults=({(1, 2, 3): True},))
+        sage: sgc('def f(*args): pass')
+        ArgSpec(args=[], varargs='args', keywords=None, defaults=None)
+        sage: sgc('def f(**args): pass')
+        ArgSpec(args=[], varargs=None, keywords='args', defaults=None)
+
+    Some malformed input is detected::
+
+        sage: sgc('def f(x,y')
         Traceback (most recent call last):
         ...
-        ValueError: Could not parse cython argspec
+        SyntaxError: Unexpected EOF while parsing argument list
+        sage: sgc('def f(*x = 5, z = {(1,2,3): True}): pass')
+        Traceback (most recent call last):
+        ...
+        SyntaxError: invalid syntax
+        sage: sgc('def f(int *x = 5, z = {(1,2,3): True}): pass')
+        Traceback (most recent call last):
+        ...
+        SyntaxError: Pointer types not allowed in def or cpdef functions
+        sage: sgc('def f(x = , z = {(1,2,3): True}): pass')
+        Traceback (most recent call last):
+        ...
+        SyntaxError: Definition of a default argument expected
+        sage: sgc('def f(int x = 5, , z = {(1,2,3): True}): pass')
+        Traceback (most recent call last):
+        ...
+        SyntaxError: invalid syntax
 
-    AUTHOR:
+    TESTS:
 
-    - Nick Alexander
+    Some input that is malformed in Python but wellformed in Cython
+    is correctly parsed::
+
+        sage: def dummy(self,*args,x=1): pass
+        Traceback (most recent call last):
+        ...
+        SyntaxError: invalid syntax
+        sage: cython("def dummy(self,*args,x=1): pass")
+        sage: sgc("def dummy(self,*args,x=1): pass")
+        ArgSpec(args=['self', 'x'], varargs='args', keywords=None, defaults=(1,))
+
+    In some examples above, a syntax error was raised when a type
+    definition contains a pointer. An exception is made for ``char*``,
+    since C strings are acceptable input in public Cython functions::
+
+        sage: sgc('def f(char *x = "a string", z = {(1,2,3): True}): pass')
+        ArgSpec(args=['x', 'z'], varargs=None, keywords=None, defaults=('a string', {(1, 2, 3): True}))
+
+
+    AUTHORS:
+
+    - Nick Alexander: original version
+    - Simon King (02-2013): recognise varargs and default values in
+      cython code, and return an ``ArgSpec``.
+
     """
-    try:
-        defpos = source.find('def ')
-        assert defpos > -1
-        colpos = source.find(':')
-        assert colpos > -1
-        defsrc = source[defpos:colpos]
+    defpos = source.find('def ')
+    assert defpos > -1, "The given source does not contain 'def'"
+    s = source[defpos:].strip()
+    while s:
+        if s.startswith('('):
+            break
+        _, s = _split_syntactical_unit(s)
+    s = s[1:].strip()
+    if not s:
+        raise SyntaxError("Function definition must contain an argument list")
 
-        lparpos = defsrc.find('(')
-        assert lparpos > -1
-        rparpos = defsrc.rfind(')')
-        assert rparpos > -1
+    # We remove the type declarations, build a dummy Python function, and
+    # then call _get_argspec_from_ast. This should be
+    # better than creating a complete parser for Cython syntax,
+    # even though _split_syntactical_unit does part of the parsing work anyway.
 
-        argsrc = defsrc[lparpos+1:rparpos]
+    cy_units = []
+    while not s.startswith(')'):
+        if not s:
+            raise SyntaxError("Unexpected EOF while parsing argument list")
+        u, s = _split_syntactical_unit(s)
+        cy_units.append(u)
 
-        # Now handle individual arguments
-        # XXX this could break on embedded strings or embedded functions
-        args = argsrc.split(',')
-
-        # Now we need to take care of default arguments
-        # XXX this could break on embedded strings or embedded functions with default arguments
-        argnames = [] # argument names
-        argdefs  = [] # default values
-        for arg in args:
-            # only process arg if it has positive length
-            if len(arg) > 0:
-                s = arg.split('=')
-                argname = s[0]
-
-                # Cython often has type information; we split off the right most
-                # identifier to discard this information
-                argname = argname.split()[-1]
-                # Cython often has C pointer symbols before variable names
-                argname.lstrip('*')
-                argnames.append(argname)
-                if len(s) > 1:
-                    defvalue = s[1]
-                    # eval defvalue so we aren't just returning strings
-                    try:
-                        argdefs.append(eval(defvalue))
-                    except NameError:
-                        argdefs.append(defvalue)
-
-        if len(argdefs) > 0:
-            argdefs = tuple(argdefs)
+    py_units = []
+    name = None
+    i = 0
+    l = len(cy_units)
+    expect_default = False
+    nb_stars = 0
+    varargs = None
+    keywords = None
+    while (i<l):
+        unit = cy_units[i]
+        if expect_default:
+            if unit in ('=','*',','):
+                raise SyntaxError("Definition of a default argument expected")
+            while unit != ',':
+                py_units.append(unit)
+                i += 1
+                if i==l:
+                    break
+                unit = cy_units[i]
+            expect_default = False
+            name = None
+            if nb_stars:
+                raise SyntaxError("The %s argument has no default"%('varargs' if nb_stars==1 else 'keywords'))
+            continue
+        i += 1
+        if unit == '*':
+            if name:
+                if name != 'char':
+                    raise SyntaxError("Pointer types not allowed in def or cpdef functions")
+                else:
+                    continue
+            else:
+                nb_stars += 1
+            continue
+        elif unit == ',':
+            if expect_default:
+                raise SyntaxError("Unexpected EOF while parsing argument list")
+            name = None
+            if nb_stars:
+                nb_stars = 0
+                continue
+        elif unit == '=':
+            expect_default = True
+            name = None
+            if nb_stars:
+                raise SyntaxError("The %s argument has no default"%('varargs' if nb_stars==1 else 'keywords'))
         else:
-            argdefs = None
-
-        return (argnames, None, None, argdefs)
-
-    except Exception:
-        try:
-            # Try to parse the entire definition as Python and get an
-            # argspec.
-            beg = re.search(r'def([ ]+\w+)+[ ]*\(', source).end() - 1
-            proxy = 'def dummy' + source[beg:] + '\n    return'
-            return tuple(_sage_getargspec_from_ast(proxy))
-
-        except Exception:
-            try:
-                # Try to parse just the arguments as a Python argspec.
-                proxy = 'def dummy' + _grep_first_pair_of_parentheses(source) + ':\n    return'
-                return tuple(_sage_getargspec_from_ast(proxy))
-
-            except Exception:
-                raise ValueError, "Could not parse cython argspec"
+            name = unit
+        if name is not None:
+            # Is "name" part of a type definition?
+            # If it is the last identifier before '=' or ',',
+            # then it *is* a variable name,
+            if i==l or cy_units[i] in ('=',','):
+                if nb_stars == 0:
+                    py_units.append(name)
+                elif nb_stars == 1:
+                    if varargs is None:
+                        varargs = name
+                        # skip the "=" or ",", since varargs
+                        # is treated separately
+                        i += 1
+                        name = None
+                        nb_stars = 0
+                    else:
+                        raise SyntaxError("varargs can't be defined twice")
+                elif nb_stars == 2:
+                    if keywords is None:
+                        keywords = name
+                        # skip the "=" or ",", since varargs
+                        # is treated separately
+                        i += 1
+                        name = None
+                        nb_stars = 0
+                    else:
+                        raise SyntaxError("varargs can't be defined twice")
+                else:
+                    raise SyntaxError("variable declaration comprises at most two '*'")
+        else:
+            py_units.append(unit)
+    if varargs is None:
+        varargs = ''
+    elif not py_units or py_units[-1] == ',':
+        varargs = '*'+varargs
+    else:
+        varargs = ',*'+varargs
+    if keywords is None:
+        keywords = ''
+    elif varargs or (py_units and py_units[-1] != ','):
+        keywords = ',**'+keywords
+    else:
+        keywords = '**'+keywords
+    return _sage_getargspec_from_ast('def dummy('+''.join(py_units)
+                                     +varargs+keywords+'): pass')
 
 def sage_getfile(obj):
     r"""
@@ -1755,11 +1992,11 @@ def __internal_tests():
     Test _sage_getargspec_cython with multiple default arguments and a type::
 
         sage: _sage_getargspec_cython("def init(self, x=None, base=0):")
-        (['self', 'x', 'base'], None, None, (None, 0))
+        ArgSpec(args=['self', 'x', 'base'], varargs=None, keywords=None, defaults=(None, 0))
         sage: _sage_getargspec_cython("def __init__(self, x=None, base=0):")
-        (['self', 'x', 'base'], None, None, (None, 0))
-        sage: _sage_getargspec_cython("def __init__(self, x=None, unsigned int base=0):")
-        (['self', 'x', 'base'], None, None, (None, 0))
+        ArgSpec(args=['self', 'x', 'base'], varargs=None, keywords=None, defaults=(None, 0))
+        sage: _sage_getargspec_cython("def __init__(self, x=None, unsigned int base=0, **keys):")
+        ArgSpec(args=['self', 'x', 'base'], varargs=None, keywords='keys', defaults=(None, 0))
 
     Test _extract_embedded_position:
 

@@ -30,7 +30,6 @@ AUTHORS:
 
 import generator
 from sage.rings.arith import binomial
-from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.misc.lazy_attribute import lazy_attribute
 import __builtin__
@@ -50,12 +49,12 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
 
     Preconditions:
 
-    - minslope < maxslope
+    - ``minslope < maxslope``
 
-    - floor and ceiling need to satisfy the slope constraints,
-      e.g. be obtained fromcomp2floor or comp2ceil
+    - ``floor`` and ``ceiling`` need to satisfy the slope constraints,
+      e.g. be obtained ``fromcomp2floor`` or ``comp2ceil``
 
-    - floor must be below ceiling to ensure
+    - ``floor`` must be below ``ceiling`` to ensure
       the existence a valid composition
 
     TESTS::
@@ -118,7 +117,7 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
     if n == 0: # There is nothing more to do
         return result
 
-    if min_slope == -infinity:
+    if min_slope == float('-inf'):
         for i in range(1, min_length+1):
             if n <= ceiling(i) - result[i-1]: #-1 for indexing
                 result[i-1] += n
@@ -282,7 +281,7 @@ def rightmost_pivot(comp, min_length, max_length, floor, ceiling, min_slope, max
 
 
         #Update G
-        if max_slope == infinity:
+        if max_slope == float('+inf'):
             #In this case, we have
             #  -- ceiling_x(i) = ceiling(i) for i > x
             #  --G >= 0 or G = -1
@@ -303,7 +302,7 @@ def rightmost_pivot(comp, min_length, max_length, floor, ceiling, min_slope, max
         #Update F
         if y < max_length+1:
             F += comp[x-1] - floorx_x
-            if min_slope != -infinity:
+            if min_slope != float('-inf'):
                 F += (lowX - x) * (oldfloorx_x - (floorx_x + min_slope))
                 temp = floor(lowX) - (floorx_x + min_slope_lowX)
                 while lowX > x and temp >= 0:
@@ -344,12 +343,12 @@ def next(comp, min_length, max_length, floor, ceiling, min_slope, max_slope):
 ##     // Efficiency note: they are not wrapped more than once, since
 ##     // the method Next calls first, but not the converse.
 
-    if min_slope == -infinity:
+    if min_slope == float('-inf'):
         new_floor = lambda i: floor(x+(i-1))
     else:
         new_floor = lambda i: max(floor(x+(i-1)), low+(i-1)*min_slope)
 
-    if max_slope == infinity:
+    if max_slope == float('+inf'):
         new_ceiling = lambda i: comp[x-1] - 1 if i == 1 else ceiling(x+(i-1))
     else:
         new_ceiling = lambda i: min(ceiling(x+(i-1)), high+(i-1)*max_slope)
@@ -388,7 +387,7 @@ def iterator(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
 
         return generator.concat(iterators)
     else:
-        f =  first(n, min_length, max_length, floor, ceiling, min_slope, max_slope)
+        f = first(n, min_length, max_length, floor, ceiling, min_slope, max_slope)
         if f == None:
             return generator.element(None, 0)
         return generator.successor(f, succ)
@@ -557,7 +556,7 @@ def upper_bound(min_length, max_length, floor, ceiling, min_slope, max_slope):
         sage: integer_list.upper_bound(0,4,f(0), f(1),-infinity,infinity)
         4
         sage: integer_list.upper_bound(0, infinity, f(0), f(1), -infinity, infinity)
-        +Infinity
+        inf
         sage: integer_list.upper_bound(0, infinity, f(0), f(1), -infinity, -1)
         1
         sage: integer_list.upper_bound(0, infinity, f(0), f(5), -infinity, -1)
@@ -566,9 +565,9 @@ def upper_bound(min_length, max_length, floor, ceiling, min_slope, max_slope):
         9
     """
     from sage.functions.all import floor as flr
-    if max_length < infinity:
+    if max_length < float('inf'):
         return sum( [ ceiling(j) for j in range(max_length)] )
-    elif max_slope < 0 and ceiling(1) < infinity:
+    elif max_slope < 0 and ceiling(1) < float('inf'):
         maxl = flr(-ceiling(1)/max_slope)
         return ceiling(1)*(maxl+1) + binomial(maxl+1,2)*max_slope
     #FIXME: only checking the first 10000 values, but that should generally
@@ -576,7 +575,7 @@ def upper_bound(min_length, max_length, floor, ceiling, min_slope, max_slope):
     elif [ceiling(j) for j in range(10000)] == [0]*10000:
         return 0
     else:
-        return infinity
+        return float('inf')
 
 
 
@@ -881,10 +880,10 @@ class IntegerListsLex(CombinatorialClass):
     """
     def __init__(self,
                  n,
-                 length = None, min_length=0, max_length=infinity,
+                 length = None, min_length=0, max_length=float('+inf'),
                  floor=None, ceiling = None,
-                 min_part = 0, max_part = infinity,
-                 min_slope=-infinity, max_slope=infinity,
+                 min_part = 0, max_part = float('+inf'),
+                 min_slope=float('-inf'), max_slope=float('+inf'),
                  name = None,
                  element_constructor = None):
         """
@@ -900,28 +899,39 @@ class IntegerListsLex(CombinatorialClass):
             sage: C.cardinality().parent() is ZZ
             True
         """
+        # Convert to float infinity
+        from sage.rings.infinity import infinity
+        if max_slope == infinity:
+            max_slope = float('+inf')
+        if min_slope == -infinity:
+            min_slope = float('-inf')
+        if max_length == infinity:
+            max_length = float('inf')
+        if max_part == infinity:
+            max_part = float('+inf')
+
         if floor is None:
             self.floor_list = []
-        elif type(floor) is type([]): # FIXME: how to refer to type list rather than the function list above?
+        elif isinstance(floor, __builtin__.list):
             self.floor_list = floor
             # Make sure the floor list will make the list satisfy the constraints
-            if max_slope != infinity:
+            if max_slope != float('+inf'):
                 for i in reversed(range(len(self.floor_list)-1)):
                     self.floor_list[i] = max(self.floor_list[i], self.floor_list[i+1] - max_slope)
-            if min_slope != -infinity:
+            if min_slope != float('-inf'):
                 for i in range(1, len(self.floor_list)):
                     self.floor_list[i] = max(self.floor_list[i], self.floor_list[i-1] + min_slope)
         else:
             self.floor = floor
         if ceiling is None:
             self.ceiling_list = []
-        elif type(ceiling) is type([]):
+        elif isinstance(ceiling, __builtin__.list):
             self.ceiling_list = ceiling
             # Make sure the ceiling list will make the list satisfy the constraints
-            if max_slope != infinity:
+            if max_slope != float('+inf'):
                 for i in range(1, len(self.ceiling_list)):
                     self.ceiling_list[i] = min(self.ceiling_list[i], self.ceiling_list[i-1] + max_slope)
-            if min_slope != -infinity:
+            if min_slope != float('-inf'):
                 for i in reversed(range(len(self.ceiling_list)-1)):
                     self.ceiling_list[i] = min(self.ceiling_list[i], self.ceiling_list[i+1] - min_slope)
         else:
@@ -1026,8 +1036,8 @@ class IntegerListsLex(CombinatorialClass):
              3,
              <function <lambda> at 0x...>,
              <function <lambda> at 0x...>,
-             -Infinity,
-             +Infinity]
+             -inf,
+             inf]
 
         """
         return [self.min_length, self.max_length,
@@ -1105,3 +1115,4 @@ class IntegerListsLex(CombinatorialClass):
             True
         """
         return type(v) is type([]) and is_a(v, *(self.build_args())) and sum(v) in self.n_range
+

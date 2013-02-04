@@ -88,7 +88,7 @@ Pour calculer la dérivée quatrième de  :math:`\sin(x^2)`:
     16*x^4*sin(x^2) - 48*x^2*cos(x^2) - 12*sin(x^2)
 
 Pour calculer la dérivée partielle de  :math:`x^2+17y^2` par rapport à
-*x* et *y* respectivement :
+`x` et `y` respectivement :
 
 ::
 
@@ -188,7 +188,7 @@ Solution : Considérons la transformée de Laplace de la première équation
 
 La réponse n'est pas très lisible, mais elle signifie que
 
-.. math:: -2x'(0) + 2s^2*X(s) - 2sx(0) - 2Y(s) + 6X(s) = 0
+.. math:: -2x'(0) + 2s^2\cdot X(s) - 2sx(0) - 2Y(s) + 6X(s) = 0
 
 (où la transformée de Laplace d'une fonction notée par une lettre
 minuscule telle que :math:`x(t)` est désignée par la majuscule
@@ -283,30 +283,30 @@ différentielle, donne
 :math:`f(x,y(x))\approx
 \frac{y(x+h)-y(x)}{h}`. Aussi :math:`y(x+h)` s'écrit:
 
-.. math::   y(x+h) \approx y(x) + h*f(x,y(x)).
+.. math::   y(x+h) \approx y(x) + h\cdot f(x,y(x)).
 
 
-Si nous notons :math:`h f(x,y(x))` le « terme de correction » (faute
+Si nous notons :math:`h\cdot f(x,y(x))` le « terme de correction » (faute
 d'un terme plus approprié), et si nous appelons :math:`y(x)`
 « l'ancienne valeur de *y* » et :math:`y(x+h)` la « nouvelle valeur de
 *y* », cette approximation se réécrit
 
-.. math::   y_{nouveau} \approx y_{ancien} + h*f(x,y_{ancien}).
+.. math::   y_{nouveau} \approx y_{ancien} + h\cdot f(x,y_{ancien}).
 
 
-Divisions l'intervalle entre  *a* et *b* en *n* pas, si bien que
+Divisions l'intervalle entre  `a` et `b` en `n` pas, si bien que
 :math:`h=\frac{b-a}{n}`. Nous pouvons alors remplir un tableau avec les
 informations utilisées dans la méthode.
 
-============== ==================   ================
-:math:`x`      :math:`y`            :math:`hf(x,y)`
-============== ==================   ================
-:math:`a`      :math:`c`            :math:`hf(a,c)`
-:math:`a+h`    :math:`c+hf(a,c)`    ...
+============== =======================   =====================
+:math:`x`      :math:`y`                 :math:`h\cdot f(x,y)`
+============== =======================   =====================
+:math:`a`      :math:`c`                 :math:`h\cdot f(a,c)`
+:math:`a+h`    :math:`c+h\cdot f(a,c)`         ...
 :math:`a+2h`   ...
 ...
-:math:`b=a+nh` ???                  ...
-============== ==================   ================
+:math:`b=a+nh` ???                             ...
+============== =======================   =====================
 
 
 Le but est est de remplir tous les trous du tableau, ligne après ligne,

@@ -588,13 +588,19 @@ class UnsignedInfinityRing_class(_uniq, Ring):
             A number less than infinity
             sage: UnsignedInfinityRing(infinity)
             Infinity
+            sage: UnsignedInfinityRing(float('+inf'))
+            Infinity
         """
         if isinstance(x, InfinityElement):
             if x.parent() is self:
                 return x
             else:
                 return self.gen()
-        elif isinstance(x, RingElement) or isinstance(x, (int,long,float,complex)):
+        elif isinstance(x, RingElement) or isinstance(x, (int,long)):
+            return self.less_than_infinity()
+        elif isinstance(x, (float, complex)):
+            if x == float('+inf') or x == float('-inf'):
+                return self.gen()
             return self.less_than_infinity()
         else:
             raise TypeError
@@ -897,6 +903,17 @@ class InfinityRing_class(_uniq, Ring):
             A positive finite number
             sage: InfinityRing(a - 2)
             A negative finite number
+
+        Check that :trac:`14045` is fixed::
+
+            sage: InfinityRing(float('+inf'))
+            +Infinity
+            sage: InfinityRing(float('-inf'))
+            -Infinity
+            sage: oo > float('+inf')
+            False
+            sage: oo == float('+inf')
+            True
         """
         if isinstance(x, PlusInfinityElement):
             return self.gen(0)
@@ -910,7 +927,11 @@ class InfinityRing_class(_uniq, Ring):
                              sage.rings.real_mpfr.RealNumber))
                 or isinstance(x, (int,long,float))
                 or sage.rings.real_mpfr.RealField(sage.rings.real_mpfr.mpfr_prec_min())(x)):
-            if x < 0:
+            if x == float('+inf'):
+                return self.gen(0)
+            elif x == float('-inf'):
+                return self.gen(1)
+            elif x < 0:
                 return FiniteNumber(self, -1)
             elif x > 0:
                 return FiniteNumber(self, 1)

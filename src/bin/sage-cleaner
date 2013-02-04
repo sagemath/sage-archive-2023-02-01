@@ -1,113 +1,142 @@
 #!/usr/bin/env python
 
-#########################################################
-# This is the sage monitor *daemon*, which cleans up after SAGE.
+#*****************************************************************************
+# This is the sage monitor *daemon*, which cleans up after Sage.
 # Some things that it cleans up:
-#   * $HOME/.sage/tmp/pid directories
-#   * Processes that SAGE spawns.  If a copy of SAGE isn't
+#   * $DOT_SAGE/temp/HOSTNAME/pid directories
+#   * Processes that Sage spawns.  If a copy of Sage isn't
 #     running, then any process it spawned should have its
 #     process group killed
-#
-#########################################################
-#   SAGE: System for Algebra and Geometry Experimentation
+#*****************************************************************************
 #       Copyright (C) 2005, 2006, 2007 William Stein <wstein@gmail.com>
+#
 #  Distributed under the terms of the GNU General Public License (GPL)
-#  The full text of the GPL is available at:
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#########################################################
+#*****************************************************************************
 
-#print "starting the cleaner"
+
+from __future__ import print_function
 
 import os, shutil, sys, time, socket
+import signal
 
 HOSTNAME = socket.gethostname().replace('-','_').replace('/','_').replace('\\','_')
 
 DOT_SAGE = os.environ['DOT_SAGE']
-tmp = os.path.join(DOT_SAGE, 'tmp', HOSTNAME)
-try:
-    os.makedirs(tmp)
-except OSError:
-    if not os.path.isdir(tmp):
-        raise
+SAGE_TMP_ROOT = os.path.join(DOT_SAGE, 'temp', HOSTNAME)
+
 
 def is_running(pid):
     """
     Return True if and only if there is a process with id pid running.
     """
     try:
-        os.kill(int(pid),0)
+        os.kill(pid,0)
         return True
-    except (OSError, ValueError):
+    except OSError:
         return False
 
 def cleanup():
-    #print "doing a cleanup"
-    D = tmp
-    if not os.path.exists(tmp):
-        return 0
-    tmp_dirs = os.listdir(tmp)
-    for parent_pid in tmp_dirs:
-        #print "checking on %s"%parent_pid
+    tmp_dirs = os.listdir(SAGE_TMP_ROOT)
+    # Convert strings to integers
+    pid_list = []
+    for dir in tmp_dirs:
+        try:
+            pid_list.append(int(dir))
+        except ValueError:
+            pass
+
+    print("Checking PIDs", pid_list)
+    for parent_pid in pid_list:
         if not is_running(parent_pid):
-            #print "it is no longer running, so we clean up"
-            T = '%s/%s'%(D,parent_pid)
-            spawned_processes = '%s/spawned_processes'%T
-            e = os.path.exists(spawned_processes)
+            print("Process %s is no longer running, so we clean up"%parent_pid)
+            d = os.path.join(SAGE_TMP_ROOT, str(parent_pid))
+            spawned_processes = os.path.join(d, 'spawned_processes')
+            e = os.path.isdir(spawned_processes)
             if not e or (e and kill_spawned_jobs(spawned_processes, parent_pid)):
+                print("Deleting %s"%d)
                 try:
-                    d = '%s/%s'%(D,parent_pid)
-                    #print "SAGE Cleaner: deleting %s"%d
                     shutil.rmtree(d)
-                except OSError, msg:
+                except OSError:
                     pass
-        #else:
-            #print "it is running"
 
     return len(tmp_dirs)
 
 def kill_spawned_jobs(file, parent_pid):
-    #print "killing %s's spawned jobs"%parent_pid
+    print("Killing %s's spawned jobs"%parent_pid)
     killed_them_all = True
     for L in open(file).readlines():
-        #print L
         i = L.find(' ')
         pid = L[:i].strip()
         cmd = L[i+1:].strip()
         try:
-            #print "SAGE-Cleaner: trying to kill %s with parent %s"%(pid, parent_pid)
-            os.killpg(int(pid), 9)
+            print("Killing %s with parent %s"%(pid, parent_pid) )
+            os.killpg(int(pid), signal.SIGKILL)
         except OSError, msg:
             try:
-                os.kill(int(pid), 9)
+                os.kill(int(pid), signal.SIGKILL)
             except OSError, msg:
                 pass
-            pass
         if is_running(pid):
-            #print "try again later to kill %s"%pid
+            print("Failed to kill %s!"%pid)
             # try again later
             killed_them_all = False
     return killed_them_all
 
 
-pidfile = os.path.join(DOT_SAGE, 'tmp', 'cleaner-%s.pid'%HOSTNAME)
+pidfile = os.path.join(DOT_SAGE, 'temp', 'cleaner-%s.pid'%HOSTNAME)
 def setup_daemon():
-    if os.path.exists(pidfile):
-        pid = open(pidfile).read()
+    print("SAGE_TMP_ROOT =", SAGE_TMP_ROOT)
+    if not os.path.isdir(SAGE_TMP_ROOT):
+        print("No directory %s, exiting"%SAGE_TMP_ROOT)
+        sys.exit(0)
+
+    try:
+        pid = int(open(pidfile).read())
+    except (IOError, ValueError):
+        pass
+    else:
         if is_running(pid):
+            print("sage-cleaner is already running with PID %s, exiting"%pid)
             sys.exit(0)
     open(pidfile,'w').write(str(os.getpid()))
+
 
 if __name__ == '__main__':
     setup_daemon()
 
-    if len(sys.argv) > 1:
-        wait = int(sys.argv[1])
-    else:
-        wait = 3
+    try:
+        print("Starting sage-cleaner")
 
-    time.sleep(wait + 3)
-    while cleanup() > 0:
-        time.sleep(wait)
+        if len(sys.argv) > 1:
+            wait = int(sys.argv[1])
+        else:
+            wait = 10
 
-    if os.path.exists(pidfile):
-        os.unlink(pidfile)
+        # Initial cleanup, ignore time
+        running_sages = cleanup()
+        cleanup_time = 0.0
+        count = 1
+
+        # In the first 10 iterations, continue anyway (even if there are
+        # no Sage processes running) because it can happen that Sage is
+        # not yet started.
+        while count < 10 or running_sages > 0:
+            # Time to wait = "wait" plus 20 times the time of last cleanup().
+            # This ensures that sage-cleaner causes a load of at most 5%.
+            time.sleep(wait + 20*cleanup_time)
+            count += 1
+            t0 = time.time()
+            running_sages = cleanup()
+            cleanup_time = time.time() - t0
+            print("cleanup() #{:d} took {:.2f}s".format(count, cleanup_time))
+
+        print("sage-cleaner is finished")
+
+    finally:
+        try:
+            os.unlink(pidfile)
+        except OSError:
+            pass

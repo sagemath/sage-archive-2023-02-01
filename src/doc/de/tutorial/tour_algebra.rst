@@ -111,8 +111,8 @@ Um die vierte Ableitung :math:`\sin(x^2)` zu berechnen:
     sage: diff(sin(x^2), x, 4)
     16*x^4*sin(x^2) - 48*x^2*cos(x^2) - 12*sin(x^2)
 
-Um die partiellen Ableitungen von :math:`x^2+17y^2` nach *x*
-beziehungsweise *y* zu berechnen:
+Um die partiellen Ableitungen von :math:`x^2+17y^2` nach `x`
+beziehungsweise `y` zu berechnen:
 
 ::
 
@@ -216,7 +216,7 @@ Lösung: Berechnen Sie die Laplace-Transformierte der ersten Gleichung
 
 Das ist schwierig zu lesen, es besagt jedoch, dass
 
-.. math:: -2x'(0) + 2s^2*X(s) - 2sx(0) - 2Y(s) + 6X(s) = 0
+.. math:: -2x'(0) + 2s^2\cdot X(s) - 2sx(0) - 2Y(s) + 6X(s) = 0
 
 
 (wobei die Laplace-Transformierte der Funktion mit kleinem
@@ -312,29 +312,29 @@ wobei :math:`h>0` vorgegeben und klein ist. Zusammen mit der
 Differentialgleichung gibt dies :math:`f(x,y(x))\approx
 \frac{y(x+h)-y(x)}{h}`. Jetzt lösen wir nach :math:`y(x+h)` auf:
 
-.. math::   y(x+h) \approx y(x) + h*f(x,y(x)).
+.. math::   y(x+h) \approx y(x) + h\cdot f(x,y(x)).
 
 
-Wenn wir :math:`h f(x,y(x))` den "Korrekturterm", :math:`y(x)` den
-"alten Wert von *y*" und :math:`y(x+h)` den "neuen Wert von *y*"
+Wenn wir :math:`h\cdot f(x,y(x))` den "Korrekturterm", :math:`y(x)`
+den "alten Wert von *y*" und :math:`y(x+h)` den "neuen Wert von *y*"
 nennen, kann diese Approximation neu ausgedrückt werden als:
 
-.. math::   y_{new} \approx y_{old} + h*f(x,y_{old}).
+.. math::   y_{new} \approx y_{old} + h\cdot f(x,y_{old}).
 
 
-Wenn wir das Intervall von *a* bis *b* in *n* Teilintervalle
+Wenn wir das Intervall von `a` bis `b` in `n` Teilintervalle
 aufteilen, so dass :math:`h=\frac{b-a}{n}` gilt, können wir die
 Information in folgender Tabelle festhalten.
 
-============== ==================   ================
-:math:`x`      :math:`y`            :math:`hf(x,y)`
-============== ==================   ================
-:math:`a`      :math:`c`            :math:`hf(a,c)`
-:math:`a+h`    :math:`c+hf(a,c)`    ...
+============== =======================   =====================
+:math:`x`      :math:`y`                 :math:`h\cdot f(x,y)`
+============== =======================   =====================
+:math:`a`      :math:`c`                 :math:`h\cdot f(a,c)`
+:math:`a+h`    :math:`c+h\cdot f(a,c)`         ...
 :math:`a+2h`   ...
 ...
-:math:`b=a+nh` ???                  ...
-============== ==================   ================
+:math:`b=a+nh` ???                             ...
+============== =======================   =====================
 
 
 Unser Ziel ist zeilenweise alle leeren Einträge der Tabelle

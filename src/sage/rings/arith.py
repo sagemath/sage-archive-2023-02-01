@@ -3138,11 +3138,11 @@ def binomial(x, m, **kwds):
     TESTS:
 
     We test that certain binomials are very fast (this should be
-    instant) -- see trac 3309::
+    instant) -- see :trac:`3309`::
 
-        sage: a = binomial(RR(1140000.78), 42000000)
+        sage: a = binomial(RR(1140000.78), 23310000)
 
-    We test conversion of arguments to Integers -- see trac 6870::
+    We test conversion of arguments to Integers -- see :trac:`6870`::
 
         sage: binomial(1/2,1/1)
         1/2
@@ -3153,7 +3153,8 @@ def binomial(x, m, **kwds):
         sage: binomial(3/2,SR(1/1))
         3/2
 
-    Some floating point cases -- see trac 7562 and trac 9633::
+    Some floating point cases -- see :trac:`7562`, :trac:`9633`, and
+    :trac:`12448`::
 
         sage: binomial(1.,3)
         0.000000000000000
@@ -3161,6 +3162,12 @@ def binomial(x, m, **kwds):
         -4.00000000000000
         sage: binomial(0.5r, 5)
         0.02734375
+        sage: a = binomial(float(1001), float(1)); a
+        1001.0
+        sage: type(a)
+        <type 'float'>
+        sage: binomial(float(1000), 1001)
+        0.0
 
     Test symbolic and uni/multivariate polynomials::
 
@@ -3199,23 +3206,19 @@ def binomial(x, m, **kwds):
                 return x.binomial(m)
             except AttributeError:
                 pass
-            raise TypeError, 'Either m or x-m must be an integer'
-    # a (hopefully) temporary fix for #3309; eventually Pari should do
-    # this for us.
+            raise TypeError('Either m or x-m must be an integer')
     if isinstance(x, (float, sage.rings.real_mpfr.RealNumber,
                       sage.rings.real_mpfr.RealLiteral)):
         P = parent(x)
+        # Try to convert x to an integer if it *is* an integer but of type
+        # float. Otherwise, pari fails below in the case m > x.
+        try:
+            x = ZZ(x)
+        except TypeError:
+            pass
         if m < 0:
             return P(0)
-        from sage.functions.all import gamma
-        if x > -1/2:
-            a = gamma(x-m+1)
-            if a:
-                return gamma(x+1)/gamma(P(m+1))/a
-            else:
-                return P(0)
-        else:
-            return (-1)**m*gamma(m-x)/gamma(P(m+1))/gamma(-x)
+        return P(pari(x).binomial(m))
     if isinstance(x,sage.symbolic.expression.Expression):
         try:
             x=x.pyobject()

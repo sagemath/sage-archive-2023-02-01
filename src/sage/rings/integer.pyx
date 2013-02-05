@@ -123,6 +123,9 @@ real field R::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+# Do not create any Integer, especially non cdef'ed ones, before the hooked
+# creation and deletion are setup by the call to hook_fast_tp_functions
+
 doc="""
 Integers
 """
@@ -327,19 +330,6 @@ from sage.structure.coerce_exceptions import CoercionException
 
 import integer_ring
 the_integer_ring = integer_ring.ZZ
-
-initialized = False
-cdef set_zero_one_elements():
-    global the_integer_ring, initialized
-    if initialized: return
-    the_integer_ring._zero_element = Integer(0)
-    the_integer_ring._one_element = Integer(1)
-    init_mpz_globals()
-    initialized = True
-set_zero_one_elements()
-
-cdef Integer zero = the_integer_ring._zero_element
-cdef Integer one = the_integer_ring._one_element
 
 # The documentation for the ispseudoprime() function in the PARI
 # manual states that its result is always prime up to this 10^13.
@@ -3405,7 +3395,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         if mpz_sgn(self.value) > 0:
             n    = self
-            unit = ONE
+            unit = one
         else:
             n    = PY_NEW(Integer)
             unit = PY_NEW(Integer)
@@ -3578,8 +3568,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_cmp_ui(p.value, 2) < 0:
             raise ValueError, "You can only compute the valuation with respect to a integer larger than 1."
         if self == 0:
-            u = ONE
-            Py_INCREF(ONE)
+            u = one
             return (sage.rings.infinity.infinity, u)
         v = PY_NEW(Integer)
         u = PY_NEW(Integer)
@@ -3768,7 +3757,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: x.denominator()
             1
         """
-        return ONE
+        return one
 
     def numerator(self):
         """
@@ -3856,7 +3845,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         # base case
         if 0 < n < k:
-            return ONE
+            return one
 
         # easy to calculate
         elif n % k == 0:
@@ -3868,14 +3857,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         # negative base case
         elif -k < n < 0:
-            return ONE / (self+k)
+            return one / (self+k)
 
         # reflection case
         elif n < -k:
             if (n/k) % 2:
-                sign = -ONE
+                sign = -one
             else:
-                sign = ONE
+                sign = one
             return sign / Integer(-k-n).multifactorial(k)
 
         # compute the actual product, optimizing the number of large
@@ -3936,7 +3925,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             Infinity
         """
         if mpz_sgn(self.value) > 0:
-            return (self-ONE).factorial()
+            return (self-one).factorial()
         else:
             from sage.rings.infinity import unsigned_infinity
             return unsigned_infinity
@@ -5666,19 +5655,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ValueError("algorithm must be one of: 'pari', 'mpir'")
 
 
-ONE = Integer(1)
-cdef long small_pool_min = -1
-cdef long small_pool_max = 1
-cdef list small_pool = [Integer(k) for k in range(small_pool_min, small_pool_max+1)]
-cdef inline Integer smallInteger(long value):
-    cdef Integer z
-    if small_pool_min <= value <= small_pool_max:
-        return <Integer>small_pool[value - small_pool_min]
-    else:
-        z = PY_NEW(Integer)
-        mpz_set_si(z.value, value)
-        return z
-
 cpdef LCM_list(v):
     """
     Return the LCM of a list v of integers. Elements of v are converted
@@ -6052,8 +6028,6 @@ cdef void fast_tp_dealloc(PyObject* o):
 
     PyObject_FREE(o)
 
-
-hook_fast_tp_functions()
 from sage.misc.allocator cimport hook_tp_functions
 cdef hook_fast_tp_functions():
     """
@@ -6113,3 +6087,33 @@ def free_integer_pool():
     integer_pool_count = 0
     sage_free(integer_pool)
 
+# Replace default allocation and deletion with faster custom ones
+hook_fast_tp_functions()
+
+# zero and one initialization
+initialized = False
+cdef set_zero_one_elements():
+    global the_integer_ring, initialized
+    if initialized: return
+    the_integer_ring._zero_element = Integer(0)
+    the_integer_ring._one_element = Integer(1)
+    init_mpz_globals()
+    initialized = True
+set_zero_one_elements()
+
+cdef Integer zero = the_integer_ring._zero_element
+cdef Integer one = the_integer_ring._one_element
+
+# pool of small integer for fast sign computation
+cdef long small_pool_min = -1
+cdef long small_pool_max = 1
+# we could use the above zero and one here
+cdef list small_pool = [Integer(k) for k in range(small_pool_min, small_pool_max+1)]
+cdef inline Integer smallInteger(long value):
+    cdef Integer z
+    if small_pool_min <= value <= small_pool_max:
+        return <Integer>small_pool[value - small_pool_min]
+    else:
+        z = PY_NEW(Integer)
+        mpz_set_si(z.value, value)
+        return z

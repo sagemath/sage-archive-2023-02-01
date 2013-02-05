@@ -63,8 +63,7 @@ class IntegerFactorization(Factorization):
         """
         if unsafe:
             if unit is None:
-                from sage.rings.integer import ONE
-                self._Factorization__unit = ONE
+                self._Factorization__unit = ZZ._one_element
             else:
                 self._Factorization__unit = unit
 

@@ -58,7 +58,12 @@ cdef hook_tp_functions(object global_dummy, allocfunc tp_alloc, newfunc tp_new, 
     cdef RichPyObject* o
     o = <RichPyObject*>global_dummy
 
-    # Make sure this never, ever gets collected
+    # Make sure this never, ever gets collected.
+    # This is not necessary for cdef'ed variables as the global
+    # dummy integer, as such objects do not get automatically collected.
+    # In fact there is no obvious reason to prevent collection when Sage quits
+    # and we are certain no further call to the allocation function will be
+    # made; so this could be removed when the code is clean enough.
     Py_INCREF(global_dummy)
 
     # By default every object created in Pyrex is garbage

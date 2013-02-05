@@ -1,15 +1,27 @@
 #!/usr/bin/env bash
 
-if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+if [ -z "$SAGE_LOCAL" ]; then
+    echo >&2 "SAGE_LOCAL undefined ... exiting"
+    echo >&2 "Maybe run 'sage --sh'?"
+    exit 1
 fi
 
-cd src/
+cd src
 
-export CFLAGS="$CFLAGS -g -fPIC"
-export CXXFLAGS="$CXXFLAGS -g -fPIC"
+# Apply patches.  See SPKG.txt for information about what each patch
+# does.
+for patch in ../patches/*.patch; do
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
+
+
+export CFLAGS="-g -O2 -fPIC $CFLAGS"
+export CXXFLAGS="-g -O2 -fPIC $CXXFLAGS"
 
 if [ "$SAGE64" = "yes" ]; then
    echo "64 bit build"

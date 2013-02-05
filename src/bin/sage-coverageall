@@ -4,7 +4,7 @@ import os, sys
 
 def coverage_all(directory):
     os.chdir(directory)
-    r = os.popen('sage -coverage * | grep SCORE').readlines()
+    r = os.popen('sage-coverage * | grep SCORE').readlines()
 
     s = []
     scr = 0
@@ -17,7 +17,7 @@ def coverage_all(directory):
 
         i = y.rfind(':')
         j = y.rfind('%')
-        scr += int(y[i+1:j]) * float(n)
+        scr += float(y[i+1:j]) * float(n)
 
         total += n
 
@@ -35,12 +35,12 @@ def coverage_all(directory):
 
     # Print up to 3 doctest coverage goals.
     i = 0
-    for goal in [68, 70, 75, 80, 85, 90, 95, 99]:
+    for goal in [70, 75, 80, 85, 90, 95, 99]:
         if score < goal:
             i += 1
             if i > 3: break
             need = int((goal*total - scr)/100.0)
-            print "We need %4s more function to get to %s%% coverage."%(need,goal)
+            print "We need %4s more function%s to get to %s%% coverage."%(need, "" if (need == 1) else "s", goal)
 
 if len(sys.argv) == 1:
     coverage_all('%s/devel/sage/sage/'%os.environ["SAGE_ROOT"])

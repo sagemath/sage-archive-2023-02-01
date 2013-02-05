@@ -1063,6 +1063,26 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             True
             sage: parent(w+v) is W
             True
+
+        TESTS:
+
+        We check that with :trac:`14058`, parents are still eligible for
+        garbage collection after being involved in binary operations::
+
+            sage: import gc
+            sage: T=type(GF(2))
+            sage: N0=len(list(o for o in gc.get_objects() if type(o) is T))
+            sage: L=[ZZ(1)+GF(p)(1) for p in prime_range(2,50)]
+            sage: N1=len(list(o for o in gc.get_objects() if type(o) is T))
+            sage: print N1 > N0
+            True
+            sage: del L
+            sage: gc.collect() #random
+            3939
+            sage: N2=len(list(o for o in gc.get_objects() if type(o) is T))
+            sage: print N2-N0
+            0
+
         """
         try:
             refs = self._coercion_maps.get(R, S, None)

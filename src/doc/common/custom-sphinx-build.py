@@ -22,7 +22,8 @@ import sphinx.util.console
 sphinx.util.console.term_width_line = term_width_line
 
 
-
+# useless_chatter: regular expressions to be filtered from Sphinx
+# output.
 
 useless_chatter = (
     re.compile('^$'),
@@ -31,19 +32,24 @@ useless_chatter = (
     re.compile('^Compiling a sub-document'),
     re.compile('^updating environment: 0 added, 0 changed, 0 removed'),
     re.compile('^looking for now-outdated files... none found'),
-    re.compile('^no targets are out of date.'),
     re.compile('^building \[.*\]: targets for 0 source files that are out of date'),
     re.compile('^loading pickled environment... done'),
     re.compile('^loading cross citations... done \([0-9]* citations\).')
     )
 
+# replacements: pairs of regular expressions and their replacements,
+# to be applied to Sphinx output.
+
+replacements = ()
 
 if any('multidoc_first_pass=1' in arg for arg in sys.argv):
+    # When building the inventory, ignore warnings about missing
+    # citations.
     useless_chatter += (
         re.compile('^None:[0-9]*: WARNING: citation not found: '),
         )
-
-
+    replacements += ([re.compile('build succeeded, [0-9]+ warning[s]?.'),
+                      'build succeeded.'], )
 
 
 class SageSphinxLogger(object):
@@ -75,6 +81,8 @@ class SageSphinxLogger(object):
     def _log_line(self, line):
         if self._filter_out(line):
             return
+        for (old, new) in replacements:
+            line = old.sub(new, line)
         line = self._prefix + ' ' + line.strip() + '\n'
         if not self._color:
             line = self.ansi_color.sub('', line)

@@ -2,6 +2,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
 
 cdef class Map(Element):
+    cdef object __weakref__
     cdef Parent _domain
     cdef Parent _codomain
 

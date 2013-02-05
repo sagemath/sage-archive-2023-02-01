@@ -43,6 +43,11 @@ class KazhdanLusztigPolynomial(SageObject):
             sage: KL.P(s2,s3*s2*s3*s1*s2)
             q + 1
 
+        A faster implementation (using the optional package Coxeter 3) is given by::
+
+            sage: W = CoxeterGroup(['B', 3], implementation='coxeter3') # optional - coxeter3
+            sage: W.kazhdan_lusztig_polynomial([2], [3,2,3,1,2])        # optional - coxeter3
+            q + 1
         """
         self._coxeter_group = W
         self._q = q
@@ -60,6 +65,10 @@ class KazhdanLusztigPolynomial(SageObject):
     def R(self, x, y):
         """
         Returns the Kazhdan-Lusztig R polynomial.
+
+        INPUT:
+
+        - ``x``, ``y`` -- elements of the underlying Coxeter group
 
         EXAMPLES ::
 
@@ -99,9 +108,19 @@ class KazhdanLusztigPolynomial(SageObject):
     @cached_method
     def P(self, x, y):
         """
-        Returns the Kazhdan-Lusztig P polynomial. If the rank is large,
-        this runs slowly at first but speeds up as you do repeated calculations
-        due to the caching.
+        Returns the Kazhdan-Lusztig P polynomial.
+
+        If the rank is large, this runs slowly at first but speeds up
+        as you do repeated calculations due to the caching.
+
+        INPUT:
+
+        - ``x``, ``y`` -- elements of the underlying Coxeter group
+
+        .. SEEALSO::
+
+            :mod:`~sage.libs.coxeter3.coxeter_group.CoxeterGroup.kazhdan_lusztig_polynomial`
+            for a faster implementation using Fokko Ducloux's Coxeter3 C++ library.
 
         EXAMPLES ::
 
@@ -153,6 +172,3 @@ def laurent_polynomial_truncate(p, n):
         if k[0] < n:
             dict[k] = pdict[k]
     return p.parent()(dict)
-
-
-

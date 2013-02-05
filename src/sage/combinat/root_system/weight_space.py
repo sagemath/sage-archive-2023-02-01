@@ -128,11 +128,9 @@ class WeightSpace(CombinatorialFreeModule):
 
     TESTS::
 
-        sage: for ct in CartanType.samples():
-        ...       if ct.is_implemented():
-        ...           P = ct.root_system().weight_space()
-        ...           TestSuite(P).run()
-        ...
+        sage: for ct in CartanType.samples(crystalographic=True)+[CartanType(["A",2],["C",5,1])]:
+        ...       TestSuite(ct.root_system().weight_lattice()).run()
+        ...       TestSuite(ct.root_system().weight_space()).run()
         sage: for ct in CartanType.samples(affine=True):
         ...       if ct.is_implemented():
         ...           P = ct.root_system().weight_space(extended=True)

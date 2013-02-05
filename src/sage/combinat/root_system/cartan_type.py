@@ -735,11 +735,6 @@ class CartanType_abstract(object):
             [(1, 2, 6)]
             sage: CartanType(['F',4]).coxeter_diagram().edges()
             [(1, 2, 3), (2, 3, 4), (3, 4, 3)]
-
-        This is currently implemented only for crystallographic types::
-
-            sage: CartanType(['H',3]).coxeter_diagram
-            NotImplemented
         """
 
     @cached_method
@@ -976,16 +971,10 @@ class CartanType_abstract(object):
             sage: CartanType(["A",4,1]).is_implemented()
             True
             sage: CartanType(['H',3]).is_implemented()
-            False
-
-        .. todo::
-
-            Implemente Cartan datum for non crystallographic types,
-            and update the implementation of this method accordingly,
-            say by testing the coxeter diagram instead.
+            True
         """
         try:
-            self.dynkin_diagram()
+            self.coxeter_diagram()
             return True
         except StandardError:
             return False

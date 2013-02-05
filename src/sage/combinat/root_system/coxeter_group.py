@@ -25,7 +25,7 @@ def CoxeterGroup(cartan_type, implementation = None):
     INPUT:
 
      - ``cartan_type`` -- a cartan type (or coercible into; see :class:`CartanType`)
-     - ``implementation`` -- "permutation", "matrix", or None (default: None)
+     - ``implementation`` -- "permutation", "matrix", "coxeter3", or None (default: None)
 
     Returns an implementation of the Coxeter group of type
     ``cartan_type``.
@@ -69,7 +69,7 @@ def CoxeterGroup(cartan_type, implementation = None):
         NotImplementedError: Coxeter group of type ['A', 4, 1] as permutation group not implemented
 
     """
-    assert implementation in ["permutation", "matrix", None]
+    assert implementation in ["permutation", "matrix", "coxeter3", None]
     cartan_type = CartanType(cartan_type)
 
     if implementation is None:
@@ -78,6 +78,13 @@ def CoxeterGroup(cartan_type, implementation = None):
         else:
             implementation = "matrix"
 
+    if implementation == "coxeter3":
+        try:
+            from sage.libs.coxeter3.coxeter_group import CoxeterGroup
+        except ImportError:
+            raise RuntimeError, "coxeter3 must be installed"
+        else:
+            return CoxeterGroup(cartan_type)
     if implementation == "permutation" and is_chevie_available() and \
        cartan_type.is_finite() and cartan_type.is_irreducible():
         return CoxeterGroupAsPermutationGroup(cartan_type)

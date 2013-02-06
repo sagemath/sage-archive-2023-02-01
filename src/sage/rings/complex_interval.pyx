@@ -6,14 +6,27 @@ axis-aligned rectangles in the complex plane.  It has very few special
 functions, and it does not use any special tricks to keep the size of
 the intervals down.
 
-AUTHOR:
-  These authors wrote complex_number.pyx.
-    -- William Stein (2006-01-26): complete rewrite
-    -- Joel B. Mohler (2006-12-16): naive rewrite into pyrex
-    -- William Stein(2007-01): rewrite of Mohler's rewrite
-  Then complex_number.pyx was copied to complex_interval.pyx and
-  heavily modified:
-    -- Carl Witty (2007-10-24): rewrite to become a complex interval package
+AUTHORS:
+
+These authors wrote ``complex_number.pyx``:
+
+- William Stein (2006-01-26): complete rewrite
+- Joel B. Mohler (2006-12-16): naive rewrite into pyrex
+- William Stein(2007-01): rewrite of Mohler's rewrite
+
+Then ``complex_number.pyx`` was copied to ``complex_interval.pyx`` and
+heavily modified:
+
+- Carl Witty (2007-10-24): rewrite to become a complex interval package
+
+- Travis Scrimshaw (2012-10-18): Added documentation to get full coverage.
+
+.. TODO::
+
+    Implement :class:`ComplexIntervalFieldElement` multiplicative
+    order similar to :class:`ComplexNumber` multiplicative
+    order with ``_set_multiplicative_order(n)`` and
+    :meth:`ComplexNumber.multiplicative_order()` methods.
 """
 
 #################################################################################
@@ -44,13 +57,25 @@ include "../ext/stdsage.pxi"
 cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
 
 def is_ComplexIntervalFieldElement(x):
+    """
+    Check if ``x`` is a :class:`ComplexIntervalFieldElement`.
+
+    EXAMPLES::
+
+        sage: from sage.rings.complex_interval import is_ComplexIntervalFieldElement as is_CIFE
+        sage: is_CIFE(CIF(2))
+        True
+        sage: is_CIFE(CC(2))
+        False
+    """
     return isinstance(x, ComplexIntervalFieldElement)
 
 cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
     """
     A complex interval.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: I = CIF.gen()
         sage: b = 1.5 + 2.5*I
         sage: TestSuite(b).run()
@@ -58,7 +83,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
     cdef ComplexIntervalFieldElement _new(self):
         """
         Quickly creates a new initialized complex interval with the
-        same parent as self.
+        same parent as ``self``.
         """
         cdef ComplexIntervalFieldElement x
         x = PY_NEW(ComplexIntervalFieldElement)
@@ -70,7 +95,16 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def __init__(self, parent, real, imag=None):
         """
-        Initialize a complex interval.
+        Initialize a complex number (interval).
+
+        EXAMPLES::
+
+            sage: CIF(1.5, 2.5)
+            1.5000000000000000? + 2.5000000000000000?*I
+            sage: CIF((1.5, 2.5))
+            1.5000000000000000? + 2.5000000000000000?*I
+            sage: CIF(1.5 + 2.5*I)
+            1.5000000000000000? + 2.5000000000000000?*I
         """
         cdef real_mpfi.RealIntervalFieldElement rr, ii
         self._parent = parent
@@ -107,12 +141,53 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         mpfi_clear(self.__im)
 
     def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: CIF(1.5) # indirect doctest
+            1.5000000000000000?
+            sage: CIF(1.5, 2.5) # indirect doctest
+            1.5000000000000000? + 2.5000000000000000?*I
+        """
         return self.str(10)
 
     def __hash__(self):
+        """
+        Return the hash value of ``self``.
+
+        EXAMPLES::
+
+            sage: hash(CIF(1.5)) # indirect doctest
+            1517890078            # 32-bit
+            -3314089385045448162  # 64-bit
+            sage: hash(CIF(1.5, 2.5)) # indirect doctest
+            -1103102080           # 32-bit
+            3834538979630251904   # 64-bit
+        """
         return hash(self.str())
 
     def __getitem__(self, i):
+        """
+        Returns either the real or imaginary component of ``self`` depending
+        on the choice of ``i``: real (``i=0``), imaginary (``i=1``)
+
+        INPUTS:
+
+        - ``i`` - 0 or 1
+
+          - ``0`` -- will return the real component of ``self``
+          - ``1`` -- will return the imaginary component of ``self``
+
+        EXAMPLES::
+
+            sage: z = CIF(1.5, 2.5)
+            sage: z[0]
+            1.5000000000000000?
+            sage: z[1]
+            2.5000000000000000?
+        """
         if i == 0:
             return self.real()
         elif i == 1:
@@ -121,9 +196,10 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def __reduce__( self ):
         """
-        Pickling support
+        Pickling support.
 
-        EXAMPLES:
+        TESTS::
+
             sage: a = CIF(1 + I)
             sage: loads(dumps(a)) == a
             True
@@ -134,7 +210,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def str(self, base=10, style=None):
         """
-        Returns a string representation of self.
+        Returns a string representation of ``self``.
 
         EXAMPLES::
 
@@ -151,9 +227,9 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: CIF(1, pi).str(style='brackets')
             '[1.0000000000000000 .. 1.0000000000000000] + [3.1415926535897931 .. 3.1415926535897936]*I'
 
-        SEE ALSO:
+        .. SEEALSO::
 
-            RealIntervalFieldElement.str()
+            - :meth:`RealIntervalFieldElement.str`
         """
         s = ""
         if not self.real().is_zero():
@@ -172,7 +248,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         return s
 
     def plot(self, pointsize=10, **kwds):
-        """
+        r"""
         Plot a complex interval as a rectangle.
 
         EXAMPLES::
@@ -183,7 +259,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
             sage: plot(CIF(pi, 1), color='red') + plot(CIF(1, e), color='purple') + plot(CIF(-1, -1))
 
-        A demonstration that $z \mapsto z^2$ acts chaotically on $|z|=1$::
+        A demonstration that `z \mapsto z^2` acts chaotically on `|z|=1`::
 
             sage: z = CIF(0, 2*pi/1000).exp()
             sage: g = Graphics()
@@ -205,13 +281,13 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def _latex_(self):
         """
-        Returns a latex representation of self.
+        Returns a latex representation of ``self``.
 
         EXAMPLES::
 
-            sage: latex(CIF(1.5, -2.5))
+            sage: latex(CIF(1.5, -2.5)) # indirect doctest
             1.5000000000000000? - 2.5000000000000000?i
-            sage: latex(CIF(0, 3e200))
+            sage: latex(CIF(0, 3e200)) # indirect doctest
             3.0000000000000000? \times 10^{200}i
         """
         import re
@@ -220,8 +296,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def bisection(self):
         """
-        Returns the bisection of self into four intervals whose union is
-        ``self`` and intersection is ``self.center()``.
+        Returns the bisection of ``self`` into four intervals whose union is
+        ``self`` and intersection is :meth:`center()`.
 
         EXAMPLES::
 
@@ -270,8 +346,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def is_exact(self):
         """
-        Returns whether this real interval is exact (i.e. contains exactly one
-        complex value).
+        Returns whether this complex interval is exact (i.e. contains exactly
+        one complex value).
 
         EXAMPLES::
 
@@ -297,13 +373,15 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def diameter(self):
         """
-        Returns a somewhat-arbitrarily defined "diameter" for this
-        interval: returns the maximum of the diameter of the real
-        and imaginary components, where diameter on a real interval
-        is defined as absolute diameter if the interval contains zero,
-        and relative diameter otherwise.
+        Returns a somewhat-arbitrarily defined "diameter" for this interval.
 
-        EXAMPLES:
+        The diameter of an interval is the maximum of the diameter of the real
+        and imaginary components, where diameter on a real interval is defined
+        as absolute diameter if the interval contains zero, and relative
+        diameter otherwise.
+
+        EXAMPLES::
+
             sage: CIF(RIF(-1, 1), RIF(13, 17)).diameter()
             2.00000000000000
             sage: CIF(RIF(-0.1, 0.1), RIF(13, 17)).diameter()
@@ -323,10 +401,11 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def overlaps(self, ComplexIntervalFieldElement other):
         """
-        Returns True if self and other are intervals with at least
+        Returns ``True`` if ``self`` and other are intervals with at least
         one value in common.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CIF(0).overlaps(CIF(RIF(0, 1), RIF(-1, 0)))
             True
             sage: CIF(1).overlaps(CIF(1, 1))
@@ -339,9 +418,11 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def intersection(self, other):
         """
-        Returns the intersection of two complex intervals.
+        Returns the intersection of the two complex intervals ``self`` and
+        ``other``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CIF(RIF(1, 3), RIF(1, 3)).intersection(CIF(RIF(2, 4), RIF(2, 4))).str(style='brackets')
             '[2.0000000000000000 .. 3.0000000000000000] + [2.0000000000000000 .. 3.0000000000000000]*I'
             sage: CIF(RIF(1, 2), RIF(1, 3)).intersection(CIF(RIF(3, 4), RIF(2, 4)))
@@ -369,9 +450,10 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
     def union(self, other):
         """
         Returns the smallest complex interval including the
-        two complex intervals.
+        two complex intervals ``self`` and ``other``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CIF(0).union(CIF(5, 5)).str(style='brackets')
             '[0.00000000000000000 .. 5.0000000000000000] + [0.00000000000000000 .. 5.0000000000000000]*I'
         """
@@ -392,7 +474,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         Returns the closest floating-point approximation to the center
         of the interval.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CIF(RIF(1, 2), RIF(3, 4)).center()
             1.50000000000000 + 3.50000000000000*I
         """
@@ -405,9 +488,10 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def __contains__(self, other):
         """
-        Test whether one interval is totally contained in another.
+        Test whether ``other`` is totally contained in ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CIF(1, 1) in CIF(RIF(1, 2), RIF(1, 2))
             True
         """
@@ -416,9 +500,10 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def contains_zero(self):
         """
-        Returns True if self is an interval containing zero.
+        Returns ``True`` if ``self`` is an interval containing zero.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: CIF(0).contains_zero()
             True
             sage: CIF(RIF(-1, 1), 1).contains_zero()
@@ -427,6 +512,14 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         return mpfi_has_zero(self.__re) and mpfi_has_zero(self.__im)
 
     cpdef ModuleElement _add_(self, ModuleElement right):
+        """
+        Add ``self`` and ``right``.
+
+        EXAMPLES::
+
+            sage: CIF(2,-3)._add_(CIF(1,-2))
+            3 - 5*I
+        """
         cdef ComplexIntervalFieldElement x
         x = self._new()
         mpfi_add(x.__re, self.__re, (<ComplexIntervalFieldElement>right).__re)
@@ -434,6 +527,14 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         return x
 
     cpdef ModuleElement _sub_(self, ModuleElement right):
+        """
+        Subtract ``self`` by ``right``.
+
+        EXAMPLES::
+
+            sage: CIF(2,-3)._sub_(CIF(1,-2))
+            1 - 1*I
+        """
         cdef ComplexIntervalFieldElement x
         x = self._new()
         mpfi_sub(x.__re, self.__re, (<ComplexIntervalFieldElement>right).__re)
@@ -441,6 +542,14 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         return x
 
     cpdef RingElement _mul_(self, RingElement right):
+        """
+        Multiply ``self`` and ``right``.
+
+        EXAMPLES::
+
+            sage: CIF(2,-3)._mul_(CIF(1,-2))
+            -4 - 7*I
+        """
         cdef ComplexIntervalFieldElement x
         x = self._new()
         cdef mpfi_t t0, t1
@@ -457,6 +566,39 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         return x
 
     def norm(self):
+        """
+        Returns the norm of this complex number.
+
+        If `c = a + bi` is a complex number, then the norm of `c` is defined as
+        the product of `c` and its complex conjugate:
+
+        .. MATH::
+
+            \text{norm}(c)
+            =
+            \text{norm}(a + bi)
+            =
+            c \cdot \overline{c}
+            =
+            a^2 + b^2.
+
+        The norm of a complex number is different from its absolute value.
+        The absolute value of a complex number is defined to be the square
+        root of its norm. A typical use of the complex norm is in the
+        integral domain `\ZZ[i]` of Gaussian integers, where the norm of
+        each Gaussian integer `c = a + bi` is defined as its complex norm.
+
+        .. SEEALSO::
+
+            - :meth:`sage.rings.complex_double.ComplexDoubleElement.norm`
+
+        EXAMPLES::
+
+            sage: CIF(2, 1).norm()
+            5
+            sage: CIF(1, -2).norm()
+            5
+        """
         return self.norm_c()
 
     cdef real_mpfi.RealIntervalFieldElement norm_c(ComplexIntervalFieldElement self):
@@ -495,6 +637,14 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         return x
 
     cpdef RingElement _div_(self, RingElement right):
+        """
+        Divide ``self`` by ``right``.
+
+        EXAMPLES::
+
+            sage: CIF(2,-3)._div_(CIF(1,-2))
+            1.600000000000000? + 0.200000000000000?*I
+        """
         cdef ComplexIntervalFieldElement x
         x = self._new()
         cdef mpfi_t a, b, t0, t1, right_nm
@@ -528,20 +678,33 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         return x
 
     def __rdiv__(self, left):
+        """
+        Divide ``left`` by ``self``.
+
+        EXAMPLES::
+
+            sage: CIF(2,-3).__rdiv__(CIF(1,-2))
+            0.6153846153846154? - 0.0769230769230769?*I
+        """
         return ComplexIntervalFieldElement(self._parent, left)/self
 
     def __pow__(self, right, modulus):
-        """
-        Compute $x^y$.  If y is an integer, uses multiplication;
-        otherwise, uses the standard definition exp(log(x)*y).
-        WARNING: If the interval x crosses the negative real axis,
-        then we use a non-standard definition of log() (see
-        the docstring for argument() for more details).  This means
-        that we will not select the principal value of the power,
-        for part of the input interval (and that we violate the
-        interval guarantees).
+        r"""
+        Compute `x^y`.
 
-        EXAMPLES:
+        If `y` is an integer, uses multiplication;
+        otherwise, uses the standard definition `\exp(\log(x) \cdot y)`.
+
+        .. WARNING::
+
+            If the interval `x` crosses the negative real axis, then we use a
+            non-standard definition of `\log()` (see the docstring for
+            :meth:`argument()` for more details). This means that we will not
+            select the principal value of the power, for part of the input
+            interval (and that we violate the interval guarantees).
+
+        EXAMPLES::
+
             sage: C.<i> = ComplexIntervalField(20)
             sage: a = i^2; a
             -1
@@ -556,9 +719,9 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             sage: (2+i)^(-39)
             1.688?e-14 + 1.628?e-14*I
 
-        If the interval crosses the negative real axis, then we don't
-        use the standard branch cut (and we violate the interval
-        guarantees):
+        If the interval crosses the negative real axis, then we don't use the
+        standard branch cut (and we violate the interval guarantees)::
+
             sage: (CIF(-7, RIF(-1, 1)) ^ CIF(0.3)).str(style='brackets')
             '[0.99109735947126309 .. 1.1179269966896264] + [1.4042388462787560 .. 1.4984624123369835]*I'
             sage: CIF(-7, -1) ^ CIF(0.3)
@@ -570,10 +733,13 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def _magma_init_(self, magma):
         r"""
-        EXAMPLES:
+        Return a string representation of ``self`` in the Magma language.
+
+        EXAMPLES::
+
             sage: t = CIF((1, 1.1), 2.5); t
             1.1? + 2.5000000000000000?*I
-            sage: magma(t) # optional - magma
+            sage: magma(t) # optional - magma # indirect doctest
             1.05000000000000 + 2.50000000000000*$.1
             sage: t = ComplexIntervalField(100)((1, 4/3), 2.5); t
             2.? + 2.5000000000000000000000000000000?*I
@@ -584,15 +750,15 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def _interface_init_(self, I=None):
         """
-        Raise a TypeError.
+        Raise a ``TypeError``.
 
-        This function would return the string representation of self
+        This function would return the string representation of ``self``
         that makes sense as a default representation of a complex
         interval in other computer algebra systems. But, most other
         computer algebra systems do not support interval arithmetic,
-        so instead we just raise a TypeError.
+        so instead we just raise a ``TypeError``.
 
-        Define the appropriate _cas_init_ function if there is a
+        Define the appropriate ``_cas_init_`` function if there is a
         computer algebra system you would like to support.
 
         EXAMPLES::
@@ -603,8 +769,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             ...
             TypeError
 
-        Here a conversion to Maxima happens, which results in a type
-        error::
+        Here a conversion to Maxima happens, which results in a ``TypeError``::
 
             sage: a = CIF(2.3)
             sage: maxima(a)
@@ -619,7 +784,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         r"""
         Produce an expression which will reproduce this value when evaluated.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage_input(CIF(RIF(e, pi), RIF(sqrt(2), sqrt(3))), verify=True)
             # Verified
             CIF(RIF(RR(2.7182818284590451), RR(3.1415926535897936)), RIF(RR(1.4142135623730949), RR(1.7320508075688774)))
@@ -641,7 +807,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         Return precision of this complex number.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: i = ComplexIntervalField(2000).0
             sage: i.prec()
             2000
@@ -650,9 +817,10 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def real(self):
         """
-        Return real part of self.
+        Return real part of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: i = ComplexIntervalField(100).0
             sage: z = 2 + 3*i
             sage: x = z.real(); x
@@ -667,9 +835,10 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def imag(self):
         """
-        Return imaginary part of self.
+        Return imaginary part of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: i = ComplexIntervalField(100).0
             sage: z = 2 + 3*i
             sage: x = z.imag(); x
@@ -683,6 +852,14 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         return x
 
     def __neg__(self):
+        """
+        Return the negation of ``self``.
+
+        EXAMPLES::
+
+            sage: CIF(1.5, 2.5).__neg__()
+            -1.5000000000000000? - 2.5000000000000000?*I
+        """
         cdef ComplexIntervalFieldElement x
         x = self._new()
         mpfi_neg(x.__re, self.__re)
@@ -690,18 +867,35 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         return x
 
     def __pos__(self):
+        """
+        Return the "positive" of ``self``, which is just ``self``.
+
+        EXAMPLES::
+
+            sage: CIF(1.5, 2.5).__pos__()
+            1.5000000000000000? + 2.5000000000000000?*I
+        """
         return self
 
     def __abs__(self):
+        """
+        Return the absolute value of ``self``.
+
+        EXAMPLES::
+
+            sage: CIF(1.5, 2.5).__abs__()
+            2.915475947422650?
+        """
         return self.abs_c()
 
     def __invert__(self):
         """
-        Return the multiplicative inverse.
+        Return the multiplicative inverse of ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: I = CIF.0
-            sage: a = ~(5+I)
+            sage: a = ~(5+I) # indirect doctest
             sage: a * (5+I)
             1.000000000000000? + 0.?e-16*I
         """
@@ -727,22 +921,62 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         return x
 
     def __int__(self):
+        """
+        Convert ``self`` to an ``int``.
+
+        EXAMPLES::
+
+            sage: int(CIF(1,1))
+            Traceback (most recent call last):
+            ...
+            TypeError: can't convert complex interval to int
+        """
         raise TypeError, "can't convert complex interval to int"
 
     def __long__(self):
+        """
+        Convert ``self`` to a ``lon``.
+
+        EXAMPLES::
+
+            sage: long(CIF(1,1))
+            Traceback (most recent call last):
+            ...
+            TypeError: can't convert complex interval to long
+        """
         raise TypeError, "can't convert complex interval to long"
 
     def __float__(self):
+        """
+        Convert ``self`` to a ``float``.
+
+        EXAMPLES::
+
+            sage: float(CIF(1,1))
+            Traceback (most recent call last):
+            ...
+            TypeError: can't convert complex interval to float
+        """
         raise TypeError, "can't convert complex interval to float"
 
     def __complex__(self):
+        """
+        Convert ``self`` to a ``complex``.
+
+        EXAMPLES::
+
+            sage: complex(CIF(1,1))
+            Traceback (most recent call last):
+            ...
+            TypeError: can't convert complex interval to complex
+        """
         raise TypeError, "can't convert complex interval to complex"
 
     def __richcmp__(left, right, int op):
-        """
+        r"""
         As with the real interval fields this never returns false positives.
-        Thus, `a == b` is True iff both `a` and `b` represent the same
-        one-point interval. Likewise `a != b` is True iff `x != y` for all
+        Thus, `a == b` is ``True`` iff both `a` and `b` represent the same
+        one-point interval. Likewise `a != b` is ``True`` iff `x != y` for all
         `x \in a, y \in b`.
 
         EXAMPLES::
@@ -812,8 +1046,9 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def __cmp__(left, right):
         """
-        Intervals are compared lexicographically on the 4-tuple
-        (x.real().lower(), x.real().upper(), x.imag().lower(), x.imag().upper())
+        Intervals are compared lexicographically on the 4-tuple:
+        ``(x.real().lower(), x.real().upper(),
+        x.imag().lower(), x.imag().upper())``
 
         EXAMPLES::
 
@@ -836,10 +1071,12 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
         """
-        Intervals are compared lexicographically on the 4-tuple
-        (x.real().lower(), x.real().upper(), x.imag().lower(), x.imag().upper())
+        Intervals are compared lexicographically on the 4-tuple:
+        ``(x.real().lower(), x.real().upper(),
+        x.imag().lower(), x.imag().upper())``
 
-        TESTS:
+        TESTS::
+
             sage: tests = []
             sage: for rl in (0, 1):
             ...       for ru in (rl, rl + 1):
@@ -886,18 +1123,21 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
     def argument(self):
         r"""
         The argument (angle) of the complex number, normalized
-        so that $-\pi < \theta.lower() \leq \pi$.
+        so that `-\pi < \theta.lower() \leq \pi`.
 
-        We raise a ValueError if the interval strictly contains 0,
+        We raise a ``ValueError`` if the interval strictly contains 0,
         or if the interval contains only 0.
 
-        WARNING: We do not always use the standard branch cut for
-        argument!  If the interval crosses the negative real axis,
-        then the argument will be an interval whose lower bound is
-        less than $\pi$ and whose upper bound is more than $\pi$; in
-        effect, we move the branch cut away from the interval.
+        .. WARNING::
 
-        EXAMPLES:
+            We do not always use the standard branch cut for
+            argument!  If the interval crosses the negative real axis,
+            then the argument will be an interval whose lower bound is
+            less than `\pi` and whose upper bound is more than `\pi`; in
+            effect, we move the branch cut away from the interval.
+
+        EXAMPLES::
+
             sage: i = CIF.0
             sage: (i^2).argument()
             3.141592653589794?
@@ -915,8 +1155,9 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             3.141592653589794?
 
         Here we see that if the interval crosses the negative real
-        axis, then the argument() can exceed $\pi$, and we
-        we violate the standard interval guarantees in the process:
+        axis, then the argument can exceed `\pi`, and we
+        we violate the standard interval guarantees in the process::
+
             sage: CIF(-2, RIF(-0.1, 0.1)).argument().str(style='brackets')
             '[3.0916342578678501 .. 3.1915510493117365]'
             sage: CIF(-2, -0.1).argument()
@@ -985,9 +1226,10 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def arg(self):
         """
-        Same as argument.
+        Same as :meth:`argument()`.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: i = CIF.0
             sage: (i^2).arg()
             3.141592653589794?
@@ -996,10 +1238,19 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def crosses_log_branch_cut(self):
         """
-        Returns true if this interval crosses the standard branch cut
-        for log() (and hence for exponentiation) and for argument.
+        Returns ``True`` if this interval crosses the standard branch cut
+        for :meth:`log()` (and hence for exponentiation) and for argument.
         (Recall that this branch cut is infinitesimally below the
         negative portion of the real axis.)
+
+        EXAMPLES::
+
+            sage: z = CIF(1.5, 2.5) - CIF(0, 2.50000000000000001); z
+            1.5000000000000000? + -1.?e-15*I
+            sage: z.crosses_log_branch_cut()
+            False
+            sage: CIF(-2, RIF(-0.1, 0.1)).crosses_log_branch_cut()
+            True
         """
 
         if mpfi_is_nonneg(self.__re):
@@ -1014,7 +1265,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         Return the complex conjugate of this complex number.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: i = CIF.0
             sage: (1+i).conjugate()
             1 - 1*I
@@ -1027,10 +1279,11 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         return x
 
     def exp(self):
-        """
-        Compute exp(z).
+        r"""
+        Compute `e^z` or `\exp(z)` where `z` is the complex number ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: i = ComplexIntervalField(300).0
             sage: z = 1 + i
             sage: z.exp()
@@ -1044,9 +1297,12 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
     def log(self,base=None):
         """
-        Complex logarithm of z.  WARNING: This does always not use the
-        standard branch cut for complex log!  See the docstring for
-        argument() to see what we do instead.
+        Complex logarithm of `z`.
+
+        .. WARNING::
+
+            This does always not use the standard branch cut for complex log!
+            See the docstring for :meth:`argument()` to see what we do instead.
 
         EXAMPLES::
 
@@ -1098,17 +1354,20 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
         """
         The square root function.
 
-        WARNING: We approximate the standard branch cut along the
-        negative real axis, with sqrt(-r^2) = i*r for positive real r;
-        but if the interval crosses the negative real axis, we pick
-        the root with positive imaginary component for the entire
-        interval.
+        .. WARNING::
+
+            We approximate the standard branch cut along the negative real
+            axis, with ``sqrt(-r^2) = i*r`` for positive real ``r``; but if
+            the interval crosses the negative real axis, we pick the root with
+            positive imaginary component for the entire interval.
 
         INPUT:
-            all -- bool (default: False); if True, return a list
-                of all square roots.
 
-        EXAMPLES:
+        - ``all`` -- bool (default: ``False``); if ``True``, return a list
+          of all square roots.
+
+        EXAMPLES::
+
             sage: CIF(-1).sqrt()^2
             -1
             sage: sqrt(CIF(2))
@@ -1121,7 +1380,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             -2.00000000000000 - 1.00000000000000*I
 
         Here, we select a non-principal root for part of the interval, and
-        violate the standard interval guarantees:
+        violate the standard interval guarantees::
+
             sage: CIF(-5, RIF(-1, 1)).sqrt().str(style='brackets')
             '[-0.22250788030178321 .. 0.22250788030178296] + [2.2251857651053086 .. 2.2581008643532262]*I'
             sage: CIF(-5, -1).sqrt()
@@ -1145,8 +1405,13 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 
 
     def is_square(self):
-        """
-        This function always returns true as $\C$ is algebraically closed.
+        r"""
+        This function always returns ``True`` as `\CC` is algebraically closed.
+
+        EXAMPLES::
+
+            sage: CIF(2, 1).is_square()
+            True
         """
         return True
 
@@ -1162,7 +1427,8 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 #         INPUT: Type algdep? at the top level prompt. All additional
 #         parameters are passed onto the top-level algdep command.
 
-#         EXAMPLE:
+#         EXAMPLES::
+#
 #             sage: C = ComplexIntervalField()
 #             sage: z = (1/2)*(1 + sqrt(3.0) *C.0); z
 #             0.500000000000000 + 0.866025403784439*I
@@ -1180,6 +1446,15 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
 #         return self.algdep( n )
 
 def make_ComplexIntervalFieldElement0( fld, re, im ):
+    """
+    Construct a :class:`ComplexIntervalFieldElement` for pickling.
+
+    TESTS::
+
+        sage: a = CIF(1 + I)
+        sage: loads(dumps(a)) == a # indirect doctest
+        True
+    """
     x = ComplexIntervalFieldElement( fld, re, im )
     return x
 
@@ -1187,20 +1462,24 @@ def make_ComplexIntervalFieldElement0( fld, re, im ):
 
 def create_ComplexIntervalFieldElement(s_real, s_imag=None, int pad=0, min_prec=53):
     r"""
-    Return the complex number defined by the strings s_real and s_imag as an element of
-    \code{ComplexIntervalField(prec=n)}, where n potentially has slightly more
-    (controlled by pad) bits than given by s.
+    Return the complex number defined by the strings ``s_real`` and ``s_imag``
+    as an element of ``ComplexIntervalField(prec=n)``, where `n` potentially
+    has slightly more (controlled by pad) bits than given by `s`.
 
     INPUT:
 
-        s_real -- a string that defines a real number (or something whose
-                  string representation defines a number)
-        s_imag -- a string that defines a real number (or something whose
-                  string representation defines a number)
-        pad -- an integer >= 0.
-        min_prec -- number will have at least this many bits of precision, no matter what.
+    - ``s_real`` -- a string that defines a real number (or something whose
+      string representation defines a number)
 
-    EXAMPLES:
+    - ``s_imag`` -- a string that defines a real number (or something whose
+      string representation defines a number)
+
+    - ``pad`` -- an integer at least 0.
+
+    - ``min_prec`` -- number will have at least this many bits of precision,
+      no matter what.
+
+    EXAMPLES::
 
         sage: ComplexIntervalFieldElement('2.3')
         2.300000000000000?
@@ -1219,8 +1498,8 @@ def create_ComplexIntervalFieldElement(s_real, s_imag=None, int pad=0, min_prec=
 
     TESTS:
 
-    Make sure we've rounded up log(10,2) enough to guarantee
-    sufficient precision (trac #10164).  This is a little tricky
+    Make sure we've rounded up ``log(10,2)`` enough to guarantee
+    sufficient precision (:trac:`10164`).  This is a little tricky
     because at the time of writing, we don't support intervals long
     enough to trip the error.  However, at least we can make sure that
     we either do it correctly or fail noisily::

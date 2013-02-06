@@ -5,8 +5,10 @@ AUTHORS:
 
 - William Stein (2006-01-26): complete rewrite
 
-- Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+- Niles Johnson (2010-08): :trac:`3893`: ``random_element()`` should pass on
+  ``*args`` and ``**kwds``.
 
+- Travis Scrimshaw (2012-10-18): Added documentation for full coverage.
 """
 
 #################################################################################
@@ -36,7 +38,15 @@ AA = None
 QQbar = None
 SR = None
 CDF = CLF = RLF = None
+
 def late_import():
+    """
+    Import the objects/modules after build (when needed).
+
+    TESTS::
+
+        sage: sage.rings.complex_field.late_import()
+    """
     global NumberFieldElement_quadratic
     global AlgebraicNumber_base
     global AlgebraicNumber
@@ -58,6 +68,19 @@ def late_import():
         from complex_double import CDF
 
 def is_ComplexField(x):
+    """
+    Check if ``x`` is a :class:`complex field <ComplexField_class>`.
+
+    EXAMPLES::
+
+        sage: from sage.rings.complex_field import is_ComplexField as is_CF
+        sage: is_CF(ComplexField())
+        True
+        sage: is_CF(ComplexField(12))
+        True
+        sage: is_CF(CC)
+        True
+    """
     return isinstance(x, ComplexField_class)
 
 cache = {}
@@ -113,9 +136,7 @@ class ComplexField_class(field.Field):
         0.693147180559945 + 3.14159265358979*I
 
     We can also coerce rational numbers and integers into C, but
-    coercing a polynomial will raise an exception.
-
-    ::
+    coercing a polynomial will raise an exception::
 
         sage: Q = RationalField()
         sage: C(1/3)
@@ -126,9 +147,7 @@ class ComplexField_class(field.Field):
         ...
         TypeError: unable to coerce to a ComplexNumber: <type 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'>
 
-    This illustrates precision.
-
-    ::
+    This illustrates precision::
 
         sage: CC = ComplexField(10); CC(1/3, 2/3)
         0.33 + 0.67*I
@@ -139,9 +158,7 @@ class ComplexField_class(field.Field):
         sage: z = CC(1/3, 2/3); z
         0.33333333333333333333333333333 + 0.66666666666666666666666666667*I
 
-    We can load and save complex numbers and the complex field.
-
-    ::
+    We can load and save complex numbers and the complex field::
 
         sage: loads(z.dumps()) == z
         True
@@ -151,9 +168,7 @@ class ComplexField_class(field.Field):
         sage: loads(dumps(k)) == k
         True
 
-    This illustrates basic properties of a complex field.
-
-    ::
+    This illustrates basic properties of a complex field::
 
         sage: CC = ComplexField(200)
         sage: CC.is_field()
@@ -173,6 +188,8 @@ class ComplexField_class(field.Field):
     """
     def __init__(self, prec=53):
         """
+        Initialize ``self``.
+
         TESTS::
 
             sage: C = ComplexField(200)
@@ -187,20 +204,48 @@ class ComplexField_class(field.Field):
         self._populate_coercion_lists_(coerce_list=[complex_number.RRtoCC(self._real_field(), self)])
 
     def __reduce__(self):
+        """
+        For pickling.
+
+        EXAMPLES::
+
+            sage: loads(dumps(ComplexField())) == ComplexField()
+            True
+        """
         return ComplexField, (self._prec, )
 
     def is_exact(self):
+        """
+        Return whether or not this field is exact, which is always ``False``.
+
+        EXAMPLES::
+
+            sage: ComplexField().is_exact()
+            False
+        """
         return False
 
     def prec(self):
+        """
+        Return the precision of this complex field.
+
+        EXAMPLES::
+
+            sage: ComplexField().prec()
+            53
+            sage: ComplexField(15).prec()
+            15
+        """
         return self._prec
 
     def _magma_init_(self, magma):
         r"""
-        Return a string representation of self in the Magma language.
+        Return a string representation of ``self`` in the Magma language.
 
         EXAMPLES::
 
+            sage: ComplexField()._magma_init_(magma) # optional - magma
+            'ComplexField(53 : Bits := true)'
             sage: magma(ComplexField(200)) # optional - magma
             Complex field of precision 60
             sage: 10^60 < 2^200 < 10^61
@@ -232,6 +277,16 @@ class ComplexField_class(field.Field):
 
     # very useful to cache this.
     def _real_field(self):
+        """
+        Return the underlying real field with the same precision.
+
+        EXAMPLES::
+
+            sage: RF = ComplexField(10)._real_field(); RF
+            Real Field with 10 bits of precision
+            sage: ComplexField(10)._real_field() is RF
+            True
+        """
         try:
             return self.__real_field
         except AttributeError:
@@ -239,15 +294,30 @@ class ComplexField_class(field.Field):
             return self.__real_field
 
     def __cmp__(self, other):
+        """
+        Compare ``self`` to ``other``.
+
+        If ``other`` is not a :class:`ComplexField_class', then this compares
+        by their types. Otherwise it compares by their precision.
+
+        EXAMPLES::
+
+            sage: cmp(ComplexField(), ComplexField())
+            0
+            sage: cmp(ComplexField(10), ComplexField(15))
+            -1
+        """
         if not isinstance(other, ComplexField_class):
             return cmp(type(self), type(other))
         return cmp(self._prec, other._prec)
 
     def __call__(self, x=None, im=None):
         """
+        Create a complex number.
+
         EXAMPLES::
 
-            sage: CC(2)
+            sage: CC(2) # indirect doctest
             2.00000000000000
             sage: CC(CC.0)
             1.00000000000000*I
@@ -278,9 +348,11 @@ class ComplexField_class(field.Field):
 
     def _element_constructor_(self, x):
         """
+        Construct a complex number.
+
         EXAMPLES::
 
-            sage: CC((1,2))
+            sage: CC((1,2)) # indirect doctest
             1.00000000000000 + 2.00000000000000*I
         """
         if not isinstance(x, (real_mpfr.RealNumber, tuple)):
@@ -318,11 +390,11 @@ class ComplexField_class(field.Field):
 
         EXAMPLES::
 
-            sage: ComplexField(200)(1) + RealField(90)(1)
+            sage: ComplexField(200)(1) + RealField(90)(1) # indirect doctest
             2.0000000000000000000000000
-            sage: parent(ComplexField(200)(1) + RealField(90)(1))
+            sage: parent(ComplexField(200)(1) + RealField(90)(1)) # indirect doctest
             Complex Field with 90 bits of precision
-            sage: CC.0 + RLF(1/3)
+            sage: CC.0 + RLF(1/3) # indirect doctest
             0.333333333333333 + 1.00000000000000*I
             sage: ComplexField(20).has_coerce_map_from(CDF)
             True
@@ -340,16 +412,37 @@ class ComplexField_class(field.Field):
         return self._coerce_map_via([CLF], S)
 
     def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: ComplexField() # indirect doctest
+            Complex Field with 53 bits of precision
+            sage: ComplexField(15) # indirect doctest
+            Complex Field with 15 bits of precision
+        """
         return "Complex Field with %s bits of precision"%self._prec
 
     def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: latex(ComplexField()) # indirect doctest
+            \Bold{C}
+            sage: latex(ComplexField(15)) # indirect doctest
+            \Bold{C}
+        """
         return "\\Bold{C}"
 
     def _sage_input_(self, sib, coerce):
         r"""
         Produce an expression which will reproduce this value when evaluated.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage_input(CC, verify=True)
             # Verified
             CC
@@ -378,16 +471,32 @@ class ComplexField_class(field.Field):
         return v
 
     def characteristic(self):
+        r"""
+        Return the characteristic of `\CC`, which is 0.
+
+        EXAMPLES::
+
+            sage: ComplexField().characteristic()
+            0
+        """
         return integer.Integer(0)
 
     def gen(self, n=0):
+        """
+        Return the generator of the complex field.
+
+        EXAMPLES::
+
+            sage: ComplexField().gen(0)
+            1.00000000000000*I
+        """
         if n != 0:
             raise IndexError, "n must be 0"
         return complex_number.ComplexNumber(self, 0, 1)
 
     def is_field(self, proof = True):
         """
-        Return True, since the complex numbers are a field.
+        Return ``True`` since the complex numbers are a field.
 
         EXAMPLES::
 
@@ -398,7 +507,7 @@ class ComplexField_class(field.Field):
 
     def is_finite(self):
         """
-        Return False, since the complex numbers are infinite.
+        Return ``False`` since there are infinite number of complex numbers.
 
         EXAMPLES::
 
@@ -409,7 +518,7 @@ class ComplexField_class(field.Field):
 
     def construction(self):
         """
-        Returns the functorial construction of self, namely, algebraic
+        Returns the functorial construction of ``self``, namely the algebraic
         closure of the real field with the same precision.
 
         EXAMPLES::
@@ -426,7 +535,8 @@ class ComplexField_class(field.Field):
     def random_element(self, component_max=1, *args, **kwds):
         r"""
         Returns a uniformly distributed random number inside a square
-        centered on the origin (by default, the square [-1,1]x[-1,1]).
+        centered on the origin (by default, the square `[-1,1] \times [-1,1]`).
+
         Passes additional arguments and keywords to underlying real field.
 
         EXAMPLES::
@@ -458,9 +568,29 @@ class ComplexField_class(field.Field):
         return self(re, im)
 
     def pi(self):
+        r"""
+        Returns `\pi` as a complex number.
+
+        EXAMPLES::
+
+            sage: ComplexField().pi()
+            3.14159265358979
+            sage: ComplexField(100).pi()
+            3.1415926535897932384626433833
+        """
         return self(self._real_field().pi())
 
     def ngens(self):
+        r"""
+        The number of generators of this complex field as an `\RR`-algebra.
+
+        There is one generator, namely ``sqrt(-1)``.
+
+        EXAMPLES::
+
+            sage: ComplexField().ngens()
+            1
+        """
         return 1
 
     def zeta(self, n=2):
@@ -469,11 +599,17 @@ class ComplexField_class(field.Field):
 
         INPUT:
 
-
         -  ``n`` - an integer (default: 2)
 
+        OUTPUT: a complex `n`-th root of unity.
 
-        OUTPUT: a complex n-th root of unity.
+        EXAMPLES::
+
+            sage: C = ComplexField()
+            sage: C.zeta(2)
+            -1.00000000000000
+            sage: C.zeta(5)
+            0.309016994374947 + 0.951056516295154*I
         """
         from integer import Integer
         n = Integer(n)
@@ -492,11 +628,29 @@ class ComplexField_class(field.Field):
         return x
 
     def scientific_notation(self, status=None):
+        """
+        Set or return the scientific notation printing flag.
+
+        If this flag is ``True`` then complex numbers with this space as parent
+        print using scientific notation.
+
+        EXAMPLES::
+
+            sage: C = ComplexField()
+            sage: C((0.025, 2))
+            0.0250000000000000 + 2.00000000000000*I
+            sage: C.scientific_notation(True)
+            sage: C((0.025, 2))
+            2.50000000000000e-2 + 2.00000000000000e0*I
+            sage: C.scientific_notation(False)
+            sage: C((0.025, 2))
+            0.0250000000000000 + 2.00000000000000*I
+        """
         return self._real_field().scientific_notation(status)
 
     def algebraic_closure(self):
         """
-        Return the algebraic closure of self (which is itself).
+        Return the algebraic closure of ``self`` (which is itself).
 
         EXAMPLES::
 

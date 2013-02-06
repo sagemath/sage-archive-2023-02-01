@@ -515,7 +515,7 @@ class Crystals(Category_singleton):
                 sage: t = B.highest_weight_vector()
                 sage: b = C(t)
                 sage: D = B.demazure_operator(b,[2,1]); D
-                B[[[1, 1], [3]]] + B[[[1, 2], [2]]] + B[[[1, 3], [2]]] + B[[[1, 3], [3]]] + B[[[1, 1], [2]]]
+                B[[[1, 1], [2]]] + B[[[1, 2], [2]]] + B[[[1, 3], [2]]] + B[[[1, 1], [3]]] + B[[[1, 3], [3]]]
                 sage: G = B.digraph(subset=D.support())
                 sage: G.vertices()
                 [[[1, 1], [2]], [[1, 2], [2]], [[1, 3], [2]], [[1, 1], [3]], [[1, 3], [3]]]
@@ -850,8 +850,8 @@ class Crystals(Category_singleton):
                 sage: t = T.highest_weight_vector()
                 sage: b = 2*C(t)
                 sage: T.demazure_operator(b,[1,2,1])
-                2*B[[[1, 2], [3]]] + 2*B[[[2, 2], [3]]] + 2*B[[[1, 3], [3]]] + 2*B[[[2, 3], [3]]]
-                + 2*B[[[1, 2], [2]]] + 2*B[[[1, 1], [2]]] + 2*B[[[1, 3], [2]]] + 2*B[[[1, 1], [3]]]
+                2*B[[[1, 1], [2]]] + 2*B[[[1, 2], [2]]] + 2*B[[[1, 3], [2]]] + 2*B[[[1, 1], [3]]]
+                + 2*B[[[1, 2], [3]]] + 2*B[[[1, 3], [3]]] + 2*B[[[2, 2], [3]]] + 2*B[[[2, 3], [3]]]
 
             The Demazure operator is idempotent::
 
@@ -860,7 +860,7 @@ class Crystals(Category_singleton):
                 sage: b = C(T.module_generators[0]); b
                 B[[[1, 1, 1, 1]]]
                 sage: e = T.demazure_operator(b,[1]); e
-                B[[[1, 1, 1, 1]]] + B[[[1, 1, 1, 2]]] + B[[[2, 2, 2, 2]]] + B[[[1, 1, 2, 2]]] + B[[[1, 2, 2, 2]]]
+                B[[[1, 1, 1, 1]]] + B[[[1, 1, 1, 2]]] + B[[[1, 1, 2, 2]]] + B[[[1, 2, 2, 2]]] + B[[[2, 2, 2, 2]]]
                 sage: e == T.demazure_operator(e,[1])
                 True
 

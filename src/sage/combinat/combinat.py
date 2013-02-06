@@ -707,6 +707,63 @@ class CombinatorialObject(SageObject):
         """
         return str(self._list)
 
+    def __cmp__(self, other):
+        """
+        EXAMPLES::
+
+            sage: c = CombinatorialObject([1,2,3])
+            sage: d = CombinatorialObject([3,2,1])
+            sage: cmp(c, d)
+            -1
+            sage: cmp(d, c)
+            1
+            sage: cmp(c, c)
+            0
+
+        Check that :trac:`14065` is fixed::
+
+            sage: from sage.structure.element import Element
+            sage: class Foo(CombinatorialObject, Element): pass
+            sage: L = [Foo([4-i]) for i in range(4)]; L
+            [[4], [3], [2], [1]]
+            sage: sorted(L, cmp)
+            [[1], [2], [3], [4]]
+            sage: f = Foo([4])
+            sage: f == None
+            False
+            sage: f != None
+            True
+
+        .. WARNING::
+
+            :class:`CombinatorialObject` must come **before** :class:`Element`
+            for this to work becuase :class:`Element` is ahead of
+            :class:`CombinatorialObject` in the MRO (method resolution
+            order)::
+
+                sage: from sage.structure.element import Element
+                sage: class Bar(Element, CombinatorialObject):
+                ...       def __init__(self, l):
+                ...           CombinatorialObject.__init__(self, l)
+                ...
+                sage: L = [Bar([4-i]) for i in range(4)]
+                sage: sorted(L, cmp)
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: BUG: sort algorithm for elements of 'None' not implemented
+        """
+        if isinstance(other, CombinatorialObject):
+            if self._list == other._list:
+                return 0
+            if self._list < other._list:
+                return -1
+            return 1
+        if self._list == other:
+            return 0
+        if self._list < other:
+            return -1
+        return 1
+
     def _repr_(self):
         """
         EXAMPLES::
@@ -856,6 +913,53 @@ class CombinatorialObject(SageObject):
         if self._hash is None:
             self._hash = str(self._list).__hash__()
         return self._hash
+
+    def __nonzero__(self):
+        """
+        Return ``True`` if ``self`` is non-zero.
+
+        We consider a list to be zero if it has length zero.
+
+        TESTS::
+
+            sage: c = CombinatorialObject([1,2,3])
+            sage: not c
+            False
+            sage: c = CombinatorialObject([])
+            sage: not c
+            True
+
+        Check that :trac:`14065` is fixed::
+
+            sage: from sage.structure.element import Element
+            sage: class Foo(CombinatorialObject, Element): pass
+            ...
+            sage: f = Foo([4])
+            sage: not f
+            False
+            sage: f = Foo([])
+            sage: not f
+            True
+
+        .. WARNING::
+
+            :class:`CombinatorialObject` must come **before** :class:`Element`
+            for this to work becuase :class:`Element` is ahead of
+            :class:`CombinatorialObject` in the MRO (method resolution
+            order)::
+
+                sage: from sage.structure.element import Element
+                sage: class Bar(Element, CombinatorialObject):
+                ...       def __init__(self, l):
+                ...           CombinatorialObject.__init__(self, l)
+                ...
+                sage: b = Bar([4])
+                sage: not b
+                Traceback (most recent call last):
+                ...
+                AttributeError: 'NoneType' object has no attribute 'zero_element'
+        """
+        return self._list.__len__() > 0
 
     def __len__(self):
         """

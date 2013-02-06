@@ -491,19 +491,27 @@ cdef class SubgraphSearch:
             sage: g.subgraph_search(graphs.CycleGraph(5))
             Subgraph of (Petersen graph): Graph on 5 vertices
 
-        TESTS::
+        TESTS:
+
+        Test proper initialization and deallocation, see :trac:`14067`.
+        We intentionally only create the class without doing any
+        computations with it::
 
             sage: from sage.graphs.generic_graph_pyx import SubgraphSearch
-            sage: SubgraphSearch(Graph(5),Graph(1))
+            sage: SubgraphSearch(Graph(5), Graph(1))
             Traceback (most recent call last):
             ...
             ValueError: Searched graph should have at least 2 vertices.
+            sage: SubgraphSearch(Graph(5), Graph(2))
+            <sage.graphs.generic_graph_pyx.SubgraphSearch ...>
         """
         if H.order() <= 1:
             raise ValueError("Searched graph should have at least 2 vertices.")
 
         if sum([G.is_directed(), H.is_directed()]) == 1:
             raise ValueError("One graph can not be directed while the other is not.")
+
+        self._initialization()
 
     def __iter__(self):
         r"""
@@ -626,12 +634,10 @@ cdef class SubgraphSearch:
         self.ng = G.order()
         self.nh = H.order()
 
-
-
         # Storing the list of vertices
         self.g_vertices = G.vertices()
 
-        # Are the graphs directed (at the end of the code is checked
+        # Are the graphs directed (in __init__(), we check
         # whether both are of the same type)
         self.directed = G.is_directed()
 
@@ -688,8 +694,6 @@ cdef class SubgraphSearch:
             self.line_h_in = <int **>sage_malloc(self.nh * sizeof(int *))
             for 0 <= i < self.nh:
                 self.line_h_in[i] = <int *>self.h.adjacency_sequence_in(i, self.vertices, i)
-
-        self._initialization()
 
     def __next__(self):
         r"""

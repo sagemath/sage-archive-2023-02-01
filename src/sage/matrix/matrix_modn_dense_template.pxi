@@ -194,6 +194,9 @@ cdef inline linbox_echelonize(celement modulus, celement* entries, Py_ssize_t nr
     return r, pivots
 
 cdef inline linbox_echelonize_efd(celement modulus, celement* entries, Py_ssize_t nrows, Py_ssize_t ncols):
+    # See trac #13878: This is to avoid sending invalid data to linbox,
+    # which would yield a segfault in Sage's debug version. TODO: Fix
+    # that bug upstream.
     if nrows == 0 or ncols == 0:
         return 0,[]
 

@@ -22,6 +22,8 @@ AUTHORS:
 - John Cremona (2009-05-15): added support for local and global
   logarithmic heights.
 
+- Travis Scrimshaw (2012-10-18): Added doctests for full coverage.
+
 TESTS::
 
     sage: a = -2/3
@@ -166,7 +168,7 @@ cpdef Integer integer_rational_power(Integer a, Rational b):
 
     OUTPUT::
 
-        `a^b` as an Integer or None
+        `a^b` as an ``Integer`` or ``None``
 
     EXAMPLES::
 
@@ -233,9 +235,9 @@ cpdef rational_power_parts(a, b, factor_limit=10**5):
 
     INPUT::
 
-        a -- a Rational or Integer
-        b -- a Rational
-        factor_limit -- the limit used in factoring a
+        - ``a`` -- a rational or integer
+        - ``b`` -- a rational
+        - ``factor_limit`` -- the limit used in factoring ``a``
 
     EXAMPLES::
 
@@ -253,7 +255,7 @@ cpdef rational_power_parts(a, b, factor_limit=10**5):
 
     TESTS:
 
-    Check if #8540 is fixed::
+    Check if :trac:`8540` is fixed::
 
         sage: rational_power_parts(3/4, -1/2)
         (2, 3)
@@ -315,7 +317,7 @@ def is_Rational(x):
 
 cdef class Rational(sage.structure.element.FieldElement):
     """
-    A Rational number.
+    A rational number.
 
     Rational numbers are implemented using the GMP C library.
 
@@ -355,6 +357,15 @@ cdef class Rational(sage.structure.element.FieldElement):
         -1/2
     """
     def __cinit__(self):
+        r"""
+        Initialize ``self`` as an element of `\QQ`.
+
+        EXAMPLES::
+
+            sage: p = Rational(3) # indirect doctest
+            sage: p.parent()
+            Rational Field
+        """
         global the_rational_ring
         mpq_init(self.value)
         self._parent = the_rational_ring
@@ -365,11 +376,9 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         INPUT:
 
+        -  ``x`` - object (default: ``None``)
 
-        -  ``x`` - object (default: None)
-
-        -  ``base`` - base if x is a string
-
+        -  ``base`` - base if ``x`` is a string
 
         EXAMPLES::
 
@@ -383,7 +392,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: a.__init__('-h/3ki', 32); a
             -17/3730
 
-        .. note::
+        .. NOTE::
 
            This is for demonstration purposes only, mutating rationals
            is almost always the wrong thing to do.
@@ -428,10 +437,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         INPUT:
 
-
-        -  ``s`` - string representation of rational in base
-           32
-
+        -  ``s`` - string representation of rational in base 32
 
         EXAMPLES::
 
@@ -556,9 +562,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         OUTPUT:
 
-
-        -  ``list`` - the list [self]
-
+        -  ``list`` - the list ``[self]``
 
         EXAMPLES::
 
@@ -571,13 +575,13 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __richcmp__(left, right, int op):
         """
+        Rich comparison between two rational numbers.
+
         INPUT:
 
+        -  ``left, right`` -- objects
 
-        -  ``left, right`` - objects
-
-        -  ``op`` - integer
-
+        -  ``op`` -- integer
 
         EXAMPLES::
 
@@ -601,7 +605,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __copy__(self):
         """
-        Return a copy of self.
+        Return a copy of ``self``.
 
         OUTPUT: Rational
 
@@ -668,7 +672,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def _sympy_(self):
         """
-        Convert Sage Rational to SymPy Rational.
+        Convert Sage ``Rational`` to SymPy ``Rational``.
 
         EXAMPLES::
 
@@ -685,9 +689,12 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def _magma_init_(self, magma):
         """
-        EXAMPLES:
+        Return the magma representation of ``self``.
+
+        EXAMPLES::
+
             sage: n = -485/82847
-            sage: n._magma_init_(magma)
+            sage: n._magma_init_(magma) # optional - magma
             '-485/82847'
         """
         return self.numerator()._magma_init_(magma) + '/' + self.denominator()._magma_init_(magma)
@@ -695,9 +702,9 @@ cdef class Rational(sage.structure.element.FieldElement):
     property __array_interface__:
         def __get__(self):
             """
-            Used for NumPy conversion. If self is integral, it converts the
-            same as an Integer. Otherwise it converts to a double floating
-            point value.
+            Used for NumPy conversion. If ``self`` is integral, it converts to
+            an ``Integer``. Otherwise it converts to a double floating point
+            value.
 
             EXAMPLES::
 
@@ -744,17 +751,16 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def _im_gens_(self, codomain, im_gens):
         """
-        Return the image of self under the homomorphism from the rational
-        field to codomain. This always just returns self coerced into the
-        codomain.
+        Return the image of ``self`` under the homomorphism from the rational
+        field to ``codomain``.
+
+        This always just returns ``self`` coerced into the ``codomain``.
 
         INPUT:
 
+        -  ``codomain`` -- object (usually a ring)
 
-        -  ``codomain`` - object (usually a ring)
-
-        -  ``im_gens`` - list of elements of codomain
-
+        -  ``im_gens`` -- list of elements of ``codomain``
 
         EXAMPLES::
 
@@ -774,10 +780,10 @@ cdef class Rational(sage.structure.element.FieldElement):
         a product of primes with integer (positive or negative) powers in a
         unique way.
 
-        Then, the LCM of two rational numbers x,y can be defined by
-        specifying that the exponent of every prime p in lcm(x,y) is the
-        supremum of the exponents of p in x, and the exponent of p in y
-        (The primes that does not appear in the decomposition of x or y are
+        Then, the LCM of two rational numbers `x,y` can be defined by
+        specifying that the exponent of every prime `p` in ``lcm(x,y)`` is the
+        supremum of the exponents of `p` in `x`, and the exponent of `p` in `y`
+        (The primes that does not appear in the decomposition of `x` or `y` are
         considered to have exponent zero).
 
         This definition is consistent with the definition of the LCM in the
@@ -795,20 +801,15 @@ cdef class Rational(sage.structure.element.FieldElement):
 
                         2/3 = 2^1 * 3^{-1}*5^0
 
-
-
         .. math::
 
                         1/5 = 2^0 * 3^0   *5^{-1}
-
 
         and hence,
 
         .. math::
 
                         lcm(2/3,1/5)= 2^1*3^0*5^0 = 2.
-
-
 
         ::
 
@@ -821,19 +822,13 @@ cdef class Rational(sage.structure.element.FieldElement):
 
                         2/3 = 2^1*3^{-1}*5^0    * 7^0
 
-
-
         .. math::
 
                         7/5 = 2^0*3^0   *5^{-1} * 7^1
 
-
-
         .. math::
 
                         lcm(2/3,7/5) = 2^1*3^0*5^0*7^1 = 14
-
-
 
         ::
 
@@ -846,19 +841,13 @@ cdef class Rational(sage.structure.element.FieldElement):
 
                         1/3 = 3^{-1}*5^0
 
-
-
         .. math::
 
                         1/5 = 3^0 * 5^{-1}
 
-
-
         .. math::
 
                         lcm(1/3,1/5)=3^0*5^0=1
-
-
 
         ::
 
@@ -871,13 +860,9 @@ cdef class Rational(sage.structure.element.FieldElement):
 
                         1/3 = 2^0*3^{-1}
 
-
-
         .. math::
 
                         1/6 = 2^{-1}*3^{-1}
-
-
 
         .. math::
 
@@ -890,11 +875,11 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def content(self, other):
         """
-        Return the content of self and other, i.e. the unique positive
-        rational number c such that self/c and other/c are coprime
+        Return the content of ``self`` and ``other``, i.e. the unique positive
+        rational number `c` such that ``self/c`` and ``other/c`` are coprime
         integers.
 
-        other can be a rational number or a list of rational numbers.
+        ``other`` can be a rational number or a list of rational numbers.
 
         EXAMPLES::
 
@@ -947,15 +932,14 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         OUTPUT:
 
-        (integer or infinity) Infinity if self is zero, otherwise the
-        (positive or negative) integer `e` such that self = `m*p^e`
+        (integer or infinity) ``Infinity`` if ``self`` is zero, otherwise the
+        (positive or negative) integer `e` such that ``self`` = `m*p^e`
         with `m` coprime to `p`.
 
-        .. note::
+        .. NOTE::
 
-           See also ``val_unit()`` which returns the pair `(e,m)`. The function
-           ``ord()`` is an alias for ``valuation()``.
-
+           See also :meth:`val_unit()` which returns the pair `(e,m)`. The
+           function :meth:`ord()` is an alias for :meth:`valuation()`.
 
         EXAMPLES::
 
@@ -986,8 +970,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         INPUT:
 
-
-        -  ``p`` - a prime number
+        -  ``p`` -- a prime number
 
         - ``prec`` (int) -- desired floating point precision (default:
           default RealField precision).
@@ -1021,10 +1004,10 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def local_height_arch(self, prec=None):
         r"""
-        Returns the Archimedean local height of this rational number at the infinite place.
+        Returns the Archimedean local height of this rational number at the
+        infinite place.
 
         INPUT:
-
 
         - ``prec`` (int) -- desired floating point precision (default:
           default RealField precision).
@@ -1057,7 +1040,8 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def global_height_non_arch(self, prec=None):
         r"""
-        Returns the total non-archimedean component of the height of this rational number.
+        Returns the total non-archimedean component of the height of this
+        rational number.
 
         INPUT:
 
@@ -1099,7 +1083,8 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def global_height_arch(self, prec=None):
         r"""
-        Returns the total archimedean component of the height of this rational number.
+        Returns the total archimedean component of the height of this rational
+        number.
 
         INPUT:
 
@@ -1140,8 +1125,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         OUTPUT:
 
-        (real) The absolute logarithmic height of this rational
-        number.
+        (real) The absolute logarithmic height of this rational number.
 
         ALGORITHM:
 
@@ -1196,27 +1180,27 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def is_norm(self, L, element=False, proof=True):
         r"""
-        Determine whether self is the norm of an element of L.
+        Determine whether ``self`` is the norm of an element of ``L``.
 
         INPUT:
 
-         - L -- a number field
-         - element -- True or False, whether to also output an element
-           of which self is a norm
-         - proof -- If True, then the output is correct unconditionally.
-           If False, then the output assumes GRH.
+         - ``L`` -- a number field
+         - ``element`` -- (default: ``False``) boolean whether to also output
+           an element of which ``self`` is a norm
+         - proof -- If ``True``, then the output is correct unconditionally.
+           If ``False``, then the output assumes GRH.
 
         OUTPUT:
 
-        If element is False, then the output is a boolean B, which is
-        True if and only if self is the norm of an element of L.
-        If element is False, then the output is a pair (B, x), where
-        B is as above. If B is True, then x an element of L such that
-        self == x.norm(). Otherwise, x is None.
+        If element is ``False``, then the output is a boolean ``B``, which is
+        ``True`` if and only if ``self`` is the norm of an element of ``L``.
+        If ``element`` is ``False``, then the output is a pair ``(B, x)``,
+        where ``B`` is as above. If ``B`` is ``True``, then ``x`` an element of
+        ``L`` such that ``self == x.norm()``. Otherwise, ``x is None``.
 
         ALGORITHM:
 
-        Uses PARI's bnfisnorm. See self._bnfisnorm().
+        Uses PARI's bnfisnorm. See ``_bnfisnorm()``.
 
         EXAMPLES::
 
@@ -1301,34 +1285,36 @@ cdef class Rational(sage.structure.element.FieldElement):
         r"""
         This gives the output of the PARI function bnfisnorm.
 
-        Tries to tell whether the rational number self is the norm of some
-        element y in K. Returns a pair (a, b) where self = Norm(a)*b. Looks for
-        a solution that is an S-unit, with S a certain set of prime ideals
-        containing (among others) all primes dividing self.
+        Tries to tell whether the rational number ``self`` is the norm of some
+        element `y` in ``K``. Returns a pair `(a, b)` where
+        ``self = Norm(a)*b``. Looks for a solution that is an `S`-unit, with
+        `S` a certain set of prime ideals containing (among others) all primes
+        dividing ``self``.
 
-        If K is known to be Galois, set extra_primes = 0 (in this case, self
-        is a norm iff b = 1).
+        If `K` is known to be Galois, set ``extra_primes = 0`` (in this case,
+        ``self`` is a norm iff `b = 1`).
 
-        If extra_primes is non-zero, the program adds to S the following
+        If ``extra_primes`` is non-zero, the program adds to `S` the following
         prime ideals, depending on the sign of extra_primes.
-        If extra_primes > 0, the ideals of norm less than extra_primes.
-        And if extra_primes < 0, the ideals dividing extra_primes.
+        If ``extra_primes > 0``, the ideals of norm less than ``extra_primes``.
+        And if ``extra_primes < 0``, the ideals dividing ``extra_primes``.
 
-        Assuming GRH, the answer is guaranteed (i.e., self is a norm
-        iff b = 1), if S contains all primes less than 12log(\disc(L))^2,
-        where L is the Galois closure of K.
+        Assuming GRH, the answer is guaranteed (i.e., ``self`` is a norm
+        iff `b = 1`), if `S` contains all primes less than
+        `12\log(\disc(L))^2`,
+        where `L` is the Galois closure of `K`.
 
         INPUT:
 
-         - K -- a number field
-         - proof -- whether to certify the output of bnfinit.
-           If false, then correctness of the output depends on GRH.
-         - extra_primes -- an integer as explained above
+         - ``K`` -- a number field
+         - ``proof`` -- whether to certify the output of bnfinit.
+           If ``False``, then correctness of the output depends on GRH.
+         - ``extra_primes`` -- an integer as explained above
 
         OUTPUT:
 
-        A pair (a, b) with a in K and b in `QQ` such that self == Norm(a)*b
-        as explained above.
+        A pair `(a, b)` with `a` in `K` and `b` in `\QQ` such that
+        ``self == Norm(a)*b`` as explained above.
 
         ALGORITHM:
 
@@ -1357,15 +1343,15 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def is_perfect_power(self, expected_value=False):
         r"""
-        Returns ``True`` if self is a perfect power.
+        Returns ``True`` if ``self`` is a perfect power.
 
         INPUT:
 
         - ``expected_value`` - (bool) whether or not this rational is expected
-           be a perfect power. This does not affect the
-           correctness of the output, only the runtime.
+          be a perfect power. This does not affect the  correctness of the
+          output, only the runtime.
 
-        If expected_value is False (default) it will check the
+        If ``expected_value`` is ``False`` (default) it will check the
         smallest of the numerator and denominator is a perfect power
         as a first step, which is often faster than checking if the
         quotient is a perfect power.
@@ -1403,7 +1389,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (144/1).is_perfect_power(True)
             True
 
-        This test makes sure we workaround a bug in GMP (see trac #4612)::
+        This test makes sure we workaround a bug in GMP (see :trac:`4612`)::
 
             sage: [ -a for a in srange(100) if not QQ(-a^3).is_perfect_power() ]
             []
@@ -1515,11 +1501,9 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         INPUT:
 
+        -  ``prec`` -- integer
 
-        -  ``prec`` - integer
-
-        -  ``all`` - bool
-
+        -  ``all`` -- bool
 
         EXAMPLES::
 
@@ -1547,14 +1531,15 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def is_padic_square(self, p):
         """
-        Determines whether this rational number is a square in Q_p (or in
-        R when p = infinity).
+        Determines whether this rational number is a square in `\QQ_p` (or in
+        `R` when ``p = infinity``).
 
         INPUT:
 
-        -  ``p`` - a prime number, or infinity
+        -  ``p`` - a prime number, or ``infinity``
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: QQ(2).is_padic_square(7)
             True
             sage: QQ(98).is_padic_square(7)
@@ -1562,7 +1547,8 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: QQ(2).is_padic_square(5)
             False
 
-        TESTS:
+        TESTS::
+
             sage: QQ(5/7).is_padic_square(int(2))
             False
         """
@@ -1594,25 +1580,21 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def val_unit(self, p):
         r"""
-        Returns a pair: the p-adic valuation of self, and the p-adic unit
-        of self, as a Rational.
+        Returns a pair: the `p`-adic valuation of ``self``, and the `p`-adic
+        unit of ``self``, as a :class:`Rational`.
 
-        We do not require the p be prime, but it must be at least 2. For
-        more documentation see ``Integer.val_unit``
+        We do not require the `p` be prime, but it must be at least 2. For
+        more documentation see :meth:`Integer.val_unit()`.
 
         INPUT:
 
-
         -  ``p`` - a prime
-
 
         OUTPUT:
 
+        -  ``int`` - the `p`-adic valuation of this rational
 
-        -  ``int`` - the p-adic valuation of this rational
-
-        -  ``Rational`` - p-adic unit part of self
-
+        -  ``Rational`` - `p`-adic unit part of ``self``
 
         EXAMPLES::
 
@@ -1633,7 +1615,12 @@ cdef class Rational(sage.structure.element.FieldElement):
     # code in padics, etc.  Do search_src('_val_unit').
     cdef _val_unit(Rational self, integer.Integer p):
         """
-        This is called by self.val_unit.
+        This is called by :meth:`val_unit()`.
+
+        EXAMPLES::
+
+            sage: (-4/17).val_unit(2) # indirect doctest
+            (2, -1/17)
         """
         cdef integer.Integer v
         cdef Rational u
@@ -1660,7 +1647,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def prime_to_S_part(self, S=[]):
         r"""
-        Returns self with all powers of all primes in S removed.
+        Returns ``self`` with all powers of all primes in ``S`` removed.
 
         INPUT:
 
@@ -1668,7 +1655,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         OUTPUT: rational
 
-        .. note::
+        .. NOTE::
 
            Primality of the entries in `S` is not checked.
 
@@ -1703,18 +1690,16 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         INPUT:
 
-
-        -  ``prec`` - integer (default: None): if None, returns
+        -  ``prec`` -- integer (default: ``None``): if ``None``, returns
            an exact square root; otherwise returns a numerical square root if
            necessary, to the given bits of precision.
 
-        -  ``extend`` - bool (default: True); if True, return a
+        -  ``extend`` -- bool (default: ``True``); if ``True``, return a
            square root in an extension ring, if necessary. Otherwise, raise a
-           ValueError if the square is not in the base ring.
+           ``ValueError`` if the square is not in the base ring.
 
-        -  ``all`` - bool (default: False); if True, return all
+        -  ``all`` -- bool (default: ``False``); if ``True``, return all
            square roots of self, instead of just one.
-
 
         EXAMPLES::
 
@@ -1810,10 +1795,12 @@ cdef class Rational(sage.structure.element.FieldElement):
         Return the period of the repeating part of the decimal expansion of
         this rational number.
 
-        ALGORITHM: When a rational number `n/d` with `(n,d)==1` is
+        ALGORITHM:
+
+        When a rational number `n/d` with `(n,d)=1` is
         expanded, the period begins after `s` terms and has length
         `t`, where `s` and `t` are the smallest numbers satisfying
-        `10^s=10^{s+t} (\mod d)`. In general if `d=2^a3^bm` where `m`
+        `10^s=10^{s+t} \mod d`. In general if `d=2^a3^bm` where `m`
         is coprime to 10, then `s=\max(a,b)` and `t` is the order of
         10 modulo `d`.
 
@@ -1846,14 +1833,12 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def nth_root(self, int n):
         r"""
-        Computes the nth root of self, or raises a
-        ``ValueError`` if self is not a perfect nth power.
+        Computes the `n`-th root of ``self``, or raises a
+        ``ValueError`` if ``self`` is not a perfect `n`-th power.
 
         INPUT:
 
-
         -  ``n`` - integer (must fit in C int type)
-
 
         AUTHORS:
 
@@ -1910,20 +1895,19 @@ cdef class Rational(sage.structure.element.FieldElement):
         else:
             return num / den
 
-
     def is_nth_power(self, int n):
         r"""
-        Returns True if self is an nth power, else False.
+        Returns ``True`` if self is an `n`-th power, else ``False``.
 
         INPUT:
 
         -  ``n`` - integer (must fit in C int type)
 
-        .. note::
+        .. NOTE::
 
            Use this function when you need to test if a rational
-           number is an n'th power, but do not need to know the value
-           of its n'th root.  If the value is needed, use nth_root().
+           number is an `n`-th power, but do not need to know the value
+           of its `n`-th root.  If the value is needed, use :meth:`nth_root()`.
 
         AUTHORS:
 
@@ -1957,12 +1941,11 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def str(self, int base=10):
         """
+        Return a string representation of ``self`` in the given ``base``.
+
         INPUT:
 
-
-        -  ``base`` - integer (default: 10); base must be
-           between 2 and 36.
-
+        -  ``base`` -- integer (default: 10); base must be between 2 and 36.
 
         OUTPUT: string
 
@@ -2006,7 +1989,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __float__(self):
         """
-        Return floating point approximation to self as a Python float.
+        Return floating point approximation to ``self`` as a Python float.
 
         OUTPUT: float
 
@@ -2021,7 +2004,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __hash__(self):
         """
-        Return hash of self.
+        Return hash of ``self``.
 
         OUTPUT: integer
 
@@ -2044,14 +2027,12 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __getitem__(self, int n):
         """
-        Return n-th element of self, viewed as a list. This is for
+        Return ``n``-th element of ``self``, viewed as a list. This is for
         consistency with how number field elements work.
 
         INPUT:
 
-
         -  ``n`` - an integer (error if not 0 or -1)
-
 
         OUTPUT: Rational
 
@@ -2074,16 +2055,41 @@ cdef class Rational(sage.structure.element.FieldElement):
     # Optimized arithmetic
     ################################################################
     cpdef ModuleElement _add_(self, ModuleElement right):
+        """
+        Return ``right`` plus ``self``.
+
+        EXAMPLES::
+
+            sage: (2/3) + (1/6) # indirect doctest
+            5/6
+            sage: (1/3) + (1/2) # indirect doctest
+            5/6
+        """
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
         mpq_add(x.value, self.value, (<Rational>right).value)
         return x
 
     cpdef ModuleElement _iadd_(self, ModuleElement right):
+        """
+        Add ``right`` to ``self`` (and store in ``self``).
+
+            sage: p = 2/3
+            sage: p += 1/6; p # indirect doctest
+            5/6
+        """
         mpq_add(self.value, self.value, (<Rational>right).value)
         return self
 
     cpdef ModuleElement _sub_(self, ModuleElement right):
+        """
+        Return ``self`` minus ``right``.
+
+        EXAMPLES::
+
+            sage: (2/3) - (1/6) # indirect doctest
+            1/2
+        """
         # self and right are guaranteed to be Integers
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
@@ -2091,16 +2097,41 @@ cdef class Rational(sage.structure.element.FieldElement):
         return x
 
     cpdef ModuleElement _isub_(self, ModuleElement right):
+        """
+        Subtract ``right`` from ``self`` (and store in ``self``).
+
+        EXAMPLES::
+
+            sage: p = (2/3)
+            sage: p -= 1/6; p # indirect doctest
+            1/2
+        """
         mpq_sub(self.value, self.value, (<Rational>right).value)
         return self
 
     cpdef ModuleElement _neg_(self):
+        """
+        Negate ``self``.
+
+        EXAMPLES::
+
+            sage: -(2/3) # indirect doctest
+            -2/3
+        """
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
         mpq_neg(x.value, self.value)
         return x
 
     cpdef RingElement _mul_(self, RingElement right):
+        """
+        Return ``self`` times ``right``.
+
+        EXAMPLES::
+
+            sage: (3/14) * 2 # indirect doctest
+            3/7
+        """
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
         if mpz_sizeinbase (mpq_numref(self.value), 2)  > 100000 or \
@@ -2115,6 +2146,14 @@ cdef class Rational(sage.structure.element.FieldElement):
         return x
 
     cpdef RingElement _imul_(self, RingElement right):
+        """
+        Multiply ``right`` with ``self`` (and store in ``self``).
+
+        EXAMPLES::
+            sage: p = 3/14
+            sage: p *= 2; p # indirect doctest
+            3/7
+        """
         if mpz_sizeinbase (mpq_numref(self.value), 2)  > 100000 or \
              mpz_sizeinbase (mpq_denref(self.value), 2) > 100000:
             # We only use the signal handler (to enable ctrl-c out) in case
@@ -2128,11 +2167,13 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     cpdef RingElement _div_(self, RingElement right):
         """
+        Return ``self`` divided by ``right``.
+
         EXAMPLES::
 
-            sage: 2/3
+            sage: 2/3 # indirect doctest
             2/3
-            sage: 3/0
+            sage: 3/0 # indirect doctest
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Rational division by zero
@@ -2145,6 +2186,15 @@ cdef class Rational(sage.structure.element.FieldElement):
         return x
 
     cpdef RingElement _idiv_(self, RingElement right):
+        """
+        Divide ``self`` by ``right`` (and store in ``self``).
+
+        EXAMPLES::
+
+            sage: p = 2/3
+            sage: p /= 2; p # indirect doctest
+            1/3
+        """
         if mpq_cmp_si((<Rational> right).value, 0, 1) == 0:
             raise ZeroDivisionError, "Rational division by zero"
         mpq_div(self.value, self.value, (<Rational>right).value)
@@ -2157,7 +2207,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __invert__(self):
         """
-        Return the multiplicative inverse of this rational number.
+        Return the multiplicative inverse of ``self``.
 
         OUTPUT: Rational
 
@@ -2177,7 +2227,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __pow__(self, n, dummy):
         """
-        Raise self to the integer power n.
+        Raise ``self`` to the integer power ``n``.
 
         EXAMPLES::
 
@@ -2368,7 +2418,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __pos__(self):
         """
-        Return this rational number.
+        Return ``self``.
 
         OUTPUT: Rational
 
@@ -2383,7 +2433,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __neg__(self):
         """
-        Return the negative of this rational number.
+        Return the negative of ``self``.
 
         OUTPUT: Rational
 
@@ -2401,7 +2451,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __nonzero__(self):
         """
-        Return True if this rational number is nonzero.
+        Return ``True`` if this rational number is nonzero.
 
         OUTPUT: bool
 
@@ -2456,14 +2506,12 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def mod_ui(Rational self, unsigned long int n):
         """
-        Return the remainder upon division of self by the unsigned long
-        integer n.
+        Return the remainder upon division of ``self`` by the unsigned long
+        integer ``n``.
 
         INPUT:
 
-
         -  ``n`` - an unsigned long integer
-
 
         OUTPUT: integer
 
@@ -2489,14 +2537,12 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __mod__(Rational self, other):
         """
-        Return the remainder of division of self by other, where other is
-        coerced to an integer
+        Return the remainder of division of ``self`` by other, where other is
+        coerced to an integer.
 
         INPUT:
 
-
         -  ``other`` - object that coerces to an integer.
-
 
         OUTPUT: integer
 
@@ -2514,15 +2560,13 @@ cdef class Rational(sage.structure.element.FieldElement):
         return (n*d)%other
 
     def norm(self):
-        """
-        Returns the norm from Q to Q of x (which is just x). This was added
-        for compatibility with NumberFields.
+        r"""
+        Returns the norm from `\QQ` to `\QQ` of `x` (which is just `x`). This
+        was added for compatibility with :class:`NumberFields`.
 
         OUTPUT:
 
-
-        -  ``Rational`` - reference to self
-
+        -  ``Rational`` - reference to ``self``
 
         EXAMPLES::
 
@@ -2536,15 +2580,13 @@ cdef class Rational(sage.structure.element.FieldElement):
         return self
 
     def trace(self):
-        """
-        Returns the trace from Q to Q of x (which is just x). This was
-        added for compatibility with NumberFields.
+        r"""
+        Returns the trace from `\QQ` to `\QQ` of `x` (which is just `x`). This
+        was added for compatibility with :class:`NumberFields`.
 
         OUTPUT:
 
-
         -  ``Rational`` - reference to self
-
 
         EXAMPLES::
 
@@ -2560,15 +2602,13 @@ cdef class Rational(sage.structure.element.FieldElement):
     def charpoly(self, var):
         """
         Return the characteristic polynomial of this rational number. This
-        will always be just var - self; this is really here so that code
+        will always be just ``var - self``; this is really here so that code
         written for number fields won't crash when applied to rational
         numbers.
 
         INPUT:
 
-
         -  ``var`` - a string
-
 
         OUTPUT: Polynomial
 
@@ -2587,14 +2627,12 @@ cdef class Rational(sage.structure.element.FieldElement):
     def minpoly(self, var):
         """
         Return the minimal polynomial of this rational number. This will
-        always be just x - self; this is really here so that code written
+        always be just ``x - self``; this is really here so that code written
         for number fields won't crash when applied to rational numbers.
 
         INPUT:
 
-
         -  ``var`` - a string
-
 
         OUTPUT: Polynomial
 
@@ -2612,7 +2650,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def _integer_(self, Z=None):
         """
-        Return self coerced to an integer. Of course this rational number
+        Return ``self`` coerced to an integer. Of course this rational number
         must have a denominator of 1.
 
         OUTPUT: Integer
@@ -2672,10 +2710,10 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __int__(self):
         """
-        Return coercion of self to Python int.
+        Return coercion of ``self`` to Python ``int``.
 
-        This takes the floor of self if self has a denominator (which is
-        consistent with Python's long(floats)).
+        This takes the floor of ``self`` if ``self`` has a denominator (which
+        is consistent with Python's ``long(floats)``).
 
         EXAMPLES::
 
@@ -2688,10 +2726,10 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __long__(self):
         """
-        Return coercion of self to Python long.
+        Return coercion of ``self`` to Python ``long``.
 
-        This takes the floor of self if self has a denominator (which is
-        consistent with Python's long(floats)).
+        This takes the floor of ``self`` if ``self`` has a denominator (which
+        is consistent with Python's ``long(floats)``).
 
         EXAMPLES::
 
@@ -2793,7 +2831,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def gamma(self, prec=None):
         """
-        Return the gamma function evaluated at self. This value is exact
+        Return the gamma function evaluated at ``self``. This value is exact
         for integers and half-integers, and returns a symbolic value
         otherwise.  For a numerical approximation, use keyword ``prec``.
 
@@ -2885,11 +2923,10 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def round(Rational self, mode="away"):
         """
-        Returns the nearest integer to self, rounding away from 0 by
+        Returns the nearest integer to ``self``, rounding away from 0 by
         default, for consistency with the builtin Python round.
 
         INPUT:
-
 
         -  ``self`` - a rational number
 
@@ -2927,7 +2964,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             -3
         """
         if not (mode in ['toward', 'away', 'up', 'down', 'even', 'odd']):
-            raise ValueError, "rounding mode must be one of 'toward', 'away', 'up', 'down', 'even', or 'odd'"
+            raise ValueError("rounding mode must be one of 'toward', 'away', 'up', 'down', 'even', or 'odd'")
         if self.denominator() == 1:
             from sage.rings.integer import Integer
             return Integer(self)
@@ -2950,7 +2987,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def real(self):
         """
-        Returns the real part of self, which is self.
+        Returns the real part of ``self``, which is ``self``.
 
         EXAMPLES::
 
@@ -2961,7 +2998,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def imag(self):
         """
-        Returns the imaginary part of self, which is zero.
+        Returns the imaginary part of ``self``, which is zero.
 
         EXAMPLES::
 
@@ -2972,8 +3009,8 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def height(self):
         """
-        The max absolute value of the numerator and denominator of self, as
-        an Integer.
+        The max absolute value of the numerator and denominator of ``self``, as
+        an :class:`Integer`.
 
         OUTPUT: Integer
 
@@ -2993,9 +3030,9 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         - Naqi Jaffery (2006-03-05): examples
 
-        .. note::
+        .. NOTE::
 
-           For the logarithmic height, use ``global_height()``.
+           For the logarithmic height, use :meth:`global_height()`.
 
         """
         x = abs(self.numer())
@@ -3005,21 +3042,17 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def _lcm(self, Rational other):
         """
-        Returns the least common multiple, in the rational numbers, of self
-        and other. This function returns either 0 or 1 (as a rational
+        Returns the least common multiple, in the rational numbers, of ``self``
+        and ``other``. This function returns either 0 or 1 (as a rational
         number).
 
         INPUT:
 
-
         -  ``other`` - Rational
-
 
         OUTPUT:
 
-
         -  ``Rational`` - 0 or 1
-
 
         EXAMPLES::
 
@@ -3037,21 +3070,17 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def _gcd(self, Rational other):
         """
-        Returns the least common multiple, in the rational numbers, of self
-        and other. This function returns either 0 or 1 (as a rational
+        Returns the least common multiple, in the rational numbers, of ``self``
+        and ``other``. This function returns either 0 or 1 (as a rational
         number).
 
         INPUT:
 
-
         -  ``other`` - Rational
-
 
         OUTPUT:
 
-
         -  ``Rational`` - 0 or 1
-
 
         EXAMPLES::
 
@@ -3068,7 +3097,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def additive_order(self):
         """
-        Return the additive order of self.
+        Return the additive order of ``self``.
 
         OUTPUT: integer or infinity
 
@@ -3088,9 +3117,9 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def multiplicative_order(self):
         """
-        Return the multiplicative order of self.
+        Return the multiplicative order of ``self``.
 
-        OUTPUT: Integer or infinity
+        OUTPUT: Integer or ``infinity``
 
         EXAMPLES::
 
@@ -3149,20 +3178,21 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def is_S_integral(self, S=[]):
         r"""
-        Determine if the rational number is S-integral.
+        Determine if the rational number is ``S``-integral.
 
-        x is S-integral if x.valuation(p)>=0 for all p not in S, i.e.,
-        the denominator of x is divisible only by the primes in `S`.
+        ``x`` is ``S``-integral if ``x.valuation(p)>=0`` for all ``p`` not in
+        ``S``, i.e., the denominator of ``x`` is divisible only by the primes
+        in ``S``.
 
         INPUT:
 
-        -  ``S`` - list or tuple of primes.
+        -  ``S`` -- list or tuple of primes.
 
         OUTPUT: bool
 
-        .. note::
+        .. NOTE::
 
-           Primality of the entries in `S` is not checked.
+           Primality of the entries in ``S`` is not checked.
 
         EXAMPLES::
 
@@ -3179,21 +3209,21 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def is_S_unit(self, S=None):
         r"""
-        Determine if the rational number is an S-unit.
+        Determine if the rational number is an ``S``-unit.
 
-        x is an S-unit if x.valuation(p)==0 for all p not in S, i.e.,
-        the numerator and denominator of x are divisible only by the
-        primes in `S`.
+        ``x`` is an ``S``-unit if ``x.valuation(p)==0`` for all ``p`` not in
+        ``S``, i.e., the numerator and denominator of ``x`` are divisible only
+        by the primes in `S`.
 
         INPUT:
 
-        -  ``S`` - list or tuple of primes.
+        -  ``S`` -- list or tuple of primes.
 
         OUTPUT: bool
 
-        .. note::
+        .. NOTE::
 
-           Primality of the entries in `S` is not checked.
+           Primality of the entries in ``S`` is not checked.
 
         EXAMPLES::
 
@@ -3213,7 +3243,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     cdef _lshift(self, long int exp):
         r"""
-        Return `self*2^exp`
+        Return ``self * 2^exp``.
         """
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
@@ -3227,13 +3257,11 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __lshift__(x,y):
         """
-        Left shift operator x << y.
+        Left shift operator ``x << y``.
 
         INPUT:
 
-
-        -  ``x, y`` - integer or rational
-
+        -  ``x, y`` -- integer or rational
 
         OUTPUT: Rational
 
@@ -3263,7 +3291,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     cdef _rshift(self, long int exp):
         r"""
-        Return `self/2^exp`
+        Return ``self / 2^exp``.
         """
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
@@ -3277,13 +3305,11 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __rshift__(x,y):
         """
-        Right shift operator x >> y.
+        Right shift operator ``x >> y``.
 
         INPUT:
 
-
-        -  ``x, y`` - integer or rational
-
+        -  ``x, y`` -- integer or rational
 
         OUTPUT: Rational
 
@@ -3367,7 +3393,8 @@ cdef class Rational(sage.structure.element.FieldElement):
         r"""
         Produce an expression which will reproduce this value when evaluated.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage_input(QQ(1), verify=True)
             # Verified
             QQ(1)
@@ -3404,21 +3431,17 @@ cdef class Rational(sage.structure.element.FieldElement):
 
 def pyrex_rational_reconstruction(integer.Integer a, integer.Integer m):
     """
-    Find the rational reconstruction of a mod m, if it exists.
+    Find the rational reconstruction of ``a mod m``, if it exists.
 
     INPUT:
-
 
     -  ``a`` - Integer
 
     -  ``m`` - Integer
 
-
     OUTPUT:
 
-
     -  ``x`` - rings.rational.Rational
-
 
     EXAMPLES::
 
@@ -3449,13 +3472,11 @@ def pyrex_rational_reconstruction(integer.Integer a, integer.Integer m):
 
 def make_rational(s):
     """
-    Make a rational number from s (a string in base 32)
+    Make a rational number from ``s`` (a string in base 32)
 
     INPUT:
 
-
     -  ``s`` - string in base 32
-
 
     OUTPUT: Rational
 
@@ -3471,6 +3492,9 @@ def make_rational(s):
     return r
 
 cdef class Z_to_Q(Morphism):
+    r"""
+    A morphism from `\ZZ` to `\QQ`.
+    """
 
     def __init__(self):
         """
@@ -3489,6 +3513,14 @@ cdef class Z_to_Q(Morphism):
         Morphism.__init__(self, sage.categories.homset.Hom(integer_ring.ZZ, rational_field.QQ))
 
     cpdef Element _call_(self, x):
+        """
+        Return the image of the morphism on ``x``.
+
+        EXAMPLES::
+
+            sage: sage.rings.rational.Z_to_Q()(2) # indirect doctest
+            2
+        """
         cdef Rational rat
         rat = <Rational> PY_NEW(Rational)
         mpq_set_z(rat.value, (<integer.Integer>x).value)
@@ -3507,6 +3539,8 @@ cdef class Z_to_Q(Morphism):
 
     def section(self):
         """
+        Return a section of this morphism.
+
         EXAMPLES::
 
             sage: QQ.coerce_map_from(ZZ).section()
@@ -3517,7 +3551,9 @@ cdef class Z_to_Q(Morphism):
         return Q_to_Z(self._codomain, self._domain)
 
 cdef class Q_to_Z(Map):
-    """
+    r"""
+    A morphism from `\QQ` to `\ZZ`.
+
     TESTS::
 
         sage: type(ZZ.convert_map_from(QQ))
@@ -3530,11 +3566,11 @@ cdef class Q_to_Z(Map):
         EXAMPLES::
 
             sage: f = sage.rings.rational.Q_to_Z(QQ, ZZ)
-            sage: f(1/2)
+            sage: f(1/2) # indirect doctest
             Traceback (most recent call last):
             ...
             TypeError: no conversion of this rational to integer
-            sage: f(4/2)
+            sage: f(4/2) # indirect doctest
             2
         """
         if not mpz_cmp_si(mpq_denref((<Rational>x).value), 1) == 0:
@@ -3546,6 +3582,8 @@ cdef class Q_to_Z(Map):
 
     def section(self):
         """
+        Return a section of this morphism.
+
         EXAMPLES::
 
             sage: sage.rings.rational.Q_to_Z(QQ, ZZ).section()
@@ -3556,8 +3594,13 @@ cdef class Q_to_Z(Map):
         return Z_to_Q()
 
 cdef class int_to_Q(Morphism):
+    r"""
+    A morphism from ``int`` to `\QQ`.
+    """
     def __init__(self):
         """
+        Initialize ``self``.
+
         EXAMPLES::
 
             sage: sage.rings.rational.int_to_Q()
@@ -3572,10 +3615,12 @@ cdef class int_to_Q(Morphism):
 
     cpdef Element _call_(self, a):
         """
+        Return the image of the morphism on ``a``.
+
         EXAMPLES::
 
             sage: f = sage.rings.rational.int_to_Q()
-            sage: f(int(4))
+            sage: f(int(4)) # indirect doctest
             4
             sage: f(int(4^100))   # random garbage, not an int
             14

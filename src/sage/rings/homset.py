@@ -18,31 +18,110 @@ import morphism
 import quotient_ring
 
 def is_RingHomset(H):
+    """
+    Return ``True`` if ``H`` is a space of homomorphisms between two rings.
+
+    EXAMPLES::
+
+        sage: from sage.rings.homset import is_RingHomset as is_RH
+        sage: is_RH(Hom(ZZ, QQ))
+        True
+        sage: is_RH(ZZ)
+        False
+        sage: is_RH(Hom(RR, CC))
+        True
+        sage: is_RH(Hom(FreeModule(ZZ,1), FreeModule(QQ,1)))
+        False
+    """
     return isinstance(H, RingHomset_generic)
 
 def RingHomset(R, S, category = None):
+    """
+    Construct a space of homomorphisms between the rings ``R`` and ``S``.
+
+    For more on homsets, see :func:`Hom()`.
+
+    EXAMPLES::
+
+        sage: Hom(ZZ, QQ) # indirect doctest
+        Set of Homomorphisms from Integer Ring to Rational Field
+
+    """
     if quotient_ring.is_QuotientRing(R):
         return RingHomset_quo_ring(R, S, category = category)
     return RingHomset_generic(R, S, category = category)
 
 
 class RingHomset_generic(HomsetWithBase):
+    """
+    A generic space of homomorphisms between two rings.
+
+    EXAMPLES::
+
+        sage: Hom(ZZ, QQ)
+        Set of Homomorphisms from Integer Ring to Rational Field
+        sage: QQ.Hom(ZZ)
+        Set of Homomorphisms from Rational Field to Integer Ring
+    """
     def __init__(self, R, S, category = None):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: Hom(ZZ, QQ)
+            Set of Homomorphisms from Integer Ring to Rational Field
+        """
         if category is None:
             category = _Rings
         HomsetWithBase.__init__(self, R, S, category)
 
     def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: Hom(ZZ, QQ) # indirect doctest
+            Set of Homomorphisms from Integer Ring to Rational Field
+        """
         return "Set of Homomorphisms from %s to %s"%(self.domain(), self.codomain())
 
     def has_coerce_map_from(self, x):
         """
         The default for coercion maps between ring homomorphism spaces is
         very restrictive (until more implementation work is done).
+
+        Currently this checks if the domains and the codomains are equal.
+
+        EXAMPLES::
+
+            sage: H = Hom(ZZ, QQ)
+            sage: H2 = Hom(QQ, ZZ)
+            sage: H.has_coerce_map_from(H2)
+            False
         """
         return (x.domain() == self.domain() and x.codomain() == self.codomain())
 
     def _coerce_impl(self, x):
+        """
+        Check to see if we can coerce ``x`` into a homomorphism with the
+        correct rings.
+
+        EXAMPLES::
+
+            sage: H = Hom(ZZ, QQ)
+            sage: phi = H([1])
+            sage: H2 = Hom(QQ, QQ)
+            sage: phi2 = H2(phi); phi2 # indirect doctest
+            Ring endomorphism of Rational Field
+              Defn: 1 |--> 1
+            sage: H(phi2) # indirect doctest
+            Ring morphism:
+              From: Integer Ring
+              To:   Rational Field
+              Defn: 1 |--> 1
+        """
         if not isinstance(x, morphism.RingHomomorphism):
             raise TypeError
         if x.parent() is self:
@@ -77,13 +156,16 @@ class RingHomset_generic(HomsetWithBase):
 
     def __call__(self, im_gens, check=True):
         """
+        Create a homomorphism.
+
         EXAMPLES::
 
             sage: H = Hom(ZZ, QQ)
-            sage: phi = H([])
-            Traceback (most recent call last):
-            ...
-            TypeError: images do not define a valid homomorphism
+            sage: H([1])
+            Ring morphism:
+              From: Integer Ring
+              To:   Rational Field
+              Defn: 1 |--> 1
 
         TESTS::
 
@@ -103,12 +185,26 @@ class RingHomset_generic(HomsetWithBase):
 
 
     def natural_map(self):
+        """
+        Returns the natural map from the domain to the codomain.
+
+        The natural map is the coercion map from the domain ring to the
+        codomain ring.
+
+        EXAMPLES::
+
+            sage: H = Hom(ZZ, QQ)
+            sage: H.natural_map()
+            Ring Coercion morphism:
+              From: Integer Ring
+              To:   Rational Field
+        """
         return morphism.RingHomomorphism_coercion(self)
 
 
 class RingHomset_quo_ring(RingHomset_generic):
     """
-    Space of ring homomorphism where the domain is a (formal) quotient
+    Space of ring homomorphisms where the domain is a (formal) quotient
     ring.
 
     EXAMPLES::
@@ -143,6 +239,22 @@ class RingHomset_quo_ring(RingHomset_generic):
         True
     """
     def __call__(self, im_gens, check=True):
+        """
+        Create a homomorphism.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = PolynomialRing(QQ, 2)
+            sage: S.<a,b> = R.quotient(x^2 + y^2)
+            sage: H = S.Hom(R)
+            sage: phi = H([b,a]); phi
+            Ring morphism:
+              From: Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+              To:   Multivariate Polynomial Ring in x, y over Rational Field
+              Defn: a |--> b
+                    b |--> a
+
+        """
         if isinstance(im_gens, morphism.RingHomomorphism_from_quotient):
             return morphism.RingHomomorphism_from_quotient(self, im_gens._phi())
         try:
@@ -156,6 +268,40 @@ class RingHomset_quo_ring(RingHomset_generic):
                 raise TypeError, "images do not define a valid homomorphism"
 
     def _coerce_impl(self, x):
+        """
+        Check to see if we can coerce ``x`` into a homomorphism with the
+        correct rings.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = PolynomialRing(QQ, 2)
+            sage: S.<a,b> = R.quotient(x^2 + y^2)
+            sage: H = S.Hom(R)
+            sage: phi = H([b,a])
+            sage: R2.<x,y> = PolynomialRing(ZZ, 2)
+            sage: H2 = Hom(R2, S)
+            sage: H2(phi) # indirect doctest
+            Composite map:
+              From: Multivariate Polynomial Ring in x, y over Integer Ring
+              To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+              Defn:   Conversion map:
+                      From: Multivariate Polynomial Ring in x, y over Integer Ring
+                      To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+                    then
+                      Composite map:
+                      From: Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+                      To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+                      Defn:   Ring morphism:
+                              From: Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+                              To:   Multivariate Polynomial Ring in x, y over Rational Field
+                              Defn: a |--> b
+                                    b |--> a
+                            then
+                              Conversion map:
+                              From: Multivariate Polynomial Ring in x, y over Rational Field
+                              To:   Quotient of Multivariate Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
+
+        """
         if not isinstance(x, morphism.RingHomomorphism_from_quotient):
             raise TypeError
         if x.parent() is self:

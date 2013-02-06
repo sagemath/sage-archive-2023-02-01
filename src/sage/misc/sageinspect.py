@@ -47,7 +47,7 @@ Cython classes::
     '.../rational.pyx'
 
     sage: sage_getdoc(sage.rings.rational.Rational).lstrip()
-    'A Rational number...'
+    'A rational number...'
 
     sage: sage_getsource(sage.rings.rational.Rational)
     'cdef class Rational...'

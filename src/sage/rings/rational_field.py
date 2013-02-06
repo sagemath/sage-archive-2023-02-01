@@ -1,23 +1,18 @@
 r"""
 Field `\QQ` of Rational Numbers
 
-The class ``RationalField`` represents the field
-`\QQ` of (arbitrary precision) rational numbers.
-Each rational number is an instance of the class
-``Rational``.
+The class :class:`RationalField` represents the field `\QQ` of (arbitrary
+precision) rational numbers. Each rational number is an instance of the class
+:class:`Rational`.
 
-Interactively, an instance of ``RationalField`` is
-available as ``QQ``.
-
-::
+Interactively, an instance of :class:`RationalField` is available as ``QQ``::
 
     sage: QQ
     Rational Field
 
-Values of various types can be converted to rational numbers by
-using the ``__call__`` method of
-``RationalField`` (that is, by treating
-``QQ`` as a function).
+Values of various types can be converted to rational numbers by using the
+``__call__`` method of ``RationalField`` (that is, by treating ``QQ`` as a
+function).
 
 ::
 
@@ -47,7 +42,11 @@ TEST::
 
 AUTHORS:
 
-- Niles Johnson (2010-08): Trac #3893: ``random_element()`` should pass on ``*args`` and ``**kwds``.
+- Niles Johnson (2010-08): :trac:`3893`: ``random_element()`` should pass on
+  ``*args`` and ``**kwds``.
+
+- Travis Scrimshaw (2012-10-18): Added additional docstrings for full coverage.
+  Removed duplicates of ``discriminant()`` and ``signature()``.
 
 """
 
@@ -71,8 +70,7 @@ class _uniq(object):
 
 class RationalField(_uniq, number_field_base.NumberField):
     r"""
-    The class ``RationalField`` represents the field
-    `\QQ` of rational numbers.
+    The class ``RationalField`` represents the field `\QQ` of rational numbers.
 
     EXAMPLES::
 
@@ -139,8 +137,7 @@ class RationalField(_uniq, number_field_base.NumberField):
 
     def __init__(self):
         r"""
-        We create the rational numbers `\QQ`, and call a few
-        functions::
+        We create the rational numbers `\QQ`, and call a few functions::
 
             sage: Q = RationalField(); Q
             Rational Field
@@ -215,17 +212,41 @@ class RationalField(_uniq, number_field_base.NumberField):
         self._populate_coercion_lists_(element_constructor=rational.Rational, init_no_parent=True)
 
     def __hash__(self):
+        """
+        Return hash value for ``self``.
+
+        EXAMPLES::
+
+            sage: hash(QQ)
+            -11115808
+        """
         return -11115808
 
     def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: QQ # indirect doctest
+            Rational Field
+        """
         return "Rational Field"
 
     def _latex_(self):
-        return "\\Bold{Q}"
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: latex(QQ) # indirect doctest
+            \Bold{Q}
+        """
+        return "\Bold{Q}"
 
     def __reduce__(self):
-        """
-        Used for pickling QQ.
+        r"""
+        Used for pickling `\QQ`.
 
         EXAMPLES::
 
@@ -236,6 +257,10 @@ class RationalField(_uniq, number_field_base.NumberField):
 
     def __len__(self):
         """
+        Return the number of elements in ``self``.
+
+        Since this does not have a size, this throws a ``TypeError``.
+
         EXAMPLES::
 
             sage: len(QQ)
@@ -246,11 +271,32 @@ class RationalField(_uniq, number_field_base.NumberField):
         raise TypeError, 'len() of unsized object'
 
     def construction(self):
+        r"""
+        Returns a pair ``(functor, parent)`` such that ``functor(parent)``
+        returns ``self``.
+
+        This is the construction of `\QQ` as the fraction field of `\ZZ`.
+
+        EXAMPLES::
+
+            sage: QQ.construction()
+            (FractionField, Integer Ring)
+        """
         from sage.categories.pushout import FractionField
         import integer_ring
         return FractionField(), integer_ring.ZZ
 
     def completion(self, p, prec, extras = {}):
+        r"""
+        Return the completion of `\QQ` at `p`.
+
+        EXAMPLES::
+
+            sage: QQ.completion(infinity, 53)
+            Real Field with 53 bits of precision
+            sage: QQ.completion(5, 15, {'print_mode': 'bars'})
+            5-adic Field with capped relative precision 15
+        """
         if p == infinity.Infinity:
             from sage.rings.real_mpfr import create_RealField
             return create_RealField(prec, **extras)
@@ -260,9 +306,11 @@ class RationalField(_uniq, number_field_base.NumberField):
 
     def _coerce_map_from_(self, S):
         """
+        Return a coerce map from ``S``.
+
         EXAMPLES::
 
-            sage: f = QQ.coerce_map_from(ZZ); f
+            sage: f = QQ.coerce_map_from(ZZ); f # indirect doctest
             Natural morphism:
               From: Integer Ring
               To:   Rational Field
@@ -270,7 +318,7 @@ class RationalField(_uniq, number_field_base.NumberField):
             3
             sage: f(3^99) - 3^99
             0
-            sage: f = QQ.coerce_map_from(int); f
+            sage: f = QQ.coerce_map_from(int); f # indirect doctest
             Native morphism:
               From: Set of Python objects of type 'int'
               To:   Rational Field
@@ -279,7 +327,7 @@ class RationalField(_uniq, number_field_base.NumberField):
 
         ::
 
-            sage: QQ.coerce_map_from(long)
+            sage: QQ.coerce_map_from(long) # indirect doctest
             Composite map:
               From: Set of Python objects of type 'long'
               To:   Rational Field
@@ -303,6 +351,21 @@ class RationalField(_uniq, number_field_base.NumberField):
             return rational.Z_to_Q() * ZZ.coerce_map_from(S)
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
+        """
+        Check to see if the map into ``codomain`` determined by ``im_gens`` is
+        a valid homomorphism.
+
+        EXAMPLES::
+
+            sage: QQ._is_valid_homomorphism_(ZZ, [1])
+            False
+            sage: QQ._is_valid_homomorphism_(QQ, [1])
+            True
+            sage: QQ._is_valid_homomorphism_(RR, [1])
+            True
+            sage: QQ._is_valid_homomorphism_(RR, [2])
+            False
+        """
         try:
             return im_gens[0] == codomain._coerce_(self.gen(0))
         except TypeError:
@@ -313,7 +376,7 @@ class RationalField(_uniq, number_field_base.NumberField):
         Creates an iterator that generates the rational numbers without
         repetition, in order of the height.
 
-        See also QQ.range_by_height?
+        See also :meth:`range_by_height()`.
 
         EXAMPLES:
 
@@ -374,9 +437,9 @@ class RationalField(_uniq, number_field_base.NumberField):
 
         Returns a Python generator for the list of rational numbers with
         heights in ``range(start, end)``. Follows the same
-        convention as Python range, see range? for details.
+        convention as Python range, see ``range?`` for details.
 
-        See also QQ.__iter__?
+        See also ``__iter__()``.
 
         EXAMPLES:
 
@@ -423,19 +486,18 @@ class RationalField(_uniq, number_field_base.NumberField):
 
     def discriminant(self):
         """
-        Return the discriminant of the field of rational numbers, which is
-        1.
+        Return the discriminant of the field of rational numbers, which is 1.
 
         EXAMPLES::
 
             sage: QQ.discriminant()
             1
         """
-        return sage.rings.integer.Integer(1)
+        return integer.Integer(1)
 
     def absolute_discriminant(self):
         """
-        Return the discriminant, which is 1.
+        Return the absolute discriminant, which is 1.
 
         EXAMPLES::
 
@@ -446,7 +508,7 @@ class RationalField(_uniq, number_field_base.NumberField):
 
     def relative_discriminant(self):
         """
-        Return the discriminant, which is 1.
+        Return the relative discriminant, which is 1.
 
         EXAMPLES::
 
@@ -457,8 +519,7 @@ class RationalField(_uniq, number_field_base.NumberField):
 
     def class_number(self):
         """
-        Return the class number of the field of rational numbers, which is
-        1.
+        Return the class number of the field of rational numbers, which is 1.
 
         EXAMPLES::
 
@@ -468,8 +529,8 @@ class RationalField(_uniq, number_field_base.NumberField):
         return integer.Integer(1)
 
     def signature(self):
-        """
-        Return the signature of the rational field, which is (1,0), since
+        r"""
+        Return the signature of the rational field, which is `(1,0)`, since
         there are 1 real and no complex embeddings.
 
         EXAMPLES::
@@ -478,37 +539,10 @@ class RationalField(_uniq, number_field_base.NumberField):
             (1, 0)
         """
         return (integer.Integer(1), integer.Integer(0))
-
-
-    def discriminant(self):
-        """
-        Return the discriminant of the field of rational numbers, which is
-        1.
-
-        EXAMPLES::
-
-            sage: QQ.discriminant()
-            1
-        """
-        return integer.Integer(1)
-
-    def signature(self):
-        """
-        Return the signature of the rational field, which is (1,0), since
-        there are 1 real and no complex embeddings.
-
-        EXAMPLES::
-
-            sage: QQ.signature()
-            (1, 0)
-        """
-        return (integer.Integer(1), integer.Integer(0))
-
 
     def embeddings(self, K):
-        """
-        Return list of the one embedding of `\QQ` into
-        `K`, if it exists.
+        r"""
+        Return list of the one embedding of `\QQ` into `K`, if it exists.
 
         EXAMPLES::
 
@@ -552,7 +586,9 @@ class RationalField(_uniq, number_field_base.NumberField):
         return self.hom([CC(1)])
 
     def gens(self):
-        """
+        r"""
+        Return a tuple of generators of `\QQ` which is only ``(1,)``.
+
         EXAMPLES::
 
             sage: QQ.gens()
@@ -561,7 +597,11 @@ class RationalField(_uniq, number_field_base.NumberField):
         return (self(1), )
 
     def gen(self, n=0):
-        """
+        r"""
+        Return the ``n``-th generator of `\QQ`.
+
+        There is only the 0-th generator which is 1.
+
         EXAMPLES::
 
             sage: QQ.gen()
@@ -573,7 +613,9 @@ class RationalField(_uniq, number_field_base.NumberField):
             raise IndexError, "n must be 0"
 
     def degree(self):
-        """
+        r"""
+        Return the degree of `\QQ` which is 1.
+
         EXAMPLES::
 
             sage: QQ.degree()
@@ -582,7 +624,9 @@ class RationalField(_uniq, number_field_base.NumberField):
         return integer.Integer(1)
 
     def absolute_degree(self):
-        """
+        r"""
+        Return the absolute degree of `\QQ` which is 1.
+
         EXAMPLES::
 
             sage: QQ.absolute_degree()
@@ -591,7 +635,9 @@ class RationalField(_uniq, number_field_base.NumberField):
         return integer.Integer(1)
 
     def ngens(self):
-        """
+        r"""
+        Return the number of generators of `\QQ` which is 1.
+
         EXAMPLES::
 
             sage: QQ.ngens()
@@ -600,9 +646,8 @@ class RationalField(_uniq, number_field_base.NumberField):
         return integer.Integer(1)
 
     def is_absolute(self):
-        """
-        `\QQ` is an absolute extension of
-        `\QQ`.
+        r"""
+        `\QQ` is an absolute extension of `\QQ`.
 
         EXAMPLES::
 
@@ -612,9 +657,8 @@ class RationalField(_uniq, number_field_base.NumberField):
         return True
 
     def is_subring(self, K):
-        """
-        Return ``True`` if `\QQ` is a subring of
-        `K`.
+        r"""
+        Return ``True`` if `\QQ` is a subring of `K`.
 
         We are only able to determine this in some cases, e.g., when
         `K` is a field or of positive characteristic.
@@ -657,8 +701,7 @@ class RationalField(_uniq, number_field_base.NumberField):
 
     def is_finite(self):
         """
-        Return ``False``, since the rational field is not
-        finite.
+        Return ``False``, since the rational field is not finite.
 
         EXAMPLES::
 
@@ -668,9 +711,8 @@ class RationalField(_uniq, number_field_base.NumberField):
         return False
 
     def is_prime_field(self):
-        """
-        Return ``True``, since `\QQ` is a prime
-        field.
+        r"""
+        Return ``True`` since `\QQ` is a prime field.
 
         EXAMPLES::
 
@@ -680,11 +722,21 @@ class RationalField(_uniq, number_field_base.NumberField):
         return True
 
     def is_atomic_repr(self):
+        r"""
+        Return ``True``, since elements of `\QQ` do not have to be printed
+        with parentheses around them, when they are coefficients, e.g., in a
+        polynomial.
+
+        EXAMPLES::
+
+            sage: QQ.is_atomic_repr()
+            True
+        """
         return True
 
     def characteristic(self):
-        """
-        Return 0, since the rational field has characteristic 0.
+        r"""
+        Return 0 since the rational field has characteristic 0.
 
         EXAMPLES::
 
@@ -696,7 +748,7 @@ class RationalField(_uniq, number_field_base.NumberField):
         return integer.Integer(0)
 
     def maximal_order(self):
-        """
+        r"""
         Return the maximal order of the rational numbers, i.e., the ring
         `\ZZ` of integers.
 
@@ -711,10 +763,9 @@ class RationalField(_uniq, number_field_base.NumberField):
         return ZZ
 
     def number_field(self):
-        """
-        Return the number field associated to `\QQ`. Since
-        `\QQ` is a number field, this just returns
-        `\QQ` again.
+        r"""
+        Return the number field associated to `\QQ`. Since `\QQ` is a number
+        field, this just returns `\QQ` again.
 
         EXAMPLES::
 
@@ -727,7 +778,7 @@ class RationalField(_uniq, number_field_base.NumberField):
         r"""
         Return a power basis for this number field over its base field.
 
-        The power basis is always [1] for the rational field. This method
+        The power basis is always ``[1]`` for the rational field. This method
         is defined to make the rational field behave more like a number
         field.
 
@@ -739,7 +790,9 @@ class RationalField(_uniq, number_field_base.NumberField):
         return [ self.gen() ]
 
     def extension(self, poly, names, check=True, embedding=None):
-        """
+        r"""
+        Create a field extension of `\QQ`.
+
         EXAMPLES:
 
         We make a single absolute extension::
@@ -760,8 +813,8 @@ class RationalField(_uniq, number_field_base.NumberField):
         return NumberField(poly, names=names, check=check, embedding=embedding)
 
     def algebraic_closure(self):
-        """
-        Return the algebraic closure of self (which is QQbar).
+        r"""
+        Return the algebraic closure of self (which is `\QQbar`).
 
         EXAMPLES::
 
@@ -772,7 +825,9 @@ class RationalField(_uniq, number_field_base.NumberField):
         return QQbar
 
     def order(self):
-        """
+        r"""
+        Return the order of `\QQ` which is `\infty`.
+
         EXAMPLES::
 
             sage: QQ.order()
@@ -781,10 +836,20 @@ class RationalField(_uniq, number_field_base.NumberField):
         return infinity.infinity
 
     def _an_element_(self):
+        r"""
+        Return an element of `\QQ`.
+
+        EXAMPLES::
+
+            sage: QQ.an_element() # indirect doctest
+            1/2
+        """
         return rational.Rational((1,2))
 
     def random_element(self, num_bound=None, den_bound=None, *args, **kwds):
         """
+        Return an random element of `\QQ`.
+
         EXAMPLES::
 
             sage: QQ.random_element(10,10)
@@ -816,16 +881,15 @@ class RationalField(_uniq, number_field_base.NumberField):
             den = ZZ.random_element(1, den_bound+1, *args, **kwds)
             while den == 0: den = ZZ.random_element(1, den_bound+1, *args, **kwds)
             return self((num,den))
+
     def zeta(self, n=2):
         """
         Return a root of unity in ``self``.
 
         INPUT:
 
-
-        -  ``n`` - integer (default: 2) order of the root of
+        -  ``n`` -- integer (default: 2) order of the root of
            unity
-
 
         EXAMPLES::
 
@@ -851,46 +915,54 @@ class RationalField(_uniq, number_field_base.NumberField):
     ## Coercions to interfaces
     #################################
     def _gap_init_(self):
-        """
+        r"""
+        Return the GAP representation of `\QQ`.
+
         EXAMPLES::
 
-            sage: gap(QQ)
+            sage: gap(QQ) # indirect doctest
             Rationals
         """
         return 'Rationals'
 
     def _magma_init_(self, magma):
-        """
+        r"""
+        Return the magma representation of `\QQ`.
+
         EXAMPLES::
 
-            sage: magma(QQ)                       # optional - magma
+            sage: magma(QQ)      # optional - magma # indirect doctest
             Rational Field
 
-        TESTS::
+        TESTS:
 
-        See trac 5521::
+        See :trac:`5521`::
 
-            sage: loads(dumps(QQ)) == QQ          # optional - magma
+            sage: loads(dumps(QQ)) == QQ  # optional - magma
             True
         """
         return 'RationalField()'
 
     def _macaulay2_init_(self):
-        """
+        r"""
+        Return the macaulay2 representation of `\QQ`.
+
         EXAMPLES::
 
-            sage: macaulay2(QQ)                   # optional- macaulay2
+            sage: macaulay2(QQ)   # optional- macaulay2 # indirect doctest
             QQ
         """
         return "QQ"
 
     def _axiom_init_(self):
-        """
+        r"""
+        Return the axiom/fricas representation of `\QQ`.
+
         EXAMPLES::
 
-           sage: axiom(QQ)    #optional - axiom
+           sage: axiom(QQ)    #optional - axiom # indirect doctest
            Fraction Integer
-           sage: fricas(QQ)   #optional - fricas
+           sage: fricas(QQ)   #optional - fricas # indirect doctest
            Fraction(Integer)
 
         """
@@ -902,7 +974,8 @@ class RationalField(_uniq, number_field_base.NumberField):
         r"""
         Produce an expression which will reproduce this value when evaluated.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: sage_input(QQ, verify=True)
             # Verified
             QQ
@@ -917,7 +990,27 @@ QQ = RationalField()
 Q = QQ
 
 def is_RationalField(x):
+    """
+    Check to see if ``x`` is the rational field.
+
+    EXAMPLES::
+
+        sage: from sage.rings.rational_field import is_RationalField as is_RF
+        sage: is_RF(QQ)
+        True
+        sage: is_RF(ZZ)
+        False
+    """
     return isinstance(x, RationalField)
 
 def frac(n,d):
+    """
+    Return the fraction ``n/d``.
+
+    EXAMPLES::
+
+        sage: from sage.rings.rational_field import frac
+        sage: frac(1,2)
+        1/2
+    """
     return rational.Rational(n)/rational.Rational(d)

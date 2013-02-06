@@ -599,10 +599,20 @@ def get_test_shell():
         sage: from sage.misc.interpreter import get_test_shell
         sage: shell = get_test_shell(); shell
         <sage.misc.interpreter.SageInteractiveShell object at 0x...>
+
+    TESTS:
+
+    Check that :trac:`14070` has been resolved::
+
+        sage: from sage.tests.cmdline import test_executable
+        sage: cmd = 'from sage.misc.interpreter import get_test_shell; shell = get_test_shell()'
+        sage: (out, err, ret) = test_executable(["sage", "-c", cmd])
+        sage: out + err
+        ''
     """
     app = SageTerminalApp.instance(config=DEFAULT_SAGE_CONFIG)
     if app.shell is None:
-        app.initialize()
+        app.initialize(argv=[])
     return app.shell
 
 
@@ -684,7 +694,7 @@ class SageTerminalApp(TerminalIPythonApp):
 
             sage: from sage.misc.interpreter import SageTerminalApp, DEFAULT_SAGE_CONFIG
             sage: app = SageTerminalApp(config=DEFAULT_SAGE_CONFIG)
-            sage: app.initialize() #indirect doctest
+            sage: app.initialize(argv=[])  # indirect doctest
             sage: app.shell
             <sage.misc.interpreter.SageInteractiveShell object at 0x...>
         """

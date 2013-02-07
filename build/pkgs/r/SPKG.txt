@@ -36,15 +36,20 @@ much code written for S runs unaltered under R.
      The corresponding patch to m4/clibs.m4 is not included, as
      autoconf-2.68 gives errors, even on the clean upstream sources.
    - R.sh.in: Set R_HOME_DIR to "${SAGE_LOCAL}/lib/R/" when running R.
+   - cygwin-logl.patch: disable use of logl on Cygwin, see #14078.
 
 == Changelog ==
+
+=== r-2.15.2.p1 (Jean-Pierre Flori, 7 February 2013) ===
+ * #14078: do not use logl on Cygwin.
+
 === r-2.15.2.p0 (Emmanuel Charpentier, 25 January 2013) ===
-  * "monkey see-monkey do" upgrade to current upstream
-  * simple drop of curent source in src
-  * removed patches/install_parallel.patch : patch complained
-    about a "reversed (or previously applied) patch detected!".
-  * re-enables installation of upstream source packages
-    (ticket #14008).
+ * "monkey see-monkey do" upgrade to current upstream
+ * simple drop of curent source in src
+ * removed patches/install_parallel.patch : patch complained
+   about a "reversed (or previously applied) patch detected!".
+ * re-enables installation of upstream source packages
+   (ticket #14008).
 
 === r-2.14.0.p6 (Jeroen Demeyer, 10 September 2012) ===
  * #13443: some clean up of spkg-install.
@@ -175,4 +180,3 @@ much code written for S runs unaltered under R.
 
 === r-2.6.1.p7 ===
  * Updated the rpy package using trac #1427
-

@@ -24,7 +24,7 @@ fi
 cd src
 
 # Apply patches.
-patches="../patches/darwin_x86_64.patch"
+patches=""
 if [ $UNAME = "CYGWIN" ]; then
     echo "CYGWIN: Patching numpy/linalg/setup.py"
     patches="$patches ../patches/cygwin-lapack_lite-setup.py.diff"
@@ -49,10 +49,11 @@ if [ `uname` = "Darwin" ]; then
 else
     export LDFLAGS="${LDFLAGS} -shared"
 fi
-export FC="${SAGE_LOCAL}/bin/sage_fortran"
-export F77="${SAGE_LOCAL}/bin/sage_fortran"
-export F90="${SAGE_LOCAL}/bin/sage_fortran"
-export F95="${SAGE_LOCAL}/bin/sage_fortran"
+
+# Make sure that the fortran objects are compiled with -fPIC
+export FFLAGS="$FFLAGS -fPIC"
+export FCFLAGS="$FCFLAGS -fPIC"
+
 export NUMPY_FCONFIG="config_fc --noopt --noarch"
 
 ################################################

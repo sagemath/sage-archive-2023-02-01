@@ -1,41 +1,19 @@
+#
+# Declare C library functions used in Sage
+#
 
 include "python.pxi"
 
-cdef extern from "stdlib.h":
-    void free(void *ptr)
-    void *malloc(size_t size)
-    void *realloc(void *ptr, size_t size)
-    size_t strlen(char *s)
-    char *strcpy(char *dest, char *src)
+from libc.stdio cimport *
+from libc.string cimport strlen, strcpy, memset, memcpy
 
-cdef extern from "string.h":
-    void *memset(void *dest, int c, size_t n)
-    void *memcpy(void *dest, void *src, size_t n)
+from libc.math cimport sqrt
+# Cython misdeclares these: http://trac.cython.org/cython_trac/ticket/801
+cdef extern from "<math.h>":
+    double frexp(double x, int* exponent)
+    double ldexp(double x, int exponent)
 
-cdef extern from "stdio.h":
-    ctypedef struct FILE
-    cdef FILE *stdin
-    cdef FILE *stdout
-    cdef FILE *stderr
-    int printf(char *format, ...)
-    int fprintf(FILE *stream, char *format, ...)
-    int sprintf(char *str, char *format, ...)
-    FILE *fopen(char *path, char *mode)
-    int fclose(FILE *stream)
-    int fflush(FILE *stream)
-    int scanf(char *format, ...)
-
-cdef extern from "math.h":
-    double sqrt(double x)
-    float roundf(float x)    # linux-ish and non-standard; avoid!
-    double ldexp(double x, int exp)
-    double frexp(double x, int *exp)
 
 from sage.libs.gmp.all cimport *
-cdef extern from "gmp.h":
-    pass # cython bug sometimes includes this in the wrong place
-
-##########################################################################
-# stdsage.pxi declares the macros, etc., that got used a lot in SAGE.
-##########################################################################
-
+cdef extern from "<gmp.h>":
+    pass  # Cython bug sometimes includes this in the wrong place

@@ -372,7 +372,7 @@ class DegreeSequences:
         Freeing the memory
         """
         if seq != NULL:
-            free(seq)
+            sage_free(seq)
 
 cdef init(int n):
     """
@@ -387,8 +387,10 @@ cdef init(int n):
     elif n == 1:
         return [[0]]
 
-    seq = <unsigned char *> malloc((n+1)*sizeof(unsigned char))
+    sig_on()
+    seq = <unsigned char *> sage_malloc((n+1)*sizeof(unsigned char))
     memset(seq,0,(n+1)*sizeof(unsigned char))
+    sig_off()
 
     # We begin with one vertex of degree 0
     seq[0] = 1
@@ -396,7 +398,7 @@ cdef init(int n):
     N = n
     sequences = []
     enum(1,0)
-    free(seq)
+    sage_free(seq)
     return sequences
 
 cdef inline add_seq():

@@ -687,7 +687,7 @@ cdef class RealDistribution(ProbabilityDistribution):
                 map(float, parameters)
             except StandardError:
                 raise TypeError, "F-distribution requires real parameters"
-            self.parameters = <double *>malloc(sizeof(double)*2)
+            self.parameters = <double *>sage_malloc(sizeof(double)*2)
             self.parameters[0] = float(parameters[0])
             self.parameters[1] = float(parameters[1])
             self.distribution_type = F

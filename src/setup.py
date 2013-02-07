@@ -521,7 +521,7 @@ dep_regex = re.compile(r'^ *(?:(?:cimport +([\w\. ,]+))|(?:from +([\w.]+) +cimpo
 system_header_files = \
     ['complex.h', 'signal.h', 'math.h', 'limits.h', 'stdlib.h',
      'arpa/inet.h', 'float.h', 'string.h', 'stdint.h', 'stdio.h',
-     'dlfcn.h', 'setjmp.h' ]
+     'dlfcn.h', 'setjmp.h', 'errno.h' ]
 
 class DependencyTree:
     """

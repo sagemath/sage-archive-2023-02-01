@@ -11,6 +11,8 @@
 
 include '../ext/interrupt.pxi'
 
+cimport libc.stdlib
+
 ############ The following is the "one global set of vars"
 cdef extern from "gmp_globals.h":
     cdef mpz_t u, v, q, u0, u1, u2, v0, v1, v2, t0, t1, t2, x, y, ssqr, m2
@@ -41,9 +43,14 @@ cdef object mpz_to_str(mpz_t x):
     Convert a GMP integer to a Python string.
     """
     cdef char *s
+    sig_on()
     s = mpz_get_str(NULL, 10, x)
     t = str(s)
-    free(s)
+    # Emulate sage_free() to avoid needing to include stdsage.pxi
+    sig_block()
+    libc.stdlib.free(s)
+    sig_unblock()
+    sig_off()
     return t
 
 cdef int mpz_print(mpz_t x) except -1:

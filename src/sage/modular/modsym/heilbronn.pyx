@@ -27,6 +27,9 @@ include '../../ext/stdsage.pxi'
 from sage.libs.flint.flint cimport *
 include "../../libs/flint/fmpz_poly.pxi"
 
+cdef extern from "<math.h>":
+    float roundf(float x)
+
 cimport p1list
 import  p1list
 cdef p1list.export export

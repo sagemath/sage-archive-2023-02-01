@@ -14,7 +14,8 @@ Library interface to Embeddable Common Lisp (ECL)
 #rationals to SAGE types Integer and Rational. These parts could easily be
 #adapted to work with pure Python types.
 
-include '../ext/interrupt.pxi'
+include "../ext/signals.pxi"
+include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
 
 from sage.rings.integer cimport Integer
@@ -35,18 +36,6 @@ cdef bint bint_integerp(cl_object obj):
     return not(cl_integerp(obj) == Cnil)
 cdef bint bint_rationalp(cl_object obj):
     return not(cl_rationalp(obj) == Cnil)
-
-cdef extern from "stdlib.h":
-    void abort()
-
-cdef extern from "signal.h":
-    int signal_raise "raise"(int sig)
-    #rename of struct is necessary because cython folds the "struct" namespace
-    #into the normal namespace
-    struct Sigaction "sigaction":
-        pass
-    int sigaction(int sig, Sigaction * act, Sigaction * oact)
-    int SIGINT, SIGBUS, SIGSEGV
 
 cdef extern from "eclsig.c":
     int ecl_sig_on() except 0

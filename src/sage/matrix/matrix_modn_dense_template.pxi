@@ -94,13 +94,9 @@ cimport sage.rings.fast_arith
 cdef sage.rings.fast_arith.arith_int ArithIntObj
 ArithIntObj  = sage.rings.fast_arith.arith_int()
 
-# for copying
-cdef extern from *:
-    void* memcpy(void* dst, void* src, long n)
-
-# for pickling
-cdef extern from "stdio.h":
-    int snprintf(char *str, size_t size, char *format, ...)
+# for copying/pickling
+from libc.string cimport memcpy
+from libc.stdio cimport snprintf
 
 from sage.modules.vector_modn_dense cimport Vector_modn_dense
 

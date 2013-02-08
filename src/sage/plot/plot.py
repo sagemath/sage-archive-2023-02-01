@@ -141,8 +141,8 @@ We construct a plot involving several graphics objects::
 
 Next we construct the reflection of the above polygon about the
 `y`-axis by iterating over the list of first-coordinates of
-the first graphic element of `P` (which is the actual
-Polygon; note that `P` is a Graphics object, which consists
+the first graphic element of ``P`` (which is the actual
+Polygon; note that ``P`` is a Graphics object, which consists
 of a single polygon)::
 
     sage: Q = polygon([(-x,y) for x,y in P[0]], color='blue')
@@ -266,7 +266,7 @@ computation. For example,
     sage: savefig(os.path.join(SAGE_TMP, 'sage.png'))
 
 We test that ``imshow`` works as well, verifying that
-Trac ticket 2900 is fixed in Matplotlib.
+:trac:`2900` is fixed (in Matplotlib).
 
 ::
 
@@ -589,8 +589,8 @@ def plot(funcs, *args, **kwds):
 
     There are many other specialized 2D plot commands available
     in Sage, such as ``plot_slope_field``, as well as various
-    graphics primitives like Arrow; type ``sage.plot.plot?`` for
-    a current list.
+    graphics primitives like :class:`~sage.plot.arrow.Arrow`;
+    type ``sage.plot.plot?`` for a current list.
 
     Type ``plot.options`` for a dictionary of the default
     options for plots. You can change this to change the defaults for
@@ -739,12 +739,12 @@ def plot(funcs, *args, **kwds):
 
       - a function g: Fill the area between the function that is plotted and g.
 
-      - a dictionary d (only if a list of functions are plotted):
+      - a dictionary ``d`` (only if a list of functions are plotted):
         The keys of the dictionary should be integers.
-        The value of d[i] specifies the fill options for the i-th function in the list.
-        If d[i] == [j]: Fill the area between the i-th and the j-th function in the list.
-        (But if d[i] == j: Fill the area between the i-th function in the list and the
-        horizontal line y = j.)
+        The value of ``d[i]`` specifies the fill options for the i-th function
+        in the list.  If ``d[i] == [j]``: Fill the area between the i-th and
+        the j-th function in the list.  (But if ``d[i] == j``: Fill the area
+        between the i-th function in the list and the horizontal line y = j.)
 
     - ``fillcolor`` - (default: 'automatic') The color of the fill.
       Either 'automatic' or a color.
@@ -753,7 +753,7 @@ def plot(funcs, *args, **kwds):
       A number between 0 and 1.
 
     Note that this function does NOT simply sample equally spaced
-    points between xmin and xmax. Instead it computes equally spaced
+    points between ``xmin`` and ``xmax``. Instead it computes equally spaced
     points and add small perturbations to them. This reduces the
     possibility of, e.g., sampling sin only at multiples of
     `2\pi`, which would yield a very misleading graph.
@@ -970,14 +970,15 @@ def plot(funcs, *args, **kwds):
         sage: plot([b(n) for n in [1..5]], 0, 20, fill = 'axis')
 
     Note that to fill between the ith and jth functions, you
-    must use dictionary key-value pairs i:[j]; key-value pairs
-    like i:j will fill between the ith function and the line y=j::
+    must use dictionary key-value pairs ``i:[j]``; key-value pairs
+    like ``i:j`` will fill between the ith function and the line y=j::
 
         sage: def b(n): return lambda x: bessel_J(n, x) + 0.5*(n-1)
         sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, [i+1]) for i in [0..3]]))
         sage: plot([b(c) for c in [1..5]], 0, 40, fill = dict([(i, i+1) for i in [0..3]]))
 
-    Extra options will get passed on to show(), as long as they are valid::
+    Extra options will get passed on to :meth:`~sage.plot.graphics.Graphics.show`,
+    as long as they are valid::
 
         sage: plot(sin(x^2), (x, -3, 3), title='Plot of $\sin(x^2)$', axes_labels=['$x$','$y$']) # These labels will be nicely typeset
         sage: plot(sin(x^2), (x, -3, 3), title='Plot of sin(x^2)', axes_labels=['x','y']) # These will not
@@ -1005,7 +1006,8 @@ def plot(funcs, *args, **kwds):
 
         sage: plot(floor(x), (x, 1, 10), exclude = [1..10])
 
-    We exclude all points where prime_pi makes a jump::
+    We exclude all points where :class:`~sage.functions.prime_pi.PrimePi`
+    makes a jump::
 
         sage: jumps = [n for n in [1..100] if prime_pi(n) != prime_pi(n-1)]
         sage: plot(lambda x: prime_pi(x), (x, 1, 100), exclude = jumps)
@@ -1078,7 +1080,7 @@ def plot(funcs, *args, **kwds):
         ...
         ValueError: plot start point and end point must be different
 
-    We test that we can plot `f(x)=x` (see Trac 10246)::
+    We test that we can plot `f(x)=x` (see :trac:`10246`)::
 
         sage: f(x)=x; f
         x |--> x
@@ -1618,8 +1620,8 @@ def list_plot(data, plotjoined=False, **kwargs):
     or a dictionary and plots the corresponding points.
 
     If given a list of numbers (that is, not a list of tuples or lists),
-    ``list_plot`` forms a list of tuples `(i, x_i)` where `i` goes from
-    0 to ``len(data)-1`` and `x_i` is the `i`-th data value, and puts
+    ``list_plot`` forms a list of tuples ``(i, x_i)`` where ``i`` goes from
+    0 to ``len(data)-1`` and ``x_i`` is the ``i``-th data value, and puts
     points at those tuple values.
 
     ``list_plot`` will plot a list of complex numbers in the obvious
@@ -1627,9 +1629,9 @@ def list_plot(data, plotjoined=False, **kwargs):
     :func:`CC()<sage.rings.complex_field.ComplexField>` makes sense will
     work.
 
-    ``list_plot`` also takes a list of tuples `(x_i, y_i)` where `x_i`
-    and `y_i` are the `i`-th values representing the `x`- and
-    `y`-values, respectively.
+    ``list_plot`` also takes a list of tuples ``(x_i, y_i)`` where ``x_i``
+    and ``y_i`` are the ``i``-th values representing the ``x``- and
+    ``y``-values, respectively.
 
     If given a dictionary, ``list_plot`` interprets the keys as
     `x`-values and the values as `y`-values.
@@ -1638,7 +1640,7 @@ def list_plot(data, plotjoined=False, **kwargs):
     joining all the data.
 
     It is possible to pass empty dictionaries, lists, or tuples to
-    list_plot. Doing so will plot nothing (returning an empty plot).
+    ``list_plot``. Doing so will plot nothing (returning an empty plot).
 
     EXAMPLES::
 
@@ -2233,7 +2235,7 @@ def var_and_list_of_values(v, plot_points):
 def setup_for_eval_on_grid(v, xrange, yrange, plot_points):
     """
     This function is deprecated.  Please use
-    sage.plot.misc.setup_for_eval_on_grid instead.  Please note that
+    ``sage.plot.misc.setup_for_eval_on_grid`` instead.  Please note that
     that function has slightly different calling and return
     conventions which make it more generally applicable.
 
@@ -2329,7 +2331,7 @@ def minmax_data(xdata, ydata, dict=False):
 
 def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5, level=0):
     r"""
-    The adaptive refinement algorithm for plotting a function f. See
+    The adaptive refinement algorithm for plotting a function ``f``. See
     the docstring for plot for a description of the algorithm.
 
     INPUT:
@@ -2346,14 +2348,14 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
     -  ``adaptive_tolerance`` - (default: 0.01) how large
        a relative difference should be before the adaptive refinement
        code considers it significant; see documentation for generate_plot_points
-       for more information.  See the documentation for plot() for more
+       for more information.  See the documentation for :func:`plot` for more
        information on how the adaptive refinement algorithm works.
 
     OUTPUT:
 
 
-    -  ``list`` - a list of points to insert between p1 and
-       p2 to get a better linear approximation between them
+    -  ``list`` - a list of points to insert between ``p1`` and
+       ``p2`` to get a better linear approximation between them
 
 
     TESTS::
@@ -2364,8 +2366,8 @@ def adaptive_refinement(f, p1, p2, adaptive_tolerance=0.01, adaptive_recursion=5
         sage: adaptive_refinement(sin, (0,0), (pi,0), adaptive_tolerance=0.01)
         [(0.125*pi, 0.3826834323650898), (0.1875*pi, 0.5555702330196022), (0.25*pi, 0.7071067811865475), (0.3125*pi, 0.8314696123025452), (0.375*pi, 0.9238795325112867), (0.4375*pi, 0.9807852804032304), (0.5*pi, 1.0), (0.5625*pi, 0.9807852804032304), (0.625*pi, 0.9238795325112867), (0.6875*pi, 0.8314696123025455), (0.75*pi, 0.7071067811865476), (0.8125*pi, 0.5555702330196022), (0.875*pi, 0.3826834323650899)]
 
-    This shows that lowering adaptive_tolerance and raising
-    adaptive_recursion both increase the number of subdivision
+    This shows that lowering ``adaptive_tolerance`` and raising
+    ``adaptive_recursion`` both increase the number of subdivision
     points, though which one creates more points is heavily
     dependent upon the function being plotted.
 

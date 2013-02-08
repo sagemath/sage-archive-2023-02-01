@@ -52,7 +52,7 @@ When Sage loads ``example.sage`` it converts it to Python, which is
 then executed by the Python interpreter. This conversion is
 minimal; it mainly involves wrapping integer literals in ``Integer()``
 floating point literals in ``RealNumber()``, replacing ``^``'s by ``**``'s,
-and replacing e.g., ``R.2`` by ``R.gen(2)``}. The converted version of
+and replacing e.g., ``R.2`` by ``R.gen(2)``. The converted version of
 ``example.sage`` is contained in the same directory as ``example.sage``
 and is called ``example.sage.py``. This file contains the following
 code:

@@ -2537,20 +2537,10 @@ class SimplicialComplex(GenericCellComplex):
             Graph on 4 vertices
             sage: G.edges()
             [(0, 1, None), (0, 2, None), (0, 3, None), (1, 2, None), (1, 3, None), (2, 3, None)]
-
-            sage: S = SimplicialComplex([[1,2,3],[1]],maximality_check=False)
-            sage: G = S.graph()
-            sage: G.is_connected()
-            False
-            sage: G.vertices() #random order
-            [1, 2, 3, (1,)]
-            sage: G.edges()
-            [(1, 2, None), (1, 3, None), (2, 3, None)]
-
         """
         if self._graph is None:
             edges = self.n_faces(1)
-            vertices = filter(lambda f: f.dimension() == 0, self._facets)
+            vertices = map(min, filter(lambda f: f.dimension() == 0, self._facets))
             used_vertices = []  # vertices which are in an edge
             d = {}
             for e in edges:
@@ -2632,7 +2622,6 @@ class SimplicialComplex(GenericCellComplex):
 
            This may give the wrong answer if the simplicial complex
            was constructed with ``maximality_check`` set to ``False``.
-           See the final example.
 
         EXAMPLES::
 
@@ -2655,10 +2644,6 @@ class SimplicialComplex(GenericCellComplex):
             True
 
             sage: S = SimplicialComplex([[0,1],[2,3]])
-            sage: S.is_connected()
-            False
-
-            sage: S = SimplicialComplex([[0,1],[1],[0]],maximality_check=False)
             sage: S.is_connected()
             False
         """
@@ -2899,6 +2884,15 @@ class SimplicialComplex(GenericCellComplex):
             sage: v1 = X.vertices()[-1]
             sage: X.connected_component(Simplex([v0])) == X.connected_component(Simplex([v1]))
             False
+
+            sage: S0 = simplicial_complexes.Sphere(0)
+            sage: S0.vertices()
+            (0, 1)
+            sage: S0.connected_component()
+            Simplicial complex with vertex set (0,) and facets {(0,)}
+            sage: S0.connected_component(Simplex((1,)))
+            Simplicial complex with vertex set (1,) and facets {(1,)}
+
             sage: SimplicialComplex([[]]).connected_component()
             Traceback (most recent call last):
             ...

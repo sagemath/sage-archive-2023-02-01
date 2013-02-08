@@ -48,13 +48,17 @@ AUTHORS:
 - William Stein (2006-09): first version
 
 - Travis Scrimshaw (2012-10-18): Added doctests to get full coverage
+
+- Jeroen Demeyer (2013-02-27): fixed all PARI calls (:trac:`14082`)
 """
 
-#################################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2013 Jeroen Demeyer <jdemeyer@cage.ugent.be>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -65,14 +69,7 @@ from sage.misc.randstate cimport randstate, current_randstate
 include '../ext/interrupt.pxi'
 include '../ext/stdsage.pxi'
 
-cdef extern from "math.h":
-    double modf (double value, double *integer_part)
-
-# The M_PI_4 constant is not available on cygwin in "math.h" (though
-# it is on most other platforms).
-cdef double M_PI_4 = 0.785398163397448309615660845819875721
-
-cdef extern from "complex.h":
+cdef extern from "<complex.h>":
     double complex csqrt(double complex)
     double cabs(double complex)
 
@@ -98,15 +95,6 @@ RR = real_mpfr.RealField()
 
 from real_double import RealDoubleElement, RDF
 
-# PREC is the precision (in decimal digits) that all PARI computations with doubles
-# are done with in this module.  A double is by definition 8 bytes or 64 bits.  Since
-#              log(2^64,10) = 19.265919722494793  < 28
-# 28 *digits* should be way more than enough for correctness to 64 bits.   We choose
-# 28 since 20 gets rounded up to 28 digits automatically by PARI anyways.   In theory
-# 19 digits might also be OK, but I've noticed that last digit or two of PARI output
-# can be questionable -- it varies from version to version, so...
-cdef int PREC
-PREC = 28
 
 from sage.structure.parent_gens import ParentWithGens
 from sage.categories.morphism cimport Morphism
@@ -309,6 +297,12 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             4.5
             sage: CDF(1+I) # indirect doctest
             1.0 + 1.0*I
+            sage: CDF(pari(1))
+            1.0
+            sage: CDF(pari("I"))
+            1.0*I
+            sage: CDF(pari("x^2 + x + 1").polroots()[0])
+            -0.5 - 0.866025403784*I
 
         A ``TypeError`` is raised if the coercion doesn't make sense::
 
@@ -346,7 +340,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: CDF((1,2)) # indirect doctest
             1.0 + 2.0*I
         """
-        cdef pari_sp sp
+        cdef sage.libs.pari.gen.gen g
         if PY_TYPE_CHECK(x, ComplexDoubleElement):
             return x
         elif PY_TYPE_CHECK(x, tuple):
@@ -358,10 +352,11 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         elif isinstance(x, complex_number.ComplexNumber):
             return ComplexDoubleElement(x.real(), x.imag())
         elif isinstance(x, sage.libs.pari.gen.gen):
-            # It seems we should get a speed increase by
-            # using _new_from_gen_c instead; I wasn't
-            # able to get this to work.
-            return ComplexDoubleElement(x.real(), x.imag())
+            g = x
+            if typ(g.g) == t_COMPLEX:
+                return ComplexDoubleElement(gtodouble(gel(g.g, 1)), gtodouble(gel(g.g, 2)))
+            else:
+                return ComplexDoubleElement(gtodouble(g.g), 0.0)
         elif isinstance(x, str):
             t = cdf_parser.parse_expression(x)
             if isinstance(t, float):
@@ -690,26 +685,23 @@ cdef class ComplexDoubleElement(FieldElement):
         z._complex = x
         return z
 
-    cdef _new_from_gen_c(self, GEN g, pari_sp sp):
+    cdef _new_from_gen(self, sage.libs.pari.gen.gen g):
         """
         C-level code for creating a :class:`ComplexDoubleElement` from a
         PARI gen.
 
         INPUT:
 
-        -  ``g`` -- GEN
+        -  ``g`` -- A PARI ``gen``.
 
-        -  ``sp`` -- stack pointer; if nonzero resets avma to sp.
+        OUTPUT: A ``ComplexDoubleElement``.
         """
         cdef gsl_complex x
-        sig_on()
-        # Signal handling is important, since rtodbl can easily overflow
-        x = gsl_complex_rect(  rtodbl(greal(g)), rtodbl(gimag(g))  )
-        sig_off()
-        z = self._new_c(x)
-        if sp:
-            avma = sp
-        return z
+        if typ(g.g) == t_COMPLEX:
+            x = gsl_complex_rect(gtodouble(gel(g.g, 1)), gtodouble(gel(g.g, 2)))
+        else:
+            x = gsl_complex_rect(gtodouble(g.g), 0.0)
+        return self._new_c(x)
 
     def __hash__(self):
         """
@@ -1027,16 +1019,10 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: pari(CDF(1,2))
             1.00000000000000 + 2.00000000000000*I
         """
-        # The explicit declaration and assignment is necessary in
-        # order to get access to the internal C structure of gen.pari.
-        cdef pari_sp sp
-        global avma
-        sp = avma
         cdef sage.libs.pari.gen.PariInstance P
         P = sage.libs.pari.gen.pari
-        x = P.new_gen_noclear(self._gen())
-        avma = sp
-        return x
+        sig_on()
+        return P.new_gen(self._gen())
 
     #######################################################################
     # Arithmetic
@@ -1942,9 +1928,7 @@ cdef class ComplexDoubleElement(FieldElement):
     #######################################################################
     def eta(self, int omit_frac=0):
         r"""
-        Return the value of the Dedekind `\eta` function on self,
-        intelligently computed using `\mathbb{SL}(2,\ZZ)`
-        transformations.
+        Return the value of the Dedekind `\eta` function on self.
 
         INPUT:
 
@@ -1956,9 +1940,7 @@ cdef class ComplexDoubleElement(FieldElement):
 
         OUTPUT: a complex double number
 
-        ALGORITHM: Uses the PARI C library, but with some modifications so
-        it always works instead of failing on easy cases involving large
-        input (like PARI does).
+        ALGORITHM: Uses the PARI C library.
 
         The `\eta` function is
 
@@ -1979,10 +1961,10 @@ cdef class ComplexDoubleElement(FieldElement):
 
         :meth:`eta()` works even if the inputs are large::
 
-            sage: CDF(0,10^15).eta()
+            sage: CDF(0, 10^15).eta()
             0.0
-            sage: CDF(10^15,0.1).eta()     # slightly random-ish arch dependent output
-            -0.121339721991 - 0.19619461894*I
+            sage: CDF(10^15, 0.1).eta()  # abs tol 1e-10
+            -0.115342592727 - 0.19977923088*I
 
         We compute a few values of :meth:`eta()`, but with the fractional power
         of `e` omitted::
@@ -2001,12 +1983,11 @@ cdef class ComplexDoubleElement(FieldElement):
 
         The optional argument allows us to omit the fractional part::
 
-            sage: z = CDF(1,1)
-            sage: z.eta(omit_frac=True)
-            0.998129069926
+            sage: z.eta(omit_frac=True)  # abs tol 1e-12
+            0.998129069926 - 8.12769318782e-22*I
             sage: pi = CDF(pi)
-            sage: prod([1-exp(2*pi*i*n*z) for n in range(1,10)])      # slightly random-ish arch dependent output
-            0.998129069926 + 4.5908467128e-19*I
+            sage: prod([1-exp(2*pi*i*n*z) for n in range(1,10)])  # abs tol 1e-12
+            0.998129069926 + 4.59084695545e-19*I
 
         We illustrate what happens when `z` is not in the upper half plane::
 
@@ -2023,62 +2004,17 @@ cdef class ComplexDoubleElement(FieldElement):
         """
         cdef GEN a, b, c, y, t
 
-        # Turn on Sage C interrupt handling.  There must
-        # be no Python code between here and sig_off().
-        #sig_on()  # we're not using this since it would dominate the runtime
-
         if self._complex.dat[1] <= 0:
             raise ValueError, "value must be in the upper half plane"
 
-        if self._complex.dat[1] > 100000:
+        if self._complex.dat[1] > 100000 and not omit_frac:
             # To the precision of doubles for such large imaginary
-            # part the answer is automatically 0.  If we don't do
-            # this PARI can easily die, which will cause this function
-            # to bomb unless we use sig_on() and sig_off().  But
-            # I don't want to use those, since they take more time
-            # than this entire function!  Moreover, I don't want Sage's
-            # eta to every bomb -- this function should work on all input; there's
-            # no excuse for having it fail on easy edge cases (like PARI does).
+            # part, the answer is automatically 0. If we don't do
+            # this, PARI can easily underflow.
             return ComplexDoubleElement(0,0)
 
-        # save position on PARI stack
-        cdef pari_sp sp
-        global avma
-        sp = avma
-
-        # If omit_frac is True, then eta(z) = eta(z+24*n) for any integer n,
-        # so we can replace the real part of self by its fractional part.  We
-        # do this for two reasons:
-        #   (1) Because when the real part is sufficiently large, PARI overflows
-        #       and crashes, and I don't want to use sig_on()/sig_off() to catch this.
-        #   (2) Because this is easy and it makes it so our eta always works,
-        #       unlike PARI's.
-        # convert our complex number to a PARI number
-        # If omit_frac is False, then eta(z) = eta(z+24*n) for any integer n,
-        # and similar remarks apply.
-        cdef double dummy
-        a = dbltor(modf(self._complex.dat[0], &dummy))    # see big comment above
-        b = dbltor(self._complex.dat[1])
-
-        y = cgetg(3, t_COMPLEX)    # allocate space for a complex number
-        set_gel(y,1,a); set_gel(y,2,b)
-
-        c = eta(y, PREC)
-
-        # Convert the PARI complex number c back to a GSL complex number
-        cdef gsl_complex w
-        w = gsl_complex_rect(rtodbl(greal(c)), rtodbl(gimag(c)))
-
-        # put the pari stack back; this frees all memory used
-        # by PARI above.
-        avma = sp
-
-        if not omit_frac:
-            # multiply z by e^{\pi i z / 12} = exp(pi * i * z / 12), where z = self.
-            w = gsl_complex_mul(w, gsl_complex_exp(gsl_complex_mul(\
-                            gsl_complex_rect(0,M_PI_4/(<double>3)), self._complex)))
-
-        return self._new_c(w)
+        cdef int flag = 0 if omit_frac else 1
+        return self._new_from_gen(self._pari_().eta(flag))
 
     def agm(self, right, algorithm="optimal"):
         r"""
@@ -2140,11 +2076,8 @@ cdef class ComplexDoubleElement(FieldElement):
         cdef double complex a, b, a1, b1, r
         cdef double d, e, eps = 2.0**-51
 
-        cdef pari_sp sp
-
-        if algorithm=="pari":
-            sp = avma
-            return self._new_from_gen_c( agm(self._gen(), complex_gen(right), PREC), sp)
+        if algorithm == "pari":
+            return self._new_from_gen(self._pari_().agm(right))
 
         if not isinstance(right, ComplexDoubleElement):
             right = CDF(right)
@@ -2194,9 +2127,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(10000000,10000000).dilog()
             -134.411774491 + 38.793962999*I
         """
-        cdef pari_sp sp
-        sp = avma
-        return self._new_from_gen_c(  dilog(self._gen(), PREC),   sp)
+        return self._new_from_gen(self._pari_().dilog())
 
     def gamma(self):
         r"""
@@ -2224,9 +2155,7 @@ cdef class ComplexDoubleElement(FieldElement):
                     return CC(self).gamma()
             except TypeError:
                 pass
-        cdef pari_sp sp
-        sp = avma
-        return self._new_from_gen_c(  ggamma(self._gen(), PREC),   sp)
+        return self._new_from_gen(self._pari_().gamma())
 
     def gamma_inc(self, t):
         r"""
@@ -2241,12 +2170,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(2,0).gamma_inc(CDF(1,1))
             0.707092096346 - 0.42035364096*I
         """
-        cdef pari_sp sp
-        sp = avma
-        sig_on()    # because it is somewhat slow and/or unreliable in corner cases.
-        x = self._new_from_gen_c( incgam(self._gen(), complex_gen(t), PREC),   sp )
-        sig_off()
-        return x
+        return self._new_from_gen(self._pari_().incgam(t))
 
     def zeta(self):
         """
@@ -2265,9 +2189,7 @@ cdef class ComplexDoubleElement(FieldElement):
         if self._complex.dat[0] == 1 and self._complex.dat[1] == 0:
             import infinity
             return infinity.unsigned_infinity
-        cdef pari_sp sp
-        sp = avma
-        return self._new_from_gen_c(  gzeta(self._gen(), PREC),   sp)
+        return self._new_from_gen(self._pari_().zeta())
 
     def algdep(self, long n):
         """

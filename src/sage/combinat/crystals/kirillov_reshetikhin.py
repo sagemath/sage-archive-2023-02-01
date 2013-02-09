@@ -446,6 +446,7 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
         assert self.is_perfect(), "This crystal is not perfect!"
         return self.s()/self.cartan_type().c()[self.r()]
 
+    @cached_method
     def R_matrix(self, K):
         r"""
         INPUT:
@@ -617,6 +618,7 @@ class KR_type_A(KirillovReshetikhinCrystalFromPromotion):
         """
         return CrystalOfTableaux(self.cartan_type().classical(), shape = [self.s() for i in range(1,self.r()+1)])
 
+    @cached_method
     def promotion(self):
         """
         Specifies the promotion operator used to construct the affine type A crystal.
@@ -632,6 +634,7 @@ class KR_type_A(KirillovReshetikhinCrystalFromPromotion):
         """
         return lambda x : self.classical_crystal(x.to_tableau().promotion(self._cartan_type[1]))
 
+    @cached_method
     def promotion_inverse(self):
         """
         Specifies the inverse promotion operator used to construct the affine type A crystal.
@@ -718,6 +721,7 @@ class KR_type_vertical(KirillovReshetikhinCrystalFromPromotion):
         return CrystalOfTableaux(self.cartan_type().classical(),
                                  shapes = vertical_dominoes_removed(self.r(),self.s()))
 
+    @cached_method
     def promotion(self):
         """
         Specifies the promotion operator used to construct the affine type `D_n^{(1)}` etc. crystal.
@@ -744,7 +748,21 @@ class KR_type_vertical(KirillovReshetikhinCrystalFromPromotion):
         ind.remove(1)
         return T.crystal_morphism( self.promotion_on_highest_weight_vectors(), index_set = ind)
 
-    promotion_inverse = promotion
+    def promotion_inverse(self):
+        """
+        Return inverse of promotion.
+
+        In this case promotion is an involution, so promotion inverse equals promotion.
+
+        EXAMPLES::
+
+            sage: K = KirillovReshetikhinCrystal(['D',4,1], 2,2)
+            sage: promotion = K.promotion()
+            sage: promotion_inverse = K.promotion_inverse()
+            sage: all( promotion_inverse(promotion(b.lift())) == b.lift() for b in K )
+            True
+        """
+        return self.promotion()
 
     def dynkin_diagram_automorphism(self, i):
         """
@@ -767,6 +785,7 @@ class KR_type_vertical(KirillovReshetikhinCrystalFromPromotion):
         aut = [1,0]+range(2,self.cartan_type().rank())
         return aut[i]
 
+    @cached_method
     def promotion_on_highest_weight_vectors(self):
         """
         Calculates promotion on `{2,3,...,n}` highest weight vectors.
@@ -1030,6 +1049,7 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
         f = self.dynkin_diagram_automorphism
         return tuple( [weight[f(f(i))] for i in self.index_set()] )
 
+    @cached_method
     def promotion_on_highest_weight_vectors(self):
         r"""
         Gives a dictionary of the promotion map on `{1,2,3,4,5}` highest weight elements to
@@ -1054,6 +1074,7 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
         map_element = lambda x : tuple([self.automorphism_on_affine_weight(dic[x][0]), map_index((dic[x][1],dic_weight[dic[x][0]]))])
         return dict( (x, dic_inv[map_element(x)]) for x in dic.keys() )
 
+    @cached_method
     def promotion_on_highest_weight_vectors_function(self):
         """
         Return a lambda function on ``x`` defined by
@@ -1068,6 +1089,7 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
         """
         return lambda x : self.promotion_on_highest_weight_vectors()[x]
 
+    @cached_method
     def promotion(self):
         """
         Specifies the promotion operator used to construct the affine type `E_6^{(1)}` crystal.
@@ -1087,6 +1109,7 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
         ind = [1,2,3,4,5]
         return T.crystal_morphism( self.promotion_on_highest_weight_vectors_function(), automorphism = lambda i : self.dynkin_diagram_automorphism(i), index_set = ind)
 
+    @cached_method
     def promotion_inverse(self):
         r"""
         Returns the inverse promotion. Since promotion is of order 3, the inverse promotion is the same
@@ -1150,6 +1173,7 @@ class KR_type_C(KirillovReshetikhinGenericCrystal):
         """
         return KirillovReshetikhinCrystal(['A',2*self.cartan_type().classical().rank()+1,2], self.r(), self.s())
 
+    @cached_method
     def ambient_dict_pm_diagrams(self):
         r"""
         Gives a dictionary of all self-dual `\pm` diagrams for the ambient crystal.
@@ -1176,6 +1200,7 @@ class KR_type_C(KirillovReshetikhinGenericCrystal):
                 list.append(PMDiagram([[j,j] for j in la]+[[s-2*m+2*i]]))
         return dict( (x.inner_shape(), x) for x in list )
 
+    @cached_method
     def ambient_highest_weight_dict(self):
         r"""
         Gives a dictionary of all `{2,...,n+1}`-highest weight vectors in the ambient crystal.
@@ -1192,6 +1217,7 @@ class KR_type_C(KirillovReshetikhinGenericCrystal):
         ambient = self.ambient_crystal()
         return dict( (key, ambient.retract(ambient.from_pm_diagram_to_highest_weight_vector(A[key]))) for key in A )
 
+    @cached_method
     def highest_weight_dict(self):
         r"""
         Gives a dictionary of the classical highest weight vectors of self.
@@ -1205,6 +1231,7 @@ class KR_type_C(KirillovReshetikhinGenericCrystal):
         """
         return dict( (x.lift().to_tableau().shape(),x) for x in self.module_generators )
 
+    @cached_method
     def to_ambient_crystal(self):
         r"""
         Provides a map from the Kirillov-Reshetikhin crystal of type `C_n^{(1)}` to the
@@ -1227,6 +1254,7 @@ class KR_type_C(KirillovReshetikhinGenericCrystal):
         return self.crystal_morphism( pdict, index_set = self.cartan_type().classical().index_set(),
                                       automorphism = lambda i : i+1 )
 
+    @cached_method
     def from_ambient_crystal(self):
         r"""
         Provides a map from the ambient crystal of type `A_{2n+1}^{(2)}` to
@@ -1395,6 +1423,7 @@ class KR_type_A2(KirillovReshetikhinGenericCrystal):
         """
         return KR_type_vertical(['B', self.cartan_type().rank(), 1], self.r(), self.s())
 
+    @cached_method
     def ambient_dict_pm_diagrams(self):
         r"""
         Gives a dictionary of all self-dual `\pm` diagrams for the ambient crystal.
@@ -1422,6 +1451,7 @@ class KR_type_A2(KirillovReshetikhinGenericCrystal):
                 list.append(PMDiagram([[j,j] for j in la]+[[s-2*m+2*i]]))
         return dict( (x.inner_shape(), x) for x in list )
 
+    @cached_method
     def ambient_highest_weight_dict(self):
         r"""
         Gives a dictionary of all `{2,...,n+1}`-highest weight vectors in the ambient crystal.
@@ -1439,6 +1469,7 @@ class KR_type_A2(KirillovReshetikhinGenericCrystal):
         ambient = self.ambient_crystal()
         return dict( (key, ambient.retract(ambient.from_pm_diagram_to_highest_weight_vector(A[key]))) for key in A )
 
+    @cached_method
     def highest_weight_dict(self):
         r"""
         Gives a dictionary of the classical highest weight vectors of self.
@@ -1453,6 +1484,7 @@ class KR_type_A2(KirillovReshetikhinGenericCrystal):
         """
         return dict( (x.lift().to_tableau().shape(),x) for x in self.module_generators )
 
+    @cached_method
     def to_ambient_crystal(self):
         r"""
         Provides a map from the Kirillov-Reshetikhin crystal of type `A_{2n}^{(2)}` to the
@@ -1477,6 +1509,7 @@ class KR_type_A2(KirillovReshetikhinGenericCrystal):
         return self.crystal_morphism( pdict, index_set = self.cartan_type().classical().index_set(),
                                       automorphism = lambda i : i+1 )
 
+    @cached_method
     def from_ambient_crystal(self):
         r"""
         Provides a map from the ambient crystal of type `B_{n+1}^{(1)}` to
@@ -1653,6 +1686,7 @@ class KR_type_box(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical)
         # that this also works for r=n for A_{2n}^{(2)}.
         return KR_type_C(['C', self.cartan_type().classical().rank(),1], self.r(), 2*self.s())
 
+    @cached_method
     def highest_weight_dict(self):
         r"""
         Gives a dictionary of the classical highest weight vectors of self.
@@ -1666,6 +1700,7 @@ class KR_type_box(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical)
         """
         return dict( (Partition([2*i for i in x.lift().to_tableau().shape()]),x) for x in self.module_generators )
 
+    @cached_method
     def ambient_highest_weight_dict(self):
         r"""
         Gives a dictionary of the classical highest weight vectors of the ambient crystal of self.
@@ -1699,6 +1734,7 @@ class KR_type_box(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical)
             p[C.rank()] = 1
         return p
 
+    @cached_method
     def to_ambient_crystal(self):
         r"""
         Provides a map from self to the ambient crystal of type `C_n^{(1)}`.
@@ -1717,6 +1753,7 @@ class KR_type_box(KirillovReshetikhinGenericCrystal, AffineCrystalFromClassical)
         return self.crystal_morphism( pdict, index_set = self.cartan_type().classical().index_set(),
                                       similarity_factor = self.similarity_factor() )
 
+    @cached_method
     def from_ambient_crystal(self):
         r"""
         Provides a map from the ambient crystal of type `C_n^{(1)}` to the
@@ -1881,6 +1918,7 @@ class KR_type_Bn(KirillovReshetikhinGenericCrystal):
         """
         return KirillovReshetikhinCrystal(['A', 2*self.cartan_type().classical().rank()-1,2], self.r(), self.s())
 
+    @cached_method
     def highest_weight_dict(self):
         r"""
         Gives a dictionary of the classical highest weight vectors of self.
@@ -1897,6 +1935,7 @@ class KR_type_Bn(KirillovReshetikhinGenericCrystal):
         """
         return dict( (tuple([2*i[1] for i in x.classical_weight()]),x) for x in self.module_generators )
 
+    @cached_method
     def ambient_highest_weight_dict(self):
         r"""
         Gives a dictionary of the classical highest weight vectors of the ambient crystal of self.
@@ -1930,6 +1969,7 @@ class KR_type_Bn(KirillovReshetikhinGenericCrystal):
         p[C.rank()] = 1
         return p
 
+    @cached_method
     def to_ambient_crystal(self):
         r"""
         Provides a map from self to the ambient crystal of type `A_{2n-1}^{(2)}`.
@@ -1946,6 +1986,7 @@ class KR_type_Bn(KirillovReshetikhinGenericCrystal):
         return self.crystal_morphism( pdict, index_set = self.cartan_type().classical().index_set(),
                                       similarity_factor = self.similarity_factor() )
 
+    @cached_method
     def from_ambient_crystal(self):
         r"""
         Provides a map from the ambient crystal of type `A_{2n-1}^{(2)}` to
@@ -2618,6 +2659,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
         aut = [1,0]+range(2,self.cartan_type().rank())
         return aut[i]
 
+    @cached_method
     def promotion_on_highest_weight_vectors(self):
         r"""
         Returns the promotion operator on `\{2,3,\ldots,n\}`-highest weight vectors.
@@ -2669,6 +2711,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             return tuple(y)
         return dict( (dic_weight[w], dic_weight_dual[neg(w)]) for w in dic_weight.keys() )
 
+    @cached_method
     def promotion_on_highest_weight_vectors_inverse(self):
         r"""
         Returns the inverse promotion operator on `\{2,3,\ldots,n\}`-highest weight vectors.
@@ -2688,6 +2731,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
         D = self.promotion_on_highest_weight_vectors()
         return dict( (D[t],t) for t in D.keys())
 
+    @cached_method
     def promotion(self):
         """
         Returns the promotion operator on `B^{r,s}` of type `D_n^{(1)}` for `r=n-1,n`.
@@ -2722,6 +2766,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             return i
         return T.crystal_morphism( self.promotion_on_highest_weight_vectors(), index_set = ind)
 
+    @cached_method
     def promotion_inverse(self):
         r"""
         Returns the inverse promotion operator on `B^{r,s}` of type `D_n^{(1)}` for `r=n-1,n`.

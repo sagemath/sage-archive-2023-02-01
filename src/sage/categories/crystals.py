@@ -601,14 +601,14 @@ class Crystals(Category_singleton):
 
                 sage: T = CrystalOfTableaux(['A',2],shape=[1])
                 sage: T._latex_()   #optional - dot2tex
-                ...
+                '...tikzpicture...'
                 sage: view(T, pdflatex = True, tightpage = True) #optional - dot2tex graphviz
 
             One can for example also color the edges using the following options::
 
                 sage: T = CrystalOfTableaux(['A',2],shape=[1])
                 sage: T._latex_(color_by_label = {0:"black", 1:"red", 2:"blue"})   #optional - dot2tex graphviz
-                ...
+                '...tikzpicture...'
             """
             if not have_dot2tex():
                 print "dot2tex not available.  Install after running \'sage -sh\'"

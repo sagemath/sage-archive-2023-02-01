@@ -1311,21 +1311,23 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def plot(self, label_elements=True, element_labels=None,
              vertex_size=300, vertex_colors=None,
-             layout = 'acyclic',
+             layout='acyclic',
              **kwds):
         """
-        Returns a Graphic object corresponding the Hasse diagram of the
-        poset. Optionally, it is labelled.
+        Returns a Graphic object for the Hasse diagram of the poset.
+
+        The poset is increasing from bottom to top.
+
+        By default, the vertices are labelled.
+
+        If the poset is ranked, the plot uses the rank function for
+        the heights of the vertices.
 
         INPUT:
 
+        - ``label_elements`` (default: ``True``) - whether to display element labels
 
-        -  ``label_elements`` - whether to display element
-           labels
-
-        -  ``element_labels`` - a dictionary of element
-           labels
-
+        - ``element_labels`` (default: ``None``) - a dictionary of element labels
 
         EXAMPLES::
 
@@ -1337,19 +1339,21 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: elm_labs = {1:'a', 2:'b', 3:'c', 4:'d', 5:'e'}
             sage: D.plot(element_labels=elm_labs)
 
-        ::
+        Plot of the empy poset::
 
             sage: P = Poset({})
             sage: P.plot()
 
-        ::
+        Plot of a ranked poset::
 
             sage: P = Poset(DiGraph('E@ACA@?'))
+            sage: P.is_ranked()
+            True
             sage: P.plot()
 
         TESTS:
 
-        We check that ``label_elements`` and is honored::
+        We check that ``label_elements`` and ``element_labels`` are honored::
 
             sage: def get_plot_labels(P): return sorted(t.string for t in P if isinstance(t, sage.plot.text.Text))
             sage: P1 = Poset({ 0:[1,2], 1:[3], 2:[3,4] })
@@ -1365,13 +1369,30 @@ class FinitePoset(UniqueRepresentation, Parent):
             ['a', 'b', 'c', 'd', 'e']
 
         """
+        from collections import defaultdict
         graph = self.hasse_diagram()
+        rank_function = self.rank_function()
+        if rank_function:
+            heights = defaultdict(list)
+        else:
+            heights = None
+        # if relabelling is needed
         if label_elements and element_labels is not None:
-            graph = graph.relabel(dict((self(element),label) for (element,label) in element_labels.items()), inplace = False)
+            relabelling = dict((self(element), label)
+                               for (element, label) in element_labels.items())
+            graph = graph.relabel(relabelling, inplace = False)
+            if rank_function: # use the rank function to set the heights
+                for i in self:
+                    heights[rank_function(i)].append(relabelling[i])
+        else: # otherwise
+            if rank_function: # use the rank function to set the heights
+                for i in self:
+                    heights[rank_function(i)].append(i)
         return graph.plot(vertex_labels=label_elements,
                           vertex_size=vertex_size,
                           vertex_colors=vertex_colors,
-                          layout = layout,
+                          layout=layout,
+                          heights=heights,
                           **kwds)
 
     def show(self, label_elements=True, element_labels=None,
@@ -1382,13 +1403,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         INPUT:
 
-
         -  ``label_elements`` - whether to display element
            labels
 
         -  ``element_labels`` - a dictionary of element
            labels
-
 
         EXAMPLES::
 

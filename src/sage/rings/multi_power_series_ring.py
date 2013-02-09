@@ -177,8 +177,7 @@ Coercion from symbolic ring::
 AUTHORS:
 
 - Niles Johnson (2010-07): initial code
-- Simon King (2012-08): Use category and coercion framework, :trac:`13412`
-
+- Simon King (2012-08, 2013-02): Use category and coercion framework, :trac:`13412` and :trac: `14084`
 
 """
 
@@ -201,7 +200,10 @@ import sage.misc.latex as latex
 from sage.structure.nonexact import Nonexact
 
 from sage.rings.multi_power_series_ring_element import MPowerSeries
-
+from sage.categories.commutative_rings import CommutativeRings
+_CommutativeRings = CommutativeRings()
+from sage.categories.integral_domains import IntegralDomains
+_IntegralDomains = IntegralDomains()
 
 def is_MPowerSeriesRing(x):
     """
@@ -292,12 +294,30 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
 
         EXAMPLES::
 
-                sage: R.<t,u,v> = PowerSeriesRing(QQ)
-                sage: g = 1 + v + 3*u*t^2 - 2*v^2*t^2
-                sage: g = g.add_bigoh(5); g
-                1 + v + 3*t^2*u - 2*t^2*v^2 + O(t, u, v)^5
-                sage: g in R
-                True
+            sage: R.<t,u,v> = PowerSeriesRing(QQ)
+            sage: g = 1 + v + 3*u*t^2 - 2*v^2*t^2
+            sage: g = g.add_bigoh(5); g
+            1 + v + 3*t^2*u - 2*t^2*v^2 + O(t, u, v)^5
+            sage: g in R
+            True
+
+        TESTS:
+
+        By :trac:`14084`, the multi-variate power series ring belongs to the
+        category of integral domains, if the base ring does::
+
+            sage: P = ZZ[['x','y']]
+            sage: P.category()
+            Category of integral domains
+            sage: TestSuite(P).run()
+
+        Otherwise, it belongs to the category of commutative rings::
+
+            sage: P = Integers(15)[['x','y']]
+            sage: P.category()
+            Category of commutative rings
+            sage: TestSuite(P).run()
+
         """
         order = TermOrder(order,num_gens)
         self._term_order = order
@@ -311,7 +331,9 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
         # Multivariate power series rings inherit from power series rings. But
         # apparently we can not call their initialisation. Instead, initialise
         # CommutativeRing and Nonexact:
-        CommutativeRing.__init__(self, base_ring, name_list)
+        CommutativeRing.__init__(self, base_ring, name_list, category =
+                                 _IntegralDomains if base_ring in
+                                 _IntegralDomains else _CommutativeRings)
         Nonexact.__init__(self, default_prec)
 
         # underlying polynomial ring in which to represent elements

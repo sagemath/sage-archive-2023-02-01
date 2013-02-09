@@ -2073,7 +2073,7 @@ cdef class Field(PrincipalIdealDomain):
     """
     Generic field
     """
-    _default_category = Fields()
+    _default_category = _Fields
 
     def fraction_field(self):
         """

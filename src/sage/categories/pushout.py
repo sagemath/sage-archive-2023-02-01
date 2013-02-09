@@ -1894,6 +1894,12 @@ class FractionField(ConstructionFunctor):
     EXAMPLE::
 
         sage: F = QQ.construction()[0]
+        sage: F
+        FractionField
+        sage: F.domain()
+        Category of integral domains
+        sage: F.codomain()
+        Category of fields
         sage: F(GF(5)) is GF(5)
         True
         sage: F(ZZ['t'])
@@ -1923,7 +1929,7 @@ class FractionField(ConstructionFunctor):
             sage: F(ZZ['t'])
             Fraction Field of Univariate Polynomial Ring in t over Integer Ring
         """
-        Functor.__init__(self, Rings(), Fields())
+        Functor.__init__(self, IntegralDomains(), Fields())
 
     def _apply_functor(self, R):
         """

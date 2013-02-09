@@ -17,7 +17,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.categories.commutative_rings import CommutativeRings
 from sage.rings.ring import CommutativeRing
 from sage.structure.parent import Parent
 from sage.rings.integer import Integer
@@ -32,9 +31,17 @@ class LocalGeneric(CommutativeRing):
             sage: R = Zp(5) #indirect doctest
             sage: R.precision_cap()
             20
+
+        In :trac:`14084`, the category framework has been implemented for p-adic rings::
+
+            sage: TestSuite(R).run()
+            sage: K = Qp(7)
+            sage: TestSuite(K).run()
+
         """
         self._prec = prec
-        Parent.__init__(self, base, element_constructor=element_class, names=(names,), normalize=False, category=CommutativeRings())
+        self.Element = element_class
+        Parent.__init__(self, base, names=(names,), normalize=False, category=getattr(self,'_default_category',None))
 
     def is_capped_relative(self):
         """

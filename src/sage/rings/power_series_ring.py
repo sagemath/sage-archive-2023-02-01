@@ -139,6 +139,11 @@ from sage.misc.sage_eval import sage_eval
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import normalize_names
 import sage.categories.commutative_rings as commutative_rings
+_CommutativeRings = commutative_rings.CommutativeRings()
+import sage.categories.integral_domains as integral_domains
+_IntegralDomains = integral_domains.IntegralDomains()
+import sage.categories.fields as fields
+_Fields = fields.Fields()
 
 def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
                     sparse=False, default_prec=None, order='negdeglex', num_gens=None):
@@ -291,6 +296,29 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
         sage: L.default_prec()
         5
 
+    By :trac:`14084`, a power series ring belongs to the category of integral
+    domains, if the base ring does::
+
+        sage: P = ZZ[['x']]
+        sage: P.category()
+        Category of integral domains
+        sage: TestSuite(P).run()
+        sage: M = ZZ[['x','y']]
+        sage: M.category()
+        Category of integral domains
+        sage: TestSuite(M).run()
+
+    Otherwise, it belongs to the category of commutative rings::
+
+        sage: P = Integers(15)[['x']]
+        sage: P.category()
+        Category of commutative rings
+        sage: TestSuite(P).run()
+        sage: M = Integers(15)[['x','y']]
+        sage: M.category()
+        Category of commutative rings
+        sage: TestSuite(M).run()
+
     """
     #multivariate case:
     # examples for first case:
@@ -354,11 +382,11 @@ def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
     if not (name is None or isinstance(name, str)):
         raise TypeError, "variable name must be a string or None"
 
-    if isinstance(base_ring, field.Field):
+    if base_ring in _Fields:
         R = PowerSeriesRing_over_field(base_ring, name, default_prec, sparse=sparse)
-    elif isinstance(base_ring, integral_domain.IntegralDomain):
+    elif base_ring in _IntegralDomains:
         R = PowerSeriesRing_domain(base_ring, name, default_prec, sparse=sparse)
-    elif isinstance(base_ring, commutative_ring.CommutativeRing):
+    elif base_ring in _CommutativeRings:
         R = PowerSeriesRing_generic(base_ring, name, default_prec, sparse=sparse)
     else:
         raise TypeError, "base_ring must be a commutative ring"
@@ -424,11 +452,12 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
     EXAMPLES:
 
     This base class inherits from :class:`~sage.rings.ring.CommutativeRing`.
-    Since trac ticket #11900, it is also initialised as such::
+    Since :trac:`11900`, it is also initialised as such, and since :trac:`14084`
+    it is actually initialised as an integral domain::
 
         sage: R.<x> = ZZ[[]]
         sage: R.category()
-        Category of commutative rings
+        Category of integral domains
         sage: TestSuite(R).run()
 
     """
@@ -470,7 +499,9 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             self.__mpoly_ring = PolynomialRing(K.base_ring(), names=names)
             assert is_MPolynomialRing(self.__mpoly_ring)
             self.Element = power_series_mpoly.PowerSeries_mpoly
-        commutative_ring.CommutativeRing.__init__(self, base_ring, names=name)
+        commutative_ring.CommutativeRing.__init__(self, base_ring, names=name,
+                                                  category=getattr(self,'_default_category',
+                                                                  _CommutativeRings))
         Nonexact.__init__(self, default_prec)
         self.__generator = self.element_class(self, R.gen(), check=True, is_gen=True)
 

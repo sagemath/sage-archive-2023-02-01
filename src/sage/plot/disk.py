@@ -146,6 +146,13 @@ class Disk(GraphicPrimitive):
         TESTS::
 
             sage: D = disk((2,-1), 2, (0, pi), color='black', thickness=3, fill=False); D
+
+        Save alpha information in pdf (see :trac:`13732`)::
+
+            sage: f = tmp_filename(ext='.pdf')
+            sage: p = disk((0,0), 5, (0, pi/4), alpha=0.5)
+            sage: p.save(f)
+
         """
         import matplotlib.patches as patches
         options = self.options()
@@ -154,9 +161,10 @@ class Disk(GraphicPrimitive):
         z = int(options.pop('zorder', 0))
         p = patches.Wedge((float(self.x), float(self.y)), float(self.r), float(deg1),
                             float(deg2), zorder=z)
+        a = float(options['alpha'])
+        p.set_alpha(a)
         p.set_linewidth(float(options['thickness']))
         p.set_fill(options['fill'])
-        p.set_alpha(options['alpha'])
         c = to_mpl_color(options['rgbcolor'])
         p.set_edgecolor(c)
         p.set_facecolor(c)

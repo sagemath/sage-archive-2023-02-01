@@ -20,8 +20,10 @@ else
     cp libcoxeter3.so "$SAGE_LOCAL/lib/"
 fi
 
-mkdir "$SAGE_LOCAL/coxeter/"
-cp -r coxeter_matrices headers messages "$SAGE_LOCAL/coxeter/"
+datadir="$SAGE_LOCAL/coxeter/"
+mkdir -p $datadir
+cp -r coxeter_matrices headers messages "$datadir"
 
-mkdir "$SAGE_LOCAL/include/coxeter"
-cp -r *.h *.hpp "$SAGE_LOCAL/include/coxeter/"
+includedir="$SAGE_LOCAL/include/coxeter/"
+mkdir -p $includedir
+cp -r *.h *.hpp $includedir

@@ -46,9 +46,17 @@ GSL mailing lists:
    uses it as a fall-back, if e.g. ATLAS's CBLAS library is not present.)
 
 == Special Update/Build Instructions ==
- * Currently, nothing special to be done.
+ * Make sure the following patch still apply or remove it if integrated
+   upstream.
+
+=== Patches ===
+ * cygwin.patch: patch build system so that it builds a shared library on
+   Cygwin.
 
 == Changelog ==
+
+=== gsl-1.15.p1 (Jean-Pierre Flori, 12 February 2013) ===
+ * #14096: let GSL build a shared library on Cygwin.
 
 === gsl-1.15.p0 (Simon King, 11th December 2011) ===
  * #12131: Use --libdir, to make this package work on openSUSE

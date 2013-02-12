@@ -1,31 +1,29 @@
 #!/usr/bin/env bash
 
-if [ -z "$SAGE_LOCAL" ] ; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
-   exit 1
+if [ -z "$SAGE_LOCAL" ]; then
+    echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
 fi
 
 # Let the user set an environment variable CFLAG64 to
 # indicate the C compiler flag for 64-bit builds. By
 # default this will be -m64. IBM's compiler on AIX
 # and HP's on HP-UX do NOT use -m64.
-
 if [ -z "$CFLAG64" ] ; then
-   CFLAG64=-m64
+    CFLAG64=-m64
 fi
 
 # There is no C++ code in GSL, so no need to do likewise
 # with CXXFLAG64.
-
-if [ "x$SAGE64" = xyes ]; then
-   echo "Building a 64-bit version of the GNU Scientific Library (GSL)"
-   CFLAGS="$CFLAGS $CFLAG64"
-   CPPFLAGS="$CPPFLAGS $CFLAG64" ; export CPPFLAGS
-   LDFLAGS="$LDFLAGS $CFLAG64" ; export LDFLAGS
+if [ "$SAGE64" = "yes" ]; then
+    echo "Building a 64-bit version of the GNU Scientific Library (GSL)"
+    CFLAGS="$CFLAGS $CFLAG64"
+    CPPFLAGS="$CPPFLAGS $CFLAG64" ; export CPPFLAGS
+    LDFLAGS="$LDFLAGS $CFLAG64" ; export LDFLAGS
 fi
 
-if [ "x$SAGE_DEBUG" = xyes ] ; then
+if [ "$SAGE_DEBUG" = "yes" ] ; then
   CFLAGS="$CFLAGS -g -O0" # No optimisation, aids debugging.
 else
   CFLAGS="$CFLAGS -g -O2" # Normal optimisation.
@@ -33,33 +31,34 @@ fi
 
 export CFLAGS
 
-# An error "/bin/rm: cannot remove `libtoolT': No such file or directory"
-# often resulted. The following web site suggests export RM to "rm -f"
-# http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=523750
-# which solved the problem.
-
-export RM="rm -f"
-
 cd src
 
+echo "Applying patches to upstream sources..."
+for patch in ../patches/*.patch; do
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error: '$patch' failed to apply."
+        exit 1
+    fi
+done
+
+echo "Configuring GSL..."
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
-
 if [ $? -ne 0 ]; then
-    echo "Error configuring GSL"
+    echo >&2 "Error configuring GSL."
     exit 1
 fi
 
+echo "Building GSL..."
 $MAKE
-
 if [ $? -ne 0 ]; then
-    echo "Error building GSL"
+    echo >&2 "Error building GSL."
     exit 1
 fi
 
+echo "Installing GSL..."
 $MAKE install
-
 if [ $? -ne 0 ]; then
-    echo "Error installing GSL"
+    echo >&2 "Error installing GSL."
     exit 1
 fi
-

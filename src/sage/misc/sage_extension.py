@@ -453,7 +453,8 @@ from sage.misc.interpreter import sage_prompt
         """
         startup_file = os.environ.get('SAGE_STARTUP_FILE', '')
         if os.path.exists(startup_file):
-            self.shell.run_cell('%%run %r'%startup_file)
+            with open(startup_file, 'r') as f:
+                self.shell.run_cell(f.read(), store_history=False)
 
     def init_inspector(self):
         # Ideally, these would just be methods of the Inspector class

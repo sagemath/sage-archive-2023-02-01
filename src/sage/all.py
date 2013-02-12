@@ -37,10 +37,6 @@ TESTS:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
-# Error message that matches the Sage/IPython defaults
-quit = "Use Ctrl-D (i.e. EOF), %Exit, or %Quit to exit without confirmation."
-exit = quit
-
 import os, sys
 import operator
 

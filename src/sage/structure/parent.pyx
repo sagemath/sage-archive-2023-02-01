@@ -72,7 +72,7 @@ cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
 from sage.structure.sage_object import SageObject
 from sage.structure.misc import (dir_with_other_class, getattr_from_other_class,
-                                 is_extension_type, AttributeErrorMessage)
+                                 is_extension_type)
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.categories.sets_cat import Sets, EmptySetError
 from copy import copy
@@ -81,6 +81,14 @@ from sage.misc.lazy_format import LazyFormat
 
 cdef int bad_parent_warnings = 0
 cdef int unique_parent_warnings = 0
+
+# Create a dummy attribute error, using some kind of lazy error message,
+# so that neither the error itself not the message need to be created
+# repeatedly, which would cost time.
+
+from sage.structure.misc cimport AttributeErrorMessage
+cdef AttributeErrorMessage dummy_error_message = AttributeErrorMessage(None, '')
+dummy_attribute_error = AttributeError(dummy_error_message)
 
 # TODO: define this once?
 
@@ -646,7 +654,9 @@ cdef class Parent(category_object.CategoryObject):
 
         """
         if (name.startswith('__') and not name.endswith('_')) or self._category is None:
-            raise AttributeError(AttributeErrorMessage(self, name))
+            dummy_error_message.cls = type(self)
+            dummy_error_message.name = name
+            raise dummy_attribute_error
         try:
             return self.__cached_methods[name]
         except KeyError:

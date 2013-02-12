@@ -189,8 +189,16 @@ from types import MethodType
 
 from sage.categories.category   import Category
 from sage.structure.parent      cimport Parent
-from sage.structure.misc        import is_extension_type, getattr_from_other_class, AttributeErrorMessage
+from sage.structure.misc        import is_extension_type, getattr_from_other_class
 from sage.misc.lazy_format      import LazyFormat
+
+# Create a dummy attribute error, using some kind of lazy error message,
+# so that neither the error itself not the message need to be created
+# repeatedly, which would cost time.
+
+from sage.structure.misc cimport AttributeErrorMessage
+cdef AttributeErrorMessage dummy_error_message = AttributeErrorMessage(None, '')
+dummy_attribute_error = AttributeError(dummy_error_message)
 
 # This classes uses element.pxd.  To add data members, you
 # must change that file.
@@ -325,10 +333,14 @@ cdef class Element(sage_object.SageObject):
 
         """
         if (name.startswith('__') and not name.endswith('_')):
-            raise AttributeError, AttributeErrorMessage(self, name)
+            dummy_error_message.cls = type(self)
+            dummy_error_message.name = name
+            raise dummy_attribute_error
         cdef Parent P = self._parent or self.parent()
         if P is None or P._category is None:
-            raise AttributeError, AttributeErrorMessage(self, name)
+            dummy_error_message.cls = type(self)
+            dummy_error_message.name = name
+            raise dummy_attribute_error
         return getattr_from_other_class(self, P._category.element_class, name)
 
     def __dir__(self):
@@ -1157,7 +1169,9 @@ cdef class ElementWithCachedMethod(Element):
 
         """
         if name.startswith('__') and not name.endswith('_'):
-            raise AttributeError, AttributeErrorMessage(self, name)
+            dummy_error_message.cls = type(self)
+            dummy_error_message.name = name
+            raise dummy_attribute_error
         try:
             return self.__cached_methods[name]
         except KeyError:

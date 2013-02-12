@@ -129,8 +129,7 @@ if [ "$UNAME" = "Darwin" ]; then
         # I would just change it to be an xml plist, but xcode changes it back.
         plutil -convert xml1 ./Sage.app/Contents/Info.plist
         sed -i '' "s/SAGE_VERSION/$SAGE_VERSION/" \
-            ./Sage.app/Contents/Info.plist \
-            ./Sage.app/Contents/Resources/English.lproj/InfoPlist.strings
+            ./Sage.app/Contents/Info.plist
 
         mv sage ./Sage.app/Contents/Resources/
 

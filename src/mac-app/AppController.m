@@ -410,7 +410,7 @@ You can change it later in Preferences."];
         // If it's lowercased, assume it's the command, but remove ... from the end
         return [title stringByTrimmingCharactersInSet:
                 [NSCharacterSet characterSetWithCharactersInString:
-                 [NSString stringWithFormat:@"%C", 0x2026]]]; // @"…"
+                 [NSString stringWithFormat:@"%C", ((unsigned short)0x2026)]]]; // @"…"
     }
 }
 
@@ -442,7 +442,7 @@ You can change it later in Preferences."];
 
 -(NSString*)createPrompt:(NSString*)sessionType forCommand:(NSString*)command{
     return [NSString stringWithFormat:@"Going to run sage %@\nPlease enter any arguments, escaped as you would for a shell.\n\nThe command will be run as\n%@ %C",
-            sessionType ? sessionType : @"", command, 0x2026];
+            sessionType ? sessionType : @"", command, ((unsigned short)0x2026)];
 }
 
 -(IBAction)terminalSessionPromptForFile:(id)sender{
@@ -549,12 +549,12 @@ You can change it later in Preferences."];
     OSErr err;
     SInt32 version;
     if ((err = Gestalt(gestaltSystemVersionMajor, &version)) != noErr) {
-        NSLog(@"Unable to determine gestaltSystemVersionMajor: %ld",err);
+        NSLog(@"Unable to determine gestaltSystemVersionMajor: %hd",err);
         return YES;
     }
     if ( version < 10 ) return YES; // Of course this should never happen...
     if ((err = Gestalt(gestaltSystemVersionMinor, &version)) != noErr) {
-        NSLog(@"Unable to determine gestaltSystemVersionMinor: %ld",err);
+        NSLog(@"Unable to determine gestaltSystemVersionMinor: %hd",err);
         return YES;
     }
     if ( version < 5 )  return YES;

@@ -193,18 +193,23 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
     def slice(self, i, j, k = 1):
         r"""
-        Returns the sum of the `p^{i + FOO * k}` terms of the series expansion
-        of self, for `i + FOO*k` between `i` and `j-1` inclusive, and `FOO` an arbitrary
-        integer. Behaves analogously to the slice function for lists.
+        Returns the sum of the `p^{i + l \cdot k}` terms of the series
+        expansion of this element, for `i + l \cdot k` between ``i`` and
+        ``j-1`` inclusive, and nonnegative integers `l`. Behaves analogously to
+        the slice function for lists.
 
         INPUT:
 
-        - ``self`` -- a `p`-adic element
-        - ``i`` -- an integer
-        - ``j`` -- an integer
-        - ``k`` -- a positive integer, default value 1
+        - ``i`` -- an integer; if set to ``None``, the sum will start with the
+          first non-zero term of the series.
 
-        EXAMPLES:
+        - ``j`` -- an integer; if set to ``None`` or `\infty`, this method
+          behaves as if it was set to the absolute precision of this element.
+
+        - ``k`` -- (default: 1) a positive integer
+
+        EXAMPLES::
+
             sage: R = Zp(5, 6, 'capped-rel')
             sage: a = R(1/2); a
             3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + O(5^6)
@@ -212,31 +217,118 @@ cdef class LocalGenericElement(CommutativeRingElement):
             2*5^2 + 2*5^3 + O(5^4)
             sage: a.slice(1, 6, 2)
             2*5 + 2*5^3 + 2*5^5 + O(5^6)
+
+        The step size ``k`` has to be positive::
+
+            sage: a.slice(0, 3, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: slice step must be positive
+            sage: a.slice(0, 3, -1)
+            Traceback (most recent call last):
+            ...
+            ValueError: slice step must be positive
+
+        If ``i`` exceeds ``j``, then the result will be zero, with the
+        precision given by ``j``::
+
             sage: a.slice(5, 4)
             O(5^4)
+            sage: a.slice(6, 5)
+            O(5^5)
+
+        However, the precision can not exceed the precision of the element::
+
+            sage: a.slice(101,100)
+            O(5^6)
+            sage: a.slice(0,5,2)
+            3 + 2*5^2 + 2*5^4 + O(5^5)
+            sage: a.slice(0,6,2)
+            3 + 2*5^2 + 2*5^4 + O(5^6)
+            sage: a.slice(0,7,2)
+            3 + 2*5^2 + 2*5^4 + O(5^6)
+
+        TESTS:
+
+        Test that slices also work over fields::
+
+            sage: K = Qp(5, 6)
+            sage: a = K(1/25); a
+            5^-2 + O(5^4)
+            sage: b = K(25); b
+            5^2 + O(5^8)
+
+            sage: a.slice(2, 4)
+            O(5^4)
+            sage: b.slice(2, 4)
+            5^2 + O(5^4)
+            sage: a.slice(-3, -1)
+            5^-2 + O(5^-1)
+            sage: b.slice(-1, 1)
+            O(5)
+            sage: b.slice(-3, -1)
+            O(5^-1)
+            sage: b.slice(101, 100)
+            O(5^8)
+            sage: b.slice(0,7,2)
+            5^2 + O(5^7)
+            sage: b.slice(0,8,2)
+            5^2 + O(5^8)
+            sage: b.slice(0,9,2)
+            5^2 + O(5^8)
+
+        Verify that :trac:`14106` has been fixed::
+
+            sage: R = Zp(5,7)
+            sage: a = R(300)
+            sage: a
+            2*5^2 + 2*5^3 + O(5^9)
+            sage: a[:5]
+            2*5^2 + 2*5^3 + O(5^5)
+            sage: a.slice(None, 5, None)
+            2*5^2 + 2*5^3 + O(5^5)
+
         """
         if i is None:
             i = self.valuation()
-        if j is None:
+        if j is None or j is infinity:
             j = self.precision_absolute()
-        if i is infinity:
-            return self
-        pk = self.parent().uniformizer_pow(k)
-        ppow = self.parent().uniformizer_pow(i)
-        ans = self.parent()(0)
-        selflist = self.list()
+        if k is None:
+            k = 1
+
+        if k<=0:
+            raise ValueError("slice step must be positive")
+
+        start = i
+        stop = j
+
+        # for fields, self.list() contains only the coefficients starting from
+        # self.valuation(), so we have to shift the indices around to make up
+        # for this
         if self.parent().is_field():
-            i -= self.valuation()
-            j -= self.valuation()
-            i = max(i, 0)
-            j = min(j, self.precision_relative())
-        else:
-            i = max(i, 0)
-            j = min(j, self.precision_absolute())
-        for c in selflist[i:j:k]:
+            start -= self.valuation()
+            stop -= self.valuation()
+
+        # make sure that start and stop are non-negative
+        if start<0:
+            i += -start # fix the value of ppow below
+            start = 0
+        stop = max(stop, 0)
+
+        # the increase of the p-power in every step
+        pk = self.parent().uniformizer_pow(k)
+        # the p-power of the first term
+        ppow = self.parent().uniformizer_pow(i)
+
+        # construct the return value
+        ans = self.parent().zero()
+        for c in self.list()[start:stop:k]:
             ans += ppow * c
             ppow *= pk
-        ans += self.parent()(0, absprec = j)
+
+        # fix the precision of the return value
+        ans += self.parent()(0, absprec = min(j,self.precision_absolute()))
+
         return ans
 
     def _latex_(self):

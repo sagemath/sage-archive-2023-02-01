@@ -271,10 +271,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
     def __getitem__(self, n):
         r"""
-        Returns the coefficient of $p^n$ in the series expansion of
-        self, as an integer in the range $0$ to $p-1$.
+        Returns the coefficient of `p^n` in the series expansion of this
+        element, as an integer in the range `0` to `p-1`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: R = Zp(7,4,'capped-rel','series'); a = R(1/3); a
             5 + 4*7 + 4*7^2 + 4*7^3 + O(7^4)
@@ -282,18 +282,75 @@ cdef class pAdicGenericElement(LocalGenericElement):
             5
             sage: a[1]
             4
+
+        Negative indices do not have the special meaning they have for regular
+        python lists. In the following example, ``a[-1]`` is simply the
+        coefficient of `7^{-1}`::
+
+            sage: K = Qp(7,4,'capped-rel')
+            sage: b = K(1/7 + 7); b
+            7^-1 + 7 + O(7^3)
+            sage: b[-2]
+            0
+            sage: b[-1]
+            1
+            sage: b[0]
+            0
+            sage: b[1]
+            1
+            sage: b[2]
+            0
+
+        It is an error to access coefficients which are beyond the precision
+        bound::
+
+            sage: b[3]
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+            sage: b[-2]
+            0
+
+        Slices also work::
+
+            sage: a[0:2]
+            5 + 4*7 + O(7^2)
+            sage: a[-1:3:2]
+            5 + 4*7^2 + O(7^3)
+            sage: b[0:2]
+            7 + O(7^2)
+            sage: b[-1:3:2]
+            7^-1 + 7 + O(7^3)
+
+        If the slice includes coefficients which are beyond the precision
+        bound, they are ignored. This is similar to the behaviour of slices of
+        python lists::
+
+            sage: a[3:7]
+            4*7^3 + O(7^4)
+            sage: b[3:7]
+            O(7^3)
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.padics.local_generic_element.LocalGenericElement.slice`
         """
         if isinstance(n, slice):
-            if n.start == 0:
-                raise ValueError, "due to limitations in Python 2.5, you must call the slice() function rather than using the [:] syntax in this case"
-            if n.stop == sys.maxint:
-                return self.slice(n.start, None, n.step)
             return self.slice(n.start, n.stop, n.step)
         if n < self.valuation():
-            return self.parent()(0)
+            return Integer(0)
+        if n >= self.precision_relative() + self.valuation():
+            raise IndexError("list index out of range")
+
         if self.parent().is_field():
-            return self.list()[n - self.valuation()]
-        return self.list()[n]
+            n -= self.valuation()
+
+        # trailing coefficients which are zero are not stored in self.list() -
+        # we catch an IndexError to check for this.
+        try:
+            return self.list()[n]
+        except IndexError:
+            return Integer(0)
 
     def __invert__(self):
         r"""

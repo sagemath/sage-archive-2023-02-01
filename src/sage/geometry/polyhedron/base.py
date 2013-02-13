@@ -3269,6 +3269,8 @@ class Polyhedron_base(Element):
                   'for this function to work'
             raise NotImplementedError
 
+        from sage.misc.temporary_file import tmp_filename
+        from subprocess import Popen, PIPE
         in_str = self.cdd_Vrepresentation()
         in_str += 'volume'
         in_filename = tmp_filename()

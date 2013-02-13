@@ -86,7 +86,7 @@ class ClusterSeed(SageObject):
         sage: S = ClusterSeed(['F', 4, [2,1]]); S
         A seed for a cluster algebra of rank 6 of type ['F', 4, [1, 2]]
     """
-    def __init__(self, data, frozen=None):
+    def __init__(self, data, frozen=None, is_principal=None):
         r"""
         TESTS::
 
@@ -128,6 +128,8 @@ class ClusterSeed(SageObject):
         else:
             quiver = ClusterQuiver( data, frozen=frozen )
             self.__init__( quiver )
+
+        self._is_principal = is_principal
 
     def __eq__(self, other):
         r"""
@@ -286,6 +288,8 @@ class ClusterSeed(SageObject):
 
         - ``filename`` -- the filename the image is saved to.
         - ``circular`` -- (default: False) if True, the circular plot is chosen, otherwise >>spring<< is used.
+        - ``mark`` -- (default: None) if set to i, the vertex i is highlighted.
+        - ``save_pos`` -- (default:False) if True, the positions of the vertices are saved.
 
         EXAMPLES::
 
@@ -445,7 +449,8 @@ class ClusterSeed(SageObject):
             sage: [S.cluster_variable(k) for k in range(3)]
             [x0, (x0*x2 + 1)/x1, (x0*x2 + x1 + 1)/(x1*x2)]
         """
-        assert 0 <= k < self._n, "The cluster seed does not have a cluster variable of index %s."%k
+        if k not in range(self._n):
+            raise ValueError("The cluster seed does not have a cluster variable of index %s."%k)
         f = self._cluster[k]
         return ClusterVariable( f.parent(), f.numerator(), f.denominator(), variable_type='cluster variable' )
 
@@ -473,7 +478,7 @@ class ClusterSeed(SageObject):
         """
         return [ self.cluster_variable(k) for k in range(self._n) ]
 
-    def f_polynomial(self,k):
+    def f_polynomial(self,k,ignore_coefficients=False):
         r"""
         Returns the ``k``-th *F-polynomial* of ``self``. It is obtained from the
         ``k``-th cluster variable by setting all `x_i` to `1`.
@@ -485,12 +490,17 @@ class ClusterSeed(SageObject):
             sage: [S.f_polynomial(k) for k in range(3)]
             [1, y1*y2 + y2 + 1, y1 + 1]
         """
-        assert self._n == self._m, "The F-polynomial is only defined if the number of frozen variables and the number of exchangeable variables coincide"
-        assert 0 <= k < self._n, "The cluster seed does not have a cluster variable of index %s."%k
+        if not (ignore_coefficients or self._is_principal):
+            raise ValueError("No principal coefficients initialized. Use principal_extension, or ignore_coefficients to ignore this.")
+
+        if self._m != self._n:
+            raise ValueError("The F-polynomial is only defined if the number of frozen variables and the number of exchangeable variables coincide")
+        if k not in range(self._n):
+            raise ValueError("The cluster seed does not have a cluster variable of index %s."%k)
         eval_dict = dict( [ ( self.x(i), 1 ) for i in range(self._n) ] )
         return self.cluster_variable(k).subs(eval_dict)
 
-    def f_polynomials(self):
+    def f_polynomials(self,ignore_coefficients=False):
         r"""
         Returns all *F-polynomials* of ``self``. These are obtained from the
         cluster variables by setting all `x_i`'s to `1`.
@@ -502,9 +512,12 @@ class ClusterSeed(SageObject):
             sage: S.f_polynomials()
             [1, y1*y2 + y2 + 1, y1 + 1]
         """
-        return [ self.f_polynomial(k) for k in range(self._n) ]
+        if not (ignore_coefficients or self._is_principal):
+            raise ValueError("No principal coefficients initialized. Use principal_extension, or ignore_coefficients to ignore this.")
 
-    def g_vector(self,k):
+        return [ self.f_polynomial(k,ignore_coefficients=ignore_coefficients) for k in range(self._n) ]
+
+    def g_vector(self,k,ignore_coefficients=False):
         r"""
         Returns the ``k``-th *g-vector* of ``self``. This is the degree vector
         of the ``k``-th cluster variable after setting all `y_i`'s to `0`.
@@ -516,8 +529,13 @@ class ClusterSeed(SageObject):
             sage: [ S.g_vector(k) for k in range(3) ]
             [(1, 0, 0), (0, 0, -1), (0, -1, 0)]
         """
-        assert self._n == self._m, "The g-vector is only defined if the number of frozen variables and the number of exchangeable variables coincide"
-        assert 0 <= k < self._n, "The cluster seed does not have a cluster variable of index %s."%k
+        if not (ignore_coefficients or self._is_principal):
+            raise ValueError("No principal coefficients initialized. Use principal_extension, or ignore_coefficients to ignore this.")
+
+        if self._m != self._n:
+            raise ValueError("The g-vector is only defined if the number of frozen variables and the number of exchangeable variables coincide")
+        if k not in range(self._n):
+            raise ValueError("The cluster seed does not have a cluster variable of index %s."%k)
         f = self.cluster_variable(k)
         eval_dict = dict( [ ( self.y(i), 0 ) for i in range(self._m) ] )
         f0 = f.subs(eval_dict)
@@ -525,7 +543,7 @@ class ClusterSeed(SageObject):
         d2 = f0.denominator().degrees()
         return tuple( d1[i] - d2[i] for i in range(self._n) )
 
-    def g_matrix(self):
+    def g_matrix(self,ignore_coefficients=False):
         r"""
         Returns the matrix of all *g-vectors* of ``self``. This are the degree vectors
         of the cluster variables after setting all `y_i`'s to `0`.
@@ -540,9 +558,11 @@ class ClusterSeed(SageObject):
             [ 0 -1  0]
         """
         from sage.matrix.all import matrix
-        return matrix( [ self.g_vector(k) for k in range(self._n) ] ).transpose()
+        if not (ignore_coefficients or self._is_principal):
+            raise ValueError("No principal coefficients initialized. Use principal_extension, or ignore_coefficients to ignore this.")
+        return matrix( [ self.g_vector(k,ignore_coefficients=ignore_coefficients) for k in range(self._n) ] ).transpose()
 
-    def c_vector(self,k):
+    def c_vector(self,k,ignore_coefficients=False):
         r"""
         Returns the ``k``-th *c-vector* of ``self``. It is obtained as the
         ``k``-th column vector of the bottom part of the ``B``-matrix of ``self``.
@@ -554,11 +574,13 @@ class ClusterSeed(SageObject):
             sage: [ S.c_vector(k) for k in range(3) ]
             [(1, 0, 0), (0, 0, -1), (0, -1, 0)]
         """
-        #assert self._m > 0, "The c-vector is only defined for seeds with coefficients."
-        assert 0 <= k < self._n, "The cluster seed does not have a c-vector of index %s."%k
+        if k not in range(self._n):
+            raise ValueError("The cluster seed does not have a c-vector of index %s."%k)
+        if not (ignore_coefficients or self._is_principal):
+            raise ValueError("No principal coefficients initialized. Use principal_extension, or ignore_coefficients to ignore this.")
         return tuple( self._M[i,k] for i in range(self._n,self._n+self._m) )
 
-    def c_matrix(self):
+    def c_matrix(self,ignore_coefficients=False):
         r"""
         Returns all *c-vectors* of ``self``.
 
@@ -571,6 +593,9 @@ class ClusterSeed(SageObject):
             [ 0  0 -1]
             [ 0 -1  0]
         """
+        if not (ignore_coefficients or self._is_principal):
+            raise ValueError("No principal coefficients initialized. Use principal_extension, or ignore_coefficients to ignore this.")
+
         return self._M.submatrix(self._n,0)
 
     def coefficient(self,k):
@@ -585,12 +610,13 @@ class ClusterSeed(SageObject):
             [y0, 1/y2, 1/y1]
         """
         from sage.misc.all import prod
-        assert 0 <= k < self._n, "The cluster seed does not have a coefficient of index %s."%k
+        if k not in range(self._n):
+            raise ValueError("The cluster seed does not have a coefficient of index %s."%k)
         if self._m == 0:
             return self.x(0)**0
         #### Note: this special case m = 0 no longer needed except if we want type(answer) to be a cluster variable rather than an integer.
         else:
-            exp = self.c_vector(k)
+            exp = self.c_vector(k,ignore_coefficients=True)
             return prod( self.y(i)**exp[i] for i in xrange(self._m) )
 
     def coefficients(self):
@@ -812,7 +838,7 @@ class ClusterSeed(SageObject):
             [(0, 1, (1, -1)), (2, 1, (1, -1))]
 
             sage: S2 = S.principal_extension()
-            sage: S3 = S2.principal_extension()
+            sage: S3 = S2.principal_extension(ignore_coefficients=True)
             sage: S2.exchangeable_part() == S3.exchangeable_part()
             True
         """
@@ -823,7 +849,7 @@ class ClusterSeed(SageObject):
         seed._mutation_type = self._mutation_type
         return seed
 
-    def principal_extension(self):
+    def principal_extension(self,ignore_coefficients=False):
         r"""
         Returns the principal extension of self, adding n frozen variables to any previously frozen variables. I.e., the seed obtained by adding a frozen variable to every exchangeable variable of ``self``.
 
@@ -831,8 +857,10 @@ class ClusterSeed(SageObject):
 
             sage: S = ClusterSeed([[0,1],[1,2],[2,3],[2,4]]); S
             A seed for a cluster algebra of rank 5
+
             sage: T = S.principal_extension(); T
             A seed for a cluster algebra of rank 5 with 5 frozen variables
+
             sage: T.b_matrix()
             [ 0  1  0  0  0]
             [-1  0  1  0  0]
@@ -844,12 +872,35 @@ class ClusterSeed(SageObject):
             [ 0  0  1  0  0]
             [ 0  0  0  1  0]
             [ 0  0  0  0  1]
-            sage: T2 = T.principal_extension(); T2
-            A seed for a cluster algebra of rank 5 with 10 frozen variables
+
+            sage: T2 = T.principal_extension()
+            Traceback (most recent call last):
+            ...
+            ValueError: The b-matrix is not square. Use ignore_coefficients to ignore this.
+
+            sage: T2 = T.principal_extension(ignore_coefficients=True); T2.b_matrix()
+            [ 0  1  0  0  0]
+            [-1  0  1  0  0]
+            [ 0 -1  0  1  1]
+            [ 0  0 -1  0  0]
+            [ 0  0 -1  0  0]
+            [ 1  0  0  0  0]
+            [ 0  1  0  0  0]
+            [ 0  0  1  0  0]
+            [ 0  0  0  1  0]
+            [ 0  0  0  0  1]
+            [ 1  0  0  0  0]
+            [ 0  1  0  0  0]
+            [ 0  0  1  0  0]
+            [ 0  0  0  1  0]
+            [ 0  0  0  0  1]
             """
         from sage.matrix.all import identity_matrix
+        if not ignore_coefficients and self._m != 0:
+            raise ValueError("The b-matrix is not square. Use ignore_coefficients to ignore this.")
         M = self._M.stack(identity_matrix(self._n))
-        seed = ClusterSeed( M )
+        is_principal = (self._m == 0)
+        seed = ClusterSeed( M, is_principal=is_principal )
         seed._mutation_type = self._mutation_type
         return seed
 
@@ -904,9 +955,12 @@ class ClusterSeed(SageObject):
             sage: S.cluster()
             [x0, x1, x2]
         """
-        assert len( cluster ) == self._n+self._m, 'The number of given cluster variables is wrong'
-        assert all( c in self._R for c in cluster ), 'The cluster variables are not all contained in %s'%self._R
+        if not len(cluster) == self._n+self._m:
+            raise ValueError('The number of given cluster variables is wrong')
+        if any(c not in self._R for c in cluster):
+            raise ValueError('The cluster variables are not all contained in %s'%self._R)
         self._cluster = [ self._R(x) for x in cluster ]
+        self._is_principal = None
 
     def reset_cluster( self ):
         r"""
@@ -968,7 +1022,8 @@ class ClusterSeed(SageObject):
             [ 0  0  1]
         """
         n,m = self._n, self._m
-        assert n == m, "The numbers of cluster variables and of frozen variables do not coincide."
+        if not n == m:
+            raise ValueError("The numbers of cluster variables and of frozen variables do not coincide.")
         for i in xrange(m):
             for j in xrange(n):
                 if i == j:

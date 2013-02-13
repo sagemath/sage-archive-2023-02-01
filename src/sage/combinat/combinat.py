@@ -753,16 +753,9 @@ class CombinatorialObject(SageObject):
                 NotImplementedError: BUG: sort algorithm for elements of 'None' not implemented
         """
         if isinstance(other, CombinatorialObject):
-            if self._list == other._list:
-                return 0
-            if self._list < other._list:
-                return -1
-            return 1
-        if self._list == other:
-            return 0
-        if self._list < other:
-            return -1
-        return 1
+            return cmp(self._list, other._list)
+        else:
+            return cmp(self._list, other)
 
     def _repr_(self):
         """
@@ -959,7 +952,7 @@ class CombinatorialObject(SageObject):
                 ...
                 AttributeError: 'NoneType' object has no attribute 'zero_element'
         """
-        return self._list.__len__() > 0
+        return bool(self._list)
 
     def __len__(self):
         """

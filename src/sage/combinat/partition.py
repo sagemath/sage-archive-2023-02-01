@@ -4340,8 +4340,15 @@ class Partitions_all(Partitions):
 
     def _fast_iterator(self, n):
         """
-        A fast iterator for the partitions of ``n`` which returns lists and
-        not partition types.
+        A fast iterator for the partitions of ``n`` which returns
+        lists and not partition types.  This is an implementation of
+        the ZS1 algorithm found in "Fast Algorithms for Generating
+        Partitons" by Zoghbi and Stomenovic.
+
+        .. note::
+
+           This algorithm would probably be much faster using C int
+           arrays instead of Python lists.
 
         EXAMPLES::
 
@@ -4357,11 +4364,32 @@ class Partitions_all(Partitions):
             yield []
             return
 
-        # modify the partitions of n-1 to form the partitions of n
-        for p in self._fast_iterator(n-1):
-            if p and (len(p) < 2 or p[-2] > p[-1]):
-                yield p[:-1] + [p[-1] + 1]
-            yield p + [1]
+        x = [1]*n
+        x[0] = n
+        m = 0
+        h = 0
+        yield x[:m+1]
+        while x[0] != 1:
+            if x[h] == 2:
+                m += 1
+                x[h] = 1
+                h -= 1
+            else:
+                r = x[h] - 1
+                t = m - h + 1
+                x[h] = r
+                while t >= r:
+                    h += 1
+                    x[h] = r
+                    t -= r
+                if t == 0:
+                    m = h
+                else:
+                    m = h + 1
+                    if t > 1:
+                        h += 1
+                        x[h] = t
+            yield x[:m+1]
 
     def __reversed__(self):
         """

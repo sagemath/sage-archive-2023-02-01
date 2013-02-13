@@ -45,6 +45,7 @@ Combinatorics
    sage/combinat/perfect_matching
    sage/combinat/q_analogues
    sage/combinat/q_bernoulli
+   sage/combinat/rsk
    sage/combinat/sidon_sets
    sage/combinat/set_partition_ordered
    sage/combinat/set_partition

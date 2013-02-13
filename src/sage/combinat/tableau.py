@@ -1094,7 +1094,7 @@ class Tableau(CombinatorialObject, Element):
 
     def is_standard(self):
         """
-        Returns True if t is a standard tableau and False otherwise.
+        Return ``True`` if ``t`` is a standard tableau and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -1110,6 +1110,28 @@ class Tableau(CombinatorialObject, Element):
         entries=self.entries()
         entries.sort()
         return entries==range(1,self.size()+1) and self.is_row_strict() and self.is_column_strict()
+
+    def is_increasing(self):
+        """
+        Return ``True`` if ``t`` is an increasing tableau and
+        ``False`` otherwise.
+
+        A tableau is increasing if it is both row strict and column strict.
+
+        EXAMPLES::
+
+            sage: Tableau([[1, 3], [2, 4]]).is_increasing()
+            True
+            sage: Tableau([[1, 2], [2, 4]]).is_increasing()
+            True
+            sage: Tableau([[2, 3], [2, 4]]).is_increasing()
+            False
+            sage: Tableau([[5, 3], [2, 4]]).is_increasing()
+            False
+            sage: Tableau([[1, 2, 3], [2, 3], [3]]).is_increasing()
+            True
+        """
+        return self.is_row_strict() and self.is_column_strict()
 
     def is_rectangular(self):
         """

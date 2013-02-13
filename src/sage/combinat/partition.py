@@ -1636,7 +1636,7 @@ class Partition(CombinatorialObject, Element):
             2 5
             3
 
-        For more on RSK, see :meth:`permutation.robinson_schensted()`.
+        For more, see :func:`~sage.combinat.rsk.RSK()`.
 
         EXAMPLES::
 
@@ -1644,7 +1644,8 @@ class Partition(CombinatorialObject, Element):
             [[1, 3, 6], [2, 5], [4]]
         """
         st = tableau.StandardTableaux(self).first()
-        return st.to_permutation().robinson_schensted()[1]
+        from sage.combinat.rsk import RSK
+        return RSK(st.to_permutation())[1]
 
     @combinatorial_map(name="initial tableau")
     def initial_tableau(self):

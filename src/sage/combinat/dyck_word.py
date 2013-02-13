@@ -1825,9 +1825,9 @@ class DyckWord_complete(DyckWord_class):
             ...       for D in DyckWords(5))
             True
         """
-        from sage.combinat.permutation import robinson_schensted_inverse
+        from sage.combinat.rsk import RSK_inverse
         A,B = self.to_pair_of_standard_tableaux()
-        return robinson_schensted_inverse(A,B)
+        return RSK_inverse(A,B, output='permutation')
 
     @combinatorial_map(name='to 132 avoiding permutation')
     def to_132_avoiding_permutation(self):

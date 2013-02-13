@@ -37,34 +37,38 @@ from word_infinite_datatypes import (
 # TODO. Word needs to be replaced by Word. Consider renameing
 # Word_class to Word and imbedding Word as its __call__ method.
 
-def Word(data=None, alphabet=None, length=None, datatype=None, caching=True):
+def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK_data=None):
     r"""
     Construct a word.
 
     INPUT:
 
-    -  ``data`` - (default: None) list, string, tuple, iterator, None
-       (shorthand for []), or a callable defined on [0,1,...,length].
+    -  ``data`` -- (default: ``None``) list, string, tuple, iterator, ``None``
+       (shorthand for ``[]``), or a callable defined on ``[0,1,...,length]``.
 
-    -  ``alphabet`` - any argument accepted by Words
+    -  ``alphabet`` -- any argument accepted by Words
 
-    -  ``length`` - (default: None) This is dependent on the type of data.
+    -  ``length`` -- (default: ``None``) This is dependent on the type of data.
        It is ignored for words defined by lists, strings, tuples,
        etc., because they have a naturally defined length.
        For callables, this defines the domain of definition,
-       which is assumed to be [0, 1, 2, ..., length-1].
+       which is assumed to be ``[0, 1, 2, ..., length-1]``.
        For iterators: Infinity if you know the iterator will not
-       terminate (default); "unknown" if you do not know whether the
-       iterator terminates; "finite" if you know that the iterator
+       terminate (default); ``"unknown"`` if you do not know whether the
+       iterator terminates; ``"finite"`` if you know that the iterator
        terminates, but do know know the length.
 
-    -  ``datatype`` - (default: None) None, "list", "str", "tuple", "iter",
-       "callable". If None, then the function
+    -  ``datatype`` -- (default: ``None``) ``None``, ``"list"``, ``"str"``,
+       ``"tuple"``, ``"iter"``, ``"callable"``. If ``None``, then the function
        tries to guess this from the data.
-    -  ``caching`` - (default: True) True or False. Whether to keep a cache
-       of the letters computed by an iterator or callable.
 
-    .. note::
+    -  ``caching`` -- (default: ``True``) ``True`` or ``False``. Whether to
+       keep a cache of the letters computed by an iterator or callable.
+
+    -  ``RSK_data`` -- (Optional. Default: ``None``) A semistandard and a
+       standard Young tableau to run the inverse RSK bijection on.
+
+    .. NOTE::
 
        Be careful when defining words using callables and iterators. It
        appears that islice does not pickle correctly causing various errors
@@ -148,6 +152,14 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True):
         sage: w.parent()
         Words
 
+    We can also input a semistandard tableau and a standard tableau to
+    obtain a word from the inverse RSK algorithm using the
+    ``RSK_data`` option::
+
+        sage: p = Tableau([[1,2,2],[3]]); q = Tableau([[1,2,4],[3]])
+        sage: Word(RSK_data=[p, q])
+        word: 1322
+
     TESTS::
 
         sage: Word(5)
@@ -164,6 +176,20 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True):
         sage: w is Word(w, alphabet='abc')
         False
     """
+    if RSK_data is not None:
+        #if a list of a semistandard and a standard tableau or a pair of lists
+        from sage.combinat.tableau import Tableau
+        if isinstance(RSK_data, (tuple, list)) and len(RSK_data) == 2 and \
+            all(map(lambda x: isinstance(x, Tableau), RSK_data)):
+            from sage.combinat.rsk import RSK_inverse
+            return RSK_inverse(*RSK_data, output='word')
+        elif isinstance(RSK_data, (tuple, list)) and len(RSK_data) == 2 and \
+            all(map(lambda x: isinstance(x, (list, tuple)), RSK_data)):
+            from sage.combinat.rsk import RSK_inverse
+            P,Q = map(Tableau, RSK_data)
+            return RSK_inverse(P, Q, 'word')
+        raise ValueError("Invalid input. Must be a pair of tableaux")
+
     # Create the parent object
     from words import Words
     parent = Words() if alphabet is None else Words(alphabet)

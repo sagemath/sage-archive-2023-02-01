@@ -105,8 +105,9 @@ Below are listed all methods and classes defined in this file.
     :meth:`~sage.combinat.permutation.Permutation_class.dict` | Returns a dictionary corresponding to the permutation.
     :meth:`~sage.combinat.permutation.Permutation_class.action` | Returns the action of the permutation on a list.
     :meth:`~sage.combinat.permutation.Permutation_class.robinson_schensted` | Returns the pair of standard tableaux obtained by running the Robinson-Schensted Algorithm on self.
-    :meth:`~sage.combinat.permutation.Permutation_class.left_tableau` | Returns the right standard tableau after performing the RSK
-    :meth:`~sage.combinat.permutation.Permutation_class.right_tableau` | Returns the right standard tableau after performing the RSK
+    :meth:`~sage.combinat.permutation.Permutation_class.left_tableau` | Returns the left standard tableau after performing the RSK.
+    :meth:`~sage.combinat.permutation.Permutation_class.right_tableau` | Returns the right standard tableau after performing the RSK.
+    :meth:`~sage.combinat.permutation.Permutation_class.RS_partition` | Returns the shape of the tableaux obtained by the RSK algorithm.
     :meth:`~sage.combinat.permutation.Permutation_class.remove_extra_fixed_points` | Returns the permutation obtained by removing any fixed points at the end of self.
     :meth:`~sage.combinat.permutation.Permutation_class.hyperoctahedral_double_coset_type` | Returns the coset-type of ``self`` as a partition.
 
@@ -182,6 +183,9 @@ AUTHORS:
 
 - Travis Scrimshaw (2012-08-16): to_standard() no longer modifies input
 
+- Travis Scrimshaw (2013-01-19): Removed RSK implementation and moved to
+  :mod:`~sage.combinat.rsk`.
+
 Classes and methods
 ===================
 """
@@ -220,6 +224,7 @@ from necklace import Necklaces
 from sage.misc.misc import uniq
 from backtrack import GenericBacktracker
 from sage.combinat.combinatorial_map import combinatorial_map
+from sage.combinat.rsk import RSK, RSK_inverse
 
 permutation_options = {'display':'list', 'mult':'l2r'}
 
@@ -293,23 +298,27 @@ def PermutationOptions(**kwargs):
             permutation_options['display'] = kwargs['display']
 
 def Permutation(l, check_input = True):
-    """
-    Converts ``l`` to a permutation on `1...n`
+    r"""
+    Converts ``l`` to a permutation on `\{1, 2, \ldots, n\}`.
 
     INPUT:
 
-    -  an instance of :class:`Permutation_class`,
+    - ``l`` -- Can be any one of the following:
 
-    - list of integers, viewed as one-line permutation notation,
+      - an instance of :class:`Permutation_class`,
 
-    - string, expressing the permutation in cycle notation,
+      - list of integers, viewed as one-line permutation notation, the
+        construction checks that you give an acceptable entry. To avoid
+        the check, use the ``check_input`` option.
 
-    - list of tuples of integers, the permutation in cycle notation.
+      - string, expressing the permutation in cycle notation,
 
-    - a :class:`PermutationGroupElement`
+      - list of tuples of integers, the permutation in cycle notation.
 
-    - a pair of two tableaux of the same shape, where the second one is
-      standard. This uses the inverse of Robinson Schensted algorithm.
+      - a :class:`PermutationGroupElement`
+
+      - a pair of two standard tableaux of the same shape. This uses the
+        inverse of Robinson Schensted algorithm.
 
     - ``check_input`` (boolean) -- whether to check that input is correct. Slows
        the function down, but ensures that nothing bad happens. This is set to
@@ -362,9 +371,7 @@ def Permutation(l, check_input = True):
         sage: type(p)
         <class 'sage.combinat.permutation.Permutation_class'>
 
-    Construction from a string in cycle notation
-
-    ::
+    Construction from a string in cycle notation::
 
         sage: p = Permutation( '(4,5)' ); p
         [1, 2, 3, 5, 4]
@@ -378,7 +385,8 @@ def Permutation(l, check_input = True):
         5
         10
 
-    We construct a Permutation from a PermutationGroupElement::
+    We construct a :class:`Permutation<Permutation_class>` from a
+    :class:`PermutationGroupElement`::
 
         sage: g = PermutationGroupElement([2,1,3])
         sage: Permutation(g)
@@ -399,7 +407,6 @@ def Permutation(l, check_input = True):
         [3, 6, 5, 2, 7, 4, 1]
         sage: Permutation( [P, Q] )
         [3, 6, 5, 2, 7, 4, 1]
-
 
     TESTS::
 
@@ -437,14 +444,14 @@ def Permutation(l, check_input = True):
 
         return from_cycles(max([max(c) for c in cycle_list]), cycle_list)
 
-    #if l is a pair of tableaux or a pair of lists
+    #if l is a pair of standard tableaux or a pair of lists
     elif isinstance(l, (tuple, list)) and len(l) == 2 and \
         all(map(lambda x: isinstance(x, tableau.Tableau), l)):
-        return robinson_schensted_inverse(*l)
+        return RSK_inverse(*l, output='permutation')
     elif isinstance(l, (tuple, list)) and len(l) == 2 and \
         all(map(lambda x: isinstance(x, list), l)):
         P,Q = map(tableau.Tableau, l)
-        return robinson_schensted_inverse(P, Q)
+        return RSK_inverse(P, Q, 'permutation')
 
     # if it's a tuple or nonempty list of tuples, also assume cycle
     # notation
@@ -462,7 +469,7 @@ def Permutation(l, check_input = True):
         elif len(l) <= 1:
             return Permutation([])
         else:
-            raise ValueError, "cannot convert l (= %s) to a Permutation"%l
+            raise ValueError("cannot convert l (= %s) to a Permutation"%l)
 
     # otherwise, it gets processed by CombinatorialObject's __init__.
     return Permutation_class(l, check_input = check_input)
@@ -1767,7 +1774,7 @@ class Permutation_class(CombinatorialObject):
 
             sage: Permutation([2,3,1,4]).longest_increasing_subsequence_length()
             3
-            sage: all([i.longest_increasing_subsequence_length() == len(i.robinson_schensted()[0][0]) for i in Permutations(5)])
+            sage: all([i.longest_increasing_subsequence_length() == len(RSK(i)[0][0]) for i in Permutations(5)])
             True
         """
         r=[]
@@ -2953,90 +2960,68 @@ class Permutation_class(CombinatorialObject):
 
     def robinson_schensted(self):
         """
-        Returns the pair of standard tableaux obtained by running the
-        Robinson-Schensted Algorithm on self.
+        Return the pair of standard tableaux obtained by running the
+        Robinson-Schensted algorithm on ``self``.
+
+        This function is deprecated in :trac:`8392`, instead call
+        :func:`~sage.combinat.rsk.RSK` on ``self``.
 
         EXAMPLES::
 
             sage: Permutation([6,2,3,1,7,5,4]).robinson_schensted()
+            doctest:...: DeprecationWarning: p.robinson_schensted() is deprecated. Use instead RSK(p)
+            See http://trac.sagemath.org/8392 for details.
             [[[1, 3, 4], [2, 5], [6, 7]], [[1, 3, 5], [2, 6], [4, 7]]]
-
-        .. WARNING::
-
-            The following example does not check their input. This is wrong. See
-            :trac:`13742`.
-
-        It also works in the case of repeated letters. In this case only the
-        second tableau is standard::
-
-            sage: Permutation([2,3,3,2,1,3,2,3], check_input = False).robinson_schensted()
-            [[[1, 2, 2, 3, 3], [2, 3], [3]], [[1, 2, 3, 6, 8], [4, 7], [5]]]
-
-        TESTS:
-
-        The empty permutation::
-
-            sage: p = Permutation([])
-            sage: p.robinson_schensted()
-            [[], []]
-
         """
-        from bisect import bisect
-        from itertools import izip
-        p = []       #the "left" tableau
-        q = []       #the "recording" tableau
+        from sage.misc.superseded import deprecation
+        deprecation(8392, 'p.robinson_schensted() is deprecated. Use instead RSK(p)')
+        return RSK(self)
 
-        #For each x in self, insert x into the tableau p.
-        for i, x in enumerate(self):
-            for r,qr in izip(p,q):
-                if r[-1] > x:
-                    #Figure out where to insert x into the row r.  The
-                    #bisect command returns the position of the least
-                    #element of r greater than x.  We will call it y.
-                    y_pos = bisect(r, x)
+    def _rsk_iter(self):
+        r"""
+        An iterator for RSK.
 
-                    #Switch x and y
-                    x, r[y_pos] = r[y_pos], x
-                else:
-                    break
-            else:
-                #We made through all of the rows of p without breaking
-                #so we need to add a new row to p and q.
-                r = []; p.append(r)
-                qr = []; q.append(qr)
+        Yields pairs ``[i, p(i)]`` for a permutation ``p``.
 
-            r.append(x)
-            qr.append(i+1)
+        EXAMPLES::
 
-        return [tableau.Tableau(p),tableau.Tableau(q)]
+            sage: for x in Permutation([6,2,3,1,7,5,4])._rsk_iter(): x
+            ...
+            (1, 6)
+            (2, 2)
+            (3, 3)
+            (4, 1)
+            (5, 7)
+            (6, 5)
+            (7, 4)
+        """
+        return itertools.izip(xrange(1, len(self)+1), self)
 
     @combinatorial_map(name='Robinson-Schensted insertion tableau')
     def left_tableau(self):
         """
-        Returns the right standard tableau after performing the RSK
-        algorithm on self.
+        Return the left standard tableau after performing the RSK
+        algorithm on ``self``.
 
         EXAMPLES::
 
             sage: Permutation([1,4,3,2]).left_tableau()
             [[1, 2], [3], [4]]
         """
-        from sage.combinat.tableau import StandardTableau
-        return StandardTableau(self.robinson_schensted()[0])
+        return RSK(self)[0]
 
     @combinatorial_map(name='Robinson-Schensted recording tableau')
     def right_tableau(self):
         """
-        Returns the right standard tableau after performing the RSK
-        algorithm on self.
+        Return the right standard tableau after performing the RSK
+        algorithm on ``self``.
 
         EXAMPLES::
 
             sage: Permutation([1,4,3,2]).right_tableau()
             [[1, 2], [3], [4]]
         """
-        from sage.combinat.tableau import StandardTableau
-        return StandardTableau(self.robinson_schensted()[1])
+        return RSK(self)[1]
 
     def increasing_tree(self, compare=min):
         """
@@ -3126,14 +3111,15 @@ class Permutation_class(CombinatorialObject):
     @combinatorial_map(name='Robinson-Schensted tableau shape')
     def RS_partition(self):
         """
-        Returns the partition corresponding to the tableaux of the RSK algorithm.
+        Return the shape of the tableaux obtained by applying the RSK
+        algorithm to ``self``.
 
         EXAMPLES::
 
             sage: Permutation([1,4,3,2]).RS_partition()
             [2, 1, 1]
         """
-        return self.robinson_schensted()[1].shape()
+        return RSK(self)[1].shape()
 
     def remove_extra_fixed_points(self):
         """
@@ -4135,98 +4121,8 @@ def from_reduced_word(rw):
 
     return Permutation(p)
 
-
-def robinson_schensted_inverse(p, q):
-    r"""
-    Returns the permutation corresponding to the pair of tableaux `(p,q)`
-    using the inverse of Robinson-Schensted algorithm.
-
-    .. WARNING::
-
-       This function uses the :class:`Permutation_class` class in a way it is
-       *NOT MEANT* to be used (i.e. the permutations are not permutations of
-       integers). Do not trust it. See :trac:`13742`.
-
-    INPUT:
-
-     - ``p``, ``q``: two tableaux of the same shape and where ``q`` is
-       standard.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.permutation import robinson_schensted_inverse
-        sage: t1 = Tableau([[1, 2, 5], [3], [4]])
-        sage: t2 = Tableau([[1, 2, 3], [4], [5]])
-        sage: robinson_schensted_inverse(t1, t2)
-        [1, 4, 5, 3, 2]
-        sage: robinson_schensted_inverse(t1, t1)
-        [1, 4, 3, 2, 5]
-        sage: robinson_schensted_inverse(t2, t2)
-        [1, 2, 5, 4, 3]
-        sage: robinson_schensted_inverse(t2, t1)
-        [1, 5, 4, 2, 3]
-
-    If the first tableau is semistandard::
-
-        sage: p = Tableau([[1,2,2]]); q = Tableau([[1,2,3]])
-        sage: robinson_schensted_inverse(p, q)
-        [1, 2, 2]
-        sage: _.robinson_schensted()
-        [[[1, 2, 2]], [[1, 2, 3]]]
-
-    Note that currently the constructor of ``Tableau`` accept as input lists
-    that are not even tableaux but only filling of a partition diagram. This
-    feature should not be used with ``robinson_schensted_inverse``.
-
-    TESTS:
-
-    From empty tableaux::
-
-        sage: robinson_schensted_inverse(Tableau([]), Tableau([]))
-        []
-
-    This function is the inverse of robinson_shensted::
-
-        sage: f = lambda p: robinson_schensted_inverse(*p.robinson_schensted())
-        sage: all(p == f(p) for n in range(7) for p in Permutations(n))
-        True
-
-        sage: n = ZZ.random_element(200)
-        sage: p = Permutations(n).random_element()
-        sage: is_fine = True if p == f(p) else p ; is_fine
-        True
-
-    Both tableaux must be of the same shape::
-
-        sage: robinson_schensted_inverse(Tableau([[1,2,3]]), Tableau([[1,2]]))
-        Traceback (most recent call last):
-        ...
-        ValueError: p(=[[1, 2, 3]]) and q(=[[1, 2]]) must have the same shape
-
-    The second tableau must be standard::
-
-        sage: robinson_schensted_inverse(Tableau([[1,2,3]]), Tableau([[1,3,2]]))
-        Traceback (most recent call last):
-        ...
-        ValueError: q(=[[1, 3, 2]]) must be standard
-    """
-    if p.shape() != q.shape():
-        raise ValueError, "p(=%s) and q(=%s) must have the same shape"%(p, q)
-    if not q.is_standard():
-        raise ValueError, "q(=%s) must be standard"%q
-
-    from bisect import bisect
-
-    permutation = []
-    d = dict((qij,i) for i,Li in enumerate(q) for qij in Li)
-    p = map(list, p)
-    for i in reversed(d.values()):
-        x = p[i].pop()
-        for row in reversed(p[:i]):
-            y = bisect(row,x) - 1
-            x, row[y] = row[y], x
-        permutation.append(x)
-    return Permutation(reversed(permutation), check_input = False)
+from sage.misc.superseded import deprecated_function_alias
+robinson_schensted_inverse = deprecated_function_alias(8392, RSK_inverse)
 
 def bistochastic_as_sum_of_permutations(M, check = True):
     r"""
@@ -4693,8 +4589,6 @@ class StandardPermutations_recoils(CombinatorialClass):
             rcf.append(Permutation(le))
         return rcf
 
-
-
 def from_major_code(mc, final_descent=False):
     r"""
     Returns the permutation corresponding to major code mc.
@@ -4747,7 +4641,7 @@ def from_major_code(mc, final_descent=False):
         indices = d + a
         w.insert(indices[l]+1, i)
 
-    return Permutation(w)
+    return Permutation(w, check_input = False)
 
 
 class StandardPermutations_bruhat_smaller(CombinatorialClass):

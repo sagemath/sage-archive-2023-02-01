@@ -1853,14 +1853,14 @@ class DiGraph(GenericGraph):
 
         EXAMPLES:
 
-        If ``inplace`` is ``True``, ``self`` is modified::
+        If ``inplace`` is ``True`` (default value), ``self`` is modified::
 
             sage: D = DiGraph([(0,1,2)])
             sage: D.reverse_edge(0,1)
             sage: D.edges()
             [(1, 0, 2)]
 
-        If ``inplace`` is ``False`` (default value), ``self`` is not modified
+        If ``inplace`` is ``False``, ``self`` is not modified
         and a new digraph is returned::
 
             sage: D = DiGraph([(0,1,2)])
@@ -1908,7 +1908,7 @@ class DiGraph(GenericGraph):
             [(1, 2, 'B'), (2, 1, 'A'), (2, 3, None)]
             sage: D.reverse_edge(2,1, multiedges=False)
             sage: D.edges()
-            [(1, 2, 'B'), (2, 3, None)]
+            [(1, 2, 'A'), (2, 3, None)]
 
         If input edge in digraph has weight/label, then the weight/label should
         be preserved in the output digraph.  User does not need to specify the
@@ -2016,11 +2016,11 @@ class DiGraph(GenericGraph):
                 tempG.add_edge(v,u,label)
 
             # If user does not want to force digraph to allow parallel
-            # edges, we try to delete edge u to v and overwrite v,u with the
+            # edges, we delete edge u to v and overwrite v,u with the
             # label of u,v
             elif multiedges == False:
                 tempG.delete_edge(u,v,label)
-                tempG.set_edge_label(u,v,label)
+                tempG.set_edge_label(v,u,label)
 
             # User is supposed to specify multiedges True or None
             else:
@@ -2037,7 +2037,7 @@ class DiGraph(GenericGraph):
 
     def reverse_edges(self, edges, inplace=True, multiedges=None):
         """
-        Reverses a list od edges.
+        Reverses a list of edges.
 
         INPUT:
 

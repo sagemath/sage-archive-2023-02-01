@@ -3,12 +3,35 @@ Common Digraphs
 
 Generators for common digraphs.
 
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~DiGraphGenerators.ButterflyGraph`      | Returns a n-dimensional butterfly graph.
+    :meth:`~DiGraphGenerators.Circuit`             | Returns the circuit on `n` vertices.
+    :meth:`~DiGraphGenerators.DeBruijn`            | Returns the De Bruijn digraph with parameters `k,n`.
+    :meth:`~DiGraphGenerators.GeneralizedDeBruijn` | Returns the generalized de Bruijn digraph of order `n` and degree `d`.
+    :meth:`~DiGraphGenerators.ImaseItoh`           | Returns the digraph of Imase and Itoh of order `n` and degree `d`.
+    :meth:`~DiGraphGenerators.Kautz`               | Returns the Kautz digraph of degree `d` and diameter `D`.
+    :meth:`~DiGraphGenerators.Path`                | Returns a directed path on `n` vertices.
+    :meth:`~DiGraphGenerators.RandomDirectedGNC`   | Returns a random GNC (growing network with copying) digraph with `n` vertices.
+    :meth:`~DiGraphGenerators.RandomDirectedGNM`   | Returns a random labelled digraph on `n` nodes and `m` arcs.
+    :meth:`~DiGraphGenerators.RandomDirectedGNP`   | Returns a random digraph on `n` nodes.
+    :meth:`~DiGraphGenerators.RandomDirectedGN`    | Returns a random GN (growing network) digraph with `n` vertices.
+    :meth:`~DiGraphGenerators.RandomDirectedGNR`   | Returns a random GNR (growing network with redirection) digraph.
+    :meth:`~DiGraphGenerators.Tournament`          | Returns a tournament on `n` vertices.
+
 AUTHORS:
 
 - Robert L. Miller (2006)
 - Emily A. Kirkman (2006)
 - Michael C. Yurko (2009)
 - David Coudert    (2012)
+
+Functions and methods
+---------------------
+
 """
 
 ################################################################################
@@ -50,7 +73,9 @@ class DiGraphGenerators():
                     - DeBruijn
                     - GeneralizedDeBruijn
                     - Kautz
+                    - Path
                     - ImaseItoh
+                    - Tournament
 
 
 
@@ -260,6 +285,72 @@ class DiGraphGenerators():
             raise NotImplementedError, "vertices must be 'strings' or 'vectors'."
         return DiGraph(butterfly)
 
+    def Path(self,n):
+        r"""
+        Returns a directed path on `n` vertices.
+
+        INPUT:
+
+        - ``n`` (integer) -- number of vertices in the path.
+
+        EXAMPLES::
+
+            sage: g = digraphs.Path(5)
+            sage: g.vertices()
+            [0, 1, 2, 3, 4]
+            sage: g.size()
+            4
+            sage: g.automorphism_group().cardinality()
+            1
+        """
+        if n<0:
+            raise ValueError("The number of vertices must be a positive integer.")
+
+        g = DiGraph()
+        g.name("Path on "+str(n)+" vertices")
+
+        if n:
+            g.add_path(range(n))
+
+        g.set_pos({i:(i,0) for i in range(n)})
+        return g
+
+    def Tournament(self,n):
+        r"""
+        Returns a tournament on `n` vertices.
+
+        In this tournament there is an edge from `i` to `j` if `i<j`.
+
+        INPUT:
+
+        - ``n`` (integer) -- number of vertices in the tournament.
+
+        EXAMPLES::
+
+            sage: g = digraphs.Tournament(5)
+            sage: g.vertices()
+            [0, 1, 2, 3, 4]
+            sage: g.size()
+            10
+            sage: g.automorphism_group().cardinality()
+            1
+        """
+        if n<0:
+            raise ValueError("The number of vertices must be a positive integer.")
+
+        g = DiGraph()
+        g.name("Tournament on "+str(n)+" vertices")
+
+        for i in range(n-1):
+            for j in range(i+1, n):
+                g.add_edge(i,j)
+
+        if n:
+            from sage.graphs.graph_plot import _circle_embedding
+            _circle_embedding(g, range(n))
+
+        return g
+
     def Circuit(self,n):
         r"""
         Returns the circuit on `n` vertices
@@ -293,7 +384,7 @@ class DiGraphGenerators():
 
     def DeBruijn(self, k, n, vertices = 'strings'):
         r"""
-        Returns the De Bruijn diraph with parameters `k,n`.
+        Returns the De Bruijn digraph with parameters `k,n`.
 
         The De Bruijn digraph with parameters `k,n` is built upon a set of
         vertices equal to the set of words of length `n` from a dictionary of

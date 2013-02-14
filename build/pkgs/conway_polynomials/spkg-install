@@ -12,7 +12,6 @@ def create_db():
     for p,n,v in conway_polynomials:
         if not db.has_key(p):
             db[p] = {}
-            print p
         db[p][n] = v
     if not os.path.exists(install_root):
         os.makedirs(install_root)

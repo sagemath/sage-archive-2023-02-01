@@ -89,10 +89,38 @@ class Groups(Category_singleton):
                 tester.assertEquals(~x * x, self.one())
 
         def semidirect_product(self, N, mapping, check = True):
-            raise NotImplementedError, "semidirect product of %s and %s not yet implemented"%(self, N)
+            r"""
+            The semi-direct product of two groups
+
+            EXAMPLES::
+
+                sage: G = Groups().example()
+                sage: G.semidirect_product(G,Morphism(G,G))
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: semidirect product of General Linear Group of degree 4 over Rational Field and General Linear Group of degree 4 over Rational Field not yet implemented
+            """
+            raise NotImplementedError("semidirect product of %s and %s not yet implemented"%(self, N))
 
         def holomorph(self):
-            raise NotImplementedError, "can't compute the holomorph of %s"%self
+            r"""
+            The holomorph of a group
+
+            The holomorph of a group `G` is the semidirect product
+            `G \rtimes_{id} Aut(G)`, where `id` is the identity function
+            on `Aut(G)`, the automorphism group of `G`.
+
+            See :wikipedia:`Holomorph (mathematics)`
+
+            EXAMPLES::
+
+                sage: G = Groups().example()
+                sage: G.holomorph()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: holomorph of General Linear Group of degree 4 over Rational Field not yet implemented
+            """
+            raise NotImplementedError("holomorph of %s not yet implemented"%self)
 
         def cayley_table(self, names='letters', elements=None):
             r"""

@@ -1962,13 +1962,16 @@ class PermutationGroup_generic(group.Group):
         r"""
         The holomorph of a group as a permutation group.
 
+        The holomorph of a group `G` is the semidirect product
+        `G \rtimes_{id} Aut(G)`, where `id` is the identity function
+        on `Aut(G)`, the automorphism group of `G`.
+
+        See :wikipedia:`Holomorph (mathematics)`
+
         OUTPUT:
 
         Returns the holomorph of a given group as permutation group
-        via a wrapping of GAP's semidirect product function. The
-        holomorph of a group `G` is the semidrirect product
-        `G \rtimes_{id} Aut(G)`, where `id` is the identity function on
-        `Aut(G)`, the automorphism group of `G`.
+        via a wrapping of GAP's semidirect product function.
 
         EXAMPLES:
 
@@ -1994,13 +1997,14 @@ class PermutationGroup_generic(group.Group):
             sage: D4 = DihedralGroup(4)
             sage: H = D4.holomorph()
             sage: H.gens()
-            [(2,5)(4,7), (2,5)(3,8), (2,8,5,3), (1,4,6,7)(2,3,5,8), (1,8)(2,7)(3,6)(4,5)]
+            [(3,8)(4,7), (2,3,5,8), (2,5)(3,8), (1,4,6,7)(2,3,5,8), (1,8)(2,7)(3,6)(4,5)]
             sage: G = H.subgroup([H.gens()[0],H.gens()[1],H.gens()[2]])
             sage: N = H.subgroup([H.gens()[3],H.gens()[4]])
             sage: N.is_normal(H)
             True
-            sage: G.is_isomorphic(D4);N.is_isomorphic(D4)
+            sage: G.is_isomorphic(D4)
             True
+            sage: N.is_isomorphic(D4)
             True
             sage: G.intersection(N)
             Permutation Group with generators [()]
@@ -2011,8 +2015,7 @@ class PermutationGroup_generic(group.Group):
 
         Author:
 
-        - Kevin Halasz (2012-8-14)
-
+        - Kevin Halasz (2012-08-14)
         """
 
         gap.eval('G := Group(' + str(self.gens()) + ')')

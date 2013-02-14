@@ -15,7 +15,6 @@ from sage.rings.infinity import infinity
 from sage.rings.rational_field import QQ
 
 
-
 class WeylGroups(Category_singleton):
     r"""
     The category of Weyl groups
@@ -102,6 +101,43 @@ class WeylGroups(Category_singleton):
                 return ct.PieriFactors(self, *args, **keywords)
             else:
                 raise NotImplementedError("Pieri factors for type %s"%ct)
+
+        def quantum_bruhat_graph(self, index_set = None):
+            r"""
+            Returns the quantum Bruhat graph of the quotient of the Weyl group by a parabolic subgroup.
+
+            INPUT:
+
+            - ``index_set`` -- (default: None) indicates the set of simple reflections used to generate the parabolic subgroup;
+               the default value indicates that the subgroup is trivial and the quotient is the Weyl group
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',3], prefix="s")
+                sage: g = W.quantum_bruhat_graph([1,3])
+                sage: g
+                Parabolic Quantum Bruhat Graph of Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space) for nodes [1, 3]: Digraph on 6 vertices
+                sage: g.vertices()
+                [s2*s3*s1*s2, s3*s1*s2, s1*s2, s3*s2, s2, 1]
+                sage: g.edges()
+                [(s2*s3*s1*s2, s2, alpha[2]), (s3*s1*s2, s2*s3*s1*s2, alpha[1] + alpha[2] + alpha[3]),
+                (s3*s1*s2, 1, alpha[2]), (s1*s2, s3*s1*s2, alpha[2] + alpha[3]),
+                (s3*s2, s3*s1*s2, alpha[1] + alpha[2]), (s2, s1*s2, alpha[1] + alpha[2]),
+                (s2, s3*s2, alpha[2] + alpha[3]), (1, s2, alpha[2])]
+                sage: W = WeylGroup(['A',3,1], prefix="s")
+                sage: g = W.quantum_bruhat_graph()
+                Traceback (most recent call last):
+                ...
+                ValueError: The Cartan type ['A', 3, 1] is not finite
+            """
+            if not self.cartan_type().is_finite():
+                raise ValueError, "The Cartan type %s is not finite"%(self.cartan_type())
+            from sage.graphs.digraph import DiGraph
+            if index_set is None:
+                index_set = []
+            WP = [x for x in self if x==x.coset_representative(index_set)]
+            return DiGraph([[x,i[0],i[1]] for x in WP for i in x.quantum_bruhat_successors(index_set, roots = True)],
+                           name="Parabolic Quantum Bruhat Graph of %s for nodes %s"%(self.__repr__(),index_set))
 
     class ElementMethods:
 
@@ -319,3 +355,225 @@ class WeylGroups(Category_singleton):
             import sage.combinat.sf
             m = sage.combinat.sf.sf.SymmetricFunctions(QQ).monomial()
             return m.from_polynomial_exp(self.stanley_symmetric_function_as_polynomial())
+
+        @cached_in_parent_method
+        def reflection_to_root(self):
+            r"""
+            Returns the root associated with the reflection ``self``.
+
+            EXAMPLES::
+
+                sage: W=WeylGroup(['C',2],prefix="s")
+                sage: r=W.from_reduced_word([1,2,1])
+                sage: r.reflection_to_root()
+                2*alpha[1] + alpha[2]
+                sage: r=W.from_reduced_word([1,2])
+                sage: r.reflection_to_root()
+                Traceback (most recent call last):
+                ...
+                ValueError: s1*s2 is not a reflection
+
+            """
+
+            i = self.first_descent()
+            if i is None:
+                raise ValueError, "%s is not a reflection"%(self)
+            if self == self.parent().simple_reflection(i):
+                from sage.combinat.root_system.root_system import RootSystem
+                return RootSystem(self.parent().cartan_type()).root_lattice().simple_root(i)
+                #return self.parent().domain().simple_root(i)
+            if not self.has_descent(i, side='left'):
+                raise ValueError, "%s is not a reflection"%(self)
+            return ((self.apply_conjugation_by_simple_reflection(i)).reflection_to_root()).simple_reflection(i)
+
+        @cached_in_parent_method
+        def reflection_to_coroot(self):
+            r"""
+            Returns the coroot associated with the reflection ``self``.
+
+            EXAMPLES::
+
+                sage: W=WeylGroup(['C',2],prefix="s")
+                sage: r=W.from_reduced_word([1,2,1])
+                sage: r.reflection_to_coroot()
+                alphacheck[1] + alphacheck[2]
+                sage: r=W.from_reduced_word([1,2])
+                sage: r.reflection_to_coroot()
+                Traceback (most recent call last):
+                ...
+                ValueError: s1*s2 is not a reflection
+
+            """
+
+            i = self.first_descent()
+            if i is None:
+                raise ValueError, "%s is not a reflection"%(self)
+            if self == self.parent().simple_reflection(i):
+                from sage.combinat.root_system.root_system import RootSystem
+                return RootSystem(self.parent().cartan_type()).root_lattice().simple_coroot(i)
+                #return self.parent().domain().simple_coroot(i)
+            if not self.has_descent(i, side='left'):
+                raise ValueError, "%s is not a reflection"%(self)
+            return ((self.apply_conjugation_by_simple_reflection(i)).reflection_to_coroot()).simple_reflection(i)
+
+        def inversions(self, side = 'right', inversion_type = 'reflections'):
+            """
+            Returns the set of inversions of ``self``.
+
+            INPUT:
+
+            - ``side`` -- 'right' (default) or 'left'
+            - ``inversion_type`` -- 'reflections' (default), 'roots', or 'coroots'.
+
+            OUTPUT:
+
+            For reflections, the set of reflections r in the Weyl group such that
+            ``self`` ``r`` < ``self``. For (co)roots, the set of positive (co)roots that are sent
+            by ``self`` to negative (co)roots; their associated reflections are described above.
+
+            If ``side`` is 'left', the inverse Weyl group element is used.
+
+            EXAMPLES::
+
+                sage: W=WeylGroup(['C',2], prefix="s")
+                sage: w=W.from_reduced_word([1,2])
+                sage: w.inversions()
+                [s2, s2*s1*s2]
+                sage: w.inversions(inversion_type = 'reflections')
+                [s2, s2*s1*s2]
+                sage: w.inversions(inversion_type = 'roots')
+                [alpha[2], alpha[1] + alpha[2]]
+                sage: w.inversions(inversion_type = 'coroots')
+                [alphacheck[2], alphacheck[1] + 2*alphacheck[2]]
+                sage: w.inversions(side = 'left')
+                [s1, s1*s2*s1]
+                sage: w.inversions(side = 'left', inversion_type = 'roots')
+                [alpha[1], 2*alpha[1] + alpha[2]]
+                sage: w.inversions(side = 'left', inversion_type = 'coroots')
+                [alphacheck[1], alphacheck[1] + alphacheck[2]]
+
+            """
+
+            if side == 'left':
+                self = self.inverse()
+            reflections = self.inversions_as_reflections()
+            if inversion_type == 'reflections':
+                return reflections
+            if inversion_type == 'roots':
+                return [r.reflection_to_root() for r in reflections]
+            if inversion_type == 'coroots':
+                return [r.reflection_to_coroot() for r in reflections]
+            raise ValueError, "inversion_type %s is invalid"%(inversion_type)
+
+        def bruhat_lower_covers_coroots(self):
+            r"""
+            Returns all 2-tuples (``v``, `\alpha`) where ``v`` is covered by ``self`` and `\alpha`
+            is the positive coroot such that ``self`` = ``v`` `s_\alpha` where `s_\alpha` is
+            the reflection orthogonal to `\alpha`.
+
+            ALGORITHM:
+
+            See :meth:`.bruhat_lower_covers` and :meth:`.bruhat_lower_covers_reflections` for Coxeter groups.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',3], prefix="s")
+                sage: w = W.from_reduced_word([3,1,2,1])
+                sage: w.bruhat_lower_covers_coroots()
+                [(s1*s2*s1, alphacheck[1] + alphacheck[2] + alphacheck[3]), (s3*s2*s1, alphacheck[2]), (s3*s1*s2, alphacheck[1])]
+
+            """
+
+            return [(x[0],x[1].reflection_to_coroot()) for x in self.bruhat_lower_covers_reflections()]
+
+        def bruhat_upper_covers_coroots(self):
+            r"""
+            Returns all 2-tuples (``v``, `\alpha`) where ``v`` is covers ``self`` and `\alpha`
+            is the positive coroot such that ``self`` = ``v`` `s_\alpha` where `s_\alpha` is
+            the reflection orthogonal to `\alpha`.
+
+            ALGORITHM:
+
+            See :meth:`~CoxeterGroups.ElementMethods.bruhat_upper_covers` and :meth:`.bruhat_upper_covers_reflections` for Coxeter groups.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',4], prefix="s")
+                sage: w = W.from_reduced_word([3,1,2,1])
+                sage: w.bruhat_upper_covers_coroots()
+                [(s1*s2*s3*s2*s1, alphacheck[3]), (s2*s3*s1*s2*s1, alphacheck[2] + alphacheck[3]), (s3*s4*s1*s2*s1, alphacheck[4]), (s4*s3*s1*s2*s1, alphacheck[1] + alphacheck[2] + alphacheck[3] + alphacheck[4])]
+
+            """
+
+            return [(x[0],x[1].reflection_to_coroot()) for x in self.bruhat_upper_covers_reflections()]
+
+        def quantum_bruhat_successors(self, index_set = None, roots = False, quantum_only = False):
+            r"""
+            Returns the successors of ``self`` in the parabolic quantum Bruhat graph.
+
+            INPUT:
+
+            - ``self`` -- a Weyl group element, which is assumed to be of minimum length in its coset with respect to the parabolic subgroup
+
+            - ``index_set`` -- (default: None) indicates the set of simple reflections used to generate the parabolic subgroup;
+               the default value indicates that the subgroup is the identity
+
+            - ``roots`` -- (default: False) if True, returns the list of 2-tuples (``w``, `\alpha`) where ``w`` is a
+               successor and `\alpha` is the positive root associated with the successor relation.
+
+            - ``quantum_only`` -- (default: False) if True, returns only the quantum successors
+
+            Returns the successors of ``self`` in the quantum Bruhat graph on the parabolic quotient of the Weyl group determined
+            by the subset of Dynkin nodes ``index_set``.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',3], prefix="s")
+                sage: w = W.from_reduced_word([3,1,2])
+                sage: w.quantum_bruhat_successors([1], roots = True)
+                [(s3, alpha[2]), (s1*s2*s3*s2, alpha[3]), (s2*s3*s1*s2, alpha[1] + alpha[2] + alpha[3])]
+                sage: w.quantum_bruhat_successors([1,3])
+                [1, s2*s3*s1*s2]
+                sage: w.quantum_bruhat_successors(roots = True)
+                [(s3*s1*s2*s1, alpha[1]), (s3*s1, alpha[2]), (s1*s2*s3*s2, alpha[3]), (s2*s3*s1*s2, alpha[1] + alpha[2] + alpha[3])]
+                sage: w.quantum_bruhat_successors()
+                [s3*s1*s2*s1, s3*s1, s1*s2*s3*s2, s2*s3*s1*s2]
+                sage: w.quantum_bruhat_successors(quantum_only = True)
+                [s3*s1]
+                sage: w = W.from_reduced_word([2,3])
+                sage: w.quantum_bruhat_successors([1,3])
+                Traceback (most recent call last):
+                ...
+                ValueError: s2*s3 is not of minimum length in its coset of the parabolic subgroup
+                generated by the reflections [1, 3]
+
+            """
+            W = self.parent()
+            if not W.cartan_type().is_finite():
+                raise ValueError, "The Cartan type %s is not finite"%(W.cartan_type())
+            if index_set is None:
+                index_set = []
+            else:
+                index_set = [x for x in index_set]
+            if self != self.coset_representative(index_set):
+                raise ValueError, "%s is not of minimum length in its coset of the parabolic subgroup generated by the reflections %s"%(self,index_set)
+            lattice = W.cartan_type().root_system().root_lattice()
+            non_parab_roots = lattice.positive_roots_nonparabolic(tuple(index_set))
+            two_rho_minus_two_rho_P = lattice.positive_roots_nonparabolic_sum(tuple(index_set))
+            w_length_plus_one = self.length() + 1
+            successors = []
+            for alpha in non_parab_roots:
+                wr = self * W.from_reduced_word(alpha.associated_reflection())
+                wrc = wr.coset_representative(index_set)
+                if wrc == wr and wr.length() == w_length_plus_one and not quantum_only:
+                    if roots:
+                        successors.append((wr,alpha))
+                    else:
+                        successors.append(wr)
+                elif alpha.quantum_root() and wrc.length() == w_length_plus_one - two_rho_minus_two_rho_P.scalar(alpha.associated_coroot()):
+                    if roots:
+                        successors.append((wrc,alpha))
+                    else:
+                        successors.append(wrc)
+            return successors
+

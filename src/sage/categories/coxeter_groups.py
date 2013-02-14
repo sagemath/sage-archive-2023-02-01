@@ -7,12 +7,13 @@ Coxeter Groups
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-# With contributions from Dan Bump, Steve Pon, Qiang Wang, Anne Schilling
+# With contributions from Dan Bump, Steve Pon, Qiang Wang, Anne Schilling, Christian Stump, Mark Shimozono
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.abstract_method import abstract_method
 from sage.misc.constant_function import ConstantFunction
-from sage.misc.misc import attrcall
+from sage.misc.misc import attrcall, uniq
+from sage.misc.superseded import deprecation
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.groups import Groups
 from sage.categories.enumerated_sets import EnumeratedSets
@@ -20,6 +21,7 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.sage_object import have_same_parent
 from sage.combinat.finite_class import FiniteCombinatorialClass
 from sage.misc.flatten import flatten
+from copy import copy
 
 class CoxeterGroups(Category_singleton):
     r"""
@@ -407,7 +409,8 @@ class CoxeterGroups(Category_singleton):
                 (0, 2, 1, 3)
 
             """
-            assert(i in self.index_set())
+            if not i in self.index_set():
+                raise ValueError, "%s is not in the Dynkin node set %s"%(i,self.index_set())
             return self.one().apply_simple_reflection(i) # don't care about left/right
 
         @cached_method
@@ -468,15 +471,15 @@ class CoxeterGroups(Category_singleton):
 
         semigroup_generators = group_generators
 
-        def simple_projection(self, i, side = 'right', toward_max = True):
+        def simple_projection(self, i, side = 'right', length_increasing = True, toward_max = None):
             r"""
             INPUT:
 
-            - ``i`` - an element of the index set of self
+            - ``i`` - an element of the index set of ``self``
 
-            Returns the simple projection `\pi_i` (or `\overline\pi_i` if toward_max is False).
+            Returns the simple projection `\pi_i` (or `\overline\pi_i` if `length_increasing` is False).
 
-            See :meth:`.simple_projections` for the options. and for
+            See :meth:`.simple_projections` for the options and for
             the definition of the simple projections.
 
             EXAMPLES::
@@ -489,7 +492,7 @@ class CoxeterGroups(Category_singleton):
                 sage: sigma
                 (1, 2, 3, 0)
                 sage: u0=W.simple_projection(0)
-                sage: d0=W.simple_projection(0,toward_max=False)
+                sage: d0=W.simple_projection(0,length_increasing=False)
                 sage: sigma.length()
                 3
                 sage: pi=sigma*s[0]
@@ -507,18 +510,24 @@ class CoxeterGroups(Category_singleton):
                 (1, 2, 3, 0)
 
             """
-            assert(i in self.index_set() or i==0) # i==0 allows for affine descents
-            return lambda x: x.apply_simple_projection(i, side = side, toward_max = toward_max) # should use default_keyword
+            if not (i in self.index_set() or i == 0):
+                raise ValueError, "%s is not 0 and not in the Dynkin node set %s"%(i, self.index_set())
+            if toward_max is not None:
+                deprecation("the toward_max option of CoxeterGroups.ParentMethods.simple_projection is deprecated; please use length_increasing instead", 'Sage Version 5.0')
+                length_increasing = toward_max
+            return lambda x: x.apply_simple_projection(i, side = side, length_increasing = length_increasing)
 
         @cached_method
-        def simple_projections(self, side = 'right', toward_max = True):
+        def simple_projections(self, side = 'right', length_increasing = True, toward_max = None):
             r"""
+            Returns the family of simple projections, also known as 0-Hecke or Demazure operators.
+
             INPUT:
 
             - ``self`` - a Coxeter group `W`
             - ``side`` - 'left' or 'right' (default: 'right')
-            - ``toward_max`` - a boolean (default: True) specifying
-              the direction of the projection
+            - ``length_increasing`` - a boolean (default: True) specifying
+              whether the operator increases or decreases length
 
             Returns the simple projections of `W`, as a family.
 
@@ -530,20 +539,17 @@ class CoxeterGroups(Category_singleton):
 
             The simple projections `(\pi_i)_{i\in I}` move elements
             down the right permutohedron, toward the maximal element.
-            They satisfy the same relations as the simple reflections,
-            except that `\pi_i^2=\pi`, whereas `s_i^2 = s_i`. As such,
+            They satisfy the same braid relations as the simple reflections,
+            but are idempotents `\pi_i^2=\pi` not involutions `s_i^2 = 1`. As such,
             the simple projections generate the `0`-Hecke monoid.
 
             By symmetry, one can also define the projections
-            `(\overline\pi_i)_{i\in I}` (option ``toward_max``):
+            `(\overline\pi_i)_{i\in I}` (when the option ``length_increasing`` is False):
 
                       `\overline\pi_i(w) = w s_i` if `i` is a descent of `w`
                       `\overline\pi_i(w) = w` otherwise.
 
-            as well as the analogues acting on the left (option ``side``).
-
-            TODO: the name `toward_max` is not explicit and
-            should/will be replaced; suggestions welcome.
+            as well as the analogues acting on the left (when the option ``side`` is 'left').
 
             EXAMPLES::
 
@@ -563,7 +569,40 @@ class CoxeterGroups(Category_singleton):
                 (1, 3, 2, 0)
             """
             from sage.sets.family import Family
-            return Family(self.index_set(), lambda i: self.simple_projection(i, side = side, toward_max = toward_max))
+            if toward_max is not None:
+                deprecation("the toward_max option of CoxeterGroups.ParentMethods.simple_projections is deprecated; please use length_increasing instead", 'Sage Version 5.0')
+                length_increasing = toward_max
+            return Family(self.index_set(), lambda i: self.simple_projection(i, side = side, length_increasing = length_increasing))
+
+        def demazure_product(self,Q):
+            r"""
+            Returns the Demazure product of the list ``Q`` in ``self``.
+
+            INPUT:
+
+            - ``Q`` is a list of elements from the index set of ``self``.
+
+            This returns the Coxeter group element that represents the composition of 0-Hecke or Demazure operators.
+            See :meth:`CoxeterGroups.ParentMethods.simple_projections`.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',2])
+                sage: w = W.demazure_product([2,2,1])
+                sage: w.reduced_word()
+                [2, 1]
+
+                sage: w = W.demazure_product([2,1,2,1,2])
+                sage: w.reduced_word()
+                [1, 2, 1]
+
+                sage: W = WeylGroup(['B',2])
+                sage: w = W.demazure_product([2,1,2,1,2])
+                sage: w.reduced_word()
+                [2, 1, 2, 1]
+
+            """
+            return self.one().apply_demazure_product(Q)
 
         def bruhat_interval(self, x, y):
             """
@@ -619,12 +658,12 @@ class CoxeterGroups(Category_singleton):
             tester = self._tester(**options)
             for side in ['left', 'right']:
                 pi  = self.simple_projections(side = side)
-                opi = self.simple_projections(side = side, toward_max = False)
+                opi = self.simple_projections(side = side, length_increasing = False)
                 for i in self.index_set():
                     for w in tester.some_elements():
                         tester.assert_( pi[i](w) == w.apply_simple_projection(i, side = side))
-                        tester.assert_( pi[i](w) == w.apply_simple_projection(i, side = side, toward_max = True ))
-                        tester.assert_(opi[i](w) == w.apply_simple_projection(i, side = side, toward_max = False))
+                        tester.assert_( pi[i](w) == w.apply_simple_projection(i, side = side, length_increasing = True ))
+                        tester.assert_(opi[i](w) == w.apply_simple_projection(i, side = side, length_increasing = False))
                         tester.assert_( pi[i](w).has_descent(i, side = side))
                         tester.assert_(not opi[i](w).has_descent(i, side = side))
                         tester.assertEquals(set([pi[i](w), opi[i](w)]),
@@ -691,12 +730,13 @@ class CoxeterGroups(Category_singleton):
             This default implementation delegates the work to
             :meth:`.has_left_descent` and :meth:`.has_right_descent`.
             """
-            assert isinstance(positive, bool)
+            if not isinstance(positive, bool):
+                raise TypeError, "%s is not a boolean"%(bool)
             if side == 'right':
                 return self.has_right_descent(i) != positive
-            else:
-                assert side == 'left'
-                return self.has_left_descent(i)  != positive
+            if side != 'left':
+                raise ValueError, "%s is neither 'right' nor 'left'"%(side)
+            return self.has_left_descent(i)  != positive
 
 #        @abstract_method(optional = True)
         def has_right_descent(self, i):
@@ -824,7 +864,7 @@ class CoxeterGroups(Category_singleton):
             Tests whether ``self`` is Grassmannian, i.e. it has at
             most one descent on the right (resp. on the left).
 
-            EXAMPLES::
+v            EXAMPLES::
 
                 sage: W = CoxeterGroups().example(); W
                 The symmetric group on {0, ..., 3}
@@ -978,6 +1018,7 @@ class CoxeterGroups(Category_singleton):
             ``self``, with respect to the parabolic subgroup $W_I$.
 
             EXAMPLES::
+
                 sage: W = CoxeterGroups().example(5)
                 sage: s = W.simple_reflections()
                 sage: w = s[2]*s[1]*s[3]
@@ -1013,37 +1054,51 @@ class CoxeterGroups(Category_singleton):
                     return self
                 self = self.apply_simple_reflection(i, side = side)
 
-        def apply_simple_projection(self, i, side = 'right', toward_max = True):
+        def apply_simple_projection(self, i, side = 'right', length_increasing = True, toward_max = None):
             r"""
             INPUT:
 
             - ``i`` - an element of the index set of the Coxeter group
             - ``side`` - 'left' or 'right' (default: 'right')
-            - ``toward_max`` - a boolean (default: True) specifying
+            - ``length_increasing`` - a boolean (default: True) specifying
               the direction of the projection
 
             Returns the result of the application of the simple
-            projection `\pi_i` (resp. `\overline\pi_i`) on self.
+            projection `\pi_i` (resp. `\overline\pi_i`) on ``self``.
 
             See :meth:`CoxeterGroups.ParentMethods.simple_projections`
             for the definition of the simple projections.
 
             EXAMPLE::
 
-               sage: W=CoxeterGroups().example()
-               sage: w=W.an_element()
-               sage: w
-               (1, 2, 3, 0)
-               sage: w.apply_simple_projection(2)
-               (1, 2, 3, 0)
-               sage: w.apply_simple_projection(2, toward_max=False)
-               (1, 2, 0, 3)
+                sage: W=CoxeterGroups().example()
+                sage: w=W.an_element()
+                sage: w
+                (1, 2, 3, 0)
+                sage: w.apply_simple_projection(2)
+                (1, 2, 3, 0)
+                sage: w.apply_simple_projection(2, length_increasing=False)
+                (1, 2, 0, 3)
+                sage: W = WeylGroup(['C',4],prefix="s")
+                sage: v = W.from_reduced_word([1,2,3,4,3,1])
+                sage: v
+                s1*s2*s3*s4*s3*s1
+                sage: v.apply_simple_projection(2)
+                s1*s2*s3*s4*s3*s1*s2
+                sage: v.apply_simple_projection(2, side='left')
+                s1*s2*s3*s4*s3*s1
+                sage: v.apply_simple_projection(1, length_increasing = False)
+                s1*s2*s3*s4*s3
 
             """
-            if self.has_descent(i, side = side) is not toward_max:
-                return self.apply_simple_reflection(i, side = side)
-            else:
-                return self
+
+            if toward_max is not None:
+                deprecation("the toward_max option of CoxeterGroups.ElementMethods.apply_simple_projection is deprecated; please use length_increasing instead", 'Sage Version 5.0')
+                length_increasing = toward_max
+
+            if self.has_descent(i, side = side, positive = length_increasing):
+                return self.apply_simple_reflection(i, side=side)
+            return self
 
         def binary_factorizations(self, predicate = ConstantFunction(True)):
             """
@@ -1347,16 +1402,16 @@ class CoxeterGroups(Category_singleton):
 
             The algorithm works recursively, using the 'inverse' of the method described for
             lower covers :meth:`bruhat_lower_covers`. Namely, it runs through all `i` in the
-            index set: if `w`=``self`` has no right descent `i`, then `w s_i` is a cover;
+            index set. Let `w` equal ``self``. If `w` has no right descent `i`, then `w s_i` is a cover;
             if `w` has a decent at `i`, then `u_j s_i` is a cover of `w` where `u_j` is a cover
             of `w s_i`.
 
             EXAMPLES::
 
-                sage: W = WeylGroup(['A',3,1])
+                sage: W = WeylGroup(['A',3,1], prefix="s")
                 sage: w = W.from_reduced_word([1,2,1])
-                sage: sorted([x.reduced_word() for x in w.bruhat_upper_covers()])
-                [[0, 1, 2, 1], [1, 2, 0, 1], [1, 2, 1, 0], [1, 2, 3, 1], [2, 3, 1, 2], [3, 1, 2, 1]]
+                sage: w.bruhat_upper_covers()
+                [s1*s2*s1*s0, s1*s2*s0*s1, s0*s1*s2*s1, s3*s1*s2*s1, s2*s3*s1*s2, s1*s2*s3*s1]
 
                 sage: W = WeylGroup(['A',3])
                 sage: w = W.long_element()
@@ -1377,7 +1432,99 @@ class CoxeterGroups(Category_singleton):
                                 if i not in x.descents() ]
                 else:
                     Covers += [ self.apply_simple_reflection(i) ]
-            return [x for x in set(Covers)]
+            return uniq(Covers)
+
+        @cached_in_parent_method
+        def bruhat_lower_covers_reflections(self):
+            r"""
+            Returns all 2-tuples of lower_covers and reflections (``v``, ``r``) where ``v`` is covered by ``self`` and ``r`` is the reflection such that ``self`` = ``v`` ``r``.
+
+            ALGORITHM:
+
+            See :meth:`.bruhat_lower_covers`
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',3], prefix="s")
+                sage: w = W.from_reduced_word([3,1,2,1])
+                sage: w.bruhat_lower_covers_reflections()
+                [(s1*s2*s1, s1*s2*s3*s2*s1), (s3*s2*s1, s2), (s3*s1*s2, s1)]
+
+            """
+            i = self.first_descent()
+            if i is None:
+                return []
+            wi = self.apply_simple_reflection(i)
+            return [(u.apply_simple_reflection(i),r.apply_conjugation_by_simple_reflection(i)) for u,r in wi.bruhat_lower_covers_reflections() if not u.has_descent(i)] + [(wi, self.parent().simple_reflection(i))]
+
+        def lower_cover_reflections(self, side = 'right'):
+            r"""
+            Returns the reflections ``t`` such that ``self`` covers ``self`` ``t``.
+
+            If ``side`` is 'left', ``self`` covers ``t`` ``self``.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',3],prefix="s")
+                sage: w = W.from_reduced_word([3,1,2,1])
+                sage: w.lower_cover_reflections()
+                [s1*s2*s3*s2*s1, s2, s1]
+                sage: w.lower_cover_reflections(side = 'left')
+                [s2*s3*s2, s3, s1]
+
+            """
+
+            if side == 'left':
+                self = self.inverse()
+            return [x[1] for x in self.bruhat_lower_covers_reflections()]
+
+        @cached_in_parent_method
+        def bruhat_upper_covers_reflections(self):
+            r"""
+            Returns all 2-tuples of covers and reflections (``v``, ``r``) where ``v`` covers ``self`` and ``r`` is the reflection such that ``self`` = ``v`` ``r``.
+
+            ALGORITHM:
+
+            See :meth:`.bruhat_upper_covers`
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',4], prefix="s")
+                sage: w = W.from_reduced_word([3,1,2,1])
+                sage: w.bruhat_upper_covers_reflections()
+                [(s1*s2*s3*s2*s1, s3), (s2*s3*s1*s2*s1, s2*s3*s2), (s3*s4*s1*s2*s1, s4), (s4*s3*s1*s2*s1, s1*s2*s3*s4*s3*s2*s1)]
+
+            """
+
+            Covers = []
+            for i in self.parent().index_set():
+                wi = self.apply_simple_reflection(i)
+                if i in self.descents():
+                    Covers += [(u.apply_simple_reflection(i), r.apply_conjugation_by_simple_reflection(i)) for u,r in wi.bruhat_upper_covers_reflections() if i not in u.descents()]
+                else:
+                    Covers += [(wi,self.parent().simple_reflection(i))]
+            return uniq(Covers)
+
+        def cover_reflections(self, side = 'right'):
+            r"""
+            Returns the set of reflections ``t`` such that ``self`` ``t`` covers ``self``.
+
+            If ``side`` is 'left', ``t`` ``self`` covers ``self``.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',4], prefix="s")
+                sage: w = W.from_reduced_word([3,1,2,1])
+                sage: w.cover_reflections()
+                [s3, s2*s3*s2, s4, s1*s2*s3*s4*s3*s2*s1]
+                sage: w.cover_reflections(side = 'left')
+                [s4, s2, s1*s2*s1, s3*s4*s3]
+
+            """
+
+            if side == 'left':
+                self = self.inverse()
+            return [x[1] for x in self.bruhat_upper_covers_reflections()]
 
         @cached_in_parent_method
         def bruhat_le(self, other):
@@ -1442,11 +1589,12 @@ class CoxeterGroups(Category_singleton):
                 True
 
             """
-            assert have_same_parent(self, other)
+            if not have_same_parent(self, other):
+                raise TypeError, "%s and %s do not have the same parent"%(self, other)
             # could first compare the length, when that information is cheap
             desc = other.first_descent()
             if desc is not None:
-                return self.apply_simple_projection(desc, toward_max = False).bruhat_le(other.apply_simple_reflection(desc))
+                return self.apply_simple_projection(desc, length_increasing = False).bruhat_le(other.apply_simple_reflection(desc))
             else:
                 return self == other
 
@@ -1505,7 +1653,8 @@ class CoxeterGroups(Category_singleton):
                 ...           assert u.permutohedron_lequal(v) == P4toW(u).weak_le(P4toW(v))
                 ...           assert u.permutohedron_lequal(v, side='left') == P4toW(u).weak_le(P4toW(v), side='left')
             """
-            assert have_same_parent(self, other)
+            if not have_same_parent(self, other):
+                raise TypeError, "%s and %s do not have the same parent"%(self,other)
             # could first compare the length, when that information is cheap
             prefix_side = 'left' if side == 'right' else 'right'
 
@@ -1560,6 +1709,281 @@ class CoxeterGroups(Category_singleton):
             return [ self.apply_simple_reflection(i, side=side)
                      for i in self.descents(side=side, index_set = index_set, positive = positive) ]
 
+
+        def apply_demazure_product(self, element, side = 'right', length_increasing = True):
+            r"""
+            Returns the Demazure or 0-Hecke product of ``self`` with another Coxeter group element.
+
+            See :meth:`CoxeterGroups.ParentMethods.simple_projections`.
+
+            INPUT:
+
+            - ``element`` -- either an element of the same Coxeter
+                group as ``self`` or a tuple or a list (such as a
+                reduced word) of elements from the index set of the
+                Coxeter group.
+
+            - ``side`` -- 'left' or 'right' (default: 'right'); the
+                side of ``self`` on which the element should be
+                applied. If ``side`` is 'left' then the operation is
+                applied on the left.
+
+            - ``length_increasing`` -- a boolean (default True)
+                whether to act length increasingly or decreasingly
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['C',4],prefix="s")
+                sage: v = W.from_reduced_word([1,2,3,4,3,1])
+                sage: v.apply_demazure_product([1,3,4,3,3])
+                s4*s1*s2*s3*s4*s3*s1
+                sage: v.apply_demazure_product([1,3,4,3],side='left')
+                s3*s4*s1*s2*s3*s4*s2*s3*s1
+                sage: v.apply_demazure_product((1,3,4,3),side='left')
+                s3*s4*s1*s2*s3*s4*s2*s3*s1
+                sage: v.apply_demazure_product(v)
+                s2*s3*s4*s1*s2*s3*s4*s2*s3*s2*s1
+
+            """
+
+            # if self and element have the same parent
+            if self.parent().is_parent_of(element):
+                the_word = element.reduced_word()
+            else:
+                # check for a list or tuple of elements of the index set
+                if isinstance(element, (tuple)):
+                    element = [x for x in element]
+                if not isinstance(element, (list)):
+                    raise TypeError, "Bad Coxeter group element input: %s"%(element)
+                I = self.parent().index_set()
+                if not all(i in I for i in element):
+                    raise ValueError, "%s does not have all its members in the index set of the %s"%(element, self.parent())
+                # the copy is so that if we need to reverse the list, the original will not
+                # get reversed
+                the_word = copy(element)
+            if side == 'left':
+                the_word.reverse()
+            for i in the_word:
+                self = self.apply_simple_projection(i, side = side, length_increasing = length_increasing)
+            return self
+
+        def min_demazure_product_greater(self, element):
+            r"""
+            Finds the unique Bruhat-minimum element ``u`` such that ``v`` $\le$ ``w`` * ``u`` where ``v`` is ``self``, ``w`` is ``element`` and ``*`` is the Demazure product.
+
+            INPUT:
+
+            - ``element`` is either an element of the same Coxeter group as ``self`` or a list (such as a reduced word) of elements from the index set of the Coxeter group.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',4],prefix="s")
+                sage: v = W.from_reduced_word([2,3,4,1,2])
+                sage: u = W.from_reduced_word([2,3,2,1])
+                sage: v.min_demazure_product_greater(u)
+                s4*s2
+                sage: v.min_demazure_product_greater([2,3,2,1])
+                s4*s2
+                sage: v.min_demazure_product_greater((2,3,2,1))
+                s4*s2
+
+            """
+
+            # if self and element have the same parent
+            if self.parent().is_parent_of(element):
+                the_word = element.reduced_word()
+            # else require that ``element`` is a list or tuple of index_set elements
+            else:
+                if not isinstance(element, (tuple,list)):
+                    raise TypeError, "Bad Coxeter group element input: %s"%(element)
+                I = self.parent().index_set()
+                if not all(i in I for i in element):
+                    raise ValueError, "%s does not have all its members in the index set of the %s"%(element, self.parent())
+                the_word = element
+            for i in the_word:
+                if self.has_descent(i, side = 'left'):
+                    self = self.apply_simple_reflection(i, side = 'left')
+            return self
+
+        def deodhar_factor_element(self, w, index_set):
+            r"""
+            Returns Deodhar's Bruhat order factoring element.
+
+            INPUT:
+
+            - ``w`` is an element of the same Coxeter group ``W`` as ``self``
+            - ``index_set`` is a subset of Dynkin nodes defining a parabolic subgroup ``W'`` of ``W``
+
+            It is assumed that ``v = self`` and ``w`` are minimum length coset representatives
+            for ``W/W'`` such that ``v`` $\le$ ``w`` in Bruhat order.
+
+            OUTPUT:
+
+            Deodhar's element ``f(v,w)`` is the unique element of ``W'`` such that,
+            for all ``v'`` and ``w'`` in ``W'``, ``vv'`` $\le$ ``ww'`` in ``W`` if and only if
+            ``v'`` $\le$ ``f(v,w) * w'`` in ``W'`` where ``*`` is the Demazure product.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',5],prefix="s")
+                sage: v = W.from_reduced_word([5])
+                sage: w = W.from_reduced_word([4,5,2,3,1,2])
+                sage: v.deodhar_factor_element(w,[1,3,4])
+                s3*s1
+                sage: W=WeylGroup(['C',2])
+                sage: w=W.from_reduced_word([2,1])
+                sage: w.deodhar_factor_element(W.from_reduced_word([2]),[1])
+                Traceback (most recent call last):
+                ...
+                ValueError: [2, 1] is not of minimum length in its coset for the parabolic subgroup with index set [1]
+
+            REFERENCES:
+
+                .. [Deodhar] V. Deodhar,  A splitting criterion for the Bruhat orderings on Coxeter groups. Comm. Algebra, 15:1889-1894, 1987.
+
+            """
+
+            if self != self.coset_representative(index_set):
+                raise ValueError, "%s is not of minimum length in its coset for the parabolic subgroup with index set %s"%(self.reduced_word(),index_set)
+            if w != w.coset_representative(index_set):
+                raise ValueError, "%s is not of minimum length in its coset for the parabolic subgroup with index set %s"%(w.reduced_word(),index_set)
+            if not self.bruhat_le(w):
+                raise ValueError, "Must have %s <= %s"%(self.reduced_word(), w.reduced_word())
+            if w.is_one():
+                return w
+            i = w.first_descent(side = 'left')
+            sw = w.apply_simple_reflection(i, side = 'left')
+            sv = self.apply_simple_reflection(i, side = 'left')
+            if self.has_descent(i, side = 'left'):
+                return sv.deodhar_factor_element(sw, index_set)
+            dsp = self.deodhar_factor_element(sw, index_set)
+            des = sv.first_descent(side = 'right', index_set = index_set)
+            if des is None:
+                return dsp
+            return dsp.apply_simple_projection(des, side = 'left')
+
+        def deodhar_lift_up(self, w, index_set):
+            """
+            Letting ``v = self``, given a Bruhat relation ``v W'`` $\le$ ``w W'`` among cosets
+            with respect to the subgroup ``W'`` given by the Dynkin node subset ``index_set``,
+            returns the Bruhat-minimum lift ``x`` of ``wW'`` such that ``v`` $\le$ ``x``.
+
+            INPUT:
+
+            - ``w`` is an element of the same Coxeter group ``W`` as ``self``.
+            - ``index_set`` is a subset of Dynkin nodes defining a parabolic subgroup ``W'``.
+
+            OUTPUT:
+
+            The unique Bruhat-minimum element ``x`` in ``W`` such that ``x W' = w W'``
+            and ``v`` $\le$ ``x``.
+
+            .. SEEALSO:: :meth:`sage.categories.coxeter_groups.CoxeterGroups.ElementMethods.deodhar_lift_down`
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',3],prefix="s")
+                sage: v = W.from_reduced_word([1,2,3])
+                sage: w = W.from_reduced_word([1,3,2])
+                sage: v.deodhar_lift_up(w, [3])
+                s1*s2*s3*s2
+
+            """
+
+            vmin = self.coset_representative(index_set)
+            wmin = w.coset_representative(index_set)
+            if not vmin.bruhat_le(wmin):
+                raise ValueError, "Must have %s <= %s mod the parabolic subgroup with index set %s"%(self.reduced_word(), w.reduced_word(), index_set)
+            vJ = vmin.inverse() * self
+            dsp = vmin.deodhar_factor_element(wmin,index_set)
+            return wmin * vJ.min_demazure_product_greater(dsp)
+
+        def deodhar_lift_down(self, w, index_set):
+            r"""
+            Letting ``v = self``, given a Bruhat relation ``v W'`` $\ge$ ``w W'`` among cosets
+            with respect to the subgroup ``W'`` given by the Dynkin node subset ``index_set``,
+            returns the Bruhat-maximum lift ``x`` of ``wW'`` such that ``v`` $\ge$ ``x``.
+
+            INPUT:
+
+            - ``w`` is an element of the same Coxeter group ``W`` as ``self``.
+            - ``index_set`` is a subset of Dynkin nodes defining a parabolic subgroup ``W'``.
+
+            OUTPUT:
+
+            The unique Bruhat-maximum element ``x`` in ``W`` such that ``x W' = w W'``
+            and ``v $\ge$ ``x``.
+
+            .. SEEALSO:: :meth:`sage.categories.coxeter_groups.CoxeterGroups.ElementMethods.deodhar_lift_up`
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',3],prefix="s")
+                sage: v = W.from_reduced_word([1,2,3,2])
+                sage: w = W.from_reduced_word([3,2])
+                sage: v.deodhar_lift_down(w, [3])
+                s2*s3*s2
+
+            """
+
+            vmin = self.coset_representative(index_set)
+            wmin = w.coset_representative(index_set)
+            if not wmin.bruhat_le(vmin):
+                raise ValueError, "Must have %s <= %s mod the parabolic subgroup with index set %s"%(w.reduced_word(), self.reduced_word(), index_set)
+
+            vJ = vmin.inverse() * self
+            dsp = wmin.deodhar_factor_element(vmin,index_set)
+            return wmin * dsp.apply_demazure_product(vJ)
+
+        def apply_conjugation_by_simple_reflection(self, i):
+            r"""
+            Conjugates ``self`` by the ``i``-th simple reflection.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',3])
+                sage: w = W.from_reduced_word([3,1,2,1])
+                sage: w.apply_conjugation_by_simple_reflection(1).reduced_word()
+                [3, 2]
+
+            """
+
+            return (self.apply_simple_reflection(i)).apply_simple_reflection(i,side='left')
+
+        @cached_in_parent_method
+        def inversions_as_reflections(self):
+            r"""
+            Returns the set of reflections ``r`` such that ``self`` ``r < self``.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',3], prefix="s")
+                sage: w = W.from_reduced_word([3,1,2,1])
+                sage: w.inversions_as_reflections()
+                [s1, s1*s2*s1, s2, s1*s2*s3*s2*s1]
+
+            """
+
+            i = self.first_descent()
+            if i is None:
+                return []
+            wi = self.apply_simple_reflection(i)
+            return [self.parent().simple_reflection(i)]+[u.apply_conjugation_by_simple_reflection(i) for u in wi.inversions_as_reflections()]
+
+        def left_inversions_as_reflections(self):
+            r"""
+            Returns the set of reflections ``r`` such that ``r``  ``self`` < ``self``.
+
+            EXAMPLES::
+
+                sage: W = WeylGroup(['A',3], prefix="s")
+                sage: w = W.from_reduced_word([3,1,2,1])
+                sage: w.left_inversions_as_reflections()
+                [s1, s3, s1*s2*s3*s2*s1, s2*s3*s2]
+
+            """
+
+            return self.inverse().inversions_as_reflections()
 
         def lower_covers(self, side = 'right', index_set = None):
             """

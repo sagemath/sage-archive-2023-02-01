@@ -301,6 +301,7 @@ import tableau
 import permutation
 import composition
 from sage.combinat.partitions import number_of_partitions as bober_number_of_partitions
+from sage.combinat.partitions import ZS1_iterator
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.integer_list import IntegerListsLex
 from sage.combinat.root_system.weyl_group import WeylGroup
@@ -4334,62 +4335,9 @@ class Partitions_all(Partitions):
         """
         n = 0
         while True:
-            for p in self._fast_iterator(n):
-                yield self._element_constructor_(p)
+            for p in ZS1_iterator(n):
+                yield self.element_class(self, p)
             n += 1
-
-    def _fast_iterator(self, n):
-        """
-        A fast iterator for the partitions of ``n`` which returns
-        lists and not partition types.  This is an implementation of
-        the ZS1 algorithm found in "Fast Algorithms for Generating
-        Partitons" by Zoghbi and Stomenovic.
-
-        .. note::
-
-           This algorithm would probably be much faster using C int
-           arrays instead of Python lists.
-
-        EXAMPLES::
-
-            sage: p = Partitions()
-            sage: it = p._fast_iterator(4)
-            sage: it.next()
-            [4]
-            sage: type(_)
-            <type 'list'>
-       """
-        # base case of the recursion: zero is the sum of the empty tuple
-        if n == 0:
-            yield []
-            return
-
-        x = [1]*n
-        x[0] = n
-        m = 0
-        h = 0
-        yield x[:m+1]
-        while x[0] != 1:
-            if x[h] == 2:
-                m += 1
-                x[h] = 1
-                h -= 1
-            else:
-                r = x[h] - 1
-                t = m - h + 1
-                x[h] = r
-                while t >= r:
-                    h += 1
-                    x[h] = r
-                    t -= r
-                if t == 0:
-                    m = h
-                else:
-                    m = h + 1
-                    if t > 1:
-                        h += 1
-                        x[h] = t
-            yield x[:m+1]
 
     def __reversed__(self):
         """
@@ -4407,10 +4355,9 @@ class Partitions_all(Partitions):
         """
         n = 0
         while True:
-            for p in reversed(Partitions(n)):
-                yield self._element_constructor_(p)
+            for p in reversed(list(ZS1_iterator(n))):
+                yield self.element_class(self, p)
             n += 1
-
 
 class Partitions_all_bounded(Partitions):
 
@@ -4798,7 +4745,6 @@ class Partitions_n(Partitions):
             sage: Partitions(4).last()
             [1, 1, 1, 1]
         """
-
         return self.element_class(self, [1]*self.n)
 
     def __iter__(self):
@@ -4810,39 +4756,8 @@ class Partitions_n(Partitions):
             sage: [x for x in Partitions(4)]
             [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
         """
-        for p in self._fast_iterator():
-            yield self._element_constructor_(p)
-
-    def _fast_iterator(self):
-        """
-        A fast iterator for the partitions of `n` which returns lists and not
-        partition types.
-
-        EXAMPLES::
-
-            sage: p = Partitions(4)
-            sage: it = p._fast_iterator()
-            sage: it.next()
-            [4]
-            sage: type(_)
-            <type 'list'>
-            sage: Partitions(-1).list()
-            []
-        """
-        # If n is less than 0, there are no partitions
-        if self.n < 0:
-            return
-
-        # base case of the recursion: zero is the sum of the empty tuple
-        if self.n == 0:
-            yield []
-            return
-
-        # modify the partitions of n-1 to form the partitions of n
-        for p in Partitions_n(self.n-1)._fast_iterator():
-            if p and (len(p) < 2 or p[-2] > p[-1]):
-                yield p[:-1] + [p[-1] + 1]
-            yield p + [1]
+        for p in ZS1_iterator(self.n):
+            yield self.element_class(self, p)
 
     def subset(self, **kwargs):
         r"""
@@ -5124,8 +5039,8 @@ class Partitions_parts_in(Partitions):
 
         EXAMPLES::
 
-            sage: p = Partitions(4)
-            sage: it = p._fast_iterator()
+            sage: P = Partitions(4, parts_in=[2,4])
+            sage: it = P._fast_iterator(4, [2,4])
             sage: it.next()
             [4]
             sage: type(_)

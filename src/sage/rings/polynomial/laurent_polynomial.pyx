@@ -215,16 +215,164 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             ans._mon = self._mon.emul(n)
         return ans
 
-    def coefficient(self, mon):
-        """
-        Return the coefficient of mon in self, where mon must have the
-        same parent as self.  The coefficient is defined as follows.
-        If f is this polynomial, then the coefficient is the sum T/mon
-        where the sum is over terms T in f that are exactly divisible
-        by mon.
+    def __getitem__(self, n):
+        r"""
+        Return the coefficient of `x^n = x_1^{n_1} \cdots x_k^{n_k}` where
+        `n` is a tuple of length `k` and `k` is the number of variables.
 
-        A monomial m(x,y) 'exactly divides' f(x,y) if m(x,y)|f(x,y)
-        and neither x*m(x,y) nor y*m(x,y) divides f(x,y).
+        If the number of inputs is not equal to the number of variables, this
+        raises a ``TypeError``.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = LaurentPolynomialRing(QQ)
+            sage: f = (y^2 - x^9 - 7*x*y^3 + 5*x*y)*x^-3 + x*z; f
+            -x^6 + x*z - 7*x^-2*y^3 + 5*x^-2*y + x^-3*y^2
+            sage: f[6,0,0]
+            -1
+            sage: f[-2,3,0]
+            -7
+            sage: f[-1,4,2]
+            0
+            sage: f[1,0,1]
+            1
+            sage: f[6]
+            Traceback (most recent call last):
+            ...
+            TypeError: Must have exactly 3 inputs
+            sage: f[6,0]
+            Traceback (most recent call last):
+            ...
+            TypeError: Must have exactly 3 inputs
+            sage: f[6,0,0,0]
+            Traceback (most recent call last):
+            ...
+            TypeError: Must have exactly 3 inputs
+        """
+        if isinstance(n, slice):
+            raise TypeError("Multivariate Laurent polynomials are not iterable")
+        if not isinstance(n, tuple) or len(n) != self.parent().ngens():
+            raise TypeError("Must have exactly %s inputs"%self.parent().ngens())
+        cdef ETuple t = ETuple(n)
+        if self._prod is None:
+            self._compute_polydict()
+        if t not in self._prod.exponents():
+            return self.parent().base_ring().zero_element()
+        return self._prod[t]
+
+    def __iter__(self):
+        """
+        Iterate through all terms by returning a list of the coefficient and
+        the corresponding monomial.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = LaurentPolynomialRing(QQ)
+            sage: f = (y^2 - x^9 - 7*x*y^3 + 5*x*y)*x^-3
+            sage: list(f) # indirect doctest
+            [(-1, x^6), (1, x^-3*y^2), (5, x^-2*y), (-7, x^-2*y^3)]
+        """
+        if self._prod is None:
+            self._compute_polydict()
+        for c, exps in self._prod.list():
+            prod = self.parent().one_element()
+            for i in range(len(exps)):
+                prod *= self.parent().gens()[i]**exps[i]
+            yield (c, prod)
+
+    def monomials(self):
+        """
+        Return the list of monomials in ``self``.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = LaurentPolynomialRing(QQ)
+            sage: f = (y^2 - x^9 - 7*x*y^3 + 5*x*y)*x^-3
+            sage: f.monomials()
+            [x^6, x^-3*y^2, x^-2*y, x^-2*y^3]
+        """
+        L = []
+        if self._prod is None:
+            self._compute_polydict()
+        for c, exps in self._prod.list():
+            prod = self.parent().one_element()
+            for i in range(len(exps)):
+                prod *= self.parent().gens()[i]**exps[i]
+            L.append(prod)
+        return L
+
+    def monomial_coefficient(self, mon):
+        """
+        Return the coefficient in the base ring of the monomial ``mon`` in
+        ``self``, where ``mon`` must have the same parent as ``self``.
+
+        This function contrasts with the function :meth:`coefficient()`
+        which returns the coefficient of a monomial viewing this
+        polynomial in a polynomial ring over a base ring having fewer
+        variables.
+
+        INPUT:
+
+        - ``mon`` - a monomial
+
+        .. SEEALSO::
+
+            For coefficients in a base ring of fewer variables, see
+            :meth:`coefficient()`.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = LaurentPolynomialRing(QQ)
+            sage: f = (y^2 - x^9 - 7*x*y^3 + 5*x*y)*x^-3
+            sage: f.monomial_coefficient(x^-2*y^3)
+            -7
+            sage: f.monomial_coefficient(x^2)
+            0
+        """
+        if mon.parent() != self.parent():
+            raise TypeError("Input must have the same parent")
+        if self._prod is None:
+            self._compute_polydict()
+        if (<LaurentPolynomial_mpair>mon)._prod is None:
+            mon._compute_polydict()
+        return self.parent().base_ring()( self._prod.monomial_coefficient(
+                        (<LaurentPolynomial_mpair>mon)._prod.dict()) )
+
+    def constant_coefficient(self):
+        """
+        Return the constant coefficient of ``self``.
+
+        EXAMPLES::
+
+            sage: P.<x,y> = LaurentPolynomialRing(QQ)
+            sage: f = (y^2 - x^9 - 7*x*y^2 + 5*x*y)*x^-3; f
+            -x^6 - 7*x^-2*y^2 + 5*x^-2*y + x^-3*y^2
+            sage: f.constant_coefficient()
+            0
+            sage: f = (x^3 + 2*x^-2*y+y^3)*y^-3; f
+            x^3*y^-3 + 1 + 2*x^-2*y^-2
+            sage: f.constant_coefficient()
+            1
+        """
+        return self[(0,)*self.parent().ngens()]
+
+    def coefficient(self, mon):
+        r"""
+        Return the coefficient of ``mon`` in ``self``, where ``mon`` must
+        have the same parent as ``self``.
+
+        The coefficient is defined as follows. If `f` is this polynomial, then
+        the coefficient `c_m` is sum:
+
+        .. MATH::
+
+            c_m := \sum_T \frac{T}{m}
+
+        where the sum is over terms `T` in `f` that are exactly divisible
+        by `m`.
+
+        A monomial `m(x,y)` 'exactly divides' `f(x,y)` if `m(x,y) | f(x,y)`
+        and neither `x \cdot m(x,y)` nor `y \cdot m(x,y)` divides `f(x,y)`.
 
         INPUT:
 
@@ -232,14 +380,19 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
 
         OUTPUT:
 
-        element of the parent of self
+        Element of the parent of ``self``.
+
+        .. NOTE::
+
+            To get the constant coefficient, call
+            :meth:`constant_coefficient()`.
 
         EXAMPLES::
 
             sage: P.<x,y> = LaurentPolynomialRing(QQ)
 
-        The coefficient returned is an element of the parent of self; in
-        this case, P.
+        The coefficient returned is an element of the parent of ``self``; in
+        this case, ``P``.
 
         ::
 

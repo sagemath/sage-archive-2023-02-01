@@ -1,8 +1,8 @@
 .. _tutorial-objects-and-classes:
 
-================================================
-Tutorial: Objects and Classes in Python and Sage
-================================================
+======================================
+Objects and Classes in Python and Sage
+======================================
 
 .. MODULEAUTHOR:: Florent Hivert <florent.hivert@univ-rouen.fr>
 

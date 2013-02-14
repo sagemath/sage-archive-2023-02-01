@@ -1,5 +1,5 @@
---- ../src/makefile	2005-03-03 09:07:30.000000000 -0800
-+++ makefile	2010-04-30 12:59:23.000000000 -0700
+--- ../src/makefile	2005-03-03 12:07:30.000000000 -0500
++++ ./makefile	2013-02-14 12:20:29.174766134 -0500
 @@ -12,6 +12,7 @@
  gflags = -c $(includedirs) -g
  
@@ -8,7 +8,7 @@
  
  ifdef optimize
  	NDEBUG = true
-@@ -24,9 +25,12 @@
+@@ -24,11 +25,35 @@
  
  cc = g++
  
@@ -16,13 +16,36 @@
 +all: coxeter executable
  
  coxeter: $(objects)
-+	$(cc) -shared -Wl,-soname,libcoxeter3.so -o libcoxeter3.so $(objects) -lc
++ifeq ($(UNAME),Darwin)
++		$(CC) -dynamiclib -Wl,-headerpad_max_install_names,-undefined,dynamic_lookup,-compatibility_version,3.0,-current_version,3.0,-install_name,$(SAGE_LOCAL)/lib/libcoxeter3.dylib -o libcoxeter3.dylib $(objects)
++else
++		$(CC) -shared -Wl,-soname,libcoxeter3.so -o libcoxeter3.so $(objects) -lc
++endif
++
 +
 +executable: $(objects)
  	$(cc) -o coxeter $(objects)
  
++DATADIR="$$SAGE_LOCAL/coxeter/"
++INCLUDEDIR="$$SAGE_LOCAL/include/coxeter/"
++
++install: coxeter executable
++	cp coxeter "$$SAGE_LOCAL/bin/"
++	if [ $UNAME = "Darwin" ]; then                 \
++	    cp libcoxeter3.dylib "$$SAGE_LOCAL/lib/";  \
++	else                                           \
++	    cp libcoxeter3.so    "$$SAGE_LOCAL/lib/";  \
++	fi
++
++	mkdir -p $(DATADIR)
++	cp -r coxeter_matrices headers messages $(DATADIR)
++	mkdir -p $(INCLUDEDIR)
++	cp -r *.h *.hpp $(INCLUDEDIR)
++
  clean:
-@@ -152,6 +156,7 @@
+ 	rm -f $(objects)
+ 
+@@ -152,6 +177,7 @@
  posets.o: posets.cpp posets.h globals.h bits.h list.h memory.h \
    constants.h list.hpp error.h io.h wgraph.h interface.h automata.h \
    coxtypes.h minroots.h dotval.h graph.h type.h transducer.h

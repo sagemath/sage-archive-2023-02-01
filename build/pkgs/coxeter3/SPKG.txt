@@ -48,6 +48,6 @@ following patches is automatically handled by spkg-install:
 
 == Changelog ==
 
-=== coxeter3-1.0 (Mike Hansen 2009-2013) ===
+=== coxeter3-1.1 (Mike Hansen 2009-2013 + some fixes by Nicolas M. Thiéry) ===
 
  * Initial release. See Sage trac #12912

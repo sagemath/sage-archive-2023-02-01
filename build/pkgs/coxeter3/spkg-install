@@ -1,29 +1,32 @@
 #!/usr/bin/env bash
 
-#Patch
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+# Configure
 cd patches
 cp directories.h directories.tmpl
 sed -i "s|SAGE_LOCAL|$SAGE_LOCAL|g" directories.tmpl
-cp directories.tmpl ../src/directories.h
-cp makefile ../src/
-cp sage.cpp sage.h ../src/
 
-#Build
+# Patch the Coxeter3 sources
 cd ../src
-make all
+cp ../patches/directories.tmpl directories.h
+cp ../patches/sage.cpp ../patches/sage.h .
+patch < ../patches/makefile.patch
 
-#Install
-cp coxeter "$SAGE_LOCAL/bin/"
-if [ $UNAME = "Darwin" ]; then
-    cp libcoxeter3.dylib "$SAGE_LOCAL/lib/"
-else
-    cp libcoxeter3.so "$SAGE_LOCAL/lib/"
+# Build
+$MAKE all
+if [ $? -ne 0 ]; then
+   echo "Error building coxeter3"
+   exit 1
 fi
 
-datadir="$SAGE_LOCAL/coxeter/"
-mkdir -p $datadir
-cp -r coxeter_matrices headers messages "$datadir"
-
-includedir="$SAGE_LOCAL/include/coxeter/"
-mkdir -p $includedir
-cp -r *.h *.hpp $includedir
+# Install
+$MAKE install
+if [ $? -ne 0 ]; then
+   echo "Error installing coxeter3"
+   exit 1
+fi

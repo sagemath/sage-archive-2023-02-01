@@ -54,8 +54,17 @@ the file src/COPYING for details.
  * mpn_mulmid-tune.c.patch, mulmid-tune.c.patch, mul-tune.c.patch:
    Fix "jump into scope of identifier with variably modified type" errors.
    (See #8771).
+ * mpn_mulmid-test.c.patch:
+   Fix a potential problem when the value of ZNP_mpn_smp_kara_thresh is
+   SIZE_MAX, this is usually irrealistic but can happen at least on linux
+   on power7 with gcc-4.7.1 (see #14098).
 
 == Changelog ==
+
+=== zn_poly-0.9.p10 ( Francois Bissey, 14 February 2013 ) ===
+ * Trac #14098: Fix a potential problem with the tests where values can get out of
+   range. The problem occurs only in rare case but the code is more sane that way.
+   The fix was gracously provided by the original zn_poly author.
 
 === zn_poly-0.9.p9 (Jeroen Demeyer, 28 May 2012) ===
  * Trac #12751: remove the gcc-4.7.0 workaround for ia64 since this bug

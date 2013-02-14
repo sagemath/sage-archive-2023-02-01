@@ -31,7 +31,7 @@
 +
 +install: coxeter executable
 +	cp coxeter "$$SAGE_LOCAL/bin/"
-+	if [ $UNAME = "Darwin" ]; then                 \
++	if [ $(UNAME) = "Darwin" ]; then                 \
 +	    cp libcoxeter3.dylib "$$SAGE_LOCAL/lib/";  \
 +	else                                           \
 +	    cp libcoxeter3.so    "$$SAGE_LOCAL/lib/";  \

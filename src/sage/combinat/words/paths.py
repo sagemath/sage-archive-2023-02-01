@@ -1473,8 +1473,8 @@ class FiniteWordPath_all(SageObject):
 
     def is_tangent(self):
         r"""
-        The is_tangent() method, which is coded for words, has an extended
-        meaning for word paths, which is not coded yet.
+        The is_tangent() method, which is implemented for words, has
+        an extended meaning for word paths, which is not implemented yet.
 
         TESTS::
 

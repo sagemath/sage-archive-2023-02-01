@@ -5172,26 +5172,25 @@ exponent %s: the length of the word (%s) times the exponent \
 
     def sturmian_desubstitute_as_possible(self):
         r"""
-        Sturmian desubstitutes the word self as much as possible.
+        Sturmian desubstitutes the word ``self`` as much as possible.
 
-        The word self must use at most two-letters. It can be Sturmian
-        desubstituted if one letter appears isolated: the Sturmian
-        desubstitution consist in removing one letter per run of the
-        non-isolated letter. The accelerated Sturmian desubstitution
-        consist in removing a run equal to the length of the shortest
-        inner run from any run of the non-isolated letter (including
-        possible leading and trailing runs even if they have shorter
-        length). The (accelerated) Sturmian desubstitution is done as much
-        as possible. A word is a factor of a Sturmian word if, and only
-        if, the result is the empty word.
+        The finite word ``self`` must be defined on a two-letter
+        alphabet or use at most two-letters.
 
-        INPUT:
-
-        - ``self`` - finite word defined on a two-letter alphabet.
+        It can be Sturmian desubstituted if one letter appears
+        isolated: the Sturmian desubstitution consists in removing one
+        letter per run of the non-isolated letter. The accelerated
+        Sturmian desubstitution consists in removing a run equal to
+        the length of the shortest inner run from any run of the
+        non-isolated letter (including possible leading and trailing
+        runs even if they have shorter length). The (accelerated)
+        Sturmian desubstitution is done as much as possible. A word is
+        a factor of a Sturmian word if, and only if, the result is the
+        empty word.
 
         OUTPUT:
 
-        - A finite word defined on the same two-letter alphabet.
+        - A finite word defined on a two-letter alphabet.
 
         EXAMPLES::
 
@@ -5214,7 +5213,7 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word('aze').sturmian_desubstitute_as_possible()
             Traceback (most recent call last):
             ...
-            TypeError: Your word must be defined on a binary alphabet or use at most two different letters.
+            TypeError: your word must be defined on a binary alphabet or use at most two different letters
             sage: Word('azaaazaazaazaaazaaza', alphabet='az').sturmian_desubstitute_as_possible()
             word:
             sage: Word('azaaazaazaazaaazaaaza', alphabet='az').sturmian_desubstitute_as_possible()
@@ -5263,11 +5262,12 @@ exponent %s: the length of the word (%s) times the exponent \
         else:
             alphabet_as_set = set(self)
             if len(alphabet_as_set) > 2:
-                raise TypeError, 'Your word must be defined on a binary alphabet or use at most two different letters.'
+                raise TypeError('your word must be defined on a binary alphabet or use at most two different letters')
             elif len(alphabet_as_set) < 2:
                 return W()
             else:
                 alphabet = list(alphabet_as_set)
+        word_from_letter = {l:W([l],datatype="list") for l in alphabet}
         is_prefix = True
         current_run_length = 0
         prefix_length = 0
@@ -5297,7 +5297,7 @@ exponent %s: the length of the word (%s) times the exponent \
                     maximal_run[previous_letter] = max(maximal_run[previous_letter],current_run_length)
                     current_run_length = 1
                     previous_letter = i
-        # at his point, previous_letter is the suffix letter and current_run_length is the suffix length
+        # at this point, previous_letter is the suffix letter and current_run_length is the suffix length
         if not (is_isolated[alphabet[0]] or is_isolated[alphabet[1]]):
             return self
         elif is_isolated[alphabet[0]] and is_isolated[alphabet[1]]:
@@ -5309,8 +5309,8 @@ exponent %s: the length of the word (%s) times the exponent \
             else:
                 l_isolated = alphabet[1]
                 l_running = alphabet[0]
-            w_isolated = W(l_isolated,datatype='letter') #the word associated to the isolated letter
-            w_running = W(l_running,datatype='letter') #the word associated to the running letter
+            w_isolated = word_from_letter[l_isolated] #the word associated to the isolated letter
+            w_running = word_from_letter[l_running] #the word associated to the running letter
             min_run = minimal_run[l_running]
             if (prefix_letter == l_isolated) or (prefix_length <= min_run):
                 desubstitued_word = W()
@@ -5327,16 +5327,13 @@ exponent %s: the length of the word (%s) times the exponent \
 
     def is_sturmian_factor(self):
         r"""
-        Tells whether self is a factor of a Sturmian word.
+        Tells whether ``self`` is a factor of a Sturmian word.
 
-        Equivalently, tells whether self is balanced. The advantage over
-        the is_balanced method is that this one runs in linear time
-        whereas is_balanced runs in quadratic time. The word self must be
-        definied on a two-letter alphabet.
+        The finite word ``self`` must be defined on a two-letter alphabet.
 
-        INPUT:
-
-        - ``self`` -- finite word defined on a two-letter alphabet.
+        Equivalently, tells whether ``self`` is balanced. The
+        advantage over the is_balanced method is that this one runs in
+        linear time whereas is_balanced runs in quadratic time.
 
         OUTPUT:
 
@@ -5361,6 +5358,18 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: w.is_sturmian_factor()
             False
 
+            sage: s1 = WordMorphism('a->ab,b->b')
+            sage: s2 = WordMorphism('a->ba,b->b')
+            sage: s3 = WordMorphism('a->a,b->ba')
+            sage: s4 = WordMorphism('a->a,b->ab')
+            sage: W = Words('ab')
+            sage: w = W('ab')
+            sage: for i in xrange(8): w = choice([s1,s2,s3,s4])(w)
+            sage: w
+            word: abaaabaaabaabaaabaaabaabaaabaabaaabaaaba...
+            sage: w.is_sturmian_factor()
+            True
+
         Famous words::
 
             sage: words.FibonacciWord()[:100].is_sturmian_factor()
@@ -5370,18 +5379,15 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: words.KolakoskiWord()[:1000].is_sturmian_factor()
             False
 
-        REFERENCES::
+        REFERENCES:
 
-        -   P. Arnoux, Sturmian sequences, in Substitutions in Dynamics,
-            N. Pytheas Fogg (Ed.), Arithmetics, and Combinatorics (Lecture
-            Notes in Mathematics, Vol. 1794), 2002.
-
-        -   C. Series. The geometry of Markoff numbers. The Mathematical
-            Intelligencer, 7(3):20–29, 1985.
-
-        -   J. Smillie and C. Ulcigrai. Symbolic coding for linear
-            trajectories in the regular octagon. Preprint available at
-            http://arxiv.org/abs/0905.0871, 2009.
+        .. [Arn2002] P. Arnoux, Sturmian sequences, in Substitutions in Dynamics,
+           N. Pytheas Fogg (Ed.), Arithmetics, and Combinatorics (Lecture
+           Notes in Mathematics, Vol. 1794), 2002.
+        .. [Ser1985] C. Series. The geometry of Markoff numbers. The Mathematical
+           Intelligencer, 7(3):20–29, 1985.
+        .. [SU2009] J. Smillie and C. Ulcigrai. Symbolic coding for linear
+           trajectories in the regular octagon, :arxiv:`0905.0871`, 2009.
 
         AUTHOR:
 
@@ -5392,18 +5398,18 @@ exponent %s: the length of the word (%s) times the exponent \
 
     def is_tangent(self):
         r"""
-        Tells whether self is a tangent word.
+        Tells whether ``self`` is a tangent word.
 
-        A binary word is said to be tangent if it can appear in the
-        cutting sequences of a smooth curve to arbitrary small scale.
+        The finite word ``self`` must be defined on a two-letter alphabet.
+
+        A binary word is said to be *tangent* if it can appear in
+        infintely many cutting sequences of a smooth curve, where each
+        cutting sequence is observed on a progressively smaller grid.
+
         This class of words strictly contains the class of 1-balanced
         words, and is strictly contained in the class of 2-balanced words.
 
         This method runs in linear time.
-
-        INPUT:
-
-        - ``self`` -- finite word defined on a two-letter alphabet.
 
         OUTPUT:
 
@@ -5440,14 +5446,15 @@ exponent %s: the length of the word (%s) times the exponent \
 
         REFERENCES:
 
-        -   T. Monteil, The asymptotic language of smooth curves, LaCIM2010.
+        .. [Mon2010] T. Monteil, The asymptotic language of smooth curves, talk
+           at LaCIM2010.
 
         AUTHOR:
 
         -   Thierry Monteil
         """
         if (self.parent().size_of_alphabet() != 2):
-            raise TypeError, 'Your word must be defined on a binary alphabet '
+            raise TypeError('your word must be defined on a binary alphabet')
         [a,b] = self.parent().alphabet()
         mini = 0
         maxi = 0
@@ -5462,13 +5469,13 @@ exponent %s: the length of the word (%s) times the exponent \
         return (maxi - mini <= 2)
 
 
-
     # TODO.
     # 1. Those three swap functions should use the cmp of python.
     # 2. The actual code should then be copied as is in the Word_over_Alphabet
     # and continue to use the parent cmp
     # 3. Once Word can define Words over alphabet, the examples
     # should be updated appropriately.
+
     def swap(self, i, j=None):
         r"""
         Returns the word w with entries at positions i and

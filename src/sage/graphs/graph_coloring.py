@@ -1084,19 +1084,18 @@ def round_robin(n):
         g.delete_vertex(n)
         return g
 
-def linear_arboricity(g, k=1, hex_colors=False, value_only=False, solver = None, verbose = 0):
+def linear_arboricity(g, plus_one=None, hex_colors=False, value_only=False, solver = None, verbose = 0):
     r"""
     Computes the linear arboricity of the given graph.
 
-    The linear arboricity of a graph `G` is the least
-    number `la(G)` such that the edges of `G` can be
-    partitioned into linear forests (i.e. into forests
+    The linear arboricity of a graph `G` is the least number `la(G)` such that
+    the edges of `G` can be partitioned into linear forests (i.e. into forests
     of paths).
 
     Obviously, `la(G)\geq \lceil \frac {\Delta(G)} 2 \rceil`.
 
-    It is conjectured in [Aki80]_ that
-    `la(G)\leq \lceil \frac {\Delta(G)+1} 2 \rceil`.
+    It is conjectured in [Aki80]_ that `la(G)\leq \lceil \frac {\Delta(G)+1} 2
+    \rceil`.
 
     INPUT:
 
@@ -1118,29 +1117,28 @@ def linear_arboricity(g, k=1, hex_colors=False, value_only=False, solver = None,
         - If ``value_only = False``, returns the color classes
           according to the value of ``hex_colors``
 
-    - ``k`` (integer) -- the number of colors to use.
+    - ``plus_one`` (integer) -- whether to use `\lceil \frac {\Delta(G)} 2
+      \rceil` or `\lceil \frac {\Delta(G)+1} 2 \rceil` colors.
 
-        - If ``0``, computes a decomposition of `G` into
-          `\lceil \frac {\Delta(G)} 2 \rceil`
-          forests of paths
+        - If ``0``, computes a decomposition of `G` into `\lceil \frac
+          {\Delta(G)} 2 \rceil` forests of paths
 
-        - If ``1`` (default), computes a decomposition of `G` into
-          `\lceil \frac {\Delta(G)+1} 2 \rceil` colors,
-          which is the conjectured general bound.
+        - If ``1``, computes a decomposition of `G` into `\lceil \frac
+          {\Delta(G)+1} 2 \rceil` colors, which is the conjectured general
+          bound.
 
-        - If ``k=None``, computes a decomposition using the
+        - If ``plus_one = None`` (default), computes a decomposition using the
           least possible number of colors.
 
-    - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-      solver to be used. If set to ``None``, the default one is
-      used. For more information on LP solvers and which default
-      solver is used, see the method :meth:`solve
-      <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the
+    - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver to
+      be used. If set to ``None``, the default one is used. For more information
+      on LP solvers and which default solver is used, see the method
+      :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the
       class :class:`MixedIntegerLinearProgram
       <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-    - ``verbose`` -- integer (default: ``0``). Sets the level of
-       verbosity. Set to 0 by default, which means quiet.
+    - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity. Set
+       to 0 by default, which means quiet.
 
     ALGORITHM:
 
@@ -1158,7 +1156,7 @@ def linear_arboricity(g, k=1, hex_colors=False, value_only=False, solver = None,
 
         sage: from sage.graphs.graph_coloring import linear_arboricity
         sage: g = graphs.GridGraph([4,4])
-        sage: g1,g2 = linear_arboricity(g, k=0)
+        sage: g1,g2 = linear_arboricity(g)
 
     Each graph is of course a forest::
 
@@ -1185,31 +1183,32 @@ def linear_arboricity(g, k=1, hex_colors=False, value_only=False, solver = None,
 
     from sage.rings.integer import Integer
 
-    if k is None:
+    if plus_one is None:
         try:
             return linear_arboricity(g,
-                                     k = (Integer(max(g.degree()))/2).ceil(),
+                                     plus_one = 0,
                                      value_only = value_only,
                                      hex_colors = hex_colors,
                                      solver = solver,
                                      verbose = verbose)
         except ValueError:
             return linear_arboricity(g,
-                                     k = 0,
+                                     plus_one = 1,
                                      value_only = value_only,
                                      hex_colors = hex_colors,
                                      solver = solver,
                                      verbose = verbose)
-    elif k==1:
+    elif plus_one==1:
         k = (Integer(1+max(g.degree()))/2).ceil()
-    elif k==0:
+    elif plus_one==0:
         k = (Integer(max(g.degree()))/2).ceil()
+    else:
+        raise ValueError("plus_one must be equal to 0,1, or to None !")
 
     from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
     from sage.plot.colors import rainbow
 
     p = MixedIntegerLinearProgram(solver = solver)
-
 
     # c is a boolean value such that c[i][(u,v)] = 1 if and only if (u,v) is colored with i
     c = p.new_variable(dim=2)
@@ -1250,7 +1249,7 @@ def linear_arboricity(g, k=1, hex_colors=False, value_only=False, solver = None,
             p.solve(log = verbose)
 
     except MIPSolverException:
-        if k == (Integer(max(g.degree()))/2).ceil():
+        if plus_one:
             raise RuntimeError("It looks like you have found a counterexample to a very old conjecture. Please do not loose it ! Please publish it, and send a post to sage-devel to warn us. I implore you ! Nathann Cohen ")
         else:
             raise ValueError("This graph can not be colored with the given number of colors.")

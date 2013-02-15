@@ -286,7 +286,10 @@ cdef class Parent(category_object.CategoryObject):
             if category is None:
                 category = Sets().Facades()
             else:
-                category = Category.join((category, Sets().Facades()))
+                if isinstance(category, (tuple,list)):
+                    category = Category.join(tuple(category) + (Sets().Facades(),))
+                else:
+                    category = Category.join((category,Sets().Facades()))
         # Setting the categories is currently done in a separate
         # method to let some subclasses (like ParentsWithBase)
         # call it without calling the full constructor

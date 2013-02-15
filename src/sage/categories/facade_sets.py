@@ -96,6 +96,15 @@ class FacadeSets(Category_singleton):
 
     .. note:: the concept of facade parents was originally introduced
        in the computer algebra system MuPAD.
+
+    TESTS:
+
+    Check that multiple categories initialisation works (:trac:`13801`)::
+
+        sage: class A(Parent):
+        ...     def __init__(self):
+        ...         Parent.__init__(self, category=(FiniteEnumeratedSets(),Monoids()), facade=True)
+        sage: a = A()
     """
 
     @cached_method
@@ -203,11 +212,12 @@ class FacadeSets(Category_singleton):
 
         def facade_for(self):
             """
-            Returns all the parents this set is a facade for
+            Returns the parents this set is a facade for
 
             This default implementation assumes that ``self`` has
             an attribute ``_facade_for``, typically initialized by
-            :meth:`Parent.__init__`.
+            :meth:`Parent.__init__`. If the attribute is not present, the method
+            raises a NotImplementedError.
 
             EXAMPLES::
 
@@ -215,8 +225,22 @@ class FacadeSets(Category_singleton):
                 An example of facade set: the monoid of positive integers
                 sage: S.facade_for()
                 (Integer Ring,)
+
+            Check that :trac:`13801` is corrected::
+
+                sage: class A(Parent):
+                ...     def __init__(self):
+                ...         Parent.__init__(self, category=Sets(), facade=True)
+                sage: a = A()
+                sage: a.facade_for()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: this parent did not specify which parents it is a facade for
             """
-            return self._facade_for
+            try:
+                return self._facade_for
+            except AttributeError:
+                raise NotImplementedError("this parent did not specify which parents it is a facade for")
 
         def is_parent_of(self, element):
             """

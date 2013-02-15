@@ -503,7 +503,7 @@ class Crystals(Category_singleton):
                 sage: C = CartanType(['C',2,1])
                 sage: La = C.root_system().weight_lattice().fundamental_weights()
                 sage: T = HighestWeightCrystal(La[0])
-                sage: S = [b for b in T.__iter__(max_depth=3)]
+                sage: S = T.subcrystal(max_depth=3)
                 sage: G = T.digraph(subset=S); G
                 Digraph on 5 vertices
                 sage: G.vertices()

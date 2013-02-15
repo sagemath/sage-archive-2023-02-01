@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
 
 if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
+   echo >&2 "SAGE_LOCAL undefined ... exiting";
+   echo >&2 "Maybe run 'sage -sh'?"
    exit 1
 fi
 
-coxeter < test.input > test.output
+cd src
 
-if ! diff test.output.expected test.output > /dev/null; then
-   echo "Error testing coxeter on test.input:"
-   diff test.output.expected test.output
+$MAKE check
+if [ $? -ne 0 ]; then
+   echo >&2 "Error running coxeter testsuite"
    exit 1
 fi
-rm test.output

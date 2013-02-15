@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 if [ "$SAGE_LOCAL" = "" ]; then
-   echo "SAGE_LOCAL undefined ... exiting";
-   echo "Maybe run 'sage -sh'?"
+   echo >&2 "SAGE_LOCAL undefined ... exiting";
+   echo >&2 "Maybe run 'sage -sh'?"
    exit 1
 fi
 
@@ -15,18 +15,19 @@ sed -i "s|SAGE_LOCAL|$SAGE_LOCAL|g" directories.tmpl
 cd ../src
 cp ../patches/directories.tmpl directories.h
 cp ../patches/sage.cpp ../patches/sage.h .
-patch < ../patches/makefile.patch
+cp ../patches/test.input ../patches/test.output.expected .
+patch -p1 < ../patches/makefile.patch
 
 # Build
 $MAKE all
 if [ $? -ne 0 ]; then
-   echo "Error building coxeter3"
+   echo >&2 "Error building coxeter3"
    exit 1
 fi
 
 # Install
 $MAKE install
 if [ $? -ne 0 ]; then
-   echo "Error installing coxeter3"
+   echo >&2 "Error installing coxeter3"
    exit 1
 fi

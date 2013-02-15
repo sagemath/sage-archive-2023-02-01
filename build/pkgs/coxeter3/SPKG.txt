@@ -42,12 +42,12 @@ following patches is automatically handled by spkg-install:
 
 - directories.h.patch: update coxeter3 directory information to fetch
   its data and messages from the Sage installation tree
-- makefile.patch: handle compilation flags for Darwin
+- makefile.patch: handle compilation flags for Darwin and Cygwin
 - sage.cpp: add a function for Bruhat invervals which is simpler to
   code in C++ than Cython
 
 == Changelog ==
 
-=== coxeter3-1.1 (Mike Hansen 2009-2013 + some fixes by Nicolas M. Thiéry) ===
+=== coxeter3-1.1 (Mike Hansen 2009-2013 + some fixes by Nicolas M. Thiéry and Jean-Pierre Flori) ===
 
  * Initial release. See Sage trac #12912

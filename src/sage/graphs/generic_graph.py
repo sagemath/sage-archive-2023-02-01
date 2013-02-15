@@ -12973,8 +12973,8 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: g=graphs.CompleteGraph(4)
-            sage: h=g.line_graph()
+            sage: g = graphs.CompleteGraph(4)
+            sage: h = g.line_graph()
             sage: h.vertices()
             [(0, 1, None),
             (0, 2, None),
@@ -12989,10 +12989,10 @@ class GenericGraph(GenericGraph_pyx):
             [1 1 0 0 1 1]
             [1 0 1 1 0 1]
             [0 1 1 1 1 0]
-            sage: h2=g.line_graph(labels=False)
+            sage: h2 = g.line_graph(labels=False)
             sage: h2.vertices()
             [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
-            sage: h2.am()==h.am()
+            sage: h2.am() == h.am()
             True
             sage: g = DiGraph([[1..4],lambda i,j: i<j])
             sage: h = g.line_graph()
@@ -13013,7 +13013,7 @@ class GenericGraph(GenericGraph_pyx):
 
         :trac:`13787`::
 
-            sage: g=graphs.KneserGraph(7,1)
+            sage: g = graphs.KneserGraph(7,1)
             sage: C = graphs.CompleteGraph(7)
             sage: C.is_isomorphic(g)
             True
@@ -13071,8 +13071,8 @@ class GenericGraph(GenericGraph_pyx):
                     else:
                         elist.append(conflicts[e])
 
-                # Alls pairs of elements in elist are pairs of the
-                # graph
+                # Alls pairs of elements in elist are edges of the
+                # line graph
                 while elist:
                     x = elist.pop()
                     for y in elist:

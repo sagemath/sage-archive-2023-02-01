@@ -1446,7 +1446,6 @@ cdef class PowerSeries(AlgebraElement):
         f = _solve_linear_de(R, 0, prec, a_list, b_list, f0)
         return self._parent(f, prec)
 
-
     def exp(self, prec=None):
         r"""
         Returns exp of this power series to the indicated precision.
@@ -1515,7 +1514,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: (t + O(t^2)).exp(0)
             O(t^0)
 
-        Handle nonzero constant term (fixes trac #4477)::
+        Handle nonzero constant term (fixes :trac:`4477`)::
 
             sage: R.<x> = PowerSeriesRing(RR)
             sage: (1 + x + x^2 + O(x^3)).exp()
@@ -1546,15 +1545,59 @@ cdef class PowerSeries(AlgebraElement):
             try:
                 C = self[0].exp()
             except AttributeError:
-                raise ArithmeticError, "constant term of power series does not support exponentiation"
+                raise ArithmeticError("constant term of power series does not support exponentiation")
 
             if C.parent() is not self.base_ring():
-                raise ArithmeticError, "exponential of constant term does not belong to coefficient ring (consider working in a larger ring)"
+                raise ArithmeticError("exponential of constant term does not belong to coefficient ring (consider working in a larger ring)")
 
             t = C * t
 
         return t
 
+    def log(self, prec=None):
+        r"""
+        Returns log of this power series to the indicated precision.
+
+        This works only if the constant term of the power series is 1.
+
+        INPUT:
+
+        -  ``prec`` - integer; default is self.parent().default_prec()
+
+        ALGORITHM: See PowerSeries.solve_linear_de().
+
+        .. note::
+
+           - Screwy things can happen if the coefficient ring is not a
+             field of characteristic zero. See
+             PowerSeries.solve_linear_de().
+
+        EXAMPLES::
+
+            sage: R.<t> = PowerSeriesRing(QQ, default_prec=10)
+            sage: (1 + t + O(t^10)).log()
+            t - 1/2*t^2 + 1/3*t^3 - 1/4*t^4 + 1/5*t^5 - 1/6*t^6 + 1/7*t^7 - 1/8*t^8 + 1/9*t^9 + O(t^10)
+
+            sage: t.exp().log()
+            t + O(t^10)
+
+            sage: (1+t).log().exp()
+            1 + t + O(t^10)
+
+            sage: (-1 + t + O(t^10)).log()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: constant term of power series is not 1
+        """
+        if prec is None:
+            prec = self._parent.default_prec()
+
+        if not self[0].is_one():
+            raise ArithmeticError("constant term of power series is not 1")
+
+        zero = self.parent().zero()
+        t = zero.solve_linear_de(prec,b=self.derivative()/self,f0=0)
+        return t
 
     def V(self, n):
         r"""

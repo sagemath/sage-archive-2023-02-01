@@ -1,136 +1,104 @@
 r"""
 Combinatorial Functions
 
-AUTHORS:
-
-- David Joyner (2006-07): initial implementation.
-
-- William Stein (2006-07): editing of docs and code; many
-  optimizations, refinements, and bug fixes in corner cases
-
-- David Joyner (2006-09): bug fix for combinations, added
-  permutations_iterator, combinations_iterator from Python Cookbook,
-  edited docs.
-
-- David Joyner (2007-11): changed permutations, added hadamard_matrix
-
-- Florent Hivert (2009-02): combinatorial class cleanup
-
-- Fredrik Johansson (2010-07): fast implementation of ``stirling_number2``
-
-- Punarbasu Purkayastha (2012-12): deprecate arrangements, combinations,
-  combinations_iterator, and clean up very old deprecated methods.
-
 This module implements some combinatorial functions, as listed
 below. For a more detailed description, see the relevant
 docstrings.
 
-Sequences:
+**Sequences:**
 
 
--  Bell numbers, ``bell_number``
+-  Bell numbers, :func:`bell_number`
 
--  Bernoulli numbers, ``bernoulli_number`` (though
-   PARI's bernoulli is better)
-
--  Catalan numbers, ``catalan_number`` (not to be
+-  Catalan numbers, :func:`catalan_number` (not to be
    confused with the Catalan constant)
 
--  Eulerian/Euler numbers, ``euler_number`` (Maxima)
+-  Eulerian/Euler numbers, :func:`euler_number` (Maxima)
 
--  Fibonacci numbers, ``fibonacci`` (PARI) and
-   ``fibonacci_number`` (GAP) The PARI version is
+-  Fibonacci numbers, :func:`fibonacci` (PARI) and
+   :func:`fibonacci_number` (GAP) The PARI version is
    better.
 
--  Lucas numbers, ``lucas_number1``,
-   ``lucas_number2``.
+-  Lucas numbers, :func:`lucas_number1`,
+   :func:`lucas_number2`.
 
--  Stirling numbers, ``stirling_number1``,
-   ``stirling_number2``.
+-  Stirling numbers, :func:`stirling_number1`,
+   :func:`stirling_number2`.
 
+**Set-theoretic constructions:**
 
-Set-theoretic constructions:
+-  Derangements of a multiset, :func:`derangements` and
+   :func:`number_of_derangements`.
 
-
--  Combinations of a multiset, ``combinations``,
-   ``combinations_iterator``, and
-   ``number_of_combinations``. These are unordered
-   selections without repetition of k objects from a multiset S.
-
--  Arrangements of a multiset, ``arrangements`` and
-   ``number_of_arrangements`` These are ordered
-   selections without repetition of k objects from a multiset S.
-
--  Derangements of a multiset, ``derangements`` and
-   ``number_of_derangements``.
-
--  Tuples of a multiset, ``tuples`` and
-   ``number_of_tuples``. An ordered tuple of length k of
+-  Tuples of a multiset, :func:`tuples` and
+   :func:`number_of_tuples`. An ordered tuple of length k of
    set S is a ordered selection with repetitions of S and is
    represented by a sorted list of length k containing elements from
    S.
 
--  Unordered tuples of a set, ``unordered_tuple`` and
-   ``number_of_unordered_tuples``. An unordered tuple
+-  Unordered tuples of a set, :func:`unordered_tuples` and
+   :func:`number_of_unordered_tuples`. An unordered tuple
    of length k of set S is an unordered selection with repetitions of S
    and is represented by a sorted list of length k containing elements
    from S.
 
--  Permutations of a multiset, ``permutations``,
-   ``permutations_iterator``,
-   ``number_of_permutations``. A permutation is a list
-   that contains exactly the same elements but possibly in different
-   order.
+.. WARNING::
 
+   The following functions are deprecated and will soon be removed.
 
-Partitions:
+    - Combinations of a multiset, :func:`combinations`,
+      :func:`combinations_iterator`, and :func:`number_of_combinations`. These
+      are unordered selections without repetition of k objects from a multiset
+      S.
 
+    - Arrangements of a multiset, :func:`arrangements` and
+      :func:`number_of_arrangements` These are ordered selections without
+      repetition of k objects from a multiset S.
 
--  Partitions of a set, ``partitions_set``,
-   ``number_of_partitions_set``. An unordered partition
+    - Permutations of a multiset, :func:`permutations`,
+      :func:`permutations_iterator`, :func:`number_of_permutations`. A
+      permutation is a list that contains exactly the same elements but possibly
+      in different order.
+
+**Partitions:**
+
+-  Partitions of a set, :func:`partitions_set`,
+   :func:`number_of_partitions_set`. An unordered partition
    of set S is a set of pairwise disjoint nonempty sets with union S
    and is represented by a sorted list of such sets.
 
--  Partitions of an integer, ``Partitions``.
+-  Partitions of an integer, :func:`Partitions`.
    An unordered partition of n is an unordered sum
    `n = p_1+p_2 +\ldots+ p_k` of positive integers and is
    represented by the list `p = [p_1,p_2,\ldots,p_k]`, in
    nonincreasing order, i.e., `p1\geq p_2 ...\geq p_k`.
 
 -  Ordered partitions of an integer,
-   ``ordered_partitions``,
-   ``number_of_ordered_partitions``. An ordered
+   :func:`ordered_partitions`,
+   :func:`number_of_ordered_partitions`. An ordered
    partition of n is an ordered sum
    `n = p_1+p_2 +\ldots+ p_k` of positive integers and is
    represented by the list `p = [p_1,p_2,\ldots,p_k]`, in
    nonincreasing order, i.e., `p1\geq p_2 ...\geq p_k`.
 
--  ``partitions_greatest`` implements a special type
+-  :func:`partitions_greatest` implements a special type
    of restricted partition.
 
--  ``partitions_greatest_eq`` is another type of
+-  :func:`partitions_greatest_eq` is another type of
    restricted partition.
 
--  Tuples of partitions, ``PartitionTuples``. A `k`-tuple
-   of partitions is represented by a list of all `k`-tuples of
-   partitions which together form a partition of `n`.
+-  Tuples of partitions, :class:`PartitionTuples`. A `k`-tuple of partitions is
+   represented by a list of all `k`-tuples of partitions which together form a
+   partition of `n`.
 
--  Powers of a partition, ``partition_power(pi, k)``.
-   The power of a partition corresponds to the `k`-th power of
-   a permutation with cycle structure `\pi`.
+**Related functions:**
 
+-  Bernoulli polynomials, :func:`bernoulli_polynomial`
 
-Related functions:
-
-
--  Bernoulli polynomials, ``bernoulli_polynomial``
-
-
-Implemented in other modules (listed for completeness):
+**Implemented in other modules (listed for completeness):**
 
 The ``sage.rings.arith`` module contains the following
 combinatorial functions:
-
 
 -  binomial the binomial coefficient (wrapped from PARI)
 
@@ -139,15 +107,15 @@ combinatorial functions:
 -  partition (from the Python Cookbook) Generator of the list of
    all the partitions of the integer `n`.
 
--  ``number_of_partitions`` (wrapped from PARI) the
+-  :func:`number_of_partitions` (wrapped from PARI) the
    *number* of partitions:
 
--  ``falling_factorial`` Definition: for integer
+-  :func:`falling_factorial` Definition: for integer
    `a \ge 0` we have `x(x-1) \cdots (x-a+1)`. In all
    other cases we use the GAMMA-function:
    `\frac {\Gamma(x+1)} {\Gamma(x-a+1)}`.
 
--  ``rising_factorial`` Definition: for integer
+-  :func:`rising_factorial` Definition: for integer
    `a \ge 0` we have `x(x+1) \cdots (x+a-1)`. In all
    other cases we use the GAMMA-function:
    `\frac {\Gamma(x+a)} {\Gamma(x)}`.
@@ -157,9 +125,6 @@ combinatorial functions:
 .. math::
 
              \binom{n}{k}_q = \frac{(1-q^m)(1-q^{m-1})\cdots (1-q^{m-r+1})}                              {(1-q)(1-q^2)\cdots (1-q^r)}.
-
-
-
 
 The ``sage.groups.perm_gps.permgroup_elements``
 contains the following combinatorial functions:
@@ -182,6 +147,29 @@ contains the following combinatorial functions:
 REFERENCES:
 
 - http://en.wikipedia.org/wiki/Twelvefold_way (general reference)
+
+AUTHORS:
+
+- David Joyner (2006-07): initial implementation.
+
+- William Stein (2006-07): editing of docs and code; many
+  optimizations, refinements, and bug fixes in corner cases
+
+- David Joyner (2006-09): bug fix for combinations, added
+  permutations_iterator, combinations_iterator from Python Cookbook,
+  edited docs.
+
+- David Joyner (2007-11): changed permutations, added hadamard_matrix
+
+- Florent Hivert (2009-02): combinatorial class cleanup
+
+- Fredrik Johansson (2010-07): fast implementation of ``stirling_number2``
+
+- Punarbasu Purkayastha (2012-12): deprecate arrangements, combinations,
+  combinations_iterator, and clean up very old deprecated methods.
+
+Functions and classes
+---------------------
 """
 
 #*****************************************************************************
@@ -241,18 +229,6 @@ def bell_number(n):
     """
     ans=gap.eval("Bell(%s)"%ZZ(n))
     return ZZ(ans)
-
-## def bernoulli_number(n):
-##     r"""
-##     Returns the n-th Bernoulli number $B_n$; $B_n/n!$ is the
-##     coefficient of $x^n$ in the power series of $x/(e^x-1)$.
-##     Wraps GAP's Bernoulli.
-##     EXAMPLES:
-##         sage: bernoulli_number(50)
-##         495057205241079648212477525/66
-##     """
-##     ans=gap.eval("Bernoulli(%s)"%n)
-##     return QQ(ans)   ## use QQ, not eval, here
 
 def catalan_number(n):
     r"""
@@ -2131,18 +2107,17 @@ def number_of_combinations(mset,k):
     Returns the size of combinations(mset,k). IMPLEMENTATION: Wraps
     GAP's NrCombinations.
 
-    .. note::
-
-       ``mset`` must be a list of integers or strings (i.e., this is
-       very restricted).
-
     EXAMPLES::
 
         sage: mset = [1,1,2,3,4,4,5]
         sage: number_of_combinations(mset,2)
+        doctest:1: DeprecationWarning: Use Combinations(mset,k).cardinality() instead.
+        See http://trac.sagemath.org/14138 for details.
         12
     """
-    return ZZ(gap.eval("NrCombinations(%s,%s)"%(mset,ZZ(k))))
+    from sage.combinat.combination import Combinations
+    deprecation(14138, 'Use Combinations(mset,k).cardinality() instead.')
+    return Combinations(mset,k).cardinality()
 
 def arrangements(mset,k):
     r"""
@@ -2209,16 +2184,19 @@ def arrangements(mset,k):
 
 def number_of_arrangements(mset,k):
     """
-    Returns the size of arrangements(mset,k). Wraps GAP's
-    NrArrangements.
+    Returns the size of arrangements(mset,k).
 
     EXAMPLES::
 
         sage: mset = [1,1,2,3,4,4,5]
         sage: number_of_arrangements(mset,2)
+        doctest:1: DeprecationWarning: Use Arrangements(mset,k).cardinality() instead.
+        See http://trac.sagemath.org/14138 for details.
         22
     """
-    return ZZ(gap.eval("NrArrangements(%s,%s)"%(mset,ZZ(k))))
+    from sage.combinat.permutation import Arrangements
+    deprecation(14138, 'Use Arrangements(mset,k).cardinality() instead.')
+    return Arrangements(mset, k).cardinality()
 
 def derangements(mset):
     """
@@ -2315,10 +2293,6 @@ def tuples(S,k):
             y.append(s)
             ans.append(y)
     return ans
-    ## code wrapping GAP's Tuples:
-    #ans=gap.eval("Tuples(%s,%s)"%(S,k))
-    #return eval(ans)
-
 
 def number_of_tuples(S,k):
     """
@@ -2446,7 +2420,8 @@ def permutations_iterator(mset,n=None):
         sage: permutations(mset)
         [[1, 2, 2], [2, 1, 2], [2, 2, 1]]
         sage: for p in permutations_iterator(mset): print p
-        [1, 2, 2]
+        doctest:1: DeprecationWarning: Use the Permutations object instead.
+        See http://trac.sagemath.org/14138 for details.
         [1, 2, 2]
         [2, 1, 2]
         [2, 2, 1]
@@ -2459,16 +2434,18 @@ def permutations_iterator(mset,n=None):
         sage: [x for x in X]
         [[0, 1], [0, 2], [1, 0], [1, 2], [2, 0], [2, 1]]
     """
+    deprecation(14138, 'Use the Permutations object instead.')
     items = mset
     if n is None:
         n = len(items)
+    from sage.combinat.permutation import Permutations
     for i in range(len(items)):
         v = items[i:i+1]
         if n == 1:
             yield v
         else:
             rest = items[:i] + items[i+1:]
-            for p in permutations_iterator(rest, n-1):
+            for p in Permutations(rest, n-1):
                 yield v + p
 
 def number_of_permutations(mset):
@@ -2495,19 +2472,13 @@ def number_of_permutations(mset):
 
         sage: mset = [1,1,2,2,2]
         sage: number_of_permutations(mset)
+        doctest:1: DeprecationWarning: Use the Permutations object instead.
+        See http://trac.sagemath.org/14138 for details.
         10
     """
-    from sage.rings.arith import factorial
-    m = len(mset)
-    n = []
-    seen = []
-    for element in mset:
-        try:
-            n[seen.index(element)] += 1
-        except (IndexError, ValueError):
-            n.append(1)
-            seen.append(element)
-    return factorial(m)/prod([factorial(k) for k in n])
+    deprecation(14138, 'Use the Permutations object instead.')
+    from sage.combinat.permutation import Permutations
+    return Permutations(mset).cardinality()
 
 def cyclic_permutations(mset):
     """
@@ -2527,11 +2498,6 @@ def cyclic_permutations(mset):
         ...       print cycle
         ['a', 'b', 'c']
         ['a', 'c', 'b']
-
-    Note that lists with repeats are not handled intuitively::
-
-        sage: cyclic_permutations([1,1,1])
-        [[1, 1, 1], [1, 1, 1]]
     """
     return list(cyclic_permutations_iterator(mset))
 
@@ -2554,14 +2520,11 @@ def cyclic_permutations_iterator(mset):
         ...       print cycle
         ['a', 'b', 'c']
         ['a', 'c', 'b']
-
-    Note that lists with repeats are not handled intuitively::
-
-        sage: cyclic_permutations([1,1,1])
-        [[1, 1, 1], [1, 1, 1]]
     """
     if len(mset) > 2:
-        for perm in permutations_iterator(mset[1:]):
+        from sage.combinat.permutation import Permutations
+
+        for perm in Permutations(mset[1:]):
             yield [mset[0]] + perm
     else:
         yield mset

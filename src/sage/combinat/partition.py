@@ -581,7 +581,6 @@ class Partition_class(CombinatorialObject):
         gens.append( range(1,self.size()+1) )  # to ensure we get a subgroup of Sym_n
         return PermutationGroup( gens )
 
-
     def young_subgroup_generators(self):
         """
         Return an indexing set for the generators of the corresponding Young
@@ -3679,7 +3678,8 @@ def Partitions(n=None, **kwargs):
     ::
 
         sage: [x for x in Partitions(4, length=3, min_part=0)]
-        doctest:... RuntimeWarning: Currently, setting min_part=0 produces Partition objects which violate internal assumptions.  Calling methods on these objects may produce errors or WRONG results!
+        doctest:1: DeprecationWarning: Setting min_part=0 violates internal assumptions of Partition objects. Some methods may produce errors or WRONG results ! This will soon be disabled.
+        See http://trac.sagemath.org/14138 for details.
         [[4, 0, 0], [3, 1, 0], [2, 2, 0], [2, 1, 1]]
         sage: [x for x in Partitions(4, min_length=3, min_part=0)]
         [[4, 0, 0], [3, 1, 0], [2, 2, 0], [2, 1, 1], [1, 1, 1, 1]]
@@ -3760,8 +3760,11 @@ def Partitions(n=None, **kwargs):
                 if 'min_part' not in kwargs:
                     kwargs['min_part'] = 1
                 elif kwargs['min_part'] == 0:
-                    from warnings import warn
-                    warn("Currently, setting min_part=0 produces Partition objects which violate internal assumptions.  Calling methods on these objects may produce errors or WRONG results!", RuntimeWarning)
+                    from sage.misc.superseded import deprecation
+                    deprecation(14138,"Setting min_part=0 violates internal "+
+                                "assumptions of Partition objects. Some "+
+                                "methods may produce errors or WRONG results "+
+                                "! This will soon be disabled.")
 
                 if 'max_slope' not in kwargs:
                     kwargs['max_slope'] = 0
@@ -3820,7 +3823,6 @@ class Partitions_all(InfiniteAbstractCombinatorialClass):
         pass
 
     Element = Partition_class
-
 
     def cardinality(self):
         """
@@ -5078,14 +5080,6 @@ def cyclic_permutations_of_partition(partition):
          [[1, 3, 4, 2], [5, 7, 6]],
          [[1, 4, 2, 3], [5, 7, 6]],
          [[1, 4, 3, 2], [5, 7, 6]]]
-
-    Note that repeated elements are not considered equal::
-
-        sage: cyclic_permutations_of_partition([[1,2,3],[4,4,4]])
-        [[[1, 2, 3], [4, 4, 4]],
-         [[1, 3, 2], [4, 4, 4]],
-         [[1, 2, 3], [4, 4, 4]],
-         [[1, 3, 2], [4, 4, 4]]]
     """
     from sage.misc.superseded import deprecation
     deprecation(13072,'cyclic_permutations_of_partition is being removed from the global namespace. Use sage.combinat.set_partition.cyclic_permutations_of_set_partition instead.')
@@ -5119,14 +5113,6 @@ def cyclic_permutations_of_partition_iterator(partition):
          [[1, 3, 4, 2], [5, 7, 6]],
          [[1, 4, 2, 3], [5, 7, 6]],
          [[1, 4, 3, 2], [5, 7, 6]]]
-
-    Note that repeated elements are not considered equal::
-
-        sage: list(cyclic_permutations_of_partition_iterator([[1,2,3],[4,4,4]]))
-        [[[1, 2, 3], [4, 4, 4]],
-         [[1, 3, 2], [4, 4, 4]],
-         [[1, 2, 3], [4, 4, 4]],
-         [[1, 3, 2], [4, 4, 4]]]
     """
     from sage.misc.superseded import deprecation
     deprecation(13072,'cyclic_permutations_of_partition_iterator is being removed from the global namespace. Please use sage.combinat.set_partition.cyclic_permutations_of_set_partition_iterator instead.')

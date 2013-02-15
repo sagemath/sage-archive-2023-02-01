@@ -516,14 +516,6 @@ def cyclic_permutations_of_set_partition(set_part):
          [[1, 3, 4, 2], [5, 7, 6]],
          [[1, 4, 2, 3], [5, 7, 6]],
          [[1, 4, 3, 2], [5, 7, 6]]]
-
-    Note that repeated elements are not considered equal::
-
-        sage: cyclic_permutations_of_set_partition([[1,2,3],[4,4,4]])
-        [[[1, 2, 3], [4, 4, 4]],
-         [[1, 3, 2], [4, 4, 4]],
-         [[1, 2, 3], [4, 4, 4]],
-         [[1, 3, 2], [4, 4, 4]]]
     """
     return list(cyclic_permutations_of_set_partition_iterator(set_part))
 
@@ -553,14 +545,6 @@ def cyclic_permutations_of_set_partition_iterator(set_part):
          [[1, 3, 4, 2], [5, 7, 6]],
          [[1, 4, 2, 3], [5, 7, 6]],
          [[1, 4, 3, 2], [5, 7, 6]]]
-
-    Note that repeated elements are not considered equal::
-
-        sage: list(cyclic_permutations_of_set_partition_iterator([[1,2,3],[4,4,4]]))
-        [[[1, 2, 3], [4, 4, 4]],
-         [[1, 3, 2], [4, 4, 4]],
-         [[1, 2, 3], [4, 4, 4]],
-         [[1, 3, 2], [4, 4, 4]]]
     """
     from combinat import cyclic_permutations_iterator
     if len(set_part) == 1:

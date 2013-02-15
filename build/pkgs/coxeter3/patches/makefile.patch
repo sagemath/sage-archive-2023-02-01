@@ -1,6 +1,6 @@
 diff -druN src.orig/makefile src/makefile
 --- src.orig/makefile	2013-02-14 18:26:28.000000000 +0100
-+++ src/makefile	2013-02-15 12:08:05.541926849 +0100
++++ src/makefile	2013-02-15 14:34:54.082756900 +0100
 @@ -12,6 +12,7 @@
  gflags = -c $(includedirs) -g
  
@@ -16,7 +16,7 @@ diff -druN src.orig/makefile src/makefile
 -cc = g++
 +EXENAME = coxeter
 +LIBNAME = coxeter3
-+ifeq ($(UNAME),"Darwin")
++ifeq ($(UNAME),Darwin)
 +	EXEEXT = 
 +	LIBPREFIX = lib
 +	LIBEXT = .dylib
@@ -24,7 +24,7 @@ diff -druN src.orig/makefile src/makefile
 +	LINKFLAGS = -dynamiclib -Wl,-headerpad_max_install_names,-undefined,dynamic_lookup,-compatibility_version,3.0,-current_version,3.0,-install_name,$(SAGE_LOCAL)/lib/$(LIBPREFIX)$(LIBNAME)$(LIBEXT)
 +	LINKLIBS = 
 +else
-+ifeq ($(UNAME),"CYGWIN")
++ifeq ($(UNAME),CYGWIN)
 +	EXEEXT = .exe
 +	LIBPREFIX = cyg
 +	LIBEXT = .dll
@@ -48,7 +48,7 @@ diff -druN src.orig/makefile src/makefile
  
  coxeter: $(objects)
 -	$(cc) -o coxeter $(objects)
-+	$(CC) $(LINKFLAGS) -o $(LIBRARY) $(objects) $(LINKLIBS)
++	$(CXX) $(LINKFLAGS) -o $(LIBRARY) $(objects) $(LINKLIBS)
 +
 +executable: $(objects)
 +	$(CXX) -o $(EXENAME)$(EXEEXT) $(objects)

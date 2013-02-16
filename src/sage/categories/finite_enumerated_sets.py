@@ -96,7 +96,7 @@ class FiniteEnumeratedSets(Category):
             """
             return True
 
-        def _cardinality_from_iterator(self):
+        def _cardinality_from_iterator(self, *ignored_args, **ignored_kwds):
             """
             The cardinality of ``self``.
 
@@ -125,11 +125,41 @@ class FiniteEnumeratedSets(Category):
             TESTS:
 
             This method shall return an ``Integer``; we test this
-            here, because :meth:'_test_enumerated_set_iter_cardinality'
+            here, because :meth:`_test_enumerated_set_iter_cardinality`
             does not do it for us::
 
                 sage: type(C._cardinality_from_iterator())
                 <type 'sage.rings.integer.Integer'>
+
+            We ignore additional inputs since during doctests classes which
+            override ``cardinality()`` call up to the category rather than
+            their own ``cardinality()`` method (see :trac:`13688`)::
+
+                sage: C = FiniteEnumeratedSets().example()
+                sage: C._cardinality_from_iterator(algorithm='testing')
+                3
+
+            Here is a more complete example::
+
+                sage: class TestParent(Parent):
+                ...     def __init__(self):
+                ...         Parent.__init__(self, category=FiniteEnumeratedSets())
+                ...     def __iter__(self):
+                ...         yield 1
+                ...         return
+                ...     def cardinality(self, dummy_arg):
+                ...         return 1 # we don't want to change the semantics of cardinality()
+                sage: P = TestParent()
+                sage: P.cardinality(-1)
+                1
+                sage: v = P.list(); v
+                [1]
+                sage: P.cardinality()
+                1
+                sage: P.cardinality('use alt algorithm') # Used to break here: see :trac:`13688`
+                1
+                sage: P.cardinality(dummy_arg='use alg algorithm') # Used to break here: see :trac:`13688`
+                1
             """
             c = 0
             for _ in self:
@@ -156,7 +186,7 @@ class FiniteEnumeratedSets(Category):
             """
             return [x for x in self]
 
-        def _cardinality_from_list(self):
+        def _cardinality_from_list(self, *ignored_args, **ignored_kwds):
             """
             The cardinality of ``self``.
 
@@ -169,6 +199,14 @@ class FiniteEnumeratedSets(Category):
 
                 sage: C = FiniteEnumeratedSets().example()
                 sage: C._cardinality_from_list()
+                3
+
+            We ignore additional inputs since during doctests classes which
+            override ``cardinality()`` call up to the category rather than
+            their own ``cardinality()`` method (see :trac:`13688`)::
+
+                sage: C = FiniteEnumeratedSets().example()
+                sage: C._cardinality_from_list(algorithm='testing')
                 3
             """
             # We access directly the cache self._list to bypass the

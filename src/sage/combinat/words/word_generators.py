@@ -4,17 +4,37 @@ A collection of constructors of common words
 
 AUTHORS:
 
-    - Franco Saliola (2008-12-17): merged into sage
-    - Sebastien Labbe (2008-12-17): merged into sage
-    - Arnaud Bergeron (2008-12-17): merged into sage
-    - Amy Glen (2008-12-17): merged into sage
-    - Sebastien Labbe (2009-12-19): Added S-adic words (ticket #7543)
+- Franco Saliola (2008-12-17): merged into sage
+- Sebastien Labbe (2008-12-17): merged into sage
+- Arnaud Bergeron (2008-12-17): merged into sage
+- Amy Glen (2008-12-17): merged into sage
+- Sebastien Labbe (2009-12-19): Added S-adic words (:trac:`7543`)
 
 USE:
 
-To see a list of all word constructors, type “words.” and then press the tab
+To see a list of all word constructors, type ``words.`` and then press the tab
 key. The documentation for each constructor includes information about each
 word, which provides a useful reference.
+
+REFERENCES:
+
+.. [AC03] B. Adamczewski, J. Cassaigne, On the transcendence of real
+   numbers with a regular expansion, J. Number Theory 103 (2003)
+   27--37.
+
+.. [BmBGL07] A. Blondin-Masse, S. Brlek, A. Glen, and S. Labbe. On the
+   critical exponent of generalized Thue-Morse words. *Discrete Math.
+   Theor. Comput.  Sci.* 9 (1):293--304, 2007.
+
+.. [BmBGL09] A. Blondin-Masse, S. Brlek, A. Garon, and S. Labbe. Christoffel
+   and Fibonacci Tiles, DGCI 2009, Montreal, to appear in LNCS.
+
+.. [Loth02] M. Lothaire, Algebraic Combinatorics On Words, vol. 90 of
+   Encyclopedia of Mathematics and its Applications, Cambridge
+   University Press, U.K., 2002.
+
+.. [Fogg] Pytheas Fogg,
+   https://www.lirmm.fr/arith/wiki/PytheasFogg/S-adiques.
 
 EXAMPLES::
 
@@ -355,6 +375,8 @@ class WordGenerator(object):
         We use the following definition: `t[n]` is the sum modulo `m` of
         the digits in the given base expansion of `n`.
 
+        See [BmBGL07]_, [Brlek89]_, and [MH38]_.
+
         INPUT:
 
         -  ``alphabet`` - (default: (0, 1) ) any container that is suitable to
@@ -398,12 +420,10 @@ class WordGenerator(object):
 
         REFERENCES:
 
-        -  [1] A. Blondin-Masse, S. Brlek, A. Glen, and S. Labbe. On the
-           critical exponent of generalized Thue-Morse words. *Discrete Math.
-           Theor. Comput.  Sci.* 9 (1):293--304, 2007.
-        -  [2] Brlek, S. 1989. «Enumeration of the factors in the Thue-Morse
+        .. [Brlek89] Brlek, S. 1989. «Enumeration of the factors in the Thue-Morse
            word», *Discrete Appl. Math.*, vol. 24, p. 83--96.
-        -  [3] Morse, M., et G. A. Hedlund. 1938. «Symbolic dynamics»,
+
+        .. [MH38] Morse, M., et G. A. Hedlund. 1938. «Symbolic dynamics»,
            *American Journal of Mathematics*, vol. 60, p. 815--866.
         """
         from functools import partial
@@ -437,8 +457,8 @@ class WordGenerator(object):
 
         OUTPUT:
 
-            0 or 1 -- the digit at the position
-            letter -- the letter of alphabet at the position
+        0 or 1 -- the digit at the position
+        letter -- the letter of alphabet at the position
 
         TESTS::
 
@@ -478,9 +498,10 @@ class WordGenerator(object):
 
         INPUT:
 
-        -  ``alphabet`` - any container of length two that is suitable to
+        -  ``alphabet`` -- any container of length two that is suitable to
            build an instance of OrderedAlphabet (list, tuple, str, ...)
-        -  ``construction_method`` - can be any of the following:
+
+        -  ``construction_method`` -- can be any of the following:
            "recursive", "fixed point", "function" (see below for definitions).
 
         Recursive construction: the Fibonacci word is the limit of the
@@ -491,11 +512,10 @@ class WordGenerator(object):
         morphism: `0 \mapsto 01` and `1 \mapsto 0`. Hence, it can be constructed
         by the following read-write process:
 
-        |    beginning at the first letter of `01`,
-        |    if the next letter is `0`, append `01` to the word;
-        |    if the next letter is `1`, append `1` to the word;
-        |    move to the next letter of the word.
-        |
+        #. beginning at the first letter of `01`,
+        #. if the next letter is `0`, append `01` to the word;
+        #. if the next letter is `1`, append `1` to the word;
+        #. move to the next letter of the word.
 
         Function: Over the alphabet `\{1, 2\}`, the n-th letter of the
         Fibonacci word is
@@ -546,10 +566,10 @@ class WordGenerator(object):
             ...
             TypeError: alphabet does not contain two distinct elements
         """
-        from sage.combinat.words.alphabet import Alphabet
-        alphabet = Alphabet(alphabet)
+        from sage.combinat.words.alphabet import build_alphabet
+        alphabet = build_alphabet(alphabet)
         if alphabet.cardinality() != 2:
-            raise TypeError, "alphabet does not contain two distinct elements"
+            raise TypeError("alphabet does not contain two distinct elements")
 
         a,b = alphabet
         W = Words(alphabet)
@@ -609,13 +629,15 @@ class WordGenerator(object):
 
         INPUT:
 
-        -  ``morphism`` - endomorphism prolongable on first_letter. It must be
-           something that WordMorphism's constructor understands
+        -  ``morphism`` -- endomorphism prolongable on ``first_letter``. It
+           must be something that WordMorphism's constructor understands
            (dict, str, ...).
-        -  ``first_letter`` - the first letter of the fixed point
+
+        -  ``first_letter`` -- the first letter of the fixed point
 
         OUTPUT:
-            word -- the fixed point of the morphism beginning with first_letter
+
+        The fixed point of the morphism beginning with ``first_letter``
 
         EXAMPLES::
 
@@ -651,7 +673,7 @@ class WordGenerator(object):
         The *coding of rotation* corresponding to the parameters
         `(\alpha,\beta, x)` is the symbolic sequence `u = (u_n)_{n\geq 0}`
         defined over the binary alphabet `\{0, 1\}` by `u_n = 1` if
-        `x+n\alpha\in[0, \beta[` and `u_n = 0` otherwise. See [1].
+        `x+n\alpha\in[0, \beta[` and `u_n = 0` otherwise. See [AC03]_.
 
         EXAMPLES::
 
@@ -671,12 +693,6 @@ class WordGenerator(object):
             Traceback (most recent call last):
             ...
             TypeError: alphabet does not contain two distinct elements
-
-        REFERENCES:
-
-        -   [1] B. Adamczewski, J. Cassaigne, On the transcendence of real
-            numbers with a regular expansion, J. Number Theory 103 (2003)
-            27--37.
         """
         if len(set(alphabet)) != 2:
             raise TypeError, "alphabet does not contain two distinct elements"
@@ -730,7 +746,7 @@ class WordGenerator(object):
         the sequence: `s_0 = b, s_1 = a, \ldots, s_{n+1} = s_n^{d_n} s_{n-1}`
         for `n > 0`.
 
-        See Section 2.1 of [1] for more details.
+        See Section 2.1 of [Loth02]_ for more details.
 
         INPUT:
 
@@ -864,15 +880,9 @@ class WordGenerator(object):
             sage: v = words.CharacteristicSturmianWord(a/(a+b))
             sage: u[1:-1] == v[:-2]
             True
-
-        REFERENCES:
-
-        -   [1] M. Lothaire, Algebraic Combinatorics On Words, vol. 90 of
-            Encyclopedia of Mathematics and its Applications, Cambridge
-            University Press, U.K., 2002.
         """
         if len(set(alphabet)) != 2:
-            raise TypeError, "alphabet does not contain two distinct elements"
+            raise TypeError("alphabet does not contain two distinct elements")
         if slope in RR:
             if not 0 < slope < 1:
                 msg = "The argument slope (=%s) must be in ]0,1[."%slope
@@ -1015,9 +1025,9 @@ class WordGenerator(object):
 
         REFERENCES:
 
-        - [1] William Kolakoski, proposal 5304, American Mathematical Monthly
-          72 (1965), 674; for a partial solution, see "Self Generating Runs,"
-          by Necdet Üçoluk, Amer. Math. Mon. 73 (1966), 681-2.
+        .. [Kolakoski66] William Kolakoski, proposal 5304, American Mathematical Monthly
+           72 (1965), 674; for a partial solution, see "Self Generating Runs,"
+           by Necdet Üçoluk, Amer. Math. Mon. 73 (1966), 681-2.
         """
         a, b = alphabet
         if a not in ZZ or a <= 0 or b not in ZZ or b <= 0 or a == b:
@@ -1090,15 +1100,17 @@ class WordGenerator(object):
 
         The lower mechanical word `s_{\alpha,\rho}` with
         slope `\alpha` and intercept `\rho` is defined by
-        `s_{\alpha,\rho}(n)=\lfloor\alpha(n+1)+\rho\rfloor -
-        \lfloor\alpha n + \rho\rfloor` [1].
+        `s_{\alpha,\rho}(n) = \lfloor\alpha(n+1) + \rho\rfloor -
+        \lfloor\alpha n + \rho\rfloor`. [Loth02]_
 
         INPUT:
 
-        - ``alpha`` - real number such that `0 \leq\alpha\leq 1`
-        - ``rho`` - real number (optional, default: 0)
-        - ``alphabet`` - iterable of two elements or None
-          (optional, default: None)
+        - ``alpha`` -- real number such that `0 \leq\alpha\leq 1`
+
+        - ``rho`` -- real number (optional, default: 0)
+
+        - ``alphabet`` -- iterable of two elements or ``None``
+          (optional, default: ``None``)
 
         OUTPUT:
 
@@ -1120,25 +1132,25 @@ class WordGenerator(object):
             sage: m[:500] == s[:500]
             True
 
-        REFERENCES:
+        Check that this returns a word in an alphabet (:trac:`10054`)::
 
-        - [1] M. Lothaire, Algebraic Combinatorics On Words, vol. 90 of
-          Encyclopedia of Mathematics and its Applications, Cambridge
-          University Press, U.K., 2002.
+            sage: words.UpperMechanicalWord(1/golden_ratio^2).parent()
+            Words over {0, 1}
         """
-        from sage.functions.other import floor
         if not 0 <= alpha <= 1:
-            msg = "Parameter alpha (=%s) must be in [0,1]."%alpha
-            raise ValueError, msg
+            raise ValueError("Parameter alpha (=%s) must be in [0,1]."%alpha)
+
+        from sage.functions.other import floor
+        from sage.combinat.words.alphabet import build_alphabet
         if alphabet is None or alphabet in ((0, 1), [0, 1]):
+            alphabet = build_alphabet([0, 1])
             s = lambda n: floor(alpha*(n+1) + rho) - floor(alpha*n + rho)
         else:
-            from sage.combinat.words.alphabet import Alphabet
-            A = Alphabet(alphabet)
-            card = A.cardinality()
+            alphabet = build_alphabet(alphabet)
+            card = alphabet.cardinality()
             if card != 2:
-                raise TypeError, "size of alphabet (=%s) must be two"%card
-            s = lambda n: A[floor(alpha*(n+1) + rho) - floor(alpha*n + rho)]
+                raise TypeError("size of alphabet (=%s) must be two"%card)
+            s = lambda n: alphabet[floor(alpha*(n+1) + rho) - floor(alpha*n + rho)]
         return Words(alphabet)(s)
 
     def UpperMechanicalWord(self, alpha, rho=0, alphabet=None):
@@ -1148,15 +1160,17 @@ class WordGenerator(object):
 
         The upper mechanical word `s'_{\alpha,\rho}` with
         slope `\alpha` and intercept `\rho` is defined by
-        `s'_{\alpha,\rho}(n)=\lceil\alpha(n+1)+\rho\rceil -
-        \lceil\alpha n + \rho\rceil`. [1]
+        `s'_{\alpha,\rho}(n) = \lceil\alpha(n+1) + \rho\rceil -
+        \lceil\alpha n + \rho\rceil`. [Loth02]_
 
         INPUT:
 
-        - ``alpha`` - real number such that `0 \leq\alpha\leq 1`
-        - ``rho`` - real number (optional, default: 0)
-        - ``alphabet`` - iterable of two elements or None
-          (optional, default: None)
+        - ``alpha`` -- real number such that `0 \leq\alpha\leq 1`
+
+        - ``rho`` -- real number (optional, default: 0)
+
+        - ``alphabet`` -- iterable of two elements or ``None``
+          (optional, default: ``None``)
 
         OUTPUT:
 
@@ -1178,25 +1192,25 @@ class WordGenerator(object):
             sage: m[:500] == s[:500]
             True
 
-        REFERENCES:
+        Check that this returns a word in an alphabet (:trac:`10054`)::
 
-        - [1] M. Lothaire, Algebraic Combinatorics On Words, vol. 90 of
-          Encyclopedia of Mathematics and its Applications, Cambridge
-          University Press, U.K., 2002.
+            sage: words.UpperMechanicalWord(1/golden_ratio^2).parent()
+            Words over {0, 1}
         """
-        from sage.functions.other import ceil
         if not 0 <= alpha <= 1:
-            msg = "Parameter alpha (=%s) must be in [0,1]."%alpha
-            raise ValueError, msg
+            raise ValueError("Parameter alpha (=%s) must be in [0,1]."%alpha)
+
+        from sage.functions.other import ceil
+        from sage.combinat.words.alphabet import build_alphabet
         if alphabet is None or alphabet in ((0, 1), [0, 1]):
+            alphabet = build_alphabet([0, 1])
             s = lambda n: ceil(alpha*(n+1) + rho) - ceil(alpha*n + rho)
         else:
-            from sage.combinat.words.alphabet import Alphabet
-            A = Alphabet(alphabet)
-            card = A.cardinality()
+            alphabet = build_alphabet(alphabet)
+            card = alphabet.cardinality()
             if card != 2:
-                raise TypeError, "size of alphabet (=%s) must be two"%card
-            s = lambda n: A[ceil(alpha*(n+1) + rho) - ceil(alpha*n + rho)]
+                raise TypeError("size of alphabet (=%s) must be two"%card)
+            s = lambda n: alphabet[ceil(alpha*(n+1) + rho) - ceil(alpha*n + rho)]
         return Words(alphabet)(s)
 
     def StandardEpisturmianWord(self, directive_word):
@@ -1215,7 +1229,7 @@ class WordGenerator(object):
         Note that an infinite word is *episturmian* if it has the same set
         of factors as some epistandard word.
 
-        See for instance [1], [2], and [3].
+        See for instance [DJP01]_, [JP02]_, and [GJ07]_.
 
         INPUT:
 
@@ -1247,13 +1261,11 @@ class WordGenerator(object):
 
         REFERENCES:
 
-        -   [1] X. Droubay, J. Justin, G. Pirillo, Episturmian words and some
-            constructions of de Luca and Rauzy, Theoret. Comput. Sci. 255
-            (2001) 539--553.
-        -   [2] J. Justin, G. Pirillo, Episturmian words and episturmian
-            morphisms, Theoret. Comput. Sci. 276 (2002) 281--313.
-        -   [3] A. Glen, J. Justin, Episturmian words: a survey, Preprint,
-            2007, arXiv:0801.1655.
+        .. [JP02] J. Justin, G. Pirillo, Episturmian words and episturmian
+           morphisms, Theoret. Comput. Sci. 276 (2002) 281--313.
+
+        .. [GJ07] A. Glen, J. Justin, Episturmian words: a survey, Preprint,
+           2007, arXiv:0801.1655.
         """
         if not isinstance(directive_word, Word_class):
            raise TypeError, "directive_word is not a word, so it cannot be used to build an episturmian word"
@@ -1305,20 +1317,20 @@ class WordGenerator(object):
         This function finds and returns the minimal smooth prefix of length
         ``n``.
 
-        See [1] for a definition.
+        See [BMP07]_ for a definition.
 
         INPUT:
 
-        - ``n`` - the desired length of the prefix
+        - ``n`` -- the desired length of the prefix
 
         OUTPUT:
 
-            word -- the prefix
+        word -- the prefix
 
-        NOTE:
+        .. NOTE::
 
-        Be patient, this function can take a really long time if asked
-        for a large prefix.
+            Be patient, this function can take a really long time if asked
+            for a large prefix.
 
         EXAMPLES::
 
@@ -1327,9 +1339,9 @@ class WordGenerator(object):
 
         REFERENCES:
 
-        -   [1] S. Brlek, G. Melançon, G. Paquin, Properties of the extremal
-            infinite smooth words, Discrete Math. Theor. Comput. Sci. 9 (2007)
-            33--49.
+        .. [BMP07] S. Brlek, G. Melançon, G. Paquin, Properties of the extremal
+           infinite smooth words, Discrete Math. Theor. Comput. Sci. 9 (2007)
+           33--49.
         """
         tab = []
         W = Words([1, 2])
@@ -1475,9 +1487,7 @@ class WordGenerator(object):
 
         REFERENCES:
 
-        -  [1] A. Blondin-Masse, S. Brlek, A. Garon, and S. Labbe. Christoffel
-           and Fibonacci Tiles, DGCI 2009, Montreal, to appear in LNCS.
-
+        [BmBGL09]_
         """
         from sage.combinat.words.all import Words, WordMorphism
         W = Words([0,1,2,3])
@@ -1499,7 +1509,7 @@ class WordGenerator(object):
 
     def fibonacci_tile(self, n):
         r"""
-        Returns the n-th Fibonacci Tile [1].
+        Returns the `n`-th Fibonacci Tile [BmBGL09]_.
 
         EXAMPLES::
 
@@ -1507,11 +1517,6 @@ class WordGenerator(object):
             Path: 3210
             Path: 323030101212
             Path: 3230301030323212323032321210121232121010...
-
-        REFERENCES:
-
-        -  [1] A. Blondin-Masse, S. Brlek, A. Garon, and S. Labbe. Christoffel
-           and Fibonacci Tiles, DGCI 2009, Montreal, to appear in LNCS.
         """
         w = self._fibonacci_tile(3*n+1)
         w = w**4
@@ -1522,7 +1527,7 @@ class WordGenerator(object):
 
     def dual_fibonacci_tile(self, n):
         r"""
-        Returns the n-th dual Fibonacci Tile [1].
+        Returns the `n`-th dual Fibonacci Tile [BmBGL09]_.
 
         EXAMPLES::
 
@@ -1531,11 +1536,6 @@ class WordGenerator(object):
             Path: 32123032301030121012
             Path: 3212303230103230321232101232123032123210...
             Path: 3212303230103230321232101232123032123210...
-
-        REFERENCES:
-
-        -  [1] A. Blondin-Masse, S. Brlek, A. Garon, and S. Labbe. Christoffel
-           and Fibonacci Tiles, DGCI 2009, Montreal, to appear in LNCS.
         """
         w = self._fibonacci_tile(3*n+1,3,3)
         w = w**4
@@ -1546,19 +1546,24 @@ class WordGenerator(object):
 
     def _s_adic_iterator(self, sequence, letters):
         r"""
-        Returns the iterator over the s-adic infinite word obtained from a
+        Returns the iterator over the `s`-adic infinite word obtained from a
         sequence of morphisms applied on letters where the hypothesis of
         nested prefixes is used.
 
-        DEFINITION (from [1]):
+        DEFINITION (from [Fogg]_):
 
-        Let $w$ be a infinite word over an alphabet $A=A_0$. A
+        Let `w` be a infinite word over an alphabet `A = A_0`. A
         standard representation of $w$ is obtained from a sequence of
-        substitutions $\sigma_k:A_{k+1}\to A_k$ and a sequence of letters
-        $a_k\in A_k$ such that:
-        $\lim_{k\to\infty}\sigma_0\circ\sigma_1\circ\cdots\sigma_k(a_k)$.
-        Given a set of substitutions $S$, we say that the representation is
-        $S$-adic standard if the subtitutions are chosen in $S$.
+        substitutions `\sigma_k : A_{k+1} \to A_k` and a sequence of letters
+        `a_k \in A_k` such that:
+
+        .. MATH::
+
+            \lim_{k\to\infty} \sigma_0 \circ \sigma_1 \circ \cdots
+            \sigma_k(a_k).
+
+        Given a set of substitutions `S`, we say that the representation is
+        `S`-adic standard if the subtitutions are chosen in `S`.
 
         INPUT:
 
@@ -1575,7 +1580,7 @@ class WordGenerator(object):
         EXAMPLES:
 
         Let's define three morphisms and compute the first nested succesive
-        prefixes of the s-adic word::
+        prefixes of the `s`-adic word::
 
             sage: m1 = WordMorphism('e->gh,f->hg')
             sage: m2 = WordMorphism('c->ef,d->e')
@@ -1595,7 +1600,7 @@ class WordGenerator(object):
             ...
             ValueError: The hypothesis of the algorithm used is not satisfied: the image of the 3-th letter (=b) under the 3-th morphism (=a->cd, b->dc) should start with the 2-th letter (=c).
 
-        Two examples of infinite s-adic words::
+        Two examples of infinite `s`-adic words::
 
             sage: tm = WordMorphism('a->ab,b->ba')
             sage: fib = WordMorphism('a->ab,b->a')
@@ -1605,7 +1610,7 @@ class WordGenerator(object):
             sage: Word(words._s_adic_iterator(repeat(fib),repeat('a')))
             word: abaababaabaababaababaabaababaabaababaaba...
 
-        A less trivial infinite s-adic word::
+        A less trivial infinite `s`-adic word::
 
             sage: m = WordMorphism({4:tm,5:fib})
             sage: tmword = words.ThueMorseWord([4,5])
@@ -1613,7 +1618,7 @@ class WordGenerator(object):
             sage: Word(words._s_adic_iterator(w, repeat('a')))
             word: abbaababbaabbaabbaababbaababbaabbaababba...
 
-        The morphism `\sigma: a\mapsto ba,b\mapsto b` can't satify the
+        The morphism `\sigma: a \mapsto ba, b \mapsto b` can't satify the
         hypothesis of the algorithm (nested prefixes)::
 
             sage: sigma = WordMorphism('a->ba,b->b')
@@ -1624,13 +1629,7 @@ class WordGenerator(object):
 
         AUTHORS:
 
-            - Sebastien Labbe (2009-12-18): initial version
-
-        REFERENCES:
-
-        - [1] Pytheas Fogg,
-          https://www.lirmm.fr/arith/wiki/PytheasFogg/S-adiques.
-
+        - Sebastien Labbe (2009-12-18): initial version
         """
         from itertools import tee,izip
         sequence_it,sequence = tee(sequence)
@@ -1652,30 +1651,35 @@ class WordGenerator(object):
 
     def s_adic(self, sequence, letters, morphisms=None):
         r"""
-        Returns the s-adic infinite word obtained from a sequence of
+        Returns the `s`-adic infinite word obtained from a sequence of
         morphisms applied on a letter.
 
-        DEFINITION (from [1]):
+        DEFINITION (from [Fogg]_):
 
-        Let $w$ be a infinite word over an alphabet $A=A_0$. A
-        standard representation of $w$ is obtained from a sequence of
-        substitutions $\sigma_k:A_{k+1}\to A_k$ and a sequence of letters
-        $a_k\in A_k$ such that:
-        $\lim_{k\to\infty}\sigma_0\circ\sigma_1\circ\cdots\sigma_k(a_k)$.
-        Given a set of substitutions $S$, we say that the representation is
-        $S$-adic standard if the subtitutions are chosen in $S$.
+        Let `w` be a infinite word over an alphabet `A = A_0`. A
+        standard representation of `w` is obtained from a sequence of
+        substitutions `\sigma_k : A_{k+1} \to A_k` and a sequence of letters
+        `a_k \in A_k` such that:
+
+        .. MATH::
+
+            \lim_{k\to\infty} \sigma_0 \circ \sigma_1 \circ \cdots
+            \sigma_k(a_k).
+
+        Given a set of substitutions `S`, we say that the representation is
+        `S`-adic standard if the subtitutions are chosen in `S`.
 
         INPUT:
 
         - ``sequence`` - An iterable sequence of indices or of morphisms. It
           may be finite or infinite. If ``sequence`` is infinite, the image
-          of the (i+1)-th letter under the (i+1)-th morphism must start
-          with the i-th letter.
+          of the `(i+1)`-th letter under the `(i+1)`-th morphism must start
+          with the `i`-th letter.
 
         - ``letters`` - A letter or a sequence of letters.
 
-        - ``morphisms`` - dict, list, callable or None (optional, default
-          None) an object that maps indices to morphisms. If None, then
+        - ``morphisms`` - dict, list, callable or ``None`` (optional, default
+          ``None``) an object that maps indices to morphisms. If ``None``, then
           ``sequence`` must consist of morphisms.
 
         OUTPUT:
@@ -1685,7 +1689,7 @@ class WordGenerator(object):
         EXAMPLES:
 
         Let's define three morphisms and compute the first nested succesive
-        prefixes of the s-adic word::
+        prefixes of the `s`-adic word::
 
             sage: m1 = WordMorphism('e->gh,f->hg')
             sage: m2 = WordMorphism('c->ef,d->e')
@@ -1722,7 +1726,7 @@ class WordGenerator(object):
             sage: fib = WordMorphism('a->ab,b->a')
             sage: from itertools import repeat
 
-        Two trivial examples of infinite s-adic words::
+        Two trivial examples of infinite `s`-adic words::
 
             sage: words.s_adic(repeat(tm),repeat('a'))
             word: abbabaabbaababbabaababbaabbabaabbaababba...
@@ -1732,7 +1736,7 @@ class WordGenerator(object):
             sage: words.s_adic(repeat(fib),repeat('a'))
             word: abaababaabaababaababaabaababaabaababaaba...
 
-        A less trivial infinite s-adic word::
+        A less trivial infinite `s`-adic word::
 
             sage: t = words.ThueMorseWord([tm,fib])
             sage: words.s_adic(t, repeat('a'))
@@ -1761,7 +1765,7 @@ class WordGenerator(object):
             sage: words.s_adic(words.ThueMorseWord(), repeat('a'), f)
             word: abbaababbaabbaabbaababbaababbaabbaababba...
 
-        Random infinite s-adic words::
+        Random infinite `s`-adic words::
 
             sage: from sage.misc.prandom import randint
             sage: def it():
@@ -1784,7 +1788,7 @@ class WordGenerator(object):
             sage: words.s_adic(cycle([G,H]),cycle('ac'))
             word: cddcdccddccdcddcdccdcddccddcdccddccdcddc...
 
-        The morphism `\sigma: a\mapsto ba,b\mapsto b` can't satisfy the
+        The morphism `\sigma: a\mapsto ba, b\mapsto b` can't satisfy the
         hypothesis of the nested prefixes, but one may compute arbitrarily
         long finite words having the limit `\sigma^\omega(a)`::
 
@@ -1875,13 +1879,7 @@ class WordGenerator(object):
 
         AUTHORS:
 
-            - Sebastien Labbe (2009-12-18): initial version
-
-        REFERENCES:
-
-        - [1] Pytheas Fogg,
-          https://www.lirmm.fr/arith/wiki/PytheasFogg/S-adiques.
-
+        - Sebastien Labbe (2009-12-18): initial version
         """
         if morphisms is None:
             seq = sequence
@@ -1915,14 +1913,15 @@ class WordGenerator(object):
         r"""
         Returns the finite word `w = a b^k a b^{k-1} a a b^{k-1} a b^{k} a`.
 
-        As described by Brlek, Hamel, Nivat and Reuteunaer in [1], this
-        finite word `w` is such that the infinite periodic word `w^\omega`
+        As described by Brlek, Hamel, Nivat and Reuteunaer in [BHNR04]_, this
+        finite word `w` is such that the infinite periodic word `w^{\omega}`
         have palindromic defect ``k``.
 
         INPUT:
 
-        - ``k`` - positive integer (optional, default: 1)
-        - ``alphabet`` - iterable (optional, default: ``'ab'``) of size two
+        - ``k`` -- positive integer (optional, default: 1)
+
+        - ``alphabet`` -- iterable (optional, default: ``'ab'``) of size two
 
         OUTPUT:
 
@@ -1964,12 +1963,6 @@ class WordGenerator(object):
             word: aaaaaa
             sage: words.PalindromicDefectWord(-3)
             word: aaaaaa
-
-        REFERENCES:
-
-        - [1] S. Brlek, S. Hamel, M. Nivat and C. Reutenauer, On the
-          palindromic complexity of infinite words, Int. J. Found. Comput.
-          Sci. 15: 2 (2004) 293-306.
         """
         kk = k-1
         a, b = alphabet

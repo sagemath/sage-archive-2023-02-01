@@ -94,14 +94,13 @@ ctypedef struct c_a_data:
 cdef class GLPKGraphBackend(object):
 
     cdef _glp_graph * graph
-    cpdef import_generic_graph(self, g)
     cpdef add_vertex(self, char* name = ?)
     cpdef list add_vertices(self, vertices)
     cpdef __add_vertices_sage(self, g)
     cpdef dict get_vertex(self, char* vertex)
     cpdef dict get_vertices(self, verts)
-    cpdef set_vertex(self, char* vertex, param)
-    cpdef set_vertices(self, dict vert_dict)
+    cpdef set_vertex_demand(self, char* vertex, param)
+    cpdef set_vertices_demand(self, list pairs)
     cpdef list vertices(self)
     cpdef add_edge(self, char* u, char* v, dict params = ?)
     cpdef __add_edges_sage(self, g)

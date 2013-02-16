@@ -91,8 +91,8 @@ def Hom(X, Y, category=None):
     - ``Y`` -- an object of a category
 
     - ``category`` -- a category in which the morphisms must be.
-       (default: the meet of the categories of ``X`` and ``Y``)
-       Both ``X`` and ``Y`` must belong to that category.
+      (default: the meet of the categories of ``X`` and ``Y``)
+      Both ``X`` and ``Y`` must belong to that category.
 
     OUTPUT: a homset in category
 
@@ -156,12 +156,12 @@ def Hom(X, Y, category=None):
 
     TESTS:
 
-    Some doc tests in :mod:`sage.rings` (need to) break the unique parent assumption.
-    But if domain or codomain are not unique parents, then the hom set won't fit.
-    That's to say, the hom set found in the cache will have a (co)domain that is
-    equal to, but not identic with, the given (co)domain.
+    Some doc tests in :mod:`sage.rings` (need to) break the unique parent
+    assumption. But if domain or codomain are not unique parents, then the hom
+    set won't fit. That's to say, the hom set found in the cache will have a
+    (co)domain that is equal to, but not identic with, the given (co)domain.
 
-    By trac ticket #9138, we abandon the uniqueness of hom sets, if the domain or
+    By :trac:`9138`, we abandon the uniqueness of hom sets, if the domain or
     codomain break uniqueness::
 
         sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
@@ -172,8 +172,8 @@ def Hom(X, Y, category=None):
         sage: P is Q
         False
 
-    Hence, P and Q are not unique parents. By consequence, the following homsets
-    aren't either::
+    Hence, ``P`` and ``Q`` are not unique parents. By consequence, the
+    following homsets aren't either::
 
         sage: H1 = Hom(QQ,P)
         sage: H2 = Hom(QQ,Q)
@@ -182,14 +182,15 @@ def Hom(X, Y, category=None):
         sage: H1 is H2
         False
 
-    It is always the most recently constructed hom set that remains in the cache::
+    It is always the most recently constructed hom set that remains in
+    the cache::
 
         sage: H2 is Hom(QQ,Q)
         True
 
-    Since trac ticket #11900, the meet of the categories of the given arguments is
-    used to determine the default category of the homset. This can also be a join
-    category, as in the following example::
+    Since :trac:`11900`, the meet of the categories of the given arguments is
+    used to determine the default category of the homset. This can also be a
+    join category, as in the following example::
 
         sage: PA = Parent(category=Algebras(QQ))
         sage: PJ = Parent(category=Category.join([Fields(), ModulesWithBasis(QQ)]))
@@ -200,11 +201,13 @@ def Hom(X, Y, category=None):
         sage: Hom(PA,PJ, Rngs())
         Set of Morphisms from <type 'sage.structure.parent.Parent'> to <type 'sage.structure.parent.Parent'> in Category of rngs
 
-    TODO: design decision: how much of the homset comes from the
-    category of X and Y, and how much from the specific X and Y.  In
-    particular, do we need several parent classes depending on X and
-    Y, or does the difference only lie in the elements (i.e. the
-    morphism), and of course how the parent calls their constructors.
+    .. TODO::
+
+        design decision: how much of the homset comes from the
+        category of ``X`` and ``Y``, and how much from the specific ``X`` and
+        ``Y``.  In particular, do we need several parent classes depending on
+        ``X`` and ``Y``, or does the difference only lie in the elements (i.e.
+        the morphism), and of course how the parent calls their constructors.
 
     """
     # This should use cache_function instead
@@ -265,8 +268,8 @@ def Hom(X, Y, category=None):
 
 def hom(X, Y, f):
     """
-    Return Hom(X,Y)(f), where f is data that defines an element of
-    Hom(X,Y).
+    Return ``Hom(X,Y)(f)``, where ``f`` is data that defines an element of
+    ``Hom(X,Y)``.
 
     EXAMPLES::
 
@@ -279,17 +282,17 @@ def hom(X, Y, f):
 
 def End(X, category=None):
     r"""
-    Create the set of endomorphisms of X in the category category.
+    Create the set of endomorphisms of ``X`` in the category category.
 
     INPUT:
 
+    -  ``X`` -- anything
 
-    -  ``X`` - anything
+    -  ``category`` -- (optional) category in which to coerce ``X``
 
-    -  ``category`` - (optional) category in which to coerce X
+    OUTPUT:
 
-
-    OUTPUT: a set of endomorphisms in category
+    A set of endomorphisms in category
 
     EXAMPLES::
 
@@ -312,7 +315,7 @@ def End(X, category=None):
 
     To avoid creating superfluous categories, homsets are in the
     homset category of the lowest category which currently says
-    something specific about its homsets. For example, S is not
+    something specific about its homsets. For example, ``S`` is not
     in the category of hom sets of the category of groups::
 
         sage: S.category()
@@ -324,8 +327,8 @@ def End(X, category=None):
 
 def end(X, f):
     """
-    Return End(X)(f), where f is data that defines an element of
-    End(X).
+    Return ``End(X)(f)``, where ``f`` is data that defines an element of
+    ``End(X)``.
 
     EXAMPLES::
 
@@ -444,13 +447,13 @@ class Homset(Set_generic):
 
         INPUT:
 
-        ``S`` -- a homset
+        - ``S`` -- a homset
 
         OUTPUT:
 
         A map (by default: a Call morphism) from ``S`` to ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: H = Hom(ZZ,QQ['t'], CommutativeAdditiveGroups())
             sage: P.<t> = ZZ[]
@@ -500,7 +503,7 @@ class Homset(Set_generic):
 
     def __call__(self, x=None, y=None, check=True, on_basis=None):
         """
-        Construct a morphism in this homset from x if possible.
+        Construct a morphism in this homset from ``x`` if possible.
 
         EXAMPLES::
 
@@ -546,6 +549,7 @@ class Homset(Set_generic):
             Set of Morphisms from {1, 2, 3} to {1, 2, 3} in Category of sets
             sage: f(1), f(2), f(3) # todo: not implemented
 
+        AUTHORS:
 
         - Robert Bradshaw, with changes by Nicolas M. Thiery
         """
@@ -590,7 +594,9 @@ class Homset(Set_generic):
         This is currently plain ``SetMorphism``, without inheritance
         from categories.
 
-        Todo: refactor during the upcoming homset cleanup.
+        .. TODO::
+
+            Refactor during the upcoming homset cleanup.
 
         EXAMPLES::
 
@@ -633,7 +639,7 @@ class Homset(Set_generic):
         """
         Test whether the parent of the argument is ``self``.
 
-        TEST::
+        TESTS::
 
             sage: P.<t> = ZZ[]
             sage: f = P.hom([1/2*t])
@@ -653,11 +659,11 @@ class Homset(Set_generic):
         """
         Return the "natural map" of this homset.
 
-        NOTE:
+        .. NOTE::
 
-        By default, a formal coercion morphism is returned.
+            By default, a formal coercion morphism is returned.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: H = Hom(ZZ['t'],QQ['t'], CommutativeAdditiveGroups())
             sage: H.natural_map()
@@ -677,11 +683,11 @@ class Homset(Set_generic):
         """
         The identity map of this homset.
 
-        NOTE:
+        .. NOTE::
 
-        Of course, this only exists for sets of endomorphisms.
+            Of course, this only exists for sets of endomorphisms.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: H = Hom(QQ,QQ)
             sage: H.identity()
@@ -706,7 +712,7 @@ class Homset(Set_generic):
         """
         Return the domain of this homset.
 
-        EXAMPLE:
+        EXAMPLES::
 
             sage: P.<t> = ZZ[]
             sage: f = P.hom([1/2*t])
@@ -722,7 +728,7 @@ class Homset(Set_generic):
         """
         Return the codomain of this homset.
 
-        EXAMPLE:
+        EXAMPLES::
 
             sage: P.<t> = ZZ[]
             sage: f = P.hom([1/2*t])
@@ -736,10 +742,10 @@ class Homset(Set_generic):
 
     def is_endomorphism_set(self):
         """
-        Return True if the domain and codomain of self are the same
+        Return ``True`` if the domain and codomain of ``self`` are the same
         object.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: P.<t> = ZZ[]
             sage: f = P.hom([1/2*t])
@@ -773,9 +779,29 @@ class Homset(Set_generic):
     ############### For compatibility with old coercion model #######################
 
     def get_action_c(self, R, op, self_on_left):
+        """
+        .. WARNING::
+
+            For compatibility with old coercion model. DO NOT USE!
+
+        TESTS::
+
+            sage: H = Hom(ZZ^2, ZZ^3)
+            sage: H.get_action_c(ZZ, operator.add, ZZ)
+        """
         return None
 
     def coerce_map_from_c(self, R):
+        """
+        .. WARNING::
+
+            For compatibility with old coercion model. DO NOT USE!
+
+        TESTS::
+
+            sage: H = Hom(ZZ^2, ZZ^3)
+            sage: H.coerce_map_from_c(ZZ)
+        """
         return None
 
 # Really needed???
@@ -806,9 +832,9 @@ class HomsetWithBase(Homset):
 
 def is_Homset(x):
     """
-    Return True if x is a set of homomorphisms in a category.
+    Return ``True`` if ``x`` is a set of homomorphisms in a category.
 
-    EXAMPLE::
+    EXAMPLES::
 
         sage: from sage.categories.homset import is_Homset
         sage: P.<t> = ZZ[]
@@ -825,9 +851,9 @@ def is_Homset(x):
 
 def is_Endset(x):
     """
-    Return True if x is a set of endomorphisms in a category.
+    Return ``True`` if ``x`` is a set of endomorphisms in a category.
 
-    EXAMPLE:
+    EXAMPLES::
 
         sage: from sage.categories.homset import is_Endset
         sage: P.<t> = ZZ[]

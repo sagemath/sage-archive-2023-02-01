@@ -20,7 +20,8 @@ Here is an example:
 (The imports on the next two lines are not necessary, since
 \function{randrange} and \function{current_randstate} are both available
 by default at the \code{sage:} prompt; but you would need them
-to run these examples inside a module.)
+to run these examples inside a module.) ::
+
     sage: from sage.misc.prandom import randrange
     sage: from sage.misc.randstate import current_randstate
     sage: def test1():
@@ -29,7 +30,8 @@ to run these examples inside a module.)
     ...      randrange = current_randstate().python_random().randrange
     ...      return sum([randrange(100) for i in range(100)])
 
-Test2 will be slightly faster than test1, but they give the same answer.
+Test2 will be slightly faster than test1, but they give the same answer::
+
     sage: with seed(0): test1()
     5169
     sage: with seed(0): test2()
@@ -62,7 +64,8 @@ def _pyrand():
     Only for use in prandom.py; other modules should use
     current_randstate().python_random().
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.misc.prandom import _pyrand
         sage: _pyrand()
         <random.Random object at 0x...>
@@ -72,9 +75,11 @@ def _pyrand():
     return current_randstate().python_random()
 
 def getrandbits(k):
-    """getrandbits(k) -> x.  Generates a long int with k random bits.
+    r"""
+    getrandbits(k) -> x.  Generates a long int with k random bits.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: getrandbits(10)
         114L
         sage: getrandbits(200)
@@ -85,12 +90,14 @@ def getrandbits(k):
     return _pyrand().getrandbits(k)
 
 def randrange(start, stop=None, step=1):
-    """Choose a random item from range(start, stop[, step]).
+    r"""
+    Choose a random item from range(start, stop[, step]).
 
     This fixes the problem with randint() which includes the
     endpoint; in Python this is usually not what you want.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: randrange(0, 100, 11)
         11
         sage: randrange(5000, 5100)
@@ -105,9 +112,11 @@ def randrange(start, stop=None, step=1):
     return _pyrand().randrange(start, stop, step)
 
 def randint(a, b):
-    """Return random integer in range [a, b], including both end points.
+    r"""
+    Return random integer in range [a, b], including both end points.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: [randint(0, 2) for i in range(15)]
         [0, 1, 0, 0, 1, 0, 2, 0, 2, 1, 2, 2, 0, 2, 2]
         sage: randint(-100, 10)
@@ -116,21 +125,25 @@ def randint(a, b):
     return _pyrand().randint(a, b)
 
 def choice(seq):
-    """Choose a random element from a non-empty sequence.
+    r"""
+    Choose a random element from a non-empty sequence.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: [choice(list(primes(10, 100))) for i in range(5)]
         [17, 47, 11, 31, 47]
     """
     return _pyrand().choice(seq)
 
 def shuffle(x, random=None):
-    """x, random=random.random -> shuffle list x in place; return None.
+    r"""
+    x, random=random.random -> shuffle list x in place; return None.
 
     Optional arg random is a 0-argument function returning a random
     float in [0.0, 1.0); by default, the sage.misc.random.random.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: shuffle([1 .. 10])
     """
     if random is None:
@@ -138,7 +151,8 @@ def shuffle(x, random=None):
     return _pyrand().shuffle(x, random)
 
 def sample(population, k):
-    """Chooses k unique random elements from a population sequence.
+    r"""
+    Chooses k unique random elements from a population sequence.
 
     Returns a new list containing elements from the population while
     leaving the original population unchanged.  The resulting list is
@@ -154,7 +168,8 @@ def sample(population, k):
     This is especially fast and space efficient for sampling from a
     large population:   sample(xrange(10000000), 60)
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: sample(["Here", "I", "come", "to", "save", "the", "day"], 3)
         ['Here', 'to', 'day']
         sage: sample(xrange(2^30), 7)
@@ -163,20 +178,24 @@ def sample(population, k):
     return _pyrand().sample(population, k)
 
 def random():
-    """Get the next random number in the range [0.0, 1.0).
+    r"""
+    Get the next random number in the range [0.0, 1.0).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: [random() for i in [1 .. 4]]
         [0.111439293741037, 0.5143475134191677, 0.04468968524815642, 0.332490606442413]
     """
     return _pyrand().random()
 
 def uniform(a, b):
-    """Get a random number in the range [a, b).
+    r"""
+    Get a random number in the range [a, b).
 
     Equivalent to \code{a + (b-a) * random()}.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: uniform(0, 1)
         0.111439293741037
         sage: uniform(e, pi)
@@ -187,12 +206,14 @@ def uniform(a, b):
     return _pyrand().uniform(a, b)
 
 def betavariate(alpha, beta):
-    """Beta distribution.
+    r"""
+    Beta distribution.
 
     Conditions on the parameters are alpha > 0 and beta > 0.
     Returned values range between 0 and 1.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: betavariate(0.1, 0.9)
         9.75087916621299e-9
         sage: betavariate(0.9, 0.1)
@@ -201,13 +222,15 @@ def betavariate(alpha, beta):
     return _pyrand().betavariate(alpha, beta)
 
 def expovariate(lambd):
-    """Exponential distribution.
+    r"""
+    Exponential distribution.
 
     lambd is 1.0 divided by the desired mean.  (The parameter would be
     called "lambda", but that is a reserved word in Python.)  Returned
     values range from 0 to positive infinity.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: [expovariate(0.001) for i in range(3)]
         [118.152309288166, 722.261959038118, 45.7190543690470]
         sage: [expovariate(1.0) for i in range(3)]
@@ -218,11 +241,13 @@ def expovariate(lambd):
     return _pyrand().expovariate(lambd)
 
 def gammavariate(alpha, beta):
-    """Gamma distribution.  Not the gamma function!
+    r"""
+    Gamma distribution.  Not the gamma function!
 
     Conditions on the parameters are alpha > 0 and beta > 0.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: gammavariate(1.0, 3.0)
         6.58282586130638
         sage: gammavariate(3.0, 1.0)
@@ -231,13 +256,15 @@ def gammavariate(alpha, beta):
     return _pyrand().gammavariate(alpha, beta)
 
 def gauss(mu, sigma):
-    """Gaussian distribution.
+    r"""
+    Gaussian distribution.
 
     mu is the mean, and sigma is the standard deviation.  This is
     slightly faster than the normalvariate() function, but is not
     thread-safe.
 
-    EXAMPLES:
+    EXAMPLES::
+
        sage: [gauss(0, 1) for i in range(3)]
        [0.9191011757657915, 0.7744526756246484, 0.8638996866800877]
        sage: [gauss(0, 100) for i in range(3)]
@@ -248,24 +275,28 @@ def gauss(mu, sigma):
     return _pyrand().gauss(mu, sigma)
 
 def lognormvariate(mu, sigma):
-    """Log normal distribution.
+    r"""
+    Log normal distribution.
 
     If you take the natural logarithm of this distribution, you'll get a
     normal distribution with mean mu and standard deviation sigma.
     mu can have any value, and sigma must be greater than zero.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: [lognormvariate(100, 10) for i in range(3)]
         [2.9410355688290246e+37, 2.2257548162070125e+38, 4.142299451717446e+43]
     """
     return _pyrand().lognormvariate(mu, sigma)
 
 def normalvariate(mu, sigma):
-    """Normal distribution.
+    r"""
+    Normal distribution.
 
     mu is the mean, and sigma is the standard deviation.
 
-    EXAMPLES:
+    EXAMPLES::
+
        sage: [normalvariate(0, 1) for i in range(3)]
        [-1.372558980559407, -1.1701670364898928, 0.04324100555110143]
        sage: [normalvariate(0, 100) for i in range(3)]
@@ -276,36 +307,41 @@ def normalvariate(mu, sigma):
     return _pyrand().normalvariate(mu, sigma)
 
 def vonmisesvariate(mu, kappa):
-    """Circular data distribution.
+    r"""
+    Circular data distribution.
 
     mu is the mean angle, expressed in radians between 0 and 2*pi, and
     kappa is the concentration parameter, which must be greater than or
     equal to zero.  If kappa is equal to zero, this distribution reduces
     to a uniform random angle over the range 0 to 2*pi.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: [vonmisesvariate(1.0r, 3.0r) for i in range(1, 5)]
         [0.8983286393554258, 0.6718030007041285, 2.0308777524813397, 1.714325253725145...]
     """
     return _pyrand().vonmisesvariate(mu, kappa)
 
 def paretovariate(alpha):
-    """Pareto distribution.  alpha is the shape parameter.
+    r"""
+    Pareto distribution.  alpha is the shape parameter.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: [paretovariate(3) for i in range(1, 5)]
         [1.0401699394233033, 1.2722080162636495, 1.0153564009379579, 1.1442323078983077]
     """
     return _pyrand().paretovariate(alpha)
 
 def weibullvariate(alpha, beta):
-    """Weibull distribution.
+    r"""
+    Weibull distribution.
 
     alpha is the scale parameter and beta is the shape parameter.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: [weibullvariate(1, 3) for i in range(1, 5)]
         [0.49069775546342537, 0.8972185564611213, 0.357573846531942, 0.739377255516847]
     """
     return _pyrand().weibullvariate(alpha, beta)
-

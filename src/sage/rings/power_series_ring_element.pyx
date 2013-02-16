@@ -1562,15 +1562,14 @@ cdef class PowerSeries(AlgebraElement):
 
         INPUT:
 
-        -  ``prec`` - integer; default is self.parent().default_prec()
+        -  ``prec`` -- integer; default is ``self.parent().default_prec()``
 
-        ALGORITHM: See PowerSeries.solve_linear_de().
+        ALGORITHM: See :meth:`solve_linear_de()`.
 
-        .. note::
+        .. WARNING::
 
-           - Screwy things can happen if the coefficient ring is not a
-             field of characteristic zero. See
-             PowerSeries.solve_linear_de().
+            Screwy things can happen if the coefficient ring is not a
+            field of characteristic zero. See :meth:`solve_linear_de()`.
 
         EXAMPLES::
 

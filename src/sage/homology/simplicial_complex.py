@@ -16,6 +16,9 @@ AUTHORS:
 
 - Christian Stump (2011-06) - implementation of is_cohen_macaulay
 
+- Travis Scrimshaw (2013-02-16): Allowed :class:`SimplicialComplex` to make
+  mutable copies.
+
 This module implements the basic structure of finite simplicial
 complexes. Given a set `V` of "vertices", a simplicial complex on `V`
 is a collection `K` of subsets of `V` satisfying the condition that if
@@ -121,12 +124,22 @@ Mutability (see :trac:`12587`)::
     Traceback (most recent call last):
     ...
     ValueError: This simplicial complex is not mutable
-    sage: hash(S)
-    264071120            # 32-bit
-    -3244381654768326704 # 64-bit
+    sage: hash(S) == hash(S)
+    True
 
     sage: S2 = SimplicialComplex([[1,4], [2,4]], is_mutable=False)
     sage: hash(S2) == hash(S)
+    True
+
+We can also make mutable copies of an immutable simplicial complex
+(see :trac:`14142`)::
+
+    sage: S = SimplicialComplex([[1,4], [2,4]])
+    sage: S.set_immutable()
+    sage: T = copy(S)
+    sage: T.is_mutable()
+    True
+    sage: S == T
     True
 """
 
@@ -743,12 +756,22 @@ class SimplicialComplex(GenericCellComplex):
         sage: Ts.homology()
         {0: 0, 1: Z x Z, 2: Z}
 
-    TESTS::
+    TESTS:
 
-        sage: S = SimplicialComplex((('a', 'b'), ('a', 'c'), ('b', 'c')))
-        sage: S == loads(dumps(S))
+    Check that we can make mutable copies (see :trac:`14142`)::
+
+        sage: S = SimplicialComplex([[0,2], [0,3]], is_mutable=False)
+        sage: S.is_mutable()
+        False
+        sage: C = copy(S)
+        sage: C.is_mutable()
+        True
+        sage: SimplicialComplex(S, is_mutable=True).is_mutable()
+        True
+        sage: SimplicialComplex(S, is_immutable=False).is_mutable()
         True
         """
+
     def __init__(self, vertex_set=None, maximal_faces=None, **kwds):
         """
         Define a simplicial complex.  See ``SimplicialComplex`` for more
@@ -773,6 +796,10 @@ class SimplicialComplex(GenericCellComplex):
             True
             sage: S3 = SimplicialComplex(maximal_faces=[[1,4], [2,4]])
             sage: S == S3
+            True
+
+            sage: S = SimplicialComplex((('a', 'b'), ('a', 'c'), ('b', 'c')))
+            sage: S == loads(dumps(S))
             True
 
             sage: Y = SimplicialComplex([1,2,3,4], [[1,2], [2,3], [3,4]])
@@ -827,7 +854,7 @@ class SimplicialComplex(GenericCellComplex):
             self._graph = copy(C._graph)
             self._numeric = C._numeric
             self._numeric_translation = copy(C._numeric_translation)
-            self._is_mutable = C._is_mutable
+            self._is_mutable = True
             return
 
         if sort_facets:
@@ -842,12 +869,12 @@ class SimplicialComplex(GenericCellComplex):
             if name_check:
                 try:
                     if int(v) < 0:
-                        raise ValueError, "The vertex %s does not have an appropriate name."%v
+                        raise ValueError("The vertex %s does not have an appropriate name."%v)
                 except ValueError:  # v is not an integer
                     try:
                         normalize_names(1, v)
                     except ValueError:
-                        raise ValueError, "The vertex %s does not have an appropriate name."%v
+                        raise ValueError("The vertex %s does not have an appropriate name."%v)
             # build dictionary of generator names
             try:
                 gen_dict[v] = 'x%s'%int(v)
@@ -964,6 +991,28 @@ class SimplicialComplex(GenericCellComplex):
             return 0
         else:
             return -1
+
+    def __copy__(self):
+        """
+        Return a mutable copy of ``self``.
+
+        EXAMPLES::
+
+            sage: S = SimplicialComplex([[0,2], [0,3]], is_mutable=False)
+            sage: S.is_mutable()
+            False
+            sage: C = copy(S)
+            sage: C.is_mutable()
+            True
+            sage: C == S
+            True
+            sage: S.is_mutable()
+            False
+            sage: T = copy(C)
+            sage: T == C
+            True
+        """
+        return SimplicialComplex(self, is_mutable=True)
 
     def vertices(self):
         """

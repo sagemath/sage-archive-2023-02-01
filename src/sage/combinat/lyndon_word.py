@@ -253,12 +253,24 @@ class LyndonWords_evaluation(CombinatorialClass):
             [word: 111222, word: 112122, word: 112212]
             sage: LyndonWords([4,3]).list()  #indirect doctest
             [word: 1111222, word: 1112122, word: 1112212, word: 1121122, word: 1121212]
+
+        TESTS:
+
+        Check that :trac:`12997` is fixed::
+
+            sage: LyndonWords([0,1]).list()
+            [word: 2]
+            sage: LyndonWords([0,2]).list()
+            []
+            sage: LyndonWords([0,0,1,0,1]).list()
+            [word: 35]
         """
         if self.e == []:
             return
-        k=0
-        while (self.e[k]==0):
-            k=k+1
+
+        k = 0
+        while self.e[k] == 0:
+            k += 1
 
         for z in necklace._sfc(self.e[k:], equality=True):
             yield LyndonWord([i+k+1 for i in z], check=False)

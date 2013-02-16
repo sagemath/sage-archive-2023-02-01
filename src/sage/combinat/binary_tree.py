@@ -27,6 +27,7 @@ from sage.combinat.ordered_tree import LabelledOrderedTrees
 from sage.rings.integer import Integer
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.lazy_attribute import lazy_attribute, lazy_class_attribute
+from sage.combinat.combinatorial_map import combinatorial_map
 
 class BinaryTree(AbstractClonableTree, ClonableArray):
     """
@@ -341,7 +342,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         self._require_mutable()
         self.__init__(self.parent(), None)
 
-    def _to_dyck_word_rec(self):
+    def _to_dyck_word_rec(self, usemap="1L0R"):
         r"""
         EXAMPLES::
 
@@ -351,24 +352,65 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [1, 0]
             sage: BinaryTree([[[], [[], None]], [[], []]])._to_dyck_word_rec()
             [1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0]
+            sage: BinaryTree([[None,[]],None])._to_dyck_word_rec("L1R0")
+            [1, 1, 0, 0, 1, 0]
+            sage: BinaryTree([[[], [[], None]], [[], []]])._to_dyck_word_rec("L1R0")
+            [1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0]
         """
         if self:
-            return ([1]+self[0]._to_dyck_word_rec()+
-                    [0]+self[1]._to_dyck_word_rec())
+            w = []
+            for l in usemap:
+                if l == "L": w += self[0]._to_dyck_word_rec(usemap)
+                elif l == "R": w+=self[1]._to_dyck_word_rec(usemap)
+                elif l == "1": w+=[1]
+                elif l == "0": w+=[0]
+            return w
         else:
             return []
 
-    def to_dyck_word(self):
+    @combinatorial_map(name = "recursive map 'L 1 R 0' (Tamari)")
+    def to_dyck_word_tamari(self):
         r"""
-        Return the Dyck word associated to ``self``
+        Return the Dyck word associated with ``self`` in consistency with
+        the Tamari order on dyck words and binary trees.
+
+        The bijection is defined recursively as follows:
+
+        - a leaf is associated with an empty Dyck word
+
+        - a tree with children `l,r` is associated with the Dyck word
+          `T(l) 1 T(r) 0`
+
+        EXAMPLES::
+
+            sage: BinaryTree().to_dyck_word_tamari()
+            []
+            sage: BinaryTree([]).to_dyck_word_tamari()
+            [1, 0]
+            sage: BinaryTree([[None,[]],None]).to_dyck_word_tamari()
+            [1, 1, 0, 0, 1, 0]
+            sage: BinaryTree([[[], [[], None]], [[], []]]).to_dyck_word_tamari()
+            [1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0]
+        """
+        from sage.combinat.dyck_word import DyckWord
+        return self.to_dyck_word("L1R0")
+
+    @combinatorial_map(name="recursive map '1 L 0 R'")
+    def to_dyck_word(self, usemap="1L0R"):
+        r"""
+        INPUT:
+
+        - ``usemap`` -- a string, either ``1L0R``, ``1R0L``, ``L1R0``, ``R1L0``
+
+        Return the Dyck word associated with ``self`` using the given map.
 
         The bijection is defined recursively as follows:
 
         - a leaf is associated to the empty Dyck Word
 
-        - a tree with chidren `l,r` is associated to the Dyck word
-          `1 T(l) 0 T(r)` where `T(l)` and `T(r)` are the Dyck words
-          associated to `l` and `r`.
+        - a tree with children `l,r` is associated with the Dyck word
+          described by ``usemap`` where `L` and `R` are respectively the
+          Dyck words associated with the `l` and `r`.
 
         EXAMPLES::
 
@@ -378,9 +420,98 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [1, 0]
             sage: BinaryTree([[[], [[], None]], [[], []]]).to_dyck_word()
             [1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0]
+            sage: BinaryTree([[None,[]],None]).to_dyck_word()
+            [1, 1, 0, 1, 0, 0]
+            sage: BinaryTree([[None,[]],None]).to_dyck_word("1R0L")
+            [1, 0, 1, 1, 0, 0]
+            sage: BinaryTree([[None,[]],None]).to_dyck_word("L1R0")
+            [1, 1, 0, 0, 1, 0]
+            sage: BinaryTree([[None,[]],None]).to_dyck_word("R1L0")
+            [1, 1, 0, 1, 0, 0]
+            sage: BinaryTree([[None,[]],None]).to_dyck_word("R10L")
+            Traceback (most recent call last):
+            ...
+            ValueError: R10L is not a correct map
+
+        TESTS::
+
+            sage: bt = BinaryTree([[[], [[], None]], [[], []]])
+            sage: bt == bt.to_dyck_word().to_binary_tree()
+            True
+            sage: bt == bt.to_dyck_word("1R0L").to_binary_tree("1R0L")
+            True
+            sage: bt == bt.to_dyck_word("L1R0").to_binary_tree("L1R0")
+            True
+            sage: bt == bt.to_dyck_word("R1L0").to_binary_tree("R1L0")
+            True
         """
         from sage.combinat.dyck_word import DyckWord
-        return DyckWord(self._to_dyck_word_rec())
+        if usemap not in ["1L0R", "1R0L", "L1R0", "R1L0"]:
+            raise ValueError, "%s is not a correct map"%(usemap)
+        return DyckWord(self._to_dyck_word_rec(usemap))
+
+    @combinatorial_map(order = 2, name="Left-right symmetry")
+    def left_right_symmetry(self):
+        r"""
+        Returns the left-right symmetrized tree of ``self``.
+
+        EXAMPLES::
+
+            sage: BinaryTree().left_right_symmetry()
+            sage: BinaryTree([]).left_right_symmetry()
+            [., .]
+            sage: BinaryTree([[],None]).left_right_symmetry()
+            [., [., .]]
+            sage: BinaryTree([[None, []],None]).left_right_symmetry()
+            [., [[., .], .]]
+        """
+        if not self:
+            return None
+        tree = [self[1].left_right_symmetry(),self[0].left_right_symmetry()]
+        if(not self in LabelledBinaryTrees()):
+            return BinaryTree(tree)
+        return LabelledBinaryTree(tree, label = self.label())
+
+    @combinatorial_map(order=2, name="Left border symmetry")
+    def left_border_symmetry(self):
+        r"""
+        Returns the tree where a symmetry has been applied recursively on
+        all left borders. If a tree is made of three trees `[T_1, T_2,
+        T_3]` on its left border, it becomes `[T_3', T_2', T_1']` where
+        same symmetry has been applied to `T_1, T_2, T_3`.
+
+        EXAMPLES::
+
+            sage: BinaryTree().left_border_symmetry()
+            sage: BinaryTree([]).left_border_symmetry()
+            [., .]
+            sage: BinaryTree([[None,[]],None]).left_border_symmetry()
+            [[., .], [., .]]
+            sage: BinaryTree([[None,[None,[]]],None]).left_border_symmetry()
+            [[., .], [., [., .]]]
+            sage: bt = BinaryTree([[None,[None,[]]],None]).canonical_labelling()
+            sage: bt
+            4[1[., 2[., 3[., .]]], .]
+            sage: bt.left_border_symmetry()
+            1[4[., .], 2[., 3[., .]]]
+        """
+        if not self:
+            return None
+        border = []
+        labelled = self in LabelledBinaryTrees()
+        labels = []
+        t = self
+        while(t):
+            border.append(t[1].left_border_symmetry())
+            if labelled: labels.append(t.label())
+            t = t[0]
+        tree = BinaryTree()
+        for r in border:
+            if labelled:
+                tree = LabelledBinaryTree([tree,r],label=labels.pop(0))
+            else:
+                tree = BinaryTree([tree,r])
+        return tree
 
     def canopee(self):
         """

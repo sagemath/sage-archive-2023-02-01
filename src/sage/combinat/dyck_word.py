@@ -1342,6 +1342,90 @@ class DyckWord_class(CombinatorialObject):
                 close_positions.append(i+1)
         return Tableau(filter(lambda x: x != [],  [ open_positions, close_positions ]))
 
+    @combinatorial_map(name="recursive map '1 L 0 R'")
+    def to_binary_tree(self, usemap="1L0R"):
+        r"""
+        INPUT:
+
+         - ``usemap`` -- a string, either ``1L0R``, ``1R0L``, ``L1R0``,
+           ``R1L0``.
+
+        Returns a binary tree recursively constructed from the Dyck path
+        by the sent ``usemap``. The default usemap is ``1L0R`` which means:
+
+        - an empty Dyck word is a leaf,
+
+        - a non empty Dyck word reads `1 L 0 R` where `L` and `R` correspond
+          to respectively its left and right subtrees.
+
+        Other valid usemaps are ``1R0L``, ``L1R0``, and ``R1L0`` all
+        correspondings to different recursive definitions of Dyck paths.
+
+        EXAMPLES::
+
+            sage: dw = DyckWord([1,0])
+            sage: dw.to_binary_tree()
+            [., .]
+            sage: dw = DyckWord([])
+            sage: dw.to_binary_tree()
+            .
+            sage: dw = DyckWord([1,0,1,1,0,0])
+            sage: dw.to_binary_tree()
+            [., [[., .], .]]
+            sage: dw.to_binary_tree("L1R0")
+            [[., .], [., .]]
+            sage: dw = DyckWord([1,0,1,1,0,0,1,1,1,0,1,0,0,0])
+            sage: dw.to_binary_tree() == dw.to_binary_tree("1R0L").left_right_symmetry()
+            True
+            sage: dw.to_binary_tree() == dw.to_binary_tree("L1R0").left_border_symmetry()
+            False
+            sage: dw.to_binary_tree("1R0L") == dw.to_binary_tree("L1R0").left_border_symmetry()
+            True
+            sage: dw.to_binary_tree("R1L0") == dw.to_binary_tree("L1R0").left_right_symmetry()
+            True
+            sage: dw.to_binary_tree("R10L")
+            Traceback (most recent call last):
+            ...
+            ValueError: R10L is not a correct map
+        """
+        if usemap not in ["1L0R", "1R0L", "L1R0", "R1L0"]:
+            raise ValueError("%s is not a correct map"%(usemap))
+        from sage.combinat.binary_tree import BinaryTree
+        if(len(self)==0):
+            return BinaryTree()
+        tp = [0]
+        tp.extend(self.touch_points())
+        l = len(self)
+        if(usemap[0]=='1'): # we check what kind of reduction we want
+            s0 = 1 #start point for first substree
+            e0 = tp[1] *2 -1 #end point for first subtree
+            s1 = e0 + 1 #start point for second subtree
+            e1 = l #end point for second subtree
+        else:
+            s0 = 0
+            e0 = tp[len(tp)-2] *2
+            s1 = e0 + 1
+            e1 = l - 1
+        trees = [DyckWord(self[s0:e0]).to_binary_tree(usemap), DyckWord(self[s1:e1]).to_binary_tree(usemap)]
+        if(usemap[0] == "R" or usemap[1]=="R"):
+            trees.reverse()
+        return BinaryTree(trees)
+
+    def to_binary_tree_tamari(self):
+        r"""
+        Returns the binary tree with consistency with the Tamari order.
+
+        EXAMPLES::
+
+            sage: DyckWord([1,0]).to_binary_tree_tamari()
+            [., .]
+            sage: DyckWord([1,0,1,1,0,0]).to_binary_tree_tamari()
+            [[., .], [., .]]
+            sage: DyckWord([1,0,1,0,1,0]).to_binary_tree_tamari()
+            [[[., .], .], .]
+        """
+        return self.to_binary_tree("L1R0")
+
     def to_area_sequence(self):
         r"""
         Return the sequence of numbers representing of full cells below the

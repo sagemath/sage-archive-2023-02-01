@@ -3063,9 +3063,32 @@ class Permutation_class(CombinatorialObject):
             return LBT([rec(perm[:k]), rec(perm[k+1:])], label = mn)
         return rec(self)
 
+    @combinatorial_map(name="Increasing tree")
+    def increasing_tree_shape(self, compare=min):
+        r"""
+        Returns the shape of the increasing tree associated with the
+        permutation.
+
+        EXAMPLES::
+
+            sage: Permutation([1,4,3,2]).increasing_tree_shape()
+            [., [[[., .], .], .]]
+            sage: Permutation([4,1,3,2]).increasing_tree_shape()
+            [[., .], [[., .], .]]
+
+        By passing the option ``compare=max`` one can have the decreasing
+        tree instead::
+
+            sage: Permutation([2,3,4,1]).increasing_tree_shape(max)
+            [[[., .], .], [., .]]
+            sage: Permutation([2,3,1,4]).increasing_tree_shape(max)
+            [[[., .], [., .]], .]
+        """
+        return self.increasing_tree(compare).shape()
+
     def binary_search_tree(self, left_to_right=True):
         """
-        Return the binary search tree associated to ``self``
+        Return the binary search tree associated to ``self``.
 
         EXAMPLES::
 
@@ -3074,8 +3097,8 @@ class Permutation_class(CombinatorialObject):
             sage: Permutation([4,1,3,2]).binary_search_tree()
             4[1[., 3[2[., .], .]], .]
 
-        By passing the option ``compare=max`` one can have the decreasing
-        tree instead::
+        By passing the option ``left_to_right=False`` one can have
+        the insertion going from right to left::
 
             sage: Permutation([1,4,3,2]).binary_search_tree(False)
             2[1[., .], 3[., 4[., .]]]
@@ -3173,6 +3196,29 @@ class Permutation_class(CombinatorialObject):
             raise ValueError, "%s is a permutation of odd size and has no coset-type"%self
         S=PerfectMatchings(n)([(2*i+1,2*i+2) for i in range(n//2)])
         return S.loop_type(S.conjugate_by_permutation(self))
+
+    @combinatorial_map(name = "Binary search tree (left to right)")
+    def binary_search_tree_shape(self, left_to_right=True):
+        r"""
+        Returns the shape of the binary search tree of the permutation
+        (a non labelled binary tree).
+
+        EXAMPLES::
+
+            sage: Permutation([1,4,3,2]).binary_search_tree_shape()
+            [., [[[., .], .], .]]
+            sage: Permutation([4,1,3,2]).binary_search_tree_shape()
+            [[., [[., .], .]], .]
+
+        By passing the option ``left_to_right=False`` one can have
+        the insertion going from right to left::
+
+            sage: Permutation([1,4,3,2]).binary_search_tree_shape(False)
+            [[., .], [., [., .]]]
+            sage: Permutation([4,1,3,2]).binary_search_tree_shape(False)
+            [[., .], [., [., .]]]
+        """
+        return self.binary_search_tree(left_to_right).shape()
 
 ################################################################
 

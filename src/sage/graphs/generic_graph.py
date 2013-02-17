@@ -16653,11 +16653,16 @@ class GenericGraph(GenericGraph_pyx):
         other_vertices = other.vertices()
         if edge_labels or self.has_multiple_edges():
             if edge_labels and sorted(self.edge_labels()) != sorted(other.edge_labels()):
-                return False, None if certify else False
+                return (False, None) if certify else False
             else:
-                G, partition, relabeling = graph_isom_equivalent_non_edge_labeled_graph(self, return_relabeling=True, ignore_edge_labels=(not edge_labels))
+                G, partition, relabeling, G_edge_labels = graph_isom_equivalent_non_edge_labeled_graph(self, return_relabeling=True, ignore_edge_labels=(not edge_labels), return_edge_labels=True)
                 self_vertices = sum(partition,[])
-                G2, partition2, relabeling2 = graph_isom_equivalent_non_edge_labeled_graph(other, return_relabeling=True, ignore_edge_labels=(not edge_labels))
+                G2, partition2, relabeling2, G2_edge_labels = graph_isom_equivalent_non_edge_labeled_graph(other, return_relabeling=True, ignore_edge_labels=(not edge_labels), return_edge_labels=True)
+                if map(len, partition) != map(len, partition2):
+                    return (False, None) if certify else False
+                multilabel = (lambda e:e) if edge_labels else (lambda e:map(lambda el: [None, el[1]], e))
+                if map(multilabel, G_edge_labels) != map(multilabel, G2_edge_labels):
+                    return (False, None) if certify else False
                 partition2 = sum(partition2,[])
                 other_vertices = partition2
         else:
@@ -16985,6 +16990,20 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
         [[[0, 1, 2, 3], [4], [5]]]
         sage: G.edges()
         [(0, 4, None), (1, 4, None), (1, 5, None), (2, 3, None), (2, 5, None)]
+
+    Ensure that #14108 is fixed::
+
+        sage: G=DiGraph([[0,0],[0,0],[0,0],[1,1],[1,1],[1,1]])
+        sage: H=DiGraph([[0,0],[0,0],[0,0],[0,0],[1,1],[1,1]])
+        sage: G.is_isomorphic(H)
+        False
+        sage: H=DiGraph([[0,0],[0,0],[0,0],[0,0],[0,0],[1,1],[1,1]])
+        sage: HH=DiGraph([[0,0],[0,0],[0,0],[0,0],[1,1],[1,1],[1,1]])
+        sage: H.is_isomorphic(HH)
+        False
+        sage: H.is_isomorphic(HH, edge_labels=True)
+        False
+
     """
     from copy import copy
     from sage.graphs.all import Graph, DiGraph
@@ -16999,6 +17018,8 @@ def graph_isom_equivalent_non_edge_labeled_graph(g, partition=None, standard_lab
             G = Graph(loops=g.allows_loops(),sparse=True)
             edge_iter = g._backend.iterator_edges(g,True)
         for u,v,l in edge_iter:
+            if ignore_edge_labels:
+                l = None
             if not G.has_edge(u,v):
                 G.add_edge(u,v,[[l,1]])
             else:

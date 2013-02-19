@@ -74,8 +74,22 @@ def builder_helper(type):
         logger.debug(build_command)
         subprocess.call(build_command, shell=True)
 
-        logger.info("Build finished and can be found in %s",
-                    output_dir.replace(SAGE_DOC+'/', ''))
+        # Print message about location of output:
+        #   - by default if html output
+        #   - if verbose and if not pdf output
+        #   - if pdf: print custom message here if verbose, and print
+        #     full message below (see pdf method) after 'make all-pdf'
+        #     is done running
+
+        if 'output/html' in output_dir:
+            logger.warning("Build finished. The built documents can be found in %s",
+                           output_dir)
+        elif 'output/pdf' not in output_dir:
+            logger.info("Build finished. The built documents can be found in %s",
+                           output_dir)
+        else:
+            logger.info("LaTeX file written to %s; now making PDF.",
+                           output_dir)
 
     f.is_output_format = True
     return f

@@ -101,7 +101,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         self._inverse_transition_matrices = {}
 
         #
-        scalar_target = scalar(sage.combinat.partition.Partition_class([1])).parent()
+        scalar_target = scalar(sage.combinat.partition.Partition([1])).parent()
         scalar_target = (scalar_target(1)*dual_basis.base_ring()(1)).parent()
 
         self._sym = sage.combinat.sf.sf.SymmetricFunctions(scalar_target)
@@ -286,7 +286,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
         #Handle the n == 0 and n == 1 cases separately
         if n == 0 or n == 1:
-            part = sage.combinat.partition.Partition_class([1]*n)
+            part = sage.combinat.partition.Partition([1]*n)
             self._to_self_cache[ part ] = { part: base_ring(1) }
             self._from_self_cache[ part ] = { part: base_ring(1) }
             self._transition_matrices[n] = matrix(base_ring, [[1]])

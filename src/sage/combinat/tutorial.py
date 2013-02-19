@@ -742,7 +742,7 @@ richer than simple lists::
     sage: p = P7.unrank(5); p
     [4, 2, 1]
     sage: type(p)
-    <class 'sage.combinat.partition.Partition_class'>
+    <class 'sage.combinat.partition.Partitions_n_with_category.element_class'>
 
 For example, they can be represented graphically by a Ferrers diagram::
 

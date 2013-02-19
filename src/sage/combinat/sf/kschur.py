@@ -368,7 +368,7 @@ class kSchurFunctions_t(kSchurFunctions_generic):
         zero = s(0)
 
         if n == 0:
-            p = sage.combinat.partition.Partition_class([])
+            p = sage.combinat.partition.Partition([])
             self._self_to_s_cache[0] = {p: {p:R(1)}}
             return
         else:

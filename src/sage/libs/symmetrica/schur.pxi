@@ -159,7 +159,7 @@ def compute_schur_with_alphabet_symmetrica(part, length, alphabet='x'):
 
     if isinstance(part, (int, Integer)):
         _op_partition([part], cpart)
-    elif isinstance(part, (builtinlist, Partition_class)):
+    elif isinstance(part, (builtinlist, Partition)):
         _op_partition(part, cpart)
     else:
         raise NotImplementedError, "n must be an integer or partition"
@@ -203,7 +203,7 @@ def compute_homsym_with_alphabet_symmetrica(n, length, alphabet='x'):
 
     if isinstance(n, (int, Integer)):
         _op_integer(n, cn)
-    elif isinstance(n, (builtinlist, Partition_class)):
+    elif isinstance(n, (builtinlist, Partition)):
         _op_partition(n, cn)
     else:
         raise NotImplementedError, "n must be an integer or a partition"
@@ -251,7 +251,7 @@ def compute_elmsym_with_alphabet_symmetrica(n, length, alphabet='x'):
         if n > length:
             return 0
         _op_integer(n, cn)
-    elif isinstance(n, (builtinlist, Partition_class)):
+    elif isinstance(n, (builtinlist, Partition)):
         if max(n) > length:
             return 0
         _op_partition(n, cn)
@@ -296,7 +296,7 @@ def compute_monomial_with_alphabet_symmetrica(n, length, alphabet='x'):
     cdef OP cn = callocobject(), clength = callocobject(), cresult = callocobject()
     if isinstance(n, (int, Integer)):
         _op_integer(n, cn)
-    elif isinstance(n, (builtinlist, Partition_class)):
+    elif isinstance(n, (builtinlist, Partition)):
         if len(n) > length:
             return 0
         _op_partition(n, cn)
@@ -343,7 +343,7 @@ def compute_powsym_with_alphabet_symmetrica(n, length, alphabet='x'):
 
     if isinstance(n, (int, Integer)):
         _op_integer(n, cn)
-    elif isinstance(n, (builtinlist, Partition_class)):
+    elif isinstance(n, (builtinlist, Partition)):
         _op_partition(n, cn)
     else:
         raise NotImplementedError, "need to write code for POW_SYM"
@@ -381,7 +381,7 @@ def compute_schur_with_alphabet_det_symmetrica(part, length, alphabet='x'):
 
     if isinstance(part, (int, Integer)):
         _op_partition([part], cpart)
-    elif isinstance(part, (builtinlist, Partition_class)):
+    elif isinstance(part, (builtinlist, Partition)):
         _op_partition(part, cpart)
     else:
         raise NotImplementedError, "n must be an integer or partition"

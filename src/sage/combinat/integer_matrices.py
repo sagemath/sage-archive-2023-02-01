@@ -334,4 +334,4 @@ def integer_matrices_generator(row_sums, column_sums):
         for comp in IntegerListsLex(row_sums[0], len(column_sums), ceiling=column_sums):
             t = [column_sums[i]-ci for (i, ci) in enumerate(comp)]
             for mat in integer_matrices_generator(row_sums[1:], t):
-                yield [comp] + mat
+                yield [list(comp)] + mat

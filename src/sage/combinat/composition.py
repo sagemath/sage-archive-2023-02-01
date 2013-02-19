@@ -1028,7 +1028,7 @@ class Compositions(Parent, UniqueRepresentation):
             else:
                 # FIXME: should inherit from IntegerListLex, and implement repr, or _name as a lazy attribute
                 kwargs['name'] = "Compositions of the integer %s satisfying constraints %s"%(n, ", ".join( ["%s=%s"%(key, kwargs[key]) for key in sorted(kwargs.keys())] ))
-                kwargs['element_constructor'] = Composition
+                kwargs['element_class'] = Composition
                 if 'min_part' not in kwargs:
                     kwargs['min_part'] = 1
                 elif kwargs['min_part'] == 0:
@@ -1226,7 +1226,7 @@ class Compositions_constraints(IntegerListsLex):
         n = data['n']
         self.__class__ = IntegerListsLex
         constraints = {'min_part' : 1,
-                       'element_constructor' : Composition}
+                       'element_class' : Composition}
         constraints.update(data['constraints'])
         self.__init__(n, **constraints)
 

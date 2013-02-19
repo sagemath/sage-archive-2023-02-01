@@ -331,8 +331,14 @@ class Spin(Letter):
 
             sage: C = CrystalOfSpins(['B',3])
             sage: b = C([1,1,-1])
-            sage: b._latex_()
-            '{\\def\\lr#1{\\multicolumn{1}{|@{\\hspace{.6ex}}c@{\\hspace{.6ex}}|}{\\raisebox{-.3ex}{$#1$}}}\n\\raisebox{-.6ex}{$\\begin{array}[b]{c}\n\\cline{1-1}\n\\lr{-}\\\\\n\\cline{1-1}\n\\lr{+}\\\\\n\\cline{1-1}\n\\lr{+}\\\\\n\\cline{1-1}\n\\end{array}$}\n}'
+            sage: print b._latex_()
+            {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{1}c}\cline{1-1}
+            \lr{-}\\\cline{1-1}
+            \lr{+}\\\cline{1-1}
+            \lr{+}\\\cline{1-1}
+            \end{array}$}
+            }
         """
         return Tableau([[i] for i in reversed(self.signature())])._latex_()
 

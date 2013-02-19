@@ -39,7 +39,7 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.magmas import Magmas
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
-from sage.combinat.partition import Partition, Partitions, Partition_class
+from sage.combinat.partition import Partition, Partitions, Partition
 from sage.rings.all import Integer
 from sage.combinat.combinat import InfiniteAbstractCombinatorialClass
 import sage.combinat.sf.sfa as sfa
@@ -370,7 +370,7 @@ class KBoundedQuotient(UniqueRepresentation, Parent):
 
             sage: Q = SymmetricFunctions(QQ).kBoundedQuotient(3,t=1)
             sage: Q.an_element()
-            m3[] + 2*m3[1] + 3*m3[2]
+            2*m3[] + 2*m3[1] + 3*m3[2]
         """
         return self.a_realization().an_element()
 
@@ -595,7 +595,7 @@ class KBoundedQuotientBases(Category_realization_of_parent):
                 sage: F[[]]
                 F3[]
             """
-            if isinstance(c, Partition_class):
+            if isinstance(c, Partition):
                 assert len(rest) == 0
             else:
                 if len(rest) > 0 or isinstance(c,(int,Integer)):
@@ -642,7 +642,7 @@ class KBoundedQuotientBases(Category_realization_of_parent):
             EXAMPLES::
 
                 sage: SymmetricFunctions(QQ['t']).kBoundedQuotient(3,t=1).an_element()
-                m3[] + 2*m3[1] + 3*m3[2]
+                2*m3[] + 2*m3[1] + 3*m3[2]
             """
 
             return self( Partition(srange(self.k,0,-1)))

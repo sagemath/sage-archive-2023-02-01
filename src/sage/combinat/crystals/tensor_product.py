@@ -612,8 +612,12 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
             sage: C = CrystalOfLetters(["A",2])
             sage: D = CrystalOfTableaux(["A",2], shape=[2])
             sage: E = TensorProductOfCrystals(C,D)
-            sage: E.module_generators[0]._latex_()
-            '1\\otimes{\\def\\lr#1{\\multicolumn{1}{|@{\\hspace{.6ex}}c@{\\hspace{.6ex}}|}{\\raisebox{-.3ex}{$#1$}}}\n\\raisebox{-.6ex}{$\\begin{array}[b]{cc}\n\\cline{1-1}\\cline{2-2}\n\\lr{1}&\\lr{1}\\\\\n\\cline{1-1}\\cline{2-2}\n\\end{array}$}\n}'
+            sage: print E.module_generators[0]._latex_()
+            1\otimes{\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
+            \lr{1}&\lr{1}\\\cline{1-2}
+            \end{array}$}
+            }
         """
         return '\otimes'.join(latex(c) for c in self)
 
@@ -1195,12 +1199,9 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
             sage: t = T(rows=[[1,1,2,3],[2,3]])
             sage: latex(t) # indirect doctest
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
-            \raisebox{-.6ex}{$\begin{array}[b]{cccc}
-            \cline{1-1}\cline{2-2}\cline{3-3}\cline{4-4}
-            \lr{1}&\lr{1}&\lr{2}&\lr{3}\\
-            \cline{1-1}\cline{2-2}\cline{3-3}\cline{4-4}
-            \lr{2}&\lr{3}\\
-            \cline{1-1}\cline{2-2}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{4}c}\cline{1-4}
+            \lr{1}&\lr{1}&\lr{2}&\lr{3}\\\cline{1-4}
+            \lr{2}&\lr{3}\\\cline{1-2}
             \end{array}$}
             }
         """

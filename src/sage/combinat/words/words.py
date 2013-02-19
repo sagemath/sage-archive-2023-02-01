@@ -1208,7 +1208,7 @@ class Words_over_OrderedAlphabet(Words_over_Alphabet):
         # iterate through the morphisms
         from sage.combinat.words.morphism import WordMorphism
         for composition in compositions:
-            cuts = [0] + composition
+            cuts = [0] + list(composition)
             for i in range(1,len(cuts)):
                 cuts[i] += cuts[i-1]
             s = cuts[-1] # same but better than s = sum(composition)

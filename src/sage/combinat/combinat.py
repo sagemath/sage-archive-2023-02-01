@@ -1037,7 +1037,11 @@ class CombinatorialClass(Parent):
 
         TEST::
 
-            sage: len(Partitions(5))
+            sage: class C(CombinatorialClass):
+            ...     def __iter__(self):
+            ...          return iter([1,2,3])
+            ...
+            sage: len(C())
             Traceback (most recent call last):
             ...
             AttributeError: __len__ has been removed; use .cardinality() instead
@@ -1064,15 +1068,19 @@ class CombinatorialClass(Parent):
 
         EXAMPLES::
 
-            sage: p5 = Partitions(5)
-            sage: p5[0]
-            [5]
-            sage: p5[6]
-            [1, 1, 1, 1, 1]
-            sage: p5[7]
+            sage: class C(CombinatorialClass):
+            ...     def __iter__(self):
+            ...          return iter([1,2,3])
+            ...
+            sage: c = C()
+            sage: c[0]
+            1
+            sage: c[2]
+            3
+            sage: c[4]
             Traceback (most recent call last):
             ...
-            ValueError: the value must be between 0 and 6 inclusive
+            ValueError: the value must be between 0 and 2 inclusive
         """
         return self.unrank(i)
 
@@ -1175,7 +1183,7 @@ class CombinatorialClass(Parent):
             <type 'list'>
             sage: a = p5(a)
             sage: type(a)
-            <class 'sage.combinat.partition.Partition_class'>
+            <class 'sage.combinat.partition.Partitions_n_with_category.element_class'>
             sage: p5([2,1])
             Traceback (most recent call last):
             ...
@@ -1200,7 +1208,7 @@ class CombinatorialClass(Parent):
 
             sage: P5 = Partitions(5)
             sage: P5.element_class
-            <class 'sage.combinat.partition.Partition_class'>
+            <class 'sage.combinat.partition.Partitions_n_with_category.element_class'>
         """
         # assert not isinstance(self, Parent) # Raises an alert if we override the proper definition from Parent
         if hasattr(self, "object_class"):
@@ -1221,7 +1229,7 @@ class CombinatorialClass(Parent):
             sage: P5 = Partitions(5)
             sage: p = P5([3,2])      # indirect doctest
             sage: type(p)
-            <class 'sage.combinat.partition.Partition_class'>
+            <class 'sage.combinat.partition.Partitions_n_with_category.element_class'>
         """
         # assert not isinstance(self, Parent) # Raises an alert if we override the proper definition from Parent
         return self.element_class(x)

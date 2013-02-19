@@ -368,7 +368,7 @@ cdef object matrix_constructor
 cdef object Integer
 cdef object Tableau, SkewTableau, SkewTableau_class
 cdef object SkewPartition, SkewPartition_class
-cdef object Partition, Partition_class
+cdef object Partition
 cdef object Permutation_class, Permutations
 cdef object builtinlist
 cdef object sqrt
@@ -391,7 +391,6 @@ cdef void late_import():
            SkewPartition, \
            SkewPartition_class, \
            Partition, \
-           Partition_class, \
            Permutation_class, Permutations,\
            prod, \
            PolynomialRing, \
@@ -427,7 +426,6 @@ cdef void late_import():
 
     import sage.combinat.partition
     Partition = sage.combinat.partition.Partition
-    Partition_class = sage.combinat.partition.Partition_class
 
     import sage.combinat.permutation
     Permutation_class = sage.combinat.permutation.Permutation_class
@@ -520,7 +518,7 @@ cdef int _op(object a, OP result) except -1:
     late_import()
     if PyObject_TypeCheck(a, Integer):
         _op_integer(a, result)
-    elif PyObject_TypeCheck(a, Partition_class):
+    elif PyObject_TypeCheck(a, Partition):
         _op_partition(a, result)
     elif PyObject_TypeCheck(a, Rational):
         _op_fraction(a, result)

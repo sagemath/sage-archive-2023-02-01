@@ -27,7 +27,7 @@ from sage.categories.graded_coalgebras_with_basis import GradedCoalgebrasWithBas
 from sage.categories.magmas import Magmas
 from sage.categories.examples.infinite_enumerated_sets import NonNegativeIntegers
 from sage.categories.tensor import tensor
-from sage.combinat.partition import Partition, Partitions, Partition_class
+from sage.combinat.partition import Partition, Partitions
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.categories.morphism import SetMorphism
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
@@ -365,7 +365,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 sage: ks3[[]]
                 ks3[]
             """
-            if isinstance(c, Partition_class):
+            if isinstance(c, Partition):
                 assert len(rest) == 0
             else:
                 if len(rest) > 0 or isinstance(c,(int,Integer)):
@@ -452,7 +452,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
             EXAMPLES::
 
                 sage: SymmetricFunctions(QQ['t']).kschur(3).an_element()
-                ks3[] + 2*ks3[1] + 3*ks3[2]
+                2*ks3[] + 2*ks3[1] + 3*ks3[2]
             """
             return self( Partition(srange(self.k,0,-1)))
 
@@ -612,7 +612,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
             At `t=1`, `\omega` maps the `k`-Schur function `s^{(k)}_\lambda` to `s^{(k)}_{\lambda^{(k)}}`, where
             `\lambda^{(k)}` is the `k`-conjugate of the partition `\lambda`.
 
-            .. SEEALSO:: :meth:`~sage.combinat.partition.Partition_class.k_conjugate`.
+            .. SEEALSO:: :meth:`~sage.combinat.partition.Partition.k_conjugate`.
 
             For generic `t`, `\omega` sends `s^{(k)}_\lambda[X;t]` to `t^d s^{(k)}_{\lambda^{(k)}}[X;1/t]`,
             where `d` is the size of the core of `\lambda` minus the size of `\lambda`. Most of the time,

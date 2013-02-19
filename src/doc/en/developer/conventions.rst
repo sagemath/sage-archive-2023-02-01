@@ -1084,3 +1084,10 @@ For example, see the file
 ``SAGE_ROOT/devel/sage/sage/modular/modsym/tests.py``.
 
 .. [2]  See http://www.sagemath.org/development-map.html
+
+GlobalOptions
+=============
+
+Global options for classes can be defined in Sage using
+:class:`~sage.structure.global_options.GlobalOptions`.
+

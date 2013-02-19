@@ -52,6 +52,7 @@ Combinatorics
    cluster_algebras
 
    algebra
+   partitions
    tableaux
    symmetric_functions
    ncsf_qsym

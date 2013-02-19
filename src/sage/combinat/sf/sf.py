@@ -130,14 +130,14 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: p['something']
         Traceback (most recent call last):
         ...
-        ValueError: ['s', 'o', 'm', 'e', 't', 'h', 'i', 'n', 'g'] not in Partitions
+        ValueError: ['s', 'o', 'm', 'e', 't', 'h', 'i', 'n', 'g'] is not a valid partition
         sage: p.basis()['something']
         p'something'
 
     Elements of ``p`` are linear combinations of such compositions::
 
       sage: p.an_element()
-      p[] + 2*p[1] + 3*p[2]
+      2*p[] + 2*p[1] + 3*p[2]
 
     .. rubric:: Algebra structure
 

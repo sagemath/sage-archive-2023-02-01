@@ -279,7 +279,7 @@ class SetPartitions_setn(SetPartitions_setparts):
         TESTS::
 
             sage: S = SetPartitions(5, 3)
-            sage: S == loads(dumps(S))
+            sage: S == loads(dumps(S)) # Not tested: todo - IntegerListsLex needs to pickle properly
             True
         """
         self.n = n

@@ -431,7 +431,128 @@ class TableauTuple(CombinatorialObject,Element):
             sage: TableauTuple([[],[],[],[]])
             ([], [], [], [])
         """
+        return self.parent().global_options.dispatch(self,'_repr_','display')
+
+    def _repr_list(self):
+        """
+        Return a string representation of ``self`` as a list.
+
+        EXAMPLES::
+
+            sage: TableauTuple([[],[],[],[]])._repr_list()
+            '([], [], [], [])'
+        """
         return '('+', '.join('%s'%s for s in self)+')'
+
+    def _repr_compact(self):
+        """
+        Return a compact string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: TableauTuple([[],[],[],[]])._repr_compact()
+            '-|-|-|-'
+            sage: TableauTuple([[[1,2,3],[4,5]],[],[[6]],[]])._repr_compact()
+            '1,2,3/4,5|-|6|-'
+        """
+        return '|'.join('%s'%s._repr_compact() for s in self)
+
+    def _repr_diagram(self):
+        """
+        Return a string representation of ``self`` as an array.
+
+        EXAMPLES::
+
+            sage: print TableauTuple([[[2,3]],[[1]],[[4],[5]],[]])._repr_diagram()
+                 2  3     1     4   -
+                                5
+            sage: print TableauTuple([[[2,3]],[],[[4],[5]],[]])._repr_diagram()
+                 2  3     -     4   -
+                                5
+            sage: TableauTuples.global_options(convention='French')
+            sage: print TableauTuple([[[2,3]],[[1]],[[4],[5]],[]])._repr_diagram()
+                                5
+                 2  3     1     4   -
+            sage: print TableauTuple([[[2,3]],[],[[4],[5]],[]])._repr_diagram()
+                                5
+                 2  3     -     4   -
+            sage: TableauTuples.global_options.reset()
+        """
+        col_len = [len(t)>0 and len(t[0]) or 1 for t in self]  # columns per component
+        row_max = max(len(t) for t in self)                    # maximum row length
+        # There should be a fancier list compression for this but I couldn't get
+        # one to work in the cases where a component was the empty partition
+        diag = []
+        for row in xrange(row_max):
+            line=''
+            for c in range(len(self)):
+                if row == 0 and self[c] == []:
+                    line += '     -'
+                elif row < len(self[c]):
+                    line += '   '+''.join(map(lambda x: "%3s"%str(x) , self[c][row]))+'   '*(col_len[c]-len(self[c][row]))
+                else:
+                    line += '   '+'   '*col_len[c]
+            diag.append(line)
+        if TableauTuples.global_options('convention')=='english':
+            return '\n'.join(map(str,diag))
+        else:
+            return '\n'.join(map(str,diag[::-1]))
+
+    def _latex_(self):
+        r"""
+        Returns a LaTeX version of ``self``.
+
+        EXAMPLES::
+
+            sage: t=TableauTuple([ [[1,2],[3]], [], [[4,5],[6,7]] ])
+            sage: latex(t)    # indirect doctest
+            \Bigg( {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
+            \lr{1}&\lr{2}\\\cline{1-2}
+            \lr{3}\\\cline{1-1}
+            \end{array}$},\emptyset,\raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
+            \lr{4}&\lr{5}\\\cline{1-2}
+            \lr{6}&\lr{7}\\\cline{1-2}
+            \end{array}$}
+            } \Bigg)
+            sage: TableauTuples.global_options(convention="french")
+            sage: latex(t)    # indirect doctest
+            \Bigg( {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+            \raisebox{-.6ex}{$\begin{array}[t]{*{2}c}\cline{1-1}
+            \lr{3}\\\cline{1-2}
+            \lr{1}&\lr{2}\\\cline{1-2}
+            \end{array}$},\emptyset,\raisebox{-.6ex}{$\begin{array}[t]{*{2}c}\cline{1-2}
+            \lr{6}&\lr{7}\\\cline{1-2}
+            \lr{4}&\lr{5}\\\cline{1-2}
+            \end{array}$}
+            } \Bigg)
+            sage: TableauTuples.global_options.reset()
+        """
+        return self.parent().global_options.dispatch(self,'_latex_','latex')
+
+    _latex_list = _repr_list
+
+    def _latex_diagram(self):
+        r"""
+        Return a LaTeX representation of ``self`` as a Young diagram.
+
+        EXAMPLES::
+
+            sage: t = TableauTuple([ [[1,2],[3]], [], [[4,5],[6,7]] ])
+            sage: print t._latex_diagram()
+            \Bigg( {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
+            \lr{1}&\lr{2}\\\cline{1-2}
+            \lr{3}\\\cline{1-1}
+            \end{array}$},\emptyset,\raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
+            \lr{4}&\lr{5}\\\cline{1-2}
+            \lr{6}&\lr{7}\\\cline{1-2}
+            \end{array}$}
+            } \Bigg)
+        """
+        from output import tex_from_array_tuple
+        return r'\Bigg( %s \Bigg)' % tex_from_array_tuple(self)
+
 
     def components(self):
         """
@@ -571,27 +692,21 @@ class TableauTuple(CombinatorialObject,Element):
                 3           10 11
                 4           12
                             13
-            sage: TableauTuple([ [[1,2,3],[4,5],[6],[9]], [[1,2,3],[4,5,8]], [[11,12,13],[14]] ]).pp()
+            sage: t = TableauTuple([ [[1,2,3],[4,5],[6],[9]], [[1,2,3],[4,5,8]], [[11,12,13],[14]] ])
+            sage: t.pp()
                 1  2  3     1  2  3    11 12 13
                 4  5        4  5  8    14
                 6
                 9
+            sage: TableauTuples.global_options(convention="french")
+            sage: t.pp()
+                 9
+                 6
+                 4  5        4  5  8    14
+                 1  2  3     1  2  3    11 12 13
+            sage: TableauTuples.global_options.reset()
         """
-        col_len=[len(t)>0 and len(t[0]) or 1 for t in self]  # columns per component
-        row_max=max(len(t) for t in self)                    # maximum row length
-        # There should be a fancier list compression for this but I couldn't get
-        # one to work in the cases where a component was the empty partition
-        diag=''
-        for row in range(row_max):
-            if row>0: diag+='\n'
-            for c in range(len(self)):
-                if self[c]==[]:
-                    diag+='   %s' % (row==0 and '-' or ' ')
-                elif len(self[c])>row:
-                    diag+='   '+''.join(map(lambda x: "%3s"%str(x) , self[c][row]))+'   '*(col_len[c]-len(self[c][row]))
-                else:
-                    diag+='   '+'   '*col_len[c]
-        print diag
+        print self._repr_diagram()
 
     def to_word_by_row(self):
         """
@@ -1511,6 +1626,7 @@ class TableauTuples(UniqueRepresentation, Parent):
         sage: TestSuite( TableauTuples(level=6, size=10) ).run()
     """
     Element = TableauTuple
+    global_options=Tableaux.global_options
 
     @staticmethod
     def __classcall_private__(cls, level=None, size=None):
@@ -1679,6 +1795,7 @@ class TableauTuples(UniqueRepresentation, Parent):
             return [y for y in self]
         else:
             raise NotImplementedError, 'this is an infinite set of tableaux'
+
 
 class TableauTuples_all(TableauTuples):
     """

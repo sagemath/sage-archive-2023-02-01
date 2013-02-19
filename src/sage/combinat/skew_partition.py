@@ -18,10 +18,10 @@ diagram of the skew partition [[5,4,3,1],[3,3,1]].
 ::
 
     sage: print SkewPartition([[5,4,3,1],[3,3,1]]).diagram()
-       ##
-       #
-     ##
-    #
+       **
+       *
+     **
+    *
 
 A skew partition can be *connected*, which can easily be described
 in graphic terms: for each pair of consecutive rows, there are at
@@ -29,10 +29,10 @@ least two cells (one in each row) which have a common edge. This is
 the diagram of the connected skew partition [[5,4,3,1],[3,1]]::
 
     sage: print SkewPartition([[5,4,3,1],[3,1]]).diagram()
-       ##
-     ###
-    ###
-    #
+       **
+     ***
+    ***
+    *
     sage: SkewPartition([[5,4,3,1],[3,1]]).is_connected()
     True
 
@@ -45,11 +45,11 @@ diagram of the *conjugate skew partition*, here
     sage: SkewPartition([[5,4,3,1],[3,3,1]]).conjugate()
     [[4, 3, 3, 2, 1], [3, 2, 2]]
     sage: print SkewPartition([[5,4,3,1],[3,3,1]]).conjugate().diagram()
-       #
-      #
-      #
-    ##
-    #
+       *
+      *
+      *
+    **
+    *
 
 The *outer corners* of a skew partition are the corners of its
 outer partition. The *inner corners* are the internal corners of
@@ -186,23 +186,37 @@ class SkewPartition_class(CombinatorialObject):
         EXAMPLES::
 
             sage: print SkewPartition([[5,4,3,1],[3,3,1]]).ferrers_diagram()
-               ##
-               #
-             ##
-            #
+               **
+               *
+             **
+            *
             sage: print SkewPartition([[5,4,3,1],[3,1]]).diagram()
-               ##
-             ###
-            ###
+               **
+             ***
+            ***
+            *
+            sage: Partitions.global_options(diagram_str='#', convention="French")
+            sage: print SkewPartition([[5,4,3,1],[3,1]]).diagram()
             #
+            ###
+             ###
+               ##
+            sage: Partitions.global_options.reset()
         """
+        # TODO: Should be SkewPartitions.global_options
+        char, convention = sage.combinat.partition.Partitions.global_options('diagram_str','convention')
+
+        if convention == "english":
+            L = range(len(self[0]))
+        else:
+            L = reversed(range(len(self[0])))
         s = ""
-        for i in range(len(self[0])):
+        for i in L:
             if len(self[1]) > i:
                 s += " "*self[1][i]
-                s += "#"*(self[0][i]-self[1][i])
+                s += char*(self[0][i]-self[1][i])
             else:
-                s += "#"*self[0][i]
+                s += char*self[0][i]
             s += "\n"
         return s[:-1]
 
@@ -641,10 +655,10 @@ def from_row_and_column_length(rowL, colL):
 
        sage: from sage.combinat.skew_partition import from_row_and_column_length
        sage: print from_row_and_column_length([3,1,2,2],[2,3,1,1,1]).diagram()
-         ###
-        #
-       ##
-       ##
+         ***
+        *
+       **
+       **
        sage: from_row_and_column_length([],[])
        [[], []]
        sage: from_row_and_column_length([1],[1])
@@ -842,6 +856,28 @@ class SkewPartitions_all(CombinatorialClass):
             'Skew partitions'
         """
         return "Skew partitions"
+
+
+    def _latex_(self):
+        """
+        LaTeX output as a young diagram.
+
+        EXAMPLES::
+
+            sage: P = Partition([2, 1])
+            sage: print P._latex_young_diagram()
+            {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
+            \lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{1-2}
+            \lr{\phantom{x}}\\\cline{1-1}
+            \end{array}$}
+            }
+        """
+        if len(self._list) == 0:
+            return "{\\emptyset}"
+
+        from sage.combinat.output import tex_from_array
+        return tex_from_array([ ["\\phantom{x}"]*row_size for row_size in self._list ])
 
     def list(self):
         """

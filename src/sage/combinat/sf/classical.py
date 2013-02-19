@@ -122,8 +122,8 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         ##############
         # Partitions #
         ##############
-        if x in sage.combinat.partition.Partitions_all():
-            return eclass(self, {sage.combinat.partition.Partition_class(filter(lambda x: x!=0, x)):R(1)})
+        if x in sage.combinat.partition.Partitions():
+            return eclass(self, {sage.combinat.partition.Partition(filter(lambda x: x!=0, x)):R(1)})
 
         # Todo: discard all of this which is taken care by Sage's coercion
         # (up to changes of base ring)
@@ -304,20 +304,20 @@ class SymmetricFunctionAlgebra_classical(sfa.SymmetricFunctionAlgebra_generic):
         # Elements of the base ring #
         #############################
         elif x.parent() is R:
-            return eclass(self, {sage.combinat.partition.Partition_class([]):x})
+            return eclass(self, {sage.combinat.partition.Partition([]):x})
 
         ###########################################
         # Elements that coerce into the base ring #
         ###########################################
         elif R.has_coerce_map_from(x.parent()):
-            return eclass(self, {sage.combinat.partition.Partition_class([]):R(x)})
+            return eclass(self, {sage.combinat.partition.Partition([]):R(x)})
 
         #################################
         # Last shot -- try calling R(x) #
         #################################
         else:
             try:
-                return eclass(self, {sage.combinat.partition.Partition_class([]):R(x)})
+                return eclass(self, {sage.combinat.partition.Partition([]):R(x)})
             except StandardError:
                 raise TypeError, "do not know how to make x (= %s) an element of self"%(x)
 

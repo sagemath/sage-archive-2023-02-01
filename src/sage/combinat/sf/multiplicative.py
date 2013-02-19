@@ -73,7 +73,7 @@ class SymmetricFunctionAlgebra_multiplicative(classical.SymmetricFunctionAlgebra
         """
         m = list(left)+list(right)
         m.sort(reverse=True)
-        return sage.combinat.partition.Partition_class(m)
+        return sage.combinat.partition.Partition(m)
 
     def coproduct_on_basis(self, mu):
         r"""

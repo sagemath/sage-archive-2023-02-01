@@ -233,7 +233,7 @@ cdef class ClasscallMetaclass(NestedClassMetaclass):
 
         instead of::
 
-            sage: isinstance(x, sage.combinat.partition.Partition_class)
+            sage: isinstance(x, sage.combinat.partition.Partition)
             True
 
         Another difference is that ``__classcall__`` is inherited by

@@ -324,7 +324,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
             sage: U4 = DisjointUnionEnumeratedSets(
             ...            Family(NonNegativeIntegers(), Partitions))
             sage: Partition([]) in U4
-            doctest:...: UserWarning: Disjoint union of Lazy family (Partitions(i))_{i in Non negative integers} is an infinite union
+            doctest:...: UserWarning: Disjoint union of Lazy family (<class 'sage.combinat.partition.Partitions'>(i))_{i in Non negative integers} is an infinite union
             The default implementation of __contains__ can loop forever. Please overload it.
             True
 

@@ -36,9 +36,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.combinat.partition import Partition_class
+from sage.combinat.combinat import CombinatorialObject
 
-class RiggedPartition(Partition_class):
+class RiggedPartition(CombinatorialObject):
     r"""
     The RiggedPartition class which is the data structure of a rigged (i.e.
     marked or decorated) Young diagram of a partition.
@@ -67,9 +67,9 @@ class RiggedPartition(Partition_class):
 
         INPUT:
 
-        - ``shape`` -- (Default: None) The shape
-        - ``rigging_list`` -- (Default: None) The riggings
-        - ``vacancy_nums`` -- (Default: None) The vacancy numbers
+        - ``shape`` -- (Default: ``None``) The shape
+        - ``rigging_list`` -- (Default: ``None``) The riggings
+        - ``vacancy_nums`` -- (Default: ``None``) The vacancy numbers
 
         TESTS::
 
@@ -84,11 +84,11 @@ class RiggedPartition(Partition_class):
             sage: TestSuite(RP).run()
         """
         if shape is None:
-            Partition_class.__init__(self, [])
+            CombinatorialObject.__init__(self, [])
             self.vacancy_numbers = []
             self.rigging = []
         else:
-            Partition_class.__init__(self, shape)
+            CombinatorialObject.__init__(self, shape)
 
             if vacancy_nums is not None:
                 if len(shape) != len(vacancy_nums):
@@ -114,17 +114,29 @@ class RiggedPartition(Partition_class):
         EXAMPLES::
 
             sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 2]])
-            sage: RC(partition_list=[[2],[2,2],[2,1],[2]])[2] # indirect doctest
+            sage: elt =  RC(partition_list=[[2],[2,2],[2,1],[2]])[2]
+            sage: elt # indirect doctest
             0[ ][ ]0
             -1[ ]-1
             <BLANKLINE>
+            sage: Partitions.global_options(convention="french")
+            sage: elt # indirect doctest
+            -1[ ]-1
+            0[ ][ ]0
+            <BLANKLINE>
+            sage: Partitions.global_options.reset()
         """
         # If it is empty, return saying so
         if len(self._list) == 0:
             return("(/)\n")
 
+        from sage.combinat.partition import Partitions
+        if Partitions.global_options("convention") == "french":
+            itr = reversed(list(enumerate(self._list)))
+        else:
+            itr = enumerate(self._list)
         retStr = ""
-        for i, val in enumerate(self._list):
+        for i, val in itr:
             retStr += str(self.vacancy_numbers[i])
             retStr += "[ ]"*val
             retStr += str(self.rigging[i])
@@ -256,13 +268,14 @@ class RiggedPartition(Partition_class):
         Insert a cell given at a singular value as long as its less than the
         specified width.
 
-        Note that :meth:`insert_cell` does not update riggings or vacancy numbers, but
-        it does prepare the space for them. Returns the width of the row we
-        inserted at.
+        Note that :meth:`insert_cell` does not update riggings or vacancy
+        numbers, but it does prepare the space for them. Returns the width of
+        the row we inserted at.
 
         INPUT:
 
-        - ``max_width`` -- The maximum width (i.e. row length) that we can insert the cell at
+        - ``max_width`` -- The maximum width (i.e. row length) that we can
+          insert the cell at
 
         OUTPUT:
 
@@ -303,9 +316,9 @@ class RiggedPartition(Partition_class):
         r"""
         Removes a cell at the specified ``row``.
 
-        Note that :meth:`remove_cell` does not set/update the vacancy numbers or the
-        riggings, but guarantees that the location has been allocated in the
-        returned index.
+        Note that :meth:`remove_cell` does not set/update the vacancy numbers
+        or the riggings, but guarantees that the location has been allocated
+        in the returned index.
 
         INPUT:
 
@@ -313,7 +326,8 @@ class RiggedPartition(Partition_class):
 
         OUTPUT:
 
-        - The location of the newly constructed row or None if unable to remove row or if deleted a row.
+        - The location of the newly constructed row or ``None`` if unable to
+          remove row or if deleted a row.
 
         EXAMPLES::
 

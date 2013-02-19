@@ -3,14 +3,17 @@ Tools for generating lists of integers in lexicographic order
 
 IMPORTANT NOTE (2009/02):
 The internal functions in this file will be deprecated soon.
-Please only use them through IntegerListsLex.
+Please only use them through :class:`IntegerListsLex`.
 
 AUTHORS:
 
 - Mike Hansen
 
-- Travis Scrimshaw (2012-05-12): Fixed errors when returning None from first.
-  Added checks to make sure max_slope is satisfied.
+- Travis Scrimshaw (2012-05-12): Fixed errors when returning ``None`` from
+  first. Added checks to make sure ``max_slope`` is satisfied.
+
+- Travis Scrimshaw (2012-10-29): Made ``IntegerListsLex`` into a parent with
+  the element class ``IntegerListsLexElement``.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -31,12 +34,15 @@ AUTHORS:
 import generator
 from sage.rings.arith import binomial
 from sage.rings.integer_ring import ZZ
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.structure.parent import Parent
+from sage.structure.list_clone import ClonableArray
 from sage.misc.lazy_attribute import lazy_attribute
 import __builtin__
 
 def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
     """
-    Returns the lexicographically smallest valid composition of n
+    Returns the lexicographically smallest valid composition of `n`
     satisfying the conditions.
 
     .. warning::
@@ -158,7 +164,7 @@ def first(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
 
 def lower_regular(comp, min_slope, max_slope):
     """
-    Returns the uppest regular composition below comp
+    Returns the uppest regular composition below ``comp``
 
     TESTS::
 
@@ -316,10 +322,10 @@ def rightmost_pivot(comp, min_length, max_length, floor, ceiling, min_slope, max
 
 def next(comp, min_length, max_length, floor, ceiling, min_slope, max_slope):
     """
-    Returns the next integer list after comp that satisfies the
+    Returns the next integer list after ``comp`` that satisfies the
     constraints.
 
-    .. warning::
+    .. WARNING::
 
        INTERNAL FUNCTION! DO NOT USE DIRECTLY!
 
@@ -365,7 +371,7 @@ def next(comp, min_length, max_length, floor, ceiling, min_slope, max_slope):
 
 def iterator(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
     """
-    .. warning::
+    .. WARNING::
 
        INTERNAL FUNCTION! DO NOT USE DIRECTLY!
 
@@ -378,7 +384,7 @@ def iterator(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
         [[0, 1, 1], [0, 0, 2]]
     """
     #from sage.misc.superseded import deprecation
-    #deprecation(trac_number, "sage.combinat.integer_list.iterator is deprecated. Please use IntegerListsLex(...)")
+    #deprecation(13605, 'iterator(...) is deprecated. Use IntegerListLex(...) instead.')
     succ = lambda x: next(x, min_length, max_length, floor, ceiling, min_slope, max_slope)
 
     #Handle the case where n is a list of integers
@@ -394,11 +400,9 @@ def iterator(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
 
 def list(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
     """
-    .. warning::
+    .. WARNING::
 
-       THIS FUNCTION IS DEPRECATED!
-
-    Please use IntegersListsLex(...) instead
+       THIS FUNCTION IS DEPRECATED! Use ``IntegersListsLex(...)`` instead.
 
     EXAMPLES::
 
@@ -481,12 +485,13 @@ def list(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
         sage: integer_list.list(4, *compositions)
         [[4], [3, 1], [2, 2], [2, 1, 1], [1, 3], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
     """
-    #deprecation(trac_number, "sage.combinat.integer_list.list(...) is deprecated. Please use list(IntegerListsLex(...))")
+    #from sage.misc.superseded import deprecation
+    #deprecation(13605, 'list(...) is deprecated. Use list(IntegerListLex(...) instead.')
     return __builtin__.list(iterator(n, min_length, max_length, floor, ceiling, min_slope, max_slope))
 
 def upper_regular(comp, min_slope, max_slope):
     """
-    Returns the uppest regular composition above comp.
+    Return the uppest regular composition above ``comp``.
 
     TESTS::
 
@@ -581,10 +586,10 @@ def upper_bound(min_length, max_length, floor, ceiling, min_slope, max_slope):
 
 def is_a(comp, min_length, max_length, floor, ceiling, min_slope, max_slope):
     """
-    Returns True if comp meets the constraints imposed by the
+    Returns ``True`` if ``comp`` meets the constraints imposed by the
     arguments.
 
-    .. warning::
+    .. WARNING::
 
        INTERNAL FUNCTION! DO NOT USE DIRECTLY!
 
@@ -609,9 +614,26 @@ def is_a(comp, min_length, max_length, floor, ceiling, min_slope, max_slope):
             return False
     return True
 
-from combinat import CombinatorialClass
+class IntegerListsLexElement(ClonableArray):
+    """
+    Element class for :class:`IntegerListsLex`.
+    """
+    def check(self):
+        """
+        Check to make sure this is a valid element in its
+        :class:`IntegerListsLex` parent.
 
-class IntegerListsLex(CombinatorialClass):
+        .. TODO:: Placeholder. Implement a proper check.
+
+        EXAMPLES::
+
+            sage: C = IntegerListsLex(4)
+            sage: C([4]).check()
+            True
+        """
+        return True
+
+class IntegerListsLex(Parent):
     r"""
     A combinatorial class `C` for integer lists satisfying certain
     sum, length, upper/lower bound and regularity constraints. The
@@ -620,20 +642,22 @@ class IntegerListsLex(CombinatorialClass):
 
     INPUT:
 
-    - ``n`` -  a non negative integer
-    - ``min_length`` -  a non negative integer
-    - ``max_length`` -  an integer or `\infty`
-    - ``length`` -  an integer; overrides min_length and max_length if specified
-    - ``floor`` -  a function `f` (or list);    defaults to ``lambda i: 0``
-    - ``ceiling`` -  a function `f` (or list);  defaults to ``lambda i: infinity``
-    - ``min_slope`` -  an integer or `-\infty`; defaults to `-\infty`
-    - ``max_slope`` -  an integer or `+\infty`; defaults to `+\infty`
+    - ``n`` -- a non negative integer
+    - ``min_length`` -- a non negative integer
+    - ``max_length`` -- an integer or `\infty`
+    - ``length`` -- an integer; overrides min_length and max_length if
+      specified
+    - ``floor`` -- a function `f` (or list);    defaults to ``lambda i: 0``
+    - ``ceiling`` -- a function `f` (or list);  defaults to
+      ``lambda i: infinity``
+    - ``min_slope`` -- an integer or `-\infty`; defaults to `-\infty`
+    - ``max_slope`` -- an integer or `+\infty`; defaults to `+\infty`
 
     An *integer list* is a list `l` of nonnegative integers, its
     *parts*. The *length* of `l` is the number of its parts;
     the *sum* of `l` is the sum of its parts.
 
-    .. note::
+    .. NOTE::
 
        Two valid integer lists are considered equivalent if they only
        differ by trailing zeroes. In this case, only the list with the
@@ -643,16 +667,18 @@ class IntegerListsLex(CombinatorialClass):
 
     - Sum: `sum(l) == n`
 
-    - Length: `min\_length \leq len(l) \leq max\_length`
+    - Length: ``min_length <= len(l) <= max_length``
 
-    - Lower and upper bounds: `floor(i) \leq l[i] \leq ceiling(i)`, for `i=0,\dots,len(l)`
+    - Lower and upper bounds: ``floor(i) <= l[i] <= ceiling(i)``, for
+      ``i`` from 0 to ``len(l)``
 
-    - Regularity condition: `minSlope \leq l[i+1]-l[i] \leq maxSlope`, for `i=0,\dots,len(l)-1`
+    - Regularity condition: ``minSlope <= l[i+1]-l[i] <= maxSlope``,
+      for ``i`` from 0 to ``len(l)-1``
 
     This is a generic low level tool. The interface has been designed
     with efficiency in mind. It is subject to incompatible changes in
     the future. More user friendly interfaces are provided by high
-    level tools like Partitions or Compositions.
+    level tools like :class:`Partitions` or :class:`Compositions`.
 
     EXAMPLES:
 
@@ -700,15 +726,16 @@ class IntegerListsLex(CombinatorialClass):
         sage: list(IntegerListsLex(5, max_slope = 0, max_length = 3, floor = [2,1,1]))
         [[5], [4, 1], [3, 2], [3, 1, 1], [2, 2, 1]]
 
-    Note that [5] is considered valid, because the lower bound
+    Note that ``[5]`` is considered valid, because the lower bound
     constraint only apply to existing positions in the list. To
-    obtain instead the partitions containing [2,1,1], one need to
-    use min_length::
+    obtain instead the partitions containing ``[2,1,1]``, one need to
+    use ``min_length``::
 
         sage: list(IntegerListsLex(5, max_slope = 0, min_length = 3, max_length = 3, floor = [2,1,1]))
         [[3, 1, 1], [2, 2, 1]]
 
-    This is the list of all partitions of `5` which are contained in [3,2,2]::
+    This is the list of all partitions of `5` which are contained in
+    ``[3,2,2]``::
 
         sage: list(IntegerListsLex(5, max_slope = 0, max_length = 3, ceiling = [3,2,2]))
         [[3, 2], [3, 1, 1], [2, 2, 1]]
@@ -755,14 +782,13 @@ class IntegerListsLex(CombinatorialClass):
 
         sage: list( IntegerListsLex(1, ceiling = lambda i: 0) ) # todo: not implemented
 
-
-    .. note::
+    .. NOTE::
 
        Caveat: counting is done by brute force generation. In some
        special cases, it would be possible to do better by counting
        techniques for integral point in polytopes.
 
-    .. note::
+    .. NOTE::
 
        Caveat: with the current implementation, the constraints should
        satisfy the following conditions:
@@ -778,7 +804,7 @@ class IntegerListsLex(CombinatorialClass):
     result may be completely incorrect if they are not satisfied:
 
     In the following example, the slope condition is not satisfied
-    by the upper bound on the parts, and [3,3] is erroneously
+    by the upper bound on the parts, and ``[3,3]`` is erroneously
     included in the result::
 
         sage: list(IntegerListsLex(6, max_part=3,max_slope=-1))
@@ -793,7 +819,10 @@ class IntegerListsLex(CombinatorialClass):
     readily implemented in MuPAD-Combinat). Encouragements,
     suggestions, and help are welcome.
 
-    TODO: integrate all remaining tests from http://mupad-combinat.svn.sourceforge.net/viewvc/mupad-combinat/trunk/MuPAD-Combinat/lib/COMBINAT/TEST/MachineIntegerListsLex.tst
+    .. TODO:
+
+        Integrate all remaining tests from
+        http://mupad-combinat.svn.sourceforge.net/viewvc/mupad-combinat/trunk/MuPAD-Combinat/lib/COMBINAT/TEST/MachineIntegerListsLex.tst
 
     TESTS::
 
@@ -885,8 +914,12 @@ class IntegerListsLex(CombinatorialClass):
                  min_part = 0, max_part = float('+inf'),
                  min_slope=float('-inf'), max_slope=float('+inf'),
                  name = None,
-                 element_constructor = None):
+                 element_constructor = None,
+                 element_class = None,
+                 global_options = None):
         """
+        Initialize ``self``.
+
         TESTS::
 
             sage: C = IntegerListsLex(2, length=3)
@@ -898,6 +931,7 @@ class IntegerListsLex(CombinatorialClass):
             True
             sage: C.cardinality().parent() is ZZ
             True
+            sage: TestSuite(C).run()
         """
         # Convert to float infinity
         from sage.rings.infinity import infinity
@@ -940,7 +974,7 @@ class IntegerListsLex(CombinatorialClass):
             min_length = length
             max_length = length
         if name is not None:
-            self._name = name
+            self.rename(name)
         if n in ZZ:
             self.n = n
             self.n_range = [n]
@@ -956,33 +990,71 @@ class IntegerListsLex(CombinatorialClass):
         self.min_slope = min_slope
         if element_constructor is not None:
             self._element_constructor_ = element_constructor
+        if element_class is not None:
+            self.Element = element_class
+        if global_options is not None:
+            self.global_options = global_options
+        Parent.__init__(self, category=FiniteEnumeratedSets())
 
-    _element_constructor_ = type([])
+    Element = IntegerListsLexElement
 
-    @lazy_attribute
-    def _name(self):
+    def _element_constructor_(self, lst):
+        """
+        Construct an element with ``self`` as parent.
+
+        EXAMPLES::
+
+            sage: C = IntegerListsLex(4)
+            sage: C([4])
+            [4]
+        """
+        return self.element_class(self, lst)
+
+    def __cmp__(self, x):
+        """
+        Compares two different :class:`IntegerListsLex`.
+
+        For now, the comparison is done just on their repr's which is
+        not robust!
+
+        EXAMPLES::
+
+            sage: C = IntegerListsLex(2, length=3)
+            sage: D = IntegerListsLex(4, length=3)
+            sage: repr(C) == repr(D)
+            False
+            sage: C == D
+            False
+        """
+        return cmp(repr(self), repr(x))
+
+    def _repr_(self):
         """
         Returns the name of this combinatorial class.
 
         EXAMPLES::
 
             sage: C = IntegerListsLex(2, length=3)
-            sage: C._name
-            'Integer lists of sum 2 satisfying certain constraints'
+            sage: C # indirect doctest
+            Integer lists of sum 2 satisfying certain constraints
 
             sage: C = IntegerListsLex([1,2,4], length=3)
-            sage: C._name
-            'Integer lists of sum in [1, 2, 4] satisfying certain constraints'
+            sage: C # indirect doctest
+            Integer lists of sum in [1, 2, 4] satisfying certain constraints
+
+            sage: C = IntegerListsLex([1,2,4], length=3, name="A given name")
+            sage: C
+            A given name
         """
         if hasattr(self, "n"):
             return "Integer lists of sum %s satisfying certain constraints"%self.n
-        else:
-            return "Integer lists of sum in %s satisfying certain constraints"%self.n_range
+
+        return "Integer lists of sum in %s satisfying certain constraints"%self.n_range
 
     def floor(self, i):
         """
-        Returns the minimum part that can appear in the $i^{th}$ position in any
-        list produced.
+        Returns the minimum part that can appear at the `i^{th}` position of
+        any list produced.
 
         EXAMPLES::
 
@@ -1000,7 +1072,7 @@ class IntegerListsLex(CombinatorialClass):
 
     def ceiling(self, i):
         """
-        Returns the maximum part that can appear in the $i^{th}$
+        Returns the maximum part that can appear in the `i^{th}`
         position in any list produced.
 
         EXAMPLES::
@@ -1024,9 +1096,9 @@ class IntegerListsLex(CombinatorialClass):
     def build_args(self):
         """
         Returns a list of arguments that can be passed into the pre-existing
-        first,next,is_a, ... functions in this module.
+        ``first``, ``next``, ``is_a``, ... functions in this module.
 
-        n is currently not included in this list.
+        ``n`` is currently not included in this list.
 
         EXAMPLES::
 
@@ -1046,8 +1118,7 @@ class IntegerListsLex(CombinatorialClass):
 
     def first(self):
         """
-        Returns the lexicographically maximal element in this
-        combinatorial class.
+        Returns the lexicographically maximal element in ``self``.
 
         EXAMPLES::
 
@@ -1063,14 +1134,13 @@ class IntegerListsLex(CombinatorialClass):
 
     def __iter__(self):
         """
-        Returns an iterator for the elements of this combinatorial class.
+        Returns an iterator for the elements of ``self``.
 
         EXAMPLES::
 
             sage: C = IntegerListsLex(2, length=3)
             sage: list(C) #indirect doctest
             [[2, 0, 0], [1, 1, 0], [1, 0, 1], [0, 2, 0], [0, 1, 1], [0, 0, 2]]
-
         """
         args = self.build_args()
         for n in self.n_range:
@@ -1084,10 +1154,18 @@ class IntegerListsLex(CombinatorialClass):
         Default brute force implementation of count by iteration
         through all the objects.
 
-        Note that this skips the call to _element_constructor, unlike
-        the default implementation from CombinatorialClass
+        Note that this skips the call to ``_element_constructor``, unlike
+        the default implementation.
 
-        TODO: do the iteration in place to save on copying time
+        .. TODO::
+
+            Do the iteration in place to save on copying time
+
+        EXAMPLES::
+
+            sage: C = IntegerListsLex(2, length=3)
+            sage: C.cardinality() == C.count()
+            True
         """
         args = self.build_args()
         c = ZZ(0)
@@ -1100,7 +1178,7 @@ class IntegerListsLex(CombinatorialClass):
 
     def __contains__(self, v):
         """
-        Returns True if and only if v is in this combinatorial class.
+        Returns ``True`` if and only if ``v`` is in ``self``.
 
         EXAMPLES::
 
@@ -1114,5 +1192,8 @@ class IntegerListsLex(CombinatorialClass):
             sage: all(v in C for v in C)
             True
         """
-        return type(v) is type([]) and is_a(v, *(self.build_args())) and sum(v) in self.n_range
+        if isinstance(v, self.element_class) or isinstance(v, __builtin__.list):
+            return is_a(v, *(self.build_args())) and sum(v) in self.n_range
+        return False
+
 

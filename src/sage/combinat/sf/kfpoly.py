@@ -279,9 +279,9 @@ def compat(n, mu, nu):
         i += 1
 
     if i >= len(sp):
-        return sage.combinat.partition.Partition_class([])
+        return sage.combinat.partition.Partition([])
     else:
-        return [x.conjugate() for x in sp[i].conjugate().dominate()]
+        return [x.conjugate() for x in sp[i].conjugate().dominated_partitions()]
 
 def dom(mu, snu):
     """

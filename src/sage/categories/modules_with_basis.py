@@ -1193,9 +1193,9 @@ class ModulesWithBasis(Category_over_base_ring):
                     sage: s = Sym.schur()
                     sage: def f(a,b): return a*b.antipode()
                     sage: x = 4*s.an_element(); x
-                    4*s[] + 8*s[1] + 12*s[2]
+                    8*s[] + 8*s[1] + 12*s[2]
                     sage: x.coproduct().apply_multilinear_morphism(f)
-                    4*s[]
+                    8*s[]
                     sage: x.coproduct().apply_multilinear_morphism(f) == x.counit()
                     True
 

@@ -494,7 +494,7 @@ def spin_polynomial_square(part, weight, length):
     t = R.gen()
 
     if part in partition.Partitions():
-        part = skew_partition.SkewPartition([part,partition.Partition_class([])])
+        part = skew_partition.SkewPartition([part,partition.Partition([])])
     elif part in skew_partition.SkewPartitions():
         part = skew_partition.SkewPartition(part)
 
@@ -623,7 +623,7 @@ def graph_implementation_rec(skp, weight, length, function):
         retire = [ retire[i] - len(partp) + (i+1) for i in range(len(retire))]
 
         if retire[-1] >= 0 and retire == [i for i in reversed(sorted(retire))]:
-            retire = partition.Partition_class(filter(lambda x: x != 0, retire)).conjugate()
+            retire = partition.Partition(filter(lambda x: x != 0, retire)).conjugate()
 
 
             # Cutting branches if the retired partition has a line strictly included into the inner one

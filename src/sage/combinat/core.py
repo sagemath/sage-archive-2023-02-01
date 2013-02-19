@@ -109,19 +109,17 @@ class Core(CombinatorialObject, Element):
 
     def _latex_(self):
         """
-        Outputs the LaTeX representation of this core using its Ferrers diagram.
+        Outputs the LaTeX representation of this core as a partition. See the
+        ``_latex_()`` method of :class:`Partition`.
 
         EXAMPLES::
 
             sage: c = Core([2,1],4)
             sage: latex(c)
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
-            \raisebox{-.6ex}{$\begin{array}[b]{cc}
-            \cline{1-1}\cline{2-2}
-            \lr{\phantom{x}}&\lr{\phantom{x}}\\
-            \cline{1-1}\cline{2-2}
-            \lr{\phantom{x}}\\
-            \cline{1-1}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{2}c}\cline{1-2}
+            \lr{\phantom{x}}&\lr{\phantom{x}}\\\cline{1-2}
+            \lr{\phantom{x}}\\\cline{1-1}
             \end{array}$}
             }
         """
@@ -206,8 +204,8 @@ class Core(CombinatorialObject, Element):
         Bijection between `k`-cores and Grassmannian elements in the affine Weyl group of type `A_{k-1}^{(1)}`.
 
         For further details, see the documentation of the method
-        :meth:`~sage.combinat.partition.Partition_class.from_kbounded_to_reduced_word` and
-        :meth:`~sage.combinat.partition.Partition_class.from_kbounded_to_grassmannian`.
+        :meth:`~sage.combinat.partition.Partition.from_kbounded_to_reduced_word` and
+        :meth:`~sage.combinat.partition.Partition.from_kbounded_to_grassmannian`.
 
         EXAMPLES::
 
@@ -280,9 +278,10 @@ class Core(CombinatorialObject, Element):
 
         INPUT:
 
-        - `w` is a tupe of integers `[w_1,\ldots,w_m]` with `0\le w_j<k`.
-           If transposition is set to be True, then `w = [w_0,w_1]` is interpreted as a transposition `t_{w_0, w_1}`
-           (see :meth:`_transposition_to_reduced_word`).
+        - ``w`` is a tupe of integers `[w_1,\ldots,w_m]` with `0\le w_j<k`.
+          If transposition is set to be True, then `w = [w_0,w_1]` is
+          interpreted as a transposition `t_{w_0, w_1}`
+          (see :meth:`_transposition_to_reduced_word`).
 
         The output is the (left) action of the product of the corresponding simple transpositions
         on ``self``, that is `s_{w_1} \cdots s_{w_m}(self)`. See :meth:`affine_symmetric_group_simple_action`.
@@ -353,7 +352,7 @@ class Core(CombinatorialObject, Element):
 
         INPUT:
 
-        - other - another `k`-core
+        - ``other`` -- another `k`-core
 
         OUTPUT: a boolean
 
@@ -411,7 +410,7 @@ class Core(CombinatorialObject, Element):
 
         INPUT:
 
-        - other - another `k`-core
+        - ``other`` -- another `k`-core
 
         OUTPUT: a boolean
 
@@ -442,15 +441,16 @@ class Core(CombinatorialObject, Element):
 
     def contains(self, other):
         r"""
-        Checks whether ``self`` contains other.
+        Checks whether ``self`` contains ``other``.
 
         INPUT:
 
-        - other - another `k`-core
+        - ``other`` -- another `k`-core
 
         OUTPUT: a boolean
 
-        Returns True if the Ferrers diagram of ``self`` contains the Ferrers diagram of other.
+        Returns ``True`` if the Ferrers diagram of ``self`` contains the
+        Ferrers diagram of other.
 
         EXAMPLES::
 
@@ -572,7 +572,7 @@ class Cores_length(UniqueRepresentation, Parent):
 
     def from_partition(self, part):
         r"""
-        Converts the partition `part` into a core (as the identity map).
+        Converts the partition ``part`` into a core (as the identity map).
 
         This is the inverse method to :meth:`~sage.combinat.core.Core.to_partition`.
 
@@ -632,12 +632,12 @@ class Cores_size(UniqueRepresentation, Parent):
             sage: C.list()
             [[3, 1], [2, 1, 1]]
         """
-        k_cores = Partitions(self.n).filter(lambda x: x.is_core(self.k))
+        k_cores = filter(lambda x: x.is_core(self.k), Partitions(self.n))
         return [ Core(x, self.k) for x in k_cores ]
 
     def from_partition(self, part):
         r"""
-        Converts the partition `part` into a core (as the identity map).
+        Converts the partition ``part`` into a core (as the identity map).
 
         This is the inverse method to :meth:`to_partition`.
 

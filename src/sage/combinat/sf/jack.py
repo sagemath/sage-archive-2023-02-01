@@ -918,8 +918,10 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
             sage: normal( a*JP[1] + b*JP[2] + c*JP[2,1] )
             (4/(t+1))*JackP[1] + (6/(t+2))*JackP[2] + (6/(t^2+3*t+2))*JackP[2, 1]
 
-        TODO: this method should not be needed once short idioms to
-        construct morphisms will be available
+        .. TODO::
+
+            This method should not be needed once short idioms to
+            construct morphisms are available
         """
         return SetMorphism(End(self, category), self._normalize)
 

@@ -521,12 +521,9 @@ class KirillovReshetikhinTableauxElement(TensorProductOfCrystalsElement):
             sage: KRT = KirillovReshetikhinTableaux(['A', 4, 1], 2, 3)
             sage: latex(KRT([3,2,4,2,4,3])) # indirect doctest
             {\def\lr#1{\multicolumn{1}{|@{\hspace{.6ex}}c@{\hspace{.6ex}}|}{\raisebox{-.3ex}{$#1$}}}
-            \raisebox{-.6ex}{$\begin{array}[b]{ccc}
-            \cline{1-1}\cline{2-2}\cline{3-3}
-            \lr{2}&\lr{2}&\lr{3}\\
-            \cline{1-1}\cline{2-2}\cline{3-3}
-            \lr{3}&\lr{4}&\lr{4}\\
-            \cline{1-1}\cline{2-2}\cline{3-3}
+            \raisebox{-.6ex}{$\begin{array}[b]{*{3}c}\cline{1-3}
+            \lr{2}&\lr{2}&\lr{3}\\\cline{1-3}
+            \lr{3}&\lr{4}&\lr{4}\\\cline{1-3}
             \end{array}$}
             }
         """

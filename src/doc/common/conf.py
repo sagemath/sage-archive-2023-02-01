@@ -138,7 +138,12 @@ pythonversion = sys.version.split(' ')[0]
 extlinks = {
     'python': ('http://docs.python.org/release/'+pythonversion+'/%s', ''),
     'trac': ('http://trac.sagemath.org/%s', 'trac ticket #'),
-    'wikipedia': ('http://en.wikipedia.org/wiki/%s', 'Wikipedia article ')}
+    'wikipedia': ('http://en.wikipedia.org/wiki/%s', 'Wikipedia article '),
+    'arxiv': ('http://arxiv.org/abs/%s', 'Arxiv '),
+    'oeis': ('http://oeis.org/%s', 'OEIS sequence '),
+    'doi': ('http://dx.doi.org/%s', 'doi:'),
+    'mathscinet': ('http://www.ams.org/mathscinet-getitem?mr=%s', 'MathSciNet ')
+    }
 
 # By default document are not master.
 multidocs_is_master = True

@@ -174,9 +174,17 @@ corresponding trac ticket in the ``TEST`` section. Here is an example::
         sage: x = sage.combinat.subword.smallest_positions(w, ww); ww
         ['b', 'd']
 
-If the same vein you can also add links to Wikipedia:
-``:wikipedia:`Sage_(mathematics_software)``` add the following link to the
-:wikipedia:`Sage_(mathematics_software)`
+In the same vein, you can also add external links of various kinds:
+
+- Wikipedia: ``:wikipedia:`Sage_(mathematics_software)``` adds the link :wikipedia:`Sage_(mathematics_software)`.
+
+- Arxiv: ``:arxiv:`1202.1506``` adds the link :arxiv:`1202.1506`.
+
+- On-Line Encyclopedia of Integer Sequences: ``:oeis:`A000081``` adds the link :oeis:`A000081`.
+
+- Digital Object Identifier: ``:doi:`10.2752/175303708X390473``` adds the link :doi:`10.2752/175303708X390473`.
+
+- MathSciNet: ``:mathscinet:`MR0100971``` adds the link :mathscinet:`MR0100971`.
 
 .. note::
 

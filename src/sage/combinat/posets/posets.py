@@ -3189,7 +3189,7 @@ class FinitePosets_n(UniqueRepresentation, Parent):
         .. note::
 
             By default, this returns pre-computed values obtained from
-            the On-Line Encyclopedia of Integer Sequences (A000112).
+            the On-Line Encyclopedia of Integer Sequences (:oeis:`A000112`).
             To override this, pass the argument ``from_iterator=True``.
 
         EXAMPLES::

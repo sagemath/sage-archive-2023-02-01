@@ -1688,7 +1688,7 @@ class ToricDivisor_generic(Divisor_generic):
 
         ..  [Perling]
             Markus Perling: Divisorial Cohomology Vanishing on Toric Varieties,
-            http://arxiv.org/abs/0711.4836v2
+            :arxiv:`0711.4836v2`
 
         EXAMPLES:
 

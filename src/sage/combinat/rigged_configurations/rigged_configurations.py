@@ -191,11 +191,11 @@ REFERENCES:
 .. [BijectionLRT] Anatol N. Kirillov, Anne Schilling, Mark Shimozono.
    A bijection between Littlewood-Richardson tableaux and rigged
    configurations.
-   Selecta Mathematica (N.S.). 8. 2002. 67-135.
+   Selecta Mathematica (N.S.). 8. 2002. 67-135 (:mathscinet:`MR1890195`).
 
 .. [AffineRigConDn] Masato Okado, Reiho Sakamoto, Anne Schilling.
    Affine crystal structure on rigged configurations of type `D_n^{(1)}`.
-   J. Algebraic Combinatorics, to appear, doi:10.1007/s10801-012-0383-z (arXiv:1109.3523)
+   J. Algebraic Combinatorics, to appear, :doi:`10.1007/s10801-012-0383-z` (:arXiv:`1109.3523`)
 """
 
 #*****************************************************************************

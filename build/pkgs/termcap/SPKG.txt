@@ -27,6 +27,10 @@ None
 
 == Changelog ==
 
+=== termcap-1.3.1.p3 (Jeroen Demeyer, 28 March 2012) ===
+ * Trac #12725: Symlink libtermcap.a to libncurses.a if we cannot link
+   programs against -lncurses.
+
 === termcap-1.3.1.p2 (Jeroen Demeyer, 11 January 2012) ===
  * Trac #12282: Add patches/strcmp_NULL.patch to fix a bug when the
    environment variable TERM is not set.

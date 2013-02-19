@@ -2,7 +2,7 @@
 
 == Description ==
 
-lrcalc 1.1.6 beta2: Littlewood-Richardson Calculator
+lrcalc-sage-1.1.6: Littlewood-Richardson Calculator
 
 http://math.rutgers.edu/~asbuch/lrcalc/
 
@@ -25,10 +25,11 @@ Anders S. Buch (asbuch@math.rutgers.edu)
 
 == Changelog ==
 
-=== lrcalc-1.1.6 (Jean-Pierre Flori, 18 December 2012)  ===
+=== lrcalc-1.1.6 (Jean-Pierre Flori, December 2012 - February 2013)  ===
 
- * Updated to lrcalc-sage-1.1.6: let lrcalc build a shared library on Cygwin.
- * Stop tracking the src directory which is now tracked upstream.
+ * Trac #13839:
+  * Updated to lrcalc-sage-1.1.6: let lrcalc build a shared library on Cygwin.
+  * Stop tracking the src directory which is now tracked upstream.
 
 === lrcalc-1.1.6beta1 (Nicolas M. Thiéry, June 2012)  ===
 
@@ -39,7 +40,7 @@ Anders S. Buch (asbuch@math.rutgers.edu)
 
 === lrcalc-1.1.6beta.p0 (Nicolas M. Thiéry, June 2012)  ===
 
-Fixed make -> $MAKE
+ * Fixed make -> $MAKE
 
 === lrcalc-1.1.6beta (Nicolas M. Thiéry, January 2012)  ===
 

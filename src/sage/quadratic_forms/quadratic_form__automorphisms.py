@@ -5,6 +5,7 @@ from sage.interfaces.gp import gp
 from sage.matrix.constructor import Matrix
 from sage.rings.integer_ring import ZZ
 from sage.misc.mrange import mrange
+from sage.misc.all import cython_lambda
 
 from sage.modules.free_module_element import vector
 from sage.rings.arith import GCD
@@ -161,57 +162,112 @@ def short_vector_list_up_to_length(self, len_bound, up_to_sign_flag=False):
 
         sage: Q = DiagonalQuadraticForm(ZZ, [1,3,5,7])
         sage: Q.short_vector_list_up_to_length(3)
-        [[(0, 0, 0, 0)], [(1, 0, 0, 0), [-1, 0, 0, 0]], []]
+        [[(0, 0, 0, 0)], [(1, 0, 0, 0), (-1, 0, 0, 0)], []]
         sage: Q.short_vector_list_up_to_length(4)
         [[(0, 0, 0, 0)],
-         [(1, 0, 0, 0), [-1, 0, 0, 0]],
+         [(1, 0, 0, 0), (-1, 0, 0, 0)],
          [],
-         [(0, 1, 0, 0), [0, -1, 0, 0]]]
+         [(0, 1, 0, 0), (0, -1, 0, 0)]]
         sage: Q.short_vector_list_up_to_length(5)
         [[(0, 0, 0, 0)],
-         [(1, 0, 0, 0), [-1, 0, 0, 0]],
+         [(1, 0, 0, 0), (-1, 0, 0, 0)],
          [],
-         [(0, 1, 0, 0), [0, -1, 0, 0]],
+         [(0, 1, 0, 0), (0, -1, 0, 0)],
          [(1, 1, 0, 0),
-         [-1, -1, 0, 0],
+         (-1, -1, 0, 0),
          (-1, 1, 0, 0),
-         [1, -1, 0, 0],
+         (1, -1, 0, 0),
          (2, 0, 0, 0),
-         [-2, 0, 0, 0]]]
+         (-2, 0, 0, 0)]]
         sage: Q.short_vector_list_up_to_length(5, True)
         [[(0, 0, 0, 0)],
          [(1, 0, 0, 0)],
          [],
          [(0, 1, 0, 0)],
          [(1, 1, 0, 0), (-1, 1, 0, 0), (2, 0, 0, 0)]]
+        sage: Q = QuadraticForm(matrix(6, [2, 1, 1, 1, -1, -1, 1, 2, 1, 1, -1, -1, 1, 1, 2, 0, -1, -1, 1, 1, 0, 2, 0, -1, -1, -1, -1, 0, 2, 1, -1, -1, -1, -1, 1, 2]))
+        sage: vs = Q.short_vector_list_up_to_length(40)     #long time
 
+    The cases of ``len_bound < 2`` led to exception or infinite runtime before.
+
+    ::
+
+        sage: Q.short_vector_list_up_to_length(0)
+        []
+        sage: Q.short_vector_list_up_to_length(1)
+        [[(0, 0, 0, 0, 0, 0)]]
+
+    In the case of quadratic forms that are not positive definite an error is raised.
+
+    ::
+
+        sage: QuadraticForm(matrix(2, [2, 0, 0, -2])).short_vector_list_up_to_length(3)
+        Traceback (most recent call last):
+        ...
+        ValueError: Quadratic form must be positive definite in order to enumerate short vectors
+
+    Sometimes, Pari does not compute short vectors correctly.  It returns too long vectors.
+
+    ::
+
+        sage: mat = matrix(2, [72, 12, 12, 120])                         #long time
+        sage: len_bound = 22953421                                       #long time
+        sage: gp_mat = gp.qfminim(str(gp(mat)), 2 * len_bound - 2)[3]    #long time
+        sage: rows = [ map(ZZ, str(gp_mat[i,])[1:-1].split(',')) for i in range(1, gp_mat.matsize()[1] + 1) ]   #long time
+        sage: vec_list = map(vector, zip(*rows))                         #long time
+        sage: eval_v_cython = cython_lambda( ", ".join( "int a{0}".format(i) for i in range(2) ), " + ".join( "{coeff} * a{i} * a{j}".format(coeff = mat[i,j], i = i, j = j) for i in range(2) for j in range(2) ) )   #long time
+        sage: any( eval_v_cython(*v) == 2 * 22955664 for v in vec_list ) # 22955664 > 22953421 = len_bound   #long time
+        True
     """
-    ## Set an upper bound for the number of vectors to consider
-    Max_number_of_vectors = 10000
+    if not self.is_positive_definite() :
+        raise ValueError( "Quadratic form must be positive definite in order to enumerate short vectors" )
 
     ## Generate a PARI matrix string for the associated Hessian matrix
     M_str = str(gp(self.matrix()))
 
+    if len_bound <= 0 :
+        return list()
+    elif len_bound == 1 :
+        return [ [(vector([ZZ(0) for _ in range(self.dim())]))] ]
+
     ## Generate the short vectors
-    gp_mat = gp.qfminim(M_str, 2*len_bound-2, Max_number_of_vectors)[3].mattranspose()
-    number_of_rows = gp_mat.matsize()[1]
-    gp_mat_vector_list = [vector([ZZ(x)  for x in gp_mat[i+1,]])  for i in range(number_of_rows)]
+    gp_mat = gp.qfminim(M_str, 2*len_bound - 2)[3]
+
+    ## We read all n-th entries at once so that not too many sage[...] variables are
+    ## used.  This is important when to many vectors are returned.
+    rows = [ map(ZZ, str(gp_mat[i,])[1:-1].split(','))
+             for i in range(1, gp_mat.matsize()[1] + 1) ]
+    vec_list = map(vector, zip(*rows))
+
+    if len(vec_list) > 500 :
+        eval_v_cython = cython_lambda( ", ".join( "int a{0}".format(i) for i in range(self.dim()) ),
+                                       " + ".join( "{coeff} * a{i} * a{j}".format(coeff = self[i,j], i = i, j = j)
+                                                   for i in range(self.dim()) for j in range(i, self.dim()) ) )
+        eval_v = lambda v: eval_v_cython(*v)
+    else :
+        eval_v = self
 
     ## Sort the vectors into lists by their length
-    vec_list = [[]  for i in range(len_bound)]
-    for v in gp_mat_vector_list:
-        vec_list[self(v)].append(v)
-        if up_to_sign_flag == False:
-            vec_list[self(v)].append([-x  for x in v])
+    vec_sorted_list = [list() for i in range(len_bound)]
+    for v in vec_list:
+        v_evaluated = eval_v(v)
+        try :
+            vec_sorted_list[v_evaluated].append(v)
+            if not up_to_sign_flag :
+                vec_sorted_list[v_evaluated].append(-v)
+        except IndexError :
+            ## We deal with a Pari but, that returns longer vectors that requested.
+            ## E.g. : self.matrix() == matrix(2, [72, 12, 12, 120])
+            ##        len_bound = 22953421
+            ## gives maximal length 22955664
+            pass
 
     ## Add the zero vector by hand
     zero_vec = vector([ZZ(0)  for _ in range(self.dim())])
-    vec_list[0].append(zero_vec)
+    vec_sorted_list[0].append(zero_vec)
 
     ## Return the sorted list
-    return vec_list
-
-
+    return vec_sorted_list
 
 def short_primitive_vector_list_up_to_length(self, len_bound, up_to_sign_flag=False):
     """

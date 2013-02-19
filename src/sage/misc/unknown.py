@@ -153,26 +153,4 @@ class UnknownClass(UniqueRepresentation, SageObject):
         else:
             raise ValueError, "Unable to compare %s with %s"%(self, other)
 
-    def __eq__(self, other):
-        """
-        TESTS::
-
-            sage: Unknown == Unknown
-            True
-            sage: Unknown == None
-            False
-        """
-        return self is other
-
-    def __ne__(self, other):
-        """
-        TESTS::
-
-            sage: Unknown != Unknown
-            False
-            sage: Unknown != None
-            True
-        """
-        return self is not other
-
 Unknown = UnknownClass()

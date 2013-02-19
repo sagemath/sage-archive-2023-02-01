@@ -88,6 +88,8 @@ class Sets(Category_singleton):
         <class 'sage.categories.examples.sets_cat.PrimeNumbers_Inherits'>
         <class 'sage.categories.examples.sets_cat.PrimeNumbers_Abstract'>
         <class 'sage.structure.unique_representation.UniqueRepresentation'>
+        <class 'sage.structure.unique_representation.CachedRepresentation'>
+        <type 'sage.misc.fast_methods.WithEqualityById'>
         <type 'sage.structure.parent.Parent'>
         <type 'sage.structure.category_object.CategoryObject'>
         <type 'sage.structure.sage_object.SageObject'>

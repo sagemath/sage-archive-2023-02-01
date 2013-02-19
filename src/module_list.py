@@ -1200,6 +1200,9 @@ ext_modules = [
     Extension('sage.misc.classcall_metaclass',
               sources = ['sage/misc/classcall_metaclass.pyx']),
 
+    Extension('sage.misc.fast_methods',
+              sources = ['sage/misc/fast_methods.pyx']),
+
     Extension('sage.misc.binary_tree',
               sources = ['sage/misc/binary_tree.pyx']),
 

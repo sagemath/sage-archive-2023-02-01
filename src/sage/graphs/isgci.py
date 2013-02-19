@@ -328,7 +328,7 @@ Methods
 """
 
 from sage.structure.sage_object import SageObject
-from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.unique_representation import CachedRepresentation, UniqueRepresentation
 from sage.misc.unknown import Unknown
 from sage.misc.misc import SAGE_SHARE
 
@@ -341,7 +341,7 @@ from sage.misc.misc import SAGE_SHARE
 
 _XML_FILE = "isgci_sage.xml"
 
-class GraphClass(SageObject, UniqueRepresentation):
+class GraphClass(SageObject, CachedRepresentation):
     r"""
     An instance of this class represents a Graph Class, matching some entry in
     the ISGCI database.

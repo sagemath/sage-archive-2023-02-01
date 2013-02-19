@@ -98,7 +98,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         TESTS::
 
             sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
-            sage: QS3 == loads(dumps(QS3))
+            sage: QS3 is loads(dumps(QS3))
             True
         """
         self.n = n

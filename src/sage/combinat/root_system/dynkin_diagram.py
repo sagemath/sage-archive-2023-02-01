@@ -171,9 +171,9 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         """
         EXAMPLES::
 
-            sage: hash(CartanType(['A',3]).dynkin_diagram()) # indirect doctest
-            286820813001824631     # 64-bit
-            -2127980169            # 32-bit
+            sage: d = CartanType(['A',3]).dynkin_diagram()
+            sage: hash(d) == hash((d.cartan_type(), tuple(d.vertices()), tuple(d.edge_iterator(d.vertices()))))
+            True
         """
         # Should assert for immutability!
 

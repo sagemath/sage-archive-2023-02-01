@@ -89,11 +89,12 @@ from sage.rings.finite_rings.constructor import FiniteField as GF
 from sage.rings.arith import factor
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.misc.functional import is_even
-from sage.misc.cachefunc import cached_method
+from sage.misc.cachefunc import cached_method, weak_cached_function
+from sage.misc.classcall_metaclass import typecall
 from sage.misc.superseded import deprecated_function_alias
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.unique_representation import CachedRepresentation
 from sage.structure.parent import Parent
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
@@ -103,8 +104,19 @@ from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.sets.family import Family
 from sage.sets.primes import Primes
 
-class PermutationGroup_unique(UniqueRepresentation, PermutationGroup_generic):
-    @staticmethod
+class PermutationGroup_unique(CachedRepresentation, PermutationGroup_generic):
+    """
+    .. TODO::
+
+        Fix the broken hash.
+        ::
+
+            sage: G = SymmetricGroup(6)
+            sage: G3 = G.subgroup([G((1,2,3,4,5,6)),G((1,2))])
+            sage: hash(G) == hash(G3)  # todo: Should be True!
+            False
+    """
+    @weak_cached_function
     def __classcall__(cls, *args, **kwds):
         """
         This makes sure that domain is a FiniteEnumeratedSet before it gets passed
@@ -124,15 +136,16 @@ class PermutationGroup_unique(UniqueRepresentation, PermutationGroup_generic):
 
     def __eq__(self, other):
         """
-        Overrides the default equality testing provided by
-        UniqueRepresentation by forcing a call to :meth:.`__cmp__`.
-
         EXAMPLES::
 
             sage: G = SymmetricGroup(6)
             sage: G3 = G.subgroup([G((1,2,3,4,5,6)),G((1,2))])
             sage: G == G3
             True
+
+        .. WARNING::
+
+            The hash currently is broken for this comparison.
         """
         return self.__cmp__(other) == 0
 
@@ -1631,7 +1644,7 @@ class TransitiveGroupsAll(DisjointUnionEnumeratedSets):
         """
         return isinstance(G,TransitiveGroup)
 
-class TransitiveGroupsOfDegree(UniqueRepresentation, Parent):
+class TransitiveGroupsOfDegree(CachedRepresentation, Parent):
     """
     The set of all transitive groups of a given (small) degree up to isomorphisms.
 
@@ -2028,7 +2041,7 @@ class PrimitiveGroupsAll(DisjointUnionEnumeratedSets):
         """
         return isinstance(G,PrimitiveGroup)
 
-class PrimitiveGroupsOfDegree(UniqueRepresentation, Parent):
+class PrimitiveGroupsOfDegree(CachedRepresentation, Parent):
     """
     The set of all primitive groups of a given degree up to isomorphisms.
 
@@ -2666,10 +2679,3 @@ class SuzukiGroup(PermutationGroup_unique):
 
         """
         return "The Suzuki group over %s"%self.base_ring()
-
-
-
-
-
-
-

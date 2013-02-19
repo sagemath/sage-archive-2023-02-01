@@ -11,7 +11,7 @@ This file collects tests requiring Cython.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.categories.category_singleton cimport FastHashable_class
+from sage.misc.fast_methods cimport FastHashable_class
 cdef class ClassWithLargeHash(FastHashable_class):
     """
     This class tests against a bug with :class:`FastHashable_class`

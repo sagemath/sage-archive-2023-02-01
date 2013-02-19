@@ -31,6 +31,8 @@ cdef extern from "Python.h":
         newfunc tp_new
         freefunc tp_free
         destructor tp_dealloc
+        hashfunc tp_hash
+        richcmpfunc tp_richcompare
 
         #sizeof(Object)
         Py_ssize_t tp_basicsize

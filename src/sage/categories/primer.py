@@ -427,6 +427,8 @@ categories translates into *inheritance* between classes::
     [<class 'sage.categories.examples.finite_semigroups.LeftRegularBand_with_category'>,
      <class 'sage.categories.examples.finite_semigroups.LeftRegularBand'>,
      <class 'sage.structure.unique_representation.UniqueRepresentation'>,
+     <class 'sage.structure.unique_representation.CachedRepresentation'>,
+     <type 'sage.misc.fast_methods.WithEqualityById'>,
      <type 'sage.structure.parent.Parent'>,
      <type 'sage.structure.category_object.CategoryObject'>,
      <type 'sage.structure.sage_object.SageObject'>,

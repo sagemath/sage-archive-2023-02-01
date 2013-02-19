@@ -82,33 +82,7 @@ cdef class Category_contains_method_by_parent_class:
             except AttributeError:
                 return False
 
-cdef class FastHashable_class:
-    """
-    A class that has a fast hash method, returning a pre-assigned value.
-
-    NOTE:
-
-    This is for internal use only. The class has a cdef attribute ``_hash``,
-    that needs to be assigned.
-
-    TESTS::
-
-        sage: issubclass(Rings, sage.categories.category_singleton.FastHashable_class)
-        True
-
-    """
-    def __hash__(self):
-        """
-        TESTS::
-
-            sage: hash(Rings()) == id(Rings)    # indirect doctest
-            True
-
-        """
-        return self._hash
-
-
-class Category_singleton(FastHashable_class,Category):
+class Category_singleton(Category):
     """
     A base class for implementing singleton category
 
@@ -274,28 +248,13 @@ class Category_singleton(FastHashable_class,Category):
             sage: MySubStuff()
             Category of my stuff
         """
-        cdef FastHashable_class obj
         if cls.__mro__[1] is not Category_singleton:
             # Actually this type error is invisible. But it makes sure that
             # the __classcall__ for Category_singleton is not overridden
             # when someone is calling it.
             raise TypeError, "%s is not a direct subclass of %s"%(cls,Category_singleton)
         obj = UniqueRepresentation.__classcall__(cls)
-        obj._hash = <Py_ssize_t><void *>cls
         return ConstantFunction(obj)
-
-#    @lazy_class_attribute
-#    def __hash__(cls):
-#        """
-#        The hash of the unique instance of a category singleton is the address of its class.
-#
-#        EXAMPLES::
-#
-#            sage: hash(Rings()) == hash(Rings)     # indirect doctest
-#            True
-#
-#        """
-#        return ConstantFunction(id(cls))
 
     @lazy_class_attribute
     def __contains__(cls):

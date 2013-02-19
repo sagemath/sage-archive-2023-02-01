@@ -21,7 +21,7 @@ The algorithm used in this file comes from
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.combinat.composition import Composition, Composition_class
+from sage.combinat.composition import Composition
 from combinat import CombinatorialClass
 from sage.rings.arith import euler_phi,factorial, divisors, gcd
 from sage.rings.integer import Integer
@@ -56,7 +56,7 @@ class Necklaces_evaluation(CombinatorialClass):
             sage: N == loads(dumps(N))
             True
         """
-        if isinstance(e, Composition_class):
+        if isinstance(e, Composition):
             self.e = e
         else:
             self.e = Composition(e)

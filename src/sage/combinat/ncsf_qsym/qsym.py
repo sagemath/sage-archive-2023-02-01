@@ -1228,7 +1228,9 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             M = self.realization_of().Monomial()
             if J == []:
                 return M([])
-            return M.sum_of_terms((I, number_of_fCT( I, J) ) for I in Compositions(J.size()))
+            C = Compositions()
+            C_size = Compositions(J.size())
+            return M.sum_of_terms((C(I), number_of_fCT(C(I), J)) for I in C_size)
 
         @cached_method
         def _matrix_monomial_to_dual_immaculate(self, n):
@@ -1255,11 +1257,12 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             I = N.I()
             S = N.S()
             mat = []
+            C = Compositions()
             for alp in Compositions(n):
                 row = []
-                expansion = S(I(alp))
+                expansion = S(I(C(alp)))
                 for bet in Compositions(n):
-                    row.append(expansion.coefficient(Composition(bet)))
+                    row.append(expansion.coefficient(C(bet)))
                 mat.append(row)
             return mat
 
@@ -1286,10 +1289,11 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 -dI[1, 1, 1, 1, 1, 1] + dI[1, 1, 1, 1, 2] + dI[1, 1, 1, 3] - dI[1, 1, 4] - dI[1, 2, 1, 1, 1] + dI[1, 2, 3] + dI[2, 1, 1, 1, 1] - dI[2, 1, 1, 2] + dI[2, 2, 1, 1] - dI[2, 2, 2] - dI[3, 1, 1, 1] + dI[3, 1, 2]
             """
             n = J.size()
-            C= Compositions(n)
+            C = Compositions()
+            C_n = Compositions(n)
             mat = self._matrix_monomial_to_dual_immaculate(n)
-            column = C.list().index(J)
-            return self.sum_of_terms( (I, mat[C.list().index(I)][column])
-                                            for I in Compositions(n))
+            column = C_n.list().index(J)
+            return self.sum_of_terms( (C(I), mat[C_n.list().index(I)][column])
+                                            for I in C_n)
 
     dI = dualImmaculate

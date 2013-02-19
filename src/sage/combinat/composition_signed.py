@@ -16,15 +16,14 @@ Signed Compositions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from combinat import CombinatorialClass
-import composition
+from composition import Compositions_n, Composition
 import cartesian_product
 from sage.rings.all import binomial, Integer
 import __builtin__
 
-def SignedCompositions(n):
+class SignedCompositions(Compositions_n):
     """
-    Returns the combinatorial class of signed compositions of n.
+    The class of signed compositions of `n`.
 
     EXAMPLES::
 
@@ -59,26 +58,18 @@ def SignedCompositions(n):
          [-2, -1],
          [3],
          [-3]]
+
+    TESTS::
+
+        sage: SC = SignedCompositions(3)
+        sage: TestSuite(SC).run()
     """
-    return SignedCompositions_n(n)
-
-class SignedCompositions_n(CombinatorialClass):
-    def __init__(self, n):
-        """
-        TESTS::
-
-            sage: SC3 = SignedCompositions(3)
-            sage: SC3 == loads(dumps(SC3))
-            True
-        """
-        self.n = n
-
     def __repr__(self):
         """
         TESTS::
 
-            sage: repr(SignedCompositions(3))
-            'Signed compositions of 3'
+            sage: SignedCompositions(3)
+            Signed compositions of 3
         """
         return "Signed compositions of %s"%self.n
 
@@ -95,23 +86,26 @@ class SignedCompositions_n(CombinatorialClass):
             sage: [-2, 1, -3] in SignedCompositions(6)
             True
         """
-        if x == []:
-            return True
-
         if isinstance(x, __builtin__.list):
             for i in range(len(x)):
-                if not isinstance(x[i], (int, Integer)):
+                if (not isinstance(x[i], (int, Integer))) and x[i] not in ZZ:
                     return False
                 if x[i] == 0:
                     return False
-                return True
-        else:
+        elif not isinstance(x, Composition):
             return False
-
         return sum([abs(i) for i in x]) == self.n
 
     def cardinality(self):
-        """
+        r"""
+        Return the number of elements in ``self``.
+
+        The number of signed compositions of `n` is equal to
+
+        .. MATH::
+
+            \sum_{i=1}^{n+1} \binom{n-1}{i-1} 2^i
+
         TESTS::
 
             sage: SC4 = SignedCompositions(4)
@@ -120,7 +114,7 @@ class SignedCompositions_n(CombinatorialClass):
             sage: SignedCompositions(3).cardinality()
             18
         """
-        return sum([ binomial(self.n-1, i-1)*2**(i) for i in range(1, self.n+1)])
+        return sum([binomial(self.n-1, i-1)*2**(i) for i in range(1, self.n+1)])
 
     def __iter__(self):
         """
@@ -133,9 +127,12 @@ class SignedCompositions_n(CombinatorialClass):
             sage: SignedCompositions(2).list()   #indirect doctest
             [[1, 1], [1, -1], [-1, 1], [-1, -1], [2], [-2]]
         """
-        for comp in composition.Compositions(self.n):
+        for comp in Compositions_n.__iter__(self):
             l = len(comp)
             a = [[1,-1] for i in range(l)]
             for sign in cartesian_product.CartesianProduct(*a):
                 yield [ sign[i]*comp[i] for i in range(l)]
+
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.combinat.composition_signed', 'SignedCompositions_n', SignedCompositions)
 

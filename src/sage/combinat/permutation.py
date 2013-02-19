@@ -201,7 +201,7 @@ from sage.rings.all import ZZ, Integer, PolynomialRing, factorial
 from sage.matrix.all import matrix
 from sage.combinat.tools import transitive_ideal
 import sage.combinat.subword as subword
-from sage.combinat.composition import Composition, Composition_class
+from sage.combinat.composition import Composition, Composition
 import tableau
 import sage.combinat.partition
 from permutation_nk import PermutationsNK
@@ -4259,7 +4259,7 @@ def descents_composition_first(dc):
         [3, 2, 1, 4, 6, 5, 7, 8, 10, 9, 11, 12]
     """
 
-    if not isinstance(dc, Composition_class):
+    if not isinstance(dc, Composition):
         try:
             dc = Composition(dc)
         except TypeError:
@@ -4285,7 +4285,7 @@ def descents_composition_last(dc):
         sage: permutation.descents_composition_last([1,1,3,4,3])
         [12, 11, 8, 9, 10, 4, 5, 6, 7, 1, 2, 3]
     """
-    if not isinstance(dc, Composition_class):
+    if not isinstance(dc, Composition):
         try:
             dc = Composition(dc)
         except TypeError:

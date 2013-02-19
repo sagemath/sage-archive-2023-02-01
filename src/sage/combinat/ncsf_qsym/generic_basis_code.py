@@ -29,7 +29,7 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.categories.realizations import Category_realization_of_parent
 from sage.categories.modules_with_basis import ModulesWithBasis, ModuleMorphismByLinearity
-from sage.combinat.composition import Composition, Composition_class
+from sage.combinat.composition import Composition
 from sage.combinat.partition import Partition
 from sage.combinat.permutation import Permutations
 from sage.rings.integer import Integer
@@ -110,7 +110,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 This could possibly be shared with Sym, FQSym, and
                 other algebras with bases indexed by list-like objects
             """
-            if isinstance(c, Composition_class):
+            if isinstance(c, Composition):
                 assert len(rest) == 0
             else:
                 if len(rest) > 0 or isinstance(c, (int, Integer)):

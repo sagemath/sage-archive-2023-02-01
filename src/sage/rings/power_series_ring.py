@@ -37,7 +37,6 @@ Construct univariate power series from a list of coefficients
     sage: S = R([1, 3, 5, 7]); S
     1 + 3*t + 5*t^2 + 7*t^3
 
-
 An iterated example::
 
     sage: R.<t> = PowerSeriesRing(ZZ)
@@ -138,12 +137,16 @@ from sage.misc.sage_eval import sage_eval
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import normalize_names
+from sage.structure.category_object import check_default_category
 import sage.categories.commutative_rings as commutative_rings
 _CommutativeRings = commutative_rings.CommutativeRings()
 import sage.categories.integral_domains as integral_domains
 _IntegralDomains = integral_domains.IntegralDomains()
 import sage.categories.fields as fields
 _Fields = fields.Fields()
+
+from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationRings
+
 
 def PowerSeriesRing(base_ring, name=None, arg2=None, names=None,
                     sparse=False, default_prec=None, order='negdeglex', num_gens=None):
@@ -460,10 +463,19 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
         Category of integral domains
         sage: TestSuite(R).run()
 
+    When the base ring `k` is a field, the ring `k[[x]]` is not only a
+    commutative ring, but also a complete discrete valuation ring (CDVR).
+    The appropriate (sub)category is automatically set in this case::
+
+        sage: k = GF(11)
+        sage: R.<x> = k[[]]
+        sage: R.category()
+        Category of complete discrete valuation rings
+        sage: TestSuite(R).run()
     """
     Element = power_series_poly.PowerSeries_poly
     def __init__(self, base_ring, name=None, default_prec=20, sparse=False,
-                 use_lazy_mpoly_ring=False):
+                 use_lazy_mpoly_ring=False, category=None):
         """
         Initializes a power series ring.
 
@@ -846,6 +858,29 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             raise IndexError, "generator n>0 not defined"
         return self.__generator
 
+    def uniformizer(self):
+        """
+        Return a uniformizer of this power series ring if it is
+        a discrete valuation ring (i.e. if the base ring is actually
+        a field). Otherwise, an error is raised.
+
+        EXAMPLES::
+
+            sage: R.<t> = PowerSeriesRing(QQ)
+            sage: R.uniformizer()
+            t
+
+            sage: R.<t> = PowerSeriesRing(ZZ)
+            sage: R.uniformizer()
+            Traceback (most recent call last):
+            ...
+            TypeError: The base ring is not a field
+        """
+        if self.base_ring().is_field():
+            return self.gen()
+        else:
+            raise TypeError("The base ring is not a field")
+
     def ngens(self):
         """
         Return the number of generators of this power series ring.
@@ -1027,6 +1062,24 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
         """
         return self.base_ring().characteristic()
 
+    def residue_field(self):
+        """
+        Return the residue field of this power series ring.
+
+        EXAMPLES::
+
+            sage: R.<x> = PowerSeriesRing(GF(17))
+            sage: R.residue_field()
+            Finite Field of size 17
+            sage: R.<x> = PowerSeriesRing(Zp(5))
+            sage: R.residue_field()
+            Finite Field of size 5
+        """
+        if self.base_ring().is_field():
+            return self.base_ring()
+        else:
+            return self.base_ring().residue_field()
+
     def laurent_series_ring(self):
         """
         If this is the power series ring `R[[t]]`, this function
@@ -1050,9 +1103,11 @@ class PowerSeriesRing_generic(UniqueRepresentation, commutative_ring.Commutative
             return self.__laurent_series_ring
 
 class PowerSeriesRing_domain(PowerSeriesRing_generic, integral_domain.IntegralDomain):
-      pass
+    pass
 
 class PowerSeriesRing_over_field(PowerSeriesRing_domain):
+    _default_category = CompleteDiscreteValuationRings()
+
     def fraction_field(self):
         """
         Return the fraction field of this power series ring, which is

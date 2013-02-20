@@ -2498,6 +2498,11 @@ def cyclic_permutations(mset):
         ...       print cycle
         ['a', 'b', 'c']
         ['a', 'c', 'b']
+
+    Since :trac:`14138` some repetitions are handled as expected::
+
+        sage: cyclic_permutations([1,1,1])
+        [[1, 1, 1]]
     """
     return list(cyclic_permutations_iterator(mset))
 
@@ -2520,6 +2525,11 @@ def cyclic_permutations_iterator(mset):
         ...       print cycle
         ['a', 'b', 'c']
         ['a', 'c', 'b']
+
+    Since :trac:`14138` some repetitions are handled as expected::
+
+        sage: cyclic_permutations([1,1,1])
+        [[1, 1, 1]]
     """
     if len(mset) > 2:
         from sage.combinat.permutation import Permutations

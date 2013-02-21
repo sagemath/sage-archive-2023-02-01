@@ -397,9 +397,9 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
         """
         return "Kirillov-Reshetikhin crystal of type %s with (r,s)=(%d,%d)" % (self.cartan_type(), self.r(), self.s())
 
-    def _element_constructor_(self, *value, **options):
+    def _element_constructor_(self, *args, **options):
         """
-        Construct an element of ``self`` from ``elt``.
+        Construct an element of ``self`` from the input.
 
         EXAMPLES::
 
@@ -408,10 +408,10 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
             [[1], [2]]
         """
         from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableauxElement
-        if isinstance(value[0], KirillovReshetikhinTableauxElement):
-            elt = value[0]
+        if isinstance(args[0], KirillovReshetikhinTableauxElement):
+            elt = args[0]
             # Check to make sure it can be converted
-            if elt.cartan_type().affine() != self.cartan_type() \
+            if elt.cartan_type() != self.cartan_type() \
               or elt.parent().r() != self._r or elt.parent().s() != self._s:
                 raise ValueError("The Kirillov-Reshetikhin tableau must have the same Cartan type and shape")
 
@@ -424,7 +424,7 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
             hw_elt = self(rows=rows)
             f_str = reversed(to_hw[1])
             return hw_elt.f_string(f_str)
-        return AffineCrystalFromClassical._element_constructor_(self, *value, **options)
+        return AffineCrystalFromClassical._element_constructor_(self, *args, **options)
 
     @abstract_method
     def classical_decomposition(self):
@@ -614,6 +614,7 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
         g = { gen1 : gen2 }
         return T1.crystal_morphism(g, acyclic = False)
 
+    @cached_method
     def Kirillov_Reshetikhin_tableaux(self):
         """
         Return the corresponding set of :class:`KirillovReshetikhinTableaux`.
@@ -631,6 +632,7 @@ class KirillovReshetikhinGenericCrystalElement(AffineCrystalFromClassicalElement
     """
     Abstract class for all Kirillov-Reshetikhin crystal elements.
     """
+    @cached_method
     def to_Kirillov_Reshetikhin_tableau(self):
         r"""
         Construct the corresponding
@@ -1638,7 +1640,7 @@ class KR_type_A2(KirillovReshetikhinGenericCrystal):
         return self.crystal_morphism( pdict_inv, index_set = [j+1 for j in self.cartan_type().classical().index_set()],
                                       automorphism = lambda i : i-1 )
 
-class KR_type_A2Element(AffineCrystalFromClassicalElement):
+class KR_type_A2Element(KirillovReshetikhinGenericCrystalElement):
     r"""
     Class for the elements in the Kirillov-Reshetikhin crystals `B^{r,s}` of type `A_{2n}^{(2)}` for `r<n`
     with underlying classcial algebra `B_n`.
@@ -1985,6 +1987,39 @@ class KR_type_Bn(KirillovReshetikhinGenericCrystal):
         sage: [b.weight() for b in K if b.is_highest_weight([0,2,3])]
         [Lambda[0] - Lambda[1], -2*Lambda[1] + 2*Lambda[3]]
     """
+    def _element_constructor_(self, *args, **options):
+        """
+        Construct an element of ``self``.
+
+        TESTS::
+
+            sage: KRC = KirillovReshetikhinCrystal(['B',3,1], 3, 3)
+            sage: KRT = KirillovReshetikhinTableaux(['B',3,1], 3, 3)
+            sage: elt = KRC.module_generators[1].f_string([3,2,3,1,3,3]); elt
+            [++-, [[2], [0], [-3]]]
+            sage: ret = KRT(elt); ret
+            [[1, 1, 2], [2, 2, -3], [-3, -3, -1]]
+            sage: test = KRC(ret); test
+            [++-, [[2], [0], [-3]]]
+            sage: test == elt
+            True
+        """
+        from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableauxElement
+        if isinstance(args[0], KirillovReshetikhinTableauxElement):
+            elt = args[0]
+            # Check to make sure it can be converted
+            if elt.cartan_type() != self.cartan_type() \
+              or elt.parent().r() != self._r or elt.parent().s() != self._s:
+                raise ValueError("The Kirillov-Reshetikhin tableau must have the same Cartan type and shape")
+
+            to_hw = elt.to_classical_highest_weight()
+            wt = to_hw[0].classical_weight() / 2
+            f_str = reversed(to_hw[1])
+            for x in self.module_generators:
+                if x.classical_weight() == wt:
+                    return x.f_string(f_str)
+            raise ValueError("No matching highest weight element found")
+        return KirillovReshetikhinGenericCrystal._element_constructor_(self, *args, **options)
 
     def classical_decomposition(self):
         r"""
@@ -2276,7 +2311,7 @@ class KR_type_Cn(KirillovReshetikhinGenericCrystal):
             u = u.f(i)
         return u
 
-class KR_type_CnElement(AffineCrystalFromClassicalElement):
+class KR_type_CnElement(KirillovReshetikhinGenericCrystalElement):
     r"""
     Class for the elements in the Kirillov-Reshetikhin crystals `B^{n,s}` of type `C_n^{(1)}`.
 
@@ -2519,7 +2554,7 @@ class KR_type_Dn_twisted(KirillovReshetikhinGenericCrystal):
             u = u.f(i)
         return u
 
-class KR_type_Dn_twistedElement(AffineCrystalFromClassicalElement):
+class KR_type_Dn_twistedElement(KirillovReshetikhinGenericCrystalElement):
     r"""
     Class for the elements in the Kirillov-Reshetikhin crystals `B^{n,s}` of type `D_{n+1}^{(2)}`.
 
@@ -2679,15 +2714,15 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
         sage: all(b.f(0).e(0) == b for b in K if b.phi(0)>0)
         True
     """
-    def _element_constructor_(self, *value, **options):
+    def _element_constructor_(self, *args, **options):
         """
-        Construct an element of ``self`` from ``elt``.
+        Construct an element of ``self`` from the input.
 
         EXAMPLES::
 
             sage: KRT = KirillovReshetikhinTableaux(['D',4,1], 4, 3)
             sage: KRC = KirillovReshetikhinCrystal(['D',4,1], 4, 3)
-            sage: elt = KRT([-3,-4,2,1,-3,-4,2,1,-2,-4,3,1]); elt
+            sage: elt = KRT(-3,-4,2,1,-3,-4,2,1,-2,-4,3,1); elt
             [[1, 1, 1], [2, 2, 3], [-4, -4, -4], [-3, -3, -2]]
             sage: KRC(elt) # indirect doctest
             [++--, [[1], [3], [-4], [-3]]]
@@ -2708,17 +2743,17 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             True
         """
         from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableauxElement
-        if isinstance(value[0], KirillovReshetikhinTableauxElement):
-            elt = value[0]
+        if isinstance(args[0], KirillovReshetikhinTableauxElement):
+            elt = args[0]
             # Check to make sure it can be converted
-            if elt.cartan_type().affine() != self.cartan_type() \
+            if elt.cartan_type() != self.cartan_type() \
               or elt.parent().r() != self._r or elt.parent().s() != self._s:
                 raise ValueError("The Kirillov-Reshetikhin tableau must have the same Cartan type and shape")
 
             to_hw = elt.to_classical_highest_weight()
             f_str = reversed(to_hw[1])
             return self.module_generator().f_string(f_str)
-        KirillovReshetikhinCrystalFromPromotion._element_constructor_(self, *value, **options)
+        return KirillovReshetikhinCrystalFromPromotion._element_constructor_(self, *args, **options)
 
     def classical_decomposition(self):
         r"""

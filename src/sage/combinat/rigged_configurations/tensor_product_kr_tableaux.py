@@ -1,5 +1,5 @@
 r"""
-Tensor product of Kirillov-Reshetikhin tableaux
+Tensor Product of Kirillov-Reshetikhin Tableaux
 
 A tensor product of :class:`KirillovReshetikhinTableaux` which are tableaux of
 `r` rows and `s` columns which naturally arise in the bijection between rigged
@@ -19,15 +19,13 @@ Type `A_n^{(1)}` examples::
 
     sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,1]])
     sage: KRT
-    Tensor product of Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and tableau shape(s) [[1, 1, 1], [1, 1]]
+    Tensor product of Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and factor(s) ((3, 1), (2, 1))
     sage: KRT.cardinality()
     24
-    sage: HW = HighestWeightTensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[1,1], [2,1], [3,1]])
-    sage: HW
-    Highest weight tensor product of Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and tableau shape(s) [[1], [1, 1], [1, 1, 1]]
-    sage: HW.cardinality()
-    5
-    sage: len(HW)
+    sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[1,1], [2,1], [3,1]])
+    sage: KRT
+    Tensor product of Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and factor(s) ((1, 1), (2, 1), (3, 1))
+    sage: len(KRT.module_generators)
     5
     sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[1,1], [2,1], [3,1]])
     sage: KRT.cardinality()
@@ -37,12 +35,11 @@ Type `D_n^{(1)}` examples::
 
     sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[1, 1], [2, 1], [1, 1]])
     sage: KRT
-    Tensor product of Kirillov-Reshetikhin tableaux of type ['D', 4, 1] and tableau shape(s) [[1], [1, 1], [1]]
-    sage: HW = HighestWeightTensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[1, 1], [2, 1], [1, 1]])
-    sage: T = HW(pathlist=[[1], [-2, 2], [1]])
+    Tensor product of Kirillov-Reshetikhin tableaux of type ['D', 4, 1] and factor(s) ((1, 1), (2, 1), (1, 1))
+    sage: T = KRT(pathlist=[[1], [-2, 2], [1]])
     sage: T
     [[1]] (X) [[2], [-2]] (X) [[1]]
-    sage: T2 = HW(pathlist=[[1], [2, -2], [1]])
+    sage: T2 = KRT(pathlist=[[1], [2, -2], [1]])
     sage: T2
     [[1]] (X) [[-2], [2]] (X) [[1]]
     sage: T == T2
@@ -66,347 +63,116 @@ Type `D_n^{(1)}` examples::
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.structure.unique_representation import UniqueRepresentation
 
 from sage.combinat.crystals.tensor_product import FullTensorProductOfRegularCrystals
 from sage.combinat.crystals.letters import CrystalOfLetters
 from sage.combinat.root_system.cartan_type import CartanType
 
 from sage.combinat.rigged_configurations.tensor_product_kr_tableaux_element import TensorProductOfKirillovReshetikhinTableauxElement
-from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableaux
+from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinTableaux, \
+  KirillovReshetikhinTableauxElement
 
 from sage.rings.integer import Integer
 
-class AbstractTensorProductOfKRTableaux(FullTensorProductOfRegularCrystals):
-    r"""
-    Abstract class for all of tensor product of KR tableaux of a given Cartan type.
-
-    See :class:`TensorProductOfKirillovReshetikhinTableaux`. This class should
-    never be created directly.
+class HighestWeightTensorKRT(UniqueRepresentation):
     """
+    Class so we do not have to build the module generators for
+    :class:`TensorProductOfKirillovReshetikhinTableaux` at initialization.
 
-    def __init__(self, cartan_type, B, biject_class):
-        r"""
-        Construct a tensor product of KR tableaux.
+    .. WARNING::
 
-        INPUT:
-
-        - ``cartan_type``    -- The crystal type and n value
-        - ``B``              -- An (ordered) list of dimensions
-        - ``biject_class``   -- The class the bijection creates
-
-        The dimensions (i.e. `B`) is a list whose entries are lists of the
-        form `[r, s]` which correspond to a tableau with `r` rows and `s`
-        columns (or of shape `[r]*s`) and corresponds to a
-        Kirillov-Reshetikhin crystal `B^{r,s}`.
-
-        TESTS::
-
-            sage: HW = HighestWeightTensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,2]]); HW # indirect doctest
-            Highest weight tensor product of Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and tableau shape(s) [[1, 1, 1], [2, 2]]
+        This class is for internal use only!
+    """
+    def __init__(self, tp_krt):
         """
-        assert cartan_type.is_affine()
-
-        self.affine_ct = cartan_type
-        self.dims = B
-        self.letters = CrystalOfLetters(cartan_type)
-        self._bijection_class = biject_class
-        tensorProd = []
-        for rectDims in B:
-            tensorProd.append(KirillovReshetikhinTableaux(
-              self.letters.cartan_type(),
-              rectDims[0], rectDims[1]))
-        FullTensorProductOfRegularCrystals.__init__(self, tuple(tensorProd))
-
-    def _highest_weight_iter(self):
-        r"""
-        Iterate through all of the highest weight tensor product of Kirillov-Reshetikhin tableaux.
+        Initialize ``self``.
 
         EXAMPLES::
 
-            sage: HW = HighestWeightTensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,1]])
-            sage: list(HW) # indirect doctest
-            [[[1], [2], [3]] (X) [[1], [2]], [[1], [3], [4]] (X) [[1], [2]]]
-            sage: HW = HighestWeightTensorProductOfKirillovReshetikhinTableaux(['D', 4, 1], [[2,1]])
-            sage: for x in HW: x # indirect doctest
+            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,2]])
+            sage: from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import HighestWeightTensorKRT
+            sage: hw = HighestWeightTensorKRT(KRT)
+            sage: hw2 = HighestWeightTensorKRT(KRT)
+            sage: hw is hw2
+            True
+        """
+        self.tp_krt = tp_krt
+        self._cache = None
+
+    def __getitem__(self, i):
+        """
+        Return the `i`-th highest weight element in the cache.
+
+        TESTS::
+
+            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,1]])
+            sage: KRT.module_generators[0]
+            [[1], [2], [3]] (X) [[1], [2]]
+        """
+        if self._cache is None:
+            self._cache = [x.to_tensor_product_of_Kirillov_Reshetikhin_tableaux()
+                           for x in self.tp_krt.rigged_configurations().module_generators]
+        return self._cache[i]
+
+    def __iter__(self):
+        """
+        Iterate over the highest weight elements.
+
+        EXAMPLES::
+
+            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,1]])
+            sage: from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import HighestWeightTensorKRT
+            sage: for x in HighestWeightTensorKRT(KRT): x
             ...
             [[1], [2]]
             [[1], [-1]]
         """
-        # This is a hack solution since during construction, the bijection will
-        #   (attempt to) create a new KRT object which hasn't been fully created
-        #   and stored in the UniqueRepresentation's cache. So this will be
-        #   called again, causing the cycle to repeat. This hack just passes
-        #   our self as an optional argument to hide it from the end-user and
-        #   so we don't try to create a new KRT object.
-        from sage.combinat.rigged_configurations.rigged_configurations import HighestWeightRiggedConfigurations
-        for x in HighestWeightRiggedConfigurations(self.affine_ct, self.dims):
-            yield x.to_tensor_product_of_Kirillov_Reshetikhin_tableaux(KRT_init_hack=self)
+        if self._cache is None:
+            self._cache = [x.to_tensor_product_of_Kirillov_Reshetikhin_tableaux()
+                           for x in self.tp_krt.rigged_configurations().module_generators]
+        for x in self._cache:
+            yield x
 
-    def _element_constructor_(self, *path, **options):
-        r"""
-        Construct a TensorProductOfKRTableauxElement.
-
-        Typically the user will call this with the option **pathlist** which
-        will receive a list and coerce it into a path.
+    def __repr__(self):
+        """
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,1]])
-            sage: KRT(pathlist=[[4, 2, 1], [2, 1]]) # indirect doctest
-            [[1], [2], [4]] (X) [[1], [2]]
+            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,1]])
+            sage: from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import HighestWeightTensorKRT
+            sage: HighestWeightTensorKRT(KRT) # indirect doctest
+            Highest weight elements of Tensor product of Kirillov-Reshetikhin tableaux of type ['D', 4, 1] and factor(s) ((2, 1),)
         """
-        from sage.combinat.crystals.kirillov_reshetikhin import KirillovReshetikhinGenericCrystalElement
-        if isinstance(path[0], KirillovReshetikhinGenericCrystalElement):
-            return self.element_class(self, *[x.to_Kirillov_Reshetikhin_tableau() for x in path])
-
-        from sage.combinat.crystals.tensor_product import TensorProductOfRegularCrystalsElement
-        if isinstance(path[0], TensorProductOfRegularCrystalsElement) and \
-          isinstance(path[0][0], KirillovReshetikhinGenericCrystalElement):
-            return self.element_class(self, *[x.to_Kirillov_Reshetikhin_tableau() for x in path[0]])
-
-        from sage.combinat.rigged_configurations.rigged_configuration_element import RiggedConfigurationElement
-        if isinstance(path[0], RiggedConfigurationElement):
-            if self.rigged_configurations() != path[0].parent():
-                raise ValueError("Incorrect bijection image.")
-            return path[0].to_tensor_product_of_Kirillov_Reshetikhin_tableaux()
-
-        return self.element_class(self, *path, **options)
-
-    def _convert_to_letters(self, index, tableauList):
-        """
-        Convert the entries of the list to a list of letters.
-
-        This is a helper function to convert the list of ints to letters since
-        we do not convert an int to an Integer at compile time.
-
-        TESTS::
-
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[1,3]])
-            sage: L = KRT._convert_to_letters(0, [3, 2, 2]); L
-            [3, 2, 2]
-            sage: type(L[0])
-            <type 'sage.combinat.crystals.letters.Crystal_of_letters_type_A_element'>
-            sage: L[0].value
-            3
-        """
-        return([self.letters(x) for x in tableauList])
-
-    def rigged_configurations(self):
-        """
-        Return the corresponding set of rigged configurations.
-
-        EXAMPLES::
-
-            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[1,3], [2,1]])
-            sage: KRT.rigged_configurations()
-            Rigged configurations of type ['A', 3, 1] and factors ((1, 3), (2, 1))
-        """
-        return self._bijection_class(self.affine_ct, self.dims)
-
-    def list(self):
-        r"""
-        Create a list of the elements by using the iterator.
-
-        TESTS::
-
-            sage: HW = HighestWeightTensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,1]])
-            sage: HW.list()
-            [[[1], [2], [3]] (X) [[1], [2]], [[1], [3], [4]] (X) [[1], [2]]]
-        """
-        # This is needed to overwrite the list method from the FiniteCrystals
-        #   category which generates the list via f_a applications.
-        return [x for x in self]
-
-class HighestWeightTensorProductOfKirillovReshetikhinTableaux(AbstractTensorProductOfKRTableaux):
-    r"""
-    Container class of all highest weight tensor product of KR tableaux.
-
-    A tensor product of KR tableaux is highest weight if the action of `e_i`
-    for `i \in I \setminus \{0\}` are all undefined.
-
-    For more on tensor product of Kirillov-Reshetikhin tableaux, see
-    :class:`TensorProductOfKirillovReshetikhinTableaux`.
-    """
-
-    @staticmethod
-    def __classcall_private__(cls, cartan_type, B):
-        """
-        Normalizes the input arguments to ensure unique representation.
-
-        EXAMPLES::
-
-            sage: T1 = HighestWeightTensorProductOfKirillovReshetikhinTableaux(CartanType(['A',3,1]), [[2,2]])
-            sage: T2 = HighestWeightTensorProductOfKirillovReshetikhinTableaux(['A',3,1], [(2,2)])
-            sage: T3 = HighestWeightTensorProductOfKirillovReshetikhinTableaux(['A',3,1], ((2,2),))
-            sage: T2 is T1, T3 is T1
-            (True, True)
-        """
-        cartan_type = CartanType(cartan_type)
-        # Standardize B input into a tuple of tuples
-        assert B is not None
-        B = tuple(tuple(dim) for dim in B)
-        return super(HighestWeightTensorProductOfKirillovReshetikhinTableaux, cls).__classcall__(cls, cartan_type, B)
-
-    def __init__(self, cartan_type, B):
-        r"""
-        Initialize the class.
-
-        INPUT:
-
-        - ``cartan_type``   -- The crystal type and n value
-        - ``B``             -- An (ordered) list of dimensions.
-
-        The dimensions (i.e. `B`) is a list whose entries are lists of the
-        form `[r, c]` which correspond to a tableau with `r` rows and `c`
-        columns (or of shape `[r]*c`).
-
-        EXAMPLES::
-
-            sage: HW = HighestWeightTensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,2]]); HW
-            Highest weight tensor product of Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and tableau shape(s) [[1, 1, 1], [2, 2]]
-            sage: TestSuite(HW).run()
-
-        TESTS:
-
-        That `__len__()` returns the correct value::
-
-            sage: HW = HighestWeightTensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,2]])
-            sage: len(HW)
-            2
-            sage: HW.cardinality() == len(HW)
-            True
-        """
-        from rigged_configurations import HighestWeightRiggedConfigurations
-        AbstractTensorProductOfKRTableaux.__init__(self, cartan_type, B, HighestWeightRiggedConfigurations)
-        self.rename("Highest weight tensor product of Kirillov-Reshetikhin tableaux of type %s and tableau shape(s) %s" % (\
-          cartan_type, list([rectDims[1]] * rectDims[0] for rectDims in B)))
-
-    __iter__ = AbstractTensorProductOfKRTableaux._highest_weight_iter
-
-#        Old iterator doc-string
-#        For type `A`, this works via a backtracing algorithm, however for all
-#        other types, it currently just iterates through all of them, checking
-#        to see if they are highest weight.
-
-    # TODO Currently this will only be constructed for type A_n, so it needs
-    #   to be generalized to all types.
-    # TODO Make it work for multiple columns
-    def _highest_weight_iterator_type_A(self):
-        r"""
-        Iterate over the highest weight tensor product of Kirillov-Reshetikhin
-        tableaux for type `A`.
-
-        This uses a simple backtracing algorithm to determine all of the
-        highest weight crystals and will be significantly faster than iterating
-        over all crystals and checking if they are highest weight.
-
-        TESTS::
-
-            sage: HW = HighestWeightTensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,1]])
-            sage: for x in HW._highest_weight_iterator_type_A(): x
-            ...
-            [[1], [2], [3]] (X) [[1], [2]]
-            [[1], [3], [4]] (X) [[1], [2]]
-        """
-        pathLen = len(self.crystals) # This corresponds to the number of tableaux
-        curPath = [] # Stupid python references...
-        for i in range(pathLen):
-            curPath.append([])
-        maxValue = self._cartan_type.n + 1
-        # Specifies which tableau in the tensor product we are working in
-        tensorIndex = pathLen - 1
-        value = 1 # The value we are trying to place at the current location
-        # Count of all the values to verify we have a highest weight crystal
-        valueCount = [0] * maxValue
-
-        while True: # There is a return statement called if tensorIndex >= pathLen
-            if value <= maxValue:
-                if (value == 1 or valueCount[value - 2] >= valueCount[value - 1] + 1) \
-                  and (value == maxValue or
-                  valueCount[value - 1] + 1 >= valueCount[value]):
-                    # If it still makes it a highest weight crystal
-                    # Prepend the value to our current location
-                    curPath[tensorIndex].insert(0, value) # Assuming type A_n
-                    valueCount[value - 1] += 1 # value-1 to convert to comp. indices
-
-                    # Assuming type A_n in here as well
-                    if len(curPath[tensorIndex]) == self.dims[tensorIndex][0]:
-                        # If the current tableau is filled
-                        if tensorIndex == 0:
-                            # If it is the last tableau in the path, then add it to the
-                            #   return list and then pop it off and increment the value
-                            # Coerce into a list of crystal of tableaux
-                            yield self(*[self.crystals[i](self._convert_to_letters(\
-                              i, tab)) for i, tab in enumerate(curPath)])
-                            valueCount[curPath[tensorIndex].pop(0) - 1] -= 1
-                            value += 1
-                        else:
-                            # Otherwise we just continue on to the next tableau
-                            tensorIndex -= 1
-                            value = 1
-                    else:
-                        # Otherwise the tableau still has more values to add and since
-                        #   is an SSYT, it must be column strict inequality (note we
-                        #   are subtly again assuming its type A_n)
-                        value += 1
-                else:
-                    # Otherwise the current value will not work
-                    value += 1
-            else:
-                # Otherwise its time to backtrace since we've exhausted all
-                #   possible values for this position
-
-                # If the current tableau is empty, back up to the previous tableau
-                if len(curPath[tensorIndex]) == 0:
-                    tensorIndex += 1
-                    if tensorIndex == pathLen:
-                        # Nothing more to do since there are no more tableau
-                        return
-
-                # Get the previous value (assuming type A_n) and increment
-                value = curPath[tensorIndex].pop(0)
-                valueCount[value - 1] -= 1
-                value += 1
+        return "Highest weight elements of %s"%self.tp_krt
 
     @cached_method
     def cardinality(self):
-        r"""
-        Return the number of highest weight tensor product of Kirillov-Reshetikhin tableaux.
+        """
+        Return the cardinality of ``self`` which is the number of highest
+        weight elements.
 
         EXAMPLES::
 
-            sage: HW = HighestWeightTensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2, 1]])
+            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,2]])
+            sage: from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import HighestWeightTensorKRT
+            sage: HW = HighestWeightTensorKRT(KRT)
             sage: HW.cardinality()
-            1
+            3
+            sage: len(HW)
+            3
+            sage: len(KRT.module_generators)
+            3
         """
-        count = Integer(0)
-        for x in self.module_generators:
+        count = 0
+        for x in self:
             count += 1
-        return(count)
+        return Integer(count)
 
-    # To override the default crystal __len__ which is the cardinality
-    # for the whole crystal.
     __len__ = cardinality
 
-    @lazy_attribute
-    def module_generators(self):
-        r"""
-        Module generators for this tensor product of KR tableaux.
-
-        EXAMPLES::
-
-            sage: HWKR = HighestWeightTensorProductOfKirillovReshetikhinTableaux(['A', 4, 1], [[2,2]])
-            sage: for x in HWKR.module_generators: x
-            ...
-            [[1, 1], [2, 2]]
-        """
-        # This was separated out for speed; only needed for __iter__
-        # lazy_attribute does not inherit
-        return [x for x in self._highest_weight_iter()]
-
-HighestWeightTensorProductOfKirillovReshetikhinTableaux.Element = TensorProductOfKirillovReshetikhinTableauxElement
-
-class TensorProductOfKirillovReshetikhinTableaux(AbstractTensorProductOfKRTableaux):
+class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCrystals):
     r"""
     A tensor product of :class:`KirillovReshetikhinTableaux`.
 
@@ -415,6 +181,13 @@ class TensorProductOfKirillovReshetikhinTableaux(AbstractTensorProductOfKRTablea
     rectangular shapes and do not necessarily obey the usual strict increase in
     columns and weak increase in rows. The relation between the two tableaux
     models is given by a filling map.
+
+    .. NOTE::
+
+        The tableaux for all non-simply-laced provably holds if the bijection
+        with :class:`rigged configurations <RiggedConfigurations>` holds.
+        Therefore this is only proven for all factors`B^{r,1}` or all factors
+        `B^{1,s}`, and in general for types `A_n^{(1)}` and `D_n^{(1)}`.
 
     For more information see [OSS2011]_ and
     :class:`KirillovReshetikhinTableaux`.
@@ -430,12 +203,14 @@ class TensorProductOfKirillovReshetikhinTableaux(AbstractTensorProductOfKRTablea
 
     INPUT:
 
-    - ``cartan_type`` -- An affine Cartan type
-    - ``B`` -- An (ordered) list of dimensions.
+    - ``cartan_type``    -- The Cartan type
 
-    The dimensions (i.e. ``B``) is a list whose entries are lists of the
-    form ``[r, s]`` which correspond to Kirillov-Reshetikhin tableaux with
-    ``r`` rows and ``s`` columns.
+    - ``B``              -- An (ordered) list of dimensions
+
+    The dimensions (i.e. `B`) is a list whose entries are lists of the
+    form `[r, s]` which correspond to a tableau with `r` rows and `s`
+    columns (or in type `A_n^{(1)}` of shape ``[r]*s``) and corresponds
+    to a Kirillov-Reshetikhin crystal `B^{r,s}`.
 
     EXAMPLES:
 
@@ -468,6 +243,13 @@ class TensorProductOfKirillovReshetikhinTableaux(AbstractTensorProductOfKRTablea
         True
         sage: t == tp_krc
         True
+
+    We can get the highest weight elements by using the attribute
+    ``module_generators``::
+
+        sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,1]])
+        sage: list(KRT.module_generators)
+        [[[1], [2], [3]] (X) [[1], [2]], [[1], [3], [4]] (X) [[1], [2]]] 
     """
     @staticmethod
     def __classcall_private__(cls, cartan_type, B):
@@ -483,28 +265,21 @@ class TensorProductOfKirillovReshetikhinTableaux(AbstractTensorProductOfKRTablea
             (True, True)
         """
         cartan_type = CartanType(cartan_type)
+        if not cartan_type.is_affine():
+            raise ValueError("The Cartan type must be affine")
+
         # Standardize B input into a tuple of tuples
-        assert B is not None
         B = tuple(tuple(dim) for dim in B)
         return super(TensorProductOfKirillovReshetikhinTableaux, cls).__classcall__(cls, cartan_type, B)
 
     def __init__(self, cartan_type, B):
         r"""
-        Initialize the TensorProductOfKirillovReshetikhinTableaux class.
-
-        INPUT:
-
-        - ``cartan_type``   -- The crystal type and n value
-        - ``B``             -- An (ordered) list of dimensions.
-
-        The dimensions (i.e. `B`) is a list whose entries are lists of the
-        form `[r, c]` which correspond to a tableau with `r` rows and `c`
-        columns (or of shape `[r]*c`).
+        Initialize ``self``.
 
         EXAMPLES::
 
             sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1],[2,2]]); KRT
-            Tensor product of Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and tableau shape(s) [[1, 1, 1], [2, 2]]
+            Tensor product of Kirillov-Reshetikhin tableaux of type ['A', 3, 1] and factor(s) ((3, 1), (2, 2))
             sage: TestSuite(KRT).run() # long time
             sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,2]])
             sage: TestSuite(KRT).run() # long time
@@ -513,11 +288,34 @@ class TensorProductOfKirillovReshetikhinTableaux(AbstractTensorProductOfKRTablea
             sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[4,3]])
             sage: TestSuite(KRT).run() # long time
         """
-        from rigged_configurations import RiggedConfigurations
-        AbstractTensorProductOfKRTableaux.__init__(self, cartan_type, B, RiggedConfigurations)
-        self.rename("Tensor product of Kirillov-Reshetikhin tableaux of type %s and tableau shape(s) %s" % (\
-          cartan_type, list([rectDims[1]] * rectDims[0] for rectDims in B)))
-        self.module_generators = HighestWeightTensorProductOfKirillovReshetikhinTableaux(cartan_type, B)
+        self.dims = B
+        self.letters = CrystalOfLetters(cartan_type.classical())
+        tensor_prod = []
+        for rect_dims in B:
+            tensor_prod.append(KirillovReshetikhinTableaux(cartan_type, rect_dims[0], rect_dims[1]))
+        FullTensorProductOfRegularCrystals.__init__(self, tuple(tensor_prod), cartan_type=cartan_type)
+        # This is needed to override the module_generators set in FullTensorProductOfRegularCrystals
+        self.module_generators = HighestWeightTensorKRT(self)
+        self.rename("Tensor product of Kirillov-Reshetikhin tableaux of type %s and factor(s) %s"%(\
+          cartan_type, B))
+
+    def __iter__(self):
+        """
+        Returns the iterator of ``self``.
+
+        EXAMPLES::
+
+            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A', 3, 1], [[2,1], [1,1]])
+            sage: g = KRT.__iter__()
+            sage: g.next()
+            [[2], [3]] (X) [[1]]
+            sage: g.next()
+            [[2], [4]] (X) [[1]]
+        """
+        index_set = self._cartan_type.classical().index_set()
+        from sage.combinat.backtrack import TransitiveIdeal
+        return TransitiveIdeal(lambda x: [x.f(i) for i in index_set],
+                               self.module_generators).__iter__()
 
     def _test_bijection(self, **options):
         r"""
@@ -541,6 +339,74 @@ class TensorProductOfKirillovReshetikhinTableaux(AbstractTensorProductOfKRTablea
         if len(rejects) != 0:
             return rejects
 
+    def _element_constructor_(self, *path, **options):
+        r"""
+        Construct a TensorProductOfKRTableauxElement.
+
+        Typically the user will call this with the option **pathlist** which
+        will receive a list and coerce it into a path.
+
+        EXAMPLES::
+
+            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[3,1], [2,1]])
+            sage: KRT(pathlist=[[4, 2, 1], [2, 1]]) # indirect doctest
+            [[1], [2], [4]] (X) [[1], [2]]
+        """
+        if isinstance(path[0], KirillovReshetikhinTableauxElement):
+            return self.element_class(self, path)
+        if isinstance(path[0], TensorProductOfKirillovReshetikhinTableauxElement):
+            return path[0]
+
+        from sage.combinat.crystals.kirillov_reshetikhin import KirillovReshetikhinGenericCrystalElement
+        if isinstance(path[0], KirillovReshetikhinGenericCrystalElement):
+            return self.element_class(self, [x.to_Kirillov_Reshetikhin_tableau() for x in path])
+
+        from sage.combinat.crystals.tensor_product import TensorProductOfRegularCrystalsElement
+        if isinstance(path[0], TensorProductOfRegularCrystalsElement) and \
+          isinstance(path[0][0], KirillovReshetikhinGenericCrystalElement):
+            return self.element_class(self, [x.to_Kirillov_Reshetikhin_tableau() for x in path[0]])
+
+        from sage.combinat.rigged_configurations.rigged_configuration_element import RiggedConfigurationElement
+        if isinstance(path[0], RiggedConfigurationElement):
+            if self.rigged_configurations() != path[0].parent():
+                raise ValueError("incorrect bijection image")
+            return path[0].to_tensor_product_of_Kirillov_Reshetikhin_tableaux()
+
+        return self.element_class(self, list(path), **options)
+
+    @cached_method
+    def _module_generators_brute_force(self):
+        """
+        Return the module generators of ``self`` by brute force searching
+        through all elements of ``self`` as a Cartesian product.
+
+        EXAMPLES::
+
+            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[1,3], [2,1]])
+            sage: tuple(KRT.module_generators)
+            ([[1, 1, 1]] (X) [[1], [2]], [[1, 1, 3]] (X) [[1], [2]])
+            sage: KRT._module_generators_brute_force()
+            ([[1, 1, 1]] (X) [[1], [2]], [[1, 1, 3]] (X) [[1], [2]])
+        """
+        index_set = self.cartan_type().classical().index_set()
+        return tuple(x for x in FullTensorProductOfRegularCrystals.__iter__(self)
+                                if x.is_highest_weight(index_set))
+
+    @cached_method
+    def rigged_configurations(self):
+        """
+        Return the corresponding set of rigged configurations.
+
+        EXAMPLES::
+
+            sage: KRT = TensorProductOfKirillovReshetikhinTableaux(['A',3,1], [[1,3], [2,1]])
+            sage: KRT.rigged_configurations()
+            Rigged configurations of type ['A', 3, 1] and factor(s) ((1, 3), (2, 1))
+        """
+        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
+        return RiggedConfigurations(self.cartan_type(), self.dims)
+
+    @cached_method
     def tensor_product_of_Kirillov_Reshetikhin_crystals(self):
         """
         Return the corresponding tensor product of Kirillov-Reshetikhin
@@ -565,7 +431,7 @@ class TensorProductOfKirillovReshetikhinTableaux(AbstractTensorProductOfKRTablea
             True
         """
         return FullTensorProductOfRegularCrystals(tuple(x.Kirillov_Reshetikhin_crystal() for x in self.crystals),
-                                           cartan_type=self.affine_ct)
+                                           cartan_type=self.cartan_type())
 
 TensorProductOfKirillovReshetikhinTableaux.Element = TensorProductOfKirillovReshetikhinTableauxElement
 

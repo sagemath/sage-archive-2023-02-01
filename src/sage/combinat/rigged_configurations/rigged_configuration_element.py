@@ -1,5 +1,5 @@
 r"""
-A specific rigged configuration
+Rigged Configuration Elements
 
 A rigged configuration element is a sequence of :class:`RiggedPartition`
 objects.
@@ -7,9 +7,7 @@ objects.
 AUTHORS:
 
 - Travis Scrimshaw (2010-09-26): Initial version
-
-.. TODO:: Implement crystal operators `e_0` and `f_0`.
-
+- Travis Scrimshaw (2012-10-25): Added virtual rigged confingurations
 """
 
 #*****************************************************************************
@@ -27,25 +25,36 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.misc.abstract_method import abstract_method
+from sage.misc.cachefunc import cached_method
 from sage.structure.list_clone import ClonableArray
-from sage.combinat.crystals.letters import CrystalOfLetters
-from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition
-from sage.combinat.rigged_configurations.bijection import RCToKRTBijection
+from sage.combinat.rigged_configurations.rigged_partition import RiggedPartition, \
+  RiggedPartitionTypeB
 
 class RiggedConfigurationElement(ClonableArray):
     """
-    The RiggedConfigurationElement class is a list of :class:`RiggedPartition`
-    objects.
+    A rigged configuration for simply-laced types.
 
     For more information on rigged configurations, see
-    :class:`RiggedConfigurations`.
+    :class:`RiggedConfigurations`. For rigged configurations for
+    non-simply-laced types, use :class:`RCVirtualElement`.
 
     Typically to create a specific rigged configuration, the user will pass in
     the optional argument **partition_list** and if the user wants to specify
     the rigging values, give the optional argument **rigging_list** as well.
     If **rigging_list** is not passed, the rigging values are set to the
     corresponding vacancy numbers.
+
+    INPUT:
+
+    - ``parent``            -- The parent of this element
+
+    - ``rigged_partitions`` -- A list of rigged partitions
+
+    There are two optional arguments to explicitly construct a rigged
+    configuration. The first is **partition_list** which gives a list of
+    partitions, and the second is **rigging_list** which is a list of
+    corresponding lists of riggings. If only partition_list is specified,
+    then it sets the rigging equal to the calculated vacancy numbers.
 
     EXAMPLES:
 
@@ -64,7 +73,7 @@ class RiggedConfigurationElement(ClonableArray):
         -2[ ][ ]-2
         <BLANKLINE>
 
-        sage: RC = HighestWeightRiggedConfigurations(['A', 4, 1], [[1, 1], [1, 1]])
+        sage: RC = RiggedConfigurations(['A', 4, 1], [[1, 1], [1, 1]])
         sage: RC(partition_list=[[], [], [], []])
         <BLANKLINE>
         (/)
@@ -91,7 +100,7 @@ class RiggedConfigurationElement(ClonableArray):
         -1[ ][ ][ ]-1
         <BLANKLINE>
 
-        sage: RC = HighestWeightRiggedConfigurations(['D', 4, 1], [[1,1], [2, 1]])
+        sage: RC = RiggedConfigurations(['D', 4, 1], [[1,1], [2, 1]])
         sage: RC(partition_list=[[1], [1,1], [1], [1]])
         <BLANKLINE>
         1[ ]1
@@ -122,33 +131,22 @@ class RiggedConfigurationElement(ClonableArray):
 
         sage: RC = RiggedConfigurations(['D', 4, 1], [[1,1], [2,1]])
         sage: rc_elt = RC(partition_list=[[1], [1,1], [1], [1]])
-        sage: tp_krt = rc_elt.to_tensor_product_of_Kirillov_Reshetikhin_tableaux(); tp_krt
+        sage: tp_krtab = rc_elt.to_tensor_product_of_Kirillov_Reshetikhin_tableaux(); tp_krtab
         [[-2]] (X) [[1], [2]]
-        sage: tp_krc = rc_elt.to_tensor_product_of_Kirillov_Reshetikhin_crystals(); tp_krc
+        sage: tp_krcrys = rc_elt.to_tensor_product_of_Kirillov_Reshetikhin_crystals(); tp_krcrys
         [[[-2]], [[1], [2]]]
-        sage: tp_krc == tp_krt.to_tensor_product_of_Kirillov_Reshetikhin_crystals()
+        sage: tp_krcrys == tp_krtab.to_tensor_product_of_Kirillov_Reshetikhin_crystals()
         True
-        sage: RC(tp_krc) == rc_elt
+        sage: RC(tp_krcrys) == rc_elt
         True
-        sage: RC(tp_krt) == rc_elt
+        sage: RC(tp_krtab) == rc_elt
         True
-        sage: tp_krt.to_rigged_configuration() == rc_elt
+        sage: tp_krtab.to_rigged_configuration() == rc_elt
         True
     """
-    def __init__(self, parent, *rigged_partitions, **options):
+    def __init__(self, parent, rigged_partitions=[], **options):
         r"""
         Construct a rigged configuration element.
-
-        INPUT:
-
-        - ``parent``            -- The parent of this element
-        - ``rigged_partitions`` -- A list of rigged partitions
-
-        There are two optional arguments to explicitly construct a rigged
-        configuration. The first is **partition_list** which gives a list of
-        partitions, and the second is **rigging_list** which is a list of
-        corresponding lists of riggings. If only partition_list is specified,
-        then it sets the rigging equal to the calculated vacancy numbers.
 
         EXAMPLES::
 
@@ -185,40 +183,7 @@ class RiggedConfigurationElement(ClonableArray):
             <BLANKLINE>
             sage: TestSuite(elt).run()
         """
-
-        if "partition_list" in options:
-            data = options["partition_list"]
-            n = parent._cartan_type.n
-            if len(data) == 0:
-                # Create a size n array of empty rigged tableau since no tableau
-                #   were given
-                nu = []
-                for i in range(parent._cartan_type.n):
-                    nu.append(RiggedPartition())
-            else:
-                if len(data) != n: # otherwise n should be equal to the number of tableaux
-                    raise ValueError
-
-                nu = []
-                if "rigging_list" in options:
-                    rigging_data = options["rigging_list"]
-
-                    if len(rigging_data) != n:
-                        raise ValueError
-
-                    for i in range(parent._cartan_type.n):
-                       nu.append(RiggedPartition(tuple(data[i]), \
-                          list(rigging_data[i])))
-                else:
-                    for partition_data in data:
-                        nu.append(RiggedPartition(tuple(partition_data)))
-        elif len(list(rigged_partitions)) == 0:
-            # Create a size n array of empty rigged tableau since no tableau
-            #   were given
-            nu = []
-            for i in range(parent._cartan_type.n):
-                nu.append(RiggedPartition())
-        elif "KT_constructor" in options:
+        if "KT_constructor" in options:
             # Used only by the Kleber tree
             # Not recommended to be called by the user since it avoids safety
             #   checks for speed
@@ -227,19 +192,57 @@ class RiggedConfigurationElement(ClonableArray):
             rigging_data = data[1]
             vac_data = data[2]
             nu = []
-            for i in range(parent._cartan_type.n):
+            for i in range(parent._cartan_type.classical().rank()):
                 nu.append(RiggedPartition(shape_data[i], rigging_data[i], vac_data[i]))
+            # Special display case
+            if parent.cartan_type().type() == 'B':
+                nu[-1] = RiggedPartitionTypeB(nu[-1])
             ClonableArray.__init__(self, parent, nu)
             return
-        elif parent._cartan_type.n == len(list(rigged_partitions)):
-            ClonableArray.__init__(self, parent, list(rigged_partitions))
+        elif "partition_list" in options:
+            data = options["partition_list"]
+            n = parent._cartan_type.classical().rank()
+            if len(data) == 0:
+                # Create a size n array of empty rigged tableau since no tableau
+                #   were given
+                nu = []
+                for i in range(n):
+                    nu.append(RiggedPartition())
+            else:
+                if len(data) != n: # otherwise n should be equal to the number of tableaux
+                    raise ValueError("Incorrect number of partitions")
+
+                nu = []
+                if "rigging_list" in options:
+                    rigging_data = options["rigging_list"]
+
+                    if len(rigging_data) != n:
+                        raise ValueError("Incorrect number of riggings")
+
+                    for i in range(n):
+                       nu.append(RiggedPartition(tuple(data[i]), \
+                          list(rigging_data[i])))
+                else:
+                    for partition_data in data:
+                        nu.append(RiggedPartition(tuple(partition_data)))
+        elif parent._cartan_type.classical().rank() == len(rigged_partitions) and \
+            isinstance(rigged_partitions[0], RiggedPartition):
+            # The isinstance check is to make sure we are not in the n == 1 special case because
+            #   Parent's __call__ always passes at least 1 argument to the element constructor
+
+            # Special display case
+            if parent.cartan_type().type() == 'B':
+                rigged_partitions[-1] = RiggedPartitionTypeB(rigged_partitions[-1])
+            ClonableArray.__init__(self, parent, rigged_partitions)
             return
         else:
             # Otherwise we did not receive any info, create a size n array of
             #   empty rigged partitions
             nu = []
-            for i in range(parent._cartan_type.n):
+            for i in range(parent._cartan_type.classical().rank()):
                 nu.append(RiggedPartition())
+            #raise ValueError("Invalid input")
+            #raise ValueError("Incorrect number of rigged partitions")
 
         # Set the vacancy numbers
         for a, partition in enumerate(nu):
@@ -262,6 +265,10 @@ class RiggedConfigurationElement(ClonableArray):
                 if partition.rigging[i] is None:
                     partition.rigging[i] = partition.vacancy_numbers[i]
 
+        # Special display case
+        if parent.cartan_type().type() == 'B':
+            nu[-1] = RiggedPartitionTypeB(nu[-1])
+
         ClonableArray.__init__(self, parent, nu)
 
     def _repr_(self):
@@ -270,7 +277,7 @@ class RiggedConfigurationElement(ClonableArray):
 
         EXAMPLES::
 
-            sage: RC = HighestWeightRiggedConfigurations(['D', 4, 1], [[2, 2]])
+            sage: RC = RiggedConfigurations(['D', 4, 1], [[2, 2]])
             sage: RC(partition_list=[[2], [3,1], [3], [3]]) # indirect doctest
             <BLANKLINE>
             -1[ ][ ]-1
@@ -293,13 +300,13 @@ class RiggedConfigurationElement(ClonableArray):
             (/)
             <BLANKLINE>
         """
-        retStr = ""
+        ret_str = ""
         for tableau in self:
-            retStr += "\n" + repr(tableau)
-        return(retStr)
+            ret_str += "\n" + repr(tableau)
+        return(ret_str)
 
     def _latex_(self):
-        """
+        r"""
         Return the LaTeX representation of ``self``.
 
         EXAMPLES::
@@ -308,30 +315,30 @@ class RiggedConfigurationElement(ClonableArray):
             sage: latex(RC(partition_list=[[2], [3,1], [3], [3]])) # indirect doctest
             {
             \begin{array}[t]{r|c|c|l}
-            \cline{2-3} -1 &\phantom{x}&\phantom{x}& -1 \\
-            \cline{2-3}
+            \cline{2-3} -1 &\phantom{|}&\phantom{|}& -1 \\
+             \cline{2-3} 
             \end{array}
-            }
+            } 
             \quad
-            {
+             {
             \begin{array}[t]{r|c|c|c|l}
-            \cline{2-4} 2 &\phantom{x}&\phantom{x}&\phantom{x}& 2 \\
-            \cline{2-4} 0 &\phantom{x}& \multicolumn{3}{l}{0} \\
-            \cline{2-2}
+            \cline{2-4} 2 &\phantom{|}&\phantom{|}&\phantom{|}& 2 \\
+             \cline{2-4} 0 &\phantom{|}& \multicolumn{3 }{l}{ 0 } \\
+             \cline{2-2} 
             \end{array}
-            }
+            } 
             \quad
-            {
+             {
             \begin{array}[t]{r|c|c|c|l}
-            \cline{2-4} -2 &\phantom{x}&\phantom{x}&\phantom{x}& -2 \\
-            \cline{2-4}
+            \cline{2-4} -2 &\phantom{|}&\phantom{|}&\phantom{|}& -2 \\
+             \cline{2-4} 
             \end{array}
-            }
+            } 
             \quad
-            {
+             {
             \begin{array}[t]{r|c|c|c|l}
-            \cline{2-4} -2 &\phantom{x}&\phantom{x}&\phantom{x}& -2 \\
-            \cline{2-4}
+            \cline{2-4} -2 &\phantom{|}&\phantom{|}&\phantom{|}& -2 \\
+             \cline{2-4} 
             \end{array}
             }
             sage: latex(RC(partition_list=[[],[],[],[]])) # indirect doctest
@@ -362,14 +369,24 @@ class RiggedConfigurationElement(ClonableArray):
         """
         for partition in self:
             for i, vac_num in enumerate(partition.vacancy_numbers):
-                assert vac_num >= partition.rigging[i], "rigging can be at most the vacancy number"
+                if vac_num < partition.rigging[i]:
+                    #print "FAILED FOR:"
+                    #print self
+                    #print "at:", i, vac_num, partition.rigging[i]
+                    raise ValueError("rigging can be at most the vacancy number")
 
-    def to_tensor_product_of_Kirillov_Reshetikhin_tableaux(self, display_steps=False, **options):
+    def to_tensor_product_of_Kirillov_Reshetikhin_tableaux(self, display_steps=False):
         r"""
         Perform the bijection from this rigged configuration to a tensor
         product of Kirillov-Reshetikhin tableaux given in [RigConBijection]_
         for single boxes and with [BijectionLRT]_ and [BijectionDn]_ for
         multiple columns and rows.
+
+        .. NOTE::
+
+            This is only proven to be a bijection in types `A_n^{(1)}`
+            and `D_n^{(1)}`, as well as `\bigotimes_i B^{r_i,1}` and
+            `\bigotimes_i B^{1,s_i}` for general affine types.
 
         INPUT:
 
@@ -408,97 +425,8 @@ class RiggedConfigurationElement(ClonableArray):
             sage: elt == ret
             True
         """
-        #Letters = CrystalOfLetters(self.parent()._cartan_type.classical())
-        Letters = CrystalOfLetters(self.parent()._cartan_type)
-        n = self.parent()._cartan_type.n
-        type = self.parent()._cartan_type.letter
-
-        # Pass in a copy of our partitions since the bijection is destructive to it.
-        bijection = RCToKRTBijection(self)
-
-        # This is technically bad, but because the first thing we do is append
-        #   an empty list to ret_crystal_path, we correct this. We do it this
-        #   way so that we do not have to remove an empty list after the
-        #   bijection has been performed.
-        ret_crystal_path = []
-
-        for dim in self.parent().dims:
-            ret_crystal_path.append([])
-
-            # Iterate over each column
-            for dummy_var in range(dim[1]):
-                # Split off a new column if necessary
-                if bijection.cur_dims[0][1] > 1:
-                    bijection.cur_dims[0][1] -= 1
-                    bijection.cur_dims.insert(0, [dim[0], 1])
-
-                    # Perform the corresponding splitting map on rigged configurations
-                    # All it does is update the vacancy numbers on the RC side
-                    for a in range(n):
-                        bijection._update_vacancy_numbers(a)
-
-                # Check to see if we are a spinor
-                if type == 'D' and dim[0] >= n - 1:
-                    if display_steps:
-                        print "===================="
-                        print repr(self.parent()(*bijection.cur_partitions))
-                        print "--------------------"
-                        print ret_crystal_path
-                        print "--------------------\n"
-                        print "Applied doubling map"
-                    bijection.doubling_map()
-                    if dim[0] == n - 1:
-                        if display_steps:
-                            print "===================="
-                            print repr(self.parent()(*bijection.cur_partitions))
-                            print "--------------------"
-                            print ret_crystal_path
-                            print "--------------------\n"
-                        b = bijection.next_state(n)
-                        if b == n:
-                            b = -n
-                        ret_crystal_path[-1].append(Letters(b)) # Append the rank
-
-                while bijection.cur_dims[0][0] > 0:
-                    if display_steps:
-                        print "===================="
-                        print repr(self.parent()(*bijection.cur_partitions))
-                        print "--------------------"
-                        print ret_crystal_path
-                        print "--------------------\n"
-
-                    bijection.cur_dims[0][0] -= 1 # This takes care of the indexing
-                    b = bijection.next_state(bijection.cur_dims[0][0])
-
-                    # Corrections for spinor
-                    if type == 'D' and dim[0] == n and b == -n \
-                      and bijection.cur_dims[0][0] == n - 1:
-                        b = -(n-1)
-
-                    # Make sure we have a crystal letter
-                    ret_crystal_path[-1].append(Letters(b)) # Append the rank
-
-                bijection.cur_dims.pop(0) # Pop off the leading column
-
-                # Check to see if we were a spinor
-                if type == 'D' and dim[0] >= n-1:
-                    if display_steps:
-                        print "===================="
-                        print repr(self.parent()(*bijection.cur_partitions))
-                        print "--------------------"
-                        print ret_crystal_path
-                        print "--------------------\n"
-                        print "Applied halving map"
-                    bijection.halving_map()
-
-        # If you're curious about this, see the note in AbstractTensorProductOfKRTableaux._highest_weight_iter().
-        # You should never call this option.
-        if "KRT_init_hack" in options:
-            return options["KRT_init_hack"](pathlist=ret_crystal_path)
-
-        #return self.parent()._bijection_class(self.parent()._cartan_type,
-        return self.parent()._bijection_class(self.parent()._affine_ct,
-          self.parent().dims)(pathlist=ret_crystal_path)
+        from sage.combinat.rigged_configurations.bijection import RCToKRTBijection
+        return RCToKRTBijection(self).run(display_steps)
 
     def to_tensor_product_of_Kirillov_Reshetikhin_crystals(self, display_steps=False):
         r"""
@@ -550,7 +478,7 @@ class RiggedConfigurationElement(ClonableArray):
 
         EXAMPLES::
 
-            sage: RC = HighestWeightRiggedConfigurations(['A', 4, 1], [[2, 2]])
+            sage: RC = RiggedConfigurations(['A', 4, 1], [[2, 2]])
             sage: RC(partition_list=[[2], [2,2], [2], [2]]).nu()
             [0[ ][ ]0
             , -2[ ][ ]-2
@@ -572,13 +500,18 @@ class RiggedConfigurationElement(ClonableArray):
         colabels fixed and increasing the new label by one. If no such string
         exists, then `e_a` is undefined.
 
+        .. TODO::
+
+            Implement `f_0` without appealing to tensor product of
+            KR tableaux.
+
         INPUT:
 
         - ``a`` -- The index of the partition to remove a box.
 
         OUTPUT:
 
-        - The resulting rigged configuration element.
+        The resulting rigged configuration element.
 
         EXAMPLES::
 
@@ -596,9 +529,19 @@ class RiggedConfigurationElement(ClonableArray):
             -1[ ]-1
             <BLANKLINE>
         """
-        assert a in self.parent()._cartan_type.index_set()
+        if a not in self.parent()._cartan_type.index_set():
+            raise ValueError("{} is not in the index set".format(a))
         if a == 0:
-            raise NotImplementedError("Only classical crystal operators implemented")
+            try:
+                ret = self.to_tensor_product_of_Kirillov_Reshetikhin_tableaux().e(0)
+                if ret is None:
+                    return None
+                return ret.to_rigged_configuration()
+            except NotImplementedError:
+                # We haven't implemented the bijection yet, so return None
+                # This is to make sure we can at least view it as a classical
+                #   crystal if there is no bijection.
+                return None
 
         a -= 1 # For indexing
 
@@ -623,6 +566,7 @@ class RiggedConfigurationElement(ClonableArray):
         # Note that because the riggings are weakly decreasing, we will always
         #   remove the last box on of a block
         k = new_list[rigging_index]
+        set_vac_num = False
         if k == 1:
             new_list.pop()
             new_vac_nums.pop()
@@ -632,6 +576,10 @@ class RiggedConfigurationElement(ClonableArray):
             cur_rigging += 1
             # Properly sort the riggings
             j = rigging_index + 1
+            # Update the vacancy number if the row lengths are the same
+            if j < num_rows and new_list[j] == new_list[rigging_index]:
+                new_vac_nums[rigging_index] = new_vac_nums[j]
+                set_vac_num = True
             while j < num_rows and new_list[j] == new_list[rigging_index] \
               and new_rigging[j] > cur_rigging:
                 new_rigging[j-1] = new_rigging[j] # Shuffle it along
@@ -651,16 +599,14 @@ class RiggedConfigurationElement(ClonableArray):
                     new_vac_nums[i] += 2
                     new_rigging[i] += 2
 
-                if k != 1: # If we did not remove a row
+                
+                if k != 1 and not set_vac_num: # If we did not remove a row nor found another row of length k-1
                     new_vac_nums[rigging_index] += 2
 
                 new_partitions.append(RiggedPartition(new_list, new_rigging, new_vac_nums))
 
-        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
-        #ret_RC = self.__class__(RiggedConfigurations(self.parent()._cartan_type, self.parent().dims),
-        ret_RC = self.__class__(RiggedConfigurations(self.parent()._affine_ct, self.parent().dims),
-                              *new_partitions)
-        if k != 1: # If we did not remove a row
+        ret_RC = self.__class__(self.parent(), new_partitions)
+        if k != 1 and not set_vac_num: # If we did not remove a row nor found another row of length k-1
             # Update that row's vacancy number
             ret_RC[a].vacancy_numbers[rigging_index] = \
               self.parent()._calc_vacancy_number(ret_RC.nu(), a, rigging_index)
@@ -688,10 +634,8 @@ class RiggedConfigurationElement(ClonableArray):
             -1[ ]-1
             <BLANKLINE>
         """
-        #cartan_matrix = self.parent()._cartan_type.classical().cartan_matrix()
-        cartan_matrix = self.parent()._cartan_type.cartan_matrix()
         # Check to make sure we will do something
-        if cartan_matrix[a][b] == 0:
+        if self.parent()._cartan_matrix[a][b] == 0:
             return self[b]
 
         new_list = self[b][:]
@@ -699,7 +643,7 @@ class RiggedConfigurationElement(ClonableArray):
         new_rigging = self[b].rigging[:]
 
         # Update the vacancy numbers and the rigging
-        value = cartan_matrix[a][b]
+        value = self.parent()._cartan_matrix[a][b]
         for i in range(len(new_vac_nums)):
             if new_list[i] < k:
                 break
@@ -722,13 +666,18 @@ class RiggedConfigurationElement(ClonableArray):
         of the resulting vacancy numbers are larger than the labels (i.e. it
         is an invalid rigged configuration), then `f_a` is undefined.
 
+        .. TODO::
+
+            Implement `f_0` without appealing to tensor product of
+            KR tableaux.
+
         INPUT:
 
         - ``a`` -- The index of the partition to add a box.
 
         OUTPUT:
 
-        - The resulting rigged configuration element.
+        The resulting rigged configuration element.
 
         EXAMPLES::
 
@@ -747,9 +696,19 @@ class RiggedConfigurationElement(ClonableArray):
             -1[ ]-1
             <BLANKLINE>
         """
-        assert a in self.parent()._cartan_type.index_set()
+        if a not in self.parent()._cartan_type.index_set():
+            raise ValueError("{} is not in the index set".format(a))
         if a == 0:
-            raise NotImplementedError("Only classical crystal operators implemented")
+            try:
+                ret = self.to_tensor_product_of_Kirillov_Reshetikhin_tableaux().f(0)
+                if ret is None:
+                    return None
+                return ret.to_rigged_configuration()
+            except NotImplementedError:
+                # We haven't implemented the bijection yet, so return None
+                # This is to make sure we can at least view it as a classical
+                #   crystal if there is no bijection.
+                return None
 
         a -= 1 # For indexing
 
@@ -815,10 +774,7 @@ class RiggedConfigurationElement(ClonableArray):
 
         # Note that we do not need to sort the rigging since if there was a
         #   smaller rigging in a larger row, then `k` would be larger.
-        from sage.combinat.rigged_configurations.rigged_configurations import RiggedConfigurations
-        #return self.__class__(RiggedConfigurations(self.parent()._cartan_type, self.parent().dims),
-        return self.__class__(RiggedConfigurations(self.parent()._affine_ct, self.parent().dims),
-                              *new_partitions)
+        return self.__class__(self.parent(), new_partitions)
 
     def _generate_partition_f(self, a, b, k):
         r"""
@@ -842,10 +798,8 @@ class RiggedConfigurationElement(ClonableArray):
             0[ ]0
             <BLANKLINE>
         """
-        #cartan_matrix = self.parent()._cartan_type.classical().cartan_matrix()
-        cartan_matrix = self.parent()._cartan_type.cartan_matrix()
         # Check to make sure we will do something
-        if cartan_matrix[a][b] == 0:
+        if self.parent()._cartan_matrix[a][b] == 0:
             return self[b]
 
         new_list = self[b][:]
@@ -853,7 +807,7 @@ class RiggedConfigurationElement(ClonableArray):
         new_rigging = self[b].rigging[:]
 
         # Update the vacancy numbers and the rigging
-        value = cartan_matrix[a][b]
+        value = self.parent()._cartan_matrix[a][b]
         for i in range(len(new_vac_nums)):
             if new_list[i] <= k:
                 break
@@ -863,9 +817,10 @@ class RiggedConfigurationElement(ClonableArray):
 
         return(RiggedPartition(new_list, new_rigging, new_vac_nums))
 
-    def cc(self):
+    @cached_method
+    def cocharge(self):
         r"""
-        Compute the cocharge statistic.
+        Compute the cocharge statistic of ``self``.
 
         Computes the cocharge statistic [CrysStructSchilling06]_ on this
         rigged configuration `(\nu, J)`. The cocharge statistic is defined as:
@@ -879,34 +834,108 @@ class RiggedConfigurationElement(ClonableArray):
 
         EXAMPLES::
 
-            sage: HWRC = HighestWeightRiggedConfigurations(['A', 3, 1], [[3, 2], [2,1], [1,1]])
-            sage: HWRC(partition_list=[[1], [1], []]).cc()
+            sage: RC = RiggedConfigurations(['A', 3, 1], [[3, 2], [2,1], [1,1]])
+            sage: RC(partition_list=[[1], [1], []]).cocharge()
             1
         """
         cc = 0
         rigging_sum = 0
-        num_partitions = len(self)
-        #cartan_matrix = self.parent().cartan_type().classical().cartan_matrix()
-        cartan_matrix = self.parent().cartan_type().cartan_matrix()
-
-        for a in range(num_partitions):
-            num_rows = len(self[a])
-            for i in range(num_rows):
-                rigging_sum += self[a].rigging[i]
-
-                for b in range(a, num_partitions):
-                    temp_cc = 0
-                    num_rows_b = len(self[b])
-                    # TODO - Optimize this by using the fact that a partition is weakly decreasing
-                    for j in range(num_rows_b):
-                        temp_cc += min(self[a][i], self[b][j])
-
-                    if a != b:
-                        cc += (cartan_matrix[a][b] + cartan_matrix[b][a]) * temp_cc
-                    else: # Assuming A_{ii} = 2 for all types
-                        cc += 2 * temp_cc
-
+        for a, p in enumerate(self):
+            for pos, i in enumerate(p._list):
+                # Add the rigging
+                rigging_sum += p.rigging[pos]
+                # Add the L matrix contribution
+                for dim in self.parent().dims:
+                    if dim[0] == a + 1:
+                        cc += min(dim[1], i)
+                # Subtract the vacancy number
+                cc -= p.vacancy_numbers[pos]
         return cc / 2 + rigging_sum
+
+    cc = cocharge
+
+    @cached_method
+    def charge(self):
+        r"""
+        Compute the charge statistic of ``self``.
+
+        Let `B` denote a set of rigged configurations. The *charge* `c` of
+        a rigged configuration `b` is computed as
+
+        .. MATH::
+
+            c(b) = \max(cc(b) \mid b \in B) - cc(b).
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['A', 3, 1], [[3, 2], [2,1], [1,1]])
+            sage: RC(partition_list=[[],[],[]]).charge()
+            2
+            sage: RC(partition_list=[[1], [1], []]).charge()
+            1
+        """
+        B = self.parent()
+        if not hasattr(B, "_max_charge"):
+            B._max_charge = max(b.cocharge() for b in B)
+        return B._max_charge - self.cocharge()
+
+    @cached_method
+    def classical_weight(self):
+        r"""
+        Return the classical weight of ``self``.
+
+        The classical weight `\Lambda` of a rigged configuration is
+
+        .. MATH::
+
+            \Lambda = \sum_{a \in \overline{I}} \sum_{i > 0}
+            i L_i^{(a)} \Lambda_a - \sum_{a \in \overline{I}} \sum_{i > 0}
+            i m_i^{(a)} \alpha_a
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['D',4,1], [[2,2]])
+            sage: elt = RC(partition_list=[[2],[2,1],[1],[1]])
+            sage: elt.classical_weight()
+            (0, 1, 1, 0)
+
+        This agrees with the corresponding classical weight as KR tableaux::
+
+            sage: krt = elt.to_tensor_product_of_Kirillov_Reshetikhin_tableaux(); krt
+            [[2, 1], [3, -1]]
+            sage: krt.classical_weight() == elt.classical_weight()
+            True
+
+        TESTS:
+
+        We check the classical weights agree in an entire crystal::
+        
+            sage: RC = RiggedConfigurations(['A',2,1], [[2,1], [1,1]])
+            sage: passed_test = True
+            sage: for x in RC:
+            ....:    y = x.to_tensor_product_of_Kirillov_Reshetikhin_tableaux()
+            ....:    if x.classical_weight() != y.classical_weight():
+            ....:        passed_test = False
+            ....:        break
+            ...
+            sage: passed_test
+            True
+        """
+        F = self.cartan_type().classical().root_system()
+        if F.ambient_space() is None:
+            WLR = F.weight_lattice()
+        else:
+            WLR = F.ambient_space()
+        la = WLR.fundamental_weights()
+        sum = WLR.zero()
+        for dim in self.parent().dims:
+            sum += dim[1] * la[dim[0]]
+
+        alpha = WLR.simple_roots()
+        for a, partition in enumerate(self):
+            for row_len in partition:
+                sum -= row_len * alpha[a+1] # +1 for indexing
+        return sum
 
     def get_vacancy_numbers(self, a):
         r"""
@@ -932,6 +961,7 @@ class RiggedConfigurationElement(ClonableArray):
         INPUT:
 
         - ``a`` -- The index of the rigged partition.
+
         - ``i`` -- The row of the rigged partition.
 
         EXAMPLES::
@@ -952,4 +982,161 @@ class RiggedConfigurationElement(ClonableArray):
                 return None
 
         return None
+
+class RCVirtualElement(RiggedConfigurationElement):
+    """
+    Virtual rigged configuration elements.
+
+    TESTS::
+
+        sage: RC = RiggedConfigurations(['C',2,1], [[1,2],[1,1],[2,1]])
+        sage: elt = RC(partition_list=[[3],[2]]); elt
+        <BLANKLINE>
+        0[ ][ ][ ]0
+        <BLANKLINE>
+        0[ ][ ]0
+        sage: TestSuite(elt).run()
+    """
+    def to_virtual_configuration(self):
+        """
+        Return the corresponding rigged configuration in the virtual crystal.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['C',2,1], [[1,2],[1,1],[2,1]])
+            sage: elt = RC(partition_list=[[3],[2]]); elt
+            <BLANKLINE>
+            0[ ][ ][ ]0
+            <BLANKLINE>
+            0[ ][ ]0
+            sage: elt.to_virtual_configuration()
+            <BLANKLINE>
+            0[ ][ ][ ]0
+            <BLANKLINE>
+            0[ ][ ][ ][ ]0
+            <BLANKLINE>
+            0[ ][ ][ ]0
+        """
+        return self.parent().to_virtual(self)
+
+    def e(self, a):
+        """
+        Return the action of `e_a` on ``self``.
+
+        This works by lifting into the virtual configuration, then applying
+
+        .. MATH::
+
+            \hat{e}_a = \prod_{j \in \iota(a)} e_j^{\gamma_j}
+
+        and pulling back.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['A',6,2], [[1,1]]*7)
+            sage: elt = RC(partition_list=[[1]*5,[2,1,1],[3,2]])
+            sage: elt.e(3)
+            <BLANKLINE>
+            0[ ]0
+            0[ ]0
+            0[ ]0
+            0[ ]0
+            0[ ]0
+            <BLANKLINE>
+            0[ ][ ]0
+            1[ ]1
+            1[ ]1
+            <BLANKLINE>
+            1[ ][ ]1
+            1[ ]0
+            <BLANKLINE>
+        """
+        vct = self.parent()._folded_ct
+        L = []
+        gamma = vct.scaling_factors()
+        for i in vct.folding_orbit()[a]:
+            L.extend([i]*gamma[a])
+        virtual_rc = self.parent().to_virtual(self).e_string(L)
+        if virtual_rc is None:
+            return None
+        return self.parent().from_virtual(virtual_rc)
+
+    def f(self, a):
+        """
+        Return the action of `f_a` on ``self``.
+
+        This works by lifting into the virtual configuration, then applying
+
+        .. MATH::
+
+            \hat{f}_a = \prod_{j \in \iota(a)} f_j^{\gamma_j}
+
+        and pulling back.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['A',6,2], [[1,1]]*7)
+            sage: elt = RC(partition_list=[[1]*5,[2,1,1],[2,1]], rigging_list=[[0]*5,[0,1,1],[1,0]])
+            sage: elt.f(3)
+            <BLANKLINE>
+            0[ ]0
+            0[ ]0
+            0[ ]0
+            0[ ]0
+            0[ ]0
+            <BLANKLINE>
+            1[ ][ ]1
+            1[ ]1
+            1[ ]1
+            <BLANKLINE>
+            -1[ ][ ][ ]-1
+            0[ ][ ]0
+            <BLANKLINE>
+        """
+        vct = self.parent()._folded_ct
+        L = []
+        gamma = vct.scaling_factors()
+        for i in vct.folding_orbit()[a]:
+            L.extend([i]*gamma[a])
+        virtual_rc = self.parent().to_virtual(self).f_string(L)
+        if virtual_rc is None:
+            return None
+        return self.parent().from_virtual(virtual_rc)
+
+    @cached_method
+    def cocharge(self):
+        r"""
+        Compute the cocharge statistic.
+
+        Computes the cocharge statistic [OSS03]_ on this
+        rigged configuration `(\nu, J)` by computing the cocharge as a virtual
+        rigged configuration `(\hat{\nu}, \hat{J})` and then using the
+        identity `cc(\hat{\nu}, \hat{J}) = \gamma_0 cc(\nu, J)`.
+
+        EXAMPLES::
+
+            sage: RC = RiggedConfigurations(['C', 3, 1], [[2,1], [1,1]])
+            sage: RC(partition_list=[[1,1],[2,1],[1,1]]).cocharge()
+            1
+        """
+        #return self.to_virtual_configuration().cocharge() / self.parent()._folded_ct.gamma[0]
+        vct = self.parent()._folded_ct
+        cc = 0
+        rigging_sum = 0
+        sigma = vct.folding_orbit()
+        gamma = vct.scaling_factors()
+        for a, p in enumerate(self):
+            t_check = len(sigma[a+1]) * gamma[a+1] / gamma[0]
+            for pos, i in enumerate(p._list):
+                # Add the rigging
+                rigging_sum += t_check * p.rigging[pos]
+                # Add the L matrix contribution
+                for dim in self.parent().dims:
+                    if dim[0] == a + 1:
+                        cc += t_check * min(dim[1], i)
+                # Subtract the vacancy number
+                cc -= t_check * p.vacancy_numbers[pos]
+        return cc / 2 + rigging_sum
+
+    cc = cocharge
 

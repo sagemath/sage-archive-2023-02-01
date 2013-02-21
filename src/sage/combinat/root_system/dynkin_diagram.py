@@ -4,7 +4,7 @@ Dynkin diagrams
 AUTHORS:
 
 - Travis Scrimshaw (2012-04-22): Nicolas M. Thiery moved Cartan matrix creation
-    to here and I cached results for speed.
+  to here and I cached results for speed.
 
 """
 #*****************************************************************************
@@ -26,22 +26,41 @@ from sage.graphs.digraph import DiGraph
 from cartan_type import CartanType, CartanType_abstract
 
 def DynkinDiagram(*args):
-    """
+    r"""
+    Return a Dynkin diagram for type ``ct``.
+
     INPUT:
 
-     -  ``ct`` - a Cartan Type
-
-    Returns a Dynkin diagram for type ct.
-
+    -  ``ct`` -- a Cartan Type
 
     The edge multiplicities are encoded as edge labels. This uses the
-    convention in Kac / Fulton Harris, Representation theory / Wikipedia
-    (http://en.wikipedia.org/wiki/Dynkin_diagram). That is for i != j::
+    convention in Hong and Kang, Kac, Fulton Harris, and crystals. This is the
+    **opposite** convention in Bourbaki and Wikipedia's Dynkin diagram
+    (:wikipedia:`Dynkin_diagram`). That is for `i \neq j`::
 
-       j --k--> i <==> a_ij = -k
+       i <--k-- j <==> a_ij = -k
                   <==> -scalar(coroot[i], root[j]) = k
-                  <==> multiple arrows point from the longer root
-                       to the shorter one
+                  <==> multiple arrows point from the shorter root
+                       to the longer one
+
+    For example, in type `C_2`, we have::
+
+        sage: C2 = DynkinDiagram(['C',2]); C2
+        O=<=O
+        1   2
+        C2
+        sage: C2.cartan_matrix()
+        [ 2 -2]
+        [-1  2]
+
+    However Bourbaki would have the Cartan matrix as:
+
+    .. MATH::
+
+        \begin{bmatrix}
+        2 & -1 \\
+        -2 & 2
+        \end{bmatrix}.
 
     EXAMPLES::
 
@@ -67,8 +86,10 @@ def DynkinDiagram(*args):
         5   6   7   8
         A2xB2xF4
 
-    SEE ALSO: :func:`CartanType` for a general discussion on Cartan
-    types and in particular node labeling conventions.
+    .. SEEALSO::
+
+        :func:`CartanType` for a general discussion on Cartan
+        types and in particular node labeling conventions.
     """
     if len(args) == 0:
        return DynkinDiagram_class()
@@ -80,11 +101,11 @@ def DynkinDiagram(*args):
 
 def dynkin_diagram(t):
     """
-    Returns the Dynkin diagram of type t.
+    Return the Dynkin diagram of type ``t``.
 
     Note that this function is deprecated, and that you should use
-    DynkinDiagram instead as this will be disappearing in the near
-    future.
+    :func:`DynkinDiagram` instead as this will be disappearing in the
+    near future.
 
     EXAMPLES::
 
@@ -105,7 +126,7 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         """
         INPUT:
 
-         - ``t`` - a Cartan type or None
+        - ``t`` -- a Cartan type or ``None``
 
         EXAMPLES::
 
@@ -150,6 +171,32 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         else:
             return result+"%s"%self.cartan_type()._repr_(compact = True)
             #return result+"Dynkin diagram of type %s"%self.cartan_type()._repr_(compact = True)
+
+    def _latex_(self, scale=0.5):
+        r"""
+        Return a latex representation of this dynkin diagram
+
+        EXAMPLES::
+
+            sage: latex(DynkinDiagram(['A',3,1]))
+            \begin{tikzpicture}[scale=0.5]
+            \draw (-1,0) node[anchor=east] {$A_{3}^{(1)}$};
+            \draw (0 cm,0) -- (4 cm,0);
+            \draw (0 cm,0) -- (2.0 cm, 1.2 cm);
+            \draw (2.0 cm, 1.2 cm) -- (4 cm, 0);
+            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
+            \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (2.0 cm, 1.2 cm) circle (.25cm) node[anchor=south east]{$0$};
+            \end{tikzpicture}
+        """
+        if self.cartan_type() is None:
+            return "Dynkin diagram of rank %s"%self.rank()
+        ret = "\\begin{tikzpicture}[scale=%s]\n"%scale
+        ret += "\\draw (-1,0) node[anchor=east] {$%s$};\n"%self.cartan_type()._latex_()
+        ret += self.cartan_type()._latex_dynkin_diagram()
+        ret += "\n\\end{tikzpicture}"
+        return ret
 
     def add_edge(self, i, j, label=1):
         """

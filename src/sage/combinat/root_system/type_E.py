@@ -458,12 +458,24 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_simpl
             sage: ct.dual()
             ['E', 6]
 
-        TESTS:
-            sage: ct == loads(dumps(ct))
-            True
+        TESTS::
+
+            sage: TestSuite(ct).run()
         """
-        assert n >= 6 and n <= 8
+        if n < 6 or n > 8:
+            raise ValueError("Invalid Cartan Type for Type E")
         CartanType_standard_finite.__init__(self, "E", n)
+
+    def _latex_(self):
+        """
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: latex(CartanType(['E',7]))
+            E_7
+        """
+        return "E_%s"%self.n
 
     AmbientSpace = AmbientSpace
 
@@ -516,6 +528,31 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_simpl
         for i in range(3, self.n):
             g.add_edge(i, i+1)
         return g
+
+    def _latex_dynkin_diagram(self, label = lambda x: x, node_dist=2):
+        r"""
+        Return a latex representation of the Dynkin diagram.
+
+        EXAMPLES::
+
+            sage: print CartanType(['E',7])._latex_dynkin_diagram()
+            \draw (0 cm,0) -- (10 cm,0);
+            \draw (4 cm, 0 cm) -- +(0,2 cm);
+            \draw[fill=white] (0, 0) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$4$};
+            \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$5$};
+            \draw[fill=white] (8 cm, 0) circle (.25cm) node[below=4pt]{$6$};
+            \draw[fill=white] (10 cm, 0) circle (.25cm) node[below=4pt]{$7$};
+            \draw[fill=white] (4 cm, 2 cm) circle (.25cm) node[right=3pt]{$2$};
+        """
+        ret = "\\draw (0 cm,0) -- (%s cm,0);\n"%((self.n-2)*node_dist)
+        ret += "\\draw (%s cm, 0 cm) -- +(0,%s cm);\n"%(2*node_dist, node_dist)
+        ret += "\\draw[fill=white] (0, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%label(1)
+        for i in range(1, self.n-1):
+            ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%(i*node_dist, label(i+2))
+        ret += "\\draw[fill=white] (%s cm, %s cm) circle (.25cm) node[right=3pt]{$%s$};"%(2*node_dist, node_dist, label(2))
+        return ret
 
     def ascii_art(self, label = lambda x: x):
         """

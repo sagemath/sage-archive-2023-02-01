@@ -33,9 +33,9 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
             sage: ct.is_simply_laced()
             False
 
-        TESTS:
-            sage: ct == loads(dumps(ct))
-            True
+        TESTS::
+
+            sage: TestSuite(ct).run()
         """
         assert n in [3, 4]
         CartanType_standard_finite.__init__(self, "H", n)

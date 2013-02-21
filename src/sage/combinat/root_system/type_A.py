@@ -19,8 +19,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
         sage: R = RootSystem(["A",3])
         sage: e = R.ambient_space(); e
         Ambient space of the Root system of type ['A', 3]
-        sage: e == loads(dumps(e))
-        True
+        sage: TestSuite(e).run()
     """
     @classmethod
     def smallest_base_ring(cls, cartan_type=None):
@@ -147,9 +146,9 @@ class AmbientSpace(ambient_space.AmbientSpace):
 from cartan_type import CartanType_standard_finite, CartanType_simply_laced, CartanType_simple
 class CartanType(CartanType_standard_finite, CartanType_simply_laced, CartanType_simple):
     """
-    Cartan Type A
+    Cartan Type `A_n`
 
-    SEE ALSO:func:`~sage.combinat.root_systems.cartan_type.CartanType`
+    .. SEEALSO:: :func:`~sage.combinat.root_systems.cartan_type.CartanType`
     """
     def __init__(self, n):
         """
@@ -178,11 +177,21 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced, CartanType
 
         TESTS::
 
-            sage: ct == loads(dumps(ct))
-            True
+            sage: TestSuite(ct).run()
         """
         assert n >= 0
         CartanType_standard_finite.__init__(self, "A", n)
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: latex(CartanType(['A',4]))
+            A_{4}
+        """
+        return "A_{%s}"%self.n
 
     AmbientSpace = AmbientSpace
 
@@ -216,6 +225,31 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced, CartanType
         for i in range(1, n):
             g.add_edge(i, i+1)
         return g
+
+    def _latex_dynkin_diagram(self, label = lambda x: x, node_dist=2):
+        r"""
+        Return a latex representation of the Dynkin diagram.
+
+        EXAMPLES::
+
+            sage: print CartanType(['A',4])._latex_dynkin_diagram()
+            \draw (0 cm,0) -- (6 cm,0);
+            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
+            \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$4$};
+
+            sage: print CartanType(['A',0])._latex_dynkin_diagram()
+            <BLANKLINE>
+            sage: print CartanType(['A',1])._latex_dynkin_diagram()
+            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
+        """
+        if self.n > 1:
+            ret = "\\draw (0 cm,0) -- (%s cm,0);\n"%((self.n-1)*node_dist)
+        else:
+            ret = ""
+        return ret + "\n".join("\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};"%((i-1)*node_dist, label(i))
+                               for i in self.index_set())
 
     def ascii_art(self, label = lambda x: x):
         """

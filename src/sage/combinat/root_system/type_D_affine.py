@@ -41,8 +41,7 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
 
         TESTS::
 
-            sage: ct == loads(dumps(ct))
-            True
+            sage: TestSuite(ct).run()
         """
         assert n >= 3
         CartanType_standard_untwisted_affine.__init__(self, "D", n)
@@ -112,6 +111,48 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
         g.add_edge(0,2)
         return g
 
+    def _latex_dynkin_diagram(self, label = lambda x: x, node_dist=2, dual=False):
+        r"""
+        Return a latex representation of the Dynkin diagram.
+
+        EXAMPLES::
+
+            sage: print CartanType(['D',4,1])._latex_dynkin_diagram()
+            \draw (0,0.7 cm) -- (2 cm,0);
+            \draw (0,-0.7 cm) -- (2 cm,0);
+            \draw (2 cm,0) -- (2 cm,0);
+            \draw (2 cm,0) -- (4 cm,0.7 cm);
+            \draw (2 cm,0) -- (4 cm,-0.7 cm);
+            \draw[fill=white] (0, 0.7 cm) circle (.25cm) node[left=3pt]{$0$};
+            \draw[fill=white] (0, -0.7 cm) circle (.25cm) node[left=3pt]{$1$};
+            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
+            \draw[fill=white] (4 cm, 0.7 cm) circle (.25cm) node[right=3pt]{$4$};
+            \draw[fill=white] (4 cm, -0.7 cm) circle (.25cm) node[right=3pt]{$3$};
+        """
+        n = self.n
+        if n == 3:
+            import cartan_type
+            relabel = {0:label(0), 1:label(3), 2:label(1), 3:label(2)}
+            return cartan_type.CartanType(["A",3,1]).relabel(relabel)._latex_dynkin_diagram(node_dist=node_dist)
+        if self.global_options('mark_special_node') in ['latex', 'both']:
+            special_fill = 'black'
+        else:
+            special_fill = 'white'
+        rt_most = (n-2)*node_dist
+        center_point = rt_most-node_dist
+        ret = "\\draw (0,0.7 cm) -- (%s cm,0);\n"%node_dist
+        ret += "\\draw (0,-0.7 cm) -- (%s cm,0);\n"%node_dist
+        ret += "\\draw (%s cm,0) -- (%s cm,0);\n"%(node_dist, center_point)
+        ret += "\\draw (%s cm,0) -- (%s cm,0.7 cm);\n"%(center_point, rt_most)
+        ret += "\\draw (%s cm,0) -- (%s cm,-0.7 cm);\n"%(center_point, rt_most)
+        ret += "\\draw[fill=%s] (0, 0.7 cm) circle (.25cm) node[left=3pt]{$%s$};\n"%(special_fill, label(0))
+        ret += "\\draw[fill=white] (0, -0.7 cm) circle (.25cm) node[left=3pt]{$%s$};\n"%label(1)
+        for i in range(1, self.n-2):
+            ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%(i*node_dist, label(i+1))
+        ret += "\\draw[fill=white] (%s cm, 0.7 cm) circle (.25cm) node[right=3pt]{$%s$};\n"%(rt_most, label(n))
+        ret += "\\draw[fill=white] (%s cm, -0.7 cm) circle (.25cm) node[right=3pt]{$%s$};"%(rt_most, label(n-1))
+        return ret
+
     def ascii_art(self, label = lambda x: x):
         """
         Returns a ascii art representation of the extended Dynkin diagram
@@ -146,11 +187,16 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
         if n == 3:
             import cartan_type
             return cartan_type.CartanType(["A",3,1]).relabel({0:0, 1:3, 2:1, 3: 2}).ascii_art(label)
+        if self.global_options('mark_special_node') in ['printing', 'both']:
+            special_str = self.global_options('special_node_str')
+        else:
+            special_str = 'O'
         if n == 4:
-            return "    O %s\n    |\n    |\nO---O---O\n%s   |%s  %s\n    |\n    O %s"%tuple(label(i) for i in (4,1,2,3,0))
+            return "    " + special_str + " %s\n    |\n    |\nO---O---O\n%s   |%s  %s\n    |\n    O %s"%tuple(label(i) for i in (4,1,2,3,0))
         ret = "  %s O"%label(0) +(4*(n-4)-1)*" "+"O %s"%label(n)+ "\n"
         ret += "    |"          +(4*(n-4)-1)*" "                  +"|\n"
         ret += "    |"          +(4*(n-4)-1)*" "                  +"|\n"
         ret += (n-2)*"O---"+"O\n"
         ret += "   ".join("%s"%label(i) for i in range(1,n))
         return ret
+

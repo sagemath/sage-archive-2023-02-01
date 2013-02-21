@@ -37,8 +37,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
 
         TESTS::
 
-            sage: ct == loads(dumps(ct))
-            True
+            sage: TestSuite(ct).run()
         """
         assert n >= 1
         CartanType_standard_finite.__init__(self, "I", n)

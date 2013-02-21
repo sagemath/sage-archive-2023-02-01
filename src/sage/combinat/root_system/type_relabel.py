@@ -15,7 +15,7 @@ import sage
 
 class CartanType(UniqueRepresentation, SageObject, CartanType_abstract):
     r"""
-    A class for relabelled Cartan types
+    A class for relabelled Cartan types.
     """
 
     @staticmethod
@@ -36,9 +36,7 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_abstract):
             False
             sage: ct1 == ct4
             False
-
         """
-
         if isinstance(relabelling, (list, tuple, dict, FiniteFamily)):
             # allows for using relabellings with more entries than in the index_set
             # and by the way makes a copy of relabelling
@@ -60,12 +58,14 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_abstract):
     def __init__(self, type, relabelling):
         """
         INPUT:
-         - ``type``: a Cartan type
-         - ``relabelling``: a function (or a list, or a dictionary)
+
+        - ``type`` -- a Cartan type
+
+        - ``relabelling`` -- a function (or a list, or a dictionary)
 
         Returns an isomorphic Cartan type obtained by relabelling the
         nodes of the dynkin diagram. Namely the node with label ``i``
-        is relabelled ``f(i)`` (or, by ``f[i]`` if f is a list or
+        is relabelled ``f(i)`` (or, by ``f[i]`` if ``f`` is a list or
         dictionary).
 
         EXAMPLES:
@@ -112,12 +112,10 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_abstract):
             1   2   3   4
             B4
 
-
         TESTS::
 
-            sage: T = CartanType(['B',4]).relabel(cycle)
-            sage: T == loads(dumps(T))
-            True
+            sage: ct = CartanType(['B',4]).relabel(cycle)
+            sage: TestSuite(ct).run()
         """
         assert isinstance(relabelling, FiniteFamily)
         self._type = type
@@ -136,7 +134,55 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_abstract):
            sage: CartanType(['F', 4]).relabel(lambda x: 5-x)._repr_(compact = True)
            'F4 relabelled by {1: 4, 2: 3, 3: 2, 4: 1}'
         """
+        # Special case for type D_4^3
+        if self._type.dual().type() == 'G' and self._type.is_affine() \
+                and self.global_options("notation") == "Kac":
+            if compact:
+                return 'D4^3'
+            return "['D', 4, 3]"
         return self._type._repr_(compact = compact)+" relabelled by %s"%self._relabelling
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: ct = CartanType(['A',4]).relabel(lambda x: (x+1)%4+1)
+            sage: latex(ct)
+            A_{4}
+            sage: CartanType.global_options['latex_relabel'] = True
+            sage: latex(ct)
+            A_{4} \text{ relabelled by } \left\{1 : 3, 2 : 4, 3 : 1, 4 : 2\right\}
+            sage: CartanType.global_options['notation'] = 'Kac'
+            sage: latex(CartanType(['D',4,3]))
+            D_4^{(3)}
+            sage: CartanType.global_options.reset()
+        """
+        from sage.misc.latex import latex
+        # Special case for type D_4^{(3)}
+        if self._type.dual().type() == 'G' and self._type.is_affine() \
+                and self.global_options("notation") == "Kac":
+            return 'D_4^{(3)}'
+        ret = self._type._latex_()
+        if self.global_options('latex_relabel'):
+            ret += " \\text{ relabelled by } " + latex(self._relabelling)
+        return ret
+
+    def _latex_dynkin_diagram(self, label=lambda i: i, node_dist=2):
+        r"""
+        Return a latex representation of the Dynkin diagram.
+
+        EXAMPLES::
+
+            sage: print CartanType(['A',4]).relabel(lambda x: (x+1)%4+1)._latex_dynkin_diagram()
+            \draw (0 cm,0) -- (6 cm,0);
+            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$4$};
+            \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$2$};
+        """
+        return self._type._latex_dynkin_diagram(lambda i: label(self._relabelling[i]), node_dist)
 
     def ascii_art(self, label = lambda i: i):
         """
@@ -346,7 +392,6 @@ class CartanType_affine(sage.combinat.root_system.cartan_type.CartanType_affine)
 
         """
         return self._type.is_untwisted_affine()
-
 
 #class ambient_space(AmbientSpace):
 # todo?

@@ -150,14 +150,25 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             sage: ct.affine()
             ['C', 1, 1]
 
-        TESTS:
-            sage: ct == loads(dumps(ct))
-            True
+        TESTS::
+
+            sage: TestSuite(ct).run()
         """
         assert n >= 1
         CartanType_standard_finite.__init__(self, "C", n)
         if n == 1:
             self._add_abstract_superclass(CartanType_simply_laced)
+
+    def _latex_(self):
+        """
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: latex(CartanType(['C',4]))
+            C_{4}
+        """
+        return "C_{%s}"%self.n
 
     AmbientSpace = AmbientSpace
 
@@ -196,6 +207,42 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
              []
         """
         return self.dual().dynkin_diagram().dual()
+
+    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2, dual=False):
+        r"""
+        Return a latex representation of the Dynkin diagram.
+
+        EXAMPLES::
+
+            sage: print CartanType(['C',4])._latex_dynkin_diagram()
+            \draw (0 cm,0) -- (4 cm,0);
+            \draw (4 cm, 0.1 cm) -- +(2 cm,0);
+            \draw (4 cm, -0.1 cm) -- +(2 cm,0);
+            \draw[shift={(4.8, 0)}, rotate=180] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
+            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
+            \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$4$};
+
+        When ``dual=True``, the dynkin diagram for the dual Cartan
+        type `B_n` is returned::
+
+            sage: print CartanType(['C',4])._latex_dynkin_diagram(dual=True)
+            \draw (0 cm,0) -- (4 cm,0);
+            \draw (4 cm, 0.1 cm) -- +(2 cm,0);
+            \draw (4 cm, -0.1 cm) -- +(2 cm,0);
+            \draw[shift={(5.2, 0)}, rotate=0] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
+            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
+            \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$4$};
+
+        .. SEEALSO::
+
+            - :meth:`sage.combinat.root_system.type_C.CartanType._latex_dynkin_diagram`
+            - :meth:`sage.combinat.root_system.type_BC_affine.CartanType._latex_dynkin_diagram`
+        """
+        return self.dual()._latex_dynkin_diagram(label=label, node_dist=node_dist, dual = not dual)
 
     def ascii_art(self, label = lambda x: x):
         """

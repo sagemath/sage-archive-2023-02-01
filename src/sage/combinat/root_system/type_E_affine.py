@@ -41,11 +41,22 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
 
         TESTS::
 
-            sage: ct == loads(dumps(ct))
-            True
+            sage: TestSuite(ct).run()
         """
-        assert n >= 6 and n <= 8
+        if n < 6 or n > 8:
+            raise ValueError("Invalid Cartan Type for Type E")
         CartanType_standard_untwisted_affine.__init__(self, "E", n)
+
+    def _latex_(self):
+        """
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: latex(CartanType(['E',7,1]))
+            E_7^{(1)}
+        """
+        return "E_%s^{(1)}"%self.n
 
     def dynkin_diagram(self):
         """
@@ -118,10 +129,54 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
         elif n == 8:
             g.add_edge(0, 8)
         else:
-            assert False, "Invalid Cartan Type for Type E affine"
+            raise ValueError("Invalid Cartan Type for Type E affine")
         return g
 
+    def _latex_dynkin_diagram(self, label = lambda x: x, node_dist=2):
+        r"""
+        Return a latex representation of the Dynkin diagram.
 
+        EXAMPLES::
+
+            sage: print CartanType(['E',7,1])._latex_dynkin_diagram()
+            \draw (0 cm,0) -- (12 cm,0);
+            \draw (6 cm, 0 cm) -- +(0,2 cm);
+            \draw[fill=white] (0,0) circle (.25cm) node[below=4pt]{$0$};
+            \draw[fill=white] (2 cm,0) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$4$};
+            \draw[fill=white] (8 cm, 0) circle (.25cm) node[below=4pt]{$5$};
+            \draw[fill=white] (10 cm, 0) circle (.25cm) node[below=4pt]{$6$};
+            \draw[fill=white] (12 cm, 0) circle (.25cm) node[below=4pt]{$7$};
+            \draw[fill=white] (6 cm, 2 cm) circle (.25cm) node[right=3pt]{$2$};
+        """
+        n = self.n
+        if self.global_options('mark_special_node') in ['latex', 'both']:
+            special_fill = 'black'
+        else:
+            special_fill = 'white'
+        if n == 7:
+            ret = "\\draw (0 cm,0) -- (%s cm,0);\n"%((n-1)*node_dist)
+            ret += "\\draw (%s cm, 0 cm) -- +(0,%s cm);\n"%(3*node_dist, node_dist)
+            ret += "\\draw[fill=%s] (0,0) circle (.25cm) node[below=4pt]{$%s$};\n"%(special_fill, label(0))
+            ret += "\\draw[fill=white] (%s cm,0) circle (.25cm) node[below=4pt]{$%s$};\n"%(node_dist, label(1))
+            for i in range(2, n):
+                ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%(i*node_dist, label(i+1))
+            ret += "\\draw[fill=white] (%s cm, %s cm) circle (.25cm) node[right=3pt]{$%s$};"%(3*node_dist, node_dist, label(2))
+            return ret
+        ret = "\\draw (0 cm,0) -- (%s cm,0);\n"%((n-2)*node_dist)
+        ret += "\\draw (%s cm, 0 cm) -- +(0,%s cm);\n"%(2*node_dist, node_dist)
+        if n == 6:
+            ret += "\\draw (%s cm, %s cm) -- +(0,%s cm);\n"%(2*node_dist, node_dist, node_dist)
+            ret += "\\draw[fill=%s] (%s cm, %s cm) circle (.25cm) node[right=3pt]{$%s$};\n"%(special_fill, 2*node_dist, 2*node_dist, label(0))
+        else: # n == 8
+            ret += "\\draw (%s cm,0) -- +(%s cm,0);\n"%((n-2)*node_dist, node_dist)
+            ret += "\\draw[fill=%s] (%s cm,0) circle (.25cm) node[below=4pt]{$%s$};\n"%(special_fill, (n-1)*node_dist, label(0))
+        ret += "\\draw[fill=white] (0, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%label(1)
+        for i in range(1, n-1):
+            ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%(i*node_dist, label(i+2))
+        ret += "\\draw[fill=white] (%s cm, %s cm) circle (.25cm) node[right=3pt]{$%s$};"%(2*node_dist, node_dist, label(2))
+        return ret
 
     def ascii_art(self, label = lambda x: x):
         """
@@ -152,12 +207,18 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
             2   4   5   6   7   8   9   1
         """
         n = self.n
+        if self.global_options('mark_special_node') in ['printing', 'both']:
+            special_str = self.global_options('special_node_str')
+        else:
+            special_str = 'O'
         if n == 6:
-            return "        O %s\n        |\n        |\n        O %s\n        |\n        |\nO---O---O---O---O\n%s   %s   %s   %s   %s"\
+            return "        " + special_str + \
+                " %s\n        |\n        |\n        O %s\n        |\n        |\nO---O---O---O---O\n%s   %s   %s   %s   %s"\
                 %tuple(label(i) for i in (0,2,1,3,4,5,6))
         elif n == 7:
-            return "            O %s\n            |\n            |\nO---O---O---O---O---O---O\n%s   %s   %s   %s   %s   %s   %s"\
-                %tuple(label(i) for i in (2,0,1,3,4,5,6,7))
+            return "            O %s\n            |\n            |\n"%label(2) + special_str + \
+                "---O---O---O---O---O---O\n%s   %s   %s   %s   %s   %s   %s"%tuple(label(i) for i in (0,1,3,4,5,6,7))
         elif n == 8:
-            return "        O %s\n        |\n        |\nO---O---O---O---O---O---O---O\n%s   %s   %s   %s   %s   %s   %s   %s"\
-                %tuple(label(i) for i in (2,1,3,4,5,6,7,8,0))
+            return "        O %s\n        |\n        |\nO---O---O---O---O---O---O---"%label(2) + special_str + \
+                "\n%s   %s   %s   %s   %s   %s   %s   %s"%tuple(label(i) for i in (1,3,4,5,6,7,8,0))
+

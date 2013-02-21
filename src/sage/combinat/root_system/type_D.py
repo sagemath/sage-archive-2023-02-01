@@ -158,14 +158,25 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced):
             ValueError: ['D', 2, 1] is not a valid cartan type
 
 
-        TESTS:
-            sage: ct == loads(dumps(ct))
-            True
+        TESTS::
+
+            sage: TestSuite(ct).run()
         """
         assert n >= 2
         CartanType_standard_finite.__init__(self, "D", n)
         if n >= 3:
             self._add_abstract_superclass(CartanType_simple)
+
+    def _latex_(self):
+        """
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: latex(CartanType(['D',4]))
+            D_{4}
+        """
+        return "D_{%s}"%self.n
 
     AmbientSpace = AmbientSpace
 
@@ -237,6 +248,36 @@ class CartanType(CartanType_standard_finite, CartanType_simply_laced):
                 g.add_edge(i, i+1)
             g.add_edge(n-2, n)
         return g
+
+    def _latex_dynkin_diagram(self, label = lambda x: x, node_dist=2):
+        r"""
+        Return a latex representation of the Dynkin diagram.
+
+        EXAMPLES::
+
+            sage: print CartanType(['D',4])._latex_dynkin_diagram()
+            \draw (0 cm,0) -- (2 cm,0);
+            \draw (2 cm,0) -- (4 cm,0.7 cm);
+            \draw (2 cm,0) -- (4 cm,-0.7 cm);
+            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
+            \draw[fill=white] (4 cm, 0.7 cm) circle (.25cm) node[right=3pt]{$4$};
+            \draw[fill=white] (4 cm, -0.7 cm) circle (.25cm) node[right=3pt]{$3$};
+        """
+        if self.n == 2:
+            ret = "\\draw[fill=white] (0,0) circle (.25cm) node[below=4pt]{$1$};\n"
+            ret += "\\draw[fill=white] (%s cm,0) circle (.25cm) node[below=4pt]{$2$};"%node_dist
+            return ret
+        rt_most = (self.n-2) * node_dist
+        center_point = rt_most - node_dist
+        ret = "\\draw (0 cm,0) -- (%s cm,0);\n"%center_point
+        ret += "\\draw (%s cm,0) -- (%s cm,0.7 cm);\n"%(center_point, rt_most)
+        ret += "\\draw (%s cm,0) -- (%s cm,-0.7 cm);\n"%(center_point, rt_most)
+        for i in range(self.n-2):
+            ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%(i*node_dist, label(i+1))
+        ret += "\\draw[fill=white] (%s cm, 0.7 cm) circle (.25cm) node[right=3pt]{$%s$};\n"%(rt_most, label(self.n))
+        ret += "\\draw[fill=white] (%s cm, -0.7 cm) circle (.25cm) node[right=3pt]{$%s$};"%(rt_most, label(self.n-1))
+        return ret
 
     def ascii_art(self, label = lambda x: x):
         """

@@ -33,8 +33,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
         TESTS::
 
-            sage: e == loads(dumps(e))
-            True
+            sage: TestSuite(e).run()
         """
         ambient_space.AmbientSpace.__init__(self, root_system, base_ring)
         v = ZZ(1)/ZZ(2)
@@ -209,10 +208,22 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
 
         TESTS::
 
-            sage: ct == loads(dumps(ct))
-            True
+            sage: TestSuite(ct).run()
         """
         CartanType_standard_finite.__init__(self, "F", 4)
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: latex(CartanType(['F',4]))
+            F_4
+            sage: latex(CartanType(['F',4]).dual())
+            F_4^\vee
+        """
+        return "F_4"
 
     AmbientSpace = AmbientSpace
 
@@ -237,6 +248,36 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             g.add_edge(i, i+1)
         g.set_edge_label(2,3,2)
         return g
+
+    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2, dual=False):
+        r"""
+        Return a latex representation of the Dynkin diagram.
+
+        EXAMPLES::
+
+            sage: print CartanType(['F',4])._latex_dynkin_diagram()
+            \draw (0 cm,0) -- (2 cm,0);
+            \draw (2 cm, 0.1 cm) -- +(2 cm,0);
+            \draw (2 cm, -0.1 cm) -- +(2 cm,0);
+            \draw (4.0 cm,0) -- +(2 cm,0);
+            \draw[shift={(3.2, 0)}, rotate=0] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
+            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
+            \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$4$};
+        """
+        ret = "\\draw (0 cm,0) -- (%s cm,0);\n"%node_dist
+        ret += "\\draw (%s cm, 0.1 cm) -- +(%s cm,0);\n"%(node_dist, node_dist)
+        ret += "\\draw (%s cm, -0.1 cm) -- +(%s cm,0);\n"%(node_dist, node_dist)
+        ret += "\\draw (%s cm,0) -- +(%s cm,0);\n"%(node_dist*2.0, node_dist)
+        if dual:
+            ret += self._latex_draw_arrow_tip(1.5*node_dist-0.2, 0, 180)
+        else:
+            ret += self._latex_draw_arrow_tip(1.5*node_dist+0.2, 0, 0)
+        for i in range(3):
+            ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%(i*node_dist, label(i+1))
+        ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};"%(3*node_dist, label(4))
+        return ret
 
     def ascii_art(self, label = lambda x: x):
         """

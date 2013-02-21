@@ -118,6 +118,95 @@ class CartanType(CartanType_standard_affine):
         g.add_edge(n,n-1,2)
         return g
 
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: latex(CartanType(['BC',4,2]))
+            BC_{4}^{(2)}
+
+            sage: CartanType.global_options['notation'] = 'Kac'
+            sage: latex(CartanType(['BC',4,2]))
+            A_{8}^{(2)}
+            sage: latex(CartanType(['A',8,2]))
+            A_{8}^{(2)}
+            sage: CartanType.global_options.reset()
+        """
+        if self.global_options('notation') == "Kac":
+            return "A_{%s}^{(2)}"%(2*self.classical().rank())
+        else:
+            return "BC_{%s}^{(2)}"%self.n
+
+    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2, dual=False):
+        r"""
+        Return a latex representation of the Dynkin diagram.
+
+        EXAMPLES::
+
+            sage: print CartanType(['BC',4,2])._latex_dynkin_diagram()
+            \draw (0, 0.1 cm) -- +(2 cm,0);
+            \draw (0, -0.1 cm) -- +(2 cm,0);
+            \draw[shift={(0.8, 0)}, rotate=180] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
+            {
+            \pgftransformxshift{2 cm}
+            \draw (0 cm,0) -- (4 cm,0);
+            \draw (4 cm, 0.1 cm) -- +(2 cm,0);
+            \draw (4 cm, -0.1 cm) -- +(2 cm,0);
+            \draw[shift={(4.8, 0)}, rotate=180] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
+            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
+            \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$4$};
+            }
+            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$0$};
+            sage: print CartanType(['BC',4,2]).dual()._latex_dynkin_diagram()
+            \draw (0, 0.1 cm) -- +(2 cm,0);
+            \draw (0, -0.1 cm) -- +(2 cm,0);
+            \draw[shift={(1.2, 0)}, rotate=0] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
+            {
+            \pgftransformxshift{2 cm}
+            \draw (0 cm,0) -- (4 cm,0);
+            \draw (4 cm, 0.1 cm) -- +(2 cm,0);
+            \draw (4 cm, -0.1 cm) -- +(2 cm,0);
+            \draw[shift={(5.2, 0)}, rotate=0] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
+            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
+            \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$4$};
+            }
+            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$0$};
+        """
+        if self.global_options('mark_special_node') in ['latex', 'both']:
+            special_fill = 'black'
+        else:
+            special_fill = 'white'
+        if self.n == 1:
+            ret = "\\draw (0, 0.05 cm) -- +(%s cm,0);\n"%node_dist
+            ret += "\\draw (0, -0.05 cm) -- +(%s cm,0);\n"%node_dist
+            ret += "\\draw (0, 0.15 cm) -- +(%s cm,0);\n"%node_dist
+            ret += "\\draw (0, -0.15 cm) -- +(%s cm,0);\n"%node_dist
+            if dual:
+                ret += self._latex_draw_arrow_tip(0.5*node_dist+0.2, 0, 0)
+            else:
+                ret += self._latex_draw_arrow_tip(0.5*node_dist-0.2, 0, 180)
+            ret += "\\draw[fill=%s] (0,0) circle (.25cm) node[below=4pt]{$%s$};\n"%(special_fill, label(0))
+            ret += "\\draw[fill=white] (%s cm,0) circle (.25cm) node[below=4pt]{$%s$};"%(node_dist, label(1))
+            return ret
+        n = self.n
+        ret = "\\draw (0, 0.1 cm) -- +(%s cm,0);\n"%node_dist
+        ret += "\\draw (0, -0.1 cm) -- +(%s cm,0);\n"%node_dist
+        if dual:
+            ret += self._latex_draw_arrow_tip(0.5*node_dist+0.2, 0, 0)
+        else:
+            ret += self._latex_draw_arrow_tip(0.5*node_dist-0.2, 0, 180)
+        ret += "{\n\\pgftransformxshift{%s cm}\n"%node_dist
+        classical = self.classical()
+        ret += self.classical()._latex_dynkin_diagram(label, node_dist, dual=dual)
+        ret += "\n}\n\\draw[fill=%s] (0 cm, 0) circle (.25cm) node[below=4pt]{$%s$};"%(special_fill, label(0))
+        return ret
+
     def ascii_art(self, label = lambda x: x):
         """
         Returns a ascii art representation of the extended Dynkin diagram
@@ -140,9 +229,13 @@ class CartanType(CartanType_standard_affine):
             2   3
         """
         n = self.n
+        if self.global_options('mark_special_node') in ['printing', 'both']:
+            special_str = self.global_options('special_node_str')
+        else:
+            special_str = 'O'
         if n == 1:
-            return "  4\nO=<=O\n%s   %s"%(label(0), label(1))
-        ret = "O=<=O"+(n-2)*"---O"+"=<=O\n%s   "%label(0)
+            return "  4\n%s=<=O\n%s   %s"%(special_str, label(0), label(1))
+        ret = "%s=<=O"%special_str + (n-2)*"---O"+"=<=O\n%s   "%label(0)
         ret += "   ".join("%s"%label(i) for i in range(1,n+1))
         return ret
 

@@ -18,7 +18,7 @@ import ambient_space
 
 class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
     r"""
-    A class for dual Cartan types
+    A class for dual Cartan types.
 
     The dual of a (crystalographic) Cartan type is a Cartan type with
     the same index set, but all arrows reversed in the Dynkin diagram
@@ -97,9 +97,9 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
         # TODO: design an appropriate infrastructure to handle this
         # automatically? Maybe using categories and axioms?
         if type.is_finite():
-            self._add_abstract_superclass(CartanType_finite)
+            self.__class__ = CartanType_finite
         elif type.is_affine():
-            self._add_abstract_superclass(CartanType_affine)
+            self.__class__ = CartanType_affine
         if type.is_irreducible():
             self._add_abstract_superclass(CartanType_simple)
         # No need to check non crystalographic types (they have no dual)
@@ -115,7 +115,32 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
            sage: CartanType(['F', 4]).dual()._repr_(compact = True)
            'F4*'
         """
-        return self.dual()._repr_(compact)+("*" if compact else "^*")
+        dual_str = self.global_options('dual_str')
+        if self.is_affine() and self.global_options('notation') == "Kac":
+            if self.dual().type() == 'B':
+                if compact:
+                    return 'A%s^2'%(self.classical().rank()*2-1)
+                return "['A', %s, 2]"%(self.classical().rank()*2-1)
+            elif self.dual().type() == 'BC':
+                dual_str = '+'
+            elif self.dual().type() == 'C':
+                if compact:
+                    return 'D%s^2'%(self.rank())
+                return "['D', %s, 2]"%(self.rank())
+            elif self.dual().type() == 'F':
+                if compact:
+                    return 'E6^2'
+                return "['E', 6, 2]"
+        return self.dual()._repr_(compact)+(dual_str if compact else "^"+dual_str)
+
+    def _latex_(self):
+        r"""
+        EXAMPLES::
+
+            sage: latex(CartanType(['F', 4, 1]).dual())
+            F_4^{(1)\vee}
+        """
+        return self._dual._latex_()+"^"+self.global_options('dual_latex')
 
     def __reduce__(self):
         """
@@ -126,6 +151,28 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
 
         """
         return (attrcall("dual"), (self._dual,))
+
+    def _latex_dynkin_diagram(self, label = lambda x: x, edge_dist=2):
+        r"""
+        EXAMPLES::
+
+            sage: print CartanType(['F',4,1]).dual()._latex_dynkin_diagram()
+            \draw (0 cm,0) -- (2 cm,0);
+            {
+            \pgftransformxshift{2 cm}
+            \draw (0 cm,0) -- (2 cm,0);
+            \draw (2 cm, 0.1 cm) -- +(2 cm,0);
+            \draw (2 cm, -0.1 cm) -- +(2 cm,0);
+            \draw (4.0 cm,0) -- +(2 cm,0);
+            \draw[shift={(2.8, 0)}, rotate=180] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
+            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
+            \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$4$};
+            }
+            \draw[fill=white] (0, 0) circle (.25cm) node[below=4pt]{$0$};
+        """
+        return self._dual._latex_dynkin_diagram(label, edge_dist, dual=True)
 
     def ascii_art(self, label = lambda x: x):
         """
@@ -317,11 +364,11 @@ class AmbientSpace(ambient_space.AmbientSpace):
         """
         return self.fundamental_weights_from_simple_roots()
 
-class CartanType_finite(sage.combinat.root_system.cartan_type.CartanType_finite):
+class CartanType_finite(CartanType, sage.combinat.root_system.cartan_type.CartanType_finite):
     AmbientSpace = AmbientSpace
 
 ###########################################################################
-class CartanType_affine(sage.combinat.root_system.cartan_type.CartanType_affine):
+class CartanType_affine(sage.combinat.root_system.cartan_type.CartanType_affine, CartanType):
     def classical(self):
         """
         Returns the classical Cartan type associated with self (which should be affine)
@@ -358,3 +405,75 @@ class CartanType_affine(sage.combinat.root_system.cartan_type.CartanType_affine)
             0
         """
         return self.dual().special_node()
+
+    def _repr_(self, compact=False):
+        """
+        EXAMPLES::
+
+           sage: CartanType(['F', 4]).dual()
+           ['F', 4]^*
+
+           sage: CartanType(['F', 4]).dual()._repr_(compact = True)
+           'F4*'
+        """
+        dual_str = self.global_options('dual_str')
+        if self.global_options('notation') == "Kac":
+            if self.dual().type() == 'B':
+                if compact:
+                    return 'A%s^2'%(self.classical().rank()*2-1)
+                return "['A', %s, 2]"%(self.classical().rank()*2-1)
+            elif self.dual().type() == 'BC':
+                dual_str = '+'
+            elif self.dual().type() == 'C':
+                if compact:
+                    return 'D%s^2'%(self.rank())
+                return "['D', %s, 2]"%(self.rank())
+            elif self.dual().type() == 'F':
+                if compact:
+                    return 'E6^2'
+                return "['E', 6, 2]"
+        return CartanType._repr_(self, compact)
+
+    def _latex_(self):
+        """
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: latex(CartanType(['B',4,1]).dual())
+            B_{4}^{(1)\vee}
+            sage: latex(CartanType(['BC',4,2]).dual())
+            BC_{4}^{(2)\vee}
+            sage: latex(CartanType(['G',2,1]).dual())
+            G_2^{(1)\vee}
+
+            sage: CartanType.global_options['notation'] = 'Kac'
+            sage: latex(CartanType(['A',7,2]))
+            A_{7}^{(2)}
+            sage: latex(CartanType(['B',4,1]).dual())
+            A_{7}^{(2)}
+            sage: latex(CartanType(['A',8,2]))
+            A_{8}^{(2)}
+            sage: latex(CartanType(['A',8,2]).dual())
+            A_{8}^{(2)\dagger}
+            sage: latex(CartanType(['E',6,2]))
+            E_6^{(2)}
+            sage: latex(CartanType(['D',5,2]))
+            D_{5}^{(2)}
+            sage: CartanType.global_options.reset()
+        """
+        if self.global_options('notation') == "Kac":
+            if self.dual().type() == 'B':
+                return "A_{%s}^{(2)}"%(self.classical().rank()*2-1)
+            elif self.dual().type() == 'BC':
+                return "A_{%s}^{(2)\\dagger}"%(2*self.classical().rank())
+            elif self.dual().type() == 'C':
+                return "D_{%s}^{(2)}"%(self.rank)()
+            elif self.dual().type() == 'F':
+                return "E_6^{(2)}"
+        result = self._dual._latex_()
+        import re
+        if re.match(".*\^{\(\d\)}$", result):
+            return "%s%s}"%(result[:-1], self.global_options('dual_latex'))
+        else:
+            return "{%s}^%s"%(result, self.global_options('dual_latex'))

@@ -4,7 +4,7 @@ Cartan matrices
 AUTHORS:
 
 - Travis Scrimshaw (2012-04-22): Nicolas M. Thiery moved matrix creation to
-    :class:`CartanType` to prepare cartan_matrix() for deprecation.
+  :class:`CartanType` to prepare :func:`cartan_matrix()` for deprecation.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,

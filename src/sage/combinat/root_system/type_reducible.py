@@ -19,65 +19,67 @@ from sage.structure.sage_object import SageObject
 
 class CartanType(SageObject, CartanType_abstract):
     r"""
-    A class for reducible Cartan types
-    """
+    A class for reducible Cartan types.
 
+    Reducible root systems are ones that can be factored as direct
+    products. Strictly speaking type `D_2` (corresponding to
+    orthogonal groups of degree 4) is reducible since it is
+    isomorphic to `A_1\times A_1`. However type `D_2` is not built
+    using this class for our purposes.
+
+    INPUT:
+
+    - ``types`` - a list of simple Cartan types
+
+    EXAMPLES::
+
+        sage: [t1,t2]=[CartanType(x) for x in ['A',1],['B',2]]
+        sage: CartanType([t1,t2])
+        A1xB2
+        sage: t = CartanType("A2xB2")
+
+    A reducible Cartan type is finite (resp. crystalographic,
+    simply laced) if all its components are::
+
+        sage: t.is_finite()
+        True
+        sage: t.is_crystalographic()
+        True
+        sage: t.is_simply_laced()
+        False
+
+    This is implemented by inserting the appropriate abstract
+    super classes (see :meth:`~sage.combinat.root_system.cartan_type.CartanType_abstract._add_abstract_superclass`)::
+
+        sage: t.__class__.mro()
+        [<class 'sage.combinat.root_system.type_reducible.CartanType_with_superclass'>, <class 'sage.combinat.root_system.type_reducible.CartanType'>, <type 'sage.structure.sage_object.SageObject'>, <class 'sage.combinat.root_system.cartan_type.CartanType_finite'>, <class 'sage.combinat.root_system.cartan_type.CartanType_crystalographic'>, <class 'sage.combinat.root_system.cartan_type.CartanType_abstract'>, <type 'object'>]
+
+    The index set of the reducible Cartan type is obtained by
+    relabelling successively the nodes of the Dynkin diagrams of
+    the components by 1,2,...::
+
+        sage: t = CartanType(["A",4], ["BC",5,2], ["C",3])
+        sage: t.index_set()
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+
+        sage: t.dynkin_diagram()
+        O---O---O---O
+        1   2   3   4
+        O=<=O---O---O---O=<=O
+        5   6   7   8   9   10
+        O---O=<=O
+        11   12   13
+        A4xBC5~xC3
+    """
     def __init__(self, types):
         """
-        Reducible root systems are ones that can be factored as direct
-        products. Strictly speaking type `D_2` (corresponding to
-        orthogonal groups of degree 4) is reducible since it is
-        isomorphic to `A_1\times A_1`. However type `D_2` is not built
-        using this class for our purposes.
-
-        INPUT:
-
-        - ``types`` - a list of simple Cartan types
-
-        EXAMPLES::
-
-            sage: [t1,t2]=[CartanType(x) for x in ['A',1],['B',2]]
-            sage: CartanType([t1,t2])
-            A1xB2
-            sage: t = CartanType("A2xB2")
-
-        A reducible Cartan type is finite (resp. crystalographic,
-        simply laced) if all its components are::
-
-            sage: t.is_finite()
-            True
-            sage: t.is_crystalographic()
-            True
-            sage: t.is_simply_laced()
-            False
-
-        This is implemented by inserting the appropriate abstract
-        super classes (see :meth:`~sage.combinat.root_system.cartan_type.CartanType_abstract._add_abstract_superclass`)::
-
-            sage: t.__class__.mro()
-            [<class 'sage.combinat.root_system.type_reducible.CartanType_with_superclass'>, <class 'sage.combinat.root_system.type_reducible.CartanType'>, <type 'sage.structure.sage_object.SageObject'>, <class 'sage.combinat.root_system.cartan_type.CartanType_finite'>, <class 'sage.combinat.root_system.cartan_type.CartanType_crystalographic'>, <class 'sage.combinat.root_system.cartan_type.CartanType_abstract'>, <type 'object'>]
-
-        The index set of the reducible Cartan type is obtained by
-        relabelling successively the nodes of the Dynkin diagrams of
-        the components by 1,2,...::
-
-            sage: t = CartanType(["A",4], ["BC",5,2], ["C",3])
-            sage: t.index_set()
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-
-            sage: t.dynkin_diagram()
-            O---O---O---O
-            1   2   3   4
-            O=<=O---O---O---O=<=O
-            5   6   7   8   9   10
-            O---O=<=O
-            11   12   13
-            A4xBC5~xC3
+        Initialize ``self``.
 
         TESTS:
 
         Internally, this relabelling is stored as a dictionary::
 
+            sage: t = CartanType(["A",4], ["BC",5,2], ["C",3])
             sage: sorted(t._index_relabelling.iteritems())
             [((0, 1), 1), ((0, 2), 2), ((0, 3), 3), ((0, 4), 4),
              ((1, 0), 5), ((1, 1), 6), ((1, 2), 7), ((1, 3), 8), ((1, 4), 9), ((1, 5), 10),
@@ -102,8 +104,6 @@ class CartanType(SageObject, CartanType_abstract):
             (1, 0)
             sage: A.inject_weights(1,x)
             (0, 0, 0, 1, 0)
-
-
 
         More tests::
 
@@ -141,6 +141,17 @@ class CartanType(SageObject, CartanType_abstract):
            A2xF4*
         """
         return  "x".join(t._repr_(compact = True) for t in self._types)
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: latex(CartanType("A4","B2","D8"))
+            A_{4} \times B_{2} \times D_{8}
+        """
+        return " \\times ".join(x._latex_() for x in self.component_types())
 
     def __cmp__(self, other):
         """
@@ -263,6 +274,38 @@ class CartanType(SageObject, CartanType_abstract):
             for [e1, e2, l] in self._types[i].dynkin_diagram().edges():
                 g.add_edge(relabelling[i,e1], relabelling[i,e2], label=l)
         return g
+
+    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2):
+        r"""
+        Return a latex representation of the Dynkin diagram.
+
+        .. NOTE::
+
+            The arguments ``label`` and ``dual`` is ignored.
+
+        EXAMPLES::
+
+            sage: print CartanType("A2","B2")._latex_dynkin_diagram()
+            {
+            \draw (0 cm,0) -- (2 cm,0);
+            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};\pgftransformyshift{-3 cm}
+            \draw (0 cm,0) -- (0 cm,0);
+            \draw (0 cm, 0.1 cm) -- +(2 cm,0);
+            \draw (0 cm, -0.1 cm) -- +(2 cm,0);
+            \draw[shift={(1.2, 0)}, rotate=0] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
+            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$4$};
+            }
+        """
+        types = self.component_types()
+        relabelling = self._index_relabelling
+        ret = "{\n"
+        ret += "\\pgftransformyshift{-3 cm}\n".join(types[i]._latex_dynkin_diagram(
+                    node_dist=node_dist, label=lambda x: label(relabelling[i,x]))
+                    for i in range(len(types)))
+        ret += "\n}"
+        return ret
 
     def ascii_art(self, label = lambda x: x):
         """

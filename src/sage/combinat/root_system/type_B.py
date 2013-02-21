@@ -158,13 +158,23 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
 
         TESTS::
 
-            sage: ct == loads(dumps(ct))
-            True
+            sage: TestSuite(ct).run()
         """
         assert n >= 1
         CartanType_standard_finite.__init__(self, "B", n)
         if n == 1:
             self._add_abstract_superclass(CartanType_simply_laced)
+
+    def _latex_(self):
+        """
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: latex(CartanType(['B',4]))
+            B_{4}
+        """
+        return "B_{%s}"%self.n
 
     AmbientSpace = AmbientSpace
 
@@ -213,7 +223,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
 
     def ascii_art(self, label = lambda x: x):
         """
-        Returns a ascii art representation of the extended Dynkin diagram
+        Return an ascii art representation of the Dynkin diagram.
 
         EXAMPLES::
 
@@ -233,6 +243,55 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
         else:
             ret  = (n-2)*"O---" + "O=>=O\n"
         ret += "   ".join("%s"%label(i) for i in range(1,n+1))
+        return ret
+
+    def _latex_dynkin_diagram(self, label=lambda x: x, node_dist=2, dual=False):
+        r"""
+        Return a latex representation of the Dynkin diagram.
+
+        EXAMPLES::
+
+            sage: print CartanType(['B',4])._latex_dynkin_diagram()
+            \draw (0 cm,0) -- (4 cm,0);
+            \draw (4 cm, 0.1 cm) -- +(2 cm,0);
+            \draw (4 cm, -0.1 cm) -- +(2 cm,0);
+            \draw[shift={(5.2, 0)}, rotate=0] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
+            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
+            \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$4$};
+
+        When ``dual=True``, the dynkin diagram for the dual Cartan
+        type `C_n` is returned::
+
+            sage: print CartanType(['B',4])._latex_dynkin_diagram(dual=True)
+            \draw (0 cm,0) -- (4 cm,0);
+            \draw (4 cm, 0.1 cm) -- +(2 cm,0);
+            \draw (4 cm, -0.1 cm) -- +(2 cm,0);
+            \draw[shift={(4.8, 0)}, rotate=180] (135 : 0.45cm) -- (0,0) -- (-135 : 0.45cm);
+            \draw[fill=white] (0 cm, 0) circle (.25cm) node[below=4pt]{$1$};
+            \draw[fill=white] (2 cm, 0) circle (.25cm) node[below=4pt]{$2$};
+            \draw[fill=white] (4 cm, 0) circle (.25cm) node[below=4pt]{$3$};
+            \draw[fill=white] (6 cm, 0) circle (.25cm) node[below=4pt]{$4$};
+
+        .. SEEALSO::
+
+            - :meth:`sage.combinat.root_system.type_C.CartanType._latex_dynkin_diagram`
+            - :meth:`sage.combinat.root_system.type_BC_affine.CartanType._latex_dynkin_diagram`
+        """
+        if self.n == 1:
+            return "\\draw[fill=white] (0,0) circle (.25cm) node[below=4pt]{$1$};"
+        n = self.n
+        ret = "\\draw (0 cm,0) -- (%s cm,0);\n"%((n-2)*node_dist)
+        ret += "\\draw (%s cm, 0.1 cm) -- +(%s cm,0);\n"%((n-2)*node_dist, node_dist)
+        ret += "\\draw (%s cm, -0.1 cm) -- +(%s cm,0);\n"%((n-2)*node_dist, node_dist)
+        if dual:
+            ret += self._latex_draw_arrow_tip((n-1.5)*node_dist-0.2, 0, 180)
+        else:
+            ret += self._latex_draw_arrow_tip((n-1.5)*node_dist+0.2, 0, 0)
+        for i in range(self.n-1):
+            ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};\n"%(i*node_dist, label(i+1))
+        ret += "\\draw[fill=white] (%s cm, 0) circle (.25cm) node[below=4pt]{$%s$};"%((n-1)*node_dist, label(n))
         return ret
 
 # For unpickling backward compatibility (Sage <= 4.1)

@@ -277,7 +277,7 @@ class LowerChristoffelWord(FiniteWord_list):
             sage: from sage.combinat.words.word_generators import LowerChristoffelWord
             sage: w = LowerChristoffelWord(5,7)
             sage: w.__reduce__()
-            (<class 'sage.combinat.words.word_generators.LowerChristoffelWord'>, (5, 7, Ordered Alphabet [0, 1]))
+            (<class 'sage.combinat.words.word_generators.LowerChristoffelWord'>, (5, 7, {0, 1}))
         """
         return self.__class__, (self.__p, self.__q, self.parent().alphabet())
 
@@ -1837,7 +1837,7 @@ class WordGenerator(object):
             sage: w.length()
             32400
             sage: w.parent()
-            Words over Ordered Alphabet ['a', 'b']
+            Words over {'a', 'b'}
             sage: type(w)
             <class 'sage.combinat.words.word.FiniteWord_iter_with_caching'>
 

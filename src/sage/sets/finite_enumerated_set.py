@@ -77,10 +77,6 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
 
         sage: S.first().parent()
         Integer Ring
-
-    TESTS::
-
-        sage: TestSuite(FiniteEnumeratedSet([])).run()
     """
 
     @staticmethod
@@ -100,17 +96,32 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
             sage: S2 is S3
             True
         """
-        return super(FiniteEnumeratedSet, cls).__classcall__(cls, tuple(iterable))
+        return super(FiniteEnumeratedSet, cls).__classcall__(
+                cls,
+                tuple(iterable))
 
     def __init__(self, elements):
         """
         TESTS::
 
-            sage: S = FiniteEnumeratedSet([1,2,3])
-            sage: TestSuite(S).run()
+            sage: TestSuite(FiniteEnumeratedSet([1,2,3])).run()
+            sage: TestSuite(FiniteEnumeratedSet([])).run()
         """
         self._elements = elements
         Parent.__init__(self, facade = True, category = FiniteEnumeratedSets())
+
+    def __nonzero__(self):
+        r"""
+        Conversion to boolean.
+
+        EXAMPLES::
+
+            sage: bool(FiniteEnumeratedSet('abc'))
+            True
+            sage: bool(FiniteEnumeratedSet([]))
+            False
+        """
+        return bool(self._elements)
 
     def _repr_(self):
         """
@@ -119,13 +130,14 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
             sage: S = FiniteEnumeratedSet([1,2,3])
             sage: repr(S)
             '{1, 2, 3}'
+            sage: S = FiniteEnumeratedSet(['1','2','3'])
+            sage: repr(S)
+            "{'1', '2', '3'}"
             sage: S = FiniteEnumeratedSet([1])
             sage: repr(S)
             '{1}'
         """
-        if len(self._elements) == 1: # avoid printing '{1,}'
-            return "{" + str(self._elements[0]) + '}'
-        return "{" + str(self._elements)[1:-1] + '}'
+        return '{' + ', '.join(repr(e) for e in self._elements) + '}'
 
     def __contains__(self, x):
         """
@@ -147,7 +159,21 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
             False
         """
         return x in self._elements
+
     is_parent_of = __contains__
+
+    def __iter__(self):
+        r"""
+        Iterator over the element of self.
+
+        EXAMPLES::
+
+            sage: for i in FiniteEnumeratedSet([1,2,3]): print i
+            1
+            2
+            3
+        """
+        return iter(self._elements)
 
     def list(self):
         """
@@ -171,6 +197,51 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
             raise EmptySetError
         return self._elements[0]
 
+    def first(self):
+        r"""
+        Return the first element of the enumeration or raise an EmptySetError if
+        the set is empty.
+
+        EXAMPLES::
+
+            sage: S = FiniteEnumeratedSet('abc')
+            sage: S.first()
+            'a'
+        """
+        if not self._elements:
+            raise EmptySetError
+        return self._elements[0]
+
+    def last(self):
+        r"""
+        Returns the last element of the iteration or raise an EmptySetError if
+        the set is empty.
+
+        EXAMPLES::
+
+            sage: S = FiniteEnumeratedSet([0,'a',1.23, 'd'])
+            sage: S.last()
+            'd'
+        """
+        if not self._elements:
+            raise EmptySetError
+        return self._elements[-1]
+
+    def random_element(self):
+        r"""
+        Return a random element.
+
+        EXAMPLES::
+
+            sage: S = FiniteEnumeratedSet('abc')
+            sage: S.random_element()   # random
+            'b'
+        """
+        if not self._elements:
+            raise EmptySetError
+        from sage.misc.prandom import choice
+        return choice(self._elements)
+
     def cardinality(self):
         """
         TESTS::
@@ -181,7 +252,7 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
         """
         return Integer(len(self._elements))
 
-    def index(self, x):
+    def rank(self, x):
         """
         Returns the index of ``x`` in this finite enumerated set.
 
@@ -193,19 +264,49 @@ class FiniteEnumeratedSet(UniqueRepresentation, Parent):
         """
         return self._elements.index(x)
 
+    index = rank
+
+    def unrank(self,i):
+        r"""
+        Return the element at position i.
+
+        EXAMPLES::
+
+            sage: S = FiniteEnumeratedSet([1,'a',-51])
+            sage: S[0], S[1], S[2]
+            (1, 'a', -51)
+            sage: S[3]
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+            sage: S[-1], S[-2], S[-3]
+            (-51, 'a', 1)
+            sage: S[-4]
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+        """
+        return self._elements[i]
+
     def _element_constructor_(self, el):
         """
         TESTS::
 
             sage: S = FiniteEnumeratedSet([1,2,3])
-            sage: S(1)
-            1
+            sage: one,two,three = sorted(S)
+            sage: S(1) is one
+            True
+            sage: x = 3
+            sage: x is three
+            False
+            sage: S(x) is three
+            True
             sage: S(0)
             Traceback (most recent call last):
             ...
             ValueError: 0 not in {1, 2, 3}
         """
-        if el in self:
-            return el
-        else:
-            raise ValueError, "%s not in %s"%(el, self)
+        try:
+            return self._elements[self.rank(el)]
+        except (ValueError,KeyError):
+            raise ValueError("%s not in %s"%(el, self))

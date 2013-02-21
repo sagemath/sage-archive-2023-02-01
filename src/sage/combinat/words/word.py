@@ -139,7 +139,7 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True):
         sage: w = Word("abbabaab", alphabet="abc"); w
         word: abbabaab
         sage: w.parent()
-        Words over Ordered Alphabet ['a', 'b', 'c']
+        Words over {'a', 'b', 'c'}
 
     The default parent is the combinatorial class of all words::
 

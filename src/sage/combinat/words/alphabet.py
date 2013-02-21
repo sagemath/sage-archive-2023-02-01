@@ -1,21 +1,26 @@
 # coding=utf-8
 r"""
-Alphabets
+Alphabet
 
 AUTHORS:
 
-    - Franco Saliola (2008-12-17) : merged into sage
+- Franco Saliola (2008-12-17) : merged into sage
+- Vincent Delecroix and Stepan Starosta (2012): remove classes for alphabet and
+  use other Sage classes otherwise (TotallyOrderFiniteSet, FiniteEnumeratedSet,
+  ...). More shortcut to standard alphabets.
 
 EXAMPLES::
 
-    sage: Alphabet("ab")
-    Ordered Alphabet ['a', 'b']
-    sage: Alphabet([0,1,2])
-    Ordered Alphabet [0, 1, 2]
-    sage: Alphabet(name="PP")
-    Ordered Alphabet of Positive Integers
-    sage: Alphabet(name="NN")
-    Ordered Alphabet of Natural Numbers
+    sage: build_alphabet("ab")
+    {'a', 'b'}
+    sage: build_alphabet([0,1,2])
+    {0, 1, 2}
+    sage: build_alphabet(name="PP")
+    Positive integers
+    sage: build_alphabet(name="NN")
+    Non negative integers
+    sage: build_alphabet(name="lower")
+    {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'}
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Franco Saliola <saliola@gmail.com>
@@ -26,725 +31,244 @@ EXAMPLES::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.combinat.combinat import CombinatorialClass
-from sage.misc.misc import uniq
+from sage.categories.sets_cat import Sets
+
+from sage.sets.totally_ordered_finite_set import TotallyOrderedFiniteSet
+from sage.sets.family import Family
+
 from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity
+
+from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.sets.positive_integers import PositiveIntegers
+
 import itertools
 
-def Alphabet(data=None, name=None):
+set_of_letters = {
+    'lower'       : "abcdefghijklmnopqrstuvwxyz",
+    'upper'       : "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    'space'       : " ",
+    'underscore'  : "_",
+    'punctuation' : " ,.;:!?",
+    'printable'   : "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
+    'binary'      : "01",
+    'octal'       : "01234567",
+    'decimal'     : "0123456789",
+    'hexadecimal' : "0123456789abcdef",
+    'radix64'     : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+    }
+
+def build_alphabet(data=None, names=None, name=None):
     r"""
     Returns an object representing an ordered alphabet.
 
-    EXAMPLES::
+    EXAMPLES:
 
-        sage: Alphabet("ab")
-        Ordered Alphabet ['a', 'b']
-        sage: Alphabet([0,1,2])
-        Ordered Alphabet [0, 1, 2]
-        sage: Alphabet(name="positive integers")
-        Ordered Alphabet of Positive Integers
-        sage: Alphabet(name="PP")
-        Ordered Alphabet of Positive Integers
-        sage: Alphabet(name="natural numbers")
-        Ordered Alphabet of Natural Numbers
-        sage: Alphabet(name="NN")
-        Ordered Alphabet of Natural Numbers
+    If the argument is a Set, it just returns it::
+
+        sage: build_alphabet(ZZ) is ZZ
+        True
+        sage: F = FiniteEnumeratedSet('abc')
+        sage: build_alphabet(F) is F
+        True
+
+    If a list, tuple or string is provided, then it builds a proper Sage class
+    (:class:`~sage.sets.totally_ordered_finite_set.TotallyOrderedFiniteSet`)::
+
+        sage: build_alphabet([0,1,2])
+        {0, 1, 2}
+        sage: F = build_alphabet('abc'); F
+        {'a', 'b', 'c'}
+        sage: print type(F).__name__
+        TotallyOrderedFiniteSet_with_category
+
+    If no data is provided, ``name`` may be a string which describe an alphabet.
+    The available names decompose into two families. The first one are 'positive
+    integers', 'PP', 'natural numbers' or 'NN' which refer to standard set of
+    numbers::
+
+        sage: build_alphabet(name="positive integers")
+        Positive integers
+        sage: build_alphabet(name="PP")
+        Positive integers
+        sage: build_alphabet(name="natural numbers")
+        Non negative integers
+        sage: build_alphabet(name="NN")
+        Non negative integers
+
+    The other families for the option ``name`` are among 'lower', 'upper',
+    'space', 'underscore', 'punctuation', 'printable', 'binary', 'octal',
+    'decimal', 'hexadecimal', 'radix64' which refer to standard set of
+    charaters. Theses names may be combined by separating them by a space::
+
+        sage: build_alphabet(name="lower")
+        {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'}
+        sage: build_alphabet(name="hexadecimal")
+        {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'}
+        sage: build_alphabet(name="decimal punctuation")
+        {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ', ',', '.', ';', ':', '!', '?'}
+
+    In the case the alphabet is built from a list or a tuple, the order on the
+    alphabet is given by the elements themselves::
+
+        sage: A = build_alphabet([0,2,1])
+        sage: A(0) < A(2)
+        True
+        sage: A(2) < A(1)
+        False
+
+    If a different order is needed, you may use
+    :class:`~sage.sets.totally_ordered_finite_set.TotallyOrderedFiniteSet` and
+    set the option ``facade`` to ``False``. That way, the comparison fits the
+    order of the input::
+
+        sage: A = TotallyOrderedFiniteSet([4,2,6,1], facade=False)
+        sage: A(4) < A(2)
+        True
+        sage: A(1) < A(6)
+        False
+
+    Be careful, the element of the set in the last example are no more
+    integers and do not compare equal with integers::
+
+        sage: type(A.an_element())
+        <class 'sage.sets.totally_ordered_finite_set.TotallyOrderedFiniteSet_with_category.element_class'>
+        sage: A(1) == 1
+        False
+        sage: 1 == A(1)
+        False
     """
-    if isinstance(data, CombinatorialClass):
+    if data in Sets():
         return data
+    if isinstance(data, (int,long,Integer)):
+        if names is None:
+            from sage.sets.integer_range import IntegerRange
+            return IntegerRange(Integer(data))
+        elif len(names) == data:
+            return TotallyOrderedFiniteSet(data)
+        elif isinstance(names, str):
+            return TotallyOrderedFiniteSet(
+                    [names + '%d'%i for i in xrange(data)])
+        raise ValueError("not possible")
+    elif data == Infinity:
+        if names is None:
+            return NonNegativeIntegers()
+        else:
+            Family(NonNegativeIntegers(), lambda i: 'x%d'%i)
     if data is None and name is None:
-        raise TypeError, "provide at least one argument"
+        from sage.structure.parent import Set_PythonType
+        return Set_PythonType(object)
     if data is None:
         if name == "positive integers" or name == "PP":
-            return OrderedAlphabet_PositiveIntegers()
+           from sage.sets.positive_integers import PositiveIntegers
+           return PositiveIntegers()
         elif name == "natural numbers" or name == "NN":
-            return OrderedAlphabet_NaturalNumbers()
+           return NonNegativeIntegers()
         else:
-            raise TypeError, "name is not recognized"
-    else:
-        try:
-            return OrderedAlphabet_Finite(data)
-        except StandardError:
-            raise TypeError, "cannot construct an alphabet from given data"
+           names = name.split(' ')
+           data = []
+           for name in names:
+               if name in set_of_letters:
+                   data.extend(list(set_of_letters[name]))
+               else:
+                   raise TypeError("name is not recognized")
+           return TotallyOrderedFiniteSet(data)
+        raise TypeError("name is not recognized")
+    elif isinstance(data, (tuple,list,str)):
+        return TotallyOrderedFiniteSet(data)
 
-OrderedAlphabet = Alphabet
+# TODO: should it be deprecated as it is no more a class ?
+Alphabet = build_alphabet
 
-class OrderedAlphabet_class(CombinatorialClass):
+# NOTE: all of the classes below are here for backward compatibility (pickling).
+# More precisely, the ticket #8290 suppress several classes. The following code
+# just allows to unpickle old style alphabet saved from previous version of
+# Sage.
+
+class OrderedAlphabet(object):
     r"""
-    Generic class for ordered alphabets.
+    .. WARNING::
+
+        Not to be used! (backward compatibility)
+
+    Returns a finite or infinite ordered alphabet.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.words.alphabet import OrderedAlphabet
+        sage: A = OrderedAlphabet('ab'); A
+        doctest:1: DeprecationWarning: OrderedAlphabet is deprecated; use Alphabet instead.
+        See http://trac.sagemath.org/8920 for details.
+        {'a', 'b'}
+        sage: type(A)
+        <class 'sage.sets.totally_ordered_finite_set.TotallyOrderedFiniteSet_with_category'>
     """
-    def string_rep(self):
-        r"""
-        Returns the string representation of the alphabet.
+    def __new__(self, alphabet=None, name=None):
+        """
+        EXAMPLES::
 
-        TESTS::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
-            sage: OrderedAlphabet_Finite([1, 3, 2]).string_rep()
-            doctest:1: DeprecationWarning: string_rep is deprecated, use __repr__ instead!
-            See http://trac.sagemath.org/6519 for details.
-            'Ordered Alphabet [1, 3, 2]'
+            sage: from sage.combinat.words.alphabet import OrderedAlphabet
+            sage: A = OrderedAlphabet('ab'); A # indirect doctest
+            doctest:1: DeprecationWarning: OrderedAlphabet is deprecated; use Alphabet instead.
+            See http://trac.sagemath.org/8920 for details.
+            {'a', 'b'}
         """
         from sage.misc.superseded import deprecation
-        deprecation(6519, "string_rep is deprecated, use __repr__ instead!")
-        return self.__repr__()
+        deprecation(8920, 'OrderedAlphabet is deprecated; use Alphabet instead.')
 
-class OrderedAlphabet_Finite(OrderedAlphabet_class):
-    def __init__(self, alphabet):
-        """
-        Builds an ordered alphabet from an iterable. The order is that
-        given by the order the items appear in the iterable. There must be
-        no duplicates.
+        if alphabet is not None or name is not None:
+            return build_alphabet(data=alphabet, name=name)
+        from sage.structure.parent import Parent
+        return Parent.__new__(OrderedAlphabet_backward_compatibility)
 
-        NOTE:
-            The alphabet is expanded in memory and stored as a list.
+OrderedAlphabet_Finite = OrderedAlphabet
 
-        EXAMPLES::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
-            sage: A = OrderedAlphabet_Finite([0,1,2])
-            sage: A == loads(dumps(A))
-            True
-            sage: A = OrderedAlphabet_Finite("abc")
-            sage: A == loads(dumps(A))
-            True
-
-        TESTS::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
-            sage: OrderedAlphabet_Finite('aba')
-            Traceback (most recent call last):
-            ...
-            ValueError: duplicate elements in alphabet
-            sage: OrderedAlphabet_Finite(33)
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot build an alphabet from 33
-        """
-        try:
-            self._alphabet = list(alphabet)
-        except TypeError:
-            raise TypeError, "cannot build an alphabet from %s" % (alphabet)
-        if len(uniq(self._alphabet)) != len(self._alphabet):
-            raise ValueError, "duplicate elements in alphabet"
-
-    def __repr__(self):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
-            sage: OrderedAlphabet_Finite([0,1,2]).__repr__()
-            'Ordered Alphabet [0, 1, 2]'
-            sage: OrderedAlphabet_Finite("cba").__repr__()
-            "Ordered Alphabet ['c', 'b', 'a']"
-        """
-        return "Ordered Alphabet " + str(self._alphabet)
-
-    def __iter__(self):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
-            sage: type(iter(OrderedAlphabet_Finite("abc")))
-            <type 'generator'>
-            sage: list(OrderedAlphabet_Finite("abc"))       # indirect doctest
-            ['a', 'b', 'c']
-            sage: list(OrderedAlphabet_Finite([10, 17, 3])) # indirect doctest
-            [10, 17, 3]
-        """
-        for a in self._alphabet:
-            yield a
-
-    def __len__(self):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
-            sage: A = OrderedAlphabet_Finite([0,1,2])
-            sage: len(A)
-            3
-            sage: B = OrderedAlphabet_Finite("abc")
-            sage: len(B)
-            3
-            sage: len(OrderedAlphabet_Finite(""))
-            0
-            sage: len(OrderedAlphabet_Finite(range(25)))
-            25
-        """
-        return len(self._alphabet)
-
-    def __contains__(self, a):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
-            sage: A = OrderedAlphabet_Finite([0,1,2])
-            sage: 2 in A
-            True
-            sage: 17 in A
-            False
-            sage: B = OrderedAlphabet_Finite("abc")
-            sage: "b" in B
-            True
-            sage: "z" in B
-            False
-        """
-        try:
-            return a in self._alphabet
-        except StandardError:
-            return False
-
-    def __le__(self, other):
-        r"""
-        Returns ``True`` if the elements of ``self`` appear among the
-        elements of ``other`` in the same respective order, and ``False``
-        otherwise.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
-            sage: OrderedAlphabet_Finite('abc') <= OrderedAlphabet_Finite('daefbgc')
-            True
-            sage: OrderedAlphabet_Finite('abc') <= OrderedAlphabet_Finite('abc')
-            True
-            sage: OrderedAlphabet_Finite('abc') <= OrderedAlphabet_Finite('ac')
-            False
-            sage: OrderedAlphabet_Finite('abc') <= OrderedAlphabet_Finite([1, 2, 3])
-            False
-            sage: OrderedAlphabet_Finite('abc') <= OrderedAlphabet_Finite("bca")
-            False
-        """
-        return self.list() == other.filter(lambda a: a in self).list()
-
-    def __ge__(self, other):
-        r"""
-        Returns ``True`` if the elements of ``other`` appear among the
-        elements of ``self`` in the same respective order, and ``False``
-        otherwise.
-
-        The ordering of the alphabet is taken into consideration.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
-            sage: OrderedAlphabet_Finite('abc') >= OrderedAlphabet_Finite('daefbgc')
-            False
-            sage: OrderedAlphabet_Finite('abc') >= OrderedAlphabet_Finite('abc')
-            True
-            sage: OrderedAlphabet_Finite('abc') >= OrderedAlphabet_Finite('ac')
-            True
-            sage: OrderedAlphabet_Finite('abc') >= OrderedAlphabet_Finite('cba')
-            False
-            sage: OrderedAlphabet_Finite('abc') >= OrderedAlphabet_Finite([1, 2, 3])
-            False
-        """
-        return other.list() == self.filter(lambda a: a in other).list()
-
-    def __eq__(self, other):
-        r"""
-        Equality test for self and other.
-
-        INPUT:
-
-        - ``other`` - finite alphabet
-
-        OUTPUT:
-
-            bool
-
-        ..NOTE::
-
-            The ordering is taken into consideration.
-
-        EXAMPLES::
-
-            sage: Alphabet('abcd') == Alphabet('abcd')
-            True
-            sage: Alphabet('abcd') == Alphabet('abce')
-            False
-            sage: Alphabet('abcd') == Alphabet('dabc')
-            False
-            sage: Alphabet('abcd') == Alphabet([1,2])
-            False
-            sage: Alphabet('abcd') == 2
-            False
-        """
-        if isinstance(other, OrderedAlphabet_Finite):
-            return list(self) == list(other)
-        else:
-            return NotImplemented
-
-    def __ne__(self, other):
-        r"""
-        Returns ``True`` if the elements of ``other`` appear among the
-        elements of ``self`` in the same respective order, and ``False``
-        otherwise.
-
-        INPUT:
-
-        - ``other`` - finite alphabet
-
-        OUTPUT:
-
-            bool
-
-        ..NOTE::
-
-            The ordering of the alphabet is taken into consideration.
-
-        EXAMPLES::
-
-            sage: Alphabet('abcd') != Alphabet('abcd')
-            False
-            sage: Alphabet('abcd') != Alphabet('abce')
-            True
-            sage: Alphabet('abcd') != Alphabet('dabc')
-            True
-            sage: Alphabet('abcd') != Alphabet([1,2])
-            True
-            sage: Alphabet('abcd') != 2
-            True
-        """
-        if isinstance(other, OrderedAlphabet_Finite):
-            return not self.__eq__(other)
-        else:
-            return NotImplemented
-
-    def rank(self, letter):
-        r"""
-        Returns the index of ``letter`` in ``self``.
-
-        INPUT:
-
-        - ``letter`` - a letter contained in this alphabet
-
-        OUTPUT:
-
-        integer -- the integer mapping for the letter
-
-        EXAMPLES::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
-            sage: OrderedAlphabet_Finite('abcd').rank('a')
-            0
-            sage: OrderedAlphabet_Finite('abcd').rank('d')
-            3
-            sage: OrderedAlphabet_Finite('abcd').rank('e')
-            Traceback (most recent call last):
-            ...
-            IndexError: letter not in alphabet: 'e'
-            sage: OrderedAlphabet_Finite('abcd').rank('')
-            Traceback (most recent call last):
-            ...
-            IndexError: letter not in alphabet: ''
-        """
-        try:
-            return self._alphabet.index(letter)
-        except ValueError:
-            raise IndexError, "letter not in alphabet: %s" % repr(letter)
-
-    def unrank(self, n):
-        r"""
-        Returns the letter in position ``n`` of the alphabet ``self``.
-
-        INPUT:
-
-        -  ``n`` - a nonnegative integer
-
-        OUTPUT:
-
-        letter -- the (n+1)-th object output by ``iter(self)``
-
-        EXAMPLES::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_Finite
-            sage: OrderedAlphabet_Finite('abcd').unrank(0)
-            'a'
-            sage: OrderedAlphabet_Finite('abcd').unrank(3)
-            'd'
-            sage: OrderedAlphabet_Finite('abcd').unrank(5)
-            Traceback (most recent call last):
-            ...
-            IndexError: list index out of range
-        """
-        return self._alphabet[n]
-
-class OrderedAlphabet_Infinite(OrderedAlphabet_class):
-    def __le__(self, other):
-        r"""
-        Returns ``NotimplementedError`` since it is not clear how to define
-        this for infinite ordered alphabets.
-
-        TESTS::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_Infinite
-            sage: A1 = OrderedAlphabet_Infinite()
-            sage: A2 = OrderedAlphabet_Infinite()
-            sage: A1.__le__(A2)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
-
-    def __ge__(self, other):
-        r"""
-        Returns ``NotimplementedError`` since it is not clear how to define
-        this for infinite ordered alphabets.
-
-        TESTS::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_Infinite
-            sage: A1 = OrderedAlphabet_Infinite()
-            sage: A2 = OrderedAlphabet_Infinite()
-            sage: A1.__le__(A2)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
-
-    def cardinality(self):
-        r"""
-        Returns the number of elements in ``self``.
-
-        OUTPUT:
-
-        +Infinity
-
-        EXAMPLES::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_Infinite
-            sage: OrderedAlphabet_Infinite().cardinality()
-            +Infinity
-        """
-        return Infinity
-
-    def list(self):
-        r"""
-        Returns ``NotImplementedError`` since we cannot list all the
-        nonnegative integers.
-
-        TESTS::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_Infinite
-            sage: OrderedAlphabet_Infinite().list()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        raise NotImplementedError
-
-class OrderedAlphabet_NaturalNumbers(OrderedAlphabet_Infinite):
+class OrderedAlphabet_backward_compatibility(TotallyOrderedFiniteSet):
     r"""
-    The alphabet of nonnegative integers,
-    ordered in the usual way.
+    .. WARNING::
 
-    TESTS::
+        Not to be used! (backward compatibility)
 
-        sage: from sage.combinat.words.alphabet import OrderedAlphabet_NaturalNumbers
-        sage: NN = OrderedAlphabet_NaturalNumbers()
-        sage: NN == loads(dumps(NN))
-        True
+    Version prior to :trac:`8920` uses classes ``Alphabet`` with an argument
+    ``._alphabet`` instead of ``._elements`` used in
+    :class:`TotallyOrderedFiniteSet`. This class is dedicated to handle this
+    problem which occurs when unpickling ``OrderedAlphabet``.
     """
-    def __repr__(self):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_NaturalNumbers
-            sage: OrderedAlphabet_NaturalNumbers().__repr__()
-            'Ordered Alphabet of Natural Numbers'
-        """
-        return "Ordered Alphabet of Natural Numbers"
-
-    def __iter__(self):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_NaturalNumbers
-            sage: it = iter(OrderedAlphabet_NaturalNumbers())
-            sage: type(it)
-            <type 'generator'>
-            sage: it.next()
-            0
-            sage: it.next()
-            1
-            sage: it.next()
-            2
-        """
-        for i in itertools.count(0):
-            yield Integer(i)
-
-    def __contains__(self, a):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_NaturalNumbers
-            sage: A = OrderedAlphabet_NaturalNumbers()
-            sage: 2 in A
-            True
-            sage: 17 in A
-            True
-            sage: 0 in A
-            True
-            sage: -1 in A
-            False
-            sage: "z" in A
-            False
-        """
-        return isinstance(a, (int, Integer)) and a >= 0
-
-    def rank(self, letter):
+    def __getattr__(self, name):
         r"""
-        Returns the index of letter in ``self``.
-
-        INPUT:
-
-        - ``letter`` - a letter contained in this alphabet
-
-        OUTPUT:
-
-        integer -- the integer mapping for the letter
+        If the attribute '_elements' is called then it is set to '_alphabet'.
 
         EXAMPLES::
 
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_NaturalNumbers
-            sage: NN = OrderedAlphabet_NaturalNumbers()
-            sage: NN.rank(0)
-            0
-            sage: NN.rank(17)
-            17
-
-        TESTS::
-
-            sage: NN.rank(-1)
-            Traceback (most recent call last):
-            ...
-            ValueError: letter(=-1) not in the alphabet
-            sage: NN.rank("a")
-            Traceback (most recent call last):
-            ...
-            ValueError: letter(=a) not in the alphabet
+            sage: from sage.combinat.words.alphabet import OrderedAlphabet
+            sage: O = OrderedAlphabet()
+            doctest:1: DeprecationWarning: OrderedAlphabet is deprecated; use Alphabet instead.
+            See http://trac.sagemath.org/8920 for details.
+            sage: O._alphabet = ['a', 'b']
+            sage: O._elements
+            ('a', 'b')
         """
-        if letter in self:
-            return letter
-        else:
-            raise ValueError, "letter(=%s) not in the alphabet" % letter
+        if name == '_elements':
+            if not hasattr(self, '_alphabet'):
+                raise AttributeError("no attribute '_elements'")
+            self._elements = tuple(self._alphabet)
+            from sage.structure.parent import Parent
+            from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+            Parent.__init__(self, category=FiniteEnumeratedSets(), facade=True)
+            return self._elements
+        raise AttributeError("no attribute %s"%name)
 
-    def unrank(self, n):
-        r"""
-        Returns the letter in position ``n`` in ``self``, which in this case
-        is ``n``.
+from sage.structure.sage_object import register_unpickle_override
 
-        INPUT:
+register_unpickle_override(
+    'sage.combinat.words.alphabet',
+    'OrderedAlphabet_NaturalNumbers',
+    NonNegativeIntegers,
+    call_name=('sage.sets.non_negative_integers', 'NonNegativeIntegers'))
 
-        - ``n`` - nonnegative integer
+register_unpickle_override(
+    'sage.combinat.words.alphabet',
+    'OrderedAlphabet_PositiveIntegers',
+    PositiveIntegers,
+    call_name=('sage.sets.positive_integers', 'PositiveIntegers'))
 
-        OUTPUT:
-
-        - ``n`` - nonnegative integer
-
-        EXAMPLES::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_NaturalNumbers
-            sage: NN = OrderedAlphabet_NaturalNumbers()
-            sage: NN.unrank(0)
-            0
-            sage: NN.unrank(17)
-            17
-
-        TESTS::
-
-            sage: NN.unrank(-1)
-            Traceback (most recent call last):
-            ...
-            ValueError: -1 is not a nonnegative integer
-            sage: NN.unrank("a")
-            Traceback (most recent call last):
-            ...
-            ValueError: a is not a nonnegative integer
-        """
-        if isinstance(n, (int, Integer)) and n >= 0:
-            return n
-        else:
-            raise ValueError, "%s is not a nonnegative integer" % n
-
-    def next(self, n):
-        r"""
-        Returns the letter following ``n`` in the alphabet ``self``.
-
-        INPUT:
-
-        - ``n`` - nonnegative integer
-
-        OUTPUT:
-
-            n+1
-
-        EXAMPLES::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_NaturalNumbers
-            sage: NN = OrderedAlphabet_NaturalNumbers()
-            sage: NN.next(0)
-            1
-            sage: NN.next(117)
-            118
-            sage: NN.next(-1)
-            Traceback (most recent call last):
-            ...
-            ValueError: letter(=-1) not in the alphabet
-        """
-        if n in self:
-            return Integer(n+1)
-        else:
-            raise ValueError, "letter(=%s) not in the alphabet" % n
-
-class OrderedAlphabet_PositiveIntegers(OrderedAlphabet_Infinite):
-    r"""
-    The alphabet of nonnegative integers,
-    ordered in the usual way.
-
-    TESTS::
-
-        sage: from sage.combinat.words.alphabet import OrderedAlphabet_PositiveIntegers
-        sage: PP = OrderedAlphabet_PositiveIntegers()
-        sage: PP == loads(dumps(PP))
-        True
-    """
-    def __repr__(self):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_PositiveIntegers
-            sage: OrderedAlphabet_PositiveIntegers().__repr__()
-            'Ordered Alphabet of Positive Integers'
-        """
-        return "Ordered Alphabet of Positive Integers"
-
-    def __iter__(self):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_PositiveIntegers
-            sage: it = iter(OrderedAlphabet_PositiveIntegers())
-            sage: type(it)
-            <type 'generator'>
-            sage: it.next()
-            1
-            sage: it.next()
-            2
-            sage: it.next()
-            3
-        """
-        for i in itertools.count(1):
-            yield Integer(i)
-
-    def __contains__(self, a):
-        """
-        EXAMPLES::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_PositiveIntegers
-            sage: A = OrderedAlphabet_PositiveIntegers()
-            sage: 2 in A
-            True
-            sage: 17 in A
-            True
-            sage: 0 in A
-            False
-            sage: -1 in A
-            False
-            sage: "z" in A
-            False
-        """
-        return isinstance(a, (int, Integer)) and a > 0
-
-    def rank(self, letter):
-        r"""
-        Returns the index of ``letter`` in ``self``.
-
-        INPUT:
-
-        - ``letter`` - a positive integer
-
-        OUTPUT:
-
-            letter-1
-
-        EXAMPLES::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_PositiveIntegers
-            sage: OrderedAlphabet_PositiveIntegers().rank(1)
-            0
-            sage: OrderedAlphabet_PositiveIntegers().rank(8)
-            7
-
-        TESTS::
-
-            sage: OrderedAlphabet_PositiveIntegers().rank(-1)
-            Traceback (most recent call last):
-            ...
-            TypeError: -1 not in alphabet
-        """
-        if letter in self:
-            return letter-1
-        else:
-            raise TypeError, "%s not in alphabet" % letter
-
-    def unrank(self, i):
-        r"""
-        Returns the ``i``-th letter in ``self``, where the first letter is
-        the 0-th letter.
-
-        INPUT:
-
-        - ``i`` - an integer
-
-        OUTPUT:
-
-            i+1
-
-        EXAMPLES::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_PositiveIntegers
-            sage: OrderedAlphabet_PositiveIntegers().unrank(0)
-            1
-            sage: OrderedAlphabet_PositiveIntegers().unrank(7)
-            8
-        """
-        if i == 0 or i in self:
-            return i+1
-        elif isinstance(i, slice):
-            return range(1,1+i.stop)[i]
-        else:
-            raise IndexError
-
-    def next(self, n):
-        r"""
-        Returns the letter following ``n`` in the alphabet ``self``.
-
-        INPUT:
-
-        - ``n`` - positive integer
-
-        OUTPUT:
-
-            n+1
-
-        EXAMPLES::
-
-            sage: from sage.combinat.words.alphabet import OrderedAlphabet_PositiveIntegers
-            sage: PP = OrderedAlphabet_PositiveIntegers()
-            sage: PP.next(1)
-            2
-            sage: PP.next(117)
-            118
-            sage: PP.next(0)
-            Traceback (most recent call last):
-            ...
-            ValueError: letter(=0) not in the alphabet
-        """
-        if n in self:
-            return Integer(n+1)
-        else:
-            raise ValueError, "letter(=%s) not in the alphabet" % n

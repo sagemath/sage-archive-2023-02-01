@@ -75,7 +75,7 @@ P also herits many functions from Words::
     sage: P = WordPaths('rs', steps=[(1,2), (-1,4)]); P
     Word Paths over 2 steps
     sage: P.alphabet()
-    Ordered Alphabet ['r', 's']
+    {'r', 's'}
     sage: list(P.iterate_by_length(3))
     [Path: rrr,
      Path: rrs,
@@ -180,7 +180,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.combinat.words.words import Words_over_OrderedAlphabet
 from sage.combinat.words.word import FiniteWord_class
-from sage.combinat.words.alphabet import OrderedAlphabet
+from sage.combinat.words.alphabet import build_alphabet
 from sage.plot.all import arrow, line, polygon, point, Graphics
 from sage.modules.free_module_element import vector
 from sage.rings.all import ZZ, RR, QuadraticField
@@ -307,14 +307,14 @@ def WordPaths(alphabet, steps=None):
         sage: WordPaths(range(5))
         Traceback (most recent call last):
         ...
-        TypeError: Unable to make a class WordPaths from Ordered Alphabet [0, 1, 2, 3, 4]
+        TypeError: Unable to make a class WordPaths from {0, 1, 2, 3, 4}
         sage: WordPaths('abAB', steps='square_gridd')
         Traceback (most recent call last):
         ...
         TypeError: Unknown type of steps : square_gridd
     """
     #Construction of the alphabet
-    alphabet = OrderedAlphabet(alphabet)
+    alphabet = build_alphabet(alphabet)
 
     #If no steps are given, they are guessed from the alphabet
     if steps is None:
@@ -405,7 +405,7 @@ class WordPaths_all(Words_over_OrderedAlphabet):
             ValueError: Can't make summable vectors from steps
         """
         #temporary hack
-        alphabet = OrderedAlphabet(alphabet)
+        alphabet = build_alphabet(alphabet)
 
         #Construction of the words class
         super(WordPaths_all, self).__init__(alphabet)

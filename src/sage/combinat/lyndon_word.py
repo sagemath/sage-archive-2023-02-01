@@ -27,7 +27,7 @@ from integer_vector import IntegerVectors
 
 from sage.combinat.words.word import FiniteWord_list
 from sage.combinat.words.words import Words_all, FiniteWords_length_k_over_OrderedAlphabet
-from sage.combinat.words.alphabet import OrderedAlphabet
+from sage.combinat.words.alphabet import build_alphabet
 
 def LyndonWords(e=None, k=None):
     """
@@ -272,7 +272,7 @@ class LyndonWords_nk(FiniteWords_length_k_over_OrderedAlphabet):
         """
         self.n = Integer(n)
         self.k = Integer(k)
-        alphabet = OrderedAlphabet(range(1,self.n+1))
+        alphabet = build_alphabet(range(1,self.n+1))
         super(LyndonWords_nk,self).__init__(alphabet,self.k)
 
     def __repr__(self):

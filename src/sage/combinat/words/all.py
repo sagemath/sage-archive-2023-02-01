@@ -1,4 +1,4 @@
-from alphabet import Alphabet
+from alphabet import Alphabet, build_alphabet
 from morphism import WordMorphism
 from paths import WordPaths
 from word import Word

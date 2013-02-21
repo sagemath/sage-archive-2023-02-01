@@ -1627,7 +1627,7 @@ class PermutationLI(Permutation):
 
             sage: p = iet.GeneralizedPermutation('a a','b b')   #indirect doctest
             sage: p.alphabet()
-            Ordered Alphabet ['a', 'b']
+            {'a', 'b'}
         """
         tmp_alphabet = []
         for letter in intervals[0] + intervals[1] :
@@ -3080,12 +3080,12 @@ class RauzyDiagram(SageObject):
 
             sage: r = iet.RauzyDiagram('a b','b a')
             sage: r.alphabet()
-            Ordered Alphabet ['a', 'b']
+            {'a', 'b'}
             sage: r.letters()
             ['a', 'b']
             sage: r.alphabet('ABCDEF')
             sage: r.alphabet()
-            Ordered Alphabet ['A', 'B', 'C', 'D', 'E', 'F']
+            {'A', 'B', 'C', 'D', 'E', 'F'}
             sage: r.letters()
             ['A', 'B']
         """

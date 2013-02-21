@@ -47,9 +47,9 @@ class Word_class(SageObject):
             sage: Word(range(12)).parent()
             Words
             sage: Word(range(4), alphabet=range(6)).parent()
-            Words over Ordered Alphabet [0, 1, 2, 3, 4, 5]
+            Words over {0, 1, 2, 3, 4, 5}
             sage: Word(iter('abac'), alphabet='abc').parent()
-            Words over Ordered Alphabet ['a', 'b', 'c']
+            Words over {'a', 'b', 'c'}
         """
         return self._parent
 
@@ -1250,11 +1250,10 @@ class Word_class(SageObject):
             sage: w. alphabet()
             doctest:1: DeprecationWarning: alphabet() is deprecated, use parent().alphabet() instead
             See http://trac.sagemath.org/8429 for details.
-            Python objects
+            Set of Python objects of type 'object'
             sage: y = Words('456')('64654564')
             sage: y.alphabet()
-            Ordered Alphabet ['4', '5', '6']
-
+            {'4', '5', '6'}
         """
         from sage.misc.superseded import deprecation
         deprecation(8429, "alphabet() is deprecated, use parent().alphabet() instead")

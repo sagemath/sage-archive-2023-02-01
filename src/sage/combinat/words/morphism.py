@@ -380,21 +380,21 @@ class WordMorphism(SageObject):
 
             sage: wm = WordMorphism('a->ab,b->ba')
             sage: wm._build_codomain({'a': 'ab', 'b': 'ba'})
-            Words over Ordered Alphabet ['a', 'b']
+            Words over {'a', 'b'}
             sage: wm._build_codomain({'a': 'dcb', 'b': 'a'})
-            Words over Ordered Alphabet ['a', 'b', 'c', 'd']
+            Words over {'a', 'b', 'c', 'd'}
             sage: wm._build_codomain({2:[4,5,6],3:[1,2,3]})
-            Words over Ordered Alphabet [1, 2, 3, 4, 5, 6]
+            Words over {1, 2, 3, 4, 5, 6}
             sage: wm._build_codomain({2:[4,5,6],3:set([4,1,8])})
-            Words over Ordered Alphabet [1, 4, 5, 6, 8]
+            Words over {1, 4, 5, 6, 8}
 
         If the image of a letter is not iterable, it is considered as
         a letter::
 
             sage: wm._build_codomain({2:[4,5,6],3:123})
-            Words over Ordered Alphabet [4, 5, 6, 123]
+            Words over {4, 5, 6, 123}
             sage: wm._build_codomain({0:1, 1:0, 2:2})
-            Words over Ordered Alphabet [0, 1, 2]
+            Words over {0, 1, 2}
         """
         codom_alphabet = set()
         for key,val in data.iteritems():
@@ -424,10 +424,20 @@ class WordMorphism(SageObject):
             WordMorphism: 0->123, 1->456
             sage: m == o
             False
+
+        TESTS:
+
+        Check that equality depends on the codomain::
+
+            sage: m = WordMorphism('a->a,b->aa,c->aaa')
+            sage: n = WordMorphism('a->a,b->aa,c->aaa', codomain=Words('abc'))
+            sage: m == n
+            False
         """
         if not isinstance(other, WordMorphism):
             return False
-        return self._morph == other._morph
+        return self._morph == other._morph and self._codomain == other._codomain
+
     def __ne__(self, other):
         r"""
         Returns whether ``self`` is not equal to ``other``.
@@ -442,7 +452,7 @@ class WordMorphism(SageObject):
             sage: n != o
             True
 
-        This solves Sage trac #12475::
+        This solves :trac:`12475`::
 
             sage: s = WordMorphism('1->121,2->131,3->4,4->1')
             sage: s == s.reversal()
@@ -818,9 +828,9 @@ class WordMorphism(SageObject):
             sage: p1
             WordMorphism: a->aaa, b->aaa
             sage: p1.domain()
-            Words over Ordered Alphabet ['a', 'b']
+            Words over {'a', 'b'}
             sage: p1.codomain()
-            Words over Ordered Alphabet ['a']
+            Words over {'a'}
 
         ::
 
@@ -828,9 +838,9 @@ class WordMorphism(SageObject):
             sage: p2
             WordMorphism: a->ab, b->abab, c->ababab
             sage: p2.domain()
-            Words over Ordered Alphabet ['a', 'b', 'c']
+            Words over {'a', 'b', 'c'}
             sage: p2.codomain()
-            Words over Ordered Alphabet ['a', 'b']
+            Words over {'a', 'b'}
 
         ::
 
@@ -838,7 +848,7 @@ class WordMorphism(SageObject):
             sage: n = WordMorphism('a->c,b->e',codomain=Words('abcde'))
             sage: p = n * m
             sage: p.codomain()
-            Words over Ordered Alphabet ['a', 'b', 'c', 'd', 'e']
+            Words over {'a', 'b', 'c', 'd', 'e'}
 
         TESTS::
 
@@ -1062,11 +1072,11 @@ class WordMorphism(SageObject):
         EXAMPLES::
 
             sage: WordMorphism('a->ab,b->a').domain()
-            Words over Ordered Alphabet ['a', 'b']
+            Words over {'a', 'b'}
             sage: WordMorphism('b->ba,a->ab').domain()
-            Words over Ordered Alphabet ['a', 'b']
+            Words over {'a', 'b'}
             sage: WordMorphism('6->ab,y->5,0->asd').domain()
-            Words over Ordered Alphabet ['0', '6', 'y']
+            Words over {'0', '6', 'y'}
         """
         return self._domain
 
@@ -1077,9 +1087,9 @@ class WordMorphism(SageObject):
         EXAMPLES::
 
             sage: WordMorphism('a->ab,b->a').codomain()
-            Words over Ordered Alphabet ['a', 'b']
+            Words over {'a', 'b'}
             sage: WordMorphism('6->ab,y->5,0->asd').codomain()
-            Words over Ordered Alphabet ['5', 'a', 'b', 'd', 's']
+            Words over {'5', 'a', 'b', 'd', 's'}
         """
         return self._codomain
 
@@ -1094,20 +1104,20 @@ class WordMorphism(SageObject):
             sage: WordMorphism('6->ab,y->5,0->asd').is_endomorphism()
             False
             sage: WordMorphism('a->a,b->aa,c->aaa').is_endomorphism()
-            True
+            False
             sage: Wabc = Words('abc')
             sage: m = WordMorphism('a->a,b->aa,c->aaa',codomain = Wabc)
             sage: m.is_endomorphism()
             True
 
-        We check that #8674 is fixed::
+        We check that :trac:`8674` is fixed::
 
             sage: P = WordPaths('abcd')
             sage: m = WordMorphism('a->adab,b->ab,c->cbcd,d->cd', codomain=P)
             sage: m.is_endomorphism()
             True
         """
-        return self.codomain() <= self.domain()
+        return self.codomain() == self.domain()
 
     def image(self, letter):
         r"""
@@ -1176,7 +1186,7 @@ class WordMorphism(SageObject):
             sage: WordMorphism('a->ab,b->a').reversal()
             WordMorphism: a->ba, b->a
         """
-        return WordMorphism(dict((key, w.reversal()) for (key, w) in self._morph.iteritems()))
+        return WordMorphism(dict((key, w.reversal()) for (key, w) in self._morph.iteritems()),codomain=self._codomain)
 
     def is_empty(self):
         r"""
@@ -1300,7 +1310,7 @@ class WordMorphism(SageObject):
             sage: m.partition_of_domain_alphabet()
             Traceback (most recent call last):
             ...
-            TypeError: self is not an involution
+            TypeError: self (=a->b, b->a, c->a) is not an endomorphism
         """
         if not self.is_involution():
             raise TypeError, "self is not an involution"
@@ -1328,7 +1338,7 @@ class WordMorphism(SageObject):
 
             sage: WordMorphism('a->b,b->a').is_involution()
             True
-            sage: WordMorphism('a->b,b->bb').is_involution()
+            sage: WordMorphism('a->b,b->ba').is_involution()
             False
             sage: WordMorphism({0:[1],1:[0]}).is_involution()
             True
@@ -1340,10 +1350,10 @@ class WordMorphism(SageObject):
             sage: WordMorphism({0:1,1:0,2:3}).is_involution()
             Traceback (most recent call last):
             ...
-            TypeError: self (=0->1, 1->0, 2->3) is not a endomorphism
+            TypeError: self (=0->1, 1->0, 2->3) is not an endomorphism
         """
         if not self.is_endomorphism():
-            raise TypeError, "self (=%s) is not a endomorphism"%self
+            raise TypeError, "self (=%s) is not an endomorphism"%self
 
         return (self*self).is_identity()
 
@@ -1491,13 +1501,15 @@ class WordMorphism(SageObject):
             sage: m.is_primitive()
             Traceback (most recent call last):
             ...
-            TypeError: self (=a->bb, b->aac) is not a endomorphism
+            TypeError: self (=a->bb, b->aac) is not an endomorphism
             sage: m = WordMorphism('a->,b->',codomain=Words('ab'))
             sage: m.is_primitive()
             False
             sage: m = WordMorphism('a->,b->')
             sage: m.is_primitive()
-            False
+            Traceback (most recent call last):
+            ...
+            TypeError: self (=a->, b->) is not an endomorphism
 
         REFERENCES:
 
@@ -1506,7 +1518,7 @@ class WordMorphism(SageObject):
           2003.
         """
         if not self.is_endomorphism():
-            raise TypeError, "self (=%s) is not a endomorphism"%self
+            raise TypeError, "self (=%s) is not an endomorphism"%self
         m = self.incidence_matrix()
         power = m
         order = 1
@@ -1567,7 +1579,7 @@ class WordMorphism(SageObject):
             sage: WordMorphism('a->ab,b->b,c->ba').is_prolongable(letter='d')
             Traceback (most recent call last):
             ...
-            TypeError: letter (=d) is not in the domain alphabet (=Ordered Alphabet ['a', 'b', 'c'])
+            TypeError: letter (=d) is not in the domain alphabet (={'a', 'b', 'c'})
 
         ::
 
@@ -1713,17 +1725,18 @@ class WordMorphism(SageObject):
             word: abbabaabbaababbabaababbaabbabaabbaababba...
             sage: WordMorphism('a->ab,b->a').fixed_point(letter='a')
             word: abaababaabaababaababaabaababaabaababaaba...
-            sage: WordMorphism('a->ab,b->b,c->ba').fixed_point(letter='a')
+            sage: W = Words('abc')
+            sage: WordMorphism('a->ab,b->b,c->ba', codomain=W).fixed_point(letter='a')
             word: abbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb...
 
         2. Infinite fixed point of an erasing morphism::
 
-            sage: WordMorphism('a->ab,b->,c->ba').fixed_point(letter='a')
+            sage: WordMorphism('a->ab,b->,c->ba', codomain=W).fixed_point(letter='a')
             word: ab
 
         3. Finite fixed point::
 
-            sage: WordMorphism('a->ab,b->b,c->ba').fixed_point(letter='b')
+            sage: WordMorphism('a->ab,b->b,c->ba', codomain=W).fixed_point(letter='b')
             word: b
 
         4. Finite fixed point of an erasing morphism::
@@ -1745,25 +1758,25 @@ class WordMorphism(SageObject):
 
         TESTS::
 
-            sage: WordMorphism('a->ab,b->,c->ba').fixed_point(letter='b')
+            sage: WordMorphism('a->ab,b->,c->ba', codomain=W).fixed_point(letter='b')
             Traceback (most recent call last):
             ...
             TypeError: self must be prolongable on b
-            sage: WordMorphism('a->ab,b->,c->ba').fixed_point(letter='c')
+            sage: WordMorphism('a->ab,b->,c->ba', codomain=W).fixed_point(letter='c')
             Traceback (most recent call last):
             ...
             TypeError: self must be prolongable on c
-            sage: WordMorphism('a->ab,b->,c->ba').fixed_point(letter='d')
+            sage: WordMorphism('a->ab,b->,c->ba', codomain=W).fixed_point(letter='d')
             Traceback (most recent call last):
             ...
-            TypeError: letter (=d) is not in the domain alphabet (=Ordered Alphabet ['a', 'b', 'c'])
+            TypeError: letter (=d) is not in the domain alphabet (={'a', 'b', 'c'})
             sage: WordMorphism('a->aa,b->aac').fixed_point(letter='a')
             Traceback (most recent call last):
             ...
-            TypeError: self (=a->aa, b->aac) is not a endomorphism
+            TypeError: self (=a->aa, b->aac) is not an endomorphism
         """
         if not self.is_endomorphism():
-            raise TypeError, "self (=%s) is not a endomorphism"%self
+            raise TypeError, "self (=%s) is not an endomorphism"%self
 
         if not self.is_prolongable(letter=letter):
             raise TypeError, "self must be prolongable on %s"%letter

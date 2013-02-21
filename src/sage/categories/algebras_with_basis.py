@@ -44,7 +44,7 @@ class AlgebrasWithBasis(Category_over_base_ring):
         sage: A.base_ring()
         Rational Field
         sage: A.basis().keys()
-        Words over Ordered Alphabet ['a', 'b', 'c']
+        Words over {'a', 'b', 'c'}
 
         sage: (a,b,c) = A.algebra_generators()
         sage: a^3, b^2

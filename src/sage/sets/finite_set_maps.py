@@ -135,7 +135,7 @@ class FiniteSetMaps(UniqueRepresentation, Parent):
     then one can use the shortcut::
 
         sage: M = FiniteSetMaps(2,3); M
-        Maps from {0, 1} to {0, .., 2}
+        Maps from {0, 1} to {0, 1, 2}
         sage: M.cardinality()
         9
 
@@ -160,15 +160,15 @@ class FiniteSetMaps(UniqueRepresentation, Parent):
         TESTS::
 
             sage: FiniteSetMaps(3)
-            Maps from {0, .., 2} to itself
+            Maps from {0, 1, 2} to itself
             sage: FiniteSetMaps(4, 2)
-            Maps from {0, .., 3} to {0, 1}
+            Maps from {0, 1, 2, 3} to {0, 1}
             sage: FiniteSetMaps(4, ["a","b","c"])
-            Maps from {0, .., 3} to {'a', 'b', 'c'}
+            Maps from {0, 1, 2, 3} to {'a', 'b', 'c'}
             sage: FiniteSetMaps([1,2], ["a","b","c"])
             Maps from {1, 2} to {'a', 'b', 'c'}
             sage: FiniteSetMaps([1,2,4], 3)
-            Maps from {1, 2, 4} to {0, .., 2}
+            Maps from {1, 2, 4} to {0, 1, 2}
         """
         if codomain is None:
             if isinstance(domain, (int, Integer)):
@@ -242,7 +242,7 @@ class FiniteSetMaps_MN(FiniteSetMaps):
         EXAMPLES::
 
             sage: FiniteSetMaps(3,2).domain()
-            {0, .., 2}
+            {0, 1, 2}
         """
         return IntegerRange(self._m)
 
@@ -262,7 +262,7 @@ class FiniteSetMaps_MN(FiniteSetMaps):
         TESTS::
 
             sage: FiniteSetMaps(2,3)
-            Maps from {0, 1} to {0, .., 2}
+            Maps from {0, 1} to {0, 1, 2}
         """
         return "Maps from %s to %s"%(self.domain(), self.codomain())
 

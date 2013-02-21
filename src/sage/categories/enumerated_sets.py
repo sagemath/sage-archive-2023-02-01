@@ -435,7 +435,10 @@ class EnumeratedSets(Category_singleton):
                 [0, 1, 2, 3, 4]
             """
             r = 0
-            u = self.unrank(r)
+            try:
+                u = self.unrank(r)
+            except (TypeError, ValueError, IndexError):
+                return
             yield u
             while True:
                 r += 1

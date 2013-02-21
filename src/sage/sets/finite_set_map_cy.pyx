@@ -165,7 +165,7 @@ cdef class FiniteSetMap_MN(ClonableIntArray):
         EXAMPLES::
 
             sage: FiniteSetMaps(4, 3)([1, 0, 2, 1]).domain()
-            {0, .., 3}
+            {0, 1, 2, 3}
         """
         return self._parent.domain()
 
@@ -176,7 +176,7 @@ cdef class FiniteSetMap_MN(ClonableIntArray):
         EXAMPLES::
 
             sage: FiniteSetMaps(4, 3)([1, 0, 2, 1]).codomain()
-            {0, .., 2}
+            {0, 1, 2}
         """
         return self._parent.codomain()
 

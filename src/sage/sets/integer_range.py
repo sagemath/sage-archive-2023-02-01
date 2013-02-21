@@ -5,6 +5,8 @@ AUTHORS:
 
  - Nicolas Borie  (2010-03): First release.
  - Florent Hivert (2010-03): Added a class factory + cardinality method.
+ - Vincent Delecroix (2012-02): add methods rank/unrank, make it complient with
+   Python int.
 """
 #*****************************************************************************
 #  Copyright (C) 2010 Nicolas Borie <nicolas.borie@math.u-psud.fr>
@@ -17,6 +19,7 @@ from sage.structure.parent import Parent
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.infinity import Infinity, MinusInfinity, PlusInfinity
@@ -214,6 +217,10 @@ class IntegerRange(UniqueRepresentation, Parent):
             sage: IntegerRange(2) is IntegerRange(0, 2)
             True
         """
+        if isinstance(begin, int): begin = Integer(begin)
+        if isinstance(end, int): end = Integer(end)
+        if isinstance(step,int): step = Integer(step)
+
         if end is None:
             end = begin
             begin = Integer(0)
@@ -253,21 +260,22 @@ class IntegerRange(UniqueRepresentation, Parent):
         TESTS::
 
             sage: S = IntegerRange(1, 10, 2)
-            sage: S(1)
+            sage: S(1)      #indirect doctest
             1
-            sage: S(0)
+            sage: S(0)      #indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: 0 not in {1, 3, .., 9}
+            ValueError: 0 not in {1, 3, 5, 7, 9}
         """
         if el in self:
+            if not isinstance(el,Integer):
+                return Integer(el)
             return el
         else:
             raise ValueError, "%s not in %s"%(el, self)
 
     element_class = Integer
 
-from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 class IntegerRangeEmpty(IntegerRange, FiniteEnumeratedSet):
     r"""
     A singleton class for empty integer ranges
@@ -337,14 +345,18 @@ class IntegerRangeFinite(IntegerRange):
             sage: 11 in I
             False
         """
-        if isinstance(elt, Integer):
-            if (self._step.__abs__()).divides(Integer(elt)-self._begin):
-                return (self._begin <= elt < self._end and self._step > 0) or \
-                       (self._begin >= elt > self._end and self._step < 0)
-            else:
+        if not isinstance(elt, Integer):
+            try:
+                x = Integer(elt)
+                if x != elt:
+                    return False
+                elt = x
+            except (ValueError, TypeError):
                 return False
-        else:
-            return False
+        if (self._step.__abs__()).divides(Integer(elt)-self._begin):
+            return (self._begin <= elt < self._end and self._step > 0) or \
+                   (self._begin >= elt > self._end and self._step < 0)
+        return False
 
     def cardinality(self):
         """
@@ -365,34 +377,96 @@ class IntegerRangeFinite(IntegerRange):
         """
         EXAMPLES::
 
-            sage: IntegerRange(1,2)
+            sage: IntegerRange(1,2)        #indirect doctest
             {1}
-            sage: IntegerRange(1,3)
+            sage: IntegerRange(1,3)        #indirect doctest
             {1, 2}
-            sage: IntegerRange(1,5,3)
-            {1, 4}
-            sage: IntegerRange(1,12)
-            {1, .., 11}
-            sage: IntegerRange(123,12,-4)
-            {123, 119, .., 15}
-            sage: IntegerRange(-57,1,3)
-            {-57, -54, .., 0}
-
-            sage: IntegerRange(-57,Infinity,8)
-            {-57, -49, ..}
-            sage: IntegerRange(-112,-Infinity,-13)
-            {-112, -125, ..}
+            sage: IntegerRange(1,5)        #indirect doctest
+            {1, 2, 3, 4}
+            sage: IntegerRange(1,6)        #indirect doctest
+            {1, ..., 5}
+            sage: IntegerRange(123,12,-4)  #indirect doctest
+            {123, 119, ..., 15}
+            sage: IntegerRange(-57,1,3)    #indirect doctest
+            {-57, -54, ..., 0}
         """
-        card = self.cardinality()
-        if card == 1:
-            return "{%s}"%self._begin
-        elif card == 2:
-            return "{%s, %s}"%(self._begin, self._begin+self._step)
+        if self.cardinality() < 6:
+            return "{" + ", ".join(str(x) for x in self) + "}"
         elif self._step == 1:
             return "{%s, .., %s}"%(self._begin, self._end-self._step)
         else:
             return "{%s, %s, .., %s}"%(self._begin, self._begin+self._step,
                                      self._end-self._step)
+
+    def rank(self,x):
+        r"""
+        EXAMPLES::
+
+            sage: I = IntegerRange(-57,36,8)
+            sage: I.rank(23)
+            10
+            sage: I.unrank(10)
+            23
+            sage: I.rank(22)
+            Traceback (most recent call last):
+            ...
+            IndexError: 22 not in self
+            sage: I.rank(87)
+            Traceback (most recent call last):
+            ...
+            IndexError: 87 not in self
+        """
+        if x not in self:
+            raise IndexError, "%s not in self"%x
+        return Integer((x - self._begin)/self._step)
+
+    def __getitem__(self, i):
+        r"""
+        Return the i-th elt of this integer range.
+
+        EXAMPLES::
+
+            sage: I=IntegerRange(1,13,5)
+            sage: I[0], I[1], I[2]
+            (1, 6, 11)
+            sage: I[3]
+            Traceback (most recent call last):
+            ...
+            IndexError: out of range
+            sage: I[-1]
+            11
+            sage: I[-4]
+            Traceback (most recent call last):
+            ...
+            IndexError: out of range
+
+            sage: I = IntegerRange(13,1,-1)
+            sage: l = I.list()
+            sage: [I[i] for i in xrange(I.cardinality())] == l
+            True
+            sage: l.reverse()
+            sage: [I[i] for i in xrange(-1,-I.cardinality()-1,-1)] == l
+            True
+        """
+        if isinstance(i,slice):
+            raise NotImplementedError("not yet")
+
+        if isinstance(i, int):
+            i = Integer(i)
+        elif not isinstance(i,Integer):
+            raise ValueError("argument should be an integer")
+
+        if i < 0:
+            if i < -self.cardinality():
+                raise IndexError("out of range")
+            n = (self._end - self._begin)//(self._step)
+            return self._begin + (n+i)*self._step
+        else:
+            if i >= self.cardinality():
+                raise IndexError("out of range")
+            return self._begin + i * self._step
+
+    unrank = __getitem__
 
     def __iter__(self):
         r"""
@@ -426,10 +500,10 @@ class IntegerRangeFinite(IntegerRange):
         EXAMPLES::
 
             sage: I = IntegerRange(123,12,-4)
-            sage: I.an_element()
+            sage: I.an_element()   #indirect doctest
             115
             sage: I = IntegerRange(-57,12,8)
-            sage: I.an_element()
+            sage: I.an_element()   #indirect doctest
             -41
         """
         p = (self._begin + 2*self._step)
@@ -462,14 +536,14 @@ class IntegerRangeInfinite(IntegerRange):
         r"""
         TESTS::
 
-            sage: IntegerRange(123,12,-4)
+            sage: IntegerRange(123,12,-4)            #indirect doctest
             {123, 119, .., 15}
-            sage: IntegerRange(-57,1,3)
+            sage: IntegerRange(-57,1,3)              #indirect doctest
             {-57, -54, .., 0}
 
-            sage: IntegerRange(-57,Infinity,8)
+            sage: IntegerRange(-57,Infinity,8)       #indirect doctest
             {-57, -49, ..}
-            sage: IntegerRange(-112,-Infinity,-13)
+            sage: IntegerRange(-112,-Infinity,-13)   #indirect doctest
             {-112, -125, ..}
         """
         return "{%s, %s, ..}"%(self._begin, self._begin+self._step)
@@ -490,14 +564,58 @@ class IntegerRangeInfinite(IntegerRange):
             sage: 743 in I
             True
         """
-        if isinstance(elt, Integer):
-            if (self._step.__abs__()).divides(Integer(elt)-self._begin):
-                return (self._step > 0 and elt >= self._begin) or \
-                       (self._step < 0 and elt <= self._begin)
-            else:
+        if not isinstance(elt, Integer):
+            try:
+                elt = Integer(elt)
+            except (TypeError, ValueError):
                 return False
+        if (self._step.__abs__()).divides(Integer(elt)-self._begin):
+            return (self._step > 0 and elt >= self._begin) or \
+                   (self._step < 0 and elt <= self._begin)
+        return False
+
+    def rank(self, x):
+        r"""
+        EXAMPLES::
+
+            sage: I = IntegerRange(-57,Infinity,8)
+            sage: I.rank(23)
+            10
+            sage: I.unrank(10)
+            23
+            sage: I.rank(22)
+            Traceback (most recent call last):
+            ...
+            IndexError: 22 not in self
+        """
+        if x not in self:
+            raise IndexError, "%s not in self"%x
+        return Integer((x - self._begin)/self._step)
+
+    def __getitem__(self, i):
+        r"""
+        Returns the ``i``-th element of self.
+
+        EXAMPLES::
+
+            sage: I = IntegerRange(-8,Infinity,3)
+            sage: I.unrank(1)
+            -5
+        """
+        if isinstance(i,slice):
+            raise NotImplementedError, "not yet"
+
+        if isinstance(i, int):
+            i = Integer(i)
+        elif not isinstance(i,Integer):
+            raise ValueError
+
+        if i < 0:
+            raise IndexError, "out of range"
         else:
-            return False
+            return self._begin + i * self._step
+
+    unrank = __getitem__
 
     def __iter__(self):
         r"""
@@ -527,15 +645,14 @@ class IntegerRangeInfinite(IntegerRange):
         EXAMPLES::
 
             sage: I = IntegerRange(-57,Infinity,8)
-            sage: I.an_element()
+            sage: I.an_element()     #indirect doctest
             191
 
             sage: I = IntegerRange(-112,-Infinity,-13)
-            sage: I.an_element()
+            sage: I.an_element()     #indirect doctest
             -515
         """
-        return self._begin+31*self._step
-
+        return self._begin + 31*self._step
 
 class IntegerRangeFromMiddle(IntegerRange):
     r"""
@@ -575,14 +692,14 @@ class IntegerRangeFromMiddle(IntegerRange):
         else:
             Parent.__init__(self, facade = IntegerRing(), category = InfiniteEnumeratedSets())
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         TESTS::
 
             sage: from sage.sets.integer_range import IntegerRangeFromMiddle
-            sage: IntegerRangeFromMiddle(Infinity,-Infinity,-37,0)
+            sage: IntegerRangeFromMiddle(Infinity,-Infinity,-37,0)   #indirect doctest
             Integer progression containing 0 with increment -37 and bounded with +Infinity and -Infinity
-            sage: IntegerRangeFromMiddle(-100,100,10,0)
+            sage: IntegerRangeFromMiddle(-100,100,10,0)              #indirect doctest
             Integer progression containing 0 with increment 10 and bounded with -100 and 100
         """
         return "Integer progression containing %s with increment %s and bounded with %s and %s"%(self._middle_point,self._step,self._begin,self._end)
@@ -606,14 +723,15 @@ class IntegerRangeFromMiddle(IntegerRange):
             sage: 100 in I
             False
         """
-        if isinstance(elt, Integer):
-            if (self._step.__abs__()).divides(Integer(elt)-self._middle_point):
-                return (self._begin <= elt and elt < self._end) or \
-                       (self._begin >= elt and elt > self._end)
-            else:
+        if not isinstance(elt, Integer):
+            try:
+                elt = Integer(elt)
+            except (TypeError, ValueError):
                 return False
-        else:
-            return False
+        if (self._step.__abs__()).divides(Integer(elt)-self._middle_point):
+            return (self._begin <= elt and elt < self._end) or \
+                   (self._begin >= elt and elt > self._end)
+        return False
 
     def next(self, elt):
         r"""
@@ -677,10 +795,10 @@ class IntegerRangeFromMiddle(IntegerRange):
 
            sage: from sage.sets.integer_range import IntegerRangeFromMiddle
            sage: I = IntegerRangeFromMiddle(Infinity,-Infinity,-37,0)
-           sage: I.an_element()
+           sage: I.an_element()    #indirect doctest
            0
            sage: I = IntegerRangeFromMiddle(-12,214,10,0)
-           sage: I.an_element()
+           sage: I.an_element()    #indirect doctest
            0
         """
         return self._middle_point

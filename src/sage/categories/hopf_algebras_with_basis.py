@@ -70,6 +70,7 @@ class HopfAlgebrasWithBasis(Category_over_base_ring):
         sage: TestSuite(A).run(verbose=True)
         running ._test_additive_associativity() . . . pass
         running ._test_an_element() . . . pass
+        running ._test_antipode() . . . pass
         running ._test_associativity() . . . pass
         running ._test_category() . . . pass
         running ._test_characteristic() . . . pass
@@ -211,6 +212,59 @@ class HopfAlgebrasWithBasis(Category_over_base_ring):
             elif hasattr(self, "antipode_by_coercion"):
                 return self.antipode_by_coercion
 
+        def _test_antipode(self, **options):
+            r"""
+            Test the antipode.
+
+            An *antipode* `S` of a Hopf algebra is a linear endomorphism of the
+            Hopf algebra that satisfies the following conditions (see
+            :wikipedia:`HopfAlgebra`).
+
+            - If `\mu` and `\Delta` denote the product and coproduct of the
+              Hopf algebra, respectively, then `S` satisfies
+
+              .. MATH::
+
+                  \mu \circ (S \tensor 1) \circ \Delta = unit \circ counit
+                  \mu \circ (1 \tensor S) \circ \Delta = unit \circ counit
+
+            - `S` is an *anti*-homomorphism
+
+            These properties are tested on :meth:`some_elements`.
+
+            TESTS::
+
+                sage: R = NonCommutativeSymmetricFunctions(QQ).ribbon()
+                sage: R._test_antipode()
+
+            ::
+
+                sage: s = SymmetricFunctions(QQ).schur()
+                sage: s._test_antipode()
+
+            """
+            from sage.categories.tensor import tensor
+            tester = self._tester(**options)
+
+            S = self.antipode
+
+            IS = lambda x: self.sum(c * self.monomial(t1) * S(self.monomial(t2))
+                                for ((t1, t2), c) in x.coproduct())
+
+            SI = lambda x: self.sum(c * S(self.monomial(t1)) * self.monomial(t2)
+                                for ((t1, t2), c) in x.coproduct())
+
+            for x in tester.some_elements():
+
+                # antipode is an anti-homomorphism
+                for y in tester.some_elements():
+                    tester.assert_(S(x) * S(y) == S(y * x))
+
+                # mu * (S # I) * delta == counit * unit
+                tester.assert_(SI(x) == self.counit(x) * self.one())
+
+                # mu * (I # S) * delta == counit * unit
+                tester.assert_(IS(x) == self.counit(x) * self.one())
 
     class ElementMethods:
         pass

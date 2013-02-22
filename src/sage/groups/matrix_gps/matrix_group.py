@@ -774,20 +774,17 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
 
     def conjugacy_class(self, g):
         r"""
-        Returns the conjugacy class of 'g' inside the group 'self'
+        Return the conjugacy class of ``g`` inside of ``self``.
 
         INPUT:
 
-        - ``g`` - an element of the permutation group ``self``
+        - ``g`` -- an element of ``self``
 
         OUTPUT:
 
-        The conjugacy class of ``g`` in the group ``self``. If ``self`` is the group denoted
-        by `G`, this method computes the set
-
-        .. math::
-
-            \{x^{-1}gx\ \vert\ x\in G \}
+        The conjugacy class of ``g`` in the group ``self``. If ``self`` is the
+        group denoted by `G`, this method computes the set
+        `\{x^{-1}gx\ \vert\ x\in G\}`.
 
         EXAMPLES::
 
@@ -803,7 +800,7 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
     @cached_method
     def conjugacy_classes(self):
         r"""
-        Returns a list with all the conjugacy classes of ``self``.
+        Return a list with all the conjugacy classes of ``self``.
 
         EXAMPLES::
 

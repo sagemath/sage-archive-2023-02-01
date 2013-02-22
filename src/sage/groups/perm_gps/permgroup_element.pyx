@@ -1431,7 +1431,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
     def conjugacy_class(self):
         r"""
-        Returns the conjugacy class of ``self``
+        Return the conjugacy class of ``self``.
 
         EXAMPLES::
 
@@ -1442,7 +1442,6 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         """
         from sage.groups.conjugacy_classes import ConjugacyClassGAP
         return ConjugacyClassGAP(self.parent(), self)
-
 
 
 cdef bint is_valid_permutation(int* perm, int n):

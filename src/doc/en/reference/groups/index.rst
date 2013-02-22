@@ -37,6 +37,6 @@ Groups
    sage/groups/matrix_gps/unitary
    sage/groups/misc_gps/misc_groups
 
-
+   sage/groups/conjugacy_classes
 
 .. include:: ../footer.txt

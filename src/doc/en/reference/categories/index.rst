@@ -76,6 +76,7 @@ Categories
    sage/categories/finite_dimensional_modules_with_basis
    sage/categories/finite_enumerated_sets
    sage/categories/finite_fields
+   sage/categories/finite_groups
    sage/categories/finite_posets
    sage/categories/finite_lattice_posets
    sage/categories/finite_monoids

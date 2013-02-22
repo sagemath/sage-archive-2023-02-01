@@ -1,5 +1,4 @@
-# -*- coding = utf-8 -*-
-
+# -*- coding: utf-8 -*-
 r"""
 Permutation groups
 
@@ -1643,20 +1642,17 @@ class PermutationGroup_generic(group.Group):
 
     def conjugacy_class(self, g):
         r"""
-        Returns the conjugacy class of 'g' inside the group 'self'
+        Return the conjugacy class of ``g`` inside the group ``self``.
 
         INPUT:
 
-        - ``g`` - an element of the permutation group ``self``
+        - ``g`` -- an element of the permutation group ``self``
 
         OUTPUT:
 
         The conjugacy class of ``g`` in the group ``self``. If ``self`` is
         the group denoted by `G`, this method computes the set
-
-        .. math::
-
-            \{x^{-1}gx\ \vert\ x\in G \}
+        `\{x^{-1}gx\ \vert\ x \in G \}`
 
         EXAMPLES::
 
@@ -1669,7 +1665,7 @@ class PermutationGroup_generic(group.Group):
 
     def conjugacy_classes(self):
         r"""
-        Returns a list with all the conjugacy classes of ``self``.
+        Return a list with all the conjugacy classes of ``self``.
 
         EXAMPLES::
 

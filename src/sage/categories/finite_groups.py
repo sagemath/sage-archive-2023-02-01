@@ -77,7 +77,7 @@ class FiniteGroups(Category):
 
             For finite groups, the group generators are also semigroup
             generators. Hence, this default implementation calls
-            :meth:`.group_generators``.
+            :meth:`~sage.categories.groups.Groups.ParentMethods.group_generators`.
 
             EXAMPLES::
 
@@ -89,11 +89,12 @@ class FiniteGroups(Category):
 
         def cardinality(self):
             """
-            Returns the cardinality of self, as per :meth:`EnumeratedSets.ParentMethods.cardinality`.
+            Returns the cardinality of ``self``, as per
+            :meth:`EnumeratedSets.ParentMethods.cardinality`.
 
             This default implementation calls :meth:`.order` if
             available, and otherwise resorts to
-            meth:`._cardinality_from_iterator`. This is for backward
+            :meth:`._cardinality_from_iterator`. This is for backward
             compatibility only. Finite groups should override this
             method instead of :meth:`.order`.
 
@@ -119,6 +120,15 @@ class FiniteGroups(Category):
                 return o()
 
         def some_elements(self):
+            """
+            Return some elements of ``self``.
+
+            EXAMPLES::
+
+                sage: A = AlternatingGroup(4)
+                sage: A.some_elements()
+                [(2,3,4), (1,2,3)]
+            """
             return self.gens()
 
         # TODO: merge with that of finite semigroups
@@ -153,41 +163,43 @@ class FiniteGroups(Category):
 
         def conjugacy_class(self, g):
             r"""
-            Returns the conjugacy class of the element 'g'.
-            This is a fall-back method for groups not defined over Gap.
+            Return the conjugacy class of the element ``g``.
+
+            This is a fall-back method for groups not defined over GAP.
 
             EXAMPLES::
 
-                sage: H = MatrixGroup([matrix(GF(5),2,[1,2, -1, 1]), matrix(GF(5),2, [1,1, 0,1])])
-                sage: h = H(matrix(GF(5),2,[1,2, -1, 1]))
-                sage: H.conjugacy_class(h)
-                Conjugacy class of [1 2]
-                [4 1] in Matrix group over Finite Field of size 5 with 2 generators:
-                [[[1, 2], [4, 1]], [[1, 1], [0, 1]]]
+                sage: W = WeylGroup(['C',6])
+                sage: c = W.conjugacy_class(W.an_element())
+                sage: type(c)
+                <class 'sage.groups.conjugacy_classes.ConjugacyClass_with_category'>
             """
             from sage.groups.conjugacy_classes import ConjugacyClass
             return ConjugacyClass(self, g)
 
         def conjugacy_classes(self):
             r"""
-            Returns a list with all the conjugacy classes of the group.
-            This will eventually be a fall-back method for groups not defined over GAP.
-            Right now just raises a NotImplementedError, until we include a non-GAP way of
-            listing the conjugacy classes representatives.
+            Return a list with all the conjugacy classes of the group.
+
+            This will eventually be a fall-back method for groups not defined
+            over GAP. Right now just raises a ``NotImplementedError``, until
+            we include a non-GAP way of listing the conjugacy classes
+            representatives.
 
             EXAMPLES::
 
-                sage: G = SymmetricGroup(3)
-                sage: G.conjugacy_classes()
-                [Conjugacy class of () in Symmetric group of order 3! as a permutation group,
-                Conjugacy class of (1,2) in Symmetric group of order 3! as a permutation group,
-                Conjugacy class of (1,2,3) in Symmetric group of order 3! as a permutation group]
+                sage: W = WeylGroup(['C',6])
+                sage: W.conjugacy_classes()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: Listing the conjugacy classes for group
+                  Weyl Group of type ['C', 6] (as a matrix group acting on the ambient space) is not implemented
             """
             raise NotImplementedError("Listing the conjugacy classes for group %s is not implemented"%self)
 
         def conjugacy_classes_representatives(self):
             r"""
-            Returns a list of the conjugacy classes representatives of the group
+            Return a list of the conjugacy classes representatives of the group.
 
             EXAMPLES::
 
@@ -212,3 +224,4 @@ class FiniteGroups(Category):
                 [[[1, 2], [4, 1]], [[1, 1], [0, 1]]]
             """
             return self.parent().conjugacy_class(self)
+

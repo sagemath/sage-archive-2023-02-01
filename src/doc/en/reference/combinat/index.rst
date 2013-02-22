@@ -36,6 +36,7 @@ Combinatorics
    sage/combinat/lyndon_word
    sage/combinat/necklace
    sage/combinat/non_decreasing_parking_function
+   sage/combinat/parking_functions
    sage/combinat/partition
    sage/combinat/partition_tuple
    sage/combinat/permutation

@@ -169,6 +169,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         -Psi[3]
         sage: Psi[1,3,2].antipode()
         -Psi[2, 3, 1]
+        sage: Psi[1,3,2].coproduct().apply_multilinear_morphism(lambda be,ga: Psi(be)*Psi(ga).antipode())
+        0
 
     The counit is defined by sending all elements of positive degree to zero::
 
@@ -775,17 +777,21 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
                     sage: S = NonCommutativeSymmetricFunctions(QQ).complete()
                     sage: S.antipode_on_basis(Composition([2,1]))
-                    -S[1, 1, 1] + S[2, 1]
+                    -S[1, 1, 1] + S[1, 2]
                     sage: S[1].antipode() # indirect doctest
                     -S[1]
                     sage: S[2].antipode() # indirect doctest
                     S[1, 1] - S[2]
                     sage: S[3].antipode() # indirect docttest
                     -S[1, 1, 1] + S[1, 2] + S[2, 1] - S[3]
+                    sage: S[2,3].coproduct().apply_multilinear_morphism(lambda be,ga: S(be)*S(ga).antipode())
+                    0
+                    sage: S[2,3].coproduct().apply_multilinear_morphism(lambda be,ga: S(be).antipode()*S(ga))
+                    0
                 """
                 # TODO: avoid this -1^... by using properly
 
-                return (-1)**len(composition) * self.alternating_sum_of_finer_compositions(composition)
+                return (-1)**len(composition) * self.alternating_sum_of_finer_compositions(composition.reversed())
 
             # @cached_method?
             def coproduct_on_generators(self, i):

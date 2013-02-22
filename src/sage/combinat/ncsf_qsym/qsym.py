@@ -273,6 +273,23 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         sage: M[3,2,2].skew_by(S[2], side='right')
         M[3, 2]
 
+    .. rubric:: The counit
+
+    The counit is defined by sending all elements of positive degree to zero::
+
+        sage: M[3].degree(), M[3,1,2].degree(), M.one().degree()
+        (3, 6, 0)
+        sage: M[3].counit()
+        0
+        sage: M[3,1,2].counit()
+        0
+        sage: M.one().counit()
+        1
+        sage: (M[3] - 2*M[3,1,2] + 7).counit()
+        7
+        sage: (F[3] - 2*F[3,1,2] + 7).counit()
+        7
+
     .. rubric:: The antipode
 
     The antipode sends the Fundamental basis element indexed by the

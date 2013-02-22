@@ -410,28 +410,6 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         class ParentMethods:
 
-            def counit_on_basis(self, I):
-                r"""
-                The counit is defined by sending all elements of positive degree to zero.
-
-                EXAMPLES::
-
-                    sage: S = NonCommutativeSymmetricFunctions(QQ).S()
-                    sage: S.counit_on_basis([1,3])
-                    0
-
-                TESTS::
-
-                    sage: S.counit_on_basis([])
-                    1
-                    sage: S.counit_on_basis(Composition([]))
-                    1
-                """
-                if I != []:
-                    return self.base_ring().zero()
-                else:
-                    return self.base_ring().one()
-
             def to_symmetric_function_on_basis(self, I):
                 r"""
                 The image of the basis element indexed by ``I`` under the map

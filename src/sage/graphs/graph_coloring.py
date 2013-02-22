@@ -56,12 +56,28 @@ from sage.combinat.matrices.dlxcpp import DLXCPP
 from sage.plot.colors import rainbow
 from graph_generators import GraphGenerators
 
-def all_graph_colorings(G,n,count_only=False):
+def all_graph_colorings(G,n,count_only=False, hex_colors=False, vertex_color_dict=False):
     r"""
     Computes all `n`-colorings of the graph `G` by casting the graph
     coloring problem into an exact cover problem, and passing this
     into an implementation of the Dancing Links algorithm described
     by Knuth (who attributes the idea to Hitotumatu and Noshita).
+
+    INPUT:
+
+    * ``G`` - a graph
+
+    * ``n`` - a positive integer the number of colors
+
+    * `count_only` -- (default: ``False``) when set to ``True``, it returns 1
+       for each coloring
+
+    * `hex_colors` -- (default: ``False``) when set to ``False``, it labels
+      the colors [0,1,..,``n``-1], otherwise it uses the RGB Hex labeling
+
+    * `vertex_color_dict` -- (default: ``False``) when set to ``True``, it
+      returns a dictionary {vertex:color}, otherwise it returns a dictionary
+      {color:[list of vertices]}
 
     The construction works as follows. Columns:
 
@@ -106,7 +122,7 @@ def all_graph_colorings(G,n,count_only=False):
         sage: from sage.graphs.graph_coloring import all_graph_colorings
         sage: G = Graph({0:[1,2,3],1:[2]})
         sage: n = 0
-        sage: for C in all_graph_colorings(G,3):
+        sage: for C in all_graph_colorings(G,3,hex_colors=True):
         ...       parts = [C[k] for k in C]
         ...       for P in parts:
         ...           l = len(P)
@@ -118,6 +134,7 @@ def all_graph_colorings(G,n,count_only=False):
         sage: print "G has %s 3-colorings."%n
         G has 12 3-colorings.
 
+
     TESTS::
 
         sage: G = Graph({0:[1,2,3],1:[2]})
@@ -126,6 +143,22 @@ def all_graph_colorings(G,n,count_only=False):
         Traceback (most recent call last):
         ...
         ValueError: n must be non-negative.
+        sage: G = Graph({0:[1],1:[2]})
+        sage: for c in all_graph_colorings(G,2, vertex_color_dict = True): print c
+        {0: 0, 1: 1, 2: 0}
+        {0: 1, 1: 0, 2: 1}
+        sage: for c in all_graph_colorings(G,2,hex_colors = True): print c
+        {'#00ffff': [1], '#ff0000': [0, 2]}
+        {'#ff0000': [1], '#00ffff': [0, 2]}
+        sage: for c in all_graph_colorings(G,2,hex_colors=True,vertex_color_dict = True): print c
+        {0: '#ff0000', 1: '#00ffff', 2: '#ff0000'}
+        {0: '#00ffff', 1: '#ff0000', 2: '#00ffff'}
+        sage: for c in all_graph_colorings(G, 2, vertex_color_dict = True): print c
+        {0: 0, 1: 1, 2: 0}
+        {0: 1, 1: 0, 2: 1}
+        sage: for c in all_graph_colorings(G, 2, count_only=True, vertex_color_dict = True): print c
+        1
+        1
     """
 
     if n == 0: return
@@ -164,6 +197,7 @@ def all_graph_colorings(G,n,count_only=False):
             ones.append([k+i, [nV+i]])
 
     colors = rainbow(n)
+    color_dict = {colors[i]:i for i in range(len(colors))}
 
     for i in range(len(ones)): ones[i] = ones[i][1]
 
@@ -173,13 +207,28 @@ def all_graph_colorings(G,n,count_only=False):
                 yield 1
                 continue
             coloring = {}
-            for x in a:
-                if colormap.has_key(x):
-                    v,c = colormap[x]
-                    if coloring.has_key(colors[c]):
-                        coloring[colors[c]].append(v)
-                    else:
-                        coloring[colors[c]] = [v]
+            if vertex_color_dict:
+                for x in a:
+                    if colormap.has_key(x):
+                        v,c = colormap[x]
+                        if hex_colors:
+                            coloring[v] = colors[c]
+                        else:
+                            coloring[v] = color_dict[colors[c]]
+            else:
+                for x in a:
+                    if colormap.has_key(x):
+                        v,c = colormap[x]
+                        if hex_colors:
+                            if coloring.has_key(colors[c]):
+                                coloring[colors[c]].append(v)
+                            else:
+                                coloring[colors[c]] = [v]
+                        else:
+                            if coloring.has_key(color_dict[colors[c]]):
+                                coloring[color_dict[colors[c]]].append(v)
+                            else:
+                                coloring[color_dict[colors[c]]] = [v]
             yield coloring
     except RuntimeError:
         raise RuntimeError, "Too much recursion!  Graph coloring failed."
@@ -206,7 +255,7 @@ def first_coloring(G, n=0, hex_colors=False):
     """
     o = G.order()
     for m in xrange(n, o + 1):
-        for C in all_graph_colorings(G, m):
+        for C in all_graph_colorings(G, m, hex_colors=True):
             if hex_colors:
                 return C
             else:

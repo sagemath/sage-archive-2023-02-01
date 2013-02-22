@@ -90,6 +90,8 @@ from sage.structure.sequence import Sequence
 from sage.structure.sage_object import SageObject
 from sage.groups.class_function import ClassFunction
 from sage.misc.decorators import rename_keyword
+from sage.groups.conjugacy_classes import ConjugacyClassGAP
+from sage.misc.cachefunc import cached_method
 
 #################################################################
 
@@ -769,6 +771,52 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
         F    = self.field_of_definition()
         self.__reps = Sequence([self(g._matrix_(F)) for g in reps], cr=True, universe=self, check=False)
         return self.__reps
+
+    def conjugacy_class(self, g):
+        r"""
+        Returns the conjugacy class of 'g' inside the group 'self'
+
+        INPUT:
+
+        - ``g`` - an element of the permutation group ``self``
+
+        OUTPUT:
+
+        The conjugacy class of ``g`` in the group ``self``. If ``self`` is the group denoted
+        by `G`, this method computes the set
+
+        .. math::
+
+            \{x^{-1}gx\ \vert\ x\in G \}
+
+        EXAMPLES::
+
+            sage: G = SL(3, GF(3))
+            sage: g = G.gens()[0]
+            sage: G.conjugacy_class(g)
+            Conjugacy class of [1 1 0]
+            [0 1 0]
+            [0 0 1] in Special Linear Group of degree 3 over Finite Field of size 3
+        """
+        return ConjugacyClassGAP(self, g)
+
+    @cached_method
+    def conjugacy_classes(self):
+        r"""
+        Returns a list with all the conjugacy classes of ``self``.
+
+        EXAMPLES::
+
+            sage: G = SL(2, GF(2))
+            sage: G.conjugacy_classes()
+            [Conjugacy class of [1 0]
+            [0 1] in Special Linear Group of degree 2 over Finite Field of size 2, Conjugacy class of [0 1]
+            [1 0] in Special Linear Group of degree 2 over Finite Field of size 2, Conjugacy class of [0 1]
+            [1 1] in Special Linear Group of degree 2 over Finite Field of size 2]
+        """
+        CC = self._gap_().ConjugacyClasses()
+        reps = list(gap.List(CC, 'x -> Representative(x)'))
+        return [ConjugacyClassGAP(self, self(g._matrix_(self.field_of_definition()))) for g in reps]
 
     def center(self):
         """

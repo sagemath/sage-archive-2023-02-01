@@ -13,6 +13,8 @@ from class_function import ClassFunction
 
 from additive_abelian.all import *
 
+from conjugacy_classes import *
+
 from sage.misc.lazy_import import lazy_import
 
 lazy_import('sage.groups.free_group', 'FreeGroup')

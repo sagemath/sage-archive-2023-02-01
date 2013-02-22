@@ -151,5 +151,64 @@ class FiniteGroups(Category):
 
             return DiGraph(arrows, implementation='networkx')
 
+        def conjugacy_class(self, g):
+            r"""
+            Returns the conjugacy class of the element 'g'.
+            This is a fall-back method for groups not defined over Gap.
+
+            EXAMPLES::
+
+                sage: H = MatrixGroup([matrix(GF(5),2,[1,2, -1, 1]), matrix(GF(5),2, [1,1, 0,1])])
+                sage: h = H(matrix(GF(5),2,[1,2, -1, 1]))
+                sage: H.conjugacy_class(h)
+                Conjugacy class of [1 2]
+                [4 1] in Matrix group over Finite Field of size 5 with 2 generators:
+                [[[1, 2], [4, 1]], [[1, 1], [0, 1]]]
+            """
+            from sage.groups.conjugacy_classes import ConjugacyClass
+            return ConjugacyClass(self, g)
+
+        def conjugacy_classes(self):
+            r"""
+            Returns a list with all the conjugacy classes of the group.
+            This will eventually be a fall-back method for groups not defined over GAP.
+            Right now just raises a NotImplementedError, until we include a non-GAP way of
+            listing the conjugacy classes representatives.
+
+            EXAMPLES::
+
+                sage: G = SymmetricGroup(3)
+                sage: G.conjugacy_classes()
+                [Conjugacy class of () in Symmetric group of order 3! as a permutation group,
+                Conjugacy class of (1,2) in Symmetric group of order 3! as a permutation group,
+                Conjugacy class of (1,2,3) in Symmetric group of order 3! as a permutation group]
+            """
+            raise NotImplementedError("Listing the conjugacy classes for group %s is not implemented"%self)
+
+        def conjugacy_classes_representatives(self):
+            r"""
+            Returns a list of the conjugacy classes representatives of the group
+
+            EXAMPLES::
+
+                sage: G = SymmetricGroup(3)
+                sage: G.conjugacy_classes_representatives()
+                [(), (1,2), (1,2,3)]
+           """
+            return [C.representative() for C in self.conjugacy_classes()]
+
     class ElementMethods:
-        pass
+        def conjugacy_class(self):
+            r"""
+            Return the conjugacy class of ``self``.
+
+            EXAMPLES::
+
+                sage: H = MatrixGroup([matrix(GF(5),2,[1,2, -1, 1]), matrix(GF(5),2, [1,1, 0,1])])
+                sage: h = H(matrix(GF(5),2,[1,2, -1, 1]))
+                sage: h.conjugacy_class()
+                Conjugacy class of [1 2]
+                [4 1] in Matrix group over Finite Field of size 5 with 2 generators:
+                [[[1, 2], [4, 1]], [[1, 1], [0, 1]]]
+            """
+            return self.parent().conjugacy_class(self)

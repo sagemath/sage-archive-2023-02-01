@@ -461,4 +461,17 @@ class MatrixGroupElement(element.MultiplicativeGroupElement):
         lrws = [list(x) for x in rws]
         return lrws
 
+    def conjugacy_class(self):
+        r"""
+        Returns the conjugacy class of ``self``
 
+        EXAMPLES::
+
+            sage: G = SL(2, GF(2))
+            sage: g = G.gens()[0]
+            sage: g.conjugacy_class()
+            Conjugacy class of [1 1]
+            [0 1] in Special Linear Group of degree 2 over Finite Field of size 2
+        """
+        from sage.groups.conjugacy_classes import ConjugacyClassGAP
+        return ConjugacyClassGAP(self.parent(), self)

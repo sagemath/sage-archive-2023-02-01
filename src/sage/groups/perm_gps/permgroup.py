@@ -1,3 +1,5 @@
+# -*- coding = utf-8 -*-
+
 r"""
 Permutation groups
 
@@ -93,6 +95,8 @@ AUTHORS:
 - Christopher Swenson (2012): Added a special case to compute the order efficiently.
   (This patch Copyright 2012 Google Inc. All Rights Reserved. )
 
+- Javier Lopez Pena (2013): Added conjugacy classes.
+
 REFERENCES:
 
 - Cameron, P., Permutation Groups. New York: Cambridge University
@@ -135,6 +139,7 @@ from sage.groups.class_function import ClassFunction
 from sage.misc.package import is_package_installed
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.categories.all import FiniteEnumeratedSets
+from sage.groups.conjugacy_classes import ConjugacyClassGAP
 from sage.functions.other import factorial
 
 
@@ -1635,6 +1640,49 @@ class PermutationGroup_generic(group.Group):
         if other not in FinitePermutationGroups():
             raise TypeError("{0} is not a permutation group".format(other))
         return PermutationGroup(gap_group=gap.Intersection(self, other))
+
+    def conjugacy_class(self, g):
+        r"""
+        Returns the conjugacy class of 'g' inside the group 'self'
+
+        INPUT:
+
+        - ``g`` - an element of the permutation group ``self``
+
+        OUTPUT:
+
+        The conjugacy class of ``g`` in the group ``self``. If ``self`` is
+        the group denoted by `G`, this method computes the set
+
+        .. math::
+
+            \{x^{-1}gx\ \vert\ x\in G \}
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(4)
+            sage: g = G((1,2,3,4))
+            sage: G.conjugacy_class(g)
+            Conjugacy class of (1,2,3,4) in Symmetric group of order 4! as a permutation group
+        """
+        return ConjugacyClassGAP(self, g)
+
+    def conjugacy_classes(self):
+        r"""
+        Returns a list with all the conjugacy classes of ``self``.
+
+        EXAMPLES::
+
+            sage: G = DihedralGroup(3)
+            sage: G.conjugacy_classes()
+            [Conjugacy class of () in Dihedral group of order 6 as a permutation group,
+            Conjugacy class of (1,2) in Dihedral group of order 6 as a permutation group,
+            Conjugacy class of (1,2,3) in Dihedral group of order 6 as a permutation group]
+        """
+        cl = self._gap_().ConjugacyClasses()
+        n = Integer(cl.Length())
+        L = gap("List([1..Length(%s)], i->Representative(%s[i]))"%(cl.name(),  cl.name()))
+        return [ConjugacyClassGAP(self,self._element_class()(L[i], self, check=False)) for i in range(1,n+1)]
 
     def conjugate(self, g):
         r"""

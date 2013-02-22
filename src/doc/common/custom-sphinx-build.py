@@ -42,11 +42,12 @@ useless_chatter = (
 
 replacements = ()
 
-if any('multidoc_first_pass=1' in arg for arg in sys.argv):
+if any(arg == 'inventory' for arg in sys.argv):
     # When building the inventory, ignore warnings about missing
-    # citations.
+    # citations and the search index.
     useless_chatter += (
         re.compile('^None:[0-9]*: WARNING: citation not found: '),
+        re.compile('WARNING: search index couldn\'t be loaded, but not all documents will be built: the index will be incomplete.')
         )
     replacements += ([re.compile('build succeeded, [0-9]+ warning[s]?.'),
                       'build succeeded.'], )

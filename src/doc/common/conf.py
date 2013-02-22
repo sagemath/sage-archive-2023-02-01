@@ -635,7 +635,7 @@ def setup(app):
     # set to a temporary directory.  We don't want to use intersphinx,
     # etc., when doing introspection.
     if app.srcdir.startswith(SAGE_DOC):
-        app.add_config_value('intersphinx_mapping', {}, True)
+        app.add_config_value('intersphinx_mapping', {}, False)
         app.add_config_value('intersphinx_cache_limit', 5, False)
         # We do *not* fully initialize intersphinx since we call it by hand
         # in find_sage_dangling_links.

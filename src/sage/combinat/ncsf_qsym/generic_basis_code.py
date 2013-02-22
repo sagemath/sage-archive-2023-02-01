@@ -214,12 +214,20 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 L[1, 1, 1, 1, 1] - L[1, 1, 2, 1] - L[2, 1, 1, 1] + L[2, 2, 1]
                 sage: elementary.alternating_sum_of_finer_compositions(Composition([1,2]))
                 -L[1, 1, 1] + L[1, 2]
+
+            TESTS::
+
+                sage: complete = NonCommutativeSymmetricFunctions(ZZ).complete()
+                sage: I = Composition([2])
+                sage: x = complete.alternating_sum_of_finer_compositions(I)
+                sage: [c.parent() for c in x.coefficients()]
+                [Integer Ring, Integer Ring]
             """
             if conjugate:
                 composition = composition.conjugate()
             l = len(composition)
-            mo = self.base_ring()(-1)
-            return self.sum_of_terms( (compo, mo**(len(compo)-l)) for compo in composition.finer () )
+            ring = self.base_ring()
+            return self.sum_of_terms( (compo, ring((-1)**(len(compo)-l))) for compo in composition.finer () )
 
         def alternating_sum_of_fatter_compositions(self, composition):
             """
@@ -244,10 +252,18 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 L[2, 2, 1] - L[2, 3] - L[4, 1] + L[5]
                 sage: elementary.alternating_sum_of_fatter_compositions(Composition([1,2]))
                 L[1, 2] - L[3]
+
+            TESTS::
+
+                sage: complete = NonCommutativeSymmetricFunctions(ZZ).complete()
+                sage: I = Composition([1,1])
+                sage: x = complete.alternating_sum_of_fatter_compositions(I)
+                sage: [c.parent() for c in x.coefficients()]
+                [Integer Ring, Integer Ring]
             """
             l = len(composition)
-            mo = self.base_ring()(-1)
-            return self.sum_of_terms( (compo, mo**(len(compo)-l)) for compo in composition.fatter() )
+            ring = self.base_ring()
+            return self.sum_of_terms( (compo, ring((-1)**(len(compo)-l))) for compo in composition.fatter() )
 
         def sum_of_partition_rearrangements(self, par):
             """

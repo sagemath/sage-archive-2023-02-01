@@ -296,6 +296,26 @@ class Letter(ElementWrapper):
         # ElementWrapper will have been fixed.
         ElementWrapper.__init__(self, value, parent)
 
+    def _latex_(self):
+        r"""
+        A latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: C = CrystalOfLetters(['D', 4])
+            sage: latex(C(2)) # indirect doctest
+            2
+            sage: latex(C(-3)) # indirect doctest
+            \overline{3}
+            sage: latex(C('E'))
+            \emptyset
+        """
+        if self.value == 'E':
+            return "\\emptyset"
+        if self.value < 0:
+            return "\\overline{" + repr(-self.value) + "}"
+        return repr(self.value)
+
     def __lt__(self, other):
         """
         EXAMPLES::
@@ -1166,12 +1186,22 @@ class Crystal_of_letters_type_E6_element_dual(Letter):
         return "%s"%self.value
 
     def __hash__(self):
+        """
+        Return the hash value of ``self``.
+
+        EXAMPLES::
+
+            sage: C = CrystalOfLetters(['E',6], dual=True)
+            sage: elt = C.list()[4]
+            sage: hash(elt) == hash(elt)
+            True
+        """
         return hash(tuple(self.value))
 
     def lift(self):
         """
-        Lifts an element of self to the crystal of letters CrystalOfLetters(['E',6])
-        by taking its inverse weight.
+        Lifts an element of ``self`` to the crystal of letters
+        ``CrystalOfLetters(['E',6])`` by taking its inverse weight.
 
         EXAMPLES::
 

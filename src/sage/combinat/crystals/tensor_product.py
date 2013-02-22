@@ -3,8 +3,8 @@ Tensor Products of Crystals
 
 Main entry points:
 
- - :func:`TensorProductOfCrystals`
- - :class:`CrystalOfTableaux`
+- :func:`TensorProductOfCrystals`
+- :class:`CrystalOfTableaux`
 
 """
 #*****************************************************************************
@@ -1204,7 +1204,23 @@ class CrystalOfTableauxElement(TensorProductOfCrystalsElement):
             \end{array}$}
             }
         """
-        return latex(self.to_tableau())
+        from sage.combinat.output import tex_from_array
+        # Modified version of to_tableau() to have the entrys be letters
+        #   rather than their values
+        if self._list == []:
+            return "{\\emptyset}"
+
+        tab = [ [self[0]] ]
+        for i in range(1,len(self)):
+            if self[i-1] < self[i] or (self[i-1].value != 0 and self[i-1] == self[i]):
+                tab.append([self[i]])
+            else:
+                l = len(tab)-1
+                tab[l].append(self[i])
+        for x in tab:
+            x.reverse()
+        T = Tableau(tab).conjugate()
+        return tex_from_array([[letter._latex_() for letter in row] for row in T])
 
     @cached_method
     def to_tableau(self):

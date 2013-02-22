@@ -15711,12 +15711,23 @@ class GenericGraph(GenericGraph_pyx):
             [1 0 1]
             [0 1 0]
 
-        Relabeling using a dictionary::
+        Relabeling using a dictionary. Note that the dictionary does not define
+        the new label of vertex `0`::
 
             sage: G.relabel({1:2,2:1}, inplace=False).am()
             [0 0 1]
             [0 0 1]
             [1 1 0]
+
+        This is because the method automatically "extends" the relabeling to the
+        missing vertices (whose label will not change). Checking that all
+        vertices have an image can require some time, and this feature can be
+        disabled (at your own risk)::
+
+            sage: G.relabel({1:2,2:1}, inplace=False, complete_partial_function = False).am()
+            Traceback (most recent call last):
+            ...
+            KeyError: 0
 
         Relabeling using a list::
 
@@ -15752,7 +15763,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: H.edges()
             [(10, 11, None), (11, 12, None)]
 
-        Relabeling using a non injective function is not yet supported::
+        Relabeling using a non injective function has no meaning::
 
             sage: G.edges()
             [(0, 1, None), (1, 2, None)]
@@ -15760,6 +15771,14 @@ class GenericGraph(GenericGraph_pyx):
             Traceback (most recent call last):
             ...
             NotImplementedError: Non injective relabeling
+
+        But this test can be disabled, which leads to ... problems::
+
+            sage: G.edges()
+            [(0, 1, None), (1, 2, None)]
+            sage: G.relabel(lambda i: 0, check_input = False)
+            sage: G.edges()
+            [(0, 0, None)]
 
         Relabeling to simpler labels::
 

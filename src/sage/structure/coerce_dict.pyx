@@ -44,6 +44,8 @@ cdef extern from "Python.h":
     PyObject* PyWeakref_GetObject(object ref)
     PyObject* Py_None
 
+import gc
+
 ############################################
 # A note about how to store "id" keys in python structures:
 #
@@ -721,15 +723,29 @@ cdef class MonoDict:
         cdef list bucket
         cdef Py_ssize_t i
         cdef Py_ssize_t h
-        self.buckets = [[] for i from 0 <= i <  buckets]
+        cdef list new_buckets = [[] for i from 0 <= i <  buckets]
         cdef object r
         cdef object v
+
+        #this would be a very bad place for a garbage collection to happen
+        #so we disable them.
+        cdef bint gc_originally_enabled = gc.isenabled()
+        if gc_originally_enabled:
+            gc.disable()
+
+        #BEGIN of critical block. NO GC HERE!
         for bucket in old_buckets:
             for i from 0 <= i < PyList_GET_SIZE(bucket) by 3:
                 h = PyInt_AsSsize_t(PyList_GET_ITEM(bucket,i))
                 r  = <object>PyList_GET_ITEM(bucket,i+1)
                 v  = <object>PyList_GET_ITEM(bucket,i+2)
-                self.buckets[(<size_t>h) % buckets] += [h,r,v]
+                #this line can trigger allocation, so GC must be turned off!
+                new_buckets[(<size_t>h) % buckets] += [h,r,v]
+        self.buckets = new_buckets
+        #END of critical block. The dict is consistent again.
+
+        if gc_originally_enabled:
+            gc.enable()
 
     def iteritems(self):
         """
@@ -1270,15 +1286,29 @@ cdef class TripleDict:
         cdef list bucket
         cdef Py_ssize_t i
         cdef Py_ssize_t h
-        self.buckets = [[] for i from 0 <= i <  buckets]
+        cdef list new_buckets = [[] for i from 0 <= i <  buckets]
         cdef Py_ssize_t k1,k2,k3
+
+        #this would be a very bad place for a garbage collection to happen
+        #so we disable them.
+        cdef bint gc_originally_enabled = gc.isenabled()
+        if gc_originally_enabled:
+            gc.disable()
+
+        #BEGIN of critical block. NO GC HERE!
         for bucket in old_buckets:
             for i from 0 <= i < PyList_GET_SIZE(bucket) by 7:
                 k1 = PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i))
                 k2 = PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i+1))
                 k3 = PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i+2))
                 h = (k1 + 13*k2 ^ 503*k3)
-                self.buckets[(<size_t> h) % buckets] += bucket[i:i+7]
+                #this line can trigger allocation, so GC must be turned off!
+                new_buckets[(<size_t> h) % buckets] += bucket[i:i+7]
+        self.buckets = new_buckets
+        #END of critical block. The dict is consistent again.
+
+        if gc_originally_enabled:
+            gc.enable()
 
     def iteritems(self):
         """

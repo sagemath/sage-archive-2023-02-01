@@ -66,9 +66,10 @@ class p_iter_fork:
 
         INPUT:
 
-            - ``f`` -- a Python function that need not be pickleable or anything else!
-            - ``inputs`` -- a list of pickleable pairs ``(args, kwds)``, where
-              ``args`` is a tuple and ``kwds`` is a dictionary.
+        - ``f`` -- a Python function that need not be pickleable or anything else!
+
+        - ``inputs`` -- a list of pickleable pairs ``(args, kwds)``, where
+          ``args`` is a tuple and ``kwds`` is a dictionary.
 
         OUTPUT:
 
@@ -79,6 +80,30 @@ class p_iter_fork:
             [(([10], {}), 100), (([20], {}), 400)]
             sage: sorted(list( F( (lambda x, y: x^2+y), [([10],{'y':1}), ([20],{'y':2})])))
             [(([10], {'y': 1}), 101), (([20], {'y': 2}), 402)]
+
+        TESTS:
+
+        The output of functions decorated with :func:parallel is read
+        as a pickle by the parent process. We intentionally break the
+        unpickling and demonstrate that this failure is handled
+        gracefully (an exception is displayed and an empty list is
+        returned)::
+
+            sage: Polygen = parallel(polygen)
+            sage: list(Polygen([QQ]))
+            [(((Rational Field,), {}), x)]
+            sage: from sage.structure.sage_object import unpickle_override, register_unpickle_override
+            sage: register_unpickle_override('sage.rings.polynomial.polynomial_rational_flint', 'Polynomial_rational_flint', Integer)
+            sage: L = list(Polygen([QQ]))
+            ('__init__() takes at most 2 positional arguments (4 given)', <type 'sage.rings.integer.Integer'>, (Univariate Polynomial Ring in x over Rational Field, [0, 1], False, True))
+            sage: L
+            []
+
+        Fix the unpickling::
+
+            sage: del unpickle_override[('sage.rings.polynomial.polynomial_rational_flint', 'Polynomial_rational_flint')]
+            sage: list(Polygen([QQ,QQ]))
+            [(((Rational Field,), {}), x), (((Rational Field,), {}), x)]
         """
         n = self.ncpus
         v = list(inputs)
@@ -87,15 +112,16 @@ class p_iter_fork:
         from sage.misc.all import tmp_dir, walltime
         dir = tmp_dir()
         timeout = self.timeout
-        # Subprocesses shouldn't inherit unflushed buffers (cf. #11778):
-        sys.stdout.flush()
-        sys.stderr.flush()
 
         workers = {}
         try:
             while len(v) > 0 or len(workers) > 0:
                 # Spawn up to n subprocesses
                 while len(v) > 0 and len(workers) < n:
+                    # Subprocesses shouldn't inherit unflushed buffers (cf. #11778):
+                    sys.stdout.flush()
+                    sys.stderr.flush()
+
                     pid = os.fork()
                     # The way fork works is that pid returns the
                     # nonzero pid of the subprocess for the master
@@ -117,9 +143,11 @@ class p_iter_fork:
                         oldest = min([X[1] for X in workers.values()])
                         signal.signal(signal.SIGALRM, mysig)
                         signal.alarm(max(int(timeout - (walltime()-oldest)), 1))
+
                     try:
                         pid = os.wait()[0]
                         signal.signal(signal.SIGALRM, signal.SIG_IGN)
+                        w = workers.pop(pid)
                     except RuntimeError:
                         signal.signal(signal.SIGALRM, signal.SIG_IGN)
                         # Kill workers that are too old
@@ -129,50 +157,43 @@ class p_iter_fork:
                                     print(
                                         "Killing subprocess %s with input %s which took too long"
                                          % (pid, X[0]) )
-                                    sys.stdout.flush()
-                                os.kill(pid,9)
+                                os.kill(pid, signal.SIGKILL)
                                 X[-1] = ' (timed out)'
+                    except KeyError:
+                        # Some other process exited, not our problem...
+                        pass
                     else:
-                        # If the computation was interrupted the pid
-                        # might not be in the workers list, in which
-                        # case we skip this.
-                        if pid in workers:
-                            # collect data from process that successfully terminated
-                            sobj = os.path.join(dir, '%s.sobj'%pid)
-                            if not os.path.exists(sobj):
-                                X = "NO DATA" + workers[pid][-1]  # the message field
-                            else:
-                                X = load(sobj, compress=False)
-                                os.unlink(sobj)
-                            out = os.path.join(dir, '%s.out'%pid)
-                            if not os.path.exists(out):
-                                output = "NO OUTPUT"
-                            else:
-                                output = open(out).read()
-                                os.unlink(out)
+                        # collect data from process that successfully terminated
+                        sobj = os.path.join(dir, '%s.sobj'%pid)
+                        if not os.path.exists(sobj):
+                            X = "NO DATA" + w[-1]  # the message field
+                        else:
+                            X = load(sobj, compress=False)
+                            os.unlink(sobj)
+                        out = os.path.join(dir, '%s.out'%pid)
+                        if not os.path.exists(out):
+                            output = "NO OUTPUT"
+                        else:
+                            output = open(out).read()
+                            os.unlink(out)
 
-                            if output.strip():
-                                print output,
-                                sys.stdout.flush()
+                        if output.strip():
+                            print output,
 
-                            yield (workers[pid][0], X)
-                            del workers[pid]
+                        yield (w[0], X)
 
-        except Exception, msg:
+        except Exception as msg:
             print msg
-            sys.stdout.flush()
 
         finally:
-
             # Clean up all temporary files.
             try:
                 for X in os.listdir(dir):
                     os.unlink(os.path.join(dir, X))
                 os.rmdir(dir)
-            except OSError, msg:
+            except OSError as msg:
                 if self.verbose:
                     print msg
-                    sys.stdout.flush()
 
             # Send "kill -9" signal to workers that are left.
             if len(workers) > 0:
@@ -181,12 +202,11 @@ class p_iter_fork:
                 sys.stdout.flush()
                 for pid in workers.keys():
                     try:
-                        os.kill(pid, 9)
-                    except OSError, msg:
+                        os.kill(pid, signal.SIGKILL)
+                        os.waitpid(pid, 0)
+                    except OSError as msg:
                         if self.verbose:
                             print msg
-                            sys.stdout.flush()
-                os.wait()
 
     def _subprocess(self, f, dir, x):
         """

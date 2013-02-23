@@ -2164,15 +2164,6 @@ class SimplicialComplex(GenericCellComplex):
         statement that the Stanley-Reisner ring of ``self`` is
         Cohen-Macaulay.
 
-        .. NOTE ::
-
-            This method, especially when it returns ``False``, may
-            print a message like ::
-
-                Exception OSError: (10, 'No child processes') in <generator object __call__ at 0x10c8e3af0>     ignored
-
-            This may be ignored.
-
         EXAMPLES:
 
         Spheres are Cohen-Macaulay::

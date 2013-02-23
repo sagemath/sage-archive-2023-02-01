@@ -291,6 +291,9 @@ ext_modules = [
               extra_compile_args = ['-std=c99'],
               libraries=['gmp']),
 
+    Extension('sage.ext.pselect',
+              sources = ['sage/ext/pselect.pyx']),
+
     ################################
     ##
     ## sage.finance

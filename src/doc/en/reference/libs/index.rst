@@ -28,13 +28,14 @@ to be aware of the modules described in this chapter.
    sage/libs/flint/fmpz_poly
    sage/libs/libecm
    sage/libs/lrcalc/lrcalc
-   sage/libs/pari/gen
    sage/libs/ntl/all
    sage/libs/mwrank/all
    sage/libs/mwrank/mwrank
    sage/libs/mwrank/interface
+   sage/libs/pari/gen
+   sage/libs/ppl
+   sage/ext/pselect
    sage/libs/singular/function
    sage/libs/singular/option
-   sage/libs/ppl
 
 .. include:: ../footer.txt

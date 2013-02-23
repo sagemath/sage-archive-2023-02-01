@@ -295,7 +295,6 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 
-import __builtin__
 from combinat import CombinatorialClass, CombinatorialObject, cyclic_permutations_iterator
 import tableau
 import permutation
@@ -570,7 +569,7 @@ class Partition(CombinatorialObject, Element):
         sage: Partition([1,2,3])
         Traceback (most recent call last):
         ...
-        ValueError: [1, 2, 3] is not a valid partition
+        ValueError: [1, 2, 3] is not an element of Partitions
 
     Sage ignores trailing zeros at the end of partitions::
 
@@ -592,7 +591,11 @@ class Partition(CombinatorialObject, Element):
         sage: Partition([3,0,2,2,2,1,0])
         Traceback (most recent call last):
         ...
-        ValueError: [3, 0, 2, 2, 2, 1, 0] is not a valid partition
+        ValueError: [3, 0, 2, 2, 2, 1, 0] is not an element of Partitions
+        sage: Partition([0,7,3])
+        Traceback (most recent call last):
+        ...
+        ValueError: [0, 7, 3] is not an element of Partitions
     """
     __metaclass__ = ClasscallMetaclass
 
@@ -668,22 +671,25 @@ class Partition(CombinatorialObject, Element):
             sage: Partition((3,1,7))
             Traceback (most recent call last):
             ...
-            ValueError: [3, 1, 7] is not a valid partition
+            ValueError: [3, 1, 7] is not an element of Partitions
         """
-        # strip all trailing zeros and check that the list is a partition
-        k = None
-        next = 0
-        for i in reversed(range(len(mu))):
-            if not (isinstance(mu[i], (int, Integer)) or mu[i] in ZZ) or mu[i] < 0 or mu[i] < next:
-                raise ValueError("%s is not a valid partition"%repr(mu))
-            if mu[i] == 0:
-                k = i
-            elif not isinstance(mu[i], (int, Integer)):
-                mu[i] = ZZ(mu[i]) # Make sure every element is an integer
-            next = mu[i]
+        if isinstance(mu, Partition):
+            Element.__init__(self, parent)
+            # Since we are (suppose to be) immutable, we can share the underlying data
+            CombinatorialObject.__init__(self, mu._list)
+            return
 
-        Element.__init__(self, parent)
-        CombinatorialObject.__init__(self, mu[:k])
+        elif len(mu)==0 or (all(mu[i] in NN and mu[i]>=mu[i+1] for i in xrange(len(mu)-1)) \
+                and mu[-1] in NN):
+            Element.__init__(self, parent)
+            if 0 in mu:
+                # strip all trailing zeros
+                CombinatorialObject.__init__(self, mu[:mu.index(0)])
+            else:
+                CombinatorialObject.__init__(self, mu)
+
+        else:
+            raise ValueError("%s is not a valid partition"%repr(mu))
 
     def _repr_(self, compact=False):
         r"""
@@ -3892,6 +3898,11 @@ class Partitions(UniqueRepresentation, Parent):
 
         sage: Partitions(max_part = 3)
         3-Bounded Partitions
+
+    Check that trac:`14145` has been fixed::
+
+        sage: 1 in Partitions()
+        False
     """
     @staticmethod
     def __classcall_private__(cls, n=None, **kwargs):
@@ -4023,12 +4034,47 @@ class Partitions(UniqueRepresentation, Parent):
             [3, 3, 1]
         """
         if isinstance(lst, Partition):
-            lst = list(lst)
-        elt = self.element_class(self, lst)
-        if elt not in self:
-            raise ValueError("%s not in %s"%(elt, self))
-        return elt
+            if lst.parent() is self:
+                return lst
+        if lst in self:
+            # Trailing zeros are removed in the element constructor
+            return self.element_class(self, lst)
 
+        raise ValueError('%s is not an element of %s'%(lst, self))
+
+    def __contains__(self, x):
+        """
+        Check if ``x`` is contained in ``self``.
+
+        TESTS::
+
+            sage: P = Partitions()
+            sage: Partition([2,1]) in P
+            True
+            sage: [2,1] in P
+            True
+            sage: [3,2,1] in P
+            True
+            sage: [1,2] in P
+            False
+            sage: [] in P
+            True
+            sage: [0] in P
+            True
+
+        Check that types that represent integers are not excluded::
+
+            sage: P = Partitions()
+            sage: [3/1, 2/2] in P
+            True
+            sage: Partition([3/1, 2]) in P
+            True
+        """
+        if isinstance(x, Partition):
+            return True
+        if isinstance(x, (list, tuple)):
+            return len(x) == 0 or (x[-1] in NN and
+                                   all(x[i] in NN and x[i] >= x[i+1] for i in xrange(len(x)-1)))
 
     def from_frobenius_coordinates(self, frobenius_coordinates):
         """
@@ -4154,7 +4200,7 @@ class Partitions(UniqueRepresentation, Parent):
             True
         """
         tmp = [i for i in range(len(seq)) if seq[i] == 0]
-        return Partition([tmp[i]-i for i in range(len(tmp)-1,-1,-1)])
+        return self.element_class(self,[tmp[i]-i for i in range(len(tmp)-1,-1,-1)])
 
     def from_core_and_quotient(self, core, quotient):
         """
@@ -4168,6 +4214,11 @@ class Partitions(UniqueRepresentation, Parent):
             [11, 5, 5, 3, 2, 2, 2]
 
         TESTS:
+
+            sage: Partitions().from_core_and_quotient([2,1], [[2,1],[2,3,1],[1,1,1]])
+            Traceback (most recent call last):
+            ...
+            ValueError: the quotient [[2, 1], [2, 3, 1], [1, 1, 1]] must be a tuple of partitions
 
         We check that :trac:`11412` is actually fixed::
 
@@ -4189,7 +4240,9 @@ class Partitions(UniqueRepresentation, Parent):
             ...       for mus in PartitionTuples(k,n_mus))
             True
         """
-        from partition_tuple import PartitionTuple
+        from partition_tuple import PartitionTuple, PartitionTuples
+        if not quotient in PartitionTuples():
+            raise ValueError('the quotient %s must be a tuple of partitions'%quotient)
         components = PartitionTuple(quotient).components()
         length = len(components)
         k = length*max(len(q) for q in components) + len(core)
@@ -4265,52 +4318,6 @@ class Partitions_all(Partitions):
             return self
         return Partitions(size, **kwargs)
 
-    def __contains__(self, x):
-        """
-        Check if ``x`` is contained in ``self``.
-
-        TESTS::
-
-            sage: P = Partitions()
-            sage: Partition([2,1]) in P
-            True
-            sage: [2,1] in P
-            True
-            sage: [3,2,1] in P
-            True
-            sage: [1,2] in P
-            False
-            sage: [] in P
-            True
-            sage: [0] in P
-            True
-
-        Check that types that represent integers are not excluded::
-
-            sage: P = Partitions()
-            sage: [3/1, 2/2] in P
-            True
-            sage: Partition([3/1, 2]) in P
-            True
-        """
-        if isinstance(x, Partition):
-            return True
-        elif isinstance(x, __builtin__.list):
-            for i in range(len(x)):
-                if not (isinstance(x[i], (int, Integer)) or x[i] in ZZ):
-                    return False
-                if x[i] < 0:
-                    return False
-                if i == 0:
-                    prev = x[i]
-                    continue
-                if x[i] > prev:
-                    return False
-                prev = x[i]
-            return True
-        else:
-            return False
-
     def _repr_(self):
         """
         Return a string representation of ``self``.
@@ -4374,8 +4381,7 @@ class Partitions_all_bounded(Partitions):
         """
         TESTS::
 
-            sage: from sage.combinat.partition import Partitions_all_bounded
-            sage: P = Partitions_all_bounded(3)
+            sage: P = Partitions(max_part=3)
             sage: Partition([2,1]) in P
             True
             sage: [2,1] in P
@@ -4390,21 +4396,16 @@ class Partitions_all_bounded(Partitions):
             True
             sage: [] in P
             True
-            sage: x in P
-            False
         """
-        try:
-            return _Partitions(x).get_part(0) <= self.k
-        except (ValueError, TypeError):
-            return False
+        return len(x) == 0 or (x[0] <= self.k and Partitions.__contains__(self, x))
 
-    def __repr__(self):
+    def _repr_(self):
         """
         TESTS::
 
             sage: from sage.combinat.partition import Partitions_all_bounded
-            sage: repr(Partitions_all_bounded(3))
-            '3-Bounded Partitions'
+            sage: Partitions_all_bounded(3)
+            3-Bounded Partitions
         """
         return "%d-Bounded Partitions"%self.k
 
@@ -6476,7 +6477,7 @@ def PartitionTuples_nk(n,k):
 
 # October 2012: fixing outdated pickles which use classes being deprecated
 from sage.structure.sage_object import register_unpickle_override
-from partition_tuple import PartitionTuples_level_size
+from sage.combinat.partition_tuple import PartitionTuples_level_size
 register_unpickle_override('sage.combinat.partition', 'PartitionTuples_nk', PartitionTuples_level_size)
 register_unpickle_override('sage.combinat.partition', 'Partition_class', Partition)
 register_unpickle_override('sage.combinat.partition', 'OrderedPartitions_nk', OrderedPartitions)

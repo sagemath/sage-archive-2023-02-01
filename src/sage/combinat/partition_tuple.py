@@ -244,7 +244,7 @@ subgroup::
 from cartesian_product import CartesianProduct
 from combinat import CombinatorialObject
 from integer_vector import IntegerVectors
-from partition import Partition, Partitions, Partitions_n, Partitions_all
+from partition import Partition, Partitions, Partitions_n, _Partitions
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.groups.perm_gps.permgroup import PermutationGroup
@@ -255,8 +255,6 @@ from sage.rings.integer import Integer
 from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-
-import tableau_tuple
 
 #--------------------------------------------------
 # Partition tuple - element class
@@ -518,6 +516,7 @@ class PartitionTuple(CombinatorialObject,Element):
             sage: PartitionTuples.global_options.reset()
         """
         if compact:
+            from sage.misc.superseded import deprecation
             deprecation(13605, 'compact option is deprecated. Use PartitionTuples.global_options instead.')
             return self._repr_compact_high()
 
@@ -828,7 +827,8 @@ class PartitionTuple(CombinatorialObject,Element):
             sage: PartitionTuple([[],[3,2,2,1],[2,2,1],[3]]).standard_tableaux()
             Standard tableau tuples of shape ([], [3, 2, 2, 1], [2, 2, 1], [3])
         """
-        return tableau_tuple.StandardTableauTuples(shape=self)
+        from tableau_tuple import StandardTableauTuples
+        return StandardTableauTuples(shape=self)
 
 
     def up(self):
@@ -1024,7 +1024,8 @@ class PartitionTuple(CombinatorialObject,Element):
             sage: PartitionTuple([ [2,1],[3,2] ]).initial_tableau()
             ([[1, 2], [3]], [[4, 5, 6], [7, 8]])
         """
-        return tableau_tuple.StandardTableauTuples(self).first()
+        from tableau_tuple import StandardTableauTuples
+        return StandardTableauTuples(self).first()
 
     def garnir_tableau(self, *cell):
         r"""
@@ -1095,7 +1096,8 @@ class PartitionTuple(CombinatorialObject,Element):
 
         if comp>=len(self) or row+1>=len(self[comp]) or col>=self[comp][row+1]:
             raise ValueError('(comp, row+1, col) must be inside the diagram')
-        g=tableau_tuple.TableauTuple(self.initial_tableau().to_list())
+        from tableau_tuple import TableauTuple
+        g = TableauTuple(self.initial_tableau().to_list())
         a=g[comp][row][col]
         g[comp][row][col:]=range(a+col+1,g[comp][row+1][col]+1)
         g[comp][row+1][:col+1]=range(a,a+col+1)
@@ -1180,7 +1182,8 @@ class PartitionTuple(CombinatorialObject,Element):
         # now we will put the number m,m+1,...,t[row+1][col] in order into t
         t[comp][row][col:a+col]=[m+col-b+1+i for i in range(a)]
         t[comp][row+1][col-b+1:col+1]=[m+a+col-b+1+i for i in range(b)]
-        return tableau_tuple.StandardTableauTuple(t)
+        from tableau_tuple import StandardTableauTuple
+        return StandardTableauTuple(t)
 
     def arm_length(self, k,r,c):
         """
@@ -1454,6 +1457,17 @@ class PartitionTuples(UniqueRepresentation, Parent):
         sage: TestSuite( PartitionTuples(size=6) ).run()
         sage: TestSuite( PartitionTuples(level=4, size=5) ).run()
 
+        sage: [ [2,1],[],[3] ] in PartitionTuples()
+        True
+        sage: ( [2,1],[],[3] ) in PartitionTuples()
+        True
+        sage: ( [] ) in PartitionTuples()
+        True
+
+    Check that trac:`14145` has been fixed::
+
+        sage: 1 in PartitionTuples()
+        False
     """
 
     @staticmethod
@@ -1495,6 +1509,10 @@ class PartitionTuples(UniqueRepresentation, Parent):
     Element = PartitionTuple
     global_options=Partitions.global_options
 
+    # default for level
+    _level=None
+    _size=None
+
     def _element_constructor_(self, mu):
         r"""
         Constructs an element of :class:`PartitionTuple`.
@@ -1522,7 +1540,6 @@ class PartitionTuples(UniqueRepresentation, Parent):
             ValueError: [[1, 2]] is not a Partition tuples of level 3
 
         """
-
         # one way or another these two cases need to be treated separately
         if mu==[] or mu==[[]]:
             return Partition([])
@@ -1542,10 +1559,33 @@ class PartitionTuples(UniqueRepresentation, Parent):
             else:
                 return self.element_class(self, mu)
 
-    # default for level
-    _level=None
-    _size=None
+    def __contains__(self,mu):
+        r"""
+        Return ``True`` if `\mu` is in ``self``.
 
+        TESTS::
+
+            sage: PartitionTuple([[3,2],[2]]) in PartitionTuples()
+            True
+            sage: PartitionTuple([[3,2],[],[],[],[2]]) in PartitionTuples()
+            True
+            sage: PartitionTuple([[2,1],[],[1,1],[],[2]]) in PartitionTuples()
+            True
+            sage: PartitionTuple([[2,1],[],[1,1],[],[3]]) in PartitionTuples()
+            True
+            sage: all(mu in PartitionTuples() for mu in PartitionTuples(3,8))
+            True
+
+        Check that :trac:`14145` is fixed::
+
+            sage: 1 in PartitionTuples()
+            False
+        """
+        if isinstance(mu, PartitionTuple) or isinstance(mu, Partition):
+            return True
+        if isinstance(mu, (tuple, list)):
+            return all(m in _Partitions for m in mu)
+        return False
 
     def __getitem__(self, r):
         r"""
@@ -1656,32 +1696,6 @@ class PartitionTuples_all(PartitionTuples):
         """
         return 'Partition tuples'
 
-
-    def __contains__(self,mu):
-        r"""
-        Return ``True`` if `\mu` is in ``self``.
-
-        TESTS::
-
-            sage: PartitionTuple([[3,2],[2]]) in PartitionTuples()
-            True
-            sage: PartitionTuple([[3,2],[],[],[],[2]]) in PartitionTuples()
-            True
-            sage: PartitionTuple([[2,1],[],[1,1],[],[2]]) in PartitionTuples()
-            True
-            sage: PartitionTuple([[2,1],[],[1,1],[],[3]]) in PartitionTuples()
-            True
-            sage: all(mu in PartitionTuples() for mu in PartitionTuples(3,8))
-            True
-        """
-        if isinstance(mu, PartitionTuple):
-            return True
-        try:
-            mu=PartitionTuple(mu)
-        except ValueError:
-            return False
-        return True
-
     def __iter__(self):
         r"""
         Iterate through the infinite class of partition tuples of arbitrary
@@ -1778,14 +1792,12 @@ class PartitionTuples_level(PartitionTuples):
             sage: all(mu in PartitionTuples(3) for mu in PartitionTuples(3,8))
             True
 
+        Check that :trac:`14145` is fixed::
+
+            sage: 1 in PartitionTuples(level=2)
+            False
         """
-        if isinstance(mu, PartitionTuple) and mu.level()==self.level():
-            return True
-        try:
-            mu=PartitionTuple(mu)
-        except ValueError:
-            return False
-        return mu.level()==self.level()
+        return PartitionTuples.__contains__(self, mu) and len(mu) == self.level()
 
     def __iter__(self):
         r"""
@@ -1879,14 +1891,13 @@ class PartitionTuples_size(PartitionTuples):
             sage: all(mu in PartitionTuples(size=8) for mu in PartitionTuples(3,8))
             True
 
+        Check that :trac:`14145` is fixed::
+
+            sage: 1 in PartitionTuples(size=7)
+            False
         """
-        if isinstance(mu, PartitionTuple) and mu.size()==self.size():
-            return True
-        try:
-            mu=PartitionTuple(mu)
-        except ValueError:
-            return False
-        return mu.size()==self.size()
+        return (mu in _Partitions and self.size() == sum(mu)) or \
+            (PartitionTuples.__contains__(self, mu) and self.size() == sum(map(sum, mu)))
 
     def __iter__(self):
         r"""
@@ -1981,14 +1992,14 @@ class PartitionTuples_level_size(PartitionTuples):
             False
             sage: all(mu in PartitionTuples(3,8) for mu in PartitionTuples(3,8))
             True
+
+        Check that :trac:`14145` is fixed::
+
+            sage: 1 in PartitionTuples(5,7)
+            False
         """
-        if isinstance(mu, PartitionTuple) and mu.level()==self.level() and mu.size()==self.size():
-            return True
-        try:
-            mu=PartitionTuple(mu)
-        except ValueError:
-            return False
-        return mu.level()==self.level() and mu.size()==self.size()
+        return (   (mu in Partitions() and self.size()==sum(mu) and self.level()==1)
+                or (mu in PartitionTuples() and self.size()==sum(map(sum,mu))) and self.level()==len(mu))
 
     def __iter__(self):
         r"""

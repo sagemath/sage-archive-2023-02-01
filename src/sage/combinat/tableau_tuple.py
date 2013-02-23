@@ -227,6 +227,8 @@ from sage.misc.sage_unittest import TestSuite
 from sage.rings.arith import factorial
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.integer import Integer
+from sage.rings.all import NN
+from sage.sets.positive_integers import PositiveIntegers
 from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -338,7 +340,7 @@ class TableauTuple(CombinatorialObject,Element):
         sage: TableauTuple([[1],[2,3]])
         Traceback (most recent call last):
         ...
-        ValueError: [[1], [2, 3]] is not a Tableau tuple
+        ValueError: A tableau must be a list of lists.
 
         sage: TestSuite( TableauTuple([ [[1,2],[3,4]], [[1,2],[3,4]] ]) ).run()
         sage: TestSuite( TableauTuple([ [[1,2],[3,4]], [], [[1,2],[3,4]] ]) ).run()
@@ -382,14 +384,14 @@ class TableauTuple(CombinatorialObject,Element):
             try:
                 t=[Tableau(t)]
             except ValueError:
-                raise ValueError, '%s is not a Tableau tuple' % t
+                pass
 
-        # note that because t is a list of tableaux it automatically
-        # has the shape of a PartitionTuple
         if len(t)==1:
             return Tableaux_all().element_class(Tableaux_all(),t[0])
         else:
             return TableauTuples_all().element_class(TableauTuples_all(),t)
+
+        raise ValueError( '%s is not a Tableau tuple' % t )
 
     def __init__(self, parent, t):
         r"""
@@ -1277,10 +1279,6 @@ class StandardTableauTuple(TableauTuple):
         if isinstance(t, (StandardTableau, StandardTableauTuple)):
             return t
 
-        # one way or another these two cases need to be treated separately
-        if t==[] or t==[[]]:
-            return StandardTableaux_all().element_class(StandardTableaux_all(),[])
-
         # The Tableau class is very general in that it allows the entries of a
         # tableau to be almost anything, including lists. For this reason we
         # first try and interpret t as a tuple of tableaux and if this fails we
@@ -1291,14 +1289,16 @@ class StandardTableauTuple(TableauTuple):
             try:
                 t=[StandardTableau(t)]
             except ValueError:
-                raise ValueError, '%s is not a Tableau tuple' % t
+                pass
 
-        # if t is a tableau of level 1 then we return StandardTableau(t)
         if len(t)==1:
             return StandardTableaux_all().element_class(StandardTableaux_all(),t[0])
         else:
-                        # if we are still here we return our standard tableau
             return StandardTableauTuples_all().element_class(StandardTableauTuples_all(),t)
+
+        raise ValueError( '%s is not a standard tableau tuple' % t )
+
+
 
     def __init__(self, parent, t):
         r"""
@@ -1334,22 +1334,22 @@ class StandardTableauTuple(TableauTuple):
             try:
                 t=[Tableau(t)]
             except ValueError:
-                raise ValueError, 'Not a valid StandardTableauTuple'
+                raise ValueError( 'Not a valid StandardTableauTuple' )
 
         TableauTuple.__init__(self, parent, t)
 
         # We still have to check that t is standard.
         if not all(s.is_row_strict() for s in t):
-            raise ValueError, 'tableaux must be row strict'
+            raise ValueError( 'tableaux must be row strict' )
 
         if not all(s.is_column_strict() for s in t):
-            raise ValueError, 'tableaux must be column strict'
+            raise ValueError( 'tableaux must be column strict' )
 
         # Finally, the more costly check that the entries are {1,2...n}
         entries=sum((s.entries() for s in t), [])
         entries.sort()
         if not entries==range(1,len(entries)+1):
-            raise ValueError, 'entries must be in bijection with {1,2,...,n}'
+            raise ValueError( 'entries must be in bijection with {1,2,...,n}' )
 
     def inverse(self,k):
         """
@@ -1372,7 +1372,7 @@ class StandardTableauTuple(TableauTuple):
                     return (l,row,self[l][row].index(k))
                 except ValueError:
                     pass
-        raise ValueError, '%s must be contained in the tableaux' % k
+        raise ValueError( '%s must be contained in the tableaux' % k )
 
     def content(self, k, multicharge):
         r"""
@@ -1422,7 +1422,7 @@ class StandardTableauTuple(TableauTuple):
                     return multicharge[l]-row+self[l][row].index(k)
                 except ValueError:
                     ValueError
-        raise ValueError, '%s must be contained in the tableaux' % k
+        raise ValueError( '%s must be contained in the tableaux' % k )
 
     def dominates(self, t):
         """
@@ -1624,8 +1624,14 @@ class TableauTuples(UniqueRepresentation, Parent):
         sage: TestSuite( TableauTuples(level=6, size=0) ).run()
         sage: TestSuite( TableauTuples(level=6, size=1) ).run()
         sage: TestSuite( TableauTuples(level=6, size=10) ).run()
+
+    Check that trac:`14145` has been fixed::
+
+        sage: 1 in TableauTuples()
+        False
     """
     Element = TableauTuple
+    level_one_parent_class = Tableaux_all  # used in element_constructor
     global_options=Tableaux.global_options
 
     @staticmethod
@@ -1653,11 +1659,11 @@ class TableauTuples(UniqueRepresentation, Parent):
             Tableau tuples of level 4 and size 3
         """
         # sanity testing
-        if level is not None and (not isinstance(level,(int,Integer)) or level<1):
-            raise ValueError, 'the level must be a positive integer'
+        if not (level==None or level in PositiveIntegers()):
+            raise ValueError( 'the level must be a positive integer' )
 
-        if size is not None and (not isinstance(size,(int,Integer)) or size<0):
-            raise ValueError, 'the size must be a non-negative integer'
+        if not (size==None or size in NN):
+            raise ValueError( 'the size must be a non-negative integer' )
 
         # now that the inputs appear to make sense, return the appropriate class
 
@@ -1704,9 +1710,12 @@ class TableauTuples(UniqueRepresentation, Parent):
             ...
             ValueError: [[1, 2]] is not an element of Tableau tuples of level 3
         """
+        if not t in self:
+            raise ValueError("%s is not an element of %s"%(t, self))
+
         # one way or another these two cases need to be treated separately
         if t==[] or t==[[]]:
-            return Tableaux_all().element_class(Tableaux_all(),[])
+            return self.level_one_parent_class().element_class(self.level_one_parent_class(),[])
 
         # Because Tableaux are considered to be TableauTuples we have to check to
         # see whether t is a Tableau or a TableauTuple in order to work out
@@ -1721,11 +1730,48 @@ class TableauTuples(UniqueRepresentation, Parent):
 
         if tab in self:
             if len(tab)==1:
-                return Tableaux_all().element_class(Tableaux_all(),tab[0])
+                return self.level_one_parent_class().element_class(self.level_one_parent_class(), tab[0])
             else:
-                return self.element_class(self,tab)
+                return self.element_class(self, tab)
 
-        raise ValueError, '%s is not an element of %s' % (t, self)
+        raise ValueError('%s is not an element of %s' % (t, self))
+
+    def __contains__(self, t):
+        """
+        Containment function of :class:`TableauTuples`.
+
+        EXAMPLES::
+
+            sage: T = TableauTuples()
+            sage: [[1,2],[3,4]] in T
+            True
+            sage: [[1,2],[3]] in T
+            True
+            sage: [] in T
+            True
+            sage: [['a','b']] in T
+            True
+            sage: Tableau([['a']]) in T
+            True
+
+            sage: [1,2,3] in T
+            False
+            sage: [[1],[1,2]] in T
+            False
+            sage: ([[1,2],[4]],[[2,3],[1],[1]]) in T
+            True
+
+        Check that :trac:`14145` is fixed::
+
+            sage: 1 in TableauTuples()
+            False
+        """
+        if isinstance(t, (Tableau, TableauTuple)):
+            return True
+        elif isinstance(t, (tuple, list)):
+            return all(s in Tableaux() for s in t) or t in Tableaux()
+        else:
+            return False
 
     # defaults for level, size and shape
     _level = None
@@ -1817,36 +1863,6 @@ class TableauTuples_all(TableauTuples):
         self._level=None
         self._size=None
 
-    def __contains__(self, t):
-        """
-        Containment function of :class:`TableauTuples`.
-
-        EXAMPLES::
-
-            sage: T = TableauTuples()
-            sage: [[1,2],[3,4]] in T
-            True
-            sage: [[1,2],[3]] in T
-            True
-            sage: [] in T
-            True
-            sage: [['a','b']] in T
-            True
-            sage: Tableau([['a']]) in T
-            True
-
-            sage: [1,2,3] in T
-            False
-            sage: [[1],[1,2]] in T
-            False
-        """
-        if not isinstance(t, self.element_class):
-            try:
-                t = TableauTuple(t)
-            except ValueError:
-                return False
-        return True
-
     def _repr_(self):
         """
         The string representation of a :class:`StandardTableauTuple`.
@@ -1902,13 +1918,23 @@ class TableauTuples_level(TableauTuples):
             ([[1, 2, 3]], [[1, 2], [3, 4]], [[2, 4], [1]])
             sage: [[2,4],[1,3]] in T
             False
+            sage: [[1],[2],[3]] in T
+            False
+
+        Check that :trac:`14145` is fixed::
+
+            sage: 1 in TableauTuples(3)
+            False
         """
-        if not isinstance(t, self.element_class):
-            try:
-                t = TableauTuple(t)
-            except ValueError:
-                return False
-        return t.level()==self.level()
+        if isinstance(t, self.element_class):
+            return self.level() == t.level()
+        elif TableauTuples.__contains__(self, t) or isinstance(t, (list, tuple)):
+            if all(s in Tableaux() for s in t):
+                return len(t) == self.level()
+            else:
+                return self.level() == 1
+        else:
+            return False
 
     def _repr_(self):
         """
@@ -1968,13 +1994,27 @@ class TableauTuples_size(TableauTuples):
             True
             sage: [[2,4],[1,3]] in T
             False
+            sage: [[1,2,3]] in T
+            True
+            sage: [[1],[2],[3]] in T
+            True
+            sage: [[1],[2],[3],[4]] in T
+            False
+
+        Check that :trac:`14145` is fixed::
+
+            sage: 1 in TableauTuples(size=3)
+            False
         """
-        if not isinstance(t, self.element_class):
-            try:
-                t = TableauTuple(t)
-            except ValueError:
-                return False
-        return t.size()==self.size()
+        if isinstance(t, self.element_class):
+            return self.size() == t.size()
+        elif TableauTuples.__contains__(self, t) or isinstance(t, (list, tuple)):
+            if all(s in Tableaux() for s in t):
+                return sum(sum(map(len,s)) for s in t) == self.size()
+            else:
+                return self.size() == sum(map(len,t))
+        else:
+            return False
 
     def _repr_(self):
         """
@@ -2041,13 +2081,21 @@ class TableauTuples_level_size(TableauTuples):
             True
             sage: [[2,4],[1,3]] in T
             False
+
+        Check that :trac:`14145` is fixed::
+
+            sage: 1 in TableauTuples(3,3)
+            False
         """
-        if not isinstance(t, self.element_class):
-            try:
-                t = self.element_class(self, t)
-            except ValueError:
-                return False
-        return self.level()==t.level() and self.size()==t.size()
+        if isinstance(t, self.element_class):
+            return t.level()==self.level() and t.size()==self.size()
+        elif TableauTuples.__contains__(self, t) or isinstance(t,(list, tuple)):
+            if all(s in Tableaux() for s in t):
+                return len(t)==self.level() and sum(sum(map(len,s)) for s in t)==self.size()
+            else:
+                return self.level()==1 and self.size()==sum(map(len,t))
+        else:
+            return False
 
     def _repr_(self):
         """
@@ -2195,6 +2243,7 @@ class StandardTableauTuples(TableauTuples):
         - :class:`StandardTableauTuples`
     """
     Element = StandardTableauTuple
+    level_one_parent_class = StandardTableaux_all  # used in element_constructor
 
     @staticmethod
     def __classcall_private__(cls, *args, **kwargs):
@@ -2230,25 +2279,25 @@ class StandardTableauTuples(TableauTuples):
 
         for key in kwargs:
             if key not in ['level','shape','size']:
-                raise ValueError, '%s is not a valid argument for StandardTableauTuples' % key
+                raise ValueError( '%s is not a valid argument for StandardTableauTuples' % key )
 
         # now process the positional arguments
         if args:
             #the first argument could be either the level or the shape
             if isinstance(args[0], (int, Integer)):
                 if level is not None:
-                    raise ValueError, 'the level was specified more than once'
+                    raise ValueError( 'the level was specified more than once' )
                 else:
                     level=args[0]
             else:
                 if shape is not None:
-                    raise ValueError, 'the shape was specified more than once'
+                    raise ValueError( 'the shape was specified more than once' )
                 else:
                     shape=args[0]   # we check that it is a PartitionTuple below
 
         if len(args)==2:  # both the level and size were specified
             if level is not None and size is not None:
-                raise ValueError, 'the level or size was specified more than once'
+                raise ValueError( 'the level or size was specified more than once' )
             else:
                 size=args[1]
         elif len(args)>2:
@@ -2265,7 +2314,7 @@ class StandardTableauTuples(TableauTuples):
             try:
                 shape=PartitionTuple(shape)
             except ValueError:
-                raise ValueError, 'the shape must be a partition tuple'
+                raise ValueError( 'the shape must be a partition tuple' )
 
             if level is None:
                 level=shape.level()
@@ -2294,59 +2343,6 @@ class StandardTableauTuples(TableauTuples):
             return StandardTableauTuples_size(size)
         else:
             return StandardTableauTuples_all()
-
-    def _element_constructor_(self, t):
-        r"""
-        Constructs an object from ``t`` as an element of ``self``, if
-        possible. This is inherited by all :class:`TableauTuples`,
-        :class:`StandardTableauTuples`, and :class:`StandardTableauTuples` classes.
-
-        We override the ``_element_constructor_`` from :class:`TableauTuples`
-        because the default level one element class is now
-        :class:`StandardTableau` rather than :class:`Tableau`.
-
-        INPUT:
-
-        - ``t`` -- Data which can be interpreted as a tableau
-
-        OUTPUT:
-
-        - The corresponding tableau object
-
-        EXAMPLES::
-
-            sage: T = StandardTableauTuples(3)
-            sage: T([[],[[1,2,3]],[]]).parent() is T    # indirect doctest
-            True
-            sage: T( TableauTuples(3)([[],[[1, 2, 3]],[]])).parent() is T
-            True
-            sage: T([[1,2]])
-            Traceback (most recent call last):
-            ...
-            ValueError: [[1, 2]] is not an element of Standard tableau tuples of level 3
-        """
-        # one way or another these two cases need to be treated separately
-        if t==[] or t==[[]]:
-            return StandardTableaux_all().element_class(StandardTableaux_all(),[])
-
-        # Because Tableaux are considered to be TableauTuples we have to check to
-        # see whether t is a Tableau or a TableauTuple in order to work out
-        # which class t really belongs to.
-        try:
-            tab=[Tableau(s) for s in t]
-        except (TypeError,ValueError):
-            try:
-                tab=[Tableau(t)]
-            except ValueError:
-                pass
-
-        if tab in self:
-            if len(tab)==1:
-                return StandardTableaux_all().element_class(StandardTableaux_all(),tab[0])
-            else:
-                return self.element_class(self,tab)
-
-        raise ValueError, '%s is not an element of %s' % (t, self)
 
 
     def __getitem__(self, r):
@@ -2379,9 +2375,9 @@ class StandardTableauTuples(TableauTuples):
             start=0 if r.start is None else r.start
             stop=r.stop
             if stop is None and not self.is_finite():
-                raise ValueError, 'infinite set'
+                raise ValueError( 'infinite set' )
         else:
-            raise ValueError, 'r must be an integer or a slice'
+            raise ValueError( 'r must be an integer or a slice' )
         count=0
         tabs=[]
         for t in self:
@@ -2394,7 +2390,49 @@ class StandardTableauTuples(TableauTuples):
         # this is to cope with empty slices endpoints like [:6] or [:}
         if count==stop or stop is None:
             return tabs
-        raise IndexError, 'value out of range'
+        raise IndexError('value out of range')
+
+    def __contains__(self, t):
+        """
+        Containment function for :class:`StandardTableauTuples` of arbitrary
+        ``level`` and ``size``.
+
+        EXAMPLES::
+
+            sage: T = StandardTableauTuples()
+            sage: [[1,3],[2]] in T
+            True
+            sage: [] in T
+            True
+            sage: Tableau([[1]]) in T
+            True
+            sage: StandardTableauTuple([[1]]) in T
+            True
+
+            sage: [[1,2],[1]] in T
+            False
+            sage: [[1,1],[5]] in T
+            False
+
+        Check that :trac:`14145` is fixed::
+
+            sage: 1 in StandardTableauTuples()
+            False
+        """
+        if isinstance(t, (StandardTableau, StandardTableauTuple)):
+            return True
+        elif TableauTuples.__contains__(self, t) or isinstance(t, (list, tuple)):
+            if all(s in Tableaux() for s in t):
+                flatt=sorted(sum((list(row) for s in t for row in s),[]))
+                return flatt==range(1,len(flatt)+1) and all(len(x)==0 or
+                  (all(row[i]<row[i+1] for row in x for i in range(len(row)-1))
+                      and all(x[r][c]<x[r+1][c] for c in range(len(x[0]))
+                                                for r in range(len(x)-1) if len(x[r+1])>c)
+                      ) for x in t)
+            else:
+                return t in StandardTableaux()
+        else:
+            return False
 
     # set the default shape
     _shape = None
@@ -2444,36 +2482,6 @@ class StandardTableauTuples_all(StandardTableauTuples):
             Standard tableau tuples
         """
         super(StandardTableauTuples_all, self).__init__(category=InfiniteEnumeratedSets())
-
-    def __contains__(self, t):
-        """
-        Containment function for :class:`StandardTableauTuples` of arbitrary
-        ``level`` and ``size``.
-
-        EXAMPLES::
-
-            sage: T = StandardTableauTuples()
-            sage: [[1,3],[2]] in T
-            True
-            sage: [] in T
-            True
-            sage: Tableau([[1]]) in T
-            True
-            sage: StandardTableauTuples([[1]]) in T
-            True
-
-            sage: [[1,2],[1]] in T
-            False
-            sage: [[1,1],[5]] in T
-            False
-        """
-        if not isinstance(t, self.element_class):
-            try:
-                t = StandardTableauTuple(t)
-            except ValueError:
-                return False
-
-        return True
 
     def _repr_(self):
         """
@@ -2576,14 +2584,22 @@ class StandardTableauTuples_level(StandardTableauTuples):
             False
             sage: [] in T
             False
-        """
-        if not isinstance(t, self.element_class):
-            try:
-                t = StandardTableauTuple(t)
-            except ValueError:
-                return False
 
-        return t.level()==self.level()
+        Check that :trac:`14145` is fixed::
+
+            sage: 1 in StandardTableauTuples(3)
+            False
+        """
+        if isinstance(t, StandardTableauTuple):
+            return self.level() == t.level()
+        elif StandardTableauTuples.__contains__(self, t):
+            if all(s in Tableaux() for s in t):
+                return len(t)==self.level()
+            else:
+                return self.level()==1
+        else:
+            return False
+
 
     def __iter__(self):
         """
@@ -2675,14 +2691,21 @@ class StandardTableauTuples_size(StandardTableauTuples):
             False
             sage: Tableau([[1]]) in T
             False
-        """
-        if not isinstance(t, self.element_class):
-            try:
-                t = StandardTableauTuple(t)
-            except ValueError:
-                return False
 
-        return t.size()==self.size()
+        Check that :trac:`14145` is fixed::
+
+            sage: 1 in StandardTableauTuples(size=3)
+            False
+        """
+        if isinstance(t, self.element_class):
+            return self.size()==t.size()
+        elif t in StandardTableauTuples():
+            if all(s in Tableaux() for s in t):
+                return sum(sum(map(len,s)) for s in t)==self.size()
+            else:
+                return self.size()==sum(map(len,t))
+        else:
+            return False
 
     def __iter__(self):
         """
@@ -2795,14 +2818,21 @@ class StandardTableauTuples_level_size(StandardTableauTuples):
             False
             sage: Tableau([[1]]) in tabs
             False
-        """
-        if not isinstance(t, self.element_class):
-            try:
-                t = StandardTableauTuple(t)
-            except ValueError:
-                return False
 
-        return t.level()==self.level() and t.size()==self.size()
+        Check that :trac:`14145` is fixed::
+
+            sage: 1 in StandardTableauTuples(level=4, size=3)
+            False
+        """
+        if isinstance(t, self.element_class):
+            return self.size()==t.size() and self.level()==t.level()
+        elif t in StandardTableauTuples():
+            if all(s in Tableaux() for s in t):
+                return len(t)==self.level() and  sum(sum(map(len,s)) for s in t)==self.size()
+            else:
+                return self.level()==1 and self.size()==sum(map(len,t))
+        else:
+            return False
 
     def cardinality(self):
         """
@@ -2906,15 +2936,25 @@ class StandardTableauTuples_shape(StandardTableauTuples):
             sage: STT = StandardTableauTuples([[2,1],[1]])
             sage: [[[13, 67]], [[14,67]]] in STT
             False
+            sage: [[[1, 4],[3]], [[2]]] in STT
+            True
             sage: ([[1, 4],[3]], [[2]]) in STT
             True
+
+        Check that :trac:`14145` is fixed::
+
+            sage: 1 in StandardTableauTuples([[2,1],[1]])
+            False
         """
-        if not isinstance(t, self.element_class):
-            try:
-                t = StandardTableauTuple(t)
-            except ValueError:
-                return False
-        return t.shape()==self.shape()
+        if isinstance(t, self.element_class):
+            return self.shape()==t.shape()
+        elif t in StandardTableauTuples():
+            if all(s in Tableaux() for s in t):
+                return [map(len,s) for s in t]==self.shape()
+            else:
+                return list(self.shape())==sum(map(len,t))
+        else:
+            return False
 
     def _repr_(self):
         """

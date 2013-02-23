@@ -1365,7 +1365,7 @@ class CombinatorialClass(Parent):
             sage: p5([2,1])
             Traceback (most recent call last):
             ...
-            ValueError: [2, 1] not in Partitions of the integer 5
+            ValueError: [2, 1] is not an element of Partitions of the integer 5
         """
         if x in self:
             return self._element_constructor_(x)

@@ -2525,6 +2525,9 @@ class FinitePoset(UniqueRepresentation, Parent):
             particular, ``P`` and ``Q`` share the same internal Hasse
             diagram.
         """
+        from sage.misc.stopgap import stopgap
+        stopgap("Relabelling posets is known to break equality between posets (P == Q)", 14019)
+
         assert not isinstance(relabelling, (tuple, list)), "relabelling by tuple or list not yet defined"
         if isinstance(relabelling, dict):
             relabelling = relabelling.__getitem__

@@ -5512,6 +5512,8 @@ class Graph(GenericGraph):
           vol 4, number 1, pages 41--59, 2010
           http://www.lirmm.fr/~paul/md-survey.pdf
         """
+        from sage.misc.stopgap import stopgap
+        stopgap("Graph.modular_decomposition is known to return wrong results",13744)
 
         from sage.graphs.modular_decomposition.modular_decomposition import modular_decomposition
 

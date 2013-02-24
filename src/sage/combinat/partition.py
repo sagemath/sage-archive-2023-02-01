@@ -1,4 +1,3 @@
-
 r"""
 Partitions
 
@@ -2719,12 +2718,22 @@ class Partition(CombinatorialObject, Element):
 
         The full `0-1` sequence is the sequence (infinite in both
         directions) indicating the steps taken when following the
-        outer rim of the diagram of the partition. In the English
-        notation, a 1 corresponds to an East step, while a 0
-        corresponds to a North step.
+        outer rim of the diagram of the partition. We use the convention
+        that in English convention, a 1 corresponds to an East step, and
+        a 0 corresponds to a North step.
 
-        Every full `0-1` sequence starts with infinitely many 0's and
+        Note that every full `0-1` sequence starts with infinitely many 0's and
         ends with infinitely many 1's.
+
+        One place where these arise is in the affine symmetric group where
+        one takes an affine permutation `w` and every `i` such that
+        `w(i) \leq 0` corresponds to a 1 and `w(i) > 0` corresponds to a 0.
+        See pages 24-25 of [LLMMSZ13]_ for connections to affine Grassmannian
+        elements (note there they use the French convention for their
+        partitions).
+
+        These are also known as **path sequences**, **Maya diagrams**,
+        **plus-minus diagrams**, **Comet code** [Sta1999]_, among others.
 
         OUTPUT:
 
@@ -2732,6 +2741,12 @@ class Partition(CombinatorialObject, Element):
         sequence by omitting all heading 0's and trailing 1's. The
         output sequence is finite, starts with a 1 and ends with a
         0 (unless it is empty, for the empty partition).
+
+        REFERENCES:
+
+        .. [LLMMSZ13] Thomas Lam, Luc Laponte, Jennifer Morse, Anne Schilling,
+           Mark Shimozono, and Mike Zabrocki. `k`-Schur Functions and Affine
+           Schubert Calculus. 2013. :arxiv:`1301.3569`.
 
         EXAMPLES::
 
@@ -4126,14 +4141,20 @@ class Partitions(UniqueRepresentation, Parent):
 
     def from_zero_one(self, seq):
         r"""
-        Returns a partition from its `0-1` sequence.
+        Return a partition from its `0-1` sequence.
 
         The full `0-1` sequence is the sequence (infinite in both
-        directions) indicating the steps taken when following the outer
-        rim of the diagram of the partition. In the English notation, a 1
-        corresponds to an East step, while a 0 corresponds to a North
-        step. Every `0-1` sequence starts with infinitely many 0's and ends
-        with infinitely many 1's.
+        directions) indicating the steps taken when following the
+        outer rim of the diagram of the partition. We use the convention
+        that in English convention, a 1 corresponds to an East step, and
+        a 0 corresponds to a North step.
+
+        Note that every full `0-1` sequence starts with infinitely many 0's and
+        ends with infinitely many 1's.
+
+        .. SEEALSO::
+
+            :meth:`Partition.zero_one_sequence()`
 
         INPUT:
 

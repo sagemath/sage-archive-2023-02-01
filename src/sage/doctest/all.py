@@ -1,1 +1,2 @@
-from control import run_doctests
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.doctest.control', 'run_doctests')

@@ -56,7 +56,7 @@ import os, select
 
 
 def test_executable(args, input="", timeout=50.0, cwd=None):
-    """
+    r"""
     Run the program defined by ``args`` using the string ``input`` on
     the standard input.
 
@@ -294,7 +294,7 @@ def test_executable(args, input="", timeout=50.0, cwd=None):
     Testing ``sage --preparse FILE`` and ``sage -t FILE``.  First create
     a file and preparse it::
 
-        sage: s = '\"\"\"\nThis is a test file.\n\"\"\"\ndef my_add(a,b):\n    \"\"\"\n    Add a to b.\n\n        EXAMPLES::\n\n            sage: my_add(2,2)\n            4\n        \"\"\"\n    return a+b\n'
+        sage: s = "'''\nThis is a test file.\n'''\ndef my_add(a,b):\n    '''\n    Add a to b.\n\n        EXAMPLES::\n\n            sage: my_add(2,2)\n            4\n        '''\n    return a + b\n"
         sage: script = os.path.join(tmp_dir(), 'my_script.sage')
         sage: script_py = script[:-5] + '.py'
         sage: F = open(script, 'w')
@@ -319,22 +319,61 @@ def test_executable(args, input="", timeout=50.0, cwd=None):
         sage: out.find("All tests passed!") >= 0
         True
 
-    Now for a file which should fail tests.  Run this test with
-    SAGE_TESTDIR equal to a temporary directory, because failed doctests
-    leave files lying around in SAGE_TESTDIR::
+    Now for a file which should fail tests::
 
         sage: s = s.replace('4', '5') # (2+2 != 5)
         sage: F = open(script, 'w')
         sage: F.write(s)
         sage: F.close()
-        sage: OLD_TESTDIR = os.environ['SAGE_TESTDIR']
-        sage: os.environ['SAGE_TESTDIR'] = tmp_dir()
         sage: (out, err, ret) = test_executable(["sage", "-t", script])
         sage: ret
-        128
+        1
         sage: out.find("1 item had failures:") >= 0
         True
-        sage: os.environ['SAGE_TESTDIR'] = OLD_TESTDIR  # just in case
+
+    Test ``sage -t --debug -p 2`` on a ReST file, the ``-p 2`` should
+    be ignored. In Pdb, we run the ``help`` command::
+
+        sage: s = "::\n\n    sage: assert True == False\n    sage: 2 + 2\n    5"
+        sage: script = tmp_filename(ext='.rst')
+        sage: F = open(script, 'w')
+        sage: F.write(s)
+        sage: F.close()
+        sage: (out, err, ret) = test_executable(["sage", "-t", "--debug", "-p", "2", script], "help")
+        sage: print out
+        Debugging requires single-threaded operation, setting number of threads to 1.
+        Running doctests with ID...
+        Doctesting 1 file.
+        sage -t ...
+        **********************************************************************
+        File "...", line 3, in ...
+        Failed example:
+            assert True == False
+        Exception raised:
+            Traceback (most recent call last):
+            ...
+            AssertionError
+        > <doctest ...>(1)<module>()
+        -> assert True == False
+        (Pdb)
+        Documented commands (type help <topic>):
+        ========================================
+        ...
+        **********************************************************************
+        File "...", line 4, in ...
+        Failed example:
+            2 + 2
+        Expected:
+            5
+        Got:
+            4
+        **********************************************************************
+        1 item had failures:
+           2 of   3 in ...
+            [2 tests, 2 failures, ...]
+        ...
+        sage: ret
+        1
 
     Check that Sage refuses to run doctests from a directory whose
     permissions are too loose.  We create a world-writable directory

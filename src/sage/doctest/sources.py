@@ -47,7 +47,8 @@ find_prompt = re.compile(r"^(\s*)(>>>|sage:)(.*)")
 
 # For testing that enough doctests are created
 sagestart = re.compile(r"^\s*(>>> |sage: )\s*[^#\s]")
-untested = re.compile("(not implemented|not tested|known bug)")
+untested = re.compile("(not implemented|not tested)")
+
 
 def get_basename(path):
     """
@@ -96,7 +97,7 @@ class DocTestSource(object):
 
     INPUT:
 
-    - ``long`` -- whether to execute tests marked as #long
+    - ``long`` -- whether to execute tests marked as ``# long time``
 
     - ``optional`` -- either True or a set of optional tags to execute
 
@@ -165,7 +166,6 @@ class DocTestSource(object):
 
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.doctest.parsing import SageDocTestParser
-            sage: from sage.doctest.util import NestedName
             sage: import os
             sage: filename = os.path.join(os.environ['SAGE_ROOT'],'devel','sage','sage','doctest','util.py')
             sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
@@ -179,11 +179,10 @@ class DocTestSource(object):
         """
         docstring = "".join(doc)
         new_doctests = self.parse_docstring(docstring, namespace, start)
-        #print "New tests! %s"%len(new_doctests)
         for dt in new_doctests:
             if len(dt.examples) > 0 and not (hasattr(dt.examples[-1],'sage_source')
                                              and dt.examples[-1].sage_source == "sig_on_count()\n"):
-                sigon = doctest.Example("sig_on_count()\n", "0\n", lineno=100000 + len(doc))
+                sigon = doctest.Example("sig_on_count()\n", "0\n")
                 sigon.sage_source = "sig_on_count()\n"
                 dt.examples.append(sigon)
             doctests.append(dt)
@@ -311,7 +310,7 @@ class StringDocTestSource(DocTestSource):
     - ``source`` -- a string, giving the source code to be parsed for
       doctests.
 
-    - ``long`` -- whether to execute tests marked as #long
+    - ``long`` -- whether to execute tests marked as ``# long time``
 
     - ``optional`` -- either True or a set of optional tags to execute
 
@@ -417,7 +416,7 @@ class FileDocTestSource(DocTestSource):
     - ``force_lib`` -- bool, whether this file shoule be considered
       part of the Sage library
 
-    - ``long`` -- whether to execute tests marked as #long
+    - ``long`` -- whether to execute tests marked as ``# long time``
 
     - ``optional`` -- either True or a set of optional tags to execute
 
@@ -472,11 +471,9 @@ class FileDocTestSource(DocTestSource):
         EXAMPLES::
 
             sage: from sage.doctest.sources import FileDocTestSource
-            sage: import os
-            sage: filename = os.path.join(SAGE_TMP, 'test.py')
+            sage: filename = tmp_filename(ext=".py")
             sage: s = "'''\n    sage: 2 + 2\n    4\n'''"
-            sage: with open(filename, 'w') as F:
-            ....:     F.write(s)
+            sage: open(filename, 'w').write(s)
             sage: FDS = FileDocTestSource(filename, False, False, set(['sage']), False)
             sage: for n, line in FDS:
             ....:     print n, line,
@@ -629,7 +626,7 @@ class FileDocTestSource(DocTestSource):
         self.qualified_name = NestedName(self.basename)
         return self._create_doctests(namespace)
 
-    def _test_enough_doctests(self, check_extras = True, verbose = True):
+    def _test_enough_doctests(self, check_extras=True, verbose=True):
         """
         This function checks to see that the doctests are not getting
         unexpectedly skipped.  It uses a different (and simpler) code
@@ -649,21 +646,22 @@ class FileDocTestSource(DocTestSource):
         TESTS::
 
             sage: from sage.doctest.sources import FileDocTestSource
-            sage: sage_loc = os.path.join(os.environ['SAGE_ROOT'],'devel','sage','sage')
-            sage: doc_loc = os.path.join(os.environ['SAGE_ROOT'],'devel','sage','doc')
+            sage: os.chdir(os.path.join(os.environ['SAGE_ROOT'],'devel','sage'))
             sage: import itertools
-            sage: for path, dirs, files in itertools.chain(os.walk(sage_loc), os.walk(doc_loc)): # long time
+            sage: for path, dirs, files in itertools.chain(os.walk('sage'), os.walk('doc')): # long time
             ....:     path = os.path.relpath(path)
+            ....:     dirs.sort(); files.sort()
             ....:     for F in files:
             ....:         _, ext = os.path.splitext(F)
-            ....:         if ext in ('.py', '.pyx', '.sage', '.spyx', '.rst', '.tex'):
+            ....:         if ext in ('.py', '.pyx', '.sage', '.spyx', '.rst'):
             ....:             filename = os.path.join(path, F)
             ....:             FDS = FileDocTestSource(filename, True, True, True, False)
             ....:             FDS._test_enough_doctests(verbose=False)
-            There are 3 unexpected tests being run in .../sage/doctest/parsing.py
-            There are 1 tests in .../sage/ext/c_lib.pyx that are not being run
-            There are 2 tests in .../sage/server/notebook/worksheet.py that are not being run
-            There are 5 tests in .../doc/en/tutorial/interfaces.rst that are not being run
+            There are 3 unexpected tests being run in sage/doctest/parsing.py
+            There are 1 tests in sage/ext/c_lib.pyx that are not being run
+            There are 9 tests in sage/graphs/graph_plot.py that are not being run
+            There are 2 tests in sage/server/notebook/worksheet.py that are not being run
+            doctest:229: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
         """
         expected = []
         rest = isinstance(self, RestSource)
@@ -691,14 +689,13 @@ class FileDocTestSource(DocTestSource):
                         in_block = True
                         starting_indent = whitespace.match(line).end()
                 last_line = line
-            ## print (not rest or in_block), bool(sagestart.match(line)), ((rest and skipping) or untested.search(line.lower())), line
             if (not rest or in_block) and sagestart.match(line) and not ((rest and skipping) or untested.search(line.lower())):
                 expected.append(lineno+1)
         actual = []
         tests, _ = self.create_doctests({})
         for dt in tests:
             if len(dt.examples) > 0:
-                for ex in dt.examples[:-1]: # the last entry is a sig_on()
+                for ex in dt.examples[:-1]: # the last entry is a sig_on_count()
                     actual.append(dt.lineno + ex.lineno + 1)
         shortfall = sorted(list(set(expected).difference(set(actual))))
         extras = sorted(list(set(actual).difference(set(expected))))

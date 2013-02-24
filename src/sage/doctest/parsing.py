@@ -12,9 +12,11 @@ AUTHORS:
 #                          William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 import re, sys
 import doctest
@@ -22,7 +24,7 @@ from sage.misc.preparser import preparse
 from Cython.Build.Dependencies import strip_string_literals
 
 float_regex = re.compile('([+-]?((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
-optional_regex = re.compile(r'(long time|not implemented|not tested|known bug)|(optional\s*[:-]?\s*(\w*))')
+optional_regex = re.compile(r'(long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
 find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
 find_sage_continuation = re.compile(r"^(\s*)\.\.\.\.:", re.M)
 random_marker = re.compile('.*random', re.I)
@@ -44,14 +46,29 @@ def parse_optional_tags(string):
     EXAMPLES::
 
         sage: from sage.doctest.parsing import parse_optional_tags
-        sage: parse_optional_tags("    sage: magma('2 + 2') # optional: magma")
+        sage: parse_optional_tags("sage: magma('2 + 2')# optional: magma")
         set(['magma'])
-        sage: sorted(list(parse_optional_tags("    sage: factor(10^(10^10) + 1) # long time, not tested")))
-        ['long time', 'not tested']
+        sage: parse_optional_tags("sage: #optional -- mypkg")
+        set(['mypkg'])
+        sage: parse_optional_tags("sage: print(1)  # parentheses are optional here")
+        set([])
+        sage: parse_optional_tags("sage: print(1)  # optional")
+        set([''])
+        sage: sorted(list(parse_optional_tags("sage: #optional -- foo bar, baz")))
+        ['bar', 'foo']
+        sage: sorted(list(parse_optional_tags("    sage: factor(10^(10^10) + 1) # LoNg TiME, NoT TeSTED; OptioNAL -- P4cka9e")))
+        ['long time', 'not tested', 'p4cka9e']
         sage: parse_optional_tags("    sage: raise RuntimeError # known bug")
         set(['known bug'])
         sage: sorted(list(parse_optional_tags("    sage: determine_meaning_of_life() # long time, not implemented")))
         ['long time', 'not implemented']
+
+    We don't parse inside strings::
+
+        sage: parse_optional_tags("    sage: print '  # long time'")
+        set([])
+        sage: parse_optional_tags("    sage: print '  # long time'  # not tested")
+        set(['not tested'])
     """
     safe, literals = strip_string_literals(string)
     first_line = safe.split('\n', 1)[0]
@@ -59,8 +76,15 @@ def parse_optional_tags(string):
         return set()
     comment = first_line[first_line.find('#')+1:]
     # strip_string_literals replaces comments
-    comment = literals[comment]
-    return set(m.group(1) or m.group(3) for m in optional_regex.finditer(comment.lower()))
+    comment = "#" + (literals[comment]).lower()
+
+    tags = []
+    for m in optional_regex.finditer(comment):
+        if m.group(1):
+            tags.append(m.group(1))
+        else:
+            tags.extend(m.group(3).split() or [""])
+    return set(tags)
 
 def parse_tolerance(source, want):
     """
@@ -616,6 +640,20 @@ class SageOutputChecker(doctest.OutputChecker):
             False
             sage: OC.check_output(zerorel,ten,optflag)
             False
+
+        TESTS:
+
+        More explicit tolerance checks::
+
+            sage: _ = x  # rel tol 1e10
+            sage: raise RuntimeError   # rel tol 1e10
+            Traceback (most recent call last):
+            ...
+            RuntimeError
+            sage: 1  # abs tol 2
+            -0.5
+            sage: print "1.000009"   # abs tol 1e-5
+            1.0
         """
         if isinstance(want, MarkedOutput):
             if want.random:

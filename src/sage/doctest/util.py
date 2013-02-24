@@ -12,11 +12,12 @@ AUTHORS:
 #                          William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import re
+
 from sage.misc.misc import walltime, cputime
 
 def count_noun(number, noun, plural=None, pad_number=False, pad_noun=False):
@@ -55,6 +56,39 @@ def count_noun(number, noun, plural=None, pad_number=False, pad_noun=False):
         if plural is None:
             plural = "%ss"%(noun)
         return "%s %s"%(number_str, plural)
+
+
+def dict_difference(self, other):
+    """
+    Return a dict with all key-value pairs occuring in ``self`` but not
+    in ``other``.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.util import dict_difference
+        sage: d1 = {1: 'a', 2: 'b', 3: 'c'}
+        sage: d2 = {1: 'a', 2: 'x', 4: 'c'}
+        sage: dict_difference(d2, d1)
+        {2: 'x', 4: 'c'}
+
+    ::
+
+        sage: from sage.doctest.control import DocTestDefaults
+        sage: D1 = DocTestDefaults()
+        sage: D2 = DocTestDefaults(foobar="hello", timeout=100)
+        sage: dict_difference(D2.__dict__, D1.__dict__)
+        {'foobar': 'hello', 'timeout': 100}
+    """
+    D = dict()
+    for (k,v) in self.iteritems():
+        try:
+            if other[k] == v:
+                continue
+        except KeyError:
+            pass
+        D[k] = v
+    return D
+
 
 class Timer:
     """
@@ -435,7 +469,7 @@ class NestedName:
 
     def __cmp__(self, other):
         """
-        Comparison ist just comparison of the underlying lists.
+        Comparison is just comparison of the underlying lists.
 
         EXAMPLES::
 

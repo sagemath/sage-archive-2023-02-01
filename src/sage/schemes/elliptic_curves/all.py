@@ -24,6 +24,9 @@ from constructor import (EllipticCurve,
                          EllipticCurve_from_plane_curve,
                          EllipticCurves_with_good_reduction_outside_S)
 
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.schemes.elliptic_curves.jacobian', 'Jacobian')
+
 from ell_generic import is_EllipticCurve
 
 from ell_rational_field import cremona_curves, cremona_optimal_curves

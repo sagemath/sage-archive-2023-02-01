@@ -131,7 +131,8 @@ else
 
     cd "$CUR"
     mkdir "$DEVEL/sage-main"
-    cp -pr * .hg* "$DEVEL/sage-main/"
+    # tar is the most portable way to copy files. See #14166.
+    tar cf - * .hg* | (cd "$DEVEL/sage-main/" && tar xfp -)
 
     cd "$DEVEL"
     rm -rf sage

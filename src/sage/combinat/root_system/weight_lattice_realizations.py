@@ -272,6 +272,16 @@ class WeightLatticeRealizations(Category_over_base_ring):
                     tester.assertEqual(self(domain.fundamental_weight(i)), Lambda[i])
                 if self.cartan_type().is_affine():
                     tester.assertEqual(self(domain.null_root()), self.null_root())
+                    if self.is_extended():
+                        a = self.cartan_type().col_annihilator()
+                        # This could be an over specification; we
+                        # could imagine realizations of the extended
+                        # weight lattice where the null root would not
+                        # be a (multiple of) basis element.
+                        tester.assertEqual(self.null_root(), self.term("delta", a[0]))
+                    for i in self.index_set():
+                        # The level of the fundamental weights is consistent
+                        tester.assertEqual(domain.fundamental_weight(i).level(), Lambda[i].level())
 
             # Check that the fundamental weights form the dual basis of the simple coroots
             for i in self.index_set():

@@ -329,15 +329,13 @@ automatically translated into the previous ones::
 from types import ClassType as classobj
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
+from sage.misc.lazy_import import LazyImport
 from sage.rings.all import ZZ
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.sets.family import Family
 
 # TODO:
-# Implement type_dual.AmbientSpace
-# Implement dual ambient space
-# Implement affinisation of ambient space
 # Implement the Kac conventions by relabeling/dual/... of the above
 # Implement coxeter diagrams for non crystalographic
 
@@ -522,9 +520,8 @@ class CartanTypeFactory(SageObject):
              ['E', 6], ['E', 7], ['E', 8], ['F', 4], ['G', 2], ['I', 5], ['H', 3], ['H', 4],
              ['A', 1, 1], ['A', 5, 1], ['B', 1, 1], ['B', 5, 1],
              ['C', 1, 1], ['C', 5, 1], ['D', 3, 1], ['D', 5, 1],
-             ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1],
-             ['B', 5, 1]^*, ['C', 4, 1]^*, ['F', 4, 1]^*, ['G', 2, 1]^*,
-             ['BC', 1, 2], ['BC', 5, 2]]
+             ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['BC', 1, 2], ['BC', 5, 2],
+             ['B', 5, 1]^*, ['C', 4, 1]^*, ['F', 4, 1]^*, ['G', 2, 1]^*, ['BC', 1, 2]^*, ['BC', 5, 2]^*]
 
         The finite, affine and crystalographic options allow
         respectively for restricting to (non) finite, (non) affine,
@@ -537,23 +534,21 @@ class CartanTypeFactory(SageObject):
             sage: CartanType.samples(affine=True)
             [['A', 1, 1], ['A', 5, 1], ['B', 1, 1], ['B', 5, 1],
              ['C', 1, 1], ['C', 5, 1], ['D', 3, 1], ['D', 5, 1],
-             ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1],
-             ['B', 5, 1]^*, ['C', 4, 1]^*, ['F', 4, 1]^*, ['G', 2, 1]^*,
-             ['BC', 1, 2], ['BC', 5, 2]]
+             ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['BC', 1, 2], ['BC', 5, 2],
+             ['B', 5, 1]^*, ['C', 4, 1]^*, ['F', 4, 1]^*, ['G', 2, 1]^*, ['BC', 1, 2]^*, ['BC', 5, 2]^*]
 
             sage: CartanType.samples(crystalographic=True)
             [['A', 1], ['A', 5], ['B', 1], ['B', 5], ['C', 1], ['C', 5], ['D', 2], ['D', 3], ['D', 5],
              ['E', 6], ['E', 7], ['E', 8], ['F', 4], ['G', 2],
              ['A', 1, 1], ['A', 5, 1], ['B', 1, 1], ['B', 5, 1],
              ['C', 1, 1], ['C', 5, 1], ['D', 3, 1], ['D', 5, 1],
-             ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1],
-             ['B', 5, 1]^*, ['C', 4, 1]^*, ['F', 4, 1]^*, ['G', 2, 1]^*,
-             ['BC', 1, 2], ['BC', 5, 2]]
+             ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['BC', 1, 2], ['BC', 5, 2],
+             ['B', 5, 1]^*, ['C', 4, 1]^*, ['F', 4, 1]^*, ['G', 2, 1]^*, ['BC', 1, 2]^*, ['BC', 5, 2]^*]
 
             sage: CartanType.samples(crystalographic=False)
             [['I', 5], ['H', 3], ['H', 4]]
 
-        Todo: add some reducible Cartan types (suggestions?)
+        .. TODO:: add some reducible Cartan types (suggestions?)
 
         TESTS::
 
@@ -579,7 +574,12 @@ class CartanTypeFactory(SageObject):
         EXAMPLES::
 
             sage: CartanType._samples()
-            [['A', 1], ['A', 5], ['B', 1], ['B', 5], ['C', 1], ['C', 5], ['D', 2], ['D', 3], ['D', 5], ['E', 6], ['E', 7], ['E', 8], ['F', 4], ['G', 2], ['I', 5], ['H', 3], ['H', 4], ['A', 1, 1], ['A', 5, 1], ['B', 1, 1], ['B', 5, 1], ['C', 1, 1], ['C', 5, 1], ['D', 3, 1], ['D', 5, 1], ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['B', 5, 1]^*, ['C', 4, 1]^*, ['F', 4, 1]^*, ['G', 2, 1]^*, ['BC', 1, 2], ['BC', 5, 2]]
+            [['A', 1], ['A', 5], ['B', 1], ['B', 5], ['C', 1], ['C', 5], ['D', 2], ['D', 3], ['D', 5],
+             ['E', 6], ['E', 7], ['E', 8], ['F', 4], ['G', 2], ['I', 5], ['H', 3], ['H', 4],
+             ['A', 1, 1], ['A', 5, 1], ['B', 1, 1], ['B', 5, 1],
+             ['C', 1, 1], ['C', 5, 1], ['D', 3, 1], ['D', 5, 1],
+             ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['BC', 1, 2], ['BC', 5, 2],
+             ['B', 5, 1]^*, ['C', 4, 1]^*, ['F', 4, 1]^*, ['G', 2, 1]^*, ['BC', 1, 2]^*, ['BC', 5, 2]^*]
         """
         finite_crystalographic = \
             [CartanType (t)       for t in [['A', 1], ['A', 5], ['B', 1], ['B', 5],
@@ -594,10 +594,47 @@ class CartanTypeFactory(SageObject):
         return finite_crystalographic + \
             [CartanType(t)        for t in [["I", 5], ["H", 3], ["H", 4]]] + \
             [t.affine()           for t in finite_crystalographic if t.is_irreducible()] + \
-            [CartanType(t).dual() for t in [["B", 5, 1], ["C", 4, 1], ["F", 4, 1], ["G", 2, 1]]] + \
-            [CartanType(t)        for t in [["BC", 1, 2], ["BC", 5, 2], ]] #+ \
+            [CartanType(t)        for t in [["BC", 1, 2], ["BC", 5, 2]]] + \
+            [CartanType(t).dual() for t in [["B", 5, 1], ["C", 4, 1], ["F", 4, 1], ["G", 2, 1],["BC", 1, 2], ["BC", 5, 2]]] #+ \
             # [ g ]
 
+    _colors = {1: 'blue',    -1: 'blue',
+               2: 'red',     -2: 'red',
+               3: 'green',   -3: 'green',
+               4: 'cyan',    -4: 'cyan',
+               5: 'magenta', -5: 'magenta',
+               6: 'yellow',  -6: 'yellow'}
+
+    @classmethod
+    def color(cls, i):
+        """
+        Default color scheme for the vertices of a dynkin diagram (and associated objects)
+
+        EXAMPLES::
+
+            sage: CartanType.color(1)
+            'blue'
+            sage: CartanType.color(2)
+            'red'
+            sage: CartanType.color(3)
+            'green'
+
+        The default color is black. Well, some sort of black, because
+        plots don't handle well plain black::
+
+            sage: CartanType.color(0)
+            (0.1, 0.1, 0.1)
+
+        Negative indices get the same color as their positive counterparts::
+
+            sage: CartanType.color(-1)
+            'blue'
+            sage: CartanType.color(-2)
+            'red'
+            sage: CartanType.color(-3)
+            'green'
+        """
+        return cls._colors.get(i, (0.1, 0.1, 0.1))
 
 CartanType = CartanTypeFactory()
 
@@ -957,8 +994,9 @@ class CartanType_abstract(object):
              [['D', 3, 1], True], [['D', 5, 1], True],
              [['E', 6, 1], True], [['E', 7, 1], True], [['E', 8, 1], True],
              [['F', 4, 1], False], [['G', 2, 1], False],
+             [['BC', 1, 2], False], [['BC', 5, 2], False],
              [['B', 5, 1]^*, False], [['C', 4, 1]^*, False], [['F', 4, 1]^*, False], [['G', 2, 1]^*, False],
-             [['BC', 1, 2], False], [['BC', 5, 2], False]]
+             [['BC', 1, 2]^*, False], [['BC', 5, 2]^*, False]]
         """
         return False
 
@@ -1263,6 +1301,9 @@ class CartanType_affine(CartanType_simple, CartanType_crystalographic):
     """
     An abstract class for simple affine Cartan types
     """
+
+    AmbientSpace = LazyImport('sage.combinat.root_system.type_affine', 'AmbientSpace')
+
     def is_finite(self):
         """
         EXAMPLES::
@@ -1679,7 +1720,6 @@ class CartanType_affine(CartanType_simple, CartanType_crystalographic):
         tester = self._tester(**options)
         tester.assertTrue( self.classical().dual() == self.dual().classical() )
         tester.assertTrue( self.special_node() == self.dual().special_node() )
-
 
 ##############################################################################
 # Concrete base classes

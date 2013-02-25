@@ -340,7 +340,7 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
 
     def module_generator(self):
         r"""
-        Yields the module generator of weight `s \Lambda_r` of a Kirillov-Reshetikhin crystal `B^{r,s}`
+        Returns the unique module generator of classical weight `s \Lambda_r` of a Kirillov-Reshetikhin crystal `B^{r,s}`
 
         EXAMPLES::
 
@@ -359,8 +359,8 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
         Lambda = R.fundamental_weights()
         r = self.r()
         s = self.s()
-        c = R.null_coroot()[r]
-        return [ b for b in self.module_generators if b.weight() == s*Lambda[r] - s*c*Lambda[0] ][0]
+        weight = s*Lambda[r] - s*Lambda[0] * Lambda[r].level() / Lambda[0].level()
+        return [ b for b in self.module_generators if b.weight() == weight][0]
 
     def r(self):
         """

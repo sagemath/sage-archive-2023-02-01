@@ -147,7 +147,7 @@ class RootSpace(ClearCacheOnPickle, CombinatorialFreeModule):
 
     def _to_root_lattice(self, x):
         """
-        Tries to convert ``x`` to the root lattice
+        Try to convert ``x`` to the root lattice.
 
         INPUT:
 
@@ -188,6 +188,26 @@ class RootSpace(ClearCacheOnPickle, CombinatorialFreeModule):
             return self.root_system.root_lattice().sum_of_terms( (i, ZZ(c)) for (i,c) in x)
         except TypeError:
             raise ValueError, "%s does not have integral coefficients"%x
+
+    @cached_method
+    def _to_classical_on_basis(self, i):
+        r"""
+        Implement the projection onto the corresponding classical root space or lattice, on the basis.
+
+        EXAMPLES::
+
+            sage: L = RootSystem(["A",3,1]).root_space()
+            sage: L._to_classical_on_basis(0)
+            -alpha[1] - alpha[2] - alpha[3]
+            sage: L._to_classical_on_basis(1)
+            alpha[1]
+            sage: L._to_classical_on_basis(2)
+            alpha[2]
+        """
+        if i == self.cartan_type().special_node():
+            return self._classical_alpha_0()
+        else:
+            return self.classical().simple_root(i)
 
 class RootSpaceElement(CombinatorialFreeModuleElement):
     def scalar(self, lambdacheck):
@@ -395,31 +415,5 @@ class RootSpaceElement(CombinatorialFreeModuleElement):
             self = self - beta.associated_coroot()
         W = self.parent().weyl_group()
         return (W.demazure_product(word)).reduced_word()
-
-    @cached_in_parent_method
-    def associated_reflection(self):
-        r"""
-        Given a positive root ``self``, returns a reduced word for the reflection orthogonal to ``self``.
-
-        Since the answer is cached, it is a tuple instead of a list.
-
-        EXAMPLES::
-
-            sage: RootSystem(['C',3]).root_lattice().simple_root(3).weyl_action([1,2]).associated_reflection()
-            (1, 2, 3, 2, 1)
-            sage: RootSystem(['C',3]).root_lattice().simple_root(2).associated_reflection()
-            (2,)
-
-        """
-
-        i = self.first_descent(positive=True)
-        if not self.is_positive_root() or i is None:
-            raise ValueError, "%s is not a positive root"%self
-        supp = self.support()
-        if len(supp) == 1:
-            if not (self[i] == 1):
-                raise ValueError, "%s is not a positive root"%self
-            return tuple([i])
-        return tuple([i]+list(self.simple_reflection(i).associated_reflection())+[i])
 
 RootSpace.Element = RootSpaceElement

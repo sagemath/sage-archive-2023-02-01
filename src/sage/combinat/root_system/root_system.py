@@ -65,9 +65,8 @@ class RootSystem(UniqueRepresentation, SageObject):
         sage: space
         Root lattice of the Root system of type ['B', 3]
 
-    It is the free `\ZZ`-module
-    `\bigoplus_i \ZZ.\alpha_i` spanned by the simple
-    roots::
+    This is the free `\ZZ`-module `\bigoplus_i \ZZ.\alpha_i` spanned
+    by the simple roots::
 
         sage: space.base_ring()
         Integer Ring
@@ -164,13 +163,80 @@ class RootSystem(UniqueRepresentation, SageObject):
         sage: s[1](Lambda[3])
         Lambda[3]
 
-    The root system may also come equipped with an ambient space, that
-    is a simultaneous realization of the weight lattice and the coroot
-    lattice in a Euclidean vector space. This is implemented on a type
-    by type basis, and is not always available. When the coefficients
-    permit it, this is also available as an ambient lattice.
+    .. RUBRIC:: Ambient spaces
 
-    TODO: Demo: signed permutations realization of type B
+    The root system may also come equipped with an ambient space.
+    This is a `\QQ`-module, endowed with its canonical Euclidean
+    scalar product, which admits simultaneous embeddings of the
+    (extended) weight and the (extended) coweight lattice, and
+    therefore the root and the coroot lattice. This is implemented on
+    a type by type basis for the finite crystalographic root systems
+    following Bourbaki's conventions and is extended to the affine
+    cases. Coefficients permitting, this is also available as an
+    ambient lattice.
+
+    .. SEEALSO:: :meth:`ambient_space` and :meth:`ambient_lattice` for details
+
+    In finite type `A`, we recover the natural representation of the
+    symmetric group as group of permutation matrices::
+
+        sage: RootSystem(["A",2]).ambient_space().weyl_group().simple_reflections()
+        Finite family {1: [0 1 0]
+                          [1 0 0]
+                          [0 0 1],
+                       2: [1 0 0]
+                          [0 0 1]
+                          [0 1 0]}
+
+    In type `B`, `C`, and `D`, we recover the natural representation
+    of the Weyl group as groups of signed permutation matrices::
+
+        sage: RootSystem(["B",3]).ambient_space().weyl_group().simple_reflections()
+        Finite family {1: [0 1 0]
+                          [1 0 0]
+                          [0 0 1],
+                       2: [1 0 0]
+                          [0 0 1]
+                          [0 1 0],
+                       3: [ 1  0  0]
+                          [ 0  1  0]
+                          [ 0  0 -1]}
+
+    In (untwisted) affine types `A`, ..., `D`, one can recover from
+    the ambient space the affine permutation representation, in window
+    notation. Let us consider the ambient space for affine type `A`::
+
+        sage: L = RootSystem(["A",2,1]).ambient_space(); L
+        Ambient space of the Root system of type ['A', 2, 1]
+
+    Define the "identity" by an appropriate vector at level -3::
+
+        sage: e = L.basis(); Lambda = L.fundamental_weights()
+        sage: id = e[0] + 2*e[1] + 3*e[2]  - 3*Lambda[0]
+
+    The corresponding permutation is obtained by projecting it onto
+    the classical ambient space::
+
+        sage: L.classical()
+        Ambient space of the Root system of type ['A', 2]
+        sage: L.classical()(id)
+        (1, 2, 3)
+
+    Here is the orbit of the identity under the action of the finite
+    group::
+
+        sage: W = L.weyl_group()
+        sage: S3 = [ w.action(id) for w in W.classical() ]
+        sage: [L.classical()(x) for x in S3]
+        [(1, 2, 3), (2, 1, 3), (3, 1, 2), (3, 2, 1), (1, 3, 2), (2, 3, 1)]
+
+    And the action of `s_0` on these yields::
+
+        sage: s = W.simple_reflections()
+        sage: [L.classical()(s[0].action(x)) for x in S3]
+        [(0, 2, 4), (0, 1, 5), (-1, 1, 6), (-2, 2, 6), (-1, 3, 4), (-2, 3, 5)]
+
+    .. RUBRIC:: Dual root systems
 
     The root system is aware of its dual root system::
 
@@ -568,18 +634,24 @@ class RootSystem(UniqueRepresentation, SageObject):
 
     def ambient_lattice(self):
         r"""
-        Returns the usual ambient lattice for this root_system, if it
-        exists and is implemented, and None otherwise. This is a
-        `\ZZ`-module, endowed with its canonical euclidean
-        scalar product, which embeds simultaneously the root lattice
-        and the coroot lattice (what about the weight lattice?)
+        Return the ambient lattice for this root_system.
+
+        This is the ambient space, over `\ZZ`.
+
+        .. SEEALSO::
+
+            - :meth:`ambient_space`
+            - :meth:`root_lattice`
+            - :meth:`weight_lattice`
 
         EXAMPLES::
 
             sage: RootSystem(['A',4]).ambient_lattice()
             Ambient lattice of the Root system of type ['A', 4]
+            sage: RootSystem(['A',4,1]).ambient_lattice()
+            Ambient lattice of the Root system of type ['A', 4, 1]
 
-        ::
+        Except in type A, only an ambient space can be realized::
 
             sage: RootSystem(['B',4]).ambient_lattice()
             sage: RootSystem(['C',4]).ambient_lattice()
@@ -593,13 +665,38 @@ class RootSystem(UniqueRepresentation, SageObject):
     @cached_method
     def ambient_space(self, base_ring=QQ):
         r"""
-        Returns the usual ambient space for this root_system, if it is
-        implemented, and None otherwise. This is a `\QQ`-module, endowed with
-        its canonical euclidean scalar product, which embeds simultaneously
-        the root lattice and the coroot lattice (what about the weight
-        lattice?). An alternative base ring can be provided as an option;
-        it must contain the smallest ring over which the ambient space can
-        be defined (`\ZZ` or `\QQ`, depending on the type).
+        Return the usual ambient space for this root_system.
+
+        INPUT:
+
+        - ``base_ring`` -- a base ring (default: `\QQ`)
+
+        This is a ``base_ring``-module, endowed with its canonical
+        Euclidean scalar product, which admits simultaneous embeddings
+        into the weight and the coweight lattice, and therefore the
+        root and the coroot lattice, and preserves scalar products
+        between elements of the coroot lattice and elements of the
+        root or weight lattice (and dually).
+
+        There is no mechanical way to define the ambient space just
+        from the Cartan matrix. Instead is is constructed from hard
+        coded type by type data, according to the usual Bourbaki
+        conventions. Such data is provided for all the finite
+        (crystalographic) types. From this data, ambient spaces can be
+        built as well for dual types, reducible types and affine
+        types. When no data is available, or if the base ring is not
+        large enough, None is returned.
+
+        .. WARNING:: for affine types
+
+        .. SEEALSO::
+
+            - The section on ambient spaces in :class:`RootSystem`
+            - :meth:`ambient_lattice`
+            - :class:`~sage.combinat.root_system.ambient_space.AmbientSpace`
+            - :class:`~sage.combinat.root_system.ambient_space.type_affine.AmbientSpace`
+            - :meth:`root_space`
+            - :meth:`weight:space`
 
         EXAMPLES::
 
@@ -635,13 +732,35 @@ class RootSystem(UniqueRepresentation, SageObject):
 
             sage: RootSystem(['G',2]).ambient_space()
             Ambient space of the Root system of type ['G', 2]
+
+        An alternative base ring can be provided as an option::
+
+            sage: e = RootSystem(['B',3]).ambient_space(RR)
+            sage: TestSuite(e).run()
+
+        It should contain the smallest ring over which the ambient
+        space can be defined (`\ZZ` in type `A` or `\QQ` otherwise).
+        Otherwise ``None`` is returned::
+
+            sage: RootSystem(['B',2]).ambient_space(ZZ)
+
+        The base ring should also be totally ordered. In practice,
+        only `\ZZ` and `\QQ` are really supported at this point, but
+        you are welcome to experiment::
+
+            sage: e = RootSystem(['G',2]).ambient_space(RR)
+            sage: TestSuite(e).run()
+            Failure in _test_root_lattice_realization:
+            Traceback (most recent call last):
+            ...
+            AssertionError: 2.00000000000000 != 2.00000000000000
+            ------------------------------------------------------------
+            The following tests failed: _test_root_lattice_realization
         """
-        # Intention: check that the ambient_space is implemented and that
-        # base_ring contains the smallest base ring for this ambient space
         if not hasattr(self.cartan_type(),"AmbientSpace"):
             return None
         AmbientSpace = self.cartan_type().AmbientSpace
-        if base_ring == ZZ and AmbientSpace.smallest_base_ring() == QQ:
+        if not base_ring.has_coerce_map_from(AmbientSpace.smallest_base_ring(self.cartan_type())):
             return None
         return AmbientSpace(self, base_ring)
 

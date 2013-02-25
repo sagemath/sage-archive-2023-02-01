@@ -4,29 +4,34 @@ Root system data for type G
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Daniel Bump
 #       Copyright (C) 2008-2009 Justin Walker
-#       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>,
+#       Copyright (C) 2008-2013 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 import ambient_space
-from sage.combinat.family import Family
-
-# TODO: check whether this can be defined over ZZ
+from sage.sets.family import Family
 
 class AmbientSpace(ambient_space.AmbientSpace):
     """
     EXAMPLES::
 
-        sage: e = RootSystem(['G',2]).ambient_space()
+        sage: e = RootSystem(['G',2]).ambient_space(); e
+        Ambient space of the Root system of type ['G', 2]
 
-    TESTS:
+    One can not construct the ambient lattice because the simple
+    coroots have rational coefficients::
 
-        sage: e == loads(dumps(e))
-        True
+        sage: e.simple_coroots()
+        Finite family {1: (0, 1, -1), 2: (1/3, -2/3, 1/3)}
+        sage: e.smallest_base_ring()
+        Rational Field
+
+    TESTS::
+
+        sage: TestSuite(e).run()
         sage: [WeylDim(['G',2],[a,b]) for a,b in [[0,0], [1,0], [0,1], [1,1]]] # indirect doctest
         [1, 7, 14, 64]
-
     """
 
     def dimension(self):

@@ -134,9 +134,13 @@ class Crystals(Category_singleton):
 
         def weight_lattice_realization(self):
             """
-            Returns the weight lattice realization for the root system
-            associated to ``self``. This default implementation uses
-            the ambient space of the root system.
+            Returns the weight lattice realization used to express weights.
+
+            This default implementation uses the ambient space of the
+            root system for (non relabelled) finite types and the
+            weight lattice otherwise. This is a legacy from when
+            ambient spaces were partially implemented, and may be
+            changed in the future.
 
             EXAMPLES::
 
@@ -148,10 +152,10 @@ class Crystals(Category_singleton):
                 Weight lattice of the Root system of type ['A', 2, 1]
             """
             F = self.cartan_type().root_system()
-            if F.ambient_space() is None:
-                return F.weight_lattice()
-            else:
+            if F.is_finite() and F.ambient_space() is not None:
                 return F.ambient_space()
+            else:
+                return F.weight_lattice()
 
         def cartan_type(self):
             """

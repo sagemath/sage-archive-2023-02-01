@@ -3,7 +3,7 @@ Ambient lattices and ambient spaces
 """
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Daniel Bump
-#       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>,
+#       Copyright (C) 2008-2013 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -18,15 +18,17 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
     r"""
     Abstract class for ambient spaces
 
-    Any implementation of this class should implement a class method
-    smallest_base_ring as described below, and a method dimension
-    working on a partially initialized instance with just root_system
-    as attribute. There is no safe default implementation for the later,
-    so none is provided.
+    All subclasses should implement a class method
+    ``smallest_base_ring`` taking a cartan type as input, and a method
+    ``dimension`` working on a partially initialized instance with
+    just ``root_system`` as attribute. There is no safe default
+    implementation for the later, so none is provided.
 
     EXAMPLES::
 
         sage: AL = RootSystem(['A',2]).ambient_lattice()
+
+    .. NOTE:: This is only used so far for finite root systems.
 
     Caveat: Most of the ambient spaces currently have a basis indexed
     by `0,\dots, n`, unlike the usual mathematical convention::
@@ -37,13 +39,23 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
 
     This will be cleaned up!
 
+    .. SEEALSO::
+
+        - :class:`sage.combinat.root_system.type_A.AmbientSpace`
+        - :class:`sage.combinat.root_system.type_B.AmbientSpace`
+        - :class:`sage.combinat.root_system.type_C.AmbientSpace`
+        - :class:`sage.combinat.root_system.type_D.AmbientSpace`
+        - :class:`sage.combinat.root_system.type_E.AmbientSpace`
+        - :class:`sage.combinat.root_system.type_F.AmbientSpace`
+        - :class:`sage.combinat.root_system.type_G.AmbientSpace`
+        - :class:`sage.combinat.root_system.type_dual.AmbientSpace`
+        - :class:`sage.combinat.root_system.type_affine.AmbientSpace`
+
     TESTS::
 
-        sage: types = CartanType.samples(finite=True, crystalographic = True)+[CartanType(["A",2],["C",5])]
+        sage: types = CartanType.samples(crystalographic = True)+[CartanType(["A",2],["C",5])]
         sage: for e in [ct.root_system().ambient_space() for ct in types]:
-        ...       if e is not None:
         ...            TestSuite(e).run()
-
     """
     def __init__(self, root_system, base_ring):
         """
@@ -52,6 +64,11 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
             sage: e = RootSystem(['A',3]).ambient_lattice()
             sage: s = e.simple_reflections()
 
+            sage: L = RootSystem(['A',3]).coroot_lattice()
+            sage: e.has_coerce_map_from(L)
+            True
+            sage: e(L.simple_root(1))
+            (1, -1, 0, 0)
         """
         self.root_system = root_system
         CombinatorialFreeModule.__init__(self, base_ring,
@@ -59,6 +76,8 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
                                          element_class = AmbientSpaceElement,
                                          prefix='e',
                                          category = WeightLatticeRealizations(base_ring))
+        coroot_lattice = self.root_system.coroot_lattice()
+        coroot_lattice.module_morphism(self.simple_coroot, codomain=self).register_as_coercion()
 
         # FIXME: here for backward compatibility;
         # Should we use dimension everywhere?
@@ -106,9 +125,13 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
         raise NotImplementedError
 
     @classmethod
-    def smallest_base_ring(cls):
+    def smallest_base_ring(cls, cartan_type=None):
         """
         Returns the smallest ground ring over which the ambient space can be realized.
+
+        This class method will get called with the cartan type as
+        input. This default implementation returns `\QQ`; subclasses
+        should override it as appropriate.
 
         EXAMPLES::
 
@@ -287,7 +310,7 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
         into the subspace corresponding to the semisimple derived group.
         This arises with Cartan type A, E6 and E7.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: RootSystem("A2").ambient_space().from_vector_notation((1,0,0))
             (1, 0, 0)

@@ -23,8 +23,12 @@ class AmbientSpace(ambient_space.AmbientSpace):
         True
     """
     @classmethod
-    def smallest_base_ring(cls):
+    def smallest_base_ring(cls, cartan_type=None):
         """
+        Returns the smallest base ring the ambient space can be defined upon
+
+        .. SEEALSO:: :meth:`~sage.combinat.root_system.ambient_space.AmbientSpace.smallest_base_ring`
+
         EXAMPLES::
 
             sage: e = RootSystem(["A",3]).ambient_space()

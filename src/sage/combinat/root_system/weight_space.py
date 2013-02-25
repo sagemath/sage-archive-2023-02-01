@@ -86,7 +86,7 @@ class WeightSpace(CombinatorialFreeModule):
         sage: Q.null_root()
         delta
 
-    .. warning::
+    .. WARNING::
 
         By a slight notational abuse, the extra basis element used to
         extend the fundamental weights is called ``\delta`` in the
@@ -301,7 +301,7 @@ class WeightSpace(CombinatorialFreeModule):
         """
         Returns the `j^{th}` simple root
 
-        TESTS::
+        EXAMPLES::
 
             sage: L = RootSystem(["C",4]).weight_lattice()
             sage: L.simple_root(3)
@@ -316,18 +316,36 @@ class WeightSpace(CombinatorialFreeModule):
             [ 2]
             [-1]
 
+        Here are all simple roots::
+
             sage: L.simple_roots()
-            Finite family {1: 2*Lambda[1] - Lambda[2],
-                           2: -Lambda[1] + 2*Lambda[2] - Lambda[3],
-                           3: -Lambda[2] + 2*Lambda[3] - Lambda[4],
-                           4: -2*Lambda[3] + 2*Lambda[4]}
+            Finite family {1:  2*Lambda[1]   - Lambda[2],
+                           2:   -Lambda[1] + 2*Lambda[2]   - Lambda[3],
+                           3:   -Lambda[2] + 2*Lambda[3]   - Lambda[4],
+                           4:               -2*Lambda[3] + 2*Lambda[4]}
 
         For the extended weight lattice of an affine type, the simple
-        root associated to the special node is deformed by `\delta`::
+        root associated to the special node is deformed by adding
+        `\delta`, where `\delta` is the null root::
 
             sage: L = RootSystem(["C",4,1]).weight_lattice(extended=True)
             sage: L.simple_root(0)
             2*Lambda[0] - 2*Lambda[1] + delta
+
+        In fact `\delta` is really `1/a_0` times the null root (see
+        the discussion in :class:`~sage.combinat.root_system.weight_space.WeightSpace`)
+        but this only makes a difference in type `BC`::
+
+            sage: L = RootSystem(CartanType(["BC",4,2])).weight_lattice(extended=True)
+            sage: L.simple_root(0)
+            2*Lambda[0] - Lambda[1] + delta
+            sage: L.null_root()
+            2*delta
+
+        .. SEEALSO::
+
+            - :meth:`~sage.combinat.root_system.type_affine.AmbientSpace.simple_root`
+            - :meth:`CartanType.col_annihilator`
         """
         assert(j in self.index_set())
         result = self.sum_of_terms(self.root_system.dynkin_diagram().column(j))
@@ -372,6 +390,32 @@ class WeightSpace(CombinatorialFreeModule):
             return "\\delta^\\vee" if self.root_system.dual_side else "\\delta"
         else:
             return super(WeightSpace, self)._latex_term(m)
+
+    @cached_method
+    def _to_classical_on_basis(self, i):
+        r"""
+        Implement the projection onto the corresponding classical space or lattice, on the basis.
+
+        INPUT:
+
+        - ``i`` -- a vertex of the Dynkin diagram or "delta"
+
+        EXAMPLES::
+
+            sage: L = RootSystem(["A",2,1]).weight_space()
+            sage: L._to_classical_on_basis("delta")
+            0
+            sage: L._to_classical_on_basis(0)
+            0
+            sage: L._to_classical_on_basis(1)
+            Lambda[1]
+            sage: L._to_classical_on_basis(2)
+            Lambda[2]
+        """
+        if i == "delta" or i == self.cartan_type().special_node():
+            return self.classical().zero()
+        else:
+            return self.classical().monomial(i)
 
 
 class WeightSpaceElement(CombinatorialFreeModuleElement):

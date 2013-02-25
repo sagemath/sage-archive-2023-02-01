@@ -4,7 +4,7 @@ Root system data for type C
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Daniel Bump
 #       Copyright (C) 2008-2009 Justin Walker
-#       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>,
+#       Copyright (C) 2008-2013 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -12,11 +12,26 @@ Root system data for type C
 import ambient_space
 
 class  AmbientSpace(ambient_space.AmbientSpace):
+    """
+    EXAMPLES::
 
-# The coroots can't be defined with integer coefficients!
-#    @classmethod
-#    def smallest_base_ring(cls):
-#        return ZZ;
+        sage: e = RootSystem(['C',2]).ambient_space(); e
+        Ambient space of the Root system of type ['C', 2]
+
+    One cannot construct the ambient lattice because the fundamental
+    coweights have rational coefficients::
+
+        sage: e.smallest_base_ring()
+        Rational Field
+
+        sage: RootSystem(['B',2]).ambient_space().fundamental_weights()
+        Finite family {1: (1, 0), 2: (1/2, 1/2)}
+
+    TESTS::
+
+        sage: TestSuite(e).run()
+    """
+
 
     def dimension(self):
         """

@@ -3,16 +3,18 @@ Root system data for dual Cartan types
 """
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Anne Schilling <anne at math.ucdavis.edu>
-#       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>,
+#       Copyright (C) 2008-2013 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.structure.sage_object import SageObject
 from sage.misc.misc import attrcall
+from sage.misc.cachefunc import cached_method
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.combinat.root_system.cartan_type import CartanType_crystalographic
+from sage.structure.sage_object import SageObject
+from sage.combinat.root_system.cartan_type import CartanType_crystalographic, CartanType_finite, CartanType_affine, CartanType_simple
 import sage
+import ambient_space
 
 class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
     r"""
@@ -24,9 +26,49 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
     of properties in common with its dual. In particular, the Weyl
     group is isomorphic to that of the dual as a Coxeter group.
 
-    Note: ``CartanType(['BC',4,2]).dual()`` is implemented by
-    relabelling, not duality!
+    EXAMPLES:
 
+    For most finite Cartan types, and in particular the simply laced
+    ones, the dual Cartan type is given by another preexisting Cartan
+    type::
+
+        sage: CartanType(['A',4]).dual()
+        ['A', 4]
+        sage: CartanType(['B',4]).dual()
+        ['C', 4]
+        sage: CartanType(['C',4]).dual()
+        ['B', 4]
+
+    So to exercise this class we need to consider the non simply laced
+    exceptionnal or affine Cartan types::
+
+        sage: F4d = CartanType(['F', 4]).dual(); F4d
+        ['F', 4]^*
+        sage: G21d = CartanType(['G',2,1]).dual(); G21d
+        ['G', 2, 1]^*
+        sage: B41d = CartanType(['B',4,1]).dual(); B41d
+        ['B', 4, 1]^*
+
+    They share many properties with their original Cartan types::
+
+        sage: F4d.is_irreducible()
+        True
+        sage: F4d.is_crystalographic()
+        True
+        sage: F4d.is_simply_laced()
+        False
+        sage: F4d.is_finite()
+        True
+        sage: G21d.is_finite()
+        False
+        sage: F4d.is_affine()
+        False
+        sage: G21d.is_affine()
+        True
+
+    TESTS::
+
+        sage: TestSuite(F4d).run()
     """
     def __init__(self, type):
         """
@@ -37,8 +79,7 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
         EXAMPLES::
 
            sage: ct = CartanType(['F',4]).dual()
-           sage: ct == loads(dumps(ct))
-           True
+           sage: TestSuite(ct).run()
 
         TESTS::
 
@@ -53,8 +94,16 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
         """
         assert type.is_crystalographic()
         self._dual = type
-        if type.is_affine():
+        # TODO: design an appropriate infrastructure to handle this
+        # automatically? Maybe using categories and axioms?
+        if type.is_finite():
+            self._add_abstract_superclass(CartanType_finite)
+        elif type.is_affine():
             self._add_abstract_superclass(CartanType_affine)
+        if type.is_irreducible():
+            self._add_abstract_superclass(CartanType_simple)
+        # No need to check non crystalographic types (they have no dual)
+        # or simply laced types (they are self-dual)
 
     def _repr_(self, compact = False):
         """
@@ -80,7 +129,7 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
 
     def ascii_art(self, label = lambda x: x):
         """
-        Returns an ascii art representation of this Cartan type
+        Return an ascii art representation of this Cartan type
 
         (by hacking the ascii art representation of the dual cartan type)
 
@@ -156,46 +205,6 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
         """
         return self._dual
 
-    def is_irreducible(self):
-        """
-        EXAMPLES::
-
-           sage: ct = CartanType(['F', 4]).dual()
-           sage: ct.is_irreducible()
-           True
-        """
-        return self._dual.is_irreducible()
-
-    def is_finite(self):
-        """
-        EXAMPLES::
-
-           sage: ct = CartanType(['F', 4]).dual()
-           sage: ct.is_finite()
-           True
-        """
-        return self._dual.is_finite()
-
-    def is_crystalographic(self):
-        """
-        EXAMPLES::
-
-           sage: ct = CartanType(['F', 4]).dual()
-           sage: ct.is_crystalographic()
-           True
-        """
-        return self._dual.is_crystalographic()
-
-    def is_affine(self):
-        """
-        EXAMPLES::
-
-           sage: ct = CartanType(['F', 4]).dual()
-           sage: ct.is_affine()
-           False
-        """
-        return self._dual.is_affine()
-
     def rank(self):
         """
         EXAMPLES::
@@ -230,8 +239,89 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
 
 
 ###########################################################################
-from cartan_type import CartanType_affine
-class CartanType_affine(CartanType_affine):
+
+class AmbientSpace(ambient_space.AmbientSpace):
+    """
+    Ambient space for a dual finite Cartan type.
+
+    It is constructed in the canonical way from the ambient space of
+    the original Cartan type by switching the roles of simple roots,
+    fundamental weights, etc.
+
+    EXAMPLES::
+
+        sage: F4 = CartanType(["F",4])
+        sage: L = F4.dual().root_system().ambient_space(); L
+        Ambient space of the Root system of type ['F', 4]^*
+        sage: TestSuite(L).run()
+    """
+
+    def dimension(self):
+        """
+        Return the dimension of this ambient space.
+
+        .. SEEALSO:: :meth:`sage.combinat.root_system.ambient_space.AmbientSpace.dimension`
+
+        EXAMPLES::
+
+            sage: F4 = CartanType(["F",4])
+            sage: F4.dual().root_system().ambient_space().simple_root(1)
+            (0, 1, -1, 0)
+        """
+        return self.root_system.dual.ambient_space().dimension()
+
+    @cached_method
+    def simple_root(self, i):
+        """
+        Return the ``i``-th simple root.
+
+        It is constructed by looking up the corresponding simple
+        coroot in the ambient space for the dual Cartan type.
+
+        EXAMPLES::
+
+            sage: F4 = CartanType(["F",4])
+            sage: F4.dual().root_system().ambient_space().simple_root(1)
+            (0, 1, -1, 0)
+
+            sage: F4.dual().root_system().ambient_space().simple_roots()
+            Finite family {1: (0, 1, -1, 0), 2: (0, 0, 1, -1), 3: (0, 0, 0, 2), 4: (1, -1, -1, -1)}
+
+            sage: F4.root_system().ambient_space().simple_coroots()
+            Finite family {1: (0, 1, -1, 0), 2: (0, 0, 1, -1), 3: (0, 0, 0, 2), 4: (1, -1, -1, -1)}
+        """
+        K = self.base_ring()
+        dual_coroot = self.cartan_type().dual().root_system().ambient_space(K).simple_coroot(i)
+        return self.sum_of_terms(dual_coroot)
+
+    @cached_method
+    def fundamental_weights(self):
+        """
+        Return the fundamental weights.
+
+        They are computed from the simple roots by inverting the
+        Cartan matrix. This is acceptable since this is only about
+        ambient spaces for finite Cartan types. Also, we do not have
+        to worry about the usual `GL_n` vs `SL_n` catch because type
+        `A` is self dual.
+
+        An alternative would have been to start from the fundamental
+        coweights in the dual ambient space, but those are not yet
+        implemented.
+
+        EXAMPLES::
+
+            sage: L = CartanType(["F",4]).dual().root_system().ambient_space()
+            sage: L.fundamental_weights()
+            Finite family {1: (1, 1, 0, 0), 2: (2, 1, 1, 0), 3: (3, 1, 1, 1), 4: (2, 0, 0, 0)}
+        """
+        return self.fundamental_weights_from_simple_roots()
+
+class CartanType_finite(sage.combinat.root_system.cartan_type.CartanType_finite):
+    AmbientSpace = AmbientSpace
+
+###########################################################################
+class CartanType_affine(sage.combinat.root_system.cartan_type.CartanType_affine):
     def classical(self):
         """
         Returns the classical Cartan type associated with self (which should be affine)
@@ -251,7 +341,7 @@ class CartanType_affine(CartanType_affine):
 
     def special_node(self):
         """
-        Implements :meth:`CartanType_affine.special_node`
+        Implement :meth:`CartanType_affine.special_node`
 
         The special node of the dual of an affine type `T` is the
         special node of `T`.
@@ -268,6 +358,3 @@ class CartanType_affine(CartanType_affine):
             0
         """
         return self.dual().special_node()
-
-#class ambient_space(AmbientSpace):
-# todo?

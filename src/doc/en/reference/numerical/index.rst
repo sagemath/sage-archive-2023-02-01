@@ -17,6 +17,7 @@ LP Solver backends
 
    sage/numerical/backends/generic_backend
    sage/numerical/backends/glpk_backend
+   sage/numerical/backends/glpk_graph_backend
 
 Sage also supports CBC (COIN-OR), CPLEX (ILOG), Gurobi and PPL. In order to find out
 how to use them in Sage, please refer to the `Thematic Tutorial on Linear

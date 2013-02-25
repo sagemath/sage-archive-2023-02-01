@@ -1335,6 +1335,12 @@ ext_modules = [
               include_dirs = [SAGE_INC, "sage/c_lib/include/"],
               libraries=["csage", "stdc++"]),
 
+    Extension("sage.numerical.backends.glpk_graph_backend",
+              ["sage/numerical/backends/glpk_graph_backend.pyx"],
+              include_dirs = [SAGE_INC, "sage/c_lib/include/"],
+              language = 'c++',
+              libraries=["csage", "stdc++", "glpk", "gmp", "z"]),
+
     ################################
     ##
     ## sage.plot

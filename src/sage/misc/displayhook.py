@@ -18,7 +18,7 @@ def _check_tall_list_and_format(the_list):
     """
     First check whether a list is "tall" -- whether the reprs of the
     elements of the list will span multiple lines and cause the list
-    to be printed awkwardly.  If not, this function returns None and
+    to be printed awkwardly.  If not, this function returns ``None`` and
     does nothing; you should revert back to the normal method for
     printing an object (its repr). If so, return the string in the
     special format. Note that the special format isn't just for
@@ -45,7 +45,7 @@ def _check_tall_list_and_format(the_list):
         [5 6 7 8]
         ]
 
-    We return None if we don't have anything special to do::
+    We return ``None`` if we don't have anything special to do::
 
         sage: format_obj('one-line string')
         sage: format_obj(matrix([[1,2,3]]))
@@ -126,13 +126,13 @@ def format_obj(obj):
     OUTPUT:
 
     Return a string if we want to print it in a special way;
-    otherwise, return None.
+    otherwise, return ``None``.
 
     EXAMPLES::
 
         sage: import sage.misc.displayhook
 
-    For most objects, nothing is done (None is returned):
+    For most objects, nothing is done (``None`` is returned):
 
         sage: sage.misc.displayhook.format_obj('Hello, world!')
         sage: sage.misc.displayhook.format_obj((1, 2, 3, 4))

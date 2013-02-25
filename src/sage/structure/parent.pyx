@@ -280,7 +280,8 @@ cdef class Parent(category_object.CategoryObject):
 
         .. TODO::
 
-        Eventually, category should be Sets() by default
+            Eventually, category should be
+            :class:`~sage.categories.sets_cat.Sets` by default.
 
         .. automethod:: __call__
         .. automethod:: _populate_coercion_lists_

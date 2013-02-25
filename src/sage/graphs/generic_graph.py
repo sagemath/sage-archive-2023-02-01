@@ -4440,7 +4440,7 @@ class GenericGraph(GenericGraph_pyx):
         ALGORITHM:
 
         Mixed Integer Linear Program. The formulation can be found
-        in [JVNC]_.
+        in [LPForm]_.
 
         There are at least two possible rewritings of this method
         which do not use Linear Programming:
@@ -4492,9 +4492,9 @@ class GenericGraph(GenericGraph_pyx):
 
         REFERENCES:
 
-        .. [JVNC] David Joyner, Minh Van Nguyen, and Nathann Cohen,
-          Algorithmic Graph Theory,
-          http://code.google.com/p/graph-theory-algorithms-book/
+        .. [LPForm] Nathann Cohen,
+          Several Graph problems and their Linear Program formulations,
+          http://hal.archives-ouvertes.fr/inria-00504914/en
 
         .. [KaisPacking] Thomas Kaiser
           A short proof of the tree-packing theorem
@@ -5982,8 +5982,6 @@ class GenericGraph(GenericGraph_pyx):
         #################################################
         # ILP formulation without constraint generation #
         #################################################
-
-
 
         p = MixedIntegerLinearProgram(maximization = False, solver = solver)
 

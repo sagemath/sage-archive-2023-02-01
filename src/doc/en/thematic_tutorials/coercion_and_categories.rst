@@ -1713,16 +1713,16 @@ Appendix: The complete code
                 raise ValueError, "The parent must be provided"
             B = parent.base()
             if d is None:
-	        # The default denominator is one
+                # The default denominator is one
                 d = B.one_element()
-	    # verify that both numerator and denominator belong to the base
+            # verify that both numerator and denominator belong to the base
             if n not in B or d not in B:
                 raise ValueError, "Numerator and denominator must be elements of %s"%B
             # Numerator and denominator should not just be "in" B,
             # but should be defined as elements of B
             d = B(d)
             n = B(n)
-	    # the denominator must not be zero
+            # the denominator must not be zero
             if d==0:
                 raise ZeroDivisionError, "The denominator must not be zero"
             # normalize the denominator: WLOG, it shall be non-negative.
@@ -1744,16 +1744,16 @@ Appendix: The complete code
         def _repr_(self):
             return "(%s):(%s)"%(self.n,self.d)
 
-	# Comparison: We can assume that both arguments are coerced
-   	# into the same parent, which is a fraction field. Hence, we
-	# are allowed to use the denominator() and numerator() methods
-	# on the second argument.
+        # Comparison: We can assume that both arguments are coerced
+        # into the same parent, which is a fraction field. Hence, we
+        # are allowed to use the denominator() and numerator() methods
+        # on the second argument.
         def __cmp__(self, other):
             return cmp(self.n*other.denominator(), other.numerator()*self.d)
-	# Arithmetic methods, single underscore. We can assume that both
-	# arguments are coerced into the same parent.
-	# We return instances of self.__class__, because self.__class__ will
-	# eventually be a sub-class of MyElement.
+        # Arithmetic methods, single underscore. We can assume that both
+        # arguments are coerced into the same parent.
+        # We return instances of self.__class__, because self.__class__ will
+        # eventually be a sub-class of MyElement.
         def _add_(self, other):
             C = self.__class__
             D = self.d*other.denominator()
@@ -1774,28 +1774,28 @@ Appendix: The complete code
     # succeeds to look up the class definition).
     class MyFrac(UniqueRepresentation, Field):
         # Implement the category framework for elements, which also
-	# makes some basic conversions work.
+        # makes some basic conversions work.
         Element = MyElement
 
-	# Allow to pass to a different category, by an optional argument
+        # Allow to pass to a different category, by an optional argument
         def __init__(self, base, category=None):
-	    # Fraction fields only exist for integral domains
+            # Fraction fields only exist for integral domains
             if base not in IntegralDomains():
                 raise ValueError, "%s is no integral domain"%base
-	    # Implement the category framework for the parent
+            # Implement the category framework for the parent
             Field.__init__(self, base, category=category or QuotientFields())
 
-	# Single-underscore method for string representation
+        # Single-underscore method for string representation
         def _repr_(self):
             return "NewFrac(%s)"%repr(self.base())
 
-	# Two methods that are implicitly used in some tests
+        # Two methods that are implicitly used in some tests
         def base_ring(self):
             return self.base().base_ring()
         def characteristic(self):
             return self.base().characteristic()
 
-	# Implement conversions. Do not override __call__!
+        # Implement conversions. Do not override __call__!
         def _element_constructor_(self, *args,**kwds):
             if len(args)!=1:
                return self.element_class(*args,parent=self,**kwds)
@@ -1808,8 +1808,8 @@ Appendix: The complete code
                 return self.element_class(x.numerator(),x.denominator(),parent=self,**kwds)
             return self.element_class(x,parent=self,**kwds)
 
-	# Implement coercion from the base and from fraction fields
-	# over a ring that coerces into the base
+        # Implement coercion from the base and from fraction fields
+        # over a ring that coerces into the base
         def _coerce_map_from_(self, S):
             if self.base().has_coerce_map_from(S):
                 return True
@@ -1818,7 +1818,7 @@ Appendix: The complete code
                     return True
                 if hasattr(S,'ring_of_integers') and self.base().has_coerce_map_from(S.ring_of_integers()):
                     return True
-	# Tell how this parent was constructed, in order to enable pushout constructions
+        # Tell how this parent was constructed, in order to enable pushout constructions
         def construction(self):
             return MyFracFunctor(), self.base()
 
@@ -1841,19 +1841,19 @@ Appendix: The complete code
         rank = 5
         def __init__(self):
             # The fraction field construction is a functor
-    	    # from the category of integral domains into the category of
-    	    # fields
-    	    # NOTE: We could actually narrow the codomain and use the
-	    # category QuotientFields()
+            # from the category of integral domains into the category of
+            # fields
+            # NOTE: We could actually narrow the codomain and use the
+            # category QuotientFields()
             ConstructionFunctor.__init__(self, IntegralDomains(), Fields())
         # Applying the functor to an object. Do not override __call__!
         def _apply_functor(self, R):
             return MyFrac(R)
-	# Note: To apply the functor to morphisms, implement
-	#       _apply_functor_to_morphism
+        # Note: To apply the functor to morphisms, implement
+        #       _apply_functor_to_morphism
 
-	# Make sure that arithmetic involving elements of Frac(R) and
-	# MyFrac(R) works and yields elements of MyFrac(R)
+        # Make sure that arithmetic involving elements of Frac(R) and
+        # MyFrac(R) works and yields elements of MyFrac(R)
         def merge(self, other):
             if isinstance(other, (type(self), sage.categories.pushout.FractionField)):
                 return self
@@ -1868,22 +1868,22 @@ Appendix: The complete code
     #   rather than from sage.categories.category.Category
     class QuotientFieldsWithTest(Category):
         # Our category is a sub-category of the category of quotient fields,
-	# by means of the following method.
+        # by means of the following method.
         def super_categories(self):
             return [QuotientFields()]
 
-	# Here, we could implement methods that are available for
-	# all objects in this category.
+        # Here, we could implement methods that are available for
+        # all objects in this category.
         class ParentMethods:
             pass
 
-	# Here, we add a new test that is available for all elements
-	# of any object in this category.
+        # Here, we add a new test that is available for all elements
+        # of any object in this category.
         class ElementMethods:
             def _test_factorisation(self, **options):
                 P = self.parent()
-		# The methods prod() and factor() are inherited from
-		# some other categories.
+                # The methods prod() and factor() are inherited from
+                # some other categories.
                 assert self == P.prod([P(b)**e for b,e in self.factor()])
 
 

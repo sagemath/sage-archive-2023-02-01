@@ -201,6 +201,154 @@ cpdef bint is_SymbolicEquation(x):
     """
     return isinstance(x, Expression) and is_a_relational((<Expression>x)._gobj)
 
+
+def _subs_safe_merge(d1, d2):
+    r"""
+    Merge two dictionaries containing substitutions of the form {expr:
+    replacement}. Throw an error if any expressions are substituted
+    for twice.
+
+    INPUT:
+
+    -  ``d1`` -- A dictionary.
+
+    -  ``d2`` -- Another dictionary.
+
+    OUTPUT:
+
+    If there are no duplicate substitutions, a new dictionary
+    containing the union of ``d1`` and ``d2`` is returned. Otherwise,
+    a ValueError is raised.
+
+    EXAMPLES:
+
+    A normal merge with no conflicts::
+
+        sage: from sage.symbolic.expression import _subs_safe_merge
+        sage: d1 = {'a': 1}
+        sage: d2 = {'b': 2}
+        sage: _subs_safe_merge(d1, d2)
+        {'a': 1, 'b': 2}
+
+    In this case, the variable ``a`` is substituted twice resulting in
+    an error::
+
+        sage: from sage.symbolic.expression import _subs_safe_merge
+        sage: d1 = {'a': 1}
+        sage: d2 = {'a': 2}
+        sage: _subs_safe_merge(d1, d2)
+        Traceback (most recent call last):
+        ...
+        ValueError: Duplicate substitutions given: a
+
+    We should report all such conflicts, not just the first one::
+
+        sage: from sage.symbolic.expression import _subs_safe_merge
+        sage: d1 = {'a': 1, 'b': 2}
+        sage: d2 = {'b': 1, 'a': 2}
+        sage: _subs_safe_merge(d1, d2)
+        Traceback (most recent call last):
+        ...
+        ValueError: Duplicate substitutions given: a, b
+
+    """
+    dupes = []
+    for k in d1.keys():
+        if k in d2.keys():
+            dupes.append(k)
+    if len(dupes) > 0:
+        errmsg = 'Duplicate substitutions given: %s'
+        if len(dupes) > 1:
+            errmsg += ', %s' * (len(dupes)-1)
+        raise ValueError, errmsg  % tuple(dupes)
+    return dict(d1.items() + d2.items())
+
+
+def _subs_make_dict(s):
+    r"""
+    There are a few ways we can represent a substitution. The first is
+    a symbolic equation. The second is a dictionary. The third would
+    be a list whose entries are expressions, dictionaries, or lists
+    themselves. This function converts all such representations to
+    dictionaries.
+
+    INPUT:
+
+    -  ``s`` -- A representation of a substitution.
+
+    OUTPUT:
+
+    A dictionary of substitutions.
+
+    EXAMPLES:
+
+    An expression::
+
+        sage: from sage.symbolic.expression import _subs_make_dict
+        sage: _subs_make_dict(x == 1)
+        {x: 1}
+
+    And a dictionary (we just return it as-is)::
+
+        sage: from sage.symbolic.expression import _subs_make_dict
+        sage: _subs_make_dict({x: 1})
+        {x: 1}
+
+    And finally, a list containing one of everything::
+
+        sage: from sage.symbolic.expression import _subs_make_dict
+        sage: x, y, z = var('x, y, z')
+        sage: _subs_make_dict([x == 1, {y: 1}, [z == 1]])
+        {z: 1, y: 1, x: 1}
+
+    Expect a TypeError if ``s`` is not one of the three allowed
+    types::
+
+        sage: from sage.symbolic.expression import _subs_make_dict
+        sage: _subs_make_dict(1)
+        Traceback (most recent call last):
+        ...
+        TypeError: _subs_make_dict accepts a symbolic equation, dictionary,
+        or a list comprised of expressions, dictionaries, and lists.
+
+    And a ValueError if you pass an expression that is not an equation::
+
+        sage: from sage.symbolic.expression import _subs_make_dict
+        sage: _subs_make_dict(x)
+        Traceback (most recent call last):
+        ...
+        ValueError: The symbolic expression passed to _subs_make_dict must
+        be an equation, e.g. `a == b`.
+
+    """
+    if isinstance(s, dict):
+        return s
+
+    if isinstance(s, Expression):
+        try:
+            # This will work if `s` is an equation.
+            return {s.lhs(): s.rhs()}
+        except ValueError:
+            # And will throw a ValueError otherwise.
+            msg = 'The symbolic expression passed to _subs_make_dict must be an equation, e.g. `a == b`.'
+            raise ValueError, msg
+
+
+    if isinstance(s, list):
+        # This will recurse with base case not-a-list.
+        dict_list = map(_subs_make_dict, s)
+        result = {}
+        for d in dict_list:
+            # We use _subs_safe_merge to "bubble up" the elements of
+            # the list. This way we detect any duplicate
+            # substitutions.
+            result = _subs_safe_merge(result, d)
+        return result
+
+    raise TypeError, '_subs_make_dict accepts a symbolic equation, dictionary, or a list comprised of expressions, dictionaries, and lists.'
+
+
+
 cdef class Expression(CommutativeRingElement):
     cpdef object pyobject(self):
         """
@@ -4187,56 +4335,97 @@ cdef class Expression(CommutativeRingElement):
             sage: w0 = SR.wild(0); w1 = SR.wild(1)
             sage: t = a^2 + b^2 + (x+y)^3
 
-            # substitute with keyword arguments (works only with symbols)
+        Substitute with keyword arguments (works only with symbols)::
+
             sage: t.subs(a=c)
             (x + y)^3 + b^2 + c^2
 
-            # substitute with a dictionary argument
+        Substitute with a dictionary argument::
+
             sage: t.subs({a^2: c})
             (x + y)^3 + b^2 + c
 
             sage: t.subs({w0^2: w0^3})
             a^3 + b^3 + (x + y)^3
 
-            # substitute with a relational expression
+        Substitute with a relational expression::
+
             sage: t.subs(w0^2 == w0^3)
             a^3 + b^3 + (x + y)^3
 
             sage: t.subs(w0==w0^2)
             (x^2 + y^2)^18 + a^16 + b^16
 
-            # more than one keyword argument is accepted
+        More than one keyword argument is accepted::
+
             sage: t.subs(a=b, b=c)
             (x + y)^3 + b^2 + c^2
 
-            # using keyword arguments with a dictionary is allowed
+        Using keyword arguments with a dictionary is allowed::
+
             sage: t.subs({a:b}, b=c)
             (x + y)^3 + b^2 + c^2
 
-            # in this case keyword arguments override the dictionary
+        It also accept a list of equations (see :trac:`12834`)::
+
+            sage: f = x + y + z
+            sage: f.subs([ x == 1, y == 2 ])
+            z + 3
+
+        It can even accept lists of lists::
+
+            sage: eqn1 = (a*x + b*y == 0)
+            sage: eqn2 = (1 + y == 0)
+            sage: soln = solve([eqn1, eqn2], [x, y])
+            sage: soln
+            [[x == b/a, y == -1]]
+            sage: f = x + y
+            sage: f.subs(soln)
+            b/a - 1
+
+        Duplicate assignments will throw an error::
+
             sage: t.subs({a:b}, a=c)
-            (x + y)^3 + b^2 + c^2
+            Traceback (most recent call last):
+            ...
+            ValueError: Duplicate substitutions given: a
 
-            sage: t.subs({a:b, b:c})
-            (x + y)^3 + b^2 + c^2
+        Even when the duplicate assignment is a keyword argument::
 
-        TESTS::
+            sage: f = 3*x
+            sage: f.subs([x == 1], x = 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: Duplicate substitutions given: x
 
-            sage: # no arguments return the same expression
+        All substitutions are performed at the same time::
+
+             sage: t.subs({a:b, b:c})
+             (x + y)^3 + b^2 + c^2
+
+        TESTS:
+
+        No arguments return the same expression::
+
             sage: t.subs()
             (x + y)^3 + a^2 + b^2
 
-            # similarly for an empty dictionary argument
+        Similarly for an empty dictionary argument::
+
             sage: t.subs({})
             (x + y)^3 + a^2 + b^2
 
-            # non keyword or dictionary argument returns error
+        Invalid argument returns error::
+
             sage: t.subs(5)
             Traceback (most recent call last):
             ...
-            TypeError: subs takes either a set of keyword arguments, a dictionary, or a symbolic relational expression
+            TypeError: Substitutions can be given as a set of keyword arguments,
+            a dictionary, a symbolic relational expression, or a list containing
+            any of those.
 
-            # substitutions with infinity
+        Substitutions with infinity::
+
             sage: (x/y).subs(y=oo)
             0
             sage: (x/y).subs(x=oo)
@@ -4292,16 +4481,21 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef dict sdict = {}
         if in_dict is not None:
-            if isinstance(in_dict, Expression):
-                return self._subs_expr(in_dict)
-            if not isinstance(in_dict, dict):
-                raise TypeError("subs takes either a set of keyword arguments, a dictionary, or a symbolic relational expression")
-            sdict.update(in_dict)
+            try:
+                sdict.update(_subs_make_dict(in_dict))
+            except TypeError:
+                raise TypeError("Substitutions can be given as a set of keyword "
+                 "arguments, a dictionary, a symbolic relational expression, or "
+                 "a list containing any of those.")
 
         if kwds:
-            for k, v in kwds.iteritems():
-                k = self._parent.var(k)
-                sdict[k] = v
+            # Ensure that the keys are symbolic variables.
+            kwdlist = []
+            for k,v in kwds.iteritems():
+                kwdlist.append( (self._parent.var(k), v) )
+            varkwds = dict(kwdlist)
+            # This will catch conflicting (duplicate) substitutions.
+            sdict = _subs_safe_merge(sdict, varkwds)
 
         cdef GExMap smap
         for k, v in sdict.iteritems():

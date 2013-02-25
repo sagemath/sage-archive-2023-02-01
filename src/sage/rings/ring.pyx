@@ -2009,7 +2009,7 @@ cdef class EuclideanDomain(PrincipalIdealDomain):
        """
         raise NotImplementedError
 
-cpdef bint _is_Field(x):
+cpdef bint _is_Field(x) except -2:
     """
     Return True if x is a field.
 

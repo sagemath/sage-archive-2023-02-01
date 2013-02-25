@@ -7,14 +7,14 @@ if [ "$SAGE_LOCAL" = "" ]; then
 fi
 
 echo "Clean out old boost headers"
-rm -rf ${SAGE_LOCAL}/include/boost
+rm -rf "${SAGE_LOCAL}"/include/boost
 if ! [ $? -eq 0 ]; then
     echo "Failed to delete old boost headers."
     exit 1
 fi
 
 echo "Copying over new boost headers"
-cp -r src/boost ${SAGE_LOCAL}/include/
+cp -r src/boost "${SAGE_LOCAL}"/include/
 if ! [ $? -eq 0 ]; then
     echo "Failed to install new boost headers."
     exit 1

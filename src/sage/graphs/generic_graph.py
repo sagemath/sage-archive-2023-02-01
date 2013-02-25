@@ -14366,7 +14366,12 @@ class GenericGraph(GenericGraph_pyx):
         - ``iterations`` - how many iterations of the spring layout
           algorithm to go through, if applicable
 
-        - ``color_by_label`` - if True, color edges by their labels
+        - ``color_by_label`` - a boolean or dictionary or function (default: False)
+           whether to color each edge with a different color according
+           to its label; the colors are chosen along a rainbow, unless
+           they are specified by a function or dictionary mapping
+           labels to colors; this option is incompatible with
+           ``edge_color`` and ``edge_colors``.
 
         - ``heights`` - if specified, this is a dictionary from a set
           of floating point heights to a set of vertices
@@ -14563,6 +14568,7 @@ class GenericGraph(GenericGraph_pyx):
             ...     D.add_edge((i,i+1,'a'))
             ...     D.add_edge((i,i-1,'b'))
             sage: D.plot(edge_labels=True,edge_colors=D._color_by_label())
+            sage: D.plot(edge_labels=True, color_by_label={'a':'blue', 'b':'red'}, edge_style='dashed')
 
             sage: g = Graph({}, loops=True, multiedges=True,sparse=True)
             sage: g.add_edges([(0,0,'a'),(0,0,'b'),(0,1,'c'),(0,1,'d'),
@@ -14580,6 +14586,13 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: G=Graph({'a':['a','b','b','b','e'],'b':['c','d','e'],'c':['c','d','d','d'],'d':['e']},sparse=True)
             sage: G.show(pos={'a':[0,1],'b':[1,1],'c':[2,0],'d':[1,0],'e':[0,0]})
+
+        TESTS::
+
+            sage: G = DiGraph({0:{1:'a', 2:'a'}, 1:{0:'b'}, 2:{0:'c'}})
+            sage: p = G.plot(edge_labels=True, color_by_label={'a':'yellow', 'b':'purple'}); p
+            sage: sorted([x.options()['rgbcolor'] for x in p if isinstance(x, sage.plot.arrow.CurveArrow)])
+            ['black', 'purple', 'yellow', 'yellow']
         """
         return self.graphplot(**options).plot()
 
@@ -14614,7 +14627,8 @@ class GenericGraph(GenericGraph_pyx):
 
         return self.graphplot(**plot_kwds).show(**kwds)
 
-    def plot3d(self, bgcolor=(1,1,1), vertex_colors=None, vertex_size=0.06,
+    def plot3d(self, bgcolor=(1,1,1),
+                     vertex_colors=None, vertex_size=0.06, vertex_labels=False,
                      edge_colors=None, edge_size=0.02, edge_size2=0.0325,
                      pos3d=None, color_by_label=False,
                      engine='jmol', **kwds):
@@ -14630,6 +14644,9 @@ class GenericGraph(GenericGraph_pyx):
 
         -  ``vertex_size`` - float (default: 0.06)
 
+        -  ``vertex_labels`` -- a boolean (default: False)
+           whether to display vertices using text labels instead of spheres
+
         -  ``vertex_colors`` - optional dictionary to specify
            vertex colors: each key is a color recognizable by tachyon (rgb
            tuple (default: (1,0,0))), and each corresponding entry is a list
@@ -14639,6 +14656,13 @@ class GenericGraph(GenericGraph_pyx):
         -  ``edge_colors`` - a dictionary specifying edge
            colors: each key is a color recognized by tachyon ( default:
            (0,0,0) ), and each entry is a list of edges.
+
+        - ``color_by_label`` - a boolean or dictionary or function (default: False)
+           whether to color each edge with a different color according
+           to its label; the colors are chosen along a rainbow, unless
+           they are specified by a function or dictionary mapping
+           labels to colors; this option is incompatible with
+           ``edge_color`` and ``edge_colors``.
 
         -  ``edge_size`` - float (default: 0.02)
 
@@ -14722,6 +14746,27 @@ class GenericGraph(GenericGraph_pyx):
             ...
             NotImplementedError: 3D plotting of multiple edges or loops not implemented.
 
+        TESTS::
+
+            sage: G = DiGraph({0:{1:'a', 2:'a'}, 1:{0:'b'}, 2:{0:'c'}})
+            sage: p = G.plot3d(edge_labels=True, color_by_label={'a':'yellow', 'b':'cyan'})
+            sage: s = p.x3d_str()
+
+        This 3D plot contains four yellow objects (two cylinders and
+        two cones), two black objects and 2 cyan objects::
+
+            sage: s.count("Material diffuseColor='1.0 1.0 0.0'")
+            4
+            sage: s.count("Material diffuseColor='0.0 0.0 0.0'")
+            2
+            sage: s.count("Material diffuseColor='0.0 1.0 1.0'")
+            2
+
+        .. SEEALSO::
+
+            - :meth:`plot`
+            - :meth:`graphviz_string`
+            - :meth:`_color_by_label`
         """
         import graph_plot
         layout_options = dict( (key,kwds[key]) for key in kwds.keys() if key     in graph_plot.layout_options )
@@ -14732,7 +14777,7 @@ class GenericGraph(GenericGraph_pyx):
         if self.has_multiple_edges() or self.has_loops():
             raise NotImplementedError("3D plotting of multiple edges or loops not implemented.")
         if engine == 'jmol':
-            from sage.plot.plot3d.all import sphere, line3d, arrow3d
+            from sage.plot.plot3d.all import sphere, line3d, arrow3d, text3d
             from sage.plot.plot3d.texture import Texture
             kwds.setdefault('aspect_ratio', [1,1,1])
             verts = self.vertices()
@@ -14743,7 +14788,7 @@ class GenericGraph(GenericGraph_pyx):
             if color_by_label:
                 if edge_colors is  None:
                         # do the coloring
-                        edge_colors = self._color_by_label(format='rgbtuple')
+                        edge_colors = self._color_by_label(format=color_by_label)
             elif edge_colors is None:
                 edge_colors = { (0,0,0) : self.edges() }
 
@@ -14758,7 +14803,10 @@ class GenericGraph(GenericGraph_pyx):
                 for color in vertex_colors:
                     texture = Texture(color=color, ambient=0.1, diffuse=0.9, specular=0.03)
                     for v in vertex_colors[color]:
-                        graphic += sphere(center=pos3d[v], size=vertex_size, texture=texture, **kwds)
+                        if vertex_labels:
+                            graphic += text3d(repr(v), pos3d[v])
+                        else:
+                            graphic += sphere(center=pos3d[v], size=vertex_size, texture=texture, **kwds)
                 if self._directed:
                     for color in edge_colors:
                         for u, v, l in edge_colors[color]:
@@ -14783,7 +14831,7 @@ class GenericGraph(GenericGraph_pyx):
             if color_by_label:
                 if edge_colors is  None:
                     # do the coloring
-                    edge_colors = self._color_by_label(format='rgbtuple')
+                    edge_colors = self._color_by_label(format=color_by_label)
 
             if edge_colors is None:
                 edge_colors = { (0,0,0) : edges }
@@ -14944,9 +14992,12 @@ class GenericGraph(GenericGraph_pyx):
           are colors and values are list of edges. The list of edges need not to
           be complete in which case the default color is used.
 
-        - ``color_by_label`` - boolean (default: False): whether to
-          color each edge with a different color according to its
-          label. This overwrites the options ``edge_color`` and ``edge_colors``.
+        - ``color_by_label`` - a boolean or dictionary or function (default: False)
+           whether to color each edge with a different color according
+           to its label; the colors are chosen along a rainbow, unless
+           they are specified by a function or dictionary mapping
+           labels to colors; this option is incompatible with
+           ``edge_color`` and ``edge_colors``.
 
         - ``edge_options`` - a function (or tuple thereof) mapping
           edges to a dictionary of options for this edge.

@@ -62,7 +62,7 @@ graphplot_options.update(
                     'edge_style': 'The linestyle of the edges-- one of "solid", "dashed", "dotted", dashdot". This currently only works for directed graphs, since we pass off the undirected graph to networkx',
                     'edge_color': 'The default color for edges.',
                     'edge_colors': 'a dictionary specifying edge colors: each key is a color recognized by matplotlib, and each entry is a list of edges.',
-                    'color_by_label': 'Whether or not to color the edges by their label values.',
+                    'color_by_label': 'Whether to color the edges according to their labels. This also accepts a function or dictionary mapping labels to colors.',
                     'partition': 'A partition of the vertex set.  If specified, plot will show each cell in a different color. vertex_colors takes precedence.',
                     'loop_size': 'The radius of the smallest loop.',
                     'dist': 'The distance between multiedges.',
@@ -501,7 +501,8 @@ class GraphPlot(SageObject):
         # Make dict collection of all edges (keep label and edge color)
         edges_to_draw = {}
         if self._options['color_by_label'] or isinstance(self._options['edge_colors'], dict):
-            if self._options['color_by_label']: edge_colors = self._graph._color_by_label()
+            if self._options['color_by_label']:
+                edge_colors = self._graph._color_by_label(format=self._options['color_by_label'])
             else: edge_colors = self._options['edge_colors']
             for color in edge_colors:
                 for edge in edge_colors[color]:

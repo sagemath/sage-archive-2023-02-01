@@ -26,10 +26,6 @@ See mailing list page at http://www.boost.org/community/groups.html
 
 None
 
-== Build Notes ==
-
-Merged against policy a patch that makes boost build with gcc 4.4.0. Will be obsoleted by an updated boost shortly.
-
 == Releases ==
 
 === boost-cropped-1.52.0 (Timo Kluck, November 28, 2012) ===

@@ -649,19 +649,23 @@ class SageCrashHandler(IPAppCrashHandler):
             app, contact_name, contact_email, bug_tracker, show_crash_traceback=False)
         self.crash_report_fname = 'Sage_crash_report.txt'
 
-DEFAULT_SAGE_CONFIG = Config(PromptManager = Config(in_template = 'sage: ',
-                                                    in2_template = '....: ',
-                                                    justify = False,
-                                                    out_template = ''),
-                            TerminalIPythonApp = Config(display_banner = False,
-                                                        verbose_crash = True),
-                            TerminalInteractiveShell = Config(ast_node_interactivity = 'all',
-                                                              colors = 'NoColor',
-                                                              confirm_exit = False,
-                                                              separate_in = ''),
-                            # The extension is *always* loaded for SageTerminalApp
-                            # See the code for SageTerminalApp.init_shell
-                            #InteractiveShellApp = Config(extensions=['sage.misc.sage_extension']),
+DEFAULT_SAGE_CONFIG = Config(
+    PromptManager = Config(
+        in_template = 'sage: ',
+        in2_template = '....: ',
+        justify = False,
+        out_template = ''),
+    TerminalIPythonApp = Config(
+        display_banner = False,
+        verbose_crash = True),
+    TerminalInteractiveShell = Config(
+        ast_node_interactivity = 'all',
+        colors = 'LightBG',
+        confirm_exit = False,
+        separate_in = ''),
+    # The extension is *always* loaded for SageTerminalApp
+    # See the code for SageTerminalApp.init_shell
+    #InteractiveShellApp = Config(extensions=['sage.misc.sage_extension']),
     )
 
 class SageTerminalApp(TerminalIPythonApp):
@@ -670,12 +674,29 @@ class SageTerminalApp(TerminalIPythonApp):
     test_shell = False
 
     def __init__(self, **kwargs):
-        # Overwrite the default Sage configuration with the user's.
-        new_config = Config()
-        new_config._merge(DEFAULT_SAGE_CONFIG)
-        new_config._merge(kwargs.get('config', Config()))
-        kwargs['config']=new_config
+        self.command_line_config = kwargs.get('config', Config())
         super(SageTerminalApp, self).__init__(**kwargs)
+
+
+    def load_config_file(self, *args, **kwds):
+        from IPython.frontend.terminal.ipapp import default_config_file_name
+        from IPython.config.loader import PyFileConfigLoader, ConfigFileNotFound
+        from IPython.core.profiledir import ProfileDir
+        from IPython.utils.path import get_ipython_dir
+
+        conf = Config()
+        conf._merge(DEFAULT_SAGE_CONFIG)
+        conf._merge(self.command_line_config)
+
+        # Get user config.
+        sage_profile_dir = ProfileDir.find_profile_dir_by_name(
+            get_ipython_dir(), 'sage').location
+        try:
+            cl = PyFileConfigLoader(default_config_file_name, sage_profile_dir)
+            conf._merge(cl.load_config())
+        except ConfigFileNotFound:
+            pass
+        self.update_config(conf)
 
 
     def init_shell(self):

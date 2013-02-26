@@ -722,11 +722,36 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             1 + w^5 + w^6 + 2*w^7 + 4*w^8 + 3*w^10 + w^12 + 4*w^13 + 4*w^14 + 4*w^15 + 4*w^16 + 4*w^17 + 4*w^20 + w^21 + 4*w^24 + O(w^25)
             sage: (1 + w)^-5
             1 + 4*w^5 + 4*w^6 + 3*w^7 + w^8 + 2*w^10 + w^11 + w^12 + 2*w^14 + 3*w^16 + 3*w^17 + 4*w^18 + 4*w^19 + 2*w^20 + 2*w^21 + 4*w^22 + 3*w^23 + 3*w^24 + O(w^25)
+
+        TESTS:
+
+        We define ``0^0`` to be unity, :trac:`13786`::
+
+            sage: R = ZpFM(5,5)
+            sage: S.<x> = R[]
+            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
+            sage: W.<w> = R.ext(f)
+            sage: type(W(0))
+            <type 'sage.rings.padics.padic_ZZ_pX_FM_element.pAdicZZpXFMElement'>
+            sage: W(0)^0
+            1 + O(w^25)
+            sage: W(0)^0 == W(1)
+            True
+
+        The value returned from ``0^0`` should belong to our ring::
+
+            sage: R = ZpFM(5,5)
+            sage: S.<x> = R[]
+            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
+            sage: W.<w> = R.ext(f)
+            sage: type(W(0)^0) == type(W(0))
+            True
+
         """
         if not PY_TYPE_CHECK(right, Integer):
             right = Integer(right)
-        if not right and not self:
-            raise ArithmeticError, "0^0 is undefined"
+        if right == 0 and self == 0:
+            return self.parent(1)
         cdef pAdicZZpXFMElement ans = self._new_c()
         cdef ntl_ZZ rZZ = PY_NEW(ntl_ZZ)
         mpz_to_ZZ(&rZZ.x, &(<Integer>right).value)

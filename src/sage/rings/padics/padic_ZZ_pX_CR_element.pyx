@@ -1876,6 +1876,31 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             1 + w^32 + w^50 + w^55 + w^60 + O(w^64)
             sage: (1+w+O(w^2))^64
             1 + w^64 + w^66 + w^71 + w^76 + w^81 + w^84 + w^86 + w^91 + w^94 + w^96 + O(w^98)
+
+        TESTS:
+
+            We define ``0^0`` to be unity, :trac:`13786`::
+
+            sage: R = Zp(5,5)
+            sage: S.<x> = R[]
+            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
+            sage: W.<w> = R.ext(f)
+            sage: type(W(0))
+            <type 'sage.rings.padics.padic_ZZ_pX_CR_element.pAdicZZpXCRElement'>
+            sage: W(0)^0
+            1 + O(w^25)
+            sage: W(0)^0 == W(1)
+            True
+
+        The value returned from ``0^0`` should belong to our ring::
+
+            sage: R = Zp(5,5)
+            sage: S.<x> = R[]
+            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
+            sage: W.<w> = R.ext(f)
+            sage: type(W(0)^0) == type(W(0))
+            True
+
         """
         self._normalize()
         cdef Integer right
@@ -1897,7 +1922,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             # Return 0 except for 0^0 error or type error on the exponent.
             if PY_TYPE_CHECK(_right, Integer) or PY_TYPE_CHECK(_right, Rational) or (PY_TYPE_CHECK(_right, pAdicBaseGenericElement) and _right.parent().prime() == self.prime_pow.prime)  or isinstance(_right, (int, long)):
                 if _right == 0:
-                    raise ArithmeticError, "0^0 is undefined"
+                    return self.parent(1)
                 return self
             else:
                 raise TypeError, "exponent must be an integer, rational or base p-adic with the same prime"

@@ -906,6 +906,23 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             11 + 14*19 + 19^2 + 7*19^3 + O(19^5)
             sage: K(5, 3)^19 #indirect doctest
             5 + 3*19 + 11*19^3 + O(19^4)
+
+        TESTS:
+
+        We define ``0^0`` to be unity, :trac:`13786`::
+
+            sage: R = Zp(19, 5, 'capped-rel','series')
+            sage: R(0)^0
+            1 + O(19^5)
+            sage: R(0)^0 == R(1)
+            True
+
+        The value returned from ``0^0`` should belong to our ring::
+
+            sage: R = Zp(19, 5, 'capped-rel','series')
+            sage: type(R(0)^0) == type(R(0))
+            True
+
         """
         self._normalize()
         cdef pAdicCappedRelativeElement ans
@@ -920,7 +937,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             # Return 0 except for 0^0 error or type error on the exponent.
             if PY_TYPE_CHECK(_right, Integer) or PY_TYPE_CHECK(_right, Rational) or (PY_TYPE_CHECK(_right, pAdicBaseGenericElement) and _right.parent().prime() == self.prime_pow.prime)  or isinstance(_right, (int, long)):
                 if _right == 0:
-                    raise ArithmeticError, "0^0 is undefined"
+                    return self.parent(1)
                 return self
             else:
                 raise TypeError, "exponent must be an integer, rational or base p-adic with the same prime"

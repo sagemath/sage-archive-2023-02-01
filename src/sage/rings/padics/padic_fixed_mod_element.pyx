@@ -519,7 +519,8 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         """
         Exponentiation.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: R = ZpFM(11, 5)
             sage: R(1/2)^5
             10 + 7*11 + 11^2 + 5*11^3 + 4*11^4 + O(11^5)
@@ -529,11 +530,28 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             True
             sage: R(3)^1000 #indirect doctest
             1 + 4*11^2 + 3*11^3 + 7*11^4 + O(11^5)
+
+        TESTS:
+
+        We define ``0^0`` to be unity, :trac:`13786`::
+
+            sage: R = ZpFM(11, 5)
+            sage: R(0)^0
+            1 + O(11^5)
+            sage: R(0)^0 == R(1)
+            True
+
+        The value returned from ``0^0`` should belong to our ring::
+
+            sage: R = ZpFM(11, 5)
+            sage: type(R(0)^0) == type(R(0))
+            True
+
         """
         if not PY_TYPE_CHECK(right, Integer):
             right = Integer(right) #Need to make sure that this works for p-adic exponents
-        if not right and not self:
-            raise ArithmeticError, "0^0 is undefined."
+        if right == 0 and self == 0:
+            return self.parent(1)
         cdef pAdicFixedModElement ans
         ans = self._new_c()
         sig_on()

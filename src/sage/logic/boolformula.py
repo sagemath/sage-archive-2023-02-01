@@ -613,71 +613,42 @@ class BooleanFormula:
         """
         return self.iff(other).is_tautology()
 
-    def convert_cnf(self):
-        r"""
-        This function converts an instance of boolformula to conjunctive
-        normal form. It does so by calling the function convert_cnf_table().
-        Hence convert_cnf() and convert_cnf_table() are functionally
-        identical, with the latter performing the actual conversion.
-
-        INPUT:
-             self -- the calling object.
-
-        OUTPUT:
-            An instance of boolformula with an identical truth table that is in
-            conjunctive normal form.
-
-        EXAMPLES:
-
-        Converting a boolean expression to conjunctive normal form.
-            sage: import sage.logic.propcalc as propcalc
-            sage: s = propcalc.formula("a ^ b <-> c")
-            sage: s.convert_cnf(); s
-            (a|b|~c)&(a|~b|c)&(~a|b|c)&(~a|~b|~c)
-
-        Ensure that convert_cnf() and convert_cnf_table() produce the same result.
-            sage: t = propcalc.formula("a ^ b <-> c")
-            sage: t.convert_cnf_table(); t
-            (a|b|~c)&(a|~b|c)&(~a|b|c)&(~a|~b|~c)
-            sage: t == s
-            True
-
-        SEE ALSO:
-            convert_cnf_table()
-        """
-        self.convert_cnf_table()
-
     def convert_cnf_table(self):
         r"""
         This function converts an instance of boolformula to conjunctive
         normal form. It does this by examining the truthtable of the formula,
-        and thus takes O(2^n) time, where n is the number of variables.
+        and thus takes `O(2^n)` time, where `n` is the number of variables.
 
         INPUT:
-             self -- the calling object.
+
+        - ``self`` -- the calling object.
 
         OUTPUT:
-            An instance of boolformula with an identical truth table that is in
-            conjunctive normal form.
 
-        EXAMPLES:
+            An instance of :class:`BooleanFormula` with an identical truth
+            table that is in conjunctive normal form.
+
+        EXAMPLES::
+
             sage: import sage.logic.propcalc as propcalc
             sage: s = propcalc.formula("a ^ b <-> c")
             sage: s.convert_cnf()
             sage: s
             (a|b|~c)&(a|~b|c)&(~a|b|c)&(~a|~b|~c)
 
-        Ensure that convert_cnf() and convert_cnf_table() produce the same result.
+        The methods :meth:`convert_cnf` and :meth:`convert_cnf_table` are aliases. ::
+
             sage: t = propcalc.formula("a ^ b <-> c")
             sage: t.convert_cnf_table(); t
             (a|b|~c)&(a|~b|c)&(~a|b|c)&(~a|~b|~c)
             sage: t == s
             True
 
-        NOTES:
+        .. NOTE::
+
             This method creates the cnf parse tree by examining the logic
-            table of the formula.  Creating the table requires O(2^n) time
-            where n is the number of variables in the formula.
+            table of the formula.  Creating the table requires `O(2^n)` time
+            where `n` is the number of variables in the formula.
         """
         str = ''
         t = self.truthtable()
@@ -697,6 +668,8 @@ class BooleanFormula:
         if(len(self.__expression) == 0):
             self.__expression = '(' + self.__vars_order[0] + '|~' + self.__vars_order[0] + ')'
         self.__tree, self.__vars_order = logicparser.parse(self.__expression)
+
+    convert_cnf = convert_cnf_table
 
     def convert_cnf_recur(self):
         r"""

@@ -28,7 +28,7 @@ None
 
 == Releases ==
 
-=== boost-cropped-1.52.0 (Timo Kluck, November 28, 2012) ===
+=== boost_cropped-1.52.0 (Timo Kluck, February 26th, 2013) ===
  * Drop sage patches; take all upstream headers
 
    This package contains the complete contents of the directory

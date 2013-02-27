@@ -30,6 +30,9 @@
 
 == Releases/Changelog ==
 
+=== cryptominisat-2.9.6 (Martin Albrecht, February 27th, 2013) ===
+ * new upstream release (#14198)
+
 === cryptominisat-2.9.5 (Martin Albrecht, June 29th, 2012) ===
  * new upstream release
 

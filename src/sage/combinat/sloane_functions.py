@@ -49,7 +49,7 @@ TESTS::
 
     We agree with the online database::
 
-    sage: for t in sloane.trait_names(): # long time optional, requires internet
+    sage: for t in sloane.trait_names(): # long time; optional - internet
     ...       online_list = sloane_sequence(ZZ(t[1:].lstrip('0')), verbose = False)[2]
     ...       L = max(2, len(online_list) // 2)
     ...       sage_list = sloane.__getattribute__(t).list(L)
@@ -360,7 +360,7 @@ class A000001(SloaneSequence):
 
             sage: sloane.A000001._eval(4)
             2
-            sage: sloane.A000001._eval(51) #optional requires database_gap
+            sage: sloane.A000001._eval(51) # optional - database_gap
         """
         if n <= 50:
             return self._small[n-1]

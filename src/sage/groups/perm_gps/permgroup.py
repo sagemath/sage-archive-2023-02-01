@@ -169,9 +169,9 @@ def hap_decorator(f):
         sage: foo = hap_decorator(foo)
         sage: foo(None, 3)    #optional - gap_packages
         Done
-        sage: foo(None, 3, 0) #optional - gap packages
+        sage: foo(None, 3, 0) # optional - gap_packages
         Done
-        sage: foo(None, 3, 5) #optional - gap packages
+        sage: foo(None, 3, 5) # optional - gap_packages
         Done
         sage: foo(None, 3, 4) #optional - gap_packages
         Traceback (most recent call last):

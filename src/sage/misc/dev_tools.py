@@ -44,11 +44,11 @@ def runsnake(command):
 
     EXAMPLES::
 
-        sage: runsnake("list(SymmetricGroup(3))")        # optional - requires runsnake
+        sage: runsnake("list(SymmetricGroup(3))")        # optional - runsnake
 
     ``command`` is first preparsed (see :func:`preparse`)::
 
-        sage: runsnake('for x in range(1,4): print x^2') # optional - requires runsnake
+        sage: runsnake('for x in range(1,4): print x^2') # optional - runsnake
         1
         4
         9

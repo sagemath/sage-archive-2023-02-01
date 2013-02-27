@@ -41,7 +41,7 @@ def sympy_integrator(expression, v, a=None, b=None):
 def mma_free_integrator(expression, v, a=None, b=None):
     """
         sage: from sage.symbolic.integration.external import mma_free_integrator
-        sage: mma_free_integrator(sin(x), x) # optional - requires internet
+        sage: mma_free_integrator(sin(x), x) # optional - internet
         -cos(x)
     """
     import urllib, re

@@ -3905,7 +3905,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f.subs_expr(x^2 + y^2 == t)
             (x, y, t) |--> x^2 + y^2 + t + sin(y) + cos(x)
-            sage: maple.eval('subs(x^2 + y^2 = t, cos(x) + sin(y) + x^2 + y^2 + t)')          # optional requires maple
+            sage: maple.eval('subs(x^2 + y^2 = t, cos(x) + sin(y) + x^2 + y^2 + t)')          # optional - maple
             'cos(x)+sin(y)+x^2+y^2+t'
             sage: maxima.quit()
             sage: maxima.eval('cos(x) + sin(y) + x^2 + y^2 + t, x^2 + y^2 = t')
@@ -3913,7 +3913,7 @@ cdef class Expression(CommutativeRingElement):
 
         Actually Mathematica does something that makes more sense::
 
-            sage: mathematica.eval('Cos[x] + Sin[y] + x^2 + y^2 + t /. x^2 + y^2 -> t')       # optional -- requires mathematica
+            sage: mathematica.eval('Cos[x] + Sin[y] + x^2 + y^2 + t /. x^2 + y^2 -> t')       # optional - mathematica
             2 t + Cos[x] + Sin[y]
         """
         if isinstance(equations[0], dict):
@@ -9214,17 +9214,17 @@ cdef class Expression(CommutativeRingElement):
 
         This summation only Mathematica can perform::
 
-            sage: (1/(1+k^2)).sum(k, -oo, oo, algorithm = 'mathematica')     # optional  -- requires mathematica
+            sage: (1/(1+k^2)).sum(k, -oo, oo, algorithm = 'mathematica')     # optional - mathematica
             pi*coth(pi)
 
         Use Giac to perform this summation::
 
-            sage: (sum(1/(1+k^2), k, -oo, oo, algorithm = 'giac')).factor()       # optional  -- requires giac
+            sage: (sum(1/(1+k^2), k, -oo, oo, algorithm = 'giac')).factor()       # optional - giac
             (e^(2*pi) + 1)*pi/((e^pi - 1)*(e^pi + 1))
 
         Use Maple as a backend for summation::
 
-            sage: (binomial(n,k)*x^k).sum(k, 0, n, algorithm = 'maple')      # optional  -- requires maple
+            sage: (binomial(n,k)*x^k).sum(k, 0, n, algorithm = 'maple')      # optional - maple
             (x + 1)^n
 
         Check that the sum in #10682 is done right::

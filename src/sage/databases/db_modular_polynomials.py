@@ -64,7 +64,7 @@ class ModularPolynomialDatabase:
         there is no such polynomial in the database.
 
         EXAMPLES:
-            sage: DBMP = ClassicalModularPolynomialDatabase()  #optional requires database_hohel
+            sage: DBMP = ClassicalModularPolynomialDatabase()  # optional - database_kohel
             sage: f = DBMP[29]                                 #optional
             sage: f.degree()                                   #optional
             58

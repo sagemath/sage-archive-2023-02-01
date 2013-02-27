@@ -22,29 +22,29 @@ EXAMPLES:
 
 Random Degree-2 System::
 
-    sage: from sage.libs.fes import exhaustive_search                            #optional - needs FES
-    sage: n = 16                                                                 #optional - needs FES
-    sage: R = BooleanPolynomialRing(n, 'x')                                      #optional - needs FES
-    sage: solution = dict(zip(R.gens(), VectorSpace(GF(2), n).random_element())) #optional - needs FES
+    sage: from sage.libs.fes import exhaustive_search                            # optional - FES
+    sage: n = 16                                                                 # optional - FES
+    sage: R = BooleanPolynomialRing(n, 'x')                                      # optional - FES
+    sage: solution = dict(zip(R.gens(), VectorSpace(GF(2), n).random_element())) # optional - FES
 
-    sage: F = [ R.random_element() for i in range(n+10)  ]                       #optional - needs FES
-    sage: G = [ f + f.subs(solution) for f in F]                                 #optional - needs FES
-    sage: sols = exhaustive_search(G)                                            #optional - needs FES
-    sage: solution in sols                                                       #optional - needs FES
+    sage: F = [ R.random_element() for i in range(n+10)  ]                       # optional - FES
+    sage: G = [ f + f.subs(solution) for f in F]                                 # optional - FES
+    sage: sols = exhaustive_search(G)                                            # optional - FES
+    sage: solution in sols                                                       # optional - FES
     True
-    sage: len(sols)                                                              #optional - needs FES
+    sage: len(sols)                                                              # optional - FES
     1
 
 Cylic benchmark::
 
-    sage: from sage.rings.ideal import Cyclic                 #optional - needs FES
-    sage: from sage.libs.fes import exhaustive_search         #optional - needs FES
-    sage: n = 10                                              #optional - needs FES
-    sage: R = BooleanPolynomialRing(n, 'x')                   #optional - needs FES
-    sage: sols = exhaustive_search( Cyclic(R) )               #optional - needs FES
-    sage: len(sols)                                           #optional - needs FES
+    sage: from sage.rings.ideal import Cyclic                 # optional - FES
+    sage: from sage.libs.fes import exhaustive_search         # optional - FES
+    sage: n = 10                                              # optional - FES
+    sage: R = BooleanPolynomialRing(n, 'x')                   # optional - FES
+    sage: sols = exhaustive_search( Cyclic(R) )               # optional - FES
+    sage: len(sols)                                           # optional - FES
     1
-    sage: set(sols[0]) == set(R.gens())                       #optional - needs FES
+    sage: set(sols[0]) == set(R.gens())                       # optional - FES
     True
 
 REFERENCES:
@@ -137,29 +137,29 @@ def exhaustive_search(eqs,  max_sols=Infinity, verbose=False):
 
     A very simple example::
 
-        sage: from sage.libs.fes import exhaustive_search               #optional - needs FES
-        sage: R.<x,y,z> = BooleanPolynomialRing()                       #optional - needs FES
-        sage: exhaustive_search( [x*y + z + y + 1, x+y+z, x*y + y*z] )  #optional - needs FES
+        sage: from sage.libs.fes import exhaustive_search               # optional - FES
+        sage: R.<x,y,z> = BooleanPolynomialRing()                       # optional - FES
+        sage: exhaustive_search( [x*y + z + y + 1, x+y+z, x*y + y*z] )  # optional - FES
         [{y: 0, z: 1, x: 1}]
 
     Another very simple example::
 
-        sage: R.<x,y,z,t,w> = BooleanPolynomialRing()                   #optional - needs FES
-        sage: f = x*y*z + z + y + 1                                     #optional - needs FES
-        sage: sorted( exhaustive_search( [f, x+y+z, x*y + y*z] ) )      #optional - needs FES
+        sage: R.<x,y,z,t,w> = BooleanPolynomialRing()                   # optional - FES
+        sage: f = x*y*z + z + y + 1                                     # optional - FES
+        sage: sorted( exhaustive_search( [f, x+y+z, x*y + y*z] ) )      # optional - FES
         [{w: 0, t: 0, y: 0, z: 1, x: 1}, {w: 0, t: 1, y: 0, z: 1, x: 1}, {w: 1, t: 0, y: 0, z: 1, x: 1}, {w: 1, t: 1, y: 0, z: 1, x: 1}]
 
     An example with several solutions::
 
-        sage: R.<x,y,z, t> = BooleanPolynomialRing()                    #optional - needs FES
-        sage: eqs = [x*z + y*t + 1,   x*y + y*z + z*t + t*x , x+y+z+1]  #optional - needs FES
-        sage: sorted( exhaustive_search( eqs ) )                        #optional - needs FES
+        sage: R.<x,y,z, t> = BooleanPolynomialRing()                    # optional - FES
+        sage: eqs = [x*z + y*t + 1,   x*y + y*z + z*t + t*x , x+y+z+1]  # optional - FES
+        sage: sorted( exhaustive_search( eqs ) )                        # optional - FES
         [{t: 0, y: 1, z: 1, x: 1}, {t: 1, y: 1, z: 0, x: 0}]
 
     We voluntarily limit the number of solutions returned by the library::
 
-        sage: eqs =  [x*z + y*t + 1,   x*y + y*z + z*t + t*x , x+y+z+1] #optional - needs FES
-        sage: exhaustive_search(eqs, max_sols=1 )                       #optional - needs FES
+        sage: eqs =  [x*z + y*t + 1,   x*y + y*z + z*t + t*x , x+y+z+1] # optional - FES
+        sage: exhaustive_search(eqs, max_sols=1 )                       # optional - FES
         [{t: 0, y: 1, z: 1, x: 1}]
 
     .. SEEALSO::
@@ -254,15 +254,15 @@ def find_coordinate_change(As, max_tries=64):
 
     Testing that the function works::
 
-        sage: from sage.libs.fes import find_coordinate_change    #optional - needs FES
-        sage: n = 40                                              #optional - needs FES
-        sage: K = GF(2)                                           #optional - needs FES
-        sage: R = BooleanPolynomialRing(n, 'x')                   #optional - needs FES
-        sage: foo = [ MatrixSpace(GF(2), n, n).random_element() ] #optional - needs FES
-        sage: f = [ M + M.T for M in foo ]                        #optional - needs FES
-        sage: S = find_coordinate_change( f )                     #optional - needs FES
-        sage: g = [ S.T*M*S for M in f ]                          #optional - needs FES
-        sage: vector ([ M[0,1] for M in g[:32]]).is_zero()        #optional - needs FES
+        sage: from sage.libs.fes import find_coordinate_change    # optional - FES
+        sage: n = 40                                              # optional - FES
+        sage: K = GF(2)                                           # optional - FES
+        sage: R = BooleanPolynomialRing(n, 'x')                   # optional - FES
+        sage: foo = [ MatrixSpace(GF(2), n, n).random_element() ] # optional - FES
+        sage: f = [ M + M.T for M in foo ]                        # optional - FES
+        sage: S = find_coordinate_change( f )                     # optional - FES
+        sage: g = [ S.T*M*S for M in f ]                          # optional - FES
+        sage: vector ([ M[0,1] for M in g[:32]]).is_zero()        # optional - FES
         True
     """
     n = As[0].nrows()
@@ -303,15 +303,15 @@ def prepare_polynomials(f):
 
     We check that the function does what it is supposed to do::
 
-        sage: from sage.libs.fes import prepare_polynomials                    #optional - needs FES
-        sage: n = 35                                                           #optional - needs FES
-        sage: K = GF(2)                                                        #optional - needs FES
-        sage: R = BooleanPolynomialRing(n, 'x')                                #optional - needs FES
+        sage: from sage.libs.fes import prepare_polynomials                    # optional - FES
+        sage: n = 35                                                           # optional - FES
+        sage: K = GF(2)                                                        # optional - FES
+        sage: R = BooleanPolynomialRing(n, 'x')                                # optional - FES
         sage: f = [ sum( [K.random_element() * R.gen(i) * R.gen(j) for i in range(n) for j in range(i)] ) \
                + sum( [K.random_element() * R.gen(i)  for i in range(n) ] ) \
                + K.random_element() for l in range(n) ]                        #optional - needs FES
-        sage: g = prepare_polynomials(f)                                       #optional - needs FES
-        sage: map(lambda x:x.lm(), g)                                          #optional - needs FES, random
+        sage: g = prepare_polynomials(f)                                       # optional - FES
+        sage: map(lambda x:x.lm(), g)                                          # optional - FES, random
         0
     """
     if f == []:

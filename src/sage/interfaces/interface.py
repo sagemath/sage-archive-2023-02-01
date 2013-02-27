@@ -114,7 +114,7 @@ class Interface(ParentWithBase):
             sage: f = open(filename, 'w')
             sage: f.write('x = 2\n')
             sage: f.close()
-            sage: octave.read(filename)  #optional -- requires Octave
+            sage: octave.read(filename)  # optional - octave
             sage: octave.get('x')        #optional
             ' 2'
             sage: import os

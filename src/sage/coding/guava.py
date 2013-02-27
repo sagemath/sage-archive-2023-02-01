@@ -50,11 +50,11 @@ def BinaryReedMullerCode(r,k):
         Returns the binary 'Reed-Muller code' with dimension k and order r.
 
     EXAMPLE::
-        sage: C = BinaryReedMullerCode(2,4); C  # requires optional package
+        sage: C = BinaryReedMullerCode(2,4); C  # optional - gap_packages (Guava package)
         Linear code of length 16, dimension 11 over Finite Field of size 2
-        sage: C.minimum_distance()              # requires optional package
+        sage: C.minimum_distance()              # optional - gap_packages (Guava package)
         4
-        sage: C.gen_mat()                       # requires optional package
+        sage: C.gen_mat()                       # optional - gap_packages (Guava package)
         [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
         [0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1]
         [0 0 0 0 1 1 1 1 0 0 0 0 1 1 1 1]
@@ -94,7 +94,7 @@ def QuasiQuadraticResidueCode(p):
         Returns a QQR code of length 2p.
 
     EXAMPLES::
-        sage: C = QuasiQuadraticResidueCode(11); C   # requires optional package
+        sage: C = QuasiQuadraticResidueCode(11); C   # optional - gap_packages (Guava package)
         Linear code of length 22, dimension 11 over Finite Field of size 2
 
     REFERENCES:
@@ -133,9 +133,9 @@ def RandomLinearCodeGuava(n,k,F):
         Returns a "random" linear code with length n, dimension k over field F.
 
     EXAMPLES::
-        sage: C = RandomLinearCodeGuava(30,15,GF(2)); C      # requires optional package
+        sage: C = RandomLinearCodeGuava(30,15,GF(2)); C      # optional - gap_packages (Guava package)
         Linear code of length 30, dimension 15 over Finite Field of size 2
-        sage: C = RandomLinearCodeGuava(10,5,GF(4,'a')); C      # requires optional package
+        sage: C = RandomLinearCodeGuava(10,5,GF(4,'a')); C      # optional - gap_packages (Guava package)
         Linear code of length 10, dimension 5 over Finite Field in a of size 2^2
 
     AUTHOR: David Joyner (11-2005)

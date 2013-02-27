@@ -462,5 +462,5 @@ interface:
     sage: A   = M33([1,2,3,4,5,6,7,8,0])
     sage: V3  = VectorSpace(QQ,3)
     sage: b   = V3([1,2,3])
-    sage: octave.solve_linear_system(A,b)    # requires optional octave
+    sage: octave.solve_linear_system(A,b)    # optional - octave
     [-0.33333299999999999, 0.66666700000000001, 0]

@@ -210,7 +210,7 @@ def codesize_upper_bound(n,d,q,algorithm=None):
     EXAMPLES::
         sage: codesize_upper_bound(10,3,2)
         93
-        sage: codesize_upper_bound(10,3,2,algorithm="gap")  # requires optional GAP package Guava
+        sage: codesize_upper_bound(10,3,2,algorithm="gap")  # optional - gap_packages (Guava package)
         85
 
     """
@@ -275,7 +275,7 @@ def plotkin_upper_bound(n,q,d, algorithm=None):
     EXAMPLES::
         sage: plotkin_upper_bound(10,2,3)
         192
-        sage: plotkin_upper_bound(10,2,3,algorithm="gap")  # requires optional GAP package Guava
+        sage: plotkin_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
         192
     """
     if algorithm=="gap":
@@ -306,7 +306,7 @@ def griesmer_upper_bound(n,q,d,algorithm=None):
     EXAMPLES::
         sage: griesmer_upper_bound(10,2,3)
         128
-        sage: griesmer_upper_bound(10,2,3,algorithm="gap")  # requires optional GAP package Guava
+        sage: griesmer_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
         128
     """
     if algorithm=="gap":
@@ -341,7 +341,7 @@ def elias_upper_bound(n,q,d,algorithm=None):
 
         sage: elias_upper_bound(10,2,3)
         232
-        sage: elias_upper_bound(10,2,3,algorithm="gap")  # requires optional GAP package Guava
+        sage: elias_upper_bound(10,2,3,algorithm="gap")  # optional - gap_packages (Guava package)
         232
 
     """

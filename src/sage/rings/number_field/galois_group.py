@@ -109,7 +109,7 @@ class GaloisGroup_v1(SageObject):
             sage: G = NumberField(x^3 + 2*x + 2, 'theta').galois_group(type="pari")
             sage: H = G.group(); H
             PARI group [6, -1, 2, "S3"] of degree 3
-            sage: P = H.permutation_group(); P  # optional -- requires Gap optional databases
+            sage: P = H.permutation_group(); P  # optional - database_gap
             Transitive group number 2 of degree 3
             sage: list(P)                       # optional
             [(), (2,3), (1,2), (1,2,3), (1,3,2), (1,3)]

@@ -176,12 +176,12 @@ def hadamard_matrix_www(url_file, comments=False):
     file is printed if it exists. Otherwise nothing is done.
 
     EXAMPLES::
-        sage: hadamard_matrix_www("had.4.txt")             # requires internet, optional
+        sage: hadamard_matrix_www("had.4.txt")             # optional - internet
         [ 1  1  1  1]
         [ 1 -1  1 -1]
         [ 1  1 -1 -1]
         [ 1 -1 -1  1]
-        sage: hadamard_matrix_www("had.16.2.txt",comments=True)   # requires internet, optional
+        sage: hadamard_matrix_www("had.16.2.txt",comments=True)   # optional - internet
         Automorphism group has order = 49152 = 2^14 * 3
         [ 1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1]
         [ 1 -1  1 -1  1 -1  1 -1  1 -1  1 -1  1 -1  1 -1]

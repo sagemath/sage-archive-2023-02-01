@@ -447,11 +447,11 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
 
         sage: _ = var('x, y, z')
         sage: f = sin(x^2) + y^z
-        sage: g = mathematica(f)                           # optional  -- requires mathematica
-        sage: print g                                      # optional -- requires mathematica
+        sage: g = mathematica(f)                           # optional - mathematica
+        sage: print g                                      # optional - mathematica
                   z        2
                  y  + Sin[x ]
-        sage: print g.Integrate(x)                         # optional -- requires mathematica
+        sage: print g.Integrate(x)                         # optional - mathematica
                     z        Pi                2
                  x y  + Sqrt[--] FresnelS[Sqrt[--] x]
                              2                 Pi
@@ -463,7 +463,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
 
         sage: _ = var('x, y, z')
         sage: f = sin(x^2) + y^z
-        sage: f.integrate(algorithm="mathematica_free")       # optional -- requires internet
+        sage: f.integrate(algorithm="mathematica_free")       # optional - internet
         sqrt(pi)*sqrt(1/2)*fresnels(sqrt(2)*x/sqrt(pi)) + y^z*x
 
     We can also use Sympy::
@@ -477,9 +477,9 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
 
     We integrate the above function in maple now::
 
-        sage: g = maple(f); g                             # optional -- requires maple
+        sage: g = maple(f); g                             # optional - maple
         sin(x^2)+y^z
-        sage: g.integrate(x)                              # optional -- requires maple
+        sage: g.integrate(x)                              # optional - maple
         1/2*2^(1/2)*Pi^(1/2)*FresnelS(2^(1/2)/Pi^(1/2)*x)+y^z*x
 
     We next integrate a function with no closed form integral. Notice

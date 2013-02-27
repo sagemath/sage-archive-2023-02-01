@@ -630,12 +630,12 @@ def symbolic_sum(expression, *args, **kwds):
 
     This summation only Mathematica can perform::
 
-        sage: sum(1/(1+k^2), k, -oo, oo, algorithm = 'mathematica')     # optional  -- requires mathematica
+        sage: sum(1/(1+k^2), k, -oo, oo, algorithm = 'mathematica')     # optional - mathematica
         pi*coth(pi)
 
     Use Maple as a backend for summation::
 
-        sage: sum(binomial(n,k)*x^k, k, 0, n, algorithm = 'maple')      # optional  -- requires maple
+        sage: sum(binomial(n,k)*x^k, k, 0, n, algorithm = 'maple')      # optional - maple
         (x + 1)^n
 
     Python ints should work as limits of summation (trac #9393)::

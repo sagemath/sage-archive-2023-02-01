@@ -256,7 +256,7 @@ for hints on how to do that).
 
         EXAMPLES::
 
-            sage: s = matlab.eval('a = 2') #optional - requires matlab
+            sage: s = matlab.eval('a = 2') # optional - matlab
             sage: matlab.get('a')               #optional
             '     2'
         """
@@ -308,7 +308,7 @@ for hints on how to do that).
 
             sage: M33 = MatrixSpace(QQ,3,3)
             sage: A = M33([1,2,3,4,5,6,7,8,0])
-            sage: matlab.sage2matlab_matrix_string(A)   # requires optional matlab
+            sage: matlab.sage2matlab_matrix_string(A)   # optional - matlab
             '[1, 2, 3; 4, 5, 6; 7, 8, 0]'
 
         AUTHOR:
@@ -331,17 +331,17 @@ class MatlabElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: A = matlab('[1,2;3,4]')       # optional matlab package
+            sage: A = matlab('[1,2;3,4]')       # optional - matlab
             sage: matrix(ZZ, A)                 # optional
             [1 2]
             [3 4]
-            sage: A = matlab('[1,2;3,4.5]')     # optional matlab package
+            sage: A = matlab('[1,2;3,4.5]')     # optional - matlab
             sage: matrix(RR, A)                 # optional
             [1.00000000000000 2.00000000000000]
             [3.00000000000000 4.50000000000000]
 
-            sage: a = matlab('eye(50)')         #optional - requires matlab
-            sage: matrix(RR, a)                 #optional - requires matlab
+            sage: a = matlab('eye(50)')         # optional - matlab
+            sage: matrix(RR, a)                 # optional - matlab
             50 x 50 dense matrix over Real Field with 53 bits of precision
 
         """
@@ -374,7 +374,7 @@ def matlab_console():
 
     EXAMPLES::
 
-        sage: matlab_console()                               # optional and not tested
+        sage: matlab_console()                               # optional; not tested
                                        < M A T L A B >
                            Copyright 1984-2006 The MathWorks, Inc.
         ...
@@ -399,7 +399,7 @@ def matlab_version():
 
     EXAMPLES::
 
-        sage: matlab_version()    # random optional matlab package
+        sage: matlab_version()    # random; optional - matlab
         '7.2.0.283 (R2006a)'
     """
     return str(matlab('version')).strip()

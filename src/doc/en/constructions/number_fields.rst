@@ -18,8 +18,8 @@ First load the database:
 
 ::
 
-    sage: J = JonesDatabase()            # requires optional database
-    sage: J                              # requires optional database
+    sage: J = JonesDatabase()            # optional - database
+    sage: J                              # optional - database
     John Jones's table of number fields with bounded ramification and degree <= 6
 
 .. index::
@@ -32,7 +32,7 @@ have ramification at most at 2:
 
 ::
 
-    sage: [(k.degree(), k.disc()) for k in J.unramified_outside([2])] # requires optional database
+    sage: [(k.degree(), k.disc()) for k in J.unramified_outside([2])] # optional - database
     [(4, -2048), (2, 8), (4, -1024), (1, 1), (4, 256), (2, -4), (4, 2048), (4, 512), (4, 2048), (2, -8), (4, 2048)]
 
 List the discriminants of the fields of degree exactly 2 unramified
@@ -42,7 +42,7 @@ outside 2:
 
 ::
 
-    sage: [k.disc() for k in J.unramified_outside([2],2)] # requires optional database
+    sage: [k.disc() for k in J.unramified_outside([2],2)] # optional - database
     [8, -4, -8]
 
 List the discriminants of cubic field in the database ramified
@@ -52,7 +52,7 @@ exactly at 3 and 5:
 
 ::
 
-    sage: [k.disc() for k in J.ramified_at([3,5],3)] # requires optional database
+    sage: [k.disc() for k in J.ramified_at([3,5],3)] # optional - database
     [-6075, -6075, -675, -135]
     sage: factor(6075)
     3^5 * 5^2
@@ -67,7 +67,7 @@ List all fields in the database ramified at 101:
 
 ::
 
-    sage: J.ramified_at(101)                     # requires optional database
+    sage: J.ramified_at(101)                     # optional - database
     [Number Field in a with defining polynomial x^2 - 101,
      Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361,
      Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17,

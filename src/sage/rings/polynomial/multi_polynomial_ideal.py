@@ -938,11 +938,11 @@ class MPolynomialIdeal_singular_repr(
 
             sage: R.<x,y,z> = PolynomialRing(QQ,3)
             sage: I = R.ideal([y^2 + x^2*(1/4) - z])
-            sage: I.plot()          # a cone         optional - surf
+            sage: I.plot()          # a cone; optional - surf
             sage: I = R.ideal([y^2 + z^2*(1/4) - x])
-            sage: I.plot()          # same code, from a different angle  optional - surf
+            sage: I.plot()          # same code, from a different angle; optional - surf
             sage: I = R.ideal([x^2*y^2+x^2*z^2+y^2*z^2-16*x*y*z])
-            sage: I.plot()          # Steiner surface   optional - surf
+            sage: I.plot()          # Steiner surface; optional - surf
 
         AUTHORS:
 

@@ -399,7 +399,7 @@ class R(Expect):
 
         EXAMPLES::
 
-            sage: r.install_packages('aaMI')       #optional requires internet
+            sage: r.install_packages('aaMI')       # optional - internet
             ...
             R is free software and comes with ABSOLUTELY NO WARRANTY.
             You are welcome to redistribute it under certain conditions.
@@ -617,7 +617,7 @@ class R(Expect):
 
         EXAMPLES::
 
-            sage: ap = r.available_packages()   #optional requires internet connection
+            sage: ap = r.available_packages()   # optional - internet
             sage: len(ap) > 20                  #optional
             True
         """
@@ -1030,7 +1030,7 @@ class R(Expect):
             NULL
             sage: r.library("lattice")
             sage: r("print(histogram(~wt | cyl, data=mtcars))") # plot should appear; optional -- rgraphics
-            sage: import os; os.unlink(filename) # We remove the file for doctesting, not needed in notebook;  optional -- rgraphics
+            sage: import os; os.unlink(filename) # We remove the file for doctesting, not needed in notebook; optional -- rgraphics
         """
         # We have to define this to override the plot function defined in the
         # superclass.
@@ -1840,7 +1840,7 @@ class RElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: latex(r(2))  #optional requires the Hmisc R package
+            sage: latex(r(2))  # optional - Hmisc R package
             2
         """
         from sage.misc.latex import LatexExpr

@@ -672,7 +672,7 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
             sage: giac._equality_symbol()               # optional - giac
             '=='
 
-            sage: giac(2) == giac(2) # optional -- requires giac
+            sage: giac(2) == giac(2) # optional - giac
             True
         """
         return '=='
@@ -1029,14 +1029,14 @@ class GiacElement(ExpectElement):
 
         EXAMPLE::
 
-        sage: m = giac('x^2 + 5*y')                            # optional - requires giac
-        sage: m.sage()                                          # optional - requires giac
+        sage: m = giac('x^2 + 5*y')                            # optional - giac
+        sage: m.sage()                                          # optional - giac
         x^2 + 5*y
 
         ::
 
-        sage: m = giac('sin(2*sqrt(1-x^2)) * (1 - cos(1/x))^2')  # optional - requires giac
-        sage: m.trigexpand().sage()                              # optional - requires giac
+        sage: m = giac('sin(2*sqrt(1-x^2)) * (1 - cos(1/x))^2')  # optional - giac
+        sage: m.trigexpand().sage()                              # optional - giac
         2*(cos(1/x) - 1)^2*sin(sqrt(-x^2 + 1))*cos(sqrt(-x^2 + 1))
 
         """

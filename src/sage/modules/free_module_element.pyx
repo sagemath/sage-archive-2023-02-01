@@ -3027,7 +3027,7 @@ p-norm use 'normalized', and for division by the first nonzero entry use \
 
             sage: vector((1,2,3), QQ)._mathematica_init_()
             '{1/1, 2/1, 3/1}'
-            sage: mathematica(vector((1,2,3), QQ))  #optional -- requires mathematica
+            sage: mathematica(vector((1,2,3), QQ))  # optional - mathematica
             {1, 2, 3}
             sage: a = vector(SR, 5, [1, x, x^2, sin(x), pi]); a
             (1, x, x^2, sin(x), pi)

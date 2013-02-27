@@ -257,7 +257,7 @@ class PanAxiom(Expect):
             sage: f = open(filename, 'w')
             sage: f.write('xx := 22;\n')
             sage: f.close()
-            sage: axiom.read(filename)    #optional -- requires Axiom
+            sage: axiom.read(filename)    # optional - axiom
             sage: axiom.get('xx')         #optional
             '22'
         """

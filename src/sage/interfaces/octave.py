@@ -12,11 +12,11 @@ necessary to install any special Sage packages.
 
 EXAMPLES::
 
-    sage: octave.eval('2+2')    # optional -- requires Octave
+    sage: octave.eval('2+2')    # optional - octave
     'ans = 4'
 
-    sage: a = octave(10)        # optional -- requires Octave
-    sage: a**10                 # optional -- requires Octave
+    sage: a = octave(10)        # optional - octave
+    sage: a**10                 # optional - octave
     1e+10
 
 LOG: - creation (William Stein) - ? (David Joyner, 2005-12-18) -
@@ -60,39 +60,39 @@ For example,
 
 ::
 
-    sage: octave("airy(3,2)")         # optional -- requires Octave
+    sage: octave("airy(3,2)")         # optional - octave
     4.10068
-    sage: octave("beta(2,2)")         # optional -- requires Octave
+    sage: octave("beta(2,2)")         # optional - octave
     0.166667
-    sage: octave("betainc(0.2,2,2)")  # optional -- requires Octave
+    sage: octave("betainc(0.2,2,2)")  # optional - octave
     0.104
-    sage: octave("besselh(0,2)")      # optional -- requires Octave
+    sage: octave("besselh(0,2)")      # optional - octave
     (0.223891,0.510376)
-    sage: octave("besselh(0,1)")      # optional -- requires Octave
+    sage: octave("besselh(0,1)")      # optional - octave
     (0.765198,0.088257)
-    sage: octave("besseli(1,2)")      # optional -- requires Octave
+    sage: octave("besseli(1,2)")      # optional - octave
     1.59064
-    sage: octave("besselj(1,2)")      # optional -- requires Octave
+    sage: octave("besselj(1,2)")      # optional - octave
     0.576725
-    sage: octave("besselk(1,2)")      # optional -- requires Octave
+    sage: octave("besselk(1,2)")      # optional - octave
     0.139866
-    sage: octave("erf(0)")            # optional -- requires Octave
+    sage: octave("erf(0)")            # optional - octave
     0
-    sage: octave("erf(1)")            # optional -- requires Octave
+    sage: octave("erf(1)")            # optional - octave
     0.842701
-    sage: octave("erfinv(0.842)")     # optional -- requires Octave
+    sage: octave("erfinv(0.842)")     # optional - octave
     0.998315
-    sage: octave("gamma(1.5)")        # optional -- requires Octave
+    sage: octave("gamma(1.5)")        # optional - octave
     0.886227
-    sage: octave("gammainc(1.5,1)")   # optional -- requires Octave
+    sage: octave("gammainc(1.5,1)")   # optional - octave
     0.77687
 
 The Octave interface reads in even very long input (using files) in
 a robust manner::
 
     sage: t = '"%s"'%10^10000   # ten thousand character string.
-    sage: a = octave.eval(t + ';')    # optional -- requires Octave, < 1/100th of a second
-    sage: a = octave(t)               # optional -- requires Octave
+    sage: a = octave.eval(t + ';')    # optional - octave, < 1/100th of a second
+    sage: a = octave(t)               # optional - octave
 
 Note that actually reading a back out takes forever. This *must*
 be fixed ASAP - see
@@ -103,37 +103,37 @@ Tutorial
 
 EXAMPLES::
 
-    sage: octave('4+10')              # optional -- requires Octave
+    sage: octave('4+10')              # optional - octave
     14
-    sage: octave('date')              # optional -- requires Octave; random output
+    sage: octave('date')              # optional - octave; random output
     18-Oct-2007
-    sage: octave('5*10 + 6')          # optional -- requires Octave
+    sage: octave('5*10 + 6')          # optional - octave
     56
-    sage: octave('(6+6)/3')           # optional -- requires Octave
+    sage: octave('(6+6)/3')           # optional - octave
     4
-    sage: octave('9')^2               # optional -- requires Octave
+    sage: octave('9')^2               # optional - octave
     81
-    sage: a = octave(10); b = octave(20); c = octave(30)    # optional -- requires Octave
-    sage: avg = (a+b+c)/3             # optional -- requires Octave
-    sage: avg                         # optional -- requires Octave
+    sage: a = octave(10); b = octave(20); c = octave(30)    # optional - octave
+    sage: avg = (a+b+c)/3             # optional - octave
+    sage: avg                         # optional - octave
     20
-    sage: parent(avg)                 # optional -- requires Octave
+    sage: parent(avg)                 # optional - octave
     Octave
 
 ::
 
-    sage: my_scalar = octave('3.1415')       # optional -- requires Octave
-    sage: my_scalar                          # optional -- requires Octave
+    sage: my_scalar = octave('3.1415')       # optional - octave
+    sage: my_scalar                          # optional - octave
     3.1415
-    sage: my_vector1 = octave('[1,5,7]')     # optional -- requires Octave
-    sage: my_vector1                         # optional -- requires Octave
+    sage: my_vector1 = octave('[1,5,7]')     # optional - octave
+    sage: my_vector1                         # optional - octave
     1     5     7
-    sage: my_vector2 = octave('[1;5;7]')     # optional -- requires Octave
-    sage: my_vector2                         # optional -- requires Octave
+    sage: my_vector2 = octave('[1;5;7]')     # optional - octave
+    sage: my_vector2                         # optional - octave
     1
     5
     7
-    sage: my_vector1 * my_vector2            # optional -- requires Octave
+    sage: my_vector1 * my_vector2            # optional - octave
     75
 """
 
@@ -163,13 +163,13 @@ class Octave(Expect):
 
     EXAMPLES::
 
-        sage: octave.eval("a = [ 1, 1, 2; 3, 5, 8; 13, 21, 33 ]")    # optional -- requires Octave
+        sage: octave.eval("a = [ 1, 1, 2; 3, 5, 8; 13, 21, 33 ]")    # optional - octave
         'a =\n\n 1 1 2\n 3 5 8\n 13 21 33\n\n'
-        sage: octave.eval("b = [ 1; 3; 13]")                         # optional -- requires Octave
+        sage: octave.eval("b = [ 1; 3; 13]")                         # optional - octave
         'b =\n\n 1\n 3\n 13\n\n'
-        sage: octave.eval("c=a \\ b") # solves linear equation: a*c = b  # optional -- requires Octave; random output
+        sage: octave.eval("c=a \\ b") # solves linear equation: a*c = b  # optional - octave; random output
         'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
-        sage: octave.eval("c")                                 # optional -- requires Octave; random output
+        sage: octave.eval("c")                                 # optional - octave; random output
         'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
     """
     def __init__(self, maxread=100, script_subdirectory="", logfile=None, server=None, server_tmpdir=None):
@@ -256,8 +256,8 @@ class Octave(Expect):
         EXAMPLES::
 
             sage: o = Octave()
-            sage: o._start()    #optional -- requires Octave
-            sage: o.quit(True)  #optional -- requires Octave
+            sage: o._start()    # optional - octave
+            sage: o.quit(True)  # optional - octave
             Exiting spawned Octave process.
         """
         # Don't bother, since it just hangs in some cases, and it
@@ -274,11 +274,11 @@ class Octave(Expect):
 
         EXAMPLES::
 
-            sage: o = Octave()    #optional -- requires Octave
-            sage: o.is_running()  #optional -- requires Octave
+            sage: o = Octave()    # optional - octave
+            sage: o.is_running()  # optional - octave
             False
-            sage: o._start()      #optional -- requires Octave
-            sage: o.is_running()  #optional -- requires Octave
+            sage: o._start()      # optional - octave
+            sage: o.is_running()  # optional - octave
             True
         """
         Expect._start(self)
@@ -291,8 +291,8 @@ class Octave(Expect):
 
         EXAMPLES::
 
-            sage: octave.set('x', '2') #optional -- requires Octave
-            sage: octave.get('x') #optional -- requires Octave
+            sage: octave.set('x', '2') # optional - octave
+            sage: octave.get('x') # optional - octave
             ' 2'
         """
         cmd = '%s=%s;'%(var,value)
@@ -306,8 +306,8 @@ class Octave(Expect):
 
         EXAMPLES::
 
-            sage: octave.set('x', '2') #optional -- requires Octave
-            sage: octave.get('x') #optional -- requires Octave
+            sage: octave.set('x', '2') # optional - octave
+            sage: octave.get('x') # optional - octave
             ' 2'
         """
         s = self.eval('%s'%var)
@@ -320,9 +320,9 @@ class Octave(Expect):
 
         EXAMPLES::
 
-            sage: octave.set('x', '2') #optional -- requires Octave
-            sage: octave.clear('x') #optional -- requires Octave
-            sage: octave.get('x') #optional -- requires Octave
+            sage: octave.set('x', '2') # optional - octave
+            sage: octave.clear('x') # optional - octave
+            sage: octave.get('x') # optional - octave
             "error: `x' undefined near line ... column 1"
         """
         self.eval('clear %s'%var)
@@ -358,7 +358,7 @@ class Octave(Expect):
 
         EXAMPLES::
 
-            sage: octave.version()   # optional -- requires Octave; random output depending on version
+            sage: octave.version()   # optional - octave; random output depending on version
             '2.1.73'
         """
         return octave_version()
@@ -383,7 +383,7 @@ class Octave(Expect):
             sage: A   = M33([1,2,3,4,5,6,7,8,0])
             sage: V3  = VectorSpace(QQ,3)
             sage: b   = V3([1,2,3])
-            sage: octave.solve_linear_system(A,b)    # optional -- requires Octave (and output is slightly random in low order bits)
+            sage: octave.solve_linear_system(A,b)    # optional - octave (and output is slightly random in low order bits)
             [-0.33333299999999999, 0.66666700000000001, -3.5236600000000002e-18]
 
         AUTHORS:
@@ -422,7 +422,7 @@ class Octave(Expect):
 
             sage: M33 = MatrixSpace(QQ,3,3)
             sage: A = M33([1,2,3,4,5,6,7,8,0])
-            sage: octave.sage2octave_matrix_string(A)   # optional -- requires Octave
+            sage: octave.sage2octave_matrix_string(A)   # optional - octave
             '[1, 2, 3; 4, 5, 6; 7, 8, 0]'
 
         AUTHORS:
@@ -492,12 +492,12 @@ class OctaveElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: A = octave('[1,2;3,4]')       # optional -- requires Octave
-            sage: matrix(ZZ, A)                 # optional -- requires Octave
+            sage: A = octave('[1,2;3,4]')       # optional - octave
+            sage: matrix(ZZ, A)                 # optional - octave
             [1 2]
             [3 4]
-            sage: A = octave('[1,2;3,4.5]')     # optional -- requires Octave
-            sage: matrix(RR, A)                 # optional -- requires Octave
+            sage: A = octave('[1,2;3,4.5]')     # optional - octave
+            sage: matrix(RR, A)                 # optional - octave
             [1.00000000000000 2.00000000000000]
             [3.00000000000000 4.50000000000000]
         """
@@ -558,7 +558,7 @@ def octave_version():
 
     EXAMPLES::
 
-        sage: octave_version()    # optional -- requires Octave; and output is random
+        sage: octave_version()    # optional - octave; and output is random
         '2.9.12'
     """
     return str(octave('version')).strip()

@@ -1646,7 +1646,7 @@ class TilingSolver(SageObject):
 
         ::
 
-            sage: a.show()                 # optional - requires convert command
+            sage: a.show()                 # optional -- ImageMagick
 
         The ``show`` function takes arguments to specify the delay between
         frames (measured in hundredths of a second, default value 20) and

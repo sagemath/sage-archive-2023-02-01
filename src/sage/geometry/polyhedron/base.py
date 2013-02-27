@@ -3118,11 +3118,11 @@ class Polyhedron_base(Element):
 
         EXAMPLES::
 
-            sage: polytopes.n_cube(3).lrs_volume() #optional, needs lrs package installed
+            sage: polytopes.n_cube(3).lrs_volume() # optional - lrs
             8.0
-            sage: (polytopes.n_cube(3)*2).lrs_volume() #optional, needs lrs package installed
+            sage: (polytopes.n_cube(3)*2).lrs_volume() # optional - lrs
             64.0
-            sage: polytopes.twenty_four_cell().lrs_volume() #optional, needs lrs package installed
+            sage: polytopes.twenty_four_cell().lrs_volume() # optional - lrs
             2.0
 
         REFERENCES:

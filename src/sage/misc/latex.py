@@ -1096,7 +1096,7 @@ class Latex(LatexCall):
             # This would generate a file named "/path/to/test.png"
             sage: latex.eval("\\ZZ[x]", locals(), filename="/path/to/test") # not tested
             ''
-            sage: latex.eval("\ThisIsAnInvalidCommand", {}) # optional - requires 'convert'
+            sage: latex.eval("\ThisIsAnInvalidCommand", {}) # optional -- ImageMagick
             An error
             ...
             No pages of output.

@@ -216,10 +216,10 @@ This example illustrates switching between the built-in styles when using the tk
 This example illustrates using the optional dot2tex module::
 
     sage: g = graphs.PetersenGraph()
-    sage: g.set_latex_options(format='dot2tex',prog='neato') # optional - requires dot2tex
+    sage: g.set_latex_options(format='dot2tex',prog='neato') # optional - dot2tex
     sage: from sage.graphs.graph_latex import check_tkz_graph
     sage: check_tkz_graph()  # random - depends on TeX installation
-    sage: latex(g) # optional - requires dot2tex
+    sage: latex(g) # optional - dot2tex
     \begin{tikzpicture}[>=latex,line join=bevel,]
     ...
     \end{tikzpicture}
@@ -230,7 +230,7 @@ here we color in red all edges touching the vertex ``0``::
 
     sage: g = graphs.PetersenGraph()
     sage: g.set_latex_options(format="dot2tex", edge_options = lambda (u,v,label): {"color": "red"} if u==0 else {})
-    sage: latex(g) # optional - requires dot2tex
+    sage: latex(g) # optional - dot2tex
     \begin{tikzpicture}[>=latex,line join=bevel,]
     ...
     \end{tikzpicture}
@@ -1322,7 +1322,7 @@ class GraphLatex(SageObject):
             sage: g = digraphs.ButterflyGraph(1)
             sage: from sage.graphs.graph_latex import check_tkz_graph
             sage: check_tkz_graph()  # random - depends on TeX installation
-            sage: print g.latex_options().dot2tex_picture()  # optional - requires dot2tex and graphviz
+            sage: print g.latex_options().dot2tex_picture()  # optional - dot2tex graphviz
             \begin{tikzpicture}[>=latex,line join=bevel,]
             %%
               \node (0+1) at (...bp,...bp) [draw,draw=none] {$\left(\text{0}, 1\right)$};

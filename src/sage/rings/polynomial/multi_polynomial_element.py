@@ -317,7 +317,7 @@ class MPolynomial_element(MPolynomial):
 #            sage: R.<x,y> = ZZ[]
 #            sage: f = (x^3 + 2*y^2*x)^7; f
 #            x^21 + 14*x^19*y^2 + 84*x^17*y^4 + 280*x^15*y^6 + 560*x^13*y^8 + 672*x^11*y^10 + 448*x^9*y^12 + 128*x^7*y^14
-#            sage: macaulay2(R)                      # optional, requires M2
+#            sage: macaulay2(R)                      # optional - M2
 #            ZZ [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
 #            sage: h = f._macaulay2_()               # optional
 #            sage: R(h)                              # optional

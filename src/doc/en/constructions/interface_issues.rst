@@ -498,7 +498,7 @@ sage/interfaces/octave.py) with ``octave``
 
 ::
 
-    sage: octave("atanh(1.1)")   ## requires optional octave
+    sage: octave("atanh(1.1)")   ## optional - octave
     (1.52226,-1.5708)
 
 Here's an example using Sage's interface to ``pari``'s special

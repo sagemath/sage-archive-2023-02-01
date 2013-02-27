@@ -160,7 +160,7 @@ class Mupad(Expect):
             sage: f = open(filename, 'w')
             sage: f.write('x := 2;\n')
             sage: f.close()
-            sage: mupad.read(filename)   #optional -- requires MuPAD
+            sage: mupad.read(filename)   # optional - MuPAD
             sage: mupad.get('x').strip() # optional - mupad
             '2'
 
@@ -279,7 +279,7 @@ command-line version of MuPAD.
     def cputime(self, t=None):
         """
         EXAMPLES:
-            sage: t = mupad.cputime() #random, optional -- requires MuPAD
+            sage: t = mupad.cputime() #random, optional - MuPAD
             0.11600000000000001
         """
         if t is None:

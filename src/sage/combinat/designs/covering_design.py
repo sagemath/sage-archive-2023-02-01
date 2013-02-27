@@ -443,8 +443,8 @@ def best_known_covering_design_www(v, k, t, verbose=False):
         CoveringDesign -- (v,k,t) covering design with smallest number of blocks
 
     EXAMPLES:
-        sage: C = best_known_covering_design_www(7, 3, 2)   # optional -- requires internet
-        sage: print C                                       # optional -- requires internet
+        sage: C = best_known_covering_design_www(7, 3, 2)   # optional - internet
+        sage: print C                                       # optional - internet
         C(7,3,2) = 7
         Method: lex covering
         Submitted on: 1996-12-01 00:00:00

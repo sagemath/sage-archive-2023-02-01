@@ -89,8 +89,8 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
 
         sage: ProjectiveGeometryDesign(2, 1, GF(2))
         Incidence structure with 7 points and 7 blocks
-        sage: BD = ProjectiveGeometryDesign(2, 1, GF(2), algorithm="gap") # requires optional gap package 'design'
-        sage: BD.is_block_design()                                     # requires optional gap package 'design'
+        sage: BD = ProjectiveGeometryDesign(2, 1, GF(2), algorithm="gap") # optional - gap_packages (design package)
+        sage: BD.is_block_design()                                     # optional - gap_packages (design package)
         (True, [2, 7, 3, 1])
     """
     q = F.order()
@@ -183,15 +183,15 @@ def WittDesign(n):
 
     EXAMPLES::
 
-        sage: BD = WittDesign(9)   # requires optional gap package 'design'
-        sage: BD.parameters()      # requires optional gap package 'design'
+        sage: BD = WittDesign(9)   # optional - gap_packages (design package)
+        sage: BD.parameters()      # optional - gap_packages (design package)
         (2, 9, 3, 1)
-        sage: BD                   # requires optional gap package 'design'
+        sage: BD                   # optional - gap_packages (design package)
         Incidence structure with 9 points and 12 blocks
-        sage: print BD             # requires optional gap package 'design'
+        sage: print BD             # optional - gap_packages (design package)
         WittDesign<points=[0, 1, 2, 3, 4, 5, 6, 7, 8], blocks=[[0, 1, 7], [0, 2, 5], [0, 3, 4], [0, 6, 8], [1, 2, 6], [1, 3, 5], [1, 4, 8], [2, 3, 8], [2, 4, 7], [3, 6, 7], [4, 5, 6], [5, 7, 8]]>
-        sage: BD = WittDesign(12)  # requires optional gap package 'design'
-        sage: BD.parameters(t=5)   # requires optional gap package 'design'
+        sage: BD = WittDesign(12)  # optional - gap_packages (design package)
+        sage: BD.parameters(t=5)   # optional - gap_packages (design package)
         (5, 12, 6, 1)
     """
     from sage.interfaces.gap import gap, GapElement

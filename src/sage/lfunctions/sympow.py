@@ -126,7 +126,7 @@ class Sympow(SageObject):
 
             sage: a = sympow.L(EllipticCurve('11a'), 2, 16); a   # optional
             '1.057599244590958E+00'
-            sage: RR(a)                    # optional -- requires precomputations
+            sage: RR(a)                    # optional - precomputations
             1.05759924459096
         """
         if n % 2 == 1:

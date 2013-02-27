@@ -91,6 +91,7 @@ import maps
 
 from sage.misc.latex import latex
 from sage.misc.cachefunc import cached_method
+from sage.misc.superseded import warn
 
 import sage.rings.rational as rational
 import sage.rings.integer as integer
@@ -184,7 +185,7 @@ class NumberField_relative(NumberField_generic):
         A relative extension of a relative extension::
 
             sage: x = polygen(ZZ)
-            sage: k.<a> = NumberField([x^2 + 2, x^2 + 1])
+            sage: k.<a0,a1> = NumberField([x^2 + 2, x^2 + 1])
             sage: l.<b> = k.extension(x^2 + 3)
             sage: l
             Number Field in b with defining polynomial x^2 + 3 over its base field
@@ -192,6 +193,28 @@ class NumberField_relative(NumberField_generic):
             Number Field in a0 with defining polynomial x^2 + 2 over its base field
             sage: l.base_field().base_field()
             Number Field in a1 with defining polynomial x^2 + 1
+
+        The polynomial must be monic (cf. :trac:`252`)::
+
+            sage: l.<b> = k.extension(5*x^2 + 3)
+            Traceback (most recent call last):
+            ...
+            ValueError: the polynomial must be monic
+
+        The polynomial must have integral coefficients (cf. :trac:`252`)::
+
+            sage: l.<b> = k.extension(x^2 + 3/5)
+            doctest:311: UserWarning: PARI only handles integral absolute polynomials. Computations in this field might trigger PARI errors
+            sage: b
+            Traceback (most recent call last):
+            ...
+            PariError: incorrect type (11)
+
+        However, if the polynomial is linear, rational coefficients should work::
+
+            sage: l.<b> = k.extension(x - 1/a0)
+            sage: b
+            -1/2*a0
 
         TESTS:
 
@@ -235,6 +258,9 @@ class NumberField_relative(NumberField_generic):
         if polynomial.parent().base_ring() != base:
             polynomial = polynomial.change_ring(base)
             #raise ValueError, "The polynomial must be defined over the base field"
+        if not polynomial.is_monic():
+            raise ValueError("the polynomial must be monic")
+
 
         # Generate the nf and bnf corresponding to the base field
         # defined as polynomials in y, e.g. for rnfisfree
@@ -279,6 +305,10 @@ class NumberField_relative(NumberField_generic):
         self.__gens = tuple(v)
         self._zero_element = self(0)
         self._one_element =  self(1)
+        # check that we won't make PARI unhappy later on
+        abs_p = self.absolute_polynomial()
+        if polynomial.degree() > 1 and abs_p not in PolynomialRing( ZZ, abs_p.variable_name() ):
+            warn("PARI only handles integral absolute polynomials. Computations in this field might trigger PARI errors")
 
     def change_names(self, names):
         r"""

@@ -206,3 +206,23 @@ cdef extern from "../../local/include/cplex.h":
      int CPX_PARAM_SOLNPOOLINTENSITY = 2107
      int CPX_MAX = -1
      int CPX_MIN = 1
+
+cdef extern from "../../local/include/cpxconst.h":
+
+     # Solution quality
+     #
+     # The problem either has a simplex basis
+     int CPX_BASIC_SOLN
+
+     # The problem has a primal and dual solution but no basis
+     int CPX_NONBASIC_SOLN
+
+     # The problem has a primal solution but no corresponding dual solution
+     int CPX_PRIMAL_SOLN
+
+     # The problem has no solution
+     int CPX_NO_SOLN
+
+
+
+

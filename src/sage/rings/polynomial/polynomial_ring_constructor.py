@@ -59,6 +59,7 @@ _cache = weakref.WeakValueDictionary()
 def PolynomialRing(base_ring, arg1=None, arg2=None,
                    sparse=False, order='degrevlex',
                    names=None, name=None,
+                   var_array=None,
                    implementation=None):
     r"""
     Return the globally unique univariate or multivariate polynomial
@@ -70,6 +71,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
     2. ``PolynomialRing(base_ring, names,   order='degrevlex')``
     3. ``PolynomialRing(base_ring, name, n, order='degrevlex')``
     4. ``PolynomialRing(base_ring, n, name, order='degrevlex')``
+    5. ``PolynomialRing(base_ring, n, var_array=var_array, order='degrevlex')``
 
     The optional arguments sparse and order *must* be explicitly
     named, and the other arguments must be given positionally.
@@ -79,6 +81,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
     - ``base_ring`` -- a commutative ring
     - ``name`` -- a string
     - ``names`` -- a list or tuple of names, or a comma separated string
+    - ``var_array`` -- a list or tuple of names, or a comma separated string
     - ``n`` -- an integer
     - ``sparse`` -- bool (default: False), whether or not elements are sparse
     - ``order`` -- string or
@@ -93,16 +96,16 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
       where Sage includes multiple choices (currently `\ZZ[x]` can be
       implemented with 'NTL' or 'FLINT'; default is 'FLINT')
 
-    NOTE:
+    .. NOTE::
 
-    The following rules were introduced in :trac:`9944`, in order
-    to preserve the "unique parent assumption" in Sage (i.e., if two
-    parents evaluate equal then they should actually be identical).
+        The following rules were introduced in :trac:`9944`, in order
+        to preserve the "unique parent assumption" in Sage (i.e., if two
+        parents evaluate equal then they should actually be identical).
 
-    - In the multivariate case, a dense representation is not supported. Hence,
-      the argument ``sparse=False`` is silently ignored in that case.
-    - If the given implementation does not exist for rings with the given number
-      of generators and the given sparsity, then an error results.
+        - In the multivariate case, a dense representation is not supported.
+          Hence, the argument ``sparse=False`` is silently ignored in that case.
+        - If the given implementation does not exist for rings with the given
+          number of generators and the given sparsity, then an error results.
 
     OUTPUT:
 
@@ -325,6 +328,28 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         sage: (x2 + x41 + x71)^2
         x2^2 + 2*x2*x41 + x41^2 + 2*x2*x71 + 2*x41*x71 + x71^2
 
+    5. ``PolynomialRing(base_ring, n, m, var_array=var_array, order='degrevlex')``
+
+       This creates an array of variables where each variables begins with an
+       entry in ``var_array`` and is indexed from 0 to ``n-1``.
+
+        sage: PolynomialRing(ZZ, 3, var_array=['x','y'])
+        Multivariate Polynomial Ring in x0, y0, x1, y1, x2, y2 over Integer Ring
+        sage: PolynomialRing(ZZ, 3, var_array='a,b')
+        Multivariate Polynomial Ring in a0, b0, a1, b1, a2, b2 over Integer Ring
+
+       If ``var_array`` is a single string, this creates an `m \times n`
+       array of variables::
+
+        sage: PolynomialRing(ZZ, 2, 3, var_array='m')
+        Multivariate Polynomial Ring in m00, m01, m02, m10, m11, m12 over Integer Ring
+
+       If ``var_array`` is a single string and `m` is not specified, this
+       creates an `n \times n` array of variables::
+
+        sage: PolynomialRing(ZZ, 2, var_array='m')
+        Multivariate Polynomial Ring in m00, m01, m10, m11 over Integer Ring
+
     TESTS:
 
     We test here some changes introduced in :trac:`9944`.
@@ -381,13 +406,34 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
     """
     import sage.rings.polynomial.polynomial_ring as m
 
-    if isinstance(arg1, (int, long, Integer)):
-        arg1, arg2 = arg2, arg1
-
-    if not names is None:
-        arg1 = names
-    elif not name is None:
-        arg1 = name
+    if not var_array is None:
+        # Make sure arg1 always corresponds to n and arg2 to m
+        if arg2 is not None:
+            arg1, arg2 = arg2, arg1
+        if isinstance(var_array, str):
+            if not ',' in var_array:
+                if arg2 is None:
+                    arg2 = arg1
+                arg1 = ['%s%s%s'%(var_array, i, j) for i in range(arg2) for j in range(arg1)]
+            else:
+                var_array = var_array.split(',')
+                if arg2 is not None and len(var_array) != arg2:
+                    raise IndexError('the number of names must equal the number of base generators')
+                arg1 = ['%s%s'%(x, i) for i in range(arg1) for x in var_array]
+        elif isinstance(var_array, (list,tuple)):
+            if arg2 is not None and len(var_array) != arg2:
+                raise IndexError('the number of names must equal the number of base generators')
+            arg1 = ['%s%s'%(x, i) for i in range(arg1) for x in var_array]
+        else:
+            raise TypeError("invalid input to PolynomialRing function; please see the docstring for that function")
+        arg2 = len(arg1)
+    else:
+        if isinstance(arg1, (int, long, Integer)):
+            arg1, arg2 = arg2, arg1
+        if not names is None:
+            arg1 = names
+        elif not name is None:
+            arg1 = name
 
     if is_Element(arg1) and not isinstance(arg1, (int, long, Integer)):
         arg1 = repr(arg1)

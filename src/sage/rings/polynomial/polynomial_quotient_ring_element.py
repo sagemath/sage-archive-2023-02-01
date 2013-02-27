@@ -190,6 +190,20 @@ class PolynomialQuotientRingElement(polynomial_singular_interface.Polynomial_sin
         """
         return self._polynomial._latex_(self.parent().variable_name())
 
+    def _pari_(self):
+        """
+        Pari representation of this quotient element.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: I = R.ideal(x^10)
+            sage: S.<xb> = R.quo(I)
+            sage: pari(xb)^10
+            0
+        """
+        return self._polynomial._pari_().Mod(self.parent().modulus()._pari_())
+
     ##################################################
     # Arithmetic
     ##################################################

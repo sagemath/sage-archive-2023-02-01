@@ -219,6 +219,37 @@ class QuotientRingElement(ring_element.RingElement):
         with localvars(R, P.variable_names(), normalize=False):
             return str(self.__rep)
 
+    def _pari_(self):
+        """
+        The Pari representation of this quotient element.
+
+        Since Pari does not support quotients by non-principal ideals,
+        this function will raise an error in that case.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: I = R.ideal(x^3,y^3)
+            sage: S.<xb,yb> = R.quo(I)
+            sage: pari(xb)
+            Traceback (most recent call last):
+            ...
+            ValueError: Pari does not support quotients by non-principal ideals
+
+        Note that the quotient does work in the case that the ideal is principal::
+
+            sage: I = R.ideal(x^3+y^3)
+            sage: S.<xb,yb> = R.quo(I)
+            sage: pari(xb)^4
+            Mod(-y^3*x, x^3 + y^3)
+            sage: pari(yb)^4
+            Mod(y^4, x^3 + y^3)
+        """
+        gens = self.parent().defining_ideal().gens()
+        if len(gens) != 1:
+            raise ValueError("Pari does not support quotients by non-principal ideals")
+        return self.__rep._pari_().Mod(gens[0]._pari_())
+
     def _add_(self, right):
         """
         Add quotient ring element ``self`` to another quotient ring

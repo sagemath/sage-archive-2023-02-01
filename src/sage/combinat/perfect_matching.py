@@ -16,19 +16,19 @@ EXAMPLES:
     Create a perfect matching::
 
         sage: m=PerfectMatching([('a','e'),('b','c'),('d','f')]);m
-        PerfectMatching [('a', 'e'), ('b', 'c'), ('d', 'f')]
+        [('a', 'e'), ('b', 'c'), ('d', 'f')]
 
     Count its crossings, if the ground set is totally ordered::
 
         sage: n=PerfectMatching([3,8,1,7,6,5,4,2]); n
-        PerfectMatching [(1, 3), (2, 8), (4, 7), (5, 6)]
+        [(1, 3), (2, 8), (4, 7), (5, 6)]
         sage: n.number_of_crossings()
         1
 
     List the perfect matchings of a given ground set::
 
         sage: PerfectMatchings(4).list()
-        [PerfectMatching [(4, 1), (3, 2)], PerfectMatching [(4, 2), (3, 1)], PerfectMatching [(4, 3), (2, 1)]]
+        [[(4, 1), (3, 2)], [(4, 2), (3, 1)], [(4, 3), (2, 1)]]
 
 REFERENCES:
 
@@ -67,6 +67,7 @@ from sage.sets.set import Set
 from sage.combinat.partition import Partition
 from sage.misc.misc_c import prod
 from sage.matrix.constructor import Matrix
+from sage.combinat.combinatorial_map import combinatorial_map
 
 class PerfectMatching(ElementWrapper):
     r"""
@@ -76,9 +77,9 @@ class PerfectMatching(ElementWrapper):
     fixed point-free involution as follows::
 
         sage: m=PerfectMatching([('a','e'),('b','c'),('d','f')]);m
-        PerfectMatching [('a', 'e'), ('b', 'c'), ('d', 'f')]
+        [('a', 'e'), ('b', 'c'), ('d', 'f')]
         sage: n=PerfectMatching([3,8,1,7,6,5,4,2]);n
-        PerfectMatching [(1, 3), (2, 8), (4, 7), (5, 6)]
+        [(1, 3), (2, 8), (4, 7), (5, 6)]
         sage: isinstance(m,PerfectMatching)
         True
 
@@ -97,7 +98,7 @@ class PerfectMatching(ElementWrapper):
     TESTS::
 
         sage: m=PerfectMatching([]); m
-        PerfectMatching []
+        []
         sage: m.parent()
         Set of perfect matchings of {}
     """
@@ -120,11 +121,11 @@ class PerfectMatching(ElementWrapper):
         EXAMPLES::
 
             sage: m=PerfectMatching([('a','e'),('b','c'),('d','f')]);m
-            PerfectMatching [('a', 'e'), ('b', 'c'), ('d', 'f')]
+            [('a', 'e'), ('b', 'c'), ('d', 'f')]
             sage: isinstance(m,PerfectMatching)
             True
             sage: n=PerfectMatching([3, 8, 1, 7, 6, 5, 4, 2]);n
-            PerfectMatching [(1, 3), (2, 8), (4, 7), (5, 6)]
+            [(1, 3), (2, 8), (4, 7), (5, 6)]
             sage: n.parent()
             Set of perfect matchings of {1, 2, 3, 4, 5, 6, 7, 8}
             sage: PerfectMatching([(1, 4), (2, 3), (5, 6)]).is_non_crossing()
@@ -211,11 +212,11 @@ class PerfectMatching(ElementWrapper):
         EXAMPLES::
 
             sage: m=PerfectMatching([('a','e'),('b','c'),('d','f')]);m
-            PerfectMatching [('a', 'e'), ('b', 'c'), ('d', 'f')]
+            [('a', 'e'), ('b', 'c'), ('d', 'f')]
             sage: n=PerfectMatching([3,8,1,7,6,5,4,2]);n
-            PerfectMatching [(1, 3), (2, 8), (4, 7), (5, 6)]
+            [(1, 3), (2, 8), (4, 7), (5, 6)]
         """
-        return 'PerfectMatching %s'%self.value
+        return '%s'%self.value
 
     def __eq__(self,other):
         r"""
@@ -279,12 +280,12 @@ class PerfectMatching(ElementWrapper):
 
             sage: m=PerfectMatching([(1,4),(2,6),(3,5)])
             sage: m.conjugate_by_permutation(Permutation([4,1,5,6,3,2]))
-            PerfectMatching [(4, 6), (1, 2), (5, 3)]
+            [(4, 6), (1, 2), (5, 3)]
 
         TEST::
 
             sage: PerfectMatching([]).conjugate_by_permutation(Permutation([]))
-            PerfectMatching []
+            []
         """
         return self.parent()(map(lambda t:tuple(map(p,t)),self.value))
 
@@ -438,7 +439,7 @@ class PerfectMatching(ElementWrapper):
         EXAMPLES::
 
             sage: n=PerfectMatching([3,8,1,7,6,5,4,2]); n
-            PerfectMatching [(1, 3), (2, 8), (4, 7), (5, 6)]
+            [(1, 3), (2, 8), (4, 7), (5, 6)]
             sage: it = n.crossings_iterator();
             sage: it.next()
             ((1, 3), (2, 8))
@@ -478,7 +479,7 @@ class PerfectMatching(ElementWrapper):
         EXAMPLES::
 
             sage: n=PerfectMatching([3,8,1,7,6,5,4,2]); n
-            PerfectMatching [(1, 3), (2, 8), (4, 7), (5, 6)]
+            [(1, 3), (2, 8), (4, 7), (5, 6)]
             sage: n.crossings()
             [((1, 3), (2, 8))]
 
@@ -505,7 +506,7 @@ class PerfectMatching(ElementWrapper):
         EXAMPLES::
 
             sage: n=PerfectMatching([3,8,1,7,6,5,4,2]); n
-            PerfectMatching [(1, 3), (2, 8), (4, 7), (5, 6)]
+            [(1, 3), (2, 8), (4, 7), (5, 6)]
             sage: n.number_of_crossings()
             1
         """
@@ -531,7 +532,7 @@ class PerfectMatching(ElementWrapper):
         EXAMPLES::
 
             sage: n=PerfectMatching([3,8,1,7,6,5,4,2]); n
-            PerfectMatching [(1, 3), (2, 8), (4, 7), (5, 6)]
+            [(1, 3), (2, 8), (4, 7), (5, 6)]
             sage: n.is_non_crossing()
             False
             sage: PerfectMatching([(1, 4), (2, 3), (5, 6)]).is_non_crossing()
@@ -606,7 +607,7 @@ class PerfectMatching(ElementWrapper):
             sage: m.nestings()
             [((1, 6), (3, 5)), ((2, 7), (3, 5))]
             sage: n=PerfectMatching([3,8,1,7,6,5,4,2]); n
-            PerfectMatching [(1, 3), (2, 8), (4, 7), (5, 6)]
+            [(1, 3), (2, 8), (4, 7), (5, 6)]
             sage: n.nestings()
             [((2, 8), (4, 7)), ((2, 8), (5, 6)), ((4, 7), (5, 6))]
 
@@ -633,7 +634,7 @@ class PerfectMatching(ElementWrapper):
         EXAMPLES::
 
             sage: n=PerfectMatching([3,8,1,7,6,5,4,2]); n
-            PerfectMatching [(1, 3), (2, 8), (4, 7), (5, 6)]
+            [(1, 3), (2, 8), (4, 7), (5, 6)]
             sage: n.number_of_nestings()
             3
         """
@@ -659,7 +660,7 @@ class PerfectMatching(ElementWrapper):
         EXAMPLES::
 
             sage: n=PerfectMatching([3,8,1,7,6,5,4,2]); n
-            PerfectMatching [(1, 3), (2, 8), (4, 7), (5, 6)]
+            [(1, 3), (2, 8), (4, 7), (5, 6)]
             sage: n.is_non_nesting()
             False
             sage: PerfectMatching([(1, 3), (2, 5), (4, 6)]).is_non_nesting()
@@ -695,6 +696,27 @@ class PerfectMatching(ElementWrapper):
         W=self.parent().Weingarten_matrix(d)
         return W[other.rank()][self.rank()]
 
+    @combinatorial_map(name='to permutation')
+    def to_permutation(self):
+        r"""
+        Returns the permutation corresponding to the perfect matching.
+
+        OUTPUT:
+
+            The realization of ``self`` as a permutation.
+
+        EXAMPLES::
+
+            sage: PerfectMatching([[1,3], [4,2]]).to_permutation()
+            [3, 4, 1, 2]
+            sage: PerfectMatching([[1,4], [3,2]]).to_permutation()
+            [4, 3, 2, 1]
+            sage: PerfectMatching([]).to_permutation()
+            []
+        """
+        from sage.combinat.permutation import Permutation
+        return Permutation(self.__dict__['value'])
+
 class PerfectMatchings(UniqueRepresentation,Parent):
     r"""
     Class of perfect matchings of a ground set. At the creation, the set
@@ -710,12 +732,12 @@ class PerfectMatchings(UniqueRepresentation,Parent):
     perfect matching::
 
         sage: PerfectMatchings(4).list()
-        [PerfectMatching [(4, 1), (3, 2)], PerfectMatching [(4, 2), (3, 1)], PerfectMatching [(4, 3), (2, 1)]]
+        [[(4, 1), (3, 2)], [(4, 2), (3, 1)], [(4, 3), (2, 1)]]
         sage: PerfectMatchings(8).cardinality()
         105
         sage: M=PerfectMatchings(('a', 'e', 'b', 'f', 'c', 'd'))
         sage: M.an_element()
-        PerfectMatching [('a', 'e'), ('c', 'd'), ('b', 'f')]
+        [('a', 'e'), ('c', 'd'), ('b', 'f')]
         sage: all([PerfectMatchings(i).an_element() in PerfectMatchings(i)
         ...        for i in range(2,11,2)])
         True
@@ -813,7 +835,7 @@ class PerfectMatchings(UniqueRepresentation,Parent):
         EXAMPLES::
 
             sage: PerfectMatchings(4).list()
-            [PerfectMatching [(4, 1), (3, 2)], PerfectMatching [(4, 2), (3, 1)], PerfectMatching [(4, 3), (2, 1)]]
+            [[(4, 1), (3, 2)], [(4, 2), (3, 1)], [(4, 3), (2, 1)]]
         """
         if len(self._objects) == 0:
             yield self([])
@@ -887,7 +909,7 @@ class PerfectMatchings(UniqueRepresentation,Parent):
 
             sage: M=PerfectMatchings(('a', 'e', 'b', 'f', 'c', 'd'))
             sage: M.an_element()
-            PerfectMatching [('a', 'e'), ('c', 'd'), ('b', 'f')]
+            [('a', 'e'), ('c', 'd'), ('b', 'f')]
             sage: all([PerfectMatchings(i).an_element() in PerfectMatchings(i)
             ...        for i in range(2,11,2)])
             True

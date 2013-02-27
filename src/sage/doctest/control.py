@@ -379,7 +379,7 @@ class DocTestController(SageObject):
     def expand_files_into_sources(self):
         """
         Expands ``self.files``, which may include directories, into a
-        list of :class:sage.doctest.FileDocTestSource
+        list of :class:`sage.doctest.FileDocTestSource`
 
         This function also handles the optional command line option.
 
@@ -622,7 +622,7 @@ class DocTestController(SageObject):
             sage: print DC._assemble_cmd()
             python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout=300 hello_world.py
         """
-        cmd = '''python "$SAGE_LOCAL/bin/sage-runtests" --serial '''
+        cmd = '''python "%s" --serial '''%(os.path.join("$SAGE_LOCAL","bin","sage-runtests"))
         opt = dict_difference(self.options.__dict__, DocTestDefaults().__dict__)
         for o in ("all", "sagenb"):
             if o in opt:
@@ -691,7 +691,7 @@ class DocTestController(SageObject):
                 flags = os.getenv("SAGE_MEMCHECK_FLAGS")
                 if flags is None:
                     flags = "--leak-resolution=high --leak-check=full --num-callers=25 "
-                    flags += '''--suppressions="$SAGE_LOCAL/lib/valgrind/sage.supp" '''
+                    flags += '''--suppressions="%s" '''%(os.path.join("$SAGE_LOCAL","lib","valgrind","sage.supp"))
             elif opt.massif:
                 toolname = "massif"
                 flags = os.getenv("SAGE_MASSIF_FLAGS", "--depth=6 ")

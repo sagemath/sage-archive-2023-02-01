@@ -1470,7 +1470,7 @@ class DocTestDispatcher(SageObject):
             # Hack to ensure multiprocessing leaves these processes alone
             multiprocessing.current_process()._children = set()
 
-    def dispatch(self): # todo, nthreads=options.nthreads, streaming=False, verbose=options.verbose, debug=options.debug, run_id=run_id
+    def dispatch(self):
         """
         Run the doctests for the controller's specified sources,
         by calling :meth:`parallel_dispatch` or :meth:`serial_dispatch`
@@ -1644,6 +1644,24 @@ class DocTestWorker(multiprocessing.Process):
     def start(self):
         """
         Start the worker and close the writing end of the message pipe.
+
+        TESTS::
+
+            sage: from sage.doctest.forker import DocTestWorker, DocTestTask
+            sage: from sage.doctest.sources import FileDocTestSource
+            sage: from sage.doctest.reporting import DocTestReporter
+            sage: from sage.doctest.control import DocTestController, DocTestDefaults
+            sage: filename = os.path.join(os.environ['SAGE_ROOT'],'devel','sage','sage','doctest','util.py')
+            sage: DD = DocTestDefaults()
+            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: W = DocTestWorker(FDS, DD)
+            sage: W.start()
+            sage: try:
+            ....:     os.fstat(W.wmessages)
+            ....: except OSError:
+            ....:     print "Write end of pipe successfully closed"
+            Write end of pipe successfully closed
+            sage: W.join()  # Wait for worker to finish
         """
         super(DocTestWorker, self).start()
 
@@ -1655,6 +1673,28 @@ class DocTestWorker(multiprocessing.Process):
         """
         In the master process, read from the pipe and store the data
         read in the ``messages`` attribute.
+
+        .. NOTE::
+
+            This function may need to be called multiple times in
+            order to read all of the messages.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.forker import DocTestWorker, DocTestTask
+            sage: from sage.doctest.sources import FileDocTestSource
+            sage: from sage.doctest.reporting import DocTestReporter
+            sage: from sage.doctest.control import DocTestController, DocTestDefaults
+            sage: filename = os.path.join(os.environ['SAGE_ROOT'],'devel','sage','sage','doctest','util.py')
+            sage: DD = DocTestDefaults(verbose=True,nthreads=2)
+            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: W = DocTestWorker(FDS, DD)
+            sage: W.start()
+            sage: while W.rmessages is not None:
+            ....:     W.read_messages()
+            sage: W.join()
+            sage: len(W.messages) > 0
+            True
         """
         # It's absolutely important to execute only one read() system
         # call, more might block. Assuming that we used pselect()
@@ -1672,6 +1712,24 @@ class DocTestWorker(multiprocessing.Process):
         the ``result_queue`` and with ``self.output``, the complete
         contents of ``self.outtmpfile``. Then close the Queue and
         ``self.outtmpfile``.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.forker import DocTestWorker, DocTestTask
+            sage: from sage.doctest.sources import FileDocTestSource
+            sage: from sage.doctest.reporting import DocTestReporter
+            sage: from sage.doctest.control import DocTestController, DocTestDefaults
+            sage: filename = os.path.join(os.environ['SAGE_ROOT'],'devel','sage','sage','doctest','util.py')
+            sage: DD = DocTestDefaults()
+            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: W = DocTestWorker(FDS, DD)
+            sage: W.start()
+            sage: W.join()
+            sage: W.save_result_output()
+            sage: sorted(W.result[1].keys())
+            ['cputime', 'err', 'failures', 'walltime']
+            sage: len(W.output) > 0
+            True
         """
         from Queue import Empty
         try:
@@ -1689,6 +1747,32 @@ class DocTestWorker(multiprocessing.Process):
         Kill this worker. The first time this is called, use
         ``SIGHUP``. Subsequent times, use ``SIGKILL``.  Also close the
         message pipe if it was still open.
+
+        EXAMPLES::
+
+            sage: import time
+            sage: from sage.doctest.forker import DocTestWorker, DocTestTask
+            sage: from sage.doctest.sources import FileDocTestSource
+            sage: from sage.doctest.reporting import DocTestReporter
+            sage: from sage.doctest.control import DocTestController, DocTestDefaults
+            sage: filename = os.path.join(os.environ['SAGE_ROOT'],'devel','sage','sage','doctest','util.py')
+            sage: DD = DocTestDefaults()
+            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: W = DocTestWorker(FDS, DD)
+            sage: W.start()
+            sage: time.sleep(0.05)
+            sage: W.killed
+            False
+            sage: W.kill()
+            sage: W.killed
+            True
+            sage: try:
+            ....:     W.kill()
+            ....: except OSError:
+            ....:     pass
+            sage: time.sleep(0.1)
+            sage: W.is_alive()
+            False
         """
         if self.rmessages is not None:
             os.close(self.rmessages)
@@ -1766,11 +1850,11 @@ class DocTestTask(object):
 
         OUPUT:
 
-        - ``(doctests, runner)`` where ``doctests`` is the number of
-          doctests and and ``runner`` is an annotated
-          ``SageDocTestRunner`` instance.
+        - ``(doctests, result_dict)`` where ``doctests`` is the number of
+          doctests and and ``result_dict`` is a dictionary annotated with
+          timings and error information.
 
-        - Also put ``(doctests, runner)`` onto the ``result_queue``
+        - Also put ``(doctests, result_dict)`` onto the ``result_queue``
           if the latter isn't None.
 
         EXAMPLES::

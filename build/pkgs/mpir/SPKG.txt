@@ -46,9 +46,25 @@ See http://www.mpir.org
  * configure.patch: add some extra run-time configure tests, remove
    mentions of Fortran. Re-generated configure (using the same versions
    of autoconf, automake and libtool as the original files).
+ * core-prescott-configure.patch: fix upstream bug breaking support for
+   core-*-* and prescott-*-*, at least on non-MacOS-X systems.  (The bug
+   results in requiring `ABI=standard` on these platforms, and only using the
+   generic C implementation when configured that way.)
+   Patches `configure`, `acinclude.m4` and `configure.in`; to be applied
+   *after* `patches/configure.patch` (which its name should currently make
+   sure).  Submitted upstream (against MPIR 2.6.0; 26.02.2013).
  * apple.patch: make sure 32 bits Apple Darwin use the correct asm directories.
 
 == Changelog ==
+
+=== mpir-2.6.0.p1 (Leif Leonhardy, February 27th 2013) ===
+ * #14172: MPIR 2.6.0 (but also older versions) fails to configure on Intel
+   "Core" CPUs (expecting ABI to be "standard" rather than "32", which is
+   just one symptom).  (Similar for Pentium4 Prescott.)
+   Add patch (`core-prescott-configure.patch`) fixing `acinclude.m4`,
+   `configure.in`, and the generated `configure`, rebased to the patches we
+   apply in advance.
+   Patch(es) have been submitted upstream.
 
 === mpir-2.6.0.p0 (Jean-Pierre Flori, 12 January 2013) ===
  * Trac #13137: Update to MPIR 2.6.0.

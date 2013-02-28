@@ -660,7 +660,7 @@ DEFAULT_SAGE_CONFIG = Config(
         verbose_crash = True),
     TerminalInteractiveShell = Config(
         ast_node_interactivity = 'all',
-        colors = 'LightBG',
+        colors = 'LightBG' if sys.stdout.isatty() else 'NoColor',
         confirm_exit = False,
         separate_in = ''),
     # The extension is *always* loaded for SageTerminalApp

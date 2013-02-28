@@ -145,10 +145,10 @@ class Sage(Expect):
         else:
             # Disable the IPython history (implemented as SQLite database)
             # to avoid problems with locking.
-            command = "sage-ipython --HistoryManager.hist_file=:memory:"
+            command = "sage-ipython --HistoryManager.hist_file=:memory: --colors=NoColor"
             prompt = "sage: "
             if init_code is None:
-                init_code = ['import cPickle', '%colors NoColor']
+                init_code = ['import cPickle']
 
         Expect.__init__(self,
                         name = 'sage',

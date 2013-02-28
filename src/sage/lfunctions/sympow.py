@@ -122,11 +122,20 @@ class Sympow(SageObject):
         If you would like to see the extensive output sympow prints when
         running this function, just type ``set_verbose(2)``.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: a = sympow.L(EllipticCurve('11a'), 2, 16); a   # optional
+        These examples only work if you run ``sympow -new_data 2`` in a
+        Sage shell first. Alternatively, within Sage, execute::
+
+            sage: sympow('-new_data 2')  # not tested
+
+        This command precomputes some data needed for the following
+        examples. ::
+
+            sage: a = sympow.L(EllipticCurve('11a'), 2, 16)  # not tested
+            sage: a                                          # not tested
             '1.057599244590958E+00'
-            sage: RR(a)                    # optional - precomputations
+            sage: RR(a)                                      # not tested
             1.05759924459096
         """
         if n % 2 == 1:

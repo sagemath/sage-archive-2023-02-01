@@ -4,8 +4,6 @@ Interface to Bill Hart's Quadratic Sieve
 
 import os
 
-cygwin = os.uname()[0][:6]=="CYGWIN"
-
 import sage.rings.integer
 
 from sage.misc.all import tmp_dir
@@ -56,14 +54,15 @@ def qsieve(n, block=True, time=False, verbose=False):
                by the command line time command.  (If time is False,
                this is always an empty string.)
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: k = 19; n = next_prime(10^k)*next_prime(10^(k+1))
         sage: factor(n)  # (currently) uses PARI
         10000000000000000051 * 100000000000000000039
-        sage: v, t = qsieve(n, time=True)   # uses the sieve    (optional: time doesn't work on cygwin)
-        sage: v                                          # optional
+        sage: v, t = qsieve(n, time=True)   # uses qsieve; optional - time
+        sage: v                             # optional - time
         [10000000000000000051, 100000000000000000039]
-        sage: t                                          # random; optional
+        sage: t                             # random; optional - time
         '0.36 real         0.19 user         0.00 sys'
     """
     Z = sage.rings.integer.Integer
@@ -81,8 +80,6 @@ def qsieve_block(n, time, verbose=False):
     blocking until complete.
     """
     if time:
-        if cygwin:
-             raise ValueError, "qsieve time not supported on Cygwin"
         t = 'time '
     else:
         t = ''
@@ -137,17 +134,19 @@ class qsieve_nonblock:
     A non-blocking version of Hart's quadratic sieve.
 
     The sieve starts running when you create the object, but you can
-    still use Sage in parallel:
+    still use Sage in parallel.
+
+    EXAMPLES::
 
         sage: k = 19; n = next_prime(10^k)*next_prime(10^(k+1))
-        sage: q = qsieve(n, block=False, time=True)           # optional - time
-        sage: q           # random output                     # optional
+        sage: q = qsieve(n, block=False, time=True)  # optional - time
+        sage: q           # random output; optional - time
         Proper factors so far: []
-        sage: q           # random output                     # optional
+        sage: q           # random output; optional - time
         ([10000000000000000051, 100000000000000000039], '0.21')
-        sage: q.list()    # random output                     # optional
+        sage: q.list()    # random output; optional - time
         [10000000000000000051, 100000000000000000039]
-        sage: q.time()    # random output     (optional -- requires time command)
+        sage: q.time()    # random output; optional - time
         '0.21'
 
         sage: q = qsieve(next_prime(10^20)*next_prime(10^21), block=False)
@@ -159,8 +158,6 @@ class qsieve_nonblock:
     def __init__(self, n, time):
         self._n = n
         if time:
-            if cygwin:
-                raise ValueError, "qsieve time not supported on Cygwin"
             cmd = 'time QuadraticSieve'
         else:
             cmd = 'QuadraticSieve'
@@ -255,7 +252,8 @@ class qsieve_nonblock:
         Terminate the QuadraticSieve process, in case you want
         to give up on computing this factorization.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: n = next_prime(2^110)*next_prime(2^100)
             sage: qs = qsieve(n, block=False)
             sage: qs

@@ -7866,15 +7866,15 @@ def set_random_seed(seed):
         a*b*c*d
         sage: set_random_seed(1337)
         sage: random_set((a*b*c*d).lm(),2)
-        {{b,c}, {b}}
+        {{b}, {c}}
         sage: random_set((a*b*c*d).lm(),2)
-        {{a,c}, {}}
+        {{a,c,d}, {c}}
 
         sage: set_random_seed(1337)
         sage: random_set((a*b*c*d).lm(),2)
-        {{b,c}, {b}}
+        {{b}, {c}}
         sage: random_set((a*b*c*d).lm(),2)
-        {{a,c}, {}}
+        {{a,c,d}, {c}}
     """
     pb_set_random_seed(seed)
 
@@ -7891,7 +7891,7 @@ def random_set(BooleanMonomial variables, length):
         a*b*c*d
         sage: set_random_seed(1337)
         sage: random_set((a*b*c*d).lm(),10)
-        {{a,b,c,d}, {a,b,d}, {a,c}, {a,d}, {a}, {b,c}, {b}, {c,d}, {c}, {}}
+        {{a,b,c,d}, {a,b}, {a,c,d}, {a,c}, {b,c,d}, {b,d}, {b}, {c,d}, {c}, {d}}
     """
     cdef PBSet r
     r =  pb_random_set(variables._pbmonom, length)

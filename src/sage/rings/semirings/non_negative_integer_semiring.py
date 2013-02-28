@@ -29,7 +29,7 @@ class NonNegativeIntegerSemiring(NonNegativeIntegers):
     For convenience, ``NN`` is a shortcut for
     ``NonNegativeIntegerSemiring()``::
 
-        sage: NN is NonNegativeIntegerSemiring()
+        sage: NN == NonNegativeIntegerSemiring()
         True
 
         sage: NN.category()

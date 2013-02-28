@@ -51,6 +51,67 @@ cdef binop(op, left, right):
         right = (<LazyImport>right)._get_object()
     return op(left, right)
 
+# boolean to determine whether Sage is still starting up
+cdef bint startup_guard = True
+
+cpdef finish_startup():
+    """
+    This function must be called exactly once at the end of the Sage
+    import process
+
+    TESTS::
+
+        sage: from sage.misc.lazy_import import finish_startup
+        sage: finish_startup()
+        Traceback (most recent call last):
+        ...
+        AssertionError: finish_startup() must be called exactly once
+    """
+    global startup_guard
+    assert startup_guard, 'finish_startup() must be called exactly once'
+    startup_guard = False
+
+cpdef bint is_during_startup():
+    """
+    Return whether Sage is currently starting up
+
+    OUTPUT:
+
+    Boolean
+
+    TESTS::
+
+        sage: from sage.misc.lazy_import import is_during_startup
+        sage: is_during_startup()
+        False
+    """
+    global startup_guard
+    return startup_guard
+
+cpdef test_fake_startup():
+    """
+    For testing purposes only.
+
+    Switch the startup lazy import guard back on.
+
+    EXAMPLES::
+
+        sage: sage.misc.lazy_import.test_fake_startup()
+        sage: from sage.misc.lazy_import import lazy_import
+        sage: lazy_import('sage.rings.all', 'ZZ', 'my_ZZ')
+        sage: my_ZZ(123)
+        -------------------------------------------------------------------------------
+        Resolving lazy import ZZ during startup
+        Calling stack:
+        ...
+        -------------------------------------------------------------------------------
+        123
+        sage: sage.misc.lazy_import.finish_startup()
+    """
+    global startup_guard
+    startup_guard = True
+
+
 cdef class LazyImport(object):
     """
     EXAMPLES::
@@ -146,6 +207,13 @@ cdef class LazyImport(object):
                <type 'function'>
         """
         if self._object is None:
+            if startup_guard:
+                import sys, traceback
+                print '-' * 79
+                print 'Resolving lazy import {0} during startup'.format(self._name)
+                print 'Calling stack:'
+                traceback.print_stack(None, None, sys.stdout)
+                print '-' * 79
             self._object = getattr(__import__(self._module, {}, {}, [self._name]), self._name)
             alias = self._as_name or self._name
             if owner is None:
@@ -774,6 +842,36 @@ cdef class LazyImport(object):
             10
         """
         return operator.index(self._get_object())
+
+    def __copy__(self):
+        """
+        Support copy()
+
+        TESTS::
+
+            sage: sage.all.foo = 10
+            sage: lazy_import('sage.all', 'foo')
+            sage: type(foo)
+            <type 'sage.misc.lazy_import.LazyImport'>
+            sage: copy(foo)
+            10
+        """
+        return self._get_object()
+
+    def __deepcopy__(self, memo=None):
+        """
+        Support copy()
+
+        TESTS::
+
+            sage: sage.all.foo = 10
+            sage: lazy_import('sage.all', 'foo')
+            sage: type(foo)
+            <type 'sage.misc.lazy_import.LazyImport'>
+            sage: deepcopy(foo)
+            10
+        """
+        return self._get_object()
 
 
 def lazy_import(module, names, _as=None, namespace=None, bint overwrite=True):

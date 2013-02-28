@@ -139,8 +139,8 @@ def import_statements(*objects, **options):
     In principle, the function should also work on object which are instances.
     In case of ambiguity, one or two warning lines are printed::
 
-        sage: import_statements(NN)
-        from sage.rings.semirings.non_negative_integer_semiring import NN
+        sage: import_statements(RDF)
+        from sage.rings.real_double import RDF
 
         sage: import_statements(ZZ)
           ** Warning **: several names for that object: Z, ZZ

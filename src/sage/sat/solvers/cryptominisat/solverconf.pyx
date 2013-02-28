@@ -313,6 +313,8 @@ cdef class SolverConf(object):
             0
         """
         cdef SolverConf other = PY_NEW(SolverConf)
-        other._conf = new SolverConfC(self._conf[0])
+        other._conf = new SolverConfC()
         other._nopts = setup_map(other._map, other._conf[0], 100)
+        for name in self.trait_names():
+            other[name] = self[name]
         return other

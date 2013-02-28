@@ -13,7 +13,7 @@ Stopgaps
 import warnings
 from warnings import warn, resetwarnings
 
-from sage.plot.plot import DOCTEST_MODE
+from sage.doctest import DOCTEST_MODE
 cdef bint ENABLED = not DOCTEST_MODE
 
 def set_state(bint mode):

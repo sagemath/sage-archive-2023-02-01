@@ -336,7 +336,7 @@ class HG:
 
             sage: hg_sage._warning() # random
         """
-        from sage.plot.plot import DOCTEST_MODE
+        from sage.doctest import DOCTEST_MODE
         if not os.path.exists(os.path.join(os.environ['HOME'], '.hgrc')) and not DOCTEST_MODE:
             print "\nWARNING:"
             print "Make sure to create a ~/.hgrc file:"

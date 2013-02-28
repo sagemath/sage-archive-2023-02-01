@@ -1076,7 +1076,8 @@ end_scene""" % (render_params.antialiasing,
         else:
             filename = tmp_filename()
 
-        from sage.plot.plot import EMBEDDED_MODE, DOCTEST_MODE
+        from sage.plot.plot import EMBEDDED_MODE
+        from sage.doctest import DOCTEST_MODE
         ext = None
 
         # Tachyon resolution options

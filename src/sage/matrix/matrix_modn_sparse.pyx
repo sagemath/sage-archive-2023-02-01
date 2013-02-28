@@ -645,7 +645,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         if filename is None:
             filename = sage.misc.temporary_file.graphics_filename()
-            if sage.plot.plot.DOCTEST_MODE:
+            if sage.doctest.DOCTEST_MODE:
                 import os
                 filename = os.path.join(sage.misc.temporary_file.tmp_dir(), filename)
 

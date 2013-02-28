@@ -357,7 +357,6 @@ import os
 
 #DEFAULT_FIGSIZE=(6, 3.70820393249937)
 EMBEDDED_MODE = False
-DOCTEST_MODE = False
 import sage.misc.misc
 from sage.misc.misc import srange
 

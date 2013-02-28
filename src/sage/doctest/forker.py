@@ -54,9 +54,9 @@ def init_sage():
     EXAMPLES::
 
         sage: from sage.doctest.forker import init_sage
-        sage: sage.plot.plot.DOCTEST_MODE = False
+        sage: sage.doctest.DOCTEST_MODE = False
         sage: init_sage()
-        sage: sage.plot.plot.DOCTEST_MODE
+        sage: sage.doctest.DOCTEST_MODE
         True
 
     Check that pexpect interfaces are invalidated, but still work::
@@ -75,7 +75,7 @@ def init_sage():
     """
     # Do this once before forking.
     import sage.all_cmdline
-    sage.plot.plot.DOCTEST_MODE=True
+    sage.doctest.DOCTEST_MODE=True
     sage.interfaces.quit.invalidate_all()
     import sage.misc.displayhook
     sys.displayhook = sage.misc.displayhook.DisplayHook(sys.displayhook)

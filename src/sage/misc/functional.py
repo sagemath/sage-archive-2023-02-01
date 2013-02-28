@@ -1625,7 +1625,7 @@ def show(x, *args, **kwds):
     _do_show(x)
 
 def _do_show(x):
-    if sage.plot.plot.DOCTEST_MODE:
+    if sage.doctest.DOCTEST_MODE:
         return sage.misc.latex.latex(x)
     from latex import view
     view(x, mode='display')

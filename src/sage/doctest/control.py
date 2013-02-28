@@ -898,8 +898,7 @@ def run_doctests(module, options=None):
     DC = DocTestController(options, F)
 
     # Determine whether we're in doctest mode
-    import sage.plot.plot
-    save_dtmode = sage.plot.plot.DOCTEST_MODE
+    save_dtmode = sage.doctest.DOCTEST_MODE
 
     # We need the following if we're not in DOCTEST_MODE
     # Tell IPython to avoid colors: it screws up the output checking.
@@ -915,7 +914,7 @@ def run_doctests(module, options=None):
     try:
         DC.run()
     finally:
-        sage.plot.plot.DOCTEST_MODE = save_dtmode
+        sage.doctest.DOCTEST_MODE = save_dtmode
         if not save_dtmode:
             IP.run_line_magic('colors', old_color)
             IP.config.TerminalInteractiveShell.colors = old_config_color

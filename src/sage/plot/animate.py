@@ -449,7 +449,7 @@ See www.imagemagick.org and www.ffmpeg.org for more information."""
 
               See www.imagemagick.org and www.ffmpeg.org for more information.
         """
-        if plot.DOCTEST_MODE:
+        if sage.doctest.DOCTEST_MODE:
             filename = tmp_filename(ext='.gif')
             self.gif(savefile=filename, delay=delay, iterations=iterations)
             return

@@ -312,7 +312,7 @@ class Tachyon(SageObject):
             sage: q.show(verbose = False)
         """
         import sage.plot.plot
-        if sage.plot.plot.DOCTEST_MODE:
+        if sage.doctest.DOCTEST_MODE:
             filename = graphics_filename()
             self.save(os.path.join(SAGE_TMP, 'test.png'), verbose=verbose, extra_opts=extra_opts)
             return

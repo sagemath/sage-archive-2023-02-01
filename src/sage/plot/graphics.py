@@ -1785,7 +1785,7 @@ class Graphics(SageObject):
         # This option should not be passed on to save().
         linkmode = kwds.pop('linkmode', False)
 
-        if sage.plot.plot.DOCTEST_MODE:
+        if sage.doctest.DOCTEST_MODE:
             kwds.pop('filename', None)
             self.save(DOCTEST_MODE_FILE, **kwds)
         elif sage.plot.plot.EMBEDDED_MODE:
@@ -3042,7 +3042,7 @@ class GraphicsArray(SageObject):
             sage: G.show(axes=False)
         """
         if (figsize is not None): self._set_figsize_(figsize)
-        if sage.plot.plot.DOCTEST_MODE:
+        if sage.doctest.DOCTEST_MODE:
             self.save(DOCTEST_MODE_FILE,
                       dpi=dpi, figsize=self._figsize, axes = axes, **args)
             return

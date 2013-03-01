@@ -5875,7 +5875,7 @@ def partitions_set(S,k=None, use_file=True):
         sage: partitions_set(S,2)
         doctest:1: DeprecationWarning: partitions_set is deprecated. Use SetPartitions instead.
         See http://trac.sagemath.org/13072 for details.
-        Set partitions of [1, 2, 3, 4] with 2 parts
+        Set partitions of {1, 2, 3, 4} with 2 parts
     """
     from sage.misc.superseded import deprecation
     deprecation(13072,'partitions_set is deprecated. Use SetPartitions instead.')

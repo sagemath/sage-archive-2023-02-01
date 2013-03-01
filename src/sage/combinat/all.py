@@ -85,8 +85,8 @@ from non_decreasing_parking_function import NonDecreasingParkingFunctions, NonDe
 from combination import Combinations
 from cartesian_product import CartesianProduct
 
-from set_partition import SetPartitions
-from set_partition_ordered import OrderedSetPartitions
+from set_partition import SetPartition, SetPartitions
+from set_partition_ordered import OrderedSetPartition, OrderedSetPartitions
 from subset import Subsets
 #from subsets_pairwise import PairwiseCompatibleSubsets
 from necklace import Necklaces

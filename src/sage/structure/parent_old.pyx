@@ -146,7 +146,7 @@ cdef class Parent(parent.Parent):
             self.init_coerce()
         cdef object ret
         try:
-            ret = PyObject_GetItem(self._coerce_from_hash,S)
+            ret = self._coerce_from_hash.get(S)
             return ret
         except KeyError:
             pass
@@ -175,7 +175,7 @@ cdef class Parent(parent.Parent):
                 mor = mor * sage_type.coerce_map_from(S)
 
         if mor is not None:
-            self._coerce_from_hash[S] = mor # TODO: if this is None, could it be non-None in the future?
+            self._coerce_from_hash.set(S, mor) # TODO: if this is None, could it be non-None in the future?
 
         return mor
 
@@ -221,7 +221,7 @@ cdef class Parent(parent.Parent):
         try:
             if self._action_hash is None: # this is because parent.__init__() does not always get called
                 self.init_coerce()
-            return self._action_hash[S, op, self_on_left]
+            return self._action_hash.get(S, op, self_on_left)
         except KeyError:
             pass
         if HAS_DICTIONARY(self):
@@ -232,7 +232,7 @@ cdef class Parent(parent.Parent):
             from sage.categories.action import Action
             if not isinstance(action, Action):
                 raise TypeError, "get_action_impl must return None or an Action"
-            self._action_hash[S, op, self_on_left] = action
+            self._action_hash.set(S, op, self_on_left, action)
         return action
 
     def get_action_impl(self, S, op, self_on_left):
@@ -343,14 +343,14 @@ cdef class Parent(parent.Parent):
             self._has_coerce_map_from = MonoDict(23)
         else:
             try:
-                return self._has_coerce_map_from[S]
+                return self._has_coerce_map_from.get(S)
             except KeyError:
                 pass
         if HAS_DICTIONARY(self):
             x = self.has_coerce_map_from_impl(S)
         else:
             x = self.has_coerce_map_from_c_impl(S)
-        self._has_coerce_map_from[S] = x
+        self._has_coerce_map_from.set(S, x)
         return x
 
     def has_coerce_map_from_impl(self, S):

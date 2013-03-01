@@ -185,9 +185,14 @@ class DIMACS(SatSolver):
         self._tail.write(" ".join(l) )
         self._lit += 1
 
-    def write(self):
+    def write(self, filename=None):
         """
         Write DIMACS file.
+
+        INPUT:
+
+        - ``filename`` - if ``None`` default filename specified at initialization is used for
+          writing to (default: ``None``)
 
         EXAMPLE::
 
@@ -200,8 +205,19 @@ class DIMACS(SatSolver):
             ...      print line,
             p cnf 3 1
             1 -2 3 0
+
+            sage: from sage.sat.solvers.dimacs import DIMACS
+            sage: fn = tmp_filename()
+            sage: solver = DIMACS()
+            sage: solver.add_clause( (1, -2 , 3) )
+            sage: _ = solver.write(fn)
+            sage: for line in open(fn).readlines():
+            ...      print line,
+            p cnf 3 1
+            1 -2 3 0
         """
-        head = open(self._headname, "w")
+        headname = self._headname if filename is None else filename
+        head = open(headname, "w")
         head.truncate(0)
         head.write("p cnf %d %d\n"%(self._var,self._lit))
         head.close()
@@ -209,14 +225,130 @@ class DIMACS(SatSolver):
         tail = self._tail
         tail.close()
 
-        head = open(self._headname,"a")
+        head = open(headname,"a")
         tail = open(self._tail.name,"r")
         head.write(tail.read())
         tail.close()
         head.close()
 
         self._tail = open(self._tail.name,"a")
-        return self._headname
+        return headname
+
+    def clauses(self, filename=None):
+        """
+        Return original clauses.
+
+        INPUT:
+
+        - ``filename`` - if not ``None`` clauses are written to ``filename`` in
+          DIMACS format (default: ``None``)
+
+        OUTPUT:
+
+            If ``filename`` is ``None`` then a list of ``lits, is_xor, rhs``
+            tuples is returned, where ``lits`` is a tuple of literals,
+            ``is_xor`` is always ``False`` and ``rhs`` is always ``None``.
+
+            If ``filename`` points to a writable file, then the list of original
+            clauses is written to that file in DIMACS format.
+
+        EXAMPLE::
+
+            sage: from sage.sat.solvers.dimacs import DIMACS
+            sage: fn = tmp_filename()
+            sage: solver = DIMACS()
+            sage: solver.add_clause( (1, 2, 3) )
+            sage: solver.clauses()
+            [((1, 2, 3), False, None)]
+
+            sage: solver.add_clause( (1, 2, -3) )
+            sage: solver.clauses(fn)
+            sage: print open(fn).read()
+            p cnf 3 2
+            1 2 3 0
+            1 2 -3 0
+            <BLANKLINE>
+        """
+        if filename is not None:
+            self.write(filename)
+        else:
+            tail = self._tail
+            tail.close()
+            tail = open(self._tail.name,"r")
+
+            clauses = []
+            for line in tail.readlines():
+                if line.startswith("p") or line.startswith("c"):
+                    continue
+                clause = []
+                for lit in line.split(" "):
+                    lit = int(lit)
+                    if lit == 0:
+                        break
+                    clause.append(lit)
+                clauses.append( ( tuple(clause), False, None ) )
+            tail.close()
+            self._tail = open(self._tail.name, "a")
+            return clauses
+
+    @staticmethod
+    def render_dimacs(clauses, filename, nlits):
+        """
+        Produce DIMACS file ``filename`` from ``clauses``.
+
+        INPUT:
+
+        - ``clauses`` - a list of clauses, either in simple format as a list of
+          literals or in extended format for CryptoMiniSat: a tuple of literals,
+          ``is_xor`` and ``rhs``.
+
+        - ``filename`` - the file to write to
+
+        - ``nlits -- the number of literals appearing in ``clauses``
+
+        EXAMPLE::
+
+            sage: from sage.sat.solvers.dimacs import DIMACS
+            sage: fn = tmp_filename()
+            sage: solver = DIMACS()
+            sage: solver.add_clause( (1, 2, -3) )
+            sage: DIMACS.render_dimacs(solver.clauses(), fn, solver.nvars())
+            sage: print open(fn).read()
+            p cnf 3 1
+            1 2 -3 0
+            <BLANKLINE>
+
+        This is equivalent to::
+
+            sage: solver.clauses(fn)
+            sage: print open(fn).read()
+            p cnf 3 1
+            1 2 -3 0
+            <BLANKLINE>
+
+        This function also accepts a "simple" format::
+
+            sage: DIMACS.render_dimacs([ (1,2), (1,2,-3) ], fn, 3)
+            sage: print open(fn).read()
+            p cnf 3 2
+            1 2 0
+            1 2 -3 0
+            <BLANKLINE>
+        """
+        fh = open(filename, "w")
+        fh.write("p cnf %d %d\n"%(nlits,len(clauses)))
+        for clause in clauses:
+            if len(clause) == 3 and clause[1] in (True, False) and clause[2] in (True,False,None):
+                lits, is_xor, rhs = clause
+            else:
+                lits, is_xor, rhs = clause, False, None
+
+            if is_xor:
+                closing = lits[-1] if rhs else -lits[-1]
+                fh.write("x" + " ".join(map(str, lits[:-1])) + " %d 0\n"%closing)
+            else:
+                fh.write(" ".join(map(str, lits)) + " 0\n")
+        fh.close()
 
     def __call__(self, assumptions=None):
         """

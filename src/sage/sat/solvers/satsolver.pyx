@@ -166,3 +166,63 @@ cdef class SatSolver:
         a generic SAT solver (don't use me, inherit from me)
         """
         return "a generic SAT solver (don't use me, inherit from me)"
+
+    def clauses(self, filename=None):
+        """
+        Return original clauses.
+
+        INPUT:
+
+        - ``filename'' - if not ``None`` clauses are written to ``filename`` in
+          DIMACS format (default: ``None``)
+
+        OUTPUT:
+
+            If ``filename`` is ``None`` then a list of ``lits, is_xor, rhs``
+            tuples is returned, where ``lits`` is a tuple of literals,
+            ``is_xor`` is always ``False`` and ``rhs`` is always ``None``.
+
+            If ``filename`` points to a writable file, then the list of original
+            clauses is written to that file in DIMACS format.
+
+
+        EXAMPLE::
+
+            sage: from sage.sat.solvers.satsolver import SatSolver
+            sage: solver = SatSolver()
+            sage: solver.clauses()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
+    def __getattr__(self, name):
+        """
+        EXAMPLE::
+
+            sage: from sage.sat.solvers.satsolver import SatSolver
+            sage: solver = SatSolver()
+            sage: solver.gens() # __getattr__ points this to clauses
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        if name == "gens":
+            return self.clauses
+        else:
+            raise AttributeError("'%s' object has no attribute '%s'"%(self.__class__.__name__,name))
+
+    def trait_names(self):
+        """
+        Allow alias to appear in tab completion.
+
+        EXAMPLE::
+
+            sage: from sage.sat.solvers.satsolver import SatSolver
+            sage: solver = SatSolver()
+            sage: solver.trait_names()
+            ['gens']
+        """
+        return ["gens"]
+

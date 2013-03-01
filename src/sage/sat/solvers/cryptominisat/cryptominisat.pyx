@@ -31,8 +31,8 @@ include "../../../ext/stdsage.pxi"
 include "../../../ext/interrupt.pxi"
 
 from libc.stdint cimport uint32_t
-from decl cimport lbool, Var, Lit, Clause, l_Undef, l_False
-from decl cimport vec
+from decl cimport lbool, Var, Lit, Clause, l_Undef, l_False, RetClause
+from decl cimport vec, vector
 from decl cimport GaussConf
 from solverconf cimport SolverConf
 
@@ -431,5 +431,76 @@ cdef class CryptoMiniSat(SatSolver):
         sage_free(learnt)
         return tuple(r)
 
+    def clauses(self, filename=None):
+        """
+        Return (possibly simplified) original clauses.
 
+        INPUT:
 
+        - ``filename'' - if not ``None`` clauses are written to ``filename`` in
+          CryptoMinisat's extended DIMACS format (default: ``None``)
+
+        OUTPUT:
+
+            If ``filename`` is ``None`` then a list of ``lits, is_xor, rhs``
+            tuples is returned, where ``lits`` is a tuple of literals,
+            ``is_xor`` indicates whether the clause is an xor clause and ``rhs``
+            is either ``True`` or ``False`` for xor clauses and ``None``
+            otherwise.
+
+            If ``filename`` points to a writable file, then the list of original
+            clauses is written to that file in CryptoMiniSat's extended DIMACS
+            format.
+
+        EXAMPLES::
+
+            sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
+            sage: cms = CryptoMiniSat()                      # optional - cryptominisat
+            sage: cms.add_xor_clause((1,2,3,4,5,6,7,8,9), isfalse=False) # optional - cryptominisat
+            sage: cms.add_clause((1,2,3,4,5,6,7,8,-9))       # optional - cryptominisat
+            sage: cms.clauses()                              # optional - cryptominisat
+            [((1, 2, 3, 4, 5, 6, 7, 8, -9), False, None),
+            ((1, 2, 3, 4, 5, 6, 7, 8, 9), True, True)]
+
+        Clauses may have been simplified already::
+
+            sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
+            sage: cms = CryptoMiniSat()                      # optional - cryptominisat
+            sage: cms.add_xor_clause((1,2), isfalse=False)   # optional - cryptominisat
+            sage: cms.add_clause((1,2))                      # optional - cryptominisat
+            sage: cms.clauses()                              # optional - cryptominisat
+            [((2, 1), True, True),
+            ((-1, -2), False, None),
+            ((1, 2), False, None),
+            ((1, 2), False, None)]
+
+        DIMACS format output::
+
+            sage: from sage.sat.solvers import CryptoMiniSat # optional - cryptominisat
+            sage: cms = CryptoMiniSat()                      # optional - cryptominisat
+            sage: cms.add_xor_clause((1,2), isfalse=False)   # optional - cryptominisat
+            sage: cms.add_clause((1,2))                      # optional - cryptominisat
+            sage: fn = tmp_filename()                        # optional - cryptominisat
+            sage: cms.clauses(fn)                            # optional - cryptominisat
+            sage: print open(fn).read()                      # optional - cryptominisat
+            p cnf 2 4
+            x2 1 0
+            -1 -2 0
+            1 2 0
+            1 2 0
+            <BLANKLINE>
+        """
+        cdef vector[RetClause] v = self._solver.dumpOrigClauses()
+        cdef vector[Lit] l
+        cdef list original = []
+
+        for i in range(v.size()):
+            l = v[i].lits
+            L = tuple([(-1)**l[j].sign() * (l[j].var()+1) for j in range(l.size())])
+            original.append( (L, v[i].is_xor, v[i].right_hand_side if v[i].is_xor else None ) )
+
+        if filename is None:
+            return original
+        else:
+            from sage.sat.solvers.dimacs import DIMACS
+            DIMACS.render_dimacs(original, filename, self._solver.nVars())

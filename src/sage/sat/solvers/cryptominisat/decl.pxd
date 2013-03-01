@@ -1,4 +1,5 @@
 from libc.stdint cimport uint32_t, uint64_t
+from libcpp.vector cimport vector
 
 cdef extern from "Solver.h" namespace "CMSat":
     cdef cppclass lbool:
@@ -137,6 +138,12 @@ cdef extern from "Solver.h" namespace "CMSat":
     cdef cppclass GaussConf:
         pass
 
+
+    cdef struct RetClause:
+        bint is_xor
+        bint right_hand_side
+        vector[Lit] lits
+
     cdef cppclass Solver:
         Solver()
         Solver(SolverConf& conf, GaussConf& _gaussconfig)
@@ -186,4 +193,6 @@ cdef extern from "Solver.h" namespace "CMSat":
         void needProofGraph()       # Prepares the solver to output proof graphs during solving
 
         vec[Lit] get_unitary_learnts() # return the set of unitary learnt clauses
+
+        vector[RetClause] dumpOrigClauses() # return original simplified clauses
 

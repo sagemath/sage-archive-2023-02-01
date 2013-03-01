@@ -61,6 +61,20 @@ DIMACS-base solvers can also be used to write DIMACS files::
     1 2 3 0
     1 2 -3 0
 
+Alternatively, there is :meth:`sage.sat.solvers.dimacs.DIMACS.clauses`::
+
+    sage: from sage.sat.solvers.dimacs import DIMACS
+    sage: fn = tmp_filename()
+    sage: solver = DIMACS()
+    sage: solver.add_clause( ( 1,  2,  3) )
+    sage: solver.add_clause( ( 1,  2, -3) )
+    sage: solver.clauses(fn)
+    sage: for line in open(fn).readlines():
+    ...      print line,
+    p cnf 3 2
+    1 2 3 0
+    1 2 -3 0
+
 These files can then be passed external SAT solvers.
 
 We demonstrate solving using CryptoMiniSat::

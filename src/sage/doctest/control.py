@@ -392,7 +392,7 @@ class DocTestController(SageObject):
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
             sage: len(DC.sources)
-            8
+            9
             sage: DC.sources[0].optional
             True
 
@@ -482,6 +482,7 @@ class DocTestController(SageObject):
             Sorting sources by runtime so that slower doctests are run first....
             sage: print "\n".join([source.basename for source in DC.sources])
             sage.doctest.util
+            sage.doctest.test
             sage.doctest.sources
             sage.doctest.reporting
             sage.doctest.parsing

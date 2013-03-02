@@ -531,7 +531,7 @@ def bounds_minimum_distance(n, k, F):
 
     EXAMPLES::
 
-        sage: print bounds_minimum_distance(10,5,GF(2)) # optional (requires Guava)
+        sage: print bounds_minimum_distance(10,5,GF(2)) # optional - gap_packages (Guava package)
         rec(
           n := 10,
           k := 5,

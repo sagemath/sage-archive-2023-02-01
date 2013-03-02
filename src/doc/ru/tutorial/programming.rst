@@ -705,7 +705,7 @@ http://docs.python.org/lib/typesmapping.html) произвольным объе�
 
 ::
 
-    sage: magma('GF(5)!1 eq Rationals()!1')            # optional magma required
+    sage: magma('GF(5)!1 eq Rationals()!1')            # optional - magma
     true
 
 Профилирование

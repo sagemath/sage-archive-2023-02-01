@@ -309,7 +309,7 @@ def prepare_polynomials(f):
         sage: R = BooleanPolynomialRing(n, 'x')                                # optional - FES
         sage: f = [ sum( [K.random_element() * R.gen(i) * R.gen(j) for i in range(n) for j in range(i)] ) \
                + sum( [K.random_element() * R.gen(i)  for i in range(n) ] ) \
-               + K.random_element() for l in range(n) ]                        #optional - needs FES
+               + K.random_element() for l in range(n) ]                        # optional - FES
         sage: g = prepare_polynomials(f)                                       # optional - FES
         sage: map(lambda x:x.lm(), g)                                          # optional - FES, random
         0

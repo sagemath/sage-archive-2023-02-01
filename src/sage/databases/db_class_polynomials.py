@@ -73,7 +73,7 @@ class HilbertClassPolynomialDatabase(ClassPolynomialDatabase):
     EXAMPLES::
 
         sage: db = HilbertClassPolynomialDatabase()
-        sage: db[-4]                 # optional Kohel database required
+        sage: db[-4]                 # optional - database_kohel
         x - 1728
         sage: db[-7]                 # optional
         x + 3375

@@ -733,7 +733,7 @@ declares the :math:`1 \in \GF{5}` equal to :math:`1 \in \QQ`.
 
 ::
 
-    sage: magma('GF(5)!1 eq Rationals()!1')            # optional magma required
+    sage: magma('GF(5)!1 eq Rationals()!1')            # optional - magma
     true
 
 Profiling

@@ -759,7 +759,7 @@ die :math:`1 \in \GF{5}` gleich der :math:`1 \in \QQ` festlegt.
 
 ::
 
-    sage: magma('GF(5)!1 eq Rationals()!1')            # optional magma required
+    sage: magma('GF(5)!1 eq Rationals()!1')            # optional - magma
     true
 
 Profiling

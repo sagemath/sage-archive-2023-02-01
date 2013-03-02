@@ -16,15 +16,16 @@ SAGE_SPKG = sage-spkg $${SAGE_SPKG_OPTS}
 PIPE = $(SAGE_ROOT)/spkg/pipestatus
 
 # Tell make not to look for files with these names:
-.PHONY: all all-sage base toolchain
+.PHONY: all all-sage base toolchain toolchain-deps
 
-# Make the 3 build phases: base, toolchain, all-sage
+# Make the 4 build phases: base, toolchain, toolchain-deps, all-sage
 # During the toolchain build, we export SAGE_BUILD_TOOLCHAIN=yes
 # such that packages can do different things when they are built
 # as prerequisite of GCC.
 all:
 	$(MAKE) base
 	env SAGE_BUILD_TOOLCHAIN=yes $(MAKE) toolchain
+	$(MAKE) toolchain-deps
 	$(MAKE) all-sage
 
 # All targets except for the base packages
@@ -119,8 +120,21 @@ all-sage: \
      $(INST)/$(ZLIB) \
      $(INST)/$(ZNPOLY)
 
-# TOOLCHAIN consists of dependencies determined by spkg/install
+# TOOLCHAIN consists of dependencies determined by spkg/install,
+# including for example the GCC package.
 toolchain: $(TOOLCHAIN)
+
+# Build all packages that GCC links against serially, otherwise this
+# leads to race conditions where some library which is used by GCC gets
+# reinstalled. Since system GCCs might use Sage's libraries, we do this
+# unconditionally. We still use the dependency checking from $(MAKE),
+# so this will not trigger useless rebuilds.
+# See http://trac.sagemath.org/sage_trac/ticket/14168
+toolchain-deps:
+	$(MAKE) $(INST)/$(ZLIB)
+	$(MAKE) $(INST)/$(MPIR)
+	$(MAKE) $(INST)/$(MPFR)
+	$(MAKE) $(INST)/$(MPC)
 
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.

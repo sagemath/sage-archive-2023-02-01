@@ -517,13 +517,12 @@ class DocTestController(SageObject):
             Doctesting 1 file.
             sage -t .../sage/rings/homset.py
                 [... tests, ... s]
-            ------------------------------------------------------------------------
+            ----------------------------------------------------------------------
             All tests passed!
-            ------------------------------------------------------------------------
+            ----------------------------------------------------------------------
             Total time for all tests: ... seconds
                 cpu time: ... seconds
                 cumulative wall time: ... seconds
-
         """
         nfiles = 0
         nother = 0
@@ -535,8 +534,6 @@ class DocTestController(SageObject):
         if self.sources:
             filestr = ", ".join(([count_noun(nfiles, "file")] if nfiles else []) +
                                 ([count_noun(nother, "other source")] if nother else []))
-            if self.options.nthreads > len(self.sources):
-                self.options.nthreads = len(self.sources)
             threads = " using %s threads"%(self.options.nthreads) if self.options.nthreads > 1 else ""
             iterations = []
             if self.options.global_iterations > 1:
@@ -595,9 +592,9 @@ class DocTestController(SageObject):
              Doctesting 1 file.
              sage -t .../rings/infinity.py
                  [... tests, ... s]
-             ------------------------------------------------------------------------
+             ----------------------------------------------------------------------
              All tests passed!
-             ------------------------------------------------------------------------
+             ----------------------------------------------------------------------
              Total time for all tests: ... seconds
                  cpu time: ... seconds
                  cumulative wall time: ... seconds
@@ -754,9 +751,9 @@ class DocTestController(SageObject):
             Doctesting 1 file.
             sage -t .../sage/sets/non_negative_integers.py
                 [... tests, ... s]
-            ------------------------------------------------------------------------
+            ----------------------------------------------------------------------
             All tests passed!
-            ------------------------------------------------------------------------
+            ----------------------------------------------------------------------
             Total time for all tests: ... seconds
                 cpu time: ... seconds
                 cumulative wall time: ... seconds
@@ -797,9 +794,9 @@ def run_doctests(module, options=None):
         Doctesting 1 file.
         sage -t .../sage/rings/infinity.py
             [... tests, ... s]
-        ------------------------------------------------------------------------
+        ----------------------------------------------------------------------
         All tests passed!
-        ------------------------------------------------------------------------
+        ----------------------------------------------------------------------
         Total time for all tests: ... seconds
             cpu time: ... seconds
             cumulative wall time: ... seconds

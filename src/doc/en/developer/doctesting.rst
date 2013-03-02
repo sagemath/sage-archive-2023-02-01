@@ -510,7 +510,7 @@ to doctest the main library using multiple threads. When doing release
 management or patching the main Sage library, a release manager would
 parallel test the library using 10 threads with the following command::
 
-    [jdemeyer@sage sage-5.9]$ ./sage -tp 10 -long devel/sage-main/
+    [jdemeyer@sage sage-5.9]$ ./sage -tp 10 --long devel/sage-main/
 
 Another way is run ``make ptestlong``, which builds Sage (if necessary),
 builds the Sage documentation (if necessary), and then runs parallel
@@ -555,7 +555,7 @@ by the symbolic link ``devel/sage``.
   * ``SAGE_ROOT/devel/sage/doc/fr``
 
   and then the Sage library. Doctesting is run with the optional
-  argument ``-long``. See the file ``SAGE_ROOT/Makefile`` for further
+  argument ``--long``. See the file ``SAGE_ROOT/Makefile`` for further
   details.
 
 * ``make ptest`` --- Similar to the commands ``make test`` and ``make
@@ -563,7 +563,7 @@ by the symbolic link ``devel/sage``.
   described above for ``make ptestlong``.
 
 * ``make ptestlong`` --- Similar to the command ``make ptest``, but
-  using the optional argument ``-long`` for doctesting.
+  using the optional argument ``--long`` for doctesting.
 
 
 Beyond the Sage library

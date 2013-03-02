@@ -64,10 +64,6 @@ def init_sage():
     import sage.misc.displayhook
     sys.displayhook = sage.misc.displayhook.DisplayHook(sys.displayhook)
 
-    # Do this *before* forking, because importing readline from a
-    # child process can screw up the terminal.
-    import readline
-
     # Workaround for https://github.com/sagemath/sagenb/pull/84
     import sagenb.notebook.misc
 
@@ -1445,12 +1441,17 @@ class DocTestDispatcher(SageObject):
                         log(follow.messages, end="")
                         follow.messages = ""
         finally:
+            # Restore SIGCHLD handler (which is to ignore the signal)
+            signal.signal(signal.SIGCHLD, signal.SIG_DFL)
+
+            # Kill all remaining workers (in case we got interrupted)
             for w in workers:
                 try:
-                    print("Killing test", w.source.printpath)
                     w.kill()
                 except Exception:
                     pass
+                else:
+                    print("Killing test", w.source.printpath)
             # Fork a child process with the specific purpose of
             # killing the remaining workers.
             if len(workers) > 0 and os.fork() == 0:
@@ -1467,7 +1468,9 @@ class DocTestDispatcher(SageObject):
                     finally:
                         os._exit(0)
 
-            # Hack to ensure multiprocessing leaves these processes alone
+            # Hack to ensure multiprocessing leaves these processes
+            # alone (in particular, it doesn't wait for them when we
+            # exit).
             multiprocessing.current_process()._children = set()
 
     def dispatch(self):
@@ -1558,9 +1561,9 @@ class DocTestWorker(multiprocessing.Process):
             Doctesting 1 file.
             sage -t .../sage/rings/big_oh.py
                 [... tests, ... s]
-            ------------------------------------------------------------------------
+            ----------------------------------------------------------------------
             All tests passed!
-            ------------------------------------------------------------------------
+            ----------------------------------------------------------------------
             Total time for all tests: ... seconds
                 cpu time: ... seconds
                 cumulative wall time: ... seconds
@@ -1604,9 +1607,9 @@ class DocTestWorker(multiprocessing.Process):
             Doctesting 1 file.
             sage -t .../sage/symbolic/units.py
                 [... tests, ... s]
-            ------------------------------------------------------------------------
+            ----------------------------------------------------------------------
             All tests passed!
-            ------------------------------------------------------------------------
+            ----------------------------------------------------------------------
             Total time for all tests: ... seconds
                 cpu time: ... seconds
                 cumulative wall time: ... seconds
@@ -1616,6 +1619,10 @@ class DocTestWorker(multiprocessing.Process):
         # Run functions
         for f in self.funclist:
             f()
+
+        # Write one byte to the pipe to signal to the master process
+        # that we have started properly.
+        os.write(self.wmessages, "X")
 
         task = DocTestTask(self.source)
 
@@ -1668,6 +1675,11 @@ class DocTestWorker(multiprocessing.Process):
         # Close the writing end of the pipe (only the child should
         # write to the pipe).
         os.close(self.wmessages)
+
+        # Read one byte from the pipe as a sign that the child process
+        # has properly started (to avoid race conditions). In particular,
+        # it will have its process group changed.
+        os.read(self.rmessages, 1)
 
     def read_messages(self):
         """
@@ -1755,22 +1767,28 @@ class DocTestWorker(multiprocessing.Process):
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.doctest.reporting import DocTestReporter
             sage: from sage.doctest.control import DocTestController, DocTestDefaults
-            sage: filename = os.path.join(os.environ['SAGE_ROOT'],'devel','sage','sage','doctest','util.py')
+            sage: filename = os.path.join(os.environ['SAGE_ROOT'],'devel','sage','sage','doctest','tests','99seconds.rst')
             sage: DD = DocTestDefaults()
             sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
-            sage: W = DocTestWorker(FDS, DD)
+
+        We set up the worker to start by blocking ``SIGHUP``, such that
+        killing will fail initially::
+
+            sage: from sage.ext.pselect import PSelecter
+            sage: import signal
+            sage: def block_hup():
+            ....:     # We never __exit__()
+            ....:     PSelecter([signal.SIGHUP]).__enter__()
+            sage: W = DocTestWorker(FDS, DD, [block_hup])
             sage: W.start()
-            sage: time.sleep(0.05)
             sage: W.killed
             False
             sage: W.kill()
             sage: W.killed
             True
-            sage: try:
-            ....:     W.kill()
-            ....: except OSError:
-            ....:     pass
-            sage: time.sleep(0.1)
+            sage: time.sleep(0.2)  # Worker doesn't die
+            sage: W.kill()         # Worker dies now
+            sage: time.sleep(0.2)
             sage: W.is_alive()
             False
         """
@@ -1811,7 +1829,7 @@ class DocTestTask(object):
         sage: DC = DocTestController(DD,[filename])
         sage: ntests, results = DTT(options=DD)
         sage: ntests
-        273
+        275
         sage: sorted(results.keys())
         ['cputime', 'err', 'failures', 'walltime']
     """

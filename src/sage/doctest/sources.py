@@ -613,7 +613,8 @@ class FileDocTestSource(DocTestSource):
             #sage: raise RuntimeError
         """
         if not os.path.exists(self.path):
-            raise IOError("File does not exist")
+            import errno
+            raise IOError(errno.ENOENT, "File does not exist", self.path)
         base, filename = os.path.split(self.path)
         _, ext = os.path.splitext(filename)
         if not self.in_lib and ext in ('.py', '.pyx', '.sage', '.spyx'):
@@ -646,6 +647,7 @@ class FileDocTestSource(DocTestSource):
         TESTS::
 
             sage: from sage.doctest.sources import FileDocTestSource
+            sage: cwd = os.getcwd()
             sage: os.chdir(os.path.join(os.environ['SAGE_ROOT'],'devel','sage'))
             sage: import itertools
             sage: for path, dirs, files in itertools.chain(os.walk('sage'), os.walk('doc')): # long time
@@ -662,6 +664,7 @@ class FileDocTestSource(DocTestSource):
             There are 9 tests in sage/graphs/graph_plot.py that are not being run
             There are 2 tests in sage/server/notebook/worksheet.py that are not being run
             doctest:229: UnicodeWarning: Unicode equal comparison failed to convert both arguments to Unicode - interpreting them as being unequal
+            sage: os.chdir(cwd)
         """
         expected = []
         rest = isinstance(self, RestSource)

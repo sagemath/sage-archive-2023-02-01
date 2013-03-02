@@ -194,10 +194,10 @@ class DocTestReporter(SageObject):
 
             sage: DTR.report(FDS, True, 0, None, "Output so far...")
                 Time out
-            ********************************************************************************
+            **********************************************************************
             Tests run before process timed out:
             Output so far...
-            ********************************************************************************
+            **********************************************************************
             sage: DTR.stats
             {'sage.doctest.reporting': {'failed': True, 'walltime': 1000000.0}}
 
@@ -205,10 +205,10 @@ class DocTestReporter(SageObject):
 
             sage: DTR.report(FDS, False, 3, None, "Output before trouble")
                 Bad exit: 3
-            ********************************************************************************
+            **********************************************************************
             Tests run before process failed:
             Output before trouble
-            ********************************************************************************
+            **********************************************************************
             sage: DTR.stats
             {'sage.doctest.reporting': {'failed': True, 'walltime': 1000000.0}}
 
@@ -217,10 +217,10 @@ class DocTestReporter(SageObject):
             sage: import signal
             sage: DTR.report(FDS, False, -signal.SIGSEGV, None, "Output before trouble")
                 Killed due to segmentation fault
-            ********************************************************************************
+            **********************************************************************
             Tests run before process failed:
             Output before trouble
-            ********************************************************************************
+            **********************************************************************
             sage: DTR.stats
             {'sage.doctest.reporting': {'failed': True, 'walltime': 1000000.0}}
 
@@ -228,10 +228,10 @@ class DocTestReporter(SageObject):
 
             sage: DTR.report(FDS, True, -signal.SIGKILL, (1,None), "Output before trouble")
                 Time out after testing finished (and interrupt failed)
-            ********************************************************************************
+            **********************************************************************
             Tests run before process timed out:
             Output before trouble
-            ********************************************************************************
+            **********************************************************************
             sage: DTR.stats
             {'sage.doctest.reporting': {'failed': True, 'walltime': 1000000.0}}
 
@@ -239,10 +239,10 @@ class DocTestReporter(SageObject):
 
             sage: DTR.report(FDS, False, 0, None, "All output")
                 Error in doctesting framework (bad result returned)
-            ********************************************************************************
+            **********************************************************************
             Tests run before error:
             All output
-            ********************************************************************************
+            **********************************************************************
             sage: DTR.stats
             {'sage.doctest.reporting': {'failed': True, 'walltime': 1000000.0}}
 
@@ -292,9 +292,9 @@ class DocTestReporter(SageObject):
                         fail_msg += " (and interrupt failed)"
                     else:
                         fail_msg += " (with %s after interrupt)"%signal_name(-return_code)
-                log("    %s\n%s\nTests run before process timed out:"%(fail_msg, "*"*80))
+                log("    %s\n%s\nTests run before process timed out:"%(fail_msg, "*"*70))
                 log(output)
-                log("*"*80)
+                log("*"*70)
                 postscript['lines'].append(cmd + "  # %s"%fail_msg)
                 stats[basename] = dict(failed=True, walltime=1e6)
                 self.error_status |= 4
@@ -305,9 +305,9 @@ class DocTestReporter(SageObject):
                     fail_msg = "Killed due to %s"%signal_name(-return_code)
                 if ntests > 0:
                     fail_msg += " after testing finished"
-                log("    %s\n%s\nTests run before process failed:"%(fail_msg,"*"*80))
+                log("    %s\n%s\nTests run before process failed:"%(fail_msg,"*"*70))
                 log(output)
-                log("*"*80)
+                log("*"*70)
                 postscript['lines'].append(cmd + "  # %s" % fail_msg)
                 stats[basename] = dict(failed=True, walltime=1e6)
                 self.error_status |= (8 if return_code > 0 else 16)
@@ -321,15 +321,15 @@ class DocTestReporter(SageObject):
                 else:
                     cpu = 1e6
                 if result_dict.err == 'badresult':
-                    log("    Error in doctesting framework (bad result returned)\n%s\nTests run before error:"%("*"*80))
+                    log("    Error in doctesting framework (bad result returned)\n%s\nTests run before error:"%("*"*70))
                     log(output)
-                    log("*"*80)
+                    log("*"*70)
                     postscript['lines'].append(cmd + "  # Testing error: bad result")
                     self.error_status |= 64
                 elif result_dict.err == 'noresult':
-                    log("    Error in doctesting framework (no result returned)\n%s\nTests run before error:"%("*"*80))
+                    log("    Error in doctesting framework (no result returned)\n%s\nTests run before error:"%("*"*70))
                     log(output)
-                    log("*"*80)
+                    log("*"*70)
                     postscript['lines'].append(cmd + "  # Testing error: no result")
                     self.error_status |= 64
                 elif result_dict.err == 'tab':
@@ -352,10 +352,10 @@ class DocTestReporter(SageObject):
                             err = repr(result_dict.err)
                         fail_msg = "%s in doctesting framework"%err
 
-                    log("    %s\n%s"%(fail_msg, "*"*80))
+                    log("    %s\n%s"%(fail_msg, "*"*70))
                     if output:
                         log("Tests run before doctest exception:\n" + output)
-                        log("*"*80)
+                        log("*"*70)
                     postscript['lines'].append(cmd + "  # %s"%fail_msg)
                     if hasattr(result_dict, 'tb'):
                         log(result_dict.tb)
@@ -408,16 +408,16 @@ class DocTestReporter(SageObject):
 
             sage: DTR.report(FDS, True, 0, None, "Output so far...")
                 Time out
-            ********************************************************************************
+            **********************************************************************
             Tests run before process timed out:
             Output so far...
-            ********************************************************************************
+            **********************************************************************
             sage: DTR.report(FDS, False, 3, None, "Output before bad exit")
                 Bad exit: 3
-            ********************************************************************************
+            **********************************************************************
             Tests run before process failed:
             Output before bad exit
-            ********************************************************************************
+            **********************************************************************
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: runner = SageDocTestRunner(SageOutputChecker(), verbose=False, sage_options=DD,optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
             sage: t = Timer().start().stop()
@@ -438,11 +438,11 @@ class DocTestReporter(SageObject):
 
             sage: DC.sources = [None] * 4 # to fool the finalize method
             sage: DTR.finalize()
-            ------------------------------------------------------------------------
+            ----------------------------------------------------------------------
             sage -t .../sage/doctest/reporting.py  # Time out
             sage -t .../sage/doctest/reporting.py  # Bad exit: 3
             sage -t .../sage/doctest/reporting.py  # 1 doctest failed
-            ------------------------------------------------------------------------
+            ----------------------------------------------------------------------
             Total time for all tests: 0.0 seconds
                 cpu time: 0.0 seconds
                 cumulative wall time: 0.0 seconds
@@ -453,12 +453,12 @@ class DocTestReporter(SageObject):
             sage: DC.sources = [None] * 6
             sage: DTR.finalize()
             <BLANKLINE>
-            ------------------------------------------------------------------------
+            ----------------------------------------------------------------------
             sage -t .../sage/doctest/reporting.py  # Time out
             sage -t .../sage/doctest/reporting.py  # Bad exit: 3
             sage -t .../sage/doctest/reporting.py  # 1 doctest failed
             Doctests interrupted: 4/6 files tested
-            ------------------------------------------------------------------------
+            ----------------------------------------------------------------------
             Total time for all tests: 0.0 seconds
                 cpu time: 0.0 seconds
                 cumulative wall time: 0.0 seconds
@@ -470,9 +470,9 @@ class DocTestReporter(SageObject):
             self.error_status |= 128
         elif not postscript['lines']:
             postscript['lines'].append("All tests passed!")
-        log('-' * 72)
+        log('-' * 70)
         log("\n".join(postscript['lines']))
-        log('-' * 72)
+        log('-' * 70)
         log("Total time for all tests: %.1f seconds" % self.controller.timer.walltime)
         log("    cpu time: %.1f seconds" % postscript['cputime'])
         log("    cumulative wall time: %.1f seconds" % postscript['walltime'])

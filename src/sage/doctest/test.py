@@ -35,9 +35,9 @@ Test the ``--initial`` option::
         252
     **********************************************************************
     ...
-    ------------------------------------------------------------------------
+    ----------------------------------------------------------------------
     sage -t initial.rst  # 5 doctests failed
-    ------------------------------------------------------------------------
+    ----------------------------------------------------------------------
     ...
     1
 
@@ -48,12 +48,12 @@ Test a timeout::
     Doctesting 1 file.
     sage -t 99seconds.rst
         Time out
-    ********************************************************************************
+    **********************************************************************
     Tests run before process timed out:
     ...
-    ------------------------------------------------------------------------
+    ----------------------------------------------------------------------
     sage -t 99seconds.rst  # Time out
-    ------------------------------------------------------------------------
+    ----------------------------------------------------------------------
     ...
     4
 
@@ -73,9 +73,9 @@ Test handling of ``KeyboardInterrupt``s in doctests::
         KeyboardInterrupt
     **********************************************************************
     ...
-    ------------------------------------------------------------------------
+    ----------------------------------------------------------------------
     sage -t keyboardinterrupt.rst  # 1 doctest failed
-    ------------------------------------------------------------------------
+    ----------------------------------------------------------------------
     ...
     1
 
@@ -86,25 +86,28 @@ Interrupt the doctester::
     Doctesting 1 file.
     sage -t interrupt.rst
     Killing test interrupt.rst
-    ------------------------------------------------------------------------
+    ----------------------------------------------------------------------
     Doctests interrupted: 0/1 files tested
-    ------------------------------------------------------------------------
+    ----------------------------------------------------------------------
     ...
     128
 
-Interrupt the doctester when a doctest cannot be interrupted::
+Interrupt the doctester (while parallel testing) when a doctest cannot
+be interrupted. We also test that passing a ridiculous number of threads
+doesn't hurt::
 
     sage: F = tmp_filename()
     sage: env = dict(os.environ)
     sage: env['DOCTEST_TEST_PID_FILE'] = F  # Doctester will write its PID in this file
-    sage: subprocess.call(["sage", "-t", "-T", "120", "interrupt_diehard.rst"], cwd=tests_dir, env=env)  # long time
+    sage: subprocess.call(["sage", "-tp", "1000000", "--timeout=120",  # long time
+    ....:     "99seconds.rst", "interrupt_diehard.rst"], cwd=tests_dir, env=env)
     Running doctests...
-    Doctesting 1 file.
-    sage -t interrupt_diehard.rst
+    Doctesting 2 files using 1000000 threads.
+    Killing test 99seconds.rst
     Killing test interrupt_diehard.rst
-    ------------------------------------------------------------------------
-    Doctests interrupted: 0/1 files tested
-    ------------------------------------------------------------------------
+    ----------------------------------------------------------------------
+    Doctests interrupted: 0/2 files tested
+    ----------------------------------------------------------------------
     ...
     128
 
@@ -128,7 +131,7 @@ Test a doctest failing with ``abort()``::
     Doctesting 1 file.
     sage -t abort.rst
         Killed due to abort
-    ********************************************************************************
+    **********************************************************************
     Tests run before process failed:
     ...
     ------------------------------------------------------------------------
@@ -139,9 +142,9 @@ Test a doctest failing with ``abort()``::
     Sage will now terminate.
     ------------------------------------------------------------------------
     ...
-    ------------------------------------------------------------------------
+    ----------------------------------------------------------------------
     sage -t abort.rst  # Killed due to abort
-    ------------------------------------------------------------------------
+    ----------------------------------------------------------------------
     ...
     16
 
@@ -152,7 +155,7 @@ A different kind of crash::
     Doctesting 1 file.
     sage -t fail_and_die.rst
     **********************************************************************
-    File "fail_and_die.rst", line 6, in sage.doctest.tests.fail_and_die
+    File "fail_and_die.rst", line 5, in sage.doctest.tests.fail_and_die
     Failed example:
         this_gives_a_NameError
     Exception raised:
@@ -160,12 +163,12 @@ A different kind of crash::
         ...
         NameError: name 'this_gives_a_NameError' is not defined
         Killed due to kill signal
-    ********************************************************************************
+    **********************************************************************
     Tests run before process failed:
     ...
-    ------------------------------------------------------------------------
+    ----------------------------------------------------------------------
     sage -t fail_and_die.rst  # Killed due to kill signal
-    ------------------------------------------------------------------------
+    ----------------------------------------------------------------------
     ...
     16
 
@@ -177,9 +180,9 @@ Test running under gdb, without and with a timeout::
     Doctesting 1 file.
     sage -t 1second.rst
         [2 tests, 1.0 s]
-    ------------------------------------------------------------------------
+    ----------------------------------------------------------------------
     All tests passed!
-    ------------------------------------------------------------------------
+    ----------------------------------------------------------------------
     ...
     0
     sage: subprocess.call(["sage", "-t", "--gdb", "-T" "5", "99seconds.rst"], cwd=tests_dir, stdin=open(os.devnull))  # long time, optional: gdb

@@ -778,8 +778,8 @@ mind:
    framework.
 
 -  If a line contains the text ``long time`` then that line is not
-   tested unless the ``-long`` option is given, e.g.
-   ``sage -t -long f.py``. Use this to include examples that take more
+   tested unless the ``--long`` option is given, e.g.
+   ``sage -t --long f.py``. Use this to include examples that take more
    than about a second to run. These will not be run regularly during
    Sage development, but will get run before major releases. No
    example should take more than about 30 seconds.
@@ -856,46 +856,46 @@ mind:
    It is also immediately clear to the user that the indicated example
    does not currently work.
 
-- If a line contains the text ``optional``, it is not tested unless
-  either the ``--optional`` flag or the ``--only-optional`` flag is
-  passed to ``sage -t``.  Mark a doctest as ``optional`` if it
-  requires optional packages; even better, mark it as ``optional -
-  PKG_NAME`` if it requires the package ``PKG_NAME``.  Running ``sage
-  -t --optional f.py`` executes all doctests, including those marked
-  as ``optional``.  Running ``sage -t --only-optional=sloane_database
-  f.py`` runs only those doctests marked as ``# optional -
-  sloane_database``.  For example, the file
+- If a line contains ``# optional - PKGNAME`` (where the ``#`` may be any
+  non-letter non-space character), it is not tested unless
+  the ``--optional=PKGNAME`` flag is passed to ``sage -t``.
+  Mark a doctest as ``optional`` if it requires optional packages.
+  Running ``sage -t --optional=all f.py`` executes all doctests,
+  including all optional tests.
+  Running ``sage -t --optional=sage,sloane_database f.py`` runs the
+  normal tests (because of ``--optional=sage``),
+  as well as those marked as ``# optional - sloane_database``.
+  For example, the file
   ``SAGE_ROOT/devel/sage/sage/databases/sloane.py`` contains the lines
 
   ::
 
        sage: sloane_sequence(60843)       # optional - internet
 
-  and
-
-  ::
+  and ::
 
        sage: SloaneEncyclopedia[60843]    # optional - sloane_database
 
   The first of these just needs internet access, while the second
   requires that the "sloane_database" package be installed.  Calling
-  ``sage -t --optional`` on this file runs both of these tests, while
-  calling ``sage -t --only-optional=internet`` on it will only run the first
-  test.  A test requiring several packages would be marked
-  ``optional - pkg1 pkg2`` and executed by ``sage -t
-  --only-optional=pkg1,pkg2 f.py``.
+  ``sage -t --optional=all`` on this file runs both of these tests, while
+  calling ``sage -t --optional=sage,internet`` on it will only run the
+  first test.
+  A test requiring several packages should be marked
+  ``# optional - pkg1 pkg2`` and executed by
+  ``sage -t --optional=sage,pkg1,pkg2 f.py``.
 
   .. NOTE::
 
-      Any text after ``optional`` is interpreted as a list of package
-      names, separated by spaces, although the words "needs" and
-      "requires" are ignored.  Colons, periods, commas, and hyphens
-      are also ignored, and all text is converted to lower case.
-      Therefore if the doctest is marked ``optional: needs package
-      CHomP``, then it would be run by ``sage -t --optional f.py`` or
-      ``sage -t --only-optional=chomp,package f.py``.  This is
-      probably not what was intended: the doctest should have been
-      labeled ``optional: needs CHomP`` or just ``optional: chomp``.
+      Any words after ``# optional`` are
+      interpreted as a list of package names, separated by spaces.
+      Any punctuation (periods, commas, hyphens, semicolons, ...)
+      after the first word ends the list of packages.
+      Hyphens or colons between the word ``optional`` and the first
+      package name are allowed.
+      Also, all text is converted to lower case.
+      Therefore, you should not write
+      ``optional: needs package CHomP`` but simply ``optional: CHomP``.
 
 - If you are documenting a known bug in Sage, mark it as ``known bug``
   or ``optional: bug``.  For example::
@@ -906,15 +906,8 @@ mind:
         5
 
   Then the doctest will be skipped by default, but could be revealed
-  by running ``sage -t --only-optional=bug ...``.  (A doctest marked
-  as ``known bug`` gets automatically converted to ``optional bug``,
-  so it is also detected by ``--optional`` or  ``--only-optional=bug``.)
-
--  If the entire documentation string contains all three words
-   ``optional``, ``package``, and ``installed``, then the entire
-   documentation string is not executed unless the ``--optional`` flag
-   is passed to ``sage -t``. This is useful for a long sequence of
-   examples that all require that an optional package be installed.
+  by running ``sage -t --optional=sage,bug ...``.  (A doctest marked
+  as ``known bug`` gets automatically converted to ``optional bug``).
 
 Using ``search_src`` from the Sage prompt (or ``grep``), one can
 easily find the aforementioned keywords. In the case of
@@ -950,74 +943,25 @@ files.
 
       sage -t [--verbose] [--optional]  [files and directories ... ]
 
-When you run ``sage -t <filename.py>``, Sage makes a copy of
-``<filename.py>`` with all the ``sage`` prompts replaced by ``>>>``,
-then uses the standard Python doctest framework to test the
-documentation. More precisely, the Python script
-``SAGE_LOCAL/bin/sage-doctest`` implements documentation testing, and it
-does the following when asked to test a file ``foo.py`` or
-``foo.sage``.
+The Sage doctesting framework is based on the standard Python doctest
+module, but with many additional features (such as parallel testing,
+timeouts, optional tests).
+The Sage doctester recognizes ``sage:`` prompts
+as well as ``>>>`` prompts.
+It also preparses the doctests, just like in interactive Sage sessions.
 
-#. Create the directory given by the environment variable
-   :envvar:`SAGE_TESTDIR` if it does not already exist. By default,
-   this variable points to ``$DOT_SAGE/tmp``, and ``$DOT_SAGE`` has
-   the default value of ``~/.sage``. See the `Sage Installation Guide
-   <http://sagemath.org/doc/installation/source.html#environment-variables>`_
-   for full descriptions of the environment variables used by Sage.
-
-#. If doctesting ``foo.py``: if it is not a file from the Sage
-   library, then copy it to ``$SAGE_TESTDIR/foo_PID_orig.py``, where
-   ``PID`` is the id number of the testing process. (This new name is
-   intended to avoid possible race conditions: you can safely doctest
-   the same file simultaneously in several different windows.)
-   Regardless, create a file ``$SAGE_TESTDIR/foo_PID.py``.
-
-#. If doctesting ``foo.sage`` (necessarily a non-Sage library file),
-   then copy it to ``$SAGE_TESTDIR/foo_PID.sage`` and preparse it to
-   create a file ``$SAGE_TESTDIR/foo_PID_preparsed.py``. Also create a
-   file ``$SAGE_TESTDIR/foo_PID.py``.
-
-#. The file ``$SAGE_TESTDIR/foo_PID.py`` contains functions for each
-   docstring in ``foo.py`` or ``foo.sage``, but with ``from sage.all
-   import *`` at the top. For non-library files, it also imports
-   ``foo_PID_orig.py`` or ``foo_PID_preparsed.py``.  Each function's
-   documentation is standard Python with ``>>>`` prompts, along with
-   annotations giving information like its location in the original
-   file. For example, a doctest like ::
-
-       sage: 2+4
-       6
-
-   might get translated to
-
-       >>> Integer(2)+Integer(4)###line 4:_sage_    >>> 2+4
-       6
-
-#. The script ``SAGE_LOCAL/bin/sage-doctest`` then runs Sage's Python
-   interpreter on ``$SAGE_TESTDIR/foo_PID.py``.
-
-Your file passes these tests if the code in it will run when entered
-at the ``sage:`` prompt with no special imports. Thus users are
+Your file passes the tests if the code in it will run when entered
+at the ``sage:`` prompt with no extra imports. Thus users are
 guaranteed to be able to exactly copy code out of the examples you
-write for the documentation and have them work. If all tests pass,
-then these temporary files are deleted; if tests fail, then the files
-are kept.
+write for the documentation and have them work.
 
-(If doctesting many files in parallel using ``sage -tp ...`` -- see
-:ref:`chapter-doctesting` -- then all of this is done in a further
-subdirectory of ``$SAGE_TESTDIR`` with a name like
-``sage.math.washington.edu-10345``: the name has the form
-``HOSTNAME-PID``, where ``PID`` is the id of the main testing
-process.)
-
+For more information, see :ref:`chapter-doctesting`.
 
 Testing ReST documentation
 --------------------------
 
 Run ``sage -t <filename.rst>`` to test the examples in verbatim
-environments in ReST documentation.  Sage creates a file
-``.doctest_filename.py`` and tests it just as for ``.py``, ``.pyx``
-and ``.sage`` files.
+environments in ReST documentation.
 
 Of course in ReST files, one often inserts explanatory texts between
 different verbatim environments. To link together verbatim

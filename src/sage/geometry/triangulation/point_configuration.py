@@ -148,7 +148,7 @@ AUTHORS:
 #       marked # optional - TOPCOM
 #       If you have it installed, run doctests as
 #
-#   sage -tp 4 -long -optional TOPCOM sage/geometry/triangulation/
+#   sage -tp 4 --long --optional=sage,topcom sage/geometry/triangulation/
 ########################################################################
 
 

@@ -130,9 +130,7 @@ cdef class GLPKGraphBackend(object):
         applied.
 
             * vertices -- the value of the demand of each vertex (see
-              :meth:`set_vertex_demand`) is automatically obtained from the
-              value assciated to the vertex if it is numerical (see
-              :meth:`sage.graphs.graph.Graph.get_vertex` or from the numerical
+              :meth:`set_vertex_demand`) is obtained from the numerical
               value associated with the key "rhs" if it is a dictionary.
 
             * edges -- The edge values used in the algorithms are read from the
@@ -315,12 +313,9 @@ cdef class GLPKGraphBackend(object):
 
             if g.get_vertex(verts[i]) is not None:
                 try:
-                    (<c_v_data *>vert.data).rhs = float(g.get_vertex(verts[i]))
-                except TypeError:
-                    try:
-                        (<c_v_data *>vert.data).rhs = g.get_vertex(verts[i])["rhs"]
-                    except AttributeError:
-                        pass
+                    (<c_v_data *>vert.data).rhs = g.get_vertex(verts[i])["rhs"]
+                except AttributeError:
+                    pass
 
         glp_create_v_index(self.graph)
 

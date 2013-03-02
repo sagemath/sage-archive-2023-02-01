@@ -44,6 +44,10 @@ Enea Zaffanella (University of Parma)
 
 == Changelog ==
 
+== ppl-1.0 (Volker Braun, 2 March 2013) ===
+ * Update to latest upstream
+ * #14201: Set gmp/gmpxx include dir
+
 === ppl-0.11.2.p1 (Jeroen Demeyer, 29 February 2012) ===
  * #12608: remove useless "Dependencies check".
  * General clean-up of spkg-install, use patch for patching.

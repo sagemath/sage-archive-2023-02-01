@@ -40,7 +40,9 @@ for patch in ../patches/*.patch; do
 done
 
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
-    --with-gmp-prefix="$SAGE_LOCAL" --enable-coefficients=mpz \
+    --with-gmp-include="$SAGE_LOCAL/include" \
+    --with-gmp-lib="$SAGE_LOCAL/lib" \
+    --enable-coefficients=mpz \
     --enable-interfaces=c++ --disable-fpmath
 if [ $? -ne 0 ]; then
    echo >&2 "Error configuring the Parma Polyhedra Library."

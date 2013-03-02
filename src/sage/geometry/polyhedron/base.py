@@ -420,32 +420,167 @@ class Polyhedron_base(Element):
                     for other_H, self_V in
                     CartesianProduct(other.Hrepresentation(), self.Vrepresentation()) )
 
-    def plot(self, **kwds):
+    def plot(self,
+             point=None, line=None, polygon=None, # None means unspecified by the user
+             wireframe='blue', fill='green',
+             **kwds):
         """
         Return a graphical representation.
 
         INPUT:
 
-        - ``**kwds`` -- optional keyword parameters.
+        - ``point``, ``line``, ``polygon`` -- Parameters to pass to
+          point (0d), line (1d), and polygon (2d) plot commands.
+          Allowed values are:
 
-        See :func:`render_2d`, :func:`render_3d`, :func:`render_4d`
-        for a description of available options for different ambient
-        space dimensions.
+          * A Python dictionary to be passed as keywords to the plot
+            commands.
+
+          * A string or triple of numbers: The color. This is
+            equivalent to passing the dictionary ``{'color':...}``.
+
+          * ``False``: Switches off the drawing of the corresponding
+            graphics object
+
+        - ``wireframe``, ``fill`` -- Similar to ``point``, ``line``,
+          and ``polygon``, but ``fill`` is used for the graphics
+          objects in the dimension of the polytope (or of dimension 2
+          for higher dimensional polytopes) and ``wireframe`` is used
+          for all lower-dimensional graphics objects
+          (default: 'green' for fill and 'blue' for wireframe)
+
+        - ``**kwds`` -- optional keyword parameters that are passed to
+          all graphics objects.
 
         OUTPUT:
 
-        A graphics object.
+        A (multipart) graphics object.
+
+        EXAMPLES::
+
+            sage: square = polytopes.n_cube(2)
+            sage: point = Polyhedron([[1,1]])
+            sage: line = Polyhedron([[1,1],[2,1]])
+            sage: cube = polytopes.n_cube(3)
+            sage: hypercube = polytopes.n_cube(4)
+
+        By default, the wireframe is rendered in blue and the fill in green::
+
+            sage: square.plot()
+            sage: point.plot()
+            sage: line.plot()
+            sage: cube.plot()
+            sage: hypercube.plot()
+
+        Draw the lines in red and nothing else::
+
+            sage: square.plot(point=False, line='red', polygon=False)
+            sage: point.plot(point=False, line='red', polygon=False)
+            sage: line.plot(point=False, line='red', polygon=False)
+            sage: cube.plot(point=False, line='red', polygon=False)
+            sage: hypercube.plot(point=False, line='red', polygon=False)
+
+        Draw points in red, no lines, and a blue polygon::
+
+            sage: square.plot(point={'color':'red'}, line=False, polygon=(0,0,1))
+            sage: point.plot(point={'color':'red'}, line=False, polygon=(0,0,1))
+            sage: line.plot(point={'color':'red'}, line=False, polygon=(0,0,1))
+            sage: cube.plot(point={'color':'red'}, line=False, polygon=(0,0,1))
+            sage: hypercube.plot(point={'color':'red'}, line=False, polygon=(0,0,1))
+
+        If we instead use the ``fill`` and ``wireframe`` options, the
+        coloring depends on the dimension of the object::
+
+            sage: square.plot(fill='green', wireframe='red')
+            sage: point.plot(fill='green', wireframe='red')
+            sage: line.plot(fill='green', wireframe='red')
+            sage: cube.plot(fill='green', wireframe='red')
+            sage: hypercube.plot(fill='green', wireframe='red')
 
         TESTS::
 
-            sage: polytopes.n_cube(2).plot()
+            sage: for p in square.plot():
+            ...       print p.options()['rgbcolor'], p
+            blue Point set defined by 4 point(s)
+            blue Line defined by 2 points
+            blue Line defined by 2 points
+            blue Line defined by 2 points
+            blue Line defined by 2 points
+            green Polygon defined by 4 points
+
+            sage: for p in line.plot():
+            ...       print p.options()['rgbcolor'], p
+            blue Point set defined by 2 point(s)
+            green Line defined by 2 points
+
+            sage: for p in point.plot():
+            ...       print p.options()['rgbcolor'], p
+            green Point set defined by 1 point(s)
+
+        Draw the lines in red and nothing else::
+
+            sage: for p in square.plot(point=False, line='red', polygon=False):
+            ...       print p.options()['rgbcolor'], p
+            red Line defined by 2 points
+            red Line defined by 2 points
+            red Line defined by 2 points
+            red Line defined by 2 points
+
+        Draw vertices in red, no lines, and a blue polygon::
+
+            sage: for p in square.plot(point={'color':'red'}, line=False, polygon=(0,0,1)):
+            ...       print p.options()['rgbcolor'], p
+            red Point set defined by 4 point(s)
+            (0, 0, 1) Polygon defined by 4 points
+
+            sage: for p in line.plot(point={'color':'red'}, line=False, polygon=(0,0,1)):
+            ...       print p.options()['rgbcolor'], p
+            red Point set defined by 2 point(s)
+
+            sage: for p in point.plot(point={'color':'red'}, line=False, polygon=(0,0,1)):
+            ...       print p.options()['rgbcolor'], p
+            red Point set defined by 1 point(s)
+
+        Draw in red without wireframe::
+
+            sage: for p in square.plot(wireframe=False, fill="red"):
+            ...       print p.options()['rgbcolor'], p
+            red Polygon defined by 4 points
+
+            sage: for p in line.plot(wireframe=False, fill="red"):
+            ...       print p.options()['rgbcolor'], p
+            red Line defined by 2 points
+
+            sage: for p in point.plot(wireframe=False, fill="red"):
+            ...       print p.options()['rgbcolor'], p
+            red Point set defined by 1 point(s)
         """
+        def merge_options(*opts):
+            merged = dict()
+            for i in range(len(opts)):
+                opt = opts[i]
+                if opt is None:
+                    continue
+                elif opt is False:
+                    return False
+                elif isinstance(opt, (basestring, list, tuple)):
+                    merged['color'] = opt
+                else:
+                    merged.update(opt)
+            return merged
+
+        d = min(self.dim(), 2)
+        opts = [wireframe] * d + [fill] + [False] * (2-d)
+        # The point/line/polygon options take precedence over wireframe/fill
+        opts = [merge_options(opt1, opt2, kwds)
+                for opt1, opt2 in zip(opts, [point, line, polygon])]
+
         from plot import render_2d, render_3d, render_4d
         render_method = [ None, None, render_2d, render_3d, render_4d ]
         if self.ambient_dim() < len(render_method):
             render = render_method[self.ambient_dim()]
             if render != None:
-                return render(self,**kwds)
+                return render(self, *opts)
         raise NotImplementedError('Plotting of '+str(self.ambient_dim())+
                                   '-dimensional polyhedra not implemented')
 

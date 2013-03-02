@@ -29,7 +29,7 @@ from constructor import Polyhedron
 
 
 #############################################################
-def render_2d(projection, **kwds):
+def render_2d(projection, point_opts={}, line_opts={}, polygon_opts={}):
     """
     Return 2d rendering of the projection of a polyhedron into
     2-dimensional ambient space.
@@ -54,13 +54,22 @@ def render_2d(projection, **kwds):
     """
     if is_Polyhedron(projection):
         projection = Projection(projection)
-    return \
-        projection.render_points_2d(zorder=2, pointsize=10, **kwds) + \
-        projection.render_outline_2d(zorder=1, **kwds) + \
-        projection.render_fill_2d(zorder=0, rgbcolor=(0,1,0), **kwds)
+    from sage.plot.graphics import Graphics
+    plt = Graphics()
+    if isinstance(point_opts, dict):
+        point_opts.setdefault('zorder', 2)
+        point_opts.setdefault('pointsize', 10)
+        plt += projection.render_points_2d(**point_opts)
+    if isinstance(line_opts, dict):
+        line_opts.setdefault('zorder', 1)
+        plt += projection.render_outline_2d(**line_opts)
+    if isinstance(polygon_opts, dict):
+        polygon_opts.setdefault('zorder', 0)
+        plt += projection.render_fill_2d(**polygon_opts)
+    return plt
 
 
-def render_3d(projection, **kwds):
+def render_3d(projection, point_opts={}, line_opts={}, polygon_opts={}):
     """
     Return 3d rendering of a polyhedron projected into
     3-dimensional ambient space.
@@ -90,13 +99,19 @@ def render_3d(projection, **kwds):
     """
     if is_Polyhedron(projection):
         projection = Projection(projection)
-    return \
-        projection.render_vertices_3d(width=3, color='green', **kwds) +\
-        projection.render_wireframe_3d(width=3, color='green', **kwds) + \
-        projection.render_solid_3d(**kwds)
+    from sage.plot.plot3d.base import Graphics3d
+    plt = Graphics3d()
+    if isinstance(point_opts, dict):
+        point_opts.setdefault('width', 3)
+        plt += projection.render_vertices_3d(**point_opts)
+    if isinstance(line_opts, dict):
+        line_opts.setdefault('width', 3)
+        plt += projection.render_wireframe_3d(**line_opts)
+    if isinstance(polygon_opts, dict):
+        plt += projection.render_solid_3d(**polygon_opts)
+    return plt
 
-
-def render_4d(polyhedron, **kwds):
+def render_4d(polyhedron, point_opts={}, line_opts={}, polygon_opts={}, projection_direction=None):
     """
     Return a 3d rendering of the Schlegel projection of a 4d
     polyhedron projected into 3-dimensional space.
@@ -111,10 +126,13 @@ def render_4d(polyhedron, **kwds):
     - ``polyhedron`` -- A
       :mod:`~sage.geometry.polyhedron.constructor.Polyhedron` object.
 
-    - ``kwds`` -- plot keywords. Passing
-      ``projection_direction=<list>`` sets the projetion direction of
-      the Schlegel projection. If it is not given, the center of a
-      facet is used.
+    - ``point_opts``, ``line_opts``, ``polygon_opts`` -- dictionaries
+      of plot keywords or ``False`` to disable.
+
+    - ``projection_direction`` -- list/tuple/iterable of coordinates
+      or ``None`` (default). Sets the projetion direction of the
+      Schlegel projection. If it is not given, the center of a facet
+      is used.
 
     EXAMPLES::
 
@@ -135,10 +153,7 @@ def render_4d(polyhedron, **kwds):
         sage: tach_str.count('FCylinder')
         32
     """
-    projection_direction = None
-    try:
-        projection_direction = kwds.pop('projection_direction')
-    except KeyError:
+    if projection_direction is None:
         for ineq in polyhedron.inequality_generator():
             center = [v() for v in ineq.incident() if v.is_vertex()]
             center = sum(center) / len(center)
@@ -146,7 +161,7 @@ def render_4d(polyhedron, **kwds):
                 projection_direction = center
                 break
     projection_3d = Projection(polyhedron).schlegel(projection_direction)
-    return render_3d(projection_3d, **kwds)
+    return render_3d(projection_3d, point_opts, line_opts, polygon_opts)
 
 
 

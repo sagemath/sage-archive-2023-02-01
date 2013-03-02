@@ -2649,17 +2649,17 @@ class PermutationGroup_generic(group.Group):
 
         INPUT:
 
-        - ``representative`` (boolean) -- whether to return all possible blocks
-          systems imprimitivity or only one of their representatives (the block can
-          be obtained by its representative set by `S` by computing the orbit of
-          `S` under ``self``).
+        - ``representative`` (boolean) -- whether to return all possible block
+          systems of imprimitivity or only one of their representatives (the
+          block can be obtained from its representative set `S` by computing the
+          orbit of `S` under ``self``).
 
           This parameter is set to ``True`` by default (as it is GAP's default
           behaviour).
 
         OUTPUT:
 
-        This method returns a description of *all* blocks systems. Hence, the
+        This method returns a description of *all* block systems. Hence, the
         output is a "list of lists of lists" or a "list of lists" depending on
         the value of ``representatives``. A bit more clearly, output is :
 

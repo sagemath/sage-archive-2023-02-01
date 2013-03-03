@@ -1,4 +1,4 @@
-global-include *.c *.cc *.cpp *.h *.hh *.hpp *.py *.pyx *.pxd *.pxi *.txt *.tex
+global-include *.c *.cc *.cpp *.h *.hh *.hpp *.inc *.py *.pyx *.pxd *.pxi *.rst *.txt *.tex
 
 graft   .hg
 include .hgignore .hgtags
@@ -14,7 +14,6 @@ graft   sage/server/notebook/templates
 include sage/tests/french_book/README
 graft   sage/libs/gap/test
 
-recursive-include doc *.rst *.inc
 graft   doc/common/static
 graft   doc/common/themes
 include doc/common/python.inv

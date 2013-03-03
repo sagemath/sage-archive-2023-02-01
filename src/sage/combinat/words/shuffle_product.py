@@ -62,6 +62,13 @@ class ShuffleProduct_w1w2(CombinatorialClass):
             True
             sage: w in S
             False
+
+        We check that :trac:`14121` is solved::
+
+            sage: w = W('ab')
+            sage: x = W('ac')
+            sage: x*w in w.shuffle(x)
+            True
         """
         from sage.combinat.words.word import Word
         if not isinstance(x, Word_class):

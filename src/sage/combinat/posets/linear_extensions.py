@@ -323,7 +323,6 @@ class LinearExtensionOfPoset(ClonableArray):
             sage: p.evacuation().evacuation() == p
             True
         """
-        L = []
         for i in reversed(range(1,len(self)+1)):
             for j in range(1,i):
                 self = self.tau(j)

@@ -17,7 +17,7 @@ Hasse diagrams of posets
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import copy
+from copy import copy
 from sage.graphs.digraph import DiGraph
 from sage.matrix.constructor import matrix
 from sage.rings.integer_ring import ZZ
@@ -934,7 +934,6 @@ class HasseDiagram(DiGraph):
             sage: H.order_ideal([7,10])
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 10]
         """
-        from copy import copy
         H = copy(self).reverse()
         oi = []
         for i in elements:
@@ -1104,10 +1103,10 @@ class HasseDiagram(DiGraph):
             return self._meet
         n = self.cardinality()
         meet = [[0 for x in range(n)] for x in range(n)]
-        le = copy.copy(self.lequal_matrix())
+        le = copy(self.lequal_matrix())
         for i in range(n): le[i,i] = 1
         if not all([le[0,x]==1 for x in range(n)]):
-            raise ValueError, "Not a meet-semilattice: no bottom element."
+            raise ValueError("Not a meet-semilattice: no bottom element.")
         lc = [[y[0] for y in self.incoming_edges([x])] for x in range(n)]
 
         for x in range(n): # x=x_k
@@ -1122,7 +1121,7 @@ class HasseDiagram(DiGraph):
                     if z>q: q = z
                 for z in T:
                     if not le[z,q]:
-                        raise ValueError, "No meet for x=%s y=%s"%(x,y)
+                        raise ValueError("No meet for x=%s y=%s"%(x,y))
                 meet[x][y] = q
                 meet[y][x] = q
 
@@ -1209,10 +1208,10 @@ class HasseDiagram(DiGraph):
         if hasattr(self,'_join'): return self._join
         n = self.cardinality()
         join = [[0 for x in range(n)] for x in range(n)]
-        le = copy.copy(self.lequal_matrix())
+        le = copy(self.lequal_matrix())
         for i in range(n): le[i,i] = 1
         if not all([le[x,n-1]==1 for x in range(n)]):
-            raise ValueError, "Not a join-semilattice: no top element."
+            raise ValueError("Not a join-semilattice: no top element.")
         uc = [sorted([n-1-y[1] for y in self.outgoing_edges([x])]) for
                 x in reversed(range(n))]
 
@@ -1228,7 +1227,7 @@ class HasseDiagram(DiGraph):
                     if z>q: q = z
                 for z in T:
                     if not le[n-1-q,n-1-z]:
-                        raise ValueError, "No join for x=%s y=%s"%(x,y)
+                        raise ValueError("No join for x=%s y=%s"%(x,y))
                 join[x][y] = q
                 join[y][x] = q
 

@@ -405,7 +405,6 @@ class Posets(object):
             atstring = []
             btstring = []
             c=0
-            d=0
             for i in range(len(a)):
                 atstring=atstring+a[i]
             for i in range(len(b)):

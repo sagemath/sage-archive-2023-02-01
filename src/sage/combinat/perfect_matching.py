@@ -28,7 +28,7 @@ EXAMPLES:
     List the perfect matchings of a given ground set::
 
         sage: PerfectMatchings(4).list()
-        [[(4, 1), (3, 2)], [(4, 2), (3, 1)], [(4, 3), (2, 1)]]
+        [[(1, 2), (3, 4)], [(1, 3), (2, 4)], [(1, 4), (2, 3)]]
 
 REFERENCES:
 
@@ -58,7 +58,6 @@ from sage.structure.parent import Parent
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.structure.element_wrapper import ElementWrapper
-from sage.structure.element import Element
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.misc.flatten import flatten
@@ -217,6 +216,43 @@ class PerfectMatching(ElementWrapper):
             [(1, 3), (2, 8), (4, 7), (5, 6)]
         """
         return '%s'%self.value
+
+    def _latex_(self):
+        r"""
+        A latex representation of ``self`` using the tikzpicture package.
+
+        EXAMPLES:
+
+            sage: P = PerfectMatching([(1,3),(2,5),(4,6)])
+            sage: latex(P) #indirect doctest # optional - requires dot2tex
+            \begin{tikzpture}
+            ...
+            \end{tikzpicture}
+        """
+        G = self.to_graph()
+        G.set_pos(G.layout_circular())
+        G.set_latex_options(
+            vertex_size=0.4,
+            edge_thickness=0.04,
+        )
+        return G._latex_()
+
+    def __hash__(self):
+        r"""
+        Returns the hash of ``self`` using the tupled value.
+
+        EXAMPLES::
+
+            sage: m=PerfectMatching([('a','e'),('b','c'),('d','f')])
+            sage: m.__hash__() #random
+            1053935254331348997
+            sage: hash(m) #indirect doctest #random
+
+            sage: n=PerfectMatching([3,8,1,7,6,5,4,2])
+            sage: hash(n) #indirect doctest #random
+            8097274995140737937
+        """
+        return hash(tuple(self.value))
 
     def __eq__(self,other):
         r"""
@@ -696,6 +732,29 @@ class PerfectMatching(ElementWrapper):
         W=self.parent().Weingarten_matrix(d)
         return W[other.rank()][self.rank()]
 
+    def to_graph(self):
+        r"""
+        Returns the graph corresponding to the perfect matching.
+
+        OUTPUT:
+
+            The realization of ``self`` as a graph.
+
+        EXAMPLES::
+
+            sage: PerfectMatching([[1,3], [4,2]]).to_graph().edges(labels=False)
+            [(1, 3), (2, 4)]
+            sage: PerfectMatching([[1,4], [3,2]]).to_graph().edges(labels=False)
+            [(1, 4), (2, 3)]
+            sage: PerfectMatching([]).to_graph().edges(labels=False)
+            []
+        """
+        from sage.graphs.graph import Graph
+        G = Graph()
+        for a,b in self.value:
+            G.add_edge((a,b))
+        return G
+
     @combinatorial_map(name='to permutation')
     def to_permutation(self):
         r"""
@@ -732,7 +791,7 @@ class PerfectMatchings(UniqueRepresentation,Parent):
     perfect matching::
 
         sage: PerfectMatchings(4).list()
-        [[(4, 1), (3, 2)], [(4, 2), (3, 1)], [(4, 3), (2, 1)]]
+        [[(1, 2), (3, 4)], [(1, 3), (2, 4)], [(1, 4), (2, 3)]]
         sage: PerfectMatchings(8).cardinality()
         105
         sage: M=PerfectMatchings(('a', 'e', 'b', 'f', 'c', 'd'))
@@ -835,7 +894,7 @@ class PerfectMatchings(UniqueRepresentation,Parent):
         EXAMPLES::
 
             sage: PerfectMatchings(4).list()
-            [[(4, 1), (3, 2)], [(4, 2), (3, 1)], [(4, 3), (2, 1)]]
+            [[(1, 2), (3, 4)], [(1, 3), (2, 4)], [(1, 4), (2, 3)]]
         """
         if len(self._objects) == 0:
             yield self([])
@@ -843,7 +902,7 @@ class PerfectMatchings(UniqueRepresentation,Parent):
             pass
         else:
             l=list(self._objects)
-            a=l.pop(-1)
+            a=l.pop(0)
             for i in range(len(l)):
                 obj_rest=l[:]
                 b=obj_rest.pop(i)

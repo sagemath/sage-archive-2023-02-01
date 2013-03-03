@@ -70,7 +70,7 @@ cdef class ClasscallMetaclass(NestedClassMetaclass):
     TESTS::
 
         sage: PerfectMatchings(2).list()
-        [PerfectMatching [(2, 1)]]
+        [[(1, 2)]]
 
     .. note::
 

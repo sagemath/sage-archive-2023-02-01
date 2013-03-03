@@ -751,7 +751,10 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
                 y += slope
                 vertices.append((x,y))
         else:
-            vertices = arg
+            vertices = [ ]
+            for (x,y) in arg:
+                if y is not Infinity:
+                    vertices.append((x,y))
         if len(vertices) == 0:
             polyhedron = Polyhedron(base_ring=self.base_ring(), ambient_dim=2)
         else:

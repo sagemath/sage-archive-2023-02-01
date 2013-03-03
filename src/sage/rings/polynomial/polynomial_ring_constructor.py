@@ -53,6 +53,9 @@ from sage.categories.integral_domains import IntegralDomains
 _ID = IntegralDomains()
 from sage.categories.commutative_rings import CommutativeRings
 _CommutativeRings = CommutativeRings()
+from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationRings, CompleteDiscreteValuationFields
+_CompleteDiscreteValuationRings = CompleteDiscreteValuationRings()
+_CompleteDiscreteValuationFields = CompleteDiscreteValuationFields()
 
 import weakref
 _cache = weakref.WeakValueDictionary()
@@ -548,6 +551,12 @@ def _single_variate(base_ring, name, sparse, implementation):
 
         elif isinstance(base_ring, padic_base_leaves.pAdicRingFixedMod):
             R = m.PolynomialRing_dense_padic_ring_fixed_mod(base_ring, name)
+
+        elif base_ring in _CompleteDiscreteValuationRings:
+            R = m.PolynomialRing_cdvr(base_ring, name, sparse)
+
+        elif base_ring in _CompleteDiscreteValuationFields:
+            R = m.PolynomialRing_cdvf(base_ring, name, sparse)
 
         elif base_ring.is_field(proof = False):
             R = m.PolynomialRing_field(base_ring, name, sparse)

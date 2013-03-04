@@ -198,13 +198,13 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import Integer, PolynomialRing, is_Polynomial, is_MPolynomial, ZZ, QQ
+from sage.rings.all import Integer, PolynomialRing, is_Polynomial, is_MPolynomial, QQ
 import sage.combinat.partition
 from sage.combinat.partition import Partitions
 import sage.libs.symmetrica.all as symmetrica  # used in eval()
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.matrix.constructor import matrix
-from sage.misc.misc import repr_lincomb, prod, uniq
+from sage.misc.misc import prod, uniq
 from functools import partial
 from copy import copy
 
@@ -798,7 +798,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
         if R not in CommutativeRings():
             raise TypeError, "Argument R must be a commutative ring."
         try:
-            z = R(Integer(1))
+            R(Integer(1))
         except StandardError:
             raise ValueError, "R must have a unit element"
 
@@ -902,7 +902,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             s[1, 1, 1]
         """
         #Covert to the power sum
-        p = sage.combinat.sf.sf.SymmetricFunctions(self.base_ring()).power()
+        p = self.realization_of().power()
         p_x = p(x)
         expr_k = lambda k: expr.subs(**dict([(str(x),x**k) for x in deg_one]))
         f = lambda m,c: (m, c*prod([expr_k(k) for k in m]))
@@ -1480,7 +1480,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
              ([3], [([1, 1, 1], 1), ([2, 1], 1), ([3], 1)])]
         """
         BR = self.base_ring(); one = BR(1)
-        p = sage.combinat.sf.sf.SymmetricFunctions(BR).power()
+        p = self.realization_of().p()
 
         #Create a function which converts x and y to the power-sum basis and applies
         #the scalar product.
@@ -1739,7 +1739,7 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
             sage: s.from_polynomial(g)
             s[] + s[2, 1]
         """
-        m = sage.combinat.sf.sf.SymmetricFunctions(self.base_ring()).m()
+        m = self.realization_of().m()
         return self(m.from_polynomial(poly, check=check))
 
     def coproduct_by_coercion(self, elt):
@@ -1924,7 +1924,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         except KeyError:
             pass
 
-        p = sage.combinat.sf.sf.SymmetricFunctions(self.base_ring()).p()
+        p = self.parent().realization_of().p()
         res = 0
         degrees = uniq([ sum(m) for m in g.support() ])
         for d in degrees:
@@ -1970,8 +1970,8 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         #the case that p([]).inner_tensor(s(mu)) = s([ mu.size() ]).
         #Here, we get the degrees of the homogeneous pieces of
         if len(nu) == 0:
-            s = sage.combinat.sf.sf.SymmetricFunctions(self.base_ring()).s()
-            p = sage.combinat.sf.sf.SymmetricFunctions(self.base_ring()).p()
+            s = self.parent().realization_of().s()
+            p = self.parent().realization_of().p()
             degrees = [ part.size() for part in p_x.support() ]
             degrees = uniq(degrees)
             if 0 in degrees:
@@ -2532,7 +2532,6 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             [                        0                         0     6/(t^3 + 3*t^2 + 2*t)]
         """
         parent = self.parent()
-        p = parent.realization_of().power()
         if t is None:
             if hasattr(parent,"t"):
                 t = self.parent().t

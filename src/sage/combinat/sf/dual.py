@@ -21,7 +21,7 @@ from sage.categories.homset import Hom
 from sage.matrix.all import matrix
 import sage.combinat.partition
 from sage.combinat.dict_addition import dict_linear_combination
-import sfa, classical
+import classical
 
 class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, dual_basis, scalar, scalar_name="", basis_name=None, prefix=None):

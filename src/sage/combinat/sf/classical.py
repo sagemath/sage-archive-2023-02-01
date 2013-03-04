@@ -20,7 +20,7 @@ Classical symmetric functions.
 from sage.rings.integer import Integer
 
 import sage.combinat.skew_partition
-import sage.libs.symmetrica.all as symmetrica
+import sage.libs.symmetrica.all as symmetrica # used in eval()
 
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField

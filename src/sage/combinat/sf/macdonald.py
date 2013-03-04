@@ -53,7 +53,6 @@ import sage.combinat.partition
 from sage.matrix.all import MatrixSpace
 from sage.rings.all import QQ
 from sage.misc.misc import prod
-from sage.misc.superseded import deprecation
 from sage.rings.fraction_field import FractionField
 import functools
 
@@ -1038,9 +1037,8 @@ class MacdonaldPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
             prefix = "Mcd"+s)
         self.q = macdonald.q
         self.t = macdonald.t
-        self._sym = macdonald._sym
         self._macdonald = macdonald
-        self._s = self._sym.schur()
+        self._s = self._macdonald._s
 
         # Bases defined by orthotriangularity should inherit from some
         # common category BasesByOrthotriangularity (shared with Jack, HL, orthotriang, Mcdo)
@@ -1454,7 +1452,7 @@ class MacdonaldPolynomials_j(MacdonaldPolynomials_generic):
              (q*t^3-t^4-q*t^2+t^3-q*t+t^2+q-t)*s[1, 1, 1] + (-q*t^4+2*q*t^3-q*t^2+t^2-2*t+1)*s[2, 1]
         """
         q,t = QQqt.gens()
-        S = sage.combinat.sf.sf.SymmetricFunctions(QQqt).macdonald().S()
+        S = self._macdonald.S()
         res = S(1)
         for k in reversed(part):
             res = res.creation(k)
@@ -1549,9 +1547,8 @@ class MacdonaldPolynomials_h(MacdonaldPolynomials_generic):
             [t^2, q*t^2 + q*t + t, q^2*t^2 + 1, q^2*t + q*t + q, q^2]
         """
         (q,t) = QQqt.gens()
-        Sym = sage.combinat.sf.sf.SymmetricFunctions(QQqt)
-        J = Sym.macdonald().J()
-        s = Sym.schur()
+        J = self._macdonald.J()
+        s = self._s
         res = 0
         for p in sage.combinat.partition.Partitions(sum(part)):
             res += (J(part).scalar_t(s(p), t))*s(p)
@@ -1641,9 +1638,9 @@ class MacdonaldPolynomials_ht(MacdonaldPolynomials_generic):
             [1, q*t + q + t, q^2 + t^2, q^2*t + q*t^2 + q*t, q^2*t^2]
         """
         (q,t) = QQqt.gens()
-        Sym = sage.combinat.sf.sf.SymmetricFunctions(QQqt)
+        Sym = self._sym
         J = Sym.macdonald().J()
-        s = Sym.schur()
+        s = self._s
         res = 0
         ve = part.weighted_size()
         for p in sage.combinat.partition.Partitions(sum(part)):
@@ -1738,8 +1735,7 @@ class MacdonaldPolynomials_s(MacdonaldPolynomials_generic):
 
         """
         MacdonaldPolynomials_generic.__init__(self, macdonald)
-        self._s = macdonald._sym.schur()
-        self._p = macdonald._sym.power()
+        self._s = macdonald._s
         self._self_to_s_cache = _S_to_s_cache
         self._s_to_self_cache = _s_to_S_cache
 
@@ -1799,9 +1795,8 @@ class MacdonaldPolynomials_s(MacdonaldPolynomials_generic):
         """
         #Convert to the power sum
         (q,t) = QQqt.gens()
-        Sym = sage.combinat.sf.sf.SymmetricFunctions(QQqt)
-        p = Sym.power()
-        s = Sym.schur()
+        p = self._sym.p()
+        s = self._s
         p_x = p(s(part))
         f = lambda m, c: (m, c*prod([(1-t**k)/(1-q**k) for k in m]))
         res = s(p_x.map_item(f))
@@ -2019,15 +2014,14 @@ def qt_kostka(lam, mu):
     """
     lam = sage.combinat.partition.Partition(lam)
     mu = sage.combinat.partition.Partition(mu)
-    R = QQ['q,t'].fraction_field()
 
     if lam.size() != mu.size():
-        return R.zero()
+        return QQqt.zero()
 
     if (lam,mu) in _qt_kostka_cache:
         return _qt_kostka_cache[(lam,mu)]
 
-    Sym = sage.combinat.sf.sf.SymmetricFunctions(R)
+    Sym = sage.combinat.sf.sf.SymmetricFunctions(QQqt)
     H = Sym.macdonald().H()
     s = Sym.schur()
 
@@ -2036,7 +2030,7 @@ def qt_kostka(lam, mu):
     for p2 in parts:
         res = s(H(p2))
         for p1 in parts:
-            _qt_kostka_cache[(p1,p2)] = R(res.coefficient(p1).numerator())
+            _qt_kostka_cache[(p1,p2)] = QQqt(res.coefficient(p1).numerator())
 
     return _qt_kostka_cache[(lam,mu)]
 

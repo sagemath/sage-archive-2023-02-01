@@ -17,8 +17,7 @@ Elementary symmetric functions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import sfa, multiplicative, classical
-import sage
+import multiplicative, classical
 from sage.combinat.partition import Partition
 
 
@@ -122,7 +121,7 @@ class SymmetricFunctionAlgebra_elementary(multiplicative.SymmetricFunctionAlgebr
                 h[2, 1]
             """
             e = self.parent()
-            h = sage.combinat.sf.sf.SymmetricFunctions(e.base_ring()).h()
+            h = e.realization_of().h()
             return e( h._from_element(self) )
 
 

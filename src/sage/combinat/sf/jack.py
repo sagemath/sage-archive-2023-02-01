@@ -40,7 +40,6 @@ from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom, End
 from sage.rings.fraction_field import FractionField
 import sfa
-import classical
 
 QQt = FractionField(QQ['t'])
 

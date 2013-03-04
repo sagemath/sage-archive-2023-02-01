@@ -59,7 +59,7 @@ class LatticeDiagram(CombinatorialObject):
             sage: a.leg(5,2)
             [(5, 3)]
         """
-        return [(i,j) for j in range(j+1,self[i]+1)]
+        return [(i,k) for k in range(j+1,self[i]+1)]
 
     def arm_left(self, i, j):
         """
@@ -558,7 +558,6 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
         """
         res = 1
         shape = self.shape()
-        b = []
         for i,j in shape.boxes():
             if self[i,j] != self[i,j-1]:
                 res *= (1-q**(shape.l(i,j)+1)*t**(shape.a(i,j)+1))

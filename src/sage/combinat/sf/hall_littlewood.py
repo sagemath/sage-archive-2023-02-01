@@ -31,10 +31,8 @@ import sfa
 import sage.combinat.partition
 import kfpoly
 from sage.matrix.all import matrix
-from sage.rings.all import ZZ
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
-from sage.misc.superseded import deprecation
 from sage.rings.rational_field import QQ
 
 # P basis cache

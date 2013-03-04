@@ -16,7 +16,7 @@ Schur symmetric functions
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import classical, dual
+import classical
 import sage.libs.symmetrica.all as symmetrica
 from sage.rings.all import ZZ, QQ, Integer
 

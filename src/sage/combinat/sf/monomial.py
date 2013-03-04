@@ -18,11 +18,10 @@ Monomial symmetric functions
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import classical, sfa, dual
+import classical
 import sage.libs.symmetrica.all as symmetrica
 from sage.rings.integer import Integer
 from sage.combinat.partition import Partition
-import sage
 
 class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, Sym):
@@ -101,8 +100,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
             x^2*m[] + 2*x*m[2, 1] + 4*m[2, 2, 1, 1] + 6*m[2, 2, 2] + 2*m[3, 2, 1] + 2*m[3, 3] + 2*m[4, 1, 1] + m[4, 2]
         """
         #Use symmetrica to do the multiplication
-        A = left.parent()
-        R = A.base_ring()
+        #A = left.parent()
 
         #Hack due to symmetrica crashing when both of the
         #partitions are the empty partition

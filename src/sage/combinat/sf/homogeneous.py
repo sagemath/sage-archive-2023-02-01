@@ -22,8 +22,7 @@ Homogeneous symmetric functions
 # Homogeneous Symmetric Functions  #
 #                                  #
 ####################################
-import multiplicative, sfa, classical, dual
-import sage
+import multiplicative, classical
 from sage.combinat.partition import Partition
 
 class SymmetricFunctionAlgebra_homogeneous(multiplicative.SymmetricFunctionAlgebra_multiplicative):

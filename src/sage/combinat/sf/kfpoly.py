@@ -22,7 +22,6 @@ which can be found at http://www.math.lsa.umich.edu/~jrs/maple.html
 #*****************************************************************************
 
 import sage.combinat.partition
-from sage.rings.arith import factor
 from sage.rings.all import PolynomialRing, ZZ
 
 global_t = PolynomialRing(ZZ, 't').gen()

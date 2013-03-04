@@ -26,7 +26,6 @@ from sage.combinat.partition import Partitions
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.rings.rational_field import QQ
 
-import sage.combinat.sf.sfa as sfa
 import schur
 import monomial
 import powersum
@@ -1087,17 +1086,15 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
               From: Symmetric Functions over Rational Field in the powersum basis
               To:   Symmetric Functions over Rational Field in the Schur basis
         """
-        powersum   = self.powersum  ()
-        complete   = self.complete  ()
-        elementary = self.elementary()
-        schur      = self.schur     ()
-        monomial   = self.monomial  ()
+        #powersum   = self.powersum  ()
+        #complete   = self.complete  ()
+        #elementary = self.elementary()
+        #schur      = self.schur     ()
+        #monomial   = self.monomial  ()
 
         iso = self.register_isomorphism
 
         from sage.combinat.sf.classical import conversion_functions
-        from sage.categories.morphism import SetMorphism
-        from sage.categories.homset import Hom
 
         for (basis1_name, basis2_name) in conversion_functions.keys():
             basis1 = getattr(self, basis1_name)()
@@ -1243,8 +1240,8 @@ class SymmetricaConversionOnBasis:
             sage: p[1] + s[1]                           # indirect doctest
             2*p[1]
         """
-        R = self._codomain.base_ring()
         # TODO: use self._codomain.sum_of_monomials, when the later
         # will have an optional optimization for the case when there
         # is no repetition in the support
         return self._codomain._from_dict(dict(self._t(self.fake_sym.monomial(partition))), coerce = True)
+

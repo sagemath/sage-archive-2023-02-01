@@ -31,7 +31,7 @@ AUTHORS:
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.all import Rings, GradedHopfAlgebras
-from sage.combinat.partition import Partitions, Partitions_all_bounded
+from sage.combinat.partition import Partition, Partitions, Partitions_all_bounded, PartitionsGreatestLE
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.rings.rational_field import QQ
 from sage.categories.realizations import Realizations, Category_realization_of_parent
@@ -39,7 +39,6 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.magmas import Magmas
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
-from sage.combinat.partition import Partition, Partitions, Partition
 from sage.rings.all import Integer
 from sage.combinat.combinat import InfiniteAbstractCombinatorialClass
 import sage.combinat.sf.sfa as sfa
@@ -287,7 +286,7 @@ class KBoundedQuotient(UniqueRepresentation, Parent):
             return 0
         ans = self.zero()
         for la in Partitions(m, max_part = self.k):
-                ans += g.homogeneous_basis_noncommutative_variables_zero_Hecke((la)).coefficient(w)*mon(la)
+            ans += g.homogeneous_basis_noncommutative_variables_zero_Hecke((la)).coefficient(w)*mon(la)
         return ans
 
     def _AffineGrothendieck(self, w,m):
@@ -559,11 +558,11 @@ class KBoundedQuotientBases(Category_realization_of_parent):
                 if x == 0:
                     return self.zero()
                 else:
-                    raise TypeError, "do not know how to make x (= %s) an element of %s"%(x, self)
+                    raise TypeError("do not know how to make x (= %s) an element of %s"%(x, self))
             #x is an element of the basis enumerated set;
             elif x in self._basis_keys:
                 return self.monomial(self._basis_keys(x))
-            raise TypeError, "do not know how to make x (= %s) an element of self (=%s)"%(x,self)
+            raise TypeError("do not know how to make x (= %s) an element of self (=%s)"%(x,self))
 
         def ambient(self):
             r"""
@@ -599,11 +598,11 @@ class KBoundedQuotientBases(Category_realization_of_parent):
                 assert len(rest) == 0
             else:
                 if len(rest) > 0 or isinstance(c,(int,Integer)):
-                    c = Partition([c]+list(rest))
+                    c = self._kbounded_partitions.element_class(self._kbounded_partitions, [c]+list(rest))
                 else:
-                    c = Partition(list(c))
+                    c = self._kbounded_partitions.element_class(self._kbounded_partitions, list(c))
             if len(c) != 0 and c[0] > self.k:
-                raise ValueError, "Partition is not %d-bounded" %self.k
+                raise ValueError("Partition is not %d-bounded"%self.k)
             return self.monomial(c)
 
         def _repr_term(self, c):
@@ -633,7 +632,7 @@ class KBoundedQuotientBases(Category_realization_of_parent):
                 sage: F.one()  # indirect doctest
                 F3[]
             """
-            return Partition([])
+            return self._kbounded_partitions([])
 
         def an_element(self):
             r"""
@@ -645,7 +644,7 @@ class KBoundedQuotientBases(Category_realization_of_parent):
                 2*m3[] + 2*m3[1] + 3*m3[2]
             """
 
-            return self( Partition(srange(self.k,0,-1)))
+            return self( self._kbounded_partitions(srange(self.k,0,-1)) )
 
         # This is sufficient for degree to work
 
@@ -674,7 +673,7 @@ class KBoundedQuotientBases(Category_realization_of_parent):
                 sage: km.indices()
                 3-Bounded Partitions
             """
-            return Partitions_all_bounded(self.k)
+            return self._kbounded_partitions
 
         def lift(self, la):
             r"""
@@ -793,7 +792,33 @@ class KBoundedQuotientBases(Category_realization_of_parent):
     class ElementMethods:
         pass
 
-class kMonomial(CombinatorialFreeModule):
+class KBoundedQuotientBasis(CombinatorialFreeModule):
+    r"""
+    Abstract base class for the bases of the `k`-bounded quotient.
+    """
+    def __init__(self, kBoundedRing, prefix):
+        r"""
+        Initializes ``self``.
+        """
+        CombinatorialFreeModule.__init__(self, kBoundedRing.base_ring(),
+            kBoundedRing.indices(),
+            category= KBoundedQuotientBases(kBoundedRing),
+            prefix='%s%d'%(prefix, kBoundedRing.k))
+
+        self._kBoundedRing = kBoundedRing
+        self.k = kBoundedRing.k
+        self.t = kBoundedRing.t
+        self._kbounded_partitions = Partitions_all_bounded(kBoundedRing.k)
+
+    # The following are meant to be inherited with the category framework, but
+    # this fails because they are methods of Parent. The trick below overcomes
+    # this problem.
+    __getitem__ = KBoundedQuotientBases.ParentMethods.__getitem__.im_func
+    _repr_term = KBoundedQuotientBases.ParentMethods._repr_term.im_func
+    _element_constructor_ = KBoundedQuotientBases.ParentMethods._element_constructor_.im_func
+    _element_constructor = _element_constructor_
+
+class kMonomial(KBoundedQuotientBasis):
     r"""
     The basis of monomial symmetric functions indexed by partitions with first
     part less than or equal to `k`.
@@ -815,25 +840,9 @@ class kMonomial(CombinatorialFreeModule):
             4-Bounded Quotient of Symmetric Functions over Rational Field with t=1 in the 4-bounded monomial basis
             sage: TestSuite(km).run()
         """
-        CombinatorialFreeModule.__init__(self, kBoundedRing.base_ring(),
-            kBoundedRing.indices(),
-            category= KBoundedQuotientBases(kBoundedRing),
-            prefix='m%d'%kBoundedRing.k)
-
-        self._kBoundedRing = kBoundedRing
-
-        self.k = kBoundedRing.k
-        self.t = kBoundedRing.t
+        KBoundedQuotientBasis.__init__(self, kBoundedRing, 'm')
         Sym = kBoundedRing.ambient()
         Sym_m_to_mk = Sym.m().module_morphism(self.retract,codomain=self).register_as_coercion()
-
-    # The following are meant to be inherited with the category framework, but
-    # this fails because they are methods of Parent. The trick below overcomes
-    # this problem.
-    __getitem__ = KBoundedQuotientBases.ParentMethods.__getitem__.im_func
-    _repr_term = KBoundedQuotientBases.ParentMethods._repr_term.im_func
-    _element_constructor_ = KBoundedQuotientBases.ParentMethods._element_constructor_.im_func
-    _element_constructor = _element_constructor_
 
     def _repr_(self):
         """
@@ -927,7 +936,7 @@ class kMonomial(CombinatorialFreeModule):
         m = self._kBoundedRing.ambient().m()
         return m._from_dict(dict(self(la)))
 
-class kbounded_HallLittlewoodP(CombinatorialFreeModule):
+class kbounded_HallLittlewoodP(KBoundedQuotientBasis):
     r"""
     The basis of P Hall-Littlewood symmetric functions indexed by partitions with first
     part less than or equal to `k`.
@@ -949,28 +958,13 @@ class kbounded_HallLittlewoodP(CombinatorialFreeModule):
             4-Bounded Quotient of Symmetric Functions over Fraction Field of Univariate Polynomial Ring in t over Rational Field in the 4-bounded Hall-Littlewood P basis
             sage: TestSuite(kP).run()
         """
-        CombinatorialFreeModule.__init__(self, kBoundedRing.base_ring(),
-            kBoundedRing.indices(),
-            category= KBoundedQuotientBases(kBoundedRing),
-            prefix='HLP%d'%kBoundedRing.k)
+        KBoundedQuotientBasis.__init__(self, kBoundedRing, 'HLP')
 
-        self._kBoundedRing = kBoundedRing
-
-        self.k = kBoundedRing.k
-        self.t = kBoundedRing.t
         Sym = kBoundedRing.ambient()
-        Sym_HLP_to_kHLP = Sym.hall_littlewood(self.t).P().module_morphism(self.retract,codomain=self).register_as_coercion()
-        km = self._kBoundedRing.km()
+        Sym_HLP_to_kHLP = Sym.hall_littlewood(kBoundedRing.t).P().module_morphism(self.retract,codomain=self).register_as_coercion()
+        km = kBoundedRing.km()
         kHLP_to_mk = self.module_morphism(self._HLP_to_mk_on_basis, codomain=km, triangular='lower', unitriangular=True).register_as_coercion()
         mk_to_kHLP = km.module_morphism(self._m_to_kHLP_on_basis, codomain=self, triangular='lower', unitriangular=True).register_as_coercion()
-
-    # The following are meant to be inherited with the category framework, but
-    # this fails because they are methods of Parent. The trick below overcomes
-    # this problem.
-    __getitem__ = KBoundedQuotientBases.ParentMethods.__getitem__.im_func
-    _repr_term = KBoundedQuotientBases.ParentMethods._repr_term.im_func
-    _element_constructor_ = KBoundedQuotientBases.ParentMethods._element_constructor_.im_func
-    _element_constructor = _element_constructor_
 
     def _repr_(self):
         """
@@ -1023,14 +1017,14 @@ class kbounded_HallLittlewoodP(CombinatorialFreeModule):
             4*HLP3[2, 2, 1, 1] + 6*HLP3[2, 2, 2] + 2*HLP3[3, 2, 1] + 2*HLP3[3, 3]
         """
         if self.t==1:
-            if la in Partitions_all_bounded(self.k):
+            if la in self._kbounded_partitions:
                 return self(la)
             else:
                 return self(0)
         else:
             HLP = self._kBoundedRing._quotient_basis
             m = self._kBoundedRing._sym.m()
-            elt = dict({ x for x in dict(HLP(m(la))).iteritems() if x[0] in Partitions_all_bounded(self.k) })
+            elt = dict({ x for x in dict(HLP(m(la))).iteritems() if x[0] in self._kbounded_partitions })
             return self._from_dict(elt)
 
     def _HLP_to_mk_on_basis(self, la):
@@ -1065,7 +1059,7 @@ class kbounded_HallLittlewoodP(CombinatorialFreeModule):
             m3[]
         """
         mk = self._kBoundedRing.km()
-        if la not in Partitions_all_bounded(self.k):
+        if la not in self._kbounded_partitions:
             return mk(0)
         if self.t==1:
             return mk(la)
@@ -1107,7 +1101,7 @@ class kbounded_HallLittlewoodP(CombinatorialFreeModule):
             return self.zero()
         hlp = self._kBoundedRing.ambient().hall_littlewood(self.t).P()
         f = hlp(la)
-        return sum(self(x)*f.coefficient(x) for x in f.support() if x in Partitions_all_bounded(self.k))
+        return sum(self(x)*f.coefficient(x) for x in f.support() if x in self._kbounded_partitions)
 
     def lift(self, la):
         r"""
@@ -1138,7 +1132,7 @@ class kbounded_HallLittlewoodP(CombinatorialFreeModule):
         HLP = self._kBoundedRing.ambient().hall_littlewood(t=self.t).P()
         return HLP._from_dict(dict(self(la)))
 
-class DualkSchurFunctions(CombinatorialFreeModule):
+class DualkSchurFunctions(KBoundedQuotientBasis):
     r"""
     This basis is dual to the `k`-Schur functions.  The expansion is given
     in Section 4.12 of [LLMSSZ]_.  When `t=1` this basis is equal to the
@@ -1169,26 +1163,11 @@ class DualkSchurFunctions(CombinatorialFreeModule):
             sage: dks4 = DualkSchurFunctions(Sym.kBoundedQuotient(4,t=1))
             sage: TestSuite(dks4).run()  # long time (7s on sage.math, 2013)
         """
-        CombinatorialFreeModule.__init__(self, kBoundedRing.base_ring(),
-            kBoundedRing.indices(),
-            category= KBoundedQuotientBases(kBoundedRing),
-            prefix='dks%d'%kBoundedRing.k)
+        KBoundedQuotientBasis.__init__(self, kBoundedRing, 'dks')
 
-        self._kBoundedRing = kBoundedRing
-
-        self.k = kBoundedRing.k
-        self.t = kBoundedRing.t
         kHLP = kBoundedRing.kHallLittlewoodP()
         dks_to_khlp = self.module_morphism(self._dks_to_khlp_on_basis,codomain=kHLP).register_as_coercion()
         khlp_to_dks = kHLP.module_morphism(self._khlp_to_dks_on_basis,codomain=self).register_as_coercion()
-
-    # The following are meant to be inherited with the category framework, but
-    # this fails because they are methods of Parent. The trick below overcomes
-    # this problem.
-    __getitem__ = KBoundedQuotientBases.ParentMethods.__getitem__.im_func
-    _repr_term = KBoundedQuotientBases.ParentMethods._repr_term.im_func
-    _element_constructor_ = KBoundedQuotientBases.ParentMethods._element_constructor_.im_func
-    _element_constructor = _element_constructor_
 
     def _repr_(self):
         """
@@ -1231,7 +1210,7 @@ class DualkSchurFunctions(CombinatorialFreeModule):
         Qp = Sym.hall_littlewood(t=self.t).Qp()
         ks = kB.kschur()
         kHLP = self._kBoundedRing.kHallLittlewoodP()
-        return sum( ks(Qp(x)).coefficient(la) * kHLP(x) for x in Partitions(Partition(la).size(), max_part = self.k))
+        return sum( ks(Qp(x)).coefficient(la) * kHLP(x) for x in PartitionsGreatestLE(sum(la), self.k))
 
     def _khlp_to_dks_on_basis(self, la):
         r"""
@@ -1274,9 +1253,9 @@ class DualkSchurFunctions(CombinatorialFreeModule):
         kB = Sym.kBoundedSubspace(self.k, t=self.t)
         Qp = Sym.hall_littlewood(t=self.t).Qp()
         ks = kB.kschur()
-        return sum( Qp(ks(x)).coefficient(la) * self(x) for x in Partitions(Partition(la).size(), max_part = self.k))
+        return sum( Qp(ks(x)).coefficient(la) * self(x) for x in PartitionsGreatestLE(sum(la), self.k))
 
-class AffineSchurFunctions(CombinatorialFreeModule):
+class AffineSchurFunctions(KBoundedQuotientBasis):
     r"""
     This basis is dual to the `k`-Schur functions at `t=1`.  This realization
     follows the monomial expansion given by Lam [Lam2006]_.
@@ -1303,26 +1282,14 @@ class AffineSchurFunctions(CombinatorialFreeModule):
             4-Bounded Quotient of Symmetric Functions over Univariate Polynomial Ring in t over Rational Field with t=1 in the 4-bounded affine Schur basis
             sage: TestSuite(F).run()  # long time (5s on sage.math, 2013)
         """
-        CombinatorialFreeModule.__init__(self, kBoundedRing.base_ring(),
-            kBoundedRing.indices(),
-            category= KBoundedQuotientBases(kBoundedRing),
-            prefix='F%d'%kBoundedRing.k)
+        KBoundedQuotientBasis.__init__(self, kBoundedRing, 'F')
 
-        self._kBoundedRing = kBoundedRing
+        from sage.combinat.root_system.weyl_group import WeylGroup
+        self._weyl = WeylGroup(['A', kBoundedRing.k, 1])
 
-        self.k = kBoundedRing.k
-        self.t = kBoundedRing.t
         km = kBoundedRing.km()
         F_to_mk = self.module_morphism(self._F_to_m_on_basis,codomain=km).register_as_coercion()
         mk_to_F = km.module_morphism(self._m_to_F_on_basis,codomain=self).register_as_coercion()
-
-    # The following are meant to be inherited with the category framework, but
-    # this fails because they are methods of Parent. The trick below overcomes
-    # this problem.
-    __getitem__ = KBoundedQuotientBases.ParentMethods.__getitem__.im_func
-    _repr_term = KBoundedQuotientBases.ParentMethods._repr_term.im_func
-    _element_constructor_ = KBoundedQuotientBases.ParentMethods._element_constructor_.im_func
-    _element_constructor = _element_constructor_
 
     def _repr_(self):
         """
@@ -1363,7 +1330,7 @@ class AffineSchurFunctions(CombinatorialFreeModule):
             ...
             ValueError: the partition must be 3-bounded
         """
-        return la.to_core(self.k).to_grassmannian().stanley_symmetric_function()
+        return self._weyl.from_reduced_word(Partition(la).from_kbounded_to_reduced_word(self.k)).stanley_symmetric_function()
 
     def _m_to_F_on_basis(self, la):
         r"""
@@ -1396,4 +1363,5 @@ class AffineSchurFunctions(CombinatorialFreeModule):
         kB = Sym.kBoundedSubspace(self.k, t=1)
         h = kB.khomogeneous()
         ks = kB.kschur()
-        return sum( h(ks(x)).coefficient(la) * self(x) for x in Partitions(Partition(la).size(), max_part = self.k))
+        return sum( h(ks(x)).coefficient(la) * self(x) for x in PartitionsGreatestLE(sum(la), self.k))
+

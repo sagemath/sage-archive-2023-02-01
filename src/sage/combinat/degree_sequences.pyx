@@ -262,7 +262,7 @@ Checking the consistency of enumeration and test::
 from sage.libs.gmp.all cimport mpz_t
 from sage.libs.gmp.all cimport *
 from sage.rings.integer cimport Integer
-include '../../../../devel/sage/sage/ext/stdsage.pxi'
+include '../ext/stdsage.pxi'
 include '../ext/cdefs.pxi'
 include "../ext/interrupt.pxi"
 

@@ -7,7 +7,7 @@
 
 from sage.numerical.backends.generic_backend cimport GenericBackend
 
-include '../../../../../devel/sage/sage/ext/stdsage.pxi'
+include '../../ext/stdsage.pxi'
 include '../../ext/cdefs.pxi'
 
 cdef struct c_cpxlp

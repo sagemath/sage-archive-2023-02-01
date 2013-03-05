@@ -1352,15 +1352,15 @@ def get_cmap(cmap):
 
         sage: from sage.plot.colors import get_cmap
         sage: get_cmap('jet')
-        <matplotlib.colors.LinearSegmentedColormap instance at 0x...>
+        <matplotlib.colors.LinearSegmentedColormap object at 0x...>
         sage: get_cmap(u'jet')
-        <matplotlib.colors.LinearSegmentedColormap instance at 0x...>
+        <matplotlib.colors.LinearSegmentedColormap object at 0x...>
         sage: get_cmap([(0,0,0), (0.5,0.5,0.5), (1,1,1)])
-        <matplotlib.colors.ListedColormap instance at 0x...>
+        <matplotlib.colors.ListedColormap object at 0x...>
         sage: get_cmap(['green', 'lightblue', 'blue'])
-        <matplotlib.colors.ListedColormap instance at 0x...>
+        <matplotlib.colors.ListedColormap object at 0x...>
         sage: get_cmap(((0.5, 0.3, 0.2), [1.0, 0.0, 0.5], 'purple', Color(0.5,0.5,1, space='hsv')))
-        <matplotlib.colors.ListedColormap instance at 0x...>
+        <matplotlib.colors.ListedColormap object at 0x...>
         sage: get_cmap('jolies')
         Traceback (most recent call last):
         ...
@@ -1533,9 +1533,9 @@ class Colormaps(collections.MutableMapping):
             sage: from sage.plot.colors import Colormaps
             sage: maps = Colormaps()
             sage: maps.get('Oranges')
-            <matplotlib.colors.LinearSegmentedColormap instance at ...>
+            <matplotlib.colors.LinearSegmentedColormap object at ...>
             sage: maps['copper']
-            <matplotlib.colors.LinearSegmentedColormap instance at ...>
+            <matplotlib.colors.LinearSegmentedColormap object at ...>
             sage: maps.get('not a color map')
             sage: maps['not a color map']
             Traceback (most recent call last):
@@ -1565,7 +1565,7 @@ class Colormaps(collections.MutableMapping):
             sage: from sage.plot.colors import Colormaps
             sage: maps = Colormaps()
             sage: maps.pink
-            <matplotlib.colors.LinearSegmentedColormap instance at ...>
+            <matplotlib.colors.LinearSegmentedColormap object at ...>
             sage: maps.punk
             Traceback (most recent call last):
             ...
@@ -1642,7 +1642,7 @@ class Colormaps(collections.MutableMapping):
             sage: maps = Colormaps()
             sage: count = len(maps)
             sage: maps.popitem()
-            ('Spectral', <matplotlib.colors.LinearSegmentedColormap instance at ...>)
+            ('Spectral', <matplotlib.colors.LinearSegmentedColormap object at ...>)
             sage: count - 1 == len(maps)
             True
         """

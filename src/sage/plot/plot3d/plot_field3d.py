@@ -60,7 +60,7 @@ def plot_vector_field3d(functions, xrange, yrange, zrange,
 
     TESTS:
 
-    This tests that Trac # 2100 is fixed in a way compatible with this command::
+    This tests that :trac:`2100` is fixed in a way compatible with this command::
 
         sage: plot_vector_field3d((x*cos(z),-y*cos(z),sin(z)), (x,0,pi), (y,0,pi), (z,0,pi),center_arrows=True,aspect_ratio=(1,2,1))
     """
@@ -72,8 +72,9 @@ def plot_vector_field3d(functions, xrange, yrange, zrange,
     try:
         from matplotlib.cm import get_cmap
         cm = get_cmap(colors)
-        assert(cm is not None)
-    except (TypeError, AssertionError):
+    except (TypeError, ValueError):
+        cm = None
+    if cm is None:
         if isinstance(colors, (list, tuple)):
             from matplotlib.colors import LinearSegmentedColormap
             cm = LinearSegmentedColormap.from_list('mymap',colors)

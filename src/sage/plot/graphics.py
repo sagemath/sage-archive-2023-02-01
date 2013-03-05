@@ -1938,10 +1938,10 @@ class Graphics(SageObject):
             sage: p._objects[0]._render_on_subplot(subplot)
             sage: p._matplotlib_tick_formatter(subplot, **d)
             (<matplotlib.axes.AxesSubplot object at ...>,
-            <matplotlib.ticker.MaxNLocator instance at ...>,
-            <matplotlib.ticker.MaxNLocator instance at ...>,
-            <matplotlib.ticker.OldScalarFormatter instance at ...>,
-            <matplotlib.ticker.OldScalarFormatter instance at ...>)
+            <matplotlib.ticker.MaxNLocator object at ...>,
+            <matplotlib.ticker.MaxNLocator object at ...>,
+            <matplotlib.ticker.OldScalarFormatter object at ...>,
+            <matplotlib.ticker.OldScalarFormatter object at ...>)
         """
         # This function is created to refactor some code that is repeated
         # in the matplotlib function

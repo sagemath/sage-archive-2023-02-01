@@ -41,6 +41,7 @@ This module implements finite partialy ordered sets. It defines :
     :meth:`~FinitePoset.interval` | Returns a list of the elements `z` such that `x \le z \le y`.
     :meth:`~FinitePoset.is_bounded` | Returns True if the poset contains a unique maximal element and a unique minimal element, and False otherwise.
     :meth:`~FinitePoset.is_chain` | Returns True if the poset is totally ordered, and False otherwise.
+    :meth:`~FinitePoset.is_EL_labelling` | Returns whether ``f`` is an EL labelling of ``self``
     :meth:`~FinitePoset.is_gequal` | Returns ``True`` if `x` is greater than or equal to `y` in the poset, and ``False`` otherwise.
     :meth:`~FinitePoset.is_graded` | Returns whether this poset is graded.
     :meth:`~FinitePoset.is_greater_than` | Returns ``True`` if `x` is greater than but not equal to `y` in the poset, and ``False`` otherwise.
@@ -1795,35 +1796,47 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         return self._hasse_diagram.is_chain()
 
-    def is_EL_labelling(self,f, return_raising_chains=False):
+    def is_EL_labelling(self, f, return_raising_chains=False):
         r"""
         Returns ``True`` if ``f`` is an EL labelling of ``self``.
 
-        A labelling `f` of the Hasse diagram of a poset is called EL labelling if for any two elements `u` and `v` with `u \leq v`,
+        A labelling `f` of the edges of the Hasse diagram of a poset
+        is called an EL labelling (edge lexicographic labelling) if
+        for any two elements `u` and `v` with `u \leq v`,
 
-            - there is a unique `f`-raising chain from `u` to `v` in the Hasse diagram, which is lexicographically first among all chains from `u` to `v`.
+            - there is a unique `f`-raising chain from `u` to `v` in
+              the Hasse diagram, and this chain is lexicographically
+              first among all chains from `u` to `v`.
+
+        For more details, see [Bj1980]_.
 
         INPUT:
 
-        - ``f`` -- a function taking two elements ``a`` and ``b`` in ``self`` such that ``b`` covers ``a`` and returning elements in a totally ordered set.
+        - ``f`` -- a function taking two elements ``a`` and ``b`` in
+          ``self`` such that ``b`` covers ``a`` and returning elements
+          in a totally ordered set.
 
-        - ``return_raising_chains`` (optional; default:``False``) if ``True``, returns the set of all raising chains in ``self``, if possible.
+        - ``return_raising_chains`` (optional; default:``False``) if
+          ``True``, returns the set of all raising chains in ``self``,
+          if possible.
+
+        EXAMPLES:
+
+        Let us consider a Boolean poset::
+
+            sage: P = Poset([[(0,0),(0,1),(1,0),(1,1)],[[(0,0),(0,1)],[(0,0),(1,0)],[(0,1),(1,1)],[(1,0),(1,1)]]],facade=True)
+            sage: label = lambda a,b: min( i for i in [0,1] if a[i] != b[i] )
+            sage: P.is_EL_labelling(label)
+            True
+            sage: P.is_EL_labelling(label,return_raising_chains=True)
+            {((0, 0), (0, 1)): [1], ((0, 0), (1, 0)): [0], ((0, 1), (1, 1)): [0], ((1, 0), (1, 1)): [1], ((0, 0), (1, 1)): [0, 1]}
 
         REFERENCES:
 
             .. [Bj1980] Anders Björner,
                *Shellable and Cohen-Macaulay partially ordered sets*,
                Trans. Amer. Math. Soc. 260 (1980), 159-183,
-               http://www.ams.org/journals/tran/1980-260-01/S0002-9947-1980-0570784-2/S0002-9947-1980-0570784-2.pdf.
-
-        EXAMPLES::
-
-            sage: P = Poset([[(0,0),(0,1),(1,0),(1,1)],[[(0,0),(0,1)],[(0,0),(1,0)],[(0,1),(1,1)],[(1,0),(1,1)]]],facade=True) # a boolean poset
-            sage: label = lambda a,b: min( i for i in [0,1] if a[i] != b[i] )
-            sage: P.is_EL_labelling(label)
-            True
-            sage: P.is_EL_labelling(label,return_raising_chains=True)
-            {((0, 0), (0, 1)): [1], ((0, 0), (1, 0)): [0], ((0, 1), (1, 1)): [0], ((1, 0), (1, 1)): [1], ((0, 0), (1, 1)): [0, 1]}
+               :doi:`10.1090/S0002-9947-1980-0570784-2`
         """
         label_dict = { (a,b):f(a,b) for a,b in self.cover_relations_iterator() }
         if return_raising_chains:

@@ -404,4 +404,4 @@ else
     echo "$SAGE_BUILD_DIR/$TARGET"
 fi
 
-touch "$SAGE_ROOT/spkg/installed/$TARGET"
+touch "$SAGE_SPKG_INST/$TARGET"

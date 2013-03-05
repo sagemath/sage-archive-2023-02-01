@@ -9,9 +9,10 @@ SAGE_ROOT=`cd .. && pwd -P`
 SAGE_LOCAL="$SAGE_ROOT/local"
 SAGE_SHARE="$SAGE_LOCAL/share"
 SAGE_LOGS="$SAGE_ROOT/spkg/logs"
+SAGE_SPKG_INST="$SAGE_ROOT/spkg/installed"
 PATH="$SAGE_ROOT/spkg/bin:$SAGE_LOCAL/bin:$PATH"
 PYTHONPATH="$SAGE_LOCAL"
-export SAGE_ROOT SAGE_LOCAL SAGE_LOGS PATH PYTHONPATH
+export SAGE_ROOT SAGE_LOCAL SAGE_LOGS SAGE_SPKG_INST PATH PYTHONPATH
 
 # Storing the start time of the build process. The time is stored in
 # seconds since 1970-01-01 in a hidden file called
@@ -85,7 +86,7 @@ mkdir -p "$SAGE_LOGS"
 mkdir -p "$SAGE_LOCAL/bin"
 mkdir -p "$SAGE_LOCAL/etc"
 mkdir -p "$SAGE_LOCAL/lib"
-mkdir -p "$SAGE_ROOT/spkg/installed"
+mkdir -p "$SAGE_SPKG_INST"
 mkdir -p "$SAGE_SHARE"
 
 # If we are upgrading from an old version of Sage where $SAGE_SHARE
@@ -169,7 +170,7 @@ if [ -f "$SAGE_LOCAL/bin/gcc" ]; then
         echo >&2 "We are upgrading Sage and GCC was installed before, it will get"
         echo >&2 "re-installed if needed."
         need_to_install_gcc=yes
-        for f in "$SAGE_ROOT/spkg/installed"/gcc-*; do
+        for f in "$SAGE_SPKG_INST"/gcc-*; do
             if [ -f "$f" ]; then
                 touch "$f"
             fi
@@ -335,7 +336,7 @@ newest_version() {
     # First find the most recent spkg.  We also look for *optional*
     # packages since downloaded packages arrive in spkg/optional.
     # As a fallback, we also look at the latest installed package.
-    for FILE in `{ ls -1t standard/$PKG-*.spkg optional/$PKG-*.spkg; ls -1t installed/$PKG-*; } 2>/dev/null`
+    for FILE in `{ ls -1t standard/$PKG-*.spkg optional/$PKG-*.spkg; ls -1t "$SAGE_SPKG_INST"/$PKG-*; } 2>/dev/null`
     do
         ANS=`echo "$FILE" | sed 's|.*/||; s|\.spkg||'`
         if [ -n "$ANS" ]; then
@@ -486,6 +487,8 @@ if [ -z "$MAKE" ]; then
     MAKE=make
 fi
 
+INST="`echo ${SAGE_SPKG_INST:-installed} | sed 's/ /\\\\ /g'`"
+
 # * If "make" doesn't understand the -q option (although we require
 #   GNU make, which supports it), it should exit with a non-zero status
 #   which is not a problem.
@@ -495,7 +498,7 @@ fi
 #   which doesn't check MAKEFLAGS.
 #   See Trac #12248 and also #12016.
 if [ -f "$SAGE_ROOT/spkg/bin/sage-spkg" ]; then
-    if $MAKE -q "$@"; then
+    if $MAKE -q INST="$INST" "$@"; then
         echo "Nothing to (re)build / all up-to-date."
         exit 0
     fi
@@ -509,7 +512,7 @@ echo "***********************************************"
 ###############################################################################
 # NOW do the actual build:
 ###############################################################################
-time $MAKE "$@"
+time $MAKE INST="$INST" "$@"
 if [ $? -ne 0 ]; then
     cat >&2 <<EOF
 ***************************************************************

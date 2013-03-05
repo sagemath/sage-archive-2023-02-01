@@ -106,10 +106,9 @@ if [ -z "$SAGE_BUILD_DIR" ]; then
     export SAGE_BUILD_DIR="$SAGE_PACKAGES/build"
 fi
 
-INSTALLED="$SAGE_PACKAGES/installed"
-mkdir -p "$INSTALLED"
+mkdir -p "$SAGE_SPKG_INST"
 if [ $? -ne 0 ]; then
-    echo >&2 "Error creating directory $INSTALLED."
+    echo >&2 "Error creating directory $SAGE_SPKG_INST."
     exit 1
 fi
 
@@ -142,7 +141,7 @@ fi
 ##################################################################
 if [ $# -eq 0 ]; then
     echo "Currently installed packages:"
-    exec ls -1 "$INSTALLED"
+    exec ls -1 "$SAGE_SPKG_INST"
 fi
 
 # Options have to come in a specific order,
@@ -242,11 +241,11 @@ fi
 # we download the package.  We do a second check later, in case the
 # user didn't supply a version number and we don't find a local
 # matching package (case 3 above).
-if [ $INFO -eq 0 -a $FORCE -eq 0 -a -f "$INSTALLED/$PKG_NAME" ]; then
+if [ $INFO -eq 0 -a $FORCE -eq 0 -a -f "$SAGE_SPKG_INST/$PKG_NAME" ]; then
     echo "Package $PKG_NAME is already installed."
     echo "Use 'sage -f $PKG_SRC' to force a reinstallation."
     # Touch installed file such that "make" considers it up-to-date.
-    touch "$INSTALLED/$PKG_NAME"
+    touch "$SAGE_SPKG_INST/$PKG_NAME"
     exit 0
 fi
 
@@ -304,11 +303,11 @@ if [ ! -f "$PKG_SRC" ]; then
         fi
 
         # Check a second time whether the package is already installed.
-        if [ $INFO -eq 0 -a $FORCE -eq 0 -a -f "$INSTALLED/$PKG_NAME" ]; then
+        if [ $INFO -eq 0 -a $FORCE -eq 0 -a -f "$SAGE_SPKG_INST/$PKG_NAME" ]; then
             echo "Package $PKG_NAME is already installed."
             echo "Use 'sage -f $PKG_URL' to force a reinstallation."
             # Touch installed file such that "make" considers it up-to-date.
-            touch "$INSTALLED/$PKG_NAME"
+            touch "$SAGE_SPKG_INST/$PKG_NAME"
             exit 0
         fi
     fi
@@ -509,7 +508,7 @@ fi
 
 # Mark that the new package has been installed (and tested, if
 # applicable).
-PKG_NAME_INSTALLED="$INSTALLED/$PKG_NAME"
+PKG_NAME_INSTALLED="$SAGE_SPKG_INST/$PKG_NAME"
 echo "PACKAGE NAME: $PKG_NAME" > "$PKG_NAME_INSTALLED"
 echo "INSTALL DATE: `date`" >> "$PKG_NAME_INSTALLED"
 echo "UNAME: `uname -a`" >> "$PKG_NAME_INSTALLED"

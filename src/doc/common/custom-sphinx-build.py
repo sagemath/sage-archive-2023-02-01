@@ -9,16 +9,10 @@ Enhancements are:
 * redirect stdout to our own logger, and remove some unwanted chatter.
 """
 
-import os
-import sys
-import re
-
-
 # override the fancy multi-line formatting
 def term_width_line(text):
     return text + '\n'
 
-import sphinx.util.console
 sphinx.util.console.term_width_line = term_width_line
 
 
@@ -42,7 +36,7 @@ useless_chatter = (
 
 replacements = ()
 
-if any(arg == 'inventory' for arg in sys.argv):
+if 'inventory' in sys.argv:
     # When building the inventory, ignore warnings about missing
     # citations and the search index.
     useless_chatter += (
@@ -74,6 +68,7 @@ class SageSphinxLogger(object):
 
     def _filter_out(self, line):
         line = re.sub(self.ansi_color, '', line)
+        global useless_chatter
         for regex in useless_chatter:
             if regex.match(line) is not None:
                 return True
@@ -82,6 +77,7 @@ class SageSphinxLogger(object):
     def _log_line(self, line):
         if self._filter_out(line):
             return
+        global replacements
         for (old, new) in replacements:
             line = old.sub(new, line)
         line = self._prefix + ' ' + line.strip() + '\n'
@@ -156,19 +152,14 @@ class SageSphinxLogger(object):
 
 
 output_dir = sys.argv[-1]
-sys.stdout = SageSphinxLogger(sys.stdout, os.path.basename(output_dir))
-sys.stderr = SageSphinxLogger(sys.stderr, os.path.basename(output_dir))
 
+saved_stdout = sys.stdout
+saved_stderr = sys.stderr
 
-
-# pull in the Sage library
-import sage.all
-
-# Minimize GAP/libGAP RAM usage when we build the docs
-from sage.interfaces.gap import set_gap_memory_pool_size
-set_gap_memory_pool_size(0)  # will be rounded up to 1M
-
-if __name__ == '__main__':
-    from sphinx.cmdline import main
-    sys.exit(main(sys.argv))
-
+try:
+    sys.stdout = SageSphinxLogger(sys.stdout, os.path.basename(output_dir))
+    sys.stderr = SageSphinxLogger(sys.stderr, os.path.basename(output_dir))
+    sphinx.cmdline.main(sys.argv)
+finally:
+    sys.stdout = saved_stdout
+    sys.stderr = saved_stderr

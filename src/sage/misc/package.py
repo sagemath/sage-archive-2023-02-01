@@ -142,8 +142,8 @@ def install_package(package=None, force=False):
 
     if package is None:
         if __installed_packages is None:
-            __installed_packages = sorted(os.listdir(
-                os.path.join(os.environ["SAGE_PACKAGES"], 'installed')))
+            import sage.env
+            __installed_packages = sorted(os.listdir(sage.env.SAGE_SPKG_INST))
         return __installed_packages
     # Get full package name / list of candidates:
     if force:

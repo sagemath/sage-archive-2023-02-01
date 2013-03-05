@@ -42,6 +42,7 @@ SAGE_ENV = {
         'SAGE_EXTCODE'     : opj('$SAGE_SHARE', 'sage', 'ext'),
         'SAGE_PACKAGES'    : opj('$SAGE_ROOT', 'spkg'),
         'SAGE_LOGS'        : opj('$SAGE_ROOT', 'spkg', 'logs'),
+        'SAGE_SPKG_INST'   : opj('$SAGE_ROOT', 'spkg', 'installed'),
         'SAGE_DOC'         : opj('$SAGE_ROOT', 'devel', 'sage', 'doc'),
         'DOT_SAGE'         : opj(os.environ.get('HOME','$SAGE_ROOT'), '.sage'),
         # SAGE_LIB is the site-packages directory if the sage library

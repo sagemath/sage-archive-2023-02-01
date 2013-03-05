@@ -114,7 +114,6 @@ cdef class GLPKGraphBackend(object):
     cpdef int write_graph(self, char *fname)
     cpdef int write_ccdata(self, char *fname)
     cpdef int write_mincost(self, char *fname)
-    cdef public double graph_sol
     cpdef double mincost_okalg(self) except -1
     cdef int s
     cdef int t

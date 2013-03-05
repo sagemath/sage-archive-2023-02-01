@@ -16,11 +16,11 @@ Methods index
     :delim: |
 
     :meth:`~GLPKGraphBackend.add_vertex`          | Adds an isolated vertex to the graph.
-    :meth:`~GLPKGraphBackend.add_vertices`        | Add vertices from an iterable container of vertices.
-    :meth:`~GLPKGraphBackend.set_vertex_demand`   | Set the vertex parameters.
-    :meth:`~GLPKGraphBackend.set_vertices_demand` | Set the parameters of selected vertices.
+    :meth:`~GLPKGraphBackend.add_vertices`        | Adds vertices from an iterable container of vertices.
+    :meth:`~GLPKGraphBackend.set_vertex_demand`   | Sets the vertex parameters.
+    :meth:`~GLPKGraphBackend.set_vertices_demand` | Sets the parameters of selected vertices.
     :meth:`~GLPKGraphBackend.get_vertex`          | Returns a specific vertex as a ``dict`` Object.
-    :meth:`~GLPKGraphBackend.get_vertices`        | Return a dictionary of the dictonaries associated to each vertex.
+    :meth:`~GLPKGraphBackend.get_vertices`        | Returns a dictionary of the dictonaries associated to each vertex.
     :meth:`~GLPKGraphBackend.vertices`            | Returns a ``list`` of all vertices.
     :meth:`~GLPKGraphBackend.delete_vertex`       | Removes a vertex from the graph.
     :meth:`~GLPKGraphBackend.delete_vertices`     | Removes vertices from the graph.
@@ -38,10 +38,10 @@ Methods index
     :widths: 30, 70
     :delim: |
 
-    :meth:`~GLPKGraphBackend.write_graph`    | Write graph to a plain text file.
-    :meth:`~GLPKGraphBackend.write_ccdata`   | Write graph to a text file in DIMACS format.
-    :meth:`~GLPKGraphBackend.write_mincost`  | Write the mincost flow problem data to a text file in DIMACS format.
-    :meth:`~GLPKGraphBackend.write_maxflow`  | Write the maximum flow problem data to a text file in DIMACS format.
+    :meth:`~GLPKGraphBackend.write_graph`    | Writes the graph to a plain text file.
+    :meth:`~GLPKGraphBackend.write_ccdata`   | Writes the graph to a text file in DIMACS format.
+    :meth:`~GLPKGraphBackend.write_mincost`  | Writes the mincost flow problem data to a text file in DIMACS format.
+    :meth:`~GLPKGraphBackend.write_maxflow`  | Writes the maximum flow problem data to a text file in DIMACS format.
 
 **Network optimization operations:**
 
@@ -321,7 +321,7 @@ cdef class GLPKGraphBackend(object):
 
     cpdef list add_vertices(self, vertices):
         """
-        Add vertices from an iterable container of vertices.
+        Adds vertices from an iterable container of vertices.
 
         Vertices that already exist in the graph will not be added again.
 
@@ -373,7 +373,7 @@ cdef class GLPKGraphBackend(object):
 
     cpdef set_vertex_demand(self, char* vertex, demand):
         """
-        Set the demand of the vertex in a mincost flow algorithm.
+        Sets the demand of the vertex in a mincost flow algorithm.
 
         INPUT:
 
@@ -410,7 +410,7 @@ cdef class GLPKGraphBackend(object):
 
     cpdef set_vertices_demand(self, list pairs):
         """
-        Set the parameters of selected vertices.
+        Sets the parameters of selected vertices.
 
         INPUT:
 
@@ -485,7 +485,7 @@ cdef class GLPKGraphBackend(object):
 
     cpdef dict get_vertices(self, verts):
         """
-        Return a dictionary of the dictonaries associated to each vertex.
+        Returns a dictionary of the dictonaries associated to each vertex.
 
         INPUT:
 
@@ -647,7 +647,7 @@ cdef class GLPKGraphBackend(object):
 
     cpdef __add_edges_sage(self, g):
         """
-        Add edges to the Graph.
+        Adds edges to the Graph.
 
         This function is only used when importing a ``GenericGraph``.
 
@@ -1009,7 +1009,7 @@ cdef class GLPKGraphBackend(object):
 
     cpdef int _find_vertex(self, char *name):
         """
-        Return index of a vertex specified by a name
+        Returns the index of a vertex specified by a name
 
         INPUT:
 
@@ -1036,7 +1036,7 @@ cdef class GLPKGraphBackend(object):
 
     cpdef int write_graph(self, char * fname):
         r"""
-        Write graph to a plain text file
+        Writes the graph to a plain text file
 
         INPUT:
 
@@ -1060,7 +1060,7 @@ cdef class GLPKGraphBackend(object):
 
     cpdef int write_ccdata(self, char * fname):
         r"""
-        Write graph to a text file in DIMACS format.
+        Writes the graph to a text file in DIMACS format.
 
         Writes the data to plain ASCII text file in DIMACS format.
         A discription of the DIMACS format can be found at
@@ -1088,7 +1088,7 @@ cdef class GLPKGraphBackend(object):
 
     cpdef int write_mincost(self, char * fname):
         """
-        Write the mincost flow problem data to a text file in DIMACS format
+        Writes the mincost flow problem data to a text file in DIMACS format
 
         INPUT:
 
@@ -1162,9 +1162,9 @@ cdef class GLPKGraphBackend(object):
             2 -> 4 10.0
             2 -> 3 0.0
         """
-
+        cdef double graph_sol
         cdef int status = glp_mincost_okalg(self.graph, 0, 0, sizeof(double),
-              2 * sizeof(double), &self.graph_sol,
+              2 * sizeof(double), &graph_sol,
               3 * sizeof(double), sizeof(double))
         if status == 0:
             pass
@@ -1180,11 +1180,11 @@ cdef class GLPKGraphBackend(object):
             raise MIPSolverException("An error has been detected" +
                                      "in the program logic")
 
-        return self.graph_sol
+        return graph_sol
 
     cpdef int write_maxflow(self, char * fname) except -1:
         """
-        Write the maximum flow problem data to a text file in DIMACS format.
+        Writes the maximum flow problem data to a text file in DIMACS format.
 
         INPUT:
 
@@ -1287,8 +1287,9 @@ cdef class GLPKGraphBackend(object):
         s += 1
         t += 1
 
+        cdef double graph_sol
         cdef int status = glp_maxflow_ffalg(self.graph, s, t, sizeof(double),
-                          &self.graph_sol, 3 * sizeof(double),
+                          &graph_sol, 3 * sizeof(double),
                           2 * sizeof(double))
         if status == 0:
             pass
@@ -1304,7 +1305,7 @@ cdef class GLPKGraphBackend(object):
             raise MIPSolverException("An error has been detected in the " +
                                      "program logic")
 
-        return self.graph_sol
+        return graph_sol
 
     cpdef double cpp(self):
         r"""

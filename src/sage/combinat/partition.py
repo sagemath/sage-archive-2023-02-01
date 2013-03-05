@@ -302,6 +302,7 @@ from sage.combinat.partitions import number_of_partitions as bober_number_of_par
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.integer_list import IntegerListsLex
+from sage.combinat.root_system.weyl_group import WeylGroup
 
 from sage.groups.perm_gps.permgroup import PermutationGroup
 
@@ -412,7 +413,7 @@ def from_frobenius_coordinates(coords):
     """
     from sage.misc.superseded import deprecation
     deprecation(13605, 'from_frobenius_coordinates is deprecated. Use Partitions().from_frobenius_coordinates instead.')
-    return Partitions().from_frobenius_coordinates(coords)
+    return _Partitions.from_frobenius_coordinates(coords)
 
 def from_beta_numbers(beta):
     """
@@ -428,7 +429,7 @@ def from_beta_numbers(beta):
     """
     from sage.misc.superseded import deprecation
     deprecation(13605, 'from_beta_numbers is deprecated. Use Partitions().from_beta_numbers instead.')
-    return Partitions().from_beta_numbers(beta)
+    return _Partitions.from_beta_numbers(beta)
 
 def from_exp(exp):
     """
@@ -444,7 +445,7 @@ def from_exp(exp):
     """
     from sage.misc.superseded import deprecation
     deprecation(13605, 'from_exp is deprecated. Use Partitions().from_exp instead.')
-    return Partitions().from_exp(exp)
+    return _Partitions.from_exp(exp)
 
 def from_core_and_quotient(core, quotient):
     """
@@ -460,7 +461,7 @@ def from_core_and_quotient(core, quotient):
     """
     from sage.misc.superseded import deprecation
     deprecation(13605, 'from_core_and_quotient is deprecated. Use Partitions().from_core_and_quotient instead.')
-    return Partitions().from_core_and_quotient(core, quotient)
+    return _Partitions.from_core_and_quotient(core, quotient)
 
 class Partition(CombinatorialObject, Element):
     r"""
@@ -609,23 +610,25 @@ class Partition(CombinatorialObject, Element):
             sage: Partition(core=[2,1], quotient=[[2,1],[3],[1,1,1]])
             [11, 5, 5, 3, 2, 2, 2]
         """
-        if mu is not None and len(keyword) == 0:
-            if isinstance(mu, Partition):
-                return mu
+        l = len(keyword)
+        if l == 0:
+            if mu is not None:
+                if isinstance(mu, Partition):
+                    return mu
+                return _Partitions(list(mu))
+        if l == 1:
+            if 'beta_numbers' in keyword:
+                return _Partitions.from_beta_numbers(keyword['beta_numbers'])
+            elif 'exp' in keyword:
+                return _Partitions.from_exp(keyword['exp'])
+            elif 'frobenius_coordinates' in keyword:
+                return _Partitions.from_frobenius_coordinates(keyword['frobenius_coordinates'])
+            elif 'zero_one' in keyword:
+                return _Partitions.from_zero_one(keyword['zero_one'])
 
-            return Partitions()(list(mu))
-        elif 'beta_numbers' in keyword and len(keyword) == 1:
-            return Partitions().from_beta_numbers(keyword['beta_numbers'])
-        elif 'core' in keyword and 'quotient' in keyword and len(keyword) == 2:
-            return Partitions().from_core_and_quotient(keyword['core'], keyword['quotient'])
-        elif 'exp' in keyword and len(keyword) == 1:
-            return Partitions().from_exp(keyword['exp'])
-        elif 'frobenius_coordinates' in keyword and len(keyword) == 1:
-            return Partitions().from_frobenius_coordinates(keyword['frobenius_coordinates'])
-        elif 'zero_one' in keyword and len(keyword) == 1:
-            return Partitions().from_zero_one(keyword['zero_one'])
-        else:
-            raise ValueError('incorrect syntax for Partition()')
+        if l == 2 and 'core' in keyword and 'quotient' in keyword:
+            return _Partitions.from_core_and_quotient(keyword['core'], keyword['quotient'])
+        raise ValueError('incorrect syntax for Partition()')
 
     def __setstate__(self, state):
         """
@@ -641,7 +644,7 @@ class Partition(CombinatorialObject, Element):
             [3, 2, 1]
         """
         if isinstance(state, dict):   # for old pickles from Partition_class
-            self._set_parent(Partitions())
+            self._set_parent(_Partitions)
             self.__dict__ = state
         else:
             self._set_parent(state[0])
@@ -873,7 +876,6 @@ class Partition(CombinatorialObject, Element):
             [[3, 2]]
         """
         return [ self ]
-
 
     def young_subgroup(self):
         """
@@ -3148,9 +3150,7 @@ class Partition(CombinatorialObject, Element):
             [0 1 0]
             [0 0 1]
         """
-        from sage.combinat.root_system.weyl_group import WeylGroup
-        W=WeylGroup(['A',k,1])
-        return W.from_reduced_word(self.from_kbounded_to_reduced_word(k))
+        return WeylGroup(['A',k,1]).from_reduced_word(self.from_kbounded_to_reduced_word(k))
 
     def to_list(self):
         r"""
@@ -4287,20 +4287,6 @@ class Partitions_all(Partitions):
         sage: TestSuite( sage.combinat.partition.Partitions_all() ).run()
     """
 
-    @staticmethod
-    def __classcall_private__(cls):
-        """
-        Normalize the input to ensure a unique representation.
-
-        TESTS::
-
-            sage: P = Partitions()
-            sage: P2 = Partitions()
-            sage: P is P2
-            True
-        """
-        return super(Partitions_all, cls).__classcall__(cls)
-
     def __init__(self):
         """
         Initialize ``self``.
@@ -4452,19 +4438,6 @@ class Partitions_all(Partitions):
 
 
 class Partitions_all_bounded(Partitions):
-    @staticmethod
-    def __classcall_private__(cls, k):
-        """
-        Normalize the input to ensure a unique representation.
-
-        TESTS::
-
-            sage: P = Partitions(max_part=3)
-            sage: P2 = Partitions(max_part=3)
-            sage: P is P2
-            True
-        """
-        return super(Partitions_all_bounded, cls).__classcall__(cls, Integer(k))
 
     def __init__(self, k):
         """
@@ -4499,7 +4472,7 @@ class Partitions_all_bounded(Partitions):
             False
         """
         try:
-            return Partitions()(x).get_part(0) <= self.k
+            return _Partitions(x).get_part(0) <= self.k
         except (ValueError, TypeError):
             return False
 
@@ -4541,20 +4514,6 @@ class Partitions_n(Partitions):
         sage: TestSuite( sage.combinat.partition.Partitions_n(0) ).run()
     """
 
-    @staticmethod
-    def __classcall_private__(cls, n):
-        """
-        Normalize the input to ensure a unique representation.
-
-         TESTS::
-
-            sage: P = Partitions(4)
-            sage: P2 = Partitions(4)
-            sage: P is P2
-            True
-        """
-        return super(Partitions_n, cls).__classcall__(cls, Integer(n))
-
     def __init__(self, n):
         """
         Initialze ``self``.
@@ -4580,7 +4539,7 @@ class Partitions_n(Partitions):
             sage: [3,2] in p
             True
         """
-        return x in Partitions() and sum(x) == self.n
+        return x in _Partitions and sum(x) == self.n
 
     def _repr_(self):
         """
@@ -4969,7 +4928,7 @@ class Partitions_parts_in(Partitions):
             sage: [4,1] in p
             False
         """
-        return (x in Partitions() and sum(x) == self.n and
+        return (x in _Partitions and sum(x) == self.n and
                 all(p in self.parts for p in x))
 
     def _repr_(self):
@@ -5407,20 +5366,6 @@ class PartitionsInBox(Partitions):
         [[], [1], [1, 1], [2], [2, 1], [2, 2]]
     """
 
-    @staticmethod
-    def __classcall_private__(cls, h, w):
-        """
-        Normalize the input to ensure a unique representation.
-
-        TESTS::
-
-            sage: P = PartitionsInBox(2,2)
-            sage: P2 = PartitionsInBox(2,2)
-            sage: P is P2
-            True
-        """
-        return super(PartitionsInBox, cls).__classcall__(cls, Integer(h), Integer(w))
-
     def __init__(self, h, w):
         """
         Initialize ``self``.
@@ -5460,7 +5405,7 @@ class PartitionsInBox(Partitions):
             sage: [2,1,1] in PartitionsInBox(2,2)
             False
         """
-        return x in Partitions() and len(x) <= self.h \
+        return x in _Partitions and len(x) <= self.h \
                and (len(x) == 0 or x[0] <= self.w)
 
     def list(self):
@@ -5713,20 +5658,6 @@ class PartitionsGreatestLE(IntegerListsLex, UniqueRepresentation):
         Partitions...
     """
 
-    @staticmethod
-    def __classcall_private__(cls, n, k):
-        """
-        Normalize the input to ensure a unique representation.
-
-        TESTS::
-
-            sage: P = PartitionsGreatestLE(4,2)
-            sage: P2 = PartitionsGreatestLE(4,2)
-            sage: P is P2
-            True
-        """
-        return super(PartitionsGreatestLE, cls).__classcall__(cls, Integer(n), Integer(k))
-
     def __init__(self, n, k):
         """
         Initialize ``self``.
@@ -5801,20 +5732,6 @@ class PartitionsGreatestEQ(IntegerListsLex, UniqueRepresentation):
         sage: PartitionsGreatestEQ(10,2).first().parent()
         Partitions...
     """
-
-    @staticmethod
-    def __classcall_private__(cls, n, k):
-        """
-        Normalize the input to ensure a unique representation.
-
-        TESTS::
-
-            sage: P = PartitionsGreatestEQ(4,2)
-            sage: P2 = PartitionsGreatestEQ(4,2)
-            sage: P is P2
-            True
-        """
-        return super(PartitionsGreatestEQ, cls).__classcall__(cls, Integer(n), Integer(k))
 
     def __init__(self, n, k):
         """
@@ -6276,6 +6193,13 @@ def number_of_partitions(n,k=None, algorithm='default'):
         return ZZ(pari(ZZ(n)).numbpart())
 
     raise ValueError("unknown algorithm '%s'"%algorithm)
+
+##########
+# trac 14225: Partitions() is frequently used, but only weakly cached. Hence,
+# establish a strong reference to it.
+
+_Partitions = Partitions()
+
 
 # This function was previously used to cache number_of_partitions with the
 # justification that "Some function e.g.: Partitions(n).random() heavily use

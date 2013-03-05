@@ -146,11 +146,11 @@ class DocTestController(SageObject):
                 options.timeout = 0
             elif options.valgrind or options.massif or options.cachegrind or options.omega:
                 # Non-interactive debuggers: 48 hours
-                options.timeout = os.getenv('SAGE_TIMEOUT_VALGRIND', 48 * 60 * 60)
+                options.timeout = int(os.getenv('SAGE_TIMEOUT_VALGRIND', 48 * 60 * 60))
             elif options.long:
-                options.timeout = os.getenv('SAGE_TIMEOUT_LONG', 30 * 60)
+                options.timeout = int(os.getenv('SAGE_TIMEOUT_LONG', 30 * 60))
             else:
-                options.timeout = os.getenv('SAGE_TIMEOUT', 5 * 60)
+                options.timeout = int(os.getenv('SAGE_TIMEOUT', 5 * 60))
         if options.nthreads == 0:
             options.nthreads = int(os.getenv('SAGE_NUM_THREADS_PARALLEL',1))
         if options.failed and not (args or options.new or options.sagenb):
@@ -213,7 +213,21 @@ class DocTestController(SageObject):
             sage: DC.load_stats(filename)
             sage: DC.stats['sage.doctest.control']
             {u'walltime': 1.0}
+
+        If the file doesn't exist, nothing happens. If there is an
+        error, print a message. In any case, leave the stats alone::
+
+            sage: d = tmp_dir()
+            sage: DC.load_stats(os.path.join(d))  # Cannot read a directory
+            Error loading stats from ...
+            sage: DC.load_stats(os.path.join(d, "no_such_file"))
+            sage: DC.stats['sage.doctest.control']
+            {u'walltime': 1.0}
         """
+        # Simply ignore non-existing files
+        if not os.path.exists(filename):
+            return
+
         try:
             with open(filename) as stats_file:
                 self.stats.update(json.load(stats_file))
@@ -615,9 +629,9 @@ class DocTestController(SageObject):
         EXAMPLES::
 
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
-            sage: DC = DocTestController(DocTestDefaults(), ["hello_world.py"])
+            sage: DC = DocTestController(DocTestDefaults(timeout=123), ["hello_world.py"])
             sage: print DC._assemble_cmd()
-            python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout=300 hello_world.py
+            python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout=123 hello_world.py
         """
         cmd = '''python "%s" --serial '''%(os.path.join("$SAGE_LOCAL","bin","sage-runtests"))
         opt = dict_difference(self.options.__dict__, DocTestDefaults().__dict__)
@@ -655,7 +669,7 @@ class DocTestController(SageObject):
 
         ::
 
-            sage: DD = DocTestDefaults(valgrind=True, optional="all")
+            sage: DD = DocTestDefaults(valgrind=True, optional="all", timeout=172800)
             sage: DC = DocTestController(DD, ["hello_world.py"])
             sage: DC.run_val_gdb(testing=True)
             exec valgrind --tool=memcheck --leak-resolution=high --leak-check=full --num-callers=25 --suppressions="$SAGE_LOCAL/lib/valgrind/sage.supp"  --log-file=".../valgrind/sage-memcheck.%p" python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout=172800 --optional=all hello_world.py

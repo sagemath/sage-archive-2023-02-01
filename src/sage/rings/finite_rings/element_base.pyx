@@ -602,18 +602,17 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         TESTS::
 
-            sage: for p in [2,3,5,7,11]: # long
-            ...       for n in [2,5,10]:
-            ...           q = p^n
-            ...           K.<a> = GF(q)
-            ...           for r in (q-1).divisors():
-            ...               if r == 1: continue
-            ...               x = K.random_element()
-            ...               y = x^r
-            ...               if y.nth_root(r)**r != y: raise RuntimeError
-            ...               if (y^41).nth_root(41*r)**(41*r) != y^41: raise RuntimeError
-            ...               if (y^307).nth_root(307*r)**(307*r) != y^307: raise RuntimeError
-
+            sage: for p in [2,3,5,7,11]:  # long time, random because of PARI warnings
+            ....:     for n in [2,5,10]:
+            ....:         q = p^n
+            ....:         K.<a> = GF(q)
+            ....:         for r in (q-1).divisors():
+            ....:             if r == 1: continue
+            ....:             x = K.random_element()
+            ....:             y = x^r
+            ....:             assert y.nth_root(r)^r == y
+            ....:             assert (y^41).nth_root(41*r)^(41*r) == y^41
+            ....:             assert (y^307).nth_root(307*r)^(307*r) == y^307
             sage: k.<a> = GF(4)
             sage: a.nth_root(0,all=True)
             []

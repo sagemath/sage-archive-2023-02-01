@@ -18,15 +18,15 @@ Test the ``--initial`` option::
     Doctesting 1 file.
     sage -t initial.rst
     **********************************************************************
-    File "initial.rst", line 3, in sage.doctest.tests.initial
+    File "initial.rst", line 4, in sage.doctest.tests.initial
     Failed example:
-        a = binomiak(10,5)
+        a = binomiak(10,5)  # random to test that we still get the exception
     Exception raised:
         Traceback (most recent call last):
         ...
         NameError: name 'binomiak' is not defined
     **********************************************************************
-    File "initial.rst", line 13, in sage.doctest.tests.initial
+    File "initial.rst", line 14, in sage.doctest.tests.initial
     Failed example:
         binomial(10,5)
     Expected:
@@ -41,9 +41,11 @@ Test the ``--initial`` option::
     ...
     1
 
-Test a timeout::
+Test a timeout using the ``SAGE_TIMEOUT`` environment variable::
 
-    sage: subprocess.call(["sage", "-t", "-T", "3", "99seconds.rst"], cwd=tests_dir)  # long time
+    sage: env = dict(os.environ)
+    sage: env['SAGE_TIMEOUT'] = "3"
+    sage: subprocess.call(["sage", "-t", "99seconds.rst"], cwd=tests_dir, env=env)  # long time
     Running doctests...
     Doctesting 1 file.
     sage -t 99seconds.rst

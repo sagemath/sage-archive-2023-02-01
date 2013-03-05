@@ -140,7 +140,6 @@ related to the monomial symmetric functions by `m_\lambda =
 
     sage: SymmetricFunctions(QQ).inject_shorthands()
     doctest:1075: RuntimeWarning: redefining global value `e`
-    doctest:1075: RuntimeWarning: redefining global value `m`
     sage: m[2,1]
     m[2, 1]
     sage: M(m[2,1])

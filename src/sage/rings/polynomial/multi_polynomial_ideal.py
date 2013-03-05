@@ -3682,28 +3682,28 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             [x^3 + y^2, x^2*y + 1]
 
         A protocol is printed, if the verbosity level is at least 2,
-        or if the argument ``prot`` is provided. For some reason, the
-        protocol does not appear during doctests, so, we skip the
+        or if the argument ``prot`` is provided. Historically, the
+        protocol did not appear during doctests, so, we skip the
         examples with protocol output.  ::
 
             sage: set_verbose(2)
             sage: I = R*[x^3+y^2,x^2*y+1]
             sage: I.groebner_basis()  # not tested
             std in (0),(x,y),(dp(2),C)
-            [4294967295:2]3ss4s6
+            [...:2]3ss4s6
             (S:2)--
             product criterion:1 chain criterion:0
             [x^3 + y^2, x^2*y + 1, y^3 - x]
             sage: I.groebner_basis(prot=False)
             std in (0),(x,y),(dp(2),C)
-            [4294967295:2]3ss4s6
+            [...:2]3ss4s6
             (S:2)--
             product criterion:1 chain criterion:0
             [x^3 + y^2, x^2*y + 1, y^3 - x]
             sage: set_verbose(0)
             sage: I.groebner_basis(prot=True)  # not tested
             std in (0),(x,y),(dp(2),C)
-            [4294967295:2]3ss4s6
+            [...:2]3ss4s6
             (S:2)--
             product criterion:1 chain criterion:0
             [x^3 + y^2, x^2*y + 1, y^3 - x]

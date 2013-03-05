@@ -788,7 +788,7 @@ class HG:
 
         EXAMPLES::
 
-            sage: hg_sage.rename('sage/misc/hg.py', 'sage/misc/hgnew.py', options='--dry-run')
+            sage: hg_sage.rename('sage/misc/hg.py', 'sage/misc/hgnew.py', options='--dry-run')  # random because locking might fail
             Moving sage/misc/hg.py --> sage/misc/hgnew.py
             cd ... && sage --hg mv --dry-run "sage/misc/hg.py" "sage/misc/hgnew.py"
         """
@@ -999,7 +999,7 @@ class HG:
 
         EXAMPLES::
 
-            sage: hg_sage.revert('sage/misc/hg.py', rev=12000, options='--dry-run')
+            sage: hg_sage.revert('sage/misc/hg.py', rev=12000, options='--dry-run')  # random because locking might fail
             cd ... && sage --hg revert --dry-run -r 12000 sage/misc/hg.py
         """
         if not rev is None:

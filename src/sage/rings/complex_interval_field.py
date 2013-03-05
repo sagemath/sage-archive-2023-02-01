@@ -334,8 +334,8 @@ class ComplexIntervalField_class(field.Field):
 
             sage: cmp(CIF, ComplexIntervalField(200))
             -1
-            sage: cmp(CIF, CC)
-            1
+            sage: cmp(CIF, CC) != 0
+            True
             sage: cmp(CIF, CIF)
             0
         """

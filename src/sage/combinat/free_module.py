@@ -1067,6 +1067,9 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
 
         sage: F = CombinatorialFreeModule(QQ, ['a','b'], prefix='x')
         sage: original_print_options = F.print_options()
+        sage: sorted(original_print_options.items())
+         [('bracket', None), ('latex_bracket', False), ('latex_prefix', None), ('latex_scalar_mult', None), ('monomial_cmp', <built-in function cmp>), ('prefix', 'x'), ('scalar_mult', '*'), ('tensor_symbol', None)]
+
         sage: e = F.basis()
         sage: e['a'] - 3 * e['b']
         x['a'] - 3*x['b']
@@ -1084,6 +1087,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         sage: F.print_options(monomial_cmp = lambda x,y: -cmp(x,y))
         sage: e['a'] - 3 * e['b']
         -3 x{'b'} + x{'a'}
+        sage: F.print_options(**original_print_options) # reset print options
 
         sage: F = CombinatorialFreeModule(QQ, [(1,2), (3,4)])
         sage: e = F.basis()
@@ -1120,8 +1124,6 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         sage: g = 2*G.monomial(3) +     G.monomial(4)
         sage: tensor([f, g])
         2*x[1] # y[3] + x[1] # y[4] + 4*x[2] # y[3] + 2*x[2] # y[4]
-
-        sage: F.print_options(**original_print_options) # reset print options
     """
 
     @staticmethod

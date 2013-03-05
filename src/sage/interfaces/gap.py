@@ -1782,7 +1782,7 @@ def gap_console():
         sage: import subprocess
         sage: from sage.interfaces.gap import gap_command
         sage: cmd = 'echo "quit;" | ' + gap_command(use_workspace_cache=False)[0]
-        sage: gap_startup = subprocess.check_output(cmd, shell=True)
+        sage: gap_startup = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
         sage: 'http://www.gap-system.org' in gap_startup
         True
         sage: 'Error' not in gap_startup

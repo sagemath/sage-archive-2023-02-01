@@ -1166,7 +1166,7 @@ class R(Expect):
 
         ::
 
-            sage: os.path.realpath(tmpdir) == sageobj(r.getwd())
+            sage: os.path.realpath(tmpdir) == sageobj(r.getwd())  # known bug (:trac:`9970`)
             True
         """
         self.execute('setwd(%r)' % dir)

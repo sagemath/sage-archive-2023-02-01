@@ -4099,7 +4099,7 @@ def rebuild(dir):
     """
     module_mtime = os.stat(__file__).st_mtime
     try:
-        if os.stat(dir + '/timestamp').st_mtime > module_mtime:
+        if os.stat(os.path.join(dir, 'timestamp')).st_mtime >= module_mtime:
             # No need to rebuild.
             return
     except OSError:

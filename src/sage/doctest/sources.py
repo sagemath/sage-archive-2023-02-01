@@ -182,7 +182,8 @@ class DocTestSource(object):
         for dt in new_doctests:
             if len(dt.examples) > 0 and not (hasattr(dt.examples[-1],'sage_source')
                                              and dt.examples[-1].sage_source == "sig_on_count()\n"):
-                sigon = doctest.Example("sig_on_count()\n", "0\n")
+                # Line number refers to the end of the docstring
+                sigon = doctest.Example("sig_on_count()\n", "0\n", lineno=docstring.count("\n"))
                 sigon.sage_source = "sig_on_count()\n"
                 dt.examples.append(sigon)
             doctests.append(dt)
@@ -659,6 +660,8 @@ class FileDocTestSource(DocTestSource):
             ....:             filename = os.path.join(path, F)
             ....:             FDS = FileDocTestSource(filename, True, True, True, False)
             ....:             FDS._test_enough_doctests(verbose=False)
+            There are 18 tests in sage/combinat/partition.py that are not being run
+            There are 12 tests in sage/combinat/tableau.py that are not being run
             There are 3 unexpected tests being run in sage/doctest/parsing.py
             There are 1 tests in sage/ext/c_lib.pyx that are not being run
             There are 9 tests in sage/graphs/graph_plot.py that are not being run

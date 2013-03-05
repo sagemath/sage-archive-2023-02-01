@@ -56,6 +56,20 @@ def init_sage():
         sage: init_sage()
         sage: sage.plot.plot.DOCTEST_MODE
         True
+
+    Check that pexpect interfaces are invalidated, but still work::
+
+        sage: gap.eval("my_test_var := 42;")
+        '42'
+        sage: gap.eval("my_test_var;")
+        '42'
+        sage: init_sage()
+        sage: gap('Group((1,2,3)(4,5), (3,4))')
+        Group( [ (1,2,3)(4,5), (3,4) ] )
+        sage: gap.eval("my_test_var;")
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Gap produced error output...
     """
     # Do this once before forking.
     import sage.all_cmdline
@@ -64,8 +78,17 @@ def init_sage():
     import sage.misc.displayhook
     sys.displayhook = sage.misc.displayhook.DisplayHook(sys.displayhook)
 
-    # Workaround for https://github.com/sagemath/sagenb/pull/84
+    # Workarounds for https://github.com/sagemath/sagenb/pull/84
     import sagenb.notebook.misc
+    import sagenb.notebook.sage_email
+
+    def fixed_default_email_address():
+        import socket
+        import getpass
+        return getpass.getuser() + "@" + socket.gethostname()
+
+    sagenb.notebook.sage_email.default_email_address = fixed_default_email_address
+
 
 def warning_function(file):
     """
@@ -163,8 +186,8 @@ class SageSpoofInOut(SageObject):
             self.outfile = outfile
         self.spoofing = False
         self.real_stdin = os.fdopen(os.dup(sys.stdin.fileno()), "r")
-        self.real_stdout = os.fdopen(os.dup(sys.stdout.fileno()), "w")
-        self.real_stderr = os.fdopen(os.dup(sys.stderr.fileno()), "w")
+        self.real_stdout = os.fdopen(os.dup(sys.stdout.fileno()), "a")
+        self.real_stderr = os.fdopen(os.dup(sys.stderr.fileno()), "a")
         self.position = 0
 
     def __del__(self):

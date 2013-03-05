@@ -1,4 +1,5 @@
-from sage.misc.all import tmp_filename, preparse, SAGE_ROOT
+from sage.misc.all import tmp_filename, preparse
+from sage.env import SAGE_ROOT
 
 systems = {}
 systems['PARI'] = ['sage.libs.pari', 'sage.interfaces.gp']

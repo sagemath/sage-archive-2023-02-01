@@ -600,11 +600,6 @@ class Kash(Expect):
         else:
             print self.eval('?%s'%name)
 
-        #if name is None:
-        #    return "The Kash manual is installed in %s/local/lib/kash/html"%os.environ['SAGE_ROOT']
-        #V = self.eval('?%s'%name)
-        #return self._doc(V)
-
     def _doc(self, V):
         if V.lstrip()[:11] == 'No matches.':
             return KashDocumentation([])

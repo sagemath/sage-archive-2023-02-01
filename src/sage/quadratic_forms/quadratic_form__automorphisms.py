@@ -10,7 +10,7 @@ from sage.misc.all import cython_lambda
 from sage.modules.free_module_element import vector
 from sage.rings.arith import GCD
 from sage.misc.sage_eval import sage_eval
-from sage.misc.misc import SAGE_ROOT
+from sage.env import SAGE_LOCAL
 
 import tempfile, os
 from random import random
@@ -507,7 +507,7 @@ def number_of_automorphisms__souvigner(self):
     #os.system("less " + F.name)
 
     ## Call the Souvigner automorphism code
-    souvigner_auto_path = SAGE_ROOT + "/local/bin/Souvigner_AUTO"                 ## FIX THIS LATER!!!
+    souvigner_auto_path = os.path.join(SAGE_LOCAL,'bin','Souvigner_AUTO')                 ## FIX THIS LATER!!!
     G1 = tempfile.NamedTemporaryFile(prefix='tmp_auto_ouput', suffix=".txt")
     #print "Output filename = ", G1.name
     os.system(souvigner_auto_path + " '" +  F.name + "' > '" + G1.name +"'")

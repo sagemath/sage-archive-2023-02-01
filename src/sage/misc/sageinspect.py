@@ -129,6 +129,7 @@ import functools
 import os
 import tokenize
 EMBEDDED_MODE = False
+from sage.env import SAGE_SRC
 
 def isclassinstance(obj):
     r"""
@@ -157,8 +158,6 @@ def isclassinstance(obj):
             hasattr(obj.__class__, '__module__') and \
             obj.__class__.__module__ not in ('__builtin__', 'exceptions'))
 
-
-SAGE_ROOT = os.environ["SAGE_ROOT"]
 
 import re
 # Parse strings of form "File: sage/rings/rational.pyx (starting at line 1080)"
@@ -198,8 +197,7 @@ def _extract_embedded_position(docstring):
         return None
     res = __embedded_position_re.match(docstring)
     if res is not None:
-        #filename = '%s/local/lib/python/site-packages/%s' % (SAGE_ROOT, res.group('FILENAME'))
-        filename = '%s/devel/sage/%s' % (SAGE_ROOT, res.group('FILENAME'))
+        filename = os.path.join(SAGE_SRC, res.group('FILENAME'))
         lineno = int(res.group('LINENO'))
         original = res.group('ORIGINAL')
         return (original, filename, lineno)
@@ -2000,7 +1998,7 @@ def __internal_tests():
 
     Test _extract_embedded_position:
 
-    We cannot test the filename since it depends on SAGE_ROOT.
+    We cannot test the filename since it depends on SAGE_SRC.
 
     Make sure things work with no trailing newline::
 

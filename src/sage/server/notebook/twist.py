@@ -343,7 +343,7 @@ class SageTex(resource.Resource):
 # The source code browser
 ############################
 
-SRC = os.path.abspath(os.environ['SAGE_ROOT'] + '/devel/sage/sage/')
+SRC = os.path.abspath(os.path.join(sage.env.SAGE_LIB, 'sage'))
 
 class SourceBrowser(resource.Resource):
     addSlash = True
@@ -355,7 +355,7 @@ class SourceBrowser(resource.Resource):
         return static.File(SRC)
 
     def childFactory(self, request, name):
-        return Source('%s/%s'%(SRC,name), self.username)
+        return Source(os.path.join(SRC,name), self.username)
 
 class Source(resource.Resource):
     addSlash = True

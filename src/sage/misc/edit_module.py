@@ -116,9 +116,8 @@ def file_and_line(obj):
        filename=filename[:-3]+'.sage'
        lineno = lineno-3
 
-   sageroot = sage.misc.sageinspect.SAGE_ROOT+'/'
-   runpathpattern = '^'+sageroot+'local/lib/python[^/]*/site-packages'
-   develbranch = sageroot+'devel/sage'
+   runpathpattern = '^'+sage.env.SAGE_LIB
+   develbranch = sage.env.SAGE_SRC
    filename=re.sub(runpathpattern,develbranch,filename)
 
    return filename, lineno+1

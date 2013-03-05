@@ -177,7 +177,8 @@ AUTHORS:
 
 import expect
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
-from sage.misc.misc import SAGE_LOCAL, SAGE_EXTCODE, DOT_SAGE, is_64_bit, is_in_string
+from sage.env import SAGE_LOCAL, SAGE_EXTCODE, DOT_SAGE
+from sage.misc.misc import is_64_bit, is_in_string
 import re
 import os
 import pexpect

@@ -14,6 +14,7 @@ from sage.combinat.combinat import CombinatorialClass
 from sage.combinat.set_partition import SetPartitions
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.plot.colors import rainbow
+from sage.env import SAGE_LOCAL
 
 r"""
 To calculate linear systems associated with divisors, 4ti2 must be installed.
@@ -22,8 +23,8 @@ http://sagemath.org/download-packages.html to get the exact names of these
 packages.  An alternative is to install 4ti2 separately, then point the
 following variable to the correct path.
 """
-SAGE_ROOT = os.environ['SAGE_ROOT']
-path_to_zsolve = SAGE_ROOT+'/local/bin/'
+
+path_to_zsolve = os.path.join(SAGE_LOCAL,'bin','zsolve')
 
 r"""
 Sage Sandpiles
@@ -4097,7 +4098,7 @@ class SandpileDivisor(dict):
         sign_file.close()
         # compute
         try:
-            os.system(path_to_zsolve+'zsolve -q ' + lin_sys + ' > ' + lin_sys_log)
+            os.system(path_to_zsolve+' -q ' + lin_sys + ' > ' + lin_sys_log)
             # process the results
             zhom_file = open(lin_sys_zhom,'r')
         except IOError:

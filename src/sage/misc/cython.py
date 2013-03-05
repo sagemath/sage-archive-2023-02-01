@@ -19,8 +19,8 @@ from __future__ import print_function
 
 import os, sys, platform
 
-from misc import SPYX_TMP, SAGE_ROOT, SAGE_LOCAL
-from sage.misc.misc import UNAME
+from sage.env import SAGE_ROOT, SAGE_LOCAL, SAGE_SRC, UNAME
+from misc import SPYX_TMP
 
 def cblas():
     """
@@ -71,9 +71,9 @@ include_dirs = [os.path.join(SAGE_LOCAL,'include','csage'),
                 os.path.join(SAGE_LOCAL,'include'), \
                 os.path.join(SAGE_LOCAL,'include','python'+platform.python_version().rsplit('.', 1)[0]), \
                 os.path.join(SAGE_LOCAL,'lib','python','site-packages','numpy','core','include'), \
-                os.path.join(SAGE_ROOT,'devel','sage','sage','ext'), \
-                os.path.join(SAGE_ROOT,'devel','sage'), \
-                os.path.join(SAGE_ROOT,'devel','sage','sage','gsl')]
+                os.path.join(SAGE_SRC,'sage','ext'), \
+                os.path.join(SAGE_SRC), \
+                os.path.join(SAGE_SRC,'sage','gsl')]
 
 
 standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', \
@@ -335,10 +335,9 @@ def cython(filename, verbose=False, compile_message=False,
     Before :trac:`12975`, it would have beeen needed to write ``#clang c++``,
     but upper case ``C++`` has resulted in an error::
 
-        sage: from sage.all import SAGE_ROOT
         sage: code = [
         ... "#clang C++",
-        ... "#cinclude %s/local/include/singular %s/local/include/factory"%(SAGE_ROOT,SAGE_ROOT),
+        ... "#cinclude %s/include/singular %s/include/factory"%(SAGE_LOCAL, SAGE_LOCAL),
         ... "#clib m readline singular givaro ntl gmpxx gmp",
         ... "from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular",
         ... "from sage.libs.singular.polynomial cimport singular_polynomial_pow",
@@ -449,12 +448,7 @@ def cython(filename, verbose=False, compile_message=False,
 import distutils.sysconfig, os, sys
 from distutils.core import setup, Extension
 
-if not os.environ.has_key('SAGE_ROOT'):
-    print "    ERROR: The environment variable SAGE_ROOT must be defined."
-    sys.exit(1)
-else:
-    SAGE_ROOT  = os.environ['SAGE_ROOT']
-    SAGE_LOCAL = SAGE_ROOT + '/local/'
+from sage.env import SAGE_LOCAL
 
 extra_link_args =  ['-L' + SAGE_LOCAL + '/lib']
 extra_compile_args = %s

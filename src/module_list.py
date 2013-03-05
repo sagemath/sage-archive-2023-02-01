@@ -3,21 +3,11 @@
 import os, sys
 from distutils.core import setup
 from distutils.extension import Extension
+from sage.env import *
 
-
-#########################################################
-### Configure SAGE_ROOT
-#########################################################
-
-if not os.environ.has_key('SAGE_ROOT'):
-    print "    ERROR: The environment variable SAGE_ROOT must be defined."
-    sys.exit(1)
-else:
-    SAGE_ROOT  = os.environ['SAGE_ROOT']
-    SAGE_LOCAL = SAGE_ROOT + '/local'
-    SAGE_DEVEL = SAGE_ROOT + '/devel'
-    SAGE_INC = SAGE_LOCAL + '/include/'
-
+SAGE_INC = os.path.join(SAGE_LOCAL, 'include')
+# this is needed until someone fixes the usage of SAGE_INC in this file
+SAGE_INC += '/'
 
 #########################################################
 ### BLAS setup

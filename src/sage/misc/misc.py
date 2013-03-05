@@ -43,12 +43,8 @@ from sage.misc.temporary_file import tmp_dir, tmp_filename, delete_tmpfiles
 
 from banner import version, banner
 
-SAGE_ROOT = os.environ["SAGE_ROOT"]
-SAGE_LOCAL = os.environ["SAGE_LOCAL"]
-SAGE_DOC = os.environ["SAGE_DOC"]
-SAGE_SHARE = os.environ["SAGE_SHARE"]
-SAGE_EXTCODE = os.environ["SAGE_EXTCODE"]
-HOSTNAME = socket.gethostname().replace('-','_').replace('/','_').replace('\\','_')
+# for backwards compatiblity
+from sage.env import *
 
 LOCAL_IDENTIFIER = '%s.%s'%(HOSTNAME , os.getpid())
 
@@ -79,38 +75,6 @@ def sage_makedirs(dir):
         if not os.path.isdir(dir):
             raise
 
-
-try:
-    SAGE_URL = os.environ["SAGE_URL"]
-except KeyError:
-    SAGE_URL = "http://sage.math.washington.edu/sage/"     # default server
-
-LOGFILE = "%s/log/sage_log"%SAGE_ROOT
-
-
-try:
-    DOT_SAGE = os.environ['DOT_SAGE']
-except KeyError:
-    try:
-        DOT_SAGE = '%s/.sage/'%os.environ['HOME']
-    except KeyError:
-        DOT_SAGE = '%s/.sage/'%SAGE_ROOT
-
-UNAME=os.uname()[0]
-if ' ' in DOT_SAGE:
-    if UNAME[:6] == 'CYGWIN':
-        # on windows/cygwin it is typical for the home directory
-        # to have a space in it.  Fortunately, users also have
-        # write privileges to c:\cygwin\home, so we just put
-        # .sage there.
-        DOT_SAGE="/home/.sage"
-    else:
-        print "Your home directory has a space in it.  This"
-        print "will probably break some functionality of Sage.  E.g.,"
-        print "the GAP interface will not work.  A workaround"
-        print "is to set the environment variable HOME to a"
-        print "directory with no spaces that you have write"
-        print "permissions to before you start sage."
 
 #################################################
 # Now that the variable DOT_SAGE has been set,
@@ -2062,7 +2026,7 @@ def branch_current_hg():
     - Jeroen Demeyer (#12481)
     """
     try:
-        br = os.readlink(os.path.join(SAGE_ROOT, 'devel', 'sage'))
+        br = os.readlink(SAGE_SRC)
     except OSError:
         raise RuntimeError("Unable to determine branch")
     br = os.path.basename(br)

@@ -32,7 +32,7 @@ import jinja2
 import sage.misc.misc
 from sage.version import version
 
-TEMPLATE_PATH = sage.misc.misc.SAGE_ROOT + '/devel/sage/sage/server/notebook/templates'
+TEMPLATE_PATH = os.path.join(sage.env.SAGE_LIB, 'sage','server','notebook','templates')
 env = jinja2.Environment(loader=jinja2.FileSystemLoader(TEMPLATE_PATH))
 
 def contained_in(container):
@@ -75,7 +75,7 @@ def template(filename, **user_context):
     INPUT:
 
     - ``filename`` - a string; the filename of the template relative
-      to ``SAGE_ROOT/devel/sage/sage/server/notebook/templates``
+      to ``SAGE_LIB/sage/server/notebook/templates``
 
     - ``user_context`` - a dictionary; the context in which to evaluate
       the file's template variables

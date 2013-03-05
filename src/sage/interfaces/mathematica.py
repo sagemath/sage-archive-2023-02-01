@@ -483,7 +483,7 @@ remote connection to a server running Mathematica -- for hints, type
 ##            which means using forward slashes rather than back slashes,
 ##            and probably surrounding everything in quotes
 ##         3) this cygwin batch file must be on the path for Sage (placing
-##            it in <SAGE_ROOT>/local/bin/ is an easy way to ensure this).
+##            it in <SAGE_LOCAL>/bin/ is an easy way to ensure this).
 
     def eval(self, code, strip=True, **kwds):
         s = Expect.eval(self, code, **kwds)

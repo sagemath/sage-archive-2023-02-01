@@ -96,11 +96,11 @@ def install_scripts(directory=None, ignore_existing=False):
         return
 
     from sage.misc.sage_ostools import have_program
+    from sage.env import SAGE_LOCAL
     script_created = False
-    SAGE_ROOT = os.environ['SAGE_ROOT']
-    SAGE_BIN = os.path.join(SAGE_ROOT, 'local', 'bin')
+    SAGE_BIN = os.path.join(SAGE_LOCAL, 'bin')
     # See if 'directory' is already in PATH, and then remove
-    # SAGE_ROOT/local/bin from PATH so that we can later check whether
+    # SAGE_LOCAL/bin from PATH so that we can later check whether
     # cmd is available outside of Sage.
     PATH = os.environ['PATH'].split(os.pathsep)
     PATH = [d for d in PATH if os.path.exists(d)]

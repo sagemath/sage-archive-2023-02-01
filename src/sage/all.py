@@ -58,8 +58,7 @@ TESTS:
 import os, sys
 import operator
 
-if 'SAGE_ROOT' not in os.environ:
-    raise RuntimeError("To use the Sage libraries, set the environment variable SAGE_ROOT to the Sage build directory and LD_LIBRARY_PATH to $SAGE_ROOT/local/lib")
+from sage.env import SAGE_ROOT, SAGE_DOC, SAGE_LOCAL, DOT_SAGE, SAGE_ENV
 
 if sys.version_info[:2] < (2, 5):
     print >>sys.stderr, "Sage requires Python 2.5 or newer"
@@ -311,8 +310,6 @@ def _write_started_file():
         sage: os.path.isfile(started_file)
         True
     """
-    from sage.misc.all import SAGE_LOCAL
-
     started_file = os.path.join(SAGE_LOCAL, 'etc', 'sage-started.txt')
     # Do nothing if the file already exists
     if os.path.isfile(started_file):

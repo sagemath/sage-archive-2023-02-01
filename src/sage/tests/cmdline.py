@@ -486,7 +486,7 @@ def test_executable(args, input="", timeout=50.0, cwd=None):
     Check that ``sage-location`` did its job in making Python scripts
     relative.  We test it on the ``ipython`` script::
 
-        sage: open(os.path.join(SAGE_ROOT, "local", "bin", "ipython")).readline()
+        sage: open(os.path.join(SAGE_LOCAL, "bin", "ipython")).readline()
         '#!/usr/bin/env python\n'
 
     Test GP using the ``-f`` option which prevents the reading of a ``.gprc``

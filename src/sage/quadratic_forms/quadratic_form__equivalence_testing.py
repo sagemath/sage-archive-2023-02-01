@@ -10,7 +10,7 @@ from sage.rings.integer_ring import ZZ
 from quadratic_form import is_QuadraticForm
 
 
-from sage.misc.misc import SAGE_ROOT
+from sage.env import SAGE_LOCAL
 
 import tempfile, os
 
@@ -77,7 +77,7 @@ def is_globally_equivalent__souvigner(self, other, return_transformation=False):
     #os.system("less " + F.name)
 
     ## Call the Souvigner automorphism code
-    souvigner_isom_path = SAGE_ROOT + "/local/bin/Souvigner_ISOM"
+    souvigner_isom_path = os.path.join(SAGE_LOCAL,'bin','Souvigner_ISOM')
     G1 = tempfile.NamedTemporaryFile(prefix='tmp_isom_ouput', suffix=".txt")
     #print "Output filename = ", G1.name
     #print  "Executing the shell command:   " + souvigner_isom_path + " '" +  F.name + "' > '" + G1.name + "'"

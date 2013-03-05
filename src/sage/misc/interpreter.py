@@ -12,7 +12,7 @@ SageTerminalApp
 ---------------
 
 This is the main application object.  It is used by the
-``$SAGE_ROOT/local/bin/sage-ipython`` script to start the Sage
+``$SAGE_LOCAL/bin/sage-ipython`` script to start the Sage
 command-line.  It's primary purpose is to
 
   - Initialize the :class:`SageInteractiveShell`.

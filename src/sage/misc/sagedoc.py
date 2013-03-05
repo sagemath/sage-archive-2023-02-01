@@ -18,7 +18,7 @@ TESTS:
 Check that argspecs of extension function/methods appear correctly,
 see :trac:`12849`::
 
-    sage: docfilename = os.path.join(SAGE_ROOT, 'devel', 'sage', 'doc', 'output', 'html', 'en', 'reference', 'calculus', 'sage', 'symbolic', 'expression.html')
+    sage: docfilename = os.path.join(SAGE_DOC, 'output', 'html', 'en', 'reference', 'calculus', 'sage', 'symbolic', 'expression.html')
     sage: for line in open(docfilename):
     ...       if "#sage.symbolic.expression.Expression.N" in line:
     ...           print line
@@ -36,9 +36,10 @@ see :trac:`12849`::
 import os, re, sys
 import pydoc
 from sage.misc.viewer import browser
-from sage.misc.misc import SAGE_DOC, tmp_dir
+from sage.misc.misc import tmp_dir
 from sagenb.misc.sphinxify import sphinxify
 import sage.version
+from sage.env import SAGE_DOC, SAGE_SRC
 
 # two kinds of substitutions: math, which should only be done on the
 # command line -- in the notebook, these should instead by taken care
@@ -303,7 +304,7 @@ def process_extlinks(s, embedded=False):
     Sphinx extlinks extension. For example, replace ``:trac:`NUM```
     with ``http://trac.sagemath.org/NUM``, and similarly with
     ``:python:TEXT`` and ``:wikipedia:TEXT``, looking up the url from
-    the dictionary ``extlinks`` in SAGE_ROOT/devel/doc/common/conf.py.
+    the dictionary ``extlinks`` in SAGE_DOC/common/conf.py.
     If ``TEXT`` is of the form ``blah <LINK>``, then it uses ``LINK``
     rather than ``TEXT`` to construct the url.
 
@@ -690,13 +691,11 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
     # done processing keywords
     # define module, exts (file extension), title (title of search),
     # base_path (top directory in which to search)
-    ROOT = os.environ['SAGE_ROOT']
     if what == 'src':
+        base_path = SAGE_SRC
         if module.find('sage') == 0:
             module = module[4:].lstrip(".")  # remove 'sage' or 'sage.' from module
-            base_path = os.path.join('devel', 'sage', 'sage')
-        else:
-            base_path = os.path.join('devel', 'sage')
+            base_path = os.path.join(base_path, 'sage')
         module = module.replace(".", os.sep)
         exts = ['py', 'pyx', 'pxd']
         title = 'Source Code'
@@ -704,17 +703,17 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
         module = ''
         exts = ['html']
         title = 'Documentation'
-        base_path = os.path.join('devel', 'sage', 'doc', 'output')
-        doc_path = os.path.join(ROOT, 'devel', 'sage', 'doc')
+        base_path = os.path.join(SAGE_DOC, 'output')
+        doc_path = SAGE_DOC
 
-        # We need to import stuff from SAGE_ROOT/devel/sage/doc/common
+        # We need to import stuff from SAGE_DOC/common
         # To do this, we temporarily change sys.path
         oldpath = sys.path
-        sys.path = oldpath + [os.path.join(ROOT, 'devel', 'sage', 'doc', 'common')]
+        sys.path = oldpath + [os.path.join(SAGE_DOC, 'common')]
         import build_options as builder
         # List of languages
         lang = builder.LANGUAGES
-        # Documents in SAGE_ROOT/devel/sage/doc/LANG/ to omit
+        # Documents in SAGE_DOC/LANG/ to omit
         omit = builder.OMIT
         sys.path = oldpath
 
@@ -762,7 +761,6 @@ or you can use 'sage -docbuild all html' to build all of the missing documentati
                 print """
 You can build this with 'sage -docbuild %s html'.""" % s
 
-    base_path = os.path.join(ROOT, base_path)
     strip = len(base_path)
     results = ''
     # in regular expressions, '\bWORD\b' matches 'WORD' but not
@@ -882,7 +880,7 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
     filename in which each match occurs, the line number where it
     occurs, and the actual matching line.  (If ``multiline`` is True,
     then only the filename is printed for each match.)  The file paths
-    in the output are relative to ``$SAGE_ROOT/devel/sage/``.  In the
+    in the output are relative to ``$SAGE_SRC``.  In the
     notebook, each match produces a link to the actual file in which
     it occurs.
 
@@ -1016,7 +1014,7 @@ def search_doc(string, extra1='', extra2='', extra3='', extra4='',
     search is case-sensitive.
 
     The file paths in the output are relative to
-    ``$SAGE_ROOT/devel/sage/doc/output``.
+    ``$SAGE_DOC/output``.
 
     INPUT: same as for :func:`search_src`.
 

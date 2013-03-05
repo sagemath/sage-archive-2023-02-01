@@ -322,12 +322,6 @@ class log_dvi(Log):
     viewer.
     """
     def _init(self):
-        SAGE_ROOT = os.environ['SAGE_ROOT']
-        # the file we try to symlink to below doesn't exist, and the
-        # generated LaTeX log file seems to build without it, so let's
-        # comment this out. If this is a problem, we can hunt down
-        # macros.tex and rework this.
-        #os.system('ln -sf %s/devel/doc/commontex/macros.tex %s/macros.tex'%(SAGE_ROOT, self._dir))
         self._in_verbatim = False
 
     def __repr__(self):

@@ -12,7 +12,7 @@ Sage version and banner info
 #*****************************************************************************
 
 
-import sage.version
+from sage.env import SAGE_VERSION, SAGE_DATE, SAGE_SRC
 
 def version(clone = False):
     """
@@ -31,8 +31,8 @@ def version(clone = False):
         'Mercurial clone branch: ...')
     """
     import os
-    branch = os.popen("ls -l $SAGE_ROOT/devel/sage").read().split()[-1][5:]
-    v = 'Sage Version %s, Release Date: %s'%(sage.version.version, sage.version.date)
+    branch = os.popen("ls -l "+SAGE_SRC).read().split()[-1][5:]
+    v = 'Sage Version %s, Release Date: %s'%(SAGE_VERSION, SAGE_DATE)
     if clone:
         return v,"Mercurial clone branch: %s"%branch
     return v
@@ -136,7 +136,7 @@ def version_dict():
         sage: version_dict()['major'] == int(sage.version.version.split('.')[0])
         True
     """
-    v = sage.version.version.split('.')
+    v = SAGE_VERSION.split('.')
     dict = {}
     dict['major'] = int(v[0])
     dict['minor'] = int(v[1])
@@ -208,5 +208,5 @@ def require_version(major, minor=0, tiny=0, prerelease=False,
             print "This code requires at least version",
             print "%g" % (major + 0.1 * minor + 0.01 * tiny,),
             print "of Sage to run correctly."
-            print "You are running version %s." % sage.version.version
+            print "You are running version %s." % SAGE_VERSION
         return False

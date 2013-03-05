@@ -11,7 +11,8 @@ Utility functions for libGAP
 #                   http://www.gnu.org/licenses/
 ###############################################################################
 
-from sage.misc.misc import is_64_bit, SAGE_LOCAL, SAGE_ROOT
+from sage.env import SAGE_LOCAL
+from sage.misc.misc import is_64_bit
 from libc.stdint cimport uintptr_t
 from element cimport *
 
@@ -164,7 +165,7 @@ def gap_root():
     gap_sh = open(os.path.join(SAGE_LOCAL, 'bin', 'gap')).read().splitlines()
     gapdir = filter(lambda dir:dir.strip().startswith('GAP_DIR'), gap_sh)[0]
     gapdir = gapdir.split('"')[1]
-    gapdir = gapdir.replace('$SAGE_ROOT', SAGE_ROOT)
+    gapdir = gapdir.replace('$SAGE_LOCAL', SAGE_LOCAL)
     return gapdir
 
 

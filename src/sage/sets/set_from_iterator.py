@@ -449,16 +449,15 @@ class Decorator:
             except IOError:
                 sourcelines = None
             if sourcelines is not None:
-                import os
-                SAGE_ROOT = os.environ['SAGE_ROOT']
+                from sage.env import SAGE_LIB, SAGE_SRC
                 filename = sage_getfile(f)
                 # The following is a heuristics to get
                 # the file name of the cached function
                 # or method
-                if filename.startswith(SAGE_ROOT+'/devel/sage/'):
-                    filename = filename[len(SAGE_ROOT+'/devel/sage/'):]
-                elif 'site-packages/' in filename:
-                    filename = filename.split('site-packages/',1)[1]
+                if filename.startswith(SAGE_SRC):
+                    filename = filename[len(SAGE_SRC):]
+                elif filename.startswith(SAGE_LIB):
+                    filename = filename[len(SAGE_LIB):]
                 file_info = "File: %s (starting at line %d)\n"%(filename,sourcelines[1])
                 doc = file_info+(f.func_doc or '')
             else:

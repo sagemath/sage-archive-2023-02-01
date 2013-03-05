@@ -6,7 +6,7 @@ package (e.g., trac-x.y.z.spkg) is installed.
 """
 import os, sys
 
-from sage.misc.misc import SAGE_ROOT
+from sage.env import SAGE_LIB, SAGE_LOCAL
 from sage.misc.viewer import browser
 
 def trac_create_instance(directory = 'sage_trac', easy_setup = False):
@@ -62,8 +62,7 @@ def trac_create_instance(directory = 'sage_trac', easy_setup = False):
         Configuration = sys.modules['trac.config'].Configuration
         conf = Configuration(conf_name)
 
-        conf.set('trac', 'repository_dir',
-                 os.path.join(SAGE_ROOT, 'devel/sage'))
+        conf.set('trac', 'repository_dir', SAGE_LIB)
         conf.set('trac', 'repository_type', 'hg')
 
         conf.set('components', 'tracext.hg.*', 'enabled')
@@ -120,7 +119,7 @@ def trac(directory = 'sage_trac', port = 10000, address = 'localhost',
         print "    cd %s" % os.path.abspath(os.path.join(directory, 'conf'))
         print "    htdigest passwd %s <username>" % address
         print "\nTo grant full admin permissions to a user:"
-        print "    %s %s permission add <username> TRAC_ADMIN" % (os.path.join(SAGE_ROOT, 'local/bin/trac-admin'), os.path.abspath(directory))
+        print "    %s %s permission add <username> TRAC_ADMIN" % (os.path.join(SAGE_LOCAL, 'bin','trac-admin'), os.path.abspath(directory))
         print "\nThen restart the trac server."
         print "*" * 80
         open(passwd,'w').close()

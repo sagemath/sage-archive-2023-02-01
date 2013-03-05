@@ -18,6 +18,7 @@ from warnings import warn
 from module_list import ext_modules
 import sage.ext.gen_interpreters
 import warnings
+from sage.env import *
 
 #########################################################
 ### Configuration
@@ -28,26 +29,14 @@ if len(sys.argv) > 1 and sys.argv[1] == "sdist":
 else:
     sdist = False
 
-if not os.environ.has_key('SAGE_ROOT'):
-    print "    ERROR: The environment variable SAGE_ROOT must be defined."
-    sys.exit(1)
-else:
-    SAGE_ROOT  = os.environ['SAGE_ROOT']
-    SAGE_LOCAL = SAGE_ROOT + '/local'
-    SAGE_DEVEL = SAGE_ROOT + '/devel'
-    SAGE_INC   = SAGE_LOCAL + '/include/'
-
-if not os.environ.has_key('SAGE_VERSION'):
-    SAGE_VERSION=0
-else:
-    SAGE_VERSION = os.environ['SAGE_VERSION']
-
 try:
     compile_result_dir = os.environ['XML_RESULTS']
     keep_going = True
 except KeyError:
     compile_result_dir = None
     keep_going = False
+
+SAGE_INC = os.path.join(SAGE_LOCAL,'include')
 
 SITE_PACKAGES = '%s/lib/python%s/site-packages/'%(SAGE_LOCAL,platform.python_version().rsplit('.', 1)[0])
 if not os.path.exists(SITE_PACKAGES):
@@ -62,12 +51,12 @@ if not os.path.islink(sage_link) or not os.path.exists(sage_link):
     os.system('cd %s; ln -sf ../../../../devel/sage/build/sage .'%SITE_PACKAGES)
 
 # search for dependencies and add to gcc -I<path>
-include_dirs = ['%s/include'%SAGE_LOCAL,
-                '%s/include/csage'%SAGE_LOCAL,
-                '%s/sage/sage/ext'%SAGE_DEVEL]
+include_dirs = [SAGE_INC,
+                os.path.join(SAGE_INC, 'csage'),
+                os.path.join(SAGE_SRC, 'sage', 'ext')]
 
 # search for dependencies only
-extra_include_dirs = [ '%s/include/python%s'%(SAGE_LOCAL,platform.python_version().rsplit('.', 1)[0]) ]
+extra_include_dirs = [ os.path.join(SAGE_INC,'python'+platform.python_version().rsplit('.', 1)[0]) ]
 
 extra_compile_args = [ ]
 extra_link_args = [ ]
@@ -84,7 +73,7 @@ if DEVEL:
 
 # Generate interpreters
 
-sage.ext.gen_interpreters.rebuild(SAGE_DEVEL + '/sage/sage/ext/interpreters')
+sage.ext.gen_interpreters.rebuild(os.path.join(SAGE_SRC, 'sage', 'ext', 'interpreters'))
 ext_modules = ext_modules + sage.ext.gen_interpreters.modules
 
 
@@ -161,8 +150,8 @@ if os.path.exists(sage.misc.lazy_import_cache.get_cache_file()):
 # (that are likely to change on an upgrade) here:
 # [At least at the moment. Make sure the headers aren't copied with "-p",
 # or explicitly touch them in the respective spkg's spkg-install.]
-lib_headers = { "gmp":     [ SAGE_INC+"gmp.h" ],   # cf. #8664, #9896
-                "gmpxx":   [ SAGE_INC+"gmpxx.h" ]
+lib_headers = { "gmp":     [ os.path.join(SAGE_INC,'gmp.h') ],   # cf. #8664, #9896
+                "gmpxx":   [ os.path.join(SAGE_INC,'gmpxx.h') ]
               }
 
 for m in ext_modules:
@@ -534,7 +523,6 @@ class DependencyTree:
         self._timestamps = {}
         self._deps = {}
         self._deps_all = {}
-        self.root = "%s/devel/sage/" % SAGE_ROOT
 
     def __getstate__(self):
         """
@@ -555,7 +543,6 @@ class DependencyTree:
         self.__dict__.update(state)
         self._timestamps = {}
         self._deps_all = {}
-        self.root = "%s/devel/sage/" % SAGE_ROOT
 
     def timestamp(self, filename):
         """

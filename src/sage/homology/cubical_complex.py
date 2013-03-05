@@ -1422,9 +1422,7 @@ class CubicalComplex(GenericCellComplex):
             '[0,0] x [0,1] x [0,1]\n'
         """
         s = ""
-        cells = self.maximal_cells()
-        first = None
-        for c in cells:
+        for c in self.maximal_cells():
             s += str(c)
             s += "\n"
         return s

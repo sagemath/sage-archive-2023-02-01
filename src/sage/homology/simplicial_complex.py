@@ -2149,7 +2149,6 @@ class SimplicialComplex(GenericCellComplex):
         # first find a top-dimensional simplex to remove from each surface
         keep_left = self._facets[0]
         keep_right = other._facets[0]
-        dim = self.dimension()
         # construct the set of vertices:
         left = set(self.vertices()).difference(set(keep_left))
         right = set(other.vertices()).difference(set(keep_right))
@@ -2381,7 +2380,6 @@ class SimplicialComplex(GenericCellComplex):
         elif len(simplices) > 1:
             face = simplices[0]
             rest = simplices[1:]
-            new_simplices = []
             for v in face:
                 for partial in self._transpose_simplices(*rest):
                     if v not in partial:
@@ -2749,7 +2747,6 @@ class SimplicialComplex(GenericCellComplex):
             sage: L.homology()
             {0: 0, 1: 0, 2: 0}
         """
-        vertices = self.vertices()
         facets = [self._facets[0]]
         return self._enlarge_subcomplex(SimplicialComplex(facets, is_mutable=False), verbose=verbose)
 
@@ -2795,9 +2792,10 @@ class SimplicialComplex(GenericCellComplex):
         """
         # Make the subcomplex immutable if not
         if subcomplex is not None and subcomplex._is_mutable:
-            old = subcomplex
-            subcomplex = SimplicialComplex(subcomplex._facets, maximality_check=False,
-                                           sort_facets=False, is_mutable=False)
+            subcomplex = SimplicialComplex(subcomplex._facets,
+                                           maximality_check=False,
+                                           sort_facets=False,
+                                           is_mutable=False)
 
         if subcomplex in self.__enlarged:
             return self.__enlarged[subcomplex]
@@ -2881,7 +2879,7 @@ class SimplicialComplex(GenericCellComplex):
             sage: Tc.homology()
             {0: 0, 1: Z x Z, 2: Z}
         """
-        from sage.homology.cubical_complex import Cube, CubicalComplex
+        from sage.homology.cubical_complex import CubicalComplex
         V = self.vertices()
         embed = V.dimension() + 1
         # dictionary to translate vertices to the numbers 1, ..., embed

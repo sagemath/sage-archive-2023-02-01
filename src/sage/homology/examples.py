@@ -373,6 +373,8 @@ class SimplicialComplexExamples():
 
         EXAMPLES::
 
+            sage: simplicial_complexes.MooreSpace(2)
+            Simplicial complex with vertex set (0, 1, 2, 3, 4, 5) and 10 facets
             sage: simplicial_complexes.MooreSpace(3).homology()[1]
             C3
             sage: simplicial_complexes.MooreSpace(4).suspension().homology()[2]
@@ -383,7 +385,7 @@ class SimplicialComplexExamples():
         if q <= 1:
             raise ValueError("The mod q Moore space is only defined if q is at least 2")
         if q == 2:
-            return RealProjectivePlane()
+            return simplicial_complexes.RealProjectivePlane()
         facets = []
         for i in range(q):
             Ai = "A" + str(i)

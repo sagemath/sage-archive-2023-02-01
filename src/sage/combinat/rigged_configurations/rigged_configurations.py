@@ -45,7 +45,9 @@ EXAMPLES::
     Rigged configurations of type ['A', 3, 1] and factors ((2, 1),)
     sage: RC.cardinality()
     6
-    sage: RC.list()
+    sage: len(RC.list()) == RC.cardinality()
+    True
+    sage: sorted(RC.list())    # random
     [
     (/)
     <BLANKLINE>
@@ -589,7 +591,9 @@ class HighestWeightRiggedConfigurations(AbstractRiggedConfigurations):
         EXAMPLES::
 
             sage: RC = HighestWeightRiggedConfigurations(['D', 4, 1], [[2, 2]])
-            sage: RC.list()
+            sage: len(RC.list()) == RC.cardinality()
+            True
+            sage: sorted(RC.list())    # random
             [
             (/)
             <BLANKLINE>

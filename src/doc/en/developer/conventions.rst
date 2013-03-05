@@ -564,7 +564,7 @@ You are strongly encouraged to:
            \leq
            e \sum_{i=1}^{\infty} a_i
 
-   Note that the MATH block is automatically wraps in a latex math
+   Note that the MATH block is automatically wrapped in a latex math
    environment (i.e. in ``\[ \]`` or ``$$``, etc.). To use aligned equations,
    use the **aligned** environment::
 
@@ -581,14 +581,14 @@ You are strongly encouraged to:
        .. MATH::
            :nowrap:
 
-           This is now plan text so I can do things like $x = 5$.
+           This is now plain text so I can do things like $x = 5$.
 
    .. WARNING::
 
-       The *html* documentation output currently will work if you use
-       environments such as **align** which wrap their contents in math mode.
-       However the *pdf* documentation will fail to compile because this is
-       a latex error.
+       With or without ``:nowrap:``, the *html* documentation output
+       currently will work if you use environments such as **align**
+       which wrap their contents in math mode. However, ``:nowrap:``
+       is necessary for the *pdf* documentation to build correctly.
 
    .. NOTE::
 

@@ -1,5 +1,7 @@
 .. -*- coding: utf-8 -*-
 
+.. _coercion_and_categories:
+
 =================================================
 How to implement new algebraic structures in Sage
 =================================================

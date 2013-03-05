@@ -1,4 +1,5 @@
 .. -*- coding: utf-8 -*-
+.. _group_theory:
 
 =====================
 Group Theory and Sage

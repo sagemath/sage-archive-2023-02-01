@@ -1,4 +1,5 @@
 .. -*- coding: utf-8 -*-
+.. _lie:
 
 =============================================
 Lie Methods and Related Combinatorics in Sage

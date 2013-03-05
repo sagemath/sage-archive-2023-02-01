@@ -1,5 +1,7 @@
 .. -*- coding: utf-8 -*-
 
+.. _numtheory_rsa:
+
 =================================================
 Number Theory and the RSA Public Key Cryptosystem
 =================================================

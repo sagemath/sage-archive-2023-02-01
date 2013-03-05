@@ -1,3 +1,5 @@
+.. _functional_programming:
+
 =========================================
 Functional Programming for Mathematicians
 =========================================

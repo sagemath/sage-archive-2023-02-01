@@ -2,6 +2,8 @@
 
 .. linkall
 
+.. _logging-on:
+
 Logging on to a Sage Server and Creating a Worksheet
 ====================================================
 

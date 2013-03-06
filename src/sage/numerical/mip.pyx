@@ -103,6 +103,54 @@ Different backends compute with different base fields, for example::
 AUTHORS:
 
 - Risan (2012/02): added extension for exact computation
+
+Index of functions and methods
+------------------------------
+
+Below are listed the methods of :class:`MixedIntegerLinearProgram`. This module
+also implements the :class:`MIPSolverException` exception, as well as the
+:class:`MIPVariable` class.
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~MixedIntegerLinearProgram.add_constraint`            | Adds a constraint to the ``MixedIntegerLinearProgram``
+    :meth:`~MixedIntegerLinearProgram.base_ring`                 | Return the base ring
+    :meth:`~MixedIntegerLinearProgram.constraints`               | Returns a list of constraints, as 3-tuples
+    :meth:`~MixedIntegerLinearProgram.get_backend`               | Returns the backend instance used
+    :meth:`~MixedIntegerLinearProgram.get_max`                   | Returns the maximum value of a variable
+    :meth:`~MixedIntegerLinearProgram.get_min`                   | Returns the minimum value of a variable
+    :meth:`~MixedIntegerLinearProgram.get_values`                | Return values found by the previous call to ``solve()``
+    :meth:`~MixedIntegerLinearProgram.is_binary`                 | Tests whether the variable ``e`` is binary
+    :meth:`~MixedIntegerLinearProgram.is_integer`                | Tests whether the variable is an integer
+    :meth:`~MixedIntegerLinearProgram.is_real`                   | Tests whether the variable is real
+    :meth:`~MixedIntegerLinearProgram.linear_constraints_parent` | Return the parent for all linear constraints
+    :meth:`~MixedIntegerLinearProgram.linear_function`           | Construct a new linear function
+    :meth:`~MixedIntegerLinearProgram.linear_functions_parent`   | Return the parent for all linear functions
+    :meth:`~MixedIntegerLinearProgram.new_variable`              | Returns an instance of ``MIPVariable`` associated
+    :meth:`~MixedIntegerLinearProgram.number_of_constraints`     | Returns the number of constraints assigned so far
+    :meth:`~MixedIntegerLinearProgram.number_of_variables`       | Returns the number of variables used so far
+    :meth:`~MixedIntegerLinearProgram.polyhedron`                | Returns the polyhedron defined by the Linear Program
+    :meth:`~MixedIntegerLinearProgram.remove_constraint`         | Removes a constraint from self
+    :meth:`~MixedIntegerLinearProgram.remove_constraints`        | Remove several constraints
+    :meth:`~MixedIntegerLinearProgram.set_binary`                | Sets a variable or a ``MIPVariable`` as binary
+    :meth:`~MixedIntegerLinearProgram.set_integer`               | Sets a variable or a ``MIPVariable`` as integer
+    :meth:`~MixedIntegerLinearProgram.set_max`                   | Sets the maximum value of a variable
+    :meth:`~MixedIntegerLinearProgram.set_min`                   | Sets the minimum value of a variable
+    :meth:`~MixedIntegerLinearProgram.set_objective`             | Sets the objective of the ``MixedIntegerLinearProgram``
+    :meth:`~MixedIntegerLinearProgram.set_problem_name`          | Sets the name of the ``MixedIntegerLinearProgram``
+    :meth:`~MixedIntegerLinearProgram.set_real`                  | Sets a variable or a ``MIPVariable`` as real
+    :meth:`~MixedIntegerLinearProgram.show`                      | Displays the ``MixedIntegerLinearProgram`` in a human-readable
+    :meth:`~MixedIntegerLinearProgram.solve`                     | Solves the ``MixedIntegerLinearProgram``
+    :meth:`~MixedIntegerLinearProgram.solver_parameter`          | Return or define a solver parameter
+    :meth:`~MixedIntegerLinearProgram.sum`                       | Efficiently computes the sum of a sequence of LinearFunction elements
+    :meth:`~MixedIntegerLinearProgram.write_lp`                  | Write the linear program as a LP file
+    :meth:`~MixedIntegerLinearProgram.write_mps`                 | Write the linear program as a MPS file
+
+Classes and methods
+-------------------
 """
 
 #*****************************************************************************
@@ -113,8 +161,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-
 
 include "../ext/stdsage.pxi"
 include "../ext/interrupt.pxi"
@@ -634,7 +680,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.constraints([1])       # not tested
             [(1.0, ([2, 0], [-2.0, 1.0]), None)]
 
-
         TESTS:
 
         As the ordering of the variables in each constraint depends on the
@@ -686,6 +731,134 @@ cdef class MixedIntegerLinearProgram(SageObject):
         # Weird Input
         else:
           raise ValueError, "constraints() requires a list of integers, though it will accommodate None or an integer."
+
+    def polyhedron(self, **kwds):
+        r"""
+        Returns the polyhedron defined by the Linear Program.
+
+        INPUT:
+
+        All arguments given to this method are forwarded to the constructor of
+        the :class:`Polyhedron` class.
+
+        OUTPUT:
+
+        A :class:`Polyhedron` object whose `i`-th variable represents the `i`-th
+        variable of ``self``.
+
+        .. warning::
+
+            The polyhedron is built from the variables stored by the LP solver
+            (i.e. the output of :meth:`show`). While they usually match the ones
+            created explicitely when defining the LP, a solver like Gurobi has
+            been known to introduce additional variables to store constraints of
+            the type ``lower_bound <= linear_function <= upper bound``. You
+            should be fine if you did not install Gurobi or if you do not use it
+            as a solver, but keep an eye on the number of variables in the
+            polyhedron, or on the output of :meth:`show`. Just in case.
+
+        EXAMPLES:
+
+        A LP on two variables::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: p.add_constraint(2*p['x'] + p['y'] <= 1)
+            sage: p.add_constraint(3*p['y'] + p['x'] <= 2)
+            sage: P = p.polyhedron(); P
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
+
+        3-D Polyhedron::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: p.add_constraint(2*p['x'] + p['y'] + 3*p['z'] <= 1)
+            sage: p.add_constraint(2*p['y'] + p['z'] + 3*p['x'] <= 1)
+            sage: p.add_constraint(2*p['z'] + p['x'] + 3*p['y'] <= 1)
+            sage: P = p.polyhedron(); P
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 8 vertices
+
+        An empty polyhedron::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: p.add_constraint(2*p['x'] + p['y'] + 3*p['z'] <= 1)
+            sage: p.add_constraint(2*p['y'] + p['z'] + 3*p['x'] <= 1)
+            sage: p.add_constraint(2*p['z'] + p['x'] + 3*p['y'] >= 2)
+            sage: P = p.polyhedron(); P
+            The empty polyhedron in QQ^3
+
+        An unbounded polyhedron::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: p.add_constraint(2*p['x'] + p['y'] - p['z'] <= 1)
+            sage: P = p.polyhedron(); P
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices and 3 rays
+
+        """
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        from copy import copy
+
+        cdef GenericBackend b = self._backend
+        cdef int i
+
+        inequalities = []
+        equalities = []
+        nvar = self.number_of_variables()
+
+        # Constraints
+        for lb, (indices, values), ub in self.constraints():
+
+            coeffs = dict(zip(indices, values))
+
+            # Equalities
+            if lb == ub:
+                linear_function = []
+                linear_function = [coeffs.get(i,0) for i in range(nvar)]
+                linear_function.insert(0,-lb)
+                equalities.append(linear_function)
+                continue
+
+            # Lower Bound
+            if not lb is None:
+                linear_function = []
+                linear_function = [coeffs.get(i,0) for i in range(nvar)]
+                linear_function.insert(0,-lb)
+                inequalities.append(linear_function)
+
+            # Upper Bound
+            if not ub is None:
+                linear_function = []
+                linear_function = [-coeffs.get(i,0) for i in range(nvar)]
+                linear_function.insert(0,ub)
+                inequalities.append(linear_function)
+
+        zero = [0] * nvar
+
+        # Variable bounds
+        for 0<= i < nvar:
+            lb, ub = b.col_bounds(i)
+
+            # Fixed variable
+            if lb == ub:
+                linear_function = copy(zero)
+                linear_function[i] = 1
+                linear_function.insert(0,-lb)
+                equalities.append(linear_function)
+                continue
+
+            # Lower bound
+            if not lb is None:
+                linear_function = copy(zero)
+                linear_function[i] = 1
+                linear_function.insert(0,-lb)
+                inequalities.append(linear_function)
+
+            # Upper bound
+            if not ub is None:
+                linear_function = copy(zero)
+                linear_function[i] = -1
+                linear_function.insert(0,ub)
+                inequalities.append(linear_function)
+
+        return Polyhedron(ieqs = inequalities, eqns = equalities)
 
     def show(self):
         r"""
@@ -1848,7 +2021,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         This example uses the simplex algorthm and prints information::
 
-            sage: p = MixedIntegerLinearProgram()
+            sage: p = MixedIntegerLinearProgram(solver="GLPK")
             sage: x, y = p[0], p[1]
             sage: p.add_constraint(2*x + 3*y, max = 6)
             sage: p.add_constraint(3*x + 2*y, max = 6)
@@ -2094,8 +2267,6 @@ cdef class MIPVariable(SageObject):
             [x_0, x_1]
         """
         return self._dict.values()
-
-
 
 def Sum(x):
     """

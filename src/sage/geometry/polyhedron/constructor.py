@@ -198,11 +198,13 @@ def Polyhedron(vertices=None, rays=None, lines=None,
     - ``lines`` -- list of lines. Each line can be specified as any
       iterable container of ``base_ring`` elements.
 
-    - ``ieqs`` -- list of inequalities. Each line can be specified as
-      any iterable container of ``base_ring`` elements.
+    - ``ieqs`` -- list of inequalities. Each line can be specified as any
+      iterable container of ``base_ring`` elements. An entry equal to
+      ``[-1,7,3,4]`` represents the inequality `7x_1+3x_2+4x_3\geq 1`.
 
     - ``eqns`` -- list of equalities. Each line can be specified as
-      any iterable container of ``base_ring`` elements.
+      any iterable container of ``base_ring`` elements. An entry equal to
+      ``[-1,7,3,4]`` represents the equality `7x_1+3x_2+4x_3= 1`.
 
     - ``base_ring`` -- either ``QQ`` or ``RDF``. The field over which
       the polyhedron will be defined. For ``QQ``, exact arithmetic

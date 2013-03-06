@@ -11,8 +11,6 @@ PKGDIR=spkg
 
 CUR=`pwd`
 
-CP_OPT="-pPR"
-
 if [ $# -ne 2 ]; then
    echo "Usage: $0 <SAGE_VERSION> <SAGE_ROOT>"
    exit 1
@@ -24,6 +22,8 @@ export SAGE_ROOT=$2
 
 TARGET=sage-"$SAGE_VERSION"-`uname -m`-`uname`
 TARGET=`echo $TARGET | sed 's/ //g'`   # Remove spaces
+
+# Copy all files in the bdist to $TMP
 TMP="$CUR/tmp/$TARGET"
 
 rm -rf "$TMP"
@@ -43,47 +43,47 @@ rm "$TMP"/.hg/hgrc
 
 # Copy VERSION.txt (which is untracked)
 cp -p VERSION.txt "$TMP/"
+
+# Make data symlink for backwards compatibility
+ln -s local/share "$TMP/data"
+
 echo "Done copying root repository."
 
-
 echo "Copying files over to tmp directory"
-cp $CP_OPT local "$TMP"/
+# We use "tar" to copy files for portability,
+# see http://trac.sagemath.org/sage_trac/ticket/14236
+tar cf - local | ( cd "$TMP" && tar xf - )
 
-# Copy devel/ subdirectories (only active branch)
-mkdir "$TMP/devel/"
+# Copy devel/ subdirectories.  We only copy the currently active
+# branches, which become the default branches in the bdisted tarball.
 if [ -d devel/sage ]; then
     echo "Copying Sage library"
-    # The currently active branch will become the default branch in
-    # the bdisted tarball.  We need the -L option, otherwise "cp" would
-    # simply copy the symbolic link.
-    cp $CP_OPT -L devel/sage "$TMP/devel/sage-main"
+    mkdir -p "$TMP/devel/sage-main"
     ln -s sage-main "$TMP/devel/sage"
-
-    cd "$TMP"/local/lib/python/site-packages && \
-    rm -rf sage
-    ln -sf ../../../../devel/sage/build/sage .
+    ( cd devel/sage && tar cf - . ) | ( cd "$TMP/devel/sage-main" && tar xf - )
 fi
 
-cd "$SAGE_ROOT"
 if [ -d devel/sagenb ]; then
     echo "Copying Sage Notebook"
-    cp $CP_OPT -L devel/sagenb "$TMP/devel/sagenb-main"
+    mkdir -p "$TMP/devel/sagenb-main"
     ln -s sagenb-main "$TMP/devel/sagenb"
+    ( cd devel/sagenb && tar cf - . ) | ( cd "$TMP/devel/sagenb-main" && tar xf - )
 fi
 
 if [ -d devel/ext ]; then
     echo "Copying Extcode"
-    cp $CP_OPT -L devel/ext "$TMP/devel/ext-main"
+    mkdir -p "$TMP/devel/ext-main"
     ln -s ext-main "$TMP/devel/ext"
+    ( cd devel/ext && tar cf - . ) | ( cd "$TMP/devel/ext-main" && tar xf - )
 fi
 
 
 if [ -d "$PKGDIR" ]; then
-   cd "$PKGDIR"
-   cp $CP_OPT installed "$TMP/$PKGDIR/"
-   # sage -sdist uses the following file to detect if it's working with
-   # a "bdisted" copy
-   touch $TMP/$PKGDIR/standard/.from_bdist
+    cd "$PKGDIR"
+    cp -pR installed "$TMP/$PKGDIR/"
+    # sage --sdist uses the following file to detect if it's working
+    # with a "bdisted" copy.
+    touch $TMP/$PKGDIR/standard/.from_bdist
 fi
 
 cd "$CUR"/tmp/
@@ -124,7 +124,7 @@ if [ "$UNAME" = "Darwin" ]; then
         fi
 
         echo 'Copying Sage.app'
-        cp $CP_OPT -L "$SAGE_EXTCODE/sage/ext/mac-app/build/$CONFIGURATION/Sage.app" ./Sage.app
+        cp -pRL "$SAGE_EXTCODE/sage/ext/mac-app/build/$CONFIGURATION/Sage.app" ./Sage.app
         # Info.plist is a binary plist, so convert it for processing with sed.
         # I would just change it to be an xml plist, but xcode changes it back.
         plutil -convert xml1 ./Sage.app/Contents/Info.plist

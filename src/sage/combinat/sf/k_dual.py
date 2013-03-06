@@ -799,6 +799,21 @@ class KBoundedQuotientBasis(CombinatorialFreeModule):
     def __init__(self, kBoundedRing, prefix):
         r"""
         Initializes ``self``.
+
+        INPUT:
+
+        - ``kBoundedRing`` -- an element which is of class :class:`KBoundedQuotient`
+        - ``prefix`` -- a string used to distinguish this basis, and used in printing.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.sf.k_dual import kMonomial
+            sage: km = kMonomial(SymmetricFunctions(QQ).kBoundedQuotient(4,t=1))
+            sage: km.prefix()  # indirect doctest
+            'm4'
+            sage: isinstance(km, sage.combinat.sf.k_dual.KBoundedQuotientBasis)
+            True
+
         """
         CombinatorialFreeModule.__init__(self, kBoundedRing.base_ring(),
             kBoundedRing.indices(),

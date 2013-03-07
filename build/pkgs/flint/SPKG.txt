@@ -37,6 +37,9 @@ GPL V2+
 
 == Changelog ==
 
+=== flint-1.5.2.p3 (Timo Kluck, 7 March 2013) ===
+  * #14241: Fix double // path separators in longlong.patch
+
 === flint-1.5.2.p2 (Paul-Olivier Dehaye, 16 October 2012) ===
   * #9697: Remove the file 'src/zn_poly/demo/bernoulli/.DS_Store'
 

@@ -1,6 +1,6 @@
-diff -ur flint-1.5.2.orig//longlong.h flint-1.5.2//longlong.h
---- flint-1.5.2.orig//longlong.h	2009-09-23 12:03:27.000000000 +0200
-+++ flint-1.5.2//longlong.h	2010-11-25 07:00:41.000000000 +0100
+diff -ur flint-1.5.2.orig/longlong.h flint-1.5.2/longlong.h
+--- flint-1.5.2.orig/longlong.h	2009-09-23 12:03:27.000000000 +0200
++++ flint-1.5.2/longlong.h	2010-11-25 07:00:41.000000000 +0100
 @@ -411,46 +411,6 @@
    __asm__ ("adds\t%1, %4, %5\n\tadc\t%0, %2, %3"			\
  	   : "=r" (sh), "=&r" (sl)					\

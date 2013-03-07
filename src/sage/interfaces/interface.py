@@ -516,7 +516,7 @@ class Interface(ParentWithBase):
             return ParentWithBase.__getattribute__(self, attrname)
         except AttributeError:
             if attrname[:1] == "_":
-                raise AttributeError
+                raise
             return self._function_class()(self, attrname)
 
     def __cmp__(self, other):

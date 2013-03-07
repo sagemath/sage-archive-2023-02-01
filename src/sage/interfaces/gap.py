@@ -708,7 +708,7 @@ class Gap_generic(Expect):
             sage: rc = gap.interrupt(timeout=1)
             sage: gap._eval_using_file_cutoff = cutoff
 
-        The following tests against a bug fixed at trac ticket #10296:
+        The following tests against a bug fixed at :trac:`10296`::
 
             sage: gap(3)
             3
@@ -1174,15 +1174,15 @@ class Gap(Gap_generic):
             Expect._start(self, "Failed to start GAP.")
         except Exception:
             if self.__use_workspace_cache and first_try:
-                print "A workspace appears to have been corrupted... automatically rebuilding (this is harmless)."
                 first_try = False
                 self.quit(timeout=0)
                 expect.failed_to_start.remove(self.name())
                 gap_reset_workspace(verbose=False)
                 Expect._start(self, "Failed to start GAP.")
                 self._session_number = n
-                return
-            raise
+                self.__make_workspace = False
+            else:
+                raise
 
         if self.__use_workspace_cache and self.__make_workspace:
             self.save_workspace()
@@ -1254,7 +1254,18 @@ class Gap(Gap_generic):
         # SaveWorkspace can only be used at the main gap> prompt. It cannot
         # be included in the body of a loop or function, or called from a
         # break loop.
-        self.eval('SaveWorkspace("%s");'%WORKSPACE, allow_use_file=False)
+
+        # Save the worksheet to a temporary file and then move that
+        # file in place to avoid race conditions.
+        WORKSPACE_TMP = "%s-%s"%(WORKSPACE, self.pid())
+        self.eval('SaveWorkspace("%s");'%WORKSPACE_TMP, allow_use_file=False)
+        try:
+            os.rename(WORKSPACE_TMP, WORKSPACE)
+        except OSError:
+            # Some operating systems might not support in-place
+            # renaming. We delete the original file first.
+            os.unlink(WORKSPACE)
+            os.rename(WORKSPACE_TMP, WORKSPACE)
 
     # Todo -- this -- but there is a tricky "when does it end" issue!
     # Maybe do via a file somehow?
@@ -1435,12 +1446,8 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     default when Sage first starts GAP.
 
     The first time you start GAP from Sage, it saves the startup state
-    of GAP in the file
-
-    ::
-
-                $HOME/.sage/gap-workspace
-
+    of GAP in a file ``$HOME/.sage/gap/workspace-HASH``, where ``HASH``
+    is a hash of the directory where Sage is installed.
 
     This is useful, since then subsequent startup of GAP is at least 10
     times as fast. Unfortunately, if you install any new code for GAP,
@@ -1450,10 +1457,26 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     The packages sonata, guava, factint, gapdoc, grape, design, toric,
     and laguna are loaded in all cases before the workspace is saved,
     if they are available.
-    """
-    if os.path.exists(WORKSPACE):
-        os.unlink(WORKSPACE)
 
+    TESTS:
+
+    Check that the race condition from :trac:`14242` has been fixed.
+    We temporarily need to change the worksheet filename. ::
+
+        sage: ORIGINAL_WORKSPACE = sage.interfaces.gap.WORKSPACE
+        sage: sage.interfaces.gap.WORKSPACE = tmp_filename()
+        sage: from multiprocessing import Process
+        sage: import time
+        sage: gap = Gap()  # long time (reset GAP session)
+        sage: P = [Process(target=gap, args=("14242",)) for i in range(4)]
+        sage: for p in P:  # long time, indirect doctest
+        ...       p.start()
+        ...       time.sleep(0.2)
+        sage: for p in P:  # long time
+        ...       p.join()
+        sage: os.unlink(sage.interfaces.gap.WORKSPACE)  # long time
+        sage: sage.interfaces.gap.WORKSPACE = ORIGINAL_WORKSPACE
+    """
     # Delete all gap workspaces that haven't been used in the last
     # week, to avoid needless cruft.  I had an install on sage.math
     # with 90 of these, since I run a lot of different versions of

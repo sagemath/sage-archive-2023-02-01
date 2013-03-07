@@ -25,7 +25,6 @@ from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWi
 from sage.categories.graded_coalgebras import GradedCoalgebras
 from sage.categories.graded_coalgebras_with_basis import GradedCoalgebrasWithBasis
 from sage.categories.magmas import Magmas
-from sage.categories.examples.infinite_enumerated_sets import NonNegativeIntegers
 from sage.categories.tensor import tensor
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.sf.sf import SymmetricFunctions
@@ -308,13 +307,16 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 sage: ks = kB.kschur()
                 sage: ks([2,1])
                 ks3[2, 1]
+                sage: ks([4,1])
+                Traceback (most recent call last):
+                ...
+                TypeError: do not know how to make x (= [4, 1]) an element of self (=3-bounded Symmetric Functions over Rational Field with t=1 in the 3-Schur basis also with t=1)
                 sage: ks(Partition([4,1]))
                 Traceback (most recent call last):
                 ...
                 TypeError: do not know how to make x (= [4, 1]) an element of self (=3-bounded Symmetric Functions over Rational Field with t=1 in the 3-Schur basis also with t=1)
             """
             R = self.base_ring()
-            eclass = self.element_class
 
             #Coerce ints to Integers
             if isinstance(x, int):
@@ -323,11 +325,11 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 if x == 0:
                     return self.zero()
                 else:
-                    raise TypeError, "do not know how to make x (= %s) an element of %s"%(x, self)
+                    raise TypeError("do not know how to make x (= %s) an element of %s"%(x, self))
             #x is an element of the basis enumerated set;
             elif x in self._basis_keys:
                 return self.monomial(self._basis_keys(x))
-            raise TypeError, "do not know how to make x (= %s) an element of self (=%s)"%(x,self)
+            raise TypeError("do not know how to make x (= %s) an element of self (=%s)"%(x,self))
 
         def _convert_map_from_(self,Q):
             r"""
@@ -364,14 +366,30 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 ks3[3, 2]
                 sage: ks3[[]]
                 ks3[]
+
+            TESTS::
+
+                sage: ks3 = SymmetricFunctions(QQ).kschur(3,1)
+                sage: ks3[4,1]
+                Traceback (most recent call last):
+                ...
+                TypeError: do not know how to make [4, 1] an element of 3-bounded Symmetric Functions over Rational Field with t=1 in the 3-Schur basis also with t=1
+                sage: ks3[Partition([4,1])]
+                Traceback (most recent call last):
+                ...
+                TypeError: do not know how to make [4, 1] an element of 3-bounded Symmetric Functions over Rational Field with t=1 in the 3-Schur basis also with t=1
             """
             if isinstance(c, Partition):
-                assert len(rest) == 0
+                if len(rest) != 0:
+                    raise ValueError("Can only accept a partition")
             else:
                 if len(rest) > 0 or isinstance(c,(int,Integer)):
                     c = Partition([c]+list(rest))
                 else:
                     c = Partition(list(c))
+
+            if c not in self._basis_keys:
+                raise TypeError("do not know how to make %s an element of %s"%(c,self))
             return self.monomial(c)
 
         def _repr_term(self, c):
@@ -720,7 +738,18 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
 
 
 class kSchur(CombinatorialFreeModule):
+    """
+    Space of `k`-Schur functions.
 
+    TESTS:
+
+    Check that :trac:`13743` is fixed::
+
+        sage: ks3 = SymmetricFunctions(QQ).kschur(3, 1)
+        sage: f = ks3[2,1]
+        sage: f.coefficient(f.support()[0])
+        1
+    """
     def __init__(self, kBoundedRing):
         r"""
         TESTS::

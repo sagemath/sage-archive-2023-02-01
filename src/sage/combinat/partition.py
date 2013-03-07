@@ -270,7 +270,7 @@ We use the lexicographic ordering::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.interfaces.all import gap, gp
+from sage.interfaces.all import gap
 from sage.libs.all import pari
 
 from sage.structure.global_options import GlobalOptions
@@ -289,7 +289,8 @@ from sage.misc.cachefunc import cached_method, cached_function
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 
-from sage.rings.all import QQ, ZZ, factorial, gcd
+from sage.sets.non_negative_integers import NonNegativeIntegers
+from sage.rings.all import QQ, ZZ, NN, factorial, gcd
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
@@ -301,7 +302,6 @@ import permutation
 import composition
 from sage.combinat.partitions import number_of_partitions as bober_number_of_partitions
 from sage.combinat.integer_vector import IntegerVectors
-from sage.combinat.cartesian_product import CartesianProduct
 from sage.combinat.integer_list import IntegerListsLex
 from sage.combinat.root_system.weyl_group import WeylGroup
 
@@ -3900,7 +3900,10 @@ class Partitions(UniqueRepresentation, Parent):
         TESTS::
 
             sage: P = Partitions()
-            sage: P2 = Partitions()
+            sage: P2 = Partitions(NN)
+            sage: P is P2
+            True
+            sage: P2 = Partitions(NonNegativeIntegers())
             sage: P is P2
             True
             sage: P = Partitions(4)
@@ -3914,7 +3917,7 @@ class Partitions(UniqueRepresentation, Parent):
         """
         if n == infinity:
             raise ValueError("n cannot be infinite")
-        if n is None:
+        if n is None or n is NN or n is NonNegativeIntegers():
             if len(kwargs) > 0:
                 if len(kwargs) == 1:
                     if 'max_part' in kwargs:
@@ -4221,31 +4224,6 @@ class Partitions(UniqueRepresentation, Parent):
         if len(args) != 0 or len(kwargs) != 0:
             raise ValueError("Invalid combination of arguments")
         return self
-
-# Allows to pickle old constrained Partitions_constraints objects.
-class Partitions_constraints(IntegerListsLex):
-    """
-    For unpickling old ``Partitions_constraints`` objects created with Sage
-    before version 3.4.1. See :class:`Partitions`.
-    """
-    def __setstate__(self, data):
-        r"""
-        TESTS::
-
-            sage: dmp = 'x\x9ck`J.NLO\xd5K\xce\xcfM\xca\xccK,\xd1+H,*\xc9,\xc9\xcc\xcf\xe3\n\x80\xb1\x8a\xe3\x93\x81DIQbf^I1W!\xa3fc!Sm!\xb3F(7\x92x!Km!k(GnbE<\xc8\x88B6\x88\xb9E\x99y\xe9\xc5z@\x05\xa9\xe9\xa9E\\\xb9\x89\xd9\xa9\xf10N!{(\xa3QkP!Gq(c^\x06\x90c\x0c\xe4p\x96&\xe9\x01\x00\xc2\xe53\xfd'
-            sage: sp = loads(dmp); sp
-            Integer lists of sum 3 satisfying certain constraints
-            sage: sp.list()
-            [[2, 1], [1, 1, 1]]
-        """
-        n = data['n']
-        self.__class__ = IntegerListsLex
-        constraints = {'max_slope' : 0,
-                       'min_part' : 1,
-                       'element_class' : Partition,
-                       'global_options' : Partitions.global_options}
-        constraints.update(data['constraints'])
-        self.__init__(n, **constraints)
 
 class Partitions_all(Partitions):
     """

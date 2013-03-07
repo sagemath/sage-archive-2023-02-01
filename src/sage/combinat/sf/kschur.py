@@ -18,7 +18,6 @@ k-Schur Functions
 #*****************************************************************************
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
-from sage.categories.examples.infinite_enumerated_sets import NonNegativeIntegers
 import sage.combinat.partition
 import sfa
 

@@ -490,6 +490,76 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
             """
             return sum(b)
 
+        def coproduct(self, element):
+            r"""
+            Returns the coproduct operation on ``element``.
+
+            The coproduct is first computed on the homogeneous basis if `t=1` and
+            on the Hall-Littlewood ``Qp`` basis otherwise.  The result is computed
+            then converted to the tensor squared of ``self.parent()``
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(QQ)
+                sage: ks3 = Sym.kschur(3,1)
+                sage: ks3[2,1].coproduct()
+                ks3[] # ks3[2, 1] + ks3[1] # ks3[1, 1] + ks3[1] # ks3[2] + ks3[1, 1] # ks3[1] + ks3[2] # ks3[1] + ks3[2, 1] # ks3[]
+                sage: h3 = Sym.khomogeneous(3)
+                sage: h3[2,1].coproduct()
+                h3[] # h3[2, 1] + h3[1] # h3[1, 1] + h3[1] # h3[2] + h3[1, 1] # h3[1] + h3[2] # h3[1] + h3[2, 1] # h3[]
+                sage: ks3t = SymmetricFunctions(FractionField(QQ['t'])).kschur(3)
+                sage: ks3t[2,1].coproduct()
+                ks3[] # ks3[2, 1] + ks3[1] # ks3[1, 1] + ks3[1] # ks3[2] + ks3[1, 1] # ks3[1] + ks3[2] # ks3[1] + ks3[2, 1] # ks3[]
+                sage: ks3t[3,1].coproduct()
+                ks3[] # ks3[3, 1] + ks3[1] # ks3[2, 1] + (t+1)*ks3[1] # ks3[3] + ks3[1, 1] # ks3[2] + ks3[2] # ks3[1, 1]
+                + (t+1)*ks3[2] # ks3[2] + ks3[2, 1] # ks3[1] + (t+1)*ks3[3] # ks3[1] + ks3[3, 1] # ks3[]
+            """
+            lifted = element.lift()
+            ambient = self.realization_of().ambient()
+            t = self.realization_of().t
+            if t==1:
+                source_basis = ambient.h()
+            else:
+                source_basis = ambient.hall_littlewood(t=t).Qp()
+            cpfunc = lambda x,y: tensor([ self(x), self(y) ])
+            return source_basis(lifted).coproduct().apply_multilinear_morphism( cpfunc )
+
+        def antipode(self, element):
+            r"""
+            Returns the antipode on ``self`` by lifting to the space of symmetric functions,
+            computing the antipode, and then converting to ``self.parent()``.
+            This is only the antipode for `t=1` and for other values of `t` the
+            result may not be in the space where the `k`-Schur functions live.
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(QQ)
+                sage: ks3 = Sym.kschur(3,1)
+                sage: ks3[3,2].antipode()
+                -ks3[1, 1, 1, 1, 1]
+            """
+            return self(element.lift().antipode())
+
+        def counit(self, element):
+            r"""
+            Returns the counit of ``element``.
+
+            INPUT:
+
+            - ``self`` -- a basis of the ring of symmetric functions
+            - ``element`` -- element in a basis of the ring of symmetric functions
+
+            The counit is the constant term of ``element``.
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(QQ)
+                sage: ks3 = Sym.kschur(3,1)
+                sage: f = 2*ks3[2,1] + 3*ks3[[]]
+                sage: f.counit()
+                3
+            """
+            return element.coefficient([])
 
     class ElementMethods:
 
@@ -586,42 +656,6 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
             if t is None:
                 t = self.parent().realization_of().t
             return self.parent()(self.lift().hl_creation_operator(nu,t=t))
-
-        def coproduct(self):
-            r"""
-            Returns the coproduct operation on ``self``.
-
-            The coproduct is first computed on the homogeneous basis if `t=1` and
-            on the Hall-Littlewood ``Qp`` basis otherwise.  The result is computed
-            then converted to the tensor squared of ``self.parent()``
-
-            EXAMPLES::
-
-                sage: Sym = SymmetricFunctions(QQ)
-                sage: ks3 = Sym.kschur(3,1)
-                sage: ks3[2,1].coproduct()
-                ks3[] # ks3[2, 1] + ks3[1] # ks3[1, 1] + ks3[1] # ks3[2] + ks3[1, 1] # ks3[1] + ks3[2] # ks3[1] + ks3[2, 1] # ks3[]
-                sage: h3 = Sym.khomogeneous(3)
-                sage: h3[2,1].coproduct()
-                h3[] # h3[2, 1] + h3[1] # h3[1, 1] + h3[1] # h3[2] + h3[1, 1] # h3[1] + h3[2] # h3[1] + h3[2, 1] # h3[]
-                sage: ks3t = SymmetricFunctions(FractionField(QQ['t'])).kschur(3)
-                sage: ks3t[2,1].coproduct()
-                ks3[] # ks3[2, 1] + ks3[1] # ks3[1, 1] + ks3[1] # ks3[2] + ks3[1, 1] # ks3[1] + ks3[2] # ks3[1] + ks3[2, 1] # ks3[]
-                sage: ks3t[3,1].coproduct()
-                ks3[] # ks3[3, 1] + ks3[1] # ks3[2, 1] + (t+1)*ks3[1] # ks3[3] + ks3[1, 1] # ks3[2] + ks3[2] # ks3[1, 1]
-                + (t+1)*ks3[2] # ks3[2] + ks3[2, 1] # ks3[1] + (t+1)*ks3[3] # ks3[1] + ks3[3, 1] # ks3[]
-            """
-            lifted = self.lift()
-            target_basis = self.parent()
-            ambient = self.parent().realization_of().ambient()
-            t = self.parent().realization_of().t
-            if t==1:
-                source_basis = ambient.h()
-            else:
-                source_basis = ambient.hall_littlewood(t=t).Qp()
-            cpfunc = lambda x,y: tensor([ target_basis(x), target_basis(y) ])
-            return source_basis(lifted).coproduct().apply_multilinear_morphism( cpfunc )
-
 
         def omega(self):
             r"""

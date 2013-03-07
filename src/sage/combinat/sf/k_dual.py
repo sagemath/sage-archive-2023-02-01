@@ -30,21 +30,14 @@ AUTHORS:
 #*****************************************************************************
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.categories.all import Rings, GradedHopfAlgebras
+from sage.categories.all import GradedHopfAlgebras
 from sage.combinat.partition import Partition, Partitions, Partitions_all_bounded, PartitionsGreatestLE
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.rings.rational_field import QQ
 from sage.categories.realizations import Realizations, Category_realization_of_parent
 from sage.misc.cachefunc import cached_method
-from sage.categories.magmas import Magmas
 from sage.misc.constant_function import ConstantFunction
 from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
 from sage.rings.all import Integer
-from sage.combinat.combinat import InfiniteAbstractCombinatorialClass
-import sage.combinat.sf.sfa as sfa
-import sage.combinat.sf.sf
-import monomial
-from sage.rings.infinity import infinity
 
 class KBoundedQuotient(UniqueRepresentation, Parent):
 
@@ -549,7 +542,6 @@ class KBoundedQuotientBases(Category_realization_of_parent):
                 TypeError: do not know how to make x (= [4, 1]) an element of self (=3-Bounded Quotient of Symmetric Functions over Rational Field with t=1 in the 3-bounded affine Schur basis)
             """
             R = self.base_ring()
-            eclass = self.element_class
 
             #Coerce ints to Integers
             if isinstance(x, int):
@@ -633,18 +625,6 @@ class KBoundedQuotientBases(Category_realization_of_parent):
                 F3[]
             """
             return self._kbounded_partitions([])
-
-        def an_element(self):
-            r"""
-            Return an element of ``self``.
-
-            EXAMPLES::
-
-                sage: SymmetricFunctions(QQ['t']).kBoundedQuotient(3,t=1).an_element()
-                2*m3[] + 2*m3[1] + 3*m3[2]
-            """
-
-            return self( self._kbounded_partitions(srange(self.k,0,-1)) )
 
         # This is sufficient for degree to work
 
@@ -789,6 +769,105 @@ class KBoundedQuotientBases(Category_realization_of_parent):
             """
             return self( x.lift() * y.lift() )
 
+        def antipode(self, element):
+            r"""
+            The antipode of ``element`` via lifting to the symmetric functions and
+            then retracting into the `k`-bounded quotient basis.
+
+            INPUT:
+
+            - ``self`` -- a basis of the ring of `k`-bounded quotient of symmetric functions
+            - ``element`` -- element in a basis of the ring of symmetric functions
+
+            EXAMPLES::
+
+                sage: dks3 = SymmetricFunctions(QQ).kBoundedQuotient(3,t=1).dual_k_Schur()
+                sage: dks3[3,2].antipode()
+                -dks3[1, 1, 1, 1, 1]
+                sage: km = SymmetricFunctions(QQ).kBoundedQuotient(3,t=1).km()
+                sage: km[3,2].antipode()
+                m3[3, 2]
+                sage: m = SymmetricFunctions(QQ).m()
+                sage: m[3,2].antipode()
+                m[3, 2] + 2*m[5]
+
+            ::
+
+                sage: km = SymmetricFunctions(FractionField(QQ['t'])).kBoundedQuotient(3).km()
+                sage: km[1,1,1,1].antipode()
+                (t^3-3*t^2+3*t)*m3[1, 1, 1, 1] + (-t^2+2*t)*m3[2, 1, 1] + t*m3[2, 2] + t*m3[3, 1]
+                sage: kHP = SymmetricFunctions(FractionField(QQ['t'])).kBoundedQuotient(3).kHLP()
+                sage: kHP[2,2].antipode()
+                (t^9-t^6-t^5+t^2)*HLP3[1, 1, 1, 1] + (t^6-t^3-t^2+t)*HLP3[2, 1, 1] + (t^5-t^2+1)*HLP3[2, 2] + (t^4-t)*HLP3[3, 1]
+                sage: dks = SymmetricFunctions(FractionField(QQ['t'])).kBoundedQuotient(3).dks()
+                sage: dks[2,2].antipode()
+                dks3[2, 2]
+                sage: dks[3,2].antipode()
+                -t^2*dks3[1, 1, 1, 1, 1] + (t^2-1)*dks3[2, 2, 1] + (-t^5+t)*dks3[3, 2]
+            """
+            return self(element.lift().antipode())
+
+        def coproduct(self, element):
+            r"""
+            The coproduct of ``element`` via lifting to the symmetric functions and
+            then returning to the `k`-bounded quotient basis.  This method is implemented
+            for all `t` but is (weakly) conjectured to not be the correct operation for
+            other values `t` because the coproduct on dual-`k`-Schur functions does not
+            have a positive expansion.
+
+            INPUT:
+
+            - ``self`` -- a basis of the ring of `k`-bounded quotient of symmetric functions
+            - ``element`` -- element in a basis of the ring of symmetric functions
+
+            EXAMPLES::
+
+                sage: Q3 = SymmetricFunctions(QQ).kBoundedQuotient(3,t=1)
+                sage: km = Q3.km()
+                sage: km[3,2].coproduct()
+                m3[] # m3[3, 2] + m3[2] # m3[3] + m3[3] # m3[2] + m3[3, 2] # m3[]
+                sage: dks3 = Q3.dual_k_Schur()
+                sage: dks3[2,2].coproduct()
+                dks3[] # dks3[2, 2] + dks3[1] # dks3[2, 1] + dks3[1, 1] # dks3[1, 1] + dks3[2] # dks3[2] + dks3[2, 1] # dks3[1] + dks3[2, 2] # dks3[]
+
+            ::
+
+                sage: Q3t = SymmetricFunctions(FractionField(QQ['t'])).kBoundedQuotient(3)
+                sage: km = Q3t.km()
+                sage: km[3,2].coproduct()
+                m3[] # m3[3, 2] + m3[2] # m3[3] + m3[3] # m3[2] + m3[3, 2] # m3[]
+                sage: dks = Q3t.dks()
+                sage: dks[2,1,1].coproduct()
+                dks3[] # dks3[2, 1, 1] + (-t+1)*dks3[1] # dks3[1, 1, 1] + dks3[1] # dks3[2, 1] + (-t+1)*dks3[1, 1] # dks3[1, 1] + dks3[1, 1] # dks3[2] + (-t+1)*dks3[1, 1, 1] # dks3[1] + dks3[2] # dks3[1, 1] + dks3[2, 1] # dks3[1] + dks3[2, 1, 1] # dks3[]
+                sage: kHLP = Q3t.kHLP()
+                sage: kHLP[2,1].coproduct()
+                HLP3[] # HLP3[2, 1] + (-t^2+1)*HLP3[1] # HLP3[1, 1] + HLP3[1] # HLP3[2] + (-t^2+1)*HLP3[1, 1] # HLP3[1] + HLP3[2] # HLP3[1] + HLP3[2, 1] # HLP3[]
+            """
+            from sage.categories.tensor import tensor
+            base = element.lift().parent()
+            return self.tensor_square().sum(coeff * tensor([self(base[x]), self(base[y])])
+                                            for ((x,y), coeff) in element.lift().coproduct())
+
+        def counit(self, element):
+            r"""
+            Returns the counit of ``element``.
+
+            INPUT:
+
+            - ``self`` -- a basis of the ring of `k`-bounded quotient of symmetric functions
+            - ``element`` -- an element in a basis
+
+            The counit is the constant terms of ``element``.
+
+            EXAMPLES::
+
+                sage: km = SymmetricFunctions(FractionField(QQ['t'])).kBoundedQuotient(3).km()
+                sage: f = 2*km[2,1] - 3*km([])
+                sage: f.counit()
+                -3
+            """
+            return element.coefficient([])
+
     class ElementMethods:
         pass
 
@@ -857,7 +936,7 @@ class kMonomial(KBoundedQuotientBasis):
         """
         KBoundedQuotientBasis.__init__(self, kBoundedRing, 'm')
         Sym = kBoundedRing.ambient()
-        Sym_m_to_mk = Sym.m().module_morphism(self.retract,codomain=self).register_as_coercion()
+        Sym.m().module_morphism(self.retract,codomain=self).register_as_coercion() # coercion of monomial to k-bounded monomial
 
     def _repr_(self):
         """
@@ -976,10 +1055,10 @@ class kbounded_HallLittlewoodP(KBoundedQuotientBasis):
         KBoundedQuotientBasis.__init__(self, kBoundedRing, 'HLP')
 
         Sym = kBoundedRing.ambient()
-        Sym_HLP_to_kHLP = Sym.hall_littlewood(kBoundedRing.t).P().module_morphism(self.retract,codomain=self).register_as_coercion()
+        Sym.hall_littlewood(kBoundedRing.t).P().module_morphism(self.retract,codomain=self).register_as_coercion() # morphism from HLP to k-bounded HLP
         km = kBoundedRing.km()
-        kHLP_to_mk = self.module_morphism(self._HLP_to_mk_on_basis, codomain=km, triangular='lower', unitriangular=True).register_as_coercion()
-        mk_to_kHLP = km.module_morphism(self._m_to_kHLP_on_basis, codomain=self, triangular='lower', unitriangular=True).register_as_coercion()
+        self.module_morphism(self._HLP_to_mk_on_basis, codomain=km, triangular='lower', unitriangular=True).register_as_coercion() # morphism from k-bounded-HLP to k-bounded-m
+        km.module_morphism(self._m_to_kHLP_on_basis, codomain=self, triangular='lower', unitriangular=True).register_as_coercion() # morphism from k-bounded-m to k-bounded-HLP
 
     def _repr_(self):
         """
@@ -1181,8 +1260,8 @@ class DualkSchurFunctions(KBoundedQuotientBasis):
         KBoundedQuotientBasis.__init__(self, kBoundedRing, 'dks')
 
         kHLP = kBoundedRing.kHallLittlewoodP()
-        dks_to_khlp = self.module_morphism(self._dks_to_khlp_on_basis,codomain=kHLP).register_as_coercion()
-        khlp_to_dks = kHLP.module_morphism(self._khlp_to_dks_on_basis,codomain=self).register_as_coercion()
+        self.module_morphism(self._dks_to_khlp_on_basis,codomain=kHLP).register_as_coercion() # morphism from dual-k-Schurs to k-bounded-HLP
+        kHLP.module_morphism(self._khlp_to_dks_on_basis,codomain=self).register_as_coercion() # morphism from k-bounded-HLP to dual-k-Schurs
 
     def _repr_(self):
         """
@@ -1303,8 +1382,8 @@ class AffineSchurFunctions(KBoundedQuotientBasis):
         self._weyl = WeylGroup(['A', kBoundedRing.k, 1])
 
         km = kBoundedRing.km()
-        F_to_mk = self.module_morphism(self._F_to_m_on_basis,codomain=km).register_as_coercion()
-        mk_to_F = km.module_morphism(self._m_to_F_on_basis,codomain=self).register_as_coercion()
+        self.module_morphism(self._F_to_m_on_basis,codomain=km).register_as_coercion() # morphism from affine Schur functions to k-bounded-m
+        km.module_morphism(self._m_to_F_on_basis,codomain=self).register_as_coercion() # morphism from k-bounded-m basis to affine-Schur basis
 
     def _repr_(self):
         """

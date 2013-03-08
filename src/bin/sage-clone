@@ -72,21 +72,23 @@ print "Copying over all auto-generated reference manual .rst files..."
 sys.path.append(os.environ['SAGE_DOC'])
 from common.builder import LANGUAGES
 for lang in LANGUAGES:
+    ref = os.path.join('sage', 'doc', lang, 'reference')
     try:
-        for directory in ['sage', 'sagenb']:
-            fr = os.path.join('sage', 'doc', lang, 'reference', directory)
-            if os.path.exists(fr):
-                to = os.path.join(branch, 'doc', lang, 'reference', directory)
-                cmd = 'cp -pR %s %s' % (fr, to)
-#                print cmd
-                subprocess.call([cmd], shell=True)
-#        shutil.copytree(os.path.join('sage/doc', lang, 'reference/sage'),
-#                        os.path.join(branch, 'doc', lang, 'reference/sage'))
+        for f in os.listdir(ref):
+            if os.path.isdir(os.path.join(ref, f)):
+                for directory in ['sage', 'sagenb']:
+                    fr = os.path.join(ref, f, directory)
+                    if os.path.exists(fr):
+                        to = os.path.join(branch, 'doc', lang, 'reference', f, directory)
+                        cmd = 'cp -pR %s %s' % (fr, to)
+                        subprocess.call([cmd], shell=True)
     except:
         pass
 
 print "Copying over documentation output..."
-copy_dtree('sage/doc/output', branch + '/doc/output')
+# Use shutil.copytree instead of copy_dtree to make sure that symlinks
+# are copied correctly. See #14245.
+shutil.copytree('sage/doc/output', branch + '/doc/output', symlinks=True)
 
 print "Building " + branch + "..."
 cmd = 'sage -b %s'%sys.argv[1]

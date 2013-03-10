@@ -392,18 +392,45 @@ class DiGraphGenerators():
         - ``n`` (integer) -- number of vertices.
 
         - ``integers`` -- the list of integers such that there is an edge from
-          `i` to `j` if and only if ``(j-i) in integers``.
+          `i` to `j` if and only if ``(j-i)%n in integers``.
 
         EXAMPLE::
 
             sage: digraphs.Circulant(13,[3,5,7])
             Circulant graph ([3, 5, 7]): Digraph on 13 vertices
+
+        TESTS::
+
+            sage: digraphs.Circulant(13,[3,5,7,"hey"])
+            Traceback (most recent call last):
+            ...
+            ValueError: The list must contain only relative integers.
+            sage: digraphs.Circulant(-2,[3,5,7,3])
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be a positive integer
+            sage: digraphs.Circulant(3,[3,5,7,3.4])
+            Traceback (most recent call last):
+            ...
+            ValueError: The list must contain only relative integers.
         """
         from sage.graphs.graph_plot import _circle_embedding
+        from sage.rings.integer_ring import ZZ
 
-        G=DiGraph(n, name="Circulant graph ("+str(integers)+")")
+        # Bad input and loops
+        loops = False
+        if not n in ZZ or n <= 0:
+            raise ValueError("n must be a positive integer")
+
+        for i in integers:
+            if not i in ZZ:
+                raise ValueError("The list must contain only relative integers.")
+            if (i%n) == 0:
+                loops = True
+
+        G=DiGraph(n, name="Circulant graph ("+str(integers)+")", loops=loops)
+
         _circle_embedding(G, range(n))
-
         for v in range(n):
             G.add_edges([(v,(v+j)%n) for j in integers])
 

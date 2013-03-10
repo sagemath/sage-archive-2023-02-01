@@ -573,8 +573,8 @@ def CirculantGraph(n, adjacency):
     r"""
     Returns a circulant graph with n nodes.
 
-    A circulant graph has the property that the vertex i is connected
-    with the vertices i+j and i-j for each j in adj.
+    A circulant graph has the property that the vertex `i` is connected
+    with the vertices `i+j` and `i-j` for each j in adj.
 
     INPUT:
 
@@ -661,18 +661,17 @@ def CirculantGraph(n, adjacency):
         (4, 5),
         (5, 6)]
     """
+    from sage.graphs.graph_plot import _circle_embedding
+
     if not isinstance(adjacency,list):
         adjacency=[adjacency]
-    pos_dict = {}
-    for i in range(n):
-        x = float(cos((pi/2) + ((2*pi)/n)*i))
-        y = float(sin((pi/2) + ((2*pi)/n)*i))
-        pos_dict[i] = (x,y)
+
     G=graph.Graph(n, name="Circulant graph ("+str(adjacency)+")")
-    G._pos=pos_dict
+    _circle_embedding(G, range(n))
+
     for v in G:
         G.add_edges([(v,(v+j)%n) for j in adjacency])
-        G.add_edges([(v,(v-j)%n) for j in adjacency])
+
     return G
 
 def CubeGraph(n):

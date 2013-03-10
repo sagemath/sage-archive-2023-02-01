@@ -10,6 +10,7 @@ Generators for common digraphs.
 
     :meth:`~DiGraphGenerators.ButterflyGraph`      | Returns a n-dimensional butterfly graph.
     :meth:`~DiGraphGenerators.Circuit`             | Returns the circuit on `n` vertices.
+    :meth:`~DiGraphGenerators.Circulant`           | Returns a circulant digraph on `n` vertices from a set of integers.
     :meth:`~DiGraphGenerators.DeBruijn`            | Returns the De Bruijn digraph with parameters `k,n`.
     :meth:`~DiGraphGenerators.GeneralizedDeBruijn` | Returns the generalized de Bruijn digraph of order `n` and degree `d`.
     :meth:`~DiGraphGenerators.ImaseItoh`           | Returns the digraph of Imase and Itoh of order `n` and degree `d`.
@@ -381,6 +382,32 @@ class DiGraphGenerators():
             g.add_edges([(i,i+1) for i in xrange(n-1)])
             g.add_edge(n-1,0)
             return g
+
+    def Circulant(self,n,integers):
+        r"""
+        Returns a circulant digraph on `n` vertices from a set of integers.
+
+        INPUT:
+
+        - ``n`` (integer) -- number of vertices.
+
+        - ``integers`` -- the list of integers such that there is an edge from
+          `i` to `j` if and only if ``(j-i) in integers``.
+
+        EXAMPLE::
+
+            sage: digraphs.Circulant(13,[3,5,7])
+            Circulant graph ([3, 5, 7]): Digraph on 13 vertices
+        """
+        from sage.graphs.graph_plot import _circle_embedding
+
+        G=DiGraph(n, name="Circulant graph ("+str(integers)+")")
+        _circle_embedding(G, range(n))
+
+        for v in range(n):
+            G.add_edges([(v,(v+j)%n) for j in integers])
+
+        return G
 
     def DeBruijn(self, k, n, vertices = 'strings'):
         r"""

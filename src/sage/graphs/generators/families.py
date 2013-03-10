@@ -592,6 +592,12 @@ def CirculantGraph(n, adjacency):
     Filling the position dictionary in advance adds O(n) to the
     constructor.
 
+    .. SEEALSO::
+
+        * :meth:`sage.graphs.generic_graph.GenericGraph.is_circulant`
+          -- checks whether a (di)graph is circulant, and/or returns
+          all possible sets of parameters.
+
     EXAMPLES: Compare plotting using the predefined layout and
     networkx::
 

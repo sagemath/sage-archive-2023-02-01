@@ -169,6 +169,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.is_circular_planar` | Tests whether the graph is circular planar (outerplanar)
     :meth:`~GenericGraph.is_regular` | Return ``True`` if this graph is (`k`-)regular.
     :meth:`~GenericGraph.is_chordal` | Tests whether the given graph is chordal.
+    :meth:`~GenericGraph.is_circulant` | Tests whether the graph is a circulant graph.
     :meth:`~GenericGraph.is_interval` | Check whether self is an interval graph
     :meth:`~GenericGraph.is_gallai_tree` | Returns whether the current graph is a Gallai tree.
     :meth:`~GenericGraph.is_clique` | Tests whether a set of vertices is a clique
@@ -10539,6 +10540,135 @@ class GenericGraph(GenericGraph_pyx):
 
         else:
             return True
+
+    def is_circulant(self, certificate = False):
+        r"""
+        Tests whether the graph is circulant.
+
+        For more information on circulant graphs, see the
+        :wikipedia:`Wikipedia page on circulant graphs
+        <Circulant_graph>`.
+
+        INPUT:
+
+        - ``certificate`` (boolean) -- whether to return a certificate for
+          yes-answers. See OUTPUT section. Set to ``False`` by default.
+
+        OUTPUT:
+
+        When ``certificate`` is set to ``False`` (default) this method only
+        returns ``True`` or ``False`` answers. When ``certificate`` is set to
+        ``True``, the method either returns ``(False, None)`` or ``(True,
+        lists_of_parameters)`` each element of ``lists_of_parameters`` can be
+        used to define the graph as a circulant graph.
+
+        See the documentation of :meth:`graphs.CirculantGraph` and
+        :meth:`digraphs.CirculantGraph` for more information, and the examples
+        below.
+
+        .. SEEALSO::
+
+            :meth:`~sage.graphs.graph_generators.GraphGenerators.CirculantGraph`
+            -- a constructor for circulant graphs.
+
+        EXAMPLES:
+
+        The Petersen graph is not a circulant graph::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.is_circulant()
+            False
+
+        A cycle is obviously a circulant graph, but several sets of parameters
+        can be used to define it::
+
+            sage: g = graphs.CycleGraph(5)
+            sage: g.is_circulant(certificate = True)
+            (True, [(5, [1, 4]), (5, [2, 3])])
+
+        The same goes for directed graphs::
+
+            sage: g = digraphs.Circuit(5)
+            sage: g.is_circulant(certificate = True)
+            (True, [(5, [1]), (5, [3]), (5, [2]), (5, [4])])
+
+        With this information, it is very easy to create (and plot) all possible
+        drawings of a circulant graph::
+
+            sage: g = graphs.CirculantGraph(13, [2, 3, 10, 11])
+            sage: for param in g.is_circulant(certificate = True)[1]:
+            ...      graphs.CirculantGraph(*param)
+            Circulant graph ([2, 3, 10, 11]): Graph on 13 vertices
+            Circulant graph ([1, 5, 8, 12]): Graph on 13 vertices
+            Circulant graph ([4, 6, 7, 9]): Graph on 13 vertices
+
+        TESTS::
+
+            sage: digraphs.DeBruijn(3,1).is_circulant(certificate = True)
+            (True, [(3, [0, 1, 2])])
+            sage: Graph(1).is_circulant(certificate = True)
+            (True, (1, []))
+            sage: Graph(0).is_circulant(certificate = True)
+            (True, (0, []))
+            sage: Graph([(0,0)]).is_circulant(certificate = True)
+            (True, (1, [0]))
+        """
+        # Stupid cases
+        if self.order() <= 1:
+            if certificate:
+                return (True,(self.order(),[0] if self.size() else []))
+            else:
+                return True
+
+        certif_list = []
+
+        # The automorphism group, the translation between the vertices of self
+        # and 1..n, and the orbits.
+        ag, tr, orbits = self.automorphism_group([self.vertices()],
+                          translation = True,
+                          order=False,
+                          return_group=True,
+                          orbits=True)
+
+        # Not transitive ? Not a circulant graph !
+        if len(orbits) != 1:
+            return (False, None) if certificate else False
+
+        # From 1..n to the vertices of self
+        trr = {v:k for k,v in tr.iteritems()}
+
+        # We go through all conjugacy classes of the automorphisms, and only
+        # keep the cycles of length n
+        for e in ag.conjugacy_classes_representatives():
+            cycles = e.cycle_tuples()
+
+            # If the automorphism is not empty, has exactly one cycle, and if
+            # this cycle contains all vertices.
+            if ((not cycles) or
+                (len(cycles) > 1) or
+                (len(cycles[0]) != self.order())):
+                continue
+
+            # From now on the graph is a circulant graph !
+
+            if not certificate:
+                return True
+
+            # We build the list of integers defining the circulant graph, and
+            # add it to the list.
+            parameters = []
+            cycles = cycles[0]
+            u = trr[cycles[0]]
+            integers = [i for i,v in enumerate(cycles) if self.has_edge(u,trr[v])]
+            certif_list.append((self.order(),integers))
+
+        if not certificate:
+            return False
+        else:
+            if certif_list:
+                return (True, certif_list)
+            else:
+                return (False, None)
 
     def is_interval(self, certificate = False):
         r"""

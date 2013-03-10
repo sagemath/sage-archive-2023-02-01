@@ -524,6 +524,12 @@ class DiGraphGenerators():
 
         - ``d`` -- is the degree of the digraph
 
+        .. SEEALSO::
+
+            * :meth:`sage.graphs.generic_graph.GenericGraph.is_circulant` --
+              checks whether a (di)graph is circulant, and/or returns all
+              possible sets of parameters.
+
         EXAMPLE::
 
             sage: GB = digraphs.GeneralizedDeBruijn(8, 2)

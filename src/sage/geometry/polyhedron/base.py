@@ -3242,9 +3242,9 @@ class Polyhedron_base(Element):
                               for j in range(self.ambient_dim())]
         return proj.schlegel(projection_direction = projection_dir, height = height)
 
-    def lrs_volume(self, verbose = False):
+    def _volume_lrs(self, verbose=False):
         """
-        Computes the volume of a polytope.
+        Computes the volume of a polytope using lrs.
 
         OUTPUT:
 
@@ -3253,11 +3253,11 @@ class Polyhedron_base(Element):
 
         EXAMPLES::
 
-            sage: polytopes.n_cube(3).lrs_volume() # optional - lrs
+            sage: polytopes.n_cube(3)._volume_lrs() # optional - lrs
             8.0
-            sage: (polytopes.n_cube(3)*2).lrs_volume() # optional - lrs
+            sage: (polytopes.n_cube(3)*2)._volume_lrs() # optional - lrs
             64.0
-            sage: polytopes.twenty_four_cell().lrs_volume() # optional - lrs
+            sage: polytopes.twenty_four_cell()._volume_lrs() # optional - lrs
             2.0
 
         REFERENCES:
@@ -3292,7 +3292,79 @@ class Polyhedron_base(Element):
                 volume = RDF(QQ(volume))
                 return volume
 
-        raise ValueError, "lrs did not return a volume"
+        raise ValueError("lrs did not return a volume")
+
+    def lrs_volume(self, verbose=False):
+        """
+        Computes the volume of a polytope using lrs.
+
+        OUTPUT:
+
+        The volume, cast to RDF (although lrs seems to output a
+        rational value this must be an approximation in some cases).
+
+        EXAMPLES::
+
+            sage: polytopes.n_cube(3).lrs_volume() #optional, needs lrs package installed
+            doctest:...: DeprecationWarning: use volume(engine='lrs') instead
+            See http://trac.sagemath.org/13249 for details.
+            8.0
+            sage: (polytopes.n_cube(3)*2).lrs_volume() #optional, needs lrs package installed
+            64.0
+            sage: polytopes.twenty_four_cell().lrs_volume() #optional, needs lrs package installed
+            2.0
+
+        REFERENCES:
+
+             David Avis's lrs program.
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(13249, "use volume(engine='lrs') instead")
+        return self._volume_lrs(verbose=verbose)
+
+    @cached_method
+    def volume(self, engine='auto', **kwds):
+        """
+        Return the volume of the polytope.
+
+        - ``engine`` -- string. The backend to use. Allowed values are:
+
+          * ``'auto'`` (default): see :meth:`triangulate`.
+          * ``'internal'``: see :meth:`triangulate`.
+          * ``'TOPCOM'``: see :meth:`triangulate`.
+          * ``'lrs'``: use David Avis's lrs program (optional).
+
+        - ``**kwds`` -- keyword arguments that are passed to the
+          triangulation engine.
+
+        OUTPUT:
+
+        The volume of the polytope.
+
+        EXAMPLES::
+
+            sage: polytopes.n_cube(3).volume()
+            8
+            sage: (polytopes.n_cube(3)*2).volume()
+            64
+            sage: polytopes.twenty_four_cell().volume()
+            2
+
+            sage: polytopes.regular_polygon(5, base_ring=RDF).volume()
+            2.37764129...
+            sage: polytopes.regular_polygon(5, base_ring=QQ).volume()   # rational approximation
+            3387471714099766473500515673753476175274812279494567801326487870013/1424719417220622426561086640229666223984528142237277803327699435400
+            sage: _.n()
+            2.37764129...
+        """
+        if engine=='lrs':
+            return self._volume_lrs(**kwds)
+        dim = self.dim()
+        if dim < self.ambient_dim():
+            return self.base_ring().zero()
+        triangulation = self.triangulate(engine=engine, **kwds)
+        pc = triangulation.point_configuration()
+        return sum([ pc.volume(simplex) for simplex in triangulation ]) / ZZ(dim).factorial()
 
     def contains(self, point):
         """

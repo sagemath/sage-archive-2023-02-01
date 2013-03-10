@@ -62,3 +62,4 @@ doc/en/reference/sage/
 doc/en/reference/sagenb/
 doc/en/reference/.*/sage/
 doc/en/reference/.*/sagenb/
+.cython_version

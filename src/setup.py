@@ -512,10 +512,17 @@ if not sdist:
     # enclosing Python scope (e.g. to perform variable injection).
     Cython.Compiler.Options.old_style_globals = True
 
+    force = True
+    version_file = os.path.join(os.path.dirname(__file__), '.cython_version')
+    if os.path.exists(version_file) and open(version_file).read() == Cython.__version__:
+        force = False
+
     ext_modules = cythonize(
         ext_modules,
-        nthreads = int(os.environ.get('SAGE_NUM_THREADS', 0)))
+        nthreads = int(os.environ.get('SAGE_NUM_THREADS', 0)),
+        force=force)
 
+    open(version_file, 'w').write(Cython.__version__)
     print "Finished compiling Cython code (time = %s seconds)" % (time.time() - t)
 
 

@@ -152,8 +152,7 @@ class CombinatorialMap(object):
             sage: p.left_tableau.__repr__()
             'Combinatorial map: Robinson-Schensted insertion tableau'
         """
-        name = self._name if self._name else self.__name__
-        return "Combinatorial map: %s" % name
+        return "Combinatorial map: %s" %self.name()
 
     def _sage_src_lines_(self):
         """
@@ -205,6 +204,25 @@ class CombinatorialMap(object):
         else:
             return self._f(*args, **kwds)
 
+    def unbounded_map(self):
+        r"""
+        Return the unbounded version of ``self``.
+
+        You can use this method to return a function which takes as input
+        an element in the domain of the combinatorial map.
+        See the example below.
+
+        EXAMPLES::
+
+            sage: from sage.combinat.permutation import Permutation
+            sage: pi = Permutation([1,3,2])
+            sage: f = pi.reverse
+            sage: F = f.unbounded_map()
+            sage: F(pi)
+            [2, 3, 1]
+        """
+        return self._f
+
     def order(self):
         """
         Returns the order of ``self``, or ``None`` if the order is not known.
@@ -226,7 +244,7 @@ class CombinatorialMap(object):
 
     def name(self):
         """
-        If given, returns the name of a combinatorial map; ``None`` otherwise.
+        Returns the name of a combinatorial map.
         This is used for the string representation of ``self``.
 
         EXAMPLES::
@@ -239,10 +257,13 @@ class CombinatorialMap(object):
             ...       def to_self_2(): pass
             sage: CombinatorialClass.to_self_1.name()
             'map1'
-            sage: CombinatorialClass.to_self_2.name() is None
-            True
+            sage: CombinatorialClass.to_self_2.name()
+            'to_self_2'
         """
-        return self._name
+        if self._name is not None:
+            return self._name
+        else:
+            return self._f.__name__
 
 def combinatorial_maps_in_class(cls):
     """

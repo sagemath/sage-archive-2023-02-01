@@ -10,11 +10,12 @@
 Containers for storing coercion data
 
 This module provides :class:`TripleDict` and :class:`MonoDict`. These are
-structures similar to ``WeakKeyDictionary`` in Python's weakref module,
-and are optimized for lookup speed. The keys for :class:`TripleDict` consist
-of triples (k1,k2,k3) and are looked up by identity rather than equality. The
-keys are stored by weakrefs if possible. If any one of the components k1, k2,
-k3 gets garbage collected, then the entry is removed from the :class:`TripleDict`.
+structures similar to :class:`~weakref.WeakKeyDictionary` in Python's weakref
+module, and are optimized for lookup speed. The keys for :class:`TripleDict`
+consist of triples (k1,k2,k3) and are looked up by identity rather than
+equality. The keys are stored by weakrefs if possible. If any one of the
+components k1, k2, k3 gets garbage collected, then the entry is removed from
+the :class:`TripleDict`.
 
 Key components that do not allow for weakrefs are stored via a normal
 refcounted reference. That means that any entry stored using a triple
@@ -22,17 +23,20 @@ refcounted reference. That means that any entry stored using a triple
 as an entry in a normal dictionary: Its existence in :class:`TripleDict`
 prevents it from being garbage collected.
 
-That container currently is used to store coercion and conversion maps
-between two parents (:trac:`715`) and to store homsets of pairs of objects
-of a category (:trac:`11521`). In both cases, it is essential that the parent
-structures remain garbage collectable, it is essential that the data access
-is faster than with a usual ``WeakKeyDictionary``, and we enforce the "unique
-parent condition" in Sage (parent structures should be identical if they are
-equal).
+That container currently is used to store coercion and conversion maps between
+two parents (:trac:`715`) and to store homsets of pairs of objects of a
+category (:trac:`11521`). In both cases, it is essential that the parent
+structures remain garbage collectable, it is essential that the data access is
+faster than with a usual :class:`~weakref.WeakKeyDictionary`, and we enforce
+the "unique parent condition" in Sage (parent structures should be identical
+if they are equal).
 
 :class:`MonoDict` behaves similarly, but it takes a single item as a key. It
 is used for caching the parents which allow a coercion map into a fixed other
 parent (:trac:`12313`).
+
+By :trac:`14159`, :class:`MonoDict` and :class:`TripleDict` can be optionally
+used with weak references on the values.
 
 """
 include "../ext/python_list.pxi"
@@ -178,14 +182,19 @@ cdef class MonoDictEraser:
         cdef list buckets = D.buckets
         if buckets is None:
             return
-        cdef Py_ssize_t h = r.key
+        cdef Py_ssize_t h
+        cdef int offset
+        h,offset = r.key
         cdef list bucket = <object>PyList_GET_ITEM(buckets, (<size_t>h) % PyList_GET_SIZE(buckets))
         cdef Py_ssize_t i
         for i from 0 <= i < PyList_GET_SIZE(bucket) by 3:
             if PyInt_AsSsize_t(PyList_GET_ITEM(bucket,i))==h:
-                del bucket[i:i+3]
-                D._size -= 1
-                break
+                if PyList_GET_ITEM(bucket,i+offset)==<void *>r:
+                    del bucket[i:i+3]
+                    D._size -= 1
+                    break
+                else:
+                    break
 
 cdef class TripleDictEraser:
     """
@@ -278,7 +287,8 @@ cdef class TripleDictEraser:
         # stored key of the unique triple r() had been part of.
         # We remove that unique triple from self.D
         cdef Py_ssize_t k1,k2,k3
-        k1,k2,k3 = r.key
+        cdef int offset
+        k1,k2,k3,offset = r.key
         cdef Py_ssize_t h = (k1 + 13*k2 ^ 503*k3)
         cdef list bucket = <object>PyList_GET_ITEM(buckets, (<size_t>h) % PyList_GET_SIZE(buckets))
         cdef Py_ssize_t i
@@ -286,9 +296,12 @@ cdef class TripleDictEraser:
             if PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i))==k1 and \
                PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i+1))==k2 and \
                PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i+2))==k3:
-                del bucket[i:i+7]
-                D._size -= 1
-                break
+                if PyList_GET_ITEM(bucket, i+offset)==<void *>r:
+                    del bucket[i:i+7]
+                    D._size -= 1
+                    break
+                else:
+                    break
 
 cdef class MonoDict:
     """
@@ -306,6 +319,8 @@ cdef class MonoDict:
     It is bare-bones in the sense that not all dictionary methods are
     implemented.
 
+    IMPLEMENTATION:
+
     It is implemented as a list of lists (hereafter called buckets). The bucket
     is chosen according to a very simple hash based on the object pointer,
     and each bucket is of the form [id(k1), r1, value1, id(k2), r2, value2, ...],
@@ -317,8 +332,16 @@ cdef class MonoDict:
     In the latter case the presence of the key in the dictionary prevents it from
     being garbage collected.
 
-    To spread objects evenly, the size should ideally be a prime, and certainly
-    not divisible by 2.
+    INPUT:
+
+    - ``size`` -- an integer, the initial number of buckets. To spread objects
+      evenly, the size should ideally be a prime, and certainly not divisible
+      by 2.
+    - ``data`` -- optional iterable defining initial data.
+    - ``threshold`` -- optional number, default `0.7`. It determines how frequently
+      the dictionary will be resized (large threshold implies rare resizing).
+    - ``weak_values`` -- optional bool (default False). If it is true, weak references
+      to the values in this dictionary will be used, when possible.
 
     EXAMPLES::
 
@@ -346,7 +369,7 @@ cdef class MonoDict:
     Not all features of Python dictionaries are available, but iteration over
     the dictionary items is possible::
 
-        sage: # for some reason the following fails in "make ptest"
+        sage: # for some reason the following failed in "make ptest"
         sage: # on some installations, see #12313 for details
         sage: sorted(L.iteritems()) # random layout
         [(-15, 3), ('a', 1), ('ab', 2)]
@@ -410,12 +433,57 @@ cdef class MonoDict:
         sage: len(LE)    # indirect doctest
         1
 
-    AUTHOR:
+    TESTS:
+
+    Here, we demonstrate the use of weak values.
+    ::
+
+        sage: M = MonoDict(13)
+        sage: MW = MonoDict(13, weak_values=True)
+        sage: class Foo: pass
+        sage: a = Foo()
+        sage: b = Foo()
+        sage: k = 1
+        sage: M[k] = a
+        sage: MW[k] = b
+        sage: M[k] is a
+        True
+        sage: MW[k] is b
+        True
+        sage: k in M
+        True
+        sage: k in MW
+        True
+
+    While ``M`` uses a strong reference to ``a``, ``MW`` uses a *weak*
+    reference to ``b``, and after deleting ``b``, the corresponding item of
+    ``MW`` will be removed during the next garbage collection::
+
+        sage: import gc
+        sage: del a,b
+        sage: _ = gc.collect()
+        sage: k in M
+        True
+        sage: k in MW
+        False
+        sage: len(MW)
+        0
+        sage: len(M)
+        1
+
+   Note that ``MW`` also accepts values that do not allow for weak references::
+
+        sage: MW[k] = int(5)
+        sage: MW[k]
+        5
+
+    AUTHORS:
 
     - Simon King (2012-01)
     - Nils Bruin (2012-08)
+    - Simon King (2013-02)
     """
-    def __init__(self, size, data=None, threshold=0.7):
+    def __init__(self, size, data=None, threshold=0.7, weak_values=False):
         """
         Create a special dict using singletons for keys.
 
@@ -432,6 +500,7 @@ cdef class MonoDict:
         self.threshold = threshold
         self.buckets = [[] for i from 0 <= i < size]
         self._size = 0
+        self.weak_values = weak_values
         self.eraser = MonoDictEraser(self)
         if data is not None:
             for k, v in data.iteritems():
@@ -563,7 +632,7 @@ cdef class MonoDict:
                 if isinstance(r, KeyedRef) and PyWeakref_GetObject(r) == Py_None:
                     return False
                 else:
-                    return True
+                    return (not self.weak_values) or PyWeakref_GetObject(<object>PyList_GET_ITEM(bucket, i+2)) != Py_None
         return False
 
     def __getitem__(self, k):
@@ -599,14 +668,24 @@ cdef class MonoDict:
         cdef Py_ssize_t i
         cdef list all_buckets = self.buckets
         cdef list bucket = <object>PyList_GET_ITEM(all_buckets, (<size_t>h) % PyList_GET_SIZE(all_buckets))
-        cdef object r
+        cdef object r, val
+        cdef PyObject * out
         for i from 0 <= i < PyList_GET_SIZE(bucket) by 3:
             if PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i)) == h:
                 r = <object>PyList_GET_ITEM(bucket, i+1)
                 if isinstance(r, KeyedRef) and PyWeakref_GetObject(r) == Py_None:
                     raise KeyError, k
                 else:
-                    return <object>PyList_GET_ITEM(bucket, i+2)
+                    val = <object>PyList_GET_ITEM(bucket, i+2)
+                    if self.weak_values:
+                        if not isinstance(val, KeyedRef):
+                            return val
+                        out = PyWeakref_GetObject(val)
+                        if out == Py_None:
+                            raise KeyError, k
+                        return <object>out
+                    else:
+                        return val
         raise KeyError, k
 
     def __setitem__(self, k, value):
@@ -634,6 +713,11 @@ cdef class MonoDict:
             self.resize()
         cdef Py_ssize_t h = signed_id(k)
         cdef Py_ssize_t i
+        if self.weak_values:
+            try:
+                value = KeyedRef(value,self.eraser,(h,2))
+            except TypeError:
+                pass
         cdef list bucket = <object>PyList_GET_ITEM(self.buckets,(<size_t> h) % PyList_GET_SIZE(self.buckets))
         cdef object r
         for i from 0 <= i < PyList_GET_SIZE(bucket) by 3:
@@ -669,7 +753,7 @@ cdef class MonoDict:
         #investigate our partial entry.
         PyList_Append(bucket, h)
         try:
-            PyList_Append(bucket, KeyedRef(k,self.eraser,h))
+            PyList_Append(bucket, KeyedRef(k,self.eraser,(h,1)))
         except TypeError:
             PyList_Append(bucket, k)
         PyList_Append(bucket, value)
@@ -836,12 +920,21 @@ cdef class TripleDict:
     If a key component ki supports weak references then ri is a weak reference to
     ki; otherwise ri is identical to ki.
 
-    If any of the key components k1,k2,k3 (this can happen for a key component that
-    supports weak references) gets garbage collected then the entire entry
-    disappears. In that sense this structure behaves like a nested WeakKeyDictionary.
+    INPUT:
 
-    To spread objects evenly, the size should ideally be a prime, and certainly
-    not divisible by 2.
+    - ``size`` -- an integer, the initial number of buckets. To spread objects
+      evenly, the size should ideally be a prime, and certainly not divisible
+      by 2.
+    - ``data`` -- optional iterable defining initial data.
+    - ``threshold`` -- optional number, default `0.7`. It determines how frequently
+      the dictionary will be resized (large threshold implies rare resizing).
+    - ``weak_values`` -- optional bool (default False). If it is true, weak references
+      to the values in this dictionary will be used, when possible.
+
+    If any of the key components k1,k2,k3 (this can happen for a key component
+    that supports weak references) gets garbage collected then the entire
+    entry disappears. In that sense this structure behaves like a nested
+    :class:`~weakref.WeakKeyDictionary`.
 
     EXAMPLES::
 
@@ -920,6 +1013,62 @@ cdef class TripleDict:
         sage: len(LE)    # indirect doctest
         1
 
+    TESTS:
+
+    Here, we demonstrate the use of weak values.
+    ::
+
+        sage: class Foo: pass
+        sage: T = TripleDict(13)
+        sage: TW = TripleDict(13, weak_values=True)
+        sage: a = Foo()
+        sage: b = Foo()
+        sage: k = 1
+        sage: T[a,k,k]=1
+        sage: T[k,a,k]=2
+        sage: T[k,k,a]=3
+        sage: T[k,k,k]=a
+        sage: TW[b,k,k]=1
+        sage: TW[k,b,k]=2
+        sage: TW[k,k,b]=3
+        sage: TW[k,k,k]=b
+        sage: len(T)
+        4
+        sage: len(TW)
+        4
+        sage: (k,k,k) in T
+        True
+        sage: (k,k,k) in TW
+        True
+        sage: T[k,k,k] is a
+        True
+        sage: TW[k,k,k] is b
+        True
+
+    Now, ``T`` holds a strong reference to ``a``, namely in ``T[k,k,k]``. Hence,
+    when we delete ``a``, *all* items of ``T`` survive::
+
+        sage: del a
+        sage: _ = gc.collect()
+        sage: len(T)
+        4
+
+    Only when we remove the strong reference, the items become collectable::
+
+        sage: del T[k,k,k]
+        sage: _ = gc.collect()
+        sage: len(T)
+        0
+
+    The situation is different for ``TW``, since it only holds *weak*
+    references to ``a``. Therefore, all items become collectable after
+    deleting ``a``::
+
+        sage: del b
+        sage: _ = gc.collect()
+        sage: len(TW)
+        0
+
     .. NOTE::
 
         The index `h` corresponding to the key [k1, k2, k3] is computed as a
@@ -949,9 +1098,11 @@ cdef class TripleDict:
     - Simon King, 2012-01
 
     - Nils Bruin, 2012-08
+
+    - Simon King, 2013-02
     """
 
-    def __init__(self, size, data=None, threshold=0.7):
+    def __init__(self, size, data=None, threshold=0.7, weak_values=False):
         """
         Create a special dict using triples for keys.
 
@@ -968,6 +1119,7 @@ cdef class TripleDict:
         self.threshold = threshold
         self.buckets = [[] for i from 0 <= i <  size]
         self._size = 0
+        self.weak_values = weak_values
         self.eraser = TripleDictEraser(self)
         if data is not None:
             for (k1,k2,k3), v in data.iteritems():
@@ -1130,7 +1282,8 @@ cdef class TripleDict:
         cdef Py_ssize_t h3 = signed_id(k3)
         cdef Py_ssize_t h = (h1 + 13*h2 ^ 503*h3)
 
-        cdef object r1,r2,r3
+        cdef object r1,r2,r3, val
+        cdef PyObject* ref_val
         cdef Py_ssize_t i
         cdef list all_buckets = self.buckets
         cdef list bucket = <object>PyList_GET_ITEM(all_buckets, (<size_t>h )% PyList_GET_SIZE(all_buckets))
@@ -1147,7 +1300,16 @@ cdef class TripleDict:
                         (isinstance(r3,KeyedRef) and PyWeakref_GetObject(r3) == Py_None):
                     raise KeyError, (k1,k2,k3)
                 else:
-                    return <object>PyList_GET_ITEM(bucket, i+6)
+                    val = <object>PyList_GET_ITEM(bucket, i+6)
+                    if self.weak_values:
+                        if not isinstance(val, KeyedRef):
+                            return val
+                        ref_val = PyWeakref_GetObject(val)
+                        if ref_val == Py_None:
+                            raise KeyError, (k1,k2,k3)
+                        return <object>ref_val
+                    else:
+                        return val
         raise KeyError, (k1, k2, k3)
 
     def __setitem__(self, k, value):
@@ -1177,6 +1339,11 @@ cdef class TripleDict:
         cdef Py_ssize_t h2 = signed_id(k2)
         cdef Py_ssize_t h3 = signed_id(k3)
         cdef Py_ssize_t h = (h1 + 13*h2 ^ 503*h3)
+        if self.weak_values:
+            try:
+                value = KeyedRef(value,self.eraser,(h1, h2, h3, 6))
+            except TypeError:
+                pass
 
         cdef object r1,r2,r3
         cdef Py_ssize_t i
@@ -1208,19 +1375,19 @@ cdef class TripleDict:
         #at this point the key triple isn't present so we append a new entry.
         #we first form the appropriate weakrefs to receive callbacks on.
         try:
-            r1 = KeyedRef(k1,self.eraser,(h1, h2, h3))
+            r1 = KeyedRef(k1,self.eraser,(h1, h2, h3, 3))
         except TypeError:
             r1 = k1
         if k2 is not k1:
             try:
-                r2 = KeyedRef(k2,self.eraser,(h1, h2, h3))
+                r2 = KeyedRef(k2,self.eraser,(h1, h2, h3, 4))
             except TypeError:
                 r2 = k2
         else:
             r2 = None
         if k3 is not k2 or k3 is not k1:
             try:
-                r3 = KeyedRef(k3,self.eraser,(h1, h2, h3))
+                r3 = KeyedRef(k3,self.eraser,(h1, h2, h3, 5))
             except TypeError:
                 r3 = k3
         else:

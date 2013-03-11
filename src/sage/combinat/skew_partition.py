@@ -206,7 +206,7 @@ class SkewPartition_class(CombinatorialObject):
         # TODO: Should be SkewPartitions.global_options
         char, convention = sage.combinat.partition.Partitions.global_options('diagram_str','convention')
 
-        if convention == "english":
+        if convention == "English":
             L = range(len(self[0]))
         else:
             L = reversed(range(len(self[0])))

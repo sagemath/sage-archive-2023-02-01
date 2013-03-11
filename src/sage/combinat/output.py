@@ -167,7 +167,7 @@ def tex_from_array(array, with_lines=True):
         sage: Tableaux.global_options.reset()
     """
     lr=lr_macro.substitute(bar='|' if with_lines else '')
-    if Tableaux.global_options("convention")=='english':
+    if Tableaux.global_options("convention") == "English":
         return '{%s\n%s\n}' % (lr, tex_from_skew_array(array, with_lines))
     else:
         return '{%s\n%s\n}' % (lr, tex_from_skew_array(array[::-1], with_lines, align='t'))
@@ -236,7 +236,7 @@ def tex_from_array_tuple(a_tuple, with_lines=True):
         }
     """
     lr=lr_macro.substitute(bar='|' if with_lines else '')
-    if Tableaux.global_options("convention")=='english':
+    if Tableaux.global_options("convention") == "English":
         return '{%s\n%s\n}' % (lr, ','.join(
             r'\emptyset' if comp==[] else tex_from_skew_array(comp, with_lines) for comp in a_tuple))
     else:

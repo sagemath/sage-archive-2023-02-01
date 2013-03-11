@@ -62,12 +62,15 @@ dictionary are:
 - ``values`` -- A dictionary assigning each valid value for the option
   to a short description of what it does.
 
-For each option, one must supply either a complete list of values via ``values``
-or a validation function via ``checker``. The values can be quite arbitrary,
-including user-defined functions which customize the default behaviour of the
-classes such as the output of ``_repr_`` or :func:`latex`. See
-:ref:`dispatcher` below, and :meth:`~GlobalOptions.dispatcher`,
-for more information.
+- ``case_sensitive`` -- (Default: ``True``) ``True`` or ``False`` depending on
+  whether the values of the option are case sensitive.
+
+For each option, either a complete list of possible values, via ``values``, or a
+validation function, via ``checker``, must be given. The values can be quite
+arbitrary, including user-defined functions which customize the default
+behaviour of the classes such as the output of ``_repr_`` or :func:`latex`. See
+:ref:`dispatcher` below, and :meth:`~GlobalOptions.dispatcher`, for more
+information.
 
 The documentation for the options is automatically constructed by combining the
 description of each option with a header and footer which are given by the
@@ -91,11 +94,12 @@ illustrated by an example::
     ...                   alias=dict(rye='bread')),
     ...       appetizer=dict(alt_name='entree'),
     ...       main=dict(default='pizza', description='Main meal',
-    ...                   values=dict(pizza='thick crust', pasta='penne arrabiata')),
+    ...                 values=dict(pizza='thick crust', pasta='penne arrabiata'),
+    ...                 case_sensitive=False),
     ...       dessert=dict(default='espresso', description='Dessert',
-    ...                   values=dict(espresso='life begins again',
-    ...                               cake='waist begins again',
-    ...                               cream='fluffy, white stuff')),
+    ...                    values=dict(espresso='life begins again',
+    ...                                cake='waist begins again',
+    ...                                cream='fluffy, white stuff')),
     ...       tip=dict(default=10, description='Reward for good service',
     ...       checker=lambda tip: tip in range(0,20))
     ...   )
@@ -124,7 +128,7 @@ Continuing the example from :ref:`construction_section`::
     sage: menu['dessert']
     'espresso'
 
-Note that, provided there is no ambiguity. all options and their values can be
+Note that, provided there is no ambiguity, options and their values can be
 abbreviated::
 
     sage: menu['d']
@@ -133,27 +137,27 @@ abbreviated::
     ['pizza', 10]
     sage: menu(t=15); menu['tip']
     15
-    sage: menu(e='s', m='pi'); menu()
+    sage: menu(e='s', m='Pi'); menu()
     Current options for menu
       - dessert: espresso
       - entree:  soup
       - main:    pizza
       - tip:     15
-    sage: menu(m='p')
+    sage: menu(m='P')
     Traceback (most recent call last):
     ...
-    ValueError: p is not a valid value for main in the options for menu
+    ValueError: P is not a valid value for main in the options for menu
 
 
 Setter functions
 ----------------
 
-Each option of a :class:`GlobalOptions` can be equipped with an optiona setter
-function which is called **after** each change of value. In the following
-example, setting the option 'add' changes the state of the class by setting an
-attribute in this class using a :func:`classmethod`. Note that the options
-object is inserted after the creation of the class in order to access the
-:func:`classmethod` as ``A.setter``::
+Each option of a :class:`GlobalOptions` can be equipped with an optional setter
+function which is called **after** the value of the option is changed. In the
+following example, setting the option 'add' changes the state of the class by
+setting an attribute in this class using a :func:`classmethod`. Note that the
+options object is inserted after the creation of the class in order to access
+the :func:`classmethod` as ``A.setter``::
 
     sage: from sage.structure.global_options import GlobalOptions
     sage: class A(SageObject):
@@ -187,7 +191,7 @@ Documentation for options
 
 The documentation for a :class:`GlobalOptions` is automatically generated from
 the supplied options. For example, the generated documentation for the options
-``menu`` defined in :ref:`construction_section`::
+``menu`` defined in :ref:`construction_section` is the following::
 
     Fancy documentation
     -------------------
@@ -242,7 +246,7 @@ Dispatchers
 -----------
 
 The whole idea of a :class:`GlobalOptions` class is that the options change the
-default behaviour of associated classes. This can be done either by simply
+default behaviour of the associated classes. This can be done either by simply
 checking what the current value of the relevant option is. Another possibility
 is to use the options class as a dispatcher to associated methods. To use the
 dispatcher feature of a :class:`GlobalOptions` class it is necessary to implement
@@ -251,7 +255,7 @@ these methods is that they start with a common prefix and finish with the value
 of the option.
 
 If the value of a dispatchable option is set equal to a (user defined) function
-then this function is called in instead of a class method.
+then this function is called instead of a class method.
 
 For example, the options ``MyOptions`` can be used to dispatch the ``_repr_``
 method of the associated class ``MyClass`` as follows:
@@ -271,7 +275,7 @@ In this example, ``first_option`` is an option of ``MyOptions`` which takes
 values ``bells``, ``whistles``, and so on. Note that it is necessary to make
 ``self``, which is an instance of ``MyClass``, an argument of the dispatcher
 because :meth:`~GlobalOptions.dispatch()` is a method of :class:`GlobalOptions`
-and not a method of ``MyClass``. Apart form ``MyOptions``, as it is a method of
+and not a method of ``MyClass``. Apart from ``MyOptions``, as it is a method of
 this class, the arguments are the attached class (here ``MyClass``), the prefix
 of the method of ``MyClass`` being dispatched, the option of ``MyOptions``
 which controls the dispatching. All other arguments are passed through to the
@@ -314,7 +318,7 @@ See :meth:`~GlobalOptions.dispatch` for more details.
 Doc testing
 -----------
 
-All of the options and their effects should be doctested. However, in order
+All of the options and their effects should be doc-tested. However, in order
 not to break other tests, all options should be returned to their default state
 at the end of each test. To make this easier, every :class:`GlobalOptions` class has
 a :meth:`~GlobalOptions.reset()` method for doing exactly this.
@@ -335,11 +339,12 @@ pickled::
     ...                   alias=dict(rye='bread')),
     ...       appetizer=dict(alt_name='entree'),
     ...       main=dict(default='pizza', description='Main meal',
-    ...                   values=dict(pizza='thick crust', pasta='penne arrabiata')),
+    ...                 values=dict(pizza='thick crust', pasta='penne arrabiata'),
+    ...                 case_sensitive=False),
     ...       dessert=dict(default='espresso', description='Dessert',
-    ...                   values=dict(espresso='life begins again',
-    ...                               cake='waist begins again',
-    ...                               cream='fluffy, white stuff')),
+    ...                    values=dict(espresso='life begins again',
+    ...                                cake='waist begins again',
+    ...                                cream='fluffy, white stuff')),
     ...       tip=dict(default=10, description='Reward for good service',
     ...       checker=lambda tip: tip in range(0,20))
     ...   )
@@ -404,9 +409,10 @@ class GlobalOptions(SageObject):
       automatically defines the corresponding ``checker``). This dictionary
       gives the possible options, as keys, together with a brief description
       of them.
+    - ``case_sensitive`` -- (Default: ``True``) ``True`` or ``False`` depending on
+      whether the values of the option are case sensitive.
 
-    The values of all options are forced to be in lower case. Options
-    and their values can be abbreviated provided that this
+    Options and their values can be abbreviated provided that this
     abbreviation is a prefix of a unique option.
 
     Calling the options with no arguments results in the list of
@@ -422,7 +428,8 @@ class GlobalOptions(SageObject):
         ...                   alias=dict(rye='bread')),
         ...       appetizer=dict(alt_name='entree'),
         ...       main=dict(default='pizza', description='Main meal',
-        ...                 values=dict(pizza='thick crust', pasta='penne arrabiata')),
+        ...                 values=dict(pizza='thick crust', pasta='penne arrabiata'),
+        ...                 case_sensitive=False),
         ...       dessert=dict(default='espresso', description='Dessert',
         ...                    values=dict(espresso='life begins again',
         ...                                cake='waist begins again',
@@ -519,7 +526,8 @@ class GlobalOptions(SageObject):
             ...                   alias=dict(rye='bread')),
             ...       appetizer=dict(alt_name='entree'),
             ...       main=dict(default='pizza', description='Main meal',
-            ...                 values=dict(pizza='thick crust', pasta='penne arrabiata')),
+            ...                 values=dict(pizza='thick crust', pasta='penne arrabiata'),
+            ...                 case_sensitive=False),
             ...       dessert=dict(default='espresso', description='Dessert',
             ...                    values=dict(espresso='life begins again',
             ...                                cake='waist begins again',
@@ -535,6 +543,21 @@ class GlobalOptions(SageObject):
             sage: specials['entree'] = 'rye'
             sage: menu['entree']
             'bread'
+
+            sage: alias_test = GlobalOptions( name='alias_test',
+            ...         doc="Test aliases with case sensitivity",
+            ...         test_opt=dict(default="Upper",
+            ...         description='Starts with an uppercase',
+            ...         values=dict(Upper="Starts with uppercase",
+            ...                     lower="only lowercase"),
+            ...         case_sensitive=False,
+            ...         alias=dict(UpperAlias="Upper", lower_alias="lower")) )
+            sage: alias_test['test_opt'] = 'Lower_Alias'
+            sage: alias_test['test_opt']
+            'lower'
+            sage: alias_test['test_opt'] = 'upperalias'
+            sage: alias_test['test_opt']
+            'Upper'
         """
         self._name=name
         # initialise the various dictionaries used by GlobalOptions
@@ -547,6 +570,8 @@ class GlobalOptions(SageObject):
         self._setter={}           # a dictionary of the list of setters
         self._value={}            # the current options
         self._values={}           # a dictionary of lists of the legal values for each option
+        self._display_values={}   # a dictionary of the output of the values
+        self._case_sensitive = {} # a dictionary of booleans indicating to check case sensitivity
         for option in options:
             self._add_option(option, options[option])
 
@@ -667,6 +692,8 @@ class GlobalOptions(SageObject):
             link,linked_opt=self._linked_value[option]
             return link[linked_opt]
         elif option in self._value:
+            if self._display_values.has_key(option):
+                return self._display_values[option][self._value[option]]
             return self._value[option]
 
 
@@ -747,6 +774,7 @@ class GlobalOptions(SageObject):
         doc={}  # will be used to build the doc string
         option = option.lower()
         self._values[option] = []
+        self._case_sensitive[option] = True    # ``True`` by default
         for spec in sorted(specifications):   # NB: options processed alphabetically!
             if spec=='alias':
                 self._alias[option]=specifications[spec]
@@ -785,9 +813,22 @@ class GlobalOptions(SageObject):
                     raise ValueError('the setter for %s must be a function' % option)
             elif spec=='values':
                 for val in specifications[spec]:
-                    doc[val]=specifications[spec][val]
+                    doc[val] = specifications[spec][val]
                 doc.update(specifications[spec])
-                self._values[option]+=[val.lower() for val in specifications[spec].keys()]
+                if self._case_sensitive[option]:
+                    self._values[option] += [val for val in specifications[spec].keys()]
+                    self._display_values[option] = {val:val for val in specifications[spec].keys()}
+                else:
+                    self._values[option] += [val.lower() for val in specifications[spec].keys()]
+                    self._display_values[option] = {val.lower():val for val in specifications[spec].keys()}
+            elif spec == 'case_sensitive':
+                if not specifications[spec]:
+                    for opt in self._values:
+                        self._display_values[option] = {val.lower():val for val in self._values[option]}
+                        self._values[option] = [val.lower() for val in self._values[option]]
+                    if self._alias.has_key(option):
+                        self._alias[option] = {k.lower():v.lower() for k,v in self._alias[option].iteritems()}
+                self._case_sensitive[option] = bool(specifications[spec])
             elif spec!='description':
                 raise ValueError('Initialization error in Global options for %s: %s not recognized!'%(self._name, spec))
 
@@ -795,7 +836,7 @@ class GlobalOptions(SageObject):
         if doc == {} and not 'description' in specifications:
             raise ValueError('no documentation specified for %s in the %s' % (option, self))
 
-        self._doc[option]=''   # a hack to put option in self._doc because __setitem_ calls _match_option
+        self._doc[option]=''   # a hack to put option in self._doc because __setitem__ calls _match_option
         if option in self._linked_value:
             self._doc[option]=doc
         else:
@@ -844,7 +885,8 @@ class GlobalOptions(SageObject):
             'apple'
         """
         # the keys of self._doc is a list of the options, both normal and linked
-        option=option.lower()
+        option = option.lower()
+
         if option in self._doc: return option
 
         # as it is not an option try and match it with a prefix to an option
@@ -889,15 +931,17 @@ class GlobalOptions(SageObject):
             link, linked_opt = self._linked_value[option]
             return link._match_value(linked_opt, value)
 
-        # convert value to lower case if it is a string
-        if isinstance(value, str):
+        orig_value = value
+
+        # convert to proper case if it is a string
+        if isinstance(value, str) and not self._case_sensitive[option]:
             value = value.lower()
 
         if option in self._values:
             if value in self._values[option]:
                 if option in self._alias and value in self._alias[option]:
                     return self._alias[option][value]
-                else: return value
+                return value
 
             # as it is not a value try and match it with a prefix of a value
             matches=[val for val in self._values[option] if val.startswith(value)]
@@ -905,17 +949,17 @@ class GlobalOptions(SageObject):
                 val=matches[0]
                 if option in self._alias and val in self._alias[option]:
                     return self._alias[option][val]
-                else: return val
+                return val
 
         if option in self._checker and self._checker[option](value):
             return value
 
+        # if we are still here this is not a good value!
+
         # replace any value alias with its "real" value
         if option in self._alias and value in self._alias[option]:
-            value=self._alias[option][value]
-
-        # if we are still here this is not a good value!
-        raise ValueError('%s is not a valid value for %s in the %s'%(value, option, self))
+            orig_value = self._alias[option][value]
+        raise ValueError('%s is not a valid value for %s in the %s'%(orig_value, option, self))
 
 
     def default_value(self, option):
@@ -1023,14 +1067,18 @@ class GlobalOptions(SageObject):
         """
         if option is None:
             for option in self._default_value:
-                self._value[option]=self._default_value[option]
+                self._value[option] = self._default_value[option]
+                if not self._case_sensitive[option] and isinstance(self._value[option],str):
+                    self._value[option] = self._value[option].lower()
             for option in self._linked_value:
                 link, linked_opt=self._linked_value[option]
                 link.reset(linked_opt)
         else:
             option=self._match_option(option)
             if option in self._default_value:
-                self._value[option]=self._default_value[option]
+                self._value[option] = self._default_value[option]
+                if not self._case_sensitive[option] and isinstance(self._value[option],str):
+                    self._value[option] = self._value[option].lower()
             elif option in self._linked_value:
                 link, linked_opt=self._linked_value[option]
                 link.reset(linked_opt)

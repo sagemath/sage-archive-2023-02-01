@@ -495,7 +495,7 @@ class TableauTuple(CombinatorialObject,Element):
                 else:
                     line += '   '+'   '*col_len[c]
             diag.append(line)
-        if TableauTuples.global_options('convention')=='english':
+        if TableauTuples.global_options('convention') == "English":
             return '\n'.join(map(str,diag))
         else:
             return '\n'.join(map(str,diag[::-1]))

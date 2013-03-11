@@ -131,7 +131,7 @@ class RiggedPartition(CombinatorialObject):
             return("(/)\n")
 
         from sage.combinat.partition import Partitions
-        if Partitions.global_options("convention") == "french":
+        if Partitions.global_options("convention") == "French":
             itr = reversed(list(enumerate(self._list)))
         else:
             itr = enumerate(self._list)

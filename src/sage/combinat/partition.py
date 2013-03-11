@@ -380,7 +380,7 @@ PartitionOptions=GlobalOptions(name='partitions',
                  alias=dict(exp="exp_low", compact="compact_low", array="diagram",
                            ferrers_diagram="diagram", young_diagram="diagram",
                            ferrers_diagram_str="diagram_str",young_diagram_str="diagram_str"),
-                ),
+                 case_sensitive=False),
     latex=dict(default="young_diagram",
                description='Specifies how partitions should be latexed',
                values=dict(diagram='latex as a Ferrers diagram',
@@ -388,8 +388,8 @@ PartitionOptions=GlobalOptions(name='partitions',
                            list='latex as a list',
                            exp_high='latex as a list in exponential notation (highest first)',
                            exp_low='as a list latex in exponential notation (lowest first)'),
-               alias=dict(exp="exp_low", array="diagram", ferrers_diagram="diagram")
-              ),
+               alias=dict(exp="exp_low", array="diagram", ferrers_diagram="diagram"),
+               case_sensitive=False),
     diagram_str=dict(default="*",
                      description='The character used for the cells when printing Ferrers diagrams',
                      checker=lambda char: isinstance(char,str)),
@@ -1042,7 +1042,7 @@ class Partition(CombinatorialObject, Element):
             sage: Partitions.global_options.reset()
         """
         diag_str = self.parent().global_options('diagram_str')
-        if self.parent().global_options('convention') == 'english':
+        if self.parent().global_options('convention') == "English":
             return '\n'.join([diag_str*p for p in self])
         else:
             return '\n'.join([diag_str*p for p in reversed(self)])

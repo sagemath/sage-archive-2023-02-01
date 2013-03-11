@@ -780,7 +780,7 @@ class PartitionTuple(CombinatorialObject,Element):
                 else:
                     line += '   {:{}}'.format('',col_len[c])
             diag.append(line.rstrip())
-        if PartitionTuples.global_options('convention')=='english':
+        if PartitionTuples.global_options('convention') == "English":
             return '\n'.join(map(str, diag))
         else:
             return '\n'.join(map(str, diag[::-1]))

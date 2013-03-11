@@ -151,16 +151,17 @@ TableauOptions=GlobalOptions(name='tableaux',
                  values=dict(list='print tableaux as lists',
                              diagram='display as Young diagram (simlar to :meth:`~sage.combinat.tableau.Tableau.pp()`',
                              compact='minimal length string representation'),
-                 alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram")
-                ),
+                 alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
+                 case_sensitive=False),
     latex=dict(default="diagram",
                description='Controls the way in wich tableaux are latexed',
                values=dict(list='as a list', diagram='as a Young diagram'),
-               alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram")
-              ),
-    convention=dict(default="english",
+               alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
+               case_sensitive=False),
+    convention=dict(default="English",
                     description='Sets the convention used for displaying tableaux and partitions',
-                    values=dict(English='use the English convention',French='use the French convention')),
+                    values=dict(English='use the English convention',French='use the French convention'),
+                    case_sensitive=False),
     notation = dict(alt_name="convention")
 )
 
@@ -365,7 +366,7 @@ class Tableau(CombinatorialObject, Element):
               1  2  3
             sage: Tableaux.global_options.reset()
         """
-        if self.parent().global_options('convention') == "english":
+        if self.parent().global_options('convention') == "English":
             return '\n'.join(["".join(map(lambda x: "%3s"%str(x) , row)) for row in self])
         else:
             return '\n'.join(["".join(map(lambda x: "%3s"%str(x) , row)) for row in reversed(self)])

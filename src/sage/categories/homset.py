@@ -76,7 +76,7 @@ import types
 # introduced in trac ticket #715
 
 from weakref import KeyedRef
-from sage.structure.coerce_dict import TripleDict
+from sage.structure.coerce_dict import signed_id, TripleDict
 _cache = TripleDict(53)
 
 def Hom(X, Y, category=None):
@@ -263,7 +263,7 @@ def Hom(X, Y, category=None):
     H = category.hom_category().parent_class(X, Y, category = category)
 
     ##_cache[key] = weakref.ref(H)
-    _cache[key] = KeyedRef(H, _cache.eraser, (id(X),id(Y),id(category)))
+    _cache[key] = KeyedRef(H, _cache.eraser, (signed_id(X),signed_id(Y),signed_id(category)))
     return H
 
 def hom(X, Y, f):

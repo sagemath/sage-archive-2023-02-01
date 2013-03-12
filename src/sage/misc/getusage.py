@@ -20,6 +20,8 @@ def top():
     """
     Return the 'top' or 'prstat' line that contains this running Sage
     process.
+    For FreeBSD, return the line containing this running Sage process from
+    'ps -axwww -o pid,user,vsz,rss,state,pri,nice,time,cpu,comm'.
 
     OUTPUT:
 
@@ -55,6 +57,8 @@ def top():
         cmd = '/usr/bin/prstat -n 100000 1 1  | grep "^ *%s "' % pid
     elif U[:6] == 'cygwin':
         cmd = 'top -b -n 1 -p %s' % pid
+    elif U == 'freebsd':
+        cmd = 'ps -axwww -o pid,user,vsz,rss,state,pri,nice,time,cpu,comm | grep "^ *%s "' % pid
     else:
         raise NotImplementedError("top not implemented on platform %s" % U)
 
@@ -84,6 +88,9 @@ def get_memory_usage(t=None):
       that matches RSS column of ``prstat``. Depending on the memory
       usage, ``prstat`` will output the data in KB, MB or GB. In each
       case, the value returned by this function will always be in MB.
+
+    - ``FreeBSD`` - Returns float number (in megabytes) that matches
+      RSS column of ``ps -auxwww``
 
     - ``other`` - not implemented for any other operating systems
 
@@ -131,6 +138,9 @@ def get_memory_usage(t=None):
             m = float(memory_in_KB_MB_or_GB.strip("M"))
         elif memory_in_KB_MB_or_GB.endswith("G"):
             m = float(memory_in_KB_MB_or_GB.strip("G")) * 1024
+    elif U == 'freebsd':
+        memory_in_KB = top().split()[3]
+        m = float(memory_in_KB) / 1024
     else:
         raise NotImplementedError("memory usage not implemented on platform %s" % U)
 

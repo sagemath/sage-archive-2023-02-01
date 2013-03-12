@@ -70,6 +70,17 @@ http://www.python.org/community/
 
 == Changelog ==
 
+=== python-2.7.3.p6 (Jeroen Demeyer, 24 March 2013) ===
+ * Trac #14265: Compile with -D__C99FEATURES__ on Solaris.
+ * Remove workaround for http://bugs.python.org/issue6954
+   (which is fixed upstream).
+ * Rename environment variable EXTRAFLAGS to PYTHON_CONFIGURE for
+   consistency with other packages and allow it to be set by the user.
+ * Add check that the ctypes and readline (required for IPython) and
+   socket (required for setuptools) modules can be imported.
+ * Don't add the -fwrapv flag (no longer needed since Python-2.7.3 adds
+   this flag for Clang).
+
 === python-2.7.3.p5 (Volker Braun, 28 December 2012) ===
  * Trac #13867: disable debugging output at each command line
 

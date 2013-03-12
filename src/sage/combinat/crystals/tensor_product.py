@@ -342,6 +342,57 @@ class CrystalOfWords(UniqueRepresentation, Parent):
         """
         return self.element_class(self, list(crystalElements))
 
+    def one_dimensional_configuration_sum(self, q = None, group_components = True):
+        r"""
+        Computes the one-dimensional configuration sum.
+
+        INPUT:
+
+        - ``q`` -- (default: ``None``) a variable or ``None``; if ``None``,
+          a variable `q` is set in the code
+        - ``group_components`` -- (default: ``True``) boolean; if ``True``,
+          then the terms are grouped by classical component
+
+        The one-dimensional configuration sum is the sum of the weights of all elements in the crystal
+        weighted by the energy function.
+
+        EXAMPLES::
+
+            sage: K = KirillovReshetikhinCrystal(['A',2,1],1,1)
+            sage: T = TensorProductOfCrystals(K,K)
+            sage: T.one_dimensional_configuration_sum()
+            B[-2*Lambda[1] + 2*Lambda[2]] + (q+1)*B[-Lambda[1]] + (q+1)*B[Lambda[1] - Lambda[2]]
+            + B[2*Lambda[1]] + B[-2*Lambda[2]] + (q+1)*B[Lambda[2]]
+            sage: R.<t> = ZZ[]
+            sage: T.one_dimensional_configuration_sum(t, False)
+            B[-2*Lambda[1] + 2*Lambda[2]] + (t+1)*B[-Lambda[1]] + (t+1)*B[Lambda[1] - Lambda[2]]
+            + B[2*Lambda[1]] + B[-2*Lambda[2]] + (t+1)*B[Lambda[2]]
+
+            sage: R = RootSystem(['A',2,1])
+            sage: La = R.weight_space().basis()
+            sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1])
+            sage: LS.one_dimensional_configuration_sum() == T.one_dimensional_configuration_sum()
+            True
+
+        TESTS::
+
+            sage: K1 = KirillovReshetikhinCrystal(['A',2,1],1,1)
+            sage: K2 = KirillovReshetikhinCrystal(['A',2,1],2,1)
+            sage: T = TensorProductOfCrystals(K1,K2)
+            sage: T.one_dimensional_configuration_sum() == T.one_dimensional_configuration_sum(group_components=False)
+            True
+        """
+        if q is None:
+            from sage.rings.all import QQ
+            q = QQ['q'].gens()[0]
+        P0 = self.weight_lattice_realization().classical()
+        B = P0.algebra(q.parent())
+        if group_components:
+            G = self.digraph(index_set = self.cartan_type().classical().index_set())
+            C = G.connected_components()
+            return sum(q**(c[0].energy_function())*B.sum(B(P0(b.weight())) for b in c) for c in C)
+        return B.sum(q**(b.energy_function())*B(P0(b.weight())) for b in self)
+
 
 class TensorProductOfCrystalsWithGenerators(CrystalOfWords):
 

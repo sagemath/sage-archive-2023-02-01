@@ -102,21 +102,23 @@ class WeylGroups(Category_singleton):
             else:
                 raise NotImplementedError("Pieri factors for type %s"%ct)
 
-        def quantum_bruhat_graph(self, index_set = None):
+        @cached_method
+        def quantum_bruhat_graph(self, index_set = ()):
             r"""
-            Returns the quantum Bruhat graph of the quotient of the Weyl group by a parabolic subgroup.
+            Returns the quantum Bruhat graph of the quotient of the Weyl group by a parabolic subgroup `W_J`.
 
             INPUT:
 
-            - ``index_set`` -- (default: None) indicates the set of simple reflections used to generate the parabolic subgroup;
-               the default value indicates that the subgroup is trivial and the quotient is the Weyl group
+            - ``index_set`` -- a tuple `J` of nodes of the Dynkin diagram (default: ())
+
+            By default, the value for ``index_set`` indicates that the subgroup is trivial and the quotient is the full Weyl group.
 
             EXAMPLES::
 
                 sage: W = WeylGroup(['A',3], prefix="s")
-                sage: g = W.quantum_bruhat_graph([1,3])
+                sage: g = W.quantum_bruhat_graph((1,3))
                 sage: g
-                Parabolic Quantum Bruhat Graph of Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space) for nodes [1, 3]: Digraph on 6 vertices
+                Parabolic Quantum Bruhat Graph of Weyl Group of type ['A', 3] (as a matrix group acting on the ambient space) for nodes (1, 3): Digraph on 6 vertices
                 sage: g.vertices()
                 [s2*s3*s1*s2, s3*s1*s2, s1*s2, s3*s2, s2, 1]
                 sage: g.edges()
@@ -133,8 +135,6 @@ class WeylGroups(Category_singleton):
             if not self.cartan_type().is_finite():
                 raise ValueError, "The Cartan type %s is not finite"%(self.cartan_type())
             from sage.graphs.digraph import DiGraph
-            if index_set is None:
-                index_set = []
             WP = [x for x in self if x==x.coset_representative(index_set)]
             return DiGraph([[x,i[0],i[1]] for x in WP for i in x.quantum_bruhat_successors(index_set, roots = True)],
                            name="Parabolic Quantum Bruhat Graph of %s for nodes %s"%(self.__repr__(),index_set))

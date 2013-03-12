@@ -1,5 +1,10 @@
 r"""
 Littelmann paths
+
+AUTHORS:
+
+- Mark Shimozono, Anne Schilling (2012): Initial version
+- Anne Schilling (2013): Implemented :class:`CrystalOfProjectedLevelZeroLSPaths`
 """
 #****************************************************************************
 #       Copyright (C) 2012 Mark Shimozono
@@ -17,14 +22,18 @@ Littelmann paths
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
 
+from sage.misc.cachefunc import cached_in_parent_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent
 from sage.categories.crystals import Crystals
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.categories.finite_crystals import FiniteCrystals
+from sage.categories.classical_crystals import ClassicalCrystals
 from sage.combinat.root_system.cartan_type import CartanType
+from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.rings.integer import Integer
+from sage.rings.rational_field import QQ
 from sage.combinat.root_system.root_system import RootSystem
 from sage.functions.other import floor
 from sage.misc.latex import latex
@@ -36,19 +45,31 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
     INPUT:
 
-    - ``cartan_type`` -- the Cartan type of a finite or affine root system
-    - ``starting_weight`` -- a weight given as a list of coefficients of the fundamental weights
+    - ``cartan_type`` -- (optional) the Cartan type of a finite or affine root system
+    - ``starting_weight`` -- a weight; if ``cartan_type`` is given, then the weight should
+      be given as a list of coefficients of the fundamental weights, otherwise it should
+      be given in the ``weight_space`` basis; for affine highest weight crystals, one needs
+      to use the extended weight space.
 
     The crystal class of piecewise linear paths in the weight space,
     generated from a straight-line path from the origin to a given
     element of the weight lattice.
 
-    OUTPUT: - a tuple of weights defining the directions of the piecewise linear segments
+    OUTPUT:
+
+    - a tuple of weights defining the directions of the piecewise linear segments
 
     EXAMPLES::
 
+        sage: R = RootSystem(['A',2,1])
+        sage: La = R.weight_space(extended = True).basis()
+        sage: B = CrystalOfLSPaths(La[2]-La[0]); B
+        The crystal of LS paths of type ['A', 2, 1] and weight -Lambda[0] + Lambda[2]
+
         sage: C = CrystalOfLSPaths(['A',2,1],[-1,0,1]); C
-        The crystal of LS paths of type ['A', 2, 1] and weight (-1, 0, 1)
+        The crystal of LS paths of type ['A', 2, 1] and weight -Lambda[0] + Lambda[2]
+        sage: B == C
+        True
         sage: c = C.module_generators[0]; c
         (-Lambda[0] + Lambda[2],)
         sage: [c.f(i) for i in C.index_set()]
@@ -79,40 +100,65 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
         sage: B.digraph().is_isomorphic(C.digraph())
         True
 
-    TESTS::
+    Make sure you use the weight space and not the weight lattice for your weights::
 
-        sage: C = CrystalOfLSPaths(['A',2,1],[-1,0,1])
-        sage: TestSuite(C).run(skip=['_test_elements', '_test_elements_eq', '_test_enumerated_set_contains', '_test_some_elements'])
-        sage: C = CrystalOfLSPaths(['E',6],[1,0,0,0,0,0])
-        sage: TestSuite(C).run()
+        sage: R = RootSystem(['A',2,1])
+        sage: La = R.weight_lattice(extended = True).basis()
+        sage: B = CrystalOfLSPaths(La[2]); B
+        Traceback (most recent call last):
+        ...
+        ValueError: Please use the weight space, rather than weight lattice for your weights
 
-    REFERENCES::
+    REFERENCES:
 
-        .. [L] P. Littelmann, Paths and root operators in representation theory. Ann. of Math. (2) 142 (1995), no. 3, 499-525.
+    .. [Littelmann95] P. Littelmann, Paths and root operators in representation
+       theory. Ann. of Math. (2) 142 (1995), no. 3, 499-525.
     """
 
     @staticmethod
-    def __classcall__(cls, cartan_type, starting_weight):
+    def __classcall_private__(cls, starting_weight, cartan_type = None):
         """
-        cartan_type and starting_weight are lists, which are mutable. The class
-        UniqueRepresentation requires immutable inputs. The following code
-        fixes this problem.
+        Classcall to mend the input.
+
+        Internally, the CrystalOfLSPaths code works with a ``starting_weight`` that
+        is in the ``weight_space`` associated to the crystal. The user can, however,
+        also input a ``cartan_type`` and the coefficients of the fundamental weights
+        as ``starting_weight``. This code transforms the input into the right
+        format (also necessary for UniqueRepresentation).
 
         TESTS::
 
-            sage: CrystalOfLSPaths.__classcall__(CrystalOfLSPaths,['A',2,1],[-1,0,1])
-            The crystal of LS paths of type ['A', 2, 1] and weight (-1, 0, 1)
-        """
-        cartan_type = CartanType(cartan_type)
-        starting_weight = tuple(starting_weight)
-        return super(CrystalOfLSPaths, cls).__classcall__(cls, cartan_type, starting_weight)
+            sage: CrystalOfLSPaths(['A',2,1],[-1,0,1])
+            The crystal of LS paths of type ['A', 2, 1] and weight -Lambda[0] + Lambda[2]
 
-    def __init__(self, cartan_type, starting_weight):
+            sage: R = RootSystem(['B',2,1])
+            sage: La = R.weight_space().basis()
+            sage: C = CrystalOfLSPaths(['B',2,1],[0,0,1])
+            sage: B = CrystalOfLSPaths(La[2])
+            sage: B is C
+            True
+        """
+        if cartan_type is not None:
+            cartan_type, starting_weight = CartanType(starting_weight), cartan_type
+            if cartan_type.is_affine():
+                extended = True
+            else:
+                extended = False
+
+            R = RootSystem(cartan_type)
+            P = R.weight_space(extended = extended)
+            Lambda = P.basis()
+            offset = R.index_set()[Integer(0)]
+            starting_weight = P.sum(starting_weight[j-offset]*Lambda[j] for j in R.index_set())
+
+        return super(CrystalOfLSPaths, cls).__classcall__(cls, starting_weight)
+
+    def __init__(self, starting_weight):
         """
         EXAMPLES::
 
             sage: C = CrystalOfLSPaths(['A',2,1],[-1,0,1]); C
-            The crystal of LS paths of type ['A', 2, 1] and weight (-1, 0, 1)
+            The crystal of LS paths of type ['A', 2, 1] and weight -Lambda[0] + Lambda[2]
             sage: C.R
             Root system of type ['A', 2, 1]
             sage: C.weight
@@ -121,32 +167,35 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
             Extended weight space over the Rational Field of the Root system of type ['A', 2, 1]
             sage: C.module_generators
             [(-Lambda[0] + Lambda[2],)]
+
+        TESTS::
+
+            sage: C = CrystalOfLSPaths(['A',2,1], [-1,0,1])
+            sage: TestSuite(C).run() #skip=['_test_elements', '_test_elements_eq', '_test_enumerated_set_contains', '_test_some_elements'])
+            sage: C = CrystalOfLSPaths(['E',6], [1,0,0,0,0,0])
+            sage: TestSuite(C).run()
         """
-        self._cartan_type = CartanType(cartan_type)
+        cartan_type = starting_weight.parent().cartan_type()
         self.R = RootSystem(cartan_type)
-
+        self.weight = starting_weight
+        if not self.weight.parent().base_ring().has_coerce_map_from(QQ):
+             raise ValueError, "Please use the weight space, rather than weight lattice for your weights"
+        self._cartan_type = cartan_type
         self._name = "The crystal of LS paths of type %s and weight %s"%(cartan_type,starting_weight)
-
-        if self._cartan_type.is_affine():
-            self.extended = True
-            if all(i>=0 for i in starting_weight):
+        if cartan_type.is_affine():
+            if all(i>=0 for i in starting_weight.coefficients()):
                 Parent.__init__(self, category = HighestWeightCrystals())
-            else:
+            elif starting_weight.parent().is_extended():
                 Parent.__init__(self, category = Crystals())
+            else:
+                Parent.__init__(self, category = FiniteCrystals())
         else:
-            self.extended = False
-            Parent.__init__(self, category = FiniteCrystals())
+            Parent.__init__(self, category = ClassicalCrystals())
 
-        Lambda = self.R.weight_space(extended = self.extended).basis()
-        offset = self.R.index_set()[Integer(0)]
-
-        zero_weight = self.R.weight_space(extended = self.extended).zero()
-        self.weight = sum([zero_weight]+[starting_weight[j-offset]*Lambda[j] for j in self.R.index_set()])
-
-        if self.weight == zero_weight:
+        if starting_weight == starting_weight.parent().zero():
             initial_element = self(tuple([]))
         else:
-            initial_element = self(tuple([self.weight]))
+            initial_element = self(tuple([starting_weight]))
         self.module_generators = [initial_element]
 
     def _repr_(self):
@@ -154,7 +203,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: CrystalOfLSPaths(['B',3],[1,1,0]) # indirect doctest
-            The crystal of LS paths of type ['B', 3] and weight (1, 1, 0)
+            The crystal of LS paths of type ['B', 3] and weight Lambda[1] + Lambda[2]
         """
         return self._name
 
@@ -191,7 +240,8 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
             """
             if len(self.value) > 0:
                 return sum(self.value)
-            return self.parent().R.weight_space(extended = self.parent().extended).zero()
+            return self.parent().weight.parent().zero()
+            #return self.parent().R.weight_space(extended = self.parent().extended).zero()
 
         def compress(self):
             r"""
@@ -235,6 +285,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
             Splits indicated step into two parallel steps of relative lengths `r` and `1-r`.
 
             INPUT:
+
             - ``which_step`` -- a position in the tuple ``self``
             - ``r`` -- a rational number between 0 and 1
 
@@ -342,11 +393,11 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
             - ``i`` -- element of the index set of the underlying root system
             - ``power`` -- positive integer; specifies the power of the raising operator
-               to be applied (default: 1)
+              to be applied (default: 1)
             - ``to_string_end`` -- boolean; if set to True, returns the dominant end of the
               `i`-string of ``self``. (default: False)
             - ``length_only`` -- boolean; if set to True, returns the distance to the dominant
-               end of the `i`-string of ``self``.
+              end of the `i`-string of ``self``.
 
             EXAMPLES::
 
@@ -439,11 +490,11 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
             - ``i`` -- element of the index set of the underlying root system
             - ``power`` -- positive integer; specifies the power of the lowering operator
-               to be applied (default: 1)
+              to be applied (default: 1)
             - ``to_string_end`` -- boolean; if set to True, returns the anti-dominant end of the
               `i`-string of ``self``. (default: False)
             - ``length_only`` -- boolean; if set to True, returns the distance to the anti-dominant
-               end of the `i`-string of ``self``.
+              end of the `i`-string of ``self``.
 
             EXAMPLES::
 
@@ -518,3 +569,298 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
                 [\Lambda_{1} + \Lambda_{2}]
             """
             return [latex(p) for p in self.value]
+
+
+class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
+    r"""
+    Crystal of projected level zero LS paths.
+
+    INPUT:
+
+    - ``weight`` -- a dominant weight of the weight space of an affine Kac-Moody root system
+
+    When ``weight`` is just a single fundamental weight `\Lambda_r`, this crystal is
+    isomorphic to a Kirillov-Reshetikhin (KR) crystal, see also
+    :meth:`sage.combinat.crystals.kirillov_reshetikhin.KirillovReshetikhinCrystalFromLSPaths`.
+    For general weights, it is isomorphic to a tensor product of single-column KR crystals.
+
+    EXAMPLES::
+
+        sage: R = RootSystem(['C',3,1])
+        sage: La = R.weight_space().basis()
+        sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[3])
+        sage: LS.cardinality()
+        84
+        sage: GLS = LS.digraph()
+
+        sage: K1 = KirillovReshetikhinCrystal(['C',3,1],1,1)
+        sage: K3 = KirillovReshetikhinCrystal(['C',3,1],3,1)
+        sage: T = TensorProductOfCrystals(K3,K1)
+        sage: T.cardinality()
+        84
+        sage: GT = T.digraph()
+        sage: GLS.is_isomorphic(GT, edge_labels = True)
+        True
+    """
+
+    @staticmethod
+    def __classcall_private__(cls, weight):
+        """
+        Classcall to mend the input.
+
+        Internally, the CrystalOfProjectedLevelZeroLSPaths uses a level zero weight,
+        which is passed on to CrystalOfLSPaths. ``weight`` is first coerced to
+        a level zero weight.
+
+        TESTS::
+
+            sage: R = RootSystem(['C',3,1])
+            sage: La = R.weight_space().basis()
+            sage: C = CrystalOfProjectedLevelZeroLSPaths(La[1] + La[2])
+            sage: C2 = CrystalOfProjectedLevelZeroLSPaths(La[1] + La[2])
+            sage: C is C2
+            True
+        """
+        La = weight.parent().basis()
+        weight = weight - (weight.level())*La[0]
+        return super(CrystalOfLSPaths, cls).__classcall__(cls, weight)
+
+    def one_dimensional_configuration_sum(self, q = None, group_components = True):
+        r"""
+        Computes the one-dimensional configuration sum for untwisted types.
+
+        INPUT:
+
+        - ``q`` -- (default: ``None``) a variable or ``None``; if ``None``,
+          a variable `q` is set in the code
+        - ``group_components`` -- (default: ``True``) boolean; if ``True``,
+          then the terms are grouped by classical component
+
+        The one-dimensional configuration sum is the sum of the weights of all elements in the crystal
+        weighted by the energy function.
+
+        .. WARNING::
+
+            The one-dimensional configuration sum using LS paths is currently only implemented for
+            untwisted types!
+
+        EXAMPLES::
+
+            sage: R = RootSystem(['A',2,1])
+            sage: La = R.weight_space().basis()
+            sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1])
+            sage: LS.one_dimensional_configuration_sum()
+            B[-2*Lambda[1] + 2*Lambda[2]] + (q+1)*B[-Lambda[1]]
+            + (q+1)*B[Lambda[1] - Lambda[2]] + B[2*Lambda[1]] + B[-2*Lambda[2]] + (q+1)*B[Lambda[2]]
+            sage: R.<t> = ZZ[]
+            sage: LS.one_dimensional_configuration_sum(t, False)
+            B[-2*Lambda[1] + 2*Lambda[2]] + (t+1)*B[-Lambda[1]] + (t+1)*B[Lambda[1] - Lambda[2]]
+            + B[2*Lambda[1]] + B[-2*Lambda[2]] + (t+1)*B[Lambda[2]]
+
+        TESTS::
+
+            sage: R = RootSystem(['B',3,1])
+            sage: La = R.weight_space().basis()
+            sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[2])
+            sage: LS.one_dimensional_configuration_sum() == LS.one_dimensional_configuration_sum(group_components=False)
+            True
+            sage: K1 = KirillovReshetikhinCrystal(['B',3,1],1,1)
+            sage: K2 = KirillovReshetikhinCrystal(['B',3,1],2,1)
+            sage: T = TensorProductOfCrystals(K2,K1)
+            sage: T.one_dimensional_configuration_sum() == LS.one_dimensional_configuration_sum()
+            True
+        """
+        if q is None:
+            from sage.rings.all import QQ
+            q = QQ['q'].gens()[0]
+        P0 = self.weight_lattice_realization().classical()
+        B = P0.algebra(q.parent())
+        if group_components:
+            G = self.digraph(index_set = self.cartan_type().classical().index_set())
+            C = G.connected_components()
+            return sum(q**(c[0].energy_function())*B.sum(B(P0(b.weight())) for b in c) for c in C)
+        return B.sum(q**(b.energy_function())*B(P0(b.weight())) for b in self)
+
+
+    class Element(CrystalOfLSPaths.Element):
+        """
+        Element of a crystal of projected level zero LS paths.
+        """
+
+        @cached_in_parent_method
+        def scalar_factors(self):
+            r"""
+            Obtain the scalar factors for ``self``.
+
+            Each LS path (or ``self``) can be written as a piecewise linear map
+
+            .. MATH::
+
+                \pi(t) = \sum_{u'=1}^{u-1} (\sigma_{u'} - \sigma_{u'-1}) \nu_{u'} + (t-\sigma_{u-1}) \nu_{u}
+
+            for `0<\sigma_1<\sigma_2<\cdots<\sigma_s=1` and `\sigma_{u-1} \le t \le \sigma_{u}` and `1 \le u \le s`.
+            This method returns the tuple of `(\sigma_1,\ldots,\sigma_s)`.
+
+            EXAMPLES::
+
+                sage: R = RootSystem(['C',3,1])
+                sage: La = R.weight_space().basis()
+                sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[3])
+                sage: b = LS.module_generators[0]
+                sage: b.scalar_factors()
+                [1]
+                sage: c = b.f(1).f(3).f(2)
+                sage: c.scalar_factors()
+                [1/3, 1]
+            """
+            weight = self.parent().weight
+            l = []
+            s = 0
+            for c in self.value:
+                supp = c.support()
+                if len(supp) > 0:
+                    for w in weight.orbit():
+                        i = supp[0]
+                        # Check whether the vectors c and w are positive scalar multiples of each other
+                        if i in w.support() and c[i]*w[i] > 0 and c[i]*w == w[i]*c:
+                            s += c[i] / w[i]
+                            l += [s]
+                            break
+            return l
+
+        @cached_in_parent_method
+        def weyl_group_representation(self):
+            r"""
+            Transforms the weights in the LS path ``self`` to elements in the Weyl group.
+
+            Each LS path can be written as the piecewise linear map:
+
+            .. MATH::
+
+                \pi(t) = \sum_{u'=1}^{u-1} (\sigma_{u'} - \sigma_{u'-1}) \nu_{u'} + (t-\sigma_{u-1}) \nu_{u}
+
+            for `0<\sigma_1<\sigma_2<\cdots<\sigma_s=1` and `\sigma_{u-1} \le t \le \sigma_{u}` and `1 \le u \le s`.
+            Each weight `\nu_u` is also associated to a Weyl group element. This method returns the list
+            of Weyl group elements associated to the `\nu_u` for `1\le u\le s`.
+
+            EXAMPLES::
+
+                sage: R = RootSystem(['C',3,1])
+                sage: La = R.weight_space().basis()
+                sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[3])
+                sage: b = LS.module_generators[0]
+                sage: c = b.f(1).f(3).f(2)
+                sage: c.weyl_group_representation()
+                [s2*s3*s1, s3*s1]
+            """
+            weight = self.parent().weight
+            level = -weight.coefficient(0)
+            La = weight.parent().fundamental_weights()
+            cartan = weight.parent().cartan_type().classical()
+            W = WeylGroup(cartan,prefix='s')
+            scalars = [0] + self.scalar_factors()
+            l = [(self.value[i]/(scalars[i+1]-scalars[i])+level*La[0]).to_dominant_chamber(reduced_word=True) for i in range(len(scalars)-1)]
+            return [W.from_reduced_word(a[1]) for a in l]
+
+        @cached_in_parent_method
+        def energy_function(self):
+            r"""
+            Returns the energy function of ``self`` for untwisted types.
+
+            For level zero LS paths `\pi \in \mathbb{B}_\mathrm{cl}(\lambda)`, the energy function is defined as follows:
+
+            .. MATH::
+
+                D(\pi)=-\sum_{u=1}^{s-1} (1-\sigma_{u}) \langle \lambda,\mathrm{wt}(b_{u}) \rangle
+
+            To make sense of this equation, we first need some definitions.
+            Let us write the LS path (or ``self``) as a piecewise linear map
+
+            .. MATH::
+
+                \pi(t)=\sum_{u'=1}^{u-1} (\sigma_{u'}-\sigma_{u'-1})x_{u'}+(t-\sigma_{u-1})x_{u}
+
+            for `\sigma_{u-1} \le t \le \sigma_{u}` and `1 \le u \le s`.
+            Here `b_{u}` is a shortest directed path from `x_{u+1}` to `x_{u}` in the parabolic quantum
+            Bruhat graph.
+
+            For any `x,y\in W/W_J`, where `W_J` is a parabolic subgroup of `W` (the stabilizer of the weight `\lambda`), let
+
+            .. MATH::
+
+                d: x= w_{0} \stackrel{\beta_{1}}{\leftarrow}
+                w_{1} \stackrel{\beta_{2}}{\leftarrow} \cdots
+                \stackrel{\beta_{n}}{\leftarrow} w_{n}=y
+
+            be a shortest path in the parabolic quantum Bruhat graph. The weight is defined as
+
+            .. MATH::
+
+                \mathrm{wt}(d):=\sum_{ \begin{subarray}{c}
+                1 \le k \le n \text{ such that } \\
+                w_{k-1} \stackrel{\beta_{k}}{\leftarrow} w_{k}
+                \text{ is a down arrow}
+                \end{subarray}
+                }
+                \beta_{k}^{\vee}.
+
+            For more information, see [LNSSS2013]_.
+
+            REFERENCES:
+
+            .. [LNSSS2013] C. Lenart, S. Naito, D. Sagaki, A. Schilling, M. Shimozono,
+               A uniform model for Kirillov-Reshetikhin crystals. Extended abstract.
+               DMTCS proc, to appear ( {{{:arXiv:`1211.6019`}}} )
+
+            .. WARNING::
+
+                The energy function for LS paths is currently only implemented for
+                untwisted types!
+
+
+            EXAMPLES::
+
+                sage: R = RootSystem(['C',3,1])
+                sage: La = R.weight_space().basis()
+                sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[3])
+                sage: b = LS.module_generators[0]
+                sage: c = b.f(1).f(3).f(2)
+                sage: c.energy_function()
+                0
+                sage: c=b.e(0)
+                sage: c.energy_function()
+                1
+
+                sage: R = RootSystem(['A',2,1])
+                sage: La = R.weight_space().basis()
+                sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1])
+                sage: b = LS.module_generators[0]
+                sage: c = b.e(0)
+                sage: c.energy_function()
+                1
+                sage: [c.energy_function() for c in sorted(LS.list())]
+                [0, 1, 0, 0, 0, 1, 0, 1, 0]
+
+            The next test checks that the energy function is constant on classically connected components::
+
+                sage: R = RootSystem(['A',2,1])
+                sage: La = R.weight_space().basis()
+                sage: LS = CrystalOfProjectedLevelZeroLSPaths(2*La[1]+La[2])
+                sage: G = LS.digraph(index_set=[1,2])
+                sage: C = G.connected_components()
+                sage: [all(c[0].energy_function()==a.energy_function() for a in c) for c in C]
+                [True, True, True, True]
+            """
+            weight = self.parent().weight
+            c_weight = weight.parent().classical()(weight)
+            cartan = weight.parent().cartan_type().classical()
+            W = WeylGroup(cartan,prefix='s')
+            R = RootSystem(cartan).coroot_lattice()
+            G = W.quantum_bruhat_graph(tuple(weight.weyl_stabilizer()))
+            L = self.weyl_group_representation()
+            paths = [G.shortest_path(L[i+1],L[i]) for i in range(len(L)-1)]
+            paths_labels = [[G.edge_label(p[i],p[i+1]) for i in range(len(p)-1) if p[i].length()+1 != p[i+1].length()] for p in paths]
+            scalars = self.scalar_factors()
+            return sum((1-scalars[i])*c_weight.scalar( R.sum(root.associated_coroot()
+                       for root in paths_labels[i]) ) for i in range(len(paths_labels)))
+

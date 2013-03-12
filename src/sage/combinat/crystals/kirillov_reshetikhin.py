@@ -33,12 +33,104 @@ from sage.combinat.crystals.affine import AffineCrystalFromClassical, \
   AffineCrystalFromClassicalElement, AffineCrystalFromClassicalAndPromotion, \
   AffineCrystalFromClassicalAndPromotionElement
 from sage.combinat.crystals.highest_weight_crystals import HighestWeightCrystal
+from sage.combinat.crystals.littelmann_path import CrystalOfProjectedLevelZeroLSPaths
 from sage.combinat.crystals.direct_sum import DirectSumOfCrystals
 from sage.combinat.root_system.cartan_type import CartanType
+from sage.combinat.root_system.root_system import RootSystem
 from sage.combinat.crystals.tensor_product import CrystalOfTableaux, TensorProductOfCrystals
 from sage.combinat.tableau import Tableau
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.integer_vector import IntegerVectors
+
+
+def KirillovReshetikhinCrystalFromLSPaths(cartan_type, r, s=1):
+    r"""
+    Single column Kirillov-Reshetikhin crystals.
+
+    This yields the single column Kirillov-Reshetikhin crystals
+    from the projected level zero LS paths, see :class:`sage.combinat.crystals.littelmann_paths.CrystalOfLSPaths`.
+    This works for all types (even exceptional types).
+    The weight of the canonical element in this crystal is `\Lambda_r`.
+    For other implementation see :meth:`KirillovReshetikhinCrystal`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.crystals.kirillov_reshetikhin import KirillovReshetikhinCrystalFromLSPaths
+        sage: K = KirillovReshetikhinCrystalFromLSPaths(['A',2,1],2)
+        sage: KR = KirillovReshetikhinCrystal(['A',2,1],2,1)
+        sage: G = K.digraph()
+        sage: GR = KR.digraph()
+        sage: G.is_isomorphic(GR, edge_labels = True)
+        True
+
+        sage: K = KirillovReshetikhinCrystalFromLSPaths(['C',3,1],2)
+        sage: KR = KirillovReshetikhinCrystal(['C',3,1],2,1)
+        sage: G = K.digraph()
+        sage: GR = KR.digraph()
+        sage: G.is_isomorphic(GR, edge_labels = True)
+        True
+
+        sage: K = KirillovReshetikhinCrystalFromLSPaths(['E',6,1],1)
+        sage: KR = KirillovReshetikhinCrystal(['E',6,1],1,1)
+        sage: G = K.digraph()
+        sage: GR = KR.digraph()
+        sage: G.is_isomorphic(GR, edge_labels = True)
+        True
+        sage: K.cardinality()
+        27
+
+        sage: K = KirillovReshetikhinCrystalFromLSPaths(['G',2,1],1)
+        sage: K.cardinality()
+        7
+
+        sage: K = KirillovReshetikhinCrystalFromLSPaths(['B',3,1],2)
+        sage: KR = KirillovReshetikhinCrystal(['B',3,1],2,1)
+        sage: KR.cardinality()
+        22
+        sage: K.cardinality()
+        22
+        sage: G = K.digraph()
+        sage: GR = KR.digraph()
+        sage: G.is_isomorphic(GR, edge_labels = True)
+        True
+
+
+    TESTS::
+
+        sage: K = KirillovReshetikhinCrystalFromLSPaths(['G',2,1],2)
+        sage: K.cardinality()
+        15
+
+    For `s>1` these crystals yield `s`-fold tensor products of Kirillov-Reshetikhin crystals::
+
+        sage: K = KirillovReshetikhinCrystalFromLSPaths(['A',1,1],1,3)
+        sage: B = KirillovReshetikhinCrystal(['A',1,1],1,1)
+        sage: T = TensorProductOfCrystals(B,B,B)
+        sage: G = K.digraph()
+        sage: GT = T.digraph()
+        sage: G.is_isomorphic(GT, edge_labels = True)
+        True
+
+        sage: K = KirillovReshetikhinCrystalFromLSPaths(['B',2,1],1,2)
+        sage: B = KirillovReshetikhinCrystal(['B',2,1],1,1)
+        sage: T = TensorProductOfCrystals(B,B)
+        sage: G = K.digraph()
+        sage: GT = T.digraph()
+        sage: G.is_isomorphic(GT, edge_labels = True)
+        True
+
+        sage: K = KirillovReshetikhinCrystalFromLSPaths(['B',2,1],2,3)
+        sage: B = KirillovReshetikhinCrystal(['B',2,1],2,1)
+        sage: T = TensorProductOfCrystals(B,B,B)
+        sage: GT = T.digraph()
+        sage: G = K.digraph()
+        sage: G.is_isomorphic(GT, edge_labels = True)
+        True
+    """
+    R = RootSystem(cartan_type)
+    La = R.weight_space().basis()
+    weight = s*La[r]
+    return CrystalOfProjectedLevelZeroLSPaths(weight)
 
 
 def KirillovReshetikhinCrystal(cartan_type, r, s):
@@ -78,6 +170,9 @@ def KirillovReshetikhinCrystal(cartan_type, r, s):
     "Kirillov-Reshetikhin crystals for nonexceptional types",
     Advances in Mathematics  222 Issue 3 (2009) 1080-1116
     (arXiv:0810.5067 [math.RT])
+
+    For an implementation of Kirillov-Reshetikhin crystals for `s=1` from
+    crystals of LS paths, see :meth:`KirillovReshetikhinCrystalFromLSPaths`.
 
     INPUT:
 

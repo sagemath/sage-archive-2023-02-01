@@ -352,6 +352,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
             Lambda = self.fundamental_weights()
             return self.linear_combination( (Lambda[j], c) for j,c in alphai )
 
+        @cached_method
         def rho(self):
             """
             EXAMPLES::

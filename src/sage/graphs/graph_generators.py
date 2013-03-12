@@ -113,6 +113,7 @@ __append_to_doc(
      "GrayGraph",
      "GrotzschGraph",
      "HallJankoGraph",
+     "WellsGraph",
      "HararyGraph",
      "HarriesGraph",
      "HarriesWongGraph",
@@ -972,6 +973,7 @@ class GraphGenerators():
     GrayGraph                = staticmethod(sage.graphs.generators.smallgraphs.GrayGraph)
     GrotzschGraph            = staticmethod(sage.graphs.generators.smallgraphs.GrotzschGraph)
     HallJankoGraph           = staticmethod(sage.graphs.generators.smallgraphs.HallJankoGraph)
+    WellsGraph               = staticmethod(sage.graphs.generators.smallgraphs.WellsGraph)
     HarriesGraph             = staticmethod(sage.graphs.generators.smallgraphs.HarriesGraph)
     HarriesWongGraph         = staticmethod(sage.graphs.generators.smallgraphs.HarriesWongGraph)
     HeawoodGraph             = staticmethod(sage.graphs.generators.smallgraphs.HeawoodGraph)

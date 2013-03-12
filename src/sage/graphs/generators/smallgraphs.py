@@ -266,6 +266,120 @@ def HarriesWongGraph(embedding=1):
     else:
         raise ValueError("The value of embedding must be 1 or 2.")
 
+def WellsGraph():
+    r"""
+    Returns the Wells graph.
+
+    For more information on the Wells graph (also called Armanios-Wells graph),
+    see `this page <http://www.win.tue.nl/~aeb/graphs/Wells.html>`_.
+
+    The implementation follows the construction given on page 266 of
+    [BCN89]_. This requires to create intermediate graphs and run a small
+    isomorphism test, while everything could be replaced by a pre-computed list
+    of edges : I believe that it is better to keep "the recipe" in the code,
+    however, as it is quite unlikely that this could become the most
+    time-consuming operation in any sensible algorithm, and .... "preserves
+    knowledge", which is what open-source software is meant to do.
+
+    EXAMPLES::
+
+        sage: g = graphs.WellsGraph(); g
+        Wells graph: Graph on 32 vertices
+        sage: g.order()
+        32
+        sage: g.size()
+        80
+        sage: g.girth()
+        5
+        sage: g.diameter()
+        4
+        sage: g.chromatic_number()
+        4
+        sage: g.is_regular(k=5)
+        True
+
+    REFERENCES:
+
+    .. [BCN89] A. E. Brouwer, A. M. Cohen, A. Neumaier,
+      Distance-Regular Graphs,
+      Springer, 1989.
+    """
+    from platonic_solids import DodecahedralGraph
+    from basic import CompleteBipartiteGraph
+
+    # Following the construction from the book "Distance-regular graphs"
+    dodecahedron = DodecahedralGraph()
+
+    # Vertices at distance 3 in the Dodecahedron
+    distance3 = dodecahedron.distance_graph([3])
+
+    # Building the graph whose line graph is the dodecahedron.
+    b = CompleteBipartiteGraph(5,5)
+    b.delete_edges([(0,5), (1,6), (2,7), (3,8), (4,9)])
+
+    # Computing the isomorphism between the two
+    b = b.line_graph(labels = False)
+    _, labels = distance3.is_isomorphic(b, certify = True)
+
+    # The relabeling that the books claims to exist.
+    for v,new_name in labels.items():
+        x,y = new_name
+        labels[v] = (x%5,y%5)
+
+    dodecahedron.relabel(labels)
+
+    # Checking that the above computations indeed produces a good labeling.
+    for u in dodecahedron:
+        for v in dodecahedron:
+            if u == v:
+                continue
+
+            if (u[0] != v[0]) and (u[1] != v[1]):
+                continue
+
+            if dodecahedron.distance(u,v) != 3:
+                raise ValueError("There is something wrong going on !")
+
+    # The graph we will return, starting from the dodecahedron
+    g = dodecahedron
+
+    # Good ! Now adding 12 new vertices
+    for i in range(5):
+        g.add_edge((i,'+'),('inf','+'))
+        g.add_edge((i,'-'),('inf','-'))
+        for k in range(5):
+            if k == i:
+                continue
+            g.add_edge((i,'+'),(i,k))
+            g.add_edge((i,'-'),(k,i))
+
+    g.name("Wells graph")
+
+    # Giving our graph a "not-so-bad" layout
+    g.relabel({
+            (1, 3): 8, (3, 0): 18, (3, '+'): 22, (2, 1): 13,
+            (1, '+'): 10, (0, 3): 2, (2, '+'): 16, ('inf', '-'): 31,
+            (4, 0): 24, (1, 2): 7, (4, '+'): 28, (0, '-'): 5,
+            (0, 4): 3, (4, 1): 25, (2, '-'): 17, (3, 2): 20,
+            (3, '-'): 23, (1, '-'): 11, (1, 4): 9, (2, 3): 14,
+            ('inf', '+'): 30, (4, 2): 26, (1, 0): 6, (0, 1): 0,
+            (3, 1): 19, (0, 2): 1, (2, 0): 12, (4, '-'): 29,
+            (0, '+'): 4, (4, 3): 27, (3, 4): 21, (2, 4): 15})
+
+    p = [(1, 29, 20, 13, 12, 28, 14, 7),
+         (2, 5, 30, 23, 18, 4, 31, 22),
+         (3, 17, 21, 9, 24, 16, 27, 25),
+         (6, 10, 8, 15, 0, 11, 19, 26)]
+
+    from sage.graphs.graph_plot import _circle_embedding
+    _circle_embedding(g, p[0], radius = 1)
+    _circle_embedding(g, p[1], radius = .9)
+    _circle_embedding(g, p[2], radius = .8)
+    _circle_embedding(g, p[3], radius = .7)
+
+    return g
+
+
 def HallJankoGraph(from_string=True):
     r"""
     Returns the Hall-Janko graph.

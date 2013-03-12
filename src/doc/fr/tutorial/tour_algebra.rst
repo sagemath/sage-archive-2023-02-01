@@ -373,12 +373,12 @@ et *Special functions*, respectively) du manuel de référence de Sage
     sage: x = polygen(QQ, 'x')
     sage: chebyshev_U(2,x)
     4*x^2 - 1
-    sage: bessel_I(1,1,"pari",250)
+    sage: bessel_I(1,1).n(250)
     0.56515910399248502720769602760986330732889962162109200948029448947925564096
-    sage: bessel_I(1,1)
+    sage: bessel_I(1,1).n()
     0.565159103992485
-    sage: bessel_I(2,1.1,"maxima")  # les quelques derniers chiffres sont aléatoires
-    0.167089499251049...
+    sage: bessel_I(2,1.1).n()
+    0.167089499251049
 
 Pour l'instant, ces fonctions n'ont été adaptées à Sage que pour une
 utilisation numérique. Pour faire du calcul formel, il faut utiliser

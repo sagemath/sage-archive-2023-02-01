@@ -402,12 +402,12 @@ beziehungsweise "Special functions") des Sage Referenzhandbuchs dokumentiert.
     sage: x = polygen(QQ, 'x')
     sage: chebyshev_U(2,x)
     4*x^2 - 1
-    sage: bessel_I(1,1,"pari",250)
+    sage: bessel_I(1,1).n(250)
     0.56515910399248502720769602760986330732889962162109200948029448947925564096
-    sage: bessel_I(1,1)
+    sage: bessel_I(1,1).n()
     0.565159103992485
-    sage: bessel_I(2,1.1,"maxima")  # last few digits are random
-    0.16708949925104899
+    sage: bessel_I(2,1.1).n()
+    0.167089499251049
 
 Zum jetzigen Zeitpunkt, enthält Sage nur Wrapper-Funktionen für
 numerische Berechnungen. Um symbolisch zu rechen, rufen Sie die

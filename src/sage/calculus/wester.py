@@ -36,7 +36,7 @@ explicit calls to Maxima or other systems.
 ::
 
     sage: # (YES) Evaluate the Bessel function J[2] numerically at z=1+I.
-    sage: bessel_J (2, 1+I)
+    sage: bessel_J(2, 1+I).n()
     0.0415798869439621 + 0.247397641513306*I
 
 ::

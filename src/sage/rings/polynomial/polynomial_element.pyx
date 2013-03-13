@@ -5971,13 +5971,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def is_cyclotomic(self):
         r"""
-        Returns ``True`` if ``self`` is cyclotomic, i.e., monic, irreducible and such that
+        Return ``True`` if ``self`` is a cyclotomic polynomial.
+
+        A cyclotomic polynomial is a monic, irreducible polynomial such that
         all roots are roots of unity.
 
         ALGORITHM:
 
-        The first cyclotomic polynomial ``x-1`` is treated apart, otherwise the first
-        algorithm of [1]_ is used.
+        The first cyclotomic polynomial ``x-1`` is treated apart,
+        otherwise the first algorithm of [BD89]_ is used.
 
         EXAMPLES:
 
@@ -6010,20 +6012,20 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         Test using other rings::
 
-            sage: F.<g> = GF(4,'g')
-            sage: z = polygen(F)
+            sage: z = polygen(GF(5))
             sage: (z - 1).is_cyclotomic()
-            False
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: not implemented in non-zero characteristic
 
         REFERENCES:
 
-        ..  [1] R. J. Bradford and J. H. Davenport, Effective tests for cyclotomic
-            polynomials, Symbolic and Algebraic Computation (1989) pp. 244 -- 251
-
+        .. [BD89] R. J. Bradford and J. H. Davenport, Effective tests
+           for cyclotomic polynomials, Symbolic and Algebraic Computation (1989)
+           pp. 244 -- 251, :doi:`10.1007/3-540-51084-2_22`
         """
-
         if self.base_ring().characteristic() != 0:
-            return False
+            raise NotImplementedError("not implemented in non-zero characteristic")
         if self.base_ring() != ZZ:
             try:
                 f = self.change_ring(ZZ)
@@ -6039,7 +6041,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         gen = self.parent().gen()
 
-        if(self == gen - 1):  # the first cyc. pol. is treated apart
+        if (self == gen - 1):  # the first cyc. pol. is treated apart
             return True
 
         coefs = self.coeffs()
@@ -6047,22 +6049,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return False
 
         # construct the odd and even part of self
-        po_odd = 0*gen
-        po_even = 0*gen
-
-        for i in xrange(1,len(coefs),2):
-            po_odd += coefs[i]*(gen**((i-1)/2))
-        for i in xrange(0,len(coefs),2):
-            po_even += coefs[i]*(gen**(i/2))
+        po_odd = sum(coefs[i]*(gen**((i-1)/2)) for i in xrange(1,len(coefs),2))
+        po_even = sum(coefs[i]*(gen**(i/2)) for i in xrange(0,len(coefs),2))
 
         # f1 = graeffe(self)
         f1  = po_even**2 - gen*(po_odd**2)
 
-        # 1st case
+        # first case
         if f1 == self:
             return True
 
-        # 2nd case
+        # second case
         selfminus = self(-gen)
         if f1 == selfminus:
             if selfminus.leading_coefficient() < 0 and ((-1)*selfminus).is_cyclotomic():
@@ -6070,7 +6067,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             elif selfminus.is_cyclotomic():
                 return True
 
-        # 3rd case, we need to factorise
+        # third case, we need to factorise
         ff1 = f1.factor()
         if len(ff1) == 1 and ff1[0][1] == 2 and ff1[0][0].is_cyclotomic():
             return True

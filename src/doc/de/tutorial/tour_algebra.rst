@@ -316,7 +316,7 @@ Differentialgleichung gibt dies :math:`f(x,y(x))\approx
 
 
 Wenn wir :math:`h\cdot f(x,y(x))` den "Korrekturterm", :math:`y(x)`
-den "alten Wert von *y*" und :math:`y(x+h)` den "neuen Wert von *y*"
+den "alten Wert von `y`" und :math:`y(x+h)` den "neuen Wert von `y`"
 nennen, kann diese Approximation neu ausgedrückt werden als:
 
 .. math::   y_{new} \approx y_{old} + h\cdot f(x,y_{old}).
@@ -367,8 +367,8 @@ Also ist :math:`z(1)\approx 0.75`.
 
 Wir können auch die Punkte :math:`(x,y)` plotten um ein ungefähres
 Bild der Kurve zu erhalten. Die Funktion ``eulers_method_2x2_plot``
-macht dies; um sie zu benutzen, müssen wir die Funktionen  *f* und *g*
-definieren, welche ein Argument mit drei Koordinaten (*t*, *x*, *y*)
+macht dies; um sie zu benutzen, müssen wir die Funktionen  `f` und `g`
+definieren, welche ein Argument mit drei Koordinaten (`t`, `x`, `y`)
 erwarten.
 
 ::
@@ -378,7 +378,7 @@ erwarten.
     sage: P = eulers_method_2x2_plot(f,g, 0.0, 0.75, 0.0, 0.1, 1.0)
 
 Zu diesem Zeitpunkt enthält ``P`` die beiden Plots ``P[0]`` (der Plot
-von *x* nach *t*) und ``P[1]`` (der Plot von *y* nach *t*). Wir können
+von `x` nach `t`) und ``P[1]`` (der Plot von `y` nach `t`). Wir können
 beide wie folgt anzeigen:
 
 .. link

@@ -288,8 +288,8 @@ différentielle, donne
 
 Si nous notons :math:`h\cdot f(x,y(x))` le « terme de correction » (faute
 d'un terme plus approprié), et si nous appelons :math:`y(x)`
-« l'ancienne valeur de *y* » et :math:`y(x+h)` la « nouvelle valeur de
-*y* », cette approximation se réécrit
+« l'ancienne valeur de `y` » et :math:`y(x+h)` la « nouvelle valeur de
+`y` », cette approximation se réécrit
 
 .. math::   y_{nouveau} \approx y_{ancien} + h\cdot f(x,y_{ancien}).
 
@@ -338,8 +338,8 @@ On en déduit :math:`z(1)\approx 0.75`.
 
 On peut également tracer le graphe des points :math:`(x,y)` pour obtenir
 une image approchée de la courbe. La fonction ``eulers_method_2x2_plot``
-réalise cela ; pour l'utiliser, il faut définir les fonctions  *f* et
-*g* qui prennent un argument à trois coordonnées : (*t*, *x*, *y*).
+réalise cela ; pour l'utiliser, il faut définir les fonctions  `f` et
+`g` qui prennent un argument à trois coordonnées : (`t`, `x`, `y`).
 
 ::
 
@@ -348,8 +348,8 @@ réalise cela ; pour l'utiliser, il faut définir les fonctions  *f* et
     sage: P = eulers_method_2x2_plot(f,g, 0.0, 0.75, 0.0, 0.1, 1.0)
 
 Arrivé à ce point, ``P`` conserve en mémoire deux graphiques : ``P[0]``,
-le graphe de  *x* en fonction de *t*, et ``P[1]``, le graphique de *y*
-par rapport à *t*. On peut tracer les deux graphiques simultanément par
+le graphe de  `x` en fonction de `t`, et ``P[1]``, le graphique de `y`
+par rapport à `t`. On peut tracer les deux graphiques simultanément par
 :
 
 .. link

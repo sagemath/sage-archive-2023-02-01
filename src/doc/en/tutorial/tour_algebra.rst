@@ -307,8 +307,8 @@ for :math:`y(x+h)`:
 
 
 If we call :math:`h \cdot f(x,y(x))` the "correction term" (for lack of
-anything better), call :math:`y(x)` the "old value of *y*", and
-call :math:`y(x+h)` the "new value of *y*", then this
+anything better), call :math:`y(x)` the "old value of `y`", and
+call :math:`y(x+h)` the "new value of `y`", then this
 approximation can be re-expressed as
 
 .. math::   y_{new} \approx y_{old} + h\cdot f(x,y_{old}).
@@ -359,9 +359,9 @@ Therefore, :math:`z(1)\approx 0.65`.
 
 We can also plot the points :math:`(x,y)` to get an approximate
 picture of the curve. The function ``eulers_method_2x2_plot`` will
-do this; in order to use it, we need to define functions *f* and
-*g* which takes one argument with three coordinates: (*t*, *x*,
-*y*).
+do this; in order to use it, we need to define functions `f` and
+`g` which takes one argument with three coordinates: (`t`, `x`,
+`y`).
 
 ::
 
@@ -369,8 +369,8 @@ do this; in order to use it, we need to define functions *f* and
     sage: g = lambda z: -sin(z[1])  # g(t,x,y) = -sin(x)
     sage: P = eulers_method_2x2_plot(f,g, 0.0, 0.75, 0.0, 0.1, 1.0)
 
-At this point, ``P`` is storing two plots: ``P[0]``, the plot of *x*
-vs. *t*, and ``P[1]``, the plot of *y* vs. *t*. We can plot both of
+At this point, ``P`` is storing two plots: ``P[0]``, the plot of `x`
+vs. `t`, and ``P[1]``, the plot of `y` vs. `t`. We can plot both of
 these as follows:
 
 .. link

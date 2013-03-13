@@ -675,7 +675,7 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
             (x + 35, y + 26)
             sage: - P1 # indirect doctest
             (x + 35, y + 11)
-            sage: P1 - P1 # indirect doctest
+            sage: P1 + (-P1) # indirect doctest
             (1)
 
         ::
@@ -686,8 +686,27 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
             (x + 35, y + 15)
             sage: - P2 # indirect doctest
             (x + 35, y + 24)
-            sage: P2 - P2 # indirect doctest
+            sage: P2 + (-P2) # indirect doctest
             (1)
+
+        TESTS:
+
+        The following was fixed in :trac:`14264`::
+
+            sage: P.<x> = QQ[]
+            sage: f = x^5 - x + 1; h = x
+            sage: C = HyperellipticCurve(f,h,'u,v')
+            sage: J = C.jacobian()
+            sage: K.<t> = NumberField(x^2-2)
+            sage: R.<x> = K[]
+            sage: Q = J(K)([x^2-t,R(1)])
+            sage: Q
+            (u^2 - t, v - 1)
+            sage: -Q
+            (u^2 - t, v + u + 1)
+            sage: Q + (-Q)  # indirect doctest
+            (1)
+
         """
         if self.is_zero():
             return self
@@ -697,7 +716,13 @@ class JacobianMorphism_divisor_class_field(AdditiveGroupElement, SchemeMorphism)
         if h.is_zero():
             D = (polys[0],-polys[1])
         else:
-            D = (polys[0],-polys[1]-h % (polys[0]))
+            # It is essential that the modulus polys[0] can be converted into
+            # the parent of the dividend h. This is not always automatically
+            # the case (h can be a rational polynomial and polys[0] can a
+            # non-constant polynomial over a number field different from
+            # QQ). Hence, we force coercion into a common parent before
+            # computing the modulus. See trac #14249
+            D = (polys[0],-polys[1]-(h+polys[0]) % (polys[0]))
         return JacobianMorphism_divisor_class_field(X, D, check=False)
 
     def _add_(self,other):

@@ -14,7 +14,7 @@ fi
 
 SAGE_VERSION=$1
 SAGE_ROOT=$2
-SPKG_INST="$SAGE_ROOT"/spkg/installed/
+SAGE_SPKG_INST="$SAGE_ROOT"/spkg/installed/
 export SAGE_ROOT SAGE_VERSION
 TARGET=sage-$1
 
@@ -57,7 +57,7 @@ if [ -d "$SAGE_ROOT"/devel/sage ]; then
        exit 1
    fi
    mv dist/sage-"$SAGE_VERSION".spkg "$DESTINATION"/
-   touch "$SPKG_INST"/sage-"$SAGE_VERSION"
+   touch "$SAGE_SPKG_INST"/sage-"$SAGE_VERSION"
 fi
 
 if [ ! -f "$PKG"/sage-"$SAGE_VERSION".spkg ]; then
@@ -83,7 +83,7 @@ if [ -d "$SAGE_ROOT"/devel/ext ]; then
        exit 1
    fi
    mv extcode-"$SAGE_VERSION".spkg "$DESTINATION"/
-   touch "$SPKG_INST"/extcode-"$SAGE_VERSION"
+   touch "$SAGE_SPKG_INST"/extcode-"$SAGE_VERSION"
 fi
 
 
@@ -120,7 +120,7 @@ chmod +x "$SCRIPTS"/spkg-install
 tar -jcf "$SCRIPTS".spkg "$SCRIPTS"
 mv "$SCRIPTS".spkg "$DESTINATION"/
 rm -rf "$SCRIPTS"
-touch "$SPKG_INST"/sage_scripts-"$SAGE_VERSION"
+touch "$SAGE_SPKG_INST"/sage_scripts-"$SAGE_VERSION"
 
 if [ ! -f "$PKG/sage_scripts-$SAGE_VERSION.spkg" ]; then
     echo "The package sage_scripts-$SAGE_VERSION.spkg wasn't created."
@@ -159,7 +159,7 @@ cd "$SAGE_ROOT"
 tar -jcf "$ROOT_REPO".spkg "$ROOT_REPO"
 mv "$ROOT_REPO".spkg "$DESTINATION"/
 rm -rf "$ROOT_REPO"
-touch "$SPKG_INST/$ROOT_REPO"
+touch "$SAGE_SPKG_INST/$ROOT_REPO"
 
 if [ ! -f "$PKG/$ROOT_REPO".spkg ]; then
     echo "The package $ROOT_REPO.spkg wasn't created."

@@ -3,8 +3,8 @@ import os, sys, urllib, urllib2, urlparse
 
 if not os.environ.has_key("SAGE_ROOT"):
      raise RuntimeError, "The environment variable SAGE_ROOT must be set"
-SAGE_ROOT=os.environ["SAGE_ROOT"]
-SPKG_ROOT=os.path.join(SAGE_ROOT, 'spkg')
+SAGE_SPKG_INST=os.environ.get("SAGE_SPKG_INST",
+        os.path.join(os.environ["SAGE_ROOT"],'spkg','installed'))
 
 
 if not os.environ.has_key("SAGE_SERVER"):
@@ -18,7 +18,7 @@ url_path = os.path.join('packages', sys.argv[1], 'list')
 url = urlparse.urljoin(PKG_SERVER, urllib.pathname2url(url_path))
 
 try:
-     installed = set(os.listdir(os.path.join(SPKG_ROOT, 'installed')))
+     installed = set(os.listdir(SAGE_SPKG_INST))
 except OSError:
      installed = set([])
 

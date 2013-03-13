@@ -303,7 +303,7 @@ def do_update():
     # successfully installed.  This is great because it means that
     # partial or corrupted downloads get fixed if they failed to
     # download correctly in the past.
-    installed = set(os.listdir(os.path.join(SPKG_ROOT, "installed")))
+    installed = set(os.listdir(SAGE_SPKG_INST))
     to_download = [x for x in packages if not chop(x, '.spkg') in installed]
     if len(to_download) == 0:
          # Nothing to do.
@@ -423,6 +423,7 @@ if __name__ == '__main__':
         raise RuntimeError("The environment variable SAGE_ROOT must be set.")
     SAGE_ROOT = os.environ["SAGE_ROOT"]
     SPKG_ROOT = os.path.join(SAGE_ROOT, 'spkg')
+    SAGE_SPKG_INST = os.path.join(SPKG_ROOT, "installed")
 
     try:
         if len(sys.argv) > 1:

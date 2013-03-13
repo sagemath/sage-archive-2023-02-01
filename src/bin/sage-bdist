@@ -19,6 +19,7 @@ fi
 # If $1 starts with "sage-", remove this prefix
 export SAGE_VERSION=`echo "$1" | sed 's/^sage-//'`
 export SAGE_ROOT=$2
+export SAGE_SPKG_INST="$SAGE_ROOT/$PKGDIR/installed"
 
 TARGET=sage-"$SAGE_VERSION"-`uname -m`-`uname`
 TARGET=`echo $TARGET | sed 's/ //g'`   # Remove spaces
@@ -79,8 +80,7 @@ fi
 
 
 if [ -d "$PKGDIR" ]; then
-    cd "$PKGDIR"
-    cp -pR installed "$TMP/$PKGDIR/"
+    cp -pR "$SAGE_SPKG_INST" "$TMP/$PKGDIR/"
     # sage --sdist uses the following file to detect if it's working
     # with a "bdisted" copy.
     touch $TMP/$PKGDIR/standard/.from_bdist

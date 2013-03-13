@@ -66,29 +66,24 @@ discriminant `\le 17 \times 10^9`.
     sage: F.<t> = NumberField(ZZx([1,-4,3,1]))
     sage: F.disc()
     49
-    sage: enumerate_totallyreal_fields_rel(F, 3, 17*10^9) # not tested
-    [[16240385609L, x^9 - x^8 - 9*x^7 + 4*x^6 + 26*x^5 - 2*x^4 - 25*x^3 - x^2 + 7*x + 1, xF^3 + (-t^2 - 4*t + 1)*xF^2 + (t^2 + 3*t - 5)*xF + 3*t^2 + 11*t - 5]]    # 32 bit
-    [[16240385609, x^9 - x^8 - 9*x^7 + 4*x^6 + 26*x^5 - 2*x^4 - 25*x^3 - x^2 + 7*x + 1, xF^3 + (-t^2 - 4*t + 1)*xF^2 + (t^2 + 3*t - 5)*xF + 3*t^2 + 11*t - 5]]    # 64 bit
+    sage: enumerate_totallyreal_fields_rel(F, 3, 17*10^9)  # not tested, too long time (258s on sage.math, 2013)
+    [[16240385609L, x^9 - x^8 - 9*x^7 + 4*x^6 + 26*x^5 - 2*x^4 - 25*x^3 - x^2 + 7*x + 1, xF^3 + (-t^2 - 4*t + 1)*xF^2 + (t^2 + 3*t - 5)*xF + 3*t^2 + 11*t - 5]]    # 32-bit
+    [[16240385609, x^9 - x^8 - 9*x^7 + 4*x^6 + 26*x^5 - 2*x^4 - 25*x^3 - x^2 + 7*x + 1, xF^3 + (-t^2 - 4*t + 1)*xF^2 + (t^2 + 3*t - 5)*xF + 3*t^2 + 11*t - 5]]     # 64-bit
 
 AUTHORS:
 
 - John Voight (2007-11-03): Initial version.
 """
 
-#***********************************************************************************************
+#*****************************************************************************
 #       Copyright (C) 2007 William Stein and John Voight
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#***********************************************************************************************
+#*****************************************************************************
+
 
 from sage.rings.arith import binomial, gcd, divisors
 from sage.rings.integer import Integer

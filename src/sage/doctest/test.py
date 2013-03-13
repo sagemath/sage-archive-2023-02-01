@@ -11,6 +11,29 @@ EXAMPLES::
     sage: import time
     sage: tests_dir = os.path.join(SAGE_ROOT, 'devel', 'sage', 'sage', 'doctest', 'tests')
 
+Check that :trac:`2235` has been fixed::
+
+    sage: subprocess.call(["sage", "-t", "longtime.rst"], cwd=tests_dir)  # long time
+    Running doctests...
+    Doctesting 1 file.
+    sage -t longtime.rst
+    [0 tests, ...s]
+    ----------------------------------------------------------------------
+    All tests passed!
+    ----------------------------------------------------------------------
+    ...
+    0
+    sage: subprocess.call(["sage", "-t", "-l", "longtime.rst"], cwd=tests_dir)  # long time
+    Running doctests...
+    Doctesting 1 file.
+    sage -t --long longtime.rst
+    [1 test, ...s]
+    ----------------------------------------------------------------------
+    All tests passed!
+    ----------------------------------------------------------------------
+    ...
+    0
+
 Test the ``--initial`` option::
 
     sage: subprocess.call(["sage", "-t", "-i", "initial.rst"], cwd=tests_dir)  # long time

@@ -46,8 +46,8 @@ cdef class Parent(category_object.CategoryObject):
 
     # returns the Action by/on self on/by S
     # corresponding to op and self_on_left
-    cpdef get_action(self, other, op=*, bint self_on_left=*)
-    cpdef _get_action_(self, other, op, bint self_on_left)
+    cpdef get_action(self, S, op=*, bint self_on_left=*, self_el=*, S_el=*)
+    cpdef _get_action_(self, S, op, bint self_on_left)
 
     # coerce x into self
     cpdef coerce(self, x)
@@ -60,7 +60,7 @@ cdef class Parent(category_object.CategoryObject):
     cpdef _generic_convert_map(self, S)
     cdef discover_coerce_map_from(self, S)
     cdef discover_convert_map_from(self, S)
-    cdef discover_action(self, G, op, bint self_on_left)
+    cdef discover_action(self, S, op, bint self_on_left, self_el=*, S_el=*)
 
     # List consisting of Morphisms (from anything to self)
     # and Parents for which the __call__ method of self

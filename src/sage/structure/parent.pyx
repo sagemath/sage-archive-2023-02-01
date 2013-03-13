@@ -56,12 +56,43 @@ A simple example of registering coercions::
     ...
     AssertionError
 
+When implementing an element of a ring, one would typically provide the
+element class with ``_rmul_`` and/or ``_lmul_`` methods for the action of a
+base ring, and with ``_mul_`` for the ring multiplication. However, prior to
+:trac:`14249`, it would have been necessary to additionally define a method
+``_an_element_()`` for the parent. But now, the following example works::
+
+    sage: from sage.structure.element import RingElement
+    sage: class MyElement(RingElement):
+    ....:      def __init__(self, x,y, parent = None):
+    ....:          RingElement.__init__(self, parent)
+    ....:      def _mul_(self, other):
+    ....:          return self
+    ....:      def _rmul_(self, other):
+    ....:          return self
+    ....:      def _lmul_(self, other):
+    ....:          return self
+    sage: class MyParent(Parent):
+    ....:      Element = MyElement
+
+Now, we define ::
+
+    sage: P = MyParent(base=ZZ, category=Rings())
+    sage: a = P(1,2)
+    sage: a*a is a
+    True
+    sage: a*2 is a
+    True
+    sage: 2*a is a
+    True
+
 TESTS:
 
 This came up in some subtle bug once::
 
     sage: gp(2) + gap(3)
     5
+
 """
 
 cimport element
@@ -2354,7 +2385,7 @@ cdef class Parent(category_object.CategoryObject):
         """
         return None
 
-    cpdef get_action(self, S, op=operator.mul, bint self_on_left=True):
+    cpdef get_action(self, S, op=operator.mul, bint self_on_left=True, self_el=None, S_el=None):
         """
         Returns an action of self on S or S on self.
 
@@ -2376,7 +2407,7 @@ cdef class Parent(category_object.CategoryObject):
 
         action = self._get_action_(S, op, self_on_left)
         if action is None:
-            action = self.discover_action(S, op, self_on_left)
+            action = self.discover_action(S, op, self_on_left, self_el, S_el)
 
         if action is not None:
             from sage.categories.action import Action
@@ -2389,10 +2420,12 @@ cdef class Parent(category_object.CategoryObject):
         return action
 
 
-    cdef discover_action(self, S, op, bint self_on_left):
+    cdef discover_action(self, S, op, bint self_on_left, self_el=None, S_el=None):
         # G acts on S, G -> G', R -> S => G' acts on R (?)
         # NO! ZZ[x,y] acts on Matrices(ZZ[x]) but ZZ[y] does not.
         # What may be true is that if the action's destination is S, then this can be allowed.
+        # Note: a is either None or a sample elements of self.
+        # If needed, it will be passed to Left/RightModuleAction.
         from sage.categories.action import Action, PrecomposedAction
         from sage.categories.homset import Hom
         from coerce_actions import LeftModuleAction, RightModuleAction
@@ -2410,9 +2443,9 @@ cdef class Parent(category_object.CategoryObject):
                     R = action
                     _register_pair(self, R, "action") # to kill circular recursion
                     if self_on_left:
-                        action = LeftModuleAction(R, self) # self is acted on from right
+                        action = LeftModuleAction(R, self, a=S_el, g=self_el) # self is acted on from right
                     else:
-                        action = RightModuleAction(R, self) # self is acted on from left
+                        action = RightModuleAction(R, self, a=S_el, g=self_el) # self is acted on from left
                     ## The following two lines are disabled to prevent the following from working:
                     ## sage: x, y = var('x,y')
                     ## sage: parent(ZZ[x][y](1)*vector(QQ[y],[1,2]))
@@ -2450,7 +2483,7 @@ cdef class Parent(category_object.CategoryObject):
 
                 # detect actions defined by _rmul_, _lmul_, _act_on_, and _acted_upon_ methods
                 from coerce_actions import detect_element_action
-                action = detect_element_action(self, S, self_on_left)
+                action = detect_element_action(self, S, self_on_left, self_el, S_el)
                 if action is not None:
                     return action
 
@@ -2459,7 +2492,7 @@ cdef class Parent(category_object.CategoryObject):
                     from sage.rings.integer_ring import ZZ
                     if S is ZZ and not self.has_coerce_map_from(ZZ):
                         from sage.structure.coerce_actions import IntegerMulAction
-                        action = IntegerMulAction(S, self, not self_on_left)
+                        action = IntegerMulAction(S, self, not self_on_left, self_el)
                         return action
                 except (CoercionException, TypeError):
                     _record_exception()

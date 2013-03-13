@@ -794,7 +794,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             yp = parent_c(y)
             if xp is yp:
                 return op(x,y)
-            action = self.get_action(xp, yp, op)
+            action = self.get_action(xp, yp, op, x, y)
             if action is not None:
                 return (<Action>action)._call_(x, y)
 
@@ -1234,9 +1234,11 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         return None
 
 
-    cpdef get_action(self, R, S, op):
+    cpdef get_action(self, R, S, op, r=None, s=None):
         """
         Get the action of R on S or S on R associated to the operation op.
+
+
 
         EXAMPLES::
 
@@ -1267,7 +1269,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
             return self._action_maps.get(R, S, op)
         except KeyError:
             pass
-        action = self.discover_action(R, S, op)
+        action = self.discover_action(R, S, op, r, s)
         action = self.verify_action(action, R, S, op)
         self._action_maps.set(R, S, op, action)
         return action
@@ -1330,15 +1332,15 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         return action
 
-    cpdef discover_action(self, R, S, op):
+    cpdef discover_action(self, R, S, op, r=None, s=None):
         """
         INPUT
 
         - ``R`` - the left Parent (or type)
-
         - ``S`` - the right Parent (or type)
-
-        - ``op`` - the operand, typically an element of the operator module.
+        - ``op`` - the operand, typically an element of the operator module
+        - ``r`` - (optional) element of R
+        - ``s`` - (optional) element of S.
 
         OUTPUT:
 
@@ -1384,13 +1386,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         #print "looking", R, <int><void *>R, op, S, <int><void *>S
 
         if PY_TYPE_CHECK(R, Parent):
-            action = (<Parent>R).get_action(S, op, True)
+            action = (<Parent>R).get_action(S, op, True, r, s)
             if action is not None:
                 #print "found2", action
                 return action
 
         if PY_TYPE_CHECK(S, Parent):
-            action = (<Parent>S).get_action(R, op, False)
+            action = (<Parent>S).get_action(R, op, False, s, r)
             if action is not None:
                 #print "found1", action
                 return action
@@ -1398,7 +1400,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         if PY_TYPE(R) == <void *>type:
             sageR = py_scalar_parent(R)
             if sageR is not None:
-                action = self.discover_action(sageR, S, op)
+                action = self.discover_action(sageR, S, op, s=s)
                 if action is not None:
                     if not PY_TYPE_CHECK(action, IntegerMulAction):
                         action = PrecomposedAction(action, sageR.coerce_map_from(R), None)
@@ -1407,7 +1409,7 @@ cdef class CoercionModel_cache_maps(CoercionModel):
         if PY_TYPE(S) == <void *>type:
             sageS = py_scalar_parent(S)
             if sageS is not None:
-                action = self.discover_action(R, sageS, op)
+                action = self.discover_action(R, sageS, op, r=r)
                 if action is not None:
                     if not PY_TYPE_CHECK(action, IntegerMulAction):
                         action = PrecomposedAction(action, None, sageS.coerce_map_from(S))
@@ -1415,13 +1417,13 @@ cdef class CoercionModel_cache_maps(CoercionModel):
 
         if op.__name__[0] == 'i':
             try:
-                a = self.discover_action(R, S, no_inplace_op(op))
+                a = self.discover_action(R, S, no_inplace_op(op), r, s)
                 if a is not None:
                     is_inverse = isinstance(a, InverseAction)
                     if is_inverse: a = ~a
                     if a is not None and PY_TYPE_CHECK(a, RightModuleAction):
                         # We want a new instance so that we don't alter the (potentially cached) original
-                        a = RightModuleAction(S, R)
+                        a = RightModuleAction(S, R, s, r)
                         a.is_inplace = 1
                     if is_inverse: a = ~a
                 return a

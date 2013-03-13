@@ -151,7 +151,7 @@ cdef class ActedUponAction(GenericAction):
         else:
             return (<Element>a)._acted_upon_(b, True)
 
-def detect_element_action(Parent X, Y, bint X_on_left):
+def detect_element_action(Parent X, Y, bint X_on_left, X_el=None, Y_el=None):
     r"""
     Returns an action of X on Y or Y on X as defined by elements X, if any.
 
@@ -171,32 +171,39 @@ def detect_element_action(Parent X, Y, bint X_on_left):
 
     TESTS:
 
-    This test checks that the issue in Trac #7718 has been fixed::
+    This test checks that the issue in :trac:`7718` has been fixed::
 
         sage: class MyParent(Parent):
-        ...    def an_element(self):
-        ...        pass
-        ...
+        ....:     def an_element(self):
+        ....:         pass
+        ....:
         sage: A = MyParent()
         sage: detect_element_action(A, ZZ, True)
         Traceback (most recent call last):
         ...
         RuntimeError: an_element() for <class '__main__.MyParent'> returned None
     """
-    cdef Element x = an_element(X)
+    cdef Element x
+    if X_el is None or (parent_c(X_el) is not X):
+        x = an_element(X)
+    else:
+        x = X_el
     if x is None:
-        raise RuntimeError, "an_element() for %s returned None" % X
-    y = an_element(Y)
+        raise RuntimeError("an_element() for %s returned None" % X)
+    if Y_el is None or (parent_c(Y_el) is not Y):
+        y = an_element(Y)
+    else:
+        y = Y_el
     if y is None:
         if isinstance(Y, Parent):
-            raise RuntimeError, "an_element() for %s returned None" % Y
+            raise RuntimeError("an_element() for %s returned None" % Y)
         else:
             return # don't know how to make elements of this type...
     if isinstance(x, ModuleElement) and isinstance(y, RingElement):
         # Elements defining _lmul_ and _rmul_
         try:
-            return (RightModuleAction if X_on_left else LeftModuleAction)(Y, X)
-        except CoercionException:
+            return (RightModuleAction if X_on_left else LeftModuleAction)(Y, X, y, x)
+        except CoercionException, msg:
             _record_exception()
     try:
         # Elements defining _act_on_
@@ -214,21 +221,45 @@ def detect_element_action(Parent X, Y, bint X_on_left):
 
 
 cdef class ModuleAction(Action):
+    """
+    Module action.
 
-    def __init__(self, G, S):
+    .. SEEALSO::
+
+        This is an abstract class, one must actually instantiate a
+        :class:`LeftModuleAction` or a :class:`RightModuleAction`.
+
+    INPUT:
+
+    - ``G`` -- the actor, an instance of :class:`~sage.structure.parent.Parent`.
+    - ``S`` -- the object that is acted upon.
+    - ``g`` -- optional, an element of ``G``.
+    - ``a`` -- optional, an element of ``S``.
+    - ``check`` -- if True (default), then there will be no consistency tests
+      performed on sample elements.
+
+    NOTE:
+
+    By default, the sample elements of ``S`` and ``G`` are obtained from
+    :meth:`~sage.structure.parent.Parent.an_element`, which relies on the
+    implementation of an ``_an_element_()`` method. This is not always
+    awailable. But usually, the action is only needed when one already
+    *has* two elements. Hence, by :trac:`14249`, the coercion model will
+    pass these two elements the the :class:`ModuleAction` constructor.
+
+    The actual action is implemented by the ``_rmul_`` or ``_lmul_``
+    function on its elements. We must, however, be very particular about
+    what we feed into these functions, because they operate under the
+    assumption that the inputs lie exactly in the base ring and may
+    segfault otherwise. Thus we handle all possible base extensions
+    manually here.
+
+    """
+    def __init__(self, G, S, g=None, a=None, check=True):
         """
         This creates an action of an element of a module by an element of its
         base ring. The simplest example to keep in mind is R acting on the
         polynomial ring R[x].
-
-        The actual action is implemented by the _rmul_ or _lmul_ function on
-        its elements. We must, however, be very particular about what we feed
-        into these functions because they operate under the assumption that
-        the inputs lie exactly in the base ring and may segfault otherwise.
-
-        Thus we handle all possible base extensions manually here. This is
-        an abstract class, one must actually instantiate a LeftModuleAction
-        or a RightModuleAction
 
         EXAMPLES::
 
@@ -293,15 +324,22 @@ cdef class ModuleAction(Action):
         the_set = S if self.extended_base is None else self.extended_base
         assert the_ring is the_set.base(), "BUG in coercion model\n    Apparently there are two versions of\n        %s\n    in the cache."%the_ring
 
-        g = G.an_element()
-        a = S.an_element()
+        if not check:
+            return
+        if g is None:
+            g = G.an_element()
+        if parent_c(g) is not G:
+            raise CoercionException("The parent of %s is not %s but %s"%(g,G,parent_c(g)))
+        if a is None:
+            a = S.an_element()
+        if parent_c(a) is not S:
+            raise CoercionException("The parent of %s is not %s but %s"%(a,S,parent_c(a)))
         if not isinstance(g, RingElement) or not isinstance(a, ModuleElement):
-            raise CoercionException, "Not a ring element acting on a module element."
+            raise CoercionException("Not a ring element acting on a module element.")
         res = self.act(g, a)
-
-        if parent_c(res) is not S and parent_c(res) is not self.extended_base:
+        if parent_c(res) is not the_set:
             # In particular we will raise an error if res is None
-            raise CoercionException, "Result is None or has wrong parent."
+            raise CoercionException("Result is None or has wrong parent.")
 
 
     def _repr_name_(self):
@@ -425,12 +463,18 @@ cdef class RightModuleAction(ModuleAction):
 
 cdef class IntegerMulAction(Action):
 
-    def __init__(self, ZZ, M, is_left=True):
+    def __init__(self, ZZ, M, is_left=True, m=None):
         r"""
         This class implements the action `n \cdot a = a + a + \cdots + a` via
         repeated doubling.
 
-        Both addition and negation must be defined on the set `A`.
+        Both addition and negation must be defined on the set `M`.
+
+        INPUT:
+
+        - An integer ring, ``ZZ``
+        - A ``ZZ`` module ``M``
+        - Optional: An element ``m`` of ``M``
 
         EXAMPLES::
 
@@ -447,7 +491,9 @@ cdef class IntegerMulAction(Action):
         if PY_TYPE_CHECK(ZZ, type):
             from sage.structure.parent import Set_PythonType
             ZZ = Set_PythonType(ZZ)
-        test = M.an_element() + (-M.an_element()) # make sure addition and negation is allowed
+        if m is None:
+            m = M.an_element()
+        test = m + (-m) # make sure addition and negation is allowed
         Action.__init__(self, ZZ, M, is_left, operator.mul)
 
     cpdef _call_(self, nn, a):

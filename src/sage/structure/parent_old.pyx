@@ -241,7 +241,7 @@ cdef class Parent(parent.Parent):
 
     cdef get_action_c_impl(self, S, op, bint self_on_left):
         check_old_coerce(self)
-        return self.discover_action(S, op, self_on_left)
+        return self.discover_action(S, op, self_on_left, None, None)
 
     #################################################################################
     # Coercion support functionality

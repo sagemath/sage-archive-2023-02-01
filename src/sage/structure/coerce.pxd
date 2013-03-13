@@ -20,8 +20,8 @@ cdef class CoercionModel_cache_maps(CoercionModel):
     cpdef verify_coercion_maps(self, R, S, homs, bint fix=*)
     cpdef verify_action(self, action, R, S, op, bint fix=*)
 
-    cpdef get_action(self, xp, yp, op)
-    cpdef discover_action(self, R, S, op)
+    cpdef get_action(self, R, S, op, r=*, s=*)
+    cpdef discover_action(self, R, S, op, r=*, s=*)
 
     cdef bint _record_exceptions
     cpdef _record_exception(self)

@@ -2953,6 +2953,77 @@ def ShrikhandeGraph():
 
     return graph.Graph(edge_dict, pos=pos_dict, name="Shrikhande graph")
 
+def SylvesterGraph():
+    """
+    Returns the Sylvester Graph.
+
+    This graph is obtained from the Hoffman Singleton graph by considering the
+    graph induced by the vertices at distance two from the vertices of an (any)
+    edge.
+
+    For more information on the Sylvester graph, see
+    `<http://www.win.tue.nl/~aeb/graphs/Sylvester.html>`_.
+
+    .. SEEALSO::
+
+        * :meth:`~sage.graphs.graph_generators.GraphGenerators.HoffmanSingletonGraph`.
+
+    EXAMPLE::
+
+        sage: g = graphs.SylvesterGraph(); g
+        Sylvester Graph: Graph on 36 vertices
+        sage: g.order()
+        36
+        sage: g.size()
+        90
+        sage: g.is_regular(k=5)
+        True
+    """
+    g = HoffmanSingletonGraph()
+    e = g.edge_iterator(labels = False).next()
+    g.delete_vertices(g.neighbors(e[0]) + g.neighbors(e[1]))
+    g.relabel()
+    g.name("Sylvester Graph")
+    g.set_pos({})
+    return g
+
+def SimsGewirtzGraph():
+    """
+    Returns the Sims-Gewirtz Graph.
+
+    This graph is obtained from the Higman Sims graph by considering the graph
+    induced by the vertices at distance two from the vertices of an (any)
+    edge. It is the only strongly regular graph with parameters `v = 56, k = 10,
+    \lambda = 0, \mu = 2`
+
+    For more information on the Sylvester graph, see
+    `<http://www.win.tue.nl/~aeb/graphs/Sims-Gewirtz.html>`_ or its
+    :wikipedia:`Wikipedia page <Gewirtz graph>`.
+
+    .. SEEALSO::
+
+        * :meth:`~sage.graphs.graph_generators.GraphGenerators.HigmanSimsGraph`.
+
+    EXAMPLE::
+
+        sage: g = graphs.SimsGewirtzGraph(); g
+        Sims-Gewirtz Graph: Graph on 56 vertices
+        sage: g.order()
+        56
+        sage: g.size()
+        280
+        sage: g.is_strongly_regular(parameters = True)
+        (56, 10, 0, 2)
+
+    """
+    g = HigmanSimsGraph()
+    e = g.edge_iterator(labels = False).next()
+    g.delete_vertices(g.neighbors(e[0]) + g.neighbors(e[1]))
+    g.relabel()
+    g.name("Sims-Gewirtz Graph")
+    g.set_pos({})
+    return g
+
 def ThomsenGraph():
     """
     Returns the Thomsen Graph.

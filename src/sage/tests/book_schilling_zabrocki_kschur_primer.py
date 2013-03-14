@@ -520,13 +520,12 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 3251::
 
   sage: A = NilCoxeterAlgebra(WeylGroup(['A',3,1]), prefix = 'A')
   sage: A.homogeneous_noncommutative_variables([2])
-  A1*A0 + A2*A0 + A0*A3 + A3*A2 + A3*A1 + A2*A1
+  A[1,0] + A[2,0] + A[0,3] + A[3,2] + A[3,1] + A[2,1]
 
 Sage example in ./kschurnotes/notes-mike-anne.tex, line 3258::
 
   sage: A.k_schur_noncommutative_variables([2,2])
-  A0*A3*A1*A0 + A3*A1*A2*A0 + A1*A2*A0*A1 + A3*A2*A0*A3 + A2*A0*A3*A1
-  + A2*A3*A1*A2
+  A[0,3,1,0] + A[3,1,2,0] + A[1,2,0,1] + A[3,2,0,3] + A[2,0,3,1] + A[2,3,1,2]
 
 Sage example in ./kschurnotes/notes-mike-anne.tex, line 3265::
 

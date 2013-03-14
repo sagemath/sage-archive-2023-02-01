@@ -70,15 +70,11 @@ singular_libs = ['m', 'readline', 'singular', 'givaro', 'ntl', 'gmpxx', 'gmp']
 givaro_extra_compile_args =['-D__STDC_LIMIT_MACROS']
 
 #########################################################
-### PolyBoRi defines
+### PolyBoRi settings
 #########################################################
 
 polybori_extra_compile_args = []
-for line in open(SAGE_LOCAL + "/share/polybori/flags.conf"):
-    if not line.startswith("CPPDEFINES"):
-        continue
-    polybori_extra_compile_args = ["-D"+e for e in ast.literal_eval(line[len("CPPDEFINES = "):])]
-    break
+polybori_major_version = '0.8'
 
 
 #############################################################
@@ -1764,7 +1760,8 @@ ext_modules = [
 
     Extension('sage.rings.polynomial.pbori',
               sources = ['sage/rings/polynomial/pbori.pyx'],
-              libraries=['polybori', 'polybori_groebner', 'gd', 'png12', 'm4ri'],
+              libraries=['polybori-' + polybori_major_version,
+                         'polybori_groebner-' + polybori_major_version, 'm4ri', 'png12'],
               include_dirs = [SAGE_INC, "sage/libs/polybori"],
               depends = [SAGE_INC + "polybori/" + hd + ".h" for hd in ["polybori", "config"] ] + \
                         [SAGE_INC + 'm4ri/m4ri.h'],

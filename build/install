@@ -511,7 +511,34 @@ echo "***********************************************"
 ###############################################################################
 time $MAKE "$@"
 if [ $? -ne 0 ]; then
-    echo >&2 "Error building Sage."
+    cat >&2 <<EOF
+***************************************************************
+Error building Sage.
+
+The following package(s) may have failed to build:
+EOF
+
+    for f in "$SAGE_LOGS"/*.log; do
+        # Look for recent error message in log file.
+        # Note that "tail -n 20 ..." doesn't work on Solaris.
+        if tail -20 "$f" | grep "^Error" &>/dev/null; then
+            base_f=`basename $f .log`
+            cat >&2 <<EOF
+
+package: $base_f
+log file: $f
+build directory: ${SAGE_BUILD_DIR:-$SAGE_ROOT/spkg/build}/$base_f
+EOF
+        fi
+    done
+    cat >&2 <<EOF
+
+The build directory may contain configuration files and other potentially
+helpful information. WARNING: if you now run 'make' again, the build
+directory will, by default, be deleted. Set the environment variable
+SAGE_KEEP_BUILT_SPKGS to 'yes' to prevent this.
+
+EOF
     exit 1
 fi
 

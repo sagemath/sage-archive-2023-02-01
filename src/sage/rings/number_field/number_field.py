@@ -1518,6 +1518,22 @@ class NumberField_generic(number_field_base.NumberField):
             sage: K.<a> = NumberField(x^5-2)
             sage: K.random_element(integral_coefficients=True)
             a^3 + a^2 - 3*a - 1
+
+        TESTS::
+
+            sage: K.<a> = NumberField(x^5-2)
+            sage: K.random_element(-1)
+            Traceback (most recent call last):
+            ...
+            TypeError: x must be < y
+            sage: K.random_element(5,0)
+            Traceback (most recent call last):
+            ...
+            TypeError: x must be < y
+            sage: QQ[I].random_element(0)
+            Traceback (most recent call last):
+            ...
+            TypeError: x must be > 0
         """
         if integral_coefficients:
             den_bound = 1

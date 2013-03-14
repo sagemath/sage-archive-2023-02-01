@@ -321,7 +321,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         mpz_set(denom.value, self.denom)
         return __make_NumberFieldElement_quadratic1, (self._parent, type(self), a, b, denom)
 
-    cdef void _randomize(self, num_bound, den_bound, distribution):
+    cdef int _randomize(self, num_bound, den_bound, distribution) except -1:
         cdef Integer temp, denom1, denom2
 
         # in theory, we could just generate two random numerators and
@@ -353,6 +353,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         mpz_mul(self.denom, denom1.value, denom2.value)
 
         self._reduce_c_()
+        return 0  # No error
 
 
     def _lift_cyclotomic_element(self, new_parent, bint check=True, int rel=0):

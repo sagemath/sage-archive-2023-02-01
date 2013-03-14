@@ -780,7 +780,7 @@ cdef class NumberFieldElement(FieldElement):
         elt._randomize(num_bound, den_bound, distribution)
         return elt
 
-    cdef void _randomize(self, num_bound, den_bound, distribution):
+    cdef int _randomize(self, num_bound, den_bound, distribution) except -1:
         cdef int i
         cdef Integer denom_temp = PY_NEW(Integer)
         cdef Integer tmp_integer = PY_NEW(Integer)
@@ -845,6 +845,9 @@ cdef class NumberFieldElement(FieldElement):
                 # now set the coefficient of self
                 tmp_integer._to_ZZ(&ntl_temp)
                 ZZX_SetCoeff(self.__numerator, i, ntl_temp)
+
+        return 0  # No error
+
 
     def __abs__(self):
         r"""

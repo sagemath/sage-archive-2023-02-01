@@ -36,7 +36,7 @@ cdef class NumberFieldElement(FieldElement):
     cpdef ModuleElement _neg_(self)
 
     cdef bint is_rational_c(self)
-    cdef void _randomize(self, num_bound, den_bound, distribution)
+    cdef int _randomize(self, num_bound, den_bound, distribution) except -1
 
 
 cdef class NumberFieldElement_absolute(NumberFieldElement):

@@ -27,6 +27,7 @@ from forker import DocTestDispatcher
 from reporting import DocTestReporter
 from util import NestedName, Timer, count_noun, dict_difference
 
+nodoctest_regex = re.compile(r'\s*(#+|%+|\.\.)\s*nodoctest')
 
 class DocTestDefaults(SageObject):
     """
@@ -412,7 +413,7 @@ class DocTestController(SageObject):
             self.files.append(opj(sagenb_loc, 'sagenb'))
 
     def expand_files_into_sources(self):
-        """
+        r"""
         Expands ``self.files``, which may include directories, into a
         list of :class:`sage.doctest.FileDocTestSource`
 
@@ -439,6 +440,17 @@ class DocTestController(SageObject):
             sage: DC.expand_files_into_sources()
             sage: sorted(list(DC.sources[0].options.optional))
             ['guava', 'magma']
+
+        We check that files are skipped appropriately::
+
+            sage: dirname = tmp_dir()
+            sage: filename = os.path.join(dirname, 'not_tested.py')
+            sage: with open(filename, 'w') as F:
+            ....:     F.write("#"*80 + "\n\n\n\n## nodoctest\n    sage: 1+1\n    4")
+            sage: DC = DocTestController(DD, [dirname])
+            sage: DC.expand_files_into_sources()
+            sage: DC.sources
+            []
         """
         def skipdir(dirname):
             if os.path.exists(os.path.join(dirname, "nodoctest.py")):
@@ -452,7 +464,13 @@ class DocTestController(SageObject):
             if ext not in ('.py', '.pyx', '.pxi', '.sage', '.spyx', '.rst', '.tex'):
                 return True
             with open(filename) as F:
-                return 'nodoctest' in F.read(50)
+                line_count = 0
+                for line in F:
+                    if nodoctest_regex.match(line):
+                        return True
+                    line_count += 1
+                    if line_count >= 10:
+                        return False
         def expand():
             for path in self.files:
                 if os.path.isdir(path):

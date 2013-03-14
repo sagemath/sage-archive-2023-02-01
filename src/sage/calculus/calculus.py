@@ -1165,6 +1165,11 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         'below' is deprecated. Please use 'left' or '-' instead.
         See http://trac.sagemath.org/9200 for details.
         -Infinity
+
+    Check that :trac:`12708` is fixed::
+
+        sage: limit(tanh(x),x=0)
+        0
     """
     if not isinstance(ex, Expression):
         ex = SR(ex)

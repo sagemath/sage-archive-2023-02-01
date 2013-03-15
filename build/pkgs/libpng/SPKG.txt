@@ -2,7 +2,12 @@
 
 == Description ==
 
-libpng is the official PNG reference library. It supports almost all PNG features, is extensible, and has been extensively tested for over 13 years. The home site for development versions (i.e., may be buggy or subject to change or include experimental features) is http://libpng.sourceforge.net/, and the place to go for questions about the library is the png-mng-implement mailing list.
+libpng is the official PNG reference library. It supports almost all PNG
+features, is extensible, and has been extensively tested for over 13 years.
+The home site for development versions (i.e., may be buggy or subject to
+change or include experimental features) is http://libpng.sourceforge.net/,
+and the place to go for questions about the library is the png-mng-implement
+mailing list.
 
 Website: http://www.libpng.org/pub/png/libpng.html
 
@@ -20,21 +25,44 @@ The png mailing lists - see http://www.libpng.org/pub/png/pngmisc.html#lists
 
 == Dependencies ==
 
-This spkg requires
+This spkg depends on:
 
  * libz
 
-This spkg provides dependencies for
-
- * the Sage library
- * tachyon
- * matplotlib
-
 == Special Update/Build Instructions ==
 
- * No changes went into src. There are two different tarballs, but we use the one with configure.
+ * No changes went into src. There are two different tarballs, but we use the
+   one with configure.
+ * On Darwin, the symbolic links libpng.* created by libpng12 may interfere
+   with a system-wide libPng.dylib.
+   This system-wide library is likely to be a different version and on top of
+   that the symbols exported there are prefixed with "_cg" (for "Core Graphics"),
+   so even if by chance the functionalities of the two libraries were interchangeable,
+   libraries or applications looking for one and being presented the other won't
+   find the symbols they expect.
+   Note the uppercase "P" which could prevent this conflict; unfortunately, the
+   default filesystem used by Apple is case-insensitive.
+   Also note there would be no problem if the system-wide library was not looked
+   for when Sage is being built or run, but that's not the case either;
+   it is at least looked for by the "ImageIO" framework:
+   - when Python is built with Mac OS extensions, fixed in #4008;
+   - when Mercurial is built because it uses $EDITOR, cf. #4678;
+   - when R is built and it finds -lpng, cf. #4409 and #11696.
+   As not all of these problems are easily dealt with and new ones may arise,
+   we chose to delete the $SAGE_LOCAL/lib/libpng.* symlinks on Darwin.
+   Therefore, some package as matplotlib (cf. #11686) which by default looks for
+   -lpng are patched to look for -lpng12 (unless pkg-config is installed; in
+   this case indeed we can use a non-conflicting libpng.pc symlinking to
+   libpng12.pc).
 
 == Changelog ==
+
+=== libpng-1.2.35.p5 (Leif Leonhardy, Jean-Pierre Flori, 19 February 2013) ===
+ * #11696: Correctly build and install libpng.
+ * Delete symlinks from libpng.* in $SAGE_LOCAL/lib on Darwin only.
+ * Fix order of additions of flags and do not drop user settings.
+ * Use $MAKE and quote $UNAME.
+ * Use SYMBOL_PREFIX trick on Cygwin to build a correct import library.
 
 === libpng-1.2.35.p4 (Simon King, 10th December 2011) ===
  * #12131: Use --libdir, to make the package work on openSUSE.
@@ -58,7 +86,8 @@ This spkg provides dependencies for
 
 === libpng-1.2.34 (Michael Abshoff, February 15th, 2009) ===
  * update to latest upstream release (security related)
- * delete SAGE_LOCAL/lib/libpng.* to avoid OSX specific issues. This required a set of other fixes.
+ * delete SAGE_LOCAL/lib/libpng.* to avoid OSX specific issues. This required
+   a set of other fixes.
  * unset RM
  * check if SAGE_LOCAL is set
 
@@ -77,4 +106,3 @@ This spkg provides dependencies for
 
 === libpng-1.2.22.p4 (Michael Abshoff, Jan. 31st, 2008) ===
  * remove loads of ._* files (#2010)
-

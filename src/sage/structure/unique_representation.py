@@ -450,6 +450,61 @@ class CachedRepresentation:
             instance._reduction = (cls, args, options)
         return instance
 
+    @classmethod
+    def _clear_cache_(cls):
+        """
+        Remove all instances of this class from the cache.
+
+        EXAMPLES:
+
+        If ``cls`` overloads :meth:`~sage.structure.unique_representation.CachedRepresentation.__classcall__`,
+        clearing the cache still works, because ``cls.mro()``
+        is searched until a ``__classcall__`` with an attribute
+        ``cache`` is found::
+
+            sage: class A(UniqueRepresentation):
+            ...    def __init__(self, x):
+            ...        pass
+            sage: class B(A):
+            ...    @staticmethod
+            ...    def __classcall__(cls, *args, **kwds):
+            ...        return super(B,cls).__classcall__(cls,*args,**kwds)
+            sage: class C(B): pass
+            sage: a = A(1)
+            sage: b = B(2)
+            sage: c = C(3)
+            sage: a is A(1)
+            True
+            sage: b is B(2)
+            True
+            sage: c is C(3)
+            True
+            sage: B._clear_cache_()
+
+        Now, all instances of (sub-classes of) ``B`` have disappeared
+        from the cache::
+
+            sage: a is A(1)
+            True
+            sage: b is B(2)
+            False
+            sage: c is C(3)
+            False
+
+        """
+        del_list = []
+        cache = None
+        for C in cls.mro():
+            try:
+                cache = C.__classcall__.cache
+            except AttributeError:
+                pass
+        for k in cache.iterkeys():
+            if issubclass(k[0][0],cls):
+                del_list.append(k)
+        for k in del_list:
+            del cache[k]
+
     def __reduce__(self):
         """
         Returns the argument that have been passed to :meth:`__new__<object.__new__>`

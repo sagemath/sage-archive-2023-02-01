@@ -406,9 +406,9 @@ coincide::
 
     sage: import inspect
     sage: len([s for s in dir(MS1) if inspect.ismethod(getattr(MS1,s,None))])
-    51
+    52
     sage: len([s for s in dir(MS2) if inspect.ismethod(getattr(MS2,s,None))])
-    73
+    74
     sage: MS1.__class__ is MS2.__class__
     True
 

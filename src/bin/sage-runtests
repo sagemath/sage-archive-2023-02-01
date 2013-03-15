@@ -63,6 +63,8 @@ if __name__ == "__main__":
         help="doctest only those files that failed in the previous run")
     parser.add_option("-n", "--new", action="store_true", default=False,
         help="doctest only those files that have been changed in the repository and not yet been committed")
+    parser.add_option("--show-skipped", "--show_skipped", action="store_true", default=False,
+        help="print a summary at the end of each file of optional tests that were skipped")
 
     parser.add_option("--stats_path", "--stats-path", default=os.path.join(os.environ['DOT_SAGE'], "timings2.json"),
                           help="path to a json dictionary for the latest run storing a timing for each file")

@@ -1,0 +1,19 @@
+= Mutation class database =
+
+== Description ==
+
+ Contains a database of all exceptional mutation classes of quivers.
+ The quivers are stored as dig6 data together with information about labeled edges.
+
+== SPKG Maintainers ==
+
+ * C. Stump <christian.stump@gmail.com>
+
+== Dependencies ==
+
+ * Sage library
+
+== Changelog ==
+
+=== cluster_seed-1.0 (Christian Stump, 2013-05-15) ===
+ * #13425: First version of the package

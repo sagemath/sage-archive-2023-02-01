@@ -10637,16 +10637,15 @@ class GenericGraph(GenericGraph_pyx):
         # From 1..n to the vertices of self
         trr = {v:k for k,v in tr.iteritems()}
 
-        # We go through all conjugacy classes of the automorphisms, and only
-        # keep the cycles of length n
+        # We go through all conjugacy classes of the automorphism
+        # group, and only keep the cycles of length n
         for e in ag.conjugacy_classes_representatives():
             cycles = e.cycle_tuples()
 
-            # If the automorphism is not empty, has exactly one cycle, and if
-            # this cycle contains all vertices.
+            # If the automorphism is not the identity and has exactly one
+            # cycle that contains all vertices.
             if ((not cycles) or
-                (len(cycles) > 1) or
-                (len(cycles[0]) != self.order())):
+                len(cycles[0]) != self.order()):
                 continue
 
             # From now on the graph is a circulant graph !
@@ -10657,9 +10656,9 @@ class GenericGraph(GenericGraph_pyx):
             # We build the list of integers defining the circulant graph, and
             # add it to the list.
             parameters = []
-            cycles = cycles[0]
-            u = trr[cycles[0]]
-            integers = [i for i,v in enumerate(cycles) if self.has_edge(u,trr[v])]
+            cycle = cycles[0]
+            u = trr[cycle[0]]
+            integers = [i for i,v in enumerate(cycle) if self.has_edge(u,trr[v])]
             certif_list.append((self.order(),integers))
 
         if not certificate:

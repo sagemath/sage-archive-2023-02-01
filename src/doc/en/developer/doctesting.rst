@@ -70,15 +70,6 @@ module. Notice that the syntax is ::
     All tests passed!
     ------------------------------------------------------------------------
     Total time for all tests: 4.9 seconds
-    [jdemeyer@sage sage-5.9]$ ./sage -t "devel/sage-main/sage/games/sudoku.py
-    Running doctests with ID 2012-07-03-03-39-02-da6accbb.
-    Doctesting 1 file.
-    sage -t devel/sage-main/sage/games/sudoku.py
-        [103 tests, 3.6 s]
-    ------------------------------------------------------------------------
-    All tests passed!
-    ------------------------------------------------------------------------
-    Total time for all tests: 4.9 seconds
         cpu time: 3.6 seconds
         cumulative wall time: 3.6 seconds
 
@@ -906,7 +897,6 @@ as well as testing the Sage notebook::
     sage -t /Users/roed/sage/sage-5.3/devel/sage/sage/plot/plot.py
         [304 tests, 69.0 s]
     ...
-
 
 If you want to just run the notebook tests, use the ``--sagenb`` flag instead.
 

@@ -736,7 +736,7 @@ the example.
 Further conventions for automated testing of examples
 -----------------------------------------------------
 
-The Python script ``SAGE_LOCAL/bin/sage-doctest`` implements
+The Python script ``SAGE_LOCAL/bin/sage-runtests`` implements
 documentation testing in Sage (see :ref:`chapter-testing` for more
 details). When writing documentation, keep the following points in
 mind:
@@ -755,7 +755,7 @@ mind:
        sage: plot(x^2 - 5, (x, 0, 5), ymin=0).save(tmp_filename(ext='.png'))
 
 -  If a test line contains the text ``random``, it is executed by
-   ``sage-doctest`` but ``sage-doctest`` does not check that the
+   ``sage-runtests`` but ``sage-runtests`` does not check that the
    output agrees with the output in the documentation string. For
    example, the docstring for the ``__hash__`` method for
    ``CombinatorialObject`` in
@@ -847,9 +847,9 @@ mind:
        sage: p.roots(multiplicities=False)[2]     # relative tol 1e-10
        10000000000000000
 
--  If a line contains ``not implemented``, it is never
-   tested. It is good to include lines like this to make clear what we
-   want Sage to eventually implement::
+-  If a line contains ``not implemented`` or ``not tested``, it is
+   never tested. It is good to include lines like this to make clear
+   what we want Sage to eventually implement::
 
        sage: factor(x*y - x*z)    # todo: not implemented
 
@@ -914,6 +914,38 @@ easily find the aforementioned keywords. In the case of
 ``todo: not implemented``, one can use the results of such a search to
 direct further development on Sage.
 
+- Some tests (hashing for example) behave differently on 32-bit and
+  64-bit platforms.  You can mark a line (generally the output) with
+  either ``# 32-bit`` or ``# 64-bit`` and the testing framework will
+  remove any lines that don't match the current architecture.  For
+  example::
+
+      sage: z = 32
+      sage: z.powermodm_ui(2^32-1, 14)
+      Traceback (most recent call last):                              # 32-bit
+      ...                                                             # 32-bit
+      OverflowError: exp (=4294967295) must be <= 4294967294          # 32-bit
+      8              # 64-bit
+
+- You may write tests that span multiple lines.  The best way to do so
+  is to use the line continuation marker ``....:``. ::
+
+      sage: for n in srange(1,10):
+      ....:     if n.is_prime():
+      ....:         print n,
+      2 3 5 7
+
+  If you have a long line of code, you may want to consider adding a
+  backslash to the end of the line, which tells the doctesting
+  framework to join that current line with the next.  This syntax is
+  non-standard so may be removed in a future version of Sage, but in
+  the mean time it can be useful for breaking up large integers across
+  multiple lines::
+
+      sage: n = 123456789123456789123456789\
+      ....:     123456789123456789123456789
+      sage: n.is_prime()
+      False
 
 .. _chapter-testing:
 

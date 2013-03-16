@@ -6,13 +6,14 @@ AUTHORS:
 - William Stein (2006-03-04): initial version
 """
 
-#############################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-#############################################################################
+#*****************************************************************************
 
 import os
 
@@ -98,14 +99,6 @@ def get_memory_usage(t=None):
 
         sage: t = get_memory_usage(); t  # random
         873.98046875
-
-    We test that memory usage doesn't change instantly.  Hopefully,
-    re-using the variable `t` means no additional memory will be
-    allocated::
-
-        sage: t = get_memory_usage()
-        sage: get_memory_usage(t)
-        0.0
 
     .. NOTE::
 

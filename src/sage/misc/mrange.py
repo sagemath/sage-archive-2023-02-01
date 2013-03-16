@@ -20,6 +20,61 @@ AUTHORS:
 
 import misc
 
+def _len(L):
+    """
+    Determines the length of L.
+
+    Uses either ``cardinality`` or ``__len__`` as appropriate.
+
+    EXAMPLES::
+
+        sage: from sage.misc.mrange import _len
+        sage: _len(ZZ)
+        +Infinity
+        sage: _len(range(4))
+        4
+        sage: _len(4)
+        Traceback (most recent call last):
+        ...
+        TypeError: object of type 'sage.rings.integer.Integer' has no len()
+    """
+    try:
+        return L.cardinality()
+    except AttributeError:
+        return len(L)
+
+def _is_finite(L):
+    """
+    Determines whether ``L`` is finite.
+
+    If ``L`` implements none of ``is_finite``, ``cardinality`` or
+    ``__len__``, we assume it is finite for speed reasons.
+
+    EXAMPLES::
+
+        sage: from sage.misc.mrange import _is_finite
+        sage: _is_finite(ZZ)
+        False
+        sage: _is_finite(range(4))
+        True
+        sage: _is_finite([])
+        True
+        sage: _is_finite(xrange(10^8))
+        True
+    """
+    try:
+        return L.is_finite()
+    except AttributeError:
+        try:
+            n = _len(L)
+        except (TypeError, AttributeError):
+            # We assume L is finite for speed reasons
+            return True
+        from sage.rings.infinity import infinity
+        if n is infinity:
+            return False
+        return True
+
 def _xmrange_iter( iter_list, typ=list ):
     """
     This implements the logic for mrange_iter and xmrange_iter.
@@ -42,11 +97,27 @@ def _xmrange_iter( iter_list, typ=list ):
         sage: l2 = iter.next()
         sage: l1 is l2  # eeek, this is freaky!
         True
-    """
 
+    We check that #14285 has been resolved::
+
+        sage: iter = sage.misc.mrange._xmrange_iter([ZZ,[]])
+        sage: iter.next()
+        Traceback (most recent call last):
+        ...
+        StopIteration
+    """
     if len(iter_list) == 0:
         yield ()
         return
+    # If any iterator in the list is infinite we need to be more careful
+    if any(not _is_finite(L) for L in iter_list):
+        for L in iter_list:
+            try:
+                n = _len(L)
+            except TypeError:
+                continue
+        if n == 0:
+            return
     curr_iters = [iter(i) for i in iter_list]
     curr_elt = [i.next() for i in curr_iters[:-1]] + [None]
     place = len(iter_list) - 1
@@ -56,7 +127,7 @@ def _xmrange_iter( iter_list, typ=list ):
                 curr_elt[place] = curr_iters[place].next()
                 if place < len(iter_list) - 1:
                     place += 1
-                    curr_iters[place] = iter_list[place].__iter__()
+                    curr_iters[place] = iter(iter_list[place])
                     continue
                 else:
                     yield typ(curr_elt)
@@ -81,7 +152,7 @@ def mrange_iter(iter_list, typ=list):
     INPUT:
 
 
-    -  ``sizes`` - a list of nonnegative integers
+    -  ``iter_list`` - a finite iterable of finite iterables
 
     -  ``typ`` - (default: list) a type or class; more
        generally, something that can be called with a list as input.
@@ -137,11 +208,11 @@ class xmrange_iter:
     INPUT:
 
 
-    -  ``list_iter`` - a list of objects usable as
-       iterators (possibly lists)
+    - ``iter_list`` - a list of objects usable as iterators (possibly
+       lists)
 
-    -  ``typ`` - (default: list) a type or class; more
-       generally, something that can be called with a list as input.
+    - ``typ`` - (default: list) a type or class; more generally,
+       something that can be called with a list as input.
 
 
     OUTPUT: a generator
@@ -233,7 +304,60 @@ class xmrange_iter:
     def __iter__(self):
         return _xmrange_iter(self.iter_list, self.typ)
 
+    def __len__(self):
+        """
+        EXAMPLES::
 
+            sage: C = cartesian_product_iterator([xrange(3), xrange(4)])
+            sage: len(C)
+            12
+            sage: len(cartesian_product_iterator([]))
+            1
+            sage: len(cartesian_product_iterator([ZZ,[]]))
+            0
+        """
+        n = self.cardinality()
+        try:
+            n = int(n)
+            if not isinstance(n, int): # could be a long
+                raise TypeError
+        except TypeError:
+            raise TypeError("This object's length is too large for Python")
+        return n
+
+    def cardinality(self):
+        """
+        EXAMPLES::
+
+            sage: C = cartesian_product_iterator([xrange(3), xrange(4)])
+            sage: C.cardinality()
+            12
+            sage: C = cartesian_product_iterator([ZZ,QQ])
+            sage: C.cardinality()
+            +Infinity
+            sage: C = cartesian_product_iterator([ZZ,[]])
+            sage: C.cardinality()
+            0
+        """
+        from sage.rings.integer import Integer
+        from sage.rings.infinity import infinity
+        ans = Integer(1)
+        found_infinity = False
+        for L in self.iter_list:
+            try:
+                n = L.cardinality()
+            except AttributeError:
+                n = Integer(len(L))
+            if n == 0:
+                return Integer(0)
+            elif n is infinity:
+                found_infinity = True
+            elif not found_infinity:
+                ans *= n
+        if found_infinity:
+            return infinity
+        else:
+            return ans
 
 def _xmrange(sizes, typ=list):
     n = len(sizes)

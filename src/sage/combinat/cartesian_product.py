@@ -21,6 +21,8 @@ import sage.misc.prandom as rnd
 import __builtin__
 from combinat import CombinatorialClass
 from sage.rings.integer import Integer
+from sage.rings.infinity import infinity
+from sage.misc.mrange import xmrange_iter
 
 def CartesianProduct(*iters):
     """
@@ -76,6 +78,8 @@ class CartesianProduct_iters(CombinatorialClass):
             True
         """
         self.iters = iters
+        self._mrange = xmrange_iter(iters)
+        CombinatorialClass.__init__(self)
 
     def __contains__(self, x):
         """
@@ -116,15 +120,33 @@ class CartesianProduct_iters(CombinatorialClass):
             6
             sage: CartesianProduct(range(2), xrange(3), xrange(4)).cardinality()
             24
-        """
-        total = 1
-        for it in self.iters:
-            try:
-                total *= len(it) # may not work when it is a CClass.
-            except AttributeError:
-                total *= it.cardinality()
-        return Integer(total)
 
+        This works correctly for infinite objects::
+
+            sage: CartesianProduct(ZZ, QQ).cardinality()
+            +Infinity
+            sage: CartesianProduct(ZZ, []).cardinality()
+            0
+        """
+        return self._mrange.cardinality()
+
+    def __len__(self):
+        """
+        EXAMPLES::
+
+            sage: C = CartesianProduct(xrange(3), xrange(4))
+            sage: len(C)
+            12
+            sage: C = CartesianProduct(ZZ, QQ)
+            sage: len(C)
+            Traceback (most recent call last):
+            ...
+            TypeError: This object's length is too large for Python
+            sage: C = CartesianProduct(ZZ, [])
+            sage: len(C)
+            0
+        """
+        return self._mrange.__len__()
 
     def list(self):
         """
@@ -171,21 +193,7 @@ class CartesianProduct_iters(CombinatorialClass):
              ['g', 'a'],
              ['g', 't']]
         """
-
-        # visualize an odometer, with "wheels" displaying "digits"...:
-        wheels = map(iter, self.iters)
-        digits = [it.next() for it in wheels]
-        while True:
-            yield __builtin__.list(digits)
-            for i in range(len(digits)-1, -1, -1):
-                try:
-                    digits[i] = wheels[i].next()
-                    break
-                except StopIteration:
-                    wheels[i] = iter(self.iters[i])
-                    digits[i] = wheels[i].next()
-            else:
-                break
+        return self._mrange.__iter__()
 
     def random_element(self):
         """

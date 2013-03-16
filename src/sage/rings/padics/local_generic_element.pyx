@@ -208,6 +208,13 @@ cdef class LocalGenericElement(CommutativeRingElement):
 
         - ``k`` -- (default: 1) a positive integer
 
+        .. WARNING::
+
+            In Python if you create a slice as ``a[:5]``, the start
+            attribute will be set to 0 rather than None.  As a
+            consequence, ``a[:5]`` will start the slice at 0 whereas
+            ``a.slice(None, 5)`` will start at the valution.
+
         EXAMPLES::
 
             sage: R = Zp(5, 6, 'capped-rel')
@@ -248,11 +255,20 @@ cdef class LocalGenericElement(CommutativeRingElement):
             sage: a.slice(0,7,2)
             3 + 2*5^2 + 2*5^4 + O(5^6)
 
+        If start is left blank, it is set to the valuation::
+
+            sage: K = Qp(5, 6)
+            sage: x = K(1/25 + 5); x
+            5^-2 + 5 + O(5^4)
+            sage: x.slice(None, 3)
+            5^-2 + 5 + O(5^3)
+            sage: x[:3]
+            5 + O(5^3)
+
         TESTS:
 
         Test that slices also work over fields::
 
-            sage: K = Qp(5, 6)
             sage: a = K(1/25); a
             5^-2 + O(5^4)
             sage: b = K(25); b
@@ -327,7 +343,8 @@ cdef class LocalGenericElement(CommutativeRingElement):
             ppow *= pk
 
         # fix the precision of the return value
-        ans += self.parent()(0, absprec = min(j,self.precision_absolute()))
+        if j < self.precision_absolute():
+            ans = self.add_bigoh(j)
 
         return ans
 

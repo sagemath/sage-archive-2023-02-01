@@ -274,6 +274,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
         Returns the coefficient of `p^n` in the series expansion of this
         element, as an integer in the range `0` to `p-1`.
 
+        .. WARNING::
+
+            In Python if you create a slice as ``a[:5]``, the start
+            attribute will be set to 0 rather than None.  As a
+            consequence, this function behaves differently than
+            ``a.slice(None, 5)`` on such inputs: this function starts
+            at 0 while slice starts at the valution.
+
         EXAMPLES::
 
             sage: R = Zp(7,4,'capped-rel','series'); a = R(1/3); a
@@ -331,15 +339,37 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: b[3:7]
             O(7^3)
 
+        Note that if the first entry in the slice is blank it will be
+        set to zero::
+
+            sage: K = Qp(5, 6)
+            sage: x = K(1/25 + 5); x
+            5^-2 + 5 + O(5^4)
+            sage: x[:3]
+            5 + O(5^3)
+            sage: x.slice(None, 3)
+            5^-2 + 5 + O(5^3)
+
+        For extension elements, "zeros" match the behavior of
+        ``list``::
+
+            sage: S.<a> = Qq(125)
+            sage: a[-2]
+            []
+
         .. SEEALSO::
 
             :meth:`sage.rings.padics.local_generic_element.LocalGenericElement.slice`
         """
         if isinstance(n, slice):
             return self.slice(n.start, n.stop, n.step)
+        if self.parent().f() == 1:
+            zero = Integer(0)
+        else:
+            zero = []
         if n < self.valuation():
-            return Integer(0)
-        if n >= self.precision_relative() + self.valuation():
+            return zero
+        if n >= self.precision_absolute():
             raise IndexError("list index out of range")
 
         if self.parent().is_field():
@@ -350,7 +380,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         try:
             return self.list()[n]
         except IndexError:
-            return Integer(0)
+            return zero
 
     def __invert__(self):
         r"""

@@ -61,7 +61,7 @@ class DocTestDefaults(SageObject):
 
             sage: from sage.doctest.control import DocTestDefaults
             sage: D = DocTestDefaults(); D.optional
-            'sage'
+            set(['sage'])
         """
         self.nthreads = 1
         self.serial = False
@@ -71,7 +71,7 @@ class DocTestDefaults(SageObject):
         self.sagenb = False
         self.long = False
         self.warn_long = None
-        self.optional = "sage"
+        self.optional = set(["sage"])
         self.randorder = None
         self.global_iterations = 1  # sage-runtests default is 0
         self.file_iterations = 1    # sage-runtests default is 0
@@ -87,6 +87,7 @@ class DocTestDefaults(SageObject):
         self.omega = False
         self.failed = False
         self.new = False
+        self.show_skipped = False
         # We don't want to use the real stats file by default so that
         # we don't overwrite timings for the actual running doctests.
         self.stats_path = os.path.join(DOT_SAGE, "timings_dt_test.json")
@@ -113,6 +114,21 @@ class DocTestDefaults(SageObject):
         s += ")"
         return s
 
+    def __cmp__(self, other):
+        """
+        Comparison by __dict__.
+
+        EXAMPLES::
+
+            sage: from sage.doctest.control import DocTestDefaults
+            sage: DD1 = DocTestDefaults(long=True)
+            sage: DD2 = DocTestDefaults(long=True)
+            sage: DD1 == DD2
+            True
+        """
+        c = cmp(type(self), type(other))
+        if c: return c
+        return cmp(self.__dict__,other.__dict__)
 
 class DocTestController(SageObject):
     """
@@ -165,7 +181,14 @@ class DocTestController(SageObject):
             options.nthreads = 1
         if options.serial:
             options.nthreads = 1
+        if options.verbose:
+            options.show_skipped = True
 
+        if isinstance(options.optional, basestring):
+            if options.optional.lower() in ['all', 'true']:
+                options.optional = True
+            else:
+                options.optional = set(options.optional.lower().split(','))
         self.options = options
         self.files = args
         if options.all and options.logfile is None:
@@ -408,7 +431,7 @@ class DocTestController(SageObject):
             sage: DC.expand_files_into_sources()
             sage: len(DC.sources)
             9
-            sage: DC.sources[0].optional
+            sage: DC.sources[0].options.optional
             True
 
         ::
@@ -416,7 +439,7 @@ class DocTestController(SageObject):
             sage: DD = DocTestDefaults(optional='magma,guava')
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
-            sage: sorted(list(DC.sources[0].optional))
+            sage: sorted(list(DC.sources[0].options.optional))
             ['guava', 'magma']
         """
         def skipdir(dirname):
@@ -445,11 +468,7 @@ class DocTestController(SageObject):
                 else:
                     # the user input this file explicitly, so we don't skip it
                     yield path
-        if self.options.optional == 'all':
-            optionals = True
-        else:
-            optionals = set(self.options.optional.lower().split(','))
-        self.sources = [FileDocTestSource(path, self.options.force_lib, long=self.options.long, optional=optionals, randorder=self.options.randorder, useabspath=self.options.abspath) for path in expand()]
+        self.sources = [FileDocTestSource(path, self.options) for path in expand()]
 
     def filter_sources(self):
         """
@@ -677,7 +696,7 @@ class DocTestController(SageObject):
             sage: DD = DocTestDefaults(valgrind=True, optional="all", timeout=172800)
             sage: DC = DocTestController(DD, ["hello_world.py"])
             sage: DC.run_val_gdb(testing=True)
-            exec valgrind --tool=memcheck --leak-resolution=high --leak-check=full --num-callers=25 --suppressions="$SAGE_LOCAL/lib/valgrind/sage.supp"  --log-file=".../valgrind/sage-memcheck.%p" python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout=172800 --optional=all hello_world.py
+            exec valgrind --tool=memcheck --leak-resolution=high --leak-check=full --num-callers=25 --suppressions="$SAGE_LOCAL/lib/valgrind/sage.supp"  --log-file=".../valgrind/sage-memcheck.%p" python "$SAGE_LOCAL/bin/sage-runtests" --serial --timeout=172800 --optional=True hello_world.py
         """
         try:
             sage_cmd = self._assemble_cmd()

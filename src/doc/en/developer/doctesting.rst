@@ -1027,6 +1027,29 @@ because old values of variables are used.  To only see the first
 failure in each doctest block use the ``--initial`` flag (``-i`` for
 short).
 
+Show skipped optional tests
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To print a summary at the end of each file with the number of optional
+tests skipped, use the ``--show-skipped`` flag::
+
+   [roed@sage sage-5.9]$ sage -t --show-skipped devel/sage-main/sage/rings/finite_rings/integer_mod.pyx
+   Running doctests with ID 2013-03-14-15-32-05-8136f5e3.
+   Doctesting 1 file.
+   sage -t sage/rings/finite_rings/integer_mod.pyx
+       2 axiom tests not run
+       1 cunningham test not run
+       2 fricas tests not run
+       1 long test not run
+       3 magma tests not run
+       [440 tests, 4.0 s]
+   ----------------------------------------------------------------------
+   All tests passed!
+   ----------------------------------------------------------------------
+   Total time for all tests: 4.3 seconds
+       cpu time: 2.4 seconds
+       cumulative wall time: 4.0 seconds
+
 Running tests with iterations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

@@ -125,8 +125,8 @@ class DocTestReporter(SageObject):
             sage: from sage.doctest.forker import SageDocTestRunner
             sage: from sage.env import SAGE_SRC
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','reporting.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
             sage: DD = DocTestDefaults()
+            sage: FDS = FileDocTestSource(filename,DD)
             sage: DC = DocTestController(DD, [filename])
             sage: DTR = DocTestReporter(DC)
             sage: print DTR.report_head(FDS)
@@ -188,8 +188,8 @@ class DocTestReporter(SageObject):
             sage: from sage.env import SAGE_SRC
             sage: import os, sys, doctest
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','reporting.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
             sage: DD = DocTestDefaults()
+            sage: FDS = FileDocTestSource(filename,DD)
             sage: DC = DocTestController(DD,[filename])
             sage: DTR = DocTestReporter(DC)
 
@@ -269,6 +269,25 @@ class DocTestReporter(SageObject):
             1
             sage: DTR.report(FDS, False, 0, (sum([len(t.examples) for t in doctests]), D), "Doctest output including the failure...")
                 [... tests, 1 failure, 0.0 s]
+
+        If the user has requested that we report on skipped doctests,
+        we do so::
+
+            sage: DC.options = DocTestDefaults(show_skipped=True)
+            sage: import collections
+            sage: optionals = collections.defaultdict(int)
+            sage: optionals['magma'] = 5; optionals['long time'] = 4; optionals[''] = 1; optionals['not tested'] = 2
+            sage: D = DictAsObject(dict(err=None,optionals=optionals))
+            sage: runner.failures = 0
+            sage: runner.update_results(D)
+            0
+            sage: DTR.report(FDS, False, 0, (sum([len(t.examples) for t in doctests]), D), "Good tests")
+                1 unlabeled test not run
+                4 long tests not run
+                5 magma tests not run
+                2 other tests skipped
+                [... tests, 0.0 s]
+
         """
         try:
             log = self.controller.log
@@ -379,6 +398,33 @@ class DocTestReporter(SageObject):
                     postscript['cputime'] += cpu
                     postscript['walltime'] += wall
 
+                    if self.controller.options.show_skipped:
+                        try:
+                            optionals = result_dict.optionals
+                        except AttributeError:
+                            optionals = dict()
+                        if self.controller.options.optional is not True: # if True we test all optional tags
+                            untested = 0  # Report not tested/implemented tests at the end
+                            seen_other = False
+                            for tag in sorted(optionals.keys()):
+                                nskipped = optionals[tag]
+                                if tag == "long time":
+                                    if not self.controller.options.long:
+                                        seen_other = True
+                                        log("    %s not run"%(count_noun(nskipped, "long test")))
+                                elif tag in ("not tested", "not implemented"):
+                                    untested += nskipped
+                                else:
+                                    if tag not in self.controller.options.optional:
+                                        seen_other = True
+                                        if tag == "bug":
+                                            log("    %s not run due to known bugs"%(count_noun(nskipped, "test")))
+                                        elif tag == "":
+                                            log("    %s not run"%(count_noun(nskipped, "unlabeled test")))
+                                        else:
+                                            log("    %s not run"%(count_noun(nskipped, tag + " test")))
+                            if untested:
+                                log ("    %s skipped"%(count_noun(untested, "%stest"%("other " if seen_other else ""))))
                     log("    [%s, %s%.1f s]" % (count_noun(ntests, "test"), "%s, "%(count_noun(f, "failure")) if f else "", wall))
             self.sources_completed += 1
 
@@ -403,8 +449,8 @@ class DocTestReporter(SageObject):
             sage: from sage.env import SAGE_SRC
             sage: import os, sys, doctest
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','reporting.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
             sage: DD = DocTestDefaults()
+            sage: FDS = FileDocTestSource(filename,DD)
             sage: DC = DocTestController(DD,[filename])
             sage: DTR = DocTestReporter(DC)
 

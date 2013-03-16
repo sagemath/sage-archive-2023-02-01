@@ -20,6 +20,7 @@ AUTHORS:
 
 import re, sys
 import doctest
+import collections
 from sage.misc.preparser import preparse
 from Cython.Build.Dependencies import strip_string_literals
 
@@ -59,7 +60,7 @@ def parse_optional_tags(string):
         sage: sorted(list(parse_optional_tags("    sage: factor(10^(10^10) + 1) # LoNg TiME, NoT TeSTED; OptioNAL -- P4cka9e")))
         ['long time', 'not tested', 'p4cka9e']
         sage: parse_optional_tags("    sage: raise RuntimeError # known bug")
-        set(['known bug'])
+        set(['bug'])
         sage: sorted(list(parse_optional_tags("    sage: determine_meaning_of_life() # long time, not implemented")))
         ['long time', 'not implemented']
 
@@ -80,8 +81,11 @@ def parse_optional_tags(string):
 
     tags = []
     for m in optional_regex.finditer(comment):
-        if m.group(1):
-            tags.append(m.group(1))
+        cmd = m.group(1)
+        if cmd == 'known bug':
+            tags.append('bug') # so that such tests will be run by sage -t ... -only-optional=bug
+        elif cmd:
+            tags.append(cmd)
         else:
             tags.extend(m.group(3).split() or [""])
     return set(tags)
@@ -275,10 +279,11 @@ class OriginalSource:
     EXAMPLES::
 
         sage: from sage.doctest.sources import FileDocTestSource
+        sage: from sage.doctest.control import DocTestDefaults
         sage: from sage.env import SAGE_SRC
         sage: import os
         sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
-        sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+        sage: FDS = FileDocTestSource(filename,DocTestDefaults())
         sage: doctests, extras = FDS.create_doctests(globals())
         sage: ex = doctests[0].examples[0]
         sage: ex.sage_source
@@ -301,10 +306,11 @@ class OriginalSource:
         EXAMPLES::
 
             sage: from sage.doctest.sources import FileDocTestSource
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.env import SAGE_SRC
             sage: import os
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: ex = doctests[0].examples[0]
             sage: from sage.doctest.parsing import OriginalSource
@@ -318,10 +324,11 @@ class OriginalSource:
         EXAMPLES::
 
             sage: from sage.doctest.sources import FileDocTestSource
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.env import SAGE_SRC
             sage: import os
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: ex = doctests[0].examples[0]
             sage: from sage.doctest.parsing import OriginalSource
@@ -338,10 +345,11 @@ class OriginalSource:
         EXAMPLES::
 
             sage: from sage.doctest.sources import FileDocTestSource
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.env import SAGE_SRC
             sage: import os
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: ex = doctests[0].examples[0]
             sage: from sage.doctest.parsing import OriginalSource
@@ -383,6 +391,7 @@ class SageDocTestParser(doctest.DocTestParser):
             sage: TestSuite(DTP).run()
         """
         self.long = long
+        self.optionals = collections.defaultdict(int) # record skipped optional tests
         if optional_tags is True: # run all optional tests
             self.optional_tags = True
             self.optional_only = False
@@ -510,11 +519,10 @@ class SageDocTestParser(doctest.DocTestParser):
             if isinstance(item, doctest.Example):
                 optional_tags = parse_optional_tags(item.source)
                 if optional_tags:
+                    for tag in optional_tags:
+                        self.optionals[tag] += 1
                     if ('not implemented' in optional_tags) or ('not tested' in optional_tags):
                         continue
-                    elif 'known bug' in optional_tags:
-                        optional_tags.remove('known bug')
-                        optional_tags.add('bug') # so that such tests will be run by sage -t ... -only-optional=bug
                     if 'long time' in optional_tags:
                         if self.long:
                             optional_tags.remove('long time')

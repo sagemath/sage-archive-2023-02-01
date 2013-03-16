@@ -389,7 +389,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: import doctest, sys, os
             sage: DTR = SageDocTestRunner(SageOutputChecker(), verbose=False, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DD)
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: DTR.run(doctests[0], clear_globs=False) # indirect doctest
             TestResults(failed=0, attempted=4)
@@ -565,7 +565,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: import doctest, sys, os
             sage: DTR = SageDocTestRunner(SageOutputChecker(), verbose=False, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DD)
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: DTR.run(doctests[0], clear_globs=False)
             TestResults(failed=0, attempted=4)
@@ -710,7 +710,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: import doctest, sys, os, hashlib
             sage: DTR = SageDocTestRunner(SageOutputChecker(), verbose=False, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DD)
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: DTR.running_global_digest.hexdigest()
             'd41d8cd98f00b204e9800998ecf8427e'
@@ -769,7 +769,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: DTR = SageDocTestRunner(SageOutputChecker(), verbose=False, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
             sage: DTR.running_doctest_digest = hashlib.md5()
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DD)
             sage: globs = RecordingDict(globals())
             sage: globs.has_key('doctest_var')
             False
@@ -859,7 +859,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: import doctest, sys, os
             sage: DTR = SageDocTestRunner(SageOutputChecker(), verbose=False, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DD)
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: ex = doctests[0].examples[0]
             sage: print DTR._failure_header(doctests[0], ex)
@@ -908,7 +908,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: import doctest, sys, os
             sage: DTR = SageDocTestRunner(SageOutputChecker(), verbose=True, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DD)
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: ex = doctests[0].examples[0]
             sage: DTR.report_start(sys.stdout.write, doctests[0], ex)
@@ -956,7 +956,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: import doctest, sys, os
             sage: DTR = SageDocTestRunner(SageOutputChecker(), verbose=True, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DD)
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: ex = doctests[0].examples[0]
             sage: ex.walltime = 0.0
@@ -997,7 +997,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: import doctest, sys, os
             sage: DTR = SageDocTestRunner(SageOutputChecker(), verbose=True, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DD)
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: ex = doctests[0].examples[0]
             sage: DTR.no_failure_yet = True
@@ -1045,7 +1045,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: import doctest, sys, os
             sage: DTR = SageDocTestRunner(SageOutputChecker(), verbose=True, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DD)
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: ex = doctests[0].examples[0]
             sage: ex.walltime = 1.23
@@ -1164,7 +1164,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: import doctest, sys, os
             sage: DTR = SageDocTestRunner(SageOutputChecker(), verbose=False, sage_options=DD, optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS)
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DD)
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: from sage.doctest.util import Timer
             sage: T = Timer().start()
@@ -1580,7 +1580,7 @@ class DocTestWorker(multiprocessing.Process):
         sage: from sage.env import SAGE_SRC
         sage: filename = os.path.join(SAGE_SRC,'sage','doctest','util.py')
         sage: DD = DocTestDefaults()
-        sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+        sage: FDS = FileDocTestSource(filename,DD)
         sage: W = DocTestWorker(FDS, DD)
         sage: W.start()
         sage: DC = DocTestController(DD, filename)
@@ -1710,7 +1710,7 @@ class DocTestWorker(multiprocessing.Process):
             sage: from sage.env import SAGE_SRC
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','util.py')
             sage: DD = DocTestDefaults()
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DD)
             sage: W = DocTestWorker(FDS, DD)
             sage: W.start()
             sage: try:
@@ -1750,7 +1750,7 @@ class DocTestWorker(multiprocessing.Process):
             sage: from sage.env import SAGE_SRC
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','util.py')
             sage: DD = DocTestDefaults(verbose=True,nthreads=2)
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DD)
             sage: W = DocTestWorker(FDS, DD)
             sage: W.start()
             sage: while W.rmessages is not None:
@@ -1785,13 +1785,13 @@ class DocTestWorker(multiprocessing.Process):
             sage: from sage.env import SAGE_SRC
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','util.py')
             sage: DD = DocTestDefaults()
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DD)
             sage: W = DocTestWorker(FDS, DD)
             sage: W.start()
             sage: W.join()
             sage: W.save_result_output()
             sage: sorted(W.result[1].keys())
-            ['cputime', 'err', 'failures', 'walltime']
+            ['cputime', 'err', 'failures', 'optionals', 'walltime']
             sage: len(W.output) > 0
             True
         """
@@ -1822,7 +1822,7 @@ class DocTestWorker(multiprocessing.Process):
             sage: from sage.env import SAGE_SRC
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','tests','99seconds.rst')
             sage: DD = DocTestDefaults()
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DD)
 
         We set up the worker to start by blocking ``SIGHUP``, such that
         killing will fail initially::
@@ -1877,15 +1877,15 @@ class DocTestTask(object):
         sage: from sage.env import SAGE_SRC
         sage: import os
         sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
-        sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
-        sage: DTT = DocTestTask(FDS)
         sage: DD = DocTestDefaults()
+        sage: FDS = FileDocTestSource(filename,DD)
+        sage: DTT = DocTestTask(FDS)
         sage: DC = DocTestController(DD,[filename])
         sage: ntests, results = DTT(options=DD)
-        sage: ntests
-        292
+        sage: ntests >= 300 or ntests
+        True
         sage: sorted(results.keys())
-        ['cputime', 'err', 'failures', 'walltime']
+        ['cputime', 'err', 'failures', 'optionals', 'walltime']
     """
     def __init__(self, source):
         """
@@ -1895,10 +1895,11 @@ class DocTestTask(object):
 
             sage: from sage.doctest.forker import DocTestTask
             sage: from sage.doctest.sources import FileDocTestSource
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.env import SAGE_SRC
             sage: import os
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: DocTestTask(FDS)
             <sage.doctest.forker.DocTestTask object at ...>
         """
@@ -1938,15 +1939,15 @@ class DocTestTask(object):
             sage: from sage.env import SAGE_SRC
             sage: import os
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','parsing.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
-            sage: DTT = DocTestTask(FDS)
             sage: DD = DocTestDefaults()
+            sage: FDS = FileDocTestSource(filename,DD)
+            sage: DTT = DocTestTask(FDS)
             sage: DC = DocTestController(DD, [filename])
             sage: ntests, runner = DTT(options=DD)
             sage: runner.failures
             0
-            sage: ntests
-            206
+            sage: ntests >= 200 or ntests
+            True
         """
         result = None
         try:
@@ -1980,6 +1981,7 @@ class DocTestTask(object):
             if extras['tab']:
                 results.err = 'tab'
                 results.tab_linenos = extras['tab']
+            results.optionals = extras['optionals']
             # We subtract 1 to remove the sig_on_count() tests
             result = (sum([max(0,len(test.examples) - 1) for test in doctests]), results)
         except BaseException:

@@ -217,4 +217,38 @@ Test running under gdb, without and with a timeout::
     Doctesting 1 file.
         Time out
     4
+
+Test the ``--show-skipped`` option::
+
+    sage: subprocess.call(["sage", "-t", "--show-skipped", "show_skipped.rst"], cwd=tests_dir)  # long time
+    Running doctests ...
+    Doctesting 1 file.
+    sage -t show_skipped.rst
+        1 unlabeled test not run
+        2 tests not run due to known bugs
+        1 gap test not run
+        1 long test not run
+        1 other test skipped
+        [1 test, ... s]
+    ----------------------------------------------------------------------
+    All tests passed!
+    ----------------------------------------------------------------------
+    ...
+    0
+
+Optional tests are run correctly::
+
+    sage: subprocess.call(["sage", "-t", "--long", "--show-skipped", "--optional=sage,gap", "show_skipped.rst"], cwd=tests_dir)  # long time
+    Running doctests ...
+    Doctesting 1 file.
+    sage -t --long show_skipped.rst
+        1 unlabeled test not run
+        2 tests not run due to known bugs
+        1 other test skipped
+        [3 tests, ... s]
+    ----------------------------------------------------------------------
+    All tests passed!
+    ----------------------------------------------------------------------
+    ...
+    0
 """

@@ -98,29 +98,24 @@ class DocTestSource(object):
 
     INPUT:
 
-    - ``long`` -- whether to execute tests marked as ``# long time``
-
-    - ``optional`` -- either True or a set of optional tags to execute
-
-    - ``randorder`` -- whether to execute the doctests in this source
-      in a random order
+    - ``options`` -- a :class:`sage.doctest.control.DocTestDefaults`
+      instance or equivalent.
     """
-    def __init__(self, long, optional, randorder):
+    def __init__(self, options):
         """
         Initialization.
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.env import SAGE_SRC
             sage: import os
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),0)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: TestSuite(FDS).run()
         """
-        self.long = long
-        self.optional = optional
-        self.randorder = randorder
+        self.options = options
 
     def __cmp__(self, other):
         """
@@ -128,12 +123,14 @@ class DocTestSource(object):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.env import SAGE_SRC
             sage: import os
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),0)
-            sage: FDS2 = FileDocTestSource(filename,True,False,set(['sage']),0)
+            sage: DD = DocTestDefaults()
+            sage: FDS = FileDocTestSource(filename,DD)
+            sage: FDS2 = FileDocTestSource(filename,DD)
             sage: FDS == FDS2
             True
         """
@@ -167,12 +164,13 @@ class DocTestSource(object):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.doctest.parsing import SageDocTestParser
             sage: from sage.env import SAGE_SRC
             sage: import os
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','util.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: doctests, _ = FDS.create_doctests({})
             sage: manual_doctests = []
             sage: for dt in doctests:
@@ -217,12 +215,13 @@ class DocTestSource(object):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.doctest.util import NestedName
             sage: from sage.env import SAGE_SRC
             sage: import os
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: FDS.qualified_name = NestedName('sage.doctest.sources')
             sage: doctests, extras = FDS._create_doctests({})
             sage: len(doctests)
@@ -234,7 +233,7 @@ class DocTestSource(object):
             tab_okay = isinstance(self,TexSource)
         self._init()
         self.line_shift = 0
-        self.parser = SageDocTestParser(self.long, self.optional)
+        self.parser = SageDocTestParser(self.options.long, self.options.optional)
         self.linking = False
         doctests = []
         in_docstring = False
@@ -293,16 +292,18 @@ class DocTestSource(object):
         if unparsed_doc:
             self._process_doc(doctests, doc, namespace, start)
 
-        if self.randorder is not None and self.randorder is not False:
+        extras = dict(tab = not tab_okay and tab_locations,
+                      optionals = self.parser.optionals)
+        if self.options.randorder is not None and self.options.randorder is not False:
             # we want to randomize even when self.randorder = 0
-            random.seed(self.randorder)
+            random.seed(self.options.randorder)
             randomized = []
             while len(doctests) > 0:
                 i = random.randint(0, len(doctests)-1)
                 randomized.append(doctests.pop(i))
-            return randomized, {'tab':not tab_okay and tab_locations}
+            return randomized, extras
         else:
-            return doctests, {'tab':not tab_okay and tab_locations}
+            return doctests, extras
 
 class StringDocTestSource(DocTestSource):
     """
@@ -316,12 +317,8 @@ class StringDocTestSource(DocTestSource):
     - ``source`` -- a string, giving the source code to be parsed for
       doctests.
 
-    - ``long`` -- whether to execute tests marked as ``# long time``
-
-    - ``optional`` -- either True or a set of optional tags to execute
-
-    - ``randorder`` -- whether to execute the doctests in this string
-      in a random order
+    - ``options`` -- a :class:`sage.doctest.control.DocTestDefaults`
+      or equivalent.
 
     - ``printpath`` -- a string, to be used in place of a filename
       when doctest failures are displayed.
@@ -331,35 +328,37 @@ class StringDocTestSource(DocTestSource):
 
     EXAMPLES::
 
+        sage: from sage.doctest.control import DocTestDefaults
         sage: from sage.doctest.sources import StringDocTestSource, PythonSource
         sage: from sage.structure.dynamic_class import dynamic_class
         sage: s = "'''\n    sage: 2 + 2\n    4\n'''"
         sage: PythonStringSource = dynamic_class('PythonStringSource',(StringDocTestSource, PythonSource))
-        sage: PSS = PythonStringSource('<runtime>', s, False, set(['sage']), False, 'runtime')
+        sage: PSS = PythonStringSource('<runtime>', s, DocTestDefaults(), 'runtime')
         sage: dt, extras = PSS.create_doctests({})
         sage: len(dt)
         1
         sage: extras['tab']
         []
     """
-    def __init__(self, basename, source, long, optional, randorder, printpath, lineno_shift=0):
+    def __init__(self, basename, source, options, printpath, lineno_shift=0):
         """
         Initialization
 
         TESTS::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import StringDocTestSource, PythonSource
             sage: from sage.structure.dynamic_class import dynamic_class
             sage: s = "'''\n    sage: 2 + 2\n    4\n'''"
             sage: PythonStringSource = dynamic_class('PythonStringSource',(StringDocTestSource, PythonSource))
-            sage: PSS = PythonStringSource('<runtime>', s, False, set(['sage']), False, 'runtime')
+            sage: PSS = PythonStringSource('<runtime>', s, DocTestDefaults(), 'runtime')
             sage: TestSuite(PSS).run()
         """
         self.qualified_name = NestedName(basename)
         self.printpath = printpath
         self.source = source
         self.lineno_shift = lineno_shift
-        DocTestSource.__init__(self, long, optional, randorder)
+        DocTestSource.__init__(self, options)
 
     def __iter__(self):
         """
@@ -367,11 +366,12 @@ class StringDocTestSource(DocTestSource):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import StringDocTestSource, PythonSource
             sage: from sage.structure.dynamic_class import dynamic_class
             sage: s = "'''\n    sage: 2 + 2\n    4\n'''"
             sage: PythonStringSource = dynamic_class('PythonStringSource',(StringDocTestSource, PythonSource))
-            sage: PSS = PythonStringSource('<runtime>', s, False, set(['sage']), False, 'runtime')
+            sage: PSS = PythonStringSource('<runtime>', s, DocTestDefaults(), 'runtime')
             sage: for n, line in PSS:
             ....:     print n, line,
             0 '''
@@ -399,11 +399,12 @@ class StringDocTestSource(DocTestSource):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import StringDocTestSource, PythonSource
             sage: from sage.structure.dynamic_class import dynamic_class
             sage: s = "'''\n    sage: 2 + 2\n    4\n'''"
             sage: PythonStringSource = dynamic_class('PythonStringSource',(StringDocTestSource, PythonSource))
-            sage: PSS = PythonStringSource('<runtime>', s, False, set(['sage']), False, 'runtime')
+            sage: PSS = PythonStringSource('<runtime>', s, DocTestDefaults(), 'runtime')
             sage: dt, tabs = PSS.create_doctests({})
             sage: for t in dt:
             ....:     print t.name, t.examples[0].sage_source
@@ -419,26 +420,17 @@ class FileDocTestSource(DocTestSource):
 
     - ``path`` -- string, the filename
 
-    - ``force_lib`` -- bool, whether this file shoule be considered
-      part of the Sage library
-
-    - ``long`` -- whether to execute tests marked as ``# long time``
-
-    - ``optional`` -- either True or a set of optional tags to execute
-
-    - ``randorder`` -- whether to execute the doctests in this file in
-      a random order
-
-    - ``useabspath`` -- bool (default: False), whether paths should be
-      printed absolutely
+    - ``options`` -- a :class:`sage.doctest.control.DocTestDefaults`
+      instance or equivalent.
 
     EXAMPLES::
 
+        sage: from sage.doctest.control import DocTestDefaults
         sage: from sage.doctest.sources import FileDocTestSource
         sage: from sage.env import SAGE_SRC
         sage: import os
         sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
-        sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+        sage: FDS = FileDocTestSource(filename,DocTestDefaults())
         sage: FDS.basename
         'sage.doctest.sources'
 
@@ -446,24 +438,23 @@ class FileDocTestSource(DocTestSource):
 
         sage: TestSuite(FDS).run()
     """
-    def __init__(self, path, force_lib, long, optional, randorder, useabspath=False):
+    def __init__(self, path, options):
         """
         Initialization.
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.env import SAGE_SRC
             sage: import os
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),0)
-            sage: FDS.randorder
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults(randorder=0))
+            sage: FDS.options.randorder
             0
         """
         self.path = path
-        self.force_lib = force_lib
-        DocTestSource.__init__(self, long, optional, randorder)
-        self.useabspath = useabspath
+        DocTestSource.__init__(self, options)
         base, ext = os.path.splitext(path)
         if ext in ('.py', '.pyx', '.pxi', '.sage', '.spyx'):
             self.__class__ = dynamic_class('PythonFileSource',(FileDocTestSource,PythonSource))
@@ -478,11 +469,12 @@ class FileDocTestSource(DocTestSource):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: filename = tmp_filename(ext=".py")
             sage: s = "'''\n    sage: 2 + 2\n    4\n'''"
             sage: open(filename, 'w').write(s)
-            sage: FDS = FileDocTestSource(filename, False, False, set(['sage']), False)
+            sage: FDS = FileDocTestSource(filename, DocTestDefaults())
             sage: for n, line in FDS:
             ....:     print n, line,
             0 '''
@@ -501,6 +493,7 @@ class FileDocTestSource(DocTestSource):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.env import SAGE_SRC
             sage: import os
@@ -508,15 +501,15 @@ class FileDocTestSource(DocTestSource):
             sage: filename = os.path.join(root,'doctest','sources.py')
             sage: cwd = os.getcwd()
             sage: os.chdir(root)
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),0)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults(randorder=0,abspath=False))
             sage: FDS.printpath
             'doctest/sources.py'
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),0,useabspath=True)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults(randorder=0,abspath=True))
             sage: FDS.printpath
             '.../sage/doctest/sources.py'
             sage: os.chdir(cwd)
         """
-        if self.useabspath:
+        if self.options.abspath:
             return os.path.abspath(self.path)
         else:
             relpath = os.path.relpath(self.path)
@@ -532,11 +525,12 @@ class FileDocTestSource(DocTestSource):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.env import SAGE_SRC
             sage: import os
             sage: filename = os.path.join(SAGE_SRC,'sage','rings','integer.pyx')
-            sage: FDS = FileDocTestSource(filename,False,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: FDS.basename
             'sage.rings.integer'
         """
@@ -551,22 +545,25 @@ class FileDocTestSource(DocTestSource):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.env import SAGE_SRC
             sage: import os
             sage: filename = os.path.join(SAGE_SRC,'sage','rings','integer.pyx')
-            sage: FDS = FileDocTestSource(filename,False,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: FDS.in_lib
             True
 
         You can override the default::
 
-            sage: FDS = FileDocTestSource("hello_world.py",False,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource("hello_world.py",DocTestDefaults())
             sage: FDS.in_lib
             False
-            sage: FDS = FileDocTestSource("hello_world.py",True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource("hello_world.py",DocTestDefaults(force_lib=True))
+            sage: FDS.in_lib
+            True
         """
-        return (self.force_lib or
+        return (self.options.force_lib or
                 self.basename.startswith('sage.') or
                 self.basename.startswith('doc.') or
                 self.basename.startswith('sagenb.'))
@@ -587,11 +584,12 @@ class FileDocTestSource(DocTestSource):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.env import SAGE_SRC
             sage: import os
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: len(doctests)
             40
@@ -602,8 +600,8 @@ class FileDocTestSource(DocTestSource):
 
             sage: doctests[17].name
             'sage.doctest.sources.FileDocTestSource.create_doctests'
-            sage: doctests[17].examples[9].source
-            'doctests[Integer(17)].examples[Integer(9)].source\n'
+            sage: doctests[17].examples[10].source
+            'doctests[Integer(17)].examples[Integer(10)].source\n'
 
         TESTS:
 
@@ -615,7 +613,7 @@ class FileDocTestSource(DocTestSource):
             sage: n = -920390823904823094890238490238484; hash(n) > 0
             False # 32-bit
             True  # 64-bit
-            sage: ex = doctests[17].examples[12]
+            sage: ex = doctests[17].examples[13]
             sage: (bitness == '64' and ex.want == 'True  \n') or (bitness == '32' and ex.want == 'False \n')
             True
 
@@ -657,6 +655,7 @@ class FileDocTestSource(DocTestSource):
 
         TESTS::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.env import SAGE_SRC
             sage: cwd = os.getcwd()
@@ -669,11 +668,12 @@ class FileDocTestSource(DocTestSource):
             ....:         _, ext = os.path.splitext(F)
             ....:         if ext in ('.py', '.pyx', '.sage', '.spyx', '.rst'):
             ....:             filename = os.path.join(path, F)
-            ....:             FDS = FileDocTestSource(filename, True, True, True, False)
+            ....:             FDS = FileDocTestSource(filename, DocTestDefaults(long=True,optional=True))
             ....:             FDS._test_enough_doctests(verbose=False)
             There are 18 tests in sage/combinat/partition.py that are not being run
             There are 12 tests in sage/combinat/tableau.py that are not being run
             There are 3 unexpected tests being run in sage/doctest/parsing.py
+            There are 1 unexpected tests being run in sage/doctest/reporting.py
             There are 1 tests in sage/ext/c_lib.pyx that are not being run
             There are 9 tests in sage/graphs/graph_plot.py that are not being run
             There are 2 tests in sage/server/notebook/worksheet.py that are not being run
@@ -762,13 +762,14 @@ class SourceLanguage:
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.doctest.parsing import SageDocTestParser
             sage: from sage.doctest.util import NestedName
             sage: from sage.env import SAGE_SRC
             sage: import os
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','util.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: doctests, _ = FDS.create_doctests({})
             sage: for dt in doctests:
             ....:     FDS.qualified_name = dt.name
@@ -784,11 +785,12 @@ class PythonSource(SourceLanguage):
 
     EXAMPLES::
 
+        sage: from sage.doctest.control import DocTestDefaults
         sage: from sage.doctest.sources import FileDocTestSource
         sage: from sage.env import SAGE_SRC
         sage: import os
         sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
-        sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+        sage: FDS = FileDocTestSource(filename,DocTestDefaults())
         sage: type(FDS)
         <class 'sage.doctest.sources.PythonFileSource'>
     """
@@ -801,11 +803,12 @@ class PythonSource(SourceLanguage):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.env import SAGE_SRC
             sage: import os
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: FDS._init()
             sage: FDS.last_indent
             -1
@@ -837,11 +840,12 @@ class PythonSource(SourceLanguage):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.env import SAGE_SRC
             sage: import os
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: FDS._init()
             sage: FDS._update_quotetype('\"\"\"'); print " ".join(list(FDS.quotetype))
             " " "
@@ -932,12 +936,13 @@ class PythonSource(SourceLanguage):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.doctest.util import NestedName
             sage: from sage.env import SAGE_SRC
             sage: import os
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: FDS._init()
             sage: FDS.starting_docstring("r'''")
             <_sre.SRE_Match object at ...>
@@ -997,12 +1002,13 @@ class PythonSource(SourceLanguage):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.doctest.util import NestedName
             sage: from sage.env import SAGE_SRC
             sage: import os
             sage: filename = os.path.join(SAGE_SRC,'sage','doctest','sources.py')
-            sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: FDS._init()
             sage: FDS.quotetype = "'''"
             sage: FDS.ending_docstring("'''")
@@ -1032,11 +1038,12 @@ class PythonSource(SourceLanguage):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import StringDocTestSource, PythonSource
             sage: from sage.structure.dynamic_class import dynamic_class
             sage: s = "'''\n    sage: 2 + 2\n    4\n'''"
             sage: PythonStringSource = dynamic_class('PythonStringSource',(StringDocTestSource, PythonSource))
-            sage: PSS = PythonStringSource('<runtime>', s, False, set(['sage']), False, 'runtime')
+            sage: PSS = PythonStringSource('<runtime>', s, DocTestDefaults(), 'runtime')
             sage: print PSS._neutralize_doctests(0),
             '''
                 safe: 2 + 2
@@ -1066,9 +1073,10 @@ class TexSource(SourceLanguage):
 
     EXAMPLES::
 
+        sage: from sage.doctest.control import DocTestDefaults
         sage: from sage.doctest.sources import FileDocTestSource
         sage: filename = "sage_paper.tex"
-        sage: FDS = FileDocTestSource(filename,False,False,set(['sage']),None)
+        sage: FDS = FileDocTestSource(filename,DocTestDefaults())
         sage: type(FDS)
         <class 'sage.doctest.sources.TexFileSource'>
     """
@@ -1081,9 +1089,10 @@ class TexSource(SourceLanguage):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: filename = "sage_paper.tex"
-            sage: FDS = FileDocTestSource(filename,False,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: FDS._init()
             sage: FDS.skipping
             False
@@ -1112,9 +1121,10 @@ class TexSource(SourceLanguage):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: filename = "sage_paper.tex"
-            sage: FDS = FileDocTestSource(filename,False,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: FDS._init()
 
         We start docstrings with \begin{verbatim}::
@@ -1188,9 +1198,10 @@ class TexSource(SourceLanguage):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: filename = "sage_paper.tex"
-            sage: FDS = FileDocTestSource(filename,False,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: FDS._init()
             sage: FDS.ending_docstring(r"\end{verbatim}")
             True
@@ -1228,9 +1239,10 @@ class RestSource(SourceLanguage):
 
     EXAMPLES::
 
+        sage: from sage.doctest.control import DocTestDefaults
         sage: from sage.doctest.sources import FileDocTestSource
         sage: filename = "sage_doc.rst"
-        sage: FDS = FileDocTestSource(filename,False,False,set(['sage']),None)
+        sage: FDS = FileDocTestSource(filename,DocTestDefaults())
         sage: type(FDS)
         <class 'sage.doctest.sources.RestFileSource'>
     """
@@ -1243,9 +1255,10 @@ class RestSource(SourceLanguage):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: filename = "sage_doc.rst"
-            sage: FDS = FileDocTestSource(filename,False,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: FDS._init()
             sage: FDS.link_all
             False
@@ -1273,9 +1286,10 @@ class RestSource(SourceLanguage):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: filename = "sage_doc.rst"
-            sage: FDS = FileDocTestSource(filename,False,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: FDS._init()
             sage: FDS.starting_docstring("Hello world::")
             True
@@ -1331,9 +1345,10 @@ class RestSource(SourceLanguage):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: filename = "sage_doc.rst"
-            sage: FDS = FileDocTestSource(filename,False,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: FDS._init()
             sage: FDS.starting_docstring("Hello world::")
             True
@@ -1375,11 +1390,12 @@ class RestSource(SourceLanguage):
 
         EXAMPLES::
 
+            sage: from sage.doctest.control import DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.doctest.parsing import SageDocTestParser
             sage: from sage.doctest.util import NestedName
             sage: filename = "sage_doc.rst"
-            sage: FDS = FileDocTestSource(filename,False,False,set(['sage']),None)
+            sage: FDS = FileDocTestSource(filename,DocTestDefaults())
             sage: FDS.parser = SageDocTestParser(False, set(['sage']))
             sage: FDS.qualified_name = NestedName('sage_doc')
             sage: s = "Some text::\n\n    def example_python_function(a, \
@@ -1405,7 +1421,7 @@ class RestSource(SourceLanguage):
         min_indent = self.parser._min_indent(docstring)
         pysource = '\n'.join([l[min_indent:] for l in docstring.split('\n')])
         inner_source = PythonStringSource(self.basename, pysource,
-                                          self.long, self.optional, self.randorder,
+                                          self.options,
                                           self.printpath, lineno_shift=start+1)
         inner_doctests, _ = inner_source._create_doctests(namespace, True)
         safe_docstring = inner_source._neutralize_doctests(min_indent)

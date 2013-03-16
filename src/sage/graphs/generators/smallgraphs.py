@@ -1103,6 +1103,57 @@ def DoubleStarSnark():
 
     return g
 
+def CameronGraph():
+    r"""
+    Returns the Cameron graph.
+
+    The Cameron graph is strongly regular with parameters `v = 231, k = 30,
+    \lambda = 9, \mu = 3`.
+
+    For more information on the Cameron graph, see
+    `<http://www.win.tue.nl/~aeb/graphs/Cameron.html>`_.
+
+    EXAMPLES::
+
+        sage: g = graphs.CameronGraph()
+        sage: g.order()
+        231
+        sage: g.size()
+        3465
+        sage: g.is_strongly_regular(parameters = True) # long time
+        (231, 30, 9, 3)
+
+    """
+    from sage.groups.perm_gps.permgroup_named import MathieuGroup
+    from itertools import combinations
+    g = Graph(name="Cameron Graph")
+    sets = MathieuGroup(22).orbit((1,2,3,7,10,20), action = "OnSets")
+    for s in sets:
+        for a,b,c,d in combinations(s,4):
+            g.add_edges([((a,b),(c,d)),((a,c),(b,d)), ((a,d),(b,c))])
+
+    g.relabel()
+    ordering = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 18, 19, 20,
+                21, 24, 25, 26, 27, 29, 31, 34, 35, 38, 39, 96, 97, 101, 105,
+                51, 117, 198, 32, 196, 201, 131, 167, 199, 197, 86, 102, 195,
+                200, 186, 144, 202, 177, 44, 53, 58, 45, 48, 54, 43, 57, 50,
+                46, 59, 133, 169, 104, 188, 118, 208, 157, 52, 207, 209, 132,
+                204, 13, 187, 33, 203, 70, 145, 103, 168, 178, 87, 124, 123,
+                125, 111, 120, 116, 119, 112, 95, 114, 115, 137, 218, 213, 108,
+                76, 77, 74, 62, 64, 67, 63, 68, 69, 61, 41, 75, 73, 66, 71, 72,
+                60, 22, 230, 151, 184, 138, 193, 109, 228, 174, 214, 219, 93,
+                126, 143, 150, 146, 224, 181, 16, 223, 171, 90, 135, 106, 205,
+                211, 121, 148, 160, 216, 222, 190, 36, 55, 185, 175, 94, 139,
+                110, 215, 152, 220, 229, 194, 40, 128, 99, 141, 173, 154, 82,
+                156, 164, 159, 28, 127, 158, 65, 162, 163, 153, 161, 155, 140,
+                98, 47, 113, 84, 180, 30, 129, 179, 183, 165, 176, 142, 100,
+                49, 134, 210, 170, 147, 91, 37, 206, 182, 191, 56, 136, 225,
+                221, 149, 227, 217, 17, 107, 172, 212, 122, 226, 23, 85, 42,
+                80, 92, 81, 89, 78, 83, 88, 79, 130, 192, 189, 166]
+
+    _circle_embedding(g, ordering)
+    return g
+
 def ChvatalGraph():
     r"""
     Returns the Chvatal graph.
@@ -2560,6 +2611,40 @@ def LjubljanaGraph(embedding=1):
 
     else:
         raise ValueError("The value of embedding must be 1 or 2.")
+
+def M22Graph():
+    r"""
+    Returns the M22 graph.
+
+    The `M_{22}` graph is the unique strongly regular graph with parameters
+    `v = 77, k = 16, \lambda = 0, \mu = 4`.
+
+    For more information on the `M_{22}` graph, see
+    `<http://www.win.tue.nl/~aeb/graphs/M22.html>`_.
+
+    EXAMPLES::
+
+        sage: g = graphs.M22Graph()
+        sage: g.order()
+        77
+        sage: g.size()
+        616
+        sage: g.is_strongly_regular(parameters = True)
+        (77, 16, 0, 4)
+    """
+    from sage.groups.perm_gps.permgroup_named import MathieuGroup
+    sets = map(tuple,MathieuGroup(22).orbit((1,2,3,7,10,20), action = "OnSets"))
+    g = Graph([sets, lambda x,y : not any(xx in y for xx in x)], name="M22 Graph")
+    g.relabel()
+    ordering = [0, 1, 3, 4, 5, 6, 7, 10, 12, 19, 20, 31, 2, 24, 35, 34, 22, 32,
+                36, 23, 27, 25, 40, 26, 16, 71, 61, 63, 50, 68, 39, 52, 48, 44,
+                69, 28, 9, 64, 60, 17, 38, 49, 45, 65, 14, 70, 72, 21, 43, 56,
+                33, 73, 58, 55, 41, 29, 66, 54, 76, 46, 67, 11, 51, 47, 62, 53,
+                15, 8, 18, 13, 59, 37, 30, 57, 75, 74, 42]
+
+    _circle_embedding(g, ordering)
+
+    return g
 
 def McGeeGraph(embedding=2):
     r"""

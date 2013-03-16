@@ -15,22 +15,19 @@ Base class for polyhedra
 
 from sage.structure.element import Element, coerce_binop, is_Vector
 
-from sage.misc.all import union, cached_method, prod
+from sage.misc.all import cached_method, prod
 from sage.misc.package import is_package_installed
 
-from sage.rings.all import Integer, QQ, ZZ, primes_first_n
-from sage.rings.rational import Rational
+from sage.rings.all import Integer, QQ, ZZ
 from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
-from sage.matrix.constructor import matrix, identity_matrix
+from sage.matrix.constructor import matrix
 from sage.functions.other import sqrt, floor, ceil
+from sage.misc.prandom import randint
 
-from sage.plot.all import point2d, line2d, arrow, polygon2d
-from sage.plot.plot3d.all import point3d, line3d, arrow3d, polygon3d
 from sage.graphs.graph import Graph
 
 from sage.combinat.cartesian_product import CartesianProduct
-from sage.groups.perm_gps.permgroup_named import AlternatingGroup
 
 from constructor import Polyhedron
 
@@ -1519,7 +1516,6 @@ class Polyhedron_base(Element):
             (A vertex at (0, 1), A vertex at (1, 0))
         """
         obj = self.Vrepresentation()
-        edges = []
         for i in range(len(obj)):
             if not obj[i].is_vertex(): continue
             for j in range(i+1,len(obj)):
@@ -3253,11 +3249,11 @@ class Polyhedron_base(Element):
 
         EXAMPLES::
 
-            sage: polytopes.n_cube(3)._volume_lrs() # optional - lrs
+            sage: polytopes.n_cube(3)._volume_lrs() #optional - lrs
             8.0
-            sage: (polytopes.n_cube(3)*2)._volume_lrs() # optional - lrs
+            sage: (polytopes.n_cube(3)*2)._volume_lrs() #optional - lrs
             64.0
-            sage: polytopes.twenty_four_cell()._volume_lrs() # optional - lrs
+            sage: polytopes.twenty_four_cell()._volume_lrs() #optional - lrs
             2.0
 
         REFERENCES:
@@ -3305,13 +3301,13 @@ class Polyhedron_base(Element):
 
         EXAMPLES::
 
-            sage: polytopes.n_cube(3).lrs_volume() #optional, needs lrs package installed
+            sage: polytopes.n_cube(3).lrs_volume() #optional - lrs
             doctest:...: DeprecationWarning: use volume(engine='lrs') instead
             See http://trac.sagemath.org/13249 for details.
             8.0
-            sage: (polytopes.n_cube(3)*2).lrs_volume() #optional, needs lrs package installed
+            sage: (polytopes.n_cube(3)*2).lrs_volume() #optional - lrs
             64.0
-            sage: polytopes.twenty_four_cell().lrs_volume() #optional, needs lrs package installed
+            sage: polytopes.twenty_four_cell().lrs_volume() #optional - lrs
             2.0
 
         REFERENCES:
@@ -3352,9 +3348,15 @@ class Polyhedron_base(Element):
 
             sage: polytopes.regular_polygon(5, base_ring=RDF).volume()
             2.37764129...
-            sage: polytopes.regular_polygon(5, base_ring=QQ).volume()   # rational approximation
+            sage: P5 = polytopes.regular_polygon(5, base_ring=QQ)
+            sage: P5.volume()   # rational approximation
             3387471714099766473500515673753476175274812279494567801326487870013/1424719417220622426561086640229666223984528142237277803327699435400
             sage: _.n()
+            2.37764129...
+
+        Volume of the same polytope, using the optional package lrs::
+
+            sage: P5.volume(engine='lrs') #optional - lrs
             2.37764129...
         """
         if engine=='lrs':

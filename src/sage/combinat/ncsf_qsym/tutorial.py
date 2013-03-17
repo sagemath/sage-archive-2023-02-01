@@ -139,7 +139,7 @@ related to the monomial symmetric functions by `m_\lambda =
 \sum_{sort(c) = \lambda} M_c`::
 
     sage: SymmetricFunctions(QQ).inject_shorthands()
-    doctest:1075: RuntimeWarning: redefining global value `e`
+    doctest:...: RuntimeWarning: redefining global value `e`
     sage: m[2,1]
     m[2, 1]
     sage: M(m[2,1])

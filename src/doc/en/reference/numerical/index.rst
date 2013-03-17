@@ -8,6 +8,7 @@ Numerical Optimization
    sage/numerical/mip
    sage/numerical/linear_functions
    sage/numerical/optimize
+   sage/numerical/interactive_simplex_method
 
 LP Solver backends
 ------------------

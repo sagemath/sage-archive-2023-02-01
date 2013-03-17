@@ -1039,7 +1039,7 @@ class PermutationGroup_generic(group.Group):
     def orbits(self):
         """
         Returns the orbits of the elements of the domain under the
-        group action.
+        default group action.
 
         EXAMPLES::
 
@@ -1067,9 +1067,25 @@ class PermutationGroup_generic(group.Group):
                 self._gap_().Orbits(self._domain_gap()).sage()]
 
     @cached_method
-    def orbit(self, point):
+    def orbit(self, point, action = "OnPoints"):
         """
-        Return the orbit of the given point under the group action.
+        Return the orbit of a point under a group action.
+
+        INPUT:
+
+        - ``point`` -- can be a point or any of the list above, depending on the
+          action to be considered.
+
+        - ``action`` (string) -- if ``point`` is an element from the domain, a
+          tuple of elements of the domain, a tuple of tuples [...], this
+          variable describes how the group is acting.
+
+          The actions currently available through this method are "OnPoints",
+          "OnTuples", "OnSets", "OnPairs", "OnSetsSets", "OnSetsDisjointSets",
+          "OnSetsTuples", "OnTuplesSets", "OnTuplesTuples". They are taken from
+          GAP's list `http://www.gap-system.org/Manuals/doc/ref/chap41.html`_.
+
+          It is set to ``"OnPoints"`` by default. See below for examples.
 
         EXAMPLES::
 
@@ -1079,13 +1095,91 @@ class PermutationGroup_generic(group.Group):
             sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3,4,10)]])
             sage: G.orbit(3)
             [3, 4, 10, 1, 2]
-
             sage: G = PermutationGroup([ [('c','d')], [('a','c')] ])
             sage: G.orbit('a')
             ['a', 'c', 'd']
+
+        Action of `S_3` on sets::
+
+            sage: S3 = groups.permutation.Symmetric(3)
+            sage: S3.orbit((1,2), action = "OnSets")
+            [[1, 2], [2, 3], [1, 3]]
+
+        On tuples::
+
+            sage: S3.orbit((1,2), action = "OnTuples")
+            [[1, 2], [2, 3], [2, 1], [3, 1], [1, 3], [3, 2]]
+
+        Action of `S_4` on sets of disjoint sets::
+
+            sage: S4 = groups.permutation.Symmetric(4)
+            sage: S4.orbit(((1,2),(3,4)), action = "OnSetsDisjointSets")
+            [[[1, 2], [3, 4]],
+             [[1, 4], [2, 3]],
+             [[1, 3], [2, 4]]]
+
+        Action of `S_4` (on a nonstandard domain) on tuples of sets::
+
+            sage: S4 = PermutationGroup([ [('c','d')], [('a','c')], [('a','b')] ])
+            sage: S4.orbit((('a','c'),('b','d')),"OnTuplesSets")
+            [[['a', 'c'], ['b', 'd']], [['a', 'd'], ['b', 'c']],
+             [['b', 'c'], ['a', 'd']], [['b', 'd'], ['a', 'c']],
+             [['c', 'd'], ['a', 'b']], [['a', 'b'], ['c', 'd']]]
+
+        Action of `S_4` (on a very nonstandard domain) on tuples of sets::
+
+            sage: S4 = PermutationGroup([ [((11,(12,13)),'d')], [((12,(12,11)),(11,(12,13)))], [((12,(12,11)),'b')] ])
+            sage: S4.orbit((( (11,(12,13)), (12,(12,11))),('b','d')),"OnTuplesSets")
+            [[[(11, (12, 13)), (12, (12, 11))], ['b', 'd']],
+             [['d', (12, (12, 11))], ['b', (11, (12, 13))]],
+             [['b', (11, (12, 13))], ['d', (12, (12, 11))]],
+             [['d', (11, (12, 13))], ['b', (12, (12, 11))]],
+             [['b', 'd'], [(11, (12, 13)), (12, (12, 11))]],
+             [['b', (12, (12, 11))], ['d', (11, (12, 13))]]]
+
         """
-        point = self._domain_to_gap[point]
-        return [self._domain_from_gap[x] for x in self._gap_().Orbit(point).sage()]
+        def input_to_gap(x, depth, sort):
+            if depth:
+                ans = [input_to_gap(xx,depth-1,sort) for xx in x]
+                if depth == 1 and sort:
+                    ans.sort()
+                return ans
+            else:
+                return self._domain_to_gap[x]
+
+        def gap_to_output(x, depth):
+            if depth:
+                return [gap_to_output(xx,depth-1) for xx in x]
+            else:
+                return self._domain_from_gap[x]
+
+        sort = False
+
+        actions = {
+            "OnPoints"           : {"depth" : 0, "sort" : False},
+            "OnSets"             : {"depth" : 1, "sort" : True},
+            "OnPairs"            : {"depth" : 1, "sort" : False},
+            "OnTuples"           : {"depth" : 1, "sort" : False},
+            "OnTuples"           : {"depth" : 1, "sort" : False},
+            "OnSetsSets"         : {"depth" : 2, "sort" : True},
+            "OnSetsDisjointSets" : {"depth" : 2, "sort" : True},
+            "OnTuplesSets"       : {"depth" : 2, "sort" : True},
+            "OnTuplesTuples"     : {"depth" : 2, "sort" : False},
+            "OnTuplesTuples"     : {"depth" : 2, "sort" : False}
+            }
+        try:
+            params = actions[action]
+        except KeyError:
+            raise ValueError("This action is not implemented (yet?).")
+
+        try:
+            point = input_to_gap(point, **params)
+        except KeyError:
+            raise ValueError("One element does not seem to be part of the domain.")
+
+        ans = self._gap_().Orbit(point, action).sage()
+
+        return gap_to_output(ans, params['depth']+1)
 
     def transversals(self, point):
         """

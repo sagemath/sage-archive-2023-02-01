@@ -132,6 +132,18 @@ class CartesianProduct_iters(CombinatorialClass):
 
     def __len__(self):
         """
+        Return the number of elements of the cartesian product.
+
+        OUTPUT:
+
+        An ``int``, the number of elements in the cartesian product. If the
+        number of elements is infinite or does not fit into a python ``int``, a
+        ``TypeError`` is raised.
+
+        .. SEEALSO::
+
+            :meth:`cardinality`
+
         EXAMPLES::
 
             sage: C = CartesianProduct(xrange(3), xrange(4))
@@ -141,7 +153,7 @@ class CartesianProduct_iters(CombinatorialClass):
             sage: len(C)
             Traceback (most recent call last):
             ...
-            TypeError: This object's length is too large for Python
+            TypeError: cardinality does not fit into a Python int.
             sage: C = CartesianProduct(ZZ, [])
             sage: len(C)
             0

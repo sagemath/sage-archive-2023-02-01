@@ -22,7 +22,7 @@ import misc
 
 def _len(L):
     """
-    Determines the length of L.
+    Determines the length of ``L``.
 
     Uses either ``cardinality`` or ``__len__`` as appropriate.
 
@@ -61,19 +61,26 @@ def _is_finite(L):
         True
         sage: _is_finite(xrange(10^8))
         True
+        sage: from itertools import product
+        sage: _is_finite(product([1],[1])) # does not provide is_finite() or __len__()
+        True
+
     """
     try:
         return L.is_finite()
     except AttributeError:
-        try:
-            n = _len(L)
-        except (TypeError, AttributeError):
-            # We assume L is finite for speed reasons
-            return True
-        from sage.rings.infinity import infinity
-        if n is infinity:
-            return False
+        pass
+
+    try:
+        n = _len(L)
+    except (TypeError, AttributeError):
+        # We assume L is finite for speed reasons
         return True
+
+    from sage.rings.infinity import infinity
+    if n is infinity:
+        return False
+    return True
 
 def _xmrange_iter( iter_list, typ=list ):
     """
@@ -98,16 +105,17 @@ def _xmrange_iter( iter_list, typ=list ):
         sage: l1 is l2  # eeek, this is freaky!
         True
 
-    We check that #14285 has been resolved::
+    We check that :trac:`14285` has been resolved::
 
         sage: iter = sage.misc.mrange._xmrange_iter([ZZ,[]])
         sage: iter.next()
         Traceback (most recent call last):
         ...
         StopIteration
+
     """
     if len(iter_list) == 0:
-        yield ()
+        yield typ()
         return
     # If any iterator in the list is infinite we need to be more careful
     if any(not _is_finite(L) for L in iter_list):
@@ -181,7 +189,7 @@ def mrange_iter(iter_list, typ=list):
     ::
 
         sage: mrange_iter([])
-        [()]
+        [[]]
 
     AUTHORS:
 
@@ -269,7 +277,7 @@ class xmrange_iter:
     ::
 
         sage: list(xmrange_iter([]))
-        [()]
+        [[]]
 
     We use a multi-range iterator to iterate through the Cartesian
     product of sets.
@@ -306,6 +314,11 @@ class xmrange_iter:
 
     def __len__(self):
         """
+        Return the cardinality of this iterator as an int.
+
+        Raises a ``TypeError`` if the cardinality does not fit into a Python
+        int.
+
         EXAMPLES::
 
             sage: C = cartesian_product_iterator([xrange(3), xrange(4)])
@@ -315,6 +328,11 @@ class xmrange_iter:
             1
             sage: len(cartesian_product_iterator([ZZ,[]]))
             0
+            sage: len(cartesian_product_iterator([ZZ,ZZ]))
+            Traceback (most recent call last):
+            ...
+            TypeError: cardinality does not fit into a Python int.
+
         """
         n = self.cardinality()
         try:
@@ -322,11 +340,13 @@ class xmrange_iter:
             if not isinstance(n, int): # could be a long
                 raise TypeError
         except TypeError:
-            raise TypeError("This object's length is too large for Python")
+            raise TypeError("cardinality does not fit into a Python int.")
         return n
 
     def cardinality(self):
         """
+        Return the cardinality of this iterator.
+
         EXAMPLES::
 
             sage: C = cartesian_product_iterator([xrange(3), xrange(4)])

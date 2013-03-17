@@ -88,14 +88,14 @@ def LyndonWords(e=None, k=None):
     elif isinstance(e, (int, Integer)):
         if e > 0:
             if not isinstance(k, (int, Integer)):
-                raise TypeError, "k must be a non-negative integer"
+                raise TypeError("k must be a non-negative integer")
             if k < 0:
-                raise TypeError, "k must be a non-negative integer"
+                raise TypeError("k must be a non-negative integer")
             return LyndonWords_nk(e, k)
     elif e in Compositions():
         return LyndonWords_evaluation(e)
 
-    raise TypeError, "e must be a positive integer or a composition"
+    raise TypeError("e must be a positive integer or a composition")
 
 class LyndonWord(FiniteWord_list):
     def __init__(self, data, check=True):
@@ -130,7 +130,7 @@ class LyndonWord(FiniteWord_list):
         """
         super(LyndonWord,self).__init__(parent=LyndonWords(),data=data)
         if check and not self.is_lyndon():
-            raise ValueError, "Not a Lyndon word"
+            raise ValueError("Not a Lyndon word")
 
 class LyndonWords_class(Words_all):
     def __repr__(self):

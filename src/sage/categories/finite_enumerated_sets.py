@@ -478,7 +478,7 @@ class FiniteEnumeratedSets(Category):
             if self.cardinality != self._cardinality_from_iterator:
                 card = self.cardinality()
                 tester.assert_(type(card) is Integer)
-                if card <= self.max_test_enumerated_set_loop:
+                if card <= tester._max_runs:
                     tester.assertEqual(card,
                                        self._cardinality_from_iterator())
 

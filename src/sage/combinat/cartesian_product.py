@@ -22,7 +22,7 @@ import __builtin__
 from combinat import CombinatorialClass
 from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
-from sage.misc.mrange import xmrange_iter
+from sage.misc.mrange import xmrange_iter, _is_finite, _len
 
 def CartesianProduct(*iters):
     """
@@ -206,6 +206,53 @@ class CartesianProduct_iters(CombinatorialClass):
              ['g', 't']]
         """
         return self._mrange.__iter__()
+
+    def is_finite(self):
+        """
+        The cartesian product is finite if all of its inputs are
+        finite, or if any input is empty.
+
+        EXAMPLES::
+
+            sage: CartesianProduct(ZZ, []).is_finite()
+            True
+            sage: CartesianProduct(4,4).is_finite()
+            Traceback (most recent call last):
+            ...
+            ValueError: Unable to determine whether this product is finite
+        """
+        ans = _is_finite(self._iters, fallback=None)
+        if ans is None:
+            raise ValueError("Unable to determine whether this product is finite")
+        return ans
+
+    def unrank(self, x):
+        """
+        For finite cartesian products, we can reduce unrank to the
+        constituent iterators.
+
+        EXAMPLES::
+
+            sage: C = CartesianProduct(xrange(1000), xrange(1000), xrange(1000))
+            sage: C[238792368]
+            [238, 792, 368]
+        """
+        try:
+            lens = [_len(it) for it in self.iters]
+        except (TypeError, AttributeError):
+            return CartesianProduct_iters.unrank(self, x)
+        positions = []
+        for n in lens:
+            if n is infinity:
+                return CartesianProduct_iters.unrank(self, x)
+            if n == 0:
+                raise IndexError("Cartesian Product is empty")
+            positions.append(x % n)
+            x = x // n
+        if x != 0:
+            raise IndexError("x larger than the size of the Cartesian Product")
+        positions.reverse()
+        return [L[i] for L,i in zip(self.iters, positions)]
 
     def random_element(self):
         """

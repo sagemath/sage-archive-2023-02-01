@@ -113,11 +113,16 @@ class Semigroups(Category_singleton):
 
             """
             tester = self._tester(**options)
-            # Better than use all.
-            for x in tester.some_elements():
-                for y in tester.some_elements():
-                    for z in tester.some_elements():
-                        tester.assert_((x * y) * z == x * (y * z))
+            S = tester.some_elements()
+            n = tester._max_runs
+            from sage.combinat.cartesian_product import CartesianProduct
+            if len(S)**3 <= n:
+                pool = CartesianProduct(S,S,S)
+            else:
+                from random import sample
+                pool = sample(CartesianProduct(S,S,S),n)
+            for x,y,z in pool:
+                tester.assert_((x * y) * z == x * (y * z))
 
         def prod(self, args):
             r"""

@@ -553,8 +553,18 @@ class Sets(Category_singleton):
                 sage: P.element_class.__eq__ = eq
             """
             tester = self._tester(**options)
-            elements = list(self.some_elements())+[None, 0]
+            S = tester.some_elements()
             # Note: we can't expect that all those elements are hashable
+            n = tester._max_runs
+            from sage.combinat.cartesian_product import CartesianProduct
+            from random import sample
+            from sage.rings.integer import Integer
+            if (len(S)+2)**3 <= n:
+                elements = list(S) + [None, 0]
+            else:
+                m = Integer(n).nth_root(3,truncate_mode=1)[0] - 2
+                if m < 0: m = 0
+                elements = sample(S, m) + [None, 0]
 
             equal_eli_elj = {}
             def print_compare(x, y):

@@ -364,7 +364,7 @@ class InstanceTester(unittest.TestCase):
         Testing utilities for Rational Field
     """
 
-    def __init__(self, instance, elements = None, verbose = False, prefix = "", **options):
+    def __init__(self, instance, elements = None, verbose = False, prefix = "", max_runs = 729, **options):
         """
         A gadget attached to an instance providing it with testing utilities.
 
@@ -384,6 +384,7 @@ class InstanceTester(unittest.TestCase):
         self._verbose = verbose
         self._elements = elements
         self._prefix = prefix
+        self._max_runs = max_runs
 
     def runTest(self):
         """

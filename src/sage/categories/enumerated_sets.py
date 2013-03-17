@@ -587,10 +587,6 @@ class EnumeratedSets(Category_singleton):
 #
 #  Consistency test suite for an enumerated set:
 #
-        # If the enumerated set is large, one can stop some coeherency tests
-        # after looking at the first element by setting the following variable:
-        max_test_enumerated_set_loop=100 # TODO: Devise a sensible bound !!
-        ##########
         def _test_enumerated_set_contains(self, **options):
             """
             Checks that the methods :meth:`.__contains__` and :meth:`.__iter__` are consistent.
@@ -623,7 +619,7 @@ class EnumeratedSets(Category_singleton):
             for w in self:
                 tester.assertTrue(w in self)
                 i += 1
-                if i > self.max_test_enumerated_set_loop:
+                if i > tester._max_runs:
                     return
 
         def _test_enumerated_set_iter_list(self, **options):
@@ -631,6 +627,11 @@ class EnumeratedSets(Category_singleton):
             Checks that the methods :meth:`.list` and :meth:`.__iter__` are consistent.
 
             See also: :class:`TestSuite`.
+
+            .. NOTE::
+
+                This test does nothing if the cardinality of the set
+                is larger than the max_runs argument.
 
             EXAMPLES::
 
@@ -650,16 +651,24 @@ class EnumeratedSets(Category_singleton):
                 ...
                 AssertionError: 3 != 4
 
-            ..warning: this test does nothing if the cardinality of
-            ``self`` exceeds ``self.max_test_enumerated_set_loop``.
+            For a large enumerated set this test does nothing:
+            increase tester._max_runs if you want to actually run the
+            test::
+
+                sage: class CCls(Example):
+                ...       def list(self):
+                ...           return [1,2,3]
+                sage: CC = CCls()
+                sage: CC._test_enumerated_set_iter_list(verbose=True,max_runs=2)
+                Enumerated set too big; skipping test; increase tester._max_runs
             """
             tester = self._tester(**options)
             if self.list != self._list_default:
                 # TODO: if self._cardinality is self._cardinality_from_iterator
                 # we could make sure to stop the counting at
                 # self.max_test_enumerated_set_loop
-                if self.cardinality() > self.max_test_enumerated_set_loop:
-                    tester.info("Enumerated set too big; skipping test; see ``self.max_test_enumerated_set_loop``")
+                if self.cardinality() > tester._max_runs:
+                    tester.info("Enumerated set too big; skipping test; increase tester._max_runs")
                     return
                 ls = self.list()
                 i = 0

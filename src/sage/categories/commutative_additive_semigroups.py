@@ -72,7 +72,7 @@ class CommutativeAdditiveSemigroups(Category_singleton):
             See the documentation for :class:`TestSuite` for more information.
             """
             tester = self._tester(**options)
-            S = tester.some_elements()
+            S = list(tester.some_elements())
             n = tester._max_runs
             from sage.combinat.cartesian_product import CartesianProduct
             if len(S)**3 <= n:

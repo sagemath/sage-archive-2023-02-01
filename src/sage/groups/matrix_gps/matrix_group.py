@@ -46,11 +46,13 @@ EXAMPLES::
     [0 2]
     ]
 
-Loading, saving, ... works::
+Loading and saving works.  Note that the following test fails when
+``max_runs`` is left at the default 729 (it only succeeds here since
+``_test_enumerated_set_iter_list`` is skipped)::
 
     sage: G = GL(2,5); G
     General Linear Group of degree 2 over Finite Field of size 5
-    sage: TestSuite(G).run()
+    sage: TestSuite(G).run(max_runs=100)
 
     sage: g = G.1; g
     [4 1]

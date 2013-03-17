@@ -553,7 +553,7 @@ class Sets(Category_singleton):
                 sage: P.element_class.__eq__ = eq
             """
             tester = self._tester(**options)
-            S = tester.some_elements()
+            S = list(tester.some_elements())
             # Note: we can't expect that all those elements are hashable
             n = tester._max_runs
             from sage.combinat.cartesian_product import CartesianProduct

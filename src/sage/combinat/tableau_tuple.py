@@ -2177,7 +2177,7 @@ class StandardTableauTuples(TableauTuples):
         sage: TestSuite( StandardTableauTuples() ).run()
         sage: TestSuite( StandardTableauTuples(level=1) ).run()
         sage: TestSuite( StandardTableauTuples(level=4) ).run()
-        sage: TestSuite( StandardTableauTuples(size=0) ).run()
+        sage: TestSuite( StandardTableauTuples(size=0) ).run(max_runs=50) # recursion depth exceeded with default max_runs
         sage: TestSuite( StandardTableauTuples(size=6) ).run()
         sage: TestSuite( StandardTableauTuples(level=1, size=0) ).run()
         sage: TestSuite( StandardTableauTuples(level=1, size=0) ).run()

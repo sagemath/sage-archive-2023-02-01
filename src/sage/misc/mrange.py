@@ -72,6 +72,9 @@ def _is_finite(L, fallback=True):
         return L.is_finite()
     except AttributeError:
         pass
+    except ValueError:
+        # L doesn't know how to determine whether it's finite
+        return fallback
 
     try:
         n = _len(L)

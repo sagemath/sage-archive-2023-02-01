@@ -335,7 +335,14 @@ class DummyParent(UniqueRepresentation, Parent):
 
             sage: from sage.structure.element_wrapper import DummyParent
             sage: parent = DummyParent("A Parent")
-            sage: TestSuite(parent).run(skip = ["_test_an_element", "_test_category", "_test_elements", "_test_elements_eq", "_test_some_elements"])
+            sage: TestSuite(parent).run(skip = ["_test_an_element",\
+                                                "_test_category",\
+                                                "_test_elements",\
+                                                "_test_elements_eq_reflexive",\
+                                                "_test_elements_eq_symmetric",\
+                                                "_test_elements_eq_transitive",\
+                                                "_test_elements_neq",\
+                                                "_test_some_elements"])
         """
         self.name = name
 

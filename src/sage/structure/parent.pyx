@@ -642,7 +642,10 @@ cdef class Parent(category_object.CategoryObject):
               running ._test_not_implemented_methods() . . . pass
               running ._test_pickling() . . . pass
               pass
-            running ._test_elements_eq() . . . pass
+            running ._test_elements_eq_reflexive() . . . pass
+            running ._test_elements_eq_symmetric() . . . pass
+            running ._test_elements_eq_transitive() . . . pass
+            running ._test_elements_neq() . . . pass
             running ._test_eq() . . . pass
             running ._test_not_implemented_methods() . . . pass
             running ._test_one() . . . pass
@@ -701,7 +704,10 @@ cdef class Parent(category_object.CategoryObject):
             _test_characteristic
             _test_distributivity
             _test_elements
-            _test_elements_eq
+            _test_elements_eq_reflexive
+            _test_elements_eq_symmetric
+            _test_elements_eq_transitive
+            _test_elements_neq
             _test_eq
             _test_not_implemented_methods
             _test_one

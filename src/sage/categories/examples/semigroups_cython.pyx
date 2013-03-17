@@ -217,7 +217,10 @@ class LeftZeroSemigroup(LeftZeroSemigroupPython):
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
           pass
-        running ._test_elements_eq() . . . pass
+        running ._test_elements_eq_reflexive() . . . pass
+        running ._test_elements_eq_symmetric() . . . pass
+        running ._test_elements_eq_transitive() . . . pass
+        running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass

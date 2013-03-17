@@ -515,7 +515,17 @@ class HeckeModule_free_module(HeckeModule_generic):
 
             sage: M = sage.modular.hecke.module.HeckeModule_free_module(QQ, 12, -4); M
             <class 'sage.modular.hecke.module.HeckeModule_free_module_with_category'>
-            sage: TestSuite(M).run(skip = ["_test_additive_associativity", "_test_an_element", "_test_elements", "_test_elements_eq", "_test_pickling", "_test_some_elements", "_test_zero", "_test_eq"]) # is this supposed to be an abstract parent without elements?
+            sage: TestSuite(M).run(skip = ["_test_additive_associativity",\
+                                           "_test_an_element",\
+                                           "_test_elements",\
+                                           "_test_elements_eq_reflexive",\
+                                           "_test_elements_eq_symmetric",\
+                                           "_test_elements_eq_transitive",\
+                                           "_test_elements_neq",\
+                                           "_test_pickling",\
+                                           "_test_some_elements",\
+                                           "_test_zero",\
+                                           "_test_eq"]) # is this supposed to be an abstract parent without elements?
         """
         HeckeModule_generic.__init__(self, base_ring, level)
         self.__weight = weight

@@ -32,6 +32,32 @@ from sage.categories.with_realizations import WithRealizationsCategory
 
 lazy_import('sage.sets.cartesian_product', 'CartesianProduct')
 
+def print_compare(x, y):
+    """
+    Helper method used in
+    :meth:`Sets.ParentMethods._test_elements_eq_symmetric`,
+    :meth:`Sets.ParentMethods._test_elements_eq_tranisitive`.
+
+    INPUT:
+
+    - ``x`` -- an element
+
+    - ``y`` -- an element
+
+    EXAMPLES::
+
+        sage: from sage.categories.sets_cat import print_compare
+        sage: print_compare(1,2)
+        1 != 2
+        sage: print_compare(1,1)
+        1 == 1
+
+    """
+    if x == y:
+        return LazyFormat("%s == %s")%(x, y)
+    else:
+        return LazyFormat("%s != %s")%(x, y)
+
 class EmptySetError(ValueError):
     """
     Exception raised when some operation can't be performed on the empty set.
@@ -110,7 +136,10 @@ class Sets(Category_singleton):
           running ._test_not_implemented_methods() . . . pass
           running ._test_pickling() . . . pass
           pass
-        running ._test_elements_eq() . . . pass
+        running ._test_elements_eq_reflexive() . . . pass
+        running ._test_elements_eq_symmetric() . . . pass
+        running ._test_elements_eq_transitive() . . . pass
+        running ._test_elements_neq() . . . pass
         running ._test_eq() . . . pass
         running ._test_not_implemented_methods() . . . pass
         running ._test_pickling() . . . pass
@@ -344,7 +373,8 @@ class Sets(Category_singleton):
 
             TESTS::
 
-                sage: P = sage.categories.examples.sets_cat.PrimeNumbers()
+                sage: from sage.categories.examples.sets_cat import PrimeNumbers
+                sage: P = PrimeNumbers()
                 sage: 12 in P
                 False
                 sage: P(5) in P
@@ -474,35 +504,157 @@ class Sets(Category_singleton):
                                       raise_on_failure = is_sub_testsuite)
             tester.info(tester._prefix+" ", newline = False)
 
-
-
-        def _test_elements_eq(self, **options):
+        def _test_elements_eq_reflexive(self, **options):
             """
-            Runs generic tests on the equality of elements.
+            Run generic tests on the equality of elements.
 
-            In particular, this tests that ``==`` is reflexive,
-            symmetric, and transitive on some_elements of ``self``
-            together with ``0`` and ``None``. This also tests the
-            consistency with inequality tests with ``!=``.
+            Test that ``==`` is reflexive.
 
             See also: :class:`TestSuite`.
 
             EXAMPLES::
 
                 sage: C = Sets().example()
-                sage: C._test_elements_eq()
+                sage: C._test_elements_eq_reflexive()
 
-            Let us test the consistency of a broken equality or inequality::
+            We try a non-reflexive equality::
 
                 sage: P = Sets().example("wrapper")
-                sage: P._test_elements_eq()
+                sage: P._test_elements_eq_reflexive()
+                sage: eq = P.element_class.__eq__
+
+                sage: P.element_class.__eq__ = (lambda x, y:
+                ...        False if eq(x, P(47)) and eq(y, P(47)) else eq(x, y))
+                sage: P._test_elements_eq_reflexive()
+                Traceback (most recent call last):
+                ...
+                AssertionError: 47 != 47
+
+            We restore ``P.element_class`` in a proper state for further tests::
+
+                sage: P.element_class.__eq__ = eq
+
+            """
+            tester = self._tester(**options)
+            S = list(tester.some_elements()) + [None, 0]
+            for x in S:
+                tester.assertEqual(x, x)
+
+        def _test_elements_eq_symmetric(self, **options):
+            """
+            Run generic tests on the equality of elements.
+
+            This tests that ``==`` is symmetric.
+
+            See also: :class:`TestSuite`.
+
+            EXAMPLES::
+
+                sage: C = Sets().example()
+                sage: C._test_elements_eq_symmetric()
+
+            We test a non symmetric equality::
+
+                sage: P = Sets().example("wrapper")
+                sage: P._test_elements_eq_symmetric()
+                sage: eq = P.element_class.__eq__
+
+                sage: def non_sym_eq(x, y):
+                ...      if not y in P:                      return False
+                ...      elif eq(x, P(47)) and eq(y, P(53)): return True
+                ...      else:                               return eq(x, y)
+                sage: P.element_class.__eq__ = non_sym_eq
+                sage: P._test_elements_eq_symmetric()
+                Traceback (most recent call last):
+                ...
+                AssertionError: non symmetric equality: 47 == 53 but 53 != 47
+
+            We restore ``P.element_class`` in a proper state for further tests::
+
+                sage: P.element_class.__eq__ = eq
+
+            """
+            tester = self._tester(**options)
+            S = list(tester.some_elements()) + [None, 0]
+            n = tester._max_runs
+            from sage.combinat.cartesian_product import CartesianProduct
+            S = CartesianProduct(S,S)
+            if len(S) > n:
+                from random import sample
+                S = sample(S, n)
+
+            for x, y in S:
+                tester.assertEqual(x==y, y==x,
+                    LazyFormat("non symmetric equality: %s but %s")%(
+                        print_compare(x, y), print_compare(y, x)))
+
+        def _test_elements_eq_transitive(self, **options):
+            """
+            Run generic tests on the equality of elements.
+
+            Test that ``==`` is transitive.
+
+            See also: :class:`TestSuite`.
+
+            EXAMPLES::
+
+                sage: C = Sets().example()
+                sage: C._test_elements_eq_transitive()
+
+            We test a non transitive equality::
+
+                sage: R = Zp(3)
+                sage: Sets().ParentMethods._test_elements_eq_transitive.im_func(R,elements=[R(3,2),R(3,1),R(0)])
+                Traceback (most recent call last):
+                ...
+                AssertionError: non transitive equality:
+                3 + O(3^2) == O(3) and O(3) == 0 but 3 + O(3^2) != 0
+
+            """
+            tester = self._tester(**options)
+            S = list(tester.some_elements())
+            n = tester._max_runs
+            if (len(S)+2)**3 <= n:
+                S = list(S) + [None, 0]
+            else:
+                from random import sample
+                from sage.rings.integer import Integer
+                S = sample(S, Integer(n).nth_root(3,truncate_mode=1)[0] - 2) + [None, 0]
+
+            for x in S:
+                for y in S:
+                    if not x == y: continue
+                    for z in S:
+                        if not y == z: continue
+                        tester.assertTrue(x == z,
+                            LazyFormat("non transitive equality:\n"
+                                       "%s and %s but %s")%(
+                                print_compare(x, y),
+                                print_compare(y, z),
+                                print_compare(x, z)))
+
+        def _test_elements_neq(self, **options):
+            """
+            Run generic tests on the equality of elements.
+
+            Test that ``==`` and ``!=`` are consistent.
+
+            See also: :class:`TestSuite`.
+
+            EXAMPLES::
+
+                sage: C = Sets().example()
+                sage: C._test_elements_neq()
+
+            We try a broken inequality::
+
+                sage: P = Sets().example("wrapper")
+                sage: P._test_elements_neq()
                 sage: ne = P.element_class.__ne__
                 sage: eq = P.element_class.__eq__
 
-            We first try a broken inequality::
-
                 sage: P.element_class.__ne__ = lambda x, y: False
-                sage: P._test_elements_eq()
+                sage: P._test_elements_neq()
                 Traceback (most recent call last):
                 ...
                 AssertionError: __eq__ and __ne__ inconsistency:
@@ -510,95 +662,25 @@ class Sets(Category_singleton):
 
                 sage: P.element_class.__ne__ = lambda x, y: not(x == y)
 
-            We then try a non-reflexive equality::
-
-                sage: P.element_class.__eq__ = (lambda x, y:
-                ...        False if eq(x, P(47)) and eq(y, P(47)) else eq(x, y))
-                sage: P._test_elements_eq()
-                Traceback (most recent call last):
-                ...
-                AssertionError: non reflexive equality: 47 != 47
-
-            What about a non symmetric equality::
-
-                sage: def non_sym_eq(x, y):
-                ...      if not y in P:                      return False
-                ...      elif eq(x, P(47)) and eq(y, P(53)): return True
-                ...      else:                               return eq(x, y)
-                sage: P.element_class.__eq__ = non_sym_eq
-                sage: P._test_elements_eq()
-                Traceback (most recent call last):
-                ...
-                AssertionError: non symmetric equality: 53 != 47 but 47 == 53
-
-            And finally a non transitive equality::
-
-                sage: def non_sym_eq(x, y):
-                ...      if not y in P:                      return False
-                ...      elif eq(x, P(47)) and eq(y, P(53)): return True
-                ...      elif eq(x, P(53)) and eq(y, P(47)): return True
-                ...      elif eq(x, P(47)) and eq(y, P(59)): return True
-                ...      elif eq(x, P(59)) and eq(y, P(47)): return True
-                ...      else:                               return eq(x, y)
-                sage: P.element_class.__eq__ = non_sym_eq
-                sage: P._test_elements_eq()
-                Traceback (most recent call last):
-                ...
-                AssertionError: non transitive equality:
-                  53 == 47 and 47 == 59 but 53 != 59
-
             We restore ``P.element_class`` in a proper state for further tests::
 
                 sage: P.element_class.__ne__ = ne
                 sage: P.element_class.__eq__ = eq
             """
             tester = self._tester(**options)
-            S = list(tester.some_elements())
-            # Note: we can't expect that all those elements are hashable
+            S = list(tester.some_elements()) + [None, 0]
             n = tester._max_runs
             from sage.combinat.cartesian_product import CartesianProduct
-            from random import sample
-            from sage.rings.integer import Integer
-            if (len(S)+2)**3 <= n:
-                elements = list(S) + [None, 0]
-            else:
-                m = Integer(n).nth_root(3,truncate_mode=1)[0] - 2
-                if m < 0: m = 0
-                elements = sample(S, m) + [None, 0]
+            S = CartesianProduct(S,S)
+            if len(S) > n:
+                from random import sample
+                S = sample(S, n)
 
-            equal_eli_elj = {}
-            def print_compare(x, y):
-                if x == y:
-                    return LazyFormat("%s == %s")%(x, y)
-                else:
-                    return LazyFormat("%s != %s")%(x, y)
-            for i, eli in enumerate(elements):
-                for j, elj in enumerate(elements):
-                    equal_eli_elj[i,j] = (eli == elj)
-                    tester.assertNotEqual(equal_eli_elj[i,j], eli != elj,
-                        LazyFormat("__eq__ and __ne__ inconsistency:\n"
-                            "  %s == %s returns %s  but  %s != %s returns %s")%(
-                                eli, elj, (eli == elj), eli, elj, (eli != elj)))
-                    if i == j:
-                        tester.assertTrue(equal_eli_elj[i,i],
-                            LazyFormat("non reflexive equality: %s != %s")%(eli,eli))
-                    if i > j: # (j, i) is already computed
-                        tester.assertEqual(equal_eli_elj[i,j], equal_eli_elj[j,i],
-                            LazyFormat("non symmetric equality: %s but %s")%(
-                                print_compare(eli, elj), print_compare(elj, eli)))
-            # check for transitivity
-            nbel = len(elements)
-            for i in range(nbel):
-                for j in range(nbel):
-                    if not equal_eli_elj[i,j]: continue
-                    for k in range(nbel):
-                        if not equal_eli_elj[j,k]: continue
-                        tester.assertTrue(equal_eli_elj[i,k],
-                            LazyFormat("non transitive equality:\n"
-                                       "%s and %s but %s")%(
-                                print_compare(elements[i], elements[j]),
-                                print_compare(elements[j], elements[k]),
-                                print_compare(elements[i], elements[k])))
+            for x,y in S:
+                tester.assertNotEqual(x == y, x != y,
+                    LazyFormat("__eq__ and __ne__ inconsistency:\n"
+                        "  %s == %s returns %s  but  %s != %s returns %s")%(
+                            x, y, (x == y), x, y, (x != y)))
 
         def some_elements(self):
             """

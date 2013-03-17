@@ -1132,17 +1132,10 @@ cdef class SymbolicRing(CommutativeRing):
         elif len(args) == 1 and isinstance(args[0], dict):
             d = args[0]
         else:
-            from sage.misc.superseded import deprecation
-            deprecation(5930, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)", stacklevel=3)
-            d = {}
-
-            vars = _the_element.variables()
-            for i, arg in enumerate(args):
-                try:
-                    d[ vars[i] ] = arg
-                except IndexError:
-                    raise ValueError("the number of arguments must be less than or equal to %s"%len(vars))
-
+            raise TypeError("Substitution using function-call syntax "
+                            "and unnamed arguments has been removed. You "
+                            "can use named arguments instead, like "
+                            "EXPR(x=..., y=...)")
         return _the_element.subs(d, **kwds)
 
     def subring(self, *args, **kwds):

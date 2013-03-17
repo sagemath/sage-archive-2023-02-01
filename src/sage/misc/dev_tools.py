@@ -143,8 +143,8 @@ def import_statements(*objects, **options):
         from sage.rings.semirings.non_negative_integer_semiring import NN
 
         sage: import_statements(ZZ)
-          ** Warning **: several names for that object: ZZ, Z
-        from sage.rings.integer_ring import ZZ
+          ** Warning **: several names for that object: Z, ZZ
+        from sage.rings.integer_ring import Z
 
         sage: import_statements(euler_phi)
         from sage.rings.arith import euler_phi
@@ -156,7 +156,7 @@ def import_statements(*objects, **options):
     If you don't like the warning you can disable them with the option ``verbose``::
 
         sage: import_statements(ZZ, verbose=False)
-        from sage.rings.integer_ring import ZZ
+        from sage.rings.integer_ring import Z
 
         sage: import_statements(x, verbose=False)
         from sage.calculus.predefined import x
@@ -242,7 +242,7 @@ def import_statements(*objects, **options):
         if module:
             d = sys.modules[module].__dict__
             if name is None:
-                names = [key for key in d if d[key] is obj]
+                names = sorted(key for key in d if d[key] is obj)
             else:
                 names = [name]
             if names:

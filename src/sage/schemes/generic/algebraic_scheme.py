@@ -5,10 +5,10 @@ An algebraic scheme is defined by a set of polynomials in some
 suitable affine or projective coordinates. Possible ambient spaces are
 
   * Affine spaces (:class:`AffineSpace
-    <sage.schemes.generic.affine_space.AffineSpace_generic>`),
+    <sage.schemes.affine.affine_space.AffineSpace_generic>`),
 
   * Projective spaces (:class:`ProjectiveSpace
-    <sage.schemes.generic.projective_space.ProjectiveSpace_ring>`), or
+    <sage.schemes.projective.projective_space.ProjectiveSpace_ring>`), or
 
   * Toric varieties (:class:`ToricVariety
     <sage.schemes.toric.variety.ToricVariety_field>`).
@@ -142,10 +142,10 @@ from sage.misc.latex import latex
 from sage.misc.misc import is_iterator
 from sage.structure.all import Sequence
 from sage.calculus.functions import jacobian
+
+import sage.schemes.projective
+import sage.schemes.affine
 import ambient_space
-import affine_space
-import projective_space
-import morphism
 import scheme
 
 
@@ -295,7 +295,7 @@ class AlgebraicScheme(scheme.Scheme):
 
         OUTPUT:
 
-        The coordiante ring. Usually a polynomial ring, or a quotient
+        The coordinate ring. Usually a polynomial ring, or a quotient
         thereof.
 
         EXAMPLES::
@@ -545,13 +545,41 @@ class AlgebraicScheme(scheme.Scheme):
             sage: X = P1.subscheme(x-y)
             sage: type(X.Hom(X))
             <class 'sage.schemes.toric.homset.SchemeHomset_toric_variety_with_category'>
+
+        ::
+
+            sage: P1xP1 = toric_varieties.P1xP1()
+            sage: P1 = toric_varieties.P1()
+            sage: P1xP1._homset(P1xP1,P1)
+            Set of morphisms
+              From: 2-d CPR-Fano toric variety covered by 4 affine patches
+              To:   1-d CPR-Fano toric variety covered by 2 affine patches
         """
         return self.__A._homset(*args, **kwds)
 
     def _point_homset(self, *args, **kwds):
+        """
+        Construct a point Hom-set. For internal use only.
+
+        TESTS::
+
+            sage: P2.<x,y,z> = ProjectiveSpace(2, ZZ)
+            sage: P2._point_homset(Spec(ZZ), P2)
+            Set of rational points of Projective Space of dimension 2 over Integer Ring
+        """
         return self.__A._point_homset(*args, **kwds)
 
     def _point(self, *args, **kwds):
+        r"""
+        Construct a point of ``self``. For internal use only.
+
+        TESTS::
+
+            sage: P2.<x,y,z> = ProjectiveSpace(2, QQ)
+            sage: point_homset = P2._point_homset(Spec(QQ), P2)
+            sage: P2._point(point_homset, [1,2,1])
+            (1 : 2 : 1)
+        """
         return self.__A._point(*args, **kwds)
 
 
@@ -642,7 +670,7 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
              X \\text{ is defined by }\\text{no polynomials},\\text{ and }
              Y \\text{ is defined by } x - y.'
         """
-        if affine_space.is_AffineSpace(self.ambient_space()):
+        if sage.schemes.affine.affine_space.is_AffineSpace(self.ambient_space()):
             t = "affine"
         else:
             t = "projective"
@@ -675,7 +703,7 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
             sage: U._repr_()
             'Quasi-projective subscheme X - Y of Projective Space of dimension 2 over Integer Ring, where X is defined by:\n  (no polynomials)\nand Y is defined by:\n  x - y'
         """
-        if affine_space.is_AffineSpace(self.ambient_space()):
+        if sage.schemes.affine.affine_space.is_AffineSpace(self.ambient_space()):
             t = "affine"
         else:
             t = "projective"
@@ -1470,7 +1498,22 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         except TypeError:
             raise TypeError, "Unable to enumerate points over %s."%F
 
+    def change_ring(self,R):
+        r"""
+        Returns a new projective subscheme whose base ring is self coerced to R.
 
+        EXAMPLES::
+
+            sage: P.<x,y>=ProjectiveSpace(QQ,1)
+            sage: X=P.subscheme([3*x^2-y^2])
+            sage: H=Hom(X,X)
+            sage: X.change_ring(GF(3))
+            Closed subscheme of Projective Space of dimension 1 over Finite Field of size 3 defined by:
+            -y^2
+        """
+        A=self.ambient_space().change_ring(R)
+        I=self.defining_ideal().change_ring(A.coordinate_ring())
+        return(A.subscheme(I))
 
 #*******************************************************************
 # Affine varieties
@@ -1483,14 +1526,14 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
 
         You should not create objects of this class directly. The
         preferred method to construct such subschemes is to use
-        :meth:`~sage.schemes.generic.affine_space.AffineSpace_generic.subscheme`
+        :meth:`~sage.schemes.affine.affine_space.AffineSpace_generic.subscheme`
         method of :class:`affine space
-        <sage.schemes.generic.affine_space.AffineSpace_generic>`.
+        <sage.schemes.affine.affine_space.AffineSpace_generic>`.
 
     INPUT:
 
     - ``A`` -- ambient :class:`affine space
-      <sage.schemes.generic.affine_space.AffineSpace_generic>`
+      <sage.schemes.affine.affine_space.AffineSpace_generic>`
 
     - ``polynomials`` -- single polynomial, ideal or iterable of
       defining polynomials.
@@ -1511,7 +1554,23 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
     """
 
     def _morphism(self, *args, **kwds):
-        return morphism.SchemeMorphism_polynomial_affine_space(*args, **kwds)
+        """
+        A morphism between two schemes in your category, usually defined via
+        polynomials. Your morphism class should derive from
+        :class:`SchemeMorphism_polynomial`. These morphisms will usually be
+        elements of the Hom-set
+        :class:`~sage.schemes.generic.homset.SchemeHomset_generic`.
+
+        EXAMPLES::
+
+            sage: P2.<x,y,z> = ProjectiveSpace(2, ZZ)
+            sage: P2._morphism(P2.Hom(P2), [x,y,z])
+            Scheme endomorphism of Projective Space of dimension 2 over Integer Ring
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (x : y : z)
+
+        """
+        return self.ambient_space()._morphism(*args, **kwds)
 
     def dimension(self):
         """
@@ -1602,7 +1661,7 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         except KeyError:
             pass
         if X is None:
-            PP = projective_space.ProjectiveSpace(n, AA.base_ring())
+            PP = sage.schemes.projective.projective_space.ProjectiveSpace(n, AA.base_ring())
             v = list(PP.gens())
             z = v.pop(i)
             v.append(z)
@@ -1679,14 +1738,14 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
 
         You should not create objects of this class directly. The
         preferred method to construct such subschemes is to use
-        :meth:`~sage.schemes.generic.projective_space.ProjectiveSpace_field.subscheme`
+        :meth:`~sage.schemes.projective.projective_space.ProjectiveSpace_field.subscheme`
         method of :class:`projective space
-        <sage.schemes.generic.projective_space.ProjectiveSpace_field>`.
+        <sage.schemes.projective.projective_space.ProjectiveSpace_field>`.
 
     INPUT:
 
     - ``A`` -- ambient :class:`projective space
-      <sage.schemes.generic.projective_space.ProjectiveSpace_field>`.
+      <sage.schemes.projective.projective_space.ProjectiveSpace_field>`.
 
     - ``polynomials`` -- single polynomial, ideal or iterable of
       defining homogeneous polynomials.
@@ -1715,11 +1774,11 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         INPUT:
 
         - same as for
-          :class:`~sage.schemes.generic.morphism.SchemeMorphism_polynomial_projective_space`.
+          :class:`~sage.schemes.projective.projective_morphism.SchemeMorphism_polynomial_projective_space`.
 
         OUPUT:
 
-        - :class:`~sage.schemes.generic.morphism.SchemeMorphism_polynomial_projective_space`.
+        - :class:`~sage.schemes.projective.projective_morphism.SchemeMorphism_polynomial_projective_space`.
 
         TESTS::
 
@@ -1739,7 +1798,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
               Defn: Defined on coordinates by sending (x : y) to
                 (x^2 : x*y : y^2)
         """
-        return morphism.SchemeMorphism_polynomial_projective_space(*args, **kwds)
+        return self.ambient_space()._morphism(*args, **kwds)
 
     def dimension(self):
         """
@@ -1924,7 +1983,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
               To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               x + 2*y + 3*z
               Defn: Defined on coordinates by sending (x0, x1) to
-                    (-3*x1 : -3/2 : x1 + 1)
+                    (x0 : -3/2 : x1 + 1)
             sage: patch.embedding_center()
             (0, 0)
             sage: patch.embedding_morphism()([0,0])
@@ -2309,7 +2368,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
 
         # construct the affine algebraic scheme to use as patch
         polynomials = map(pullback_polynomial, polynomials)
-        patch_cover = affine_space.AffineSpace(R)
+        patch_cover = sage.schemes.affine.affine_space.AffineSpace(R)
         polynomials = list(I.gens()) + polynomials
         polynomials = filter( lambda x:not x.is_zero(), polynomials)
         patch = patch_cover.subscheme(polynomials)

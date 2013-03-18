@@ -19,13 +19,21 @@ from sage.rings.all import (
     ZZ,
     Integer)
 
+from sage.categories.fields import Fields
+_Fields = Fields()
+
 from sage.misc.all import latex
 from sage.structure.parent_gens import normalize_names
 
-from scheme import AffineScheme
-from ambient_space import AmbientSpace
-import homset
-import morphism
+from sage.schemes.generic.scheme import AffineScheme
+from sage.schemes.generic.ambient_space import AmbientSpace
+from sage.schemes.affine.affine_homset import SchemeHomset_points_affine
+from sage.schemes.affine.affine_morphism import (SchemeMorphism_polynomial_affine_space,
+                                                 SchemeMorphism_polynomial_affine_space_field,
+                                                 SchemeMorphism_polynomial_affine_space_finite_field)
+from sage.schemes.affine.affine_point import (SchemeMorphism_point_affine,
+                                              SchemeMorphism_point_affine_field,
+                                              SchemeMorphism_point_affine_finite_field)
 
 
 
@@ -37,7 +45,7 @@ def is_AffineSpace(x):
 
     EXAMPLES::
 
-        sage: from sage.schemes.generic.affine_space import is_AffineSpace
+        sage: from sage.schemes.affine.affine_space import is_AffineSpace
         sage: is_AffineSpace(AffineSpace(5, names='x'))
         True
         sage: is_AffineSpace(AffineSpace(5, GF(9,'alpha'), names='x'))
@@ -95,7 +103,12 @@ def AffineSpace(n, R=None, names='x'):
         if n == 0:
             names = ''
         else:
-            raise TypeError, "You must specify the variables names of the coordinate ring."
+            raise TypeError("You must specify the variables names of the coordinate ring.")
+    if R in _Fields:
+        if is_FiniteField(R):
+            return AffineSpace_finite_field(n, R, names)
+        else:
+            return AffineSpace_field(n, R, names)
     return AffineSpace_generic(n, R, names)
 
 
@@ -234,10 +247,10 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         """
         if F == None:
             if not is_FiniteField(self.base_ring()):
-                raise TypeError, "Base ring (= %s) must be a finite field."%self.base_ring()
+                raise TypeError("Base ring (= %s) must be a finite field."%self.base_ring())
             return [ P for P in self ]
         elif not is_FiniteField(F):
-            raise TypeError, "Second argument (= %s) must be a finite field."%F
+            raise TypeError("Second argument (= %s) must be a finite field."%F)
         return [ P for P in self.base_extend(F) ]
 
     def __cmp__(self, right):
@@ -281,12 +294,12 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         INPUT:
 
         Same as for
-        :class:`~sage.schemes.generic.morphism.SchemeMorphism_polynomial_affine_space`.
+        :class:`~sage.schemes.affine.affine_morphism.SchemeMorphism_polynomial_affine_space`.
 
         OUPUT:
 
         A new instance of
-        :class:`~sage.schemes.generic.morphism.SchemeMorphism_polynomial_affine_space`.
+        :class:`~sage.schemes.affine.affine_morphism.SchemeMorphism_polynomial_affine_space`.
 
         EXAMPLES::
 
@@ -299,7 +312,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
               Defn: Defined on coordinates by sending (a0, a1, a2) to
                     (a0*a1, a1*a2, a0*a2)
         """
-        return morphism.SchemeMorphism_polynomial_affine_space(*args, **kwds)
+        return SchemeMorphism_polynomial_affine_space(*args, **kwds)
 
     def _point_homset(self, *args, **kwds):
         """
@@ -308,12 +321,12 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         INPUT:
 
         Same as for
-        :class:`~sage.schemes.generic.homset.SchemeHomset_points_affine`.
+        :class:`~sage.schemes.affine.affine_homset.SchemeHomset_points_affine`.
 
         OUPUT:
 
         A new instance of
-        :class:`~sage.schemes.generic.homset.SchemeHomset_points_affine`.
+        :class:`~sage.schemes.affine.affine_homset.SchemeHomset_points_affine`.
 
         EXAMPLES::
 
@@ -321,7 +334,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             sage: AA._point_homset(Spec(QQ), AA)
             Set of rational points of Affine Space of dimension 3 over Rational Field
         """
-        return homset.SchemeHomset_points_affine(*args, **kwds)
+        return SchemeHomset_points_affine(*args, **kwds)
 
     def _point(self, *args, **kwds):
         r"""
@@ -330,12 +343,12 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         INPUT:
 
         Same as for
-        :class:`~sage.schemes.generic.morphism.SchemeMorphism_point_affine`.
+        :class:`~sage.schemes.affine.affine_point.SchemeMorphism_point_affine`.
 
         OUPUT:
 
         A new instance of
-        :class:`~sage.schemes.generic.morphism.SchemeMorphism_point_affine`.
+        :class:`~sage.schemes.affine.affine_point.SchemeMorphism_point_affine`.
 
         TESTS::
 
@@ -343,7 +356,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             sage: AA._point(AA.point_homset(), [0,1,2])
             (0, 1, 2)
         """
-        return morphism.SchemeMorphism_point_affine(*args, **kwds)
+        return SchemeMorphism_point_affine(*args, **kwds)
 
     def _repr_(self):
         """
@@ -429,14 +442,14 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
             TypeError: The argument v=5 must be a list or tuple
         """
         if not isinstance(v, (list, tuple)):
-            raise TypeError, 'The argument v=%s must be a list or tuple'%v
+            raise TypeError('The argument v=%s must be a list or tuple'%v)
         n = self.ngens()
         if not len(v) == n:
-            raise TypeError, 'The list v=%s must have %s components'%(v, n)
+            raise TypeError('The list v=%s must have %s components'%(v, n))
         R = self.base_ring()
         from sage.structure.sequence import Sequence
         if not Sequence(v).universe() == R:
-            raise TypeError, 'The components of v=%s must be elements of %s'%(v, R)
+            raise TypeError('The components of v=%s must be elements of %s'%(v, R))
         return True
 
     def __pow__(self, m):
@@ -469,7 +482,7 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         """
         mm = int(m)
         if mm != m:
-            raise ValueError, "m must be an integer"
+            raise ValueError("m must be an integer")
         return AffineSpace(self.dimension_relative() * mm, self.base_ring())
 
     def change_ring(self, R):
@@ -599,13 +612,12 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         except KeyError:
             pass
         if PP is None:
-            from sage.schemes.generic.projective_space import ProjectiveSpace
+            from sage.schemes.projective.projective_space import ProjectiveSpace
             PP = ProjectiveSpace(n, self.base_ring())
         R = self.coordinate_ring()
         v = list(R.gens())
         if n < 0 or n >self.dimension_relative():
-            raise ValueError, \
-                  "Argument i (=%s) must be between 0 and %s, inclusive"%(i,n)
+            raise ValueError("Argument i (=%s) must be between 0 and %s, inclusive"%(i,n))
         v.insert(i, R(1))
         phi = self.hom(v, PP)
         self.__projective_embedding[i] = phi
@@ -657,3 +669,73 @@ class AffineSpace_generic(AmbientSpace, AffineScheme):
         """
         from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affine
         return AlgebraicScheme_subscheme_affine(self, X)
+
+class AffineSpace_field(AffineSpace_generic):
+    def _point(self, *args, **kwds):
+        """
+        Construct a point.
+
+        For internal use only. See :mod:`morphism` for details.
+
+        TESTS::
+
+            sage: P2.<x,y,z> = AffineSpace(3, GF(3))
+            sage: point_homset = P2._point_homset(Spec(GF(3)), P2)
+            sage: P2._point(point_homset, [1,2,3])
+            (1, 2, 0)
+        """
+        return SchemeMorphism_point_affine_field(*args, **kwds)
+
+    def _morphism(self, *args, **kwds):
+        """
+        Construct a morphism.
+
+        For internal use only. See :mod:`morphism` for details.
+
+        TESTS::
+
+            sage: P2.<x,y,z> = AffineSpace(3, GF(3))
+            sage: P2._morphism(P2.Hom(P2), [x,y,z])
+            Scheme endomorphism of Affine Space of dimension 3 over Finite Field of size 3
+              Defn: Defined on coordinates by sending (x, y, z) to
+                    (x, y, z)
+        """
+        return SchemeMorphism_polynomial_affine_space_field(*args, **kwds)
+
+class AffineSpace_finite_field(AffineSpace_field):
+    def _point(self, *args, **kwds):
+        """
+        Construct a point.
+
+        For internal use only. See :mod:`morphism` for details.
+
+        TESTS::
+
+            sage: P2.<x,y,z> = AffineSpace(3, GF(3))
+            sage: point_homset = P2._point_homset(Spec(GF(3)), P2)
+            sage: P2._point(point_homset, [1,2,3])
+            (1, 2, 0)
+        """
+        return SchemeMorphism_point_affine_finite_field(*args, **kwds)
+
+    def _morphism(self, *args, **kwds):
+        """
+        Construct a morphism.
+
+        For internal use only. See :mod:`morphism` for details.
+
+        TESTS::
+
+            sage: P2.<x,y,z> = AffineSpace(3, GF(3))
+            sage: P2._morphism(P2.Hom(P2), [x,y,z])
+            Scheme endomorphism of Affine Space of dimension 3 over Finite Field of size 3
+              Defn: Defined on coordinates by sending (x, y, z) to
+                    (x, y, z)
+        """
+        return SchemeMorphism_polynomial_affine_space_finite_field(*args, **kwds)
+
+#fix the pickles from moving affine_space.py
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.schemes.generic.affine_space',
+                           'AffineSpace_generic',
+                           AffineSpace_generic)

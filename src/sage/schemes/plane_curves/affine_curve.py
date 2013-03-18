@@ -28,7 +28,7 @@ from sage.rings.all import degree_lowest_rational_function
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-from sage.schemes.generic.affine_space import is_AffineSpace
+from sage.schemes.affine.affine_space import is_AffineSpace
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_affine
 
 

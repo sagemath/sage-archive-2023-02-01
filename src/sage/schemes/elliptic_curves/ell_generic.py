@@ -60,8 +60,8 @@ import sage.misc.misc as misc
 
 
 # Schemes
-import sage.schemes.generic.projective_space as projective_space
-import sage.schemes.generic.homset as homset
+import sage.schemes.projective.projective_space as projective_space
+from sage.schemes.projective.projective_homset import SchemeHomset_points_abelian_variety_field
 
 import ell_point
 import ell_torsion
@@ -863,7 +863,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             Abelian group of points on Elliptic Curve defined
             by y^2 = x^3 + x + 1 over Finite Field in a of size 5^10
         """
-        return homset.SchemeHomset_points_abelian_variety_field(*args, **kwds)
+        return SchemeHomset_points_abelian_variety_field(*args, **kwds)
 
     def __getitem__(self, n):
         r"""

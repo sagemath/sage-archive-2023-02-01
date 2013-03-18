@@ -29,7 +29,7 @@ from sage.rings.all import (PolynomialRing,
 from sage.modules.free_module_element import vector
 from sage.structure.sequence import Sequence
 from sage.structure.element import is_Vector
-from sage.schemes.generic.projective_space import ProjectiveSpace
+from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.matrix.constructor import Matrix
 from sage.matrix.matrix import is_Matrix
 

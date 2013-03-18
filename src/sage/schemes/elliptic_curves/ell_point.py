@@ -136,9 +136,9 @@ from sage.libs.pari.all import pari, PariError
 from sage.structure.sequence  import Sequence
 
 from sage.schemes.plane_curves.projective_curve import Hasse_bounds
-from sage.schemes.generic.morphism import (SchemeMorphism_point_projective_ring,
-                                           SchemeMorphism_point_abelian_variety_field,
-                                           is_SchemeMorphism)
+from sage.schemes.projective.projective_point import (SchemeMorphism_point_projective_ring,
+                                                      SchemeMorphism_point_abelian_variety_field)
+from sage.schemes.generic.morphism import is_SchemeMorphism
 
 from constructor import EllipticCurve
 

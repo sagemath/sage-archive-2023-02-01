@@ -6,14 +6,18 @@ Schemes
 
    sage/schemes/readme
 
+   sage/schemes/affine/affine_space
+   sage/schemes/affine/affine_point
+   sage/schemes/affine/affine_morphism
+   sage/schemes/affine/affine_rational_point
+   sage/schemes/affine/affine_homset
+
    sage/schemes/generic/scheme
    sage/schemes/generic/spec
    sage/schemes/generic/glue
    sage/schemes/generic/point
 
    sage/schemes/generic/ambient_space
-   sage/schemes/generic/affine_space
-   sage/schemes/generic/projective_space
    sage/schemes/generic/algebraic_scheme
    sage/schemes/generic/hypersurface
 
@@ -21,8 +25,11 @@ Schemes
    sage/schemes/generic/morphism
    sage/schemes/generic/divisor
 
-   sage/schemes/generic/rational_point
-
+   sage/schemes/projective/projective_space
+   sage/schemes/projective/projective_point
+   sage/schemes/projective/projective_morphism
+   sage/schemes/projective/projective_rational_point
+   sage/schemes/projective/projective_homset
 
    sage/schemes/toric/variety
    sage/schemes/toric/fano_variety

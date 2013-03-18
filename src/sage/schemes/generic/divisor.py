@@ -47,8 +47,8 @@ from sage.rings.all import ZZ
 from sage.structure.formal_sum import FormalSum
 
 from morphism import is_SchemeMorphism
-from affine_space import is_AffineSpace
-from projective_space import is_ProjectiveSpace
+from sage.schemes.affine.affine_space import is_AffineSpace
+from sage.schemes.projective.projective_space import is_ProjectiveSpace
 
 
 def CurvePointToIdeal(C,P):

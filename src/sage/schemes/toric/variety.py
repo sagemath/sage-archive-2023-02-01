@@ -85,7 +85,7 @@ or even ::
     [a : b]
 
 OK, if you need to work only with affine spaces,
-:func:`~sage.schemes.generic.affine_space.AffineSpace` may be a better way to
+:func:`~sage.schemes.affine.affine_space.AffineSpace` may be a better way to
 construct them. Our next example is the product of two projective lines
 realized as the toric variety associated to the
 :func:`face fan <sage.geometry.fan.FaceFan>` of the "diamond"::
@@ -332,7 +332,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.all import PolynomialRing, ZZ, QQ
 from sage.rings.quotient_ring_element import QuotientRingElement
 from sage.rings.quotient_ring import QuotientRing_generic
-from sage.schemes.generic.affine_space import AffineSpace
+from sage.schemes.affine.affine_space import AffineSpace
 from sage.schemes.generic.ambient_space import AmbientSpace
 from sage.schemes.toric.homset import SchemeHomset_points_toric_field
 from sage.categories.fields import Fields

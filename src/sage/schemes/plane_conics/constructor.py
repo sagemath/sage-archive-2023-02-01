@@ -32,9 +32,9 @@ from sage.rings.all import (is_MPolynomial, PolynomialRing,
                             is_PrimeFiniteField,
                             is_RationalField)
 from sage.rings.number_field.number_field import is_NumberField
-from sage.schemes.generic.all import ProjectiveSpace
-from sage.schemes.generic.morphism import (
-    SchemeMorphism_point_affine, SchemeMorphism_point_projective_field)
+from sage.schemes.projective.projective_space import ProjectiveSpace
+from sage.schemes.projective.projective_point import SchemeMorphism_point_projective_field
+from sage.schemes.affine.affine_point import SchemeMorphism_point_affine
 from sage.structure.all import Sequence
 from sage.structure.element import is_Matrix
 

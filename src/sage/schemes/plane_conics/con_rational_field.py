@@ -27,7 +27,7 @@ AUTHORS:
 from sage.rings.all import (PolynomialRing, ZZ, QQ,
                             is_RealField, is_RingHomomorphism)
 from sage.structure.sequence import Sequence
-from sage.schemes.generic.projective_space import ProjectiveSpace
+from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.matrix.constructor import Matrix
 
 from sage.quadratic_forms.qfsolve import qfsolve, qfparam

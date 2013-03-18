@@ -376,7 +376,7 @@ class Spec(AffineScheme):
             sage: Spec(QQ)._point_homset(Spec(QQ), Spec(ZZ))
             Set of rational points of Spectrum of Integer Ring
         """
-        from sage.schemes.generic.homset import SchemeHomset_points_spec
+        from sage.schemes.affine.affine_homset import SchemeHomset_points_spec
         return SchemeHomset_points_spec(*args, **kwds)
 
 

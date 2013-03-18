@@ -148,7 +148,7 @@ from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.misc.misc import prod
 from linear_code import LinearCodeFromVectorSpace, LinearCode
 from sage.modules.free_module import span
-from sage.schemes.generic.projective_space import ProjectiveSpace
+from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.structure.sequence import Sequence
 from sage.rings.arith import GCD,LCM,divisors,quadratic_residues
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing

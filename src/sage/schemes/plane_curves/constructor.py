@@ -27,8 +27,11 @@ from sage.rings.all import is_MPolynomial, is_MPolynomialRing, is_FiniteField
 
 from sage.structure.all import Sequence
 
-from sage.schemes.generic.all import (is_AmbientSpace, is_AlgebraicScheme,
-                                      AffineSpace, ProjectiveSpace)
+from sage.schemes.generic.all import (is_AmbientSpace, is_AlgebraicScheme)
+
+from sage.schemes.affine.all import AffineSpace
+
+from sage.schemes.projective.all import ProjectiveSpace
 
 
 from projective_curve import (ProjectiveCurve_generic,

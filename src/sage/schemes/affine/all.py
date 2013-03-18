@@ -1,5 +1,5 @@
-"""
-all.py -- export of schemes to Sage
+"""nodoctest
+all.py -- export of affine to Sage
 """
 
 #*****************************************************************************
@@ -20,25 +20,8 @@ all.py -- export of schemes to Sage
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from jacobians.all import *
-
-from hyperelliptic_curves.all import *
-
-from plane_curves.all import *
-
-from plane_conics.all import *
-
-from elliptic_curves.all import *
-
-from plane_quartics.all import *
-
-from generic.all import *
-
-from toric.all import *
-
-from affine.all import *
-
-from projective.all import *
+from affine_space import AffineSpace, is_AffineSpace
+from affine_rational_point import enum_affine_rational_field, enum_affine_finite_field
 
 
 

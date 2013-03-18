@@ -8,7 +8,7 @@ Hyperelliptic curve constructor
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.schemes.generic.all import ProjectiveSpace
+from sage.schemes.projective.projective_space import ProjectiveSpace
 
 from hyperelliptic_generic import HyperellipticCurve_generic
 from hyperelliptic_finite_field import HyperellipticCurve_finite_field

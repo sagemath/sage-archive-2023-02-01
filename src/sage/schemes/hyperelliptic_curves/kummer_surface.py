@@ -8,7 +8,7 @@ Kummer surfaces over a general ring
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.schemes.generic.all import ProjectiveSpace
+from sage.schemes.projective.projective_space import ProjectiveSpace
 from sage.schemes.generic.algebraic_scheme \
      import AlgebraicScheme_subscheme_projective
 from sage.categories.homset import Hom

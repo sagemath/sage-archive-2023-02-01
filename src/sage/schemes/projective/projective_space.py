@@ -49,6 +49,10 @@ two lines.
      x + y - z
     sage: V.dimension()
     0
+
+AUTHORS:
+
+- Ben Hutz: (June 2012): support for rings
 """
 
 #*****************************************************************************
@@ -81,9 +85,15 @@ from sage.combinat.tuple import Tuples
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import prepare
 
-from ambient_space import AmbientSpace
-from homset import (SchemeHomset_points_projective_ring, SchemeHomset_points_projective_field)
-import morphism
+from sage.schemes.generic.ambient_space import AmbientSpace
+from sage.schemes.projective.projective_homset import (SchemeHomset_points_projective_ring,
+                                                       SchemeHomset_points_projective_field)
+from sage.schemes.projective.projective_point import (SchemeMorphism_point_projective_ring,
+                                                      SchemeMorphism_point_projective_field,
+                                                      SchemeMorphism_point_projective_finite_field)
+from sage.schemes.projective.projective_morphism import  (SchemeMorphism_polynomial_projective_space,
+                                                          SchemeMorphism_polynomial_projective_space_field,
+                                                          SchemeMorphism_polynomial_projective_space_finite_field)
 
 
 def is_ProjectiveSpace(x):
@@ -94,7 +104,7 @@ def is_ProjectiveSpace(x):
 
     EXAMPLES::
 
-        sage: from sage.schemes.generic.projective_space import is_ProjectiveSpace
+        sage: from sage.schemes.projective.projective_space import is_ProjectiveSpace
         sage: is_ProjectiveSpace(ProjectiveSpace(5, names='x'))
         True
         sage: is_ProjectiveSpace(ProjectiveSpace(5, GF(9,'alpha'), names='x'))
@@ -185,7 +195,7 @@ def ProjectiveSpace(n, R=None, names='x'):
     elif is_CommutativeRing(R):
         return ProjectiveSpace_ring(n, R, names)
     else:
-        raise TypeError, "R (=%s) must be a commutative ring"%R
+        raise TypeError("R (=%s) must be a commutative ring"%R)
 
 class ProjectiveSpace_ring(AmbientSpace):
     """
@@ -279,17 +289,17 @@ class ProjectiveSpace_ring(AmbientSpace):
             TypeError: The components of v=[1/2, 0, 1] must be elements of Integer Ring
         """
         if not isinstance(v, (list, tuple)):
-            raise TypeError, 'The argument v=%s must be a list or tuple'%v
+            raise TypeError('The argument v=%s must be a list or tuple'%v)
         n = self.ngens()
         if not len(v) == n:
-            raise TypeError, 'The list v=%s must have %s components'%(v, n)
+            raise TypeError('The list v=%s must have %s components'%(v, n))
         R = self.base_ring()
         for coord in v:
             if not coord in R:
-                raise TypeError, 'The components of v=%s must be elements of %s'%(v, R)
+                raise TypeError('The components of v=%s must be elements of %s'%(v, R))
         zero = [R(0)]*n
         if v == zero:
-            raise TypeError, 'The zero vector is not a point in projective space'
+            raise TypeError('The zero vector is not a point in projective space')
         return True
 
     def coordinate_ring(self):
@@ -357,7 +367,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             TypeError: The argument polynomials=x*y - z must be a list or tuple
         """
         if not isinstance(polynomials, (list, tuple)):
-            raise TypeError, 'The argument polynomials=%s must be a list or tuple'%polynomials
+            raise TypeError('The argument polynomials=%s must be a list or tuple'%polynomials)
         for f in polynomials:
             if not f.is_homogeneous():
                 raise TypeError("%s is not a homogeneous polynomial!" % f)
@@ -491,7 +501,7 @@ class ProjectiveSpace_ring(AmbientSpace):
         if d < 0:
             raise ValueError('The integer d=%s must be nonnegative'%d)
         if not isinstance(pt, (list, tuple, \
-                               morphism.SchemeMorphism_point_projective_ring)):
+                               SchemeMorphism_point_projective_ring)):
             raise TypeError('The argument pt=%s must be a list, tuple, or '
                             'point on a projective space'%pt)
         pt, R = prepare(pt, None)
@@ -541,7 +551,7 @@ class ProjectiveSpace_ring(AmbientSpace):
               Defn: Defined on coordinates by sending (x : y : z) to
                     (x : y : z)
         """
-        return morphism.SchemeMorphism_polynomial_projective_space(*args, **kwds)
+        return SchemeMorphism_polynomial_projective_space(*args, **kwds)
 
     def _point_homset(self, *args, **kwds):
         """
@@ -570,7 +580,7 @@ class ProjectiveSpace_ring(AmbientSpace):
             sage: P2._point(point_homset, [1,2,3])
             (2 : 1 : 0)
         """
-        return morphism.SchemeMorphism_point_projective_ring(*args, **kwds)
+        return SchemeMorphism_point_projective_ring(*args, **kwds)
 
     def _repr_(self):
         """
@@ -705,15 +715,9 @@ class ProjectiveSpace_ring(AmbientSpace):
               To:   Spectrum of Rational Field
               Defn: Structure map
 
-            sage: TestSuite(X).run(skip=["_test_an_element",\
-                                         "_test_elements",\
-                                         "_test_elements_eq_reflexive",\
-                                         "_test_elements_eq_symmetric",\
-                                         "_test_elements_eq_transitive",\
-                                         "_test_elements_neq",\
-                                         "_test_some_elements"])
+            sage: TestSuite(X).run(skip=["_test_an_element", "_test_elements", "_test_elements_eq", "_test_some_elements", "_test_elements_eq_reflexive",  "_test_elements_eq_symmetric", "_test_elements_eq_transitive", "_test_elements_neq"])
         """
-        from algebraic_scheme import AlgebraicScheme_subscheme_projective
+        from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_projective
         return AlgebraicScheme_subscheme_projective(self, X)
 
     def affine_patch(self, i):
@@ -753,14 +757,14 @@ class ProjectiveSpace_ring(AmbientSpace):
         i = int(i)   # implicit type checking
         n = self.dimension_relative()
         if i < 0 or i > n:
-            raise ValueError, "Argument i (= %s) must be between 0 and %s."%(i, n)
+            raise ValueError("Argument i (= %s) must be between 0 and %s."%(i, n))
         try:
             return self.__affine_patches[i]
         except AttributeError:
             self.__affine_patches = {}
         except KeyError:
             pass
-        from sage.schemes.generic.affine_space import AffineSpace
+        from sage.schemes.affine.affine_space import AffineSpace
         AA = AffineSpace(n, self.base_ring(), names='x')
         AA._default_embedding_index = i
         phi = AA.projective_embedding(i, self)
@@ -796,10 +800,57 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             sage: P2._point(point_homset, [1,2,3])
             (2 : 1 : 0)
         """
-        return morphism.SchemeMorphism_point_projective_field(*args, **kwds)
+        return SchemeMorphism_point_projective_field(*args, **kwds)
 
+    def _morphism(self, *args, **kwds):
+        """
+        Construct a morphism.
+
+        For internal use only. See :mod:`morphism` for details.
+
+        TESTS::
+
+            sage: P2.<x,y,z> = ProjectiveSpace(2, GF(3))
+            sage: P2._morphism(P2.Hom(P2), [x,y,z])
+            Scheme endomorphism of Projective Space of dimension 2 over Finite Field of size 3
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (x : y : z)
+        """
+        return SchemeMorphism_polynomial_projective_space_field(*args, **kwds)
 
 class ProjectiveSpace_finite_field(ProjectiveSpace_field):
+    def _point(self, *args, **kwds):
+        """
+        Construct a point.
+
+        For internal use only. See :mod:`morphism` for details.
+
+        TESTS::
+
+            sage: P2.<x,y,z> = ProjectiveSpace(2, GF(3))
+            sage: point_homset = P2._point_homset(Spec(GF(3)), P2)
+            sage: P2._point(point_homset, [1,2,3])
+            (2 : 1 : 0)
+        """
+        return SchemeMorphism_point_projective_finite_field(*args, **kwds)
+
+    def _morphism(self, *args, **kwds):
+        """
+        Construct a morphism.
+
+        For internal use only. See :mod:`morphism` for details.
+
+        TESTS::
+
+            sage: P2.<x,y,z> = ProjectiveSpace(2, GF(3))
+            sage: P2._morphism(P2.Hom(P2), [x,y,z])
+            Scheme endomorphism of Projective Space of dimension 2 over Finite Field of size 3
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (x : y : z)
+        """
+        return SchemeMorphism_polynomial_projective_space_finite_field(*args, **kwds)
+
+
     def __iter__(self):
         r"""
         Return iterator over the elements of this projective space.
@@ -839,9 +890,11 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
 
         - David Kohel
 
-        TODO: Iteration for point sets over finite fields, and return of
-        iter of point set over base field. Note that the point set does not
-        know whether this is a projective space or subscheme.
+        .. TODO::
+
+            Iteration for point sets over finite fields, and return of
+            iter of point set over base field. Note that the point set does not
+            know whether this is a projective space or subscheme.
         """
         n = self.dimension_relative()
         R = self.base_ring()
@@ -881,7 +934,7 @@ class ProjectiveSpace_finite_field(ProjectiveSpace_field):
         if F == None:
             return [ P for P in self ]
         elif not is_FiniteField(F):
-            raise TypeError, "Second argument (= %s) must be a finite field."%F
+            raise TypeError("Second argument (= %s) must be a finite field."%F)
         return [ P for P in self.base_extend(F) ]
 
 class ProjectiveSpace_rational_field(ProjectiveSpace_field):
@@ -935,8 +988,7 @@ class ProjectiveSpace_rational_field(ProjectiveSpace_field):
         - Benjamin Antieau (2008-01-12)
         """
         if not bound > 0:
-            raise ValueError, \
-                  "Argument bound (= %s) must be a positive integer."
+            raise ValueError("Argument bound (= %s) must be a positive integer.")
 
         n = self.dimension_relative()
 
@@ -964,3 +1016,15 @@ class ProjectiveSpace_rational_field(ProjectiveSpace_field):
         P = [ 0 for _ in range(n+1) ]; P[0]=1
         pts.append(self(P))
         return pts
+
+
+#fix the pickles from moving projective_space.py
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.schemes.generic.projective_space',
+                           'ProjectiveSpace_field',
+                           ProjectiveSpace_field)
+
+register_unpickle_override('sage.schemes.generic.projective_space',
+                           'ProjectiveSpace_rational_field',
+                           ProjectiveSpace_rational_field)
+

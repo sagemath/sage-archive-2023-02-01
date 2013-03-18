@@ -86,7 +86,7 @@ import scheme
 from sage.rings.arith            import gcd, lcm
 from sage.categories.gcd_domains import GcdDomains
 from sage.rings.quotient_ring    import QuotientRing_generic
-
+from sage.categories.homset      import Hom
 
 
 def is_SchemeMorphism(f):
@@ -749,7 +749,6 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             else:
                 lift_polys = polys
             polys = Sequence(lift_polys)
-            # Todo: check that map is well defined (how?)
         self._polys = polys
         SchemeMorphism.__init__(self, parent)
 
@@ -904,288 +903,150 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         """
         return(self._polys[i])
 
+    def __copy__(self):
+        r"""
+        Returns a copy of ``self``.
 
+        OUTPUT:
 
-class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
-    """
-    A morphism of schemes determined by rational functions that define
-    what the morphism does on points in the ambient affine space.
-
-    EXAMPLES::
-
-        sage: RA.<x,y> = QQ[]
-        sage: A2 = AffineSpace(RA)
-        sage: RP.<u,v,w> = QQ[]
-        sage: P2 = ProjectiveSpace(RP)
-        sage: H = A2.Hom(P2)
-        sage: f = H([x, y, 1])
-        sage: f
-        Scheme morphism:
-          From: Affine Space of dimension 2 over Rational Field
-          To:   Projective Space of dimension 2 over Rational Field
-          Defn: Defined on coordinates by sending (x, y) to
-                (x : y : 1)
-    """
-    pass
-
-class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
-    """
-    A morphism of schemes determined by rational functions that define
-    what the morphism does on points in the ambient projective space.
-
-    EXAMPLES::
-
-        sage: R.<x,y> = QQ[]
-        sage: P1 = ProjectiveSpace(R)
-        sage: H = P1.Hom(P1)
-        sage: H([y,2*x])
-        Scheme endomorphism of Projective Space of dimension 1 over Rational Field
-          Defn: Defined on coordinates by sending (x : y) to
-                (y : 2*x)
-
-    An example of a morphism between projective plane curves (see #10297)::
-
-        sage: P2.<x,y,z> = ProjectiveSpace(QQ,2)
-        sage: f = x^3+y^3+60*z^3
-        sage: g = y^2*z-( x^3 - 6400*z^3/3)
-        sage: C = Curve(f)
-        sage: E = Curve(g)
-        sage: xbar,ybar,zbar = C.coordinate_ring().gens()
-        sage: H = C.Hom(E)
-        sage: H([zbar,xbar-ybar,-(xbar+ybar)/80])
-        Scheme morphism:
-          From: Projective Curve over Rational Field defined by x^3 + y^3 + 60*z^3
-          To:   Projective Curve over Rational Field defined by -x^3 + y^2*z + 6400/3*z^3
-          Defn: Defined on coordinates by sending (x : y : z) to
-                (z : x - y : -1/80*x - 1/80*y)
-
-    A more complicated example::
-
-        sage: P2.<x,y,z> = ProjectiveSpace(2,QQ)
-        sage: P1 = P2.subscheme(x-y)
-        sage: H12 = P1.Hom(P2)
-        sage: H12([x^2,x*z, z^2])
-        Scheme morphism:
-          From: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
-          x - y
-          To:   Projective Space of dimension 2 over Rational Field
-          Defn: Defined on coordinates by sending (x : y : z) to
-              (y^2 : y*z : z^2)
-
-    We illustrate some error checking::
-
-        sage: R.<x,y> = QQ[]
-        sage: P1 = ProjectiveSpace(R)
-        sage: H = P1.Hom(P1)
-        sage: f = H([x-y, x*y])
-        Traceback (most recent call last):
-        ...
-        ValueError: polys (=[x - y, x*y]) must be of the same degree
-
-        sage: H([x-1, x*y+x])
-        Traceback (most recent call last):
-        ...
-        ValueError: polys (=[x - 1, x*y + x]) must be homogeneous
-
-        sage: H([exp(x),exp(y)])
-        Traceback (most recent call last):
-        ...
-        TypeError: polys (=[e^x, e^y]) must be elements of
-        Multivariate Polynomial Ring in x, y over Rational Field
-    """
-
-    def __init__(self, parent, polys, check=True):
-        """
-        The Python constructor.
-
-        See :class:`SchemeMorphism_polynomial` for details.
+        - :class:`SchemeMorphism_polynomial`
 
         EXAMPLES::
 
-            sage: P1.<x,y> = ProjectiveSpace(QQ,1)
-            sage: H = P1.Hom(P1)
-            sage: H([y,2*x])
-            Scheme endomorphism of Projective Space of dimension 1 over Rational Field
-              Defn: Defined on coordinates by sending (x : y) to
-                    (y : 2*x)
-        """
-        SchemeMorphism_polynomial.__init__(self, parent, polys, check)
-        if check:
-            # morphisms from projective space are always given by
-            # homogeneous polynomials of the same degree
-            try:
-                d = polys[0].degree()
-            except AttributeError:
-                polys = [f.lift() for f in polys]
-            if not all([f.is_homogeneous() for f in polys]):
-                raise  ValueError, "polys (=%s) must be homogeneous"%polys
-            degs = [f.degree() for f in polys]
-            if not all([d==degs[0] for d in degs[1:]]):
-                raise ValueError, "polys (=%s) must be of the same degree"%polys
-
-    def __eq__(self,right):
-        """
-        Tests the equality of two projective spaces.
-
-        INPUT::
-
-        - ``right`` - a map on projective space
-
-        OUTPUT::
-
-        - Boolean - True if ``self`` and ``right`` define the same projective map. False otherwise.
-
-        Examples::
-
-            sage: P1.<x,y> = ProjectiveSpace(RR,1)
-            sage: P2.<x,y> = ProjectiveSpace(QQ,1)
-            sage: P1==P2
-            False
-
-            ::
-
-            sage: R.<x,y>=QQ[]
-            sage: P1=ProjectiveSpace(R)
-            sage: P2.<x,y>=ProjectiveSpace(QQ,1)
-            sage: P1==P2
-            True
-        """
-        if not isinstance(right, SchemeMorphism_polynomial):
-            return False
-        else:
-            n=len(self._polys)
-            for i in range(0,n):
-                for j in range(i+1,n):
-                    if self._polys[i]*right._polys[j] != self._polys[j]*right._polys[i]:
-                        return False
-        return True
-
-    def __ne__(self,right):
-        """
-        Tests the inequality of two projective spaces.
-
-        INPUT::
-
-        - ``right`` - a map on projective space
-
-        OUTPUT::
-
-        - Boolean - True if ``self`` and ``right`` define different projective maps. False otherwise.
-
-        Examples::
-
-            sage: P1.<x,y> = ProjectiveSpace(RR,1)
-            sage: P2.<x,y> = ProjectiveSpace(QQ,1)
-            sage: P1!=P2
-            True
-
-            ::
-
-            sage: R.<x,y>=QQ[]
-            sage: P1=ProjectiveSpace(R)
-            sage: P2.<x,y>=ProjectiveSpace(QQ,1)
-            sage: P1!=P2
-            False
-        """
-        if not isinstance(right, SchemeMorphism_polynomial):
-            return True
-        else:
-            n=len(self._polys)
-            for i in range(0,n):
-                for j in range(i+1,n):
-                    if self._polys[i]*right._polys[j] != self._polys[j]*right._polys[i]:
-                        return True
-        return False
-
-    def scale_by(self,t):
-        """
-        Scales each coordiantes by a factor of t. A TypeError occurs if the point is not in the coordinate_ring of the parent after scaling.
-
-        INPUT::
-
-        - ``t`` - a ring element
-
-        OUTPUT::
-
-        - None.
-
-        Examples::
-
-            sage: R.<t>=PolynomialRing(QQ)
-            sage: P.<x,y>=ProjectiveSpace(R,1)
+            sage: P.<x,y>=ProjectiveSpace(QQ,1)
             sage: H=Hom(P,P)
             sage: f=H([3/5*x^2,6*y^2])
-            sage: f.scale_by(5/3*t); f
-            Scheme endomorphism of Projective Space of dimension 1 over Univariate
-            Polynomial Ring in t over Rational Field
-              Defn: Defined on coordinates by sending (x : y) to
-                    (t*x^2 : 10*t*y^2)
+            sage: g =copy(f)
+            sage: f==g
+            True
+            sage: f is g
+            False
+
+        ::
+
+            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
+            sage: X=P.subscheme(x^2-y^2);
+            sage: Q=X(23,23,46)
+            sage: P=X(1,1,1)
+            sage: P!=Q
+            True
         """
-        if t==0:
-            raise ValueError, "Cannot scale by 0"
-        R=self.domain().coordinate_ring()
-        for i in range(self.codomain().dimension_relative()+1):
-            self._polys[i]=R(self._polys[i]*t)
+        H=Hom(self.domain(),self.codomain())
+        return(H(self._polys))
 
-    def normalize_coordinates(self):
-        """
-        Scales by 1/gcd of the coordinate functions. Also, scales to clear any denominators from the coefficients.
-        This is done in place.
+    def base_ring(self):
+        r"""
+        Return the base ring of ``self``, that is, the ring over which the coefficients
+        of ``self`` is given as polynomials.
 
-        INPUT::
+        OUTPUT:
 
-        - None.
+        - ring
 
-        OUTPUT::
-
-        - None.
-
-        Examples::
+        EXAMPLES::
 
             sage: P.<x,y>=ProjectiveSpace(QQ,1)
             sage: H=Hom(P,P)
-            sage: f=H([5/4*x^3,5*x*y^2])
-            sage: f.normalize_coordinates(); f
-            Scheme endomorphism of Projective Space of dimension 1 over Rational
-            Field
-              Defn: Defined on coordinates by sending (x : y) to
-                    (x^2 : 4*y^2)
+            sage: f=H([3/5*x^2,6*y^2])
+            sage: f.base_ring()
+            Rational Field
 
-        .. NOTE::
+        ::
 
-            -gcd raises an attribute error if the base_ring does not support gcds.
+            sage: R.<t>=PolynomialRing(ZZ,1)
+            sage: P.<x,y>=ProjectiveSpace(R,1)
+            sage: H=Hom(P,P)
+            sage: f=H([3*x^2,y^2])
+            sage: f.base_ring()
+            Multivariate Polynomial Ring in t over Integer Ring
         """
-        #computes the gcd of the coordinates as elements of the coordinate_ring and checks if the leading coefficients are all negative
-        GCD = gcd(self[0],self[1])
-        index=2
-        if self[0].lc()>0 or self[1].lc() >0:
-            neg=0
-        else:
-            neg=1
-        while GCD!=1 and index < self.codomain().dimension_relative()+1:
-            if self[index].lc()>0:
-                neg=0
-            GCD=gcd(GCD,self[index])
-            index+=+1
+        return(self.domain().base_ring())
 
-        if GCD != 1:
-            R=self.domain().base_ring()
-            if neg==1:
-                self.scale_by(R(-1)/GCD)
-            else:
-                self.scale_by(R(1)/GCD)
-        else:
-            if neg==1:
-                self.scale_by(-1)
+    def coordinate_ring(self):
+        r"""
+        Returns the coordinate ring of the ambient projective space
+        the multivariable polynomial ring over the base ring
 
-        #clears any denominators from the coefficients
-        LCM = lcm([self[i].denominator() for i in range(self.codomain().dimension_relative()+1)])
-        self.scale_by(LCM)
+        OUTPUT:
 
-        #scales by 1/gcd of the coefficients.
-        GCD = gcd([self[i].content() for i in range(self.codomain().dimension_relative()+1)])
-        if GCD!=1:
-            self.scale_by(1/GCD)
+        - ring
+
+        EXAMPLES::
+
+            sage: P.<x,y>=ProjectiveSpace(QQ,1)
+            sage: H=Hom(P,P)
+            sage: f=H([3/5*x^2,6*y^2])
+            sage: f.coordinate_ring()
+            Multivariate Polynomial Ring in x, y over Rational Field
+
+        ::
+
+            sage: R.<t>=PolynomialRing(ZZ,1)
+            sage: P.<x,y>=ProjectiveSpace(R,1)
+            sage: H=Hom(P,P)
+            sage: f=H([3*x^2,y^2])
+            sage: f.coordinate_ring()
+            Multivariate Polynomial Ring in x, y over Multivariate Polynomial Ring
+            in t over Integer Ring
+        """
+        return(self._polys[0].parent())
+
+    def change_ring(self,R, check=True):
+        r"""
+        Returns a new :class:`SchemeMorphism_polynomial` which is ``self`` coerced to `R`. If ``check``
+        is ``True``, then the initialization checks are performed.
+
+        INPUT:
+
+        - ``R`` -- ring
+
+        - ``check`` -- Boolean
+
+        OUTPUT:
+
+        - element of the coordinate ring of the domain
+
+        EXAMPLES::
+
+            sage: P.<x,y>=ProjectiveSpace(ZZ,1)
+            sage: H=Hom(P,P)
+            sage: f=H([3*x^2,y^2])
+            sage: f.change_ring(GF(3))
+            Traceback (most recent call last):
+            ...
+            ValueError: polys (=[0, y^2]) must be of the same degree
+
+        ::
+
+            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
+            sage: H=Hom(P,P)
+            sage: f=H([5/2*x^3 + 3*x*y^2-y^3,3*z^3 + y*x^2, x^3-z^3])
+            sage: f.change_ring(GF(3))
+            Scheme endomorphism of Projective Space of dimension 2 over Finite Field of size 3
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (x^3 - y^3 : x^2*y : x^3 - z^3)
+
+        ::
+
+            sage: P.<x,y>=ProjectiveSpace(QQ,1)
+            sage: X=P.subscheme([5*x^2-y^2])
+            sage: H=Hom(X,X)
+            sage: f=H([x,y])
+            sage: f.change_ring(GF(3))
+            Scheme endomorphism of Closed subscheme of Projective Space of dimension
+            1 over Finite Field of size 3 defined by:
+              -x^2 - y^2
+              Defn: Defined on coordinates by sending (x : y) to
+                    (x : y)
+            """
+        F=self._polys
+        S=self.codomain().change_ring(R)
+        H=Hom(S,S)
+        G=[]
+        for i in range(self.codomain().ambient_space().dimension_relative()+1):
+            G.append(F[i].change_ring(R))
+        return(H(G,check))
+
 
 ############################################################################
 # Rational points on schemes, which we view as morphisms determined
@@ -1365,538 +1226,61 @@ class SchemeMorphism_point(SchemeMorphism):
         """
         return self.codomain()
 
+    def change_ring(self,R, check=True):
+        r"""
+        Returns a new :class:`SchemeMorphism_point` which is self coerced to R. If `check`
+        is true, then the initialization checks are performed.
 
-#*******************************************************************
-# Affine varieties
-#*******************************************************************
-class SchemeMorphism_point_affine(SchemeMorphism_point):
-    """
-    A rational point on an affine scheme.
+        INPUT:
 
-    INPUT:
+        - ``R`` -- a ring
 
-    - ``X`` -- a subscheme of an ambient affine space over a ring `R`.
+        - ``check`` -- Boolean (optional)
 
-    - ``v`` -- a list/tuple/iterable of coordinates in `R`.
+        OUTPUT:
 
-    - ``check`` -- boolean (optional, default:``True``). Whether to
-      check the input for consistency.
-
-    EXAMPLES::
-
-        sage: A = AffineSpace(2, QQ)
-        sage: A(1,2)
-        (1, 2)
-    """
-    def __init__(self, X, v, check=True):
-        """
-        The Python constructor.
-
-        See :class:`SchemeMorphism_point_affine` for details.
-
-        TESTS::
-
-            sage: from sage.schemes.generic.morphism import SchemeMorphism_point_affine
-            sage: A3.<x,y,z> = AffineSpace(QQ, 3)
-            sage: SchemeMorphism_point_affine(A3(QQ), [1,2,3])
-            (1, 2, 3)
-        """
-        SchemeMorphism.__init__(self, X)
-        if is_SchemeMorphism(v):
-            v = list(v)
-        if check:
-            # Verify that there are the right number of coords
-            d = self.codomain().ambient_space().ngens()
-            if len(v) != d:
-                raise TypeError, \
-                      "Argument v (=%s) must have %s coordinates."%(v, d)
-            if not isinstance(v,(list,tuple)):
-                raise TypeError, \
-                      "Argument v (= %s) must be a scheme point, list, or tuple."%str(v)
-            # Make sure the coordinates all lie in the appropriate ring
-            v = Sequence(v, X.value_ring())
-            # Verify that the point satisfies the equations of X.
-            X.extended_codomain()._check_satisfies_equations(v)
-        self._coords = tuple(v)
-
-
-#*******************************************************************
-# Projective varieties
-#*******************************************************************
-class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
-    """
-    A rational point of projective space over a ring.
-
-    INPUT::
-
-    -  ``X`` -- a homset of a subscheme of an ambient projective space over a field `K`
-
-    - ``v`` -- a list or tuple of coordinates in `K`
-
-    - ``check`` -- boolean (optional, default:``True``). Whether to check the input for consistency.
-
-    EXAMPLES::
-
-        sage: P = ProjectiveSpace(2, ZZ)
-        sage: P(2,3,4)
-        (2 : 3 : 4)
-
-    """
-
-    def __init__(self, X, v, check=True):
-        """
-        The Python constructor.
+        - :class:`SchemeMorphism_point`
 
         EXAMPLES::
 
-            sage: P = ProjectiveSpace(2, QQ)
-            sage: P(2, 3/5, 4)
-            (1/2 : 3/20 : 1)
+            sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
+            sage: X=P.subscheme(x^2-y^2)
+            sage: X(23,23,1).change_ring(GF(13))
+            (10 : 10 : 1)
 
         ::
 
-            sage: P = ProjectiveSpace(1, ZZ)
-            sage: P([0, 1])
-            (0 : 1)
+            sage: P.<x,y>=ProjectiveSpace(QQ,1)
+            sage: P(-2/3,1).change_ring(CC)
+            (-0.666666666666667 : 1.00000000000000)
 
         ::
 
-            sage: P = ProjectiveSpace(1, ZZ)
-            sage: P([0, 0, 1])
-            Traceback (most recent call last):
-            ...
-            TypeError: v (=[0, 0, 1]) must have 2 components
-
-        ::
-
-            sage: P = ProjectiveSpace(3, QQ)
-            sage: P(0,0,0,0)
-            Traceback (most recent call last):
-            ...
-            ValueError: [0, 0, 0, 0] does not define a valid point since all entries are 0
-
-        ::
-
-        It is possible to avoid the possibly time consuming checks, but be careful!!
-
-            sage: P = ProjectiveSpace(3, QQ)
-            sage: P.point([0,0,0,0],check=False)
-            (0 : 0 : 0 : 0)
-
-        ::
-
-            sage: P.<x, y, z> = ProjectiveSpace(2, ZZ)
-            sage: X=P.subscheme([x^2-y*z])
-            sage: X([2,2,2])
-            (2 : 2 : 2)
+            sage: P.<x,y>=ProjectiveSpace(ZZ,1)
+            sage: P(152,113).change_ring(Zp(5))
+            (2 + 5^2 + 5^3 + O(5^20) : 3 + 2*5 + 4*5^2 + O(5^20))
         """
-        SchemeMorphism.__init__(self, X)
-        if check:
-            from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
-            d = X.codomain().ambient_space().ngens()
-            if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
-                v = list(v)
-            elif v is infinity:
-                v = [0] * (d)
-                v[1] = 1
-            if not isinstance(v,(list,tuple)):
-                raise TypeError, \
-                      "Argument v (= %s) must be a scheme point, list, or tuple."%str(v)
-            if len(v) != d and len(v) != d-1:
-                raise TypeError, "v (=%s) must have %s components"%(v, d)
-
-            R = X.value_ring()
-            v = Sequence(v, R)
-            if len(v) == d-1:     # very common special case
-                v.append(1)
-
-            n = len(v)
-            all_zero = True
-            for i in range(n):
-                last = n-1-i
-                if v[last]:
-                    all_zero = False
-                    break
-            if all_zero:
-                raise ValueError, "%s does not define a valid point since all entries are 0"%repr(v)
-
-            X.extended_codomain()._check_satisfies_equations(v)
-
-            if isinstance(X.codomain().base_ring(), QuotientRing_generic):
-                lift_coords = [P.lift() for P in v]
-            else:
-                lift_coords = v
-            v = Sequence(lift_coords)
-
-        self._coords = v
-
-    def __eq__(self,right):
-        """
-        Tests the proejctive equality of two points.
-
-        INPUT::
-
-        - ``right`` - a point on projective space
-
-        OUTPUT::
-
-        - Boolean - True if ``self`` and ``right`` define the same point. False otherwise.
-
-        Examples::
-
-            sage: PS=ProjectiveSpace(ZZ,1,'x')
-            sage: P=PS([1,2])
-            sage: Q=PS([2,4])
-            sage: P==Q
-            True
-
-        ::
-
-            sage: PS=ProjectiveSpace(ZZ,1,'x')
-            sage: P=PS([1,2])
-            sage: Q=PS([1,0])
-            sage: P==Q
-            False
-
-        ::
-
-            sage: PS=ProjectiveSpace(Zp(5),1,'x')
-            sage: P=PS([0,1])
-            sage: P==0
-            True
-
-        ::
-
-            sage: R.<t>=PolynomialRing(QQ)
-            sage: PS=ProjectiveSpace(R,1,'x')
-            sage: P=PS([t,1+t^2])
-            sage: Q=PS([t^2, t+t^3])
-            sage: P==Q
-            True
-
-        ::
-
-            sage: PS=ProjectiveSpace(ZZ,2,'x')
-            sage: P=PS([0,1,2])
-            sage: P==0
-            False
-
-        ::
-
-            sage: PS=ProjectiveSpace(ZZ,1,'x')
-            sage: P=PS([2,1])
-            sage: PS2=ProjectiveSpace(Zp(7),1,'x')
-            sage: Q=PS2([2,1])
-            sage: P==Q
-            False
-
-        ::
-
-            sage: PS=ProjectiveSpace(ZZ.quo(6),2,'x')
-            sage: P=PS([2,4,1])
-            sage: Q=PS([0,1,3])
-            sage: P==Q
-            False
-
-        ::
-
-            sage: R.<z>=PolynomialRing(QQ)
-            sage: K.<t>=NumberField(z^2+5)
-            sage: OK=K.ring_of_integers()
-            sage: t=OK.gen(1)
-            sage: PS.<x,y>=ProjectiveSpace(OK,1)
-            sage: P=PS(2,1+t)
-            sage: Q=PS(1-t,3)
-            sage: P==Q
-            True
-
-        """
-        if not isinstance(right, SchemeMorphism_point):
-            try:
-                right = self.codomain()(right)
-            except TypeError:
-                return False
-        if self.codomain()!=right.codomain():
-            return False
-        n=len(self._coords)
-        for i in range(0,n):
-            for j in range(i+1,n):
-                if self._coords[i]*right._coords[j] != self._coords[j]*right._coords[i]:
-                    return False
-        return True
-
-    def __ne__(self,right):
-        """
-        Tests the proejctive equality of two points.
-
-        INPUT::
-
-        - ``right`` - a point on projective space
-
-        OUTPUT::
-
-        - Boolean - True if ``self`` and ``right`` define different points. False otherwise.
-
-        Examples::
-
-            sage: PS=ProjectiveSpace(ZZ,1,'x')
-            sage: P=PS([1,2])
-            sage: Q=PS([2,4])
-            sage: P!=Q
-            False
-
-        ::
-
-            sage: PS=ProjectiveSpace(ZZ,1,'x')
-            sage: P=PS([1,2])
-            sage: Q=PS([1,0])
-            sage: P!=Q
-            True
-
-        ::
-
-            sage: PS=ProjectiveSpace(Zp(5),1,'x')
-            sage: P=PS([0,1])
-            sage: P!=0
-            False
-
-        ::
-
-            sage: R.<t>=PolynomialRing(QQ)
-            sage: PS=ProjectiveSpace(R,1,'x')
-            sage: P=PS([t,1+t^2])
-            sage: Q=PS([t^2, t+t^3])
-            sage: P!=Q
-            False
-
-        ::
-
-            sage: PS=ProjectiveSpace(ZZ,2,'x')
-            sage: P=PS([0,1,2])
-            sage: P!=0
-            True
-
-        ::
-
-            sage: PS=ProjectiveSpace(ZZ,1,'x')
-            sage: P=PS([2,1])
-            sage: PS2=ProjectiveSpace(Zp(7),1,'x')
-            sage: Q=PS2([2,1])
-            sage: P!=Q
-            True
-
-        ::
-
-            sage: PS=ProjectiveSpace(ZZ.quo(6),2,'x')
-            sage: P=PS([2,4,1])
-            sage: Q=PS([0,1,3])
-            sage: P!=Q
-            True
-        """
-        if not isinstance(right, SchemeMorphism_point):
-            try:
-                right = self.codomain()(right)
-            except TypeError:
-                return True
-        if self.codomain()!=right.codomain():
-            return True
-        n=len(self._coords)
-        for i in range(0,n):
-            for j in range(i+1,n):
-                if self._coords[i]*right._coords[j] != self._coords[j]*right._coords[i]:
-                    return True
-        return False
-
-    def scale_by(self,t):
-        """
-        Scale the coordinates of the point by t. A TypeError occurs if the point is not in the base_ring of the codomain after scaling.
-
-        INPUT::
-
-        - ``t`` - a ring element
-
-        OUTPUT::
-
-        - None.
-
-        Examples::
-
-            sage: R.<t>=PolynomialRing(QQ)
-            sage: P=ProjectiveSpace(R,2,'x')
-            sage: p=P([3/5*t^3,6*t, t])
-            sage: p.scale_by(1/t); p
-            (3/5*t^2 : 6 : 1)
-
-        """
-        if t==0:
-            raise ValueError, "Cannot scale by 0"
-        R=self.codomain().base_ring()
+        S=self.codomain().change_ring(R)
+        Q=[]
         for i in range(len(self._coords)):
-            self._coords[i]=R(self._coords[i]*t)
+            Q.append(R(self._coords[i]))
+        return(S.point(Q,check))
 
-    def normalize_coordinates(self):
-        """
-        Removes common factors from the coordinates of self (including -1).
+    def __copy__(self):
+        r"""
+        Returns a copy of the :class:`SchemeMorphism_point` self coerced to `R`.
 
-        INPUT::
+        OUTPUT:
 
-        - None.
-
-        OUTPUT::
-
-        - None.
-
-        Examples::
-
-            sage: P=ProjectiveSpace(ZZ,2,'x')
-            sage: p=P([-5,-15,-20])
-            sage: p.normalize_coordinates(); p
-            (1 : 3 : 4)
-
-        ::
-
-            sage: P=ProjectiveSpace(Zp(7),2,'x')
-            sage: p=P([-5,-15,-2])
-            sage: p.normalize_coordinates(); p
-            (5 + O(7^20) : 1 + 2*7 + O(7^20) : 2 + O(7^20))
-
-        ::
-
-            sage: R.<t>=PolynomialRing(QQ)
-            sage: P=ProjectiveSpace(R,2,'x')
-            sage: p=P([3/5*t^3,6*t, t])
-            sage: p.normalize_coordinates(); p
-            (3/5*t^2 : 6 : 1)
-        """
-        R=self.codomain().base_ring()
-        GCD = R(gcd(self[0],self[1]))
-        index=2
-        if self[0]>0 or self[1] >0:
-            neg=0
-        else:
-            neg=1
-        while GCD!=1 and index < len(self._coords):
-            if self[index]>0:
-                neg=0
-            GCD=R(gcd(GCD,self[index]))
-            index+=+1
-        if GCD != 1:
-            if neg==1:
-                self.scale_by(R(-1)/GCD)
-            else:
-                self.scale_by(R(1)/GCD)
-        else:
-            if neg==1:
-                self.scale_by(R(-1))
-
-class SchemeMorphism_point_projective_field(SchemeMorphism_point_projective_ring):
-    """
-    A rational point of projective space over a field.
-
-    INPUT:
-
-    -  ``X`` -- a homset of a subscheme of an ambient projective space
-       over a field `K`
-
-    - ``v`` -- a list or tuple of coordinates in `K`
-
-    - ``check`` -- boolean (optional, default:``True``). Whether to
-      check the input for consistency.
-
-    EXAMPLES::
-
-        sage: P = ProjectiveSpace(3, RR)
-        sage: P(2,3,4,5)
-        (0.400000000000000 : 0.600000000000000 : 0.800000000000000 : 1.00000000000000)
-    """
-
-    def __init__(self, X, v, check=True):
-        """
-        The Python constructor.
-
-        See :class:`SchemeMorphism_point_projective_ring` for details.
-
-        This function still normalized points so that the rightmost non-zero coordinate is 1. The is to maintain current functionality with current
-        implementations of curves in projectives space (plane, connic, elliptic, etc). The class:`SchemeMorphism_point_projective_ring` is for general use.
+        - :class:`SchemeMorphism_point`
 
         EXAMPLES::
 
-            sage: P = ProjectiveSpace(2, QQ)
-            sage: P(2, 3/5, 4)
-            (1/2 : 3/20 : 1)
-
-        ::
-
-            sage: P = ProjectiveSpace(3, QQ)
-            sage: P(0,0,0,0)
-            Traceback (most recent call last):
-            ...
-            ValueError: [0, 0, 0, 0] does not define a valid point since all entries are 0
-
-        ::
-
-            sage: P.<x, y, z> = ProjectiveSpace(2, QQ)
-            sage: X=P.subscheme([x^2-y*z])
-            sage: X([2,2,2])
-            (1 : 1 : 1)
+            sage: P.<x,y>=ProjectiveSpace(ZZ,1)
+            sage: Q=P(152,113)
+            sage: copy(Q) is Q
+            False
+            sage: copy(Q) == Q
+            True
         """
-        SchemeMorphism.__init__(self, X)
-        if check:
-            from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
-            d = X.codomain().ambient_space().ngens()
-            if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
-                v = list(v)
-            elif v is infinity:
-                v = [0] * (d)
-                v[1] = 1
-            if not isinstance(v,(list,tuple)):
-                raise TypeError, \
-                      "Argument v (= %s) must be a scheme point, list, or tuple."%str(v)
-            if len(v) != d and len(v) != d-1:
-                raise TypeError, "v (=%s) must have %s components"%(v, d)
-
-            R = X.value_ring()
-            v = Sequence(v, R)
-            if len(v) == d-1:     # very common special case
-                v.append(1)
-
-            n = len(v)
-            all_zero = True
-            for i in range(n):
-                last = n-1-i
-                if v[last]:
-                    all_zero = False
-                    c = v[last]
-                    if c == R.one():
-                        break
-                    for j in range(last):
-                        v[j] /= c
-                    v[last] = R.one()
-                    break
-            if all_zero:
-                raise ValueError, "%s does not define a valid point since all entries are 0"%repr(v)
-
-            X.extended_codomain()._check_satisfies_equations(v)
-
-        self._coords = v
-
-
-#*******************************************************************
-# Abelian varieties
-#*******************************************************************
-class SchemeMorphism_point_abelian_variety_field(
-       AdditiveGroupElement, SchemeMorphism_point_projective_field):
-    """
-    A rational point of an abelian variety over a field.
-
-    EXAMPLES::
-
-        sage: E = EllipticCurve([0,0,1,-1,0])
-        sage: origin = E(0)
-        sage: origin.domain()
-        Spectrum of Rational Field
-        sage: origin.codomain()
-        Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
-    """
-    pass
-
+        return(self.codomain().point(self._coords,False))

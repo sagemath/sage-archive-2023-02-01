@@ -274,14 +274,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
         Returns the coefficient of `p^n` in the series expansion of this
         element, as an integer in the range `0` to `p-1`.
 
-        .. WARNING::
-
-            In Python if you create a slice as ``a[:5]``, the start
-            attribute will be set to 0 rather than None.  As a
-            consequence, this function behaves differently than
-            ``a.slice(None, 5)`` on such inputs: this function starts
-            at 0 while slice starts at the valution.
-
         EXAMPLES::
 
             sage: R = Zp(7,4,'capped-rel','series'); a = R(1/3); a
@@ -338,17 +330,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
             4*7^3 + O(7^4)
             sage: b[3:7]
             O(7^3)
-
-        Note that if the first entry in the slice is blank it will be
-        set to zero::
-
-            sage: K = Qp(5, 6)
-            sage: x = K(1/25 + 5); x
-            5^-2 + 5 + O(5^4)
-            sage: x[:3]
-            5 + O(5^3)
-            sage: x.slice(None, 3)
-            5^-2 + 5 + O(5^3)
 
         For extension elements, "zeros" match the behavior of
         ``list``::

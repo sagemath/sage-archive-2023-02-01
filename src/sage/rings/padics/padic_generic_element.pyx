@@ -983,7 +983,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         r = sage.rings.arith.rational_reconstruction(alpha, m)
         return (Rational(p)**self.valuation())*r
 
-    def _shifted_log(self, aprec):
+    def _shifted_log(self, aprec, mina=0):
         r"""
         Return ``-\log(1-self)`` for elements of positive valuation.
 
@@ -994,6 +994,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
         - ``aprec`` -- an integer, the precision to which the result is
           correct. ``aprec`` must not exceed the precision cap of the ring over
           which this element is defined.
+
+        - ``mina`` -- the series will check `n` up to this valuation
+          (and beyond) to see if they can contribute to the series.
 
         ALGORITHM:
 
@@ -1045,20 +1048,26 @@ cdef class pAdicGenericElement(LocalGenericElement):
         p=R.prime()
 
         # we sum all terms of the power series of log into total
-        total=0
+        total=R.zero()
 
         # pre-compute x^p/p into x2p_p
         if R.is_capped_relative():
-            x2p_p = x**p/p
+            if p*alpha >= e:
+                x2p_p = x**p/p
+            else:
+                # x^p/p has negative valuation, so we need to be much
+                # more careful about precision.
+                x = x.lift_to_precision()
+                x2p_p = x**p/p
         else:
             xu=x.unit_part()
             pu=R(p).unit_part()
-            x2p_p=((xu**p)*pu.inverse_of_unit())*R.uniformizer_pow(p*x.valuation()-e)
+            x2p_p=((xu**p)*pu.inverse_of_unit())*R.uniformizer_pow(p*alpha-e)
 
         # To get result right to precision aprec, we need all terms for which
         # the valuation of x^n/n is strictly smaller than aprec.
         # If we rewrite n=u*p^a with u a p-adic unit, then these are the terms
-        # for which u<(aprec+a*v(p))/(p^a+v(x)).
+        # for which u<(aprec+a*v(p))/(v(x)*p^a).
         # Two sum over these terms, we run two nested loops, the outer one
         # iterates over the possible values for a, the inner one iterates over
         # the possible values for u.
@@ -1068,16 +1077,16 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         while True:
             upper_u = ((aprec+a*e)/(alpha*p2a)).floor()
-            if upper_u==0:
+            if a >= mina and upper_u<=0:
                 break
             # we compute the sum for the possible values for u using Horner's method
-            inner_sum = R(0)
+            inner_sum = R.zero()
             for u in xrange(upper_u,0,-1):
                 # We want u to be a p-adic unit
                 if u%p==0:
-                    new_term = 0
+                    new_term = R.zero()
                 else:
-                    new_term = R(Rational((1,u)))
+                    new_term = ~R(u)
 
                 # This hack is to deal with rings that don't lift to fields
                 if u>1 or x2p_p.is_zero():
@@ -1094,7 +1103,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         return total.add_bigoh(aprec)
 
-    def log(self, branch=0, aprec=None, change_frac=False):
+    def log(self, p_branch=None, pi_branch=None, branch=None, aprec=None, change_frac=False):
         r"""
         Compute the `p`-adic logarithm of this element.
 
@@ -1112,9 +1121,15 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         INPUTS:
 
-        - ``branch`` -- an element in the base ring (default: ``0``); the
-          implementation will chose the branch of the logarithm which sends `p`
-          to ``branch``.
+        - ``p_branch`` -- an element in the base ring or its fraction
+          field; the implementation will choose the branch of the
+          logarithm which sends `p` to ``branch``.
+
+        - ``pi_branch`` -- an element in the base ring or its fraction
+          field; the implementation will choose the branch of the
+          logarithm which sends the uniformizer to ``branch``.  You
+          may specify at most one of ``p_branch`` and ``pi_branch``,
+          and must specify one of them if this element is not a unit.
 
         - ``aprec`` -- an integer or ``None`` (default: ``None``) if not
           ``None``, then the result will only be correct to precision
@@ -1130,9 +1145,16 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         What some other systems do:
 
-        - PARI:  Seems to define the logarithm the same way as we do.
+        - PARI: Seems to define the logarithm for units not congruent
+          to 1 as we do.
 
         - MAGMA: Only implements logarithm for 1-units (as of version 2.19-2)
+
+        .. TODO::
+
+        There is a soft-linear time algorith for logarithm described
+        by Dan Berstein at
+        http://cr.yp.to/lineartime/multapps-20041007.pdf
 
         ALGORITHM:
 
@@ -1149,7 +1171,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         to compute the logarithm `\log(u)`.
 
-        4. Divide the result by ``q-1`` and multiply with ``self.valuation()*log(pi)``
+        4. Divide the result by ``q-1`` and multiply by ``self.valuation()*log(pi)``
 
         EXAMPLES::
 
@@ -1189,31 +1211,32 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: a.log()
             2*5 + 3*5^2 + 2*5^3 + 4*5^4 + 2*5^6 + 2*5^7 + 4*5^8 + 2*5^9 + O(5^10)
 
-        Per default, we use the branch of the logarithm with `\log(p)=0`. The
-        ``branch`` parameter can be used to select another branch::
+        If you want to take the logarithm of a non-unit you must specify either ``p_branch`` or ``pi_branch``::
 
             sage: b = R(5)
             sage: b.log()
-            O(5^10)
-            sage: b.log(branch=4)
+            Traceback (most recent call last):
+            ...
+            ValueError: You must specify a branch of the logarithm for non-units
+            sage: b.log(p_branch=4)
             4 + O(5^10)
             sage: c = R(10)
-            sage: c.log(branch=4)
+            sage: c.log(p_branch=4)
             4 + 2*5 + 3*5^2 + 2*5^3 + 4*5^4 + 2*5^6 + 2*5^7 + 4*5^8 + 2*5^9 + O(5^10)
 
-        The branch parameter is only relevant for elements of non-zero
+        The branch parameters are only relevant for elements of non-zero
         valuation::
 
-            sage: a.log(branch=0)
+            sage: a.log(p_branch=0)
             2*5 + 3*5^2 + 2*5^3 + 4*5^4 + 2*5^6 + 2*5^7 + 4*5^8 + 2*5^9 + O(5^10)
-            sage: a.log(branch=1)
+            sage: a.log(p_branch=1)
             2*5 + 3*5^2 + 2*5^3 + 4*5^4 + 2*5^6 + 2*5^7 + 4*5^8 + 2*5^9 + O(5^10)
 
         Logarithms can also be computed in extension fields. First, in an
         Eisenstein extension::
 
             sage: R = Zp(5,5)
-            sage: S.<x> = R[]
+            sage: S.<x> = ZZ[]
             sage: f = x^4 + 15*x^2 + 625*x - 5
             sage: W.<w> = R.ext(f)
             sage: z = 1 + w^2 + 4*w^7; z
@@ -1221,24 +1244,32 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: z.log()
             w^2 + 2*w^4 + 3*w^6 + 4*w^7 + w^9 + 4*w^10 + 4*w^11 + 4*w^12 + 3*w^14 + w^15 + w^17 + 3*w^18 + 3*w^19 + O(w^20)
 
-        Per default, we use the branch of the logarithm with `\log(p)=0`. The
-        ``branch`` parameter can be used to select another branch::
+        In an extension, there will usually be a difference between
+        specifying ``p_branch`` and ``pi_branch``::
 
             sage: b = W(5)
             sage: b.log()
+            Traceback (most recent call last):
+            ...
+            ValueError: You must specify a branch of the logarithm for non-units
+            sage: b.log(p_branch=0)
             O(w^20)
-            sage: b.log(branch=w)
+            sage: b.log(p_branch=w)
             w + O(w^20)
+            sage: b.log(pi_branch=0)
+            3*w^2 + 2*w^4 + 2*w^6 + 3*w^8 + 4*w^10 + w^13 + w^14 + 2*w^15 + 2*w^16 + w^18 + 4*w^19 + O(w^20)
+            sage: b.unit_part().log()
+            3*w^2 + 2*w^4 + 2*w^6 + 3*w^8 + 4*w^10 + w^13 + w^14 + 2*w^15 + 2*w^16 + w^18 + 4*w^19 + O(w^20)
             sage: y = w^2 * 4*w^7; y
             4*w^9 + O(w^29)
-            sage: y.log()
+            sage: y.log(p_branch=0)
             2*w^2 + 2*w^4 + 2*w^6 + 2*w^8 + w^10 + w^12 + 4*w^13 + 4*w^14 + 3*w^15 + 4*w^16 + 4*w^17 + w^18 + 4*w^19 + O(w^20)
-            sage: y.log(branch=w)
+            sage: y.log(p_branch=w)
             w + 2*w^2 + 2*w^4 + 4*w^5 + 2*w^6 + 2*w^7 + 2*w^8 + 4*w^9 + w^10 + 3*w^11 + w^12 + 4*w^14 + 4*w^16 + 2*w^17 + w^19 + O(w^20)
 
         Check that log is multiplicative::
 
-            sage: y.log() + z.log() - (y*z).log()
+            sage: y.log(p_branch=0) + z.log() - (y*z).log(p_branch=0)
             O(w^20)
 
         Now an unramified example::
@@ -1281,7 +1312,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: x.log().parent()
             7-adic Ring with capped absolute precision 10
             sage: x = R(14)
-            sage: x.log().parent()
+            sage: x.log(p_branch=0).parent()
             7-adic Ring with capped absolute precision 10
 
         This is not possible if the logarithm has negative valuation::
@@ -1324,6 +1355,40 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: x.log()
             7 + 3*7^2 + 4*7^3 + 3*7^4 + 7^5 + 3*7^6 + 7^7 + 3*7^8 + 4*7^9 + O(7^10)
 
+        Check that precision is computed correctly in highly ramified
+        extensions::
+
+            sage: S.<x> = ZZ[]
+            sage: K = Qp(5,5)
+            sage: f = x^625 - 5*x - 5
+            sage: W.<w> = K.extension(f)
+            sage: z = 1 - w^2 + O(w^11)
+            sage: x = 1 - z
+            sage: z.log().precision_absolute()
+            -975
+            sage: (x^5/5).precision_absolute()
+            -570
+            sage: (x^25/25).precision_absolute()
+            -975
+            sage: (x^125/125).precision_absolute()
+            -775
+
+            sage: z = 1 - w + O(w^2)
+            sage: x = 1 - z
+            sage: z.log().precision_absolute()
+            -1625
+            sage: (x^5/5).precision_absolute()
+            -615
+            sage: (x^25/25).precision_absolute()
+            -1200
+            sage: (x^125/125).precision_absolute()
+            -1625
+            sage: (x^625/625).precision_absolute()
+            -1250
+
+            sage: z.log().precision_relative()
+            250
+
         AUTHORS:
 
         - William Stein: initial version
@@ -1346,30 +1411,67 @@ cdef class pAdicGenericElement(LocalGenericElement):
         """
         if self.is_zero():
             raise ValueError('logarithm is not defined at zero')
-
-        p=self.parent().prime()
-        q=p**self.parent().inertia_degree()
+        if branch is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(12575, "The keyword branch is deprecated.  Please use p_branch or pi_branch instead")
+            p_branch = branch
+        if p_branch is not None and pi_branch is not None:
+            raise ValueError("You may only specify a branch of the logarithm in one way")
+        R = self.parent()
+        p = R.prime()
+        q = p**R.f()
 
         if self.is_padic_unit():
-            total = self.parent().zero()
+            total = R.zero()
         else:
-            total = Rational((self.valuation(),self.parent().ramification_index()))*(branch - self.parent()._log_unit_part_p())
+            if pi_branch is None:
+                if p_branch is None:
+                    raise ValueError("You must specify a branch of the logarithm for non-units")
+                pi_branch = (p_branch - R._log_unit_part_p()) / R.e()
+            total = self.valuation() * pi_branch
         y = self.unit_part()
+        x = 1 - y
 
-        if (y-1).valuation()>0:
+        if x.valuation()>0:
             denom=Integer(1)
         else:
             y=y**(q-1) # Is it better to multiply it by Teichmuller element?
             denom=Integer(q-1)
+            x = 1 - y
 
-        if aprec is None or aprec > y.precision_absolute():
-            aprec=y.precision_absolute()
+        minaprec = y.precision_absolute()
+        minn = 0
+        e = R.e()
+        if e != 1:
+            xval = x.valuation()
+            lamb = minaprec - xval
+            if lamb > 0 and lamb*(p-1) <= e:
+                # This is the precision region where the absolute
+                # precision of the answer might be less than the
+                # absolute precision of the input
 
-        retval = total-((1-y)._shifted_log(aprec))*self.parent()(denom).inverse_of_unit()
+                # kink is the number of times we multiply the relative
+                # precision by p before starting to add e instead.
+                kink = (e // (lamb * (p-1))).exact_log(p) + 1
+
+                # deriv0 is within 1 of the n yielding the minimal
+                # absolute precision
+                deriv0 = (e / (minaprec * p.log(prec=53))).floor().exact_log(p)
+
+                # These are the absolute precisions of x^(p^n) at potential minimum points
+                L = [(minaprec * p**n - n * e, n) for n in [0, kink, deriv0, deriv0+1]]
+                L.sort()
+                minaprec = L[0][0]
+                minn = L[0][1]
+
+        if aprec is None or aprec > minaprec:
+            aprec=minaprec
+
+        retval = total - x._shifted_log(aprec, minn)*R(denom).inverse_of_unit()
         if not change_frac:
-            if retval.valuation() < 0 and not self.parent().is_field():
+            if retval.valuation() < 0 and not R.is_field():
                 raise ValueError("logarithm is not integral, use change_frac=True to obtain a result in the fraction field")
-            retval=self.parent()(retval)
+            retval=R(retval)
         return retval.add_bigoh(aprec)
 
     def exp(self, aprec = None):
@@ -1584,13 +1686,13 @@ cdef class pAdicGenericElement(LocalGenericElement):
         p=self.parent().prime()
         e=self.parent().ramification_index()
         x_unit=self.unit_part()
-        p_unit=R(p).unit_part().lift_to_precision(R.precision_cap())
+        p_unit=R(p).unit_part().lift_to_precision()
         x_val=self.valuation()
 
         # the valuation of n! is bounded by e*n/(p-1), therefore the valuation
         # of self^n/n! is bigger or equal to n*x_val - e*n/(p-1). So, we only
         # have to sum terms for which n does not exceed N
-        N = aprec // (x_val - e/(p-1))
+        N = (aprec // (x_val - e/(p-1))).floor()
 
         # We evaluate the exponential series:
         # First, we compute the value of x^N+N*x^(N-1)+...+x*N!+N! using
@@ -1607,15 +1709,21 @@ cdef class pAdicGenericElement(LocalGenericElement):
         # we compute the value of N! as we go through the loop
         nfactorial_unit,nfactorial_val = R.one(),0
 
+        nmodp = N%p
         for n in range(N,0,-1):
-            # multiply everything with x
+            # multiply everything by x
             series_val += x_val
             series_unit *= x_unit
 
             # compute the new value of N*(N-1)*...
-            n_pval = Integer(n).valuation(p)
-            nfactorial_unit *= R(n//p**n_pval) * p_unit**n_pval
-            nfactorial_val += n_pval*e
+            if nmodp == 0:
+                n_pval, n_punit = Integer(n).val_unit(p)
+                nfactorial_unit *= R(n_punit) * p_unit**n_pval
+                nfactorial_val += n_pval*e
+                nmodp = p
+            else:
+                nfactorial_unit *= n
+            nmodp -= 1
 
             # now add N*(N-1)*...
             common_val = min(nfactorial_val, series_val)

@@ -942,14 +942,16 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         This is only implemented for unramified extension at
         this point.
 
-        INPUT::
-            - self -- a p-adic element
-            - absprec -- an integer
+        INPUT:
 
-        OUTPUT::
-            - element -- a new element truncated modulo \pi^absprec.
+        - ``absprec`` -- an integer
+
+        OUTPUT:
+
+        - a new element truncated modulo `\pi^{\mbox{absprec}}`.
 
         EXAMPLES::
+
             sage: R=Zp(7,4,'fixed-mod')
             sage: a = R(1+7+7^2);
             sage: a.add_bigoh(1)

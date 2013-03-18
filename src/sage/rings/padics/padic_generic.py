@@ -470,7 +470,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         Compute the logarithm of the unit-part of `p`.
 
-        If `\pi` is the uniformizing in this ring, then we can uniquely write
+        If `\pi` is the uniformizer in this ring, then we can uniquely write
         `p=\pi^e u` where `u` is a `\pi`-adic unit. This method computes the
         logarithm of `u`.
 
@@ -483,13 +483,12 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: R._log_unit_part_p()
             O(3^5)
 
-            sage: S.<pi> = R[]
-            sage: W.<pi> = R.extension(pi^3-3)
+            sage: S.<x> = ZZ[]
+            sage: W.<pi> = R.extension(x^3-3)
             sage: W._log_unit_part_p()
             O(pi^15)
 
-            sage: S.<pi> = R[]
-            sage: W.<pi> = R.extension(pi^3-3*pi-3)
+            sage: W.<pi> = R.extension(x^3-3*x-3)
             sage: W._log_unit_part_p()
             2 + pi + 2*pi^2 + pi^4 + pi^5 + 2*pi^7 + 2*pi^8 + pi^9 + 2*pi^10 + pi^11 + pi^12 + 2*pi^14 + O(pi^15)
 
@@ -506,8 +505,18 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         TESTS::
 
-            sage: R = Qp(3)
+            sage: R = Qp(3, 5)
+            sage: R._exp_p()
+            1 + 3 + 3^2 + 2*3^3 + 2*3^4 + O(3^5)
 
+            sage: S.<x> = ZZ[]
+            sage: W.<pi> = R.extension(x^3-3)
+            sage: W._exp_p()
+            1 + pi^3 + pi^6 + 2*pi^9 + 2*pi^12 + O(pi^15)
+
+            sage: W.<pi> = R.extension(x^3-3*x-3)
+            sage: W._exp_p()
+            1 + pi^3 + 2*pi^4 + pi^5 + pi^7 + pi^9 + pi^10 + 2*pi^11 + pi^12 + pi^13 + 2*pi^14 + O(pi^15)
         """
         p = self.prime()
         if p == 2:

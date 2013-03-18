@@ -27,7 +27,10 @@ capabilities to python.
 
 == Changelog ==
 
-=== numpy-1.7.0.rc1 (François Bissey 14 Jan 2013) ==
+=== numpy-1.7.0 (François Bissey 19 Mar 2013) ==
+ * #11334 trivial bump to numpy 1.7.0. Sources are identical to 1.7.0.rc2.
+
+=== numpy-1.7.0.rc2 (François Bissey 14 Jan 2013) ==
  * #11334 upgrade to numpy-1.7.0rc2.
  * remove darwin_x86_64.patch as it is included upstream
  * drop sage_fortran but be careful to set -fpic in Fortran flags like in scipy

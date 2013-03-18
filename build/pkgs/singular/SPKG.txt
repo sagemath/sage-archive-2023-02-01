@@ -58,6 +58,9 @@ Several patches are applied.
    that fixes one memory corruption (writing out of bound).
  * cygwin-makefile.patch: simple fix for Cygwin, see
    http://www.singular.uni-kl.de:8002/trac/ticket/476/
+ * sage_trac_14295.patch: Fix for GCC 4.7.x on Solaris; see
+   http://trac.sagemath.org/sage_trac/ticket/14295 and the changelog
+   entry for singular-3-1-5.p5 below.
 
 Other notes
  * The option '--without-dynamic-kernel' is used on *all*
@@ -84,6 +87,15 @@ Other notes
    for easier debugging of memory corruptions.
 
 == ChangeLog ==
+
+=== singular-3-1-5.p5 (Leif Leonhardy, March 18th 2013) ===
+ * #14295: Singular fails to build with GCC 4.7.x on Solaris.
+   On Solaris, with `__cplusplus >= 199711L`, `floor()` and `log10()` are
+   overloaded functions which get pulled into the global namespace,
+   such that calling them with an `int` gets ambiguous.
+   Patch `kernel/bigintmat.cc` (`patches/sage_trac_14295.patch`)
+   to cast parameters to `floor()` and `log10()` from `int` to
+   `double`, making the calls unambiguous.
 
 === singular-3-1-5.p4 (Jean-Pierre Flori, 12 February 2013) ===
  * Trac #14033: prevent Singular from always linking to ncurses on

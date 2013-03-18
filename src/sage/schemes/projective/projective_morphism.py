@@ -16,7 +16,7 @@ AUTHORS:
   cleanups.
 
 - Ben Hutz: (March 2013) iteration functionality and new directory structure
-            for affine/projective
+            for affine/projective, height functionality
 """
 
 # Historical note: in trac #11599, V.B. renamed
@@ -36,13 +36,15 @@ AUTHORS:
 
 from sage.categories.homset        import Hom
 from sage.libs.pari.gen            import pari
+from math                          import log
 from sage.misc.cachefunc           import cached_method
 from sage.modules.free_module_element import vector
 from sage.rings.all                import Integer, moebius
-from sage.rings.arith              import gcd, lcm
+from sage.rings.arith              import gcd, lcm, is_prime
 from sage.rings.complex_field      import ComplexField
 from sage.rings.finite_rings.constructor import GF
 from sage.rings.integer_ring       import ZZ
+from sage.rings.padics.all         import Qp
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.quotient_ring      import QuotientRing_generic
 from sage.rings.rational_field     import QQ
@@ -1197,6 +1199,179 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         else:
             raise TypeError("matrix must be invertible and size dimension +1 ")
 
+    def green_function(self, P,v, **kwds):
+        r"""
+        Evaluates the local Green's function at the place ``v`` for ``P`` with ``N`` terms of the
+        series or, in dimension 1, to within a given error bound.
+
+        Use ``v=0`` for the archimedean place. Must be over `\ZZ` or `\QQ`.
+
+        ALGORITHM:
+
+        See Exercise 5.29 and Figure 5.6 of ``The Arithmetic of Dynamics Systems``, Joseph H. Silverman, Springer, GTM 241, 2007.
+
+        INPUT:
+
+        - ``P`` - a projective point
+
+        - ``v`` - non-negative integer. a place, use v=0 for the archimedean place
+
+        kwds:
+
+        - ``N`` - positive integer. number of terms of the series to use
+
+        - ``prec`` - positive integer, float point or p-adic precision, default: 100
+
+        - ``error_bound`` - a positive real number
+
+        OUTPUT:
+
+        - a real number
+
+        Examples::
+
+            sage: P.<x,y>=ProjectiveSpace(QQ,1)
+            sage: H=Hom(P,P)
+            sage: f=H([x^2+y^2,x*y]);
+            sage: f.green_function(P.point([5,2],False),0,N=30)
+            1.7315451844777407992085512000
+            sage: f.green_function(P.point([2,1],False),0,N=30)
+            0.86577259223181088325226209926
+            sage: f.green_function(P.point([1,1],False),0,N=30)
+            0.43288629610862338612700146098
+        """
+        if self.base_ring() != ZZ and self.base_ring() != QQ:
+            raise TypeError("Must be ZZ or QQ")
+        return(P.green_function(self,v,**kwds))
+
+    def canonical_height(self,P, **kwds):
+        r"""
+        Evaluates the canonical height of ``P`` with respect to ``self``. Must be over `\ZZ` or `\QQ`.
+        Specify either the number of terms of the series to evaluate or, in dimension 1, the error bound
+        required.
+
+        ALGORITHM:
+
+            The sum of the Green's function at the archimedean place and the places of bad reduction.
+
+        INPUT:
+
+        - ``P`` - a projective point
+
+        kwds:
+
+        - ``badprimes`` - a list of primes of bad reduction
+
+        - ``N`` - positive integer. number of terms of the series to use in the local green functions
+
+        - ``prec`` - positive integer, float point or p-adic precision, default: 100
+
+        - ``error_bound`` - a positive real number
+
+        OUTPUT:
+
+        - a real number
+
+        EXAMPLES::
+
+            sage: P.<x,y>=ProjectiveSpace(ZZ,1)
+            sage: H=Hom(P,P)
+            sage: f=H([x^2+y^2,2*x*y]);
+            sage: f.canonical_height(P.point([5,4]),error_bound=0.001)
+            2.1970553519503404898926835324
+            sage: f.canonical_height(P.point([2,1]),error_bound=0.001)
+            1.0984430632822307984974382955
+
+        ::
+
+            Notice that preperiodic points may not be exactly 0.
+
+            sage: P.<x,y>=ProjectiveSpace(QQ,1)
+            sage: H=Hom(P,P)
+            sage: f=H([x^2-29/16*y^2,y^2]);
+            sage: f.canonical_height(P.point([1,4]),N=60)
+            1.2024186864216154694752186858e-18
+
+        ::
+
+            sage: P.<x,y,z>=ProjectiveSpace(QQ,2)
+            sage: X=P.subscheme(x^2-y^2);
+            sage: H=Hom(X,X)
+            sage: f=H([x^2,y^2,4*z^2]);
+            sage: Q=X([4,4,1])
+            sage: f.canonical_height(Q,badprimes=[2])
+            0.0013538030870311431824555314882
+        """
+        if self.base_ring() != ZZ and self.base_ring() != QQ:
+            raise TypeError("Must be ZZ or QQ")
+        return(P.canonical_height(self,**kwds))
+
+    def global_height(self,prec=None):
+        r"""
+        Returns the maximum of the heights of the coefficients in any of the coordinate functions of ``self``.
+
+        INPUT:
+
+        - ``prec`` -- desired floating point precision (default:
+          default RealField precision).
+
+        OUTPUT:
+
+        - a real number
+
+        EXAMPLES::
+
+            sage: P.<x,y>=ProjectiveSpace(QQ,1)
+            sage: H=Hom(P,P)
+            sage: f=H([1/1331*x^2+1/4000*y^2,210*x*y]);
+            sage: f.global_height()
+            8.29404964010203
+
+        ::
+
+            This function does not automatically normalize.
+
+            sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
+            sage: H=Hom(P,P)
+            sage: f=H([4*x^2+100*y^2,210*x*y,10000*z^2]);
+            sage: f.global_height()
+            9.21034037197618
+            sage: f.normalize_coordinates()
+            sage: f.global_height()
+            8.51719319141624
+
+        ::
+
+            sage: R.<z>=PolynomialRing(QQ)
+            sage: K.<w>=NumberField(z^2-2)
+            sage: O=K.maximal_order()
+            sage: P.<x,y>=ProjectiveSpace(O,1)
+            sage: H=Hom(P,P)
+            sage: f=H([2*x^2 + 3*O(w)*y^2,O(w)*y^2])
+            sage: f.global_height()
+            1.44518587894808
+
+        .. TODO::
+
+            add heights to integer.pyx and remove special case
+        """
+        if self.domain().base_ring() == ZZ:
+            if prec is None:
+                R = RealField()
+            else:
+                R = RealField(prec)
+            H=R(0)
+            for i in range(self.domain().ambient_space().dimension_relative()+1):
+                C=self[i].coefficients()
+                h=max([c.abs() for c in C])
+                H=max(H,R(h).log())
+            return(H)
+        H=0
+        for i in range(self.domain().ambient_space().dimension_relative()+1):
+            C=self[i].coefficients()
+            h=max([c.global_height(prec) for c in C])
+            H=max(H,h)
+        return(H)
 
 class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial_projective_space):
     """

@@ -1137,6 +1137,25 @@ class Tableau(CombinatorialObject, Element):
         m = max(self.to_word())
         return [self.restrict(k).shape() for k in range(m+1)]
 
+    @combinatorial_map(name='to Gelfand-Tsetlin pattern')
+    def to_Gelfand_Tsetlin_pattern(self):
+        """
+        Return the :class:`Gelfand-Tsetlin pattern <GelfandTsetlinPattern>`
+        corresponding to ``self`` when semistandard.
+
+        EXAMPLES::
+
+            sage: T = Tableau([[1,2,3],[2,3],[3]])
+            sage: G = T.to_Gelfand_Tsetlin_pattern(); G
+            [[3, 2, 1], [2, 1], [1]]
+            sage: G.to_tableau() == T
+            True
+            sage: T = Tableau([[1,3],[2]])
+            sage: T.to_Gelfand_Tsetlin_pattern()
+            [[2, 1, 0], [1, 1], [1]]
+        """
+        from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPatterns
+        return GelfandTsetlinPatterns()(self)
 
     def anti_restrict(self, n):
         """

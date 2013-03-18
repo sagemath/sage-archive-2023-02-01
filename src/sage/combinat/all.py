@@ -130,3 +130,7 @@ from degree_sequences import DegreeSequences
 from cyclic_sieving_phenomenon import CyclicSievingPolynomial, CyclicSievingCheck
 
 from sidon_sets import sidon_sets
+
+# Gelfand-Tsetlin patterns
+from gelfand_tsetlin_patterns import GelfandTsetlinPattern, GelfandTsetlinPatterns
+

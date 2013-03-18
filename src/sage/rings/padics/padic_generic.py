@@ -513,10 +513,15 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: W.<pi> = R.extension(x^3-3)
             sage: W._exp_p()
             1 + pi^3 + pi^6 + 2*pi^9 + 2*pi^12 + O(pi^15)
+            sage: R._exp_p() == W._exp_p()
+            True
 
             sage: W.<pi> = R.extension(x^3-3*x-3)
             sage: W._exp_p()
             1 + pi^3 + 2*pi^4 + pi^5 + pi^7 + pi^9 + pi^10 + 2*pi^11 + pi^12 + pi^13 + 2*pi^14 + O(pi^15)
+            sage: R._exp_p() == W._exp_p()
+            True
+
         """
         p = self.prime()
         if p == 2:

@@ -995,8 +995,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
           correct. ``aprec`` must not exceed the precision cap of the ring over
           which this element is defined.
 
-        - ``mina`` -- the series will check `n` up to this valuation
-          (and beyond) to see if they can contribute to the series.
+        - ``mina`` -- an integer (default: 0), the series will check `n` up to
+          this valuation (and beyond) to see if they can contribute to the
+          series.
 
         ALGORITHM:
 
@@ -1077,6 +1078,11 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         while True:
             upper_u = ((aprec+a*e)/(alpha*p2a)).floor()
+            # In the unramified case, we can stop summing terms as soon as
+            # there are no u for a given a to sum over. In the ramified case,
+            # it can happen that for some initial a there are no such u but
+            # later in the series there are such u again. mina can be set to
+            # take care of this by summing at least to a=mina-1
             if a >= mina and upper_u<=0:
                 break
             # we compute the sum for the possible values for u using Horner's method
@@ -1211,7 +1217,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: a.log()
             2*5 + 3*5^2 + 2*5^3 + 4*5^4 + 2*5^6 + 2*5^7 + 4*5^8 + 2*5^9 + O(5^10)
 
-        If you want to take the logarithm of a non-unit you must specify either ``p_branch`` or ``pi_branch``::
+        If you want to take the logarithm of a non-unit you must specify either
+        ``p_branch`` or ``pi_branch``::
 
             sage: b = R(5)
             sage: b.log()

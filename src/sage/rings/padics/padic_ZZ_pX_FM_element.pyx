@@ -948,7 +948,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
         OUTPUT:
 
-        - a new element truncated modulo `\pi^{\mbox{absprec}}`.
+        a new element truncated modulo `\pi^{\mbox{absprec}}`.
 
         EXAMPLES::
 

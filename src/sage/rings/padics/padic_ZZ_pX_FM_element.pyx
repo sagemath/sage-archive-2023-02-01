@@ -1547,7 +1547,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 #        """
 #        raise NotImplementedError
 
-    def lift_to_precision(self, absprec):
+    def lift_to_precision(self, absprec=None):
         """
         Returns ``self``.
 

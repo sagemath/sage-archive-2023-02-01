@@ -23,4 +23,4 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
     cpdef _ntl_rep_abs(self)
     cpdef ntl_ZZ_pX _ntl_rep(self)
 
-    cpdef pAdicZZpXCAElement lift_to_precision(self, absprec)
+    cpdef pAdicZZpXCAElement lift_to_precision(self, absprec=*)

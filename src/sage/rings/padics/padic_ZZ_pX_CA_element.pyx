@@ -1754,13 +1754,23 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
 
 #         raise NotImplementedError
 
-    cpdef pAdicZZpXCAElement lift_to_precision(self, absprec):
+    cpdef pAdicZZpXCAElement lift_to_precision(self, absprec=None):
         """
         Returns a ``pAdicZZpXCAElement`` congruent to ``self`` but with
-        absolute precision at least ``absprec``.  If setting ``absprec`` that
-        high would violate the precision cap, raises a precision error.
+        absolute precision at least ``absprec``.
 
-        Note that the new digits will not necessarily be zero.
+        INPUT:
+
+        - ``absprec`` -- (default ``None``) the absolute precision of
+          the result.  If ``None``, lifts to the maximum precision
+          allowed.
+
+        .. NOTE::
+
+            If setting ``absprec`` that high would violate the
+            precision cap, raises a precision error.
+
+            Note that the new digits will not necessarily be zero.
 
         EXAMPLES::
 
@@ -1780,18 +1790,24 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             [345]
             sage: c._ntl_rep()
             [345]
+            sage: a.lift_to_precision().precision_absolute() == W.precision_cap()
+            True
         """
         cdef pAdicZZpXCAElement ans
         cdef long aprec, rprec
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if absprec is not None and not PY_TYPE_CHECK(absprec, Integer):
             absprec = Integer(absprec)
-        if mpz_fits_slong_p((<Integer>absprec).value) == 0:
+        if absprec is None:
+            aprec = self.prime_pow.ram_prec_cap
+        elif mpz_fits_slong_p((<Integer>absprec).value) == 0:
             if mpz_sgn((<Integer>absprec).value) < 0:
                 return self
             else:
-                aprec = self.prime_pow.ram_prec_cap
+                raise PrecisionError("Precision higher than allowed by the precision cap.")
         else:
             aprec = mpz_get_si((<Integer>absprec).value)
+            if aprec > self.prime_pow.ram_prec_cap:
+                raise PrecisionError("Precision higher than allowed by the precision cap.")
         if aprec <= self.absprec:
             return self
         ans = self._new_c(aprec) # restores context

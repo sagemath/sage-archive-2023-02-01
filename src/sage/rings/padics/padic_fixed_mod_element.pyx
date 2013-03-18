@@ -821,7 +821,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         mpz_set(ans.value, self.value)
         return ans
 
-    def lift_to_precision(self, absprec):
+    def lift_to_precision(self, absprec=None):
         """
         Returns self.
 

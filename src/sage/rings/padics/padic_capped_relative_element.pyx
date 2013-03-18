@@ -1864,15 +1864,24 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             mpz_mul(ans.value, self.unit, self.prime_pow.pow_mpz_t_tmp(self.ordp)[0])
             return ans
 
-    def lift_to_precision(self, absprec):
+    def lift_to_precision(self, absprec = None):
         """
         Returns another element of the same parent, with absolute
-        precision at least absprec, congruent to self modulo self's
-        precision.
+        precision at least absprec, congruent to this one modulo the
+        known precision.
 
-        If such lifting would yield an element with precision greater
-        than allowed by the precision cap of self's parent, an error
-        is raised.
+        INPUT:
+
+        - ``absprec`` -- (default ``None``) the absolute precision of
+          the result.  If ``None``, lifts to the maximum precision
+          allowed.
+
+        .. NOTE::
+
+            If setting ``absprec`` that high would violate the
+            precision cap, raises a precision error.  If self is an
+            inexact zero and ``absprec`` is greater than the maximum
+            allowed valuation, raises an error.
 
         EXAMPLES::
 
@@ -1893,8 +1902,17 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             Traceback (most recent call last):
             ...
             PrecisionError: Precision higher than allowed by the precision cap.
+            sage: c.lift_to_precision().precision_relative() == R.precision_cap()
+            True
         """
-        if not PY_TYPE_CHECK(absprec, Integer):
+        cdef pAdicCappedRelativeElement ans
+        if absprec is None:
+            if self.relprec == 0:
+                ans = self._new_c()
+                ans._set_exact_zero()
+                return ans
+            return self.lift_to_precision_c(self.ordp + self.prime_pow.prec_cap)
+        elif not PY_TYPE_CHECK(absprec, Integer):
             absprec = Integer(absprec)
         return self.lift_to_precision_c(mpz_get_si((<Integer>absprec).value))
 

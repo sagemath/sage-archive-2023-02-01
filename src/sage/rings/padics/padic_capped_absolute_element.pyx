@@ -964,14 +964,22 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         mpz_set(ans.value, self.value)
         return ans
 
-    def lift_to_precision(self, absprec):
+    def lift_to_precision(self, absprec = None):
         """
-        Returns a `p`-adic integer congruent to this `p`-adic element
-        modulo ``p^absprec`` with precision at least ``absprec``.
+        Returns another element of the same parent, with absolute
+        precision at least absprec, congruent to this one modulo the
+        known precision.
 
-        If such lifting would yield an element with precision greater
-        than allowed by the precision cap of ``self``'s parent, an
-        error is raised.
+        INPUT:
+
+        - ``absprec`` -- (default ``None``) the absolute precision of
+          the result.  If ``None``, lifts to the maximum precision
+          allowed.
+
+        .. NOTE::
+
+            If setting ``absprec`` that high would violate the
+            precision cap, raises a precision error.
 
         EXAMPLES::
 
@@ -984,27 +992,32 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             Traceback (most recent call last):
             ...
             PrecisionError: Precision higher than allowed by the precision cap.
+            sage: R(-1,2).lift_to_precision().precision_absolute() == R.precision_cap()
+            True
         """
         cdef pAdicCappedAbsoluteElement ans
         cdef unsigned long prec_cap
         cdef unsigned long dest_prec
         prec_cap = self.prime_pow.prec_cap
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if absprec is not None and not PY_TYPE_CHECK(absprec, Integer):
             absprec = Integer(absprec)
-        if mpz_fits_ulong_p((<Integer>absprec).value) == 0:
-            ans = self._new_c()
-            ans._set_prec_abs(prec_cap)
-            mpz_set(ans.value, self.value)
+        if absprec is None:
+            dest_prec = prec_cap
+        elif mpz_fits_slong_p((<Integer>absprec).value) == 0:
+            if mpz_sgn((<Integer>absprec).value) < 0:
+                return self
+            else:
+                raise PrecisionError("Precision higher than allowed by the precision cap.")
         else:
             dest_prec = mpz_get_ui((<Integer>absprec).value)
             if prec_cap < dest_prec:
-                raise PrecisionError, "Precision higher than allowed by the precision cap."
-            if dest_prec <= self.absprec:
-                return self
-            else:
-                ans = self._new_c()
-                ans._set_prec_abs(dest_prec)
-                mpz_set(ans.value, self.value)
+                raise PrecisionError("Precision higher than allowed by the precision cap.")
+        if dest_prec <= self.absprec:
+            return self
+        else:
+            ans = self._new_c()
+            ans._set_prec_abs(dest_prec)
+            mpz_set(ans.value, self.value)
         return ans
 
     def list(pAdicCappedAbsoluteElement self, lift_mode = 'simple'):

@@ -2541,15 +2541,25 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 #        """
 #        raise NotImplementedError
 
-    cpdef pAdicZZpXCRElement lift_to_precision(self, absprec):
+    cpdef pAdicZZpXCRElement lift_to_precision(self, absprec=None):
         """
         Returns a ``pAdicZZpXCRElement`` congruent to ``self`` but with
-        absolute precision at least ``absprec``.  If setting ``absprec`` that
-        high would violate the precision cap, raises a precision
-        error.  If self is an inexact zero and ``absprec`` is greater than
-        the maximum allowed valuation, raises an error.
+        absolute precision at least ``absprec``.
 
-        Note that the new digits will not necessarily be zero.
+        INPUT:
+
+        - ``absprec`` -- (default ``None``) the absolute precision of
+          the result.  If ``None``, lifts to the maximum precision
+          allowed.
+
+        .. NOTE::
+
+            If setting ``absprec`` that high would violate the
+            precision cap, raises a precision error.  If self is an
+            inexact zero and ``absprec`` is greater than the maximum
+            allowed valuation, raises an error.
+
+            Note that the new digits will not necessarily be zero.
 
         EXAMPLES::
 
@@ -2569,32 +2579,40 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             [19 35 118 60 121]
             sage: c._ntl_rep()
             [19 35 118 60 121]
+            sage: a.lift_to_precision().precision_relative() == W.precision_cap()
+            True
         """
         cdef pAdicZZpXCRElement ans
         cdef long aprec, rprec
         self._normalize()
         if self._is_exact_zero():
             return self
-        if not PY_TYPE_CHECK(absprec, Integer):
+        if absprec is not None and not PY_TYPE_CHECK(absprec, Integer):
             absprec = Integer(absprec)
-        if mpz_fits_slong_p((<Integer>absprec).value) == 0:
+        if absprec is None:
+            if self.relprec == 0:
+                # return an exact zero
+                ans = self._new_c(0)
+                ans._set_exact_zero()
+                return ans
+            aprec = self.prime_pow.ram_prec_cap + self.ordp
+        elif mpz_fits_slong_p((<Integer>absprec).value) == 0:
             if mpz_sgn((<Integer>absprec).value) < 0 or self.relprec == self.prime_pow.ram_prec_cap:
                 return self
             else:
                 if self.relprec == 0:
-                    raise ValueError, "absprec larger than maximum allowable valuation"
-                ans = self._new_c(self.prime_pow.ram_prec_cap)
-                ans.ordp = self.ordp
-                ZZ_pX_conv_modulus(ans.unit, self.unit, self.prime_pow.get_top_context().x)
-                return ans
-        aprec = mpz_get_si((<Integer>absprec).value)
+                    raise ValueError("absprec larger than maximum allowable valuation")
+                else:
+                    raise PrecisionError("Precision higher than allowed by the precision cap.")
+        else:
+            aprec = mpz_get_si((<Integer>absprec).value)
         if aprec <= self.ordp + self.relprec:
             return self
         if self.relprec == 0:
             if self.ordp >= aprec:
                 return self
             elif aprec >= maxordp:
-                raise ValueError, "absprec larger than maximum allowable valuation"
+                raise ValueError("absprec larger than maximum allowable valuation")
             else:
                 ans = self._new_c(0)
                 ans._set_inexact_zero(aprec)
@@ -2602,7 +2620,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         # Now we're done handling all the special cases.
         rprec = aprec - self.ordp
         if rprec > self.prime_pow.ram_prec_cap:
-            raise PrecisionError, "Precision higher than allowed by the precision cap."
+            raise PrecisionError("Precision higher than allowed by the precision cap.")
         ans = self._new_c(rprec)
         ans.ordp = self.ordp
         ZZ_pX_conv_modulus(ans.unit, self.unit, self.prime_pow.get_context_capdiv(rprec).x)

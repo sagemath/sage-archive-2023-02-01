@@ -3262,14 +3262,16 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
 
     def matrix_mod_pn(self):
         """
-        Returns the matrix of right multiplication by the element on the power
-        basis `1, x, x^2, \ldots, x^{d-1}` for this extension field.  Thus the
-        *rows* of this matrix give the images of each of the `x^i`.  The
-        entries of the matrices are IntegerMod elements, defined modulo
-        ``p^(self.absprec() / e)`` (unless ``self`` is zero to arbitrary
-        precision; in that case the entries are integer zeros.)
+        Returns the matrix of right multiplication by the element on
+        the power basis `1, x, x^2, \ldots, x^{d-1}` for this
+        extension field.  Thus the *rows* of this matrix give the
+        images of each of the `x^i`.  The entries of the matrices are
+        IntegerMod elements, defined modulo `p^{N / e}` where `N` is
+        the absolute precision of this element (unless this element is
+        zero to arbitrary precision; in that case the entries are
+        integer zeros.)
 
-        Raises an error if ``self`` has negative valuation.
+        Raises an error if this element has negative valuation.
 
         EXAMPLES::
 

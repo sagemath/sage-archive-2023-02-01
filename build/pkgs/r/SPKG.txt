@@ -36,9 +36,20 @@ much code written for S runs unaltered under R.
      The corresponding patch to m4/clibs.m4 is not included, as
      autoconf-2.68 gives errors, even on the clean upstream sources.
    - R.sh.in: Set R_HOME_DIR to "${SAGE_LOCAL}/lib/R/" when running R.
+   - scripts.Makefile.in.patch: the file src/src/scripts/R.sh.in
+     defines R_SHARE_DIR, R_INCLUDE_DIR, and R_DOC_DIR relative to
+     R_HOME_DIR, but scripts/Makefile.in hardcodes these
+     locations. This patch removes this hardcoding. See Sage trac
+     #9668.
    - cygwin-logl.patch: disable use of logl on Cygwin, see #14078.
 
 == Changelog ==
+
+=== r-2.15.2.p2 (John H. Palmieri, 17 March 2013) ===
+ * #9668: fix hardcoding of paths in R by defining R_SHARE_DIR,
+   R_INCLUDE_DIR, and R_DOC_DIR relative to R_HOME_DIR, or rather, by
+   removing the portion of scripts/Makefile.in which hardcodes these
+   paths.
 
 === r-2.15.2.p1 (Jean-Pierre Flori, 7 February 2013) ===
  * #14078: do not use logl on Cygwin.

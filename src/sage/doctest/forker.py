@@ -1656,7 +1656,15 @@ class DocTestWorker(multiprocessing.Process):
         # Ensure the Python stdin is the actual stdin
         # (multiprocessing redirects this).
         # We will do a more proper redirect of stdin in SageSpoofInOut.
-        sys.stdin = os.fdopen(0, "r")
+        try:
+            sys.stdin = os.fdopen(0, "r")
+        except OSError:
+            # We failed to open stdin for reading, this might happen
+            # for example when running under "nohup" (Trac #14307).
+            # Simply redirect stdin from /dev/null and try again.
+            with open(os.devnull) as f:
+                os.dup2(f.fileno(), 0)
+            sys.stdin = os.fdopen(0, "r")
 
         # Close the reading end of the pipe (only the master should
         # read from the pipe) and open the writing end.

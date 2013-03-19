@@ -1,7 +1,5 @@
 import sys, os, sphinx
-
-SAGE_ROOT = os.environ['SAGE_ROOT']
-SAGE_DOC = os.path.join(SAGE_ROOT, 'devel/sage/doc')
+from sage.env import SAGE_DOC
 
 def get_doc_abspath(path):
     """

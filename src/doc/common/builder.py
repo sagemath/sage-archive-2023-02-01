@@ -26,12 +26,13 @@ except ValueError:
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import sage_makedirs as mkdir
+from sage.env import SAGE_DOC, SAGE_SRC
 
 # Load the options, including
 #     SAGE_DOC, LANGUAGES, SPHINXOPTS, PAPER, OMIT,
 #     PAPEROPTS, ALLSPHINXOPTS, NUM_THREADS, WEBSITESPHINXOPTS
 # from build_options.py.
-execfile(os.path.join(os.getenv('SAGE_ROOT'), 'devel', 'sage', 'doc', 'common' , 'build_options.py'))
+execfile(os.path.join(SAGE_DOC, 'common' , 'build_options.py'))
 
 
 ##########################################
@@ -984,7 +985,7 @@ class ReferenceSubBuilder(DocBuilder):
         for module_name in self.get_all_included_modules():
             included_modules[module_name] = True
 
-        base_path = os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage', 'sage')
+        base_path = os.path.join(SAGE_SRC, 'sage')
         for directory, subdirs, files in os.walk(base_path):
             for filename in files:
                 if not (filename.endswith('.py') or
@@ -1129,7 +1130,7 @@ def help_documents(s=u""):
     s += "(!) Builds everything.\n\n"
     if 'reference' in docs:
         s+= "Other valid document names take the form 'reference/DIR', where\n"
-        s+= "DIR is a subdirectory of SAGE_ROOT/devel/sage/doc/en/reference/.\n"
+        s+= "DIR is a subdirectory of SAGE_DOC/en/reference/.\n"
         s+= "This builds just the specified part of the reference manual.\n"
     return s
 

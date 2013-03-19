@@ -12,7 +12,8 @@
 # serve to show the default.
 
 import sys, os
-sys.path.append(os.environ['SAGE_DOC'])
+from sage.env import SAGE_DOC
+sys.path.append(SAGE_DOC)
 from common.conf import *
 
 # settings for the intersphinx extension:

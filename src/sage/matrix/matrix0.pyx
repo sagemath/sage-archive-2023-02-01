@@ -1657,8 +1657,11 @@ cdef class Matrix(sage.structure.element.Matrix):
         # Test to make sure the returned matrix is a copy
         tester.assert_(self.change_ring(self.base_ring()) is not self)
 
-    def _matrix_(self, R):
+    def _matrix_(self, R=None):
         """
+        Return ``self`` as a matrix over the ring ``R``. If ``R`` is ``None``,
+        then return ``self``.
+
         EXAMPLES::
 
             sage: A = Matrix(ZZ[['t']], 2, 2, range(4))
@@ -1669,7 +1672,15 @@ cdef class Matrix(sage.structure.element.Matrix):
             [2 3]
             sage: A._matrix_(QQ[['t']]).parent()
             Full MatrixSpace of 2 by 2 dense matrices over Power Series Ring in t over Rational Field
+
+        Check that :trac:`14314` is fixed::
+
+            sage: m = Matrix({(1,2):2})
+            sage: matrix(m) == m
+            True
         """
+        if R is None:
+            return self
         return self.change_ring(R)
 
     ###########################################################

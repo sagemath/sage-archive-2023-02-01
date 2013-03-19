@@ -1853,8 +1853,8 @@ class ClusterSeed(SageObject):
 
             sage: S = ClusterSeed(['D',4,1])
             sage: S._mutation_type = S._quiver._mutation_type = None
-            sage: S.mutation_type()    #indirect doctest
-            'undetermined finite mutation type'
+            sage: S.mutation_type() # todo: not implemented
+            ['D', 4, 1]
 
         - the exceptional types::
 

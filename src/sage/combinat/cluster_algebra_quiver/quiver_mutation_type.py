@@ -2060,6 +2060,34 @@ def _construct_exceptional_mutation_classes(n):
 def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
     """
     Saves all exceptional mutation classes as dig6 data into the file ``exc_classes_n.dig6`` in the folder ``SAGE_SHARE``.
+
+    TESTS::
+
+        sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import save_quiver_data
+        sage: save_quiver_data(2) # indirect doctest
+        <BLANKLINE>
+        The following types are saved to file ... and will now be used to determine quiver mutation types:
+        [('A', 1)]
+        <BLANKLINE>
+        The following types are saved to file ... and will now be used to determine quiver mutation types:
+        [('A', 2), ('A', (1, 1), 1), ('B', 2), ('BC', 1, 1), ('G', 2)]
+
+        sage: save_quiver_data(2,up_to=False) # indirect doctest
+        <BLANKLINE>
+        The following types are saved to file ... and will now be used to determine quiver mutation types:
+        [('A', 2), ('A', (1, 1), 1), ('B', 2), ('BC', 1, 1), ('G', 2)]
+
+        sage: save_quiver_data(2,up_to=False, types='Classical') # indirect doctest
+        <BLANKLINE>
+        The following types are saved to file ... and will now be used to determine quiver mutation types:
+        [('A', 2), ('A', (1, 1), 1), ('B', 2), ('BC', 1, 1)]
+
+        sage: save_quiver_data(2,up_to=False, types='Exceptional') # indirect doctest
+        <BLANKLINE>
+        The following types are saved to file ... and will now be used to determine quiver mutation types:
+        [('G', 2)]
+
+        sage: save_quiver_data(2,up_to=False, verbose=False) # indirect doctest
     """
     import os.path
     import cPickle
@@ -2103,6 +2131,34 @@ def save_quiver_data(n, up_to=True, types='ClassicalExceptional', verbose=True):
 
     - ``types`` -- (default:'ClassicalExceptional') if all, saves data for both exceptional mutation-finite quivers and for classical quiver.
       The input 'Exceptional' or 'Classical' is also allowed to save only part of this data.
+
+    TESTS::
+
+        sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import save_quiver_data
+        sage: save_quiver_data(2)
+        <BLANKLINE>
+        The following types are saved to file ... and will now be used to determine quiver mutation types:
+        [('A', 1)]
+        <BLANKLINE>
+        The following types are saved to file ... and will now be used to determine quiver mutation types:
+        [('A', 2), ('A', (1, 1), 1), ('B', 2), ('BC', 1, 1), ('G', 2)]
+
+        sage: save_quiver_data(2,up_to=False)
+        <BLANKLINE>
+        The following types are saved to file ... and will now be used to determine quiver mutation types:
+        [('A', 2), ('A', (1, 1), 1), ('B', 2), ('BC', 1, 1), ('G', 2)]
+
+        sage: save_quiver_data(2,up_to=False, types='Classical')
+        <BLANKLINE>
+        The following types are saved to file ... and will now be used to determine quiver mutation types:
+        [('A', 2), ('A', (1, 1), 1), ('B', 2), ('BC', 1, 1)]
+
+        sage: save_quiver_data(2,up_to=False, types='Exceptional')
+        <BLANKLINE>
+        The following types are saved to file ... and will now be used to determine quiver mutation types:
+        [('G', 2)]
+
+        sage: save_quiver_data(2,up_to=False, verbose=False)
     """
     if up_to is True:
         ranks = range(1,n+1)

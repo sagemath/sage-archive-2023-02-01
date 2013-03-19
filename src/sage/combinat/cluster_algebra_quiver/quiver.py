@@ -749,8 +749,8 @@ class ClusterQuiver(SageObject):
 
             sage: Q = ClusterQuiver(['D',4,1])
             sage: Q._mutation_type = None
-            sage: Q.mutation_type()    #indirect doctest
-            'undetermined finite mutation type'
+            sage: Q.mutation_type() # todo: not implemented
+            ['D', 4, 1]
 
         - the exceptional types::
 
@@ -1527,10 +1527,10 @@ class ClusterQuiver(SageObject):
         False
         """
         mt = self.mutation_type()
-        if type(mt) in (str, list) :
-            return False
+        if type( mt ) in [QuiverMutationType_Irreducible, QuiverMutationType_Reducible] and mt.is_finite():
+            return True
         else:
-            return mt.is_finite()
+            return False
 
     def is_mutation_finite( self, nr_of_checks=None, return_path=False ):
         """

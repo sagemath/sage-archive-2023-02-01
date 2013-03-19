@@ -1,26 +1,18 @@
 r"""
 Disjoint-set data structure
 
-A disjoint-set data structure (sometimes called union-find data structure)
-is a data structure that keeps track of a partitioning of a set into a number
-of separate, nonoverlapping sets. It performs two operations :
-
-    - Find: Determine which set a particular element is in.
-    - Union: Combine or merge two sets into a single set.
-
-REFERENCES:
-
-    - http://en.wikipedia.org/wiki/Disjoint-set_data_structure
+The main entry point is :func:`DisjointSet` which chooses the appropriate
+type to return. For more on the data structure, see :func:`DisjointSet`.
 
 AUTHORS:
 
-    - Sebastien Labbe (2008) - Initial version.
-    - Sebastien Labbe (2009-11-24) - Pickling support
-    - Sebastien Labbe (2010-01) - Inclusion into sage (#6775).
+- Sebastien Labbe (2008) - Initial version.
+- Sebastien Labbe (2009-11-24) - Pickling support
+- Sebastien Labbe (2010-01) - Inclusion into sage (:trac:`6775`).
 
 EXAMPLES:
 
-Disjoint set of integers from ``0`` to ``n-1``::
+Disjoint set of integers from ``0`` to ``n - 1``::
 
     sage: s = DisjointSet(6)
     sage: s
@@ -65,13 +57,26 @@ from sage.structure.sage_object cimport SageObject
 
 def DisjointSet(arg):
     r"""
-    Construction of the DisjointSet where each element of ``arg`` is in its
-    own set. If ``arg`` is an integer, then the DisjointSet returned is
-    made of the integers from ``0`` to ``arg-1``.
+    Constructs a disjoint set where each element of ``arg`` is in its
+    own set. If ``arg`` is an integer, then the disjoint set returned is
+    made of the integers from ``0`` to ``arg - 1``.
+
+    A disjoint-set data structure (sometimes called union-find data structure)
+    is a data structure that keeps track of a partitioning of a set into a
+    number of separate, nonoverlapping sets. It performs two operations:
+
+    - :meth:`~sage.sets.disjoint_set.DisjointSet_of_hashables.find` --
+      Determine which set a particular element is in.
+    - :meth:`~sage.sets.disjoint_set.DisjointSet_of_hashables.union` --
+      Combine or merge two sets into a single set.
+
+    REFERENCES:
+
+    - :wikipedia:`Disjoint-set_data_structure`
 
     INPUT:
 
-    -  ``arg`` - non negative integer or an iterable of hashable objects.
+    -  ``arg`` -- non negative integer or an iterable of hashable objects.
 
     EXAMPLES:
 
@@ -128,12 +133,12 @@ def DisjointSet(arg):
 
 cdef class DisjointSet_class(SageObject):
     r"""
-    Common class and methods for DisjointSet_of_integers and
-    DisjointSet_of_hashables.
+    Common class and methods for :class:`DisjointSet_of_integers` and
+    :class:`DisjointSet_of_hashables`.
     """
     def _repr_(self):
         r"""
-        Return self as a unique str.
+        Return ``self`` as a unique str.
 
         EXAMPLES::
 
@@ -162,7 +167,7 @@ cdef class DisjointSet_class(SageObject):
 
     def __cmp__(self, other):
         r"""
-        Compare the disjoint sets self and other.
+        Compare the disjoint sets ``self`` and ``other``.
 
         EXAMPLES::
 
@@ -212,7 +217,7 @@ cdef class DisjointSet_class(SageObject):
 
     def cardinality(self):
         r"""
-        Returns the number of elements in the disjoint set.
+        Return the number of elements in ``self``, *not* the number of subsets.
 
         EXAMPLES::
 
@@ -233,7 +238,7 @@ cdef class DisjointSet_class(SageObject):
 
     def number_of_subsets(self):
         r"""
-        Returns the number of subsets in the disjoint set.
+        Return the number of subsets in ``self``.
 
         EXAMPLES::
 
@@ -287,7 +292,7 @@ cdef class DisjointSet_of_integers(DisjointSet_class):
 
         INPUT:
 
-        - ``n`` - Non negative integer
+        - ``n`` -- Non negative integer
 
         EXAMPLES::
 
@@ -313,10 +318,11 @@ cdef class DisjointSet_of_integers(DisjointSet_class):
 
     def __reduce__(self):
         r"""
-        Returns a tuple of three elements :
-            - The function DisjointSet
-            - Arguments for the function DisjointSet
-            - The actual state of self.
+        Return a tuple of three elements:
+
+        - The function :func:`DisjointSet`
+        - Arguments for the function :func:`DisjointSet`
+        - The actual state of ``self``.
 
         EXAMPLES::
 
@@ -373,7 +379,7 @@ cdef class DisjointSet_of_integers(DisjointSet_class):
 
         INPUT:
 
-        - ``l`` - list of nodes
+        - ``l`` -- list of nodes
 
         EXAMPLES::
 
@@ -408,11 +414,11 @@ cdef class DisjointSet_of_integers(DisjointSet_class):
 
     def find(self, int i):
         r"""
-        Returns the representative of the set that ``i`` currently belongs to.
+        Return the representative of the set that ``i`` currently belongs to.
 
         INPUT:
 
-        - ``i`` - element in self
+        - ``i`` -- element in ``self``
 
         EXAMPLES::
 
@@ -455,8 +461,8 @@ cdef class DisjointSet_of_integers(DisjointSet_class):
 
         INPUT:
 
-        -  ``i`` - element in self
-        -  ``j`` - element in self
+        -  ``i`` - element in ``self``
+        -  ``j`` - element in ``self``
 
         EXAMPLES::
 
@@ -486,7 +492,7 @@ cdef class DisjointSet_of_integers(DisjointSet_class):
 
     def root_to_elements_dict(self):
         r"""
-        Returns the dictionary where the keys are the roots of self and the
+        Return the dictionary where the keys are the roots of ``self`` and the
         values are the elements in the same set as the root.
 
         EXAMPLES::
@@ -514,8 +520,8 @@ cdef class DisjointSet_of_integers(DisjointSet_class):
 
     def element_to_root_dict(self):
         r"""
-        Returns the dictionary where the keys are the elements of self and the
-        values are their representative inside a list.
+        Return the dictionary where the keys are the elements of ``self`` and
+        the values are their representative inside a list.
 
         EXAMPLES::
 
@@ -535,8 +541,8 @@ cdef class DisjointSet_of_integers(DisjointSet_class):
 
     def to_digraph(self):
         r"""
-        Returns the current digraph of self where (a,b) is an oriented
-        edge if b is the parent of a.
+        Return the current digraph of ``self`` where `(a,b)` is an oriented
+        edge if `b` is the parent of `a`.
 
         EXAMPLES::
 
@@ -598,12 +604,12 @@ cdef class DisjointSet_of_hashables(DisjointSet_class):
     """
     def __init__(self, iterable):
         r"""
-        Construction of the trivial DisjointSet where each element is in its
+        Construction of the trivial disjoint set where each element is in its
         own set.
 
         INPUT:
 
-        -  ``iterable`` - An iterable of hashable objects.
+        -  ``iterable`` -- An iterable of hashable objects.
 
         EXAMPLES::
 
@@ -626,10 +632,11 @@ cdef class DisjointSet_of_hashables(DisjointSet_class):
 
     def __reduce__(self):
         r"""
-        Returns a tuple of three elements :
-            - The function DisjointSet
-            - Arguments for the function DisjointSet
-            - The actual state of self.
+        Return a tuple of three elements :
+
+        - The function :func:`DisjointSet`
+        - Arguments for the function :func:`DisjointSet`
+        - The actual state of ``self``.
 
         EXAMPLES::
 
@@ -654,7 +661,7 @@ cdef class DisjointSet_of_hashables(DisjointSet_class):
 
     def __getstate__(self):
         r"""
-        Return a list of pairs (n, parent of n) for each node n.
+        Return a list of pairs (``n``, parent of ``n``) for each node ``n``.
 
         EXAMPLES::
 
@@ -690,7 +697,7 @@ cdef class DisjointSet_of_hashables(DisjointSet_class):
 
         INPUT:
 
-        - ``l`` - list of pair of nodes
+        - ``l`` -- list of pair of nodes
 
         EXAMPLES::
 
@@ -711,11 +718,11 @@ cdef class DisjointSet_of_hashables(DisjointSet_class):
 
     def find(self, e):
         r"""
-        Returns the representative of the set that ``e`` currently belongs to.
+        Return the representative of the set that ``e`` currently belongs to.
 
         INPUT:
 
-        - ``e`` - element in self
+        - ``e`` -- element in ``self``
 
         EXAMPLES::
 
@@ -757,8 +764,8 @@ cdef class DisjointSet_of_hashables(DisjointSet_class):
 
         INPUT:
 
-        -  ``e`` - element in self
-        -  ``f`` - element in self
+        -  ``e`` - element in ``self``
+        -  ``f`` - element in ``self``
 
         EXAMPLES::
 
@@ -781,7 +788,7 @@ cdef class DisjointSet_of_hashables(DisjointSet_class):
 
     def root_to_elements_dict(self):
         r"""
-        Returns the dictionary where the keys are the roots of self and the
+        Return the dictionary where the keys are the roots of ``self`` and the
         values are the elements in the same set.
 
         EXAMPLES::
@@ -802,8 +809,8 @@ cdef class DisjointSet_of_hashables(DisjointSet_class):
 
     def element_to_root_dict(self):
         r"""
-        Returns the dictionary where the keys are the elements of self and the
-        values are their representative inside a list.
+        Return the dictionary where the keys are the elements of ``self`` and
+        the values are their representative inside a list.
 
         EXAMPLES::
 
@@ -822,8 +829,8 @@ cdef class DisjointSet_of_hashables(DisjointSet_class):
 
     def to_digraph(self):
         r"""
-        Returns the current digraph of self where (a,b) is an oriented
-        edge if b is the parent of a.
+        Return the current digraph of ``self`` where `(a,b)` is an oriented
+        edge if `b` is the parent of `a`.
 
         EXAMPLES::
 
@@ -857,3 +864,4 @@ cdef class DisjointSet_of_hashables(DisjointSet_class):
             d[e] = [p]
         from sage.graphs.graph import DiGraph
         return DiGraph(d)
+

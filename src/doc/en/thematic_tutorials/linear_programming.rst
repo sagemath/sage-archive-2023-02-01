@@ -278,7 +278,7 @@ We can now define the MILP itself
 
 ::
 
-    sage: p.solve()
+    sage: p.solve() # abs tol 1e-6
     3.1502766806530307
     sage: taken = p.get_values(taken)
 
@@ -288,7 +288,7 @@ The solution found is (of course) admissible
 
 ::
 
-    sage: sum(weight[o] * taken[o] for o in L)
+    sage: sum(weight[o] * taken[o] for o in L) # abs tol 1e-6
     0.6964959796619171
 
 Should we take a flashlight?

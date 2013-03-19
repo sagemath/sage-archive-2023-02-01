@@ -1023,7 +1023,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         EXAMPLE::
 
-            sage: p = MixedIntegerLinearProgram()
+            sage: p = MixedIntegerLinearProgram(solver="GLPK")
             sage: x = p.new_variable()
             sage: p.set_objective(x[1] + x[2])
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2,name="OneConstraint")
@@ -1034,7 +1034,6 @@ cdef class MixedIntegerLinearProgram(SageObject):
         For information about the MPS file format :
         http://en.wikipedia.org/wiki/MPS_%28format%29
         """
-
         self._backend.write_mps(filename, modern)
 
     def write_lp(self,filename):
@@ -1050,7 +1049,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         EXAMPLE::
 
-            sage: p = MixedIntegerLinearProgram()
+            sage: p = MixedIntegerLinearProgram(solver="GLPK")
             sage: x = p.new_variable()
             sage: p.set_objective(x[1] + x[2])
             sage: p.add_constraint(-3*x[1] + 2*x[2], max=2)

@@ -39,6 +39,7 @@ cdef class CoinBackend(GenericBackend):
         self.prob_name = None
         self.row_names = []
         self.col_names = []
+        self.set_verbosity(0)
 
         if maximization:
             self.set_sense(+1)

@@ -26,7 +26,7 @@ cdef extern from "../../local/include/coin/CbcStrategy.hpp":
     cdef cppclass CbcStrategy:
         pass
     cdef cppclass CbcStrategyDefault(CbcStrategy):
-        CbcStrategyDefault(int cutsOnlyAtRoot=?, int numberStrong = ?, int numberBeforeTrust = ?, int printLevel = ?)
+        CbcStrategyDefault()
 
 cdef extern from "../../local/include/coin/CoinPackedVectorBase.hpp":
     cdef cppclass CoinPackedVectorBase:
@@ -137,12 +137,12 @@ cdef extern from "../../local/include/coin/CbcModel.hpp":
          # constructor from solver
          CbcModel(OsiSolverInterface & si)
          # assigning, owning solver
-         void assignSolver(OsiSolverInterface * & solver, bool deleteSolver=?)
+         void assignSolver(OsiSolverInterface * & solver)
          void setModelOwnsSolver(bool ourSolver)
          # get solver
          OsiSolverInterface * solver()
          # copy constructor
-         CbcModel(CbcModel & rhs, int cloneHandler = ?)
+         CbcModel(CbcModel & rhs)
          # shut up
          void setLogLevel(int value)
          int logLevel()
@@ -152,7 +152,7 @@ cdef extern from "../../local/include/coin/CbcModel.hpp":
          void setNumberThreads (int)
          int getSolutionCount()
          # solve
-         void branchAndBound(int doStatistics = ?)
+         void branchAndBound()
          # not sure we need this but it can't hurt
          CoinMessageHandler * messageHandler ()
      void CbcMain0(CbcModel m)

@@ -75,15 +75,9 @@ class Semirings(Category_singleton):
             See the documentation for :class:`TestSuite` for more information.
             """
             tester = self._tester(**options)
-            S = list(tester.some_elements())
-            n = tester._max_runs
+            S = tester.some_elements()
             from sage.combinat.cartesian_product import CartesianProduct
-            if len(S)**3 <= n:
-                pool = CartesianProduct(S,S,S)
-            else:
-                from random import sample
-                pool = sample(CartesianProduct(S,S,S),n)
-            for x,y,z in pool:
+            for x,y,z in tester.some_elements(CartesianProduct(S,S,S)):
                 # left distributivity
                 tester.assert_(x * (y + z) == (x * y) + (x * z))
                 # right distributivity

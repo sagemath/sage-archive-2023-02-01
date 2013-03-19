@@ -439,11 +439,24 @@ class InstanceTester(unittest.TestCase):
         return "Testing utilities for %s"%self._instance
 
 
-    def some_elements(self):
+    def some_elements(self, S=None):
         """
         Returns a list (or iterable) of elements of ``self`` on which
         the tests should be run. This is only meaningful for container
         objects like parents.
+
+        INPUT:
+
+        - ``S`` -- a set of elements to select from.  By default this
+          will use the elements passed to this tester at creation
+          time, or the result of :meth:`.some_elements` if no elements
+          were specified.
+
+        OUTPUT:
+
+        A list of at most ``self._max_runs`` elements of ``S``.
+
+        EXAMPLES:
 
         By default, this calls :meth:`.some_elements` on the instance::
 
@@ -460,11 +473,34 @@ class InstanceTester(unittest.TestCase):
             sage: list(tester.some_elements())
             [1, 3, 5]
 
+            sage: tester = InstanceTester(ZZ, elements = srange(100), max_runs=20)
+            sage: S = tester.some_elements()
+            sage: len(S)
+            20
+            sage: C = CartesianProduct(S, S, S, S)
+            sage: len(C)
+            160000
+            sage: S = tester.some_elements(C)
+            sage: len(S)
+            20
         """
-        if self._elements is None:
-            return self._instance.some_elements()
-        else:
-            return self._elements
+        if S is None:
+            if self._elements is None:
+                S = self._instance.some_elements()
+            else:
+                S = self._elements
+        from sage.misc.mrange import _len
+        try:
+            n = _len(S)
+            if n > self._max_runs:
+                from random import sample
+                S = sample(S, n)
+        except (TypeError, AttributeError):
+            # We already can't tell what the length of n is, so
+            # there's no harm in obscuring it further.
+            import itertools
+            return itertools.islice(S,0,self._max_runs)
+        return S
 
 class PythonObjectWithTests(object):
     """

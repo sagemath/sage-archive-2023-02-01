@@ -38,18 +38,6 @@ except KeyError:
 
 SAGE_INC = os.path.join(SAGE_LOCAL,'include')
 
-SITE_PACKAGES = '%s/lib/python%s/site-packages/'%(SAGE_LOCAL,platform.python_version().rsplit('.', 1)[0])
-if not os.path.exists(SITE_PACKAGES):
-    raise RuntimeError, "Unable to find site-packages directory (see setup.py file in sage python code)."
-
-if not os.path.exists('build/sage'):
-    os.makedirs('build/sage')
-
-sage_link = SITE_PACKAGES + '/sage'
-if not os.path.islink(sage_link) or not os.path.exists(sage_link):
-    os.system('rm -rf "%s"'%sage_link)
-    os.system('cd %s; ln -sf ../../../../devel/sage/build/sage .'%SITE_PACKAGES)
-
 # search for dependencies and add to gcc -I<path>
 include_dirs = [SAGE_INC,
                 os.path.join(SAGE_INC, 'csage'),

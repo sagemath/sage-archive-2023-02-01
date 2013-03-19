@@ -806,9 +806,13 @@ install() {
         fi
     done
 
-    # Run sage-location to update paths of the package(s) we just
-    # installed.
-    exec sage-location
+    # Run sage-location, if it exists, to update paths of the
+    # package(s) we just installed.
+    if [ -x "$SAGE_LOCAL/bin/python" -a -x "$SAGE_LOCAL/bin/sage-location" ]; then
+        exec sage-location
+    else
+        exit 0
+    fi
 }
 
 if [ "$1" = '-optional' -o "$1" = "--optional" ]; then

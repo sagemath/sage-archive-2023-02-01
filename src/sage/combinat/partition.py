@@ -304,6 +304,7 @@ from sage.combinat.partitions import ZS1_iterator
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.integer_list import IntegerListsLex
 from sage.combinat.root_system.weyl_group import WeylGroup
+from sage.combinat.combinatorial_map import combinatorial_map
 
 from sage.groups.perm_gps.permgroup import PermutationGroup
 
@@ -1582,7 +1583,7 @@ class Partition(CombinatorialObject, Element):
         else:
             return default
 
-
+    @combinatorial_map(name="conjugate partition")
     def conjugate(self):
         """
         Return the conjugate partition of the partition ``self``. This
@@ -1621,6 +1622,7 @@ class Partition(CombinatorialObject, Element):
                 conj.extend([i]*(p[i-1] - p[i]))
             return Partition(conj)
 
+    @combinatorial_map(name="reading tableau")
     def reading_tableau(self):
         r"""
         Return the reading tableau of the reading word under the
@@ -1644,6 +1646,7 @@ class Partition(CombinatorialObject, Element):
         st = tableau.StandardTableaux(self).first()
         return st.to_permutation().robinson_schensted()[1]
 
+    @combinatorial_map(name="initial tableau")
     def initial_tableau(self):
         r"""
         Return the :class:`standard tableau<StandardTableau>` which has the

@@ -1340,9 +1340,10 @@ class DyckWord_class(CombinatorialObject):
                 open_positions.append(i+1)
             else:
                 close_positions.append(i+1)
-        return Tableau(filter(lambda x: x != [],  [ open_positions, close_positions ]))
+        from sage.combinat.tableau import StandardTableau
+        return StandardTableau(filter(lambda x: x != [],  [ open_positions, close_positions ]))
 
-    @combinatorial_map(name="recursive map '1 L 0 R'")
+    @combinatorial_map(name="to binary trees: up step, left tree, down step, right tree")
     def to_binary_tree(self, usemap="1L0R"):
         r"""
         INPUT:
@@ -1411,6 +1412,7 @@ class DyckWord_class(CombinatorialObject):
             trees.reverse()
         return BinaryTree(trees)
 
+    @combinatorial_map(name="to the Tamari corresponding Binary tree")
     def to_binary_tree_tamari(self):
         r"""
         Returns the binary tree with consistency with the Tamari order.
@@ -1495,6 +1497,7 @@ class DyckWord_complete(DyckWord_class):
         """
         return len(self) / 2
 
+    @combinatorial_map(name='to partition')
     def to_partition(self):
         r"""
         Returns the partition associated to ``self`` .
@@ -1676,6 +1679,7 @@ class DyckWord_complete(DyckWord_class):
                     right[1].append(pos+1)
             return (Tableau(left), Tableau(right))
 
+    @combinatorial_map(name='to 312 avoiding permutation')
     def to_312_avoiding_permutation(self):
         r"""
         Converts the Dyck word to a `312`-avoiding permutation using the bijection by
@@ -1717,6 +1721,7 @@ class DyckWord_complete(DyckWord_class):
                 pi = pi.apply_simple_reflection(j-i)
         return Permutation(~pi)
 
+    @combinatorial_map(name='to non-crossing permutation')
     def to_noncrossing_permutation(self):
         r"""
         Uses the bijection by C. Stump in [Stu2008]_ to non-crossing permutations.
@@ -1764,6 +1769,7 @@ class DyckWord_complete(DyckWord_class):
             D,touch_sequence = pealing(D, return_touches=True)
         return Permutation(pi)
 
+    @combinatorial_map(name='to 321 avoiding permutation')
     def to_321_avoiding_permutation(self):
         r"""
         Uses the bijection [Knu1973]_ to `321`-avoiding permutations. It is shown in
@@ -1823,6 +1829,7 @@ class DyckWord_complete(DyckWord_class):
         A,B = self.to_pair_of_standard_tableaux()
         return robinson_schensted_inverse(A,B)
 
+    @combinatorial_map(name='to 132 avoiding permutation')
     def to_132_avoiding_permutation(self):
         r"""
         Uses the bijection by C. Krattenthaler in [Kra2001]_ to `132`-avoiding permutations.

@@ -43,6 +43,7 @@ from cartesian_product import CartesianProduct
 from integer_list import IntegerListsLex
 import __builtin__
 from sage.rings.integer import Integer
+from sage.combinat.combinatorial_map import combinatorial_map
 
 class Composition(CombinatorialObject, Element):
     r"""
@@ -651,6 +652,7 @@ class Composition(CombinatorialObject, Element):
         return [i+1 for i in range(len(self))
                 if i not in descents and i+1 in descents]
 
+    @combinatorial_map(name='to partition')
     def to_partition(self):
         """
         Sorts ``self`` into decreasing order and returns the corresponding

@@ -3021,7 +3021,8 @@ class Permutation_class(CombinatorialObject):
             sage: Permutation([1,4,3,2]).left_tableau()
             [[1, 2], [3], [4]]
         """
-        return self.robinson_schensted()[0]
+        from sage.combinat.tableau import StandardTableau
+        return StandardTableau(self.robinson_schensted()[0])
 
     @combinatorial_map(name='Robinson-Schensted recording tableau')
     def right_tableau(self):
@@ -3034,7 +3035,8 @@ class Permutation_class(CombinatorialObject):
             sage: Permutation([1,4,3,2]).right_tableau()
             [[1, 2], [3], [4]]
         """
-        return self.robinson_schensted()[1]
+        from sage.combinat.tableau import StandardTableau
+        return StandardTableau(self.robinson_schensted()[1])
 
     def increasing_tree(self, compare=min):
         """

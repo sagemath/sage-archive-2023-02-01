@@ -368,7 +368,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         else:
             return []
 
-    @combinatorial_map(name = "recursive map 'L 1 R 0' (Tamari)")
+    @combinatorial_map(name = "to the Tamari corresponding Dyck path")
     def to_dyck_word_tamari(self):
         r"""
         Return the Dyck word associated with ``self`` in consistency with
@@ -395,7 +395,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         from sage.combinat.dyck_word import DyckWord
         return self.to_dyck_word("L1R0")
 
-    @combinatorial_map(name="recursive map '1 L 0 R'")
+    @combinatorial_map(name="to Dyck paths: up step, left tree, down step, right tree")
     def to_dyck_word(self, usemap="1L0R"):
         r"""
         INPUT:

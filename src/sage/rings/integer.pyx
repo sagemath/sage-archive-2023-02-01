@@ -1246,7 +1246,24 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def bits(self):
         """
-        Return the bits in self as a list, least significant first.
+        Return the bits in self as a list, least significant first. The
+        result satisfies the identity
+
+        ::
+
+            x == sum(b*2^e for e, b in enumerate(x.bits()))
+
+        Negative numbers will have negative "bits". (So, strictly
+        speaking, the entries of the returned list are not really
+        members of `\ZZ/2\ZZ`.)
+
+        This method just calls :func:`digits` with ``base=2``.
+
+        SEE ALSO:
+
+        :func:`nbits` (number of bits; a faster way to compute
+        ``len(x.bits())``; and :func:`binary`, which returns a string in
+        more-familiar notation.
 
         EXAMPLES::
 
@@ -1254,6 +1271,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             [0, 0, 1, 0, 1, 1, 1, 1, 1]
             sage: 11.bits()
             [1, 1, 0, 1]
+            sage: (-99).bits()
+            [-1, -1, 0, 0, 0, -1, -1]
         """
         return self.digits(base=2)
 
@@ -3776,7 +3795,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def denominator(self):
         """
-        Return the denominator of this integer.
+        Return the denominator of this integer, which of course is
+        always 1.
 
         EXAMPLES::
 

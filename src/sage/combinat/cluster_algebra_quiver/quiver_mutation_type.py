@@ -2118,7 +2118,7 @@ def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
 def save_quiver_data(n, up_to=True, types='ClassicalExceptional', verbose=True):
     r"""
     Saves mutation classes of certain quivers of ranks up to and equal to ``n`` or equal to ``n``
-    to ``SAGE_SHARE/cluster_algebra_quiver/mutation_classes_n.dig6.
+    to ``SAGE_SHARE/cluster_algebra_quiver/mutation_classes_n.dig6``.
 
     This data will then be used to determine quiver mutation types.
 

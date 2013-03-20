@@ -15,7 +15,6 @@ AUTHORS:
 
 .. seealso:: For mutation types of combinatorial quivers, see :meth:`~sage.combinat.cluster_algebra_quiver.quiver_mutation_type.QuiverMutationType`. Cluster seeds are closely related to :meth:`~sage.combinat.cluster_algebra_quiver.cluster_seed.ClusterSeed`.
 """
-
 #*****************************************************************************
 #       Copyright (C) 2011 Gregg Musiker <musiker@math.mit.edu>
 #                          Christian Stump <christian.stump@univie.ac.at>
@@ -174,7 +173,6 @@ class ClusterQuiver(SageObject):
         Traceback (most recent call last):
         ...
         ValueError: The input data was not recognized.
-
     """
     def __init__( self, data, frozen=None ):
         """
@@ -725,7 +723,7 @@ class ClusterQuiver(SageObject):
             sage: ClusterQuiver(['B',4,1]).mutation_type()
             ['BD', 4, 1]
 
-        - finite types::
+        finite types::
 
             sage: Q = ClusterQuiver(['A',5])
             sage: Q._mutation_type = None
@@ -736,7 +734,7 @@ class ClusterQuiver(SageObject):
             sage: Q.mutation_type()
             ['A', 5]
 
-        - affine types::
+        affine types::
 
             sage: Q = ClusterQuiver(['E',8,[1,1]]); Q
             Quiver on 10 vertices of type ['E', 8, [1, 1]]
@@ -745,21 +743,21 @@ class ClusterQuiver(SageObject):
             sage: Q.mutation_type() # long time
             ['E', 8, [1, 1]]
 
-        - the not yet working affine type D (unless user has saved small classical quiver data)::
+        the not yet working affine type D (unless user has saved small classical quiver data)::
 
             sage: Q = ClusterQuiver(['D',4,1])
             sage: Q._mutation_type = None
             sage: Q.mutation_type() # todo: not implemented
             ['D', 4, 1]
 
-        - the exceptional types::
+        the exceptional types::
 
             sage: Q = ClusterQuiver(['X',6])
             sage: Q._mutation_type = None
             sage: Q.mutation_type() # long time
             ['X', 6]
 
-        - examples from page 8 of Keller's article "Cluster algebras, quiver representations
+        examples from page 8 of Keller's article "Cluster algebras, quiver representations
         and triangulated categories" (arXiv:0807.1960)::
 
             sage: dg = DiGraph(); dg.add_edges([(9,0),(9,4),(4,6),(6,7),(7,8),(8,3),(3,5),(5,6),(8,1),(2,3)])
@@ -774,14 +772,15 @@ class ClusterQuiver(SageObject):
             sage: ClusterQuiver( dg ).mutation_type() # long time
             ['E', 8, [1, 1]]
 
-        - infinite types::
+        infinite types::
 
             sage: Q = ClusterQuiver(['GR',[4,9]])
             sage: Q._mutation_type = None
             sage: Q.mutation_type()
             'undetermined infinite mutation type'
 
-        - reducible types::
+        reducible types::
+
             sage: Q = ClusterQuiver([['A', 3], ['B', 3]])
             sage: Q._mutation_type = None
             sage: Q.mutation_type()
@@ -802,6 +801,7 @@ class ClusterQuiver(SageObject):
             ['undetermined finite mutation type', ['A', 3]]
 
         TESTS::
+
             sage: Q = ClusterQuiver(matrix([[0, 3], [-1, 0], [1, 0], [0, 1]]))
             sage: Q.mutation_type()
             ['G', 2]
@@ -1483,8 +1483,8 @@ class ClusterQuiver(SageObject):
             sage: all( len(ClusterQuiver(['B',n]).mutation_class()) == ClusterQuiver(['B',n]).mutation_type().class_size() for n in [2..6])
             True
         """
-        if depth is infinity:
-            assert self.is_mutation_finite(), 'The mutation class can - for infinite mutation types - only be computed up to a given depth'
+        if depth is infinity and not self.is_mutation_finite():
+            raise ValueError('The mutation class can - for infinite mutation types - only be computed up to a given depth')
         return [ Q for Q in self.mutation_class_iter( depth=depth, show_depth=show_depth, return_paths=return_paths, data_type=data_type, up_to_equivalence=up_to_equivalence, sink_source=sink_source ) ]
 
     def is_finite( self ):
@@ -1493,38 +1493,38 @@ class ClusterQuiver(SageObject):
 
         EXAMPLES::
 
-        sage: Q = ClusterQuiver(['A',3])
-        sage: Q.is_finite()
-        True
-        sage: Q = ClusterQuiver(['A',[2,2],1])
-        sage: Q.is_finite()
-        False
-        sage: Q = ClusterQuiver([['A',3],['B',3]])
-        sage: Q.is_finite()
-        True
-        sage: Q = ClusterQuiver(['T',[4,4,4]])
-        sage: Q.is_finite()
-        False
-        sage: Q = ClusterQuiver([['A',3],['T',[4,4,4]]])
-        sage: Q.is_finite()
-        False
-        sage: Q = ClusterQuiver([['A',3],['T',[2,2,3]]])
-        sage: Q.is_finite()
-        True
-        sage: Q = ClusterQuiver([['A',3],['D',5]])
-        sage: Q.is_finite()
-        True
-        sage: Q = ClusterQuiver([['A',3],['D',5,1]])
-        sage: Q.is_finite()
-        False
+            sage: Q = ClusterQuiver(['A',3])
+            sage: Q.is_finite()
+            True
+            sage: Q = ClusterQuiver(['A',[2,2],1])
+            sage: Q.is_finite()
+            False
+            sage: Q = ClusterQuiver([['A',3],['B',3]])
+            sage: Q.is_finite()
+            True
+            sage: Q = ClusterQuiver(['T',[4,4,4]])
+            sage: Q.is_finite()
+            False
+            sage: Q = ClusterQuiver([['A',3],['T',[4,4,4]]])
+            sage: Q.is_finite()
+            False
+            sage: Q = ClusterQuiver([['A',3],['T',[2,2,3]]])
+            sage: Q.is_finite()
+            True
+            sage: Q = ClusterQuiver([['A',3],['D',5]])
+            sage: Q.is_finite()
+            True
+            sage: Q = ClusterQuiver([['A',3],['D',5,1]])
+            sage: Q.is_finite()
+            False
 
-        sage: Q = ClusterQuiver([[0,1,2],[1,2,2],[2,0,2]])
-        sage: Q.is_finite()
-        False
+            sage: Q = ClusterQuiver([[0,1,2],[1,2,2],[2,0,2]])
+            sage: Q.is_finite()
+            False
 
-        sage: Q = ClusterQuiver([[0,1,2],[1,2,2],[2,0,2],[3,4,1],[4,5,1]])
-        sage: Q.is_finite()
-        False
+            sage: Q = ClusterQuiver([[0,1,2],[1,2,2],[2,0,2],[3,4,1],[4,5,1]])
+            sage: Q.is_finite()
+            False
         """
         mt = self.mutation_type()
         if type( mt ) in [QuiverMutationType_Irreducible, QuiverMutationType_Reducible] and mt.is_finite():

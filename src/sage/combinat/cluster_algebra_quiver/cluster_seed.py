@@ -1313,8 +1313,8 @@ class ClusterSeed(SageObject):
 
             sage: A = ClusterSeed(['A',3]).mutation_class()
         """
-        if depth is infinity:
-            assert self.is_finite(), 'The mutation class can - for infinite types - only be computed up to a given depth'
+        if depth is infinity and not self.is_finite():
+            raise ValueError('The mutation class can - for infinite types - only be computed up to a given depth')
         return list( S for S in self.mutation_class_iter( depth=depth, show_depth=show_depth, return_paths=return_paths, up_to_equivalence=up_to_equivalence, only_sink_source=only_sink_source ) )
 
     def cluster_class_iter(self, depth=infinity, show_depth=False, up_to_equivalence=True):
@@ -1448,8 +1448,8 @@ class ClusterSeed(SageObject):
 
             sage: A = ClusterSeed(['A',3]).cluster_class()
         """
-        if depth is infinity:
-            assert self.is_finite(), 'The variable class can - for infinite types - only be computed up to a given depth'
+        if depth is infinity and not self.is_finite():
+            raise ValueError('The variable class can - for infinite types - only be computed up to a given depth')
 
         return [ c for c in self.cluster_class_iter(depth=depth, show_depth=show_depth, up_to_equivalence=up_to_equivalence) ]
 
@@ -1600,8 +1600,8 @@ class ClusterSeed(SageObject):
             sage: A = ClusterSeed(['A',3]).b_matrix_class()
             sage: A = ClusterSeed(['A',[2,1],1]).b_matrix_class()
         """
-        if depth is infinity:
-            assert self.is_mutation_finite(), 'The B-matrix class can - for infinite mutation types - only be computed up to a given depth'
+        if depth is infinity and not self.is_mutation_finite():
+            raise ValueError('The B-matrix class can - for infinite mutation types - only be computed up to a given depth')
 
         return [ M for M in self.b_matrix_class_iter( depth=depth, up_to_equivalence=up_to_equivalence ) ]
 
@@ -1749,8 +1749,8 @@ class ClusterSeed(SageObject):
 
             sage: A = ClusterSeed(['A',3]).variable_class()
         """
-        if depth is infinity:
-            assert self.is_finite(), 'The variable class can - for infinite types - only be computed up to a given depth'
+        if depth is infinity and not self.is_finite():
+            raise ValueError('The variable class can - for infinite types - only be computed up to a given depth')
 
         var_iter = self.variable_class_iter( depth=depth, ignore_bipartite_belt=ignore_bipartite_belt )
         Vs = [ var for var in var_iter ]

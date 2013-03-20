@@ -494,7 +494,7 @@ class InstanceTester(unittest.TestCase):
             n = _len(S)
             if n > self._max_runs:
                 from random import sample
-                S = sample(S, n)
+                S = sample(S, self._max_runs)
         except (TypeError, AttributeError):
             # We already can't tell what the length of n is, so
             # there's no harm in obscuring it further.

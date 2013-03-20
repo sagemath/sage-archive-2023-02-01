@@ -122,7 +122,9 @@ def fan_isomorphism_generator(fan1, fan2):
         for cone in fan2.generating_cones() )
 
     # iterate over all graph isomorphisms graph1 -> graph2
-    for perm in graph2.automorphism_group(edge_labels=True):
+    g2 = graph2.relabel({v:(i if i!=0 else graph2.order()) for i,v in enumerate(graph2.vertices())}, inplace = False)
+
+    for perm in g2.automorphism_group(edge_labels=True):
         # find a candidate m that maps max_cone to the graph image cone
         image_ray_indices = [ perm(graph_iso[r]+1)-1 for r in fan1_pivot_rays ]
         fan2_basis = fan2.rays(image_ray_indices) + fan2.virtual_rays()

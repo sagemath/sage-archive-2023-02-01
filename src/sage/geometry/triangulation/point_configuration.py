@@ -1149,16 +1149,9 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             for j in range(i+1,len(v_list)):
                 v_i = v_list[i]
                 v_j = v_list[j]
-                G.add_edge(i,j, v_i * Qinv * v_j)
+                G.add_edge(i+1,j+1, v_i * Qinv * v_j)
 
-        group, node_dict = G.automorphism_group(edge_labels=True, translation=True)
-
-        # Relabel the permutation group
-        perm_to_vertex = dict( (i,v+1) for v,i in node_dict.items() )
-        group = PermutationGroup([ [ tuple([ perm_to_vertex[i] for i in cycle ])
-                                     for cycle in generator.cycle_tuples() ]
-                                   for generator in group.gens() ])
-
+        group = G.automorphism_group(edge_labels=True)
         self._restricted_automorphism_group = group
         return group
 

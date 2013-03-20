@@ -2797,7 +2797,8 @@ class PermutationGroup_generic(group.Group):
         Now the full blocks::
 
             sage: ag.blocks_all(representatives = False)
-            [[[1, 16], [8, 17], [14, 19], [2, 12], [7, 18], [5, 10], [15, 20], [4, 9], [3, 13], [6, 11]]]
+            [[[1, 16], [2, 17], [15, 20], [9, 18], [6, 11], [3, 13], [8, 19], [4, 14], [5, 10], [7, 12]]]
+
         """
         ag = self._gap_()
         if representatives:

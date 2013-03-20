@@ -2620,9 +2620,10 @@ class Graph(GenericGraph):
         if self.size() == 0:
             return True
 
-        A,T = self.automorphism_group(translation=True)
+        A = self.automorphism_group()
         e = self.edge_iterator(labels=False).next()
-        e = [T[e[0]], T[e[1]]]
+        e = [A._domain_to_gap[e[0]], A._domain_to_gap[e[1]]]
+
         return gap("OrbitLength("+str(A._gap_())+",Set(" + str(e) + "),OnSets);") == self.size()
 
     def is_arc_transitive(self):
@@ -2661,9 +2662,10 @@ class Graph(GenericGraph):
         if self.size() == 0:
             return True
 
-        A,T = self.automorphism_group(translation=True)
+        A = self.automorphism_group()
         e = self.edge_iterator(labels=False).next()
-        e = [T[e[0]], T[e[1]]]
+        e = [A._domain_to_gap[e[0]], A._domain_to_gap[e[1]]]
+
         return gap("OrbitLength("+str(A._gap_())+",Set(" + str(e) + "),OnTuples);") == 2*self.size()
 
     def is_half_transitive(self):

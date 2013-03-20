@@ -996,14 +996,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
     def dict(self):
         """
-        Returns list of the images of the integers from 1 to n under this
-        permutation as a list of Python ints.
-
-        .. note::
-
-           :meth:`.list` returns a zero-indexed list. :meth:`.dict`
-           return the actual mapping of the permutation, which will be
-           indexed starting with 1.
+        Returns a dictionary associating each element of the domain with its
+        image.
 
         EXAMPLES::
 
@@ -1020,11 +1014,9 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             {1: 2, 2: 1, 3: 3, 4: 4}
         """
         from_gap = self._parent._domain_from_gap
+        to_gap = self._parent._domain_to_gap
         cdef int i
-        u = {}
-        for i from 0 <= i < self.n:
-            u[i+1] = from_gap[self.perm[i]+1]
-        return u
+        return {e:from_gap[self.perm[i-1]+1] for e,i in to_gap.iteritems()}
 
     def order(self):
         """

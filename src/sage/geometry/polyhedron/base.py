@@ -3912,16 +3912,9 @@ class Polyhedron_base(Element):
         for edge in self.vertex_graph().edges():
             i = edge[0]
             j = edge[1]
-            G.add_edge(i, j, (self.Vrepresentation(i).type(), self.Vrepresentation(j).type()) )
+            G.add_edge(i+1, j+1, (self.Vrepresentation(i).type(), self.Vrepresentation(j).type()) )
 
-        group, node_dict = G.automorphism_group(edge_labels=True, translation=True)
-
-        # Relabel the permutation group
-        perm_to_vertex = dict( (i,v+1) for v,i in node_dict.items() )
-        group = PermutationGroup([ [ tuple([ perm_to_vertex[i] for i in cycle ])
-                                     for cycle in generator.cycle_tuples() ]
-                                   for generator in group.gens() ])
-
+        group = G.automorphism_group(edge_labels=True)
         self._combinatorial_automorphism_group = group
         return group
 
@@ -4172,16 +4165,9 @@ class Polyhedron_base(Element):
                 v_i = v_list[i]
                 v_j = v_list[j]
                 c_ij = rational_approximation( v_i * Qinv * v_j )
-                G.add_edge(i,j, edge_label(i,j,c_ij))
+                G.add_edge(i+1,j+1, edge_label(i,j,c_ij))
 
-        group, node_dict = G.automorphism_group(edge_labels=True, translation=True)
-
-        # Relabel the permutation group
-        perm_to_vertex = dict( (i,v+1) for v,i in node_dict.items() )
-        group = PermutationGroup([ [ tuple([ perm_to_vertex[i] for i in cycle ])
-                                     for cycle in generator.cycle_tuples() ]
-                                   for generator in group.gens() ])
-
+        group = G.automorphism_group(edge_labels=True)
         self._restricted_automorphism_group = group
         return group
 

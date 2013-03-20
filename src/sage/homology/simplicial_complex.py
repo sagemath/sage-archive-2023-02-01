@@ -3118,7 +3118,7 @@ class SimplicialComplex(GenericCellComplex):
 
         return isisom,tr
 
-    def automorphism_group(self,translation=False):
+    def automorphism_group(self):
         r"""
         Returns the automorphism group of the simplicial complex
 
@@ -3126,22 +3126,11 @@ class SimplicialComplex(GenericCellComplex):
         vertices and facets of the simplicial complex, and computing
         its automorphism group.
 
-        INPUT:
+        .. WARNING::
 
-        - ``translation`` (boolean, default: ``False``) whether to return
-          a dictionary associating the vertices of the simplicial
-          complex to elements of the set on which the group acts
-
-        OUTPUT:
-
-        - a permutation group if ``translation`` is ``False``
-        - a permutation group and a dictionary if ``translation`` is ``True``
-
-        .. NOTE::
-
-            The group is returned as a permutation group acting on
-            integers from ``1`` to the number of vertices. The bijection
-            with vertices is provided if ``translation`` is ``True``.
+            Since :trac:`14319` the domain of the automorphism group is equal to
+            the graph's vertex set, and the ``translation`` argument has become
+            useless.
 
         EXAMPLES::
 
@@ -3156,29 +3145,25 @@ class SimplicialComplex(GenericCellComplex):
             sage: Z = SimplicialComplex([[1,2],[2,3,'a']])
             sage: Z.automorphism_group().is_isomorphic(CyclicPermutationGroup(2))
             True
-            sage: group, dict = Z.automorphism_group(translation=True)
-            sage: Set([dict[s] for s in Z.vertices()])
-            {1, 2, 3, 4}
+            sage: group = Z.automorphism_group()
+            sage: group.domain()
+            {1, 2, 3, 'a'}
         """
         from sage.groups.perm_gps.permgroup import PermutationGroup
-        from sage.combinat.permutation import Permutation
+
         G = Graph()
         G.add_vertices(self.vertices())
         G.add_edges((f.tuple(),v) for f in self.facets() for v in f)
-        groupe, simpl_to_gap = G.automorphism_group(translation=True,
-                                           partition=[list(self.vertices()),
-                                                      [f.tuple() for f in self.facets()]])
-        gap_to_simpl = {x_gap:x for x,x_gap in simpl_to_gap.iteritems()} # reverse dictionary
-        gap_to_range = {simpl_to_gap[x]:(i+1) for i,x in enumerate(self.vertices())}
-        permgroup = PermutationGroup([
-                    Permutation([tuple([gap_to_range[x] for x in c])
-                                 for c in g.cycle_tuples()
-                                 if not isinstance(gap_to_simpl[c[0]],tuple)])
-                    for g in groupe.gens()])
-        if translation:
-            return permgroup, {f:gap_to_range[simpl_to_gap[f]] for f in self.vertices()}
-        else:
-            return permgroup
+        groupe = G.automorphism_group(partition=[list(self.vertices()),
+                                                 [f.tuple() for f in self.facets()]])
+
+
+        gens = [ [tuple(c) for c in g.cycle_tuples() if not isinstance(c[0],tuple)]
+                 for g in groupe.gens()]
+
+        permgroup = PermutationGroup(gens = gens, domain = self.vertices())
+
+        return permgroup
 
     def _Hom_(self, other, category=None):
         """

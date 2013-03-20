@@ -98,8 +98,8 @@ __append_to_doc(
      "ChvatalGraph",
      "ClebschGraph",
      "CoxeterGraph",
-     "DoubleStarSnark",
      "DesarguesGraph",
+     "DoubleStarSnark",
      "DurerGraph",
      "DyckGraph",
      "EllinghamHorton54Graph",
@@ -120,10 +120,8 @@ __append_to_doc(
      "HeawoodGraph",
      "HerschelGraph",
      "HigmanSimsGraph",
-     "HoffmanSingletonGraph",
-     "SylvesterGraph",
-     "SimsGewirtzGraph",
      "HoffmanGraph",
+     "HoffmanSingletonGraph",
      "HoltGraph",
      "LjubljanaGraph",
      "McGeeGraph",
@@ -134,6 +132,8 @@ __append_to_doc(
      "PetersenGraph",
      "SchlaefliGraph",
      "ShrikhandeGraph",
+     "SimsGewirtzGraph",
+     "SylvesterGraph",
      "ThomsenGraph",
      "Tutte12Cage",
      "TutteCoxeterGraph",
@@ -993,8 +993,8 @@ class GraphGenerators():
     PetersenGraph            = staticmethod(sage.graphs.generators.smallgraphs.PetersenGraph)
     SchlaefliGraph           = staticmethod(sage.graphs.generators.smallgraphs.SchlaefliGraph)
     ShrikhandeGraph          = staticmethod(sage.graphs.generators.smallgraphs.ShrikhandeGraph)
-    SylvesterGraph           = staticmethod(sage.graphs.generators.smallgraphs.SylvesterGraph)
     SimsGewirtzGraph         = staticmethod(sage.graphs.generators.smallgraphs.SimsGewirtzGraph)
+    SylvesterGraph           = staticmethod(sage.graphs.generators.smallgraphs.SylvesterGraph)
     ThomsenGraph             = staticmethod(sage.graphs.generators.smallgraphs.ThomsenGraph)
     Tutte12Cage              = staticmethod(sage.graphs.generators.smallgraphs.Tutte12Cage)
     TutteCoxeterGraph        = staticmethod(sage.graphs.generators.smallgraphs.TutteCoxeterGraph)

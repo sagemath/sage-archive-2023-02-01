@@ -491,6 +491,42 @@ class CachedRepresentation:
             sage: c is C(3)
             False
 
+        Here is a similar example, using a private classcall in the class
+        ``B``, which is not inherited by ``C``::
+
+            sage: class A(UniqueRepresentation):
+            ...    def __init__(self, x):
+            ...        pass
+            sage: class B(A):
+            ...    @staticmethod
+            ...    def __classcall_private__(cls, *args, **kwds):
+            ...        print "Private B"
+            ...        return super(B,cls).__classcall__(cls,*args,**kwds)
+            sage: class C(B): pass
+            sage: a = A(1)
+            sage: b = B(2)
+            Private B
+            sage: c = C(3)
+            sage: a is A(1)
+            True
+            sage: b is B(2)
+            Private B
+            True
+            sage: c is C(3)
+            True
+            sage: B._clear_cache_()
+
+        Again, all instances of (sub-classes of) ``B`` have disappeared
+        from the cache::
+
+            sage: a is A(1)
+            True
+            sage: b is B(2)
+            Private B
+            False
+            sage: c is C(3)
+            False
+
         """
         del_list = []
         cache = None

@@ -304,8 +304,8 @@ class ClusterSeed(SageObject):
 
         EXAMPLES::
 
-            sage: Q = ClusterQuiver(['F',4,[1,2]])
-            sage: Q.save_image(os.path.join(SAGE_TMP, 'sage.png'))
+            sage: S = ClusterSeed(['F',4,[1,2]])
+            sage: S.save_image(os.path.join(SAGE_TMP, 'sage.png'))
         """
         graph_plot = self.plot( circular=circular, mark=mark, save_pos=save_pos)
         graph_plot.save( filename=filename )
@@ -747,10 +747,10 @@ class ClusterSeed(SageObject):
 
         EXAMPLES::
 
-            sage: ClusterQuiver(['A',[3,3],1]).is_bipartite()
+            sage: ClusterSeed(['A',[3,3],1]).is_bipartite()
             True
 
-            sage: ClusterQuiver(['A',[4,3],1]).is_bipartite()
+            sage: ClusterSeed(['A',[4,3],1]).is_bipartite()
             False
         """
         return self.quiver().is_bipartite(return_bipartition=return_bipartition)

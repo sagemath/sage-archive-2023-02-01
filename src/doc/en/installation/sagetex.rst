@@ -116,16 +116,11 @@ SageTeX documentation
 
 While not strictly part of installation, it bears mentioning here that
 the documentation for SageTeX is maintained in
-``SAGE_ROOT/local/share/texmf/tex/generic/sagetex/sagetexpackage.pdf``.
-There is also an example file in the same directory -- see
-``example.tex`` and ``example.pdf``, the pre-built result of typesetting
-that file with LaTeX and Sage. You can also get those files from
-:abbr:`CTAN (Comprehensive TeX Archive Network)`:
-http://www.ctan.org/tex-archive/macros/latex/contrib/sagetex/.
-
-However, be advised that SageTeX is "officially" distributed as part of
-Sage, and the version available on CTAN may not be the most current
-version.
+``SAGE_ROOT/local/share/doc/sagetex/sagetex.pdf``. There is also an
+example file in the same directory -- see ``example.tex`` and
+``example.pdf``, the pre-built result of typesetting that file with
+LaTeX and Sage. You can also get those files from the `SageTeX bitbucket
+page <https://bitbucket.org/ddrake/sagetex/downloads>`_.
 
 SageTeX and TeXLive
 -------------------
@@ -134,9 +129,10 @@ One potentially confusing issue is that the popular TeX distribution
 `TeXLive 2009 <http://www.tug.org/texlive/>`_ includes SageTeX. This may
 seem nice, but with SageTeX, it's important that the Sage bits and LaTeX
 bits be synchronized -- which is a problem in this case, since both Sage
-and SageTeX are updated frequently, and TeXLive is not. In fact, at the
-time of this writing (January 2010), many Linux distributions are still
-shipping TeXLive 2007.
+and SageTeX are updated frequently, and TeXLive is not.
+While at the time of this writing (March 2013), many Linux distributions
+have moved on to more recent releases of TeXLive, the 2009 release
+lingers and is, in fact, the source of most bug reports about SageTeX!
 
 Because of this, it is *strongly recommended* that you always install
 the LaTeX part of SageTeX from Sage, as described above. The

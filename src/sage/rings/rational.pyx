@@ -715,7 +715,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 sage: numpy.array(QQ(2**40)).dtype
                 dtype('int64')
                 sage: numpy.array(QQ(2**400)).dtype
-                dtype('object')
+                dtype('O')
 
                 sage: numpy.array([1, 1/2, 3/4])
                 array([ 1.  ,  0.5 ,  0.75])

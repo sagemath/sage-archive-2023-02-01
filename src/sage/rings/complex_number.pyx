@@ -246,7 +246,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
                 sage: numpy.array([1.0, 2.5j]).dtype
                 dtype('complex128')
                 sage: numpy.array([1.000000000000000000000000000000000000j]).dtype
-                dtype('object')
+                dtype('O')
             """
             if self._prec <= 57: # max size of repr(float)
                 return numpy_complex_interface

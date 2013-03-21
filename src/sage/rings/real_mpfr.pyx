@@ -1324,7 +1324,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
                 sage: numpy.array([1.0, 1.1, 1.2]).dtype
                 dtype('float64')
                 sage: numpy.array([1.000000000000000000000000000000000000]).dtype
-                dtype('object')
+                dtype('O')
             """
             if (<RealField_class>self._parent).__prec <= 57: # max size of repr(float)
                 return numpy_double_interface

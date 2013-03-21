@@ -4950,7 +4950,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 sage: numpy.array(2**40).dtype
                 dtype('int64')
                 sage: numpy.array(2**400).dtype
-                dtype('object')
+                dtype('O')
 
                 sage: numpy.array([1,2,3,0.1]).dtype
                 dtype('float64')

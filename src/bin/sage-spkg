@@ -103,7 +103,7 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ -z "$SAGE_BUILD_DIR" ]; then
-    export SAGE_BUILD_DIR="$SAGE_PACKAGES/build"
+    export SAGE_BUILD_DIR="$SAGE_LOCAL/var/tmp/sage/build"
 fi
 
 mkdir -p "$SAGE_SPKG_INST"

@@ -82,13 +82,13 @@ if [ -z "$SAGE_ROOT" ]; then
     exit 1
 fi
 
-mkdir -p "$SAGE_ROOT/spkg/build"
+mkdir -p "$SAGE_LOCAL/var/tmp/sage/build"
 if [ $? -ne 0 ]; then
     echo "Error while trying to create the build directory."
     exit 1
 fi
 
-cd "$SAGE_ROOT/spkg/build"
+cd "$SAGE_LOCAL/var/tmp/sage/build"
 if [ $? -ne 0 ]; then
     echo "Error while trying to change into the build directory."
     exit 1

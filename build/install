@@ -547,7 +547,7 @@ EOF
 
 package: $base_f
 log file: $f
-build directory: ${SAGE_BUILD_DIR:-$SAGE_ROOT/spkg/build}/$base_f
+build directory: ${SAGE_BUILD_DIR:-$SAGE_LOCAL/var/tmp/sage/build}/$base_f
 EOF
         fi
     done

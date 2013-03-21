@@ -47,7 +47,7 @@ class PlotField(GraphicPrimitive):
             sage: r.xpos_array
             [0.0, 0.0, 1.0, 1.0]
             sage: r.yvec_array
-            masked_array(data = [0.0 0.707106781187 0.707106781187 0.894427191],
+            masked_array(data = [0.0 0.70710678118... 0.70710678118... 0.89442719...],
                          mask = [False False False False],
                    fill_value = 1e+20)
 

@@ -25,7 +25,7 @@ ntl_libtool()
 {
     echo "Generating libtool."
 
-    cd "$CUR/libtool"
+    cd "$CUR/src/libtool"
 
     ./configure
 
@@ -81,7 +81,7 @@ ntl_configure()
         CXX="$CXX" CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" \
         LDFLAGS="$LDFLAGS" LIBTOOL_LINK_FLAGS="$LIBTOOL_LINK_FLAGS" \
         NTL_GMP_LIP=on NTL_STD_CXX=on \
-        LIBTOOL=../../libtool/libtool
+        LIBTOOL=../libtool/libtool
 
     if [ $? -ne 0 ]; then
         echo >&2 "Unable to configure NTL."

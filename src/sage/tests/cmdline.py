@@ -11,7 +11,6 @@ test.sage
 test.spyx
 /path/to/test.spyx
 --advanced
---branch
 -c
 --cython
 --ecl
@@ -20,7 +19,6 @@ test.spyx
 --gp
 -h
 --help
---hg
 --info
 --ipython
 --kash
@@ -182,14 +180,6 @@ def test_executable(args, input="", timeout=100.0, cwd=None):
 
         sage: (out, err, ret) = test_executable(["sage", "-v"])
         sage: out.find(version()) >= 0
-        True
-        sage: err
-        ''
-        sage: ret
-        0
-
-        sage: (out, err, ret) = test_executable(["sage", "--branch"])
-        sage: len(out) >= 2   # at least one character + newline
         True
         sage: err
         ''
@@ -509,14 +499,6 @@ def test_executable(args, input="", timeout=100.0, cwd=None):
         42
 
     Some programs of which we check functionality using only ``--version``::
-
-        sage: (out, err, ret) = test_executable(["sage", "--hg", "--version"])
-        sage: out.find("Mercurial Distributed SCM") >= 0
-        True
-        sage: err
-        ''
-        sage: ret
-        0
 
         sage: (out, err, ret) = test_executable(["sage", "--maxima", "--version"])
         sage: out.find("Maxima ") >= 0

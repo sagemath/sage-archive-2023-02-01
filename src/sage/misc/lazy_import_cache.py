@@ -17,8 +17,7 @@ def get_cache_file():
         '...-lazy_import_cache.pickle'
         sage: get_cache_file().startswith(DOT_SAGE)
         True
-        sage: from sage.misc.misc import branch_current_hg
-        sage: branch_current_hg() in get_cache_file()
+        sage: 'src' in get_cache_file()
         True
 
     It shouldn't matter whether DOT_SAGE ends with a slash::

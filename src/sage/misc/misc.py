@@ -2010,58 +2010,6 @@ def getitem(v, n):
     except TypeError:
         return v[int(n)]
 
-
-def branch_current_hg():
-    """
-    Return the current Mercurial branch name.
-
-    TESTS::
-
-        sage: br = sage.misc.misc.branch_current_hg()
-        sage: len(br) > 0
-        True
-
-    AUTHOR:
-
-    - Jeroen Demeyer (#12481)
-    """
-    try:
-        br = os.readlink(SAGE_SRC)
-    except OSError:
-        raise RuntimeError("Unable to determine branch")
-    br = os.path.basename(br)
-
-    # Delete everything up to and including the first "-".
-    # (if there is no "-", then i == -1 and we return everything)
-    i = br.find('-')
-    return br[i+1:]
-
-def branch_current_hg_notice(branch):
-    r"""
-    Return a string describing the current branch.
-
-    Also, indicate that the library is being loaded.
-
-    INPUT:
-
-    -  ``branch`` -- a representation of the name of the
-       Sage library branch.
-
-    OUTPUT: string
-
-    .. note::
-
-       If the branch is main, then return an empty string.
-    """
-    if branch[-1] == '/':
-        branch = branch[:-1]
-    if branch == 'main':
-        return ''
-    notice = 'Loading Sage library. Current Mercurial branch is: '
-    return notice + branch
-
-
-
 def pad_zeros(s, size=3):
     """
     EXAMPLES::

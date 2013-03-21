@@ -85,7 +85,6 @@ usage_advanced() {
     echo "  -gap [...]          -- run Sage's Gap with given arguments"
     echo "  -gdb                -- run Sage under the control of gdb"
     echo "  -gp [...]           -- run Sage's PARI/GP calculator with given arguments"
-    echo "  -hg [...]           -- run Sage's Mercurial with given arguments"
     echo "  -ipython [...]      -- run Sage's IPython using the default environment (not"
     echo "                         Sage), passing additional options to IPython"
     echo "  -kash [...]         -- run Sage's Kash with given arguments"
@@ -144,12 +143,9 @@ usage_advanced() {
     echo "  -ba [branch]        -- same as -b and rebuild all Cython code"
     echo "  -ba-force [branch]  -- same as -ba, but don't query before rebuilding"
     echo "  -br [branch]        -- switch to, build, and run Sage given branch"
-    echo "  -branch             -- print the current Sage branch"
     echo "  -bt [...]           -- build and test, options like -t below"
     echo "  -btp <N> [...]      -- build and test parallel, options like -tp below"
     echo "  -btnew [...]        -- build and test modified files, options like -tnew"
-    echo "  -clone [new branch] -- clone a new branch of the Sage library from the"
-    echo "                         current branch"
     echo "  -fixdoctests <file.py> -- create <file.py>.out that would pass the doctests"
     echo "                            and output a patch"
     echo "  -startuptime [module]  -- display how long each component of Sage takes to"
@@ -337,12 +333,6 @@ fi
 if [ "$1" = '-root'  -o "$1" = '--root' ]; then
     echo "$SAGE_ROOT"
     exit 0
-fi
-
-if [ "$1" = '-branch'  -o "$1" = '--branch' ]; then
-    cd "$SAGE_ROOT/devel/sage"
-    pwd -P | sed 's|.*/||; s|^sage-||'
-    exit $?
 fi
 
 #####################################################################
@@ -557,14 +547,6 @@ EOF
     exit $status
 fi
 
-if [ "$1" = '-hg' -o "$1" = '--hg' ]; then
-    shift
-    # Disable HGPLAIN, so we use all user defaults
-    # (both in $SAGE_LOCAL/etc/mercurial and $HOME/.hgrc)
-    unset HGPLAIN
-    exec "$SAGE_LOCAL/bin/hg" "$@"
-fi
-
 if [ "$1" = '-merge' -o "$1" = '--merge' ]; then
     shift
     exec sage-apply-ticket "$@"
@@ -664,21 +646,6 @@ fi
 
 if [ "$1" = '-r' ]; then
    shift
-   if [ "$1" != "" ]; then
-      cd "$SAGE_ROOT/devel/"
-      if [ ! -d "sage-$1" ]; then
-         echo >&2 "No such branch '$SAGE_ROOT/devel/sage-$1'"
-         echo >&2 "Use 'sage --clone' to create a new branch."
-         exit 1
-      fi
-      # On Solaris (and perhaps other systems), "ln -snf FILE LINK"
-      # doesn't remove LINK and then relink it, so we need to first
-      # delete LINK -- in this case, SAGE_ROOT/devel/sage -- and then
-      # create a new link.  We use the full path name to make sure we
-      # remove the correct file.
-      rm -f "$SAGE_ROOT/devel/sage"
-      ln -s "sage-$1" sage
-   fi
    interactive_sage
 fi
 
@@ -711,12 +678,6 @@ if [ "$1" = '-sync-build' -o "$1" = '--sync-build' ]; then
     shift
     cd "$SAGE_ROOT"
     exec sage-sync-build.py "$@"
-fi
-
-if [ "$1" = '-clone' -o "$1" = "--clone" ]; then
-   shift
-   time sage-clone "$@"
-   exit $?
 fi
 
 if [ "$1" = '-t' -o "$1" = '-bt' -o "$1" = '-tp' -o "$1" = '-btp' ]; then

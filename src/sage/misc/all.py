@@ -41,8 +41,6 @@ from fpickle import pickle_function, unpickle_function
 
 from dist import install_scripts
 
-from hg import hg_sage, hg_scripts, hg_extcode, hg_sagenb, hg_root
-
 from package import install_package, is_package_installed, standard_packages, optional_packages, experimental_packages, upgrade
 
 from pager import pager

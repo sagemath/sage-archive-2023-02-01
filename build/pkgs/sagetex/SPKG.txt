@@ -68,6 +68,9 @@ downloading this spkg.
 
 == Changelog ==
 
+=== sagetex-2.3.4 (Dan Drake, 20 Mar 2013) ===
+ * Copy example.tex into the doc directory too. (Ticket #14246)
+
 === sagetex-2.3.3.p2 (John Palmieri, 11 Feb 2012) ===
  * Use "#!/usr/bin/env bash" at the top of spkg-check so it works on
    OpenSolaris (ticket #12500).

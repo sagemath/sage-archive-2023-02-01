@@ -45,56 +45,5 @@ done
 BASENAME=$(ls -1 src | grep sagenb-)
 BASENAME=${BASENAME%.tar.gz}
 
-# Install sagenb into $SAGE_ROOT/devel/
-#
-# TODO: let sagenb sit in site_packages like any other component of Sage other
-# than the Sage library; if the user wants to develop sagenb, they should set
-# it up in an accessible directory themselves:
-#easy_install -H None -f src "sagenb" || die "Error installing sagenb !"
-
-# Extract sagenb into $SAGE_ROOT/devel and set up the symlink
-mkdir -p "$SAGE_ROOT/devel"
-cd "$SAGE_ROOT/devel"
-if [ -d "$SAGE_ROOT/devel/sagenb-main" ]; then
-    echo "Moving old SageNB package to '$SAGE_ROOT/devel/sagenb-main-old'..."
-    rm -rf "$SAGE_ROOT/devel/sagenb-main-old"
-    mv "$SAGE_ROOT/devel/sagenb-main" "$SAGE_ROOT/devel/sagenb-main-old" ||
-        die "Error moving the old 'sagenb-main' directory."
-fi
-tar xzf "$CUR/src/$BASENAME.tar.gz" || die "Error: cannot extract $BASENAME.tar.gz"
-mv $BASENAME sagenb-main
-rm -f "$SAGE_ROOT/devel/sagenb"
-ln -s sagenb-main "$SAGE_ROOT/devel/sagenb"
-
-# Install sagenb git repo, if it has been packaged
-if [ -d "$CUR/src/sagenb.git" ]; then
-    mv "$CUR/src/sagenb.git" ./sagenb/.git
-fi
-
-# Install sagenb into Sage's Python
-# Note: We use --egg-path for relocatability
-cd sagenb
-python setup.py develop --egg-path '../../../../devel/sagenb' ||
-    die "Error installing sagenb via setup.py develop"
-
-# Fix some relocatability issues - see #10176, possibly other tickets
-cd "$SAGE_ROOT/local/lib/python/site-packages"
-# Use >/dev/null instead of grep -q (which doesn't work on Solaris)
-if ! grep sagenb easy-install.pth > /dev/null ; then
-    # Ugly work-around, we haven't found the real cause yet (see #10176):
-    echo "No sagenb path found in 'easy-install.pth'"'!'
-    echo "Adding relative sagenb path to 'easy-install.pth'..."
-    sed -e '$ i \../../../../devel/sagenb' easy-install.pth > easy-install.pth.$$ ||
-        die "Error adding relative sagenb path to 'easy-install.pth'."
-else
-    echo "Making sagenb path in 'easy-install.pth' relative..."
-    sed 's/^.*sagenb.*$/..\/..\/..\/..\/devel\/sagenb/' easy-install.pth > easy-install.pth.$$ ||
-        die "Error patching 'easy-install.pth' to have relative path to SageNB."
-fi
-mv -f easy-install.pth.$$ easy-install.pth ||
-    die "Error overwriting original 'easy-install.pth'."
-
-# Remove old reference manual to fix upgrading from sage-5.1 or
-# earlier.  Some old .rst files might try to import modules which no
-# longer exist, see #13405.
-rm -rf "$SAGE_ROOT/devel/sage/doc/en/reference/sagenb"
+# Install sagenb into site-packages
+easy_install -H None -f src "sagenb" || die "Error installing sagenb !"

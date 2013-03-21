@@ -5,7 +5,7 @@
 ###########################################
 
 SRC=`pwd`/src
-SHARED=`pwd`/shared
+SHARED="$SRC/shared"
 
 if [ "$SAGE_LOCAL" = "" ]; then
     echo >&2 "SAGE_LOCAL undefined ... exiting";

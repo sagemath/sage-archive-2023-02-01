@@ -6,7 +6,7 @@
 
 TARGET=prereq-1.2
 if [ "x$SAGE_BUILD_DIR" = x ]; then
-    SAGE_BUILD_DIR="$SAGE_ROOT/spkg/build"
+    SAGE_BUILD_DIR="$SAGE_LOCAL/var/tmp/sage/build"
 fi
 mkdir -p "$SAGE_BUILD_DIR"
 if [ $? -ne 0 ]; then

@@ -275,8 +275,9 @@ class OriginalSource:
     EXAMPLES::
 
         sage: from sage.doctest.sources import FileDocTestSource
+        sage: from sage.env import SAGE_SRC
         sage: import os
-        sage: filename = os.path.join(os.environ['SAGE_ROOT'],'devel','sage','sage','doctest','forker.py')
+        sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
         sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
         sage: doctests, extras = FDS.create_doctests(globals())
         sage: ex = doctests[0].examples[0]
@@ -300,8 +301,9 @@ class OriginalSource:
         EXAMPLES::
 
             sage: from sage.doctest.sources import FileDocTestSource
+            sage: from sage.env import SAGE_SRC
             sage: import os
-            sage: filename = os.path.join(os.environ['SAGE_ROOT'],'devel','sage','sage','doctest','forker.py')
+            sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
             sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: ex = doctests[0].examples[0]
@@ -316,8 +318,9 @@ class OriginalSource:
         EXAMPLES::
 
             sage: from sage.doctest.sources import FileDocTestSource
+            sage: from sage.env import SAGE_SRC
             sage: import os
-            sage: filename = os.path.join(os.environ['SAGE_ROOT'],'devel','sage','sage','doctest','forker.py')
+            sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
             sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: ex = doctests[0].examples[0]
@@ -335,8 +338,9 @@ class OriginalSource:
         EXAMPLES::
 
             sage: from sage.doctest.sources import FileDocTestSource
+            sage: from sage.env import SAGE_SRC
             sage: import os
-            sage: filename = os.path.join(os.environ['SAGE_ROOT'],'devel','sage','sage','doctest','forker.py')
+            sage: filename = os.path.join(SAGE_SRC,'sage','doctest','forker.py')
             sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: ex = doctests[0].examples[0]

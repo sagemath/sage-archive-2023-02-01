@@ -97,8 +97,9 @@ class DocTestReporter(SageObject):
 
             sage: from sage.doctest.reporting import DocTestReporter
             sage: from sage.doctest.control import DocTestController, DocTestDefaults
+            sage: from sage.env import SAGE_SRC
             sage: import os
-            sage: filename = os.path.join(os.environ['SAGE_ROOT'],'devel','sage','sage','doctest','reporting.py')
+            sage: filename = os.path.join(SAGE_SRC,'sage','doctest','reporting.py')
             sage: DC = DocTestController(DocTestDefaults(),[filename])
             sage: DTR = DocTestReporter(DC)
         """
@@ -122,7 +123,8 @@ class DocTestReporter(SageObject):
             sage: from sage.doctest.control import DocTestController, DocTestDefaults
             sage: from sage.doctest.sources import FileDocTestSource
             sage: from sage.doctest.forker import SageDocTestRunner
-            sage: filename = os.path.join(os.environ['SAGE_ROOT'],'devel','sage','sage','doctest','reporting.py')
+            sage: from sage.env import SAGE_SRC
+            sage: filename = os.path.join(SAGE_SRC,'sage','doctest','reporting.py')
             sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
             sage: DD = DocTestDefaults()
             sage: DC = DocTestController(DD, [filename])
@@ -183,8 +185,9 @@ class DocTestReporter(SageObject):
             sage: from sage.doctest.forker import SageDocTestRunner
             sage: from sage.doctest.parsing import SageOutputChecker
             sage: from sage.doctest.util import Timer
+            sage: from sage.env import SAGE_SRC
             sage: import os, sys, doctest
-            sage: filename = os.path.join(os.environ['SAGE_ROOT'],'devel','sage','sage','doctest','reporting.py')
+            sage: filename = os.path.join(SAGE_SRC,'sage','doctest','reporting.py')
             sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
             sage: DD = DocTestDefaults()
             sage: DC = DocTestController(DD,[filename])
@@ -397,8 +400,9 @@ class DocTestReporter(SageObject):
             sage: from sage.doctest.forker import SageDocTestRunner
             sage: from sage.doctest.parsing import SageOutputChecker
             sage: from sage.doctest.util import Timer
+            sage: from sage.env import SAGE_SRC
             sage: import os, sys, doctest
-            sage: filename = os.path.join(os.environ['SAGE_ROOT'],'devel','sage','sage','doctest','reporting.py')
+            sage: filename = os.path.join(SAGE_SRC,'sage','doctest','reporting.py')
             sage: FDS = FileDocTestSource(filename,True,False,set(['sage']),None)
             sage: DD = DocTestDefaults()
             sage: DC = DocTestController(DD,[filename])

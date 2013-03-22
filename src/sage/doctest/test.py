@@ -9,7 +9,8 @@ EXAMPLES::
     sage: import signal
     sage: import subprocess
     sage: import time
-    sage: tests_dir = os.path.join(SAGE_ROOT, 'devel', 'sage', 'sage', 'doctest', 'tests')
+    sage: from sage.env import SAGE_SRC
+    sage: tests_dir = os.path.join(SAGE_SRC, 'sage', 'doctest', 'tests')
 
 Check that :trac:`2235` has been fixed::
 

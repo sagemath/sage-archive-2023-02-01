@@ -33,7 +33,7 @@ class DocTestDefaults(SageObject):
     This class is used for doctesting the Sage doctest module.
 
     It fills in attributes to be the same as the defaults defined in
-    ``SAGE_ROOT/local/bin/sage-runtests``, expect for a few places,
+    ``SAGE_LOCAL/bin/sage-runtests``, expect for a few places,
     which is mostly to make doctesting more predictable.
 
     EXAMPLES::
@@ -126,7 +126,7 @@ class DocTestController(SageObject):
 
         INPUT:
 
-        - options -- either options generated from the command line by SAGE_ROOT/local/bin/sage-runtests
+        - options -- either options generated from the command line by SAGE_LOCAL/bin/sage-runtests
                      or a DocTestDefaults object (possibly with some entries modified)
         - args -- a list of filenames to doctest
 
@@ -335,13 +335,14 @@ class DocTestController(SageObject):
         EXAMPLES::
 
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
+            sage: from sage.env import SAGE_SRC
             sage: import os
             sage: log_location = os.path.join(SAGE_TMP, 'control_dt_log.log')
             sage: DD = DocTestDefaults(all=True, logfile=log_location)
             sage: DC = DocTestController(DD, [])
             sage: DC.add_files()
             Doctesting entire Sage library.
-            sage: os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage', 'sage') in DC.files
+            sage: os.path.join(SAGE_SRC, 'sage') in DC.files
             True
 
         ::
@@ -363,8 +364,7 @@ class DocTestController(SageObject):
             'sagenb'
         """
         opj = os.path.join
-        SAGE_ROOT = os.environ['SAGE_ROOT']
-        base = opj(SAGE_ROOT, 'devel', 'sage')
+        from sage.env import SAGE_SRC as base
         if self.options.all:
             self.log("Doctesting entire Sage library.")
             from glob import glob
@@ -381,7 +381,7 @@ class DocTestController(SageObject):
                 if len(tup) != 2: continue
                 c, filename = tup
                 if c in ['M','A']:
-                    filename = opj(os.environ['SAGE_ROOT'], 'devel', 'sage', filename)
+                    filename = opj(base, filename)
                     self.files.append(filename)
         if self.options.sagenb:
             if not self.options.all:
@@ -400,8 +400,9 @@ class DocTestController(SageObject):
         EXAMPLES::
 
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
+            sage: from sage.env import SAGE_SRC
             sage: import os
-            sage: dirname = os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage', 'sage', 'doctest')
+            sage: dirname = os.path.join(SAGE_SRC, 'sage', 'doctest')
             sage: DD = DocTestDefaults(optional='all')
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
@@ -456,8 +457,9 @@ class DocTestController(SageObject):
         EXAMPLES::
 
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
+            sage: from sage.env import SAGE_SRC
             sage: import os
-            sage: dirname = os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage', 'sage', 'doctest')
+            sage: dirname = os.path.join(SAGE_SRC, 'sage', 'doctest')
             sage: DD = DocTestDefaults(failed=True)
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
@@ -484,8 +486,9 @@ class DocTestController(SageObject):
         EXAMPLES::
 
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
+            sage: from sage.env import SAGE_SRC
             sage: import os
-            sage: dirname = os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage', 'sage', 'doctest')
+            sage: dirname = os.path.join(SAGE_SRC, 'sage', 'doctest')
             sage: DD = DocTestDefaults(nthreads=2)
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
@@ -522,8 +525,9 @@ class DocTestController(SageObject):
         EXAMPLES::
 
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
+            sage: from sage.env import SAGE_SRC
             sage: import os
-            sage: dirname = os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage', 'sage', 'rings', 'homset.py')
+            sage: dirname = os.path.join(SAGE_SRC, 'sage', 'rings', 'homset.py')
             sage: DD = DocTestDefaults()
             sage: DC = DocTestController(DD, [dirname])
             sage: DC.expand_files_into_sources()
@@ -588,32 +592,33 @@ class DocTestController(SageObject):
 
         EXAMPLES::
 
-             sage: from sage.doctest.control import DocTestDefaults, DocTestController
-             sage: import os
-             sage: dirname = os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage', 'sage', 'rings', 'infinity.py')
-             sage: DD = DocTestDefaults()
+            sage: from sage.doctest.control import DocTestDefaults, DocTestController
+            sage: from sage.env import SAGE_SRC
+            sage: import os
+            sage: dirname = os.path.join(SAGE_SRC, 'sage', 'rings', 'infinity.py')
+            sage: DD = DocTestDefaults()
 
-             sage: DC = DocTestController(DD, [dirname])
-             sage: DC.expand_files_into_sources()
-             sage: DC.sources.sort(key=lambda s:s.basename)
+            sage: DC = DocTestController(DD, [dirname])
+            sage: DC.expand_files_into_sources()
+            sage: DC.sources.sort(key=lambda s:s.basename)
 
-             sage: for i, source in enumerate(DC.sources):
-             ....:     DC.stats[source.basename] = {'walltime': 0.1*(i+1)}
-             ....:
+            sage: for i, source in enumerate(DC.sources):
+            ....:     DC.stats[source.basename] = {'walltime': 0.1*(i+1)}
+            ....:
 
-             sage: DC.run()
-             Running doctests with ID ...
-             Doctesting 1 file.
-             sage -t .../rings/infinity.py
-                 [... tests, ... s]
-             ----------------------------------------------------------------------
-             All tests passed!
-             ----------------------------------------------------------------------
-             Total time for all tests: ... seconds
-                 cpu time: ... seconds
-                 cumulative wall time: ... seconds
-             0
-             sage: DC.cleanup()
+            sage: DC.run()
+            Running doctests with ID ...
+            Doctesting 1 file.
+            sage -t .../rings/infinity.py
+                [... tests, ... s]
+            ----------------------------------------------------------------------
+            All tests passed!
+            ----------------------------------------------------------------------
+            Total time for all tests: ... seconds
+                cpu time: ... seconds
+                cumulative wall time: ... seconds
+            0
+            sage: DC.cleanup()
         """
         self.stats.update(self.reporter.stats)
         self.save_stats(self.options.stats_path)
@@ -756,9 +761,10 @@ class DocTestController(SageObject):
         EXAMPLES::
 
             sage: from sage.doctest.control import DocTestDefaults, DocTestController
+            sage: from sage.env import SAGE_SRC
             sage: import os
             sage: DD = DocTestDefaults()
-            sage: filename = os.path.join(os.environ["SAGE_ROOT"], "devel", "sage", "sage", "sets", "non_negative_integers.py")
+            sage: filename = os.path.join(SAGE_SRC, "sage", "sets", "non_negative_integers.py")
             sage: DC = DocTestController(DD, [filename])
             sage: DC.run()
             Running doctests with ID ...

@@ -1,10 +1,10 @@
 r"""
-Interface to Octave
+Interface to GNU Octave
 
-Octave is an open source MATLAB-like program with numerical
+GNU Octave is a free software (GPL) MATLAB-like program with numerical
 routines for integrating, solving systems of equations, special
-functions, and solving (numerically) differential equations. Please
-see http://octave.sourceforge.net for more details.
+functions, and solving (numerically) differential equations. Please see
+http://octave.org/ for more details.
 
 The commands in this section only work if you have the optional
 "octave" interpreter installed and available in your PATH. It's not
@@ -172,6 +172,7 @@ class Octave(Expect):
         sage: octave.eval("c")                                 # optional - octave; random output
         'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
     """
+
     def __init__(self, maxread=100, script_subdirectory="", logfile=None, server=None, server_tmpdir=None):
         """
         EXAMPLES::
@@ -562,4 +563,3 @@ def octave_version():
         '2.9.12'
     """
     return str(octave('version')).strip()
-

@@ -68,7 +68,12 @@ class Debug:
         """
         import inspect, sys, traceback
         try:
-            self._stack = inspect.getinnerframes(sys.last_traceback)
+            tb=sys.last_traceback
+            #we strip off the 5 outermost frames, since those relate only to
+            #the notebook, not user code
+            for i in xrange(5):
+                tb=tb.tb_next
+            self._stack = inspect.getinnerframes(tb)
         except AttributeError:
             raise RuntimeError, "no traceback has been produced; nothing to debug"
         self._curframe_index = len(self._stack) - 1
@@ -223,15 +228,11 @@ class Debug:
 
         # two sliders and a box to put in commands with an evaluate button.
         @library_interact
-        def dbg(frame = slider(vmin=0, vmax=len(self._stack)-1-5, step_size=1, default=len(self._stack)-1-5, label='stack frame'),
+        def dbg(frame = slider(vmin=0, vmax=len(self._stack)-1, step_size=1, default=len(self._stack)-1, label='stack frame'),
                 lines = slider(vmin=3, vmax=99, step_size=2, default=11, label='lines of context'),
                 command = input_box("", label="", type=str),
                 button = selector(['Evaluate'], label='', buttons=True)
                 ):
-            # Frame number 5 corresponds to the code which was
-            # executed in the notebook cell.  The frames 0 to 4 are
-            # notebook code and not that interesting to the user.
-            frame = frame + 5
 
             if self._last is None:
                 self._last = {'command':command, 'button':button, 'lines':lines, 'frame':frame}

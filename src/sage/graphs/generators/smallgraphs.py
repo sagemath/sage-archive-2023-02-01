@@ -2983,8 +2983,11 @@ def SylvesterGraph():
     e = g.edge_iterator(labels = False).next()
     g.delete_vertices(g.neighbors(e[0]) + g.neighbors(e[1]))
     g.relabel()
+    ordering = [0, 1, 2, 4, 5, 9, 16, 35, 15, 18, 20, 30, 22, 6, 33, 32, 14,
+                10, 28, 29, 7, 24, 23, 26, 19, 12, 13, 21, 11, 31, 3, 27, 25,
+                17, 8, 34]
+    _circle_embedding(g,ordering, shift=.5)
     g.name("Sylvester Graph")
-    g.set_pos({})
     return g
 
 def SimsGewirtzGraph():
@@ -3020,8 +3023,12 @@ def SimsGewirtzGraph():
     e = g.edge_iterator(labels = False).next()
     g.delete_vertices(g.neighbors(e[0]) + g.neighbors(e[1]))
     g.relabel()
+    ordering = [0, 2, 3, 4, 6, 7, 8, 17, 1, 41, 49, 5, 22, 26, 11, 27, 15, 47,
+                53, 52, 38, 43, 44, 18, 20, 32, 19, 42, 54, 36, 51, 30, 33, 35,
+                37, 28, 34, 12, 29, 23, 55, 25, 40, 24, 9, 14, 48, 39, 45, 16,
+                13, 21, 31, 50, 10, 46]
+    _circle_embedding(g,ordering)
     g.name("Sims-Gewirtz Graph")
-    g.set_pos({})
     return g
 
 def ThomsenGraph():

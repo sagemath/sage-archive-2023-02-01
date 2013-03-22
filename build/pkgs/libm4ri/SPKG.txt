@@ -31,6 +31,9 @@ GF(2).  (See also m4ri/README for a brief overview.)
 
 == Releases/Changelog ==
 
+=== libm4ri-20130416 (Martin Albrecht, 22 March 2013) ===
+ * #14335: new upstream release
+
 === libm4ri-20121224 (Martin Albrecht, 21 December 2012) ===
  * #13858: new upstream release
 

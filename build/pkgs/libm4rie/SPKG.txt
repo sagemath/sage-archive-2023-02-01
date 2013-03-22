@@ -13,6 +13,8 @@ GF(2^k) for 2 <= k <= 10.
 
  * Martin Albrecht
 
+ SPKG Repository: https://bitbucket.org/malb/m4ri-spkg
+
 == Upstream Contact ==
 
  * Authors: Martin Albrecht
@@ -25,6 +27,9 @@ GF(2^k) for 2 <= k <= 10.
  * Givaro
 
 == Releases/Changelog ==
+
+=== libm4rie-20130416 (Martin Albrecht, 22 March 2013) ===
+ * #14336: new upstream release
 
 === libm4rie-20120613 (Martin Albrecht, 7 June 2012) ===
  * #12841: new upstream release

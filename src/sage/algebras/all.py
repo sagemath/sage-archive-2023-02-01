@@ -36,3 +36,5 @@ from group_algebra_new import GroupAlgebra
 from iwahori_hecke_algebra import IwahoriHeckeAlgebraT
 from affine_nil_temperley_lieb import AffineNilTemperleyLiebTypeA
 from nil_coxeter_algebra import NilCoxeterAlgebra
+
+from shuffle_algebra import ShuffleAlgebra

@@ -117,7 +117,7 @@ def install_package(package=None, force=False):
     With no arguments, list the installed packages::
 
         sage: install_package()
-        ['atlas...', 'blas...', ...]
+        [...'atlas...'python...]
 
     With an argument, install the named package::
 

@@ -16,7 +16,6 @@
 #
 #      SAGE_ROOT     -- root directory of sage install
 #      SAGE_LOCAL    -- $SAGE_ROOT/local
-#      SAGE_DATA     -- $SAGE_ROOT/data
 #      LIBRARY_PATH, PYTHONPATH, LD_LIBRARY_PATH, DYLD_LIBRARY_PATH
 #      CC, CXX, CFLAGS, CXXFLAGS, LDFLAGS, MAKE
 #

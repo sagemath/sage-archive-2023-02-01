@@ -1258,7 +1258,7 @@ class Graphics(SageObject):
         - ``figsize`` - (default: [8.0,6.0]) [width, height] inches. The
           maximum value of each of the width and the height can be 327
           inches, at the default ``dpi`` of 100 dpi, which is just shy of
-          the maximum allowed value of 32768 dots per inch.
+          the maximum allowed value of 32768 dots (pixels).
 
         - ``fig_tight`` - (default: True) whether to clip the drawing
           tightly around drawn objects.  If True, then the resulting
@@ -1791,8 +1791,10 @@ class Graphics(SageObject):
 
         TESTS:
 
-        The figsize width and height parameters must be less than 328
-        inches each, corresponding to the maximum allowed dpi of 32768.::
+        The figsize width and height parameters (at default dpi) must be
+        less than 328 inches each, corresponding to the maximum allowed
+        pixels in each direction of 32768.  See :trac:`5956` for more about
+        the next several tests::
 
             sage: p = ellipse((0,0),4,1)
             sage: p.show(figsize=[328,10],dpi=100)
@@ -1817,6 +1819,19 @@ class Graphics(SageObject):
             has a bug in it and is not properly wrapped with sig_on(),
             sig_off(). You might want to run Sage under gdb with 'sage
             -gdb' to debug this.  Sage will now terminate.
+
+        The following tests ensure we give a good error message for
+        negative figsizes::
+
+            sage: P = plot(x^2,(x,0,1))
+            sage: P.show(figsize=[-1,1])
+            Traceback (most recent call last):
+            ...
+            AssertionError: figsize should be positive numbers, not -1 and 1
+            sage: P.show(figsize=-1)
+            Traceback (most recent call last):
+            ...
+            AssertionError: figsize should be positive, not -1
 
         """
         # This option should not be passed on to save().
@@ -2239,8 +2254,14 @@ class Graphics(SageObject):
         self.axes_labels(l=axes_labels)
 
         if figsize is not None and not isinstance(figsize, (list, tuple)):
+            # in this case, figsize is a number and should be positive
+            assert figsize > 0, "figsize should be positive, not {0}".format(figsize)
             default_width, default_height=rcParams['figure.figsize']
             figsize=(figsize, default_height*figsize/default_width)
+
+        if figsize is not None:
+            # then the figsize should be two positive numbers
+            assert figsize[0] > 0 and figsize[1] > 0, "figsize should be positive numbers, not {0} and {1}".format(figsize[0],figsize[1])
 
         if figure is None:
             figure=Figure(figsize=figsize)

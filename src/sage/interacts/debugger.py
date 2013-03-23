@@ -25,7 +25,7 @@ def test_function2(a, b):
     y = a * b
     return x, y, x<y, x>y   # < to ensure HTML is properly escaped
 
-def test_function(n, m):
+def test_function(n, m,level=10):
     """
     Used for doctesting the notebook debugger.
 
@@ -35,7 +35,10 @@ def test_function(n, m):
         (5, 6, True, False)
     """
     # call another function so the stack is bigger
-    return test_function2(m, n)
+    if level > 0:
+        return test_function(n,m,level=level-1)
+    else:
+        return test_function2(m, n)
 
 
 class Debug:
@@ -54,7 +57,7 @@ class Debug:
         sage: a = sage0.eval("sage.interacts.debugger.test_function('n', 'm')")
         sage: d = sage0('sage.interacts.debugger.Debug()')
         sage: d._curframe_index
-        3
+        8
     """
     def __init__(self):
         """
@@ -162,7 +165,7 @@ class Debug:
                  ...
              sage: _ = sage0.eval('d._curframe_index -= 1')
              sage: print sage0("d.listing(1)")
-                 3...     # call another function so the stack is bigger
+                 4...       else:
              --&gt; ...      test_function2(m, n)
                  ...
                  <hr>> <a href="/src/interacts/debugger.py" target="_new">devel/sage/sage/interacts/debugger.py</a>

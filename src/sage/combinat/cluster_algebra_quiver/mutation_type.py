@@ -1189,25 +1189,32 @@ def load_data( n ):
     and with values being lists or sets containing all mutation equivalent
     quivers as dig6 data.
 
+    We check
+     - if the data is stored by the user, and if this is not the case
+     - if the data is stored by the optional package install
+
     EXAMPLES::
 
         sage: from sage.combinat.cluster_algebra_quiver.mutation_type import load_data
         sage: load_data(2) # random
         {('G', 2): [('AO', (((0, 1), (1, -3)),)), ('AO', (((0, 1), (3, -1)),))]}
-
     """
     import os.path
     import cPickle
-    from sage.misc.misc import SAGE_SHARE
-    types_path = os.path.join(SAGE_SHARE, 'cluster_algebra_quiver')
-    types_file = types_path+'/mutation_classes_%s.dig6'%n
-    if os.path.isfile(types_file):
-        f = open(types_file,'r')
-        data = cPickle.load(f)
-        f.close()
-        return data
-    else:
-        return {}
+    from sage.misc.misc import DOT_SAGE, SAGE_SHARE
+    relative_filename = 'cluster_algebra_quiver/mutation_classes_%s.dig6'%n
+    getfilename = lambda path: os.path.join(path,relative_filename)
+    # we check
+    # - if the data is stored by the user, and if this is not the case
+    # - if the data is stored by the optional package install
+    data_dict = dict()
+    for filename in [getfilename(DOT_SAGE),getfilename(SAGE_SHARE)]:
+        if os.path.isfile(filename):
+            f = open(filename,'r')
+            data_new = cPickle.load(f)
+            f.close()
+            data_dict.update(data_new)
+    return data_dict
 
 def _mutation_type_from_data( n, dig6, compute_if_necessary=True ):
     r"""

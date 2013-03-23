@@ -2059,7 +2059,7 @@ def _construct_exceptional_mutation_classes(n):
 
 def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
     """
-    Saves all exceptional mutation classes as dig6 data into the file ``exc_classes_n.dig6`` in the folder ``SAGE_SHARE``.
+    Saves all exceptional mutation classes as dig6 data into the file ``exc_classes_n.dig6`` in the folder ``DOT_SAGE``.
 
     TESTS::
 
@@ -2101,11 +2101,10 @@ def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
     if types in possible_types[1:]:
         data.update(_construct_exceptional_mutation_classes(n))
 
-    from sage.misc.misc import SAGE_SHARE
-    types_path = os.path.join(SAGE_SHARE, 'cluster_algebra_quiver')
-    types_file = types_path+'/mutation_classes_%s.dig6'%n
-    if not os.path.exists(types_path):
-        os.makedirs(types_path)
+    from sage.misc.misc import DOT_SAGE, sage_makedirs
+    types_path = os.path.join(DOT_SAGE, 'cluster_algebra_quiver')
+    types_file = os.path.join(types_path,'mutation_classes_%s.dig6'%n)
+    sage_makedirs(types_path)
     f = open(types_file,'w')
     cPickle.dump(data, f)
     f.close()
@@ -2118,7 +2117,7 @@ def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
 def save_quiver_data(n, up_to=True, types='ClassicalExceptional', verbose=True):
     r"""
     Saves mutation classes of certain quivers of ranks up to and equal to ``n`` or equal to ``n``
-    to ``SAGE_SHARE/cluster_algebra_quiver/mutation_classes_n.dig6``.
+    to ``DOT_SAGE/cluster_algebra_quiver/mutation_classes_n.dig6``.
 
     This data will then be used to determine quiver mutation types.
 
@@ -2160,12 +2159,15 @@ def save_quiver_data(n, up_to=True, types='ClassicalExceptional', verbose=True):
 
         sage: save_quiver_data(2,up_to=False, verbose=False)
     """
+    from sage.combinat.cluster_algebra_quiver.mutation_type import load_data
     if up_to is True:
         ranks = range(1,n+1)
     elif up_to is False:
         ranks = [n]
     for i in ranks:
         _save_data_dig6(i,types=types,verbose=verbose)
+    # we finally clear the load_data
+    load_data.clear_cache()
 
 def _bipartite_graph_to_digraph( g ):
     """

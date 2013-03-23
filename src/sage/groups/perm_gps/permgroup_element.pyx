@@ -67,6 +67,7 @@ from sage.matrix.all     import MatrixSpace
 from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 import sage.structure.coerce as coerce
+from sage.misc.superseded import deprecated_function_alias
 
 import operator
 
@@ -497,7 +498,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
            sage: func(*args)
            (1,2,3)(4,5)
         """
-        return make_permgroup_element_v2, (self._parent, self.list(), self._parent.domain())
+        return make_permgroup_element_v2, (self._parent, self.domain(), self._parent.domain())
 
     cdef PermutationGroupElement _new_c(self):
         cdef PermutationGroupElement other = PY_NEW_SAME_TYPE(self)
@@ -917,23 +918,24 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         from sage.combinat.permutation import Permutation
         return Permutation(self._gap_list()).cycle_string()
 
-    cpdef list(self):
+    list = deprecated_function_alias(14319, domain)
+
+    cpdef domain(self):
         """
-        Returns list of the images of the integers from 1 to n under this
-        permutation as a list of Python ints.
+        Returns the domain of self.
 
         EXAMPLES::
 
             sage: G = SymmetricGroup(4)
             sage: x = G([2,1,4,3]); x
             (1,2)(3,4)
-            sage: v = x.list(); v
+            sage: v = x.domain(); v
             [2, 1, 4, 3]
             sage: type(v[0])
             <type 'int'>
             sage: x = G([2,1]); x
             (1,2)
-            sage: x.list()
+            sage: x.domain()
             [2, 1, 3, 4]
 
         TESTS::
@@ -941,7 +943,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             sage: S = SymmetricGroup(0)
             sage: x = S.one(); x
             ()
-            sage: x.list()
+            sage: x.domain()
             []
         """
         cdef int i
@@ -991,7 +993,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             ('b', 'a')
         """
         if self.__tuple is None:
-            self.__tuple = tuple(self.list())
+            self.__tuple = tuple(self.domain())
         return self.__tuple
 
     def dict(self):

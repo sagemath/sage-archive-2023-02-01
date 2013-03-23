@@ -1803,9 +1803,9 @@ def SC_test_list_perms(list L, int n, int limit, bint gap, bint limit_complain, 
                 raise AssertionError
             if test_contains:
                 for i from 0 <= i < 3:
-                    permy = G.random_element().list()
+                    permy = G.random_element()
                     for j from 0 <= j < n:
-                        perm[j] = permy[j]-1
+                        perm[j] = permy(j+1)-1
                     if not SC_contains(SC, 0, perm, 0):
                         print "FAIL", L
                         print 'element', permy

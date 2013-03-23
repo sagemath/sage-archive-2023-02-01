@@ -128,7 +128,7 @@ def coset_eq(list perm1=[0,1,2,3,4,5], list perm2=[1,2,3,4,5,0], list gens=[[1,2
         sage: gens = [[1,2,3,0]]
         sage: reps = [[0,1,2,3]]
         sage: for p in SymmetricGroup(4):
-        ...     p = [a-1 for a in p.list()]
+        ...     p = [p(i)-1 for i in range(1,5)]
         ...     found = False
         ...     for r in reps:
         ...         if coset_eq(p, r, gens):
@@ -141,7 +141,7 @@ def coset_eq(list perm1=[0,1,2,3,4,5], list perm2=[1,2,3,4,5,0], list gens=[[1,2
         sage: gens = [[1,0,2,3],[0,1,3,2]]
         sage: reps = [[0,1,2,3]]
         sage: for p in SymmetricGroup(4):
-        ...     p = [a-1 for a in p.list()]
+        ...     p = [p(i)-1 for i in range(1,5)]
         ...     found = False
         ...     for r in reps:
         ...         if coset_eq(p, r, gens):
@@ -154,7 +154,7 @@ def coset_eq(list perm1=[0,1,2,3,4,5], list perm2=[1,2,3,4,5,0], list gens=[[1,2
         sage: gens = [[1,2,0,3]]
         sage: reps = [[0,1,2,3]]
         sage: for p in SymmetricGroup(4):
-        ...     p = [a-1 for a in p.list()]
+        ...     p = [p(i)-1 for i in range(1,5)]
         ...     found = False
         ...     for r in reps:
         ...         if coset_eq(p, r, gens):

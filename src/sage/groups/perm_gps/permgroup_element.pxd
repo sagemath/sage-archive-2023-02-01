@@ -10,7 +10,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
     cdef __tuple
     cdef PermutationGroupElement _new_c(self)
     cpdef _gap_list(self)
-    cpdef list(self)
+    cpdef domain(self)
     cdef public __custom_name
     cpdef list _act_on_list_on_position(self, list x)
     cpdef ClonableIntArray _act_on_array_on_position(self, ClonableIntArray x)

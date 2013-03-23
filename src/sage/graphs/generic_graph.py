@@ -15658,6 +15658,7 @@ class GenericGraph(GenericGraph_pyx):
 
         Relabeling using a Sage permutation::
 
+            sage: G = graphs.PathGraph(3)
             sage: from sage.groups.perm_gps.permgroup_named import SymmetricGroup
             sage: S = SymmetricGroup(3)
             sage: gamma = S('(1,2)')
@@ -15790,11 +15791,10 @@ class GenericGraph(GenericGraph_pyx):
         elif isinstance(perm, PermutationGroupElement):
             n = self.order()
             ddict = {}
-            llist = perm.list()
             for i in xrange(1,n):
-                ddict[i] = llist[i-1]%n
+                ddict[i] = perm(i)%n
             if n > 0:
-                ddict[0] = llist[n-1]%n
+                ddict[0] = perm(n)%n
             perm = ddict
 
         elif callable(perm):

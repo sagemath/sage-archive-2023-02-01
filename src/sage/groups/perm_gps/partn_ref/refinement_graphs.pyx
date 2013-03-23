@@ -901,7 +901,7 @@ def orbit_partition(gamma, list_perm=False):
                 seen[i] = 1
         return partition
     else:
-        n = len(gamma.list())
+        n = len(gamma.domain())
         l = []
         for i in range(1,n+1):
             orb = gamma.orbit(i)

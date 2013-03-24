@@ -20,7 +20,7 @@ AUTHORS:
 import random, os, sys, time, json, re, types
 import sage.misc.flatten
 from sage.structure.sage_object import SageObject
-from sage.misc.misc import DOT_SAGE
+from sage.env import DOT_SAGE, SAGE_LIB, SAGE_SRC
 
 from sources import FileDocTestSource, DictAsObject
 from forker import DocTestDispatcher
@@ -828,7 +828,7 @@ def run_doctests(module, options=None):
             F = [stringify(a) for a in x]
             return sage.misc.flatten.flatten(F)
         elif isinstance(x, types.ModuleType):
-            F = re.sub(os.path.join("local","lib", r"python[0-9\.]*","site-packages"),os.path.join("devel","sage"),x.__file__)
+            F = x.__file__.replace(SAGE_LIB, SAGE_SRC)
             base, pyfile = os.path.split(F)
             file, ext = os.path.splitext(pyfile)
             if ext == ".pyc":

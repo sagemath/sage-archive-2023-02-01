@@ -31,7 +31,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import generator
 from sage.rings.arith import binomial
 from sage.rings.integer_ring import ZZ
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -389,14 +388,14 @@ def iterator(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
 
     #Handle the case where n is a list of integers
     if isinstance(n, __builtin__.list):
-        iterators = [iterator(i, min_length, max_length, floor, ceiling, min_slope, max_slope) for i in range(n[0], min(n[1]+1,upper_bound(min_length, max_length, floor, ceiling, min_slope, max_slope)))]
-
-        return generator.concat(iterators)
+        for i in range(n[0], min(n[1]+1,upper_bound(min_length, max_length, floor, ceiling, min_slope, max_slope))):
+            for el in iterator(i, min_length, max_length, floor, ceiling, min_slope, max_slope):
+                yield el
     else:
         f = first(n, min_length, max_length, floor, ceiling, min_slope, max_slope)
-        if f == None:
-            return generator.element(None, 0)
-        return generator.successor(f, succ)
+        while not f is None:
+            yield f
+            f = succ(f)
 
 def list(n, min_length, max_length, floor, ceiling, min_slope, max_slope):
     """

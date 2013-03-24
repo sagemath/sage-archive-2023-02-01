@@ -11,5 +11,5 @@ Developer Tools
    ../sage/combinat/choose_nk
    ../sage/combinat/multichoose_nk
    ../sage/combinat/tools
-   ../sage/combinat/generator
    ../sage/combinat/ranker
+

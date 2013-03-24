@@ -142,7 +142,7 @@ class DocBuilder(object):
             sage: import os, sys; sys.path.append(os.environ['SAGE_DOC']+'/common/'); import builder
             sage: b = builder.DocBuilder('tutorial')
             sage: b._output_dir('html')
-            '.../devel/sage/doc/output/html/en/tutorial'
+            '.../doc/output/html/en/tutorial'
         """
         d = os.path.join(SAGE_DOC, "output", type, self.lang, self.name)
         mkdir(d)
@@ -159,7 +159,7 @@ class DocBuilder(object):
             sage: import os, sys; sys.path.append(os.environ['SAGE_DOC']+'/common/'); import builder
             sage: b = builder.DocBuilder('tutorial')
             sage: b._doctrees_dir()
-            '.../devel/sage/doc/output/doctrees/en/tutorial'
+            '.../doc/output/doctrees/en/tutorial'
         """
         d = os.path.join(SAGE_DOC, "output", 'doctrees', self.lang, self.name)
         mkdir(d)
@@ -448,7 +448,7 @@ class ReferenceBuilder(AllBuilder):
             sage: import os, sys; sys.path.append(os.environ['SAGE_DOC']+'/common/'); import builder
             sage: b = builder.ReferenceBuilder('reference')
             sage: b._output_dir('html')
-            '.../devel/sage/doc/output/html/en/reference'
+            '.../doc/output/html/en/reference'
         """
         d = os.path.join(SAGE_DOC, "output", type, lang, self.name)
         mkdir(d)
@@ -914,7 +914,7 @@ class ReferenceSubBuilder(DocBuilder):
             sage: import os, sys; sys.path.append(os.environ['SAGE_DOC']+'/common/'); import builder
             sage: import builder
             sage: builder.ReferenceSubBuilder("reference").auto_rest_filename("sage.combinat.partition")
-            '.../devel/sage/doc/en/reference/sage/combinat/partition.rst'
+            '.../doc/en/reference/sage/combinat/partition.rst'
         """
         return self.dir + os.path.sep + module_name.replace('.',os.path.sep) + '.rst'
 

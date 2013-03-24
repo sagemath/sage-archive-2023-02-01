@@ -433,7 +433,8 @@ cdef _order_pairs_according_elimination_ordering(elim, int N, pair *pairs, uint3
                 if j<jmax:
                     _invert_cells(pairs, j, jmax)
 
-                jmax -= 1
+                if jmax>0:
+                    jmax -= 1
 
             else: # This pair is at a correct position.
                 j += 1

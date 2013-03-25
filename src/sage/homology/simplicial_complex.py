@@ -1978,6 +1978,15 @@ class SimplicialComplex(GenericCellComplex):
 
             sage: Y.add_face([1,3]); Y
             Simplicial complex with vertex set (0, 1, 2, 3) and facets {(1, 2, 3), (0, 1)}
+
+        Check that the bug reported at :trac:`14354` has been fixed::
+
+            sage: T = SimplicialComplex([range(1,5)]).n_skeleton(1)
+            sage: T.homology()
+            {0: 0, 1: Z x Z x Z}
+            sage: T.add_face([1,2,3])
+            sage: T.homology()
+            {0: 0, 1: Z x Z, 2: 0}
         """
         if not self._is_mutable:
             raise ValueError("This simplicial complex is not mutable")
@@ -2016,6 +2025,9 @@ class SimplicialComplex(GenericCellComplex):
                 for i in range(d):
                     for j in range(i+1,d):
                         self._graph.add_edge(new_face[i],new_face[j])
+            self._complex = {}
+            self.__contractible = None
+            self.__enlarged = {}
 
     def remove_face(self, face):
         """
@@ -2100,6 +2112,9 @@ class SimplicialComplex(GenericCellComplex):
                 self._graph.add_vertex(face[0])
             elif len(face) == 2:
                 self._graph.delete_edge(face[0], face[1])
+        self._complex = {}
+        self.__contractible = None
+        self.__enlarged = {}
 
     def connected_sum(self, other, is_mutable=True):
         """

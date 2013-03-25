@@ -1954,10 +1954,10 @@ def _construct_classical_mutation_classes(n):
 
     sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _construct_classical_mutation_classes
     sage: rank_2_classes = _construct_classical_mutation_classes(2) # long time
-    sage: for mut_class in sorted(rank_2_classes.keys()): # long time
+    sage: for mut_class in sorted(rank_2_classes.keys(),key=str): # long time
     ...     print mut_class, rank_2_classes[mut_class]
-    ('A', 2) [('AO', ())]
     ('A', (1, 1), 1) [('AO', (((0, 1), (2, -2)),))]
+    ('A', 2) [('AO', ())]
     ('B', 2) [('AO', (((0, 1), (1, -2)),)), ('AO', (((0, 1), (2, -1)),))]
     ('BC', 1, 1) [('AO', (((0, 1), (1, -4)),)), ('AO', (((0, 1), (4, -1)),))]
     """
@@ -2009,7 +2009,7 @@ def _construct_exceptional_mutation_classes(n):
 
     sage: from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _construct_exceptional_mutation_classes
     sage: rank_3_exceptional = _construct_exceptional_mutation_classes(3) # long time
-    sage: for mut_class in sorted(rank_3_exceptional.keys()): # long time
+    sage: for mut_class in sorted(rank_3_exceptional.keys(), key=str): # long time
     ...     print mut_class, rank_3_exceptional[mut_class]
     ('G', 2, -1) [('BH?', (((1, 2), (1, -3)),)), ('BGO', (((2, 1), (3, -1)),)), ('BW?', (((0, 1), (3, -1)),)), ('BP?', (((0, 1), (1, -3)),)),
      ('BP_', (((0, 1), (1, -3)), ((2, 0), (3, -1)))), ('BP_', (((0, 1), (3, -1)), ((1, 2), (1, -3)), ((2, 0), (2, -2))))]
@@ -2070,17 +2070,17 @@ def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
         [('A', 1)]
         <BLANKLINE>
         The following types are saved to file ... and will now be used to determine quiver mutation types:
-        [('A', 2), ('A', (1, 1), 1), ('B', 2), ('BC', 1, 1), ('G', 2)]
+        [('A', (1, 1), 1), ('A', 2), ('B', 2), ('BC', 1, 1), ('G', 2)]
 
         sage: save_quiver_data(2,up_to=False) # indirect doctest
         <BLANKLINE>
         The following types are saved to file ... and will now be used to determine quiver mutation types:
-        [('A', 2), ('A', (1, 1), 1), ('B', 2), ('BC', 1, 1), ('G', 2)]
+        [('A', (1, 1), 1), ('A', 2), ('B', 2), ('BC', 1, 1), ('G', 2)]
 
         sage: save_quiver_data(2,up_to=False, types='Classical') # indirect doctest
         <BLANKLINE>
         The following types are saved to file ... and will now be used to determine quiver mutation types:
-        [('A', 2), ('A', (1, 1), 1), ('B', 2), ('BC', 1, 1)]
+        [('A', (1, 1), 1), ('A', 2), ('B', 2), ('BC', 1, 1)]
 
         sage: save_quiver_data(2,up_to=False, types='Exceptional') # indirect doctest
         <BLANKLINE>
@@ -2109,8 +2109,7 @@ def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
     cPickle.dump(data, f)
     f.close()
     if verbose:
-        keys = data.keys()
-        keys.sort()
+        keys = sorted(data.keys(),key=str)
         print "\nThe following types are saved to file", types_file,"and will now be used to determine quiver mutation types:"
         print keys
 
@@ -2140,17 +2139,17 @@ def save_quiver_data(n, up_to=True, types='ClassicalExceptional', verbose=True):
         [('A', 1)]
         <BLANKLINE>
         The following types are saved to file ... and will now be used to determine quiver mutation types:
-        [('A', 2), ('A', (1, 1), 1), ('B', 2), ('BC', 1, 1), ('G', 2)]
+        [('A', (1, 1), 1), ('A', 2), ('B', 2), ('BC', 1, 1), ('G', 2)]
 
         sage: save_quiver_data(2,up_to=False)
         <BLANKLINE>
         The following types are saved to file ... and will now be used to determine quiver mutation types:
-        [('A', 2), ('A', (1, 1), 1), ('B', 2), ('BC', 1, 1), ('G', 2)]
+        [('A', (1, 1), 1), ('A', 2), ('B', 2), ('BC', 1, 1), ('G', 2)]
 
         sage: save_quiver_data(2,up_to=False, types='Classical')
         <BLANKLINE>
         The following types are saved to file ... and will now be used to determine quiver mutation types:
-        [('A', 2), ('A', (1, 1), 1), ('B', 2), ('BC', 1, 1)]
+        [('A', (1, 1), 1), ('A', 2), ('B', 2), ('BC', 1, 1)]
 
         sage: save_quiver_data(2,up_to=False, types='Exceptional')
         <BLANKLINE>

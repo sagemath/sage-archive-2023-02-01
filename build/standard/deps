@@ -3,7 +3,6 @@
 # $SAGE_ROOT/spkg/Makefile by $SAGE_ROOT/spkg/install
 ###############################################################################
 
-INST = installed
 # Let e.g. SAGE_ROOT/spkg/install pass options to sage-spkg, i.e. currently
 # "-f", to force rebuilding dependent packages during an upgrade (#9896).
 #

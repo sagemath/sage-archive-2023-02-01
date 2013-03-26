@@ -448,6 +448,9 @@ TERMCAP=`newest_version termcap`
 ZLIB=`newest_version zlib`
 ZNPOLY=`newest_version zn_poly`
 
+# Directory to keep track of which packages are installed
+INST=`echo "$SAGE_SPKG_INST" | sed 's/ /\\\\ /g'`
+
 EOF
 
 # $(TOOLCHAIN) variable containing prerequisites for the build
@@ -487,8 +490,6 @@ if [ -z "$MAKE" ]; then
     MAKE=make
 fi
 
-INST="`echo ${SAGE_SPKG_INST:-installed} | sed 's/ /\\\\ /g'`"
-
 # * If "make" doesn't understand the -q option (although we require
 #   GNU make, which supports it), it should exit with a non-zero status
 #   which is not a problem.
@@ -498,7 +499,7 @@ INST="`echo ${SAGE_SPKG_INST:-installed} | sed 's/ /\\\\ /g'`"
 #   which doesn't check MAKEFLAGS.
 #   See Trac #12248 and also #12016.
 if [ -f "$SAGE_ROOT/spkg/bin/sage-spkg" ]; then
-    if $MAKE -q INST="$INST" "$@"; then
+    if $MAKE -q "$@"; then
         echo "Nothing to (re)build / all up-to-date."
         exit 0
     fi
@@ -512,7 +513,7 @@ echo "***********************************************"
 ###############################################################################
 # NOW do the actual build:
 ###############################################################################
-time $MAKE INST="$INST" "$@"
+time $MAKE "$@"
 if [ $? -ne 0 ]; then
     cat >&2 <<EOF
 ***************************************************************

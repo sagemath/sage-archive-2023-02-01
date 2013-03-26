@@ -1,3 +1,4 @@
+## -*- encoding: utf-8 -*-
 """
 This module contains functions and classes that parse docstrings.
 
@@ -21,8 +22,7 @@ AUTHORS:
 import re, sys
 import doctest
 import collections
-from sage.misc.preparser import preparse
-from Cython.Build.Dependencies import strip_string_literals
+from sage.misc.preparser import preparse, strip_string_literals
 
 float_regex = re.compile('([+-]?((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
 optional_regex = re.compile(r'(long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
@@ -70,12 +70,18 @@ def parse_optional_tags(string):
         set([])
         sage: parse_optional_tags("    sage: print '  # long time'  # not tested")
         set(['not tested'])
+
+    UTF-8 works::
+
+         sage: parse_optional_tags("'ěščřžýáíéďĎ'")
+         set([])
     """
-    safe, literals = strip_string_literals(string)
+    safe, literals, state = strip_string_literals(string)
     first_line = safe.split('\n', 1)[0]
     if '#' not in first_line:
         return set()
     comment = first_line[first_line.find('#')+1:]
+    comment = comment[comment.index('(')+1 : comment.rindex(')')]
     # strip_string_literals replaces comments
     comment = "#" + (literals[comment]).lower()
 
@@ -119,11 +125,12 @@ def parse_tolerance(source, want):
         sage: marked.abs_tol
         0.01
     """
-    safe, literals = strip_string_literals(source)
+    safe, literals, state = strip_string_literals(source)
     first_line = safe.split('\n', 1)[0]
     if '#' not in first_line:
         return want
     comment = first_line[first_line.find('#')+1:]
+    comment = comment[comment.index('(')+1 : comment.rindex(')')]
     # strip_string_literals replaces comments
     comment = literals[comment]
     if random_marker.search(comment):

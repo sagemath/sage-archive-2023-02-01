@@ -62,7 +62,7 @@ def pushover(message, **kwds):
     To set default values populate ``pushover_defaults``::
 
         sage: sage.misc.messaging.pushover_defaults["user"] = "USER_TOKEN"
-        sage: sage.misc.messaging.pushover("Hi, how are you?"") # not tested
+        sage: sage.misc.messaging.pushover("Hi, how are you?") # not tested
 
     .. note::
 

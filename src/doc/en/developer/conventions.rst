@@ -420,7 +420,7 @@ a guide.
           Improve further function ``have_fresh_beers`` using algorithm
           ``buy_a_better_fridge``::
 
-              sage: have_fresh_beers('Bière de l'Yvette') # todo: not implemented
+              sage: have_fresh_beers('Bière de l\'Yvette') # todo: not implemented
               Enjoy !
 
 - A REFERENCES block to list books or papers (optional). This block serves

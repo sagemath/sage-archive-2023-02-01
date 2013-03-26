@@ -35,6 +35,18 @@ tolerance_pattern = re.compile(r'\b((?:abs(?:olute)?)|(?:rel(?:ative)?))? *?tol(
 backslash_replacer = re.compile(r"""(\s*)sage:(.*)\\\ *
 \ *(((\.){4}:)|((\.){3}))?\ *""")
 
+
+# This is the correct pattern to match ISO/IEC 6429 ANSI escape sequences:
+#
+#ansi_escape_sequence = re.compile(r'(\x1b[@-Z\\-~]|\x1b\[.*?[@-~]|\x9b.*?[@-~])')
+#
+# We use this incorrect version to avoid accidental matches for \x9b
+# in UTF-8 bytestrings, even though there are none in the Sage
+# library. Once we have a unicode-aware doctest framework, we should
+# use the correct pattern including \x9b
+ansi_escape_sequence = re.compile(r'(\x1b[@-Z\\-~]|\x1b\[.*?[@-~])')
+
+
 def parse_optional_tags(string):
     """
     Returns a set consisting of the optional tags from the following
@@ -582,6 +594,36 @@ class SageOutputChecker(doctest.OutputChecker):
         sage: OC.check_output(ex.want, 'x + 0.8935153492877', optflag)
         False
     """
+    def human_readable_escape_sequences(self, string):
+        """
+        Make ANSI escape sequences human readable.
+
+        EXAMPLES::
+
+            sage: print 'This ist \x1b[1mbold\x1b[0m text'
+            This ist <CSI-1m>bold<CSI-0m> text
+
+        TESTS::
+
+            sage: from sage.doctest.parsing import SageOutputChecker
+            sage: OC = SageOutputChecker()
+            sage: teststr = '-'.join([
+            ...       'bold\x1b[1m',
+            ...       'newlinemode\x9b20h',
+            ...       'red\x1b[31m',
+            ...       'oscmd\x1ba'])
+            sage: OC.human_readable_escape_sequences(teststr)
+            'bold<CSI-1m>-newlinemode\x9b20h-red<CSI-31m>-oscmd<ESC-a>'
+        """
+        def human_readable(match):
+            ansi_escape = match.group(1)
+            assert len(ansi_escape) >= 2
+            if len(ansi_escape) == 2:
+                return '<ESC-'+ansi_escape[1]+'>'
+            else:
+                return '<CSI-'+ansi_escape.lstrip('\x1b[\x9b')+'>'
+        return ansi_escape_sequence.subn(human_readable, string)[0]
+
     def check_output(self, want, got, optionflags):
         """
         Checks to see if the output matches the desired output.
@@ -677,6 +719,7 @@ class SageOutputChecker(doctest.OutputChecker):
             sage: print "1.000009"   # abs tol 1e-5
             1.0
         """
+        got = self.human_readable_escape_sequences(got)
         if isinstance(want, MarkedOutput):
             if want.random:
                 return True
@@ -820,6 +863,7 @@ class SageOutputChecker(doctest.OutputChecker):
             Tolerance exceeded: infinity > 1e-01
 
         """
+        got = self.human_readable_escape_sequences(got)
         want = example.want
         diff = doctest.OutputChecker.output_difference(self, example, got, optionflags)
         if isinstance(want, MarkedOutput) and (want.tol or want.abs_tol or want.rel_tol):

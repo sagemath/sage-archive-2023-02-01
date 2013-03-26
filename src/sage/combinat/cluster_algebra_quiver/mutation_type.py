@@ -1257,15 +1257,15 @@ def _mutation_type_test( n ):
         sage: from sage.combinat.cluster_algebra_quiver.mutation_type import _mutation_type_test
 
         sage: _mutation_type_test(2) # long time
-        True ('A', 2)
         True ('A', (1, 1), 1)
+        True ('A', 2)
         True ('B', 2)
         True ('BC', 1, 1)
         True ('G', 2)
 
         sage: _mutation_type_test(3) # long time
-        True ('A', 3)
         True ('A', (2, 1), 1)
+        True ('A', 3)
         True ('B', 3)
         True ('BB', 2, 1)
         True ('BC', 2, 1)
@@ -1275,9 +1275,9 @@ def _mutation_type_test( n ):
         True ('G', 2, 1)
 
         sage: _mutation_type_test(4) # long time
-        True ('A', 4)
         True ('A', (2, 2), 1)
         True ('A', (3, 1), 1)
+        True ('A', 4)
         True ('B', 4)
         True ('BB', 3, 1)
         True ('BC', 3, 1)
@@ -1288,13 +1288,13 @@ def _mutation_type_test( n ):
         True ('D', 4)
         True ('F', 4)
         True ('G', 2, (1, 1))
-        True ('G', 2, (3, 3))
         True ('G', 2, (1, 3))
+        True ('G', 2, (3, 3))
 
         sage: _mutation_type_test(5) # long time
-        True ('A', 5)
         True ('A', (3, 2), 1)
         True ('A', (4, 1), 1)
+        True ('A', 5)
         True ('B', 5)
         True ('BB', 4, 1)
         True ('BC', 4, 1)
@@ -1304,21 +1304,21 @@ def _mutation_type_test( n ):
         True ('CD', 4, 1)
         False ('D', 4, 1)
         True ('D', 5)
-        True ('F', 4, 1)
         True ('F', 4, -1)
+        True ('F', 4, 1)
     """
     from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _construct_classical_mutation_classes
     from sage.combinat.cluster_algebra_quiver.mutation_class import _dig6_to_matrix, _matrix_to_digraph, _digraph_mutate, _edge_list_to_matrix, _dig6_to_digraph
     from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
     data = _construct_classical_mutation_classes( n )
     keys = data.keys()
-    keys.sort()
-    for mutation_type in keys:
+    for mutation_type in sorted(keys, key=str):
         mt = QuiverMutationType( mutation_type )
         print all( ClusterQuiver(_dig6_to_digraph(dig6)).mutation_type() == mt for dig6 in data[mutation_type]), mutation_type
     from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _construct_exceptional_mutation_classes
     data = _construct_exceptional_mutation_classes( n )
-    for mutation_type in data:
+    keys = data.keys()
+    for mutation_type in sorted(keys, key=str):
         mt = QuiverMutationType( mutation_type )
         print all( ClusterQuiver(_dig6_to_digraph(dig6)).mutation_type() == mt for dig6 in data[mutation_type]), mutation_type
 
@@ -1420,14 +1420,14 @@ def _random_multi_tests( n, k, nr_mut=5 ):
 
         sage: from sage.combinat.cluster_algebra_quiver.mutation_type import _random_multi_tests
         sage: _random_multi_tests(2,100) # long time
-        testing ('A', 2)
         testing ('A', (1, 1), 1)
+        testing ('A', 2)
         testing ('B', 2)
         testing ('BC', 1, 1)
 
         sage: _random_multi_tests(3,100) # long time
-        testing ('A', 3)
         testing ('A', (2, 1), 1)
+        testing ('A', 3)
         testing ('B', 3)
         testing ('BB', 2, 1)
         testing ('BC', 2, 1)
@@ -1435,9 +1435,9 @@ def _random_multi_tests( n, k, nr_mut=5 ):
         testing ('CC', 2, 1)
 
         sage: _random_multi_tests(4,100) # long time
-        testing ('A', 4)
         testing ('A', (2, 2), 1)
         testing ('A', (3, 1), 1)
+        testing ('A', 4)
         testing ('B', 4)
         testing ('BB', 3, 1)
         testing ('BC', 3, 1)
@@ -1449,5 +1449,5 @@ def _random_multi_tests( n, k, nr_mut=5 ):
     """
     from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import _construct_classical_mutation_classes
     mutation_classes = _construct_classical_mutation_classes( n )
-    for mutation_type in sorted(mutation_classes):
+    for mutation_type in sorted(mutation_classes, key=str):
         _random_tests( mutation_type, k, mut_class=mutation_classes[mutation_type], nr_mut=nr_mut )

@@ -191,8 +191,6 @@ class DocTestController(SageObject):
                 options.optional = set(options.optional.lower().split(','))
         self.options = options
         self.files = args
-        if options.all and options.logfile is None:
-            options.logfile = os.path.join(os.environ['SAGE_TESTDIR'], 'test.log')
         if options.logfile:
             try:
                 self.logfile = open(options.logfile, 'a')

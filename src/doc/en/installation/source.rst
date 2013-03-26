@@ -982,10 +982,6 @@ Sage overrides the user's settings of the following variables:
 
 Variables dealing with doctesting:
 
-- :envvar:`SAGE_TESTDIR` - a temporary directory used during Sage's
-  doctesting.  The default is to use the directory ``$DOT_SAGE/tmp``,
-  but you can override that by setting this variable.
-
 - :envvar:`SAGE_TIMEOUT` - used for Sage's doctesting: the number of
   seconds to allow a doctest before timing it out.  If this isn't set,
   the default is 360 seconds (6 minutes).

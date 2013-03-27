@@ -197,7 +197,7 @@ The following command plots the function
 
 ::
 
-    sage: maxima.plot2d('cos(2*x) + 2*exp(-x)','[x,0,1]', # optional -- pops up a window.
+    sage: maxima.plot2d('cos(2*x) + 2*exp(-x)','[x,0,1]',  # not tested (pops up a window)
     ....: '[plot_format,openmath]')
 
 (Mac OS X users: Note that these ``openmath`` commands were run in a

@@ -775,7 +775,7 @@ connection to a server running Maple; for hints, type
 
         ::
 
-            sage: maple.quit()   # optional -- to reset maple.
+            sage: maple.quit()   # reset maple; optional -- maple
             sage: maple('partition(10)')              # optional - maple
             partition(10)
             sage: maple('bell(10)')                   # optional - maple

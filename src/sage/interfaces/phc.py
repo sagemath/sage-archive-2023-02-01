@@ -9,24 +9,27 @@ order to better approximate all isolated solutions. The package also
 includes extra tools to handle positive dimensional solution
 components.
 
-AUTHOR:
-   -- PHC was written by J. Verschelde, R. Cools, and many others (?)
-   -- William Stein and Kelly ?? -- first version of interface to PHC
-   -- Marshall Hampton -- second version of interface to PHC
-   -- Marshall Hampton and Alex Jokela -- third version, path tracking
+AUTHORS:
+
+- PHC was written by J. Verschelde, R. Cools, and many others (?)
+
+- William Stein and Kelly ?? -- first version of interface to PHC
+
+- Marshall Hampton -- second version of interface to PHC
+
+- Marshall Hampton and Alex Jokela -- third version, path tracking
 
 """
 
-########################################################################
+#*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#  The full text of the GPL is available at:
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
-########################################################################
+#*****************************************************************************
 
 import os
 
@@ -52,13 +55,14 @@ def get_solution_dicts(output_file_contents, input_ring, get_failures = True):
     OUTPUT:
         a list of dictionaries of solutions
 
-    EXAMPLES:
-        sage: from sage.interfaces.phc import *         #optional
-        sage: R2.<x1,x2> = PolynomialRing(QQ,2)         #optional
-        sage: test_sys = [(x1-1)^5-x2, (x2-1)^5-1] #optional
-        sage: sol = phc.blackbox(test_sys, R2)          #optional
-        sage: test = get_solution_dicts(sol.output_file_contents,R2) #optional
-        sage: str(sum([q[x1].real() for q in test]))[0:4] #optional
+    EXAMPLES::
+
+        sage: from sage.interfaces.phc import *
+        sage: R2.<x1,x2> = PolynomialRing(QQ,2)
+        sage: test_sys = [(x1-1)^5-x2, (x2-1)^5-1]
+        sage: sol = phc.blackbox(test_sys, R2)             # optional -- phc
+        sage: test = get_solution_dicts(sol.output_file_contents,R2)  # optional -- phc
+        sage: str(sum([q[x1].real() for q in test]))[0:4]  # optional -- phc
         '25.0'
     """
     output_list = output_file_contents.splitlines()
@@ -99,13 +103,14 @@ def get_classified_solution_dicts(output_file_contents, input_ring, get_failures
     OUTPUT:
         a dictionary of lists if dictionaries of solutions, classifies by type
 
-    EXAMPLES:
-        sage: from sage.interfaces.phc import *         #optional
-        sage: R2.<x1,x2> = PolynomialRing(QQ,2)         #optional
-        sage: test_sys = [(x1-2)^5-x2, (x2-1)^5-1]      #optional
-        sage: sol = phc.blackbox(test_sys, R2)          #optional
-        sage: sol_classes = get_classified_solution_dicts(sol.output_file_contents,R2)  #optional
-        sage: len(sol_classes['real'])            #optional
+    EXAMPLES::
+
+        sage: from sage.interfaces.phc import *
+        sage: R2.<x1,x2> = PolynomialRing(QQ,2)
+        sage: test_sys = [(x1-2)^5-x2, (x2-1)^5-1]
+        sage: sol = phc.blackbox(test_sys, R2)          # optional -- phc
+        sage: sol_classes = get_classified_solution_dicts(sol.output_file_contents,R2)  # optional -- phc
+        sage: len(sol_classes['real'])            # optional -- phc
         1
     """
     output_list = output_file_contents.splitlines()
@@ -145,12 +150,13 @@ def get_variable_list(output_file_contents):
     """
     Returns the variables, as strings, in the order in which PHCpack has processed them.
 
-    EXAMPLES:
-        sage: from sage.interfaces.phc import *         #optional
-        sage: R2.<x1,x2> = PolynomialRing(QQ,2)         #optional
-        sage: test_sys = [(x1-2)^5-x2, (x2-1)^5-1]      #optional
-        sage: sol = phc.blackbox(test_sys, R2)          #optional
-        sage: get_variable_list(sol.output_file_contents) #optional
+    EXAMPLES::
+
+        sage: from sage.interfaces.phc import *
+        sage: R2.<x1,x2> = PolynomialRing(QQ,2)
+        sage: test_sys = [(x1-2)^5-x2, (x2-1)^5-1]
+        sage: sol = phc.blackbox(test_sys, R2)             # optional -- phc
+        sage: get_variable_list(sol.output_file_contents)  # optional -- phc
         ['x1', 'x2']
     """
     output_list = output_file_contents.splitlines()
@@ -176,12 +182,13 @@ class PHC_Object:
             output_file_contents: the string output of PHCpack
             input_ring: for coercion of the variables into the desired ring.
 
-        EXAMPLES:
-            sage: from sage.interfaces.phc import phc #optional
-            sage: R2.<x,y> = PolynomialRing(QQ,2)    #optional
-            sage: start_sys = [(x-1)^2+(y-1)-1, x^2+y^2-1]        #optional
-            sage: sol = phc.blackbox(start_sys, R2)  #optional
-            sage: str(sum([x[0] for x in sol.solutions()]).real())[0:3] #optional
+        EXAMPLES::
+
+            sage: from sage.interfaces.phc import phc
+            sage: R2.<x,y> = PolynomialRing(QQ,2)
+            sage: start_sys = [(x-1)^2+(y-1)-1, x^2+y^2-1]
+            sage: sol = phc.blackbox(start_sys, R2)  # optional -- phc
+            sage: str(sum([x[0] for x in sol.solutions()]).real())[0:3]  # optional -- phc
             '2.0'
         """
         self.output_file_contents = output_file_contents
@@ -194,15 +201,16 @@ class PHC_Object:
         just as a string, but it can be saved to a file as well.  Even
         if saved to a file, it still returns the output string.
 
-        EXAMPLES:
-            sage: from sage.interfaces.phc import phc #optional
-            sage: R2.<x,y> = PolynomialRing(QQ,2)    #optional
-            sage: start_sys = [x^3-y^2,y^5-1]        #optional
-            sage: sol = phc.blackbox(start_sys, R2)  #optional
-            sage: start_save = sol.save_as_start()   #optional
-            sage: end_sys = [x^7-2,y^5-x^2]          #optional
-            sage: sol = phc.start_from(start_save, end_sys, R2) #optional
-            sage: len(sol.solutions())               #optional
+        EXAMPLES::
+
+            sage: from sage.interfaces.phc import phc
+            sage: R2.<x,y> = PolynomialRing(QQ,2)
+            sage: start_sys = [x^3-y^2,y^5-1]
+            sage: sol = phc.blackbox(start_sys, R2)  # optional -- phc
+            sage: start_save = sol.save_as_start()   # optional -- phc
+            sage: end_sys = [x^7-2,y^5-x^2]          # optional -- phc
+            sage: sol = phc.start_from(start_save, end_sys, R2)  # optional -- phc
+            sage: len(sol.solutions())               # optional -- phc
             15
         """
         start_data = ''
@@ -254,13 +262,14 @@ class PHC_Object:
         OUTPUT:
             A dictionary of lists of dictionaries of solutions
 
-        EXAMPLES:
-            sage: from sage.interfaces.phc import phc #optional
-            sage: R.<x,y> = PolynomialRing(CC,2)      #optional
-            sage: p_sys = [x^10-y,y^2-1]              #optional
-            sage: sol = phc.blackbox(p_sys,R)         #optional
-            sage: classifieds = sol.classified_solution_dicts()          #optional
-            sage: str(sum([q[y] for q in classifieds['real']]))[0:3]          #optional
+        EXAMPLES::
+
+            sage: from sage.interfaces.phc import phc
+            sage: R.<x,y> = PolynomialRing(CC,2)
+            sage: p_sys = [x^10-y,y^2-1]
+            sage: sol = phc.blackbox(p_sys,R)         # optional -- phc
+            sage: classifieds = sol.classified_solution_dicts()          # optional -- phc
+            sage: str(sum([q[y] for q in classifieds['real']]))[0:3]     # optional -- phc
             '2.0'
         """
         try:
@@ -289,14 +298,15 @@ class PHC_Object:
             is an element of the input_ring, and the value is in
             ComplexField.
 
-        EXAMPLES:
-            sage: from sage.interfaces.phc import * #optional
-            sage: R.<x,y,z> = PolynomialRing(QQ,3)  #optional
-            sage: fs = [x^2-1,y^2-x,z^2-y]          #optional
-            sage: sol = phc.blackbox(fs,R)          #optional
-            sage: s_list = sol.solution_dicts()     #optional
-            sage: s_list.sort()                     #optional
-            sage: s_list[0]                         #optional
+        EXAMPLES::
+
+            sage: from sage.interfaces.phc import *
+            sage: R.<x,y,z> = PolynomialRing(QQ,3)
+            sage: fs = [x^2-1,y^2-x,z^2-y]
+            sage: sol = phc.blackbox(fs,R)          # optional -- phc
+            sage: s_list = sol.solution_dicts()     # optional -- phc
+            sage: s_list.sort()                     # optional -- phc
+            sage: s_list[0]                         # optional -- phc
             {y: 1.00000000000000, z: -1.00000000000000, x: 1.00000000000000}
         """
         try:
@@ -321,12 +331,13 @@ class PHC_Object:
         OUTPUT:
             solutions: a list of lists of ComplexField-valued solutions.
 
-        EXAMPLES:
-            sage: from sage.interfaces.phc import *         #optional
-            sage: R2.<x1,x2> = PolynomialRing(QQ,2)         #optional
-            sage: test_sys = [x1^5-x1*x2^2-1, x2^5-x1*x2-1] #optional
-            sage: sol = phc.blackbox(test_sys, R2)          #optional
-            sage: len(sol.solutions())                      #optional
+        EXAMPLES::
+
+            sage: from sage.interfaces.phc import *
+            sage: R2.<x1,x2> = PolynomialRing(QQ,2)
+            sage: test_sys = [x1^5-x1*x2^2-1, x2^5-x1*x2-1]
+            sage: sol = phc.blackbox(test_sys, R2)          # optional -- phc
+            sage: len(sol.solutions())                      # optional -- phc
             25
         """
         try:
@@ -344,12 +355,13 @@ class PHC_Object:
         Returns the variables, as strings, in the order in which
         PHCpack has processed them.
 
-        EXAMPLES:
-            sage: from sage.interfaces.phc import *         #optional
-            sage: R2.<x1,x2> = PolynomialRing(QQ,2)         #optional
-            sage: test_sys = [x1^5-x1*x2^2-1, x2^5-x1*x2-1] #optional
-            sage: sol = phc.blackbox(test_sys, R2)          #optional
-            sage: sol.variable_list()                       #optional
+        EXAMPLES::
+
+            sage: from sage.interfaces.phc import *
+            sage: R2.<x1,x2> = PolynomialRing(QQ,2)
+            sage: test_sys = [x1^5-x1*x2^2-1, x2^5-x1*x2-1]
+            sage: sol = phc.blackbox(test_sys, R2)          # optional -- phc
+            sage: sol.variable_list()                       # optional -- phc
             ['x1', 'x2']
         """
         try:
@@ -365,23 +377,24 @@ class PHC:
     A class to interface with PHCpack, for computing numerical
     homotopies and root counts.
 
-    EXAMPLES:
-        sage: from sage.interfaces.phc import phc #optional
-        sage: R.<x,y> = PolynomialRing(CDF,2)     #optional
-        sage: testsys = [x^2 + 1, x*y - 1]        #optional
-        sage: phc.mixed_volume(testsys)        # optional -- you must have phc install
+    EXAMPLES::
+
+        sage: from sage.interfaces.phc import phc
+        sage: R.<x,y> = PolynomialRing(CDF,2)
+        sage: testsys = [x^2 + 1, x*y - 1]
+        sage: phc.mixed_volume(testsys)        # optional -- phc
         2
-        sage: v = phc.blackbox(testsys, R)     # optional
-        sage: sols = v.solutions()             # optional
-        sage: sols.sort()                      # optional
-        sage: sols                             # optional
+        sage: v = phc.blackbox(testsys, R)     # optional -- phc
+        sage: sols = v.solutions()             # optional -- phc
+        sage: sols.sort()                      # optional -- phc
+        sage: sols                             # optional -- phc
         [[-1.00000000000000*I, 1.00000000000000*I], [1.00000000000000*I, -1.00000000000000*I]]
-        sage: sol_dict = v.solution_dicts()    # optional
-        sage: x_sols_from_dict = [d[x] for d in sol_dict]    # optional
-        sage: x_sols_from_dict.sort(); x_sols_from_dict      # optional
+        sage: sol_dict = v.solution_dicts()    # optional -- phc
+        sage: x_sols_from_dict = [d[x] for d in sol_dict]    # optional -- phc
+        sage: x_sols_from_dict.sort(); x_sols_from_dict      # optional -- phc
         [-1.00000000000000*I, 1.00000000000000*I]
-        sage: residuals = [[test_equation.change_ring(CDF).subs(sol) for test_equation in testsys] for sol in v.solution_dicts()]      # optional
-        sage: residuals                             # optional
+        sage: residuals = [[test_equation.change_ring(CDF).subs(sol) for test_equation in testsys] for sol in v.solution_dicts()]  # optional -- phc
+        sage: residuals                        # optional -- phc
         [[0, 0], [0, 0]]
     """
 
@@ -399,11 +412,12 @@ class PHC:
         OUTPUT:
             an output string from phc
 
-        EXAMPLES:
-            sage: from sage.interfaces.phc import *  #optional
-            sage: R2.<x,y> = PolynomialRing(QQ,2)    #optional
-            sage: start_sys = [(x-1)^2+(y-1)-1, x^2+y^2-1]  #optional
-            sage: a = phc._output_from_command_list(['phc -m','4','n','n','n'], start_sys)#optional
+        EXAMPLES::
+
+            sage: from sage.interfaces.phc import *
+            sage: R2.<x,y> = PolynomialRing(QQ,2)
+            sage: start_sys = [(x-1)^2+(y-1)-1, x^2+y^2-1]  # optional -- phc
+            sage: a = phc._output_from_command_list(['phc -m','4','n','n','n'], start_sys)  # optional -- phc
         """
         # Get temporary file names (these will be in SAGE_HOME/.sage/tmp/pid)
         input_filename = sage.misc.misc.tmp_filename()
@@ -456,11 +470,12 @@ class PHC:
             -- a PHC input file (as a text string) that
                 describes these polynomials.
 
-        EXAMPLES:
-            sage: from sage.interfaces.phc import *  #optional
-            sage: R2.<x,y> = PolynomialRing(QQ,2)    #optional
-            sage: start_sys = [(x-1)^2+(y-1)-1, x^2+y^2-1]  #optional
-            sage: phc._input_file(start_sys)         #optional
+        EXAMPLES::
+
+            sage: from sage.interfaces.phc import *
+            sage: R2.<x,y> = PolynomialRing(QQ,2)
+            sage: start_sys = [(x-1)^2+(y-1)-1, x^2+y^2-1]
+            sage: phc._input_file(start_sys)         # optional -- phc
             '2\nx^2 - 2*x + y - 1;\nx^2 + y^2 - 1;\n'
         """
         if not isinstance(polys, (list, tuple)):
@@ -484,16 +499,17 @@ class PHC:
         OUTPUT:
             a list of lists of dictionaries, described above
 
-        EXAMPLES:
-            sage: from sage.interfaces.phc import *    #optional
-            sage: R2.<x,y> = PolynomialRing(QQ,2)      #optional
-            sage: start_sys = [x^5-y^2,y^5-1]          #optional
-            sage: sol = phc.blackbox(start_sys, R2)    #optional
-            sage: start_save = sol.save_as_start()     #optional
-            sage: end_sys = [x^5-2,y^5-x^2]            #optional
-            sage: path_track_filename = phc._path_track_file(start_save, end_sys, R2, c_skew = .001) #optional
-            sage: sol_paths = phc._parse_path_file(path_track_filename)   #optional
-            sage: len(sol_paths)  #optional
+        EXAMPLES::
+
+            sage: from sage.interfaces.phc import *
+            sage: R2.<x,y> = PolynomialRing(QQ,2)
+            sage: start_sys = [x^5-y^2,y^5-1]
+            sage: sol = phc.blackbox(start_sys, R2)    # optional -- phc
+            sage: start_save = sol.save_as_start()     # optional -- phc
+            sage: end_sys = [x^5-2,y^5-x^2]            # optional -- phc
+            sage: path_track_filename = phc._path_track_file(start_save, end_sys, R2, c_skew = .001)  # optional -- phc
+            sage: sol_paths = phc._parse_path_file(path_track_filename)   # optional -- phc
+            sage: len(sol_paths)  # optional -- phc
             25
         """
 
@@ -571,16 +587,17 @@ class PHC:
         """
         Returns the filename which contains path tracking output.
 
-        EXAMPLES:
-            sage: from sage.interfaces.phc import *        #optional
-            sage: R2.<x,y> = PolynomialRing(QQ,2)          #optional
-            sage: start_sys = [x^6-y^2,y^5-1]              #optional
-            sage: sol = phc.blackbox(start_sys, R2)        #optional
-            sage: start_save = sol.save_as_start()         #optional
-            sage: end_sys = [x^7-2,y^5-x^2]                #optional
-            sage: path_track_filename = phc._path_track_file(start_save, end_sys, R2, c_skew = .001) #optional
-            sage: sol_paths = phc._parse_path_file(path_track_filename)        #optional
-            sage: len(sol_paths)        #optional
+        EXAMPLES::
+
+            sage: from sage.interfaces.phc import *
+            sage: R2.<x,y> = PolynomialRing(QQ,2)
+            sage: start_sys = [x^6-y^2,y^5-1]
+            sage: sol = phc.blackbox(start_sys, R2)        # optional -- phc
+            sage: start_save = sol.save_as_start()         # optional -- phc
+            sage: end_sys = [x^7-2,y^5-x^2]                # optional -- phc
+            sage: path_track_filename = phc._path_track_file(start_save, end_sys, R2, c_skew = .001)  # optional -- phc
+            sage: sol_paths = phc._parse_path_file(path_track_filename)        # optional -- phc
+            sage: len(sol_paths)        # optional -- phc
             30
         """
         # Probably unnecessarily redundant from the start_from function
@@ -612,15 +629,16 @@ class PHC:
         OUTPUT:
             a list of paths as dictionaries, with the keys variables and t-values on the path.
 
-        EXAMPLES:
-            sage: from sage.interfaces.phc import *        #optional
-            sage: R2.<x,y> = PolynomialRing(QQ,2)          #optional
-            sage: start_sys = [x^6-y^2,y^5-1]              #optional
-            sage: sol = phc.blackbox(start_sys, R2)        #optional
-            sage: start_save = sol.save_as_start()         #optional
-            sage: end_sys = [x^7-2,y^5-x^2]                #optional
-            sage: sol_paths = phc.path_track(start_sys, end_sys, R2, saved_start = start_save) #optional
-            sage: len(sol_paths)        #optional
+        EXAMPLES::
+
+            sage: from sage.interfaces.phc import *
+            sage: R2.<x,y> = PolynomialRing(QQ,2)
+            sage: start_sys = [x^6-y^2,y^5-1]
+            sage: sol = phc.blackbox(start_sys, R2)        # optional -- phc
+            sage: start_save = sol.save_as_start()         # optional -- phc
+            sage: end_sys = [x^7-2,y^5-x^2]                # optional -- phc
+            sage: sol_paths = phc.path_track(start_sys, end_sys, R2, saved_start = start_save)  # optional -- phc
+            sage: len(sol_paths)        # optional -- phc
             30
         """
 
@@ -649,16 +667,17 @@ class PHC:
         OUTPUT:
             lines and points of solution paths
 
-        EXAMPLES:
-            sage: from sage.interfaces.phc import *    #optional
+        EXAMPLES::
+
+            sage: from sage.interfaces.phc import *
             sage: from sage.structure.sage_object import SageObject
-            sage: R2.<x,y> = PolynomialRing(QQ,2)      #optional
-            sage: start_sys = [x^5-y^2,y^5-1]          #optional
-            sage: sol = phc.blackbox(start_sys, R2)    #optional
-            sage: start_save = sol.save_as_start()     #optional
-            sage: end_sys = [x^5-25,y^5-x^2]           #optional
-            sage: testing = phc.plot_paths_2d(start_sys, end_sys, R2)  #optional
-            sage: type(testing)                        #optional (normally use plot here)
+            sage: R2.<x,y> = PolynomialRing(QQ,2)
+            sage: start_sys = [x^5-y^2,y^5-1]
+            sage: sol = phc.blackbox(start_sys, R2)    # optional -- phc
+            sage: start_save = sol.save_as_start()     # optional -- phc
+            sage: end_sys = [x^5-25,y^5-x^2]           # optional -- phc
+            sage: testing = phc.plot_paths_2d(start_sys, end_sys, R2)  # optional -- phc
+            sage: type(testing)                        # optional -- phc (normally use plot here)
             <class 'sage.plot.graphics.Graphics'>
         """
         paths = phc.path_track(start_sys, end_sys, input_ring, c_skew = c_skew, saved_start = saved_start)
@@ -702,11 +721,12 @@ class PHC:
         OUTPUT:
             The mixed volume.
 
-        EXAMPLES:
-            sage: from sage.interfaces.phc import *         #optional
-            sage: R2.<x,y,z> = PolynomialRing(QQ,3)         #optional
-            sage: test_sys = [(x+y+z)^2-1,x^2-x,y^2-1]      #optional
-            sage: phc.mixed_volume(test_sys)                #optional
+        EXAMPLES::
+
+            sage: from sage.interfaces.phc import *
+            sage: R2.<x,y,z> = PolynomialRing(QQ,3)
+            sage: test_sys = [(x+y+z)^2-1,x^2-x,y^2-1]
+            sage: phc.mixed_volume(test_sys)                # optional -- phc
             4
         """
         output_filename = self._output_from_command_list(['phc -m','4','n','n','n'], polys, verbose = verbose)
@@ -742,15 +762,16 @@ class PHC:
         OUTPUT:
             A solution in the form of a PHCObject.
 
-        EXAMPLES:
-            sage: from sage.interfaces.phc import *        #optional
-            sage: R2.<x,y> = PolynomialRing(QQ,2)          #optional
-            sage: start_sys = [x^6-y^2,y^5-1]              #optional
-            sage: sol = phc.blackbox(start_sys, R2)        #optional
-            sage: start_save = sol.save_as_start()         #optional
-            sage: end_sys = [x^7-2,y^5-x^2]                #optional
-            sage: sol = phc.start_from(start_save, end_sys, R2) #optional
-            sage: len(sol.solutions())                     #optional
+        EXAMPLES::
+
+            sage: from sage.interfaces.phc import *
+            sage: R2.<x,y> = PolynomialRing(QQ,2)
+            sage: start_sys = [x^6-y^2,y^5-1]
+            sage: sol = phc.blackbox(start_sys, R2)        # optional -- phc
+            sage: start_save = sol.save_as_start()         # optional -- phc
+            sage: end_sys = [x^7-2,y^5-x^2]                # optional -- phc
+            sage: sol = phc.start_from(start_save, end_sys, R2)  # optional -- phc
+            sage: len(sol.solutions())                     # optional -- phc
             30
         """
         input_filename = sage.misc.misc.tmp_filename()
@@ -837,12 +858,13 @@ class PHC:
         OUTPUT:
             a PHC_Object object containing the phcpack output string.
 
-        EXAMPLES:
-            sage: from sage.interfaces.phc import *        #optional
-            sage: R2.<x,y> = PolynomialRing(QQ,2)          #optional
-            sage: start_sys = [x^6-y^2,y^5-1]              #optional
-            sage: sol = phc.blackbox(start_sys, R2)        #optional
-            sage: len(sol.solutions())                     #optional
+        EXAMPLES::
+
+            sage: from sage.interfaces.phc import *
+            sage: R2.<x,y> = PolynomialRing(QQ,2)
+            sage: start_sys = [x^6-y^2,y^5-1]
+            sage: sol = phc.blackbox(start_sys, R2)        # optional -- phc
+            sage: len(sol.solutions())                     # optional -- phc
             30
         """
 

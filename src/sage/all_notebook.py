@@ -1,5 +1,3 @@
-"""nodoctest"""
-
 from sage.all import *
 preparser(on=True)
 

@@ -27,7 +27,7 @@ from forker import DocTestDispatcher
 from reporting import DocTestReporter
 from util import NestedName, Timer, count_noun, dict_difference
 
-nodoctest_regex = re.compile(r'\s*(#+|%+|\.\.)\s*nodoctest')
+nodoctest_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*nodoctest')
 
 class DocTestDefaults(SageObject):
     """
@@ -451,6 +451,15 @@ class DocTestController(SageObject):
             sage: DC.expand_files_into_sources()
             sage: DC.sources
             []
+
+        The directory ``sage/doctest/tests`` contains ``nodoctest.py``
+        but the files should still be tested when that directory is
+        explicitly given (as opposed to being recursed into)::
+
+            sage: DC = DocTestController(DD, [os.path.join(SAGE_SRC, 'sage', 'doctest', 'tests')])
+            sage: DC.expand_files_into_sources()
+            sage: len(DC.sources) >= 10
+            True
         """
         def skipdir(dirname):
             if os.path.exists(os.path.join(dirname, "nodoctest.py")):

@@ -1,4 +1,4 @@
-"""nodoctest
+"""
 all.py -- export of schemes to Sage
 """
 

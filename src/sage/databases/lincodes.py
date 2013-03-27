@@ -1,4 +1,4 @@
-"""nodoctest
+"""
 Linear codes
 """
 

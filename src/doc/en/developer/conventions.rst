@@ -856,6 +856,15 @@ mind:
    It is also immediately clear to the user that the indicated example
    does not currently work.
 
+- If one of the first 10 lines of a file starts with ``r""" nodoctest``
+  (or ``""" nodoctest`` or ``# nodoctest`` or ``% nodoctest`` or
+  ``.. nodoctest``, or any of these with different spacing), then
+  that file will be skipped.
+  If a directory contains a file ``nodoctest.py``, then that whole
+  directory will be skipped. Neither of this applies to files or
+  directories which are explicitly given as command line arguments:
+  those are always tested.
+
 - If a line contains ``# optional - PKGNAME`` (where the ``#`` may be any
   non-letter non-space character), it is not tested unless
   the ``--optional=PKGNAME`` flag is passed to ``sage -t``.

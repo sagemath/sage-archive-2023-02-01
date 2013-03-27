@@ -11,8 +11,6 @@ This is all.py (load all sage functions) plus set-up for the Sage commandline.
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-"""nodoctest"""
-
 sage_mode = 'cmdline'
 
 try:

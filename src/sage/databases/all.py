@@ -1,62 +1,44 @@
-"""nodoctest
+"""
 This file gathers together all the tables in Sage.
 
-    * ConwayPolynomials -- database of selected Conway polynomials.
+    * ConwayPolynomials() -- database of selected Conway polynomials.
 
     * CremonaDatabase() - Cremona's tables of elliptic curves and related data.
 
-    * Gamma0Wt2Database() -- table of arithmetic information about
-                    newforms of weight 2 on Gamma_0(N).
-
     * JonesDatabase() -- returns the John Jones table of number fields
-                with bounded ramification and degree <= 6.
+      with bounded ramification and degree <= 6.
 
-    * SteinWatkinsDatabase() - The Stein-Watkins tables of elliptic curves
-                and related data.
+    * SteinWatkinsAllData() and SteinWatkinsPrimeData() - The
+      Stein-Watkins tables of elliptic curves and related data.
 
     * Sloane's tables -- sloane_sequence, sloane_find
 
     * SymbolicData() -- many benchmark and testing ideals
 
-    * Symbolic Data -- benchmark and test ideals
+EXAMPLES::
 
-EXAMPLES:
     sage: ConwayPolynomials()
     Frank Luebeck's database of Conway polynomials
 
     sage: CremonaDatabase()
-    Cremona's database of elliptic curves
-
-    sage: Gamma0Wt2Database()
-    Table of arithmetic information about newforms of weight 2 on Gamma_0(N)
+    Cremona's database of elliptic curves with conductor...
 
     sage: JonesDatabase()
     John Jones's table of number fields with bounded ramification and degree <= 6
 
-    sage: SteinWatkinsDatabase()
-    The Stein-Watkins database of elliptic curves
-
     sage: SymbolicData()
-    SymbolicData with 372 ideals
-
+    SymbolicData with ... ideals
 """
 
 #*****************************************************************************
-#       Sage: System for Algebra and Geometry Experimentation
-#
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 from sql_db import SQLQuery, SQLDatabase
 

@@ -11,10 +11,19 @@ EXAMPLES::
     sage: import time
     sage: from sage.env import SAGE_SRC
     sage: tests_dir = os.path.join(SAGE_SRC, 'sage', 'doctest', 'tests')
+    sage: tests_env = dict(os.environ)
+
+Unset :envvar:`TERM` when running doctests, see :trac:`14370`::
+
+    sage: try:
+    ....:     del tests_env['TERM']
+    ....: except KeyError:
+    ....:     pass
+    sage: kwds = {'cwd': tests_dir, 'env':tests_env}
 
 Check that :trac:`2235` has been fixed::
 
-    sage: subprocess.call(["sage", "-t", "longtime.rst"], cwd=tests_dir)  # long time
+    sage: subprocess.call(["sage", "-t", "longtime.rst"], **kwds)  # long time
     Running doctests...
     Doctesting 1 file.
     sage -t longtime.rst
@@ -24,7 +33,7 @@ Check that :trac:`2235` has been fixed::
     ----------------------------------------------------------------------
     ...
     0
-    sage: subprocess.call(["sage", "-t", "-l", "longtime.rst"], cwd=tests_dir)  # long time
+    sage: subprocess.call(["sage", "-t", "-l", "longtime.rst"], **kwds)  # long time
     Running doctests...
     Doctesting 1 file.
     sage -t --long longtime.rst
@@ -37,7 +46,7 @@ Check that :trac:`2235` has been fixed::
 
 Test the ``--initial`` option::
 
-    sage: subprocess.call(["sage", "-t", "-i", "initial.rst"], cwd=tests_dir)  # long time
+    sage: subprocess.call(["sage", "-t", "-i", "initial.rst"], **kwds)  # long time
     Running doctests...
     Doctesting 1 file.
     sage -t initial.rst
@@ -67,9 +76,10 @@ Test the ``--initial`` option::
 
 Test a timeout using the ``SAGE_TIMEOUT`` environment variable::
 
-    sage: env = dict(os.environ)
-    sage: env['SAGE_TIMEOUT'] = "3"
-    sage: subprocess.call(["sage", "-t", "99seconds.rst"], cwd=tests_dir, env=env)  # long time
+    sage: from copy import deepcopy
+    sage: kwds2 = deepcopy(kwds)
+    sage: kwds2['env']['SAGE_TIMEOUT'] = "3"
+    sage: subprocess.call(["sage", "-t", "99seconds.rst"], **kwds2)  # long time
     Running doctests...
     Doctesting 1 file.
     sage -t 99seconds.rst
@@ -85,7 +95,7 @@ Test a timeout using the ``SAGE_TIMEOUT`` environment variable::
 
 Test handling of ``KeyboardInterrupt``s in doctests::
 
-    sage: subprocess.call(["sage", "-t", "keyboardinterrupt.rst"], cwd=tests_dir)  # long time
+    sage: subprocess.call(["sage", "-t", "keyboardinterrupt.rst"], **kwds)  # long time
     Running doctests...
     Doctesting 1 file.
     sage -t keyboardinterrupt.rst
@@ -107,7 +117,7 @@ Test handling of ``KeyboardInterrupt``s in doctests::
 
 Interrupt the doctester::
 
-    sage: subprocess.call(["sage", "-t", "interrupt.rst"], cwd=tests_dir)  # long time
+    sage: subprocess.call(["sage", "-t", "interrupt.rst"], **kwds)  # long time
     Running doctests...
     Doctesting 1 file.
     sage -t interrupt.rst
@@ -123,10 +133,11 @@ be interrupted. We also test that passing a ridiculous number of threads
 doesn't hurt::
 
     sage: F = tmp_filename()
-    sage: env = dict(os.environ)
-    sage: env['DOCTEST_TEST_PID_FILE'] = F  # Doctester will write its PID in this file
+    sage: from copy import deepcopy
+    sage: kwds2 = deepcopy(kwds)
+    sage: kwds2['env']['DOCTEST_TEST_PID_FILE'] = F  # Doctester will write its PID in this file
     sage: subprocess.call(["sage", "-tp", "1000000", "--timeout=120",  # long time
-    ....:     "99seconds.rst", "interrupt_diehard.rst"], cwd=tests_dir, env=env)
+    ....:     "99seconds.rst", "interrupt_diehard.rst"], **kwds2)
     Running doctests...
     Doctesting 2 files using 1000000 threads.
     Killing test 99seconds.rst
@@ -152,7 +163,7 @@ in 120 * 0.05 = 6 seconds::
 
 Test a doctest failing with ``abort()``::
 
-    sage: subprocess.call(["sage", "-t", "abort.rst"], cwd=tests_dir)  # long time
+    sage: subprocess.call(["sage", "-t", "abort.rst"], **kwds)  # long time
     Running doctests...
     Doctesting 1 file.
     sage -t abort.rst
@@ -176,7 +187,7 @@ Test a doctest failing with ``abort()``::
 
 A different kind of crash::
 
-    sage: subprocess.call(["sage", "-t", "fail_and_die.rst"], cwd=tests_dir)  # long time
+    sage: subprocess.call(["sage", "-t", "fail_and_die.rst"], **kwds)  # long time
     Running doctests...
     Doctesting 1 file.
     sage -t fail_and_die.rst
@@ -200,7 +211,7 @@ A different kind of crash::
 
 Test running under gdb, without and with a timeout::
 
-    sage: subprocess.call(["sage", "-t", "--gdb", "1second.rst"], cwd=tests_dir, stdin=open(os.devnull))  # long time, optional: gdb
+    sage: subprocess.call(["sage", "-t", "--gdb", "1second.rst"], stdin=open(os.devnull), **kwds)  # long time, optional: gdb
     exec gdb ...
     Running doctests...
     Doctesting 1 file.
@@ -211,7 +222,7 @@ Test running under gdb, without and with a timeout::
     ----------------------------------------------------------------------
     ...
     0
-    sage: subprocess.call(["sage", "-t", "--gdb", "-T" "5", "99seconds.rst"], cwd=tests_dir, stdin=open(os.devnull))  # long time, optional: gdb
+    sage: subprocess.call(["sage", "-t", "--gdb", "-T" "5", "99seconds.rst"], stdin=open(os.devnull), **kwds)  # long time, optional: gdb
     exec gdb ...
     Running doctests...
     Doctesting 1 file.
@@ -220,7 +231,7 @@ Test running under gdb, without and with a timeout::
 
 Test the ``--show-skipped`` option::
 
-    sage: subprocess.call(["sage", "-t", "--show-skipped", "show_skipped.rst"], cwd=tests_dir)  # long time
+    sage: subprocess.call(["sage", "-t", "--show-skipped", "show_skipped.rst"], **kwds)  # long time
     Running doctests ...
     Doctesting 1 file.
     sage -t show_skipped.rst
@@ -238,7 +249,7 @@ Test the ``--show-skipped`` option::
 
 Optional tests are run correctly::
 
-    sage: subprocess.call(["sage", "-t", "--long", "--show-skipped", "--optional=sage,gap", "show_skipped.rst"], cwd=tests_dir)  # long time
+    sage: subprocess.call(["sage", "-t", "--long", "--show-skipped", "--optional=sage,gap", "show_skipped.rst"], **kwds)  # long time
     Running doctests ...
     Doctesting 1 file.
     sage -t --long show_skipped.rst

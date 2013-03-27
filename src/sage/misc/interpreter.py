@@ -559,6 +559,10 @@ def interface_shell_embed(interface):
     :class:`InterfaceShellTransformer` to transform the input into the
     appropriate ``interface.eval(...)`` input.
 
+    INPUT:
+
+    - ``interface`` -- A Sage ``PExpect`` interface instance.
+
     EXAMPLES::
 
         sage: from sage.misc.interpreter import interface_shell_embed

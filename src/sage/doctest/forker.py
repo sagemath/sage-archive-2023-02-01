@@ -78,6 +78,10 @@ def init_sage():
     import sage.misc.displayhook
     sys.displayhook = sage.misc.displayhook.DisplayHook(sys.displayhook)
 
+    # Disable IPython colors during doctests
+    from sage.misc.interpreter import DEFAULT_SAGE_CONFIG
+    DEFAULT_SAGE_CONFIG['TerminalInteractiveShell']['colors'] = 'NoColor'
+
     # We import readline before forking, otherwise Pdb doesn't work
     # os OS X: http://trac.sagemath.org/sage_trac/ticket/14289
     import readline

@@ -388,9 +388,9 @@ if [ "$1" = "-short" ]; then
     return 0
 fi
 
-if [ -z "$RHOME" ]; then
-    RHOME="$SAGE_LOCAL/lib/R" && export RHOME
-fi
+# Unset these variables which interfere with R
+unset R_HOME
+unset R_PROFILE
 
 MAXIMA_PREFIX="$SAGE_ROOT/local" && export MAXIMA_PREFIX
 

@@ -515,3 +515,56 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism):
                 polys[i] *= x**d
         return SchemeMorphism_polynomial_toric_variety(self.parent(), polys)
 
+    def is_injective(self):
+        r"""
+        Check if ``self`` is injective.
+
+        See
+        :meth:`~sage.geometry.fan_morphism.FanMorphism.is_injective`
+        for a description of the toric algorithm.
+
+        OUTPUT:
+
+        Boolean. Whether ``self`` is injective.
+
+        EXAMPLES::
+
+            sage: X = toric_varieties.A(2)
+            sage: m = identity_matrix(2)
+            sage: f = X.hom(m, X)
+            sage: f.is_injective()
+            True
+
+            sage: Y = ToricVariety(Fan([Cone([(1,0), (1,1)])]))
+            sage: f = Y.hom(m, X)
+            sage: f.is_injective()
+            False
+        """
+        return self.fan_morphism().is_injective()
+
+    def is_surjective(self):
+        r"""
+        Check if ``self`` is surjective.
+
+        See
+        :meth:`~sage.geometry.fan_morphism.FanMorphism.is_surjective`
+        for a description of the toric algorithm.
+
+        OUTPUT:
+
+        Boolean. Whether ``self`` is surjective.
+
+        EXAMPLES::
+
+            sage: X = toric_varieties.A(2)
+            sage: m = identity_matrix(2)
+            sage: f = X.hom(m, X)
+            sage: f.is_surjective()
+            True
+
+            sage: Y = ToricVariety(Fan([Cone([(1,0), (1,1)])]))
+            sage: f = Y.hom(m, X)
+            sage: f.is_surjective()
+            False
+        """
+        return self.fan_morphism().is_surjective()

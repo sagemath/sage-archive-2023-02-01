@@ -2,40 +2,48 @@
 
 == Description ==
 
-FLINT is a C library for doing number theory, written by William Hart and David Harvey.
+FLINT is a C library for doing number theory, maintained by William Hart.
 
 Website: www.flintlib.org
 
 == License ==
 
-GPL V2+
+FLINT is licensed GPL v2+.
 
 == SPKG Maintainers ==
 
- * Burcin Erocal
- * Mike Hansen
- * William Stein
+ * Fredrik Johansson
+ * Jean-Pierre Flori
 
 == Upstream Contact ==
 
- * Bill Hart
- * Development list for FLINT <flint-devel@lists.sourceforge.net> (moderated)
+ * flint-devel Gougle Group (http://groups.google.co.uk/group/flint-devel)
+ * William Hart
 
 == Dependencies ==
 
- * gmp
+ * MPIR
+ * MPFR
  * NTL
 
-== Special Update/Build Instructions ==
+== Patches ==
 
- * We patch the makefile slightly to add 64 bit OSX build support and also change
-   LIBS such that the NTL interface is linked into the flint library.
-   This is not an officially supported option because flint is pure C
-   and the NTL interface requires C++.
- * Remove the '.svn' directories from upstream ('src/') if present.
- * Remove the 'src/zn_poly/demo/bernoulli/.DS_Store' file
+ * dylib.patch: patch configure so that the shared library is called
+   libflint.dylib on Darwin.
 
 == Changelog ==
+
+=== flint-2.3.p0 (Jean-Pierre Flori, 26 March 2013) ===
+  * Trac #12173: add dylib.patch to make sure the shared library is called
+    libflint.dylib on Darwin
+
+=== flint-2.3 (Mike Hansen, Fredrik Johansson, Jean-Pierre Flori, May 2012-March 2013) ===
+  * Trac #12173: Update FLINT to version 2.3.
+  * Removed obsolete patches.
+  * Cleanup spkg-install and spkg-check scripts.
+  * Removed Cygwin hack for libntl.a made useless by #9050.
+  * Removed now useless patch --binary flag on Cygwin.
+  * Only build shared library on Cygwin.
 
 === flint-1.5.2.p3 (Timo Kluck, 7 March 2013) ===
   * #14241: Fix double // path separators in longlong.patch

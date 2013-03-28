@@ -6,23 +6,8 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
-# Add a sensible default optimisation flag. Change if necessary.
-OPTIMIZATION_FLAGS="-O3"
-
-# Most packages do not need all these set, but it is better to do them all
-# each time, rather than omit a flag by mistake:
-
-CFLAGS="$OPTIMIZATION_FLAGS $CFLAGS"
-CXXFLAGS="$OPTIMIZATION_FLAGS $CXXFLAGS"
-FCFLAGS="$OPTIMIZATION_FLAGS $FCFLAGS"
-F77FLAGS="$OPTIMIZATION_FLAGS $F77FLAGS"
-CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
-LDFLAGS="-L$SAGE_LOCAL/lib $LDFLAGS"
-
-
-# Compile for 64-bit if SAGE64 is set to 'yes':
 if [ "x$SAGE64" = xyes ]; then
-    echo >&2 "Building a 64-bit version of lcalc"
+    echo "Building a 64-bit version of lcalc"
 
     # Both Sun and GNU compilers use -m64 to build 64-bit code, but compilers
     # from IBM (on AIX), and HP (on HP-UX) do not. So allow the environment
@@ -35,141 +20,28 @@ if [ "x$SAGE64" = xyes ]; then
     if [ -z "$CXXFLAG64" ]; then
         CXXFLAG64="$CFLAG64" # default to that of the C compiler
     fi
-    export CFLAG64
-    export CXXFLAG64
 
     CFLAGS="$CFLAGS $CFLAG64"
     CXXFLAGS="$CXXFLAGS $CXXFLAG64"
-    FCFLAGS="$FCFLAGS $CXXFLAG64" # XXX Does this make sense?
-    F77FLAGS="$F77FLAGS $CXXFLAG64"
-    # Some packages may need LDFLAGS and/or ABI set here.
-    # LDFLAGS="$LDFLAGS $CFLAG64" # XXX Perhaps should use some LDFLAG64.
-    # ABI=64
-    # Normally one would just add this to CXXFLAGS, but since the Makefile
-    # does not import CXXFLAGS properly, and it would take a major change to
-    # sort out the Makefile properly, the variable can just be added here,
-    # and ${CXXFLAG64} added at the right point in the Makefile for 64-bit
-    # builds.
-    # (The last sentence apparently refers to CXXFLAG64 only. -leif)
 fi
 
 # If SAGE_DEBUG is set to 'yes', add debugging information.  Since both
 # the Sun and GNU compilers accept -g to give debugging information,
 # there is no need to do anything specific to one compiler or the other.
-
 if [ "x$SAGE_DEBUG" = xyes ]; then
-    echo >&2 "Code will be built with debugging information present. Unset 'SAGE_DEBUG'"
-    echo >&2 "or set it to 'no' if you don't want that."
+    echo "Code will be built with debugging information present. Unset 'SAGE_DEBUG'"
+    echo "or set it to 'no' if you don't want that."
 
-    CFLAGS="$CFLAGS -g"
-    CXXFLAGS="$CXXFLAGS -g"
-    FCFLAGS="$FCFLAGS -g"
-    F77FLAGS="$F77FLAGS -g"
+    CFLAGS="$CFLAGS -O0 -g"
+    CXXFLAGS="$CXXFLAGS -O0 -g"
 else
-    echo >&2 "No debugging information will be used during the build of this package."
-    echo >&2 "Set 'SAGE_DEBUG' to 'yes' if you want debugging information present (-g added)."
+    echo "No debugging information will be used during the build of this package."
+    echo "Set 'SAGE_DEBUG' to 'yes' if you want debugging information present (-g added)."
 fi
-
-# Add appropriate flag(s) to show all warnings.
-# This test of a compiler is not perfect by any means, but is better than
-# nothing:
-
-if $CC -flags >/dev/null 2>&1; then
-    SUN_COMPILER=1
-    # The Sun compilers are fussy, and adding extra
-    # warnings will just show too many.
-else
-    # Assume gcc if not the Sun C compiler.
-    GNU_COMPILER=1
-    # Add -Wall to show all warnings.
-    CFLAGS="-Wall $CFLAGS"
-    CXXFLAGS="-Wall $CXXFLAGS"
-    FCFLAGS="-Wall $FCFLAGS"
-    F77FLAGS="-Wall $F77FLAGS"
-fi
-
-# Determine if the C++ compiler is the Sun or GNU compiler,
-# just to check we are not mixing GNU and non-GNU:
-if $CXX -flags >/dev/null 2>&1; then
-    SUN_COMPILER=1
-else
-    # Assume gcc/g++ if not the Sun C++ compiler.
-    GNU_COMPILER=1
-fi
-
-# Determine if the Fortran compiler is the Sun or GNU compiler:
-if [ -z "$SAGE_FORTRAN" ]; then
-    echo >&2 "No Fortran compiler has been defined. This is not normally a problem."
-else
-    if $SAGE_FORTRAN -flags >/dev/null 2>&1; then
-        SUN_COMPILER=1
-    else
-        GNU_COMPILER=1
-    fi
-fi
-
-# Check if SAGE_FORTRAN_LIB is defined, that the file actually exists.
-# SAGE_FORTRAN_LIB does not always need to be defined, but if it is defined,
-# then the file should exist.
-if [ -n "$SAGE_FORTRAN_LIB" ] && [ ! -r "$SAGE_FORTRAN_LIB" ]; then
-    echo >&2 "Error: SAGE_FORTRAN_LIB is defined as '$SAGE_FORTRAN_LIB',"
-    echo >&2 "but that file does not exist (or isn't readable)."
-    exit 1
-fi
-
-# Checks that the user is not mixing the Sun and GNU compilers. This problem
-# has been seen on code built with the aid of SCons, but in general could
-# happen with any code if the user has specified a C compiler but not a C++ one.
-# This problem is even more likely to occur with the Fortran compiler - I've
-# done it myself when building Sage!
-if [ "x$SUN_COMPILER" = "x1" ] && [ "x$GNU_COMPILER" = "x1" ]; then
-    echo >&2 "Error: You are mixing the Sun and GNU C/C++/Fortran compilers."
-    echo >&2 "Such a combination will lead to problems."
-    echo >&2 "Check the environment variables CC, CXX & SAGE_FORTRAN carefully."
-    echo >&2 "Exiting ..."
-    exit 1
-fi
-
-echo "The following environment variables will be exported:"
-
-# These are all used by GNU to specify compilers:
-echo "Using CC=$CC"
-echo "Using CXX=$CXX"
-echo "Using FC=$FC"
-echo "Using F77=$F77"
-
-# Usually, one would add LD here, too.
-echo "Using MAKE=$MAKE"
-
-# Used by Sage in connection with Fortran:
-echo "Using SAGE_FORTRAN=$SAGE_FORTRAN"
-echo "Using SAGE_FORTRAN_LIB=$SAGE_FORTRAN_LIB"
-
-# Flags which may be set:
-echo "Using CFLAG64=$CFLAG64"
-echo "Using CXXFLAG64=$CXXFLAG64"
-echo "Using CFLAGS=$CFLAGS"
-echo "Using CXXFLAGS=$CXXFLAGS"
-echo "Using FCFLAGS=$FCFLAGS"
-echo "Using F77FLAGS=$F77FLAGS"
-echo "Using CPPFLAGS=$CPPFLAGS"
-echo "Using LDFLAGS=$LDFLAGS"
-echo "Using ABI=$ABI"
-echo "'configure' scripts and/or makefiles might override these later."
-echo " "
 
 # Export everything. Probably not necessary in most cases.
 export CFLAGS
 export CXXFLAGS
-export FCFLAGS
-export F77FLAGS
-export CPPFLAGS
-export LDFLAGS
-export ABI
-# (Variables like CC, CXX etc. have already been exported by 'sage-env'.)
-
-# End of pretty general spkg-install file.
-# Now do the specific things needed for this package (lcalc).
 
 success() {
     if [ $? -ne 0 ]; then
@@ -180,12 +52,15 @@ success() {
 
 export DEFINES=""
 
+# Set installation directory
+export INSTALL_DIR="$SAGE_LOCAL/"
+
 cd src
 
 # Apply Sage-specific patches: (See SPKG.txt for details on the patches.)
-echo >&2 "Patching the upstream source code for Sage..."
+echo "Patching the upstream source code for Sage..."
 for patch in ../patches/*.patch; do
-    patch -p1 <"$patch"
+    patch -p1 < "$patch"
     success "patch $patch failed to apply"
 done
 
@@ -195,35 +70,12 @@ done
 cd src   # Now we are in src/src.
 
 # Build everything:
-echo >&2 "Now building lcalc, example programs and the shared library..."
+echo "Now building lcalc, example programs and the shared library..."
 $MAKE
-success 'make'
+success "$MAKE"
 
-echo >&2 "Now copying over lcalc binary..."
-cp lcalc "$SAGE_LOCAL"/bin
-success 'copying binary'
-
-echo >&2 "Now copying over lcalc library..."
-
-# Remove next few lines when MacOS X 10.4 (Darwin 8) is no longer supported.
-# 10.4 does not seem to compile with .so extension in the library files.
-if [ "$UNAME" = "Darwin" ]; then
-    if [ `sysctl -n kern.osrelease | cut -d . -f 1` -lt 9 ]; then
-        cp libLfunction.so "$SAGE_LOCAL"/lib/libLfunction.dylib
-        success "copying libLfunction.dylib"
-    fi
-fi # End of MacOS X 10.4 specific instructions
-
-
-if [ "$UNAME" = "CYGWIN" ]; then
-    cp libLfunction.so "$SAGE_LOCAL"/lib/libLfunction.dll
-else
-    cp libLfunction.so "$SAGE_LOCAL"/lib/
-fi
-success "copying libLfunction.so"
-
-echo >&2 "Now copying over lcalc library header files..."
-rm -fr "$SAGE_LOCAL"/include/lcalc
-mkdir -p "$SAGE_LOCAL"/include/lcalc
-cp ../include/* "$SAGE_LOCAL"/include/lcalc
-success 'copying header files'
+# Install everything
+echo "Now installing lcalc binary, library and header files..."
+rm -fr "$SAGE_LOCAL"/include/libLfunction
+$MAKE install
+success "$MAKE install"

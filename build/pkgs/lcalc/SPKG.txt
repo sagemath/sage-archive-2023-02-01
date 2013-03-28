@@ -92,6 +92,11 @@ http://code.google.com/p/l-calc/
 
 == Changelog ==
 
+=== lcalc-1.23.p11 (Jean-Pierre Flori, 8 August 2012) ===
+ * #13351: modify Makefile to define binaries and libraries extension
+           according to host system. As a side effect, this let
+           sage.libs.lcalc.lcal_Lfunction be imported on Cygwin.
+
 === lcalc-1.23.p10 (Leif Leonhardy, March 17th 2012) ===
  * #12681: Fix hard-coded 'g++'.
    The (patched) Makefile now uses $(CXX) (which *defaults* to 'g++')

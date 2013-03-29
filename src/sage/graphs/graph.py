@@ -2419,6 +2419,11 @@ class Graph(GenericGraph):
 
             * Any two non-adjacent vertices of `G` have `\mu` common neighbors.
 
+        By convention, the complete graphs, the graphs with no edges
+        and the empty graph are not strongly regular.
+
+        See :wikipedia:`Strongly regular graph`
+
         INPUT:
 
         - ``parameters`` (boolean) -- whether to return the quadruple `(n,
@@ -2450,18 +2455,37 @@ class Graph(GenericGraph):
             sage: g = graphs.ChvatalGraph()
             sage: g.is_strongly_regular()
             False
+
+        Complete graphs are not strongly regular. (:trac:`14297`) ::
+
+            sage: g = graphs.CompleteGraph(5)
+            sage: g.is_strongly_regular()
+            False
+
+        Completements of graphs are not strongly regular::
+
+            sage: g = graphs.CompleteGraph(5).complement()
+            sage: g.is_strongly_regular()
+            False
+
+        The empty graph is not strongly regular::
+
+            sage: g = graphs.EmptyGraph()
+            sage: g.is_strongly_regular()
+            False
         """
         degree = self.degree()
+        if len(degree) == 0: # the empty graph
+            return False
         k = degree[0]
         if not all(d == k for d in degree):
             return False
 
+        if k == 0: # graphs with no edges
+            return False
+
         if self.is_clique():
-            l = self.order()-2
-            m = 0
-        elif self.size() == 0:
-            l = 0
-            m = 0
+            return False
         else:
             l = m = None
             for u in self:
@@ -2485,10 +2509,10 @@ class Graph(GenericGraph):
                             if m != inter:
                                 return False
 
-            if parameters:
-                return (self.order(),k,l,m)
-            else:
-                return True
+        if parameters:
+            return (self.order(),k,l,m)
+        else:
+            return True
 
     def odd_girth(self):
         r"""

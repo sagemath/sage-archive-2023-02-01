@@ -68,13 +68,13 @@ cd ${WORKDIR}
 prepare_polybori
 echo "Starting build..."
 
-echo "Running build_polybori..."
-build_polybori
-echo "Done build_polybori."
-
 echo "Removing old PolyBoRi install..."
 clean_polybori
 echo "Done removing old PolyBoRi install."
+
+echo "Running build_polybori..."
+build_polybori
+echo "Done build_polybori."
 
 echo "Installing PolyBoRi..."
 install_polybori

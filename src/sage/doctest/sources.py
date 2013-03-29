@@ -269,7 +269,6 @@ class DocTestSource(object):
                     doc.append(line)
                     unparsed_doc = True
             if not in_docstring and (not just_finished or self.start_finish_can_overlap):
-                #print lineno, "not in docstring"
                 # to get line numbers in linked docstrings correct we
                 # append a blank line to the doc list.
                 doc.append("\n")
@@ -630,8 +629,9 @@ class FileDocTestSource(DocTestSource):
             cwd = os.getcwd()
             if base:
                 os.chdir(base)
-            load(filename, namespace) # errors raised here will be caught in DocTestTask
-            if base:
+            try:
+                load(filename, namespace) # errors raised here will be caught in DocTestTask
+            finally:
                 os.chdir(cwd)
         self.qualified_name = NestedName(self.basename)
         return self._create_doctests(namespace)
@@ -964,7 +964,6 @@ class PythonSource(SourceLanguage):
         """
         indent = whitespace.match(line).end()
         quotematch = None
-        ## print "S", self.quotetype, max(self.paren_count,self.bracket_count,self.curly_count), self.line_shift, line
         if self.quotetype is None:
             # We're not inside a triple quote
             if line[indent] != '#' and (indent == 0 or indent > self.last_indent):
@@ -1015,7 +1014,6 @@ class PythonSource(SourceLanguage):
             sage: FDS.ending_docstring('\"\"\"')
         """
         quotematch = triple_quotes.match(line)
-        ## print "E", self.quotetype, max(self.paren_count,self.bracket_count,self.curly_count), self.line_shift, line
         if quotematch is not None and quotematch.groups()[0] != self.quotetype:
             quotematch = None
         self._update_quotetype(line)
@@ -1311,17 +1309,14 @@ class RestSource(SourceLanguage):
             if end_block:
                 self.skipping = False
             else:
-                ## print "S continuing skip;", self.last_indent, line
                 return False
         m = double_colon.match(line)
-        ## print "S", m is not None, self.ending_docstring(line), self.last_indent, whitespace.match(line).end(), line
         starting = m and not line.strip().startswith(".. ")
         if starting:
             self.linking = self.link_all or '.. link' in self.last_line
             self.first_line = True
             indent = len(m.groups()[0])
             if '.. skip' in self.last_line:
-                ## print "starting skipping"
                 self.skipping = True
                 starting = False
         else:
@@ -1361,7 +1356,6 @@ class RestSource(SourceLanguage):
         if not line.strip():
             return False
         indent = whitespace.match(line).end()
-        ## print "E", indent, self.last_indent, self.first_line, line
         if self.first_line:
             self.first_line = False
             if indent <= self.last_indent:

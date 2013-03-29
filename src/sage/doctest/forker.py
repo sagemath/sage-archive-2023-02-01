@@ -653,18 +653,18 @@ class SageDocTestRunner(doctest.DocTestRunner):
                 failed.append(x)
         if verbose:
             if notests:
-                print(count_noun(len(notests), "item") + " had no tests:", file=m)
+                print(count_noun(len(notests), "item"), "had no tests:", file=m)
                 notests.sort()
                 for thing in notests:
                     print("    %s"%thing, file=m)
             if passed:
-                print(count_noun(len(passed), "item") + " passed all tests:", file=m)
+                print(count_noun(len(passed), "item"), "passed all tests:", file=m)
                 passed.sort()
                 for thing, count in passed:
                     print(" %s in %s"%(count_noun(count, "test", pad_number=3, pad_noun=True), thing), file=m)
         if failed:
             print(self.DIVIDER, file=m)
-            print(count_noun(len(failed), "item") + " had failures:", file=m)
+            print(count_noun(len(failed), "item"), "had failures:", file=m)
             failed.sort()
             for thing, (f, t) in failed:
                 print(" %3d of %3d in %s"%(f, t, thing), file=m)
@@ -1303,10 +1303,12 @@ class DocTestDispatcher(SageObject):
         # Timeout we give a process to die (after it received a SIGHUP
         # signal). If it doesn't exit by itself in this many seconds, we
         # SIGKILL it. This is 5% of doctest timeout, with a maximum of
-        # 10 minutes.
+        # 10 minutes and a minimum of 5 seconds.
         die_timeout = opt.timeout * 0.05
         if die_timeout > 600:
             die_timeout = 600
+        elif die_timeout < 5:
+            die_timeout = 5
 
         # List of alive DocTestWorkers (child processes). Workers which
         # are done but whose messages have not been read are also
@@ -1490,7 +1492,7 @@ class DocTestDispatcher(SageObject):
                 except Exception:
                     pass
                 else:
-                    print("Killing test", w.source.printpath)
+                    log("Killing test %s"%w.source.printpath)
             # Fork a child process with the specific purpose of
             # killing the remaining workers.
             if len(workers) > 0 and os.fork() == 0:
@@ -1597,7 +1599,6 @@ class DocTestWorker(multiprocessing.Process):
         TESTS::
 
             sage: run_doctests(sage.rings.big_oh) # indirect doctest
-            Doctesting .../sage/rings/big_oh.py
             Running doctests with ID ...
             Doctesting 1 file.
             sage -t .../sage/rings/big_oh.py
@@ -1643,7 +1644,6 @@ class DocTestWorker(multiprocessing.Process):
         TESTS::
 
             sage: run_doctests(sage.symbolic.units) # indirect doctest
-            Doctesting .../sage/symbolic/units.py
             Running doctests with ID ...
             Doctesting 1 file.
             sage -t .../sage/symbolic/units.py

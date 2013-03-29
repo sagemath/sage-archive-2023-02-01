@@ -828,7 +828,6 @@ class SageOutputChecker(doctest.OutputChecker):
             got_values = [float(g) for g in got_str]
             starwant = float_regex.sub('*', want)
             stargot = float_regex.sub('*', got)
-            #print want_values, got_values, starwant, stargot, doctest.OutputChecker.check_output(self, starwant, stargot, optionflags)
             if len(want_values) > 0 and len(want_values) == len(got_values) and \
                doctest.OutputChecker.check_output(self, starwant, stargot, optionflags):
                 def failstr(c,d,actual,desired):

@@ -258,7 +258,7 @@ class DocTestReporter(SageObject):
             sage: runner.update_results(D)
             0
             sage: DTR.report(FDS, False, 0, (sum([len(t.examples) for t in doctests]), D), "Good tests")
-                [... tests, 0.0 s]
+                [... tests, 0.00 s]
             sage: DTR.stats
             {'sage.doctest.reporting': {'walltime': ...}}
 
@@ -268,7 +268,7 @@ class DocTestReporter(SageObject):
             sage: runner.update_results(D)
             1
             sage: DTR.report(FDS, False, 0, (sum([len(t.examples) for t in doctests]), D), "Doctest output including the failure...")
-                [... tests, 1 failure, 0.0 s]
+                [... tests, 1 failure, 0.00 s]
 
         If the user has requested that we report on skipped doctests,
         we do so::
@@ -286,11 +286,17 @@ class DocTestReporter(SageObject):
                 4 long tests not run
                 5 magma tests not run
                 2 other tests skipped
-                [... tests, 0.0 s]
+                [... tests, 0.00 s]
 
+        Test an internal error in the reporter::
+
+            sage: DTR.report(None, None, None, None, None)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'NoneType' object has no attribute 'basename'
         """
+        log = self.controller.log
         try:
-            log = self.controller.log
             postscript = self.postscript
             stats = self.stats
             basename = source.basename
@@ -313,7 +319,7 @@ class DocTestReporter(SageObject):
                     if sig == signal.SIGKILL:
                         fail_msg += " (and interrupt failed)"
                     else:
-                        fail_msg += " (with %s after interrupt)"%signal_name(-return_code)
+                        fail_msg += " (with %s after interrupt)"%signal_name(sig)
                 log("    %s\n%s\nTests run before process timed out:"%(fail_msg, "*"*70))
                 log(output)
                 log("*"*70)
@@ -425,12 +431,13 @@ class DocTestReporter(SageObject):
                                             log("    %s not run"%(count_noun(nskipped, tag + " test")))
                             if untested:
                                 log ("    %s skipped"%(count_noun(untested, "%stest"%("other " if seen_other else ""))))
-                    log("    [%s, %s%.1f s]" % (count_noun(ntests, "test"), "%s, "%(count_noun(f, "failure")) if f else "", wall))
+                    log("    [%s, %s%.2f s]" % (count_noun(ntests, "test"), "%s, "%(count_noun(f, "failure")) if f else "", wall))
             self.sources_completed += 1
 
         except StandardError:
             import traceback
-            traceback.print_exc()
+            log(traceback.format_exc(), end="")
+
 
     def finalize(self):
         """
@@ -477,12 +484,12 @@ class DocTestReporter(SageObject):
             sage: runner.update_results(D)
             0
             sage: DTR.report(FDS, False, 0, (sum([len(t.examples) for t in doctests]), D), "Good tests")
-                [... tests, 0.0 s]
+                [... tests, 0.00 s]
             sage: runner.failures = 1
             sage: runner.update_results(D)
             1
             sage: DTR.report(FDS, False, 0, (sum([len(t.examples) for t in doctests]), D), "Doctest output including the failure...")
-                [... tests, 1 failure, 0.0 s]
+                [... tests, 1 failure, 0.00 s]
 
         Now we can show the output of finalize::
 

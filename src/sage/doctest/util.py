@@ -38,12 +38,11 @@ def count_noun(number, noun, plural=None, pad_number=False, pad_noun=False):
         sage: count_noun(1, "peach", plural="peaches", pad_noun=True)
         '1 peach  '
     """
+    if plural is None:
+        plural = noun + "s"
     if pad_noun:
-        if plural is None:
-            pad_noun = " "
-        else:
-            # We assume that the plural is never shorter than the noun....
-            pad_noun = " " * (len(plural) - len(noun))
+        # We assume that the plural is never shorter than the noun....
+        pad_noun = " " * (len(plural) - len(noun))
     else:
         pad_noun = ""
     if pad_number:
@@ -53,8 +52,6 @@ def count_noun(number, noun, plural=None, pad_number=False, pad_noun=False):
     if number == 1:
         return "%s %s%s"%(number_str, noun, pad_noun)
     else:
-        if plural is None:
-            plural = "%ss"%(noun)
         return "%s %s"%(number_str, plural)
 
 

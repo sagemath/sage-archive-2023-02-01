@@ -853,7 +853,6 @@ def run_doctests(module, options=None):
     EXAMPLES::
 
         sage: run_doctests(sage.rings.infinity)
-        Doctesting .../sage/rings/infinity.py
         Running doctests with ID ...
         Doctesting 1 file.
         sage -t .../sage/rings/infinity.py
@@ -886,7 +885,6 @@ def run_doctests(module, options=None):
         elif isinstance(x, basestring):
             return [os.path.abspath(x)]
     F = stringify(module)
-    print "Doctesting %s"%(", ".join(F))
     if options is None:
         options = DocTestDefaults()
     DC = DocTestController(options, F)

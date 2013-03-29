@@ -213,6 +213,14 @@ else
                 # https://groups.google.com/forum/?fromgroups#!topic/sage-devel/KCeFqQ_w2FE
                 echo >&2 "Installing GCC because you have $CC version $GCCVERSION, which is quite old."
                 need_to_install_gcc=yes;;
+            4.4*|4.5*)
+                # GCC 4.4.x and GCC 4.5.x fail to compile PARI/GP on ia64:
+                # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=46044
+                if [ x`uname -m` = xia64 ]; then
+                    echo >&2 "Installing GCC because you have $CC version $GCCVERSION on ia64."
+                    echo >&2 "gcc <= 4.5 fails to compile PARI/GP on ia64."
+                    need_to_install_gcc=yes
+                fi;;
             4.6.[01])
                 # Also install GCC if we have version 4.6.0 or 4.6.1, which is
                 # known to give trouble within Sage:
@@ -221,6 +229,14 @@ else
                 echo >&2 "Installing GCC because you have $CC version $GCCVERSION."
                 echo >&2 "gcc-4.6.0 and gcc-4.6.1 have known bugs affecting Sage."
                 need_to_install_gcc=yes;;
+            4.6*)
+                # GCC 4.6.x doesn't compile ECL on Cygwin:
+                # * http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52061
+                if uname | grep CYGWIN >/dev/null; then
+                    echo >&2 "Installing GCC because you have $CC version $GCCVERSION on Cygwin."
+                    echo >&2 "gcc-4.6.x fails to compile ECL on Cygwin."
+                    need_to_install_gcc=yes
+                fi;;
             4.7.0)
                 # GCC 4.7.0 is very broken on ia64, see
                 # http://gcc.gnu.org/bugzilla/show_bug.cgi?id=48496

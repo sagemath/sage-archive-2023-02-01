@@ -322,13 +322,13 @@ spaces in its name will also fail.
    the word ERROR in the last 3-4 lines of output.
 
    Each component of Sage has its own build log, saved in
-   ``SAGE_ROOT/spkg/logs``.  In particular,
+   ``SAGE_ROOT/logs/pkgs``.  In particular,
    if the build of Sage fails, then you can type the following from the directory
    where you typed ``make``.
 
    ::
 
-            grep -li "^Error installing" spkg/logs/*
+            grep -li "^Error installing" logs/pkgs/*
 
    Then paste the contents of the log file(s) with errors to the Sage
    support newsgroup http://groups.google.com/group/sage-support

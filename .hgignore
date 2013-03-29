@@ -11,6 +11,7 @@ devel
 dist
 examples
 .*\.log
+logs
 local
 tmp
 spkg/Makefile

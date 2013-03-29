@@ -14,6 +14,10 @@ rm -r zlib
 # Remove Native Language Support
 rm -r gcc/po libcpp/po
 
+# Remove libitm, since it's not used by Sage and it prevents GCC from
+# building on OS X 10.4 PPC.
+rm -r libitm
+
 # Remove all files for languages other than C, C++, Fortran.
 rm -r libada gnattools libgo libffi libjava boehm-gc libobjc
 cd gcc

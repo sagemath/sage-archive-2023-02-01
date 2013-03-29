@@ -30,6 +30,11 @@ http://gcc.gnu.org/
 
 == Changelog ==
 
+=== gcc-4.7.2.p1 (Jeroen Demeyer, 4 April 2013) ===
+ * Trac #14378: Use $SAGE_SPKG_INST variable.
+ * Disable bootstrap-debug on all systems.
+ * Remove libitm which is broken on OS X 10.4 PPC.
+
 === gcc-4.7.2.p0 (Jeroen Demeyer, 8 January 2013) ===
  * Trac #13913: add spkg-src script to remove lots of unneeded things
    from the sources and run it.

@@ -1423,7 +1423,7 @@ class PermutationGroup_generic(group.Group):
 
             sage: S = SymmetricGroup(['a','b','c'])
             sage: latex(S)
-            \langle (\verb|a|,\verb|b|,\verb|c|), (\verb|a|,\verb|b|) \rangle
+            \langle (\text{\texttt{a}},\text{\texttt{b}},\text{\texttt{c}}), (\text{\texttt{a}},\text{\texttt{b}}) \rangle
         """
         return '\\langle ' + \
                ', '.join([x._latex_() for x in self.gens()]) + ' \\rangle'

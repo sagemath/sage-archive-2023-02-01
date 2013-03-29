@@ -15351,7 +15351,7 @@ class GenericGraph(GenericGraph_pyx):
               "0" -- "1";
               "0" -- "2";
               "1" -- "2";
-              "2" -- "3" [label=" ", texlbl="$\verb|foo|$"];
+              "2" -- "3" [label=" ", texlbl="$\text{\texttt{foo}}$"];
             }
 
         Same, with a digraph and a color for edges::

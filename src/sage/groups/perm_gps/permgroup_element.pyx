@@ -590,7 +590,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
             sage: S = SymmetricGroup(['a', 'b'])
             sage: latex(S.gens())
-            \left[(\verb|a|,\verb|b|)\right]
+            \left[(\text{\texttt{a}},\text{\texttt{b}})\right]
         """
         from sage.misc.latex import latex
         return "".join(["(" + ",".join([latex(x) for x in cycle])+")" for cycle in self.cycle_tuples()])

@@ -1929,7 +1929,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             sage: F = CombinatorialFreeModule(QQ, [('a', 'b'), (0,1,2)])
             sage: e = F.basis()
             sage: latex(e[('a','b')])    # indirect doctest
-            B_{\left(a, b\right)}
+            B_{('a', 'b')}
             sage: latex(2*e[(0,1,2)])    # indirect doctest
             2B_{\left(0, 1, 2\right)}
             sage: F = CombinatorialFreeModule(QQ, [('a', 'b'), (0,1,2)], prefix="")
@@ -1940,10 +1940,9 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         from sage.misc.latex import latex
 
         s = latex(m)
-        if s.find('\\verb') != -1:
-            import re
-            s = re.sub("\\\\verb(.)(.*?)\\1", "\\2", s)
-            s = s.replace("\\phantom{x}", " ")
+        if s.find('\\text{\\textt') != -1:
+            # m contains "non-LaTeXed" strings, use string representation
+            s = str(m)
 
         # dictionary with left-right pairs of "brackets".  put pairs
         # in here accept \\left and \\right as prefixes.
@@ -2527,7 +2526,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 sage: F.rename("F")
                 sage: G.rename("G")
                 sage: latex(tensor([F, F, G])) # indirect doctest
-                \verb|F| \otimes \verb|F| \otimes \verb|G|
+                \text{\texttt{F}} \otimes \text{\texttt{F}} \otimes \text{\texttt{G}}
                 sage: F._latex_ = lambda : "F"
                 sage: G._latex_ = lambda : "G"
                 sage: latex(tensor([F, F, G])) # indirect doctest

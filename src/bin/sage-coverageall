@@ -43,6 +43,6 @@ def coverage_all(directory):
             print "We need %4s more function%s to get to %s%% coverage."%(need, "" if (need == 1) else "s", goal)
 
 if len(sys.argv) == 1:
-    coverage_all('%s/devel/sage/sage/'%os.environ["SAGE_ROOT"])
+    coverage_all('%s/sage/'%os.environ["SAGE_SRC"])
 else:
     coverage_all(sys.argv[1])

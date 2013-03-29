@@ -12,11 +12,14 @@ PIPE = spkg/pipestatus
 
 all: start doc  # indirectly depends on build
 
-build:
+logs:
+	mkdir -p $@
+
+build: logs
 	cd spkg && \
 	"../$(PIPE)" \
 		"env SAGE_PARALLEL_SPKG_BUILD='$(SAGE_PARALLEL_SPKG_BUILD)' ./install all 2>&1" \
-		"tee -a ../install.log"
+		"tee -a ../logs/install.log"
 	./sage -b
 
 # ssl: build Sage, and also install pyOpenSSL. This is necessary for
@@ -48,16 +51,16 @@ start: build
 doc: doc-html
 
 doc-html: build
-	$(PIPE) "./sage --docbuild --no-pdf-links all html $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a dochtml.log"
+	$(PIPE) "./sage --docbuild --no-pdf-links all html $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"
 
 doc-html-mathjax: build
-	$(PIPE) "./sage --docbuild --no-pdf-links all html -j $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a dochtml.log"
+	$(PIPE) "./sage --docbuild --no-pdf-links all html -j $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/dochtml.log"
 
 # Keep target 'doc-html-jsmath' for backwards compatibility.
 doc-html-jsmath: doc-html-mathjax
 
 doc-pdf: build
-	$(PIPE) "./sage --docbuild all pdf $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a docpdf.log"
+	$(PIPE) "./sage --docbuild all pdf $(SAGE_DOCBUILD_OPTS) 2>&1" "tee -a logs/docpdf.log"
 
 doc-clean:
 	@echo "Deleting devel/sage/doc/output..."
@@ -76,10 +79,7 @@ distclean: clean
 	rm -rf spkg/installed
 	rm -rf spkg/logs
 	rm -rf spkg/optional
-	rm -f install.log
-	rm -f dochtml.log docpdf.log
-	rm -f test.log testall.log testlong.log ptest.log ptestlong.log
-	rm -f start.log
+	rm -rf logs
 	rm -f spkg/parallel_make.cfg
 	rm -rf dist
 	rm -rf devel
@@ -100,43 +100,42 @@ text-collapse:
 	./spkg/bin/text-collapse
 
 TESTPRELIMS = local/bin/sage-starts
-# The [a-z][a-z] matches all directories whose names consist of two
-# lower-case letters, to match the language directories.
-TESTDIRS = devel/sage/doc/common devel/sage/doc/[a-z][a-z] devel/sage/sage
+TESTALL = ./sage -t --all
+PTESTALL = ./sage -t -p --all
 
 test: all # i.e. build and doc
 	$(TESTPRELIMS)
-	$(PIPE) "./sage -t --sagenb $(TESTDIRS) 2>&1" "tee -a test.log"
+	$(TESTALL) --logfile=logs/test.log
 
 check: test
 
 testall: all # i.e. build and doc
 	$(TESTPRELIMS)
-	$(PIPE) "./sage -t --sagenb --optional $(TESTDIRS) 2>&1" "tee -a testall.log"
+	$(TESTALL) --optional=all --logfile=logs/testall.log
 
 testlong: all # i.e. build and doc
 	$(TESTPRELIMS)
-	$(PIPE) "./sage -t --sagenb --long $(TESTDIRS) 2>&1" "tee -a testlong.log"
+	$(TESTALL) --long --logfile=logs/testlong.log
 
 testalllong: all # i.e. build and doc
 	$(TESTPRELIMS)
-	$(PIPE) "./sage -t --sagenb --optional --long $(TESTDIRS) 2>&1" "tee -a testalllong.log"
+	$(TESTALL) --long --optional=all --logfile=logs/testalllong.log
 
 ptest: all # i.e. build and doc
 	$(TESTPRELIMS)
-	$(PIPE) "./sage -tp --sagenb $(TESTDIRS) 2>&1" "tee -a ptest.log"
+	$(PTESTALL) --logfile=logs/ptest.log
 
 ptestall: all # i.e. build and doc
 	$(TESTPRELIMS)
-	$(PIPE) "./sage -tp --sagenb --optional $(TESTDIRS) 2>&1" "tee -a ptestall.log"
+	$(PTESTALL) --optional=all --logfile=logs/ptestall.log
 
 ptestlong: all # i.e. build and doc
 	$(TESTPRELIMS)
-	$(PIPE) "./sage -tp --sagenb --long $(TESTDIRS) 2>&1" "tee -a ptestlong.log"
+	$(PTESTALL) --long --logfile=logs/ptestlong.log
 
 ptestalllong: all # i.e. build and doc
 	$(TESTPRELIMS)
-	$(PIPE) "./sage -tp --sagenb --optional --long $(TESTDIRS) 2>&1" "tee -a ptestalllong.log"
+	$(PTESTALL) --long --optional=all --logfile=logs/ptestalllong.log
 
 
 testoptional: testall # just an alias

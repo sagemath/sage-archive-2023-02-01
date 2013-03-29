@@ -1,15 +1,22 @@
 import os
 import sys
 
-if not globals().has_key("LINKFLAGS"): LINKFLAGS=[] # s.th. we can *append* below
+CCFLAGS += ["-Wreturn-type"]
 
-# Adding user flags here
-CFLAGS += " " + os.environ.get('CFLAGS', '')
-CXXFLAGS += " " + os.environ.get('CXXFLAGS', '')
-CCFLAGS += " " + os.environ.get('CPPFLAGS', '')
-LINKFLAGS += os.environ.get('LDFLAGS', '').split()
+# Note: PolyBoRi still appends DEFAULT_*FLAGS (overwrite those, if necessary)
+if 'CFLAGS' in os.environ:
+  CFLAGS = os.environ['CFLAGS'].split(' ')
+
+if 'CXXFLAGS' in os.environ:
+  CXXFLAGS = ["-Wno-long-long"] + os.environ['CXXFLAGS'].split(' ')
+
+if 'CPPFLAGS' in os.environ:
+  CCFLAGS = os.environ['CPPFLAGS'].split(' ')
+
 GD_LIBS+=["png12","z"]
 
+# FIXME: Should we include LDFLAGS here? (see above)
+if not globals().has_key("LINKFLAGS"): LINKFLAGS=[] # s.t. we can *append* below
 
 print "Platform: ", sys.platform
 
@@ -28,14 +35,12 @@ if os.environ.get('SAGE_DEBUG', "no") == "yes":
     CPPDEFINES=[]
     CCFLAGS=["-pg"] + CCFLAGS
     CXXFLAGS=["-pg"] + CXXFLAGS
-    # LINKFLAGS=["-pg"]
     LINKFLAGS=["-pg"] + LINKFLAGS
 
 if os.environ.get('SAGE64', "no") == "yes":
     print "Building a 64-bit version of PolyBoRi"
     CCFLAGS=["-m64"] + CCFLAGS
     CXXFLAGS=["-m64"] + CXXFLAGS
-    # LINKFLAGS=["-m64"]
     LINKFLAGS=["-m64"] + LINKFLAGS
 
 CPPPATH=[os.environ['SAGE_LOCAL']+"/include"]
@@ -51,14 +56,19 @@ HAVE_HEVEA=False
 HAVE_TEX4HT=False
 HAVE_PYTHON_EXTENSION=False
 EXTERNAL_PYTHON_EXTENSION=True
+# Disable the Boost testing framework on distributable binaries to
+# prevent linking against a system -lboost_unit_test_framework
+# library.
+if os.environ.get('SAGE_FAT_BINARY', "no") == "yes":
+    BOOST_TEST=""
 
 # (CC and CXX should have been set by sage-env, but never mind...:)
 try:
-  CC = os.environ['CC']
-except:
-  pass
+    CC = os.environ['CC']
+except KeyError:
+    pass
 
 try:
-  CXX = os.environ['CXX']
-except:
-  pass
+    CXX = os.environ['CXX']
+except KeyError:
+    pass

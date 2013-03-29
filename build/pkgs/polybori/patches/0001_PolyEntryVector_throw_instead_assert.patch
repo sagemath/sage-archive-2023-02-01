@@ -1,0 +1,22 @@
+# HG changeset patch
+# User Alexander Dreyer <adreyer@gmx.de>
+# Date 1356904609 -3600
+# Node ID 56692984ec39eb187e6a1839904fd310c8f09464
+# Parent  eeb1d65a951c0dfd61442bd44ab545e2068736c7
+Fix change assertion to exception (user-triggerable)
+
+diff -r eeb1d65a951c0dfd61442bd44ab545e2068736c7 -r 56692984ec39eb187e6a1839904fd310c8f09464 groebner/include/polybori/groebner/PolyEntryVector.h
+--- a/groebner/include/polybori/groebner/PolyEntryVector.h	Sat Dec 22 02:54:10 2012 +0100
++++ b/groebner/include/polybori/groebner/PolyEntryVector.h	Sun Dec 30 22:56:49 2012 +0100
+@@ -71,7 +71,10 @@
+   virtual void append(const PolyEntry& element) {
+     m_data.push_back(element);
+ 
+-    PBORI_ASSERT(m_indices.checked(back().lead) == (size_type)-1);
++#ifndef PBORI_NDEBUG    
++    if(m_indices.checked(back().lead) != (size_type)-1)
++      throw std::runtime_error("leading terms not unique when appending to PolyEntryVector");
++#endif
+     m_indices.insert(back(), size() - 1);
+   }
+ 

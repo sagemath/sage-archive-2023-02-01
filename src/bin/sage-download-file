@@ -35,7 +35,7 @@ if [ -z "$URL_GRABBER" ]; then
     elif command -v curl &>/dev/null; then
         URL_GRABBER="curl"
     elif command -v wget &>/dev/null; then
-        URL_GRABBER="wget --no-verbose -O-"
+        URL_GRABBER="wget -nv -O-"
     # Pick Python last because we don't know which version it is,
     # so it's a bit risky.
     elif command -v python &>/dev/null; then

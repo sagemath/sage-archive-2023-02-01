@@ -543,7 +543,12 @@ if [ "$TOUCH" = "" ]; then
 fi
 
 if [ "$UNAME" = "CYGWIN" ]; then
-    PATH="$PATH:$SAGE_LOCAL/lib:$SAGE_LOCAL/lib/R/lib" && export PATH
+    # Cygwin needs pathnames in PATH to resolve runtime dependencies
+    PATH="$SAGE_LOCAL/lib/R/lib:$SAGE_LOCAL/lib:$PATH" && export PATH
+    # And "dlopen" needs them in LD_LIBRARY_PATH, just as on Linuces,
+    # except that on Cygwin shared libraries are usually stored in "bin"
+    # and not in "lib"
+    LD_LIBRARY_PATH="$SAGE_LOCAL/bin:$LD_LIBRARY_PATH" && export LD_LIBRARY_PATH
 fi
 
 # See trac 7186 -- this is needed if ecl is moved

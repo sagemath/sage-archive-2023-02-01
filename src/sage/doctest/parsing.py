@@ -1,5 +1,7 @@
 ## -*- encoding: utf-8 -*-
 """
+Parsing docstrings
+
 This module contains functions and classes that parse docstrings.
 
 AUTHORS:
@@ -327,7 +329,7 @@ class OriginalSource:
         self.example = example
 
     def __enter__(self):
-        """
+        r"""
         EXAMPLES::
 
             sage: from sage.doctest.sources import FileDocTestSource

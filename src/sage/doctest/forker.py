@@ -1,4 +1,6 @@
 """
+Processes for running doctests
+
 This module controls the processes started by Sage that actually run
 the doctests.
 
@@ -99,7 +101,7 @@ def init_sage():
 
 
 def warning_function(file):
-    """
+    r"""
     Creates a function that prints warnings to the given file.
 
     INPUT:
@@ -130,7 +132,7 @@ def warning_function(file):
 
 
 class SageSpoofInOut(SageObject):
-    """
+    r"""
     We replace the standard :class:`doctest._SpoofOut` for three reasons:
 
     - we need to divert the output of C programs that don't print
@@ -145,7 +147,7 @@ class SageSpoofInOut(SageObject):
     INPUT:
 
     - ``outfile`` -- (default: ``os.tmpfile()``) a seekable open file
-     object to which stdout and stderr should be redirected.
+      object to which stdout and stderr should be redirected.
 
     - ``infile`` -- (default: ``open(os.devnull)``) an open file object
       from which stdin should be redirected.
@@ -215,7 +217,7 @@ class SageSpoofInOut(SageObject):
         self.stop_spoofing()
 
     def start_spoofing(self):
-        """
+        r"""
         Set stdin to read from ``self.infile`` and stdout to print to
         ``self.outfile``.
 
@@ -292,7 +294,7 @@ class SageSpoofInOut(SageObject):
             self.spoofing = False
 
     def getvalue(self):
-        """
+        r"""
         Gets the value that has been printed to ``outfile`` since the
         last time this function was called.
 
@@ -789,7 +791,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: globs.got
             set(['Integer'])
 
-        Now we can execute some more doctests to see the dependencies.
+        Now we can execute some more doctests to see the dependencies. ::
 
             sage: ex1 = doctests[0].examples[1]
             sage: compiled = compile(ex1.source, '<doctest sage.doctest.forker[1]>', 'single', 32768, 1)
@@ -868,7 +870,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: ex = doctests[0].examples[0]
             sage: print DTR._failure_header(doctests[0], ex)
             **********************************************************************
-            File ".../sage/doctest/forker.py", line 9, in sage.doctest.forker
+            File ".../sage/doctest/forker.py", line 11, in sage.doctest.forker
             Failed example:
                 doctest_var = 42; doctest_var^2
             <BLANKLINE>
@@ -878,7 +880,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: import doctest
             sage: print doctest.DocTestRunner._failure_header(DTR, doctests[0], ex)
             **********************************************************************
-            File ".../sage/doctest/forker.py", line 9, in sage.doctest.forker
+            File ".../sage/doctest/forker.py", line 11, in sage.doctest.forker
             Failed example:
                 doctest_var = Integer(42); doctest_var**Integer(2)
             <BLANKLINE>
@@ -916,7 +918,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: doctests, extras = FDS.create_doctests(globals())
             sage: ex = doctests[0].examples[0]
             sage: DTR.report_start(sys.stdout.write, doctests[0], ex)
-            Trying (line 9):    doctest_var = 42; doctest_var^2
+            Trying (line 11):    doctest_var = 42; doctest_var^2
             Expecting:
                 1764
         """
@@ -972,7 +974,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             out("ok [%.2f s]\n"%example.walltime)
 
     def report_failure(self, out, test, example, got, globs):
-        """
+        r"""
         Called when a doctest fails.
 
         INPUT:
@@ -1007,7 +1009,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: DTR.no_failure_yet = True
             sage: DTR.report_failure(sys.stdout.write, doctests[0], ex, 'BAD ANSWER\n', {})
             **********************************************************************
-            File ".../sage/doctest/forker.py", line 9, in sage.doctest.forker
+            File ".../sage/doctest/forker.py", line 11, in sage.doctest.forker
             Failed example:
                 doctest_var = 42; doctest_var^2
             Expected:
@@ -1020,7 +1022,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             doctest.DocTestRunner.report_failure(self, out, test, example, got)
 
     def report_overtime(self, out, test, example, got):
-        """
+        r"""
         Called when the ``warn_long`` option flag is set and a doctest
         runs longer than the specified time.
 
@@ -1055,7 +1057,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: ex.walltime = 1.23
             sage: DTR.report_overtime(sys.stdout.write, doctests[0], ex, 'BAD ANSWER\n')
             **********************************************************************
-            File ".../sage/doctest/forker.py", line 9, in sage.doctest.forker
+            File ".../sage/doctest/forker.py", line 11, in sage.doctest.forker
             Failed example:
                 doctest_var = 42; doctest_var^2
             Test ran for 1.23 s
@@ -1064,7 +1066,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             "Test ran for %.2f s\n"%example.walltime)
 
     def report_unexpected_exception(self, out, test, example, exc_info):
-        """
+        r"""
         Called when a doctest raises an exception that's not matched by the expected output.
 
         If debugging has been turned on, starts an interactive debugger.
@@ -1272,7 +1274,7 @@ class DocTestDispatcher(SageObject):
         """
         Run the doctests from the controller's specified sources in parallel.
 
-        This creates :class:DocTestWorker subprocesses, while the master
+        This creates :class:`DocTestWorker` subprocesses, while the master
         process checks for timeouts and collects and displays the results.
 
         EXAMPLES::
@@ -1570,7 +1572,7 @@ class DocTestWorker(multiprocessing.Process):
 
     INPUT:
 
-    - ``source`` -- a :class:DocTestSource instance
+    - ``source`` -- a :class:`DocTestSource` instance
 
     - ``options`` -- an object representing doctest options.
 

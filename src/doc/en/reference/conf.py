@@ -77,6 +77,7 @@ multidocs_subdoc_list = [
     'constants',
     'cryptography',
     'databases',
+    'doctest',
     'finance',
     'finite_rings',
     'function_fields',

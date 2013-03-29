@@ -1,4 +1,6 @@
 """
+Reporting doctest results
+
 This module determines how doctest results are reported to the user.
 
 It also computes the exit status in the ``error_status`` attribute of

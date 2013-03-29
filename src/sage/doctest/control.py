@@ -1,4 +1,6 @@
 """
+Classes involved in doctesting
+
 This module controls the various classes involved in doctesting.
 
 AUTHORS:
@@ -135,7 +137,7 @@ class DocTestController(SageObject):
     """
     This class controls doctesting of files.
 
-    After creating it with appropriate options, call the :meth:run() method to run the doctests.
+    After creating it with appropriate options, call the :meth:`run` method to run the doctests.
     """
     def __init__(self, options, args):
         """
@@ -349,7 +351,7 @@ class DocTestController(SageObject):
         self.log("Running doctests with ID %s."%self.run_id)
 
     def add_files(self):
-        """
+        r"""
         Checks for the flags '--all', '--new' and '--sagenb'.
 
         For each one present, this function adds the appropriate directories and files to the todo list.
@@ -524,7 +526,7 @@ class DocTestController(SageObject):
             self.sources = filter(is_failure, self.sources)
 
     def sort_sources(self):
-        """
+        r"""
         This function sorts the sources so that slower doctests are run first.
 
         EXAMPLES::
@@ -564,7 +566,7 @@ class DocTestController(SageObject):
         """
         Actually runs the doctests.
 
-        This function is called by :meth:run().
+        This function is called by :meth:`run`.
 
         EXAMPLES::
 

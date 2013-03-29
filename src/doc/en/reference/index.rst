@@ -117,9 +117,10 @@ Miscellaneous Mathematics
 * :doc:`Quantitative Finance <finance/index>`
 * :doc:`Coding Theory <coding/index>`
 
-Interfaces, Databases, Miscellany
----------------------------------
+Doctesting, Interfaces, Databases, Miscellany
+---------------------------------------------
 
+* :doc:`Doctesting <doctest/index>`
 * :doc:`Interpreter Interfaces <interfaces/index>`
 * :doc:`C/C++ Library Interfaces <libs/index>`
 * :doc:`Databases <databases/index>`

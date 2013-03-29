@@ -1,4 +1,6 @@
 """
+Utility functions
+
 This module contains various utility functions and classes used in doctesting.
 
 AUTHORS:

@@ -1,5 +1,5 @@
 """
-Various tests for the doctesting framework.
+Test the doctesting framework
 
 Many tests (with expected failures or crashes) are run in a
 subprocess, those tests can be found in the ``tests/`` subdirectory.
@@ -93,7 +93,7 @@ Test a timeout using the ``SAGE_TIMEOUT`` environment variable::
     ...
     4
 
-Test handling of ``KeyboardInterrupt``s in doctests::
+Test handling of ``KeyboardInterrupt`` in doctests::
 
     sage: subprocess.call(["sage", "-t", "keyboardinterrupt.rst"], **kwds)  # long time
     Running doctests...

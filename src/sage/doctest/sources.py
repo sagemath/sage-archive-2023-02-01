@@ -1,4 +1,6 @@
 """
+Classes for sources of doctests
+
 This module defines various classes for sources from which doctests
 originate, such as files, functions or database entries.
 
@@ -305,7 +307,7 @@ class DocTestSource(object):
             return doctests, extras
 
 class StringDocTestSource(DocTestSource):
-    """
+    r"""
     This class creates doctests from a string.
 
     INPUT:
@@ -340,7 +342,7 @@ class StringDocTestSource(DocTestSource):
         []
     """
     def __init__(self, basename, source, options, printpath, lineno_shift=0):
-        """
+        r"""
         Initialization
 
         TESTS::
@@ -382,7 +384,7 @@ class StringDocTestSource(DocTestSource):
             yield lineno + self.lineno_shift, line + '\n'
 
     def create_doctests(self, namespace):
-        """
+        r"""
         Creates doctests from this string.
 
         INPUT:
@@ -463,7 +465,7 @@ class FileDocTestSource(DocTestSource):
             self.__class__ = dynamic_class('RestFileSource',(FileDocTestSource,RestSource))
 
     def __iter__(self):
-        """
+        r"""
         Iterating over this source yields pairs ``(lineno, line)``.
 
         EXAMPLES::
@@ -821,7 +823,7 @@ class PythonSource(SourceLanguage):
         self.code_wrapping = False
 
     def _update_quotetype(self, line):
-        """
+        r"""
         Updates the track of what kind of quoted string we're in.
 
         We need to track whether we're inside a triple quoted
@@ -985,7 +987,7 @@ class PythonSource(SourceLanguage):
         return quotematch
 
     def ending_docstring(self, line):
-        """
+        r"""
         Determines whether the input line ends a docstring.
 
         INPUT:
@@ -1020,7 +1022,7 @@ class PythonSource(SourceLanguage):
         return quotematch
 
     def _neutralize_doctests(self, reindent):
-        """
+        r"""
         Returns a string containing the source of self, but with
         doctests modified so they aren't tested.
 
@@ -1172,7 +1174,7 @@ class TexSource(SourceLanguage):
         return bool(begin_verb.match(line))
 
     def ending_docstring(self, line, check_skip=True):
-        """
+        r"""
         Determines whether the input line ends a docstring.
 
         Docstring blocks in tex files are defined by verbatim
@@ -1365,7 +1367,7 @@ class RestSource(SourceLanguage):
         return indent < self.last_indent
 
     def parse_docstring(self, docstring, namespace, start):
-        """
+        r"""
         Return a list of doctest defined in this docstring.
 
         Code blocks in a REST file can contain python functions with

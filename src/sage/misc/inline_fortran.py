@@ -86,9 +86,14 @@ class InlineFortran:
 
             # f2py.compile() doesn't raise any exception if it fails.
             # So we manually check whether the compiled file exists.
-            # NOTE: the .so extension is used, even on OS X where .dylib
-            # might be expected.
-            soname = name + '.so'
+            # NOTE: the .so extension is used expect on Cygwin,
+            # that is even on OS X where .dylib might be expected.
+            soname = name
+            uname = os.uname()[0].lower()
+            if uname[:6] == "cygwin":
+                soname += '.dll'
+            else:
+                soname += '.so'
             if not os.path.isfile(soname):
                 raise RuntimeError("failed to compile Fortran code:\n" + log_string)
 

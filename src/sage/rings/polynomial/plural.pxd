@@ -6,6 +6,8 @@ from sage.structure.parent cimport Parent
 from sage.libs.singular.function cimport RingWrap
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomialRing_libsingular
 
+cdef extern from *:
+    ctypedef long Py_hash_t
 
 cdef class NCPolynomialRing_plural(Ring):
     cdef object __ngens

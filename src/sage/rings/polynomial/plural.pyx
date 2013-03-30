@@ -570,7 +570,7 @@ cdef class NCPolynomialRing_plural(Ring):
             2
 
         """
-        return id(self)
+        return <Py_hash_t> <void *> self
 
     def __pow__(self, n, _):
         """

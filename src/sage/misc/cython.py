@@ -543,7 +543,11 @@ setup(ext_modules = ext_modules,
 
     if create_local_so_file:
         # Copy from lib directory into local directory
-        cmd = 'cp %s/%s.so %s'%(build_dir, name, os.path.abspath(os.curdir))
+        libext = 'so'
+        UNAME = os.uname()[0].lower()
+        if UNAME[:6] == 'cygwin':
+            libext = 'dll'
+        cmd = 'cp %s/%s.%s %s'%(build_dir, name, libext, os.path.abspath(os.curdir))
         if os.system(cmd):
             raise RuntimeError, "Error making local copy of shared object library for %s"%filename
 

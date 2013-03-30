@@ -531,6 +531,14 @@ if not sdist:
 ### Distutils
 #########################################################
 
+def python_packages():
+    packages = []
+    root = os.path.join(os.path.dirname(__file__))
+    for dirpath, dirnames, filenames in os.walk(os.path.join(root, 'sage')):
+        if '__init__.py' in filenames:
+            packages.append(dirpath.replace(os.path.sep, '.'))
+    return packages
+
 code = setup(name = 'sage',
 
       version     =  SAGE_VERSION,
@@ -545,184 +553,8 @@ code = setup(name = 'sage',
 
       url         = 'http://www.sagemath.org',
 
-      packages    = ['sage',
+      packages    = python_packages(),
 
-                     'sage.algebras',
-                     'sage.algebras.letterplace',
-                     'sage.algebras.quatalg',
-                     'sage.algebras.steenrod',
-
-                     'sage.calculus',
-
-                     'sage.categories',
-                     'sage.categories.examples',
-
-                     'sage.coding',
-                     'sage.coding.source_coding',
-
-                     'sage.combinat',
-                     'sage.combinat.cluster_algebra_quiver',
-                     'sage.combinat.crystals',
-                     'sage.combinat.rigged_configurations',
-                     'sage.combinat.designs',
-                     'sage.combinat.sf',
-                     'sage.combinat.ncsf_qsym',
-                     'sage.combinat.root_system',
-                     'sage.combinat.matrices',
-                     'sage.combinat.posets',
-                     'sage.combinat.species',
-
-                     'sage.combinat.words',
-
-                     'sage.combinat.iet',
-
-                     'sage.crypto',
-                     'sage.crypto.block_cipher',
-                     'sage.crypto.mq',
-                     'sage.crypto.public_key',
-
-                     'sage.databases',
-
-                     'sage.doctest',
-
-                     'sage.ext',
-                     'sage.ext.interpreters',
-
-                     'sage.finance',
-
-                     'sage.functions',
-
-                     'sage.geometry',
-                     'sage.geometry.polyhedron',
-                     'sage.geometry.triangulation',
-
-                     'sage.games',
-
-                     'sage.gsl',
-
-                     'sage.graphs',
-                     'sage.graphs.base',
-                     'sage.graphs.modular_decomposition',
-                     'sage.graphs.graph_decompositions',
-                     'sage.graphs.generators',
-
-                     'sage.groups',
-                     'sage.groups.abelian_gps',
-                     'sage.groups.additive_abelian',
-                     'sage.groups.matrix_gps',
-                     'sage.groups.misc_gps',
-                     'sage.groups.perm_gps',
-                     'sage.groups.perm_gps.partn_ref',
-
-                     'sage.homology',
-
-                     'sage.interacts',
-
-                     'sage.interfaces',
-
-                     'sage.lfunctions',
-
-                     'sage.libs',
-                     'sage.libs.fplll',
-                     'sage.libs.linbox',
-                     'sage.libs.mwrank',
-                     'sage.libs.ntl',
-                     'sage.libs.flint',
-                     'sage.libs.lrcalc',
-                     'sage.libs.pari',
-                     'sage.libs.gap',
-                     'sage.libs.singular',
-                     'sage.libs.symmetrica',
-                     'sage.libs.cremona',
-                     'sage.libs.coxeter3',
-                     'sage.libs.mpmath',
-                     'sage.libs.lcalc',
-
-                     'sage.logic',
-
-                     'sage.matrix',
-                     'sage.media',
-                     'sage.misc',
-
-                     'sage.modules',
-                     'sage.modules.fg_pid',
-
-                     'sage.modular',
-                     'sage.modular.arithgroup',
-                     'sage.modular.abvar',
-                     'sage.modular.hecke',
-                     'sage.modular.modform',
-                     'sage.modular.modsym',
-                     'sage.modular.quatalg',
-                     'sage.modular.ssmod',
-                     'sage.modular.overconvergent',
-                     'sage.modular.local_comp',
-
-                     'sage.monoids',
-
-                     'sage.numerical',
-                     'sage.numerical.backends',
-
-                     'sage.plot',
-                     'sage.plot.plot3d',
-
-                     'sage.probability',
-
-                     'sage.quadratic_forms',
-                     'sage.quadratic_forms.genera',
-
-                     'sage.rings',
-                     'sage.rings.finite_rings',
-                     'sage.rings.function_field',
-                     'sage.rings.number_field',
-                     'sage.rings.padics',
-                     'sage.rings.polynomial',
-                     'sage.rings.polynomial.padics',
-                     'sage.rings.semirings',
-                     'sage.rings.universal_cyclotomic_field',
-
-                     'sage.tests',
-                     'sage.tests.french_book',
-
-                     'sage.sandpiles',
-
-                     'sage.sat',
-                     'sage.sat.converters',
-                     'sage.sat.solvers',
-                     'sage.sat.solvers.cryptominisat',
-
-                     'sage.sets',
-
-                     'sage.stats',
-
-                     'sage.stats.hmm',
-
-                     'sage.symbolic',
-                     'sage.symbolic.integration',
-
-                     'sage.parallel',
-
-                     'sage.schemes',
-                     'sage.schemes.generic',
-                     'sage.schemes.jacobians',
-                     'sage.schemes.plane_curves',
-                     'sage.schemes.plane_conics',
-                     'sage.schemes.plane_quartics',
-                     'sage.schemes.elliptic_curves',
-                     'sage.schemes.hyperelliptic_curves',
-                     'sage.schemes.toric',
-
-                     'sage.server',
-                     'sage.server.simple',
-                     'sage.server.notebook',
-                     'sage.server.notebook.compress',
-                     'sage.server.trac',
-
-                     'sage.structure',
-                     'sage.structure.proof',
-
-                     'sage.tensor'
-                     ],
       scripts = [],
 
       cmdclass = { 'build_ext': sage_build_ext },

@@ -8283,6 +8283,53 @@ cdef class gen(sage.structure.element.RingElement):
         sig_on()
         return self.new_gen(gauss(self.g,t0))
 
+    def matsolvemod(self, D, B, long flag = 0):
+        r"""
+        For column vectors `D=(d_i)` and `B=(b_i)`, find a small integer
+        solution to the system of linear congruences
+
+        .. math::
+
+            R_ix=b_i\text{ (mod }d_i),
+
+        where `R_i` is the ith row of ``self``. If `d_i=0`, the equation is
+        considered over the integers. The entries of ``self``, ``D``, and
+        ``B`` should all be integers (those of ``D`` should also be
+        non-negative).
+
+        If ``flag`` is 1, the output is a two-component row vector whose first
+        component is a solution and whose second component is a matrix whose
+        columns form a basis of the solution set of the homogeneous system.
+
+        For either value of ``flag``, the output is 0 if there is no solution.
+
+        Note that if ``D`` or ``B`` is an integer, then it will be considered
+        as a vector all of whose entries are that integer.
+
+        EXAMPLES::
+
+            sage: D = pari('[3,4]~')
+            sage: B = pari('[1,2]~')
+            sage: M = pari('[1,2;3,4]')
+            sage: M.matsolvemod(D, B)
+            [-2, 0]~
+            sage: M.matsolvemod(3, 1)
+            [-1, 1]~
+            sage: M.matsolvemod(pari('[3,0]~'), pari('[1,2]~'))
+            [6, -4]~
+            sage: M2 = pari('[1,10;9,18]')
+            sage: M2.matsolvemod(3, pari('[2,3]~'), 1)
+            [[0, -1]~, [-1, -2; 1, -1]]
+            sage: M2.matsolvemod(9, pari('[2,3]~'))
+            0
+            sage: M2.matsolvemod(9, pari('[2,45]~'), 1)
+            [[1, 1]~, [-1, -4; 1, -5]]
+        """
+        t0GEN(D)
+        t1GEN(B)
+        sig_on()
+        return self.new_gen(matsolvemod0(self.g, t0, t1, flag))
+
     def matker(self, long flag=0):
         """
         Return a basis of the kernel of this matrix.

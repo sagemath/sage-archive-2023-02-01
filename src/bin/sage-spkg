@@ -64,13 +64,13 @@ $1
 ************************************************************************
 Please email sage-devel (http://groups.google.com/group/sage-devel)
 explaining the problem and including the relevant part of the log file
-  $SAGE_ROOT/spkg/logs/$PKG_NAME.log
+  $SAGE_LOGS/$PKG_NAME.log
 Describe your computer, operating system, etc.
 If you want to try to fix the problem yourself, *don't* just cd to
 `pwd` and type '$2' or whatever is appropriate.
 Instead, the following commands setup all environment variables
 correctly and load a subshell for you to debug the error:
-  (cd '`pwd`' && '$SAGE_ROOT/sage' -sh)
+  (cd '`pwd`' && '$SAGE_ROOT/sage' --sh)
 When you are done debugging, you can type "exit" to leave the subshell.
 ************************************************************************
 MESSAGE

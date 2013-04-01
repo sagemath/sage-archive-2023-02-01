@@ -8,7 +8,7 @@
 SAGE_ROOT=`cd .. && pwd -P`
 SAGE_LOCAL="$SAGE_ROOT/local"
 SAGE_SHARE="$SAGE_LOCAL/share"
-SAGE_LOGS="$SAGE_ROOT/spkg/logs"
+SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
 SAGE_SPKG_INST="$SAGE_ROOT/spkg/installed"
 PATH="$SAGE_ROOT/spkg/bin:$SAGE_LOCAL/bin:$PATH"
 PYTHONPATH="$SAGE_LOCAL"

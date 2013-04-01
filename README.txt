@@ -205,12 +205,12 @@ MORE DETAILED INSTRUCTIONS TO BUILD FROM SOURCE
    Type "install_scripts?" in Sage for more details about what this
    command does.
 
-7. OPTIONAL: Type "make test" to test all examples in the documentation
+7. OPTIONAL: Type "make ptest" to test all examples in the documentation
    (over 93,000 lines of input!) -- this takes from 30 minutes to
    several hours. Don't get too disturbed if there are 2 to 3 failures,
-   but always feel free to email the section of test.log that contains
-   errors to the sage-support mailing list. If there are numerous
-   failures, there was a serious problem with your build.
+   but always feel free to email the section of logs/ptest.log that
+   contains errors to the sage-support mailing list. If there are
+   numerous failures, there was a serious problem with your build.
 
 8. OPTIONAL: If you want to (try to) build the documentation, run:
 
@@ -277,12 +277,12 @@ PROBLEMS
 If you have problems building Sage, check the Sage Installation Guide,
 and also note the following.  Each separate component of Sage is
 contained in an spkg; these are stored in spkg/standard/.  As each one
-is built, a build log is stored in spkg/logs/, so you can browse these
+is built, a build log is stored in logs/pkgs/, so you can browse these
 to find error messages.  If an spkg fails to build, the whole build
 process will stop soon after, so check the most recent log files
 first, or run
 
-   grep -li "^Error" spkg/logs/*
+   grep -li "^Error" logs/pkgs/*
 
 from the top-level Sage directory to find log files with error
 messages in them.  Send (a small part of) the relevant log file to the

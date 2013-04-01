@@ -564,12 +564,15 @@ class Tableau(CombinatorialObject, Element):
     @combinatorial_map(order=2,name='conjugate')
     def conjugate(self):
         """
-        Returns the conjugate of the tableau t.
+        Return the conjugate of ``self``.
 
         EXAMPLES::
 
             sage: Tableau([[1,2],[3,4]]).conjugate()
             [[1, 3], [2, 4]]
+            sage: c = StandardTableau([[1,2],[3,4]]).conjugate()
+            sage: c.parent()
+            Standard tableaux
         """
         conj_shape = self.shape().conjugate()
 
@@ -579,7 +582,8 @@ class Tableau(CombinatorialObject, Element):
             for j in range(len(conj[i])):
                 conj[i][j] = self[j][i]
 
-
+        if isinstance(self, StandardTableau):
+            return StandardTableau(conj)
         return Tableau(conj)
 
     def pp(self):
@@ -772,21 +776,23 @@ class Tableau(CombinatorialObject, Element):
 
     @combinatorial_map(order=2,name='Schuetzenberger involution')
     def schuetzenberger_involution(self, n = None):
-        """
-        Returns the Schuetzenberger involution of the tableau self.
-        This method relies on the analogous method on words, which reverts the word
-        and then complements all letters within the underlying ordered alphabet.
-        If `n` is specified, the underlying alphabet is assumed to be `[1,2,\ldots,n]`.
-        If no alphabet is specified, `n` is the maximal letter appearing in self.
+        r"""
+        Return the Schuetzenberger involution of the tableau ``self``.
+
+        This method relies on the analogous method on words, which reverts the
+        word and then complements all letters within the underlying ordered
+        alphabet. If `n` is specified, the underlying alphabet is assumed to
+        be `[1, 2, \ldots, n]`. If no alphabet is specified, `n` is the maximal
+        letter appearing in ``self``.
 
         INPUT:
 
-        - ``self`` -- a tableau
-        - ``n``    -- an integer specifying the maximal letter in the alphabet (optional)
+        - ``n`` -- an integer specifying the maximal letter in the
+          alphabet (optional)
 
         OUTPUT:
 
-        - a tableau, the Schuetzenberger involution of self
+        - a tableau, the Schuetzenberger involution of ``self``
 
         EXAMPLES::
 
@@ -805,6 +811,11 @@ class Tableau(CombinatorialObject, Element):
             sage: t = Tableau([])
             sage: t.schuetzenberger_involution()
             []
+
+            sage: t = StandardTableau([[1,2,3],[4,5]])
+            sage: s = t.schuetzenberger_involution()
+            sage: s.parent()
+            Standard tableaux
         """
         w = self.to_word()
         if w.length() == 0:
@@ -813,6 +824,8 @@ class Tableau(CombinatorialObject, Element):
         t = Tableau([[wi[0]]])
         for k in range(1, w.length()):
             t = t.bump(wi[k])
+        if isinstance(self, StandardTableau):
+            return StandardTableau(list(t))
         return t
 
     @combinatorial_map(name ='reading word permutation')
@@ -1283,10 +1296,7 @@ class Tableau(CombinatorialObject, Element):
                 done = True
 
             row += 1
-
         return Tableau(new_t)
-
-
 
     def schensted_insert(self, i, left=False):
         """
@@ -2456,6 +2466,16 @@ class StandardTableau(SemistandardTableau):
         return all(self.restrict(m).shape().dominates(t.restrict(m).shape())
                         for m in xrange(1,1+self.size()))
 
+    def is_standard(self):
+        """
+        Return ``True`` since ``self`` is a standard tableau.
+
+        EXAMPLES::
+
+            sage: StandardTableau([[1, 3], [2, 4]]).is_standard()
+            True
+        """
+        return True
 
 def from_chain(chain):
     """

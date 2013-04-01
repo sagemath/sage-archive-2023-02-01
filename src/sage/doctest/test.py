@@ -209,6 +209,30 @@ A different kind of crash::
     ...
     16
 
+Test that ``sig_on_count`` is checked correctly::
+
+    sage: subprocess.call(["sage", "-t", "sig_on.rst"], **kwds)  # long time
+    Running doctests...
+    Doctesting 1 file.
+    sage -t sig_on.rst
+    **********************************************************************
+    File "sig_on.rst", line 5, in sage.doctest.tests.sig_on
+    Failed example:
+        sig_on_count()
+    Expected:
+        0
+    Got:
+        1
+    **********************************************************************
+    1 item had failures:
+       1 of   4 in sage.doctest.tests.sig_on
+        [2 tests, 1 failure, ...]
+    ----------------------------------------------------------------------
+    sage -t sig_on.rst  # 1 doctest failed
+    ----------------------------------------------------------------------
+    ...
+    1
+
 Test the ``--debug`` option::
 
     sage: subprocess.call(["sage", "-t", "--debug", "simple_failure.rst"], stdin=open(os.devnull), **kwds)  # long time

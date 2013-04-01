@@ -72,8 +72,9 @@ sage.server.notebook.gnutls_socket_ssl.require_SSL()
 
 ###################################################################
 
-from sage.ext.c_lib import _init_csage, sig_on_count
-_init_csage()
+import sage.ext.c_lib
+sage.ext.c_lib._init_csage()
+sig_on_count = sage.ext.c_lib._sig_on_reset
 
 from time                import sleep
 

@@ -43,20 +43,22 @@ def _init_csage():
     init_csage()
 
 
-def sig_on_count():
+def _sig_on_reset():
     """
-    Return _signals.sig_on_count.
-
-    This is normally zero, but increased by every sig_on() or sig_str()
-    and decreased by every sig_off(). In pure Python code, this should
-    always be zero.
+    Return the current value of ``_signals.sig_on_count`` and set its
+    value to zero. This is used by the doctesting framework.
 
     EXAMPLES::
 
-        sage: sig_on_count()
+        sage: from sage.ext.c_lib import _sig_on_reset as sig_on_reset
+        sage: cython('sig_on()'); sig_on_reset()
+        1
+        sage: sig_on_reset()
         0
     """
-    return _signals.sig_on_count
+    cdef int s = _signals.sig_on_count
+    _signals.sig_on_count = 0
+    return s
 
 
 def sage_python_check_interrupt(sig, frame):

@@ -77,7 +77,7 @@ from iet.all import *
 from tuple import Tuples, UnorderedTuples
 
 #Alternating sign matrices
-from alternating_sign_matrix import AlternatingSignMatrices, MonotoneTriangles, ContreTableaux, TruncatedStaircases
+from alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices, MonotoneTriangles, ContreTableaux, TruncatedStaircases
 
 # Parking Functions
 from non_decreasing_parking_function import NonDecreasingParkingFunctions, NonDecreasingParkingFunction

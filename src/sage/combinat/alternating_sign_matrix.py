@@ -1,10 +1,18 @@
 r"""
 Alternating Sign Matrices
+
+AUTHORS:
+
+- Mike Hansen (2007): Initial version
+- Pierre Cange, Luis Serrano (2012): Added monotone triangles
+- Travis Scrimshaw (2013-28-03): Added element class for ASM's and made
+  :class:`MonotoneTriangles` inherit from :class:`GelfandTsetlinPatterns`.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #                     2012 Pierre Cagne <pierre.cagne@ens.fr>,
 #                          Luis Serrano <luisgui.serrano@gmail.com>
+#                     2013 Travis Scrimshaw <tscrim@ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -21,78 +29,171 @@ Alternating Sign Matrices
 import itertools
 import copy
 from sage.misc.classcall_metaclass import ClasscallMetaclass
+from sage.misc.flatten import flatten
+from sage.misc.misc import prod
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
+from sage.structure.element import Element
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
+from sage.matrix.matrix_space import MatrixSpace
+from sage.matrix.constructor import matrix
+from sage.rings.all import ZZ, factorial
 from sage.rings.integer import Integer
 from sage.combinat.posets.lattices import LatticePoset
-from sage.misc.flatten import flatten
-from sage.matrix.matrix_space import MatrixSpace
-from sage.rings.all import ZZ, factorial
-from sage.misc.misc import prod
+from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPatternsTopRow
 from sage.sets.set import Set
 
-def from_monotone_triangle(triangle):
-    r"""
-    Return an alternating sign matrix from a monotone triangle.
-
-    EXAMPLES::
-
-        sage: import sage.combinat.alternating_sign_matrix as asm
-        sage: asm.from_monotone_triangle([[1, 2, 3], [1, 2], [1]])
-        [1 0 0]
-        [0 1 0]
-        [0 0 1]
-        sage: asm.from_monotone_triangle([[1, 2, 3], [2, 3], [3]])
-        [0 0 1]
-        [0 1 0]
-        [1 0 0]
+class AlternatingSignMatrix(Element):
     """
-    n = len(triangle)
-    matrix = []
+    An alternating sign matrix.
 
-    prev = [0]*n
-    for line in triangle[::-1]:
-        v = [1 if j+1 in line else 0 for j in range(n)]
-        row = [a-b for (a, b) in zip(v, prev)]
-        matrix.append(row)
-        prev = v
-
-    return MatrixSpace(ZZ,n)(matrix)
-
-
-def to_monotone_triangle(matrix):
-    r"""
-    Return a monotone triangle from an alternating sign matrix.
-
-    EXAMPLES::
-
-        sage: import sage.combinat.alternating_sign_matrix as asm
-        sage: asm.to_monotone_triangle(Matrix(3,[[1, 0, 0],[0, 1, 0],[0, 0, 1]]))
-        [[1, 2, 3], [1, 2], [1]]
-        sage: M = Matrix(3,[[0,1, 0],[1, -1, 1],[0, 1, 0]])
-        sage: asm.to_monotone_triangle(M)
-        [[1, 2, 3], [1, 3], [2]]
-        sage: asm.from_monotone_triangle(asm.to_monotone_triangle(M)) == M
-        True
-    """
-    n = matrix.nrows()
-    triangle = []
-    prev = [0]*n
-    for row in matrix:
-        add_row=[a+b for (a,b) in itertools.izip(row, prev)]
-        line = [i+1 for (i,val) in enumerate(add_row) if val==1]
-        triangle.append(line)
-        prev = add_row
-    return triangle[::-1]
-
-
-
-class AlternatingSignMatrices(Parent):
-    r"""
-    Factory class for the combinatorial structure of alternating sign matrices of size `n`.
-
-    An alternating sign matrix is a square matrix of 0s, 1s and -1s
-    such that the sum of each row and column is 1 and the non zero
+    An alternating sign matrix is a square matrix of `0`s, `1`s and `-1`s
+    such that the sum of each row and column is `1` and the non-zero
     entries in each row and column alternate in sign.
+    """
+    __metaclass__ = ClasscallMetaclass
+
+    @staticmethod
+    def __classcall_private__(cls, asm):
+        """
+        Create an ASM.
+
+        EXAMPLES::
+
+            sage: AlternatingSignMatrix([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+        """
+        asm = matrix(asm)
+        if not asm.is_square():
+            raise ValueError("The alternating sign matrices must be square")
+        P = AlternatingSignMatrices(asm.nrows())
+        if asm not in P:
+            raise ValueError("Invalid alternating sign matrix")
+        return P(asm)
+
+    def __init__(self, parent, asm):
+        """
+        Initialize ``self``.
+
+        EXAMPLES:
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: elt = A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
+            sage: TestSuite(elt).run()
+        """
+        self._matrix = asm
+        Element.__init__(self, parent)
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+        """
+        return repr(self._matrix)
+
+    def __eq__(self, other):
+        """
+        Check equality.
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: M = A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
+            sage: M == A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
+            True
+            sage: M == A([[1, 0, 0],[0, 0, 1],[0, 1, 0]])
+            False
+        """
+        if isinstance(other, AlternatingSignMatrix):
+            return self._matrix == other._matrix
+        return self._matrix == other
+
+    def _latex_(self):
+        r"""
+        Return a `\LaTeX` representation of ``self``.
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: latex(A([[1, 0, 0],[0, 1, 0],[0, 0, 1]]))
+            \left(\begin{array}{rrr}
+            1 & 0 & 0 \\
+            0 & 1 & 0 \\
+            0 & 0 & 1
+            \end{array}\right)
+        """
+        return self._matrix._latex_()
+
+    def to_matrix(self):
+        """
+        Return ``self`` as a regular matrix.
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: asm = A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
+            sage: m = asm.to_matrix(); m
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: m.parent()
+            Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
+        """
+        return copy.copy(self._matrix)
+
+    def to_monotone_triangle(self):
+        r"""
+        Return a monotone triangle from ``self``.
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: A([[1, 0, 0],[0, 1, 0],[0, 0, 1]]).to_monotone_triangle()
+            [[3, 2, 1], [2, 1], [1]]
+            sage: asm = A([[0,1, 0],[1, -1, 1],[0, 1, 0]])
+            sage: asm.to_monotone_triangle()
+            [[3, 2, 1], [3, 1], [2]]
+            sage: A.from_monotone_triangle(asm.to_monotone_triangle()) == asm
+            True
+        """
+        n = self._matrix.nrows()
+        triangle = [None]*n
+        prev = [0]*n
+        for j, row in enumerate(self._matrix):
+            add_row = [a+b for (a,b) in itertools.izip(row, prev)]
+            line = [i+1 for (i,val) in enumerate(add_row) if val==1]
+            triangle[n-1-j] = list(reversed(line))
+            prev = add_row
+        return MonotoneTriangles(n)(triangle)
+
+class AlternatingSignMatrices(Parent, UniqueRepresentation):
+    r"""
+    Class of all `n \times n` alternating sign matrices.
+
+    An alternating sign matrix of size `n` is an `n \times n` matrix of `0`s,
+    `1`s and `-1`s such that the sum of each row and column is `1` and the
+    non-zero entries in each row and column alternate in sign.
+
+    Alternating sign matrices of size `n` are in bijection with
+    :class:`monotone triangles <MonotoneTriangles>` with `n` rows.
+
+    INPUT:
+
+    - `n` -- an integer, the size of the matrices.
+
+    - ``use_monotone_triangle`` -- (Default: ``True``) If ``True``, the
+      generation of the matrices uses monotone triangles, else it will use the
+      earlier and now obsolete contre-tableaux implementation;
+      must be ``True`` to generate a lattice (with the ``lattice`` method)
 
     EXAMPLES:
 
@@ -112,68 +213,154 @@ class AlternatingSignMatrices(Parent):
         Finite lattice containing 7 elements
         sage: L.category()
         Category of facade finite lattice posets
-
-    """
-    __metaclass__ = ClasscallMetaclass
-
-    @staticmethod
-    def __classcall_private__(cls, n, **kwds):
-        r"""
-        Factory pattern.
-
-        Check properties on arguments, then call the appropriate class.
-
-        EXAMPLES::
-
-           sage: A = AlternatingSignMatrices(4)
-           sage: type(A)
-           <class 'sage.combinat.alternating_sign_matrix.AlternatingSignMatrices_n'>
-
-        """
-        assert(isinstance(n, (int, Integer)))
-        return AlternatingSignMatrices_n(n, **kwds)
-
-class AlternatingSignMatrices_n(AlternatingSignMatrices):
-    r"""
-    Specialization class for alternating sign matrices of size `n`
-    when `n` is an integer.
-
-    INPUT:
-
-    - `n` -- an integer, the size of the matrices.
-
-    - ``use_monotone_triangle`` (default: ``True``) -- if ``True``, the generation
-      of the matrices uses monotone triangles, else it will use the earlier and
-      now obsolete contre-tableaux implementation;
-      must be ``True`` to generate a lattice (with the ``lattice`` method)
     """
     def __init__(self, n, use_monotone_triangles=True):
         r"""
-        __init__ ; stock arguments
+        Initialize ``self``.
 
         TESTS::
 
-            sage: import sage.combinat.alternating_sign_matrix as asm
-            sage: A = asm.AlternatingSignMatrices_n(4)
-            sage: A == loads(dumps(A))
-            True
-            sage: A == asm.AlternatingSignMatrices_n(4, use_monotone_triangles=False)
+            sage: A = AlternatingSignMatrices(4)
+            sage: TestSuite(A).run()
+            sage: A == AlternatingSignMatrices(4, use_monotone_triangles=False)
             False
-
         """
         self._n = n
+        self._matrix_space = MatrixSpace(ZZ, n)
         self._umt = use_monotone_triangles
+        Parent.__init__(self, category=FiniteEnumeratedSets())
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
-        String representation of the class.
+        Return a string representation of ``self``.
 
         TESTS::
 
-            sage: A = AlternatingSignMatrices(4);A
+            sage: A = AlternatingSignMatrices(4); A
             Alternating sign matrices of size 4
         """
         return "Alternating sign matrices of size %s" % self._n
+
+    def _repr_option(self, key):
+        """
+        Metadata about the :meth:`_repr_` output.
+
+        See :meth:`sage.structure.parent._repr_option` for details.
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: A._repr_option('element_ascii_art')
+            True
+        """
+        return self._matrix_space._repr_option(key)
+
+    def __contains__(self, asm):
+        """
+        Check if ``asm`` is in ``self``.
+
+        TESTS::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: [[0,1,0],[1,0,0],[0,0,1]] in A
+            True
+            sage: [[0,1,0],[1,-1,1],[0,1,0]] in A
+            True
+            sage: [[0, 1],[1,0]] in A
+            False
+            sage: [[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]] in A
+            False
+            sage: [[-1, 1, 1],[1,-1,1],[1,1,-1]] in A
+            False
+        """
+        if isinstance(asm, AlternatingSignMatrix):
+            return asm._matrix.nrows() == self._n
+        try:
+            asm = self._matrix_space(asm)
+        except (TypeError, ValueError):
+            return False
+        for row in asm:
+            pos = False
+            for val in row:
+                if val > 0:
+                    if pos:
+                        return False
+                    else:
+                        pos = True
+                elif val < 0:
+                    if pos:
+                        pos = False
+                    else:
+                        return False
+            if not pos:
+                return False
+        if any(sum(row) != 1 for row in asm.columns()):
+            return False
+        return True
+
+    def _element_constructor_(self, asm):
+        """
+        Construct an element of ``self``.
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: elt = A([[1, 0, 0],[0, 1, 0],[0, 0, 1]]); elt
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: elt.parent() is A
+            True
+            sage: A([[3, 2, 1], [2, 1], [1]])
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+        """
+        if isinstance(asm, AlternatingSignMatrix):
+            if asm.parent() is self:
+                return asm
+            raise ValueError("Cannot convert between alternating sign matrices of different sizes")
+        if asm in MonotoneTriangles(self._n):
+            return self.from_monotone_triangle(asm)
+        return self.element_class(self, self._matrix_space(asm))
+
+    Element = AlternatingSignMatrix
+
+    def _an_element_(self):
+        """
+        Return an element of ``self``.
+        """
+        return self.element_class(self, self._matrix_space.identity_matrix())
+
+    def from_monotone_triangle(self, triangle):
+        r"""
+        Return an alternating sign matrix from a monotone triangle.
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: A.from_monotone_triangle([[3, 2, 1], [2, 1], [1]])
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: A.from_monotone_triangle([[3, 2, 1], [3, 2], [3]])
+            [0 0 1]
+            [0 1 0]
+            [1 0 0]
+        """
+        n = len(triangle)
+        if n != self._n:
+            raise ValueError("Incorrect size")
+        asm = []
+
+        prev = [0]*n
+        for line in reversed(triangle):
+            v = [1 if j+1 in reversed(line) else 0 for j in range(n)]
+            row = [a-b for (a, b) in zip(v, prev)]
+            asm.append(row)
+            prev = v
+
+        return self.element_class(self, self._matrix_space(asm))
 
     def size(self):
         r"""
@@ -184,7 +371,6 @@ class AlternatingSignMatrices_n(AlternatingSignMatrices):
             sage: A = AlternatingSignMatrices(4)
             sage: A.size()
             4
-
         """
         return self._n
 
@@ -192,14 +378,32 @@ class AlternatingSignMatrices_n(AlternatingSignMatrices):
         r"""
         Return the cardinality of ``self``.
 
+        The number of `n \times n` alternating sign matrices is equal to
+
+        .. MATH::
+
+            \prod_{k=0}^{n-1} \frac{(3k+1)!}{(n+k)!} = \frac{1! 4! 7! 10!
+            \cdots (3n-2)!}{n! (n+1)! (n+2)! (n+3)! \cdots (2n-1)!}
+
         EXAMPLES::
 
             sage: [AlternatingSignMatrices(n).cardinality() for n in range(0, 11)]
             [1, 1, 2, 7, 42, 429, 7436, 218348, 10850216, 911835460, 129534272700]
-
         """
-        return prod( [ factorial(3*k+1)/factorial(self._n+k)
-                       for k in range(self._n)] )
+        return Integer(prod( [ factorial(3*k+1)/factorial(self._n+k)
+                       for k in range(self._n)] ))
+
+    def matrix_space(self):
+        """
+        Return the underlying matrix space.
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: A.matrix_space()
+            Full MatrixSpace of 3 by 3 dense matrices over Integer Ring
+        """
+        return self._matrix_space
 
     def __iter__(self):
         r"""
@@ -217,23 +421,10 @@ class AlternatingSignMatrices_n(AlternatingSignMatrices):
         """
         if self._umt:
             for t in MonotoneTriangles(self._n):
-                yield from_monotone_triangle(t)
+                yield self.from_monotone_triangle(t)
         else:
             for c in ContreTableaux(self._n):
                 yield from_contre_tableau(c)
-
-    def __eq__(self, other):
-        r"""
-        Define equality by having the same attributes.
-
-        TESTS::
-
-            sage: A = AlternatingSignMatrices(4)
-            sage: A == loads(dumps(A))
-            True
-
-        """
-        return (self._n == other._n) and (self._umt == other._umt)
 
     def _lattice_initializer(self):
         r"""
@@ -256,9 +447,7 @@ class AlternatingSignMatrices_n(AlternatingSignMatrices):
         """
         assert(self._umt)
         (mts, rels) = MonotoneTriangles(self._n)._lattice_initializer()
-        bij = dict((t, from_monotone_triangle(t)) for t in mts)
-        for m in bij.itervalues(): m.set_immutable()
-
+        bij = dict((t, self.from_monotone_triangle(t)) for t in mts)
         asms, rels = bij.itervalues(), [(bij[a], bij[b]) for (a,b) in rels]
         return (asms, rels)
 
@@ -334,14 +523,12 @@ class AlternatingSignMatrices_n(AlternatingSignMatrices):
         return LatticePoset(self._lattice_initializer(), cover_relations=True)
 
 
-
-class MonotoneTriangles(Parent):
+class MonotoneTriangles(GelfandTsetlinPatternsTopRow):
     r"""
-    Factory class for the combinatorial structure of monotone
-    triangles with `n` rows.
+    Monotone triangles with `n` rows.
 
     A monotone triangle is a number triangle `(a_{i,j})_{1 \leq i \leq
-    n , 1 \leq j \leq i}` on `\{1, \dots, n\}` such that :
+    n , 1 \leq j \leq i}` on `\{1, \dots, n\}` such that:
 
     - `a_{i,j} < a_{i,j+1}`
 
@@ -349,9 +536,16 @@ class MonotoneTriangles(Parent):
 
     This notably requires that the bottom column is ``[1,...,n]``.
 
+    Alternatively a monotone triangle is a strict Gelfand-Tsetlin pattern with
+    top row `(n, \ldots, 2, 1)`.
+
+    INPUT:
+
+    - ``n`` -- The number of rows in the monotone triangles
+
     EXAMPLES:
 
-    This represents the monotone triangles with base ``[1,2,3]``::
+    This represents the monotone triangles with base ``[3,2,1]``::
 
         sage: M = MonotoneTriangles(3)
         sage: M
@@ -364,52 +558,29 @@ class MonotoneTriangles(Parent):
         sage: M.lattice()
         Finite lattice containing 7 elements
 
-    """
-    __metaclass__ = ClasscallMetaclass
-    @staticmethod
-    def __classcall_private__(cls, n, **kwds):
-        r"""
-        Factory pattern.
+    Monotone triangles can be converted to alternating sign matrices
+    and back::
 
-        Check properties on arguments, then call the appropriate
-        class.
-
-        EXAMPLES::
-
-            sage: M = MonotoneTriangles(4)
-            sage: type(M)
-            <class 'sage.combinat.alternating_sign_matrix.MonotoneTriangles_n'>
-
-        """
-        assert(isinstance(n, (int, Integer)))
-        return MonotoneTriangles_n(n, **kwds)
-
-
-class MonotoneTriangles_n(MonotoneTriangles):
-    r"""
-    Specialization class for monotone triangles with `n` rows when
-    ``n`` is an integer.
-
-    INPUT:
-
-    - ``n`` -- integer of type ``int`` or ``Integer``, the number of rows of the monotone triangles in ``self``.
-
+        sage: M = MonotoneTriangles(5)
+        sage: A = AlternatingSignMatrices(5)
+        sage: all(A.from_monotone_triangle(m).to_monotone_triangle() == m for m in M)
+        True
     """
     def __init__(self, n):
         r"""
-        __init__ ; stock arguments
+        Initialize ``self``.
 
         TESTS::
 
-            sage: import sage.combinat.alternating_sign_matrix as asm
-            sage: M = asm.MonotoneTriangles_n(4)
-            sage: M == loads(dumps(M))
+            sage: M = MonotoneTriangles(4)
+            sage: TestSuite(M).run()
+            sage: M2 = MonotoneTriangles(int(4))
+            sage: M is M2
             True
-
         """
-        self._n = n
+        GelfandTsetlinPatternsTopRow.__init__(self, tuple(reversed(range(1, n+1))), True)
 
-    def __repr__(self):
+    def _repr_(self):
         r"""
         String representation.
 
@@ -418,48 +589,28 @@ class MonotoneTriangles_n(MonotoneTriangles):
             sage: M = MonotoneTriangles(4)
             sage: M
             Monotone triangles with 4 rows
-
         """
         return "Monotone triangles with %s rows" % self._n
-
-    def __iter__(self):
-        r"""
-        Iterate on the monotone triangles with `n` rows.
-
-        TESTS::
-
-            sage: M = MonotoneTriangles(4)
-            sage: len(list(M))
-            42
-
-        """
-        for z in _triangular_arrangements_base(range(1, self._n + 1)):
-            yield z
-
-    def __eq__(self, other):
-        r"""
-        TESTS::
-
-            sage: M = MonotoneTriangles(4)
-            sage: M == loads(dumps(M))
-            True
-
-        """
-        return self._n == other._n
 
     def cardinality(self):
         r"""
         Cardinality of ``self``.
+
+        The number of monotone triangles with `n` rows is equal to
+
+        .. MATH::
+
+            \prod_{k=0}^{n-1} \frac{(3k+1)!}{(n+k)!} = \frac{1! 4! 7! 10!
+            \cdots (3n-2)!}{n! (n+1)! (n+2)! (n+3)! \cdots (2n-1)!}
 
         EXAMPLES::
 
             sage: M = MonotoneTriangles(4)
             sage: M.cardinality()
             42
-
         """
-        return prod( [ factorial(3*k+1)/factorial(self._n+k)
-                       for k in range(self._n)] )
+        return Integer(prod( [ factorial(3*k+1)/factorial(self._n+k)
+                       for k in range(self._n)] ))
 
     def _lattice_initializer(self):
         r"""
@@ -485,7 +636,6 @@ class MonotoneTriangles_n(MonotoneTriangles):
         # representation
         set_ = list(self)
         set_ = map(lambda x: tuple(map(tuple, x)), set_)
-
         return (set_, [(a,b) for a in set_ for b in set_ if _is_a_cover(a,b)])
 
     def cover_relations(self):
@@ -499,14 +649,14 @@ class MonotoneTriangles_n(MonotoneTriangles):
             sage: for (a,b) in M.cover_relations():
             ...     eval('a, b')
             ...
-            ([[1, 2, 3], [1, 2], [1]], [[1, 2, 3], [1, 2], [2]])
-            ([[1, 2, 3], [1, 2], [1]], [[1, 2, 3], [1, 3], [1]])
-            ([[1, 2, 3], [1, 2], [2]], [[1, 2, 3], [1, 3], [2]])
-            ([[1, 2, 3], [1, 3], [1]], [[1, 2, 3], [1, 3], [2]])
-            ([[1, 2, 3], [1, 3], [2]], [[1, 2, 3], [1, 3], [3]])
-            ([[1, 2, 3], [1, 3], [2]], [[1, 2, 3], [2, 3], [2]])
-            ([[1, 2, 3], [1, 3], [3]], [[1, 2, 3], [2, 3], [3]])
-            ([[1, 2, 3], [2, 3], [2]], [[1, 2, 3], [2, 3], [3]])
+            ([[3, 2, 1], [2, 1], [1]], [[3, 2, 1], [2, 1], [2]])
+            ([[3, 2, 1], [2, 1], [1]], [[3, 2, 1], [3, 1], [1]])
+            ([[3, 2, 1], [2, 1], [2]], [[3, 2, 1], [3, 1], [2]])
+            ([[3, 2, 1], [3, 1], [1]], [[3, 2, 1], [3, 1], [2]])
+            ([[3, 2, 1], [3, 1], [2]], [[3, 2, 1], [3, 1], [3]])
+            ([[3, 2, 1], [3, 1], [2]], [[3, 2, 1], [3, 2], [2]])
+            ([[3, 2, 1], [3, 1], [3]], [[3, 2, 1], [3, 2], [3]])
+            ([[3, 2, 1], [3, 2], [2]], [[3, 2, 1], [3, 2], [3]])
         """
         set_ = list(self)
         return ((a,b) for a in set_ for b in set_ if _is_a_cover(a,b))
@@ -525,7 +675,6 @@ class MonotoneTriangles_n(MonotoneTriangles):
         """
         return LatticePoset(self._lattice_initializer(), cover_relations=True)
 
-
 def _is_a_cover(mt0, mt1):
     r"""
     Define the cover relations.
@@ -540,7 +689,6 @@ def _is_a_cover(mt0, mt1):
         True
         sage: asm._is_a_cover([[1,2,3],[1,3],[2]], [[1,2,3],[1,2],[1]])
         False
-
     """
     diffs = 0
     for (a,b) in itertools.izip(flatten(mt0), flatten(mt1)):
@@ -553,55 +701,76 @@ def _is_a_cover(mt0, mt1):
             return False
     return diffs == 1
 
+# Deprecated methods
 
-def _top_rows(row):
-    r"""
-    Determine the rows that can be on top of ``row``.
+def to_monotone_triangle(matrix):
+    """
+    Deprecated method, use :meth:`AlternatingSignMatrix.to_monotone_triangle()`
+    instead.
 
     EXAMPLES::
 
-        sage: import sage.combinat.alternating_sign_matrix as asm
-        sage: asm._top_rows([1,3,4])
-        [[1, 3], [1, 4], [2, 3], [2, 4], [3, 4]]
+        sage: sage.combinat.alternating_sign_matrix.to_monotone_triangle([[0,1],[1,0]])
+        doctest:...: DeprecationWarning: to_monotone_triangle() is deprecated. Use AlternatingSignMatrix.to_monotone_triangle() instead
+        See http://trac.sagemath.org/14301 for details.
+        [[2, 1], [2]]
     """
-    assert(len(row) >= 2)
-    [inf, sup] = row[-2:]
-    suffs = [[i] for i in xrange(inf, sup+1)]
-    if len(row) == 2: return suffs
-    sup = inf
-    for inf in row[-3::-1]:
-        tmp = []
-        for i in xrange(inf, sup):
-            tmp += [[i] + x for x in suffs]
-        tmp += [[sup] + x for x in suffs if x[0] != sup]
-        suffs = tmp
-        sup = inf
-    return suffs
+    from sage.misc.superseded import deprecation
+    deprecation(14301,'to_monotone_triangle() is deprecated. Use AlternatingSignMatrix.to_monotone_triangle() instead')
+    return AlternatingSignMatrix(matrix).to_monotone_triangle()
 
-
-def _triangular_arrangements_base(row):
-    r"""
-    Determine all triangular arrangements with base ``row``.
-
-    Notice that used with ``range(1, n+1)``, it returns the monotone
-    triangles with ``n`` rows.
+def from_monotone_triangle(triangle):
+    """
+    Deprecated method, use
+    :meth:`AlternatingSignMatrices.from_monotone_triangle()` instead.
 
     EXAMPLES::
 
-        sage: import sage.combinat.alternating_sign_matrix as asm
-        sage: asm._triangular_arrangements_base([1,4])
-        [[[1, 4], [1]], [[1, 4], [2]], [[1, 4], [3]], [[1, 4], [4]]]
+        sage: sage.combinat.alternating_sign_matrix.from_monotone_triangle([[1, 2], [2]])
+        doctest:...: DeprecationWarning: from_monotone_triangle() is deprecated. Use AlternatingSignMatrix.from_monotone_triangle() instead
+        See http://trac.sagemath.org/14301 for details.
+        [0 1]
+        [1 0]
     """
-    arrs = [[row]]
-    size = len(row)
-    while size > 1:
-        tmp = []
-        for t in arrs:
-            tmp += [t + [x] for x in _top_rows(t[-1])]
-        arrs = tmp
-        size -= 1
-    return arrs
+    from sage.misc.superseded import deprecation
+    deprecation(14301,'from_monotone_triangle() is deprecated. Use AlternatingSignMatrix.from_monotone_triangle() instead')
+    return AlternatingSignMatrices(len(triangle)).from_monotone_triangle(triangle)
 
+# For old pickles
+def AlternatingSignMatrices_n(n):
+    """
+    For old pickles of ``AlternatingSignMatrices_n``.
+
+    EXAMPLES::
+
+        sage: sage.combinat.alternating_sign_matrix.AlternatingSignMatrices_n(3)
+        doctest:...: DeprecationWarning: this class is deprecated. Use sage.combinat.alternating_sign_matrix.AlternatingSignMatrices instead
+        See http://trac.sagemath.org/14301 for details.
+        Alternating sign matrices of size 3
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(14301,'this class is deprecated. Use sage.combinat.alternating_sign_matrix.AlternatingSignMatrices instead')
+    return AlternatingSignMatrices(n)
+
+def MonotoneTriangles_n(n):
+    """
+    For old pickles of ``MonotoneTriangles_n``.
+
+    EXAMPLES::
+
+        sage: sage.combinat.alternating_sign_matrix.MonotoneTriangles_n(3)
+        doctest:...: DeprecationWarning: this class is deprecated. Use sage.combinat.alternating_sign_matrix.MonotoneTriangles instead
+        See http://trac.sagemath.org/14301 for details.
+        Monotone triangles with 3 rows
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(14301,'this class is deprecated. Use sage.combinat.alternating_sign_matrix.MonotoneTriangles instead')
+    return MonotoneTriangles(n)
+
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.combinat.alternating_sign_matrix', 'AlternatingSignMatrices_n', AlternatingSignMatrices)
+register_unpickle_override('sage.combinat.alternating_sign_matrix', 'MonotoneTriangles_n', MonotoneTriangles)
+register_unpickle_override('sage.combinat.alternating_sign_matrix', 'MonotoneTriangles_n', MonotoneTriangles_n)
 
 # Here are the previous implementations of the combinatorial structure
 # of the alternating sign matrices. Please, consider it obsolete and
@@ -913,3 +1082,4 @@ class TruncatedStaircases_nlastcolumn(TruncatedStaircases):
         for _ in self:
             c += 1
         return c
+

@@ -898,11 +898,15 @@ def run_doctests(module, options=None):
     if not save_dtmode:
         IP = get_ipython()
         old_color = IP.colors
-        IP.run_line_magic('colors','NoColor')
+        IP.run_line_magic('colors', 'NoColor')
+        old_config_color = IP.config.TerminalInteractiveShell.colors
+        IP.config.TerminalInteractiveShell.colors = 'NoColor'
 
     try:
         DC.run()
     finally:
         sage.plot.plot.DOCTEST_MODE = save_dtmode
         if not save_dtmode:
-            IP.run_line_magic('colors',old_color)
+            IP.run_line_magic('colors', old_color)
+            IP.config.TerminalInteractiveShell.colors = old_config_color
+

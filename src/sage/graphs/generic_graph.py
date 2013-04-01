@@ -16205,6 +16205,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: for u,v in g.edges(labels = False):
             ...       if len(ag.orbit((u,v),action="OnPairs")) != 30:
             ...           print "ARggggggggggggg !!!"
+
+        Empty group, correct domain::
+
+            sage: Graph({'a':['a'], 'b':[]}).automorphism_group()
+            Permutation Group with generators [()]
+            sage: Graph({'a':['a'], 'b':[]}).automorphism_group().domain()
+            {'a', 'b'}
         """
         from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
         from sage.groups.perm_gps.permgroup import PermutationGroup
@@ -16303,7 +16310,7 @@ class GenericGraph(GenericGraph_pyx):
                 gens = [ [ tuple([int_to_vertex[i] for i in cycle]) for cycle in gen] for gen in gens]
                 output.append(PermutationGroup(gens = gens, domain = int_to_vertex.values()))
             else:
-                output.append(PermutationGroup([[]]))
+                output.append(PermutationGroup([[]], domain = self.vertices()))
         if order:
             output.append(c)
         if orbits:

@@ -74,7 +74,7 @@ class PermutationSpeciesStructure(GenericSpeciesStructure):
         """
         p = self.permutation_group_element()
         p = perm*p*~perm
-        return self.__class__(self.parent(), self._labels, p.list())
+        return self.__class__(self.parent(), self._labels, p.domain())
 
     def automorphism_group(self):
         """

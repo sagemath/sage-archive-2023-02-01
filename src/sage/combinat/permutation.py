@@ -411,7 +411,7 @@ def Permutation(l, check_input = True):
     if isinstance(l, Permutation_class):
         return l
     elif isinstance(l, PermutationGroupElement):
-        l = l.list()
+        l = l.domain()
 
     #if l is a string, then assume it is in cycle notation
     elif isinstance(l, str):
@@ -3863,7 +3863,7 @@ def from_permutation_group_element(pge):
     if not isinstance(pge, PermutationGroupElement):
         raise TypeError, "pge (= %s) must be a PermutationGroupElement"%pge
 
-    return Permutation(pge.list())
+    return Permutation(pge.domain())
 
 def from_rank(n, rank):
     r"""

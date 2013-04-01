@@ -3142,12 +3142,12 @@ class SimplicialComplex(GenericCellComplex):
             sage: P.automorphism_group().is_isomorphic(AlternatingGroup(5))
             True
 
-            sage: Z = SimplicialComplex([[1,2],[2,3,'a']])
+            sage: Z = SimplicialComplex([['1','2'],['2','3','a']])
             sage: Z.automorphism_group().is_isomorphic(CyclicPermutationGroup(2))
             True
             sage: group = Z.automorphism_group()
             sage: group.domain()
-            {1, 2, 3, 'a'}
+            {'1', '2', '3', 'a'}
         """
         from sage.groups.perm_gps.permgroup import PermutationGroup
 

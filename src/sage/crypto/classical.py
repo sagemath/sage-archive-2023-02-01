@@ -3139,9 +3139,10 @@ class SubstitutionCryptosystem(SymmetricKeyCryptosystem):
             sage: d(e(A(M))) == A(M)
             True
         """
+        from sage.combinat.permutation import Permutations
         S = self.cipher_domain()
         n = S.ngens()
-        I = SymmetricGroup(n).random_element().list()
+        I = Permutations(n).random_element()
         return S([ i-1 for i in I ])
 
     def inverse_key(self, K):

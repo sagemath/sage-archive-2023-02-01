@@ -1649,7 +1649,7 @@ class Tableau(CombinatorialObject, Element):
             sage: rs = Tableau([[1, 2],[3]]).row_stabilizer()
             sage: PermutationGroupElement([(1,2),(3,)]) in rs
             True
-            sage: rs.one().list()
+            sage: rs.one().domain()
             [1, 2, 3]
             sage: rs = Tableau([[1],[2],[3]]).row_stabilizer()
             sage: rs.order()

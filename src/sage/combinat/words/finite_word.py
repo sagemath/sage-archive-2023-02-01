@@ -6142,7 +6142,7 @@ exponent %s: the length of the word (%s) times the exponent \
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
         if not isinstance(permutation, Permutation_class):
             if isinstance(permutation, PermutationGroupElement):
-                permutation = Permutation(permutation.list())
+                permutation = Permutation(permutation.domain())
             else:
                 permutation = Permutation(permutation)
         return self.parent()(permutation.action(self))
@@ -6170,7 +6170,7 @@ exponent %s: the length of the word (%s) times the exponent \
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
         if not isinstance(permutation, Permutation_class):
             if isinstance(permutation, PermutationGroupElement):
-                permutation = Permutation(permutation.list())
+                permutation = Permutation(permutation.domain())
             else:
                 permutation = Permutation(permutation)
         alphabet = self.parent().alphabet()

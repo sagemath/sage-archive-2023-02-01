@@ -4101,7 +4101,7 @@ cdef class BinaryCodeClassifier:
                           %(str(aut_B_aug.__interface[gap]),str(H))))
 #                        print 'rt_transversal:', rt_transversal
                         rt_transversal = [PermutationGroupElement(g) for g in rt_transversal if str(g) != '()']
-                        rt_transversal = [[a-1 for a in g.list()] for g in rt_transversal]
+                        rt_transversal = [[a-1 for a in g.domain()] for g in rt_transversal]
                         rt_transversal = [g + range(len(g), n) for g in rt_transversal]
                         rt_transversal.append(range(n))
 #                        print 'rt_transversal:', rt_transversal

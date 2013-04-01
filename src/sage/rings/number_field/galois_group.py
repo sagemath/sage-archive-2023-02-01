@@ -589,7 +589,7 @@ class GaloisGroup_subgroup(GaloisGroup_v2):
         if self.order() == 1:
             return self._galois_closure # work around a silly error
 
-        vecs = [pari(g.list()).Vecsmall() for g in self._elts]
+        vecs = [pari(g.domain()).Vecsmall() for g in self._elts]
         v = self._ambient._pari_data.galoisfixedfield(vecs)
         x = self._galois_closure(v[1])
         return self._galois_closure.subfield(x)
@@ -644,7 +644,7 @@ class GaloisGroupElement(PermutationGroupElement):
             Defn: w |--> -w
         """
         L = self.parent().splitting_field()
-        a = L(self.parent()._pari_data.galoispermtopol(pari(self.list()).Vecsmall()))
+        a = L(self.parent()._pari_data.galoispermtopol(pari(self.domain()).Vecsmall()))
         return L.hom(a, L)
 
     def __call__(self, x):

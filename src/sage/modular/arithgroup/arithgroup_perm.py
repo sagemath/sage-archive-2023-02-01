@@ -459,10 +459,10 @@ def ArithmeticSubgroup_Permutation(
         if not G.is_transitive():
             raise ValueError, "Permutations do not generate a transitive group"
 
-    s2 = [i-1 for i in S2.list()]
-    s3 = [i-1 for i in S3.list()]
-    l = [i-1 for i in L.list()]
-    r = [i-1 for i in R.list()]
+    s2 = [i-1 for i in S2.domain()]
+    s3 = [i-1 for i in S3.domain()]
+    l = [i-1 for i in L.domain()]
+    r = [i-1 for i in R.domain()]
     _equalize_perms((s2,s3,l,r))
 
     if inv.is_one(): # the group is even

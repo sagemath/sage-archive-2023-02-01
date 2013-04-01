@@ -941,7 +941,7 @@ class TableauTuple(CombinatorialObject,Element):
             True
             sage: PermutationGroupElement([(1,4)]) in rs
             False
-            sage: rs.one().list()
+            sage: rs.one().domain()
             [1, 2, 3, 4, 5, 6, 7, 8, 9]
         """
 

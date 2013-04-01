@@ -792,6 +792,19 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: P = p.polyhedron(); P
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices and 3 rays
 
+        A square (see :trac:`14395`) ::
+
+            sage: p = MixedIntegerLinearProgram()
+            sage: x,y = p['x'], p['y']
+            sage: p.set_min(x,None)
+            sage: p.set_min(y,None)
+            sage: p.add_constraint( x <= 1 )
+            sage: p.add_constraint( x >= -1 )
+            sage: p.add_constraint( y <= 1 )
+            sage: p.add_constraint( y >= -1 )
+            sage: p.polyhedron()
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices
+
         """
         from sage.geometry.polyhedron.constructor import Polyhedron
         from copy import copy
@@ -809,7 +822,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             coeffs = dict(zip(indices, values))
 
             # Equalities
-            if lb == ub:
+            if (not lb is None) and lb == ub:
                 linear_function = []
                 linear_function = [coeffs.get(i,0) for i in range(nvar)]
                 linear_function.insert(0,-lb)
@@ -837,7 +850,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             lb, ub = b.col_bounds(i)
 
             # Fixed variable
-            if lb == ub:
+            if (not lb is None) and lb == ub:
                 linear_function = copy(zero)
                 linear_function[i] = 1
                 linear_function.insert(0,-lb)

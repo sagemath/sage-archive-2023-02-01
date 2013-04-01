@@ -2643,7 +2643,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
 
         EXAMPLES::
 
-            sage: rays = ((1, 1), (0, 1), (-1, -1), (1, 0))
+            sage: rays = ((1, 1), (0, 1), (-1, -1), (3, 1))
             sage: cones = [(0,1), (1,2), (2,3), (3,0)]
             sage: fan1 = Fan(cones, rays)
             sage: m = matrix([[-2,3],[1,-1]])

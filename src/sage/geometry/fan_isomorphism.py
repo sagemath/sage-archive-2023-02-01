@@ -16,6 +16,7 @@ from exceptions import Exception
 
 from sage.rings.all import ZZ
 from sage.matrix.constructor import column_matrix, matrix
+from sage.geometry.cone import Cone
 
 
 
@@ -76,7 +77,8 @@ def fan_isomorphism_generator(fan1, fan2):
 
     OUTPUT:
 
-    Yields the fan isomorphisms as matrices.
+    Yields the fan isomorphisms as matrices acting from the right on
+    rays.
 
     EXAMPLES::
 
@@ -84,8 +86,8 @@ def fan_isomorphism_generator(fan1, fan2):
         sage: from sage.geometry.fan_isomorphism import fan_isomorphism_generator
         sage: tuple( fan_isomorphism_generator(fan, fan) )
         (
-        [1 0]  [ 1  0]  [0 1]  [ 0  1]  [-1 -1]  [-1 -1]
-        [0 1], [-1 -1], [1 0], [-1 -1], [ 1  0], [ 0  1]
+        [1 0]  [0 1]  [ 1  0]  [-1 -1]  [ 0  1]  [-1 -1]
+        [0 1], [1 0], [-1 -1], [ 1  0], [-1 -1], [ 0  1]
         )
 
         sage: m1 = matrix([(1, 0), (0, -5), (-3, 4)])
@@ -100,6 +102,41 @@ def fan_isomorphism_generator(fan1, fan2):
         [18  1 -5]
         [ 4  0 -1]
         [ 5  0 -1]
+
+        sage: m0 = identity_matrix(ZZ, 2)
+        sage: m1 = matrix([(1, 0), (0, -5), (-3, 4)])
+        sage: m2 = matrix([(3, 0), (1, 0), (-2, 1)])
+        sage: m1.elementary_divisors() == m2.elementary_divisors() == [1,1,0]
+        True
+        sage: fan0 = Fan([Cone([m0*vector([1,0]), m0*vector([1,1])]),
+        ...               Cone([m0*vector([1,1]), m0*vector([0,1])])])
+        sage: fan1 = Fan([Cone([m1*vector([1,0]), m1*vector([1,1])]),
+        ...               Cone([m1*vector([1,1]), m1*vector([0,1])])])
+        sage: fan2 = Fan([Cone([m2*vector([1,0]), m2*vector([1,1])]),
+        ...               Cone([m2*vector([1,1]), m2*vector([0,1])])])
+        sage: tuple(fan_isomorphism_generator(fan0, fan0))
+        (
+        [1 0]  [0 1]
+        [0 1], [1 0]
+        )
+        sage: tuple(fan_isomorphism_generator(fan1, fan1))
+        (
+        [1 0 0]  [ -3 -20  28]
+        [0 1 0]  [ -1  -4   7]
+        [0 0 1], [ -1  -5   8]
+        )
+        sage: tuple(fan_isomorphism_generator(fan1, fan2))
+        (
+        [18  1 -5]  [ 6 -3  7]
+        [ 4  0 -1]  [ 1 -1  2]
+        [ 5  0 -1], [ 2 -1  2]
+        )
+        sage: tuple(fan_isomorphism_generator(fan2, fan1))
+        (
+        [ 0 -1  1]  [ 0 -1  1]
+        [ 1 -7  2]  [ 2 -2 -5]
+        [ 0 -5  4], [ 1  0 -3]
+        )
     """
     if not fan_isomorphic_necessary_conditions(fan1, fan2):
         return
@@ -109,36 +146,35 @@ def fan_isomorphism_generator(fan1, fan2):
     graph_iso = graph1.is_isomorphic(graph2, edge_labels=True, certify=True)
     if not graph_iso[0]:
         return
-    graph_iso = dict( (k.ray(0), v.ambient_ray_indices()[0])
-                      for k,v in graph_iso[1].iteritems() )
+    graph_iso = graph_iso[1]
 
+    # Pick a basis of rays in fan1
     max_cone = fan1(fan1.dim())[0]
     fan1_pivot_rays = max_cone.rays()
     fan1_basis = fan1_pivot_rays + fan1.virtual_rays()   # A QQ-basis for N_1
+    fan1_pivot_cones = [ fan1.embed(Cone([r])) for r in fan1_pivot_rays ]
 
-    # The fan2 cones as set(set(integers))
+    # The fan2 cones as set(set(ray indices))
     fan2_cones = frozenset(
         frozenset(cone.ambient_ray_indices())
         for cone in fan2.generating_cones() )
 
     # iterate over all graph isomorphisms graph1 -> graph2
-    g2 = graph2.relabel({v:(i if i!=0 else graph2.order()) for i,v in enumerate(graph2.vertices())}, inplace = False)
-
-    for perm in g2.automorphism_group(edge_labels=True):
-        # find a candidate m that maps max_cone to the graph image cone
-        image_ray_indices = [ perm(graph_iso[r]+1)-1 for r in fan1_pivot_rays ]
-        fan2_basis = fan2.rays(image_ray_indices) + fan2.virtual_rays()
+    for perm in graph2.automorphism_group(edge_labels=True):
+        # find a candidate m that maps fan1_basis to the image rays under the graph isomorphism
+        fan2_pivot_cones = [ perm(graph_iso[c]) for c in fan1_pivot_cones ]
+        fan2_pivot_rays = fan2.rays([ c.ambient_ray_indices()[0] for c in fan2_pivot_cones  ])
+        fan2_basis = fan2_pivot_rays + fan2.virtual_rays()
         try:
-            m = matrix(fan1_basis).solve_right(matrix(fan2_basis))
+            m = matrix(ZZ, fan1_basis).solve_right(matrix(ZZ, fan2_basis))
             m = m.change_ring(ZZ)
         except (ValueError, TypeError):
             continue # no solution
 
         # check that the candidate m lifts the vertex graph homomorphism
-        graph_image_ray_indices = [ perm(graph_iso[r]+1)-1 for r in fan1.rays() ]
+        graph_image_ray_indices = [ perm(graph_iso[c]).ambient_ray_indices()[0] for c in fan1(1) ]
         try:
-            matrix_image_ray_indices = [ fan2.rays().index(fan1.ray(i)*m)
-                                         for i in range(fan1.nrays()) ]
+            matrix_image_ray_indices = [ fan2.rays().index(r*m) for r in fan1.rays() ]
         except ValueError:
             continue
         if graph_image_ray_indices != matrix_image_ray_indices:
@@ -150,6 +186,7 @@ def fan_isomorphism_generator(fan1, fan2):
                       for i in cone.ambient_ray_indices())
             for cone in fan1.generating_cones() )
         if image_cones == fan2_cones:
+            m.set_immutable()
             yield m
 
 
@@ -172,7 +209,7 @@ def find_isomorphism(fan1, fan2, check=False):
 
     EXAMPLE::
 
-        sage: rays = ((1, 1), (0, 1), (-1, -1), (1, 0))
+        sage: rays = ((1, 1), (0, 1), (-1, -1), (3, 1))
         sage: cones = [(0,1), (1,2), (2,3), (3,0)]
         sage: fan1 = Fan(cones, rays)
 
@@ -193,6 +230,13 @@ def find_isomorphism(fan1, fan2, check=False):
         Traceback (most recent call last):
         ...
         FanNotIsomorphicError
+
+        sage: fan1 = Fan(cones=[[1,3,4,5],[0,1,2,3],[2,3,4],[0,1,5]],
+        ...              rays=[(-1,-1,0),(-1,-1,3),(-1,1,-1),(-1,3,-1),(0,2,-1),(1,-1,1)])
+        sage: fan2 = Fan(cones=[[0,2,3,5],[0,1,4,5],[0,1,2],[3,4,5]],
+        ...              rays=[(-1,-1,-1),(-1,-1,0),(-1,1,-1),(0,2,-1),(1,-1,1),(3,-1,-1)])
+        sage: fan1.is_isomorphic(fan2)
+        True
     """
     generator = fan_isomorphism_generator(fan1, fan2)
     try:

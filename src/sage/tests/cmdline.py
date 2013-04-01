@@ -368,6 +368,12 @@ def test_executable(args, input="", timeout=50.0, cwd=None):
         Got:
             4
         **********************************************************************
+        Previously executed commands:
+            s...: assert True == False
+        debug:
+        <BLANKLINE>
+        Returning to doctests...
+        **********************************************************************
         1 item had failures:
            2 of   3 in ...
             [2 tests, 2 failures, ...]

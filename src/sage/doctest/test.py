@@ -209,6 +209,39 @@ A different kind of crash::
     ...
     16
 
+Test the ``--debug`` option::
+
+    sage: subprocess.call(["sage", "-t", "--debug", "simple_failure.rst"], stdin=open(os.devnull), **kwds)  # long time
+    Running doctests...
+    Doctesting 1 file.
+    sage -t simple_failure.rst
+    **********************************************************************
+    File "simple_failure.rst", line 7, in sage.doctest.tests.simple_failure
+    Failed example:
+        a * b
+    Expected:
+        20
+    Got:
+        15
+    **********************************************************************
+    Previously executed commands:
+        s...: a = 3
+        s...: b = 5
+        s...: a + b
+        8
+    debug:
+    <BLANKLINE>
+    Returning to doctests...
+    **********************************************************************
+    1 item had failures:
+       1 of   5 in sage.doctest.tests.simple_failure
+        [4 tests, 1 failure, ...]
+    ----------------------------------------------------------------------
+    sage -t simple_failure.rst  # 1 doctest failed
+    ----------------------------------------------------------------------
+    ...
+    1
+
 Test running under gdb, without and with a timeout::
 
     sage: subprocess.call(["sage", "-t", "--gdb", "1second.rst"], stdin=open(os.devnull), **kwds)  # long time, optional: gdb

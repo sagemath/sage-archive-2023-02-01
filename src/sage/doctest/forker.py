@@ -951,6 +951,9 @@ class SageDocTestRunner(doctest.DocTestRunner):
 
         - prints a report to ``out``
 
+        - if in debugging mode, starts an IPython prompt at the point
+          of the failure
+
         EXAMPLES::
 
             sage: from sage.doctest.parsing import SageOutputChecker
@@ -1017,8 +1020,6 @@ class SageDocTestRunner(doctest.DocTestRunner):
             Got:
                 BAD ANSWER
 
-        TESTS:
-
         If debugging is turned on this function starts an IPython
         prompt when a test returns an incorrect answer::
 
@@ -1028,6 +1029,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
             sage: _ = sage0.eval("import doctest, sys, os, multiprocessing, subprocess")
             sage: _ = sage0.eval("from sage.doctest.parsing import SageOutputChecker")
             sage: _ = sage0.eval("import sage.doctest.forker as sdf")
+            sage: _ = sage0.eval("sdf.init_sage()")
             sage: _ = sage0.eval("from sage.doctest.control import DocTestDefaults")
             sage: _ = sage0.eval("DD = DocTestDefaults(debug=True)")
             sage: _ = sage0.eval("ex1 = doctest.Example('a = 17', '')")
@@ -1044,7 +1046,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
                 1
             Got:
                 34
-            ********************************************************************************
+            **********************************************************************
             Previously executed commands:
             ...
             sage: sage0.eval("a")
@@ -1068,7 +1070,7 @@ class SageDocTestRunner(doctest.DocTestRunner):
                         signal.signal(signal.SIGTTIN, signal.SIG_IGN)
                         signal.signal(signal.SIGTTOU, signal.SIG_IGN)
                         os.tcsetpgrp(0, os.getpgrp())
-                    print("*" * 80)
+                    print("*" * 70)
                     print("Previously executed commands:")
                     for ex in test.examples:
                         if ex is example:

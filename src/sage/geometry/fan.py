@@ -601,7 +601,10 @@ def FaceFan(polytope, lattice=None):
     - ``polytope`` -- a :func:`polytope
       <sage.geometry.polyhedron.constructor.Polyhedron>` over `\QQ` or
       a :class:`lattice polytope
-      <sage.geometry.lattice_polytope.LatticePolytopeClass>`.
+      <sage.geometry.lattice_polytope.LatticePolytopeClass>`. A (not
+      necessarily full-dimensional) polytope contaning the origin in
+      its :meth:`relative interior
+      <sage.geometry.polyhedron.base.Polyhedron_base.relative_interior_contains>`.
 
     - ``lattice`` -- :class:`ToricLattice
       <sage.geometry.toric_lattice.ToricLatticeFactory>`, `\ZZ^n`, or any
@@ -665,6 +668,12 @@ def FaceFan(polytope, lattice=None):
         sage: FaceFan(interval_in_QQ2).generating_cones()
         (1-d cone of Rational polyhedral fan in 2-d lattice N,
          1-d cone of Rational polyhedral fan in 2-d lattice N)
+
+        sage: FaceFan(Polyhedron([(-1,0), (1,0), (0,1)])) # origin on facet
+        Traceback (most recent call last):
+        ...
+        ValueError: face fans are defined only for
+        polytopes containing the origin as an interior point!
     """
     from sage.geometry.lattice_polytope import is_LatticePolytope
     interior_point_error = ValueError(
@@ -676,7 +685,9 @@ def FaceFan(polytope, lattice=None):
         cones = (facet.vertices() for facet in polytope.facets())
         rays = polytope.vertices().columns(copy=False)
     else:
-        if not (polytope.is_compact() and polytope.contains(polytope.ambient_space().zero())):
+        origin = polytope.ambient_space().zero()
+        if not (polytope.is_compact() and
+                polytope.relative_interior_contains(origin)):
             raise interior_point_error
         cones = [ [ v.index() for v in facet.incident() ]
                   for facet in polytope.inequalities() ]
@@ -695,7 +706,9 @@ def NormalFan(polytope, lattice=None):
     - ``polytope`` -- a :func:`polytope
       <sage.geometry.polyhedron.constructor.Polyhedron>` over `\QQ`
       or:class:`lattice polytope
-      <sage.geometry.lattice_polytope.LatticePolytopeClass>`.
+      <sage.geometry.lattice_polytope.LatticePolytopeClass>`. A
+      full-dimensional polytope containing the origin as an interior
+      point.
 
     - ``lattice`` -- :class:`ToricLattice
       <sage.geometry.toric_lattice.ToricLatticeFactory>`, `\ZZ^n`, or any

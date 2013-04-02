@@ -55,7 +55,7 @@ from subprocess import *
 import os, select
 
 
-def test_executable(args, input="", timeout=50.0, cwd=None):
+def test_executable(args, input="", timeout=100.0, cwd=None):
     r"""
     Run the program defined by ``args`` using the string ``input`` on
     the standard input.

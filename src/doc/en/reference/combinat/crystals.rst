@@ -15,4 +15,4 @@ Crystals
    ../sage/combinat/crystals/spins
    ../sage/combinat/crystals/tensor_product
    ../sage/combinat/crystals/generalized_young_walls
-
+   ../sage/combinat/crystals/infinity_crystals

@@ -14,3 +14,4 @@ from alcove_path import ClassicalCrystalOfAlcovePaths
 from alcove_path import ClassicalCrystalOfAlcovePathsElement
 from littelmann_path import CrystalOfLSPaths
 from generalized_young_walls import CrystalOfGeneralizedYoungWalls, HighestWeightCrystalOfGYW
+from infinity_crystals import InfinityCrystalOfTableaux

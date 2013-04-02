@@ -21,16 +21,6 @@
 
 #include "rw.h"
 
-static uint_fast8_t subset_size;
-
-static uint_fast8_t num_vertices;
-
-subset_t *adjacency_matrix;
-
-// This array is meant to contain max{f(Y), w(f, Y)} at the position corresponding to Y.
-static uint_fast8_t *slots;
-subset_t *cslots;
-
 uint_fast8_t cut_rank(const subset_t s)
 {
 	subset_t am[num_vertices];

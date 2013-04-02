@@ -40,6 +40,6 @@ cdef extern from "src/dm_english.h":
         int n
         c_adj ** G
 
-cdef extern from "src/dm.c":
+cdef extern from "src/dm_english.h":
 
     c_noeud *decomposition_modulaire(c_graphe G)

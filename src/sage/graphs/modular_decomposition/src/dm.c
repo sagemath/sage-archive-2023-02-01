@@ -34,7 +34,7 @@ permutation, cf mon memoire de DEA
 Montpellier, decembre 2000
 ********************************************************/
 
-//#include "dm_english.h"
+#include "dm_english.h"
 #include <stdio.h>
 #include <stdlib.h>
 

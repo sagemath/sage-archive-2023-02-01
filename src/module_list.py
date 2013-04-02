@@ -379,9 +379,9 @@ ext_modules = [
               sources = ['sage/graphs/base/static_sparse_graph.pyx']),
 
     Extension('sage.graphs.modular_decomposition.modular_decomposition',
-              sources = ['sage/graphs/modular_decomposition/modular_decomposition.pyx'],
-              depends = ['sage/graphs/modular_decomposition/src/dm.c',
-                         'sage/graphs/modular_decomposition/src/dm_english.h']),
+              sources = ['sage/graphs/modular_decomposition/modular_decomposition.pyx',
+                         'sage/graphs/modular_decomposition/src/dm.c'],
+              depends = ['sage/graphs/modular_decomposition/src/dm_english.h']),
 
     Extension('sage.graphs.weakly_chordal',
               sources = ['sage/graphs/weakly_chordal.pyx']),
@@ -443,7 +443,8 @@ ext_modules = [
                          'sage/graphs/planarity_c/stack.h']),
 
     Extension('sage.graphs.graph_decompositions.rankwidth',
-              sources = ['sage/graphs/graph_decompositions/rankwidth.pyx']),
+              sources = ['sage/graphs/graph_decompositions/rankwidth.pyx',
+                         'sage/graphs/graph_decompositions/rankwidth_c/rw.c']),
 
     Extension('sage.graphs.spanning_tree',
               sources = ['sage/graphs/spanning_tree.pyx']),

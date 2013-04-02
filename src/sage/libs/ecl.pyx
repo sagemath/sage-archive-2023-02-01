@@ -37,7 +37,7 @@ cdef bint bint_integerp(cl_object obj):
 cdef bint bint_rationalp(cl_object obj):
     return not(cl_rationalp(obj) == Cnil)
 
-cdef extern from "eclsig.c":
+cdef extern from "eclsig.h":
     int ecl_sig_on() except 0
     void ecl_sig_off()
     cdef Sigaction ecl_sigint_handler

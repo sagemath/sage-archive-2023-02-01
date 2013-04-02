@@ -12,9 +12,6 @@ cdef extern from "rankwidth_c/rw.h":
     subset_t *cslots
     subset_t *slots
     subset_t *adjacency_matrix
-
-cdef extern from "rankwidth_c/rw.c":
-    uint_fast8_t subset_size
     uint_fast8_t num_vertices
 
 

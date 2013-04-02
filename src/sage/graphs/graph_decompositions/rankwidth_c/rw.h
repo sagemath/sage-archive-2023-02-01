@@ -34,10 +34,12 @@ typedef uint_least32_t subset_t;
 
 // Input graph.
 //extern subset_t adjacency_matrix[NUM_VERTICES];
-extern subset_t *adjacency_matrix;
+subset_t *adjacency_matrix;
 
 // Output rank-decomposition
-extern subset_t *cslots;
+// This array is meant to contain max{f(Y), w(f, Y)} at the position corresponding to Y.
+static uint_fast8_t *slots;
+subset_t *cslots;
 
 // Initialization (for getting rank-width only). Returns 0 on success.
 //int init_rw(uint_fast8_t n);
@@ -57,3 +59,6 @@ void calculate_level(uint_fast8_t subset_size);
 // Get the rank-width.
 uint_fast8_t get_rw(void);
 
+static uint_fast8_t subset_size;
+
+static uint_fast8_t num_vertices;

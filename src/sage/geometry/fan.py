@@ -594,7 +594,7 @@ def Fan(cones, rays=None, lattice=None, check=True, normalize=True,
 
 def FaceFan(polytope, lattice=None):
     r"""
-    Construct the face fan of the given lattice ``polytope``.
+    Construct the face fan of the given rational ``polytope``.
 
     INPUT:
 
@@ -692,23 +692,21 @@ def FaceFan(polytope, lattice=None):
         cones = [ [ v.index() for v in facet.incident() ]
                   for facet in polytope.inequalities() ]
         rays = map(vector, polytope.vertices())
-    fan = Fan(cones, rays, lattice=lattice, check=False)
-    fan._is_complete = polytope.dim() == polytope.ambient_dim()
+    fan = Fan(cones, rays, lattice=lattice, check=False,
+              is_complete=(polytope.dim() == polytope.ambient_dim()))
     return fan
 
 
 def NormalFan(polytope, lattice=None):
     r"""
-    Construct the normal fan of the given lattice ``polytope``.
+    Construct the normal fan of the given rational ``polytope``.
 
     INPUT:
 
-    - ``polytope`` -- a :func:`polytope
+    - ``polytope`` -- a full-dimensional :func:`polytope
       <sage.geometry.polyhedron.constructor.Polyhedron>` over `\QQ`
       or:class:`lattice polytope
-      <sage.geometry.lattice_polytope.LatticePolytopeClass>`. A
-      full-dimensional polytope containing the origin as an interior
-      point.
+      <sage.geometry.lattice_polytope.LatticePolytopeClass>`.
 
     - ``lattice`` -- :class:`ToricLattice
       <sage.geometry.toric_lattice.ToricLatticeFactory>`, `\ZZ^n`, or any
@@ -769,12 +767,12 @@ def NormalFan(polytope, lattice=None):
         cones = (vertex.facets() for vertex in polytope.faces(dim=0))
     else:
         if not polytope.is_compact():
-            raise ValueError('the normal fan is only defined for polytopes (compact polyhedra).')
+            raise NotImplementedError('the normal fan is only supported for polytopes (compact polyhedra).')
         cones = [ [ ieq.index() for ieq in vertex.incident() ]
                   for vertex in polytope.vertices() ]
         rays =[ ieq.A() for ieq in polytope.inequalities() ]
-    fan = Fan(cones, rays, lattice=lattice, check=False)
-    fan._is_complete = polytope.dim() == polytope.ambient_dim()
+    fan = Fan(cones, rays, lattice=lattice, check=False,
+              is_complete=(polytope.dim() == polytope.ambient_dim()))
     return fan
 
 

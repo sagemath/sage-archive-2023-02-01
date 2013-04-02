@@ -2650,14 +2650,14 @@ class LatexExamples():
             """
             return r"""LaTeX example for testing display of graphs.
 
-To use, first try calling 'view' on this object -- you should get
-gibberish.  Now, make sure that you have the most recent version of
-the TeX package pgf installed, along with the LaTeX package tkz-graph.
-Run 'latex.add_to_preamble("\\usepackage{tkz-graph}")', and try viewing
-it again.  From the command line, this should pop open a nice window
-with a picture of a graph.  In the notebook, you should get a MathJax
-error.  Finally, run 'latex.add_to_mathjax_avoid_list("tikzpicture")'
-and try again from the notebook -- you should get a nice picture.
+To use, first try calling 'view' on this object -- it won't work.
+Now, make sure that you have the most recent version of the TeX
+package pgf installed, along with the LaTeX package tkz-graph.  Run
+'latex.add_to_preamble("\\usepackage{tkz-graph}")', and try viewing it
+again.  From the command line, this should pop open a nice window with
+a picture of a graph.  In the notebook, it still won't work.  Finally,
+run 'latex.add_to_mathjax_avoid_list("tikzpicture")' and try again
+from the notebook -- you should get a nice picture.
 
 (LaTeX code taken from http://altermundus.com/pages/graph.html)
 """
@@ -2730,16 +2730,16 @@ and try again from the notebook -- you should get a nice picture.
             """
             return """LaTeX example for testing display of pstricks output.
 
-To use, first try calling 'view' on this object -- you
-should get gibberish.  Now, make sure that you have the most
-recent version of the TeX package pstricks installed. Run
-'latex.add_to_preamble("\\usepackage{pstricks}")' and try
-viewing it again. From the command line, this should pop
-open a nice window with a picture of forces acting on a mass
-on a pendulum. In the notebook, you should get an error.
-Finally, run
-'latex.add_to_mathjax_avoid_list("pspicture")' and try again
--- you should get a nice picture."""
+To use, first try calling 'view' on this object -- it won't work. Now,
+make sure that you have the most recent version of the TeX package
+pstricks installed.  Run 'latex.add_to_preamble("\\usepackage{pstricks}")'
+and try viewing it again. Call 'view' with the option `engine='latex'`
+-- the default behavior is to use pdflatex, which doesn't work with
+pstricks.  From the command line, this should pop open a nice window
+with a picture of forces acting on a mass on a pendulum.  In the
+notebook, it still won't work, so run
+'latex.add_to_mathjax_avoid_list("pspicture")' and try again -- you
+should get a nice picture."""
 
         def _latex_(self):
             """

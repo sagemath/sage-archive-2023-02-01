@@ -38,8 +38,6 @@ AC_ARG_ENABLE([compiler-checks], [Check versions and presence of C, C++ and Fort
 
 # Import environment variables.
 AC_ARG_VAR([SAGE_LOCAL],[Prefix to search for libraries and include files])
-AC_ARG_VAR([SAGE_FORTRAN_LIB],[The path to the fortran library])
-AC_ARG_VAR([SAGE_FORTRAN],[The path to the fortran compiler])
 AC_ARG_VAR([SAGE64],[If building 64-bit])
 
 CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
@@ -50,7 +48,7 @@ LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
 # see http://www.gnu.org/software/hello/manual/autoconf/Fortran-Compiler.html
 if test x$SAGE_FORTRAN != 'x'
 then
-   FC=$SAGE_FORTRAN
+   FC="$SAGE_FORTRAN"
 fi
 
 #---------------------------------------------------------
@@ -87,57 +85,6 @@ fi
 
 # As suggested in the autoconf manual, the characteristics of the compilers
 # are checked later.
-
-# Check if SAGE_FORTRAN_LIB is set. If so, make sure the file exists.
-if test x$SAGE_FORTRAN_LIB != x
-then
-   AC_CHECK_FILE([$SAGE_FORTRAN_LIB],[],[AC_MSG_ERROR([Fortran library $SAGE_FORTRAN_LIB does not exist])])
-fi
-
-# Check if SAGE_FORTRAN_LIB is a 64-bit binary, if building in 64-bit mode on Solaris
-# and a 32-bit library if not building in 64-bit mode on Solaris.
-
-# 64-bit build. SAGE64 is set to yes.
-if test "x`uname`" = 'xSunOS' &&  test x$SAGE_FORTRAN_LIB != 'x' && test x$SAGE64 = 'xyes'
-then
-   # if test "x`file $SAGE_FORTRAN_LIB | egrep 64-bit`" = 'x'
-   if test "x`file $SAGE_FORTRAN_LIB | grep 64-bit | grep \"dynamic lib\" `" = 'x'
-   then
-     AC_MSG_NOTICE([The environment variable])
-     AC_MSG_NOTICE([SAGE_FORTRAN_LIB=$SAGE_FORTRAN_LIB])
-     AC_MSG_NOTICE([is a not a 64-bit dynamic library. SAGE64 was])
-     AC_MSG_NOTICE([set to "yes", so you intend to build 64-bit.])
-     AC_MSG_NOTICE([The environment variables SAGE_FORTRAN_LIB and/or SAGE64])
-     AC_MSG_NOTICE([are not set properly.])
-     AC_MSG_ERROR([Exiting, due to the incorrect configuration of environment variables])
-   else
-     AC_MSG_NOTICE([Good, the environment variable])
-     AC_MSG_NOTICE([SAGE_FORTRAN_LIB=$SAGE_FORTRAN_LIB])
-     AC_MSG_NOTICE([is a 64-bit dynamic library, as it should])
-     AC_MSG_NOTICE([be as SAGE64 was set to "yes" ])
-   fi
-fi
-
-
-# 32-bit build. SAGE64 is not set to "yes".
-if test "x`uname`" = 'xSunOS' &&  test x$SAGE_FORTRAN_LIB != 'x' && test x$SAGE64 != 'xyes'
-then
-   if test "x`file $SAGE_FORTRAN_LIB | grep 32-bit | grep \"dynamic lib\" `" = 'x'
-   then
-     AC_MSG_NOTICE([The environment variable])
-     AC_MSG_NOTICE([SAGE_FORTRAN_LIB=$SAGE_FORTRAN_LIB])
-     AC_MSG_NOTICE([is a not a 32-bit dynamic library. SAGE64 was])
-     AC_MSG_NOTICE([not set to "yes", so you intend to build 32-bit.])
-     AC_MSG_NOTICE([The environment variables SAGE_FORTRAN_LIB and/or SAGE64])
-     AC_MSG_NOTICE([are not set properly.])
-     AC_MSG_ERROR([Exiting, due to the incorrect configuration of environment variables])
-   else
-     AC_MSG_NOTICE([Good, the environment variable])
-     AC_MSG_NOTICE([SAGE_FORTRAN_LIB=$SAGE_FORTRAN_LIB])
-     AC_MSG_NOTICE([is a 32-bit dynamic library, as it should])
-     AC_MSG_NOTICE([be as SAGE64 was not set to "yes" ])
-   fi
-fi
 
 
 # Check some programs needed actually exist.
@@ -457,13 +404,6 @@ AC_CHECK_LIB(m,sqrt,[],[
                        fi
                        AC_MSG_ERROR([Exiting, since a maths library was not found.])
                        ])
-
-# Next check for something more obscure (sqrtl) that may not exist on all maths libraries
-# but which is needed to build Sage.
-AC_CHECK_LIB(m,sqrtl,[],[
-    AC_MSG_NOTICE([You have an outdated and/or broken math library.])
-    AC_MSG_ERROR([Exiting, since the library function 'sqrtl()' was not found.])
-])
 
 # Next check for system services
 

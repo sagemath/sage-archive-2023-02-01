@@ -4,7 +4,7 @@
 ###########################################
 
 
-TARGET=prereq-1.1
+TARGET=prereq-1.2
 if [ "x$SAGE_BUILD_DIR" = x ]; then
     SAGE_BUILD_DIR="$SAGE_ROOT/spkg/build"
 fi
@@ -21,23 +21,10 @@ cd "$SAGE_BUILD_DIR"
 
 echo "Starting prerequisite check."
 echo "Machine: `uname -a`"
+echo ""
 
 if [ "x$SAGE_PORT" = x ]; then
-    if [ `uname | sed -e 's/WIN.\+/WIN/'` = "CYGWIN" ]; then
-        echo "Unfortunately, building SAGE on Cygwin is not currently supported,"
-        echo "though we are actively working on supporting it.  If you would like"
-        echo "to help with the porting effort, please post to"
-        echo ""
-        echo "   http://groups.google.com/group/sage-windows"
-        echo ""
-        echo "Also, see http://trac.sagemath.org/sage_trac/ticket/6743"
-        echo "In the meantime, to run Sage on Windows, please use"
-        echo "a virtualization solution instead, such as VirtualBox"
-        echo ""
-        echo "To get past this message, export the variable 'SAGE_PORT' to"
-        echo "something non-empty."
-        exit 1
-    elif [ "$UNAME" = "SunOS" ]; then
+    if [ "$UNAME" = "SunOS" ]; then
        if [ "$RELEASE" = "5.9" ] || [ "$RELEASE" = "5.8" ] || [ "$RELEASE" = "5.7" ] || [ "$RELEASE" = "5.6" ] ; then
           echo "Sage is not supported on any version of Solaris earlier than 10."
           echo "Sage has been tested on the first release of Solaris 10"
@@ -47,9 +34,7 @@ if [ "x$SAGE_PORT" = x ]; then
           echo "More information can be found about Sage on Solaris"
           echo "on the Wiki at http://wiki.sagemath.org/solaris"
           echo ""
-          echo "To get past this message, export the variable SAGE_PORT to"
-          echo "something non-empty."
-          exit 1
+          fail=yes
        fi
     elif [ "$UNAME" = "HP-UX" ]; then
         echo "You are attempting to build Sage on HP's HP-UX operating system,"
@@ -63,9 +48,7 @@ if [ "x$SAGE_PORT" = x ]; then
         echo "http://groups.google.com/group/sage-devel"
         echo "The Sage community would also appreciate any patches you submit."
         echo ""
-        echo "To get past this message, export the variable SAGE_PORT to"
-        echo "something non-empty."
-        exit 1
+        fail=yes
     elif [ "$UNAME" = "AIX" ]; then
         echo "You are attempting to build Sage on IBM's AIX operating system,"
         echo "which is not a supported platform for Sage yet. Things may or"
@@ -74,9 +57,7 @@ if [ "x$SAGE_PORT" = x ]; then
         echo "http://groups.google.com/group/sage-devel"
         echo "The Sage community would also appreciate any patches you submit."
         echo ""
-        echo "To get past this message, export the variable SAGE_PORT to"
-        echo "something non-empty."
-        exit 1
+        fail=yes
     elif [ "$UNAME" = "IRIX" ] || [ "$UNAME" = "IRIX64"  ]; then
         echo "You are attempting to build Sage on SGI's IRIX operating system,"
         echo "which is not a supported platform for Sage yet. Things may or"
@@ -85,9 +66,7 @@ if [ "x$SAGE_PORT" = x ]; then
         echo "http://groups.google.com/group/sage-devel"
         echo "The Sage community would also appreciate any patches you submit."
         echo ""
-        echo "To get past this message, export the variable SAGE_PORT to"
-        echo "something non-empty."
-        exit 1
+        fail=yes
     elif [ "$UNAME" = "Tru64" ]; then
         echo "You are attempting to build Sage on HP's Tru64 operating system,"
         echo "which is not a supported platform for Sage yet. Things may or"
@@ -96,9 +75,7 @@ if [ "x$SAGE_PORT" = x ]; then
         echo "http://groups.google.com/group/sage-devel"
         echo "The Sage community would also appreciate any patches you submit."
         echo ""
-        echo "To get past this message, export the variable SAGE_PORT to"
-        echo "something non-empty."
-        exit 1
+        fail=yes
     elif [ "$UNAME" = "FreeBSD" ]; then
         echo "You are attempting to build Sage on the FreeBSD operating system,"
         echo "which is not a supported platform for Sage yet, though"
@@ -108,9 +85,7 @@ if [ "x$SAGE_PORT" = x ]; then
         echo "http://groups.google.com/group/sage-devel"
         echo "The Sage community would also appreciate any patches you submit."
         echo ""
-        echo "To get past this message, export the variable SAGE_PORT to"
-        echo "something non-empty."
-        exit 1
+        fail=yes
     elif [ "$UNAME" != "SunOS" ] && [ "$UNAME" != "Darwin" ] && [ "$UNAME" != "Linux" ]; then
         echo "You are attempting to build Sage on $UNAME,"
         echo "which is not a supported platform for Sage yet. Things may or"
@@ -119,11 +94,84 @@ if [ "x$SAGE_PORT" = x ]; then
         echo "http://groups.google.com/group/sage-devel"
         echo "The Sage community would also appreciate any patches you submit."
         echo ""
-        echo "To get past this message, export the variable SAGE_PORT to"
-        echo "something non-empty."
+        fail=yes
+    fi
+
+    # Test versions of "tar" and "make".
+    have_gnu_tar=`tar --version 2>&1 | grep GNU`
+    have_bsd_tar=`tar --version 2>&1 | grep bsdtar`
+    have_gnu_make=`make --version 2>&1 | grep GNU`
+
+    if [ -z "${have_gnu_tar}${have_bsd_tar}" ] ; then
+         echo "You MUST use either the GNU or BSD version of tar, as some parts of the"
+         echo "Sage source code are contained in tar files, which were produced with GNU"
+         echo "tar. These are not POSIX compliant tar files (unless they were created with"
+         echo "the --posix option), so can not always be extracted with other 'tar'"
+         echo "programs."
+         echo ""
+         echo "Please ensure that a GNU or BSD version of tar is first in your path."
+         echo ""
+         fail=yes
+
+         if [ -f "/usr/sfw/bin/gtar" ] ; then
+            echo "There is a copy of GNU tar, but renamed to 'gtar' in"
+            echo "the directory /usr/sfw/bin. It is suggested that you copy"
+            echo "/usr/sfw/bin/gtar to a different directory, renaming it"
+            echo "'tar' instead of gtar. Then ensure that directory is in"
+            echo "you path before /usr/bin, so whenever you type 'tar' you"
+            echo "run the GNU version."
+            echo ""
+            echo "Executing something like"
+            echo ""
+            echo '$ mkdir $HOME/bins-for-sage'
+            echo '$ cp /usr/sfw/bin/gtar $HOME/bins-for-sage/tar'
+            echo '$ export PATH=$HOME/bins-for-sage:$PATH'
+            echo ""
+            echo "will put the GNU version of 'tar' in your path before /usr/bin/."
+            echo ""
+            echo "If you type 'tar --version', it should be obvious"
+            echo "whether the GNU version of 'tar' is first in your path or"
+            echo "not."
+            echo ""
+        fi
+    fi
+
+    if [ -z "${have_gnu_make}" ] ; then
+         echo "Due to numerous GNUisms, you MUST use the GNU version of 'make'"
+         echo "to build Sage. Other versions will not work."
+         echo ""
+         fail=yes
+
+         if [ -f "/usr/sfw/bin/gmake" ] ; then
+            echo "There is a copy of GNU make, but renamed to 'gmake' in"
+            echo "the directory /usr/sfw/bin. It is suggested that you copy"
+            echo "/usr/sfw/bin/gmake to a different directory, renaming it"
+            echo "'make' instead of gmake. Then ensure that directory is in"
+            echo "you path before /usr/ccs/bin, so whenever you type 'make' you"
+            echo "run the GNU version."
+            echo ""
+            echo "Executing something like"
+            echo ""
+            echo '$ mkdir $HOME/bins-for-sage'
+            echo '$ cp /usr/sfw/bin/gmake $HOME/bins-for-sage/make'
+            echo '$ export PATH=$HOME/bins-for-sage:$PATH'
+            echo ""
+            echo "will put the GNU version of 'make' in your path before /usr/ccs/bin/."
+            echo ""
+            echo "If you type 'make --version', it should be obvious"
+            echo "whether the GNU version of 'make' is first in your path or"
+            echo "not."
+            echo ""
+        fi
+    fi
+
+    if [ x$fail = xyes ]; then
+        echo "To get past this message and try building Sage anyway,"
+        echo "export the variable SAGE_PORT to something non-empty."
         exit 1
     fi
 fi
+
 
 # Only run configure if the tarfile exists.  Unfortunately, sage-update
 # does not update the base packages and we cannot retro-actively change
@@ -131,7 +179,7 @@ fi
 # test.
 prereq_tarball="$SAGE_ROOT/spkg/base/$TARGET.tar.gz"
 if [ -f "$prereq_tarball" ]; then
-    gzip -cd "$prereq_tarball" | tar xf - --no-same-owner
+    gzip -cd "$prereq_tarball" | tar xf -
     if [ $? -ne 0 ]; then
         echo >&2 "Error: failed to extract '$prereq_tarball'"
         exit 1
@@ -259,140 +307,6 @@ if [ "$UNAME" = "Darwin" ]; then
             exit 1
         fi
     fi
-fi
-
-# Solaris only
-# Sun's 'tar' and 'make' are unsuitable for building Sage.
-# So check on Solaris systems that the GNU versions are used.
-# One issue, which still remains and will make a build non-trivial
-# on Solaris is the fact that the first linker and assembler
-# in the path must be the ones used by gcc if the user is using gcc
-# to compile Sage. This is not addressed in this version of 'prereq'
-# but will in a later one.
-
-if [ "$UNAME" = "SunOS" ] ; then
-   if [ -z "`tar --version 2>&1 | grep GNU`" ] ; then
-      echo ""
-      echo "ERROR **********************************************"
-      echo "ERROR **********************************************"
-      echo "You MUST also use the GNU version of tar, as some parts"
-      echo "of the Sage source code are compressed tar files, which"
-      echo "were compressed with GNU tar. GNU tar does not produce"
-      echo "POSIX compliant tar files unless called with the --posix"
-      echo "option, so can not always be extracted with Sun's tar."
-      echo ""
-      echo ""
-      echo "Therefore, to build Sage on Solaris you MUST have"
-      echo "the GNU version of tar in your path before the Sun version"
-      echo ""
-      if [ -f "/usr/sfw/bin/gtar" ]  && [ -f "/usr/sfw/bin/gmake" ] ; then
-          echo "There is a copy of GNU tar, but renamed to 'gtar' in"
-          echo "the directory /usr/sfw/bin. It is suggested that you copy"
-          echo "/usr/sfw/bin/gtar to a different directory, renaming it"
-          echo "'tar' instead of gtar. Then ensure that directory is in"
-          echo "you path before /usr/bin, so whenever you type 'tar' you"
-          echo "run the GNU version, and not the Sun version of tar."
-          echo ""
-          echo "Due to some GNUisms, the same applies with 'make'"
-          echo ""
-          echo "Executing something like"
-          echo ""
-          echo "$ mkdir \$HOME/bins-for-sage"
-          echo "$ cp /usr/sfw/bin/gmake \$HOME/bins-for-sage/make"
-          echo "$ cp /usr/sfw/bin/gtar \$HOME/bins-for-sage/tar"
-          echo "$ export PATH=\$HOME/bins-for-sage:\$PATH"
-          echo ""
-          echo "will put the GNU versions of 'tar' and 'make' in your path"
-          echo "before the Sun versions"
-          echo ""
-          echo "If you type 'tar --version' it should be obvious whether"
-          echo "the GNU version of 'tar' is first in your path or not"
-          echo ""
-          echo "If you type  'make --version' is should be obvious whether"
-          echo "the GNU version of 'make' is first in your path or not"
-          echo ""
-      fi
-      exit 1
-   fi
-   if [ -z "`make --version 2>&1 | grep GNU`" ] ; then
-      echo "Due to numerous GNUisms, you MUST use the GNU version of 'make'"
-      echo "to build Sage on Solaris - Sun's version will not work."
-      echo ""
-      if [ -f "/usr/sfw/bin/gtar" ]  && [ -f "/usr/sfw/bin/gmake" ] ; then
-         echo "There is a copy of GNU 'make', but renamed to 'gmake' in"
-         echo "the directory /usr/sfw/bin. It is suggested that you copy"
-         echo "/usr/sfw/bin/gmake to a different directory, renaming it"
-         echo "'make' instead of gmake. Then ensure that directory is in"
-         echo "you path before /usr/ccs/bin, so whenever you type 'make' you"
-         echo "run the GNU version, and not the Sun version of make."
-         echo ""
-         echo "You MUST also use the GNU version of tar, as some parts"
-         echo "of the Sage source code are compressed tar files, which"
-         echo "were compressed with GNU tar. GNU tar does not produce"
-         echo "POSIX compliant tar files unless called with the --posix"
-         echo "option, so can not always be extracted with Sun's tar."
-         echo ""
-         echo "Executing something like"
-         echo "$ mkdir \$HOME/bins-for-sage"
-         echo "$ cp /usr/sfw/bin/gmake \$HOME/bins-for-sage/make"
-         echo "$ cp /usr/sfw/bin/gtar \$HOME/bins-for-sage/tar"
-         echo "$ export PATH=\$HOME/bins-for-sage:\$PATH"
-         echo "will put the GNU versions of 'tar' and 'make' in your path"
-         echo "before the Sun versions"
-         echo ""
-         echo "If you type 'make --version' it should be obvious whether"
-         echo "the GNU version of 'make' is first in your path or not"
-         echo ""
-         echo "If you type  'tar --version' is should be obvious whether"
-         echo "the GNU version of 'tar' is first in your path or not"
-         echo ""
-      else
-         echo "You can either compile GNU make from source, or it may be"
-         echo "obtained from Blastwave or Sunfreeware.com"
-         echo ""
-         echo "On Open Solaris, some GNU tools can be found at /usr/gnu"
-         echo "although at the time of writing, this directory did not contain"
-         echo "make or tar, but you might try looking there."
-      fi
-      exit 1
-   fi
-fi
-
-# Test for GNU versions of tar and make on AIX, HP-UX, IRIX and Tru64
-# Unlike on Solaris, no help is given about where to find the GNU
-# versions, as I've not used a sufficient number of these machines
-# to know where to find the GNU tools. The tests for operating system
-# are split across two lines, as it's unwise to make more than 4 test.
-# The split shown seemed the most natural, with making the
-# IRIX and IRIX64 tests on a line of their own. David Kirkby January 2010
-
-if [ -z "`tar --version 2>&1 | grep GNU`" ] ; then
-   if [ "$UNAME" = "HP-UX" ] || [ "$UNAME" = "AIX" ] || [ "$UNAME" = "Tru64" ] ; then
-       echo ""
-       echo "You must use the GNU version of tar on $UNAME. Please"
-       echo "ensure that a GNU version of tar is first in your path"
-       exit 1
-   elif [ "$UNAME" = "IRIX" ] || [ "$UNAME" = "IRIX64" ] ; then
-       echo ""
-       echo "You must use the GNU version of tar on IRIX. Please"
-       echo "ensure that a GNU version of tar is first in your path"
-       exit 1
-   fi
-fi
-
-
-if [ -z "`make --version 2>&1 | grep GNU`" ] ; then
-   if [ "$UNAME" = "HP-UX" ] || [ "$UNAME" = "AIX" ] || [ "$UNAME" = "Tru64" ] ; then
-       echo ""
-       echo "You must use the GNU version of make on $UNAME. Please"
-       echo "ensure that a GNU version of make is first in your path"
-       exit 1
-   elif [ "$UNAME" = "IRIX" ] || [ "$UNAME" = "IRIX64" ] ; then
-       echo ""
-       echo "You must use the GNU version of make on IRIX. Please"
-       echo "ensure that a GNU version of make is first in your path"
-       exit 1
-   fi
 fi
 
 if [ -z "$SAGE_KEEP_BUILT_SPKGS" ]; then

@@ -517,10 +517,12 @@ class BraidGroup_class(FinitelyPresentedGroup):
             sage: B1 = BraidGroup(5) # indirect doctest
             sage: B1
             Braid group on 5 strands
+            sage: BraidGroup(2) # indirect doctest
+            Braid Group on 2 strands
         """
         n = len(names)
-        if n<2:
-            raise ValueError("n must be an integer bigger than one")
+        if n<1: #n is the number of generators, not the number of strands (see ticket 14081)
+            raise ValueError("the number of strands must be an integer bigger than one")
         free_group = FreeGroup(names)
         rels = []
         for i in range(1, n):

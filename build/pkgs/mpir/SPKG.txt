@@ -53,9 +53,20 @@ See http://www.mpir.org
    Patches `configure`, `acinclude.m4` and `configure.in`; to be applied
    *after* `patches/configure.patch` (which its name should currently make
    sure).  Submitted upstream (against MPIR 2.6.0; 26.02.2013).
+ * mpz__t-scan-bugfix.patch: fix trivial bug in `tests/mpz/t-scan.c` leading
+   to a segfault (during the test suite) with newer GCC versions.
+   Submitted upstream (against MPIR 2.6.0; 02.04.2013).
  * apple.patch: make sure 32 bits Apple Darwin use the correct asm directories.
 
 == Changelog ==
+
+=== mpir-2.6.0.p2 (Leif Leonhardy, April 3rd 2013) ===
+ * #14399: MPIR 2.6.0's test suite fails with GCC 4.8.0
+   Rather surprisingly, this bug, now causing a segfault in MPIR's test suite,
+   apparently never showed up before.
+   Add patch (`mpz__t-scan-bugfix.patch`) fixing an invalid array access in
+   the test code.
+   Patch has been submitted upstream.
 
 === mpir-2.6.0.p1 (Leif Leonhardy, February 27th 2013) ===
  * #14172: MPIR 2.6.0 (but also older versions) fails to configure on Intel

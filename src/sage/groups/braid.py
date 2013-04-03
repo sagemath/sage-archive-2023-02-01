@@ -517,8 +517,13 @@ class BraidGroup_class(FinitelyPresentedGroup):
             sage: B1 = BraidGroup(5) # indirect doctest
             sage: B1
             Braid group on 5 strands
-            sage: BraidGroup(2) # indirect doctest
-            Braid Group on 2 strands
+
+        Check that :trac:`14081` is fixed::
+
+            sage: BraidGroup(2)
+            Braid group on 2 strands
+            sage: BraidGroup(('a',))
+            Braid group on 2 strands
         """
         n = len(names)
         if n<1: #n is the number of generators, not the number of strands (see ticket 14081)

@@ -2,29 +2,6 @@
 r"""
 Shuffle algebras
 
-Shuffle algebras are commutative and associative algebras, with a
-basis indexed by words. The product is given by the sum over shuffles.
-
-See :wikipedia:`Shuffle algebra`
-
-EXAMPLES::
-
-    sage: F = ShuffleAlgebra(ZZ,'xyz')
-    sage: F.base_ring()
-    Integer Ring
-
-    sage: G = ShuffleAlgebra(F,'mn'); G
-    Shuffle Algebra on 2 generators ['m', 'n'] over Shuffle Algebra on 3 generators ['x', 'y', 'z'] over Integer Ring
-    sage: G.base_ring()
-    Shuffle Algebra on 3 generators ['x', 'y', 'z'] over Integer Ring
-
-TESTS::
-
-    sage: F = ShuffleAlgebra(GF(5),'xyz')
-    sage: TestSuite(F).run()
-    sage: F is loads(dumps(F))
-    True
-
 AUTHORS:
 
 - Frédéric Chapoton (2013-03)
@@ -50,6 +27,26 @@ class ShuffleAlgebra(CombinatorialFreeModule):
     r"""
     The shuffle algebra on some generators over a base ring.
 
+    Shuffle algebras are commutative and associative algebras, with a
+    basis indexed by words. The product of two words `w_1 \cdot w_2` is given
+    by the sum over the shuffle product of `w_1` and `w_2`.
+
+    .. SEEALSO::
+
+        For more on shuffle products, see
+        :mod:`~sage.combinat.words.shuffle_product` and
+        :meth:`~sage.combinat.words.finite_word.FiniteWord_class.shuffle()`.
+
+    REFERENCES:
+
+    - :wikipedia:`Shuffle algebra`
+
+    INPUT:
+
+    -  ``R`` -- ring
+
+    -  ``names`` -- generator names (string)
+
     EXAMPLES::
 
         sage: F = ShuffleAlgebra(QQ, 'xyz'); F
@@ -61,10 +58,17 @@ class ShuffleAlgebra(CombinatorialFreeModule):
         sage: mul([ F.gen(i) for i in range(2) ]) + mul([ F.gen(i+1) for i in range(2) ])
         B[word: xy] + B[word: yx] + B[word: yz] + B[word: zy]
 
-    TESTS:
+        sage: S = ShuffleAlgebra(ZZ, 'abcabc'); S
+        Shuffle Algebra on 3 generators ['a', 'b', 'c'] over Integer Ring
+        sage: S.base_ring()
+        Integer Ring
 
-    Shuffle algebras commute with their base ring.
-    ::
+        sage: G = ShuffleAlgebra(S, 'mn'); G
+        Shuffle Algebra on 2 generators ['m', 'n'] over Shuffle Algebra on 3 generators ['a', 'b', 'c'] over Integer Ring
+        sage: G.base_ring()
+        Shuffle Algebra on 3 generators ['a', 'b', 'c'] over Integer Ring
+
+    Shuffle algebras commute with their base ring::
 
         sage: K = ShuffleAlgebra(QQ,'ab')
         sage: a,b = K.gens()
@@ -80,24 +84,35 @@ class ShuffleAlgebra(CombinatorialFreeModule):
         Shuffle Algebra on 2 generators ['c', 'd'] over Shuffle Algebra on 2 generators ['a', 'b'] over Rational Field
         sage: c^3 * a * b^2
         (12*B[word:abb]+12*B[word:bab]+12*B[word:bba])*B[word: ccc]
+
+    Shuffle algebras are commutative::
+
+        sage: c^3 * b * a * b == c * a * c * b^2 * c
+        True
+
+    We can also manipulate elements in the basis and coerce elements from our
+    base field::
+
+        sage: F = ShuffleAlgebra(QQ, 'abc')
+        sage: B = F.basis()
+        sage: B[Word('bb')] * B[Word('ca')]
+        B[word: bbca] + B[word: bcab] + B[word: bcba] + B[word: cabb] + B[word: cbab] + B[word: cbba]
+        sage: 1 - B[Word('bb')] * B[Word('ca')] / 2
+        B[word: ] - 1/2*B[word: bbca] - 1/2*B[word: bcab] - 1/2*B[word: bcba] - 1/2*B[word: cabb] - 1/2*B[word: cbab] - 1/2*B[word: cbba]
     """
     def __init__(self, R, names):
         r"""
-        The shuffle algebra on some generators over a base ring ``R``.
-
-        INPUT:
-
-        -  ``R`` - ring
-        -  ``names`` - generator names (string)
+        Initialize ``self``.
 
         EXAMPLES::
 
-            sage: F = ShuffleAlgebra(QQ, 'xyz'); F # indirect doctest
+            sage: F = ShuffleAlgebra(QQ, 'xyz'); F
             Shuffle Algebra on 3 generators ['x', 'y', 'z'] over Rational Field
+            sage: TestSuite(F).run()
 
         TESTS::
 
-            sage: ShuffleAlgebra(24,'toto')
+            sage: ShuffleAlgebra(24, 'toto')
             Traceback (most recent call last):
             ...
             TypeError: argument R must be a ring
@@ -112,7 +127,7 @@ class ShuffleAlgebra(CombinatorialFreeModule):
 
     def variable_names(self):
         r"""
-        Return the names of the variables
+        Return the names of the variables.
 
         EXAMPLES::
 
@@ -160,7 +175,7 @@ class ShuffleAlgebra(CombinatorialFreeModule):
     @cached_method
     def one_basis(self):
         r"""
-        Returns the empty word, which index the one of this algebra,
+        Return the empty word, which index of `1` of this algebra,
         as per :meth:`AlgebrasWithBasis.ParentMethods.one_basis`.
 
         EXAMPLES::
@@ -175,13 +190,18 @@ class ShuffleAlgebra(CombinatorialFreeModule):
 
     def product_on_basis(self, w1, w2):
         r"""
-        Product of basis elements, as per :meth:`AlgebrasWithBasis.ParentMethods.product_on_basis`.
+        Return the product of basis elements ``w1`` and ``w2``, as per
+        :meth:`AlgebrasWithBasis.ParentMethods.product_on_basis()`.
+
+        INPUT:
+
+        - ``w1``, ``w2`` -- Basis elements
 
         EXAMPLES::
 
             sage: A = ShuffleAlgebra(QQ,'abc')
-            sage: Words = A.basis().keys()
-            sage: A.product_on_basis(Words("acb"), Words("cba"))
+            sage: W = A.basis().keys()
+            sage: A.product_on_basis(W("acb"), W("cba"))
             B[word: acbacb] + B[word: acbcab] + 2*B[word: acbcba] + 2*B[word: accbab] + 4*B[word: accbba] + B[word: cabacb] + B[word: cabcab] + B[word: cabcba] + B[word: cacbab] + 2*B[word: cacbba] + 2*B[word: cbaacb] + B[word: cbacab] + B[word: cbacba]
 
             sage: (a,b,c) = A.algebra_generators()
@@ -217,7 +237,7 @@ class ShuffleAlgebra(CombinatorialFreeModule):
     @cached_method
     def algebra_generators(self):
         r"""
-        Returns the generators of this algebra
+        Return the generators of this algebra.
 
         EXAMPLES::
 
@@ -271,48 +291,44 @@ class ShuffleAlgebra(CombinatorialFreeModule):
 
         Here is what canonically coerces to ``self``:
 
-        - this shuffle algebra
+        - this shuffle algebra,
 
-        - anything that coerces to the base ring of this shuffle algebra
+        - anything that coerces to the base ring of this shuffle algebra,
 
         - any shuffle algebra on the same variables, whose base ring
-          coerces to the base ring of this shuffle algebra
+          coerces to the base ring of this shuffle algebra.
 
         EXAMPLES::
 
-            sage: F = ShuffleAlgebra(GF(7),'xyz'); F
+            sage: F = ShuffleAlgebra(GF(7), 'xyz'); F
             Shuffle Algebra on 3 generators ['x', 'y', 'z'] over Finite Field of size 7
 
-        Elements of the shuffle algebra canonically coerce in.
-
-        ::
+        Elements of the shuffle algebra canonically coerce in::
 
             sage: x, y, z = F.gens()
             sage: F.coerce(x*y) # indirect doctest
             B[word: xy] + B[word: yx]
 
         Elements of the integers coerce in, since there is a coerce map
-        from `\ZZ` to GF(7).
-
-        ::
+        from `\ZZ` to GF(7)::
 
             sage: F.coerce(1)       # indirect doctest
             B[word: ]
 
-        There is no coerce map from `\QQ` to GF(7). ::
+        There is no coerce map from `\QQ` to `\GF{7}`::
 
             sage: F.coerce(2/3)  # indirect doctest
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from Rational Field to Shuffle Algebra on 3 generators ['x', 'y', 'z'] over Finite Field of size 7
 
-        Elements of the base ring coerce in. ::
+        Elements of the base ring coerce in::
 
             sage: F.coerce(GF(7)(5))
             5*B[word: ]
 
-        The shuffle algebra over `\ZZ` on x, y, z coerces in, since
-        `\ZZ` coerces to GF(7)::
+        The shuffle algebra over `\ZZ` on `x, y, z` coerces in, since
+        `\ZZ` coerces to `\GF{7}`::
 
             sage: G = ShuffleAlgebra(ZZ,'xyz')
             sage: Gx,Gy,Gz = G.gens()
@@ -321,8 +337,8 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             sage: z.parent() is F
             True
 
-        However, GF(7) does not coerce to `\ZZ`, so the shuffle
-        algebra over GF(7) does not coerce to the one over `\ZZ`::
+        However, `\GF{7}` does not coerce to `\ZZ`, so the shuffle
+        algebra over `\GF{7}` does not coerce to the one over `\ZZ`::
 
             sage: G.coerce(x^3*y)
             Traceback (most recent call last):
@@ -351,15 +367,15 @@ class ShuffleAlgebra(CombinatorialFreeModule):
 
     def _coerce_map_from_(self, R):
         r"""
-        Returns ``True`` if there is a coercion from ``R`` into ``self``
+        Return ``True`` if there is a coercion from ``R`` into ``self``
         and ``False`` otherwise.
 
         The things that coerce into ``self`` are
 
         - Shuffle Algebras in the same variables over a base with a coercion
-          map into self.base_ring()
+          map into ``self.base_ring()``.
 
-        - Anything with a coercion into self.base_ring()
+        - Anything with a coercion into ``self.base_ring()``.
 
         TESTS::
 
@@ -380,7 +396,7 @@ class ShuffleAlgebra(CombinatorialFreeModule):
             False
         """
         # shuffle algebras in the same variable over any base that coerces in:
-        if isinstance(R,ShuffleAlgebra):
+        if isinstance(R, ShuffleAlgebra):
             if R.variable_names() == self.variable_names():
                 if self.base_ring().has_coerce_map_from(R.base_ring()):
                     return True
@@ -388,3 +404,4 @@ class ShuffleAlgebra(CombinatorialFreeModule):
                     return False
 
         return self.base_ring().has_coerce_map_from(R)
+

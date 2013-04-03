@@ -1131,6 +1131,22 @@ class RationalPolyhedralFan(IntegralRayCollection,
         if virtual_rays is not None:
             self._virtual_rays = PointCollection(virtual_rays, self.lattice())
 
+    def _sage_input_(self, sib, coerced):
+        """
+        Return Sage command to reconstruct ``self``.
+
+        See :mod:`sage.misc.sage_input` for details.
+
+        EXAMPLES::
+
+            sage: fan = Fan([Cone([(1,0), (1,1)]), Cone([(-1,-1)])])
+            sage: sage_input(fan)
+            Fan(cones=[[0, 1], [2]], rays=[(1, 0), (1, 1), (-1, -1)])
+       """
+        cones = [map(ZZ, c.ambient_ray_indices()) for c in self.generating_cones()]
+        rays = [sib(tuple(r)) for r in self.rays()]
+        return sib.name('Fan')(cones=cones, rays=rays)
+
     def __call__(self, dim=None, codim=None):
         r"""
         Return the specified cones of ``self``.

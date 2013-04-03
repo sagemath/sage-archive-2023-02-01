@@ -314,6 +314,10 @@ if [ "$SAGE_UPSTREAM" = "" ]; then
     SAGE_UPSTREAM="http://www.sagemath.org/packages/upstream/"
     export SAGE_UPSTREAM
 fi
+if [ -z "$SAGE_REPO" ]; then
+    SAGE_REPO="git://github.com/sagemath/sage.git"
+    export SAGE_REPO
+fi
 
 # Check that $HOME exists
 if [ "$HOME" = "" ]; then

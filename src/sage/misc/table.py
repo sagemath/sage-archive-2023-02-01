@@ -232,7 +232,7 @@ class table(SageObject):
     """
     def __init__(self, rows=None, columns=None, header_row=False,
                  header_column=False, frame=False, align='left'):
-        """
+        r"""
         EXAMPLES::
 
             sage: table([1,2,3], frame=True)
@@ -271,7 +271,7 @@ class table(SageObject):
         self._rows = tuple(rows)
 
     def __eq__(self, other):
-        """
+        r"""
         Two tables are equal if and only if their data rowss and
         their options are the same.
 
@@ -291,7 +291,7 @@ class table(SageObject):
         return (self._rows == other._rows and self.options() == other.options())
 
     def options(self, **kwds):
-        """
+        r"""
         With no arguments, return the dictionary of options for this
         table. With arguments, modify options.
 
@@ -364,7 +364,7 @@ class table(SageObject):
             return self._options
 
     def transpose(self):
-        """
+        r"""
         Return a table which is the transpose of this one:
         rows and columns have been interchanged. Several of the
         properties of the original table are preserved: whether a
@@ -396,7 +396,7 @@ class table(SageObject):
 
     @cached_method
     def _widths(self):
-        """
+        r"""
         The maximum widths for (the string representation of) each
         column. Used by the :meth:`_repr_` method.
 
@@ -416,7 +416,7 @@ class table(SageObject):
         return tuple(widths)
 
     def _repr_(self):
-        """
+        r"""
         String representation of a table.
 
         The class docstring has many examples; here is one more.
@@ -452,7 +452,7 @@ class table(SageObject):
         return s.strip("\n")
 
     def _str_table_row(self, row, header_row=False):
-        """
+        r"""
         String representation of a row of a table. Used by the
         :meth:`_repr_` method.
 

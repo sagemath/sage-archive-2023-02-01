@@ -49,6 +49,10 @@ Website: http://tiswww.case.edu/php/chet/readline/rltop.html
 
 == Changelog ==
 
+=== readline-6.2.p4 (Volker Braun, 3 April 2013) ===
+ * Do not build static libraries
+ * Use ncurses instead of termcap
+
 === readline-6.2.p3 (Leif Leonhardy, 3 January 2012) ===
  * #11970: Support Ubuntu 11.10 by adding the library libreadline depends on
    (libtermcap or a replacement) to the shared library, i.e. link against it,

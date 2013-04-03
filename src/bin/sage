@@ -865,25 +865,7 @@ fi
 
 if [ "$1" = '-upgrade' -o "$1" = "--upgrade" ]; then
     shift
-    cd "$SAGE_ROOT"
-
-    # People often move the Sage install right before doing the upgrade, so it's
-    # important to fix any path hardcoding issues first, or certain library
-    # links will fail.
-    sage-location || exit $?
-
-    # Run sage-upgrade twice since when installing sage-scripts and a
-    # running script changes, it gets confused and exits with an error.
-    # Running again (with the script replaced) then fixes the problem.
     sage-upgrade "$@"
-    if [ $? -eq 2 ]; then   # this exit code means the user elected not to do the upgrade at all.
-        exit 2
-    fi
-    echo "Double checking that all packages have been installed."
-    sage-upgrade "$@" || exit $?
-
-    # Check that Sage still works
-    sage-starts
     exit $?
 fi
 

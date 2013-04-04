@@ -30,6 +30,7 @@ allfaces_gmp
 allisog
 analyze.py
 annotate
+atlas-config
 bdftogd
 bookify
 bunzip2

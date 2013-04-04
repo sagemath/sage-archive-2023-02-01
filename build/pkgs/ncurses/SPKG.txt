@@ -1,4 +1,4 @@
-= readline =
+= Ncurses =
 
 == Description ==
 
@@ -30,7 +30,7 @@ Website: http://invisible-island.net/ncurses
 
 == SPKG Maintainers ==
 
- * Nobody
+ * Volker Braun
 
 == Upstream Contact ==
 

@@ -250,13 +250,14 @@ cdef class Riemann_Map:
         g = -sadp * hconj
         normalized_dp=dp/adp
         C = I / N * sadp # equivalent to -TWOPI / N * 1 / (TWOPI * I) * sadp
-        olderr = np.geterr()['invalid'] # checks the current error handling
-        np.seterr(invalid='ignore')
+        errinvalid = np.geterr()['invalid'] # checks the current error handling for invalid
+        errdivide = np.geterr()['divide'] # checks the current error handling for divide
+        np.seterr(divide='ignore',invalid='ignore')
         K = np.array(
             [C * sadp[t] *
              (normalized_dp/(cp-cp[t]) - (normalized_dp[t]/(cp-cp[t])).conjugate())
               for t in np.arange(NB)], dtype=np.complex128)
-        np.seterr(invalid=olderr) # resets the error handling
+        np.seterr(divide=errdivide,invalid=errinvalid) # resets the error handling
         for i in xrange(NB):
             K[i, i] = 1
         phi = np.linalg.solve(K, g) / NB * TWOPI  # Nystrom

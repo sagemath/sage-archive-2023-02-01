@@ -1255,18 +1255,10 @@ class Gap(Gap_generic):
         # SaveWorkspace can only be used at the main gap> prompt. It cannot
         # be included in the body of a loop or function, or called from a
         # break loop.
-
-        # Save the worksheet to a temporary file and then move that
-        # file in place to avoid race conditions.
-        WORKSPACE_TMP = "%s-%s"%(WORKSPACE, self.pid())
-        self.eval('SaveWorkspace("%s");'%WORKSPACE_TMP, allow_use_file=False)
-        try:
-            os.rename(WORKSPACE_TMP, WORKSPACE)
-        except OSError:
-            # Some operating systems might not support in-place
-            # renaming. We delete the original file first.
-            os.unlink(WORKSPACE)
-            os.rename(WORKSPACE_TMP, WORKSPACE)
+        from sage.misc.temporary_file import atomic_write
+        with atomic_write(WORKSPACE) as f:
+            f.close()
+            self.eval('SaveWorkspace("%s");'%(f.name), allow_use_file=False)
 
     # Todo -- this -- but there is a tricky "when does it end" issue!
     # Maybe do via a file somehow?

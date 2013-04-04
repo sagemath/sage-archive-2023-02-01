@@ -94,9 +94,6 @@ class DocTestDefaults(SageObject):
         # We don't want to use the real stats file by default so that
         # we don't overwrite timings for the actual running doctests.
         self.stats_path = os.path.join(DOT_SAGE, "timings_dt_test.json")
-        if not os.path.exists(self.stats_path):
-            with open(self.stats_path, "w") as stats_file:
-                json.dump({},stats_file)
         self.__dict__.update(kwds)
 
     def _repr_(self):
@@ -276,8 +273,10 @@ class DocTestController(SageObject):
             sage: D['sage.doctest.control']
             {u'walltime': 1.0}
         """
-        with open(filename, 'w') as stats_file:
+        from sage.misc.temporary_file import atomic_write
+        with atomic_write(filename) as stats_file:
             json.dump(self.stats, stats_file)
+
 
     def log(self, s, end="\n"):
         """

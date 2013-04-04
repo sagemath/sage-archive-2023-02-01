@@ -1035,10 +1035,16 @@ class DiGraph(GenericGraph):
 
     ### Edge Handlers
 
-    def incoming_edge_iterator(self, vertices=None, labels=True):
+    def incoming_edge_iterator(self, vertices, labels=True):
         """
-        Return an iterator over all arriving edges from vertices, or over
-        all edges if vertices is None.
+        Return an iterator over all arriving edges from vertices.
+
+        INPUT:
+
+        - ``vertices`` -- a vertex or a list of vertices
+
+        - ``labels`` (boolean) -- whether to return edges as pairs of vertices,
+          or as triples containing the labels.
 
         EXAMPLES::
 
@@ -1056,16 +1062,16 @@ class DiGraph(GenericGraph):
             vertices = [v for v in vertices if v in self]
         return self._backend.iterator_in_edges(vertices, labels)
 
-    def incoming_edges(self, vertices=None, labels=True):
+    def incoming_edges(self, vertices, labels=True):
         """
         Returns a list of edges arriving at vertices.
 
         INPUT:
 
+        - ``vertices`` -- a vertex or a list of vertices
 
-        -  ``labels`` - if False, each edge is a tuple (u,v) of
-           vertices.
-
+        - ``labels`` (boolean) -- whether to return edges as pairs of vertices,
+          or as triples containing the labels.
 
         EXAMPLES::
 
@@ -1075,10 +1081,16 @@ class DiGraph(GenericGraph):
         """
         return list(self.incoming_edge_iterator(vertices, labels=labels))
 
-    def outgoing_edge_iterator(self, vertices=None, labels=True):
+    def outgoing_edge_iterator(self, vertices, labels=True):
         """
-        Return an iterator over all departing edges from vertices, or over
-        all edges if vertices is None.
+        Return an iterator over all departing edges from vertices.
+
+        INPUT:
+
+        - ``vertices`` -- a vertex or a list of vertices
+
+        - ``labels`` (boolean) -- whether to return edges as pairs of vertices,
+          or as triples containing the labels.
 
         EXAMPLES::
 
@@ -1097,16 +1109,16 @@ class DiGraph(GenericGraph):
             vertices = [v for v in vertices if v in self]
         return self._backend.iterator_out_edges(vertices, labels)
 
-    def outgoing_edges(self, vertices=None, labels=True):
+    def outgoing_edges(self, vertices, labels=True):
         """
         Returns a list of edges departing from vertices.
 
         INPUT:
 
+        - ``vertices`` -- a vertex or a list of vertices
 
-        -  ``labels`` - if False, each edge is a tuple (u,v) of
-           vertices.
-
+        - ``labels`` (boolean) -- whether to return edges as pairs of vertices,
+          or as triples containing the labels.
 
         EXAMPLES::
 

@@ -5286,6 +5286,7 @@ class GenericGraph(GenericGraph_pyx):
             ...           not max(lp.in_degree()) <= 1 or
             ...           not lp.is_connected()):
             ...           print("Error!")
+            ...           print g.edges()
             ...           break
 
         :trac:`13019`::
@@ -5293,6 +5294,13 @@ class GenericGraph(GenericGraph_pyx):
             sage: g = graphs.CompleteGraph(5).to_directed()
             sage: g.longest_path(s=1,t=2)
             Subgraph of (Complete graph): Digraph on 5 vertices
+
+        :trac:`14412`::
+
+            sage: l = [(0, 1), (0, 3), (2, 0)]
+            sage: G = DiGraph(l)
+            sage: G.longest_path().edges()
+            [(0, 1, None), (2, 0, None)]
         """
         if use_edge_labels:
             algorithm = "MILP"
@@ -5353,7 +5361,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # Epsilon... Must be less than 1/(n+1), but we want to avoid
         # numerical problems...
-        epsilon = 1/(6*float(self.order()))
+        epsilon = 1/(2*float(self.order()))
 
         # Associating a weight to a label
         if use_edge_labels:
@@ -5362,7 +5370,7 @@ class GenericGraph(GenericGraph_pyx):
             weight = lambda x: 1
 
         from sage.numerical.mip import MixedIntegerLinearProgram
-        p = MixedIntegerLinearProgram()
+        p = MixedIntegerLinearProgram(solver=solver)
 
         # edge_used[(u,v)] == 1 if (u,v) is used
         edge_used = p.new_variable(binary=True)
@@ -5375,42 +5383,43 @@ class GenericGraph(GenericGraph_pyx):
         vertex_used = p.new_variable(binary=True)
 
         if self._directed:
+
             # if edge uv is used, vu can not be
             for u, v in self.edges(labels=False):
                 if self.has_edge(v, u):
-                    p.add_constraint(edge_used[(u,v)] + edge_used[(v,u)], max=1)
+                    p.add_constraint(edge_used[(u,v)] + edge_used[(v,u)] <= 1)
+
             # A vertex is used if one of its incident edges is
-            for v in self:
-                for e in self.incoming_edges(labels=False):
-                    p.add_constraint(vertex_used[v] - edge_used[e], min=0)
-                for e in self.outgoing_edges(labels=False):
-                    p.add_constraint(vertex_used[v] - edge_used[e], min=0)
+            for u,v in self.edges(labels = False):
+                p.add_constraint(vertex_used[v] >= edge_used[(u,v)])
+                p.add_constraint(vertex_used[u] >= edge_used[(u,v)])
+
             # A path is a tree. If n vertices are used, at most n-1 edges are
             p.add_constraint(
-                p.sum(vertex_used[v] for v in self)
-                - p.sum(edge_used[e] for e in self.edges(labels=False)),
-                min=1, max=1)
+                  p.sum(vertex_used[v] for v in self)
+                - p.sum(edge_used[e] for e in self.edges(labels=False))
+                  == 1)
+
             # A vertex has at most one incoming used edge and at most
             # one outgoing used edge
             for v in self:
                 p.add_constraint(
-                    p.sum(edge_used[(u,v)] for u in self.neighbors_in(v)),
-                    max=1)
+                    p.sum(edge_used[(u,v)] for u in self.neighbors_in(v)) <= 1)
                 p.add_constraint(
-                    p.sum(edge_used[(v,u)] for u in self.neighbors_out(v)),
-                    max=1)
+                    p.sum(edge_used[(v,u)] for u in self.neighbors_out(v)) <= 1)
+
             # r_edge_used is "more" than edge_used, though it ignores
             # the direction
             for u, v in self.edges(labels=False):
-                p.add_constraint(r_edge_used[(u,v)]
-                                 + r_edge_used[(v,u)]
-                                 - edge_used[(u,v)],
-                                 min=0)
+                p.add_constraint(r_edge_used[(u,v)] + r_edge_used[(v,u)]
+                                 >= edge_used[(u,v)])
+
             # No cycles
             for v in self:
                 p.add_constraint(
-                    p.sum(r_edge_used[(u,v)] for u in self.neighbors(v)),
-                    max=1-epsilon)
+                    p.sum(r_edge_used[(u,v)] for u in self.neighbors(v))
+                    <= 1-epsilon)
+
             # Enforcing the source if asked.. If s is set, it has no
             # incoming edge and exactly one son
             if s is not None:
@@ -5420,6 +5429,7 @@ class GenericGraph(GenericGraph_pyx):
                 p.add_constraint(
                     p.sum(edge_used[(s,u)] for u in self.neighbors_out(s)),
                     min=1, max=1)
+
             # Enforcing the destination if asked.. If t is set, it has
             # no outgoing edge and exactly one parent
             if t is not None:
@@ -5429,6 +5439,7 @@ class GenericGraph(GenericGraph_pyx):
                 p.add_constraint(
                     p.sum(edge_used[(t,u)] for u in self.neighbors_out(t)),
                     max=0, min=0)
+
             # Defining the objective
             p.set_objective(
                 p.sum(weight(l) * edge_used[(u,v)] for u, v, l in self.edges()))
@@ -5477,7 +5488,7 @@ class GenericGraph(GenericGraph_pyx):
         # Computing the result. No exception has to be raised, as this
         # problem always has a solution (there is at least one edge,
         # and a path from s to t if they are specified).
-        p.solve(solver=solver, log=verbose)
+        p.solve(log=verbose)
         edge_used = p.get_values(edge_used)
         vertex_used = p.get_values(vertex_used)
         if self._directed:

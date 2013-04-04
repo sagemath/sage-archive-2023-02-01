@@ -211,51 +211,52 @@ reminders.
 
 
 I wrote some Sage code and I want it to be integrated into Sage. However, after renaming my file ``a.sage`` to ``a.py``, I got syntax errors. Do I have to rewrite all my code in Python instead of Sage?
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The basic answer is yes, but rewriting is a big word for what is
 really needed. There is little work to do since Sage mostly follows
 Python syntax. The two main differences are handling of integer (see
-`afterword`_), and the necessity to import what you need.
+also the `afterword`_ for more on the sage preparser), and the
+necessity to import what you need.
 
-- **Handling of integer.** You need to take care of the following
+- **Handling of integer:** You need to take care of the following
   changes:
 
   - Notation for exponentiation: In Python ``**`` means exponentiation
-    and ``^`` means “xor”.
+    and ``^`` means "xor".
   - If you need to return an integer to the user, write ``return
-    Integer(1)`` instead of ``return 1``. In Python, 1 is a machine
-    integer ``int`` (32 or 64 bits depending on your machine), and
-    ``Integer(1)`` is a Sage/Gmp arbitrary precision integer. In
-    addition, ``Integer`` are much more powerful than ``int``; for
-    example, they know about prime and factorization.
-  - You should also notice that ``2/3`` no longer means
-    ``Integer(2)/Integer(3)`` and returns ``2/3``, but rather
-    ``int(2)/int(3)``, and therefore returns ``0`` due to integer
-    division. If you are dealing with ``Integer`` but you really need
-    an integer division you can use ``Integer(2)//Integer(3)``.
+    Integer(1)`` instead of ``return 1``. In Python, 1 is a python
+    ``int``, and ``Integer(1)`` is a Sage/Gmp integer. In addition,
+    ``Integer`` are much more powerful than ``int``; for
+    example, they know about being prime and factorization.
+  - You should also notice that ``2 / 3`` no longer means
+    ``Integer(2) / Integer(3)`` and returns ``2/3``, but rather
+    ``int(2) / int(3)``, and therefore returns ``0`` due to integer
+    division where it deregards any remainder. If you are dealing with
+    ``Integer`` but you really need an integer division you can use
+    ``Integer(2) // Integer(3)``.
 
-- **Importing stuff.** The second big change is the necessity to
+- **Importing stuff:** The second big change is the necessity to
   import everything what you need. More precisely, each time you use
   some Sage function, you need to import it at the beginning of the
   file. For example, if you want ``PolynomialRing``, you need to
   write::
 
-       from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+      from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-You can ask Sage where to find PolynomialRing using::
+  You can ask Sage where to find ``PolynomialRing`` using::
 
-       sage: PolynomialRing.__module__
-       'sage.rings.polynomial.polynomial_ring_constructor'
+      sage: PolynomialRing.__module__
+      'sage.rings.polynomial.polynomial_ring_constructor'
 
-This also corresponds to the path starting after ``site-packages``
-given when you ask Sage for ``PolynomialRing`` help::
+  This also corresponds to the path starting after ``site-packages``
+  given when you ask Sage for ``PolynomialRing`` help. For example,
+  if you call ``PolynomialRing?``, you get::
 
-       sage: PolynomialRing?
-       Type:    function
-       [...]
-       File:    /home/florent/src/Sage/sage/local/lib/python2.6/site-packages/sage/rings/polynomial/polynomial_ring_constructor.py
-       [...]
+      Type:    function
+      [...]
+      File:    /home/florent/src/Sage/sage/local/lib/python2.6/site-packages/sage/rings/polynomial/polynomial_ring_constructor.py
+      [...]
 
 
 .. _afterword: http://www.sagemath.org/doc/tutorial/afterword.html

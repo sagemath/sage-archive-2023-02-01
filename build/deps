@@ -44,7 +44,6 @@ all-sage: \
      $(INST)/$(ECLIB) \
      $(INST)/$(ECM) \
      $(INST)/$(ELLIPTIC_CURVES) \
-     $(INST)/$(EXTCODE) \
      $(INST)/$(FFLASFFPACK) \
      $(INST)/$(FLINT) \
      $(INST)/$(FLINTQS) \
@@ -99,9 +98,6 @@ all-sage: \
      $(INST)/$(RPY) \
      $(INST)/$(READLINE) \
      $(INST)/$(RUBIKS) \
-     $(INST)/$(SAGE) \
-     $(INST)/$(SAGE_SCRIPTS) \
-     $(INST)/$(SAGE_ROOT_REPO) \
      $(INST)/$(SAGENB) \
      $(INST)/$(SAGETEX) \
      $(INST)/$(SCIPY) \
@@ -117,7 +113,11 @@ all-sage: \
      $(INST)/$(TACHYON) \
      $(INST)/$(TERMCAP) \
      $(INST)/$(ZLIB) \
-     $(INST)/$(ZNPOLY)
+     $(INST)/$(ZNPOLY) \
+     scripts \
+     sage \
+     csage \
+     extcode
 
 # TOOLCHAIN consists of dependencies determined by spkg/install,
 # including for example the GCC package.
@@ -137,8 +137,7 @@ toolchain-deps:
 
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.
-SAGERUNTIME = $(INST)/$(SAGE_SCRIPTS) $(INST)/$(SAGE) $(INST)/$(SAGENB) \
-              $(INST)/$(IPYTHON) $(INST)/$(GAP)
+SAGERUNTIME = scripts sage $(INST)/$(SAGENB) $(INST)/$(IPYTHON) $(INST)/$(GAP)
 
 ###############################################################################
 # Building the base system
@@ -158,11 +157,7 @@ $(INST)/$(PREREQ):
 # spkg (which is gzip compressed).  We continue using the old bzip2
 # installation (which is version 1.0.5 since sage-3.3), which is fine.
 $(INST)/$(BZIP2): $(INST)/$(PREREQ)
-	+if [ -f "$(SAGE_ROOT)/spkg/bin/sage-spkg" ] ; then \
-	    $(PIPE) "$(SAGE_SPKG) $(BZIP2) 2>&1" "tee -a $(SAGE_LOGS)/$(BZIP2).log"; \
-	else \
-	    touch "$@"; \
-	fi
+	$(PIPE) "$(SAGE_SPKG) $(BZIP2) 2>&1" "tee -a $(SAGE_LOGS)/$(BZIP2).log"; \
 
 $(INST)/$(PATCH): $(INST)/$(BZIP2)
 	+$(PIPE) "$(SAGE_SPKG) $(PATCH) 2>&1" "tee -a $(SAGE_LOGS)/$(PATCH).log"
@@ -194,21 +189,15 @@ $(INST)/$(ICONV):
 $(INST)/$(DOCUTILS): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(DOCUTILS) 2>&1" "tee -a $(SAGE_LOGS)/$(DOCUTILS).log"
 
-# ELLIPTIC_CURVES depends on SAGE_ROOT_REPO because it needs SAGE_SHARE
-# to be set in sage-env.
-$(INST)/$(ELLIPTIC_CURVES): $(INST)/$(PYTHON) \
-        $(INST)/$(SQLITE) $(INST)/$(SAGE_ROOT_REPO)
+$(INST)/$(ELLIPTIC_CURVES): $(INST)/$(PYTHON) $(INST)/$(SQLITE)
 	+$(PIPE) "$(SAGE_SPKG) $(ELLIPTIC_CURVES) 2>&1" "tee -a $(SAGE_LOGS)/$(ELLIPTIC_CURVES).log"
 
-# CONWAY depends on SAGE_ROOT_REPO because it needs SAGE_SHARE
-# to be set in sage-env.  It also depends on SAGERUNTIME because it
-# runs Sage code to generate a Sage object (.sobj).
-$(INST)/$(CONWAY): $(INST)/$(SAGE_ROOT_REPO) $(SAGERUNTIME)
+# CONWAY depends on depends on SAGERUNTIME because it runs Sage code to
+# generate a Sage object (.sobj).
+$(INST)/$(CONWAY): $(SAGERUNTIME)
 	+$(PIPE) "$(SAGE_SPKG) $(CONWAY) 2>&1" "tee -a $(SAGE_LOGS)/$(CONWAY).log"
 
-# GRAPHS depends on SAGE_ROOT_REPO because it needs SAGE_SHARE
-# to be set in sage-env.
-$(INST)/$(GRAPHS): $(INST)/$(SAGE_ROOT_REPO)
+$(INST)/$(GRAPHS):
 	+$(PIPE) "$(SAGE_SPKG) $(GRAPHS) 2>&1" "tee -a $(SAGE_LOGS)/$(GRAPHS).log"
 
 $(INST)/$(GLPK): $(INST)/$(MPIR) $(INST)/$(ZLIB)
@@ -243,15 +232,10 @@ $(INST)/$(POLYBORI): $(INST)/$(PYTHON) $(INST)/$(IPYTHON) \
          $(INST)/$(M4RI) $(INST)/$(GD)
 	+$(PIPE) "$(SAGE_SPKG) $(POLYBORI) 2>&1" "tee -a $(SAGE_LOGS)/$(POLYBORI).log"
 
-# POLYTOPES_DB depends on SAGE_ROOT_REPO because it needs SAGE_SHARE
-# to be set in sage-env.
-$(INST)/$(POLYTOPES_DB): $(INST)/$(SAGE_ROOT_REPO)
+$(INST)/$(POLYTOPES_DB):
 	+$(PIPE) "$(SAGE_SPKG) $(POLYTOPES_DB) 2>&1" "tee -a $(SAGE_LOGS)/$(POLYTOPES_DB).log"
 
-# PPL depends on SAGE_ROOT_REPO because it *executes* C++ code at
-# build time.  Therefore, it needs an up-to-date version of sage-env
-# which adds $SAGE_LOCAL/lib64 to the LD_LIBRARY_PATH.
-$(INST)/$(PPL): $(INST)/$(MPIR) $(INST)/$(SAGE_ROOT_REPO)
+$(INST)/$(PPL): $(INST)/$(MPIR)
 	+$(PIPE) "$(SAGE_SPKG) $(PPL) 2>&1" "tee -a $(SAGE_LOGS)/$(PPL).log"
 
 $(INST)/$(MPC): $(INST)/$(MPIR) $(INST)/$(MPFR)
@@ -375,11 +359,7 @@ $(INST)/$(MATPLOTLIB): $(INST)/$(PYTHON) $(INST)/$(NUMPY) \
 $(INST)/$(CDDLIB): $(INST)/$(MPIR)
 	+$(PIPE) "$(SAGE_SPKG) $(CDDLIB) 2>&1" "tee -a $(SAGE_LOGS)/$(CDDLIB).log"
 
-# Gfan depends on SAGE_ROOT_REPO because it *executes* C++ code at
-# build time.  Therefore, it needs an up-to-date version of sage-env
-# which adds $SAGE_LOCAL/lib64 to the LD_LIBRARY_PATH.
-$(INST)/$(GFAN): $(INST)/$(MPIR) $(INST)/$(CDDLIB) \
-		$(INST)/$(SAGE_ROOT_REPO)
+$(INST)/$(GFAN): $(INST)/$(MPIR) $(INST)/$(CDDLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(GFAN) 2>&1" "tee -a $(SAGE_LOGS)/$(GFAN).log"
 
 $(INST)/$(TACHYON): $(INST)/$(LIBPNG)
@@ -397,10 +377,7 @@ $(INST)/$(ECL): $(INST)/$(MPIR) $(INST)/$(READLINE) $(INST)/$(BOEHM_GC)
 $(INST)/$(MAXIMA): $(INST)/$(ECL)
 	+$(PIPE) "$(SAGE_SPKG) $(MAXIMA) 2>&1" "tee -a $(SAGE_LOGS)/$(MAXIMA).log"
 
-# R depends on SAGE_ROOT_REPO because it needs an up-to-date
-# sage-env script which sets $OBJC on OS X.
-$(INST)/$(R): $(INST)/$(ATLAS) $(INST)/$(ICONV) \
-		 $(INST)/$(SAGE_ROOT_REPO) $(INST)/$(READLINE)
+$(INST)/$(R): $(INST)/$(ATLAS) $(INST)/$(ICONV) $(INST)/$(READLINE)
 	+$(PIPE) "$(SAGE_SPKG) $(R) 2>&1" "tee -a $(SAGE_LOGS)/$(R).log"
 
 $(INST)/$(RPY): $(INST)/$(PYTHON) $(INST)/$(R)
@@ -418,11 +395,6 @@ $(INST)/$(FLINTQS): $(INST)/$(MPIR)
 $(INST)/$(FLINT): $(INST)/$(MPIR) $(INST)/$(NTL)
 	+$(PIPE) "$(SAGE_SPKG) $(FLINT) 2>&1" "tee -a $(SAGE_LOGS)/$(FLINT).log"
 
-# EXTCODE depends on SAGE_ROOT_REPO because it needs SAGE_EXTCODE
-# to be set in sage-env.
-$(INST)/$(EXTCODE): $(INST)/$(SAGE_ROOT_REPO)
-	+$(PIPE) "$(SAGE_SPKG) $(EXTCODE) 2>&1" "tee -a $(SAGE_LOGS)/$(EXTCODE).log"
-
 $(INST)/$(M4RI): $(INST)/$(LIBPNG)
 	+$(PIPE) "$(SAGE_SPKG) $(M4RI) 2>&1" "tee -a $(SAGE_LOGS)/$(M4RI).log"
 
@@ -433,11 +405,6 @@ $(INST)/$(M4RIE): $(INST)/$(M4RI) $(INST)/$(GIVARO) $(INST)/$(NTL)
 # The 'configure' script in zn_poly calls Python to make a 'makefile'.
 $(INST)/$(ZNPOLY): $(INST)/$(MPIR) $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(ZNPOLY) 2>&1" "tee -a $(SAGE_LOGS)/$(ZNPOLY).log"
-
-# the spkg-install file for the root repo uses many 'hg' commands, so
-# build mercurial first.
-$(INST)/$(SAGE_ROOT_REPO): $(INST)/$(MERCURIAL)
-	+$(PIPE) "$(SAGE_SPKG) $(SAGE_ROOT_REPO) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGE_ROOT_REPO).log"
 
 $(INST)/$(SAGENB): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS) $(INST)/$(PEXPECT) \
                    $(INST)/$(JINJA2) $(INST)/$(SPHINX) $(INST)/$(DOCUTILS)
@@ -459,9 +426,9 @@ $(INST)/$(PYGMENTS): $(INST)/$(PYTHON) $(INST)/$(SETUPTOOLS)
 
 # List all *build-time* dependencies of the Sage library.  These are,
 # on the one hand, programs needed for the build/install process of the
-# Sage library (e.g. SAGE_SCRIPTS, SCONS, MERCURIAL, JINJA2), and on the
+# Sage library (e.g. JINJA2), and on the
 # other hand all dependencies for Cython files (e.g. PARI, NTL, MPIR).
-$(INST)/$(SAGE): \
+sage: \
 		 $(INST)/$(ATLAS) \
 		 $(INST)/$(CEPHES) \
 		 $(INST)/$(CLIQUER) \
@@ -497,19 +464,18 @@ $(INST)/$(SAGE): \
 		 $(INST)/$(PYTHON) \
 		 $(INST)/$(RATPOINTS) \
 		 $(INST)/$(READLINE) \
-		 $(INST)/$(SAGE_SCRIPTS) \
-		 $(INST)/$(SCONS) \
 		 $(INST)/$(SINGULAR) \
 		 $(INST)/$(SYMMETRICA) \
-		 $(INST)/$(ZNPOLY)
-	+$(PIPE) "$(SAGE_SPKG) $(SAGE) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGE).log"
+		 $(INST)/$(ZNPOLY) \
+		 csage
+	+$(PIPE) "cd $(SAGE_SRC) && . ./bin/sage-env && python setup.py install 2>&1" "tee -a $(SAGE_LOGS)/$(SAGE).log"
 
-# Because of ticket #11073 (remove the base repo), merged in sage-5.0,
-# a version 5.x scripts repo does not work together with a version 4.x
-# root repo.  When upgrading, we must therefore install the new root
-# repo before the scripts repo.
-$(INST)/$(SAGE_SCRIPTS): $(INST)/$(SAGE_ROOT_REPO)
-	+$(PIPE) "$(SAGE_SPKG) $(SAGE_SCRIPTS) 2>&1" "tee -a $(SAGE_LOGS)/$(SAGE_SCRIPTS).log"
+scripts: $(SCRIPT_TARGETS)
+
+extcode: $(EXTCODE_TARGETS)
+
+csage: $(INST)/$(SCONS) $(INST)/$(MPIR) $(INST)/$(PARI)
+	+$(PIPE) "cd $(SAGE_SRC)/c_lib && . ../bin/sage-env && scons -Q install 2>&1" "tee -a $(SAGE_LOGS)/csage.log"
 
 $(INST)/ccache: $(BASE) $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) ccache 2>&1" "tee -a $(SAGE_LOGS)/ccache.log"
@@ -522,10 +488,7 @@ $(INST)/$(GCC): $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(MPC) \
 $(INST)/$(PIL): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(PIL) 2>&1" "tee -a $(SAGE_LOGS)/$(PIL).log"
 
-# Lapack depends on SAGE_ROOT_REPO because it *executes* Fortran code at
-# build time.  Therefore, it needs an up-to-date version of sage-env
-# which adds $SAGE_LOCAL/lib64 to the LD_LIBRARY_PATH.
-$(INST)/$(LAPACK): $(INST)/$(SAGE_ROOT_REPO)
+$(INST)/$(LAPACK):
 	+$(PIPE) "$(SAGE_SPKG) $(LAPACK) 2>&1" "tee -a $(SAGE_LOGS)/$(LAPACK).log"
 
 $(INST)/$(BLAS):

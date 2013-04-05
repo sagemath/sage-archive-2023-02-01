@@ -247,7 +247,7 @@ if [ "$1" = '--nodotsage' ]; then
 fi
 
 # Make sure this doesn't produce output (in case we use this in scripts).
-. "$SAGE_ROOT/spkg/bin/sage-env" >&2
+. "$0-env" >&2
 if [ $? -ne 0 ]; then
     echo >&2 "Error setting environment variables by sourcing '$SAGE_ROOT/spkg/bin/sage-env';"
     echo >&2 "possibly contact sage-devel (see http://groups.google.com/group/sage-devel)."

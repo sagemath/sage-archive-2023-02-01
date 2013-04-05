@@ -7,7 +7,7 @@
 #  NOTES:
 #  - You must *source* this script instead of executing.
 #  - Use "return" instead of "exit" to signal a failure.  Since this
-#    file is sourced, an "exit" here will actually exit spkg/bin/sage,
+#    file is sourced, an "exit" here will actually exit src/bin/sage,
 #    which is probably not intended.
 #  - All environment variables set here should be *exported*, otherwise
 #    they won't be available in child programs.
@@ -17,7 +17,7 @@
 #  If you want to set all environment variables for your shell like
 #  they are during the build of Sage packages, type
 #
-#             . spkg/bin/sage-env
+#             . src/bin/sage-env
 #
 #  from the SAGE_ROOT directory.
 #
@@ -114,9 +114,9 @@ resolvelinks() {
 # or a guessed value based on pwd.
 if [ -n "$SAGE_ROOT" ]; then
     NEW_SAGE_ROOT="$SAGE_ROOT"
-elif [ -f sage -a -d spkg ]; then
+elif [ -f sage -a -d build ]; then
     NEW_SAGE_ROOT="."
-elif [ -f ../../sage -a -d ../../spkg ]; then
+elif [ -f ../../sage -a -d ../../build ]; then
     NEW_SAGE_ROOT="../.."
 else
     # No idea what SAGE_ROOT should be...
@@ -129,7 +129,7 @@ fi
 NEW_SAGE_ROOT=`cd "$NEW_SAGE_ROOT" && pwd -P`
 
 # Sanity check NEW_SAGE_ROOT
-if [ -f "$NEW_SAGE_ROOT/sage" -a -d "$NEW_SAGE_ROOT/spkg" ]; then
+if [ -f "$NEW_SAGE_ROOT/sage" -a -d "$NEW_SAGE_ROOT/build" ]; then
     :
 else
     echo >&2 "Error: SAGE_ROOT is set to a bad value:"
@@ -154,7 +154,7 @@ fi
 # "version number" of sage-env.  If a different version of sage-env was
 # sourced earlier (when upgrading), we still source the new version.
 # The sage-env version should be increased whenever a newer sage-env is
-# required for upgrading.  Note that spkg/standard/deps might also need
+# required for upgrading.  Note that build/deps might also need
 # to be changed: the packages which need the new sage-env must depend on
 # SAGE_ROOT_REPO (the root repo contains sage-env).
 #
@@ -171,6 +171,28 @@ export SAGE_ENV_SOURCED=$SAGE_ENV_VERSION
 
 export SAGE_ROOT="$NEW_SAGE_ROOT"
 
+
+# sage-env must know where the Sage's script files are
+if [ -z "$SAGE_SCRIPTS_DIR" ]; then
+    if [ -f "`dirname $0`/sage-env" ]; then
+        SAGE_SCRIPTS_DIR=`dirname $0`
+    elif [ -f "$SAGE_ROOT/local/bin/sage-env" ]; then
+        SAGE_SCRIPTS_DIR="$SAGE_ROOT/local/bin"
+    elif [ -f "$SAGE_ROOT/src/bin/sage-env" ]; then
+        SAGE_SCRIPTS_DIR="$SAGE_ROOT/src/bin"
+    else
+        echo >&2 "Error: You must set the SAGE_SCRIPTS_DIR environment variable to run this"
+        return 1
+    fi
+elif [ ! -f "$SAGE_SCRIPTS_DIR/sage-env" ]; then
+    echo >&2 "Error: SAGE_SCRIPTS_DIR is set to a bad value:"
+    echo >&2 "SAGE_SCRIPTS_DIR=$SAGE_SCRIPTS_DIR"
+    echo >&2 "You must correct it or erase it and rerun this script"
+    return 1
+fi
+
+# Make SAGE_SCRIPTS_DIR absolute
+export SAGE_SCRIPTS_DIR="`cd "$SAGE_SCRIPTS_DIR" && pwd -P`"
 
 # Call with: contains_spaces X${VAR}X
 # i.e., WITHOUT quotes but some character(s) around the environment variable to test.
@@ -224,11 +246,10 @@ fi
 export SAGE_LOCAL="$SAGE_ROOT/local"
 export SAGE_SHARE="$SAGE_LOCAL/share"
 export SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
-export SAGE_PACKAGES="$SAGE_ROOT/spkg"
-export SAGE_SPKG_INST="$SAGE_ROOT/spkg/installed"
-export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
-export SAGE_DOC="$SAGE_ROOT/devel/sage/doc"
-export PATH="$SAGE_PACKAGES/bin:$SAGE_LOCAL/bin:$PATH"
+export SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
+export SAGE_SRC="$SAGE_ROOT/src"
+export SAGE_DOC="$SAGE_SRC/doc"
+export PATH="$SAGE_SRC/bin:$SAGE_LOCAL/bin:$PATH"
 
 # this is to be compatible with optional packages that haven't
 # been updated to not use SAGE_DATA
@@ -279,7 +300,7 @@ HGENCODING="utf8" && export HGENCODING
 
 # Make Mercurial not use any user defaults (like enabling the pager extension)
 # This is needed in order to use mercurial in scripts.  When running hg
-# directly through "sage -hg", we will disable HGPLAIN in spkg/bin/sage.
+# directly through "sage -hg", we will disable HGPLAIN in src/bin/sage.
 # See Trac Ticket #12058
 HGPLAIN="yes" && export HGPLAIN
 
@@ -303,7 +324,7 @@ fi
 
 if [ "$DOT_SAGE" = "" ]; then
     # It is *not* an error if this directory does not exist, it will
-    # be created in spkg/bin/sage or devel/sage/sage/misc/misc.py.
+    # be created in src/bin/sage or src/sage/misc/misc.py.
     # This also works if $HOME/.sage is a symbolic link to a
     # non-existing directory.
     DOT_SAGE=`resolvelinks "$HOME/.sage"`
@@ -413,7 +434,7 @@ export PKG_CONFIG_PATH
 # Whenever a flag like SAGE64 has been set once, it needs to be
 # restored in every run of sage, as mixing 64-bit and 32-bit code is
 # bad idea at best.  This script takes care of that.
-. "$SAGE_ROOT/spkg/bin/sage-arch-env"
+. "$SAGE_SCRIPTS_DIR/sage-arch-env"
 
 ############ compilation flags
 

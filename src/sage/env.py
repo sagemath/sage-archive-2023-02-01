@@ -37,17 +37,14 @@ SAGE_ENV = {
         'SAGE_ROOT'        : None,
         'SAGE_LOCAL'       : opj('$SAGE_ROOT', 'local'),
         'SAGE_SHARE'       : opj('$SAGE_LOCAL', 'share'),
-        # for backwards compatibility we include SAGE_DATA
-        'SAGE_DATA'        : '$SAGE_SHARE',
         'SAGE_EXTCODE'     : opj('$SAGE_SHARE', 'sage', 'ext'),
-        'SAGE_PACKAGES'    : opj('$SAGE_ROOT', 'spkg'),
         'SAGE_LOGS'        : opj('$SAGE_ROOT', 'logs', 'pkgs'),
-        'SAGE_SPKG_INST'   : opj('$SAGE_ROOT', 'spkg', 'installed'),
-        'SAGE_DOC'         : opj('$SAGE_ROOT', 'devel', 'sage', 'doc'),
+        'SAGE_SPKG_INST'   : opj('$SAGE_LOCAL', 'var', 'lib', 'sage', 'installed'),
+        'SAGE_DOC'         : opj('$SAGE_SRC', 'doc'),
         'DOT_SAGE'         : opj(os.environ.get('HOME','$SAGE_ROOT'), '.sage'),
         # SAGE_LIB is the site-packages directory if the sage library
         # has been installed, otherwise it is the same of SAGE_SRC
-        'SAGE_SRC'         : opj('$SAGE_ROOT', 'devel', 'sage'),
+        'SAGE_SRC'         : opj('$SAGE_ROOT', 'src'),
         'SAGE_LIB'         : os.path.dirname(os.path.dirname(__file__)),
 
         # misc

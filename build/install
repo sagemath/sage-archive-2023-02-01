@@ -515,7 +515,7 @@ fi
 #   which doesn't check MAKEFLAGS.
 #   See Trac #12248 and also #12016.
 if [ -f "$SAGE_ROOT/spkg/bin/sage-spkg" ]; then
-    if $MAKE -q "$@"; then
+    if $MAKE -q "$@" >/dev/null 2>/dev/null; then
         echo "Nothing to (re)build / all up-to-date."
         exit 0
     fi

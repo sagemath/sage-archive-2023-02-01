@@ -227,6 +227,7 @@ export SAGE_EXTCODE="$SAGE_SHARE/sage/ext"
 export SAGE_PACKAGES="$SAGE_ROOT/spkg"
 export SAGE_SPKG_INST="$SAGE_ROOT/spkg/installed"
 export SAGE_LOGS="$SAGE_ROOT/logs/pkgs"
+export SAGE_SRC="$SAGE_ROOT/devel/sage"
 export SAGE_DOC="$SAGE_ROOT/devel/sage/doc"
 export PATH="$SAGE_PACKAGES/bin:$SAGE_LOCAL/bin:$PATH"
 
@@ -383,10 +384,6 @@ if [ `uname` = "Darwin" ]; then
         SAGE_ORIG_DYLD_LIBRARY_PATH_SET=True && export SAGE_ORIG_DYLD_LIBRARY_PATH_SET
     fi
     DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH:$SAGE_LOCAL/lib/R/lib" && export DYLD_LIBRARY_PATH
-fi
-
-if [ "$1" = "-short" ]; then
-    return 0
 fi
 
 # Unset these variables which interfere with R

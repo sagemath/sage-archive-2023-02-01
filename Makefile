@@ -7,8 +7,7 @@
 # See below for targets to build the documentation in other formats,
 # to run various types of test suites, and to remove parts of the build etc.
 
-PIPE = spkg/pipestatus
-
+PIPE = build/pipestatus
 
 all: start doc  # indirectly depends on build
 

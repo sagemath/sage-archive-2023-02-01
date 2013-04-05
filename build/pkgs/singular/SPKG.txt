@@ -61,6 +61,7 @@ Several patches are applied.
  * sage_trac_14295.patch: Fix for GCC 4.7.x on Solaris; see
    http://trac.sagemath.org/sage_trac/ticket/14295 and the changelog
    entry for singular-3-1-5.p5 below.
+ * osx_link.patch: #14415: Fixes linker problems on OS X PPC.
 
 Other notes
  * The option '--without-dynamic-kernel' is used on *all*
@@ -87,6 +88,10 @@ Other notes
    for easier debugging of memory corruptions.
 
 == ChangeLog ==
+
+=== singular-3-1-5.p6 (Jeroen Demeyer, 5 April 2013) ===
+ * #14415: Add osx_link.patch to fix linker problems on OS X 10.4 PPC
+   with GCC 4.7.2.
 
 === singular-3-1-5.p5 (Leif Leonhardy, March 18th 2013) ===
  * #14295: Singular fails to build with GCC 4.7.x on Solaris.

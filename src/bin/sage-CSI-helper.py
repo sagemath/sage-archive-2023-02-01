@@ -19,7 +19,7 @@ def cython_debug_files():
     """
     Cython extra debug information files
     """
-    pattern = os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage', 'cython_debug',
+    pattern = os.path.join(os.environ['SAGE_SRC'], 'cython_debug',
                            'cython_debug_info_*')
     return glob.glob(pattern)
 

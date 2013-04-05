@@ -12,7 +12,7 @@
 # (SAGE_ROOT/spkg/bin is added to the PATH in spkg/install).
 # Therefore, do not put an explicit path for sage-spkg here.
 SAGE_SPKG = sage-spkg $${SAGE_SPKG_OPTS}
-PIPE = $(SAGE_ROOT)/spkg/pipestatus
+PIPE = $(SAGE_ROOT)/build/pipestatus
 
 # Tell make not to look for files with these names:
 .PHONY: all all-sage base toolchain toolchain-deps

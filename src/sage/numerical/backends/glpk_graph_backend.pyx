@@ -154,9 +154,13 @@ cdef class GLPKGraphBackend(object):
         ['0', '1']
         sage: a = gbe.add_edge('0', '1')
         sage: gbe.write_graph(SAGE_TMP+"/graph.txt")
-        ...
+        Writing graph to ...
+        2 lines were written
         0
         sage: gbe1 = GLPKGraphBackend(SAGE_TMP+"/graph.txt", "plain")
+        Reading graph from ...
+        Graph has 2 vertices and 1 arc
+        2 lines were read
 
     The following example imports a Sage ``Graph`` and then uses it to solve a
     maxflow problem::
@@ -1052,7 +1056,8 @@ cdef class GLPKGraphBackend(object):
             sage: gbe = GLPKGraphBackend()
             sage: a = gbe.add_edge("0", "1")
             sage: gbe.write_graph(SAGE_TMP+"/graph.txt")
-            ...
+            Writing graph to ...
+            2 lines were written
             0
         """
 
@@ -1080,7 +1085,8 @@ cdef class GLPKGraphBackend(object):
             sage: gbe = GLPKGraphBackend()
             sage: a = gbe.add_edge("0", "1")
             sage: gbe.write_ccdata(SAGE_TMP+"/graph.dat")
-            ...
+            Writing graph to ...
+            6 lines were written
             0
         """
 
@@ -1104,7 +1110,8 @@ cdef class GLPKGraphBackend(object):
             sage: gbe = GLPKGraphBackend()
             sage: a = gbe.add_edge("0", "1")
             sage: gbe.write_mincost(SAGE_TMP+"/graph.min")
-            ...
+            Writing min-cost flow problem data to ...
+            4 lines were written
             0
         """
 
@@ -1204,7 +1211,8 @@ cdef class GLPKGraphBackend(object):
             sage: gbe.maxflow_ffalg('0', '1')
             0.0
             sage: gbe.write_maxflow(SAGE_TMP+"/graph.max")
-            ...
+            Writing maximum flow problem data to ...
+            6 lines were written
             0
             sage: gbe = GLPKGraphBackend()
             sage: gbe.write_maxflow(SAGE_TMP+"/graph.max")
@@ -1290,7 +1298,7 @@ cdef class GLPKGraphBackend(object):
         cdef double graph_sol
         cdef int status = glp_maxflow_ffalg(self.graph, s, t, sizeof(double),
                           &graph_sol, 3 * sizeof(double),
-                          2 * sizeof(double))
+                          4 * sizeof(double))
         if status == 0:
             pass
         elif status == GLP_ENOPFS:
@@ -1329,12 +1337,12 @@ cdef class GLPKGraphBackend(object):
             sage: gbe.cpp()
             7.0
             sage: v = gbe.get_vertex('1')
-            sage: print 1, v["rhs"], v["es"], v["ls"]
+            sage: print 1, v["rhs"], v["es"], v["ls"] # abs tol 1e-6
             1 1.0 0.0 2.0
         """
 
-        return glp_cpp(self.graph, 0, 2 * sizeof(double) + sizeof(long),
-                   3 * sizeof(double) + sizeof(long))
+        return glp_cpp(self.graph, 0, 2 * sizeof(double),
+                   3 * sizeof(double))
 
     def __dealloc__(self):
         """

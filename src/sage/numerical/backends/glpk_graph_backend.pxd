@@ -80,9 +80,9 @@ cdef extern from "../../../local/include/glpk.h":
 ctypedef struct c_v_data:
          double rhs
          double pi
-         int cut
          double es
          double ls
+         long cut
 
 ctypedef struct c_a_data:
          double low

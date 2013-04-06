@@ -534,6 +534,17 @@ class CartanTypeFactory(SageObject):
             sage: fct = CartanType(['C', 4, 1]).as_folding()
             sage: CartanType(fct)
             ['C', 4, 1]
+
+        Check that :trac:`13774` is fixed::
+
+            sage: CT = CartanType([['A',2]])
+            sage: CT.is_irreducible()
+            True
+            sage: CT = CartanType(['A2'])   
+            sage: CT.is_irreducible()
+            True
+            sage: CartanType('A2')
+            ['A', 2]
         """
         if len(args) == 1:
             t = args[0]

@@ -1,6 +1,6 @@
-diff -ur src.orig/configure.in src/configure.in
---- src.orig/configure.in	2012-09-30 19:16:16.208133911 +0200
-+++ src/configure.in	2012-09-30 19:15:12.800599068 +0200
+diff -ur src.orig/configure.ac src/configure.ac
+--- src.orig/configure.ac	2012-09-30 19:16:16.208133911 +0200
++++ src/configure.ac	2012-09-30 19:15:12.800599068 +0200
 @@ -1113,6 +1113,9 @@
  	OSF*)
  	    BASECFLAGS="$BASECFLAGS -mieee"

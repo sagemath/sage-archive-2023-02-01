@@ -25,7 +25,8 @@ DMS-1001079, DMS--0652641, DMS--0652652, and DMS--1001256.
    lie/weight_ring
    lie/weyl_groups
    lie/crystals
-   lie/affine_crystals
+   lie/affine_finite_crystals
+   lie/affine_hw_crystals
    lie/iwahori_hecke_algebra
    lie/kazhdan_lusztig_polynomials
    lie/bibliography

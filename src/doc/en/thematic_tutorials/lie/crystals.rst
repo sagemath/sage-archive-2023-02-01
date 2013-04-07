@@ -934,3 +934,38 @@ corresponding crystal for `H` by a similar process. For example if the
 Dynkin diagram for `H` is obtained from the Dynkin diagram for `G` by
 erasing the `i`-th node, then if we erase all the edges in the crystal
 `\mathcal{C}` that are labeled with `i`, we obtain a crystal for `H`.
+
+In Sage this is achieved by specifying the index set used in the digraph method::
+
+    sage: T = CrystalOfTableaux(['D',4],shape=[1])
+    sage: G = T.digraph(index_set=[1,2,3])
+
+We see that the type `D_4` crystal indeed decomposes into two type `A_3` components.
+
+.. image:: ../media/parabolic_subcrystal.png
+   :scale: 75
+   :align: center
+
+
+Subcrystals
+-----------
+
+Sometimes it might be desirable to work with a subcrystal of a crystal. For example,
+one might want to look at all `\{2,3,\ldots,n\}` highest elements of a crystal
+and look at a particular such component::
+
+    sage: T = CrystalOfTableaux(['D',4],shape=[2,1])
+    sage: hw = [ t for t in T if t.is_highest_weight(index_set = [2,3,4]) ]; hw
+    [[[1, 1], [2]],
+     [[1, 2], [2]],
+     [[2, -1], [-2]],
+     [[2, -1], [-1]],
+     [[1, -1], [2]],
+     [[2, -1], [3]],
+     [[1, 2], [3]],
+     [[2, 2], [3]],
+     [[1, 2], [-2]],
+     [[2, 2], [-2]],
+     [[2, 2], [-1]]]
+    sage: C = T.subcrystal(generators = [T(rows=[[2,-1],[3]])], index_set = [2,3,4])
+    sage: G = T.digraph(subset = C, index_set=[2,3,4])

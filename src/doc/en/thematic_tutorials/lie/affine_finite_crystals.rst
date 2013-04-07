@@ -1,6 +1,6 @@
-==================
-Affine Crystals
-==================
+======================
+Affine Finite Crystals
+======================
 
 In this document we briefly explain the construction and implementation of the Kirillov--Reshetikhin
 crystals of [FourierEtAl2009]_.
@@ -374,7 +374,14 @@ The KR crystals `B^{n,s}` and `B^{n-1,s}` of type `D_n^{(1)}` are also special. 
 
     B^{n-1,s} \cong B(s\omega_{n-1}).
 
-These crystals are not yet implemented in Sage.
+::
+
+    sage: K = KirillovReshetikhinCrystal(['D',4,1],4,1)
+    sage: K.classical_decomposition()
+    The crystal of tableaux of type ['D', 4] and shape(s) [[1/2, 1/2, 1/2, 1/2]]
+    sage: K = KirillovReshetikhinCrystal(['D',4,1],3,1)
+    sage: K.classical_decomposition()
+    The crystal of tableaux of type ['D', 4] and shape(s) [[1/2, 1/2, 1/2, -1/2]]
 
 
 Type `E_6^{(1)}`
@@ -480,8 +487,8 @@ Perfect crystals can be used to construct infinite-dimensional highest weight cr
 Demazure crystals using the Kyoto path model [KKMMNN1992]_.
 
 
-Energy function
----------------
+Energy function and one-dimensional configuration sum
+-----------------------------------------------------
 
 For tensor products of Kirillov-Reshehtikhin crystals, there also exists the important notion of
 the energy function. It can be defined as the sum of certain local energy functions and the `R`-matrix.
@@ -516,3 +523,17 @@ The affine grading can be computed even for nonperfect crystals::
     [[[1, 2]], [[1]]] 1
     [[[1, -1]], [[1]]] 0
 
+The one-dimensional configuration sum of a crystal `B` is the graded sum by energy of the
+weight of all elements `b \in B`:
+
+.. MATH::
+   X(B) = \sum_{b \in B} x^{\mathrm{weight}(b)} q^{D(b)}
+
+Here is an example of how you can compute the one-dimensional configuration sum in Sage::
+
+    sage: K = KirillovReshetikhinCrystal(['A',2,1],1,1)
+    sage: T = TensorProductOfCrystals(K,K)
+    sage: T.one_dimensional_configuration_sum()
+    B[-2*Lambda[1] + 2*Lambda[2]] + (q+1)*B[-Lambda[1]]
+    + (q+1)*B[Lambda[1] - Lambda[2]] + B[2*Lambda[1]]
+    + B[-2*Lambda[2]] + (q+1)*B[Lambda[2]]

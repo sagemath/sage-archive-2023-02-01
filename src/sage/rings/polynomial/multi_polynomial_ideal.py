@@ -374,13 +374,14 @@ class SingularDefaultContext:
             7*b+210*c^3-79*c^2+3*c,
             7*a-420*c^3+158*c^2+8*c-7
         """
+        from sage.interfaces.singular import SingularError
         try:
             self.bck_degBound = int(self.singular.eval('degBound'))
-        except RuntimeError:
+        except SingularError:
             self.bck_degBound = int(0)
         try:
             self.bck_multBound = int(self.singular.eval('multBound'))
-        except RuntimeError:
+        except SingularError:
             self.bck_multBound = int(0)
         self.o = self.singular.option("get")
         self.singular.option('set',self.singular._saved_options)
@@ -388,11 +389,11 @@ class SingularDefaultContext:
         self.singular.option("redTail")
         try:
             self.singular.eval('degBound=0')
-        except RuntimeError:
+        except SingularError:
             pass
         try:
             self.singular.eval('multBound=0')
-        except RuntimeError:
+        except SingularError:
             pass
 
     def __exit__(self, typ, value, tb):
@@ -411,14 +412,15 @@ class SingularDefaultContext:
             7*b+210*c^3-79*c^2+3*c,
             7*a-420*c^3+158*c^2+8*c-7
         """
+        from sage.interfaces.singular import SingularError
         self.singular.option("set",self.o)
         try:
             self.singular.eval('degBound=%d'%self.bck_degBound)
-        except RuntimeError:
+        except SingularError:
             pass
         try:
             self.singular.eval('multBound=%d'%self.bck_multBound)
-        except RuntimeError:
+        except SingularError:
             pass
 
 def singular_standard_options(func):

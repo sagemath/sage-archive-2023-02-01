@@ -1,0 +1,11 @@
+--- graph.c	2012-05-04 10:04:46.000000000 +0200
++++ graphpatched.c	2012-05-04 10:04:32.000000000 +0200
+@@ -359,7 +359,7 @@
+  *       (mainly generator-specific information) are ignored silently,
+  *       for all others a warning message is printed to stderr.
+  */
+-static boolean parse_input(char *str,graph_t *g) {
++boolean parse_input(char *str,graph_t *g) {
+ 	int i,j,w;
+ 	char tmp[16];
+ 

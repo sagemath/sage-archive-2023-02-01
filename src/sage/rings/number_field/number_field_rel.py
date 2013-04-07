@@ -1202,6 +1202,84 @@ class NumberField_relative(NumberField_generic):
         f = self.absolute_polynomial()
         return f.galois_group(pari_group=True).order() == self.absolute_degree()
 
+    def is_isomorphic_relative(self, other, base_isom=None):
+        r"""
+        For this relative extension `L/K` and another relative extension `M/K`, return True
+        if there is a `K`-linear isomorphism from `L` to `M`. More generally, ``other`` can be a
+        relative extension `M/K^\prime` with ``base_isom`` an isomorphism from `K` to
+        `K^\prime`.
+
+        EXAMPLES::
+
+            sage: K.<z9> = NumberField(x^6 + x^3 + 1)
+            sage: R.<z> = PolynomialRing(K)
+            sage: m1 = 3*z9^4 - 4*z9^3 - 4*z9^2 + 3*z9 - 8
+            sage: L1 = K.extension(z^2 - m1, 'b1')
+            sage: G = K.galois_group(); gamma = G.gen()
+            sage: m2 = (gamma^2)(m1)
+            sage: L2 = K.extension(z^2 - m2, 'b2')
+            sage: L1.is_isomorphic_relative(L2)
+            False
+            sage: L1.is_isomorphic(L2)
+            True
+            sage: L3 = K.extension(z^4 - m1, 'b3')
+            sage: L1.is_isomorphic_relative(L3)
+            False
+
+        If we have two extensions over different, but isomorphic, bases, we can compare them by
+        letting ``base_isom`` be an isomorphism from self's base field to other's base field::
+
+            sage: Kcyc.<zeta9> = CyclotomicField(9)
+            sage: Rcyc.<zcyc> = PolynomialRing(Kcyc)
+            sage: phi1 = K.hom([zeta9])
+            sage: m1cyc = phi1(m1)
+            sage: L1cyc = Kcyc.extension(zcyc^2 - m1cyc, 'b1cyc')
+            sage: L1.is_isomorphic_relative(L1cyc, base_isom=phi1)
+            True
+            sage: L2.is_isomorphic_relative(L1cyc, base_isom=phi1)
+            False
+            sage: phi2 = K.hom([phi1((gamma^(-2))(z9))])
+            sage: L1.is_isomorphic_relative(L1cyc, base_isom=phi2)
+            False
+            sage: L2.is_isomorphic_relative(L1cyc, base_isom=phi2)
+            True
+
+        Omitting ``base_isom`` raises a ValueError when the base fields are not identical::
+
+            sage: L1.is_isomorphic_relative(L1cyc)
+            Traceback (most recent call last):
+            ...
+            ValueError: other does not have the same base field as self, so an isomorphism from self's base_field to other's base_field must be provided using the base_isom parameter.
+
+        The parameter ``base_isom`` can also be used to check if the relative extensions are
+        Galois conjugate::
+
+            sage: for g in G:
+            ...     if L1.is_isomorphic_relative(L2, g.as_hom()):
+            ...         print g.as_hom()
+            Ring endomorphism of Number Field in z9 with defining polynomial x^6 + x^3 + 1
+              Defn: z9 |--> -z9^4 - z9
+        """
+        if is_RelativeNumberField(other):
+            s_base_field = self.base_field()
+            o_base_field = other.base_field()
+            if base_isom is None:
+                if s_base_field is o_base_field:
+                    return self.relative_degree() == other.relative_degree() and len(self.relative_polynomial().roots(other)) > 0
+                raise ValueError("other does not have the same base field as self, so an isomorphism from self's base_field to other's base_field must be provided using the base_isom parameter.")
+            if s_base_field.absolute_degree() != o_base_field.absolute_degree():
+                raise ValueError("The base fields are not isomorphic.")
+            if base_isom.domain() is s_base_field and base_isom.codomain() is o_base_field:
+                if s_base_field.absolute_degree() != o_base_field.absolute_degree():
+                    raise ValueError("The base fields are not isomorphic.")
+                if not self.relative_degree() == other.relative_degree():
+                    return False
+                R = PolynomialRing(o_base_field, 'x')
+                F = R(map(base_isom, self.relative_polynomial()))
+                return len(F.roots(other)) > 0
+            raise ValueError("base_isom is not a homomorphism from self's base_field to other's base_field")
+        raise ValueError("other must be a relative number field.")
+
     def is_CM_extension(self):
         """
         Return True is this is a CM extension, i.e. a totally imaginary

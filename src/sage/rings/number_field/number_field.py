@@ -8337,22 +8337,35 @@ class NumberField_cyclotomic(NumberField_absolute):
         return True
 
     def is_isomorphic(self, other):
-       """
-       Return True if the cyclotomic field self is isomorphic as a number
-       field to other.
+        """
+        Return True if the cyclotomic field self is isomorphic as a number
+        field to other.
 
-       EXAMPLES::
+        EXAMPLES::
 
-           sage: CyclotomicField(11).is_isomorphic(CyclotomicField(22))
-           True
-           sage: CyclotomicField(11).is_isomorphic(CyclotomicField(23))
-           False
-           sage: CyclotomicField(3).is_isomorphic(NumberField(x^2 + x +1, 'a'))
-           True
-       """
-       if not isinstance(other, NumberField_generic):
-           raise ValueError, "other must be a generic number field."
-       return self.Hom(other).order() > 0
+            sage: CyclotomicField(11).is_isomorphic(CyclotomicField(22))
+            True
+            sage: CyclotomicField(11).is_isomorphic(CyclotomicField(23))
+            False
+            sage: CyclotomicField(3).is_isomorphic(NumberField(x^2 + x +1, 'a'))
+            True
+            sage: CyclotomicField(18).is_isomorphic(CyclotomicField(9))
+            True
+            sage: CyclotomicField(10).is_isomorphic(NumberField(x^4 - x^3 + x^2 - x + 1, 'b'))
+            True
+
+        Check :trac:`14300`::
+
+            sage: K = CyclotomicField(4)
+            sage: N = K.extension(x^2-5, 'z')
+            sage: K.is_isomorphic(N)
+            False
+            sage: K.is_isomorphic(CyclotomicField(8))
+            False
+        """
+        if is_CyclotomicField(other):
+            return self.zeta_order() == other.zeta_order()
+        return NumberField_generic.is_isomorphic(self, other)
 
     def complex_embedding(self, prec=53):
         r"""

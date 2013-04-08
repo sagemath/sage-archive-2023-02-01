@@ -1,0 +1,20 @@
+134c134
+< 	$(INSTALL_DATA) -o $(BINOWN) -g $(BINGRP) gdbm.h \
+---
+> 	$(INSTALL_DATA) gdbm.h \
+136c136
+< 	$(INSTALL_DATA) -o $(BINOWN) -g $(BINGRP) $(srcdir)/gdbm.3 \
+---
+> 	$(INSTALL_DATA) $(srcdir)/gdbm.3 \
+138c138
+< 	$(INSTALL_DATA) -o $(BINOWN) -g $(BINGRP) $(srcdir)/gdbm.info \
+---
+> 	$(INSTALL_DATA) $(srcdir)/gdbm.info \
+146c146
+< 	$(INSTALL_DATA) -o $(BINOWN) -g $(BINGRP) $(srcdir)/dbm.h \
+---
+> 	$(INSTALL_DATA) $(srcdir)/dbm.h \
+148c148
+< 	$(INSTALL_DATA) -o $(BINOWN) -g $(BINGRP) $(srcdir)/ndbm.h \
+---
+> 	$(INSTALL_DATA) $(srcdir)/ndbm.h \

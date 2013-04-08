@@ -1,0 +1,76 @@
+#!/bin/bash
+
+###################################################################
+#
+# Copyright (C) 2009,  Ralf Hemmecke <ralf@hemmecke.de>
+#
+###################################################################
+
+# We assume that THIS script is called from the current directory.
+# The full path of the current directory should end in
+#   fricasaldor-VERSION
+# and the fricas spkg would live in ../fricas-VERSION.
+
+# fricasaldor-X.Y.Z.spkg contains src/libaxiom.al and src/axiom.as.
+
+# We assume that ../fricas-X.Y.Z contains an already build fricas which
+# was configured with "configure --disable-aldor --with-lisp=$FRICAS_LISP".
+# We check this by installing the fricas package again. Sage will not
+# reinstall if it is already installed.
+
+check_error() {
+    if [ $? -ne 0 ]; then
+	echo "***********************************************************"
+        echo $1
+	echo "***********************************************************"
+        exit 1
+    fi
+}
+
+# The name of the fricas spkg dir with version number.
+fricas_spkg=`pwd | sed s/.*fricasaldor-/fricas-/`
+
+# The fricas spkg directory.
+fricas_dir=`pwd | sed s/fricasaldor-/fricas-/`
+
+# The actual fricas sources are in the subdir src.
+fricas_src_dir=${fricas_dir}/src
+
+# And fricas (without aldor) has been build into build-dir.
+fricas_build_dir=${fricas_dir}/build-dir
+
+# Make sure the right FriCAS version is installed with the
+# build directory not removed.
+# Note that that this should be configured with '--disable-aldor'.
+sage -i -s ${fricas_spkg}
+
+# What lisp are we going to use?
+FRICAS_LISP=`grep ^FRICAS_LISP ${fricas_dir}/spkg-install | sed s/FRICAS_LISP=//`
+
+# Copy axiom.as into a place where it will be picked up by 'make install'.
+AL=${fricas_build_dir}/src/aldor
+cp src/axiom.as ${AL}/
+
+# Copy libaxiom.al into the right place. We assume that configuring
+# FriCAS has build the appropriate subdirs in the fricas build-dir.
+if [ ! -d ${AL}/al ]; then mkdir ${AL}/al; fi
+cp src/libaxiom.al ${AL}/al
+
+# No everything is in place and we can enable Aldor.
+cd ${fricas_build_dir}
+${fricas_src_dir}/configure --prefix=$SAGE_LOCAL \
+                            --with-lisp="$FRICAS_LISP" \
+                            --enable-aldor
+check_error "Failed to configure FriCAS-Aldor interface."
+
+# We only need to call 'make' inside the src/aldor directory.
+# Actually, we even _must_ call make only in src/aldor, because
+# otherwise the make would needlessly start rebuilding libaxiom.al and
+# most probably waste time and fail.
+cd ${AL} && make runtimelib
+check_error "Failed to make FriCAS-Aldor interface."
+
+# Now the usual install should do the rest.
+cd ${fricas_build_dir}
+make install
+check_error "Failed to install FriCAS-Aldor interface."

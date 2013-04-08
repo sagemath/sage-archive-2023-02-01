@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# This is the spkg-install script which will be emplaced within the SPKG for
+# the scripts repository whenever it is packaged.
+
+CUR=`pwd`
+
+TARGET="$SAGE_ROOT/local/bin/"
+
+if [ -d "$TARGET"/.hg ]; then
+    # Merge the repositories, rather than overwrite changes
+    # that the user may have made.
+   cd "$TARGET"
+   hg ci
+   hg pull "$CUR"
+   hg merge tip
+   hg ci -m "Check-in during upgrade of Sage."
+   hg update
+else
+    # Initial install.  Just copy all the files over.
+    cp -pR sage-*  *doctest.py .hg* "$TARGET"
+fi
+
+# Create an appropriate hgrc file for the target
+cat > "$TARGET/.hg/hgrc" <<"HEREDOC"
+[diff]
+git = true
+HEREDOC

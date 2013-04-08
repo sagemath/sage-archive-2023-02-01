@@ -1,0 +1,14 @@
+diff -ru a/tests/Makefile.in b/tests/Makefile.in
+--- a/tests/Makefile.in	2011-02-27 10:08:24.000000000 +0100
++++ b/tests/Makefile.in	2012-02-29 12:01:48.728359383 +0100
+@@ -395,10 +395,7 @@
+ PIP_Problem \
+ Powerset \
+ Partially_Reduced_Product \
+-Box \
+ MIP_Problem \
+-Octagonal_Shape \
+-BD_Shape \
+ Polyhedron \
+ Grid
+ 

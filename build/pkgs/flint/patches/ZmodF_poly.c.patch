@@ -1,0 +1,11 @@
+--- src/ZmodF_poly.c	2009-09-23 18:03:27.000000000 +0800
++++ patches/ZmodF_poly.c	2011-04-25 22:37:17.000000000 +0800
+@@ -29,8 +29,6 @@
+ 
+ *****************************************************************************/
+ 
+-#include "flint.h"
+-#include "memory-manager.h"
+ #include "ZmodF_poly.h"
+ #include "ZmodF_mul.h"
+ #include "fmpz_poly.h"

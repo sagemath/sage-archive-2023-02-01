@@ -1,0 +1,115 @@
+#!/usr/bin/env python
+
+########################################################################
+#       Copyright (C) 2011 William Stein <wstein@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+########################################################################
+
+"""
+AUTHORS:
+    - William Stein -- coding
+    - Keshav Kini -- very significant design input
+"""
+
+DEBUG = False  # If True, prints everything that will happen, but does not actually do anything.
+
+import os, shutil, sys
+
+SAGE_ROOT = os.environ['SAGE_ROOT']
+
+def c(cmd, indent=0):
+    print ' '*indent + cmd
+    if DEBUG:
+        return
+    e = os.system(cmd)
+    if e:
+        print "Error executing command.  Failed with exit status %s."%e
+        sys.exit(1)
+
+def strip_binaries():
+    """
+    Strip various binaries using the strip command to save some space.
+    """
+    print "Striping various binaries:"
+    c('strip "%s"/local/bin/Singular-*'%SAGE_ROOT, 4)
+    c('strip "%s"/local/bin/gfan'%SAGE_ROOT, 4)
+
+def strip_files_with_condition(path, condition, recursive=True):
+    """
+    Remove all files in the given path (and subdirectories if
+    recursive is True) that satisfy the given condition.
+    """
+    for F in os.listdir(path):
+        filename = os.path.join(path, F)
+        if condition(F):
+            c('strip "%s"'%filename)
+        if recursive and os.path.isdir(filename):
+            strip_files_with_condition(filename, condition, recursive=True)
+
+def strip_local_lib_so():
+    print "Stripping .so files in local/lib"
+    strip_files_with_condition('%s/local/lib/'%SAGE_ROOT, lambda F: F.endswith('.so'))
+
+def remove_paths_with_condition(path, ext, condition, recursive=True):
+    """
+    Remove all files in the given path (and subdirectories if
+    recursive is True) that satisfy the given condition.
+    """
+    for F in os.listdir(path):
+        filename = os.path.join(path, F)
+        if condition(F):
+            print "    removing %s"%filename
+            if not DEBUG:
+                if os.path.isdir(filename):
+                    shutil.rmtree(filename)
+                else:
+                    os.unlink(filename)
+        if recursive and os.path.isdir(filename):  # isdir checks that it still exists too
+            remove_paths_with_condition(filename, ext, condition, recursive=True)
+
+def remove_paths_with_extension(path, ext, recursive=True):
+    """
+    Remove all files in the given path (and subdirectories if
+    recursive is True) with the given extension.
+    """
+    if not ext.startswith('.'):
+        ext = '.' + ext
+    print "Removing %s files from %s%s:"%(ext, path, ' and all subdirectories' if recursive else '')
+    remove_paths_with_condition(path, ext, lambda F: os.path.splitext(F)[1] == ext, recursive)
+
+def remove_paths_with_prefix(path, prefix, recursive=True):
+    print "Removing files starting with %s from %s%s:"%(prefix, path, ' and all subdirectories' if recursive else '')
+    remove_paths_with_condition(path, prefix, lambda F: F.startswith(prefix), recursive)
+
+def remove_dot_a_files():
+    """
+    Remove .a files from various places, since these are only needed
+    for building, not for running Sage.
+    """
+    remove_paths_with_extension('%s/local/lib/'%SAGE_ROOT, 'a')
+
+def remove_sage_build_dir():
+    build_dir = '%s/devel/sage/build/'%SAGE_ROOT
+    remove_paths_with_prefix(build_dir, 'lib.', recursive=False)
+    remove_paths_with_prefix(build_dir, 'temp.', recursive=False)
+
+def main():
+    """
+    Do all cleanups.
+    """
+    strip_local_lib_so()
+    strip_binaries()
+
+    # Removing .a files is potentially too intrusive, so we're turning
+    # this off for now.  The problem is that it might break %cython
+    # in the notebook, say.
+    # remove_dot_a_files()
+
+    remove_sage_build_dir()
+
+
+if __name__ == '__main__':
+   main()

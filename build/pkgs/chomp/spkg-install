@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+###########################################
+## CHomP
+###########################################
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+# patch main makefile and remove auxiliary makefiles so that only
+# homchain, homcubes, and friends are built -- don't build all of the
+# programs that come with CHomP.
+cp patches/makefile src/make/makefile
+rm src/programs/chmap/makefile
+rm src/programs/chom/makefile
+rm src/programs/chompdemo/makefile
+rm src/programs/chomprog/makefile
+rm src/programs/cubtools/makefile
+rm src/programs/cubtop/makefile
+rm src/programs/examples/makefile
+rm src/programs/mwdemo/makefile
+rm src/programs/showcubes/makefile
+rm src/programs/utils/makefile
+
+# patch src/include/chomp/multiwork/mwdata.h so it builds on Fedora 12
+cp patches/mwdata.h src/include/chomp/multiwork/mwdata.h
+
+# patch src/include/capd/capd/operatingSystemSetting.h so that it
+# detects Solaris on x86 as well as on sparc.
+cp patches/operatingSystemSetting.h src/include/capd/capd/
+
+# The web page http://chomp.rutgers.edu/advanced/compile.php says not
+# to use the "-j" option with make:
+MAKE=make; export MAKE
+
+if [ "x$CXXFLAG64" = x ] ; then
+    CXXFLAG64=-m64
+fi
+
+if [ "x$SAGE64" = xyes ] ; then
+    CXXFLAGS="$CXXFLAGS $CXXFLAG64"
+    export CXXFLAGS
+fi
+
+case `uname` in
+    "Darwin")
+	compiler_flags="-O2 -ansi -pedantic -Wall"
+	target='mac';;
+    "SunOS")
+	compiler_flags="-O2 -pedantic -Wall"
+	LDFLAGS="$LDFLAGS -s"
+	export LDFLAGS
+        target='sun';;
+    *)
+	compiler_flags="-O2 -ansi -pedantic -Wall"
+	LDFLAGS="$LDFLAGS -s"
+	export LDFLAGS
+	target='unx';;
+esac
+
+export compiler_flags
+
+cd src
+
+# Do not exit script if there is an error, but instead print an
+# informative error message. This is helps in determining why the
+# configuration, compilation or installation failed. So put this before
+# the make command.
+set +e
+
+$MAKE target=$target COMPILE="${CXX} ${CXXFLAGS} ${compiler_flags}" LINK="${CXX} ${CXXFLAGS} ${LDFLAGS}"
+
+if [ $? -ne 0 ]; then
+    echo "Error building CHomP"
+    exit 1
+fi
+
+cp bin/homchain bin/homsimpl bin/homcubes $SAGE_LOCAL/bin/

@@ -1,0 +1,91 @@
+= Trac =
+
+Trac is an integrated, web-based project management and bug-tracking tool.
+
+== Description ==
+
+Trac is an enhanced wiki and issue tracking system for software
+development projects. Trac uses a minimalistic approach to web-based
+software project management. It provides an interface to Subversion
+(or other version control systems), an integrated Wiki and convenient
+reporting facilities.
+
+== License ==
+
+Modified BSD
+
+== Plugins ==
+
+ * TracMercurial: GPLv2
+
+== SPKG Maintainers ==
+
+ * William A. Stein
+ * Mitesh Patel
+
+== Upstream Contact ==
+
+ * http://trac.edgewall.org/
+
+== Dependencies ==
+
+== Patches ==
+
+== Changelog ==
+
+=== trac-0.11.5.p0 (Mitesh Patel, 20 September 2009) ===
+
+ * Removed all of previous "src," or equivalent.
+
+ * Upgraded to Trac 0.11.5.
+
+ * Added dependency Genshi 0.5.1: http://genshi.edgewall.org/
+
+ * Pulled TracMercurial plugin from SVN.  See
+   http://trac.edgewall.org/wiki/TracMercurial
+
+ * For more on plugins, see http://trac.edgewall.org/wiki/TracPlugins
+
+ * Updated spkg per http://wiki.sagemath.org/SPKG_Audit
+
+ * Updated spkg-install per #6598 and http://wiki.sagemath.org/DavidKirkby
+
+ * To create a user named "admin" with admin privileges:
+
+     cd $PROJECT_DIR/conf
+     htdigest passwd localhost admin
+     trac-admin $PROJECT_DIR permission add admin TRAC_ADMIN
+
+ * To enable the web admin and Mercurial repository browser plugins,
+   update $PROJECT_DIR/conf/trac.ini:
+
+     [components]
+     tracext.hg.* = enabled
+     webadmin.* = enabled
+
+     [hg]
+     node_format = short
+     show_rev = yes
+
+     [trac]
+     repository_dir = $SAGE_ROOT/devel/sage
+     repository_type = hg
+
+   Please be sure to expand $SAGE_ROOT first.
+
+=== trac-20071204 (William A. Stein, 4 December 2007 ???) ===
+
+ * Added DARCS support?  See "hg log -r 0 -p" for details.
+
+=== trac-??? (William A. Stein, 2006-09-08) ===
+
+ * Initial version.  See "hg log -r 0 -p" for details.
+
+ * This includes trac and all dependencies:
+     - sqllite 3: http://www.sqlite.org/download.html
+     - pysqllite: http://www.initd.org/tracker/pysqlite/wiki/pysqlite
+     - clearsilver: http://www.clearsilver.net/downloads/
+
+ * USAGE:
+     It works from SAGE just like the moin moin wiki and SAGE
+     notebook.  sage: trac('directory_name')

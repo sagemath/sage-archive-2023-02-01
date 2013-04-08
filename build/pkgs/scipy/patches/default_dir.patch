@@ -1,0 +1,26 @@
+diff -ru src/scipy/weave/catalog.py b/scipy/weave/catalog.py
+--- src/scipy/weave/catalog.py	2012-08-21 19:42:46.000000000 +0200
++++ b/scipy/weave/catalog.py	2013-01-22 13:36:57.857513570 +0100
+@@ -141,6 +141,8 @@
+     res : bool
+         True or False.
+     """
++    if not os.path.isdir(dir):
++        return False
+ 
+     # Do NOT use a hardcoded name here due to the danger from race conditions
+     # on NFS when multiple processes are accessing the same base directory in
+@@ -203,8 +205,11 @@
+     writable = False
+     for path in path_candidates:
+         if not os.path.exists(path):
+-            create_dir(path)
+-            os.chmod(path, 0700) # make it only accessible by this user.
++            try:
++                create_dir(path)
++                os.chmod(path, 0700) # make it only accessible by this user.
++            except OSError:
++                continue
+         if is_writable(path):
+             writable = True
+             break

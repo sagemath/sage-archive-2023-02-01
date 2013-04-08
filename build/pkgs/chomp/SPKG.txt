@@ -1,0 +1,74 @@
+= CHomP =
+
+== Description ==
+
+CHomP stands for "Computational Homology Project," and it is a
+collection of software for homology computation.  It includes both
+command-line functions and a C++ library.
+
+Website: http://chomp.rutgers.edu
+
+== License ==
+
+The CHomP software is licensed under version 2 of the GNU GPL.
+
+== SPKG Maintainers ==
+
+ * John Palmieri
+
+== Upstream Contact ==
+
+ * Pawel Pilarczyk is one of the main authors and maintainers, http://www.pawelpilarczyk.com/
+
+== Dependencies ==
+
+ * None
+
+== Special Update/Build Instructions ==
+
+ * According to the web page
+   http://chomp.rutgers.edu/advanced/compile.php, we are supposed to
+   use GNU make, version 3.77 or higher.
+
+ * According to the web page
+   http://chomp.rutgers.edu/advanced/compile.php, avoid using
+   "make -j..."
+
+=== Patches ===
+
+None
+
+== Changelog ==
+
+=== chomp-20100213.p2 (John Palmieri, Nov 18, 2010) ===
+
+* add "sun" as a make target
+
+* patch src/include/capd/capd/operatingSystemSetting.h so that it
+  builds on Solaris on x86: the automatic OS detection doesn't
+  expect Solaris on anything except a sparc.  In particular, it tests
+  for Solaris by seeing if "__sparc__" is defined, whereas it should
+  test whether "sun" is defined.
+
+* don't check the version of make: Sage already requires GNU make.
+
+* add compiler flag "-m64" if SAGE64 is set.
+
+* set appropriate compiler flags for different platforms.
+
+* document the requirement that "make -j..." not be used.
+
+=== chomp-20100213.p1 (Volker Braun, Feb 26, 2010) ===
+
+* patch src/include/chomp/multiwork/mwdata.h so it builds on Fedora 12
+
+=== chomp-20100213.p0 (John Palmieri, Feb 19, 2010) ===
+
+* remove a bunch of programs from the makefile: Sage doesn't use them,
+  so don't build them.  (This saves time, and also building some of
+  the 'extra' programs fails on Solaris.)
+
+=== chomp-20100213 (John Palmieri, Feb 16, 2010) ===
+
+* initial version
+

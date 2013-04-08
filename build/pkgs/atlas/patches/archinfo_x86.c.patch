@@ -1,0 +1,10 @@
+--- archinfo_x86.c.orig	2011-06-15 10:28:37.211647802 -0700
++++ archinfo_x86.c	2011-06-15 10:28:55.407647793 -0700
+@@ -303,6 +303,7 @@
+          break;
+       case 15:
+       case 23:
++      case 28:
+       case 29:
+          iret = IntCore2;
+          break;

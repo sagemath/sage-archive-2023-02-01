@@ -1,0 +1,147 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+if [ $UNAME = "CYGWIN" ]; then
+   # we'll move the libntl.a temporarily out of the way and move it back at the
+   # end of this spkg-install script
+   mv $SAGE_LOCAL/lib/libntl.a $SAGE_LOCAL/lib/xxx_libntl.a
+fi
+
+if [ "`uname`" = "Linux" -a "`uname -m`" = "x86_64" ]; then
+   # This line causes *MAJOR* Illegal Instruction problems on
+   # 64-bit Pentium 4's.  Do *not* do that!!  Only enable the
+   # opteron stuff with a surefire way of detecting that a
+   # machine is really an opteron.
+   #FLINT_TUNE="-mtune=opteron -march=opteron -fPIC -funroll-loops "
+
+   FLINT_TUNE="-fPIC -funroll-loops "
+elif [ "`uname`" = "Darwin" -a "`uname -m`" = "Power Macintosh" ]; then
+   FLINT_TUNE=" -fPIC -funroll-loops "
+elif [ "`uname -m`" = "ia64" ]; then
+   # -funroll-loops crashes the build on itanium under GCC-4.2.1, as reported by
+   # Kate Minola.
+   echo "Turning off loop unrolling on Linux/Itanium"
+   FLINT_TUNE=" -fPIC "
+elif [ "`uname`" = "SunOS" -a "`uname -p`" = "sparc" ]; then
+   # -funroll-loops crashes the build on an US IIIi under GCC-4.3.2, as reported by
+   # Michael Abshoff
+   echo "Turning off loop unrolling on Solaris/Sparc"
+   FLINT_TUNE=" -fPIC "
+else
+   FLINT_TUNE=" -fPIC -funroll-loops  "
+fi
+
+if [ -z "$CFLAG64" ] ; then
+    CFLAG64=-m64
+fi
+
+if [ -z "$CXXFLAG64" ] ; then
+    CXXFLAG64=-m64
+fi
+
+
+if [ "x$SAGE64" = xyes ]; then
+   FLINT_TUNE="$FLINT_TUNE $CFLAG64"
+   export CXXFLAG64
+fi
+
+export FLINT_TUNE
+
+FLINT_GMP_INCLUDE_DIR="$SAGE_LOCAL"/include/
+FLINT_GMP_LIB_DIR="$SAGE_LOCAL"/lib/
+
+FLINT_NTL_INCLUDE_DIR="$SAGE_LOCAL"/include
+FLINT_NTL_LIB_DIR="$SAGE_LOCAL"/lib/
+
+# What is QD?? possibly quad double?
+FLINT_QD_LIB_DIR="$SAGE_LOCAL"/include
+FLINT_QD_INCLUDE_DIR="$SAGE_LOCAL"/include
+
+export FLINT_GMP_INCLUDE_DIR
+export FLINT_GMP_LIB_DIR
+export FLINT_QD_INCLUDE_DIR
+export FLINT_QD_LIB_DIR
+export FLINT_NTL_INCLUDE_DIR
+export FLINT_NTL_LIB_DIR
+
+###
+FLINT_LINK_OPTIONS=""
+export FLINT_LINK_OPTIONS
+
+# Apply all patches
+if [ $UNAME = "CYGWIN" ]; then
+    PATCH_FLAG=--binary
+fi
+cd src
+echo "Patching Flint"
+for p in ../patches/*.patch; do
+    patch $PATCH_FLAG -p1 <"$p"
+    if [ $? -ne 0 ]; then
+        echo "Applying patch $p failed"
+        exit 1
+    fi
+done
+
+# UNIX
+if [ $UNAME != "Darwin" ]; then
+    $MAKE libflint.so
+    if [ $? -ne 0 ]; then
+        if [ $UNAME = "CYGWIN" ]; then
+           # let's move libntl.a back
+           mv $SAGE_LOCAL/lib/xxx_libntl.a $SAGE_LOCAL/lib/libntl.a
+        fi
+        echo "Error building flint shared library."
+        exit 1
+    fi
+    if [ $UNAME = "CYGWIN" ]; then
+       # let's move libntl.a back
+       mv $SAGE_LOCAL/lib/xxx_libntl.a $SAGE_LOCAL/lib/libntl.a
+       # make both kinds of dynamic libraries available for Windows
+       cp -p libflint.so libflint.dll
+    fi
+    echo "Deleting old FLINT"
+    rm -f $SAGE_LOCAL/lib/libflint*
+    echo "Installing new library file"
+    $CP -p libflint* "$SAGE_LOCAL/lib/"
+fi
+
+# OS X
+if [ $UNAME = "Darwin" ]; then
+    if [ "$SAGE64" = "yes" ]; then
+       $MAKE libflint.dylib64
+    else
+       $MAKE libflint.dylib
+    fi
+    if [ ! -f libflint.dylib ]; then
+        echo "Failed to build FLINT dylib."
+        exit 1
+    fi
+    echo "Deleting old FLINT"
+    rm -f $SAGE_LOCAL/lib/libflint*
+    echo "Installing new library file"
+    $CP libflint.dylib "$SAGE_LOCAL/lib/"
+fi
+
+
+# Copy the header files
+
+rm -rf "$SAGE_LOCAL"/include/FLINT
+
+for i in {FLINT/,FLINT/zn_poly/src/}; do
+	mkdir -p "$SAGE_LOCAL"/include/$i
+	if [ $? -ne 0 ]; then
+	    echo "Error building FLINT"
+	    exit 1
+	fi
+
+	$CP ${i/FLINT\//}*.h "$SAGE_LOCAL"/include/$i
+	if [ $? -ne 0 ]; then
+	    echo "Error building FLINT"
+	    exit 1
+	fi
+done

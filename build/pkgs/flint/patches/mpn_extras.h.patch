@@ -1,0 +1,10 @@
+--- src/mpn_extras.h	2009-09-23 03:03:27.000000000 -0700
++++ patches/mpn_extras.h	2011-12-20 15:47:18.495311148 -0800
+@@ -22,7 +22,6 @@
+ #ifndef MPN_EXTRAS_H
+ #define MPN_EXTRAS_H
+ 
+-#include "flint.h"
+ #include "ZmodF_poly.h"
+ 
+ #include "longlong_wrapper.h"

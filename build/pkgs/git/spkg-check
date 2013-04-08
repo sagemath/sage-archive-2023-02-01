@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+echo "spkg-check: Tests for git have already been performed by spkg-install. Good day!"

@@ -1,0 +1,85 @@
+--- src/configure	2012-04-16 21:51:42.586783117 +0200
++++ src-patched/configure	2012-04-16 22:13:59.096783235 +0200
+@@ -12343,7 +12343,7 @@
+ # asm_redc enabled by default for x86_64 and 64 bit PowerPC
+ if test "x$enable_asm_redc" = x; then
+   case $host in
+-    x86_64* | powerpc-apple-darwin* | powerpc64-*-linux*) enable_asm_redc=yes;;
++    x86_64*-*-* | powerpc-apple-darwin* | powerpc64-*-linux*) enable_asm_redc=yes;;
+     *) enable_asm_redc=no;;
+   esac
+ fi
+@@ -12351,8 +12351,35 @@
+ if test "x$enable_asm_redc" = xyes; then
+   case $host in
+     pentium4-*-* | pentium3-*-* | viac7-*-* | i786-*-*) ASMPATH=pentium4;;
+-    x86_64-*-*)  ASMPATH=x86_64;;
+-    powerpc-apple-darwin*) ASMPATH=powerpc64;;
++    x86_64*-*-*)  ASMPATH=x86_64;;
++# warning: with powerpc-apple-darwin* we can have ABI=32
++# see bug #10646 on the bug tracker, where config.guess says
++# powerpc-apple-darwin8.11.0 (this a 64-bit machine, but most applications
++# are compiled in 32 bits). It works with --disable-asm-redc.
++    powerpc-apple-darwin*)
++cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++
++#if defined(__ppc__)
++#error
++#endif
++int
++main ()
++{
++
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_c_try_cpp "$LINENO"; then :
++
++else
++  { $as_echo "$as_me:${as_lineno-$LINENO}: 32-bit PowerPC, disabling asm-redc" >&5
++$as_echo "$as_me: 32-bit PowerPC, disabling asm-redc" >&6;}
++                enable_asm_redc=no
++fi
++rm -f conftest.err conftest.i conftest.$ac_ext
++                          ASMPATH=powerpc64;;
+     powerpc64-*-linux*)
+ 
+ echo "include(<"$srcdir"/powerpc64/powerpc-defs.m4>)" >> $gmp_tmpconfigm4
+@@ -12363,7 +12390,9 @@
+     		   	  ASMPATH=athlon;;
+     *) as_fn_error $? "asm redc not available on this machine $host" "$LINENO" 5;;
+   esac
++fi
+ 
++if test "x$enable_asm_redc" = xyes; then
+ # do the necessary definitions and includes
+ 
+ $as_echo "#define NATIVE_REDC 1" >>confdefs.h
+@@ -12684,9 +12713,9 @@
+ main ()
+ {
+ #if (defined(__GNUC__) || defined(__ICL)) && defined(__i386__)
+-/* When there are no constraints, registers are referred to by
+-   single % sign, not double. Argh */
+-asm volatile ("pmuludq %xmm2, %xmm0");
++/* On some machines, a program without constraints may pass without -msse2 but
++   those with constraints in spv.c fail, thus we test with constraints here. */
++asm volatile ("pmuludq %%xmm2, %%xmm0" : : :"%xmm0");
+ #else
+ #error
+ #IRIXdoesnotexitaterrordirective
+@@ -12708,9 +12737,9 @@
+ main ()
+ {
+ #if (defined(__GNUC__) || defined(__ICL)) && defined(__i386__)
+-/* When there are no constraints, registers are referred to by
+-   single % sign, not double. Argh */
+-asm volatile ("pmuludq %xmm2, %xmm0");
++/* On some machines, a program without constraints may pass without -msse2 but
++   those with constraints in spv.c fail, thus we test with constraints here. */
++asm volatile ("pmuludq %%xmm2, %%xmm0" : : :"%xmm0");
+ #else
+ #error
+ #IRIXdoesnotexitaterrordirective

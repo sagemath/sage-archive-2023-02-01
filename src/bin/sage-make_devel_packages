@@ -1,0 +1,167 @@
+#!/usr/bin/env bash
+
+########################################################
+# Rebuild Sage packages related to development, e.g.,
+#    sage_scripts, sage, sage_root, extcode
+# This script should be called by the sage-sdist script
+########################################################
+
+if [ $# -ne 2 -a $# -ne 3 ]; then
+   echo "Usage: $0 <VERSION> <SAGE_ROOT> [DESTINATION_DIR]"
+   echo "If DESTINATION_DIR is omitted, put the results in spkg/standard."
+   exit 1
+fi
+
+SAGE_VERSION=$1
+SAGE_ROOT=$2
+SAGE_SPKG_INST="$SAGE_ROOT"/spkg/installed/
+export SAGE_ROOT SAGE_VERSION
+TARGET=sage-$1
+
+# REMOVE OLD PACKAGES
+cd "$SAGE_ROOT"/spkg/standard/
+rm extcode-*.spkg
+rm sage-*.spkg
+rm sage_scripts-*.spkg
+rm sage_root-*.spkg
+
+if [ $# -eq 2 ]; then
+   DESTINATION="$SAGE_ROOT"/spkg/standard/
+else
+   DESTINATION=$3
+fi
+
+if [ ! -d "$DESTINATION" ]; then
+   mkdir "$DESTINATION"
+fi
+
+cd "$DESTINATION"
+DESTINATION=`pwd`
+PKG="$DESTINATION"
+
+# NEW SAGE LIBRARY PACKAGE
+if [ -d "$SAGE_ROOT"/devel/sage ]; then
+   cd "$SAGE_ROOT"/devel/sage
+   hg diff
+   hg status
+   hg tag "$SAGE_VERSION"
+   hg commit -m "$SAGE_VERSION"
+   if [ $? -gt 1 ]; then  # Status 1 is returned when there are no changes
+       echo >&2 "Error committing Sage library repository."
+       exit 1
+   fi
+
+   ./spkg-dist "$SAGE_VERSION" "$SAGE_ROOT"
+   if [ $? -ne 0 ]; then
+       echo "Error building the Sage library package"
+       exit 1
+   fi
+   mv dist/sage-"$SAGE_VERSION".spkg "$DESTINATION"/
+   touch "$SAGE_SPKG_INST"/sage-"$SAGE_VERSION"
+fi
+
+if [ ! -f "$PKG"/sage-"$SAGE_VERSION".spkg ]; then
+    echo "The package sage-$SAGE_VERSION.spkg wasn't created."
+    exit 1
+fi
+
+# NEW SAGE EXTERNAL CODE PACKAGE
+if [ -d "$SAGE_ROOT"/devel/ext ]; then
+   cd "$SAGE_ROOT"/devel/ext
+   hg diff
+   hg status
+   hg tag "$SAGE_VERSION"
+   hg commit -m "$SAGE_VERSION"
+   if [ $? -gt 1 ]; then  # Status 1 is returned when there are no changes
+       echo >&2 "Error committing extcode repository."
+       exit 1
+   fi
+
+   ./spkg-dist "$SAGE_VERSION" "$SAGE_ROOT"
+   if [ $? -ne 0 ]; then
+       echo "Error building the extcode package"
+       exit 1
+   fi
+   mv extcode-"$SAGE_VERSION".spkg "$DESTINATION"/
+   touch "$SAGE_SPKG_INST"/extcode-"$SAGE_VERSION"
+fi
+
+
+if [ ! -f "$PKG"/extcode-"$SAGE_VERSION".spkg ]; then
+    echo "The package extcode-$SAGE_VERSION.spkg wasn't created."
+    exit 1
+fi
+
+
+#################################
+
+
+# NEW SAGE SCRIPTS PACKAGE
+SCRIPTS=sage_scripts-"$SAGE_VERSION"
+cd "$SAGE_ROOT"/local/bin/
+
+hg diff
+hg status
+hg tag "$SAGE_VERSION"
+hg commit -m "$SAGE_VERSION"
+if [ $? -gt 1 ]; then  # Status 1 is returned when there are no changes
+    echo >&2 "Error committing scripts repository."
+    exit 1
+fi
+
+rm -rf "$SCRIPTS"
+mkdir "$SCRIPTS"
+rm sage-*~
+
+cp -pr sage-* .hg* "$SCRIPTS"/
+cp -p "$SAGE_ROOT"/local/bin/sage-spkg-install "$SCRIPTS"/spkg-install
+
+chmod +x "$SCRIPTS"/spkg-install
+tar -jcf "$SCRIPTS".spkg "$SCRIPTS"
+mv "$SCRIPTS".spkg "$DESTINATION"/
+rm -rf "$SCRIPTS"
+touch "$SAGE_SPKG_INST"/sage_scripts-"$SAGE_VERSION"
+
+if [ ! -f "$PKG/sage_scripts-$SAGE_VERSION.spkg" ]; then
+    echo "The package sage_scripts-$SAGE_VERSION.spkg wasn't created."
+    exit 1
+fi
+
+#################################
+
+# SAGE ROOT PACKAGE: sage-sdist already tags and commits the repo, so
+# we just need to build the spkg file.
+
+ROOT_REPO=sage_root-"$SAGE_VERSION"
+cd "$SAGE_ROOT"
+
+rm -rf "$ROOT_REPO"
+mkdir "$ROOT_REPO"
+cd "$ROOT_REPO"
+
+echo "Copying root repository..."
+hg clone --pull "$SAGE_ROOT" .
+
+if [ $? -ne 0 ]; then
+    echo >&2 "Error cloning Sage root repository."
+    exit 1
+fi
+
+# Copy spkg-install
+cp -p "$SAGE_ROOT"/spkg/root-spkg-install spkg-install
+chmod +x spkg-install
+
+rm .hg/hgrc
+
+echo "Done copying root repository."
+
+cd "$SAGE_ROOT"
+tar -jcf "$ROOT_REPO".spkg "$ROOT_REPO"
+mv "$ROOT_REPO".spkg "$DESTINATION"/
+rm -rf "$ROOT_REPO"
+touch "$SAGE_SPKG_INST/$ROOT_REPO"
+
+if [ ! -f "$PKG/$ROOT_REPO".spkg ]; then
+    echo "The package $ROOT_REPO.spkg wasn't created."
+    exit 1
+fi

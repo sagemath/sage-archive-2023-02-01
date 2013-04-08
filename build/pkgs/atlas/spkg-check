@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+######################################################################
+### Sanity check
+######################################################################
+
+if [ "$SAGE_LOCAL" = "" ]; then
+    echo "SAGE_LOCAL undefined ... exiting"
+    echo "Maybe run sage -sh?"
+    exit 1
+fi
+
+######################################################################
+### Skip building ATLAS on specific systems
+######################################################################
+
+if [ `uname` = "CYGWIN" ]; then
+    exit 0
+fi
+
+if [ `uname` = "Darwin" ]; then
+    exit 0
+fi
+
+if [ "x$SAGE_ATLAS_LIB" != "x" ]; then
+    echo "SAGE_ATLAS_LIB is set to \"$SAGE_ATLAS_LIB\"; skipping the test suite."
+    exit 0
+fi
+
+
+######################################################################
+### check and collect timings
+######################################################################
+
+make_check()
+{
+    # make sure everything builds correctly
+    cd ATLAS-build
+    make check
+        if [ $? -ne 0 ]; then
+            echo "An error occurred when running the ATLAS self-tests."
+            exit 1
+        else
+            echo "The ATLAS self-tests successfully passed."
+        fi
+    cd ..
+}
+
+
+make_time()
+{
+    # collect some timings
+    cd ATLAS-build
+    make time
+        if [ $? -ne 0 ]; then
+            echo "The ATLAS timing data failed to be collected."
+            exit 1
+        else
+            echo "The ATLAS timing data was successfully collected."
+        fi
+    cd ..
+}
+
+
+make_check
+make_time

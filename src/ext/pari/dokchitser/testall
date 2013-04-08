@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+echo "\\r ex-bsw" | sage -gp
+echo "\\r ex-chgen" | sage -gp
+echo "\\r ex-chqua" | sage -gp
+echo "\\r ex-delta" | sage -gp
+echo "\\r ex-eisen" | sage -gp
+echo "\\r ex-gen2" | sage -gp
+echo "\\r ex-gen3" | sage -gp
+echo "\\r ex-gen4" | sage -gp
+echo "\\r ex-nf" | sage -gp
+echo "\\r ex-shin" | sage -gp
+echo "\\r ex-zeta" | sage -gp
+echo "\\r ex-zeta2" | sage -gp

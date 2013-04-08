@@ -1,0 +1,13 @@
+#!/usr/bin/make -f
+
+DEB_AUTO_UPDATE_AUTOCONF = 2.50
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/autotools.mk
+include /usr/share/cdbs/1/rules/patchsys-quilt.mk
+
+DEB_CONFIGURE_EXTRA_FLAGS = --enable-shared --with-gmp-include --with-gmp-lib --with-atlas-include --with-atlas-lib
+
+DEB_MAKE_INSTALL_TARGET = install DESTDIR=$(DEB_DESTDIR)
+
+clean::
+	rm -f configure

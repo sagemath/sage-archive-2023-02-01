@@ -1,0 +1,30 @@
+= Gnuplot.py =
+
+== Description ==
+
+Gnuplot.py is a Python package that interfaces to gnuplot. It allows you to use gnuplot from within Python to plot arrays of data from memory, data files, or mathematical functions.
+
+== License ==
+
+ GNU Lesser General Public License 2
+
+== SPKG Maintainers ==
+
+  -- sage mailing list - http://groups.google.com/group/sage-support/
+
+== Upstream Contact ==
+
+  -- mailing list - https://lists.sourceforge.net/lists/listinfo/gnuplot-py-users
+
+
+== Changelog ==
+
+=== gnuplotpy-1.8 ===
+
+  -- Update package to 1.8.
+  -- Remove patch as it is no longer needed.
+  -- The test.py and demo.py are both interactive so spkg-check is not possible without making a new test.
+
+=== gnuplotpy-1.7 ===
+
+  -- Modified PlotItems.py to not use with variable name, since it will be reserved in Python 2.6.

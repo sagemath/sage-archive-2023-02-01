@@ -1,0 +1,194 @@
+= p_group_cohomology-2.1.3 =
+
+== Description ==
+
+Modular Cohomology Rings of Finite Groups
+
+The documentation of the package is provided at
+http://sage.math.washington.edu/home/SimonKing/Cohomology/
+
+== License ==
+
+Copyright (C) 2011 Simon A. King  <simon.king@uni-jena.de>
+Copyright (C) 2009 Simon A. King  <simon.king@nuigalway.ie> and
+                   David J. Green <david.green@uni-jena.de>
+
+Distributed under the terms of the GNU General Public License (GPL),
+version 2 or later (at your choice).
+
+   This code is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   General Public License for more details.
+
+The full text of the GPL is available at:
+
+                http://www.gnu.org/licenses/
+
+The package includes a data base of cohomology rings of the groups of
+order 64 and provides access to a data base of cohomology rings of the
+groups of order 128 and 243, located at
+  http://sage.math.washington.edu/home/SimonKing/Cohomology/db/
+These data bases are distributed under the Creative Commons
+Attribution-Share Alike 3.0 License. The full text of this licence is
+available at
+  http://creativecommons.org/licenses/by-sa/3.0/
+
+== SPKG Maintainers ==
+
+Simon A. King <simon.king@uni-jena.de>
+
+== Upstream Contact ==
+
+Simon A. King  <simon.king@uni-jena.de>
+David J. Green <david.green@uni-jena.de>
+
+== Acknowledgements ==
+
+The development of the initial version of this SPKG was funded by
+the German Science Foundation, DFG project GR 1585/4.1, and was
+accomplished at the Friedrich Schiller University Jena.
+
+Since version 1.0.1, the further work on this SPKG was funded
+by Marie Curie grant MTKD-CT-2006-042685 and was pursued at
+the National University of Ireland, Galway. Since Novermber 2010,
+it is moved back to Jena.
+
+We thank William Stein for giving us access to various computers
+on which we could build test the SPKG and on which some huge computations
+could be completed, and acknowledge the support by National Science
+Foundation Grant No. DMS-0821725.
+
+We thank Mathieu Dutour Sikitic for hints on how to use GAP
+more efficiently.
+
+We owe Peter Symonds the idea of using the Poincare series in a
+rather efficient completeness criterion.
+
+== Dependencies ==
+
+- The SmallGroups library needs to be installed in GAP.
+- For p-groups with a prime p>2, we require Singular at least in version 3-1-0.
+
+== Special Update/Build Instructions ==
+
+Since version 2.1, the package builds on both little and big endian
+machines.
+
+The package includes a modified version of the Aachen C-MeatAxe. Since the
+changes are major, we included the modified sources into the Mercurial
+repository. A MeatAxe version that comes closest to what we started with
+is provided in the folder mtxoriginal, that is not under revision control.
+
+Note that most of the code is original. Therefore we included the files from
+src into the Mercurial repository.
+
+== Testing ==
+
+Our package does not provide a separate test suite for the MeatAxe C-library or
+David Green's routines for the computation of minimal projective resolutions.
+But it is of course equipped with extensive doc tests in the Cython code. In
+fact, any class, method and function is covered by tests.
+
+Note that internet access is required for these tests, as it is attempted to
+download cohomology rings from a public data base in the web.
+
+The script ``spkg-check`` walks through all public methods of all classes
+in all modules of our package and perform the respective doc test. The
+test script is executed right after installation of the package, if the
+environment variable SAGE_CHECK is yes (do "export SAGE_CHECK=yes" on
+the command line before installation). Should a test fail, details are
+displayed on screen and can also be find in SAGEROOT/install.log.
+
+The script allows for parallel testing. By default, the number of threads
+equals one third of the available CPUs. The default can be changed by
+exporting the environment variable SAGE_NUM_THREAD (for example:
+``export SAGE_NUM_THREADS=2`` or the environment variable MAKE (for
+example: ``export MAKE="make -j2"``.
+
+== Documentation ==
+
+The documentation of this package is automatically built, if the environment
+variable SAGE_SPKG_INSTALL_DOCS is yes (do "export SAGE_SPKG_INSTALL_DOCS=yes"
+on the command line before installation). The documents are put into
+SAGE_ROOT/local/share/doc/p_group_cohomology/html/.
+
+== Changelog ==
+
+  * 2.1.3 (Simon King, July 2012):
+    - Improve the heuristic of choosing between Hilbert-Poincare and Symonds
+      criteria. If the computation of parameters in small degrees by lifting
+      the Dickson invariants using elimination seems too difficult
+      to the user, then this computation can be interrupted with
+      Ctrl-c, and then other completion tests (perhaps in higher
+      degree) are automatically attempted, without the need of further
+      manual intervention.
+    - Cope with Cython's new name mangling, by avoiding double underscore
+      attributes.
+    - If a "permanent result" is indexed by data in the Gap interface,
+      then these results can now be pickled, provided that the data
+      in Gap can be reconstructed from string representation.
+    - Use a lower bound for the depth, if the actual depth is too difficult
+      to obtain.
+    - Switch the public web repository to a new location.
+    - Fix the creation of symbolic links from a private data base to
+      a public data base.
+    - Fix comparison of MTX matrices (comparison with None used to fail).
+  * 2.1.2 (Simon King, March 2012):
+    - Some fixes needed with the new version of Cython used by sage-5.0.
+    - Some fixes needed with Singular 3-1-3.
+    - Using the coercion framework in a better way.
+    - Small improvements in the MeatAxe code.
+    - Include the docs in the spkg.
+    - Improved construction of dependent parameters for Symonds' test.
+  * 2.1.1 (Simon King, September 2010):
+    - Cohomology data are now by default only created in the private
+      database.
+    - Data in the public database are accessed via symbolic links
+    - Code restructured: The cohomology ring constructor is modularised.
+    - Parallel testing now only if the patch of ticket #10004 is applied.
+  * 2.1 (Simon King, September 2010):
+    - Full doctest coverage and a parallel test script.
+    - Cleaning up code in order to reduce the number of compiler
+      warnings.
+    - Builds and tests on little and big endian machines.
+    - Uses features of Singular-3-1-1, but still works with
+      Singular-3-1-0.
+    - Support for setting random seeds. If the same random seed is
+      used, the resulting ring presentation is computationally
+      unique and machine independent.
+    - Kernels/preimages of induced homomorphisms; Essential and Depth
+      Essential ideal.
+    - Decorators for methods that cache results that may change if the
+      ring structure changes, resp. that cache results that will not
+      change once computed. The cached results are preserved under
+      pickling. KeyboardInterrupts are cached as well, but a re-computation
+      can be forced.
+    - Improved use of the Symonds and the Hilbert-Poincare criteria, using
+      algebraically *dependent* parameters.
+  * 2.0 (Simon King, April 2010):
+    - Modular cohomology rings for *any* finite groups (not just for
+      p-groups). This is implemented in a new module
+      pGroupCohomology.modular_cohomology, that builds on top of the
+      old pGroupCohomology.cohomology module.
+    - The build process now uses environment
+    variables such as $MAKE or $MKDIR, in order to increase portability.
+  * 1.2.p0 (Dima Pasechnik and Simon King, March 2010):
+    Adding .hgignore (ignoring src/db and mtxoriginal).
+    Adding a robuster test for the existence of the SmallGroups library.
+  * 1.2 (Simon King, October 2009):
+    - Modified printing for cocycles
+    - Minor bug fixes and code improvements.
+    - The data base at sage.math has moved.
+    - New: Persistent Group Cohomology (bar codes), based on ideas of Graham
+      Ellis and Simon King.
+  * 1.1 (Simon King August 2009):
+    - Yoneda cocomplex
+    - Restricted Massey powers and general Massey products.
+  * 1.0.2 (Simon King, July 2009):
+    - Fixing a computation time regression and two minor bugs.
+    - Changing Simon King's email address
+  * 1.0.1 (Simon King, July 2009):
+    - Licensing GPL 2 or later
+  * 1.0 (Simon King and David Green July 2009):
+    - First public version

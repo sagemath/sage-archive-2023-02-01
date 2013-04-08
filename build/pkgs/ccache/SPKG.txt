@@ -1,0 +1,31 @@
+= ccache =
+
+== Description ==
+
+Includes ccache to allow for fast recompiles
+
+== SPKG Maintainers ==
+
+ * R. Andrew Ohana <andrew.ohana@gmail.com>
+
+== Upstream Contact ==
+
+ * Author: Andrew Tridgell
+ * Website: http://ccache.samba.org/
+
+== Upgrade Instructions ==
+
+Remove the zlib directory.
+
+== Changelog ==
+
+=== ccache-3.1.9 (Jeroen Demeyer, 10 January 2013) ===
+ * #13938: upgrade to ccache 3.1.9.
+ * Fix $CPPFLAGS.
+ * Remove superfluous "hash -r".
+ * Add -f option to ln -s to get rid of "File exists" errors.
+ * Only configure cache size if the user hasn't run ccache before.
+ * Add spkg-check to run testsuite.
+
+=== ccache-3.1.8 (R. Andrew Ohana, 11 September 2012) ===
+ * #13032: create ccache spkg

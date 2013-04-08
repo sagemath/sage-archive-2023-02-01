@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+# This is the spkg-install script which will be emplaced within the SPKG for
+# the Extcode repository whenever it is packaged.
+
+if [ -d "$SAGE_ROOT/devel/ext-main" ]; then
+    echo "Moving old Extcode package to '$SAGE_ROOT/devel/ext-main-old'..."
+    rm -rf "$SAGE_ROOT/devel/ext-main-old"
+    mv "$SAGE_ROOT/devel/ext-main" "$SAGE_ROOT/devel/ext-main-old"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error moving the old 'ext-main' branch."
+        exit 1
+    fi
+fi
+
+echo "Copying Extcode package to '$SAGE_ROOT/devel/ext-main'..."
+
+mkdir -p "$SAGE_ROOT/devel/ext-main"
+cp -pR * .hg* "$SAGE_ROOT/devel/ext-main/"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error copying the new Extcode package."
+    exit 1
+fi
+
+# Create an appropriate hgrc file for the target
+echo -e "[diff]\ngit = true" > "$SAGE_ROOT/devel/ext-main/.hg/hgrc"
+
+# Create the symbolic link ext -> ext-main
+rm -f "$SAGE_ROOT/devel/ext"
+ln -s ext-main "$SAGE_ROOT/devel/ext"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error creating symbolic link to '$SAGE_ROOT/devel/ext-main'."
+    exit 1
+fi
+
+# Create a symbolic link from SAGE_ROOT/local/share/sage/ext to SAGE_ROOT/devel/ext
+mkdir -p "$SAGE_SHARE/sage"
+rm -f "$SAGE_EXTCODE"
+ln -s ../../../devel/ext "$SAGE_EXTCODE"

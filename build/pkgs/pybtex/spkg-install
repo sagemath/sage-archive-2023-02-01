@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+if [ "x$SAGE_LOCAL" = x ]; then
+   echo "SAGE_LOCAL undefined ... exiting"
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+# need to suppress confusing error messages and don't depend on system
+# libraries, so easy_install is not available
+mkdir tmp &&
+    unzip -o PyYAML-3.10.zip -d tmp &&
+    cd tmp/PyYAML-3.10 &&
+    python setup.py --without-libyaml install --prefix="$SAGE_LOCAL"
+if [ $? -ne 0 ]; then
+   echo "Error installing PyYAML."
+   exit 1
+fi
+
+cd ../..
+rm -rf tmp
+
+easy_install pyparsing-1.5.6.zip
+if [ $? -ne 0 ]; then
+   echo "Error installing pyparsing."
+   exit 1
+fi
+
+
+# Not using the PyPI tarballs, so easy_install not available
+cd src
+python setup.py install --prefix="$SAGE_LOCAL"
+if [ $? -ne 0 ]; then
+   echo "Error installing pybtex."
+   exit 1
+fi

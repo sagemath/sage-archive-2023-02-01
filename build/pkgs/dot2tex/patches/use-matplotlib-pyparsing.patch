@@ -1,0 +1,37 @@
+diff --git a/src/dot2tex-2.8.6/dot2tex/dotparsing.py b/src/dot2tex-2.8.6/dot2tex/dotparsing.py
+--- a/src/dot2tex/dotparsing.py
++++ b/src/dot2tex/dotparsing.py
+@@ -19,11 +19,11 @@ import string
+ 
+ from exceptions import KeyError, AttributeError
+ 
+-from pyparsing import __version__ as pyparsing_version
++from matplotlib.pyparsing import __version__ as pyparsing_version
+ 
+-import pyparsing
++import matplotlib.pyparsing as pyparsing
+ 
+-from pyparsing import  (Literal, CaselessLiteral, Word, Upcase, OneOrMore, ZeroOrMore,
++from matplotlib.pyparsing import  (Literal, CaselessLiteral, Word, Upcase, OneOrMore, ZeroOrMore,
+     Forward, NotAny, delimitedList, oneOf, Group, Optional, Combine, alphas, nums,
+     restOfLine, cStyleComment, nums, alphanums, printables, empty, quotedString,
+     ParseException, ParseResults, CharsNotIn, _noncomma, dblQuotedString, QuotedString, ParserElement,
+diff --git a/src/dot2tex-2.8.6/setup.py b/src/dot2tex-2.8.6/setup.py
+--- a/src/setup.py
++++ b/src/setup.py
+@@ -34,7 +34,7 @@ Graphviz_, a more LaTeX friendly look an
+         'Topic :: Text Processing :: Markup :: LaTeX',
+         'Topic :: Utilities',
+        ],
+-      install_requires = ['pyparsing'],
++      install_requires = ['matplotlib.pyparsing'],
+       # easy_install does not manage to install pyparsing from pypi,
+       # so we have to provide the correct download link.
+       dependency_links = [
+@@ -46,4 +46,4 @@ Graphviz_, a more LaTeX friendly look an
+         ]
+     
+     }
+-)
+\ No newline at end of file
++)

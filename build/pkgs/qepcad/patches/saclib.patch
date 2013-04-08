@@ -1,0 +1,477 @@
+diff -urN orig/saclib2.2.0/bin/mksysdep.pl saclib2.2.0/bin/mksysdep.pl
+--- orig/saclib2.2.0/bin/mksysdep.pl	2008-05-21 08:23:36.000000000 -0700
++++ saclib2.2.0/bin/mksysdep.pl	2008-05-24 12:25:04.000000000 -0700
+@@ -12,7 +12,7 @@
+ ### Get architecture type
+ $ptype = "unknown";
+ $uname = `uname -mpi`;
+-if ($uname =~ /i\S*86/)
++if ($uname =~ /i\S*86/ or $uname =~ /x86_64/)
+ {
+     $ptype = "x86";
+ }
+diff -urN orig/saclib2.2.0/bin/sconf saclib2.2.0/bin/sconf
+--- orig/saclib2.2.0/bin/sconf	2008-05-20 11:54:12.000000000 -0700
++++ saclib2.2.0/bin/sconf	2008-05-24 12:25:04.000000000 -0700
+@@ -1,3 +1,3 @@
+-#! /bin/csh
++#! /bin/sh
+ 
+ perl $saclib/bin/mksysdep.pl
+diff -urN orig/saclib2.2.0/include/saclib.h saclib2.2.0/include/saclib.h
+--- orig/saclib2.2.0/include/saclib.h	2002-07-30 12:59:57.000000000 -0700
++++ saclib2.2.0/include/saclib.h	2008-05-24 12:26:26.000000000 -0700
+@@ -124,7 +124,6 @@
+ extern Word UZ210;
+ extern Word NPTR1;
+ extern Word GCAPTR1;
+-extern Word FPFLAG;
+ 
+ /* Input/Output
+  */
+diff -urN orig/saclib2.2.0/include/sacproto.h saclib2.2.0/include/sacproto.h
+--- orig/saclib2.2.0/include/sacproto.h	2008-05-22 10:03:19.000000000 -0700
++++ saclib2.2.0/include/sacproto.h	2008-05-24 12:50:55.000000000 -0700
+@@ -232,7 +232,7 @@
+ extern Word FIRST	P__((Word L));
+ extern Word FLBRN	P__((BDigit *F));
+ extern Word FOURTH	P__((Word L));
+-extern void FPHAND	P__((int i, siginfo_t* sip, void* uap));
++extern Word FPCHECK	P__((void));
+ extern void FPROD1	P__((Word *A, Word *B, BDigit d, Word *C));
+ extern void FPROD21	P__((Word *A, Word *B, BDigit d, Word *C));
+ extern void FPROD2	P__((Word *A, Word *B, BDigit d, Word *C));
+diff -urN orig/saclib2.2.0/include/sacsys.h saclib2.2.0/include/sacsys.h
+--- orig/saclib2.2.0/include/sacsys.h	2008-05-21 08:18:18.000000000 -0700
++++ saclib2.2.0/include/sacsys.h	2008-05-24 12:29:12.000000000 -0700
+@@ -8,8 +8,10 @@
+ #ifndef SACSYS_H
+ #define SACSYS_H
+ 
++#include <stdint.h>
++
+ /* SACLIB 'Word' is a C 'int'. */
+-typedef int     Word;
++typedef intptr_t     Word;
+ 
+ /* Words are 32 bits. */
+ #define BETA    0x20000000 
+diff -urN orig/saclib2.2.0/src/AFUPHIBRI.c saclib2.2.0/src/AFUPHIBRI.c
+--- orig/saclib2.2.0/src/AFUPHIBRI.c	2008-03-26 09:13:16.000000000 -0700
++++ saclib2.2.0/src/AFUPHIBRI.c	2008-05-24 12:25:04.000000000 -0700
+@@ -60,7 +60,7 @@
+ 	   goto Return; }
+ 	n = PDEG(M);
+ 	t = HIPFES(n,A,w2);
+-	if (FPFLAG == 1) {
++	if (FPCHECK() == 1) {
+ 	  FREEARRAY(A);
+ 	  t = 1;
+ 	  goto Return; }
+@@ -72,7 +72,7 @@
+ 	while (u == 0 && np > 0) {
+ 	   p = (w1 + w2) / 2.0;
+ 	   s = HIPFES(n,A,p);
+-	   if ((FPFLAG == 1) || (s == NIL))
++	   if ((FPCHECK() == 1) || (s == NIL))
+ 	      u = 1;
+ 	   else if (s == t)
+ 	      w2 = p;
+@@ -184,7 +184,7 @@
+ 	      if (s == NIL) {
+ 	         t = 2;
+ 	         goto Step7; }
+-	      if (FPFLAG == 1) {
++	      if (FPCHECK() == 1) {
+ 	         t = 1;
+ 	         goto Step7; }
+ 	      if (s == T[h])
+diff -urN orig/saclib2.2.0/src/ANHI.c saclib2.2.0/src/ANHI.c
+--- orig/saclib2.2.0/src/ANHI.c	2002-07-30 13:00:58.000000000 -0700
++++ saclib2.2.0/src/ANHI.c	2008-05-24 12:25:04.000000000 -0700
+@@ -56,7 +56,7 @@
+ Step4: /* Evaluate the hardware interval polynonmial at I. */
+ 	FPCATCH();
+ 	J = HIPIEVAL(m,B,I);
+-	if (FPFLAG == 1) {
++	if (FPCHECK() == 1) {
+ 	   t = 0;
+ 	   FPCATCH(); }
+ 
+diff -urN orig/saclib2.2.0/src/BEGINSACLIB.c saclib2.2.0/src/BEGINSACLIB.c
+--- orig/saclib2.2.0/src/BEGINSACLIB.c	2002-07-30 13:00:55.000000000 -0700
++++ saclib2.2.0/src/BEGINSACLIB.c	2008-05-24 12:59:21.000000000 -0700
+@@ -15,6 +15,7 @@
+        Word *p; 
+ {
+        Word L,i,m,n,t;
++       intptr_t int_p;
+ 
+ Step1: /* Remember the startup time. */
+        TAU0 = CLOCK();
+@@ -50,7 +51,9 @@
+ 	  GCAAVAIL = L; }
+ 
+ Step5: /* Store the beginning of stack. */
+-       BACSTACK = (char *)p;
++       int_p = (intptr_t)p;
++       int_p &= ~(sizeof(Word)-1);
++       BACSTACK = (char *)int_p;
+ 
+ Step6: /* Declare global variables. */
+        GCGLOBAL(&UZ210);
+diff -urN orig/saclib2.2.0/src/external.c saclib2.2.0/src/external.c
+--- orig/saclib2.2.0/src/external.c	2002-07-30 13:00:45.000000000 -0700
++++ saclib2.2.0/src/external.c	2008-05-24 12:26:14.000000000 -0700
+@@ -69,7 +69,6 @@
+ Word UZ210;
+ Word NPTR1 = NPTR1_;
+ Word GCAPTR1;
+-Word FPFLAG = 0;
+ BDigit *FFPLUS1;
+ BDigit FFSIZE;
+ 
+diff -urN orig/saclib2.2.0/src/FPCATCH.c saclib2.2.0/src/FPCATCH.c
+--- orig/saclib2.2.0/src/FPCATCH.c	1969-12-31 16:00:00.000000000 -0800
++++ saclib2.2.0/src/FPCATCH.c	2008-05-24 12:50:43.000000000 -0700
+@@ -0,0 +1,20 @@
++/*======================================================================
++                      FPCATCH()
++
++Floating-point catch.
++
++Side Effects
++  This function clears the current record of floating-point exceptions,
++  so that subsequent calls to FPCHECK will check for floating-point
++  underflow, overflow, and divide-by-zero that occurred after this call.
++======================================================================*/
++#include "saclib.h"
++#include <fenv.h>
++
++void FPCATCH() 
++{ 
++     feclearexcept(FE_ALL_EXCEPT);
++
++Return: /* Prepare to return. */
++      return;
++}
+diff -urN orig/saclib2.2.0/src/FPCHECK.c saclib2.2.0/src/FPCHECK.c
+--- orig/saclib2.2.0/src/FPCHECK.c	1969-12-31 16:00:00.000000000 -0800
++++ saclib2.2.0/src/FPCHECK.c	2008-05-24 12:25:45.000000000 -0700
+@@ -0,0 +1,25 @@
++/*======================================================================
++                      FPCHECK()
++
++Floating-point check.
++
++Outputs
++  t : 1 if a floating-point underflow, overflow, or divide by zero
++  has occurred since the last call to FPCATCH(); 0 otherwise.
++======================================================================*/
++
++#include "saclib.h"
++#include <fenv.h>
++
++Word FPCHECK()
++{
++  Word t;
++
++  t = 0;
++  if (fetestexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW)) {
++    t = 1;
++  }
++
++  return t;
++}
++
+diff -urN orig/saclib2.2.0/src/HIPBHT.c saclib2.2.0/src/HIPBHT.c
+--- orig/saclib2.2.0/src/HIPBHT.c	2002-07-30 13:00:58.000000000 -0700
++++ saclib2.2.0/src/HIPBHT.c	2008-05-24 12:25:04.000000000 -0700
+@@ -49,7 +49,7 @@
+ 	   B[i].left = A[i].left * g;
+ 	   B[i].right = A[i].right * g;
+ 	   g = g * f; }
+-	if (FPFLAG == 1) {
++	if (FPCHECK() == 1) {
+ 	   t = 0;
+ 	   FPCATCH(); }
+ 	else
+diff -urN orig/saclib2.2.0/src/HIPIR.c saclib2.2.0/src/HIPIR.c
+--- orig/saclib2.2.0/src/HIPIR.c	2002-07-30 13:00:58.000000000 -0700
++++ saclib2.2.0/src/HIPIR.c	2008-05-24 12:25:04.000000000 -0700
+@@ -55,7 +55,7 @@
+ 	s = HIPFES(n,A,c);
+ 
+ Step4: /* Indeterminate sign. */
+-	if (s == NIL || FPFLAG == 1) {
++	if (s == NIL || FPCHECK() == 1) {
+ 	   b = a + w;
+ 	   goto Step8; }
+ 
+@@ -82,7 +82,7 @@
+ 	J.right = b;
+ 
+ Step9: /* Reset FPCATCH. */
+-	if (FPFLAG == 1) {
++	if (FPCHECK() == 1) {
+ 	   j = h;
+ 	   FPCATCH(); }
+ 
+diff -urN orig/saclib2.2.0/src/HIPRRISD.c saclib2.2.0/src/HIPRRISD.c
+--- orig/saclib2.2.0/src/HIPRRISD.c	2002-07-30 13:00:58.000000000 -0700
++++ saclib2.2.0/src/HIPRRISD.c	2008-05-24 12:25:04.000000000 -0700
+@@ -65,7 +65,7 @@
+ 	FPCATCH();
+ 	C = HIPTR1(n,B);
+ 	FREEARRAY(B);
+-	if (FPFLAG) {
++	if (FPCHECK()) {
+ 	   FREEARRAY(C);
+ 	   t = 1;
+ 	   goto Return; }
+diff -urN orig/saclib2.2.0/src/HIPVCHT.c saclib2.2.0/src/HIPVCHT.c
+--- orig/saclib2.2.0/src/HIPVCHT.c	2002-07-30 13:00:58.000000000 -0700
++++ saclib2.2.0/src/HIPVCHT.c	2008-05-24 12:25:04.000000000 -0700
+@@ -37,7 +37,7 @@
+ 	FPCATCH();
+ 	C = HIPTR1(n,B);
+ 	FREEARRAY(B);
+-	if (FPFLAG == 1) {
++	if (FPCHECK() == 1) {
+ 	   FPCATCH();
+ 	   FREEARRAY(C);
+ 	   t = 1;
+diff -urN orig/saclib2.2.0/src/RHI.c saclib2.2.0/src/RHI.c
+--- orig/saclib2.2.0/src/RHI.c	2002-07-30 13:00:58.000000000 -0700
++++ saclib2.2.0/src/RHI.c	2008-05-24 12:25:04.000000000 -0700
+@@ -70,7 +70,7 @@
+ 	G.right = G2.num;
+ 	FPCATCH();
+ 	I = HIQUOT(F,G);
+-	if (FPFLAG == 1) {
++	if (FPCHECK() == 1) {
+            t = 0;
+            FPCATCH(); }
+ 
+diff -urN orig/saclib2.2.0/sysdep/archive/linux/src/FPHAND.c saclib2.2.0/sysdep/archive/linux/src/FPHAND.c
+--- orig/saclib2.2.0/sysdep/archive/linux/src/FPHAND.c	2002-07-30 13:01:12.000000000 -0700
++++ saclib2.2.0/sysdep/archive/linux/src/FPHAND.c	1969-12-31 16:00:00.000000000 -0800
+@@ -1,36 +0,0 @@
+-/*======================================================================
+-                      FPHAND(i,sip,uap)
+-
+-Floating-point handler.
+-
+-Inputs
+-  i,sip,uap: Look at the man pages for "sigaction".
+-  
+-Side Effects
+-  This function is the exception handler for floating point exceptions.
+-  It sets the global flag FPFLAG to 1 to indicate error.  Also, it
+-  turns off *all* floating-point traps, so no floating-point operation
+-  causes a trap.  This function is system dependent: Linux kernel v2.2
+-======================================================================*/
+-#include "saclib.h"
+-
+-void FPHAND(i,sip,uap)
+-       int i;
+-       siginfo_t* sip;
+-       void* uap;
+-{
+-      ucontext_t *p;
+-
+-Step1: /* Set floating-point state register mask for 
+-enabling traps. (bits 23 - 27 on this architecture) */
+-      p = (ucontext_t*)uap;
+-      (p->uc_mcontext.fpregs)->cw 
+-	|= (_FPU_MASK_IM | _FPU_MASK_DM | _FPU_MASK_ZM | 
+-	    _FPU_MASK_OM | _FPU_MASK_UM);
+-
+-Step2: /* Set error flag. */
+-       FPFLAG = 1;
+-
+-Return: /* Prepare to return. */
+-       return;
+-}
+diff -urN orig/saclib2.2.0/sysdep/archive/Solaris/src/FPHAND.c saclib2.2.0/sysdep/archive/Solaris/src/FPHAND.c
+--- orig/saclib2.2.0/sysdep/archive/Solaris/src/FPHAND.c	2002-07-30 13:01:09.000000000 -0700
++++ saclib2.2.0/sysdep/archive/Solaris/src/FPHAND.c	1969-12-31 16:00:00.000000000 -0800
+@@ -1,40 +0,0 @@
+-/*======================================================================
+-                      FPHAND(i,sip,uap)
+-
+-Floating-point handler.
+-
+-Inputs
+-  i,sip,uap: Look at the man pages for "sigaction".
+-  
+-Side Effects
+-  This function is the exception handler for floating point exceptions.
+-  It sets the global flag FPFLAG to 1 to indicate error.  Also, it
+-  turns off *all* floating-point traps, so no floating-point operation
+-  causes a trap.  This function is system dependent:  for SunOS 5.6.
+-======================================================================*/
+-#include "saclib.h"
+-#include <ieeefp.h>
+-#include <sys/ucontext.h>
+-
+-void FPHAND(i,sip,uap)
+-       int i;
+-       siginfo_t* sip;
+-       void* uap;
+-{
+-       struct ucontext *p;
+-
+-Step1: /* Set floating-point state register mask for 
+-enabling traps. (bits 23 - 27 on this architecture) */
+-       p = (struct ucontext*)uap; 
+-       p->uc_mcontext.fpregs.fpu_fsr &= 
+-	 (~(
+-	    (FP_X_INV | FP_X_OFL | FP_X_UFL | 
+-	     FP_X_DZ | FP_X_IMP) << 23)
+-	  ); 
+-
+-Step2: /* Set error flag. */
+-       FPFLAG = 1;
+-
+-Return: /* Prepare to return. */
+-       return;
+-}
+diff -urN orig/saclib2.2.0/sysdep/archive/UltraSPARC/src/FPHAND.c saclib2.2.0/sysdep/archive/UltraSPARC/src/FPHAND.c
+--- orig/saclib2.2.0/sysdep/archive/UltraSPARC/src/FPHAND.c	2002-07-30 13:01:11.000000000 -0700
++++ saclib2.2.0/sysdep/archive/UltraSPARC/src/FPHAND.c	1969-12-31 16:00:00.000000000 -0800
+@@ -1,40 +0,0 @@
+-/*======================================================================
+-                      FPHAND(i,sip,uap)
+-
+-Floating-point handler.
+-
+-Inputs
+-  i,sip,uap: Look at the man pages for "sigaction".
+-  
+-Side Effects
+-  This function is the exception handler for floating point exceptions.
+-  It sets the global flag FPFLAG to 1 to indicate error.  Also, it
+-  turns off *all* floating-point traps, so no floating-point operation
+-  causes a trap.  This function is system dependent:  for SunOS 5.6.
+-======================================================================*/
+-#include "saclib.h"
+-#include <ieeefp.h>
+-#include <sys/ucontext.h>
+-
+-void FPHAND(i,sip,uap)
+-       int i;
+-       siginfo_t* sip;
+-       void* uap;
+-{
+-       struct ucontext *p;
+-
+-Step1: /* Set floating-point state register mask for 
+-enabling traps. (bits 23 - 27 on this architecture) */
+-       p = (struct ucontext*)uap; 
+-       p->uc_mcontext.fpregs.fpu_fsr &= 
+-	 (~(
+-	    (FP_X_INV | FP_X_OFL | FP_X_UFL | 
+-	     FP_X_DZ | FP_X_IMP) << 23)
+-	  ); 
+-
+-Step2: /* Set error flag. */
+-       FPFLAG = 1;
+-
+-Return: /* Prepare to return. */
+-       return;
+-}
+diff -urN orig/saclib2.2.0/sysdep/linuxX86/FPHAND.c saclib2.2.0/sysdep/linuxX86/FPHAND.c
+--- orig/saclib2.2.0/sysdep/linuxX86/FPHAND.c	2008-05-20 11:10:05.000000000 -0700
++++ saclib2.2.0/sysdep/linuxX86/FPHAND.c	1969-12-31 16:00:00.000000000 -0800
+@@ -1,37 +0,0 @@
+-/*======================================================================
+-                      FPHAND(i,sip,uap)
+-
+-Floating-point handler.
+-
+-Inputs
+-  i,sip,uap: Look at the man pages for "sigaction".
+-  
+-Side Effects
+-  This function is the exception handler for floating point exceptions.
+-  It sets the global flag FPFLAG to 1 to indicate error.  Also, it
+-  turns off *all* floating-point traps, so no floating-point operation
+-  causes a trap.  This function is system dependent: Linux kernel v2.2
+-======================================================================*/
+-#include "saclib.h"
+-#include <fpu_control.h>
+-
+-void FPHAND(i,sip,uap)
+-       int i;
+-       siginfo_t* sip;
+-       void* uap;
+-{
+-      ucontext_t *p;
+-
+-Step1: /* Set floating-point state register mask for 
+-enabling traps. (bits 23 - 27 on this architecture) */
+-      p = (ucontext_t*)uap;
+-      (p->uc_mcontext.fpregs)->cw 
+-	|= (_FPU_MASK_IM | _FPU_MASK_DM | _FPU_MASK_ZM | 
+-	    _FPU_MASK_OM | _FPU_MASK_UM);
+-
+-Step2: /* Set error flag. */
+-       FPFLAG = 1;
+-
+-Return: /* Prepare to return. */
+-       return;
+-}
+diff -urN orig/saclib2.2.0/sysdep/linuxX86/install saclib2.2.0/sysdep/linuxX86/install
+--- orig/saclib2.2.0/sysdep/linuxX86/install	2008-05-21 07:46:21.000000000 -0700
++++ saclib2.2.0/sysdep/linuxX86/install	2008-05-24 12:25:04.000000000 -0700
+@@ -1,4 +1,4 @@
+-#!/bin/csh
++#!/bin/sh
+ echo "Installing linuxX86 system dependent files ..."
+-'cp' -f FPCATCH.c  FPHAND.c  GC.c $saclib/src/
+-'cp' -f sysdep.h $saclib/include
++cp -f  GC.c $saclib/src/
++cp -f sysdep.h $saclib/include
+diff -urN orig/saclib2.2.0/sysdep/solarisSparc/FPHAND.c saclib2.2.0/sysdep/solarisSparc/FPHAND.c
+--- orig/saclib2.2.0/sysdep/solarisSparc/FPHAND.c	2008-05-20 11:11:06.000000000 -0700
++++ saclib2.2.0/sysdep/solarisSparc/FPHAND.c	1969-12-31 16:00:00.000000000 -0800
+@@ -1,38 +0,0 @@
+-/*======================================================================
+-                      FPHAND(i,sip,uap)
+-
+-Floating-point handler.
+-
+-Inputs
+-  i,sip,uap: Look at the man pages for "sigaction".
+-  
+-Side Effects
+-  This function is the exception handler for floating point exceptions.
+-  It sets the global flag FPFLAG to 1 to indicate error.  Also, it
+-  turns off *all* floating-point traps, so no floating-point operation
+-  causes a trap.  This function is system dependent:  for SunOS 5.6.
+-======================================================================*/
+-#include "saclib.h"
+-
+-void FPHAND(i,sip,uap)
+-       int i;
+-       siginfo_t* sip;
+-       void* uap;
+-{
+-       struct ucontext *p;
+-
+-Step1: /* Set floating-point state register mask for 
+-enabling traps. (bits 23 - 27 on this architecture) */
+-       p = (struct ucontext*)uap; 
+-       p->uc_mcontext.fpregs.fpu_fsr &= 
+-	 (~(
+-	    (FP_X_INV | FP_X_OFL | FP_X_UFL | 
+-	     FP_X_DZ | FP_X_IMP) << 23)
+-	  ); 
+-
+-Step2: /* Set error flag. */
+-       FPFLAG = 1;
+-
+-Return: /* Prepare to return. */
+-       return;
+-}

@@ -1,0 +1,49 @@
+= Macaulay 2 =
+
+== Description ==
+
+Macaulay 2 is a software system devoted to supporting research in algebraic geometry and commutative algebra.
+
+== License ==
+
+GPL2
+
+== SPKG Maintainers ==
+
+ * Gary Furnish
+ * Mike Hansen
+ * Michael Abshoff
+
+== Upstream Contact ==
+
+Webpage: http://www.math.uiuc.edu/Macaulay2/
+Google groups: http://groups.google.com/group/macaulay2
+Both author's emails: Macaulay2@math.uiuc.edu
+
+== Dependencies ==
+
+ * gdbm
+ * boemh_gc
+
+== Special Update/Build Instructions ==
+
+This is a stock Macaulay2 svn checkout from the 1.1 branch.  It may be obtained at:
+svn://macaulay2.math.uiuc.edu/Macaulay2/release-branches/1.1
+
+== Changelog ==
+
+=== macaulay2-1.1-r7221.p0 (Michael Abshoff, December 24th, 2008) ===
+ * Disable parallel make (#4862)
+ * remove delete patch files from  the repo
+
+=== Macaulay2-1.1-r7221 (Gary Furnish, August 31st 2008) ===
+ * Move to latest upstream
+ * Remove patches from 7210.p1
+
+=== Macaulay2-1.1-r7210.p1 (Martin Albrecht, August 22nd 2008) ===
+ * fixed spkg-install to define UNAME if it isn't defined
+ * added patched overflow.hpp which includes needed standard headers
+ * Fix detection code for boehm_gc and gdbm (Michael Abshoff)
+
+=== Macaulay2-1.1-r7210 (Gary Furnish, July 16th 2008) ===
+ * Initial version from svn repo

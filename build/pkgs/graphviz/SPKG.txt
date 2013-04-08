@@ -1,0 +1,18 @@
+= Graphviz =
+
+== License ==
+
+Caution: this code is GPL incompatible, so it cannot become a standard spkg.
+
+== Spkg maintainers ==
+ * Robert Miller
+ * Michael Abshoff
+
+== Changelog ==
+
+=== graphviz-2.16.1.p0 (Michael Abshoff, May 22nd, 2008) ===
+ * fix OSX libpng12.dylib build issue
+
+=== graphviz-2.16.1 (Robert Miller) ===
+ * initial version
+

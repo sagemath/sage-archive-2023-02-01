@@ -1,0 +1,22 @@
+diff -ru src/src/sysfiles.c b/src/sysfiles.c
+--- src/src/sysfiles.c	2012-12-20 11:10:10.437513131 +0100
++++ b/src/sysfiles.c	2012-12-20 11:36:08.157512067 +0100
+@@ -1305,6 +1305,7 @@
+ 
+     /* reinstall 'syAnswerIntr' as signal handler                          */
+     signal( SIGINT, syAnswerIntr );
++    siginterrupt( SIGINT, 0 );
+ 
+     /* remember time of this interrupt                                     */
+     syLastIntr = nowIntr;
+@@ -1319,7 +1320,10 @@
+ void SyInstallAnswerIntr ( void )
+ {
+     if ( signal( SIGINT, SIG_IGN ) != SIG_IGN )
++    {
+         signal( SIGINT, syAnswerIntr );
++        siginterrupt( SIGINT, 0 );
++    }
+ }
+ 
+ 

@@ -1,0 +1,60 @@
+= dot2tex =
+
+== Description ==
+
+dot2tex is a python module, whose purpose is to give graphs generated
+by Graphviz a more LaTeX friendly look and feel. This is accomplished
+by converting xdot output from Graphviz to a series of PSTricks or
+PGF/TikZ commands.
+
+http://www.fauskes.net/code/dot2tex/
+
+== License ==
+
+MIT
+
+== SPKG Maintainers ==
+
+Nicolas M. Thiery
+
+== Upstream Contact ==
+
+Kjell Magne Fauske, km@fauskes.net
+
+== Dependencies ==
+
+Uses pyparsing readily included in matplotlib. To this end, the patch
+in patch/ replaces the "import pyparsing" by "import
+matplotlib.pyparsing".
+
+graphviz (www.graphviz.org) should be installed and in the path (for
+example via the graphviz spkg).
+
+== Special Update/Build Instructions ==
+
+Refresh patches/use-matplotlib-pyparsing.patch if needed
+
+== Changelog ==
+
+2.8.7-2:
+
+ - patches/fix-dot-warning.patch not needed anymore
+ - Added patches/fix-stdout-redirection.patch until merged upstream
+ - spkg-check works partially
+
+2.8.7:
+
+ - Upgraded to dot2tex 2.8.7
+
+2.8.6:
+
+ - Removed pyparsing, replaced by a quick patch to let dot2tex use the
+   one included in matplotlib.pyparsing
+ - Moved the dot2tex sources one level up to src, since there is now a
+   single python package
+ - Include patches/fix-dot-warning.patch until problem is fixed upstream
+   (see discussion on sage-combinat-devel 28/09/2009
+
+0.2:
+
+ - Experimental release

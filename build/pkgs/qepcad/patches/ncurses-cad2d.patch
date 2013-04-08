@@ -1,0 +1,20 @@
+--- orig/qesource/cad2d/Makefile	2008-01-24 17:51:15.000000000 -0600
++++ qesource/cad2d/Makefile	2008-01-24 17:42:37.000000000 -0600
+@@ -47,7 +47,7 @@
+ 		${qe}/extensions/sfext/sfexto.a \
+ 		${qe}/source/qepcad.a \
+ 		${saclib}/lib/saclibo.a \
+-		-lreadline \
++		-lreadline -lncurses \
+ 		${SPECLFLAGS}
+ 
+ 
+@@ -60,7 +60,7 @@
+ 		${qe}/extensions/sfext/sfextd.a \
+ 		${qe}/source/qepcadd.a \
+ 		${saclib}/lib/saclibd.a \
+-		-lreadline \
++		-lreadline -lncurses \
+ 		${SPECLFLAGS}
+ 
+ 

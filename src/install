@@ -1,0 +1,27 @@
+#!/bin/sh
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 <SAGE_ROOT> [SAGE_VERSION]"
+    echo "Build and install SAGE."
+    exit 1
+fi
+
+CUR=`pwd`
+cd $1
+SAGE_ROOT=`pwd`
+cd $CUR
+export SAGE_ROOT
+
+SAGE_VERSION=$2
+export SAGE_VERSION
+
+PATH=$SAGE_ROOT/local/bin/:$PATH
+export PATH
+
+if [ -n "$SAGE_DEBIAN" ]; then
+    python setup.py install --root="$SAGE_ROOT/" --no-compile -O0
+else
+    python setup.py install
+fi
+
+exit $?
+

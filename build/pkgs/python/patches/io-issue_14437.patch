@@ -1,0 +1,28 @@
+diff -ur src.orig/Misc/NEWS src/Misc/NEWS
+--- src.orig/Misc/NEWS	2012-08-01 10:51:33.927830611 +0200
++++ src/Misc/NEWS	2012-08-01 10:58:44.139814595 +0200
+@@ -12,6 +12,11 @@
+ - Issue #6884: Fix long-standing bugs with MANIFEST.in parsing in distutils
+   on Windows.
+ 
++Build
++-----
++
++- Issue #14437: Fix building the _io module under Cygwin.
++
+ 
+ What's New in Python 2.7.3 release candidate 2?
+ ===============================================
+Seulement dans src/Misc: NEWS.orig
+diff -ur src.orig/Modules/_io/_iomodule.h src/Modules/_io/_iomodule.h
+--- src.orig/Modules/_io/_iomodule.h	2012-08-01 10:51:36.487830516 +0200
++++ src/Modules/_io/_iomodule.h	2012-08-01 10:58:44.151814610 +0200
+@@ -72,7 +72,7 @@
+     PyObject *filename; /* Not used, but part of the IOError object */
+     Py_ssize_t written;
+ } PyBlockingIOErrorObject;
+-PyAPI_DATA(PyObject *) PyExc_BlockingIOError;
++extern PyObject *PyExc_BlockingIOError;
+ 
+ /*
+  * Offset type for positioning.

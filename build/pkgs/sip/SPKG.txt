@@ -1,0 +1,31 @@
+= sip =
+
+== Description ==
+
+SIP is a tool that makes it very easy to create Python bindings for C
+and C++ libraries. It was originally developed to create PyQt, the
+Python bindings for the Qt toolkit, but can be used to create bindings
+for any C or C++ library.
+
+== License ==
+
+sip is released under a GPL v2/v3 license.
+
+== SPKG Maintainers ==
+
+ * Alejandro Serrano
+
+== Upstream Contact ==
+
+ * Author: Riverbank
+ * Website: http://www.riverbankcomputing.co.uk/software/sip
+
+
+== Changelog ==
+
+=== sip-4.13.2.p0 (Volker Braun, 26 May 2012) ===
+ * Update to latest upstream
+
+=== sip-4.9.3 (Alejandro Serrano, 9 Jan 2010) ===
+ * First attempt.
+

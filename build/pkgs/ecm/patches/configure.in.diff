@@ -1,0 +1,55 @@
+--- configure.in.orig	2010-04-18 22:03:10.000000000 +0200
++++ configure.in	2010-11-23 20:03:33.000000000 +0100
+@@ -195,7 +195,7 @@
+ # asm_redc enabled by default for x86_64 and 64 bit PowerPC
+ if test "x$enable_asm_redc" = x; then
+   case $host in
+-    x86_64* | powerpc-apple-darwin* | powerpc64-*-linux*) enable_asm_redc=yes;;
++    x86_64*-*-* | powerpc-apple-darwin* | powerpc64-*-linux*) enable_asm_redc=yes;;
+     *) enable_asm_redc=no;;
+   esac
+ fi
+@@ -203,8 +203,18 @@
+ if test "x$enable_asm_redc" = xyes; then
+   case $host in
+     pentium4-*-* | pentium3-*-* | viac7-*-* | i786-*-*) ASMPATH=pentium4;;
+-    x86_64-*-*)  ASMPATH=x86_64;; 
+-    powerpc-apple-darwin*) ASMPATH=powerpc64;;
++    x86_64*-*-*)  ASMPATH=x86_64;; 
++# warning: with powerpc-apple-darwin* we can have ABI=32
++# see bug #10646 on the bug tracker, where config.guess says
++# powerpc-apple-darwin8.11.0 (this a 64-bit machine, but most applications
++# are compiled in 32 bits). It works with --disable-asm-redc.
++    powerpc-apple-darwin*)
++AC_PREPROC_IFELSE([AC_LANG_PROGRAM([
++#if defined(__ppc__)
++#error
++#endif])], [], [AC_MSG_NOTICE([32-bit PowerPC, disabling asm-redc])
++                enable_asm_redc=no])
++                          ASMPATH=powerpc64;;
+     powerpc64-*-linux*)
+ 			  ECM_INCLUDE([<"$srcdir"/powerpc64/powerpc-defs.m4>])
+ 			  ASMPATH=powerpc64;;
+@@ -213,7 +223,9 @@
+     		   	  ASMPATH=athlon;;
+     *) AC_MSG_ERROR([[asm redc not available on this machine $host]]);;
+   esac
++fi
+ 
++if test "x$enable_asm_redc" = xyes; then
+ # do the necessary definitions and includes
+   AC_DEFINE([NATIVE_REDC],1,[Define to 1 to use asm redc])
+   test "x$CCAS" != x || CCAS="$CC -c"
+@@ -275,9 +287,9 @@
+   AC_MSG_CHECKING([for SSE2 support])
+   m4_define([SSE2_TEST_PROG], [AC_LANG_PROGRAM([], dnl
+ [#if (defined(__GNUC__) || defined(__ICL)) && defined(__i386__)
+-/* When there are no constraints, registers are referred to by
+-   single % sign, not double. Argh */
+-asm volatile ("pmuludq %xmm2, %xmm0");
++/* On some machines, a program without constraints may pass without -msse2 but
++   those with constraints in spv.c fail, thus we test with constraints here. */
++asm volatile ("pmuludq %%xmm2, %%xmm0" : : :"%xmm0");
+ #else
+ #error
+ #IRIXdoesnotexitaterrordirective

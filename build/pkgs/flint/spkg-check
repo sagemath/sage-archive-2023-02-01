@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+
+echo "*************************************************"
+echo "Running test suite. This should take 6-20 minutes"
+echo "   Please report all failures to sage-devel      "
+echo "*************************************************"
+
+if [ "`uname`" = "Linux" -a "`uname -m`" = "x86_64" ]; then
+   FLINT_TUNE="-mtune=opteron -march=opteron -fPIC -funroll-loops "
+elif [ "`uname`" = "Darwin" -a "`uname -m`" = "Power Macintosh" ]; then
+   FLINT_TUNE=" -fPIC -funroll-loops "
+elif [ "`uname -m`" = "ia64" ]; then
+   # -funroll-loops crashes the build on itanium under GCC-4.2.1, as reported by
+   # Kate Minola.
+   FLINT_TUNE=" -fPIC "
+else
+   FLINT_TUNE=" -fPIC -funroll-loops  "
+fi
+
+export FLINT_TUNE
+
+if [ "x$SAGE64" = xyes ]; then
+   echo "Building a 64-bit version of the Flint test suite"
+   FLINT_TUNE=" -fPIC -m64 -funroll-loops"
+fi
+
+FLINT_GMP_INCLUDE_DIR="$SAGE_LOCAL"/include/
+FLINT_GMP_LIB_DIR="$SAGE_LOCAL"/lib/
+
+FLINT_NTL_INCLUDE_DIR="$SAGE_LOCAL"/include
+FLINT_NTL_LIB_DIR="$SAGE_LOCAL"/lib/
+
+# What is QD??
+FLINT_QD_LIB_DIR="$SAGE_LOCAL"/include
+FLINT_QD_INCLUDE_DIR="$SAGE_LOCAL"/include
+
+export FLINT_GMP_INCLUDE_DIR
+export FLINT_GMP_LIB_DIR
+export FLINT_QD_INCLUDE_DIR
+export FLINT_QD_LIB_DIR
+export FLINT_NTL_INCLUDE_DIR
+export FLINT_NTL_LIB_DIR
+
+###
+FLINT_LINK_OPTIONS=""
+export FLINT_LINK_OPTIONS
+
+cd src
+
+make test
+if [ $? -ne 0 ]; then
+    echo "Error building the test suite for FLINT"
+    exit 1
+fi
+
+for i in {mpn_extras-test,ZmodF-test,ZmodF_mul-test,ZmodF_poly-test,fmpz-test,fmpz_poly-test,mpz_poly-test,long_extras-test,zmod_poly-test,zmod_mat-test,NTL-interface-test}; do
+	./$i
+	if [ $? -ne 0 ]; then
+	    echo "FLINT test failed: $i"
+	    exit 1
+	fi
+done

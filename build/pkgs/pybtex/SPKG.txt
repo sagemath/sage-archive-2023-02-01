@@ -1,0 +1,57 @@
+= pybtex =
+
+== Description ==
+
+Pybtex is a drop-in replacement for BibTeX written in Python. That is,
+you can run 'pybtex FILE' instead of 'bibtex FILE'.
+
+We use the bazaar trunk because it is less buggy and more feature-rich.
+The latest version is available through this command:
+
+    bzr branch lp:pybtex
+
+
+This package also installs pyparsing and PyYAML which are needed for pybtex.
+
+== License ==
+
+MIT
+
+== SPKG Maintainers ==
+
+Niels Ranosch <ranosch@mfo.de>
+Burcin Erocal <burcin@erocal.org>
+
+== Upstream Contact ==
+
+Andrey Golovizin <golovizin@gmail.com>
+http://pybtex.sourceforge.net/
+
+https://code.launchpad.net/~ero-sennin/pybtex/trunk
+
+== Dependencies ==
+ * python
+
+== Special Update/Build Instructions ==
+
+Make sure the easy_install commands in spkg-install work without internet
+access.
+
+== Changelog ==
+
+=== pybtex-20120618 (Niels Ranosch, June 18, 2012) ===
+ * updated SPKG.txt as suggested by John Palmieri
+
+=== pybtex-20120522 (Niels Ranosch, May 22, 2012) ===
+ * upstream update
+
+=== pybtex-20120218 (Niels Ranosch, February 18, 2012) ===
+ * switched to the official bazaar trunk (there are much fewer bugs)
+ * removed the patches, because they were merged to the trunk
+
+=== pybtex-0.15-r1 (Burcion Erocal, Niels Ranosch, September 27, 2011) ===
+ * prevent PyYAML from checking for libyaml
+
+=== pybtex-0.15 (Burcin Erocal, Niels Ranosch, August 10, 2011) ===
+ * initial version
+

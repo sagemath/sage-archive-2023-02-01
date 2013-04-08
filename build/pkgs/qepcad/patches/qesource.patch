@@ -1,0 +1,166 @@
+diff -urN orig/qesource/extensions/lift2D/IBPRRIOAP.c qesource/extensions/lift2D/IBPRRIOAP.c
+--- orig/qesource/extensions/lift2D/IBPRRIOAP.c	2003-05-16 05:49:05.000000000 -0700
++++ qesource/extensions/lift2D/IBPRRIOAP.c	2008-05-24 12:28:24.000000000 -0700
+@@ -53,7 +53,7 @@
+ 	   goto Return; }
+ 	n = PDEG(M);
+ 	t = HIPFES(n,A,w2);
+-	if (FPFLAG == 1) {
++	if (FPCHECK() == 1) {
+ 	   t = 1;
+ 	   goto Return; }
+ 	if (t == NIL) {
+@@ -63,7 +63,7 @@
+ 	while (u == 0 && np > 0) {
+ 	   p = (w1 + w2) / 2.0;
+ 	   s = HIPFES(n,A,p);
+-	   if ((FPFLAG == 1) || (s == NIL))
++	   if ((FPCHECK() == 1) || (s == NIL))
+ 	      u = 1;
+ 	   else if (s == t)
+ 	      w2 = p;
+diff -urN orig/qesource/extensions/lift2D/modHIPRRISD.c qesource/extensions/lift2D/modHIPRRISD.c
+--- orig/qesource/extensions/lift2D/modHIPRRISD.c	2003-05-16 05:49:05.000000000 -0700
++++ qesource/extensions/lift2D/modHIPRRISD.c	2008-05-24 12:28:24.000000000 -0700
+@@ -68,7 +68,7 @@
+ 	FPCATCH();
+ 	C = HIPTR1(n,B);
+ 	FREEARRAY(B);
+-	if (FPFLAG) {
++	if (FPCHECK()) {
+ 	  if (s > 0)
+ 	    L2 = LIST1(LIST3(c,b,1));
+ 	  else
+diff -urN orig/qesource/extensions/lift2D/modIBPRRIOAP.c qesource/extensions/lift2D/modIBPRRIOAP.c
+--- orig/qesource/extensions/lift2D/modIBPRRIOAP.c	2003-05-16 05:49:05.000000000 -0700
++++ qesource/extensions/lift2D/modIBPRRIOAP.c	2008-05-24 12:28:24.000000000 -0700
+@@ -55,7 +55,7 @@
+ 	   goto Return; }
+ 	n = PDEG(M);
+ 	t = HIPFES(n,A,w2);
+-	if (FPFLAG == 1) {
++	if (FPCHECK() == 1) {
+ 	   t = 1;
+ 	   goto Return; }
+ 	if (t == NIL) {
+@@ -65,7 +65,7 @@
+ 	while (u == 0 && np > 0) {
+ 	   p = (w1 + w2) / 2.0;
+ 	   s = HIPFES(n,A,p);
+-	   if ((FPFLAG == 1) || (s == NIL))
++	   if ((FPCHECK() == 1) || (s == NIL))
+ 	      u = 1;
+ 	   else if (s == t)
+ 	      w2 = p;
+diff -urN orig/qesource/extensions/rend/Rend_Win.h qesource/extensions/rend/Rend_Win.h
+--- orig/qesource/extensions/rend/Rend_Win.h	2003-05-16 05:49:05.000000000 -0700
++++ qesource/extensions/rend/Rend_Win.h	2008-05-24 12:42:57.000000000 -0700
+@@ -57,8 +57,8 @@
+   void set_precis_faithfull();
+   void update_extents(Rend_Cell &M);
+   int SPEC_RNFLOR(Word a);
+-  int map_x(Word b);
+-  int map_y(Word b);
++  Word map_x(Word b);
++  Word map_y(Word b);
+   void write_header(ofstream &out);
+   Word get_lociva(Rend_Cell &M);
+ };
+diff -urN orig/qesource/extensions/sfext/formula/FMAPOLLIST.c qesource/extensions/sfext/formula/FMAPOLLIST.c
+--- orig/qesource/extensions/sfext/formula/FMAPOLLIST.c	2003-05-16 05:49:05.000000000 -0700
++++ qesource/extensions/sfext/formula/FMAPOLLIST.c	2008-05-24 12:40:17.000000000 -0700
+@@ -13,7 +13,7 @@
+ */
+ #include "extlang.h"
+ #define MAXLEV 200
+-static int comp(Word a, Word b) { return a < b ? -1: a > b; }
++static Word comp(Word a, Word b) { return a < b ? -1: a > b; }
+ static Word subprog(Word F);
+ 
+ 
+diff -urN orig/qesource/source/db/convenientstreams.h qesource/source/db/convenientstreams.h
+--- orig/qesource/source/db/convenientstreams.h	2007-10-25 08:31:01.000000000 -0700
++++ qesource/source/db/convenientstreams.h	2008-05-24 12:28:24.000000000 -0700
+@@ -52,7 +52,7 @@
+  * i.e. # & \\n mean what you think
+  ***************************************************************/
+ static const int buffSize = 10;
+-static const int extra = 4;
++static const ptrdiff_t extra = 4;
+ 
+ class cacInBuff : public streambuf
+ {
+diff -urN orig/qesource/source/db/readlineistream.h qesource/source/db/readlineistream.h
+--- orig/qesource/source/db/readlineistream.h	2007-03-13 09:27:29.000000000 -0700
++++ qesource/source/db/readlineistream.h	2008-05-24 12:28:24.000000000 -0700
+@@ -35,7 +35,7 @@
+ /***************************************************************
+  * Implementation of realineInBuff member functions
+  ***************************************************************/
+-const int extra = 4;
++const ptrdiff_t extra = 4;
+ readlineInBuff::readlineInBuff()
+ {
+   buff = (char*)malloc(extra);
+diff -urN orig/qesource/source/db/unnamedpipe.h qesource/source/db/unnamedpipe.h
+--- orig/qesource/source/db/unnamedpipe.h	2007-03-13 09:27:29.000000000 -0700
++++ qesource/source/db/unnamedpipe.h	2008-05-24 12:28:24.000000000 -0700
+@@ -45,7 +45,7 @@
+ };
+ 
+ static const int buffSize = 10;
+-static const int extra = 4;
++static const ptrdiff_t extra = 4;
+ 
+ class fdinbuff : public streambuf
+ {
+diff -urN orig/qesource/source/main/FAIL.c qesource/source/main/FAIL.c
+--- orig/qesource/source/main/FAIL.c	2003-05-22 08:48:43.000000000 -0700
++++ qesource/source/main/FAIL.c	2008-05-24 12:28:40.000000000 -0700
+@@ -25,8 +25,8 @@
+          {
+          /*  Please note that this step is NOT portable since  we are assuming that 
+              addresses can taken as integers. */
+-         SWRITE("BACSTACK = "); GWRITE((int)va_arg(argPtr,char *)); SWRITE("\n");
+-         SWRITE("EACSTACK = "); GWRITE((int)va_arg(argPtr,char *)); SWRITE("\n");
++	 SWRITE("BACSTACK = "); GWRITE((Word)va_arg(argPtr,char *)); SWRITE("\n");
++	 SWRITE("EACSTACK = "); GWRITE((Word)va_arg(argPtr,char *)); SWRITE("\n");
+          goto Exit;
+          }
+ 
+diff -urN orig/qesource/source/main/MAIN.c qesource/source/main/MAIN.c
+--- orig/qesource/source/main/MAIN.c	2008-02-26 13:01:40.000000000 -0800
++++ qesource/source/main/MAIN.c	2008-05-24 12:44:59.000000000 -0700
+@@ -17,7 +17,8 @@
+ ====================================================================*/
+ int main(int argc, char **argv)
+ {
+-       Word Fs,F_e,F_n,F_s,V,t,ac;
++       Word Fs,F_e,F_n,F_s,V,t;
++       int ac;
+        char **av;
+ 
+ Step1: /* Set up the system. */
+diff -urN orig/qesource/source/Makefile qesource/source/Makefile
+--- orig/qesource/source/Makefile	2008-03-07 08:04:40.000000000 -0800
++++ qesource/source/Makefile	2008-05-24 13:22:15.000000000 -0700
+@@ -42,7 +42,7 @@
+ 		${qe}/extensions/adj2d/adj2do.a \
+ 		${qe}/extensions/rend/rendo.a \
+ 		${saclib}/lib/saclibo.a \
+-		-lreadline \
++		-lreadline -lncurses \
+ 		${SPECLFLAGS}
+ 
+ 
+@@ -51,8 +51,8 @@
+ 		${qe}/extensions/newadj/newadjd.a \
+ 		${qe}/extensions/adj2d/adj2dd.a \
+ 		${qe}/extensions/rend/rendd.a \
+-		${saclib}/lib/saclibo.a \
+-		-lreadline \
++		${saclib}/lib/saclibd.a \
++		-lreadline -lncurses \
+ 		${SPECLFLAGS}
+ 
+ NAME      =  qepcad

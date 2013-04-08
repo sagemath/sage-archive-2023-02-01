@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+if [ -z "$SAGE_LOCAL" ]; then
+    echo >&2 "SAGE_LOCAL undefined ... exiting"
+    echo >&2 "Maybe run 'sage --sh'?"
+    exit 1
+fi
+
+if [ "x$CFLAG64" = x ]; then
+    CFLAG64=-m64
+fi
+
+if [ "x$SAGE64" = xyes ]; then
+    echo "Building a 64-bit version of bzip2"
+    CFLAGS="$CFLAG64 $CFLAGS"
+fi
+
+export CFLAGS="-fPIC -O2 -g $CFLAGS"
+
+cd src
+
+########################################################################
+# Build bzip2
+########################################################################
+
+# Since bzip2 doesn't use configure, we need to pass flags as arguments
+# to make.
+$MAKE CC="$CC" CFLAGS="$CFLAGS"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building bzip2"
+    exit 1
+fi
+
+$MAKE install PREFIX="$SAGE_LOCAL" CC="$CC" CFLAGS="$CFLAGS"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing bzip2"
+    exit 1
+fi
+
+# Fix a bunch of hard-coding that bzip2 does during installation.
+cd "$SAGE_LOCAL/bin"
+rm bzcmp; ln -s bzdiff bzcmp
+rm bzegrep; ln -s bzgrep bzegrep
+rm bzfgrep; ln -s bzgrep bzfgrep
+rm bzless; ln -s bzmore bzless

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+QE=$SAGE_LOCAL && export QE
+
+$SAGE_LOCAL/bin/qepcad

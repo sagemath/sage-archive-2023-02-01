@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+cat license.txt
+echo "**************************************************"
+echo "NOTE that Nauty's License is NOT GPL-compatible"
+echo "**************************************************"
+
+cp patches/gtools-h.in src/
+
+cd src
+
+./configure --prefix="$SAGE_LOCAL"
+if [ $? -ne 0 ]; then
+   echo "Error configuring nauty."
+   exit 1
+fi
+
+make
+if [ $? -ne 0 ]; then
+   echo "Error building nauty."
+   exit 1
+fi
+
+echo "Copying nauty..."
+for program in addedgeg amtog biplabg catg complg copyg countg deledgeg directg dreadnaut dretog genbg geng genrang labelg listg multig newedgeg NRswitchg pickg planarg shortg showg;
+do
+  cp $program $SAGE_LOCAL/bin/nauty-$program
+  if [ $? -ne 0 ]; then
+   echo "Error installing nauty."
+   exit 1
+  fi
+done
+

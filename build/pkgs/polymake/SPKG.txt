@@ -1,0 +1,82 @@
+Changes:
+
+ 1) I deleted the gmp and cddlib directories; but extract them from
+    the SAGE standard distro when they're needed.
+
+ 2) If you update gmp or cddlib, you *must* change the spkg-install in
+    this directory (because it refs specific version numbers).
+
+ 3) I modified support/configure.pl so it works non-interactively
+    in the context of SAGE.  Here are the diffs:
+
+"diff new_ver orig_ver":
+48,51d47
+< $Cflags="-I".$ENV{"SAGE_LOCAL"}."/include";
+< $CXXflags="-I".$ENV{"SAGE_LOCAL"}."/include";
+< $LDflags="-I".$ENV{"SAGE_LOCAL"}."/lib";
+<
+272c268
+< $InstallTop ||= $multi ? "/usr/local/share/polymake" : $ENV{"SAGE_LOCAL"}."/polymake";
+---
+> $InstallTop ||= $multi ? "/usr/local/share/polymake" : "/usr/local/polymake";
+
+ 4) After the build process we replace the standard script
+    perl/polymake by our own.  This fixes it so polymake is
+    *relocatable* (can be moved to another directory safely).  In
+    particular, it uses paths determined by SAGE environment
+    variables.
+
+==========================================
+These are some "notes to self" I made
+when writing spkg-install.
+
+Notes:
+
+ (1) "make" asks less questions than "make configure"
+
+ (2) the make process gets confused and corrupts arguments
+     passed in that involve environment variables; so make
+     them into exact paths somehow, e.g.,
+
+       -I/home/was/s/local
+
+was@sha:~/s/spkg/build/polymake-2.2$ make
+
+Where should polymake be installed? [/usr/local/polymake] /home/was/s/local/
+
+A program checking for the GNU Multiprecision Library (GMP) couldn't be compiled:
+polymake_configure.c:1:17: error: gmp.h: No such file or directory
+...
+polymake_configure.c:6: error: '__GNU_MP_VERSION_PATCHLEVEL' undeclared (first use in this function)
+
+If you know that the required version of GMP is installed somewhere at your site,
+would you like to adjust compiler and linker options,
+so that it can be found by the next try? [n] y
+
+Please supply the path to gmp.h in the -I compiler option
+and the path to libgmp.a or libgmp.so in the -L linker option
+
+Which additional C++ compiler flags should be used (e.g. choosing specific CPU model)? [none] /home/-I/home/was/s/local/include
+
+Which additional C compiler flags should be used? [-I/home/was/s/local/include]
+
+Which additional linker flags should be used? [none]
+
+-------
+
+After first failure (due to missing libs), do the following:
+
+cd build/external/cdd
+ln -s $SAGE_LOCAL/lib/libcddgmp.a .
+ln -s $SAGE_LOCAL/lib/libcdd.a .
+
+
+----------------
+
+For some reason
+
+was@sha:~/s/spkg/build/polymake-2.2/build/external/cdd/src/ext_lib/cdd$ mv globals_gmp.h globals_gmp.h.orig
+was@sha:~/s/spkg/build/polymake-2.2/build/external/cdd/src/ext_lib/cdd$ touch globals_gmp.h
+was@sha:~/s/spkg/build/polymake-2.2/build/external/cdd/src/ext_lib/cdd$
+
+

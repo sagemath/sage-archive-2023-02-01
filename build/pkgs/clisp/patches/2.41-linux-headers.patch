@@ -1,0 +1,42 @@
+2007-05-20  Bruno Haible  <bruno@clisp.org>
+
+	* unix.d [UNIX_LINUX && UNIX_GNU]: Don't include <asm/page.h>.
+	* lispbibl.d (UNIX_GNU): Move definition down.
+	Reported by Ulrich Müller <ulm@gentoo.org>.
+
+--- src/unix.d	2006/05/23 12:32:25	1.76
++++ src/unix.d	2007/05/20 13:59:43	1.77
+@@ -174,7 +174,7 @@
+   #ifdef UNIX_AUX
+     #include <sys/mmu.h> /* for SHMLBA */
+   #endif
+-  #ifdef UNIX_LINUX
++  #if defined(UNIX_LINUX) && !defined(UNIX_GNU)
+     #include <asm/page.h> /* for SHMLBA on Linux 2.0 */
+   #endif
+   #if defined(UNIX_SUNOS4) || defined(UNIX_SUNOS5)
+--- src/lispbibl.d	2007/04/05 01:56:47	1.718
++++ src/lispbibl.d	2007/05/20 22:49:59	1.719
+@@ -376,9 +376,6 @@
+ #if defined(UNIX_MACOSX) && defined(HAVE_MSYNC)
+   #define UNIX_DARWIN  # MacOS X, a.k.a. Darwin
+ #endif
+-#if (__GLIBC__ >= 2)
+-  #define UNIX_GNU # glibc2 (may be UNIX_LINUX, UNIX_HURD or UNIX_FREEBSD)
+-#endif
+ 
+ 
+ # Choose the character set:
+@@ -1267,6 +1264,12 @@
+ 
+ #include <stdio.h>    /* libc i/o */
+ 
++# A more precise classification of the operating system:
++# (This test works only after at least one system header has been included.)
++#if (__GLIBC__ >= 2)
++  #define UNIX_GNU # glibc2 (may be UNIX_LINUX, UNIX_HURD or UNIX_FREEBSD)
++#endif
++
+ # Determine the offset of a component 'ident' in a struct of the type 'type':
+ # See 0 as pointer to 'type', put a struct 'type' there and determine the
+ # address of its component 'ident' and return it as number:

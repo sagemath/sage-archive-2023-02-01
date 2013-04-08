@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+
+die () {
+    echo "$@" 1>&2
+    exit 1
+}
+
+[ -n "$SAGE_LOCAL" ] || die 'Error: $SAGE_LOCAL not set. Source sage-env or run this script from `sage -sh`.'
+
+cd src
+patch -p1 < ../patches/00-check-missing-new-features.patch || die "Error: Couldn't apply patch."
+
+if [ ! -d /usr/include/openssl ]; then
+    FLAGS="-I'$SAGE_LOCAL'/include -L'$SAGE_LOCAL'/lib"
+fi
+
+python setup.py build_ext $FLAGS || die '
+Error building pyOpenSSL!
+Check that OpenSSL development headers are installed,
+or install the OpenSSL SPKG into your Sage installation.'
+
+./setup.py install || die 'Error installing pyOpenSSL!'
+
+# If pyOpenSSL 0.12 was previously installed, this clears it from the load path
+easy_install -H None pyOpenSSL

@@ -1,0 +1,139 @@
+#!/usr/bin/env bash
+
+if [ -z "$SAGE_LOCAL" ] ; then
+    echo >&2 "Error - SAGE_LOCAL undefined ... exiting"
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
+fi
+
+cd src
+# For some of the patches, Cygwin also has upstream fixes that are
+# closely related, keep track.  See Trac 11119, for example.
+for patch in ../patches/*.patch; do
+    [ -f "$patch" ] || continue
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
+
+if [ -z "$CFLAG64" ] ; then
+    CFLAG64=-m64
+fi
+
+if [ -z "$CXXFLAG64" ] ; then
+    CXXFLAG64=-m64
+fi
+
+# Do NOT quote SAGE_LOCAL here, as has caused problems.
+# See: http://trac.sagemath.org/sage_trac/ticket/10187#comment:117
+
+CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
+LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
+
+# Compile for 64-bit if SAGE64 is set to 'yes'
+if [ "x$SAGE64" = "xyes" ]  ; then
+    echo "Building a 64-bit version of ECL"
+    CFLAGS="$CFLAGS $CFLAG64"
+    CXXFLAGS="$CXXFLAGS $CXXFLAG64"
+    LDFLAGS="$LDFLAGS $CFLAG64"
+fi
+
+if [ "x$SAGE_DEBUG" = "xyes" ] ; then
+    CFLAGS="$CFLAGS -g -O0"
+    CXXFLAGS="$CXXFLAGS -g -O0"
+else
+    CFLAGS="-g -O2 $CFLAGS"
+    CXXFLAGS="-g -O2 $CXXFLAGS"
+fi
+
+if [ "`uname -sm`" = "Darwin Power Macintosh" ] ; then
+# Disabling altivec instructions (trac 11297)
+    CFLAGS="$CFLAGS -mno-altivec -mabi=no-altivec"
+    export CFLAGS
+fi
+
+# These are all used by GNU to specify compilers.
+echo "Using CC=$CC"
+echo "Using CXX=$CXX"
+
+# Flags which may be set.
+echo "The following environment variables will be exported"
+echo "Using CFLAGS=$CFLAGS"
+echo "Using CXXFLAGS=$CXXFLAGS"
+echo "Using CPPFLAGS=$CPPFLAGS"
+echo "Using LDFLAGS=$LDFLAGS"
+echo "configure scripts and/or makefiles might override these later"
+echo ""
+
+# export everything. Probably not necessary in most cases.
+export CFLAGS
+export CXXFLAGS
+export CPPFLAGS
+export LDFLAGS
+
+# End of pretty general spkg-install file.
+# Now do the specific things needed for this package (ECL)
+
+# 'export MAKE='make -j n' where n>1, breaks ECL builds, so use only one thread
+MAKE="$MAKE -j1"
+
+# We clear MAKEFLAGS because of issues on OS X.
+if [ "$UNAME" = "Darwin" ]; then
+    export MAKEFLAGS=
+fi
+
+if [ "x`uname -sm`" = "xSunOS i86pc" ] && [ "x$SAGE64" = xyes ]  ; then
+    # Need to add --with-dffi=no to disable assembly code on OpenSolaris x64.
+    # and Solaris 10 on x64.
+    # The option is only given if all the following are true
+    # 1) Solaris, Solaris Express or OpenSolaris (SunOS)
+    # 2) Intel or AMD CPU
+    # 3) 64-bit build
+    ./configure --prefix="$SAGE_LOCAL" --with-gmp-prefix=$SAGE_LOCAL \
+      --libdir="$SAGE_LOCAL/lib" --with-dffi=no --disable-threads \
+      --enable-unicode=no
+else
+    ./configure --prefix="$SAGE_LOCAL" --with-gmp-prefix=$SAGE_LOCAL \
+      --libdir="$SAGE_LOCAL/lib" --disable-threads \
+      --enable-unicode=no
+fi
+
+if [ $? -ne 0 ]; then
+    echo >&2 "Error - Failed to configure ECL ... exiting"
+    exit 1
+fi
+
+# Before running make we touch build/TAGS so its building process is never triggered
+touch build/TAGS
+
+$MAKE
+if [ $? -ne 0 ]; then
+    echo >&2 "Error - Failed to build ECL ... exiting"
+    exit 1
+fi
+
+# Remove old install of ECL, if any.
+rm -rf "$SAGE_LOCAL/lib/ecl-"*
+if [ $? -ne 0 ]; then
+    echo >&2 "Error - Failed to remove old ECL install ... exiting"
+    exit 1
+fi
+
+$MAKE install
+if [ $? -ne 0 ]; then
+    echo >&2 "Error - Failed to install ECL ... exiting"
+    exit 1
+fi
+
+# Create symbolic link to lib/ecl-version directory.
+# This is important when the Sage install is moved.
+cd "$SAGE_LOCAL/lib/" && rm -f ecl && ln -s ecl-* ecl
+
+# It is very important that the above line worked.
+if [ $? -ne 0 ]; then
+    echo >&2 "Error - Failed to create symbolic link to ECL library"
+    echo >&2 "directory ... exiting"
+    exit 1
+fi

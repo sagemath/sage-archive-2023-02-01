@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+
+if [ -z "$SAGE_LOCAL" ]; then
+    echo
+    echo "SAGE_LOCAL undefined ... exiting"
+    return 1
+fi
+
+build() {
+   if [ -d "$SAGE_ROOT/devel/$1/" ]; then
+      cd "$SAGE_ROOT/devel/$1/"
+      chmod +x ./install
+      echo ""
+      echo "----------------------------------------------------------"
+      echo "sage: Building and installing modified Sage library files."
+      echo ""
+
+      # install c_lib
+      # we're doing this here instead of setup.py for historical
+      # reasons:
+      #
+      # it used to be easier to keep track of whether or not we're
+      # switching branches, which changes what we do with the c_lib
+      # install
+      echo ""
+      echo "Installing c_lib"
+      cd c_lib
+      scons -Q install
+      # make sure c_lib install went okay
+      if [ $? -ne 0 ]; then
+          echo >&2 "Error building c_lib."
+          exit 1
+      fi
+
+      cd "$SAGE_ROOT/devel/$1/"
+      ./install "$SAGE_ROOT"
+      if [ $? -ne 0 ]; then
+         echo >&2 "Error installing modified $1 library code."
+         exit 1
+      fi
+   fi
+}
+
+if [ "$1" = "-b" ]; then
+    DO_BUILD_ALL=1
+    shift
+else
+    DO_BUILD_ALL=0
+fi
+
+if [ "$1" != "" ]; then
+    # make devel/sage point to devel/$1
+    cd "$SAGE_ROOT/devel/"
+    if [ ! -d "sage-$1" ]; then
+        # this will happen a lot because of people (=me) making typos.
+        echo >&2 "No such branch '$SAGE_ROOT/devel/sage-$1'"
+        echo >&2 "Use 'sage --clone' to create a new branch."
+        exit 1
+    fi
+    # On Solaris (and perhaps other systems), "ln -snf FILE LINK"
+    # doesn't remove LINK and then relink it, so we need to first
+    # delete LINK -- in this case, SAGE_ROOT/devel/sage -- and then
+    # create a new link.  We use the full path name to make sure we
+    # remove the correct file.
+    rm -f "$SAGE_ROOT/devel/sage"
+    ln -s "sage-$1" sage
+fi
+
+if [ ! -d "$SAGE_ROOT/devel/sage" ]; then
+    echo >&2 "There is no directory '$SAGE_ROOT/devel/sage'"
+    exit 1
+fi
+
+if [ $DO_BUILD_ALL = 1 ]; then
+    cd "$SAGE_ROOT/devel/sage/sage"
+    echo "*** TOUCHING ALL CYTHON (.pyx) FILES ***"
+    touch */*.pyx */*/*.pyx */*/*/*.pyx */*/*/*/*.pyx */*/*/*/*/*.pyx */*/*/*/*/*.pyx  */*/*/*/*/*/*.pyx 2> /dev/null
+    cd ../c_lib
+    scons -Q install
+fi
+
+build "sage"

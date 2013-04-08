@@ -1,0 +1,12 @@
+#!/bin/sh
+
+echo "**************************************************************"
+echo "*  Make sure that nothing is already serving up a service    *"
+echo "*  on port 8000.  If so, Knoboo won't work.                  *"
+echo "*  Now connect to http://localhost:8000                      *"
+echo "*  NOTE: Only Python currently works in Knoboo; none of the  *"
+echo "*  Sage library is available yet.                            *"
+echo "**************************************************************"
+
+twistd -ny "$SAGE_LOCAL"/lib/knoboo.tac
+

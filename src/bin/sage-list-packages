@@ -1,0 +1,56 @@
+#!/usr/bin/env python
+import os, sys, urllib, urllib2, urlparse
+
+if not os.environ.has_key("SAGE_ROOT"):
+     raise RuntimeError, "The environment variable SAGE_ROOT must be set"
+SAGE_SPKG_INST=os.environ.get("SAGE_SPKG_INST",
+        os.path.join(os.environ["SAGE_ROOT"],'spkg','installed'))
+
+
+if not os.environ.has_key("SAGE_SERVER"):
+     print "The environment variable SAGE_SERVER must be set"
+     sys.exit(1)
+
+PKG_SERVER = urlparse.urljoin(os.environ['SAGE_SERVER'],'packages')
+print "Using SAGE Server %s"%PKG_SERVER
+
+url_path = os.path.join('packages', sys.argv[1], 'list')
+url = urlparse.urljoin(PKG_SERVER, urllib.pathname2url(url_path))
+
+try:
+     installed = set(os.listdir(SAGE_SPKG_INST))
+except OSError:
+     installed = set([])
+
+try:
+    pkg_list_file = urllib2.urlopen(url)
+except (OSError, IOError), msg:
+    print msg
+    print "\n\n"
+    print "*"*80
+    print "\n\n"
+    print "Error contacting %s. Try using an alternative server."%url
+    print "For example, from the bash prompt try typing\n"
+    print "   export SAGE_SERVER=http://sage.scipy.org/sage/\n"
+    print "then try again."
+    print "\n\n"
+    print "*"*80
+    print "\n\n"
+    sys.exit(1)
+
+do_have = []
+dont_have = []
+for pkg_name in pkg_list_file.readlines():
+    pkg_name = pkg_name.rstrip()  # get rid of \n
+    if pkg_name in installed:
+        do_have.append(pkg_name)
+    else:
+        dont_have.append(pkg_name)
+print " ***********************************"
+print "    ***  %s Packages   ***"%sys.argv[1]
+print " ***********************************\n"
+print "INSTALLED:\n" + '\n'.join(do_have)
+print "\nNOT INSTALLED:\n" + '\n'.join(dont_have)
+print "\nType 'sage -i package_name' to download and install a package."
+
+pkg_list_file.close()

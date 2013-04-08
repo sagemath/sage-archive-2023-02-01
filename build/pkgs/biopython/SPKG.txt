@@ -1,0 +1,117 @@
+= biopython =
+
+== Description ==
+
+Biopython is a set of freely available tools for biological computation written in Python by an international team of developers.
+
+It is a distributed collaborative effort to develop Python libraries and applications which address the needs of current and future work in bioinformatics.
+
+== License ==
+
+Biopython License
+
+== SPKG Maintainers ==
+
+  -- Marshall Hampton, mhampton at d.umn.edu or hamptonio at gmail.com.
+
+== Upstream Contact ==
+
+  -- wiki, http://biopython.org/wiki/Main_Page
+
+== Dependencies ==
+
+None
+
+== Special Update/Build Instructions ==
+
+Source is the same as upstream. Install is via the usual setup.py file.
+
+== Changelog ==
+
+=== biopython-1.60 (John Palmieri, 12 July 2012) ===
+
+ * Update to biopython-1.60, which was released June 25, 2012,
+   2012. Release notes are at:
+   http://news.open-bio.org/news/2012/06/biopython-1-60-released/.
+
+ * Also update this Changelog: it is now in reverse chronological
+   order, most recent entries first.
+
+ * Also make spkg-check executable.
+
+=== biopython-1.59 (Marshall Hampton, 22 March 2012) ===
+
+ * Updating to biopython-1.59, which was released February 24th,
+   2012. Release notes are at:
+   http://news.open-bio.org/news/2012/02/biopython-1-59-released/
+
+=== biopython-1.58 (Marshall Hampton, 25 October 2011) ===
+
+ * Updating to biopython-1.58, which was released August 18,
+   2011. Release notes are at:
+   http://news.open-bio.org/news/2011/08/biopython-1-58-released/
+
+=== biopython-1.57 (Adam Webb, 19 April 2011) ===
+
+ * Updating to biopython-1.57, which was released April 2,
+   2011. Release notes are at:
+   http://news.open-bio.org/news/2011/04/biopython-1-57-released/
+
+=== biopython-1.56 ===
+
+ * Updating to biopython-1.56, which was released November 26, 2010.
+
+=== biopython-1.55 ===
+
+ * Updating to biopython-1.55, which was released August 31, 2010.
+   Release notes are at:
+   http://news.open-bio.org/news/2010/08/biopython-1-55-released/
+
+ * Removed patches folder and patching to __init__.py since the test
+   issue requiring that was solved upstream.
+
+=== biopython-1.54 ===
+
+ * Updating to biopython-1.54, which was released May 20th, 2010.
+   Release notes are at:
+   http://news.open-bio.org/news/2010/05/biopython-release-154/
+
+=== biopython-1.53 ===
+
+ * Updating to biopython-1.53, which was released December 15th, 2009.
+   Release notes are at:
+   http://news.open-bio.org/news/2009/12/biopython-release-153/
+
+=== biopython-1.52 ===
+
+ * Updating to biopython-1.52, which was released September 22, 2009.
+   Main improvements were to alignment and sequence file conversion,
+   population genetics statistics, and the Bio.SeqIO.indexed_dict()
+   for handling large numbers of sequences.
+
+ * Add a patch to Bio/Wise/__init__.py to skip the doctest. This test
+   fails during the install when using 'sage -i' and SAGE_CHECK="yes".
+
+=== biopython-1.51 ===
+
+* Updating to biopython-1.51, which was released August 17, 2009.
+  Biopython has eliminated several dependencies such as Numeric and
+  mx-text-tools, so this is now easier to install and maintain.
+
+=== biopython-1.51b ===
+
+ * Updating to biopython-1.51beta, which was released June 23rd, 2009.
+
+=== biopython-1.49b ===
+
+ * Updating to biopython-1.49beta, which was released November 7, 2008.
+
+=== biopython-1.47 ===
+
+ * Updating to biopython-1.47, which was released July 5, 2008.
+
+=== biopython-1.45 ===
+
+ * Adding a changelog!
+
+ * Updating to biopython-1.45, which was released March 22, 2008.

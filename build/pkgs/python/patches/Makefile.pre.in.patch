@@ -1,0 +1,11 @@
+--- src/Makefile.pre.in.orig	2011-12-06 16:00:20.000000000 +1300
++++ src/Makefile.pre.in	2011-12-06 16:00:44.000000000 +1300
+@@ -55,7 +55,7 @@
+ # Shared libraries must be installed with executable mode on some systems;
+ # rather than figuring out exactly which, we always give them executable mode.
+ # Also, making them read-only seems to be a good idea...
+-INSTALL_SHARED= ${INSTALL} -m 555
++INSTALL_SHARED= ${INSTALL} -m 755
+ 
+ MAKESETUP=      $(srcdir)/Modules/makesetup
+ 

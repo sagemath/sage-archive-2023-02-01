@@ -1,0 +1,11 @@
+diff -ru src/m4-1.4.16/lib/stdio.in.h b/m4-1.4.16/lib/stdio.in.h
+--- src/m4-1.4.16/lib/stdio.in.h	2011-03-01 17:39:29.000000000 +0100
++++ b/m4-1.4.16/lib/stdio.in.h	2012-12-17 11:16:24.037513844 +0100
+@@ -162,7 +162,6 @@
+    so any use of gets warrants an unconditional warning.  Assume it is
+    always declared, since it is required by C89.  */
+ #undef gets
+-_GL_WARN_ON_USE (gets, "gets is a security hole - use fgets instead");
+ 
+ #if @GNULIB_FOPEN@
+ # if @REPLACE_FOPEN@

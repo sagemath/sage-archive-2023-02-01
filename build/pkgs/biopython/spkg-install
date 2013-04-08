@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+if [ "x$SAGE_LOCAL" = "x" ]; then
+   echo "SAGE_LOCAL undefined ... exiting"
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+cd src
+python setup.py build
+
+if [ $? -ne 0 ]; then
+   echo "Error building biopython"
+   exit 1
+fi
+
+python setup.py install
+
+if [ $? -ne 0 ]; then
+   echo "Error install biopython"
+   exit 1
+fi

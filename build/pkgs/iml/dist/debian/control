@@ -1,0 +1,67 @@
+Source: iml
+Section: libs
+Priority: extra
+Maintainer: Tim Abbott <tabbott@mit.edu>
+Build-Depends: cdbs (>= 0.4.23-1.1), autotools-dev, debhelper (>= 5), autoconf, quilt, patchutils (>= 0.2.25), cdbs (>= 0.4.27-1), libgmp3-dev, libgsl0-dev, libatlas-base-dev
+Standards-Version: 3.7.2
+
+Package: libiml0
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Integer Matrix Library
+ IML is a library for exact, dense linear algebra over the integers.
+ More verbosely, it is a free library of C source code which implements
+ algorithms for computing exact solutions to dense systems of linear
+ equations over the integers. IML is designed to be used with the
+ ATLAS/BLAS library and GMP bignum library.
+ .
+ Written in portable C, IML can be used on both 32-bit and 64-bit
+ machines. It can be called from C++.
+ .
+ Currently, IML provides the following functionality:
+ .
+    * Nonsingular rational system solving: compute the unique
+      rational solution X to the system AX=B, where A and B
+      are integer matrices, A nonsingular.
+    * Compute the right nullspace of an integer matrix.
+    * Certified linear system solving: compute a minimal denominator
+      solution x to a system Ax=b, where b is an integer vector and
+      A is an integer matrix with arbitrary shape and rank profile.
+ .
+ In addition, IML provides some low level routines for a variety of
+ mod p matrix operations: computing the row-echelon form, determinant,
+ rank profile, and inverse of a mod p matrix. These mod p routines are
+ not general purpose; they require that p satisfy some preconditions
+ based on the dimension of the input matrix (usually p should be
+ prime and should be no more than about 20 bits long).
+
+Package: libiml-dev
+Section: libdevel
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libiml0
+Description: Integer Matrix Library
+ IML is a library for exact, dense linear algebra over the integers.
+ More verbosely, it is a free library of C source code which implements
+ algorithms for computing exact solutions to dense systems of linear
+ equations over the integers. IML is designed to be used with the
+ ATLAS/BLAS library and GMP bignum library.
+ .
+ Written in portable C, IML can be used on both 32-bit and 64-bit
+ machines. It can be called from C++.
+ .
+ Currently, IML provides the following functionality:
+ .
+    * Nonsingular rational system solving: compute the unique
+      rational solution X to the system AX=B, where A and B
+      are integer matrices, A nonsingular.
+    * Compute the right nullspace of an integer matrix.
+    * Certified linear system solving: compute a minimal denominator
+      solution x to a system Ax=b, where b is an integer vector and
+      A is an integer matrix with arbitrary shape and rank profile.
+ .
+ In addition, IML provides some low level routines for a variety of
+ mod p matrix operations: computing the row-echelon form, determinant,
+ rank profile, and inverse of a mod p matrix. These mod p routines are
+ not general purpose; they require that p satisfy some preconditions
+ based on the dimension of the input matrix (usually p should be
+ prime and should be no more than about 20 bits long).

@@ -1,0 +1,154 @@
+#!/bin/sh
+# This is the spkg-install script which will be emplaced within the SPKG for
+# the sage library repository whenever it is packaged.
+
+#######################################
+# Install Sage libraries
+#######################################
+
+CUR=`pwd`
+
+if [ $? -ne 0 ]; then
+   exit 1
+fi
+
+DEVEL=$SAGE_ROOT/devel
+
+if [ ! -d "$DEVEL" ]; then
+    mkdir "$DEVEL"
+fi
+
+if [ $? -ne 0 ]; then
+   exit 1
+fi
+
+D=`pwd`
+E=`basename "$D"`
+
+if [ ! -d "$DEVEL/old" ]; then
+    mkdir "$DEVEL/old"
+fi
+
+if [ ! -f "$DEVEL/sage-main"/.hg/00changelog.i ]; then
+   mv "$DEVEL/sage-main" "$DEVEL/old/sage-bad_delete_me"
+fi
+
+###########################################################
+# Setup libcsage symlinks
+
+## set up libcsage. this does two things: first,
+## we build libcsage so that we can set up links
+## to make the sage build work. second, since this
+## is a new system, we need to get rid of old
+## copies of c_lib files and put our symlinks in place
+cd c_lib
+scons -Q install
+## always kill the libcsage, we remake the link below
+rm -f "$SAGE_ROOT"/local/lib/libcsage.*
+## if any of the include files have been copied over,
+## let's go ahead and get rid of them all
+if [ -f "$SAGE_ROOT/local/include/stdsage.h" ]; then
+    rm -f "$SAGE_ROOT/local/include/ZZ_pylong.h"
+    rm -f "$SAGE_ROOT/local/include/ccobject.h"
+    rm -f "$SAGE_ROOT/local/include/gmp_globals.h"
+    rm -f "$SAGE_ROOT/local/include/interrupt.h"
+    rm -f "$SAGE_ROOT/local/include/mpn_pylong.h"
+    rm -f "$SAGE_ROOT/local/include/mpz_pylong.h"
+    rm -f "$SAGE_ROOT/local/include/ntl_wrap.h"
+    rm -f "$SAGE_ROOT/local/include/stdsage.h"
+fi
+
+## now make our symlinks
+
+## symlinks don't work on cygwin, scons -Q install will hardcopy the
+## files over on Cygwin, while not on other systems.
+
+cd "$SAGE_ROOT"/local/lib/
+
+if [ `uname` = "Darwin" ]; then
+    ln -s ../../devel/sage/c_lib/libcsage.dylib .
+elif [ $UNAME != "CYGWIN" ]; then
+    ln -s ../../devel/sage/c_lib/libcsage.so .
+fi
+
+cd "$SAGE_ROOT/local/include/"
+rm -rf csage
+ln -s ../../devel/sage/c_lib/include csage
+
+cd "$CUR"
+
+###########################################################
+
+
+if [ -d "$DEVEL/sage-main" ]; then
+    cd "$DEVEL"
+
+
+    rm -f sage
+    ln -sf sage-main sage
+    cd sage
+
+    # TEMPORARY HACK (2009-05-15) until we write a proper system for
+    # deleting old/stale .so and .py[c] files.  We only have to do this
+    # once for the first upgrade (to sage-4.0).   This line should be
+    # removed no matter what in a couple of months (e.g, end of 2009).
+    # Note that deleting files from build/* during spkg-install
+    # is safe, since at worst it increases build time.  -- William Stein
+    rm -f build/*/sage/symbolic/constants*
+    rm -f build/sage/symbolic/constants*
+    rm -f build/*/sage/parallel/multiprocessing.py*
+    rm -f build/sage/parallel/multiprocessing.py*
+
+    sage -sync-build
+
+    # Pull in changes from the archive just downloaded.
+    hg pull "$CUR"
+    hg merge tip
+    hg ci -m "merge"
+    # Make the pulled in changes take effect.
+    hg update
+
+
+    # Since we are doing an upgrade, it is very important that the
+    # build always completely works with no dependency issues. It is
+    # OK if the build takes a little longer, since this is a full
+    # upgrade.  So we touch all pyrex code.
+
+    echo "Deleting the scons target."
+    cd c_lib
+    scons -Q -c install
+    scons -c "$SAGE_LOCAL"/include/
+    cd ..
+
+    "$SAGE_ROOT/sage" -b
+    if [ $? -ne 0 ]; then
+        echo "Error building new version of Sage."
+        echo "You might try typing 'sage -ba' or write to sage-support with as much information as possible."
+        exit 1
+    fi
+
+else
+
+    cd "$CUR"
+    mkdir "$DEVEL/sage-main"
+    # tar is the most portable way to copy files. See #14166.
+    tar cf - * .hg* | (cd "$DEVEL/sage-main/" && tar xfp -)
+
+    cd "$DEVEL"
+    rm -rf sage
+    ln -sf sage-main sage
+
+    sage -ba-force
+
+    if [ $? -ne 0 ]; then
+        echo "ERROR installing Sage"
+        exit 1
+    fi
+
+fi
+
+# Create an appropriate hgrc file for the target
+cat > "$DEVEL/sage-main/.hg/hgrc" <<"HEREDOC"
+[diff]
+git = true
+HEREDOC

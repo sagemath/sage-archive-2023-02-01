@@ -1,0 +1,11 @@
+--- ../src/make/makefile	2008-10-14 03:53:52.000000000 -0700
++++ makefile	2010-02-19 09:01:05.000000000 -0800
+@@ -66,7 +66,7 @@
+ 
+ # The main target: everything.
+ .PHONY: all
+-all: objdir libdir objects library programs tests examples private
++all: objdir libdir objects library programs
+ 
+ # Set the library file name.
+ LIBRARY = ${LIB}lib${LIBNAME}${LIBEXT}

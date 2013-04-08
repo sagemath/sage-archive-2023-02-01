@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+# 1. Install latex sage package
+
+echo "Installing already downloaded packages. "
+
+cd $SAGE_ROOT/spkg/
+./install
+

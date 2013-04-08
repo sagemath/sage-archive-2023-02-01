@@ -1,0 +1,217 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+
+import os
+import sys
+import token
+from tokenize import *
+
+
+if len(sys.argv) == 1:
+    print("Usage: sage --coverage <files>")
+    print("Give info about doctest coverage of files.")
+    sys.exit(2)
+
+
+# Collect coverage results for one file
+class CoverageResults:
+    def __init__(self, filename=""):
+        """
+        INPUT:
+
+        - ``filename`` -- name of the file, only for display purposes.
+        """
+        self.no_doc = []
+        self.no_test = []
+        self.good = []
+        self.possibly_wrong = []
+        self.filename = filename
+
+    def report(self):
+        """
+        Print coverage results.
+        """
+        num_functions = len(self.good) + len(self.no_doc) + len(self.no_test)
+        if not num_functions:
+            print("No functions in", self.filename)
+            return
+
+        score = (100.0 * len(self.good)) / float(num_functions)
+
+        print("SCORE {}: {:.1f}% ({} of {})".format(self.filename, score, len(self.good), num_functions))
+
+        if self.no_doc:
+            print("\nMissing documentation:")
+            for f in self.no_doc:
+                print("     *", f)
+        if self.no_test:
+            print("\nMissing doctests:")
+            for f in self.no_test:
+                print("     *", f)
+
+        if self.possibly_wrong:
+            print("\nPossibly wrong (function name doesn't occur in doctests):")
+            for f in self.possibly_wrong:
+                print("     *", f)
+
+
+    def handle_function(self, name, fullname, docstring):
+        """
+        Check coverage of one function and store result.
+
+        INPUT:
+
+        - ``name`` -- bare function name (e.g. "foo")
+
+        - ``fullname`` -- complete function definition (e.g. "def foo(arg=None)")
+
+        - ``docstring`` -- the docstring, or ``None`` if there is no docstring
+        """
+        # Skip certain names
+        if name in ['__dealloc__', '__new__', '_']:
+            return
+
+        if not docstring:
+            self.no_doc.append(fullname)
+            return
+        if not "sage: " in docstring:
+            self.no_test.append(fullname)
+            return
+
+        # If the name is of the form _xxx_, then the doctest is always
+        # considered indirect.
+        if name[0] == "_" and name[-1] == "_":
+            is_indirect = True
+        else:
+            is_indirect = "indirect doctest" in docstring
+
+        if not is_indirect and not name in docstring:
+            self.possibly_wrong.append(fullname)
+        self.good.append(fullname)
+
+
+    def check_file(self, f):
+        """
+        Check the coverage of one file.
+
+        INPUT:
+
+        - ``f``: an open file
+
+        OUTPUT: ``self``
+        """
+        # Where are we in a function definition?
+        BEGINOFLINE = 0   # Beginning of new logical line
+        UNKNOWN = -99     # Not at all in a function definition
+        DEFNAMES = 1      # In function definition before first open paren
+        DEFARGS = 2       # In function arguments or between closing paren and final colon
+        DOCSTRING = -1    # Looking for docstring
+
+        state = BEGINOFLINE
+
+        # Previous token type seen
+        prevtyp = NEWLINE
+
+        # Indentation level
+        indent = 0
+
+        # Indentation level of last "def" statement
+        # or None if no such statement.
+        defindent = None
+
+        for (typ, tok, start, end, logical_line) in generate_tokens(f.readline):
+            # Completely ignore comments or continuation newlines
+            if typ == COMMENT or typ == NL:
+                continue
+
+            # Handle indentation
+            if typ == INDENT:
+                indent += 1
+                continue
+            elif typ == DEDENT:
+                indent -= 1
+                if (defindent is not None and indent <= defindent):
+                    defindent = None
+                continue
+
+            # Check for "def" or "cpdef" ("cdef" functions don't need to be documented).
+            # Skip nested functions (with indent > defindent).
+            if state == BEGINOFLINE:
+                if typ == NAME and (tok in ["def", "cpdef"]) and (defindent is None or indent <= defindent):
+                    state = DEFNAMES
+                    deffullname = "line %s: "%start[0]
+                    defparen = 0  # Number of open parentheses
+                else:
+                    state = UNKNOWN
+
+            if state == DOCSTRING:
+                if typ != NEWLINE:
+                    docstring = None
+                    if typ == STRING:
+                        docstring = tok
+                    self.handle_function(defname, deffullname, docstring)
+                    state = UNKNOWN
+
+            if state == DEFNAMES:
+                if typ == NAME:
+                    if tok == "class":  # Make sure that cdef classes are ignored
+                        state = UNKNOWN
+                    # Last NAME token before opening parenthesis is
+                    # the function name.
+                    defname = tok
+                elif tok == '(':
+                    state = DEFARGS
+                else:
+                    state = UNKNOWN
+
+            if state == DEFARGS:
+                if tok == '(':
+                    defparen += 1
+                elif tok == ')':
+                    defparen -= 1
+                elif defparen == 0 and tok == ':':
+                    state = DOCSTRING
+                    defindent = indent
+                elif typ == NEWLINE:
+                    state = UNKNOWN
+
+            if state > 0:
+                # Append tok string to deffullname
+                if prevtyp == NAME and typ == NAME:
+                    deffullname += ' '
+                elif prevtyp == OP and deffullname[-1] in ",":
+                    deffullname += ' '
+                deffullname += tok
+
+            # New line?
+            if state == UNKNOWN and typ == NEWLINE:
+                state = BEGINOFLINE
+
+            prevtyp = typ
+
+        return self
+
+
+first = True
+
+def go(filename):
+    if os.path.isdir(filename):
+        for F in sorted(os.listdir(filename)):
+            go(os.path.join(filename, F))
+    if not os.path.exists(filename):
+        print("File %s does not exist."%filename, file=sys.stderr)
+        sys.exit(1)
+
+    if not (filename.endswith('.py') or filename.endswith('.pyx')):
+        return
+
+    global first
+    if first:
+        print('-'*72)
+        first = False
+    CoverageResults(filename).check_file(open(filename)).report()
+    print('-'*72)
+
+for arg in sys.argv[1:]:
+    go(arg)

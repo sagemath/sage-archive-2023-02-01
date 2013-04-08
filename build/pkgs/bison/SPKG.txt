@@ -1,0 +1,7 @@
+MAINTAINER:
+    * William Stein
+
+
+This package exists mainly because it's very easy to build, and it removes
+a SAGE dependency.   It could be removed if bison were put back as a SAGE
+dependency.  Building it causes nobody any trouble.

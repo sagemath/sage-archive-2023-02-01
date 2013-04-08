@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+
+# Test for libX11 in Linux
+# libXtst.so is needed building Envisage!
+if [ `uname` = "Linux" ]; then
+    echo "Testing for libXtst in /usr/lib/"
+    ls /usr/lib/libXtst.so
+    if [ $? -ne 0 ]; then
+        echo "Failed to find an libXtst.so. Install all of libX11-devel!"
+        exit 1
+    fi
+fi
+
+
+# check wether dependencies are installed
+
+PACKAGE=vtk-5.2.1
+PACKAGE_installed=`ls $SAGE_ROOT/spkg/installed/$PACKAGE`
+if [ $? -ne 0 ]; then
+    echo "Failed to find $PACKAGE  Please install the $PACKAGE spkg"
+    exit 1
+fi
+
+PACKAGE=wxPython-2.8.9.1
+PACKAGE_installed=`ls $SAGE_ROOT/spkg/installed/$PACKAGE`
+if [ $? -ne 0 ]; then
+    echo "Failed to find $PACKAGE  Please install the $PACKAGE spkg"
+    exit 1
+fi
+
+PACKAGE=reportlab-2.2
+PACKAGE_installed=`ls $SAGE_ROOT/spkg/installed/$PACKAGE`
+if [ $? -ne 0 ]; then
+    echo "Failed to find $PACKAGE  Please install the $PACKAGE spkg"
+    exit 1
+fi
+
+PACKAGE=pil-1.1.6
+PACKAGE_installed=`ls $SAGE_ROOT/spkg/installed/$PACKAGE`
+if [ $? -ne 0 ]; then
+    echo "Failed to find $PACKAGE  Please install the $PACKAGE spkg"
+    exit 1
+fi
+
+PACKAGE=swig-1.3.31
+PACKAGE_installed=`ls $SAGE_ROOT/spkg/installed/$PACKAGE`
+if [ $? -ne 0 ]; then
+    echo "Failed to find $PACKAGE  Please install the $PACKAGE spkg"
+    exit 1
+fi
+
+cd src
+
+# Work around the way numpy is installed
+
+echo "Creating ~/.numpy-site.cfg"
+
+echo "[x11]" > $HOME/.numpy-site.cfg
+echo "library_dirs = /usr/lib" >> $HOME/.numpy-site.cfg
+echo "include_dirs = /usr/include" >> $HOME/.numpy-site.cfg
+echo "" >> $HOME/.numpy-site.cfg
+
+echo "Cleaning up previous install"
+
+# removing remains of mayavi-2.*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/enthought*
+
+# removing previous install
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/AppTools*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/BlockCanvas*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/Chaco*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/CodeTools*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/Enable*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/EnthoughtBase*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/EnvisageCore*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/EnvisagePlugins*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/ETS*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/ETSDevTools*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/ETSProjectTools*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/Mayavi*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/SciMath*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/Traits*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/TraitsBackendQt*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/TraitsBackendWX*
+rm -rf $SAGE_ROOT/local/lib/python/site-packages/site-packages/TraitsGUI*
+
+python egg_builder.py --clean
+
+python egg_builder.py -r -v
+if [ $? -ne 0 ]; then
+    echo "Error building ETS"
+    rm $HOME/.numpy-site.cfg
+    exit 1
+fi
+
+easy_install -f dist -H dist ETS_*
+if [ $? -ne 0 ]; then
+    echo "Error installing ETS"
+    rm $HOME/.numpy-site.cfg
+    exit 1
+fi
+
+echo "Deleting ~/.numpy-site.cfg"
+
+rm $HOME/.numpy-site.cfg
+
+echo "Try this:"
+echo "./sage -sh"
+echo "mayavi2"
+echo ""
+echo "or type ./sage -wthread"
+echo "and on the sage prompt"
+echo "sage: from enthought.mayavi import mlab as M"
+echo "sage: M.test_surf()"
+echo "sage: M.axes()"
+echo "sage: show_pipeline()"
+echo "etcetera."

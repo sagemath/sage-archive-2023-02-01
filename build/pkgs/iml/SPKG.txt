@@ -1,0 +1,68 @@
+= IML =
+
+== Description ==
+
+IML is a free library of C source code which implements algorithms for computing exact solutions to dense systems of linear equations over the integers. IML is designed to be used with the ATLAS/BLAS library and GMP bignum library.
+
+Website: http://www.cs.uwaterloo.ca/~astorjoh/iml.html
+
+== License ==
+
+GPL
+
+== SPKG Maintainers ==
+ * William Stein
+ * Martin Albrecht
+
+== Upstream Contact ==
+
+ * Zhuliang Chen z4chen@uwaterloo.ca
+ * Arne Storjohann astorjoh@uwaterloo.ca
+
+== Dependencies ==
+ * GMP/MPIR
+ * ATLAS
+
+== Special Update/Build Instructions ==
+
+ * Sage's current version is fairly out of date. As of July 21st 2010, the
+   latest upstream release is 1.0.3 (dated July 28th 2008).
+
+The following build instructions by William Stein might be incomplete and/or out of date:
+
+ * I had to put the built version of src/repl in that directory, since on OS X it won't build. It's basically empty, so this seems safe.
+ * I had to src/config/install-sh executable.
+ * I had to create src/cblas.h since on many systems it isn't installed anywhere!? I just used gsl_cblas.h for this purpose, which seems to work fine.
+ * Modified some of the examples, and made build scripts that work.
+ * '''IMPORTANT''': Change lift to iml_lift in padiclift.* and nonsingsolve.*, since otherwise  on OSX you'll have horrible weird conflict problems.
+
+== Changelog ==
+
+=== iml-1.0.1.p14 (Simon King, 10th December 2011) ===
+ * #12131: Use --libdir, to make the package work on openSUSE.
+
+=== iml-1.0.1.p13 (David Kirkby, 22nd June, 2010) ===
+ * #9309 Add an spkg-check file for the IML library. There are only
+   two self-tests, but at least there is some testing.
+
+=== iml-1.0.1.p12 (Jaap Spies, Jan 25th, 2010) ===
+ * Let SAGE64 work for Open Solaris 64 bit
+ * Update SPKG.txt
+
+=== iml-1.0.1.p11 (Michael Abshoff, May 18th, 2008) ===
+ * add 64 bit OSX build support
+
+=== iml-1.0.1.p10 (Michael Abshoff, April 1st, 2008) ===
+ * Update SPKG.txt
+ * Tim Abbott: Update iml with Debian's gfortran transition. (#2758)
+
+=== iml-1.0.1.p9 (Tim Abbott, February 7th, 2008) ===
+ * Add Debian build support.
+
+=== iml-1.0.1.p7 (Michael Abshoff, December 23rd, 2007) ===
+ * apply memleak patch in nullspace.c (which has been send to the IML autors)
+ *  add .hgignore
+
+=== William Stein (2007-02-14) ===
+ * initial version
+

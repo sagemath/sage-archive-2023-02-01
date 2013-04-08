@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+if [ -z "$SAGE_LOCAL" ] ; then
+    echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
+fi
+
+if [ -z "$CFLAG64" ] ; then
+    CFLAG64=-m64
+fi
+
+if [ "x$SAGE64" = xyes ] ; then
+    echo "Building a 64-bit version of Symmetrica."
+    CFLAGS="$CFLAGS $CFLAG64"
+fi
+
+CFLAGS="-O2 -g $CFLAGS -fPIC -DFAST -DALLTRUE"
+export CFLAGS
+
+
+cd src
+
+for patch in ../patches/*.patch; do
+    patch < "$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error: Patch \"$patch\" failed to apply."
+        exit 1
+    fi
+done
+
+# Patching the upstream Makefile doesn't make sense,
+# as it has (syntactically) nothing in common with ours.
+cp -p -f ../patches/makefile makefile
+if [ $? -ne 0 ]; then
+    echo >&2 "Error copying over patched Makefile."
+    exit 1
+fi
+
+$MAKE
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building Symmetrica."
+    exit 1
+fi
+
+cp -p -f libsymmetrica.a "$SAGE_LOCAL"/lib/
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing the Symmetrica library."
+    exit 1
+fi
+
+# Upstream tarball has funky permissions:
+chmod 644 def.h macro.h &&
+mkdir -p "$SAGE_LOCAL"/include/symmetrica &&
+cp -p -f def.h macro.h "$SAGE_LOCAL"/include/symmetrica/
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing Symmetrica's header files."
+    exit 1
+fi
+

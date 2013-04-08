@@ -1,0 +1,34 @@
+= graphs =
+
+== Description ==
+
+A database of graphs. Created by Emily Kirkman based on the work of Jason
+Grout. Since April 2012 it also contains the ISGCI graph database.
+
+== SPKG Maintainers ==
+
+ * R. Andrew Ohana <andrew.ohana@gmail.com>
+ * Nathann Cohen (part-time since march 2012)
+
+== Upstream Contact ==
+
+ * For ISGCI : H.N. de Ridder (hnridder@graphclasses.org)
+
+== Dependencies ==
+
+N/A
+
+== Changelog ==
+
+== graphs-20120404.p4 (R. Andrew Ohana, 2012-05-17) ==
+ * #13123: Move SAGE_DATA to SAGE_LOCAL/share
+
+== graphs-20120404.p3 (Nathann Cohen, 2012-04-04) ==
+ * Addition of the ISGCI database as a XML file. See trac #11880
+
+== graphs-20070722.p2 (Keshav Kini, 2012-03-18) ==
+ * #12694: Normalize directory structure
+ * Make R. Andrew Ohana the maintainer
+
+== graphs-20070722.p1 (?, ?) ==
+?

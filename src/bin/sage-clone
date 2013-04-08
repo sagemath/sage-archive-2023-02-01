@@ -1,0 +1,143 @@
+#!/usr/bin/env python
+
+import os, sys, shutil, subprocess
+
+SAGE_ROOT = os.environ['SAGE_ROOT']
+
+os.chdir(os.path.join(SAGE_ROOT, "devel"))
+
+def usage():
+    print "\n\n"
+    print "sage -clone <new_branch> [-r rev]"
+    sys.exit(1)
+
+if len(sys.argv) == 1:
+    usage()
+
+if sys.argv[1] == '-r':
+    if len(sys.argv) < 4:
+        usage()
+    sys.argv = [sys.argv[0], sys.argv[3], sys.argv[1], sys.argv[2]]
+
+branch = 'sage-%s'%sys.argv[1]
+
+if os.path.isdir(branch):
+    print "Sage library branch %s already exists so I can't clone to it."%branch
+    sys.exit(1)
+
+if not os.path.isdir('sage'):
+    print "No Sage branch currently selected.  Use 'sage -b [branch_name]'."
+    sys.exit(1)
+
+print "Now cloning the current Sage library branch..."
+cmd = 'hg clone %s sage %s '%(' '.join(sys.argv[2:]), branch)
+print cmd
+if os.system(cmd):
+    print "Error cloning"
+    sys.exit(1)
+
+print "Copying over all Cython auto-generated .c, .cpp and .h files..."
+def cpdir(src, dest):
+    if not os.path.isdir(dest):
+        return
+    for F in os.listdir(src):
+        if os.path.isdir(src + '/' + F):
+            cpdir(src + '/' + F, dest + '/' + F)
+        else:
+            ext = os.path.splitext(F)[-1]
+            if ext in ['.h', '.c', '.cpp']:
+                if 'Cython' in open(src + '/' + F).readline():
+                    os.link(src + '/' + F, dest + '/' +F)
+                    os.utime(dest + '/' +F, None)
+
+
+cpdir(os.path.abspath('sage/sage'), os.path.abspath(branch + '/sage'))
+
+def copy_dtree(src_dir, dest_dir):
+    src_root = os.path.abspath(src_dir)
+    dest_root = os.path.abspath(dest_dir)
+
+    for root, dirs, files in os.walk(src_root):
+        nroot = dest_root + root[len(src_root):]
+        for d in dirs:
+            os.makedirs(nroot+'/'+d)
+        for f in files:
+            os.link(root+'/'+f,nroot+'/'+f)
+            os.utime(nroot+'/'+f, None)
+
+print "Copying over build directory..."
+copy_dtree('sage/build', branch + '/build')
+
+print "Copying over all auto-generated reference manual .rst files..."
+sys.path.append(os.environ['SAGE_DOC'])
+from common.builder import LANGUAGES
+for lang in LANGUAGES:
+    ref = os.path.join('sage', 'doc', lang, 'reference')
+    try:
+        for f in os.listdir(ref):
+            if os.path.isdir(os.path.join(ref, f)):
+                for directory in ['sage', 'sagenb']:
+                    fr = os.path.join(ref, f, directory)
+                    if os.path.exists(fr):
+                        to = os.path.join(branch, 'doc', lang, 'reference', f, directory)
+                        cmd = 'cp -pR %s %s' % (fr, to)
+                        subprocess.call([cmd], shell=True)
+    except:
+        pass
+
+print "Copying over documentation output..."
+# Use shutil.copytree instead of copy_dtree to make sure that symlinks
+# are copied correctly. See #14245.
+shutil.copytree('sage/doc/output', branch + '/doc/output', symlinks=True)
+
+print "Building " + branch + "..."
+cmd = 'sage -b %s'%sys.argv[1]
+print cmd
+if os.system(cmd):
+    print "Error building Sage"
+    sys.exit(1)
+
+HGRC = open(os.path.join(SAGE_ROOT, "devel", "sage", ".hg", "hgrc"),
+            mode='a')
+HGRC.write("""
+[diff]
+git = true
+""")
+HGRC.close()
+
+try:
+    index = open(os.path.join(SAGE_ROOT, "devel/sage/doc/output/html/en/reference/index.html"))
+    if index.read().find("mathjax") != -1:
+        mathjax = " --mathjax"
+    else:
+        mathjax = ""
+    print ""
+    print "After cloning, if you change any Sage library files and want to rebuild"
+    print "the html version of the reference manual, use the command"
+    print "    sage -docbuild%s reference html" % mathjax
+    print "(after running 'sage -b')."
+    print ""
+    print "Note: if *before* cloning, you have changed any Sage library files"
+    print "without rebuilding the reference manual, then after cloning, you"
+    print "will need to touch those files again if you want the changes"
+    print "to be incorporated into the reference manual."
+    print ""
+    print "Updating modification times for the documentation..."
+    cmd = 'sage -docbuild%s --update-mtimes reference html' % mathjax
+    print cmd
+    proc = subprocess.Popen([cmd], shell=True)
+    if proc.wait():
+        print ""
+        print "Warning: Error updating modification times. (The clone will"
+        print "work fine, but building the reference manual may take longer"
+        print "than it should.)"
+        print ""
+except IOError:
+    pass
+
+print "*** WARNING ***"
+print "If you are cloning a previous revision or have uncommitted changes to"
+print "cython files do "
+print "    sage -ba"
+print "Otherwise Sage might build using the wrong .c files !!"
+

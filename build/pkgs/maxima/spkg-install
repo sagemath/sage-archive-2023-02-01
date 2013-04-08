@@ -1,0 +1,144 @@
+#!/usr/bin/env bash
+
+if [[ -z "$SAGE_LOCAL" ]]; then
+    echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
+fi
+
+check_error() {
+    if [[ $? -ne 0 ]]; then
+        echo >&2 "***********************************************************"
+        echo >&2 "Error:" $@
+        echo >&2 "***********************************************************"
+        exit 1
+    fi
+}
+
+# We don't have to set up CFLAGS etc., since these are taken from ECL
+# (i.e., ECL uses the ones that were specified when ECL was built).
+
+MAKE="$MAKE -j1"  # force sequential build (1 job)
+
+CUR=`pwd`
+
+
+cd src/
+
+# Apply patches:
+echo "Applying patches (if any)..."
+for patch in ../patches/*.patch; do
+    patch -p1 <"$patch"
+    check_error "Patch '$patch' failed to apply."
+done
+
+
+echo
+echo "Now configuring Maxima..."
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --enable-ecl
+check_error "Failed to configure Maxima."
+
+
+# Touching html and info files to avoid to regenerate them.
+# This must be done after configuration since the timestamps need
+# to be later than include-maxima.texi which is generated at
+# configuration time:
+echo
+echo "Now touching documentation files..."
+touch `find doc/info -name \*.info\* -o -name \*.html`
+check_error "Failed to touch documentation files."
+
+
+echo
+if [[ "$UNAME" = "Darwin" ]]; then
+    echo "Now building Maxima; this takes a few minutes."
+    echo "Since we're on MacOS X and there is a very weird"
+    echo "bug with buffered output while building Maxima,"
+    echo "you will not be able to see the output of the build"
+    echo "as it occurs.  Don't worry, the build process does"
+    echo "not hang."
+    $MAKE >> "$CUR"/output.log  2>> "$CUR"/error.log
+else
+    echo "Now building Maxima..."
+    $MAKE
+fi
+check_error "Failed to build Maxima."
+
+
+echo
+echo "Now installing Maxima..."
+$MAKE install
+check_error "Failed to install Maxima."
+
+
+echo
+echo "Creating wrapper script with disabled readline..."
+cat >"$SAGE_LOCAL"/bin/maxima-noreadline <<-"EOF"
+	#!/usr/bin/env bash
+	if [[ -z "$SAGE_LOCAL" ]]; then
+	    echo >&2 "Error: This script has to be run from within the Sage environment,"
+	    echo >&2 "       for example from a Sage subshell."
+	    exit 1
+	fi
+	SAGE_CLISP_DISABLE_READLINE_HACK="yes"
+	export SAGE_CLISP_DISABLE_READLINE_HACK
+	exec "$SAGE_LOCAL"/bin/maxima "$@"
+EOF
+chmod 755 "$SAGE_LOCAL"/bin/maxima-noreadline
+
+if [[ -f "$DOT_SAGE/maxima_commandlist_cache.sobj" ]]; then
+    echo
+    echo "Deleting Maxima commandlist cache."
+    echo "It will be recreated at the next start of Sage."
+    rm -f "$DOT_SAGE"/maxima_commandlist_cache.sobj
+fi
+
+
+# Build Maxima as a Lisp library
+# and install it into ECL's library directory:
+echo
+echo "Now building Maxima as an ECL library..."
+cd "$CUR"/src/src &&
+mkdir -p ./lisp-cache &&
+ecl \
+  -eval '(require `asdf)' \
+  -eval '(setf asdf::*user-cache* (truename "./lisp-cache"))' \
+  -eval '(load "maxima-build.lisp")' \
+  -eval '(asdf:make-build :maxima :type :fasl :move-here ".")' \
+  -eval '(quit)'
+check_error "Failed to build Maxima as an ECL library."
+
+ECLLIB=`ecl -eval "(princ (SI:GET-LIBRARY-PATHNAME))" -eval "(quit)"`
+echo
+echo "Now installing the Maxima library as '$ECLLIB/maxima.fas'..."
+PWD=`pwd`
+if [[ -f "maxima.system.fasb" ]]; then
+    echo "New ASDF encountered"
+    cp -f maxima.system.fasb "$ECLLIB/maxima.fas"
+    check_error "Failed to install '$PWD/maxima.system.fasb' as '$ECLLIB/maxima.fas'."
+elif [[ -f "maxima.fasb" ]]; then
+    echo "Old ASDF encountered"
+    cp -f maxima.fasb "$ECLLIB/maxima.fas"
+    check_error "Failed to install '$PWD/maxima.fasb' as '$ECLLIB/maxima.fas'."
+else
+    echo >&2 "Error: cannot find an .fasb file to install - exiting..."
+    exit 1
+fi
+
+
+if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]] ; then
+    # Install a copy of the Maxima HTML documentation locally.
+    cd "${CUR}/src"
+
+    # The Maxima HTML docs are already built, we just need to copy
+    # them to the sage installation.
+    MAXIMA_DOCS=$SAGE_ROOT/local/share/doc/maxima
+    MAXIMA_FIGURES=$MAXIMA_DOCS/figures
+
+    mkdir -p $MAXIMA_FIGURES
+
+    # The HTML documentation only uses the GIF figures, not the PDF
+    # ones.
+    cp doc/info/*.html        $MAXIMA_DOCS
+    cp doc/info/figures/*.gif $MAXIMA_FIGURES
+fi

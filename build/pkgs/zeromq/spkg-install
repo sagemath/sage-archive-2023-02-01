@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+
+unset RM
+
+cd src
+
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL"/lib
+
+if [ $? -ne 0 ]; then
+    exit 1
+fi
+
+make install
+
+if [ $? -ne 0 ]; then
+    exit 1
+fi

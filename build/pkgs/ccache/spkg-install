@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+die () {
+    echo >&2 "$@"
+    exit 1
+}
+
+[ -n "$SAGE_LOCAL" ] || die "SAGE_LOCAL undefined, maybe run \`sage -sh\`?"
+
+cd src
+export LDFLAGS="-L$SAGE_LOCAL/lib $LDFLAGS"
+export CPPFLAGS="-I$SAGE_LOCAL/include $CPPFLAGS"
+./configure --prefix="$SAGE_LOCAL" ||
+    die "configuring ccache failed"
+
+$MAKE ||
+    die "building ccache failed"
+
+$MAKE install ||
+    die "installing ccache failed"
+
+mkdir -p "$SAGE_LOCAL/libexec/ccache"
+ln -sf ../../bin/ccache "$SAGE_LOCAL/libexec/ccache/cc"
+ln -sf ../../bin/ccache "$SAGE_LOCAL/libexec/ccache/c++"
+ln -sf ../../bin/ccache "$SAGE_LOCAL/libexec/ccache/gcc"
+ln -sf ../../bin/ccache "$SAGE_LOCAL/libexec/ccache/g++"
+ln -sf ../../bin/ccache "$SAGE_LOCAL/libexec/ccache/clang"
+ln -sf ../../bin/ccache "$SAGE_LOCAL/libexec/ccache/clang++"
+
+# If the user hasn't run ccache before, configure the cache size to 4GB
+# to be able to cache the Sage distribution.  Otherwise, respect any
+# existing configuration.
+if [ -z "$CCACHE_DIR" ]; then
+    # Default directory for the test below
+    CCACHE_DIR="$HOME/.ccache"
+fi
+if [ ! -d "$CCACHE_DIR" ]; then
+    ccache --max-size=4G
+fi

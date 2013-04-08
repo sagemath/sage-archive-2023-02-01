@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+#remove openmpi files
+rm  -f $SAGE_LOCAL/bin/mpi*
+rm  -f $SAGE_LOCAL/bin/ompi-*
+rm  -f $SAGE_LOCAL/bin/opal_wrapper
+rm  -f $SAGE_LOCAL/bin/ompi_info
+
+rm  -f $SAGE_LOCAL/LIB/libmpi_cxx*
+rm  -f $SAGE_LOCAL/LIB/libmpi_f*
+rm  -f $SAGE_LOCAL/LIB/libmpi.la
+rm  -f $SAGE_LOCAL/LIB/libmpi.so*
+rm  -f $SAGE_LOCAL/LIB/libmca_common*
+rm  -f $SAGE_LOCAL/LIB/libopenmpi_malloc*
+
+rm -r  -f $SAGE_LOCAL/LIB/openmpi
+rm -r  -f $SAGE_LOCAL/share/openmpi
+rm -r  -f $SAGE_LOCAL/include/openmpi
+
+rm  -f $SAGE_LOCAL/etc/openmpi*
+
+
+cd src
+
+unset RM
+export MAKE="$MAKE -j 1"
+
+./configure --prefix="$SAGE_LOCAL"
+if [ $? -ne 0 ]; then
+    echo "Error configuring"
+    exit 1
+fi
+
+
+$MAKE all
+
+if [ $? -ne 0 ]; then
+    echo "Error building"
+    exit 1
+fi
+
+$MAKE install
+
+if [ $? -ne 0 ]; then
+    echo "Error installing"
+    exit 1
+fi

@@ -1,0 +1,13 @@
+--- ../src/include/capd/capd/operatingSystemSetting.h	2008-07-02 04:50:10.000000000 -0700
++++ operatingSystemSetting.h	2010-11-19 08:34:54.000000000 -0800
+@@ -59,8 +59,8 @@
+ #    error The Interval library does not work on the Linux/Sparc combination.
+ #  endif
+ 
+-// Is the target processor a Sparc one? If so, assume the system is Sun OS.
+-#elif defined (__sparc__)
++// If 'sun' is defined, which it is by both Sun Studio and gcc, then assume Solaris.
++#elif defined (sun)
+ #  define SUN_OS
+ #endif
+ 

@@ -1,0 +1,58 @@
+= PHCpack =
+
+== Description ==
+
+PHCpack: a general-purpose solver for polynomial systems by homotopy continuation.
+
+Website: http://www2.math.uic.edu/~jan/PHCpack/phcpack.html
+
+== License ==
+GPL
+
+== SPKG Maintainers ==
+ * Marhall Hampton
+
+== Upstream Contact ==
+ * Jan Verschelde see http://www2.math.uic.edu/~jan/
+
+== Dependencies ==
+ * none
+
+== Special Update/Build Instructions ==
+
+Since PHCpack is written in APL we are shipping binaries. A source spkg could be created if there is demand for it. We are currently shipping binaries for
+ * x86 Linux, 32 and 64 bit
+ * OSX PPC
+ * OSX Intel 64 bit, OS X 10.5 and 10.6
+ * SunOS 5.8
+
+AIX binaries are available at http://www.math.uic.edu/~jan/download.html but since Sage does not currently support AIX these are not included.
+
+== Changelog ==
+
+=== phc-2.3.65.p0 (John H. Palmieri, 12 June 2012) ===
+ * recognize 'x86_64' as valid architecture on Darwin.
+
+=== phc-2.3.65 (Marshall Hampton, August 4th, 2011) ===
+ * updated binaries to 2.3.65
+
+=== phc-2.3.60 (Marshall Hampton, January 12th, 2011) ===
+ * updated binaries to 2.3.60
+
+=== phc-2.3.53.p0 (Marshall Hampton, December 4th, 2009) ===
+ * updated binaries to 2.3.53
+
+=== phc-2.3.51.p0 (Marshall Hampton, November 15th, 2009) ===
+ * updated binaries to 2.3.51
+
+=== phc-2.3.39.p0 (Michael Abshoff, March 29th, 2008)  ===
+ * remove AIX binary
+ * add SPKG.txt
+ * add repo, add .hgignore
+
+=== phc-2.3.39 (Marshall Hampton, March 20th, 2008)  ===
+ * update to the 2.3.29 release
+
+=== phc-2.3.38 (Marshall Hampton, February 24th, 2008)  ===
+ * update to the 2.3.28 release
+

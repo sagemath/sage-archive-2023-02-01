@@ -1,0 +1,40 @@
+= Sage Patchbot =
+
+== Description ==
+
+Applies and run tests on open Sage tickets.
+
+== License ==
+
+GPLv2+
+
+== SPKG Maintainers ==
+
+* Robert Bradshaw
+
+== Upstream Contact ==
+
+robertwb@gmail.com
+https://github.com/robertwb/sage-patchbot/
+
+== Dependencies ==
+
+* python
+* sage-scripts
+
+== Changelog ==
+
+=== Sage Patchbot 1.2 (Robert Bradshaw, January 2013) ===
+
+ * Startup-time plugin.
+ * Non-ascii plugin.
+ * Spkg inspection.
+ * Better redundancy avoidance.
+
+=== Sage Patchbot 1.1 (Robert Bradshaw, August 2012) ===
+
+ * Robustness, server, and plugin improvements.  See Sage trac #13410.
+
+=== Sage Patchbot 1.0 (Robert Bradshaw, August 2012) ===
+
+ * Initial release.  See Sage trac #12486.

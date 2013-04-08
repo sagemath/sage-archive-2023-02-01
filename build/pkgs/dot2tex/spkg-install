@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+#rm -rf "$SAGE_LOCAL/lib/python/site-packages/IPython"
+
+patch -p 1 < patches/use-matplotlib-pyparsing.patch
+patch -p 1 < patches/fix-stdout-redirection.patch
+
+cd src
+
+python setup.py build
+python setup.py install
+
+if [ $? -ne 0 ]; then
+    echo "Error installing dot2tex"
+    exit 1
+fi

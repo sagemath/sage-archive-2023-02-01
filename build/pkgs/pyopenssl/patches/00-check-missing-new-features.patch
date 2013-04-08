@@ -1,0 +1,91 @@
+This patch is by Philip K. Warren and was posted on
+https://bugs.launchpad.net/pyopenssl/+bug/845445 on 2012-01-10. It adds
+checks for newer (>=0.9.8f) OpenSSL features, and if they are not found
+in the system's OpenSSL installation, those features are turned off. As
+a result, pyOpenSSL's tests no longer pass when pyOpenSSL is built
+against an old OpenSSL.
+
+diff --git a/OpenSSL/ssl/connection.c b/OpenSSL/ssl/connection.c
+index 9e9794b..59ec9f6 100755
+--- a/OpenSSL/ssl/connection.c
++++ b/OpenSSL/ssl/connection.c
+@@ -271,6 +271,7 @@ Switch this connection to a new session context\n\
+ ";
+ static PyObject *
+ ssl_Connection_set_context(ssl_ConnectionObj *self, PyObject *args) {
++#ifdef TLSEXT_MAXLEN_host_name
+     ssl_ContextObj *ctx;
+     ssl_ContextObj *old;
+ 
+@@ -299,6 +300,10 @@ ssl_Connection_set_context(ssl_ConnectionObj *self, PyObject *args) {
+ 
+     Py_INCREF(Py_None);
+     return Py_None;
++#else
++    PyErr_SetString(PyExc_ValueError, "SSL_set_SSL_CTX not supported by this version of OpenSSL");
++    return NULL;
++#endif
+ }
+ 
+ static char ssl_Connection_get_servername_doc[] = "\n\
+@@ -310,6 +315,7 @@ message, or None if there wasn't one.\n\
+ ";
+ static PyObject *
+ ssl_Connection_get_servername(ssl_ConnectionObj *self, PyObject *args) {
++#ifdef TLSEXT_MAXLEN_host_name
+     int type = TLSEXT_NAMETYPE_host_name;
+     const char *name;
+ 
+@@ -325,6 +331,10 @@ ssl_Connection_get_servername(ssl_ConnectionObj *self, PyObject *args) {
+     } else {
+         return PyBytes_FromString(name);
+     }
++#else
++    PyErr_SetString(PyExc_ValueError, "SSL_get_servername not supported by this version of OpenSSL");
++    return NULL;
++#endif
+ }
+ 
+ 
+@@ -336,6 +346,7 @@ Set the value of the servername extension to send in the client hello.\n\
+ ";
+ static PyObject *
+ ssl_Connection_set_tlsext_host_name(ssl_ConnectionObj *self, PyObject *args) {
++#ifdef TLSEXT_MAXLEN_host_name
+     char *buf;
+ 
+     if (!PyArg_ParseTuple(args, BYTESTRING_FMT ":set_tlsext_host_name", &buf)) {
+@@ -347,6 +358,10 @@ ssl_Connection_set_tlsext_host_name(ssl_ConnectionObj *self, PyObject *args) {
+ 
+     Py_INCREF(Py_None);
+     return Py_None;
++#else
++    PyErr_SetString(PyExc_ValueError, "SSL_set_tlsext_host_name not supported by this version of OpenSSL");
++    return NULL;
++#endif
+ }
+ 
+ 
+diff --git a/OpenSSL/ssl/context.c b/OpenSSL/ssl/context.c
+index c2bdcab..6d38822 100644
+--- a/OpenSSL/ssl/context.c
++++ b/OpenSSL/ssl/context.c
+@@ -1117,6 +1117,7 @@ Specify a callback function to be called when clients specify a server name.\n\
+ ";
+ static PyObject *
+ ssl_Context_set_tlsext_servername_callback(ssl_ContextObj *self, PyObject *args) {
++#ifdef TLSEXT_MAXLEN_host_name
+     PyObject *callback;
+     PyObject *old;
+ 
+@@ -1134,6 +1135,10 @@ ssl_Context_set_tlsext_servername_callback(ssl_ContextObj *self, PyObject *args)
+ 
+     Py_INCREF(Py_None);
+     return Py_None;
++#else
++    PyErr_SetString(PyExc_ValueError, "SSL_CTX_set_tlsext_servername_callback not supported by this version of OpenSSL");
++    return NULL;
++#endif
+ }
+ 
+ 

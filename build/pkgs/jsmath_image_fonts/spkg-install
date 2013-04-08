@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+# Commented out, since it's not used below.
+#TOP_LEVEL=`pwd`
+#export TOP_LEVEL
+
+SAGENB_JSMATH_DIR=$(/usr/bin/env python <<EOF
+import os
+from pkg_resources import Requirement, working_set
+try:
+    # post-#7467 notebook
+    sagenb_path = working_set.find(Requirement.parse('sagenb')).location
+except AttributeError:
+    # post-#7196 notebook
+    sagenb_path = os.path.join('$SAGE_LOCAL', 'lib', 'python2.6', 'site-packages')
+print os.path.join(sagenb_path, 'sagenb', 'data', 'jsmath')
+EOF
+)
+
+CANDIDATES=(
+# post-#7196 notebook
+    "$SAGENB_JSMATH_DIR"
+# pre-#7196 notebook
+    "$SAGE_LOCAL/lib/python2.6/site-packages/sagenb/data/javascript/jsmath"
+# "old" notebook
+    "$SAGE_LOCAL/notebook/javascript/jsmath"
+)
+
+JSMATH_DIR=""
+for DIR in ${CANDIDATES[@]}; do
+    if [ -d $DIR ]; then
+	JSMATH_DIR="$DIR"
+    fi
+done
+
+if [ "x$JSMATH_DIR" = "x" ]; then
+    echo "Unable to find base jsMath install directory.  Candidates tried:"
+    echo "${CANDIDATES[*]}"
+    exit 1
+fi
+
+export JSMATH_DIR
+
+# Commented out, since we check for an existing directory above.
+#mkdir -p $JSMATH_DIR
+#if [ $? -ne 0 ]; then
+#   echo "Error making installation directory:"
+#   echo $JSMATH_DIR
+#   exit 1
+#fi
+
+echo "Deleting old jsMath fonts..."
+rm -rf "$JSMATH_DIR/jsmath/fonts"
+if [ $? -ne 0 ]; then
+   echo "Error deleting old jsMath fonts."
+   exit 1
+fi
+
+echo "Copying jsMath image fonts to $JSMATH_DIR/fonts ..."
+cp -r src/* "$JSMATH_DIR"
+if [ $? -ne 0 ]; then
+   echo "Error copying jsMath image fonts."
+   exit 1
+fi
+
+echo "Finished installing jsMath image fonts."

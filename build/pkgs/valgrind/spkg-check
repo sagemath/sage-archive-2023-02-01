@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+cd src/
+
+$MAKE regtest
+
+if [ $? -ne 0 ]; then
+    echo >&2 "Error testing Valgrind"
+    exit 1
+fi

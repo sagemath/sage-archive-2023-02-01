@@ -1,0 +1,461 @@
+#!/usr/bin/env python
+###############################################################################
+#
+# Download to $SAGE_ROOT/spkg/standard each (standard) spkg
+# that has changed from the one currently installed.
+# Once this has completed, $SAGE_ROOT/spkg/install has to be run.
+# (This is done by "sage-upgrade", from which this Python script
+# should be called.)
+#
+# 1. Download new package list.
+# 2. Download each changed package.
+#
+# AUTHOR:  William Stein, Harald Schilly
+# LICENSE: GPLv2+
+#
+###############################################################################
+
+import os
+import shutil
+import sys
+import urllib
+from textwrap import fill
+import subprocess
+
+
+# Figure out what the package server is, where we will download our
+# spkg's.  This defaults to the 'best' mirror server by some
+# heuristics, falls back to SAGE_SERVER in case of an exception, but
+# can be overridden by the first command line argument.
+def get_sage_mirror(ask=False):
+    """
+    Finds a good Sage mirror.
+
+    Retrieves official list of active and up-to-date mirrors.  This
+    only works in conjunction with a server script that generates the
+    ``SAGE_SERVER/mirror_list`` file every 10 minutes.  Then selects one
+    of the top 3 mirrors, where pinging the host for ``index.html``
+    responses fastest.
+
+    INPUT:
+
+    - ``ask`` -- bool (default: ``False``) - selects if the user should be
+      prompted for a choice between the available Sage mirrors
+
+    OUTPUT:
+
+    - a string, the URL of a suitable (or the selected) Sage mirror
+    """
+    import re
+    import time
+    import threading
+    import random
+    import socket
+    # sometimes, everything stalls since timeouts are not part of urllib!
+    # http://viralcontentnetwork.blogspot.com/2007/08/handling-timeouts-with-urllib2-in.html
+    socket.setdefaulttimeout(20)
+
+    # the list of active and up-to-date mirrors
+    if 'SAGE_SERVER' not in os.environ:
+        print "The environment variable SAGE_SERVER must be set."
+        sys.exit(1)
+    SAGE_SERVER = os.environ['SAGE_SERVER']
+    mirrors = eval(urllib.urlopen(SAGE_SERVER + '/mirror_list').read())
+    timings = []
+
+    re_host = re.compile(r'://([^/]*)/')
+
+    def pinger_urllib(host):
+        """
+        Helper function timing the retrieval of ``index.html``'s header.
+        """
+        try:
+            t1 = time.time()
+            opener = urllib.FancyURLopener({})
+            u = opener.open(host + '/index.html')
+            if u.getcode() is not 200:
+                return None
+            # u.read() to get the actual content
+            return (time.time() - t1) * 1000.0
+        except IOError:
+            # socket timeout
+            print '%-30s TIMEOUT' % (host) ; sys.stdout.flush()
+            return None
+
+    def task(idx, m, timings):
+        """
+        The actual task of testing a mirror.
+        """
+        host = re_host.search(m).group(1)
+        delay = pinger_urllib(m)
+        if delay is None:
+            return
+        timings.append((delay, m))
+        print '    [%-2s] %-30s %5.0f [ms]' % (idx, host, delay)
+        sys.stdout.flush()
+
+    # parallelization. safe, since most of the time we are waiting for
+    # the network to respond
+    print 'Testing mirrors...\n' ; sys.stdout.flush()
+    tasks = []
+    for idx, m in enumerate(mirrors):
+        t = threading.Thread(target=task, args=(idx, m, timings))
+        t.start()
+        tasks.append(t)
+
+    # synchronization point
+    for t in tasks:
+        t.join(timeout=30)
+
+    # select a random one from the top 3, to be fair
+    top = sorted(timings)[0:min(len(timings), 3)]
+    random.shuffle(top)
+    sel = top[0][1]
+    sel_host = re_host.search(sel).group(1)
+    print '\nAutomatically selected server %s (%s).' % (sel_host, sel)
+    sys.stdout.flush()
+    if ask:
+        try:
+            # raw_input() doesn't flush the output.  In case it is e.g. tee'd
+            # to a log file, the user won't see the prompt and may think
+            # "./sage -upgrade ..." hangs.
+            sys.stdout.write(
+                'Press RETURN to continue or enter a number to select another one: ')
+            sys.stdout.flush()
+            input = raw_input()
+            if input:
+                # FIXME: Lacks a range check (i.e. might raise an IndexError, too):
+                print 'Manually selected %s.' % mirrors[int(input)]
+                sys.stdout.flush()
+                return mirrors[int(input)]
+        except ValueError:
+            print 'Error: You have to enter a number or press RETURN!'
+            sys.exit(1)
+    return sel
+
+cur = 0
+def reporthook(block, size, total):
+    """
+    Used with ``urllib.urlretrieve()``, prints ``.``'s as a URL is downloaded.
+    """
+    global cur
+    n = block * size * 50 / total
+    if n > cur:
+        cur = n
+        sys.stdout.write('.')
+        sys.stdout.flush()
+
+def download_file(file):
+    """
+    INPUT:
+
+    - ``file`` -- a string
+
+    OUTPUT:
+
+    - Downloads ``file`` from ``PKG_SERVER`` to a temporary file, then if the
+      download finishes it moves it to the proper spkg name, then
+      deletes all old versions of the spkg.
+
+    Note that if ``file`` is a pathname, it should use a slash "/" as
+    directory separator, since it used to construct a URL.  In particular,
+    you should avoid using os.path.join(...) to construct ``file``.
+    """
+    url = "%s/%s" % (PKG_SERVER, file)
+    i = url.rfind('/')
+    file = url[i + 1:]
+    print url, "-->", file,
+    global cur
+    cur = 0
+    j = file.find("-")
+    if j != -1:
+        # Blatantly delete all old versions of the given spkg.  We
+        # used to move these to archive, but nobody ever used that, so
+        # now we delete them.
+        # First we make a list of the old versions here, then we
+        # download the new version, and only if that succeeds do we
+        # actually do the delete of the old versions.
+        old_versions = [x for x in os.listdir('.')
+                        if x.startswith(file[:j + 1]) and os.path.isfile(x)]
+    else:
+        old_versions = []
+
+    if file in old_versions:
+        print "'%s' is already present." % file
+        return
+
+    print "[",
+    urllib.urlretrieve(url, file + '.part', reporthook)
+    print "]"
+    # If the downloaded file is suspiciously small, check that it was
+    # actually valid.  If not bail and completely kill the entire
+    # upgrade process (that's what exit 2 does).
+    if ( os.path.getsize(file + '.part') < 2000 and
+         'not found' in open(file + '.part').read().lower() ):
+        os.unlink(file + '.part')
+        print "Failed to download '%s'." % url
+        print "Abort."
+        sys.exit(2)
+    else:
+        # we're good -- move temp file over and delete all old versions.
+        os.rename(file + '.part', file)
+        for X in old_versions:
+            if os.path.exists(X):
+                print "Deleting old spkg '%s'..." % X ; sys.stdout.flush()
+                os.unlink(X)
+
+def permission_error():
+    """
+    Print a message that the user doesn't have sufficient enough
+    permissions, and needs to fix that problem.
+    """
+    print "You must have write permissions to the following directory:"
+    print "    %s" % SPKG_ROOT
+    print "Please login as UNIX user with appropriate permissions and try again."
+    sys.exit(2)
+
+def spkg_list(url):
+    """
+    INPUT:
+
+    - ``url`` -- a URL (in fact just a pathname) to be appended to ``PKG_SERVER/``
+
+    OUTPUT:
+
+    - Writes into a temporary file in the current directory.
+    """
+    # file - file in which to put a list of all spkg's in the given URL.
+    file = 'list.tmp'
+    web_url = "%s/%s" % (PKG_SERVER, url)
+
+    print "Reading package lists...", ; sys.stdout.flush()
+    # Download the spkg/ directory listing.
+    try:
+        urllib.urlretrieve(web_url, file, reporthook)
+    except IOError, msg:
+        if "Permission denied" in str(msg):
+            # bail -- user isn't good enough to upgrade.
+            permission_error()
+        raise
+    r = open(file).read()
+    os.unlink(file)
+
+    if 'not found' in r.lower():
+        print "\n404 Error: Package server '%s' not found." % PKG_SERVER
+        print "Abort."
+        sys.exit(2)
+    print " Done!" ; sys.stdout.flush()
+
+    # This is a pretty silly/arbitrary way to do this but directory
+    # listings from HTTP have links to each file, and the code below
+    # simply finds (one each) via a silly approach all the spkg's
+    # that are so listed.  This is just simple but works fine.
+    r = r.split('"')
+    v = list(set([x.strip() for x in r if x.endswith('.spkg')]))
+    v.sort()
+    return v
+
+def chop(s, endstring):
+    """
+    Chops a substring from the end of a string.
+
+    INPUT:
+
+    - ``s`` -- string; the string to truncate
+
+    - ``endstring`` -- string; the string to remove from the end of
+      ``s``, *if* ``s`` ends with ``endstring``
+
+    OUTPUT:
+
+    - a string
+
+    EXAMPLES::
+
+        sage: chop('foo', 'bar')
+        'foo'
+        sage: chop('foo', 'fo')
+        'foo'
+        sage: chop('bar.txt', '.txt')
+        'bar'
+    """
+    if s.endswith(endstring):
+        s = s[: - len(endstring)]
+    return s
+
+def do_update():
+    """
+    Download the list of spkg's and see which are new.  For each of
+    those, download the actual spkg's along with some basic
+    build-system scripts, after checking with the user that they
+    really want to upgrade.
+
+    OUTPUT:
+
+    - Creates files in and deletes files from ``SAGE_ROOT/spkg/``
+    """
+    # Download list of all spkg's
+    os.chdir(os.path.join(SPKG_ROOT, "standard"))
+    packages = spkg_list('standard')
+
+    # Figure out which spkg's haven't been installed locally.  Note
+    # that we will re-download over local spkg's if they haven't been
+    # successfully installed.  This is great because it means that
+    # partial or corrupted downloads get fixed if they failed to
+    # download correctly in the past.
+    installed = set(os.listdir(SAGE_SPKG_INST))
+    to_download = [x for x in packages if not chop(x, '.spkg') in installed]
+    if len(to_download) == 0:
+         # Nothing to do.
+        print "No new packages."
+        return
+
+    # Display list of packages to upgrade.
+    print "The following packages will be upgraded:\n"
+    print fill(' '.join([chop(x, '.spkg') for x in to_download]),
+               initial_indent='    ', subsequent_indent='    ') + '\n'
+
+    # Make sure the user really wants to upgrade.  After all,
+    # upgrading is not guaranteed to work, yet.  This is for "power
+    # users".
+    warning = "WARNING: This is a source-based upgrade, which could take hours, "
+    warning += "fail, and render your Sage install useless!!"
+
+    for F in os.listdir("."):
+        if os.path.isfile(F) and 'Placeholder spkg file' in open(F).readline():
+            warning += "  This is a binary install, so upgrading in place is *not*"
+            warning += " recommended unless you are an expert.  Please consider "
+            warning += "installing a new binary from http://sagemath.org instead."
+            break
+    print fill(warning, initial_indent=' ** ', subsequent_indent=' ** ') + '\n'
+
+    # raw_input() doesn't flush the output.  In case it is e.g. tee'd
+    # to a log file, the user won't see the prompt and may think
+    # "./sage -upgrade ..." hangs.
+    sys.stdout.write("Do you want to continue [y/N]? ")
+    sys.stdout.flush()
+    ans = raw_input()
+    # The default answer is "no":
+    if not ans:
+        ans = "n"
+    else:
+        ans = ans.lower()
+    if ans != 'y':
+        print "Abort."
+        sys.exit(2)
+
+    # check sage root repo.  if present, check status; if there are
+    # any unchecked in changes, abort.
+    os.chdir(SAGE_ROOT)
+    err = subprocess.call('hg verify', shell=True,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE)
+    root_repo_intact = (err == 0)
+    if root_repo_intact:
+        # -q means: ignore untracked files
+        P = subprocess.Popen('hg status -q', shell=True,
+                             stdout=subprocess.PIPE)
+        output = P.communicate()[0]
+        if len(output) > 0:
+            print "There are uncommitted changes in the Sage root repository:"
+            print output
+            print "Aborting."
+            sys.exit(2)
+
+    os.chdir(os.path.join(SPKG_ROOT, "standard"))
+    # Let's do it -- download everything.
+    for P in to_download:
+        # Note: don't use os.path.join when constructing arguments for
+        # download_file: see the docstring for download_file.
+        download_file("standard/%s" % P)
+
+    # Download these since the build system requires them to be
+    # updated or we can't build correctly.
+    os.chdir(SAGE_ROOT)
+    if os.path.exists("VERSION.txt"):
+        version_file = open("VERSION.txt")
+        old_version = ", updated from %s" % version_file.read()
+        version_file.close()
+    else:
+        old_version = ""
+    download_file("standard/VERSION.txt")
+    version_file = open("VERSION.txt")
+    new_version = version_file.read()
+    new_version = new_version.strip()  # remove trailing newline
+    version_file.close()
+    # sage-upgrade, hence sage-update, gets run twice during the
+    # upgrade process.  If old_version starts with new_version, then
+    # this should be the second time through, so don't update the
+    # VERSION.txt file.
+    if not old_version.startswith(new_version):
+        version_file = open("VERSION.txt", 'w')
+        version_file.write("%s%s" % (new_version, old_version))
+        version_file.close()
+    # shutil.copy raises an error if the destination already exists,
+    # so remove SPKG_ROOT/standard/VERSION.txt.
+    try:
+        os.remove(os.path.join(SPKG_ROOT, "standard", "VERSION.txt"))
+    except OSError:
+        pass
+    shutil.copy("VERSION.txt", os.path.join(SPKG_ROOT, "standard"))
+
+    os.chdir(SPKG_ROOT)
+    download_file("install")
+    os.system('chmod +x install')
+    os.chdir(os.path.join(SPKG_ROOT, "standard"))
+    download_file("standard/deps")
+    # commit any changes into sage root repo.
+    os.chdir(SAGE_ROOT)
+    if root_repo_intact:
+        for file in ['spkg/install',
+                     'spkg/standard/deps']:
+            subprocess.call('hg commit %s -m ' % file +
+                            '"committing %s while running sage-update" ' % file +
+                            '-u "Sage (during sage -upgrade)"',
+                            shell=True)
+
+if __name__ == '__main__':
+    # Make sure the SAGE_ROOT variable is set.  This should always be
+    # set because sage-update is only supposed to be called by
+    # sage-upgrade, which is called only by spkg/bin/sage, after
+    # sourcing sage-env.
+    if 'SAGE_ROOT' not in os.environ:
+        raise RuntimeError("The environment variable SAGE_ROOT must be set.")
+    SAGE_ROOT = os.environ["SAGE_ROOT"]
+    SPKG_ROOT = os.path.join(SAGE_ROOT, 'spkg')
+    SAGE_SPKG_INST = os.path.join(SPKG_ROOT, "installed")
+
+    try:
+        if len(sys.argv) > 1:
+            if sys.argv[1] == 'ask':
+                # upgrade script should ask which server to use
+                PKG_SERVER = get_sage_mirror(ask = True)
+            else:
+                # Server given on command line, typically a URL to a
+                # specific Sage install.
+                PKG_SERVER = sys.argv[1]
+        else:
+            # Best server: determine a suitable and available mirror
+            # by some heuristics fall back to default if there is an
+            # exception
+            # Default server: specified by environment variable.
+            PKG_SERVER = get_sage_mirror(ask = False)
+    except Exception:
+        if 'SAGE_SERVER' not in os.environ:
+            print "The environment variable SAGE_SERVER must be set."
+            sys.exit(1)
+        PKG_SERVER = os.environ['SAGE_SERVER']
+
+    if not PKG_SERVER.endswith('/spkg'):
+        PKG_SERVER += '/spkg'
+
+    # Announce where we will download from.
+    print "Downloading packages from '%s'." % PKG_SERVER
+    sys.stdout.flush()
+
+    try:
+        do_update()
+    except KeyboardInterrupt:
+        print "\nControl-C pressed.  Don't panic -- this is safe and won't corrupt anything."
+        print "Abort."
+        sys.exit(2)

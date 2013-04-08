@@ -1,0 +1,35 @@
+*** mmsearch-with-temp-Solaris-fix.c	Tue Jun 16 16:00:02 2009
+--- mmsearch.c	Wed Feb 18 10:48:25 2009
+***************
+*** 1085,1114 ****
+   */
+  {
+     int imult, nb, size;
+-    /* 
+-    This function has failed to work propely on t2.math.washington.edu
+-    (a Sun T5240 with two T2+ processors, running Solaris 10 update 4) The compiler 
+-    was gcc 4.4.0.  Clint Whaley said in an email to William Stein:
+-    ----------------------------------------------------------------------------
+-    The actual error you guys are showing below looks more like something
+-    really odd happened during an install:  It is trying to choose a small
+-    block factor, and has chosen 0.  Looking at the place the assertion
+-    failed, its GuessSmallNB() in ATLAS/tune/blas/gemm/mmsearch.c,
+-    which might freak out like this if mu or nu were chosen to be huge
+-    values (the L1 is small, at 8K).  To track this down, I'd probably throw
+-    in some print statements in GuessSmallNB() to see what part of the
+-    computation is failing.
+-   
+-    If you just want to force it to continue, I think it'd be safe to simply
+-    have the routine return(28); as the first statement . . .
+-    ----------------------------------------------------------------------------
+  
+-    The fix in this file, which SHOULD ONLY BE CONSIDERED TEMPORARY, is to 
+-    make the routine return 28 - it was before returning 0.  
+- 
+-    Author: David Kirkby 16th June 2009 
+-    */
+-    return(28);
+     size = (pre == 'd' || pre == 'z') ? ATL_dsize : ATL_ssize;
+     L1Size /= size;
+     imult = Mylcm(mu, nu);
+--- 1085,1091 ----

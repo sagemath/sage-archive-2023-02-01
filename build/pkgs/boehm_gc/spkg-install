@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+if [ "$SAGE_LOCAL" = "" ]; then
+   echo "SAGE_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+# Apply patches.
+for patch in patches/*.patch; do
+    patch -p0 <"$patch"
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error applying '$patch'"
+        exit 1
+    fi
+done
+
+if [ "$SAGE64" = "yes" ]; then
+   echo "64 bit build"
+   CFLAGS="-O2 -g -fPIC -m64 "; export CFLAGS
+   LDFLAGS="-m64"; export LDFLAGS
+fi
+
+
+cd src
+
+# In order to allow upgrades from older versions of Sage (4.7 or
+# earlier), we should not set $RM to "rm".  See
+# http://trac.sagemath.org/sage_trac/ticket/3537,
+# http://trac.sagemath.org/sage_trac/ticket/11883#comment:13.
+if [ "$RM" = 'rm' ]; then
+   unset RM
+fi
+
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" --enable-large-config
+
+# See ticket #7336.  We want to set THREADDLLIBS to be nothing.
+# Rather than hacking the configure.ac file to do the right thing on
+# Cygwin, we just edit the Makefile after configure has been run.
+if [ $UNAME = "CYGWIN" ]; then
+     sed -i -e 's/^THREADDLLIBS = .*/THREADDLLIBS =/' Makefile
+fi
+
+
+if [ $? -ne 0 ]; then
+   echo "Error configuring BoehmGC."
+   exit 1
+fi
+
+make
+if [ $? -ne 0 ]; then
+   echo "Error building BoehmGC."
+   exit 1
+fi
+
+make install
+if [ $? -ne 0 ]; then
+   echo "Error installing BoehmGC."
+   exit 1
+fi
+

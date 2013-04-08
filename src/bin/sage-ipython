@@ -1,0 +1,15 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Sage IPython startup script.
+"""
+from sage.misc.interpreter import SageTerminalApp
+
+# Make sure we're using the Sage profile if one isn't specified.
+import sys
+if '--profile' not in sys.argv:
+    sys.argv.extend(['--profile', 'sage'])
+
+app = SageTerminalApp.instance()
+app.initialize()
+app.start()

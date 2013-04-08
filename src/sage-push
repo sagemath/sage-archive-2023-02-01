@@ -1,6 +1,0 @@
-#!/bin/sh
-
-sage -hg status
-sage -hg diff
-sage -hg ci
-sage -hg push -f ssh://sage@localhost/www/hg/sage-main

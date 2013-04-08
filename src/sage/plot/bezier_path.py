@@ -69,19 +69,23 @@ class BezierPath(GraphicPrimitive_xydata):
             sage: from sage.plot.bezier_path import BezierPath
             sage: list(sorted(BezierPath([[[-1,2], [14,2.3], [17,4]]], {})._allowed_options().iteritems()))
             [('alpha', 'How transparent the line is.'),
-             ('fill', 'Whether or not to fill the polygon.'),
-             ('linestyle',
-              "The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'."),
-             ('rgbcolor', 'The color as an RGB tuple.'),
-             ('thickness', 'How thick the border of the polygon is.'),
-             ('zorder', 'The layer level in which to draw')]
+            ('fill', 'Whether or not to fill the polygon.'),
+            ('linestyle',
+            "The style of the line, which is one of 'dashed', 'dotted', 'solid',
+            'dashdot', or '--', ':', '-', '-.', respectively."),
+            ('rgbcolor', 'The color as an RGB tuple.'),
+            ('thickness', 'How thick the border of the polygon is.'),
+            ('zorder', 'The layer level in which to draw')]
+
         """
         return {'alpha':'How transparent the line is.',
                 'fill': 'Whether or not to fill the polygon.',
                 'thickness':'How thick the border of the polygon is.',
                 'rgbcolor':'The color as an RGB tuple.',
                 'zorder':'The layer level in which to draw',
-                'linestyle':"The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'."}
+                'linestyle':"The style of the line, which is one of 'dashed',"
+                " 'dotted', 'solid', 'dashdot', or '--', ':', '-', '-.',"
+                " respectively."}
 
     def _plot3d_options(self, options=None):
         """
@@ -170,6 +174,8 @@ class BezierPath(GraphicPrimitive_xydata):
         """
         from matplotlib.patches import PathPatch
         from matplotlib.path import Path
+        from sage.plot.misc import get_matplotlib_linestyle
+
         options = dict(self.options())
 
         del options['alpha']
@@ -190,7 +196,7 @@ class BezierPath(GraphicPrimitive_xydata):
         c = to_mpl_color(options['rgbcolor'])
         bpatch.set_edgecolor(c)
         bpatch.set_facecolor(c)
-        bpatch.set_linestyle(options['linestyle'])
+        bpatch.set_linestyle(get_matplotlib_linestyle(options['linestyle'],return_type='long'))
         subplot.add_patch(bpatch)
 
     def get_minmax_data(self):
@@ -250,7 +256,9 @@ def bezier_path(path, **options):
     - ``alpha`` -- default: 1
     - ``fill`` -- default: False
     - ``thickness`` -- default: 1
-    - ``linestyle`` -- default: 'solid'
+    - ``linestyle`` -- default: ``'solid'``, The style of the line, which is one
+       of ``'dashed'``, ``'dotted'``, ``'solid'``, ``'dashdot'``, or ``'--'``,
+       ``':'``, ``'-'``, ``'-.'``, respectively.
     - ``rbgcolor`` -- default: (0,0,0)
     - ``zorder`` -- the layer in which to draw
 

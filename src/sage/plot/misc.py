@@ -236,3 +236,52 @@ def _multiple_of_constant(n,pos,const):
     from sage.rings.arith import convergents
     c=[i for i in convergents(n/const.n()) if i.denominator()<12]
     return '$%s$'%latex(c[-1]*const)
+
+
+def get_matplotlib_linestyle(linestyle, return_type):
+    """
+    Function which translates between matplotlib linestyle in short notation
+    (i.e. '-', '--', ':', '-.') and long notation (i.e. 'solid', 'dashed',
+    'dotted', 'dashdot' ). If linestyle is none of these allowed options the
+    function raises a value Error.
+    Note: This function does NOT accept mixtures of linestyle and drawstyle as
+    e.g. 'step--'
+
+    EXAMPLES:
+
+    Here is an example how to call this function::
+
+        sage: from sage.plot.misc import get_matplotlib_linestyle
+        sage: print get_matplotlib_linestyle(':', return_type='short')
+        :
+
+        sage: from sage.plot.misc import get_matplotlib_linestyle
+        sage: print get_matplotlib_linestyle(':', return_type='long')
+        dotted
+
+    """
+    long_to_short_dict={'solid' : '-','dashed' : '--', 'dotted' : ':',
+                        'dashdot':'-.'}
+    short_to_long_dict={'-' : 'solid','--' : 'dashed', ':' : 'dotted',
+                        '-.':'dashdot'}
+    if return_type == 'short':
+        if linestyle in short_to_long_dict.keys():
+            return linestyle
+        elif linestyle in long_to_short_dict.keys():
+            return long_to_short_dict[linestyle]
+        else:
+            raise ValueError("WARNING: Unrecognized linestyle\n"
+                             "possible linestyle options are:\n{'solid', "
+                             "'dashed', 'dotted', dashdot'} respectively {'-', "
+                             "'--', ':', '-.'}"%(linestyle))
+
+    elif return_type == 'long':
+        if linestyle in short_to_long_dict.keys():
+            return short_to_long_dict[linestyle]
+        elif linestyle in long_to_short_dict.keys():
+            return linestyle
+        else:
+            raise ValueError("WARNING: Unrecognized linestyle\n"
+                             "possible linestyle options are:\n{'solid', "
+                             "'dashed', 'dotted', dashdot'} respectively {'-', "
+                             "'--', ':', '-.'}"%(linestyle))

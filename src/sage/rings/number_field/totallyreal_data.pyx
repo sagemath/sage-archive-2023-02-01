@@ -5,7 +5,7 @@ AUTHORS:
     -- Craig Citro and John Voight (2007-11-04):
         * Type checking and other polishing.
     -- John Voight (2007-10-09):
-        * Improvements: Symth bound, Lagrange multipliers for b.
+        * Improvements: Smyth bound, Lagrange multipliers for b.
     -- John Voight (2007-09-19):
         * Various optimization tweaks.
     -- John Voight (2007-09-01):
@@ -201,6 +201,13 @@ cpdef lagrange_degree_3(int n, int an1, int an2, int an3):
         [-1.0, -1.0]
         sage: sage.rings.number_field.totallyreal_data.lagrange_degree_3(3,6,1,2) # random
         [-5.8878, -5.8878]
+    
+    TESTS:
+    
+    The following was fixed in :trac:`13101`::
+    
+        sage: enumerate_totallyreal_fields_all(8, 10^8)    #long time
+        []
     """
     cdef double zmin, zmax, val
     cdef double *roots_data
@@ -291,6 +298,9 @@ cpdef lagrange_degree_3(int n, int an1, int an2, int an3):
         if len(rts) > 0:
             rts = [rts[i][0] for i in range(len(rts))]
             z4minmax = [min(rts + z4minmax), max(rts + z4minmax)]
+
+    if len(z4minmax) < 1:
+        z4minmax = [0.0, -1.0]
 
     return z4minmax
 

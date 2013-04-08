@@ -8328,6 +8328,26 @@ cdef class Matrix(matrix1.Matrix):
             sage: G.row_space() == A.row_space()
             True
 
+        After :trac:`14047`, the matrix can also be over the algebraic reals
+        ``AA``::
+
+            sage: A = matrix(AA, [[6, -8,  1],
+            ...                   [4,  1,  3],
+            ...                   [6,  3,  3],
+            ...                   [7,  1, -5],
+            ...                   [7, -3,  5]])
+            sage: G, M = A.gram_schmidt(orthonormal=True)
+            sage: G
+            [ 0.5970223141259934? -0.7960297521679913? 0.09950371902099891?]
+            [ 0.6063218341690895?  0.5289635311888953?  0.5937772444966257?]
+            [ 0.5252981913594170?  0.2941669871612735?  -0.798453250866314?]
+            sage: M
+            [ 10.04987562112089?                   0                   0]
+            [ 1.890570661398980?  4.735582601355131?                   0]
+            [ 1.492555785314984?  7.006153332071100?  1.638930357041381?]
+            [ 2.885607851608969?  1.804330147889395?  7.963520581008761?]
+            [ 7.064764050490923?  5.626248468100069? -1.197679876299471?]
+
         Starting with complex numbers with rational real and imaginary parts.
         Note the use of the conjugate-transpose when checking the
         orthonormality. ::

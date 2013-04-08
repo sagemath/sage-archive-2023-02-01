@@ -7,13 +7,13 @@
 #
 # HOW TO MAKE THE SPKG:
 # 1) cp [pathto]/ecl-$ECLVERSION.tar.gz ../
-# 2) ./spkg-make
+# 2) ./spkg-src
 # 3) cd ..; sage -pkg ecl-[version]
 #
 # AUTHOR: Jeroen Demeyer (November 2011)
 
 # Sanity check: must be run from current directory
-if ! [ -f spkg-make ]; then
+if ! [ -f spkg-src ]; then
     echo >&2 "This script must be run from its own source directory!"
     exit 1
 fi

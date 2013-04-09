@@ -85,7 +85,7 @@ Test a timeout using the ``SAGE_TIMEOUT`` environment variable::
     sage -t 99seconds.rst
         Time out
     **********************************************************************
-    Tests run before process timed out:
+    Tests run before process (pid=...) timed out:
     ...
     ----------------------------------------------------------------------
     sage -t 99seconds.rst  # Time out
@@ -169,7 +169,7 @@ Test a doctest failing with ``abort()``::
     sage -t abort.rst
         Killed due to abort
     **********************************************************************
-    Tests run before process failed:
+    Tests run before process (pid=...) failed:
     ...
     ------------------------------------------------------------------------
     Unhandled SIGABRT: An abort() occurred in Sage.
@@ -201,7 +201,7 @@ A different kind of crash::
         NameError: name 'this_gives_a_NameError' is not defined
         Killed due to kill signal
     **********************************************************************
-    Tests run before process failed:
+    Tests run before process (pid=...) failed:
     ...
     ----------------------------------------------------------------------
     sage -t fail_and_die.rst  # Killed due to kill signal

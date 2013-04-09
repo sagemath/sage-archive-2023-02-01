@@ -1506,7 +1506,8 @@ class DocTestDispatcher(SageObject):
                                 w.killed,
                                 w.exitcode,
                                 w.result,
-                                w.output)
+                                w.output,
+                                pid=w.pid)
                             restart = True
                             follow = None
                     finished = new_finished

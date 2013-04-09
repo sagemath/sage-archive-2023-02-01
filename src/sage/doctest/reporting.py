@@ -151,7 +151,7 @@ class DocTestReporter(SageObject):
         cmd += " " + source.printpath
         return cmd
 
-    def report(self, source, timeout, return_code, results, output):
+    def report(self, source, timeout, return_code, results, output, pid=None):
         """
         Report on the result of running doctests on a given source.
 
@@ -179,6 +179,9 @@ class DocTestReporter(SageObject):
         - ``output`` -- a string, printed if there was some kind of
           failure
 
+        - ``pid`` -- optional integer (default: ``None``). The pid of
+          the worker process.
+
         EXAMPLES::
 
             sage: from sage.doctest.reporting import DocTestReporter
@@ -197,10 +200,10 @@ class DocTestReporter(SageObject):
 
         You can report a timeout::
 
-            sage: DTR.report(FDS, True, 0, None, "Output so far...")
+            sage: DTR.report(FDS, True, 0, None, "Output so far...", pid=1234)
                 Time out
             **********************************************************************
-            Tests run before process timed out:
+            Tests run before process (pid=1234) timed out:
             Output so far...
             **********************************************************************
             sage: DTR.stats
@@ -298,6 +301,7 @@ class DocTestReporter(SageObject):
             AttributeError: 'NoneType' object has no attribute 'basename'
         """
         log = self.controller.log
+        process_name = 'process (pid={0})'.format(pid) if pid else 'process'
         try:
             postscript = self.postscript
             stats = self.stats
@@ -322,7 +326,7 @@ class DocTestReporter(SageObject):
                         fail_msg += " (and interrupt failed)"
                     else:
                         fail_msg += " (with %s after interrupt)"%signal_name(sig)
-                log("    %s\n%s\nTests run before process timed out:"%(fail_msg, "*"*70))
+                log("    %s\n%s\nTests run before %s timed out:"%(fail_msg, "*"*70, process_name))
                 log(output)
                 log("*"*70)
                 postscript['lines'].append(cmd + "  # %s"%fail_msg)
@@ -335,7 +339,7 @@ class DocTestReporter(SageObject):
                     fail_msg = "Killed due to %s"%signal_name(-return_code)
                 if ntests > 0:
                     fail_msg += " after testing finished"
-                log("    %s\n%s\nTests run before process failed:"%(fail_msg,"*"*70))
+                log("    %s\n%s\nTests run before %s failed:"%(fail_msg,"*"*70, process_name))
                 log(output)
                 log("*"*70)
                 postscript['lines'].append(cmd + "  # %s" % fail_msg)
@@ -465,10 +469,10 @@ class DocTestReporter(SageObject):
 
         Now we pretend to run some doctests::
 
-            sage: DTR.report(FDS, True, 0, None, "Output so far...")
+            sage: DTR.report(FDS, True, 0, None, "Output so far...", pid=1234)
                 Time out
             **********************************************************************
-            Tests run before process timed out:
+            Tests run before process (pid=1234) timed out:
             Output so far...
             **********************************************************************
             sage: DTR.report(FDS, False, 3, None, "Output before bad exit")

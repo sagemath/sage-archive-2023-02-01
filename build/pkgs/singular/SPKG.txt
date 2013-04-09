@@ -89,6 +89,9 @@ Other notes
 
 == ChangeLog ==
 
+=== singular-3-1-5.p7 (Jeroen Demeyer, 9 April 2013) ===
+ * #14429: On sparc processors, build with --with-align=8.
+
 === singular-3-1-5.p6 (Jeroen Demeyer, 5 April 2013) ===
  * #14415: Add osx_link.patch to fix linker problems on OS X 10.4 PPC
    with GCC 4.7.2.

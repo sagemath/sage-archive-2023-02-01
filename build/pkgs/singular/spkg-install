@@ -14,10 +14,8 @@ if [ "$SAGE_LOCAL" = "" ]; then
 fi
 
 # disable the dynamic kernel, except on Linux
-if [ "$UNAME" = "Linux" ]; then
-    DYNAMIC_KERNEL=""
-else
-    DYNAMIC_KERNEL="--without-dynamic-kernel"
+if [ "$UNAME" != "Linux" ]; then
+    SINGULAR_CONFIGURE="--without-dynamic-kernel $SINGULAR_CONFIGURE"
 fi
 
 if [ "$UNAME" = "Darwin" ]; then
@@ -27,6 +25,12 @@ if [ "$UNAME" = "Darwin" ]; then
     # If we unset it, Singular will figure it out correctly.
     unset LD
 fi
+
+# On SPARC, we need 8-byte alignment for 64-bit integers
+if uname -p | grep sparc >/dev/null; then
+    SINGULAR_CONFIGURE="--with-align=8 $SINGULAR_CONFIGURE"
+fi
+
 
 if [ "x$SAGE_DEBUG" = "xyes" ]; then
     WITH_DEBUG="--with-debug"
@@ -149,7 +153,7 @@ config()
                 --enable-libfac \
                 --enable-IntegerProgramming \
                 --disable-doc \
-                $DYNAMIC_KERNEL \
+                $SINGULAR_CONFIGURE \
                 --with-debug
 
     if [ $? -ne 0 ]; then

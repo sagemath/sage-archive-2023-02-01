@@ -844,12 +844,8 @@ if [ "$1" = '-rsyncdist' -o "$1" = "--rsyncdist" ]; then
 fi
 
 if [ "$1" = '-bdist' -o "$1" = "--bdist" ]; then
-    if [ $# -ne 2 ]; then
-        echo >&2 "** MISSING VERSION NUMBER! **"
-        exit 2
-    fi
-    cd "$SAGE_ROOT"
-    exec sage-bdist $2 "$SAGE_ROOT"
+    shift
+    exec sage-bdist "$@"
 fi
 
 #if [ "$1" = '-update' ]; then

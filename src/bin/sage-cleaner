@@ -22,7 +22,7 @@ from __future__ import print_function
 import os, shutil, sys, time, socket
 import signal
 
-HOSTNAME = socket.gethostname().replace('-','_').replace('/','_').replace('\\','_')
+HOSTNAME = os.environ.get('HOSTNAME', socket.gethostname())
 
 DOT_SAGE = os.environ['DOT_SAGE']
 SAGE_TMP_ROOT = os.path.join(DOT_SAGE, 'temp', HOSTNAME)
@@ -104,8 +104,31 @@ def setup_daemon():
     open(pidfile,'w').write(str(os.getpid()))
 
 
+
+def fix_old_mistakes():
+    """
+    Experience is simply the name we give our mistakes.
+    """
+    # inconsistently escaped hyphens with underscores (http://trac.sagemath.org/14055)
+    wrong_hostname = HOSTNAME.replace('-','_').replace('/','_').replace('\\','_')
+    wrong_sage_tmp_root = os.path.join(DOT_SAGE, 'temp', wrong_hostname)
+    if wrong_sage_tmp_root != SAGE_TMP_ROOT and os.path.exists(wrong_sage_tmp_root):
+        print('deleting invalid temp dir {0}'.format(wrong_sage_tmp_root))
+        shutil.rmtree(wrong_sage_tmp_root, ignore_errors=True)
+
+    # SAGE_TMP in DOT_SAGE/tmp instead of DOT_SAGE/temp
+    import glob
+    old_root =  glob.glob(os.path.join(DOT_SAGE, 'tmp', HOSTNAME+'-*'))
+    if wrong_hostname != HOSTNAME:
+        old_root += glob.glob(os.path.join(DOT_SAGE, 'tmp', wrong_hostname+'-*'))
+    for old_tmp in old_root:
+        print('deleting invalid temp dir {0}'.format(old_tmp))
+        shutil.rmtree(old_tmp, ignore_errors=True)
+
+
 if __name__ == '__main__':
     setup_daemon()
+    fix_old_mistakes()
 
     try:
         print("Starting sage-cleaner")

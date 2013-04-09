@@ -472,6 +472,7 @@ csage: $(INST)/$(SCONS) \
        $(INST)/$(MPIR) \
        $(INST)/$(NTL) \
        $(INST)/$(PARI) \
+       $(INST)/$(POLYBORI) \
        $(INST)/$(PYNAC)
 	+$(PIPE) "cd $(SAGE_SRC)/c_lib && . ../bin/sage-env && scons -Q install 2>&1" "tee -a $(SAGE_LOGS)/csage.log"
 

@@ -820,8 +820,20 @@ If this all works, you can then make calls like:
                     return ''
 
             except OSError, msg:
-                if not E.isalive():
-                    if restart_if_needed==True: # the subprocess might have crashed
+                if restart_if_needed:
+                    # The subprocess most likely crashed.
+                    # If it's really still alive, we fall through
+                    # and raise RuntimeError.
+                    if sys.platform.startswith('sunos'):
+                        # On (Open)Solaris, we might need to wait a
+                        # while because the process might not die
+                        # immediately. See Trac #14371.
+                        for t in [0.5, 1.0, 2.0]:
+                            if E.isalive():
+                                time.sleep(t)
+                            else:
+                                break
+                    if not E.isalive():
                         try:
                             self._synchronize()
                         except (TypeError, RuntimeError):

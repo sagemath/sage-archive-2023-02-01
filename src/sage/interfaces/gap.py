@@ -1246,7 +1246,7 @@ class Gap(Gap_generic):
             sage: ORIGINAL_WORKSPACE = sage.interfaces.gap.WORKSPACE
             sage: sage.interfaces.gap.WORKSPACE = os.path.join(SAGE_TMP, "gap" + "0"*(80-len(SAGE_TMP)))
             sage: gap = Gap()
-            sage: gap('3+2')
+            sage: gap('3+2')  # long time (4s on sage.math, 2013)
             5
             sage: sage.interfaces.gap.WORKSPACE = ORIGINAL_WORKSPACE
         """

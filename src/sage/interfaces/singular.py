@@ -627,8 +627,8 @@ class Singular(Expect):
             '0'
 
         """
-        cmd = ''.join('if(defined(%s)){kill %s;};'%(v,v) for v in self.__to_clear) + \
-            '%s %s=%s;'%(type, name, value)
+        cmd = ''.join('if(defined(%s)){kill %s;};'%(v,v) for v in self.__to_clear)
+        cmd += '%s %s=%s;'%(type, name, value)
         self.__to_clear = []
         self.eval(cmd)
 

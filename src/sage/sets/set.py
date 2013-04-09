@@ -14,10 +14,14 @@ AUTHORS:
 - Florent Hivert (2010-06-17) - Adapted to categories
 
 - Nicolas M. Thiery (2011-03-15) - Added subset and superset methods
+
+- Julian Rueth (2013-04-09) - Collected common code in Set_object_binary, fixed __hash__.
+
 """
 
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
+#                     2013 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -103,9 +107,9 @@ def Set(X):
         Set of all prime numbers: 2, 3, 5, 7, ...
         sage: Set(Subsets([1,2,3])).cardinality()
         8
-        sage: Set(iter([1,2,3]))
+        sage: S = Set(iter([1,2,3])); S
         {1, 2, 3}
-        sage: type(_)
+        sage: type(S)
         <class 'sage.sets.set.Set_object_enumerated_with_category'>
         sage: S = Set([])
         sage: TestSuite(S).run()
@@ -964,7 +968,112 @@ class Set_object_enumerated(Set_object):
             return Set_object.symmetric_difference(self, other)
         return Set_object_enumerated(self.set().symmetric_difference(other.set()))
 
-class Set_object_union(Set_object):
+class Set_object_binary(Set_object):
+    """
+    An abstract common base class for :class:`Set_object_union`,
+    :class:`Set_object_intersection`, :class:`Set_object_difference`, and
+    :class:`Set_object_symmetric_difference`.
+
+    INPUT:
+
+    - ``X``, ``Y`` -- sets, the operands to ``op``
+
+    - ``op`` -- a string describing the binary operation
+
+    - ``latex_op`` -- a string used for rendering this object in LaTeX
+
+    EXAMPLES::
+
+        sage: X = Set(QQ^2)
+        sage: Y = Set(ZZ)
+        sage: from sage.sets.set import Set_object_binary
+        sage: S = Set_object_binary(X,Y,"union","\\cup"); S
+        Set-theoretic union of Set of elements of Vector space of dimension 2 over Rational Field and Set of elements of Integer Ring
+
+    """
+    def __init__(self, X, Y, op, latex_op):
+        """
+        Initialization.
+
+        TESTS::
+
+        sage: from sage.sets.set import Set_object_binary
+        sage: X = Set(QQ^2)
+        sage: Y = Set(ZZ)
+        sage: S = Set_object_binary(X,Y,"union","\\cup")
+        sage: type(S)
+        <class 'sage.sets.set.Set_object_binary_with_category'>
+
+        """
+        self._X = X
+        self._Y = Y
+        self._op = op
+        self._latex_op = latex_op
+        Set_object.__init__(self, self)
+
+    def _repr_(self):
+        r"""
+        Return a string representation of this set.
+
+        EXAMPLES::
+
+            sage: Set(ZZ).union(Set(GF(5)))
+            Set-theoretic union of Set of elements of Integer Ring and {0, 1, 2, 3, 4}
+
+        """
+        return "Set-theoretic %s of %s and %s"%(self._op, self._X, self._Y)
+
+    def _latex_(self):
+        r"""
+        Return a latex representation of this set.
+
+        EXAMPLES::
+
+            sage: latex(Set(ZZ).union(Set(GF(5))))
+            \Bold{Z} \cup \left\{0, 1, 2, 3, 4\right\}
+
+        """
+        return '%s %s %s'%(latex(self._X), self._latex_op, latex(self._Y))
+
+    def cardinality(self):
+        """
+        This tries to return the cardinality of this set.
+
+        Note that this is not likely to work in very much generality,
+        and may just hang if either set involved is infinite.
+
+        EXAMPLES::
+
+            sage: X = Set(GF(13)).intersection(Set(ZZ))
+            sage: X.cardinality()
+            13
+        """
+        return len(list(self))
+
+    def __hash__(self):
+        """
+        The hash value of this set.
+
+        EXAMPLES::
+
+            sage: X = Set(GF(13)).intersection(Set(ZZ))
+            sage: hash(X)
+            -7116597539855252506 # 64-bit
+            # 32-bit
+
+        TESTS:
+
+        Test that :trac:`14432` has been resolved::
+
+            sage: S=Set(ZZ).union(Set([infinity]))
+            sage: hash(S)
+            1474285102670710969 # 64-bit
+            # 32-bit
+
+        """
+        return hash((self._X,self._Y,self._op))
+
+class Set_object_union(Set_object_binary):
     """
     A formal union of two sets.
     """
@@ -982,9 +1091,7 @@ class Set_object_union(Set_object):
 
             sage: TestSuite(X).run()
         """
-        self.__X = X
-        self.__Y = Y
-        Set_object.__init__(self, self)
+        Set_object_binary.__init__(self, X, Y, "union", "\\cup")
 
     def __cmp__(self, right):
         r"""
@@ -1018,33 +1125,10 @@ class Set_object_union(Set_object):
             return -1
         if not isinstance(right, Set_object_union):
             return -1
-        if self.__X == right.__X and self.__Y == right.__Y or \
-           self.__X == right.__Y and self.__Y == right.__X:
+        if self._X == right._X and self._Y == right._Y or \
+           self._X == right._Y and self._Y == right._X:
             return 0
         return -1
-
-    def _repr_(self):
-        r"""
-        Return string representation of self.
-
-        EXAMPLES::
-
-            sage: Set(ZZ).union(Set(GF(5)))
-            Set-theoretic union of Set of elements of Integer Ring and {0, 1, 2, 3, 4}
-        """
-        return "Set-theoretic union of %s and %s"%(self.__X,
-                                                   self.__Y)
-
-    def _latex_(self):
-        r"""
-        Return latex representation of self.
-
-        EXAMPLES::
-
-            sage: latex(Set(ZZ).union(Set(GF(5))))
-            \Bold{Z} \cup \left\{0, 1, 2, 3, 4\right\}
-        """
-        return '%s \\cup %s'%(latex(self.__X), latex(self.__Y))
 
     def __iter__(self):
         """
@@ -1055,9 +1139,9 @@ class Set_object_union(Set_object):
             sage: [x for x in Set(GF(3)).union(Set(GF(2)))]
             [0, 1, 2, 0, 1]
         """
-        for x in self.__X:
+        for x in self._X:
             yield x
-        for y in self.__Y:
+        for y in self._Y:
             yield y
 
     def __contains__(self, x):
@@ -1076,7 +1160,7 @@ class Set_object_union(Set_object):
             sage: GF(5)(0) in X
             False
         """
-        return x in self.__X or x in self.__Y
+        return x in self._X or x in self._Y
 
     def cardinality(self):
         """
@@ -1094,9 +1178,9 @@ class Set_object_union(Set_object):
             sage: X.cardinality()
             +Infinity
         """
-        return self.__X.cardinality() + self.__Y.cardinality()
+        return self._X.cardinality() + self._Y.cardinality()
 
-class Set_object_intersection(Set_object):
+class Set_object_intersection(Set_object_binary):
     """
     Formal intersection of two sets.
     """
@@ -1114,10 +1198,7 @@ class Set_object_intersection(Set_object):
             sage: X = Set(IntegerRange(100)).intersection(Primes())
             sage: TestSuite(X).run()
         """
-        self.__X = X
-        self.__Y = Y
-        Set_object.__init__(self, self)
-
+        Set_object_binary.__init__(self, X, Y, "intersection", "\\cap")
 
     def __cmp__(self, right):
         r"""
@@ -1151,37 +1232,10 @@ class Set_object_intersection(Set_object):
             return -1
         if not isinstance(right, Set_object_intersection):
             return -1
-        if self.__X == right.__X and self.__Y == right.__Y or \
-           self.__X == right.__Y and self.__Y == right.__X:
+        if self._X == right._X and self._Y == right._Y or \
+           self._X == right._Y and self._Y == right._X:
             return 0
         return -1
-
-    def _repr_(self):
-        """
-        Return string representation of self.
-
-        EXAMPLES::
-
-            sage: X = Set(ZZ).intersection(Set(QQ)); X
-            Set-theoretic intersection of Set of elements of Integer Ring and Set of elements of Rational Field
-            sage: X.rename('Z /\ Q')
-            sage: X
-            Z /\ Q
-        """
-        return "Set-theoretic intersection of %s and %s"%(self.__X,
-                                                          self.__Y)
-
-    def _latex_(self):
-        r"""
-        Return latex representation of self.
-
-        EXAMPLES::
-
-            sage: X = Set(ZZ).intersection(Set(QQ))
-            sage: latex(X)
-            \Bold{Z} \cap \Bold{Q}
-        """
-        return '%s \\cap %s'%(latex(self.__X), latex(self.__Y))
 
     def __iter__(self):
         """
@@ -1198,8 +1252,8 @@ class Set_object_intersection(Set_object):
             sage: I.next()
             2
         """
-        for x in self.__X:
-            if x in self.__Y:
+        for x in self._X:
+            if x in self._Y:
                 yield x
 
     def __contains__(self, x):
@@ -1227,26 +1281,9 @@ class Set_object_intersection(Set_object):
             sage: pi in X
             False
         """
-        return x in self.__X and x in self.__Y
+        return x in self._X and x in self._Y
 
-    def cardinality(self):
-        """
-        This tries to return the cardinality of this formal intersection.
-
-        Note that this is not likely to work in very much generality,
-        and may just hang if either set involved is infinite.
-
-        EXAMPLES::
-
-            sage: X = Set(GF(13)).intersection(Set(ZZ))
-            sage: X.cardinality()
-            13
-        """
-        return len(list(self))
-
-
-
-class Set_object_difference(Set_object):
+class Set_object_difference(Set_object_binary):
     """
     Formal difference of two sets.
     """
@@ -1257,16 +1294,13 @@ class Set_object_difference(Set_object):
             sage: S = Set(QQ)
             sage: T = Set(ZZ)
             sage: X = S.difference(T); X
-            Set-theoretic difference between Set of elements of Rational Field and Set of elements of Integer Ring
+            Set-theoretic difference of Set of elements of Rational Field and Set of elements of Integer Ring
             sage: latex(X)
             \Bold{Q} - \Bold{Z}
 
             sage: TestSuite(X).run()
         """
-        self.__X = X
-        self.__Y = Y
-        Set_object.__init__(self, self)
-
+        Set_object_binary.__init__(self, X, Y, "difference", "-")
 
     def __cmp__(self, right):
         r"""
@@ -1304,36 +1338,9 @@ class Set_object_difference(Set_object):
             return -1
         if not isinstance(right, Set_object_difference):
             return -1
-        if self.__X == right.__X and self.__Y == right.__Y:
+        if self._X == right._X and self._Y == right._Y: 
             return 0
         return -1
-
-    def _repr_(self):
-        """
-        Return string representation of self.
-
-        EXAMPLES::
-
-            sage: X = Set(QQ).difference(Set(ZZ)); X
-            Set-theoretic difference between Set of elements of Rational Field and Set of elements of Integer Ring
-            sage: X.rename('Q - Z')
-            sage: X
-            Q - Z
-        """
-        return "Set-theoretic difference between %s and %s"%(self.__X,
-                                                          self.__Y)
-
-    def _latex_(self):
-        r"""
-        Return latex representation of self.
-
-        EXAMPLES::
-
-            sage: X = Set(QQ).difference(Set(ZZ))
-            sage: latex(X)
-            \Bold{Q} - \Bold{Z}
-        """
-        return '%s - %s'%(latex(self.__X), latex(self.__Y))
 
     def __iter__(self):
         """
@@ -1358,8 +1365,8 @@ class Set_object_difference(Set_object):
             sage: I.next()
             -3
         """
-        for x in self.__X:
-            if x not in self.__Y:
+        for x in self._X:
+            if x not in self._Y:
                 yield x
 
     def __contains__(self, x):
@@ -1383,24 +1390,10 @@ class Set_object_difference(Set_object):
             sage: 5/2 in X
             True
         """
-        return x in self.__X and x not in self.__Y
+        return x in self._X and x not in self._Y
 
-    def cardinality(self):
-        """
-        This tries to return the cardinality of this formal intersection.
 
-        Note that this is not likely to work in very much generality,
-        and may just hang if either set involved is infinite.
-
-        EXAMPLES::
-
-            sage: X = Set(GF(13)).difference(Set(Primes()))
-            sage: X.cardinality()
-            8
-        """
-        return len(list(self))
-
-class Set_object_symmetric_difference(Set_object):
+class Set_object_symmetric_difference(Set_object_binary):
     """
     Formal symmetric difference of two sets.
     """
@@ -1417,10 +1410,7 @@ class Set_object_symmetric_difference(Set_object):
 
             sage: TestSuite(X).run()
         """
-        self.__X = X
-        self.__Y = Y
-        Set_object.__init__(self, self)
-
+        Set_object_binary.__init__(self, X, Y, "symmetric difference", "\\bigtriangleup")
 
     def __cmp__(self, right):
         r"""
@@ -1448,37 +1438,10 @@ class Set_object_symmetric_difference(Set_object):
             return -1
         if not isinstance(right, Set_object_symmetric_difference):
             return -1
-        if self.__X == right.__X and self.__Y == right.__Y or \
-           self.__X == right.__Y and self.__Y == right.__X:
+        if self._X == right._X and self._Y == right._Y or \
+           self._X == right._Y and self._Y == right._X:
             return 0
         return -1
-
-    def _repr_(self):
-        """
-        Return string representation of self.
-
-        EXAMPLES::
-
-            sage: X = Set(ZZ).symmetric_difference(Set(QQ)); X
-            Set-theoretic symmetric difference of Set of elements of Integer Ring and Set of elements of Rational Field
-            sage: X.rename('Z symdif Q')
-            sage: X
-            Z symdif Q
-        """
-        return "Set-theoretic symmetric difference of %s and %s"%(self.__X,
-                                                          self.__Y)
-
-    def _latex_(self):
-        r"""
-        Return latex representation of self.
-
-        EXAMPLES::
-
-            sage: X = Set(ZZ).symmetric_difference(Set(QQ))
-            sage: latex(X)
-            \Bold{Z} \bigtriangleup \Bold{Q}
-        """
-        return '%s \\bigtriangleup %s'%(latex(self.__X), latex(self.__Y))
 
     def __iter__(self):
         """
@@ -1504,14 +1467,13 @@ class Set_object_symmetric_difference(Set_object):
             sage: I.next()
             -3
         """
-        for x in self.__X:
-            if x not in self.__Y:
+        for x in self._X:
+            if x not in self._Y:
                 yield x
 
-        for y in self.__Y:
-            if y not in self.__X:
+        for y in self._Y:
+            if y not in self._X:
                 yield y
-
 
     def __contains__(self, x):
         """
@@ -1538,20 +1500,5 @@ class Set_object_symmetric_difference(Set_object):
             sage: 3 in X
             False
         """
-        return (x in self.__X and x not in self.__Y) \
-               or (x in self.__Y and x not in self.__X)
-
-    def cardinality(self):
-        """
-        This tries to return the cardinality of this formal symmetric difference.
-
-        Note that this is not likely to work in very much generality,
-        and may just hang if either set involved is infinite.
-
-        EXAMPLES::
-
-            sage: X = Set(GF(13)).symmetric_difference(Set(range(5)))
-            sage: X.cardinality()
-            8
-        """
-        return len(list(self))
+        return (x in self._X and x not in self._Y) \
+               or (x in self._Y and x not in self._X)

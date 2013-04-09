@@ -462,7 +462,7 @@ sage: \
 		 $(INST)/$(SYMMETRICA) \
 		 $(INST)/$(ZNPOLY) \
 		 csage
-	+$(PIPE) "cd $(SAGE_SRC) && . ./bin/sage-env && python setup.py install 2>&1" "tee -a $(SAGE_LOGS)/$(SAGE).log"
+	+$(PIPE) "cd $(SAGE_SRC) && . ./bin/sage-env && python setup.py install 2>&1" "tee -a $(SAGE_LOGS)/sage.log"
 
 scripts: $(SCRIPT_TARGETS)
 

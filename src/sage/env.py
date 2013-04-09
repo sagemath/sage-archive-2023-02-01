@@ -24,74 +24,89 @@ opj = os.path.join
 
 # set default values for sage environment variables
 # every variable can be overwritten by os.environ
+SAGE_ENV = dict()
 
-# $VAR will be expanded as the appropriate variable,
-# so do not make recursive definitions
-SAGE_ENV = {
-        # system info
-        'UNAME'            : os.uname()[0],
-        'HOSTNAME'         : socket.gethostname().replace('-','_').replace('/','_').replace('\\','_'),
-        'LOCAL_IDENTIFIER' : '$HOSTNAME.%s'%os.getpid(),
+# Helper to build the SAGE_ENV dictionary
+def _add_variable_or_fallback(key, fallback, force=False):
+    """
+    Set ``SAGE_ENV[key]``.
 
-        # bunch of sage directories and files
-        'SAGE_ROOT'        : None,
-        'SAGE_LOCAL'       : opj('$SAGE_ROOT', 'local'),
-        'SAGE_SHARE'       : opj('$SAGE_LOCAL', 'share'),
-        # for backwards compatibility we include SAGE_DATA
-        'SAGE_DATA'        : '$SAGE_SHARE',
-        'SAGE_EXTCODE'     : opj('$SAGE_SHARE', 'sage', 'ext'),
-        'SAGE_PACKAGES'    : opj('$SAGE_ROOT', 'spkg'),
-        'SAGE_LOGS'        : opj('$SAGE_ROOT', 'logs', 'pkgs'),
-        'SAGE_SPKG_INST'   : opj('$SAGE_ROOT', 'spkg', 'installed'),
-        'SAGE_DOC'         : opj('$SAGE_ROOT', 'devel', 'sage', 'doc'),
-        'DOT_SAGE'         : opj(os.environ.get('HOME','$SAGE_ROOT'), '.sage'),
-        # SAGE_LIB is the site-packages directory if the sage library
-        # has been installed, otherwise it is the same of SAGE_SRC
-        'SAGE_SRC'         : opj('$SAGE_ROOT', 'devel', 'sage'),
-        'SAGE_LIB'         : os.path.dirname(os.path.dirname(__file__)),
+    If ``key`` is an environment variable, this is the
+    value. Otherwise, the ``fallback`` is used.
 
-        # misc
-        'SAGE_URL'         : 'http://sage.math.washington.edu/sage/',
-        'SAGE_VERSION'     : version.version,
-        'SAGE_DATE'        : version.date,
-        }
+    INPUT:
 
-# set any variables that are already in os.environ
-for var in SAGE_ENV:
+    - ``key`` -- string.
+
+    - ``fallback`` -- anything.
+
+    - ``force`` -- boolean (optional, default is ``False``). Whether
+      to always use the fallback, regardless of environment variables.
+
+    EXAMPLES::
+
+        sage: import os, sage.env
+        sage: sage.env.SAGE_ENV = dict()
+        sage: os.environ['SAGE_FOO'] = 'foo'
+        sage: sage.env._add_variable_or_fallback('SAGE_FOO', '---$SAGE_URL---')
+        sage: sage.env.SAGE_FOO
+        'foo'
+        sage: sage.env.SAGE_ENV['SAGE_FOO']
+        'foo'
+
+    If the environment variable does not exist, the fallback is
+    used. Previously-declared variables are replaced if they are
+    prefixed with a dollar sign::
+
+        sage: _ = os.environ.pop('SAGE_BAR', None)  # ensure that SAGE_BAR does not exist
+        sage: sage.env._add_variable_or_fallback('SAGE_BAR', '---$SAGE_FOO---')
+        sage: sage.env.SAGE_BAR
+        '---foo---'
+        sage: sage.env.SAGE_ENV['SAGE_BAR']
+        '---foo---'
+    """
+    global SAGE_ENV
     try:
-        exec(var + ' = os.environ[var]')
+        import os
+        value = os.environ[key]
     except KeyError:
-        pass
+        value = fallback
+    if force:
+        value = fallback
+    for k,v in SAGE_ENV.iteritems():
+        if isinstance(k, basestring):
+            value = value.replace('$'+k, v)
+    SAGE_ENV[key] = value
+    globals()[key] = value
 
-# create the dictionary of variables that need to
-# be set to their default value
-_tmp_env = {var:val for var,val in SAGE_ENV.items() if var not in globals()}
+# system info
+_add_variable_or_fallback('UNAME',           os.uname()[0])
+_add_variable_or_fallback('HOSTNAME',        socket.gethostname())
+_add_variable_or_fallback('LOCAL_IDENTIFIER','$HOSTNAME.%s'%os.getpid())
 
-# end once everything has been set
-while _tmp_env:
-    for var,val in _tmp_env.items():
-        try:
-            # expand $VAR expressions
-            if isinstance(val, str):
-                for var2 in SAGE_ENV:
-                    if '$'+var2 in val:
-                        val = val.replace('$'+var2, eval(var2))
-            exec(var + ' = val')
-        except NameError:
-            # the value depends upon something that hasn't been set yet
-            # so try again later
-            continue
-        except TypeError:
-            # depended on a variable that was set to None
-            # so set this variable to None as well
-            exec(var + ' = None')
+# bunch of sage directories and files
+_add_variable_or_fallback('SAGE_ROOT',       None)
+_add_variable_or_fallback('SAGE_LOCAL',      opj('$SAGE_ROOT', 'local'))
+_add_variable_or_fallback('SAGE_SHARE',      opj('$SAGE_LOCAL', 'share'))
 
-    # remove things that have been set
-    _tmp_env = {var:val for var,val in _tmp_env.items() if var not in globals()}
+# for backwards compatibility we include SAGE_DATA
+_add_variable_or_fallback('SAGE_DATA',       '$SAGE_SHARE')
+_add_variable_or_fallback('SAGE_EXTCODE',    opj('$SAGE_SHARE', 'sage', 'ext'))
+_add_variable_or_fallback('SAGE_PACKAGES',   opj('$SAGE_ROOT', 'spkg'))
+_add_variable_or_fallback('SAGE_LOGS',       opj('$SAGE_ROOT', 'logs', 'pkgs'))
+_add_variable_or_fallback('SAGE_SPKG_INST',  opj('$SAGE_ROOT', 'spkg', 'installed'))
+_add_variable_or_fallback('SAGE_DOC',        opj('$SAGE_ROOT', 'devel', 'sage', 'doc'))
+_add_variable_or_fallback('DOT_SAGE',        opj(os.environ.get('HOME','$SAGE_ROOT'), '.sage'))
 
-# repopulate SAGE_ENV with the corrected values
-for var in SAGE_ENV:
-    SAGE_ENV[var] = eval(var)
+# SAGE_LIB is the site-packages directory if the sage library
+# has been installed, otherwise it is the same of SAGE_SRC
+_add_variable_or_fallback('SAGE_SRC',        opj('$SAGE_ROOT', 'devel', 'sage'))
+_add_variable_or_fallback('SAGE_LIB',        os.path.dirname(os.path.dirname(__file__)))
+
+# misc
+_add_variable_or_fallback('SAGE_URL',        'http://sage.math.washington.edu/sage/')
+_add_variable_or_fallback('SAGE_VERSION',    version.version)
+_add_variable_or_fallback('SAGE_DATE',       version.date)
 
 # post process
 if ' ' in DOT_SAGE:
@@ -100,7 +115,7 @@ if ' ' in DOT_SAGE:
         # to have a space in it.  Fortunately, users also have
         # write privileges to c:\cygwin\home, so we just put
         # .sage there.
-        DOT_SAGE = "/home/.sage"
+        _add_variable_or_fallback('DOT_SAGE', "/home/.sage", force=True)
     else:
         print("Your home directory has a space in it.  This")
         print("will probably break some functionality of Sage.  E.g.,")
@@ -110,4 +125,4 @@ if ' ' in DOT_SAGE:
         print("permissions to before you start sage.")
 
 # delete temporary variables used for setting up sage.env
-del _tmp_env, var, val, var2, opj, os, socket, version
+del opj, os, socket, version

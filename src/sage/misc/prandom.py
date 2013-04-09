@@ -317,8 +317,8 @@ def vonmisesvariate(mu, kappa):
 
     EXAMPLES::
 
-        sage: [vonmisesvariate(1.0r, 3.0r) for i in range(1, 5)]
-        [0.8983286393554258, 0.6718030007041285, 2.0308777524813397, 1.714325253725145...]
+        sage: [vonmisesvariate(1.0r, 3.0r) for i in range(1, 5)]  # abs tol 1e-12
+        [0.898328639355427, 0.6718030007041281, 2.0308777524813393, 1.714325253725145]
     """
     return _pyrand().vonmisesvariate(mu, kappa)
 

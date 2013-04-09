@@ -1326,7 +1326,8 @@ class CartanType_crystallographic(CartanType_abstract):
             [ 0 -1  2 -1]
             [ 0  0 -1  2]
         """
-        return self.dynkin_diagram().cartan_matrix()
+        from sage.combinat.root_system.cartan_matrix import CartanMatrix
+        return CartanMatrix(self.dynkin_diagram())
 
     @cached_method
     def coxeter_diagram(self):

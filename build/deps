@@ -469,7 +469,11 @@ scripts: $(SCRIPT_TARGETS)
 
 extcode: $(EXTCODE_TARGETS)
 
-csage: $(INST)/$(SCONS) $(INST)/$(MPIR) $(INST)/$(NTL) $(INST)/$(PARI)
+csage: $(INST)/$(SCONS) \
+       $(INST)/$(MPIR) \
+       $(INST)/$(NTL) \
+       $(INST)/$(PARI) \
+       $(INST)/$(PYNAC)
 	+$(PIPE) "cd $(SAGE_SRC)/c_lib && . ../bin/sage-env && scons -Q install 2>&1" "tee -a $(SAGE_LOGS)/csage.log"
 
 $(INST)/ccache: $(BASE) $(INST)/$(ZLIB)

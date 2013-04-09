@@ -42,6 +42,7 @@ mkdir -p "$TMP_DIR/$TARGET"
 # Clone Sage repository
 echo "Cloning Sage repository..."
 git clone "$SAGE_ROOT" "$TMP_DIR/$TARGET"
+git remote set-url origin git://github.com/sagemath/sage.git
 
 # Copy VERSION.txt (which is untracked)
 cp -p VERSION.txt "$TMP_DIR/$TARGET"
@@ -60,7 +61,7 @@ if [ "$UNAME" = "Darwin" ]; then
     # Move everything into a subdirectory sage, but first name it
     # .sage_tmp to avoid it being globbed by *.
     mkdir .sage_tmp
-    mv * .hg* .sage_tmp
+    mv * .git* .sage_tmp
     mv .sage_tmp sage
     cp -p "$SAGE_LOCAL"/bin/sage-README-osx.txt README.txt
 

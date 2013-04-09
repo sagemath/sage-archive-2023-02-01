@@ -81,7 +81,7 @@ import operator
 from sage.categories.all import Hom
 from sage.geometry.cone import Cone
 from sage.geometry.fan import Fan, is_Fan, discard_faces
-from sage.matrix.all import matrix, is_Matrix
+from sage.matrix.all import identity_matrix, matrix, is_Matrix
 from sage.misc.all import cached_method, latex, prod, walltime
 from sage.modules.free_module_morphism import (FreeModuleMorphism,
                                                is_FreeModuleMorphism)
@@ -287,13 +287,54 @@ class FanMorphism(FreeModuleMorphism):
         self._preimage_fans = dict()
         self._primitive_preimage_cones = dict()
         if codomain_fan is None:
-            self._construct_codomain_fan()
+            self._construct_codomain_fan(check)
         else:
             self._codomain_fan = codomain_fan
             if subdivide:
                 self._subdivide_domain_fan(check, verbose)
             elif check:
                 self._validate()
+
+    def __mul__(self, right):
+        """
+        Return the composition of ``self`` and ``right``.
+
+        INPUT:
+
+        - ``right`` -- a :class:`FanMorphism` whose :meth:`codomain_fan` can be
+          mapped to :meth:`domain_fan` of ``self`` via identity map of lattices.
+
+        OUTPUT:
+
+        - a :class:`FanMorphism`.
+
+        EXAMPLES::
+
+            sage: A2 = toric_varieties.A2()
+            sage: P3 = toric_varieties.P(3)
+            sage: m = matrix([(2,0,0), (1,1,0)])
+            sage: phi = A2.hom(m, P3).fan_morphism()
+            sage: phi
+            Fan morphism defined by the matrix
+            [2 0 0]
+            [1 1 0]
+            Domain fan: Rational polyhedral fan in 2-d lattice N
+            Codomain fan: Rational polyhedral fan in 3-d lattice N
+            sage: prod(phi.factor()) # indirect test
+            Fan morphism defined by the matrix
+            [2 0 0]
+            [1 1 0]
+            Domain fan: Rational polyhedral fan in 2-d lattice N
+            Codomain fan: Rational polyhedral fan in 3-d lattice N
+        """
+        if not isinstance(right, FanMorphism):
+            raise TypeError(
+                "fan morphisms should be composed with fan morphisms")
+        # We don't need it, we just check compatibility of fans:
+        FanMorphism(identity_matrix(self.domain().dimension()),
+                    right.codomain_fan(), self.domain_fan())
+        m = right.matrix() * self.matrix()
+        return FanMorphism(m, right.domain_fan(), self.codomain_fan())
 
     def _RISGIS(self):
         r"""
@@ -385,7 +426,7 @@ class FanMorphism(FreeModuleMorphism):
                 chambers.append(chamber)
         return (chambers, cone_to_chamber)
 
-    def _construct_codomain_fan(self):
+    def _construct_codomain_fan(self, check):
         r"""
         Construct the codomain fan as the image of the domain one.
 
@@ -393,9 +434,13 @@ class FanMorphism(FreeModuleMorphism):
 
             This method should be called only during initialization.
 
+        INPUT:
+
+        - ``check`` -- passed on to the fan constructor.
+
         OUTPUT:
 
-        - none, but the codomain fan of ``self`` is set to the constucted fan.
+        - none, but the codomain fan of ``self`` is set to the constructed fan.
 
         TESTS::
 
@@ -422,7 +467,7 @@ class FanMorphism(FreeModuleMorphism):
                                         for domain_cone in domain_fan),
                                  rays=(self(ray) for ray in domain_fan.rays()),
                                  lattice=self.codomain(),
-                                 discard_faces=True)
+                                 discard_faces=True, check=check)
 
     def _latex_(self):
         r"""
@@ -942,7 +987,6 @@ class FanMorphism(FreeModuleMorphism):
                                                     self(ray) for ray in cone)
         return self._image_cone[cone]
 
-    @cached_method
     def index(self, cone=None):
         r"""
         Return the index of ``self`` as a map between lattices.
@@ -997,7 +1041,7 @@ class FanMorphism(FreeModuleMorphism):
             N(-1, -1),
             N( 1,  0)
             in 2-d lattice N
-            sage: xi.restrict_to_image().codomain_fan().rays()
+            sage: xi.factor()[0].domain_fan().rays()
             N( 1, 0),
             N(-1, 0)
             in Sublattice <N(1, 0)>
@@ -1027,7 +1071,7 @@ class FanMorphism(FreeModuleMorphism):
             sage: [zeta.index(cone) for cone in flatten(Sigma_p.cones())]
             [+Infinity, None, None, None, None, None, None, None, None, None,
              4, 4, None, 4, None, None, 2, None, 4, None, 4, 1, 1, 1, 1, 1, 1]
-            sage: zeta = zeta.restrict_to_image()
+            sage: zeta = prod(zeta.factor()[1:])
             sage: Sigma_p = zeta.codomain_fan()
             sage: [zeta.index(cone) for cone in flatten(Sigma_p.cones())]
             [4, 4, 1, 4, 4, 4, 4, 1, 1, 1, 1, 1, 1]
@@ -1048,6 +1092,31 @@ class FanMorphism(FreeModuleMorphism):
                          for g in PPCs[0].sublattice_complement().gens()])
         i = prod((Q/S).invariants())
         return i if i > 0 else Infinity
+
+    def is_birational(self):
+        r"""
+        Check if ``self`` is birational.
+
+        OUTPUT:
+
+        - ``True`` if ``self`` is birational, ``False`` otherwise.
+
+        For fan morphisms this check is equivalent to ``self.index() == 1`` and
+        means that the corresponding map between toric varieties is birational.
+
+        EXAMPLES::
+
+            sage: Sigma = toric_varieties.dP8().fan()
+            sage: Sigma_p = toric_varieties.P1().fan()
+            sage: phi = FanMorphism(matrix([[1], [-1]]), Sigma, Sigma_p)
+            sage: psi = FanMorphism(matrix([[2], [-2]]), Sigma, Sigma_p)
+            sage: xi = FanMorphism(matrix([[1, 0]]), Sigma_p, Sigma)
+            sage: phi.index(), psi.index(), xi.index()
+            (1, 2, +Infinity)
+            sage: phi.is_birational(), psi.is_birational(), xi.is_birational()
+            (True, False, False)
+        """
+        return self.index() == 1
 
     @cached_method
     def is_bundle(self):
@@ -1313,7 +1382,7 @@ class FanMorphism(FreeModuleMorphism):
         if self.matrix().index_in_saturation() != 1:
             return False
         if self.image().dimension() < self.codomain().dimension():
-            return self.restrict_to_image().is_injective()
+            return prod(self.factor()[1:]).is_injective()
         # Now we know that underlying lattice morphism is bijective.
         Sigma = self.domain_fan()
         return all(all(self.image_cone(sigma).dim() == d for sigma in Sigma(d))
@@ -1617,72 +1686,145 @@ class FanMorphism(FreeModuleMorphism):
             self._primitive_preimage_cones[sigma_p] = tuple(primitive_cones)
         return self._primitive_preimage_cones[sigma_p]
 
-    @cached_method
-    def restrict_to_image(self):
+    def factor(self):
         r"""
-        Return the fan morphism from the domain fan to the image fan.
+        Factor ``self`` into injective * birational * surjective morphisms.
 
         OUTPUT:
 
-        - a :class:`fan morphism <FanMorphism>`.
+        - a triple of :class:`FanMorphism` `(\phi_i, \phi_b, \phi_s)`, such that
+          `\phi_s` is surjective, `\phi_b` is birational, `\phi_i` is injective,
+          and ``self`` is equal to `\phi_i \circ \phi_b \circ \phi_s`.
+
+        Intermediate fans live in the saturation of the image of ``self``
+        as a map between lattices and are the image of the :meth:`domain_fan`
+        and the restriction of the :meth:`codomain_fan`, i.e. if ``self`` maps
+        `\Sigma \to \Sigma'`, then we have factorization into
+
+        .. math::
+
+            \Sigma
+            \twoheadrightarrow
+            \Sigma_s
+            \to
+            \Sigma_i
+            \hookrightarrow
+            \Sigma.
 
         .. note::
 
-            By the *image fan* of a fan morphism we mean the fan generated by
-            the intersections of cones of the codomain fan with the image
-            vector space of ``self``. The lattice of this fan is the saturation
-            of the image of ``self``.
+            * `\Sigma_s` is the finest fan with the smallest support that is
+              compatible with ``self``: any fan morphism from `\Sigma` given by
+              the same map of lattices as ``self`` factors through `\Sigma_s`.
+
+            * `\Sigma_i` is the coarsest fan of the largest support that is
+              compatible with ``self``: any fan morphism into `\Sigma'` given by
+              the same map of lattices as ``self`` factors though `\Sigma_i`.
 
         EXAMPLES:
 
-        We embed a projective line "diagonally" into the product of two lines::
+        We map an affine plane into a projective 3-space in such a way, that it
+        becomes "a double cover of a chart of the blow up of one of the
+        coordinate planes"::
 
-            sage: Sigma = toric_varieties.P1().fan()
-            sage: Sigmap = toric_varieties.P1xP1().fan()
-            sage: m = matrix(1, 2, [1,1])
-            sage: phi = FanMorphism(m, Sigma, Sigmap)
+            sage: A2 = toric_varieties.A2()
+            sage: P3 = toric_varieties.P(3)
+            sage: m = matrix([(2,0,0), (1,1,0)])
+            sage: phi = A2.hom(m, P3)
+            sage: phi.as_polynomial_map()
+            Scheme morphism:
+              From: 2-d affine toric variety
+              To:   3-d CPR-Fano toric variety covered by 4 affine patches
+              Defn: Defined on coordinates by sending [x : y] to
+                    [x^2*y : y : 1 : 1]
+
+        Now we will work with the underlying fan morphism::
+
+            sage: phi = phi.fan_morphism()
             sage: phi
             Fan morphism defined by the matrix
-            [1 1]
-            Domain fan: Rational polyhedral fan in 1-d lattice N
-            Codomain fan: Rational polyhedral fan in 2-d lattice N
+            [2 0 0]
+            [1 1 0]
+            Domain fan: Rational polyhedral fan in 2-d lattice N
+            Codomain fan: Rational polyhedral fan in 3-d lattice N
+            sage: phi.is_surjective(), phi.is_birational(), phi.is_injective()
+            (False, False, False)
+            sage: phi_i, phi_b, phi_s = phi.factor()
+            sage: phi_s.is_surjective(), phi_b.is_birational(), phi_i.is_injective()
+            (True, True, True)
+            sage: prod(phi.factor()) == phi
+            True
 
-        Now we restrict this morphism to its image::
+        Double cover (surjective)::
 
-            sage: psi = phi.restrict_to_image()
-            sage: psi
+            sage: A2.fan().rays()
+            N(1, 0),
+            N(0, 1)
+            in 2-d lattice N
+            sage: phi_s
             Fan morphism defined by the matrix
-            [1]
-            Domain fan: Rational polyhedral fan in 1-d lattice N
-            Codomain fan: Rational polyhedral fan in Sublattice <N(1, 1)>
+            [2 0]
+            [1 1]
+            Domain fan: Rational polyhedral fan in 2-d lattice N
+            Codomain fan: Rational polyhedral fan in Sublattice <N(1, 0, 0), N(0, 1, 0)>
+            sage: phi_s.codomain_fan().rays()
+            N(1, 0, 0),
+            N(1, 1, 0)
+            in Sublattice <N(1, 0, 0), N(0, 1, 0)>
 
-        Note that the matrix defining a morphism to a fan in a sublattice
-        operates with generators of this sublattice, so ``[1]`` in the above
-        example means that `\psi` sends the only generator of the domain
-        lattice to the generator of the image sublattice::
+        Blowup chart (birational)::
 
-            sage: psi.codomain().gens()
-            (N(1, 1),)
-            sage: psi.codomain_fan().rays()
-            N( 1,  1),
-            N(-1, -1)
-            in Sublattice <N(1, 1)>
+            sage: phi_b
+            Fan morphism defined by the matrix
+            [1 0]
+            [0 1]
+            Domain fan: Rational polyhedral fan in Sublattice <N(1, 0, 0), N(0, 1, 0)>
+            Codomain fan: Rational polyhedral fan in Sublattice <N(1, 0, 0), N(0, 1, 0)>
+            sage: phi_b.codomain_fan().rays()
+            N( 1,  0, 0),
+            N( 0,  1, 0),
+            N(-1, -1, 0)
+            in Sublattice <N(1, 0, 0), N(0, 1, 0)>
 
-        Restriction to image returns exactly the same map if the corresponding
-        map of vector spaces is surjective, e.g. in the case of double
-        restriction::
+        Coordinate plane inclusion (injective)::
 
-            sage: psi.restrict_to_image() is psi
+            sage: phi_i
+            Fan morphism defined by the matrix
+            [1 0 0]
+            [0 1 0]
+            Domain fan: Rational polyhedral fan in Sublattice <N(1, 0, 0), N(0, 1, 0)>
+            Codomain fan: Rational polyhedral fan in 3-d lattice N
+            sage: phi.codomain_fan().rays()
+            N( 1,  0,  0),
+            N( 0,  1,  0),
+            N( 0,  0,  1),
+            N(-1, -1, -1)
+            in 3-d lattice N
+
+        TESTS::
+
+            sage: phi_s.matrix() * phi_b.matrix() * phi_i.matrix() == m
+            True
+
+            sage: phi.domain_fan() is phi_s.domain_fan()
+            True
+            sage: phi_s.codomain_fan() is phi_b.domain_fan()
+            True
+            sage: phi_b.codomain_fan() is phi_i.domain_fan()
+            True
+            sage: phi_i.codomain_fan() is phi.codomain_fan()
             True
         """
         L = self.image().saturation()
         d = L.dimension()
-        if self.codomain().dimension() == d:
-            return self
         m = self.matrix()
         m = matrix(ZZ, m.nrows(), d, (L.coordinates(c) for c in m.rows()))
+        phi_s = FanMorphism(m, self.domain_fan(), L, check=False)
+        Sigma_prime = self.codomain_fan()
         L_cone = Cone(sum(([g, -g] for g in L.gens()), []))
-        Sigma = Fan(cones=discard_faces(L_cone.intersection(cone)
-                                        for cone in self.codomain_fan()),
-                    lattice=L, check=False)
-        return FanMorphism(m, self.domain_fan(), Sigma)
+        Sigma_i = Fan(cones=(L_cone.intersection(cone) for cone in Sigma_prime),
+                      lattice=L, discard_faces=True, check=False)
+        phi_b = FanMorphism(identity_matrix(d), phi_s.codomain_fan(), Sigma_i,
+                            check=False)
+        phi_i = FanMorphism(L.basis_matrix(), Sigma_i, Sigma_prime, check=False)
+        return (phi_i, phi_b, phi_s)

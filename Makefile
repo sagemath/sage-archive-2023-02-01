@@ -174,6 +174,6 @@ install:
 
 .PHONY: all build build-serial start install \
 	doc doc-html doc-html-jsmath doc-html-mathjax doc-pdf \
-	doc-clean clean	distclean \
+	doc-clean clean lib-clean bdist-clean distclean micro_release \
 	test check testoptional testall testlong testoptionallong testallong \
 	ptest ptestoptional ptestall ptestlong ptestoptionallong ptestallong

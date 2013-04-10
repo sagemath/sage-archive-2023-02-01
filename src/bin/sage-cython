@@ -3,7 +3,12 @@
 import os, sys
 args = sys.argv[1:]
 
-SAGE_ROOT = os.environ['SAGE_ROOT']
+try:
+    from sage.env import SAGE_SRC
+except ImportError:
+    SAGE_SRC = os.environ.get('SAGE_SRC',
+            os.path.join(os.environ['SAGE_ROOT'], 'src'))
+
 # args can have length 0, in case we're printing a usage message (see trac 12207)
 pyx_file = os.path.abspath(args[-1]) if len(args) else None
 include_sage_flags = False
@@ -18,7 +23,7 @@ if pyx_file and pyx_file.endswith('.spyx'):
     f.close()
     include_sage_flags = True
 
-if pyx_file and pyx_file.startswith("%s/devel/"%SAGE_ROOT):
+if pyx_file and pyx_file.startswith(SAGE_SRC):
     include_sage_flags = True
 
 if '-sage' in args:
@@ -29,7 +34,7 @@ elif '-no-sage' in args:
     args.remove('-no-sage')
 
 if include_sage_flags:
-    args = ['--embed-positions', '-I%s/devel/sage/' % SAGE_ROOT] + args
+    args = ['--embed-positions', '-I%s' % SAGE_SRC] + args
 
 args.insert(0, 'sage-cython')
 os.execlp('cython', *args)

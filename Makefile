@@ -99,8 +99,11 @@ distclean: clean doc-clean lib-clean bdist-clean
 	@echo "Deleting all remaining output from build system ..."
 	rm -rf local
 
-micro_release:
-	bash -c ". src/bin/sage-env && src/bin/sage-micro_release"
+micro_release: bdist-clean lib-clean
+	@echo "Stripping binaries ..."
+	find local/lib -name '*.so' | xargs strip
+	strip local/bin/gfan
+	strip local/bin/Singular
 
 TESTPRELIMS = local/bin/sage-starts
 TESTALL = ./sage -t --all

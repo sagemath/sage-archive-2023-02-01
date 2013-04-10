@@ -1,0 +1,21 @@
+#/usr/bin/env bash
+
+for upstream in $SAGE_ROOT/upstream/*.tar.*
+do
+    pkg_version=`basename "$upstream"`
+    pkg_name=${pkg_version%-*}
+    if [ -e "$SAGE_ROOT/build/pkgs/$pkg_name" ]; then
+        echo $pkg_version
+        checksums="$SAGE_ROOT/build/pkgs/$pkg_name/checksums.ini"
+        echo -n "sha1=" > $checksums
+        shasum -a 1 $upstream | sed 's/ .*//' >> $checksums
+        echo -n "md5=" >> $checksums
+        if command -v md5 > /dev/null; then
+            md5 $upstream | sed 's/.*= *//' >> $checksums
+        else
+            md5sum $upstream | sed 's/ .*//' >> $checksums
+        fi
+        echo -n "cksum=" >> $checksums
+        cksum $upstream | sed 's/ .*//' >> $checksums
+    fi
+done

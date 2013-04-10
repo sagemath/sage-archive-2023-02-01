@@ -462,7 +462,7 @@ sage: \
 		 $(INST)/$(SYMMETRICA) \
 		 $(INST)/$(ZNPOLY) \
 		 csage
-	+$(PIPE) "{ cd $(SAGE_SRC) && . ./bin/sage-env && time python setup.py install; } 2>&1" "tee -a $(SAGE_LOGS)/sage.log"
+	+$(PIPE) "{ if [ -z $(SAGE_INSTALL_FETCH_ONLY) ]; then  cd $(SAGE_SRC) && . ./bin/sage-env && time python setup.py install; fi; } 2>&1" "tee -a $(SAGE_LOGS)/sage.log"
 
 scripts: $(SCRIPT_TARGETS)
 
@@ -475,7 +475,7 @@ csage: $(INST)/$(SCONS) \
        $(INST)/$(POLYBORI) \
        $(INST)/$(PYNAC) \
        $(INST)/$(PYTHON)
-	+$(PIPE) "{ cd $(SAGE_SRC)/c_lib && . ../bin/sage-env && time scons -Q install; } 2>&1" "tee -a $(SAGE_LOGS)/csage.log"
+	+$(PIPE) "{ if [ -z $(SAGE_INSTALL_FETCH_ONLY) ]; then cd $(SAGE_SRC)/c_lib && . ../bin/sage-env && time scons -Q install; fi; } 2>&1" "tee -a $(SAGE_LOGS)/csage.log"
 
 $(INST)/ccache: $(BASE) $(INST)/$(ZLIB)
 	+$(PIPE) "$(SAGE_SPKG) ccache 2>&1" "tee -a $(SAGE_LOGS)/ccache.log"

@@ -52,12 +52,14 @@ graphs.
     :meth:`~Graph.is_long_antihole_free` | Tests whether ``self`` contains an induced anticycle of length at least 5.
     :meth:`~Graph.is_weakly_chordal` | Tests whether ``self`` is weakly chordal.
     :meth:`~Graph.is_strongly_regular` | Tests whether ``self`` is strongly regular.
+    :meth:`~Graph.is_tree` | Return True if the graph is a tree.
+    :meth:`~Graph.is_forest` | Return True if the graph is a forest, i.e. a disjoint union of trees.
+    :meth:`~Graph.is_overfull` | Tests whether the current graph is overfull.
     :meth:`~Graph.odd_girth` | Returns the odd girth of ``self``.
     :meth:`~Graph.is_edge_transitive` | Returns true if self is edge-transitive.
     :meth:`~Graph.is_arc_transitive` | Returns true if self is arc-transitive.
     :meth:`~Graph.is_half_transitive` | Returns true if self is a half-transitive graph.
     :meth:`~Graph.is_semi_symmetric` | Returns true if self is a semi-symmetric graph.
-
 
 **Connectivity and orientations:**
 
@@ -1651,6 +1653,135 @@ class Graph(GenericGraph):
         return False
 
     ### Properties
+
+    def is_tree(self):
+        """
+        Return True if the graph is a tree.
+
+        EXAMPLES::
+
+            sage: for g in graphs.trees(6):
+            ...     g.is_tree()
+            True
+            True
+            True
+            True
+            True
+            True
+        """
+        if not self.is_connected():
+            return False
+        if self.num_verts() != self.num_edges() + 1:
+            return False
+        return True
+
+    def is_forest(self):
+        """
+        Return True if the graph is a forest, i.e. a disjoint union of
+        trees.
+
+        EXAMPLES::
+
+            sage: seven_acre_wood = sum(graphs.trees(7), Graph())
+            sage: seven_acre_wood.is_forest()
+            True
+        """
+        number_of_connected_components = len(self.connected_components())
+
+        return self.num_verts() == self.num_edges() + number_of_connected_components
+
+    def is_overfull(self):
+        r"""
+        Tests whether the current graph is overfull.
+
+        A graph `G` on `n` vertices and `m` edges is said to
+        be overfull if:
+
+        - `n` is odd
+
+        - It satisfies `2m > (n-1)\Delta(G)`, where
+          `\Delta(G)` denotes the maximum degree
+          among all vertices in `G`.
+
+        An overfull graph must have a chromatic index of `\Delta(G)+1`.
+
+        EXAMPLES:
+
+        A complete graph of order `n > 1` is overfull if and only if `n` is
+        odd::
+
+            sage: graphs.CompleteGraph(6).is_overfull()
+            False
+            sage: graphs.CompleteGraph(7).is_overfull()
+            True
+            sage: graphs.CompleteGraph(1).is_overfull()
+            False
+
+        The claw graph is not overfull::
+
+            sage: from sage.graphs.graph_coloring import edge_coloring
+            sage: g = graphs.ClawGraph()
+            sage: g
+            Claw graph: Graph on 4 vertices
+            sage: edge_coloring(g, value_only=True)
+            3
+            sage: g.is_overfull()
+            False
+
+        Checking that all complete graphs `K_n` for even `0 \leq n \leq 100`
+        are not overfull::
+
+            sage: def check_overfull_Kn_even(n):
+            ...       i = 0
+            ...       while i <= n:
+            ...           if graphs.CompleteGraph(i).is_overfull():
+            ...               print "A complete graph of even order cannot be overfull."
+            ...               return
+            ...           i += 2
+            ...       print "Complete graphs of even order up to %s are not overfull." % n
+            ...
+            sage: check_overfull_Kn_even(100)  # long time
+            Complete graphs of even order up to 100 are not overfull.
+
+        The null graph, i.e. the graph with no vertices, is not overfull::
+
+            sage: Graph().is_overfull()
+            False
+            sage: graphs.CompleteGraph(0).is_overfull()
+            False
+
+        Checking that all complete graphs `K_n` for odd `1 < n \leq 100`
+        are overfull::
+
+            sage: def check_overfull_Kn_odd(n):
+            ...       i = 3
+            ...       while i <= n:
+            ...           if not graphs.CompleteGraph(i).is_overfull():
+            ...               print "A complete graph of odd order > 1 must be overfull."
+            ...               return
+            ...           i += 2
+            ...       print "Complete graphs of odd order > 1 up to %s are overfull." % n
+            ...
+            sage: check_overfull_Kn_odd(100)  # long time
+            Complete graphs of odd order > 1 up to 100 are overfull.
+
+        The Petersen Graph, though, is not overfull while
+        its chromatic index is `\Delta+1`::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.is_overfull()
+            False
+            sage: from sage.graphs.graph_coloring import edge_coloring
+            sage: max(g.degree()) + 1 ==  edge_coloring(g, value_only=True)
+            True
+        """
+        # # A possible optimized version. But the gain in speed is very little.
+        # return bool(self._backend.num_verts() & 1) and (  # odd order n
+        #     2 * self._backend.num_edges(self._directed) > #2m > \Delta(G)*(n-1)
+        #     max(self.degree()) * (self._backend.num_verts() - 1))
+        # unoptimized version
+        return (self.order() % 2 == 1) and (
+            2 * self.size() > max(self.degree()) * (self.order() - 1))
 
     def is_even_hole_free(self, certificate = False):
         r"""

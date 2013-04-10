@@ -1715,6 +1715,17 @@ class Graph(GenericGraph):
             sage: -1 in cycle
             True
 
+        TESTS:
+
+        :trac:`14434` is fixed::
+
+            sage: g = Graph({0:[1,4,5],3:[4,8,9],4:[9],5:[7,8],7:[9]})
+            sage: _,cycle = g.is_tree(certificate=True)
+            sage: g.size()
+            10
+            sage: g.add_cycle(cycle)
+            sage: g.size()
+            10
         """
 
         if self.order() == 0:
@@ -1732,9 +1743,8 @@ class Graph(GenericGraph):
             n = self.order()
             seen = {}
             u = self.vertex_iterator().next()
-            v = self.neighbor_iterator(u).next()
             seen[u] = u
-            stack = [(u,v)]
+            stack = [(u,v) for v in self.neighbor_iterator(u)]
             while stack:
                 u,v = stack.pop(-1)
                 if v in seen:
@@ -1779,7 +1789,7 @@ class Graph(GenericGraph):
             sage: g.is_forest(certificate = True)
             (True, None)
             sage: (2*g + graphs.PetersenGraph() + g).is_forest(certificate = True)
-            (False, [60, 61, 62, 63, 64])
+            (False, [63, 62, 61, 60, 64])
         """
         number_of_connected_components = len(self.connected_components())
         isit = (self.num_verts() ==

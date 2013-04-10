@@ -392,9 +392,9 @@ if [ ! -f "$PKG_SRC" ]; then
 
     # Download to a temporary file (such that we don't end up with a
     # corrupted .spkg file).
-    PKG_TMP="$PKG_NAME.tmp"
+    PKG_TMP="${PKG_URL##*/}.tmp"
     if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
-        EXT_LIST=".tar .tar.gz .tar.bz2"
+        EXT_LIST=".tar.bz2 .tar.gz .tar"
     else
         EXT_LIST=.spkg
     fi
@@ -414,7 +414,7 @@ if [ ! -f "$PKG_SRC" ]; then
         exit 1
     fi
 
-    PKG_SRC="`pwd`/$PKG_NAME$EXT"
+    PKG_SRC="`pwd`/${PKG_URL##*/}$EXT"
     mv -f "$PKG_TMP" "$PKG_SRC"
 fi
 

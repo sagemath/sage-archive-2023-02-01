@@ -77,9 +77,9 @@ for tarball in `ls -1t ${SAGE_CURRENT_UPSTREAM}/${PKG_NAME_UPSTREAM}.tar* 2>/dev
     if [ -f "$tarball" ]; then
         cp "$tarball" $SAGE_ROOT/upstream
         exit 0
-        break
     fi
 done
+cd "$SAGE_ROOT/upstream"
 PKG_URL="$SAGE_UPSTREAM$PKG_NAME_UPSTREAM"
 PKG_TMP="${PKG_URL##*/}.tmp"
 for EXT in .tar.bz2 .tar.gz .tar; do
@@ -88,8 +88,8 @@ for EXT in .tar.bz2 .tar.gz .tar; do
     sage-download-file "$REAL_PKG_URL" >"$PKG_TMP" &&
         { DOWNLOAD_SUCCESS=yes; break; }
 done
-[ -n "$DOWNLOAD_SUCCESS" ] || exit 1
-mv "$PKG_TMP" "$SAGE_ROOT/upstream/${PKG_URL##*/}$EXT"
+[ -n "$DOWNLOAD_SUCCESS" ]
+mv "$PKG_TMP" "${PKG_URL##*/}$EXT"
 touch "$SAGE_SPKG_INST/$PKG_NAME"
 ' > src/bin/sage-spkg
 chmod +x src/bin/sage-spkg

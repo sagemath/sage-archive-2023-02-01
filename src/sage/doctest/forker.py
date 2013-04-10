@@ -108,20 +108,9 @@ def init_sage():
     # os OS X: http://trac.sagemath.org/14289
     import readline
 
-    # Workarounds for https://github.com/sagemath/sagenb/pull/84
-    import sagenb.notebook.misc
-    import sagenb.notebook.sage_email
-
     # Disable SymPy terminal width detection
     from sympy.printing.pretty.stringpict import stringPict
     stringPict.terminal_width = lambda self:0
-
-    def fixed_default_email_address():
-        import socket
-        import getpass
-        return getpass.getuser() + "@" + socket.gethostname()
-
-    sagenb.notebook.sage_email.default_email_address = fixed_default_email_address
 
 
 def warning_function(file):

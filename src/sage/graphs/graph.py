@@ -1654,9 +1654,18 @@ class Graph(GenericGraph):
 
     ### Properties
 
-    def is_tree(self):
+    def is_tree(self, certificate = False):
         """
-        Return True if the graph is a tree.
+        Tests if the graph is a tree
+
+        INPUT:
+
+        - ``certificate`` (boolean) -- whether to return a certificate. The
+          method only returns boolean answers when ``certificate = False``
+          (default). When it is set to ``True``, it either answers ``(True,
+          None)`` when the graph is a tree and ``(False, cycle)`` when it
+          contains a cycle. It returns ``(False, None)`` when the graph is not
+          connected.
 
         EXAMPLES::
 
@@ -1668,27 +1677,101 @@ class Graph(GenericGraph):
             True
             True
             True
+
+        With certificates::
+
+            sage: g = graphs.RandomTree(30)
+            sage: g.is_tree(certificate = True)
+            (True, None)
+            sage: g.add_edge(10,-1)
+            sage: g.add_edge(11,-1)
+            sage: isit, cycle = g.is_tree(certificate = True)
+            sage: isit
+            False
+            sage: -1 in cycle
+            True
         """
         if not self.is_connected():
-            return False
-        if self.num_verts() != self.num_edges() + 1:
-            return False
-        return True
+            return (False,None) if certificate else False
 
-    def is_forest(self):
+        if certificate:
+            if self.num_verts() == self.num_edges() + 1:
+                return (True, None)
+
+            # This code is a depth-first search that looks for a cycle in the
+            # graph. We *know* it exists as there are too many edges around.
+            n = self.order()
+            seen = {}
+            u = self.vertex_iterator().next()
+            v = self.neighbor_iterator(u).next()
+            seen[u] = u
+            stack = [(u,v)]
+            while stack:
+                u,v = stack.pop(-1)
+                if v in seen:
+                    continue
+                for w in self.neighbors(v):
+                    if u == w:
+                        continue
+                    elif w in seen:
+                        cycle = [v,w]
+                        while u != w:
+                            cycle.insert(0,u)
+                            u = seen[u]
+                        return (False,cycle)
+                    else:
+                        stack.append((v,w))
+                seen[v] = u
+
+        else:
+            return self.num_verts() == self.num_edges() + 1
+
+    def is_forest(self, certificate = False):
         """
-        Return True if the graph is a forest, i.e. a disjoint union of
-        trees.
+        Tests if the graph is a forest, i.e. a disjoint union of trees.
+
+        INPUT:
+
+        - ``certificate`` (boolean) -- whether to return a certificate. The
+          method only returns boolean answers when ``certificate = False``
+          (default). When it is set to ``True``, it either answers ``(True,
+          None)`` when the graph is a forest and ``(False, cycle)`` when it
+          contains a cycle.
 
         EXAMPLES::
 
             sage: seven_acre_wood = sum(graphs.trees(7), Graph())
             sage: seven_acre_wood.is_forest()
             True
+
+        With certificates::
+
+            sage: g = graphs.RandomTree(30)
+            sage: g.is_forest(certificate = True)
+            (True, None)
+            sage: (2*g + graphs.PetersenGraph() + g).is_forest(certificate = True)
+            (False, [60, 61, 62, 63, 64])
         """
         number_of_connected_components = len(self.connected_components())
+        isit = (self.num_verts() ==
+                self.num_edges() + number_of_connected_components)
 
-        return self.num_verts() == self.num_edges() + number_of_connected_components
+        if not certificate:
+            return isit
+        else:
+            if isit:
+                return (True, None)
+            # The graph contains a cycle, and the user wants to see it.
+
+            # No need to copy the graph
+            if number_of_connected_components == 1:
+                return self.is_tree(certificate = True)
+
+            # We try to find a cycle in each connected component
+            for gg in self.connected_components_subgraphs():
+                isit, cycle = gg.is_tree(certificate = True)
+                if not isit:
+                    return (False,cycle)
 
     def is_overfull(self):
         r"""

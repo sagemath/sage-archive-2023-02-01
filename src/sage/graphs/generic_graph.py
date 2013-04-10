@@ -14140,7 +14140,8 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.plot(layout="tree", tree_root = 0, tree_orientation = "up")
         """
         assert dim == 2, "3D tree layout not implemented"
-        if not self.is_tree():
+        from sage.graphs.graph import Graph
+        if not Graph(self).is_tree():
             raise RuntimeError("Cannot use tree layout on this graph: self.is_tree() returns False.")
         n = self.order()
         vertices = self.vertices()

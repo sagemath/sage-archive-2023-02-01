@@ -8331,7 +8331,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: id3 = G*G.conjugate().transpose()
             sage: (id3 - identity_matrix(3)).norm() < 10^-10
             True
-            sage: G.row_space() == A.row_space()
+            sage: G.row_space() == A.row_space()  # long time
             True
 
         A square matrix with small rank.  The zero vectors produced as a

@@ -19,7 +19,12 @@ def cython_debug_files():
     """
     Cython extra debug information files
     """
-    pattern = os.path.join(os.environ['SAGE_ROOT'], 'devel', 'sage', 'cython_debug',
+    try:
+        from sage.env import SAGE_SRC
+    except ImportError:
+        SAGE_SRC = os.environ.get('SAGE_SRC',
+                os.path.join(os.environ['SAGE_ROOT'], 'src'))
+    pattern = os.path.join(os.environ['SAGE_SRC'], 'cython_debug',
                            'cython_debug_info_*')
     return glob.glob(pattern)
 

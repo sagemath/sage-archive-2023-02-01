@@ -156,6 +156,12 @@ if [ "$1" = '-f' ]; then
     shift
 fi
 
+DOWNLOAD_ONLY=0
+if [ "$1" = '-d' ]; then
+    DOWNLOAD_ONLY=1
+    shift
+fi
+
 if [ "$1" = '-s' ]; then
     export SAGE_KEEP_BUILT_SPKGS=yes
     shift
@@ -413,6 +419,10 @@ fi
 # Go back to SAGE_ROOT where we have less chance of completely messing
 # up the system if we do something wrong.
 cd "$SAGE_ROOT" || exit
+
+if [ $DOWNLOAD_ONLY -ne 0 ]; then
+    exit 0
+fi
 
 ##################################################################
 # Extract the package

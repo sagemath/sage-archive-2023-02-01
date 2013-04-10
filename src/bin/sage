@@ -828,11 +828,8 @@ if [ "$1" = '-pkg_nc' -o "$1" = "--pkg_nc" ]; then
 fi
 
 if [ "$1" = '-sdist' -o "$1" = "--sdist" ]; then
-    if [ $# -ne 2 ]; then
-        echo >&2 "** MISSING VERSION NUMBER! **"
-        exit 2
-    fi
-    exec sage-sdist $2 "$SAGE_ROOT"
+    shift
+    exec sage-sdist "$@"
 fi
 
 if [ "$1" = '-rsyncdist' -o "$1" = "--rsyncdist" ]; then

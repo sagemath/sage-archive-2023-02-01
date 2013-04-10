@@ -1036,9 +1036,9 @@ def search_doc(string, extra1='', extra2='', extra3='', extra4='',
     counting the length of ``search_doc('tree',
     interact=False).splitlines()`` gives the number of matches. ::
 
-        sage: len(search_doc('tree', interact=False).splitlines()) > 2500  # long time
+        sage: len(search_doc('tree', interact=False).splitlines()) > 4000  # long time
         True
-        sage: len(search_doc('tree', whole_word=True, interact=False).splitlines()) < 500  # long time
+        sage: len(search_doc('tree', whole_word=True, interact=False).splitlines()) < 1000  # long time
         True
     """
     return _search_src_or_doc('doc', string, extra1=extra1, extra2=extra2,

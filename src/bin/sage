@@ -871,12 +871,12 @@ if [ "$1" = '-gdb' -o "$1" = "--gdb" ]; then
     shift
     sage_setup
     if [ "$SAGE_DEBUG" = "no" ]; then
-        gdb -x "$SAGE_ROOT/local/bin/sage-gdb-commands" \
-            -args python "$SAGE_ROOT/local/bin/sage-ipython" "$@" -i
+        gdb -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
+            -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
     else
-        cygdb "$SAGE_ROOT/devel/sage" "$SAGE_ROOT/devel/sage/sage" \
-            -x "$SAGE_ROOT/local/bin/sage-gdb-commands" \
-            -args python "$SAGE_ROOT/local/bin/sage-ipython" "$@" -i
+        cygdb "$SAGE_SRC" "$SAGE_SRC/sage" \
+            -x "$SAGE_LOCAL/bin/sage-gdb-commands" \
+            -args python "$SAGE_LOCAL/bin/sage-ipython" "$@" -i
     fi
     exit $?
 fi

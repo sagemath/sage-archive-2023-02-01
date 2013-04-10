@@ -42,7 +42,7 @@ mkdir -p "$TMP_DIR/$TARGET"
 # Clone Sage repository
 echo "Cloning Sage repository..."
 git clone "$SAGE_ROOT" "$TMP_DIR/$TARGET"
-git remote set-url origin git://github.com/sagemath/sage.git
+( cd "$TMP_DIR/$TARGET" && git remote set-url origin git://github.com/sagemath/sage.git )
 
 echo "Done cloning Sage repository."
 
@@ -50,7 +50,7 @@ echo "Copying files over to tmp directory"
 # We use "tar" to copy files for portability,
 # see http://trac.sagemath.org/sage_trac/ticket/14236
 tar cf - local | ( cd "$TMP_DIR/$TARGET" && tar xf - )
-tar cf - src/doc/output | ( cd "$TMP_DIR/$TARGET" && tar xf - )
+tar cf - src | ( cd "$TMP_DIR/$TARGET" && tar xf - )
 
 cd "$TMP_DIR"
 if [ "$UNAME" = "Darwin" ]; then

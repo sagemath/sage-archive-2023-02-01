@@ -3082,25 +3082,67 @@ class GenericGraph(GenericGraph_pyx):
                     self._embedding = G._embedding
             return planar
 
-    def is_circular_planar(self, ordered=True, on_embedding=None, kuratowski=False, set_embedding=False, set_pos=False):
+    def is_circular_planar(self, on_embedding=None, kuratowski=False,
+                           set_embedding=True, boundary = None,
+                           ordered=False, set_pos=False):
         """
         Tests whether the graph is circular planar (outerplanar)
 
-        A graph (with nonempty boundary) is circular planar if it has a
-        planar embedding in which all boundary vertices can be drawn in
-        order on a disc boundary, with all the interior vertices drawn
-        inside the disc.
+        A graph is circular planar if it has a planar embedding in which all
+        vertices can be drawn in order on a circle. This method can also be used
+        to check the existence of a planar embedding in which the vertices of a
+        specific set (the *boundary*) can be drawn on a circle, all other
+        vertices being drawn inside of the circle. An order can be defined on
+        the vertices of the boundary in order to define how they are to appear
+        on the circle.
 
-        Returns True if the graph is circular planar, and False if it is
-        not. If kuratowski is set to True, then this function will return a
-        tuple, with boolean first entry and second entry the Kuratowski
-        subgraph or minor isolated by the Boyer-Myrvold algorithm. Note
-        that this graph might contain a vertex or edges that were not in
-        the initial graph. These would be elements referred to below as
-        parts of the wheel and the star, which were added to the graph to
-        require that the boundary can be drawn on the boundary of a disc,
-        with all other vertices drawn inside (and no edge crossings). For
-        more information, refer to reference [2].
+        INPUT:
+
+        - ``kuratowski`` (boolean) - if set to True, returns a tuple with
+           boolean first entry and the Kuratowski subgraph or minor as the
+           second entry (see OUTPUT below). It is set to ``False`` by default.
+
+        - ``on_embedding`` (boolean) - the embedding dictionary to test
+           planarity on. (i.e.: will return ``True`` or ``False`` only for the
+           given embedding). It is set to ``False`` by default.
+
+        - ``set_embedding`` (boolean) - whether or not to set the instance field
+           variable that contains a combinatorial embedding (clockwise ordering
+           of neighbors at each vertex). This value will only be set if a
+           circular planar embedding is found. It is stored as a Python dict:
+           ``v1: [n1,n2,n3]`` where ``v1`` is a vertex and ``n1,n2,n3`` are its
+           neighbors. It is set to ``True`` by default.
+
+        - ``boundary`` - a set of vertices that are required to be drawn on the
+          circle, all others being drawn inside of it. It is set to ``None`` by
+          default, meaning that *all* vertices should be drawn on the boundary.
+
+        - ``ordered`` (boolean) - whether or not to consider the order of the
+           boundary. It is set to ``False`` by default, and required
+           ``boundary`` to be defined.
+
+        - ``set_pos`` - whether or not to set the position dictionary (for
+           plotting) to reflect the combinatorial embedding.  Note that this
+           value will default to False if set_emb is set to False. Also, the
+           position dictionary will only be updated if a circular planar
+           embedding is found.
+
+        OUTPUT:
+
+        The method returns ``True`` if the graph is circular planar, and
+        ``False`` if it is not.
+
+        If ``kuratowski`` is set to ``True``, then this function will return a
+        tuple, whose first entry is a boolean and whose second entry is the
+        Kuratowski subgraph or minor isolated by the Boyer-Myrvold
+        algorithm. Note that this graph might contain a vertex or edges that
+        were not in the initial graph. These would be elements referred to below
+        as parts of the wheel and the star, which were added to the graph to
+        require that the boundary can be drawn on the boundary of a disc, with
+        all other vertices drawn inside (and no edge crossings). For more
+        information, see [Kirkman]_.
+
+        ALGORITHM:
 
         This is a linear time algorithm to test for circular planarity. It
         relies on the edge-addition planarity algorithm due to
@@ -3110,110 +3152,82 @@ class GenericGraph(GenericGraph_pyx):
 
         REFERENCE:
 
-        - [1] John M. Boyer and Wendy J. Myrvold, On the Cutting Edge:
+        .. [BM04] John M. Boyer and Wendy J. Myrvold, On the Cutting Edge:
           Simplified O(n) Planarity by Edge Addition. Journal of Graph
           Algorithms and Applications, Vol. 8, No. 3, pp. 241-273,
           2004.
 
-        - [2] Kirkman, Emily A. O(n) Circular Planarity
-          Testing. [Online] Available: soon!
-
-        INPUT:
-
-        -  ``ordered`` - whether or not to consider the order
-           of the boundary (set ordered=False to see if there is any possible
-           boundary order that will satisfy circular planarity)
-
-        -  ``kuratowski`` - if set to True, returns a tuple
-           with boolean first entry and the Kuratowski subgraph or minor as
-           the second entry. See notes above.
-
-        -  ``on_embedding`` - the embedding dictionary to test
-           planarity on. (i.e.: will return True or False only for the given
-           embedding.)
-
-        -  ``set_embedding`` - whether or not to set the
-           instance field variable that contains a combinatorial embedding
-           (clockwise ordering of neighbors at each vertex). This value will
-           only be set if a circular planar embedding is found. It is stored
-           as a Python dict: v1: [n1,n2,n3] where v1 is a vertex and n1,n2,n3
-           are its neighbors.
-
-        -  ``set_pos`` - whether or not to set the position
-           dictionary (for plotting) to reflect the combinatorial embedding.
-           Note that this value will default to False if set_emb is set to
-           False. Also, the position dictionary will only be updated if a
-           circular planar embedding is found.
+        .. [Kirkman] Kirkman, Emily A. O(n) Circular Planarity Testing.
+          [Online] Available: soon!
 
         EXAMPLES::
 
             sage: g439 = Graph({1:[5,7], 2:[5,6], 3:[6,7], 4:[5,6,7]})
             sage: g439.set_boundary([1,2,3,4])
-            sage: g439.show(figsize=[2,2], vertex_labels=True, vertex_size=175)
-            sage: g439.is_circular_planar()
+            sage: g439.show()
+            sage: g439.is_circular_planar(boundary = [1,2,3,4])
             False
-            sage: g439.is_circular_planar(kuratowski=True)
-            (False, Graph on 7 vertices)
-            sage: g439.set_boundary([1,2,3])
-            sage: g439.is_circular_planar(set_embedding=True, set_pos=False)
-            True
-            sage: g439.is_circular_planar(kuratowski=True)
+            sage: g439.is_circular_planar(kuratowski=True, boundary = [1,2,3,4])
+            (False, Graph on 8 vertices)
+            sage: g439.is_circular_planar(kuratowski=True, boundary = [1,2,3])
             (True, None)
             sage: g439.get_embedding()
             {1: [7, 5],
-             2: [5, 6],
-             3: [6, 7],
-             4: [7, 6, 5],
-             5: [4, 2, 1],
-             6: [4, 3, 2],
-             7: [3, 4, 1]}
+            2: [5, 6],
+            3: [6, 7],
+            4: [7, 6, 5],
+            5: [1, 4, 2],
+            6: [2, 4, 3],
+            7: [3, 4, 1]}
 
         Order matters::
 
             sage: K23 = graphs.CompleteBipartiteGraph(2,3)
-            sage: K23.set_boundary([0,1,2,3])
-            sage: K23.is_circular_planar()
+            sage: K23.is_circular_planar(boundary = [0,1,2,3])
+            True
+            sage: K23.is_circular_planar(ordered=True, boundary = [0,1,2,3])
             False
-            sage: K23.is_circular_planar(ordered=False)
-            True
-            sage: K23.set_boundary([0,2,1,3]) # Diff Order!
-            sage: K23.is_circular_planar(set_embedding=True)
-            True
 
-        For graphs without a boundary, circular planar is the same as planar::
+        With a different order::
 
-            sage: g = graphs.KrackhardtKiteGraph()
-            sage: g.is_circular_planar()
+            sage: K23.is_circular_planar(set_embedding=True, boundary = [0,2,1,3])
             True
-
         """
-        boundary = self.get_boundary()
-        if not boundary:
-            return self.is_planar(on_embedding, kuratowski, set_embedding, set_pos)
+        if ordered and boundary is None:
+            raise ValueError("boundary must be set when ordered is True.")
 
+        if boundary is None:
+            boundary = self
+
+        # A local copy of self
         from sage.graphs.planarity import is_planar
         graph = self.to_undirected()
         if hasattr(graph, '_embedding'):
             del(graph._embedding)
 
+        # Adds a new vertex to the graph
         extra = 0
         while graph.has_vertex(extra):
             extra=extra+1
         graph.add_vertex(extra)
 
+        # Adds edges from the new vertex to all vertices of the boundary
         for vertex in boundary:
             graph.add_edge(vertex,extra)
 
         extra_edges = []
-        if ordered: # WHEEL
-            for i in range(len(boundary)-1):
-                if not graph.has_edge(boundary[i],boundary[i+1]):
-                    graph.add_edge(boundary[i],boundary[i+1])
-                    extra_edges.append((boundary[i],boundary[i+1]))
-            if not graph.has_edge(boundary[-1],boundary[0]):
-                graph.add_edge(boundary[-1],boundary[0])
-                extra_edges.append((boundary[-1],boundary[0]))
-        # else STAR (empty list of extra edges)
+
+        # When ordered is True, we need a way to make sure that the ordering is
+        # respected.
+        if ordered:
+
+            # We add edges between consecutive vertices of the boundary (only
+            # len(boundary)-1 are actually sufficient)
+            for u,v in zip(boundary[:-1],boundary[1:]):
+                if not graph.has_edge(u,v):
+                    extra_edges.append((u,v))
+
+            graph.add_edges(extra_edges)
 
         result = is_planar(graph,kuratowski=kuratowski,set_embedding=set_embedding,circular=True)
 
@@ -3235,10 +3249,12 @@ class GenericGraph(GenericGraph_pyx):
                     graph._embedding[w].pop(graph._embedding[w].index(extra))
 
                 if set_embedding:
-                    self._embedding = graph._embedding
+                    self._embedding = graph._embedding.copy()
 
             if (set_pos and set_embedding):
                 self.set_planar_positions()
+
+        del graph
         return result
 
     # TODO: rename into _layout_planar

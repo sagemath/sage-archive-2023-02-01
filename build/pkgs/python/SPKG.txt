@@ -66,12 +66,15 @@ http://www.python.org/community/
  * ncurses-issue_14438.patch: Fixes Python issue #14438 (ncurses)
  * disable_print_refs_debug.patch: Remove some unused debug output
    that breaks doctests
-
+ * no_strict_proto.patch: don't add -Wstrict-prototypes compiler flag,
+   which isn't valid for C++ (but Python uses the same compiler flags
+   for C and C++). See http://bugs.python.org/issue5755
 
 == Changelog ==
 
-=== python-2.7.4.p0 (Volker Braun, 7 April 2013)
- * Update to latest upstream version
+=== python-2.7.4.p0 (Volker Braun, Jeroen Demeyer, 11 April 2013)
+ * Trac #14423: Update to latest upstream version
+ * Add no_strict_proto.patch
 
 === python-2.7.3.p6 (Jeroen Demeyer, 24 March 2013) ===
  * Trac #14265: Compile with -D__C99FEATURES__ on Solaris.

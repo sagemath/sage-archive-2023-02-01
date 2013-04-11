@@ -249,7 +249,7 @@ $(INST)/$(MPFI): $(INST)/$(MPIR) $(INST)/$(MPFR)
 $(INST)/$(GIVARO): $(INST)/$(MPIR)
 	+$(PIPE) "$(SAGE_SPKG) $(GIVARO) 2>&1" "tee -a $(SAGE_LOGS)/$(GIVARO).log"
 
-$(INST)/$(GIT): $(INST)/$(ZLIB)
+$(INST)/$(GIT): $(INST)/$(ZLIB) $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(GIT) 2>&1" "tee -a $(SAGE_LOGS)/$(GIT).log"
 
 $(INST)/$(FFLASFFPACK): $(INST)/$(MPIR) $(INST)/$(GIVARO) \

@@ -633,7 +633,7 @@ class ContinuedFraction(FieldElement):
             sage: a = CFF(-17/389); a
             [-1, 1, 21, 1, 7, 2]
             sage: float(a)
-            -0.04370179948586118
+            -0.043701799485861184
         """
         return float(self._rational_())
 

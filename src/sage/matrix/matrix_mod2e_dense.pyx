@@ -801,7 +801,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
 
             sage: A.randomize(nonzero=False, density=0.05)
             sage: float(A.density())
-            0.1358539...
+            0.135854
         """
         if self._ncols == 0 or self._nrows == 0:
             return

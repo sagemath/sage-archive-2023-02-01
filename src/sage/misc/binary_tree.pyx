@@ -197,6 +197,7 @@ cdef class BinaryTree:
 
         EXAMPLES::
 
+            sage: from sage.misc.binary_tree import BinaryTree
             sage: t = BinaryTree()
             sage: t.insert(1)
             sage: t.insert(0)
@@ -220,6 +221,7 @@ cdef class BinaryTree:
 
         EXAMPLES::
 
+            sage: from sage.misc.binary_tree import BinaryTree
             sage: t = BinaryTree()
             sage: t.insert(3,3)
             sage: t.insert(1,1)
@@ -261,6 +263,7 @@ cdef class BinaryTree:
 
         EXAMPLES::
 
+            sage: from sage.misc.binary_tree import BinaryTree
             sage: t = BinaryTree()
             sage: t.insert(0,Matrix([[0,0],[1,1]]))
             sage: t.insert(0,1)
@@ -279,6 +282,7 @@ cdef class BinaryTree:
 
         EXAMPLES::
 
+            sage: from sage.misc.binary_tree import BinaryTree
             sage: t = BinaryTree()
             sage: t.contains(1)
             False
@@ -322,6 +326,7 @@ cdef class BinaryTree:
 
         EXAMPLES::
 
+            sage: from sage.misc.binary_tree import BinaryTree
             sage: t = BinaryTree()
             sage: t.insert(4,'e')
             sage: t.insert(2,'c')
@@ -361,6 +366,7 @@ cdef class BinaryTree:
 
         EXAMPLES::
 
+            sage: from sage.misc.binary_tree import BinaryTree
             sage: t = BinaryTree()
             sage: t.insert(4,'e')
             sage: t.insert(2,'c')
@@ -399,6 +405,7 @@ cdef class BinaryTree:
 
         EXAMPLES::
 
+            sage: from sage.misc.binary_tree import BinaryTree
             sage: t = BinaryTree()
             sage: t.is_empty()
             True

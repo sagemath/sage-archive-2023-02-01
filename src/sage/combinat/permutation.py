@@ -2946,6 +2946,68 @@ class Permutation_class(CombinatorialObject):
         """
         return self.robinson_schensted()[1]
 
+    def increasing_tree(self, compare=min):
+        """
+        Return the increasing tree associated to ``self``
+
+        EXAMPLES::
+
+            sage: Permutation([1,4,3,2]).increasing_tree()
+            1[., 2[3[4[., .], .], .]]
+            sage: Permutation([4,1,3,2]).increasing_tree()
+            1[4[., .], 2[3[., .], .]]
+
+        By passing the option ``compare=max`` one can have the decreasing
+        tree instead::
+
+            sage: Permutation([2,3,4,1]).increasing_tree(max)
+            4[3[2[., .], .], 1[., .]]
+            sage: Permutation([2,3,1,4]).increasing_tree(max)
+            4[3[2[., .], 1[., .]], .]
+        """
+        from sage.combinat.binary_tree import LabelledBinaryTree as LBT
+        def rec(perm):
+            if len(perm) == 0: return LBT(None)
+            mn = compare(perm)
+            k = perm.index(mn)
+            return LBT([rec(perm[:k]), rec(perm[k+1:])], label = mn)
+        return rec(self)
+
+    def binary_search_tree(self, left_to_right=True):
+        """
+        Return the binary search tree associated to ``self``
+
+        EXAMPLES::
+
+            sage: Permutation([1,4,3,2]).binary_search_tree()
+            1[., 4[3[2[., .], .], .]]
+            sage: Permutation([4,1,3,2]).binary_search_tree()
+            4[1[., 3[2[., .], .]], .]
+
+        By passing the option ``compare=max`` one can have the decreasing
+        tree instead::
+
+            sage: Permutation([1,4,3,2]).binary_search_tree(False)
+            2[1[., .], 3[., 4[., .]]]
+            sage: Permutation([4,1,3,2]).binary_search_tree(False)
+            2[1[., .], 3[., 4[., .]]]
+
+        TESTS::
+
+            sage: Permutation([]).binary_search_tree()
+            .
+        """
+        from sage.combinat.binary_tree import LabelledBinaryTree as LBT
+        res = LBT(None)
+        if left_to_right:
+            gen = self
+        else:
+            gen = self[::-1]
+        for i in gen:
+            res = res.binary_search_insert(i)
+        return res
+
+
     @combinatorial_map(name='Robinson-Schensted tableau shape')
     def RS_partition(self):
         """

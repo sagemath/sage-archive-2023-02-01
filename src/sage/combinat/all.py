@@ -81,6 +81,10 @@ from alternating_sign_matrix import AlternatingSignMatrices, MonotoneTriangles, 
 # Non Decreasing Parking Functions
 from non_decreasing_parking_function import NonDecreasingParkingFunctions, NonDecreasingParkingFunction
 
+from ordered_tree import (OrderedTree, OrderedTrees,
+                          LabelledOrderedTree, LabelledOrderedTrees)
+from binary_tree import (BinaryTree, BinaryTrees,
+                         LabelledBinaryTree, LabelledBinaryTrees)
 
 from combination import Combinations
 from cartesian_product import CartesianProduct

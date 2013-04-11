@@ -43,6 +43,9 @@ Combinatorics
    sage/combinat/sidon_sets
    sage/combinat/set_partition_ordered
    sage/combinat/set_partition
+   sage/combinat/abstract_tree
+   sage/combinat/ordered_tree
+   sage/combinat/binary_tree
    sage/combinat/skew_partition
    sage/combinat/subset
    sage/combinat/subsets_pairwise

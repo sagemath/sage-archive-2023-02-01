@@ -146,10 +146,9 @@ cdef class ClonableElement(Element):
     """
     Abstract class for elements with clone protocol
 
-    This class is a subclasse of
-    :class:`Element<sage.structure.element.Element>` and implements the
-    "prototype" design pattern (see [Pro]_, [GOF]_). The role of this class
-    is:
+    This class is a subclass of :class:`Element<sage.structure.element.Element>`
+    and implements the "prototype" design pattern (see [Pro]_, [GOF]_). The role
+    of this class is:
 
     - to manage copy and mutability and hashing of elements
     - to ensure that at the end of a piece of code an object is restored in a

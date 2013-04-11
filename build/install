@@ -379,6 +379,7 @@ GD=`newest_version gd`
 GDMODULE=`newest_version gdmodule`
 GENUS2REDUCTION=`newest_version genus2reduction`
 GFAN=`newest_version gfan`
+GIT=`newest_version git`
 GIVARO=`newest_version givaro`
 GLPK=`newest_version glpk`
 GRAPHS=`newest_version graphs`

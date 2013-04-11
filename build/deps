@@ -54,6 +54,7 @@ all-sage: \
      $(INST)/$(GDMODULE) \
      $(INST)/$(GFAN) \
      $(INST)/$(GIVARO) \
+     $(INST)/$(GIT) \
      $(INST)/$(GLPK) \
      $(INST)/$(GRAPHS) \
      $(INST)/$(GSL) \
@@ -247,6 +248,9 @@ $(INST)/$(MPFI): $(INST)/$(MPIR) $(INST)/$(MPFR)
 
 $(INST)/$(GIVARO): $(INST)/$(MPIR)
 	+$(PIPE) "$(SAGE_SPKG) $(GIVARO) 2>&1" "tee -a $(SAGE_LOGS)/$(GIVARO).log"
+
+$(INST)/$(GIT): $(INST)/$(ZLIB)
+	+$(PIPE) "$(SAGE_SPKG) $(GIT) 2>&1" "tee -a $(SAGE_LOGS)/$(GIT).log"
 
 $(INST)/$(FFLASFFPACK): $(INST)/$(MPIR) $(INST)/$(GIVARO) \
 	$(INST)/$(GSL) $(INST)/$(ATLAS)

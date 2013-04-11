@@ -1396,12 +1396,12 @@ class DocTestDispatcher(SageObject):
         # Timeout we give a process to die (after it received a SIGHUP
         # signal). If it doesn't exit by itself in this many seconds, we
         # SIGKILL it. This is 5% of doctest timeout, with a maximum of
-        # 10 minutes and a minimum of 5 seconds.
+        # 10 minutes and a minimum of 20 seconds.
         die_timeout = opt.timeout * 0.05
         if die_timeout > 600:
             die_timeout = 600
-        elif die_timeout < 5:
-            die_timeout = 5
+        elif die_timeout < 20:
+            die_timeout = 20
 
         # List of alive DocTestWorkers (child processes). Workers which
         # are done but whose messages have not been read are also
@@ -1506,7 +1506,8 @@ class DocTestDispatcher(SageObject):
                                 w.killed,
                                 w.exitcode,
                                 w.result,
-                                w.output)
+                                w.output,
+                                pid=w.pid)
                             restart = True
                             follow = None
                     finished = new_finished

@@ -121,6 +121,27 @@ class Polyhedron_base(Element):
         else:
             self._init_empty_polyhedron()
 
+    def _sage_input_(self, sib, coerced):
+        """
+        Return Sage command to reconstruct ``self``.
+
+        See :mod:`sage.misc.sage_input` for details.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron([(1,0), (0,1)], rays=[(1,1)])
+            sage: sage_input(P)
+            Polyhedron(base_ring=ZZ, rays=[(1, 1)], vertices=[(0, 1), (1, 0)])
+       """
+        kwds = dict()
+        kwds['base_ring'] = sib(self.base_ring())
+        if self.n_vertices() > 0:
+            kwds['vertices'] = [sib(tuple(v)) for v in self.vertices()]
+        if self.n_rays() > 0:
+            kwds['rays'] = [sib(tuple(r)) for r in self.rays()]
+        if self.n_lines() > 0:
+            kwds['lines'] = [sib(tuple(l)) for l in self.lines()]
+        return sib.name('Polyhedron')(**kwds)
 
     def _init_from_Vrepresentation(self, vertices, rays, lines, **kwds):
         """

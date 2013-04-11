@@ -604,9 +604,8 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         If the prime is small enough to fit in a byte, then it is
         stored as a contiguous string of bytes (to save
         space). Otherwise, memcpy is used to copy the raw data in the
-        platforms native format. Any byte-swapping or word size
-        difference is taken care of in unpickling (optimizing for
-        unpickling on the same platform things were pickled on).
+        platforms native format. Endianness is dealt with when
+        unpickling.
 
         EXAMPLES::
 
@@ -631,29 +630,35 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
         cdef celement *row_self
 
         if self.p <= 0xFF:
-            word_size = sizeof(char)
+            word_size = sizeof(unsigned char)
         else:
             word_size = sizeof(mod_int)
 
-        s = PyString_FromStringAndSize(NULL, word_size * self._nrows * self._ncols)
+        cdef void *buf = sage_malloc(word_size * self._nrows * self._ncols)
+        if not buf:
+            raise MemoryError
 
         sig_on()
-        if word_size == sizeof(char):
-            us = <unsigned char*><char *>s
-            for i in range(self._nrows):
-                row_self = self._matrix[i]
-                row_us = &us[i*self._ncols]
-                for j in range(self._ncols):
-                    row_us[j] = <unsigned char><mod_int>row_self[j]
-        else:
-            um = <mod_int*><char *>s
-            for i in range(self._nrows):
-                row_self = self._matrix[i]
-                row_um = &um[i*self._ncols]
-                for j in range(self._ncols):
-                    row_um[j] = <mod_int>row_self[j]
-        sig_off()
+        try:
+            if word_size == sizeof(unsigned char):
+                us = <unsigned char*>buf
+                for i in range(self._nrows):
+                    row_self = self._matrix[i]
+                    row_us = us + i*self._ncols
+                    for j in range(self._ncols):
+                        row_us[j] = <mod_int>row_self[j]
+            else:
+                um = <mod_int*>buf
+                for i in range(self._nrows):
+                    row_self = self._matrix[i]
+                    row_um = um + i*self._ncols
+                    for j in range(self._ncols):
+                        row_um[j] = <mod_int>row_self[j]
 
+            s = PyString_FromStringAndSize(<char*>buf, word_size * self._nrows * self._ncols)
+        finally:
+            sage_free(buf)
+            sig_off()
         return (word_size, little_endian, s), 10
 
     def _unpickle(self, data, int version):
@@ -714,51 +719,62 @@ cdef class Matrix_modn_dense_template(matrix_dense.Matrix_dense):
 
         cdef Py_ssize_t i, j
         cdef unsigned char* us
-        cdef mod_int *um
-        cdef unsigned char* row_us
-        cdef mod_int *row_um
         cdef long word_size
         cdef celement *row_self
         cdef bint little_endian_data
-        cdef unsigned char* udata
+        cdef char* buf
+        cdef Py_ssize_t buflen
+        cdef Py_ssize_t expectedlen
+        cdef mod_int v
 
         if version == 10:
             word_size, little_endian_data, s = data
+            expectedlen = word_size * self._nrows * self._ncols
+
+            PyString_AsStringAndSize(s, &buf, &buflen)
+            if buflen != expectedlen:
+                raise ValueError("incorrect size in matrix pickle (expected %d, got %d)"%(expectedlen, buflen))
 
             sig_on()
-            if word_size == 1:
-                us = <unsigned char*><char *>s
-                for i from 0 <= i < self._nrows:
-                    row_self = self._matrix[i]
-                    row_us = &us[i*self._ncols]
-                    for j from 0<= j < self._ncols:
-                        row_self[j] = <celement>row_us[j]
+            try:
+                if word_size == 1:
+                    us = <unsigned char*>buf
+                    for i from 0 <= i < self._nrows:
+                        row_self = self._matrix[i]
+                        for j from 0 <= j < self._ncols:
+                            row_self[j] = <celement>(us[0])
+                            us += word_size
 
-            elif word_size == sizeof(mod_int) and little_endian == little_endian_data:
-                um = <mod_int*><char *>s
-                for i from 0 <= i < self._nrows:
-                    row_self = self._matrix[i]
-                    row_um = &um[i*self._ncols]
-                    for j from 0<= j < self._ncols:
-                        row_self[j] =  <celement>row_um[j]
+                elif word_size >= 4 and little_endian_data:
+                    us = <unsigned char*>buf
+                    for i from 0 <= i < self._nrows:
+                        row_self = self._matrix[i]
+                        for j from 0 <= j < self._ncols:
+                            v  = <mod_int>(us[0])
+                            v += <mod_int>(us[1]) << 8
+                            v += <mod_int>(us[2]) << 16
+                            v += <mod_int>(us[3]) << 24
+                            row_self[j] = <celement>v
+                            us += word_size
 
-            elif little_endian_data:
-                us = <unsigned char*><char *>s
-                for i from 0 <= i < self._nrows:
-                    row_self = self._matrix[i]
-                    for j from 0<= j < self._ncols:
-                        udata = &us[(i*self._ncols+j)*word_size]
-                        row_self[j] =  <celement>((<mod_int>udata[0]) + ((<mod_int>udata[1]) << 8) + ((<mod_int>udata[2]) << 16) + ((<mod_int>udata[3]) << 24))
-            else:
-                us = <unsigned char*><char *>s
-                for i from 0 <= i < self._nrows:
-                    row_self = self._matrix[i]
-                    for j from 0<= j < self._ncols:
-                        udata = &us[(i*self._ncols+j)*word_size]
-                        row_self[j] =  <celement>((<mod_int>udata[word_size-1]) + ((<mod_int>udata[word_size-2]) << 8) +((<mod_int>udata[word_size-3]) << 16) + ((<mod_int>udata[word_size-4]) << 24))
-            sig_off()
+                elif word_size >= 4 and not little_endian_data:
+                    us = <unsigned char*>buf
+                    for i from 0 <= i < self._nrows:
+                        row_self = self._matrix[i]
+                        for j from 0 <= j < self._ncols:
+                            v  = <mod_int>(us[word_size-1])
+                            v += <mod_int>(us[word_size-2]) << 8
+                            v += <mod_int>(us[word_size-3]) << 16
+                            v += <mod_int>(us[word_size-4]) << 24
+                            row_self[j] = <celement>v
+                            us += word_size
+
+                else:
+                    raise ValueError("unknown matrix pickle format")
+            finally:
+                sig_off()
         else:
-            raise ValueError("Unknown matrix version.")
+            raise ValueError("unknown matrix pickle version")
 
     def __neg__(self):
         """

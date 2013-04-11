@@ -1366,6 +1366,20 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             self._PPL_C_Polyhedron = PPL
             self._PPL_C_Polyhedron.set_immutable()
 
+    def _sage_input_(self, sib, coerced):
+        """
+        Return Sage command to reconstruct ``self``.
+
+        See :mod:`sage.misc.sage_input` for details.
+
+        EXAMPLES::
+
+            sage: cone = Cone([(1,0), (1,1)])
+            sage: sage_input(cone)
+            Cone([(1, 0), (1, 1)])
+        """
+        return sib.name('Cone')([sib(tuple(r)) for r in self.rays()])
+
     def _PPL_cone(self):
         r"""
         Returns the Parma Polyhedra Library (PPL) representation of the cone.

@@ -31,9 +31,10 @@ def cython_debug_files():
 
 
 print '\n\n'
-print 'Cython backtrace (newest frame = last)'
-print '--------------------------------------'
+print 'Cython backtrace'
+print '----------------'
 
+# The Python interpreter in GDB does not do automatic backtraces for you
 try:
 
     for f in cython_debug_files():
@@ -70,7 +71,7 @@ try:
 
             try:
                 gdb_value = gdb.parse_and_eval(func_cname)
-            except RuntimeError:
+            except (RuntimeError, TypeError):
                 func_address = 0
             else:
                 func_address = int(str(gdb_value.address).split()[0], 0)
@@ -90,12 +91,25 @@ try:
 
 
         def invoke(self, args, from_tty):
+            self.newest_first_order(args, from_tty)
+
+
+        def newest_first_order(self, args, from_tty):
+            frame = gdb.newest_frame()
+            index = 0
+            while frame:
+                frame.select()
+                self.print_stackframe(frame, index)
+                index += 1
+                frame = frame.older()
+
+
+        def newest_last_order(self, args, from_tty):
             frame = gdb.newest_frame()
             n_frames = 0;
             while frame.older():
                 frame = frame.older()
                 n_frames += 1
-
             index = 0
             while frame:
                 frame.select()
@@ -103,11 +117,14 @@ try:
                 index += 1
                 frame = frame.newer()
 
+
     trace = SageBacktrace.register()
     trace.invoke(None, None)
 
 
 except Exception as e:
     print 'Exception: ', type(e), e
+    import traceback
+    traceback.print_exc()
 
 sys.stdout.flush()

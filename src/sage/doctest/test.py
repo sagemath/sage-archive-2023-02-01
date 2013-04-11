@@ -85,7 +85,7 @@ Test a timeout using the ``SAGE_TIMEOUT`` environment variable::
     sage -t 99seconds.rst
         Time out
     **********************************************************************
-    Tests run before process timed out:
+    Tests run before process (pid=...) timed out:
     ...
     ----------------------------------------------------------------------
     sage -t 99seconds.rst  # Time out
@@ -150,13 +150,13 @@ doesn't hurt::
 
 Even though the doctester master process has exited, the child process
 is still alive, but it should be killed automatically
-in 120 * 0.05 = 6 seconds::
+in max(20, 120 * 0.05) = 20 seconds::
 
     sage: pid = int(open(F).read())    # long time
     sage: time.sleep(2)                # long time
     sage: os.kill(pid, signal.SIGHUP)  # long time; 2 seconds passed => still alive
-    sage: time.sleep(6)                # long time
-    sage: os.kill(pid, signal.SIGHUP)  # long time; 8 seconds passed => dead
+    sage: time.sleep(23)               # long time
+    sage: os.kill(pid, signal.SIGHUP)  # long time; 25 seconds passed => dead
     Traceback (most recent call last):
     ...
     OSError: ...
@@ -169,7 +169,7 @@ Test a doctest failing with ``abort()``::
     sage -t abort.rst
         Killed due to abort
     **********************************************************************
-    Tests run before process failed:
+    Tests run before process (pid=...) failed:
     ...
     ------------------------------------------------------------------------
     Unhandled SIGABRT: An abort() occurred in Sage.
@@ -201,7 +201,7 @@ A different kind of crash::
         NameError: name 'this_gives_a_NameError' is not defined
         Killed due to kill signal
     **********************************************************************
-    Tests run before process failed:
+    Tests run before process (pid=...) failed:
     ...
     ----------------------------------------------------------------------
     sage -t fail_and_die.rst  # Killed due to kill signal

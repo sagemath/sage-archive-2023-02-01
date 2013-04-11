@@ -1,9 +1,9 @@
-"""
+r"""
 Loading and saving sessions and listing all variables
 
 EXAMPLES:
 
-We reset the current session, then define a rational number $2/3$, and
+We reset the current session, then define a rational number ``2/3``, and
 verify that it is listed as a newly defined variable::
 
     sage: reset()
@@ -12,14 +12,15 @@ verify that it is listed as a newly defined variable::
     sage: show_identifiers()
     ['w']
 
-We next save this session. We are using a file in SAGE_TMP. We do this
-\emph{for testing} only --- please do not do this, when you want to
-save your session permanently, since SAGE_TMP will be removed when
-leaving Sage!::
+We next save this session. We are using a file in ``SAGE_TMP``. We do this
+*for testing* only --- please do not do this, when you want to save your
+session permanently, since ``SAGE_TMP`` will be removed when leaving Sage!
+
+::
 
     sage: save_session(os.path.join(SAGE_TMP, 'session'))
 
-This saves a dictionary with $w$ as one of the keys::
+This saves a dictionary with ``w`` as one of the keys::
 
     sage: z = load(os.path.join(SAGE_TMP, 'session'))
     sage: z.keys()
@@ -34,7 +35,7 @@ Next we reset the session, verify this, and load the session back.::
     []
     sage: load_session(os.path.join(SAGE_TMP, 'session'))
 
-Indeed $w$ is now defined again.::
+Indeed ``w`` is now defined again.::
 
     sage: show_identifiers()
     ['w']
@@ -42,11 +43,11 @@ Indeed $w$ is now defined again.::
     2/3
 
 It is not needed to clean up the file created in the above code, since it
-resides in the directory SAGE_TMP.
+resides in the directory ``SAGE_TMP``.
 
 AUTHOR:
 
-     - William Stein
+- William Stein
 
 """
 
@@ -76,12 +77,13 @@ state_at_init = None
 
 def init(state=None):
     """
-    Initialize some dictionaries needed by the show_identifiers, save_session,
-    and load_session functions.
+    Initialize some dictionaries needed by the :func:`show_identifiers`,
+    :func:`save_session`, and :func:`load_session` functions.
 
     INPUT:
 
-        - ``state`` -- a dictionary or None; if None the locals() of the caller is used.
+    - ``state`` -- a dictionary or ``None``; if ``None`` the :func:`locals()`
+      of the caller is used.
 
     EXAMPLES::
 
@@ -90,8 +92,8 @@ def init(state=None):
         sage: show_identifiers()
         ['w']
 
-    When we call init() below it reinitializes the internal table, so
-    the `w` we just defined doesn't count as a new identifier::
+    When we call :func:`init()` below it reinitializes the internal table, so
+    the ``w`` we just defined doesn't count as a new identifier::
 
         sage: sage.misc.session.init()
         sage: show_identifiers()
@@ -104,21 +106,24 @@ def init(state=None):
 
 def _is_new_var(x, v, hidden):
     """
-    Return whether or not the variable named `x` with value `v` is considered
-    newly defined in the current session.
+    Return whether or not the variable named ``x`` with value ``v`` is
+    considered newly defined in the current session.
 
     INPUT:
 
-        - `x` -- string
+    - ``x`` -- string
 
-        - `v` -- object
+    - ``v`` -- object
 
-        - ``hidden`` -- bool (if True, always return False on variables that start with _)
+    - ``hidden`` -- bool; if ``True``, always return ``False`` on variables
+      that start with ``_``)
 
     OUTPUT:
-        bool
 
-    EXAMPLES::
+    A bool
+
+    EXAMPLES:
+
     We reset the session, then check whether the builtin factor function
     is newly defined (it isn't)::
 
@@ -132,7 +137,7 @@ def _is_new_var(x, v, hidden):
         sage: sage.misc.session._is_new_var('factor', factor, True)
         True
 
-    We define a new variable 'blue', and test::
+    We define a new variable ``'blue'``, and test::
 
         sage: blue = 10
         sage: sage.misc.session._is_new_var('blue', blue, True)
@@ -161,14 +166,15 @@ def show_identifiers(hidden=False):
 
     INPUT:
 
-        - `hidden` -- bool (default: False); if True, also return identifiers
-          that start with an underscore.
+    - ``hidden`` -- bool (Default: ``False``); If ``True``, also return
+      identifiers that start with an underscore.
 
     OUTPUT:
 
-        - ``list`` -- a list of variable names
+    A list of variable names
 
     EXAMPLES:
+
     We reset the state of all variables, and see that none are defined::
 
         sage: reset()
@@ -176,7 +182,7 @@ def show_identifiers(hidden=False):
         []
 
     We then define two variables, one which overwrites the default factor
-    function; both are shown by \code{show_identifiers()}::
+    function; both are shown by :func:`show_identifiers()`::
 
         sage: a = 10
         sage: factor = 20
@@ -184,14 +190,14 @@ def show_identifiers(hidden=False):
         ['a', 'factor']
 
     To get the actual value of a variable from the list, use the
-    \code{globals()} function.::
+    :func:`globals()` function.::
 
         sage: globals()['factor']
         20
 
-    By default \code{show_identifiers()} only returns variables that
+    By default :func:`show_identifiers()` only returns variables that
     don't start with an underscore.  There is an option hidden that
-    allows one to list those as well.::
+    allows one to list those as well::
 
         sage: _hello = 10
         sage: show_identifiers()
@@ -212,42 +218,51 @@ def save_session(name='sage_session', verbose=False):
     r"""
     Save all variables that can be saved to the given filename.  The
     variables will be saved to a dictionary, which can be loaded using
-    load(name) or load_session.
+    ``load(name)`` or :func:`load_session`.
 
-    NOTES:
-    1. Function and anything else that can't be pickled is not
-    saved.  This failure is silent unless you set \code{verbose=True}.
+    .. NOTE::
 
-    2. In the Sage notebook the session is saved both to the current
-    working cell and to the DATA directory.
+        1. Function and anything else that can't be pickled is not
+           saved. This failure is silent unless you set
+           ``verbose=True``.
 
-    3. One can still make sessions that can't be reloaded.  E.g., define
-       a class with
-           class Foo: pass
-       and make an instance with
-           f = Foo()
-       Then save_session followed by quit and load_session fails.
-       I doubt there is any good way to deal with this.  Fortunately,
-       one can simply re-evaluate the code to define Foo, and suddenly
-       load_session works fine.
+        2. In the Sage notebook the session is saved both to the current
+           working cell and to the ``DATA`` directory.
+
+        3. One can still make sessions that can't be reloaded.  E.g., define
+           a class with::
+
+               class Foo: pass
+
+          and make an instance with::
+
+               f = Foo()
+
+          Then :func:`save_session` followed by ``quit`` and
+          :func:`load_session` fails. I doubt there is any good way to
+          deal with this. Fortunately, one can simply re-evaluate the
+          code to define ``Foo``, and suddenly :func:`load_session`
+          works fine.
 
     INPUT:
 
-        - ``name`` -- string (default: 'sage_session') name of sobj to save
-          the session to.
+        - ``name`` -- string (default: 'sage_session') name of ``sobj``
+          to save the session to.
 
-        - ``verbose`` -- bool (default: False) if True, print info about
-          why certain variables can't be saved.
+        - ``verbose`` -- bool (default: ``False``) if ``True``, print
+          info about why certain variables can't be saved.
 
     OUTPUT:
 
-        - creates a file
+        - Creates a file and returns silently.
 
     EXAMPLES:
 
-    For testing, we use a temporary file, that will be removed as soon
+    For testing, we use a temporary file that will be removed as soon
     as Sage is left. Of course, for permanently saving your session,
-    you should choose a permanent file. ::
+    you should choose a permanent file.
+
+    ::
 
         sage: a = 5
         sage: tmp_f = tmp_filename()
@@ -257,7 +272,7 @@ def save_session(name='sage_session', verbose=False):
         sage: print a
         5
 
-    We illustrate what happens when one of the variables is a function.::
+    We illustrate what happens when one of the variables is a function::
 
         sage: f = lambda x : x^2
         sage: save_session(tmp_f)
@@ -266,7 +281,7 @@ def save_session(name='sage_session', verbose=False):
         Not saving f: f is a function, method, class or type
         ...
 
-    Something similar happens for cython-defined functions.::
+    Something similar happens for cython-defined functions::
 
         sage: g = cython_lambda('double x', 'x*x + 1.5')
         sage: save_session(tmp_f, verbose=True)
@@ -314,8 +329,10 @@ def load_session(name='sage_session', verbose=False):
     don't necessarily loose all your current work when you use this
     command.
 
-    NOTES: In the Sage notebook the session name is searched for both
-    in the current working cell and the DATA directory.
+    .. NOTE::
+
+        In the Sage notebook the session name is searched for both
+        in the current working cell and the ``DATA`` directory.
 
     EXAMPLES::
 
@@ -324,7 +341,9 @@ def load_session(name='sage_session', verbose=False):
 
     For testing, we use a temporary file, that will be removed as soon
     as Sage is left. Of course, for permanently saving your session,
-    you should choose a permanent file.::
+    you should choose a permanent file.
+
+    ::
 
         sage: tmp_f = tmp_filename()
         sage: save_session(tmp_f)
@@ -333,7 +352,8 @@ def load_session(name='sage_session', verbose=False):
         sage: print a
         5
 
-    Note that f does not come back, since it is a function, hence couldn't be saved::
+    Note that ``f`` does not come back, since it is a function, hence
+    couldn't be saved::
 
         sage: print f
         Traceback (most recent call last):
@@ -358,19 +378,47 @@ def attach(*files):
     Attach a file or files to a running instance of Sage and also load
     that file.
 
-    .. note::
+    USAGE:
+
+    ``attach file1 ...`` - space-separated list of ``.py``, ``.pyx``,
+    and ``.sage`` files, or ``attach('file1', 'file2')`` - filenames as
+    strings, given as arguments to :func:`attach`.
+
+    :meth:`~sage.misc.preparser.load` is the same as :func:`attach`, but
+    doesn't automatically reload a file when it changes.
+
+    .. NOTE::
 
        In addition to ``attach('foo.sage')``, from the sage prompt
        you can also just type ``attach "foo.sage"``.  However this
        second common usage is not part of the Python language.
 
-    ``load`` is the same as attach, but doesn't automatically reload a
-    file when it changes.
+    EFFECT:
+
+    Each file is read in and added to an internal list of watched files.
+    The meaning of reading in a file depends on the file type:
+
+    -  ``.py`` files are read in with no preparsing (so, e.g., ``2^3`` is 2
+       bit-xor 3);
+
+    -  ``.sage`` files are preparsed, then the result is read in;
+
+    - ``.pyx`` files are *not* preparsed, but rather are compiled to a
+       module ``m`` and then ``from m import *`` is executed.
+
+    The contents of the file are then loaded, which means they are read
+    into the running Sage session. For example, if ``foo.sage`` contains
+    ``x=5``, after attaching ``foo.sage`` the variable ``x`` will be set
+    to 5. Moreover, any time you change ``foo.sage``, before you execute
+    a command, the attached file will be re-read automatically (with no
+    intervention on your part).
+
+    EXAMPLES:
 
     You attach a file, e.g., ``foo.sage`` or ``foo.py`` or
     ``foo.pyx``, to a running Sage session by typing::
 
-        sage: attach foo.sage   # or foo.py   or foo.pyx or even a URL to such a file (not tested)
+        sage: attach foo.sage   # or foo.py or foo.pyx or even a URL to such a file (not tested)
 
     or::
 
@@ -389,40 +437,17 @@ def attach(*files):
         sage: set(attached_files()) == set([t1,t2])
         True
 
-    The contents of the file are then loaded, which means they are
-    read into the running Sage session. For example, if ``foo.sage``
-    contains ``x=5``, after attaching ``foo.sage`` the variable ``x``
-    will be set to 5. Moreover, any time you change ``foo.sage``,
-    before you execute a command, the attached file will be re-read
-    automatically (with no intervention on your part).
+    .. SEEALSO::
 
-    USAGE: ``attach file1 ...`` - space-separated list of .py, .pyx,
-    and .sage files.
+        - :meth:`~sage.misc.preparser.attached_files` returns a list of
+          all currently attached files.
 
-    EFFECT: Each file is read in and added to an internal list of
-    watched files. The meaning of reading a file in depends on the file
-    type:
+        - :meth:`~sage.misc.preparser.detach` instructs Sage to remove a
+          file from the internal list of watched files.
 
-
-    -  read in with no preparsing (so, e.g., ``23`` is 2
-       bit-xor 3),
-
-    -  preparsed then the result is read in
-
-    -  *not* preparsed. Compiled to a module ``m`` then
-       ``from m import *`` is executed.
-
-
-    Type ``attached_files()`` for a list of all currently
-    attached files.
-
-    Use ``detach(...)`` to instruct Sage to remove a file from the internal
-    list watched files.
-
-    .. note::
-
-        ``attach`` is exactly the same as load, except it keeps track of
-        the loaded file and automatically reloads it when it changes.
+        - :meth:`~sage.misc.preparser.load_attach_path` allows you to
+          get or modify the current search path for loading and attaching
+          files.
     """
     import preparser
     for filename in files:

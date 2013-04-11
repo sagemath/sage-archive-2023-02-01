@@ -517,7 +517,7 @@ def vecmat_ZZ(n=300, min=-9, max=9, system='sage', times=200):
     EXAMPLES::
 
         sage: import sage.matrix.benchmark as b
-        sage: ts = b.vecmat_ZZ(300)
+        sage: ts = b.vecmat_ZZ(300)  # long time
         sage: tm = b.vecmat_ZZ(300, system='magma')  # optional - magma
     """
     if system == 'sage':
@@ -1182,7 +1182,7 @@ def nullspace_RDF(n=300, min=0, max=10, system='sage'):
     EXAMPLES::
 
         sage: import sage.matrix.benchmark as b
-        sage: ts = b.nullspace_RDF(100)
+        sage: ts = b.nullspace_RDF(100)  # long time
         sage: tm = b.nullspace_RDF(100, system='magma')  # optional - magma
     """
     if system == 'sage':

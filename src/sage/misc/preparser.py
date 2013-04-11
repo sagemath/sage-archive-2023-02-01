@@ -1447,7 +1447,8 @@ def is_loadable_filename(filename):
 
 def reset_load_attach_path():
     """
-    Resets the current search path for loading and attaching files.
+    Resets the current search path for :func:`load` and
+    :meth:`~sage.misc.session.attach`.
 
     The default path is '.' plus any paths specified in the environment
     variable `SAGE_LOAD_ATTACH_PATH`.
@@ -1848,13 +1849,14 @@ def load(filename, globals, attach=False):
 
 def load_attach_mode(load_debug=None, attach_debug=None):
     """
-    Get or modify the current debug mode for loading and attaching
-    .sage files.
+    Get or modify the current debug mode for the behavior of
+    :func:`load` and :meth:`~sage.misc.session.attach` on ``.sage``
+    files.
 
-    In debug mode, loaded or attached .sage files are preparsed
-    through a file to make their tracebacks more informative.
-    If not in debug mode, then .sage files are preparsed
-    in memory only for performance.
+    In debug mode, loaded or attached ``.sage`` files are preparsed
+    through a file to make their tracebacks more informative. If not in
+    debug mode, then ``.sage`` files are preparsed in memory only for
+    performance.
 
     At startup, debug mode is ``True`` for attaching and ``False``
     for loading.
@@ -1897,8 +1899,8 @@ def load_attach_mode(load_debug=None, attach_debug=None):
 
 def load_attach_path(path=None, replace=False):
     """
-    Get or modify the current search path for loading and attaching
-    files.
+    Get or modify the current search path for :func:`load` and
+    :meth:`~sage.misc.session.attach`.
 
     INPUT:
 
@@ -2042,7 +2044,8 @@ def modified_attached_files():
 
 def attached_files():
     """
-    Returns a list of all files attached to the current session.
+    Returns a list of all files attached to the current session with
+    :meth:`~sage.misc.session.attach`.
 
     OUTPUT:
 
@@ -2062,7 +2065,8 @@ def attached_files():
 
 def detach(filename):
     """
-    Detaches a file, if it was attached with the attach command.
+    Detaches a file, if it was attached with
+    :meth:`~sage.misc.session.attach`.
 
     INPUT:
 

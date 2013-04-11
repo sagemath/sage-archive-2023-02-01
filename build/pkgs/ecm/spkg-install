@@ -11,17 +11,16 @@ cd src/
 # Apply patches (if any):
 ###############################################################################
 
-ls ../patches/*.patch &>/dev/null &&
-echo "Applying patches to upstream sources..." &&
+# Apply patches.  See SPKG.txt for information about what each patch
+# does.
 for patch in ../patches/*.patch; do
-    basename "$patch"
+    [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
     patch -p1 <"$patch"
     if [ $? -ne 0 ]; then
-        echo >&2 "Error: '$patch' failed to apply."
+        echo >&2 "Error applying '$patch'"
         exit 1
     fi
-done &&
-echo
+done
 
 ###############################################################################
 # Set up environment variables, depending on SAGE_* settings:
@@ -214,7 +213,6 @@ export CFLAGS # Not exported by 'sage-env'.  LDFLAGS are exported above if
               # necessary.  We currently don't set (or modify) any other
               # environment variables, so don't have to export them here.
 
-unset RM
 
 ###############################################################################
 # Now configure ECM:

@@ -8,11 +8,11 @@ Sources can be obtained from http://gforge.inria.fr/projects/ecm/
 
 == License ==
 
-LGPL V2+
+LGPL V3+
 
 == SPKG Maintainers ==
 
- * William Stein
+ * Jeroen Demeyer
 
 == Upstream Contact ==
 
@@ -25,19 +25,8 @@ LGPL V2+
 
 == Special Update/Build Instructions ==
 
- * src/ contains "stable" upstream code, to which we currently apply a single
-   upstream patch (to 'configure'). The patch should be removed on the next
-   upgrade to a stable release.
-   Note that all autotools-generated files (and their support files) in src/
-   have been regenerated with newer versions of autotools (autoconf 2.68,
-   automake 1.11.3 and libtool 2.4.2), to make the size of the patch to the
-   also generated `configure` acceptable.  (See "Patches" section below for
-   why we don't patch `configure.in`, from which `configure` is created.)
  * GMP-ECM comes with a self-tuning feature; we could support
    that as an option ($SAGE_TUNE_*=yes) in the future.
- * We currently work around a linker bug on MacOS X 10.5 PPC (with
-   GCC 4.2.1) which breaks 'configure' if debug symbols are enabled.
-   This *might* get fixed in later upstream releases.
  * ECM currently does not (by itself) use the CC and CFLAGS settings
    from 'gmp.h' since we pass (other) options in CFLAGS, and CC is set
    by Sage and might got set by the user.  We now at least partially fix that
@@ -54,27 +43,18 @@ LGPL V2+
    "-mcpu=...", and perhaps pass a more generic "--host=..." to
    'configure'. (MPIR honors '--enable-fat' to some extent, but this
    option isn't used on anything other than x86 / x86_64.)
- * We could save some space by removing the `src/build.vc9/` directory which
+ * We could save some space by removing the `src/build.vc10/` directory which
    isn't used in Sage.  (It gets probably more worth in case also directories /
    files for later versions of Microsoft Visual C get added.)
 
 === Patches ===
- * configure.patch:
-   - Disable "asm-redc" on 32-bit Darwin PPCs (upstream revision 1516 / bug
-     #10646).
-     (Note that this upstream patch is likely to slow down GMP-ECM on 64-bit
-     PPC CPUs running (32-bit) MacOS X, since the extended instruction set of
-     the CPU is no longer exploitet.  A proper fix would just pass an option
-     to Apple's assembler to allow the use of the extended instruction set.)
-   - Fix compilation error on x86 CPUs supporting SSE2. (Sage trac #10252,
-     upstream revision 1546).
-   Note that we don't patch `configure.in`, since it is only needed to generate
-   automatically-generated files in the source tree.  Patching `configure.in`
-   would force `automake` to be run, which could cause build failures on
-   systems where autotools aren't installed.
-
+ * Currently none
 
 == Changelog ==
+
+=== ecm-6.4.4 (Jeroen Demeyer, 11 April 2013) ===
+ * Trac #14151: upgrade to GMP-ECM 6.4.4, remove all Sage patches
+   since they are upstream now.
 
 === ecm-6.3.p8 (Jeroen Demeyer, 28 May 2012) ===
  * Trac #12751: remove the gcc-4.7.0 workaround for ia64 since this bug

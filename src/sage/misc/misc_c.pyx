@@ -15,11 +15,11 @@
 import sys
 
 include "../ext/stdsage.pxi"
-include "../ext/python_sequence.pxi"
-include "../ext/python_list.pxi"
-include "../ext/python_tuple.pxi"
+from cpython.sequence cimport *
+from cpython.list cimport *
+from cpython.tuple cimport *
 include "../ext/python_slice.pxi"
-include "../ext/python_number.pxi"
+from cpython.number cimport *
 
 cdef extern from *:
     bint PyGen_Check(x)

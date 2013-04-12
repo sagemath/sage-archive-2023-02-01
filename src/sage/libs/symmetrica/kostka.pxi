@@ -1,4 +1,4 @@
-include '../../ext/python_object.pxi'
+from cpython.object cimport *
 
 cdef extern from 'symmetrica/def.h':
     INT kostka_number(OP shape, OP content, OP result)

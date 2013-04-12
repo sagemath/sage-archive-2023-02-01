@@ -39,7 +39,7 @@ EXAMPLES::
 cdef extern from "Python.h":
     Py_ssize_t PY_SSIZE_T_MAX
 
-include "../ext/python_list.pxi"
+from cpython.list cimport *
 
 from libc cimport limits
 

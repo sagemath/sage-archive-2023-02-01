@@ -31,7 +31,7 @@ AUTHORS:
 import operator
 
 include '../../ext/interrupt.pxi'
-include '../../ext/python_int.pxi'
+from cpython.int cimport *
 include "../../ext/stdsage.pxi"
 
 import sage.rings.field_element

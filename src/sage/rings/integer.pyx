@@ -143,9 +143,9 @@ import sys
 include "../ext/gmp.pxi"
 include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "../ext/stdsage.pxi"
-include "../ext/python_list.pxi"
-include "../ext/python_number.pxi"
-include "../ext/python_int.pxi"
+from cpython.list cimport *
+from cpython.number cimport *
+from cpython.int cimport *
 include "../ext/python_debug.pxi"
 include "../structure/coerce.pxi"   # for parent_c
 include "../libs/pari/decl.pxi"

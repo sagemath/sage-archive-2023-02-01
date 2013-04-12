@@ -25,7 +25,7 @@ AUTHORS:
 #*****************************************************************************
 
 
-include "../../ext/python_sequence.pxi"
+from cpython.sequence cimport *
 
 from sage.structure.sage_object cimport SageObject
 from sage.rings.integer cimport Integer

@@ -24,10 +24,10 @@ EXAMPLES::
 include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
 include "../ext/python.pxi"
-include "../ext/python_list.pxi"
-include "../ext/python_object.pxi"
+from cpython.list cimport *
+from cpython.object cimport *
 include "../ext/python_slice.pxi"
-include "../ext/python_tuple.pxi"
+from cpython.tuple cimport *
 
 import sage.modules.free_module
 import sage.misc.latex

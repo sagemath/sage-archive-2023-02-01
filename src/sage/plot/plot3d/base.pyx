@@ -28,7 +28,7 @@ TODO: - finish integrating tachyon - good default lights, camera
 #*****************************************************************************
 
 
-include "../../ext/python_list.pxi"
+from cpython.list cimport *
 
 import os
 from math import atan2

@@ -11,7 +11,7 @@ AUTHORS:
 
 include "../../ext/stdsage.pxi"
 include "../../ext/cdefs.pxi"
-include "../../ext/python_list.pxi"
+from cpython.list cimport *
 include "../../libs/ntl/decl.pxi"
 
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ

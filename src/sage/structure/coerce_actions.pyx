@@ -13,8 +13,8 @@ import operator
 
 include "../ext/stdsage.pxi"
 include "../ext/interrupt.pxi"
-include "../ext/python_int.pxi"
-include "../ext/python_number.pxi"
+from cpython.int cimport *
+from cpython.number cimport *
 include "coerce.pxi"
 
 from coerce_exceptions import CoercionException

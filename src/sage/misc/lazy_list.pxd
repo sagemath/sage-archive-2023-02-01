@@ -1,4 +1,4 @@
-include "../ext/python_object.pxi"
+from cpython.object cimport *
 
 cdef class lazy_list(object):
     cdef object iterator

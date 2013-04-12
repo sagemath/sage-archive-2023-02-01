@@ -1055,7 +1055,7 @@ def get_orbits(list gens, int n):
 
 
 # Canonical augmentation
-include "sage/ext/python_ref.pxi"
+from cpython.ref cimport *
 
 # Dense graphs: adding edges
 

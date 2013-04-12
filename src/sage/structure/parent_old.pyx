@@ -32,8 +32,8 @@ from parent import Set_PythonType, Set_PythonType_class
 from coerce import py_scalar_parent
 from sage.structure.coerce_dict import MonoDict, TripleDict
 
-include '../ext/python_object.pxi'
-include '../ext/python_bool.pxi'
+from cpython.object cimport *
+from cpython.bool cimport *
 include '../ext/stdsage.pxi'
 
 cdef inline check_old_coerce(Parent p):

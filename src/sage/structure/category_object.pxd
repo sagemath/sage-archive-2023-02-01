@@ -6,7 +6,7 @@
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
-include '../ext/python_object.pxi'
+from cpython.object cimport *
 include '../ext/stdsage.pxi'
 
 from sage.structure.sage_object cimport SageObject

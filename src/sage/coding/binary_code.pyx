@@ -32,7 +32,7 @@ AUTHOR:
 #*******************************************************************************
 
 include '../ext/cdefs.pxi'
-include '../ext/python_mem.pxi'
+from cpython.mem cimport *
 include '../ext/stdsage.pxi'
 include '../ext/interrupt.pxi'
 from sage.structure.element import is_Matrix

@@ -161,8 +161,8 @@ from category_object import localvars
 
 cdef object BuiltinMethodType = type(repr)
 
-include '../ext/python_object.pxi'
-include '../ext/python_bool.pxi'
+from cpython.object cimport *
+from cpython.bool cimport *
 include '../ext/stdsage.pxi'
 
 

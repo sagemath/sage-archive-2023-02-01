@@ -60,7 +60,7 @@ import sage.groups.old as group
 
 include "../../ext/stdsage.pxi"
 include "../../ext/interrupt.pxi"
-include "../../ext/python_list.pxi"
+from cpython.list cimport *
 
 from sage.rings.all      import ZZ, Integer, is_MPolynomial, is_Polynomial
 from sage.matrix.all     import MatrixSpace

@@ -39,7 +39,7 @@ By :trac:`14159`, :class:`MonoDict` and :class:`TripleDict` can be optionally
 used with weak references on the values.
 
 """
-include "../ext/python_list.pxi"
+from cpython.list cimport *
 
 from weakref import KeyedRef, ref
 

@@ -32,7 +32,7 @@ Test NumPy conversions::
     dtype('float64')
 """
 
-include '../ext/python_float.pxi'
+from cpython.float cimport *
 include "../ext/python_debug.pxi"
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'

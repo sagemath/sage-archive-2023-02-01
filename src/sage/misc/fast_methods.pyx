@@ -33,8 +33,8 @@ AUTHOR:
 #******************************************************************************
 
 include "../ext/python_rich_object.pxi"
-include "../ext/python_bool.pxi"
-include "../ext/python_ref.pxi"
+from cpython.bool cimport *
+from cpython.ref cimport *
 
 cdef int SIZEOF_VOID_P_SHIFT = 8*sizeof(void *) - 4
 

@@ -57,8 +57,8 @@ include "../ext/stdsage.pxi"
 include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "../ext/random.pxi"
 
-include "../ext/python_int.pxi"
-include "../ext/python_list.pxi"
+from cpython.int cimport *
+from cpython.list cimport *
 
 import sage.rings.infinity
 import sage.rings.rational

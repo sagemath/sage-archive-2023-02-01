@@ -93,7 +93,7 @@ from sage.plot.misc import setup_for_eval_on_grid
 include '../../ext/cdefs.pxi'
 include '../../ext/stdsage.pxi'
 include '../../gsl/gsl.pxi'
-include "../../ext/python_string.pxi"
+from cpython.string cimport *
 
 include "point_c.pxi"
 

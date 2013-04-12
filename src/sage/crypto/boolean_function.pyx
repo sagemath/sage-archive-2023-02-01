@@ -38,7 +38,7 @@ from sage.rings.polynomial.polynomial_element import is_Polynomial
 
 include "sage/misc/bitset_pxd.pxi"
 include "sage/misc/bitset.pxi"
-include "../ext/python_string.pxi"
+from cpython.string cimport *
 
 # for details about the implementation of hamming_weight_int,
 # walsh_hadamard transform, reed_muller transform, and a lot

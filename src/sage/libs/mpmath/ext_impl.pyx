@@ -5,11 +5,11 @@ floating-point arithmetic. Operations are done in-place.
 
 include '../../ext/interrupt.pxi'
 include "../../ext/stdsage.pxi"
-include "../../ext/python_int.pxi"
-include "../../ext/python_long.pxi"
-include "../../ext/python_float.pxi"
-include "../../ext/python_complex.pxi"
-include "../../ext/python_number.pxi"
+from cpython.int cimport *
+from cpython.long cimport *
+from cpython.float cimport *
+from cpython.complex cimport *
+from cpython.number cimport *
 
 cdef extern from "math.h":
     cdef double fpow "pow" (double, double)

@@ -124,27 +124,27 @@ cdef extern from "Python.h":
     ctypedef struct FILE
 
 
-include 'python_ref.pxi'
-include 'python_exc.pxi'
-include 'python_module.pxi'
-include 'python_mem.pxi'
-include 'python_tuple.pxi'
-include 'python_list.pxi'
-include 'python_object.pxi'
-include 'python_sequence.pxi'
-include 'python_mapping.pxi'
-include 'python_iterator.pxi'
-include 'python_type.pxi'
-include 'python_number.pxi'
-include 'python_int.pxi'
-include 'python_bool.pxi'
-include 'python_long.pxi'
-include 'python_float.pxi'
-include 'python_complex.pxi'
-include 'python_string.pxi'
-include 'python_dict.pxi'
-include 'python_instance.pxi'
-include 'python_function.pxi'
-include 'python_method.pxi'
-include 'python_set.pxi'
+from cpython.ref cimport *
+from cpython.exc cimport *
+from cpython.module cimport *
+from cpython.mem cimport *
+from cpython.tuple cimport *
+from cpython.list cimport *
+from cpython.object cimport *
+from cpython.sequence cimport *
+from cpython.mapping cimport *
+from cpython.iterator cimport *
+from cpython.type cimport *
+from cpython.number cimport *
+from cpython.int cimport *
+from cpython.bool cimport *
+from cpython.long cimport *
+from cpython.float cimport *
+from cpython.complex cimport *
+from cpython.string cimport *
+from cpython.dict cimport *
+from cpython.instance cimport *
+from cpython.function cimport *
+from cpython.method cimport *
+from cpython.set cimport *
 include 'python_slice.pxi'

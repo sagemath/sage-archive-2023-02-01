@@ -4,9 +4,9 @@ Two by two matrices over the integers.
 
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
-include "../ext/python_list.pxi"
-include "../ext/python_number.pxi"
-include "../ext/python_ref.pxi"
+from cpython.list cimport *
+from cpython.number cimport *
+from cpython.ref cimport *
 
 from sage.rings.all import polygen, QQ,ZZ
 from sage.rings.integer cimport Integer

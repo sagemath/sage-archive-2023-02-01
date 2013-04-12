@@ -130,9 +130,9 @@ AUTHORS:
 
 
 include "../ext/stdsage.pxi"
-include "../ext/python_list.pxi"
-include "../ext/python_int.pxi"
-include "../ext/python_ref.pxi"
+from cpython.list cimport *
+from cpython.int cimport *
+from cpython.ref cimport *
 
 import sage
 from sage.structure.element cimport Element

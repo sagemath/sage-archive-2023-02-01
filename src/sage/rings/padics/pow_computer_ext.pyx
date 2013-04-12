@@ -49,8 +49,8 @@ AUTHORS:
 include "../../ext/gmp.pxi"
 include "../../ext/interrupt.pxi"
 include "../../ext/stdsage.pxi"
-include "../../ext/python_list.pxi"
-include "../../ext/python_dict.pxi"
+from cpython.list cimport *
+from cpython.dict cimport *
 
 import weakref
 from sage.misc.misc import cputime

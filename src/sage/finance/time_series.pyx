@@ -38,7 +38,7 @@ AUTHOR:
 
 include "../ext/cdefs.pxi"
 include "../ext/stdsage.pxi"
-include "../ext/python_string.pxi"
+from cpython.string cimport *
 include "../ext/random.pxi"
 
 cdef extern from "math.h":

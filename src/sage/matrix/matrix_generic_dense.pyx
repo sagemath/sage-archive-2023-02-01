@@ -19,9 +19,9 @@ def _convert_dense_entries_to_list(entries):
 
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
-include "../ext/python_list.pxi"
-include "../ext/python_number.pxi"
-include "../ext/python_ref.pxi"
+from cpython.list cimport *
+from cpython.number cimport *
+from cpython.ref cimport *
 
 cimport matrix_dense
 import matrix_dense

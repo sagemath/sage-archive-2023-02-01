@@ -6,7 +6,7 @@ include "../ext/stdsage.pxi"
 # In many applications, such as plotting, these functions are called many times
 # repeatedly. This method is slightly faster than sage.structure.coerce.parent
 # The only difference is the PyNumber_Check clause.
-include "../ext/python_number.pxi"
+from cpython.number cimport *
 cdef inline parent_c(x):
     if PY_TYPE_CHECK(x, Element):
         return (<Element>x)._parent

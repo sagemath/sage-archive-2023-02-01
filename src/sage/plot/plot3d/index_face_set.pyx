@@ -45,8 +45,8 @@ cdef extern from *:
 cdef extern from "math.h":
      enum: INFINITY
 
-include "../../ext/python_list.pxi"
-include "../../ext/python_string.pxi"
+from cpython.list cimport *
+from cpython.string cimport *
 
 include "point_c.pxi"
 

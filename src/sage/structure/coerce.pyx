@@ -75,7 +75,7 @@ see the documentation for Parent.
 
 
 include "../ext/stdsage.pxi"
-include "../ext/python_object.pxi"
+from cpython.object cimport *
 include "coerce.pxi"
 
 import operator

@@ -67,7 +67,7 @@ AUTHORS:
 #*****************************************************************************
 
 include "../ext/stdsage.pxi"
-include "../ext/python_bool.pxi"
+from cpython.bool cimport *
 
 import re
 from types import GeneratorType

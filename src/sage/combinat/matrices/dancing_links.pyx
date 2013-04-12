@@ -20,10 +20,10 @@ Dancing Links internal pyx code
 
 import sys
 
-include "../../ext/python_list.pxi"
+from cpython.list cimport *
 include "../../ext/stdsage.pxi"
-include "../../ext/python_int.pxi"
-include "../../ext/python_ref.pxi"
+from cpython.int cimport *
+from cpython.ref cimport *
 
 cdef extern from "dancing_links_c.h":
     ctypedef struct vector_int "std::vector<int>":

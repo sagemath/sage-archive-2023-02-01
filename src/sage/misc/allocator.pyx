@@ -1,9 +1,9 @@
 include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "../ext/stdsage.pxi"
 include "../ext/python.pxi"
-include "../ext/python_list.pxi"
-include "../ext/python_number.pxi"
-include "../ext/python_int.pxi"
+from cpython.list cimport *
+from cpython.number cimport *
+from cpython.int cimport *
 include "../ext/python_rich_object.pxi"
 
 #def time_alloc_list(n):

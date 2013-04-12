@@ -445,7 +445,14 @@ if [ ! -f "$PKG_SRC" ]; then
     fi
 
     PKG_SRC="`pwd`/${PKG_URL##*/}$EXT"
+    if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
+        verify_checksum "$PKG_TMP" "$PKG_SCRIPTS/checksums.ini"
+    fi
     mv -f "$PKG_TMP" "$PKG_SRC"
+else
+    if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
+        verify_checksum "$PKG_SRC" "$PKG_SCRIPTS/checksums.ini"
+    fi
 fi
 
 # Do a final check that PKG_SRC is a file with an absolute path
@@ -459,10 +466,6 @@ fi
 # Go back to SAGE_ROOT where we have less chance of completely messing
 # up the system if we do something wrong.
 cd "$SAGE_ROOT" || exit
-
-if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
-    verify_checksum "$PKG_SRC" "$PKG_SCRIPTS/checksums.ini"
-fi
 
 if [ $DOWNLOAD_ONLY -ne 0 ]; then
     exit 0
@@ -528,7 +531,6 @@ if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
     echo "Setting up build directory for $PKG_NAME"
     cp -Rp "$PKG_SCRIPTS" "$PKG_NAME"
     cd "$PKG_NAME"
-    verify_checksum "$PKG_SRC" "$PKG_SCRIPTS/checksums.ini"
 else
     echo "Extracting package $PKG_SRC"
     ls -l "$PKG_SRC"

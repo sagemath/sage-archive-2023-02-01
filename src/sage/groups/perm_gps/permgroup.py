@@ -1067,7 +1067,7 @@ class PermutationGroup_generic(group.Group):
                 self._gap_().Orbits(self._domain_gap()).sage()]
 
     @cached_method
-    def orbit(self, point, action = "OnPoints"):
+    def orbit(self, point, action="OnPoints"):
         """
         Return the orbit of a point under a group action.
 
@@ -1076,110 +1076,117 @@ class PermutationGroup_generic(group.Group):
         - ``point`` -- can be a point or any of the list above, depending on the
           action to be considered.
 
-        - ``action`` (string) -- if ``point`` is an element from the domain, a
+        - ``action`` -- string. if ``point`` is an element from the domain, a
           tuple of elements of the domain, a tuple of tuples [...], this
           variable describes how the group is acting.
 
-          The actions currently available through this method are "OnPoints",
-          "OnTuples", "OnSets", "OnPairs", "OnSetsSets", "OnSetsDisjointSets",
-          "OnSetsTuples", "OnTuplesSets", "OnTuplesTuples". They are taken from
-          GAP's list `http://www.gap-system.org/Manuals/doc/ref/chap41.html`_.
+          The actions currently available through this method are
+          ``"OnPoints"``, ``"OnTuples"``, ``"OnSets"``, ``"OnPairs"``,
+          ``"OnSetsSets"``, ``"OnSetsDisjointSets"``,
+          ``"OnSetsTuples"``, ``"OnTuplesSets"``,
+          ``"OnTuplesTuples"``. They are taken from GAP's list of
+          group actions, see ``gap.help('Group Actions')``.
 
           It is set to ``"OnPoints"`` by default. See below for examples.
+
+        OUTPUT:
+
+        The orbit of ``point`` as a tuple. Each entry is an image
+        under the action of the permutation group, if necessary
+        converted to the corresponding container. That is, if
+        ``action='OnSets'`` then each entry will be a set even if
+        ``point`` was given by a list/tuple/iterable.
 
         EXAMPLES::
 
             sage: G = PermutationGroup([ [(3,4)], [(1,3)] ])
             sage: G.orbit(3)
-            [3, 4, 1]
+            (3, 4, 1)
             sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3,4,10)]])
             sage: G.orbit(3)
-            [3, 4, 10, 1, 2]
+            (3, 4, 10, 1, 2)
             sage: G = PermutationGroup([ [('c','d')], [('a','c')] ])
             sage: G.orbit('a')
-            ['a', 'c', 'd']
+            ('a', 'c', 'd')
 
         Action of `S_3` on sets::
 
             sage: S3 = groups.permutation.Symmetric(3)
             sage: S3.orbit((1,2), action = "OnSets")
-            [[1, 2], [2, 3], [1, 3]]
+            ({1, 2}, {2, 3}, {1, 3})
 
         On tuples::
 
             sage: S3.orbit((1,2), action = "OnTuples")
-            [[1, 2], [2, 3], [2, 1], [3, 1], [1, 3], [3, 2]]
+            ((1, 2), (2, 3), (2, 1), (3, 1), (1, 3), (3, 2))
 
         Action of `S_4` on sets of disjoint sets::
 
             sage: S4 = groups.permutation.Symmetric(4)
             sage: S4.orbit(((1,2),(3,4)), action = "OnSetsDisjointSets")
-            [[[1, 2], [3, 4]],
-             [[1, 4], [2, 3]],
-             [[1, 3], [2, 4]]]
+            ({{1, 2}, {3, 4}}, {{2, 3}, {1, 4}}, {{1, 3}, {2, 4}})
 
         Action of `S_4` (on a nonstandard domain) on tuples of sets::
 
             sage: S4 = PermutationGroup([ [('c','d')], [('a','c')], [('a','b')] ])
             sage: S4.orbit((('a','c'),('b','d')),"OnTuplesSets")
-            [[['a', 'c'], ['b', 'd']], [['a', 'd'], ['b', 'c']],
-             [['b', 'c'], ['a', 'd']], [['b', 'd'], ['a', 'c']],
-             [['c', 'd'], ['a', 'b']], [['a', 'b'], ['c', 'd']]]
+            (({'a', 'c'}, {'b', 'd'}),
+             ({'a', 'd'}, {'c', 'b'}),
+             ({'c', 'b'}, {'a', 'd'}),
+             ({'b', 'd'}, {'a', 'c'}),
+             ({'c', 'd'}, {'a', 'b'}),
+             ({'a', 'b'}, {'c', 'd'}))
 
         Action of `S_4` (on a very nonstandard domain) on tuples of sets::
 
-            sage: S4 = PermutationGroup([ [((11,(12,13)),'d')], [((12,(12,11)),(11,(12,13)))], [((12,(12,11)),'b')] ])
+            sage: S4 = PermutationGroup([ [((11,(12,13)),'d')],
+            ...           [((12,(12,11)),(11,(12,13)))], [((12,(12,11)),'b')] ])
             sage: S4.orbit((( (11,(12,13)), (12,(12,11))),('b','d')),"OnTuplesSets")
-            [[[(11, (12, 13)), (12, (12, 11))], ['b', 'd']],
-             [['d', (12, (12, 11))], ['b', (11, (12, 13))]],
-             [['b', (11, (12, 13))], ['d', (12, (12, 11))]],
-             [['d', (11, (12, 13))], ['b', (12, (12, 11))]],
-             [['b', 'd'], [(11, (12, 13)), (12, (12, 11))]],
-             [['b', (12, (12, 11))], ['d', (11, (12, 13))]]]
-
+            (({(11, (12, 13)), (12, (12, 11))}, {'b', 'd'}),
+             ({'d', (12, (12, 11))}, {(11, (12, 13)), 'b'}),
+             ({(11, (12, 13)), 'b'}, {'d', (12, (12, 11))}),
+             ({(11, (12, 13)), 'd'}, {'b', (12, (12, 11))}),
+             ({'b', 'd'}, {(11, (12, 13)), (12, (12, 11))}),
+             ({'b', (12, (12, 11))}, {(11, (12, 13)), 'd'}))
         """
-        def input_to_gap(x, depth, sort):
-            if depth:
-                ans = [input_to_gap(xx,depth-1,sort) for xx in x]
-                if depth == 1 and sort:
-                    ans.sort()
-                return ans
-            else:
-                return self._domain_to_gap[x]
-
-        def gap_to_output(x, depth):
-            if depth:
-                return [gap_to_output(xx,depth-1) for xx in x]
-            else:
-                return self._domain_from_gap[x]
-
-        sort = False
-
+        from sage.sets.set import Set
         actions = {
-            "OnPoints"           : {"depth" : 0, "sort" : False},
-            "OnSets"             : {"depth" : 1, "sort" : True},
-            "OnPairs"            : {"depth" : 1, "sort" : False},
-            "OnTuples"           : {"depth" : 1, "sort" : False},
-            "OnTuples"           : {"depth" : 1, "sort" : False},
-            "OnSetsSets"         : {"depth" : 2, "sort" : True},
-            "OnSetsDisjointSets" : {"depth" : 2, "sort" : True},
-            "OnTuplesSets"       : {"depth" : 2, "sort" : True},
-            "OnTuplesTuples"     : {"depth" : 2, "sort" : False},
-            "OnTuplesTuples"     : {"depth" : 2, "sort" : False}
+            "OnPoints"           : [],
+            "OnSets"             : [Set],
+            "OnPairs"            : [tuple],
+            "OnTuples"           : [tuple],
+            "OnSetsSets"         : [Set, Set],
+            "OnSetsDisjointSets" : [Set, Set],
+            "OnSetsTuples"       : [Set, tuple],
+            "OnTuplesSets"       : [tuple, Set],
+            "OnTuplesTuples"     : [tuple, tuple],
             }
+
+        def input_for_gap(x, depth, container):
+            if depth == len(container):
+                try:
+                    return self._domain_to_gap[x]
+                except KeyError:
+                    raise ValueError('{0} is not part of the domain'.format(x))
+            x = [input_for_gap(xx, depth+1, container) for xx in x]
+            if container[depth] is Set:
+                x.sort()
+            return x
+
+        def gap_to_output(x, depth, container):
+            if depth == len(container):
+                return self._domain_from_gap[x]
+            else:
+                x = [gap_to_output(xx, depth+1, container) for xx in x]
+                return container[depth](x)
         try:
-            params = actions[action]
+            container = actions[action]
         except KeyError:
-            raise ValueError("This action is not implemented (yet?).")
-
-        try:
-            point = input_to_gap(point, **params)
-        except KeyError:
-            raise ValueError("One element does not seem to be part of the domain.")
-
-        ans = self._gap_().Orbit(point, action).sage()
-
-        return gap_to_output(ans, params['depth']+1)
+            raise NotImplementedError("This action is not implemented (yet?).")
+        point = input_for_gap(point, 0, container)
+        result = self._gap_().Orbit(point, action).sage()
+        result = [gap_to_output(x, 0, container) for x in result]
+        return tuple(result)
 
     def transversals(self, point):
         """

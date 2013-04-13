@@ -24,6 +24,7 @@ include '../modules/vector_integer_sparse_h.pxi'
 include '../modules/vector_integer_sparse_c.pxi'
 include '../modules/vector_modn_sparse_h.pxi'
 include '../modules/vector_modn_sparse_c.pxi'
+from cpython.sequence cimport *
 
 include '../ext/stdsage.pxi'
 
@@ -89,7 +90,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         """
         cdef Py_ssize_t i, j, k
         cdef Integer z
-        cdef void** X
+        cdef PyObject** X
 
         # fill in entries in the dict case
         if entries is None: return

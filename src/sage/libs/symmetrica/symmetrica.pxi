@@ -516,11 +516,11 @@ cdef object _py(OP a):
 
 cdef int _op(object a, OP result) except -1:
     late_import()
-    if PyObject_TypeCheck(a, Integer):
+    if isinstance(a, Integer):
         _op_integer(a, result)
-    elif PyObject_TypeCheck(a, Partition):
+    elif isinstance(a, Partition):
         _op_partition(a, result)
-    elif PyObject_TypeCheck(a, Rational):
+    elif isinstance(a, Rational):
         _op_fraction(a, result)
     else:
         raise TypeError, "cannot convert a (= %s) to OP"%a
@@ -978,7 +978,7 @@ cdef object _py_schur_general(OP a):
     return d
 
 cdef void* _op_schur_general(object d, OP res):
-    if PyObject_TypeCheck(d, dict):
+    if isinstance(d, dict):
         _op_schur_general_dict(d, res)
     else:
         _op_schur_general_sf(d, res)
@@ -1025,7 +1025,7 @@ cdef void* _op_schur_general_dict(object d, OP res):
 #Schubert Polynomials#
 ######################
 cdef void* _op_schubert_general(object d, OP res):
-    if PyObject_TypeCheck(d, dict):
+    if isinstance(d, dict):
         _op_schubert_dict(d, res)
     else:
         _op_schubert_sp(d, res)

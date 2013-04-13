@@ -298,7 +298,7 @@ cdef class ClasscallMetaclass(NestedClassMetaclass):
             #    sage: %timeit [Rien() for i in range(10000)]
             #    125 loops, best of 3: 1.7 ms per loop
             res = <object> PyType_Type.tp_call(cls, args, opts)
-            Py_XDECREF(res) # During the cast to <object> Cython did INCREF(res)
+            Py_XDECREF(<PyObject*>res) # During the cast to <object> Cython did INCREF(res)
             return res
 
     def __get__(cls, instance, owner):
@@ -465,7 +465,7 @@ def typecall(type cls, *args, **opts):
     """
     # See remarks in ClasscallMetaclass.__call__(cls, *args, **opts) for speed.
     res = <object> PyType_Type.tp_call(cls, args, opts)
-    Py_XDECREF(res) # During the cast to <object> Cython did INCREF(res)
+    Py_XDECREF(<PyObject*>res) # During the cast to <object> Cython did INCREF(res)
     return res
 
 # Class for timing::

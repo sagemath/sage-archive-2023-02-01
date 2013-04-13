@@ -7,7 +7,7 @@
 # [user@localhost:~/sage-x.y.z] export SAGE_DEBUG=yes && make
 
 
-include "python_rich_object.pxi"
+from cpython.ref cimport PyObject, PyTypeObject
 
 cdef extern from "python_debug.h":
 
@@ -31,7 +31,7 @@ cdef extern from "python_debug.h":
     # Conditionally call PyObject_INIT() if Py_TRACE_REFS is
     # enabled. This is necessary to initialize the aforementioned
     # double-linked list.
-    void if_Py_TRACE_REFS_then_PyObject_INIT(RichPyObject *, RichPyTypeObject *)
+    void if_Py_TRACE_REFS_then_PyObject_INIT(PyObject *, PyTypeObject *)
 
     # When this is enabled, calls to the PyObject_ memory routines are
     # handled by Python's own small-object allocator, while calls to

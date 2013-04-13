@@ -44,6 +44,7 @@ TESTS::
 include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "../ext/gmp.pxi"
 include "../ext/stdsage.pxi"
+include "../ext/python.pxi"
 include "../libs/pari/decl.pxi"
 
 

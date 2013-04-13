@@ -253,7 +253,7 @@ cdef class Matrix_mod2e_dense(matrix_dense.Matrix_dense):
         k = 0
 
         for i from 0 <= i < self._nrows:
-            if PyErr_CheckSignals(): raise KeyboardInterrupt
+            sig_check()
             for j from 0 <= j < self._ncols:
                 e = R(entries[k])
 

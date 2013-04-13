@@ -26,14 +26,14 @@ def kostka_number_symmetrica(shape, content):
     """
     cdef OP cshape = callocobject(), ccontent = callocobject(), result = callocobject()
 
-    if PyObject_TypeCheck(shape, builtinlist):
-        if PyObject_TypeCheck(shape[0], builtinlist):
+    if isinstance(shape, <type>builtinlist):
+        if isinstance(shape[0], <type>builtinlist):
             shape = SkewPartition(shape)
         else:
             shape = Partition(shape)
 
 
-    if PyObject_TypeCheck(shape, SkewPartition):
+    if isinstance(shape, <type>SkewPartition):
         _op_skew_partition(shape, cshape)
     else:
         _op_partition(shape, cshape)
@@ -82,14 +82,14 @@ def kostka_tab_symmetrica(shape, content):
     cdef OP cshape = callocobject(), ccontent = callocobject(), result = callocobject()
     cdef INT err
 
-    if PyObject_TypeCheck(shape, builtinlist):
-        if PyObject_TypeCheck(shape[0], builtinlist):
+    if isinstance(shape, <type>builtinlist):
+        if isinstance(shape[0], <type>builtinlist):
             shape = SkewPartition(shape)
         else:
             shape = Partition(shape)
 
 
-    if PyObject_TypeCheck(shape, SkewPartition_class):
+    if isinstance(shape, <type>SkewPartition_class):
         _op_skew_partition(shape, cshape)
     else:
         _op_partition(shape, cshape)

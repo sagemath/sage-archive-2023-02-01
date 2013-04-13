@@ -198,6 +198,8 @@ import sys
 include '../ext/interrupt.pxi'
 include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
+from cpython.mem cimport *
+from cpython.string cimport *
 
 cimport sage.rings.ring
 import  sage.rings.ring

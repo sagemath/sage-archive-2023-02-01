@@ -26,8 +26,8 @@ include '../modules/vector_integer_sparse_c.pxi'
 include '../modules/vector_rational_sparse_h.pxi'
 include '../modules/vector_rational_sparse_c.pxi'
 include '../ext/stdsage.pxi'
-
 include '../ext/interrupt.pxi'
+from cpython.sequence cimport *
 
 from sage.rings.rational cimport Rational
 from sage.rings.integer  cimport Integer
@@ -99,7 +99,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         """
         cdef Py_ssize_t i, j, k
         cdef Rational z
-        cdef void** X
+        cdef PyObject** X
 
         if entries is None: return
         # fill in entries in the dict case

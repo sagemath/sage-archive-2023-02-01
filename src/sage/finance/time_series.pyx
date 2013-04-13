@@ -38,8 +38,9 @@ AUTHOR:
 
 include "../ext/cdefs.pxi"
 include "../ext/stdsage.pxi"
-from cpython.string cimport *
 include "../ext/random.pxi"
+include "../ext/python_slice.pxi"
+from cpython.string cimport *
 
 cdef extern from "math.h":
     double exp(double)

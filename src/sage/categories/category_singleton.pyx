@@ -16,7 +16,7 @@ from sage.categories.category import Category
 from sage.structure.category_object cimport CategoryObject
 from sage.structure.unique_representation import UniqueRepresentation
 
-from cpython.type cimport *
+from cpython.type cimport PyType_IsSubtype
 
 # This helper class is used to implement Category_singleton.__contains__
 # In particular, the docstring is what appears upon C.__contains__?

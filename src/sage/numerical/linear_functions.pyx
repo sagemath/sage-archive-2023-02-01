@@ -77,6 +77,7 @@ See :trac:`12091` ::
 include "../ext/stdsage.pxi"
 include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
+from cpython.object cimport *
 
 cdef extern from "limits.h":
     long LONG_MAX

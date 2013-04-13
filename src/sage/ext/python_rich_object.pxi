@@ -1,11 +1,9 @@
+from cpython.ref cimport PyObject, PyTypeObject
+
 cdef extern from "Python.h":
-    ctypedef void PyObject
-    ctypedef void PyTypeObject
-    ctypedef struct FILE
     ctypedef void _typeobject
     ctypedef void (*freefunc)(void *)
     ctypedef void (*destructor)(PyObject *)
-    #ctypedef int (*printfunc)(PyObject *, FILE *, int)
     ctypedef PyObject *(*getattrfunc)(PyObject *, char *)
     ctypedef PyObject *(*getattrofunc)(PyObject *, PyObject *)
     ctypedef int (*setattrfunc)(PyObject *, char *, PyObject *)
@@ -25,8 +23,6 @@ cdef extern from "Python.h":
     # We need a PyTypeObject with elements so we can
     # get and set tp_new, tp_dealloc, tp_flags, and tp_basicsize
     ctypedef struct RichPyTypeObject "PyTypeObject":
-
-        #We replace this one
         allocfunc tp_alloc
         newfunc tp_new
         freefunc tp_free
@@ -39,23 +35,11 @@ cdef extern from "Python.h":
 
         long tp_flags
 
-    # We need a PyObject where we can get/set the refcnt directly
-    # and access the type.
-    ctypedef struct RichPyObject "PyObject":
-        int ob_refcnt
-        RichPyTypeObject* ob_type
-
-        # The following two fields are only present if Py_TRACE_REFS debugging is enabled
-        RichPyObject* _ob_next
-        RichPyObject* _ob_prev
 
     cdef long Py_TPFLAGS_HAVE_GC
 
     # Allocation
-    RichPyObject* PyObject_MALLOC(int)
+    PyObject* PyObject_MALLOC(int)
 
-    # Useful for debugging, see below
-    void PyObject_INIT(RichPyObject *, RichPyTypeObject *)
-
-    ## Free
+    # Free
     void PyObject_FREE(PyObject*)

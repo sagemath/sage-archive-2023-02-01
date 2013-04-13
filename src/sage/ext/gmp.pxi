@@ -12,6 +12,7 @@
 include '../ext/interrupt.pxi'
 
 cimport libc.stdlib
+from cpython.mem cimport *
 
 ############ The following is the "one global set of vars"
 cdef extern from "gmp_globals.h":

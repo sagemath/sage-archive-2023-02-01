@@ -6024,17 +6024,12 @@ cdef int integer_pool_count = 0
 cdef int total_alloc = 0
 cdef int use_pool = 0
 
-# The signature of tp_new is
-# PyObject* tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k).
-# However we only use t in this implementation.
-#
-# t in this case is the Integer TypeObject.
 
-cdef PyObject* fast_tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k):
+cdef PyObject* fast_tp_new(PyTypeObject *t, PyObject *a, PyObject *k):
 
     global integer_pool, integer_pool_count, total_alloc, use_pool
 
-    cdef RichPyObject* new
+    cdef PyObject* new
 
     # for profiling pool usage
     # total_alloc += 1
@@ -6048,7 +6043,7 @@ cdef PyObject* fast_tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k):
         # use_pool += 1
 
         integer_pool_count -= 1
-        new = <RichPyObject *> integer_pool[integer_pool_count]
+        new = <PyObject *> integer_pool[integer_pool_count]
 
     # Otherwise, we have to create one.
 
@@ -6101,7 +6096,7 @@ cdef PyObject* fast_tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k):
     # initialized with this macro.
 
     if_Py_TRACE_REFS_then_PyObject_INIT\
-        (new, (<RichPyObject*>global_dummy_Integer).ob_type)
+        (new, (<PyObject*>global_dummy_Integer).ob_type)
 
     # The global_dummy_Integer may have a reference count larger than
     # one, but it is expected that newly created objects have a
@@ -6159,8 +6154,8 @@ cdef hook_fast_tp_functions():
 
     integer_pool = <PyObject**>sage_malloc(integer_pool_size * sizeof(PyObject*))
 
-    cdef RichPyObject* o
-    o = <RichPyObject*>global_dummy_Integer
+    cdef PyObject* o
+    o = <PyObject *>global_dummy_Integer
 
     # calculate the offset of the GMP mpz_t to avoid casting to/from
     # an Integer which includes reference counting. Reference counting
@@ -6173,7 +6168,7 @@ cdef hook_fast_tp_functions():
     mpz_t_offset_python = mpz_t_offset
 
     # store how much memory needs to be allocated for an Integer.
-    sizeof_Integer = o.ob_type.tp_basicsize
+    sizeof_Integer = (<RichPyTypeObject *>o.ob_type).tp_basicsize
 
     # get the functions to do memory management for the GMP elements
     # WARNING: if the memory management functions are changed after
@@ -6183,7 +6178,7 @@ cdef hook_fast_tp_functions():
 
     # Finally replace the functions called when an Integer needs
     # to be constructed/destructed.
-    hook_tp_functions(global_dummy_Integer, NULL, <newfunc>&fast_tp_new, NULL, &fast_tp_dealloc, False)
+    hook_tp_functions(global_dummy_Integer, NULL, &fast_tp_new, NULL, &fast_tp_dealloc, False)
 
 cdef integer(x):
     if PY_TYPE_CHECK(x, Integer):

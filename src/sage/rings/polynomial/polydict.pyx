@@ -44,6 +44,7 @@ AUTHORS:
 
 include "../../ext/stdsage.pxi"
 include '../../ext/cdefs.pxi'
+from cpython.dict cimport *
 
 import copy
 from sage.structure.element import generic_power

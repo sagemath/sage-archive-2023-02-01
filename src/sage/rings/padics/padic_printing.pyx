@@ -22,6 +22,8 @@ AUTHORS:
 
 include "../../ext/stdsage.pxi"
 include "../../ext/gmp.pxi"
+from cpython.list cimport *
+
 
 import sys
 

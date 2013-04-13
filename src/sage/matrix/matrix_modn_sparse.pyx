@@ -78,6 +78,7 @@ include "../ext/cdefs.pxi"
 include '../ext/interrupt.pxi'
 include '../ext/stdsage.pxi'
 include '../modules/vector_modn_sparse_c.pxi'
+from cpython.sequence cimport *
 
 cimport matrix
 cimport matrix_sparse
@@ -182,7 +183,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef int s, z, p
         cdef Py_ssize_t i, j, k
 
-        cdef void** X
+        cdef PyObject** X
 
         if entries is None:
             return

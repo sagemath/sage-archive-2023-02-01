@@ -178,6 +178,7 @@ from sage.misc.misc_c import is_64_bit
 
 include 'pari_err.pxi'
 include '../../ext/stdsage.pxi'
+include '../../ext/python.pxi'
 
 cdef extern from "mpz_pylong.h":
     cdef int mpz_set_pylong(mpz_t dst, src) except -1
@@ -1169,7 +1170,7 @@ cdef class gen(sage.structure.element.RingElement):
 
         pari_type = typ(self.g)
 
-        if PyObject_TypeCheck(n, tuple):
+        if isinstance(n, tuple):
             if pari_type != t_MAT:
                 raise TypeError, "self must be of pari type t_MAT"
             if len(n) != 2:
@@ -1195,7 +1196,7 @@ cdef class gen(sage.structure.element.RingElement):
                 self._refers_to[ind] = val
                 return val
 
-        elif PyObject_TypeCheck(n, slice):
+        elif isinstance(n, slice):
             l = glength(self.g)
             start,stop,step = n.indices(l)
             inds = xrange(start,stop,step)
@@ -1399,12 +1400,12 @@ cdef class gen(sage.structure.element.RingElement):
 
         sig_on()
         try:
-            if PyObject_TypeCheck(y, gen):
+            if isinstance(y, gen):
                 x = y
             else:
                 x = pari(y)
 
-            if PyObject_TypeCheck(n, tuple):
+            if isinstance(n, tuple):
                 if typ(self.g) != t_MAT:
                     raise TypeError, "cannot index Pari type %s by tuple"%typ(self.g)
 
@@ -9671,9 +9672,9 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
         late_import()
 
-        if PyObject_TypeCheck(s, gen):
+        if isinstance(s, gen):
             return s
-        elif PyObject_TypeCheck(s, Integer):
+        elif isinstance(s, Integer):
             return self.new_gen_from_mpz_t(<void *>s + mpz_t_offset)
         elif PyObject_HasAttrString(s, "_pari_"):
             return s._pari_()

@@ -103,6 +103,8 @@ import operator
 
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
+from cpython.dict cimport *
+from cpython.list cimport *
 import sage.misc.misc as misc
 import sage.misc.latex
 

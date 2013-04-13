@@ -135,6 +135,7 @@ Test if #9947 is fixed::
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
+include "../ext/python.pxi"
 
 import operator
 import ring

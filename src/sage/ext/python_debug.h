@@ -4,7 +4,7 @@
  */
 
 
-#import <Python.h>
+#include <Python.h>
 
 #ifdef Py_DEBUG
     #define SAGE_Py_DEBUG Py_DEBUG

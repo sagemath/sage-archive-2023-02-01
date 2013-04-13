@@ -99,6 +99,7 @@ include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
 include '../ext/stdsage.pxi'
 include '../ext/random.pxi'
+from cpython.string cimport *
 
 import sage.ext.multi_modular
 cimport sage.rings.fast_arith

@@ -15,6 +15,7 @@ cdef extern from "pynac_cc.h":
 
 include "../ext/cdefs.pxi"
 include "../ext/stdsage.pxi"
+include "../ext/python.pxi"
 
 from sage.libs.ginac cimport *
 

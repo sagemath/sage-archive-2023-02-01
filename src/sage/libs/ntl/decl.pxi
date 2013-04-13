@@ -1,8 +1,7 @@
 include "../../ext/cdefs.pxi"
 include "../../ext/stdsage.pxi"
+include "../../ext/python.pxi"
 
-cdef extern from "stdlib.h":
-    void free(void *ptr)
 
 cdef extern from "ntl_wrap.h":
     long NTL_OVFBND

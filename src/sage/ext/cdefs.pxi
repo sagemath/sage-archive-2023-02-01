@@ -2,8 +2,6 @@
 # Declare C library functions used in Sage
 #
 
-include "python.pxi"
-
 from libc.stdio cimport *
 from libc.string cimport strlen, strcpy, memset, memcpy
 

@@ -55,8 +55,8 @@ cdef hook_tp_functions(object global_dummy, allocfunc tp_alloc, newfunc tp_new, 
 
     cdef long flag
 
-    cdef RichPyObject* o
-    o = <RichPyObject*>global_dummy
+    cdef PyObject* o = <PyObject*>global_dummy
+    cdef RichPyTypeObject* t = <RichPyTypeObject*>o.ob_type
 
     # Make sure this never, ever gets collected.
     # This is not necessary for cdef'ed variables as the global
@@ -77,9 +77,9 @@ cdef hook_tp_functions(object global_dummy, allocfunc tp_alloc, newfunc tp_new, 
     # This object will still be reference counted.
     if not useGC:
         flag = Py_TPFLAGS_HAVE_GC
-        o.ob_type.tp_flags = <long>(o.ob_type.tp_flags & (~flag))
+        t.tp_flags = <long>(t.tp_flags & (~flag))
 
     # Finally replace the functions called when an Integer needs
     # to be constructed/destructed.
-    o.ob_type.tp_new = tp_new
-    o.ob_type.tp_dealloc = tp_dealloc
+    t.tp_new = tp_new
+    t.tp_dealloc = tp_dealloc

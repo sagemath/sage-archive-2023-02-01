@@ -26,6 +26,8 @@ AUTHORS:
 #*****************************************************************************
 
 include "../ext/cdefs.pxi"
+from cpython.object cimport *
+
 
 import operator
 

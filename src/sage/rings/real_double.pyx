@@ -32,6 +32,7 @@ Test NumPy conversions::
     dtype('float64')
 """
 
+from cpython.ref cimport PyObject, PyTypeObject
 from cpython.float cimport *
 include "../ext/python_debug.pxi"
 include '../ext/cdefs.pxi'
@@ -2540,17 +2541,12 @@ cdef int element_pool_count = 0
 cdef int total_alloc = 0
 cdef int use_pool = 0
 
-# The signature of tp_new is
-# PyObject* tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k).
-# However we don't actually use any of it.
-#
-# t in this case is the RealDoubleElement TypeObject.
 
-cdef PyObject* fast_tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k):
+cdef PyObject* fast_tp_new(PyTypeObject *t, PyObject *a, PyObject *k):
 
     global element_pool, element_pool_count, total_alloc, use_pool
 
-    cdef RichPyObject* new
+    cdef PyObject* new
 
     # for profiling pool usage
     # total_alloc += 1
@@ -2564,7 +2560,7 @@ cdef PyObject* fast_tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k):
         # use_pool += 1
 
         element_pool_count -= 1
-        new = <RichPyObject *> element_pool[element_pool_count]
+        new = <PyObject *> element_pool[element_pool_count]
 
     # Otherwise, we have to create one.
 
@@ -2591,7 +2587,7 @@ cdef PyObject* fast_tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k):
     # initialized with this macro.
 
     if_Py_TRACE_REFS_then_PyObject_INIT\
-        (new, (<RichPyObject*>global_dummy_element).ob_type)
+        (new, (<PyObject*>global_dummy_element).ob_type)
 
     # The global_dummy_element may have a reference count larger than
     # one, but it is expected that newly created objects have a
@@ -2626,8 +2622,9 @@ cdef void fast_tp_dealloc(PyObject* o):
 
     PyObject_FREE(o)
 
+
 from sage.misc.allocator cimport hook_tp_functions
-hook_tp_functions(global_dummy_element, NULL, <newfunc>&fast_tp_new, NULL, &fast_tp_dealloc, False)
+hook_tp_functions(global_dummy_element, NULL, &fast_tp_new, NULL, &fast_tp_dealloc, False)
 
 
 def time_alloc_list(n):

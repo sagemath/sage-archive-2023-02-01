@@ -256,7 +256,7 @@ fi
 # PKG_NAME is the last path component without .spkg
 # This already reduces case 2b to case 2a.
 PKG_NAME=`basename "$PKG_SRC" | sed 's/\.spkg$//'`
-PKG_BASE=`echo "$PKG_NAME" | sed 's/-.*//'`
+PKG_BASE=`echo "$PKG_NAME" | sed 's/-[0-9].*//'`
 
 
 if [ -f "$PKG_SRC" ]; then

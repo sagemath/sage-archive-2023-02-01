@@ -335,12 +335,10 @@ cdef void error_handler(char* msg):
     ``sig_off`` blocks, this then jumps back to the ``sig_on`` and
     raises a Python ``RuntimeError``.
     """
-    # print 'error_handler:', msg
     msg_py = msg
     msg_py = msg_py.replace('For debugging hints type ?Recovery from NoMethodFound\n', '')
-    sig_str(msg_py)
+    set_sage_signal_handler_message(msg_py)
     abort()
-    sig_off()
 
 
 ############################################################################

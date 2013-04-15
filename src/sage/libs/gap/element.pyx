@@ -1807,7 +1807,7 @@ cdef class GapElement_Record(GapElement):
             sage: rec['first']
             123
         """
-        i = self.record_name_to_index(name)
+        cdef libGAP_UInt i = self.record_name_to_index(name)
         cdef libGAP_Obj result
         try:
             sig_on()

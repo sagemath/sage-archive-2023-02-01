@@ -411,11 +411,17 @@ void sigdie(int sig, const char* s)
         "------------------------------------------------------------------------\n");
     print_backtrace();
 
+#if ENABLE_DEBUG_INTERRUPT
+    /* Interrupt debugging is enabled, don't do enhanced backtraces as
+     * the user is probably using other debugging tools and we don't
+     * want to interfere with that. */
+#else
 #ifndef __APPLE__
     /* See http://trac.sagemath.org/13889 for how Apple screwed this up */
     fprintf(stderr,
         "------------------------------------------------------------------------\n");
     print_enhanced_backtrace();
+#endif
 #endif
 
     fprintf(stderr,

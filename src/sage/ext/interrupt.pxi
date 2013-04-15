@@ -12,6 +12,7 @@ cdef extern from 'interrupt.h':
     void sig_retry()
     void sig_block()
     void sig_unblock()
+    void set_sage_signal_handler_message(char* s)
 
     ctypedef struct sage_signals_t:
         int sig_on_count

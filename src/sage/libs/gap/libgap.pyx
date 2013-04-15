@@ -21,7 +21,7 @@ EXAMPLES::
 Compared to the expect interface this is >1000 times faster::
 
     sage: b = gap('10')
-    sage: timeit('b*b')   # random output
+    sage: timeit('b*b')   # random output; long time
     125 loops, best of 3: 2.05 ms per loop
 
 If you want to evaluate GAP commands, use the :meth:`Gap.eval` method::

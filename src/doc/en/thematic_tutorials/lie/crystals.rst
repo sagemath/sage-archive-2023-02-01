@@ -289,15 +289,16 @@ Moreover, we assume that
 
 for all `x \in \mathcal{B}`.
 
-**Assumption** (Regularity) We will assume that `\varepsilon_i(v)` is
-the number of times that `e_i` may applied to `v`, and that
-`\phi_i(v)` is the number of times that `f_i` may be applied. That is,
-`\phi_i (x) = \max \{k|f_i^k x \neq 0\}` and
-`\varepsilon_i (x) = \max \{k|e_i^k (x) \neq 0\}`.
+We call a crystal *regular* if it satisfies the additional assumption that
+`\varepsilon_i(v)` is the number of times that `e_i` may be applied to `v`, and
+that `\phi_i(v)` is the number of times that `f_i` may be applied. That is,
+`\phi_i (x) = \max \{k | f_i^k x \neq 0\}` and `\varepsilon_i (x) = \max \{k
+| e_i^k (x) \neq 0\}`.
+Kashiwara also allows `\varepsilon_i` and `\phi_i` to take the value `-\infty`.
 
-This regularity assumption is not made by Kashiwara, but it is
-satisfied by the crystals that we are concerned with here. Kashiwara
-also allows `\varepsilon_i` and `\phi_i` to take the value `-\infty`.
+.. NOTE::
+
+    Most of the crystals that we are concerned with here are regular.
 
 Given the crystal `\mathcal{B}`, the *character* `\chi_{\mathcal{B}}` is:
 

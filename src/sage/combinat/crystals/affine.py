@@ -13,6 +13,7 @@ Affine Crystals
 #****************************************************************************
 
 from sage.misc.abstract_method import abstract_method
+from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.finite_crystals import FiniteCrystals
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -104,7 +105,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
             sage: TestSuite(A).run()
         """
         if category is None:
-            category = FiniteCrystals()
+            category = (RegularCrystals(), FiniteCrystals())
         self._cartan_type = cartan_type
         Parent.__init__(self, category = category)
         self.classical_crystal = classical_crystal;

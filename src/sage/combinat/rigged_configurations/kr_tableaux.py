@@ -41,6 +41,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 
 from sage.categories.finite_crystals import FiniteCrystals
+from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.classical_crystals import ClassicalCrystals
 
 from sage.rings.integer import Integer
@@ -178,7 +179,7 @@ class KirillovReshetikhinTableaux(CrystalOfWords):
         """
         self._r = r
         self._s = s
-        Parent.__init__(self, category=FiniteCrystals())
+        Parent.__init__(self, category=(RegularCrystals(), FiniteCrystals()))
         self.rename("Kirillov-Reshetikhin tableaux of type %s and shape (%d, %d)" % (cartan_type, r, s))
 
         self._cartan_type = cartan_type.classical()

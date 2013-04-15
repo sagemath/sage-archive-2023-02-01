@@ -28,6 +28,7 @@ AUTHORS:
 #****************************************************************************
 
 from sage.structure.parent import Parent
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
@@ -223,10 +224,10 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
         EXAMPLES::
 
-            sage: B = InfinityCrystalOfTableaux(['A',4])
-            sage: TestSuite(B).run()
+            sage: B = InfinityCrystalOfTableaux(['A',2])
+            sage: TestSuite(B).run() # long time
         """
-        Parent.__init__(self, category = HighestWeightCrystals())
+        Parent.__init__( self, category=(HighestWeightCrystals(), InfiniteEnumeratedSets()) )
         self._cartan_type = cartan_type
         self.letters = CrystalOfLetters(cartan_type)
         self.module_generators = (self.module_generator(),)
@@ -261,18 +262,6 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
         # The column canonical tableau, read by columns
         module_generator = flatten([[p[j]-i for i in range(p[j])] for j in range(n)])
         return self(list=[self.letters(x) for x in module_generator])
-
-    def cardinality(self):
-        r"""
-        Return the cardinality of ``self``, which is `\infty`.
-
-        EXAMPLES::
-
-            sage: T = InfinityCrystalOfTableaux(['A',3])
-            sage: T.cardinality()
-            +Infinity
-        """
-        return Infinity
 
     def _element_constructor_(self, *args, **options):
         """

@@ -125,6 +125,7 @@ from affine_weyl_groups import AffineWeylGroups
 # crystal bases
 from crystals import Crystals
 from highest_weight_crystals import HighestWeightCrystals
+from regular_crystals import RegularCrystals
 from finite_crystals import FiniteCrystals
 from classical_crystals import ClassicalCrystals
 

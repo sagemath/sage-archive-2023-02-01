@@ -28,8 +28,10 @@ from sage.structure.element_wrapper import ElementWrapper
 from sage.structure.parent import Parent
 from sage.categories.crystals import Crystals
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
+from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.finite_crystals import FiniteCrystals
 from sage.categories.classical_crystals import ClassicalCrystals
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.rings.integer import Integer
@@ -171,7 +173,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
         TESTS::
 
             sage: C = CrystalOfLSPaths(['A',2,1], [-1,0,1])
-            sage: TestSuite(C).run() #skip=['_test_elements', '_test_elements_eq', '_test_enumerated_set_contains', '_test_some_elements'])
+            sage: TestSuite(C).run()
             sage: C = CrystalOfLSPaths(['E',6], [1,0,0,0,0,0])
             sage: TestSuite(C).run()
         """
@@ -184,11 +186,13 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
         self._name = "The crystal of LS paths of type %s and weight %s"%(cartan_type,starting_weight)
         if cartan_type.is_affine():
             if all(i>=0 for i in starting_weight.coefficients()):
-                Parent.__init__(self, category = HighestWeightCrystals())
+                Parent.__init__( self, category = (RegularCrystals(),
+                                                   HighestWeightCrystals(),
+                                                   InfiniteEnumeratedSets()) )
             elif starting_weight.parent().is_extended():
-                Parent.__init__(self, category = Crystals())
+                Parent.__init__(self, category = (RegularCrystals(), InfiniteEnumeratedSets()))
             else:
-                Parent.__init__(self, category = FiniteCrystals())
+                Parent.__init__(self, category = (RegularCrystals(), FiniteCrystals()))
         else:
             Parent.__init__(self, category = ClassicalCrystals())
 
@@ -598,8 +602,8 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
         sage: T = TensorProductOfCrystals(K3,K1)
         sage: T.cardinality()
         84
-        sage: GT = T.digraph()
-        sage: GLS.is_isomorphic(GT, edge_labels = True)
+        sage: GT = T.digraph() # long time
+        sage: GLS.is_isomorphic(GT, edge_labels = True) # long time
         True
     """
 
@@ -662,7 +666,7 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
             sage: R = RootSystem(['B',3,1])
             sage: La = R.weight_space().basis()
             sage: LS = CrystalOfProjectedLevelZeroLSPaths(La[1]+La[2])
-            sage: LS.one_dimensional_configuration_sum() == LS.one_dimensional_configuration_sum(group_components=False)
+            sage: LS.one_dimensional_configuration_sum() == LS.one_dimensional_configuration_sum(group_components=False) # long time
             True
             sage: K1 = KirillovReshetikhinCrystal(['B',3,1],1,1)
             sage: K2 = KirillovReshetikhinCrystal(['B',3,1],2,1)

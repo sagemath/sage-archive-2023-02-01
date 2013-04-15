@@ -26,6 +26,7 @@ from sage.misc.functional import is_even, is_odd
 from sage.functions.other import floor, ceil
 from sage.combinat.combinat import CombinatorialObject
 from sage.structure.parent import Parent
+from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.finite_crystals import FiniteCrystals
 from sage.rings.integer import Integer
 from sage.rings.all import QQ
@@ -373,7 +374,7 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
             1
         """
         # We need this here for the classical_decomposition() call
-        Parent.__init__(self, category = FiniteCrystals())
+        Parent.__init__(self, category = (RegularCrystals(), FiniteCrystals()))
         if dual is None:
             self._cartan_type = cartan_type
         else:

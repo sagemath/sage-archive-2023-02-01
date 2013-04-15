@@ -38,14 +38,16 @@ REFERENCES:
 
 import re
 from copy import deepcopy
-from sage.combinat import ranker
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.structure.element import Element
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.combinat.combinat import CombinatorialObject
+from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.combinat.root_system.root_system import RootSystem
+from sage.rings.infinity import Infinity
 
 class GeneralizedYoungWall(CombinatorialObject, Element):
     r"""
@@ -625,12 +627,12 @@ class CrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
     To display the crystal down to depth 3::
 
         sage: S = Yinf.subcrystal(max_depth=3)
-        sage: G = Yinf.digraph(subset=S)
+        sage: G = Yinf.digraph(subset=S) # long time
         sage: view(G, tightpage=True) # not tested
     """
 
     @staticmethod
-    def __classcall_private__(cls, n):
+    def __classcall_private__(cls, n, category=None):
         r"""
         Normalize input to ensure a unique representation.
 
@@ -645,9 +647,9 @@ class CrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
             sage: Yinf is Yinf2
             True
         """
-        return super(CrystalOfGeneralizedYoungWalls,cls).__classcall__(cls,n)
+        return super(CrystalOfGeneralizedYoungWalls,cls).__classcall__(cls,n,category)
 
-    def __init__(self, n):
+    def __init__(self, n, category):
         r"""
         EXAMPLES::
 
@@ -655,8 +657,10 @@ class CrystalOfGeneralizedYoungWalls(Parent,UniqueRepresentation):
             sage: TestSuite(Yinf).run()
         """
         self._cartan_type = CartanType(['A',n,1])
-        Parent.__init__(self, category=HighestWeightCrystals())
-        self.module_generators = [self.element_class(self,[])]
+        if category is None:
+            category = (HighestWeightCrystals(), InfiniteEnumeratedSets())
+        Parent.__init__(self, category=category)
+        self.module_generators = (self.element_class(self,[]),)
 
     Element = GeneralizedYoungWall
 
@@ -841,11 +845,12 @@ class HighestWeightCrystalOfGYW(CrystalOfGeneralizedYoungWalls):
         r"""
         EXAMPLES::
 
-            sage: La = RootSystem(['A',3,1]).weight_lattice().fundamental_weights()[1]
-            sage: YLa = HighestWeightCrystalOfGYW(3,La)
-            sage: TestSuite(YLa).run()
+            sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()[1]
+            sage: YLa = HighestWeightCrystalOfGYW(2,La)
+            sage: TestSuite(YLa).run() # long time
         """
-        CrystalOfGeneralizedYoungWalls.__init__(self, n)
+        CrystalOfGeneralizedYoungWalls.__init__( self, n,
+                category=(RegularCrystals(), HighestWeightCrystals(), InfiniteEnumeratedSets()) )
         self.hw = La
 
     Element = HighestWeightCrystalofGYWElement

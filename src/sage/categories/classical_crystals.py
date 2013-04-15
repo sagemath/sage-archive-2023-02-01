@@ -12,6 +12,7 @@ from sage.misc.cachefunc import cached_method
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.crystals import Crystals
 from sage.categories.finite_crystals import FiniteCrystals
+from sage.categories.regular_crystals import RegularCrystals
 from sage.categories.highest_weight_crystals import HighestWeightCrystals
 
 class ClassicalCrystals(Category_singleton):
@@ -24,14 +25,16 @@ class ClassicalCrystals(Category_singleton):
         sage: C
         Category of classical crystals
         sage: C.super_categories()
-        [Category of finite crystals, Category of highest weight crystals]
+        [Category of regular crystals,
+         Category of finite crystals,
+         Category of highest weight crystals]
         sage: C.example()
         Highest weight crystal of type A_3 of highest weight omega_1
 
     TESTS::
 
         sage: TestSuite(C).run()
-        sage: B = FiniteCrystals().example()
+        sage: B = ClassicalCrystals().example()
         sage: TestSuite(B).run(verbose = True)
         running ._test_an_element() . . . pass
         running ._test_category() . . . pass
@@ -63,9 +66,11 @@ class ClassicalCrystals(Category_singleton):
         EXAMPLES::
 
             sage: ClassicalCrystals().super_categories()
-            [Category of finite crystals, Category of highest weight crystals]
+            [Category of regular crystals,
+             Category of finite crystals,
+             Category of highest weight crystals]
         """
-        return [FiniteCrystals(), HighestWeightCrystals()]
+        return [RegularCrystals(), FiniteCrystals(), HighestWeightCrystals()]
 
     def example(self, n = 3):
         """

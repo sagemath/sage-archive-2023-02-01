@@ -222,6 +222,7 @@ from sage.structure.parent import Parent
 from sage.structure.element import Element, parent
 from sage.combinat.misc import IterableFunctionCall
 from sage.categories.finite_crystals import FiniteCrystals
+from sage.categories.regular_crystals import RegularCrystals
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.partition import Partition
 from sage.combinat.cartesian_product import CartesianProduct
@@ -265,7 +266,7 @@ class AbstractRiggedConfigurations(UniqueRepresentation, Parent):
         self.dims = B
         self._bijection_class = biject_class
         self.rename("Rigged configurations of type %s and factors %s" % (cartan_type, B))
-        Parent.__init__(self, category=FiniteCrystals())
+        Parent.__init__(self, category=(RegularCrystals(), FiniteCrystals()))
 
     def _highest_weight_iter(self):
         r"""

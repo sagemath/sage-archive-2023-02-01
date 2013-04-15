@@ -36,8 +36,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-cdef extern from *:
-    cdef int Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 
 import os, cPickle as pickle, operator
 import inspect
@@ -91,7 +90,9 @@ cdef class LazyImport(object):
         self._as_name = as_name
         self._namespace = namespace
 
-    cpdef _get_object(self, owner=None):
+    # Due to a bug in Cython-0.19, this must not be a cpdef method.
+    # See http://trac.sagemath.org/sage_trac/ticket/14452
+    def _get_object(self, owner=None):
         """
         Return the wrapped object, importing it if necessary.
 

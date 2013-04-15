@@ -569,9 +569,11 @@ class Set_object(Set_generic):
 
     def is_empty(self):
         """
-        Returns a boolean representing emptiness of the set
+        Return boolean representing emptiness of the set.
 
-        OUTPUT: true if the set is empty, false if otherwise
+        OUTPUT:
+
+        True if the set is empty, false if otherwise.
 
         EXAMPLES::
 
@@ -599,7 +601,7 @@ class Set_object(Set_generic):
             sage: Set(QQ).is_empty()
             False
         """
-        return (self.cardinality() == 0)
+        return not self.__nonzero__()
 
     def is_finite(self):
         """

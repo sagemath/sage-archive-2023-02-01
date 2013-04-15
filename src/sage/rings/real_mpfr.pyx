@@ -2918,19 +2918,24 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES::
 
-            sage: R=RealField(53)
-            sage: a=R(exp(1.0)); a
+            sage: R = RealField(53)
+            sage: a = R(exp(1.0)); a
             2.71828182845905
-            sage: sign,mantissa,exponent=R(exp(1.0)).sign_mantissa_exponent()
-            sage: sign,mantissa,exponent
+            sage: sign, mantissa, exponent = R(exp(1.0)).sign_mantissa_exponent()
+            sage: sign, mantissa, exponent
             (1, 6121026514868073, -51)
-            sage: sign*mantissa*(2**exponent)==a
+            sage: sign*mantissa*(2**exponent) == a
             True
+
+        The mantissa is always a nonnegative number (see :trac:`14448`)::
+
+            sage: RR(-1).sign_mantissa_exponent()
+            (-1, 4503599627370496, -52)
 
         We can also calculate this also using `p`-adic valuations::
 
-            sage: a=R(exp(1.0))
-            sage: b=a.exact_rational()
+            sage: a = R(exp(1.0))
+            sage: b = a.exact_rational()
             sage: valuation, unit = b.val_unit(2)
             sage: (b/abs(b), unit, valuation)
             (1, 6121026514868073, -51)
@@ -2961,7 +2966,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mantissa = Integer()
             exponent = mpfr_get_z_exp(mantissa.value, self.value)
 
-        return sign, mantissa, Integer(exponent)
+        return sign, sign*mantissa, Integer(exponent)
 
     def exact_rational(self):
         """

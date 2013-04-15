@@ -1047,13 +1047,18 @@ cdef class RealDoubleElement(FieldElement):
 
         EXAMPLES::
 
-            sage: a=RDF(exp(1.0)); a
+            sage: a = RDF(exp(1.0)); a
             2.71828182846
-            sage: sign,mantissa,exponent=RDF(exp(1.0)).sign_mantissa_exponent()
+            sage: sign,mantissa,exponent = RDF(exp(1.0)).sign_mantissa_exponent()
             sage: sign,mantissa,exponent
             (1, 6121026514868073, -51)
-            sage: sign*mantissa*(2**exponent)==a
+            sage: sign*mantissa*(2**exponent) == a
             True
+
+        The mantissa is always a nonnegative number::
+
+            sage: RDF(-1).sign_mantissa_exponent()
+            (-1, 4503599627370496, -52)
 
         TESTS::
 

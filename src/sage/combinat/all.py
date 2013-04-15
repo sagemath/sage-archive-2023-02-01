@@ -22,6 +22,7 @@ from yang_baxter_graph import YangBaxterGraph
 
 #Permutations
 from permutation import Permutation, Permutations, Arrangements, PermutationOptions, CyclicPermutations, CyclicPermutationsOfPartition
+from derangements import Derangements
 
 #PerfectMatchings
 from perfect_matching import PerfectMatching, PerfectMatchings

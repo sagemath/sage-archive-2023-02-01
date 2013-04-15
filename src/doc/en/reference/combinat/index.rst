@@ -16,6 +16,7 @@ Combinatorics
    sage/combinat/core
    sage/combinat/debruijn_sequence
    sage/combinat/degree_sequences
+   sage/combinat/derangements
    sage/combinat/dlx
    sage/combinat/matrices/dlxcpp
    sage/combinat/dyck_word

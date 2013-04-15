@@ -2208,53 +2208,38 @@ def number_of_arrangements(mset,k):
 
 def derangements(mset):
     """
-    A derangement is a fixed point free permutation of list and is
-    represented by a list that contains exactly the same elements as
-    mset, but possibly in different order. Derangements returns the set
-    of all derangements of a multiset.
-
-    Wraps GAP's Derangements.
-
-    .. warning::
-
-       Wraps GAP - hence mset must be a list of objects that have
-       string representations that can be interpreted by the GAP
-       interpreter. If mset consists of at all complicated Sage
-       objects, this function does *not* do what you expect. A proper
-       function should be written! (TODO!)
+    This is deprecated in :trac:`9005`. Use instead :class:`Derangements`.
 
     EXAMPLES::
 
         sage: mset = [1,2,3,4]
-        sage: derangements(mset)
-        [[2, 1, 4, 3],
-         [2, 3, 4, 1],
-         [2, 4, 1, 3],
-         [3, 1, 4, 2],
-         [3, 4, 1, 2],
-         [3, 4, 2, 1],
-         [4, 1, 2, 3],
-         [4, 3, 1, 2],
-         [4, 3, 2, 1]]
-         sage: derangements(["c","a","t"])
-         ['atc', 'tca']
+        sage: D = derangements(mset); D
+        doctest:1: DeprecationWarning: derangements() is deprecated. Use Derangements instead.
+        See http://trac.sagemath.org/9005 for details.
+        Derangements of the set [1, 2, 3, 4]
     """
-    ans=gap.eval("Derangements(%s)"%mset)
-    return eval(ans)
+    from sage.misc.superseded import deprecation
+    deprecation(9005,'derangements() is deprecated. Use Derangements instead.')
+    from sage.combinat.derangements import Derangements
+    return Derangements(mset)
 
 def number_of_derangements(mset):
     """
-    Returns the size of derangements(mset). Wraps GAP's
-    NrDerangements.
+    This is deprecated in :trac:`9005`. Use :meth:`Derangements.cardinality()`
+    instead.
 
     EXAMPLES::
 
         sage: mset = [1,2,3,4]
         sage: number_of_derangements(mset)
+        doctest:1: DeprecationWarning: number_of_derangements() is deprecated. Use Derangements.cardinality() instead.
+        See http://trac.sagemath.org/9005 for details.
         9
     """
-    ans=gap.eval("NrDerangements(%s)"%mset)
-    return ZZ(ans)
+    from sage.misc.superseded import deprecation
+    deprecation(9005,'number_of_derangements() is deprecated. Use Derangements.cardinality() instead.')
+    from sage.combinat.derangements import Derangements
+    return Derangements(mset).cardinality()
 
 def tuples(S,k):
     """

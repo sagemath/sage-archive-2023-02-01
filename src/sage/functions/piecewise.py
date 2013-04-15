@@ -489,8 +489,20 @@ class PiecewisePolynomial:
             sage: Q = tf.plot(rgbcolor=(0.7,0.6,0.6), plot_points=40)
             sage: L = add([line([[a,0],[a,f(a)]],rgbcolor=(0.7,0.6,0.6)) for (a,b),f in tf.list()])
             sage: P+Q+L
+
+        TESTS:
+
+        Use variables other than x (:trac:`13836`)::
+
+            sage: R.<y> = QQ[]
+            sage: f1 = y^2
+            sage: f2 = 5-y^2
+            sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
+            sage: f.trapezoid(4)
+            Piecewise defined function with 4 parts, [[(0, 1/2), 1/2*y], [(1/2, 1), 9/2*y - 2], [(1, 3/2), 1/2*y + 2], [(3/2, 2), -7/2*y + 8]]
+
         """
-        x = QQ['x'].gen()
+        x = QQ[self.default_variable()].gen()
         def f(x0, x1):
             f0, f1 = self(x0), self(x1)
             return [[(x0,x1),f0+(f1-f0)*(x1-x0)**(-1)*(x-x0)]]
@@ -553,9 +565,22 @@ class PiecewisePolynomial:
             sage: expected = [5, 12, 13, 14]
             sage: all(abs(e-a) < 0.001 for e,a in zip(expected, f.critical_points()))
             True
+
+        TESTS:
+
+        Use variables other than x (:trac:`13836`)::
+
+            sage: R.<y> = QQ[]
+            sage: f1 = y^0
+            sage: f2 = 10*y - y^2
+            sage: f3 = 3*y^4 - 156*y^3 + 3036*y^2 - 26208*y
+            sage: f = Piecewise([[(0,3),f1],[(3,10),f2],[(10,20),f3]])
+            sage: expected = [5, 12, 13, 14]
+            sage: all(abs(e-a) < 0.001 for e,a in zip(expected, f.critical_points()))
+            True
         """
         from sage.calculus.calculus import maxima
-        x = var('x')
+        x = QQ[self.default_variable()].gen()
         crit_pts = []
         for (a,b), f in self.list():
             for root in maxima.allroots(SR(f).diff(x)==0):
@@ -665,7 +690,7 @@ class PiecewisePolynomial:
     def default_variable(self):
         r"""
         Return the default variable. The default variable is defined as the
-        first variable in the first piece uses a variable. If no pieces have
+        first variable in the first piece that has a variable. If no pieces have
         a variable (each piece is a constant value), `x` is returned.
 
         The result is cached.
@@ -962,7 +987,7 @@ class PiecewisePolynomial:
             sage: f.derivative()
             Piecewise defined function with 1 parts, [[(0, 1), x |--> 2]]
         """
-        x = var('x')
+        x = self.default_variable()
         dlist = [[(a, b), derivative(f(x), x).function(x)] for (a,b),f in self.list()]
         return Piecewise(dlist)
 
@@ -982,7 +1007,7 @@ class PiecewisePolynomial:
             sage: P + Q
         """
         pt = QQ(pt)
-        R = QQ['x']
+        R = QQ[self.default_variable()]
         x = R.gen()
         der = self.derivative()
         tanline = (x-pt)*der(pt)+self(pt)
@@ -1133,7 +1158,7 @@ class PiecewisePolynomial:
             -4*cos(pi*x)/pi^2 + cos(2*pi*x)/pi^2 + 1/3
         """
         from sage.all import pi, sin, cos, srange
-        x = var('x')
+        x = self.default_variable()
         a0 = self.fourier_series_cosine_coefficient(0,L)
         result = a0/2 + sum([(self.fourier_series_cosine_coefficient(n,L)*cos(n*pi*x/L) +
                               self.fourier_series_sine_coefficient(n,L)*sin(n*pi*x/L))*

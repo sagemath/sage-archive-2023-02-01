@@ -2196,6 +2196,166 @@ class Tableau(CombinatorialObject, Element):
         except StandardError:
             return Tableau([[w[entry-1] for entry in row] for row in self])
 
+    def is_key_tableau(self):
+        """
+        Return ``True`` if ``self`` is a key tableau or ``False`` otherwise.
+
+        A tableau is a *key tableau* if the set of entries in the `j`-th
+        column are a subset of the set of entries in the `(j-1)`-st column.
+
+        REFERENCES:
+
+        .. [LS90] A. Lascoux, M.-P. Schutzenberger.
+           Keys and standard bases, invariant theory and tableaux.
+           IMA Volumes in Math and its Applications (D. Stanton, ED.).
+           Southend on Sea, UK, 19 (1990). 125-144.
+
+        .. [Willis10] M. Willis. A direct way to find the right key of
+           a semistandard Young tableau. :arxiv:`1110.6184v1`.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,1,1],[2,3],[3]])
+            sage: t.is_key_tableau()
+            True
+
+            sage: t = Tableau([[1,1,2],[2,3],[3]])
+            sage: t.is_key_tableau()
+            False
+        """
+        itr = enumerate(self.conjugate()[1:],1)
+        return all(x in self.conjugate()[i-1] for i, col in itr for x in col)
+
+    def right_key_tableau(self):
+        """
+        Return the right key tableau of ``self``.
+
+        The right key tableau of a tableau `T` is a key tableau whose entries
+        are weakly greater than the corresponding entries in `T`, and whose column
+        reading word is subject to certain conditions. See [LS90]_ for the full definition.
+
+        ALGORITHM:
+
+        The following algorithm follows [Willis10]_. Note that if `T` is a key tableau
+        then the output of the algorithm is `T`.
+
+        To compute the right key tableau `R` of a tableau `T` we iterate over the columns
+        of `T`. Let `T_j` be the `j`-th column of `T` and iterate over the entires
+        in `T_j` from bottom to top. Initialize the corresponding entry `k` in `R` to be
+        the largest entry in `T_j`. Scan the bottom of each column of `T` to the right of
+        `T_j`, updating `k` to be the scanned entry whenever the scanned entry is weakly
+        greater than `k`. Update `T_j` and all columns to the right by removing all
+        scanned entries.
+
+        .. SEEALSO::
+
+            - :meth:`is_key_tableau()`
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,2],[2,3]])
+            sage: t.right_key_tableau()
+            [[2, 2], [3, 3]]
+            sage: t = Tableau([[1,1,2,4],[2,3,3],[4],[5]])
+            sage: t.right_key_tableau()
+            [[2, 2, 2, 4], [3, 4, 4], [4], [5]]
+
+        TESTS:
+
+        We check that if we have a key tableau, we return the same tableau::
+
+            sage: t = Tableau([[1,1,1,2], [2,2,2], [4], [5]])
+            sage: t.is_key_tableau()
+            True
+            sage: t.right_key_tableau() == t
+            True
+        """
+        if self.is_key_tableau():
+            return self
+
+        key = [[] for row in self.conjugate()]
+        cols_list = self.conjugate().to_list()
+
+        for i, col_a in enumerate(cols_list):
+            right_cols = cols_list[i+1:]
+            for elem in reversed(col_a):
+                key_val = elem
+                update = []
+                for col_b in right_cols:
+                    if col_b != [] and key_val <= col_b[-1]:
+                        key_val = col_b[-1]
+                        update.append(col_b[:-1])
+                    else:
+                        update.append(col_b)
+                key[i].insert(0,key_val)
+                right_cols = update
+        return Tableau(key).conjugate()
+
+    def left_key_tableau(self):
+        """
+        Return the left key tableau of ``self``.
+
+        The left key tableau of a tableau `T` is the key tableau whose entries
+        are weakly lesser than the corresponding entries in `T`, and whose column
+        reading word is subject to certain conditions. See [LS90]_ for the full definition.
+
+        ALGORITHM:
+
+        The following algorithm follows [Willis10]_. Note that if `T` is a key tableau
+        then the output of the algorithm is `T`.
+
+        To compute the left key tableau `L` of a tableau `T` we iterate over the columns
+        of `T`. Let `T_j` be the `j`-th column of `T` and iterate over the entires
+        in `T_j` from bottom to top. Initialize the corresponding entry `k` in `L` as the
+        largest entry in `T_j`. Scan the columns to the left of `T_j` and with each column
+        update `k` to be the lowest entry in that column which is weakly less than `k`.
+        Update `T_j` and all columns to the left by removing all scanned entries.
+
+        .. SEEALSO::
+
+            - :meth:`is_key_tableau()`
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,2],[2,3]])
+            sage: t.left_key_tableau()
+            [[1, 1], [2, 2]]
+            sage: t = Tableau([[1,1,2,4],[2,3,3],[4],[5]])
+            sage: t.left_key_tableau()
+            [[1, 1, 1, 2], [2, 2, 2], [4], [5]]
+
+        TESTS:
+
+        We check that if we have a key tableau, we return the same tableau::
+
+            sage: t = Tableau([[1,1,1,2], [2,2,2], [4], [5]])
+            sage: t.is_key_tableau()
+            True
+            sage: t.left_key_tableau() == t
+            True
+        """
+        if self.is_key_tableau():
+            return self
+
+        key = [[] for row in self.conjugate()]
+        key[0] = self.conjugate()[0]
+        cols_list = self.conjugate().to_list()
+
+        from bisect import bisect_right
+        for i, col_a in enumerate(cols_list[1:],1):
+            left_cols = cols_list[:i]
+            for elem in reversed(col_a):
+                key_val = elem
+                update = []
+                for col_b in reversed(left_cols):
+                    j = bisect_right(col_b, key_val) - 1
+                    key_val = col_b[j]
+                    update.insert(0, col_b[:j])
+                left_cols = update
+                key[i].insert(0,key_val)
+        return Tableau(key).conjugate()
+
+
 
 class SemistandardTableau(Tableau):
     """

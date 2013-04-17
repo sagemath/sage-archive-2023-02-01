@@ -30,20 +30,20 @@ def YangBaxterGraph(partition=None, root=None, operators=None):
     The user needs to provide either ``partition`` or both ``root`` and
     ``operators``, where
 
-    - ``partition`` - a partition of a positive integer
+    - ``partition`` -- a partition of a positive integer
 
-    - ``root`` - the root vertex
+    - ``root`` -- the root vertex
 
-    - ``operator`` - a function that maps vertices u to a list of
-      tuples of the form (v, l) where v is a successors of u and l is
-      the label of the edge from u to v.
+    - ``operator`` - a function that maps vertices `u` to a list of
+      tuples of the form `(v, l)` where `v` is a successor of `u` and `l` is
+      the label of the edge from `u` to `v`.
 
     OUTPUT:
 
     - Either:
 
       - :class:`YangBaxterGraph_partition` - if partition is defined
-      - :class:`YangBaxterGraph_generic` - if partition is None
+      - :class:`YangBaxterGraph_generic` - if partition is ``None``
 
     EXAMPLES:
 
@@ -63,7 +63,7 @@ def YangBaxterGraph(partition=None, root=None, operators=None):
         sage: Y.vertices()
         [(2, 0, 1, 0), (2, 1, 0, 0), (0, 2, 1, 0)]
 
-    The ``partition`` keyword is shorthand for the above construction.
+    The ``partition`` keyword is a shorthand for the above construction.
 
     ::
 
@@ -119,13 +119,13 @@ class YangBaxterGraph_generic(SageObject):
 
         INPUT:
 
-        - ``root`` - the root vertex of the graph
+        - ``root`` -- the root vertex of the graph
 
-        - ``operators`` - a list of callables that map vertices to (new)
+        - ``operators`` -- a list of callables that map vertices to (new)
           vertices.
 
 
-        .. note::
+        .. NOTE::
 
            This is a lazy implementation: the digraph is only computed
            when it is needed.
@@ -146,17 +146,17 @@ class YangBaxterGraph_generic(SageObject):
         self._root = root
         self._operators = operators
 
-    def _succesors(self, u):
+    def _successors(self, u):
         r"""
         Return a list of tuples for the form `(op(u), op)`, where op
-        is one of the operators defining self.
+        is one of the operators defining ``self``.
 
         EXAMPLES::
 
             sage: from sage.combinat.yang_baxter_graph import SwapIncreasingOperator
             sage: ops = [SwapIncreasingOperator(i) for i in range(4)]
             sage: Y = YangBaxterGraph(root=(1,0,2,1,0), operators=ops)
-            sage: Y._succesors((1,0,2,1,0))
+            sage: Y._successors((1,0,2,1,0))
             [((1, 2, 0, 1, 0), Swap-if-increasing at position 1)]
         """
         successors = set()
@@ -197,7 +197,7 @@ class YangBaxterGraph_generic(SageObject):
         queue = [self._root]
         while queue:
             u = queue.pop()
-            for (v, l) in self._succesors(u):
+            for (v, l) in self._successors(u):
                 if v not in digraph:
                     queue.append(v)
                 digraph.add_edge(u, v, l)
@@ -251,7 +251,7 @@ class YangBaxterGraph_generic(SageObject):
 
     def __iter__(self):
         r"""
-        Returns an iterator of the vertices in self.
+        Returns an iterator of the vertices in ``self``.
 
         EXAMPLES::
 
@@ -265,7 +265,7 @@ class YangBaxterGraph_generic(SageObject):
 
     def __len__(self):
         r"""
-        Returns the number of vertices in self.
+        Returns the number of vertices in ``self``.
 
         EXAMPLES::
 
@@ -283,8 +283,7 @@ class YangBaxterGraph_generic(SageObject):
 
     def __copy__(self):
         r"""
-        Returns a copy of self.  Note that :meth:`.copy` is now
-        deprecated.
+        Returns a copy of ``self``.
 
         EXAMPLES::
 
@@ -303,27 +302,6 @@ class YangBaxterGraph_generic(SageObject):
         Y = self.__class__(self._root, self._operators)
         Y._digraph = copy(self._digraph)
         return Y
-
-    def copy(self):
-        r"""
-        Returns a copy of self.  This method is deprecated.
-
-        EXAMPLES::
-
-            sage: from sage.combinat.yang_baxter_graph import SwapIncreasingOperator
-            sage: ops = [SwapIncreasingOperator(i) for i in range(3)]
-            sage: Y = YangBaxterGraph(root=(1,0,2,1,0), operators=ops); Y
-            Yang-Baxter graph with root vertex (1, 0, 2, 1, 0)
-            sage: B = Y.copy(); B
-            doctest:...: DeprecationWarning: the .copy() method is deprecated; please use the copy() function instead, for example, copy(g)
-            See http://trac.sagemath.org/6522 for details.
-            Yang-Baxter graph with root vertex (1, 0, 2, 1, 0)
-        """
-        from copy import copy
-        from sage.misc.superseded import deprecation
-        deprecation(6522, "the .copy() method is deprecated; please use the copy() function instead, for example, copy(g)")
-        return copy(self)
-
 
     def _edges_in_bfs(self):
         r"""
@@ -352,9 +330,11 @@ class YangBaxterGraph_generic(SageObject):
 
     def root(self):
         r"""
-        Returns the root vertex of ``self``. If ``self`` is the
-        Yang-Baxter graph of the partition `[p_1,p_2,\dots,p_k]`, then
-        this is the vertex `(p_k-1,p_k-2,\dots,0,\dots,p_1-1,p_1-2,\dots,0)`.
+        Returns the root vertex of ``self``.
+
+        If ``self`` is the Yang-Baxter graph of the partition
+        `[p_1,p_2,\dots,p_k]`, then this is the vertex
+        `(p_k-1,p_k-2,\dots,0,\dots,p_1-1,p_1-2,\dots,0)`.
 
         EXAMPLES::
 
@@ -389,7 +369,7 @@ class YangBaxterGraph_generic(SageObject):
             sage: Y.successors((1, 2, 0, 1, 0))
             [(2, 1, 0, 1, 0), (1, 2, 1, 0, 0)]
         """
-        return [a for (a,b) in self._succesors(v)]
+        return [a for (a,b) in self._successors(v)]
 
     def plot(self, *args, **kwds):
         r"""
@@ -446,9 +426,9 @@ class YangBaxterGraph_generic(SageObject):
 
         INPUT:
 
-        - ``v`` - an object
+        - ``v`` -- an object
 
-        - ``relabel_operator`` - function mapping a vertex and a label to
+        - ``relabel_operator`` -- function mapping a vertex and a label to
           the image of the vertex
 
         OUTPUT:
@@ -466,7 +446,6 @@ class YangBaxterGraph_generic(SageObject):
             sage: Y.vertex_relabelling_dict((1,2,3,4), relabel_operator)
             {(2, 0, 1, 0): (2, 1, 3, 4), (2, 1, 0, 0): (2, 3, 1, 4), (0, 2, 1, 0): (1, 2, 3, 4)}
         """
-        digraph = self._digraph
         relabelling = {self._root:v}
         for (u,w,i) in self._edges_in_bfs():
             relabelling[w] = relabel_operator(i, relabelling[u])
@@ -476,15 +455,16 @@ class YangBaxterGraph_generic(SageObject):
         r"""
         Relabel the vertices ``u`` of ``self`` by the object obtained
         from ``u`` by applying the ``relabel_operator`` to ``v`` along
-        a path from ``self.root()`` to ``u``. Note that the
-        ``self.root()`` is paired with ``v``.
+        a path from ``self.root()`` to ``u``.
+
+        Note that the ``self.root()`` is paired with ``v``.
 
         INPUT:
 
-        - ``v`` - tuple, Permutation, CombinatorialObject
+        - ``v`` -- tuple, Permutation, CombinatorialObject
 
-        - ``inplace`` - if True, modifies self; otherwise returns a
-          modified copy of self.
+        - ``inplace`` -- if ``True``, modifies ``self``; otherwise returns a
+          modified copy of ``self``.
 
         EXAMPLES::
 
@@ -512,11 +492,11 @@ class YangBaxterGraph_generic(SageObject):
 
     def relabel_edges(self, edge_dict, inplace=True):
         r"""
-        Relabel the edges of self.
+        Relabel the edges of ``self``.
 
         INPUT:
 
-        - ``edge_dict`` - a dictionary keyed by the (unlabelled) edges.
+        - ``edge_dict`` -- a dictionary keyed by the (unlabelled) edges.
 
         EXAMPLES::
 
@@ -537,10 +517,10 @@ class YangBaxterGraph_generic(SageObject):
             sage: Y.edges()
             [((0, 2, 1, 0), (2, 0, 1, 0), 17), ((2, 0, 1, 0), (2, 1, 0, 0), 27)]
         """
-        from copy import copy
         if inplace:
             Y = self
         else:
+            from copy import copy
             Y = copy(self)
         digraph = Y._digraph
         for (u,v,i) in digraph.edges():
@@ -595,8 +575,7 @@ class YangBaxterGraph_partition(YangBaxterGraph_generic):
 
     def __copy__(self):
         r"""
-        Returns a copy of self.  Note that :meth:`.copy` is now
-        deprecated.
+        Returns a copy of ``self``.
 
         EXAMPLES::
 
@@ -613,25 +592,6 @@ class YangBaxterGraph_partition(YangBaxterGraph_generic):
         Y = self.__class__(self._partition)
         Y._digraph = copy(self._digraph)
         return Y
-
-    def copy(self):
-        r"""
-        Returns a copy of self.  Note that :meth:`.copy` is now
-        deprecated.
-
-        EXAMPLES::
-
-            sage: Y = YangBaxterGraph(partition=[3,2]); Y
-            Yang-Baxter graph of [3, 2], with top vertex (1, 0, 2, 1, 0)
-            sage: B = Y.copy(); B
-            doctest:...: DeprecationWarning: the .copy() method is deprecated; please use the copy() function instead, for example, copy(g)
-            See http://trac.sagemath.org/6522 for details.
-            Yang-Baxter graph of [3, 2], with top vertex (1, 0, 2, 1, 0)
-        """
-        from copy import copy
-        from sage.misc.superseded import deprecation
-        deprecation(6522, "the .copy() method is deprecated; please use the copy() function instead, for example, copy(g)")
-        return copy(self)
 
     @lazy_attribute
     def _digraph(self):
@@ -670,9 +630,9 @@ class YangBaxterGraph_partition(YangBaxterGraph_generic):
         r"""
         Iterate over the vertices ``self``.
 
-        NOTES:
+        .. NOTE::
 
-        The vertices are first sorted using Python's sorted command.
+            The vertices are first sorted using Python's sorted command.
 
         EXAMPLES:
             sage: Y = YangBaxterGraph(partition=[3,2])
@@ -688,9 +648,9 @@ class YangBaxterGraph_partition(YangBaxterGraph_generic):
 
         INPUT:
 
-        - ``i`` - positive integer between 1 and len(u)-1, inclusive
+        - ``i`` -- positive integer between 1 and len(u)-1, inclusive
 
-        - ``u`` - tuple, list, permutation, CombinatorialObject, ....
+        - ``u`` -- tuple, list, permutation, CombinatorialObject, ....
 
         EXAMPLES::
 
@@ -708,18 +668,19 @@ class YangBaxterGraph_partition(YangBaxterGraph_generic):
 
     def vertex_relabelling_dict(self, v):
         r"""
-        Return a dictionary pairing vertices ``u`` of self with the object
+        Return a dictionary pairing vertices ``u`` of ``self`` with the object
         obtained from ``v`` by applying transpositions corresponding to the
-        edges labels along a path from the root to ``u``. Note that the
-        root is paired with ``v``.
+        edges labels along a path from the root to ``u``.
+
+        Note that the root is paired with ``v``.
 
         INPUT:
 
-        - ``v`` - an object
+        - ``v`` -- an object
 
         OUTPUT:
 
-        - dictionary pairing vertices with the corresponding image of v
+        - dictionary pairing vertices with the corresponding image of ``v``
 
         EXAMPLES::
 
@@ -739,10 +700,10 @@ class YangBaxterGraph_partition(YangBaxterGraph_generic):
 
         INPUT:
 
-        - ``v`` - tuple, Permutation, CombinatorialObject
+        - ``v`` -- tuple, Permutation, CombinatorialObject
 
-        - ``inplace`` - if True, modifies self; otherwise returns a modified
-          copy of self.
+        - ``inplace`` -- if ``True``, modifies ``self``; otherwise
+          returns a modified copy of ``self``.
 
         EXAMPLES::
 
@@ -852,7 +813,7 @@ class SwapOperator(SageObject):
 
     def position(self):
         r"""
-        Self is the operator that swaps positions ``i`` and ``i+1``. This
+        ``self`` is the operator that swaps positions ``i`` and ``i+1``. This
         method returns ``i``.
 
         EXAMPLES::
@@ -885,9 +846,9 @@ class SwapIncreasingOperator(SwapOperator):
 
         INPUT:
 
-        - ``i`` - positive integer between ``1`` and ``len(u)-1``, inclusive
+        - ``i`` -- positive integer between ``1`` and ``len(u)-1``, inclusive
 
-        - ``u`` - tuple, list, permutation, CombinatorialObject, ....
+        - ``u`` -- tuple, list, permutation, CombinatorialObject, ....
 
         EXAMPLES::
 

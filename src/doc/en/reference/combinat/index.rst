@@ -30,6 +30,7 @@ Combinatorics
    sage/combinat/enumeration_mod_permgroup
    sage/combinat/restricted_growth
    sage/combinat/yamanouchi
+   sage/combinat/yang_baxter_graph
    sage/combinat/gelfand_tsetlin_patterns
    sage/combinat/graph_path
    sage/combinat/matrices/latin

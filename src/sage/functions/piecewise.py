@@ -716,11 +716,15 @@ class PiecewisePolynomial:
         except AttributeError:
             pass
         for _, fun in self._list:
-            fun = SR(fun)
-            if fun.variables():
-                v = fun.variables()[0]
-                self.__default_variable = v
-                return v
+            try:
+                fun = SR(fun)
+                if fun.variables():
+                    v = fun.variables()[0]
+                    self.__default_variable = v
+                    return v
+            except TypeError:
+                # pass if fun is lambda function
+                pass
         # default to x
         v = var('x')
         self.__default_value = v

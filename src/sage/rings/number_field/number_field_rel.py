@@ -91,7 +91,7 @@ import maps
 
 from sage.misc.latex import latex
 from sage.misc.cachefunc import cached_method
-from sage.misc.superseded import warn
+from warnings import warn
 
 import sage.rings.rational as rational
 import sage.rings.integer as integer
@@ -199,12 +199,12 @@ class NumberField_relative(NumberField_generic):
             sage: l.<b> = k.extension(5*x^2 + 3)
             Traceback (most recent call last):
             ...
-            ValueError: the polynomial must be monic
+            NotImplementedError: Number fields for non-monic polynomials not yet implemented.
 
         The polynomial must have integral coefficients (cf. :trac:`252`)::
 
             sage: l.<b> = k.extension(x^2 + 3/5)
-            doctest:311: UserWarning: PARI only handles integral absolute polynomials. Computations in this field might trigger PARI errors
+            doctest:...: UserWarning: PARI only handles integral absolute polynomials. Computations in this field might trigger PARI errors
             sage: b
             Traceback (most recent call last):
             ...
@@ -259,8 +259,7 @@ class NumberField_relative(NumberField_generic):
             polynomial = polynomial.change_ring(base)
             #raise ValueError, "The polynomial must be defined over the base field"
         if not polynomial.is_monic():
-            raise ValueError("the polynomial must be monic")
-
+            raise NotImplementedError, "Number fields for non-monic polynomials not yet implemented."
 
         # Generate the nf and bnf corresponding to the base field
         # defined as polynomials in y, e.g. for rnfisfree

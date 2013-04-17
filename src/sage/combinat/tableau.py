@@ -4362,7 +4362,7 @@ class StandardTableaux_size(StandardTableaux):
         """
         super(StandardTableaux_size, self).__init__(
               category = FiniteEnumeratedSets())
-        self.size = n
+        self.size = Integer(n)
 
 
     def _repr_(self):
@@ -4427,14 +4427,29 @@ class StandardTableaux_size(StandardTableaux):
 
     def cardinality(self):
         r"""
-        Return the cardinality of ``self``.
+        Return the cardinality of number of standard tableaux of size
+        ``n``.
+
+        ALGORITHM:
+
+        The algorithm uses the fact that standard tableaux of size
+        ``n`` are in bijection with the involutions of size ``n``,
+        (see page 41 in section 4.1 of [Ful1997]_).  For each number of
+        fixed points, you count the number of ways to choose those
+        fixed points multiplied by the number of perfect matchings on
+        the remaining values.
+
+        REFERENCES:
+
+        .. [Ful1997] Fulton, William.  Young Tableaux.
+           Cambridge University Press, 1997
 
         EXAMPLES::
 
             sage: StandardTableaux(3).cardinality()
             4
             sage: ns = [1,2,3,4,5,6]
-            sage: sts = [StandardTableaux(n) for n in ns]    # indirect doctest
+            sage: sts = [StandardTableaux(n) for n in ns]
             sage: all([st.cardinality() == len(st.list()) for st in sts])
             True
             sage: StandardTableaux(50).cardinality()
@@ -4447,29 +4462,18 @@ class StandardTableaux_size(StandardTableaux):
             ...       for p in sage.combinat.partition.Partitions(n):
             ...           c += StandardTableaux(p).cardinality()
             ...       return c
-            sage: all([cardinality_using_hook_formula(i) == StandardTableaux(i).cardinality() for i in range(21)])
+            sage: all([cardinality_using_hook_formula(i) == StandardTableaux(i).cardinality() for i in range(10)])
             True
         """
-        # The algorithm uses the fact that Standard Tableaux of size n
-        # are in bijection with involutions of size n and it is easier
-        # to count involutions.  First we set the number of fixed
-        # points and then we count the number of perfect matchings on
-        # the remaining values.
-        if self.size % 2 == 0:
-            tableaux_number = 0
-            # even number of fixed point
-            fixed_point_numbers = [2 * x for x in range(0, (self.size / 2) + 1)]
-        else:
-            tableaux_number = 1 # identity involution
-            # odd number of fixed point
-            fixed_point_numbers = [(2 * x) + 1 for x in range(0, self.size / 2)]
+        tableaux_number = self.size % 2  # identity involution
+        fixed_point_numbers = xrange(tableaux_number, self.size + 1 - tableaux_number, 2)
 
         # number of involution of size "size" (number of way to put
         # "fixed_point_number" in "size" box * number of involutions
         # without fixed point of size "size" - "fixed_point_number"
         for fixed_point_number in fixed_point_numbers:
-            tableaux_number += binomial(self.size, fixed_point_number) * \
-                prod(i for i in range(self.size - fixed_point_number) if i%2==1)
+            tableaux_number += (self.size.binomial(fixed_point_number) *
+                                prod(range(1, self.size - fixed_point_number, 2)))
 
         return tableaux_number
 

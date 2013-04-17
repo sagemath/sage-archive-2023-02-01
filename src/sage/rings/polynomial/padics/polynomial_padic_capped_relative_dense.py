@@ -407,13 +407,13 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
 
         EXAMPLES::
 
-        sage: K = Qp(13,7)
-        sage: R.<t> = K[]
-        sage: a = 13^7*t^3 + K(169,4)*t - 13^4
-        sage: a[1]
-        13^2 + O(13^4)
-        sage: a[1:2]
-        (13^2 + O(13^4))*t
+            sage: K = Qp(13,7)
+            sage: R.<t> = K[]
+            sage: a = 13^7*t^3 + K(169,4)*t - 13^4
+            sage: a[1]
+            13^2 + O(13^4)
+            sage: a[1:2]
+            (13^2 + O(13^4))*t
         """
         if isinstance(n, slice):
             start, stop = n.start, n.stop

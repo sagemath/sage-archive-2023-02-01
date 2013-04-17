@@ -334,7 +334,7 @@ class Jack(UniqueRepresentation):
 
             sage: s = Sym.schur()
             sage: JJ(s([3])) # indirect doctest
-            ((-t^2+3*t-2)/(-6*t^2-18*t-12))*JackJ[1, 1, 1] + ((2*t-2)/(2*t^2+5*t+2))*JackJ[2, 1] + (1/(2*t^2+3*t+1))*JackJ[3]
+            ((t^2-3*t+2)/(6*t^2+18*t+12))*JackJ[1, 1, 1] + ((2*t-2)/(2*t^2+5*t+2))*JackJ[2, 1] + (1/(2*t^2+3*t+1))*JackJ[3]
             sage: JJ(s([2,1]))
             ((t-1)/(3*t+6))*JackJ[1, 1, 1] + (1/(t+2))*JackJ[2, 1]
             sage: JJ(s([1,1,1]))
@@ -367,9 +367,9 @@ class Jack(UniqueRepresentation):
             sage: a.scalar(JP([1,1]))
             0
             sage: JP(JQp([2]))                        # todo: missing auto normalization
-            ((-t+1)/(-t-1))*JackP[1, 1] + JackP[2]
+            ((t-1)/(t+1))*JackP[1, 1] + JackP[2]
             sage: JP._normalize(JP(JQp([2])))
-            ((-t+1)/(-t-1))*JackP[1, 1] + JackP[2]
+            ((t-1)/(t+1))*JackP[1, 1] + JackP[2]
         """
         return JackPolynomials_qp(self)
 
@@ -572,9 +572,9 @@ def JackPolynomialsQp(R, t=None):
         0
         sage: s = P.realization_of().s()
         sage: P(Qp([2]))                        # todo: missing auto normalization
-        ((-t+1)/(-t-1))*JackP[1, 1] + JackP[2]
+        ((t-1)/(t+1))*JackP[1, 1] + JackP[2]
         sage: P._normalize(P(Qp([2])))
-        ((-t+1)/(-t-1))*JackP[1, 1] + JackP[2]
+        ((t-1)/(t+1))*JackP[1, 1] + JackP[2]
     """
     (R, t) = NoneConvention(R, t)
     sage.misc.superseded.deprecation(5457, "Deprecation warning: In the future use SymmetricFunctions(R).jack(t=%s).Qp()"%(t))
@@ -943,9 +943,9 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
 
             sage: JJ = SymmetricFunctions(FractionField(QQ['t'])).jack().J()
             sage: JJ([1])^2              # indirect doctest
-            (-t/(-t-1))*JackJ[1, 1] + (1/(t+1))*JackJ[2]
+            (t/(t+1))*JackJ[1, 1] + (1/(t+1))*JackJ[2]
             sage: JJ([2])^2
-            (-2*t^2/(-2*t^2-3*t-1))*JackJ[2, 2] + (-4*t/(-3*t^2-4*t-1))*JackJ[3, 1] + ((t+1)/(6*t^2+5*t+1))*JackJ[4]
+            (2*t^2/(2*t^2+3*t+1))*JackJ[2, 2] + (4*t/(3*t^2+4*t+1))*JackJ[3, 1] + ((t+1)/(6*t^2+5*t+1))*JackJ[4]
             sage: JQ = SymmetricFunctions(FractionField(QQ['t'])).jack().Q()
             sage: JQ([1])^2              # indirect doctest
             JackQ[1, 1] + (2/(t+1))*JackQ[2]
@@ -992,7 +992,7 @@ class JackPolynomials_generic(sfa.SymmetricFunctionAlgebra_generic):
 
             sage: Sym = SymmetricFunctions(QQ['t'].fraction_field())
             sage: Sym.jack().P()[2,2].coproduct() #indirect doctest
-            JackP[] # JackP[2, 2] + (2/(t+1))*JackP[1] # JackP[2, 1] + ((-8*t-4)/(-t^3-4*t^2-5*t-2))*JackP[1, 1] # JackP[1, 1] + JackP[2] # JackP[2] + (2/(t+1))*JackP[2, 1] # JackP[1] + JackP[2, 2] # JackP[]
+            JackP[] # JackP[2, 2] + (2/(t+1))*JackP[1] # JackP[2, 1] + ((8*t+4)/(t^3+4*t^2+5*t+2))*JackP[1, 1] # JackP[1, 1] + JackP[2] # JackP[2] + (2/(t+1))*JackP[2, 1] # JackP[1] + JackP[2, 2] # JackP[]
         """
         from sage.categories.tensor import tensor
         s = self.realization_of().schur()
@@ -1112,18 +1112,18 @@ class JackPolynomials_p(JackPolynomials_generic):
             sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
             sage: JP._m_cache(2)
             sage: l(JP._self_to_m_cache[2])
-            [([1, 1], [([1, 1], 1)]), ([2], [([1, 1], -2/(-t - 1)), ([2], 1)])]
+            [([1, 1], [([1, 1], 1)]), ([2], [([1, 1], 2/(t + 1)), ([2], 1)])]
             sage: l(JP._m_to_self_cache[2])
-            [([1, 1], [([1, 1], 1)]), ([2], [([1, 1], 2/(-t - 1)), ([2], 1)])]
+            [([1, 1], [([1, 1], 1)]), ([2], [([1, 1], -2/(t + 1)), ([2], 1)])]
             sage: JP._m_cache(3)
             sage: l(JP._m_to_self_cache[3])
             [([1, 1, 1], [([1, 1, 1], 1)]),
              ([2, 1], [([1, 1, 1], -6/(t + 2)), ([2, 1], 1)]),
-             ([3], [([1, 1, 1], -6/(-t^2 - 3*t - 2)), ([2, 1], -3/(2*t + 1)), ([3], 1)])]
+             ([3], [([1, 1, 1], 6/(t^2 + 3*t + 2)), ([2, 1], -3/(2*t + 1)), ([3], 1)])]
             sage: l(JP._self_to_m_cache[3])
             [([1, 1, 1], [([1, 1, 1], 1)]),
              ([2, 1], [([1, 1, 1], 6/(t + 2)), ([2, 1], 1)]),
-             ([3], [([1, 1, 1], -6/(-2*t^2 - 3*t - 1)), ([2, 1], 3/(2*t + 1)), ([3], 1)])]
+             ([3], [([1, 1, 1], 6/(2*t^2 + 3*t + 1)), ([2, 1], 3/(2*t + 1)), ([3], 1)])]
         """
         if n in self._self_to_m_cache:
             return
@@ -1190,7 +1190,7 @@ class JackPolynomials_p(JackPolynomials_generic):
             sage: JP = SymmetricFunctions(FractionField(QQ['t'])).jack().P()
             sage: m = JP.symmetric_function_ring().m()
             sage: JP([1])^2 # indirect doctest
-            (-2*t/(-t-1))*JackP[1, 1] + JackP[2]
+            (2*t/(t+1))*JackP[1, 1] + JackP[2]
             sage: m(_)
             2*m[1, 1] + m[2]
             sage: JP = SymmetricFunctions(QQ).jack(t=2).P()
@@ -1390,7 +1390,7 @@ class JackPolynomials_qp(JackPolynomials_generic):
             sage: JQp = SymmetricFunctions(FractionField(QQ['t'])).jack().Qp()
             sage: h = JQp.symmetric_function_ring().h()
             sage: JQp([1])^2 # indirect doctest
-            JackQp[1, 1] + (-2/(-t-1))*JackQp[2]
+            JackQp[1, 1] + (2/(t+1))*JackQp[2]
             sage: h(_)
             h[1, 1]
             sage: JQp = SymmetricFunctions(QQ).jack(t=2).Qp()
@@ -1419,14 +1419,14 @@ class JackPolynomials_qp(JackPolynomials_generic):
             sage: l = lambda c: [ (i[0],[j for j in sorted(i[1].items())]) for i in sorted(c.items())]
             sage: JQp._h_cache(2)
             sage: l(JQp._self_to_h_cache[2])
-            [([1, 1], [([1, 1], 1), ([2], 2/(-t - 1))]), ([2], [([2], 1)])]
+            [([1, 1], [([1, 1], 1), ([2], -2/(t + 1))]), ([2], [([2], 1)])]
             sage: l(JQp._h_to_self_cache[2])
-            [([1, 1], [([1, 1], 1), ([2], -2/(-t - 1))]), ([2], [([2], 1)])]
+            [([1, 1], [([1, 1], 1), ([2], 2/(t + 1))]), ([2], [([2], 1)])]
             sage: JQp._h_cache(3)
             sage: l(JQp._h_to_self_cache[3])
-            [([1, 1, 1], [([1, 1, 1], 1), ([2, 1], 6/(t + 2)), ([3], -6/(-2*t^2 - 3*t - 1))]), ([2, 1], [([2, 1], 1), ([3], 3/(2*t + 1))]), ([3], [([3], 1)])]
+            [([1, 1, 1], [([1, 1, 1], 1), ([2, 1], 6/(t + 2)), ([3], 6/(2*t^2 + 3*t + 1))]), ([2, 1], [([2, 1], 1), ([3], 3/(2*t + 1))]), ([3], [([3], 1)])]
             sage: l(JQp._self_to_h_cache[3])
-            [([1, 1, 1], [([1, 1, 1], 1), ([2, 1], -6/(t + 2)), ([3], -6/(-t^2 - 3*t - 2))]), ([2, 1], [([2, 1], 1), ([3], -3/(2*t + 1))]), ([3], [([3], 1)])]
+            [([1, 1, 1], [([1, 1, 1], 1), ([2, 1], -6/(t + 2)), ([3], 6/(t^2 + 3*t + 2))]), ([2, 1], [([2, 1], 1), ([3], -3/(2*t + 1))]), ([3], [([3], 1)])]
         """
         if n in self._self_to_h_cache:
             return
@@ -1520,7 +1520,7 @@ class JackPolynomials_qp(JackPolynomials_generic):
             sage: Sym = SymmetricFunctions(QQ['t'].fraction_field())
             sage: JQp = Sym.jack().Qp()
             sage: JQp[2,2].coproduct()   #indirect doctest
-            JackQp[] # JackQp[2, 2] + (2*t/(t+1))*JackQp[1] # JackQp[2, 1] + JackQp[1, 1] # JackQp[1, 1] + ((-4*t^3-8*t^2)/(-2*t^3-5*t^2-4*t-1))*JackQp[2] # JackQp[2] + (2*t/(t+1))*JackQp[2, 1] # JackQp[1] + JackQp[2, 2] # JackQp[]
+            JackQp[] # JackQp[2, 2] + (2*t/(t+1))*JackQp[1] # JackQp[2, 1] + JackQp[1, 1] # JackQp[1, 1] + ((4*t^3+8*t^2)/(2*t^3+5*t^2+4*t+1))*JackQp[2] # JackQp[2] + (2*t/(t+1))*JackQp[2, 1] # JackQp[1] + JackQp[2, 2] # JackQp[]
         """
         h = elt.parent().realization_of().h()
         parent = elt.parent()

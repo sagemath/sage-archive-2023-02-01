@@ -33,7 +33,7 @@ def q_bernoulli(m,p=None):
         sage: q_bernoulli(0)
         1
         sage: q_bernoulli(1)
-        1/(-q - 1)
+        -1/(q + 1)
         sage: q_bernoulli(2)
         q/(q^3 + 2*q^2 + 2*q + 1)
         sage: all(q_bernoulli(i)(q=1)==bernoulli(i) for i in range(12))

@@ -501,10 +501,10 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         EXAMPLES::
 
             sage: P.<a>=GF(7)[]
-            sage: a = P(range(10)); b = P(range(5, 15))
-            sage: a._mul_trunc_opposite(b, 10)
+            sage: b = P(range(10)); c = P(range(5, 15))
+            sage: (b._mul_trunc_opposite(c, 10))[10:18]
             5*a^17 + 2*a^16 + 6*a^15 + 4*a^14 + 4*a^13 + 5*a^10
-            sage: a._mul_trunc_opposite(b, 18)
+            sage: (b._mul_trunc_opposite(c, 18))[18:]
             0
 
         TESTS::

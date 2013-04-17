@@ -39,6 +39,7 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
     def __init__(self, x, y=None):
         """
         Constructor from [a1,a2,a3,a4,a6] or [a4,a6].
+
         EXAMPLES::
 
             sage: Qp=pAdicField(17)
@@ -72,7 +73,8 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
         Returns the Frobenius as a function on the group of points of
         this elliptic curve.
 
-        EXAMPLE:
+        EXAMPLE::
+
             sage: Qp=pAdicField(13)
             sage: E=EllipticCurve(Qp,[1,1])
             sage: type(E.frobenius())

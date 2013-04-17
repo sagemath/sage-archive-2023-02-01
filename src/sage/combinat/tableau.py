@@ -78,7 +78,7 @@ from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.decorators import rename_keyword
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.infinity import PlusInfinity
-from sage.rings.arith import factorial
+from sage.rings.arith import factorial, binomial
 from sage.rings.integer import Integer
 from sage.combinat.combinat import CombinatorialObject
 import sage.combinat.skew_tableau
@@ -89,7 +89,7 @@ import copy
 import permutation
 from sage.misc.flatten import flatten
 from sage.groups.perm_gps.permgroup import PermutationGroup
-from sage.misc.misc import uniq
+from sage.misc.misc import uniq, prod
 from sage.misc.sage_unittest import TestSuite
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
@@ -4425,9 +4425,8 @@ class StandardTableaux_size(StandardTableaux):
             for st in StandardTableaux(p):
                 yield self.element_class(self, st)
 
-
     def cardinality(self):
-        """
+        r"""
         Return the cardinality of ``self``.
 
         EXAMPLES::
@@ -4438,11 +4437,41 @@ class StandardTableaux_size(StandardTableaux):
             sage: sts = [StandardTableaux(n) for n in ns]    # indirect doctest
             sage: all([st.cardinality() == len(st.list()) for st in sts])
             True
+            sage: StandardTableaux(50).cardinality()
+            27886995605342342839104615869259776
+
+        TESTS::
+
+            sage: def cardinality_using_hook_formula(n):
+            ...       c = 0
+            ...       for p in sage.combinat.partition.Partitions(n):
+            ...           c += StandardTableaux(p).cardinality()
+            ...       return c
+            sage: all([cardinality_using_hook_formula(i) == StandardTableaux(i).cardinality() for i in range(21)])
+            True
         """
-        c = 0
-        for p in sage.combinat.partition.Partitions(self.size):
-            c += StandardTableaux(p).cardinality()
-        return c
+        # The algorithm uses the fact that Standard Tableaux of size n
+        # are in bijection with involutions of size n and it is easier
+        # to count involutions.  First we set the number of fixed
+        # points and then we count the number of perfect matchings on
+        # the remaining values.
+        if self.size % 2 == 0:
+            tableaux_number = 0
+            # even number of fixed point
+            fixed_point_numbers = [2 * x for x in range(0, (self.size / 2) + 1)]
+        else:
+            tableaux_number = 1 # identity involution
+            # odd number of fixed point
+            fixed_point_numbers = [(2 * x) + 1 for x in range(0, self.size / 2)]
+
+        # number of involution of size "size" (number of way to put
+        # "fixed_point_number" in "size" box * number of involutions
+        # without fixed point of size "size" - "fixed_point_number"
+        for fixed_point_number in fixed_point_numbers:
+            tableaux_number += binomial(self.size, fixed_point_number) * \
+                prod(i for i in range(self.size - fixed_point_number) if i%2==1)
+
+        return tableaux_number
 
 
 class StandardTableaux_shape(StandardTableaux):

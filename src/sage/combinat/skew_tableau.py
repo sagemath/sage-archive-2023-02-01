@@ -16,8 +16,10 @@ Skew Tableaux
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import Integer
+from sage.rings.all import Integer, QQ, ZZ
 from sage.misc.misc import uniq
+from sage.functions.all import factorial
+from sage.matrix.all import zero_matrix
 import partition
 import sage.combinat.tableau
 import skew_partition
@@ -836,15 +838,28 @@ class StandardSkewTableaux_skewpartition(CombinatorialClass):
     def cardinality(self):
         """
         Returns the number of standard skew tableaux with shape of the skew
-        partition skp.
+        partition skp.  This uses a formula due to Aitken
+        (see Cor. 7.16.3 of [Sta1999]_).
 
         EXAMPLES::
 
             sage: StandardSkewTableaux([[3, 2, 1], [1, 1]]).cardinality()
             8
         """
-
-        return sum([1 for st in self])
+        outer, inner = self.skp
+        m = len(outer)
+        n = sum(outer) - sum(inner)
+        outer = list(outer)
+        inner = list(inner) + [0]*(m-len(inner))
+        a = zero_matrix(QQ, m)
+        for i in range(m):
+            for j in range(m):
+                v = outer[i] - inner[j] - i + j
+                if v < 0:
+                    a[i,j] = 0
+                else:
+                    a[i,j] = 1/factorial(v)
+        return ZZ(factorial(n) * a.det())
 
     def __iter__(self):
         """

@@ -4430,6 +4430,12 @@ class StandardTableaux_size(StandardTableaux):
         Return the cardinality of number of standard tableaux of size
         ``n``.
 
+        The number of standard tableaux of `n` is equal to the number of
+        involutions of size `n`. This is a consequence of the symmetry of
+        the RSK correspondence, that if `\sigma \mapsto (P, Q)`, then
+        `\sigma^{-1} \mapsto (Q, P)`. For more information, see
+        :wikipedia:`Robinson-Schensted-Knuth_correspondence#Symmetry`.
+
         ALGORITHM:
 
         The algorithm uses the fact that standard tableaux of size

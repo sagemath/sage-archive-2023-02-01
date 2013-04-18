@@ -11,11 +11,16 @@ from sage.libs.m4ri cimport mzd_t, m4ri_word
 
 cdef extern from "m4rie/m4rie.h":
     ctypedef struct gf2e:
-        m4ri_word **mul
-        m4ri_word *inv
-        size_t degree
+        int degree
         m4ri_word minpoly
 
+        m4ri_word *pow_gen
+        m4ri_word *red
+
+        m4ri_word (*inv)(gf2e *ff, m4ri_word a)
+        m4ri_word (*mul)(gf2e *ff, m4ri_word a, m4ri_word b)
+
+    gf2e *gf2e_init(m4ri_word minpoly)
     void gf2e_free(gf2e *ff)
 
 #cdef extern from "m4rie/mzed.h":
@@ -52,9 +57,9 @@ cdef extern from "m4rie/m4rie.h":
 
     void mzed_add_elem(mzed_t *a, const_size_t row, const_size_t col, const_int elem)
 
-    void mzed_add_multiple_of_row(mzed_t *A, size_t ar, mzed_t *B, size_t br, m4ri_word *X, size_t start_col)
+    void mzed_add_multiple_of_row(mzed_t *A, size_t ar, mzed_t *B, size_t br, m4ri_word x, size_t start_col)
 
-    void mzed_rescale_row(mzed_t *A, size_t r, size_t c, m4ri_word *X)
+    void mzed_rescale_row(mzed_t *A, size_t r, size_t c, m4ri_word x)
 
     void mzed_row_swap(mzed_t *M, const_size_t rowa, const_size_t rowb)
 
@@ -159,7 +164,7 @@ cdef extern from "m4rie/m4rie.h":
 
     int mzd_slice_is_zero(mzd_slice_t *A)
 
-    void mzd_slice_rescale_row(mzd_slice_t *A, size_t r, size_t c, m4ri_word *X)
+    void mzd_slice_rescale_row(mzd_slice_t *A, size_t r, size_t c, m4ri_word x)
 
     void mzd_slice_row_swap(mzd_slice_t *A, size_t rowa, size_t rowb)
 
@@ -197,15 +202,3 @@ cdef extern from "m4rie/m4rie.h":
     mzd_slice_t *_mzd_slice_mul_karatsuba2(mzd_slice_t *C, mzd_slice_t *A, mzd_slice_t *B)
 
     mzd_slice_t *_mzd_slice_mul_karatsuba3(mzd_slice_t *C, mzd_slice_t *A, mzd_slice_t *B)
-
-cdef extern from "m4rie/finite_field_givaro.h":
-    ctypedef struct M4RIE__FiniteField "M4RIE::FiniteField":
-        int (* pol2log)(int r)
-        int (* log2pol)(int r)
-
-    gf2e *gf2e_init_givgfq(M4RIE__FiniteField *givgfq)
-
-    int mzed_read_elem_log(const_mzed_t *a, const_size_t row, const_size_t col, M4RIE__FiniteField *ff)
-    void mzed_write_elem_log(mzed_t *a, const_size_t row, const_size_t col, const_int elem, M4RIE__FiniteField *ff)
-    void mzed_add_elem_log(mzed_t *a, const_size_t row, const_size_t col, const_int elem, M4RIE__FiniteField *ff)
-

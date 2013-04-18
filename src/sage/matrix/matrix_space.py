@@ -962,7 +962,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 # elif R.order() < matrix_modn_dense.MAX_MODULUS:
                 #     return matrix_modn_dense.Matrix_modn_dense
                 return matrix_generic_dense.Matrix_generic_dense
-            elif sage.rings.finite_rings.all.is_FiniteField(R) and R.characteristic() == 2 and R.order() <= 1024:
+            elif sage.rings.finite_rings.all.is_FiniteField(R) and R.characteristic() == 2 and R.order() <= 65536:
                 return matrix_mod2e_dense.Matrix_mod2e_dense
             elif sage.rings.polynomial.multi_polynomial_ring_generic.is_MPolynomialRing(R) and R.base_ring() in _Fields:
                 return matrix_mpolynomial_dense.Matrix_mpolynomial_dense

@@ -5040,7 +5040,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             sage: F,s = sr.polynomial_system()
             sage: I = F.ideal()
             sage: I.groebner_basis()
-            Polynomial Sequence with 35 Polynomials in 36 Variables
+            Polynomial Sequence with 36 Polynomials in 36 Variables
 
         TESTS:
 
@@ -5231,20 +5231,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             sage: F,s = sr.polynomial_system()
             sage: I = F.ideal()
             sage: I.interreduced_basis()
-            [k100 + k003,
-            k101 + k003,
-            k102 + k003 + 1,
-            k103, x100 + k003,
-            x101, x102 + 1,
-            x103, w100 + 1,
-            w101 + k003, w102,
-            w103 + k003 + 1,
-            s000 + k003 + 1,
-            s001, s002 + 1,
-            s003,
-            k000 + 1,
-            k001 + k003 + 1,
-            k002]
+            [k100 + 1, k101 + k001 + 1, k102, k103 + 1, x100 + k001 + 1, x101 + k001, x102, x103 + k001, w100 + 1, w101 + k001 + 1, w102 + 1, w103 + 1, s000 + k001, s001 + k001 + 1, s002, s003 + k001 + 1, k000 + 1, k002 + 1, k003 + 1]
         """
         R = self.ring()
 

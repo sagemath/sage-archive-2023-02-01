@@ -50,12 +50,12 @@ ginac_depends = [SAGE_INC + '/pynac/ginac.h']
 #########################################################
 
 import ast
-m4ri_extra_compile_args = []
+m4ri_extra_compile_args = ["-std=c99"]
 for line in open(SAGE_INC + "/m4ri/m4ri_config.h"):
     if not line.startswith("#define __M4RI_SIMD_CFLAGS"):
         continue
     m4ri_sse2_cflags = ast.literal_eval(line[len("#define __M4RI_SIMD_CFLAGS"):].strip())
-    m4ri_extra_compile_args = [flag.strip() for flag in m4ri_sse2_cflags.split(" ") if flag.strip()]
+    m4ri_extra_compile_args.extend( [flag.strip() for flag in m4ri_sse2_cflags.split(" ") if flag.strip()] )
     break
 
 singular_libs = ['m', 'readline', 'singular', 'givaro', 'ntl', 'gmpxx', 'gmp']
@@ -1012,7 +1012,7 @@ ext_modules = [
     # TODO -- change to use BLAS at some point.
     Extension('sage.matrix.matrix_integer_dense',
               sources = ['sage/matrix/matrix_integer_dense.pyx'],
-              extra_compile_args = ['-std=c99'] + m4ri_extra_compile_args,
+              extra_compile_args = m4ri_extra_compile_args,
               depends = [SAGE_INC + '/m4ri/m4ri.h'],
               # order matters for cygwin!!
               libraries = ['iml', 'pari', 'gmp', 'm', BLAS, BLAS2]),
@@ -1024,16 +1024,16 @@ ext_modules = [
     Extension('sage.matrix.matrix_mod2_dense',
               sources = ['sage/matrix/matrix_mod2_dense.pyx'],
               libraries = ['gmp','m4ri', 'gd', 'png12', 'z'],
-              extra_compile_args = ['-std=c99'] + m4ri_extra_compile_args,
+              extra_compile_args = m4ri_extra_compile_args,
               depends = [SAGE_INC + "/png.h", SAGE_INC + "/m4ri/m4ri.h"]),
 
     Extension('sage.matrix.matrix_mod2e_dense',
               sources = ['sage/matrix/matrix_mod2e_dense.pyx'],
-              libraries = ['m4rie', 'm4ri', 'givaro', 'ntl', 'gmpxx', 'gmp', 'm', 'stdc++'],
+              libraries = ['m4rie', 'm4ri', 'm'],
               depends = [SAGE_INC + "/m4rie/m4rie.h"],
               include_dirs = [SAGE_INC + '/m4rie'],
-              extra_compile_args = m4ri_extra_compile_args + givaro_extra_compile_args,
-              language="c++"),
+              extra_compile_args = m4ri_extra_compile_args,
+              language="c"),
 
     Extension('sage.matrix.matrix_modn_dense',
               sources = ['sage/matrix/matrix_modn_dense.pyx'],
@@ -1286,7 +1286,7 @@ ext_modules = [
     Extension('sage.modules.vector_mod2_dense',
               sources = ['sage/modules/vector_mod2_dense.pyx'],
               libraries = ['gmp','m4ri', 'png12', 'gd'],
-              extra_compile_args = ['-std=c99'] + m4ri_extra_compile_args,
+              extra_compile_args = m4ri_extra_compile_args,
               depends = [SAGE_INC + "/png.h", SAGE_INC + "/m4ri/m4ri.h"]),
 
     Extension('sage.modules.vector_rational_dense',

@@ -1,10 +1,13 @@
 """
- Wavelet transform wrapper. Wraps GSL's gsl_wavelet_transform_forward,
- and gsl_wavelet_transform_inverse and creates plot methods.
+Discrete Wavelet Transform
+
+Wraps ``GSL's gsl_wavelet_transform_forward()``,
+and ``gsl_wavelet_transform_inverse()`` and creates plot methods.
 
 AUTHOR:
-   Josh Kantor (2006-10-07)  - initial version
-   David Joyner (2006-10-09) - minor changes to docstrings and examples.
+
+- Josh Kantor (2006-10-07)  - initial version
+- David Joyner (2006-10-09) - minor changes to docstrings and examples.
 
 """
 
@@ -36,29 +39,35 @@ def WaveletTransform(n, wavelet_type, wavelet_k):
     can perform a discrete wavelet transform.
 
     INPUT:
-        n --  a power of 2.
-        T -- the data in the GSLDoubleArray must be real.
-        wavelet_type -- the name of the type of wavelet,
-                        valid choices are:
-                         'daubechies','daubechies_centered',
-                         'haar','haar_centered','bspline', and
-                         'bspline_centered'.
 
-    For daubechies wavelets, wavelet_k specifies a daubechie wavelet
-    with k/2 vanishing moments. k = 4,6,...,20 for k even are the
+    - ``n`` --  a power of 2
+    - ``T`` -- the data in the GSLDoubleArray must be real
+    - ``wavelet_type`` -- the name of the type of wavelet, valid choices are:
+
+      * ``'daubechies'``
+      * ``'daubechies_centered'``
+      * ``'haar'``
+      * ``'haar_centered'``
+      * ``'bspline'``
+      * ``'bspline_centered'``
+
+    For daubechies wavelets, ``wavelet_k`` specifies a daubechie wavelet
+    with `k/2` vanishing moments. `k = 4,6,...,20` for `k` even are the
     only ones implemented.
-    For Haar wavelets, wavelet_k must be 2.
-    For bspline wavelets, wavelet_k = 103,105,202,204,206,208,301,305,
-    307,309 will give biorthogonal B-spline wavelets of order (i,j) where
-    wavelet_k=100*i+j.
-    The wavelet transform uses J=log_2(n) levels.
+
+    For Haar wavelets, ``wavelet_k`` must be 2.
+
+    For bspline wavelets, ``wavelet_k`` of `103,105,202,204,206,208,301,
+    305,307,309` will give biorthogonal B-spline wavelets of order `(i,j)`
+    where ``wavelet_k`` is `100*i+j`.
+    The wavelet transform uses `J = \log_2(n)` levels.
 
     OUTPUT:
 
-        An array of the form
-         (s_{-1,0},d_{0,0},d_{1,0},d_{1,1}, d_{2,0}...,d_{J-1,2^{J-1}-1})
-        for d_{j,k} the detail coefficients of level j.
-        The centered forms align the coefficients of the sub-bands on edges.
+    An array of the form
+    `(s_{-1,0}, d_{0,0}, d_{1,0}, d_{1,1}, d_{2,0}, \ldots, d_{J-1,2^{J-1}-1})`
+    for `d_{j,k}` the detail coefficients of level `j`.
+    The centered forms align the coefficients of the sub-bands on edges.
 
     EXAMPLES::
 
@@ -100,6 +109,9 @@ def WaveletTransform(n, wavelet_type, wavelet_k):
 DWT = WaveletTransform
 
 cdef class DiscreteWaveletTransform(gsl_array.GSLDoubleArray):
+    """
+    Discrete wavelet transform class.
+    """
     def __cinit__(self,size_t n,size_t stride, wavelet_type, size_t wavelet_k):
         self.wavelet = NULL
         self.workspace = NULL

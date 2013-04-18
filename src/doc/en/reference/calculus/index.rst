@@ -18,6 +18,9 @@ Symbolic Calculus
    sage/symbolic/expression_conversions
    sage/calculus/wester
    sage/calculus/desolvers
+   sage/gsl/dwt
+   sage/gsl/dft
+   sage/gsl/fft
    sage/gsl/ode
    sage/gsl/integration
    sage/calculus/riemann

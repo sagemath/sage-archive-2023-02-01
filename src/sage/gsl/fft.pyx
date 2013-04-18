@@ -1,12 +1,11 @@
 """
-Fast Fourier Transforms using GSL.
-
+Fast Fourier Transforms Using GSL
 
 AUTHORS:
-    William Stein (2006-9) - initial file (radix2)
-    D. Joyner (2006-10) - Minor modifications (from radix2 to general case
-                          and some documentation).
 
+- William Stein (2006-9) - initial file (radix2)
+- D. Joyner (2006-10) - Minor modifications (from radix2 to general case
+  and some documentation).
 """
 
 #*****************************************************************************
@@ -33,6 +32,8 @@ from sage.rings.complex_number import ComplexNumber
 
 def FastFourierTransform(size, base_ring=None):
     """
+    The fast Fourier transform.
+
     EXAMPLES::
 
         sage: a = FastFourierTransform(128)
@@ -53,6 +54,9 @@ cdef class FastFourierTransform_base:
     pass
 
 cdef class FastFourierTransform_complex(FastFourierTransform_base):
+    """
+    Wrapper class for GSL's fast Fourier transform.
+    """
 
     def __init__(self, size_t n, size_t stride=1):
         self.n = n
@@ -129,9 +133,23 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
     def plot(self, style='rect', xmin=None, xmax=None, **args):
         """
         INPUT:
-            style -- 'rect': height represents real part, color represents imaginary part
-                  -- 'polar': height represents absolute value
-            **args -- passed on to the line plotting function.
+        - ``style`` -- (Default: ``'rect'``) Can be one of the following:
+
+          * ``'rect'`` -- height represents the real part, color represents
+            the imaginary part
+          * ``'polar'`` -- height represents absolute value
+
+        - ``**args`` -- passed on to the line plotting function.
+
+        EXAMPLES::
+
+            sage: a = FastFourierTransform(125)
+            sage: b = FastFourierTransform(125)
+            sage: for i in range(1, 60): a[i]=1
+            sage: for i in range(1, 60): b[i]=1
+            sage: a.forward_transform()
+            sage: a.inverse_transform()
+            sage: (a.plot()+b.plot())
         """
         if xmin is None:
             xmin = 0
@@ -153,8 +171,18 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
         Compute the in-place forward Fourier transform of this data
         using the Cooley-Tukey algorithm. If the number of sample
         points in the input is a power of 2 then the function
-        gsl_fft_complex_radix2_forward is automatically called.
-        Otherwise, gsl_fft_complex_forward is called.
+        ``gsl_fft_complex_radix2_forward()`` is automatically called.
+        Otherwise, ``gsl_fft_complex_forward()`` is called.
+
+        EXAMPLES::
+
+            sage: a = FastFourierTransform(125)
+            sage: b = FastFourierTransform(125)
+            sage: for i in range(1, 60): a[i]=1
+            sage: for i in range(1, 60): b[i]=1
+            sage: a.forward_transform()
+            sage: a.inverse_transform()
+            sage: (a.plot()+b.plot())
         """
         cdef gsl_fft_complex_wavetable * wt
         cdef gsl_fft_complex_workspace * mem
@@ -176,8 +204,8 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
         Compute the in-place forward Fourier transform of this data
         using the Cooley-Tukey algorithm. If the number of sample
         points in the input is a power of 2 then the function
-        gsl_fft_complex_radix2_inverse is automatically called.
-        Otherwise, gsl_fft_complex_inverse is called.
+        ``gsl_fft_complex_radix2_inverse()`` is automatically called.
+        Otherwise, ``gsl_fft_complex_inverse()`` is called.
 
         EXAMPLES::
 
@@ -206,7 +234,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
         """
         Compute the in-place backwards Fourier transform of this data
         using the Cooley-Tukey algorithm. This is the same as "inverse"
-        but lacks normalization so that backwards*forwards(f) = n*f.
+        but lacks normalization so that ``backwards*forwards(f) = n*f``.
 
         EXAMPLES::
 

@@ -67,6 +67,7 @@ Combinatorics
    root_systems
 
    sage/combinat/kazhdan_lusztig
+   sage/combinat/knutson_tao_puzzles
 
    crystals
    posets

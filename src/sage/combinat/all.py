@@ -133,6 +133,9 @@ from cyclic_sieving_phenomenon import CyclicSievingPolynomial, CyclicSievingChec
 
 from sidon_sets import sidon_sets
 
+# Puzzles
+from knutson_tao_puzzles import KnutsonTaoPuzzleSolver
+
 # Gelfand-Tsetlin patterns
 from gelfand_tsetlin_patterns import GelfandTsetlinPattern, GelfandTsetlinPatterns
 

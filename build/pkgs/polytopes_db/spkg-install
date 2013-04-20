@@ -6,6 +6,6 @@ if [ "$SAGE_SHARE" = "" ]; then
    exit 1
 fi
 
-rm -rf "$SAGE_SHARE"/reflexive_polytopes
-mkdir -p "$SAGE_SHARE"
-mv src "$SAGE_SHARE"/reflexive_polytopes
+POLYTOPES_DIR="$SAGE_SHARE"/reflexive_polytopes
+mkdir -p "$POLYTOPES_DIR"
+cp -r -p src/*  "$POLYTOPES_DIR"/

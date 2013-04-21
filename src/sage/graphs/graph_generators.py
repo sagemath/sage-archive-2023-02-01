@@ -773,7 +773,7 @@ class GraphGenerators():
         import subprocess
         from sage.misc.package import is_package_installed
         if not is_package_installed("nauty"):
-            raise TypeError, "the optional nauty package is not installed"
+            raise TypeError("the optional nauty package is not installed")
         sp = subprocess.Popen("nauty-geng {0}".format(options), shell=True,
                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE, close_fds=True)

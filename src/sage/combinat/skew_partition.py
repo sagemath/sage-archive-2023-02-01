@@ -483,22 +483,6 @@ class SkewPartition_class(CombinatorialObject):
                                 G.add_edge(string, newstring)
         return G
 
-
-    def r_quotient(self, length):
-      """
-      This method is deprecated.
-
-      EXAMPLES::
-
-          sage: SkewPartition([[3, 3, 2, 1], [2, 1]]).r_quotient(2)
-          doctest:1: DeprecationWarning: r_quotient is deprecated. Use quotient instead.
-          See http://trac.sagemath.org/5790 for details.
-          [[[3], []], [[], []]]
-      """
-      from sage.misc.superseded import deprecation
-      deprecation(5790, 'r_quotient is deprecated. Use quotient instead.')
-      return self.quotient(length)
-
     def quotient(self, k):
         """
         The quotient map extended to skew partitions.

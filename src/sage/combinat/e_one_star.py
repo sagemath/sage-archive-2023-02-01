@@ -799,29 +799,6 @@ class Patch(SageObject):
         else:
             return "Patch of %s faces"%len(self)
 
-    def add(self, other):
-        r"""
-        Returns a Patch consisting of the union of self and other.
-
-        INPUT:
-
-        - ``other`` - a Patch or a Face or a finite iterable of faces
-
-        EXAMPLES::
-
-            sage: from sage.combinat.e_one_star import Face, Patch
-            sage: P = Patch([Face((0,0,0),1), Face((0,0,0),2)])
-            sage: P.add(Face((1,2,3), 3))   #not tested
-            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(1, 2, 3), 3]*]
-            sage: P.add([Face((1,2,3), 3), Face((2,3,3), 2)])   #not tested
-            Patch: [[(0, 0, 0), 1]*, [(0, 0, 0), 2]*, [(1, 2, 3), 3]*, [(2, 3, 3), 2]*]
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(12384, "Objects sage.combinat.e_one_star.Patch " + \
-                    "are immutable since Sage-4.7.1. " + \
-                    "Use the usual addition (P + Q) or use the Patch.union method.")
-        return self.union(other)
-
     def union(self, other):
         r"""
         Returns a Patch consisting of the union of self and other.
@@ -1012,38 +989,6 @@ class Patch(SageObject):
             if other.translate(y-x)._faces.issubset(self._faces):
                 positions.append(y-x)
         return positions
-
-    def apply_substitution(self, E, iterations=1):
-        r"""
-        Returns the image of self by the E1Star substitution ``E``.
-
-        The color of every new face in the image is given the same color as its preimage.
-
-        INPUT:
-
-        - ``E`` - an instance of the ``E1Star`` class. Its domain alphabet must
-          be of the same size as the dimension of the ambient space of the
-          faces.
-        - ``iterations`` - integer (optional, default: 1)
-          number of times the substitution E is applied
-
-        EXAMPLES::
-
-            sage: from sage.combinat.e_one_star import E1Star, Face, Patch
-            sage: sigma = WordMorphism({1:[1,2], 2:[1,3], 3:[1]})
-            sage: E = E1Star(sigma)
-            sage: P = Patch([Face((0,0,0),t) for t in [1,2,3]])
-            sage: P.apply_substitution(E,6)     #not tested
-            Patch of 105 faces
-        """
-        if not isinstance(E, E1Star):
-            raise TypeError, "E must be an instance of E1Star"
-
-        from sage.misc.superseded import deprecation
-        deprecation(12384, "Objects sage.combinat.e_one_star.Patch " + \
-                    "are immutable since Sage-4.7.1. " + \
-                    "Use the usual calling method of E1Star (E(P)).")
-        return E(self, iterations=iterations)
 
     def repaint(self, cmap='Set1'):
         r"""

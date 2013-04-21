@@ -1373,7 +1373,6 @@ class CombinatorialClass(Parent):
             raise ValueError, "%s not in %s"%(x, self)
 
     Element = CombinatorialObject # mostly for backward compatibility
-
     @lazy_attribute
     def element_class(self):
         """

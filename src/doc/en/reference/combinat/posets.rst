@@ -2,7 +2,7 @@ Posets
 ======
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    ../sage/combinat/posets/posets
    ../sage/combinat/posets/hasse_diagram

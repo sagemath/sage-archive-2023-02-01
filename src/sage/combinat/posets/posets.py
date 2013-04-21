@@ -2388,9 +2388,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: list(Posets.ChainPoset(3).antichains(element_constructor = set))
             [set([]), set([0]), set([1]), set([2])]
 
-        .. note:: this function used to return a list; this change is
-            slightly backward incompatible; e.g. ``len(A)`` does not work.
-
         .. note:: Internally, this uses
             :class:`sage.combinat.subsets_pairwise.PairwiseCompatibleSubsets`
             and :class:`SearchForest`. At this point, iterating

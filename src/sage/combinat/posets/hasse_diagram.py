@@ -327,7 +327,7 @@ class HasseDiagram(DiGraph):
             [4]
         """
         outdegs = self.out_degree(labels=True)
-        return [x for x in outdegs if outdegs[x]==0]
+        return [x for x,d in outdegs.iteritems() if d==0]
 
     def bottom(self):
         """
@@ -1361,25 +1361,6 @@ class HasseDiagram(DiGraph):
                 for z in range(n):
                     if mt[x][jn[y][z]]!=jn[mt[x][y]][mt[x][z]]: return False
         return True
-
-    def is_distributive_lattice_fastest(self):
-        r"""
-        This function is deprecated and will be removed in a future
-        version of Sage. Please use ``self.is_distributive_lattice()``
-        instead.
-
-        TESTS::
-
-            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
-            sage: H = HasseDiagram({0:[1,3,2],1:[4],2:[4,5,6],3:[6],4:[7],5:[7],6:[7],7:[]})
-            sage: H.is_distributive_lattice_fastest()
-            doctest:1: DeprecationWarning: is_distributive_lattice_fastest is deprecated, use is_distributive_lattice instead!
-            See http://trac.sagemath.org/5918 for details.
-            False
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(5918, "is_distributive_lattice_fastest is deprecated, use is_distributive_lattice instead!")
-        return self.is_distributive_lattice()
 
     def is_complemented_lattice(self):
         r"""

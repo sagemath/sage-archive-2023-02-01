@@ -577,3 +577,50 @@ class SimplicialComplexMorphism(SageObject):
                         v.append((i,j))
                         f[(i,j)] = self._vertex_dictionary[i]
         return SimplicialComplexMorphism(f, X.generated_subcomplex(v), self._codomain)
+
+    def mapping_torus(self):
+        r"""
+        The mapping torus of a simplicial complex endomorphism
+
+        The mapping torus is the simplicial complex formed by taking
+        the product of the domain of ``self`` with a `4` point
+        interval `[I_0, I_1, I_2, I_3]` and identifying vertices of
+        the form `(I_0, v)` with `(I_3, w)` where `w` is the image of
+        `v` under the given morphism.
+
+        See :wikipedia:`Mapping torus`
+
+        EXAMPLES::
+
+            sage: C = simplicial_complexes.Sphere(1)            # Circle
+            sage: T = Hom(C,C).identity().mapping_torus() ; T   # Torus
+            Simplicial complex with 9 vertices and 18 facets
+            sage: T.homology() == simplicial_complexes.Torus().homology()
+            True
+
+            sage: f = Hom(C,C)({0:0,1:2,2:1})
+            sage: K = f.mapping_torus() ; K  # Klein Bottle
+            Simplicial complex with 9 vertices and 18 facets
+            sage: K.homology() == simplicial_complexes.KleinBottle().homology()
+            True
+
+        TESTS::
+
+            sage: g = Hom(simplicial_complexes.Simplex([1]),C)({1:0})
+            sage: g.mapping_torus()
+            Traceback (most recent call last):
+            ...
+            ValueError: self must have the same domain and codomain.
+        """
+        if self._domain != self._codomain:
+            raise ValueError("self must have the same domain and codomain.")
+        map_dict = self._vertex_dictionary
+        interval = simplicial_complex.SimplicialComplex([["I0","I1"],["I1","I2"]])
+        product = interval.product(self._domain,False)
+        facets = list(product.maximal_faces())
+        for facet in self._domain._facets:
+            left = [ ("I0",v) for v in facet ]
+            right = [ ("I2",map_dict[v]) for v in facet ]
+            for i in range(facet.dimension()+1):
+                facets.append(tuple(left[:i+1]+right[i:]))
+        return simplicial_complex.SimplicialComplex(facets)

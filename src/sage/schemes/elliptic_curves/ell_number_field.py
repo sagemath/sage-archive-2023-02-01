@@ -641,21 +641,31 @@ class EllipticCurve_number_field(EllipticCurve_field):
             (1, 1, 0, -2509254, 1528863051)
             sage: EllipticCurve([-101,-202,-303,-404,-505])._reduce_model().ainvs()
             (1, -1, 0, -1823195, 947995262)
+
+            sage: E = EllipticCurve([a/4, 1])
+            sage: E._reduce_model()
+            Traceback (most recent call last):
+            ...
+            TypeError: _reduce_model() requires an integral model.
         """
-        ZK = self.base_ring().maximal_order()
+        K = self.base_ring()
+        ZK = K.maximal_order()
         try:
             (a1, a2, a3, a4, a6) = [ZK(a) for a in self.a_invariants()]
         except TypeError:
-            raise TypeError, "_reduce_model() requires an integral model."
+            import sys
+            raise TypeError, "_reduce_model() requires an integral model.", sys.exc_info()[2]
+
         # N.B. Must define s, r, t in the right order.
-        if ZK.degree() == 1:
+        if ZK.absolute_degree() == 1:
             s = ((-a1)/2).round('up')
             r = ((-a2 + s*a1 +s*s)/3).round()
             t = ((-a3 - r*a1)/2).round('up')
         else:
-            s = ZK([(a/2).round('up') for a in (-a1).list()])
-            r = ZK([(a/3).round() for a in (-a2 + s*a1 +s*s).list()])
-            t = ZK([(a/2).round('up') for a in (-a3 - r*a1).list()])
+            pariK = K._pari_()
+            s = K(pariK.nfeltdiveuc(-a1, 2))
+            r = K(pariK.nfeltdiveuc(-a2 + s*a1 + s*s, 3))
+            t = K(pariK.nfeltdiveuc(-a3 - r*a1, 2))
 
         return self.rst_transform(r, s, t)
 
@@ -848,10 +858,10 @@ class EllipticCurve_number_field(EllipticCurve_field):
         EXAMPLES::
 
             sage: K.<a>=NumberField(x^2-5)
-            sage: E=EllipticCurve([20, 225, 750, 625*a + 6875, 31250*a + 46875])
+            sage: E=EllipticCurve([20, 225, 750, 1250*a + 6250, 62500*a + 15625])
             sage: P=K.ideal(a)
             sage: E.local_minimal_model(P).ainvs()
-            (0, 1, 0, a - 33, -2*a + 64)
+            (0, 1, 0, 2*a - 34, -4*a + 66)
         """
         if proof is None:
             import sage.structure.proof.proof
@@ -1195,7 +1205,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             # uu is the quotient of the Neron differential at pp divided by
             # the differential associated to this particular equation E
             uu = self.isomorphism_to(dav.minimal_model()).u
-            if self.base_field().degree() == 1:
+            if self.base_field().absolute_degree() == 1:
                 p = pp.gens_reduced()[0]
                 f = 1
                 v = valuation(ZZ(uu),p)
@@ -1330,7 +1340,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E2.local_data()
             []
 
-        See trac \#11347::
+        See :trac:`11347`::
 
             sage: K.<g> = NumberField(x^2 - x - 1)
             sage: E = EllipticCurve(K,[0,0,0,-1/48,161/864]).integral_model().global_minimal_model(); E
@@ -1339,6 +1349,15 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [(9, 1), (5, 1)]
             sage: [(p.norm(), e) for p, e in E.discriminant().factor()]
             [(9, 1), (-5, 2)]
+
+        See :trac:`14472`, this used not to work over a relative extension::
+
+            sage: K1.<w> = NumberField(x^2+x+1)
+            sage: m = polygen(K1)
+            sage: K2.<v> = K1.extension(m^2-w+1)
+            sage: E = EllipticCurve([0*v,-432])
+            sage: E.global_minimal_model()
+            Elliptic Curve defined by y^2 + (v+w+1)*y = x^3 + ((6*w-10)*v+16*w+20) over Number Field in v with defining polynomial x^2 - w + 1 over its base field
         """
         if proof is None:
             import sage.structure.proof.proof

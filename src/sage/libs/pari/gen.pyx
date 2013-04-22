@@ -7359,6 +7359,23 @@ cdef class gen(sage.structure.element.RingElement):
         sig_on()
         return self.new_gen(nfdisc0(self.g, flag, g))
 
+    def nfeltdiveuc(self, x, y):
+        """
+        Given `x` and `y` in the number field ``self``, return `q` such
+        that `x - q y` is "small".
+
+        EXAMPLES::
+
+            sage: k.<a> = NumberField(x^2 + 5)
+            sage: x = 10
+            sage: y = a + 1
+            sage: pari(k).nfeltdiveuc(pari(x), pari(y))
+            [2, -2]~
+        """
+        t0GEN(x); t1GEN(y)
+        sig_on()
+        return self.new_gen(nfdiveuc(self.g, t0, t1))
+
     def nfeltreduce(self, x, I):
         """
         Given an ideal I in Hermite normal form and an element x of the pari
@@ -9801,10 +9818,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         try:
             return self(x)
         except (TypeError, AttributeError):
-            raise TypeError, "no canonical coercion of %s into PARI"%x
-        if isinstance(x, gen):
-            return x
-        raise TypeError, "x must be a PARI object"
+            raise TypeError("no canonical coercion of %s into PARI"%x)
 
     cdef _an_element_c_impl(self):  # override this in Cython
         return self.PARI_ZERO

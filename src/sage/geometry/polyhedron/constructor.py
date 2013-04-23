@@ -396,4 +396,4 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         Vrep = [vertices, rays, lines]
 
     # finally, construct the Polyhedron
-    return parent(Vrep, Hrep, convert=convert)
+    return parent(Vrep, Hrep, convert=convert, verbose=verbose)

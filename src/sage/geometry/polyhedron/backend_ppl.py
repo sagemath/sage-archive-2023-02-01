@@ -33,7 +33,7 @@ class Polyhedron_ppl(Polyhedron_base):
         sage: TestSuite(p).run()
     """
 
-    def _init_from_Vrepresentation(self, vertices, rays, lines, minimize=True):
+    def _init_from_Vrepresentation(self, vertices, rays, lines, minimize=True, verbose=False):
         """
         Construct polyhedron from V-representation data.
 
@@ -50,6 +50,9 @@ class Polyhedron_ppl(Polyhedron_base):
         - ``lines`` -- list of lines. Each line can be specified as
           any iterable container of
           :meth:`~sage.geometry.polyhedron.base.base_ring` elements.
+
+        - ``verbose`` -- boolean (default: ``False``). Whether to print
+          verbose output for debugging purposes.
 
         EXAMPLES::
 
@@ -89,7 +92,7 @@ class Polyhedron_ppl(Polyhedron_base):
         self._init_Vrepresentation_from_ppl(minimize)
         self._init_Hrepresentation_from_ppl(minimize)
 
-    def _init_from_Hrepresentation(self, ieqs, eqns, minimize=True):
+    def _init_from_Hrepresentation(self, ieqs, eqns, minimize=True, verbose=False):
         """
         Construct polyhedron from H-representation data.
 
@@ -102,6 +105,9 @@ class Polyhedron_ppl(Polyhedron_base):
         - ``eqns`` -- list of equalities. Each line can be specified
           as any iterable container of
           :meth:`~sage.geometry.polyhedron.base.base_ring` elements.
+
+        - ``verbose`` -- boolean (default: ``False``). Whether to print
+          verbose output for debugging purposes.
 
         EXAMPLES::
 

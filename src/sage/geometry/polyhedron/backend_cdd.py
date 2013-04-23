@@ -86,6 +86,11 @@ class Polyhedron_cdd(Polyhedron_base):
         Compute the facet adjacency matrix in case it has not been
         computed during initialization.
 
+        INPUT:
+
+        - ``verbose`` -- boolean (default: ``False``). Whether to print
+          verbose output for debugging purposes.
+
         EXAMPLES::
 
             sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], backend='cdd', base_ring=QQ)
@@ -105,6 +110,11 @@ class Polyhedron_cdd(Polyhedron_base):
         """
         Compute the vertex adjacency matrix in case it has not been
         computed during initialization.
+
+        INPUT:
+
+        - ``verbose`` -- boolean (default: ``False``). Whether to print
+          verbose output for debugging purposes.
 
         EXAMPLES::
 
@@ -128,22 +138,41 @@ class Polyhedron_cdd(Polyhedron_base):
 
         TESTS::
 
-            sage: p = Polyhedron(vertices = [[0,0,0],[1,0,0],[0,1,0],[0,0,1]], backend='cdd', base_ring=QQ)
+            sage: p = Polyhedron(vertices=[[0,0,0],[1,0,0],[0,1,0],[0,0,1]],
+            ...                  backend='cdd', base_ring=QQ)
             sage: from sage.geometry.polyhedron.cdd_file_format import cdd_Vrepresentation
             sage: s = cdd_Vrepresentation('rational', [[0,0,1],[0,1,0],[1,0,0]], [], [])
             sage: p._init_from_cdd_input(s)
             sage: p.dim()
             2
+
+            sage: point_list = [[0.132, -1.028, 0.028],[0.5, 0.5, -1.5],
+            ...    [-0.5, 1.5, -0.5],[0.5, 0.5, 0.5],[1.5, -0.5, -0.5],
+            ...    [-0.332, -0.332, -0.668],[-1.332, 0.668, 0.332],
+            ...    [-0.932, 0.068, 0.932],[-0.38, -0.38, 1.38],
+            ...    [-0.744, -0.12, 1.12],[-0.7781818182, -0.12, 0.9490909091],
+            ...    [0.62, -1.38, 0.38],[0.144, -1.04, 0.04],
+            ...    [0.1309090909, -1.0290909091, 0.04]]
+            sage: Polyhedron(point_list)
+            Traceback (most recent call last):
+            ...
+            ValueError: *Error: Numerical inconsistency is found.  Use the GMP exact arithmetic.
         """
-        if verbose: print cdd_input_string
+        if verbose:
+            print '---- CDD input -----'
+            print cdd_input_string
 
         cdd_proc = Popen([self._cdd_executable, cmdline_arg],
                          stdin=PIPE, stdout=PIPE, stderr=PIPE)
         ans, err = cdd_proc.communicate(input=cdd_input_string)
 
-        # FIXME: check err
         if verbose:
+            print '---- CDD output -----'
             print ans
+            print err
+        if 'Error:' in ans + err:
+            # cdd reports errors on stdout and misc information on stderr
+            raise ValueError(ans.strip())
         self._init_from_cdd_output(ans)
 
 

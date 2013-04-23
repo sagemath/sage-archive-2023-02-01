@@ -157,6 +157,8 @@ class Polyhedron_cdd(Polyhedron_base):
             Traceback (most recent call last):
             ...
             ValueError: *Error: Numerical inconsistency is found.  Use the GMP exact arithmetic.
+            sage: Polyhedron(point_list, base_ring=QQ)
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 14 vertices
         """
         if verbose:
             print '---- CDD input -----'

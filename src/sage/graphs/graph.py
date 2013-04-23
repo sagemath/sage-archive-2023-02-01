@@ -442,15 +442,15 @@ viewed individually by iterating through the results:
     sage: Q.show()
     Graph6
     --------------------
-    F@?]O
-    F@OKg
     F?`po
     F?gqg
-    FIAHo
+    F@?]O
+    F@OKg
     F@R@o
     FA_pW
-    FGC{o
     FEOhW
+    FGC{o
+    FIAHo
 
 Show each graph as you iterate through the results:
 

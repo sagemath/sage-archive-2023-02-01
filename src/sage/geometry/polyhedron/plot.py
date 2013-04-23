@@ -596,6 +596,11 @@ class Projection(SageObject):
             sage: Projection(cube4).schlegel([1,0,0,0])
             The projection of a polyhedron into 3 dimensions
             sage: _.show()
+
+        TESTS::
+
+            sage: Projection(cube4).schlegel()
+            The projection of a polyhedron into 3 dimensions
         """
         if projection_direction == None:
             for poly in self.polygons:
@@ -605,6 +610,7 @@ class Projection(SageObject):
                     projection_direction = center
                     break
         if projection_direction == None:
+            from sage.rings.arith import primes_first_n
             projection_direction = primes_first_n(self.polyhedron_ambient_dim)
         return self.__call__(ProjectionFuncSchlegel(projection_direction, height = height))
 

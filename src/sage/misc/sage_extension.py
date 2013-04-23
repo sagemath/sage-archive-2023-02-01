@@ -397,10 +397,6 @@ from sage.misc.interpreter import sage_prompt
         # about a bad memory access in the pari_close() function.
         #self.set_quit_hook()
 
-        # These are things I'm not sure that we need to do anymore
-        #self.deprecated()
-
-
         if os.environ.get('SAGE_IMPORTALL', 'yes') != 'yes':
             return
 
@@ -486,13 +482,6 @@ from sage.misc.interpreter import sage_prompt
 
         preparser(True)
 
-    def deprecated(self):
-        """
-        These are things I don't think we need to do anymore; are they used?
-        """
-        # I'm not sure this is ever needed; when would this not be ''?
-        if sys.path[0]!='':
-            sys.path.insert(0, '')
 
 # from http://stackoverflow.com/questions/4103773/efficient-way-of-having-a-function-only-execute-once-in-a-loop
 from functools import wraps

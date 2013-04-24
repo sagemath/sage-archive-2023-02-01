@@ -416,7 +416,7 @@ class IncidenceStructure(object):
         from sage.combinat.designs.block_design import BlockDesign
         from sage.misc.functional import transpose
         if algorithm=="gap":
-            gap.eval('LoadPackage("design")')
+            gap.load_package("design")
             gD = self._gap_()
             gap.eval("DD:=DualBlockDesign("+gD+")")
             v = eval(gap.eval("DD.v"))
@@ -606,7 +606,7 @@ class IncidenceStructure(object):
         """
         from sage.interfaces.gap import gap, GapElement
         from sage.sets.set import Set
-        gap.eval('LoadPackage("design")')
+        gap.load_package("design")
         gD = self._gap_()
         gP = gap.eval("BlockDesignPoints("+gD+")").replace("..",",")
         return range(eval(gP)[0],eval(gP)[1]+1)

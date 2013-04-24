@@ -498,14 +498,14 @@ class Gap_generic(Expect):
             sage: gap.load_package("chevie")
             Traceback (most recent call last):
             ...
-            RuntimeError: Error loading Gap package chevie
-
+            RuntimeError: Error loading Gap package chevie. You may want to install the gap_packages SPKG.
         """
         if verbose:
             print "Loading GAP package %s"%pkg
         x = self.eval('LoadPackage("%s")'%pkg)
         if x == 'fail':
-            raise RuntimeError, 'Error loading Gap package %s'%pkg
+            raise RuntimeError("Error loading Gap package "+str(pkg)+". "+
+                               "You may want to install the gap_packages SPKG.")
 
     def eval(self, x, newlines=False, strip=True, split_lines=True, **kwds):
         r"""

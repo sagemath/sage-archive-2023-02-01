@@ -110,7 +110,7 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
         v = (q**(n+1)-1)/(q-1)
         return BlockDesign(v, blcks, name="ProjectiveGeometryDesign")
     if algorithm == "gap":   # Requires GAP's Design
-        gap.eval('LoadPackage("design")')
+        gap.load_package("design")
         gap.eval("D := PGPointFlatBlockDesign( %s, %s, %d )"%(n,q,d))
         v = eval(gap.eval("D.v"))
         gblcks = eval(gap.eval("D.blocks"))
@@ -195,7 +195,7 @@ def WittDesign(n):
         (5, 12, 6, 1)
     """
     from sage.interfaces.gap import gap, GapElement
-    gap.eval('LoadPackage("design")')
+    gap.load_package("design")
     gap.eval("B:=WittDesign(%s)"%n)
     v = eval(gap.eval("B.v"))
     gblcks = eval(gap.eval("B.blocks"))

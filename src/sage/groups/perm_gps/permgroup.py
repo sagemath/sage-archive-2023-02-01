@@ -149,12 +149,12 @@ def load_hap():
 
     EXAMPLES::
 
-        sage: sage.groups.perm_gps.permgroup.load_hap()
+        sage: sage.groups.perm_gps.permgroup.load_hap() # optional - gap_packages
     """
     try:
-        gap.eval('LoadPackage("hap")')
+        gap.load_package("hap")
     except StandardError:
-        gap.eval('LoadPackage("hap")')
+        gap.load_package("hap")
 
 def hap_decorator(f):
     """

@@ -69,7 +69,7 @@ echo '
 set -e
 mkdir -p "$SAGE_SPKG_INST"
 PKG_NAME="$1"
-PKG_BASE=`echo "$PKG_NAME" | sed "s/-.*//"`
+PKG_BASE=`echo "$PKG_NAME" | sed "s/-[0-9].*//"`
 PKG_VER="${PKG_NAME#${PKG_BASE}}"
 PKG_VER="${PKG_VER#-}"
 PKG_NAME_UPSTREAM="${PKG_BASE}-`echo $PKG_VER | sed "s/\\.p[0-9][0-9]*\$//"`"

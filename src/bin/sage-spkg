@@ -74,6 +74,46 @@ When you are done debugging, you can type "exit" to leave the subshell.
 MESSAGE
 }
 
+lookup_param()
+{
+    local param=$1
+    local file=$2
+    RESULT=`grep "^$param *="  $file| sed "s/^$param *= *//"`
+    echo $RESULT
+}
+
+verify_checksum()
+{
+    local file=$1
+    local checksums=$2
+    
+    if [ ! -f $checksums ]; then
+        echo "No checksum file: $checksums"
+        exit 1
+    fi
+
+    if command -v shasum > /dev/null; then
+        expected=`lookup_param sha1 $checksums`
+        actual=`shasum -a 1 $file | sed 's/ .*//'`
+    elif command -v md5sum > /dev/null; then
+        expected=`lookup_param md5 $checksums`
+        actual=`md5sum $file | sed 's/ .*//'`
+    elif command -v md5 > /dev/null; then
+        expected=`lookup_param md5 $checksums`
+        actual=`md5 $file | sed 's/.*= *//'`
+    else
+        # POSIX
+        expected=`lookup_param cksum $checksums`
+        actual=`cksum $file | sed 's/ .*//'`
+    fi
+
+    echo "Checksum: $expected vs $actual"
+    if [ "$expected" != "$actual" ]; then
+        echo "Invalid checksum for $file"
+        exit 1
+    fi
+}
+
 # Handle -n, -t, -q options for recursive make
 # See Trac #12016.
 if echo "$MAKE $MAKEFLAGS -$MAKEFLAGS" |grep '[ ]-[A-Za-z]*[qnt]' >/dev/null; then
@@ -153,6 +193,12 @@ fi
 FORCE=0
 if [ "$1" = '-f' ]; then
     FORCE=1
+    shift
+fi
+
+DOWNLOAD_ONLY=0
+if [ "$1" = '-d' ]; then
+    DOWNLOAD_ONLY=1
     shift
 fi
 
@@ -399,7 +445,14 @@ if [ ! -f "$PKG_SRC" ]; then
     fi
 
     PKG_SRC="`pwd`/${PKG_URL##*/}$EXT"
+    if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
+        verify_checksum "$PKG_TMP" "$PKG_SCRIPTS/checksums.ini"
+    fi
     mv -f "$PKG_TMP" "$PKG_SRC"
+else
+    if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
+        verify_checksum "$PKG_SRC" "$PKG_SCRIPTS/checksums.ini"
+    fi
 fi
 
 # Do a final check that PKG_SRC is a file with an absolute path
@@ -413,6 +466,10 @@ fi
 # Go back to SAGE_ROOT where we have less chance of completely messing
 # up the system if we do something wrong.
 cd "$SAGE_ROOT" || exit
+
+if [ $DOWNLOAD_ONLY -ne 0 ]; then
+    exit 0
+fi
 
 ##################################################################
 # Extract the package

@@ -24,7 +24,6 @@ from sage.rings.all import ZZ, Zmod, QQ
 from sage.rings.fast_arith import prime_range
 from sage.rings.arith import crt
 from sage.structure.sage_object import SageObject
-from sage.groups.matrix_gps.special_linear import SL
 from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method, cached_function
 
@@ -474,6 +473,7 @@ class TypeSpace(SageObject):
             True
         """
         f = self.prime() ** self.u()
+        from sage.groups.matrix_gps.all import SL
         G = SL(2, Zmod(f))
         gg = G(g)
         s = G([1,1,0,1])

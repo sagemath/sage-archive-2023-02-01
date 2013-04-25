@@ -7112,6 +7112,8 @@ cdef class Matrix(matrix1.Matrix):
             [0 0 0 1 0]
             sage: P.is_unitary()
             True
+            sage: P.change_ring(GF(3)).is_unitary()
+            True
 
         A square matrix far from unitary. ::
 
@@ -7128,7 +7130,10 @@ cdef class Matrix(matrix1.Matrix):
         import sage.matrix.constructor
         if not self.is_square():
             return False
-        P = self.conjugate().transpose()*self
+        if hasattr(self.base_ring().an_element(), 'conjugate'):
+            P = self.conjugate().transpose()*self    # Unitary
+        else:
+            P = self.transpose()*self                # Orthogonal
         return P.is_scalar(1)
 
     def is_bistochastic(self, normalized = True):

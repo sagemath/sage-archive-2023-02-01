@@ -153,26 +153,12 @@ class CoxeterGroups(Category_singleton):
 
                 sage: W=WeylGroup(['A',3])
                 sage: W.some_elements()
-                [[0 1 0 0]
-                [1 0 0 0]
-                [0 0 1 0]
-                [0 0 0 1],
-                 [1 0 0 0]
-                [0 0 1 0]
-                [0 1 0 0]
-                [0 0 0 1],
-                 [1 0 0 0]
-                [0 1 0 0]
-                [0 0 0 1]
-                [0 0 1 0],
-                 [1 0 0 0]
-                [0 1 0 0]
-                [0 0 1 0]
-                [0 0 0 1],
-                 [0 0 0 1]
-                [1 0 0 0]
-                [0 1 0 0]
-                [0 0 1 0]]
+                [
+                [0 1 0 0]  [1 0 0 0]  [1 0 0 0]  [1 0 0 0]  [0 0 0 1]
+                [1 0 0 0]  [0 0 1 0]  [0 1 0 0]  [0 1 0 0]  [1 0 0 0]
+                [0 0 1 0]  [0 1 0 0]  [0 0 0 1]  [0 0 1 0]  [0 1 0 0]
+                [0 0 0 1], [0 0 0 1], [0 0 1 0], [0 0 0 1], [0 0 1 0]
+                ]
                 sage: W.order()
                 24
             """
@@ -240,16 +226,10 @@ class CoxeterGroups(Category_singleton):
                 sage: W = WeylGroup(["A",1,1])
                 sage: I = W.weak_order_ideal(predicate = lambda w: w.length() <= 2)
                 sage: list(iter(I))
-                [[1 0]
-                 [0 1],
-                 [-1  2]
-                 [ 0  1],
-                 [ 3 -2]
-                 [ 2 -1],
-                 [ 1  0]
-                 [ 2 -1],
-                 [-1  2]
-                 [-2  3]]
+                [
+                [1 0]  [-1  2]  [ 3 -2]  [ 1  0]  [-1  2]
+                [0 1], [ 0  1], [ 2 -1], [ 2 -1], [-2  3]
+                ]
 
             Even when the result is finite, some features of
             :class:`FiniteEnumeratedSets` are not available::
@@ -265,16 +245,10 @@ class CoxeterGroups(Category_singleton):
                 sage: I.cardinality()
                 5
                 sage: list(I)
-                [[1 0]
-                 [0 1],
-                 [-1  2]
-                 [ 0  1],
-                 [ 3 -2]
-                 [ 2 -1],
-                 [ 1  0]
-                 [ 2 -1],
-                 [-1  2]
-                 [-2  3]]
+                [
+                [1 0]  [-1  2]  [ 3 -2]  [ 1  0]  [-1  2]
+                [0 1], [ 0  1], [ 2 -1], [ 2 -1], [-2  3]
+                ]
 
             .. rubric:: Background
 

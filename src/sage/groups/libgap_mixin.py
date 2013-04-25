@@ -443,6 +443,7 @@ class GroupMixinLibGAP(object):
         """
         return self(self.gap().Random())
 
+    @cached_method
     def list(self):
         """
         List all elements of this group.
@@ -514,7 +515,7 @@ class GroupMixinLibGAP(object):
         if not self.is_finite():
             raise ValueError('group must be finite')
         elements = self.gap().Elements()
-        return tuple(self(x) for x in elements)
+        return tuple(self(x, check=False) for x in elements)
 
     def is_isomorphic(self, H):
         """

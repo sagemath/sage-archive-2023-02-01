@@ -1844,7 +1844,7 @@ cdef class Parent(category_object.CategoryObject):
             sage: G(p)
             Traceback (most recent call last):
             ...
-            TypeError: Cannot coerce (1,3,2) to a 3-by-3 matrix over Rational Field
+            TypeError: entries must be coercible to a list or integer
             sage: G(1) * p
             Traceback (most recent call last):
             ...

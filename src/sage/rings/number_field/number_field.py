@@ -7775,6 +7775,21 @@ class NumberField_cyclotomic(NumberField_absolute):
         """
         return 'CyclotomicField(%s)'%self.__n
 
+    def _libgap_(self):
+        """
+        Return a LibGAP representation of ``self``
+
+        TESTS:
+
+            sage: K = CyclotomicField(8)
+            sage: K._libgap_()
+            CF(8)
+            sage: libgap(K)   # indirect doctest
+            CF(8)
+        """
+        from sage.libs.gap.libgap import libgap
+        return libgap.CyclotomicField(self.__n)
+
     def _repr_(self):
         r"""
         Return string representation of this cyclotomic field.

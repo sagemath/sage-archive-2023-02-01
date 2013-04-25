@@ -255,12 +255,11 @@ class GroupAlgebra(CombinatorialFreeModule, Algebra):
             sage: GroupAlgebra(GL(3, GF(7)))
             Group algebra of group "General Linear Group of degree 3 over Finite Field of size 7" over base ring Integer Ring
         """
-        from sage.groups.group import Group
-        from sage.groups.old import Group as OldGroup
+        from sage.groups.group import is_Group
         if not base_ring.is_commutative():
             raise NotImplementedError("Base ring must be commutative")
 
-        if not isinstance(group, (Group, OldGroup)):
+        if not is_Group(group):
             raise TypeError('"%s" is not a group' % group)
 
         self._group = group
@@ -593,8 +592,8 @@ class GroupAlgebra(CombinatorialFreeModule, Algebra):
             sage: GroupAlgebra(DihedralGroup(6), QQ).random_element()
             -1/95*(2,6)(3,5) - 1/2*(1,3)(4,6)
             sage: GroupAlgebra(SU(2, 13), QQ).random_element(1)
-            1/2*[      1 9*a + 2]
-            [9*a + 2      12]
+            1/2*[       6  5*a + 4]
+            [6*a + 10       12]
         """
         a = self(0)
         for i in range(n):
@@ -726,14 +725,13 @@ class GroupAlgebra(CombinatorialFreeModule, Algebra):
             sage: OG(FormalSum([ (1, G(2)), (2, RR(0.77)) ]) )
             Traceback (most recent call last):
             ...
-            TypeError: Cannot coerce 0.770000000000000 to a 2-by-2 matrix over Finite Field of size 7
-
+            TypeError: Attempt to coerce non-integral RealNumber to Integer
             sage: OG(OG.base_ring().gens()[1])
             sqrt5*[1 0]
             [0 1]
         """
         from sage.rings.all import is_Ring
-        from sage.groups.old import Group
+        from sage.groups.group import is_Group
         from sage.structure.formal_sum import FormalSum
         k = self.base_ring()
         G = self.group()
@@ -753,7 +751,7 @@ class GroupAlgebra(CombinatorialFreeModule, Algebra):
         elif is_Ring(S):
             # coerce to multiple of identity element
             return k(x) * self(1)
-        elif isinstance(S, Group):
+        elif is_Group(S):
             # Check whether group coerces to base_ring first.
             if k.has_coerce_map_from(S):
                 return k(x) * self(1)

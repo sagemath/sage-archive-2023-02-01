@@ -1,6 +1,10 @@
 r"""
-Ensure that certain modules are not loaded on startup::
+Ensure that certain modules are not loaded on startup.
 
-    sage: sage0("'numpy' in sys.modules")  # long time
+EXAMPLES::
+
+    sage: 'numpy' in sys.modules
+    False
+    sage: 'sage.libs.gap.libgap' in sys.modules
     False
 """

@@ -51,7 +51,7 @@ class Groups(Category_singleton):
             General Linear Group of degree 4 over Rational Field
         """
         from sage.rings.rational_field import QQ
-        from sage.groups.matrix_gps.general_linear import GL
+        from sage.groups.matrix_gps.linear import GL
         return GL(4,QQ)
 
     class ParentMethods:

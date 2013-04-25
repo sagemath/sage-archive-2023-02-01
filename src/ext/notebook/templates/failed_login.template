@@ -1,9 +1,0 @@
-<html>
-<head><title>Login failed</title></head>
-<body>
-<h1>Login failure</h1>
-You have entered an invalid $problem. Please <a href="/">try again</a>.
-<br><br><br><br>
-$logins
-</body>
-</html>

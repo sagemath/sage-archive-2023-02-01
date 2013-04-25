@@ -1,6 +1,0 @@
-#!/bin/bash
-
-DIR=`pwd`
-cd `dirname "$0"`
-java -classpath lib/sage3d.jar:sun-libs/j3dcore.jar:sun-libs/gluegen-rt.jar:sun-libs/vecmath.jar:sun-libs/j3dutils.jar:sun-libs/jogl.jar \
-    org.sagemath.sage3d.ObjectViewerApp "$DIR/$1"

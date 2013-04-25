@@ -27,5 +27,6 @@ Cryptography
    sage/crypto/mq/sbox
 
    sage/crypto/lattice
+   sage/crypto/lwe
 
 .. include:: ../footer.txt

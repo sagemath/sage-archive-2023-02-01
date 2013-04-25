@@ -194,7 +194,9 @@ class Set_object(Set_generic):
         sage: latex(Set(ZZ))
         \Bold{Z}
 
-    TESTS::
+    TESTS:
+
+    See trac ticket :trac:`14486`::
 
         sage: 0 == Set([1]), Set([1]) == 0
         (False, False)

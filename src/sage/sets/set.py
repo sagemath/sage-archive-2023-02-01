@@ -193,6 +193,13 @@ class Set_object(Set_generic):
 
         sage: latex(Set(ZZ))
         \Bold{Z}
+
+    TESTS::
+
+        sage: 0 == Set([1]), Set([1]) == 0
+        (False, False)
+        sage: 1 == Set([0]), Set([0]) == 1
+        (False, False)
     """
     def __init__(self, X):
         """
@@ -205,7 +212,20 @@ class Set_object(Set_generic):
 
             sage: type(Set(QQ))
             <class 'sage.sets.set.Set_object_with_category'>
+
+        TESTS::
+
+            sage: _a, _b = get_coercion_model().canonical_coercion(Set([0]), 0)
+            Traceback (most recent call last):
+            ...
+            TypeError: no common canonical parent for objects with parents:
+            '<class 'sage.sets.set.Set_object_enumerated_with_category'>'
+            and 'Integer Ring'
         """
+        from sage.rings.integer import is_Integer
+        if isinstance(X, (int,long)) or is_Integer(X):
+            # The coercion model will try to call Set_object(0)
+            raise ValueError('underlying object cannot be an integer')
         Parent.__init__(self, category=Sets())
         self.__object = X
 

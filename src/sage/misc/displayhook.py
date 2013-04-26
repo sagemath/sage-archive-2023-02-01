@@ -142,7 +142,19 @@ def format_obj(obj):
         sage: sage.misc.displayhook.format_obj( \
                 [matrix([[1], [2]]), matrix([[3], [4]])])
         '[\n[1]  [3]\n[2], [4]\n]'
+
+    TESTS:
+
+    In #14466 we override IPython's special printing of ``type`` objects
+    and revert it to Python's standard string representation::
+
+        sage: shell=sage.misc.interpreter.get_test_shell()
+        sage: shell.displayhook(type)
+        <type 'type'>
+
     """
+    if isinstance(obj, type):
+        return repr(obj)
     ascii_art = False
     if isinstance(obj, (tuple, list)) and len(obj) > 0:
         for o in obj:

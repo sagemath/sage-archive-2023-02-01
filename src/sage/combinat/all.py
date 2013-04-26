@@ -119,6 +119,7 @@ from integer_vectors_mod_permgroup import IntegerVectorsModPermutationGroup
 
 from finite_class import FiniteCombinatorialClass
 
+from q_analogues import gaussian_binomial
 
 from species.all import *
 

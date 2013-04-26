@@ -1807,7 +1807,6 @@ def __LCM_sequence(v):
         g = v.universe()(1)
     except AttributeError:
         g = ZZ(1)
-    one = v.universe()(1)
     for vi in v:
         g = vi.lcm(g)
         if not g:
@@ -1829,7 +1828,6 @@ def xlcm(m,n):
         sage: xlcm(120,36)
         (360, 40, 9)
     """
-    m0=m; n0=n
     g=gcd(m,n)
     l=m*n//g      # = lcm(m,n)
     g=gcd(m,n//g) # divisible by those primes which divide n to a
@@ -3435,34 +3433,7 @@ def multinomial_coefficients(m, n):
         r[tuple(t)] = (v * tj) // (n - t[0])
     return r
 
-
-def gaussian_binomial(n,k,q=None):
-    r"""
-    Return the gaussian binomial
-
-    .. math::
-
-       \binom{n}{k}_q = \frac{(1-q^n)(1-q^{n-1})\cdots (1-q^{n-k+1})}{(1-q)(1-q^2)\cdots (1-q^k)}.
-
-    EXAMPLES::
-
-        sage: gaussian_binomial(5,1)
-        q^4 + q^3 + q^2 + q + 1
-        sage: gaussian_binomial(5,1).subs(q=2)
-        31
-        sage: gaussian_binomial(5,1,2)
-        31
-
-    AUTHORS:
-
-    - David Joyner and William Stein
-    """
-    if q is None:
-        from sage.rings.polynomial.polynomial_ring import polygen
-        q = polygen(ZZ, name='q')
-    n = misc.prod([1 - q**i for i in range((n-k+1),n+1)])
-    d = misc.prod([1 - q**i for i in range(1,k+1)])
-    return n/d
+# (since trac 14496) gaussian_binomial = sage.combinat.q_analogues.q_binomial
 
 def kronecker_symbol(x,y):
     """

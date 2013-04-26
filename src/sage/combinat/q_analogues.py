@@ -25,14 +25,16 @@ from partition import Partition
 
 def q_int(n, p=None):
     r"""
-    Returns the `q`-analogue of the integer `n` which is given by
+    Returns the `q`-analogue of the integer `n`
+
+    The `q`-analogue of the integer `n` is given by
 
     .. MATH::
 
-            [n]_q =  \begin{cases}
-            1+q+\dots+q^{n-1},  & \text{if }n\ge 0, \\
-            -q^{-n} [-n]_q,     & \text{if }n\le 0.
-            \end{cases}
+        [n]_q =  \begin{cases}
+        1+q+\dots+q^{n-1},  & \text{if }n\ge 0, \\
+        -q^{-n} [-n]_q,     & \text{if }n\le 0.
+        \end{cases}
 
     Consequently, if `q=1` then `[n]_1=n` and if `q\ne1` then `[n]_q=(q^n-1)/(q-1)`.
 
@@ -41,21 +43,21 @@ def q_int(n, p=None):
 
     EXAMPLES::
 
-        sage: import sage.combinat.q_analogues as q_analogues
-        sage: q_analogues.q_int(3)
+        sage: from sage.combinat.q_analogues import q_int
+        sage: q_int(3)
         q^2 + q + 1
-        sage: q_analogues.q_int(-3)
+        sage: q_int(-3)
         (-q^2 - q - 1)/q^3
         sage: p = ZZ['p'].0
-        sage: q_analogues.q_int(3,p)
+        sage: q_int(3,p)
         p^2 + p + 1
-        sage: q_analogues.q_int(3/2)
+        sage: q_int(3/2)
         Traceback (most recent call last):
         ...
         ValueError: 3/2 must be an integer
     """
     if not n in ZZ:
-        raise ValueError, '%s must be an integer' % n
+        raise ValueError('%s must be an integer' % n)
 
     if p == None:
         p = ZZ['q'].gens()[0]
@@ -66,81 +68,186 @@ def q_int(n, p=None):
 
 def q_factorial(n, p=None):
     """
-    Returns the `q`-analogue of the factorial `n!`.
+    Returns the `q`-analogue of the factorial `n!`
 
     If `p` is unspecified, then it defaults to using the generator `q` for
     a univariate polynomial ring over the integers.
 
     EXAMPLES::
 
-        sage: import sage.combinat.q_analogues as q_analogues
-        sage: q_analogues.q_factorial(3)
+        sage: from sage.combinat.q_analogues import q_factorial
+        sage: q_factorial(3)
         q^3 + 2*q^2 + 2*q + 1
         sage: p = ZZ['p'].0
-        sage: q_analogues.q_factorial(3, p)
+        sage: q_factorial(3, p)
         p^3 + 2*p^2 + 2*p + 1
 
     The `q`-analogue of `n!` is only defined for `n` a nonnegative
-    integer (trac #11411)::
+    integer (:trac:`11411`)::
 
-        sage: q_analogues.q_factorial(-2)
+        sage: q_factorial(-2)
         Traceback (most recent call last):
         ...
         ValueError: Argument (-2) must be a nonnegative integer.
-
     """
     if n in ZZ and n >= 0:
         return prod([q_int(i, p) for i in range(1, n+1)])
     else:
         raise ValueError("Argument (%s) must be a nonnegative integer." %n)
 
-def q_binomial(n,k,p=None):
-    """
-    Returns the `q`-binomial coefficient.
+def q_binomial(n, k, q=None):
+    r"""
+    Return the `q`-binomial coefficient
 
-    If `p` is unspecified, then it defaults to using the generator `q` for
+    This is also known as the Gaussian binomial coefficient, and is defined by
+
+    .. MATH::
+
+        \binom{n}{k}_q = \frac{(1-q^n)(1-q^{n-1})\cdots (1-q^{n-k+1})}{(1-q)(1-q^2)\cdots (1-q^k)}.
+
+    See :wikipedia:`Gaussian binomial coefficient`
+
+    If `q` is unspecified, then the variable is the generator `q` for
     a univariate polynomial ring over the integers.
 
-    The q-binomials are computed as a product of cyclotomic polynomials (cf. [CH2006]_).
+    EXAMPLES:
+
+    By default, the variable is the generator of `\ZZ[q]`::
+
+        sage: from sage.combinat.q_analogues import q_binomial
+        sage: g = q_binomial(5,1) ; g
+        q^4 + q^3 + q^2 + q + 1
+        sage: g.parent()
+        Univariate Polynomial Ring in q over Integer Ring
+
+    The `q`-binomial coefficient vanishes unless `0 \leq k \leq n`::
+
+        sage: q_binomial(4,5)
+        0
+        sage: q_binomial(5,-1)
+        0
+
+    Other variables can be used, given as third parameter::
+
+        sage: p = ZZ['p'].gen()
+        sage: q_binomial(4,2,p)
+        p^4 + p^3 + 2*p^2 + p + 1
+
+    The third parameter can also be an integer::
+
+        sage: q_binomial(5,1,2) == g.subs(q=2)
+        True
+        sage: q_binomial(5,1,1)
+        5
+        sage: q_binomial(4,2,-1)
+        2
+
+    TESTS:
+
+    One checks that the first two arguments are integers::
+
+        sage: q_binomial(1/2,1)
+        Traceback (most recent call last):
+        ...
+        ValueError: arguments (1/2, 1) must be integers
+
+    One checks that `n` is nonnegative::
+
+        sage: q_binomial(-4,1)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be nonnegative
+
+    This also works for variables in the symbolic ring::
+
+        sage: z = var('z')
+        sage: factor(q_binomial(4,2,z))
+        (z^2 + 1)*(z^2 + z + 1)
+
+    This also works for complex roots of unity::
+
+        sage: q_binomial(6,1,I)
+        1 + I
+
+    ALGORITHM:
+
+    The naive algorithm uses the product formula. The cyclotomic
+    algorithm uses a product of cyclotomic polynomials
+    (cf. [CH2006]_).
+
+    If ``q`` is a polynomial:
+
+    When ``n`` is small or ``k`` is small with respect to ``n``, one
+    uses the naive algorithm. When both ``n`` and ``k`` are big, one
+    uses the cyclotomic algorithm.
+
+    If ``q`` is in the symbolic ring, one uses the cyclotomic algorithm.
+
+    Otherwise one uses the naive algorithm, unless ``q`` is a root of
+    unity, then one uses the cyclotomic algorithm.
 
     REFERENCES:
 
     .. [CH2006] William Y.C. Chen and Qing-Hu Hou, "Factors of the Gaussian
        coefficients", Discrete Mathematics 306 (2006), 1446-1449.
-       http://dx.doi.org/10.1016/j.disc.2006.03.031
+       :doi:`10.1016/j.disc.2006.03.031`
 
-    EXAMPLES::
+    AUTHORS:
 
-        sage: import sage.combinat.q_analogues as q_analogues
-        sage: q_analogues.q_binomial(4,2)
-        q^4 + q^3 + 2*q^2 + q + 1
-        sage: q_analogues.q_binomial(4,5)
-        0
-        sage: p = ZZ['p'].0
-        sage: q_analogues.q_binomial(4,2,p)
-        p^4 + p^3 + 2*p^2 + p + 1
-        sage: q_analogues.q_binomial(2,3)
-        0
-
-    The `q`-analogue of ``binomial(n,k)`` is currently only defined for
-    `n` a nonnegative integer, it is zero for negative k  (trac #11411)::
-
-        sage: q_analogues.q_binomial(5, -1)
-        0
+    - Frederic Chapoton, David Joyner and William Stein
     """
-    if not (n in ZZ and k in ZZ):
-        raise ValueError("Argument (%s, %s) must be integers."%(n, k))
+    # sanity checks
+    if not( n in ZZ and k in ZZ ):
+        raise ValueError("arguments (%s, %s) must be integers" % (n, k))
     if n < 0:
-        raise NotImplementedError
-    if 0 <= k and k <= n:
-        if p == None:
-            R = ZZ['q']
-        else:
-            R = ZZ[p]
-        from sage.functions.all import floor
-        return prod(R.cyclotomic_polynomial(d) for d in range(2,n+1) if floor(n/d)!=floor(k/d)+floor((n-k)/d))
-    else:
+        raise ValueError('n must be nonnegative')
+    if not(0 <= k and k <= n):
         return 0
+    k = min(n-k,k)
+    # polynomiality test
+    if q is None:
+        from sage.rings.polynomial.polynomial_ring import polygen
+        q = polygen(ZZ, name='q')
+        is_polynomial = True
+    else:
+        from sage.rings.polynomial.polynomial_element import Polynomial
+        is_polynomial = isinstance(q, Polynomial)
+    from sage.symbolic.ring import SR
+    # heuristic choice of the fastest algorithm
+    if is_polynomial:
+        if n <= 70 or k <= n/4:
+            algo = 'naive'
+        else:
+            algo = 'cyclo_polynomial'
+    elif q in SR:
+        algo = 'cyclo_generic'
+    else:
+        algo = 'naive'
+    # the algorithms
+    if algo == 'naive':
+        denomin = prod([1 - q**i for i in range(1, k+1)])
+        if denomin == 0: # q is a root of unity, use the cyclotomic algorithm
+            algo = 'cyclo_generic'
+            pass
+        else:
+            numerat = prod([1 - q**i for i in range(n-k+1, n+1)])
+            try:
+                return numerat//denomin
+            except TypeError:
+                return numerat/denomin
+    from sage.functions.all import floor
+    if algo == 'cyclo_generic':
+        from sage.rings.polynomial.cyclotomic import cyclotomic_value
+        return prod(cyclotomic_value(d,q)
+                    for d in range(2,n+1)
+                    if floor(n/d) != floor(k/d) + floor((n-k)/d))
+    if algo == 'cyclo_polynomial':
+        R = q.parent()
+        return prod(R.cyclotomic_polynomial(d)
+                    for d in range(2,n+1)
+                    if floor(n/d) != floor(k/d) + floor((n-k)/d))
+
+gaussian_binomial = q_binomial
 
 def q_catalan_number(n,p=None):
     """
@@ -154,17 +261,17 @@ def q_catalan_number(n,p=None):
 
     EXAMPLES::
 
-        sage: import sage.combinat.q_analogues as q_analogues
-        sage: q_analogues.q_catalan_number(4)
+        sage: from sage.combinat.q_analogues import q_catalan_number
+        sage: q_catalan_number(4)
         q^12 + q^10 + q^9 + 2*q^8 + q^7 + 2*q^6 + q^5 + 2*q^4 + q^3 + q^2 + 1
         sage: p = ZZ['p'].0
-        sage: q_analogues.q_catalan_number(4,p)
+        sage: q_catalan_number(4,p)
         p^12 + p^10 + p^9 + 2*p^8 + p^7 + 2*p^6 + p^5 + 2*p^4 + p^3 + p^2 + 1
 
     The `q`-Catalan number of index `n` is only defined for `n` a
-    nonnegative integer (trac #11411)::
+    nonnegative integer (:trac:`11411`)::
 
-        sage: q_analogues.q_catalan_number(-2)
+        sage: q_catalan_number(-2)
         Traceback (most recent call last):
         ...
         ValueError: Argument (-2) must be a nonnegative integer.
@@ -180,20 +287,20 @@ def qt_catalan_number(n):
 
     EXAMPLES::
 
-        sage: import sage.combinat.q_analogues as q_analogues
-        sage: q_analogues.qt_catalan_number(1)
+        sage: from sage.combinat.q_analogues import qt_catalan_number
+        sage: qt_catalan_number(1)
         1
-        sage: q_analogues.qt_catalan_number(2)
+        sage: qt_catalan_number(2)
         q + t
-        sage: q_analogues.qt_catalan_number(3)
+        sage: qt_catalan_number(3)
         q^3 + q^2*t + q*t^2 + t^3 + q*t
-        sage: q_analogues.qt_catalan_number(4)
+        sage: qt_catalan_number(4)
         q^6 + q^5*t + q^4*t^2 + q^3*t^3 + q^2*t^4 + q*t^5 + t^6 + q^4*t + q^3*t^2 + q^2*t^3 + q*t^4 + q^3*t + q^2*t^2 + q*t^3
 
     The ``q,t``-Catalan number of index `n` is only defined for `n` a
-    nonnegative integer (trac #11411)::
+    nonnegative integer (:trac:`11411`)::
 
-        sage: q_analogues.qt_catalan_number(-2)
+        sage: qt_catalan_number(-2)
         Traceback (most recent call last):
         ...
         ValueError: Argument (-2) must be a nonnegative integer.
@@ -222,7 +329,7 @@ def q_jordan(t, q):
     If `q` is the power of a prime number, the output is the number of
     complete flags in `F_q^N` (where `N` is the size of `t`) stable
     under a linear nilpotent endomorphism `f` whose Jordan type is
-    given by `t`, i.e. such that for all `i`::
+    given by `t`, i.e. such that for all `i`:
 
     .. MATH::
 

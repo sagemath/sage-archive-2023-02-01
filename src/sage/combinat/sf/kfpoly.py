@@ -332,12 +332,12 @@ def weight(rg, t=None):
 
     EXAMPLES::
 
-        sage: from sage.combinat.sf.kfpoly import *
+        sage: from sage.combinat.sf.kfpoly import weight
         sage: weight([[2,1], [1]])
         1
-        sage: weight([[3],[1]])
+        sage: weight([[3], [1]])
         t^2 + t
-        sage: weight([[2,1],[3]])
+        sage: weight([[2,1], [3]])
         t^4
         sage: weight([[2, 2], [1, 1]])
         1
@@ -348,6 +348,7 @@ def weight(rg, t=None):
         sage: weight([[4], [2]], t=2)
         4
     """
+    from sage.combinat.q_analogues import q_binomial
     if t is None:
         t = global_t
     nu = rg + [ [] ]
@@ -358,35 +359,33 @@ def weight(rg, t=None):
         sa = 0
         for i in range( max( len(rg[k]), len(rg[k-1])) ):
             sa += nu[k-1][i]-2*nu[k][i]+nu[k+1][i]
-            res *= q_bin(nu[k][i]-nu[k][i+1], sa, t)
+            if nu[k][i]-nu[k][i+1]+sa >= 0:
+                res *= q_binomial(nu[k][i]-nu[k][i+1]+sa, sa, t)
             mu = nu[k-1][i]-nu[k][i]
             res *= t**int((mu*(mu-1)/2))
     return res
 
-
 def q_bin(a,b,t=None):
-    """
+    r"""
     Returns the `t`-binomial coefficient `[a+b,b]_t`.
 
     INPUT:
 
     - ``a``, ``b`` -- two nonnegative integers
 
-    By definition `[a+b,b]_t = (1-t)(1-t)^2 \cdots (1-t^{a+b}) / ((1-) \cdots (1-t^b) (1-t) \cdots (1-t^a))`.
+    By definition `[a+b,b]_t = (1-t)(1-t^2) \cdots (1-t^{a+b}) / ((1-t) \cdots (1-t^b) (1-t) \cdots (1-t^a))`.
 
     EXAMPLES::
 
-        sage: from sage.combinat.sf.kfpoly import *
+        sage: from sage.combinat.sf.kfpoly import q_bin
         sage: t = PolynomialRing(ZZ, 't').gen()
         sage: q_bin(4,2, t)
+        doctest:...: DeprecationWarning: please use sage.combinat.q_analogues.q_binomial instead
+        See http://trac.sagemath.org/14496 for details.
         t^8 + t^7 + 2*t^6 + 2*t^5 + 3*t^4 + 2*t^3 + 2*t^2 + t + 1
         sage: q_bin(4,3, t)
         t^12 + t^11 + 2*t^10 + 3*t^9 + 4*t^8 + 4*t^7 + 5*t^6 + 4*t^5 + 4*t^4 + 3*t^3 + 2*t^2 + t + 1
     """
-    res = ZZ['t'].one()
-    for i in range(1, min(a,b)+1):
-        res *= (1-global_t**(a+b+1-i))/(1-global_t**i)
-    if t is not None:
-        return ZZ['t'](res).subs(t=t)
-    else:
-        return res
+    from sage.misc.superseded import deprecation
+    deprecation(14496,'please use sage.combinat.q_analogues.q_binomial instead')
+    return sage.combinat.q_analogues.q_binomial(a+b,b,t)

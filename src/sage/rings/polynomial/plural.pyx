@@ -2931,7 +2931,7 @@ def ExteriorAlgebra(base_ring, names,order='degrevlex'):
     """
     Return the exterior algebra on some generators
 
-    This is also known as a Grassman algebra. This is a finite
+    This is also known as a Grassmann algebra. This is a finite
     dimensional algebra, where all generators anti-commute.
 
     See :wikipedia:`Exterior algebra`

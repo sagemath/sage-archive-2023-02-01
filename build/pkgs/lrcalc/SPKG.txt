@@ -2,7 +2,7 @@
 
 == Description ==
 
-lrcalc-sage-1.1.6: Littlewood-Richardson Calculator
+Littlewood-Richardson Calculator
 
 http://math.rutgers.edu/~asbuch/lrcalc/
 
@@ -23,7 +23,17 @@ Anders S. Buch (asbuch@math.rutgers.edu)
 
 == Special Update/Build Instructions ==
 
+ * The upstream package has several packaging problems and problems
+   with the build system. Since these are not easily fixed at install
+   time, instead src/ is patched directly. This is done by the script
+   spkg-src and the patch patches/build.diff. So, whenever you update
+   the sources, you should use/modify the spkg-src script.
+
 == Changelog ==
+
+=== lrcalc-1.1.6.p0 (Jeroen Demeyer, 8 May 2013)  ===
+ * Trac #14487: fix various build and packaging issues, add spkg-src
+   and patches/build.diff (to be applied at packaging time).
 
 === lrcalc-1.1.6 (Jean-Pierre Flori, December 2012 - February 2013)  ===
 

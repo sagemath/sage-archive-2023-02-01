@@ -21,6 +21,26 @@ We test coercions::
     4
     sage: parent(a)
     Singular
+
+Test that write errors to stderr are handled gracefully by GAP
+(see :trac:`13211`) and ECL (see :trac:`14426`) and other interfaces::
+
+    sage: import subprocess
+    sage: try:
+    ....:     f = open('/dev/full', 'w')
+    ....: except IOError:
+    ....:     f = open('/dev/null', 'w')
+    sage: kwds = dict(shell=True, stdout=f, stderr=f)
+    sage: subprocess.call("echo syntax error | ecl", **kwds)
+    0
+    sage: subprocess.call("echo syntax error | gap", **kwds)
+    0
+    sage: subprocess.call("echo syntax error | gp", **kwds)
+    0
+    sage: subprocess.call("echo syntax error | ipython", **kwds) in (0,1)
+    True
+    sage: subprocess.call("echo syntax error | singular", **kwds)
+    0
 """
 
 from all import *

@@ -9,7 +9,7 @@ AUTHORS:
   singular(...), x.[tab] includes all singular commands.
 
 - Martin Albrecht (2006-03-06): This patch adds the equality symbol to
-
+  singular. Also fix a problem in which " " as prompt means comparison
   will break all further communication with Singular.
 
 - Martin Albrecht (2006-03-13): added current_ring() and
@@ -329,7 +329,7 @@ see ticket #11645::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os, re
+import os, re, sys
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
@@ -340,6 +340,13 @@ from sage.structure.element import RingElement
 import sage.rings.integer
 
 from sage.misc.misc import get_verbose
+
+class SingularError(RuntimeError):
+    """
+    Raised if Singular printed an error message
+    """
+    pass
+
 
 class Singular(Expect):
     r"""
@@ -580,7 +587,7 @@ class Singular(Expect):
         s = Expect.eval(self, x, **kwds)
 
         if s.find("error") != -1 or s.find("Segment fault") != -1:
-            raise RuntimeError, 'Singular error:\n%s'%s
+            raise SingularError('Singular error:\n%s'%s)
 
         if get_verbose() > 0:
             ret = []
@@ -620,12 +627,10 @@ class Singular(Expect):
             '0'
 
         """
-        cmd = ''.join('if(defined(%s)){kill %s;};'%(v,v) for v in self.__to_clear) + '%s %s=%s;'%(type, name, value)
+        cmd = ''.join('if(defined(%s)){kill %s;};'%(v,v) for v in self.__to_clear)
+        cmd += '%s %s=%s;'%(type, name, value)
         self.__to_clear = []
-        try:
-            out = self.eval(cmd)
-        except RuntimeError, msg:
-            raise TypeError, msg
+        self.eval(cmd)
 
     def get(self, var):
         """
@@ -1182,11 +1187,11 @@ class SingularElement(ExpectElement):
         if not is_name:
             try:
                 self._name = parent._create( value, type)
-            # Convert RuntimeError to TypeError for
+            # Convert SingularError to TypeError for
             # coercion to work properly.
-            except RuntimeError, x:
+            except SingularError, x:
                 self._session_number = -1
-                raise TypeError, x
+                raise TypeError, x, sys.exc_info()[2]
             except BaseException:
                 self._session_number = -1
                 raise
@@ -2406,5 +2411,4 @@ class SingularGBLogPrettyPrinter:
             sage: s3 = SingularGBLogPrettyPrinter(verbosity=3)
             sage: s3.flush()
         """
-        import sys
         sys.stdout.flush()

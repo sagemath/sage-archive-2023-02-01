@@ -205,7 +205,7 @@ def rank_decomposition(G, verbose = False):
 
         # Actual computation
         calculate_level(i)
-        _sig_off
+        sig_off()
 
     cdef int rank_width = <int> get_rw()
 

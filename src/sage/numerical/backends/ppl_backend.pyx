@@ -612,7 +612,7 @@ cdef class PPLBackend(GenericBackend):
         """
         if name == NULL:
             return self.name
-        self.name = <str>name
+        self.name = str(<bytes>name)
 
     cpdef row(self, int i):
         """

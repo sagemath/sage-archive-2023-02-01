@@ -820,14 +820,26 @@ If this all works, you can then make calls like:
                     return ''
 
             except OSError, msg:
-                if not E.isalive():
-                    if restart_if_needed==True: # the subprocess might have crashed
+                if restart_if_needed:
+                    # The subprocess most likely crashed.
+                    # If it's really still alive, we fall through
+                    # and raise RuntimeError.
+                    if sys.platform.startswith('sunos'):
+                        # On (Open)Solaris, we might need to wait a
+                        # while because the process might not die
+                        # immediately. See Trac #14371.
+                        for t in [0.5, 1.0, 2.0]:
+                            if E.isalive():
+                                time.sleep(t)
+                            else:
+                                break
+                    if not E.isalive():
                         try:
                             self._synchronize()
-                            return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False)
                         except (TypeError, RuntimeError):
                             pass
-                raise RuntimeError, "%s\nError evaluating %s in %s"%(msg, line, self)
+                        return self._eval_line(line,allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt, restart_if_needed=False)
+                raise RuntimeError, "%s\nError evaluating %s in %s"%(msg, line, self), sys.exc_info()[2]
 
             if len(line)>0:
                 try:
@@ -1084,7 +1096,6 @@ If this all works, you can then make calls like:
 
             sage: singular('2+3')
             5
-            sage: import os
             sage: singular._sendstr('quit;\n')   # make it so that singular appears to die.
             sage: singular('2+3')
             Singular crashed -- automatically restarting.
@@ -1282,7 +1293,7 @@ class ExpectElement(InterfaceElement):
             # coercion to work properly.
             except (RuntimeError, ValueError), x:
                 self._session_number = -1
-                raise TypeError, x
+                raise TypeError, x, sys.exc_info()[2]
             except BaseException:
                 self._session_number = -1
                 raise

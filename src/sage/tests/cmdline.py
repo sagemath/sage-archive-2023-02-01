@@ -53,7 +53,7 @@ from subprocess import *
 import os, select
 
 
-def test_executable(args, input="", timeout=100.0, cwd=None):
+def test_executable(args, input="", timeout=100.0, **kwds):
     r"""
     Run the program defined by ``args`` using the string ``input`` on
     the standard input.
@@ -69,8 +69,8 @@ def test_executable(args, input="", timeout=100.0, cwd=None):
     - ``timeout`` -- if the program produces no output for ``timeout``
       seconds, a RuntimeError is raised.
 
-    - ``cwd`` -- (default: ``None``) if not None, run the program from
-      the given directory.
+    - ``**kwds`` -- Additional keyword arguments passed to the
+      :class:`Popen` constructor.
 
     OUTPUT: a tuple ``(out, err, ret)`` with the standard output,
     standard error and exitcode of the program run.
@@ -567,7 +567,7 @@ def test_executable(args, input="", timeout=100.0, cwd=None):
         del pexpect_env["TERM"]
     except KeyError:
         pass
-    p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=cwd, env=pexpect_env)
+    p = Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE, env=pexpect_env, **kwds)
     if input:
         p.stdin.write(input)
     p.stdin.close()

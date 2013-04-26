@@ -2474,8 +2474,8 @@ static inline double complex cpow_int(double complex z, int exp) {
 }
 """
         self.pxd_header = """
-# This is to work around a header ordering bug in Cython < 0.11
-# (Pari is included from sage.rings.complex_double.)
+# This is to work around a header incompatibility with PARI using
+# "I" as variable conflicting with the complex "I".
 cdef extern from "pari/paricfg.h":
     pass
 cdef extern from "pari/pari.h":

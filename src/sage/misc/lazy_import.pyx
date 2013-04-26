@@ -36,10 +36,9 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-cdef extern from *:
-    cdef int Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
+from cpython.object cimport Py_LT, Py_LE, Py_EQ, Py_NE, Py_GT, Py_GE
 
-import os, shutil, tempfile, cPickle as pickle, operator
+import os, cPickle as pickle, operator
 import inspect
 import sageinspect
 
@@ -91,7 +90,9 @@ cdef class LazyImport(object):
         self._as_name = as_name
         self._namespace = namespace
 
-    cpdef _get_object(self, owner=None):
+    # Due to a bug in Cython-0.19, this must not be a cpdef method.
+    # See http://trac.sagemath.org/sage_trac/ticket/14452
+    def _get_object(self, owner=None):
         """
         Return the wrapped object, importing it if necessary.
 
@@ -866,19 +867,18 @@ def save_cache_file():
         sage: import sage.misc.lazy_import
         sage: sage.misc.lazy_import.save_cache_file()
     """
+    from sage.misc.misc import sage_makedirs
+    from sage.misc.temporary_file import atomic_write
+
     global star_imports
     if star_imports is None:
         star_imports = {}
-    _, tmp_file = tempfile.mkstemp()
-    pickle.dump(star_imports, open(tmp_file, "w"))
-    cache_dir = os.path.dirname(get_cache_file())
-    try:
-        os.makedirs(cache_dir)
-    except OSError:
-        # Probably failed because directory already exists, but we make sure.
-        if not os.path.isdir(cache_dir):
-            raise
-    shutil.move(tmp_file, get_cache_file())
+    cache_file = get_cache_file()
+    cache_dir = os.path.dirname(cache_file)
+
+    sage_makedirs(cache_dir)
+    with atomic_write(cache_file) as f:
+        pickle.dump(star_imports, f)
 
 def get_star_imports(module_name):
     """
@@ -892,14 +892,33 @@ def get_star_imports(module_name):
         True
         sage: 'EllipticCurve' in get_star_imports('sage.schemes.all')
         True
+
+    TESTS::
+
+        sage: import os, tempfile
+        sage: fd, cache_file = tempfile.mkstemp()
+        sage: os.write(fd, 'invalid')
+        7
+        sage: os.close(fd)
+        sage: import sage.misc.lazy_import as lazy
+        sage: lazy.get_cache_file = (lambda: cache_file)
+        sage: lazy.star_imports = None
+        sage: lazy.get_star_imports('sage.schemes.all')
+        doctest:...: UserWarning: star_imports cache is corrupted
+        [...]
+        sage: os.remove(cache_file)
     """
     global star_imports
     if star_imports is None:
-        cache_file = get_cache_file()
-        if os.path.exists(cache_file):
-            star_imports = pickle.load(open(cache_file))
-        else:
-            star_imports = {}
+        star_imports = {}
+        try:
+            with open(get_cache_file()) as cache_file:
+                star_imports = pickle.load(cache_file)
+        except IOError:        # file does not exist
+            pass
+        except Exception:  # unpickling failed
+            import warnings
+            warnings.warn('star_imports cache is corrupted')
     try:
         return star_imports[module_name]
     except KeyError:

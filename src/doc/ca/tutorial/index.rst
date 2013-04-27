@@ -211,6 +211,7 @@ enumera les posicions des de `0`!:
 .. link
 
 ::
+
     sage: S[1] = 1000
     sage: S
     [121, 1000, 25, 9, 9, 25, 49, 121]
@@ -334,6 +335,7 @@ Ara podem cridar-la:
 .. link
 
 ::
+
     sage: solucions_reals_equacio_segon_grau(1,0,-1)
     hi ha dues solucions reals
     (1, -1)
@@ -343,6 +345,7 @@ Com que en l'exemple donat la funció retorna dos valors, podem assignar-los a d
 .. link
 
 ::
+
     sage: a,b = solucions_reals_equacio_segon_grau(1,0,-1)
     hi ha dues solucions reals
     sage: a
@@ -369,6 +372,7 @@ Observem el resultat del codi següent:
 .. link
 
 ::
+
     sage: a = 3
     sage: print f()
     5
@@ -476,7 +480,9 @@ El cos dels reals el denotem  amb ``RealField()`` o ``RR``. Algunes funcions per
 Equacions
 ---------
 
-Es poden resoldre equacions utilitzant l'ordre ``solve()``. Escrivint ``?solve`` el sage ens dóna una explicació molt extensa. Aquí en repetim els primers exemples::
+Es poden resoldre equacions utilitzant l'ordre ``solve()``. Escrivint
+``?solve`` el sage ens dóna una explicació molt extensa. Aquí en
+repetim els primers exemples::
 
     sage: x, y = var('x, y')
     sage: solve([x + y == 6, x - y == 4], x, y)
@@ -557,6 +563,7 @@ escrivim:
 .. skip
 
 ::
+
     sage: K = GF(p^n,'a')
 
 o bé:
@@ -564,6 +571,7 @@ o bé:
 .. skip
 
 ::
+
     sage: K.<a> = GF(p^n)
 
 Queda així definida també `a` com la classe de la indeterminada dels polinomis sobre :math:`F = \mathbb{Z}/p\mathbb{Z}` tal que :math:`K = F[x]/(f(x))`. Només podem obviar la variable `a` quan `n=1`.
@@ -573,6 +581,7 @@ També podem definir cossos finits forçant un determinat polinomi `f` de l'anel
 .. skip
 
 ::
+
     sage: F = GF(q, modulus = f)
 
 Donat un cos finit sempre podem conèixer-ne el cos primer
@@ -656,6 +665,7 @@ Així, les dues ordres següents ens donarien matrius diferents:
 .. link
 
 ::
+
     sage: m1 = matrix(Zmod(5),[[1,2],[3,4]]); m1
     [1 2]
     [3 4]
@@ -672,6 +682,7 @@ Seguint l'exemple anterior,
 .. link
 
 ::
+
     sage: m = matrix(F9,[[alpha,2*alpha,3*alpha],[alpha,alpha^2,alpha^3]])
     sage: m[0,1]
     2*alpha
@@ -713,6 +724,7 @@ Ara només n'agafem dues files:
 .. link
 
 ::
+
           sage: m.submatrix(1, 1, 2)
           [ 6  7  8]
           [10 11 12]
@@ -722,6 +734,7 @@ I ara només una columna:
 .. link
 
 ::
+
           sage: m.submatrix(1, 1, 2, 1)
           [ 6]
           [10]
@@ -731,6 +744,7 @@ També es poden escollir `0` files o columnes:
 .. link
 
 ::
+
           sage: m.submatrix(1, 1, 0)
           []
 

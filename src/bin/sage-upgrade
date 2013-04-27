@@ -26,7 +26,8 @@ if [ "$#" -gt 0 ]; then
     BRANCH="$1"
     shift
 else
-    case `git symbolic-ref HEAD` in
+    BRANCH=$(git symbolic-ref HEAD || git describe --exact-match --tags HEAD | { read tag; echo refs/tags/$tag })
+    case $BRANCH in
         refs/heads/master) BRANCH=master;;
         refs/heads/release) BRANCH=release;;
         refs/heads/beta) BRANCH=beta;;
@@ -45,6 +46,7 @@ if [ -z "$BRANCH" ]; then
     echo >&2 "  5.10"
     echo >&2 "  6.0"
     echo >&2 "  ..."
+    exit 1
 fi
 
 git pull "$SAGE_REPO" "$BRANCH"

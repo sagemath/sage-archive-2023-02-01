@@ -444,11 +444,11 @@ export PKG_CONFIG_PATH
 
 ############ compilation flags
 
-UNAME=`uname`
-if [ `uname | sed -e 's/WIN.\+/WIN/'` = "CYGWIN" ]; then
-    UNAME="CYGWIN"
-fi
-export UNAME
+# On Cygwin the result of `uname` depends on the version of Windows
+# it is running on, e.g. CYGWIN_NT-5.1 on 32 bits Windows XP or
+# CYGWIN_NT-6.1-WOW64 on 64 bits Windows 7.
+# Currently, this information is of no use to us so we discard it.
+export UNAME=`uname | sed 's/CYGWIN.*/CYGWIN/' `
 
 # Setting Sage-related compilation flags.
 # This could be used in code to make special changes only when

@@ -24,19 +24,19 @@ echo "Machine: `uname -a`"
 echo ""
 
 if [ "x$SAGE_PORT" = x ]; then
-    if [ "$UNAME" = "SunOS" ]; then
-       if [ "$RELEASE" = "5.9" ] || [ "$RELEASE" = "5.8" ] || [ "$RELEASE" = "5.7" ] || [ "$RELEASE" = "5.6" ] ; then
-          echo "Sage is not supported on any version of Solaris earlier than 10."
-          echo "Sage has been tested on the first release of Solaris 10"
-          echo "(03/2005) and works on that. Sage may or may not work with"
-          echo "your version of Solaris."
-          echo ""
-          echo "More information can be found about Sage on Solaris"
-          echo "on the Wiki at http://wiki.sagemath.org/solaris"
-          echo ""
-          fail=yes
-       fi
-    elif [ "$UNAME" = "HP-UX" ]; then
+    case "${UNAME}-${RELEASE}" in
+    # Unsupported platforms.
+    SunOS-5.[0-9])
+        echo "Sage is not supported on any version of Solaris earlier than 10."
+        echo "Sage has been tested on the first release of Solaris 10"
+        echo "(03/2005) and works on that. Sage may or may not work with"
+        echo "your version of Solaris."
+        echo ""
+        echo "More information can be found about Sage on Solaris"
+        echo "on the Wiki at http://wiki.sagemath.org/solaris"
+        echo ""
+        fail=yes;;
+    HP-UX*)
         echo "You are attempting to build Sage on HP's HP-UX operating system,"
         echo "which is not a supported platform for Sage yet though"
         echo "some work has been done on HP-UX. A port does not look to"
@@ -48,8 +48,8 @@ if [ "x$SAGE_PORT" = x ]; then
         echo "http://groups.google.com/group/sage-devel"
         echo "The Sage community would also appreciate any patches you submit."
         echo ""
-        fail=yes
-    elif [ "$UNAME" = "AIX" ]; then
+        fail=yes;;
+    AIX*)
         echo "You are attempting to build Sage on IBM's AIX operating system,"
         echo "which is not a supported platform for Sage yet. Things may or"
         echo "may not work. If you would like to help port Sage to AIX,"
@@ -57,8 +57,8 @@ if [ "x$SAGE_PORT" = x ]; then
         echo "http://groups.google.com/group/sage-devel"
         echo "The Sage community would also appreciate any patches you submit."
         echo ""
-        fail=yes
-    elif [ "$UNAME" = "IRIX" ] || [ "$UNAME" = "IRIX64"  ]; then
+        fail=yes;;
+    IRIX*)
         echo "You are attempting to build Sage on SGI's IRIX operating system,"
         echo "which is not a supported platform for Sage yet. Things may or"
         echo "may not work. If you would like to help port Sage to IRIX,"
@@ -66,8 +66,8 @@ if [ "x$SAGE_PORT" = x ]; then
         echo "http://groups.google.com/group/sage-devel"
         echo "The Sage community would also appreciate any patches you submit."
         echo ""
-        fail=yes
-    elif [ "$UNAME" = "Tru64" ]; then
+        fail=yes;;
+    Tru64*)
         echo "You are attempting to build Sage on HP's Tru64 operating system,"
         echo "which is not a supported platform for Sage yet. Things may or"
         echo "may not work. If you would like to help port Sage to Tru64,"
@@ -75,8 +75,8 @@ if [ "x$SAGE_PORT" = x ]; then
         echo "http://groups.google.com/group/sage-devel"
         echo "The Sage community would also appreciate any patches you submit."
         echo ""
-        fail=yes
-    elif [ "$UNAME" = "FreeBSD" ]; then
+        fail=yes;;
+    FreeBSD*)
         echo "You are attempting to build Sage on the FreeBSD operating system,"
         echo "which is not a supported platform for Sage yet, though"
         echo "developers are working on adding FreeBSD support. Things may or"
@@ -85,8 +85,19 @@ if [ "x$SAGE_PORT" = x ]; then
         echo "http://groups.google.com/group/sage-devel"
         echo "The Sage community would also appreciate any patches you submit."
         echo ""
-        fail=yes
-    elif [ "$UNAME" != "SunOS" ] && [ "$UNAME" != "Darwin" ] && [ "$UNAME" != "Linux" ]; then
+        fail=yes;;
+    # Supported platforms.
+    Linux*|Darwin*|SunOS*|CYGWIN*)
+        # For SunOS, not all versions are supported, but we checked for
+        # unsupported versions above.
+        #
+        # On Cygwin the result of `uname` depends on the version of
+        # Windows it is running on, e.g. CYGWIN_NT-5.1 on 32 bits
+        # Windows XP or CYGWIN_NT-6.1-WOW64 on 64 bits Windows 7 which
+        # currently makes no difference for us.
+        fail=no;;
+    # Wildcard for other unsupported platforms.
+    *)
         echo "You are attempting to build Sage on $UNAME,"
         echo "which is not a supported platform for Sage yet. Things may or"
         echo "may not work. If you would like to help port Sage to $UNAME,"
@@ -94,8 +105,8 @@ if [ "x$SAGE_PORT" = x ]; then
         echo "http://groups.google.com/group/sage-devel"
         echo "The Sage community would also appreciate any patches you submit."
         echo ""
-        fail=yes
-    fi
+        fail=yes;;
+    esac
 
     # Test versions of "tar" and "make".
     have_gnu_tar=`tar --version 2>&1 | grep GNU`

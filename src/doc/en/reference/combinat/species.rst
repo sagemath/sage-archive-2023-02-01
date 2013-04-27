@@ -50,4 +50,5 @@ Miscellaneous
 
    ../sage/combinat/species/structure
    ../sage/combinat/species/misc
+   ../sage/combinat/species/combinatorial_logarithm
 

@@ -41,17 +41,11 @@ if [ "x$SAGE64" = "xyes" ]  ; then
 fi
 
 if [ "x$SAGE_DEBUG" = "xyes" ] ; then
-    CFLAGS="$CFLAGS -g -O0"
-    CXXFLAGS="$CXXFLAGS -g -O0"
+    CFLAGS="-g -O0 $CFLAGS"
+    CXXFLAGS="-g -O0 $CXXFLAGS"
 else
     CFLAGS="-g -O2 $CFLAGS"
     CXXFLAGS="-g -O2 $CXXFLAGS"
-fi
-
-if [ "`uname -sm`" = "Darwin Power Macintosh" ] ; then
-# Disabling altivec instructions (trac 11297)
-    CFLAGS="$CFLAGS -mno-altivec -mabi=no-altivec"
-    export CFLAGS
 fi
 
 # These are all used by GNU to specify compilers.
@@ -73,33 +67,23 @@ export CXXFLAGS
 export CPPFLAGS
 export LDFLAGS
 
-# End of pretty general spkg-install file.
-# Now do the specific things needed for this package (ECL)
-
-# 'export MAKE='make -j n' where n>1, breaks ECL builds, so use only one thread
+# Building ECL in parallel doesn't work, so use only 1 thread
 MAKE="$MAKE -j1"
 
-# We clear MAKEFLAGS because of issues on OS X.
-if [ "$UNAME" = "Darwin" ]; then
-    export MAKEFLAGS=
-fi
 
-if [ "x`uname -sm`" = "xSunOS i86pc" ] && [ "x$SAGE64" = xyes ]  ; then
+if [ "`uname -sm`" = "SunOS i86pc" ] && [ "x$SAGE64" = xyes ]; then
     # Need to add --with-dffi=no to disable assembly code on OpenSolaris x64.
     # and Solaris 10 on x64.
     # The option is only given if all the following are true
     # 1) Solaris, Solaris Express or OpenSolaris (SunOS)
     # 2) Intel or AMD CPU
     # 3) 64-bit build
-    ./configure --prefix="$SAGE_LOCAL" --with-gmp-prefix=$SAGE_LOCAL \
-      --libdir="$SAGE_LOCAL/lib" --with-dffi=no --disable-threads \
-      --enable-unicode=no
-else
-    ./configure --prefix="$SAGE_LOCAL" --with-gmp-prefix=$SAGE_LOCAL \
-      --libdir="$SAGE_LOCAL/lib" --disable-threads \
-      --enable-unicode=no
+    ECL_CONFIGURE="--with-dffi=no $ECL_CONFIGURE"
 fi
 
+./configure --prefix="$SAGE_LOCAL" --with-gmp-prefix=$SAGE_LOCAL \
+    --libdir="$SAGE_LOCAL/lib" --disable-threads \
+    --enable-unicode=no $ECL_CONFIGURE
 if [ $? -ne 0 ]; then
     echo >&2 "Error - Failed to configure ECL ... exiting"
     exit 1

@@ -41,7 +41,7 @@ Website: http://ecls.sourceforge.net/
  * Deleting the following directories saves space: without doing
    this, the spkg can grow from under 2.5 megabytes to almost 7
    megabytes.  Deleting these files is done automatically by the
-   `spkg-make` script.
+   `spkg-src` script.
    - The directory src/msvc/
    - The directory src/src/gc-unstable
    - The directory src/src/libffi
@@ -54,7 +54,6 @@ Website: http://ecls.sourceforge.net/
    Building with --enable-unicode=yes, the default in the latest ECL
    source, leads to problems with some strings in the Sage-Maxima-ECL
    interface.
- * Note: the way we configure Sage, CXX and CXXFLAGS are unused.
  * Note: for the time being, ECL is built single threaded library as it
    seems to interact badly with the pexpect interface and Sage's signal
    handling when built multithreaded.
@@ -67,6 +66,15 @@ Website: http://ecls.sourceforge.net/
    the src/src/gc directory, too.
 
 == Changelog ==
+
+=== ecl-12.12.1.p2 (Jeroen Demeyer, 9 April 2013) ===
+ * #14426: write_error.patch: avoid an infinite loop when reporting
+   an error while writing to stderr.
+ * Rename spkg-make to spkg-src.
+ * Don't unset MAKEFLAGS (it was not clear why this was needed).
+ * It seems no longer needed to disable Altivec.
+ * Support ECL_CONFIGURE environment variable for options to
+   ./configure.
 
 === ecl-12.12.1.p1 (Jean-Pierre Flori, 18 December 2012) ===
  * #9167: Resolve ecl.dll conflict on Cygwin.

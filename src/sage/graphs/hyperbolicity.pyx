@@ -137,16 +137,17 @@ from sage.graphs.graph import Graph
 from sage.graphs.distances_all_pairs cimport c_distances_all_pairs
 from sage.rings.arith import binomial
 from sage.rings.integer_ring import ZZ
+from sage.rings.real_mpfr import RR
 from sage.functions.other import floor
 from sage.misc.bitset import Bitset
-from libc.stdint cimport uint32_t, uint64_t
+from libc.stdint cimport uint16_t, uint32_t, uint64_t
 include "../ext/stdsage.pxi"
 
 
 # Defining a pair of vertices as a C struct
 ctypedef struct pair:
-    int s
-    int t
+    uint16_t s
+    uint16_t t
 
 
 ######################################################################
@@ -398,6 +399,24 @@ def elimination_ordering_of_simplicial_vertices(G, max_degree=4, verbose=False):
 
 
 ######################################################################
+# Greedy dominating set
+######################################################################
+
+def _greedy_dominating_set(H):
+    r"""
+    Returns a greedy approximation of a dominating set
+    """
+    V = sorted([(d,u) for u,d in H.degree_iterator(None,True)],reverse=True)
+    DOM = []
+    seen = set()
+    for _,u in V:
+        if not u in seen:
+            seen.add(u)
+            DOM.append(u)
+            seen.update(H.neighbor_iterator(u))
+    return DOM
+
+######################################################################
 # Compute the hyperbolicity using a path decreasing length ordering
 ######################################################################
 
@@ -407,9 +426,9 @@ cdef inline _invert_cells(pair * tab, uint32_t idxa, uint32_t idxb):
     tab[idxb] = tmp
 
 
-cdef _order_pairs_according_elimination_ordering(elim, int N, pair *pairs, uint32_t nb_pairs, uint32_t *last_pair):
+cdef _order_pairs_according_elimination(elim, int N, pair *pairs, uint32_t nb_pairs, uint32_t *last_pair):
     r"""
-    Re-order the pairs of vertices according the elimination of simplicial vertices.
+    Re-order the pairs of vertices according the set of eliminated vertices.
 
     We put pairs of vertices with an extremity in ``elim`` at the end of the
     array of pairs.  We record the positions of the first pair of vertices in
@@ -477,8 +496,8 @@ cdef tuple __hyperbolicity__(int N,
        best found solution is less than additive gap. When the gap is 0.0, the
        problem is solved optimaly.
 
-    - ``elim`` -- elimination ordering of simplicial vertices (list of vertices
-      to eliminate when the lower bound is larger or equal to 1).
+    - ``elim`` -- list of vertices that should not be considered during
+      computations.
 
     - ``verbose`` -- (default: ``False``) is boolean set to ``True`` to display
       some information during execution
@@ -538,7 +557,7 @@ cdef tuple __hyperbolicity__(int N,
         pairs_of_length[i] = <pair *>sage_malloc(sizeof(pair)*nb_pairs_of_length[i])
 
         if nb_pairs_of_length[i] > 0 and pairs_of_length[i] == NULL:
-            while i>0:
+            while i>1:
                 i -= 1
                 sage_free(pairs_of_length[i])
             sage_free(nb_pairs_of_length)
@@ -562,9 +581,9 @@ cdef tuple __hyperbolicity__(int N,
 
     # ==> Allocates last_pair
     #
-    # We improve the ordering of the pairs according the elimination
-    # ordering. We store in last_pair[l] the index of the last pair of length l
-    # to consider when the lower bound on the hyperbolicity >=1.
+    # We change the ordering of the pairs to avoid considering pairs touching
+    # eliminated vertices (i.e., vertices in elim). We store in last_pair[l] the
+    # index of the last pair of length l to consider.
     cdef uint32_t * last_pair = <uint32_t *>sage_malloc(sizeof(uint32_t)*(D+1))
     if last_pair == NULL:
         for 1 <= i <= D:
@@ -575,7 +594,7 @@ cdef tuple __hyperbolicity__(int N,
         raise MemoryError
 
     for 1 <= l <= D:
-        _order_pairs_according_elimination_ordering(elim, N, pairs_of_length[l], nb_pairs_of_length[l], last_pair+l)
+        _order_pairs_according_elimination(elim, N, pairs_of_length[l], nb_pairs_of_length[l], last_pair+l)
 
     approximation_factor = min(approximation_factor, D)
     additive_gap = min(additive_gap, D)
@@ -595,6 +614,7 @@ cdef tuple __hyperbolicity__(int N,
     cdef uint32_t nb_pairs_of_length_l1, nb_pairs_of_length_l2
     h = h_LB
     h_UB = D
+    cdef int STOP = 0
     for S1, l1, l2 in triples:
 
         # If we cannot improve further, we stop
@@ -616,10 +636,7 @@ cdef tuple __hyperbolicity__(int N,
                 break
 
         pairs_of_length_l1 = pairs_of_length[l1]
-
-        # We only need test the pairs after last_pair[l1] if we do not have a
-        # proof that h>=2.
-        nb_pairs_of_length_l1 = last_pair[l1] if h>=2 else nb_pairs_of_length[l1]
+        nb_pairs_of_length_l1 = last_pair[l1]
         x = 0
         while x < nb_pairs_of_length_l1:
             a = pairs_of_length_l1[x].s
@@ -630,6 +647,7 @@ cdef tuple __hyperbolicity__(int N,
             # See the module's documentation for an proof that this cut is
             # valid.
             if l2 <= h:
+                STOP = 1
                 break
 
             # We do not want to test pairs of pairs twice if l1 == l2
@@ -639,10 +657,7 @@ cdef tuple __hyperbolicity__(int N,
                 y = 0
 
             pairs_of_length_l2 = pairs_of_length[l2]
-
-            # We only need test the pairs after last_pair[l2] if we do not have
-            # a proof that h>=2.
-            nb_pairs_of_length_l2 = last_pair[l2] if h>=2 else nb_pairs_of_length[l2]
+            nb_pairs_of_length_l2 = last_pair[l2]
             while y < nb_pairs_of_length_l2:
                 c = pairs_of_length_l2[y].s
                 d = pairs_of_length_l2[y].t
@@ -665,19 +680,19 @@ cdef tuple __hyperbolicity__(int N,
                 else:
                     hh = S1 - S3
 
-                if h < hh:
+                if h < hh or not certificate:
                     # We update current bound on the hyperbolicity and the
                     # search space
                     h = hh
                     certificate = [a, b, c, d]
-                    if h>=2:
-                        nb_pairs_of_length_l2 = last_pair[l2]
-                        nb_pairs_of_length_l1 = last_pair[l1]
-                        if x >= nb_pairs_of_length_l1:
-                            break
 
                     if verbose:
                         print "New lower bound:",ZZ(hh)/2
+
+                    # Termination if required approximation is found
+                    if (h_UB <= h*approximation_factor) or (h_UB-h <= additive_gap):
+                        STOP = 1
+                        break
 
                 # We go for the next pair c-d
                 y += 1
@@ -686,12 +701,18 @@ cdef tuple __hyperbolicity__(int N,
                 # See the module's documentation for an proof that this cut is
                 # valid.
                 if l2 <= h:
+                    STOP = 1
                     h_UB = h
                     break
+
+            if STOP:
+                break
 
             # We go for the next pair a-b
             x += 1
 
+        if STOP:
+            break
 
     # We now free the memory
     sage_free(nb_pairs_of_length)
@@ -706,7 +727,8 @@ cdef tuple __hyperbolicity__(int N,
     else:
         return (h, certificate, h_UB)
 
-def hyperbolicity(G, algorithm='cuts', approximation_factor=1.0, additive_gap=0, verbose = False):
+
+def hyperbolicity(G, algorithm='cuts', approximation_factor=None, additive_gap=None, verbose = False):
     r"""
     Return the hyperbolicity of the graph or an approximation of this value.
 
@@ -736,23 +758,37 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=1.0, additive_gap=0,
             as a new lower bound is found (see the module's documentation). This
             algorithm can be turned into a approximation algorithm.
 
-          - ``'cuts+'`` is an extension of the ``cuts`` algorithm that uses
-            elimination ordering of the simplicial vertices as documented in
-            [CCL12_]. For some classes of graphs it allows a significant
-            speed-up. Try it to know if it is intersting for you.
+          - ``'cuts+'`` is an additive constant approximation algorithm. It
+            proceeds by first removing the simplicial vertices and then applying
+            the ``'cuts'`` algorithm on the remaining graph, as documented in
+            [CCL12_]. By default, the additive constant of the approximation is
+            one. This value can be increased by setting the ``additive_gap`` to
+            the desired value, provide ``additive_gap \geq 1``. In some cases,
+            the returned result is proven optimal. However, this algorithm
+            *cannot* be used to compute an approximation with multiplicative
+            factor, and so the ``approximation_factor`` parameter is just
+            ignored here.
 
-    - ``approximation_factor`` -- (default: 1.0) When the approximation factor
-      is set to some value larger than 1.0, the function stop computations as
+          - ``'dom'`` is an approximation with additive constant four. It
+            computes the hyperbolicity of the vertices of a dominating set of
+            the graph. This is sometimes slower than ``'cuts'`` and sometimes
+            faster. Try it to know if it is interesting for you.
+            The ``additive_gap`` and ``approximation_factor`` parameters cannot
+            be used in combination with this method and so are ignored.
+
+    - ``approximation_factor`` -- (default: None) When the approximation factor
+      is set to some value (larger than 1.0), the function stop computations as
       soon as the ratio between the upper bound and the best found solution is
       less than the approximation factor. When the approximation factor is 1.0,
       the problem is solved optimaly. This parameter is used only when the
-      chosen algorithm is ``'cuts'`` or ``'cuts+'``.
+      chosen algorithm is ``'cuts'``.
 
-    - ``additive_gap`` -- (default: 0.0) When sets to a positive number, the
+    - ``additive_gap`` -- (default: None) When sets to a positive number, the
       function stop computations as soon as the difference between the upper
       bound and the best found solution is less than additive gap. When the gap
       is 0.0, the problem is solved optimaly. This parameter is used only when
-      the chosen algorithm is ``'cuts'`` or ``'cuts+'``.
+      the chosen algorithm is ``'cuts'`` or ``'cuts+'``. The parameter must be
+      ``\geq 1`` when used with ``'cuts+'``.
 
     - ``verbose`` -- (default: ``False``) is a boolean set to True to display
       some information during execution: new upper and lower bounds, etc.
@@ -789,6 +825,8 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=1.0, additive_gap=0,
         (1/2, [0, 1, 2, 3], 1/2)
         sage: hyperbolicity(G,algorithm='basic')
         (1/2, [0, 1, 2, 3], 1/2)
+        sage: hyperbolicity(G,algorithm='dom')
+        (0, [0, 2, 8, 9], 1)
 
     Asking for an approximation::
 
@@ -800,6 +838,12 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=1.0, additive_gap=0,
         (1, [(0, 0), (0, 9), (1, 0), (1, 9)], 4)
         sage: hyperbolicity(G,algorithm='cuts', additive_gap=2)
         (1, [(0, 0), (0, 9), (1, 0), (1, 9)], 3)
+        sage: hyperbolicity(G,algorithm='cuts+')
+        (1, [(0, 0), (0, 9), (1, 0), (1, 9)], 2)
+        sage: hyperbolicity(G,algorithm='cuts+', additive_gap=2)
+        (1, [(0, 0), (0, 9), (1, 0), (1, 9)], 3)
+        sage: hyperbolicity(G,algorithm='dom')
+        (1, [(0, 1), (0, 9), (1, 0), (1, 8)], 5)
 
     Comparison of results::
 
@@ -810,7 +854,7 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=1.0, additive_gap=0,
         ...       d2,_,_ = hyperbolicity(G,algorithm='cuts')
         ...       d3,_,_ = hyperbolicity(G,algorithm='cuts+')
         ...       l3,_,u3 = hyperbolicity(G,approximation_factor=2)
-        ...       if d1!=d2 or d1!=d3 or l3>d1 or u3<d1:
+        ...       if d1!=d2 or d1<d3 or l3>d1 or u3<d1:
         ...          print "That's not good!"
 
     TESTS:
@@ -848,7 +892,7 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=1.0, additive_gap=0,
         sage: hyperbolicity(G,algorithm='cuts', additive_gap=-1)
         Traceback (most recent call last):
         ...
-        ValueError: The additive gap must be >= 0.
+        ValueError: The additive gap must be >= 0 when using the 'cuts' algorithm.
 
     Asking for an unknown algorithm::
 
@@ -861,13 +905,25 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=1.0, additive_gap=0,
     """
     if not isinstance(G,Graph):
         raise ValueError("The input parameter must be a Graph.")
-    if algorithm=='cuts':
-        if approximation_factor < 1.0:
-            raise ValueError("The approximation factor must be >= 1.0.")
-        if additive_gap < 0.0:
-            raise ValueError("The additive gap must be >= 0.")
-    elif not algorithm in ['basic', 'cuts+']:
+    if not algorithm in ['basic', 'cuts', 'cuts+', 'dom']:
         raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
+    if approximation_factor is None:
+        approximation_factor = 1.0
+    elif algorithm=='cuts' and (not approximation_factor in RR or approximation_factor < 1.0):
+        raise ValueError("The approximation factor must be >= 1.0.")
+    elif algorithm!='cuts':
+        print "The approximation_factor is ignored when using the '%s' algorithm." %(algorithm)
+    if additive_gap is None:
+        additive_gap = 1.0 if algorithm=='cuts+' else 0.0
+    elif algorithm=='cuts' or algorithm=='cuts+':
+        if not additive_gap in RR:
+            raise ValueError("The additive gap must be a real positive number.")
+        elif algorithm=='cuts' and additive_gap < 0.0:
+            raise ValueError("The additive gap must be >= 0 when using the '%s' algorithm." %(algorithm))
+        elif algorithm=='cuts+' and additive_gap < 1.0:
+            raise ValueError("The additive gap must be >= 1 when using the '%s' algorithm." %(algorithm))
+    else:
+        print "The additive_gap is ignored when using the '%s' algorithm." %(algorithm)
 
     # The hyperbolicity is defined on connected graphs
     if not G.is_connected():
@@ -920,19 +976,16 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=1.0, additive_gap=0,
         # 2-connected subgraphs.
         if len(V) > max( 3, 2*hyp) :
 
-            # We build the subgraph
-            H = _my_subgraph(G,V)
+            # We build the subgraph and we relabel the vertices to ensure
+            # integer vertex names in the range [0..N-1] since the
+            # c_distances_all_pairs uses integer labels in the range [0..N-1].
+            H, mymap = _my_subgraph(G, V, relabel=True, return_map=True)
             N = H.num_verts()
 
             # We test if the block belongs to a graph class with known
             # hyperbolicity and a fast test.
             if H.is_clique():
                 continue
-
-            # We relabel the vertices to ensure integer vertex names in the
-            # range [0..N-1] since the c_distances_all_pairs uses integer labels
-            # in the range [0..N-1].
-            mymap = H.relabel( return_map=True )
 
             # We compute the distances and store the results in a 2D array, and
             # the diameter
@@ -953,23 +1006,37 @@ def hyperbolicity(G, algorithm='cuts', approximation_factor=1.0, additive_gap=0,
             # the required parameters.
             if algorithm == 'cuts':
                 hh, certif, hh_UB = __hyperbolicity__(N, distances, D, hyp, approximation_factor, 2*additive_gap, [], verbose)
+                hh_UB = min( hh_UB, D)
 
             elif algorithm == 'cuts+':
                 # We compute the elimination ordering of simplicial vertices of H
                 elim = elimination_ordering_of_simplicial_vertices(H, max(2,floor(N**(1/2.0))), verbose)
-                if len(elim)==N and hyp>=2:
-                    # We know that this component has hyperbolicity <=1 and so
-                    # that we cannot improve current lower bound.
-                    hh = hyp
+                if len(elim) > N-4:
+                    # We know that this component has hyperbolicity <= 1
+                    certif = H.vertices()[:4]
+                    hh = __hyp__(distances,certif[0],certif[1],certif[2],certif[3])
+                    hh_UB = 2
                 else:
-                    hh, certif, hh_UB = __hyperbolicity__(N, distances, D, hyp, approximation_factor, 2*additive_gap, elim, verbose)
+                    hh, certif, hh_UB = __hyperbolicity__(N, distances, D, hyp, 1.0, 2*additive_gap-2, elim, verbose)
+                    hh_UB = min( hh_UB+2, D)
+
+            elif algorithm == 'dom':
+                # Computes a dominating set DOM of H, and computes the
+                # hyperbolicity considering only vertices in DOM
+                DOM = _greedy_dominating_set(H)
+                elim = [u for u in H.vertex_iterator() if not u in DOM]
+                # We need at least 4 vertices
+                while len(DOM)<4:
+                    DOM.append(elim.pop())
+                hh, certif, hh_UB = __hyperbolicity__(N, distances, D, hyp, 1.0, 0.0, elim, verbose)
+                hh_UB = min( hh+8, D)
 
             elif algorithm == 'basic':
                 hh, certif = __hyperbolicity_basic_algorithm__(N, distances, verbose)
                 hh_UB = hh
 
             # We test if the new computed value improves upon previous value.
-            if hh > hyp:
+            if hh > hyp or (hh==hyp and not certificate):
                 hyp = hh
                 hyp_UB = hh_UB
 

@@ -1129,7 +1129,7 @@ def CameronGraph():
     g = Graph(name="Cameron Graph")
     sets = MathieuGroup(22).orbit((1,2,3,7,10,20), action = "OnSets")
     for s in sets:
-        for a,b,c,d in combinations(s,4):
+        for a,b,c,d in combinations(set(s),4):
             g.add_edges([((a,b),(c,d)),((a,c),(b,d)), ((a,d),(b,c))])
 
     g.relabel()

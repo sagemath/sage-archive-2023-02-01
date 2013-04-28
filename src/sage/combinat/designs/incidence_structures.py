@@ -1,32 +1,40 @@
 """
 Incidence structures.
 
-An incidence structure is specified by a list of points, blocks,
-and an incidence matrix ([1], [2]).
-
-Classes:
-
-IncidenceStructure
-
-This software is released under the terms of the GNU General Public
-License, version 2 or above (your choice). For details on
-licensing, see the accompanying documentation.
+An incidence structure is specified by a list of points, blocks, and
+an incidence matrix ([1]_, [2]_).
 
 REFERENCES:
 
-- [1] Block designs and incidence structures from wikipedia,
+.. [1] Block designs and incidence structures from wikipedia,
   http://en.wikipedia.org/wiki/Block_design
   http://en.wikipedia.org/wiki/Incidence_structure
 
-- [2] E. Assmus, J. Key, Designs and their codes, CUP, 1992.
+.. [2] E. Assmus, J. Key, Designs and their codes, CUP, 1992.
 
-This is a significantly modified form of part of the module
-block_design.py (version 0.6) written by Peter Dobcsanyi
-peter@designtheory.org.
+AUTHORS:
 
-Copyright 2007-2008 by David Joyner wdjoyner@gmail.com, Peter
-Dobcsanyi peter@designtheory.org.
+- Peter Dobcsanyi and David Joyner (2007-2008)
+
+  This is a significantly modified form of part of the module block_design.py
+  (version 0.6) written by Peter Dobcsanyi peter@designtheory.org.
+
+
+Classes and methods
+-------------------
 """
+#***************************************************************************
+#                              Copyright (C) 2007                          #
+#                                                                          #
+#                Peter Dobcsanyi       and         David Joyner            #
+#           <peter@designtheory.org>          <wdjoyner@gmail.com>         #
+#                                                                          #
+#                                                                          #
+#    Distributed under the terms of the GNU General Public License (GPL)   #
+#    as published by the Free Software Foundation; either version 2 of     #
+#    the License, or (at your option) any later version.                   #
+#                    http://www.gnu.org/licenses/                          #
+#***************************************************************************
 
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.integer_ring import ZZ
@@ -37,9 +45,13 @@ from sage.misc.decorators import rename_keyword
 
 def coordinatewise_product(L):
     """
-    L is a list of n-vectors or lists all of length n with a common
-    parent. This returns the vector whose i-th coordinate is the
-    product of the i-th coordinates of the vectors.
+    Returns the coordinatewise product of a list of vectors.
+
+    ÌNPUT:
+
+    - ``L`` is a list of `n`-vectors or lists all of length `n` with a common
+      parent. This returns the vector whose `i`-th coordinate is the product of
+      the `i`-th coordinates of the vectors.
 
     EXAMPLES::
 
@@ -56,8 +68,12 @@ def coordinatewise_product(L):
 
 def IncidenceStructureFromMatrix(M, name=None):
     """
-    M must be a (0,1)-matrix. Creates a set of "points" from the rows
-    and a set of "blocks" from the columns.
+    Builds and incidence structure from a matrix.
+
+    INPUT:
+
+    - ``M`` -- a binary matrix. Creates a set of "points" from the rows and a
+      set of "blocks" from the columns.
 
     EXAMPLES::
 
@@ -87,15 +103,20 @@ class IncidenceStructure(object):
     """
     def __init__(self, pts, blks, inc_mat=None, name=None, test=True):
         """
-        The parameters are a pair pts, blks, both of which are a list (blks
-        is a list of lists). If each B in blks is contained in pts then the
-        incidence matrix inc_mat need not (and should not) be given.
-        Otherwise, inc_mat should be the ptsxblks (0,1)-matrix A for which
-        A_i,j=1 iff blks[j] is incident with pts[i].
+        INPUT:
 
-        Optional keywords are: "inc_mat" (for giving the (0,1)-incidence
-        matrix), and "name" (a string, such as "Fano plane"). "test" (True
-        or False) - if True then each block must be a list of pts.
+        - ``pts, blks`` -- a list of points, and a list of lists (list of blocks).
+
+          If each `B` in ``blks`` is contained in ``pts`` then the incidence
+          matrix ` inc_mat`` need not (and should not) be given.  Otherwise,
+          ``inc_mat`` should be the ``ptsxblks`` `(0,1)`-matrix `A` for which
+          `A_i,j=1` iff ``blks[j]`` is incident with ``pts[i]``.
+
+        - ``inc_mat`` (for giving the `(0,1)`-incidence matrix)
+
+        - ``name`` (a string, such as "Fano plane").
+
+        - ``test`` (boolean) - if ``True``, then each block must be a list of pts.
 
         EXAMPLES::
 
@@ -192,10 +213,9 @@ class IncidenceStructure(object):
 
     def automorphism_group(self):
         """
-        Returns the subgroup of the automorphism group of the incidence
-        graph which respects the P B partition. This is (isomorphic to) the
-        automorphism group of the block design, although the degrees
-        differ.
+        Returns the subgroup of the automorphism group of the incidence graph
+        which respects the P B partition. It is (isomorphic to) the automorphism
+        group of the block design, although the degrees differ.
 
         EXAMPLES::
 
@@ -376,7 +396,6 @@ class IncidenceStructure(object):
            gB.append([x+1 for x in b])
         return "BlockDesign("+str(v)+","+str(gB)+")"
 
-    @rename_keyword(deprecation=6094, method="algorithm")
     def dual_incidence_structure(self, algorithm=None):
         """
         Wraps GAP Design's DualBlockDesign (see [1]). The dual of a block
@@ -384,8 +403,10 @@ class IncidenceStructure(object):
 
         Also can be called with ``dual_design``.
 
-        REQUIRES: algorithm="gap" option requires GAP's Design package.
-        algorithm=None option does *not* require GAP's Design.
+        .. NOTE:
+
+        The algorithm="gap" option requires GAP's Design package (included in
+        the gap_packages Sage spkg).
 
         EXAMPLES::
 
@@ -434,8 +455,9 @@ class IncidenceStructure(object):
 
     def incidence_matrix(self):
         """
-        Return the incidence matrix A of the design. A is a (v x b) matrix
-        defined by: A[i,j] = 1 if i is in block B_j 0 otherwise
+        Return the incidence matrix `A` of the design. A is a `(v \times b)`
+        matrix defined by: ``A[i,j] = 1`` if ``i`` is in block ``B_j`` and 0
+        otherwise.
 
         EXAMPLES::
 
@@ -492,9 +514,9 @@ class IncidenceStructure(object):
 
     def is_block_design(self):
         """
-        Returns a pair True, pars if the incidence structure is a t-design,
-        for some t, where pars is the list of parameters [t, v, k, lmbda].
-        The largest possible t is returned, provided t=10.
+        Returns a pair ``True, pars`` if the incidence structure is a
+        `t`-design, for some `t`, where ``pars`` is the list of parameters `(t,
+        v, k, lmbda)`.  The largest possible `t` is returned, provided `t=10`.
 
         EXAMPLES::
 
@@ -556,8 +578,8 @@ class IncidenceStructure(object):
 
     def parameters(self, t=2):
         """
-        Returns (t,v,k,lambda). Does not check if the input is a block
-        design. Uses t=2 by default.
+        Returns `(t,v,k,lambda)`. Does not check if the input is a block
+        design. Uses `t=2` by default.
 
         EXAMPLES::
 

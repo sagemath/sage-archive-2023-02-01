@@ -5,5 +5,6 @@ Designs and Incidence Structures
    :maxdepth: 2
 
    ../sage/combinat/designs/block_design
+   ../sage/combinat/designs/covering_design
    ../sage/combinat/designs/ext_rep
    ../sage/combinat/designs/incidence_structures

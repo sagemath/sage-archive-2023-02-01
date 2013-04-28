@@ -216,8 +216,9 @@ cdef dc_work_space *allocate_dc_work_space(int n):
     work_space.group2 = SC_new(n)
     work_space.current_ps = PS_new(n,0)
     work_space.first_ps   = PS_new(n,0)
-    work_space.bitset_array = <bitset_t *> sage_malloc((n + 2*len_of_fp_and_mcr + 1)*sizeof(bitset_t))
+    work_space.bitset_array = <bitset_t *> sage_calloc((n + 2*len_of_fp_and_mcr + 1), sizeof(bitset_t))
     work_space.orbits_of_subgroup = OP_new(n)
+    work_space.perm_stack = NULL
 
     if int_array                        is NULL or \
        work_space.group1                is NULL or \
@@ -226,6 +227,7 @@ cdef dc_work_space *allocate_dc_work_space(int n):
        work_space.first_ps              is NULL or \
        work_space.bitset_array          is NULL or \
        work_space.orbits_of_subgroup    is NULL:
+        sage_free(int_array)
         deallocate_dc_work_space(work_space)
         return NULL
 

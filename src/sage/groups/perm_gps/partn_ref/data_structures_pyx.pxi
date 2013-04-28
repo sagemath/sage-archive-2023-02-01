@@ -655,7 +655,7 @@ cdef StabilizerChain *SC_new(int n, bint init_gens=True):
     """
     cdef int i
     cdef StabilizerChain *SC = <StabilizerChain *> \
-                                sage_malloc(sizeof(StabilizerChain))
+                                sage_calloc(1, sizeof(StabilizerChain))
     cdef int *array1, *array2, *array3
     cdef bint mem_err = 0
     if SC is NULL:
@@ -663,23 +663,12 @@ cdef StabilizerChain *SC_new(int n, bint init_gens=True):
     SC.degree = n
     SC.base_size = 0
     if n == 0:
-        SC.orbit_sizes    = NULL
-        SC.num_gens       = NULL
-        SC.array_size     = NULL
-        SC.base_orbits    = NULL
-        SC.parents        = NULL
-        SC.labels         = NULL
-        SC.generators     = NULL
-        SC.gen_inverses   = NULL
-        SC.gen_used.bits  = NULL
-        SC.gen_is_id.bits = NULL
-        SC.perm_scratch   = NULL
-        SC.OP_scratch     = NULL
+        # All internal pointers have been initialized to NULL by sage_calloc
         return SC
 
     # first level allocations
     cdef int *int_array = <int *>  sage_malloc( (3*n*n + 6*n + 1) * sizeof(int) )
-    cdef int **int_ptrs = <int **> sage_malloc( 5*n * sizeof(int *) )
+    cdef int **int_ptrs = <int **> sage_calloc( 5*n, sizeof(int *) )
     SC.OP_scratch = OP_new(n)
     # bitset_init without the MemoryError:
     cdef long limbs = (default_num_bits - 1)/(8*sizeof(unsigned long)) + 1
@@ -689,15 +678,18 @@ cdef StabilizerChain *SC_new(int n, bint init_gens=True):
     SC.gen_is_id.limbs = limbs
     SC.gen_used.bits   = <unsigned long*>sage_malloc(limbs * sizeof(unsigned long))
     SC.gen_is_id.bits  = <unsigned long*>sage_malloc(limbs * sizeof(unsigned long))
-    SC.gen_used.bits[limbs-1] = 0
-    SC.gen_is_id.bits[limbs-1] = 0
 
     # check for allocation failures
     if int_array        is NULL or int_ptrs          is NULL or \
        SC.gen_used.bits is NULL or SC.gen_is_id.bits is NULL or \
        SC.OP_scratch    is NULL:
+        sage_free(int_array)
+        sage_free(int_ptrs)
         SC_dealloc(SC)
         return NULL
+
+    SC.gen_used.bits[limbs-1] = 0
+    SC.gen_is_id.bits[limbs-1] = 0
 
     SC.orbit_sizes  = int_array
     SC.num_gens     = int_array +   n
@@ -867,8 +859,9 @@ cdef int SC_realloc_bitsets(StabilizerChain *SC, long size):
     return 0
 
 cdef inline SC_dealloc(StabilizerChain *SC):
-    cdef int i, n = SC.degree
+    cdef int i, n
     if SC is not NULL:
+        n =  SC.degree
         if SC.generators is not NULL:
             for i from 0 <= i < n:
                 sage_free(SC.generators[i])

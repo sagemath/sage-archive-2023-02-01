@@ -16,7 +16,7 @@ The interface offers three pieces of functionality:
    expressions, with the result returned as a string.
 
 #. ``gap.new(expr)`` - Creation of a Sage object that
-   wraps a AP object. This provides a Pythonic interface to GAP. For
+   wraps a GAP object. This provides a Pythonic interface to GAP. For
    example, if ``f=gap.new(10)``, then
    ``f.Factors()`` returns the prime factorization of
    `10` computed using GAP.

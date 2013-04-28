@@ -19,7 +19,7 @@ class WeylGroups(Category_singleton):
     r"""
     The category of Weyl groups
 
-    See: http://en.wikipedia.org/wiki/Weyl_groups
+    See: http://en.wikipedia.org/wiki/Weyl_group
 
     EXAMPLES::
 

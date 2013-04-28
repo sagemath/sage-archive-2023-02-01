@@ -22,36 +22,32 @@ Moreover, it offers you full development capabilities:
 you can change absolutely any part of Sage or the programs on which it depends,
 and recompile the modified parts.
 
+`Download the Sage source code <http://www.sagemath.org/download-source.html>`_.
+If you changed your mind, you can also download a
+`binary distribution <http://www.sagemath.org/download.html>`_
+for some operating systems.
+
 Supported platforms
 -------------------
+
+See http://wiki.sagemath.org/SupportedPlatforms for the full list of platforms
+on which Sage is supported and the level of support for these systems.
 
 Sage is supported on a number of `Linux <http://en.wikipedia.org/wiki/Linux>`_,
 Mac `OS X <http://www.apple.com/macosx/>`_ ,
 Sun/Oracle `Solaris <http://www.oracle.com/solaris>`_
 and `OpenSolaris <http://en.wikipedia.org/wiki/OpenSolaris>`_ releases,
-but Sage is not supported on all versions of Linux, OS X, Solaris or
-OpenSolaris.
-Depending on the
-`operating system <http://en.wikipedia.org/wiki/Operating_system>`_,
-Sage works with `x86 <http://en.wikipedia.org/wiki/X86>`_,
-`x86_64 <http://en.wikipedia.org/wiki/X86-64>`_,
-`PowerPC <http://en.wikipedia.org/wiki/PowerPC>`_,
-`ARM <http://en.wikipedia.org/wiki/ARM_architecture>`_,
-or `SPARC <http://en.wikipedia.org/wiki/SPARC>`_ processors.
+but not necessarily all versions of these operating systems.
 There is no native version of Sage which installs on
 `Microsoft Windows <http://en.wikipedia.org/wiki/Microsoft_Windows>`_,
 although Sage can be used on Windows with the aid of a
 `virtual machine <http://en.wikipedia.org/wiki/Virtual_machine>`_
 or the `Cygwin <http://cygwin.com/>`_ Linux API layer.
-Go to http://www.sagemath.org/download-windows.html to download a binary
-version of Sage for Windows.
 
-See http://wiki.sagemath.org/SupportedPlatforms for the full list of platforms
-on which Sage is supported and the level of support for these systems.
-You will also find details about
+On the `list of supported platforms <http://wiki.sagemath.org/SupportedPlatforms>`_,
+you can find details about
 `ports <http://en.wikipedia.org/wiki/Computer_port_%28software%29>`_
 to other operating systems or processors which may be taking place.
-
 
 Prerequisites
 -------------
@@ -85,8 +81,8 @@ Therefore, if you plan on using your own GCC compilers, then make sure that
 their versions match.
 Alternatively, Sage includes a GCC package, so that C, C++ and Fortran
 compilers will be built when the build system detects that it is needed,
-e.g., non-GCC compilers, or mismatching versions of the GCC compilers,
-versions of the GCC compilers known to miscompile some Sage's dependencies,
+e.g., non-GCC compilers, or
+versions of the GCC compilers known to miscompile some components of Sage,
 or simply a missing C++ or Fortran compiler.
 Whatsoever, you always need at least a C compiler to build the GCC package and
 its prerequisites before the compilers it provides can be used.
@@ -434,16 +430,13 @@ Running Sage from a directory with spaces in its name will also fail.
    a few tens of minutes to several hours to build Sage from source.
    On really slow hardware, it can even take a few days to build Sage.
 
-   If the build is successful, you will not see the word ``ERROR`` in the last
-   3-4 lines of output.
    Each component of Sage has its own build log, saved in
    :file:`SAGE_ROOT/logs/pkgs`.
-   In particular, if the build of Sage fails, then you can type the following
-   from the directory where you typed ``make``::
-
-            grep -li "^Error installing" logs/pkgs/*
-
-   Then paste the contents of the log file(s) with errors to the Sage support
+   If the build of Sage fails, you will see a message mentioning which
+   package(s) failed to build and the location of the log file for each
+   failed package.
+   If this happens, then paste the contents of these log file(s)
+   to the Sage support
    newsgroup at http://groups.google.com/group/sage-support.
    If the log files are very large (and many are), then don't paste the whole
    file, but make sure to include any error messages.
@@ -491,113 +484,29 @@ Running Sage from a directory with spaces in its name will also fail.
        sage: 2 + 2
        4
 
-   Try something more complicated, which uses the
-   `FLINT <http://www.flintlib.org/>`_ C library::
+   Or something slightly more complicated::
 
-       sage: GF(7)(x^7)
+       sage: factor(2005)
        5 * 401
 
-   Try something simple that uses the `GAP <http://www.gap-system.org/>`_,
-   `Maxima <http://maxima.sourceforge.net/>`_,
-   `PARI/GP <http://pari.math.u-bordeaux.fr/>`_ and
-   `Singular <http://www.singular.uni-kl.de/>`_ interfaces::
 
-       sage: gap('2+2')
-       4
-       sage: maxima('2+2')
-       4
-       sage: pari('2+2')
-       4
-       sage: gp('2+2')
-       4
-       sage: singular('2+2')
-       4
+#. Optional, but highly recommended:
+   Test the install by typing ``./sage --testall``.
+   This runs most examples in the source code and makes sure that they run
+   exactly as claimed.
+   To test all examples, use ``./sage --testall --optional=all --long``;
+   this will run examples that take a long time, and those that depend on
+   optional packages and software, e.g., Mathematica or Magma.
+   Some (optional) examples will therefore likely fail.
 
-   (For those familiar with GAP: Sage automatically builds a GAP "workspace"
-   during installation, so the response time from this GAP command is
-   relatively fast.
-   For those familiar with GP/PARI, the ``pari`` command creates an object
-   directly in the PARI C library, and the ``gp`` command creates an object in
-   the GP interpreter.)
+   Alternatively, from within :file:`$SAGE_ROOT`, you can type ``make test``
+   (respectively ``make ptest``) to run all the standard test code serially
+   (respectively in parallel).
 
-   Try running GAP, GP, Maxima, or Singular, from Sage:
+   Testing the Sage library can take from half an hour to several hours,
+   depending on your hardware.
+   On slow hardware building and testing Sage can even take several days!
 
-   .. skip
-
-   ::
-
-       sage: gap_console()
-        ┌───────┐   GAP, Version 4.5.7 of 14-Dec-2012 (free software, GPL)
-        │  GAP  │   http://www.gap-system.org
-        └───────┘   Architecture: x86_64-unknown-linux-gnu-gcc-default64
-        Libs used:  gmp, readline
-        Loading the library and packages ...
-        Packages:   GAPDoc 1.5.1
-        Try '?help' for help. See also  '?copyright' and  '?authors'
-       gap> 2+2;
-       4
-       gap>
-       [CTRL+D]
-
-   .. skip
-
-   ::
-
-       sage: gp_console()
-       Reading GPRC: .../sage-5.8/local/etc/gprc.expect ...Done.
-
-                  GP/PARI CALCULATOR Version 2.5.3 (development git-6fd07f9)
-                 amd64 running linux (x86-64/GMP-5.0.2 kernel) 64-bit version
-               compiled: Apr 10 2013, gcc-4.6.3 (Ubuntu/Linaro 4.6.3-1ubuntu5)
-                        (readline v6.2 enabled, extended help enabled)
-
-                            Copyright (C) 2000-2011 The PARI Group
-
-       PARI/GP is free software, covered by the GNU General Public License, and comes
-       WITHOUT ANY WARRANTY WHATSOEVER.
-
-       Type ? for help, \q to quit.
-       Type ?12 for how to get moral (and possibly technical) support.
-
-       parisize = 8000000, primelimit = 500509
-       ? 2+2
-       %1 = 4
-       ?
-       [CTRL+D]
-
-   .. skip
-
-   ::
-
-       sage: maxima_console()
-       ;;; Loading #P".../sage-5.8/local/lib/ecl/sb-bsd-sockets.fas"
-       ;;; Loading #P".../sage-5.8/local/lib/ecl/sockets.fas"
-       ;;; Loading #P".../sage-5.8/local/lib/ecl/defsystem.fas"
-       ;;; Loading #P".../sage-5.8/local/lib/ecl/cmp.fas"
-       Maxima 5.29.1 http://maxima.sourceforge.net
-       using Lisp ECL 12.12.1
-       Distributed under the GNU Public License. See the file COPYING.
-       Dedicated to the memory of William Schelter.
-       The function bug_report() provides bug reporting information.
-       (%i1) 2+2;
-       (%o1)                                  4
-       (%i2)
-       [CTRL+D]
-
-   .. skip
-
-   ::
-
-       sage: singular_console()
-                            SINGULAR                                 /  Development
-        A Computer Algebra System for Polynomial Computations       /   version 3-1-5
-                                                                  0<
-        by: W. Decker, G.-M. Greuel, G. Pfister, H. Schoenemann     \   Jul 2012
-       FB Mathematik der Universitaet, D-67653 Kaiserslautern        \
-       > 2+2;
-       4
-       >
-       [CTRL+D]
 
 #. Optional:
    Check the interfaces to any other software that you have available.
@@ -609,12 +518,12 @@ Running Sage from a directory with spaces in its name will also fail.
    to create a redirection script in :file:`$SAGE_ROOT/local/bin`.
    Sage inserts this directory at the front of your :envvar:`PATH`, so your
    script may need to use an absolute path to avoid calling itself; also, your
-   script should use ``$*`` to pass along all of its arguments.
+   script should pass along all of its arguments.
    For example, a ``maple`` script might look like::
 
        #!/bin/sh
 
-       /etc/maple10.2/maple.tty $*
+       exec /etc/maple10.2/maple.tty "$@"
 
 #. Optional:
    There are different possibilities to make using Sage a little easier:
@@ -668,23 +577,6 @@ Running Sage from a directory with spaces in its name will also fail.
      (Note that you have to change ``<SAGE_ROOT>`` above!)
      Having done so, quit your terminal emulator and restart it.
      Now typing ``sage`` within your terminal emulator should start Sage.
-
-#. Optional, but highly recommended:
-   Test the install by typing ``./sage --testall``.
-   This runs most examples in the source code and makes sure that they run
-   exactly as claimed.
-   To test all examples, use ``./sage --testall --optional --long``;
-   this will run examples that take a long time, and those that depend on
-   optional packages and software, e.g., Mathematica or Magma.
-   Some (optional) examples will therefore likely fail.
-
-   Alternatively, from within :file:`$SAGE_ROOT`, you can type ``make test``
-   (respectively ``make ptest``) to run all the standard test code serially
-   (respectively in parallel).
-
-   Testing the Sage library can take from half an hour to several hours,
-   depending on your hardware.
-   On slow hardware building and testing Sage can even take several days!
 
 #. Optional:
    Install optional Sage packages and databases.
@@ -1386,4 +1278,4 @@ reissuing ``make``::
     MAKE="make -j1" ./sage -i zn_poly && make
 
 
-**This page was last updated in April 2013 (Sage 5.8).**
+**This page was last updated in April 2013 (Sage 5.9).**

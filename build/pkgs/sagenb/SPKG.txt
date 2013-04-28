@@ -77,6 +77,10 @@ To produce a new spkg:
 
 == Changelog ==
 
+=== sagenb-0.10.6 (Keshav Kini, 2013-04-27) ===
+
+ * Upgraded to 0.10.6 (bugfixes)
+
 === sagenb-0.10.5 (Keshav Kini, 2013-04-01) ===
 
  * Upgraded to 0.10.5 (bugfixes, LDAP)

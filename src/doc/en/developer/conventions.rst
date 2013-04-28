@@ -902,9 +902,10 @@ mind:
       after the first word ends the list of packages.
       Hyphens or colons between the word ``optional`` and the first
       package name are allowed.
-      Also, all text is converted to lower case.
       Therefore, you should not write
       ``optional: needs package CHomP`` but simply ``optional: CHomP``.
+      Optional tags are case-insensitive, so you could also
+      write ``optional: cHoMp``.
 
 - If you are documenting a known bug in Sage, mark it as ``known bug``
   or ``optional: bug``.  For example::

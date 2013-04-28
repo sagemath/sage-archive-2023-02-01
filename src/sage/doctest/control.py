@@ -30,6 +30,7 @@ from reporting import DocTestReporter
 from util import NestedName, Timer, count_noun, dict_difference
 
 nodoctest_regex = re.compile(r'\s*(#+|%+|r"+|"+|\.\.)\s*nodoctest')
+optionaltag_regex = re.compile(r'^\w+$')
 
 class DocTestDefaults(SageObject):
     """
@@ -185,10 +186,16 @@ class DocTestController(SageObject):
             options.show_skipped = True
 
         if isinstance(options.optional, basestring):
-            if options.optional.lower() in ['all', 'true']:
+            s = options.optional.lower()
+            if s in ['all', 'true']:
                 options.optional = True
             else:
-                options.optional = set(options.optional.lower().split(','))
+                options.optional = set(s.split(','))
+                # Check that all tags are valid
+                for o in options.optional:
+                    if not optionaltag_regex.search(o):
+                        raise ValueError('invalid optional tag %s'%repr(o))
+
         self.options = options
         self.files = args
         if options.logfile:

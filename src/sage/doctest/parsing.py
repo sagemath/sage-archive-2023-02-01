@@ -540,6 +540,7 @@ class SageDocTestParser(doctest.DocTestParser):
                     if not (self.optional_tags is True or optional_tags.issubset(self.optional_tags)):
                         continue
                 elif self.optional_only:
+                    self.optionals['sage'] += 1
                     continue
                 item.want = parse_tolerance(item.source, item.want)
                 if item.source.startswith("sage: "):

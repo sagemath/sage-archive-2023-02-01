@@ -273,7 +273,7 @@ Test running under gdb, without and with a timeout::
     Running doctests...
     Doctesting 1 file.
     sage -t 1second.rst
-        [2 tests, 1.0 s]
+        [2 tests, ... s]
     ----------------------------------------------------------------------
     All tests passed!
     ----------------------------------------------------------------------
@@ -282,7 +282,6 @@ Test running under gdb, without and with a timeout::
     sage: subprocess.call(["sage", "-t", "--gdb", "-T" "5", "99seconds.rst"], stdin=open(os.devnull), **kwds)  # long time, optional: gdb
     exec gdb ...
     Running doctests...
-    Doctesting 1 file.
         Time out
     4
 
@@ -319,4 +318,27 @@ Optional tests are run correctly::
     ----------------------------------------------------------------------
     ...
     0
+
+    sage: subprocess.call(["sage", "-t", "--long", "--show-skipped", "--optional=gAp", "show_skipped.rst"], **kwds)  # long time
+    Running doctests ...
+    Doctesting 1 file.
+    sage -t --long show_skipped.rst
+        1 unlabeled test not run
+        2 tests not run due to known bugs
+        1 sage test not run
+        1 other test skipped
+        [2 tests, ... s]
+    ----------------------------------------------------------------------
+    All tests passed!
+    ----------------------------------------------------------------------
+    ...
+    0
+
+Test an invalid value for ``--optional``::
+
+    sage: subprocess.call(["sage", "-t", "--optional=bad-option", "show_skipped.rst"], **kwds)
+    Traceback (most recent call last):
+    ...
+    ValueError: invalid optional tag 'bad-option'
+    1
 """

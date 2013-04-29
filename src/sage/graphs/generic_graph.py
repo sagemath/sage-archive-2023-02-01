@@ -6449,8 +6449,8 @@ class GenericGraph(GenericGraph_pyx):
         are required to be integer.
 
         For more information, see the
-        `Wikipedia page on multicommodity flows
-        <http://en.wikipedia.org/wiki/Multi-commodity_flow_problem>`.
+        :wikipedia:`Wikipedia page on multicommodity flows
+        <Multi-commodity_flow_problem>`.
 
         INPUT:
 

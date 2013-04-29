@@ -26,13 +26,17 @@ if [ "$#" -gt 0 ]; then
     BRANCH="$1"
     shift
 else
-    BRANCH=$(git symbolic-ref HEAD || git describe --exact-match --tags HEAD | { read tag; echo refs/tags/$tag })
-    case $BRANCH in
-        refs/heads/master) BRANCH=master;;
-        refs/heads/release) BRANCH=release;;
-        refs/heads/beta) BRANCH=beta;;
-        refs/tags/*) BRANCH=release;;
-    esac
+    BRANCH=$(git symbolic-ref HEAD) ||
+        BRANCH=$(git describe --exact-match --tags HEAD | \
+                 sed -e 's;^;refs/tags/;')
+    if [ -n "$BRANCH" ]; then
+        case $BRANCH in
+            refs/heads/master) BRANCH=master;;
+            refs/heads/release) BRANCH=release;;
+            refs/heads/beta) BRANCH=beta;;
+            refs/tags/*) BRANCH=release;;
+        esac
+    fi
 fi
 
 if [ -z "$BRANCH" ]; then

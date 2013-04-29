@@ -62,4 +62,9 @@ doc/en/reference/sage/
 doc/en/reference/sagenb/
 doc/en/reference/.*/sage/
 doc/en/reference/.*/sagenb/
+# eclipse-generated files
+.preferences.xml
+.project
+.pydevproject
+.settings/org.eclipse.core.resources.prefs
 .cython_version

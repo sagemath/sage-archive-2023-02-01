@@ -95,20 +95,56 @@ def q_factorial(n, p=None):
     else:
         raise ValueError("Argument (%s) must be a nonnegative integer." %n)
 
-def q_binomial(n, k, q=None):
+def q_binomial(n, k, q=None, algorithm='auto'):
     r"""
-    Return the `q`-binomial coefficient
+    Return the `q`-binomial coefficient.
 
     This is also known as the Gaussian binomial coefficient, and is defined by
 
     .. MATH::
 
-        \binom{n}{k}_q = \frac{(1-q^n)(1-q^{n-1})\cdots (1-q^{n-k+1})}{(1-q)(1-q^2)\cdots (1-q^k)}.
+        \binom{n}{k}_q = \frac{(1-q^n)(1-q^{n-1}) \cdots (1-q^{n-k+1})}
+        {(1-q)(1-q^2)\cdots (1-q^k)}.
 
     See :wikipedia:`Gaussian binomial coefficient`
 
     If `q` is unspecified, then the variable is the generator `q` for
     a univariate polynomial ring over the integers.
+
+    INPUT:
+
+    - ``n, k`` -- The values, `n` and `k` defined above.
+
+    - ``q`` -- (Default: ``None``) The variable `q`; if ``None``, then use a
+      default variable in `\ZZ[q]`.
+
+    - ``algorithm`` -- (Default: ``'auto'``) The algorithm to use and can be
+      one of the following:
+
+      - ``'auto'`` -- Automatically choose the algorithm; see the algorithm
+        section below
+      - ``'naive'`` -- Use the naive algorithm
+      - ``'cyclotomic'`` -- Use cyclotomic algorithm
+
+    ALGORITHM:
+
+    The naive algorithm uses the product formula. The cyclotomic
+    algorithm uses a product of cyclotomic polynomials
+    (cf. [CH2006]_).
+
+    When the algorithm is set to auto, we choose according to the following
+    rules:
+
+    - If ``q`` is a polynomial:
+
+      When ``n`` is small or ``k`` is small with respect to ``n``, one
+      uses the naive algorithm. When both ``n`` and ``k`` are big, one
+      uses the cyclotomic algorithm.
+
+    - If ``q`` is in the symbolic ring, one uses the cyclotomic algorithm.
+
+    - Otherwise one uses the naive algorithm, unless ``q`` is a root of
+      unity, then one uses the cyclotomic algorithm.
 
     EXAMPLES:
 
@@ -133,7 +169,7 @@ def q_binomial(n, k, q=None):
         sage: q_binomial(4,2,p)
         p^4 + p^3 + 2*p^2 + p + 1
 
-    The third parameter can also be an integer::
+    The third parameter can also be arbitrary values::
 
         sage: q_binomial(5,1,2) == g.subs(q=2)
         True
@@ -141,6 +177,26 @@ def q_binomial(n, k, q=None):
         5
         sage: q_binomial(4,2,-1)
         2
+        sage: q_binomial(4,2,3.14)
+        152.030056160000
+        sage: R = GF(25, 't')
+        sage: t = R.gen(0)
+        sage: q_binomial(6, 3, t)
+        2*t + 3
+
+    We can also do this for more complicated objects such as matrices or
+    symmetric functions::
+
+        sage: q_binomial(4,2,matrix([[2,1],[-1,3]]))
+        [ -6  84]
+        [-84  78]
+        sage: Sym = SymmetricFunctions(QQ)
+        sage: s = Sym.schur()
+        sage: q_binomial(4,1, s[2]+s[1])
+        s[] + s[1] + s[1, 1] + s[1, 1, 1] + 2*s[2] + 4*s[2, 1] + 3*s[2, 1, 1]
+         + 4*s[2, 2] + 3*s[2, 2, 1] + s[2, 2, 2] + 3*s[3] + 7*s[3, 1] + 3*s[3, 1, 1]
+         + 6*s[3, 2] + 2*s[3, 2, 1] + s[3, 3] + 4*s[4] + 6*s[4, 1] + s[4, 1, 1]
+         + 3*s[4, 2] + 3*s[5] + 2*s[5, 1] + s[6]
 
     TESTS:
 
@@ -169,22 +225,10 @@ def q_binomial(n, k, q=None):
         sage: q_binomial(6,1,I)
         1 + I
 
-    ALGORITHM:
+    Check that the algorithm doesn't matter::
 
-    The naive algorithm uses the product formula. The cyclotomic
-    algorithm uses a product of cyclotomic polynomials
-    (cf. [CH2006]_).
-
-    If ``q`` is a polynomial:
-
-    When ``n`` is small or ``k`` is small with respect to ``n``, one
-    uses the naive algorithm. When both ``n`` and ``k`` are big, one
-    uses the cyclotomic algorithm.
-
-    If ``q`` is in the symbolic ring, one uses the cyclotomic algorithm.
-
-    Otherwise one uses the naive algorithm, unless ``q`` is a root of
-    unity, then one uses the cyclotomic algorithm.
+        sage: q_binomial(6,3, algorithm='naive') == q_binomial(6,3, algorithm='cyclotomic')
+        True
 
     REFERENCES:
 
@@ -203,7 +247,9 @@ def q_binomial(n, k, q=None):
         raise ValueError('n must be nonnegative')
     if not(0 <= k and k <= n):
         return 0
-    k = min(n-k,k)
+
+    k = min(n-k,k) # Pick the smallest k
+
     # polynomiality test
     if q is None:
         from sage.rings.polynomial.polynomial_ring import polygen
@@ -213,39 +259,52 @@ def q_binomial(n, k, q=None):
         from sage.rings.polynomial.polynomial_element import Polynomial
         is_polynomial = isinstance(q, Polynomial)
     from sage.symbolic.ring import SR
+
     # heuristic choice of the fastest algorithm
-    if is_polynomial:
-        if n <= 70 or k <= n/4:
-            algo = 'naive'
+    if algorithm == 'auto':
+        if is_polynomial:
+            if n <= 70 or k <= n/4:
+                algorithm = 'naive'
+            else:
+                algorithm = 'cyclo_polynomial'
+        elif q in SR:
+            algorithm = 'cyclo_generic'
         else:
-            algo = 'cyclo_polynomial'
-    elif q in SR:
-        algo = 'cyclo_generic'
-    else:
-        algo = 'naive'
+            algorithm = 'naive'
+    elif algorithm == 'cyclotomic':
+        if is_polynomial:
+            algorithm = 'cyclo_polynomial'
+        else:
+            algorithm = 'cyclo_generic'
+    elif algorithm != 'naive':
+        raise ValueError("invalid algorithm choice")
+
     # the algorithms
-    if algo == 'naive':
-        denomin = prod([1 - q**i for i in range(1, k+1)])
-        if denomin == 0: # q is a root of unity, use the cyclotomic algorithm
-            algo = 'cyclo_generic'
-            pass
-        else:
-            numerat = prod([1 - q**i for i in range(n-k+1, n+1)])
-            try:
-                return numerat//denomin
-            except TypeError:
-                return numerat/denomin
-    from sage.functions.all import floor
-    if algo == 'cyclo_generic':
-        from sage.rings.polynomial.cyclotomic import cyclotomic_value
-        return prod(cyclotomic_value(d,q)
-                    for d in range(2,n+1)
-                    if floor(n/d) != floor(k/d) + floor((n-k)/d))
-    if algo == 'cyclo_polynomial':
-        R = q.parent()
-        return prod(R.cyclotomic_polynomial(d)
-                    for d in range(2,n+1)
-                    if floor(n/d) != floor(k/d) + floor((n-k)/d))
+    try:
+        if algorithm == 'naive':
+            denomin = prod([1 - q**i for i in range(1, k+1)])
+            if denomin == 0: # q is a root of unity, use the cyclotomic algorithm
+                algorithm = 'cyclo_generic'
+            else:
+                numerat = prod([1 - q**i for i in range(n-k+1, n+1)])
+                try:
+                    return numerat//denomin
+                except TypeError:
+                    return numerat/denomin
+        from sage.functions.all import floor
+        if algorithm == 'cyclo_generic':
+            from sage.rings.polynomial.cyclotomic import cyclotomic_value
+            return prod(cyclotomic_value(d,q)
+                        for d in range(2,n+1)
+                        if floor(n/d) != floor(k/d) + floor((n-k)/d))
+        if algorithm == 'cyclo_polynomial':
+            R = q.parent()
+            return prod(R.cyclotomic_polynomial(d)
+                        for d in range(2,n+1)
+                        if floor(n/d) != floor(k/d) + floor((n-k)/d))
+    except TypeError:
+        # As a last attempt, do the computation formally and then substitute
+        return q_binomial(n, k)(q)
 
 gaussian_binomial = q_binomial
 

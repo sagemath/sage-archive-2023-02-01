@@ -1794,6 +1794,15 @@ ext_modules = [
     Extension('sage.rings.polynomial.symmetric_reduction',
               sources = ['sage/rings/polynomial/symmetric_reduction.pyx']),
 
+        ################################
+        ##
+        ## sage.rings.semirings
+        ##
+        ################################
+
+    Extension('sage.rings.semirings.tropical_semiring',
+              sources = ['sage/rings/semirings/tropical_semiring.pyx']),
+
     ################################
     ##
     ## sage.schemes

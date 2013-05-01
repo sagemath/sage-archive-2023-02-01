@@ -1041,6 +1041,55 @@ def BrinkmannGraph():
         20: [-0.433883739117558, 0.900968867902419]}
     return graph.Graph(edge_dict, pos=pos_dict, name="Brinkmann graph")
 
+def BrouwerHaemersGraph():
+    r"""
+    Returns the Brouwer-Haemers Graph.
+
+    The Brouwer-Haemers is the only strongly regular graph of parameters
+    `(81,20,1,6)`. It is build in Sage as the Affine Orthogonal graph
+    `VO^-(6,3)`. For more information on this graph, see its `corresponding page
+    on Andries Brouwer's website
+    <http://www.win.tue.nl/~aeb/graphs/Brouwer-Haemers.html>`_.
+
+    EXAMPLE::
+
+        sage: g = graphs.BrouwerHaemersGraph()
+        sage: g
+        Brouwer-Haemers: Graph on 81 vertices
+
+    It is indeed strongly regular with parameters `(81,20,1,6)`::
+
+        sage: g.is_strongly_regular(parameters = True) # long time
+        (81, 20, 1, 6)
+
+    Its has as eigenvalues `20,2` and `-7`::
+
+        sage: set(g.spectrum()) == {20,2,-7}
+        True
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.modules.free_module import VectorSpace
+    from sage.matrix.constructor import Matrix
+    from sage.matrix.constructor import identity_matrix
+
+    d = 4
+    q = 3
+    F = FiniteField(q,"x")
+    V = VectorSpace(F,d)
+    M = Matrix(F,identity_matrix(d))
+    M[1,1]=-1
+    G = Graph([map(tuple,V), lambda x,y:(V(x)-V(y))*(M*(V(x)-V(y))) == 0], loops = False)
+    G.relabel()
+    ordering = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+                18, 19, 20, 21, 22, 23, 24, 25, 26, 48, 49, 50, 51, 52, 53,
+                45, 46, 47, 30, 31, 32, 33, 34, 35, 27, 28, 29, 39, 40, 41,
+                42, 43, 44, 36, 37, 38, 69, 70, 71, 63, 64, 65, 66, 67, 68,
+                78, 79, 80, 72, 73, 74, 75, 76, 77, 60, 61, 62, 54, 55, 56,
+                57, 58, 59]
+    _circle_embedding(G, ordering)
+    G.name("Brouwer-Haemers")
+    return G
+
 def DoubleStarSnark():
     r"""
     Returns the double star snark.

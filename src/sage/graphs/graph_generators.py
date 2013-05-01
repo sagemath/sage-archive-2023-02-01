@@ -95,6 +95,7 @@ __append_to_doc(
      "BidiakisCube",
      "BiggsSmithGraph",
      "BrinkmannGraph",
+     "BrouwerHaemersGraph",
      "CameronGraph",
      "ChvatalGraph",
      "ClebschGraph",
@@ -959,6 +960,7 @@ class GraphGenerators():
     BidiakisCube             = staticmethod(sage.graphs.generators.smallgraphs.BidiakisCube)
     BiggsSmithGraph          = staticmethod(sage.graphs.generators.smallgraphs.BiggsSmithGraph)
     BrinkmannGraph           = staticmethod(sage.graphs.generators.smallgraphs.BrinkmannGraph)
+    BrouwerHaemersGraph      = staticmethod(sage.graphs.generators.smallgraphs.BrouwerHaemersGraph)
     CameronGraph             = staticmethod(sage.graphs.generators.smallgraphs.CameronGraph)
     ChvatalGraph             = staticmethod(sage.graphs.generators.smallgraphs.ChvatalGraph)
     ClebschGraph             = staticmethod(sage.graphs.generators.smallgraphs.ClebschGraph)

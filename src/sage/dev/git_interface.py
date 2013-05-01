@@ -7,6 +7,8 @@ from cStringIO import StringIO
 import random
 import os
 
+from sage.env import SAGE_ROOT
+
 def return_none():
     return None
 
@@ -99,7 +101,7 @@ class GitInterface(object):
         if 'dot_git' in self._config:
             self._dot_git = self._config['dot_git']
         else:
-            self._dot_git = os.environ.get("SAGE_DOT_GIT", ".git")
+            self._dot_git = os.environ.get("SAGE_DOT_GIT", os.path.join(SAGE_ROOT,".git"))
 
         if 'gitcmd' in self._config:
             self._gitcmd = self._config['gitcmd']

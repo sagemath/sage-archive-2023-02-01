@@ -1,5 +1,10 @@
 ----------------------------------------------------------------------
-| Sage Version 5.9, Release Date: 2013-04-30                         |
+| Sage Version 5.10.beta0, Release Date: 2013-05-01                  |
 | Type "notebook()" for the browser-based notebook interface.        |
 | Type "help()" for help.                                            |
 ----------------------------------------------------------------------
+**********************************************************************
+*                                                                    *
+* Warning: this is a prerelease version, and it may be unstable.     *
+*                                                                    *
+**********************************************************************

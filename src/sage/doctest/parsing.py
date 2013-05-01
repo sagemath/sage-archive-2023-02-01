@@ -40,10 +40,10 @@ backslash_replacer = re.compile(r"""(\s*)sage:(.*)\\\ *
 #
 #ansi_escape_sequence = re.compile(r'(\x1b[@-Z\\-~]|\x1b\[.*?[@-~]|\x9b.*?[@-~])')
 #
-# We use this incorrect version to avoid accidental matches for \x9b
-# in UTF-8 bytestrings, even though there are none in the Sage
-# library. Once we have a unicode-aware doctest framework, we should
-# use the correct pattern including \x9b
+# Unfortunately, we cannot use this, since the \x9b might be part of
+# a UTF-8 character. Once we have a unicode-aware doctest framework, we
+# should use the correct pattern including \x9b. For now, we use this
+# form without \x9b:
 ansi_escape_sequence = re.compile(r'(\x1b[@-Z\\-~]|\x1b\[.*?[@-~])')
 
 
@@ -595,25 +595,24 @@ class SageOutputChecker(doctest.OutputChecker):
         False
     """
     def human_readable_escape_sequences(self, string):
-        """
+        r"""
         Make ANSI escape sequences human readable.
 
         EXAMPLES::
 
-            sage: print 'This ist \x1b[1mbold\x1b[0m text'
-            This ist <CSI-1m>bold<CSI-0m> text
+            sage: print 'This is \x1b[1mbold\x1b[0m text'
+            This is <CSI-1m>bold<CSI-0m> text
 
         TESTS::
 
             sage: from sage.doctest.parsing import SageOutputChecker
             sage: OC = SageOutputChecker()
             sage: teststr = '-'.join([
-            ...       'bold\x1b[1m',
-            ...       'newlinemode\x9b20h',
-            ...       'red\x1b[31m',
-            ...       'oscmd\x1ba'])
+            ....:     'bold\x1b[1m',
+            ....:     'red\x1b[31m',
+            ....:     'oscmd\x1ba'])
             sage: OC.human_readable_escape_sequences(teststr)
-            'bold<CSI-1m>-newlinemode\x9b20h-red<CSI-31m>-oscmd<ESC-a>'
+            'bold<CSI-1m>-red<CSI-31m>-oscmd<ESC-a>'
         """
         def human_readable(match):
             ansi_escape = match.group(1)

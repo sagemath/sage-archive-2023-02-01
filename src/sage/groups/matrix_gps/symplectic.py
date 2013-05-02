@@ -1,104 +1,183 @@
 """
 Symplectic Linear Groups
 
+EXAMPLES::
+
+    sage: G = Sp(4,GF(7));  G
+    Symplectic Group of degree 4 over Finite Field of size 7
+    sage: g = prod(G.gens());  g
+    [3 0 3 0]
+    [1 0 0 0]
+    [0 1 0 1]
+    [0 2 0 0]
+    sage: m = g.matrix()
+    sage: m * G.invariant_form() * m.transpose() == G.invariant_form()
+    True
+    sage: G.order()
+    276595200
+
 AUTHORS:
 
 - David Joyner (2006-03): initial version, modified from
   special_linear (by W. Stein)
 
-EXAMPLES::
-
-    sage: G = Sp(4,GF(7))
-    sage: G._gap_init_()
-    'Sp(4, 7)'
-    sage: G
-    Symplectic Group of rank 2 over Finite Field of size 7
-    sage: G.random_element()
-    [5 4 6 0]
-    [1 1 6 2]
-    [5 5 0 6]
-    [5 4 5 1]
-    sage: G.order()
-    276595200
+- Volker Braun (2013-1) port to new Parent, libGAP, extreme refactoring.
 """
 
 #*****************************************************************************
 #       Copyright (C) 2006 David Joyner and William Stein
+#       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import is_FiniteField, Integer, FiniteField
-from matrix_group import MatrixGroup_gap, MatrixGroup_gap_finite_field
+from sage.misc.latex import latex
+from sage.misc.cachefunc import cached_method
+from sage.groups.matrix_gps.named_group import (
+    normalize_args_vectorspace, NamedMatrixGroup_generic, NamedMatrixGroup_gap )
+
+
+
+###############################################################################
+# Symplectic Group
+###############################################################################
 
 def Sp(n, R, var='a'):
-    """
-    Return the symplectic group of degree n over R.
+    r"""
+    Return the symplectic group.
+
+    The special linear group `GL( d, R )` consists of all `d \times d`
+    matrices that are invertible over the ring `R` with determinant
+    one.
 
     .. note::
+
         This group is also available via ``groups.matrix.Sp()``.
+
+    INPUT:
+
+    - ``n`` -- a positive integer.
+
+    - ``R`` -- ring or an integer. If an integer is specified, the
+      corresponding finite field is used.
+
+    - ``var`` -- variable used to represent generator of the finite
+      field, if needed.
 
     EXAMPLES::
 
-        sage: Sp(4,5)
-        Symplectic Group of rank 2 over Finite Field of size 5
-        sage: Sp(3,GF(7))
+        sage: Sp(4, 5)
+        Symplectic Group of degree 4 over Finite Field of size 5
+
+        sage: Sp(4, IntegerModRing(15))
+        Symplectic Group of degree 4 over Ring of integers modulo 15
+
+        sage: Sp(3, GF(7))
         Traceback (most recent call last):
         ...
-        ValueError: the degree n (=3) must be even
+        ValueError: the degree must be even
 
     TESTS::
 
         sage: groups.matrix.Sp(2, 3)
-        Symplectic Group of rank 1 over Finite Field of size 3
+        Symplectic Group of degree 2 over Finite Field of size 3
+
+        sage: G = Sp(4,5)
+        sage: TestSuite(G).run()
     """
-    if n%2!=0:
-        raise ValueError, "the degree n (=%s) must be even"%n
-    if isinstance(R, (int, long, Integer)):
-        R = FiniteField(R, var)
-    if is_FiniteField(R):
-        return SymplecticGroup_finite_field(n, R)
-    else:
-        return SymplecticGroup_generic(n, R)
+    degree, ring = normalize_args_vectorspace(n, R, var=var)
+    if degree % 2 != 0:
+        raise ValueError('the degree must be even')
+    name = 'Symplectic Group of degree {0} over {1}'.format(degree, ring)
+    ltx  = r'\text{{Sp}}_{{{0}}}({1})'.format(degree, latex(ring))
+    from sage.libs.gap.libgap import libgap
+    try:
+        cmd  = 'Sp({0}, {1})'.format(degree, ring._gap_init_())
+        return SymplecticMatrixGroup_gap(degree, ring, True, name, ltx, cmd)
+    except ValueError:
+        return SymplecticMatrixGroup_generic(degree, ring, True, name, ltx)
 
-class SymplecticGroup_generic(MatrixGroup_gap):
-    def _gap_init_(self):
-        raise TypeError, 'no analogue of this symplectic group in GAP'
 
-    def _latex_(self):
-        r"""
-        Return LaTeX representation of this group.
+
+class SymplecticMatrixGroup_generic(NamedMatrixGroup_generic):
+
+    @cached_method
+    def invariant_form(self):
+        """
+        Return the quadratic form preserved by the orthogonal group.
+
+        OUTPUT:
+
+        A matrix.
 
         EXAMPLES::
 
-            sage: latex(Sp(4,5))
-            \text{Sp}_{4}(\Bold{F}_{5})
+            sage: Sp(4, QQ).invariant_form()
+            [0 0 0 1]
+            [0 0 1 0]
+            [0 1 0 0]
+            [1 0 0 0]
         """
-        return "\\text{Sp}_{%s}(%s)"%(self.degree(), self.field_of_definition()._latex_())
+        from sage.matrix.constructor import zero_matrix
+        m = zero_matrix(self.base_ring(), self.degree())
+        for i in range(self.degree()):
+            m[i, self.degree()-i-1] = 1
+        m.set_immutable()
+        return m
 
-    def _repr_(self):
+    def _check_matrix(self, x, *args):
         """
-        Return print representation of this group.
+        Check whether the matrix ``x`` is symplectic.
+
+        See :meth:`~sage.groups.matrix_gps.matrix_group._check_matrix`
+        for details.
 
         EXAMPLES::
 
-            sage: Sp(2,4)
-            Symplectic Group of rank 1 over Finite Field in a of size 2^2
+            sage: G = Sp(4,GF(5))
+            sage: G._check_matrix(G.an_element().matrix())
         """
-        return "Symplectic Group of rank %s over %s"%(self.degree()/2, self.base_ring())
+        F = self.invariant_form()
+        if x * F * x.transpose() != F:
+            raise TypeError('matrix must be symplectic')
 
-class SymplecticGroup_finite_field(SymplecticGroup_generic, MatrixGroup_gap_finite_field):
-    def _gap_init_(self):
+
+class SymplecticMatrixGroup_gap(SymplecticMatrixGroup_generic, NamedMatrixGroup_gap):
+    r"""
+    Symplectic group in GAP
+
+    EXAMPLES::
+
+        sage: Sp(2,4)
+        Symplectic Group of degree 2 over Finite Field in a of size 2^2
+
+        sage: latex(Sp(4,5))
+        \text{Sp}_{4}(\Bold{F}_{5})
+    """
+
+    @cached_method
+    def invariant_form(self):
         """
-        Return GAP string that evaluates to this group.
+        Return the quadratic form preserved by the orthogonal group.
+
+        OUTPUT:
+
+        A matrix.
 
         EXAMPLES::
 
-            sage: Sp(2,4)._gap_init_()
-            'Sp(2, 4)'
+            sage: Sp(4, GF(3)).invariant_form()
+            [0 0 0 1]
+            [0 0 1 0]
+            [0 2 0 0]
+            [2 0 0 0]
         """
-        return "Sp(%s, %s)"%(self.degree(), self.base_ring().order())
+        m = self.gap().InvariantBilinearForm()['matrix'].matrix()
+        m.set_immutable()
+        return m
+
+
 
 
 

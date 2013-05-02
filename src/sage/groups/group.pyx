@@ -23,6 +23,31 @@ from sage.structure.parent cimport Parent
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 
+def is_Group(x):
+    """
+    Return whether ``x`` is a group object.
+
+    INPUT:
+
+    - ``x`` -- anything.
+
+    OUTPUT:
+
+    Boolean.
+
+    EXAMPLES::
+
+        sage: F.<a,b> = FreeGroup()
+        sage: from sage.groups.group import is_Group
+        sage: is_Group(F)
+        True
+        sage: is_Group("a string")
+        False
+    """
+    from sage.groups.old import Group as OldGroup
+    return isinstance(x, (Group, OldGroup))
+
+
 cdef class Group(Parent):
     """
     Base class for all groups
@@ -44,7 +69,7 @@ cdef class Group(Parent):
                                        "_test_prod",\
                                        "_test_some_elements"])
     """
-    def __init__(self, gens=None, category=None):
+    def __init__(self, base=None, gens=None, category=None):
         """
         The Python constructor
 
@@ -60,8 +85,7 @@ cdef class Group(Parent):
             sage: G = Group(category = CommutativeAdditiveGroups())
             Traceback (most recent call last):
             ...
-            ValueError: Category of commutative additive groups is not a subcategory of Category of groups
-
+            ValueError: (Category of commutative additive groups,) is not a subcategory of Category of groups
             sage: G._repr_option('element_is_atomic')
             False
 
@@ -77,9 +101,11 @@ cdef class Group(Parent):
         if category is None:
             category = Groups()
         else:
-            if not category.is_subcategory(Groups()):
+            if not isinstance(category, tuple):
+                category = (category,)
+            if not any(cat.is_subcategory(Groups()) for cat in category):
                 raise ValueError("%s is not a subcategory of %s"%(category, Groups()))
-        Parent.__init__(self, base=ZZ, gens=gens, category=category)
+        Parent.__init__(self, base=base, gens=gens, category=category)
 
     def __contains__(self, x):
         r"""
@@ -256,6 +282,28 @@ cdef class FiniteGroup(Group):
     """
     Generic finite group.
     """
+
+    def __init__(self, base=None, gens=None, category=None):
+        """
+        The Python constructor
+
+        TESTS::
+
+            sage: from sage.groups.group import FiniteGroup
+            sage: G = FiniteGroup()
+            sage: G.category()
+            Category of finite groups
+        """
+        from sage.categories.finite_groups import FiniteGroups
+        if category is None:
+            category = FiniteGroups()
+        else:
+            if not isinstance(category, tuple):
+                category = (category,)
+            if not any(cat.is_subcategory(FiniteGroups()) for cat in category):
+                raise ValueError("%s is not a subcategory of %s"%(category, FiniteGroups()))
+        Parent.__init__(self, base=base, gens=gens, category=category)
+
     def is_finite(self):
         """
         Return True.

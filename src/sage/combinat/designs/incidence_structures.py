@@ -626,6 +626,9 @@ class IncidenceStructure(object):
             sage: BD.points_from_gap()      # optional - gap_packages (design package)
             [1, 2, 3, 4, 5, 6, 7]
         """
+        from sage.misc.superseded import deprecation
+        deprecation(14499, ('Unless somebody protests this method will be '
+                            'removed, as nobody seems to know why it is there.'))
         from sage.interfaces.gap import gap, GapElement
         from sage.sets.set import Set
         gap.load_package("design")

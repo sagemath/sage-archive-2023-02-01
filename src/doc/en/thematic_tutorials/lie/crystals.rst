@@ -918,9 +918,9 @@ type::
     sage: La = C.root_system().weight_lattice().fundamental_weights()
     sage: T = HighestWeightCrystal(La[1])
     sage: t = T[4]; t
-    [[-2, 5]]
+    [(-2, 5)]
     sage: t.lusztig_involution()
-    [[-3, 2]]
+    [(-3, 2)]
 
 
 Levi branching rules for crystals

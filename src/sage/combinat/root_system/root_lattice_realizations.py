@@ -210,7 +210,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: r = RootSystem(['A',4]).root_space()
                 sage: r.index_set()
-                [1, 2, 3, 4]
+                (1, 2, 3, 4)
             """
             return self.root_system.index_set()
 

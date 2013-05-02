@@ -242,6 +242,9 @@ ext_modules = [
     Extension('sage.combinat.q_bernoulli',
               sources = ['sage/combinat/q_bernoulli.pyx']),
 
+    Extension('sage.combinat.crystals.letters',
+              sources=['sage/combinat/crystals/letters.pyx']),
+
     ################################
     ##
     ## sage.crypto

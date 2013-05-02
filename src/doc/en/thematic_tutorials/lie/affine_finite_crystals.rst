@@ -428,9 +428,9 @@ The promotion operator on the crystal corresponding to `\sigma` can be calculate
     sage: K = KirillovReshetikhinCrystal(['E',6,1],1,1)
     sage: promotion = K.promotion()
     sage: u = K.module_generator(); u
-    [[1]]
+    [(1,)]
     sage: promotion(u.lift())
-    [[-1, 6]]
+    [(-1, 6)]
 
 The crystal `B^{1,1}` is already of dimension 27. The elements `b` of this crystal are labelled by tuples which
 specify their nonzero `\phi_i(b)` and `\epsilon_i(b)`. For example, `[-6,2]` indicates that `\phi_2([-6,2])=

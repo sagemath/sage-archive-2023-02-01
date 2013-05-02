@@ -50,7 +50,9 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
     types `A_n`, `B_n`, `C_n`, and `D_n`, and by Kang and Misra [KM94]_ in
     type `G_2`.
 
-    NOTE: We are using the English convention for our tableaux.
+    .. NOTE::
+
+        We are using the English convention for our tableaux.
 
     We say a tableau `T` is *marginally large* if:
 
@@ -136,11 +138,6 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
     .. [KM94] S.-J. Kang and K. C. Misra.
        Crystal bases and tensor product decompositions of `U_q(G_2)`-modules.
        J. Algebra 163, pp. 675--691, 1994.
-
-    .. [KN94] M. Kashiwara and T. Nakashima.
-       Crystal Graphs for Representations of the `q`-Analogue of Classical Lie
-       Algebras.
-       J. Algebra 165, pp. 295--345, 1994.
 
     INPUT:
 

@@ -8,7 +8,7 @@ Crystals
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.cachefunc import CachedFunction
+from sage.misc.cachefunc import CachedFunction, cached_method
 from sage.misc.abstract_method import abstract_method
 from sage.categories.category_singleton import Category_singleton
 from sage.categories.enumerated_sets import EnumeratedSets
@@ -175,6 +175,7 @@ class Crystals(Category_singleton):
             """
             return self._cartan_type
 
+        @cached_method
         def index_set(self):
             """
             Returns the index set of the Dynkin diagram underlying the crystal
@@ -183,7 +184,7 @@ class Crystals(Category_singleton):
 
                 sage: C = CrystalOfLetters(['A', 5])
                 sage: C.index_set()
-                [1, 2, 3, 4, 5]
+                (1, 2, 3, 4, 5)
             """
             return self.cartan_type().index_set()
 
@@ -838,13 +839,14 @@ class Crystals(Category_singleton):
 
     class ElementMethods:
 
+        @cached_method
         def index_set(self):
             """
             EXAMPLES::
 
                 sage: C = CrystalOfLetters(['A',5])
                 sage: C(1).index_set()
-                [1, 2, 3, 4, 5]
+                (1, 2, 3, 4, 5)
             """
             return self.parent().index_set()
 
@@ -988,7 +990,6 @@ class Crystals(Category_singleton):
                 sage: b.f_string([1,2])
                 3
                 sage: b.f_string([2,1])
-
             """
             b = self
             for i in list:
@@ -1008,7 +1009,6 @@ class Crystals(Category_singleton):
                 sage: b.e_string([2,1])
                 1
                 sage: b.e_string([1,2])
-
             """
             b = self
             for i in list:

@@ -239,9 +239,9 @@ class AffinePermutation(ClonableArray):
 
             sage: A=AffinePermutationGroup(['A',7,1])
             sage: A.index_set()
-            [0, 1, 2, 3, 4, 5, 6, 7]
+            (0, 1, 2, 3, 4, 5, 6, 7)
         """
-        return range(self.k+1)
+        return tuple(range(self.k+1))
 
     def lower_covers(self,side="right"):
         r"""
@@ -2075,7 +2075,7 @@ class AffinePermutationGroupGeneric(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: AffinePermutationGroup(['A',7,1]).index_set()
-            [0, 1, 2, 3, 4, 5, 6, 7]
+            (0, 1, 2, 3, 4, 5, 6, 7)
         """
         return self.cartan_type().index_set()
 
@@ -2086,7 +2086,7 @@ class AffinePermutationGroupGeneric(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: AffinePermutationGroup(['A',7,1]).index_set()
-            [0, 1, 2, 3, 4, 5, 6, 7]
+            (0, 1, 2, 3, 4, 5, 6, 7)
         """
         return self.cartan_type().index_set()
 

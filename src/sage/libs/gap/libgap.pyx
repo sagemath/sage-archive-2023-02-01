@@ -267,8 +267,11 @@ cdef void print_gasman_objects():
 
 
 
-
-
+from sage.misc.lazy_import import is_during_startup
+if is_during_startup():
+    import sys, traceback
+    print 'Importing libgap during startup!'
+    traceback.print_stack(None, None, sys.stdout)
 
 
 ############################################################################
@@ -299,6 +302,24 @@ class Gap(Parent):
 
     Element = GapElement
 
+    def _coerce_map_from_(self, S):
+        """
+        Whether a coercion from `S` exists
+
+        INPUT / OUTPUT:
+
+        See :mod:`sage.structure.parent`
+
+        EXAMPLES::
+
+            sage: libgap.has_coerce_map_from(ZZ)
+            True
+            sage: libgap.has_coerce_map_from(CyclotomicField(5))
+            True
+        """
+        from sage.rings.all import ZZ, QQ, is_CyclotomicField
+        if S in (ZZ, QQ) or is_CyclotomicField(S):
+            return True
 
     def _element_constructor_(self, x):
         r"""
@@ -335,10 +356,43 @@ class Gap(Parent):
         elif isinstance(x, basestring):
             return make_GapElement_String(self, make_gap_string(x))
         else:
+            try:
+                return x._libgap_()
+            except AttributeError:
+                pass
             x = str(x._gap_init_())
             return make_any_gap_element(self, gap_eval(x))
         raise ValueError('cannot represent '+str(x)+' as a GAP object')
 
+    def _construct_matrix(self, M):
+        """
+        Construct a LibGAP matrix.
+
+        INPUT:
+
+        - ``M`` -- a matrix.
+
+        OUTPUT:
+
+        A GAP matrix, that is, a list of lists with entries over a
+        common ring.
+
+        EXAMPLES::
+
+            sage: libgap._construct_matrix(identity_matrix(ZZ,2))
+            [ [ 1, 0 ], [ 0, 1 ] ]
+            sage: libgap(identity_matrix(ZZ,2))  # syntactic sugar
+            [ [ 1, 0 ], [ 0, 1 ] ]
+            sage: libgap(matrix(GF(3),2,2,[4,5,6,7]))
+            [ [ Z(3)^0, Z(3) ], [ 0*Z(3), Z(3)^0 ] ]
+        """
+        ring = M.base_ring()
+        try:
+            gap_ring = self(ring)
+        except ValueError:
+            raise TypeError('base ring is not supported by GAP')
+        M_list = map(list, M.rows())
+        return make_GapElement_List(self, make_gap_list(M_list))
 
     def eval(self, gap_command):
         """
@@ -376,6 +430,22 @@ class Gap(Parent):
         EXAMPLES::
 
             sage: libgap.an_element()   # indirect doctest
+            0
+        """
+        return self(0)
+
+
+    def zero_element(self):
+        """
+        Return (integer) zero in GAP
+
+        OUTPUT:
+
+        A :class:`GapElement`.
+
+        EXAMPLES::
+
+            sage: libgap.zero_element()
             0
         """
         return self(0)

@@ -35,11 +35,14 @@ cdef class GapElement(RingElement):
 
     # comparison
     cdef bint _compare_by_id
-    cdef int _cmp_c_impl(self, Element other) except -2
+    cdef _richcmp_c_impl(self, Element other, int op)
+    cdef bint _compare_equal(self, Element other) except -2
+    cdef bint _compare_less(self, Element other) except -2
     cpdef _set_compare_by_id(self)
     cpdef _assert_compare_by_id(self)
 
     cdef _initialize(self, parent, libGAP_Obj obj)
+    cpdef _type_number(self)
     cpdef ModuleElement _add_(self, ModuleElement right)
     cpdef ModuleElement _sub_(self, ModuleElement right)
     cpdef RingElement _mul_(self, RingElement right)
@@ -51,6 +54,18 @@ cdef class GapElement_Integer(GapElement):
     pass
 
 cdef class GapElement_Rational(GapElement):
+    pass
+
+cdef class GapElement_IntegerMod(GapElement):
+    cpdef GapElement_Integer lift(self)
+
+cdef class GapElement_FiniteField(GapElement):
+    cpdef GapElement_Integer lift(self)
+
+cdef class GapElement_Cyclotomic(GapElement):
+    pass
+
+cdef class GapElement_Ring(GapElement):
     pass
 
 cdef class GapElement_String(GapElement):

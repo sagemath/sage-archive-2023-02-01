@@ -751,7 +751,7 @@ class Maxima(MaximaAbstract, Expect):
         line_echo = self._expect.readline()
         if not wait_for_prompt:
             return
-        assert line_echo.strip() == line.strip()
+        assert line_echo.strip() == line.strip(), 'mismatch:\n' + line_echo + line
 
         # This broke in maxima-5.22.1 as discussed in
         # http://trac.sagemath.org/sage_trac/ticket/10187

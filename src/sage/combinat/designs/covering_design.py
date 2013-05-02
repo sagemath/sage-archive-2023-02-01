@@ -10,21 +10,15 @@ If every `t`-set is contained in exactly one block of `C`, then we
 have a block design.  Following the block design implementation, the
 standard representation of a covering design uses `P = [0,1,..., v-1]`.
 
-There is an online database of the best known covering designs, the La
-Jolla Covering Repository (LJCR), at [1]_.  This is maintained with an
-SQL database, also in Sage, but since it changes frequently, and is
-over 60MB, that code is not included here.  A user may get individual
-coverings from the LJCR using best_known_covering_design_www.
-
 In addition to the parameters and incidence structure for a covering
 design from this database, we include extra information:
 
-* Best known lower bound on the size of a (v,k,t)-covering design
+* Best known lower bound on the size of a `(v,k,t)`-covering design
 * Name of the person(s) who produced the design
 * Method of construction used
 * Date when the design was added to the database
 
-REFERENCES
+REFERENCES:
 
 .. [1] La Jolla Covering Repository,
   http://www.ccrwest.org/cover.html
@@ -34,8 +28,8 @@ REFERENCES
   http://www.ccrwest.org/gordon/hcd.pdf
   from the Handbook of Combinatorial Designs
 
-
 AUTHORS:
+
     -- Daniel M. Gordon (2008-12-22): initial version
 
 Classes and methods
@@ -49,7 +43,6 @@ Classes and methods
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import urllib
 from sage.misc.sage_eval import sage_eval
 from sage.structure.sage_object import SageObject
 from sage.rings.rational import Rational
@@ -473,6 +466,7 @@ def best_known_covering_design_www(v, k, t, verbose=False):
 
     EXAMPLES::
 
+        sage: from sage.combinat.designs.covering_design import best_known_covering_design_www
         sage: C = best_known_covering_design_www(7, 3, 2)   # optional - internet
         sage: print C                                       # optional - internet
         C(7,3,2) = 7
@@ -489,6 +483,8 @@ def best_known_covering_design_www(v, k, t, verbose=False):
     This function raises a ValueError if the ``(v,k,t)`` parameters are not
     found in the database.
     """
+    import urllib
+    from sage.misc.sage_eval import sage_eval
 
     v = int(v)
     k = int(k)
@@ -508,4 +504,3 @@ def best_known_covering_design_www(v, k, t, verbose=False):
         raise ValueError, str
 
     return sage_eval(s)
-

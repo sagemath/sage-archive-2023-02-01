@@ -29,10 +29,6 @@ REFERENCES:
   External Representation of Block Designs' by Peter J. Cameron, Peter
   Dobcsanyi, John P. Morgan, Leonard H. Soicher)
 
-.. TODO::
-
-    Implement DerivedDesign, ComplementaryDesign, and Hadamard3Design
-
 AUTHORS:
 
 - Peter Dobcsanyi and David Joyner (2007-2008)
@@ -104,9 +100,9 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
 
     EXAMPLES::
 
-        sage: ProjectiveGeometryDesign(2, 1, GF(2))
+        sage: designs.ProjectiveGeometryDesign(2, 1, GF(2))
         Incidence structure with 7 points and 7 blocks
-        sage: BD = ProjectiveGeometryDesign(2, 1, GF(2), algorithm="gap") # optional - gap_packages (design package)
+        sage: BD = designs.ProjectiveGeometryDesign(2, 1, GF(2), algorithm="gap") # optional - gap_packages (design package)
         sage: BD.is_block_design()                                     # optional - gap_packages (design package)
         (True, [2, 7, 3, 1])
     """
@@ -161,12 +157,12 @@ def AffineGeometryDesign(n, d, F):
 
     EXAMPLES::
 
-        sage: BD = AffineGeometryDesign(3, 1, GF(2))
+        sage: BD = designs.AffineGeometryDesign(3, 1, GF(2))
         sage: BD.parameters()
         (2, 8, 2, 2)
         sage: BD.is_block_design()
         (True, [2, 8, 2, 2])
-        sage: BD = AffineGeometryDesign(3, 2, GF(2))
+        sage: BD = designs.AffineGeometryDesign(3, 2, GF(2))
         sage: BD.parameters()
         (2, 8, 4, 12)
         sage: BD.is_block_design()
@@ -205,14 +201,14 @@ def WittDesign(n):
 
     EXAMPLES::
 
-        sage: BD = WittDesign(9)   # optional - gap_packages (design package)
+        sage: BD = designs.WittDesign(9)   # optional - gap_packages (design package)
         sage: BD.parameters()      # optional - gap_packages (design package)
         (2, 9, 3, 1)
         sage: BD                   # optional - gap_packages (design package)
         Incidence structure with 9 points and 12 blocks
         sage: print BD             # optional - gap_packages (design package)
         WittDesign<points=[0, 1, 2, 3, 4, 5, 6, 7, 8], blocks=[[0, 1, 7], [0, 2, 5], [0, 3, 4], [0, 6, 8], [1, 2, 6], [1, 3, 5], [1, 4, 8], [2, 3, 8], [2, 4, 7], [3, 6, 7], [4, 5, 6], [5, 7, 8]]>
-        sage: BD = WittDesign(12)  # optional - gap_packages (design package)
+        sage: BD = designs.WittDesign(12)  # optional - gap_packages (design package)
         sage: BD.parameters(t=5)   # optional - gap_packages (design package)
         (5, 12, 6, 1)
     """
@@ -234,9 +230,9 @@ def HadamardDesign(n):
 
     EXAMPLES::
 
-        sage: HadamardDesign(7)
+        sage: designs.HadamardDesign(7)
         Incidence structure with 7 points and 7 blocks
-        sage: print HadamardDesign(7)
+        sage: print designs.HadamardDesign(7)
         HadamardDesign<points=[0, 1, 2, 3, 4, 5, 6], blocks=[[0, 1, 2], [0, 3, 4], [0, 5, 6], [1, 3, 5], [1, 4, 6], [2, 3, 6], [2, 4, 5]]>
 
     REFERENCES:
@@ -280,8 +276,7 @@ def steiner_triple_system(n):
 
     A Steiner Triple System on `9` elements ::
 
-        sage: from sage.combinat.designs.block_design import steiner_triple_system
-        sage: sts = steiner_triple_system(9)
+        sage: sts = designs.steiner_triple_system(9)
         sage: sts
         Incidence structure with 9 points and 12 blocks
         sage: list(sts)
@@ -294,7 +289,7 @@ def steiner_triple_system(n):
 
     An exception is raised for invalid values of ``n`` ::
 
-        sage: steiner_triple_system(10)
+        sage: designs.steiner_triple_system(10)
         Traceback (most recent call last):
         ...
         ValueError: Steiner triple systems only exist for n = 1 mod 6 or n = 3 mod 6

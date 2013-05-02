@@ -47,7 +47,7 @@ def coordinatewise_product(L):
     """
     Returns the coordinatewise product of a list of vectors.
 
-    ÌNPUT:
+    INPUT:
 
     - ``L`` is a list of `n`-vectors or lists all of length `n` with a common
       parent. This returns the vector whose `i`-th coordinate is the product of
@@ -169,7 +169,7 @@ class IncidenceStructure(object):
 
         EXAMPLE::
 
-            sage: sts = sage.combinat.designs.block_design.steiner_triple_system(9)
+            sage: sts = designs.steiner_triple_system(9)
             sage: list(sts)
             [[0, 1, 5], [0, 2, 4], [0, 3, 6], [0, 7, 8], [1, 2, 3], [1, 4, 7], [1, 6, 8], [2, 5, 8], [2, 6, 7], [3, 4, 8], [3, 5, 7], [4, 5, 6]]
         """
@@ -531,7 +531,7 @@ class IncidenceStructure(object):
             sage: BD = WittDesign(12)       # optional - gap_packages (design package)
             sage: BD.is_block_design()      # optional - gap_packages (design package)
             (True, [5, 12, 6, 1])
-            sage: BD = AffineGeometryDesign(3, 1, GF(2))
+            sage: BD = designs.AffineGeometryDesign(3, 1, GF(2))
             sage: BD.is_block_design()
             (True, [2, 8, 2, 2])
         """

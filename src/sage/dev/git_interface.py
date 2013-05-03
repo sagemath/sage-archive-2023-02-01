@@ -104,8 +104,12 @@ class GitInterface(object):
                 f.write('this is a test file\n')
             self.execute_silent('add', 'testfile')
             self.execute_silent('commit', '--message="add a testfile"')
-            self.execute_silent('checkout', '-qb', 't/13838')
-            self.execute_silent('checkout', '-qb', 't/13624')
+            self.execute_silent('branch', 'first')
+            with open('testfile', 'w') as f:
+                f.write('this test file has been edited\n')
+            self.execute_silent('add', 'testfile')
+            self.execute_silent('commit', '--message="edit the testfile"')
+            self.execute_silent('checkout', '-qb', 'second')
 
         if not os.path.exists(self._dot_git):
                 raise ValueError("`%s` does not point to an existing directory."%self._dot_git)
@@ -226,7 +230,34 @@ class GitInterface(object):
     def read_output(self, cmd, *args, **kwds):
         return self._run_git('stdout', cmd, args, kwds)
 
+    def is_child_of(self, a, b):
+        """
+        returns True if a is a child of b
+
+        EXAMPLES::
+
+            sage: sage_dev.git.is_child_of('first', 'second')
+            False
+            sage: sage_dev.git.is_child_of('second', 'first')
+            True
+            sage: sage_dev.git.is_child_of('master', 'master')
+            True
+        """
+        return self.is_ancestor_of(b, a)
+
     def is_ancestor_of(self, a, b):
+        """
+        returns True if a is an ancestor of b
+
+        EXAMPLES::
+
+            sage: sage_dev.git.is_ancestor_of('first', 'second')
+            True
+            sage: sage_dev.git.is_ancestor_of('second', 'first')
+            False
+            sage: sage_dev.git.is_ancestor_of('master', 'master')
+            True
+        """
         revs = self.read_output('rev-list', '{}..{}'.format(b, a)).splitlines()
         return len(revs) == 0
 
@@ -271,10 +302,8 @@ class GitInterface(object):
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev import Config, SageDev
-            sage: git = SageDev(Config._doctest_config()).git
-            sage: git.local_branches()
-            ['master', 't/13624', 't/13838']
+            sage: sage_dev.git.local_branches()
+            ['first', 'master', 'second']
         """
         result = self._run_git("stdout", "show-ref", ["--heads"], {}).split()
         result = [result[2*i+1][11:] for i in range(len(result)/2)]
@@ -286,10 +315,8 @@ class GitInterface(object):
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev import Config, SageDev
-            sage: git = SageDev(Config._doctest_config()).git
-            sage: git.current_branch()
-            't/13624'
+            sage: sage_dev.git.current_branch()
+            'second'
         """
         try:
             branch = self.read_output('symbolic-ref', 'HEAD').strip()

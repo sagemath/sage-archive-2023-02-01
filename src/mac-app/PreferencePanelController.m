@@ -119,7 +119,7 @@
 }
 
 
-- (void)alertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo {
+- (void)alertDidEnd:(NSAlert *)alert returnCode:(long)returnCode contextInfo:(void *)contextInfo {
 
     if (returnCode == NSAlertFirstButtonReturn) {
         // ~/bin

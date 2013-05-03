@@ -8786,6 +8786,18 @@ cdef class Matrix(matrix1.Matrix):
             Traceback (most recent call last):
             ...
             ValueError: Jordan normal form not implemented over inexact rings.
+            
+        Here we need to specify a field (#14508).
+        
+        ::
+        
+            sage: c = matrix([[0,1,0],[0,0,1],[1,0,0]]);
+            sage: c.jordan_form(CyclotomicField(3))
+            [         1|         0|         0]
+            [----------+----------+----------]
+            [         0|     zeta3|         0]
+            [----------+----------+----------]
+            [         0|         0|-zeta3 - 1]
 
         If you need the transformation matrix as well as the Jordan form of
         ``self``, then pass the option ``transformation=True``.
@@ -9054,16 +9066,16 @@ cdef class Matrix(matrix1.Matrix):
             else:
                 return self, self.parent().identity_matrix()
 
-        if (base_ring is None and not self.base_ring().is_exact()) or \
-            (not base_ring is None and not base_ring.is_exact()):
-            raise ValueError("Jordan normal form not implemented over inexact rings.")
-
         if base_ring is None:
-            A = self
             base_ring = self.base_ring()
 
-        # make sure we're working with a field..
-        if not base_ring.is_field():
+        if not base_ring.is_exact():
+            raise ValueError("Jordan normal form not implemented over inexact rings.")
+
+        # Make sure we're working with a field.
+        if base_ring.is_field():
+            A = self.change_ring(base_ring)
+        else:
             try:
                 base_field = base_ring.fraction_field()
             except (NotImplementedError, TypeError, AttributeError):

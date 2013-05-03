@@ -353,90 +353,142 @@ class GitInterface(object):
         return self._ticket[branchname]
 
     def _branch_printname(self, branchname):
-        if branchname[:2] == 't/':
+        """
+        return branchname, where ticket branches are specially recognized
+
+        EXAMPLES::
+
+            sage: sage_dev.git._branch_printname('first')
+            'first'
+            sage: sage_dev.git._branch_printname('t/12345')
+            '#12345'
+            sage: sage_dev.git._branch_printname('ticket/12345')
+            '#12345'
+        """
+        if branchname.startswith('ticket/'):
+            return '#' + branchname[7:]
+        elif branchname.startswith('t/'):
             return '#' + branchname[2:]
         else:
             return branchname
 
     def _local_to_remote_name(self, branchname):
         """
-        me/12345 -> u/roed/t/12345
-        ticket/12345 -> u/roed/t/12345
-        padics/feature -> g/padics/feature
-        localname -> u/roed/localname
+        convert local branch name to 'canonical' remote branch name
+
+        EXAMPLES::
+
+            sage: sage_dev.git._local_to_remote_name('padics/feature')
+            'g/padics/feature'
+            sage: sage_dev.git._local_to_remote_name('t/12345')
+            'u/doctest/ticket/12345'
+            sage: sage_dev.git._local_to_remote_name('ticket/12345')
+            'u/doctest/ticket/12345'
+            sage: sage_dev.git._local_to_remote_name('u/doctest0/ticket/12345')
+            'u/doctest0/ticket/12345'
+            sage: sage_dev.git._local_to_remote_name('some/local/project')
+            'u/doctest/some/local/project'
         """
         x = branchname.split('/')
-        self._validate_local_name(x)
-        if '/' in branchname:
-            group = x[0]
-            if group != 't':
-                return 'g/' + group + '/' + branchname
-        return 'u/' + self._sagedev.trac._username + '/' + branchname
-
-    def _validate_remote_name(self, x):
-        if len(x) == 0: raise ValueError("Empty list")
-        if x[0] == 'ticket':
-            if len(x) > 1: raise ValueError("Too many slashes in branch name")
-            if not x[1].isdigit(): raise ValueError("Ticket branch not numeric")
-        elif x[0] == 'u':
-            if len(x) == 4:
-                if x[2] != 't': raise ValueError("Improperly formatted branch name")
-                if not x[3].isdigit(): raise ValueError("Ticket branch not numeric")
-            elif len(x) == 3:
-                self._validate_local_name([x[2]])
-            else:
-                raise ValueError("Wrong number of slashes in branch name")
-        elif x[0] == 'g':
-            if len(x) != 3: raise ValueError("Wrong number of slashes in branch name")
-            self._validate_atomic_name(x[1])
-            self._validate_atomic_name(x[2])
-        else:
-            raise ValueError("Unrecognized remote branch format")
-
-    def _validate_atomic_name(self, name, groupname=False):
-        if '/' in name: raise ValueError("No slashes allowed in atomic name")
-        if not groupname and name in ["t", "u", "g", "abandoned"]:
-            raise ValueError("Invalid atomic name")
-
-    def _validate_local_name(self, x):
-        if len(x) == 0: raise ValueError("Empty list")
-        if len(x) == 1:
-            self._validate_atomic_name(x[0])
-        elif x[0] in ['me', 'ticket']:
-            if len(x) > 2: raise ValueError("Too many slashes in branch name")
-            if not x[1].isdigit(): raise ValueError("Ticket branch not numeric")
-        elif x[0] == 'u':
-            if x[1] != self._sagedev.trac._username: raise ValueError("Local name should not include username")
-            self._validate_remote_name(x)
-        elif len(x) == 2:
-            self._validate_atomic_name(x[0], groupname=True)
-            self._validate_atomic_name(x[1])
-        else:
-            raise ValueError("Too many slashes in branch name")
+        try:
+            self._validate_group_name(x)
+            try:
+                return '/'.join(('g', x[0],
+                    self._normalize_ticket_name(x[1:])))
+            except ValueError:
+                return '/'.join(('g', x[0], x[1]))
+        except ValueError:
+            try:
+                return '/'.join(('u', self._sagedev.trac._username,
+                            self._normalize_ticket_name(x)))
+            except ValueError:
+                try:
+                    self._validate_remote_user_name(x)
+                    return branchname
+                except ValueError:
+                    return '/'.join(('u', self._sagedev.trac._username, branchname))
 
     def _remote_to_local_name(self, branchname):
         """
-        ticket/12345 -> ticket/12345
-        u/roed/t/12345 -> me/12345
-        u/saraedum/t/12345 -> u/saraedum/t/12345
-        g/padics/feature -> padics/feature
-        u/roed/localname -> localname
+        convert remote branch name to 'canonical' local branch name
+
+        EXAMPLES::
+
+            sage: sage_dev.git._remote_to_local_name('g/padics/feature')
+            'padics/feature'
+            sage: sage_dev.git._remote_to_local_name('u/doctest/t/12345')
+            'ticket/12345'
+            sage: sage_dev.git._remote_to_local_name('u/doctest/ticket/12345')
+            'ticket/12345'
+            sage: sage_dev.git._remote_to_local_name('u/doctest0/ticket/12345')
+            'u/doctest0/ticket/12345'
+            sage: sage_dev.git._remote_to_local_name('u/doctest/some/remote/project')
+            'some/remote/project'
         """
-        self._validate_remote_name(branchname)
         x = branchname.split('/')
-        self._validate_remote_name(x)
-        if x[0] == 'ticket':
-            return '/'.join(x)
-        elif x[0] == 'u':
-            if x[1] == self._sagedev.trac._username:
-                if x[2] == 't':
-                    return 'me/%s'%(x[3])
-                return x[2]
-            return '/'.join(x)
-        elif x[0] == 'g':
-            return '/'.join(x[1:])
+        try:
+            self._validate_remote_group_name(x)
+            try:
+                return '/'.join((x[1], self._normalize_ticket_name(x[2:])))
+            except ValueError:
+                return '/'.join(x[1:])
+        except ValueError:
+            try:
+                self._validate_different_user_name(x)
+                return branchname
+            except ValueError:
+                self._validate_remote_user_name(x)
+                try:
+                    return self._normalize_ticket_name(x[2:])
+                except ValueError:
+                    return '/'.join(x[2:])
+
+    def _validate_remote_group_name(self, x):
+        if len(x) < 3:
+            raise ValueError("wrong number of slashes in branch name")
+        if x[0] != "g":
+            raise ValueError("not remote group")
+        self._validate_group_name(x[1:])
+
+    def _validate_different_user_name(self, x):
+        self._validate_remote_user_name(x)
+        if x[1] == self._sagedev.trac._username:
+            raise ValueError("not different user")
+
+    def _validate_remote_user_name(self, x):
+        if len(x) < 3:
+            raise ValueError("wrong number of slashes in branch name")
+        if x[0] != "u":
+            raise ValueError("not remote user")
+
+    def _validate_atomic_name(self, x):
+        if len(x) != 1:
+            raise ValueError("branch is not atomic")
+        if '/' in x[0]:
+            raise ValueError("no slashes allowed in atomic name")
+        if x[0] in ("t", "ticket", "u", "g", "abandoned",""):
+            raise ValueError("invalid atomic name")
+
+    def _validate_ticket_name(self, x):
+        if len(x) != 2:
+            raise ValueError("not correct number of slashes in branch name")
+        if x[0] not in ('ticket', 't'):
+            raise ValueError("ticket name doesn't start with t or ticket")
+        if not x[1].isdigit():
+            raise ValueError('ticket branch not numeric')
+
+    def _validate_group_name(self, x):
+        if len(x) == 0:
+            raise ValueError("empty list")
+        self._validate_atomic_name([x[0]])
+        if len(x) == 2:
+            self._validate_atomic_name([x[1]])
         else:
-            raise RuntimeError # should never reach here
+            self._validate_ticket_name(x[1:])
+
+    def _normalize_ticket_name(self, x):
+        self._validate_ticket_name(x)
+        return '/'.join(('ticket', x[1]))
 
     def branch_exists(self, branch):
         """

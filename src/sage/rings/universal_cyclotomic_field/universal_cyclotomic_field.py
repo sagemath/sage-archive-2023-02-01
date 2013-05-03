@@ -1243,10 +1243,21 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
                 4/5
                 sage: x.parent()
                 Rational Field
+
+                sage: UCF(0)._rational_()
+                0
+
+                sage: UCF.gen(5)._rational_()
+                Traceback (most recent call last):
+                ...
+                TypeError:  No conversion of E(5) to the rational field QQ.
             """
-            if self.is_rational():
+            if self.is_zero():
+                return QQ.zero()
+            elif self.is_rational():
                 return self.value._monomial_coefficients[(1,0)]
-            raise TypeError("No conversion of %s to the rational field QQ."%str(self))
+            else:
+                raise TypeError("No conversion of %s to the rational field QQ."%str(self))
 
         def _integer_(self):
             r"""
@@ -1495,6 +1506,8 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
                 return self.parent().one()
             elif k == 1:
                 return self
+            elif self.is_zero():
+                return self.parent().zero()
             elif self.is_rational():
                 return self.parent()._from_dict({ (1,0) : self.value._monomial_coefficients[(1,0)]**k }, remove_zeros=False)
             elif len(self.value._monomial_coefficients) == 1:

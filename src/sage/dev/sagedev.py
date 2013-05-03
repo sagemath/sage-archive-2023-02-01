@@ -16,6 +16,7 @@ from trac_interface import TracInterface
 from user_interface import CmdLineInterface
 
 from sage.env import DOT_SAGE
+from sage.doctest import DOCTEST_MODE
 
 # regular expressions to parse mercurial patches
 HG_HEADER_REGEX = re.compile(r"^# HG changeset patch$")
@@ -48,8 +49,7 @@ class Config(collections.MutableMapping):
 
     EXAMPLES::
 
-        sage: from sage.dev.sagedev import Config
-        sage: Config._doctest_config()
+        sage: sage_dev._config
         Config('''
         [git]
         dot_git = ...
@@ -59,13 +59,6 @@ class Config(collections.MutableMapping):
     def __init__(self, devrc = os.path.join(DOT_SAGE, 'devrc')):
         """
         Initialization.
-
-        EXAMPLES::
-
-            sage: from sage.dev.sagedev import Config
-            sage: type(Config._doctest_config())
-            <class 'sage.dev.sagedev.Config'>
-
         """
         self._config = configparser.ConfigParser()
         self._devrc = devrc
@@ -77,40 +70,13 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev import Config
-            sage: Config._doctest_config()
+            sage: sage_dev._config
             Config('''
             [git]
             dot_git = ...
             ''')
-
         """
         return "Config('''\n"+"\n".join([ "[%s]\n"%s+"\n".join(["%s = %s"%(o,self[s][o]) for o in self[s] ]) for s in self ])+"\n''')"
-
-    @classmethod
-    def _doctest_config(self):
-        """
-        Create a fake configuration for doctesting.
-
-        EXAMPLES::
-
-            sage: from sage.dev.sagedev import Config
-            sage: Config._doctest_config()
-            Config('''
-            [git]
-            dot_git = ...
-            ''')
-
-        """
-        ret = Config(devrc = tempfile.NamedTemporaryFile().name)
-        tmp_dir = tempfile.mkdtemp()
-        atexit.register(shutil.rmtree, tmp_dir)
-        ret['git'] = {}
-        ret['git']['dot_git'] = os.path.join(tmp_dir, '.git')
-        ret['git']['doctest'] = tmp_dir
-        ret['trac'] = {}
-        ret['trac']['username'] = 'doctest'
-        return ret
 
     def _read_config(self):
         """
@@ -118,8 +84,8 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev import Config
-            sage: c = Config._doctest_config()
+            sage: from sage.dev.sagedev import Config, doctest_config
+            sage: c = doctest_config()
             sage: c._write_config()
             sage: c = Config(c._devrc)
             sage: c._read_config()
@@ -128,7 +94,6 @@ class Config(collections.MutableMapping):
             [git]
             dot_git = ...
             ''')
-
         """
         if os.path.exists(self._devrc):
             self._config.read(self._devrc)
@@ -139,15 +104,13 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev import Config
-            sage: c = Config._doctest_config()
-            sage: import os.path
+            sage: from sage.dev.sagedev import doctest_config
+            sage: c = doctest_config()
             sage: os.path.exists(c._devrc)
             False
             sage: c._write_config()
             sage: os.path.exists(c._devrc)
             True
-
         """
         with open(self._devrc, 'w') as F:
             self._config.write(F)
@@ -161,17 +124,14 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev import Config
-            sage: c = Config._doctest_config()
-            sage: c['git']
+            sage: sage_dev._config['git']
             IndexableForSection('''
             dot_git = ...
             ''')
-            sage: c['tig']
+            sage: sage_dev._config['tig']
             Traceback (most recent call last):
             ...
             KeyError: 'tig'
-
         """
         if not section in self:
             raise KeyError(section)
@@ -209,11 +169,9 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev import Config
-            sage: c = Config._doctest_config()
-            sage: 'git' in c
+            sage: 'git' in sage_dev._config
             True
-            sage: 'notgit' in c
+            sage: 'notgit' in sage_dev._config
             False
         """
         return section in self._config.sections()
@@ -224,9 +182,7 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev import Config
-            sage: c = Config._doctest_config()
-            sage: list(c)
+            sage: list(sage_dev._config)
             ['git', 'trac']
 
         """
@@ -238,8 +194,8 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev import Config
-            sage: c = Config._doctest_config()
+            sage: from sage.dev.sagedev import doctest_config
+            sage: c = doctest_config()
             sage: c['foo'] = {'foo':'foo'}
             sage: c['foo']['foo']
             'foo'
@@ -257,8 +213,7 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev import Config
-            sage: len(Config._doctest_config())
+            sage: len(sage_dev._config)
             2
         """
         return len(self._config.sections())
@@ -269,8 +224,8 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev import Config
-            sage: c = Config._doctest_config()
+            sage: from sage.dev.sagedev import doctest_config
+            sage: c = doctest_config()
             sage: del c['git']
             sage: list(c)
             ['trac']
@@ -295,8 +250,8 @@ class SageDev(object):
 
         TESTS::
 
-            sage: from sage.dev.sagedev import SageDev, Config
-            sage: type(SageDev(Config._doctest_config()))
+            sage: from sage.dev.sagedev import SageDev, doctest_config
+            sage: type(SageDev(doctest_config()))
             <class 'sage.dev.sagedev.SageDev'>
 
         """
@@ -1722,15 +1677,13 @@ class SageDev(object):
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev import SageDev, Config
             sage: import tempfile, os
             sage: tmp = tempfile.NamedTemporaryFile().name
-            sage: s = SageDev(Config._doctest_config())
-            sage: s._upload_ssh_key(tmp, create_key_if_not_exists = False)
+            sage: sage_dev._upload_ssh_key(tmp, create_key_if_not_exists = False)
             Traceback (most recent call last):
             ...
             IOError: [Errno 2] No such file or directory: ...
-            sage: s._upload_ssh_key(tmp, create_key_if_not_exists = True)
+            sage: sage_dev._upload_ssh_key(tmp, create_key_if_not_exists = True)
             Generating ssh key....
             Ssh key successfully generated
             sage: os.unlink(tmp)
@@ -1819,4 +1772,18 @@ class SageDev(object):
             self._UI.show("Changes did not apply cleanly to the new branch.  They are now in your stash")
 
 # default sagedev object
-sagedev = SageDev()
+if DOCTEST_MODE:
+    def doctest_config():
+        ret = Config(devrc = tempfile.NamedTemporaryFile().name)
+        tmp_dir = tempfile.mkdtemp()
+        atexit.register(shutil.rmtree, tmp_dir)
+        ret['git'] = {}
+        ret['git']['dot_git'] = os.path.join(tmp_dir, '.git')
+        ret['git']['doctest'] = tmp_dir
+        ret['trac'] = {}
+        ret['trac']['username'] = 'doctest'
+        return ret
+
+    sagedev = SageDev(doctest_config())
+else:
+    sagedev = SageDev()

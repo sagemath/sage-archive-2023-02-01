@@ -1,16 +1,18 @@
-import os
-import os.path
-import shutil
 import atexit
-import re
-import time
-import tempfile
-import email.utils
+import collections
 import ConfigParser as configparser
+import email.utils
+import os
+import re
+import shutil
+import tempfile
+import time
+
 from datetime import datetime
 from subprocess import call, check_call
-from trac_interface import TracInterface
+
 from git_interface import GitInterface
+from trac_interface import TracInterface
 from user_interface import CmdLineInterface
 
 from sage.env import DOT_SAGE
@@ -35,7 +37,7 @@ GIT_DIFF_REGEX = re.compile(r"^diff --git a/(.*) b/(.*)$") # this regex should w
 HG_PATH_REGEX = re.compile(r"^(?=sage/)|(?=doc/)|(?=module_list\.py)|(?=setup\.py)|(?=c_lib/)")
 GIT_PATH_REGEX = re.compile(r"^(?=src/)")
 
-class Config(object):
+class Config(collections.MutableMapping):
     """
     Wrapper around the ``devrc`` file storing the configuration for
     :class:`SageDev`.
@@ -101,12 +103,13 @@ class Config(object):
 
         """
         ret = Config(devrc = tempfile.NamedTemporaryFile().name)
-        dot_git = tempfile.mkdtemp()
+        tmp_dir = tempfile.mkdtemp()
+        atexit.register(shutil.rmtree, tmp_dir)
         ret['git'] = {}
-        ret['git']['dot_git'] = dot_git
+        ret['git']['dot_git'] = os.path.join(tmp_dir, '.git')
+        ret['git']['doctest'] = tmp_dir
         ret['trac'] = {}
         ret['trac']['username'] = 'doctest'
-        atexit.register(lambda: shutil.rmtree(dot_git))
         return ret
 
     def _read_config(self):
@@ -173,13 +176,16 @@ class Config(object):
         if not section in self:
             raise KeyError(section)
 
-        class IndexableForSection(object):
+        class IndexableForSection(collections.MutableMapping):
             def __init__(this, section):
                 this._section = section
             def __repr__(this):
                 return "IndexableForSection('''\n"+"\n".join(["%s = %s"%(o,this[o]) for o in this])+"\n''')"
             def __getitem__(this, option):
-                return self._config.get(this._section, option)
+                try:
+                    return self._config.get(this._section, option)
+                except configparser.NoOptionError:
+                    raise KeyError(option)
             def __iter__(this):
                 return iter(self._config.options(this._section))
             def __setitem__(this, option, value):
@@ -188,8 +194,29 @@ class Config(object):
                 return self._config.getboolean(this._section, option)
             def _write_config(this):
                 self._write_config()
+            def __delitem__(this, option):
+                self._config.remove_option(this._section, option)
+            def __len__(this):
+                return len(self._config.options(this._section))
+            def __contains__(this, option):
+                return option in self._config.options(this._section)
 
         return IndexableForSection(section)
+
+    def __contains__(self, section):
+        """
+        returns true if section is in the configuration
+
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import Config
+            sage: c = Config._doctest_config()
+            sage: 'git' in c
+            True
+            sage: 'notgit' in c
+            False
+        """
+        return section in self._config.sections()
 
     def __iter__(self):
         """
@@ -224,6 +251,32 @@ class Config(object):
         for option, value in dictionary.iteritems():
             self._config.set(section, option, value)
 
+    def __len__(self):
+        """
+        get the number of sections in the configuration
+
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import Config
+            sage: len(Config._doctest_config())
+            2
+        """
+        return len(self._config.sections())
+
+    def __delitem__(self, section):
+        """
+        remove ``section`` from the configuration
+
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import Config
+            sage: c = Config._doctest_config()
+            sage: del c['git']
+            sage: list(c)
+            ['trac']
+        """
+        self._config.remove_section(section)
+
 class SageDev(object):
     """
     The developer interface for sage.
@@ -252,7 +305,6 @@ class SageDev(object):
 
         self.__git = None
         self.__trac = None
-        self.tmp_dir=None
 
     ##
     ## Public interface
@@ -636,7 +688,7 @@ class SageDev(object):
                 raise ValueError("If `local_file` is specified, `patchname`, and `url` must not be specified.")
             lines = open(local_file).read().splitlines()
             lines = self._rewrite_patch(lines, to_header_format="git", to_path_format="new", from_diff_format=diff_format, from_header_format=header_format, from_path_format=path_format)
-            outfile = os.path.join(self._get_tmp_dir(), "patch_new")
+            outfile = os.path.join(self.tmp_dir, "patch_new")
             open(outfile, 'w').writelines("\n".join(lines)+"\n")
             self._UI.show("Trying to apply reformatted patch `%s` ..."%outfile)
             shared_args = ["--ignore-whitespace",outfile]
@@ -696,8 +748,7 @@ class SageDev(object):
         if url:
             if ticketnum or patchname:
                 raise ValueError("If `url` is specifed, `ticketnum` and `patchname` must not be specified.")
-            tmp_dir = self._get_tmp_dir()
-            ret = os.path.join(tmp_dir,"patch")
+            ret = os.path.join(self.tmp_dir,"patch")
             check_call(["wget","-r","-O",ret,url])
             return ret
         elif ticketnum:
@@ -1078,11 +1129,14 @@ class SageDev(object):
         self.git.fetch(repository, "%s:%s" % (branch, local_ref))
         return local_ref
 
-    def _get_tmp_dir(self):
-        if self.tmp_dir is None:
-            self.tmp_dir = tempfile.mkdtemp()
-            atexit.register(lambda: shutil.rmtree(self.tmp_dir))
-        return self.tmp_dir
+    @property
+    def tmp_dir(self):
+        try:
+            return self._tmp_dir
+        except AttributeError:
+            self._tmp_dir = SelfCleaningTempDir()
+            atexit.register(shutil.rmtree, self._tmp_dir)
+            return self._tmp_dir
 
     def _detect_patch_diff_format(self, lines):
         """
@@ -1669,16 +1723,17 @@ class SageDev(object):
         EXAMPLES::
 
             sage: from sage.dev.sagedev import SageDev, Config
-            sage: import tempfile
+            sage: import tempfile, os
+            sage: tmp = tempfile.NamedTemporaryFile().name
             sage: s = SageDev(Config._doctest_config())
-            sage: s._upload_ssh_key(tempfile.NamedTemporaryFile().name, create_key_if_not_exists = False)
+            sage: s._upload_ssh_key(tmp, create_key_if_not_exists = False)
             Traceback (most recent call last):
             ...
             IOError: [Errno 2] No such file or directory: ...
-            sage: s._upload_ssh_key(tempfile.NamedTemporaryFile().name, create_key_if_not_exists = True)
+            sage: s._upload_ssh_key(tmp, create_key_if_not_exists = True)
             Generating ssh key....
             Ssh key successfully generated
-
+            sage: os.unlink(tmp)
         """
         cfg = self._config
 

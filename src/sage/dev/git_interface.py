@@ -232,7 +232,7 @@ class GitInterface(object):
 
     def has_uncommitted_changes(self):
         # Returns True if there are uncommitted changes
-        return self.execute('diff', quiet=True) != 0
+        return self.execute('diff', '--quiet') != 0
 
     def commit_all(self, *args, **kwds):
         # if files are non-tracked and user doesn't want to add any of

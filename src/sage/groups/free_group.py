@@ -179,7 +179,7 @@ class FreeGroupElement(ElementLibGAP):
         True
     """
 
-    def __init__(self, x, parent):
+    def __init__(self, parent, x):
         """
         The Python constructor.
 
@@ -219,7 +219,7 @@ class FreeGroupElement(ElementLibGAP):
                     i=i+1
             AbstractWordTietzeWord = libgap.eval('AbstractWordTietzeWord')
             x = AbstractWordTietzeWord(l, parent._gap_gens())
-        ElementLibGAP.__init__(self, x, parent)
+        ElementLibGAP.__init__(self, parent, x)
 
     def _latex_(self):
         """
@@ -648,18 +648,18 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
             <class 'sage.groups.free_group.FreeGroup_class_with_category.element_class'>
         """
         if len(args)!=1:
-            return self.element_class(*args, parent=self, **kwds)
+            return self.element_class(self, *args, **kwds)
         x = args[0]
         if x==1:
             return self.one()
         try:
             P = x.parent()
         except AttributeError:
-            return self.element_class(x, parent=self, **kwds)
+            return self.element_class(self, x, **kwds)
         if hasattr(P, '_freegroup_'):
             if P.FreeGroup() is self:
-                return self.element_class(x.Tietze(), parent=self, **kwds)
-        return self.element_class(x, parent=self, **kwds)
+                return self.element_class(self, x.Tietze(), **kwds)
+        return self.element_class(self, x, **kwds)
 
     def abelian_invariants(self):
         r"""

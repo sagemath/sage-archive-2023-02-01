@@ -777,7 +777,7 @@ class PerfectMatching(ElementWrapper):
             []
         """
         from sage.combinat.permutation import Permutation
-        return Permutation(self.__dict__['value'])
+        return Permutation(self.value)
 
 
 class PerfectMatchings(UniqueRepresentation, Parent):

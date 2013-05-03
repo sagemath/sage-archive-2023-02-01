@@ -173,7 +173,7 @@ class FinitelyPresentedGroupElement(FreeGroupElement):
         b*a*b^-1*a^-1
     """
 
-    def __init__(self, x, parent):
+    def __init__(self, parent, x):
         """
         The Python constructor.
 
@@ -200,7 +200,7 @@ class FinitelyPresentedGroupElement(FreeGroupElement):
             free_element = F(x)
             fp_family = parent.one().gap().FamilyObj()
             x = libgap.ElementOfFpGroup(fp_family, free_element.gap())
-        ElementLibGAP.__init__(self, x, parent)
+        ElementLibGAP.__init__(self, parent, x)
 
     def __reduce__(self):
         """
@@ -684,17 +684,17 @@ class FinitelyPresentedGroup(UniqueRepresentation, Group, ParentLibGAP):
             a*b*a*b^-1
         """
         if len(args)!=1:
-            return self.element_class(*args, parent=self, **kwds)
+            return self.element_class(self, *args, **kwds)
         x = args[0]
         if x==1:
             return self.one()
         try:
             P = x.parent()
         except AttributeError:
-            return self.element_class(x, parent=self, **kwds)
+            return self.element_class(self, x, **kwds)
         if P is self._free_group:
-            return self.element_class(x.Tietze(), parent=self, **kwds)
-        return self.element_class(x, parent=self, **kwds)
+            return self.element_class(self, x.Tietze(), **kwds)
+        return self.element_class(self, x, **kwds)
 
     @cached_method
     def abelian_invariants(self):

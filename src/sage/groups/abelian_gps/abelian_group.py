@@ -906,7 +906,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         x = [0]*n
         if self._gens_orders[i] != 1:
             x[i] = 1
-        return self.element_class(x, self)
+        return self.element_class(self, x)
 
     def gens(self):
         """

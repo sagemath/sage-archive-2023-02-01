@@ -140,12 +140,12 @@ class FreeCommutativeAdditiveSemigroup(UniqueRepresentation, Parent):
         return self((a, (ord(a)-96)) for a in self.alphabet)
 
     class Element(ElementWrapper):
-        def __init__(self, iterable, parent):
+        def __init__(self, parent, iterable):
             """
             EXAMPLES::
 
                 sage: F = CommutativeAdditiveSemigroups().example()
-                sage: x = F.element_class((('a',4), ('b', 0), ('a', 2), ('c', 1), ('d', 5)), F)
+                sage: x = F.element_class(F, (('a',4), ('b', 0), ('a', 2), ('c', 1), ('d', 5)))
                 sage: x
                 2*a + c + 5*d
                 sage: x.value
@@ -164,7 +164,7 @@ class FreeCommutativeAdditiveSemigroup(UniqueRepresentation, Parent):
             d = dict( (a,0) for a in parent.alphabet )
             for (a, c) in iterable:
                 d[a] = c
-            ElementWrapper.__init__(self, parent = parent, value = d)
+            ElementWrapper.__init__(self, parent, d)
 
         def _repr_(self):
             """

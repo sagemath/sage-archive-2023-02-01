@@ -1935,6 +1935,9 @@ ext_modules = [
               sources = ['sage/structure/element.pyx'],
               extra_compile_args=["-Os"]),
 
+    Extension('sage.structure.element_wrapper',
+              sources = ['sage/structure/element_wrapper.pyx']),
+
     Extension('sage.structure.factory',
               sources = ['sage/structure/factory.pyx']),
 

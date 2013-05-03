@@ -330,7 +330,7 @@ class ParentLibGAP(SageObject):
         if not (0 <= i < self.ngens()):
             raise ValueError('i must be in range(ngens)')
         gap = self._gap_gens()[i]
-        return self.element_class(gap, parent=self)
+        return self.element_class(self, gap)
 
     @cached_method
     def gens(self):
@@ -374,7 +374,7 @@ class ParentLibGAP(SageObject):
             sage: G.one().Tietze()
             ()
         """
-        return self.element_class(self.gap().Identity(), parent=self)
+        return self.element_class(self, self.gap().Identity())
 
     def _an_element_(self):
         """
@@ -397,9 +397,9 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
 
     INPUT:
 
-    - ``libgap_element`` -- the libgap element that is being wrapped.
+    - ``parent`` -- the Sage parent
 
-    - ``parent`` -- the Sage parent.
+    - ``libgap_element`` -- the libgap element that is being wrapped
 
     EXAMPLES::
 
@@ -419,7 +419,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
         (f1,)
     """
 
-    def __init__(self, libgap_element, parent):
+    def __init__(self, parent, libgap_element):
         """
         The Python constructor
 
@@ -554,7 +554,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
             True
         """
         P = left.parent()
-        return P.element_class(left.gap() * right.gap(), parent=P)
+        return P.element_class(P, left.gap() * right.gap())
 
     cdef int _cmp_c_impl(left, Element right):
         """
@@ -623,7 +623,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
             False
         """
         P = left.parent()
-        return P.element_class(left.gap() / right.gap(), parent=P)
+        return P.element_class(P, left.gap() / right.gap())
 
     def __pow__(self, n, dummy):
         """
@@ -644,7 +644,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
         if n not in IntegerRing():
             raise TypeError("exponent must be an integer")
         P = self.parent()
-        return P.element_class(self.gap().__pow__(n), parent=P)
+        return P.element_class(P, self.gap().__pow__(n))
 
     def __invert__(self):
         """
@@ -665,7 +665,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
             b*a*b^-1*a^-1
         """
         P = self.parent()
-        return P.element_class(self.gap().Inverse(), parent=P)
+        return P.element_class(P, self.gap().Inverse())
 
     inverse = __invert__
 

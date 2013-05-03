@@ -338,10 +338,12 @@ Where do all the operations on ``S`` and its elements come from?
 
     sage: x = S('a')
 
-``_repr_`` is a technical method which comes with the data structure (ElementWrapper)::
+``_repr_`` is a technical method which comes with the data structure
+(ElementWrapper), however we can't see it in python because it is an
+extension class (it is in `sage.structure.element_wrapper`)::
 
     sage: x._repr_.__module__
-    'sage.structure.element_wrapper'
+    <BLANKLINE>
 
 ``__pow__`` is a generic method for all finite semigroups::
 
@@ -444,7 +446,7 @@ categories translates into *inheritance* between classes::
     sage: x.__class__.mro()
     [<class 'sage.categories.examples.finite_semigroups.LeftRegularBand_with_category.element_class'>,
      <class 'sage.categories.examples.finite_semigroups.LeftRegularBand.Element'>,
-     <class 'sage.structure.element_wrapper.ElementWrapper'>,
+     <type 'sage.structure.element_wrapper.ElementWrapper'>,
      <type 'sage.structure.element.Element'>,
      <type 'sage.structure.sage_object.SageObject'>,
      <class 'sage.categories.category.FiniteSemigroups.element_class'>,

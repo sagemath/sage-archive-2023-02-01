@@ -673,7 +673,7 @@ class BraidGroup_class(FinitelyPresentedGroup):
             sage: B([1, 2, 3]) # indirect doctest
             s0*s1*s2
         """
-        return Braid(x, parent=self)
+        return Braid(self, x)
 
     def _permutation_braid_Tietze(self, p):
         """

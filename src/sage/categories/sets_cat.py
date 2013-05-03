@@ -336,7 +336,7 @@ class Sets(Category_singleton):
                 sage: S._element_constructor_from_element_class(17)
                 17
             """
-            return self.element_class(parent = self, *args, **keywords)
+            return self.element_class(self, *args, **keywords)
 
         def is_parent_of(self, element):
             """

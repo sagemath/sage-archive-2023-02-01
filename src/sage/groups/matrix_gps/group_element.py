@@ -226,7 +226,7 @@ class MatrixGroupElement_base(MultiplicativeGroupElement):
 
 class MatrixGroupElement_generic(MatrixGroupElement_base):
 
-    def __init__(self, M, parent, check=True, convert=True):
+    def __init__(self, parent, M, check=True, convert=True):
         r"""
         Element of a matrix group over a generic ring.
 
@@ -310,7 +310,7 @@ class MatrixGroupElement_generic(MatrixGroupElement_base):
             [0 1]
         """
         parent = self.parent()
-        return parent.element_class(self._matrix * other._matrix, parent,
+        return parent.element_class(parent, self._matrix * other._matrix,
                                     check=False, convert=False)
 
     def __invert__(self):
@@ -335,7 +335,7 @@ class MatrixGroupElement_generic(MatrixGroupElement_base):
            [0 1]
         """
         parent = self.parent()
-        return parent.element_class(~self._matrix, parent, check=False, convert=False)
+        return parent.element_class(parent, ~self._matrix, check=False, convert=False)
 
     inverse = __invert__
 
@@ -369,7 +369,7 @@ class MatrixGroupElement_generic(MatrixGroupElement_base):
 
 class MatrixGroupElement_gap(GroupElementMixinLibGAP, MatrixGroupElement_base, ElementLibGAP):
 
-    def __init__(self, M, parent, check=True, convert=True):
+    def __init__(self, parent, M, check=True, convert=True):
         r"""
         Element of a matrix group over a generic ring.
 
@@ -398,7 +398,7 @@ class MatrixGroupElement_gap(GroupElementMixinLibGAP, MatrixGroupElement_base, E
             sage: TestSuite(g).run()
         """
         if isinstance(M, GapElement):
-            ElementLibGAP.__init__(self, M, parent)
+            ElementLibGAP.__init__(self, parent, M)
             return
         if convert:
             M = parent.matrix_space()(M)
@@ -410,7 +410,7 @@ class MatrixGroupElement_gap(GroupElementMixinLibGAP, MatrixGroupElement_base, E
             if M.parent() is not parent.matrix_space():
                 raise TypeError('M must be a in the matrix space of the group')
             parent._check_matrix(M, M_gap)
-        ElementLibGAP.__init__(self, M_gap, parent)
+        ElementLibGAP.__init__(self, parent, M_gap)
 
     def __reduce__(self):
         """

@@ -10,7 +10,7 @@ class CmdLineInterface(object):
 
         INPUT:
 
-        - ``promt`` -- a string
+        - ``prompt`` -- a string
         - ``options`` -- a list of strings or None
         - ``default`` -- a string or None
         - ``strip`` -- a string to strip off the beginning of options
@@ -18,10 +18,11 @@ class CmdLineInterface(object):
 
         EXAMPLES::
 
-            sage: SD = SageDev()
-            sage: SD.get_input("Should I delete your home directory?",
-            ... ["yes","no"], default="y", dryrun=True)
-            'Should I delete your home directory? [Yes/no] '
+            sage: UI = sage.dev.user_interface.CmdLineInterface()
+            sage: UI.get_input("Should I delete your home directory?",
+            ... ["yes","no","maybe"], default="m", dryrun=True)
+            Should I delete your home directory? [yes/no/Maybe]
+            'maybe'
         """
         if default is not None:
             for i, opt in enumerate(options):
@@ -33,23 +34,24 @@ class CmdLineInterface(object):
         if options is not None:
             options = list(options)
             if len(options) > 0:
-                for i in range(len(options)):
+                for i, option in enumerate(options):
                     if i == default:
-                        options[i] = str(options[i]).capitalize()
+                        options[i] = str(option).capitalize()
                     else:
-                        options[i] = str(options[i]).lower()
+                        options[i] = str(option).lower()
                 prompt += " [" + "/".join(options) + "] "
                 if default is not None:
                     options[default] = options[default].lower()
                 if strip is not None:
-                    for i in range(len(options)):
-                        if options[i].startswith(strip):
-                            options[i] = options[i][len(strip):]
+                    for i, option in enumerate(options):
+                        if option.startswith(strip):
+                            options[i] = option[len(strip):]
             else:
                 prompt += " "
                 options = None
         if dryrun:
-            return prompt
+            print prompt
+            return options[default]
         while True:
             if not self._answer_stack:
                 s = raw_input(prompt)
@@ -81,9 +83,26 @@ class CmdLineInterface(object):
             else:
                 print "Please disambiguate between options"
 
-    def confirm(self, question, default_yes=True):
+    def confirm(self, question, default_yes=True, dryrun=False):
+        """
+        Ask a yes/no question from the developer.
+
+        INPUT:
+
+        - ``question`` -- a string
+        - ``default_yes`` -- boolean whether to default to yes
+        - ``dryrun`` -- boolean
+
+        EXAMPLES::
+
+            sage: UI = sage.dev.user_interface.CmdLineInterface()
+            sage: UI.confirm("Should I delete your home directory?",
+            ... dryrun=True)
+            Should I delete your home directory? [Yes/no]
+            True
+        """
         ok = self.get_input(question, ["yes","no"],
-                            "yes" if default_yes else "no")
+                            "yes" if default_yes else "no", dryrun)
         return ok == "yes"
 
     def get_password(self, prompt):

@@ -92,7 +92,7 @@ class GitInterface(object):
     def __init__(self, sagedev):
         self._sagedev = sagedev
         self._UI = self._sagedev._UI
-        self._dryrun = True
+        self._dryrun = False
 
         if 'git' not in self._sagedev._config:
             self._sagedev._config['git'] = {}
@@ -285,6 +285,7 @@ class GitInterface(object):
 
         EXAMPLES::
 
+            sage: git = sage_dev.git
             sage: git.local_branches()
             ['master', 't/13624', 't/13838']
         """
@@ -415,13 +416,11 @@ class GitInterface(object):
 
         EXAMPLES::
 
-            sage: import sagedev
-            sage: cd ..
-            sage: git = sagedev.SageDev().git
+            sage: git = sage_dev.git
             sage: git.branch_exists("master")    # random
             'c4512c860a162c962073a83fd08e984674dd4f44'
             sage: type(git.branch_exists("master"))
-            str
+            <type 'str'>
             sage: len(git.branch_exists("master"))
             40
             sage: git.branch_exists("asdlkfjasdlf")

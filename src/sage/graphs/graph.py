@@ -2474,14 +2474,13 @@ class Graph(GenericGraph):
             sage: g.is_strongly_regular()
             False
         """
-        degree = self.degree()
-        if len(degree) == 0: # the empty graph
-            return False
-        k = degree[0]
-        if not all(d == k for d in degree):
+
+        if self.size() == 0: # no vertices or no edges
             return False
 
-        if k == 0: # graphs with no edges
+        degree = self.degree()
+        k = degree[0]
+        if not all(d == k for d in degree):
             return False
 
         if self.is_clique():

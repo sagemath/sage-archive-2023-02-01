@@ -67,6 +67,9 @@ Website: http://ecls.sourceforge.net/
 
 == Changelog ==
 
+=== ecl-12.12.1.p3 (Volker Braun, 4 May 2013) ===
+ * #14055: Disable ECL's SIGCHLD handler
+
 === ecl-12.12.1.p2 (Jeroen Demeyer, 9 April 2013) ===
  * #14426: write_error.patch: avoid an infinite loop when reporting
    an error while writing to stderr.

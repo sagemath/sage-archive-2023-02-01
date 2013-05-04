@@ -228,6 +228,8 @@ def chromatic_polynomial(G, return_tree_basis = False):
 
     for i from 0 <= i <= nverts:
         mpz_clear(tot[i])
+        mpz_clear(coeffs[i])
+
     sage_free(tot)
     sage_free(coeffs)
 

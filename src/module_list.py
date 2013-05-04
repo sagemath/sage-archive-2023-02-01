@@ -1994,7 +1994,7 @@ if is_package_installed('fes'):
        ])
 
 
-if (os.path.isfile(SAGE_INC + "gurobi_c.h") and
+if (os.path.isfile(SAGE_INC + "/gurobi_c.h") and
     os.path.isfile(SAGE_LOCAL + "/lib/libgurobi.so")):
     ext_modules.append(
         Extension("sage.numerical.backends.gurobi_backend",

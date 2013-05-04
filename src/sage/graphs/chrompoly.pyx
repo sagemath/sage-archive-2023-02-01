@@ -68,7 +68,20 @@ def chromatic_polynomial(G, return_tree_basis = False):
         sage: C(2)  # long time
         0
 
+    By definition, the chromatic number of a graph G is the least integer k such that
+    the chromatic polynomial of G is strictly positive at k::
+
+        sage: G = graphs.PetersenGraph()
+        sage: P = G.chromatic_polynomial()
+        sage: min((i for i in xrange(11) if P(i) > 0)) == G.chromatic_number()
+        True
+
+        sage: G = graphs.RandomGNP(10,0.7)
+        sage: P = G.chromatic_polynomial()
+        sage: min((i for i in xrange(11) if P(i) > 0)) == G.chromatic_number()
+        True
     """
+
     if not G.is_connected():
         return prod([chromatic_polynomial(g) for g in G.connected_components_subgraphs()])
     R = ZZ['x']
@@ -212,10 +225,15 @@ def chromatic_polynomial(G, return_tree_basis = False):
     sage_free(chords2)
     sage_free(parent)
     sage_free(bfs_reorder)
+
     for i from 0 <= i <= nverts:
         mpz_clear(tot[i])
     sage_free(tot)
     sage_free(coeffs)
+
+    mpz_clear(coeff)
+    mpz_clear(m)
+
     return f
 
 cdef int contract_and_count(int *chords1, int *chords2, int num_chords, int nverts, \

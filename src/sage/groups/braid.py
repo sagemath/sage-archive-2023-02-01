@@ -228,13 +228,24 @@ class Braid(FinitelyPresentedGroupElement):
             per = per*Permutation(((j, j+1)))
         return per
 
-    def plot(self, color='blue', orientation='bottom-top', gap=0.05, aspect_ratio=1, axes=False, **kwds):
+    def plot(self, color='rainbow', orientation='bottom-top', gap=0.05, aspect_ratio=1, axes=False, **kwds):
         """
         Plot the braid
 
         The following options are available:
 
-        - ``orientation`` - (default: ``'bottom-top'``) determines how
+        - ``color`` -- (default: ``'rainbow'``) the color of the
+          strands. Possible values are:
+
+            * ``'rainbow'``, uses :meth:`~sage.plot.colors.rainbow`
+              according to the number of strands.
+
+            * a valid color name for :meth:`~sage.plot.bezier_path`
+              and :meth:`~sage.plot.line`. Used for all strands.
+
+            * a list or a tuple of colors for each individual strand.
+
+        - ``orientation`` -- (default: ``'bottom-top'``) determines how
           the braid is printed. The possible values are:
 
             * ``'bottom-top'``, the braid is printed from bottom to top
@@ -257,9 +268,14 @@ class Braid(FinitelyPresentedGroupElement):
             sage: B = BraidGroup(4, 's')
             sage: b = B([1, 2, 3, 1, 2, 1])
             sage: b.plot()
+
+            sage: B.<s,t> = BraidGroup(3)
+            sage: b = t^-1*s^2
+            sage: b.plot(orientation="left-right", color="red")
         """
         from sage.plot.bezier_path import bezier_path
         from sage.plot.plot import Graphics, line
+        from sage.plot.colors import rainbow
         if orientation=='top-bottom':
             orx = 0
             ory = -1
@@ -277,51 +293,72 @@ class Braid(FinitelyPresentedGroupElement):
             ny = 0
         else:
             raise ValueError('unknown value for "orientation"')
-        col = color
-        br = self.Tietze()
         n = self.strands()
+        if isinstance(color, (list, tuple)):
+            if len(color) != n:
+                raise TypeError("color (=%s) must contain exactly %d colors" % (color, n))
+            col = list(color)
+        elif color == "rainbow":
+            col = rainbow(n)
+        else:
+            col = [color]*n
+        braid = self.Tietze()
         a = Graphics()
         op = gap
-        for i in range(len(br)):
-            m = br[i]
+        for i, m in enumerate(braid):
             for j in range(n):
                 if m==j+1:
                     a += bezier_path([[(j*nx+i*orx, i*ory+j*ny), (j*nx+orx*(i+0.25), j*ny+ory*(i+0.25)),
                                        (nx*(j+0.5)+orx*(i+0.5), ny*(j+0.5)+ory*(i+0.5))],
                                       [(nx*(j+1)+orx*(i+0.75), ny*(j+1)+ory*(i+0.75)),
-                                       (nx*(j+1)+orx*(i+1), ny*(j+1)+ory*(i+1))]], color=col, **kwds)
+                                       (nx*(j+1)+orx*(i+1), ny*(j+1)+ory*(i+1))]], color=col[j], **kwds)
                 elif m==j:
                     a += bezier_path([[(nx*j+orx*i, ny*j+ory*i), (nx*j+orx*(i+0.25), ny*j+ory*(i+0.25)),
                                        (nx*(j-0.5+4*op)+orx*(i+0.5-2*op), ny*(j-0.5+4*op)+ory*(i+0.5-2*op)),
                                        (nx*(j-0.5+2*op)+orx*(i+0.5-op), ny*(j-0.5+2*op)+ory*(i+0.5-op))]],
-                                     color=col, **kwds)
+                                     color=col[j], **kwds)
                     a += bezier_path([[(nx*(j-0.5-2*op)+orx*(i+0.5+op), ny*(j-0.5-2*op)+ory*(i+0.5+op)),
                                        (nx*(j-0.5-4*op)+orx*(i+0.5+2*op), ny*(j-0.5-4*op)+ory*(i+0.5+2*op)),
                                        (nx*(j-1)+orx*(i+0.75), ny*(j-1)+ory*(i+0.75)),
-                                       (nx*(j-1)+orx*(i+1), ny*(j-1)+ory*(i+1))]], color=col, **kwds)
+                                       (nx*(j-1)+orx*(i+1), ny*(j-1)+ory*(i+1))]], color=col[j], **kwds)
+                    col[j], col[j-1] = col[j-1], col[j]
                 elif -m==j+1:
                     a += bezier_path([[(nx*j+orx*i, ny*j+ory*i), (nx*j+orx*(i+0.25), ny*j+ory*(i+0.25)),
                                        (nx*(j+0.5-4*op)+orx*(i+0.5-2*op), ny*(j+0.5-4*op)+ory*(i+0.5-2*op)),
                                        (nx*(j+0.5-2*op)+orx*(i+0.5-op), ny*(j+0.5-2*op)+ory*(i+0.5-op))]],
-                                     color=col, **kwds)
+                                     color=col[j], **kwds)
                     a += bezier_path([[(nx*(j+0.5+2*op)+orx*(i+0.5+op), ny*(j+0.5+2*op)+ory*(i+0.5+op)),
                                        (nx*(j+0.5+4*op)+orx*(i+0.5+2*op), ny*(j+0.5+4*op)+ory*(i+0.5+2*op)),
                                        (nx*(j+1)+orx*(i+0.75), ny*(j+1)+ory*(i+0.75)),
-                                       (nx*(j+1)+orx*(i+1), ny*(j+1)+ory*(i+1))]], color=col, **kwds)
+                                       (nx*(j+1)+orx*(i+1), ny*(j+1)+ory*(i+1))]], color=col[j], **kwds)
                 elif -m==j:
                     a += bezier_path([[(nx*j+orx*i, ny*j+ory*i), (nx*j+orx*(i+0.25), ny*j+ory*(i+0.25)),
                                        (nx*(j-0.5)+orx*(i+0.5), ny*(j-0.5)+ory*(i+0.5))],
                                       [(nx*(j-1)+orx*(i+0.75), ny*(j-1)+ory*(i+0.75)),
-                                       (nx*(j-1)+orx*(i+1), ny*(j-1)+ory*(i+1))]], color=col, **kwds)
+                                       (nx*(j-1)+orx*(i+1), ny*(j-1)+ory*(i+1))]], color=col[j], **kwds)
+                    col[j], col[j-1] = col[j-1], col[j]
                 else:
-                    a += line([(nx*j+orx*i, ny*j+ory*i), (nx*j+orx*(i+1), ny*j+ory*(i+1))], color=col, **kwds)
+                    a += line([(nx*j+orx*i, ny*j+ory*i), (nx*j+orx*(i+1), ny*j+ory*(i+1))], color=col[j], **kwds)
         a.set_aspect_ratio(aspect_ratio)
         a.axes(axes)
         return a
 
-    def plot3d(self):
+    def plot3d(self, color='rainbow'):
         """
         Plots the braid in 3d.
+
+        The following option is available:
+
+        - ``color`` -- (default: ``'rainbow'``) the color of the
+          strands. Possible values are:
+
+            * ``'rainbow'``, uses :meth:`~sage.plot.colors.rainbow`
+              according to the number of strands.
+
+            * a valid color name for :meth:`~sage.plot.plot3d.bezier3d`.
+              Used for all strands.
+
+            * a list or a tuple of colors for each individual strand.
 
         EXAMPLES::
 
@@ -330,26 +367,37 @@ class Braid(FinitelyPresentedGroupElement):
             sage: b.plot3d()
         """
         from sage.plot.plot3d.shapes2 import bezier3d
+        from sage.plot.colors import rainbow
         b = []
-        braid = self.Tietze()
         n = self.strands()
-        for i in range(len(braid)):
-            m = braid[i]
+        if isinstance(color, (list, tuple)):
+            if len(color) != n:
+                raise TypeError("color (=%s) must contain exactly %d colors" % (color, n))
+            col = list(color)
+        elif color == "rainbow":
+            col = rainbow(n)
+        else:
+            col = [color]*n
+        braid = self.Tietze()
+
+        for i, m in enumerate(braid):
             for j in range(n):
                 if m==j+1:
                     b.append(bezier3d([[(0, j, i), (0, j, i+0.25), (0.25, j, i+0.25), (0.25, j+0.5, i+0.5)],
-                                       [(0.25, j+1, i+0.75), (0, j+1, i+0.75), (0, j+1, i+1)]]))
+                                       [(0.25, j+1, i+0.75), (0, j+1, i+0.75), (0, j+1, i+1)]], color=col[j]))
                 elif -m==j+1:
                     b.append(bezier3d([[(0, j, i), (0, j, i+0.25), (-0.25, j, i+0.25), (-0.25, j+0.5, i+0.5)],
-                                       [(-0.25, j+1, i+0.75), (0, j+1, i+0.75), (0, j+1, i+1)]]))
+                                       [(-0.25, j+1, i+0.75), (0, j+1, i+0.75), (0, j+1, i+1)]], color=col[j]))
                 elif m==j:
                     b.append(bezier3d([[(0, j, i), (0, j, i+0.25), (-0.25, j, i+0.25), (-0.25, j-0.5, i+0.5)],
-                                       [(-0.25, j-1, i+0.75), (0, j-1, i+0.75), (0, j-1, i+1)]]))
+                                       [(-0.25, j-1, i+0.75), (0, j-1, i+0.75), (0, j-1, i+1)]], color=col[j]))
+                    col[j], col[j-1] = col[j-1], col[j]
                 elif -m==j:
                     b.append(bezier3d([[(0, j, i), (0, j, i+0.25), (0.25, j, i+0.25), (0.25, j-0.5, i+0.5)],
-                                       [(0.25, j-1, i+0.75), (0, j-1, i+0.75), (0, j-1, i+1)]]))
+                                       [(0.25, j-1, i+0.75), (0, j-1, i+0.75), (0, j-1, i+1)]], color=col[j]))
+                    col[j], col[j-1] = col[j-1], col[j]
                 else:
-                    b.append(bezier3d([[(0, j, i), (0, j, i+1)]]))
+                    b.append(bezier3d([[(0, j, i), (0, j, i+1)]], color=col[j]))
         return sum(b)
 
     def LKB_matrix(self, variables='x,y'):

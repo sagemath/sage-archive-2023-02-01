@@ -333,7 +333,8 @@ cdef translate_points(v_list, delta):
 # rectangular bounding box) it is faster to naively enumerate the
 # points. This saves the overhead of triangulating the polytope etc.
 
-def rectangular_box_points(box_min, box_max, polyhedron=None):
+def rectangular_box_points(box_min, box_max, polyhedron=None,
+                           count_only=False, return_saturated=False):
     r"""
     Return the integral points in the lattice bounding box that are
     also contained in the given polyhedron.
@@ -350,15 +351,34 @@ def rectangular_box_points(box_min, box_max, polyhedron=None):
       :class:`~sage.geometry.polyhedron.base.Polyhedron_base`, a PPL
       :class:`~sage.libs.ppl.C_Polyhedron`, or ``None`` (default).
 
+    - ``count_only`` -- Boolean (default: ``False``). Whether to
+      return only the total number of vertices, and not their
+      coordinates. Enabling this option speeds up the
+      enumeration. Cannot be combined with the ``return_saturated``
+      option.
+
+    - ``return_saturated`` -- Boolean (default: ``False``. Whether to
+      also return which inequalities are saturated for each point of
+      the polyhedron. Enabling this slows down the enumeration. Cannot
+      be combined with the ``count_only`` option.
+
     OUTPUT:
 
-    A tuple containing the integral points of the rectangular box
-    spanned by `box_min` and `box_max` and that lie inside the
-    ``polyhedron``. For sufficiently large bounding boxes, this are
-    all integral points of the polyhedron.
+    By default, this function returns a tuple containing the integral
+    points of the rectangular box spanned by `box_min` and `box_max`
+    and that lie inside the ``polyhedron``. For sufficiently large
+    bounding boxes, this are all integral points of the polyhedron.
 
     If no polyhedron is specified, all integral points of the
     rectangular box are returned.
+
+    If ``count_only`` is specified, only the total number (an integer)
+    of found lattice points is returned.
+
+    If ``return_saturated`` is enabled, then for each integral point a
+    pair ``(point, Hrep)`` is returned where ``point`` is the point
+    and ``Hrep`` is the set of indices of the H-representation objects
+    that are saturated at the point.
 
     ALGORITHM:
 
@@ -404,6 +424,10 @@ def rectangular_box_points(box_min, box_max, polyhedron=None):
          (1, 1, 0), (1, 1, 1), (1, 1, 2), (1, 1, 3),
          (1, 2, 0), (1, 2, 1), (1, 2, 2), (1, 2, 3))
 
+        sage: from sage.geometry.integral_points import rectangular_box_points
+        sage: rectangular_box_points([0,0,0],[1,2,3], count_only=True)
+        24
+
         sage: cell24 = polytopes.twenty_four_cell()
         sage: rectangular_box_points([-1]*4, [1]*4, cell24)
         ((-1, 0, 0, 0), (0, -1, 0, 0), (0, 0, -1, 0), (0, 0, 0, -1),
@@ -417,6 +441,9 @@ def rectangular_box_points(box_min, box_max, polyhedron=None):
         sage: d = 6
         sage: dilated_cell24 = d*cell24
         sage: len( rectangular_box_points([-d]*4, [d]*4, dilated_cell24) )
+        3625
+
+        sage: rectangular_box_points([-d]*4, [d]*4, dilated_cell24, count_only=True)
         3625
 
         sage: polytope = Polyhedron([(-4,-3,-2,-1),(3,1,1,1),(1,2,1,1),(1,1,3,0),(1,3,2,4)])
@@ -458,8 +485,28 @@ def rectangular_box_points(box_min, box_max, polyhedron=None):
         sage: rectangular_box_points([0]*3, [3]*3, poly)
         ((0, 1, 0), (0, 1, 1), (0, 1, 2), (0, 1, 3), (1, 1, 0), (1, 1, 1), (1, 1, 2), (1, 1, 3),
          (2, 1, 0), (2, 1, 1), (2, 1, 2), (2, 1, 3), (3, 1, 0), (3, 1, 1), (3, 1, 2), (3, 1, 3))
+
+    Optionally, return the information about the saturated inequalities as well::
+
+        sage: cube = polytopes.n_cube(3)
+        sage: cube.Hrepresentation(0)
+        An inequality (0, 0, -1) x + 1 >= 0
+        sage: cube.Hrepresentation(1)
+        An inequality (0, -1, 0) x + 1 >= 0
+        sage: cube.Hrepresentation(2)
+        An inequality (-1, 0, 0) x + 1 >= 0
+        sage: rectangular_box_points([0]*3, [1]*3, cube, return_saturated=True)
+        (((0, 0, 0), frozenset([])),
+         ((0, 0, 1), frozenset([0])),
+         ((0, 1, 0), frozenset([1])),
+         ((0, 1, 1), frozenset([0, 1])),
+         ((1, 0, 0), frozenset([2])),
+         ((1, 0, 1), frozenset([0, 2])),
+         ((1, 1, 0), frozenset([1, 2])),
+         ((1, 1, 1), frozenset([0, 1, 2])))
     """
     assert len(box_min)==len(box_max)
+    assert not (count_only and return_saturated)
     cdef int d = len(box_min)
     diameter = sorted([ (box_max[i]-box_min[i], i) for i in range(0,d) ], reverse=True)
     diameter_value = [ x[0] for x in diameter ]
@@ -472,17 +519,32 @@ def rectangular_box_points(box_min, box_max, polyhedron=None):
     box_max = sort_perm.action(box_max)
     inequalities = InequalityCollection(polyhedron, sort_perm, box_min, box_max)
 
-    v = vector(ZZ, d)
+    if count_only:
+        return loop_over_rectangular_box_points(box_min, box_max, inequalities, d, count_only)
+
     points = []
-    for p in loop_over_rectangular_box_points(box_min, box_max, inequalities, d):
-        #  v = vector(ZZ, orig_perm.action(p))   # too slow
-        for i in range(0,d):
-            v[i] = p[orig_perm_list[i]]
-        points.append(copy.copy(v))
+    v = vector(ZZ, d)
+    if not return_saturated:
+        for p in loop_over_rectangular_box_points(box_min, box_max, inequalities, d, count_only):
+            #  v = vector(ZZ, orig_perm.action(p))   # too slow
+            for i in range(0,d):
+                v.set(i, p[orig_perm_list[i]])
+            v_copy = copy.copy(v)
+            v_copy.set_immutable()
+            points.append(v_copy)
+    else:
+        for p, saturated in \
+                loop_over_rectangular_box_points_saturated(box_min, box_max, inequalities, d):
+            for i in range(0,d):
+                v.set(i, p[orig_perm_list[i]])
+            v_copy = copy.copy(v)
+            v_copy.set_immutable()
+            points.append( (v_copy, saturated) )
+
     return tuple(points)
 
 
-cdef loop_over_rectangular_box_points(box_min, box_max, inequalities, int d):
+cdef loop_over_rectangular_box_points(box_min, box_max, inequalities, int d, bint count_only):
     """
     The inner loop of :func:`rectangular_box_points`.
 
@@ -495,10 +557,76 @@ cdef loop_over_rectangular_box_points(box_min, box_max, inequalities, int d):
 
     - ``d`` -- the ambient space dimension.
 
+    - ``count_only`` -- whether to only return the total number of
+      lattice points.
+
     OUTPUT:
 
     The integral points in the bounding box satisfying all
     inequalities.
+    """
+    cdef int inc
+    if count_only:
+        points = 0
+    else:
+        points = []
+    p = copy.copy(box_min)
+    inequalities.prepare_next_to_inner_loop(p)
+    while True:
+        inequalities.prepare_inner_loop(p)
+        i_min = box_min[0]
+        i_max = box_max[0]
+        # Find the lower bound for the allowed region
+        while i_min <= i_max:
+            if inequalities.are_satisfied(i_min):
+                break
+            i_min += 1
+        # Find the upper bound for the allowed region
+        while i_min <= i_max:
+            if inequalities.are_satisfied(i_max):
+                break
+            i_max -= 1
+        # The points i_min .. i_max are contained in the polyhedron
+        if count_only:
+            if i_max>=i_min:
+                points += i_max-i_min+1
+        else:
+            i = i_min
+            while i <= i_max:
+                p[0] = i
+                points.append(tuple(p))
+                i += 1
+        # finally increment the other entries in p to move on to next inner loop
+        inc = 1
+        if d==1: return points
+        while True:
+            if p[inc]==box_max[inc]:
+                p[inc] = box_min[inc]
+                inc += 1
+                if inc==d:
+                    return points
+            else:
+                p[inc] += 1
+                break
+        if inc>1:
+            inequalities.prepare_next_to_inner_loop(p)
+
+
+
+cdef loop_over_rectangular_box_points_saturated(box_min, box_max, inequalities, int d):
+    """
+    The analog of :func:`rectangular_box_points` except that it keeps
+    track of which inequalities are saturated.
+
+    INPUT:
+
+    See :func:`rectangular_box_points`.
+
+    OUTPUT:
+
+    The integral points in the bounding box satisfying all
+    inequalities, each point being returned by a coordinate vector and
+    a set of H-representation object indices.
     """
     cdef int inc
     points = []
@@ -522,7 +650,8 @@ cdef loop_over_rectangular_box_points(box_min, box_max, inequalities, int d):
         i = i_min
         while i <= i_max:
             p[0] = i
-            points.append(tuple(p))
+            saturated = inequalities.satisfied_as_equalities(i)
+            points.append( (tuple(p), saturated) )
             i += 1
         # finally increment the other entries in p to move on to next inner loop
         inc = 1
@@ -651,7 +780,7 @@ cdef class Inequality_generic:
         return inner_loop_variable*self.coeff + self.cache == 0
 
 
-
+# if dim>20 then we always use the generic inequalities (Inequality_generic)
 DEF INEQ_INT_MAX_DIM = 20
 
 cdef class Inequality_int:
@@ -1176,10 +1305,9 @@ cdef class InequalityCollection:
 
         OUTPUT:
 
-        A tuple of integers in ascending order. Each integer is the
-        index of a H-representation object of the
-        polyhedron. Equalities are treated as a pair of opposite
-        inequalities.
+        A set of integers in ascending order. Each integer is the
+        index of a H-representation object of the polyhedron (either a
+        inequality or an equation).
 
         EXAMPLES::
 
@@ -1189,11 +1317,11 @@ cdef class InequalityCollection:
             sage: ieqs.prepare_next_to_inner_loop([-1,0])
             sage: ieqs.prepare_inner_loop([-1,0])
             sage: ieqs.satisfied_as_equalities(-1)
-            (1,)
+            frozenset([1])
             sage: ieqs.satisfied_as_equalities(0)
-            (0, 1)
+            frozenset([0, 1])
             sage: ieqs.satisfied_as_equalities(1)
-            (1,)
+            frozenset([1])
         """
         cdef int i
         result = []
@@ -1205,7 +1333,7 @@ cdef class InequalityCollection:
             ineq = self.ineqs_generic[i]
             if (<Inequality_generic>ineq).is_equality(inner_loop_variable):
                 result.append( (<Inequality_generic>ineq).index )
-        return tuple(uniq(result))
+        return frozenset(result)
 
 
 

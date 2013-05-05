@@ -148,6 +148,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.structure.sage_object cimport SageObject
 from sage.libs.gmp.mpz cimport mpz_t, mpz_set
 from sage.rings.integer cimport Integer
 from sage.rings.rational import Rational
@@ -164,7 +165,6 @@ from libcpp cimport bool as cppbool
 #  - solve linear program
 # These can only be triggered by methods in the Polyhedron class
 # they need to be wrapped in sig_on() / sig_off()
-
 ####################################################
 cdef extern from "gmpxx.h":
     cdef cppclass mpz_class:
@@ -466,7 +466,7 @@ cdef extern from "ppl_shim.hh":
 
 
 ### Forward declarations ###########################
-cdef class _mutable_or_immutable(object)
+cdef class _mutable_or_immutable(SageObject)
 cdef class Variable(object)
 cdef class Linear_Expression(object)
 cdef class Generator(object)
@@ -486,7 +486,7 @@ cdef class MIP_Problem(_mutable_or_immutable)
 ####################################################
 ### _mutable_or_immutable ##########################
 ####################################################
-cdef class _mutable_or_immutable(object):
+cdef class _mutable_or_immutable(SageObject):
     r"""
     A base class for mutable or immutable objects.
 
@@ -1190,7 +1190,7 @@ cdef class Polyhedron(_mutable_or_immutable):
         raise NotImplementedError, 'The Polyhedron class is abstract, you must not instantiate it.'
 
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Return a string representation.
 
@@ -1203,14 +1203,14 @@ cdef class Polyhedron(_mutable_or_immutable):
             sage: from sage.libs.ppl import Variable, C_Polyhedron
             sage: x = Variable(0)
             sage: y = Variable(1)
-            sage: C_Polyhedron( 5*x-2*y >=  x+y-1 ).__repr__()
+            sage: C_Polyhedron( 5*x-2*y >=  x+y-1 )._repr_()
             'A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 1 ray, 1 line'
 
         Special cases::
 
-            sage: C_Polyhedron(3, 'empty').__repr__()
+            sage: C_Polyhedron(3, 'empty')._repr_()
             'The empty polyhedron in QQ^3'
-            sage: C_Polyhedron(3, 'universe').__repr__()
+            sage: C_Polyhedron(3, 'universe')._repr_()
             'The space-filling polyhedron in QQ^3'
         """
         dim = self.affine_dimension()
@@ -5151,6 +5151,23 @@ cdef class Generator_System(_mutable_or_immutable):
         return self.thisptr.OK()
 
 
+    def __len__(self):
+        """
+        Return the number of generators in the system.
+
+            sage: from sage.libs.ppl import Variable, Generator_System, point
+            sage: x = Variable(0)
+            sage: y = Variable(1)
+            sage: gs = Generator_System()
+            sage: gs.insert(point(3*x+2*y))
+            sage: gs.insert(point(x))
+            sage: gs.insert(point(y))
+            sage: len(gs)
+            3
+        """
+        return sum([1 for g in self])
+
+
     def __iter__(self):
         """
         Iterate through the generators of the system.
@@ -6125,6 +6142,22 @@ cdef class Constraint_System(object):
             True
         """
         return self.thisptr.OK()
+
+
+    def __len__(self):
+        """
+        Return the number of constraints in the system.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Constraint_System
+            sage: x = Variable(0)
+            sage: cs = Constraint_System( x>0 )
+            sage: cs.insert( x<1 )
+            sage: len(cs)
+            2
+        """
+        return sum([1 for c in self])
 
 
     def __iter__(self):

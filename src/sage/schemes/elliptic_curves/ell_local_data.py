@@ -302,10 +302,10 @@ class EllipticCurveLocalData(SageObject):
 
         INPUT:
 
-        - ``reduce`` -- (default: True) if set to True the EC returned
-          by Tate's algorithm will be
-          "reduced" as specified in _reduce_model() for curves over
-          number fields.
+        - ``reduce`` -- (default: True) if set to True and if the initial
+          elliptic curve had globally integral coefficients, then the
+          elliptic curve returned by Tate's algorithm will be "reduced" as
+          specified in _reduce_model() for curves over number fields.
 
         EXAMPLES::
 
@@ -338,14 +338,28 @@ class EllipticCurveLocalData(SageObject):
             Elliptic Curve defined by y^2 = x^3 - x^2 - 3*x + 2 over Rational Field
             sage: E.local_data(ZZ.ideal(2), algorithm="pari").minimal_model()
             Elliptic Curve defined by y^2 = x^3 - x^2 - 3*x + 2 over Rational Field
+
+        trac 14476::
+
+            sage: t = QQ['t'].0
+            sage: K.<g> = NumberField(t^4 - t^3-3*t^2 - t +1)
+            sage: E = EllipticCurve([-2*g^3 + 10/3*g^2 + 3*g - 2/3, -11/9*g^3 + 34/9*g^2 - 7/3*g + 4/9, -11/9*g^3 + 34/9*g^2 - 7/3*g + 4/9, 0, 0])
+            sage: vv = K.fractional_ideal(g^2 - g - 2)
+            sage: E.local_data(vv).minimal_model()
+            Elliptic Curve defined by y^2 + (-2*g^3+10/3*g^2+3*g-2/3)*x*y + (-11/9*g^3+34/9*g^2-7/3*g+4/9)*y = x^3 + (-11/9*g^3+34/9*g^2-7/3*g+4/9)*x^2 over Number Field in g with defining polynomial t^4 - t^3 - 3*t^2 - t + 1
+
         """
         if reduce:
             try:
                 return self._Emin_reduced
             except AttributeError:
                 pass
-            self._Emin_reduced = self._Emin._reduce_model()
-            return self._Emin_reduced
+            # trac 14476 we only reduce if the coefficients are globally integral
+            if all(a.is_integral() for a in self._Emin.a_invariants()):
+                self._Emin_reduced = self._Emin._reduce_model()
+                return self._Emin_reduced
+            else:
+                return self._Emin
         else:
             try:
                 return self._Emin

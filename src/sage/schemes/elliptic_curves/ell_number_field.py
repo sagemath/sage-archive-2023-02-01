@@ -596,15 +596,27 @@ class EllipticCurve_number_field(EllipticCurve_field):
             sage: E = EllipticCurve([25105/216*v - 3839/36, 634768555/7776*v - 98002625/1296, 634768555/7776*v - 98002625/1296, 0, 0])
             sage: E.global_integral_model()
             Elliptic Curve defined by y^2 + (33872485050625*v-31078224284250)*x*y + (2020602604156076340058146664245468750000*v-1871778534673615560803175189398437500000)*y = x^3 + (6933305282258321342920781250*v-6422644400723486559914062500)*x^2 over Number Field in v with defining polynomial x^2 + 161*x - 150
+
+        trac #14476::
+
+            sage: R.<t> = QQ[]
+            sage: K.<g> = NumberField(t^4 - t^3 - 3*t^2 - t + 1)
+            sage: E = EllipticCurve([ -43/625*g^3 + 14/625*g^2 - 4/625*g + 706/625, -4862/78125*g^3 - 4074/78125*g^2 - 711/78125*g + 10304/78125,  -4862/78125*g^3 - 4074/78125*g^2 - 711/78125*g + 10304/78125, 0,0])
+            sage: E.global_integral_model()
+            Elliptic Curve defined by y^2 + (-18*g^3+29*g^2+63*g+7)*x*y + (-704472*g^3-958584*g^2-166242*g+298101)*y = x^3 + (-2859*g^3-3978*g^2-669*g+1332)*x^2 over Number Field in g with defining polynomial t^4 - t^3 - 3*t^2 - t + 1
+
         """
         K = self.base_field()
         ai = self.a_invariants()
-        for a in ai:
-            if not a.is_integral():
-               for P, _ in a.denominator_ideal().factor():
-                   pi = K.uniformizer(P,'positive')
-                   e  = min([(ai[i].valuation(P)/[1,2,3,4,6][i]) for i in range(5)]).floor()
-                   ai = [ai[i]/pi**(e*[1,2,3,4,6][i]) for i in range(5)]
+        Ps = [[ ff[0] for ff in a.denominator_ideal().factor() ] for a in ai if not a.is_integral() ]
+        Ps = sage.misc.misc.union(sage.misc.flatten.flatten(Ps))
+        for P in Ps:
+            pi = K.uniformizer(P,'positive')
+            e  = min([(ai[i].valuation(P)/[1,2,3,4,6][i]) for i in range(5)]).floor()
+            if e < 0 :
+                ai = [ai[i]/pi**(e*[1,2,3,4,6][i]) for i in range(5)]
+            if all(a.is_integral() for a in ai):
+                break
         for z in ai:
             assert z.is_integral(), "bug in global_integral_model: %s" % list(ai)
         return EllipticCurve(list(ai))

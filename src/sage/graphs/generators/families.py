@@ -1970,3 +1970,50 @@ def RingedTree(k, vertex_labels = True):
     g.relabel(vertices)
 
     return g
+
+def SymplecticGraph(d,q):
+    r"""
+    Returns the Symplectic graph `Sp(d,q)`
+
+    The Symplectic Graph `Sp(d,q)` is built from a projective space of dimension
+    `d-1` over a field `F_q`, and a symplectic form `f`. Two vertices `u,v` are
+    made adjacent if `f(u,v)=0`.
+
+    See the `page on symplectic graphs on Andries Brouwer's website
+    <http://www.win.tue.nl/~aeb/graphs/Sp.html>`_.
+
+    INPUT:
+
+    - ``d,q`` (integers) -- note that only even values of `d` are accepted by
+      the function.
+
+    EXAMPLES::
+
+        sage: g = graphs.SymplecticGraph(6,2)
+        sage: g.is_strongly_regular(parameters=True)
+        (63, 30, 13, 15)
+        sage: set(g.spectrum()) == {-5, 3, 30}
+        True
+    """
+    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.modules.free_module import VectorSpace
+    from sage.schemes.generic.projective_space import ProjectiveSpace
+    from sage.matrix.constructor import identity_matrix, block_matrix, zero_matrix
+
+    if d < 1 or d%2 != 0:
+        raise ValueError("d must be even and greater than 2")
+
+    F = FiniteField(q,"x")
+    M = block_matrix(F, 2, 2,
+                     [zero_matrix(F,d/2),
+                      identity_matrix(F,d/2),
+                      -identity_matrix(F,d/2),
+                      zero_matrix(F,d/2)])
+
+    V = VectorSpace(F,d)
+    PV = list(ProjectiveSpace(d-1,F))
+    G = Graph([map(tuple,PV), lambda x,y:V(x)*(M*V(y)) == 0], loops = False)
+    G.name("Symplectic Graph Sp("+str(d)+","+str(q)+")")
+    G.relabel()
+    return G
+

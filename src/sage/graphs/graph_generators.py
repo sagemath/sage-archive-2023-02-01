@@ -171,6 +171,7 @@ __append_to_doc(
      "RingedTree",
      "line_graph_forbidden_subgraphs",
      "PermutationGraph",
+     "SymplecticGraph",
      "trees"])
 
 __doc__ += """
@@ -946,6 +947,7 @@ class GraphGenerators():
     OddGraph               = staticmethod(sage.graphs.generators.families.OddGraph)
     PaleyGraph             = staticmethod(sage.graphs.generators.families.PaleyGraph)
     PermutationGraph       = staticmethod(sage.graphs.generators.families.PermutationGraph)
+    SymplecticGraph        = staticmethod(sage.graphs.generators.families.SymplecticGraph)
     HanoiTowerGraph        = staticmethod(sage.graphs.generators.families.HanoiTowerGraph)
     line_graph_forbidden_subgraphs = staticmethod(sage.graphs.generators.families.line_graph_forbidden_subgraphs)
     trees                  = staticmethod(sage.graphs.generators.families.trees)

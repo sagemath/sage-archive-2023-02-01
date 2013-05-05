@@ -1561,13 +1561,15 @@ class HasseDiagram(DiGraph):
                                          self.are_incomparable,
                                          element_class = element_class)
 
-    def chains(self, element_class = list):
+    def chains(self, element_class = list, exclude=None):
         """
         Returns all chains of ``self``, organized as a prefix tree
 
         INPUT:
 
-         - ``element_class`` -- (default:list) an iterable type
+        - ``element_class`` -- (default:list) an iterable type
+
+        - ``exclude`` -- elements to be excluded (default: ``None``)
 
         EXAMPLES::
 
@@ -1583,9 +1585,18 @@ class HasseDiagram(DiGraph):
             sage: [1,4] in A
             True
 
+        One can exclude some vertices::
+
+            sage: list(H.chains(exclude=[4, 3]))
+            [[], [0], [0, 1], [0, 2], [1], [2]]
+
         .. seealso:: :meth:`antichains`
         """
         from sage.combinat.subsets_pairwise import PairwiseCompatibleSubsets
-        return PairwiseCompatibleSubsets(self.vertices(),
+        if not(exclude is None):
+            vertices = [u for u in self.vertices() if not u in exclude]
+        else:
+            vertices = self.vertices()
+        return PairwiseCompatibleSubsets(vertices,
                                          self.are_comparable,
                                          element_class = element_class)

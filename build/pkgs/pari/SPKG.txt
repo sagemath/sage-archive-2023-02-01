@@ -69,6 +69,10 @@ of doubt, have a look at the file spkg-src.
 
 == Changelog ==
 
+=== pari-2.5.4.p0 (Jeroen Demeyer, 13 May 2013) ===
+ * Trac #14539: upgrade to version 2.5.4.
+ * Improve documentation of patches.
+
 === pari-2.5.3.p3 (Jeroen Demeyer, 31 January 2013) ===
  * Trac #13054: polred.patch: fix polred() bug.
  * Trac #6743: remove Cygwin-specific hacks from spkg-install.

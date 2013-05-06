@@ -1,6 +1,6 @@
-diff -ruN src/src/basemath/base1.c b/src/basemath/base1.c
---- src/src/basemath/base1.c	2012-10-05 10:18:20.000000000 +0200
-+++ b/src/basemath/base1.c	2013-01-31 14:49:05.537512504 +0100
+diff -ru src/src/basemath/base1.c b/src/basemath/base1.c
+--- src/src/basemath/base1.c	2013-05-06 16:01:56.000000000 +0200
++++ b/src/basemath/base1.c	2013-05-06 16:49:09.042406927 +0200
 @@ -1675,40 +1675,42 @@
  ZX_is_better(GEN y, GEN x, GEN *dx)
  {
@@ -207,7 +207,7 @@ diff -ruN src/src/basemath/base1.c b/src/basemath/base1.c
    nffp_t F;
    CG_data d;
  
-@@ -2058,23 +2136,41 @@
+@@ -2058,27 +2136,41 @@
    *pro = F.ro;
    d.ZKembed = F.M;
  
@@ -227,14 +227,7 @@ diff -ruN src/src/basemath/base1.c b/src/basemath/base1.c
 +    ai = gel(T->bas,i);
      ch = get_polmin_w(&d, i);
 -    /* if accuracy too low, compute algebraically */
--    if (!ch) ch = ZXQ_charpoly(ai, x, v);
--    if (ZX_canon_neg(ch) && orig) ai = RgX_neg(ai);
--    if (nfred && degpol(ch) == l-1) return mkvec2(ch, ai);
--    if (DEBUGLEVEL>3) err_printf("polred: generator %Ps\n", ch);
--    if (T->lead != gen_1 && orig) ai = RgX_unscale(ai, ginv(T->lead));
--    gel(y,i) = ch;
--    gel(b,i) = ai;
--  }
+-    if (!ch)
 +    update(&ai, &ch, T, orig);
 +    gel(y,k) = ch;
 +    gel(b,k) = ai; k++;
@@ -243,7 +236,9 @@ diff -ruN src/src/basemath/base1.c b/src/basemath/base1.c
 +  maxi = minss(n, 3);
 +  for (i = 1; i <= maxi; i++)
 +    for (j = i+1; j <= n; j++)
-+    {
+     {
+-      ch = ZXQ_charpoly(ai, x, v);
+-      (void)ZX_gcd_all(ch, ZX_deriv(ch), &ch);
 +      GEN ch, ai;
 +      ai = gadd(gel(T->bas,i), gel(T->bas,j));
 +      ch = get_polmin_add2(&d, i, j);
@@ -256,13 +251,20 @@ diff -ruN src/src/basemath/base1.c b/src/basemath/base1.c
 +      update(&ai, &ch, T, orig);
 +      gel(y,k) = ch;
 +      gel(b,k) = ai; k++;
-+    }
+     }
+-    if (ZX_canon_neg(ch) && orig) ai = RgX_neg(ai);
+-    if (nfred && degpol(ch) == l-1) return mkvec2(ch, ai);
+-    if (DEBUGLEVEL>3) err_printf("polred: generator %Ps\n", ch);
+-    if (T->lead != gen_1 && orig) ai = RgX_unscale(ai, ginv(T->lead));
+-    gel(y,i) = ch;
+-    gel(b,i) = ai;
+-  }
 +  setlg(y, k);
 +  setlg(b, k); filter(y, b, n);
    if (!orig) return gen_sort_uniq(y, (void*)cmpii, &gen_cmp_RgX);
    (void)sort_factor_pol(mkmat2(y, b), cmpii);
    settyp(y, t_COL); return mkmat2(b, y);
-@@ -2085,10 +2181,58 @@
+@@ -2089,10 +2181,58 @@
  {
    pari_sp av = avma;
    GEN ro;
@@ -322,7 +324,7 @@ diff -ruN src/src/basemath/base1.c b/src/basemath/base1.c
  /* FIXME: backward compatibility */
  GEN
  polred0(GEN x, long flag, GEN fa)
-@@ -2269,22 +2413,6 @@
+@@ -2273,22 +2413,6 @@
    return bound;
  }
  
@@ -345,7 +347,7 @@ diff -ruN src/src/basemath/base1.c b/src/basemath/base1.c
  /* z "small" minimal polynomial of Mod(a,x), deg z = deg x */
  static GEN
  store(GEN x, GEN z, GEN a, nfbasic_t *T, long flag, GEN u)
-@@ -2351,7 +2479,7 @@
+@@ -2355,7 +2479,7 @@
    GEN y, a, u;
    nfbasic_t T;
  
@@ -354,9 +356,9 @@ diff -ruN src/src/basemath/base1.c b/src/basemath/base1.c
    x = T.x; vx = varn(x);
  
    if (degpol(x) == 1)
-diff -ruN src/src/functions/number_fields/polredabs b/src/functions/number_fields/polredabs
---- src/src/functions/number_fields/polredabs	2012-09-25 23:10:47.000000000 +0200
-+++ b/src/functions/number_fields/polredabs	2013-01-31 14:49:05.547513332 +0100
+diff -ru src/src/functions/number_fields/polredabs b/src/functions/number_fields/polredabs
+--- src/src/functions/number_fields/polredabs	2013-05-06 16:01:57.000000000 +0200
++++ b/src/functions/number_fields/polredabs	2013-05-06 16:47:04.542393431 +0200
 @@ -17,8 +17,8 @@
   \misctitle{Warning} This routine uses an exponential-time algorithm to
   enumerate all potential generators, and may be exceedingly slow when the
@@ -420,9 +422,9 @@ diff -ruN src/src/headers/paridecl.h b/src/headers/paridecl.h
  GEN     smallpolred(GEN x);
  GEN     smallpolred2(GEN x);
  GEN     tschirnhaus(GEN x);
-diff -ruN src/src/test/32/compat b/src/test/32/compat
---- src/src/test/32/compat	2012-09-25 23:10:47.000000000 +0200
-+++ b/src/test/32/compat	2013-01-31 14:49:15.307512816 +0100
+diff -ru src/src/test/32/compat b/src/test/32/compat
+--- src/src/test/32/compat	2013-05-06 16:01:57.000000000 +0200
++++ b/src/test/32/compat	2013-05-06 16:47:04.542393431 +0200
 @@ -787,13 +787,9 @@
  ? factoreddiscf(p,fa)
  136866601
@@ -510,9 +512,9 @@ diff -ruN src/src/test/32/compat b/src/test/32/compat
  ? print("Total time spent: ",gettime);
 -Total time spent: 236
 +Total time spent: 140
-diff -ruN src/src/test/32/nfields b/src/test/32/nfields
---- src/src/test/32/nfields	2012-09-25 23:10:47.000000000 +0200
-+++ b/src/test/32/nfields	2013-01-31 14:49:15.317513357 +0100
+diff -ru src/src/test/32/nfields b/src/test/32/nfields
+--- src/src/test/32/nfields	2013-05-06 16:01:57.000000000 +0200
++++ b/src/test/32/nfields	2013-05-06 16:47:04.542393431 +0200
 @@ -926,45 +926,50 @@
  ? polgalois(x^6-3*x^2-1)
  [12, 1, 1, "A_4(6) = [2^2]3"]
@@ -585,9 +587,9 @@ diff -ruN src/src/test/32/nfields b/src/test/32/nfields
  ? print("Total time spent: ",gettime);
 -Total time spent: 116
 +Total time spent: 76
-diff -ruN src/src/test/64/compat b/src/test/64/compat
---- src/src/test/64/compat	2012-09-25 23:10:47.000000000 +0200
-+++ b/src/test/64/compat	2013-01-31 14:49:05.557525771 +0100
+diff -ru src/src/test/64/compat b/src/test/64/compat
+--- src/src/test/64/compat	2013-05-06 16:01:58.000000000 +0200
++++ b/src/test/64/compat	2013-05-06 16:47:04.542393431 +0200
 @@ -789,13 +789,9 @@
  ? factoreddiscf(p,fa)
  136866601
@@ -675,9 +677,9 @@ diff -ruN src/src/test/64/compat b/src/test/64/compat
  ? print("Total time spent: ",gettime);
 -Total time spent: 152
 +Total time spent: 180
-diff -ruN src/src/test/64/nfields b/src/test/64/nfields
---- src/src/test/64/nfields	2012-09-25 23:10:47.000000000 +0200
-+++ b/src/test/64/nfields	2013-01-31 14:49:05.557525771 +0100
+diff -ru src/src/test/64/nfields b/src/test/64/nfields
+--- src/src/test/64/nfields	2013-05-06 16:01:58.000000000 +0200
++++ b/src/test/64/nfields	2013-05-06 16:47:04.542393431 +0200
 @@ -928,45 +928,50 @@
  ? polgalois(x^6-3*x^2-1)
  [12, 1, 1, "A_4(6) = [2^2]3"]

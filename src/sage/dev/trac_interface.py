@@ -1,3 +1,6 @@
+"""
+Trac Interface
+"""
 import os, tempfile
 from xmlrpclib import Transport, ServerProxy
 import urllib2

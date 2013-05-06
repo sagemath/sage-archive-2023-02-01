@@ -1,3 +1,6 @@
+"""
+Git Interface
+"""
 import collections
 import cPickle
 import functools

@@ -1,3 +1,6 @@
+"""
+User Interface
+"""
 from getpass import getpass
 
 class CmdLineInterface(object):

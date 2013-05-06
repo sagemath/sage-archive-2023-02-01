@@ -291,8 +291,16 @@ cdef class SparseGraph(CGraph):
             sage: from sage.graphs.base.sparse_graph import SparseGraph
             sage: S = SparseGraph(nverts = 10, expected_degree = 3, extra_vertices = 10)
 
-         """
+        TESTS::
+
+            sage: Graph(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The number of vertices cannot be strictly negative!
+        """
         cdef int i = 1
+        if nverts < 0:
+            raise ValueError("The number of vertices cannot be strictly negative!")
         if nverts == 0 and extra_vertices == 0:
             raise RuntimeError('Sparse graphs must allocate space for vertices!')
         self.num_verts = nverts

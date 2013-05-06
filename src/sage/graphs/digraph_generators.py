@@ -21,7 +21,9 @@ Generators for common digraphs.
     :meth:`~DiGraphGenerators.RandomDirectedGNP`   | Returns a random digraph on `n` nodes.
     :meth:`~DiGraphGenerators.RandomDirectedGN`    | Returns a random GN (growing network) digraph with `n` vertices.
     :meth:`~DiGraphGenerators.RandomDirectedGNR`   | Returns a random GNR (growing network with redirection) digraph.
-    :meth:`~DiGraphGenerators.Tournament`          | Returns a tournament on `n` vertices.
+    :meth:`~DiGraphGenerators.RandomTournament`    | Returns a random tournament on `n` vertices.
+    :meth:`~DiGraphGenerators.TransitiveTournament`| Returns a transitive tournament on `n` vertices.
+    :meth:`~DiGraphGenerators.tournaments_nauty`   | Returns all tournaments on `n` vertices using Nauty.
 
 AUTHORS:
 
@@ -76,7 +78,9 @@ class DiGraphGenerators():
                     - Kautz
                     - Path
                     - ImaseItoh
-                    - Tournament
+                    - RandomTournament
+                    - TransitiveTournament
+                    - tournaments_nauty
 
 
 
@@ -304,11 +308,8 @@ class DiGraphGenerators():
             sage: g.automorphism_group().cardinality()
             1
         """
-        if n<0:
-            raise ValueError("The number of vertices must be a positive integer.")
-
-        g = DiGraph()
-        g.name("Path on "+str(n)+" vertices")
+        g = DiGraph(n)
+        g.name("Path")
 
         if n:
             g.add_path(range(n))
@@ -316,9 +317,9 @@ class DiGraphGenerators():
         g.set_pos({i:(i,0) for i in range(n)})
         return g
 
-    def Tournament(self,n):
+    def TransitiveTournament(self,n):
         r"""
-        Returns a tournament on `n` vertices.
+        Returns a transitive tournament on `n` vertices.
 
         In this tournament there is an edge from `i` to `j` if `i<j`.
 
@@ -328,19 +329,23 @@ class DiGraphGenerators():
 
         EXAMPLES::
 
-            sage: g = digraphs.Tournament(5)
+            sage: g = digraphs.TransitiveTournament(5)
             sage: g.vertices()
             [0, 1, 2, 3, 4]
             sage: g.size()
             10
             sage: g.automorphism_group().cardinality()
             1
-        """
-        if n<0:
-            raise ValueError("The number of vertices must be a positive integer.")
 
-        g = DiGraph()
-        g.name("Tournament on "+str(n)+" vertices")
+        TESTS::
+
+            sage: digraphs.TransitiveTournament(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The number of vertices cannot be strictly negative!
+        """
+        g = DiGraph(n)
+        g.name("Transitive Tournament")
 
         for i in range(n-1):
             for j in range(i+1, n):
@@ -351,6 +356,137 @@ class DiGraphGenerators():
             _circle_embedding(g, range(n))
 
         return g
+
+    def RandomTournament(self,n):
+        r"""
+        Returns a random tournament on `n` vertices.
+
+        The tournament returned has an edge from `i` to `j` with probability
+        `1/2`.
+
+        INPUT:
+
+        - ``n`` (integer) -- number of vertices.
+
+        EXAMPLES::
+
+            sage: digraphs.RandomTournament(10)
+            Random Tournament: Digraph on 10 vertices
+            sage: digraphs.RandomTournament(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: The number of vertices cannot be strictly negative!
+        """
+        from sage.misc.prandom import random
+        g = DiGraph(n)
+        g.name("Random Tournament")
+
+        for i in range(n-1):
+            for j in range(i+1, n):
+                if random()<=.5:
+                    g.add_edge(i,j)
+                else:
+                    g.add_edge(j,i)
+
+        if n:
+            from sage.graphs.graph_plot import _circle_embedding
+            _circle_embedding(g, range(n))
+
+        return g
+
+    def tournaments_nauty(self, n,
+                          min_out_degree = None, max_out_degree = None,
+                          strongly_connected = False, debug=False, options=""):
+        r"""
+        Returns all tournaments on `n` vertices using Nauty.
+
+        INPUT:
+
+        - ``n`` (integer) -- number of vertices.
+
+        - ``min_out_degree``, ``max_out_degree`` (integers) -- if set to
+          ``None`` (default), then the min/max out-degree is not constrained.
+
+        - ``debug`` (boolean) -- if ``True`` the first line of genbg's output to
+          standard error is captured and the first call to the generator's
+          ``next()`` function will return this line as a string.  A line leading
+          with ">A" indicates a successful initiation of the program with some
+          information on the arguments, while a line beginning with ">E"
+          indicates an error with the input.
+
+        - ``options`` (string) -- anything else that should be forwarded as
+          input to Nauty's genbg. See its documentation for more information :
+          `<http://cs.anu.edu.au/~bdm/nauty/>`_.
+
+
+        .. NOTE::
+
+            To use this method you must first install the Nauty spkg.
+
+        EXAMPLES::
+
+            sage: for g in digraphs.tournaments_nauty(4): # optional - nauty
+            ....:    print g.edges(labels = False)        # optional - nauty
+            [(1, 0), (2, 0), (2, 1), (3, 0), (3, 1), (3, 2)]
+            [(1, 0), (1, 3), (2, 0), (2, 1), (3, 0), (3, 2)]
+            [(0, 2), (1, 0), (2, 1), (3, 0), (3, 1), (3, 2)]
+            [(0, 2), (0, 3), (1, 0), (2, 1), (3, 1), (3, 2)]
+            sage: tournaments = digraphs.tournaments_nauty
+            sage: [len(list(tournaments(x))) for x in range(1,8)] # optional - nauty
+            [1, 1, 2, 4, 12, 56, 456]
+            sage: [len(list(tournaments(x, strongly_connected = True))) for x in range(1,9)] # optional - nauty
+            [1, 0, 1, 1, 6, 35, 353, 6008]
+        """
+        import subprocess
+        from sage.misc.package import is_package_installed
+        if not is_package_installed("nauty"):
+            raise TypeError("The optional nauty spkg does not seem to be installed")
+
+        nauty_input = options
+
+        if min_out_degree is None:
+            min_out_degree = 0
+        if max_out_degree is None:
+            max_out_degree = n-1
+
+        nauty_input += " -d"+str(min_out_degree)
+        nauty_input += " -D"+str(max_out_degree)
+
+        if strongly_connected:
+            nauty_input += " -c"
+
+        nauty_input +=  " "+str(n) +" "
+
+        sp = subprocess.Popen("nauty-gentourng {0}".format(nauty_input), shell=True,
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE, close_fds=True)
+
+        if debug:
+            yield sp.stderr.readline()
+
+        gen = sp.stdout
+        while True:
+            try:
+                s = gen.next()
+            except StopIteration:
+                raise StopIteration("Exhausted list of graphs from nauty geng")
+
+            G = DiGraph(n)
+            i = 0
+            j = 1
+            for b in s[:-1]:
+                if b == '0':
+                    G.add_edge(i,j)
+                else:
+                    G.add_edge(j,i)
+
+                if j == n-1:
+                    i += 1
+                    j  = i+1
+                else:
+                    j += 1
+
+            yield G
 
     def Circuit(self,n):
         r"""
@@ -366,11 +502,8 @@ class DiGraphGenerators():
             sage: len(circuit.strongly_connected_components()) == 1
             True
         """
-        if n<0:
-            raise ValueError("The number of vertices must be a positive integer.")
-
-        g = DiGraph()
-        g.name("Circuit on "+str(n)+" vertices")
+        g = DiGraph(n)
+        g.name("Circuit")
 
         if n==0:
             return g
@@ -405,10 +538,6 @@ class DiGraphGenerators():
             Traceback (most recent call last):
             ...
             ValueError: The list must contain only relative integers.
-            sage: digraphs.Circulant(-2,[3,5,7,3])
-            Traceback (most recent call last):
-            ...
-            ValueError: n must be a positive integer
             sage: digraphs.Circulant(3,[3,5,7,3.4])
             Traceback (most recent call last):
             ...
@@ -419,9 +548,6 @@ class DiGraphGenerators():
 
         # Bad input and loops
         loops = False
-        if not n in ZZ or n <= 0:
-            raise ValueError("n must be a positive integer")
-
         for i in integers:
             if not i in ZZ:
                 raise ValueError("The list must contain only relative integers.")
@@ -870,8 +996,6 @@ class DiGraphGenerators():
             [(1, 0), (1, 2), (3, 6), (3, 7), (4, 5), (4, 7), (4, 8), (5, 2), (6, 0), (7, 2), (8, 1), (8, 9), (9, 4)]
         """
         from sage.graphs.graph_generators_pyx import RandomGNP
-        if n < 0:
-            raise ValueError("The number of nodes must be positive or null.")
         if 0.0 > p or 1.0 < p:
             raise ValueError("The probability p must be in [0..1].")
 

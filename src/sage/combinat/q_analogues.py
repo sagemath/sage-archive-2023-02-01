@@ -132,8 +132,8 @@ def q_binomial(n, k, q=None, algorithm='auto'):
     algorithm uses a product of cyclotomic polynomials
     (cf. [CH2006]_).
 
-    When the algorithm is set to auto, we choose according to the following
-    rules:
+    When the algorithm is set to ``'auto'``, we choose according to
+    the following rules:
 
     - If ``q`` is a polynomial:
 
@@ -225,10 +225,15 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         sage: q_binomial(6,1,I)
         1 + I
 
-    Check that the algorithm doesn't matter::
+    Check that the algorithm does not matter::
 
         sage: q_binomial(6,3, algorithm='naive') == q_binomial(6,3, algorithm='cyclotomic')
         True
+
+    One more test::
+
+        sage: q_binomial(4, 2, Zmod(6)(2), algorithm='naive')
+        5
 
     REFERENCES:
 
@@ -302,11 +307,22 @@ def q_binomial(n, k, q=None, algorithm='auto'):
             return prod(R.cyclotomic_polynomial(d)
                         for d in range(2,n+1)
                         if floor(n/d) != floor(k/d) + floor((n-k)/d))
-    except TypeError:
+    except (ZeroDivisionError, TypeError):
         # As a last attempt, do the computation formally and then substitute
         return q_binomial(n, k)(q)
 
-gaussian_binomial = q_binomial
+def gaussian_binomial(n, k, q=None, algorithm='auto'):
+    r"""
+    This is an alias of :func:`q_binomial`.
+
+    See :func:`q_binomial` for the full documentation.
+
+    EXAMPLES::
+
+        sage: gaussian_binomial(4,2)
+        q^4 + q^3 + 2*q^2 + q + 1
+    """
+    return q_binomial(n, k, q, algorithm)
 
 def q_catalan_number(n,p=None):
     """

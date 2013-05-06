@@ -1,16 +1,14 @@
-import functools
-import os.path
-from subprocess import call, check_output, CalledProcessError
-import types
+import collections
 import cPickle
-from cStringIO import StringIO
-import random
+import functools
 import os
+import random
+import types
+
+from cStringIO import StringIO
+from subprocess import call, check_output, CalledProcessError
 
 from sage.env import SAGE_DOT_GIT, SAGE_REPO, DOT_SAGE
-
-def return_none():
-    return None
 
 def is_atomic_name(x):
     """
@@ -155,53 +153,144 @@ def normalize_ticket_name(x):
     """
     return '/'.join(('ticket', x[1]))
 
-class SavingDict(object):
-    def __init__(self, filename, values, default=None):
+def load_dict_from_file(filename):
+    if os.path.exists(filename):
+        with open(filename) as F:
+            s = F.read()
+            unpickler = cPickle.Unpickler(StringIO(s))
+            return unpickler.load()
+    else:
+        return {}
+
+class SavingDict(collections.MutableMapping):
+    def __init__(self, filename, values=None, default=None, paired=None):
         self._filename = filename
-        self._paired = None
-        if default is None:
-            self._default = return_none
+        if values is None:
+            self._dict = load_dict_from_file(filename)
+        else:
+            self._dict = dict(values) # explicitly make copy
+        if callable(default):
+            self._default = default()
         else:
             self._default = default
-        self._dict = values
+        self._pairing = None
+        if paired is not None:
+            self.set_paired(paired)
+
+    def unset_pairing(self):
+        """
+        unset any pairing that was constructed
+
+        EXAMPLES::
+
+            sage: from sage.dev.git_interface import SavingDict
+            sage: import os, tempfile
+            sage: tmp1 = tempfile.NamedTemporaryFile().name
+            sage: tmp2 = tempfile.NamedTemporaryFile().name
+            sage: sd1= SavingDict(tmp1); sd2 = SavingDict(tmp2, paired=sd1)
+            sage: sd1[0] = 1; sd1[0]; sd2[1]
+            1
+            0
+            sage: sd1.unset_pairing()
+            sage: del sd1[0]; sd1[0]; sd2[1]
+            0
+            sage: os.unlink(tmp1); os.unlink(tmp2)
+        """
+        if self._pairing:
+            with self._pairing as paired:
+                paired.unset_pairing()
+        self._pairing = None
 
     def set_paired(self, other):
         """
-        Set another dictionary to be updated with the reverse of this one.
-        """
-        if not isinstance(other, SavingDict): raise ValueError
-        self._paired = other
+        set another dictionary to be updated with the reverse of this one
+        and vice versa
 
-    def __setitem__(self, key, value):
-        current = self[key]
-        self._dict[key] = value
+        EXAMPLES::
+
+            sage: from sage.dev.git_interface import SavingDict
+            sage: import os, tempfile
+            sage: tmp1 = tempfile.NamedTemporaryFile().name
+            sage: tmp2 = tempfile.NamedTemporaryFile().name
+            sage: sd1, sd2 = SavingDict(tmp1), SavingDict(tmp2)
+            sage: sd1.set_paired(sd2)
+            sage: sd1[0] = 1; sd1[0]; sd2[1]
+            1
+            0
+            sage: del sd1[0]; sd1[0]; sd2[1]
+            sage: sd2[2] = 3; sd1[3]; sd2[2]
+            2
+            3
+            sage: sd2[2] = 4; sd1[3]
+            sage: sd1[4]; sd2[2]
+            2
+            4
+            sage: os.unlink(tmp1); os.unlink(tmp2)
+        """
+        if not isinstance(other, SavingDict):
+            raise ValueError("other is not a SavingDict")
+
+        self.unset_pairing()
+        other.unset_pairing()
+
+        class Pairing(object):
+            def __init__(this, obj):
+                this._obj = obj
+            def __enter__(this):
+                this._entered[0] += 1
+                return other if this._obj is self else self
+            def __exit__(this, type, value, tb):
+                this._entered[0] -= 1
+            def __nonzero__(this):
+                return not this._entered[0]
+        Pairing._entered = [0] # ints are immutable
+
+        self._pairing, other._pairing = Pairing(self), Pairing(other)
+
+    def _write(self):
+        """
+        writes self to disk
+        """
         tmpfile = self._filename + '%016x'%(random.randrange(256**8))
         s = cPickle.dumps(self._dict, protocol=2)
         with open(tmpfile, 'wb') as F:
             F.write(s)
-        if self._paired is not None:
-            if current != self._default():
-                del self._paired._dict[current]
-            self._paired._dict[value] = key
-            tmpfile2 = self._paired._filename + '%016x'%(random.randrange(256**8))
-            s = cPickle.dumps(self._paired._dict, protocol=2)
-            with open(tmpfile2, 'wb') as F:
-                F.write(s)
-        # These moves are atomic (the files are on the same filesystem)
-            os.rename(tmpfile2, self._paired._filename)
+        # This move is atomic (the files are on the same filesystem)
         os.rename(tmpfile, self._filename)
+
+    def __setitem__(self, key, value):
+        if self._pairing:
+            with self._pairing as paired:
+                del paired[self[key]]
+                paired[value] = key
+        self._dict[key] = value
+        self._write()
+
+    def __delitem__(self, key):
+        if self._pairing:
+            with self._pairing as paired:
+                del paired[self[key]]
+        try:
+            del self._dict[key]
+        except KeyError:
+            pass
+        else:
+            self._write()
 
     def __getitem__(self, key):
         try:
             return self._dict[key]
         except KeyError:
-            return self._default()
+            return self._default
 
     def __contains__(self, key):
         return key in self._dict
 
     def __len__(self):
         return len(self._dict)
+
+    def __iter__(self):
+        return iter(self._dict)
 
 class authenticated(object):
     def __init__(self, func):
@@ -266,31 +355,13 @@ class GitInterface(object):
         remote_branches_file = self._config.get('remotebranchesfile',
                 os.path.join(DOT_SAGE, 'remote_branches'))
 
-        self._load_dicts(ticket_file, branch_file, dependencies_file, remote_branches_file)
+        self._ticket = SavingDict(ticket_file)
+        self._branch = SavingDict(branch_file, paired=self._ticket)
+        self._dependencies = SavingDict(dependencies_file, default=tuple)
+        self._remote = SavingDict(remote_branches_file)
 
     def __repr__(self):
         return "GitInterface()"
-
-    def _load_dict_from_file(self, filename):
-        if os.path.exists(filename):
-            with open(filename) as F:
-                s = F.read()
-                unpickler = cPickle.Unpickler(StringIO(s))
-                return unpickler.load()
-        else:
-            return {}
-
-    def _load_dicts(self, ticket_file, branch_file, dependencies_file, remote_branches_file):
-        ticket_dict = self._load_dict_from_file(ticket_file)
-        branch_dict = self._load_dict_from_file(branch_file)
-        dependencies_dict = self._load_dict_from_file(dependencies_file)
-        remote_branches_dict = self._load_dict_from_file(remote_branches_file)
-        self._ticket = SavingDict(ticket_file, ticket_dict)
-        self._branch = SavingDict(branch_file, branch_dict)
-        self._ticket.set_paired(self._branch)
-        self._branch.set_paired(self._ticket)
-        self._dependencies = SavingDict(dependencies_file, dependencies_dict, tuple)
-        self._remote = SavingDict(remote_branches_file, remote_branches_dict)
 
     def released_sage_ver(self):
         # should return a string with the most recent released version

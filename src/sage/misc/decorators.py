@@ -92,7 +92,7 @@ def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATE
           '        return ret\n'], ...)
 
     Demonstrate that sage_wraps works for non-function callables
-    (Trac 9919)::
+    (:trac:`9919`)::
 
         sage: def square_for_met(f):
         ...     @sage_wraps(f)
@@ -110,7 +110,7 @@ def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATE
         sage: t.g.__doc__
         'My little method'
 
-    The bug described in #11734 is fixed::
+    The bug described in :trac:`11734` is fixed::
 
         sage: def square(f):
         ...     @sage_wraps(f)
@@ -121,6 +121,7 @@ def sage_wraps(wrapped, assigned = WRAPPER_ASSIGNMENTS, updated = WRAPPER_UPDATE
         sage: g = square(f)
         sage: g(3) # this line used to fail for some people if these command were manually entered on the sage prompt
         81
+
     """
     #TRAC 9919: Workaround for bug in @update_wrapper when used with
     #non-function callables.

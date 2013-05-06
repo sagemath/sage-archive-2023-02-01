@@ -732,7 +732,7 @@ cdef class RingHomomorphism(RingMap):
         if homset.homset_category().is_subcategory(Rings()):
             if isinstance(right, RingHomomorphism_im_gens):
                 try:
-                    return homset([self(g) for g in right.im_gens()])
+                    return homset([self(g) for g in right.im_gens()], False)
                 except ValueError:
                     pass
             from sage.rings.number_field.morphism import RelativeNumberFieldHomomorphism_from_abs

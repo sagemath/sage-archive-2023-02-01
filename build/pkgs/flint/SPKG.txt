@@ -30,12 +30,15 @@ FLINT is licensed GPL v2+.
 
  * dylib.patch: patch configure so that the shared library is called
    libflint.dylib on Darwin.
+ * cflags.patch: patch configure so that "-m64" (and other potentially
+   unwanted cflags) is not added on PowerPC G5. Also add -fno-common
+   on Darwin, which is needed for OS X 10.4 and doesn't hurt on other
+   systems.
 
 == Changelog ==
 
-=== flint-2.3.p0 (Jean-Pierre Flori, 26 March 2013) ===
-  * Trac #12173: add dylib.patch to make sure the shared library is called
-    libflint.dylib on Darwin
+=== flint-2.3.p1 (Jean-Pierre Flori, 8 May 2013) ===
+  * Trac #12173: add dylib.patch and cflags.patch
 
 === flint-2.3 (Mike Hansen, Fredrik Johansson, Jean-Pierre Flori, May 2012-March 2013) ===
   * Trac #12173: Update FLINT to version 2.3.

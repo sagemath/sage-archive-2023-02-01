@@ -217,10 +217,10 @@ cdef class IdentityMorphism(Morphism):
             return self._codomain._element_constructor(x, *args, **kwds)
 
     def __mul__(left, right):
-        if not isinstance(right, Morphism):
-            raise TypeError, "right (=%s) must be a morphism to multiply it by %s"%(right, left)
-        if not isinstance(left, Morphism):
-            raise TypeError, "left (=%s) must be a morphism to multiply it by %s"%(left, right)
+        if not isinstance(right, Map):
+            raise TypeError, "right (=%s) must be a map to multiply it by %s"%(right, left)
+        if not isinstance(left, Map):
+            raise TypeError, "left (=%s) must be a map to multiply it by %s"%(left, right)
         if right.codomain() != left.domain():
             raise TypeError, "self (=%s) domain must equal right (=%s) codomain"%(left, right)
         if isinstance(left, IdentityMorphism):

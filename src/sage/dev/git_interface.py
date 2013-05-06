@@ -163,16 +163,20 @@ def load_dict_from_file(filename):
         return {}
 
 class SavingDict(collections.MutableMapping):
-    def __init__(self, filename, values=None, default=None, paired=None):
+    def __init__(self,
+            filename,
+            values      = None,
+            default     = lambda:None,
+            paired      = None):
+        if not callable(default):
+            raise ValueError("default must be callable")
+
         self._filename = filename
         if values is None:
             self._dict = load_dict_from_file(filename)
         else:
             self._dict = dict(values) # explicitly make copy
-        if callable(default):
-            self._default = default()
-        else:
-            self._default = default
+        self._default = default
         self._pairing = None
         if paired is not None:
             self.set_paired(paired)
@@ -281,7 +285,7 @@ class SavingDict(collections.MutableMapping):
         try:
             return self._dict[key]
         except KeyError:
-            return self._default
+            return self._default()
 
     def __contains__(self, key):
         return key in self._dict

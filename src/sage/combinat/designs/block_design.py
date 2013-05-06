@@ -12,7 +12,7 @@ of `x`, and the number `\lambda` of blocks that contain any given `t`-element
 subset `T` is independent of the choice of `T` (see [1]_ for more). Such a block
 design is also called a `t-(v,k,\lambda)`-design, and `v` (the number of
 points), `b` (the number of blocks), `k`, `r`, and `\lambda` are the parameters
-of the design. (In Python, `\lambda` is reserved, so we sometimes use ``lmbda``
+of the design. (In Python, ``lambda`` is reserved, so we sometimes use ``lmbda``
 or ``L`` instead.)
 
 In Sage, sets are replaced by (ordered) lists and the standard representation of

@@ -586,6 +586,9 @@ class Maxima(MaximaAbstract, Expect):
         Expect._start(self)
         self._sendline(r":lisp (defun tex-derivative (x l r) (tex (if $derivabbrev (tex-dabbrev x) (tex-d x '\\partial)) l r lop rop ))")
 
+        # Don't use ! for factorials (#11539)
+        self._sendline(":lisp (remprop 'mfactorial 'grind)")
+
         # Remove limit on the max heapsize (since otherwise it defaults
         # to 256MB with ECL).
         self._sendline(":lisp (ext:set-limit 'ext:heap-size 0)")

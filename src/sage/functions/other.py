@@ -1287,7 +1287,7 @@ class Function_factorial(GinacFunction):
             sage: factorial._maxima_init_()
             'factorial'
             sage: maxima(factorial(z))
-            z!
+            factorial(z)
             sage: _.sage()
             factorial(z)
             sage: k = var('k')
@@ -1314,6 +1314,16 @@ class Function_factorial(GinacFunction):
 
             sage: latex(factorial)
             {\rm factorial}
+
+        Check that #11539 is fixed::
+
+            sage: (factorial(x) == 0).simplify()
+            factorial(x) == 0
+            sage: maxima(factorial(x) == 0).sage()
+            factorial(x) == 0
+            sage: y = var('y')
+            sage: (factorial(x) == y).solve(x)
+            [factorial(x) == y]
 
         Test pickling::
 

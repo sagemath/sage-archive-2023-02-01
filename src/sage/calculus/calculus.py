@@ -1740,7 +1740,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     Check that we can understand maxima's not-equals (:trac:`8969`)::
 
         sage: from sage.calculus.calculus import symbolic_expression_from_maxima_string as sefms
-        sage: sefms("x != 3") == SR(x != 3)
+        sage: sefms("x!=3") == (factorial(x) == 3)
         True
         sage: sefms("x # 3") == SR(x != 3)
         True

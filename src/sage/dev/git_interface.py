@@ -147,8 +147,8 @@ def normalize_ticket_name(x):
         sage: from sage.dev.git_interface import normalize_ticket_name
         sage: normalize_ticket_name(["t", "12345"])
         'ticket/12345'
-        sage: normalize_ticket_name(["cow", "moo"])
-        'ticket/moo'
+        sage: normalize_ticket_name(["cow", "goes", "moo"])
+        'ticket/goes'
         sage: normalize_ticket_name(["branch"])
         Traceback (most recent call last):
         ...
@@ -157,6 +157,23 @@ def normalize_ticket_name(x):
     return '/'.join(('ticket', x[1]))
 
 def load_dict_from_file(filename):
+    """
+    loads a pickled dictionary from filename, defaults to {} if no file
+    is found
+
+    TESTS::
+
+        sage: from sage.dev.git_interface import load_dict_from_file
+        sage: d = load_dict_from_file(''); d
+        {}
+        sage: d['cow'] = 'moo'
+        sage: import cPickle, tempfile
+        sage: f = tempfile.NamedTemporaryFile()
+        sage: f.write(cPickle.dumps(d, protocol=2)); f.flush()
+        sage: load_dict_from_file(f.name)
+        {'cow': 'moo'}
+        sage: f.close()
+    """
     if os.path.exists(filename):
         with open(filename) as F:
             s = F.read()
@@ -165,12 +182,65 @@ def load_dict_from_file(filename):
     else:
         return {}
 
+def _raise():
+    """
+    function that raises exceptions
+
+    TESTS::
+
+        sage: from sage.dev.git_interface import _raise
+        sage: try:
+        ....:     raise ValueError("this is a test")
+        ....: except NameError:
+        ....:     _raise()
+        Traceback (most recent call last):
+        ...
+        ValueError: this is a test
+    """
+    raise
+
 class SavingDict(collections.MutableMapping):
     def __init__(self,
             filename,
             values      = None,
-            default     = lambda:None,
+            default     = _raise,
             paired      = None):
+        """
+        dictionary-like class that saves itself on the filesystem
+
+        INPUT:
+
+        - ``filename`` -- file to store SavingDict
+
+        - ``values`` -- dictionary-like object that sets initial values
+
+          by default initial values will be loaded from filename, if it
+          exists, otherwise the initial values will be empty
+
+        - ``default`` -- callabable object requiring no arguments that
+          provides a default value for keys not in SavingDict
+
+        - ``paired`` -- another SavingDict that will be paired as per
+          :meth:`set_paired`
+
+        EXAMPLES::
+
+            sage: from sage.dev.git_interface import SavingDict
+            sage: import os, tempfile
+            sage: tmp = tempfile.NamedTemporaryFile().name
+            sage: sd = SavingDict(tmp)
+            sage: sd['cat'] = 'meow'; sd['cat']
+            'meow'
+            sage: sd['cow'] = 'moo'; sd
+            {'cow': 'moo', 'cat': 'meow'}
+            sage: del sd; sd
+            Traceback (most recent call last):
+            ...
+            NameError: name 'sd' is not defined
+            sage: sd = SavingDict(tmp); sd
+            {'cow': 'moo', 'cat': 'meow'}
+            sage: os.unlink(tmp)
+        """
         if not callable(default):
             raise ValueError("default must be callable")
 
@@ -183,6 +253,17 @@ class SavingDict(collections.MutableMapping):
         self._pairing = None
         if paired is not None:
             self.set_paired(paired)
+
+    def __repr__(self):
+        """
+        TESTS::
+
+            sage: from sage.dev.git_interface import SavingDict
+            sage: sd = SavingDict('', {0:1, 1:2})
+            sage: repr(sd)
+            '{0: 1, 1: 2}'
+        """
+        return repr(self._dict)
 
     def unset_pairing(self):
         """
@@ -199,7 +280,11 @@ class SavingDict(collections.MutableMapping):
             1
             0
             sage: sd1.unset_pairing()
-            sage: del sd1[0]; sd1[0]; sd2[1]
+            sage: del sd1[0]; sd1[0]
+            Traceback (most recent call last):
+            ...
+            KeyError: 0
+            sage: sd2[1]
             0
             sage: os.unlink(tmp1); os.unlink(tmp2)
         """
@@ -210,7 +295,7 @@ class SavingDict(collections.MutableMapping):
 
     def set_paired(self, other):
         """
-        set another dictionary to be updated with the reverse of this one
+        set another SavingDict to be updated with the reverse of this one
         and vice versa
 
         EXAMPLES::
@@ -224,11 +309,21 @@ class SavingDict(collections.MutableMapping):
             sage: sd1[0] = 1; sd1[0]; sd2[1]
             1
             0
-            sage: del sd1[0]; sd1[0]; sd2[1]
+            sage: del sd1[0]; sd1[0]
+            Traceback (most recent call last):
+            ...
+            KeyError: 0
+            sage: sd2[1]
+            Traceback (most recent call last):
+            ...
+            KeyError: 1
             sage: sd2[2] = 3; sd1[3]; sd2[2]
             2
             3
             sage: sd2[2] = 4; sd1[3]
+            Traceback (most recent call last):
+            ...
+            KeyError: 3
             sage: sd1[4]; sd2[2]
             2
             4
@@ -257,6 +352,19 @@ class SavingDict(collections.MutableMapping):
     def _write(self):
         """
         writes self to disk
+
+        EXAMPLES::
+
+            sage: from sage.dev.git_interface import SavingDict
+            sage: import os, tempfile
+            sage: tmp = tempfile.NamedTemporaryFile().name
+            sage: sd = SavingDict(tmp, {0:1, 1:2})
+            sage: SavingDict(tmp)
+            {}
+            sage: sd._write()
+            sage: SavingDict(tmp)
+            {0: 1, 1: 2}
+            sage: os.unlink(tmp)
         """
         tmpfile = self._filename + '%016x'%(random.randrange(256**8))
         s = cPickle.dumps(self._dict, protocol=2)
@@ -266,37 +374,115 @@ class SavingDict(collections.MutableMapping):
         os.rename(tmpfile, self._filename)
 
     def __setitem__(self, key, value):
+        """
+        TESTS::
+
+            sage: from sage.dev.git_interface import SavingDict
+            sage: import os, tempfile
+            sage: tmp = tempfile.NamedTemporaryFile().name
+            sage: sd = SavingDict(tmp)
+            sage: sd['cow'] = 'moo'
+            sage: sd
+            {'cow': 'moo'}
+            sage: os.unlink(tmp)
+        """
         if self._pairing:
             with self._pairing as paired:
-                del paired[self[key]]
+                if key in self:
+                    del paired[self[key]]
                 paired[value] = key
         self._dict[key] = value
         self._write()
 
     def __delitem__(self, key):
-        if self._pairing:
+        """
+        TESTS::
+
+            sage: from sage.dev.git_interface import SavingDict
+            sage: import os, tempfile
+            sage: tmp = tempfile.NamedTemporaryFile().name
+            sage: sd = SavingDict(tmp, {'cow': 'moo'}); sd
+            {'cow': 'moo'}
+            sage: del sd['cow']
+            sage: del sd['cow']
+            Traceback (most recent call last):
+            ...
+            KeyError: 'cow'
+            sage: sd
+            {}
+            sage: os.unlink(tmp)
+        """
+        if self._pairing and key in self:
             with self._pairing as paired:
                 del paired[self[key]]
         try:
             del self._dict[key]
-        except KeyError:
-            pass
+        except Exception:
+            raise
         else:
             self._write()
 
     def __getitem__(self, key):
+        """
+        TESTS::
+
+            sage: from sage.dev.git_interface import SavingDict
+            sage: sd = SavingDict('', {'cow': 'moo'}); sd
+            {'cow': 'moo'}
+            sage: sd['cow']
+            'moo'
+            sage: sd['moo']
+            Traceback (most recent call last):
+            ...
+            KeyError: 'moo'
+        """
         try:
             return self._dict[key]
         except KeyError:
             return self._default()
 
     def __contains__(self, key):
+        """
+        TESTS::
+
+            sage: from sage.dev.git_interface import SavingDict
+            sage: sd = SavingDict('', {'cow': 'moo'}); sd
+            {'cow': 'moo'}
+            sage: 'cow' in sd
+            True
+            sage: 'moo' in sd
+            False
+        """
         return key in self._dict
 
     def __len__(self):
+        """
+        TESTS::
+
+            sage: from sage.dev.git_interface import SavingDict
+            sage: import os, tempfile
+            sage: tmp = tempfile.NamedTemporaryFile().name
+            sage: sd = SavingDict(tmp); len(sd)
+            0
+            sage: sd['cow'] = 'moo'
+            sage: len(sd)
+            1
+            sage: os.unlink(tmp)
+        """
         return len(self._dict)
 
     def __iter__(self):
+        """
+        TESTS::
+
+            sage: from sage.dev.git_interface import SavingDict
+            sage: sd = SavingDict('', {'cow':'moo', 0:1}); sd
+            {0: 1, 'cow': 'moo'}
+            sage: for key in sd:
+            ...       print key, sd[key]
+            0 1
+            cow moo
+        """
         return iter(self._dict)
 
 class authenticated(object):

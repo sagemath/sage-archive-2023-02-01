@@ -265,14 +265,21 @@ if [ ! -f "$PKG_SRC" ]; then
     else
         # Handle cases 2a and 3, where the package name is something
         # like "foo" or "foo-1.2.3".
-        URL_BASE="${SAGE_SERVER}packages"
-        for repo in optional experimental standard archive; do
+        for repo in optional experimental standard huge archive; do
             # Download the list of packages.
             echo ">>> Checking online list of $repo packages."
+
+            # Huge packages are not mirrored
+            if [ $repo = huge ]; then
+                URL_REPO="http://www.sagemath.org/spkg/huge"
+            else
+                URL_REPO="${SAGE_SERVER}spkg/$repo"
+            fi
+
             repolist="${repo}.list"
-            sage-download-file "$URL_BASE/$repo/list" >$repolist
+            sage-download-file "$URL_REPO/list" >$repolist
             if [ $? -ne 0 ]; then
-                echo >&2 "Error: failed to download $URL_BASE/$repo/list, aborting"
+                echo >&2 "Error: failed to download $URL_REPO/list, aborting"
                 rm -f $repolist
                 exit 1
             fi
@@ -286,9 +293,10 @@ if [ ! -f "$PKG_SRC" ]; then
             if [ -n "$pkg" ]; then
                 echo ">>> Found $pkg"
                 PKG_NAME=$pkg
+
                 # If INFO is set, try downloading only the .txt file
                 if [ $INFO -eq 1 ]; then
-                    PKG_URL="$URL_BASE/$repo/$pkg.txt"
+                    PKG_URL="$URL_REPO/$pkg.txt"
                     sage-download-file 2>/dev/null "$PKG_URL" && exit 0
                     # If the download failed (for whatever reason),
                     # fall through and use the .spkg file.
@@ -318,12 +326,12 @@ if [ ! -f "$PKG_SRC" ]; then
                         esac
                     fi
                 fi
-                PKG_URL="$URL_BASE/$repo/$pkg.spkg"
+                PKG_URL="$URL_REPO/$pkg.spkg"
                 break
             fi
         done
         if [ -z "$PKG_URL" ]; then
-            echo >&2 "Error: could not find a package matching $PKG_NAME in $URL_BASE"
+            echo >&2 "Error: could not find a package matching $PKG_NAME on $SAGE_SERVER"
             exit 1
         fi
 
@@ -340,7 +348,7 @@ if [ ! -f "$PKG_SRC" ]; then
     # Download to a temporary file (such that we don't end up with a
     # corrupted .spkg file).
     PKG_TMP="$PKG_NAME.tmp"
-    echo ">>> Downloading $PKG_NAME.spkg."
+    echo ">>> Downloading $PKG_URL."
     sage-download-file "$PKG_URL" >"$PKG_TMP"
     if [ $? -ne 0 ]; then
         # Delete failed download

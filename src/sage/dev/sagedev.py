@@ -1092,7 +1092,7 @@ class SageDev(object):
         try:
             return self._tmp_dir
         except AttributeError:
-            self._tmp_dir = SelfCleaningTempDir()
+            self._tmp_dir = tempfile.mkdtemp()
             atexit.register(shutil.rmtree, self._tmp_dir)
             return self._tmp_dir
 

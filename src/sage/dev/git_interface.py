@@ -415,12 +415,8 @@ class SavingDict(collections.MutableMapping):
         if self._pairing and key in self:
             with self._pairing as paired:
                 del paired[self[key]]
-        try:
-            del self._dict[key]
-        except Exception:
-            raise
-        else:
-            self._write()
+        del self._dict[key]
+        self._write()
 
     def __getitem__(self, key):
         """

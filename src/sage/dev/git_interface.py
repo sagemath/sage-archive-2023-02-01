@@ -12,6 +12,7 @@ from cStringIO import StringIO
 from subprocess import call, check_output, CalledProcessError
 
 from sage.env import SAGE_DOT_GIT, SAGE_REPO, DOT_SAGE
+from sage.doctest import DOCTEST_MODE
 
 def is_atomic_name(x):
     """
@@ -512,25 +513,13 @@ class GitInterface(object):
         self._UI = self._sagedev._UI
 
         self._config  = self._sagedev._config.get('git', {})
-        self._doctest = self._config.get('doctest', None)
         self._dot_git = self._config.get('dot_git', SAGE_DOT_GIT)
         self._gitcmd  = self._config.get('gitcmd', 'git')
         self._repo    = self._config.get('repo', SAGE_REPO)
 
-        if self._doctest is not None:
-            # prepare the doctesting repository
-            os.chdir(self._doctest)
-            self.execute_silent('init')
-            with open('testfile', 'w') as f:
-                f.write('this is a test file\n')
-            self.execute_silent('add', 'testfile')
-            self.execute_silent('commit', '--message="add a testfile"')
-            self.execute_silent('branch', 'first')
-            with open('testfile', 'w') as f:
-                f.write('this test file has been edited\n')
-            self.execute_silent('add', 'testfile')
-            self.execute_silent('commit', '--message="edit the testfile"')
-            self.execute_silent('checkout', '-qb', 'second')
+        if DOCTEST_MODE:
+            self._doctest = self._config['doctest']
+            self._prep_doctest_repo()
 
         if not os.path.exists(self._dot_git):
                 raise ValueError("`%s` does not point to an existing directory."%self._dot_git)
@@ -549,7 +538,36 @@ class GitInterface(object):
         self._dependencies = SavingDict(dependencies_file, default=tuple)
         self._remote = SavingDict(remote_branches_file)
 
+    def _prep_doctest_repo(self):
+        """
+        creates a fake repository at directory for doctesting
+        """
+        os.chdir(self._doctest)
+        self.execute_silent('init')
+        with open('testfile', 'w') as f:
+            f.write('this is a test file\n')
+        self.execute_silent('add', 'testfile')
+        self.execute_silent('commit', '--message="add a testfile"')
+        self.execute_silent('branch', 'first')
+        self.execute_silent('checkout', '--quiet', '--detach', 'HEAD')
+        with open('testfile', 'w') as f:
+            f.write('this test file has been edited\n')
+        self.execute_silent('add', 'testfile')
+        self.execute_silent('commit', '--message="edit the testfile"')
+        self.execute_silent('branch', 'second')
+        self.execute_silent('checkout', '--quiet', 'first')
+        with open('testfile', 'w') as f:
+            f.write('this test file has been edited differently\n')
+        self.execute_silent('add', 'testfile')
+        self.execute_silent('commit', '--message="edit the testfile differently"')
+
     def __repr__(self):
+        """
+        TESTS::
+
+            sage: repr(sage_dev.git)
+            'GitInterface()'
+        """
         return "GitInterface()"
 
     def released_sage_ver(self):
@@ -558,30 +576,162 @@ class GitInterface(object):
         raise NotImplementedError
 
     def get_state(self):
+        """
+        get the current state of merge/rebase/am/etc operations
+
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import SageDev, doctest_config
+            sage: git = SageDev(doctest_config()).git
+            sage: git.execute_supersilent('merge', 'second')
+            1
+            sage: git.get_state()
+            ('merge',)
+            sage: git.execute_silent('merge', '--abort')
+            0
+            sage: git.get_state()
+            ()
+            sage: git.execute_supersilent('rebase', 'second')
+            1
+            sage: git.get_state()
+            ('rebase',)
+            sage: git.execute_silent('rebase', '--abort')
+            0
+            sage: git.get_state()
+            ()
+            sage: git.execute_supersilent('rebase', '--interactive', 'HEAD^',
+            ....:     env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
+            0
+            sage: git.get_state()
+            ('rebase-i',)
+            sage: git.execute_supersilent('merge', 'second')
+            1
+            sage: git.get_state()
+            ('merge', 'rebase-i')
+            sage: git.execute_silent('rebase', '--abort')
+            0
+            sage: git.get_state()
+            ()
+        """
+        # logic based on zsh's git backend for vcs_info
+        opj = os.path.join
+        p = lambda x: opj(self._dot_git, x)
         ret = []
-        if os.path.exists(os.path.join(self._dot_git, "rebase-apply")):
-            ret.append("am")
-        return ret
+        for d in map(p,("rebase-apply", "rebase", opj("..",".dotest"))):
+            if os.path.isdir(d):
+                if os.path.isfile(opj(d, 'rebasing')) and 'rebase' not in ret:
+                    ret.append('rebase')
+                if os.path.isfile(opj(d, 'applying')) and 'am' not in ret:
+                    ret.append('am')
+        for f in map(p, (opj('rebase-merge', 'interactive'),
+                         opj('.dotest-merge', 'interactive'))):
+            if os.path.isfile(f):
+                ret.append('rebase-i')
+                break
+        else:
+            for d in map(p, ('rebase-merge', '.dotest-merge')):
+                if os.path.isdir(d):
+                    ret.append('rebase-m')
+                    break
+        if os.path.isfile(p('MERGE_HEAD')):
+            ret.append('merge')
+        if os.path.isfile(p('BISECT_LOG')):
+            ret.append('bisect')
+        if os.path.isfile(p('CHERRY_PICK_HEAD')):
+            if os.path.isdir(p('sequencer')):
+                ret.append('cherry-seq')
+            else:
+                ret.append('cherry')
+        # return in reverse order so reset operations are correctly ordered
+        return tuple(reversed(ret))
 
     def reset_to_clean_state(self, interactive=True):
+        """
+        gets out of a merge/am/rebase/etc state and returns True
+        if successful
+
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import SageDev, doctest_config
+            sage: git = SageDev(doctest_config()).git
+            sage: git.execute_supersilent('merge', 'second')
+            1
+            sage: git.get_state()
+            ('merge',)
+            sage: git.reset_to_clean_state(False)
+            True
+            sage: git.get_state()
+            ()
+            sage: git.execute_supersilent('rebase', '--interactive', 'HEAD^',
+            ....:     env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
+            0
+            sage: git.execute_supersilent('merge', 'second')
+            1
+            sage: git.get_state()
+            ('merge', 'rebase-i')
+            sage: git.reset_to_clean_state(False)
+            True
+            sage: git.get_state()
+            ()
+        """
         states = self.get_state()
         if not states:
             return True
-        for state in states:
-            if state == "am":
-                if interactive and not self._UI.confirm("Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard any changes which are not commited.)"):
-                    return False
+        if (interactive and not
+            self._UI.confirm("Your repository is in an unclean state. It "
+                             "seems you are in the middle of a merge of some "
+                             "sort. To run this command you have to reset "
+                             "your respository to a clean state. Do you want "
+                             "me to reset your respository? (This will "
+                             "discard any changes which are not commited.)")):
+                return False
 
+        for state in states:
+            if state.startswith('rebase'):
+                self.execute_silent('rebase', '--abort')
+            elif state == 'am':
                 self.execute_silent('am', '--abort')
-                return self.reset_to_clean_state(interactive=interactive)
-            else:
+            elif state == 'merge':
+                self.execute_silent('merge', '--abort')
+            elif state == 'bisect':
                 raise NotImplementedError(state)
+            elif state.startswith('cherry'):
+                self.execute_silent('cherry-pick', '--abort')
+            else:
+                raise RuntimeError("'%s' is not a valid state"%state)
+
+        if self.get_state():
+            raise RuntimeError("failed to reset to clean state")
+        return True
 
     def reset_to_clean_working_directory(self, interactive=True):
+        """
+        resets any changes made to the working directory and returns
+        True if successful
+
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import SageDev, doctest_config
+            sage: import os
+            sage: git = SageDev(doctest_config()).git
+            sage: with open(os.path.join(git._doctest, 'testfile'), 'w') as f:
+            ....:     f.write('modified this file\n')
+            sage: git.has_uncommitted_changes()
+            True
+            sage: git.reset_to_clean_working_directory(False)
+            True
+            sage: git.has_uncommitted_changes()
+            False
+        """
         if not self.has_uncommitted_changes():
             return True
 
-        if interactive and not self._UI.confirm("You have uncommited changes in your working directory. To run this command you have to discard your changes. Do you want me to discard any changes which are not commited?"):
+        if (interactive and not
+                self._UI.confirm("You have uncommited changes in your working "
+                                 "directory. To run this command you have to "
+                                 "discard your changes. Do you want me to "
+                                 "discard any changes which are not "
+                                 "commited?")):
             return False
 
         self.execute_silent('reset', '--hard')
@@ -602,7 +752,9 @@ class GitInterface(object):
 
     def _run_git(self, output_type, cmd, args, kwds):
         s = " ".join([self._gitcmd, "--git-dir=%s"%self._dot_git, cmd])
+        ckwds = {'env':dict(os.environ), 'shell':True}
         dryrun = kwds.pop("dryrun", None)
+        ckwds['env'].update(kwds.pop('env', {}))
         for k, v in kwds.iteritems():
             if len(k) == 1:
                 k = ' -' + k
@@ -616,19 +768,23 @@ class GitInterface(object):
             s += " " + " ".join([self._clean_str(a) for a in args if a is not None])
         if dryrun:
             return s
+        elif output_type == 'stdout':
+            return check_output(s, **ckwds)
         else:
-            if output_type == 'retval':
-                return call(s, shell=True)
-            elif output_type == 'retquiet':
-                return call(s, shell=True, stdout=open(os.devnull, 'w'))
-            elif output_type == 'stdout':
-                return check_output(s, shell=True)
+            if output_type == 'retquiet':
+                ckwds['stdout'] = open(os.devnull, 'w')
+            elif output_type == 'retsuperquiet':
+                ckwds['stdout'] = ckwds['stderr'] = open(os.devnull, 'w')
+            return call(s, **ckwds)
 
     def execute(self, cmd, *args, **kwds):
         return self._run_git('retval', cmd, args, kwds)
 
     def execute_silent(self, cmd, *args, **kwds):
         return self._run_git('retquiet', cmd, args, kwds)
+
+    def execute_supersilent(self, cmd, *args, **kwds):
+        return self._run_git('retsuperquiet', cmd, args, kwds)
 
     def read_output(self, cmd, *args, **kwds):
         return self._run_git('stdout', cmd, args, kwds)
@@ -639,9 +795,9 @@ class GitInterface(object):
 
         EXAMPLES::
 
-            sage: sage_dev.git.is_child_of('first', 'second')
+            sage: sage_dev.git.is_child_of('master', 'second')
             False
-            sage: sage_dev.git.is_child_of('second', 'first')
+            sage: sage_dev.git.is_child_of('second', 'master')
             True
             sage: sage_dev.git.is_child_of('master', 'master')
             True
@@ -654,9 +810,9 @@ class GitInterface(object):
 
         EXAMPLES::
 
-            sage: sage_dev.git.is_ancestor_of('first', 'second')
+            sage: sage_dev.git.is_ancestor_of('master', 'second')
             True
-            sage: sage_dev.git.is_ancestor_of('second', 'first')
+            sage: sage_dev.git.is_ancestor_of('second', 'master')
             False
             sage: sage_dev.git.is_ancestor_of('master', 'master')
             True
@@ -665,7 +821,21 @@ class GitInterface(object):
         return len(revs) == 0
 
     def has_uncommitted_changes(self):
-        # Returns True if there are uncommitted changes
+        """
+        returns True if there are uncommitted changes
+
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import SageDev, doctest_config
+            sage: import os
+            sage: git = SageDev(doctest_config()).git
+            sage: git.has_uncommitted_changes()
+            False
+            sage: with open(os.path.join(git._doctest, 'testfile'), 'w') as f:
+            ....:     f.write('modified this file\n')
+            sage: git.has_uncommitted_changes()
+            True
+        """
         return self.execute('diff', '--quiet') != 0
 
     def commit_all(self, *args, **kwds):
@@ -719,7 +889,7 @@ class GitInterface(object):
         EXAMPLES::
 
             sage: sage_dev.git.current_branch()
-            'second'
+            'first'
         """
         try:
             branch = self.read_output('symbolic-ref', 'HEAD').strip()

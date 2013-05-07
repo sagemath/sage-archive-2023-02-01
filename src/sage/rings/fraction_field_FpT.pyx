@@ -9,6 +9,7 @@ include "../ext/stdsage.pxi"
 
 from sage.rings.all import GF
 from sage.libs.flint.nmod_poly cimport *
+from sage.libs.flint.ulong_extras cimport n_jacobi
 from sage.structure.element cimport Element, ModuleElement, RingElement
 from sage.rings.integer_ring import ZZ
 from sage.rings.fraction_field import FractionField_generic, FractionField_1poly_field
@@ -686,27 +687,39 @@ cdef class FpTElement(RingElement):
             []
 
         """
-        if nmod_poly_degree(self._numer) == -1:
+        if nmod_poly_is_zero(self._numer):
             return self
+
         if not nmod_poly_sqrt_check(self._numer) or not nmod_poly_sqrt_check(self._denom):
             return None
+
         cdef nmod_poly_t numer
         cdef nmod_poly_t denom
+        cdef long a
         cdef FpTElement res
-        try:
-            nmod_poly_init(denom, self.p)
-            nmod_poly_init(numer, self.p)
-            if not nmod_poly_sqrt0(numer, self._numer):
-                return None
-            if not nmod_poly_sqrt0(denom, self._denom):
-                return None
+
+        nmod_poly_init(denom, self.p)
+        nmod_poly_init(numer, self.p)
+
+        if nmod_poly_sqrt(numer, self._numer) and nmod_poly_sqrt(denom, self._denom):
+            # Make denominator monic
+            a = nmod_poly_leading(denom)
+            if a != 1:
+                a = mod_inverse_int(a, self.p)
+                nmod_poly_scalar_mul_nmod(numer, numer, a)
+                nmod_poly_scalar_mul_nmod(denom, denom, a)
+            # Choose numerator with smaller leading coefficient
+            a = nmod_poly_leading(numer)
+            if a > self.p - a:
+                nmod_poly_neg(numer, numer)
             res = self._new_c()
             nmod_poly_swap(numer, res._numer)
             nmod_poly_swap(denom, res._denom)
             return res
-        finally:
+        else:
             nmod_poly_clear(numer)
             nmod_poly_clear(denom)
+            return None
 
     cpdef bint is_square(self):
         """
@@ -741,8 +754,12 @@ cdef class FpTElement(RingElement):
 
             sage: from sage.rings.fraction_field_FpT import *
             sage: K = GF(7)['t'].fraction_field(); t = K.gen(0)
-            sage: ((t + 2)^2/(3*t^3 + 1)^4).sqrt()
+            sage: p = (t + 2)^2/(3*t^3 + 1)^4
+            sage: p.sqrt()
             (3*t + 6)/(t^6 + 3*t^3 + 4)
+            sage: p.sqrt()^2 == p
+            True
+
         """
         s = self._sqrt_or_None()
         if s is None:
@@ -1589,7 +1606,7 @@ cdef inline void nmod_poly_inc(nmod_poly_t poly, bint monic):
     """
     cdef long n
     cdef long a
-    cdef long p = poly.p
+    cdef long p = poly.mod.n
     for n from 0 <= n <= nmod_poly_degree(poly) + 1:
         a = nmod_poly_get_coeff_ui(poly, n) + 1
         if a == p:
@@ -1628,135 +1645,16 @@ cdef inline long nmod_poly_cmp(nmod_poly_t a, nmod_poly_t b):
         d -= 1
     return 0
 
-cdef void nmod_poly_pow(nmod_poly_t res, nmod_poly_t poly, unsigned long e):
-    """
-    Raises poly to the `e`th power and stores the result in ``res``.
-    """
-    if nmod_poly_degree(poly) < 2:
-        if nmod_poly_degree(poly) == -1:
-            nmod_poly_zero(res)
-            return
-        elif nmod_poly_is_one(poly):
-            nmod_poly_set(res, poly)
-            return
-        elif e > 1 and nmod_poly_degree(poly) == 1 and nmod_poly_get_coeff_ui(poly, 0) == 0 and nmod_poly_get_coeff_ui(poly, 1) == 1:
-            nmod_poly_left_shift(res, poly, e-1)
-            return
-
-    # TODO: Could use the fact that (a+b)^p = a^p + b^p
-    # Only seems to be a big gain for large p, large exponents...
-    cdef nmod_poly_t pow2
-
-    if e < 5:
-        if e == 0:
-            nmod_poly_zero(res)
-            nmod_poly_set_coeff_ui(res, 0, 1)
-        elif e == 1:
-            nmod_poly_set(res, poly)
-        elif e == 2:
-            nmod_poly_sqr(res, poly)
-        elif e == 3:
-            nmod_poly_sqr(res, poly)
-            nmod_poly_mul(res, res, poly)
-        elif e == 4:
-            nmod_poly_sqr(res, poly)
-            nmod_poly_sqr(res, res)
-    else:
-        nmod_poly_init(pow2, poly.p)
-        nmod_poly_zero(res)
-        nmod_poly_set_coeff_ui(res, 0, 1)
-        nmod_poly_set(pow2, poly)
-        while True:
-            if e & 1:
-                nmod_poly_mul(res, res, pow2)
-            e >>= 1
-            if e == 0:
-                break
-            nmod_poly_sqr(pow2, pow2)
-        nmod_poly_clear(pow2)
-
-
-cdef long sqrt_mod_int(long a, long p) except -1:
-    """
-    Returns the square root of a modulo p, as a long.
-    """
-    return GF(p)(a).sqrt()
-
 cdef bint nmod_poly_sqrt_check(nmod_poly_t poly):
-    """
-    Quick check to see if poly could possibly be a square.
-    """
-    return (nmod_poly_degree(poly) % 2 == 0
-        and jacobi_int(nmod_poly_leading(poly), poly.p) == 1
-        and jacobi_int(nmod_poly_get_coeff_ui(poly, 0), poly.p) != -1)
-
-cdef bint nmod_poly_sqrt(nmod_poly_t res, nmod_poly_t poly):
-    """
-    Compute the square root of poly as res if res is a perfect square.
-
-    Returns True on success, False on failure.
-    """
-    if not nmod_poly_sqrt_check(poly):
-        return False
-    return nmod_poly_sqrt0(res, poly)
-
-cdef bint nmod_poly_sqrt0(nmod_poly_t res, nmod_poly_t poly):
-    """
-    Compute the square root of poly as res if res is a perfect square, assuming that poly passes nmod_poly_sqrt_check.
-
-    Returns True on success, False on failure.
-    """
-    if nmod_poly_degree(poly) == -1:
-        nmod_poly_zero(res)
-        return True
-    if nmod_poly_degree(poly) == 0:
-        nmod_poly_zero(res)
-        nmod_poly_set_coeff_ui(res, 0, sqrt_mod_int(nmod_poly_get_coeff_ui(poly, 0), poly.p))
-        return True
-    cdef nmod_poly_t g
-    cdef long p = poly.p
-    cdef long n, leading
-    cdef nmod_poly_factor_t factors
-    try:
-        nmod_poly_init(g, p)
-        nmod_poly_derivative(res, poly)
-        nmod_poly_gcd(g, res, poly)
-        if 2*nmod_poly_degree(g) < nmod_poly_degree(poly):
-            return False
-
-        elif 2*nmod_poly_degree(g) > nmod_poly_degree(poly):
-            try:
-                nmod_poly_factor_init(factors)
-                leading = nmod_poly_leading(poly)
-                if leading == 1:
-                    nmod_poly_factor_squarefree(factors, poly)
-                else:
-                    nmod_poly_scalar_mul_nmod(res, poly, mod_inverse_int(leading, p))
-                    nmod_poly_factor_squarefree(factors, res)
-                for n in range(factors.num_factors):
-                    if factors.exponents[n] % 2 != 0:
-                        return False
-                nmod_poly_pow(res, factors.factors[0], factors.exponents[0]//2)
-                for n in range(1, factors.num_factors):
-                    nmod_poly_pow(factors.factors[n], factors.factors[n], factors.exponents[n]//2)
-                    nmod_poly_mul(res, res, factors.factors[n])
-                if leading != 1:
-                    nmod_poly_scalar_mul_nmod(res, res, sqrt_mod_int(nmod_poly_leading(poly), p))
-                return True
-            finally:
-                nmod_poly_factor_clear(factors)
-
-        else: # deg(g) == deg(poly)/2
-            nmod_poly_sqr(res, g)
-            leading = nmod_poly_leading(poly) * mod_inverse_int(nmod_poly_leading(res), p)
-            nmod_poly_scalar_mul_nmod(res, res, leading)
-            if nmod_poly_equal(res, poly):
-                nmod_poly_scalar_mul_nmod(res, g, sqrt_mod_int(leading, p))
-                return True
-            else:
-                return False
-    finally:
-        nmod_poly_clear(g)
+     """
+     Quick check to see if poly could possibly be a square.
+     """
+     # We could use Sage's jacobi_int which is for 32 bits integers rather
+     # than FLINT's n_jacobi which is for longs as the FpT class is crafted
+     # for primes 2 < p < 2^16
+     return (nmod_poly_degree(poly) % 2 == 0
+         and n_jacobi(nmod_poly_leading(poly), poly.mod.n) == 1
+         and n_jacobi(nmod_poly_get_coeff_ui(poly, 0), poly.mod.n) != -1)
 
 def unpickle_FpT_element(K, numer, denom):
     """

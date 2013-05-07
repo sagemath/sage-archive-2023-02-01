@@ -61,8 +61,11 @@ cdef inline bint _do_sig(fmpq_poly_t op):
         sage: g = 2/3 + t^2
         sage: _ = f * g      # indirect doctest
     """
-    return fmpz_poly_max_limbs(fmpq_poly_numref(op)) > 1 \
-                                                 or fmpq_poly_degree(op) > 1000
+    # Trac #12173: check that the degree is greater than 1000 before computing
+    # the max limb size
+    return fmpq_poly_length(op) > 0 and \
+       (fmpq_poly_degree(op) > 1000 or
+        _fmpz_vec_max_limbs(fmpq_poly_numref(op), fmpq_poly_length(op)) > 1)
 
 cdef class Polynomial_rational_flint(Polynomial):
     """
@@ -71,9 +74,6 @@ cdef class Polynomial_rational_flint(Polynomial):
     Internally, we represent rational polynomial as the quotient of an integer
     polynomial and a positive denominator which is coprime to the content of
     the numerator.
-
-    The implementation is based on the C module fmpq_poly written on top of
-    FLINT 1.
     """
 
     ###########################################################################
@@ -188,7 +188,7 @@ cdef class Polynomial_rational_flint(Polynomial):
 
             sage: f = ZZ['x']([1..10^6])
             sage: g = f.change_ring(QQ)
-            sage: g[:10]  # long time (5s on sage.math, 2012)
+            sage: g[:10]
             10*x^9 + 9*x^8 + 8*x^7 + 7*x^6 + 6*x^5 + 5*x^4 + 4*x^3 + 3*x^2 + 2*x + 1
         """
         cdef long deg
@@ -389,7 +389,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         cdef Polynomial_rational_flint res = self._new()
         cdef bint do_sig = _do_sig(self.__poly)
         if isinstance(n, slice):
-            start, stop, step = n.indices(len(list(self)))
+            start, stop, step = n.indices(self.degree() + 1)
             if do_sig: sig_on()
             fmpq_poly_get_slice(res.__poly, self.__poly, start, stop)
             if do_sig: sig_off()
@@ -517,7 +517,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             if n > 0:
                 do_sig = _do_sig(self.__poly)
                 if do_sig: sig_on()
-                fmpq_poly_truncate(res.__poly, self.__poly, n)
+                fmpq_poly_get_slice(res.__poly, self.__poly, 0, n)
                 if do_sig: sig_off()
             return res
 
@@ -1170,7 +1170,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         sig_on()
         Polynomial_integer_dense_flint.__init__(num, parent, x=None, \
                                     check=False, is_gen=False, construct=False)
-        fmpz_poly_set(num.__poly, fmpq_poly_numref(self.__poly))
+        fmpq_poly_get_numerator(num.__poly, self.__poly)
         sig_off()
         return num
 
@@ -1189,7 +1189,7 @@ cdef class Polynomial_rational_flint(Polynomial):
         if fmpq_poly_denref(self.__poly) is NULL:
             mpz_set_ui(den.value, 1)
         else:
-            fmpz_get_mpz(den.value, fmpq_poly_denref(self.__poly))
+            fmpz_get_mpz(den.value, <fmpz *> fmpq_poly_denref(self.__poly))
         return den
 
     def _derivative(self, var = None):
@@ -1287,10 +1287,14 @@ cdef class Polynomial_rational_flint(Polynomial):
             0
         """
         cdef Rational res = PY_NEW(Rational)
+        cdef fmpq_t t
+        fmpq_init(t)
         sig_on()
-        fmpq_poly_resultant(res.value, self.__poly, \
+        fmpq_poly_resultant(t, self.__poly, \
                             (<Polynomial_rational_flint>right).__poly)
+        fmpq_get_mpq(res.value, t)
         sig_off()
+        fmpq_clear(t)
         return res
 
     def is_irreducible(self):
@@ -1340,8 +1344,10 @@ cdef class Polynomial_rational_flint(Polynomial):
             sig_on()
             Polynomial_integer_dense_flint.__init__(primitive, parent, \
                              x=None, check=True, is_gen=False, construct=False)
-            fmpz_poly_primitive_part(primitive.__poly, \
-                                     fmpq_poly_numref(self.__poly))
+
+            fmpq_poly_get_numerator(primitive.__poly, self.__poly)
+            fmpz_poly_primitive_part(primitive.__poly, primitive.__poly)
+
             sig_off()
             return primitive.is_irreducible()
 

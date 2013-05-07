@@ -1988,10 +1988,8 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
         # Implementation-wise, we compute the GCD's one at a time,
         # and quit if it ever becomes one
 
-        cdef fmpz_t content = fmpz_init(fmpz_poly_max_limbs(self.x)) # TODO: think about how big this should be (probably the size of d)
-                                                                     # Note that we have to allocate this here, and not
-                                                                     # as a global variable, because fmpz_t's do not
-                                                                     # self allocate memory
+        cdef fmpz_t content
+        fmpz_init(content)
         fmpz_poly_content(content, self.x)
         fmpz_get_mpz(U1, content)
         mpz_gcd(U1, self.d, U1)
@@ -2008,10 +2006,10 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
                     fmpz_get_mpz(U2, content)
                     mpz_gcd(U1, U1, U2)
                     if mpz_cmp_ui(U1, 1) != 0:
-                        fmpz_poly_scalar_fdiv_mpz(self.x, self.x, U1)
-                        fmpz_poly_scalar_fdiv_mpz(self.y, self.y, U1)
-                        fmpz_poly_scalar_fdiv_mpz(self.z, self.z, U1)
-                        fmpz_poly_scalar_fdiv_mpz(self.w, self.w, U1)
+                        fmpz_poly_scalar_divexact_mpz(self.x, self.x, U1)
+                        fmpz_poly_scalar_divexact_mpz(self.y, self.y, U1)
+                        fmpz_poly_scalar_divexact_mpz(self.z, self.z, U1)
+                        fmpz_poly_scalar_divexact_mpz(self.w, self.w, U1)
                         mpz_divexact(self.d, self.d, U1)
 
         fmpz_clear(content)

@@ -25,7 +25,7 @@ include "../../ext/interrupt.pxi"
 include "../../libs/flint/fmpz_poly.pxi"
 
 from sage.libs.flint.nmod_poly cimport *, nmod_poly_t
-from sage.libs.flint.ulong_extras cimport *, factor_t
+from sage.libs.flint.ulong_extras cimport *, n_factor_t
 from sage.libs.ratpoints cimport ratpoints_mpz_exists_only
 
 cdef int N_RES_CLASSES_BSD = 10
@@ -268,8 +268,7 @@ cdef int Zp_soluble_BSD(mpz_t a, mpz_t b, mpz_t c, mpz_t d, mpz_t e,
 cdef bint Zp_soluble_siksek(mpz_t a, mpz_t b, mpz_t c, mpz_t d, mpz_t e,
                             mpz_t pp, unsigned long pp_ui,
                             nmod_poly_factor_t f_factzn, nmod_poly_t f,
-                            fmpz_poly_t f1, fmpz_poly_t linear,
-                            double pp_ui_inv):
+                            fmpz_poly_t f1, fmpz_poly_t linear):
     """
     Uses the approach of Algorithm 5.3.1 of Siksek's thesis to test for
     solubility of y^2 == ax^4 + bx^3 + cx^2 + dx + e over Zp.
@@ -315,31 +314,31 @@ cdef bint Zp_soluble_siksek(mpz_t a, mpz_t b, mpz_t c, mpz_t d, mpz_t e,
         nmod_poly_set_coeff_ui(f, 4, mpz_fdiv_ui(a, pp_ui))
 
         result = 0
-        (<nmod_poly_factor_struct *>f_factzn)[0].num_factors = 0 # reset data struct
+        (<nmod_poly_factor_struct *>f_factzn)[0].num = 0 # reset data struct
         qq = nmod_poly_factor(f_factzn, f)
-        for i from 0 <= i < f_factzn.num_factors:
-            if f_factzn.exponents[i]&1:
+        for i from 0 <= i < f_factzn.num:
+            if f_factzn.exp[i]&1:
                 result = 1
                 break
-        if result == 0 and z_legendre_precomp(qq, pp_ui, pp_ui_inv) == 1:
+        if result == 0 and n_jacobi(qq, pp_ui) == 1:
             result = 1
         if result:
             return 1
 
         nmod_poly_zero(f)
         nmod_poly_set_coeff_ui(f, 0, ui1)
-        for i from 0 <= i < f_factzn.num_factors:
-            for j from 0 <= j < (f_factzn.exponents[i]>>1):
-                nmod_poly_mul(f, f, f_factzn.factors[i])
+        for i from 0 <= i < f_factzn.num:
+            for j from 0 <= j < (f_factzn.exp[i]>>1):
+                nmod_poly_mul(f, f, &f_factzn.p[i])
 
-        (<nmod_poly_factor_struct *>f_factzn)[0].num_factors = 0 # reset data struct
+        (<nmod_poly_factor_struct *>f_factzn)[0].num = 0 # reset data struct
         nmod_poly_factor(f_factzn, f)
         has_roots = 0
         j = 0
-        for i from 0 <= i < f_factzn.num_factors:
-            if nmod_poly_degree(f_factzn.factors[i]) == 1 and 0 != nmod_poly_get_coeff_ui(f_factzn.factors[i], 1):
+        for i from 0 <= i < f_factzn.num:
+            if nmod_poly_degree(&f_factzn.p[i]) == 1 and 0 != nmod_poly_get_coeff_ui(&f_factzn.p[i], 1):
                 has_roots = 1
-                roots[j] = pp_ui - nmod_poly_get_coeff_ui(f_factzn.factors[i], 0)
+                roots[j] = pp_ui - nmod_poly_get_coeff_ui(&f_factzn.p[i], 0)
                 j += 1
         if not has_roots:
             return 0
@@ -428,7 +427,7 @@ cdef bint Zp_soluble_siksek(mpz_t a, mpz_t b, mpz_t c, mpz_t d, mpz_t e,
                 fmpz_poly_get_coeff_mpz(cc, f1, 2)
                 fmpz_poly_get_coeff_mpz(dd, f1, 1)
                 fmpz_poly_get_coeff_mpz(ee, f1, 0)
-                result = Zp_soluble_siksek(aa, bb, cc, dd, ee, pp, pp_ui, f_factzn, f, f1, linear, pp_ui_inv)
+                result = Zp_soluble_siksek(aa, bb, cc, dd, ee, pp, pp_ui, f_factzn, f, f1, linear)
                 mpz_clear(aa)
                 mpz_clear(bb)
                 mpz_clear(cc)
@@ -450,18 +449,18 @@ cdef bint Zp_soluble_siksek(mpz_t a, mpz_t b, mpz_t c, mpz_t d, mpz_t e,
         nmod_poly_set_coeff_ui(f, 2, mpz_fdiv_ui(c, pp_ui))
         nmod_poly_set_coeff_ui(f, 3, mpz_fdiv_ui(b, pp_ui))
         nmod_poly_set_coeff_ui(f, 4, mpz_fdiv_ui(a, pp_ui))
-        (<nmod_poly_factor_struct *>f_factzn)[0].num_factors = 0 # reset data struct
+        (<nmod_poly_factor_struct *>f_factzn)[0].num = 0 # reset data struct
         nmod_poly_factor(f_factzn, f)
         has_roots = 0
         has_single_roots = 0
         j = 0
-        for i from 0 <= i < f_factzn.num_factors:
-            if nmod_poly_degree(f_factzn.factors[i]) == 1 and 0 != nmod_poly_get_coeff_ui(f_factzn.factors[i], 1):
+        for i from 0 <= i < f_factzn.num:
+            if nmod_poly_degree(&f_factzn.p[i]) == 1 and 0 != nmod_poly_get_coeff_ui(&f_factzn.p[i], 1):
                 has_roots = 1
-                if f_factzn.exponents[i] == 1:
+                if f_factzn.exp[i] == 1:
                     has_single_roots = 1
                     break
-                roots[j] = pp_ui - nmod_poly_get_coeff_ui(f_factzn.factors[i], 0)
+                roots[j] = pp_ui - nmod_poly_get_coeff_ui(&f_factzn.p[i], 0)
                 j += 1
 
         if not has_roots: return 0
@@ -491,7 +490,7 @@ cdef bint Zp_soluble_siksek(mpz_t a, mpz_t b, mpz_t c, mpz_t d, mpz_t e,
             fmpz_poly_get_coeff_mpz(cc, f1, 2)
             fmpz_poly_get_coeff_mpz(dd, f1, 1)
             fmpz_poly_get_coeff_mpz(ee, f1, 0)
-            result = Zp_soluble_siksek(aa, bb, cc, dd, ee, pp, pp_ui, f_factzn, f, f1, linear, pp_ui_inv)
+            result = Zp_soluble_siksek(aa, bb, cc, dd, ee, pp, pp_ui, f_factzn, f, f1, linear)
             if result == 1:
                 break
         if j > 0:
@@ -752,7 +751,6 @@ cdef bint Qp_soluble_siksek(mpz_t A, mpz_t B, mpz_t C, mpz_t D, mpz_t E,
     cdef int result = 0
     cdef mpz_t a,b,c,d,e
     cdef nmod_poly_t f
-    cdef double pp_ui_inv = z_precompute_inverse(P)
     nmod_poly_init(f, P)
 
     mpz_init_set(a,A)
@@ -761,7 +759,7 @@ cdef bint Qp_soluble_siksek(mpz_t A, mpz_t B, mpz_t C, mpz_t D, mpz_t E,
     mpz_init_set(d,D)
     mpz_init_set(e,E)
 
-    if Zp_soluble_siksek(a,b,c,d,e,p,P,f_factzn, f, f1, linear, pp_ui_inv):
+    if Zp_soluble_siksek(a,b,c,d,e,p,P,f_factzn, f, f1, linear):
         result = 1
     else:
         mpz_set(a,A)
@@ -769,7 +767,7 @@ cdef bint Qp_soluble_siksek(mpz_t A, mpz_t B, mpz_t C, mpz_t D, mpz_t E,
         mpz_set(c,C)
         mpz_set(d,D)
         mpz_set(e,E)
-        if Zp_soluble_siksek(e,d,c,b,a,p,P,f_factzn, f, f1, linear, pp_ui_inv):
+        if Zp_soluble_siksek(e,d,c,b,a,p,P,f_factzn, f, f1, linear):
             result = 1
 
     mpz_clear(a)
@@ -1229,6 +1227,7 @@ def two_descent_by_two_isogeny_work(Integer c, Integer d,
         p_list_mpz = <mpz_t *> sage_malloc(20 * sizeof(mpz_t))
         mpz_init_set_ui(p_list_mpz[0], ui2)
         p_list_len = 1
+        n_factor_init(&fact)
         n_factor(&fact, mpz_get_ui(d_mpz), proof)
         for i from 0 <= i < fact.num:
             p = fact.p[i]

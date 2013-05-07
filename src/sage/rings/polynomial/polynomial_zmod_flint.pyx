@@ -36,6 +36,7 @@ AUTHORS:
 from sage.libs.ntl.ntl_lzz_pX import ntl_zz_pX
 from sage.structure.factorization import Factorization
 from sage.structure.element import coerce_binop, parent
+from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint
 
 # We need to define this stuff before including the templating stuff
 # to make sure the function get_cparent is found since it is used in
@@ -60,6 +61,8 @@ cdef extern from "zn_poly/zn_poly.h":
     cdef void zn_mod_clear(zn_mod_struct *mod)
     cdef void zn_array_mul(unsigned long* res, unsigned long* op1, size_t n1, unsigned long* op2, size_t n2, zn_mod_struct *mod)
 
+include "../../libs/flint/fmpz_poly.pxi"
+
 cdef class Polynomial_zmod_flint(Polynomial_template):
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         """
@@ -83,6 +86,10 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             lst = lst[:nlen]
             Polynomial_template.__init__(self, parent, 0, check, is_gen, construct)
             self._set_list(lst)
+            return
+        elif PY_TYPE_CHECK(x, Polynomial_integer_dense_flint):
+            Polynomial_template.__init__(self, parent, 0, check, is_gen, construct)
+            self._set_fmpz_poly((<Polynomial_integer_dense_flint>x).__poly)
             return
         else:
             if PY_TYPE_CHECK(x, ntl_zz_pX):
@@ -139,8 +146,16 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         celement_set_si(&r.x, int(x), (<Polynomial_template>self)._cparent)
         return r
 
-    cdef _set_list(self, x):
+    cdef int _set_list(self, x) except -1:
         """
+        Set the coefficients of ``self`` from a list of coefficients.
+
+        INPUT:
+
+        - ``x`` - a list of coefficients - the coefficients are assumed to be
+          reduced already and the list contains no trailing zeroes.
+
+
         EXAMPLES::
 
             sage: P.<a>=GF(7)[]
@@ -157,17 +172,49 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         cdef int i
         if length == 0:
             nmod_poly_zero(&self.x)
-            return
+            return 0
 
         # resize to length of list
         sig_on()
         nmod_poly_realloc(&self.x, length)
         sig_off()
 
+        sig_on()
+        # The following depends on the internals of FLINT
         for i from 0 <= i < length:
-            _nmod_poly_set_coeff_ui(&self.x, i, l_in[i])
-        # we need to set the length manually, we used _nmod_poly_set_coeff_ui
+            self.x.coeffs[i] = l_in[i]
         self.x.length = length
+        sig_off()
+        return 0
+
+    cdef int _set_fmpz_poly(self, fmpz_poly_t x) except -1:
+        """
+        Set the coefficients of ``self`` from the coefficients of an ``fmpz_poly_t`` element.
+
+        INPUT:
+
+        - ``x`` - an ``fmpz_poly_t`` element
+
+        EXAMPLES::
+
+            sage: a = ZZ['x'](range(17))
+            sage: R = Integers(7)['x']
+            sage: R(a)
+            2*x^16 + x^15 + 6*x^13 + 5*x^12 + 4*x^11 + 3*x^10 + 2*x^9 + x^8 + 6*x^6 + 5*x^5 + 4*x^4 + 3*x^3 + 2*x^2 + x
+
+        TESTS:
+
+        The following test from :trac:`12173` used to be horribly slow::
+
+            sage: a = ZZ['x'](range(100000))
+            sage: R = Integers(3)['x']
+            sage: R(a)  # long time (7s on sage.math, 2013)
+            2*x^99998 + ... + x
+        """
+        sig_on()
+        fmpz_poly_get_nmod_poly(&self.x, x)
+        sig_off()
+        return 0
 
     def __getitem__(self, i):
         """
@@ -404,7 +451,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         nmod_poly_init2(&r.x, p, n1 + n2 -1 )
 
         zn_mod_init(&zn_mod, p)
-        zn_array_mul(r.x.coeffs, self.x.coeffs, n1, _other.x.coeffs, n2, &zn_mod)
+        zn_array_mul(<unsigned long *> r.x.coeffs, <unsigned long *> self.x.coeffs, n1, <unsigned long*> _other.x.coeffs, n2, &zn_mod)
         r.x.length = n1 + n2 -1
         _nmod_poly_normalise(&r.x)
         zn_mod_clear(&zn_mod)

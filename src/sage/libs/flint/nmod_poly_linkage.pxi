@@ -89,7 +89,7 @@ cdef inline int celement_set(nmod_poly_t res, nmod_poly_t a, unsigned long n) ex
         6*x
     """
     cdef unsigned long i
-    if a.p <= n:
+    if a.mod.n <= n:
         nmod_poly_set(res, a)
     else:
         nmod_poly_zero(res)
@@ -139,8 +139,7 @@ cdef inline bint celement_is_zero(nmod_poly_t a, unsigned long n) except -2:
         sage: Q(0).is_zero()
         True
     """
-    # is_zero doesn't exist
-    return nmod_poly_degree(a) == -1
+    return nmod_poly_is_zero(a)
 
 cdef inline bint celement_is_one(nmod_poly_t a, unsigned long n) except -2:
     """
@@ -496,7 +495,7 @@ cdef inline int celement_pow(nmod_poly_t res, nmod_poly_t x, long e, nmod_poly_t
     elif e == 1:
         nmod_poly_set(res, x)
     elif e == 2:
-        nmod_poly_sqr(res, x)
+        nmod_poly_pow(res, x, 2)
     else:
         if res == x:
             nmod_poly_set(tmp, x)
@@ -510,7 +509,7 @@ cdef inline int celement_pow(nmod_poly_t res, nmod_poly_t x, long e, nmod_poly_t
             nmod_poly_set_coeff_ui(res, 0, 1)
         e = e >> 1
         while(e != 0):
-            nmod_poly_sqr(pow2, pow2)
+            nmod_poly_pow(pow2, pow2, 2)
             if e % 2:
                 nmod_poly_mul(res, res, pow2)
             e = e >> 1
@@ -634,10 +633,10 @@ cdef factor_helper(Polynomial_zmod_flint poly, bint squarefree=False):
 
     factor_list = []
     cdef Polynomial_zmod_flint t
-    for i in range(factors_c.num_factors):
+    for i in range(factors_c.num):
         t = poly._new()
-        nmod_poly_swap(&t.x, factors_c.factors[i])
-        factor_list.append((t, factors_c.exponents[i]))
+        nmod_poly_swap(&t.x, &factors_c.p[i])
+        factor_list.append((t, factors_c.exp[i]))
 
     nmod_poly_factor_clear(factors_c)
 

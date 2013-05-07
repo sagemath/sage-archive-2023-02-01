@@ -54,7 +54,7 @@ cdef class Fmpz_poly(SageObject):
         cdef long c
         cdef Integer w
         if PY_TYPE_CHECK(v, str):
-            if fmpz_poly_set_str(self.poly, v):
+            if not fmpz_poly_set_str(self.poly, v):
                 return
             else:
                 raise ValueError, "Unable to create Fmpz_poly from that string."

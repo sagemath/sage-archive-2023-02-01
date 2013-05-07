@@ -359,19 +359,19 @@ cdef void delete_and_add(int **edges, int nverts, int nedges, int totverts, int 
     """
     cdef int i, j, k, edge1, edge2, new_edge1, new_edge2, new_nedges
     cdef int *edges1, *edges2, *new_edges1, *new_edges2
-    cdef fmpz_t coeff
+    cdef fmpz * coeff
 
     if nverts == 3:
         coeff = fmpz_poly_get_coeff_ptr(pol, 3)
         if coeff is NULL:
             fmpz_poly_set_coeff_ui(pol, 3, 1)
         else:
-            fmpz_add_ui_inplace(coeff, 1)
+            fmpz_add_ui(coeff, coeff, 1)
         coeff = fmpz_poly_get_coeff_ptr(pol, 1)
         if coeff is NULL:
             fmpz_poly_set_coeff_ui(pol, 1, nedges)
         else:
-            fmpz_add_ui_inplace(coeff, nedges)
+            fmpz_add_ui(coeff, coeff, nedges)
         return
 
     if nedges == 0:
@@ -379,7 +379,7 @@ cdef void delete_and_add(int **edges, int nverts, int nedges, int totverts, int 
         if coeff is NULL:
             fmpz_poly_set_coeff_ui(pol, nverts, 1)
         else:
-            fmpz_add_ui_inplace(coeff, 1)
+            fmpz_add_ui(coeff, coeff, 1)
         return
 
     edges1 = edges[2*depth]

@@ -1452,7 +1452,7 @@ ext_modules = [
     Extension('sage.rings.fraction_field_FpT',
               sources = ['sage/rings/fraction_field_FpT.pyx'],
               libraries = ["csage", "flint", "gmp", "gmpxx", "ntl", "zn_poly"],
-              extra_compile_args=["-std=c99", "-D_XPG6"],
+              language = 'c++',
               include_dirs = [SAGE_INC + '/FLINT'],
               depends = flint_depends),
 
@@ -1732,7 +1732,7 @@ ext_modules = [
     Extension('sage.rings.polynomial.polynomial_zmod_flint',
               sources = ['sage/rings/polynomial/polynomial_zmod_flint.pyx'],
               libraries = ["csage", "flint", "gmp", "gmpxx", "ntl", "zn_poly"],
-              extra_compile_args=["-std=c99", "-D_XPG6"],
+              language = 'c++',
               include_dirs = [SAGE_INC + '/FLINT'],
               depends = flint_depends),
 
@@ -1750,10 +1750,9 @@ ext_modules = [
               include_dirs = ['sage/libs/ntl/']),
 
     Extension('sage.rings.polynomial.polynomial_rational_flint',
-              sources = ['sage/rings/polynomial/polynomial_rational_flint.pyx', 'sage/libs/flint/fmpq_poly.c'],
-              language = 'c++',
-              extra_compile_args=["-std=c99"] + uname_specific('SunOS', [], ['-D_XPG6']),
+              sources = ['sage/rings/polynomial/polynomial_rational_flint.pyx'],
               libraries = ["csage", "flint", "ntl", "gmpxx", "gmp"],
+              language = 'c++',
               include_dirs = [SAGE_INC + '/FLINT', 'sage/libs/flint/'],
               depends = flint_depends),
 

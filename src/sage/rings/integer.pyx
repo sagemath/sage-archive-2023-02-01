@@ -3469,6 +3469,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if proof is None:
                 from sage.structure.proof.proof import get_flag
                 proof = get_flag(proof, "arithmetic")
+            n_factor_init(&f)
             n_factor(&f, mpz_get_ui(n.value), proof)
             F = [(Integer(f.p[i]), int(f.exp[i])) for i from 0 <= i < f.num]
             F.sort()

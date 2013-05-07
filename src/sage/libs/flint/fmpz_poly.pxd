@@ -1,5 +1,4 @@
 include "../../ext/stdsage.pxi"
-include "../../ext/cdefs.pxi"
 
 from flint cimport *
 include "fmpz_poly.pxi"

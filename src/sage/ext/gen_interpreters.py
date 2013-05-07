@@ -193,7 +193,7 @@ class StorageType(object):
     that we have to incref/decref at appropriate places.
 
     Third is "auto-reference" types.  This is how
-    GMP/MPIR/MPFR/MPFI/flint types work.  For these types, functions
+    GMP/MPIR/MPFR/MPFI/FLINT types work.  For these types, functions
     expect arguments to be passed by reference, and the C assignment
     operator does not do what we want.  In addition, they take
     advantage of a quirk in C (where arrays are automatically
@@ -793,7 +793,7 @@ ty_python = StorageTypePython()
 class StorageTypeAutoReference(StorageType):
     r"""
     StorageTypeAutoReference is a subtype of StorageType that deals with
-    types in the style of GMP/MPIR/MPFR/MPFI/flint, where copies are
+    types in the style of GMP/MPIR/MPFR/MPFI/FLINT, where copies are
     not cheap, functions expect arguments to be passed by reference,
     and the API takes advantage of the C quirk where arrays are
     automatically converted to pointers to automatically pass

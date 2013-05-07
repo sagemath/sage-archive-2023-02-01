@@ -541,23 +541,32 @@ class GitInterface(object):
         """
         creates a fake repository at directory for doctesting
         """
+        import time
         os.chdir(self._doctest)
+
         self.execute_silent('init')
         with open('testfile', 'w') as f:
             f.write('this is a test file\n')
         self.execute_silent('add', 'testfile')
         self.execute_silent('commit', '--message="add a testfile"')
+
         self.execute_silent('branch', 'first')
         self.execute_silent('checkout', '--quiet', '--detach', 'HEAD')
         with open('testfile', 'w') as f:
             f.write('this test file has been edited\n')
         self.execute_silent('add', 'testfile')
+
+        # we want commits to be separated in time for proper doctests
+        time.sleep(1)
         self.execute_silent('commit', '--message="edit the testfile"')
+
         self.execute_silent('branch', 'second')
         self.execute_silent('checkout', '--quiet', 'first')
         with open('testfile', 'w') as f:
             f.write('this test file has been edited differently\n')
         self.execute_silent('add', 'testfile')
+
+        time.sleep(1)
         self.execute_silent('commit', '--message="edit the testfile differently"')
 
     def __repr__(self):
@@ -870,16 +879,16 @@ class GitInterface(object):
 
     def local_branches(self):
         """
-        Return the list of the local branches
+        return the list of the local branches sorted by last commit time
 
         EXAMPLES::
 
             sage: sage_dev.git.local_branches()
-            ['first', 'master', 'second']
+            ['first', 'second', 'master']
         """
-        result = self._run_git("stdout", "show-ref", ["--heads"], {}).split()
-        result = [result[2*i+1][11:] for i in range(len(result)/2)]
-        return result
+        result = self.read_output('for-each-ref', '--sort=-committerdate',
+                    "--format='%(refname)'", 'refs/heads/').splitlines()
+        return [head[11:] for head in result]
 
     def current_branch(self):
         """
@@ -1010,7 +1019,7 @@ class GitInterface(object):
 
     def branch_exists(self, branch):
         """
-        Returns the commit id of the local branch, or None if branch does not exist.
+        returns the commit id of the local branch, or None if branch does not exist
 
         EXAMPLES::
 
@@ -1091,12 +1100,20 @@ class GitInterface(object):
 
     def abandon(self, branchname):
         """
-        Move to trash/
+        move to trash
+
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import SageDev, doctest_config
+            sage: git = SageDev(doctest_config()).git
+            sage: git.abandon('second')
+            sage: git.local_branches()
+            ['first', 'abandoned/second', 'master']
         """
         trashname = "abandoned/" + branchname
         oldtrash = self.branch_exists(trashname)
         if oldtrash:
-            self._UI.show("Overwriting %s in trash"(oldtrash))
+            self._UI.show("Overwriting %s in trash"%oldtrash)
         self.execute("branch", branchname, trashname, M=True)
         # Need to delete remote branch (and have a hook move it to /g/abandoned/ and update the trac symlink)
         #remotename = self._remote[branchname]
@@ -1104,6 +1121,7 @@ class GitInterface(object):
 def git_cmd_wrapper(git_cmd):
     def f(self, *args, **kwds):
         return self.execute(git_cmd, *args, **kwds)
+    f.__doc__ = "direct call to \`git %s\`"%git_cmd
     return f
 
 for git_cmd in ["add","am","apply","bisect","branch","checkout",

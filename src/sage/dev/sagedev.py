@@ -1034,7 +1034,7 @@ class SageDev(object):
         """
         Returns to a basic release of Sage.
 
-        INPUT::
+        INPUT:
 
         - ``release`` -- a string or decimal giving the release name.
           In fact, any tag, commit or branch will work.  If the tag

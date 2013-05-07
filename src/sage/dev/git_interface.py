@@ -705,7 +705,7 @@ class GitInterface(object):
         return True
 
     def reset_to_clean_working_directory(self, interactive=True):
-        """
+        r"""
         resets any changes made to the working directory and returns
         True if successful
 
@@ -821,7 +821,7 @@ class GitInterface(object):
         return len(revs) == 0
 
     def has_uncommitted_changes(self):
-        """
+        r"""
         returns True if there are uncommitted changes
 
         EXAMPLES::

@@ -307,7 +307,6 @@ from sage.rings.integer import Integer
 from sage.rings.rational import Rational
 from generic_graph_pyx import GenericGraph_pyx, spring_layout_fast
 from sage.graphs.dot2tex_utils import assert_have_dot2tex
-from sage.misc.superseded import deprecated_function_alias
 
 class GenericGraph(GenericGraph_pyx):
     """
@@ -474,7 +473,7 @@ class GenericGraph(GenericGraph_pyx):
         """
         if getattr(self, "_immutable", False):
             return hash((tuple(self.vertices()), tuple(self.edges())))
-        raise TypeError, "graphs are mutable, and thus not hashable"
+        raise TypeError("graphs are mutable, and thus not hashable")
 
     def __mul__(self, n):
         """
@@ -824,7 +823,6 @@ class GenericGraph(GenericGraph_pyx):
         """
         try:
             if copy:
-                from copy import copy
                 return self._backend._nxg.copy()
             else:
                 return self._backend._nxg
@@ -1112,9 +1110,8 @@ class GenericGraph(GenericGraph_pyx):
                 D[(i,j)] = 1
                 if not directed and i != j:
                     D[(j,i)] = 1
-        from sage.rings.integer_ring import IntegerRing
         from sage.matrix.constructor import matrix
-        M = matrix(IntegerRing(), n, n, D, sparse=sparse)
+        M = matrix(ZZ, n, n, D, sparse=sparse)
         return M
 
     am = adjacency_matrix # shorter call makes life easier
@@ -1340,8 +1337,7 @@ class GenericGraph(GenericGraph_pyx):
             [ 3 -3]
             [-4  4]
         """
-        from sage.matrix.constructor import matrix, diagonal_matrix
-        from sage.rings.integer_ring import IntegerRing
+        from sage.matrix.constructor import diagonal_matrix
         from sage.functions.all import sqrt
 
         if weighted is None:
@@ -2212,7 +2208,6 @@ class GenericGraph(GenericGraph_pyx):
         """
         if self.has_multiple_edges():
             raise TypeError("Density is not well-defined for multigraphs.")
-        from sage.rings.rational import Rational
         n = self.order()
         if self.allows_loops():
             if n == 0:
@@ -2803,7 +2798,7 @@ class GenericGraph(GenericGraph_pyx):
             if root_vertex == None:
                 root_vertex=self.vertex_iterator().next()
             if root_vertex not in self.vertices():
-                raise ValueError, ("Vertex (%s) not in the graph."%root_vertex)
+                raise ValueError("Vertex (%s) not in the graph."%root_vertex)
 
             M=self.kirchhoff_matrix()
 
@@ -3517,7 +3512,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if circular:
             if maximal:
-                raise NotImplementedError, "Cannot compute the maximal genus of a genus respecting a boundary."
+                raise NotImplementedError("Cannot compute the maximal genus of a genus respecting a boundary.")
             boundary = G.get_boundary()
             if hasattr(G, '_embedding'):
                 del(G._embedding)
@@ -3546,7 +3541,7 @@ class GenericGraph(GenericGraph_pyx):
 
         if on_embedding is not None:
             if self.has_loops() or self.is_directed() or self.has_multiple_edges():
-                raise NotImplementedError, "Can't work with embeddings of non-simple graphs"
+                raise NotImplementedError("Can't work with embeddings of non-simple graphs")
             if on_embedding: #i.e., if on_embedding True (returns False if on_embedding is of type dict)
                 try:
                     faces = len(self.trace_faces(self._embedding))
@@ -3561,7 +3556,7 @@ class GenericGraph(GenericGraph_pyx):
 
             if set_embedding:
                 if self.has_loops() or self.is_directed() or self.has_multiple_edges():
-                    raise NotImplementedError, "Can't work with embeddings of non-simple graphs"
+                    raise NotImplementedError("Can't work with embeddings of non-simple graphs")
                 if minimal:
                     B,C = G.blocks_and_cut_vertices()
                     embedding = {}
@@ -3582,7 +3577,7 @@ class GenericGraph(GenericGraph_pyx):
                 return g
             else:
                 if maximal and (self.has_multiple_edges() or self.has_loops()):
-                    raise NotImplementedError, "Can't compute the maximal genus of a graph with loops or multiple edges"
+                    raise NotImplementedError("Can't compute the maximal genus of a graph with loops or multiple edges")
                 if minimal:
                     B,C = G.blocks_and_cut_vertices()
                     g = 0
@@ -3991,7 +3986,7 @@ class GenericGraph(GenericGraph_pyx):
                     label = None
 
         if not self.has_edge(u,v):
-            raise ValueError, 'edge not in graph'
+            raise ValueError('edge not in graph')
 
         # If edge (u,v) is a pending edge, it is also a cut-edge
         if self.degree(u) == 1 or self.degree(v) == 1:
@@ -4207,6 +4202,7 @@ class GenericGraph(GenericGraph_pyx):
         """
 
         if self.is_directed():
+            from sage.graphs.all import Graph
             g = Graph(self)
         else:
             g = self
@@ -4773,7 +4769,7 @@ class GenericGraph(GenericGraph_pyx):
         from sage.numerical.mip import MixedIntegerLinearProgram
         g = self
         if g.has_edge(s,t):
-            raise ValueError, "There can be no vertex cut between adjacent vertices !"
+            raise ValueError("There can be no vertex cut between adjacent vertices !")
         if vertices:
             value_only = False
 
@@ -13766,8 +13762,8 @@ class GenericGraph(GenericGraph_pyx):
             option prog : Which graphviz layout program to use -- one of "circo", "dot", "fdp", "neato", or "twopi".
             option save_pos : Whether or not to save the computed position for the graph.
             option spring : Use spring layout to finalize the current layout.
-            option tree_orientation : The direction of tree branches -- "up" or "down".
-            option tree_root : A vertex designation for drawing trees. a vertex of the tree to be used as the root for the ``layout="tree"`` option. If no root is specified, then one is chosen at random. Ignored unless ``layout='tree'``
+            option tree_orientation : The direction of tree branches -- 'up', 'down', 'left' or 'right'.
+            option tree_root : A vertex designation for drawing trees. A vertex of the tree to be used as the root for the ``layout='tree'`` option. If no root is specified, then one is chosen close to the center of the tree. Ignored unless ``layout='tree'``
 
         Some of them only apply to certain layout algorithms. For
         details, see :meth:`.layout_acyclic`, :meth:`.layout_planar`,
@@ -13797,7 +13793,7 @@ class GenericGraph(GenericGraph_pyx):
         if hasattr(self, "layout_%s"%layout):
             pos = getattr(self, "layout_%s"%layout)(dim = dim, **options)
         elif layout is not None:
-            raise ValueError, "unknown layout algorithm: %s"%layout
+            raise ValueError("unknown layout algorithm: %s"%layout)
 
         if len(pos) < self.order():
             pos = self.layout_extend_randomly(pos, dim = dim)
@@ -13980,65 +13976,141 @@ class GenericGraph(GenericGraph_pyx):
         return pos
 
     def layout_tree(self, tree_orientation = "down", tree_root = None, dim = 2, **options):
-        """
+        r"""
         Computes an ordered tree layout for this graph, which should
         be a tree (no non-oriented cycles).
 
         INPUT:
 
-         - ``tree_root`` -- a vertex
-         - ``tree_orientation`` -- "up" or "down"
+        - ``tree_root`` -- the root vertex. By default ``None``. In
+          this case, a vertex is chosen close to the center of the
+          tree.
+
+        - ``tree_orientation`` -- the direction in which the tree is
+          growing, can be 'up', 'down', 'left' or 'right' (default is
+          'down')
 
         OUTPUT: a dictionary mapping vertices to positions
 
         EXAMPLES::
 
-            sage: G = graphs.BalancedTree(2,2)
+            sage: T = graphs.RandomLobster(25, 0.3, 0.3)
+            sage: T.show(layout='tree', tree_orientation='up')
+
+            sage: G = graphs.HoffmanSingletonGraph()
+            sage: T = Graph()
+            sage: T.add_edges(G.min_spanning_tree(starting_vertex=0))
+            sage: T.show(layout='tree', tree_root=0)
+
+            sage: G = graphs.BalancedTree(2, 2)
             sage: G.layout_tree(tree_root = 0)
-            {0: [1.0..., 2],
-             1: [0.8..., 1],
-             2: [1.2..., 1],
-             3: [0.4..., 0],
-             4: [0.8..., 0],
-             5: [1.2..., 0],
-             6: [1.6..., 0]}
+            {0: (1.5, 0),
+             1: (2.5, -1),
+             2: (0.5, -1),
+             3: (3.0, -2),
+             4: (2.0, -2),
+             5: (1.0, -2),
+             6: (0.0, -2)}
+
             sage: G = graphs.BalancedTree(2,4)
             sage: G.plot(layout="tree", tree_root = 0, tree_orientation = "up")
+
+            sage: G = graphs.RandomTree(80)
+            sage: G.plot(layout="tree", tree_orientation = "right")
+
+        TESTS::
+
+            sage: G = graphs.CycleGraph(3)
+            sage: G.plot(layout='tree')
+            Traceback (most recent call last):
+            ...
+            RuntimeError: Cannot use tree layout on this graph: self.is_tree() returns False.
         """
-        assert dim == 2, "3D tree layout not implemented"
-        from sage.graphs.graph import Graph
+        if not(dim == 2):
+            raise ValueError('only implemented in 2D')
+
+        from sage.graphs.all import Graph
         if not Graph(self).is_tree():
             raise RuntimeError("Cannot use tree layout on this graph: self.is_tree() returns False.")
+
         n = self.order()
         vertices = self.vertices()
+
         if tree_root is None:
-            from sage.misc.prandom import randrange
-            root = vertices[randrange(n)]
+            root = self.center()[0]
         else:
             root = tree_root
-        # BFS search for heights
-        seen = [root]
-        queue = [root]
-        heights = [-1]*n
-        heights[vertices.index(root)] = 0
-        while queue:
-            u = queue.pop(0)
-            for v in self.neighbors(u):
-                if v not in seen:
-                    seen.append(v)
-                    queue.append(v)
-                    heights[vertices.index(v)] = heights[vertices.index(u)] + 1
-        if tree_orientation == 'down':
-            maxx = max(heights)
-            heights = [maxx-heights[i] for i in xrange(n)]
-        heights_dict = {}
-        for v in vertices:
-            if not heights_dict.has_key(heights[vertices.index(v)]):
-                heights_dict[heights[vertices.index(v)]] = [v]
-            else:
-                heights_dict[heights[vertices.index(v)]].append(v)
 
-        return self.layout_ranked(heights_dict)
+        children = {root:self.neighbors(root)}
+
+        # always make a copy of the children because they get eaten
+        stack = [[u for u in children[root]]]
+        stick = [root]
+        parent = dict([(u,root) for u in children[root]])
+        pos = {}
+        obstruction = [0.0]*self.num_verts()
+
+        if tree_orientation in ['down', 'left']:
+            o = -1
+        elif tree_orientation in ['up', 'right']:
+            o = 1
+        else:
+            raise ValueError('orientation should be "up", "down", "left" or "right"')
+
+        def slide(v, dx):
+            """
+            shift the vertex v and its descendants to the right by dx
+
+            Precondition: v and its descendents have already had their
+            positions computed.
+            """
+            level = [v]
+            while level:
+                nextlevel = []
+                for u in level:
+                    x, y = pos[u]
+                    x += dx
+                    obstruction[y] = max(x+1, obstruction[y])
+                    pos[u] = x, y
+                    nextlevel += children[u]
+
+                level = nextlevel
+
+        while stack:
+            C = stack[-1]
+            if len(C) == 0:
+                p = stick.pop()
+                stack.pop()
+                cp = children[p]
+                y = o*len(stack)
+                if len(cp) == 0:
+                    x = obstruction[y]
+                    pos[p] = x, y
+                else:
+                    x = sum([pos[c][0] for c in cp])/len(cp)
+                    pos[p] = x, y
+                    ox = obstruction[y]
+                    if x < ox:
+                        slide(p, ox-x)
+                        x = ox
+                obstruction[y] = x+1
+                continue
+
+            t = C.pop()
+            pt = parent[t]
+
+            ct = [u for u in self.neighbors(t) if u != pt]
+            for c in ct:
+                parent[c] = t
+            children[t] = ct
+
+            stack.append([c for c in ct])
+            stick.append(t)
+
+        if tree_orientation in ['right', 'left']:
+            return dict([[point,[pos[point][1],pos[point][0]]] for point in pos])
+
+        return pos
 
     def layout_graphviz(self, dim = 2, prog = 'dot', **options):
         """
@@ -14479,7 +14551,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: P = C.plot(vertex_labels=False, vertex_size=0, graph_border=True)
             sage: P.show()  # long time (3s on sage.math, 2011)
         """
-        from sage.graphs.graph_plot import GraphPlot
         from graph_plot import graphplot_options
 
         # This dictionary only contains the options that graphplot
@@ -14683,7 +14754,7 @@ class GenericGraph(GenericGraph_pyx):
                 return graphic
 
             except KeyError:
-                raise KeyError, "Oops! You haven't specified positions for all the vertices."
+                raise KeyError("Oops! You haven't specified positions for all the vertices.")
 
         elif engine == 'tachyon':
             TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_colors=vertex_colors,
@@ -15106,7 +15177,6 @@ class GenericGraph(GenericGraph_pyx):
         .. [dotspec] http://www.graphviz.org/doc/info/lang.html
 
         """
-        import re
         from sage.graphs.dot2tex_utils import quoted_latex, quoted_str
 
         if self.is_directed():
@@ -15132,7 +15202,7 @@ class GenericGraph(GenericGraph_pyx):
             edge_option_functions.append(lambda (u,v,label): {"color": color_by_label(label)})
         elif options['edge_colors'] is not None:
             if not isinstance(options['edge_colors'],dict):
-                raise ValueError, "incorrect format for edge_colors"
+                raise ValueError("incorrect format for edge_colors")
             color_by_edge = {}
             for color in options['edge_colors'].keys():
                 for edge in options['edge_colors'][color]:
@@ -15814,7 +15884,7 @@ class GenericGraph(GenericGraph_pyx):
         # Whether to check input
         if check_input:
             if len(set(perm.values())) < len(perm):
-                raise NotImplementedError, "Non injective relabeling"
+                raise NotImplementedError("Non injective relabeling")
 
             for v in perm.iterkeys():
                 if v in self:
@@ -16884,7 +16954,7 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1),
             c[1] += pos3d[v][1]
             c[2] += pos3d[v][2]
     except KeyError:
-        raise KeyError, "Oops! You haven't specified positions for all the vertices."
+        raise KeyError("Oops! You haven't specified positions for all the vertices.")
 
     order = g.order()
     c[0] = c[0]/order

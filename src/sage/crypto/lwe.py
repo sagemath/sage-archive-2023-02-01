@@ -231,7 +231,7 @@ class DiscreteGaussianPolynomialSamplerRejection(SageObject):
 
         INPUT:
 
-        - ``n`` - number of coeficients to be sampled
+        - ``n`` - number of coefficients to be sampled
         - ``stddev`` - standard deviation
         - ``precision`` - precision used for internal computations (default: ``53``)
         - ``tailcut`` - cut the tail at ``tailcut`` standard deviations
@@ -318,7 +318,7 @@ class UniformSampler(SageObject):
             UniformSampler(-2, 2)
         """
         if lower_bound > upper_bound:
-            raise TypeError("lower bound must be <= than upper bound.")
+            raise TypeError("lower bound must be <= upper bound.")
         self.lower_bound = ZZ(lower_bound)
         self.upper_bound = ZZ(upper_bound)
 
@@ -348,7 +348,7 @@ class UniformSampler(SageObject):
 
 class UniformPolynomialSampler(SageObject):
     """
-    uniform sampler for polynomials.
+    Uniform sampler for polynomials.
 
     EXAMPLE::
 
@@ -367,7 +367,7 @@ class UniformPolynomialSampler(SageObject):
 
         INPUT:
 
-        - ``n`` - number of coeficients to be sampled
+        - ``n`` - number of coefficients to be sampled
         - ``lower_bound`` - integer
         - ``upper_bound`` - integer
 
@@ -380,7 +380,7 @@ class UniformPolynomialSampler(SageObject):
         self.n = ZZ(n)
         self.P = ZZ['x']
         if lower_bound > upper_bound:
-            raise TypeError("lower bound must be <= than upper bound.")
+            raise TypeError("lower bound must be <= upper bound.")
         self.lower_bound = ZZ(lower_bound)
         self.upper_bound = ZZ(upper_bound)
         self.D = UniformSampler(self.lower_bound, self.upper_bound)
@@ -429,10 +429,10 @@ class LWE(SageObject):
         - ``q`` - modulus typically > n (integer > 0)
         - ``D`` - an error distribution such as an instance of
           :class:`DiscreteGaussianSamplerRejection` or :class:`UniformSampler`
-        - ``secret_dist`` - distribution of the secret; one of
+        - ``secret_dist`` - distribution of the secret (default: 'uniform'); one of
 
           - "uniform" - secret follows the uniform distribution in `\Zmod{q}`
-          - "noise" - secret follows the noise distrbution
+          - "noise" - secret follows the noise distribution
           - ``(lb,ub)`` - the secret is chosen uniformly from ``[lb,...,ub]`` including both endpoints
 
         - ``m`` - number of allowed samples or ``None`` if no such limit exists
@@ -539,13 +539,13 @@ class Regev(LWE):
     """
     def __init__(self, n, secret_dist='uniform', m=None):
         """
-        Construct LWE instance parameterised by security paramter ``n`` where
+        Construct LWE instance parameterised by security parameter ``n`` where
         the modulus ``q`` and the ``stddev`` of the noise are chosen as in
         [Reg09]_.
 
         INPUT:
 
-        - ``n`` - security paramter (integer > 0)
+        - ``n`` - security parameter (integer > 0)
         - ``secret_dist`` - distribution of the secret. See documentation of :class:`LWE`
           for details (default='uniform')
         - ``m`` - number of allowed samples or ``None`` if no such limit exists
@@ -570,13 +570,13 @@ class LindnerPeikert(LWE):
     """
     def __init__(self, n, delta=0.01, m=None):
         """
-        Construct LWE instance parameterised by security paramter ``n`` where
+        Construct LWE instance parameterised by security parameter ``n`` where
         the modulus ``q`` and the ``stddev`` of the noise is chosen as in
         [LP11]_.
 
         INPUT:
 
-        - ``n`` - security paramter (integer > 0)
+        - ``n`` - security parameter (integer > 0)
         - ``delta`` - error probability per symbol (default: 0.01)
         - ``m`` - number of allowed samples or ``None`` in which case ``m=2*n +
           128`` as in [LP11]_ (default: ``None``)
@@ -613,18 +613,18 @@ class LindnerPeikert(LWE):
 
 class UniformNoiseLWE(LWE):
     """
-    LWE oracle with uniform sectet with parameters as in [CGW13]_.
+    LWE oracle with uniform secret with parameters as in [CGW13]_.
 
     .. automethod:: __init__
     """
     def __init__(self, n, instance='key', m=None):
         """
-        Construct LWE instance parameterised by security paramter ``n`` where
+        Construct LWE instance parameterised by security parameter ``n`` where
         all other parameters are chosen as in [CGW13]_.
 
         INPUT:
 
-        - ``n`` - security paramter (integer >= 80)
+        - ``n`` - security parameter (integer >= 89)
         - ``instance`` - one of
 
           - "key" - the LWE-instance that hides the secret key is generated
@@ -929,7 +929,7 @@ def samples(m, n, lwe, seed=None, balanced=False, **kwds):
 
 def balance_sample(s, q=None):
     r"""
-    Given ``(a,c) = s`` return a tuple ``(a',c')`` where ``a'`` is a integer
+    Given ``(a,c) = s`` return a tuple ``(a',c')`` where ``a'`` is an integer
     vector with entries between -q//2 and q//2 and ``c`` is also within these
     bounds.
 

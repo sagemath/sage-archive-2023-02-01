@@ -73,11 +73,8 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: sage_dev._config
-            Config('''
-            [git]
-            dot_git = ...
-            ''')
+            sage: repr(sage_dev._config)
+            "Config('''\n[git]\ndot_git = ...\ndoctest = ...\n[trac]\nusername = doctest\n''')"
         """
         return "Config('''\n"+"\n".join([ "[%s]\n"%s+"\n".join(["%s = %s"%(o,self[s][o]) for o in self[s] ]) for s in self ])+"\n''')"
 
@@ -1774,19 +1771,31 @@ class SageDev(object):
             self.git.execute_silent("reset", hard=True)
             self._UI.show("Changes did not apply cleanly to the new branch.  They are now in your stash")
 
+def doctest_config():
+    """
+    creates a fake configuration used for doctesting
+
+    EXAMPLE::
+
+        sage: from sage.dev.sagedev import doctest_config
+        sage: doctest_config()
+        Config('''
+        [git]
+        dot_git = ...
+        ''')
+    """
+    ret = Config(devrc = tempfile.NamedTemporaryFile().name)
+    tmp_dir = tempfile.mkdtemp()
+    atexit.register(shutil.rmtree, tmp_dir)
+    ret['git'] = {}
+    ret['git']['dot_git'] = os.path.join(tmp_dir, '.git')
+    ret['git']['doctest'] = tmp_dir
+    ret['trac'] = {}
+    ret['trac']['username'] = 'doctest'
+    return ret
+
 # default sagedev object
 if DOCTEST_MODE:
-    def doctest_config():
-        ret = Config(devrc = tempfile.NamedTemporaryFile().name)
-        tmp_dir = tempfile.mkdtemp()
-        atexit.register(shutil.rmtree, tmp_dir)
-        ret['git'] = {}
-        ret['git']['dot_git'] = os.path.join(tmp_dir, '.git')
-        ret['git']['doctest'] = tmp_dir
-        ret['trac'] = {}
-        ret['trac']['username'] = 'doctest'
-        return ret
-
     sagedev = SageDev(doctest_config())
 else:
     sagedev = SageDev()

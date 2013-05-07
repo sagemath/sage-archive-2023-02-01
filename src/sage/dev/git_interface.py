@@ -12,7 +12,6 @@ from cStringIO import StringIO
 from subprocess import call, check_output, CalledProcessError
 
 from sage.env import SAGE_DOT_GIT, SAGE_REPO, DOT_SAGE
-from sage.doctest import DOCTEST_MODE
 
 def is_atomic_name(x):
     """
@@ -517,7 +516,7 @@ class GitInterface(object):
         self._gitcmd  = self._config.get('gitcmd', 'git')
         self._repo    = self._config.get('repo', SAGE_REPO)
 
-        if DOCTEST_MODE:
+        if 'doctest' in self._config:
             self._doctest = self._config['doctest']
             self._prep_doctest_repo()
 

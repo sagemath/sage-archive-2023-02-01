@@ -190,12 +190,15 @@ def _raise():
 
         sage: from sage.dev.git_interface import _raise
         sage: try:
-        ....:     raise ValueError("this is a test")
-        ....: except NameError:
+        ....:     raise Exception("this is a test")
+        ....: except Exception:
+        ....:     s = "the exception was caught"
         ....:     _raise()
         Traceback (most recent call last):
         ...
-        ValueError: this is a test
+        Exception: this is a test
+        sage: print s
+        the exception was caught
     """
     raise
 

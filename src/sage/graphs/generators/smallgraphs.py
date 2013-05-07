@@ -2794,6 +2794,64 @@ def McGeeGraph(embedding=2):
     else:
         raise ValueError("The value of embedding must be 1 or 2.")
 
+def McLaughlinGraph():
+    r"""
+    Returns the McLaughlin Graph.
+
+    The McLaughlin Graph is the unique strongly regular graph of parameters
+    `(275, 112, 30, 56)`.
+
+    For more information on the McLaughlin Graph, see its web page on `Andries
+    Brouwer's website <http://www.win.tue.nl/~aeb/graphs/McL.html>`_ which gives
+    the definition that this method implements.
+
+    .. NOTE::
+
+        To create this graph you must have the gap_packages spkg installed.
+
+    EXAMPLES::
+
+        sage: g = graphs.McLaughlinGraph()           # optional gap_packages
+        sage: g.is_strongly_regular(parameters=True) # optional gap_packages
+        (275, 112, 30, 56)
+        sage: set(g.spectrum()) == {112, 2, -28}     # optional gap_packages
+        True
+    """
+    from sage.combinat.designs.block_design import WittDesign
+    from itertools import combinations
+    from sage.sets.set import Set
+
+    blocks = WittDesign(23).blocks()
+    blocks = map(Set,blocks)
+    B = [b for b in blocks if     0 in b]
+    C = [b for b in blocks if not 0 in b]
+    g = graph.Graph()
+    for b in B:
+        for x in range(23):
+            if not x in b:
+                g.add_edge(b,x)
+
+    for b in C:
+        for x in b:
+            g.add_edge(b,x)
+
+    for b,bb in combinations(B,2):
+        if len(b&bb) == 1:
+            g.add_edge(b,bb)
+
+    for c,cc in combinations(C,2):
+        if len(c&cc) == 1:
+            g.add_edge(c,cc)
+
+    for b in B:
+        for c in C:
+            if len(b&c) == 3:
+                g.add_edge(b,c)
+
+    g.relabel()
+    g.name("McLaughlin")
+    return g
+
 def MoebiusKantorGraph():
     """
     Returns a Moebius-Kantor Graph.

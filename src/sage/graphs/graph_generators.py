@@ -128,6 +128,7 @@ __append_to_doc(
      "HoltGraph",
      "LjubljanaGraph",
      "McGeeGraph",
+     "McLaughlinGraph",
      "M22Graph",
      "MoebiusKantorGraph",
      "MoserSpindle",
@@ -1273,6 +1274,7 @@ class GraphGenerators():
     HoltGraph                = staticmethod(sage.graphs.generators.smallgraphs.HoltGraph)
     LjubljanaGraph           = staticmethod(sage.graphs.generators.smallgraphs.LjubljanaGraph)
     McGeeGraph               = staticmethod(sage.graphs.generators.smallgraphs.McGeeGraph)
+    McLaughlinGraph          = staticmethod(sage.graphs.generators.smallgraphs.McLaughlinGraph)
     M22Graph                 = staticmethod(sage.graphs.generators.smallgraphs.M22Graph)
     MoebiusKantorGraph       = staticmethod(sage.graphs.generators.smallgraphs.MoebiusKantorGraph)
     MoserSpindle             = staticmethod(sage.graphs.generators.smallgraphs.MoserSpindle)

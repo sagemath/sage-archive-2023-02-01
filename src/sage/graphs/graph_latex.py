@@ -452,7 +452,8 @@ def setup_latex_preamble():
     latex.add_package_to_preamble_if_available("tikz")
     latex.add_package_to_preamble_if_available("tkz-graph")
     latex.add_package_to_preamble_if_available("tkz-berge")
-    latex.add_to_preamble("\\usetikzlibrary{arrows,shapes}")
+    if have_tkz_graph():
+        latex.add_to_preamble("\\usetikzlibrary{arrows,shapes}")
 
 class GraphLatex(SageObject):
     r"""

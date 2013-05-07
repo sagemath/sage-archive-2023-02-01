@@ -759,7 +759,7 @@ def compile_and_load(code):
 TESTS = {
 'trac11680':"""
 #cargs -std=c99 -O3 -ggdb
-#cinclude $SAGE_ROOT/devel/sage/sage/libs/flint $SAGE_LOCAL/include/FLINT
+#cinclude $SAGE_ROOT/devel/sage/sage/libs/flint $SAGE_LOCAL/include/flint
 #clib flint
 #cfile $SAGE_ROOT/devel/sage/sage/libs/flint/fmpq_poly.c
 

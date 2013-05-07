@@ -173,7 +173,7 @@ cdef extern from "convert.h":
     cdef void t_INT_to_ZZ( mpz_t value, long *g )
 
 from sage.libs.pari.gen cimport gen as pari_gen, PariInstance
-from sage.libs.flint.long_extras cimport *
+from sage.libs.flint.ulong_extras cimport *
 
 import sage.rings.infinity
 import sage.libs.pari.all
@@ -3443,7 +3443,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         cdef Integer n, p, unit
         cdef int i
-        cdef factor_t f
+        cdef n_factor_t f
 
         if mpz_sgn(self.value) == 0:
             raise ArithmeticError, "Prime factorization of 0 not defined."
@@ -3469,7 +3469,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if proof is None:
                 from sage.structure.proof.proof import get_flag
                 proof = get_flag(proof, "arithmetic")
-            z_factor(&f, mpz_get_ui(n.value), proof)
+            n_factor(&f, mpz_get_ui(n.value), proof)
             F = [(Integer(f.p[i]), int(f.exp[i])) for i from 0 <= i < f.num]
             F.sort()
             return IntegerFactorization(F, unit=unit, unsafe=True,

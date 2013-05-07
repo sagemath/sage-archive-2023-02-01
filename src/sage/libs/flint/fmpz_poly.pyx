@@ -40,7 +40,8 @@ cdef class Fmpz_poly(SageObject):
         Construct a new fmpz_poly from a sequence, constant coefficient,
         or string (in the same format as it prints).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: Fmpz_poly([1,2,3])
             3  1 2 3
@@ -53,7 +54,7 @@ cdef class Fmpz_poly(SageObject):
         cdef long c
         cdef Integer w
         if PY_TYPE_CHECK(v, str):
-            if fmpz_poly_from_string(self.poly, v):
+            if fmpz_poly_set_str(self.poly, v):
                 return
             else:
                 raise ValueError, "Unable to create Fmpz_poly from that string."
@@ -76,7 +77,8 @@ cdef class Fmpz_poly(SageObject):
         """
         Set the $i$-th item of self, which is the coefficient of the $x^i$ term.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: f = Fmpz_poly(range(10))
             sage: f[7] = 100; f
@@ -94,7 +96,8 @@ cdef class Fmpz_poly(SageObject):
         """
         Return the $i$-th item of self, which is the coefficient of the $x^i$ term.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: f = Fmpz_poly(range(100))
             sage: f[13]
@@ -110,12 +113,13 @@ cdef class Fmpz_poly(SageObject):
         """
         Print self according to the native FLINT format.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: f = Fmpz_poly([0,1]); f^7
             8  0 0 0 0 0 0 0 1
         """
-        cdef char* ss = fmpz_poly_to_string(self.poly)
+        cdef char* ss = fmpz_poly_get_str(self.poly)
         cdef object s = ss
         sage_free(ss)
         return s
@@ -124,7 +128,8 @@ cdef class Fmpz_poly(SageObject):
         """
         The degree of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: f = Fmpz_poly([1,2,3]); f
             3  1 2 3
@@ -141,7 +146,8 @@ cdef class Fmpz_poly(SageObject):
         """
         Return self as a list of coefficients, lowest terms first.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: f = Fmpz_poly([2,1,0,-1])
             sage: f.list()
@@ -153,7 +159,8 @@ cdef class Fmpz_poly(SageObject):
         """
         Add together two Flint polynomials.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: Fmpz_poly([1,2,3]) + Fmpz_poly(range(6))
             6  1 3 5 3 4 5
@@ -168,7 +175,8 @@ cdef class Fmpz_poly(SageObject):
         """
         Subtract two Flint polynomials.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: Fmpz_poly([10,2,3]) - Fmpz_poly([4,-2,1])
             3  6 4 2
@@ -183,7 +191,8 @@ cdef class Fmpz_poly(SageObject):
         """
         Return the negative of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: -Fmpz_poly([2,10,2,3,18,-5])
             6  -2 -10 -2 -3 -18 5
@@ -196,7 +205,8 @@ cdef class Fmpz_poly(SageObject):
         """
         Return the product of left and right.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: f = Fmpz_poly([0,1]); g = Fmpz_poly([2,3,4])
             sage: f*g
@@ -205,7 +215,7 @@ cdef class Fmpz_poly(SageObject):
             sage: f*g
             5  2 3 2 -3 -4
 
-        Scalar multiplication
+            Scalar multiplication
             sage: f * 3
             3  3 0 -3
             sage: f * 5r
@@ -231,7 +241,8 @@ cdef class Fmpz_poly(SageObject):
         """
         Return self raised to the power of n.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: f = Fmpz_poly([1,1])
             sage: f**6
@@ -246,14 +257,15 @@ cdef class Fmpz_poly(SageObject):
         if not PY_TYPE_CHECK(self, Fmpz_poly):
             raise TypeError
         cdef Fmpz_poly res = <Fmpz_poly>PY_NEW(Fmpz_poly)
-        fmpz_poly_power(res.poly, (<Fmpz_poly>self).poly, nn)
+        fmpz_poly_pow(res.poly, (<Fmpz_poly>self).poly, nn)
         return res
 
     def pow_truncate(self, exp, n):
         """
         Return self raised to the power of exp mod x^n.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: f = Fmpz_poly([1,2])
             sage: f.pow_truncate(10,3)
@@ -267,14 +279,15 @@ cdef class Fmpz_poly(SageObject):
             raise ValueError, "Exponent must be at least 0"
         cdef long exp_c = exp, nn = n
         cdef Fmpz_poly res = <Fmpz_poly>PY_NEW(Fmpz_poly)
-        fmpz_poly_power_trunc_n(res.poly, (<Fmpz_poly>self).poly, exp_c, nn)
+        fmpz_poly_pow_trunc(res.poly, (<Fmpz_poly>self).poly, exp_c, nn)
         return res
 
     def __floordiv__(left, right):
         """
         Return left // right, truncated.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: f = Fmpz_poly([3,4,5])
             sage: g = f^5; g
@@ -294,7 +307,8 @@ cdef class Fmpz_poly(SageObject):
         """
         Return self / other, self, % other.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: f = Fmpz_poly([1,3,4,5])
             sage: g = f^23
@@ -321,7 +335,8 @@ cdef class Fmpz_poly(SageObject):
         """
         Left shift self by n.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: f = Fmpz_poly([1,2])
             sage: f.left_shift(1).list() == [0,1,2]
@@ -329,7 +344,7 @@ cdef class Fmpz_poly(SageObject):
         """
         cdef Fmpz_poly res = <Fmpz_poly>PY_NEW(Fmpz_poly)
 
-        fmpz_poly_left_shift(res.poly, self.poly, n)
+        fmpz_poly_shift_left(res.poly, self.poly, n)
 
         return res
 
@@ -337,7 +352,8 @@ cdef class Fmpz_poly(SageObject):
         """
         Right shift self by n.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: f = Fmpz_poly([1,2])
             sage: f.right_shift(1).list() == [2]
@@ -345,7 +361,7 @@ cdef class Fmpz_poly(SageObject):
         """
         cdef Fmpz_poly res = <Fmpz_poly>PY_NEW(Fmpz_poly)
 
-        fmpz_poly_right_shift(res.poly, self.poly, n)
+        fmpz_poly_shift_right(res.poly, self.poly, n)
 
         return res
 
@@ -366,7 +382,8 @@ cdef class Fmpz_poly(SageObject):
         """
         Return the derivative of self.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: f = Fmpz_poly([1,2,6])
             sage: f.derivative().list() == [2, 12]
@@ -387,7 +404,8 @@ cdef class Fmpz_poly(SageObject):
         """
         Return the truncation of self at degree n.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: f = Fmpz_poly([1,1])
             sage: g = f**10; g
@@ -406,7 +424,8 @@ cdef class Fmpz_poly(SageObject):
         Don't do this unless you know there are no other references to
         this polynomial!!!!!
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: f = Fmpz_poly([1,1])
             sage: g = f**10; g
@@ -422,7 +441,8 @@ cdef class Fmpz_poly(SageObject):
         """
         Return self as an element of the sage ZZ[var].
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.libs.flint.fmpz_poly import Fmpz_poly
             sage: f = Fmpz_poly([1,1])
             sage: f._sage_('t')

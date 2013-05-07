@@ -48,7 +48,7 @@ cdef inline cparent get_cparent(parent) except? 0:
         return 0
 
 # first we include the definitions
-include "../../libs/flint/zmod_poly_linkage.pxi"
+include "../../libs/flint/nmod_poly_linkage.pxi"
 
 # and then the interface
 include "polynomial_template.pxi"
@@ -103,7 +103,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             x + 3
         """
         cdef Polynomial_template e = <Polynomial_template>PY_NEW(self.__class__)
-        zmod_poly_init(&e.x, self._parent.modulus())
+        nmod_poly_init(&e.x, self._parent.modulus())
         e._parent = self._parent
         e._cparent = self._cparent
         return e
@@ -135,7 +135,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         cdef Polynomial_template r = <Polynomial_template>PY_NEW(self.__class__)
         r._parent = P
         r._cparent = get_cparent(P)
-        zmod_poly_init(&r.x, zmod_poly_modulus(&self.x))
+        nmod_poly_init(&r.x, nmod_poly_modulus(&self.x))
         celement_set_si(&r.x, int(x), (<Polynomial_template>self)._cparent)
         return r
 
@@ -153,20 +153,20 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         """
         cdef list l_in = x
         cdef unsigned long length = len(l_in)
-        cdef unsigned long modulus = zmod_poly_modulus(&self.x)
+        cdef unsigned long modulus = nmod_poly_modulus(&self.x)
         cdef int i
         if length == 0:
-            zmod_poly_zero(&self.x)
+            nmod_poly_zero(&self.x)
             return
 
         # resize to length of list
         sig_on()
-        zmod_poly_realloc(&self.x, length)
+        nmod_poly_realloc(&self.x, length)
         sig_off()
 
         for i from 0 <= i < length:
-            _zmod_poly_set_coeff_ui(&self.x, i, l_in[i])
-        # we need to set the length manually, we used _zmod_poly_set_coeff_ui
+            _nmod_poly_set_coeff_ui(&self.x, i, l_in[i])
+        # we need to set the length manually, we used _nmod_poly_set_coeff_ui
         self.x.length = length
 
     def __getitem__(self, i):
@@ -203,8 +203,8 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             Polynomial_template.__init__(r, (<Polynomial_template>self)._parent, v)
             return r << start
         else:
-            if 0 <= i < zmod_poly_length(&self.x):
-                c = zmod_poly_get_coeff_ui(&self.x, i)
+            if 0 <= i < nmod_poly_length(&self.x):
+                c = nmod_poly_get_coeff_ui(&self.x, i)
             return self._parent.base_ring()(c)
 
     def __call__(self, *x, **kwds):
@@ -249,18 +249,18 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             P = parent(x[0])
             if K.has_coerce_map_from(P):
                 x = K(x[0])
-                return K(zmod_poly_evaluate(&self.x, x))
+                return K(nmod_poly_evaluate_nmod(&self.x, x))
             elif self._parent.has_coerce_map_from(P):
                 y = <Polynomial_zmod_flint>self._parent(x[0])
                 t = self._new()
-                if zmod_poly_degree(&y.x) == 0:
-                    c = zmod_poly_evaluate(&self.x, zmod_poly_get_coeff_ui(&y.x, 0))
-                    zmod_poly_set_coeff_ui(&t.x, 0, c)
-                elif zmod_poly_degree(&y.x) == 1 and zmod_poly_get_coeff_ui(&y.x, 0) == 0:
-                    c = zmod_poly_get_coeff_ui(&y.x, 1)
+                if nmod_poly_degree(&y.x) == 0:
+                    c = nmod_poly_evaluate_nmod(&self.x, nmod_poly_get_coeff_ui(&y.x, 0))
+                    nmod_poly_set_coeff_ui(&t.x, 0, c)
+                elif nmod_poly_degree(&y.x) == 1 and nmod_poly_get_coeff_ui(&y.x, 0) == 0:
+                    c = nmod_poly_get_coeff_ui(&y.x, 1)
                     if c == 1:
                         return self
-                zmod_poly_compose_horner(&t.x, &self.x, &y.x)
+                nmod_poly_compose(&t.x, &self.x, &y.x)
                 return t
         return Polynomial.__call__(self, *x, **kwds)
 
@@ -297,7 +297,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         # If it is not a field we fall back to direct computation through the
         # Sylvester matrix.
         if self.base_ring().is_field():
-            res = zmod_poly_resultant(&(<Polynomial_template>self).x,
+            res = nmod_poly_resultant(&(<Polynomial_template>self).x,
                                       &(<Polynomial_template>other).x)
             return self.parent().base_ring()(res)
         else:
@@ -347,7 +347,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         n = int(n)
         value = self.base_ring()(value)
         if n >= 0:
-            zmod_poly_set_coeff_ui(&self.x, n, int(value)%zmod_poly_modulus(&self.x))
+            nmod_poly_set_coeff_ui(&self.x, n, int(value)%nmod_poly_modulus(&self.x))
         else:
             raise IndexError("Polynomial coefficient index must be nonnegative.")
 
@@ -401,12 +401,12 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
 
         cdef zn_mod_struct zn_mod
 
-        zmod_poly_init2(&r.x, p, n1 + n2 -1 )
+        nmod_poly_init2(&r.x, p, n1 + n2 -1 )
 
         zn_mod_init(&zn_mod, p)
         zn_array_mul(r.x.coeffs, self.x.coeffs, n1, _other.x.coeffs, n2, &zn_mod)
         r.x.length = n1 + n2 -1
-        __zmod_poly_normalise(&r.x)
+        _nmod_poly_normalise(&r.x)
         zn_mod_clear(&zn_mod)
         return r
 
@@ -437,7 +437,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         cdef Polynomial_zmod_flint res = self._new()
         if n <= 0:
             raise ValueError("length must be > 0")
-        zmod_poly_mul_trunc_n(&res.x, &self.x, &other.x, n)
+        nmod_poly_mullow(&res.x, &self.x, &other.x, n)
         return res
 
     _mul_short = _mul_trunc
@@ -470,7 +470,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         cdef Polynomial_zmod_flint res = self._new()
         if n < 0:
             raise ValueError("length must be >= 0")
-        zmod_poly_mul_trunc_left_n(&res.x, &self.x, &other.x, n)
+        nmod_poly_mulhigh(&res.x, &self.x, &other.x, n)
         return res
 
     _mul_short_opposite = _mul_trunc_opposite
@@ -507,10 +507,10 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         cdef Polynomial_zmod_flint r0
         cdef Polynomial_zmod_flint r1
 
-        while zmod_poly_length(&t1.x) != 0 and n_deg < zmod_poly_degree(&t1.x):
+        while nmod_poly_length(&t1.x) != 0 and n_deg < nmod_poly_degree(&t1.x):
             q = self._new()
             r1 = self._new()
-            zmod_poly_divrem(&q.x, &r1.x, &s1.x, &t1.x)
+            nmod_poly_divrem(&q.x, &r1.x, &s1.x, &t1.x)
             r0 = s0 - q*t0
             s0 = t0
             s1 = t1
@@ -518,7 +518,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             t1 = r1
 
         assert(t0 != 0)
-        if d_deg < zmod_poly_degree(&t0.x):
+        if d_deg < nmod_poly_degree(&t0.x):
             raise ValueError("could not complete rational reconstruction")
 
         # make the denominator monic
@@ -569,7 +569,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
         if not self.base_ring().is_field():
             raise NotImplementedError("checking irreducibility of polynomials over rings with composite characteristic is not implemented")
 
-        if 1 == zmod_poly_isirreducible(&self.x):
+        if 1 == nmod_poly_is_irreducible(&self.x):
             return True
         else:
             return False
@@ -651,7 +651,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
                 self.leading_coefficient().lift()) != 1:
             raise ValueError("leading coefficient must be invertible")
         cdef Polynomial_zmod_flint res = self._new()
-        zmod_poly_make_monic(&res.x, &self.x)
+        nmod_poly_make_monic(&res.x, &self.x)
         return res
 
     def reverse(self, degree=None):
@@ -716,7 +716,7 @@ cdef class Polynomial_zmod_flint(Polynomial_template):
             d = degree
             if d != degree:
                 raise ValueError("degree argument must be a non-negative integer, got %s"%(degree))
-            zmod_poly_reverse(&res.x, &self.x, d+1) # FLINT expects length
+            nmod_poly_reverse(&res.x, &self.x, d+1) # FLINT expects length
         else:
-            zmod_poly_reverse(&res.x, &self.x, zmod_poly_length(&self.x))
+            nmod_poly_reverse(&res.x, &self.x, nmod_poly_length(&self.x))
         return res

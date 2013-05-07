@@ -8,7 +8,7 @@ include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 
 from sage.rings.all import GF
-from sage.libs.flint.zmod_poly cimport *
+from sage.libs.flint.nmod_poly cimport *
 from sage.structure.element cimport Element, ModuleElement, RingElement
 from sage.rings.integer_ring import ZZ
 from sage.rings.fraction_field import FractionField_generic, FractionField_1poly_field
@@ -105,14 +105,14 @@ cdef class FpTElement(RingElement):
             numer = parent.poly_ring(numer)
             denom = parent.poly_ring(denom)
         self.p = parent.p
-        zmod_poly_init(self._numer, self.p)
-        zmod_poly_init(self._denom, self.p)
+        nmod_poly_init(self._numer, self.p)
+        nmod_poly_init(self._denom, self.p)
         self.initalized = True
         cdef long n
         for n, a in enumerate(numer):
-            zmod_poly_set_coeff_ui(self._numer, n, a)
+            nmod_poly_set_coeff_ui(self._numer, n, a)
         for n, a in enumerate(denom):
-            zmod_poly_set_coeff_ui(self._denom, n, a)
+            nmod_poly_set_coeff_ui(self._denom, n, a)
         if reduce:
             normalize(self._numer, self._denom, self.p)
 
@@ -127,8 +127,8 @@ cdef class FpTElement(RingElement):
             sage: del t # indirect doctest
         """
         if self.initalized:
-            zmod_poly_clear(self._numer)
-            zmod_poly_clear(self._denom)
+            nmod_poly_clear(self._numer)
+            nmod_poly_clear(self._denom)
 
     def __reduce__(self):
         """
@@ -152,8 +152,8 @@ cdef class FpTElement(RingElement):
         cdef FpTElement x = <FpTElement>PY_NEW(FpTElement)
         x._parent = self._parent
         x.p = self.p
-        zmod_poly_init_precomp(x._numer, x.p, self._numer.p_inv)
-        zmod_poly_init_precomp(x._denom, x.p, self._numer.p_inv)
+        nmod_poly_init_preinv(x._numer, x.p, self._numer.mod.ninv)
+        nmod_poly_init_preinv(x._denom, x.p, self._numer.mod.ninv)
         x.initalized = True
         return x
 
@@ -164,10 +164,10 @@ cdef class FpTElement(RingElement):
         cdef FpTElement x = <FpTElement>PY_NEW(FpTElement)
         x._parent = self._parent
         x.p = self.p
-        zmod_poly_init2_precomp(x._numer, x.p, self._numer.p_inv, self._numer.length)
-        zmod_poly_init2_precomp(x._denom, x.p, self._denom.p_inv, self._denom.length)
-        zmod_poly_set(x._numer, self._numer)
-        zmod_poly_set(x._denom, self._denom)
+        nmod_poly_init2_preinv(x._numer, x.p, self._numer.mod.ninv, self._numer.length)
+        nmod_poly_init2_preinv(x._denom, x.p, self._denom.mod.ninv, self._denom.length)
+        nmod_poly_set(x._numer, self._numer)
+        nmod_poly_set(x._denom, self._denom)
         x.initalized = True
         return x
 
@@ -196,8 +196,8 @@ cdef class FpTElement(RingElement):
             t^6 + 3*t^4 + 10*t^3 + 3*t^2 + 1
         """
         cdef Polynomial_zmod_flint res = <Polynomial_zmod_flint>PY_NEW(Polynomial_zmod_flint)
-        zmod_poly_init2_precomp(&res.x, self.p, self._numer.p_inv, self._numer.length)
-        zmod_poly_set(&res.x, self._numer)
+        nmod_poly_init2_preinv(&res.x, self.p, self._numer.mod.ninv, self._numer.length)
+        nmod_poly_set(&res.x, self._numer)
         res._parent = self._parent.poly_ring
         res._cparent = get_cparent(self._parent.poly_ring)
         return res
@@ -227,8 +227,8 @@ cdef class FpTElement(RingElement):
             t^3
         """
         cdef Polynomial_zmod_flint res = <Polynomial_zmod_flint>PY_NEW(Polynomial_zmod_flint)
-        zmod_poly_init2_precomp(&res.x, self.p, self._denom.p_inv, self._denom.length)
-        zmod_poly_set(&res.x, self._denom)
+        nmod_poly_init2_preinv(&res.x, self.p, self._denom.mod.ninv, self._denom.length)
+        nmod_poly_set(&res.x, self._denom)
         res._parent = self._parent.poly_ring
         res._cparent = get_cparent(self._parent.poly_ring)
         return res
@@ -315,7 +315,7 @@ cdef class FpTElement(RingElement):
             sage: (1-t)/t
             (16*t + 1)/t
         """
-        if zmod_poly_degree(self._denom) == 0 and zmod_poly_get_coeff_ui(self._denom, 0) == 1:
+        if nmod_poly_degree(self._denom) == 0 and nmod_poly_get_coeff_ui(self._denom, 0) == 1:
             return repr(self.numer())
         else:
             numer_s = repr(self.numer())
@@ -338,7 +338,7 @@ cdef class FpTElement(RingElement):
             sage: latex((t + 1)/(t-1))
             \frac{t + 1}{t + 6}
         """
-        if zmod_poly_degree(self._denom) == 0 and zmod_poly_get_coeff_ui(self._denom, 0) == 1:
+        if nmod_poly_degree(self._denom) == 0 and nmod_poly_get_coeff_ui(self._denom, 0) == 1:
             return self.numer()._latex_()
         else:
             return "\\frac{%s}{%s}" % (self.numer()._latex_(), self.denom()._latex_())
@@ -391,9 +391,9 @@ cdef class FpTElement(RingElement):
             False
         """
         # They are normalized.
-        cdef int j = sage_cmp_zmod_poly_t(self._numer, (<FpTElement>other)._numer)
+        cdef int j = sage_cmp_nmod_poly_t(self._numer, (<FpTElement>other)._numer)
         if j: return j
-        return sage_cmp_zmod_poly_t(self._denom, (<FpTElement>other)._denom)
+        return sage_cmp_nmod_poly_t(self._denom, (<FpTElement>other)._denom)
 
     def __hash__(self):
         """
@@ -428,7 +428,7 @@ cdef class FpTElement(RingElement):
             (4*t^2 + 3)/(t + 4)
         """
         cdef FpTElement x = self._copy_c()
-        zmod_poly_neg(x._numer, x._numer)
+        nmod_poly_neg(x._numer, x._numer)
         return x
 
     def __invert__(self):
@@ -442,10 +442,10 @@ cdef class FpTElement(RingElement):
             sage: ~a # indirect doctest
             (t + 4)/(t^2 + 2)
         """
-        if zmod_poly_degree(self._numer) == -1:
+        if nmod_poly_degree(self._numer) == -1:
             raise ZeroDivisionError
         cdef FpTElement x = self._copy_c()
-        zmod_poly_swap(x._numer, x._denom)
+        nmod_poly_swap(x._numer, x._denom)
         return x
 
     cpdef ModuleElement _add_(self, ModuleElement _other):
@@ -469,10 +469,10 @@ cdef class FpTElement(RingElement):
         """
         cdef FpTElement other = <FpTElement>_other
         cdef FpTElement x = self._new_c()
-        zmod_poly_mul(x._numer, self._numer, other._denom)
-        zmod_poly_mul(x._denom, self._denom, other._numer) # use x._denom as a temp
-        zmod_poly_add(x._numer, x._numer, x._denom)
-        zmod_poly_mul(x._denom, self._denom, other._denom)
+        nmod_poly_mul(x._numer, self._numer, other._denom)
+        nmod_poly_mul(x._denom, self._denom, other._numer) # use x._denom as a temp
+        nmod_poly_add(x._numer, x._numer, x._denom)
+        nmod_poly_mul(x._denom, self._denom, other._denom)
         normalize(x._numer, x._denom, self.p)
         return x
 
@@ -491,10 +491,10 @@ cdef class FpTElement(RingElement):
         """
         cdef FpTElement other = <FpTElement>_other
         cdef FpTElement x = self._new_c()
-        zmod_poly_mul(x._numer, self._numer, other._denom)
-        zmod_poly_mul(x._denom, self._denom, other._numer) # use x._denom as a temp
-        zmod_poly_sub(x._numer, x._numer, x._denom)
-        zmod_poly_mul(x._denom, self._denom, other._denom)
+        nmod_poly_mul(x._numer, self._numer, other._denom)
+        nmod_poly_mul(x._denom, self._denom, other._numer) # use x._denom as a temp
+        nmod_poly_sub(x._numer, x._numer, x._denom)
+        nmod_poly_mul(x._denom, self._denom, other._denom)
         normalize(x._numer, x._denom, self.p)
         return x
 
@@ -513,8 +513,8 @@ cdef class FpTElement(RingElement):
         """
         cdef FpTElement other = <FpTElement>_other
         cdef FpTElement x = self._new_c()
-        zmod_poly_mul(x._numer, self._numer, other._numer)
-        zmod_poly_mul(x._denom, self._denom, other._denom)
+        nmod_poly_mul(x._numer, self._numer, other._numer)
+        nmod_poly_mul(x._denom, self._denom, other._denom)
         normalize(x._numer, x._denom, self.p)
         return x
 
@@ -534,11 +534,11 @@ cdef class FpTElement(RingElement):
             t + 1
         """
         cdef FpTElement other = <FpTElement>_other
-        if zmod_poly_degree(other._numer) == -1:
+        if nmod_poly_degree(other._numer) == -1:
             raise ZeroDivisionError
         cdef FpTElement x = self._new_c()
-        zmod_poly_mul(x._numer, self._numer, other._denom)
-        zmod_poly_mul(x._denom, self._denom, other._numer)
+        nmod_poly_mul(x._numer, self._numer, other._denom)
+        nmod_poly_mul(x._denom, self._denom, other._numer)
         normalize(x._numer, x._denom, self.p)
         return x
 
@@ -603,50 +603,50 @@ cdef class FpTElement(RingElement):
         """
         cdef FpTElement next = self._copy_c()
         cdef long a, lead
-        cdef zmod_poly_t g
-        if zmod_poly_degree(self._numer) == -1:
+        cdef nmod_poly_t g
+        if nmod_poly_degree(self._numer) == -1:
             # self should be normalized, so denom == 1
-            zmod_poly_set_coeff_ui(next._numer, 0, 1)
+            nmod_poly_set_coeff_ui(next._numer, 0, 1)
             return next
-        lead = zmod_poly_leading(next._numer)
+        lead = nmod_poly_leading(next._numer)
         if lead < self.p - 1:
             a = mod_inverse_int(lead, self.p)
             # no overflow since self.p < 2^16
             a = a * (lead + 1) % self.p
-            zmod_poly_scalar_mul(next._numer, next._numer, a)
+            nmod_poly_scalar_mul_nmod(next._numer, next._numer, a)
         else:
             a = mod_inverse_int(lead, self.p)
-            zmod_poly_scalar_mul(next._numer, next._numer, a)
+            nmod_poly_scalar_mul_nmod(next._numer, next._numer, a)
             # now both next._numer and next._denom are monic.  We figure out which is lexicographically bigger:
-            a = zmod_poly_cmp(next._numer, next._denom)
+            a = nmod_poly_cmp(next._numer, next._denom)
             if a == 0:
                 # next._numer and next._denom are relatively prime, so they're both 1.
-                zmod_poly_inc(next._denom, True)
+                nmod_poly_inc(next._denom, True)
                 return next
-            zmod_poly_set(next._denom, next._numer)
-            zmod_poly_set(next._numer, self._denom)
+            nmod_poly_set(next._denom, next._numer)
+            nmod_poly_set(next._numer, self._denom)
             if a < 0:
                 # since next._numer is smaller, we flip and return the inverse.
                 return next
             elif a > 0:
                 # since next._numer is bigger, we're in the flipped phase.  We flip back, and increment the numerator (until we reach the denominator).
-                zmod_poly_init(g, self.p)
+                nmod_poly_init(g, self.p)
                 try:
                     while True:
-                        zmod_poly_inc(next._numer, True)
-                        if zmod_poly_equal(next._numer, next._denom):
+                        nmod_poly_inc(next._numer, True)
+                        if nmod_poly_equal(next._numer, next._denom):
                             # Since we've reached the denominator, we reset the numerator to 1 and increment the denominator.
-                            zmod_poly_inc(next._denom, True)
-                            zmod_poly_zero(next._numer)
-                            zmod_poly_set_coeff_ui(next._numer, 0, 1)
+                            nmod_poly_inc(next._denom, True)
+                            nmod_poly_zero(next._numer)
+                            nmod_poly_set_coeff_ui(next._numer, 0, 1)
                             break
                         else:
                             # otherwise, we keep incrementing until we have a relatively prime numerator.
-                            zmod_poly_gcd(g, next._numer, next._denom)
-                            if zmod_poly_is_one(g):
+                            nmod_poly_gcd(g, next._numer, next._denom)
+                            if nmod_poly_is_one(g):
                                 break
                 finally:
-                    zmod_poly_clear(g)
+                    nmod_poly_clear(g)
         return next
 
     cpdef _sqrt_or_None(self):
@@ -686,27 +686,27 @@ cdef class FpTElement(RingElement):
             []
 
         """
-        if zmod_poly_degree(self._numer) == -1:
+        if nmod_poly_degree(self._numer) == -1:
             return self
-        if not zmod_poly_sqrt_check(self._numer) or not zmod_poly_sqrt_check(self._denom):
+        if not nmod_poly_sqrt_check(self._numer) or not nmod_poly_sqrt_check(self._denom):
             return None
-        cdef zmod_poly_t numer
-        cdef zmod_poly_t denom
+        cdef nmod_poly_t numer
+        cdef nmod_poly_t denom
         cdef FpTElement res
         try:
-            zmod_poly_init(denom, self.p)
-            zmod_poly_init(numer, self.p)
-            if not zmod_poly_sqrt0(numer, self._numer):
+            nmod_poly_init(denom, self.p)
+            nmod_poly_init(numer, self.p)
+            if not nmod_poly_sqrt0(numer, self._numer):
                 return None
-            if not zmod_poly_sqrt0(denom, self._denom):
+            if not nmod_poly_sqrt0(denom, self._denom):
                 return None
             res = self._new_c()
-            zmod_poly_swap(numer, res._numer)
-            zmod_poly_swap(denom, res._denom)
+            nmod_poly_swap(numer, res._numer)
+            nmod_poly_swap(denom, res._denom)
             return res
         finally:
-            zmod_poly_clear(numer)
-            zmod_poly_clear(denom)
+            nmod_poly_clear(numer)
+            nmod_poly_clear(denom)
 
     cpdef bint is_square(self):
         """
@@ -792,15 +792,15 @@ cdef class FpTElement(RingElement):
         assert dummy is None
         cdef FpTElement x = self._new_c()
         if e >= 0:
-            zmod_poly_pow(x._numer, self._numer, e)
-            zmod_poly_pow(x._denom, self._denom, e)
+            nmod_poly_pow(x._numer, self._numer, e)
+            nmod_poly_pow(x._denom, self._denom, e)
         else:
-            zmod_poly_pow(x._denom, self._numer, -e)
-            zmod_poly_pow(x._numer, self._denom, -e)
-            if zmod_poly_leading(x._denom) != 1:
-                a = mod_inverse_int(zmod_poly_leading(x._denom), self.p)
-                zmod_poly_scalar_mul(x._numer, x._numer, a)
-                zmod_poly_scalar_mul(x._denom, x._denom, a)
+            nmod_poly_pow(x._denom, self._numer, -e)
+            nmod_poly_pow(x._numer, self._denom, -e)
+            if nmod_poly_leading(x._denom) != 1:
+                a = mod_inverse_int(nmod_poly_leading(x._denom), self.p)
+                nmod_poly_scalar_mul_nmod(x._numer, x._numer, a)
+                nmod_poly_scalar_mul_nmod(x._denom, x._denom, a)
         return x
 
 
@@ -878,7 +878,7 @@ cdef class FpT_iter:
             sage: I
             <sage.rings.fraction_field_FpT.FpT_iter object at ...>
         """
-        zmod_poly_init(self.g, parent.characteristic())
+        nmod_poly_init(self.g, parent.characteristic())
 
     def __dealloc__(self):
         """
@@ -891,7 +891,7 @@ cdef class FpT_iter:
             sage: I = FpT_iter(K, 3)
             sage: del I # indirect doctest
         """
-        zmod_poly_clear(self.g)
+        nmod_poly_clear(self.g)
 
     def __iter__(self):
         """
@@ -971,21 +971,21 @@ cdef class FpT_iter:
             next = self.cur._copy_c()
             sig_on()
             while True:
-                zmod_poly_inc(next._numer, False)
-                if zmod_poly_degree(next._numer) > self.degree:
-                    zmod_poly_inc(next._denom, True)
-                    if zmod_poly_degree(next._denom) > self.degree:
+                nmod_poly_inc(next._numer, False)
+                if nmod_poly_degree(next._numer) > self.degree:
+                    nmod_poly_inc(next._denom, True)
+                    if nmod_poly_degree(next._denom) > self.degree:
                         sig_off()
                         raise StopIteration
-                    zmod_poly_zero(next._numer)
-                    zmod_poly_set_coeff_ui(next._numer, 0, 1)
-                zmod_poly_gcd(self.g, next._numer, next._denom)
-                if zmod_poly_is_one(self.g):
+                    nmod_poly_zero(next._numer)
+                    nmod_poly_set_coeff_ui(next._numer, 0, 1)
+                nmod_poly_gcd(self.g, next._numer, next._denom)
+                if nmod_poly_is_one(self.g):
                     break
             sig_off()
             self.cur = next
 #            self.cur = self.cur.next()
-#            if zmod_poly_degree(self.cur._numer) > self.degree:
+#            if nmod_poly_degree(self.cur._numer) > self.degree:
 #                raise StopIteration
         return self.cur
 
@@ -1036,10 +1036,10 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
         cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
         ans._parent = self._codomain
         ans.p = self.p
-        zmod_poly_init(ans._numer, ans.p)
-        zmod_poly_init(ans._denom, ans.p)
-        zmod_poly_set(ans._numer, &x.x)
-        zmod_poly_set_coeff_ui(ans._denom, 0, 1)
+        nmod_poly_init(ans._numer, ans.p)
+        nmod_poly_init(ans._denom, ans.p)
+        nmod_poly_set(ans._numer, &x.x)
+        nmod_poly_set_coeff_ui(ans._denom, 0, 1)
         ans.initalized = True
         return ans
 
@@ -1065,25 +1065,25 @@ cdef class Polyring_FpT_coerce(RingHomomorphism_coercion):
         cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
         ans._parent = self._codomain
         ans.p = self.p
-        zmod_poly_init(ans._numer, ans.p)
-        zmod_poly_init(ans._denom, ans.p)
+        nmod_poly_init(ans._numer, ans.p)
+        nmod_poly_init(ans._denom, ans.p)
         cdef long r
-        zmod_poly_set(ans._numer, &x.x)
+        nmod_poly_set(ans._numer, &x.x)
         if len(args) == 0:
-            zmod_poly_set_coeff_ui(ans._denom, 0, 1)
+            nmod_poly_set_coeff_ui(ans._denom, 0, 1)
         elif len(args) == 1:
             y = args[0]
             if PY_TYPE_CHECK(y, Integer):
                 r = mpz_fdiv_ui((<Integer>y).value, self.p)
                 if r == 0:
                     raise ZeroDivisionError
-                zmod_poly_set_coeff_ui(ans._denom, 0, r)
+                nmod_poly_set_coeff_ui(ans._denom, 0, r)
             else:
                 # could use the coerce keyword being set to False to not check this...
                 if not (PY_TYPE_CHECK(y, Element) and y.parent() is self._domain):
                     # We could special case integers and GF(p) elements here.
                     y = self._domain(y)
-                zmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
+                nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
         else:
             raise ValueError, "FpT only supports two positional arguments"
         if not (kwds.has_key('reduce') and not kwds['reduce']):
@@ -1171,15 +1171,15 @@ cdef class FpT_Polyring_section(Section):
         """
         cdef FpTElement x = <FpTElement?>_x
         cdef Polynomial_zmod_flint ans
-        if zmod_poly_degree(x._denom) != 0:
+        if nmod_poly_degree(x._denom) != 0:
             normalize(x._numer, x._denom, self.p)
-            if zmod_poly_degree(x._denom) != 0:
+            if nmod_poly_degree(x._denom) != 0:
                 raise ValueError, "not integral"
         ans = PY_NEW(Polynomial_zmod_flint)
-        if zmod_poly_get_coeff_ui(x._denom, 0) != 1:
+        if nmod_poly_get_coeff_ui(x._denom, 0) != 1:
             normalize(x._numer, x._denom, self.p)
-        zmod_poly_init(&ans.x, self.p)
-        zmod_poly_set(&ans.x, x._numer)
+        nmod_poly_init(&ans.x, self.p)
+        nmod_poly_set(&ans.x, x._numer)
         ans._parent = self._codomain
         ans._cparent = get_cparent(self._codomain)
         return ans
@@ -1231,10 +1231,10 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
         cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
         ans._parent = self._codomain
         ans.p = self.p
-        zmod_poly_init(ans._numer, ans.p)
-        zmod_poly_init(ans._denom, ans.p)
-        zmod_poly_set_coeff_ui(ans._numer, 0, x.ivalue)
-        zmod_poly_set_coeff_ui(ans._denom, 0, 1)
+        nmod_poly_init(ans._numer, ans.p)
+        nmod_poly_init(ans._denom, ans.p)
+        nmod_poly_set_coeff_ui(ans._numer, 0, x.ivalue)
+        nmod_poly_set_coeff_ui(ans._denom, 0, 1)
         ans.initalized = True
         return ans
 
@@ -1260,26 +1260,26 @@ cdef class Fp_FpT_coerce(RingHomomorphism_coercion):
         cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
         ans._parent = self._codomain
         ans.p = self.p
-        zmod_poly_init(ans._numer, ans.p)
-        zmod_poly_init(ans._denom, ans.p)
+        nmod_poly_init(ans._numer, ans.p)
+        nmod_poly_init(ans._denom, ans.p)
         cdef long r
-        zmod_poly_set_coeff_ui(ans._numer, 0, x.ivalue)
+        nmod_poly_set_coeff_ui(ans._numer, 0, x.ivalue)
         if len(args) == 0:
-            zmod_poly_set_coeff_ui(ans._denom, 0, 1)
+            nmod_poly_set_coeff_ui(ans._denom, 0, 1)
         if len(args) == 1:
             y = args[0]
             if PY_TYPE_CHECK(y, Integer):
                 r = mpz_fdiv_ui((<Integer>y).value, self.p)
                 if r == 0:
                     raise ZeroDivisionError
-                zmod_poly_set_coeff_ui(ans._denom, 0, r)
+                nmod_poly_set_coeff_ui(ans._denom, 0, r)
             else:
                 R = self._codomain.ring_of_integers()
                 # could use the coerce keyword being set to False to not check this...
                 if not (PY_TYPE_CHECK(y, Element) and y.parent() is R):
                     # We could special case integers and GF(p) elements here.
                     y = R(y)
-                zmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
+                nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
         else:
             raise ValueError, "FpT only supports two positional arguments"
         if not (kwds.has_key('reduce') and not kwds['reduce']):
@@ -1377,17 +1377,17 @@ cdef class FpT_Fp_section(Section):
         """
         cdef FpTElement x = <FpTElement?>_x
         cdef IntegerMod_int ans
-        if zmod_poly_degree(x._denom) != 0 or zmod_poly_degree(x._numer) > 0:
+        if nmod_poly_degree(x._denom) != 0 or nmod_poly_degree(x._numer) > 0:
             normalize(x._numer, x._denom, self.p)
-            if zmod_poly_degree(x._denom) != 0:
+            if nmod_poly_degree(x._denom) != 0:
                 raise ValueError, "not integral"
-            if zmod_poly_degree(x._numer) > 0:
+            if nmod_poly_degree(x._numer) > 0:
                 raise ValueError, "not constant"
         ans = PY_NEW(IntegerMod_int)
         ans.__modulus = self._codomain._pyx_order
-        if zmod_poly_get_coeff_ui(x._denom, 0) != 1:
+        if nmod_poly_get_coeff_ui(x._denom, 0) != 1:
             normalize(x._numer, x._denom, self.p)
-        ans.ivalue = zmod_poly_get_coeff_ui(x._numer, 0)
+        ans.ivalue = nmod_poly_get_coeff_ui(x._numer, 0)
         ans._parent = self._codomain
         return ans
 
@@ -1438,10 +1438,10 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
         cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
         ans._parent = self._codomain
         ans.p = self.p
-        zmod_poly_init(ans._numer, ans.p)
-        zmod_poly_init(ans._denom, ans.p)
-        zmod_poly_set_coeff_ui(ans._numer, 0, mpz_fdiv_ui(x.value, self.p))
-        zmod_poly_set_coeff_ui(ans._denom, 0, 1)
+        nmod_poly_init(ans._numer, ans.p)
+        nmod_poly_init(ans._denom, ans.p)
+        nmod_poly_set_coeff_ui(ans._numer, 0, mpz_fdiv_ui(x.value, self.p))
+        nmod_poly_set_coeff_ui(ans._denom, 0, 1)
         ans.initalized = True
         return ans
 
@@ -1469,26 +1469,26 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
         cdef FpTElement ans = <FpTElement>PY_NEW(FpTElement)
         ans._parent = self._codomain
         ans.p = self.p
-        zmod_poly_init(ans._numer, ans.p)
-        zmod_poly_init(ans._denom, ans.p)
+        nmod_poly_init(ans._numer, ans.p)
+        nmod_poly_init(ans._denom, ans.p)
         cdef long r
-        zmod_poly_set_coeff_ui(ans._numer, 0, mpz_fdiv_ui(x.value, self.p))
+        nmod_poly_set_coeff_ui(ans._numer, 0, mpz_fdiv_ui(x.value, self.p))
         if len(args) == 0:
-            zmod_poly_set_coeff_ui(ans._denom, 0, 1)
+            nmod_poly_set_coeff_ui(ans._denom, 0, 1)
         if len(args) == 1:
             y = args[0]
             if PY_TYPE_CHECK(y, Integer):
                 r = mpz_fdiv_ui((<Integer>y).value, self.p)
                 if r == 0:
                     raise ZeroDivisionError
-                zmod_poly_set_coeff_ui(ans._denom, 0, r)
+                nmod_poly_set_coeff_ui(ans._denom, 0, r)
             else:
                 R = self._codomain.ring_of_integers()
                 # could use the coerce keyword being set to False to not check this...
                 if not (PY_TYPE_CHECK(y, Element) and y.parent() is R):
                     # We could special case integers and GF(p) elements here.
                     y = R(y)
-                zmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
+                nmod_poly_set(ans._denom, &((<Polynomial_zmod_flint?>y).x))
         else:
             raise ValueError, "FpT only supports two positional arguments"
         if not (kwds.has_key('reduce') and not kwds['reduce']):
@@ -1531,7 +1531,7 @@ cdef class ZZ_FpT_coerce(RingHomomorphism_coercion):
         """
         return ZZ.convert_map_from(self._codomain.base_ring()) * Fp_FpT_coerce(self._codomain).section()
 
-cdef inline bint normalize(zmod_poly_t numer, zmod_poly_t denom, long p):
+cdef inline bint normalize(nmod_poly_t numer, nmod_poly_t denom, long p):
     """
     Puts numer/denom into a normal form: denominator monic and sharing no common factor with the numerator.
 
@@ -1541,47 +1541,47 @@ cdef inline bint normalize(zmod_poly_t numer, zmod_poly_t denom, long p):
     """
     cdef long a
     cdef bint changed
-    if zmod_poly_degree(numer) == -1:
-        if zmod_poly_degree(denom) > 0 or zmod_poly_leading(denom) != 1:
+    if nmod_poly_degree(numer) == -1:
+        if nmod_poly_degree(denom) > 0 or nmod_poly_leading(denom) != 1:
             changed = True
         else:
             changed = False
-        zmod_poly_truncate(denom, 0)
-        zmod_poly_set_coeff_ui(denom, 0, 1)
+        nmod_poly_truncate(denom, 0)
+        nmod_poly_set_coeff_ui(denom, 0, 1)
         return changed
-    elif zmod_poly_degree(numer) == 0 or zmod_poly_degree(denom) == 0:
-        if zmod_poly_leading(denom) != 1:
-            a = mod_inverse_int(zmod_poly_leading(denom), p)
-            zmod_poly_scalar_mul(numer, numer, a)
-            zmod_poly_scalar_mul(denom, denom, a)
+    elif nmod_poly_degree(numer) == 0 or nmod_poly_degree(denom) == 0:
+        if nmod_poly_leading(denom) != 1:
+            a = mod_inverse_int(nmod_poly_leading(denom), p)
+            nmod_poly_scalar_mul_nmod(numer, numer, a)
+            nmod_poly_scalar_mul_nmod(denom, denom, a)
             return True
         return False
-    cdef zmod_poly_t g
+    cdef nmod_poly_t g
     changed = False
     try:
-        zmod_poly_init_precomp(g, p, numer.p_inv)
-        zmod_poly_gcd(g, numer, denom)
-        if zmod_poly_degree(g) != 0:
+        nmod_poly_init_preinv(g, p, numer.mod.ninv)
+        nmod_poly_gcd(g, numer, denom)
+        if nmod_poly_degree(g) != 0:
             # Divide knowing divisible by? Can we get these quotients as a byproduct of the gcd?
-            zmod_poly_div(numer, numer, g)
-            zmod_poly_div(denom, denom, g)
+            nmod_poly_div(numer, numer, g)
+            nmod_poly_div(denom, denom, g)
             changed = True
-        if zmod_poly_leading(denom) != 1:
-            a = mod_inverse_int(zmod_poly_leading(denom), p)
-            zmod_poly_scalar_mul(numer, numer, a)
-            zmod_poly_scalar_mul(denom, denom, a)
+        if nmod_poly_leading(denom) != 1:
+            a = mod_inverse_int(nmod_poly_leading(denom), p)
+            nmod_poly_scalar_mul_nmod(numer, numer, a)
+            nmod_poly_scalar_mul_nmod(denom, denom, a)
             changed = True
         return changed
     finally:
-        zmod_poly_clear(g)
+        nmod_poly_clear(g)
 
-cdef inline unsigned long zmod_poly_leading(zmod_poly_t poly):
+cdef inline unsigned long nmod_poly_leading(nmod_poly_t poly):
     """
     Returns the leading coefficient of ``poly``.
     """
-    return zmod_poly_get_coeff_ui(poly, zmod_poly_degree(poly))
+    return nmod_poly_get_coeff_ui(poly, nmod_poly_degree(poly))
 
-cdef inline void zmod_poly_inc(zmod_poly_t poly, bint monic):
+cdef inline void nmod_poly_inc(nmod_poly_t poly, bint monic):
     """
     Sets poly to the "next" polynomial: this is just counting in base p.
 
@@ -1590,18 +1590,18 @@ cdef inline void zmod_poly_inc(zmod_poly_t poly, bint monic):
     cdef long n
     cdef long a
     cdef long p = poly.p
-    for n from 0 <= n <= zmod_poly_degree(poly) + 1:
-        a = zmod_poly_get_coeff_ui(poly, n) + 1
+    for n from 0 <= n <= nmod_poly_degree(poly) + 1:
+        a = nmod_poly_get_coeff_ui(poly, n) + 1
         if a == p:
-            zmod_poly_set_coeff_ui(poly, n, 0)
+            nmod_poly_set_coeff_ui(poly, n, 0)
         else:
-            zmod_poly_set_coeff_ui(poly, n, a)
+            nmod_poly_set_coeff_ui(poly, n, a)
             break
-    if monic and a == 2 and n == zmod_poly_degree(poly):
-        zmod_poly_set_coeff_ui(poly, n, 0)
-        zmod_poly_set_coeff_ui(poly, n+1, 1)
+    if monic and a == 2 and n == nmod_poly_degree(poly):
+        nmod_poly_set_coeff_ui(poly, n, 0)
+        nmod_poly_set_coeff_ui(poly, n+1, 1)
 
-cdef inline long zmod_poly_cmp(zmod_poly_t a, zmod_poly_t b):
+cdef inline long nmod_poly_cmp(nmod_poly_t a, nmod_poly_t b):
     """
     Compares `a` and `b`, returning 0 if they are equal.
 
@@ -1611,16 +1611,16 @@ cdef inline long zmod_poly_cmp(zmod_poly_t a, zmod_poly_t b):
 
     - Otherwise, compares `a` and `b` lexicographically, starting at the leading terms.
     """
-    cdef long ad = zmod_poly_degree(a)
-    cdef long bd = zmod_poly_degree(b)
+    cdef long ad = nmod_poly_degree(a)
+    cdef long bd = nmod_poly_degree(b)
     if ad < bd:
         return -1
     elif ad > bd:
         return 1
-    cdef long d = zmod_poly_degree(a)
+    cdef long d = nmod_poly_degree(a)
     while d >= 0:
-        ad = zmod_poly_get_coeff_ui(a, d)
-        bd = zmod_poly_get_coeff_ui(b, d)
+        ad = nmod_poly_get_coeff_ui(a, d)
+        bd = nmod_poly_get_coeff_ui(b, d)
         if ad < bd:
             return -1
         elif ad > bd:
@@ -1628,52 +1628,52 @@ cdef inline long zmod_poly_cmp(zmod_poly_t a, zmod_poly_t b):
         d -= 1
     return 0
 
-cdef void zmod_poly_pow(zmod_poly_t res, zmod_poly_t poly, unsigned long e):
+cdef void nmod_poly_pow(nmod_poly_t res, nmod_poly_t poly, unsigned long e):
     """
     Raises poly to the `e`th power and stores the result in ``res``.
     """
-    if zmod_poly_degree(poly) < 2:
-        if zmod_poly_degree(poly) == -1:
-            zmod_poly_zero(res)
+    if nmod_poly_degree(poly) < 2:
+        if nmod_poly_degree(poly) == -1:
+            nmod_poly_zero(res)
             return
-        elif zmod_poly_is_one(poly):
-            zmod_poly_set(res, poly)
+        elif nmod_poly_is_one(poly):
+            nmod_poly_set(res, poly)
             return
-        elif e > 1 and zmod_poly_degree(poly) == 1 and zmod_poly_get_coeff_ui(poly, 0) == 0 and zmod_poly_get_coeff_ui(poly, 1) == 1:
-            zmod_poly_left_shift(res, poly, e-1)
+        elif e > 1 and nmod_poly_degree(poly) == 1 and nmod_poly_get_coeff_ui(poly, 0) == 0 and nmod_poly_get_coeff_ui(poly, 1) == 1:
+            nmod_poly_left_shift(res, poly, e-1)
             return
 
     # TODO: Could use the fact that (a+b)^p = a^p + b^p
     # Only seems to be a big gain for large p, large exponents...
-    cdef zmod_poly_t pow2
+    cdef nmod_poly_t pow2
 
     if e < 5:
         if e == 0:
-            zmod_poly_zero(res)
-            zmod_poly_set_coeff_ui(res, 0, 1)
+            nmod_poly_zero(res)
+            nmod_poly_set_coeff_ui(res, 0, 1)
         elif e == 1:
-            zmod_poly_set(res, poly)
+            nmod_poly_set(res, poly)
         elif e == 2:
-            zmod_poly_sqr(res, poly)
+            nmod_poly_sqr(res, poly)
         elif e == 3:
-            zmod_poly_sqr(res, poly)
-            zmod_poly_mul(res, res, poly)
+            nmod_poly_sqr(res, poly)
+            nmod_poly_mul(res, res, poly)
         elif e == 4:
-            zmod_poly_sqr(res, poly)
-            zmod_poly_sqr(res, res)
+            nmod_poly_sqr(res, poly)
+            nmod_poly_sqr(res, res)
     else:
-        zmod_poly_init(pow2, poly.p)
-        zmod_poly_zero(res)
-        zmod_poly_set_coeff_ui(res, 0, 1)
-        zmod_poly_set(pow2, poly)
+        nmod_poly_init(pow2, poly.p)
+        nmod_poly_zero(res)
+        nmod_poly_set_coeff_ui(res, 0, 1)
+        nmod_poly_set(pow2, poly)
         while True:
             if e & 1:
-                zmod_poly_mul(res, res, pow2)
+                nmod_poly_mul(res, res, pow2)
             e >>= 1
             if e == 0:
                 break
-            zmod_poly_sqr(pow2, pow2)
-        zmod_poly_clear(pow2)
+            nmod_poly_sqr(pow2, pow2)
+        nmod_poly_clear(pow2)
 
 
 cdef long sqrt_mod_int(long a, long p) except -1:
@@ -1682,81 +1682,81 @@ cdef long sqrt_mod_int(long a, long p) except -1:
     """
     return GF(p)(a).sqrt()
 
-cdef bint zmod_poly_sqrt_check(zmod_poly_t poly):
+cdef bint nmod_poly_sqrt_check(nmod_poly_t poly):
     """
     Quick check to see if poly could possibly be a square.
     """
-    return (zmod_poly_degree(poly) % 2 == 0
-        and jacobi_int(zmod_poly_leading(poly), poly.p) == 1
-        and jacobi_int(zmod_poly_get_coeff_ui(poly, 0), poly.p) != -1)
+    return (nmod_poly_degree(poly) % 2 == 0
+        and jacobi_int(nmod_poly_leading(poly), poly.p) == 1
+        and jacobi_int(nmod_poly_get_coeff_ui(poly, 0), poly.p) != -1)
 
-cdef bint zmod_poly_sqrt(zmod_poly_t res, zmod_poly_t poly):
+cdef bint nmod_poly_sqrt(nmod_poly_t res, nmod_poly_t poly):
     """
     Compute the square root of poly as res if res is a perfect square.
 
     Returns True on success, False on failure.
     """
-    if not zmod_poly_sqrt_check(poly):
+    if not nmod_poly_sqrt_check(poly):
         return False
-    return zmod_poly_sqrt0(res, poly)
+    return nmod_poly_sqrt0(res, poly)
 
-cdef bint zmod_poly_sqrt0(zmod_poly_t res, zmod_poly_t poly):
+cdef bint nmod_poly_sqrt0(nmod_poly_t res, nmod_poly_t poly):
     """
-    Compute the square root of poly as res if res is a perfect square, assuming that poly passes zmod_poly_sqrt_check.
+    Compute the square root of poly as res if res is a perfect square, assuming that poly passes nmod_poly_sqrt_check.
 
     Returns True on success, False on failure.
     """
-    if zmod_poly_degree(poly) == -1:
-        zmod_poly_zero(res)
+    if nmod_poly_degree(poly) == -1:
+        nmod_poly_zero(res)
         return True
-    if zmod_poly_degree(poly) == 0:
-        zmod_poly_zero(res)
-        zmod_poly_set_coeff_ui(res, 0, sqrt_mod_int(zmod_poly_get_coeff_ui(poly, 0), poly.p))
+    if nmod_poly_degree(poly) == 0:
+        nmod_poly_zero(res)
+        nmod_poly_set_coeff_ui(res, 0, sqrt_mod_int(nmod_poly_get_coeff_ui(poly, 0), poly.p))
         return True
-    cdef zmod_poly_t g
+    cdef nmod_poly_t g
     cdef long p = poly.p
     cdef long n, leading
-    cdef zmod_poly_factor_t factors
+    cdef nmod_poly_factor_t factors
     try:
-        zmod_poly_init(g, p)
-        zmod_poly_derivative(res, poly)
-        zmod_poly_gcd(g, res, poly)
-        if 2*zmod_poly_degree(g) < zmod_poly_degree(poly):
+        nmod_poly_init(g, p)
+        nmod_poly_derivative(res, poly)
+        nmod_poly_gcd(g, res, poly)
+        if 2*nmod_poly_degree(g) < nmod_poly_degree(poly):
             return False
 
-        elif 2*zmod_poly_degree(g) > zmod_poly_degree(poly):
+        elif 2*nmod_poly_degree(g) > nmod_poly_degree(poly):
             try:
-                zmod_poly_factor_init(factors)
-                leading = zmod_poly_leading(poly)
+                nmod_poly_factor_init(factors)
+                leading = nmod_poly_leading(poly)
                 if leading == 1:
-                    zmod_poly_factor_square_free(factors, poly)
+                    nmod_poly_factor_squarefree(factors, poly)
                 else:
-                    zmod_poly_scalar_mul(res, poly, mod_inverse_int(leading, p))
-                    zmod_poly_factor_square_free(factors, res)
+                    nmod_poly_scalar_mul_nmod(res, poly, mod_inverse_int(leading, p))
+                    nmod_poly_factor_squarefree(factors, res)
                 for n in range(factors.num_factors):
                     if factors.exponents[n] % 2 != 0:
                         return False
-                zmod_poly_pow(res, factors.factors[0], factors.exponents[0]//2)
+                nmod_poly_pow(res, factors.factors[0], factors.exponents[0]//2)
                 for n in range(1, factors.num_factors):
-                    zmod_poly_pow(factors.factors[n], factors.factors[n], factors.exponents[n]//2)
-                    zmod_poly_mul(res, res, factors.factors[n])
+                    nmod_poly_pow(factors.factors[n], factors.factors[n], factors.exponents[n]//2)
+                    nmod_poly_mul(res, res, factors.factors[n])
                 if leading != 1:
-                    zmod_poly_scalar_mul(res, res, sqrt_mod_int(zmod_poly_leading(poly), p))
+                    nmod_poly_scalar_mul_nmod(res, res, sqrt_mod_int(nmod_poly_leading(poly), p))
                 return True
             finally:
-                zmod_poly_factor_clear(factors)
+                nmod_poly_factor_clear(factors)
 
         else: # deg(g) == deg(poly)/2
-            zmod_poly_sqr(res, g)
-            leading = zmod_poly_leading(poly) * mod_inverse_int(zmod_poly_leading(res), p)
-            zmod_poly_scalar_mul(res, res, leading)
-            if zmod_poly_equal(res, poly):
-                zmod_poly_scalar_mul(res, g, sqrt_mod_int(leading, p))
+            nmod_poly_sqr(res, g)
+            leading = nmod_poly_leading(poly) * mod_inverse_int(nmod_poly_leading(res), p)
+            nmod_poly_scalar_mul_nmod(res, res, leading)
+            if nmod_poly_equal(res, poly):
+                nmod_poly_scalar_mul_nmod(res, g, sqrt_mod_int(leading, p))
                 return True
             else:
                 return False
     finally:
-        zmod_poly_clear(g)
+        nmod_poly_clear(g)
 
 def unpickle_FpT_element(K, numer, denom):
     """
@@ -1774,22 +1774,22 @@ def unpickle_FpT_element(K, numer, denom):
 
 #  Somehow this isn't in FLINT, evidently.  It could be moved
 #  elsewhere at some point.
-cdef int sage_cmp_zmod_poly_t(zmod_poly_t L, zmod_poly_t R):
+cdef int sage_cmp_nmod_poly_t(nmod_poly_t L, nmod_poly_t R):
     """
-    Compare two zmod_poly_t in a Pythonic way, so this returns -1, 0,
+    Compare two nmod_poly_t in a Pythonic way, so this returns -1, 0,
     or 1, and is consistent.
     """
     cdef int j
     cdef Py_ssize_t i
 
     # First compare the degrees
-    j = zmod_poly_degree(L) - zmod_poly_degree(R)
+    j = nmod_poly_degree(L) - nmod_poly_degree(R)
     if j<0: return -1
     elif j>0: return 1
 
     # Same degree, so compare coefficients, term by term
-    for i in range(zmod_poly_degree(L)+1):
-        j = zmod_poly_get_coeff_ui(L,i) - zmod_poly_get_coeff_ui(R,i)
+    for i in range(nmod_poly_degree(L)+1):
+        j = nmod_poly_get_coeff_ui(L,i) - nmod_poly_get_coeff_ui(R,i)
         if j<0: return -1
         elif j>0: return 1
 

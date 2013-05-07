@@ -54,8 +54,8 @@ cdef class Apply:
         fmpz_poly_set_coeff_si(self.g, 1, c)
 
         # h = (f**i)*(g**(j-i))
-        fmpz_poly_power(self.ff, self.f, i)
-        fmpz_poly_power(self.gg, self.g, j-i)
+        fmpz_poly_pow(self.ff, self.f, i)
+        fmpz_poly_pow(self.gg, self.g, j-i)
         fmpz_poly_mul(ans, self.ff, self.gg)
 
         return 0

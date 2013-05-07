@@ -1613,10 +1613,10 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
         x, y, z, w = to_quaternion(parent._base, v)
         cdef NumberFieldElement a = <NumberFieldElement>(parent._base(parent._a))
         cdef NumberFieldElement b = <NumberFieldElement>(parent._base(parent._b))
-        ZZX_to_fmpz_poly(self.x, (<NumberFieldElement>x).__numerator)
-        ZZX_to_fmpz_poly(self.y, (<NumberFieldElement>y).__numerator)
-        ZZX_to_fmpz_poly(self.z, (<NumberFieldElement>z).__numerator)
-        ZZX_to_fmpz_poly(self.w, (<NumberFieldElement>w).__numerator)
+        fmpz_poly_set_ZZX(self.x, (<NumberFieldElement>x).__numerator)
+        fmpz_poly_set_ZZX(self.y, (<NumberFieldElement>y).__numerator)
+        fmpz_poly_set_ZZX(self.z, (<NumberFieldElement>z).__numerator)
+        fmpz_poly_set_ZZX(self.w, (<NumberFieldElement>w).__numerator)
 
         ZZ_to_mpz(&T1, &(<NumberFieldElement>x).__denominator)
         ZZ_to_mpz(&T2, &(<NumberFieldElement>y).__denominator)
@@ -1637,10 +1637,10 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
         fmpz_poly_scalar_mul_mpz(self.z, self.z, t3)
         fmpz_poly_scalar_mul_mpz(self.w, self.w, t4)
 
-        ZZX_to_fmpz_poly(self.a, a.__numerator)     # we will assume that the denominator of a and b are 1
-        ZZX_to_fmpz_poly(self.b, b.__numerator)
+        fmpz_poly_set_ZZX(self.a, a.__numerator)     # we will assume that the denominator of a and b are 1
+        fmpz_poly_set_ZZX(self.b, b.__numerator)
 
-        ZZX_to_fmpz_poly(self.modulus, (<NumberFieldElement>x).__fld_numerator.x) # and same for the modulus
+        fmpz_poly_set_ZZX(self.modulus, (<NumberFieldElement>x).__fld_numerator.x) # and same for the modulus
 
     def __getitem__(self, int i):
         """
@@ -1669,13 +1669,13 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
         cdef NumberFieldElement item = el._new()
 
         if i == 0:
-            fmpz_poly_to_ZZX(item.__numerator, self.x)
+            fmpz_poly_get_ZZX(item.__numerator, self.x)
         elif i == 1:
-            fmpz_poly_to_ZZX(item.__numerator, self.y)
+            fmpz_poly_get_ZZX(item.__numerator, self.y)
         elif i == 2:
-            fmpz_poly_to_ZZX(item.__numerator, self.z)
+            fmpz_poly_get_ZZX(item.__numerator, self.z)
         elif i == 3:
-            fmpz_poly_to_ZZX(item.__numerator, self.w)
+            fmpz_poly_get_ZZX(item.__numerator, self.w)
         else:
             raise IndexError, "quaternion element index out of range"
 
@@ -1993,25 +1993,25 @@ cdef class QuaternionAlgebraElement_number_field(QuaternionAlgebraElement_abstra
                                                                      # as a global variable, because fmpz_t's do not
                                                                      # self allocate memory
         fmpz_poly_content(content, self.x)
-        fmpz_to_mpz(U1, content)
+        fmpz_get_mpz(U1, content)
         mpz_gcd(U1, self.d, U1)
         if mpz_cmp_ui(U1, 1) != 0:
             fmpz_poly_content(content, self.y)
-            fmpz_to_mpz(U2, content)
+            fmpz_get_mpz(U2, content)
             mpz_gcd(U1, U1, U2)
             if mpz_cmp_ui(U1, 1) != 0:
                 fmpz_poly_content(content, self.z)
-                fmpz_to_mpz(U2, content)
+                fmpz_get_mpz(U2, content)
                 mpz_gcd(U1, U1, U2)
                 if mpz_cmp_ui(U1, 1) != 0:
                     fmpz_poly_content(content, self.w)
-                    fmpz_to_mpz(U2, content)
+                    fmpz_get_mpz(U2, content)
                     mpz_gcd(U1, U1, U2)
                     if mpz_cmp_ui(U1, 1) != 0:
-                        fmpz_poly_scalar_div_mpz(self.x, self.x, U1)
-                        fmpz_poly_scalar_div_mpz(self.y, self.y, U1)
-                        fmpz_poly_scalar_div_mpz(self.z, self.z, U1)
-                        fmpz_poly_scalar_div_mpz(self.w, self.w, U1)
+                        fmpz_poly_scalar_fdiv_mpz(self.x, self.x, U1)
+                        fmpz_poly_scalar_fdiv_mpz(self.y, self.y, U1)
+                        fmpz_poly_scalar_fdiv_mpz(self.z, self.z, U1)
+                        fmpz_poly_scalar_fdiv_mpz(self.w, self.w, U1)
                         mpz_divexact(self.d, self.d, U1)
 
         fmpz_clear(content)

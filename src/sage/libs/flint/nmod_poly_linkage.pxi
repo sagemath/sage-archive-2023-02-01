@@ -1,5 +1,5 @@
 r"""
-Linkage for arithmetic with FLINT's zmod_poly_t elements.
+Linkage for arithmetic with FLINT's nmod_poly_t elements.
 
 This file provides the backend for \class{Polynomial_zmod_flint} via
 templating.
@@ -17,30 +17,30 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.libs.flint.zmod_poly cimport *, zmod_poly_t
-from sage.libs.flint.long_extras cimport *
+from sage.libs.flint.nmod_poly cimport *, nmod_poly_t
+from sage.libs.flint.ulong_extras cimport *
 
 include "../../ext/stdsage.pxi"
 
 cdef inline celement *celement_new(unsigned long n):
-    cdef celement *g = <celement *>sage_malloc(sizeof(zmod_poly_t))
-    zmod_poly_init(g, n)
+    cdef celement *g = <celement *>sage_malloc(sizeof(nmod_poly_t))
+    nmod_poly_init(g, n)
     return g
 
-cdef inline int celement_delete(zmod_poly_t e, unsigned long n):
-    zmod_poly_clear(e)
+cdef inline int celement_delete(nmod_poly_t e, unsigned long n):
+    nmod_poly_clear(e)
     sage_free(e)
 
-cdef inline int celement_construct(zmod_poly_t e, unsigned long n):
+cdef inline int celement_construct(nmod_poly_t e, unsigned long n):
     """
     EXAMPLE:
         sage: P.<x> = GF(32003)[]
 
         sage: Q.<x> = GF(7)[]
     """
-    zmod_poly_init(e, n)
+    nmod_poly_init(e, n)
 
-cdef inline int celement_destruct(zmod_poly_t e, unsigned long n):
+cdef inline int celement_destruct(nmod_poly_t e, unsigned long n):
     """
     EXAMPLE:
         sage: P.<x> = GF(32003)[]
@@ -49,22 +49,22 @@ cdef inline int celement_destruct(zmod_poly_t e, unsigned long n):
         sage: Q.<x> = GF(7)[]
         sage: del x
     """
-    zmod_poly_clear(e)
+    nmod_poly_clear(e)
 
-cdef inline int celement_gen(zmod_poly_t e, long i, unsigned long n) except -2:
+cdef inline int celement_gen(nmod_poly_t e, long i, unsigned long n) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(32003)[]
 
         sage: Q.<x> = GF(7)[]
     """
-    zmod_poly_zero(e)
-    zmod_poly_set_coeff_ui(e, 1, 1)
+    nmod_poly_zero(e)
+    nmod_poly_set_coeff_ui(e, 1, 1)
 
-cdef object celement_repr(zmod_poly_t e, unsigned long n):
+cdef object celement_repr(nmod_poly_t e, unsigned long n):
     raise NotImplementedError
 
-cdef inline int celement_set(zmod_poly_t res, zmod_poly_t a, unsigned long n) except -2:
+cdef inline int celement_set(nmod_poly_t res, nmod_poly_t a, unsigned long n) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(32003)[]
@@ -90,13 +90,13 @@ cdef inline int celement_set(zmod_poly_t res, zmod_poly_t a, unsigned long n) ex
     """
     cdef unsigned long i
     if a.p <= n:
-        zmod_poly_set(res, a)
+        nmod_poly_set(res, a)
     else:
-        zmod_poly_zero(res)
+        nmod_poly_zero(res)
         for i from 0 <= i < a.length:
-            zmod_poly_set_coeff_ui(res, i, zmod_poly_get_coeff_ui(a, i) % n)
+            nmod_poly_set_coeff_ui(res, i, nmod_poly_get_coeff_ui(a, i) % n)
 
-cdef inline int celement_set_si(zmod_poly_t res, long i, unsigned long n) except -2:
+cdef inline int celement_set_si(nmod_poly_t res, long i, unsigned long n) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(32003)[]
@@ -117,14 +117,14 @@ cdef inline int celement_set_si(zmod_poly_t res, long i, unsigned long n) except
     """
     while i < 0:
         i += n
-    zmod_poly_zero(res)
+    nmod_poly_zero(res)
     if i:
-        zmod_poly_set_coeff_ui(res, 0, <unsigned long>i)
+        nmod_poly_set_coeff_ui(res, 0, <unsigned long>i)
 
-cdef inline long celement_get_si(zmod_poly_t res, unsigned long n) except -2:
+cdef inline long celement_get_si(nmod_poly_t res, unsigned long n) except -2:
     raise NotImplementedError
 
-cdef inline bint celement_is_zero(zmod_poly_t a, unsigned long n) except -2:
+cdef inline bint celement_is_zero(nmod_poly_t a, unsigned long n) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(32003)[]
@@ -140,9 +140,9 @@ cdef inline bint celement_is_zero(zmod_poly_t a, unsigned long n) except -2:
         True
     """
     # is_zero doesn't exist
-    return zmod_poly_degree(a) == -1
+    return nmod_poly_degree(a) == -1
 
-cdef inline bint celement_is_one(zmod_poly_t a, unsigned long n) except -2:
+cdef inline bint celement_is_one(nmod_poly_t a, unsigned long n) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(32003)[]
@@ -158,9 +158,9 @@ cdef inline bint celement_is_one(zmod_poly_t a, unsigned long n) except -2:
         False
     """
 
-    return zmod_poly_is_one(a)
+    return nmod_poly_is_one(a)
 
-cdef inline bint celement_equal(zmod_poly_t a, zmod_poly_t b, unsigned long n) except -2:
+cdef inline bint celement_equal(nmod_poly_t a, nmod_poly_t b, unsigned long n) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(32003)[]
@@ -179,9 +179,9 @@ cdef inline bint celement_equal(zmod_poly_t a, zmod_poly_t b, unsigned long n) e
         sage: (3*2)*x + 7 == 3*(2*x) + 1 + 1
         False
     """
-    return zmod_poly_equal(a, b)
+    return nmod_poly_equal(a, b)
 
-cdef inline int celement_cmp(zmod_poly_t l, zmod_poly_t r, unsigned long n) except -2:
+cdef inline int celement_cmp(nmod_poly_t l, nmod_poly_t r, unsigned long n) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(32003)[]
@@ -215,8 +215,8 @@ cdef inline int celement_cmp(zmod_poly_t l, zmod_poly_t r, unsigned long n) exce
         sage: f < g
         True
     """
-    cdef int deg_right = zmod_poly_degree(r)
-    cdef int degdiff = deg_right - zmod_poly_degree(l)
+    cdef int deg_right = nmod_poly_degree(r)
+    cdef int degdiff = deg_right - nmod_poly_degree(l)
     cdef int i
     cdef unsigned long rcoeff, lcoeff
     if degdiff > 0:
@@ -224,18 +224,18 @@ cdef inline int celement_cmp(zmod_poly_t l, zmod_poly_t r, unsigned long n) exce
     elif degdiff < 0:
         return 1
     else:
-        if zmod_poly_equal(l, r):
+        if nmod_poly_equal(l, r):
             return 0
         i = deg_right
-        rcoeff = zmod_poly_get_coeff_ui(r, i)
-        lcoeff = zmod_poly_get_coeff_ui(l, i)
+        rcoeff = nmod_poly_get_coeff_ui(r, i)
+        lcoeff = nmod_poly_get_coeff_ui(l, i)
         while rcoeff == lcoeff and i > 0:
             i -= 1
-            rcoeff = zmod_poly_get_coeff_ui(r, i)
-            lcoeff = zmod_poly_get_coeff_ui(l, i)
+            rcoeff = nmod_poly_get_coeff_ui(r, i)
+            lcoeff = nmod_poly_get_coeff_ui(l, i)
         return cmp(lcoeff, rcoeff)
 
-cdef long celement_len(zmod_poly_t a, unsigned long n) except -2:
+cdef long celement_len(nmod_poly_t a, unsigned long n) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(32003)[]
@@ -254,9 +254,9 @@ cdef long celement_len(zmod_poly_t a, unsigned long n) except -2:
         sage: P(0).degree()
         -1
     """
-    return <long>zmod_poly_length(a)
+    return <long>nmod_poly_length(a)
 
-cdef inline int celement_add(zmod_poly_t res, zmod_poly_t a, zmod_poly_t b, unsigned long n) except -2:
+cdef inline int celement_add(nmod_poly_t res, nmod_poly_t a, nmod_poly_t b, unsigned long n) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(32003)[]
@@ -267,9 +267,9 @@ cdef inline int celement_add(zmod_poly_t res, zmod_poly_t a, zmod_poly_t b, unsi
         sage: x + 1
         x + 1
     """
-    zmod_poly_add(res, a, b)
+    nmod_poly_add(res, a, b)
 
-cdef inline int celement_sub(zmod_poly_t res, zmod_poly_t a, zmod_poly_t b, unsigned long n) except -2:
+cdef inline int celement_sub(nmod_poly_t res, nmod_poly_t a, nmod_poly_t b, unsigned long n) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(32003)[]
@@ -280,9 +280,9 @@ cdef inline int celement_sub(zmod_poly_t res, zmod_poly_t a, zmod_poly_t b, unsi
         sage: x - 1
         x + 6
     """
-    zmod_poly_sub(res, a, b)
+    nmod_poly_sub(res, a, b)
 
-cdef inline int celement_neg(zmod_poly_t res, zmod_poly_t a, unsigned long n) except -2:
+cdef inline int celement_neg(nmod_poly_t res, nmod_poly_t a, unsigned long n) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(32003)[]
@@ -293,9 +293,9 @@ cdef inline int celement_neg(zmod_poly_t res, zmod_poly_t a, unsigned long n) ex
         sage: -(x + 2)
         6*x + 5
     """
-    zmod_poly_neg(res, a)
+    nmod_poly_neg(res, a)
 
-cdef inline int celement_mul_scalar(zmod_poly_t res, zmod_poly_t p,
+cdef inline int celement_mul_scalar(nmod_poly_t res, nmod_poly_t p,
         object c, unsigned long n) except -2:
     """
     TESTS::
@@ -307,9 +307,9 @@ cdef inline int celement_mul_scalar(zmod_poly_t res, zmod_poly_t p,
         sage: p*983
         29561*x^2 + 18665*x + 17051
     """
-    zmod_poly_scalar_mul(res, p, (<unsigned long>c)%n)
+    nmod_poly_scalar_mul_nmod(res, p, (<unsigned long>c)%n)
 
-cdef inline int celement_mul(zmod_poly_t res, zmod_poly_t a, zmod_poly_t b, unsigned long n) except -2:
+cdef inline int celement_mul(nmod_poly_t res, nmod_poly_t a, nmod_poly_t b, unsigned long n) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(32003)[]
@@ -320,12 +320,12 @@ cdef inline int celement_mul(zmod_poly_t res, zmod_poly_t a, zmod_poly_t b, unsi
         sage: (x + 1) * (x + 2)
         x^2 + 3*x + 2
     """
-    zmod_poly_mul(res, a, b)
+    nmod_poly_mul(res, a, b)
 
-cdef inline int celement_div(zmod_poly_t res, zmod_poly_t a, zmod_poly_t b, unsigned long n) except -2:
+cdef inline int celement_div(nmod_poly_t res, nmod_poly_t a, nmod_poly_t b, unsigned long n) except -2:
     raise NotImplementedError
 
-cdef inline int celement_floordiv(zmod_poly_t res, zmod_poly_t a, zmod_poly_t b, unsigned long n) except -2:
+cdef inline int celement_floordiv(nmod_poly_t res, nmod_poly_t a, nmod_poly_t b, unsigned long n) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(32003)[]
@@ -348,9 +348,9 @@ cdef inline int celement_floordiv(zmod_poly_t res, zmod_poly_t a, zmod_poly_t b,
         sage: (x^2 + 3*x + 2)//(x + 2)
         x + 1
     """
-    zmod_poly_div(res, a, b)
+    nmod_poly_div(res, a, b)
 
-cdef inline int celement_mod(zmod_poly_t res, zmod_poly_t a, zmod_poly_t b, unsigned long n) except -2:
+cdef inline int celement_mod(nmod_poly_t res, nmod_poly_t a, nmod_poly_t b, unsigned long n) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(32003)[]
@@ -381,19 +381,19 @@ cdef inline int celement_mod(zmod_poly_t res, zmod_poly_t a, zmod_poly_t b, unsi
         ...
         ZeroDivisionError
     """
-    cdef zmod_poly_t q
+    cdef nmod_poly_t q
     cdef unsigned long leadcoeff, modulus
 
-    zmod_poly_init(q, n)
-    leadcoeff = zmod_poly_get_coeff_ui(b, zmod_poly_degree(b))
-    modulus = zmod_poly_modulus(b)
-    if (leadcoeff > 1 and z_gcd(modulus,leadcoeff) != 1):
+    nmod_poly_init(q, n)
+    leadcoeff = nmod_poly_get_coeff_ui(b, nmod_poly_degree(b))
+    modulus = nmod_poly_modulus(b)
+    if (leadcoeff > 1 and n_gcd(modulus,leadcoeff) != 1):
         raise ValueError("Leading coefficient of a must be invertible.")
 
-    zmod_poly_divrem(q, res, a, b)
-    zmod_poly_clear(q)
+    nmod_poly_divrem(q, res, a, b)
+    nmod_poly_clear(q)
 
-cdef inline int celement_quorem(zmod_poly_t q, zmod_poly_t r, zmod_poly_t a, zmod_poly_t b, unsigned long n) except -2:
+cdef inline int celement_quorem(nmod_poly_t q, nmod_poly_t r, nmod_poly_t a, nmod_poly_t b, unsigned long n) except -2:
     """
     EXAMPLES:
         sage: R.<x> = Integers(125)[]
@@ -418,17 +418,17 @@ cdef inline int celement_quorem(zmod_poly_t q, zmod_poly_t r, zmod_poly_t a, zmo
     """
     cdef unsigned long leadcoeff, modulus
 
-    leadcoeff = zmod_poly_get_coeff_ui(b, zmod_poly_degree(b))
-    modulus = zmod_poly_modulus(b)
-    if (leadcoeff > 1 and z_gcd(modulus,leadcoeff) != 1):
+    leadcoeff = nmod_poly_get_coeff_ui(b, nmod_poly_degree(b))
+    modulus = nmod_poly_modulus(b)
+    if (leadcoeff > 1 and n_gcd(modulus,leadcoeff) != 1):
         raise ValueError("Leading coefficient of a must be invertible.")
 
-    zmod_poly_divrem(q, r, a, b)
+    nmod_poly_divrem(q, r, a, b)
 
-cdef inline int celement_inv(zmod_poly_t res, zmod_poly_t a, unsigned long n) except -2:
+cdef inline int celement_inv(nmod_poly_t res, nmod_poly_t a, unsigned long n) except -2:
     raise NotImplementedError
 
-cdef inline int celement_pow(zmod_poly_t res, zmod_poly_t x, long e, zmod_poly_t modulus, unsigned long n) except -2:
+cdef inline int celement_pow(nmod_poly_t res, nmod_poly_t x, long e, nmod_poly_t modulus, unsigned long n) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(32003)[]
@@ -480,50 +480,50 @@ cdef inline int celement_pow(zmod_poly_t res, zmod_poly_t x, long e, zmod_poly_t
         sage: f^5 % g
         7231*x + 17274
     """
-    cdef zmod_poly_t pow2
-    cdef zmod_poly_t q
-    cdef zmod_poly_t tmp
+    cdef nmod_poly_t pow2
+    cdef nmod_poly_t q
+    cdef nmod_poly_t tmp
 
-    zmod_poly_init(q, n)
-    zmod_poly_init(tmp, n)
+    nmod_poly_init(q, n)
+    nmod_poly_init(tmp, n)
 
-    if zmod_poly_degree(x) == 1 and zmod_poly_get_coeff_ui(x,0) == 0 and zmod_poly_get_coeff_ui(x,1) == 1:
-        zmod_poly_zero(res)
-        zmod_poly_set_coeff_ui(res,e,1)
+    if nmod_poly_degree(x) == 1 and nmod_poly_get_coeff_ui(x,0) == 0 and nmod_poly_get_coeff_ui(x,1) == 1:
+        nmod_poly_zero(res)
+        nmod_poly_set_coeff_ui(res,e,1)
     elif e == 0:
-        zmod_poly_zero(res)
-        zmod_poly_set_coeff_ui(res,0,1)
+        nmod_poly_zero(res)
+        nmod_poly_set_coeff_ui(res,0,1)
     elif e == 1:
-        zmod_poly_set(res, x)
+        nmod_poly_set(res, x)
     elif e == 2:
-        zmod_poly_sqr(res, x)
+        nmod_poly_sqr(res, x)
     else:
         if res == x:
-            zmod_poly_set(tmp, x)
+            nmod_poly_set(tmp, x)
             x = tmp
-        zmod_poly_init(pow2, n)
-        zmod_poly_set(pow2, x)
+        nmod_poly_init(pow2, n)
+        nmod_poly_set(pow2, x)
         if e % 2:
-            zmod_poly_set(res, x)
+            nmod_poly_set(res, x)
         else:
-            zmod_poly_zero(res)
-            zmod_poly_set_coeff_ui(res, 0, 1)
+            nmod_poly_zero(res)
+            nmod_poly_set_coeff_ui(res, 0, 1)
         e = e >> 1
         while(e != 0):
-            zmod_poly_sqr(pow2, pow2)
+            nmod_poly_sqr(pow2, pow2)
             if e % 2:
-                zmod_poly_mul(res, res, pow2)
+                nmod_poly_mul(res, res, pow2)
             e = e >> 1
             if modulus != NULL:
-                zmod_poly_divrem(q, res, res, modulus)
-        zmod_poly_clear(pow2)
+                nmod_poly_divrem(q, res, res, modulus)
+        nmod_poly_clear(pow2)
 
     if modulus != NULL:
-        zmod_poly_divrem(q, res, res, modulus)
-    zmod_poly_clear(q)
-    zmod_poly_clear(tmp)
+        nmod_poly_divrem(q, res, res, modulus)
+    nmod_poly_clear(q)
+    nmod_poly_clear(tmp)
 
-cdef inline int celement_gcd(zmod_poly_t res, zmod_poly_t a, zmod_poly_t b, unsigned long n) except -2:
+cdef inline int celement_gcd(nmod_poly_t res, nmod_poly_t a, nmod_poly_t b, unsigned long n) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(32003)[]
@@ -563,16 +563,16 @@ cdef inline int celement_gcd(zmod_poly_t res, zmod_poly_t a, zmod_poly_t b, unsi
         True
     """
     if celement_is_zero(b, n):
-        zmod_poly_set(res, a)
+        nmod_poly_set(res, a)
         return 0
 
-    zmod_poly_gcd(res, a, b)
-    cdef unsigned long leadcoeff = zmod_poly_get_coeff_ui(res, zmod_poly_degree(res))
-    cdef unsigned long modulus = zmod_poly_modulus(res)
-    if z_gcd(modulus,leadcoeff) == 1:
-        zmod_poly_make_monic(res, res)
+    nmod_poly_gcd(res, a, b)
+    cdef unsigned long leadcoeff = nmod_poly_get_coeff_ui(res, nmod_poly_degree(res))
+    cdef unsigned long modulus = nmod_poly_modulus(res)
+    if n_gcd(modulus,leadcoeff) == 1:
+        nmod_poly_make_monic(res, res)
 
-cdef inline int celement_xgcd(zmod_poly_t res, zmod_poly_t s, zmod_poly_t t, zmod_poly_t a, zmod_poly_t b, unsigned long n) except -2:
+cdef inline int celement_xgcd(nmod_poly_t res, nmod_poly_t s, nmod_poly_t t, nmod_poly_t a, nmod_poly_t b, unsigned long n) except -2:
     """
     EXAMPLE:
         sage: P.<x> = GF(32003)[]
@@ -611,7 +611,7 @@ cdef inline int celement_xgcd(zmod_poly_t res, zmod_poly_t s, zmod_poly_t t, zmo
         sage: (G//d)*d == G
         True
     """
-    zmod_poly_xgcd(res, s, t, a, b)
+    nmod_poly_xgcd(res, s, t, a, b)
 
 
 cdef factor_helper(Polynomial_zmod_flint poly, bint squarefree=False):
@@ -624,22 +624,22 @@ cdef factor_helper(Polynomial_zmod_flint poly, bint squarefree=False):
         sage: (prod(P.random_element()^i for i in range(5))).squarefree_decomposition()
         (54) * (x^2 + 55*x + 839) * (x^2 + 48*x + 496)^2 * (x^2 + 435*x + 104)^3 * (x^2 + 176*x + 156)^4
     """
-    cdef zmod_poly_factor_t factors_c
-    zmod_poly_factor_init(factors_c)
+    cdef nmod_poly_factor_t factors_c
+    nmod_poly_factor_init(factors_c)
 
     if squarefree:
-        zmod_poly_factor_square_free(factors_c, &poly.x)
+        nmod_poly_factor_squarefree(factors_c, &poly.x)
     else:
-        zmod_poly_factor(factors_c, &poly.x)
+        nmod_poly_factor(factors_c, &poly.x)
 
     factor_list = []
     cdef Polynomial_zmod_flint t
     for i in range(factors_c.num_factors):
         t = poly._new()
-        zmod_poly_swap(&t.x, factors_c.factors[i])
+        nmod_poly_swap(&t.x, factors_c.factors[i])
         factor_list.append((t, factors_c.exponents[i]))
 
-    zmod_poly_factor_clear(factors_c)
+    nmod_poly_factor_clear(factors_c)
 
     return Factorization(factor_list, unit=poly.leading_coefficient(),
             sort=(not squarefree))

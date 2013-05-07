@@ -2,10 +2,10 @@ cdef extern from "zn_poly/zn_poly.h":
      # This header needs to appear before the flint headers.
      pass
 
-from sage.libs.flint.zmod_poly cimport zmod_poly_t, zmod_poly_struct
+from sage.libs.flint.nmod_poly cimport nmod_poly_t, nmod_poly_struct
 from sage.structure.parent cimport Parent
 
-ctypedef zmod_poly_struct celement
+ctypedef nmod_poly_struct celement
 ctypedef unsigned long cparent
 
 include "polynomial_template_header.pxi"

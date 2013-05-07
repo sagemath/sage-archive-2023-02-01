@@ -27,7 +27,8 @@ Polynomial_integer_dense = sage.rings.polynomial.polynomial_integer_dense_ntl.Po
 class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
     def __init__(self, parent, x=None, check=True, is_gen=False, construct = False, absprec = infinity, relprec = infinity):
         """
-        TESTS:
+        TESTS::
+
             sage: K = Qp(13,7)
             sage: R.<t> = K[]
             sage: R([K(13), K(1)])
@@ -183,13 +184,14 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         """
         Recomputes the list of coefficients.
 
-        EXAMPLES:
-        sage: K = Qp(13,7)
-        sage: R.<t> = K[]
-        sage: a = t[0:1]
-        sage: a._comp_list()
-        sage: a
-        0
+        EXAMPLES::
+
+            sage: K = Qp(13,7)
+            sage: R.<t> = K[]
+            sage: a = t[0:1]
+            sage: a._comp_list()
+            sage: a
+            0
         """
         if self.degree() == -1 and self._valbase == infinity:
             self._list = []
@@ -283,17 +285,18 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         than expected since it includes any leading zeros
         that have finite absolute precision.
 
-        EXAMPLES:
-        sage: K = Qp(13,7)
-        sage: R.<t> = K[]
-        sage: a = 2*t^3 + 169*t - 1
-        sage: a
-        (2 + O(13^7))*t^3 + (13^2 + O(13^9))*t + (12 + 12*13 + 12*13^2 + 12*13^3 + 12*13^4 + 12*13^5 + 12*13^6 + O(13^7))
-        sage: a.list()
-        [12 + 12*13 + 12*13^2 + 12*13^3 + 12*13^4 + 12*13^5 + 12*13^6 + O(13^7),
-         13^2 + O(13^9),
-         0,
-         2 + O(13^7)]
+        EXAMPLES::
+
+            sage: K = Qp(13,7)
+            sage: R.<t> = K[]
+            sage: a = 2*t^3 + 169*t - 1
+            sage: a
+            (2 + O(13^7))*t^3 + (13^2 + O(13^9))*t + (12 + 12*13 + 12*13^2 + 12*13^3 + 12*13^4 + 12*13^5 + 12*13^6 + O(13^7))
+            sage: a.list()
+            [12 + 12*13 + 12*13^2 + 12*13^3 + 12*13^4 + 12*13^5 + 12*13^6 + O(13^7),
+             13^2 + O(13^9),
+             0,
+             2 + O(13^7)]
          """
 
         if self._list is None:
@@ -302,7 +305,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
 
     def _repr(self, name=None):
         """
-        TESTS:
+        TESTS::
+
             sage: k = Qp(5,10)
             sage: R.<x> = k[]
             sage: f = R([k(0,-3), 0, k(0,-1)]); f
@@ -349,25 +353,26 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
 
         The content of the exact zero polynomial is zero.
 
-        EXAMPLES:
-        sage: K = Zp(13,7)
-        sage: R.<t> = K[]
-        sage: a = 13^7*t^3 + K(169,4)*t - 13^4
-        sage: a.content()
-        13^2 + O(13^9)
-        sage: R(0).content()
-        0
-        sage: P.<x> = ZZ[]
-        sage: f = x + 2
-        sage: f.content()
-        1
-        sage: fp = f.change_ring(pAdicRing(2, 10))
-        sage: fp
-        (1 + O(2^10))*x + (2 + O(2^11))
-        sage: fp.content()
-        1 + O(2^10)
-        sage: (2*fp).content()
-        2 + O(2^11)
+        EXAMPLES::
+
+            sage: K = Zp(13,7)
+            sage: R.<t> = K[]
+            sage: a = 13^7*t^3 + K(169,4)*t - 13^4
+            sage: a.content()
+            13^2 + O(13^9)
+            sage: R(0).content()
+            0
+            sage: P.<x> = ZZ[]
+            sage: f = x + 2
+            sage: f.content()
+            1
+            sage: fp = f.change_ring(pAdicRing(2, 10))
+            sage: fp
+            (1 + O(2^10))*x + (2 + O(2^11))
+            sage: fp.content()
+            1 + O(2^10)
+            sage: (2*fp).content()
+            2 + O(2^11)
         """
         if self.base_ring().is_field():
             raise TypeError, "ground ring is a field.  Answer is only defined up to units."
@@ -385,12 +390,13 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
               the same coefficients (ie same values and precisions): it will depend on how
               the polynomials are created.
 
-        EXAMPLES:
-        sage: K = Qp(13,7)
-        sage: R.<t> = K[]
-        sage: a = 13^7*t^3 + K(169,4)*t - 13^4
-        sage: a.lift()
-        62748517*t^3 + 169*t - 28561
+        EXAMPLES::
+
+            sage: K = Qp(13,7)
+            sage: R.<t> = K[]
+            sage: a = 13^7*t^3 + K(169,4)*t - 13^4
+            sage: a.lift()
+            62748517*t^3 + 169*t - 28561
         """
         return self.base_ring().prime_pow(self._valbase) * self._poly
 
@@ -445,15 +451,16 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         """
         Returns the sum of self and right.
 
-        EXAMPLES:
-        sage: K = Qp(13,7)
-        sage: R.<t> = K[]
-        sage: a = t^4 + 17*t^2 + 1
-        sage: b = -t^4 + 9*t^2 + 13*t - 1
-        sage: c = a + b; c
-        (O(13^7))*t^4 + (2*13 + O(13^7))*t^2 + (13 + O(13^8))*t + (O(13^7))
-        sage: c.list()
-        [O(13^7), 13 + O(13^8), 2*13 + O(13^7), 0, O(13^7)]
+        EXAMPLES::
+
+            sage: K = Qp(13,7)
+            sage: R.<t> = K[]
+            sage: a = t^4 + 17*t^2 + 1
+            sage: b = -t^4 + 9*t^2 + 13*t - 1
+            sage: c = a + b; c
+            (O(13^7))*t^4 + (2*13 + O(13^7))*t^2 + (13 + O(13^8))*t + (O(13^7))
+            sage: c.list()
+            [O(13^7), 13 + O(13^8), 2*13 + O(13^7), 0, O(13^7)]
         """
         selfpoly = self._poly
         rightpoly = right._poly
@@ -478,15 +485,16 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         """
         Returns the sum of self and right.
 
-        EXAMPLES:
-        sage: K = Qp(13,7)
-        sage: R.<t> = K[]
-        sage: a = t^4 + 17*t^2 + 1
-        sage: b = t^4 - 9*t^2 - 13*t + 1
-        sage: c = a - b; c
-        (O(13^7))*t^4 + (2*13 + O(13^7))*t^2 + (13 + O(13^8))*t + (O(13^7))
-        sage: c.list()
-        [O(13^7), 13 + O(13^8), 2*13 + O(13^7), 0, O(13^7)]
+        EXAMPLES::
+
+            sage: K = Qp(13,7)
+            sage: R.<t> = K[]
+            sage: a = t^4 + 17*t^2 + 1
+            sage: b = t^4 - 9*t^2 - 13*t + 1
+            sage: c = a - b; c
+            (O(13^7))*t^4 + (2*13 + O(13^7))*t^2 + (13 + O(13^8))*t + (O(13^7))
+            sage: c.list()
+            [O(13^7), 13 + O(13^8), 2*13 + O(13^7), 0, O(13^7)]
         """
         selfpoly = self._poly
         rightpoly = right._poly
@@ -549,25 +557,26 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         may very well change as we do more tests on the relative time
         requirements of these operations.
 
-        EXAMPLES:
-        sage: K = Qp(13,7)
-        sage: R.<t> = K[]
-        sage: a = t^4 + 17*t^2 + 1
-        sage: b = -t^4 + 9*t^2 + 13*t - 1
-        sage: c = a + b; c
-        (O(13^7))*t^4 + (2*13 + O(13^7))*t^2 + (13 + O(13^8))*t + (O(13^7))
-        sage: d = R([K(1,4), K(2, 6), K(1, 5)]); d
-        (1 + O(13^5))*t^2 + (2 + O(13^6))*t + (1 + O(13^4))
-        sage: e = c * d; e
-        (O(13^7))*t^6 + (O(13^7))*t^5 + (2*13 + O(13^6))*t^4 + (5*13 + O(13^6))*t^3 + (4*13 + O(13^5))*t^2 + (13 + O(13^5))*t + (O(13^7))
-        sage: e.list()
-        [O(13^7),
-         13 + O(13^5),
-         4*13 + O(13^5),
-         5*13 + O(13^6),
-         2*13 + O(13^6),
-         O(13^7),
-         O(13^7)]
+        EXAMPLES::
+
+            sage: K = Qp(13,7)
+            sage: R.<t> = K[]
+            sage: a = t^4 + 17*t^2 + 1
+            sage: b = -t^4 + 9*t^2 + 13*t - 1
+            sage: c = a + b; c
+            (O(13^7))*t^4 + (2*13 + O(13^7))*t^2 + (13 + O(13^8))*t + (O(13^7))
+            sage: d = R([K(1,4), K(2, 6), K(1, 5)]); d
+            (1 + O(13^5))*t^2 + (2 + O(13^6))*t + (1 + O(13^4))
+            sage: e = c * d; e
+            (O(13^7))*t^6 + (O(13^7))*t^5 + (2*13 + O(13^6))*t^4 + (5*13 + O(13^6))*t^3 + (4*13 + O(13^5))*t^2 + (13 + O(13^5))*t + (O(13^7))
+            sage: e.list()
+            [O(13^7),
+             13 + O(13^5),
+             4*13 + O(13^5),
+             5*13 + O(13^6),
+             2*13 + O(13^6),
+             O(13^7),
+             O(13^7)]
         """
         self._normalize()
         right._normalize()
@@ -591,12 +600,13 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         """
         Returns self multiplied by a constant
 
-        EXAMPLES:
-        sage: K = Qp(13,7)
-        sage: R.<t> = K[]
-        sage: a = t^4 + K(13,5)*t^2 + 13
-        sage: K(13,7) * a
-        (13 + O(13^7))*t^4 + (13^2 + O(13^6))*t^2 + (13^2 + O(13^8))
+        EXAMPLES::
+
+            sage: K = Qp(13,7)
+            sage: R.<t> = K[]
+            sage: a = t^4 + K(13,5)*t^2 + 13
+            sage: K(13,7) * a
+            (13 + O(13^7))*t^4 + (13^2 + O(13^6))*t^2 + (13^2 + O(13^8))
         """
         return None
         # The code below has never been tested and is somehow subtly broken.
@@ -617,12 +627,13 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         """
         Returns the negation of self.
 
-        EXAMPLES:
-        sage: K = Qp(13,2)
-        sage: R.<t> = K[]
-        sage: a = t^4 + 13*t^2 + 4
-        sage: -a
-        (12 + 12*13 + O(13^2))*t^4 + (12*13 + 12*13^2 + O(13^3))*t^2 + (9 + 12*13 + O(13^2))
+        EXAMPLES::
+
+            sage: K = Qp(13,2)
+            sage: R.<t> = K[]
+            sage: a = t^4 + 13*t^2 + 4
+            sage: -a
+            (12 + 12*13 + O(13^2))*t^4 + (12*13 + 12*13^2 + O(13^3))*t^2 + (9 + 12*13 + O(13^2))
         """
         return Polynomial_padic_capped_relative_dense(self.parent(), (-self._poly, self._valbase, self._relprecs, False, self._valaddeds, None), construct = True)
 
@@ -630,12 +641,13 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         """
         Returns a new polynomials whose coefficients are multiplied by p^shift.
 
-        EXAMPLES:
-        sage: K = Qp(13, 4)
-        sage: R.<t> = K[]
-        sage: a = t + 52
-        sage: a.lshift_coeffs(3)
-        (13^3 + O(13^7))*t + (4*13^4 + O(13^8))
+        EXAMPLES::
+
+            sage: K = Qp(13, 4)
+            sage: R.<t> = K[]
+            sage: a = t + 52
+            sage: a.lshift_coeffs(3)
+            (13^3 + O(13^7))*t + (4*13^4 + O(13^8))
         """
         if shift < 0:
             return self.rshift_coeffs(-shift, no_list)
@@ -651,19 +663,20 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
 
         NOTES: Type Qp(5)(0).__rshift__? for more information.
 
-        EXAMPLES:
-        sage: K = Zp(13, 4)
-        sage: R.<t> = K[]
-        sage: a = t^2 + K(13,3)*t + 169; a
-        (1 + O(13^4))*t^2 + (13 + O(13^3))*t + (13^2 + O(13^6))
-        sage: b = a.rshift_coeffs(1); b
-        (O(13^3))*t^2 + (1 + O(13^2))*t + (13 + O(13^5))
-        sage: b.list()
-        [13 + O(13^5), 1 + O(13^2), O(13^3)]
-        sage: b = a.rshift_coeffs(2); b
-        (O(13^2))*t^2 + (O(13))*t + (1 + O(13^4))
-        sage: b.list()
-        [1 + O(13^4), O(13), O(13^2)]
+        EXAMPLES::
+
+            sage: K = Zp(13, 4)
+            sage: R.<t> = K[]
+            sage: a = t^2 + K(13,3)*t + 169; a
+            (1 + O(13^4))*t^2 + (13 + O(13^3))*t + (13^2 + O(13^6))
+            sage: b = a.rshift_coeffs(1); b
+            (O(13^3))*t^2 + (1 + O(13^2))*t + (13 + O(13^5))
+            sage: b.list()
+            [13 + O(13^5), 1 + O(13^2), O(13^3)]
+            sage: b = a.rshift_coeffs(2); b
+            (O(13^2))*t^2 + (O(13))*t + (1 + O(13^4))
+            sage: b.list()
+            [1 + O(13^4), O(13), O(13^2)]
         """
         if shift < 0:
             return self.lshift_coeffs(-shift, no_list) # We can't just absorb this into the next if statement because we allow rshift to preserve _normalized
@@ -763,7 +776,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         Returns the degree of self, i.e., the largest $n$ so that the
         coefficient of $x^n$ does not compare equal to $0$.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K = Qp(3,10)
             sage: x = O(3^5)
             sage: li =[3^i * x for i in range(0,5)]; li
@@ -873,21 +887,22 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         If n is None, defaults to the degree of self.
         If n is smaller than the degree of self, some coefficients will be discarded.
 
-        EXAMPLES:
-        sage: K = Qp(13,7)
-        sage: R.<t> = K[]
-        sage: f = t^3 + 4*t; f
-        (1 + O(13^7))*t^3 + (4 + O(13^7))*t
-        sage: f.reverse()
-        (4 + O(13^7))*t^2 + (1 + O(13^7))
-        sage: f.reverse(3)
-        (4 + O(13^7))*t^2 + (1 + O(13^7))
-        sage: f.reverse(2)
-        (4 + O(13^7))*t
-        sage: f.reverse(4)
-        (4 + O(13^7))*t^3 + (1 + O(13^7))*t
-        sage: f.reverse(6)
-        (4 + O(13^7))*t^5 + (1 + O(13^7))*t^3
+        EXAMPLES::
+
+            sage: K = Qp(13,7)
+            sage: R.<t> = K[]
+            sage: f = t^3 + 4*t; f
+            (1 + O(13^7))*t^3 + (4 + O(13^7))*t
+            sage: f.reverse()
+            (4 + O(13^7))*t^2 + (1 + O(13^7))
+            sage: f.reverse(3)
+            (4 + O(13^7))*t^2 + (1 + O(13^7))
+            sage: f.reverse(2)
+            (4 + O(13^7))*t
+            sage: f.reverse(4)
+            (4 + O(13^7))*t^3 + (1 + O(13^7))*t
+            sage: f.reverse(6)
+            (4 + O(13^7))*t^5 + (1 + O(13^7))*t^3
         """
         if n is None:
             n = self._poly.degree()
@@ -913,7 +928,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
 
         NOTE:  Need to write this function for integer polynomials before this works.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: K = Zp(13, 5)
             sage: R.<t> = K[]
             sage: f = t^3 + K(13, 3) * t
@@ -990,14 +1006,15 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         """
         Returns a list of the Newton slopes of this polynomial.  These are the valuations of the roots of this polynomial.
 
-        EXAMPLES:
-        sage: K = Qp(13)
-        sage: R.<t> = K[]
-        sage: f = t^4 + 13^5*t^2 + 4*13^2*t - 13^7
-        sage: f.newton_polygon()
-        [(0, 7), (1, 2), (4, 0)]
-        sage: f.newton_slopes()
-        [5, 2/3, 2/3, 2/3]
+        EXAMPLES::
+
+            sage: K = Qp(13)
+            sage: R.<t> = K[]
+            sage: f = t^4 + 13^5*t^2 + 4*13^2*t - 13^7
+            sage: f.newton_polygon()
+            [(0, 7), (1, 2), (4, 0)]
+            sage: f.newton_slopes()
+            [5, 2/3, 2/3, 2/3]
         """
         polygon = self.newton_polygon()
         if polygon == []:
@@ -1016,12 +1033,13 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         NOTES:
         The vertices are listed so that the first coordinates are strictly increasing, up to the polynomial's degree (not the limit of available precision information).  Also note that if some coefficients have very low precision an error is raised.
 
-        EXAMPLES:
-        sage: K = Qp(13)
-        sage: R.<t> = K[]
-        sage: f = t^4 + 13^5*t^2 + 4*13^2*t - 13^7
-        sage: f.newton_polygon()
-        [(0, 7), (1, 2), (4, 0)]
+        EXAMPLES::
+
+            sage: K = Qp(13)
+            sage: R.<t> = K[]
+            sage: f = t^4 + 13^5*t^2 + 4*13^2*t - 13^7
+            sage: f.newton_polygon()
+            [(0, 7), (1, 2), (4, 0)]
         """
         if self._poly == 0:
             return []

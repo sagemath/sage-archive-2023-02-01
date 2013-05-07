@@ -61,13 +61,13 @@ cdef extern from "fmpq_poly.h":
     void fmpq_poly_mul(fmpq_poly_t, fmpq_poly_t, fmpq_poly_t)
 
     void fmpq_poly_divrem(fmpq_poly_t, fmpq_poly_t, fmpq_poly_t, fmpq_poly_t)
-    void fmpq_poly_floordiv(fmpq_poly_t, fmpq_poly_t, fmpq_poly_t)
-    void fmpq_poly_mod(fmpq_poly_t, fmpq_poly_t, fmpq_poly_t)
+    void fmpq_poly_div(fmpq_poly_t, fmpq_poly_t, fmpq_poly_t)
+    void fmpq_poly_rem(fmpq_poly_t, fmpq_poly_t, fmpq_poly_t)
 
-    void fmpq_poly_power(fmpq_poly_t, fmpq_poly_t, unsigned long)
+    void fmpq_poly_pow(fmpq_poly_t, fmpq_poly_t, unsigned long)
 
-    void fmpq_poly_left_shift(fmpq_poly_t, fmpq_poly_t, unsigned long)
-    void fmpq_poly_right_shift(fmpq_poly_t, fmpq_poly_t, unsigned long)
+    void fmpq_poly_shift_left(fmpq_poly_t, fmpq_poly_t, unsigned long)
+    void fmpq_poly_shift_right(fmpq_poly_t, fmpq_poly_t, unsigned long)
 
     void fmpq_poly_gcd(fmpq_poly_t, fmpq_poly_t, fmpq_poly_t)
     void fmpq_poly_xgcd(fmpq_poly_t, fmpq_poly_t, fmpq_poly_t, fmpq_poly_t, fmpq_poly_t)
@@ -85,11 +85,11 @@ cdef extern from "fmpq_poly.h":
 
     void fmpq_poly_compose(fmpq_poly_t, fmpq_poly_t, fmpq_poly_t)
 
-    void fmpq_poly_getslice(fmpq_poly_t, fmpq_poly_t, unsigned long, unsigned long)
+    void fmpq_poly_get_slice(fmpq_poly_t, fmpq_poly_t, unsigned long, unsigned long)
     void fmpq_poly_truncate(fmpq_poly_t, fmpq_poly_t, unsigned long)
     void fmpq_poly_reverse(fmpq_poly_t, fmpq_poly_t, unsigned long)
 
-    void _fmpq_poly_from_list(fmpq_poly_t, mpq_t *, unsigned long)
+    void fmpq_poly_set_array_mpq(fmpq_poly_t, mpq_t *, unsigned long)
     void fmpq_poly_from_string(fmpq_poly_t, char *)
     char * fmpq_poly_to_string(fmpq_poly_t, char *)
     char * fmpq_poly_to_string_pretty(fmpq_poly_t, char *)

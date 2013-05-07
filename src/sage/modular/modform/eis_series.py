@@ -162,7 +162,7 @@ def eisenstein_series_qexp(k, prec = 10, K=QQ, var='q', normalization='linear'):
         # This used to work with check=False, but that can only be regarded as
         # an improbable lucky miracle. Enabling checking is a noticeable speed
         # regression; the morally right fix would be to expose FLINT's
-        # fmpz_poly_to_zmod_poly command (at least for word-sized N).
+        # fmpz_poly_to_nmod_poly command (at least for word-sized N).
         if a0fac is not None:
             return a0fac*R(eisenstein_series_poly(k, prec).list(), prec=prec, check=True)
         else:

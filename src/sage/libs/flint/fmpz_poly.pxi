@@ -1,7 +1,7 @@
 include "fmpz.pxi"
 include "../ntl/decl.pxi"
 
-cdef extern from "FLINT/fmpz_poly.h":
+cdef extern from "flint/fmpz_poly.h":
 
     ctypedef void* fmpz_poly_t
 
@@ -57,14 +57,14 @@ cdef extern from "FLINT/fmpz_poly.h":
     void fmpz_poly_scalar_mul_mpz(fmpz_poly_t output, fmpz_poly_t poly,
             mpz_t x)
 
-    void fmpz_poly_scalar_div_exact_ui(fmpz_poly_t output, fmpz_poly_t poly, \
+    void fmpz_poly_scalar_divexact_ui(fmpz_poly_t output, fmpz_poly_t poly, \
             unsigned long x)
-    void fmpz_poly_scalar_div_exact_si(fmpz_poly_t output, fmpz_poly_t poly, \
+    void fmpz_poly_scalar_divexact_si(fmpz_poly_t output, fmpz_poly_t poly, \
             long x)
-    void fmpz_poly_scalar_div_exact_fmpz(fmpz_poly_t output, fmpz_poly_t poly, \
+    void fmpz_poly_scalar_divexact_fmpz(fmpz_poly_t output, fmpz_poly_t poly, \
             fmpz_t x)
 
-    void fmpz_poly_scalar_div_mpz( fmpz_poly_t output, fmpz_poly_t poly, mpz_t x)
+    void fmpz_poly_scalar_fdiv_mpz( fmpz_poly_t output, fmpz_poly_t poly, mpz_t x)
 
     void fmpz_poly_div(fmpz_poly_t Q, fmpz_poly_t A, fmpz_poly_t B)
     void fmpz_poly_divrem(fmpz_poly_t Q, fmpz_poly_t R, fmpz_poly_t A, \
@@ -77,19 +77,19 @@ cdef extern from "FLINT/fmpz_poly.h":
 
     int fmpz_poly_equal(fmpz_poly_t poly1, fmpz_poly_t poly2)
 
-    bint fmpz_poly_from_string(fmpz_poly_t poly, char* s)
-    char* fmpz_poly_to_string(fmpz_poly_t poly)
+    bint fmpz_poly_set_str(fmpz_poly_t poly, char* s)
+    char* fmpz_poly_get_str(fmpz_poly_t poly)
     void fmpz_poly_print(fmpz_poly_t poly)
     bint fmpz_poly_read(fmpz_poly_t poly)
 
-    void fmpz_poly_power(fmpz_poly_t output, fmpz_poly_t poly, \
+    void fmpz_poly_pow(fmpz_poly_t output, fmpz_poly_t poly, \
             unsigned long exp)
-    void fmpz_poly_power_trunc_n(fmpz_poly_t output, fmpz_poly_t poly, \
+    void fmpz_poly_pow_trunc(fmpz_poly_t output, fmpz_poly_t poly, \
             unsigned long exp, unsigned long n)
 
-    void fmpz_poly_left_shift ( fmpz_poly_t output ,
+    void fmpz_poly_shift_left ( fmpz_poly_t output ,
                                 fmpz_poly_t poly , unsigned long n )
-    void fmpz_poly_right_shift ( fmpz_poly_t output ,
+    void fmpz_poly_shift_right ( fmpz_poly_t output ,
                                  fmpz_poly_t poly , unsigned long n )
 
     void fmpz_poly_derivative ( fmpz_poly_t der , fmpz_poly_t poly )
@@ -108,8 +108,8 @@ cdef extern from "FLINT/fmpz_poly.h":
 
     void fmpz_poly_invmod(fmpz_t d, fmpz_poly_t H, fmpz_poly_t poly1, fmpz_poly_t poly2)
     void fmpz_poly_derivative(fmpz_poly_t der, fmpz_poly_t poly)
-    void fmpz_poly_evaluate(fmpz_t output, fmpz_poly_t poly, fmpz_t val)
+    void fmpz_poly_evaluate_fmpz(fmpz_t output, fmpz_poly_t poly, fmpz_t val)
     void fmpz_poly_compose(fmpz_poly_t output, fmpz_poly_t f, fmpz_poly_t g)
-    void fmpz_poly_scalar_div_ui(fmpz_poly_t output, fmpz_poly_t poly, unsigned long x)
+    void fmpz_poly_scalar_fdiv_ui(fmpz_poly_t output, fmpz_poly_t poly, unsigned long x)
 
     unsigned long fmpz_poly_max_limbs(fmpz_poly_t poly)

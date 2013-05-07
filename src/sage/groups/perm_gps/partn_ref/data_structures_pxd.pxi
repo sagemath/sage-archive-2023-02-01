@@ -13,8 +13,8 @@ include 'sage/misc/bitset_pxd.pxi'
 cdef extern from "stdlib.h":
     int rand()
 
-cdef extern from "FLINT/long_extras.h":
-    int z_isprime(unsigned long n)
+cdef extern from "flint/ulong_extras.h":
+    int n_is_prime(unsigned long n)
 
 cdef enum:
     # The following is for the automorphism group computation, says what the

@@ -1453,7 +1453,7 @@ cdef bint SC_is_giant(int n, int num_perms, int *perms, float p, bitset_t suppor
             if OP.parent[i] == i:
                 q = OP.size[i]
                 if m < 2*q and q < m-2:
-                    if z_isprime(q):
+                    if n_is_prime(q):
                         sage_free(perm)
                         OP_dealloc(OP)
                         return True

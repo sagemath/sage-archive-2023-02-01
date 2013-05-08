@@ -11,7 +11,7 @@ import tempfile
 import types
 
 from cStringIO import StringIO
-from subprocess import call, check_output, CalledProcessError
+from subprocess import call, check_output
 
 from sage.env import SAGE_DOT_GIT, SAGE_REPO, DOT_SAGE
 
@@ -916,8 +916,6 @@ class GitInterface(object):
             if branch.startswith('refs/heads/'):
                 return branch[11:]
             int(branch, 16)
-        except CalledProcessError:
-            return None
         except ValueError:
             raise RuntimeError('HEAD is bizarre!')
         else:

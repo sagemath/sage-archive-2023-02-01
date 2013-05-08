@@ -54,9 +54,6 @@ class Config(collections.MutableMapping):
 
         sage: dev._config
         Config('''
-        [git]
-        dot_git = ...
-        doctest = ...
         [trac]
         username = doctest
         ''')
@@ -77,7 +74,7 @@ class Config(collections.MutableMapping):
         EXAMPLES::
 
             sage: repr(dev._config)
-            "Config('''\n[git]\ndot_git = ...\ndoctest = ...\n[trac]\nusername = doctest\n''')"
+            "Config('''\n[trac]\nusername = doctest\n''')"
         """
         return "Config('''\n"+"\n".join([ "[%s]\n"%s+"\n".join(["%s = %s"%(o,self[s][o]) for o in self[s] ]) for s in self ])+"\n''')"
 
@@ -94,9 +91,6 @@ class Config(collections.MutableMapping):
             sage: c._read_config()
             sage: c
             Config('''
-            [git]
-            dot_git = ...
-            doctest = ...
             [trac]
             username = doctest
             ''')
@@ -130,10 +124,9 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: dev._config['git']
+            sage: dev._config['trac']
             IndexableForSection('''
-            dot_git = ...
-            doctest = ...
+            username = doctest
             ''')
             sage: dev._config['tig']
             Traceback (most recent call last):
@@ -176,9 +169,9 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: 'git' in dev._config
+            sage: 'trac' in dev._config
             True
-            sage: 'notgit' in dev._config
+            sage: 'nottrac' in dev._config
             False
         """
         return section in self._config.sections()
@@ -190,7 +183,7 @@ class Config(collections.MutableMapping):
         EXAMPLES::
 
             sage: list(dev._config)
-            ['git', 'trac']
+            ['trac']
 
         """
         return iter(self._config.sections())
@@ -221,7 +214,7 @@ class Config(collections.MutableMapping):
         EXAMPLES::
 
             sage: len(dev._config)
-            2
+            1
         """
         return len(self._config.sections())
 
@@ -1787,19 +1780,11 @@ def doctest_config():
         sage: from sage.dev.sagedev import doctest_config
         sage: doctest_config()
         Config('''
-        [git]
-        dot_git = ...
-        doctest = ...
         [trac]
         username = doctest
         ''')
     """
     ret = Config(devrc = tempfile.NamedTemporaryFile().name)
-    tmp_dir = tempfile.mkdtemp()
-    atexit.register(shutil.rmtree, tmp_dir)
-    ret['git'] = {}
-    ret['git']['dot_git'] = os.path.join(tmp_dir, '.git')
-    ret['git']['doctest'] = tmp_dir
     ret['trac'] = {}
     ret['trac']['username'] = 'doctest'
     return ret

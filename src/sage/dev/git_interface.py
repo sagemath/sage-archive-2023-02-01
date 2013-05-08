@@ -6,6 +6,8 @@ import cPickle
 import functools
 import os
 import random
+import shutil
+import tempfile
 import types
 
 from cStringIO import StringIO
@@ -519,8 +521,9 @@ class GitInterface(object):
         self._gitcmd  = self._config.get('gitcmd', 'git')
         self._repo    = self._config.get('repo', SAGE_REPO)
 
-        if 'doctest' in self._config:
-            self._doctest = self._config['doctest']
+        if 'doctest' == self._sagedev.trac._config.get('username', None):
+            self._tmp_dir = tempfile.mkdtemp()
+            self._dot_git = os.path.join(self._tmp_dir, '.git')
             self._prep_doctest_repo()
 
         if not os.path.exists(self._dot_git):
@@ -540,12 +543,18 @@ class GitInterface(object):
         self._dependencies = SavingDict(dependencies_file, default=tuple)
         self._remote = SavingDict(remote_branches_file)
 
+    def __del__(self):
+        try:
+            shutil.rmtree(self._tmp_dir)
+        except AttributeError:
+            pass
+
     def _prep_doctest_repo(self):
         """
         creates a fake repository at directory for doctesting
         """
         import time
-        os.chdir(self._doctest)
+        os.chdir(self._tmp_dir)
 
         self.execute_silent('init')
         with open('testfile', 'w') as f:
@@ -725,7 +734,7 @@ class GitInterface(object):
             sage: from sage.dev.sagedev import SageDev, doctest_config
             sage: import os
             sage: git = SageDev(doctest_config()).git
-            sage: with open(os.path.join(git._doctest, 'testfile'), 'w') as f:
+            sage: with open(os.path.join(git._tmp_dir, 'testfile'), 'w') as f:
             ....:     f.write('modified this file\n')
             sage: git.has_uncommitted_changes()
             True
@@ -842,7 +851,7 @@ class GitInterface(object):
             sage: git = SageDev(doctest_config()).git
             sage: git.has_uncommitted_changes()
             False
-            sage: with open(os.path.join(git._doctest, 'testfile'), 'w') as f:
+            sage: with open(os.path.join(git._tmp_dir, 'testfile'), 'w') as f:
             ....:     f.write('modified this file\n')
             sage: git.has_uncommitted_changes()
             True

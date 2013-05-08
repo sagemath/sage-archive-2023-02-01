@@ -1790,7 +1790,7 @@ class FilteredCombinatorialClass(CombinatorialClass):
         TESTS::
 
             sage: Permutations(3).filter(lambda x: x.avoids([1,2]))
-            Filtered sublass of Standard permutations of 3
+            Filtered subclass of Standard permutations of 3
         """
         self.f = f
         self.combinatorial_class = combinatorial_class
@@ -1802,7 +1802,7 @@ class FilteredCombinatorialClass(CombinatorialClass):
 
             sage: P = Permutations(3).filter(lambda x: x.avoids([1,2]))
             sage: P.__repr__()
-            'Filtered sublass of Standard permutations of 3'
+            'Filtered subclass of Standard permutations of 3'
             sage: P._name = 'Permutations avoiding [1, 2]'
             sage: P.__repr__()
             'Permutations avoiding [1, 2]'
@@ -1810,7 +1810,7 @@ class FilteredCombinatorialClass(CombinatorialClass):
         if self._name:
             return self._name
         else:
-            return "Filtered sublass of " + repr(self.combinatorial_class)
+            return "Filtered subclass of " + repr(self.combinatorial_class)
 
     def __contains__(self, x):
         """

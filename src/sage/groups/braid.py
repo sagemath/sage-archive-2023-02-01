@@ -63,17 +63,11 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.misc.cachefunc import cached_method
 from sage.groups.free_group import FreeGroup, is_FreeGroup
-from sage.rings.integer import Integer
-from sage.rings.integer_ring import IntegerRing
-from sage.functions.generalized import sign
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.matrix.constructor import identity_matrix, matrix
 from sage.combinat.permutation import Permutation
 from sage.categories.action import Action
 from sage.sets.set import Set
-from sage.groups.perm_gps.permgroup import PermutationGroup
-from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-from sage.misc.cachefunc import cached_method
 from sage.groups.finitely_presented import FinitelyPresentedGroup, FinitelyPresentedGroupElement
 
 
@@ -268,6 +262,7 @@ class Braid(FinitelyPresentedGroupElement):
             sage: B = BraidGroup(4, 's')
             sage: b = B([1, 2, 3, 1, 2, 1])
             sage: b.plot()
+            sage: b.plot(color=["red","blue","red","blue"])
 
             sage: B.<s,t> = BraidGroup(3)
             sage: b = t^-1*s^2
@@ -365,6 +360,8 @@ class Braid(FinitelyPresentedGroupElement):
             sage: B = BraidGroup(4, 's')
             sage: b = B([1, 2, 3, 1, 2, 1])
             sage: b.plot3d()
+            sage: b.plot3d(color="red")
+            sage: b.plot3d(color=["red","blue","red","blue"])
         """
         from sage.plot.plot3d.shapes2 import bezier3d
         from sage.plot.colors import rainbow

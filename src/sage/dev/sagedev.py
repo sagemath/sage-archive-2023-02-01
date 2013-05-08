@@ -56,6 +56,9 @@ class Config(collections.MutableMapping):
         Config('''
         [git]
         dot_git = ...
+        doctest = ...
+        [trac]
+        username = doctest
         ''')
 
     """
@@ -93,6 +96,9 @@ class Config(collections.MutableMapping):
             Config('''
             [git]
             dot_git = ...
+            doctest = ...
+            [trac]
+            username = doctest
             ''')
         """
         if os.path.exists(self._devrc):
@@ -127,6 +133,7 @@ class Config(collections.MutableMapping):
             sage: dev._config['git']
             IndexableForSection('''
             dot_git = ...
+            doctest = ...
             ''')
             sage: dev._config['tig']
             Traceback (most recent call last):
@@ -1113,23 +1120,23 @@ class SageDev(object):
         EXAMPLES::
 
             sage: dev._detect_patch_diff_format(
-            ... ["diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py"])
+            ....:     ["diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py"])
             'hg'
             sage: dev._detect_patch_diff_format(
-            ... ["diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi"])
+            ....:     ["diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi"])
             'git'
 
             sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: dev._detect_patch_diff_format(
-            ...       open(os.path.join(
-            ...               SAGE_SRC,"sage","dev","data","trac_8703-trees-fh.patch"
-            ...           )).read().splitlines())
+            ....:     open(os.path.join(
+            ....:             SAGE_SRC,"sage","dev","data","trac_8703-trees-fh.patch"
+            ....:         )).read().splitlines())
             'git'
             sage: dev._detect_patch_diff_format(
-            ...       open(os.path.join(
-            ...               SAGE_SRC,"sage","dev","data","diff.patch"
-            ...           )).read().splitlines())
+            ....:     open(os.path.join(
+            ....:             SAGE_SRC,"sage","dev","data","diff.patch"
+            ....:         )).read().splitlines())
             'hg'
 
         TESTS::
@@ -1183,27 +1190,27 @@ class SageDev(object):
         EXAMPLES::
 
             sage: dev._detect_patch_path_format(
-            ... ["diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py"])
+            ....:     ["diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py"])
             'old'
             sage: dev._detect_patch_path_format(
-            ... ["diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py"],
-            ... diff_format="git")
+            ....:     ["diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py"],
+            ....:     diff_format="git")
             Traceback (most recent call last):
             ...
             NotImplementedError: Failed to detect path format.
             sage: dev._detect_patch_path_format(
-            ... ["diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi"])
+            ....:     ["diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi"])
             'old'
             sage: dev._detect_patch_path_format(
-            ... ["diff --git a/src/sage/rings/padics/FM_template.pxi b/src/sage/rings/padics/FM_template.pxi"])
+            ....:     ["diff --git a/src/sage/rings/padics/FM_template.pxi b/src/sage/rings/padics/FM_template.pxi"])
             'new'
 
             sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: dev._detect_patch_path_format(
-            ...       open(os.path.join(
-            ...               SAGE_SRC,"sage","dev","data","trac_8703-trees-fh.patch"
-            ...           )).read().splitlines())
+            ....:     open(os.path.join(
+            ....:             SAGE_SRC,"sage","dev","data","trac_8703-trees-fh.patch"
+            ....:         )).read().splitlines())
             'old'
 
         """
@@ -1266,72 +1273,72 @@ class SageDev(object):
         Paths in the old format::
 
             sage: dev._rewrite_patch_diff_paths(
-            ... ['diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py'],
-            ... to_format="old")
+            ....:     ['diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py'],
+            ....:     to_format="old")
             ['diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py']
             sage: dev._rewrite_patch_diff_paths(
-            ... ['diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi'],
-            ... to_format="old")
+            ....:     ['diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi'],
+            ....:     to_format="old")
             ['diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi']
             sage: dev._rewrite_patch_diff_paths(
-            ... ['--- a/sage/rings/padics/pow_computer_ext.pxd',
-            ...  '+++ b/sage/rings/padics/pow_computer_ext.pxd'],
-            ... to_format="old", diff_format="git")
+            ....:     ['--- a/sage/rings/padics/pow_computer_ext.pxd',
+            ....:      '+++ b/sage/rings/padics/pow_computer_ext.pxd'],
+            ....:     to_format="old", diff_format="git")
             ['--- a/sage/rings/padics/pow_computer_ext.pxd',
              '+++ b/sage/rings/padics/pow_computer_ext.pxd']
             sage: dev._rewrite_patch_diff_paths(
-            ... ['diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py'],
-            ... to_format="new")
+            ....:     ['diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py'],
+            ....:     to_format="new")
             ['diff -r 1492e39aff50 -r 5803166c5b11 src/sage/schemes/elliptic_curves/ell_rational_field.py']
             sage: dev._rewrite_patch_diff_paths(
-            ... ['diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi'],
-            ... to_format="new")
+            ....:     ['diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi'],
+            ....:     to_format="new")
             ['diff --git a/src/sage/rings/padics/FM_template.pxi b/src/sage/rings/padics/FM_template.pxi']
             sage: dev._rewrite_patch_diff_paths(
-            ... ['--- a/sage/rings/padics/pow_computer_ext.pxd',
-            ...  '+++ b/sage/rings/padics/pow_computer_ext.pxd'],
-            ... to_format="new", diff_format="git")
+            ....:     ['--- a/sage/rings/padics/pow_computer_ext.pxd',
+            ....:      '+++ b/sage/rings/padics/pow_computer_ext.pxd'],
+            ....:     to_format="new", diff_format="git")
             ['--- a/src/sage/rings/padics/pow_computer_ext.pxd',
              '+++ b/src/sage/rings/padics/pow_computer_ext.pxd']
 
         Paths in the new format::
 
             sage: dev._rewrite_patch_diff_paths(
-            ... ['diff -r 1492e39aff50 -r 5803166c5b11 src/sage/schemes/elliptic_curves/ell_rational_field.py'],
-            ... to_format="old")
+            ....:     ['diff -r 1492e39aff50 -r 5803166c5b11 src/sage/schemes/elliptic_curves/ell_rational_field.py'],
+            ....:     to_format="old")
             ['diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py']
             sage: dev._rewrite_patch_diff_paths(
-            ... ['diff --git a/src/sage/rings/padics/FM_template.pxi b/src/sage/rings/padics/FM_template.pxi'],
-            ... to_format="old")
+            ....:     ['diff --git a/src/sage/rings/padics/FM_template.pxi b/src/sage/rings/padics/FM_template.pxi'],
+            ....:     to_format="old")
             ['diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi']
             sage: dev._rewrite_patch_diff_paths(
-            ... ['--- a/src/sage/rings/padics/pow_computer_ext.pxd',
-            ...  '+++ b/src/sage/rings/padics/pow_computer_ext.pxd'],
-            ... to_format="old", diff_format="git")
+            ....:     ['--- a/src/sage/rings/padics/pow_computer_ext.pxd',
+            ....:      '+++ b/src/sage/rings/padics/pow_computer_ext.pxd'],
+            ....:     to_format="old", diff_format="git")
             ['--- a/sage/rings/padics/pow_computer_ext.pxd',
              '+++ b/sage/rings/padics/pow_computer_ext.pxd']
             sage: dev._rewrite_patch_diff_paths(
-            ... ['diff -r 1492e39aff50 -r 5803166c5b11 src/sage/schemes/elliptic_curves/ell_rational_field.py'],
-            ... to_format="new")
+            ....:     ['diff -r 1492e39aff50 -r 5803166c5b11 src/sage/schemes/elliptic_curves/ell_rational_field.py'],
+            ....:     to_format="new")
             ['diff -r 1492e39aff50 -r 5803166c5b11 src/sage/schemes/elliptic_curves/ell_rational_field.py']
             sage: dev._rewrite_patch_diff_paths(
-            ... ['diff --git a/src/sage/rings/padics/FM_template.pxi b/src/sage/rings/padics/FM_template.pxi'],
-            ... to_format="new")
+            ....:     ['diff --git a/src/sage/rings/padics/FM_template.pxi b/src/sage/rings/padics/FM_template.pxi'],
+            ....:     to_format="new")
             ['diff --git a/src/sage/rings/padics/FM_template.pxi b/src/sage/rings/padics/FM_template.pxi']
             sage: dev._rewrite_patch_diff_paths(
-            ... ['--- a/src/sage/rings/padics/pow_computer_ext.pxd',
-            ...  '+++ b/src/sage/rings/padics/pow_computer_ext.pxd'],
-            ... to_format="new", diff_format="git")
+            ....:     ['--- a/src/sage/rings/padics/pow_computer_ext.pxd',
+            ....:      '+++ b/src/sage/rings/padics/pow_computer_ext.pxd'],
+            ....:     to_format="new", diff_format="git")
             ['--- a/src/sage/rings/padics/pow_computer_ext.pxd',
              '+++ b/src/sage/rings/padics/pow_computer_ext.pxd']
 
             sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: result = dev._rewrite_patch_diff_paths(
-            ...       open(os.path.join(
-            ...               SAGE_SRC,"sage","dev","data","trac_8703-trees-fh.patch"
-            ...           )).read().splitlines(),
-            ... to_format="new", diff_format="git")
+            ....:     open(os.path.join(
+            ....:             SAGE_SRC,"sage","dev","data","trac_8703-trees-fh.patch"
+            ....:         )).read().splitlines(),
+            ....:     to_format="new", diff_format="git")
             sage: len(result)
             2980
             sage: result[0]
@@ -1419,14 +1426,14 @@ class SageDev(object):
             sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: dev._detect_patch_header_format(
-            ...       open(os.path.join(
-            ...               SAGE_SRC,"sage","dev","data","trac_8703-trees-fh.patch"
-            ...           )).read().splitlines())
+            ....:     open(os.path.join(
+            ....:             SAGE_SRC,"sage","dev","data","trac_8703-trees-fh.patch"
+            ....:         )).read().splitlines())
             'diff'
             sage: dev._detect_patch_header_format(
-            ...       open(os.path.join(
-            ...               SAGE_SRC,"sage","dev","data","diff.patch"
-            ...           )).read().splitlines())
+            ....:     open(os.path.join(
+            ....:             SAGE_SRC,"sage","dev","data","diff.patch"
+            ....:         )).read().splitlines())
             'diff'
 
         """
@@ -1493,17 +1500,17 @@ class SageDev(object):
             sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: hg_lines = open(
-            ...       os.path.join(SAGE_SRC, "sage", "dev", "data", "hg.patch")
-            ...       ).read().splitlines()
+            ....:     os.path.join(SAGE_SRC, "sage", "dev", "data", "hg.patch")
+            ....:     ).read().splitlines()
             sage: hg_output_lines = open(
-            ...       os.path.join(SAGE_SRC, "sage", "dev", "data", "hg-output.patch")
-            ...       ).read().splitlines()
+            ....:     os.path.join(SAGE_SRC, "sage", "dev", "data", "hg-output.patch")
+            ....:     ).read().splitlines()
             sage: git_lines = open(
-            ...       os.path.join(SAGE_SRC, "sage", "dev", "data", "git.patch")
-            ...       ).read().splitlines()
+            ....:     os.path.join(SAGE_SRC, "sage", "dev", "data", "git.patch")
+            ....:     ).read().splitlines()
             sage: git_output_lines = open(
-            ...       os.path.join(SAGE_SRC, "sage", "dev", "data", "git-output.patch")
-            ...       ).read().splitlines()
+            ....:     os.path.join(SAGE_SRC, "sage", "dev", "data", "git-output.patch")
+            ....:     ).read().splitlines()
 
             sage: dev._rewrite_patch_header(git_lines, 'git') == git_lines
             True
@@ -1516,9 +1523,9 @@ class SageDev(object):
             True
 
             sage: dev._rewrite_patch_header(
-            ...       open(os.path.join(
-            ...               SAGE_SRC,"sage","dev","data","trac_8703-trees-fh.patch"
-            ...           )).read().splitlines(), 'git')[:5]
+            ....:     open(os.path.join(
+            ....:             SAGE_SRC,"sage","dev","data","trac_8703-trees-fh.patch"
+            ....:         )).read().splitlines(), 'git')[:5]
             ['From: "Unknown User" <unknown@sagemath.org>',
             'Subject: #8703: Enumerated sets and data structure for ordered and binary trees',
             'Date: ...',
@@ -1782,6 +1789,9 @@ def doctest_config():
         Config('''
         [git]
         dot_git = ...
+        doctest = ...
+        [trac]
+        username = doctest
         ''')
     """
     ret = Config(devrc = tempfile.NamedTemporaryFile().name)

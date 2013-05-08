@@ -42,8 +42,7 @@ fi
 for PKG in $(cat src/install_order); do
     easy_install -H None "src/$PKG" || die "Error installing $PKG !"
 done
-BASENAME=$(ls -1 src | grep sagenb-)
-BASENAME=${BASENAME%.tar.gz}
+PKG=$(ls -1 src | GREP_OPTIONS= grep sagenb-)
 
 # Install sagenb into site-packages
-easy_install -H None -f src "sagenb" || die "Error installing sagenb !"
+easy_install -H None "src/$PKG" || die "Error installing sagenb !"

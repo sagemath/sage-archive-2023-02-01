@@ -560,26 +560,24 @@ class GitInterface(object):
         with open('testfile', 'w') as f:
             f.write('this is a test file\n')
         self.execute_silent('add', 'testfile')
-        self.execute_silent('commit', '--message="add a testfile"')
+        self.execute_silent('commit', '--message="add a testfile"',
+                env={'GIT_COMMITTER_DATE':'100000000 +0000'})
 
         self.execute_silent('branch', 'first')
         self.execute_silent('checkout', '--quiet', '--detach', 'HEAD')
         with open('testfile', 'w') as f:
             f.write('this test file has been edited\n')
         self.execute_silent('add', 'testfile')
-
-        # we want commits to be separated in time for proper doctests
-        time.sleep(1)
-        self.execute_silent('commit', '--message="edit the testfile"')
+        self.execute_silent('commit', '--message="edit the testfile"',
+                env={'GIT_COMMITTER_DATE':'200000000 +0000'})
 
         self.execute_silent('branch', 'second')
         self.execute_silent('checkout', '--quiet', 'first')
         with open('testfile', 'w') as f:
             f.write('this test file has been edited differently\n')
         self.execute_silent('add', 'testfile')
-
-        time.sleep(1)
-        self.execute_silent('commit', '--message="edit the testfile differently"')
+        self.execute_silent('commit', '--message="edit the testfile differently"',
+                env={'GIT_COMMITTER_DATE':'300000000 +0000'})
 
     def __repr__(self):
         """

@@ -576,7 +576,7 @@ class GitInterface(object):
         """
         TESTS::
 
-            sage: repr(sage_dev.git)
+            sage: repr(dev.git)
             'GitInterface()'
         """
         return "GitInterface()"
@@ -806,11 +806,11 @@ class GitInterface(object):
 
         EXAMPLES::
 
-            sage: sage_dev.git.is_child_of('master', 'second')
+            sage: dev.git.is_child_of('master', 'second')
             False
-            sage: sage_dev.git.is_child_of('second', 'master')
+            sage: dev.git.is_child_of('second', 'master')
             True
-            sage: sage_dev.git.is_child_of('master', 'master')
+            sage: dev.git.is_child_of('master', 'master')
             True
         """
         return self.is_ancestor_of(b, a)
@@ -821,11 +821,11 @@ class GitInterface(object):
 
         EXAMPLES::
 
-            sage: sage_dev.git.is_ancestor_of('master', 'second')
+            sage: dev.git.is_ancestor_of('master', 'second')
             True
-            sage: sage_dev.git.is_ancestor_of('second', 'master')
+            sage: dev.git.is_ancestor_of('second', 'master')
             False
-            sage: sage_dev.git.is_ancestor_of('master', 'master')
+            sage: dev.git.is_ancestor_of('master', 'master')
             True
         """
         revs = self.read_output('rev-list', '{}..{}'.format(b, a)).splitlines()
@@ -886,7 +886,7 @@ class GitInterface(object):
 
         EXAMPLES::
 
-            sage: sage_dev.git.local_branches()
+            sage: dev.git.local_branches()
             ['first', 'second', 'master']
         """
         result = self.read_output('for-each-ref', '--sort=-committerdate',
@@ -899,7 +899,7 @@ class GitInterface(object):
 
         EXAMPLES::
 
-            sage: sage_dev.git.current_branch()
+            sage: dev.git.current_branch()
             'first'
         """
         try:
@@ -942,11 +942,11 @@ class GitInterface(object):
 
         EXAMPLES::
 
-            sage: sage_dev.git._branch_printname('first')
+            sage: dev.git._branch_printname('first')
             'first'
-            sage: sage_dev.git._branch_printname('t/12345')
+            sage: dev.git._branch_printname('t/12345')
             '#12345'
-            sage: sage_dev.git._branch_printname('ticket/12345')
+            sage: dev.git._branch_printname('ticket/12345')
             '#12345'
         """
         if branchname.startswith('ticket/'):
@@ -962,15 +962,15 @@ class GitInterface(object):
 
         EXAMPLES::
 
-            sage: sage_dev.git._local_to_remote_name('padics/feature')
+            sage: dev.git._local_to_remote_name('padics/feature')
             'g/padics/feature'
-            sage: sage_dev.git._local_to_remote_name('t/12345')
+            sage: dev.git._local_to_remote_name('t/12345')
             'u/doctest/ticket/12345'
-            sage: sage_dev.git._local_to_remote_name('ticket/12345')
+            sage: dev.git._local_to_remote_name('ticket/12345')
             'u/doctest/ticket/12345'
-            sage: sage_dev.git._local_to_remote_name('u/doctest0/ticket/12345')
+            sage: dev.git._local_to_remote_name('u/doctest0/ticket/12345')
             'u/doctest0/ticket/12345'
-            sage: sage_dev.git._local_to_remote_name('some/local/project')
+            sage: dev.git._local_to_remote_name('some/local/project')
             'u/doctest/some/local/project'
         """
         if branchname in ("release", "beta", "master"):
@@ -994,15 +994,15 @@ class GitInterface(object):
 
         EXAMPLES::
 
-            sage: sage_dev.git._remote_to_local_name('g/padics/feature')
+            sage: dev.git._remote_to_local_name('g/padics/feature')
             'padics/feature'
-            sage: sage_dev.git._remote_to_local_name('u/doctest/t/12345')
+            sage: dev.git._remote_to_local_name('u/doctest/t/12345')
             'ticket/12345'
-            sage: sage_dev.git._remote_to_local_name('u/doctest/ticket/12345')
+            sage: dev.git._remote_to_local_name('u/doctest/ticket/12345')
             'ticket/12345'
-            sage: sage_dev.git._remote_to_local_name('u/doctest0/ticket/12345')
+            sage: dev.git._remote_to_local_name('u/doctest0/ticket/12345')
             'u/doctest0/ticket/12345'
-            sage: sage_dev.git._remote_to_local_name('u/doctest/some/remote/project')
+            sage: dev.git._remote_to_local_name('u/doctest/some/remote/project')
             'some/remote/project'
         """
         if branchname in ("release", "beta", "master"):
@@ -1026,7 +1026,7 @@ class GitInterface(object):
 
         EXAMPLES::
 
-            sage: git = sage_dev.git
+            sage: git = dev.git
             sage: git.branch_exists("master")    # random
             'c4512c860a162c962073a83fd08e984674dd4f44'
             sage: type(git.branch_exists("master"))

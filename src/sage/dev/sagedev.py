@@ -52,7 +52,7 @@ class Config(collections.MutableMapping):
 
     EXAMPLES::
 
-        sage: sage_dev._config
+        sage: dev._config
         Config('''
         [git]
         dot_git = ...
@@ -73,7 +73,7 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: repr(sage_dev._config)
+            sage: repr(dev._config)
             "Config('''\n[git]\ndot_git = ...\ndoctest = ...\n[trac]\nusername = doctest\n''')"
         """
         return "Config('''\n"+"\n".join([ "[%s]\n"%s+"\n".join(["%s = %s"%(o,self[s][o]) for o in self[s] ]) for s in self ])+"\n''')"
@@ -124,11 +124,11 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: sage_dev._config['git']
+            sage: dev._config['git']
             IndexableForSection('''
             dot_git = ...
             ''')
-            sage: sage_dev._config['tig']
+            sage: dev._config['tig']
             Traceback (most recent call last):
             ...
             KeyError: 'tig'
@@ -169,9 +169,9 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: 'git' in sage_dev._config
+            sage: 'git' in dev._config
             True
-            sage: 'notgit' in sage_dev._config
+            sage: 'notgit' in dev._config
             False
         """
         return section in self._config.sections()
@@ -182,7 +182,7 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: list(sage_dev._config)
+            sage: list(dev._config)
             ['git', 'trac']
 
         """
@@ -213,7 +213,7 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: len(sage_dev._config)
+            sage: len(dev._config)
             2
         """
         return len(self._config.sections())
@@ -240,7 +240,7 @@ class SageDev(object):
 
     EXAMPLES::
 
-        sage: type(sage_dev)
+        sage: type(dev)
         <class 'sage.dev.sagedev.SageDev'>
 
     """
@@ -1112,21 +1112,21 @@ class SageDev(object):
 
         EXAMPLES::
 
-            sage: sage_dev._detect_patch_diff_format(
+            sage: dev._detect_patch_diff_format(
             ... ["diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py"])
             'hg'
-            sage: sage_dev._detect_patch_diff_format(
+            sage: dev._detect_patch_diff_format(
             ... ["diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi"])
             'git'
 
             sage: import os.path
             sage: from sage.env import SAGE_SRC
-            sage: sage_dev._detect_patch_diff_format(
+            sage: dev._detect_patch_diff_format(
             ...       open(os.path.join(
             ...               SAGE_SRC,"sage","dev","data","trac_8703-trees-fh.patch"
             ...           )).read().splitlines())
             'git'
-            sage: sage_dev._detect_patch_diff_format(
+            sage: dev._detect_patch_diff_format(
             ...       open(os.path.join(
             ...               SAGE_SRC,"sage","dev","data","diff.patch"
             ...           )).read().splitlines())
@@ -1134,11 +1134,11 @@ class SageDev(object):
 
         TESTS::
 
-            sage: sage_dev._detect_patch_diff_format(["# HG changeset patch"])
+            sage: dev._detect_patch_diff_format(["# HG changeset patch"])
             Traceback (most recent call last):
             ...
             NotImplementedError: Failed to detect diff format.
-            sage: sage_dev._detect_patch_diff_format(
+            sage: dev._detect_patch_diff_format(
             ... ["diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py",
             ...  "diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi"])
             Traceback (most recent call last):
@@ -1182,25 +1182,25 @@ class SageDev(object):
 
         EXAMPLES::
 
-            sage: sage_dev._detect_patch_path_format(
+            sage: dev._detect_patch_path_format(
             ... ["diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py"])
             'old'
-            sage: sage_dev._detect_patch_path_format(
+            sage: dev._detect_patch_path_format(
             ... ["diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py"],
             ... diff_format="git")
             Traceback (most recent call last):
             ...
             NotImplementedError: Failed to detect path format.
-            sage: sage_dev._detect_patch_path_format(
+            sage: dev._detect_patch_path_format(
             ... ["diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi"])
             'old'
-            sage: sage_dev._detect_patch_path_format(
+            sage: dev._detect_patch_path_format(
             ... ["diff --git a/src/sage/rings/padics/FM_template.pxi b/src/sage/rings/padics/FM_template.pxi"])
             'new'
 
             sage: import os.path
             sage: from sage.env import SAGE_SRC
-            sage: sage_dev._detect_patch_path_format(
+            sage: dev._detect_patch_path_format(
             ...       open(os.path.join(
             ...               SAGE_SRC,"sage","dev","data","trac_8703-trees-fh.patch"
             ...           )).read().splitlines())
@@ -1265,29 +1265,29 @@ class SageDev(object):
 
         Paths in the old format::
 
-            sage: sage_dev._rewrite_patch_diff_paths(
+            sage: dev._rewrite_patch_diff_paths(
             ... ['diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py'],
             ... to_format="old")
             ['diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py']
-            sage: sage_dev._rewrite_patch_diff_paths(
+            sage: dev._rewrite_patch_diff_paths(
             ... ['diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi'],
             ... to_format="old")
             ['diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi']
-            sage: sage_dev._rewrite_patch_diff_paths(
+            sage: dev._rewrite_patch_diff_paths(
             ... ['--- a/sage/rings/padics/pow_computer_ext.pxd',
             ...  '+++ b/sage/rings/padics/pow_computer_ext.pxd'],
             ... to_format="old", diff_format="git")
             ['--- a/sage/rings/padics/pow_computer_ext.pxd',
              '+++ b/sage/rings/padics/pow_computer_ext.pxd']
-            sage: sage_dev._rewrite_patch_diff_paths(
+            sage: dev._rewrite_patch_diff_paths(
             ... ['diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py'],
             ... to_format="new")
             ['diff -r 1492e39aff50 -r 5803166c5b11 src/sage/schemes/elliptic_curves/ell_rational_field.py']
-            sage: sage_dev._rewrite_patch_diff_paths(
+            sage: dev._rewrite_patch_diff_paths(
             ... ['diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi'],
             ... to_format="new")
             ['diff --git a/src/sage/rings/padics/FM_template.pxi b/src/sage/rings/padics/FM_template.pxi']
-            sage: sage_dev._rewrite_patch_diff_paths(
+            sage: dev._rewrite_patch_diff_paths(
             ... ['--- a/sage/rings/padics/pow_computer_ext.pxd',
             ...  '+++ b/sage/rings/padics/pow_computer_ext.pxd'],
             ... to_format="new", diff_format="git")
@@ -1296,29 +1296,29 @@ class SageDev(object):
 
         Paths in the new format::
 
-            sage: sage_dev._rewrite_patch_diff_paths(
+            sage: dev._rewrite_patch_diff_paths(
             ... ['diff -r 1492e39aff50 -r 5803166c5b11 src/sage/schemes/elliptic_curves/ell_rational_field.py'],
             ... to_format="old")
             ['diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py']
-            sage: sage_dev._rewrite_patch_diff_paths(
+            sage: dev._rewrite_patch_diff_paths(
             ... ['diff --git a/src/sage/rings/padics/FM_template.pxi b/src/sage/rings/padics/FM_template.pxi'],
             ... to_format="old")
             ['diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi']
-            sage: sage_dev._rewrite_patch_diff_paths(
+            sage: dev._rewrite_patch_diff_paths(
             ... ['--- a/src/sage/rings/padics/pow_computer_ext.pxd',
             ...  '+++ b/src/sage/rings/padics/pow_computer_ext.pxd'],
             ... to_format="old", diff_format="git")
             ['--- a/sage/rings/padics/pow_computer_ext.pxd',
              '+++ b/sage/rings/padics/pow_computer_ext.pxd']
-            sage: sage_dev._rewrite_patch_diff_paths(
+            sage: dev._rewrite_patch_diff_paths(
             ... ['diff -r 1492e39aff50 -r 5803166c5b11 src/sage/schemes/elliptic_curves/ell_rational_field.py'],
             ... to_format="new")
             ['diff -r 1492e39aff50 -r 5803166c5b11 src/sage/schemes/elliptic_curves/ell_rational_field.py']
-            sage: sage_dev._rewrite_patch_diff_paths(
+            sage: dev._rewrite_patch_diff_paths(
             ... ['diff --git a/src/sage/rings/padics/FM_template.pxi b/src/sage/rings/padics/FM_template.pxi'],
             ... to_format="new")
             ['diff --git a/src/sage/rings/padics/FM_template.pxi b/src/sage/rings/padics/FM_template.pxi']
-            sage: sage_dev._rewrite_patch_diff_paths(
+            sage: dev._rewrite_patch_diff_paths(
             ... ['--- a/src/sage/rings/padics/pow_computer_ext.pxd',
             ...  '+++ b/src/sage/rings/padics/pow_computer_ext.pxd'],
             ... to_format="new", diff_format="git")
@@ -1327,7 +1327,7 @@ class SageDev(object):
 
             sage: import os.path
             sage: from sage.env import SAGE_SRC
-            sage: result = sage_dev._rewrite_patch_diff_paths(
+            sage: result = dev._rewrite_patch_diff_paths(
             ...       open(os.path.join(
             ...               SAGE_SRC,"sage","dev","data","trac_8703-trees-fh.patch"
             ...           )).read().splitlines(),
@@ -1406,24 +1406,24 @@ class SageDev(object):
 
         EXAMPLES::
 
-            sage: sage_dev._detect_patch_header_format(
+            sage: dev._detect_patch_header_format(
             ... ['# HG changeset patch','# Parent 05fca316b08fe56c8eec85151d9a6dde6f435d46'])
             'hg'
-            sage: sage_dev._detect_patch_header_format(
+            sage: dev._detect_patch_header_format(
             ... ['# HG changeset patch','# User foo@bar.com'])
             'hg-export'
-            sage: sage_dev._detect_patch_header_format(
+            sage: dev._detect_patch_header_format(
             ... ['From: foo@bar'])
             'git'
 
             sage: import os.path
             sage: from sage.env import SAGE_SRC
-            sage: sage_dev._detect_patch_header_format(
+            sage: dev._detect_patch_header_format(
             ...       open(os.path.join(
             ...               SAGE_SRC,"sage","dev","data","trac_8703-trees-fh.patch"
             ...           )).read().splitlines())
             'diff'
-            sage: sage_dev._detect_patch_header_format(
+            sage: dev._detect_patch_header_format(
             ...       open(os.path.join(
             ...               SAGE_SRC,"sage","dev","data","diff.patch"
             ...           )).read().splitlines())
@@ -1505,17 +1505,17 @@ class SageDev(object):
             ...       os.path.join(SAGE_SRC, "sage", "dev", "data", "git-output.patch")
             ...       ).read().splitlines()
 
-            sage: sage_dev._rewrite_patch_header(git_lines, 'git') == git_lines
+            sage: dev._rewrite_patch_header(git_lines, 'git') == git_lines
             True
-            sage: sage_dev._rewrite_patch_header(hg_lines, 'hg-export') == hg_lines
-            True
-
-            sage: sage_dev._rewrite_patch_header(git_lines, 'hg-export') == hg_output_lines
-            True
-            sage: sage_dev._rewrite_patch_header(hg_lines, 'git') == git_output_lines
+            sage: dev._rewrite_patch_header(hg_lines, 'hg-export') == hg_lines
             True
 
-            sage: sage_dev._rewrite_patch_header(
+            sage: dev._rewrite_patch_header(git_lines, 'hg-export') == hg_output_lines
+            True
+            sage: dev._rewrite_patch_header(hg_lines, 'git') == git_output_lines
+            True
+
+            sage: dev._rewrite_patch_header(
             ...       open(os.path.join(
             ...               SAGE_SRC,"sage","dev","data","trac_8703-trees-fh.patch"
             ...           )).read().splitlines(), 'git')[:5]
@@ -1624,9 +1624,9 @@ class SageDev(object):
 
         EXAMPLES::
 
-            sage: g = sage_dev.git; g
+            sage: g = dev.git; g
             GitInterface()
-            sage: g is sage_dev.git
+            sage: g is dev.git
             True
 
         """
@@ -1641,9 +1641,9 @@ class SageDev(object):
 
         EXAMPLES::
 
-            sage: t = sage_dev.trac; t
+            sage: t = dev.trac; t
              <sage.dev.trac_interface.TracInterface object at ...>
-            sage: t is sage_dev.trac
+            sage: t is dev.trac
             True
 
         """
@@ -1657,7 +1657,7 @@ class SageDev(object):
 
         EXAMPLES::
 
-            sage: sage_dev # indirect doctest
+            sage: dev # indirect doctest
             SageDev()
 
         """
@@ -1679,11 +1679,11 @@ class SageDev(object):
 
             sage: import tempfile, os
             sage: tmp = tempfile.NamedTemporaryFile().name
-            sage: sage_dev._upload_ssh_key(tmp, create_key_if_not_exists = False)
+            sage: dev._upload_ssh_key(tmp, create_key_if_not_exists = False)
             Traceback (most recent call last):
             ...
             IOError: [Errno 2] No such file or directory: ...
-            sage: sage_dev._upload_ssh_key(tmp, create_key_if_not_exists = True)
+            sage: dev._upload_ssh_key(tmp, create_key_if_not_exists = True)
             Generating ssh key....
             Ssh key successfully generated
             sage: os.unlink(tmp)
@@ -1796,6 +1796,6 @@ def doctest_config():
 
 # default sagedev object
 if DOCTEST_MODE:
-    sagedev = SageDev(doctest_config())
+    dev = SageDev(doctest_config())
 else:
-    sagedev = SageDev()
+    dev = SageDev()

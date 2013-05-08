@@ -1,1 +1,1 @@
-from sagedev import sagedev as sage_dev
+from sagedev import dev

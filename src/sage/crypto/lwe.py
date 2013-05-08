@@ -629,7 +629,8 @@ class UniformNoiseLWE(LWE):
 
           - "key" - the LWE-instance that hides the secret key is generated
           - "encrypt" - the LWE-instance that hides the message is generated
-          (default: ``key``)
+            (default: ``key``)
+
         - ``m`` - number of allowed samples or ``None`` in which case ``m`` is
           chosen as in [CGW13_].  (default: ``None``)
 

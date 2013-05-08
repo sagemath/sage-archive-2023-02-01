@@ -262,7 +262,7 @@ class Braid(FinitelyPresentedGroupElement):
             sage: B = BraidGroup(4, 's')
             sage: b = B([1, 2, 3, 1, 2, 1])
             sage: b.plot()
-            sage: b.plot(color=["red","blue","red","blue"])
+            sage: b.plot(color=["red", "blue", "red", "blue"])
 
             sage: B.<s,t> = BraidGroup(3)
             sage: b = t^-1*s^2
@@ -361,7 +361,7 @@ class Braid(FinitelyPresentedGroupElement):
             sage: b = B([1, 2, 3, 1, 2, 1])
             sage: b.plot3d()
             sage: b.plot3d(color="red")
-            sage: b.plot3d(color=["red","blue","red","blue"])
+            sage: b.plot3d(color=["red", "blue", "red", "blue"])
         """
         from sage.plot.plot3d.shapes2 import bezier3d
         from sage.plot.colors import rainbow

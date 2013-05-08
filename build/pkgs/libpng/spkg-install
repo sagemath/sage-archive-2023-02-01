@@ -6,6 +6,9 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
+# libpng needs to have no default options set for grep
+unset GREP_OPTIONS
+
 if [ "$SAGE64" = yes ]; then
     CFLAGS="$CFLAGS -m64 -fPIC -g"
     LDFLAGS="$LDFLAGS -m64"

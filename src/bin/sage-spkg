@@ -78,7 +78,7 @@ lookup_param()
 {
     local param=$1
     local file=$2
-    RESULT=`grep "^$param *="  $file| sed "s/^$param *= *//"`
+    RESULT=`GREP_OPTIONS= grep "^$param\ *="  $file| sed "s/^$param\ *=\ *//"`
     echo $RESULT
 }
 

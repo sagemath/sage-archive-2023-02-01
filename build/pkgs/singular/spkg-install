@@ -13,6 +13,9 @@ if [ "$SAGE_LOCAL" = "" ]; then
     exit 1
 fi
 
+# singular's build system uses the output of grep
+unset GREP_OPTIONS
+
 # disable the dynamic kernel, except on Linux
 if [ "$UNAME" != "Linux" ]; then
     SINGULAR_CONFIGURE="--without-dynamic-kernel $SINGULAR_CONFIGURE"

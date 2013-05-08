@@ -6,6 +6,8 @@ if [ -z "$SAGE_LOCAL" ]; then
     exit 1
 fi
 
+# r uses grep output during its build
+unset GREP_OPTIONS
 
 # Make sure CPPFLAGS and LDFLAGS are set to something (even the empty
 # string) to prevent R from overriding them.

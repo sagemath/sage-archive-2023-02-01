@@ -1,8 +1,13 @@
+#!/usr/bin/env bash
+
 if [ "$SAGE_LOCAL" = "" ]; then
    echo "SAGE_LOCAL undefined ... exiting";
    echo "Maybe run 'sage -sh'?"
    exit 1
 fi
+
+# glpk's build system uses the output of grep
+unset GREP_OPTIONS
 
 # The version of libtool in this glpk package requires that
 # RM/MV/CP if they are set include the -f option

@@ -53,6 +53,7 @@ if not os.path.islink(sage_link) or not os.path.exists(sage_link):
 # search for dependencies and add to gcc -I<path>
 include_dirs = [SAGE_INC,
                 os.path.join(SAGE_INC, 'csage'),
+                SAGE_SRC,
                 os.path.join(SAGE_SRC, 'sage', 'ext')]
 
 # search for dependencies only
@@ -524,6 +525,9 @@ if not sdist:
     version_file = os.path.join(os.path.dirname(__file__), '.cython_version')
     if os.path.exists(version_file) and open(version_file).read() == Cython.__version__:
         force = False
+
+    for ext_module in ext_modules:
+        ext_module.include_dirs += include_dirs
 
     ext_modules = cythonize(
         ext_modules,

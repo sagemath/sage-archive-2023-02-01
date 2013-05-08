@@ -40,6 +40,9 @@ Apache License, Version 2.0
 
 == Changelog ==
 
+=== cython-0.19.p1 (Robert Bradshaw, 7 May 2013, #14544) ===
+ * Add deps.patch.
+
 === cython-0.19.p0 (Jeroen Demeyer, 19 April 2013, #14452) ===
  * Upgrade Cython to 0.19
  * Add restrict.patch.

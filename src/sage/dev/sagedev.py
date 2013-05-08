@@ -1687,6 +1687,7 @@ class SageDev(object):
             Generating ssh key....
             Ssh key successfully generated
             sage: os.unlink(tmp)
+            sage: os.unlink(tmp+'.pub')
         """
         cfg = self._config
 
@@ -1785,6 +1786,10 @@ def doctest_config():
         ''')
     """
     ret = Config(devrc = tempfile.NamedTemporaryFile().name)
+    def foo(f):
+        if os.path.exists(f):
+            os.unlink(f)
+    atexit.register(foo, ret._devrc)
     ret['trac'] = {}
     ret['trac']['username'] = 'doctest'
     return ret

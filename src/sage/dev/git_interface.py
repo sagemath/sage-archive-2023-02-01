@@ -1,6 +1,7 @@
 """
 Git Interface
 """
+import atexit
 import collections
 import cPickle
 import functools
@@ -523,6 +524,7 @@ class GitInterface(object):
 
         if 'doctest' == self._sagedev.trac._config.get('username', None):
             self._tmp_dir = tempfile.mkdtemp()
+            atexit.register(shutil, self._tmp_dir)
             self._dot_git = os.path.join(self._tmp_dir, '.git')
             self._prep_doctest_repo()
 
@@ -542,12 +544,6 @@ class GitInterface(object):
         self._branch = SavingDict(branch_file, paired=self._ticket)
         self._dependencies = SavingDict(dependencies_file, default=tuple)
         self._remote = SavingDict(remote_branches_file)
-
-    def __del__(self):
-        try:
-            shutil.rmtree(self._tmp_dir)
-        except AttributeError:
-            pass
 
     def _prep_doctest_repo(self):
         """

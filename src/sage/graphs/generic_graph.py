@@ -14041,13 +14041,20 @@ class GenericGraph(GenericGraph_pyx):
         else:
             root = tree_root
 
-        children = {root:self.neighbors(root)}
-
-        # always make a copy of the children because they get eaten
-        stack = [[u for u in children[root]]]
-        stick = [root]
-        parent = dict([(u,root) for u in children[root]])
         pos = {}
+
+        # The children and parent of each vertex
+        children = {root:self.neighbors(root)}
+        parent = {u:root for u in children[root]}
+
+        # stack[i] is the list of children of stick[i] which have not been given
+        # a position yet.
+        stack = [list(children[root])]
+        stick = [root]
+
+        # obstruction[y] is the smallest value of x to which a vertex at height
+        # y can be assigned. All vertices at height y which have already been
+        # assigned are on the left of (x-1,y).
         obstruction = [0.0]*self.num_verts()
 
         if tree_orientation in ['down', 'left']:
@@ -14078,37 +14085,50 @@ class GenericGraph(GenericGraph_pyx):
 
         while stack:
             C = stack[-1]
+
+            # If all the children of stick[-1] have been given a position
             if len(C) == 0:
                 p = stick.pop()
                 stack.pop()
                 cp = children[p]
                 y = o*len(stack)
+
                 if len(cp) == 0:
+                    # If p has no children, we draw it at the leftmost position
+                    # which has not been forbidden
                     x = obstruction[y]
                     pos[p] = x, y
                 else:
+                    # If p has children, we put v on a vertical line going
+                    # through the barycenter of its children
                     x = sum([pos[c][0] for c in cp])/len(cp)
                     pos[p] = x, y
                     ox = obstruction[y]
                     if x < ox:
                         slide(p, ox-x)
                         x = ox
+
+                # If the vertex to the right of p has not children, we want it
+                # at distance 1 from p
                 obstruction[y] = x+1
-                continue
 
-            t = C.pop()
-            pt = parent[t]
+            # Otherwise, we take one of the children and add it to the
+            # stack. Note that this vertex is removed from the list C.
+            else:
+                t = C.pop()
 
-            ct = [u for u in self.neighbors(t) if u != pt]
-            for c in ct:
-                parent[c] = t
-            children[t] = ct
+                pt = parent[t]
+                ct = [u for u in self.neighbors(t) if u != pt]
+                children[t] = ct
 
-            stack.append([c for c in ct])
-            stick.append(t)
+                for c in ct:
+                    parent[c] = t
+
+                stack.append([c for c in ct])
+                stick.append(t)
 
         if tree_orientation in ['right', 'left']:
-            return dict([[point,[pos[point][1],pos[point][0]]] for point in pos])
+            return {p:(py,px) for p,(px,py) in pos.iteritems()}
 
         return pos
 

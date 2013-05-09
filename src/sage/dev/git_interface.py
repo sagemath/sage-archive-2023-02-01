@@ -549,31 +549,34 @@ class GitInterface(object):
         """
         creates a fake repository at directory for doctesting
         """
-        import time
         os.chdir(self._tmp_dir)
+        env = {s:'doctest' for s in
+                ('GIT_COMMITTER_NAME', 'GIT_COMMITTER_EMAIL',
+                 'GIT_AUTHOR_NAME',     'GIT_AUTHOR_EMAIL') }
 
         self.execute_silent('init')
         with open('testfile', 'w') as f:
             f.write('this is a test file\n')
         self.execute_silent('add', 'testfile')
-        self.execute_silent('commit', '--message="add a testfile"',
-                env={'GIT_COMMITTER_DATE':'100000000 +0000'})
+        env['GIT_COMMITTER_DATE'] = env['GIT_AUTHOR_DATE'] = '100000000 +0000'
+        self.execute_silent('commit', '--message="add a testfile"', env=env)
 
         self.execute_silent('branch', 'first')
         self.execute_silent('checkout', '--quiet', '--detach', 'HEAD')
         with open('testfile', 'w') as f:
             f.write('this test file has been edited\n')
         self.execute_silent('add', 'testfile')
-        self.execute_silent('commit', '--message="edit the testfile"',
-                env={'GIT_COMMITTER_DATE':'200000000 +0000'})
+        env['GIT_COMMITTER_DATE'] = env['GIT_AUTHOR_DATE'] = '200000000 +0000'
+        self.execute_silent('commit', '--message="edit the testfile"', env=env)
 
         self.execute_silent('branch', 'second')
         self.execute_silent('checkout', '--quiet', 'first')
         with open('testfile', 'w') as f:
             f.write('this test file has been edited differently\n')
         self.execute_silent('add', 'testfile')
-        self.execute_silent('commit', '--message="edit the testfile differently"',
-                env={'GIT_COMMITTER_DATE':'300000000 +0000'})
+        env['GIT_COMMITTER_DATE'] = env['GIT_AUTHOR_DATE'] = '300000000 +0000'
+        self.execute_silent('commit',
+                '--message="edit the testfile differently"', env=env)
 
     def __repr__(self):
         """
@@ -792,15 +795,89 @@ class GitInterface(object):
             return call(s, **ckwds)
 
     def execute(self, cmd, *args, **kwds):
+        """
+        returns exit code of a git command
+
+        EXAMPLES::
+
+            sage: r = dev.git.execute('status')
+            # On branch first
+            nothing to commit (working directory clean)
+            sage: r
+            0
+            sage: _ = dev.git.execute('log', '--graph', 'first' , '--', 'testfile')
+            * commit ...
+            | Author: doctest <doctest>
+            | Date:   Thu Jul 5 05:20:00 1979 +0000
+            |
+            |     "edit the testfile differently"
+            |
+            * commit ...
+              Author: doctest <doctest>
+              Date:   Sat Mar 3 09:46:40 1973 +0000
+            <BLANKLINE>
+                  "add a testfile"
+            sage: r = dev.git.execute('commit')
+            # On branch first
+            nothing to commit (working directory clean)
+            sage: r
+            1
+        """
         return self._run_git('retval', cmd, args, kwds)
 
     def execute_silent(self, cmd, *args, **kwds):
+        """
+        returns exit code of a git command while supressing stdout
+
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import SageDev, doctest_config
+            sage: git = SageDev(doctest_config()).git
+            sage: git.execute_silent('status')
+            0
+            sage: git.execute_silent('rebase', '--interactive', 'HEAD^',
+            ....:     env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
+            Stopped at ... "edit the testfile differently"
+            You can amend the commit now, with
+            <BLANKLINE>
+                git commit --amend
+            <BLANKLINE>
+            Once you are satisfied with your changes, run
+            <BLANKLINE>
+                git rebase --continue
+            <BLANKLINE>
+            0
+        """
         return self._run_git('retquiet', cmd, args, kwds)
 
     def execute_supersilent(self, cmd, *args, **kwds):
+        """
+        returns exit code of a git command while supressing both stdout
+        and stderr
+
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import SageDev, doctest_config
+            sage: git = SageDev(doctest_config()).git
+            sage: git.execute_supersilent('status')
+            0
+            sage: git.execute_supersilent('rebase', '--interactive', 'HEAD^',
+            ....:     env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
+            0
+        """
         return self._run_git('retsuperquiet', cmd, args, kwds)
 
     def read_output(self, cmd, *args, **kwds):
+        r"""
+        returns stdout of a git command
+
+        EXAMPLES::
+
+            sage: dev.git.read_output('status')
+            '# On branch first\nnothing to commit (working directory clean)\n'
+            sage: dev.git.read_output('log', '--oneline')
+            '... "edit the testfile differently"\n... "add a testfile"\n'
+        """
         return self._run_git('stdout', cmd, args, kwds)
 
     def is_child_of(self, a, b):
@@ -853,6 +930,27 @@ class GitInterface(object):
         return self.execute('diff', '--quiet') != 0
 
     def commit_all(self, *args, **kwds):
+        """
+        commits all changes
+
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import SageDev, doctest_config
+            sage: import os
+            sage: git = SageDev(doctest_config()).git
+            sage: with open(os.path.join(git._tmp_dir, 'testfile'), 'w') as f:
+            ....:     f.write('modified this file\n')
+            sage: git.has_uncommitted_changes()
+            True
+            sage: git.commit_all('--message="modified a file"')
+            [first ...] "modified a file"
+                 1 file changed, 1 insertion(+), 1 deletion(-)
+            sage: git.has_uncommitted_changes()
+            False
+            sage: git.commit_all('--message="made no changes"')
+            # On branch first
+            nothing to commit (working directory clean)
+        """
         # if files are non-tracked and user doesn't want to add any of
         # them, there might be no changes being committed here....
         kwds['a'] = True

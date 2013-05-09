@@ -53,10 +53,10 @@ def banner_text():
     EXAMPLES::
 
         sage: print sage.misc.banner.banner_text()
-        ----------------------------------------------------------------------
+        +--------------------------------------------------------------------+
         | Sage Version ...
     """
-    bars = "-"*70
+    bars = '+' + "-"*68 + '+'
     s = bars
     s += "\n| %-66s |\n"%version()
     s += "| %-66s |\n"%'Type "notebook()" for the browser-based notebook interface.'
@@ -66,11 +66,11 @@ def banner_text():
     pre = version_dict()['prerelease']
     if pre:
         s += '\n'
-        s += bars.replace('-', '*')
+        s += bars.replace('-', '*').replace('+','*')
         s += "\n* %-66s *\n"%''
         s += "* %-66s *\n"%'Warning: this is a prerelease version, and it may be unstable.'
         s += "* %-66s *\n"%''
-        s += bars.replace('-', '*')
+        s += bars.replace('-', '*').replace('+','*')
     return s
 
 
@@ -89,7 +89,7 @@ def banner():
     EXAMPLES::
 
         sage: banner()
-        ----------------------------------------------------------------------
+        +--------------------------------------------------------------------+
         | Sage Version ..., Release Date: ...
         | Type "notebook()" for the browser-based notebook interface.        |
         | Type "help()" for help.                                            |

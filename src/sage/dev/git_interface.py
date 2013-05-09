@@ -555,14 +555,17 @@ class GitInterface(object):
                  'GIT_AUTHOR_NAME',     'GIT_AUTHOR_EMAIL') }
 
         self.execute_silent('init')
+
         with open('testfile', 'w') as f:
             f.write('this is a test file\n')
         self.execute_silent('add', 'testfile')
         env['GIT_COMMITTER_DATE'] = env['GIT_AUTHOR_DATE'] = '100000000 +0000'
         self.execute_silent('commit', '--message="add a testfile"', env=env)
 
+        self.execute_silent('tag', 'test_tag')
         self.execute_silent('branch', 'first_branch')
         self.execute_silent('checkout', '--quiet', '--detach', 'HEAD')
+
         with open('testfile', 'w') as f:
             f.write('this test file has been edited\n')
         self.execute_silent('add', 'testfile')
@@ -571,6 +574,7 @@ class GitInterface(object):
 
         self.execute_silent('branch', 'second_branch')
         self.execute_silent('checkout', '--quiet', 'first_branch')
+
         with open('testfile', 'w') as f:
             f.write('this test file has been edited differently\n')
         self.execute_silent('add', 'testfile')
@@ -1031,7 +1035,7 @@ class GitInterface(object):
 
     def current_branch(self):
         """
-        Return the current branch
+        return the current branch
 
         EXAMPLES::
 
@@ -1048,27 +1052,31 @@ class GitInterface(object):
         else:
             raise ValueError('HEAD is detached')
 
-    def _ticket_to_branch(self, ticket):
+    def _ticket_to_branch(self, ticket=None):
         """
-        Return the branch associated to an int or string.
-
-        Returns ``None`` if no ticket is associated to this branch.
+        return the branch associated to an int or string or ``None`` if
+        no such branch is found
         """
         if ticket is None:
             ticket = self.current_branch()
         elif isinstance(ticket, int):
-            ticket = self._branch[ticket]
-        if ticket is not None and self.branch_exists(ticket):
+            try:
+                ticket = self._branch[ticket]
+            except KeyError:
+                return None
+        if self.branch_exists(ticket):
             return ticket
 
     def _branch_to_ticketnum(self, branchname):
         """
-        Return the ticket associated to this branch.
-
-        Returns ``None`` if no local branch is associated to that
+        return the ticket associated to this branch or ``None`` if no
+        such ticket is found
         ticket.
         """
-        return self._ticket[branchname]
+        try:
+            return self._ticket[branchname]
+        except KeyError:
+            return None
 
     def _branch_printname(self, branchname):
         """
@@ -1156,49 +1164,99 @@ class GitInterface(object):
 
     def branch_exists(self, branch):
         """
-        returns the commit id of the local branch, or None if branch does not exist
+        returns the commit id of the local branch, or ``None`` if
+        branch does not exist
 
         EXAMPLES::
 
             sage: git = dev.git
-            sage: git.branch_exists("master")    # random
-            'c4512c860a162c962073a83fd08e984674dd4f44'
-            sage: type(git.branch_exists("master"))
+            sage: git.branch_exists("first_branch")          # random
+            '087e1fdd0fe6f4c596f5db22bc54567b032f5d2b'
+            sage: int(git.branch_exists("first_branch"), 16) # random
+            48484595766010161581593150175214386043155340587L
+            sage: type(git.branch_exists("first_branch"))
             <type 'str'>
-            sage: len(git.branch_exists("master"))
+            sage: len(git.branch_exists("first_branch"))
             40
             sage: git.branch_exists("asdlkfjasdlf")
         """
-        # TODO: optimize and make this atomic :-)
         ref = "refs/heads/%s"%branch
+        return self.ref_exists("refs/heads/%s"%branch)
+
+    def ref_exists(self, ref):
+        """
+        returns the commit id of the ref, or ``None`` if
+        branch does not exist
+
+        EXAMPLES::
+
+            sage: git = dev.git
+            sage: git.ref_exists("refs/tags/test_tag")          # random
+            'abdb32da3a1e50d4677e4760eda9433ac8b45414'
+            sage: int(git.ref_exists("refs/tags/test_tag"), 16) # random
+            981125714882459973971230819971657414365142078484L
+            sage: type(git.ref_exists("refs/tags/test_tag"))
+            <type 'str'>
+            sage: len(git.ref_exists("refs/tags/test_tag"))
+            40
+            sage: git.ref_exists("refs/tags/asdlkfjasdlf")
+        """
+        # TODO: optimize and make this atomic :-)
         if self.execute("show-ref", "--quiet", "--verify", ref):
             return None
         else:
-            return self.read_output("show-ref", "--verify", ref).split()[0]
+            return self.read_output("show-ref", "--hash", "--verify", ref).strip()
 
-    def ref_exists(self, ref):
-        raise NotImplementedError
+    def create_branch(self, branchname, basebranch=None, remote_branch=True):
+        """
+        creates branch ``branchname`` based off of ``basebranch`` or the
+        current branch if ``basebranch`` is ``None``
 
-    def create_branch(self, branchname, location=None, remote_branch=True):
-        if branchname in ["t", "master", "all", "dependencies", "commit", "release"]:
-            raise ValueError("Bad branchname")
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import SageDev, doctest_config
+            sage: git = SageDev(doctest_config()).git
+            sage: git.create_branch("third_branch")
+            sage: git.branch_exists("third_branch") == git.branch_exists("first_branch")
+            True
+            sage: git.create_branch("fourth_branch", "second_branch")
+            sage: git.branch_exists("fourth_branch") == git.branch_exists("second_branch")
+            True
+        """
+        if branchname in ("t", "ticket", "all", "dependencies", "commit",
+                "release", "beta", "master"):
+            raise ValueError("bad branchname")
         if self.branch_exists(branchname):
-            raise ValueError("Branch already exists")
-        move = None
-        if self.has_uncommitted_changes():
-            move = self._sagedev._save_uncommitted_changes()
-        if location is None:
-            self.branch(branchname)
+            raise ValueError("branch already exists")
+
+        if basebranch is None:
+            self.execute("branch", branchname)
         else:
-            self.checkout(location, b = branchname)
+            self.execute("branch", branchname, basebranch)
+
         if remote_branch is True:
             remote_branch = self._local_to_remote_name(branchname)
         if remote_branch:
             self._remote[branchname] = remote_branch
-        if move:
-            self._sagedev._unstash_changes()
 
     def rename_branch(self, oldname, newname):
+        """
+        renames branch ``oldname`` to ``newname``
+
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import SageDev, doctest_config
+            sage: git = SageDev(doctest_config()).git
+            sage: bool(git.branch_exists("third_branch"))
+            False
+            sage: git.rename_branch("first_branch", "third_branch")
+            sage: bool(git.branch_exists("first_branch"))
+            False
+            sage: bool(git.branch_exists("third_branch"))
+            True
+            sage: git.rename_branch("third_branch", "second_branch")
+            fatal: A branch named 'second_branch' already exists.
+        """
         self.execute("branch", oldname, newname, m=True)
 
     def fetch_project(self, group, branchname):
@@ -1237,7 +1295,7 @@ class GitInterface(object):
 
     def abandon(self, branchname):
         """
-        move to trash
+        move branch to trash
 
         EXAMPLES::
 
@@ -1249,13 +1307,26 @@ class GitInterface(object):
         """
         trashname = "abandoned/" + branchname
         oldtrash = self.branch_exists(trashname)
-        if oldtrash:
+        if oldtrash is not None:
             self._UI.show("Overwriting %s in trash"%oldtrash)
-        self.execute("branch", branchname, trashname, M=True)
+        self.rename_branch(branchname, trashname)
         # Need to delete remote branch (and have a hook move it to /g/abandoned/ and update the trac symlink)
         #remotename = self._remote[branchname]
 
-def git_cmd_wrapper(git_cmd):
+def _git_cmd_wrapper(git_cmd):
+    """
+    creates a method for GitInterface that wraps a git command
+
+    EXAMPLES::
+
+        sage: from sage.dev.git_interface import _git_cmd_wrapper, GitInterface
+        sage: cmd = _git_cmd_wrapper("ls-tree")
+        sage: setattr(GitInterface, 'ls_tree', cmd)
+        sage: r = dev.git.ls_tree('first_branch')
+        100644 blob 13d5431ac2f249eb07313624ec8fa041ea0f34a4        testfile
+        sage: r
+        0
+    """
     def f(self, *args, **kwds):
         return self.execute(git_cmd, *args, **kwds)
     f.__doc__ = "direct call to \`git %s\`"%git_cmd
@@ -1267,4 +1338,4 @@ for git_cmd in ["add","am","apply","bisect","branch","checkout",
                "mv","pull","push","rebase",
                "reset","rm","show","stash",
                "status","tag"]:
-    setattr(GitInterface, git_cmd, git_cmd_wrapper(git_cmd))
+    setattr(GitInterface, git_cmd, _git_cmd_wrapper(git_cmd))

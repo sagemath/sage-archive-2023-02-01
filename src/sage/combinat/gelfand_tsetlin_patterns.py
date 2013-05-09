@@ -160,6 +160,19 @@ class GelfandTsetlinPattern(ClonableArray):
         assert all( self[i-1][j] >= self[i][j] >= self[i-1][j+1]
                     for i in range(1, len(self)) for j in range(len(self[i])) )
 
+    def _hash_(self):
+        """
+        Return the hash value of ``self``.
+
+        EXAMPLES::
+
+            sage: G = GelfandTsetlinPatterns()
+            sage: gt = G([[3,2,1],[2,1],[1]])
+            sage: hash(gt) == hash(gt)
+            True
+        """
+        return hash(self.parent()) + hash(tuple(map(tuple, self)))
+
     def _repr_diagram(self):
         """
         Return a string representation of ``self`` as a diagram.

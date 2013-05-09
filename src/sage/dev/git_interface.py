@@ -524,7 +524,7 @@ class GitInterface(object):
 
         if 'doctest' == self._sagedev.trac._config.get('username', None):
             self._tmp_dir = tempfile.mkdtemp()
-            atexit.register(shutil, self._tmp_dir)
+            atexit.register(shutil.rmtree, self._tmp_dir)
             self._dot_git = os.path.join(self._tmp_dir, '.git')
             self._prep_doctest_repo()
 

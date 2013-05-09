@@ -561,7 +561,7 @@ class GitInterface(object):
         env['GIT_COMMITTER_DATE'] = env['GIT_AUTHOR_DATE'] = '100000000 +0000'
         self.execute_silent('commit', '--message="add a testfile"', env=env)
 
-        self.execute_silent('branch', 'first')
+        self.execute_silent('branch', 'first_branch')
         self.execute_silent('checkout', '--quiet', '--detach', 'HEAD')
         with open('testfile', 'w') as f:
             f.write('this test file has been edited\n')
@@ -569,14 +569,19 @@ class GitInterface(object):
         env['GIT_COMMITTER_DATE'] = env['GIT_AUTHOR_DATE'] = '200000000 +0000'
         self.execute_silent('commit', '--message="edit the testfile"', env=env)
 
-        self.execute_silent('branch', 'second')
-        self.execute_silent('checkout', '--quiet', 'first')
+        self.execute_silent('branch', 'second_branch')
+        self.execute_silent('checkout', '--quiet', 'first_branch')
         with open('testfile', 'w') as f:
             f.write('this test file has been edited differently\n')
         self.execute_silent('add', 'testfile')
         env['GIT_COMMITTER_DATE'] = env['GIT_AUTHOR_DATE'] = '300000000 +0000'
         self.execute_silent('commit',
                 '--message="edit the testfile differently"', env=env)
+
+        with open('untracked_testfile1', 'w') as f:
+            f.write('this test is untracked\n')
+        with open('untracked_testfile2', 'w') as f:
+            f.write('this test is also untracked\n')
 
     def __repr__(self):
         """
@@ -600,7 +605,7 @@ class GitInterface(object):
 
             sage: from sage.dev.sagedev import SageDev, doctest_config
             sage: git = SageDev(doctest_config()).git
-            sage: git.execute_supersilent('merge', 'second')
+            sage: git.execute_supersilent('merge', 'second_branch')
             1
             sage: git.get_state()
             ('merge',)
@@ -608,7 +613,7 @@ class GitInterface(object):
             0
             sage: git.get_state()
             ()
-            sage: git.execute_supersilent('rebase', 'second')
+            sage: git.execute_supersilent('rebase', 'second_branch')
             1
             sage: git.get_state()
             ('rebase',)
@@ -621,7 +626,7 @@ class GitInterface(object):
             0
             sage: git.get_state()
             ('rebase-i',)
-            sage: git.execute_supersilent('merge', 'second')
+            sage: git.execute_supersilent('merge', 'second_branch')
             1
             sage: git.get_state()
             ('merge', 'rebase-i')
@@ -671,7 +676,7 @@ class GitInterface(object):
 
             sage: from sage.dev.sagedev import SageDev, doctest_config
             sage: git = SageDev(doctest_config()).git
-            sage: git.execute_supersilent('merge', 'second')
+            sage: git.execute_supersilent('merge', 'second_branch')
             1
             sage: git.get_state()
             ('merge',)
@@ -682,7 +687,7 @@ class GitInterface(object):
             sage: git.execute_supersilent('rebase', '--interactive', 'HEAD^',
             ....:     env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
             0
-            sage: git.execute_supersilent('merge', 'second')
+            sage: git.execute_supersilent('merge', 'second_branch')
             1
             sage: git.get_state()
             ('merge', 'rebase-i')
@@ -695,13 +700,14 @@ class GitInterface(object):
         if not states:
             return True
         if (interactive and not
-            self._UI.confirm("Your repository is in an unclean state. It "
-                             "seems you are in the middle of a merge of some "
-                             "sort. To run this command you have to reset "
-                             "your respository to a clean state. Do you want "
-                             "me to reset your respository? (This will "
-                             "discard any changes which are not commited.)")):
-                return False
+                self._UI.confirm("Your repository is in an unclean state. It "+
+                                 "seems you are in the middle of a merge of "+
+                                 "some sort. To run this command you have to "+
+                                 "reset your respository to a clean state. "+
+                                 "Do you want me to reset your respository? "+
+                                 "(This will discard any changes which are "+
+                                 "not commited.)")):
+            return False
 
         for state in states:
             if state.startswith('rebase'):
@@ -744,10 +750,10 @@ class GitInterface(object):
             return True
 
         if (interactive and not
-                self._UI.confirm("You have uncommited changes in your working "
-                                 "directory. To run this command you have to "
-                                 "discard your changes. Do you want me to "
-                                 "discard any changes which are not "
+                self._UI.confirm("You have uncommited changes in your "+
+                                 "working directory. To run this command you "+
+                                 "have to discard your changes. Do you want "+
+                                 "me to discard any changes which are not "+
                                  "commited?")):
             return False
 
@@ -801,11 +807,16 @@ class GitInterface(object):
         EXAMPLES::
 
             sage: r = dev.git.execute('status')
-            # On branch first
-            nothing to commit (working directory clean)
+            # On branch first_branch
+            # Untracked files:
+            #   (use "git add <file>..." to include in what will be committed)
+            #
+            #   untracked_testfile1
+            #   untracked_testfile2
+            nothing added to commit but untracked files present (use "git add" to track)
             sage: r
             0
-            sage: _ = dev.git.execute('log', '--graph', 'first' , '--', 'testfile')
+            sage: _ = dev.git.execute('log', '--graph', 'first_branch' , '--', 'testfile')
             * commit ...
             | Author: doctest <doctest>
             | Date:   Thu Jul 5 05:20:00 1979 +0000
@@ -818,8 +829,13 @@ class GitInterface(object):
             <BLANKLINE>
                   "add a testfile"
             sage: r = dev.git.execute('commit')
-            # On branch first
-            nothing to commit (working directory clean)
+            # On branch first_branch
+            # Untracked files:
+            #   (use "git add <file>..." to include in what will be committed)
+            #
+            #   untracked_testfile1
+            #   untracked_testfile2
+            nothing added to commit but untracked files present (use "git add" to track)
             sage: r
             1
         """
@@ -873,8 +889,6 @@ class GitInterface(object):
 
         EXAMPLES::
 
-            sage: dev.git.read_output('status')
-            '# On branch first\nnothing to commit (working directory clean)\n'
             sage: dev.git.read_output('log', '--oneline')
             '... "edit the testfile differently"\n... "add a testfile"\n'
         """
@@ -886,9 +900,9 @@ class GitInterface(object):
 
         EXAMPLES::
 
-            sage: dev.git.is_child_of('master', 'second')
+            sage: dev.git.is_child_of('master', 'second_branch')
             False
-            sage: dev.git.is_child_of('second', 'master')
+            sage: dev.git.is_child_of('second_branch', 'master')
             True
             sage: dev.git.is_child_of('master', 'master')
             True
@@ -901,9 +915,9 @@ class GitInterface(object):
 
         EXAMPLES::
 
-            sage: dev.git.is_ancestor_of('master', 'second')
+            sage: dev.git.is_ancestor_of('master', 'second_branch')
             True
-            sage: dev.git.is_ancestor_of('second', 'master')
+            sage: dev.git.is_ancestor_of('second_branch', 'master')
             False
             sage: dev.git.is_ancestor_of('master', 'master')
             True
@@ -943,13 +957,18 @@ class GitInterface(object):
             sage: git.has_uncommitted_changes()
             True
             sage: git.commit_all('--message="modified a file"')
-            [first ...] "modified a file"
+            [first_branch ...] "modified a file"
                  1 file changed, 1 insertion(+), 1 deletion(-)
             sage: git.has_uncommitted_changes()
             False
             sage: git.commit_all('--message="made no changes"')
-            # On branch first
-            nothing to commit (working directory clean)
+            # On branch first_branch
+            # Untracked files:
+            #   (use "git add <file>..." to include in what will be committed)
+            #
+            #   untracked_testfile1
+            #   untracked_testfile2
+            nothing added to commit but untracked files present (use "git add" to track)
         """
         # if files are non-tracked and user doesn't want to add any of
         # them, there might be no changes being committed here....
@@ -957,28 +976,44 @@ class GitInterface(object):
         self.execute("commit", *args, **kwds)
 
     def unknown_files(self):
-        # Should return a list of filenames of files that the user
-        # might want to add
-        status_output = self.read_output("status", porcelain=True)
-        files = [line[3:] for line in status_output.splitlines()
-                          if line[:2] == '??']
-        return files
+        """
+        returns the list of files that are not being tracked by git
 
-    def add_file(self, F):
-        # Should add the file with filename F
-        self.execute('add', "'{}'".format(F))
+        EXAMPLES::
 
-    def save(self):
-        diff = self._UI.confirm("Would you like to see a diff of the changes?",
-                               default_yes=False)
-        if diff:
+            sage: dev.git.unknown_files()
+            ['untracked_testfile1', 'untracked_testfile2']
+        """
+        return self.read_output('ls-files',
+                                '--other', '--exclude-standard').splitlines()
+
+    def save(self, interactive=True):
+        """
+        guided command for making a commit which includes all changes
+
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import SageDev, doctest_config
+            sage: git = SageDev(doctest_config()).git
+            sage: git.save(False)
+            [first_branch ...] doctesting message
+             2 files changed, 2 insertions(+)
+             create mode 100644 untracked_testfile1
+             create mode 100644 untracked_testfile2
+        """
+        if (interactive and
+                self._UI.confirm("Would you like to see a diff of the "+
+                                 "changes?", default_yes=False)):
             self.execute("diff")
-        added = self.files_added()
-        for F in added:
-            toadd = self._UI.confirm("Would you like to start tracking %s?"%F)
-            if toadd:
-                self.add_file(F)
-        msg = self._UI.get_input("Please enter a commit message:")
+        for F in self.unknown_files():
+            if (not interactive or
+                    self._UI.confirm("Would you like to start tracking "+
+                                     "%s?"%F)):
+                self.execute('add', F)
+        if interactive:
+            msg = self._UI.get_input("Please enter a commit message:")
+        else:
+            msg = 'doctesting message'
         self.commit_all(m=msg)
 
     def local_branches(self):
@@ -988,7 +1023,7 @@ class GitInterface(object):
         EXAMPLES::
 
             sage: dev.git.local_branches()
-            ['first', 'second', 'master']
+            ['first_branch', 'second_branch', 'master']
         """
         result = self.read_output('for-each-ref', '--sort=-committerdate',
                     "--format='%(refname)'", 'refs/heads/').splitlines()
@@ -1001,7 +1036,7 @@ class GitInterface(object):
         EXAMPLES::
 
             sage: dev.git.current_branch()
-            'first'
+            'first_branch'
         """
         try:
             branch = self.read_output('symbolic-ref', 'HEAD').strip()
@@ -1041,8 +1076,8 @@ class GitInterface(object):
 
         EXAMPLES::
 
-            sage: dev.git._branch_printname('first')
-            'first'
+            sage: dev.git._branch_printname('first_branch')
+            'first_branch'
             sage: dev.git._branch_printname('t/12345')
             '#12345'
             sage: dev.git._branch_printname('ticket/12345')
@@ -1208,9 +1243,9 @@ class GitInterface(object):
 
             sage: from sage.dev.sagedev import SageDev, doctest_config
             sage: git = SageDev(doctest_config()).git
-            sage: git.abandon('second')
+            sage: git.abandon('second_branch')
             sage: git.local_branches()
-            ['first', 'abandoned/second', 'master']
+            ['first_branch', 'abandoned/second_branch', 'master']
         """
         trashname = "abandoned/" + branchname
         oldtrash = self.branch_exists(trashname)

@@ -544,7 +544,7 @@ class Maxima(MaximaAbstract, Expect):
         Expect.__init__(self,
                         name = 'maxima',
                         prompt = '\(\%i[0-9]+\)',
-                        command = 'maxima-noreadline --userdir="%s" -p "%s"'%(SAGE_MAXIMA_DIR,STARTUP),
+                        command = 'maxima --userdir="%s" -p "%s"'%(SAGE_MAXIMA_DIR,STARTUP),
                         maxread = 10000,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,

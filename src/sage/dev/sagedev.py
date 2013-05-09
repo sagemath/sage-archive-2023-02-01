@@ -1748,18 +1748,21 @@ class SageDev(object):
         """
         Returns True if changes should be unstashed
         """
-        curbranch = self.git.current_branch()
-        if curbranch is None:
-            options = ["new branch", "stash"]
-        else:
+        if not self._UI.confirm("You have uncommitted changes, would you "+
+                                "like to save them?"):
+            return
+        try:
+            curbranch = self.git.current_branch()
             options = ["current branch", "new branch", "stash"]
-        dest = self._UI.get_input("Where do you want to commit your changes?", options)
+        except ValueError:
+            options = ["new branch", "stash"]
+        dest = self._UI.get_input("Where do you want to store your changes?", options)
         if dest == "stash":
             self.git.stash()
         elif dest == "new branch":
             success = self.git.execute_silent("stash")
             if success != 0:
-                raise RuntimeError("Failed to stash changes")
+                raise RuntimeError("failed to stash changes")
             return True
         elif dest == "current branch":
             self.commit()
@@ -1770,7 +1773,8 @@ class SageDev(object):
             self.git.execute_silent("stash", "drop")
         else:
             self.git.execute_silent("reset", hard=True)
-            self._UI.show("Changes did not apply cleanly to the new branch.  They are now in your stash")
+            self._UI.show("Changes did not apply cleanly to the new branch. "+
+                          "They are now in your stash.")
 
 def doctest_config():
     """

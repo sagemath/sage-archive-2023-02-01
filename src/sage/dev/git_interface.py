@@ -139,6 +139,44 @@ def is_remote_user_name(x):
         return False
     return all(x[1:])
 
+def is_release_name(x):
+    """
+    returns true if x is a valid release name
+
+    WARNING: this does not imply the existence of such a release
+
+    EXAMPLES::
+
+        sage: from sage.dev.git_interface import is_release_name
+        sage: is_release_name(['5', '2', '7'])
+        True
+        sage: is_release_name(['6', '-2'])
+        False
+        sage: is_release_name(['6', 'beta0'])
+        True
+        sage: is_release_name(['7', 'rc'])
+        False
+        sage: is_release_name(['7', 'rc1'])
+        True
+    """
+    for v in x[:-1]:
+        try:
+            if int(v) < 0:
+                return False
+        except ValueError:
+            return False
+    v = x[-1]
+    if v.startswith('alpha'):
+        v = v[5:]
+    elif v.startswith('beta'):
+        v = v[4:]
+    elif v.startswith('rc'):
+        v = v[2:]
+    try:
+        return int(v) >= 0
+    except ValueError:
+        return False
+
 def normalize_ticket_name(x):
     """
     returns the normalized ticket branch name for x
@@ -560,27 +598,27 @@ class GitInterface(object):
             f.write('this is a test file\n')
         self.execute_silent('add', 'testfile')
         env['GIT_COMMITTER_DATE'] = env['GIT_AUTHOR_DATE'] = '100000000 +0000'
-        self.execute_silent('commit', '--message="add a testfile"', env=env)
+        self.execute_silent('commit', message="add a testfile", env=env)
 
         self.execute_silent('tag', 'test_tag')
         self.execute_silent('branch', 'first_branch')
-        self.execute_silent('checkout', '--quiet', '--detach', 'HEAD')
+        self.execute_silent('checkout', 'HEAD', quiet=True, detach=True)
 
         with open('testfile', 'w') as f:
             f.write('this test file has been edited\n')
         self.execute_silent('add', 'testfile')
         env['GIT_COMMITTER_DATE'] = env['GIT_AUTHOR_DATE'] = '200000000 +0000'
-        self.execute_silent('commit', '--message="edit the testfile"', env=env)
+        self.execute_silent('commit', message="edit the testfile", env=env)
 
         self.execute_silent('branch', 'second_branch')
-        self.execute_silent('checkout', '--quiet', 'first_branch')
+        self.execute_silent('checkout', 'first_branch', quiet=True)
 
         with open('testfile', 'w') as f:
             f.write('this test file has been edited differently\n')
         self.execute_silent('add', 'testfile')
         env['GIT_COMMITTER_DATE'] = env['GIT_AUTHOR_DATE'] = '300000000 +0000'
         self.execute_silent('commit',
-                '--message="edit the testfile differently"', env=env)
+                message="edit the testfile differently", env=env)
 
         with open('untracked_testfile1', 'w') as f:
             f.write('this test is untracked\n')
@@ -613,7 +651,7 @@ class GitInterface(object):
             1
             sage: git.get_state()
             ('merge',)
-            sage: git.execute_silent('merge', '--abort')
+            sage: git.execute_silent('merge', abort=True)
             0
             sage: git.get_state()
             ()
@@ -621,11 +659,11 @@ class GitInterface(object):
             1
             sage: git.get_state()
             ('rebase',)
-            sage: git.execute_silent('rebase', '--abort')
+            sage: git.execute_silent('rebase', abort=True)
             0
             sage: git.get_state()
             ()
-            sage: git.execute_supersilent('rebase', '--interactive', 'HEAD^',
+            sage: git.execute_supersilent('rebase', 'HEAD^', interactive=True,
             ....:     env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
             0
             sage: git.get_state()
@@ -634,7 +672,7 @@ class GitInterface(object):
             1
             sage: git.get_state()
             ('merge', 'rebase-i')
-            sage: git.execute_silent('rebase', '--abort')
+            sage: git.execute_silent('rebase', abort=True)
             0
             sage: git.get_state()
             ()
@@ -688,7 +726,7 @@ class GitInterface(object):
             True
             sage: git.get_state()
             ()
-            sage: git.execute_supersilent('rebase', '--interactive', 'HEAD^',
+            sage: git.execute_supersilent('rebase', 'HEAD^', interactive=True,
             ....:     env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
             0
             sage: git.execute_supersilent('merge', 'second_branch')
@@ -715,15 +753,15 @@ class GitInterface(object):
 
         for state in states:
             if state.startswith('rebase'):
-                self.execute_silent('rebase', '--abort')
+                self.execute_silent('rebase', abort=True)
             elif state == 'am':
-                self.execute_silent('am', '--abort')
+                self.execute_silent('am', abort=True)
             elif state == 'merge':
-                self.execute_silent('merge', '--abort')
+                self.execute_silent('merge', abort=True)
             elif state == 'bisect':
                 raise NotImplementedError(state)
             elif state.startswith('cherry'):
-                self.execute_silent('cherry-pick', '--abort')
+                self.execute_silent('cherry-pick', abort=True)
             else:
                 raise RuntimeError("'%s' is not a valid state"%state)
 
@@ -761,7 +799,7 @@ class GitInterface(object):
                                  "commited?")):
             return False
 
-        self.execute_silent('reset', '--hard')
+        self.execute_silent('reset', hard=True)
 
         return True
 
@@ -786,10 +824,10 @@ class GitInterface(object):
             if len(k) == 1:
                 k = ' -' + k
             else:
-                k = ' --' + k
+                k = ' --' + k.replace('_', '-')
             if v is True:
                 s += k
-            else:
+            elif v is not False:
                 s += k + " " + self._clean_str(v)
         if args:
             s += " " + " ".join([self._clean_str(a) for a in args if a is not None])
@@ -820,18 +858,18 @@ class GitInterface(object):
             nothing added to commit but untracked files present (use "git add" to track)
             sage: r
             0
-            sage: _ = dev.git.execute('log', '--graph', 'first_branch' , '--', 'testfile')
+            sage: _ = dev.git.execute('log', 'first_branch' , '--', 'testfile', graph=True)
             * commit ...
             | Author: doctest <doctest>
             | Date:   Thu Jul 5 05:20:00 1979 +0000
             |
-            |     "edit the testfile differently"
+            |     edit the testfile differently
             |
             * commit ...
               Author: doctest <doctest>
               Date:   Sat Mar 3 09:46:40 1973 +0000
             <BLANKLINE>
-                  "add a testfile"
+                  add a testfile
             sage: r = dev.git.execute('commit')
             # On branch first_branch
             # Untracked files:
@@ -857,7 +895,7 @@ class GitInterface(object):
             0
             sage: git.execute_silent('rebase', '--interactive', 'HEAD^',
             ....:     env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
-            Stopped at ... "edit the testfile differently"
+            Stopped at ... edit the testfile differently
             You can amend the commit now, with
             <BLANKLINE>
                 git commit --amend
@@ -881,7 +919,7 @@ class GitInterface(object):
             sage: git = SageDev(doctest_config()).git
             sage: git.execute_supersilent('status')
             0
-            sage: git.execute_supersilent('rebase', '--interactive', 'HEAD^',
+            sage: git.execute_supersilent('rebase', 'HEAD^', interactive=True,
             ....:     env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
             0
         """
@@ -893,8 +931,8 @@ class GitInterface(object):
 
         EXAMPLES::
 
-            sage: dev.git.read_output('log', '--oneline')
-            '... "edit the testfile differently"\n... "add a testfile"\n'
+            sage: dev.git.read_output('log', oneline=True)
+            '... edit the testfile differently\n... add a testfile\n'
         """
         return self._run_git('stdout', cmd, args, kwds)
 
@@ -945,7 +983,7 @@ class GitInterface(object):
             sage: git.has_uncommitted_changes()
             True
         """
-        return self.execute('diff', '--quiet') != 0
+        return self.execute('diff', quiet=True) != 0
 
     def commit_all(self, *args, **kwds):
         """
@@ -960,12 +998,12 @@ class GitInterface(object):
             ....:     f.write('modified this file\n')
             sage: git.has_uncommitted_changes()
             True
-            sage: git.commit_all('--message="modified a file"')
-            [first_branch ...] "modified a file"
+            sage: git.commit_all(message="modified a file")
+            [first_branch ...] modified a file
                  1 file changed, 1 insertion(+), 1 deletion(-)
             sage: git.has_uncommitted_changes()
             False
-            sage: git.commit_all('--message="made no changes"')
+            sage: git.commit_all(message="made no changes")
             # On branch first_branch
             # Untracked files:
             #   (use "git add <file>..." to include in what will be committed)
@@ -989,7 +1027,7 @@ class GitInterface(object):
             ['untracked_testfile1', 'untracked_testfile2']
         """
         return self.read_output('ls-files',
-                                '--other', '--exclude-standard').splitlines()
+                        other=True, exclude_standard=True).splitlines()
 
     def save(self, interactive=True):
         """
@@ -1029,8 +1067,8 @@ class GitInterface(object):
             sage: dev.git.local_branches()
             ['first_branch', 'second_branch', 'master']
         """
-        result = self.read_output('for-each-ref', '--sort=-committerdate',
-                    "--format='%(refname)'", 'refs/heads/').splitlines()
+        result = self.read_output('for-each-ref', 'refs/heads/',
+                    sort='-committerdate', format="'%(refname)'").splitlines()
         return [head[11:] for head in result]
 
     def current_branch(self):
@@ -1202,10 +1240,11 @@ class GitInterface(object):
             sage: git.ref_exists("refs/tags/asdlkfjasdlf")
         """
         # TODO: optimize and make this atomic :-)
-        if self.execute("show-ref", "--quiet", "--verify", ref):
+        if self.execute("show-ref", ref, quiet=True, verify=True):
             return None
         else:
-            return self.read_output("show-ref", "--hash", "--verify", ref).strip()
+            return self.read_output("show-ref", ref,
+                                hash=True, verify=True).strip()
 
     def create_branch(self, branchname, basebranch=None, remote_branch=True):
         """
@@ -1230,14 +1269,17 @@ class GitInterface(object):
             raise ValueError("branch already exists")
 
         if basebranch is None:
-            self.execute("branch", branchname)
+            ret = self.execute("branch", branchname)
         else:
-            self.execute("branch", branchname, basebranch)
+            ret = self.execute("branch", branchname, basebranch)
 
         if remote_branch is True:
             remote_branch = self._local_to_remote_name(branchname)
         if remote_branch:
             self._remote[branchname] = remote_branch
+
+        if ret: # return non-zero exit codes
+            return ret
 
     def rename_branch(self, oldname, newname):
         """
@@ -1263,35 +1305,69 @@ class GitInterface(object):
         raise NotImplementedError
 
     def switch_branch(self, branchname, detached = False):
-        dest = move = None
+        """
+        switch to ``branchname`` in a detached state if ``detached`` is
+        set to True
+
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import SageDev, doctest_config
+            sage: git = SageDev(doctest_config()).git
+            sage: git.current_branch()
+            'first_branch'
+            sage: git.switch_branch('second_branch')
+            Switched to branch 'second_branch'
+            sage: git.current_branch()
+            'second_branch'
+            sage: git.branch_exists('third_branch')
+            sage: git.switch_branch('third_branch')
+            Switched to branch 'third_branch'
+            sage: git.branch_exists('third_branch') # random
+            '5249e7a56067e9f30244930192503d502558b6c3'
+            sage: git.switch_branch('first_branch', detached=True)
+            Note: checking out 'first_branch'.
+            <BLANKLINE>
+            You are in 'detached HEAD' state. You can look around, make experimental
+            changes and commit them, and you can discard any commits you make in this
+            state without impacting any branches by performing another checkout.
+            <BLANKLINE>
+            If you want to create a new branch to retain commits you create, you may
+            do so (now or later) by using -b with the checkout command again. Example:
+            <BLANKLINE>
+              git checkout -b new_branch_name
+            <BLANKLINE>
+            HEAD is now at ... edit the testfile differently
+        """
+        move = None
         if self.has_uncommitted_changes():
             move = self._sagedev._save_uncommitted_changes()
-        if detached:
-            self.checkout(branchname, detach=True)
-        else:
-            success = self.execute_silent("checkout", branchname)
-            if success != 0:
-                success = self.execute_silent("branch", branchname)
-                if success != 0:
-                    raise RuntimeError("Could not create new branch")
-                success = self.execute_silent("checkout", branchname)
-                if success != 0:
-                    raise RuntimeError("Failed to switch to new branch")
+
+        if not detached and self.branch_exists(branchname) is None:
+            if self.create_branch(branchname) is not None:
+                raise RuntimeError("could not create new branch")
+
+        if self.execute("checkout", branchname, detach=detached) != 0:
+            raise RuntimeError("failed to switch to new branch")
+
         if move:
             self._sagedev._unstash_changes()
 
-    def vanilla(self, release=False):
-        # switch to unstable branch in the past (release=False) or a
-        # given named release
+    def vanilla(self, release=True):
+        """
+        switch to released version of sage
+        """
         if release is False:
-            self.switch_branch("master")
+            release = "master"
         elif release is True:
-            raise NotImplementedError
+            release = "release"
         else:
-            release = self._validate_release_name(release)
-            if not self.branch_exists(release):
-                self.fetch_release(release)
-            self.switch_branch(release)
+            release = str(release)
+            if is_release_name(release.split('.')):
+                self.execute('fetch', 'origin', tags=True)
+                release = self.ref_exists('refs/tags/%s'%release)
+                if release is None:
+                    raise ValueError("was unable to find desired release")
+        self.switch_branch(release)
 
     def abandon(self, branchname):
         """

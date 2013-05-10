@@ -91,6 +91,11 @@ const tinfo_t & print_order::constant_id() const
 	return id;
 }
 
+const tinfo_t & print_order::wildcard_id() const
+{
+	static tinfo_t id = find_tinfo_key("wildcard");
+	return id;
+}
 
 
 /** What Sage does for printing:
@@ -193,11 +198,17 @@ int print_order::compare(const basic &lh, const basic &rh) const
 	else if (typeid_rh == numeric_id())
 	 	//print numerics before anything else
 		return -1;
+	else if (typeid_lh == wildcard_id())
+	 	//print wildcards before anything else (but numerics)
+		return 1;
+	else if (typeid_rh == wildcard_id())
+	 	//print wildcards before anything else (but numerics)
+		return -1;
 	else if (typeid_lh == constant_id())
-	 	//print constants before anything else (but numerics)
+	 	//print constants before anything else (but numerics, wildcards)
 		return 1;
 	else if (typeid_rh == constant_id())
-	 	//print constants before anything else (but numerics)
+	 	//print constants before anything else (but numerics, wildcards)
 		return -1;
 	else if (typeid_lh == fderivative_id())
 		//print fderivatives after everything else

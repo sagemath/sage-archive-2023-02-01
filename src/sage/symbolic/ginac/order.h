@@ -45,6 +45,7 @@ private:
 	const tinfo_t& add_id() const;
 	const tinfo_t& numeric_id() const;
 	const tinfo_t& constant_id() const;
+	const tinfo_t& wildcard_id() const;
 
 public:
 	bool operator() (const ex &lh, const ex &rh) const;

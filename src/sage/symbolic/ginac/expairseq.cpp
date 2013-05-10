@@ -401,9 +401,9 @@ bool expairseq::match(const ex & pattern, lst & repl_lst) const
 		bool has_global_wildcard = false;
 		ex global_wildcard;
 		for (size_t i=0; i<pattern.nops(); i++) {
-			if (is_exactly_a<wildcard>(pattern.op(i))) {
+			if (is_exactly_a<wildcard>(pattern.sorted_op(i))) {
 				has_global_wildcard = true;
-				global_wildcard = pattern.op(i);
+				global_wildcard = pattern.sorted_op(i);
 				break;
 			}
 		}
@@ -415,12 +415,12 @@ bool expairseq::match(const ex & pattern, lst & repl_lst) const
 		exvector ops;
 		ops.reserve(nops());
 		for (size_t i=0; i<nops(); i++)
-			ops.push_back(op(i));
+			ops.push_back(stable_op(i));
 
 		// Now, for every term of the pattern, look for a matching term in
 		// the expression and remove the match
 		for (size_t i=0; i<pattern.nops(); i++) {
-			ex p = pattern.op(i);
+			ex p = ex_to<expairseq>(pattern).stable_op(i);
 			if (has_global_wildcard && p.is_equal(global_wildcard))
 				continue;
 			exvector::iterator it = ops.begin(), itend = ops.end();

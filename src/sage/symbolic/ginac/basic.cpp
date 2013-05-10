@@ -588,7 +588,7 @@ bool basic::match(const ex & pattern, lst & repl_lst) const
 
 		// Otherwise the subexpressions must match one-to-one
 		for (size_t i=0; i<nops(); i++)
-			if (!op(i).match(pattern.op(i), repl_lst))
+			if (!op(i).match(pattern.sorted_op(i), repl_lst))
 				return false;
 
 		// Looks similar enough, match found

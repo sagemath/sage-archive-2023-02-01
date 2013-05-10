@@ -981,7 +981,8 @@ bool algebraic_match_mul_with_mul(const mul &e, const ex &pat, lst &repls,
 			continue;
 		lst newrepls = repls;
 		int newnummatches = nummatches;
-		if (tryfactsubs(e.op(i), pat.op(factor), newnummatches, newrepls)) {
+		if (tryfactsubs(e.op(i), pat.op(factor),
+					newnummatches, newrepls)) {
 			matched[i] = true;
 			if (algebraic_match_mul_with_mul(e, pat, newrepls, factor+1,
 					newnummatches, subsed, matched)) {

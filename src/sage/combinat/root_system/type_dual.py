@@ -13,12 +13,11 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.sage_object import SageObject
-from sage.combinat.root_system.cartan_type import CartanType_crystalographic, CartanType_finite, CartanType_affine, CartanType_simple
+from sage.combinat.root_system import cartan_type
 from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
-import sage
-import ambient_space
+from sage.combinat.root_system import ambient_space
 
-class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
+class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_crystalographic):
     r"""
     A class for dual Cartan types.
 
@@ -30,7 +29,7 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
 
     EXAMPLES:
 
-    For most finite Cartan types, and in particular the simply laced
+    For all finite Cartan types, and in particular the simply laced
     ones, the dual Cartan type is given by another preexisting Cartan
     type::
 
@@ -40,16 +39,18 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
         ['C', 4]
         sage: CartanType(['C',4]).dual()
         ['B', 4]
+        sage: CartanType(['F',4]).dual()
+        ['F', 4] relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
 
-    So to exercise this class we need to consider the non simply laced
-    exceptionnal or affine Cartan types::
+    So to exercise this class we consider some non simply laced affine
+    Cartan types and also create explicitely `F_4^*` as a dual cartan
+    type::
 
-        sage: F4d = CartanType(['F', 4]).dual(); F4d
+        sage: from sage.combinat.root_system.type_dual import CartanType as CartanTypeDual
+        sage: F4d = CartanTypeDual(CartanType(['F',4])); F4d
         ['F', 4]^*
         sage: G21d = CartanType(['G',2,1]).dual(); G21d
         ['G', 2, 1]^*
-        sage: B41d = CartanType(['B',4,1]).dual(); B41d
-        ['B', 4, 1]^*
 
     They share many properties with their original Cartan types::
 
@@ -70,7 +71,10 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
 
     TESTS::
 
-        sage: TestSuite(F4d).run()
+        sage: TestSuite(F4d).run(skip=["_test_pickling"])
+        sage: TestSuite(G21d).run()
+
+    .. NOTE:: F4d is pickled by construction as F4.dual() hence the above failure.
     """
     def __init__(self, type):
         """
@@ -80,42 +84,92 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
 
         EXAMPLES::
 
-           sage: ct = CartanType(['F',4]).dual()
+           sage: ct = CartanType(['F',4,1]).dual()
            sage: TestSuite(ct).run()
 
         TESTS::
 
-            sage: ct1 = CartanType(['B',2]).dual()
-            sage: ct2 = CartanType(['B',2]).dual()
-            sage: ct3 = CartanType(['D',4]).dual()
+            sage: ct1 = CartanType(['B',3,1]).dual()
+            sage: ct2 = CartanType(['B',3,1]).dual()
+            sage: ct3 = CartanType(['D',4,1]).dual()
             sage: ct1 == ct2
             True
             sage: ct1 == ct3
             False
 
-        """
+        Test that the produced Cartan type is in the appropriate
+        abstract classes (see :trac:`13724`)::
+
+            sage: from sage.combinat.root_system import cartan_type
+            sage: ct = CartanType(['B',3,1]).dual()
+            sage: TestSuite(ct).run()
+            sage: isinstance(ct, cartan_type.CartanType_simple)
+            True
+            sage: isinstance(ct, cartan_type.CartanType_finite)
+            False
+            sage: isinstance(ct, cartan_type.CartanType_affine)
+            True
+            sage: isinstance(ct, cartan_type.CartanType_crystalographic)
+            True
+            sage: isinstance(ct, cartan_type.CartanType_simply_laced)
+            False
+
+        By default, the dual of a reducible and finite type is not
+        constructed as such::
+
+            sage: ct = CartanType([['B',4],['A',2]]).dual(); ct
+            C4xA2
+
+        In order to exercise the dual infrastructure we force the
+        construction as a dual::
+
+            sage: from sage.combinat.root_system import type_dual
+            sage: ct = type_dual.CartanType(CartanType([['B',4],['A',2]])); ct
+            B4xA2^*
+            sage: isinstance(ct, type_dual.CartanType)
+            True
+            sage: TestSuite(ct).run(skip=["_test_pickling"])
+            sage: isinstance(ct, cartan_type.CartanType_finite)
+            True
+            sage: isinstance(ct, cartan_type.CartanType_simple)
+            False
+            sage: isinstance(ct, cartan_type.CartanType_affine)
+            False
+            sage: isinstance(ct, cartan_type.CartanType_crystalographic)
+            True
+            sage: isinstance(ct, cartan_type.CartanType_simply_laced)
+            False
+       """
         assert type.is_crystalographic()
         self._dual = type
         # TODO: design an appropriate infrastructure to handle this
         # automatically? Maybe using categories and axioms?
+        # See also type_relabel.CartanType.__init__
         if type.is_finite():
             self.__class__ = CartanType_finite
         elif type.is_affine():
             self.__class__ = CartanType_affine
-        if type.is_irreducible():
-            self._add_abstract_superclass(CartanType_simple)
-        # No need to check non crystalographic types (they have no dual)
-        # or simply laced types (they are self-dual)
+        abstract_classes = tuple(cls
+                                 for cls in self._stable_abstract_classes
+                                 if isinstance(type, cls))
+        if abstract_classes:
+            self._add_abstract_superclass(abstract_classes)
+
+    # For each class cls in _stable_abstract_classes, if ct is an
+    # instance of A then ct.relabel(...) is put in this class as well.
+    # The order is relevant to avoid MRO issues!
+    _stable_abstract_classes = [
+        cartan_type.CartanType_simple]
 
     def _repr_(self, compact = False):
         """
         EXAMPLES::
 
-           sage: CartanType(['F', 4]).dual()
-           ['F', 4]^*
+           sage: CartanType(['F', 4, 1]).dual()
+           ['F', 4, 1]^*
 
-           sage: CartanType(['F', 4]).dual()._repr_(compact = True)
-           'F4*'
+           sage: CartanType(['F', 4, 1]).dual()._repr_(compact = True)
+           'F4~*'
         """
         dual_str = self.global_options('dual_str')
         if self.is_affine() and self.global_options('notation') == "Kac":
@@ -148,8 +202,8 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
         """
         TESTS::
 
-            sage: CartanType(['F', 4]).dual().__reduce__()
-            (*.dual(), (['F', 4],))
+            sage: CartanType(['F', 4, 1]).dual().__reduce__()
+            (*.dual(), (['F', 4, 1],))
 
         """
         return (attrcall("dual"), (self._dual,))
@@ -184,13 +238,6 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
 
         EXAMPLES::
 
-            sage: print CartanType(["G", 2]).dual().ascii_art()
-              3
-            O=>=O
-            1   2
-            sage: print CartanType(["F", 4]).dual().ascii_art()
-            O---O=<=O---O
-            1   2   3   4
             sage: print CartanType(["B", 3, 1]).dual().ascii_art()
                 O 0
                 |
@@ -207,7 +254,6 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
             sage: print CartanType(["F", 4, 1]).dual().ascii_art()
             O---O---O=<=O---O
             0   1   2   3   4
-
             sage: print CartanType(["BC", 4, 2]).dual().ascii_art()
             O=>=O---O---O=>=O
             0   1   2   3   4
@@ -224,20 +270,20 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
         """
         EXAMPLES::
 
-            sage: B4     = CartanType(['B', 4])
-            sage: B4dual = CartanType(['B', 4]).dual()
-            sage: F4dual = CartanType(['F', 4]).dual()
-            sage: cmp(F4dual, F4dual)
+            sage: B41     = CartanType(['B', 4, 1])
+            sage: B41dual = CartanType(['B', 4, 1]).dual()
+            sage: F41dual = CartanType(['F', 4, 1]).dual()
+            sage: cmp(F41dual, F41dual)
             0
 
         Whether ``cmp()`` returns 1 or -1 doesn't matter, just check
         that the following are non-zero::
 
-            sage: cmp(F4dual, B4dual) != 0
+            sage: cmp(F41dual, B41dual) != 0
             True
-            sage: cmp(B4dual, F4dual) * cmp(F4dual, B4dual) < 0
+            sage: cmp(B41dual, F41dual) * cmp(F41dual, B41dual) < 0
             True
-            sage: cmp(B4dual, B4) != 0
+            sage: cmp(B41dual, B41) != 0
             True
         """
         if other.__class__ != self.__class__:
@@ -248,9 +294,9 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
         """
         EXAMPLES::
 
-           sage: ct = CartanType(['F', 4]).dual()
+           sage: ct = CartanType(['F', 4, 1]).dual()
            sage: ct.dual()
-           ['F', 4]
+           ['F', 4, 1]
         """
         return self._dual
 
@@ -258,9 +304,9 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
         """
         EXAMPLES::
 
-           sage: ct = CartanType(['F', 4]).dual()
+           sage: ct = CartanType(['F', 4, 1]).dual()
            sage: ct.rank()
-           4
+           5
         """
         return self._dual.rank()
 
@@ -268,9 +314,9 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
         """
         EXAMPLES::
 
-           sage: ct = CartanType(['F', 4]).dual()
+           sage: ct = CartanType(['F', 4, 1]).dual()
            sage: ct.index_set()
-           [1, 2, 3, 4]
+           [0, 1, 2, 3, 4]
         """
         return self._dual.index_set()
 
@@ -278,11 +324,11 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_crystalographic):
         """
         EXAMPLES::
 
-           sage: ct = CartanType(['F', 4]).dual()
-           sage: ct.dynkin_diagram()
-           O---O=<=O---O
-           1   2   3   4
-           F4*
+            sage: ct = CartanType(['F', 4, 1]).dual()
+            sage: ct.dynkin_diagram()
+            O---O---O=<=O---O
+            0   1   2   3   4
+            F4~*
         """
         return self._dual.dynkin_diagram().dual()
 
@@ -297,12 +343,30 @@ class AmbientSpace(ambient_space.AmbientSpace):
     the original Cartan type by switching the roles of simple roots,
     fundamental weights, etc.
 
+    .. NOTE::
+
+        Recall that, for any finite Cartan type, and in particular the
+        a simply laced one, the dual Cartan type is constructed as
+        another preexisting Cartan type. Furthermore the ambient space
+        for an affine type is constructed from the ambient space for
+        its classical type. Thus this code is not actually currently
+        used.
+
+        It is kept for cross-checking and for reference in case it
+        could become useful, e.g., for dual of general Kac-Moody
+        types.
+
+        For the doctests, we need to explicitly create a dual type.
+        Subsequently, since reconstruction of the dual of type `F_4`
+        is the relabelled Cartan type, pickling fails on the
+        ``TestSuite`` run.
+
     EXAMPLES::
 
-        sage: F4 = CartanType(["F",4])
-        sage: L = F4.dual().root_system().ambient_space(); L
+        sage: ct = sage.combinat.root_system.type_dual.CartanType(CartanType(['F',4]))
+        sage: L = ct.root_system().ambient_space(); L
         Ambient space of the Root system of type ['F', 4]^*
-        sage: TestSuite(L).run()
+        sage: TestSuite(L).run(skip=["_test_elements","_test_pickling"])
     """
 
     @lazy_attribute
@@ -312,13 +376,13 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
         EXAMPLES::
 
-            sage: L = CartanType(["F",4]).dual().root_system().ambient_space(); L
+            sage: ct = sage.combinat.root_system.type_dual.CartanType(CartanType(['F',4]))
+            sage: L = ct.root_system().ambient_space(); L
             Ambient space of the Root system of type ['F', 4]^*
             sage: L._dual_space
             Ambient space of the Root system of type ['F', 4]
 
-        The basic data for this space will be fetched from the dual
-        space::
+        The basic data for this space is fetched from the dual space::
 
             sage: L._dual_space.simple_root(1)
             (0, 1, -1, 0)
@@ -337,11 +401,12 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
         EXAMPLES::
 
-            sage: F4 = CartanType(["F",4])
-            sage: F4.dual().root_system().ambient_space().simple_root(1)
-            (0, 1, -1, 0)
+            sage: ct = sage.combinat.root_system.type_dual.CartanType(CartanType(['F',4]))
+            sage: L = ct.root_system().ambient_space()
+            sage: L.dimension()
+            4
         """
-        # Can't yet use _dual_space for the base ring is not yet initialized
+        # Can't yet use _dual_space for the base ring (and the cartan type?) is not yet initialized
         return self.root_system.dual.ambient_space().dimension()
 
     @cached_method
@@ -354,15 +419,23 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
         EXAMPLES::
 
-            sage: F4 = CartanType(["F",4])
-            sage: F4.dual().root_system().ambient_space().simple_root(1)
+            sage: ct = sage.combinat.root_system.type_dual.CartanType(CartanType(['F',4]))
+            sage: ct.root_system().ambient_space().simple_root(1)
             (0, 1, -1, 0)
 
-            sage: F4.dual().root_system().ambient_space().simple_roots()
+            sage: ct.root_system().ambient_space().simple_roots()
             Finite family {1: (0, 1, -1, 0), 2: (0, 0, 1, -1), 3: (0, 0, 0, 2), 4: (1, -1, -1, -1)}
 
-            sage: F4.root_system().ambient_space().simple_coroots()
+            sage: ct.dual().root_system().ambient_space().simple_coroots()
             Finite family {1: (0, 1, -1, 0), 2: (0, 0, 1, -1), 3: (0, 0, 0, 2), 4: (1, -1, -1, -1)}
+
+        Note that this ambient space is isomorphic, but not equal, to
+        that obtained by constructing `F_4` dual by relabelling::
+
+            sage: ct = CartanType(['F',4]).dual(); ct
+            ['F', 4] relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
+            sage: ct.root_system().ambient_space().simple_roots()
+            Finite family {1: (1/2, -1/2, -1/2, -1/2), 2: (0, 0, 0, 1), 3: (0, 0, 1, -1), 4: (0, 1, -1, 0)}
         """
         dual_coroot = self._dual_space.simple_coroot(i)
         return self.sum_of_terms(dual_coroot)
@@ -384,24 +457,41 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
         EXAMPLES::
 
-            sage: L = CartanType(["F",4]).dual().root_system().ambient_space()
+            sage: ct = sage.combinat.root_system.type_dual.CartanType(CartanType(['F',4]))
+            sage: L = ct.root_system().ambient_space()
             sage: L.fundamental_weights()
             Finite family {1: (1, 1, 0, 0), 2: (2, 1, 1, 0), 3: (3, 1, 1, 1), 4: (2, 0, 0, 0)}
+
+        Note that this ambient space is isomorphic, but not equal, to
+        that obtained by constructing `F_4` dual by relabelling::
+
+            sage: ct = CartanType(['F',4]).dual(); ct
+            ['F', 4] relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
+            sage: ct.root_system().ambient_space().fundamental_weights()
+            Finite family {1: (1, 0, 0, 0), 2: (3/2, 1/2, 1/2, 1/2), 3: (2, 1, 1, 0), 4: (1, 1, 0, 0)}
         """
         return self.fundamental_weights_from_simple_roots()
 
     @lazy_attribute
     def _plot_projection(self):
         """
-        A hack so that if an ambient space uses barycentric projection, then so does its dual
+        Return the default plot projection for ``self``.
+
+        If an ambient space uses barycentric projection, then so does
+        its dual.
+
+        .. SEEALSO::
+
+            - :meth:`sage.combinat.root_system.root_lattice_realizations.RootLatticeRealizations.ParentMethods._plot_projection`
 
         EXAMPLES::
 
-            sage: L = CartanType(["G",2]).dual().root_system().ambient_space()
+            sage: ct = sage.combinat.root_system.type_dual.CartanType(CartanType(['G',2]))
+            sage: L = ct.root_system().ambient_space()
             sage: L._plot_projection == L._plot_projection_barycentric
             True
 
-            sage: L = RootSystem(["G",2]).coambient_space()
+            sage: L = RootSystem(['G',2]).coambient_space()
             sage: L._plot_projection == L._plot_projection_barycentric
             True
         """
@@ -412,14 +502,15 @@ class AmbientSpace(ambient_space.AmbientSpace):
             RootLatticeRealizations.ParentMethods.__dict__["_plot_projection"]
 
 
-class CartanType_finite(CartanType, sage.combinat.root_system.cartan_type.CartanType_finite):
+class CartanType_finite(CartanType, cartan_type.CartanType_finite):
     AmbientSpace = AmbientSpace
 
 ###########################################################################
-class CartanType_affine(sage.combinat.root_system.cartan_type.CartanType_affine, CartanType):
+class CartanType_affine(CartanType, cartan_type.CartanType_affine):
     def classical(self):
         """
-        Returns the classical Cartan type associated with self (which should be affine)
+        Return the classical Cartan type associated with self (which should
+        be affine).
 
         EXAMPLES::
 
@@ -428,7 +519,7 @@ class CartanType_affine(sage.combinat.root_system.cartan_type.CartanType_affine,
             sage: CartanType(['B',3,1]).dual().classical()
             ['C', 3]
             sage: CartanType(['F',4,1]).dual().classical()
-            ['F', 4]^*
+            ['F', 4] relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
             sage: CartanType(['BC',4,2]).dual().classical()
             ['B', 4]
         """
@@ -458,11 +549,11 @@ class CartanType_affine(sage.combinat.root_system.cartan_type.CartanType_affine,
         """
         EXAMPLES::
 
-           sage: CartanType(['F', 4]).dual()
-           ['F', 4]^*
+           sage: CartanType(['F', 4, 1]).dual()
+           ['F', 4, 1]^*
 
-           sage: CartanType(['F', 4]).dual()._repr_(compact = True)
-           'F4*'
+           sage: CartanType(['F', 4, 1]).dual()._repr_(compact = True)
+           'F4~*'
         """
         dual_str = self.global_options('dual_str')
         if self.global_options('notation') == "Kac":
@@ -483,7 +574,7 @@ class CartanType_affine(sage.combinat.root_system.cartan_type.CartanType_affine,
         return CartanType._repr_(self, compact)
 
     def _latex_(self):
-        """
+        r"""
         Return a latex representation of ``self``.
 
         EXAMPLES::
@@ -525,3 +616,4 @@ class CartanType_affine(sage.combinat.root_system.cartan_type.CartanType_affine,
             return "%s%s}"%(result[:-1], self.global_options('dual_latex'))
         else:
             return "{%s}^%s"%(result, self.global_options('dual_latex'))
+

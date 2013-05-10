@@ -488,9 +488,9 @@ CartanTypeOptions=GlobalOptions(name='cartan_type',  doc=r"""
     special_node_str=dict(default="X",
                           description="The string used to indicate which node is special when printing",
                           checker=lambda char: isinstance(char,str)),
-    latex_relabel=dict(default=False,
+    latex_relabel=dict(default=True,
                        description="Indicate in the latex output if a Cartan type has been relabelled",
-                       checker=lambda x: x == True or x == False)
+                       checker=lambda x: isinstance(x,bool))
 )
 
 class CartanTypeFactory(SageObject):
@@ -997,7 +997,7 @@ class CartanType_abstract(object):
             sage: CartanType(['E',8]).dual()
             ['E', 8]
             sage: CartanType(['F',4]).dual()
-            ['F', 4]^*
+            ['F', 4] relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
         """
         import type_dual
         return type_dual.CartanType(self)
@@ -1658,10 +1658,10 @@ class CartanType_affine(CartanType_simple, CartanType_crystalographic):
             ['E', 6]
             sage: CartanType(['G', 2, 1]).classical()
             ['G', 2]
-            sage: CartanType(['E', 6, 2]).classical() # todo: double check
-            ['F', 4]^*
-            sage: CartanType(['D', 4, 3]).classical() # todo: double check
-            ['G', 2]^* relabelled by {1: 2, 2: 1}
+            sage: CartanType(['E', 6, 2]).classical()
+            ['F', 4] relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
+            sage: CartanType(['D', 4, 3]).classical()
+            ['G', 2]
 
         We check that :meth:`classical`,
         :meth:`sage.combinat.root_system.cartan_type.CartanType_crystalographic.dynkin_diagram`,

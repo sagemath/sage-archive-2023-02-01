@@ -2,18 +2,22 @@
 Root system data for relabelled Cartan types
 """
 #*****************************************************************************
-#       Copyright (C) 2008-2009 Nicolas M. Thiery <nthiery at users.sf.net>,
+#       Copyright (C) 2008-2013 Nicolas M. Thiery <nthiery at users.sf.net>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.combinat.root_system.cartan_type import CartanType_abstract
 from sage.sets.family import FiniteFamily
-import sage
+from sage.combinat.root_system import cartan_type
+from sage.combinat.root_system import ambient_space
+from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
 
-class CartanType(UniqueRepresentation, SageObject, CartanType_abstract):
+class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_abstract):
     r"""
     A class for relabelled Cartan types.
     """
@@ -53,7 +57,6 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_abstract):
 
         relabelling = FiniteFamily(relabelling) # Hack to emulate a frozendict which would be hashable!!!!
         return super(CartanType, cls).__classcall__(cls, type, relabelling)
-
 
     def __init__(self, type, relabelling):
         """
@@ -112,17 +115,81 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_abstract):
             1   2   3   4
             B4
 
-        TESTS::
+        Test that the produced cartan type is in the appropriate
+        abstract classes (see :trac:`13724`)::
 
             sage: ct = CartanType(['B',4]).relabel(cycle)
             sage: TestSuite(ct).run()
+            sage: from sage.combinat.root_system import cartan_type
+            sage: isinstance(ct, cartan_type.CartanType_finite)
+            True
+            sage: isinstance(ct, cartan_type.CartanType_simple)
+            True
+            sage: isinstance(ct, cartan_type.CartanType_affine)
+            False
+            sage: isinstance(ct, cartan_type.CartanType_crystalographic)
+            True
+            sage: isinstance(ct, cartan_type.CartanType_simply_laced)
+            False
+
+            sage: ct = CartanType(['A',3,1]).relabel({0:3,1:2, 2:1,3:0})
+            sage: TestSuite(ct).run()
+            sage: isinstance(ct, cartan_type.CartanType_simple)
+            True
+            sage: isinstance(ct, cartan_type.CartanType_finite)
+            False
+            sage: isinstance(ct, cartan_type.CartanType_affine)
+            True
+            sage: isinstance(ct, cartan_type.CartanType_crystalographic)
+            True
+            sage: isinstance(ct, cartan_type.CartanType_simply_laced)
+            True
+
+        Check for the original issues of :trac:`13724`::
+
+            sage: A3 = CartanType("A3")
+            sage: A3.cartan_matrix()
+            [ 2 -1  0]
+            [-1  2 -1]
+            [ 0 -1  2]
+            sage: A3r = A3.relabel({1:2,2:3,3:1})
+            sage: A3r.cartan_matrix()
+            [ 2  0 -1]
+            [ 0  2 -1]
+            [-1 -1  2]
+
+            sage: ct = CartanType(["D",4,3]).classical(); ct
+            ['G', 2]
+            sage: ct.symmetrizer()
+            Finite family {1: 1, 2: 3}
         """
         assert isinstance(relabelling, FiniteFamily)
         self._type = type
         self._relabelling = relabelling._dictionary
+        self._relabelling_inverse = relabelling.inverse_family()._dictionary
         self._index_set = sorted(relabelling[i] for i in type.index_set())
-        if type.is_affine():
-            self._add_abstract_superclass(CartanType_affine)
+        # TODO: design an appropriate infrastructure to handle this
+        # automatically? Maybe using categories and axioms?
+        # See also type_dual.CartanType.__init__
+        if type.is_finite():
+            self.__class__ = CartanType_finite
+        elif type.is_affine():
+            self.__class__ = CartanType_affine
+        abstract_classes = tuple(cls
+                                 for cls in self._stable_abstract_classes
+                                 if isinstance(type, cls))
+        if abstract_classes:
+            self._add_abstract_superclass(abstract_classes)
+
+    # For each class cls in _stable_abstract_classes, if ct is an
+    # instance of A then ct.relabel(...) is put in this class as well.
+    # The order is relevant to avoid MRO issues!
+    _stable_abstract_classes = [
+        cartan_type.CartanType_finite,
+        cartan_type.CartanType_affine,
+        cartan_type.CartanType_simple,
+        cartan_type.CartanType_simply_laced,
+        cartan_type.CartanType_crystalographic]
 
     def _repr_(self, compact = False):
         """
@@ -150,10 +217,18 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_abstract):
 
             sage: ct = CartanType(['A',4]).relabel(lambda x: (x+1)%4+1)
             sage: latex(ct)
+            A_{4} \text{ relabelled by } \left\{1 : 3, 2 : 4, 3 : 1, 4 : 2\right\}
+
+        A more compact, but potentially confusing, representation can
+        be obtained using the ``latex_relabel`` global option::
+
+            sage: CartanType.global_options['latex_relabel'] = False
+            sage: latex(ct)
             A_{4}
             sage: CartanType.global_options['latex_relabel'] = True
-            sage: latex(ct)
-            A_{4} \text{ relabelled by } \left\{1 : 3, 2 : 4, 3 : 1, 4 : 2\right\}
+
+        Kac's notations are implemented::
+
             sage: CartanType.global_options['notation'] = 'Kac'
             sage: latex(CartanType(['D',4,3]))
             D_4^{(3)}
@@ -243,9 +318,9 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_abstract):
         """
         EXAMPLES::
 
-           sage: ct = CartanType(['F', 4]).dual()
-           sage: ct.is_irreducible()
-           True
+            sage: ct = CartanType(['G', 2]).relabel({1:2,2:1})
+            sage: ct.is_irreducible()
+            True
         """
         return self._type.is_irreducible()
 
@@ -253,9 +328,9 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_abstract):
         """
         EXAMPLES::
 
-           sage: ct = CartanType(['F', 4]).dual()
-           sage: ct.is_finite()
-           True
+            sage: ct = CartanType(['G', 2]).relabel({1:2,2:1})
+            sage: ct.is_finite()
+            True
         """
         return self._type.is_finite()
 
@@ -263,9 +338,9 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_abstract):
         """
         EXAMPLES::
 
-           sage: ct = CartanType(['F', 4]).dual()
-           sage: ct.is_crystalographic()
-           True
+            sage: ct = CartanType(['G', 2]).relabel({1:2,2:1})
+            sage: ct.is_crystalographic()
+            True
         """
         return self._type.is_crystalographic()
 
@@ -273,9 +348,9 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_abstract):
         """
         EXAMPLES::
 
-           sage: ct = CartanType(['F', 4]).dual()
-           sage: ct.is_affine()
-           False
+            sage: ct = CartanType(['G', 2]).relabel({1:2,2:1})
+            sage: ct.is_affine()
+            False
         """
         return self._type.is_affine()
 
@@ -283,9 +358,9 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_abstract):
         """
         EXAMPLES::
 
-           sage: ct = CartanType(['F', 4]).dual()
-           sage: ct.rank()
-           4
+            sage: ct = CartanType(['G', 2]).relabel({1:2,2:1})
+            sage: ct.rank()
+            2
         """
         return self._type.rank()
 
@@ -293,9 +368,9 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_abstract):
         """
         EXAMPLES::
 
-           sage: ct = CartanType(['F', 4]).dual()
-           sage: ct.index_set()
-           [1, 2, 3, 4]
+            sage: ct = CartanType(['G', 2]).relabel({1:2,2:1})
+            sage: ct.index_set()
+            [1, 2]
         """
         return self._index_set
 
@@ -319,12 +394,230 @@ class CartanType(UniqueRepresentation, SageObject, CartanType_abstract):
         """
         return self._type.dual().relabel(self._relabelling)
 
+    def type(self):
+        """
+        Return the type of ``self`` or ``None`` if unknown.
+
+        EXAMPLES::
+
+            sage: ct = CartanType(['G', 2]).relabel({1:2,2:1})
+            sage: ct.type()
+            'G'
+        """
+        return self._type.type()
+
 
 ###########################################################################
-class CartanType_affine(sage.combinat.root_system.cartan_type.CartanType_affine):
+
+class AmbientSpace(ambient_space.AmbientSpace):
+    """
+    Ambient space for a relabelled finite Cartan type.
+
+    It is constructed in the canonical way from the ambient space of
+    the original Cartan type, by relabelling the simple roots,
+    fundamental weights, etc.
+
+    EXAMPLES::
+
+        sage: cycle = {1:2, 2:3, 3:4, 4:1}
+        sage: L = CartanType(["F",4]).relabel(cycle).root_system().ambient_space(); L
+        Ambient space of the Root system of type ['F', 4] relabelled by {1: 2, 2: 3, 3: 4, 4: 1}
+        sage: TestSuite(L).run()
+    """
+
+    @lazy_attribute
+    def _space(self):
+        """
+        The ambient space this is a relabelling of.
+
+        EXAMPLES::
+
+            sage: cycle = {1:2, 2:3, 3:4, 4:1}
+            sage: L = CartanType(["F",4]).relabel(cycle).root_system().ambient_space()
+            sage: L._space
+            Ambient space of the Root system of type ['F', 4]
+        """
+        K = self.base_ring()
+        return self.cartan_type()._type.root_system().ambient_space(K)
+
+    def dimension(self):
+        """
+        Return the dimension of this ambient space.
+
+        .. SEEALSO:: :meth:`sage.combinat.root_system.ambient_space.AmbientSpace.dimension`
+
+        EXAMPLES::
+
+            sage: cycle = {1:2, 2:3, 3:4, 4:1}
+            sage: L = CartanType(["F",4]).relabel(cycle).root_system().ambient_space()
+            sage: L.dimension()
+            4
+        """
+        # Can't yet use _dual_space for the base ring (and cartan_type?) is not yet initialized
+        return self.root_system.cartan_type()._type.root_system().ambient_space().dimension()
+
+    @cached_method
+    def simple_root(self, i):
+        """
+        Return the ``i``-th simple root.
+
+        It is constructed by looking up the corresponding simple
+        coroot in the ambient space for the original Cartan type.
+
+        EXAMPLES::
+
+            sage: cycle = {1:2, 2:3, 3:4, 4:1}
+            sage: L = CartanType(["F",4]).relabel(cycle).root_system().ambient_space()
+            sage: K = CartanType(["F",4]).root_system().ambient_space()
+            sage: K.simple_roots()
+            Finite family {1: (0, 1, -1, 0), 2: (0, 0, 1, -1), 3: (0, 0, 0, 1), 4: (1/2, -1/2, -1/2, -1/2)}
+            sage: K.simple_coroots()
+            Finite family {1: (0, 1, -1, 0), 2: (0, 0, 1, -1), 3: (0, 0, 0, 2), 4: (1, -1, -1, -1)}
+            sage: L.simple_root(1)
+            (1/2, -1/2, -1/2, -1/2)
+
+            sage: L.simple_roots()
+            Finite family {1: (1/2, -1/2, -1/2, -1/2), 2: (0, 1, -1, 0), 3: (0, 0, 1, -1), 4: (0, 0, 0, 1)}
+
+            sage: L.simple_coroots()
+            Finite family {1: (1, -1, -1, -1), 2: (0, 1, -1, 0), 3: (0, 0, 1, -1), 4: (0, 0, 0, 2)}
+        """
+        i = self.cartan_type()._relabelling_inverse[i]
+        return self.sum_of_terms(self._space.simple_root(i))
+
+    @cached_method
+    def fundamental_weight(self, i):
+        """
+        Return the ``i``-th fundamental weight.
+
+        It is constructed by looking up the corresponding simple
+        coroot in the ambient space for the original Cartan type.
+
+        EXAMPLES::
+
+            sage: cycle = {1:2, 2:3, 3:4, 4:1}
+            sage: L = CartanType(["F",4]).relabel(cycle).root_system().ambient_space()
+            sage: K = CartanType(["F",4]).root_system().ambient_space()
+            sage: K.fundamental_weights()
+            Finite family {1: (1, 1, 0, 0), 2: (2, 1, 1, 0), 3: (3/2, 1/2, 1/2, 1/2), 4: (1, 0, 0, 0)}
+            sage: L.fundamental_weight(1)
+            (1, 0, 0, 0)
+            sage: L.fundamental_weights()
+            Finite family {1: (1, 0, 0, 0), 2: (1, 1, 0, 0), 3: (2, 1, 1, 0), 4: (3/2, 1/2, 1/2, 1/2)}
+        """
+        i = self.cartan_type()._relabelling_inverse[i]
+        return self.sum_of_terms(self._space.fundamental_weight(i))
+
+    @lazy_attribute
+    def _plot_projection(self):
+        """
+        A hack so that if an ambient space uses barycentric projection, then so does its dual.
+
+        EXAMPLES::
+
+            sage: cycle = {1:2, 2:1}
+            sage: L = CartanType(["G",2]).relabel(cycle).root_system().ambient_space()
+            sage: L._plot_projection == L._plot_projection_barycentric
+            True
+
+            sage: cycle = {1:2, 2:3, 3:4, 4:1}
+            sage: L = CartanType(["F",4]).relabel(cycle).root_system().ambient_space()
+            sage: L._plot_projection == L._plot_projection_barycentric
+            False
+        """
+        if self._space._plot_projection == self._space._plot_projection_barycentric:
+            return self._plot_projection_barycentric
+        else:
+            RootLatticeRealizations.ParentMethods.__dict__["_plot_projection"]
+
+class CartanType_finite(CartanType, cartan_type.CartanType_finite):
+    AmbientSpace = AmbientSpace
+
+    def affine(self):
+        """
+        Return the affine Cartan type associated with ``self``.
+
+        EXAMPLES::
+
+            sage: B4 = CartanType(['B',4])
+            sage: B4.dynkin_diagram()
+            O---O---O=>=O
+            1   2   3   4
+            B4
+            sage: B4.affine().dynkin_diagram()
+                O 0
+                |
+                |
+            O---O---O=>=O
+            1   2   3   4
+            B4~
+
+        If possible, this reuses the original label for the special node::
+
+            sage: T = B4.relabel({1:2, 2:3, 3:4, 4:1}); T.dynkin_diagram()
+            O---O---O=>=O
+            2   3   4   1
+            B4 relabelled by {1: 2, 2: 3, 3: 4, 4: 1}
+            sage: T.affine().dynkin_diagram()
+                O 0
+                |
+                |
+            O---O---O=>=O
+            2   3   4   1
+            B4~ relabelled by {0: 0, 1: 2, 2: 3, 3: 4, 4: 1}
+
+        Otherwise, it chooses a label for the special_node in `0,1,...`::
+
+            sage: T = B4.relabel({1:0, 2:1, 3:2, 4:3}); T.dynkin_diagram()
+            O---O---O=>=O
+            0   1   2   3
+            B4 relabelled by {1: 0, 2: 1, 3: 2, 4: 3}
+            sage: T.affine().dynkin_diagram()
+                O 4
+                |
+                |
+            O---O---O=>=O
+            0   1   2   3
+            B4~ relabelled by {0: 4, 1: 0, 2: 1, 3: 2, 4: 3}
+
+        This failed before :trac:`13724`::
+
+            sage: ct = CartanType(["G",2]).dual(); ct
+            ['G', 2] relabelled by {1: 2, 2: 1}
+            sage: ct.affine()
+            ['G', 2, 1] relabelled by {0: 0, 1: 2, 2: 1}
+
+            sage: ct = CartanType(["F",4]).dual(); ct
+            ['F', 4] relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
+            sage: ct.affine()
+            ['F', 4, 1] relabelled by {0: 0, 1: 4, 2: 3, 3: 2, 4: 1}
+        """
+        affine = self._type.affine()
+        relabelling = self._relabelling
+        for special_node in [affine.special_node()] + range(affine.rank()):
+            if special_node not in self._relabelling_inverse:
+                relabelling[affine.special_node()] = special_node
+                break
+        return self._type.affine().relabel(relabelling)
+
+###########################################################################
+class CartanType_affine(CartanType, cartan_type.CartanType_affine):
+    """
+    TESTS::
+
+        sage: ct = CartanType(['D',4,3]); ct
+        ['G', 2, 1]^* relabelled by {0: 0, 1: 2, 2: 1}
+
+        sage: L = ct.root_system().ambient_space(); L
+        Ambient space of the Root system of type ['G', 2, 1]^* relabelled by {0: 0, 1: 2, 2: 1}
+        sage: L.classical()
+        Ambient space of the Root system of type ['G', 2]
+        sage: TestSuite(L).run()
+    """
+
     def classical(self):
         """
-        Returns the classical Cartan type associated with self (which should be affine)
+        Return the classical Cartan type associated with ``self``.
 
         EXAMPLES::
 
@@ -392,6 +685,3 @@ class CartanType_affine(sage.combinat.root_system.cartan_type.CartanType_affine)
 
         """
         return self._type.is_untwisted_affine()
-
-#class ambient_space(AmbientSpace):
-# todo?

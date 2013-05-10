@@ -18,14 +18,15 @@ from sage.combinat.family import Family
 
 class AmbientSpace(ambient_space.AmbientSpace):
     """
-    The lattice behind F4.  The computations are based on Bourbaki,
+    The lattice behind `F_4`.  The computations are based on Bourbaki,
     Groupes et Algebres de Lie, Ch. 4,5,6 (planche VIII).
     """
     def __init__(self, root_system, base_ring):
-        """
-        Create the ambient lattice for the root system for F4.
-        Specify the Base, i.e., the simple roots w.r. to the canonical
-        basis for R^4.
+        r"""
+        Initialize the ambient lattice for the root system of type `F_4`.
+
+        This essentially initializes ``Base`` with the coordinates of
+        the simple roots in the canonical basis for `\RR^4`.
 
         EXAMPLES::
 
@@ -45,6 +46,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
     def dimension(self):
         """
+        Return the dimension of ``self``.
+
         EXAMPLES::
 
             sage: e = RootSystem(['F',4]).ambient_space()
@@ -76,9 +79,17 @@ class AmbientSpace(ambient_space.AmbientSpace):
         return (-1)**p1*self.monomial(i) + (-1)**p2*self.monomial(j)+(-1)**p3*self.monomial(k)+(-1)**p4*self.monomial(l)
 
     def simple_root(self, i):
-        """
-        There are computed as what Bourbaki calls the Base:
-            a1 = e2-e3, a2 = e3-e4, a3 = e4, a4 = 1/2*(e1-e2-e3-e4)
+        r"""
+        Return the `i`-th simple root.
+
+        It is computed according to what Bourbaki calls the Base:
+
+        .. MATH::
+
+            \alpha_1 = \epsilon_2-\epsilon_3,
+            \alpha_2 = \epsilon_3-\epsilon_4,
+            \alpha_3 = \epsilon_4,
+            \alpha_4 = \frac{1}{2} \left( \epsilon_1-\epsilon_2-\epsilon_3-\epsilon_4 \right).
 
         EXAMPLES::
 
@@ -90,7 +101,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
     def negative_roots(self):
         """
-        Returns the negative roots in self.
+        Return the negative roots.
 
         EXAMPLES::
 
@@ -124,9 +135,12 @@ class AmbientSpace(ambient_space.AmbientSpace):
         return [ -a for a in self.positive_roots()]
 
     def positive_roots(self):
-        """
-        These are the roots positive w.r. to lexicographic ordering of the
-        basis elements (e1<...<e4).
+        r"""
+        Return the positive roots.
+
+        These are the roots which are positive with respect to the
+        lexicographic ordering of the basis elements
+        (`\epsilon_1<\epsilon_2<\epsilon_3<\epsilon_4`).
 
         EXAMPLES::
 
@@ -169,6 +183,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
 
     def fundamental_weights(self):
         """
+        Return the fundamental weights of ``self``.
+
         EXAMPLES::
 
             sage: e =  RootSystem(['F',4]).ambient_space()
@@ -202,7 +218,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             sage: ct.is_simply_laced()
             False
             sage: ct.dual()
-            ['F', 4]^*
+            ['F', 4] relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
             sage: ct.affine()
             ['F', 4, 1]
 
@@ -221,7 +237,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             sage: latex(CartanType(['F',4]))
             F_4
             sage: latex(CartanType(['F',4]).dual())
-            F_4^\vee
+            F_4 \text{ relabelled by } \left\{1 : 4, 2 : 3, 3 : 2, 4 : 1\right\}
         """
         return "F_4"
 
@@ -281,7 +297,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
 
     def ascii_art(self, label = lambda x: x):
         """
-        Returns a ascii art representation of the extended Dynkin diagram
+        Return an ascii art representation of the extended Dynkin diagram.
 
         EXAMPLES::
 
@@ -290,6 +306,29 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             3   4   5   6
         """
         return "O---O=>=O---O\n%s   %s   %s   %s"%tuple(label(i) for i in (1,2,3,4))
+
+    def dual(self):
+        r"""
+        Return the dual Cartan type.
+
+        This uses that `F_4` is self-dual up to relabelling.
+
+        EXAMPLES::
+
+            sage: F4 = CartanType(['F',4])
+            sage: F4.dual()
+            ['F', 4] relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
+
+            sage: F4.dynkin_diagram()
+            O---O=>=O---O
+            1   2   3   4
+            F4
+            sage: F4.dual().dynkin_diagram()
+            O---O=>=O---O
+            4   3   2   1
+            F4 relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
+        """
+        return self.relabel({1:4, 2:3, 3:2, 4:1})
 
 # For unpickling backward compatibility (Sage <= 4.1)
 from sage.structure.sage_object import register_unpickle_override

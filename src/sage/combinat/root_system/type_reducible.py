@@ -137,8 +137,8 @@ class CartanType(SageObject, CartanType_abstract):
            sage: CartanType("A2","B2")    # indirect doctest
            A2xB2
 
-           sage: CartanType("A2",CartanType("F4").dual())
-           A2xF4*
+           sage: CartanType("A2",CartanType("F4~").dual())
+           A2xF4~*
         """
         return  "x".join(t._repr_(compact = True) for t in self._types)
 

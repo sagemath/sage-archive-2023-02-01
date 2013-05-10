@@ -127,7 +127,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             sage: ct.is_simply_laced()
             False
             sage: ct.dual()
-            ['G', 2]^*
+            ['G', 2] relabelled by {1: 2, 2: 1}
             sage: ct.affine()
             ['G', 2, 1]
 
@@ -146,7 +146,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             sage: latex(CartanType(['G',2]))
             G_2
             sage: latex(CartanType(['G',2]).dual())
-            G_2^\vee
+            G_2 \text{ relabelled by } \left\{1 : 2, 2 : 1\right\}
         """
         return "G_2"
 
@@ -210,6 +210,31 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             3   4
         """
         return "  3\nO=<=O\n%s   %s"%tuple(label(i) for i in (1,2))
+
+    def dual(self):
+        r"""
+        Return the dual Cartan type.
+
+        This uses that `G_2` is self-dual up to relabelling.
+
+        EXAMPLES::
+
+            sage: G2 = CartanType(['G',2])
+            sage: G2.dual()
+            ['G', 2] relabelled by {1: 2, 2: 1}
+
+            sage: G2.dynkin_diagram()
+              3
+            O=<=O
+            1   2
+            G2
+            sage: G2.dual().dynkin_diagram()
+              3
+            O=<=O
+            2   1
+            G2 relabelled by {1: 2, 2: 1}
+        """
+        return self.relabel({1:2, 2:1})
 
 # For unpickling backward compatibility (Sage <= 4.1)
 from sage.structure.sage_object import register_unpickle_override

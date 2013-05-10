@@ -190,7 +190,7 @@ Every Cartan type has a dual, which you can get from within Sage::
     ['C', 4]
 
 Types other than ``B`` and ``C`` are self-dual in the sense that the
-dual is isomorphic to the original type, but the isomorphism of a
+dual is isomorphic to the original type; however the isomorphism of a
 Cartan type with its dual might relabel the vertices. We can see this
 as follows::
 
@@ -199,11 +199,11 @@ as follows::
     1   2   3   4
     F4
     sage: CartanType("F4").dual()
-    ['F', 4]^*
+    ['F', 4] relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
     sage: CartanType("F4").dual().dynkin_diagram()
-    O---O=<=O---O
-    1   2   3   4
-    F4*
+    O---O=>=O---O
+    4   3   2   1
+    F4 relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
 
 
 Reducible Cartan types

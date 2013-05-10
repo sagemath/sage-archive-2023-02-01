@@ -34,3 +34,5 @@ deprecated_callable_import(14499,
                             "typing designs.best_known_covering_design_from_LJCR"))
 
 del deprecated_callable_import
+
+import sage.combinat.designs.steiner_quadruple_systems

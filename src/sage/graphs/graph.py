@@ -1597,7 +1597,7 @@ class Graph(GenericGraph):
             vertices = self.vertices()
             n = len(vertices)
             edges = self.edges(labels=False)
-            for i in range(len(edges)): # replace edge labels with natural numbers (by index in vertices)
+            for i in xrange(len(edges)): # replace edge labels with natural numbers (by index in vertices)
                 edges[i] = (vertices.index(edges[i][0]),vertices.index(edges[i][1]))
             # order edges 'reverse lexicographically', that is, for
             # edge (a,b) and edge (c,d) first compare b and d, then a and c;
@@ -1669,14 +1669,13 @@ class Graph(GenericGraph):
 
         EXAMPLES::
 
-            sage: for g in graphs.trees(6):
-            ...     g.is_tree()
+            sage: all(T.is_tree() for T in graphs.trees(15))
             True
-            True
-            True
-            True
-            True
-            True
+
+        The empty graph is not considered to be a tree::
+
+            sage: graphs.EmptyGraph().is_tree()
+            False
 
         With certificates::
 
@@ -1690,7 +1689,12 @@ class Graph(GenericGraph):
             False
             sage: -1 in cycle
             True
+
         """
+
+        if self.order() == 0:
+            return False
+
         if not self.is_connected():
             return (False,None) if certificate else False
 
@@ -1810,6 +1814,12 @@ class Graph(GenericGraph):
             3
             sage: g.is_overfull()
             False
+
+        The Holt graph is an example of a overfull graph::
+
+            sage: G = graphs.HoltGraph()
+            sage: G.is_overfull()
+            True
 
         Checking that all complete graphs `K_n` for even `0 \leq n \leq 100`
         are not overfull::
@@ -2071,6 +2081,8 @@ class Graph(GenericGraph):
             True
             sage: graphs.CycleGraph(5).is_bipartite()
             False
+            sage: graphs.RandomBipartite(100,100,0.7).is_bipartite()
+            True
 
         A random graph is very rarely bipartite::
 
@@ -2228,7 +2240,7 @@ class Graph(GenericGraph):
 
         A Graph `G` is said to be a split graph if its vertices `V(G)`
         can be partitioned into two sets `K` and `I` such that the
-        vertices of `K` induce a complete graphe, and those of `I` are
+        vertices of `K` induce a complete graph, and those of `I` are
         an independent set.
 
         There is a simple test to check whether a graph is a split
@@ -2263,6 +2275,14 @@ class Graph(GenericGraph):
             ...      g.add_edges([(i,k) for k in sets.random_element()])
             sage: g.is_split()
             True
+
+        Another caracterisation of split graph states that a graph is a split graph
+        if and only if does not contain the 4-cycle, 5-cycle or 2K_2 as an induced
+        subgraph. Hence for the above graph we have::
+
+            sage: sum([g.subgraph_search_count(H,induced=True) for H in [graphs.CycleGraph(4),graphs.CycleGraph(5), 2*graphs.CompleteGraph(2)]])
+            0
+
 
         REFERENCES:
 
@@ -2320,6 +2340,18 @@ class Graph(GenericGraph):
         A Bipartite Graph is always perfect ::
 
             sage: g = graphs.RandomBipartite(8,4,.5)
+            sage: g.is_perfect()
+            True
+
+        So is the line graph of a bipartite graph::
+
+            sage: g = graphs.RandomBipartite(4,3,0.7)
+            sage: g.line_graph().is_perfect() # long time
+            True
+
+        As well as the Cartesian product of two complete graphs::
+
+            sage: g = graphs.CompleteGraph(3).cartesian_product(graphs.CompleteGraph(3))
             sage: g.is_perfect()
             True
 
@@ -2893,14 +2925,9 @@ class Graph(GenericGraph):
 
         The same goes for the CubeGraph in any dimension ::
 
-            sage: for i in range(2,5):
-            ...     g = graphs.CubeGraph(i)
-            ...     o = g.strong_orientation()
-            ...     len(o.strongly_connected_components())
-            1
-            1
-            1
 
+            sage: all(len(graphs.CubeGraph(i).strong_orientation().strongly_connected_components()) == 1 for i in xrange(2,6))
+            True
         """
         from sage.graphs.all import DiGraph
         d = DiGraph(multiedges=self.allows_multiple_edges())
@@ -3312,6 +3339,32 @@ class Graph(GenericGraph):
             3
             sage: G.chromatic_number(algorithm="CP")
             3
+
+        A bipartite graph has (by definition) chromatic number 2::
+
+            sage: graphs.RandomBipartite(50,50,0.7).chromatic_number()
+            2
+
+        A complete multipartite graph with k parts has chromatic number k::
+
+            sage: all(graphs.CompleteMultipartiteGraph([5]*i).chromatic_number() == i for i in xrange(2,5))
+            True
+
+        The complete graph has the largest chromatic number from all the graphs
+        of order n. Namely its chromatic number is n::
+
+            sage: all(graphs.CompleteGraph(i).chromatic_number() == i for i in xrange(10))
+            True
+
+        The Kneser graph with parameters (n,2) for n > 3 has chromatic number n-2::
+
+            sage: all(graphs.KneserGraph(i,2).chromatic_number() == i-2 for i in xrange(4,6))
+            True
+
+        A snark has chromatic index 4 hence its line graph has chromatic number 4::
+
+            sage: graphs.FlowerSnark().line_graph().chromatic_number()
+            4
 
         TESTS::
 
@@ -4156,7 +4209,7 @@ class Graph(GenericGraph):
 
     def convexity_properties(self):
         r"""
-        Returns a ``ConvexityProperties`` objet corresponding to ``self``.
+        Returns a ``ConvexityProperties`` object corresponding to ``self``.
 
         This object contains the methods related to convexity in graphs (convex
         hull, hull number) and caches useful information so that it becomes
@@ -4795,6 +4848,21 @@ class Graph(GenericGraph):
             sage: G.show(figsize=[2,2])
             sage: G.clique_number()
             3
+
+        By definition the clique number of a complete graph is its order::
+
+            sage: all(graphs.CompleteGraph(i).clique_number() == i for i in xrange(1,15))
+            True
+
+        A non-empty graph without edges has a clique number of 1::
+
+            sage: all((i*graphs.CompleteGraph(1)).clique_number() == 1 for i in xrange(1,15))
+            True
+
+        A complete multipartite graph with k parts has clique number k::
+
+            sage: all((i*graphs.CompleteMultipartiteGraph(i*[5])).clique_number() == i for i in xrange(1,6))
+            True
 
         TESTS::
 

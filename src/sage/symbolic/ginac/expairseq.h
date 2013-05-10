@@ -75,7 +75,6 @@ public:
 	expairseq(const exvector & v);
 	expairseq(const epvector & v, const ex & oc, bool do_index_renaming = false);
 	expairseq(std::auto_ptr<epvector>, const ex & oc, bool do_index_renaming = false);
-	~expairseq() { if (!seq_sorted) delete seq_sorted; }
 	
 	// functions overriding virtual functions from base classes
 public:
@@ -92,7 +91,7 @@ public:
 	ex subs(const exmap & m, unsigned options = 0) const;
 	ex conjugate() const;
 	numeric calc_total_degree() const;
-	virtual const epvector* get_sorted_seq() const { return &seq; }
+	virtual const epvector & get_sorted_seq() const;
 protected:
 	bool is_equal_same_type(const basic & other) const;
 	unsigned return_type() const;
@@ -166,7 +165,7 @@ protected:
 	
 protected:
 	epvector seq;
-	mutable epvector *seq_sorted;
+	mutable epvector seq_sorted;
 	ex overall_coeff;
 #if EXPAIRSEQ_USE_HASHTAB
 	epplistvector hashtab;

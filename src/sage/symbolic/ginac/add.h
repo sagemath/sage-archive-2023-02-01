@@ -63,7 +63,7 @@ public:
 	ex imag_part() const;
 	exvector get_free_indices() const;
 	ex eval_ncmul(const exvector & v) const;
-	epvector* get_sorted_seq() const;
+	const epvector & get_sorted_seq() const;
 protected:
 	ex derivative(const symbol & s) const;
 	unsigned return_type() const;

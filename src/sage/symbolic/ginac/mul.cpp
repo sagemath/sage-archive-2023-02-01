@@ -262,9 +262,8 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 
 	// Separate factors into those with negative numeric exponent
 	// and all others
-	epvector* sorted_seq = get_sorted_seq();
-	epvector::const_iterator it = sorted_seq->begin(), itend = sorted_seq->end();
-	//epvector::const_iterator it = seq.begin(), itend = seq.end();
+	const epvector & sorted_seq = get_sorted_seq();
+	epvector::const_iterator it = sorted_seq.begin(), itend = sorted_seq.end();
 	exvector neg_powers, others;
 	while (it != itend) {
 		GINAC_ASSERT(is_exactly_a<numeric>(it->coeff));
@@ -1517,15 +1516,15 @@ ex mul::expand(unsigned options) const
 	}
 }
 
-epvector* mul::get_sorted_seq() const
+const epvector & mul::get_sorted_seq() const
 {
-	if (!this->seq_sorted) {
-		seq_sorted = new epvector(seq.size());
+	if (seq_sorted.empty() and not seq.empty()) {
+		seq_sorted = epvector(seq.size());
 		partial_sort_copy(seq.begin(), seq.end(),
-				seq_sorted->begin(), seq_sorted->end(),
-				print_order_pair_mul());
+				  seq_sorted.begin(), seq_sorted.end(),
+				  print_order_pair_mul());
 	}
-	return seq_sorted;
+	return expairseq::get_sorted_seq();
 }
 
   

@@ -128,9 +128,9 @@ void add::print_add(const print_context & c, unsigned level, bool latex) const
 	numeric coeff;
 	bool first = true;
 
-	epvector* sorted_seq = get_sorted_seq();
+	const epvector & sorted_seq = get_sorted_seq();
 	// Then proceed with the remaining factors
-	epvector::const_iterator it = sorted_seq->begin(), itend = sorted_seq->end();
+	epvector::const_iterator it = sorted_seq.begin(), itend = sorted_seq.end();
 	while (it != itend) {
 		std::stringstream tstream;
 		print_context *tcontext_p;
@@ -697,15 +697,15 @@ ex add::expand(unsigned options) const
 	return (new add(vp, overall_coeff))->setflag(status_flags::dynallocated | (options == 0 ? status_flags::expanded : 0));
 }
 
-epvector* add::get_sorted_seq() const
+const epvector & add::get_sorted_seq() const
 {
-	if (!this->seq_sorted) {
-		seq_sorted = new epvector(seq.size());
+	if (seq_sorted.empty() and not seq.empty()) {
+		seq_sorted = epvector(seq.size());
 		partial_sort_copy(seq.begin(), seq.end(),
-				seq_sorted->begin(), seq_sorted->end(),
-				print_order_pair());
+				  seq_sorted.begin(), seq_sorted.end(),
+				  print_order_pair());
 	}
-	return seq_sorted;
+	return expairseq::get_sorted_seq();
 }
 
 } // namespace GiNaC

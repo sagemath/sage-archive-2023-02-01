@@ -36,8 +36,62 @@ double numeric_to_double(const numeric& exp)
 		return exp.to_double();
 	else 
 		return std::sqrt(std::pow(exp.real().to_double(), 2) + 
-				std::pow(exp.imag().to_double(), 2));
+				 std::pow(exp.imag().to_double(), 2));
 }
+
+
+// Methods to get type id's. These cannot be const static because the
+// id's are set by another static initializer.
+  
+const tinfo_t & print_order::function_id() const
+{
+	static tinfo_t id = find_tinfo_key("function");
+	return id;
+}
+
+const tinfo_t & print_order::fderivative_id() const
+{
+	static tinfo_t id = find_tinfo_key("fderivative");
+	return id;
+}
+
+const tinfo_t & print_order::power_id() const
+{
+	static tinfo_t id = find_tinfo_key("power");
+	return id;
+}
+
+const tinfo_t & print_order::symbol_id() const
+{
+	static tinfo_t id = find_tinfo_key("symbol");
+	return id;
+}
+
+const tinfo_t & print_order::mul_id() const
+{
+	static tinfo_t id = find_tinfo_key("mul");
+	return id;
+}
+
+const tinfo_t & print_order::add_id() const
+{
+	static tinfo_t id = find_tinfo_key("add");
+	return id;
+}
+
+const tinfo_t & print_order::numeric_id() const
+{
+	static tinfo_t id = find_tinfo_key("numeric");
+	return id;
+}
+
+const tinfo_t & print_order::constant_id() const
+{
+	static tinfo_t id = find_tinfo_key("constant");
+	return id;
+}
+
+
 
 /** What Sage does for printing:
  To print multivariate polynomials, SAGE uses "reversed" (bigger terms first)
@@ -50,16 +104,14 @@ double numeric_to_double(const numeric& exp)
 /** Returns true if lhex > rhex for 'degrevlex' of Sage
  i.e. graded reversed lexicographic order
 */
-bool print_order::operator() (const ex &lhex, const ex &rhex) const {
-	const basic *lh = get_pointer(lhex.bp);
-	const basic *rh = get_pointer(rhex.bp);
-	return compare(lh, rh) == 1;
+bool print_order::operator() (const ex &lhex, const ex &rhex) const 
+{
+	return compare(lhex, rhex) == 1;
 }
 
-int print_order::compare (const ex &lhex, const ex &rhex) const {
-	const basic *lh = get_pointer(lhex.bp);
-	const basic *rh = get_pointer(rhex.bp);
-	return compare(lh, rh);
+int print_order::compare(const ex &lhex, const ex &rhex) const 
+{
+	return compare(*lhex.bp, *rhex.bp);
 }
 
 bool print_order_pair_mul::operator() (const expair &lhex, const expair &rhex) const
@@ -73,19 +125,15 @@ bool print_order_pair_mul::operator() (const expair &lhex, const expair &rhex) c
 
 bool print_order_pair::operator() (const expair &lhex, const expair &rhex) const
 {
-	const basic *lh = get_pointer(lhex.rest.bp);
-	const basic *rh = get_pointer(rhex.rest.bp);
-
 	// compare rests
-	int cmpval = print_order().compare(lh, rh);
+	int cmpval = print_order().compare(lhex.rest, rhex.rest);
 	if (cmpval != 0) {
 		return cmpval == 1;
 	}
 	return compare_degrees(lhex, rhex);
 }
 
-bool print_order_pair::compare_degrees(const expair &lhex,
-		const expair &rhex) const
+bool print_order_pair::compare_degrees(const expair &lhex, const expair &rhex) const
 {
 	// compare coeffs which are numerics
 	double lh_deg = numeric_to_double(ex_to<numeric>(lhex.coeff));
@@ -108,123 +156,117 @@ bool print_order_pair::compare_degrees(const expair &lhex,
  1 if a > b
  as <=> in Perl and GiNaC internal functions
 */
+int print_order::compare(const basic &lh, const basic &rh) const 
+{
+	const tinfo_t typeid_lh = lh.tinfo();
+	const tinfo_t typeid_rh = rh.tinfo();
 
-int print_order::compare(const basic *lh, const basic *rh) const {
-	const tinfo_t typeid_lh = lh->tinfo();
-	const tinfo_t typeid_rh = rh->tinfo();
-
-	if (typeid_rh==typeid_lh) {
-		if (typeid_rh == mul_id) {
-			return compare_same_type_mul(
-					static_cast<const mul*>(lh),
-					static_cast<const mul*>(rh));
-		} else if (typeid_rh == add_id) {
+	if (typeid_rh==typeid_lh)
+		if (typeid_rh == mul_id())
+			return compare_same_type_mul(static_cast<const mul&>(lh),
+						     static_cast<const mul&>(rh));
+		else if (typeid_rh == add_id())
 			return compare_same_type_add(
-					static_cast<const add*>(lh),
-					static_cast<const add*>(rh));
-		} else if (typeid_rh == symbol_id) {
-			return compare_same_type_symbol(
-					static_cast<const symbol*>(lh),
-					static_cast<const symbol*>(rh));
-		} else if (typeid_rh == power_id) {
-			return compare_same_type_power(
-					static_cast<const power*>(lh),
-					static_cast<const power*>(rh));
-		} else if (typeid_rh == function_id) {
-			return compare_same_type_function(
-					static_cast<const function*>(lh),
-					static_cast<const function*>(rh));
-		} else if (typeid_rh == fderivative_id) {
-			return compare_same_type_fderivative(
-					static_cast<const fderivative*>(lh),
-					static_cast<const fderivative*>(rh));
-		} else {
+						     static_cast<const add&>(lh),
+						     static_cast<const add&>(rh));
+		else if (typeid_rh == symbol_id())
+			return compare_same_type_symbol(static_cast<const symbol&>(lh),
+							static_cast<const symbol&>(rh));
+		else if (typeid_rh == power_id())
+			return compare_same_type_power(static_cast<const power&>(lh),
+						       static_cast<const power&>(rh));
+		else if (typeid_rh == function_id())
+			return compare_same_type_function(static_cast<const function&>(lh),
+							  static_cast<const function&>(rh));
+		else if (typeid_rh == fderivative_id())
+			return compare_same_type_fderivative(static_cast<const fderivative&>(lh),
+							     static_cast<const fderivative&>(rh));
+		else
 			// using GiNaC functions by default
-			return lh->compare_same_type(*rh);
-		}
+			return -lh.compare_same_type(rh);
+		
 	// at present numerics are combined into overall_coefficient
 	// even when hold parameter is used
-	} else if (typeid_lh == numeric_id) {
+	else if (typeid_lh == numeric_id())
 	 	//print numerics before anything else
 		return 1;
-	} else if (typeid_rh == numeric_id) {
+	else if (typeid_rh == numeric_id())
 	 	//print numerics before anything else
 		return -1;
-	} else if (typeid_lh == constant_id) {
+	else if (typeid_lh == constant_id())
 	 	//print constants before anything else (but numerics)
 		return 1;
-	} else if (typeid_rh == constant_id) {
+	else if (typeid_rh == constant_id())
 	 	//print constants before anything else (but numerics)
 		return -1;
-	} else if (typeid_lh == fderivative_id) {
+	else if (typeid_lh == fderivative_id())
 		//print fderivatives after everything else
 		return -1;
-	} else if (typeid_rh == fderivative_id) {
+	else if (typeid_rh == fderivative_id())
 		//print fderivatives after everything esle
 		return 1;
-	} else if (typeid_lh == function_id) {
+	else if (typeid_lh == function_id())
 		//print functions before fderivatives, after anything else
 		return -1;
-	} else if (typeid_rh == function_id) {
+	else if (typeid_rh == function_id())
 		//print functions before fderivatives, after anything else
 		return 1;
-	} else if (typeid_lh == mul_id) {
-		if (typeid_rh == power_id) {
+	else if (typeid_lh == mul_id())
+		if (typeid_rh == power_id())
 			return compare_mul_power(
-					static_cast<const mul*>(lh),
-					static_cast<const power*>(rh));
-		} else if (typeid_rh == symbol_id) {
+					static_cast<const mul&>(lh),
+					static_cast<const power&>(rh));
+		else if (typeid_rh == symbol_id())
 			return compare_mul_symbol(
-					static_cast<const mul*>(lh),
-					static_cast<const symbol*>(rh));
-		} else if (typeid_rh == add_id) {
+					static_cast<const mul&>(lh),
+					static_cast<const symbol&>(rh));
+		else if (typeid_rh == add_id())
 			return -compare_add_mul(
-					static_cast<const add*>(rh),
-					static_cast<const mul*>(lh));
-		}
-	} else if (typeid_lh == add_id) {
-		if (typeid_rh == power_id) {
+					static_cast<const add&>(rh),
+					static_cast<const mul&>(lh));
+		else throw (std::runtime_error("comparing typeid's"));
+	else if (typeid_lh == add_id())
+		if (typeid_rh == power_id())
 			return compare_add_power(
-					static_cast<const add*>(lh),
-					static_cast<const power*>(rh));
-		} else if (typeid_rh == symbol_id) {
+					static_cast<const add&>(lh),
+					static_cast<const power&>(rh));
+		else if (typeid_rh == symbol_id())
 			return compare_add_symbol(
-					static_cast<const add*>(lh),
-					static_cast<const symbol*>(rh));
-		} else if (typeid_rh == mul_id) {
+					static_cast<const add&>(lh),
+					static_cast<const symbol&>(rh));
+		else if (typeid_rh == mul_id())
 			return compare_add_mul(
-					static_cast<const add*>(lh),
-					static_cast<const mul*>(rh));
-		}
-	} else if (typeid_lh == power_id) {
-		if (typeid_rh == mul_id) {
+					static_cast<const add&>(lh),
+					static_cast<const mul&>(rh));
+		else throw (std::runtime_error("comparing typeid's"));
+	else if (typeid_lh == power_id())
+		if (typeid_rh == mul_id())
 			return -compare_mul_power(
-					static_cast<const mul*>(rh),
-					static_cast<const power*>(lh));
-		} else if (typeid_rh == add_id) {
+					static_cast<const mul&>(rh),
+					static_cast<const power&>(lh));
+		else if (typeid_rh == add_id())
 			return -compare_add_power(
-					static_cast<const add*>(rh),
-					static_cast<const power*>(lh));
-		} else if (typeid_rh == symbol_id) {
+					static_cast<const add&>(rh),
+					static_cast<const power&>(lh));
+		else if (typeid_rh == symbol_id())
 			return compare_power_symbol(
-					static_cast<const power*>(lh),
-					static_cast<const symbol*>(rh));
-		}
-	} else if (typeid_lh == symbol_id) {
-		if (typeid_rh == mul_id) {
+					static_cast<const power&>(lh),
+					static_cast<const symbol&>(rh));
+		else throw (std::runtime_error("comparing typeid's"));
+	else if (typeid_lh == symbol_id())
+		if (typeid_rh == mul_id())
 			return -compare_mul_symbol(
-					static_cast<const mul*>(rh),
-					static_cast<const symbol*>(lh));
-		} else if (typeid_rh == add_id) {
+					static_cast<const mul&>(rh),
+					static_cast<const symbol&>(lh));
+		else if (typeid_rh == add_id())
 			return -compare_add_symbol(
-					static_cast<const add*>(rh),
-					static_cast<const symbol*>(lh));
-		} else if (typeid_rh == power_id) {
+					static_cast<const add&>(rh),
+					static_cast<const symbol&>(lh));
+		else if (typeid_rh == power_id())
 			return -compare_power_symbol(
-					static_cast<const power*>(rh),
-					static_cast<const symbol*>(lh));
-		}
-	}
+					static_cast<const power&>(rh),
+					static_cast<const symbol&>(lh));
+		else throw (std::runtime_error("comparing typeid's"));
 	throw (std::runtime_error("comparing typeid's"));
 }
 
@@ -232,32 +274,31 @@ int print_order::compare(const basic *lh, const basic *rh) const {
 // same behavior within mul and add objects:
 // the total degree of the symbol is 1
 // check total degree of mul then compare smallest item to symbol
-int print_order::compare_mul_symbol(const mul *lh,
-		const symbol *rh) const
+int print_order::compare_mul_symbol(const mul &lh, const symbol &rh) const
 {
 	int cmpval;
 
 	double tdeg;
-	tdeg = lh->total_degree();
+	tdeg = lh.total_degree();
 
 	if (tdeg != 1)
 		return tdeg > 1 ? 1 : -1;
 	
-	const expair smallest_item = lh->get_sorted_seq()->back();
+	const expair smallest_item = lh.get_sorted_seq().back();
 
 	// compare bases
-	cmpval = compare(get_pointer(smallest_item.rest.bp), rh);
+	cmpval = compare(*smallest_item.rest.bp, rh);
 	if (cmpval != 0) {
 		return cmpval;
 	}
 
 	// compare exponents
-	cmpval = -compare(get_pointer(smallest_item.coeff.bp),_num1_p);
+	cmpval = -compare(*smallest_item.coeff.bp, *_num1_p);
 	if (cmpval != 0) {
 		return cmpval;
 	}
 
-	if (lh->seq.size() == 1 && lh->overall_coeff.is_equal(_ex1))
+	if (lh.seq.size() == 1 && lh.overall_coeff.is_equal(_ex1))
 		return 0;
 
 	// there is something of total degree 0 in front of the mul object
@@ -269,39 +310,36 @@ int print_order::compare_mul_symbol(const mul *lh,
 // first we compare total degrees
 // if equal we compare the smallest basis in the sequence to the basis in other
 // then their exponents
-int print_order::compare_mul_power(const mul *lh,
-		const power *rh) const
+int print_order::compare_mul_power(const mul &lh, const power &rh) const
 {
 	int cmpval;
 
-	double lh_deg = lh->total_degree();
+	double lh_deg = lh.total_degree();
 	double rh_deg = 1;
 	numeric rh_exp;
-	if (is_a<numeric>(rh->exponent)) {
-		rh_deg = numeric_to_double(ex_to<numeric>(rh->exponent));
+	if (is_a<numeric>(rh.exponent)) {
+		rh_deg = numeric_to_double(ex_to<numeric>(rh.exponent));
 	}
 	if (rh_deg != lh_deg)
 		return lh_deg < rh_deg ? -1 : 1;
 	// same total degree
 
 	// smallest item is at the end of the sorted sequence
-	const expair smallest_item = lh->get_sorted_seq()->back();
+	const expair smallest_item = lh.get_sorted_seq().back();
 	
 	// compare bases
-	cmpval = compare(get_pointer(smallest_item.rest.bp),
-			get_pointer(rh->basis.bp));
+	cmpval = compare(smallest_item.rest, rh.basis);
 	if (cmpval != 0) {
 		return cmpval;
 	}
 
 	// compare exponents
-	cmpval = -compare(get_pointer(smallest_item.coeff.bp),
-			get_pointer(rh->exponent.bp));
+	cmpval = -compare(smallest_item.coeff, rh.exponent);
 	if (cmpval != 0) {
 		return cmpval;
 	}
 
-	if (lh->seq.size() == 1 && lh->overall_coeff.is_equal(_ex1))
+	if (lh.seq.size() == 1 && lh.overall_coeff.is_equal(_ex1))
 		return 0;
 
 	// there is something of total degree 0 in front of the mul object
@@ -314,36 +352,33 @@ int print_order::compare_mul_power(const mul *lh,
 // if equal we compare the basis of the smallest items
 // then their exponents
 // and so on
-int print_order::compare_same_type_mul(const mul *lh,
-		const mul *rh) const
+int print_order::compare_same_type_mul(const mul &lh, const mul &rh) const
 {
 	int cmpval;
 	
 	// compare total degrees
-	double lh_deg = lh->total_degree();
-	double rh_deg = rh->total_degree();
+	double lh_deg = lh.total_degree();
+	double rh_deg = rh.total_degree();
 	if (lh_deg != rh_deg)
 		return lh_deg < rh_deg ? -1 : 1;
 	
 	// compare each item in lh to corresponding element in rh
-	const epvector *sorted_seq1 = lh->get_sorted_seq();
-	const epvector *sorted_seq2 = rh->get_sorted_seq();
-	epvector::const_reverse_iterator cit1 = sorted_seq1->rbegin();
-	epvector::const_reverse_iterator cit2 = sorted_seq2->rbegin();
-	epvector::const_reverse_iterator last1 = sorted_seq1->rend();
-	epvector::const_reverse_iterator last2 = sorted_seq2->rend();
+	const epvector & sorted_seq1 = lh.get_sorted_seq();
+	const epvector & sorted_seq2 = rh.get_sorted_seq();
+	epvector::const_reverse_iterator cit1 = sorted_seq1.rbegin();
+	epvector::const_reverse_iterator cit2 = sorted_seq2.rbegin();
+	epvector::const_reverse_iterator last1 = sorted_seq1.rend();
+	epvector::const_reverse_iterator last2 = sorted_seq2.rend();
 
 	for (; (cit1!=last1)&&(cit2!=last2); ++cit1, ++cit2) {
 		// compare bases
-		cmpval = compare(get_pointer(cit1->rest.bp),
-				get_pointer(cit2->rest.bp));
+	  cmpval = compare(cit1->rest, cit2->rest);
 		if (cmpval != 0) {
 			return cmpval;
 		}
 
 		// compare exponents
-		cmpval = -compare(get_pointer(cit1->coeff.bp),
-				get_pointer(cit2->coeff.bp));
+		cmpval = -compare(cit1->coeff, cit2->coeff);
 		if (cmpval != 0) {
 			return cmpval;
 		}
@@ -356,8 +391,7 @@ int print_order::compare_same_type_mul(const mul *lh,
 		return -1;
 
 	// compare overall_coeff
-	cmpval = compare(get_pointer(lh->overall_coeff.bp),
-			get_pointer(rh->overall_coeff.bp));
+	cmpval = compare(lh.overall_coeff, rh.overall_coeff);
 
 	return cmpval;
 }
@@ -365,26 +399,25 @@ int print_order::compare_same_type_mul(const mul *lh,
 // compare an add and a symbol objects
 // same behavior wihtin mul and add objects:
 // the coefficient of the symbol is 1
-int print_order::compare_add_symbol(const add *lh,
-		const symbol *rh) const
+int print_order::compare_add_symbol(const add &lh, const symbol &rh) const
 {
 	int cmpval;
 
-	const expair biggest_item = lh->get_sorted_seq()->front();
+	const expair biggest_item = lh.get_sorted_seq().front();
 
 	// compare bases
-	cmpval = print_order().compare(get_pointer(biggest_item.rest.bp), rh);
+	cmpval = print_order().compare(*biggest_item.rest.bp, rh);
 	if (cmpval != 0) {
 		return cmpval;
 	}
 
 	// compare coefficients
-	cmpval = compare(get_pointer(biggest_item.coeff.bp),_num1_p);
+	cmpval = compare(*biggest_item.coeff.bp, *_num1_p);
 	if (cmpval != 0) {
 		return cmpval;
 	}
 
-	if (lh->seq.size() == 1 && lh->overall_coeff.is_equal(_ex0))
+	if (lh.seq.size() == 1 && lh.overall_coeff.is_equal(_ex0))
 		return 0;
 
 	// there is something at the end of the add object
@@ -394,25 +427,25 @@ int print_order::compare_add_symbol(const add *lh,
 // compare an add and a mul objects
 // same behavior within mul and add objects:
 // the coefficient of the mul object is 1
-int print_order::compare_add_mul(const add *lh,
-		const mul *rh) const
+int print_order::compare_add_mul(const add &lh,
+				 const mul &rh) const
 {
 	int cmpval;
-	const expair biggest_item = lh->get_sorted_seq()->front();
+	const expair biggest_item = lh.get_sorted_seq().front();
 
 	// compare bases
-	cmpval = print_order().compare(get_pointer(biggest_item.rest.bp), rh);
+	cmpval = print_order().compare(*biggest_item.rest.bp, rh);
 	if (cmpval != 0) {
 		return cmpval;
 	}
 
 	// compare coefficients
-	cmpval = compare(get_pointer(biggest_item.coeff.bp),_num1_p);
+	cmpval = compare(*biggest_item.coeff.bp, *_num1_p);
 	if (cmpval != 0) {
 		return cmpval;
 	}
 
-	if (lh->seq.size() == 1 && lh->overall_coeff.is_equal(_ex0))
+	if (lh.seq.size() == 1 && lh.overall_coeff.is_equal(_ex0))
 		return 0;
 
 	// there is something at the end of the object
@@ -422,25 +455,25 @@ int print_order::compare_add_mul(const add *lh,
 // compare an add and a pow objects
 // same behavior wihtin mul and add objects:
 // the coefficient of the power object is 1
-int print_order::compare_add_power(const add *lh,
-		const power *rh) const
+int print_order::compare_add_power(const add &lh,
+		const power &rh) const
 {
 	int cmpval;
-	const expair biggest_item = lh->get_sorted_seq()->front();
+	const expair biggest_item = lh.get_sorted_seq().front();
 
 	// compare bases
-	cmpval = print_order().compare(get_pointer(biggest_item.rest.bp), rh);
+	cmpval = print_order().compare(*biggest_item.rest.bp, rh);
 	if (cmpval != 0) {
 		return cmpval;
 	}
 
 	// compare coefficients
-	cmpval = compare(get_pointer(biggest_item.coeff.bp),_num1_p);
+	cmpval = compare(*biggest_item.coeff.bp, *_num1_p);
 	if (cmpval != 0) {
 		return cmpval;
 	}
 
-	if (lh->seq.size() == 1 && lh->overall_coeff.is_equal(_ex0))
+	if (lh.seq.size() == 1 && lh.overall_coeff.is_equal(_ex0))
 		return 0;
 
 	// there is something at the end of the object
@@ -452,27 +485,26 @@ int print_order::compare_add_power(const add *lh,
 // first we compare the basis of the biggest items
 // then their coefficients
 // and so on
-int print_order::compare_same_type_add(const add *lh,
-		const add *rh) const
+int print_order::compare_same_type_add(const add &lh, const add &rh) const
 {
 	int cmpval;
 
-	const epvector *sorted_seq1 = lh->get_sorted_seq();
-	const epvector *sorted_seq2 = rh->get_sorted_seq();
-	epvector::const_iterator cit1 = sorted_seq1->begin();
-	epvector::const_iterator cit2 = sorted_seq2->begin();
-	epvector::const_iterator last1 = sorted_seq1->end();
-	epvector::const_iterator last2 = sorted_seq2->end();
+	const epvector & sorted_seq1 = lh.get_sorted_seq();
+	const epvector & sorted_seq2 = rh.get_sorted_seq();
+	epvector::const_iterator cit1 = sorted_seq1.begin();
+	epvector::const_iterator cit2 = sorted_seq2.begin();
+	epvector::const_iterator last1 = sorted_seq1.end();
+	epvector::const_iterator last2 = sorted_seq2.end();
 
 	for (; (cit1!=last1)&&(cit2!=last2); ++cit1, ++cit2) {
 		// compare bases
-		cmpval = print_order().compare(get_pointer(cit1->rest.bp),get_pointer(cit2->rest.bp));
+		cmpval = print_order().compare(cit1->rest, cit2->rest);
 		if (cmpval != 0) {
 			return cmpval;
 		}
 
 		// compare coefficients
-		cmpval = compare(get_pointer(cit1->coeff.bp),get_pointer(cit2->coeff.bp));
+		cmpval = compare(cit1->coeff, cit2->coeff);
 		if (cmpval != 0) {
 			return cmpval;
 		}
@@ -485,8 +517,7 @@ int print_order::compare_same_type_add(const add *lh,
 		return -1;
 
 	// compare overall_coeff
-	cmpval = compare(get_pointer(lh->overall_coeff.bp),
-			get_pointer(rh->overall_coeff.bp));
+	cmpval = compare(lh.overall_coeff, rh.overall_coeff);
 	
 	return cmpval;
 }
@@ -499,32 +530,32 @@ int print_order::compare_same_type_add(const add *lh,
 // in add object:
 // first exponents
 // then bases
-int print_order_mul::compare_power_symbol(const power *lh,
-		const symbol *rh) const
+int print_order_mul::compare_power_symbol
+(const power &lh, const symbol &rh) const
 {
 	int cmpval;
-	cmpval = compare(get_pointer(lh->basis.bp), rh);
+	cmpval = compare(*lh.basis.bp, rh);
 	if (cmpval != 0)
 		  return cmpval;
 	
-	cmpval = compare(get_pointer(lh->exponent.bp), _num1_p);
+	cmpval = compare(*lh.exponent.bp, *_num1_p);
 	
 	return cmpval;
 }
 
-int print_order::compare_power_symbol(const power *lh,
-		const symbol *rh) const
+int print_order::compare_power_symbol(const power &lh,
+		const symbol &rh) const
 {
 	int cmpval;
 
 	// We are in an add object
-	if (is_a<numeric>(lh->exponent)) {
-		double lh_deg = numeric_to_double(ex_to<numeric>(lh->exponent));
+	if (is_a<numeric>(lh.exponent)) {
+		double lh_deg = numeric_to_double(ex_to<numeric>(lh.exponent));
 		if (lh_deg != 1)
 			return lh_deg < 1 ? -1 : 1;
 	}
 
-	cmpval = compare(get_pointer(lh->basis.bp), rh);
+	cmpval = compare(*lh.basis.bp, rh);
 
 	return cmpval;
 }
@@ -537,66 +568,64 @@ int print_order::compare_power_symbol(const power *lh,
 // in add object:
 // first exponents
 // then bases
-int print_order_mul::compare_same_type_power(const power *lh,
-		const power *rh) const
+int print_order_mul::compare_same_type_power(const power &lh, const power &rh) const
 {
 	int cmpval;
-	cmpval = compare(get_pointer(lh->basis.bp), get_pointer(rh->basis.bp));
+	cmpval = compare(lh.basis, rh.basis);
 	if (cmpval != 0)
 		  return cmpval;
-	cmpval = compare(get_pointer(lh->exponent.bp), get_pointer(rh->exponent.bp));
+	cmpval = compare(lh.exponent, rh.exponent);
 	
 	return cmpval;
 }
-int print_order::compare_same_type_power(const power *lh,
-		const power *rh) const
+
+
+int print_order::compare_same_type_power(const power &lh, const power &rh) const
 {
 	int cmpval;
 
 	double lh_deg = 1;
 	double rh_deg = 1;
-	if (is_a<numeric>(lh->exponent)) {
-		lh_deg = numeric_to_double(ex_to<numeric>(lh->exponent));
+	if (is_a<numeric>(lh.exponent)) {
+		lh_deg = numeric_to_double(ex_to<numeric>(lh.exponent));
 	}
-	if (is_a<numeric>(rh->exponent)) {
-		rh_deg = numeric_to_double(ex_to<numeric>(rh->exponent));
+	if (is_a<numeric>(rh.exponent)) {
+		rh_deg = numeric_to_double(ex_to<numeric>(rh.exponent));
 	}
 	if (rh_deg != lh_deg)
 		return lh_deg < rh_deg ? -1 : 1;
 
-	cmpval = compare(get_pointer(lh->basis.bp), get_pointer(rh->basis.bp));
+	cmpval = compare(lh.basis, rh.basis);
 	if (cmpval != 0)
 		return cmpval;
 
-	if (is_a<numeric>(lh->exponent) && is_a<numeric>(rh->exponent))
+	if (is_a<numeric>(lh.exponent) && is_a<numeric>(rh.exponent))
 		return 0;
-	return compare(get_pointer(lh->exponent.bp),
-			get_pointer(rh->exponent.bp));
+	return compare(lh.exponent, rh.exponent);
 }
 
 // compare two symbol objects
 // same behavior wihtin mul and add objects:
 // we compare names
-int print_order::compare_same_type_symbol(const symbol *lh,
-		const symbol *rh) const
+int print_order::compare_same_type_symbol(const symbol &lh, const symbol &rh) const
 {
 	/* Reversed ordering on char encoding (i.e. "a" < "b") then length
 	 * (i.e. "abc" < "abcd")
 	   i.e. "x" > "y" and "xyz" > "xyzt" */
-	if (lh->serial==rh->serial) return 0;
-	return lh->name < rh->name ? 1 : -1;
+	if (lh.serial==rh.serial) return 0;
+	return lh.name < rh.name ? 1 : -1;
 }
 
 // compare two containers of the same type
 template <template <class T, class = std::allocator<T> > class C>
-int print_order::compare_same_type_container(const container<C> *lh,
-							 const container<C> *rh) const
+int print_order::compare_same_type_container(const container<C> &lh,
+					     const container<C> &rh) const
 {
-	typename C<ex>::const_iterator it1 = lh->seq.begin(), it1end = lh->seq.end(),
-			      it2 = rh->seq.begin(), it2end = rh->seq.end();
+	typename C<ex>::const_iterator it1 = lh.seq.begin(), it1end = lh.seq.end(),
+			      it2 = rh.seq.begin(), it2end = rh.seq.end();
 
 	while (it1 != it1end && it2 != it2end) {
-		int cmpval = compare(get_pointer(it1->bp), get_pointer(it2->bp));
+		int cmpval = compare(*it1, *it2);
 		if (cmpval)
 			return cmpval;
 		++it1; ++it2;
@@ -608,27 +637,27 @@ int print_order::compare_same_type_container(const container<C> *lh,
 // compare two function objects
 // same behavior wihtin mul and add objects:
 // we compare names
-int print_order::compare_same_type_function(const function *lh,
-		const function *rh) const
+int print_order::compare_same_type_function(const function &lh,
+					    const function &rh) const
 {
 
-	if (lh->serial==rh->serial)
-		return compare_same_type_container(lh,rh);
-	return lh->get_name() < rh->get_name() ? 1 : -1;	
+	if (lh.serial==rh.serial)
+		return compare_same_type_container(lh, rh);
+	return lh.get_name() < rh.get_name() ? 1 : -1;	
 
 }
 
 // compare two fderivative objects
 // same behavior wihtin mul and add objects:
 // we compare names
-int print_order::compare_same_type_fderivative(const fderivative *lh,
-		const fderivative *rh) const
+int print_order::compare_same_type_fderivative(const fderivative &lh,
+					       const fderivative &rh) const
 {
 	int cmpval = compare_same_type_function(lh, rh);
 	if (cmpval != 0)
 		return cmpval;
-	if (lh->parameter_set != rh->parameter_set)
-		return lh->parameter_set < rh->parameter_set ? 1 : -1;
+	if (lh.parameter_set != rh.parameter_set)
+		return lh.parameter_set < rh.parameter_set ? 1 : -1;
 	return 0;
 }
 

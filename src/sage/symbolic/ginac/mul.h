@@ -98,7 +98,7 @@ protected:
 public:
 	ex algebraic_subs_mul(const exmap & m, unsigned options) const;
 	double total_degree() const;
-	epvector* get_sorted_seq() const;
+	const epvector & get_sorted_seq() const;
 	//int compare_symbol(const symbol &other) const;
 	//int compare_pow(const power &other) const;
 protected:

@@ -830,43 +830,43 @@ ex basic::expand(unsigned options) const
 int basic::compare(const basic & other) const
 {
 #ifdef GINAC_COMPARE_STATISTICS
-        compare_statistics.total_basic_compares++;
+	compare_statistics.total_basic_compares++;
 #endif
-        const unsigned hash_this = gethash();
-        const unsigned hash_other = other.gethash();
-        if (hash_this<hash_other) return -1;
-        if (hash_this>hash_other) return 1;
+	const unsigned hash_this = gethash();
+	const unsigned hash_other = other.gethash();
+	if (hash_this<hash_other) return -1;
+	if (hash_this>hash_other) return 1;
 #ifdef GINAC_COMPARE_STATISTICS
-        compare_statistics.compare_same_hashvalue++;
+	compare_statistics.compare_same_hashvalue++;
 #endif
 
-        const tinfo_t& typeid_this = tinfo();//typeid(*this);
-        const tinfo_t& typeid_other = other.tinfo();//typeid(other);
-        if (typeid_this == typeid_other) {
-//              int cmpval = compare_same_type(other);
-//              if (cmpval!=0) {
-//                      std::cout << "hash collision, same type: " 
-//                                << *this << " and " << other << std::endl;
-//                      this->print(print_tree(std::cout));
-//                      std::cout << " and ";
-//                      other.print(print_tree(std::cout));
-//                      std::cout << std::endl;
-//              }
-//              return cmpval;
+	const tinfo_t& typeid_this = tinfo();//typeid(*this);
+	const tinfo_t& typeid_other = other.tinfo();//typeid(other);
+	if (typeid_this == typeid_other) {
+//		int cmpval = compare_same_type(other);
+//		if (cmpval!=0) {
+//			std::cout << "hash collision, same type: " 
+//			          << *this << " and " << other << std::endl;
+//			this->print(print_tree(std::cout));
+//			std::cout << " and ";
+//			other.print(print_tree(std::cout));
+//			std::cout << std::endl;
+//		}
+//		return cmpval;
 #ifdef GINAC_COMPARE_STATISTICS
-                compare_statistics.compare_same_type++;
+		compare_statistics.compare_same_type++;
 #endif
-                return compare_same_type(other);
-        } else {
-//              std::cout << "hash collision, different types: " 
-//                        << *this << " and " << other << std::endl;
-//              this->print(print_tree(std::cout));
-//              std::cout << " and ";
-//              other.print(print_tree(std::cout));
-//              std::cout << std::endl;
-                //return (typeid_this.before(typeid_other) ? -1 : 1);
+		return compare_same_type(other);
+	} else {
+//		std::cout << "hash collision, different types: " 
+//		          << *this << " and " << other << std::endl;
+//		this->print(print_tree(std::cout));
+//		std::cout << " and ";
+//	 	other.print(print_tree(std::cout));
+//	 	std::cout << std::endl;
+		//return (typeid_this.before(typeid_other) ? -1 : 1);
 		return (typeid_this<typeid_other ? -1 : 1);
-        }
+	}
 }
 
 /** Test for syntactic equality.

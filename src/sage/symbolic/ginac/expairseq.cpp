@@ -71,7 +71,7 @@ public:
 
 // public
 
-expairseq::expairseq() : inherited(&expairseq::tinfo_static), seq_sorted(NULL)
+expairseq::expairseq() : inherited(&expairseq::tinfo_static)
 #if EXPAIRSEQ_USE_HASHTAB
                                                    , hashtabsize(0)
 #endif // EXPAIRSEQ_USE_HASHTAB
@@ -110,20 +110,20 @@ void expairseq::copy(const expairseq &other)
 // other constructors
 //////////
 
-expairseq::expairseq(const ex &lh, const ex &rh) : inherited(&expairseq::tinfo_static), seq_sorted(NULL)
+expairseq::expairseq(const ex &lh, const ex &rh) : inherited(&expairseq::tinfo_static)
 {
 	construct_from_2_ex(lh,rh);
 	GINAC_ASSERT(is_canonical());
 }
 
-expairseq::expairseq(const exvector &v) : inherited(&expairseq::tinfo_static), seq_sorted(NULL)
+expairseq::expairseq(const exvector &v) : inherited(&expairseq::tinfo_static)
 {
 	construct_from_exvector(v);
 	GINAC_ASSERT(is_canonical());
 }
 
 expairseq::expairseq(const epvector &v, const ex &oc, bool do_index_renaming)
-  : inherited(&expairseq::tinfo_static), overall_coeff(oc), seq_sorted(NULL)
+  : inherited(&expairseq::tinfo_static), overall_coeff(oc)
 {
 	GINAC_ASSERT(is_a<numeric>(oc));
 	construct_from_epvector(v, do_index_renaming);
@@ -131,7 +131,7 @@ expairseq::expairseq(const epvector &v, const ex &oc, bool do_index_renaming)
 }
 
 expairseq::expairseq(std::auto_ptr<epvector> vp, const ex &oc, bool do_index_renaming)
-  : inherited(&expairseq::tinfo_static), overall_coeff(oc), seq_sorted(NULL)
+  : inherited(&expairseq::tinfo_static), overall_coeff(oc)
 {
 	GINAC_ASSERT(vp.get()!=0);
 	GINAC_ASSERT(is_a<numeric>(oc));
@@ -143,7 +143,7 @@ expairseq::expairseq(std::auto_ptr<epvector> vp, const ex &oc, bool do_index_ren
 // archiving
 //////////
 
-expairseq::expairseq(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst), seq_sorted(NULL)
+expairseq::expairseq(const archive_node &n, lst &sym_lst) : inherited(n, sym_lst)
 #if EXPAIRSEQ_USE_HASHTAB
 	, hashtabsize(0)
 #endif
@@ -312,8 +312,7 @@ ex expairseq::op(size_t i) const
 ex expairseq::stable_op(size_t i) const
 {
 	if (i < seq.size()) {
-		const epvector* sorted_seq = get_sorted_seq();
-		return recombine_pair_to_ex((*sorted_seq)[i]);
+		return recombine_pair_to_ex(get_sorted_seq()[i]);
 	}
 	GINAC_ASSERT(!overall_coeff.is_equal(default_overall_coeff()));
 	return overall_coeff;
@@ -1779,6 +1778,15 @@ std::auto_ptr<epvector> expairseq::subschildren(const exmap & m, unsigned option
 	
 	// Nothing has changed
 	return std::auto_ptr<epvector>(0);
+}
+
+
+const epvector & expairseq::get_sorted_seq() const
+{
+	if (seq_sorted.empty())
+		return seq;
+	else
+		return seq_sorted;
 }
 
 //////////

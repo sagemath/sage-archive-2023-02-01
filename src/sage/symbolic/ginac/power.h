@@ -40,7 +40,8 @@ class power : public basic
 {
 	GINAC_DECLARE_REGISTERED_CLASS(power, basic)
 	
-	friend struct ex_is_greater_degrevlex;
+	friend struct print_order;
+	friend struct print_order_mul;
 	friend class mul;
 	
 // member functions

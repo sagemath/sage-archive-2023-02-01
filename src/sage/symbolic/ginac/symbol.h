@@ -43,7 +43,7 @@ class symbol : public basic
 
 	friend class realsymbol;
 	friend class possymbol;
-	friend struct ex_is_greater_degrevlex;
+	friend struct print_order;
 
 // types
 	

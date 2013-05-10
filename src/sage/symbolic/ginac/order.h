@@ -35,7 +35,7 @@
 
 namespace GiNaC {
 
-struct ex_is_greater_degrevlex : public std::binary_function<ex, ex, bool> {
+class print_order : public std::binary_function<ex, ex, bool> {
 	const tinfo_t function_id;// = find_tinfo_key("function");
 	const tinfo_t fderivative_id;// = find_tinfo_key("fderivative");
 	const tinfo_t power_id;// = find_tinfo_key("power");
@@ -44,9 +44,9 @@ struct ex_is_greater_degrevlex : public std::binary_function<ex, ex, bool> {
 	const tinfo_t add_id;// = find_tinfo_key("add");
 	const tinfo_t numeric_id;// = find_tinfo_key("numeric");
 	const tinfo_t constant_id;// = find_tinfo_key("constant");
-	const tinfo_t in_type_id;
 
-	ex_is_greater_degrevlex(const tinfo_t type_id):
+	public:
+	print_order():
 		function_id(find_tinfo_key("function")),
 		fderivative_id(find_tinfo_key("fderivative")),
 		power_id(find_tinfo_key("power")),
@@ -54,8 +54,7 @@ struct ex_is_greater_degrevlex : public std::binary_function<ex, ex, bool> {
 		mul_id(find_tinfo_key("mul")),
 		add_id(find_tinfo_key("add")),
 		numeric_id(find_tinfo_key("numeric")),
-		constant_id(find_tinfo_key("constant")),
-		in_type_id(type_id) {};
+		constant_id(find_tinfo_key("constant")) {};
 
 	bool operator() (const ex &lh, const ex &rh) const;
 	int compare(const ex &lh, const ex &rh) const;
@@ -70,8 +69,8 @@ struct ex_is_greater_degrevlex : public std::binary_function<ex, ex, bool> {
 	int compare_add_mul(const add *lh, const mul *rh) const;
 	int compare_same_type_add(const add *lh, const add *rh) const;
 	// power objects
-	int compare_power_symbol(const power *lh, const symbol *rh) const;
-	int compare_same_type_power(const power *lh, const power *rh) const;
+	virtual int compare_power_symbol(const power *lh, const symbol *rh) const;
+	virtual int compare_same_type_power(const power *lh, const power *rh) const;
 	// symbol objects
 	int compare_same_type_symbol(const symbol *lh, const symbol *rh) const;
 	// container objects
@@ -81,51 +80,26 @@ struct ex_is_greater_degrevlex : public std::binary_function<ex, ex, bool> {
 	int compare_same_type_function(const function *lh, const function *rh) const;
 	// fderivative objects
 	int compare_same_type_fderivative(const fderivative *lh, const fderivative *rh) const;
+};
 
-	static const ex_is_greater_degrevlex& in_type(tinfo_t in_type_id) {
-	  static ex_is_greater_degrevlex in_type[2] = {ex_is_greater_degrevlex(&add::tinfo_static),
-						       ex_is_greater_degrevlex(&mul::tinfo_static)};
-	        if (in_type_id == &mul::tinfo_static)
-		        return in_type[1];
-        	return in_type[0];
-	}
+class print_order_mul : public print_order {
+	int compare_power_symbol(const power *lh, const symbol *rh) const;
+	int compare_same_type_power(const power *lh, const power *rh) const;
 };
 
 // We have to define the following class to sort held expressions
 // E.g. 3*x+2*x which does not get simplified to 5*x.
-struct expair_is_greater_degrevlex : public std::binary_function<expair, expair, bool>
+struct print_order_pair : \
+		public std::binary_function<expair, expair, bool>
 {
-        const tinfo_t in_type_id;
-        expair_is_greater_degrevlex(tinfo_t in_type):
-	        in_type_id(in_type) {};
 	bool operator() (const expair &lh, const expair &rh) const;
-
-	static const expair_is_greater_degrevlex& in_type(tinfo_t in_type_id) {
-        	static expair_is_greater_degrevlex in_type[2] = {expair_is_greater_degrevlex(&add::tinfo_static),expair_is_greater_degrevlex(&add::tinfo_static)};
-		if (in_type_id == &mul::tinfo_static)
-		        return in_type[1];
-        	return in_type[0];
-	}
+	bool compare_degrees(const expair &lhex, const expair &rhex) const;
 };
 
-struct expair_rest_is_greater_degrevlex : public std::binary_function<expair, expair, bool>
+struct print_order_pair_mul : public print_order_pair
 {
-        const tinfo_t in_type_id;
-        expair_rest_is_greater_degrevlex(tinfo_t in_type):
-	        in_type_id(in_type) {};
-	bool operator() (const expair &lh, const expair &rh) const {
-	        return ex_is_greater_degrevlex::in_type(in_type_id)(lh.rest, rh.rest);
-	}
-
-	static const expair_rest_is_greater_degrevlex& in_type(tinfo_t in_type_id) {
-        	static expair_rest_is_greater_degrevlex in_type[2] = {expair_rest_is_greater_degrevlex(&add::tinfo_static),
-					expair_rest_is_greater_degrevlex(&mul::tinfo_static)};
-		if (in_type_id == &mul::tinfo_static)
-		        return in_type[1];
-        	return in_type[0];
-	}
+	bool operator() (const expair &lh, const expair &rh) const;
 };
 
 } // namespace GiNaC
-
 #endif // ndef __GINAC_ORDER_H__

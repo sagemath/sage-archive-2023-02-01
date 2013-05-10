@@ -108,8 +108,8 @@ class basic : public refcounted
 	GINAC_DECLARE_REGISTERED_CLASS_NO_CTORS(basic, void)
 	
 	friend class ex;
-	friend struct ex_is_greater_degrevlex;
-	friend struct expair_is_greater_degrevlex;
+	friend struct print_order;
+	friend struct print_order_pair;
 	// default constructor, destructor, copy constructor and assignment operator
 protected:
 	basic() : tinfo_key(&tinfo_static), flags(0) {}

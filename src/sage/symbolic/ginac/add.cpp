@@ -31,6 +31,7 @@
 #include "constant.h"
 #include "infinity.h"
 #include "compiler.h"
+#include "order.h"
 
 #include <sstream>
 #include <iostream>
@@ -694,6 +695,17 @@ ex add::expand(unsigned options) const
 	}
 
 	return (new add(vp, overall_coeff))->setflag(status_flags::dynallocated | (options == 0 ? status_flags::expanded : 0));
+}
+
+epvector* add::get_sorted_seq() const
+{
+	if (!this->seq_sorted) {
+		seq_sorted = new epvector(seq.size());
+		partial_sort_copy(seq.begin(), seq.end(),
+				seq_sorted->begin(), seq_sorted->end(),
+				print_order_pair());
+	}
+	return seq_sorted;
 }
 
 } // namespace GiNaC

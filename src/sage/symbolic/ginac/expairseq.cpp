@@ -33,7 +33,6 @@
 #include "indexed.h"
 #include "infinity.h"
 #include "compiler.h"
-#include "order.h"
 
 #include <iostream>
 #include <algorithm>
@@ -1185,17 +1184,6 @@ void expairseq::make_flat(const epvector &v, bool do_index_renaming)
 void expairseq::canonicalize()
 {
 	std::sort(seq.begin(), seq.end(), expair_rest_is_less());
-}
-
-epvector* expairseq::get_sorted_seq() const
-{
-	if (!this->seq_sorted) {
-		seq_sorted = new epvector(seq.size());
-		partial_sort_copy(seq.begin(), seq.end(),
-				seq_sorted->begin(), seq_sorted->end(),
-				  expair_is_greater_degrevlex::in_type(tinfo()));
-	}
-	return seq_sorted;
 }
 
 

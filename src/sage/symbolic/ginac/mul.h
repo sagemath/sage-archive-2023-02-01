@@ -33,7 +33,7 @@ class mul : public expairseq
 {
 	GINAC_DECLARE_REGISTERED_CLASS(mul, expairseq)
 	
-	friend struct ex_is_greater_degrevlex;
+	friend struct print_order;
 	friend class add;
 	friend class ncmul;
 	friend class power;
@@ -98,6 +98,7 @@ protected:
 public:
 	ex algebraic_subs_mul(const exmap & m, unsigned options) const;
 	double total_degree() const;
+	epvector* get_sorted_seq() const;
 	//int compare_symbol(const symbol &other) const;
 	//int compare_pow(const power &other) const;
 protected:

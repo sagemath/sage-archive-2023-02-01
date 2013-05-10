@@ -68,13 +68,14 @@ class expairseq : public basic
 {
 	GINAC_DECLARE_REGISTERED_CLASS(expairseq, basic)
 
-	friend struct ex_is_greater_degrevlex;
+	friend struct print_order;
 	// other constructors
 public:
 	expairseq(const ex & lh, const ex & rh);
 	expairseq(const exvector & v);
 	expairseq(const epvector & v, const ex & oc, bool do_index_renaming = false);
 	expairseq(std::auto_ptr<epvector>, const ex & oc, bool do_index_renaming = false);
+	~expairseq() { if (!seq_sorted) delete seq_sorted; }
 	
 	// functions overriding virtual functions from base classes
 public:
@@ -133,7 +134,6 @@ protected:
 	void make_flat(const epvector & v, bool do_index_renaming = false);
 	void canonicalize();
 	void combine_same_terms_sorted_seq();
-	epvector* get_sorted_seq() const;
 #if EXPAIRSEQ_USE_HASHTAB
 	void combine_same_terms();
 	unsigned calc_hashtabsize(unsigned sz) const;

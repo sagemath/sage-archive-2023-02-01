@@ -1517,6 +1517,17 @@ ex mul::expand(unsigned options) const
 	}
 }
 
+epvector* mul::get_sorted_seq() const
+{
+	if (!this->seq_sorted) {
+		seq_sorted = new epvector(seq.size());
+		partial_sort_copy(seq.begin(), seq.end(),
+				seq_sorted->begin(), seq_sorted->end(),
+				print_order_pair_mul());
+	}
+	return seq_sorted;
+}
+
   
 //////////
 // new virtual functions which can be overridden by derived classes

@@ -696,9 +696,13 @@ ex mul::eval(int level) const
 			// XXX: What is the best way to check if the polynomial is a primitive? 
 			numeric c = i->rest.integer_content();
 			const numeric lead_coeff =
-				ex_to<numeric>(ex_to<add>(i->rest).seq.begin()->coeff).div(c);
+				ex_to<numeric>(ex_to<add>(i->rest).\
+						lead_coeff()).div(c);
 			const bool canonicalizable = lead_coeff.is_integer();
 
+			// The following comment is no longer true for pynac.
+			// We use the print order to determine the main variable
+			// This order is not random.
 			// XXX: The main variable is chosen in a random way, so this code 
 			// does NOT transform the term into the canonical form (thus, in some
 			// very unlucky event it can even loop forever). Hopefully the main
@@ -735,6 +739,7 @@ ex mul::eval(int level) const
 			primitive->setflag(status_flags::dynallocated);
 			primitive->clearflag(status_flags::hash_calculated);
 			primitive->overall_coeff = ex_to<numeric>(primitive->overall_coeff).div_dyn(c);
+			primitive->seq_sorted.resize(0);
 			for (epvector::iterator ai = primitive->seq.begin();
 					ai != primitive->seq.end(); ++ai)
 				ai->coeff = ex_to<numeric>(ai->coeff).div_dyn(c);

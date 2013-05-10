@@ -637,7 +637,8 @@ ex power::eval(int level) const
 		if (num_exponent->is_integer() && is_exactly_a<add>(ebasis)) {
 			numeric icont = ebasis.integer_content();
 			const numeric lead_coeff = 
-				ex_to<numeric>(ex_to<add>(ebasis).seq.begin()->coeff).div(icont);
+				ex_to<numeric>(ex_to<add>(ebasis).\
+						lead_coeff()).div(icont);
 
 			const bool canonicalizable = lead_coeff.is_integer();
 			const bool unit_normal = lead_coeff.is_pos_integer();
@@ -650,6 +651,7 @@ ex power::eval(int level) const
 				addp->setflag(status_flags::dynallocated);
 				addp->clearflag(status_flags::hash_calculated);
 				addp->overall_coeff = ex_to<numeric>(addp->overall_coeff).div_dyn(icont);
+				addp->seq_sorted.resize(0);
 				for (epvector::iterator i = addp->seq.begin(); i != addp->seq.end(); ++i)
 					i->coeff = ex_to<numeric>(i->coeff).div_dyn(icont);
 
@@ -675,6 +677,7 @@ ex power::eval(int level) const
 						mulp->setflag(status_flags::dynallocated);
 						mulp->clearflag(status_flags::evaluated);
 						mulp->clearflag(status_flags::hash_calculated);
+						mulp->seq_sorted.resize(0);
 						return (new mul(power(*mulp,exponent),
 						                power(num_coeff,*num_exponent)))->setflag(status_flags::dynallocated);
 					} else {
@@ -685,6 +688,7 @@ ex power::eval(int level) const
 							mulp->setflag(status_flags::dynallocated);
 							mulp->clearflag(status_flags::evaluated);
 							mulp->clearflag(status_flags::hash_calculated);
+							mulp->seq_sorted.resize(0);
 							return (new mul(power(*mulp,exponent),
 							                power(abs(num_coeff),*num_exponent)))->setflag(status_flags::dynallocated);
 						}

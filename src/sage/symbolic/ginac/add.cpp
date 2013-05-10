@@ -708,4 +708,14 @@ const epvector & add::get_sorted_seq() const
 	return expairseq::get_sorted_seq();
 }
 
+ex add::lead_coeff() const {
+	// if sorted_seq was computed before, we don't have to search
+	if (seq_sorted.empty() and not seq.empty()) {
+		return min_element(seq.begin(), seq.end(),
+				print_order_pair())->coeff;
+	} else {
+		return seq_sorted.begin()->coeff;
+	}
+}
+
 } // namespace GiNaC

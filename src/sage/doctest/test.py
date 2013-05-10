@@ -341,4 +341,29 @@ Test an invalid value for ``--optional``::
     ...
     ValueError: invalid optional tag 'bad-option'
     1
+
+Test ``atexit`` support in the doctesting framework::
+
+    sage: F = tmp_filename()
+    sage: os.path.isfile(F)
+    True
+    sage: from copy import deepcopy
+    sage: kwds2 = deepcopy(kwds)
+    sage: kwds2['env']['DOCTEST_DELETE_FILE'] = F
+    sage: subprocess.call(["sage", "-t", "atexit.rst"], **kwds2)  # long time
+    Running doctests...
+    Doctesting 1 file.
+    sage -t atexit.rst
+        [3 tests, ... s]
+    ----------------------------------------------------------------------
+    All tests passed!
+    ----------------------------------------------------------------------
+    ...
+    0
+    sage: os.path.isfile(F)  # long time
+    False
+    sage: try:
+    ....:     os.unlink(F)
+    ....: except OSError:
+    ....:     pass
 """

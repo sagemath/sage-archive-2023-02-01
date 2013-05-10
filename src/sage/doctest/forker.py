@@ -2043,6 +2043,13 @@ class DocTestTask(object):
             sage: ntests >= 200 or ntests
             True
         """
+        # Store all existing atexit() functions and clear them,
+        # so we know that all newly registered functions come from
+        # doctests.
+        import atexit
+        saved_exithandlers = atexit._exithandlers
+        atexit._exithandlers = []
+
         result = None
         try:
             file = self.source.path
@@ -2078,6 +2085,12 @@ class DocTestTask(object):
             results.optionals = extras['optionals']
             # We subtract 1 to remove the sig_on_count() tests
             result = (sum([max(0,len(test.examples) - 1) for test in doctests]), results)
+
+            # multiprocessing.Process instances don't run exit
+            # functions, so we run the functions added by doctests
+            # now manually and restore the old exit functions.
+            atexit._run_exitfuncs()
+            atexit._exithandlers = saved_exithandlers
         except BaseException:
             exc_info = sys.exc_info()
             tb = "".join(traceback.format_exception(*exc_info))

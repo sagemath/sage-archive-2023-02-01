@@ -145,6 +145,7 @@ public:
 	size_t nops() const { return bp->nops(); }
 	size_t nsymbols() const;
 	ex op(size_t i) const { return bp->op(i); }
+	ex sorted_op(size_t i) const;
 	ex operator[](const ex & index) const { return (*bp)[index]; }
 	ex operator[](size_t i) const { return (*bp)[i]; }
 	ex & let_op(size_t i);

@@ -83,6 +83,7 @@ public:
 	bool info(unsigned inf) const;
 	size_t nops() const;
 	ex op(size_t i) const;
+	virtual ex stable_op(size_t i) const;
 	ex map(map_function & f) const;
 	ex eval(int level=0) const;
 	ex to_rational(exmap & repl) const;
@@ -91,6 +92,7 @@ public:
 	ex subs(const exmap & m, unsigned options = 0) const;
 	ex conjugate() const;
 	numeric calc_total_degree() const;
+	virtual const epvector* get_sorted_seq() const { return &seq; }
 protected:
 	bool is_equal_same_type(const basic & other) const;
 	unsigned return_type() const;

@@ -278,6 +278,13 @@ size_t ex::nsymbols() const
 	return res;
 }
 
+ex ex::sorted_op(size_t i) const
+{
+	if (is_a<expairseq>(*this))
+		return dynamic_cast<const expairseq&>(*bp).stable_op(i);
+	else
+		return bp->op(i);
+}
 // private
 
 /** Make this ex writable (if more than one ex handle the same basic) by 

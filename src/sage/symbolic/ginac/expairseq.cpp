@@ -309,6 +309,16 @@ ex expairseq::op(size_t i) const
 	return overall_coeff;
 }
 
+ex expairseq::stable_op(size_t i) const
+{
+	if (i < seq.size()) {
+		const epvector* sorted_seq = get_sorted_seq();
+		return recombine_pair_to_ex((*sorted_seq)[i]);
+	}
+	GINAC_ASSERT(!overall_coeff.is_equal(default_overall_coeff()));
+	return overall_coeff;
+}
+
 ex expairseq::map(map_function &f) const
 {
 	std::auto_ptr<epvector> v(new epvector);

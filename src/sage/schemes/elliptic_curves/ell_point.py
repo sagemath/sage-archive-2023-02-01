@@ -2645,7 +2645,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: Q.archimedian_local_height(K.places()[0]) / 2
             0.654445619529600
 
-        TESTS::
+        TESTS:
 
         See :trac:`12509`::
 

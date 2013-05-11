@@ -71,21 +71,6 @@ $MAKE install
 check_error "Failed to install Maxima."
 
 
-echo
-echo "Creating wrapper script with disabled readline..."
-cat >"$SAGE_LOCAL"/bin/maxima-noreadline <<-"EOF"
-	#!/usr/bin/env bash
-	if [[ -z "$SAGE_LOCAL" ]]; then
-	    echo >&2 "Error: This script has to be run from within the Sage environment,"
-	    echo >&2 "       for example from a Sage subshell."
-	    exit 1
-	fi
-	SAGE_CLISP_DISABLE_READLINE_HACK="yes"
-	export SAGE_CLISP_DISABLE_READLINE_HACK
-	exec "$SAGE_LOCAL"/bin/maxima "$@"
-EOF
-chmod 755 "$SAGE_LOCAL"/bin/maxima-noreadline
-
 if [[ -f "$DOT_SAGE/maxima_commandlist_cache.sobj" ]]; then
     echo
     echo "Deleting Maxima commandlist cache."

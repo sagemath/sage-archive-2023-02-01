@@ -40,6 +40,10 @@ COPYING.
 
 == Changelog ==
 
+=== maxima-5.29.1.p2 (Julien Puydt, 11 May 2013) ===
+ * #14556: don't create the maxima-noreadline script, which is now useless
+   (it dated back to when sage was using clisp instead of ecl)
+
 === maxima-5.29.1.p1 (Jean-Pierre Flori, Dima Pasechnik, 29 December 2012) ===
  * #13364: update Maxima to version 5.29.1.
  * added the patch from Maxima bug tracker (bug 2520) to avoid

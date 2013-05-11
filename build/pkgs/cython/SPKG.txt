@@ -29,16 +29,11 @@ Apache License, Version 2.0
 == Dependencies ==
  * Python
 
-== Special Update/Build Instructions ==
-
- * restrict.patch: use __restrict__ when using the GCC compiler. This
-   works around a problem with g++ on Solaris which defines
-   __STDC_VERSION__ as if it is C99, even though g++ does not
-   understand "restrict". On all systems, this might help performance
-   with Cython-generated C++ code. Upstream:
-   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57025
-
 == Changelog ==
+
+=== cython-0.19.1 (R. Andrew Ohana, 11 May 2013, #14569) ===
+ * Upgrade Cython 0.19.1
+ * Remove deps.patch and restrict.patch
 
 === cython-0.19.p1 (Robert Bradshaw, 7 May 2013, #14544) ===
  * Add deps.patch.

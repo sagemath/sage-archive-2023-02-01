@@ -29,6 +29,7 @@ HG_NODE_REGEX = re.compile(r"^# Node ID ([0-9a-f]+)$")
 HG_PARENT_REGEX = re.compile(r"^# Parent +([0-9a-f]+)$")
 HG_DIFF_REGEX = re.compile(r"^diff (?:-r [0-9a-f]+ ){1,2}(.*)$")
 PM_DIFF_REGEX = re.compile(r"^(?:(?:\+\+\+)|(?:---)) [ab]/([^ ]*)(?: .*)?$")
+MV_DIFF_REGEX = re.compile(r"^rename (?:(?:to)|(?:from)) (.*)$")
 
 # regular expressions to parse git patches -- at least those created by us
 GIT_FROM_REGEX = re.compile(r"^From: (.*)$")
@@ -1214,9 +1215,9 @@ class SageDev(object):
         path_format = None
 
         if diff_format == "git":
-            diff_regexs = (GIT_DIFF_REGEX, PM_DIFF_REGEX)
+            diff_regexs = (GIT_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX)
         elif diff_format == "hg":
-            diff_regexs = (HG_DIFF_REGEX, PM_DIFF_REGEX)
+            diff_regexs = (HG_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX)
         else:
             raise NotImplementedError(diff_format)
 
@@ -1374,9 +1375,9 @@ class SageDev(object):
 
         diff_regex = None
         if diff_format == "hg":
-            diff_regex = (HG_DIFF_REGEX, PM_DIFF_REGEX)
+            diff_regex = (HG_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX)
         elif diff_format == "git":
-            diff_regex = (GIT_DIFF_REGEX, PM_DIFF_REGEX)
+            diff_regex = (GIT_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX)
         else:
             raise NotImplementedError(diff_format)
 

@@ -1034,7 +1034,7 @@ from cpython.ref cimport *
 # * Seed objects are graphs with n vertices and no edges.
 # * Augmentations consist of adding a single edge, or a loop.
 
-cdef void *dg_edge_gen_next(void *data, int *degree, int *mem_err):
+cdef void *dg_edge_gen_next(void *data, int *degree, bint *mem_err):
     r"""
     The ``next`` function in an edge iterator. The iterator generates unique
     representatives under the action of the automorphism group of the parent
@@ -1044,7 +1044,8 @@ cdef void *dg_edge_gen_next(void *data, int *degree, int *mem_err):
     cdef dg_edge_gen_data *degd = <dg_edge_gen_data *> data
     cdef GraphStruct graph = <GraphStruct> degd.graph
     cdef subset *edge_candidate
-    cdef int u, v, reject, mem_err_sub = 0
+    cdef int u, v, reject
+    cdef bint mem_err_sub = 0
     if mem_err[0]:
         (<canonical_generator_data *> degd.edge_iterator.data).mem_err = 1
     while 1:
@@ -1114,7 +1115,7 @@ cdef void copy_dense_graph(DenseGraph dest, DenseGraph src):
     dest.num_verts = src.num_verts
     dest.num_arcs  = src.num_arcs
 
-cdef void *apply_dg_edge_aug(void *parent, void *aug, void *child, int *degree, int *mem_err):
+cdef void *apply_dg_edge_aug(void *parent, void *aug, void *child, int *degree, bint *mem_err):
     r"""
     Apply the augmentation to ``parent`` storing the result in ``child``. Here
     ``aug`` represents an edge to be added.
@@ -1172,7 +1173,7 @@ cdef void free_dg_edge(void *child):
     Py_DECREF(GS.G)
     Py_DECREF(GS)
 
-cdef void *canonical_dg_edge_parent(void *child, void *parent, int *permutation, int *degree, int *mem_err):
+cdef void *canonical_dg_edge_parent(void *child, void *parent, int *permutation, int *degree, bint *mem_err):
     r"""
     Applies ``permutation`` to ``child``, determines an arbitrary parent by
     deleting the lexicographically largest edge, applies the inverse of
@@ -1381,7 +1382,7 @@ cdef int gen_children_dg_vert(void *S, aut_gp_and_can_lab *group, iterator *it):
         start_canonical_generator(group.group, NULL, n, subset_iterator)
     return (subset_iterator is NULL)
 
-cdef void *apply_dg_vert_aug(void *parent, void *aug, void *child, int *degree, int *mem_err):
+cdef void *apply_dg_vert_aug(void *parent, void *aug, void *child, int *degree, bint *mem_err):
     r"""
     Apply the augmentation to ``parent`` storing the result in ``child``. Here
     ``aug`` represents a subset to join to a new vertex.
@@ -1440,7 +1441,7 @@ cdef void free_dg_vert(void *child):
     Py_DECREF(GS.G)
     Py_DECREF(GS)
 
-cdef void *canonical_dg_vert_parent(void *child, void *parent, int *permutation, int *degree, int *mem_err):
+cdef void *canonical_dg_vert_parent(void *child, void *parent, int *permutation, int *degree, bint *mem_err):
     r"""
     Applies ``permutation`` to ``child``, determines an arbitrary parent by
     deleting the lexicographically largest vertex, applies the inverse of

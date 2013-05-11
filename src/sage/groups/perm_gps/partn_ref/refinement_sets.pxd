@@ -46,13 +46,13 @@ cdef struct subset_generator_data:
 cdef void *allocate_sgd(int)
 cdef void deallocate_sgd(void *)
 
-cdef void *subset_generator_next(void *, int *, int *)
+cdef void *subset_generator_next(void *, int *, bint *)
 
 cdef int generate_child_subsets(void *S, aut_gp_and_can_lab *group, iterator *it)
-cdef void *apply_subset_aug(void *parent, void *aug, void *child, int *degree, int *mem_err)
+cdef void *apply_subset_aug(void *parent, void *aug, void *child, int *degree, bint *mem_err)
 cdef void free_subset(void *child)
 cdef void free_subset_aug(void *)
-cdef void *canonical_set_parent(void *child, void *parent, int *permutation, int *degree, int *mem_err)
+cdef void *canonical_set_parent(void *child, void *parent, int *permutation, int *degree, bint *mem_err)
 
 cdef iterator *allocate_subset_gen(int degree, int max_size)
 cdef int allocate_subset_gen_2(int degree, int max_size, iterator *it)

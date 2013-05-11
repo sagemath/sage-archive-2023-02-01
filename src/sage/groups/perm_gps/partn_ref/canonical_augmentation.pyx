@@ -92,7 +92,7 @@ E. ``apply_augmentation``:
 
     Signature:
 
-    ``void *apply_augmentation(void *parent, void *aug, void *child, int *degree, int *mem_err)``
+    ``void *apply_augmentation(void *parent, void *aug, void *child, int *degree, bint *mem_err)``
 
     This function takes the ``parent``, applies the augmentation ``aug`` and
     returns a pointer to the corresponding child object (freeing aug if
@@ -130,7 +130,7 @@ I. ``canonical_parent``:
 
     Signature:
 
-    ``void *canonical_parent(void *child, void *parent, int *permutation, int *degree, int *mem_err)``
+    ``void *canonical_parent(void *child, void *parent, int *permutation, int *degree, bint *mem_err)``
 
     Apply the ``permutation`` to the ``child``, determine an arbitrary but fixed
     parent, apply the inverse of ``permutation`` to that parent, and return the
@@ -165,7 +165,7 @@ REFERENCE:
 
 include 'data_structures_pyx.pxi' # includes bitsets
 
-cdef void *canonical_generator_next(void *can_gen_data, int *degree, int *mem_err):
+cdef void *canonical_generator_next(void *can_gen_data, int *degree, bint *mem_err):
     r"""
     This function is part of the iterator struct which will iterate over
     objects. Return value of ``NULL`` indicates termination.
@@ -376,11 +376,11 @@ cdef iterator *setup_canonical_generator(int degree,
          (PartitionStack *PS, void *S, int *cells_to_refine_by, int ctrb_len),
     int (*compare_structures)(int *gamma_1, int *gamma_2, void *S1, void *S2, int degree),
     int (*generate_children)(void *, aut_gp_and_can_lab *, iterator *),
-    void *(*apply_augmentation)(void *, void *, void *, int *, int *),
+    void *(*apply_augmentation)(void *, void *, void *, int *, bint *),
     void (*free_object)(void *),
     void (*free_iter_data)(void *),
     void (*free_aug)(void *),
-    void *(*canonical_parent)(void *child, void *parent, int *permutation, int *degree, int *mem_err),
+    void *(*canonical_parent)(void *child, void *parent, int *permutation, int *degree, bint *mem_err),
     int max_depth, bint reduce_children, iterator *cangen_prealloc) except NULL:
     """
     Canonical generation of isomorphism classes of objects.

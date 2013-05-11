@@ -528,7 +528,7 @@ cdef void deallocate_sgd(void *data):
         OP_dealloc(sgd.orbits)
     sage_free(sgd)
 
-cdef void *subset_generator_next(void *data, int *degree, int *mem_err):
+cdef void *subset_generator_next(void *data, int *degree, bint *mem_err):
     r"""
     Returns the next element to consider adding to the set.
     """
@@ -565,7 +565,7 @@ cdef int generate_child_subsets(void *S, aut_gp_and_can_lab *group, iterator *ch
     sgd.bits = subset1.bits
     return 0
 
-cdef void *apply_subset_aug(void *parent, void *aug, void *child, int *degree, int *mem_err):
+cdef void *apply_subset_aug(void *parent, void *aug, void *child, int *degree, bint *mem_err):
     r"""
     Adds the element represented by ``aug`` to ``parent``, storing the result to
     ``child``.
@@ -581,7 +581,7 @@ cdef void *apply_subset_aug(void *parent, void *aug, void *child, int *degree, i
 cdef void free_subset_aug(void *aug):
     return
 
-cdef void *canonical_set_parent(void *child, void *parent, int *permutation, int *degree, int *mem_err):
+cdef void *canonical_set_parent(void *child, void *parent, int *permutation, int *degree, bint *mem_err):
     r"""
     Determines the canonical parent of the set ``child`` by applying
     ``permutation``, deleting the largest element in lexicographic order, and

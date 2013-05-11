@@ -1932,7 +1932,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
         The solver parameters are by essence solver-specific, which
         means their meaning heavily depends on the solver used.
 
-        (If you do not know which solver you are using, then you are using GLPK)
+        (If you do not know which solver you are using, then you use
+        use GLPK).
 
         Aliases:
 
@@ -1943,7 +1944,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.solver_parameter("timelimit", 60)
 
         Sets the solver to stop its computations after 60 seconds, and
-        works both with GLPK and CPLEX.
+        works with GLPK, CPLEX and Gurobi.
 
             - ``"timelimit"`` -- defines the maximum time spent on a
               computation. Measured in seconds.
@@ -1966,6 +1967,10 @@ cdef class MixedIntegerLinearProgram(SageObject):
                   sage: p.solver_parameter("CPX_PARAM_TILIM", 60)       # optional - CPLEX
 
               works as intended.
+
+            - Gurobi's parameters should all be available through this
+              method. Their list is available on Gurobi's website
+              `<http://www.gurobi.com/documentation/5.5/reference-manual/node798>`_.
 
         INPUT:
 

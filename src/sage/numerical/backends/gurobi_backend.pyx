@@ -511,7 +511,7 @@ cdef class GurobiBackend(GenericBackend):
             sage: p.solve()                                    # optional - Gurobi
             10.0
             sage: p.get_values([x,y])                          # optional - Gurobi
-            [-0.0, 3.0]
+            [0.0, 3.0]
         """
         cdef int ind[1]
         ind[0] = i
@@ -1125,13 +1125,92 @@ cdef class GurobiBackend(GenericBackend):
         """
         check(self.env, GRBwrite(self.model[0], filename))
 
+    cpdef solver_parameter(self, name, value = None):
+        """
+        Returns or defines a solver parameter.
+
+        For a list of parameters and associated values, please refer to Gurobi's
+        reference manual
+        `<http://www.gurobi.com/documentation/5.5/reference-manual/node798>`_.
+
+        INPUT:
+
+        - ``name`` (string) -- the parameter
+
+        - ``value`` -- the parameter's value if it is to be defined,
+          or ``None`` (default) to obtain its current value.
+
+        EXAMPLES::
+
+            sage: p = MixedIntegerLinearProgram(solver="Gurobi")      # optional - Gurobi
+
+        An integer parameter::
+
+            sage: p.solver_parameter("VarBranch")                     # optional - Gurobi
+            -1
+            sage: p.solver_parameter("VarBranch", 1)                  # optional - Gurobi
+            sage: p.solver_parameter("VarBranch")                     # optional - Gurobi
+            1
+
+        A double parameter::
+
+            sage: p.solver_parameter("TimeLimit")                     # optional - Gurobi
+            1e+100
+            sage: p.solver_parameter("TimeLimit", 10)                 # optional - Gurobi
+            sage: p.solver_parameter("TimeLimit")                     # optional - Gurobi
+            10.0
+
+        A string parameter::
+
+            sage: p.solver_parameter("LogFile")                # optional - Gurobi
+            ''
+            sage: p.solver_parameter("LogFile", "/dev/null")   # optional - Gurobi
+            sage: p.solver_parameter("LogFile")                # optional - Gurobi
+            '/dev/null'
+
+        """
+        cdef int    tmp_int[1]
+        cdef double tmp_dbl[1]
+        cdef char   tmp_str[25500]
+        cdef char * c_name
+        c_name = tmp_str
+
+        if name == "timelimit":
+            name = "TimeLimit"
+
+        try:
+            t = parameters_type[name]
+        except KeyError:
+            raise ValueError("This parameter is not available. "+
+                             "Enabling it may not be so hard, though.")
+
+        if t == "int":
+            if value is None:
+                check(self.env, GRBgetintparam(self.env, name, tmp_int))
+                return tmp_int[0]
+            else:
+                check(self.env, GRBsetintparam(self.env, name, value))
+        elif t == "double":
+            if value is None:
+                check(self.env, GRBgetdblparam(self.env, name, tmp_dbl))
+                return tmp_dbl[0]
+            else:
+                check(self.env, GRBsetdblparam(self.env, name, value))
+        elif t == "string":
+            if value is None:
+                check(self.env, GRBgetstrparam(self.env, name, c_name))
+                return str(c_name)
+            else:
+                check(self.env, GRBsetstrparam(self.env, name, value))
+        else:
+            raise RuntimeError("This should not happen.")
+
     def __dealloc__(self):
         """
         Destructor
         """
         if self.model != NULL:
             GRBfreemodel(self.model[0])
-
 
 cdef dict errors = {
     10001 : "GRB_ERROR_OUT_OF_MEMORY",
@@ -1166,7 +1245,94 @@ cdef dict mip_status = {
     GRB_SOLUTION_LIMIT: "The solution limit has been reached",
 }
 
+cdef dict parameters_type = {
+    "AggFill"           : "int",
+    "Aggregate"         : "int",
+    "BarConvTol"        : "double",
+    "BarCorrectors"     : "int",
+    "BarHomogeneous"    : "int",
+    "BarOrder"          : "int",
+    "BarQCPConvTol"     : "double",
+    "BarIterLimit"      : "int",
+    "BranchDir"         : "int",
+    "CliqueCuts"        : "int",
+    "CoverCuts"         : "int",
+    "Crossover"         : "int",
+    "CrossoverBasis"    : "int",
+    "Cutoff"            : "double",
+    "CutAggPasses"      : "int",
+    "CutPasses"         : "int",
+    "Cuts"              : "int",
+    "DisplayInterval"   : "int",
+    "DualReductions"    : "int",
+    "FeasibilityTol"    : "double",
+    "FeasRelaxBigM"     : "double",
+    "FlowCoverCuts"     : "int",
+    "FlowPathCuts"      : "int",
+    "GomoryPasses"      : "int",
+    "GUBCoverCuts"      : "int",
+    "Heuristics"        : "double",
+    "IISMethod"         : "int",
+    "ImpliedCuts"       : "int",
+    "ImproveStartGap"   : "double",
+    "ImproveStartNodes" : "double",
+    "ImproveStartTime"  : "double",
+    "InfUnbdInfo"       : "int",
+    "InputFile"         : "string",
+    "IntFeasTol"        : "double",
+    "IterationLimit"    : "double",
+    "LogFile"           : "string",
+    "LogToConsole"      : "int",
+    "MarkowitzTol"      : "double",
+    "Method"            : "int",
+    "MinRelNodes"       : "int",
+    "MIPFocus"          : "int",
+    "MIPGap"            : "double",
+    "MIPGapAbs"         : "double",
+    "MIPSepCuts"        : "int",
+    "MIQCPMethod"       : "int",
+    "MIRCuts"           : "int",
+    "ModKCuts"          : "int",
+    "NetworkCuts"       : "int",
+    "NodefileDir"       : "string",
+    "NodefileStart"     : "double",
+    "NodeLimit"         : "double",
+    "NodeMethod"        : "int",
+    "NormAdjust"        : "int",
+    "ObjScale"          : "double",
+    "OptimalityTol"     : "double",
+    "OutputFlag"        : "int",
+    "PerturbValue"      : "double",
+    "PreCrush"          : "int",
+    "PreDepRow"         : "int",
+    "PreDual"           : "int",
+    "PrePasses"         : "int",
+    "PreQLinearize"     : "int",
+    "Presolve"          : "int",
+    "PreSparsify"       : "int",
+    "PSDTol"            : "double",
+    "PumpPasses"        : "int",
+    "QCPDual"           : "int",
+    "Quad"              : "int",
+    "ResultFile"        : "string",
+    "RINS"              : "int",
+    "ScaleFlag"         : "int",
+    "Seed"              : "int",
+    "Sifting"           : "int",
+    "SiftMethod"        : "int",
+    "SimplexPricing"    : "int",
+    "SolutionLimit"     : "int",
+    "SolutionNumber"    : "int",
+    "SubMIPCuts"        : "int",
+    "SubMIPNodes"       : "int",
+    "Symmetry"          : "int",
+    "Threads"           : "int",
+    "TimeLimit"         : "double",
+    "VarBranch"         : "int",
+    "ZeroHalfCuts"      : "int",
+    "ZeroObjNodes"      : "int"
+    }
+
 cdef check(GRBenv * env, int error):
     if error:
         raise MIPSolverException("Gurobi: "+str(GRBgeterrormsg(env))+" ("+errors[error]+")")
-

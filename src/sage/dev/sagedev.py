@@ -1198,6 +1198,12 @@ class SageDev(object):
             sage: dev._detect_patch_path_format(
             ....:     ["diff --git a/src/sage/rings/padics/FM_template.pxi b/src/sage/rings/padics/FM_template.pxi"])
             'new'
+            sage: dev._detect_patch_path_format(
+            ....:     ["rename to sage/rings/number_field/totallyreal.pyx"], diff_format='hg')
+            'old'
+            sage: dev._detect_patch_path_format(
+            ....:     ["rename from src/sage/rings/number_field/totalyreal.pyx"], diff_format='git')
+            'new'
 
             sage: import os.path
             sage: from sage.env import SAGE_SRC
@@ -1206,7 +1212,6 @@ class SageDev(object):
             ....:             SAGE_SRC,"sage","dev","data","trac_8703-trees-fh.patch"
             ....:         )).read().splitlines())
             'old'
-
         """
         lines = list(lines)
         if diff_format is None:
@@ -1326,6 +1331,19 @@ class SageDev(object):
             ['--- a/src/sage/rings/padics/pow_computer_ext.pxd',
              '+++ b/src/sage/rings/padics/pow_computer_ext.pxd']
 
+            sage: dev._rewrite_patch_diff_paths(
+            ....:     ['rename from sage/combinat/crystals/letters.py',
+            ....:      'rename to sage/combinat/crystals/letters.pyx'],
+            ....:     to_format="new", diff_format="hg")
+            ['rename from src/sage/combinat/crystals/letters.py',
+             'rename to src/sage/combinat/crystals/letters.pyx']
+            sage: dev._rewrite_patch_diff_paths(
+            ....:     ['rename from src/sage/combinat/crystals/letters.py',
+            ....:      'rename to src/sage/combinat/crystals/letters.pyx'],
+            ....:     to_format="old", diff_format="git")
+            ['rename from sage/combinat/crystals/letters.py',
+             'rename to sage/combinat/crystals/letters.pyx']
+
             sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: result = dev._rewrite_patch_diff_paths(
@@ -1339,7 +1357,6 @@ class SageDev(object):
             '#8703: Enumerated sets and data structure for ordered and binary trees'
             sage: result[12]
             'diff --git a/src/doc/en/reference/combinat/index.rst b/src/doc/en/reference/combinat/index.rst'
-
         """
         lines = list(lines)
         if diff_format is None:

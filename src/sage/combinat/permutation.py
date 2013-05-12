@@ -101,6 +101,7 @@ Below are listed all methods and classes defined in this file.
     :meth:`~sage.combinat.permutation.Permutation_class.pattern_positions` | Returns the list of positions where the pattern patt appears in p.
     :meth:`~sage.combinat.permutation.Permutation_class.reverse` | Returns the permutation obtained by reversing the list.
     :meth:`~sage.combinat.permutation.Permutation_class.complement` | Returns the complement of the permutation which is obtained by replacing each value `x` in the list with `n - x + 1`
+    :meth:`~sage.combinat.permutation.Permutation_class.permutation_poset` | Returns the permutation poset of p.
     :meth:`~sage.combinat.permutation.Permutation_class.dict` | Returns a dictionary corresponding to the permutation.
     :meth:`~sage.combinat.permutation.Permutation_class.action` | Returns the action of the permutation on a list.
     :meth:`~sage.combinat.permutation.Permutation_class.robinson_schensted` | Returns the pair of standard tableaux obtained by running the Robinson-Schensted Algorithm on self.
@@ -2874,6 +2875,46 @@ class Permutation_class(CombinatorialObject):
         """
         n = len(self)
         return Permutation_class( map(lambda x: n - x + 1, self) )
+
+    @combinatorial_map(name='permutation poset')
+    def permutation_poset(self):
+        r"""
+        Permutation poset of a permutation.
+
+        INPUT:
+
+        - `p` -- permutation.
+
+        OUTPUT:
+
+        Permutation poset of `p`.
+        This is the poset with vertices `(i, p(i))` for `i = 1, 2, ..., n`
+        (where `n` is the size of `p`) and order inherited from the direct
+        product of `\ZZ` with `\ZZ`.
+
+        EXAMPLES::
+
+            sage: Permutation([3,1,5,4,2]).permutation_poset().cover_relations()
+            [[(2, 1), (5, 2)], [(2, 1), (4, 4)], [(2, 1), (3, 5)], [(1, 3), (4, 4)], [(1, 3), (3, 5)]]
+            sage: Permutation([]).permutation_poset().cover_relations()
+            []
+            sage: Permutation([1,3,2]).permutation_poset().cover_relations()
+            [[(1, 1), (2, 3)], [(1, 1), (3, 2)]]
+            sage: Permutation([1,2]).permutation_poset().cover_relations()
+            [[(1, 1), (2, 2)]]
+            sage: P = Permutation([1,5,2,4,3])
+            sage: P.permutation_poset().greene_shape() == P.RS_partition()   # This should hold for any P.
+            True
+
+        """
+
+        from sage.combinat.posets.posets import Poset
+        n = len(self)
+        posetdict = {}
+        for i in range(n):
+            u = self[i]
+            posetdict[(i + 1, u)] = [(j + 1, self[j]) for j in range(i + 1, n) if u < self[j]]
+        return Poset(posetdict)
 
     def dict(self):
         """

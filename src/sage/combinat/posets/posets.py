@@ -35,7 +35,9 @@ This module implements finite partialy ordered sets. It defines :
     :meth:`~FinitePoset.coxeter_transformation` | Returns the matrix of the Auslander-Reiten translation acting on the Grothendieck group of the derived category of modules
     :meth:`~FinitePoset.dual` | Returns the dual poset of the given poset.
     :meth:`~FinitePoset.evacuation` | Computes evacuation on the linear extension associated to the poset ``self``.
+    :meth:`~FinitePoset.frank_network` | Returns Frank's network (a DiGraph along with a cost function on its edges) associated to ``self`..
     :meth:`~FinitePoset.graphviz_string` | Returns a representation in the DOT language, ready to render in graphviz.
+    :meth:`~FinitePoset.greene_shape` | Computes the Greene-Kleitman partition aka Greene shape of the poset ``self``.
     :meth:`~FinitePoset.has_bottom` | Returns True if the poset has a unique minimal element.
     :meth:`~FinitePoset.hasse_diagram` | Returns the Hasse diagram of ``self`` as a Sage :class:`DiGraph`.
     :meth:`~FinitePoset.has_top` | Returns True if the poset contains a unique maximal element, and False otherwise.
@@ -3119,7 +3121,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def evacuation(self):
         r"""
-        Computes evacuation on the linear extension associated to the poset ``self``.
+        Compute evacuation on the linear extension associated to the poset ``self``.
 
         OUTPUT:
 
@@ -3132,7 +3134,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         (see :meth:`~sage.combinat.posets.linear_extensions.LinearExtensionOfPoset.evacuation`),
         and relabelling ``self`` accordingly. For more details see [Stan2009]_.
 
-        .. seealso::
+        .. SEEALSO::
 
             - :meth:`linear_extension`
             - :meth:`with_linear_extension` and the ``linear_extension`` option of :func:`Poset`
@@ -3141,10 +3143,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         REFERENCES:
 
-            .. [Stan2009] Richard Stanley,
-               *Promotion and evacuation*,
-               Electron. J. Combin. 16 (2009), no. 2, Special volume in honor of Anders Björner,
-               Research Paper 9, 24 pp.
+        .. [Stan2009] Richard Stanley,
+           *Promotion and evacuation*,
+           Electron. J. Combin. 16 (2009), no. 2, Special volume in honor of
+           Anders Björner,
+           Research Paper 9, 24 pp.
 
         EXAMPLES::
 
@@ -3193,15 +3196,8 @@ class FinitePoset(UniqueRepresentation, Parent):
         Returns whether the poset ``self`` is slender or not.
 
         It is assumed for this method that ``self`` is a finite graded poset.
-        A finite poset `P` is called slender if every rank 2 interval contains three
-        or four elements. See [Sta2009]_.
-
-        REFERENCES:
-
-            .. [Sta2009] Richard Stanley,
-               *Promotion and evacuation*,
-               Electron. J. Combin. 16 (2009), no. 2, Special volume in honor of Anders Björner,
-               Research Paper 9, 24 pp.
+        A finite poset `P` is called slender if every rank 2 interval contains
+        three or four elements. See [Sta2009]_.
 
         EXAMPLES::
 
@@ -3230,6 +3226,146 @@ class FinitePoset(UniqueRepresentation, Parent):
             if not all( d[y]<3 for y in d.keys() ):
                 return False
         return True
+
+    def frank_network(self):
+        r"""
+        Computes Frank's network of the poset ``self``. This is defined in
+        Section 8 of [BF1999]_.
+
+        INPUT:
+
+        - ``P`` -- a finite poset
+
+        OUTPUT:
+
+        A pair `(G, e)`, where `G` is Frank's network of `P` encoded as a
+        :class:`DiGraph`, and `e` is the cost function on its edges encoded
+        as a dictionary (indexed by these edges, which in turn are encoded
+        as tuples of 2 vertices).
+
+        .. NOTE::
+
+            Frank's network of `P` is a certain directed graph with `2|P| + 2`
+            vertices, defined in Section 8 of [BF1999]_. Its set of vertices
+            consists of two vertices `(0, p)` and `(1, p)` for each element
+            `p` of `P`, as well as two vertices `(-1, 0)` and `(2, 0)`.
+            (These notations are not the ones used in [BF1999]_; see the table
+            below for their relation.) The edges are:
+
+            - for each `p` in `P`, an edge from `(-1, 0)` to `(0, p)`;
+
+            - for each `p` in `P`, an edge from `(1, p)` to `(2, 0)`;
+
+            - for each `p` and `q` in `P` such that `x \geq y`, an edge from
+              `(0, p)` to `(1, q)`.
+
+            We make this digraph into a network in the sense of flow theory as
+            follows: The vertex `(-1, 0)` is considered as the source of this
+            network, and the vertex `(2, 0)` as the sink. The cost function is
+            defined to be `1` on the edge from `(0, p)` to `(1, p)` for each
+            `p \in P`, and to be `0` on every other edge. The capacity is `1`
+            on each edge. Here is how to translate this notations into that
+            used in [BF1999]_::
+
+              our notations                    [BF1999]
+                 (-1, 0)                          s
+                 (0, p)                          x_p
+                 (1, p)                          y_p
+                 (2, 0)                           t
+                  a[e]                           a(e)
+
+        REFERENCES:
+
+        .. [BF1999] Thomas Britz, Sergey Fomin,
+           *Finite posets and Ferrers shapes*,
+           Advances in Mathematics 158, pp. 86-127 (2001),
+           :arxiv:`9912126v1` (the arXiv version has less errors).
+
+        EXAMPLES::
+
+            sage: ps = [[16,12,14,-13],[[12,14],[14,-13],[12,16],[16,-13]]]
+            sage: G, e = Poset(ps).frank_network()
+            sage: G.edges()
+            [((-1, 0), (0, -13), None), ((-1, 0), (0, 12), None), ((-1, 0), (0, 14), None), ((-1, 0), (0, 16), None), ((0, -13), (1, -13), None), ((0, -13), (1, 12), None), ((0, -13), (1, 14), None), ((0, -13), (1, 16), None), ((0, 12), (1, 12), None), ((0, 14), (1, 12), None), ((0, 14), (1, 14), None), ((0, 16), (1, 12), None), ((0, 16), (1, 16), None), ((1, -13), (2, 0), None), ((1, 12), (2, 0), None), ((1, 14), (2, 0), None), ((1, 16), (2, 0), None)]
+            sage: e
+            {((-1, 0), (0, 14)): 0, ((0, -13), (1, 12)): 0, ((-1, 0), (0, -13)): 0, ((0, 16), (1, 12)): 0, ((1, 16), (2, 0)): 0, ((0, -13), (1, 16)): 0, ((1, -13), (2, 0)): 0, ((0, -13), (1, -13)): 1, ((0, -13), (1, 14)): 0, ((-1, 0), (0, 16)): 0, ((0, 12), (1, 12)): 1, ((-1, 0), (0, 12)): 0, ((1, 14), (2, 0)): 0, ((1, 12), (2, 0)): 0, ((0, 14), (1, 12)): 0, ((0, 16), (1, 16)): 1, ((0, 14), (1, 14)): 1}
+            sage: qs = [[1,2,3,4,5,6,7,8,9],[[1,3],[3,4],[5,7],[1,9],[2,3]]]
+            sage: Poset(qs).frank_network()
+            (Digraph on 20 vertices, {((0, 3), (1, 1)): 0, ((1, 8), (2, 0)): 0, ((-1, 0), (0, 3)): 0, ((0, 6), (1, 6)): 1, ((1, 9), (2, 0)): 0, ((0, 9), (1, 9)): 1, ((1, 7), (2, 0)): 0, ((0, 3), (1, 2)): 0, ((0, 3), (1, 3)): 1, ((0, 4), (1, 4)): 1, ((1, 2), (2, 0)): 0, ((0, 4), (1, 3)): 0, ((-1, 0), (0, 5)): 0, ((-1, 0), (0, 8)): 0, ((1, 3), (2, 0)): 0, ((0, 1), (1, 1)): 1, ((1, 1), (2, 0)): 0, ((0, 8), (1, 8)): 1, ((0, 4), (1, 1)): 0, ((1, 4), (2, 0)): 0, ((0, 2), (1, 2)): 1, ((-1, 0), (0, 1)): 0, ((0, 7), (1, 7)): 1, ((-1, 0), (0, 2)): 0, ((0, 7), (1, 5)): 0, ((0, 9), (1, 1)): 0, ((0, 5), (1, 5)): 1, ((-1, 0), (0, 9)): 0, ((-1, 0), (0, 7)): 0, ((0, 4), (1, 2)): 0, ((-1, 0), (0, 6)): 0, ((-1, 0), (0, 4)): 0, ((1, 6), (2, 0)): 0, ((1, 5), (2, 0)): 0})
+
+        AUTHOR:
+
+        - Darij Grinberg (2013-05-09)
+        """
+        from sage.graphs.digraph import DiGraph
+        P0 = [(0, i) for i in self]
+        P1 = [(1, i) for i in self]
+        pdict = { (-1, 0): P0, (2, 0): [] }
+        for i in self:
+            pdict[(0, i)] = [(1, j) for j in self if self.ge(i, j)]
+            pdict[(1, i)] = [(2, 0)]
+        G = DiGraph(pdict)
+        a = { (u, v): 0 for (u, v, l) in G.edge_iterator() }
+        for i in self:
+            a[((0, i), (1, i))] = 1
+        return (G, a)
+
+    def greene_shape(self):
+        r"""
+        Greene-Kleitman partition of a finite poset.
+
+        INPUT:
+
+        - ``P`` -- a finite poset
+
+        OUTPUT:
+
+        Greene-Kleitman partition of `P`. This is the partition `(c_1 - c_0,
+        c_2 - c_1, c_3 - c_2, \ldots)`, where `c_k` is the maximum cardinality
+        of a union of `k` chains of `P`. Equivalently, this is the conjugate
+        of the partition `(a_1 - a_0, a_2 - a_1, a_3 - a_2, \ldots)`, where
+        `a_k` is the maximum cardinality of a union of `k` antichains of `P`.
+
+        See many sources, e. g., [BF1999]_, for proofs of this equivalence.
+
+        EXAMPLES::
+
+            sage: P = Poset([[3,2,1],[[3,1],[2,1]]])
+            sage: P.greene_shape()
+            [2, 1]
+            sage: P = Poset([[1,2,3,4],[[1,4],[2,4],[4,3]]])
+            sage: P.greene_shape()
+            [3, 1]
+            sage: P = Poset([[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22],[[1,4],[2,4],[4,3]]])
+            sage: P.greene_shape()
+            [3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            sage: P = Poset([[],[]])
+            sage: P.greene_shape()
+            []
+
+        AUTHOR:
+
+        - Darij Grinberg (2013-05-09)
+        """
+        from sage.combinat.partition import Partition
+        (G, a) = self.frank_network()
+        n = len(self)
+        chron = _ford_fulkerson_chronicle(G, (-1, 0), (2, 0), a)
+        size = 0
+        ps = []
+        part = 0
+        (pold, vold) = (0, 0)
+        while size != n:
+            (p, v) = chron.next()
+            if v > vold:
+                size += p
+                if part > 0:
+                    ps.append(part)
+            elif p > pold:
+                part += 1
+            (pold, vold) = (p, v)
+        ps.reverse()
+        return Partition(ps)
 
 FinitePoset._dual_class = FinitePoset
 
@@ -3360,3 +3496,148 @@ def is_poset(dig):
         True
     """
     return dig.is_directed_acyclic() and dig.is_transitively_reduced()
+
+def _ford_fulkerson_chronicle(G, s, t, a):
+    r"""
+    Iterate through the Ford-Fulkerson algorithm for an acyclic directed
+    graph with all edge capacities == `1`. This is an auxiliary algorithm
+    for use by the greene_shape method of finite posets, and is lacking
+    some of the functionality that a general Ford-Fulkerson algorithm
+    implementation should have.
+
+    INPUT:
+
+    - ``G`` -- directed graph. This should be acyclic for the algorithm
+      to be correct.
+
+    - ``s`` -- vertex of `G`.
+
+    - ``t`` -- vertex of `G`.
+
+    - ``a`` -- cost function (on the set of edges of `G`), encoded as
+      a dictionary. The keys of this dictionary are encoded as pairs
+      of vertices, with no additional arguments (so this is not how
+      ``DiGraph`` has its edges encoded).
+
+    OUTPUT:
+
+    An iterator which iterates through the values `(p, v)` during the
+    application of the Ford-Fulkerson algorithm applied to the graph
+    `G` with source `s`, sink `t`, cost function `a` and capacity `1`
+    on each edge. Here, `p` denotes the value of the potential, and `v`
+    denotes the value of the flow at every moment during the execution
+    of the algorithm. The algorithm starts at `(p, v) = (0, 0)`.
+    Every time ``next()`` is called, the iterator performs one step of
+    the algorithm (incrementing either `p` or `v`) and yields the
+    resulting pair `(p, v)`. Note that `(0, 0)` is never yielded.
+    The iterator goes on for eternity, since the stopping condition
+    is not implemented. This is OK for use in the ``greene_partition``
+    function, since that one knows when to stop.
+
+    The notation used here is that of Section 7 of [BF1999]_.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.posets.posets import _ford_fulkerson_chronicle
+        sage: G = DiGraph({1: [3,6,7], 2: [4], 3: [7], 4: [], 6: [7,8], 7: [9], 8: [9,12], 9: [], 10: [], 12: []})
+        sage: s = 1
+        sage: t = 9
+        sage: (1, 6, None) in G.edges()
+        True
+        sage: (1, 6) in G.edges()
+        False
+        sage: a = {(1, 6): 4, (2, 4): 0, (1, 3): 4, (1, 7): 1, (3, 7): 6, (7, 9): 1, (6, 7): 3, (6, 8): 1, (8, 9): 0, (8, 12): 2}
+        sage: ffc = _ford_fulkerson_chronicle(G, s, t, a)
+        sage: ffc.next()
+        (1, 0)
+        sage: ffc.next()
+        (2, 0)
+        sage: ffc.next()
+        (2, 1)
+        sage: ffc.next()
+        (3, 1)
+        sage: ffc.next()
+        (4, 1)
+        sage: ffc.next()
+        (5, 1)
+        sage: ffc.next()
+        (5, 2)
+        sage: ffc.next()
+        (6, 2)
+        sage: ffc.next()
+        (7, 2)
+        sage: ffc.next()
+        (8, 2)
+        sage: ffc.next()
+        (9, 2)
+        sage: ffc.next()
+        (10, 2)
+        sage: ffc.next()
+        (11, 2)
+
+    .. WARNING::
+
+        This method is tailor-made for its use in the ``greene_shape()`` method
+        of a finite poset. It's not very useful in general. First of all, as
+        said above, the iterator does not know when to halt.
+        Second, `G` needs to be acyclic for it to correctly work. This must
+        be amended if this method is ever to be used outside the
+        Greene-Kleitman partition construction. For the Greene-Kleitman
+        partition, this is a non-issue since Frank's network is
+        always acyclic.
+
+    """
+
+    from sage.graphs.digraph import DiGraph
+
+    # pi: potential function as a dictionary.
+    pi = { v: 0 for v in G.vertex_iterator() }
+    # p: value of the potential pi.
+    p = 0
+
+    # f: flow function as a dictionary.
+    f = { (u, v): 0 for (u, v, l) in G.edge_iterator() }
+    # val: value of the flow f. (Can't call it v due to Python's asinine
+    # handling of for loops.)
+    val = 0
+
+    # capacity: capacity function as a dictionary. Here, just the
+    # indicator function of the set of arcs of G.
+    capacity = { (u, v): 1 for (u, v, l) in G.edge_iterator() }
+
+    while True:
+
+        # Step MC1 in Britz-Fomin, Algorithm 7.2.
+
+        # Gprime: directed graph G' from Britz-Fomin, Section 7.
+        Gprime = DiGraph()
+        Gprime.add_vertices(G.vertices())
+        for (u,v,l) in G.edge_iterator():
+            if pi[v] - pi[u] == a[(u, v)]:
+                if f[(u, v)] < capacity[(u, v)]:
+                    Gprime.add_edge(u, v)
+                elif f[(u, v)] > 0:
+                    Gprime.add_edge(v, u)
+
+        # X: list of vertices of G' reachable from s, along with
+        # the shortest paths from s to them.
+        X = Gprime.shortest_paths(s)
+        if t in X.keys():
+            # Step MC2a in Britz-Fomin, Algorithm 7.2.
+            shortest_path = X[t]
+            shortest_path_in_edges = zip(shortest_path[:-1],shortest_path[1:])
+            for (u, v) in shortest_path_in_edges:
+                if v in G.neighbors_out(u):
+                    f[(u, v)] += 1
+                else:
+                    f[(v, u)] -= 1
+            val += 1
+        else:
+            # Step MC2b in Britz-Fomin, Algorithm 7.2.
+            Xkeys = X.keys()
+            for v in G.vertex_iterator():
+                if not X.has_key(v):
+                    pi[v] += 1
+            p += 1
+
+        yield (p, val)

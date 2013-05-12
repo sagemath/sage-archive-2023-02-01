@@ -31,6 +31,9 @@ Apache License, Version 2.0
 
 == Changelog ==
 
+=== cython-0.19.1.p0 (R. Andrew Ohana, 11 May 2013, #14570) ===
+ * Add build_dir.patch
+
 === cython-0.19.1 (R. Andrew Ohana, 11 May 2013, #14569) ===
  * Upgrade Cython 0.19.1
  * Remove deps.patch and restrict.patch

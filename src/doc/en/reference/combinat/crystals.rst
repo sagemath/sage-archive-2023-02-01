@@ -12,6 +12,7 @@ Crystals
    ../sage/combinat/crystals/fast_crystals
    ../sage/combinat/crystals/highest_weight_crystals
    ../sage/combinat/crystals/kirillov_reshetikhin
+   ../sage/combinat/crystals/kyoto_path_model
    ../sage/combinat/crystals/littelmann_path
    ../sage/combinat/crystals/alcove_path
    ../sage/combinat/crystals/spins

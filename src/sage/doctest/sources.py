@@ -675,6 +675,8 @@ class FileDocTestSource(DocTestSource):
             There are 18 tests in sage/combinat/partition.py that are not being run
             There are 12 tests in sage/combinat/tableau.py that are not being run
             There are 15 tests in sage/combinat/root_system/cartan_type.py that are not being run
+            There are 8 tests in sage/combinat/root_system/type_A.py that are not being run
+            There are 8 tests in sage/combinat/root_system/type_G.py that are not being run
             There are 3 unexpected tests being run in sage/doctest/parsing.py
             There are 1 unexpected tests being run in sage/doctest/reporting.py
             There are 9 tests in sage/graphs/graph_plot.py that are not being run

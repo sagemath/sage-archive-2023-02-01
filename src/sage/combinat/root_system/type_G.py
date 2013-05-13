@@ -11,7 +11,7 @@ Root system data for type G
 #*****************************************************************************
 import ambient_space
 from sage.sets.family import Family
-
+from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
 class AmbientSpace(ambient_space.AmbientSpace):
     """
     EXAMPLES::
@@ -81,6 +81,30 @@ class AmbientSpace(ambient_space.AmbientSpace):
         """
         return Family({ 1: self([1,0,-1]),
                         2: self([2,-1,-1])})
+
+    __doc__ += """
+    By default, this ambient space uses the barycentric projection for plotting::
+
+        sage: L = RootSystem(["G",2]).ambient_space()
+        sage: e = L.basis()
+        sage: L._plot_projection(e[0])
+        (1/2, 989/1142)
+        sage: L._plot_projection(e[1])
+        (-1, 0)
+        sage: L._plot_projection(e[2])
+        (1/2, -989/1142)
+        sage: L = RootSystem(["A",3]).ambient_space()
+        sage: l = L.an_element(); l
+        (2, 2, 3, 0)
+        sage: L._plot_projection(l)
+        (0, -1121/1189, 7/3)
+
+    .. SEEALSO::
+
+        - :meth:`sage.combinat.root_system.root_lattice_realizations.RootLatticeRealizations.ParentMethods._plot_projection`
+    """
+    _plot_projection = RootLatticeRealizations.ParentMethods.__dict__['_plot_projection_barycentric']
+
 
 from cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystalographic
 class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_crystalographic):

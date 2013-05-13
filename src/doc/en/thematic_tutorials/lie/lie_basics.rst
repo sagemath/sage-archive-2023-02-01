@@ -316,9 +316,9 @@ does support relabeled Cartan types. See the documentation in
 Standard realizations of the ambient spaces
 -------------------------------------------
 
-These realizations follow the Appendix in Bourbaki, *Lie Groups
-and Lie Algebras, Chapters 4-6*.
-
+These realizations follow the Appendix in Bourbaki, *Lie Groups and
+Lie Algebras, Chapters 4-6*. See the :ref:`Root system plot tutorial
+<sage.combinat.root_system.plot>` for how to visualize them.
 
 Type A
 ^^^^^^

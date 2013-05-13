@@ -538,6 +538,10 @@ class CartanTypeFactory(SageObject):
             if "x" in t:
                 import type_reducible
                 return type_reducible.CartanType([CartanType(u) for u in t.split("x")])
+            elif t[-1] == "*":
+                return CartanType(t[:-1]).dual()
+            elif t[-1] == "~":
+                return CartanType(t[:-1]).affine()
             else:
                 return CartanType([t[0], eval(t[1:])])
 
@@ -772,11 +776,10 @@ class CartanTypeFactory(SageObject):
             sage: CartanType.color(3)
             'green'
 
-        The default color is black. Well, some sort of black, because
-        plots don't handle well plain black::
+        The default color is black::
 
             sage: CartanType.color(0)
-            (0.1, 0.1, 0.1)
+            'black'
 
         Negative indices get the same color as their positive counterparts::
 
@@ -787,7 +790,7 @@ class CartanTypeFactory(SageObject):
             sage: CartanType.color(-3)
             'green'
         """
-        return cls._colors.get(i, (0.1, 0.1, 0.1))
+        return cls._colors.get(i, 'black')
 
 CartanType = CartanTypeFactory()
 

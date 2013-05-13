@@ -14,16 +14,17 @@ Quickref
 Documentation
 -------------
 
-- :mod:`sage.combinat.root_system.root_system`    -- This current overview
+- :ref:`sage.combinat.root_system.root_system`    -- This current overview
 - :class:`CartanType`                             -- An introduction to Cartan types
 - :class:`RootSystem`                             -- An introduction to root systems
+- :ref:`sage.combinat.root_system.plot`           -- A root system visualization tutorial
 - The ``Lie Methods and Related Combinatorics`` thematic tutorial
 
 See also
 --------
 
 - :class:`CoxeterGroups`, :class:`WeylGroups`, ...-- The categories of Coxeter and Weyl groups
-- :mod:`sage.combinat.crystals.crystals`          -- An introduction to crystals
+- :ref:`sage.combinat.crystals.crystals`          -- An introduction to crystals
 - :mod:`.type_A`, :mod:`.type_B_affine`, ...      -- Type specific root system data
 
 """
@@ -209,7 +210,7 @@ class RootSystem(UniqueRepresentation, SageObject):
         sage: L = RootSystem(["A",2,1]).ambient_space(); L
         Ambient space of the Root system of type ['A', 2, 1]
 
-    Define the "identity" by an appropriate vector at level -3::
+    Define the "identity" by an appropriate vector at level `-3`::
 
         sage: e = L.basis(); Lambda = L.fundamental_weights()
         sage: id = e[0] + 2*e[1] + 3*e[2]  - 3*Lambda[0]
@@ -236,6 +237,13 @@ class RootSystem(UniqueRepresentation, SageObject):
         sage: [L.classical()(s[0].action(x)) for x in S3]
         [(0, 2, 4), (0, 1, 5), (-1, 1, 6), (-2, 2, 6), (-1, 3, 4), (-2, 3, 5)]
 
+    We can also plot various components of the ambient spaces::
+
+        sage: L = RootSystem(['A',2]).ambient_space()
+        sage: L.plot()
+
+    For more on plotting, see :ref:`sage.combinat.root_system.plot`.
+
     .. RUBRIC:: Dual root systems
 
     The root system is aware of its dual root system::
@@ -243,7 +251,7 @@ class RootSystem(UniqueRepresentation, SageObject):
         sage: R.dual
         Dual of root system of type ['B', 3]
 
-    R.dual is really the root system of type `C_3`::
+    ``R.dual`` is really the root system of type `C_3`::
 
         sage: R.dual.cartan_type()
         ['C', 3]
@@ -763,6 +771,37 @@ class RootSystem(UniqueRepresentation, SageObject):
         if not base_ring.has_coerce_map_from(AmbientSpace.smallest_base_ring(self.cartan_type())):
             return None
         return AmbientSpace(self, base_ring)
+
+    def coambient_space(self, base_ring=QQ):
+        r"""
+        Return the coambient space for this root system.
+
+        This is the ambient space of the dual root system.
+
+        .. SEEALSO::
+
+            - :meth:`ambient_space`
+
+        EXAMPLES::
+
+            sage: L = RootSystem(["B",2]).ambient_space(); L
+            Ambient space of the Root system of type ['B', 2]
+            sage: coL = RootSystem(["B",2]).coambient_space(); coL
+            Coambient space of the Root system of type ['B', 2]
+
+        The roots and coroots are interchanged::
+
+            sage: coL.simple_roots()
+            Finite family {1: (1, -1), 2: (0, 2)}
+            sage: L.simple_coroots()
+            Finite family {1: (1, -1), 2: (0, 2)}
+
+            sage: coL.simple_coroots()
+            Finite family {1: (1, -1), 2: (0, 1)}
+            sage: L.simple_roots()
+            Finite family {1: (1, -1), 2: (0, 1)}
+        """
+        return self.dual.ambient_space(base_ring)
 
 
 def WeylDim(ct, coeffs):

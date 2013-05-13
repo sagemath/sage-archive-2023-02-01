@@ -10,6 +10,7 @@ Root system data for type A
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.rings.all import ZZ
+from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
 import ambient_space
 
 class AmbientSpace(ambient_space.AmbientSpace):
@@ -135,13 +136,36 @@ class AmbientSpace(ambient_space.AmbientSpace):
         given, returns (k, ... ,k), the k-th power of the
         determinant.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: e = RootSystem(['A',3]).ambient_space()
             sage: e.det(1/2)
             (1/2, 1/2, 1/2, 1/2)
         """
         return self.sum(self.monomial(j)*k for j in range(self.n))
 
+    __doc__ += """
+    By default, this ambient space uses the barycentric projection for plotting::
+
+        sage: L = RootSystem(["A",2]).ambient_space()
+        sage: e = L.basis()
+        sage: L._plot_projection(e[0])
+        (1/2, 989/1142)
+        sage: L._plot_projection(e[1])
+        (-1, 0)
+        sage: L._plot_projection(e[2])
+        (1/2, -989/1142)
+        sage: L = RootSystem(["A",3]).ambient_space()
+        sage: l = L.an_element(); l
+        (2, 2, 3, 0)
+        sage: L._plot_projection(l)
+        (0, -1121/1189, 7/3)
+
+    .. SEEALSO::
+
+        - :meth:`sage.combinat.root_system.root_lattice_realizations.RootLatticeRealizations.ParentMethods._plot_projection`
+    """
+    _plot_projection = RootLatticeRealizations.ParentMethods.__dict__['_plot_projection_barycentric']
 
 from cartan_type import CartanType_standard_finite, CartanType_simply_laced, CartanType_simple
 class CartanType(CartanType_standard_finite, CartanType_simply_laced, CartanType_simple):

@@ -366,6 +366,59 @@ class AmbientSpace(CombinatorialFreeModule):
         """
         return self.simple_root(i).associated_coroot()
 
+    def coroot_lattice(self):
+        """
+        EXAMPLES::
+
+            sage: RootSystem(["A",3,1]).ambient_lattice().coroot_lattice()
+            Ambient lattice of the Root system of type ['A', 3, 1]
+
+        .. TODO:: Factor out this code with the classical ambient space.
+        """
+        return self
+
+    def _plot_projection(self, x):
+        """
+        Implements the default projection to be used for plots
+
+        For affine ambient spaces, the default implementation is to
+        project onto the classical coordinates according to the
+        default projection for the classical ambient space, while
+        keeping an extra coordinate for the coefficient of
+        `\delta^\vee` to keep the level information.
+
+        .. SEEALSO:: :meth:`sage.combinat.root_system.root_lattice_realizations.RootLatticeRealizations._plot_projection`
+
+        EXAMPLES::
+
+            sage: L = RootSystem(["B",2,1]).ambient_space()
+            sage: e = L.basis()
+            sage: L._plot_projection(e[0])
+            (1, 0, 0)
+            sage: L._plot_projection(e[1])
+            (0, 1, 0)
+            sage: L._plot_projection(e["delta"])
+            (0, 0, 0)
+            sage: L._plot_projection(e["deltacheck"])
+            (0, 0, 1)
+
+            sage: L = RootSystem(["A",2,1]).ambient_space()
+            sage: e = L.basis()
+            sage: L._plot_projection(e[0])
+            (1/2, 989/1142, 0)
+            sage: L._plot_projection(e[1])
+            (-1, 0, 0)
+            sage: L._plot_projection(e["delta"])
+            (0, 0, 0)
+            sage: L._plot_projection(e["deltacheck"])
+            (0, 0, 1)
+        """
+        from sage.modules.free_module_element import vector
+        classical = self.classical()
+        # Any better way to concatenate two vectors?
+        return vector(list(vector(classical._plot_projection(classical(x)))) +
+                      [x["deltacheck"]])
+
     class Element(CombinatorialFreeModule.Element):
 
         def inner_product(self, other):

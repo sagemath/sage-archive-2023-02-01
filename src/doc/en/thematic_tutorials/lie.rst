@@ -30,3 +30,4 @@ DMS-1001079, DMS--0652641, DMS--0652652, and DMS--1001256.
    lie/iwahori_hecke_algebra
    lie/kazhdan_lusztig_polynomials
    lie/bibliography
+

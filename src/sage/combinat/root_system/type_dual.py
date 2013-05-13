@@ -10,9 +10,11 @@ Root system data for dual Cartan types
 #*****************************************************************************
 from sage.misc.misc import attrcall
 from sage.misc.cachefunc import cached_method
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.sage_object import SageObject
 from sage.combinat.root_system.cartan_type import CartanType_crystalographic, CartanType_finite, CartanType_affine, CartanType_simple
+from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
 import sage
 import ambient_space
 
@@ -303,6 +305,30 @@ class AmbientSpace(ambient_space.AmbientSpace):
         sage: TestSuite(L).run()
     """
 
+    @lazy_attribute
+    def _dual_space(self):
+        """
+        The dual of this ambient space.
+
+        EXAMPLES::
+
+            sage: L = CartanType(["F",4]).dual().root_system().ambient_space(); L
+            Ambient space of the Root system of type ['F', 4]^*
+            sage: L._dual_space
+            Ambient space of the Root system of type ['F', 4]
+
+        The basic data for this space will be fetched from the dual
+        space::
+
+            sage: L._dual_space.simple_root(1)
+            (0, 1, -1, 0)
+            sage: L.simple_root(1)
+            (0, 1, -1, 0)
+        """
+        K = self.base_ring()
+        return self.cartan_type().dual().root_system().ambient_space(K)
+        #return self.root_system.dual.ambient_space()
+
     def dimension(self):
         """
         Return the dimension of this ambient space.
@@ -315,6 +341,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
             sage: F4.dual().root_system().ambient_space().simple_root(1)
             (0, 1, -1, 0)
         """
+        # Can't yet use _dual_space for the base ring is not yet initialized
         return self.root_system.dual.ambient_space().dimension()
 
     @cached_method
@@ -337,8 +364,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
             sage: F4.root_system().ambient_space().simple_coroots()
             Finite family {1: (0, 1, -1, 0), 2: (0, 0, 1, -1), 3: (0, 0, 0, 2), 4: (1, -1, -1, -1)}
         """
-        K = self.base_ring()
-        dual_coroot = self.cartan_type().dual().root_system().ambient_space(K).simple_coroot(i)
+        dual_coroot = self._dual_space.simple_coroot(i)
         return self.sum_of_terms(dual_coroot)
 
     @cached_method
@@ -363,6 +389,28 @@ class AmbientSpace(ambient_space.AmbientSpace):
             Finite family {1: (1, 1, 0, 0), 2: (2, 1, 1, 0), 3: (3, 1, 1, 1), 4: (2, 0, 0, 0)}
         """
         return self.fundamental_weights_from_simple_roots()
+
+    @lazy_attribute
+    def _plot_projection(self):
+        """
+        A hack so that if an ambient space uses barycentric projection, then so does its dual
+
+        EXAMPLES::
+
+            sage: L = CartanType(["G",2]).dual().root_system().ambient_space()
+            sage: L._plot_projection == L._plot_projection_barycentric
+            True
+
+            sage: L = RootSystem(["G",2]).coambient_space()
+            sage: L._plot_projection == L._plot_projection_barycentric
+            True
+        """
+        dual_space = self.cartan_type().dual().root_system().ambient_space(self.base_ring())
+        if dual_space._plot_projection == dual_space._plot_projection_barycentric:
+            return self._plot_projection_barycentric
+        else:
+            RootLatticeRealizations.ParentMethods.__dict__["_plot_projection"]
+
 
 class CartanType_finite(CartanType, sage.combinat.root_system.cartan_type.CartanType_finite):
     AmbientSpace = AmbientSpace

@@ -10,6 +10,7 @@ Root Systems
    ../sage/combinat/root_system/coxeter_matrix
 
    ../sage/combinat/root_system/root_system
+   ../sage/combinat/root_system/plot
    ../sage/combinat/root_system/root_lattice_realizations
    ../sage/combinat/root_system/weight_lattice_realizations
    ../sage/combinat/root_system/root_space

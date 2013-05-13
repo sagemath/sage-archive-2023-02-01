@@ -70,6 +70,7 @@ Algebraic Combinatorics
 
 * :class:`Tutorial: Symmetric Functions <SymmetricFunctions>`
 * :ref:`lie`
+* :ref:`sage.combinat.root_system.plot`
 * :ref:`abelian_sandpile_model`
 
 .. Words

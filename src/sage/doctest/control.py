@@ -131,6 +131,58 @@ class DocTestDefaults(SageObject):
         if c: return c
         return cmp(self.__dict__,other.__dict__)
 
+
+def skipdir(dirname):
+    """
+    Return True if and only if the directory ``dirname`` should not be
+    doctested.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.control import skipdir
+        sage: skipdir(sage.env.SAGE_SRC)
+        False
+        sage: skipdir(os.path.join(SAGE_ROOT, "devel", "sagenb", "sagenb", "data"))
+        True
+    """
+    if os.path.exists(os.path.join(dirname, "nodoctest.py")):
+        return True
+    # Workaround for https://github.com/sagemath/sagenb/pull/84
+    if dirname.endswith(os.path.join(os.sep, 'sagenb', 'data')):
+        return True
+    return False
+
+def skipfile(filename):
+    """
+    Return True if and only if the file ``filename`` should not be
+    doctested.
+
+    EXAMPLES::
+
+        sage: from sage.doctest.control import skipfile
+        sage: skipfile("skipme.c")
+        True
+        sage: f = tmp_filename(ext=".pyx")
+        sage: skipfile(f)
+        False
+        sage: open(f, "w").write("# nodoctest")
+        sage: skipfile(f)
+        True
+    """
+    base, ext = os.path.splitext(filename)
+    if ext not in ('.py', '.pyx', '.pxi', '.sage', '.spyx', '.rst', '.tex'):
+        return True
+    with open(filename) as F:
+        line_count = 0
+        for line in F:
+            if nodoctest_regex.match(line):
+                return True
+            line_count += 1
+            if line_count >= 10:
+                break
+    return False
+
+
 class DocTestController(SageObject):
     """
     This class controls doctesting of files.
@@ -380,9 +432,7 @@ class DocTestController(SageObject):
             sage: DD = DocTestDefaults(new = True)
             sage: DC = DocTestController(DD, [])
             sage: DC.add_files()
-            Doctesting files changed since last HG commit.
-            sage: len(DC.files) == len([L for L in hg_sage('status', interactive=False, debug=False)[0].split('\n') if len(L.split()) ==2 and L.split()[0] in ['M','A']])
-            True
+            Doctesting files ...
 
         ::
 
@@ -394,25 +444,37 @@ class DocTestController(SageObject):
             'sagenb'
         """
         opj = os.path.join
-        from sage.env import SAGE_SRC as base
+        from sage.env import SAGE_SRC
         if self.options.all:
             self.log("Doctesting entire Sage library.")
             from glob import glob
-            self.files.append(opj(base, 'sage'))
-            self.files.append(opj(base, 'doc', 'common'))
-            self.files.extend(glob(opj(base, 'doc', '[a-z][a-z]')))
+            self.files.append(opj(SAGE_SRC, 'sage'))
+            self.files.append(opj(SAGE_SRC, 'doc', 'common'))
+            self.files.extend(glob(opj(SAGE_SRC, 'doc', '[a-z][a-z]')))
             self.options.sagenb = True
         elif self.options.new:
-            self.log("Doctesting files changed since last HG commit.")
-            import sage.all_cmdline
+            # Get all files changed in the working repo, as well as all
+            # files in the top Mercurial queue patch.
             from sage.misc.hg import hg_sage
-            for X in hg_sage('status', interactive=False, debug=False)[0].split('\n'):
+            out, err = hg_sage('status --rev qtip^', interactive=False, debug=False)
+            if not err:
+                qtop = hg_sage('qtop', interactive=False, debug=False)[0].strip()
+                self.log("Doctesting files in mq patch " + repr(qtop))
+            else:  # Probably mq isn't used
+                out, err = hg_sage('status', interactive=False, debug=False)
+                if not err:
+                    self.log("Doctesting files changed since last hg commit")
+                else:
+                    raise RuntimeError("failed to run hg status:\n" + err)
+
+            for X in out.split('\n'):
                 tup = X.split()
                 if len(tup) != 2: continue
                 c, filename = tup
                 if c in ['M','A']:
-                    filename = opj(base, filename)
-                    self.files.append(filename)
+                    filename = opj(SAGE_SRC, filename)
+                    if not skipfile(filename):
+                        self.files.append(filename)
         if self.options.sagenb:
             if not self.options.all:
                 self.log("Doctesting the Sage notebook.")
@@ -469,25 +531,6 @@ class DocTestController(SageObject):
             sage: len(DC.sources) >= 10
             True
         """
-        def skipdir(dirname):
-            if os.path.exists(os.path.join(dirname, "nodoctest.py")):
-                return True
-            # Workaround for https://github.com/sagemath/sagenb/pull/84
-            if dirname.endswith(os.path.join(os.sep, 'sagenb', 'data')):
-                return True
-            return False
-        def skipfile(filename):
-            base, ext = os.path.splitext(filename)
-            if ext not in ('.py', '.pyx', '.pxi', '.sage', '.spyx', '.rst', '.tex'):
-                return True
-            with open(filename) as F:
-                line_count = 0
-                for line in F:
-                    if nodoctest_regex.match(line):
-                        return True
-                    line_count += 1
-                    if line_count >= 10:
-                        return False
         def expand():
             for path in self.files:
                 if os.path.isdir(path):

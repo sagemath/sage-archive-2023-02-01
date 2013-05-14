@@ -35,7 +35,7 @@ This module implements finite partialy ordered sets. It defines :
     :meth:`~FinitePoset.coxeter_transformation` | Returns the matrix of the Auslander-Reiten translation acting on the Grothendieck group of the derived category of modules
     :meth:`~FinitePoset.dual` | Returns the dual poset of the given poset.
     :meth:`~FinitePoset.evacuation` | Computes evacuation on the linear extension associated to the poset ``self``.
-    :meth:`~FinitePoset.frank_network` | Returns Frank's network (a DiGraph along with a cost function on its edges) associated to ``self`..
+    :meth:`~FinitePoset.frank_network` | Returns Frank's network (a DiGraph along with a cost function on its edges) associated to ``self``.
     :meth:`~FinitePoset.graphviz_string` | Returns a representation in the DOT language, ready to render in graphviz.
     :meth:`~FinitePoset.greene_shape` | Computes the Greene-Kleitman partition aka Greene shape of the poset ``self``.
     :meth:`~FinitePoset.has_bottom` | Returns True if the poset has a unique minimal element.
@@ -3193,11 +3193,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_slender(self):
         r"""
-        Returns whether the poset ``self`` is slender or not.
+        Return whether the poset ``self`` is slender or not.
 
         It is assumed for this method that ``self`` is a finite graded poset.
         A finite poset `P` is called slender if every rank 2 interval contains
-        three or four elements. See [Sta2009]_.
+        three or four elements. See [Stan2009]_.
 
         EXAMPLES::
 
@@ -3231,10 +3231,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         r"""
         Computes Frank's network of the poset ``self``. This is defined in
         Section 8 of [BF1999]_.
-
-        INPUT:
-
-        - ``P`` -- a finite poset
 
         OUTPUT:
 
@@ -3279,7 +3275,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         .. [BF1999] Thomas Britz, Sergey Fomin,
            *Finite posets and Ferrers shapes*,
            Advances in Mathematics 158, pp. 86-127 (2001),
-           :arxiv:`9912126v1` (the arXiv version has less errors).
+           :arxiv:`math/9912126` (the arXiv version has less errors).
 
         EXAMPLES::
 
@@ -3312,19 +3308,14 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def greene_shape(self):
         r"""
-        Greene-Kleitman partition of a finite poset.
+        Return the Greene-Kleitman partition of ``self``.
 
-        INPUT:
-
-        - ``P`` -- a finite poset
-
-        OUTPUT:
-
-        Greene-Kleitman partition of `P`. This is the partition `(c_1 - c_0,
-        c_2 - c_1, c_3 - c_2, \ldots)`, where `c_k` is the maximum cardinality
-        of a union of `k` chains of `P`. Equivalently, this is the conjugate
-        of the partition `(a_1 - a_0, a_2 - a_1, a_3 - a_2, \ldots)`, where
-        `a_k` is the maximum cardinality of a union of `k` antichains of `P`.
+        The Greene-Kleitman partition of a finite poset `P` is the partition
+        `(c_1 - c_0, c_2 - c_1, c_3 - c_2, \ldots)`, where `c_k` is the
+        maximum cardinality of a union of `k` chains of `P`. Equivalently,
+        this is the conjugate of the partition `(a_1 - a_0, a_2 - a_1, a_3 -
+        a_2, \ldots)`, where `a_k` is the maximum cardinality of a union of
+        `k` antichains of `P`.
 
         See many sources, e. g., [BF1999]_, for proofs of this equivalence.
 
@@ -3500,24 +3491,22 @@ def is_poset(dig):
 def _ford_fulkerson_chronicle(G, s, t, a):
     r"""
     Iterate through the Ford-Fulkerson algorithm for an acyclic directed
-    graph with all edge capacities == `1`. This is an auxiliary algorithm
-    for use by the greene_shape method of finite posets, and is lacking
-    some of the functionality that a general Ford-Fulkerson algorithm
-    implementation should have.
+    graph with all edge capacities equal to `1`. This is an auxiliary algorithm
+    for use by the :meth:`FinitePoset.greene_shape` method of finite posets,
+    and is lacking some of the functionality that a general Ford-Fulkerson
+    algorithm implementation should have.
 
     INPUT:
 
-    - ``G`` -- directed graph. This should be acyclic for the algorithm
-      to be correct.
+    - ``G`` -- an acyclic directed graph
 
-    - ``s`` -- vertex of `G`.
+    - ``s`` -- a vertex of `G` as the source
 
-    - ``t`` -- vertex of `G`.
+    - ``t`` -- a vertex of `G` as the sink
 
-    - ``a`` -- cost function (on the set of edges of `G`), encoded as
+    - ``a`` -- a cost function (on the set of edges of ``G``) encoded as
       a dictionary. The keys of this dictionary are encoded as pairs
-      of vertices, with no additional arguments (so this is not how
-      ``DiGraph`` has its edges encoded).
+      of vertices.
 
     OUTPUT:
 
@@ -3535,6 +3524,17 @@ def _ford_fulkerson_chronicle(G, s, t, a):
     function, since that one knows when to stop.
 
     The notation used here is that of Section 7 of [BF1999]_.
+
+    .. WARNING::
+
+        This method is tailor-made for its use in the
+        :meth:`FinitePoset.greene_shape()` method of a finite poset. It's not
+        very useful in general. First of all, as said above, the iterator
+        does not know when to halt. Second, `G` needs to be acyclic for it
+        to correctly work. This must be amended if this method is ever to be
+        used outside the Greene-Kleitman partition construction. For the
+        Greene-Kleitman partition, this is a non-issue since Frank's network
+        is always acyclic.
 
     EXAMPLES::
 
@@ -3574,20 +3574,7 @@ def _ford_fulkerson_chronicle(G, s, t, a):
         (10, 2)
         sage: ffc.next()
         (11, 2)
-
-    .. WARNING::
-
-        This method is tailor-made for its use in the ``greene_shape()`` method
-        of a finite poset. It's not very useful in general. First of all, as
-        said above, the iterator does not know when to halt.
-        Second, `G` needs to be acyclic for it to correctly work. This must
-        be amended if this method is ever to be used outside the
-        Greene-Kleitman partition construction. For the Greene-Kleitman
-        partition, this is a non-issue since Frank's network is
-        always acyclic.
-
     """
-
     from sage.graphs.digraph import DiGraph
 
     # pi: potential function as a dictionary.
@@ -3641,3 +3628,4 @@ def _ford_fulkerson_chronicle(G, s, t, a):
             p += 1
 
         yield (p, val)
+

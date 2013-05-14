@@ -2879,18 +2879,11 @@ class Permutation_class(CombinatorialObject):
     @combinatorial_map(name='permutation poset')
     def permutation_poset(self):
         r"""
-        Permutation poset of a permutation.
+        Return the permutation poset of ``self``.
 
-        INPUT:
-
-        - `p` -- permutation.
-
-        OUTPUT:
-
-        Permutation poset of `p`.
-        This is the poset with vertices `(i, p(i))` for `i = 1, 2, ..., n`
-        (where `n` is the size of `p`) and order inherited from the direct
-        product of `\ZZ` with `\ZZ`.
+        The permutation poset of a permutation `p` is the poset with
+        vertices `(i, p(i))` for `i = 1, 2, \ldots, n` (where `n` is the
+        size of `p`) and order inherited from `\ZZ \times \ZZ`.
 
         EXAMPLES::
 
@@ -2905,9 +2898,7 @@ class Permutation_class(CombinatorialObject):
             sage: P = Permutation([1,5,2,4,3])
             sage: P.permutation_poset().greene_shape() == P.RS_partition()   # This should hold for any P.
             True
-
         """
-
         from sage.combinat.posets.posets import Poset
         n = len(self)
         posetdict = {}

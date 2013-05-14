@@ -303,7 +303,6 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_abstra
             [(0, 2, 1), (1, 2, 1), (2, 0, 2), (2, 1, 1), (2, 3, 1), (3, 2, 1)]
             sage: sorted(CartanType(["F", 4, 1]).relabel(lambda n: 4-n).dynkin_diagram().edges())
             [(0, 1, 1), (1, 0, 1), (1, 2, 1), (2, 1, 2), (2, 3, 1), (3, 2, 1), (3, 4, 1), (4, 3, 1)]
-
         """
         # Maybe we want to move this up as a relabel method for dynkin diagram
         # We will have to be careful setting the cartan type of the result though
@@ -591,9 +590,17 @@ class CartanType_finite(CartanType, cartan_type.CartanType_finite):
             ['F', 4] relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
             sage: ct.affine()
             ['F', 4, 1] relabelled by {0: 0, 1: 4, 2: 3, 3: 2, 4: 1}
+
+        TESTS:
+
+        Check that we don't inadvertently change the internal
+        relabelling of ``ct``::
+
+            sage: ct
+            ['F', 4] relabelled by {1: 4, 2: 3, 3: 2, 4: 1}
         """
         affine = self._type.affine()
-        relabelling = self._relabelling
+        relabelling = self._relabelling.copy()
         for special_node in [affine.special_node()] + range(affine.rank()):
             if special_node not in self._relabelling_inverse:
                 relabelling[affine.special_node()] = special_node

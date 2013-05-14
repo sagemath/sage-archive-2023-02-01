@@ -525,31 +525,6 @@ class SavingDict(collections.MutableMapping):
         """
         return iter(self._dict)
 
-class authenticated(object):
-    def __init__(self, func):
-        self.func = func
-
-    def __call__(self, git, *args, **kwargs):
-        sshkeyfile = git._config.get('sshkeyfile',
-                os.path.join(os.environ['HOME'], '.ssh', 'id_rsa'))
-
-        if not "sshkey_set" in git._config or not git._config['sshkey_set']:
-            git._sagedev._upload_ssh_key(sshkeyfile)
-            git._config['sshkeyfile'] = sshkeyfile
-            git._config['sshkey_set'] = True
-            git._config._write_config()
-
-        gitcmd = git._gitcmd
-
-        ssh_git = "ssh -i '%s'" % sshkeyfile
-        ssh_git = 'GIT_SSH="%s" ' % ssh_git
-        try:
-            saved_git_cmd = git._gitcmd
-            git._gitcmd = ssh_git + gitcmd
-            self.func(git, *args, **kwargs)
-        finally:
-            git._gitcmd = saved_git_cmd
-
 class GitInterface(object):
     def __init__(self, sagedev):
         self._sagedev = sagedev

@@ -855,6 +855,11 @@ class GaloisRepresentation(SageObject):
             sage: EllipticCurve([0,0,1,2580,549326]).galois_representation().image_type(7)
             'The image is contained in the normalizer of a split Cartan group.'
 
+        Test trac #14577 ::
+
+            sage: EllipticCurve('50700u1').galois_representation().image_type(13)
+            'The image in PGL_2(F_13) is the exceptional group S_4.'
+
         For `p=2`::
 
             sage: E = EllipticCurve('11a1')
@@ -1109,7 +1114,10 @@ class GaloisRepresentation(SageObject):
                     could_be_a5 = 1
                     if p % 5 != 1 and p % 5 != 4 :
                         could_be_a5 = 0
-                    el5 = [ex_setp[-1],ex_setp[-2]] # elements of order 5
+                    # elements of order 5 # bug corrected see trac 14577
+                    R = k['X']
+                    f = R([1,-3,1]) #(X**2 - 3*X+1)
+                    el5 = f.roots()
                     # loops over primes as long as we still have two options left
                     while ell < 10000 and (could_be_s4 + could_be_a4 + could_be_a5  > 1):
                         ell = arith.next_prime(ell)

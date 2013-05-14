@@ -748,6 +748,11 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         sage: trans=(r*cos(phi),r*sin(phi),z)
         sage: plot3d(cos(r),(r,0,17*pi/2),(phi,0,2*pi),transformation=trans,opacity=0.87).show(aspect_ratio=(1,1,2),frame=False)
 
+    An example of a transformation with symbolic vector::
+
+        sage: cylindrical(r,theta,z)=[r*cos(theta),r*sin(theta),z]
+        sage: plot3d(3,(theta,0,pi/2),(z,0,pi/2),transformation=cylindrical)
+
     Many more examples of transformations::
 
         sage: u, v, w = var('u v w')
@@ -807,7 +812,8 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         elif is_CallableSymbolicExpression(f):
             params = f.variables()
 
-        if isinstance(transformation, (tuple, list)):
+        from sage.modules.vector_callable_symbolic_dense import Vector_callable_symbolic_dense
+        if isinstance(transformation, (tuple, list,Vector_callable_symbolic_dense)):
             if len(transformation)==3:
                 if params is None:
                     raise ValueError, "must specify independent variable names in the ranges when using generic transformation"

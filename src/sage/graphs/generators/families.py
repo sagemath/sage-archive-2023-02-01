@@ -1997,7 +1997,7 @@ def SymplecticGraph(d,q):
     """
     from sage.rings.finite_rings.constructor import FiniteField
     from sage.modules.free_module import VectorSpace
-    from sage.schemes.generic.projective_space import ProjectiveSpace
+    from sage.schemes.projective.projective_space import ProjectiveSpace
     from sage.matrix.constructor import identity_matrix, block_matrix, zero_matrix
 
     if d < 1 or d%2 != 0:

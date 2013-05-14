@@ -15,6 +15,7 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.to_dictionary` | Creates a dictionary encoding the graph.
     :meth:`~GenericGraph.adjacency_matrix` | Returns the adjacency matrix of the (di)graph.
     :meth:`~GenericGraph.incidence_matrix` | Returns an incidence matrix of the (di)graph
+    :meth:`~GenericGraph.distance_matrix` | Returns the distance matrix of the (strongly) connected (di)graph
     :meth:`~GenericGraph.weighted_adjacency_matrix` | Returns the weighted adjacency matrix of the graph
     :meth:`~GenericGraph.kirchhoff_matrix` | Returns the Kirchhoff matrix (a.k.a. the Laplacian) of the graph.
     :meth:`~GenericGraph.get_boundary` | Returns the boundary of the (di)graph.
@@ -1136,6 +1137,14 @@ class GenericGraph(GenericGraph_pyx):
             [ 0  0  0  0  0  1  0  0  1  0  0 -1]
             [ 0  0  0  0  0  0  0  1  0  0  1  1]
 
+
+        A well known result states that the product of the incidence matrix
+        with its transpose is in fact the Kirchhoff matrix::
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.incidence_matrix()*G.incidence_matrix().transpose() == G.kirchhoff_matrix()
+            True
+
         ::
 
             sage: D = DiGraph( { 0: [1,2,3], 1: [0,2], 2: [3], 3: [4], 4: [0,5], 5: [1] } )
@@ -1172,6 +1181,54 @@ class GenericGraph(GenericGraph_pyx):
                 cols.append(col)
         cols.sort()
         return matrix(cols, sparse=sparse).transpose()
+
+    def distance_matrix(self):
+        """
+        Returns the distance matrix of the (strongly) connected (di)graph.
+
+        The distance matrix of a (strongly) connected (di)graph is a matrix whose
+        rows and columns are indexed with the vertices of the (di) graph. The
+        intersection of a row and column contains the respective distance between
+        the vertices indexed at these position.
+
+        EXAMPLES::
+
+            sage: G = graphs.CubeGraph(3)
+            sage: G.distance_matrix()
+            [0 1 1 2 1 2 2 3]
+            [1 0 2 1 2 1 3 2]
+            [1 2 0 1 2 3 1 2]
+            [2 1 1 0 3 2 2 1]
+            [1 2 2 3 0 1 1 2]
+            [2 1 3 2 1 0 2 1]
+            [2 3 1 2 1 2 0 1]
+            [3 2 2 1 2 1 1 0]
+
+        The well known result of Graham and Pollak states that the determinant of
+        the distance matrix of any tree of order n is (-1)^{n-1}(n-1)2^{n-2} ::
+
+            sage: all(T.distance_matrix().det() == (-1)^9*(9)*2^8 for T in graphs.trees(10))
+            True
+
+
+        """
+        from sage.matrix.constructor import matrix
+        from sage.rings.infinity import Infinity
+
+        n = self.order()
+        ret = matrix(n,n)
+        V = self.vertices()
+
+        dist = self.distance_all_pairs()
+
+        for i in xrange(n):
+            for j in xrange(i+1,n):
+                d = (dist[V[i]])[V[j]]
+                if d == Infinity:
+                    raise ValueError("Input (di)graph must be (strongly) connected.")
+                ret[i,j] = ret[j,i] = d
+
+        return ret
 
     def weighted_adjacency_matrix(self, sparse=True, boundary_first=False):
         """

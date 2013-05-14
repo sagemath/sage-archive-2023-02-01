@@ -907,6 +907,9 @@ class SimplicialComplex(GenericCellComplex):
         self._vertex_set = vertices
         # self._facets: list of facets
         self._facets = good_faces
+        # self._sorted: True if the vertex set should be sorted. This
+        # gets used by the add_faces method.
+        self._sorted = sort_facets
         # self._faces: dictionary of dictionaries of faces.  The main
         # dictionary is keyed by subcomplexes, and each value is a
         # dictionary keyed by dimension.  This should be empty until
@@ -1987,11 +1990,23 @@ class SimplicialComplex(GenericCellComplex):
             sage: T.add_face([1,2,3])
             sage: T.homology()
             {0: 0, 1: Z x Z, 2: 0}
+
+        Check we've fixed the bug reported at :trac:`14578`::
+
+            sage: t0 = SimplicialComplex()
+            sage: t0.add_face(('a', 'b'))
+            sage: t0.add_face(('c', 'd', 'e'))
+            sage: t0.add_face(('e', 'f', 'c'))
+            sage: t0.homology()
+            {0: Z, 1: 0, 2: 0}
         """
         if not self._is_mutable:
             raise ValueError("This simplicial complex is not mutable")
 
-        new_face = Simplex(face)
+        if self._sorted:
+            new_face = Simplex(sorted(face))
+        else:
+            new_face = Simplex(face)
 
         face_is_maximal = True
         for other in self._facets:
@@ -2009,7 +2024,11 @@ class SimplicialComplex(GenericCellComplex):
 
             # Update the vertex set
             from sage.misc.misc import union
-            self._vertex_set = Simplex(reduce(union, [self._vertex_set, new_face]))
+
+            if self._sorted:
+                self._vertex_set = Simplex(sorted(reduce(union, [self._vertex_set, new_face])))
+            else:
+                self._vertex_set = Simplex(reduce(union, [self._vertex_set, new_face]))
 
             # update self._faces if necessary
             if None in self._faces:
@@ -2099,7 +2118,10 @@ class SimplicialComplex(GenericCellComplex):
 
         # Recreate the vertex set
         from sage.misc.misc import union
-        self._vertex_set = Simplex(reduce(union, self._facets))
+        if self._sorted:
+            self._vertex_set = Simplex(sorted(reduce(union, self._facets)))
+        else:
+            self._vertex_set = Simplex(reduce(union, self._facets))
 
         # Update self._faces and self._graph if necessary
         if None in self._faces:

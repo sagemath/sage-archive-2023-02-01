@@ -926,6 +926,8 @@ class GitInterface(object):
         """
         return self._run_git('retval', cmd, args, kwds)
 
+    __call__ = execute
+
     def execute_silent(self, cmd, *args, **kwds):
         """
         returns exit code of a git command while supressing stdout

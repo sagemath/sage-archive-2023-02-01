@@ -715,7 +715,7 @@ how it is built:
   If you want to run tests serially, you can use ``make test`` or
   ``make testlong`` instead.
   If you want to run tests depending on optional packages and additional
-  software, you can use ``make testalll``, ``make ptestall``,
+  software, you can use ``make testall``, ``make ptestall``,
   ``make testalllong``, or ``make ptestalllong``.
 
 - ``make distclean`` restores the Sage directory to its state before doing any

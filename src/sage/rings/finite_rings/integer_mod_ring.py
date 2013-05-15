@@ -353,7 +353,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             ...
             TypeError: Error evaluating Macaulay2 code.
             IN:sage1=ZZ/10;
-            OUT:stdio:3:9:(1):[0]: ZZ/n not implemented yet for composite n
+            OUT:...error: ZZ/n not implemented yet for composite n
         """
         return "ZZ/%s"%self.order()
 

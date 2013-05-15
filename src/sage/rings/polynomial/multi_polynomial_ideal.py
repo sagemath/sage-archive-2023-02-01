@@ -2777,7 +2777,8 @@ class MPolynomialIdeal_macaulay2_repr:
         sage: R.<x,y,z,w> = PolynomialRing(ZZ, 4)
         sage: I = ideal(x*y-z^2, y^2-w^2)  #indirect doctest
         sage: macaulay2(I) # optional - macaulay2
-        Ideal (x*y - z^2, y^2 - w^2) of Multivariate Polynomial Ring in x, y, z, w over Integer Ring
+                      2   2    2
+        ideal (x*y - z , y  - w )
         """
         if macaulay2 is None: macaulay2 = macaulay2_default
         try:

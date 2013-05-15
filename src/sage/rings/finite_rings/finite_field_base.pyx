@@ -198,9 +198,7 @@ cdef class FiniteField(Field):
             'GF 97'
 
             sage: macaulay2(GF(97, 'a'))       # optional - macaulay2
-            ZZ
-            --
-            97
+            GF 97
             sage: macaulay2(GF(49, 'a'))       # optional - macaulay2
             GF 49
         """

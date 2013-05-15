@@ -1204,7 +1204,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         EXAMPLES::
 
             sage: macaulay2(ZZ)       #optional - macaulay2
-            ZZ                        # indirect doctest
+            ZZ
         """
         return "ZZ"
 

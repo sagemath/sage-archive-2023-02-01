@@ -247,6 +247,24 @@ LaTeX output::
     sage: latex(x^(3/5) >= pi)
     x^{\frac{3}{5}} \geq \pi
 
+When working with the symbolic complex number `I`, notice that comparison do not
+automatically simplifies even in trivial situations::
+
+    sage: I^2 == -1
+    -1 == -1
+    sage: I^2 < 0
+    -1 < 0
+    sage: (I+1)^4 > 0
+    -4 > 0
+
+Nevertheless, if you force the comparison, you get the right answer (:trac:`7160`)::
+
+    sage: bool(I^2 == -1)
+    True
+    sage: bool(I^2 < 0)
+    True
+    sage: bool((I+1)^4 > 0)
+    False
 
 More Examples
 -------------

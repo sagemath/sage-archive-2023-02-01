@@ -17,7 +17,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-cdef extern from "":
+cdef extern from *: # hack to get at cython macro
     int unlikely(int)
     int likely(int)
 

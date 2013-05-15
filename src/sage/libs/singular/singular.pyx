@@ -614,7 +614,7 @@ cdef object si2sa_intvec(intvec *v):
 # Initialisation
 # ==============
 
-cdef extern from "":
+cdef extern from *: # hack to get at cython macro
     int unlikely(int)
 
 cdef extern from "dlfcn.h":

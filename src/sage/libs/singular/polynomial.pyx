@@ -13,7 +13,7 @@ AUTHOR:
 #*****************************************************************************
 include "../../ext/interrupt.pxi"
 
-cdef extern from "":
+cdef extern from *: # hack to get at cython macro
     int unlikely(int)
 
 import re

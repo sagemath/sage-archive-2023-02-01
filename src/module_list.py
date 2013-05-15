@@ -331,10 +331,13 @@ ext_modules = [
                sources = ['sage/geometry/integral_points.pyx']),
 
      Extension('sage.geometry.triangulation.base',
-               sources = ['sage/geometry/triangulation/functions.cc',
+               sources = ['sage/geometry/triangulation/base.pyx',
+                          'sage/geometry/triangulation/functions.cc',
                           'sage/geometry/triangulation/data.cc',
-                          'sage/geometry/triangulation/base.pyx',
                           'sage/geometry/triangulation/triangulations.cc'],
+               depends = ['sage/geometry/triangulation/functions.h',
+                          'sage/geometry/triangulation/data.h',
+                          'sage/geometry/triangulation/triangulations.h'],
                language="c++"),
 
     ################################
@@ -392,7 +395,8 @@ ext_modules = [
               depends = flint_depends),
 
     Extension('sage.graphs.planarity',
-              sources = ['sage/graphs/planarity_c/graphColorVertices.c',
+              sources = ['sage/graphs/planarity.pyx',
+                         'sage/graphs/planarity_c/graphColorVertices.c',
                          'sage/graphs/planarity_c/graphColorVertices_Extensions.c',
                          'sage/graphs/planarity_c/graphDrawPlanar.c',
                          'sage/graphs/planarity_c/graphDrawPlanar_Extensions.c',
@@ -417,8 +421,7 @@ ext_modules = [
                          'sage/graphs/planarity_c/planarityRandomGraphs.c',
                          'sage/graphs/planarity_c/planaritySpecificGraph.c',
                          'sage/graphs/planarity_c/planarityUtils.c',
-                         'sage/graphs/planarity_c/stack.c',
-                         'sage/graphs/planarity.pyx'],
+                         'sage/graphs/planarity_c/stack.c'],
               depends = ['sage/graphs/planarity_c/appconst.h',
                          'sage/graphs/planarity_c/graphColorVertices.h',
                          'sage/graphs/planarity_c/graphColorVertices.private.h',

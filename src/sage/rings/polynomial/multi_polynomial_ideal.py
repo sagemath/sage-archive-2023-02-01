@@ -3837,7 +3837,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                 warn("The libsingular interface does not support prot='sage', reverting to 'prot=True'.")
             gb = self._groebner_basis_libsingular(algorithm[len('libsingular:'):], deg_bound=deg_bound, mult_bound=mult_bound, prot=prot, *args, **kwds)
         elif algorithm == 'macaulay2:gb':
-            gb = self._groebner_basis_macaulay2(prot=prot, *args, **kwds)
+            gb = self._groebner_basis_macaulay2(*args, **kwds)
         elif algorithm == 'magma:GroebnerBasis':
             gb = self._groebner_basis_magma(prot=prot, deg_bound=deg_bound, *args, **kwds)
         elif algorithm == 'toy:buchberger':

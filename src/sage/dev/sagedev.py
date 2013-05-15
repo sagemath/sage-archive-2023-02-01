@@ -16,7 +16,7 @@ from subprocess import call, check_call
 
 from git_interface import GitInterface
 from trac_interface import TracInterface
-from user_interface import CmdLineInterface
+from user_interface import UserInterface, CmdLineInterface
 
 from sage.env import DOT_SAGE
 from sage.doctest import DOCTEST_MODE
@@ -261,6 +261,14 @@ class SageDev(object):
 
         self.__git = None
         self.__trac = None
+
+    def _set_ui(self, UI):
+        """
+        set the user interface to UI
+        """
+        if not isinstance(UI, UserInterface):
+            raise ValueError("UI is not a UserInterface")
+        self._UI = UI
 
     ##
     ## Public interface

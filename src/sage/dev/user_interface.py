@@ -1,12 +1,10 @@
 """
 User Interface
 """
+from __future__ import print_function
 from getpass import getpass
 
-class CmdLineInterface(object):
-    def __init__(self):
-        self._answer_stack = []
-
+class UserInterface(object):
     def get_input(self, prompt, options=None, default=None, dryrun=False, strip=None):
         """
         Get input from the developer.
@@ -23,7 +21,7 @@ class CmdLineInterface(object):
 
             sage: UI = sage.dev.user_interface.CmdLineInterface()
             sage: UI.get_input("Should I delete your home directory?",
-            ... ["yes","no","maybe"], default="m", dryrun=True)
+            ....:         ["yes","no","maybe"], default="m", dryrun=True)
             Should I delete your home directory? [yes/no/Maybe]
             'maybe'
         """
@@ -53,21 +51,17 @@ class CmdLineInterface(object):
                 prompt += " "
                 options = None
         if dryrun:
-            print prompt
+            self.show(prompt)
             return options[default]
         while True:
-            if not self._answer_stack:
-                s = raw_input(prompt)
-            else:
-                s = self._answer_stack.pop()
-                print "%s%s"%(prompt,s)
+            s = self._get_input(prompt)
             if strip is not None and s.startswith(strip):
                 s = s[len(strip):]
             if options is None:
                 return s
             if len(s.strip()) == 0:
                 if default is None:
-                    print "Please enter an option"
+                    self.show("Please enter an option")
                     continue
                 else:
                     return options[default]
@@ -82,9 +76,43 @@ class CmdLineInterface(object):
                 if found != -1:
                     return options[found]
             if found == -1:
-                print "Please specify an allowable option"
+                self.show("Please specify an allowable option")
             else:
-                print "Please disambiguate between options"
+                self.show("Please disambiguate between options")
+
+    def confirm(self, question, default_yes=True):
+        """
+        should ask a yes/no question from the developer and return
+        the boolean of the response
+
+        INPUT:
+
+        - ``question`` -- a string
+        - ``default_yes`` -- boolean whether to default to yes
+        """
+        raise NotImplementedError
+
+    def _get_input(self, prompt):
+        """
+        should print prompt, have a user input a response, and
+        return a string consisting of said response
+        """
+        raise NotImplementedError
+
+    def get_password(self, prompt):
+        """
+        like _get_input, but the user input should not be reable
+        while being displayed
+        """
+        raise NotImplementedError
+
+    def show(self, message):
+        """
+        should display message to user
+        """
+        raise NotImplementedError
+
+class CmdLineInterface(UserInterface):
 
     def confirm(self, question, default_yes=True, dryrun=False):
         """
@@ -100,21 +128,19 @@ class CmdLineInterface(object):
 
             sage: UI = sage.dev.user_interface.CmdLineInterface()
             sage: UI.confirm("Should I delete your home directory?",
-            ... dryrun=True)
+            ....:         dryrun=True)
             Should I delete your home directory? [Yes/no]
             True
         """
         ok = self.get_input(question, ["yes","no"],
-                            "yes" if default_yes else "no", dryrun)
+                "yes" if default_yes else "no", dryrun=dryrun)
         return ok == "yes"
 
+    def _get_input(self, prompt):
+        return raw_input(prompt)
+
     def get_password(self, prompt):
-        if not self._answer_stack:
-            return getpass(prompt)
-        else:
-            ret = self._answer_stack.pop()
-            print prompt
-            return ret
+        return getpass(prompt)
 
     def show(self, message):
-        print message
+        print(message)

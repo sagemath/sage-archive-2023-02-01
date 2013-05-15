@@ -1191,6 +1191,14 @@ class GenericGraph(GenericGraph_pyx):
         intersection of a row and column contains the respective distance between
         the vertices indexed at these position.
 
+        .. WARNING::
+
+            The ordering of vertices in the matrix has no reason to correspond
+            to the order of vertices in :meth:`~Graph.vertices`. In particular,
+            if two integers `i,j` are vertices of a graph `G` with distance
+            matrix ``M``, then ``M[i][i]`` is not necessarily the distance
+            between vertices `i` and `j`.
+
         EXAMPLES::
 
             sage: G = graphs.CubeGraph(3)
@@ -1212,7 +1220,8 @@ class GenericGraph(GenericGraph_pyx):
 
         .. SEEALSO::
 
-            * :meth:`~sage.graphs.generic_graph.distance_all_pairs`
+            * :meth:`~sage.graphs.generic_graph.distance_all_pairs` -- computes
+              the distance between any two vertices.
         """
 
         from sage.matrix.constructor import matrix

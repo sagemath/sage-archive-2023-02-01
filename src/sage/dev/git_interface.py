@@ -1037,7 +1037,7 @@ class GitInterface(object):
         return self.execute('diff', quiet=True) != 0
 
     def commit_all(self, *args, **kwds):
-        """
+        r"""
         commits all changes
 
         EXAMPLES::
@@ -1065,7 +1065,7 @@ class GitInterface(object):
         """
         # if files are non-tracked and user doesn't want to add any of
         # them, there might be no changes being committed here....
-        kwds['a'] = True
+        kwds['all'] = True
         self.execute("commit", *args, **kwds)
 
     def unknown_files(self):

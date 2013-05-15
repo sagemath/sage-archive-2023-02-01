@@ -338,6 +338,119 @@ class Tableau(CombinatorialObject, Element):
         """
         return self.parent().global_options.dispatch(self,'_repr_','display')
 
+
+    @staticmethod
+    def set_ascii_art(conf="repr1"):
+        """
+        Static method use to set the ascii art output:
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,2,3],[4,5]]); t
+            [[1, 2, 3], [4, 5]]
+            sage: ascii_art(t)
+              1  2  3
+              4  5
+            sage: Tableau.set_ascii_art("compact")
+            sage: ascii_art(t)
+            |4|5|
+            |1|2|3|
+            sage: Tableau.set_ascii_art("normal")
+            sage: ascii_art(t)
+            +---+---+
+            | 4 | 5 |
+            +---+---+---+
+            | 1 | 2 | 3 |
+            +---+---+---+
+            sage: Tableau.set_ascii_art("repr1")
+            sage: Tableaux.global_options.reset()
+        """
+        try:
+            Tableau.__ascii_art_tmp = {
+              "repr1": lambda x: Tableau._repr_diagram(x),
+              "compact": lambda x: x._pretty_repr_compact_(),
+            }[conf]
+        except:
+            Tableau.__ascii_art_tmp = lambda x: x._pretty_repr_normal_()
+
+    def _ascii_art_(self):
+        """
+        TESTS::
+
+            sage: ascii_art(list(StandardTableaux(3)))
+            [                              1 ]
+            [              1  3    1  2    2 ]
+            [   1  2  3,   2   ,   3   ,   3 ]
+            sage: Tableau.set_ascii_art("compact")
+            sage: ascii_art(list(StandardTableaux(3)))
+            [                        |3| ]
+            [          |2|    |3|    |2| ]
+            [ |1|2|3|, |1|3|, |1|2|, |1| ]
+            sage: Tableau.set_ascii_art("normal")
+            sage: ascii_art(list(StandardTableaux(3)))
+            [                                      +---+ ]
+            [                                      | 3 | ]
+            [                +---+      +---+      +---+ ]
+            [                | 2 |      | 3 |      | 2 | ]
+            [ +---+---+---+  +---+---+  +---+---+  +---+ ]
+            [ | 1 | 2 | 3 |  | 1 | 3 |  | 1 | 2 |  | 1 | ]
+            [ +---+---+---+, +---+---+, +---+---+, +---+ ]
+            sage: Tableaux.global_options(convention="french")
+            sage: Tableau.set_ascii_art("repr1")
+            sage: ascii_art(list(StandardTableaux(3)))
+            [                              3 ]
+            [              2       3       2 ]
+            [   1  2  3,   1  3,   1  2,   1 ]
+            sage: Tableaux.global_options.reset()
+        """
+        from sage.misc.ascii_art import AsciiArt
+        return AsciiArt(Tableau.__ascii_art_tmp(self).splitlines())
+
+    def _pretty_repr_normal_(self):
+        """
+        TESTS::
+
+            sage: t = Tableau([[1,2,3],[4,5]]); print t._pretty_repr_normal_()
+            +---+---+
+            | 4 | 5 |
+            +---+---+---+
+            | 1 | 2 | 3 |
+            +---+---+---+
+            sage: t = Tableau([]); print t._pretty_repr_normal_()
+            ++
+            ++
+        """
+        if len(self) == 0: return "++\n++"
+        matr = ""
+        for row in self:
+            l1 = ""; l2 =  ""
+            for e in row:
+                l1 += "+---"
+                l2 += "| " + str(e) + " "
+            l1 += "+"; l2 += "|"
+            matr = l1 + "\n" + l2 + "\n" + matr
+        matr += "+---"** Integer(len(self[0])) + "+"
+        return matr
+
+    def _pretty_repr_compact_(self):
+        """
+        TESTS::
+
+            sage: t = Tableau([[1,2,3],[4,5]]); print t._pretty_repr_compact_()
+            |4|5|
+            |1|2|3|
+
+        """
+        if len(self) == 0: return "."
+        matr = ''
+        for row in self:
+            l1 = ""; l2 =  ""
+            for e in row:
+                l1 += "|" + str(e)
+            l1 += "|"
+            matr = l1 + "\n" + matr
+        return matr
+
     def _repr_list(self):
         """
         Return a string representation of ``self`` as a list.
@@ -370,6 +483,8 @@ class Tableau(CombinatorialObject, Element):
             return '\n'.join(["".join(map(lambda x: "%3s"%str(x) , row)) for row in self])
         else:
             return '\n'.join(["".join(map(lambda x: "%3s"%str(x) , row)) for row in reversed(self)])
+
+    __ascii_art_tmp = _repr_diagram
 
     def _repr_compact(self):
         """

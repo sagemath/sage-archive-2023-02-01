@@ -196,6 +196,241 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         else:
             return super(BinaryTree, self)._repr_()
 
+    def _ascii_art_( self ):
+        '''
+        TESTS::
+
+            sage: for bt in BinaryTrees(3):
+            ....:     print ascii_art(bt)
+            o
+             \
+              o
+               \
+                o
+            o
+             \
+              o
+             /
+            o
+              o
+             / \
+            o   o
+              o
+             /
+            o
+             \
+              o
+                o
+               /
+              o
+             /
+            o
+        '''
+        from sage.misc.ascii_art import AsciiArt
+        def repr_empty_tree():
+            """
+            TESTS::
+
+                sage: ascii_art(BinaryTree())
+                <BLANKLINE>
+            """
+            return AsciiArt( [''] )
+
+        def node_to_str( bt ):
+            return str( bt.label() ) if hasattr( bt, "label" ) else "o"
+
+        def repr_one_node_tree( bt ):
+            '''
+            TESTS::
+
+                sage: ascii_art(BinaryTree([]))
+                o
+            '''
+            bt_repr = AsciiArt( [node_to_str( bt )] )
+            bt_repr._root = 1
+            return bt_repr
+
+        def repr_empty_L_with_R_tree( bt ):
+            '''
+            TESTS::
+
+                sage: ascii_art(BinaryTree([None,[]]))
+                o
+                 \
+                  o
+                sage: ascii_art(BinaryTree([None,[None,[]]]))
+                o
+                 \
+                  o
+                   \
+                    o
+                sage: ascii_art(BinaryTree([None,[[],None]]))
+                o
+                 \
+                  o
+                 /
+                o
+                sage: ascii_art(BinaryTree([None,[[[],[]],[]]]))
+                   o
+                    \
+                    _o_
+                   /   \
+                  o     o
+                 / \
+                o   o
+                sage: ascii_art(BinaryTree([None,[[None,[[],[]]],None]]))
+                o
+                 \
+                  o
+                 /
+                o
+                 \
+                  o
+                 / \
+                o   o
+            '''
+            node = node_to_str( bt )
+            rr_tree = bt[1]._ascii_art_()
+            if rr_tree._root > 2:
+                f_line = " " ** Integer( rr_tree._root - 3 ) + node
+                s_line = " " ** Integer( len( node ) + rr_tree._root - 3 ) + "\\"
+                t_repr = AsciiArt( [f_line, s_line] ) * rr_tree
+                t_repr._root = rr_tree._root - 2
+            else:
+                f_line = node
+                s_line = " " + "\\"
+                t_line = " " ** Integer( len( node ) + 1 )
+                t_repr = AsciiArt( [f_line, s_line] ) * ( AsciiArt( [t_line] ) + rr_tree )
+                t_repr._root = rr_tree._root
+            t_repr._baseline = t_repr._h - 1
+            return t_repr
+
+        def repr_L_with_empty_R_tree( bt ):
+            '''
+            TESTS::
+
+                sage: ascii_art(BinaryTree([[],None]))
+                  o
+                 /
+                o
+                sage: ascii_art(BinaryTree([[[[],None], None],None]))
+                      o
+                     /
+                    o
+                   /
+                  o
+                 /
+                o
+                sage: ascii_art(BinaryTree([[[],[]],None]))
+                    o
+                   /
+                  o
+                 / \
+                o   o
+                sage: ascii_art(BinaryTree([[[None,[]],[[[],None],None]], None]))
+                       o
+                      /
+                  ___o___
+                 /       \
+                o         o
+                 \       /
+                  o     o
+                       /
+                      o
+                sage: ascii_art(BinaryTree([[None,[[],[]]],None]))
+                  o
+                 /
+                o
+                 \
+                  o
+                 / \
+                o   o
+            '''
+            node = node_to_str( bt )
+            lr_tree = bt[0]._ascii_art_()
+            f_line = " " ** Integer( lr_tree._root + 1 ) + node
+            s_line = " " ** Integer( lr_tree._root ) + "/"
+            t_repr = AsciiArt( [f_line, s_line] ) * lr_tree
+            t_repr._root = lr_tree._root + 2
+            t_repr._baseline = t_repr._h - 1
+            return t_repr
+
+        def repr_general_tree( bt ):
+            '''
+            TESTS::
+
+                sage: ascii_art(BinaryTree([[],[]]))
+                  o
+                 / \
+                o   o
+                sage: ascii_art(BinaryTree([[],[[],None]]))
+                  _o_
+                 /   \
+                o     o
+                     /
+                    o
+                sage: ascii_art(BinaryTree([[None,[]],[[[],None],None]]))
+                  ___o___
+                 /       \
+                o         o
+                 \       /
+                  o     o
+                       /
+                      o
+                sage: ascii_art(BinaryTree([[[],[]],[[],None]]))
+                    __o__
+                   /     \
+                  o       o
+                 / \     /
+                o   o   o
+                sage: ascii_art(BinaryTree([[[],[]],[[],[]]]))
+                    __o__
+                   /     \
+                  o       o
+                 / \     / \
+                o   o   o   o
+                sage: ascii_art(BinaryTree([[[[],[]],[[],[]]],[]]))
+                        ___o___
+                       /       \
+                    __o__       o
+                   /     \
+                  o       o
+                 / \     / \
+                o   o   o   o
+                sage: ascii_art(BinaryTree([[],[[[[],[]],[[],[]]],[]]]))
+                  _____o______
+                 /            \
+                o           ___o___
+                           /       \
+                        __o__       o
+                       /     \
+                      o       o
+                     / \     / \
+                    o   o   o   o
+            '''
+            node = node_to_str( bt )
+            lr_tree = bt[0]._ascii_art_()
+            rr_tree = bt[1]._ascii_art_()
+            nb_ = lr_tree._l - lr_tree._root + rr_tree._root - 1
+            nb_L = int( nb_ / 2 )
+            nb_R = nb_L + ( 1 if nb_ % 2 == 1 else 0 )
+            f_line = " " ** Integer( lr_tree._root + 1 ) + "_" ** Integer( nb_L ) + node
+            f_line += "_" ** Integer( nb_R )
+            s_line = " " ** Integer( lr_tree._root ) + "/" + " " ** Integer( len( node ) + rr_tree._root - 1 + ( lr_tree._l - lr_tree._root ) ) + "\\"
+            t_repr = AsciiArt( [f_line, s_line] ) * ( lr_tree + AsciiArt( [" " ** Integer( len( node ) + 2 )] ) + rr_tree )
+            t_repr._root = lr_tree._root + nb_L + 2
+            t_repr._baseline = t_repr._h - 1
+            return t_repr
+
+        if self.is_empty(): return repr_empty_tree()
+        elif self[0].is_empty() and self[1].is_empty():
+            return repr_one_node_tree( self )
+        elif self[0].is_empty():
+            return repr_empty_L_with_R_tree( self )
+        elif self[1].is_empty():
+            return repr_L_with_empty_R_tree( self )
+        else: return repr_general_tree( self )
+
     def is_empty(self):
         """
         Returns whether ``self`` is  empty.

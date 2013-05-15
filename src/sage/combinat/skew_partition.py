@@ -222,6 +222,25 @@ class SkewPartition_class(CombinatorialObject):
 
     diagram = ferrers_diagram
 
+    def _ascii_art_(self):
+        """
+        TESTS::
+
+            sage: ascii_art(SkewPartitions(3).list())
+            [                        *   *   *    * ]
+            [      **   **   *    *  *   *  *    *  ]
+            [ ***, * , *  , **, ** , *, * , * , *   ]
+            sage: Partitions.global_options(diagram_str='#', convention="French")
+            sage: ascii_art(SkewPartitions(3).list())
+            [                        #  #   #   #   ]
+            [      #   #    ##  ##   #   #  #    #  ]
+            [ ###, ##,  ##,  #,   #, #,  #,  #,   # ]
+            sage: Partitions.global_options.reset()
+        """
+        from sage.misc.ascii_art import AsciiArt
+        return AsciiArt(self.diagram().splitlines())
+
+
     def inner(self):
         """
         Returns the inner partition of the skew partition.

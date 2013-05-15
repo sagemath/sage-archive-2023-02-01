@@ -1,11 +1,49 @@
+# -*- coding: utf-8 -*-
 """
-Implements a displayhook for Sage. The main improvement over the default
-displayhook is a new facility for displaying lists of matrices in an easier to
-read format.
+Implements a displayhook for Sage.
+
+This displayhook has two new facilities, by default the displayhook contains a
+new facility for displaying lists of matrices in an easier to read format::
+
+    sage: [identity_matrix(i) for i in range(2,5)]
+    [
+                    [1 0 0 0]
+           [1 0 0]  [0 1 0 0]
+    [1 0]  [0 1 0]  [0 0 1 0]
+    [0 1], [0 0 1], [0 0 0 1]
+    ]
+
+This facility uses :meth:`_repr_` (and a simple string) to try do a nice read
+format (see :meth:`sage.structure.parent._repr_option` for details).
+
+With this displayhook there exists an other way for displaying object and more
+generally, all sage expression as an ASCII art object::
+
+    sage: %display ascii_art         # not tested: works only in interactive shell
+    sage: integral(x^2/pi^x, x)      # not tested: works only in interactive shell
+     / 2    2                      \  -x*log(pi)
+    -\\x *log (pi) + 2*x*log(pi) + 2/*e
+    --------------------------------------------
+                         3
+                      log (pi)
+    sage: i = var('i')               # not tested: works only in interactive shell
+    sage: sum(i*x^i, i, 0, 10)       # not tested: works only in interactive shell
+        10      9      8      7      6      5      4      3      2
+    10*x   + 9*x  + 8*x  + 7*x  + 6*x  + 5*x  + 4*x  + 3*x  + 2*x  + x
+    sage: StandardTableaux(4).list() # not tested: works only in interactive shell
+    [   1  2  3  4,   2          3          4          2  4    3  4    3       4       4       4 ]
+    [                 1  3  4,   1  2  4,   1  2  3,   1  3,   1  2,   2   ,   2   ,   3   ,   3 ]
+    [                                                                  1  4    1  3    1  2    2 ]
+    [                                                                                          1 ]
+
+This other facility uses a simple `AsciiArt` object
+(see :class:`sage.misc.ascii_art.AsciiArt` and
+:meth:`sage.structure.parent._ascii_art_`).
 
 AUTHORS:
 
-- Bill Cauchois (2009): initial version
+ - Bill Cauchois (2009): initial version
+ - Jean-Baptiste Priez - <jbp@kerios.fr> (2013): ASCII art mod
 """
 
 import sys, __builtin__
@@ -211,3 +249,86 @@ class DisplayHook(object):
             __builtin__._ = obj
         else:
             self.oldhook(obj)
+
+from IPython.core.formatters import PlainTextFormatter
+from ascii_art import ascii_art
+class SagePlainTextFormatter(PlainTextFormatter):
+    """
+    A replacement for the plain text formatter which can use two facilities:
+        - correctly print lists of matrices or other objects (see
+            :meth:`sage.structure.parent._repr_option`),
+        - print ASCII art objects (like expressions) (see
+            :meth:`sage.structure.parent._ascii_art_`).
+
+    EXAMPLES::
+
+        sage: from sage.misc.interpreter import get_test_shell
+        sage: shell = get_test_shell()
+        sage: shell.display_formatter.formatters['text/plain']
+        <...displayhook.SagePlainTextFormatter object at 0x...>
+        sage: shell.run_cell('a = identity_matrix(ZZ, 2); [a,a]')
+        [
+        [1 0]  [1 0]
+        [0 1], [0 1]
+        ]
+    """
+    def __call__(self, obj):
+        r"""
+        Computes the format data of ``result``.  If the
+        :func:`sage.misc.displayhook.format_obj` writes a string, then
+        we override IPython's :class:`DisplayHook` formatting.
+
+        EXAMPLES::
+
+            sage: from sage.misc.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.display_formatter.formatters['text/plain']
+            <...displayhook.SagePlainTextFormatter object at 0x...>
+            sage: shell.displayhook.compute_format_data(2)
+            {u'text/plain': '2'}
+            sage: a = identity_matrix(ZZ, 2)
+            sage: shell.displayhook.compute_format_data([a,a])
+            {u'text/plain': '[\n[1 0]  [1 0]\n[0 1], [0 1]\n]'}
+            sage: from sage.misc.displayhook import SPTextFormatter
+            sage: SPTextFormatter.set_display("ascii_art")
+            sage: i = var('i')
+            sage: shell.displayhook.compute_format_data(sum(i*x^i, i, 0, 10))   # not tested: works only in interactive shell
+            {                10      9      8      7      6      5      4      3      2     }
+            { text/plain:10*x   + 9*x  + 8*x  + 7*x  + 6*x  + 5*x  + 4*x  + 3*x  + 2*x  + x }
+        """
+        s = self._format_obj(obj)
+        if s is None:
+            s = super(SagePlainTextFormatter, self).__call__(obj)
+        return s
+
+    _format_obj = lambda _, obj: format_obj(obj)
+
+    def set_display(self, mode="ascii_art"):
+        """
+        Method uses to config the formatting method
+        (:meth:`simple_format_obj` or :func:`sage.misc.ascii_art.ascii_art`).
+
+        TESTS::
+
+            sage: [identity_matrix(i) for i in range(3,7)]
+            [
+                                             [1 0 0 0 0 0]
+                                [1 0 0 0 0]  [0 1 0 0 0 0]
+                     [1 0 0 0]  [0 1 0 0 0]  [0 0 1 0 0 0]
+            [1 0 0]  [0 1 0 0]  [0 0 1 0 0]  [0 0 0 1 0 0]
+            [0 1 0]  [0 0 1 0]  [0 0 0 1 0]  [0 0 0 0 1 0]
+            [0 0 1], [0 0 0 1], [0 0 0 0 1], [0 0 0 0 0 1]
+            ]
+            sage: from sage.misc.displayhook import SPTextFormatter
+            sage: SPTextFormatter.set_display("ascii_art")
+            sage: i = var('i')              # not tested: works only in interactive shell
+            sage: sum(i*x^i, i, 0, 10)      # not tested: works only in interactive shell
+                10      9      8      7      6      5      4      3      2
+            10*x   + 9*x  + 8*x  + 7*x  + 6*x  + 5*x  + 4*x  + 3*x  + 2*x  + x
+        """
+        self._format_obj = {
+            "ascii_art": ascii_art,
+            "simple": format_obj
+        }[mode]
+
+SPTextFormatter = None

@@ -384,6 +384,45 @@ class DyckWord_class(CombinatorialObject):
         else:
             return super(DyckWord_class, self).__repr__()
 
+    @staticmethod
+    def set_ascii_art(repr="path"):
+        """
+        TESTS::
+
+            sage: ascii_art(list(DyckWords(3)))
+            [                                   /\   ]
+            [            /\    /\      /\/\    /  \  ]
+            [ /\/\/\, /\/  \, /  \/\, /    \, /    \ ]
+            sage: from sage.combinat.dyck_word import DyckWord_class
+            sage: DyckWord_class.set_ascii_art("pretty_output")
+            sage: ascii_art(list(DyckWords(3)))
+            [      _     ___       _     ___   _____ ]
+            [    _|     | x    ___|    _| x   | x x  ]
+            [  _|  .   _|  .  | x  .  | x  .  | x  . ]
+            [ |  . ., |  . ., |  . ., |  . ., |  . . ]
+            sage: DyckWord_class.set_ascii_art("path")
+        """
+        if repr == "path":
+            DyckWord_class._active_repr = lambda x: x.to_path_string()
+        elif repr == "pretty_output":
+            DyckWord_class._active_repr = lambda x: x.pretty_output()
+        else:
+            raise ValueError ("'%s' must be 'path' or 'pretty_output'")
+
+    def _ascii_art_(self):
+        """
+        .. see :meth:`set_ascii_art`.
+
+        TESTS::
+
+            sage: ascii_art(list(DyckWords(3)))
+            [                                   /\   ]
+            [            /\    /\      /\/\    /  \  ]
+            [ /\/\/\, /\/  \, /  \/\, /    \, /    \ ]
+        """
+        from sage.misc.ascii_art import AsciiArt
+        return AsciiArt(str(DyckWord_class._active_repr(self)).splitlines(), baseline=0)
+
     def __str__(self):
         r"""
         Returns a string consisting of matched parentheses corresponding to
@@ -425,29 +464,11 @@ class DyckWord_class(CombinatorialObject):
                 res[-h][i] = "\\"
         return "\n".join("".join(l) for l in res)
 
+    _active_repr = to_path_string
+
     def pretty_print( self, type="N-E", labelling=None, underpath=True ):
-        r"""
-        Display a DyckWord as a lattice path in the `\mathbb{Z}^2` grid.
-
-        If the ``type`` is "N-E", then the a cell below the diagonal is
-        indicated by a period, a cell below the path, but above the
-        diagonal are indicated by an x. If a list of labels is included,
-        they are displayed along the vertical edges of the Dyck path.
-
-        If the ``type`` is "NE-SE", then the path is simply printed
-        as up steps and down steps.
-
-        INPUT:
-
-        - ``type`` -- can either be
-                        - "N-E" to show ``self`` as a path of north and east steps, or
-                        - "NE-SE" to show ``self`` as a path of north-east and south-east steps.
-
-        - ``labelling`` -- (if type is "N-E") a list of labels assigned to the up steps in ``self``.
-
-        - ``underpath`` -- (if type is "N-E", default:True)
-                            - if True, the labelling is shown under the path
-                            - otherwise, it is shown to the right of the path.
+        """
+        Shorthand for `print D.pretty_output()` .. SEE: :meth:`pretty_output`.
 
         EXAMPLES::
 
@@ -580,6 +601,43 @@ class DyckWord_class(CombinatorialObject):
             .
 
         """
+        print self.pretty_output(type, labelling, underpath)
+
+    def pretty_output(self, type="N-E", labelling=None, underpath=True):
+        r"""
+        Display a DyckWord as a lattice path in the `\mathbb{Z}^2` grid.
+
+        If the ``type`` is "N-E", then the a cell below the diagonal is
+        indicated by a period, a cell below the path, but above the
+        diagonal are indicated by an x. If a list of labels is included,
+        they are displayed along the vertical edges of the Dyck path.
+
+        If the ``type`` is "NE-SE", then the path is simply printed
+        as up steps and down steps.
+
+        INPUT:
+
+        - ``type`` -- can either be
+                        - "N-E" to show ``self`` as a path of north and east steps, or
+                        - "NE-SE" to show ``self`` as a path of north-east and south-east steps.
+
+        - ``labelling`` -- (if type is "N-E") a list of labels assigned to the up steps in ``self``.
+
+        - ``underpath`` -- (if type is "N-E", default:True)
+                            - if True, the labelling is shown under the path
+                            - otherwise, it is shown to the right of the path.
+
+        TESTS::
+
+            sage: DyckWord(area_sequence=[0,1,0]).pretty_output(type="NE-SE")
+             /\
+            /  \/\
+            sage: print DyckWord(area_sequence=[0,1,0]).pretty_output(labelling=[1,3,2],underpath=False)
+                 _
+             ___|  2
+            | x  . 3
+            |  . . 1
+        """
         if type == "NE-SE":
             if labelling is not None or underpath is not True:
                 raise ValueError, "The labelling cannot be shown with Northeast-Southeast paths."
@@ -623,8 +681,7 @@ class DyckWord_class(CombinatorialObject):
                 row = row + "|" + labels[-1] + " ."*(n-1) + "\n"
             else:
                 row = row + "| "+" ."*(n-1) + labels[-1] + "\n"
-            print(row)
-            return None
+            return row
         else:
             raise ValueError, "The given type (=\s) is not valid."%type
 

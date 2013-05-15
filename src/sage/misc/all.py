@@ -211,3 +211,5 @@ class logstr(str):
 
 
 import messaging
+
+from ascii_art import ascii_art

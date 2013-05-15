@@ -153,6 +153,72 @@ cdef class SageObject:
         else:
             return repr_func()
 
+    def _ascii_art_(self):
+        """
+        .. TODO::
+
+            revenir dessus..
+
+        Return an ASCII art representation.
+
+        To implement multi-line ASCII art output in a derived class
+        you must override this method. Unlike :meth:`_repr_`, which is
+        sometimes used for the hash key, the output of
+        :meth:`_ascii_art_` may depend on settings and is allowed to
+        change during runtime. For example,
+        :meth:`~sage.combinat.tableau.Tableau.set_ascii_art` can be
+        used to switch the ASCII art of tableaux between different
+        mathematical conventions.
+
+        OUTPUT:
+
+        An :class:`~sage.misc.ascii_art.AsciiArt` object, see
+        :mod:`sage.misc.ascii_art` for details.
+
+        EXAMPLES:
+
+        You can use the :func:`~sage.misc.ascii_art.ascii_art` function
+        to get the ASCII art representation of any object in Sage::
+
+            sage: ascii_art(integral(exp(x+x^2)/(x+1), x))
+              /
+             |
+             |   2
+             |  x  + x
+             | e
+             | ------- dx
+             |  x + 1
+             |
+            /
+
+        Alternatively, you can use the `%display ascii_art/repr` magic to
+        switch all output to ASCII art and back::
+
+            sage: tab = StandardTableaux(3)[2];  tab
+            [[1, 2], [3]]
+            sage: %display ascii_art # not tested: works only in interactive shell
+            sage: tab                # not tested: works only in interactive shell
+            1  2
+            3
+            sage: Tableau.set_ascii_art("normal")
+            sage: tab                # not tested: works only in interactive shell
+            +---+
+            | 3 |
+            +---+---+
+            | 1 | 2 |
+            +---+---+
+            sage: %display simple    # not tested: works only in interactive shell
+
+        TESTS::
+
+            sage: 1._ascii_art_()
+            1
+            sage: type(_)
+            <class 'sage.misc.ascii_art.AsciiArt'>
+        """
+        from sage.misc.ascii_art import AsciiArt
+        return AsciiArt(repr(self).splitlines())
+
     def __hash__(self):
         return hash(self.__repr__())
 

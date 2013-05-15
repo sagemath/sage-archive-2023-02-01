@@ -764,6 +764,20 @@ class Partition(CombinatorialObject, Element):
 
         return self.parent().global_options.dispatch(self, '_repr_', 'display')
 
+    def _ascii_art_(self):
+        """
+        TESTS::
+
+            sage: ascii_art(Partitions(5).list())
+            [                                * ]
+            [                            **  * ]
+            [                   ***  **  *   * ]
+            [        ****  ***  *    **  *   * ]
+            [ *****, *   , ** , *  , * , * , * ]
+        """
+        from sage.misc.ascii_art import AsciiArt
+        return AsciiArt(self._repr_diagram().splitlines(), baseline=0)
+
     def _repr_list(self):
         """
         Return a string representation of ``self`` as a list.

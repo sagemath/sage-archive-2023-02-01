@@ -500,6 +500,17 @@ class TableauTuple(CombinatorialObject,Element):
         else:
             return '\n'.join(map(str,diag[::-1]))
 
+    def _ascii_art_(self):
+        '''
+        TESTS::
+
+            sage: ascii_art(TableauTuple([[[2,3]],[],[[4],[5]],[]]))
+             2  3     -     4     -
+                            5
+        '''
+        from sage.misc.ascii_art import AsciiArt
+        return AsciiArt(self._repr_diagram().splitlines())
+
     def _latex_(self):
         r"""
         Returns a LaTeX version of ``self``.

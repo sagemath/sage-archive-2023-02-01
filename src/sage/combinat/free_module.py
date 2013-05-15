@@ -28,6 +28,7 @@ from sage.categories.poor_man_map import PoorManMap
 from sage.categories.all import ModulesWithBasis
 from sage.combinat.dict_addition import dict_addition, dict_linear_combination
 from sage.sets.family import Family
+from sage.misc.ascii_art import AsciiArt
 
 # TODO: move the content of this class to CombinatorialFreeModule.Element and ModulesWithBasis.Element
 class CombinatorialFreeModuleElement(Element):
@@ -196,6 +197,67 @@ class CombinatorialFreeModuleElement(Element):
                             scalar_mult=self.parent()._print_options['scalar_mult'],
                             repr_monomial = self.parent()._repr_term,
                             strip_one = True)
+
+    def _ascii_art_(self):
+        '''
+        TESTS::
+
+            sage: M = QuasiSymmetricFunctions(QQ).M()
+            sage: ascii_art(M[1,3]**2)
+            4*M      + 2*M       + 2*M      + 2*M       + 2*M       + M
+                 ***      ******        ***         ***         ***     ******
+               ***        *             *        ****         ***      **
+               *          *           ***        *           **
+               *                      *
+        '''
+        from sage.misc.misc import coeff_repr
+        terms = self._sorted_items_for_printing()
+        scalar_mult = self.parent()._print_options['scalar_mult']
+        repr_monomial = self.parent()._ascii_art_term # FIXME
+        strip_one = True
+
+        if repr_monomial is None:
+            repr_monomial = str
+
+        s = AsciiArt.empty_ascii_art() # ""
+        first = True
+        i = 0
+
+        if scalar_mult is None:
+            scalar_mult = "*"
+
+        all_atomic = True
+        for (monomial,c) in terms:
+            b = repr_monomial(monomial) # PCR
+            if c != 0:
+                break_points = []
+                coeff = coeff_repr(c, False)
+                if coeff != "0":
+                    if coeff == "1":
+                        coeff = ""
+                    elif coeff == "-1":
+                        coeff = "-"
+                    elif b._l > 0:
+                        if len(coeff) > 0 and monomial == 1 and strip_one:
+                            b = AsciiArt.empty_ascii_art() # ""
+                        else:
+                            b = AsciiArt([scalar_mult]) + b
+                    if not first:
+                        if len(coeff) > 0 and coeff[0] == "-":
+                            coeff = " - %s"%coeff[1:]
+                        else:
+                            coeff = " + %s"%coeff
+                        break_points = [2]
+                    else:
+                        coeff = "%s"%coeff
+                s += AsciiArt([coeff], break_points) + b
+                first = False
+        if first:
+            return "0"
+        elif s == AsciiArt.empty_ascii_art():
+            return AsciiArt(["1"])
+        else:
+            return s
 
     def _latex_(self):
         """
@@ -1782,6 +1844,37 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             right = bracket
         return self.prefix() + left + repr(m) + right # mind the (m), to accept a tuple for m
 
+    def _ascii_art_term(self, el):
+        """
+        Returns an ascii art representing of the term.
+
+        TESTS::
+
+            sage: R = NonCommutativeSymmetricFunctions(QQ).R()
+            sage: ascii_art(R[1,2,2,4])
+            R
+               ****
+              **
+             **
+             *
+            sage: Partitions.global_options(diagram_str="#", convention="french")
+            sage: ascii_art(R[1,2,2,4])
+            R
+             #
+             ##
+              ##
+               ####
+        """
+        from sage.misc.ascii_art import ascii_art
+        try:
+            if el == self.one_basis():
+                return AsciiArt(["1"])
+        except: pass
+        pref = AsciiArt([self.prefix()])
+        r = pref * (AsciiArt([" "**Integer(len(pref))]) + ascii_art(el))
+        r._baseline = r._h - 1
+        return r
+
     def _latex_term(self, m):
         """
         Returns a string for the LaTeX code for the basis element
@@ -2394,6 +2487,35 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 symb = tensor.symbol
             return symb.join(["%s"%module for module in self._sets])
             # TODO: make this overridable by setting _name
+
+        def _ascii_art_term(self, term):
+            """
+            TESTS::
+
+                sage: R = NonCommutativeSymmetricFunctions(QQ).R()
+                sage: Partitions.global_options(diagram_str="#", convention="french")
+                sage: ascii_art(tensor((R[1,2], R[3,1,2])))
+                R   # R
+                 #     ###
+                 ##      #
+                         ##
+            """
+            from sage.categories.tensor import tensor
+            if hasattr(self, "_print_options"):
+                symb = self._print_options['tensor_symbol']
+                if symb is None:
+                    symb = tensor.symbol
+            else:
+                symb = tensor.symbol
+            it = iter(zip(self._sets, term))
+            module, t = it.next()
+            rpr = module._ascii_art_term(t)
+            for (module,t) in it:
+                rpr += AsciiArt([symb], [len(symb)])
+                rpr += module._ascii_art_term(t)
+            return rpr
+
+        _ascii_art_ = _ascii_art_term
 
         def _latex_(self):
             """

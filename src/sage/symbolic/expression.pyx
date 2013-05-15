@@ -456,6 +456,39 @@ cdef class Expression(CommutativeRingElement):
         """
         return self._parent._repr_element_(self)
 
+    def _ascii_art_(self):
+        """
+        TESTS::
+
+            sage: i = var('i')
+            sage: ascii_art(sum(i^2/pi*x^i, i, 0, oo))
+                          2
+                         x  + x
+            -------------------------------
+                  3         2
+            - pi*x  + 3*pi*x  - 3*pi*x + pi
+            sage: ascii_art(integral(exp(x + x^2)/(x+1), x))
+              /
+             |
+             |   2
+             |  x  + x
+             | e
+             | ------- dx
+             |  x + 1
+             |
+            /
+        """
+        from sympy import pretty, sympify
+        from sage.misc.ascii_art import AsciiArt
+        # FIXME:: when *sage* will use at least sympy >= 0.7.2
+        # we could use a nice splitting with respect of the AsciiArt module.
+        # from sage.misc.ascii_art import AsciiArt, MAX_LENGTH ## for import
+        #            num_columns = MAX_LENGTH  ## option of pretty
+        try:
+            s = pretty(sympify(self), use_unicode=False)
+        except: s = self
+        return AsciiArt(str(s).splitlines())
+
     def _interface_(self, I):
         """
         EXAMPLES::

@@ -778,23 +778,77 @@ class GitInterface(object):
 
         return True
 
-    def _clean_str(self, s):
-        # for now, no error checking
-        s = str(s)
-        if " " in s:
-            if "'" not in s:
-                return "'" + s + "'"
-            elif '"' not in s:
-                return '"' + s + '"'
-            else:
-                raise RuntimeError("Quotes are too complicated")
-        return s
-
     def _run_git(self, output_type, cmd, args, kwds):
+        """
+        common implementation for :meth:`execute`,
+        :meth:`execute_silent`, :meth:`execute_supersilent`, and
+        :meth:`read_output`
+
+        INPUT:
+
+        - ``output_type`` - one of `retval`, `retquiet`, `retsuperquiet`,
+          and `stdout`, which gives the behaviour of :meth:`execute`,
+          :meth:`execute_silent`, :meth:`execute_supersilent`, and
+          :meth:`read_output` respectively
+
+        - ``cmd`` - git command run
+
+        - ``args`` - extra arguments for git
+
+        - ``kwds`` - extra keywords for git
+
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import SageDev, doctest_config
+            sage: git = SageDev(doctest_config()).git
+            sage: r = git._run_git('retval', 'status', (), {})
+            # On branch first_branch
+            # Untracked files:
+            #   (use "git add <file>..." to include in what will be committed)
+            #
+            #   untracked_testfile1
+            #   untracked_testfile2
+            nothing added to commit but untracked files present (use "git add" to track)
+            sage: r
+            0
+            sage: git._run_git('retquiet', 'status', (), {})
+            0
+            sage: git._run_git('retquiet','rebase', ('HEAD^',),
+            ....:     {'interactive':True,
+            ....:      'env':{'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'}})
+            Stopped at ... edit the testfile differently
+            You can amend the commit now, with
+            <BLANKLINE>
+                git commit --amend
+            <BLANKLINE>
+            Once you are satisfied with your changes, run
+            <BLANKLINE>
+                git rebase --continue
+            <BLANKLINE>
+            0
+            sage: git._run_git('retsuperquiet', 'rebase', (), {'abort':True})
+            0
+            sage: git._run_git('stdout', 'log', (), {'oneline':True})
+            '... edit the testfile differently\n... add a testfile\n'
+        """
+        if output_type not in ('retval', 'retquiet',
+                'retsuperquiet', 'stdout', 'dryrun'):
+            raise ValueError('invalid output_type')
+
         s = " ".join([self._gitcmd, "--git-dir=%s"%self._dot_git, cmd])
         ckwds = {'env':dict(os.environ), 'shell':True}
-        dryrun = kwds.pop("dryrun", None)
         ckwds['env'].update(kwds.pop('env', {}))
+
+        def _clean_str(s):
+            # for now, no error checking
+            s = str(s)
+            if " " in s:
+                if "'" not in s:
+                    return "'" + s + "'"
+                else:
+                    return '"' + s.replace('"', '\\"') + '"'
+            return s
+
         for k, v in kwds.iteritems():
             if len(k) == 1:
                 k = ' -' + k
@@ -803,10 +857,11 @@ class GitInterface(object):
             if v is True:
                 s += k
             elif v is not False:
-                s += k + " " + self._clean_str(v)
+                s += k + " " + _clean_str(v)
         if args:
-            s += " " + " ".join([self._clean_str(a) for a in args if a is not None])
-        if dryrun:
+            s += " " + " ".join(_clean_str(a) for a in args if a is not None)
+
+        if output_type == 'dryrun':
             return s
         elif output_type == 'stdout':
             return check_output(s, **ckwds)

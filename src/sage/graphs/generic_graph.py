@@ -1210,10 +1210,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: all(T.distance_matrix().det() == (-1)^9*(9)*2^8 for T in graphs.trees(10))
             True
 
+        .. SEEALSO::
 
+            * :meth:`~sage.graphs.generic_graph.distance_all_pairs`
         """
+
         from sage.matrix.constructor import matrix
-        from sage.rings.infinity import Infinity
 
         n = self.order()
         ret = matrix(n,n)
@@ -1224,7 +1226,7 @@ class GenericGraph(GenericGraph_pyx):
         for i in xrange(n):
             for j in xrange(i+1,n):
                 d = (dist[V[i]])[V[j]]
-                if d == Infinity:
+                if d > n :
                     raise ValueError("Input (di)graph must be (strongly) connected.")
                 ret[i,j] = ret[j,i] = d
 
@@ -11249,6 +11251,10 @@ class GenericGraph(GenericGraph_pyx):
             sage: distances = g.distance_all_pairs()
             sage: all([g.distance(0,v) == distances[0][v] for v in g])
             True
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.generic_graph.distance_matrix`
         """
         if algorithm == "auto":
             if self.order() <= 20:

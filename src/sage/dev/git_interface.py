@@ -876,6 +876,19 @@ class GitInterface(object):
         """
         returns exit code of a git command
 
+        INPUT:
+
+        - ``cmd`` - git command to be run
+
+        - ``args`` - extra arguments to supply to git command
+
+        - ``kwds`` - extra arguments through keywords. E.g.
+
+          ::
+
+              graph=True                  => --graph
+              message="this is a message" => --message 'this is a message'
+
         EXAMPLES::
 
             sage: r = dev.git.execute('status')
@@ -917,13 +930,15 @@ class GitInterface(object):
         """
         returns exit code of a git command while supressing stdout
 
+        same input as :meth:`execute`
+
         EXAMPLES::
 
             sage: from sage.dev.sagedev import SageDev, doctest_config
             sage: git = SageDev(doctest_config()).git
             sage: git.execute_silent('status')
             0
-            sage: git.execute_silent('rebase', '--interactive', 'HEAD^',
+            sage: git.execute_silent('rebase', 'HEAD^', interactive=True,
             ....:     env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
             Stopped at ... edit the testfile differently
             You can amend the commit now, with
@@ -943,6 +958,8 @@ class GitInterface(object):
         returns exit code of a git command while supressing both stdout
         and stderr
 
+        same input as :meth:`execute`
+
         EXAMPLES::
 
             sage: from sage.dev.sagedev import SageDev, doctest_config
@@ -958,6 +975,8 @@ class GitInterface(object):
     def read_output(self, cmd, *args, **kwds):
         r"""
         returns stdout of a git command
+
+        same input as :meth:`execute`
 
         EXAMPLES::
 
@@ -1433,15 +1452,40 @@ def _git_cmd_wrapper(git_cmd):
         sage: r
         0
     """
-    def f(self, *args, **kwds):
+    def meth(self, *args, **kwds):
         return self.execute(git_cmd, *args, **kwds)
-    f.__doc__ = "direct call to \`git %s\`"%git_cmd
-    return f
+    meth.__doc__ = """
+            direct call to \`git %s\`
 
-for git_cmd in ["add","am","apply","bisect","branch","checkout",
-                "clean", "clone","commit","diff","fetch",
-               "grep","init","log","merge",
-               "mv","pull","push","rebase",
-               "reset","rm","show","stash",
-               "status","tag"]:
+            see :meth:`execute` for full documentation
+            """%git_cmd
+    return meth
+
+for git_cmd in (
+        "add",
+        "am",
+        "apply",
+        "bisect",
+        "branch",
+        "checkout",
+        "clean",
+        "clone",
+        "commit",
+        "diff",
+        "fetch",
+        "grep",
+        # "init",
+        "log",
+        "merge",
+        "mv",
+        "pull",
+        "push",
+        "rebase",
+        "reset",
+        "rm",
+        "show",
+        "stash",
+        "status",
+        # "tag"
+        ):
     setattr(GitInterface, git_cmd, _git_cmd_wrapper(git_cmd))

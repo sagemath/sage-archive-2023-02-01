@@ -1,7 +1,8 @@
 from lazy_attribute import lazy_attribute, lazy_class_attribute
 from lazy_import import lazy_import
 
-from misc import (alarm, ellipsis_range, ellipsis_iter, srange, xsrange, sxrange, getitem,
+from misc import (alarm, cancel_alarm,
+                  ellipsis_range, ellipsis_iter, srange, xsrange, sxrange, getitem,
                   cputime, verbose, set_verbose, set_verbose_files,
                   get_verbose_files, unset_verbose_files, get_verbose,
                   version, banner, add, union, uniq, powerset, subsets,

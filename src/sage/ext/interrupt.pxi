@@ -20,6 +20,7 @@ cdef extern from 'interrupt.h':
         int inside_signal_handler
         int block_sigint
         char* s
+        int (*raise_exception)(int sig, const char* msg) except 0
 
     sage_signals_t _signals
 

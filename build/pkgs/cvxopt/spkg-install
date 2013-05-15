@@ -37,15 +37,14 @@ if [ "$UNAME" = FreeBSD ]; then
     export CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
 fi
 
-cd src
 python setup.py install
 if [ $? -ne 0 ]; then
-   echo "Error building/installing cvxopt"
-   exit 1
+    echo "Error building/installing cvxopt"
+    exit 1
 fi
 
 if [ "x$SAGE_SPKG_INSTALL_DOCS" = xyes ] ; then
-   cd ../doc
+   cd doc
 # This part would be used to build the documentation with sphinx.
 # cvxopt would then have to depend on sphinx.
 # in 1.1.5 the documentation is shipped already built and up to date.

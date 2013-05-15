@@ -45,7 +45,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     .. MODULEAUTHOR:: Jason Bandlow, Anne Schilling, Nicolas M. Thiery, Mike Zabrocki
 
     This document is an introduction to working with symmetric function
-    theory in sage.
+    theory in Sage.
     It is not intended to be an introduction to the theory
     of symmetric functions ([MAC]_ and [STA]_, Chapter 7, are two excellent
     references.)  The reader is also expected to be familiar with Sage.
@@ -199,7 +199,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: m(p[3,2])
         m[3, 2] + m[5]
 
-    For computations which mix bases, sage will return a result with respect
+    For computations which mix bases, Sage will return a result with respect
     to a single (not necessarily predictable) basis::
 
         sage: p[2] * s[2] - m[4]
@@ -299,7 +299,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     .. rubric:: Expanding into variables
 
     We can expand a symmetric function into a symmetric polynomial in a
-    specficied number of variables::
+    specified number of variables::
 
         sage: f.expand(2)
         x0^4 + 2*x0^3*x1 + 3*x0^2*x1^2 + 2*x0*x1^3 + x1^4
@@ -354,12 +354,12 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
         sage: s[2]( (1-t)*s[1] )
         (t^2-t)*s[1, 1] + (-t+1)*s[2]
 
-    See the documentation for ``plethsym`` for more information.
+    See the documentation for ``plethysm`` for more information.
 
     .. rubric:: Inner plethysm
 
     The operation of inner plethysm ``f.inner_plethysm(g)`` models the
-    compostion of the `S_n` representation represented by `f` with the
+    composition of the `S_n` representation represented by `f` with the
     `GL_m` representation whose character is `g`.  See the documentation of
     ``inner_plethysm``, [ST94]_ or [STA]_, exercise 7.74 solutions for more
     information::
@@ -544,8 +544,9 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: `k`-Schur functions
 
-    The `k`-Schur functions live the `k`-bounded subspace of the ring of symmetric functions.
-    It is possible to compute in the `k`-bounded subspace directly::
+    The `k`-Schur functions live in the `k`-bounded subspace of the ring of
+    symmetric functions. It is possible to compute in the `k`-bounded subspace
+    directly::
 
         sage: Sym = SymmetricFunctions(QQ)
         sage: ks = Sym.kschur(3,1)
@@ -568,8 +569,8 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
           To:   Symmetric Functions over Rational Field in the Schur basis
 
     The `k`-Schur functions are more generally defined with a parameter `t` and they are
-    a basis of the subspace spanned by the the Hall-Littlewood ``Qp`` symmetric functions
-    indexed by partitions whose first part is less than or equal to `k`.::
+    a basis of the subspace spanned by the Hall-Littlewood ``Qp`` symmetric functions
+    indexed by partitions whose first part is less than or equal to `k`::
 
         sage: Sym = SymmetricFunctions(QQ['t'].fraction_field())
         sage: SymS3 = Sym.kBoundedSubspace(3) # default t='t'
@@ -581,7 +582,7 @@ class SymmetricFunctions(UniqueRepresentation, Parent):
     The subspace spanned by the `k`-Schur functions with a parameter `t` are not known
     to form a natural algebra.  However it is known that the product of a `k`-Schur
     function and an `\ell`-Schur function is in the linear span of the `k+\ell`-Schur
-    functions.::
+    functions::
 
         sage: ks(ks[2,1]*ks[1,1])
         Traceback (most recent call last):

@@ -1,7 +1,7 @@
 r"""
 Symmetric Functions
 
-For a comprehensive tutorial on how to use symmetric functions in sage
+For a comprehensive tutorial on how to use symmetric functions in Sage
 
 .. SEEALSO:: :func:`SymmetricFunctions`
 
@@ -10,7 +10,7 @@ We define the algebra of symmetric functions in the Schur and elementary bases::
     sage: s = SymmetricFunctionAlgebra(QQ, basis='schur')
     sage: e = SymmetricFunctionAlgebra(QQ, basis='elementary')
 
-Each is actually is a graded Hopf algebra whose basis is indexed by
+Each is actually a graded Hopf algebra whose basis is indexed by
 integer partitions::
 
     sage: s.category()
@@ -157,7 +157,7 @@ Here are further examples::
 RECENT BACKWARD INCOMPATIBLE CHANGES:
 
 The symmetric functions code has been refactored to take
-advantate of the coercion systems. This introduced a couple glitches:
+advantage of the coercion systems. This introduced a couple of glitches:
 
 - On some bases changes, coefficients in Jack polynomials are not normalized
 

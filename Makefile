@@ -101,9 +101,7 @@ distclean: clean doc-clean lib-clean bdist-clean
 
 micro_release: bdist-clean lib-clean
 	@echo "Stripping binaries ..."
-	find local/lib local/bin -type f -exec strip '{}' ';' \
-		|& grep -v "File format not recognized" \
-		|  grep -v "File truncated"
+	find local/lib local/bin -type f -exec strip '{}' ';' |& grep -v "File format not recognized" |  grep -v "File truncated" || true
 
 TESTPRELIMS = local/bin/sage-starts
 TESTALL = ./sage -t --all

@@ -26,6 +26,7 @@ For more details see http://www.python.org/psf/license/
  * William Stein
  * Mike Hansen
  * Craig Citro
+ * Volker Braun
 
 == Upstream Contact ==
 
@@ -69,8 +70,14 @@ http://www.python.org/community/
  * no_strict_proto.patch: don't add -Wstrict-prototypes compiler flag,
    which isn't valid for C++ (but Python uses the same compiler flags
    for C and C++). See http://bugs.python.org/issue5755
+ * python_issue_17016_re_unsigned_ptrdiff.patch: Fixes Python issue #17016
+ * hashlibfallbacks.patch: Fixed Python issue #18000
 
 == Changelog ==
+
+=== python-2.7.5.p0 (Volker Braun, 17 May 2013)
+ * Trac #14600: Update to latest upstream version
+ * add patches for upstream regressions
 
 === python-2.7.4.p0 (Volker Braun, Jeroen Demeyer, 11 April 2013)
  * Trac #14423: Update to latest upstream version

@@ -101,9 +101,9 @@ distclean: clean doc-clean lib-clean bdist-clean
 
 micro_release: bdist-clean lib-clean
 	@echo "Stripping binaries ..."
-	find local/lib -name '*.so' | xargs strip
-	strip local/bin/gfan
-	strip local/bin/Singular
+	find local/lib local/bin -type f -exec strip '{}' ';' \
+		|& grep -v "File format not recognized" \
+		|  grep -v "File truncated"
 
 TESTPRELIMS = local/bin/sage-starts
 TESTALL = ./sage -t --all

@@ -348,6 +348,14 @@ def Permutation(l, check_input = True):
         [2, 1]
         sage: Permutation( ((1,2),) )
         [2, 1]
+        sage: Permutation( ((1,),) )
+        [1]
+        sage: Permutation( (1,) )
+        [1]
+        sage: Permutation( () )
+        []
+        sage: Permutation( ((),) )
+        []
         sage: p = Permutation((1, 2, 5)); p
         [2, 5, 3, 4, 1]
         sage: type(p)
@@ -395,10 +403,12 @@ def Permutation(l, check_input = True):
     TESTS::
 
         sage: Permutation([()])
-        [1]
+        []
         sage: Permutation('()')
-        [1]
+        []
         sage: Permutation(())
+        []
+        sage: Permutation( [1] )
         [1]
 
     From a pair of empty tableaux ::
@@ -415,8 +425,8 @@ def Permutation(l, check_input = True):
 
     #if l is a string, then assume it is in cycle notation
     elif isinstance(l, str):
-        if l == "()":
-            return from_cycles(1,[])
+        if l == "()" or l == "":
+            return from_cycles(0,[])
         cycles = l.split(")(")
         cycles[0] = cycles[0][1:]
         cycles[-1] = cycles[-1][:-1]
@@ -449,7 +459,7 @@ def Permutation(l, check_input = True):
                 l = [list(l)]
                 return from_cycles(n, l)
         elif len(l) <= 1:
-            return Permutation([1])
+            return Permutation([])
         else:
             raise ValueError, "cannot convert l (= %s) to a Permutation"%l
 
@@ -3850,7 +3860,7 @@ class StandardPermutations_n(CombinatorialClass):
 #############################
 def from_permutation_group_element(pge):
     """
-    Returns a Permutation give a PermutationGroupElement pge.
+    Returns a Permutation given a PermutationGroupElement pge.
 
     EXAMPLES::
 
@@ -3867,12 +3877,20 @@ def from_permutation_group_element(pge):
 
 def from_rank(n, rank):
     r"""
-    Returns the permutation with the specified lexicographic rank. The
-    permutation is of the set [1,...,n].
+    Returns the permutation of the set `[1,...,n]` with lexicographic
+    rank ``rank``. This is the permutation whose Lehmer code is the
+    factoradic representation of ``rank``. In particular, the
+    permutation with rank `0` is the identity permutation.
 
     The permutation is computed without iterating through all of the
     permutations with lower rank. This makes it efficient for large
     permutations.
+
+    .. NOTE::
+
+        The variable ``rank`` is not checked for being in the interval
+        from `0` to `n! - 1`. When outside this interval, it acts as
+        its residue modulo `n!`.
 
     EXAMPLES::
 
@@ -3920,7 +3938,7 @@ def from_cycles(n, cycles):
     Returns the permutation corresponding to cycles.
 
     This function checks that its input is correct (i.e. that the cycles are
-    disjoint and its elements integers among `1...n`). It raises an exception
+    disjoint and their elements integers among `1...n`). It raises an exception
     otherwise.
 
     .. WARNING::
@@ -3932,6 +3950,12 @@ def from_cycles(n, cycles):
         sage: import sage.combinat.permutation as permutation
         sage: permutation.from_cycles(4, [[1,2]])
         [2, 1, 3, 4]
+        sage: permutation.from_cycles(4, [])
+        [1, 2, 3, 4]
+        sage: permutation.from_cycles(4, [[]])
+        [1, 2, 3, 4]
+        sage: permutation.from_cycles(0, [])
+        []
 
     Bad input (see :trac:`13742`)::
 
@@ -3959,15 +3983,14 @@ def from_cycles(n, cycles):
 
     # Empty input
     if len(flattened_and_sorted) == 0:
-        # This is not consistent with Permutaion([]). See #13742
-        return Permutation([1])
+        return Permutation(p)
 
     # Only positive elements
     if int(flattened_and_sorted[0]) < 1:
         raise ValueError("All elements should be strictly positive "
                          "integers, and I just found a negative one.")
 
-    # Really smaller than n ?
+    # Really smaller or equal to n ?
     if flattened_and_sorted[-1] > n:
         raise ValueError("You claimed that this was a permutation on 1..."+
                          str(n)+" but it contains "+str(flattened_and_sorted[-1]))
@@ -4012,7 +4035,7 @@ def from_lehmer_code(lehmer):
 
 def from_reduced_word(rw):
     r"""
-    Returns the permutation corresponding to the reduced word rw.
+    Returns the permutation corresponding to the reduced word ``rw``.
 
     EXAMPLES::
 
@@ -4136,11 +4159,11 @@ def bistochastic_as_sum_of_permutations(M, check = True):
     conditions both on the rows and on the columns ).
 
     According to the Birkhoff-von Neumann Theorem, any bistochastic matrix
-    can be written as a positive sum of permutation matrices, which also
+    can be written as a convex combination of permutation matrices, which also
     means that the polytope of bistochastic matrices is integer.
 
-    As a non-bistochastic matrix can obviously not be written as a sum of
-    permutations, this theorem is an equivalence.
+    As a non-bistochastic matrix can obviously not be written as a convex
+    combination of permutations, this theorem is an equivalence.
 
     This function, given a bistochastic matrix, returns the corresponding
     decomposition.
@@ -4218,7 +4241,7 @@ def bistochastic_as_sum_of_permutations(M, check = True):
     from sage.combinat.free_module import CombinatorialFreeModule
     from sage.rings.all import RR
 
-    n=M.nrows()
+    n = M.nrows()
 
     if n != M.ncols():
         raise ValueError("The matrix is expected to be square")
@@ -4230,12 +4253,12 @@ def bistochastic_as_sum_of_permutations(M, check = True):
         raise ValueError("The base ring of the matrix must have a coercion map to RR")
 
     if not all([x >= 0 for x in M.list()]):
-        raise ValueError, "The matrix should have nonnegative entries"
+        raise ValueError("The matrix should have nonnegative entries")
 
-    CFM=CombinatorialFreeModule(M.base_ring(),Permutations(n))
-    value=0
+    CFM = CombinatorialFreeModule(M.base_ring(), Permutations(n))
+    value = 0
 
-    G = BipartiteGraph(M,weighted=True)
+    G = BipartiteGraph(M, weighted=True)
 
     while G.size() > 0:
         matching = G.matching(use_edge_labels=True)
@@ -4250,7 +4273,7 @@ def bistochastic_as_sum_of_permutations(M, check = True):
                 G.set_edge_label(u,v,l-minimum)
 
         matching.sort(key=lambda x: x[0])
-        value+=minimum*CFM(Permutation([x[1]-n+1 for x in matching]))
+        value += minimum * CFM(Permutation([x[1]-n+1 for x in matching]))
 
     return value
 

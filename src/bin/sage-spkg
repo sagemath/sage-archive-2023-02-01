@@ -256,8 +256,6 @@ if [ ! -f "$PKG_SRC" ]; then
     else
         echo "Attempting to get on-line info for package $PKG_NAME"
     fi
-    mkdir -p "$SAGE_PACKAGES/optional"
-    cd "$SAGE_PACKAGES/optional"
 
     # Reduce everything to case 4: full URL.
     if [ -n "$PKG_HAS_PATH" ]; then
@@ -276,7 +274,9 @@ if [ ! -f "$PKG_SRC" ]; then
                 URL_REPO="${SAGE_SERVER}spkg/$repo"
             fi
 
-            repolist="${repo}.list"
+            # File inside DOT_SAGE should be writable
+            repolist="${DOT_SAGE}/${repo}.list"
+
             sage-download-file "$URL_REPO/list" >$repolist
             if [ $? -ne 0 ]; then
                 echo >&2 "Error: failed to download $URL_REPO/list, aborting"
@@ -345,6 +345,14 @@ if [ ! -f "$PKG_SRC" ]; then
         fi
     fi
 
+    # Trac #5852: check write permissions
+    if [ ! -w "$SAGE_PACKAGES" ]; then
+        echo >&2 "Error: no write access to packages directory $SAGE_PACKAGES."
+        exit 1
+    fi
+    mkdir -p "$SAGE_PACKAGES/optional"
+    cd "$SAGE_PACKAGES/optional" || exit $?
+
     # Download to a temporary file (such that we don't end up with a
     # corrupted .spkg file).
     PKG_TMP="$PKG_NAME.tmp"
@@ -371,11 +379,12 @@ fi
 
 # Go back to SAGE_ROOT where we have less chance of completely messing
 # up the system if we do something wrong.
-cd "$SAGE_ROOT" || exit
+cd "$SAGE_ROOT" || exit $?
 
 ##################################################################
-# Extract the package
+# Handle --info
 ##################################################################
+
 # Usage: uncompress_spkg $PKG_FILE_NAME
 # Uncompresses a spkg to stdout.
 uncompress_spkg()
@@ -392,21 +401,33 @@ if [ $INFO -ne 0 ]; then
     exit 0
 fi
 
-echo "$PKG_NAME"
-echo "===================================================="
+##################################################################
+# Setup directories
+##################################################################
 
-# Make absolutely sure that we are in the build directory before doing
-# a scary "rm -rf" below.
 mkdir -p "$SAGE_BUILD_DIR"
 if [ $? -ne 0 ]; then
     echo >&2 "Error creating directory $SAGE_BUILD_DIR."
     exit 1
 fi
-cd "$SAGE_BUILD_DIR"
-if [ $? -ne 0 ]; then
-    echo >&2 "Unable to find build directory."
+
+# Trac #5852: check write permissions
+if [ ! -w "$SAGE_BUILD_DIR" ]; then
+    echo >&2 "Error: no write access to build directory $SAGE_BUILD_DIR."
     exit 1
 fi
+if [ ! -w "$SAGE_LOCAL" ]; then
+    echo >&2 "Error: no write access to installation directory $SAGE_LOCAL."
+    exit 1
+fi
+
+echo "$PKG_NAME"
+echo "===================================================="
+
+# Make absolutely sure that we are in the build directory before doing
+# a scary "rm -rf" below.
+cd "$SAGE_BUILD_DIR" || exit $?
+
 
 if [ "x$SAGE_KEEP_BUILT_SPKGS" != "xyes" ]; then
     rm -rf "$PKG_NAME"
@@ -427,6 +448,10 @@ if [ -e "$PKG_NAME" ]; then
     echo >&2 "Error (re)moving $PKG_NAME"
     exit 1
 fi
+
+##################################################################
+# Extract the package
+##################################################################
 
 echo "Extracting package $PKG_SRC"
 ls -l "$PKG_SRC"

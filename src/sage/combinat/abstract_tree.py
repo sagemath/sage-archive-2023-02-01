@@ -242,9 +242,19 @@ class AbstractTree(object):
             return Integer(0 if self.is_empty() else 1)
 
     def _ascii_art_(self):
-        """
+        r"""
         TESTS::
 
+            sage: t = OrderedTree([])
+            sage: ascii_art(t)
+            o
+            sage: t = OrderedTree([[]])
+            sage: aa = ascii_art(t);aa
+            o
+            |
+            o
+            sage: aa.get_baseline()
+            2
             sage: tt1 = OrderedTree([[],[[],[],[[[[]]]]],[[[],[],[],[]]]])
             sage: ascii_art(tt1)
               _____o_______
@@ -270,107 +280,77 @@ class AbstractTree(object):
                   8
                   |
                   9
-        """
-        from sage.misc.ascii_art import AsciiArt
-        def node_to_str( t ):
-            return str( t.label() ) if hasattr( t, "label" ) else "o"
-
-        def empty_t():
-            return AsciiArt.empty_ascii_art()
-
-        def one_node_t( self ):
-            """
-            TESTS::
-
-                sage: t = OrderedTree([])
-                sage: ascii_art(t)
-                o
-            """
-            t_repr = AsciiArt( [node_to_str( self )] )
-            t_repr._root = 1
-            return t_repr
-
-        def one_child_t( self ):
-            """
-            TESTS::
-
-                sage: t = OrderedTree([[]])
-                sage: aa = ascii_art(t);aa
-                o
-                |
-                o
-                sage: aa.get_baseline()
-                2
-            """
-            repr_child = self[0]._ascii_art_()
-            sep = AsciiArt( [" "*(repr_child._root-1)] )
-            repr_root = (sep + one_node_t( self ))*(sep + AsciiArt( ["|"] ))
-            t_repr = repr_root * repr_child
-            t_repr._root = repr_child._root
-            t_repr._baseline = t_repr._h - 1
-            return t_repr
-
-        def gen_t( self ):
-            """
-            TESTS::
-
-                sage: ascii_art(OrderedTree([[],[[]]]))
+            sage: ascii_art(OrderedTree([[],[[]]]))
                   o_
                  / /
                 o o
                   |
                   o
-                sage: t = OrderedTree([[[],[[[],[]]],[[]]],[[[[[],[]]]]],[[],[]]])
-                sage: ascii_art(t)
-                      _____o_______
-                     /       /    /
-                  __o____   o    o_
-                 /   /  /   |   / /
-                o   o  o    o  o o
-                    |  |    |
-                    o_ o    o
-                   / /      |
-                  o o       o_
-                           / /
-                          o o
-                sage: ascii_art(t.canonical_labelling())
-                      ______1________
-                     /       /      /
-                  __2____   10     16_
-                 /   /  /   |     /  /
-                3   4  8    11   17 18
-                    |  |    |
-                    5_ 9    12
-                   / /      |
-                  6 7       13_
-                           /  /
-                          14 15
-            """
-            l_repr = [subtree._ascii_art_() for subtree in self]
-            acc = l_repr.pop(0)
-            whitesep = acc._root+1
-            lf_sep = " "*(acc._root+1) + "_"*(acc._l-acc._root)
-            ls_sep = " "*(acc._root) + "/" + " "*(acc._l-acc._root)
-            while len(l_repr) > 0:
-                t_repr = l_repr.pop(0)
-                acc += AsciiArt([" "]) + t_repr
-                if len(l_repr) == 0: lf_sep += "_"*(t_repr._root+1)
-                else: lf_sep += "_"*(t_repr._l+1)
-                ls_sep += " "*(t_repr._root) + "/" + " "*(t_repr._l-t_repr._root)
-            mid = whitesep + int((len(lf_sep)-whitesep)/2)
-            node = node_to_str( self )
-            t_repr = AsciiArt([lf_sep[:mid-1] + node + lf_sep[mid+len(node)-1:], ls_sep]) * acc
-            t_repr._root = mid
+            sage: t = OrderedTree([[[],[[[],[]]],[[]]],[[[[[],[]]]]],[[],[]]])
+            sage: ascii_art(t)
+                  _____o_______
+                 /       /    /
+              __o____   o    o_
+             /   /  /   |   / /
+            o   o  o    o  o o
+                |  |    |
+                o_ o    o
+               / /      |
+              o o       o_
+                       / /
+                      o o
+            sage: ascii_art(t.canonical_labelling())
+                  ______1________
+                 /       /      /
+              __2____   10     16_
+             /   /  /   |     /  /
+            3   4  8    11   17 18
+                |  |    |
+                5_ 9    12
+               / /      |
+              6 7       13_
+                       /  /
+                      14 15
+        """
+        node_to_str = lambda t: str(t.label()) if hasattr(t, "label") else "o"
+
+        if self.is_empty():
+            from sage.misc.ascii_art import empty_ascii_art
+            return empty_ascii_art
+
+        from sage.misc.ascii_art import AsciiArt
+        if len(self) == 0:
+            t_repr = AsciiArt( [node_to_str(self)] )
+            t_repr._root = 1
+            return t_repr
+        if len(self) == 1:
+            repr_child = self[0]._ascii_art_()
+            sep = AsciiArt( [" "*(repr_child._root-1)] )
+            t_repr = AsciiArt( [node_to_str(self)] )
+            t_repr._root = 1
+            repr_root = (sep + t_repr)*(sep + AsciiArt( ["|"] ))
+            t_repr = repr_root * repr_child
+            t_repr._root = repr_child._root
             t_repr._baseline = t_repr._h - 1
             return t_repr
-        if self.is_empty():
-            return empty_t()
-        elif len( self ) == 0:
-            return one_node_t( self )
-        elif len( self ) == 1:
-            return one_child_t ( self )
-        else:
-            return gen_t( self )
+        # General case
+        l_repr = [subtree._ascii_art_() for subtree in self]
+        acc = l_repr.pop(0)
+        whitesep = acc._root+1
+        lf_sep = " "*(acc._root+1) + "_"*(acc._l-acc._root)
+        ls_sep = " "*(acc._root) + "/" + " "*(acc._l-acc._root)
+        while len(l_repr) > 0:
+            t_repr = l_repr.pop(0)
+            acc += AsciiArt([" "]) + t_repr
+            if len(l_repr) == 0: lf_sep += "_"*(t_repr._root+1)
+            else: lf_sep += "_"*(t_repr._l+1)
+            ls_sep += " "*(t_repr._root) + "/" + " "*(t_repr._l-t_repr._root)
+        mid = whitesep + int((len(lf_sep)-whitesep)/2)
+        node = node_to_str( self )
+        t_repr = AsciiArt([lf_sep[:mid-1] + node + lf_sep[mid+len(node)-1:], ls_sep]) * acc
+        t_repr._root = mid
+        t_repr._baseline = t_repr._h - 1
+        return t_repr
 
     def canonical_labelling(self,shift=1):
         """

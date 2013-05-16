@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Implements a displayhook for Sage.
 
 This displayhook has two new facilities, by default the displayhook contains a
@@ -19,22 +19,30 @@ format (see :meth:`sage.structure.parent._repr_option` for details).
 With this displayhook there exists an other way for displaying object and more
 generally, all sage expression as an ASCII art object::
 
-    sage: %display ascii_art         # not tested: works only in interactive shell
-    sage: integral(x^2/pi^x, x)      # not tested: works only in interactive shell
+    sage: from sage.misc.interpreter import get_test_shell
+    sage: shell = get_test_shell()
+    sage: shell.run_cell('%display ascii_art')
+    sage: shell.run_cell('integral(x^2/pi^x, x)')
      / 2    2                      \  -x*log(pi)
-    -\\x *log (pi) + 2*x*log(pi) + 2/*e
+    -\x *log (pi) + 2*x*log(pi) + 2/*e
     --------------------------------------------
                          3
                       log (pi)
-    sage: i = var('i')               # not tested: works only in interactive shell
-    sage: sum(i*x^i, i, 0, 10)       # not tested: works only in interactive shell
+    sage: shell.run_cell("i = var('i')")
+    sage: shell.run_cell('sum(i*x^i, i, 0, 10)')
         10      9      8      7      6      5      4      3      2
     10*x   + 9*x  + 8*x  + 7*x  + 6*x  + 5*x  + 4*x  + 3*x  + 2*x  + x
-    sage: StandardTableaux(4).list() # not tested: works only in interactive shell
-    [   1  2  3  4,   2          3          4          2  4    3  4    3       4       4       4 ]
-    [                 1  3  4,   1  2  4,   1  2  3,   1  3,   1  2,   2   ,   2   ,   3   ,   3 ]
-    [                                                                  1  4    1  3    1  2    2 ]
-    [                                                                                          1 ]
+    sage: shell.run_cell('StandardTableaux(4).list()')
+    [
+    [                                                                  1  4    1  3
+    [                 1  3  4    1  2  4    1  2  3    1  3    1  2    2       2
+    [   1  2  3  4,   2      ,   3      ,   4      ,   2  4,   3  4,   3   ,   4
+    <BLANKLINE>
+                1 ]
+        1  2    2 ]
+        3       3 ]
+    ,   4   ,   4 ]
+    sage: shell.run_cell('%display simple')
 
 This other facility uses a simple `AsciiArt` object
 (see :class:`sage.misc.ascii_art.AsciiArt` and
@@ -42,8 +50,8 @@ This other facility uses a simple `AsciiArt` object
 
 AUTHORS:
 
- - Bill Cauchois (2009): initial version
- - Jean-Baptiste Priez - <jbp@kerios.fr> (2013): ASCII art mod
+- Bill Cauchois (2009): initial version
+- Jean-Baptiste Priez <jbp@kerios.fr> (2013): ASCII art
 """
 
 import sys, __builtin__
@@ -253,12 +261,13 @@ class DisplayHook(object):
 from IPython.core.formatters import PlainTextFormatter
 from ascii_art import ascii_art
 class SagePlainTextFormatter(PlainTextFormatter):
-    """
+    r"""
     A replacement for the plain text formatter which can use two facilities:
-        - correctly print lists of matrices or other objects (see
-            :meth:`sage.structure.parent._repr_option`),
-        - print ASCII art objects (like expressions) (see
-            :meth:`sage.structure.parent._ascii_art_`).
+
+    - correctly print lists of matrices or other objects (see
+      :meth:`sage.structure.parent._repr_option`),
+    - print ASCII art objects (like expressions) (see
+      :meth:`sage.structure.parent._ascii_art_`).
 
     EXAMPLES::
 
@@ -292,9 +301,9 @@ class SagePlainTextFormatter(PlainTextFormatter):
             sage: from sage.misc.displayhook import SPTextFormatter
             sage: SPTextFormatter.set_display("ascii_art")
             sage: i = var('i')
-            sage: shell.displayhook.compute_format_data(sum(i*x^i, i, 0, 10))   # not tested: works only in interactive shell
-            {                10      9      8      7      6      5      4      3      2     }
-            { text/plain:10*x   + 9*x  + 8*x  + 7*x  + 6*x  + 5*x  + 4*x  + 3*x  + 2*x  + x }
+            sage: shell.displayhook.compute_format_data(sum(i*x^i, i, 0, 10))
+            {u'text/plain':     10      9      8      7      6      5      4      3      2
+                            10*x   + 9*x  + 8*x  + 7*x  + 6*x  + 5*x  + 4*x  + 3*x  + 2*x  + x}
         """
         s = self._format_obj(obj)
         if s is None:
@@ -304,7 +313,7 @@ class SagePlainTextFormatter(PlainTextFormatter):
     _format_obj = lambda _, obj: format_obj(obj)
 
     def set_display(self, mode="ascii_art"):
-        """
+        r"""
         Method uses to config the formatting method
         (:meth:`simple_format_obj` or :func:`sage.misc.ascii_art.ascii_art`).
 
@@ -321,8 +330,10 @@ class SagePlainTextFormatter(PlainTextFormatter):
             ]
             sage: from sage.misc.displayhook import SPTextFormatter
             sage: SPTextFormatter.set_display("ascii_art")
-            sage: i = var('i')              # not tested: works only in interactive shell
-            sage: sum(i*x^i, i, 0, 10)      # not tested: works only in interactive shell
+            sage: from sage.misc.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell("i = var('i')")
+            sage: shell.run_cell('sum(i*x^i, i, 0, 10)')
                 10      9      8      7      6      5      4      3      2
             10*x   + 9*x  + 8*x  + 7*x  + 6*x  + 5*x  + 4*x  + 3*x  + 2*x  + x
         """
@@ -332,3 +343,4 @@ class SagePlainTextFormatter(PlainTextFormatter):
         }[mode]
 
 SPTextFormatter = None
+

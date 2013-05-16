@@ -486,7 +486,8 @@ cdef class Expression(CommutativeRingElement):
         #            num_columns = MAX_LENGTH  ## option of pretty
         try:
             s = pretty(sympify(self), use_unicode=False)
-        except: s = self
+        except StandardError:
+            s = self
         return AsciiArt(str(s).splitlines())
 
     def _interface_(self, I):

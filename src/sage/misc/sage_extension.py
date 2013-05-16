@@ -201,107 +201,77 @@ class SageMagics(Magics):
         """
         A magic command to switch between simple display and ASCII art display.
 
-        :param mode: the mode (`ascii_art` (and optionally a `width`) or `simple`)
+        :param mode: the mode (``ascii_art`` (and optionally a ``width``) or ``simple``)
         :type s: string
 
         How to use: if you want activate the ASCII art mod::
 
-            sage: %display ascii_art               # not tested: works only in interactive shell
+            sage: from sage.misc.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell('%display ascii_art')
 
         That means you don't have to use :func:`ascii_art` to get an ASCII art
         output::
 
-            sage: i = var('i')                    # not tested: works only in interactive shell
-            sage: sum(i^2*x^i, i, 0, 10)          # not tested: works only in interactive shell
+            sage: shell.run_cell("i = var('i')")
+            sage: shell.run_cell('sum(i^2*x^i, i, 0, 10)')
+                 10       9       8       7       6       5       4      3      2
+            100*x   + 81*x  + 64*x  + 49*x  + 36*x  + 25*x  + 16*x  + 9*x  + 4*x  + x
 
         Then when you want return in 'textual mode'::
 
-            sage: %display simple                 # not tested: works only in interactive shell
-            sage: sum(i^2*x^i, i, 0, 10)          # not tested: works only in interactive shell
+            sage: shell.run_cell('%display simple')
+            sage: shell.run_cell('sum(i^2*x^i, i, 0, 10)')
             100*x^10 + 81*x^9 + 64*x^8 + 49*x^7 + 36*x^6 + 25*x^5 + 16*x^4 + 9*x^3 + 4*x^2 + x
 
-        Sometime you could have to use a special output width and you could specify it::
+        Sometime you could have to use a special output width and you
+        could specify it::
 
-            sage: %display ascii_art              # not tested: works only in interactive shell
-            sage: StandardTableaux(4).list()      # not tested: works only in interactive shell
-            [   1  2  3  4,   1  3  4    1  2  4    1  2  3    1  3    1  2    1  4    1  3    1  2    1 ]
-            [                 2      ,   3      ,   4      ,   2  4,   3  4,   2   ,   2   ,   3   ,   2 ]
-            [                                                                  3       4       4       3 ]
-            [                                                                                          4 ]
-            sage: %display ascii_art 50          # not tested: works only in interactive shell
-            sage: StandardTableaux(4).list()     # not tested: works only in interactive shell
-            [   1  2  3  4,   1  3  4    1  2  4    1  2  3
-            [                 2      ,   3      ,   4      ,
+            sage: shell.run_cell('%display ascii_art')
+            sage: shell.run_cell('StandardTableaux(4).list()')
+            [
+            [                                                                  1  4    1  3
+            [                 1  3  4    1  2  4    1  2  3    1  3    1  2    2       2
+            [   1  2  3  4,   2      ,   3      ,   4      ,   2  4,   3  4,   3   ,   4
+            <BLANKLINE>
+                        1 ]
+                1  2    2 ]
+                3       3 ]
+            ,   4   ,   4 ]
+            sage: shell.run_cell('%display ascii_art 50')
+            sage: shell.run_cell('StandardTableaux(4).list()')
             [
             [
-
-              1  3    1  2    1  4    1  3    1  2    1 ]
-              2  4,   3  4,   2   ,   2   ,   3   ,   2 ]
-                              3       4       4       3 ]
-                                                      4 ]
+            [                 1  3  4    1  2  4    1  2  3
+            [   1  2  3  4,   2      ,   3      ,   4      ,
+            <BLANKLINE>
+                                                      1 ]
+                              1  4    1  3    1  2    2 ]
+              1  3    1  2    2       2       3       3 ]
+              2  4,   3  4,   3   ,   4   ,   4   ,   4 ]
+            sage: shell.run_cell('%display simple')
         """
         import displayhook, ascii_art
         args_split = mode.split(" ")
         if len(args_split) < 2:
-            if mode == "": self._magic_display_status = "ascii_art" \
+            if mode == "":
+                self._magic_display_status = "ascii_art" \
                     if self._magic_display_status == "simple" else "simple"
             else:
                 self._magic_display_status = mode
-            ascii_art.MAX_WIDTH= None
+            ascii_art.MAX_WIDTH = None
         else:
             self._magic_display_status =  args_split[0]
             assert(args_split[0] == "ascii_art"), "if a width is given then the mode must be `ascii_art`"
-            try: ascii_art.MAX_WIDTH = int(args_split[1])
-            except:
+            try:
+                ascii_art.MAX_WIDTH = int(args_split[1])
+            except StandardError:
                 raise AttributeError("Second argument must be a non-negative integer")
-        try: displayhook.SPTextFormatter.set_display(self._magic_display_status)
-        except:
+        try:
+            displayhook.SPTextFormatter.set_display(self._magic_display_status)
+        except StandardError:
             print mode, args_split
             raise AttributeError("First argument must be `simple` or `ascii_art` or the method must be call without argument")
-
-# from IPython.core.formatters import PlainTextFormatter
-# class SagePlainTextFormatter(PlainTextFormatter):
-#     """
-#     A replacement for the plain text formatter which correctly print lists
-#     of matrices.
-#
-#     EXAMPLES::
-#
-#         sage: from sage.misc.interpreter import get_test_shell
-#         sage: shell = get_test_shell()
-#         sage: shell.display_formatter.formatters['text/plain']
-#         <...sage_extension.SagePlainTextFormatter object at 0x...>
-#         sage: shell.run_cell('a = identity_matrix(ZZ, 2); [a,a]')
-#         [
-#         [1 0]  [1 0]
-#         [0 1], [0 1]
-#         ]
-#     """
-#     def __call__(self, obj):
-#         r"""
-#         Computes the format data of ``result``.  If the
-#         :func:`sage.misc.displayhook.format_obj` writes a string, then
-#         we override IPython's :class:`DisplayHook` formatting.
-#
-#         EXAMPLES::
-#
-#             sage: from sage.misc.interpreter import get_test_shell
-#             sage: shell = get_test_shell()
-#             sage: shell.display_formatter.formatters['text/plain']
-#             <...sage_extension.SagePlainTextFormatter object at 0x...>
-#             sage: shell.displayhook.compute_format_data(2)
-#             {u'text/plain': '2'}
-#             sage: a = identity_matrix(ZZ, 2)
-#             sage: shell.displayhook.compute_format_data([a,a])
-#             {u'text/plain': '[\n[1 0]  [1 0]\n[0 1], [0 1]\n]'}
-#         """
-#         import sage
-#         from sage.misc.displayhook import format_obj
-#         s = format_obj(obj)
-#         if s is None:
-#             s = super(SagePlainTextFormatter, self).__call__(obj)
-#         return s
-
 
 # SageInputSplitter:
 #  Hopefully most or all of this code can go away when

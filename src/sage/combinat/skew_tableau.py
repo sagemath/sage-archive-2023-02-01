@@ -78,9 +78,24 @@ class SkewTableau_class(CombinatorialObject):
         """
         CombinatorialObject.__init__(self,t)
 
+    def _repr_diagram(self):
+        """
+        Return a string representation of ``self`` as a diagram.
+
+        EXAMPLES::
+
+            sage: print SkewTableau([[None,2,3],[None,4],[5]])._repr_diagram()
+              .  2  3
+              .  4
+              5
+        """
+        none_str = lambda x: "  ." if x is None else "%3s"%str(x)
+        new_rows = ["".join(map(none_str, row)) for row in self]
+        return '\n'.join(new_rows)
+
     def pp(self):
         """
-        Returns a pretty print string of the tableau.
+        Return a pretty print string of the tableau.
 
         EXAMPLES::
 
@@ -89,22 +104,7 @@ class SkewTableau_class(CombinatorialObject):
               .  4
               5
         """
-        print self._po()
-
-    def _po(self):
-        """
-        .. see :meth:``pp``
-
-        TESTS::
-
-            sage: print SkewTableau([[None,2,3],[None,4],[5]])._po()
-              .  2  3
-              .  4
-              5
-        """
-        none_str = lambda x: "  ." if x is None else "%3s"%str(x)
-        new_rows = [ "".join(map(none_str , row)) for row in self]
-        return '\n'.join(new_rows)
+        print self._repr_diagram()
 
     def _ascii_art_(self):
         """
@@ -115,7 +115,7 @@ class SkewTableau_class(CombinatorialObject):
             [   2   ,   3    ]
         """
         from sage.misc.ascii_art import AsciiArt
-        return AsciiArt(self._po().splitlines())
+        return AsciiArt(self._repr_diagram().splitlines())
 
     def outer_shape(self):
         """

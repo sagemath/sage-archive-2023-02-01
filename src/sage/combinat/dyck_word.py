@@ -13,8 +13,12 @@ AUTHORS:
 
 - Christian Stump (2011--12): added combinatorial maps and statistics
 
-- Mike Zabrocki (2012--10): added pretty print, characteristic function, more functions
-                (2013--01): added inverse of area/dinv, bounce/area map
+- Mike Zabrocki:
+
+  * (2012--10): added pretty print, characteristic function, more functions
+  * (2013--01): added inverse of area/dinv, bounce/area map
+
+- Jean--Baptiste Priez, Travis Scrimshaw (2013--05-17): Added ASCII art
 
 REFERENCES:
 
@@ -52,7 +56,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.all import Posets
 
-from sage.rings.all import ZZ, QQ
+from sage.rings.all import QQ
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.words.word import Word
 from sage.misc.latex import latex
@@ -384,9 +388,69 @@ class DyckWord_class(CombinatorialObject):
         else:
             return super(DyckWord_class, self).__repr__()
 
+    def _repr_lattice(self, type="N-E", labelling=None, underpath=True):
+        r"""
+        See :meth:`pretty_print()`.
+
+        TESTS::
+
+            sage: print DyckWord(area_sequence=[0,1,0])._repr_lattice(type="NE-SE")
+             /\
+            /  \/\
+            sage: print DyckWord(area_sequence=[0,1,0])._repr_lattice(labelling=[1,3,2],underpath=False)
+                 _
+             ___|  2
+            | x  . 3
+            |  . . 1
+        """
+        if type == "NE-SE":
+            if labelling is not None or underpath is not True:
+                raise ValueError("The labelling cannot be shown with Northeast-Southeast paths.")
+            return self.to_path_string()
+        elif type == "N-E":
+            alst = self.to_area_sequence()
+            n = len(alst)
+            if n == 0:
+                return ".\n"
+            if labelling is None:
+                labels = [" "]*n
+            else:
+                if len(labelling) != n:
+                    raise ValueError("The given labelling has the wrong length.")
+                labels = [ str(label) for label in labelling ]
+                if not underpath:
+                    max_length = max( len(label) for label in labels )
+                    labels = [ label.rjust(max_length+1) for label in labels ]
+
+            length_of_final_fall = list(reversed(self)).index(open_symbol)
+            if length_of_final_fall == 0:
+                final_fall = " "
+            else:
+                final_fall = " _" + "__"*(length_of_final_fall-1)
+            row = "  "*(n - alst[-1]-1) + final_fall + "\n"
+            for i in range(n-1):
+                c=0
+                row = row + "  "*(n-i-2-alst[-i-2])
+                c+=n-i-2-alst[-i-2]
+                if alst[-i-2]+1!=alst[-i-1]:
+                    row+=" _"
+                c+=alst[-i-2]-alst[-i-1]
+                if underpath:
+                    row+="__"*(alst[-i-2]-alst[-i-1])+"|" + labels[-1] + "x "*(n-c-2-i)+ " ."*i + "\n"
+                else:
+                    row+="__"*(alst[-i-2]-alst[-i-1])+"| " + "x "*(n-c-2-i)+ " ."*i + labels[-1] + "\n"
+                labels.pop()
+            if underpath:
+                row = row + "|" + labels[-1] + " ."*(n-1) + "\n"
+            else:
+                row = row + "| "+" ."*(n-1) + labels[-1] + "\n"
+            return row
+        else:
+            raise ValueError("The given type (=\s) is not valid."%type)
+
     @staticmethod
     def set_ascii_art(repr="path"):
-        """
+        r"""
         TESTS::
 
             sage: ascii_art(list(DyckWords(3)))
@@ -405,13 +469,13 @@ class DyckWord_class(CombinatorialObject):
         if repr == "path":
             DyckWord_class._active_repr = lambda x: x.to_path_string()
         elif repr == "pretty_output":
-            DyckWord_class._active_repr = lambda x: x.pretty_output()
+            DyckWord_class._active_repr = lambda x: x._repr_lattice()
         else:
-            raise ValueError ("'%s' must be 'path' or 'pretty_output'")
+            raise ValueError("'%s' must be 'path' or 'pretty_output'"%repr)
 
     def _ascii_art_(self):
-        """
-        .. see :meth:`set_ascii_art`.
+        r"""
+        Return an ASCII art representation of ``self``.
 
         TESTS::
 
@@ -425,7 +489,7 @@ class DyckWord_class(CombinatorialObject):
 
     def __str__(self):
         r"""
-        Returns a string consisting of matched parentheses corresponding to
+        Return a string consisting of matched parentheses corresponding to
         the Dyck word.
 
         EXAMPLES::
@@ -442,16 +506,20 @@ class DyckWord_class(CombinatorialObject):
 
     def to_path_string(self):
         r"""
-        A path representation of the Dyck word consisting of steps ``/`` and ``\`` .
+        A path representation of the Dyck word consisting of steps
+        ``/`` and ``\`` .
 
         EXAMPLES::
 
-            sage: DyckWord([1, 0, 1, 0]).to_path_string()
-            '/\\/\\'
-            sage: DyckWord([1, 1, 0, 0]).to_path_string()
-            ' /\\ \n/  \\'
-            sage: DyckWord([1,1,0,1,1,0,0,1,0,1,0,0]).to_path_string()
-            '    /\\      \n /\\/  \\/\\/\\ \n/          \\'
+            sage: print DyckWord([1, 0, 1, 0]).to_path_string()
+            /\/\
+            sage: print DyckWord([1, 1, 0, 0]).to_path_string()
+             /\
+            /  \
+            sage: print DyckWord([1,1,0,1,1,0,0,1,0,1,0,0]).to_path_string()
+                /\
+             /\/  \/\/\
+            /          \
         """
         res = [([" "]*len(self)) for _ in range(self.height())]
         h = 1
@@ -466,9 +534,32 @@ class DyckWord_class(CombinatorialObject):
 
     _active_repr = to_path_string
 
-    def pretty_print( self, type="N-E", labelling=None, underpath=True ):
-        """
-        Shorthand for `print D.pretty_output()` .. SEE: :meth:`pretty_output`.
+    def pretty_print(self, type="N-E", labelling=None, underpath=True):
+        r"""
+        Display a DyckWord as a lattice path in the `\ZZ^2` grid.
+
+        If the ``type`` is "N-E", then the a cell below the diagonal is
+        indicated by a period, a cell below the path, but above the
+        diagonal are indicated by an x. If a list of labels is included,
+        they are displayed along the vertical edges of the Dyck path.
+
+        If the ``type`` is "NE-SE", then the path is simply printed
+        as up steps and down steps.
+
+        INPUT:
+
+        - ``type`` -- can either be:
+
+          - "N-E" to show ``self`` as a path of north and east steps, or
+          - "NE-SE" to show ``self`` as a path of north-east and
+            south-east steps.
+
+        - ``labelling`` -- (if type is "N-E") a list of labels assigned to
+          the up steps in ``self``.
+
+        - ``underpath`` -- (if type is "N-E", default:``True``) If ``True``,
+          the labelling is shown under the path otherwise, it is shown to
+          the right of the path.
 
         EXAMPLES::
 
@@ -601,90 +692,7 @@ class DyckWord_class(CombinatorialObject):
             .
 
         """
-        print self.pretty_output(type, labelling, underpath)
-
-    def pretty_output(self, type="N-E", labelling=None, underpath=True):
-        r"""
-        Display a DyckWord as a lattice path in the `\mathbb{Z}^2` grid.
-
-        If the ``type`` is "N-E", then the a cell below the diagonal is
-        indicated by a period, a cell below the path, but above the
-        diagonal are indicated by an x. If a list of labels is included,
-        they are displayed along the vertical edges of the Dyck path.
-
-        If the ``type`` is "NE-SE", then the path is simply printed
-        as up steps and down steps.
-
-        INPUT:
-
-        - ``type`` -- can either be
-                        - "N-E" to show ``self`` as a path of north and east steps, or
-                        - "NE-SE" to show ``self`` as a path of north-east and south-east steps.
-
-        - ``labelling`` -- (if type is "N-E") a list of labels assigned to the up steps in ``self``.
-
-        - ``underpath`` -- (if type is "N-E", default:True)
-                            - if True, the labelling is shown under the path
-                            - otherwise, it is shown to the right of the path.
-
-        TESTS::
-
-            sage: DyckWord(area_sequence=[0,1,0]).pretty_output(type="NE-SE")
-             /\
-            /  \/\
-            sage: print DyckWord(area_sequence=[0,1,0]).pretty_output(labelling=[1,3,2],underpath=False)
-                 _
-             ___|  2
-            | x  . 3
-            |  . . 1
-        """
-        if type == "NE-SE":
-            if labelling is not None or underpath is not True:
-                raise ValueError, "The labelling cannot be shown with Northeast-Southeast paths."
-            print self.to_path_string()+"\n"
-            return None
-        elif type == "N-E":
-            alst = self.to_area_sequence()
-            n = len(alst)
-            if n == 0:
-                print(".\n")
-                return None
-            if labelling is None:
-                labels = [" "]*n
-            else:
-                if len(labelling) != n:
-                    raise ValueError, "The given labelling has the wrong length."
-                labels = [ str(label) for label in labelling ]
-                if not underpath:
-                    max_length = max( len(label) for label in labels )
-                    labels = [ label.rjust(max_length+1) for label in labels ]
-
-            length_of_final_fall = list(reversed(self)).index(open_symbol)
-            if length_of_final_fall == 0:
-                final_fall = " "
-            else:
-                final_fall = " _" + "__"*(length_of_final_fall-1)
-            row = "  "*(n - alst[-1]-1) + final_fall + "\n"
-            for i in range(n-1):
-                c=0
-                row = row + "  "*(n-i-2-alst[-i-2])
-                c+=n-i-2-alst[-i-2]
-                if alst[-i-2]+1!=alst[-i-1]:
-                    row+=" _"
-                c+=alst[-i-2]-alst[-i-1]
-                if underpath:
-                    row+="__"*(alst[-i-2]-alst[-i-1])+"|" + labels[-1] + "x "*(n-c-2-i)+ " ."*i + "\n"
-                else:
-                    row+="__"*(alst[-i-2]-alst[-i-1])+"| " + "x "*(n-c-2-i)+ " ."*i + labels[-1] + "\n"
-                labels.pop()
-            if underpath:
-                row = row + "|" + labels[-1] + " ."*(n-1) + "\n"
-            else:
-                row = row + "| "+" ."*(n-1) + labels[-1] + "\n"
-            return row
-        else:
-            raise ValueError, "The given type (=\s) is not valid."%type
-
+        print self._repr_lattice(type, labelling, underpath)
 
     def _latex_(self):
         r"""

@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
-"""
-    Tiny Ascii Art module.
+r"""
+ASCII Art
 
-    This file contains:
+This file contains:
 
-    - :class:`AsciiArt` an simple implementation of an ASCII ARt object;
-    - :func:`ascii_art` a function to get the ASCII art representation of any
-       object in Sage;
-    - several others functions use to get ASCII art representation of primitive
-       python elements (list, tuple, dict, set).
+- :class:`AsciiArt` an simple implementation of an ASCII art object,
+- :func:`ascii_art` a function to get the ASCII art representation of any
+  object in Sage,
+- several others functions use to get ASCII art representation of primitive
+  python elements (list, tuple, dict, set).
 
 AUTHOR:
 
- - Jean-Baptiste Priez <jbp@kerios.fr> (2013-04): initial version
+- Jean-Baptiste Priez (2013-04): initial version
 
 EXAMPLES::
 
@@ -36,92 +36,105 @@ EXAMPLES::
     [ ******, *    , **  , *   , ***, *  , *  , **, * , * , * ]
 
 This method :meth:`ascii_art` could be automatically use by the display hook
-manager activated by the magic function : `%display ascii_art`::
+manager activated by the magic function: ``%display ascii_art``::
 
-    sage: %display ascii_art                # not tested: works only in interactive shell
-    sage: i = var('i')                      # not tested: works only in interactive shell
-    sage: sum(factorial(i)*x^i, i, 0, 10)   # not tested: works only in interactive shell
-             10           9          8         7        6        5       4      3      2
-    3628800*x   + 362880*x  + 40320*x  + 5040*x  + 720*x  + 120*x  + 24*x  + 6*x  + 2*x  + x + 1
-    sage: 3/(7*x)                           # not tested: works only in interactive shell
+    sage: from sage.misc.interpreter import get_test_shell
+    sage: shell = get_test_shell()
+    sage: shell.run_cell('%display ascii_art')
+    sage: shell.run_cell("i = var('i')")
+    sage: shell.run_cell('sum(factorial(i)*x^i, i, 0, 10)')
+             10           9          8         7        6        5       4      3
+    3628800*x   + 362880*x  + 40320*x  + 5040*x  + 720*x  + 120*x  + 24*x  + 6*x
+    <BLANKLINE>
+         2
+    + 2*x  + x + 1
+    sage: shell.run_cell('3/(7*x)')
      3
     ---
     7*x
-    sage: list(Compositions(5))             # not tested: works only in interactive shell
-    [ *  **   *  ***   *   **    *  ****   *   **    *   ***    *    **     *  ***** ]
-    [ *, * , **, *  ,  *, ** , ***, *   ,  *,  * ,  **, **  ,   *, *** , ****,       ]
-    [ *  *   *   *    **  *    *           *  **   **         ***                    ]
-    [ *  *   *        *                   **                                         ]
-    [ *                                                                              ]
+    sage: shell.run_cell('list(Compositions(5))')
+    [ *
+    [ *  **   *        *                   *
+    [ *  *   **  ***   *   **    *         *   **    *          *
+    [ *  *   *   *    **  **   ***  ****   *   *    **   ***    *    **     *
+    [ *, * , * , *  , * , *  , *  , *   , **, ** , ** , **  , ***, *** , ****,
+    <BLANKLINE>
+          ]
+          ]
+          ]
+          ]
+    ***** ]
+    sage: shell.run_cell('%display simple')
 
+::
 
-                            .      ,    ,              ...
-                            .?  .~?$NNO.II7.        ..GOGG
-                             ., ~7NNI7NDG$       ...~~~MGG
-              ..:IG..       ...G7:DDGNNDO..   ...7:~~~~GNN
-              .~~GGGGG...   .O .=$+OD7GI$ ...GG:~+~~~~MG?M.7?
-              .~~~D~~GGGGDGOM$..~+IN=NDG.G::D~~~?~~~7?NDI:???G
-              .~~~~G:~~G~D:~NONGMMOGD$ND~~::I77~~$?++MN7G GI?D.
-               7+I~~DG~~~N:GNGGOD$7OIOOMII::~:I7?G+OGN7G $III?.
-                .7==I~~~++IN?+++?$7ND$==$G:G??????N$OG$  ~III?7
-                 .$$+++?GG=+G?GDM?GOG:NGMGN7??????D$D~GODIII???.
-                   D++++NG+DD$+=GGONGI$DNGDN??????,IN=DOGODN???.
-                 , +~+++N??D$I+I=GNMDGDGNIINN??D+:::O~$GGGDIG?7
-                :DD.:::OG?G=I~~G7GNM7777NIGODDNNG:::I$GGGGG7??O.
-               ~GDDM:::GGMG+?+~$NNN$7IG7NMNMMMN, =::I7GGGGGO???~
-              :GDND7?::OOM.D+O~GGDI77777DMGNM$.  ~:,$IGGGGGO???DO.
-             OGDDNN.D77OO. $?7==GG777$7GNGMGO.     NOIGGGGGO???G$.
-           .OODNNN,DIGDM$GGGGG==GGGGIGNDMDMG,      IGIGGGDON???GG:
-          .GODNDM.G$I$IOIOMG$G$?GGGIO,7OD7GG.     ,GDIGGG??????GGG.
-         .DGDNI7I7MDI+OOODN$$O,$7DMIN,,IOO77O.   G?$DIGGG?ID???OGG
-         GGDNNMMO7GD+OOOGIMOG7::NN====:?MMNGIDD,..IINIGGG?I??DIOGG?
-       .7ODMMMN.G7IOGOOODIMG,,:::$=~==::7OGG~IGOMDGMNIGGG????.OG$G.
-       ?ODDMNNNO,II$OGODMGDMM?:DMG==~MDINNM$.7$IONDGI?GGG????:$GGG.
-    .$MDMNNNNN..:?7GDDDGG,GGM?~:GGGDNND.GIM7D+GI$ON.:?GGG????$$OGG.
-  .7DNDDDNMDOGG.=IGGND=7II+N??::$GIIO,IIGMG?7I7G$ON?,IGGG????7GIGG.
-  ~GGGDNMMOOGGG$MGMMGDGMDGM?,G:GNG,:IIIGDG7IGGGGG$+NMIGGO?????IGGG.
- .GGGDDMM7OGNGMODMNDDDOO.MII?GI$7IIIIING7GGDMM.IGDG.G7GGGG??$?7GGG
-.IGDDDDOINNGMGMDMNDDGDO...$OI+??7OIIIDDGN+$==I=GD ?,NGGGGN7????GGG
- 7GGNDM$GONDGDD$MMGNDN. G.:$$G$?$7II$GOO,O=+7O7O~N?OM?GGGGGD+??$GG
- OOGDOI7DGMG..=~DG$DD.  $,,$$$D??7ODOOOODG$777$G OGMM:GGGGGG??GGG.
-.$GDDG?7DMOGDNNMGGDGG ..,=O7$GG$+O$$OG=+O:GI77G$. ...DIGGGGI?$GGG.
-.OGGGGO7OGDGGNGGGDGG.  O:,77$O$$$D     $GN:7777GD   ..$GGGG??GGG$.
-.GGGGDI GD.~NOGDGGG    MG,777G77D7      +$~D77777=   ..7GGG???GGO.
-  GGD.   .~NODN...   ..D::77O$7G77      .OG:G???G7.    7$NOM??GG=.
-    .     . .      .+~~DD~77$G7OD7      .?GGO?$OM$D     ?????DGG...
-                   7I77DN$II7$M.G$G      . .:G?==$G     .?????D??~
-                 . .:IIIGO7O$GN..O$         7I=~+?I.    =???7? GGIG
-                  $,III7NGGNNNG, .O.         O====7I.  .DG??$?. GG?G
-                  .$7III$77777$$~  .          +====D$GG ~$???:  .$GIG.
-                 :.+IIII$77$G$$O,+            OI==+7I$7=.:???     .GG$.
-                 ,,III$I7?I7$$OG7D            ?+,==+77G?$,???.      GG?
-                 ?IIIII=+$I77777             .:++=+++O77:,??:         GG.
-                 .IIIIG+III77777.             7,=,++?II7$,?G          .GO .
-                  $OII7?OIIIIIO              .I:++??IIIII???.           I$ .
-                  .DNGDMOIG777.                +~++?I$IIMN?,             .G,
-                   .G.I?IIDGII~                .OG??$$MIMGI.               G,
-                    N+?II7OGI7.                  DD?$GGDGID.                 :
-                     =?IIOOI$.                    ?~~GGG$II                  .+.
-                    ,7=IINGI                       ?=IGGGI?.
-                    G,+IGOII                        ?+II7??+
-                   .,:?IGOII                         ?+GIOII
-                 .:N+=?IMGI7=.                       .~:$I?IO.
-               .$:IGO?$IIIII7+.                       O::I7I?.
-              .:::=IIGIIIIIII.                        .~,$IG?IO
-             .+:$IIIIMIII7G$?.                         I::I7IIG7
-             .$I$+7IIIMMMG7I7                          ?G,DGGNII.
-             .$~:$IIGMNGND77I:                          +I$GOD=?=
-            ?=?IIIIGIIIINI7777?                        .7~=~===?.
-          ONGNDG??IG?III$N7I777                          D~====I
-        .:$??7IIIIIII.....,....                          O::==~$D.
-        .,........ ..                                  ..M:I.==$7G.
-                                                        I?::IIIII7.
-                                                       .~:G:IIIIIG.
-                                                       .$:,O7III$$O
-                                                         ::~DOGGNNO
-                                                         .::,IOODI,
-                                                           .7????$.
-                                                             ... .
+                                .      ,    ,              ...
+                                .?  .~?$NNO.II7.        ..GOGG
+                                 ., ~7NNI7NDG$       ...~~~MGG
+                  ..:IG..       ...G7:DDGNNDO..   ...7:~~~~GNN
+                  .~~GGGGG...   .O .=$+OD7GI$ ...GG:~+~~~~MG?M.7?
+                  .~~~D~~GGGGDGOM$..~+IN=NDG.G::D~~~?~~~7?NDI:???G
+                  .~~~~G:~~G~D:~NONGMMOGD$ND~~::I77~~$?++MN7G GI?D.
+                   7+I~~DG~~~N:GNGGOD$7OIOOMII::~:I7?G+OGN7G $III?.
+                    .7==I~~~++IN?+++?$7ND$==$G:G??????N$OG$  ~III?7
+                     .$$+++?GG=+G?GDM?GOG:NGMGN7??????D$D~GODIII???.
+                       D++++NG+DD$+=GGONGI$DNGDN??????,IN=DOGODN???.
+                     , +~+++N??D$I+I=GNMDGDGNIINN??D+:::O~$GGGDIG?7
+                    :DD.:::OG?G=I~~G7GNM7777NIGODDNNG:::I$GGGGG7??O.
+                   ~GDDM:::GGMG+?+~$NNN$7IG7NMNMMMN, =::I7GGGGGO???~
+                  :GDND7?::OOM.D+O~GGDI77777DMGNM$.  ~:,$IGGGGGO???DO.
+                 OGDDNN.D77OO. $?7==GG777$7GNGMGO.     NOIGGGGGO???G$.
+               .OODNNN,DIGDM$GGGGG==GGGGIGNDMDMG,      IGIGGGDON???GG:
+              .GODNDM.G$I$IOIOMG$G$?GGGIO,7OD7GG.     ,GDIGGG??????GGG.
+             .DGDNI7I7MDI+OOODN$$O,$7DMIN,,IOO77O.   G?$DIGGG?ID???OGG
+             GGDNNMMO7GD+OOOGIMOG7::NN====:?MMNGIDD,..IINIGGG?I??DIOGG?
+           .7ODMMMN.G7IOGOOODIMG,,:::$=~==::7OGG~IGOMDGMNIGGG????.OG$G.
+           ?ODDMNNNO,II$OGODMGDMM?:DMG==~MDINNM$.7$IONDGI?GGG????:$GGG.
+        .$MDMNNNNN..:?7GDDDGG,GGM?~:GGGDNND.GIM7D+GI$ON.:?GGG????$$OGG.
+      .7DNDDDNMDOGG.=IGGND=7II+N??::$GIIO,IIGMG?7I7G$ON?,IGGG????7GIGG.
+      ~GGGDNMMOOGGG$MGMMGDGMDGM?,G:GNG,:IIIGDG7IGGGGG$+NMIGGO?????IGGG.
+     .GGGDDMM7OGNGMODMNDDDOO.MII?GI$7IIIIING7GGDMM.IGDG.G7GGGG??$?7GGG
+    .IGDDDDOINNGMGMDMNDDGDO...$OI+??7OIIIDDGN+$==I=GD ?,NGGGGN7????GGG
+     7GGNDM$GONDGDD$MMGNDN. G.:$$G$?$7II$GOO,O=+7O7O~N?OM?GGGGGD+??$GG
+     OOGDOI7DGMG..=~DG$DD.  $,,$$$D??7ODOOOODG$777$G OGMM:GGGGGG??GGG.
+    .$GDDG?7DMOGDNNMGGDGG ..,=O7$GG$+O$$OG=+O:GI77G$. ...DIGGGGI?$GGG.
+    .OGGGGO7OGDGGNGGGDGG.  O:,77$O$$$D     $GN:7777GD   ..$GGGG??GGG$.
+    .GGGGDI GD.~NOGDGGG    MG,777G77D7      +$~D77777=   ..7GGG???GGO.
+      GGD.   .~NODN...   ..D::77O$7G77      .OG:G???G7.    7$NOM??GG=.
+        .     . .      .+~~DD~77$G7OD7      .?GGO?$OM$D     ?????DGG...
+                       7I77DN$II7$M.G$G      . .:G?==$G     .?????D??~
+                     . .:IIIGO7O$GN..O$         7I=~+?I.    =???7? GGIG
+                      $,III7NGGNNNG, .O.         O====7I.  .DG??$?. GG?G
+                      .$7III$77777$$~  .          +====D$GG ~$???:  .$GIG.
+                     :.+IIII$77$G$$O,+            OI==+7I$7=.:???     .GG$.
+                     ,,III$I7?I7$$OG7D            ?+,==+77G?$,???.      GG?
+                     ?IIIII=+$I77777             .:++=+++O77:,??:         GG.
+                     .IIIIG+III77777.             7,=,++?II7$,?G          .GO .
+                      $OII7?OIIIIIO              .I:++??IIIII???.           I$ .
+                      .DNGDMOIG777.                +~++?I$IIMN?,             .G,
+                       .G.I?IIDGII~                .OG??$$MIMGI.               G,
+                        N+?II7OGI7.                  DD?$GGDGID.                 :
+                         =?IIOOI$.                    ?~~GGG$II                  .+.
+                        ,7=IINGI                       ?=IGGGI?.
+                        G,+IGOII                        ?+II7??+
+                       .,:?IGOII                         ?+GIOII
+                     .:N+=?IMGI7=.                       .~:$I?IO.
+                   .$:IGO?$IIIII7+.                       O::I7I?.
+                  .:::=IIGIIIIIII.                        .~,$IG?IO
+                 .+:$IIIIMIII7G$?.                         I::I7IIG7
+                 .$I$+7IIIMMMG7I7                          ?G,DGGNII.
+                 .$~:$IIGMNGND77I:                          +I$GOD=?=
+                ?=?IIIIGIIIINI7777?                        .7~=~===?.
+              ONGNDG??IG?III$N7I777                          D~====I
+            .:$??7IIIIIII.....,....                          O::==~$D.
+            .,........ ..                                  ..M:I.==$7G.
+                                                            I?::IIIII7.
+                                                           .~:G:IIIIIG.
+                                                           .$:,O7III$$O
+                                                             ::~DOGGNNO
+                                                             .::,IOODI,
+                                                               .7????$.
+                                                                 ... .
 """
 #*******************************************************************************
 #       Copyright (C) 2013 Jean-Baptiste Priez <jbp@kerios.fr>,
@@ -147,9 +160,19 @@ MAX_WIDTH = None
 ################################################################################
 
 class AsciiArt(SageObject):
-    """
+    r"""
     An Ascii art object is an object with some specific representation for
     *printing*.
+
+    INPUT:
+
+    - ``lines`` -- the list of lines of the representation of the ascii art
+      object
+    - ``breakpoints`` -- the list of points where the representation can be
+      split
+    - ``baseline`` -- the reference line (from the bottom)
+    - ``atomic`` -- indicate if the ascii art representation is splittable
+      (must be coherent with breakpoints)
 
     EXAMPLES::
 
@@ -157,21 +180,9 @@ class AsciiArt(SageObject):
         sage: ascii_art(sum(pi^i/factorial(i)*x^i, i, 0, oo))
          pi*x
         e
-
     """
-
-    def __init__(self, lines = [], breakpoints = [], baseline = None, atomic = True):
-        """
-        INPUT:
-
-            - lines: the list of lines of the representation of the ascii art
-              object
-            - breakpoints: the list of points where the representation can be
-              splitted
-            - baseline: the reference line (from the bottom)
-            - atomic: indicate if the ascii art representation is splittable
-              (must be coherent with breakpoints)
-
+    def __init__(self, lines=[], breakpoints=[], baseline=None, atomic=True):
+        r"""
         TESTS::
 
             sage: from sage.misc.ascii_art import AsciiArt
@@ -194,101 +205,8 @@ class AsciiArt(SageObject):
         self._h = len(lines)
         self._l = max(map(lambda line: len(line), lines) + [0])
 
-
-
-    def is_atomic(self):
-        """
-        That method must return ``True`` if the Ascii_art_object is not
-        splitable and ``False`` in otherwise.
-
-        For example, we considere a linear expression::
-
-            sage: a = 14*x^5 + 5*x^4
-            sage: ascii_art(a)
-                5      4
-            14*x  + 5*x
-
-        It ascii art object is not atomic, it is splittable on the `+`
-        (in fact it is not really true because we use `sympy` to make an ascii
-        art).
-
-        @postcondition: return a boolean
-
-        TESTS::
-
-            sage: from sage.misc.ascii_art import AsciiArt
-            sage: aa = AsciiArt(["  *  ", " * * ", "*****"]); aa
-              *
-             * *
-            *****
-            sage: aa.is_atomic()
-            True
-            sage: laa = ascii_art([aa,aa])
-            sage: laa.is_atomic()
-            False
-
-        """
-        return self._is_atomic
-
-    def get_baseline(self):
-        """
-        Return the line where is the baseline, for example::
-
-                5      4
-            14*x  + 5*x
-
-        the baseline has at line `0` and::
-
-            { o       }
-            {  \  : 4 }
-            {   o     }
-
-        has at line `1`.
-
-        @postcondition: return an integer or is not define
-
-        TESTS::
-
-            sage: from sage.misc.ascii_art import AsciiArt
-            sage: aa = AsciiArt(["   *   ", "  * *  ", " *   * ", "*******"], baseline=1);aa
-               *
-              * *
-             *   *
-            *******
-            sage: aa.get_baseline()
-            1
-            sage: b = AsciiArt(["<-"])
-            sage: aa+b
-               *
-              * *
-             *   * <-
-            *******
-        """
-        return self._baseline
-
-    def get_breakpoints(self):
-        """
-        Return an iterator of breakpoint where the object can be splitted.
-
-        For example::
-
-               5    4
-            14x + 5x
-
-        that expression can be splitted on position `4` (on the `+`).
-        TESTS::
-
-            sage: from sage.misc.ascii_art import AsciiArt
-            sage: p3 = AsciiArt([" * ", "***"])
-            sage: p5 = AsciiArt(["  *  ", " * * ", "*****"])
-            sage: aa = ascii_art([p3, p5])
-            sage: aa.get_breakpoints()
-            [2, 5, 6, 7, 12]
-        """
-        return self._breakpoints
-
     def __getitem__(self, key):
-        """
+        r"""
         Return the line `key` of the ASCII art object.
 
         TESTS::
@@ -301,7 +219,7 @@ class AsciiArt(SageObject):
         return self._matrix[key]
 
     def __iter__(self):
-        """
+        r"""
         Iterator on all lines of the ASCII art object.
 
         TESTS::
@@ -317,21 +235,8 @@ class AsciiArt(SageObject):
         for elem in self._matrix:
             yield elem
 
-    @staticmethod
-    def empty_ascii_art():
-        """
-        Return a pretty representation of the empty words
-
-        TESTS::
-
-             sage: from sage.misc.ascii_art import AsciiArt
-             sage: AsciiArt.empty_ascii_art()
-             <BLANKLINE>
-        """
-        return AsciiArt([""])
-
     def _repr_(self):
-        """
+        r"""
         TESTS::
 
             sage: from sage.misc.ascii_art import AsciiArt
@@ -359,18 +264,106 @@ class AsciiArt(SageObject):
             return output + self._matrix[len(self._matrix) - 1]
         return output
 
-    def _terminal_width(self):
-        """
-        Compute the width size of the terminal
+
+    def is_atomic(self):
+        r"""
+        Return ``True`` if the :class:`AsciiArt` object is not splitable and
+        ``False`` in otherwise.
+
+        For example, we considere a linear expression::
+
+            sage: a = 14*x^5 + 5*x^4
+            sage: ascii_art(a)
+                5      4
+            14*x  + 5*x
+
+        If ASCII art object is not atomic, it is splittable on the ``+``
+        (in fact it is not really true because we use ``sympy`` to make
+        ASCII art).
 
         TESTS::
 
             sage: from sage.misc.ascii_art import AsciiArt
-            sage: AsciiArt.empty_ascii_art()._terminal_width() # not tested: works only in interactive shell
-            122
+            sage: aa = AsciiArt(["  *  ", " * * ", "*****"]); aa
+              *
+             * *
+            *****
+            sage: aa.is_atomic()
+            True
+            sage: laa = ascii_art([aa,aa])
+            sage: laa.is_atomic()
+            False
+        """
+        return self._is_atomic
+
+    def get_baseline(self):
+        r"""
+        Return the line where the baseline is, for example::
+
+                5      4
+            14*x  + 5*x
+
+        the baseline has at line `0` and ::
+
+            { o       }
+            {  \  : 4 }
+            {   o     }
+
+        has at line `1`.
+
+        TESTS::
+
+            sage: from sage.misc.ascii_art import AsciiArt
+            sage: aa = AsciiArt(["   *   ", "  * *  ", " *   * ", "*******"], baseline=1);aa
+               *
+              * *
+             *   *
+            *******
+            sage: aa.get_baseline()
+            1
+            sage: b = AsciiArt(["<-"])
+            sage: aa+b
+               *
+              * *
+             *   * <-
+            *******
+        """
+        return self._baseline
+
+    def get_breakpoints(self):
+        r"""
+        Return an iterator of breakpoints where the object can be split.
+
+        For example the expression::
+
+               5    4
+            14x + 5x
+
+        can be split on position 4 (on the ``+``).
+
+        EXAMPLES::
+
+            sage: from sage.misc.ascii_art import AsciiArt
+            sage: p3 = AsciiArt([" * ", "***"])
+            sage: p5 = AsciiArt(["  *  ", " * * ", "*****"])
+            sage: aa = ascii_art([p3, p5])
+            sage: aa.get_breakpoints()
+            [2, 5, 6, 7, 12]
+        """
+        return self._breakpoints
+
+    def _terminal_width(self):
+        """
+        Compute the width size of the terminal.
+
+        EXAMPLES::
+
+            sage: from sage.misc.ascii_art import empty_ascii_art
+            sage: empty_ascii_art._terminal_width()
+            80
         """
         import os, sys
-        from sage.plot.plot import DOCTEST_MODE
+        from sage.doctest.__init__ import DOCTEST_MODE
         isatty = os.isatty(sys.stdout.fileno())
         if DOCTEST_MODE or not isatty:
             return 80
@@ -381,8 +374,8 @@ class AsciiArt(SageObject):
         return w
 
     def _split_repr_(self, size):
-        """
-        Split the draw and the left part has length 'size'.
+        r"""
+        Split the draw and the left part has length ``size``.
 
         TESTS::
 
@@ -412,10 +405,10 @@ class AsciiArt(SageObject):
         return (top * AsciiArt([""])).__repr__() + "\n" + bottom.__repr__()
 
     def split(self, pos):
-        """
-        split the representation at the position `pos`.
+        r"""
+        Split the representation at the position ``pos``.
 
-        TESTS::
+        EXMAPLES::
 
             sage: from sage.misc.ascii_art import AsciiArt
             sage: p3 = AsciiArt([" * ", "***"])
@@ -445,8 +438,7 @@ class AsciiArt(SageObject):
 
     @staticmethod
     def _compute_new_baseline(obj1, obj2):
-        """
-
+        r"""
         TESTS::
 
             sage: from sage.misc.ascii_art import AsciiArt
@@ -526,7 +518,7 @@ class AsciiArt(SageObject):
 
     @staticmethod
     def _compute_new_h(obj1, obj2):
-        """
+        r"""
         TESTS::
 
             sage: from sage.misc.ascii_art import AsciiArt
@@ -591,7 +583,7 @@ class AsciiArt(SageObject):
         )
 
     def __len__(self):
-        """
+        r"""
         Return the length of the ASCII art object.
 
         TESTS::
@@ -607,7 +599,7 @@ class AsciiArt(SageObject):
         return self._l
 
     def __add__(self, Nelt):
-        """
+        r"""
         Concatenate two ascii art object.
 
         By default, when two object are concatenated, the new one will be
@@ -766,9 +758,9 @@ class AsciiArt(SageObject):
         )
 
     def __mul__(self, Nelt):
-        """
-        The operator '*' is use to the representation 'self' at
-        the top of an other 'Nelt'.
+        r"""
+        The operator ``*`` is use to the representation ``self`` at
+        the top of an other ``Nelt``.
 
         TESTS::
 
@@ -795,20 +787,19 @@ class AsciiArt(SageObject):
 ############## PRIMITIVES ################
 
 def ascii_art(obj):
-    """
-    This function is like `repr`, it returns an ASCII art reprensentation of
-    `obj`::
+    r"""
+    Return an ASCII art reprensentation of ``obj``::
 
-          sage: ascii_art(integral(exp(x+x^2)/(x+1), x))
-              /
-             |
-             |   2
-             |  x  + x
-             | e
-             | ------- dx
-             |  x + 1
-             |
+        sage: ascii_art(integral(exp(x+x^2)/(x+1), x))
             /
+           |
+           |   2
+           |  x  + x
+           | e
+           | ------- dx
+           |  x + 1
+           |
+          /
 
     TESTS::
 
@@ -841,8 +832,9 @@ def ascii_art(obj):
     return res
 
 def _ascii_art_iter(iter, func=lambda elem, _: ascii_art(elem)):
-    """
-    Intermediate function for `ascii_art_`-`dict`-`set`-`list` or `tuple`.
+    r"""
+    Intermediate function for ``ascii_art_X`` where ``X`` is ``dict``,
+    ``set``, ``list``, or ``tuple``.
 
     TESTS::
 
@@ -872,8 +864,8 @@ def _ascii_art_iter(iter, func=lambda elem, _: ascii_art(elem)):
     return repr_elems
 
 def ascii_art_set(set):
-    """
-    This function return an ASCII art output of a set.
+    r"""
+    Return an ASCII art output of a set.
 
     TESTS::
 
@@ -886,8 +878,8 @@ def ascii_art_set(set):
     return _ascii_art_with_borders(repr_elems, "{ ", " }")
 
 def ascii_art_dict(dict):
-    """
-    This function return an ASCII art output of a dictionnary.
+    r"""
+    Return an ASCII art output of a dictionnary.
 
     TESTS::
 
@@ -902,7 +894,7 @@ def ascii_art_dict(dict):
     return _ascii_art_with_borders(repr_elems, "{ ", " }")
 
 def _ascii_art_with_borders(repr_elems, l_border, r_border):
-    """
+    r"""
     Intermediate function for elements with borders.
 
     TESTS::
@@ -919,8 +911,8 @@ def _ascii_art_with_borders(repr_elems, l_border, r_border):
     return AsciiArt(new_mat, new_bp, baseline = 0, atomic = False)
 
 def ascii_art_list(list):
-    """
-    This function return an ASCII art output of a list.
+    r"""
+    Return an ASCII art output of a list.
 
     TESTS::
 
@@ -933,8 +925,8 @@ def ascii_art_list(list):
     return _ascii_art_with_borders(repr_elems, "[ ", " ]")
 
 def ascii_art_tuple(tuple):
-    """
-    This function return an ASCII art output of a tuple.
+    r"""
+    Return an ASCII art output of a tuple.
 
     TESTS::
 
@@ -945,3 +937,6 @@ def ascii_art_tuple(tuple):
     """
     repr_elems = _ascii_art_iter(tuple)
     return _ascii_art_with_borders(repr_elems, "( ", " )")
+
+empty_ascii_art = AsciiArt([""])
+

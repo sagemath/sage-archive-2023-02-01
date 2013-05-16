@@ -28,7 +28,7 @@ from sage.categories.poor_man_map import PoorManMap
 from sage.categories.all import ModulesWithBasis
 from sage.combinat.dict_addition import dict_addition, dict_linear_combination
 from sage.sets.family import Family
-from sage.misc.ascii_art import AsciiArt
+from sage.misc.ascii_art import AsciiArt, empty_ascii_art
 
 # TODO: move the content of this class to CombinatorialFreeModule.Element and ModulesWithBasis.Element
 class CombinatorialFreeModuleElement(Element):
@@ -199,7 +199,7 @@ class CombinatorialFreeModuleElement(Element):
                             strip_one = True)
 
     def _ascii_art_(self):
-        '''
+        """
         TESTS::
 
             sage: M = QuasiSymmetricFunctions(QQ).M()
@@ -209,17 +209,17 @@ class CombinatorialFreeModuleElement(Element):
                ***        *             *        ****         ***      **
                *          *           ***        *           **
                *                      *
-        '''
+        """
         from sage.misc.misc import coeff_repr
         terms = self._sorted_items_for_printing()
         scalar_mult = self.parent()._print_options['scalar_mult']
-        repr_monomial = self.parent()._ascii_art_term # FIXME
+        repr_monomial = self.parent()._ascii_art_term
         strip_one = True
 
         if repr_monomial is None:
             repr_monomial = str
 
-        s = AsciiArt.empty_ascii_art() # ""
+        s = empty_ascii_art # ""
         first = True
         i = 0
 
@@ -239,7 +239,7 @@ class CombinatorialFreeModuleElement(Element):
                         coeff = "-"
                     elif b._l > 0:
                         if len(coeff) > 0 and monomial == 1 and strip_one:
-                            b = AsciiArt.empty_ascii_art() # ""
+                            b = empty_ascii_art # ""
                         else:
                             b = AsciiArt([scalar_mult]) + b
                     if not first:
@@ -254,7 +254,7 @@ class CombinatorialFreeModuleElement(Element):
                 first = False
         if first:
             return "0"
-        elif s == AsciiArt.empty_ascii_art():
+        elif s == empty_ascii_art:
             return AsciiArt(["1"])
         else:
             return s
@@ -1845,8 +1845,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         return self.prefix() + left + repr(m) + right # mind the (m), to accept a tuple for m
 
     def _ascii_art_term(self, el):
-        """
-        Returns an ascii art representing of the term.
+        r"""
+        Return an ascii art representing of the term.
 
         TESTS::
 
@@ -1869,7 +1869,8 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         try:
             if el == self.one_basis():
                 return AsciiArt(["1"])
-        except: pass
+        except StandardError:
+            pass
         pref = AsciiArt([self.prefix()])
         r = pref * (AsciiArt([" "**Integer(len(pref))]) + ascii_art(el))
         r._baseline = r._h - 1
@@ -2488,7 +2489,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
             return symb.join(["%s"%module for module in self._sets])
             # TODO: make this overridable by setting _name
 
-        def _ascii_art_term(self, term):
+        def _ascii_art_(self, term):
             """
             TESTS::
 
@@ -2515,7 +2516,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 rpr += module._ascii_art_term(t)
             return rpr
 
-        _ascii_art_ = _ascii_art_term
+        _ascii_art_term = _ascii_art_
 
         def _latex_(self):
             """

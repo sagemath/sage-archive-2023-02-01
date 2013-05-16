@@ -154,11 +154,7 @@ cdef class SageObject:
             return repr_func()
 
     def _ascii_art_(self):
-        """
-        .. TODO::
-
-            revenir dessus..
-
+        r"""
         Return an ASCII art representation.
 
         To implement multi-line ASCII art output in a derived class
@@ -191,23 +187,26 @@ cdef class SageObject:
              |
             /
 
-        Alternatively, you can use the `%display ascii_art/repr` magic to
+        Alternatively, you can use the ``%display ascii_art/simple`` magic to
         switch all output to ASCII art and back::
 
-            sage: tab = StandardTableaux(3)[2];  tab
+            sage: from sage.misc.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell('tab = StandardTableaux(3)[2]; tab')
             [[1, 2], [3]]
-            sage: %display ascii_art # not tested: works only in interactive shell
-            sage: tab                # not tested: works only in interactive shell
+            sage: shell.run_cell('%display ascii_art')
+            sage: shell.run_cell('tab')
             1  2
             3
-            sage: Tableau.set_ascii_art("normal")
-            sage: tab                # not tested: works only in interactive shell
+            sage: shell.run_cell('Tableaux.global_options(ascii_art="table", convention="French")')
+            sage: shell.run_cell('tab')
             +---+
             | 3 |
             +---+---+
             | 1 | 2 |
             +---+---+
-            sage: %display simple    # not tested: works only in interactive shell
+            sage: shell.run_cell('%display simple')
+            sage: shell.run_cell('Tableaux.global_options.reset()')
 
         TESTS::
 

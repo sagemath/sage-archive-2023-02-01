@@ -21,7 +21,8 @@ from sage.categories.classical_crystals import ClassicalCrystals
 from sage.structure.parent import Parent
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.crystals.letters import CrystalOfLetters
-from sage.combinat.crystals.tensor_product import TensorProductOfCrystals, CrystalOfWords
+from sage.combinat.crystals.tensor_product import TensorProductOfCrystals, \
+    TensorProductOfRegularCrystalsElement
 from sage.combinat.crystals.littelmann_path import CrystalOfLSPaths
 
 
@@ -100,7 +101,7 @@ def HighestWeightCrystal(dominant_weight):
     else:
         raise NotImplementedError
 
-class FiniteDimensionalHighestWeightCrystal_TypeE(CrystalOfWords):
+class FiniteDimensionalHighestWeightCrystal_TypeE(TensorProductOfCrystals):
     """
     Commonalities for all finite dimensional type E highest weight crystals
 
@@ -132,6 +133,7 @@ class FiniteDimensionalHighestWeightCrystal_TypeE(CrystalOfWords):
         Parent.__init__(self, category = ClassicalCrystals())
         self.module_generators = [self.module_generator()]
 
+    Element = TensorProductOfRegularCrystalsElement
 
     def module_generator(self):
         """

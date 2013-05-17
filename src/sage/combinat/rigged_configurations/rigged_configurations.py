@@ -436,8 +436,8 @@ class AbstractRiggedConfigurations(UniqueRepresentation, Parent):
                 raise ValueError("Incorrect bijection image.")
             return lst[0].to_rigged_configuration()
 
-        from sage.combinat.crystals.tensor_product import TensorProductOfCrystalsElement
-        if isinstance(lst[0], TensorProductOfCrystalsElement):
+        from sage.combinat.crystals.tensor_product import TensorProductOfRegularCrystalsElement
+        if isinstance(lst[0], TensorProductOfRegularCrystalsElement):
             lst = lst[0]
         from sage.combinat.crystals.kirillov_reshetikhin import KirillovReshetikhinGenericCrystalElement
         if isinstance(lst[0], KirillovReshetikhinGenericCrystalElement):

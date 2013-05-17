@@ -67,7 +67,7 @@ Type `D_n^{(1)}` examples::
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 
-from sage.combinat.crystals.tensor_product import FullTensorProductOfCrystals
+from sage.combinat.crystals.tensor_product import FullTensorProductOfRegularCrystals
 from sage.combinat.crystals.letters import CrystalOfLetters
 from sage.combinat.root_system.cartan_type import CartanType
 
@@ -76,7 +76,7 @@ from sage.combinat.rigged_configurations.kr_tableaux import KirillovReshetikhinT
 
 from sage.rings.integer import Integer
 
-class AbstractTensorProductOfKRTableaux(FullTensorProductOfCrystals):
+class AbstractTensorProductOfKRTableaux(FullTensorProductOfRegularCrystals):
     r"""
     Abstract class for all of tensor product of KR tableaux of a given Cartan type.
 
@@ -115,7 +115,7 @@ class AbstractTensorProductOfKRTableaux(FullTensorProductOfCrystals):
             tensorProd.append(KirillovReshetikhinTableaux(
               self.letters.cartan_type(),
               rectDims[0], rectDims[1]))
-        FullTensorProductOfCrystals.__init__(self, tuple(tensorProd))
+        FullTensorProductOfRegularCrystals.__init__(self, tuple(tensorProd))
 
     def _highest_weight_iter(self):
         r"""
@@ -159,8 +159,8 @@ class AbstractTensorProductOfKRTableaux(FullTensorProductOfCrystals):
         if isinstance(path[0], KirillovReshetikhinGenericCrystalElement):
             return self.element_class(self, *[x.to_Kirillov_Reshetikhin_tableau() for x in path])
 
-        from sage.combinat.crystals.tensor_product import TensorProductOfCrystalsElement
-        if isinstance(path[0], TensorProductOfCrystalsElement) and \
+        from sage.combinat.crystals.tensor_product import TensorProductOfRegularCrystalsElement
+        if isinstance(path[0], TensorProductOfRegularCrystalsElement) and \
           isinstance(path[0][0], KirillovReshetikhinGenericCrystalElement):
             return self.element_class(self, *[x.to_Kirillov_Reshetikhin_tableau() for x in path[0]])
 
@@ -564,7 +564,7 @@ class TensorProductOfKirillovReshetikhinTableaux(AbstractTensorProductOfKRTablea
             sage: T is KRT.tensor_product_of_Kirillov_Reshetikhin_crystals()
             True
         """
-        return FullTensorProductOfCrystals(tuple(x.Kirillov_Reshetikhin_crystal() for x in self.crystals),
+        return FullTensorProductOfRegularCrystals(tuple(x.Kirillov_Reshetikhin_crystal() for x in self.crystals),
                                            cartan_type=self.affine_ct)
 
 TensorProductOfKirillovReshetikhinTableaux.Element = TensorProductOfKirillovReshetikhinTableauxElement

@@ -96,10 +96,10 @@ Type `D_n^{(1)}` examples::
 #*****************************************************************************
 
 from sage.combinat.root_system.cartan_type import CartanType
-from sage.combinat.crystals.tensor_product import TensorProductOfCrystalsElement
+from sage.combinat.crystals.tensor_product import TensorProductOfRegularCrystalsElement
 from sage.combinat.rigged_configurations.bijection import KRTToRCBijection
 
-class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfCrystalsElement):
+class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
     """
     An element in a tensor product of Kirillov-Reshetikhin tableaux.
 
@@ -134,12 +134,12 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfCrystalsE
 
         if "pathlist" in options:
             pathlist = options["pathlist"]
-            TensorProductOfCrystalsElement.__init__(self, parent,
+            TensorProductOfRegularCrystalsElement.__init__(self, parent,
               [parent.crystals[i](list(tab)) for i, tab in enumerate(pathlist)])
         elif "list" in options:
-            TensorProductOfCrystalsElement.__init__(self, parent, **options)
+            TensorProductOfRegularCrystalsElement.__init__(self, parent, **options)
         else:
-            TensorProductOfCrystalsElement.__init__(self, parent, list(path))
+            TensorProductOfRegularCrystalsElement.__init__(self, parent, list(path))
 
     def _repr_(self):
         """
@@ -170,7 +170,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfCrystalsE
             [[2], [4]]
         """
         if i != 0:
-            return TensorProductOfCrystalsElement.e(self, i)
+            return TensorProductOfRegularCrystalsElement.e(self, i)
 
         return None
 
@@ -187,7 +187,7 @@ class TensorProductOfKirillovReshetikhinTableauxElement(TensorProductOfCrystalsE
             [[-4], [4]]
         """
         if i != 0:
-            return TensorProductOfCrystalsElement.f(self, i)
+            return TensorProductOfRegularCrystalsElement.f(self, i)
 
         return None
 

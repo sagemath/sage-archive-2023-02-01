@@ -49,7 +49,7 @@ from sage.rings.integer import Integer
 from sage.combinat.crystals.letters import CrystalOfLetters
 from sage.combinat.root_system.cartan_type import CartanType
 from sage.combinat.crystals.tensor_product import CrystalOfWords
-from sage.combinat.crystals.tensor_product import TensorProductOfCrystalsElement
+from sage.combinat.crystals.tensor_product import TensorProductOfRegularCrystalsElement
 from sage.combinat.crystals.kirillov_reshetikhin import horizontal_dominoes_removed, \
   KirillovReshetikhinCrystal, KirillovReshetikhinGenericCrystalElement
 from sage.combinat.partition import Partition
@@ -477,7 +477,7 @@ class KRTableauxSpin(KRTableauxRectangle):
 #        shapes = [Partition(map(lambda x: Integer(x*2), shape)).conjugate() for shape in shapes]
 #        self.module_generators = tuple(self._fill(Partition(shape).conjugate()) for shape in shapes)
 
-class KirillovReshetikhinTableauxElement(TensorProductOfCrystalsElement):
+class KirillovReshetikhinTableauxElement(TensorProductOfRegularCrystalsElement):
     r"""
     A Kirillov-Reshetikhin tableau.
 
@@ -499,7 +499,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfCrystalsElement):
         # Make sure we are a list of letters
         if list != [] and type(list[0]) is not CrystalOfLetters:
             list = [parent.letters(x) for x in list]
-        TensorProductOfCrystalsElement.__init__(self, parent, list)
+        TensorProductOfRegularCrystalsElement.__init__(self, parent, list)
 
     def _repr_(self):
         """
@@ -690,7 +690,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfCrystalsElement):
             if ret is None:
                 return None
             return ret.to_Kirillov_Reshetikhin_tableau()
-        return TensorProductOfCrystalsElement.e(self, i)
+        return TensorProductOfRegularCrystalsElement.e(self, i)
 
     def f(self, i):
         """
@@ -711,7 +711,7 @@ class KirillovReshetikhinTableauxElement(TensorProductOfCrystalsElement):
             if ret is None:
                 return None
             return ret.to_Kirillov_Reshetikhin_tableau()
-        return TensorProductOfCrystalsElement.f(self, i)
+        return TensorProductOfRegularCrystalsElement.f(self, i)
 
 KirillovReshetikhinTableaux.Element = KirillovReshetikhinTableauxElement
 
@@ -733,10 +733,10 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
             [[1], [3], [-4], [-2]]
             sage: KRT([-1, -4, 3, 2]).e(3)
         """
-        half = TensorProductOfCrystalsElement.e(self, i)
+        half = TensorProductOfRegularCrystalsElement.e(self, i)
         if half is None:
             return None
-        return TensorProductOfCrystalsElement.e(half, i)
+        return TensorProductOfRegularCrystalsElement.e(half, i)
 
     def f(self, i):
         r"""
@@ -749,11 +749,11 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
             sage: KRT([-1, -4, 3, 2]).f(3)
             [[2], [4], [-3], [-1]]
         """
-        half = TensorProductOfCrystalsElement.f(self, i)
+        half = TensorProductOfRegularCrystalsElement.f(self, i)
         if half is None:
             return None
 
-        return TensorProductOfCrystalsElement.f(half, i)
+        return TensorProductOfRegularCrystalsElement.f(half, i)
 
     def epsilon(self, i):
         r"""
@@ -767,7 +767,7 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
             sage: KRT([-1, -4, 3, 2]).epsilon(3)
             0
         """
-        return TensorProductOfCrystalsElement.epsilon(self, i) / 2
+        return TensorProductOfRegularCrystalsElement.epsilon(self, i) / 2
 
     def phi(self, i):
         r"""
@@ -781,7 +781,7 @@ class KRTableauxSpinElement(KirillovReshetikhinTableauxElement):
             sage: KRT([-1, -4, 3, 2]).phi(3)
             1
         """
-        return TensorProductOfCrystalsElement.phi(self, i) / 2
+        return TensorProductOfRegularCrystalsElement.phi(self, i) / 2
 
     @cached_method
     def to_array(self, rows=True):

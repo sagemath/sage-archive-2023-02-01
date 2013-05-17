@@ -57,6 +57,7 @@ class Config(collections.MutableMapping):
         Config('''
         [trac]
         username = doctest
+        password_timeout = .5
         ''')
 
     """
@@ -75,7 +76,7 @@ class Config(collections.MutableMapping):
         EXAMPLES::
 
             sage: repr(dev._config)
-            "Config('''\n[trac]\nusername = doctest\n''')"
+            "Config('''\n[trac]\nusername = doctest\npassword_timeout = .5\n''')"
         """
         return "Config('''\n"+"\n".join([ "[%s]\n"%s+"\n".join(["%s = %s"%(o,self[s][o]) for o in self[s] ]) for s in self ])+"\n''')"
 
@@ -94,6 +95,7 @@ class Config(collections.MutableMapping):
             Config('''
             [trac]
             username = doctest
+            password_timeout = .5
             ''')
         """
         if os.path.exists(self._devrc):
@@ -129,6 +131,7 @@ class Config(collections.MutableMapping):
             sage: dev._config['trac']
             IndexableForSection('''
             username = doctest
+            password_timeout = .5
             ''')
             sage: dev._config['tig']
             Traceback (most recent call last):
@@ -1819,15 +1822,15 @@ def doctest_config():
         Config('''
         [trac]
         username = doctest
+        password_timeout = .5
         ''')
     """
-    ret = Config(devrc = tempfile.NamedTemporaryFile().name)
+    ret = Config(devrc = tempfile.mkstemp()[1])
     def foo(f):
         if os.path.exists(f):
             os.unlink(f)
     atexit.register(foo, ret._devrc)
-    ret['trac'] = {}
-    ret['trac']['username'] = 'doctest'
+    ret['trac'] = {'username': 'doctest', 'password_timeout': '.5'}
     return ret
 
 # default sagedev object

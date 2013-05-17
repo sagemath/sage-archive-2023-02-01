@@ -1,11 +1,13 @@
 """
 Trac Interface
 """
-import os, tempfile
-from xmlrpclib import Transport, ServerProxy
-import urllib2
+import os
 import re
-import subprocess
+import tempfile
+import time
+import urllib2
+
+from xmlrpclib import Transport, ServerProxy
 
 from sage.env import REALM, TRAC_SERVER_URI
 
@@ -254,9 +256,13 @@ class TracInterface(object):
         if 'trac' not in sagedev._config:
             sagedev._config['trac'] = {}
         self._config = sagedev._config['trac']
+
         # Caches for the analogous single-underscore properties
         self.__anonymous_server_proxy = None
         self.__authenticated_server_proxy = None
+
+        self.__passwd = None
+        self.__passwd_timeout = None
 
     @property
     def _anonymous_server_proxy(self):
@@ -347,7 +353,6 @@ class TracInterface(object):
         """
         if 'username' not in self._config:
             self._config['username'] = self._UI.get_input("Please enter your trac username:")
-            self._config._write_config()
         return self._config['username']
 
     @property
@@ -363,29 +368,54 @@ class TracInterface(object):
             sage: s.trac._password
             Please enter your trac password:
             Please confirm your trac password:
-            Do you want your password to be stored on your local system? (your password will be stored in plaintext in a file only readable by you) [yes/No]
+            Do you want your password to be stored on your local system? (your password will be stored in plaintext in a file only readable by you) [yes/No/stop asking]
             'pass'
             sage: s.trac._password
+            'pass'
+            sage: import time      # long time
+            sage: time.sleep(1)    # long time
+            sage: s.trac._password # long time
             Please enter your trac password:
             Please confirm your trac password:
-            Do you want your password to be stored on your local system? (your password will be stored in plaintext in a file only readable by you) [yes/No] yes
+            Do you want your password to be stored on your local system? (your password will be stored in plaintext in a file only readable by you) [yes/No/stop asking] yes
             'passwd'
-            sage: s.trac._password
+            sage: time.sleep(1)    # long time
+            sage: s.trac._password # long time
             'passwd'
         """
-        if 'password' in self._config:
+        if self._config.get('password'):
             return self._config['password']
-        else:
-            while True:
-                password = self._UI.get_password("Please enter your trac password:")
-                password2 = self._UI.get_password("Please confirm your trac password:")
-                if password != password2:
-                    self._UI.show("Passwords do not agree.")
-                else: break
-            if self._UI.confirm("Do you want your password to be stored on your local system? (your password will be stored in plaintext in a file only readable by you)", default_no=True):
-                self._config['password'] = password
-                self._config._write_config()
-            return password
+
+        if self.__passwd_timeout is not None:
+            if time.time() < self.__passwd_timeout:
+                return self.__passwd
+
+        while True:
+            passwd = self._UI.get_password("Please enter your trac password:")
+            if (self._UI.get_password("Please confirm your trac password:")
+                    == passwd):
+                break
+            else:
+                self._UI.show("Passwords do not agree.")
+
+        self.__passwd = passwd
+        self.__passwd_timeout = time.time()
+        # default timeout is 15 minutes, like sudo
+        self.__passwd_timeout += float(
+                self._config.get('password_timeout', 900))
+
+        if self._config.get('password') is None:
+            r = self._UI.select("Do you want your password to be stored on "+
+                                "your local system? (your password will be "+
+                                "stored in plaintext in a file only readable "+
+                                "by you)",
+                                options=("yes","no","stop asking"), default=1)
+            if r == 'yes':
+                self._config['password'] = passwd
+            elif r == 'stop asking':
+                self._config['password'] = ""
+
+        return self.__passwd
 
     @property
     def sshkeys(self):
@@ -615,7 +645,7 @@ class TracInterface(object):
             []
             sage: dev.trac.dependencies(13147) # optional: online
             [13579, 13681]
-            sage: dev.trac.dependencies(13147,all=True) # long time optional: online
+            sage: dev.trac.dependencies(13147,all=True) # long time, optional: online
             [13579, 13681, 13631]
 
         """

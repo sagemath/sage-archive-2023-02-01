@@ -285,10 +285,6 @@ class TracInterface(object):
             sagedev._config['trac'] = {}
         self._config = sagedev._config['trac']
 
-        # Caches for the analogous single-underscore properties
-        self.__passwd = None
-        self.__passwd_timeout = None
-
     @property
     def _anonymous_server_proxy(self):
         """
@@ -418,12 +414,14 @@ class TracInterface(object):
             self.__passwd_timeout += float(
                     self._config.get('password_timeout', 300))
 
-        if self.__passwd_timeout is not None:
+        try:
             if time.time() < self.__passwd_timeout:
                 set_timeout()
                 return self.__passwd
             else:
                 self.__passwd = None
+        except AttributeError:
+            pass
 
         while True:
             passwd = self._UI.get_password("Please enter your trac password:")
@@ -441,6 +439,7 @@ class TracInterface(object):
                                 options=("yes","no","stop asking"), default=1)
             if r == 'yes':
                 self._config['password'] = passwd
+                return passwd
             elif r == 'stop asking':
                 self._config['password'] = ""
 

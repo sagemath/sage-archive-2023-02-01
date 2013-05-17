@@ -9,9 +9,138 @@ import subprocess
 
 from sage.env import REALM, TRAC_SERVER_URI
 
-SUMMARY_REGEX = re.compile("^Summary: (.*)$")
 FIELD_REGEX = re.compile("^([A-Za-z ]+):(.*)$")
-ALLOWED_FIELDS = {"type":"Type", "priority":"Priority", "component":"Component", "cc":"Cc", "report upstream":"Report Upstream", "authors":"Authors", "dependencies":"Dependencies", "owned by":"Owned by", "milestone":"Milestone", "keywords":"Keywords", "work issues":"Work issues", "reviewers":"Reviewers", "merged in":"Merged in", "stopgaps":"Stopgaps"}
+ALLOWED_FIELDS = {
+        "authors":          "Authors",
+        "branch":           "Branch",
+        "cc":               "Cc",
+        "component":        "Component",
+        "dependencies":     "Dependencies",
+        "keywords":         "Keywords",
+        "merged in":        "Merged in",
+        "milestone":        "Milestone",
+        "owned by":         "Owned by",
+        "priority":         "Priority",
+        "report upstream":  "Report Upstream",
+        "reviewers":        "Reviewers",
+        "stopgaps":         "Stopgaps",
+        "type":             "Type",
+        "work issues":      "Work issues",
+        }
+TICKET_FILE_GUIDE = """
+# Lines starting with `#` are ignored.
+# Lines starting with `Field: ` correspond to fields of
+# the trac ticket, and can be followed by text on the same line.
+# They will be assigned to the corresponding field on the trac
+# ticket.
+#
+# Lines not following this format will be put into the ticket
+# description. Trac markup is supported.
+#
+# An empty file aborts ticket creation.
+"""
+
+class TicketSyntaxError(SyntaxError): # we don't want to catch normal syntax errors
+    pass
+
+def _parse_ticket_file(filename):
+    r"""
+    parses ticket file
+
+    INPUT:
+
+    - ``filename`` -- filename to parse
+
+    OUTPUT:
+
+    - ``summary`` -- a string consisting of the ticket's summary
+
+    - ``description`` -- a string consisting of the ticket's description
+
+    - ``fields`` -- a dictionary containing field, entry pairs
+
+    TESTS::
+
+        sage: from sage.dev.trac_interface import _parse_ticket_file
+        sage: import tempfile
+        sage: tmp = tempfile.mkstemp()[1]
+        sage: with open(tmp, 'w') as f:
+        ....:     f.write("no summary\n")
+        sage: _parse_ticket_file(tmp)
+        Traceback (most recent call last):
+        ...
+        TicketSyntaxError: no valid summary found
+        sage: with open(tmp, 'w') as f:
+        ....:     f.write("summary:no description\n")
+        sage: _parse_ticket_file(tmp)
+        Traceback (most recent call last):
+        ...
+        TicketSyntaxError: no description found
+        sage: with open(tmp, 'w') as f:
+        ....:     f.write("summary:double summary\n")
+        ....:     f.write("summary:double summary\n")
+        sage: _parse_ticket_file(tmp)
+        Traceback (most recent call last):
+        ...
+        TicketSyntaxError: line 2: only one value for summary allowed
+        sage: with open(tmp, 'w') as f:
+        ....:     f.write("bad field:bad field entry\n")
+        sage: _parse_ticket_file(tmp)
+        Traceback (most recent call last):
+        ...
+        TicketSyntaxError: line 1: field `bad field` not supported
+        sage: with open(tmp, 'w') as f:
+        ....:     f.write("summary:a summary\n")
+        ....:     f.write("branch:a branch\n")
+        ....:     f.write("some description\n")
+        ....:     f.write("#an ignored line\n")
+        ....:     f.write("more description\n")
+        sage: _parse_ticket_file(tmp)
+        ('a summary', 'some description\nmore description', {'branch': 'a branch'})
+    """
+    lines = list(open(filename).read().splitlines())
+
+    if all(l.rstrip().startswith('#') for l in lines if l.rstrip()):
+        return
+
+    fields = {}
+    description = []
+
+    for i, line in enumerate(lines):
+        if line.startswith('#'):
+            continue
+        line = line.rstrip()
+        i += 1 # line numbers should be indexed from 1
+
+        m = FIELD_REGEX.match(line)
+        if m and not line.startswith("sage: "):
+            field = m.groups()[0]
+            if not (field.lower() == 'summary' or
+                    field.lower() in ALLOWED_FIELDS):
+                raise TicketSyntaxError("line %s: "%i +
+                                        "field `%s` not supported"%field)
+            elif field.lower() in fields:
+                raise TicketSyntaxError("line %s: "%i +
+                                        "only one value for %s allowed"%field)
+            else:
+                fields[field.lower()] = m.groups()[1].strip()
+                continue
+
+        if line != "[Description]":
+            description.append(line)
+
+    # no syntax errors in file
+    try:
+        summary = fields.pop('summary')
+    except KeyError:
+        summary = None
+
+    if not summary:
+        raise TicketSyntaxError("no valid summary found")
+    elif not "".join(description):
+        raise TicketSyntaxError("no description found")
+    else:
+        return summary, "\n".join(description), fields
 
 class DigestTransport(object, Transport):
     """
@@ -315,95 +444,41 @@ class TracInterface(object):
                 else: return None
 
     def _edit_ticket_interactive(self, summary, description, attributes):
-        if os.environ.has_key('EDITOR'):
-            editor = os.environ['EDITOR']
-        else:
-            editor = 'nano'
-        F = tempfile.NamedTemporaryFile(delete = False)
-        try:
-            filename = F.name
-            F.close()
-            F = open(filename,"w")
+        """
+        edit a ticket interactively
+        """
+        filename = tempfile.mkstemp()[1]
+        with open(filename, "w") as F:
+            F.write("Summary: %s\n"%summary)
+            for k,v in attributes.items():
+                k = ALLOWED_FIELDS.get(k.lower())
+                if k is not None:
+                    F.write("%s: %s\n"%(k,v))
+
             if description is None or not description.strip():
                 description = "\n[Description]\n"
-            msg = "\n".join( [ "Summary: %s"%summary, "%s"%description ] + [ "%s: %s"%(ALLOWED_FIELDS[k.lower()],v) for k,v in attributes.items() if k.lower() in ALLOWED_FIELDS] + ["""
-# Lines starting with `#` are ignored.
-# Lines starting with `Field: ` correspond to fields of
-# the trac ticket, and can be followed by text on the same line.
-# They will be assigned to the corresponding field on the trac
-# ticket.
-#
-# Lines not following this format will be put into the ticket
-# description. Trac markup is supported.
-#
-# An empty file aborts ticket creation.\n"""])
-            F.write(msg)
-            F.close()
+            F.write(description + "\n")
+            F.write(TICKET_FILE_GUIDE)
 
-            while True:
-                try:
-                    error = None
-                    i = None
+        while True:
+            if self._UI.edit(filename):
+                raise RuntimeError("editor exited with non-zero exit code")
 
-                    if os.system("%s %s"%(editor,filename)):
-                        error = "editor exited with non-zero exit code"
-                    else:
-                        lines = list(open(filename).read().splitlines())
-                        if all([l.startswith('#') for l in lines]): return None
+            try:
+                ret = _parse_ticket_file(filename)
+                break
+            except TicketSyntaxError as error:
+                pass
 
-                        summary = None
-                        fields = {}
-                        description = []
-                        for i,line in enumerate(lines):
-                            if line.startswith('#'): continue
-                            m = SUMMARY_REGEX.match(line)
-                            if m:
-                                if summary is None:
-                                    summary = m.groups()[0].strip()
-                                    continue
-                                else:
-                                    error = "only one `Summary: ` line allowed but multiple specified."
-                                    break
-                            m = FIELD_REGEX.match(line)
-                            if m and not line.startswith("sage: "):
-                                field = m.groups()[0]
-                                if field.lower() not in ALLOWED_FIELDS:
-                                    error = "field `%s` not supported."%field
-                                    break
-                                elif field.lower() in fields:
-                                    error = "only one value for field `%s` allowed but multiple specified."
-                                    break
-                                else:
-                                    fields[field.lower()] = m.groups()[1].strip()
-                                    continue
+            self._UI.show("TicketSyntaxError: "+error.message)
 
-                            if line != "[Description]":
-                                description.append(line)
-                        else: # no syntax errors in file
-                            i = None
-                            if not summary:
-                                error = "no valid `Summary` found."
-                            else:
-                                if not any([d for d in description]):
-                                    error = "no description found."
-                                else:
-                                    return summary, "\n".join(description), fields
+            if not self._UI.confirm("Do you want to try to fix your ticket "+
+                                    "file?", default_yes=True):
+                ret = None
+                break
 
-                    assert(error)
-
-                except StandardError as e:
-                    error = str(e)
-
-                assert(error)
-                if i != None: self._UI.show("An error occured in line %s: %s"%(i+1,error))
-                else: self._UI.show("An error occured: %s"%(error))
-                if self._UI.confirm("Do you want to try to fix your ticket file?", default_yes=True): continue
-                else: return None
-
-        finally:
-            os.unlink(F.name)
-
-        assert(False)
+        os.unlink(F.name)
+        return ret
 
     def create_ticket_interactive(self):
         """
@@ -419,11 +494,13 @@ class TracInterface(object):
             sage: s.trac.create_ticket_interactive()
             Do you want to create a new ticket? [Yes/no] yes
             Summary:
-            <BLANKLINE>
-            <BLANKLINE>
             Priority: major
             Keywords:
             Type: defect
+            <BLANKLINE>
+            [Description]
+            <BLANKLINE>
+            <BLANKLINE>
             # Lines starting with `#` are ignored.
             # Lines starting with `Field: ` correspond to fields of
             # the trac ticket, and can be followed by text on the same line.
@@ -434,17 +511,17 @@ class TracInterface(object):
             # description. Trac markup is supported.
             #
             # An empty file aborts ticket creation.
-            An error occured: no valid `Summary` found.
+            TicketSyntaxError: no valid summary found
             Do you want to try to fix your ticket file? [Yes/no] no
             sage: os.environ['EDITOR'] = 'echo "Summary: Foo" >'
             sage: s.trac.create_ticket_interactive()
             Do you want to create a new ticket? [Yes/no] yes
-            An error occured: no description found.
+            TicketSyntaxError: no description found
             Do you want to try to fix your ticket file? [Yes/no] no
             sage: os.environ['EDITOR'] = 'echo "Summary: Foo\nFoo\nFoo: Foo" >'
             sage: s.trac.create_ticket_interactive()
             Do you want to create a new ticket? [Yes/no] yes
-            An error occured in line 3: field `Foo` not supported.
+            TicketSyntaxError: line 3: field `Foo` not supported
             Do you want to try to fix your ticket file? [Yes/no] no
             sage: os.environ['EDITOR'] = 'echo "Summary: Foo\nFoo\nCc: Foo" >'
             sage: s.trac.create_ticket_interactive()

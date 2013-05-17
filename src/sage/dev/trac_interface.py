@@ -97,8 +97,15 @@ def _parse_ticket_file(filename):
         ....:     f.write("some description\n")
         ....:     f.write("#an ignored line\n")
         ....:     f.write("more description\n")
+        ....:     f.write("\n")
         sage: _parse_ticket_file(tmp)
-        ('a summary', 'some description\nmore description', {'branch': 'a branch'})
+        ('a summary', 'some description\nmore description\n', {'branch': 'a branch'})
+        sage: with open(tmp, 'w') as f:
+        ....:     f.write("summary:a summary\n")
+        ....:     f.write("some description\n")
+        ....:     f.write("branch:a branch\n")
+        sage: _parse_ticket_file(tmp)
+        ('a summary', 'some description\nbranch:a branch\n', {})
         sage: os.unlink(tmp)
     """
     lines = list(open(filename).read().splitlines())
@@ -107,43 +114,51 @@ def _parse_ticket_file(filename):
         return
 
     fields = {}
-    description = []
-
     for i, line in enumerate(lines):
-        if line.startswith('#'):
+        line = line.strip()
+        if not line or line.startswith('#'):
             continue
-        line = line.rstrip()
-        i += 1 # line numbers should be indexed from 1
 
         m = FIELD_REGEX.match(line)
-        if m and not line.startswith("sage: "):
+        if m:
             field = m.groups()[0]
             if not (field.lower() == 'summary' or
                     field.lower() in ALLOWED_FIELDS):
-                raise TicketSyntaxError("line %s: "%i +
+                raise TicketSyntaxError("line %s: "%(i+1) +
                                         "field `%s` not supported"%field)
             elif field.lower() in fields:
-                raise TicketSyntaxError("line %s: "%i +
+                raise TicketSyntaxError("line %s: "%(i+1) +
                                         "only one value for %s allowed"%field)
             else:
                 fields[field.lower()] = m.groups()[1].strip()
                 continue
+        else:
+            break
+    else: # no description
+        i += 1
 
-        if line != "[Description]":
-            description.append(line)
 
-    # no syntax errors in file
+    # separate summary from other fields
     try:
         summary = fields.pop('summary')
     except KeyError:
         summary = None
 
+    description = [line.rstrip() for line in lines[i:]
+            if not line.startswith('#')]
+
+    # remove leading and trailing empty newlines
+    while description and not description[0]:
+        description.pop(0)
+    while description and not description[-1]:
+        description.pop()
+
     if not summary:
         raise TicketSyntaxError("no valid summary found")
-    elif not "".join(description):
+    elif not description:
         raise TicketSyntaxError("no description found")
     else:
-        return summary, "\n".join(description), fields
+        return summary, "\n".join(description)+"\n", fields
 
 class DigestTransport(object, Transport):
     """
@@ -492,7 +507,7 @@ class TracInterface(object):
                     F.write("%s: %s\n"%(k,v))
 
             if description is None or not description.strip():
-                description = "\n[Description]\n"
+                description = "\nADD DESCRIPTION\n"
             F.write(description + "\n")
             F.write(TICKET_FILE_GUIDE)
 
@@ -526,15 +541,14 @@ class TracInterface(object):
             sage: import os
             sage: t = SageDev(doctest_config()).trac
             sage: os.environ['EDITOR'] = 'cat'
-            sage: t._UI.extend(["yes"]+["no", "yes"]*3)
+            sage: t._UI.extend(["no"]*3)
             sage: t.create_ticket_interactive()
-            Do you want to create a new ticket? [Yes/no] yes
             Summary:
             Priority: major
-            Keywords:
-            Type: defect
+            Component: PLEASE CHANGE
+            Type: PLEASE CHANGE
             <BLANKLINE>
-            [Description]
+            ADD DESCRIPTION
             <BLANKLINE>
             <BLANKLINE>
             # Lines starting with `#` are ignored.
@@ -551,35 +565,32 @@ class TracInterface(object):
             Do you want to try to fix your ticket file? [Yes/no] no
             sage: os.environ['EDITOR'] = 'echo "Summary: Foo" >'
             sage: t.create_ticket_interactive()
-            Do you want to create a new ticket? [Yes/no] yes
             TicketSyntaxError: no description found
             Do you want to try to fix your ticket file? [Yes/no] no
-            sage: os.environ['EDITOR'] = 'echo "Summary: Foo\nFoo\nFoo: Foo" >'
+            sage: os.environ['EDITOR'] = 'echo "Summary: Foo\nFoo: Foo\nFoo" >'
             sage: t.create_ticket_interactive()
-            Do you want to create a new ticket? [Yes/no] yes
-            TicketSyntaxError: line 3: field `Foo` not supported
+            TicketSyntaxError: line 2: field `Foo` not supported
             Do you want to try to fix your ticket file? [Yes/no] no
-            sage: os.environ['EDITOR'] = 'echo "Summary: Foo\nFoo\nCc: Foo" >'
+            sage: os.environ['EDITOR'] = 'echo "Summary: Foo\nCc: Foo\nFoo" >'
             sage: t.create_ticket_interactive()
-            Do you want to create a new ticket? [Yes/no] yes
             Created ticket #14366.
             14366
         """
-        if self._UI.confirm("Do you want to create a new ticket?"):
-            summary, description, attributes = "","\n",{"Type":"defect","Priority":"major","Keywords":""}
-            while True:
-                try:
-                    ret = self._edit_ticket_interactive(summary, description, attributes)
-                    if not ret: return None
-                    summary, description, attributes = ret
-                    ticket = self.create_ticket(summary, description, attributes)
-                    self._UI.show("Created ticket #%s."%ticket)
-                    return ticket
-                except StandardError as e:
-                        self._UI.show("Ticket creation failed: %s"%e)
-                        if self._UI.confirm("Do you want to try to fix your ticket file?"): continue
-                        else: return None
-        assert(False)
+        attributes = {
+                "Type":         "PLEASE CHANGE",
+                "Priority":     "major",
+                "Component":    "PLEASE CHANGE",
+                }
+
+        ret = self._edit_ticket_interactive("", None, attributes)
+
+        if ret is None:
+            return
+
+        ticket = self.create_ticket(*ret)
+        self._UI.show("Created ticket #%s."%ticket)
+
+        return ticket
 
     def set_dependencies(self, ticket, dependencies):
         """

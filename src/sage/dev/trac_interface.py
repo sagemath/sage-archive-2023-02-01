@@ -64,7 +64,7 @@ def _parse_ticket_file(filename):
     TESTS::
 
         sage: from sage.dev.trac_interface import _parse_ticket_file
-        sage: import tempfile
+        sage: import os, tempfile
         sage: tmp = tempfile.mkstemp()[1]
         sage: with open(tmp, 'w') as f:
         ....:     f.write("no summary\n")
@@ -99,6 +99,7 @@ def _parse_ticket_file(filename):
         ....:     f.write("more description\n")
         sage: _parse_ticket_file(tmp)
         ('a summary', 'some description\nmore description', {'branch': 'a branch'})
+        sage: os.unlink(tmp)
     """
     lines = list(open(filename).read().splitlines())
 
@@ -340,15 +341,14 @@ class TracInterface(object):
             sage: from sage.dev.sagedev import SageDev, Config, doctest_config
             sage: conf = doctest_config()
             sage: del conf['trac']
-            sage: s = SageDev(conf)
-            sage: s._UI.append("user")
-            sage: s.trac._username
+            sage: t = SageDev(conf).trac
+            sage: t._UI.append("user")
+            sage: t._username
             Please enter your trac username: user
             'user'
-            sage: s.trac._username
+            sage: t._username
             'user'
-            sage: s = SageDev(Config(conf._devrc))
-            sage: s.trac._username
+            sage: SageDev(Config(conf._devrc)).trac._username
             'user'
         """
         if 'username' not in self._config:
@@ -363,24 +363,24 @@ class TracInterface(object):
         EXAMPLES::
 
             sage: from sage.dev.sagedev import SageDev, doctest_config
-            sage: s = SageDev(doctest_config())
-            sage: s._UI.extend(["yes", "passwd", "passwd", "", "pass", "pass"])
-            sage: s.trac._password
+            sage: t = SageDev(doctest_config()).trac
+            sage: t._UI.extend(["yes", "passwd", "passwd", "", "pass", "pass"])
+            sage: t._password
             Please enter your trac password:
             Please confirm your trac password:
             Do you want your password to be stored on your local system? (your password will be stored in plaintext in a file only readable by you) [yes/No/stop asking]
             'pass'
-            sage: s.trac._password
+            sage: t._password
             'pass'
             sage: import time      # long time
             sage: time.sleep(1)    # long time
-            sage: s.trac._password # long time
+            sage: t._password      # long time
             Please enter your trac password:
             Please confirm your trac password:
             Do you want your password to be stored on your local system? (your password will be stored in plaintext in a file only readable by you) [yes/No/stop asking] yes
             'passwd'
             sage: time.sleep(1)    # long time
-            sage: s.trac._password # long time
+            sage: t._password      # long time
             'passwd'
         """
         if self._config.get('password'):
@@ -517,11 +517,11 @@ class TracInterface(object):
         EXAMPLE::
 
             sage: from sage.dev.sagedev import SageDev, doctest_config
-            sage: s = SageDev(doctest_config())
             sage: import os
+            sage: t = SageDev(doctest_config()).trac
             sage: os.environ['EDITOR'] = 'cat'
-            sage: s._UI.extend(["yes"]+["no", "yes"]*3)
-            sage: s.trac.create_ticket_interactive()
+            sage: t._UI.extend(["yes"]+["no", "yes"]*3)
+            sage: t.create_ticket_interactive()
             Do you want to create a new ticket? [Yes/no] yes
             Summary:
             Priority: major
@@ -544,17 +544,17 @@ class TracInterface(object):
             TicketSyntaxError: no valid summary found
             Do you want to try to fix your ticket file? [Yes/no] no
             sage: os.environ['EDITOR'] = 'echo "Summary: Foo" >'
-            sage: s.trac.create_ticket_interactive()
+            sage: t.create_ticket_interactive()
             Do you want to create a new ticket? [Yes/no] yes
             TicketSyntaxError: no description found
             Do you want to try to fix your ticket file? [Yes/no] no
             sage: os.environ['EDITOR'] = 'echo "Summary: Foo\nFoo\nFoo: Foo" >'
-            sage: s.trac.create_ticket_interactive()
+            sage: t.create_ticket_interactive()
             Do you want to create a new ticket? [Yes/no] yes
             TicketSyntaxError: line 3: field `Foo` not supported
             Do you want to try to fix your ticket file? [Yes/no] no
             sage: os.environ['EDITOR'] = 'echo "Summary: Foo\nFoo\nCc: Foo" >'
-            sage: s.trac.create_ticket_interactive()
+            sage: t.create_ticket_interactive()
             Do you want to create a new ticket? [Yes/no] yes
             Created ticket #14366.
             14366

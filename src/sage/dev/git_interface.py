@@ -258,10 +258,10 @@ def load_dict_from_file(filename):
     if os.path.exists(filename):
         with open(filename) as F:
             s = F.read()
+        if s:
             unpickler = cPickle.Unpickler(StringIO(s))
             return unpickler.load()
-    else:
-        return {}
+    return {}
 
 def _raise():
     """
@@ -311,7 +311,7 @@ class SavingDict(collections.MutableMapping):
 
             sage: from sage.dev.git_interface import SavingDict
             sage: import os, tempfile
-            sage: tmp = tempfile.NamedTemporaryFile().name
+            sage: tmp = tempfile.mkstemp()[1]
             sage: sd = SavingDict(tmp)
             sage: sd['cat'] = 'meow'; sd['cat']
             'meow'
@@ -357,8 +357,7 @@ class SavingDict(collections.MutableMapping):
 
             sage: from sage.dev.git_interface import SavingDict
             sage: import os, tempfile
-            sage: tmp1 = tempfile.NamedTemporaryFile().name
-            sage: tmp2 = tempfile.NamedTemporaryFile().name
+            sage: tmp1, tmp2 = tempfile.mkstemp()[1], tempfile.mkstemp()[1]
             sage: sd1= SavingDict(tmp1); sd2 = SavingDict(tmp2, paired=sd1)
             sage: sd1[0] = 1; sd1[0]; sd2[1]
             1
@@ -386,8 +385,7 @@ class SavingDict(collections.MutableMapping):
 
             sage: from sage.dev.git_interface import SavingDict
             sage: import os, tempfile
-            sage: tmp1 = tempfile.NamedTemporaryFile().name
-            sage: tmp2 = tempfile.NamedTemporaryFile().name
+            sage: tmp1, tmp2 = tempfile.mkstemp()[1], tempfile.mkstemp()[1]
             sage: sd1, sd2 = SavingDict(tmp1), SavingDict(tmp2)
             sage: sd1.set_paired(sd2)
             sage: sd1[0] = 1; sd1[0]; sd2[1]
@@ -441,7 +439,7 @@ class SavingDict(collections.MutableMapping):
 
             sage: from sage.dev.git_interface import SavingDict
             sage: import os, tempfile
-            sage: tmp = tempfile.NamedTemporaryFile().name
+            sage: tmp = tempfile.mkstemp()[1]
             sage: sd = SavingDict(tmp, {0:1, 1:2})
             sage: SavingDict(tmp)
             {}
@@ -463,7 +461,7 @@ class SavingDict(collections.MutableMapping):
 
             sage: from sage.dev.git_interface import SavingDict
             sage: import os, tempfile
-            sage: tmp = tempfile.NamedTemporaryFile().name
+            sage: tmp = tempfile.mkstemp()[1]
             sage: sd = SavingDict(tmp)
             sage: sd['cow'] = 'moo'
             sage: sd
@@ -484,7 +482,7 @@ class SavingDict(collections.MutableMapping):
 
             sage: from sage.dev.git_interface import SavingDict
             sage: import os, tempfile
-            sage: tmp = tempfile.NamedTemporaryFile().name
+            sage: tmp = tempfile.mkstemp()[1]
             sage: sd = SavingDict(tmp, {'cow': 'moo'}); sd
             {'cow': 'moo'}
             sage: del sd['cow']
@@ -541,7 +539,7 @@ class SavingDict(collections.MutableMapping):
 
             sage: from sage.dev.git_interface import SavingDict
             sage: import os, tempfile
-            sage: tmp = tempfile.NamedTemporaryFile().name
+            sage: tmp = tempfile.mkstemp()[1]
             sage: sd = SavingDict(tmp); len(sd)
             0
             sage: sd['cow'] = 'moo'

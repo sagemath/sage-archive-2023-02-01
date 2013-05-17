@@ -107,6 +107,7 @@ class Config(collections.MutableMapping):
 
             sage: from sage.dev.sagedev import doctest_config
             sage: c = doctest_config()
+            sage: os.unlink(c._devrc)
             sage: os.path.exists(c._devrc)
             False
             sage: c._write_config()
@@ -151,11 +152,13 @@ class Config(collections.MutableMapping):
                 return iter(self._config.options(this._section))
             def __setitem__(this, option, value):
                 self._config.set(this._section, option, value)
+                this._write_config()
             def getboolean(this, option):
                 return self._config.getboolean(this._section, option)
             def _write_config(this):
                 self._write_config()
             def __delitem__(this, option):
+                this._write_config()
                 self._config.remove_option(this._section, option)
             def __len__(this):
                 return len(self._config.options(this._section))
@@ -185,7 +188,6 @@ class Config(collections.MutableMapping):
 
             sage: list(dev._config)
             ['trac']
-
         """
         return iter(self._config.sections())
 
@@ -200,13 +202,13 @@ class Config(collections.MutableMapping):
             sage: c['foo'] = {'foo':'foo'}
             sage: c['foo']['foo']
             'foo'
-
         """
         if self._config.has_section(section):
             self.remove_section(section)
         self._config.add_section(section)
         for option, value in dictionary.iteritems():
             self._config.set(section, option, value)
+        self._write_config()
 
     def __len__(self):
         """
@@ -232,6 +234,7 @@ class Config(collections.MutableMapping):
             ['trac']
         """
         self._config.remove_section(section)
+        self._write_config()
 
 class SageDev(object):
     """

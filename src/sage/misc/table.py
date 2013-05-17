@@ -469,6 +469,11 @@ class table(SageObject):
             sage: T.options(frame=True)
             sage: T._str_table_row([1,2,3], False)
             '|  1 ||   2 |     3 |\n+----++-----+-------+\n'
+
+        Check that :trac:`14601` has been fixed::
+
+            sage: table([['111111', '222222', '333333']])._str_table_row([False,True,None], False)
+            '  False    True     None\n'
         """
         frame = self._options['frame']
         widths = self._widths()
@@ -491,7 +496,7 @@ class table(SageObject):
         if self._options['header_column']:
             if frame:
                 frame_line = "+" + frame_line[1:].replace('+', '++', 1)
-            s += ("{:" + align_char + str(widths[0]) + "}").format(row[0])
+            s += ("{!s:" + align_char + str(widths[0]) + "}").format(row[0])
             if frame:
                 s += " || "
             else:
@@ -500,7 +505,7 @@ class table(SageObject):
             widths = widths[1:]
 
         for (entry, width) in zip(row, widths):
-            s += ("{:" + align_char + str(width) + "}").format(entry)
+            s += ("{!s:" + align_char + str(width) + "}").format(entry)
             if frame:
                 s += " | "
             else:

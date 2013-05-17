@@ -346,7 +346,7 @@ class TracInterface(object):
             'user'
         """
         if 'username' not in self._config:
-            self._config['username'] = self._UI.get_input("Please enter your trac username: ")
+            self._config['username'] = self._UI.get_input("Please enter your trac username:")
             self._config._write_config()
         return self._config['username']
 
@@ -377,12 +377,12 @@ class TracInterface(object):
             return self._config['password']
         else:
             while True:
-                password = self._UI.get_password("Please enter your trac password: ")
-                password2 = self._UI.get_password("Please confirm your trac password: ")
+                password = self._UI.get_password("Please enter your trac password:")
+                password2 = self._UI.get_password("Please confirm your trac password:")
                 if password != password2:
                     self._UI.show("Passwords do not agree.")
                 else: break
-            if self._UI.confirm("Do you want your password to be stored on your local system? (your password will be stored in plaintext in a file only readable by you)", default_yes=False):
+            if self._UI.confirm("Do you want your password to be stored on your local system? (your password will be stored in plaintext in a file only readable by you)", default_no=True):
                 self._config['password'] = password
                 self._config._write_config()
             return password
@@ -440,7 +440,7 @@ class TracInterface(object):
                 self._authenticated_server_proxy.ticket.update(ticketnum, "", attributes)
             except StandardError:
                 self._UI.show("Ticket editing failed: %s"%e)
-                if self._UI.confirm("Do you want to try to fix your ticket file?", default_yes=True): continue
+                if self._UI.confirm("Do you want to try to fix your ticket file?"): continue
                 else: return None
 
     def _edit_ticket_interactive(self, summary, description, attributes):
@@ -473,7 +473,7 @@ class TracInterface(object):
             self._UI.show("TicketSyntaxError: "+error.message)
 
             if not self._UI.confirm("Do you want to try to fix your ticket "+
-                                    "file?", default_yes=True):
+                                    "file?"):
                 ret = None
                 break
 
@@ -541,7 +541,7 @@ class TracInterface(object):
                     return ticket
                 except StandardError as e:
                         self._UI.show("Ticket creation failed: %s"%e)
-                        if self._UI.confirm("Do you want to try to fix your ticket file?", default_yes=True): continue
+                        if self._UI.confirm("Do you want to try to fix your ticket file?"): continue
                         else: return None
         assert(False)
 

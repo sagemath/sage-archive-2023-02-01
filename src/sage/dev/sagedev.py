@@ -16,7 +16,7 @@ from subprocess import call, check_call
 
 from git_interface import GitInterface
 from trac_interface import TracInterface
-from user_interface import UserInterface, CmdLineInterface
+from user_interface import UserInterface, CmdLineInterface, DoctestInterface
 
 from sage.env import DOT_SAGE
 from sage.doctest import DOCTEST_MODE
@@ -257,7 +257,10 @@ class SageDev(object):
 
         """
         self._config = config
-        self._UI = CmdLineInterface()
+        if DOCTEST_MODE:
+            self._UI = DoctestInterface()
+        else:
+            self._UI = CmdLineInterface()
 
         self.__git = None
         self.__trac = None
@@ -427,7 +430,7 @@ class SageDev(object):
             else:
                 kwds['all'] = True
             if message is None:
-                message = self._UI.get_input("Please enter a commit message: ")
+                message = self._UI.get_input("Please enter a commit message:")
             kwds['m'] = message
             self.git.commit(**kwds)
         else:
@@ -464,13 +467,13 @@ class SageDev(object):
         elif ticket is None:
             ticket = oldticket
         elif oldticket != ticket:
-            if not self._UI.confirm("Are you sure you want to upload your changes to ticket %s instead of %s?"%(self._print(ticket), self._print(oldticket)), False):
+            if not self._UI.confirm("Are you sure you want to upload your changes to ticket %s instead of %s?"%(self._print(ticket), self._print(oldticket)), default_no=True):
                 return
             self.git._ticket[branch] = ticket
         if ticket:
             ref = self._fetch(ticket)
             if not self.git.is_ancestor_of(ref, branch) and not force:
-                if not self._UI.confirm("Changes not compatible with remote branch; consider downloading first.  Are you sure you want to continue?", False):
+                if not self._UI.confirm("Changes not compatible with remote branch; consider downloading first.  Are you sure you want to continue?", default_no=True):
                     return
         remote_branch = remote_branch or self.git._local_to_remote_name(branch)
         if repository is None:
@@ -659,7 +662,7 @@ class SageDev(object):
             am_args = shared_args+["--resolvemsg=''"]
             am = self.git.am(*am_args)
             if am: # apply failed
-                if not self._UI.confirm("The patch does not apply cleanly. Would you like to apply it anyway and create reject files for the parts that do not apply?", default_yes=False):
+                if not self._UI.confirm("The patch does not apply cleanly. Would you like to apply it anyway and create reject files for the parts that do not apply?", default_no=True):
                     self._UI.show("Not applying patch.")
                     self.git.reset_to_clean_state(interactive=False)
                     return
@@ -667,7 +670,7 @@ class SageDev(object):
                 apply_args = shared_args + ["--reject"]
                 apply = self.git.apply(*apply_args)
                 if apply: # apply failed
-                    if self._UI.get_input("The patch did not apply cleanly. Please integrate the `.rej` files that were created and resolve conflicts. When you did, type `resolved`. If you want to abort this process, type `abort`.",["resolved","abort"]) == "abort":
+                    if self._UI.select("The patch did not apply cleanly. Please integrate the `.rej` files that were created and resolve conflicts. When you did, type `resolved`. If you want to abort this process, type `abort`.",["resolved","abort"]) == "abort":
                         self.git.reset_to_clean_state(interactive=False)
                         self.git.reset_to_clean_working_directory(interactive=False)
                         return
@@ -791,7 +794,7 @@ class SageDev(object):
         - :meth:`local_tickets` -- list local tickets (by default only
           showing the non-abandoned ones).
         """
-        if self._UI.confirm("Are you sure you want to delete your work on #%s?"%(ticketnum), default_yes=False):
+        if self._UI.confirm("Are you sure you want to delete your work on #%s?"%(ticketnum), default_no=True):
             self.git.abandon(ticketnum)
 
     def gather(self, branchname, *tickets, **kwds):
@@ -829,7 +832,7 @@ class SageDev(object):
             self._UI.show("Please include at least one input branch")
             return
         if self.git.branch_exists(branchname):
-            if not self._UI.confirm("The %s branch already exists; do you want to merge into it?", default_yes=False):
+            if not self._UI.confirm("The %s branch already exists; do you want to merge into it?", default_no=True):
                 return
             self.git.execute_silent("checkout", branchname)
         else:
@@ -1782,7 +1785,7 @@ class SageDev(object):
             options = ["current branch", "new branch", "stash"]
         except ValueError:
             options = ["new branch", "stash"]
-        dest = self._UI.get_input("Where do you want to store your changes?", options)
+        dest = self._UI.select("Where do you want to store your changes?", options)
         if dest == "stash":
             self.git.stash()
         elif dest == "new branch":

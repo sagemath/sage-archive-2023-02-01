@@ -386,8 +386,15 @@ class TracInterface(object):
         if self._config.get('password'):
             return self._config['password']
 
+        def set_timeout():
+            self.__passwd_timeout = time.time()
+            # default timeout is 5 minutes, like sudo
+            self.__passwd_timeout += float(
+                    self._config.get('password_timeout', 300))
+
         if self.__passwd_timeout is not None:
             if time.time() < self.__passwd_timeout:
+                set_timeout()
                 return self.__passwd
             else:
                 self.__passwd = None
@@ -412,10 +419,7 @@ class TracInterface(object):
                 self._config['password'] = ""
 
         self.__passwd = passwd
-        self.__passwd_timeout = time.time()
-        # default timeout is 15 minutes, like sudo
-        self.__passwd_timeout += float(
-                self._config.get('password_timeout', 900))
+        set_timeout()
 
         return self.__passwd
 

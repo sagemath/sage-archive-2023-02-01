@@ -39,7 +39,7 @@ TICKET_FILE_GUIDE = """
 # Lines not following this format will be put into the ticket
 # description. Trac markup is supported.
 #
-# An empty file aborts ticket creation.
+# An empty file aborts ticket creation/editing.
 """
 
 class TicketSyntaxError(SyntaxError): # we don't want to catch normal syntax errors
@@ -495,8 +495,51 @@ class TracInterface(object):
                 else: return None
 
     def _edit_ticket_interactive(self, summary, description, attributes):
-        """
+        r"""
         edit a ticket interactively
+
+        INPUT:
+
+        - ``summary`` -- summary of ticket
+
+        - ``description`` -- description of ticket
+
+        - ``attributes`` -- dictionary containing field, value pairs
+
+        OUTPUT: updated version of input after user has edited the ticket
+        or ``None`` if editing is aborted
+
+        TESTS::
+
+            sage: import os
+            sage: os.environ['EDITOR'] = 'cat'
+            sage: tup = ('a summary', 'a description', {'Branch': 'a branch'})
+            sage: tup = dev.trac._edit_ticket_interactive(*tup)
+            Summary: a summary
+            Branch: a branch
+            a description
+            <BLANKLINE>
+            # Lines starting with `#` are ignored.
+            # Lines starting with `Field: ` correspond to fields of
+            # the trac ticket, and can be followed by text on the same line.
+            # They will be assigned to the corresponding field on the trac
+            # ticket.
+            #
+            # Lines not following this format will be put into the ticket
+            # description. Trac markup is supported.
+            #
+            # An empty file aborts ticket creation/editing.
+            sage: print tup
+            ('a summary', 'a description\n', {'branch': 'a branch'})
+            sage: os.environ['EDITOR'] = 'echo "added more description" >>'
+            sage: print dev.trac._edit_ticket_interactive(*tup)
+            ('a summary', 'a description\n\n\nadded more description\n', {'branch': 'a branch'})
+            sage: os.environ['EDITOR'] = r"sed -i 's+^\(Summary: \).*$+\1new summary+'"
+            sage: print dev.trac._edit_ticket_interactive(*tup)
+            ('new summary', 'a description\n', {'branch': 'a branch'})
+            sage: os.environ['EDITOR'] = r"sed -i 's+^\(Branch: \).*$+\1new branch+'"
+            sage: print dev.trac._edit_ticket_interactive(*tup)
+            ('a summary', 'a description\n', {'branch': 'new branch'})
         """
         filename = tempfile.mkstemp()[1]
         with open(filename, "w") as F:
@@ -560,7 +603,7 @@ class TracInterface(object):
             # Lines not following this format will be put into the ticket
             # description. Trac markup is supported.
             #
-            # An empty file aborts ticket creation.
+            # An empty file aborts ticket creation/editing.
             TicketSyntaxError: no valid summary found
             Do you want to try to fix your ticket file? [Yes/no] no
             sage: os.environ['EDITOR'] = 'echo "Summary: Foo" >'

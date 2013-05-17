@@ -19,10 +19,9 @@ class DigestTransport(object, Transport):
 
     EXAMPLES::
 
-        sage: from trac_interface import REALM, TRAC_SERVER_URI, DigestTransport
-        sage: DigestTransport(REALM, TRAC_SERVER_URI+"/xmlrpc")
-        <trac_interface.DigestTransport at ...>
-
+        sage: from sage.env import REALM, TRAC_SERVER_URI
+        sage: sage.dev.trac_interface.DigestTransport(REALM, TRAC_SERVER_URI+"/xmlrpc")
+        <sage.dev.trac_interface.DigestTransport object at ...>
     """
     def __init__(self, realm, url, username=None, password=None, **kwds):
         """
@@ -30,10 +29,9 @@ class DigestTransport(object, Transport):
 
         EXAMPLES::
 
-            sage: from trac_interface import REALM, TRAC_SERVER_URI, DigestTransport
-            sage: type(DigestTransport(REALM, TRAC_SERVER_URI+"/xmlrpc"))
-            trac_interface.DigestTransport
-
+            sage: from sage.env import REALM, TRAC_SERVER_URI
+            sage: type(sage.dev.trac_interface.DigestTransport(REALM, TRAC_SERVER_URI+"/xmlrpc"))
+            <class 'sage.dev.trac_interface.DigestTransport'>
         """
         Transport.__init__(self, **kwds)
 
@@ -49,10 +47,9 @@ class DigestTransport(object, Transport):
 
         EXAMPLES::
 
-            sage: from trac_interface import REALM, TRAC_SERVER_URI, DigestTransport
-            sage: d = DigestTransport(REALM, TRAC_SERVER_URI+"/xmlrpc")
+            sage: from sage.env import REALM, TRAC_SERVER_URI
+            sage: d = sage.dev.trac_interface.DigestTransport(REALM, TRAC_SERVER_URI+"/xmlrpc")
             sage: d.request # not tested
-
         """
         self.verbose = verbose
 
@@ -70,10 +67,8 @@ class DoctestServerProxy(object):
 
     EXAMPLES::
 
-        sage: from trac_interface import DoctestServerProxy
-        sage: DoctestServerProxy(None)
-        <trac_interface.DoctestServerProxy at ...>
-
+        sage: sage.dev.trac_interface.DoctestServerProxy(None)
+        <sage.dev.trac_interface.DoctestServerProxy object at ...>
     """
     def __init__(self, trac):
         self._trac = trac
@@ -81,6 +76,10 @@ class DoctestServerProxy(object):
 
     @property
     def sshkeys(self):
+        try:
+            return self._sshkeys_impl
+        except AttributeError:
+            pass
         class SshKeys(object):
             def setkeys(this, keys):
                 if self._trac._username not in self._sshkeys:
@@ -109,10 +108,8 @@ class TracInterface(object):
 
     EXAMPLES::
 
-        sage: from sagedev import SageDev, Config
-        sage: SageDev(Config._doctest_config()).trac
-        <trac_interface.TracInterface at ...>
-
+        sage: dev.trac
+        <sage.dev.trac_interface.TracInterface object at ...>
     """
     def __init__(self, sagedev):
         """
@@ -120,11 +117,8 @@ class TracInterface(object):
 
         EXAMPLES::
 
-            sage: from sagedev import SageDev, Config
-            sage: from trac_interface import TracInterface
-            sage: type(TracInterface(SageDev(Config._doctest_config())))
-            trac_interface.TracInterface
-
+            sage: type(sage.dev.trac_interface.TracInterface(dev))
+            <class 'sage.dev.trac_interface.TracInterface'>
         """
         self._sagedev = sagedev
         self._UI = sagedev._UI
@@ -148,10 +142,8 @@ class TracInterface(object):
 
         EXAMPLES::
 
-            sage: from sagedev import SageDev, Config
-            sage: SageDev(Config._doctest_config()).trac._anonymous_server_proxy
+            sage: dev.trac._anonymous_server_proxy
             <ServerProxy for trac.tangentspace.org/sage_trac/xmlrpc>
-
         """
         if self.__anonymous_server_proxy is None:
             realm = REALM
@@ -174,16 +166,13 @@ class TracInterface(object):
 
         EXAMPLES::
 
-            sage: from sagedev import SageDev, Config
-            sage: SageDev().trac._authenticated_server_proxy # not tested
+            sage: dev.trac._authenticated_server_proxy # not tested
             <ServerProxy for trac.tangentspace.org/sage_trac/login/xmlrpc>
 
         For convenient doctesting, this is replaced with a fake object for the user ``'doctest'``::
 
-            sage: from sagedev import SageDev, Config
-            sage: SageDev(config=Config._doctest_config()).trac._authenticated_server_proxy
-            <trac_interface.DoctestServerProxy at ...>
-
+            sage: dev.trac._authenticated_server_proxy
+            <sage.dev.trac_interface.DoctestServerProxy object at ...>
         """
         config = self._config
 
@@ -213,20 +202,19 @@ class TracInterface(object):
 
         EXAMPLES::
 
-            sage: from sagedev import SageDev, Config
-            sage: import tempfile
-            sage: devrc = tempfile.NamedTemporaryFile().name
-            sage: s = SageDev(Config(devrc))
-            sage: s._UI._answer_stack = ["user"]
+            sage: from sage.dev.sagedev import SageDev, Config, doctest_config
+            sage: conf = doctest_config()
+            sage: del conf['trac']
+            sage: s = SageDev(conf)
+            sage: s._UI.append("user")
             sage: s.trac._username
             Please enter your trac username: user
             'user'
             sage: s.trac._username
             'user'
-            sage: s = SageDev(Config(devrc))
+            sage: s = SageDev(Config(conf._devrc))
             sage: s.trac._username
             'user'
-
         """
         if 'username' not in self._config:
             self._config['username'] = self._UI.get_input("Please enter your trac username: ")
@@ -240,16 +228,14 @@ class TracInterface(object):
 
         EXAMPLES::
 
-            sage: import tempfile
-            sage: from sagedev import SageDev, Config
-            sage: s = SageDev(Config(tempfile.NamedTemporaryFile().name))
-            sage: s._UI._answer_stack = [ "", "pass", "pass" ]
+            sage: from sage.dev.sagedev import SageDev, doctest_config
+            sage: s = SageDev(doctest_config())
+            sage: s._UI.extend(["yes", "passwd", "passwd", "", "pass", "pass"])
             sage: s.trac._password
             Please enter your trac password:
             Please confirm your trac password:
             Do you want your password to be stored on your local system? (your password will be stored in plaintext in a file only readable by you) [yes/No]
             'pass'
-            sage: s._UI._answer_stack = [ "yes", "passwd", "passwd" ]
             sage: s.trac._password
             Please enter your trac password:
             Please confirm your trac password:
@@ -257,7 +243,6 @@ class TracInterface(object):
             'passwd'
             sage: s.trac._password
             'passwd'
-
         """
         if 'password' in self._config:
             return self._config['password']
@@ -280,22 +265,9 @@ class TracInterface(object):
 
         EXAMPLES::
 
-            sage: from sagedev import SageDev, Config
-            sage: sshkeys = SageDev().trac.sshkeys # not tested
-            sage: type(sshkeys) # not tested
-            instance
-            sage: sshkeys.listusers() # not tested
-            ['rohana', 'saraedum', 'roed', 'kini', 'nthiery', 'anonymous']
-            sage: sshkeys.getkeys() # not tested
-            []
-            sage: sshkeys.setkeys(["foo","bar"]) # not tested
-            0
-            sage: sshkeys.getkeys() # not tested
-            ['foo', 'bar']
-
-            sage: sshkeys = SageDev(Config._doctest_config()).trac.sshkeys
+            sage: sshkeys = dev.trac.sshkeys
             sage: type(sshkeys)
-            trac_interface.SshKeys
+            <class 'sage.dev.trac_interface.SshKeys'>
             sage: sshkeys.listusers()
             []
             sage: sshkeys.getkeys()
@@ -304,7 +276,6 @@ class TracInterface(object):
             0
             sage: sshkeys.getkeys()
             ['foo', 'bar']
-
         """
         return self._authenticated_server_proxy.sshkeys
 
@@ -314,13 +285,8 @@ class TracInterface(object):
 
         EXAMPLES::
 
-            sage: from sagedev import SageDev, Config
-            sage: SageDev().trac.create_ticket("Summary","Description",{'type':'defect','component':'algebra'}) # not tested
+            sage: dev.trac.create_ticket("Summary","Description",{'type':'defect','component':'algebra'})
             14366
-
-            sage: SageDev(Config._doctest_config()).trac.create_ticket("Summary","Description",{'type':'defect','component':'algebra'})
-            14366
-
         """
         return self._authenticated_server_proxy.ticket.create(summary, description, attributes, notify)
 
@@ -445,11 +411,11 @@ class TracInterface(object):
 
         EXAMPLE::
 
-            sage: from sagedev import SageDev, Config
-            sage: s = SageDev(Config._doctest_config())
+            sage: from sage.dev.sagedev import SageDev, doctest_config
+            sage: s = SageDev(doctest_config())
             sage: import os
             sage: os.environ['EDITOR'] = 'cat'
-            sage: s._UI._answer_stack = ["no", "yes"]
+            sage: s._UI.extend(["yes"]+["no", "yes"]*3)
             sage: s.trac.create_ticket_interactive()
             Do you want to create a new ticket? [Yes/no] yes
             Summary:
@@ -471,24 +437,20 @@ class TracInterface(object):
             An error occured: no valid `Summary` found.
             Do you want to try to fix your ticket file? [Yes/no] no
             sage: os.environ['EDITOR'] = 'echo "Summary: Foo" >'
-            sage: s._UI._answer_stack = ["no","yes"]
             sage: s.trac.create_ticket_interactive()
             Do you want to create a new ticket? [Yes/no] yes
             An error occured: no description found.
             Do you want to try to fix your ticket file? [Yes/no] no
             sage: os.environ['EDITOR'] = 'echo "Summary: Foo\nFoo\nFoo: Foo" >'
-            sage: s._UI._answer_stack = ["no","yes"]
             sage: s.trac.create_ticket_interactive()
             Do you want to create a new ticket? [Yes/no] yes
             An error occured in line 3: field `Foo` not supported.
             Do you want to try to fix your ticket file? [Yes/no] no
             sage: os.environ['EDITOR'] = 'echo "Summary: Foo\nFoo\nCc: Foo" >'
-            sage: s._UI._answer_stack = ["yes"]
             sage: s.trac.create_ticket_interactive()
             Do you want to create a new ticket? [Yes/no] yes
             Created ticket #14366.
             14366
-
         """
         if self._UI.confirm("Do you want to create a new ticket?"):
             summary, description, attributes = "","\n",{"Type":"defect","Priority":"major","Keywords":""}
@@ -536,8 +498,7 @@ class TracInterface(object):
 
         EXAMPLES::
 
-            sage: from sagedev import SageDev, Config
-            sage: SageDev(Config._doctest_config()).trac._get_attributes(1000) # optional: online
+            sage: dev.trac._get_attributes(1000) # optional: online
             {'_ts': '1199953720000000',
              'cc': '',
              'changetime': <DateTime '20080110T08:28:40' at ...>,
@@ -573,12 +534,11 @@ class TracInterface(object):
 
         EXAMPLES::
 
-            sage: from sagedev import SageDev, Config
-            sage: SageDev(Config._doctest_config()).trac.dependencies(1000) # optional: online (an old ticket with no dependency field)
+            sage: dev.trac.dependencies(1000) # optional: online (an old ticket with no dependency field)
             []
-            sage: SageDev(Config._doctest_config()).trac.dependencies(13147) # optional: online
+            sage: dev.trac.dependencies(13147) # optional: online
             [13579, 13681]
-            sage: SageDev(Config._doctest_config()).trac.dependencies(13147,all=True) # long time optional: online
+            sage: dev.trac.dependencies(13147,all=True) # long time optional: online
             [13579, 13681, 13631]
 
         """
@@ -613,12 +573,10 @@ class TracInterface(object):
 
         EXAMPLES::
 
-            sage: from sagedev import SageDev, Config
-            sage: SageDev(Config._doctest_config()).trac.attachment_names(1000) # optional: online
+            sage: dev.trac.attachment_names(1000) # optional: online
             []
-            sage: SageDev(Config._doctest_config()).trac.attachment_names(13147) # optional: online
+            sage: dev.trac.attachment_names(13147) # optional: online
             ['13147_move.patch', '13147_lazy.patch', '13147_lazy_spkg.patch', '13147_new.patch', '13147_over_13579.patch', 'trac_13147-ref.patch', 'trac_13147-rebased-to-13681.patch', 'trac_13681_root.patch']
-
         """
         ticketnum = int(ticketnum)
         attachments = self._anonymous_server_proxy.ticket.listAttachments(ticketnum)

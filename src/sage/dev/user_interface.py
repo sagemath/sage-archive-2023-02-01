@@ -7,7 +7,7 @@ as prompting for user input.
 from __future__ import print_function
 from getpass import getpass
 
-class UserInterface(object):
+class UserInterface(list):
     def get_input(self, prompt, options=None, default=None, dryrun=False, strip=None):
         """
         get input from the developer
@@ -56,7 +56,11 @@ class UserInterface(object):
             self.show(prompt)
             return options[default]
         while True:
-            s = self._get_input(prompt)
+            if not self:
+                s = self._get_input(prompt)
+            else:
+                s = self.pop()
+                self.show("%s %s"%(prompt, s))
             if strip is not None and s.startswith(strip):
                 s = s[len(strip):]
             if options is None:
@@ -81,6 +85,26 @@ class UserInterface(object):
                 self.show("Please specify an allowable option")
             else:
                 self.show("Please disambiguate between options")
+
+    def get_password(self, prompt):
+        """
+        get password from developer
+
+        TESTS::
+
+            sage: UI = sage.dev.user_interface.CmdLineInterface()
+            sage: UI.append("a number")
+            sage: password = UI.get_password("What is the passphrase for your safe?")
+            What is the passphrase for your safe?
+            sage: password
+            'a number'
+        """
+        if not self:
+            return self._get_password(prompt)
+        else:
+            ret = self.pop()
+            self.show(prompt)
+            return ret
 
     def confirm(self, question, default_yes=True):
         """
@@ -117,7 +141,7 @@ class UserInterface(object):
         """
         raise NotImplementedError
 
-    def get_password(self, prompt):
+    def _get_password(self, prompt):
         """
         like :meth:`_get_input`, but the user input should either not be
         displayed or be masked
@@ -183,17 +207,15 @@ class CmdLineInterface(UserInterface):
         """
         return raw_input(prompt+" ")
 
-    def get_password(self, prompt):
+    def _get_password(self, prompt):
         """
         like :meth:`_get_input`, but the user input is not displayed
 
         TESTS::
 
             sage: UI = sage.dev.user_interface.CmdLineInterface()
-            sage: UI.get_password("What is the passphrase for your safe?") # Not Tested
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            sage: UI._get_password("What is the passphrase for your safe?") # Not Tested
+            What is the passphrase for your safe?
         """
         return getpass(prompt+" ")
 

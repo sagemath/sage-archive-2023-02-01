@@ -5,6 +5,9 @@ Provides small class that is used for displaying messages as well
 as prompting for user input.
 """
 from __future__ import print_function
+
+import os
+
 from getpass import getpass
 
 class UserInterface(list):
@@ -106,6 +109,20 @@ class UserInterface(list):
             self.show(prompt)
             return ret
 
+    def edit(self, filename):
+        """
+        should drop user into editor with filename open
+
+        TESTS::
+
+            sage: UI = sage.dev.user_interface.UserInterface()
+            sage: UI.edit("filename")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        raise NotImplementedError
+
     def confirm(self, question, default_yes=True):
         """
         should ask a yes/no question from the developer and return
@@ -194,6 +211,24 @@ class CmdLineInterface(UserInterface):
         ok = self.get_input(question, ["yes","no"],
                 "yes" if default_yes else "no", dryrun=dryrun)
         return ok == "yes"
+
+    def edit(self, filename):
+        """
+        should drop user into editor with filename open
+
+        TESTS::
+
+            sage: import os, tempfile
+            sage: tmp = tempfile.mkstemp()[1]
+            sage: UI = sage.dev.user_interface.CmdLineInterface()
+            sage: os.environ['EDITOR'] = 'echo "stuff to put in file" >'
+            sage: UI.edit(tmp)
+            sage: print open(tmp,'r').read()
+            stuff to put in file
+            sage: os.unlink(tmp)
+        """
+        r = os.system(" ".join((os.environ.get('EDITOR', 'nano'), filename)))
+        if r: return r
 
     def _get_input(self, prompt):
         """

@@ -35,4 +35,36 @@ Segmentation Fault::
     sage: p = x^84 + (16*x^4 - 1)^20 * (2^48*x^4 - 2049^4)
     sage: len(pari(p).polroots(precision=128))
     84
+
+Check that the optional PARI databases work::
+
+    sage: gp.ellinit('"299998a1"')  # optional -- database_pari
+    [1, 0, 1, 110, -3660, ...]
+    sage: E = EllipticCurve("1728ba1")
+    sage: gp(E).ellidentify()  # optional -- database_pari
+    [["1728ba1", [0, 0, 0, -6, 6], [[1, 1]]], [1, 0, 0, 0]]
+
+    sage: pari("ellmodulareqn(211)")  # optional -- database_pari
+    [x^212 + (-y^7 + 5207*y^6 - 10241606*y^5 + 9430560101*y^4 - 4074860204015*y^3 + 718868274900397*y^2 - 34897101275826114*y + 104096378056356968)*x^211...
+
+The following requires the modular polynomials up to degree 223, while
+only those up to degree 199 come standard in Sage:
+
+    sage: p = next_prime(2^328)
+    sage: E = EllipticCurve(GF(p), [6,1])
+    sage: E.cardinality()  # long time (108s on sage.math, 2013), optional -- database_pari
+    546812681195752981093125556779405341338292357723293496548601032930284335897180749997402596957976244
+
+Create a number field with Galois group `A4`. Group `A4` corresponds to
+transitive group `(12,3)` in GAP.
+
+    sage: R.<x> = PolynomialRing(ZZ)
+    sage: pol = pari("galoisgetpol(12,3)[1]")  # optional -- database_pari
+    sage: K.<a> = NumberField(R(pol))  # optional -- database_pari
+    sage: factor(K.discriminant())  # optional -- database_pari
+    163^8
+    sage: [F.degree() for F,a,b in K.subfields()]  # optional -- database_pari
+    [1, 3, 4, 4, 4, 4, 6, 6, 6, 12]
+    sage: sorted([12/H.cardinality() for H in AlternatingGroup(4).subgroups()])
+    [1, 3, 4, 4, 4, 4, 6, 6, 6, 12]
 """

@@ -389,6 +389,8 @@ class TracInterface(object):
         if self.__passwd_timeout is not None:
             if time.time() < self.__passwd_timeout:
                 return self.__passwd
+            else:
+                self.__passwd = None
 
         while True:
             passwd = self._UI.get_password("Please enter your trac password:")
@@ -397,12 +399,6 @@ class TracInterface(object):
                 break
             else:
                 self._UI.show("Passwords do not agree.")
-
-        self.__passwd = passwd
-        self.__passwd_timeout = time.time()
-        # default timeout is 15 minutes, like sudo
-        self.__passwd_timeout += float(
-                self._config.get('password_timeout', 900))
 
         if self._config.get('password') is None:
             r = self._UI.select("Do you want your password to be stored on "+
@@ -414,6 +410,12 @@ class TracInterface(object):
                 self._config['password'] = passwd
             elif r == 'stop asking':
                 self._config['password'] = ""
+
+        self.__passwd = passwd
+        self.__passwd_timeout = time.time()
+        # default timeout is 15 minutes, like sudo
+        self.__passwd_timeout += float(
+                self._config.get('password_timeout', 900))
 
         return self.__passwd
 

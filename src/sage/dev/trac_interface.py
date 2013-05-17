@@ -5,10 +5,13 @@ import os
 import re
 import tempfile
 import time
+import urllib
 import urllib2
+import urlparse
 
 from xmlrpclib import Transport, ServerProxy
 
+from sage.doctest import DOCTEST_MODE
 from sage.env import REALM, TRAC_SERVER_URI
 
 FIELD_REGEX = re.compile("^([A-Za-z ]+):(.*)$")
@@ -166,25 +169,35 @@ class DigestTransport(object, Transport):
 
     EXAMPLES::
 
-        sage: from sage.env import REALM, TRAC_SERVER_URI
-        sage: sage.dev.trac_interface.DigestTransport(REALM, TRAC_SERVER_URI+"/xmlrpc")
+        sage: sage.dev.trac_interface.DigestTransport()
         <sage.dev.trac_interface.DigestTransport object at ...>
     """
-    def __init__(self, realm, url, username=None, password=None, **kwds):
+    def __init__(self, **kwds):
         """
         Initialization.
 
         EXAMPLES::
 
-            sage: from sage.env import REALM, TRAC_SERVER_URI
-            sage: type(sage.dev.trac_interface.DigestTransport(REALM, TRAC_SERVER_URI+"/xmlrpc"))
+            sage: type(sage.dev.trac_interface.DigestTransport())
+            <class 'sage.dev.trac_interface.DigestTransport'>
+            sage: type(sage.dev.trac_interface.DigestTransport(realm='realm',
+            ....:         url='url', username='username', password='password'))
             <class 'sage.dev.trac_interface.DigestTransport'>
         """
+        def get_pop(this, k, d=None):
+            try:
+                return this.pop(k)
+            except KeyError:
+                return d
+
+        auth = tuple(get_pop(kwds, x) for x in
+                ('realm', 'url', 'username', 'password'))
+
         Transport.__init__(self, **kwds)
 
         authhandler = urllib2.HTTPDigestAuthHandler()
-        if username and password:
-            authhandler.add_password(realm, url, username, password)
+        if all(x is not None for x in auth):
+            authhandler.add_password(*auth)
 
         self.opener = urllib2.build_opener(authhandler)
 
@@ -194,8 +207,7 @@ class DigestTransport(object, Transport):
 
         EXAMPLES::
 
-            sage: from sage.env import REALM, TRAC_SERVER_URI
-            sage: d = sage.dev.trac_interface.DigestTransport(REALM, TRAC_SERVER_URI+"/xmlrpc")
+            sage: d = sage.dev.trac_interface.DigestTransport()
             sage: d.request # not tested
         """
         self.verbose = verbose
@@ -274,9 +286,6 @@ class TracInterface(object):
         self._config = sagedev._config['trac']
 
         # Caches for the analogous single-underscore properties
-        self.__anonymous_server_proxy = None
-        self.__authenticated_server_proxy = None
-
         self.__passwd = None
         self.__passwd_timeout = None
 
@@ -294,19 +303,20 @@ class TracInterface(object):
         EXAMPLES::
 
             sage: dev.trac._anonymous_server_proxy
-            <ServerProxy for trac.tangentspace.org/sage_trac/xmlrpc>
+            <ServerProxy for trac.sagemath.org/xmlrpc>
         """
-        if self.__anonymous_server_proxy is None:
-            realm = REALM
-            if "realm" in self._config:
-                realm = self._config["realm"]
-            server = TRAC_SERVER_URI
-            if "server" in self._config:
-                server = self._config["server"]
-            if server[-1] != '/': server += '/'
+        try:
+            return self.__anonymous_server_proxy
+        except AttributeError:
+            pass
 
-            transport = DigestTransport(realm, server)
-            self.__anonymous_server_proxy = ServerProxy(server + 'xmlrpc', transport=transport)
+        realm = self._config.get('realm', REALM)
+        server = self._config.get('server', TRAC_SERVER_URI)
+
+        url = urlparse.urljoin(server, 'xmlrpc')
+
+        transport = DigestTransport()
+        self.__anonymous_server_proxy = ServerProxy(url, transport=transport)
         return self.__anonymous_server_proxy
 
     @property
@@ -318,33 +328,34 @@ class TracInterface(object):
         EXAMPLES::
 
             sage: dev.trac._authenticated_server_proxy # not tested
-            <ServerProxy for trac.tangentspace.org/sage_trac/login/xmlrpc>
+            <ServerProxy for trac.sagemath.org/login/xmlrpc>
 
-        For convenient doctesting, this is replaced with a fake object for the user ``'doctest'``::
+        For convenient doctesting, this is replaced with a fake object
+        during doctesting::
 
             sage: dev.trac._authenticated_server_proxy
             <sage.dev.trac_interface.DoctestServerProxy object at ...>
         """
-        config = self._config
+        try:
+            return self.__authenticated_server_proxy
+        except AttributeError:
+            pass
 
-        if self.__authenticated_server_proxy is None:
-            realm = REALM
-            if "realm" in self._config:
-                realm = self._config["realm"]
-            server = TRAC_SERVER_URI
-            if "server" in self._config:
-                server = self._config["server"]
-            if server[-1] != '/': server += '/'
+        if DOCTEST_MODE:
+            self.__authenticated_server_proxy = DoctestServerProxy(self)
+            return self.__authenticated_server_proxy
 
-            username = self._username
-            if username == "doctest":
-                return DoctestServerProxy(self)
-            else:
-                transport = DigestTransport(realm, server, username, self._password)
-                self.__authenticated_server_proxy = ServerProxy(server + 'login/xmlrpc', transport=transport)
+        realm = self._config.get('realm', REALM)
+        server = self._config.get('server', TRAC_SERVER_URI)
+
+        url = urlparse.urljoin(server,
+                urllib.pathname2url(os.path.join('login', 'xmlrpc')))
+
+        transport = DigestTransport(realm=realm, url=server,
+                username=self._username, password=self._password)
+        self.__authenticated_server_proxy = ServerProxy(url, transport=transport)
 
         return self.__authenticated_server_proxy
-
 
     @property
     def _username(self):

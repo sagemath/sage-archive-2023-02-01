@@ -281,8 +281,7 @@ class TracInterface(object):
         """
         self._sagedev = sagedev
         self._UI = sagedev._UI
-        if 'trac' not in sagedev._config:
-            sagedev._config['trac'] = {}
+        sagedev._config.setdefault('trac', {})
         self._config = sagedev._config['trac']
 
     @property

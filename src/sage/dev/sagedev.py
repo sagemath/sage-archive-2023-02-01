@@ -155,14 +155,12 @@ class Config(collections.MutableMapping):
                 return iter(self._config.options(this._section))
             def __setitem__(this, option, value):
                 self._config.set(this._section, option, value)
-                this._write_config()
+                self._write_config()
             def getboolean(this, option):
                 return self._config.getboolean(this._section, option)
-            def _write_config(this):
-                self._write_config()
             def __delitem__(this, option):
-                this._write_config()
                 self._config.remove_option(this._section, option)
+                self._write_config()
             def __len__(this):
                 return len(self._config.options(this._section))
             def __contains__(this, option):

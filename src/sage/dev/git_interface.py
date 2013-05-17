@@ -1,15 +1,55 @@
 """
 Git Interface
+
+This module provides a python interface to Sage's git repository.
+
+TESTS::
+
+    sage: from sage.dev.sagedev import SageDev, doctest_config
+    sage: git = SageDev(doctest_config()).git
+    sage: git.add("untracked_testfile1")
+    0
+    sage: git.rm('untracked_testfile1',force=True)
+    rm 'untracked_testfile1'
+    0
+    sage: git.mv('testfile', 'new_testfile')
+    0
+    sage: git.checkout('HEAD', '--', 'testfile')
+    0
+    sage: git.reset('HEAD', '--', 'new_testfile')
+    0
+    sage: git.status()
+    # On branch first_branch
+    # Untracked files:
+    #   (use "git add <file>..." to include in what will be committed)
+    #
+    #   new_testfile
+    #   untracked_testfile2
+    nothing added to commit but untracked files present (use "git add" to track)
+    0
+    sage: git.show('master')
+    commit ...
+    Author: doctest <doctest>
+    Date:   Sat Mar 3 09:46:40 1973 +0000
+    <BLANKLINE>
+        add a testfile
+    <BLANKLINE>
+    diff --git a/testfile b/testfile
+    new file mode 100644
+    index 0000000...
+    --- /dev/null
+    +++ b/testfile
+    @@ -0,0 +1 @@
+    +this is a test file
+    0
 """
 import atexit
 import collections
 import cPickle
-import functools
 import os
 import random
 import shutil
 import tempfile
-import types
 
 from cStringIO import StringIO
 from subprocess import call, check_output
@@ -560,7 +600,27 @@ class GitInterface(object):
 
     def _prep_doctest_repo(self):
         """
-        creates a fake repository at directory for doctesting
+        creates a fake repository at self._tmp_dir for doctesting
+
+        TESTS::
+
+            sage: from sage.dev.sagedev import SageDev, doctest_config
+            sage: import os
+            sage: git = SageDev(doctest_config()).git  # indirect doctest
+            sage: os.path.isfile(os.path.join(git._tmp_dir, 'testfile'))
+            True
+            sage: os.path.isfile(os.path.join(git._tmp_dir, 'untracked_testfile1'))
+            True
+            sage: os.path.isfile(os.path.join(git._tmp_dir, 'untracked_testfile2'))
+            True
+            sage: len(git.read_output('log','--oneline','first_branch').splitlines())
+            2
+            sage: len(git.read_output('log','--oneline','second_branch').splitlines())
+            2
+            sage: len(git.read_output('log','--oneline','master').splitlines())
+            1
+            sage: len(git.read_output('log','--oneline','test_tag').splitlines())
+            1
         """
         os.chdir(self._tmp_dir)
         env = {s:'doctest' for s in

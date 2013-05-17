@@ -263,15 +263,16 @@ class Category_over_base(CategoryWithParameters):
 
     def _subcategory_hook_(self, C):
         """
-        A quick test whether a category `C` may be subcategory of this category.
+        A quick test whether a category ``C`` may be subcategory of
+        this category.
 
         INPUT:
 
-        - `C` `` a category (type not tested)
+        - ``C`` -- a category (type not tested)
 
         OUTPUT:
 
-        a boolean if it is certain that `C` is (or is not) a
+        A boolean if it is certain that ``C`` is (or is not) a
         subcategory of self. :obj:`~sage.misc.unknown.Unknown`
         otherwise.
 

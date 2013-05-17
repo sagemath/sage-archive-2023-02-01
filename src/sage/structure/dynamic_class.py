@@ -126,16 +126,16 @@ def dynamic_class(name, bases, cls = None, reduction = None, doccls = None,
 
     - ``name`` -- a string
     - ``bases`` -- a tuple of classes
-    - ``cls`` -- a class or None
-    - ``reduction`` -- a tuple or None
-    - ``doccls`` -- a class or None
-    - ``prepend_cls_bases`` -- a boolean (default: True)
-    - ``cache`` -- a boolean or "ignore_reduction" (default: True)
+    - ``cls`` -- a class or ``None``
+    - ``reduction`` -- a tuple or ``None``
+    - ``doccls`` -- a class or ``None``
+    - ``prepend_cls_bases`` -- a boolean (default: ``True``)
+    - ``cache`` -- a boolean or ``"ignore_reduction"`` (default: ``True``)
 
     Constructs dynamically a new class ``C`` with name ``name``, and
     bases ``bases``. If ``cls`` is provided, then its methods will be
     inserted into ``C``, and its bases will be prepended to ``bases``
-    (unless ``prepend_cls_bases`` is False).
+    (unless ``prepend_cls_bases`` is ``False``).
 
     The module, documentation and source instrospection is taken from
     ``doccls``, or ``cls`` if ``doccls`` is ``None``, or ``bases[0]``
@@ -145,7 +145,7 @@ def dynamic_class(name, bases, cls = None, reduction = None, doccls = None,
     The constructed class can safely be pickled (assuming the
     arguments themselves can).
 
-    Unless ``cache`` is False, the result is cached, ensuring unique
+    Unless ``cache`` is ``False``, the result is cached, ensuring unique
     representation of dynamic classes.
 
     See :mod:`sage.structure.dynamic_class` for a discussion of the
@@ -154,7 +154,7 @@ def dynamic_class(name, bases, cls = None, reduction = None, doccls = None,
     EXAMPLES:
 
     To setup the stage, we create a class Foo with some methods,
-    cached methods, and lazy_attributes, and a class Bar::
+    cached methods, and lazy attributes, and a class Bar::
 
         sage: from sage.misc.lazy_attribute import lazy_attribute
         sage: from sage.misc.cachefunc import cached_function
@@ -231,7 +231,7 @@ def dynamic_class(name, bases, cls = None, reduction = None, doccls = None,
 
     .. RUBRIC:: Caching
 
-    By default, the built class is cached:
+    By default, the built class is cached::
 
          sage: dynamic_class("FooBar", (Bar,), Foo) is FooBar
          True
@@ -263,7 +263,8 @@ def dynamic_class(name, bases, cls = None, reduction = None, doccls = None,
         sage: dynamic_class("BarFoo", (Foo,), Bar, reduction = (str, (2,)), cache="ignore_reduction") is BarFoo
         True
 
-    In particular, the reduction used is that provided upon creating the first class::
+    In particular, the reduction used is that provided upon creating the
+    first class::
 
         sage: dynamic_class("BarFoo", (Foo,), Bar, reduction = (str, (2,)), cache="ignore_reduction")._reduction
         (<type 'str'>, (3,))

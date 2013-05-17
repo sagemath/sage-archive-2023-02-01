@@ -436,8 +436,9 @@ class Category(UniqueRepresentation, SageObject):
 
         INPUT:
 
-        - ``s`` -- A string giving the name of this category.
-          If None, the name is determined from the name of the class.
+        - ``s`` -- (Default: ``None``) A string giving the name of this
+          category. If ``None``, the name is determined from the name of
+          the class.
 
         EXAMPLES::
 
@@ -655,14 +656,14 @@ class Category(UniqueRepresentation, SageObject):
         ``category`` is a subclass of the parent class of ``self``.
         This is most of the time a complete subcategory test.
 
-        .. warning::
+        .. WARNING::
 
             This test is incomplete for categories in
             :class:`CategoryWithParameters`, as introduced by
             :trac:`11935`. This method is therefore overwritten by
             :meth:`~sage.categories.category.CategoryWithParameters._subcategory_hook_`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: Rings()._subcategory_hook_(Rings())
             True
@@ -1034,24 +1035,24 @@ class Category(UniqueRepresentation, SageObject):
 
     def _make_named_class(self, name, method_provider, cache=False, picklable=True):
         """
-        Construction of the parent/element/... class of self.
+        Construction of the parent/element/... class of ``self``.
 
         INPUT:
 
-        - ``name`` -- a string; the name of the class as an attribute of ``self``.
-          E.g. "parent_class"
+        - ``name`` -- a string; the name of the class as an attribute of
+          ``self``. E.g. "parent_class"
         - ``method_provider`` -- a string; the name of an attribute of
           ``self`` that provides methods for the new class (in
           addition to those coming from the super categories).
           E.g. "ParentMethods"
-        - ``cache`` -- a boolean or ``ignore_reduction`` (default: False)
+        - ``cache`` -- a boolean or ``ignore_reduction`` (default: ``False``)
           (passed down to dynamic_class; for internal use only)
-        - ``picklable`` -- a boolean (default: True)
+        - ``picklable`` -- a boolean (default: ``True``)
 
         ASSUMPTION:
 
         It is assumed that this method is only called from a lazy
-        attribute whose name coincides with the given ``name``
+        attribute whose name coincides with the given ``name``.
 
         OUTPUT:
 
@@ -1105,12 +1106,12 @@ class Category(UniqueRepresentation, SageObject):
 
             sage: class A: pass
             sage: class BrokenCategory(Category):
-            ...       def super_categories(self): return []
-            ...       ParentMethods = 1
-            ...       class ElementMethods(A):
-            ...           pass
-            ...       class MorphismMethods(object):
-            ...           pass
+            ....:     def super_categories(self): return []
+            ....:     ParentMethods = 1
+            ....:     class ElementMethods(A):
+            ....:         pass
+            ....:     class MorphismMethods(object):
+            ....:         pass
             sage: C = BrokenCategory()
             sage: C._make_named_class("parent_class",   "ParentMethods")
             Traceback (most recent call last):
@@ -1748,9 +1749,10 @@ class HomCategory(Category):
 
 class CategoryWithParameters(Category):
     """
-    A parametrized category whose parent/element classes depend only on its super categories
+    A parametrized category whose parent/element classes depend only on
+    its super categories.
 
-    Many categories in Sage are parametrized, like ``C=Algebras(K)``
+    Many categories in Sage are parametrized, like ``C = Algebras(K)``
     which takes a base ring as parameter. In many cases, however, the
     operations provided by ``C`` in the parent class and element class
     depend only on the super categories of ``C``. For example, the
@@ -1777,7 +1779,6 @@ class CategoryWithParameters(Category):
         True
         sage: C1.parent_class is C3.parent_class
         False
-
     """
     def _make_named_class(self, name, method_provider, cache = False, **options):
         """
@@ -1785,21 +1786,22 @@ class CategoryWithParameters(Category):
 
         INPUT:
 
-        - ``name`` -- a string; the name of the class as an attribute of ``self``
+        - ``name`` -- a string; the name of the class as an attribute
+          of ``self``
         - ``method_provider`` -- a string; the name of an attribute of
           ``self`` that provides methods for the new class (in
-          addition to what comes from the super categories).
+          addition to what comes from the super categories)
 
         ASSUMPTION:
 
         It is assumed that this method is only called from a lazy
-        attribute whose name coincides with the given ``name``
+        attribute whose name coincides with the given ``name``.
 
         OUTPUT:
 
         A dynamic class that has the corresponding named classes of
         the super categories of ``self`` as bases and contains the
-        methods provided by ``getattr(self,method_provider)``.
+        methods provided by ``getattr(self, method_provider)``.
 
         .. NOTE::
 
@@ -1810,9 +1812,9 @@ class CategoryWithParameters(Category):
             classes across closely related categories providing the
             same code to their parents, elements and so on.
 
-        EXAMPLES::
+        EXAMPLES:
 
-        The categories of bimodules over the fields ``CC`` or ``QQ``
+        The categories of bimodules over the fields ``CC`` or ``RR``
         provide the same methods to their parents and elements::
 
             sage: Bimodules(ZZ,RR).parent_class is Bimodules(ZZ,RDF).parent_class #indirect doctest
@@ -1828,8 +1830,8 @@ class CategoryWithParameters(Category):
             sage: Modules(GF(3)).element_class is Modules(ZZ).element_class
             False
 
-        One could possibly share those classes, but this is not
-        currently the case::
+        For a more subtle example, one could possibly share the classes for
+        ``GF(3)`` and ``GF(2^3, 'x')``, but this is not currently the case::
 
             sage: Modules(GF(3)).parent_class is Modules(GF(2^3,'x')).parent_class
             False
@@ -1840,6 +1842,15 @@ class CategoryWithParameters(Category):
             Join of Category of subquotients of monoids and Category of quotients of semigroups and Category of finite fields
             sage: GF(2^3,'x').category()
             Category of finite fields
+
+        Similarly for ``QQ`` and ``RR``::
+
+            sage: QQ.category()
+            Category of quotient fields
+            sage: RR.category()
+            Category of fields
+            sage: Modules(QQ).parent_class is Modules(RR).parent_class
+            False
 
         Some other cases where one could potentially share those classes::
 
@@ -1879,7 +1890,8 @@ class CategoryWithParameters(Category):
 
         INPUT:
 
-        - ``name`` -- a string; the name of the class as an attribute of ``self``
+        - ``name`` -- a string; the name of the class as an attribute
+          of ``self``
 
         .. SEEALSO::
 
@@ -1913,7 +1925,7 @@ class CategoryWithParameters(Category):
 
     def _subcategory_hook_(self, C):
         """
-        A quick but partial test whether ``C`` is a subcategory of ``self``
+        A quick but partial test whether ``C`` is a subcategory of ``self``.
 
         INPUT:
 
@@ -1921,9 +1933,9 @@ class CategoryWithParameters(Category):
 
         OUTPUT:
 
-        - ``False``, if ``C.parent_class`` is not a subclass of
-          ``self.parent_class``, and :obj:`~sage.misc.unknown.Unknown`
-          otherwise.
+        ``False``, if ``C.parent_class`` is not a subclass of
+        ``self.parent_class``, and :obj:`~sage.misc.unknown.Unknown`
+        otherwise.
 
         EXAMPLES::
 
@@ -1967,7 +1979,6 @@ class JoinCategory(CategoryWithParameters):
         Join of Category of euclidean domains and Category of commutative algebras over Finite Field of size 3
         sage: type(GF(3)['x']) is type(GF(5)['z'])
         True
-
     """
 
     def __init__(self, super_categories, **kwds):
@@ -2004,7 +2015,7 @@ class JoinCategory(CategoryWithParameters):
 
         Since :trac:`11935`, the element/parent classes of a join
         category over base only depend on the element/parent class of
-        its super categories
+        its super categories.
 
         .. SEEALSO::
 
@@ -2059,13 +2070,13 @@ class JoinCategory(CategoryWithParameters):
 
     def is_subcategory(self, C):
         """
-        Tell whether this join category is subcategory of another category `C`.
+        Check whether this join category is subcategory of another
+        category ``C``.
 
         EXAMPLES::
 
             sage: Category.join([Rings(),Modules(QQ)]).is_subcategory(Category.join([Rngs(),Bimodules(QQ,QQ)]))
             True
-
         """
         if C is self:
             return True

@@ -201,7 +201,7 @@ class DigestTransport(object, Transport):
 
         self.opener = urllib2.build_opener(authhandler)
 
-    def request(self, host, handler, request_body, verbose=0):
+    def single_request(self, host, handler, request_body, verbose):
         """
         Issue an XML-RPC request.
 
@@ -210,14 +210,13 @@ class DigestTransport(object, Transport):
             sage: d = sage.dev.trac_interface.DigestTransport()
             sage: d.request # not tested
         """
-        self.verbose = verbose
-
-        headers = {'Content-type': 'text/xml'}
-        data = request_body
-        req = urllib2.Request('http://' + host + handler, data, headers)
+        req = urllib2.Request(
+                urlparse.urlunparse(('http', host, handler, '', '', '')),
+                request_body, {'Content-type': 'text/xml'})
 
         response = self.opener.open(req)
 
+        self.verbose = verbose
         return self.parse_response(response)
 
 class DoctestServerProxy(object):

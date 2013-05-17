@@ -838,6 +838,160 @@ class Tableau(CombinatorialObject, Element):
             return StandardTableau(list(t))
         return t
 
+    def standardization(self, check=True):
+        r"""
+        Return the standardization of ``self``, assuming ``self`` is a
+        semistandard tableau.
+
+        The standardization of a semistandard tableau `T` is the standard
+        tableau `\mathrm{st}(T)` of the same shape as `T` whose
+        reversed reading word is the standardization of the reversed reading
+        word of `T`.
+
+        The standardization of a word `w` can be formed by replacing all `1`'s in
+        `w` by `1, 2, \ldots, k_1` from left to right, all `2`'s in `w` by
+        `k_1 + 1, k_1 + 2, \ldots, k_2`, and repeating for all letters which
+        appear in `w`.
+        See also :meth:`Word.standard_permutation()`.
+
+        INPUT:
+
+        - ``check`` -- (Default: ``True``) Check to make sure ``self`` is
+          semistandard. Set to ``False`` to avoid this check.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,3,3,4],[2,4,4],[5,16]])
+            sage: t.standardization()
+            [[1, 3, 4, 7], [2, 5, 6], [8, 9]]
+
+        Standard tableaux are fixed under standardization::
+
+            sage: all((t == t.standardization() for t in StandardTableaux(6)))
+            True
+            sage: t = Tableau([])
+            sage: t.standardization()
+            []
+
+        The reading word of the standardization is the standardization of
+        the reading word::
+
+            sage: T = SemistandardTableaux(shape=[6,3,3,1], max_entry=5)
+            sage: all(t.to_word().standard_permutation() == t.standardization().reading_word_permutation() for t in T)
+            True
+        """
+        if check and self not in SemistandardTableaux():
+            raise ValueError("the tableau must be semistandard")
+        T = from_shape_and_word(self.shape(), self.to_word_by_row().standard_permutation())
+        return StandardTableaux()(T)
+
+    def bender_knuth_involution(self, k, rows=None, check=True):
+        r"""
+        Return the image of ``self`` under the `k`-th Bender--Knuth
+        involution, assuming ``self`` is a semistandard tableau.
+
+        Let `T` be a tableau, then a *lower free `k` in `T`* means a cell of
+        `T` which is filled with the integer `k` and whose direct lower
+        neighbor is not filled with the integer `k + 1` (in particular,
+        this lower neighbor might not exist at all). Let an *upper free `k + 1`
+        in `T`* mean a cell of `T` which is filled with the integer `k + 1`
+        and whose direct upper neighbor is not filled with the integer `k`
+        (in particular, this neighbor might not exist at all). It is clear
+        that for any row `r` of `T`, the lower free `k`'s and the upper
+        free `k + 1`'s in `r` together form a contiguous interval or `r`.
+
+        The *`k`-th Bender--Knuth switch at row `i`* changes the entries of
+        the cells in this interval in such a way that if it used to have
+        `a` entries of `k` and `b` entries of `k + 1`, it will now
+        have `b` entries of `k` and `a` entries of `k + 1`. For fixed `k`, the
+        `k`-th Bender--Knuth switches for different `i` commute. The
+        composition of the `k`-th Bender--Knuth switches for all rows is
+        called the *`k`-th Bender-Knuth involution*. This is used to show that
+        the Schur functions defined by semistandard tableaux are symmetric
+        functions.
+
+        INPUT:
+
+        - ``k`` -- an integer
+
+        - ``rows`` -- (Default ``None``) When set to ``None``, the method
+          computes the `k`-th Bender--Knuth involution as defined above.
+          When an iterable, this computes the composition of the `k`-th
+          Bender--Knuth switches at row `i` over all `i` in ``rows``. When set
+          to an integer `i`, the method computes the `k`-th Bender--Knuth
+          switch at row `i`. Note the indexing of the rows starts with `1`.
+
+        - ``check`` -- (Default: ``True``) Check to make sure ``self`` is
+          semistandard. Set to ``False`` to avoid this check.
+
+        OUTPUT:
+
+        The image of ``self`` under either the `k`-th Bender--Knuth
+        involution, the `k`-th Bender--Knuth switch at a certain row, or
+        the composition of such switches, as detailed in the INPUT section.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,1,3,4,4,5,6,7],[2,2,4,6,7,7,7],[3,4,5,8,8,9],[6,6,7,10],[7,8,8,11],[8]])
+            sage: t.bender_knuth_involution(1) == t
+            True
+            sage: t.bender_knuth_involution(2)
+            [[1, 1, 2, 4, 4, 5, 6, 7], [2, 3, 4, 6, 7, 7, 7], [3, 4, 5, 8, 8, 9], [6, 6, 7, 10], [7, 8, 8, 11], [8]]
+            sage: t.bender_knuth_involution(3)
+            [[1, 1, 3, 3, 3, 5, 6, 7], [2, 2, 4, 6, 7, 7, 7], [3, 4, 5, 8, 8, 9], [6, 6, 7, 10], [7, 8, 8, 11], [8]]
+            sage: t.bender_knuth_involution(4)
+            [[1, 1, 3, 4, 5, 5, 6, 7], [2, 2, 4, 6, 7, 7, 7], [3, 5, 5, 8, 8, 9], [6, 6, 7, 10], [7, 8, 8, 11], [8]]
+            sage: t.bender_knuth_involution(5)
+            [[1, 1, 3, 4, 4, 5, 6, 7], [2, 2, 4, 5, 7, 7, 7], [3, 4, 6, 8, 8, 9], [5, 5, 7, 10], [7, 8, 8, 11], [8]]
+            sage: t.bender_knuth_involution(666) == t
+            True
+            sage: t.bender_knuth_involution(4, 2) == t
+            True
+            sage: t.bender_knuth_involution(4, 3)
+            [[1, 1, 3, 4, 4, 5, 6, 7], [2, 2, 4, 6, 7, 7, 7], [3, 5, 5, 8, 8, 9], [6, 6, 7, 10], [7, 8, 8, 11], [8]]
+
+        The ``rows`` keyword can be an iterator::
+
+            sage: t.bender_knuth_involution(6, iter([1,2])) == t
+            False
+            sage: t.bender_knuth_involution(6, iter([3,4])) == t
+            True
+
+        The Bender--Knuth involution is an involution::
+
+            sage: T = SemistandardTableaux(shape=[3,1,1], max_entry=4)
+            sage: all(all(t.bender_knuth_involution(k).bender_knuth_involution(k) == t for k in range(1,5)) for t in T)
+            True
+
+        The same holds for the single switches::
+
+            sage: all(all(t.bender_knuth_involution(k, j).bender_knuth_involution(k, j) == t for k in range(1,5) for j in range(1, 5)) for t in T)
+            True
+
+        Locality of the Bender--Knuth involutions::
+
+            sage: all(all(t.bender_knuth_involution(k).bender_knuth_involution(l) == t.bender_knuth_involution(l).bender_knuth_involution(k) for k in range(1,5) for l in range(1,5) if abs(k - l) > 1) for t in T)
+            True
+
+        Coxeter relation of the Bender--Knuth involutions (they have the form
+        `(ab)^6 = 1`)::
+
+            sage: p = lambda t, k: t.bender_knuth_involution(k).bender_knuth_involution(k + 1)
+            sage: all(all(p(p(p(p(p(p(t,k),k),k),k),k),k) == t for k in range(1,5)) for t in T)
+            True
+
+        TESTS::
+
+            sage: t = Tableau([])
+            sage: t.bender_knuth_involution(3)
+            []
+        """
+        if check and self not in SemistandardTableaux():
+            raise ValueError("the tableau must be semistandard")
+        from sage.combinat.skew_tableau import SkewTableau
+        sk = SkewTableau(self).bender_knuth_involution(k, rows, False)
+        return SemistandardTableaux()(list(sk))
+
     @combinatorial_map(name ='reading word permutation')
     def reading_word_permutation(self):
         """
@@ -2499,11 +2653,11 @@ class SemistandardTableau(Tableau):
 
         # which are weakly increasing along rows
         if any(row[c]>row[c+1] for row in t for c in xrange(len(row)-1)):
-            raise ValueError("the entries in each row of a semistandard tableau must be weakly decreasing")
+            raise ValueError("the entries in each row of a semistandard tableau must be weakly increasing")
 
         # and strictly increasing down columns
         if len(t)>0 and any(t[r][c]>=t[r+1][c] for c in xrange(len(t[0])) for r in xrange(len(t)-1) if len(t[r+1])>c):
-            raise ValueError("the entries of each column of a semistandard tableau must be strictly decreasing")
+            raise ValueError("the entries of each column of a semistandard tableau must be strictly increasing")
 
 class StandardTableau(SemistandardTableau):
     """
@@ -2557,7 +2711,7 @@ class StandardTableau(SemistandardTableau):
         sage: StandardTableau([[1,3,2]])
         Traceback (most recent call last):
         ...
-        ValueError: the entries in each row of a semistandard tableau must be weakly decreasing
+        ValueError: the entries in each row of a semistandard tableau must be weakly increasing
     """
     __metaclass__ = ClasscallMetaclass
 

@@ -214,6 +214,13 @@ class SkewTableau_class(CombinatorialObject):
               1
             sage: s.to_word_by_row()
             word: 1324
+
+        TESTS::
+
+            sage: SkewTableau([[None, None, None], [None]]).to_word_by_row()
+            word:
+            sage: SkewTableau([]).to_word_by_row()
+            word:
         """
         word = []
         for row in self:
@@ -248,18 +255,24 @@ class SkewTableau_class(CombinatorialObject):
         """
         return self.conjugate().to_word_by_row()
 
-    def to_word(self):
+    to_word = to_word_by_row
+
+    def to_permutation(self):
         """
-        An alias for SkewTableau.to_word_by_row().
+        Return a permutation with the entries of ``self`` obtained by reading
+        ``self`` row by row, from the bottommost to the topmost row, with
+        each row being read from left to right, in English convention.
+        See :meth:`to_word_by_row()`.
 
         EXAMPLES::
 
-            sage: SkewTableau([[None,1],[2,3]]).to_word()
-            word: 231
-            sage: SkewTableau([[None, 2, 4], [None, 3], [1]]).to_word()
-            word: 1324
+            sage: SkewTableau([[None,2],[3,4],[None],[1]]).to_permutation()
+            [1, 3, 4, 2]
+            sage: SkewTableau([[None]]).to_permutation()
+            []
         """
-        return self.to_word_by_row()
+        from sage.combinat.permutation import Permutation
+        return Permutation(self.to_word())
 
     def evaluation(self):
         """
@@ -491,6 +504,218 @@ class SkewTableau_class(CombinatorialObject):
 
         return rect.to_tableau()
 
+    def standardization(self, check=True):
+        r"""
+        Return the standardization of ``self``, assuming ``self`` is a
+        semistandard skew tableau.
+
+        The standardization of a semistandard skew tableau `T` is the standard
+        skew tableau `\mathrm{st}(T)` of the same shape as `T` whose
+        reversed reading word is the standardization of the reversed reading
+        word of `T`.
+
+        The standardization of a word `w` can be formed by replacing all `1`'s
+        in `w` by `1, 2, \ldots, k_1` from left to right, all `2`'s in `w` by
+        `k_1 + 1, k_1 + 2, \ldots, k_2`, and repeating for all letters that
+        appear in `w`.
+        See also :meth:`Word.standard_permutation()`.
+
+        INPUT:
+
+        - ``check`` -- (Default: ``True``) Check to make sure ``self`` is
+          semistandard. Set to ``False`` to avoid this check.
+
+        EXAMPLES::
+
+            sage: t = SkewTableau([[None,None,3,4,7,19],[None,4,4,8],[None,5,16,17],[None],[2],[3]])
+            sage: t.standardization()
+            [[None, None, 3, 6, 8, 12], [None, 4, 5, 9], [None, 7, 10, 11], [None], [1], [2]]
+
+        Standard skew tableaux are fixed under standardization::
+
+            sage: p = Partition([4,3,3,2])
+            sage: q = Partitions(3).random_element()
+            sage: all((t == t.standardization() for t in StandardSkewTableaux([p, q])))
+            True
+
+        The reading word of the standardization is the
+        standardization of the reading word::
+
+            sage: t = SkewTableau([[None,3,4,4],[None,6,10],[7,7,11],[18]])
+            sage: t.to_word().standard_permutation() == t.standardization().to_permutation()
+            True
+
+        TESTS:
+
+        Some corner cases::
+
+            sage: t = SkewTableau([[None,None],[None]])
+            sage: t.standardization()
+            [[None, None], [None]]
+            sage: t = SkewTableau([])
+            sage: t.standardization()
+            []
+        """
+        if check and not self.is_semistandard():
+            raise ValueError("the skew tableau must be semistandard")
+        # This should be a SkewStandardTableau
+        return from_shape_and_word(self.shape(), self.to_word_by_row().standard_permutation())
+
+    def bender_knuth_involution(self, k, rows=None, check=True):
+        r"""
+        Return the image of ``self`` under the `k`-th Bender--Knuth
+        involution, assuming ``self`` is a skew semistandard tableau.
+
+        Let `T` be a tableau, then a *lower free `k` in `T`* means a cell of
+        `T` which is filled with the integer `k` and whose direct lower
+        neighbor is not filled with the integer `k + 1` (in particular,
+        this lower neighbor might not exist at all). Let an *upper free `k + 1`
+        in `T`* mean a cell of `T` which is filled with the integer `k + 1`
+        and whose direct upper neighbor is not filled with the integer `k`
+        (in particular, this neighbor might not exist at all). It is clear
+        that for any row `r` of `T`, the lower free `k`'s and the upper
+        free `k + 1`'s in `r` together form a contiguous interval or `r`.
+
+        The *`k`-th Bender--Knuth switch at row `i`* changes the entries of
+        the cells in this interval in such a way that if it used to have
+        `a` entries of `k` and `b` entries of `k + 1`, it will now
+        have `b` entries of `k` and `a` entries of `k + 1`. For fixed `k`, the
+        `k`-th Bender--Knuth switches for different `i` commute. The
+        composition of the `k`-th Bender--Knuth switches for all rows is
+        called the *`k`-th Bender--Knuth involution*. This is used to show that
+        the Schur functions defined by semistandard (skew) tableaux are
+        symmetric functions.
+
+        INPUT:
+
+        - ``k`` -- an integer
+
+        - ``rows`` -- (Default ``None``) When set to ``None``, the method
+          computes the `k`-th Bender--Knuth involution as defined above.
+          When an iterable, this computes the composition of the `k`-th
+          Bender--Knuth switches at row `i` over all `i` in ``rows``. When set
+          to an integer `i`, the method computes the `k`-th Bender--Knuth
+          switch at row `i`. Note the indexing of the rows starts with `1`.
+
+        - ``check`` -- (Default: ``True``) Check to make sure ``self`` is
+          semistandard. Set to ``False`` to avoid this check.
+
+        OUTPUT:
+
+        The image of ``self`` under either the `k`-th Bender--Knuth
+        involution, the `k`-th Bender--Knuth switch at a certain row, or
+        the composition of such switches, as detailed in the INPUT section.
+
+        EXAMPLES::
+
+            sage: t = SkewTableau([[None,None,None,4,4,5,6,7],[None,2,4,6,7,7,7],[None,4,5,8,8,9],[None,6,7,10],[None,8,8,11],[None],[4]])
+            sage: t
+            [[None, None, None, 4, 4, 5, 6, 7], [None, 2, 4, 6, 7, 7, 7], [None, 4, 5, 8, 8, 9], [None, 6, 7, 10], [None, 8, 8, 11], [None], [4]]
+            sage: t.bender_knuth_involution(1)
+            [[None, None, None, 4, 4, 5, 6, 7], [None, 1, 4, 6, 7, 7, 7], [None, 4, 5, 8, 8, 9], [None, 6, 7, 10], [None, 8, 8, 11], [None], [4]]
+            sage: t.bender_knuth_involution(4)
+            [[None, None, None, 4, 5, 5, 6, 7], [None, 2, 4, 6, 7, 7, 7], [None, 5, 5, 8, 8, 9], [None, 6, 7, 10], [None, 8, 8, 11], [None], [5]]
+            sage: t.bender_knuth_involution(5)
+            [[None, None, None, 4, 4, 5, 6, 7], [None, 2, 4, 5, 7, 7, 7], [None, 4, 6, 8, 8, 9], [None, 5, 7, 10], [None, 8, 8, 11], [None], [4]]
+            sage: t.bender_knuth_involution(6)
+            [[None, None, None, 4, 4, 5, 6, 6], [None, 2, 4, 6, 6, 7, 7], [None, 4, 5, 8, 8, 9], [None, 6, 7, 10], [None, 8, 8, 11], [None], [4]]
+            sage: t.bender_knuth_involution(666) == t
+            True
+            sage: t.bender_knuth_involution(4, 2) == t
+            True
+            sage: t.bender_knuth_involution(4, 3)
+            [[None, None, None, 4, 4, 5, 6, 7], [None, 2, 4, 6, 7, 7, 7], [None, 5, 5, 8, 8, 9], [None, 6, 7, 10], [None, 8, 8, 11], [None], [4]]
+
+        The Bender--Knuth involution is an involution::
+
+            sage: t = SkewTableau([[None,3,4,4],[None,6,10],[7,7,11],[18]])
+            sage: all(t.bender_knuth_involution(k).bender_knuth_involution(k) == t for k in range(1,4))
+            True
+
+        The same for the single switches::
+
+            sage: all(t.bender_knuth_involution(k, j).bender_knuth_involution(k, j) == t for k in range(1,5) for j in range(1, 5))
+            True
+
+        Locality of the Bender--Knuth involutions::
+
+            sage: all(t.bender_knuth_involution(k).bender_knuth_involution(l) == t.bender_knuth_involution(l).bender_knuth_involution(k) for k in range(1,5) for l in range(1,5) if abs(k - l) > 1)
+            True
+
+        Coxeter relation of the Bender--Knuth involutions (they have the form
+        `(ab)^6 = 1`)::
+
+            sage: p = lambda t, k: t.bender_knuth_involution(k).bender_knuth_involution(k + 1)
+            sage: all(p(p(p(p(p(p(t,k),k),k),k),k),k) == t for k in range(1,5))
+            True
+
+        TESTS::
+
+            sage: t = SkewTableau([])
+            sage: t.bender_knuth_involution(3)
+            []
+            sage: t = SkewTableau([[None,None],[None]])
+            sage: t.bender_knuth_involution(3)
+            [[None, None], [None]]
+
+        AUTHORS:
+
+        - Darij Grinberg (2013-05-14)
+        """
+        if check and not self.is_semistandard():
+            raise ValueError("the skew tableau must be semistandard")
+        l = len(self)    # l is the number of rows of self.
+        # Sanitizing the rows input so that it always becomes a list of
+        # nonnegative integers. We also subtract 1 from these integers
+        # because the i-th row of a tableau T is T[i - 1].
+        if rows is None:
+            rows = range(l)
+        elif rows in ZZ:
+            rows = [rows - 1]
+        else:
+            rows = [i - 1 for i in rows]
+        # Now, rows should be iterable.
+
+        # result_tab is going to be the result tableau (as a list of lists);
+        # we will build it up step by step, starting with a deep copy of self.
+        result_tab = [row[:] for row in self]
+        for i in rows:
+            if i >= l:
+                continue
+            # Setup the previous and next rows
+            if i == 0:
+                prev_row = [None] * len(result_tab[i])
+            else:
+                prev_row = result_tab[i-1]
+            if i == l - 1:
+                next_row = [None] * len(result_tab[i])
+            else:
+                next_row = result_tab[i+1] + [None] * (len(result_tab[i]) - len(result_tab[i+1]))
+            a = 0
+            b = 0
+            sk = None # The first entry of k
+            sk1 = None # The first entry of k+1
+            for j, val in enumerate(result_tab[i]):
+                if val == k and next_row[j] != k + 1:
+                    if sk is None:
+                        sk = j
+                    a += 1
+                elif val == k + 1 and prev_row[j] != k:
+                    if sk1 is None:
+                        sk1 = j
+                    b += 1
+            if sk1 is not None:
+                if a > b:
+                    for j in range(sk1-(a-b), sk1):
+                        result_tab[i][j] = k + 1
+                elif a < b:
+                    for j in range(sk1, sk1+b-a):
+                        result_tab[i][j] = k
+            elif sk is not None:
+                for j in range(sk, sk+a):
+                    result_tab[i][j] = k + 1
+
+        return SkewTableau(result_tab) # This should be a SkewSemistandardTableau
 
     def to_expr(self):
         """

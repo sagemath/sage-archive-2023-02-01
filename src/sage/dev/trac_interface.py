@@ -206,8 +206,39 @@ class DigestTransport(object, SafeTransport):
 
         EXAMPLES::
 
+            sage: from sage.env import TRAC_SERVER_URI
+            sage: import urlparse
+            sage: url = urlparse.urlparse(TRAC_SERVER_URI).netloc
             sage: d = sage.dev.trac_interface.DigestTransport()
-            sage: d.request # not tested
+            sage: d.single_request(url, 'xmlrpc',
+            ....: '''<?xml version='1.0'?>
+            ....: <methodCall>
+            ....: <methodName>ticket.get</methodName>
+            ....: <params>
+            ....: <param>
+            ....: <value><int>1000</int></value>
+            ....: </param>
+            ....: </params>
+            ....: </methodCall>
+            ....: ''', 0) # optional: online
+            ([1000,
+              <DateTime '20071025T16:48:05' at ...>,
+              <DateTime '20080110T08:28:40' at ...>,
+              {'status': 'closed',
+               'changetime': <DateTime '20080110T08:28:40' at ...>,
+               'description': '',
+               'reporter': 'was',
+               'cc': '',
+               'type': 'defect',
+               'milestone': 'sage-2.10',
+               '_ts': '1199953720000000',
+               'component': 'distribution',
+               'summary': 'Sage does not have 10000 users yet.',
+               'priority': 'major',
+               'owner': 'was',
+               'time': <DateTime '20071025T16:48:05' at ...>,
+               'keywords': '',
+               'resolution': 'fixed'}],)
         """
         req = urllib2.Request(
                 urlparse.urlunparse(('http', host, handler, '', '', '')),
@@ -300,7 +331,11 @@ class TracInterface(object):
 
         EXAMPLES::
 
-            sage: dev.trac._anonymous_server_proxy
+            sage: from sage.dev.sagedev import SageDev, doctest_config
+            sage: conf  = doctest_config()
+            sage: conf['trac']['server'] = 'http://trac.sagemath.org/'
+            sage: trac = SageDev(conf).trac
+            sage: trac._anonymous_server_proxy
             <ServerProxy for trac.sagemath.org/xmlrpc>
         """
         try:
@@ -456,7 +491,7 @@ class TracInterface(object):
             []
             sage: sshkeys.getkeys()
             []
-            sage: sshkeys.setkeys(["foo","bar"])
+            sage: sshkeys.setkeys(["foo", "bar"])
             0
             sage: sshkeys.getkeys()
             ['foo', 'bar']
@@ -701,22 +736,21 @@ class TracInterface(object):
         EXAMPLES::
 
             sage: dev.trac._get_attributes(1000) # optional: online
-            {'_ts': '1199953720000000',
-             'cc': '',
+            {'status': 'closed',
              'changetime': <DateTime '20080110T08:28:40' at ...>,
-             'component': 'distribution',
              'description': '',
-             'keywords': '',
-             'milestone': 'sage-2.10',
-             'owner': 'was',
-             'priority': 'major',
              'reporter': 'was',
-             'resolution': 'fixed',
-             'status': 'closed',
+             'cc': '',
+             'type': 'defect',
+             'milestone': 'sage-2.10',
+             '_ts': '1199953720000000',
+             'component': 'distribution',
              'summary': 'Sage does not have 10000 users yet.',
+             'priority': 'major',
+             'owner': 'was',
              'time': <DateTime '20071025T16:48:05' at ...>,
-             'type': 'defect'}
-
+             'keywords': '',
+             'resolution': 'fixed'}
         """
         return self._anonymous_server_proxy.ticket.get(int(ticketnum))[3]
 
@@ -778,7 +812,14 @@ class TracInterface(object):
             sage: dev.trac.attachment_names(1000) # optional: online
             ()
             sage: dev.trac.attachment_names(13147) # optional: online
-            ('13147_move.patch', '13147_lazy.patch', '13147_lazy_spkg.patch', '13147_new.patch', '13147_over_13579.patch', 'trac_13147-ref.patch', 'trac_13147-rebased-to-13681.patch', 'trac_13681_root.patch')
+            ('13147_move.patch',
+             '13147_lazy.patch',
+             '13147_lazy_spkg.patch',
+             '13147_new.patch',
+             '13147_over_13579.patch',
+             'trac_13147-ref.patch',
+             'trac_13147-rebased-to-13681.patch',
+             'trac_13681_root.patch')
         """
         ticketnum = int(ticketnum)
         return tuple(a[0] for a in

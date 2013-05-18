@@ -210,7 +210,7 @@ class DigestTransport(object, SafeTransport):
             sage: import urlparse
             sage: url = urlparse.urlparse(TRAC_SERVER_URI).netloc
             sage: d = sage.dev.trac_interface.DigestTransport()
-            sage: d.single_request(url, 'xmlrpc',
+            sage: d.single_request(url, 'xmlrpc',         # optional: internet
             ....: '''<?xml version='1.0'?>
             ....: <methodCall>
             ....: <methodName>ticket.get</methodName>
@@ -220,7 +220,7 @@ class DigestTransport(object, SafeTransport):
             ....: </param>
             ....: </params>
             ....: </methodCall>
-            ....: ''', 0) # optional: online
+            ....: ''', 0)
             ([1000,
               <DateTime '20071025T16:48:05' at ...>,
               <DateTime '20080110T08:28:40' at ...>,
@@ -376,7 +376,7 @@ class TracInterface(object):
 
             Unlike the authenticated server proxy, this is not replaced with a
             fake proxy for doctesting. All doctests using it should therefore
-            be labeled as optional ``online``
+            be labeled as optional ``internet``
 
         EXAMPLES::
 
@@ -574,7 +574,7 @@ class TracInterface(object):
 
             sage: import os
             sage: os.environ['EDITOR'] = 'cat'
-            sage: dev.trac.edit_ticket(1000) # optional: online
+            sage: dev.trac.edit_ticket(1000) # optional: internet
             Summary: Sage does not have 10000 users yet.
             Cc:
             Type: defect
@@ -598,7 +598,7 @@ class TracInterface(object):
             # An empty file aborts ticket creation/editing.
             Modified ticket #1000.
             sage: os.environ['EDITOR'] = 'echo "more description" >>'
-            sage: dev.trac.edit_ticket(13147) # optional: online
+            sage: dev.trac.edit_ticket(13147) # optional: internet
             Modified ticket #13147.
         """
         ticketnum = int(ticketnum)
@@ -790,7 +790,7 @@ class TracInterface(object):
 
         EXAMPLES::
 
-            sage: dev.trac._get_attributes(1000) # optional: online
+            sage: dev.trac._get_attributes(1000) # optional: internet
             {'status': 'closed',
              'changetime': <DateTime '20080110T08:28:40' at ...>,
              'description': '',
@@ -824,13 +824,12 @@ class TracInterface(object):
 
         EXAMPLES::
 
-            sage: dev.trac.dependencies(1000) # optional: online (an old ticket with no dependency field)
+            sage: dev.trac.dependencies(1000)            # optional: internet (an old ticket with no dependency field)
             []
-            sage: dev.trac.dependencies(13147) # optional: online
+            sage: dev.trac.dependencies(13147)           # optional: internet
             [13579, 13681]
-            sage: dev.trac.dependencies(13147,all=True) # long time, optional: online
-            [13579, 13681, 13631]
-
+            sage: dev.trac.dependencies(13147, all=True) # long time, optional: internet
+            [13579, 13631, 13681]
         """
         # returns the list of all ticket dependencies, sorted by ticket number
         if _seen is None:
@@ -864,9 +863,9 @@ class TracInterface(object):
 
         EXAMPLES::
 
-            sage: dev.trac.attachment_names(1000) # optional: online
+            sage: dev.trac.attachment_names(1000) # optional: internet
             ()
-            sage: dev.trac.attachment_names(13147) # optional: online
+            sage: dev.trac.attachment_names(13147) # optional: internet
             ('13147_move.patch',
              '13147_lazy.patch',
              '13147_lazy_spkg.patch',

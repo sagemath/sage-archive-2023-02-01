@@ -4,9 +4,9 @@ Tiling Solver
 Tiling a n-dimensional box into non-intersecting n-dimensional polyominoes.
 
 This uses dancing links code which is in Sage.  Dancing links were
-originally introduced by Donald Knuth in 2000 [1]. In particular, Knuth
-used dancing links to solve tilings of a region by 2D pentaminos.  Here we
-extend the method to any dimension.
+originally introduced by Donald Knuth in 2000 [Knuth1]_. In
+particular, Knuth used dancing links to solve tilings of a region by
+2d pentaminoes.  Here we extend the method to any dimension.
 
 In particular, the :mod:`sage.games.quantumino` module is based on
 the Tiling Solver and allows to solve the 3d Quantumino puzzle.
@@ -34,7 +34,7 @@ EXAMPLES:
 2d Easy Example
 ---------------
 
-Here is a 2d example. Let's try to fill the `3 \times 2` rectangle with a
+Here is a 2d example. Let us try to fill the `3 \times 2` rectangle with a
 `1 \times 2` rectangle and a `2 \times 2` square. Obviously, there are two
 solutions::
 
@@ -96,7 +96,7 @@ By default, rotations are allowed and reflections are not. In this case,
 there are no solution::
 
     sage: T = TilingSolver(L, (8,8))
-    sage: T.number_of_solutions()                             # long time (2.5 s)
+    sage: T.number_of_solutions()                       # long time (2.5 s)
     0
 
 If reflections are allowed, there are solutions. Solve the puzzle and show
@@ -109,7 +109,7 @@ one solution::
 
 Compute the number of solutions::
 
-    sage: T.number_of_solutions()                              # long time (2.6s)
+    sage: T.number_of_solutions()                         # long time (2.6s)
     328
 
 Create a animation of all the solutions::
@@ -143,7 +143,7 @@ Solve the puzzle and show one solution::
     sage: G = sum([piece.show3d(size=0.85) for piece in solution], Graphics())
     sage: G.show(aspect_ratio=1, viewer='tachyon')
 
-Let's compute the number of solutions::
+Let us compute the number of solutions::
 
     sage: T.number_of_solutions()                              # long time (3s)
     328
@@ -151,7 +151,7 @@ Let's compute the number of solutions::
 Donald Knuth example : the Y pentamino
 --------------------------------------
 
-Donald Knuth [1] considered the problem of packing 45 Y pentominoes into a
+Donald Knuth [Knuth1]_ considered the problem of packing 45 Y pentaminoes into a
 `15 \times 15` square::
 
     sage: from sage.combinat.tiling import Polyomino, TilingSolver
@@ -192,7 +192,7 @@ Incremental animation of the solutions (one piece is removed/added at a time)::
 5d Easy Example
 ---------------
 
-Here is a 5d example. Let's try to fill the `2 \times 2 \times 2 \times 2
+Here is a 5d example. Let us try to fill the `2 \times 2 \times 2 \times 2
 \times 2` rectangle with reusable `1 \times 1 \times 1 \times 1 \times 1`
 rectangles. Obviously, there is one solution::
 
@@ -207,8 +207,7 @@ rectangles. Obviously, there is one solution::
 
 REFERENCES:
 
-- [1] Knuth, Donald (2000). "Dancing links". `arXiv:cs/0011047
-  <http://arxiv.org/abs/cs/0011047>`_.
+.. [Knuth1] Knuth, Donald (2000). "Dancing links". :arxiv:`cs/0011047`.
 
 """
 #*****************************************************************************
@@ -236,6 +235,8 @@ from sage.misc.mrange import xmrange
 ############################
 # Orthogonal transformations
 ############################
+
+
 @cached_function
 def orthogonal_transformation(n, orientation_preserving=True):
     r"""
@@ -244,7 +245,7 @@ def orthogonal_transformation(n, orientation_preserving=True):
 
     INPUT:
 
-    - ``n``` - positive integer, dimension of the space
+    - ``n`` - positive integer, dimension of the space
     - ``orientation_preserving`` - bool (optional, default: ``True``),
       whether the orientation is preserved
 
@@ -294,13 +295,16 @@ def orthogonal_transformation(n, orientation_preserving=True):
         ValueError: ['B', 0] is not a valid cartan type
     """
     if orientation_preserving:
-        return [w.matrix() for w in WeylGroup(['B', n]) if w.matrix().det() == 1]
+        return [w.matrix() for w in WeylGroup(['B', n])
+                if w.matrix().det() == 1]
     else:
         return [w.matrix() for w in WeylGroup(['B', n])]
 
 ##############################
 # Class Polyomino
 ##############################
+
+
 class Polyomino(SageObject):
     r"""
     Return the polyomino defined by a set of coordinates.
@@ -467,7 +471,7 @@ class Polyomino(SageObject):
 
         .. NOTE::
 
-            No guarantee of unicity.
+            No guarantee of uniqueness.
 
         INPUT:
 
@@ -489,7 +493,9 @@ class Polyomino(SageObject):
             sage: len(L)
             48
         """
-        return (m * self for m in orthogonal_transformation(self._dimension, orientation_preserving))
+        return (m * self for m in
+                orthogonal_transformation(self._dimension,
+                                          orientation_preserving))
 
     def canonical_orthogonals(self, orientation_preserving=True):
         r"""
@@ -498,7 +504,7 @@ class Polyomino(SageObject):
 
         .. NOTE::
 
-            No guarentee of unicity.
+            No guarantee of uniqueness.
 
         INPUT:
 
@@ -555,7 +561,7 @@ class Polyomino(SageObject):
             sage: (p + (3,4,5)).canonical()
             Polyomino: [(0, 0, 0), (1, 0, 0), (1, 1, 0), (1, 1, 1), (1, 2, 0)], Color: deeppink
         """
-        minxyz,maxxyz = self.bounding_box()
+        minxyz, maxxyz = self.bounding_box()
         return self - minxyz
 
     def __sub__(self, v):
@@ -579,7 +585,8 @@ class Polyomino(SageObject):
             Polyomino: [(-2, -2, -2), (-1, -2, -2), (-1, -1, -2), (-1, -1, -1), (-1, 0, -2)], Color: deeppink
         """
         if not len(v) == self._dimension:
-            raise ValueError, "Dimension of input vector must match the dimension of the polyomino"
+            raise ValueError("Dimension of input vector must match the "
+                             "dimension of the polyomino")
         v = vector(v)
         return Polyomino([vector(p)-v for p in self], color=self._color)
 
@@ -603,7 +610,8 @@ class Polyomino(SageObject):
             Polyomino: [(2, 2, 2), (3, 2, 2), (3, 3, 2), (3, 3, 3), (3, 4, 2)], Color: deeppink
         """
         if not len(v) == self._dimension:
-            raise ValueError, "Dimension of input vector must match the dimension of the polyomino"
+            raise ValueError("Dimension of input vector must match "
+                             "the dimension of the polyomino")
         v = vector(v)
         return Polyomino([vector(p)+v for p in self], color=self._color)
 
@@ -640,7 +648,8 @@ class Polyomino(SageObject):
             ValueError: Dimension of input matrix must match the dimension of the polyomino
         """
         if not m.nrows() == m.ncols() == self._dimension:
-            raise ValueError, "Dimension of input matrix must match the dimension of the polyomino"
+            raise ValueError("Dimension of input matrix must match the "
+                             "dimension of the polyomino")
         return Polyomino([m * vector(p) for p in self], color=self._color)
 
     def bounding_box(self):
@@ -666,7 +675,7 @@ class Polyomino(SageObject):
 
         OUTPUT:
 
-            iterator of 3D polyominoes
+            iterator of 3d polyominoes
 
         EXAMPLES::
 
@@ -721,8 +730,9 @@ class Polyomino(SageObject):
             []
         """
         if not len(box) == self._dimension:
-            raise ValueError, "Dimension of input box must match the dimension of the polyomino"
-        minxyz,maxxyz = map(vector, self.bounding_box())
+            raise ValueError("Dimension of input box must match the "
+                             "dimension of the polyomino")
+        minxyz, maxxyz = map(vector, self.bounding_box())
         size = maxxyz - minxyz
         cano = self.canonical()
         for v in xmrange(vector(box) - vector(size), tuple):
@@ -761,12 +771,12 @@ class Polyomino(SageObject):
             360
         """
         if not len(box) == self._dimension:
-            raise ValueError, "Dimension of input box must match the dimension of the polyomino"
+            raise ValueError("Dimension of input box must match the "
+                             "dimension of the polyomino")
         all_distinct_cano = set(self.canonical_orthogonals(orientation_preserving))
         for cano in all_distinct_cano:
             for t in cano.translated(box=box):
                 yield t
-
 
     def neighbor_edges(self):
         r"""
@@ -837,15 +847,15 @@ class Polyomino(SageObject):
 
     def boundary(self):
         r"""
-        Return the boundary of a 2D polyomino.
+        Return the boundary of a 2d polyomino.
 
         INPUT:
 
-        - ``self`` - a 2D polyomino
+        - ``self`` - a 2d polyomino
 
         OUTPUT:
 
-        - list of edges (an edge is a pair of adjacent 2D coordinates)
+        - list of edges (an edge is a pair of adjacent 2d coordinates)
 
         EXAMPLES::
 
@@ -860,27 +870,27 @@ class Polyomino(SageObject):
             [((4.5, 5.5), (5.5, 5.5)), ((4.5, 4.5), (5.5, 4.5)), ((4.5, 4.5), (4.5, 5.5)), ((5.5, 4.5), (5.5, 5.5))]
         """
         if self._dimension != 2:
-            raise NotImplementedError("The method boundary is currently implemented "
+            raise NotImplementedError("The method boundary is currently "
+                                      "implemented "
                                       "only for dimension 2")
         from collections import defaultdict
         horizontal = defaultdict(int)
         vertical = defaultdict(int)
         for a in self:
-            x,y = a = tuple(a)
+            x, y = a = tuple(a)
             horizontal[a] += 1
             vertical[a] += 1
-            horizontal[(x,y+1)] -= 1
-            vertical[(x+1,y)] -= 1
+            horizontal[(x, y+1)] -= 1
+            vertical[(x+1, y)] -= 1
         edges = []
         h = 0.5
-        for (x,y), coeff in horizontal.iteritems():
+        for (x, y), coeff in horizontal.iteritems():
             if coeff != 0:
-                edges.append(((x-h,y-h),(x+h,y-h)))
-        for (x,y), coeff in vertical.iteritems():
+                edges.append(((x-h, y-h), (x+h, y-h)))
+        for (x, y), coeff in vertical.iteritems():
             if coeff != 0:
-                edges.append(((x-h,y-h),(x-h,y+h)))
+                edges.append(((x-h, y-h), (x-h, y+h)))
         return edges
-
 
     def show3d(self, size=1):
         r"""
@@ -932,12 +942,13 @@ class Polyomino(SageObject):
         assert self._dimension == 2, "Dimension of the polyomino must be 2."
         h = size / 2.0
         G = Graphics()
-        for a,b in self:
-            G += circle((a,b), h, fill=True, color=self._color)
+        for a, b in self:
+            G += circle((a, b), h, fill=True, color=self._color)
         k = h / 2.0
-        for P,Q in self.neighbor_edges():
-            a,b = (P + Q) / 2.0
-            G += polygon([(a-k,b-k), (a+k,b-k), (a+k,b+k), (a-k,b+k), (a-k,b-k)], color=self._color)
+        for P, Q in self.neighbor_edges():
+            a, b = (P + Q) / 2.0
+            G += polygon([(a-k, b-k), (a+k, b-k), (a+k, b+k), (a-k, b+k),
+                          (a-k, b-k)], color=self._color)
         for edge in self.boundary():
             G += line(edge, color=color, thickness=thickness)
         return G
@@ -945,6 +956,8 @@ class Polyomino(SageObject):
 #######################
 # General tiling solver
 #######################
+
+
 class TilingSolver(SageObject):
     r"""
     Tiling solver
@@ -1001,7 +1014,8 @@ class TilingSolver(SageObject):
         ...
         NotImplementedError: When reflection is allowed and rotation is not allowed
     """
-    def __init__(self, pieces, box, rotation=True, reflection=False, reusable=False):
+    def __init__(self, pieces, box, rotation=True,
+                 reflection=False, reusable=False):
         r"""
         Constructor.
 
@@ -1023,7 +1037,8 @@ class TilingSolver(SageObject):
         self._rotation = rotation
         self._reflection = reflection
         if not self._rotation and self._reflection:
-            raise NotImplementedError, "When reflection is allowed and rotation is not allowed"
+            raise NotImplementedError("When reflection is allowed and "
+                                      "rotation is not allowed")
         self._reusable = reusable
         self._starting_rows = None    # the starting row of each piece
 
@@ -1096,7 +1111,7 @@ class TilingSolver(SageObject):
 
         OUTPUT:
 
-            list of 3D polyominoes
+            list of 3d polyominoes
 
         EXAMPLES::
 
@@ -1159,10 +1174,11 @@ class TilingSolver(SageObject):
             [((0, 0), 0), ((0, 1), 1), ((1, 0), 2), ((1, 1), 3), ((2, 0), 4), ((2, 1), 5)]
         """
         if self._reusable:
-            return dict( (c,i) for i,c in enumerate(self.space()) )
+            return dict((c, i) for i, c in enumerate(self.space()))
         else:
             number_of_pieces = len(self._pieces)
-            return dict( (c,i+number_of_pieces) for i,c in enumerate(self.space()) )
+            return dict((c, i+number_of_pieces)
+                        for i, c in enumerate(self.space()))
 
     @cached_method
     def int_to_coord_dict(self):
@@ -1204,10 +1220,11 @@ class TilingSolver(SageObject):
 
         """
         if self._reusable:
-            return dict( (i,c) for i,c in enumerate(self.space()) )
+            return dict((i, c) for i, c in enumerate(self.space()))
         else:
             number_of_pieces = len(self._pieces)
-            return dict( (i+number_of_pieces,c) for i,c in enumerate(self.space()) )
+            return dict((i+number_of_pieces, c)
+                        for i, c in enumerate(self.space()))
 
     @cached_method
     def rows(self):
@@ -1241,15 +1258,18 @@ class TilingSolver(SageObject):
         """
         coord_to_int = self.coord_to_int_dict()
         rows = []
-        self._starting_rows = [] # indices of the first row for each piece
-        for i,p in enumerate(self._pieces):
+        self._starting_rows = []  # indices of the first row for each piece
+        for i, p in enumerate(self._pieces):
             self._starting_rows.append(len(rows))
             if self._rotation and self._reflection:
-                it = p.translated_orthogonals(self._box, orientation_preserving=False)
+                it = p.translated_orthogonals(self._box,
+                                              orientation_preserving=False)
             elif self._rotation and not self._reflection:
-                it = p.translated_orthogonals(self._box, orientation_preserving=True)
+                it = p.translated_orthogonals(self._box,
+                                              orientation_preserving=True)
             elif not self._rotation and self._reflection:
-                raise NotImplementedError, "Reflection allowed, Rotation not allowed is not implemented"
+                raise NotImplementedError("Reflection allowed, Rotation not "
+                                          "allowed is not implemented")
             else:
                 it = p.translated(self._box)
             if self._reusable:
@@ -1274,17 +1294,17 @@ class TilingSolver(SageObject):
             sage: from sage.games.quantumino import QuantuminoSolver
             sage: q = QuantuminoSolver(0)
             sage: T = q.tiling_solver()
-            sage: T.nrows_per_piece()                           # long time (10s)
+            sage: T.nrows_per_piece()             # long time (10s)
             [360, 360, 360, 360, 360, 180, 180, 672, 672, 360, 360, 180, 180, 360, 360, 180]
         """
         if self._starting_rows is None:
-            rows = self.rows()
+            self.rows()
         L = self._starting_rows
         return [L[i+1] - L[i] for i in xrange(len(L)-1)]
 
     def dlx_solver(self):
         r"""
-        Return the sage DLX solver of that 3D tiling problem.
+        Return the sage DLX solver of that 3d tiling problem.
 
         OUTPUT:
 
@@ -1387,7 +1407,7 @@ class TilingSolver(SageObject):
             yield B
             A, B = B, it.next()
             common_prefix = []
-            for a,b in itertools.izip(A,B):
+            for a, b in itertools.izip(A, B):
                 if a == b:
                     common_prefix.append(a)
                 else:
@@ -1445,19 +1465,19 @@ class TilingSolver(SageObject):
             yield B
             A, B = B, it.next()
             common_prefix = 0
-            for a,b in itertools.izip(A,B):
+            for a, b in itertools.izip(A, B):
                 if a == b:
                     common_prefix += 1
                 else:
                     break
-            for i in xrange(1,len(A)-common_prefix):
+            for i in xrange(1, len(A)-common_prefix):
                 yield A[:-i]
             for j in xrange(common_prefix, len(B)):
                 yield B[:j]
 
     def solve(self, partial=None):
         r"""
-        Returns an iterator of list of 3D polyominoes that are an exact
+        Returns an iterator of list of 3d polyominoes that are an exact
         cover of the box.
 
         INPUT:
@@ -1472,7 +1492,7 @@ class TilingSolver(SageObject):
 
         OUTPUT:
 
-            iterator of list of 3D polyominoes
+            iterator of list of 3d polyominoes
 
         EXAMPLES::
 
@@ -1665,14 +1685,17 @@ class TilingSolver(SageObject):
         if dimension == 2:
             it = self.solve(partial=partial)
             it = itertools.islice(it, stop)
-            L = [sum([piece.show2d(size) for piece in solution], Graphics()) for solution in it]
+            L = [sum([piece.show2d(size)
+                      for piece in solution], Graphics()) for solution in it]
             xmax, ymax = self._box
             xmax = xmax-0.5
             ymax = ymax-0.5
-            a = Animation(L, xmin=-0.5, ymin=-0.5, xmax=xmax, ymax=ymax, aspect_ratio=1, axes=axes)
+            a = Animation(L, xmin=-0.5, ymin=-0.5,
+                          xmax=xmax, ymax=ymax, aspect_ratio=1, axes=axes)
             return a
         elif dimension == 3:
-            raise NotImplementedError("3d Animation must be implemented in Jmol first")
+            raise NotImplementedError("3d Animation must be implemented "
+                                      "in Jmol first")
         else:
-            raise NotImplementedError("Dimension must be 2 or 3 in order to make an animation")
-
+            raise NotImplementedError("Dimension must be 2 or 3 in order "
+                                      "to make an animation")

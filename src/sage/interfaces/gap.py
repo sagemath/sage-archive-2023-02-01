@@ -1480,9 +1480,16 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
     now = time.time()
     for F in os.listdir(GAP_DIR):
         if F.startswith('workspace-'):
-            age = now - os.path.getatime(os.path.join(GAP_DIR, F))
-            if age >= 604800:    # 1 week in seconds
-                os.unlink(os.path.join(GAP_DIR, F))
+            W = os.path.join(GAP_DIR, F)
+            try:
+                age = now - os.path.getatime(W)
+                if age >= 604800:    # 1 week in seconds
+                    os.unlink(W)
+            except OSError:
+                # It's not a problem if W doesn't exist, everything
+                # else is an error.
+                if os.path.exists(W):
+                    raise
 
     # Create new workspace with filename WORKSPACE
     g = Gap(use_workspace_cache=False, max_workspace_size=None)

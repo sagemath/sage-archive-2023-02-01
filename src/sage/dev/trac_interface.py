@@ -301,8 +301,9 @@ class TracInterface(object):
         """
         try:
             if time.time() < self.__passwd_timeout:
+                ret = self.__authenticated_server_proxy
                 self.__touch_password_timeout()
-                return self.__authenticated_server_proxy
+                return ret
             else:
                 del self.__authenticated_server_proxy
         except AttributeError:

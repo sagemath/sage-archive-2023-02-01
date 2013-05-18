@@ -392,11 +392,24 @@ class TracInterface(object):
         url = urlparse.urljoin(server,
                 urllib.pathname2url(os.path.join('login', 'xmlrpc')))
 
-        transport = DigestTransport(realm=realm, url=server,
-                username=self._username, password=self._password)
-        self.__authenticated_server_proxy = ServerProxy(url,
-                transport=transport)
+        while True:
+            transport = DigestTransport(realm=realm, url=server,
+                    username=self._username, password=self._password)
+            proxy = ServerProxy(url, transport=transport)
+            try:
+                proxy.system.listmethods()
+                break
+            except urllib2.HTTPError as error:
+                if error.code == 401:
+                    self._UI.show("Invalid username/password pair.")
+                    del self.__username
+                    del self._config['password']
+                else:
+                    self._UI.show(
+                            "Could not verify password, will try to proceed.")
+                    break
 
+        self.__authenticated_server_proxy = proxy
         return self.__authenticated_server_proxy
 
     @property
@@ -408,21 +421,25 @@ class TracInterface(object):
 
             sage: from sage.dev.sagedev import SageDev, Config, doctest_config
             sage: conf = doctest_config()
-            sage: del conf['trac']
+            sage: t = SageDev(conf).trac
+            sage: t._username
+            'doctest'
+            sage: del conf['trac']['username']
             sage: t = SageDev(conf).trac
             sage: t._UI.append("user")
             sage: t._username
-            Please enter your trac username: user
+            Trac username: user
             'user'
             sage: t._username
             'user'
-            sage: SageDev(Config(conf._devrc)).trac._username
-            'user'
         """
-        if 'username' not in self._config:
-            self._config['username'] = self._UI.get_input(
-                    'Please enter your trac username:')
-        return self._config['username']
+        try:
+            return self.__username
+        except AttributeError:
+            self.__username = self._config.get('username')
+            if self.__username is None:
+                self.__username = self._UI.get_input('Trac username:')
+            return self.__username
 
     @property
     def _password(self):
@@ -433,16 +450,14 @@ class TracInterface(object):
 
             sage: from sage.dev.sagedev import SageDev, doctest_config
             sage: t = SageDev(doctest_config()).trac
-            sage: t._UI.extend(["yes", "passwd", "passwd", "", "pass", "pass"])
+            sage: t._UI.extend(["yes", "passwd", "", "pass"])
             sage: t._password
-            Please enter your trac password:
-            Please confirm your trac password:
-            Do you want your password to be stored on your local system? (your password will be stored in plaintext in a file only readable by you) [yes/No/stop asking]
+            Trac password:
+            Would you like to store your password locally? (it will be stored in a plaintext file that only you may read) [yes/No/stop asking]
             'pass'
             sage: t._password
-            Please enter your trac password:
-            Please confirm your trac password:
-            Do you want your password to be stored on your local system? (your password will be stored in plaintext in a file only readable by you) [yes/No/stop asking] yes
+            Trac password:
+            Would you like to store your password locally? (it will be stored in a plaintext file that only you may read) [yes/No/stop asking] yes
             'passwd'
             sage: t._password
             'passwd'
@@ -451,19 +466,12 @@ class TracInterface(object):
             self.__auth_timeout = float('inf')
             return self._config['password']
 
-        while True:
-            passwd = self._UI.get_password("Please enter your trac password:")
-            if (self._UI.get_password("Please confirm your trac password:")
-                    == passwd):
-                break
-            else:
-                self._UI.show("Passwords do not agree.")
+        passwd = self._UI.get_password("Trac password:")
 
         if self._config.get('password') is None:
-            r = self._UI.select("Do you want your password to be stored on "+
-                                "your local system? (your password will be "+
-                                "stored in plaintext in a file only readable "+
-                                "by you)",
+            r = self._UI.select("Would you like to store your password "+
+                                "locally? (it will be stored in a plaintext "+
+                                "file that only you may read)",
                                 options=("yes","no","stop asking"), default=1)
             if r == 'yes':
                 self.__auth_timeout = float('inf')

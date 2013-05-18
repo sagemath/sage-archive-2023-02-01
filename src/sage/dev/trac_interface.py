@@ -140,7 +140,6 @@ def _parse_ticket_file(filename):
     else: # no description
         i += 1
 
-
     # separate summary from other fields
     try:
         summary = fields.pop('summary')
@@ -259,6 +258,10 @@ class DoctestServerProxy(object):
         class Ticket(object):
             def create(self, summary, description, attributes, notify):
                 return 14366
+            def update(self, ticketnum, comment, attributes):
+                assert isinstance(ticketnum, int)
+                return (ticketnum,)
+
         return Ticket()
 
 class TracInterface(object):
@@ -474,28 +477,57 @@ class TracInterface(object):
                 description, attributes, notify)
 
     def edit_ticket(self, ticketnum):
+        """
+        edit a ticket on trac
+
+        EXAMPLES::
+
+            sage: import os
+            sage: os.environ['EDITOR'] = 'cat'
+            sage: dev.trac.edit_ticket(1000) # optional: online
+            Summary: Sage does not have 10000 users yet.
+            Cc:
+            Type: defect
+            Milestone: sage-2.10
+            Component: distribution
+            Priority: major
+            Keywords:
+            <BLANKLINE>
+            ADD DESCRIPTION
+            <BLANKLINE>
+            <BLANKLINE>
+            # Lines starting with `#` are ignored.
+            # Lines starting with `Field: ` correspond to fields of
+            # the trac ticket, and can be followed by text on the same line.
+            # They will be assigned to the corresponding field on the trac
+            # ticket.
+            #
+            # Lines not following this format will be put into the ticket
+            # description. Trac markup is supported.
+            #
+            # An empty file aborts ticket creation/editing.
+            Modified ticket #1000.
+            sage: os.environ['EDITOR'] = 'echo "more description" >>'
+            sage: dev.trac.edit_ticket(13147) # optional: online
+            Modified ticket #13147.
+        """
+        ticketnum = int(ticketnum)
         attributes = self._get_attributes(ticketnum)
 
-        summary = "No Summary"
-        if 'summary' in attributes:
-            summary = attributes['summary']
-        summary += "(can not be changed)"
+        summary = attributes.get('summary', 'No Summary')
+        description = attributes.get('description', 'No Description')
 
-        description = "No Description"
-        if 'description' in attributes:
-            description = attributes['description']
+        ret = self._edit_ticket_interactive(summary, description, attributes)
+        if ret is None:
+            return
 
-        while True:
-            try:
-                x = self._edit_ticket_interactive(summary, description, attributes)
-                if x is None: return
-                summary, description, attributes = x
-                attributes['description'] = description
-                self._authenticated_server_proxy.ticket.update(ticketnum, "", attributes)
-            except StandardError:
-                self._UI.show("Ticket editing failed: %s"%e)
-                if self._UI.confirm("Do you want to try to fix your ticket file?"): continue
-                else: return None
+        attributes['summary'] = ret[0]
+        attributes['description'] = ret[1]
+        attributes.update(ret[2])
+
+        ticket = self._authenticated_server_proxy.ticket.update(ticketnum,
+                "", attributes)[0]
+        self._UI.show("Modified ticket #%s."%ticket)
 
     def _edit_ticket_interactive(self, summary, description, attributes):
         r"""

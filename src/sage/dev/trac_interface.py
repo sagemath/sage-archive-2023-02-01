@@ -397,7 +397,7 @@ class TracInterface(object):
                     username=self._username, password=self._password)
             proxy = ServerProxy(url, transport=transport)
             try:
-                proxy.system.listmethods()
+                proxy.system.listMethods()
                 break
             except urllib2.HTTPError as error:
                 if error.code == 401:

@@ -9,7 +9,7 @@ import urllib
 import urllib2
 import urlparse
 
-from xmlrpclib import Transport, ServerProxy
+from xmlrpclib import SafeTransport, ServerProxy
 
 from sage.doctest import DOCTEST_MODE
 from sage.env import REALM, TRAC_SERVER_URI
@@ -163,7 +163,7 @@ def _parse_ticket_file(filename):
     else:
         return summary, "\n".join(description)+"\n", fields
 
-class DigestTransport(object, Transport):
+class DigestTransport(object, SafeTransport):
     """
     Handles an HTTP transaction to an XML-RPC server.
 
@@ -193,7 +193,7 @@ class DigestTransport(object, Transport):
         auth = tuple(get_pop(kwds, x) for x in
                 ('realm', 'url', 'username', 'password'))
 
-        Transport.__init__(self, **kwds)
+        SafeTransport.__init__(self, **kwds)
 
         authhandler = urllib2.HTTPDigestAuthHandler()
         if all(x is not None for x in auth):
@@ -212,7 +212,8 @@ class DigestTransport(object, Transport):
         """
         req = urllib2.Request(
                 urlparse.urlunparse(('http', host, handler, '', '', '')),
-                request_body, {'Content-type': 'text/xml'})
+                request_body, {'Content-Type': 'text/xml',
+                    'User-Agent': self.user_agent})
 
         response = self.opener.open(req)
 
@@ -361,7 +362,8 @@ class TracInterface(object):
 
         transport = DigestTransport(realm=realm, url=server,
                 username=self._username, password=self._password)
-        self.__authenticated_server_proxy = ServerProxy(url, transport=transport)
+        self.__authenticated_server_proxy = ServerProxy(url,
+                transport=transport)
 
         return self.__authenticated_server_proxy
 

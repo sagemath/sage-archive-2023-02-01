@@ -518,10 +518,12 @@ class TracInterface(object):
 
         EXAMPLES::
 
-            sage: dev.trac.create_ticket("Summary","Description",{'type':'defect','component':'algebra'})
+            sage: dev.trac.create_ticket("Summary", "Description",
+            ....:         {'type':'defect', 'component':'algebra'})
             14366
         """
-        return self._authenticated_server_proxy.ticket.create(summary, description, attributes, notify)
+        return self._authenticated_server_proxy.ticket.create(summary,
+                description, attributes, notify)
 
     def edit_ticket(self, ticketnum):
         attributes = self._get_attributes(ticketnum)
@@ -736,8 +738,7 @@ class TracInterface(object):
              'type': 'defect'}
 
         """
-        ticketnum = int(ticketnum)
-        return self._anonymous_server_proxy.ticket.get(ticketnum)[3]
+        return self._anonymous_server_proxy.ticket.get(int(ticketnum))[3]
 
     def dependencies(self, ticketnum, all=False, _seen=None):
         """
@@ -764,6 +765,7 @@ class TracInterface(object):
         """
         # returns the list of all ticket dependencies, sorted by ticket number
         if _seen is None:
+            ticketnum = int(ticketnum)
             seen = []
         elif ticketnum in _seen:
             return
@@ -794,15 +796,16 @@ class TracInterface(object):
         EXAMPLES::
 
             sage: dev.trac.attachment_names(1000) # optional: online
-            []
+            ()
             sage: dev.trac.attachment_names(13147) # optional: online
-            ['13147_move.patch', '13147_lazy.patch', '13147_lazy_spkg.patch', '13147_new.patch', '13147_over_13579.patch', 'trac_13147-ref.patch', 'trac_13147-rebased-to-13681.patch', 'trac_13681_root.patch']
+            ('13147_move.patch', '13147_lazy.patch', '13147_lazy_spkg.patch', '13147_new.patch', '13147_over_13579.patch', 'trac_13147-ref.patch', 'trac_13147-rebased-to-13681.patch', 'trac_13681_root.patch')
         """
         ticketnum = int(ticketnum)
-        attachments = self._anonymous_server_proxy.ticket.listAttachments(ticketnum)
-        return [a[0] for a in attachments]
+        return tuple(a[0] for a in
+                self._anonymous_server_proxy.ticket.listAttachments(ticketnum))
 
     def _set_branch(self, ticketnum, remote_branch, commit_id):
-        ticketnum = int(ticketnum)
-        tid, time0, time1, attributes = self._anonymous_server_proxy.ticket.get(ticketnum)
-        self._authenticated_server_proxy.ticket.update(tid, 'Set by SageDev: commit %s'%(commit_id), {'branch':remote_branch})
+        tid = self._anonymous_server_proxy.ticket.get(int(ticketnum))[0]
+        self._authenticated_server_proxy.ticket.update(tid,
+                'Set by SageDev: commit %s'%(commit_id),
+                {'branch':remote_branch})

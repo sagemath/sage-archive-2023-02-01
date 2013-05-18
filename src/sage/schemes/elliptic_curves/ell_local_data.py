@@ -339,7 +339,7 @@ class EllipticCurveLocalData(SageObject):
             sage: E.local_data(ZZ.ideal(2), algorithm="pari").minimal_model()
             Elliptic Curve defined by y^2 = x^3 - x^2 - 3*x + 2 over Rational Field
 
-        trac 14476::
+        :trac:`14476`::
 
             sage: t = QQ['t'].0
             sage: K.<g> = NumberField(t^4 - t^3-3*t^2 - t +1)
@@ -647,7 +647,7 @@ class EllipticCurveLocalData(SageObject):
         - ``cp`` (int) is the Tamagawa number
 
 
-        EXAMPLES (this raised a type error in sage prior to 4.4.4, see ticket #7930) ::
+        EXAMPLES (this raised a type error in sage prior to 4.4.4, see :trac:`7930`) ::
 
             sage: E = EllipticCurve('99d1')
 
@@ -664,14 +664,14 @@ class EllipticCurveLocalData(SageObject):
 
         EXAMPLES:
 
-        The following example shows that the bug at #9324 is fixed::
+        The following example shows that the bug at :trac:`9324` is fixed::
 
             sage: K.<a> = NumberField(x^2-x+6)
             sage: E = EllipticCurve([0,0,0,-53160*a-43995,-5067640*a+19402006])
             sage: E.conductor() # indirect doctest
             Fractional ideal (18, 6*a)
 
-        The following example shows that the bug at #9417 is fixed::
+        The following example shows that the bug at :trac:`9417` is fixed::
 
             sage: K.<a> = NumberField(x^2+18*x+1)
             sage: E = EllipticCurve(K, [0, -36, 0, 320, 0])

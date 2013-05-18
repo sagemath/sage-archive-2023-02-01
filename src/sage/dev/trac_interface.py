@@ -402,16 +402,11 @@ class TracInterface(object):
             Do you want your password to be stored on your local system? (your password will be stored in plaintext in a file only readable by you) [yes/No/stop asking]
             'pass'
             sage: t._password
-            'pass'
-            sage: import time      # long time
-            sage: time.sleep(1)    # long time
-            sage: t._password      # long time
             Please enter your trac password:
             Please confirm your trac password:
             Do you want your password to be stored on your local system? (your password will be stored in plaintext in a file only readable by you) [yes/No/stop asking] yes
             'passwd'
-            sage: time.sleep(1)    # long time
-            sage: t._password      # long time
+            sage: t._password
             'passwd'
         """
         if self._config.get('password'):

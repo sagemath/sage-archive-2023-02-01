@@ -300,17 +300,17 @@ class TracInterface(object):
             <ServerProxy for trac.sagemath.org/xmlrpc>
         """
         try:
+            return self.__anonymous_server_proxy
+        except AttributeError:
+            pass
+
+        try:
             if time.time() < self.__passwd_timeout:
                 ret = self.__authenticated_server_proxy
                 self.__touch_password_timeout()
                 return ret
             else:
                 del self.__authenticated_server_proxy
-        except AttributeError:
-            pass
-
-        try:
-            return self.__anonymous_server_proxy
         except AttributeError:
             pass
 

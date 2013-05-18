@@ -305,16 +305,6 @@ class TracInterface(object):
         except AttributeError:
             pass
 
-        try:
-            if time.time() < self.__passwd_timeout:
-                ret = self.__authenticated_server_proxy
-                self.__touch_password_timeout()
-                return ret
-            else:
-                del self.__authenticated_server_proxy
-        except AttributeError:
-            pass
-
         realm = self._config.get('realm', REALM)
         server = self._config.get('server', TRAC_SERVER_URI)
 
@@ -342,8 +332,12 @@ class TracInterface(object):
             <sage.dev.trac_interface.DoctestServerProxy object at ...>
         """
         try:
-            if time.time() < self.__passwd_timeout:
-                self.__touch_password_timeout()
+            if time.time() < self.__auth_timeout:
+                # default timeout is 5 minutes, like sudo
+                new_timeout = time.time() + float(
+                        self._config.get('password_timeout', 300))
+                if new_timeout > self.__auth_timeout:
+                    self.__auth_timeout = new_timeout
                 return self.__authenticated_server_proxy
             else:
                 del self.__authenticated_server_proxy
@@ -392,34 +386,6 @@ class TracInterface(object):
                     'Please enter your trac username:')
         return self._config['username']
 
-    def __touch_password_timeout(self):
-        """
-        reset password timeout
-
-        TESTS::
-
-            sage: from sage.dev.sagedev import SageDev, doctest_config
-            sage: t = SageDev(doctest_config()).trac
-            sage: t._UI.extend(["", "pass", "pass"])
-            sage: t._password
-            Please enter your trac password:
-            Please confirm your trac password:
-            Do you want your password to be stored on your local system? (your password will be stored in plaintext in a file only readable by you) [yes/No/stop asking]
-            'pass'
-            sage: t._password
-            'pass'
-            sage: import time                                 # long time
-            sage: time.sleep(1)                               # long time
-            sage: t._TracInterface__touch_password_timeout()  # long time
-            sage: t._password                                 # long time
-            'pass'
-        """
-        # default timeout is 5 minutes, like sudo
-        t = time.time() + float(
-                self._config.get('password_timeout', 300))
-        if t > self.__passwd_timeout:
-            self.__passwd_timeout = t
-
     @property
     def _password(self):
         """
@@ -448,22 +414,9 @@ class TracInterface(object):
             sage: t._password      # long time
             'passwd'
         """
-        try:
-            if time.time() < self.__passwd_timeout:
-                self.__touch_password_timeout()
-                return self.__passwd
-            else:
-                del self.__passwd
-        except AttributeError:
-            pass
-
-        def saved_passwd():
-            self.__passwd_timeout = float('inf')
-            self.__passwd = self._config['password']
-            return self.__passwd
-
         if self._config.get('password'):
-            return saved_passwd()
+            self.__auth_timeout = float('inf')
+            return self._config['password']
 
         while True:
             passwd = self._UI.get_password("Please enter your trac password:")
@@ -480,16 +433,16 @@ class TracInterface(object):
                                 "by you)",
                                 options=("yes","no","stop asking"), default=1)
             if r == 'yes':
+                self.__auth_timeout = float('inf')
                 self._config['password'] = passwd
-                return saved_passwd()
+                return passwd
             elif r == 'stop asking':
                 self._config['password'] = ""
 
-        self.__passwd = passwd
-        self.__passwd_timeout = float('-inf')
-        self.__touch_password_timeout()
-
-        return self.__passwd
+        # default timeout is 5 minutes, like sudo
+        self.__auth_timeout = time.time() + float(
+                self._config.get('password_timeout', 300))
+        return passwd
 
     @property
     def sshkeys(self):

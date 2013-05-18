@@ -256,28 +256,58 @@ class DoctestServerProxy(object):
 
     EXAMPLES::
 
-        sage: sage.dev.trac_interface.DoctestServerProxy(None)
+        sage: sage.dev.trac_interface.DoctestServerProxy(dev.trac)
         <sage.dev.trac_interface.DoctestServerProxy object at ...>
     """
     def __init__(self, trac):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: type(sage.dev.trac_interface.DoctestServerProxy(dev.trac))
+            <class 'sage.dev.trac_interface.DoctestServerProxy'>
+        """
         self._trac = trac
         self._sshkeys = {}
 
     @property
     def sshkeys(self):
+        """
+        fake sshkeys trac plugin for doctest
+
+        TESTS::
+
+            sage: from sage.dev.trac_interface import DoctestServerProxy
+            sage: proxy = DoctestServerProxy(dev.trac)
+            sage: sshkeys = proxy.sshkeys
+            sage: type(sshkeys)
+            <class 'sage.dev.trac_interface.SshKeys'>
+            sage: sshkeys.listusers()
+            []
+            sage: sshkeys.getkeys()
+            []
+            sage: sshkeys.setkeys(["foo", "bar"])
+            0
+            sage: sshkeys.getkeys()
+            ['foo', 'bar']
+        """
         try:
             return self._sshkeys_impl
         except AttributeError:
             pass
         class SshKeys(object):
+            def _user(this):
+                return self._trac._username
+            def _setdefault(this):
+                return self._sshkeys.setdefault(this._user(), set())
+            def __setitem__(this, key, value):
+                self._sshkeys[key] = value
             def setkeys(this, keys):
-                if self._trac._username not in self._sshkeys:
-                    self._sshkeys[self._trac._username] = set()
-                self._sshkeys[self._trac._username] = self._sshkeys[self._trac._username].union(set(keys))
+                this[this._user()] = this._setdefault().union(set(keys))
                 return 0
             def getkeys(this):
-                if self._trac._username not in self._sshkeys: return []
-                return list(self._sshkeys[self._trac._username])
+                return list(this._setdefault())
             def listusers(this):
                 return self._sshkeys.keys()
 
@@ -286,6 +316,25 @@ class DoctestServerProxy(object):
 
     @property
     def ticket(self):
+        """
+        fake ticket methods for trac xmlrpc plugin
+
+        TESTS::
+
+            sage: from sage.dev.trac_interface import DoctestServerProxy
+            sage: proxy = DoctestServerProxy(dev.trac)
+            sage: ticket = proxy.ticket
+            sage: type(ticket)
+            <class 'sage.dev.trac_interface.Ticket'>
+            sage: ticket.create('a comment', 'a description', {}, False)
+            14366
+            sage: ticket.update(5614, 'a comment', {})
+            Traceback (most recent call last):
+            ...
+            AssertionError
+            sage: ticket.update(int(5614), 'a comment', {})
+            (5614,)
+        """
         class Ticket(object):
             def create(self, summary, description, attributes, notify):
                 return 14366
@@ -493,8 +542,6 @@ class TracInterface(object):
         EXAMPLES::
 
             sage: sshkeys = dev.trac.sshkeys
-            sage: type(sshkeys)
-            <class 'sage.dev.trac_interface.SshKeys'>
             sage: sshkeys.listusers()
             []
             sage: sshkeys.getkeys()

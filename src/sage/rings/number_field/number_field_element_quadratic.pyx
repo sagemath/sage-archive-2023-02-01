@@ -9,7 +9,8 @@ AUTHORS:
 - Robert Bradshaw (2007-09): Initial version
 - David Harvey (2007-10): fix up a few bugs, polish around the edges
 - David Loeffler (2009-05): add more documentation and tests
-- Vincent Delecroix (2012-07): comparisons for quadratic number fields (#13213)
+- Vincent Delecroix (2012-07): comparisons for quadratic number fields (#13213),
+  abs, floor and ceil functions (#13256)
 
 TODO:
 
@@ -35,6 +36,7 @@ include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 
 from sage.structure.element cimport Element
+from sage.rings.integer cimport Integer
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
@@ -1416,16 +1418,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
                 mpz_neg(q.b, self.b)
             return q
 
-    def __abs__(self):
-        """
-        EXAMPLES::
-
-            sage: K.<a> = NumberField(x^2+1, embedding=CDF.gen())
-            sage: abs(a+1)
-            sqrt(2)
-        """
-        return (self.imag()**2 + self.real()**2).sqrt()
-
     def _coefficients(self):
         """
         EXAMPLES::
@@ -1694,6 +1686,134 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             return R([-self._rational_(), 1])
         else:
             return self.charpoly(var)
+
+    def __abs__(self):
+        """
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(2, 'a', embedding=-1.4142)
+            sage: abs(a)    # indirect test
+            -a
+            sage: abs(a+1)  # indirect test
+            -a - 1
+            sage: abs(a+2)  # indirect test
+            a + 2
+
+            sage: K.<a> = NumberField(x^2+1, embedding=CDF.gen())
+            sage: abs(a+1)
+            sqrt(2)
+        """
+        if mpz_sgn(self.D.value) == 1:
+            if self.sign() >= 0:
+                return self
+            return -self
+
+        # doing that way the parent is the symbolic ring (or IntegerRing if the
+        # norm of self is a square). On the other hand, it is coherent with
+        # sage.rings.integer.Integer.sqrt
+        return (self.real()**2 + self.imag()**2).sqrt()
+
+    def floor(self):
+        r"""
+        Returns the floor of x.
+
+        EXAMPLES::
+
+            sage: K.<sqrt2> = QuadraticField(2,name='sqrt2')
+            sage: sqrt2.floor()
+            1
+            sage: (-sqrt2).floor()
+            -2
+            sage: (13/197 + 3702/123*sqrt2).floor()
+            42
+            sage: (13/197-3702/123*sqrt2).floor()
+            -43
+
+        TESTS::
+
+            sage: K2.<sqrt2> = QuadraticField(2)
+            sage: K3.<sqrt3> = QuadraticField(3)
+            sage: K5.<sqrt5> = QuadraticField(5)
+            sage: for _ in xrange(100):
+            ....:    a = QQ.random_element(1000,20)
+            ....:    b = QQ.random_element(1000,20)
+            ....:    assert floor(a+b*sqrt(2.)) == floor(a+b*sqrt2)
+            ....:    assert floor(a+b*sqrt(3.)) == floor(a+b*sqrt3)
+            ....:    assert floor(a+b*sqrt(5.)) == floor(a+b*sqrt5)
+
+            sage: K = QuadraticField(-2)
+            sage: l = [K(52), K(-3), K(43/12), K(-43/12)]
+            sage: [x.floor() for x in l]
+            [52, -3, 3, -4]
+        """
+        cdef mpz_t x
+        cdef Integer result
+
+        if mpz_sgn(self.b) == 0:
+            mpz_init_set(x,self.a)
+            mpz_fdiv_q(x,x,self.denom)
+            result = PY_NEW(Integer)
+            mpz_set(result.value,x)
+            mpz_clear(x)
+            return result
+
+        if not mpz_sgn(self.D.value) == 1:
+            raise ValueError("floor is not defined for complex quadratic number field")
+
+        mpz_init(x)
+        mpz_mul(x,self.b,self.b)
+        mpz_mul(x,x,self.D.value)
+        mpz_sqrt(x,x)
+        if mpz_sgn(self.b) == -1:
+            if self.standard_embedding:
+                mpz_neg(x,x)
+                mpz_sub_ui(x,x,1)
+        elif not self.standard_embedding:
+                mpz_neg(x,x)
+                mpz_sub_ui(x,x,1)
+
+        mpz_add(x,x,self.a)    # here x = a + floor(sqrt(b^2 D)) or a + floor(-sqrt(b^2 D))
+        mpz_fdiv_q(x,x,self.denom)
+        result = PY_NEW(Integer)
+        mpz_set(result.value,x)
+        mpz_clear(x)
+        return result
+
+    def ceil(self):
+        r"""
+        Returns the ceil.
+
+        EXAMPLES::
+
+            sage: K.<sqrt7> = QuadraticField(7, name='sqrt7')
+            sage: sqrt7.ceil()
+            3
+            sage: (-sqrt7).ceil()
+            -2
+            sage: (1022/313*sqrt7 - 14/23).ceil()
+            9
+
+        TESTS::
+
+            sage: K2.<sqrt2> = QuadraticField(2)
+            sage: K3.<sqrt3> = QuadraticField(3)
+            sage: K5.<sqrt5> = QuadraticField(5)
+            sage: for _ in xrange(100):
+            ....:    a = QQ.random_element(1000,20)
+            ....:    b = QQ.random_element(1000,20)
+            ....:    assert ceil(a+b*sqrt(2.)) == ceil(a+b*sqrt2)
+            ....:    assert ceil(a+b*sqrt(3.)) == ceil(a+b*sqrt3)
+            ....:    assert ceil(a+b*sqrt(5.)) == ceil(a+b*sqrt5)
+
+            sage: K = QuadraticField(-2)
+            sage: l = [K(52), K(-3), K(43/12), K(-43/12)]
+            sage: [x.ceil() for x in l]
+            [52, -3, 4, -3]
+        """
+        x = self.floor()
+        if mpz_sgn(self.b) == 0 and mpz_cmp_ui(self.denom,1) == 0:
+            return x
+        return x+1
 
 
 cdef class OrderElement_quadratic(NumberFieldElement_quadratic):

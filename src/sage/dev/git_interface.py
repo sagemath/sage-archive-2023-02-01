@@ -54,6 +54,7 @@ import tempfile
 from cStringIO import StringIO
 from subprocess import call, check_output
 
+from sage.doctest import DOCTEST_MODE
 from sage.env import SAGE_DOT_GIT, SAGE_REPO, DOT_SAGE
 
 def is_atomic_name(x):
@@ -573,7 +574,7 @@ class GitInterface(object):
         self._gitcmd  = self._config.get('gitcmd', 'git')
         self._repo    = self._config.get('repo', SAGE_REPO)
 
-        if 'doctest' == self._sagedev.trac._config.get('username', None):
+        if DOCTEST_MODE:
             self._tmp_dir = tempfile.mkdtemp()
             atexit.register(shutil.rmtree, self._tmp_dir)
             self._dot_git = os.path.join(self._tmp_dir, '.git')

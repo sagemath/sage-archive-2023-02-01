@@ -771,13 +771,13 @@ class KBoundedQuotientBases(Category_realization_of_parent):
 
         def antipode(self, element):
             r"""
-            The antipode of ``element`` via lifting to the symmetric functions and
-            then retracting into the `k`-bounded quotient basis.
+            Return the antipode of ``element`` via lifting to the symmetric
+            functions and then retracting into the `k`-bounded quotient basis.
 
             INPUT:
 
-            - ``self`` -- a basis of the ring of `k`-bounded quotient of symmetric functions
-            - ``element`` -- element in a basis of the ring of symmetric functions
+            - ``element`` -- an element in a basis of the ring of symmetric
+              functions
 
             EXAMPLES::
 
@@ -786,6 +786,8 @@ class KBoundedQuotientBases(Category_realization_of_parent):
                 -dks3[1, 1, 1, 1, 1]
                 sage: km = SymmetricFunctions(QQ).kBoundedQuotient(3,t=1).km()
                 sage: km[3,2].antipode()
+                m3[3, 2]
+                sage: km.antipode(km[3,2])
                 m3[3, 2]
                 sage: m = SymmetricFunctions(QQ).m()
                 sage: m[3,2].antipode()
@@ -809,16 +811,17 @@ class KBoundedQuotientBases(Category_realization_of_parent):
 
         def coproduct(self, element):
             r"""
-            The coproduct of ``element`` via lifting to the symmetric functions and
-            then returning to the `k`-bounded quotient basis.  This method is implemented
-            for all `t` but is (weakly) conjectured to not be the correct operation for
-            other values `t` because the coproduct on dual-`k`-Schur functions does not
-            have a positive expansion.
+            Return the coproduct of ``element`` via lifting to the symmetric
+            functions and then returning to the `k`-bounded quotient basis.
+            This method is implemented for all `t` but is (weakly) conjectured
+            to not be the correct operation for other values `t` because the
+            coproduct on dual-`k`-Schur functions does not have a positive
+            expansion.
 
             INPUT:
 
-            - ``self`` -- a basis of the ring of `k`-bounded quotient of symmetric functions
-            - ``element`` -- element in a basis of the ring of symmetric functions
+            - ``element`` -- an element in a basis of the ring of symmetric
+              functions
 
             EXAMPLES::
 
@@ -842,6 +845,8 @@ class KBoundedQuotientBases(Category_realization_of_parent):
                 sage: kHLP = Q3t.kHLP()
                 sage: kHLP[2,1].coproduct()
                 HLP3[] # HLP3[2, 1] + (-t^2+1)*HLP3[1] # HLP3[1, 1] + HLP3[1] # HLP3[2] + (-t^2+1)*HLP3[1, 1] # HLP3[1] + HLP3[2] # HLP3[1] + HLP3[2, 1] # HLP3[]
+                sage: km.coproduct(km[3,2])
+                m3[] # m3[3, 2] + m3[2] # m3[3] + m3[3] # m3[2] + m3[3, 2] # m3[]
             """
             from sage.categories.tensor import tensor
             base = element.lift().parent()
@@ -850,20 +855,21 @@ class KBoundedQuotientBases(Category_realization_of_parent):
 
         def counit(self, element):
             r"""
-            Returns the counit of ``element``.
+            Return the counit of ``element``.
+
+            The counit is the constant term of ``element``.
 
             INPUT:
 
-            - ``self`` -- a basis of the ring of `k`-bounded quotient of symmetric functions
             - ``element`` -- an element in a basis
-
-            The counit is the constant terms of ``element``.
 
             EXAMPLES::
 
                 sage: km = SymmetricFunctions(FractionField(QQ['t'])).kBoundedQuotient(3).km()
                 sage: f = 2*km[2,1] - 3*km([])
                 sage: f.counit()
+                -3
+                sage: km.counit(f)
                 -3
             """
             return element.coefficient([])

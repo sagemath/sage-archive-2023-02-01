@@ -847,7 +847,10 @@ class HighestWeightCrystalOfGYW(CrystalOfGeneralizedYoungWalls):
 
             sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()[1]
             sage: YLa = HighestWeightCrystalOfGYW(2,La)
-            sage: TestSuite(YLa).run() # long time
+
+        We skip the two tests because they take a very long time::
+
+            sage: TestSuite(YLa).run(skip=["_test_enumerated_set_contains","_test_stembridge_local_axioms"]) # long time
         """
         CrystalOfGeneralizedYoungWalls.__init__( self, n,
                 category=(RegularCrystals(), HighestWeightCrystals(), InfiniteEnumeratedSets()) )

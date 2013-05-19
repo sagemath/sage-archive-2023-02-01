@@ -492,11 +492,16 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
 
         def coproduct(self, element):
             r"""
-            Returns the coproduct operation on ``element``.
+            Return the coproduct operation on ``element``.
 
-            The coproduct is first computed on the homogeneous basis if `t=1` and
-            on the Hall-Littlewood ``Qp`` basis otherwise.  The result is computed
-            then converted to the tensor squared of ``self.parent()``
+            The coproduct is first computed on the homogeneous basis if `t=1`
+            and on the Hall-Littlewood ``Qp`` basis otherwise.  The result is
+            computed then converted to the tensor squared of ``self.parent()``.
+
+            INPUT:
+
+            - ``element`` -- an element in a basis of the ring of symmetric
+              functions
 
             EXAMPLES::
 
@@ -513,6 +518,8 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 sage: ks3t[3,1].coproduct()
                 ks3[] # ks3[3, 1] + ks3[1] # ks3[2, 1] + (t+1)*ks3[1] # ks3[3] + ks3[1, 1] # ks3[2] + ks3[2] # ks3[1, 1]
                 + (t+1)*ks3[2] # ks3[2] + ks3[2, 1] # ks3[1] + (t+1)*ks3[3] # ks3[1] + ks3[3, 1] # ks3[]
+                sage: h3.coproduct(h3[2,1])
+                h3[] # h3[2, 1] + h3[1] # h3[1, 1] + h3[1] # h3[2] + h3[1, 1] # h3[1] + h3[2] # h3[1] + h3[2, 1] # h3[]
             """
             lifted = element.lift()
             ambient = self.realization_of().ambient()
@@ -526,10 +533,16 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
 
         def antipode(self, element):
             r"""
-            Returns the antipode on ``self`` by lifting to the space of symmetric functions,
-            computing the antipode, and then converting to ``self.parent()``.
-            This is only the antipode for `t=1` and for other values of `t` the
-            result may not be in the space where the `k`-Schur functions live.
+            Return the antipode on ``self`` by lifting to the space of
+            symmetric functions, computing the antipode, and then converting
+            to ``self.parent()``. This is only the antipode for `t = 1` and
+            for other values of `t` the result may not be in the space where
+            the `k`-Schur functions live.
+
+            INPUT:
+
+            - ``element`` -- an element in a basis of the ring of symmetric
+              functions
 
             EXAMPLES::
 
@@ -537,19 +550,21 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 sage: ks3 = Sym.kschur(3,1)
                 sage: ks3[3,2].antipode()
                 -ks3[1, 1, 1, 1, 1]
+                sage: ks3.antipode(ks3[3,2])
+                -ks3[1, 1, 1, 1, 1]
             """
             return self(element.lift().antipode())
 
         def counit(self, element):
             r"""
-            Returns the counit of ``element``.
+            Return the counit of ``element``.
+
+            The counit is the constant term of ``element``.
 
             INPUT:
 
-            - ``self`` -- a basis of the ring of symmetric functions
-            - ``element`` -- element in a basis of the ring of symmetric functions
-
-            The counit is the constant term of ``element``.
+            - ``element`` -- an element in a basis of the ring of symmetric
+              functions
 
             EXAMPLES::
 
@@ -557,6 +572,8 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 sage: ks3 = Sym.kschur(3,1)
                 sage: f = 2*ks3[2,1] + 3*ks3[[]]
                 sage: f.counit()
+                3
+                sage: ks3.counit(f)
                 3
             """
             return element.coefficient([])

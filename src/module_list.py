@@ -1140,6 +1140,9 @@ ext_modules = [
     Extension('sage.misc.function_mangling',
               sources = ['sage/misc/function_mangling.pyx']),
 
+    Extension('sage.misc.lazy_attribute',
+              sources = ['sage/misc/lazy_attribute.pyx']),
+
     Extension('sage.misc.lazy_import',
               sources = ['sage/misc/lazy_import.pyx']),
 

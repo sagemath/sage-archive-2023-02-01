@@ -676,7 +676,17 @@ for more details.
 How do I use the bitwise XOR operator in Sage?
 """"""""""""""""""""""""""""""""""""""""""""""
 
-Define two variables and then evaluate as follows::
+The exclusive or operator in Sage is ``^^``. This also works for
+the inplace operator ``^^=``::
+
+   sage: 3^^2
+   1
+   sage: a = 2
+   sage: a ^^= 8
+   sage: a
+   10
+
+If you define two variables and then evaluate as follows::
 
     sage: a = 5; b = 8
     sage: a.__xor__(b), 13

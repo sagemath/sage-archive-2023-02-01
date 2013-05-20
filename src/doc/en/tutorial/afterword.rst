@@ -94,6 +94,18 @@ behaves differently from Python in several ways.
        sage: "3^2"
        '3^2'
 
+   The bitwise xor operator in Sage is ``^^``. This also works for
+   the inplace operator ``^^=``:
+
+   ::
+
+       sage: 3^^2
+       1
+       sage: a = 2
+       sage: a ^^= 8
+       sage: a
+       10
+
 -  **Integer division:** The Python expression ``2/3`` does not
    behave the way mathematicians might expect. In Python, if ``m`` and
    ``n`` are ints, then ``m/n`` is also an int, namely the quotient of ``m``

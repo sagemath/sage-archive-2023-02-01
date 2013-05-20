@@ -814,7 +814,7 @@ class KBoundedQuotientBases(Category_realization_of_parent):
             Return the coproduct of ``element`` via lifting to the symmetric
             functions and then returning to the `k`-bounded quotient basis.
             This method is implemented for all `t` but is (weakly) conjectured
-            to not be the correct operation for other values `t` because the
+            to not be the correct operation for arbitrary `t` because the
             coproduct on dual-`k`-Schur functions does not have a positive
             expansion.
 

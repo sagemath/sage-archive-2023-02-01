@@ -1,21 +1,21 @@
 r"""
 Labelled permutations
 
-A labelled (generalized) permutation is better suited to study the dynamic of
-a translation surface than a reduced one (see the module
-:mod:`sage.combinat.iet.reduced`). The latter is more adapted to the
-study of strata. This kind of permutation was introduced by Yoccoz [Yoc05]_
-(see also [MMY03]_).
+A labelled (generalized) permutation is better suited to study the
+dynamic of a translation surface than a reduced one (see the module
+:mod:`sage.dynamics.interval_exchanges.reduced`). The latter is more
+adapted to the study of strata. This kind of permutation was
+introduced by Yoccoz [Yoc05]_ (see also [MMY03]_).
 
-In fact, there is a geometric counterpart of labelled permutations. They
-correspond to translation surface with marked outgoing separatrices (i.e. we fi
-a label for each of them).
+In fact, there is a geometric counterpart of labelled
+permutations. They correspond to translation surfaces with marked
+outgoing separatrices (i.e. we fix a label for each of them).
 
-Remarks that Rauzy diagram of reduced objects are significantly smaller than
-the one for labelled object (for the permutation a b d b e / e d c a c the
-labelled Rauzy diagram contains 8760 permutations, and the reduced only 73).
-But, as it is in geometrical way, the labelled Rauzy diagram is a covering of
-the reduced Rauzy diagram.
+Remarks that Rauzy diagram of reduced objects are significantly
+smaller than the one for labelled object (for the permutation a b d b
+e / e d c a c the labelled Rauzy diagram contains 8760 permutations,
+and the reduced only 73).  But, as it is in geometrical way, the
+labelled Rauzy diagram is a covering of the reduced Rauzy diagram.
 
 AUTHORS:
 
@@ -23,35 +23,35 @@ AUTHORS:
 
 TESTS::
 
-    sage: from sage.combinat.iet.labelled import LabelledPermutationIET
+    sage: from sage.dynamics.interval_exchanges.labelled import LabelledPermutationIET
     sage: LabelledPermutationIET([['a', 'b', 'c'], ['c', 'b', 'a']])
     a b c
     c b a
     sage: LabelledPermutationIET([[1,2,3,4],[4,1,2,3]])
     1 2 3 4
     4 1 2 3
-    sage: from sage.combinat.iet.labelled import LabelledPermutationLI
+    sage: from sage.dynamics.interval_exchanges.labelled import LabelledPermutationLI
     sage: LabelledPermutationLI([[1,1],[2,2,3,3,4,4]])
     1 1
     2 2 3 3 4 4
     sage: LabelledPermutationLI([['a','a','b','b','c','c'],['d','d']])
     a a b b c c
     d d
-    sage: from sage.combinat.iet.labelled import FlippedLabelledPermutationIET
+    sage: from sage.dynamics.interval_exchanges.labelled import FlippedLabelledPermutationIET
     sage: FlippedLabelledPermutationIET([[1,2,3],[3,2,1]],flips=[1,2])
     -1 -2  3
      3 -2 -1
     sage: FlippedLabelledPermutationIET([['a','b','c'],['b','c','a']],flips='b')
      a -b  c
     -b  c  a
-    sage: from sage.combinat.iet.labelled import FlippedLabelledPermutationLI
+    sage: from sage.dynamics.interval_exchanges.labelled import FlippedLabelledPermutationLI
     sage: FlippedLabelledPermutationLI([[1,1],[2,2,3,3,4,4]], flips=[1,4])
     -1 -1
      2  2  3  3 -4 -4
     sage: FlippedLabelledPermutationLI([['a','a','b','b'],['c','c']],flips='ac')
     -a -a  b  b
     -c -c
-    sage: from sage.combinat.iet.labelled import LabelledRauzyDiagram
+    sage: from sage.dynamics.interval_exchanges.labelled import LabelledRauzyDiagram
     sage: p = LabelledPermutationIET([[1,2,3],[3,2,1]])
     sage: d1 = LabelledRauzyDiagram(p)
     sage: p = LabelledPermutationIET([['a','b'],['b','a']])
@@ -84,11 +84,11 @@ TESTS::
 
 REFERENCES:
 
-.. [Yoc05] Jean-Cristophe Yoccoz "Echange d'Intervalles", Cours au college de
+.. [Yoc05] Jean-Christophe Yoccoz "Echange d'Intervalles", Cours au college de
    France
 
-.. [MMY03] Jean-Cristophe Yoccoz, Stefano Marmi and Pierre Moussa "On the
-   cohomological equation for interval exchange maps", arXiv:math/0304469v1
+.. [MMY03] Jean-Christophe Yoccoz, Stefano Marmi and Pierre Moussa "On the
+   cohomological equation for interval exchange maps", :arxiv:`math/0304469v1`
 """
 #*****************************************************************************
 #       Copyright (C) 2008 Vincent Delecroix <20100.delecroix@gmail.com>
@@ -107,7 +107,6 @@ from sage.combinat.words.morphism import WordMorphism
 
 from sage.matrix.constructor import identity_matrix
 from sage.rings.integer import Integer
-from sage.combinat.words.alphabet import Alphabet
 
 from template import PermutationIET, PermutationLI
 from template import FlippedPermutationIET, FlippedPermutationLI
@@ -120,13 +119,14 @@ class LabelledPermutation(SageObject):
     General template for labelled objects.
 
     .. warning::
+
        Internal class! Do not use directly!
     """
     def __init__(self, intervals=None, alphabet=None):
         r"""
         TESTS::
 
-            sage: from sage.combinat.iet.labelled import LabelledPermutationIET
+            sage: from sage.dynamics.interval_exchanges.labelled import LabelledPermutationIET
             sage: p1 = LabelledPermutationIET([[1,2,3],[3,2,1]])
             sage: p1 == loads(dumps(p1))
             True
@@ -136,7 +136,7 @@ class LabelledPermutation(SageObject):
             sage: p3 = LabelledPermutationIET([['1','2','3'],['3','2','1']])
             sage: p3 == loads(dumps(p3))
             True
-            sage: from sage.combinat.iet.labelled import LabelledPermutationLI
+            sage: from sage.dynamics.interval_exchanges.labelled import LabelledPermutationLI
             sage: p1 = LabelledPermutationLI([[1,2,2],[3,3,1]])
             sage: p1 == loads(dumps(p1))
             True
@@ -157,7 +157,7 @@ class LabelledPermutation(SageObject):
             if alphabet is not None:
                 alphabet = Alphabet(alphabet)
                 if alphabet.cardinality() < len(intervals[0]) :
-                    raise ValueError, "the alphabet is too short"
+                    raise ValueError("the alphabet is too short")
                 self._alphabet = alphabet
 
             else:
@@ -265,7 +265,7 @@ class LabelledPermutation(SageObject):
 
         INPUT:
 
-        - ``interval`` - None, 'top' or 'bottom'
+        - ``interval`` - ``None``, 'top' or 'bottom'
 
         OUTPUT:
 
@@ -311,7 +311,7 @@ class LabelledPermutation(SageObject):
 
         TESTS::
 
-            sage: from sage.combinat.iet.labelled import *
+            sage: from sage.dynamics.interval_exchanges.labelled import *
             sage: p1 = LabelledPermutationIET([[1,2],[1,2]])
             sage: p2 = LabelledPermutationIET([[1,2],[2,1]])
             sage: p3 = LabelledPermutationLI([[1,1],[2,2]])
@@ -340,9 +340,10 @@ class LabelledPermutation(SageObject):
 
     def _reversed(self):
         r"""
-        TODO:
+        .. TODO::
 
-        resolve properly the mutablility problem with the _twin attribute.
+            resolve properly the mutablility problem with the
+            :meth:`_twin` attribute.
 
         TESTS::
 
@@ -365,9 +366,9 @@ class LabelledPermutation(SageObject):
 
     def _inversed(self):
         r"""
-        TODO:
+        .. TODO::
 
-        properly resolve the mutability problem of the twin
+            properly resolve the mutability problem of the twin
 
         TESTS::
 
@@ -469,11 +470,11 @@ class LabelledPermutation(SageObject):
             a
             c c a
         """
-        l = [[],[]]
+        l = [[], []]
         letters = self.letters()
         a = letters.index(letter)
 
-        for i in (0,1):
+        for i in (0, 1):
             for b in self._intervals[i]:
                 if b < a:
                     l[i].append(b)
@@ -490,9 +491,10 @@ class LabelledPermutation(SageObject):
         r"""
         Returns the Rauzy move matrix.
 
-        This matrix corresponds to the action of a Rauzy move on the vector of
-        lengths. By convention (to get a positive matrix), the matrix is define
-        as the inverse transformation on the length vector.
+        This matrix corresponds to the action of a Rauzy move on the
+        vector of lengths. By convention (to get a positive matrix),
+        the matrix is defined as the inverse transformation on the
+        length vector.
 
         OUTPUT:
 
@@ -537,7 +539,7 @@ class LabelledPermutation(SageObject):
 
         return m
 
-    def rauzy_move_winner(self,winner=None,side=None):
+    def rauzy_move_winner(self, winner=None, side=None):
         r"""
         Returns the winner of a Rauzy move.
 
@@ -619,20 +621,20 @@ class LabelledPermutation(SageObject):
 
         return self[1-winner][side]
 
-def LabelledPermutationsIET_iterator(
-    nintervals=None,
-    irreducible=True,
-    alphabet=None):
+def LabelledPermutationsIET_iterator(nintervals=None,
+                                     irreducible=True,
+                                     alphabet=None):
     r"""
     Returns an iterator over labelled permutations.
 
     INPUT:
 
-    - ``nintervals`` - integer or None
+    - ``nintervals`` - integer or ``None``
 
-    - ``irreducible`` - boolean (default: True)
+    - ``irreducible`` - boolean (default: ``True``)
 
-    - ``alphabet`` - something that should be converted to an alphabet of at least nintervals letters
+    - ``alphabet`` - something that should be converted to an alphabet
+      of at least nintervals letters
 
     OUTPUT:
 
@@ -641,7 +643,7 @@ def LabelledPermutationsIET_iterator(
     TESTS::
 
         sage: for p in iet.Permutations_iterator(2, alphabet="ab"):
-        ...       print p, "\n****"   #indirect doctest
+        ....:     print p, "\n****"   #indirect doctest
         a b
         b a
         ****
@@ -649,7 +651,7 @@ def LabelledPermutationsIET_iterator(
         a b
         ****
         sage: for p in iet.Permutations_iterator(3, alphabet="abc"):
-        ...       print p, "\n*****"   #indirect doctest
+        ....:     print p, "\n*****"   #indirect doctest
         a b c
         b c a
         *****
@@ -708,9 +710,9 @@ def LabelledPermutationsIET_iterator(
     from itertools import imap, ifilter, product
     from sage.combinat.permutation import Permutations
 
-    if irreducible is False:
+    if not irreducible:
         if nintervals is None:
-            raise ValueError, "choose a number of intervals"
+            raise ValueError("choose a number of intervals")
         else:
             assert(isinstance(nintervals,(int,Integer)))
             assert(nintervals > 0)
@@ -787,7 +789,7 @@ class LabelledPermutationIET(LabelledPermutation, PermutationIET):
         if n != len(other):
             return n - len(other)
 
-        i, j = 0,0
+        i, j = 0, 0
         while (self._intervals[i][j] == other._intervals[i][j]):
             j += 1
             if j == n:
@@ -820,7 +822,7 @@ class LabelledPermutationIET(LabelledPermutation, PermutationIET):
         a reduced permutation -- the underlying reduced permutation
 
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: p = iet.Permutation("a b c d","d c a b")
             sage: q = iet.Permutation("a b c d","d c a b",reduced=True)
@@ -829,7 +831,7 @@ class LabelledPermutationIET(LabelledPermutation, PermutationIET):
         """
         from reduced import ReducedPermutationIET
 
-        return ReducedPermutationIET(self.list(),alphabet=self._alphabet)
+        return ReducedPermutationIET(self.list(), alphabet=self._alphabet)
 
     def is_identity(self):
         r"""
@@ -853,7 +855,7 @@ class LabelledPermutationIET(LabelledPermutation, PermutationIET):
 
     def has_rauzy_move(self, winner=None, side=None):
         r"""
-        Returns True if you can perform a Rauzy move.
+        Returns ``True`` if you can perform a Rauzy move.
 
         INPUT:
 
@@ -863,7 +865,7 @@ class LabelledPermutationIET(LabelledPermutation, PermutationIET):
 
         OUTPUT:
 
-        bool -- True if self has a Rauzy move
+        bool -- ``True`` if self has a Rauzy move
 
         EXAMPLES:
 
@@ -879,10 +881,13 @@ class LabelledPermutationIET(LabelledPermutation, PermutationIET):
             sage: p.has_rauzy_move()
             False
         """
-        if side is None: side = -1
-        else: side = side_conversion(side)
+        if side is None:
+            side = -1
+        else:
+            side = side_conversion(side)
 
-        if not winner is None: winner = interval_conversion(winner)
+        if not winner is None:
+            winner = interval_conversion(winner)
 
         return self._intervals[0][side] != self._intervals[1][side]
 
@@ -1002,7 +1007,7 @@ class LabelledPermutationIET(LabelledPermutation, PermutationIET):
 
     def rauzy_move_orbit_substitution(self,winner=None,side=None):
         r"""
-        Return the action fo the rauzy_move on the orbit.
+        Return the action of the rauzy_move on the orbit.
 
         INPUT:
 
@@ -1172,10 +1177,10 @@ class LabelledPermutationLI(LabelledPermutation, PermutationLI):
 
     def has_right_rauzy_move(self, winner):
         r"""
-        Test of Rauzy movability with a specified winner)
+        Test of Rauzy movability with a specified winner
 
         A quadratic (or generalized) permutation is rauzy_movable type
-        depending on the possible length of the last interval. It's
+        depending on the possible length of the last interval. It is
         dependent of the length equation.
 
         INPUT:
@@ -1184,7 +1189,7 @@ class LabelledPermutationLI(LabelledPermutation, PermutationLI):
 
         OUTPUT:
 
-        bool -- True if self has a Rauzy move
+        bool -- ``True`` if self has a Rauzy move
 
         EXAMPLES:
 
@@ -1249,7 +1254,7 @@ class LabelledPermutationLI(LabelledPermutation, PermutationLI):
 
         OUTPUT:
 
-        boolean -- True if self has a Rauzy move
+        boolean -- ``True`` if self has a Rauzy move
 
         EXAMPLES:
 
@@ -1444,6 +1449,7 @@ class FlippedLabelledPermutation(LabelledPermutation):
     General template for labelled objects
 
     .. warning::
+
        Internal class! Do not use directly!
     """
     def __init__(self, intervals=None, alphabet=None, flips=None):
@@ -1460,7 +1466,7 @@ class FlippedLabelledPermutation(LabelledPermutation):
 
         ::
 
-            sage: from sage.combinat.iet.labelled import FlippedLabelledPermutationIET
+            sage: from sage.dynamics.interval_exchanges.labelled import FlippedLabelledPermutationIET
             sage: p = FlippedLabelledPermutationIET([['a','b'],['a','b']],flips='a')
             sage: p == loads(dumps(p))
             True
@@ -1470,7 +1476,7 @@ class FlippedLabelledPermutation(LabelledPermutation):
 
         ::
 
-            sage: from sage.combinat.iet.labelled import FlippedLabelledPermutationLI
+            sage: from sage.dynamics.interval_exchanges.labelled import FlippedLabelledPermutationLI
             sage: p = FlippedLabelledPermutationLI([['a','a','b'],['b','c','c']],flips='a')
             sage: p == loads(dumps(p))
             True
@@ -1478,7 +1484,8 @@ class FlippedLabelledPermutation(LabelledPermutation):
             sage: p == loads(dumps(p))
             True
         """
-        if intervals is None: intervals=[[],[]]
+        if intervals is None:
+            intervals = [[], []]
         if flips is None: flips = []
 
         super(FlippedLabelledPermutation, self).__init__(intervals, alphabet)
@@ -1486,7 +1493,7 @@ class FlippedLabelledPermutation(LabelledPermutation):
 
     def __copy__(self):
         r"""
-        Returns a copy of self
+        Returns a copy of ``self``
 
         TESTS::
 
@@ -1503,13 +1510,10 @@ class FlippedLabelledPermutation(LabelledPermutation):
         """
         result = self.__class__()
 
-        result._intervals = [
-            self._intervals[0][:],
-            self._intervals[1][:]]
-        result._flips = [
-            self._flips[0][:],
-            self._flips[1][:]
-            ]
+        result._intervals = [self._intervals[0][:],
+                             self._intervals[1][:]]
+        result._flips = [self._flips[0][:],
+                         self._flips[1][:]]
 
         result._alphabet = self._alphabet
         result._repr_type = self._repr_type
@@ -1523,7 +1527,7 @@ class FlippedLabelledPermutation(LabelledPermutation):
 
         INPUT:
 
-        - ``flips`` - boolean (default: False)
+        - ``flips`` - boolean (default: ``False``)
 
         OUTPUT:
 
@@ -1642,10 +1646,10 @@ class FlippedLabelledPermutation(LabelledPermutation):
         r"""
         Inversion of the permutation (called by tb_inverse).
 
-        TODO:
+        .. TODO::
 
-        Resolve properly the mutability problem associated to hash value and
-        twin list.
+            Resolve properly the mutability problem associated to hash
+            value and twin list.
 
         TESTS::
 
@@ -1683,10 +1687,10 @@ class FlippedLabelledPermutation(LabelledPermutation):
         r"""
         Reverses the permutation (called by lr_inverse)
 
-        TODO:
+        .. TODO::
 
-        Resolve properly the mutability problem with _twin list and the hash
-        value.
+            Resolve properly the mutability problem with _twin list
+            and the hash value.
 
         TESTS::
 
@@ -1769,14 +1773,14 @@ class FlippedLabelledPermutationIET(
 
         permutation -- the associated reduced permutation
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: p = iet.Permutation('a b c','c b a',flips='a')
             sage: q = iet.Permutation('a b c','c b a',flips='a',reduced=True)
             sage: p.reduced() == q
             True
         """
-        from sage.combinat.iet.reduced import FlippedReducedPermutationIET
+        from sage.dynamics.interval_exchanges.reduced import FlippedReducedPermutationIET
 
         return FlippedReducedPermutationIET(
             intervals=self.list(flips=False),
@@ -1800,8 +1804,8 @@ class FlippedLabelledPermutationIET(
             sage: p.append(iet.Permutation('a b','b a',flips='ab'))
             sage: h = map(hash, p)
             sage: for i in range(len(h)-1):
-            ...      if h[i] == h[i+1]:
-            ...          print "You choose a bad hash!"
+            ....:     if h[i] == h[i+1]:
+            ....:         print "You choose a bad hash!"
         """
         if self._hash is None:
             f = self._flips
@@ -1825,7 +1829,7 @@ class FlippedLabelledPermutationIET(
 
         OUTPUT:
 
-        permutation -- the Rauzy move of self
+        permutation -- the Rauzy move of ``self``
 
         EXAMPLES:
 
@@ -1879,7 +1883,7 @@ class FlippedLabelledPermutationIET(
 
         OUTPUT:
 
-        RauzyDiagram -- the Rauzy diagram of self
+        RauzyDiagram -- the Rauzy diagram of ``self``
 
         EXAMPLES::
 
@@ -1889,10 +1893,9 @@ class FlippedLabelledPermutationIET(
         """
         return FlippedLabelledRauzyDiagram(self, **kargs)
 
-class FlippedLabelledPermutationLI(
-    FlippedLabelledPermutation,
-    FlippedPermutationLI,
-    LabelledPermutationLI):
+class FlippedLabelledPermutationLI(FlippedLabelledPermutation,
+                                   FlippedPermutationLI,
+                                   LabelledPermutationLI):
     r"""
     Flipped labelled quadratic (or generalized) permutation.
 
@@ -1943,7 +1946,7 @@ class FlippedLabelledPermutationLI(
             sage: p.reduced() == q
             True
         """
-        from sage.combinat.iet.reduced import FlippedReducedPermutationLI
+        from sage.dynamics.interval_exchanges.reduced import FlippedReducedPermutationLI
 
         return FlippedReducedPermutationLI(
             intervals=self.list(flips=False),
@@ -1960,7 +1963,7 @@ class FlippedLabelledPermutationLI(
 
         OUTPUT:
 
-        permutation -- the Rauzy move of self
+        permutation -- the Rauzy move of ``self``
 
         EXAMPLES:
 
@@ -2082,7 +2085,9 @@ class LabelledRauzyDiagram(RauzyDiagram):
     r"""
     Template for Rauzy diagrams of labelled permutations.
 
-        ...DO NOT USE...
+    .. WARNING::
+
+        DO NOT USE
     """
     class Path(RauzyDiagram.Path):
         r"""
@@ -2093,8 +2098,8 @@ class LabelledRauzyDiagram(RauzyDiagram):
             Returns the matrix associated to a path.
 
             The matrix associated to a Rauzy induction, is the linear
-            application that allows to recover the lengths of self from the
-            lengths of the induced.
+            application that allows to recover the lengths of ``self``
+            from the lengths of the induced.
 
             OUTPUT:
 
@@ -2200,7 +2205,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
 
             OUTPUT:
 
-            boolean -- True if the path is full and False else
+            boolean -- ``True`` if the path is full and ``False`` else
 
             EXAMPLE::
 
@@ -2298,7 +2303,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
             sage: p = iet.Permutation('a b','b a')
             sage: r = p.rauzy_diagram()
             sage: for g in r.full_loop_iterator(p,2):
-            ...       print g.matrix(), "\n*****"
+            ....:     print g.matrix(), "\n*****"
             [1 1]
             [1 2]
             *****
@@ -2335,7 +2340,7 @@ class LabelledRauzyDiagram(RauzyDiagram):
             sage: p = iet.Permutation('a b','b a')
             sage: d = p.rauzy_diagram()
             sage: for g in d.full_nloop_iterator(p,2):
-            ...       print g.matrix(), "\n*****"
+            ....:     print g.matrix(), "\n*****"
             [1 1]
             [1 2]
             *****

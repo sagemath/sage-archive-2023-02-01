@@ -1,13 +1,3 @@
-import constructors as iet
-
-from strata import AbelianStratum, QuadraticStratum
-from strata import AbelianStrata
-
-####################################################
-# to remove
-#from constructors import PermutationIET, PermutationLI
-#from constructors import GeneralizedPermutation
-#from constructors import PermutationsIET
-#from constructors import RauzyDiagram
-
-#from iet import IntervalExchangeTransformation
+from sage.misc.lazy_import import lazy_import
+lazy_import("sage.dynamics.interval_exchanges.all", "*", overwrite=False)
+lazy_import("sage.dynamics.flat_surfaces.all", "*", overwrite=False)

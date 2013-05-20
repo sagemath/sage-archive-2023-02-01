@@ -77,9 +77,6 @@ from subword import Subwords
 
 from graph_path import GraphPaths
 
-#Interval exchange transformations
-from iet.all import *
-
 #Tuples
 from tuple import Tuples, UnorderedTuples
 

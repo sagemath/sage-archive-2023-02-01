@@ -18,7 +18,7 @@ Creation of an interval exchange transformation::
     a b
     b a
 
-It can also be initialized using permutation (group theoritic ones)::
+It can also be initialized using permutation (group theoretic ones)::
 
     sage: p = Permutation([3,2,1])
     sage: T = iet.IntervalExchangeTransformation(p, [1/3,2/3,1])
@@ -141,6 +141,7 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from template import PermutationIET, PermutationLI
 
 def _two_lists(a):
     r"""
@@ -157,7 +158,7 @@ def _two_lists(a):
     TESTS:
 
     ::
-        sage: from sage.combinat.iet.constructors import _two_lists
+        sage: from sage.dynamics.interval_exchanges.constructors import _two_lists
         sage: _two_lists(('a1 a2','b1 b2'))
         [['a1', 'a2'], ['b1', 'b2']]
         sage: _two_lists('a1 a2\nb1 b2')
@@ -182,12 +183,12 @@ def _two_lists(a):
     """
     from sage.combinat.permutation import Permutation_class
 
-    res = [None,None]
+    res = [None, None]
 
     if isinstance(a,str):
         a = a.split('\n')
         if len(a) != 2:
-            raise ValueError, "your chain must contain two lines"
+            raise ValueError("your chain must contain two lines")
         else :
             res[0] = a[0].split()
             res[1] = a[1].split()
@@ -197,10 +198,10 @@ def _two_lists(a):
         res[1] = [a[i] for i in range(len(a))]
 
     elif not hasattr(a,'__len__'):
-        raise TypeError, "argument not accepted"
+        raise TypeError("argument not accepted")
 
     elif len(a) == 0 or len(a) > 2:
-        raise ValueError, "your argument can not be split in two parts"
+        raise ValueError("your argument can not be split in two parts")
 
     elif len(a) == 1:
         a = a[0]
@@ -210,7 +211,7 @@ def _two_lists(a):
 
         elif isinstance(a, (list,tuple)):
             if (len(a) != 2):
-                raise ValueError, "your list must contain two objects"
+                raise ValueError("your list must contain two objects")
             for i in range(2):
                 if isinstance(a[i], str):
                     res[i] = a[i].split()
@@ -218,7 +219,7 @@ def _two_lists(a):
                     res[i] = list(a[i])
 
         else :
-            raise TypeError, "argument not accepted"
+            raise TypeError("argument not accepted")
 
     else :
         for i in range(2):
@@ -239,7 +240,7 @@ def Permutation(*args,**kargs):
 
     The combinatoric part of interval exchange transformation can be taken
     independently from its dynamical origin. It has an important link with
-    strata of Abelian differential (see :mod:`~sage.combinat.iet.strata`)
+    strata of Abelian differential (see :mod:`~sage.dynamics.interval_exchanges.strata`)
 
     INPUT:
 
@@ -331,8 +332,7 @@ def Permutation(*args,**kargs):
     elif not isinstance(kargs["reduced"], bool) :
         raise TypeError("reduced must be of type boolean")
     else :
-        if kargs["reduced"] == True : reduction = True
-        else : reduction = False
+        reduction = kargs["reduced"]
 
     if 'flips' not in kargs :
         flips = []
@@ -349,7 +349,7 @@ def Permutation(*args,**kargs):
         args = args[0]
         if isinstance(args, LabelledPermutation):
             if flips == []:
-                if reduction is None or reduction is False:
+                if reduction is None or not reduction:
                     from copy import copy
                     return copy(args)
                 else:
@@ -364,7 +364,7 @@ def Permutation(*args,**kargs):
 
         if isinstance(args, ReducedPermutation):
             if flips == []:
-                if reduction is None or reduction is True:
+                if reduction is None or reduction:
                     from copy import copy
                     return copy(args)
                 else:  # conversion not yet implemented
@@ -386,13 +386,13 @@ def Permutation(*args,**kargs):
 
     for letter in flips :
         if letter not in letters :
-            raise ValueError, "flips contains not valid letters"
+            raise ValueError("flips contains not valid letters")
 
     for letter in letters :
         if a[0].count(letter) != 1 or a[1].count(letter) != 1:
-            raise ValueError, "letters must appear once in each interval"
+            raise ValueError("letters must appear once in each interval")
 
-    if reduction == True :
+    if reduction :
         if flips == [] :
             return ReducedPermutationIET(a, alphabet=alphabet)
         else :
@@ -455,8 +455,6 @@ def GeneralizedPermutation(*args,**kargs):
         -a -b  c -a
          d  c  d -b
     """
-    from template import FlippedPermutation
-
     from labelled import LabelledPermutation
     from labelled import LabelledPermutationLI
     from labelled import FlippedLabelledPermutationLI
@@ -470,8 +468,7 @@ def GeneralizedPermutation(*args,**kargs):
     elif not isinstance(kargs["reduced"], bool) :
         raise TypeError("reduced must be of type boolean")
     else :
-        if kargs["reduced"] == True : reduction = True
-        else : reduction = False
+        reduction = kargs["reduced"]
 
     if 'flips' not in kargs :
         flips = []
@@ -488,7 +485,7 @@ def GeneralizedPermutation(*args,**kargs):
         args = args[0]
         if isinstance(args, LabelledPermutation):
             if flips == []:
-                if reduction is None or reduction is False:
+                if reduction is None or not reduction:
                     from copy import copy
                     return copy(args)
                 else:
@@ -503,7 +500,7 @@ def GeneralizedPermutation(*args,**kargs):
 
         if isinstance(args, ReducedPermutation):
             if flips == []:
-                if reduction is None or reduction is True:
+                if reduction is None or reduction:
                     from copy import copy
                     return copy(args)
                 else:  # conversion not yet implemented
@@ -525,8 +522,7 @@ def GeneralizedPermutation(*args,**kargs):
     elif not isinstance(kargs["reduced"], bool) :
         raise TypeError("reduced must be of type boolean")
     else :
-        if kargs["reduced"] == True : reduction = True
-        else : reduction = False
+        reduction = kargs["reduced"]
 
     if 'flips' not in kargs :
         flips = []
@@ -547,7 +543,7 @@ def GeneralizedPermutation(*args,**kargs):
 
     for letter in letters :
         if l.count(letter) != 2:
-            raise ValueError, "Letters must reappear twice"
+            raise ValueError("Letters must reappear twice")
 
     # check exitence of admissible length
     b0 = a[0][:]
@@ -561,9 +557,9 @@ def GeneralizedPermutation(*args,**kargs):
         return Permutation(a,**kargs)
 
     elif (b0 == []) or (b1 == []):
-        raise ValueError, "There is no admissible length"
+        raise ValueError("There is no admissible length")
 
-    if reduction == True :
+    if reduction :
         if flips == [] :
             return ReducedPermutationLI(a, alphabet=alphabet)
         else :
@@ -574,17 +570,14 @@ def GeneralizedPermutation(*args,**kargs):
         else :
             return FlippedLabelledPermutationLI(a, alphabet=alphabet, flips=flips)
 
-def Permutations_iterator(
-    nintervals=None,
-    irreducible=True,
-    reduced=False,
-    alphabet=None):
+def Permutations_iterator(nintervals=None, irreducible=True,
+                          reduced=False, alphabet=None):
     r"""
     Returns an iterator over permutations.
 
     This iterator allows you to iterate over permutations with given
     constraints. If you want to iterate over permutations coming from a given
-    stratum you have to use the module :mod:`~sage.combinat.iet.strata` and
+    stratum you have to use the module :mod:`~sage.dynamics.flat_surfaces.strata` and
     generate Rauzy diagrams from connected components.
 
     INPUT:
@@ -624,29 +617,29 @@ def Permutations_iterator(
     """
     from labelled import LabelledPermutationsIET_iterator
     from reduced import ReducedPermutationsIET_iterator
+    from sage.combinat.words.alphabet import Alphabet
+    from sage.rings.infinity import Infinity
 
     if nintervals is None:
         if alphabet is None:
-            raise ValueError, "You must specify an alphabet or a length"
+            raise ValueError("You must specify an alphabet or a length")
         else:
             alphabet = Alphabet(alphabet)
             if alphabet.cardinality() is Infinity:
-                raise ValueError, "You must sepcify a length with infinite alphabet"
+                raise ValueError("You must specify a length with infinite alphabet")
             nintervals = alphabet.cardinality()
 
     elif alphabet is None:
-            alphabet = range(1,nintervals+1)
+            alphabet = range(1, nintervals+1)
 
     if reduced:
-        return ReducedPermutationsIET_iterator(
-            nintervals,
-            irreducible=irreducible,
-            alphabet=alphabet)
+        return ReducedPermutationsIET_iterator(nintervals,
+                                               irreducible=irreducible,
+                                               alphabet=alphabet)
     else:
-        return LabelledPermutationsIET_iterator(
-            nintervals,
-            irreducible=irreducible,
-            alphabet=alphabet)
+        return LabelledPermutationsIET_iterator(nintervals,
+                                                irreducible=irreducible,
+                                                alphabet=alphabet)
 
 def RauzyDiagram(*args, **kargs):
     r"""
@@ -743,8 +736,8 @@ def RauzyDiagram(*args, **kargs):
         sage: w1 = []
         sage: x = 0
         sage: for i in range(20):
-        ...    w1.append(T.in_which_interval(x))
-        ...    x = T(x)
+        ....:  w1.append(T.in_which_interval(x))
+        ....:  x = T(x)
         sage: w1 = Word(w1)
         sage: w1
         word: acbbcacbcacbbcbbcacb
@@ -757,7 +750,7 @@ def RauzyDiagram(*args, **kargs):
     if not kargs.has_key('reduced'):
         kargs['reduced'] = False
     if not kargs.has_key('flips'):
-        kargs['flips'] =[]
+        kargs['flips'] = []
     if not kargs.has_key('alphabet'):
         kargs['alphabet'] = None
 
@@ -789,7 +782,7 @@ def RauzyDiagram(*args, **kargs):
 # def GeneralizedPermutation_iterator():
 #     print "gpi"
 
-def IntervalExchangeTransformation(permutation=None,lengths=None):
+def IntervalExchangeTransformation(permutation=None, lengths=None):
     """
     Constructs an Interval exchange transformation.
 
@@ -854,7 +847,7 @@ def IntervalExchangeTransformation(permutation=None,lengths=None):
     from template import FlippedPermutation
 
     if isinstance(permutation, FlippedPermutation):
-        raise TypeError, "flips are not yet implemented"
+        raise TypeError("flips are not yet implemented")
     if isinstance(permutation, LabelledPermutationIET):
         p = permutation
     else:
@@ -870,18 +863,18 @@ def IntervalExchangeTransformation(permutation=None,lengths=None):
         l = list(lengths)
 
     if len(l) != len(p):
-        raise ValueError, "bad number of lengths"
+        raise ValueError("bad number of lengths")
 
     for x in l:
         try:
             y = float(x)
         except ValueError:
-            raise TypeError, "unable to convert x (='%s') into a real number" %(str(x))
+            raise TypeError("unable to convert x (='%s') into a real number" % (str(x)))
 
         if y <= 0:
-           raise ValueError, "lengths must be positive"
+            raise ValueError("lengths must be positive")
 
-    return _IET(p,l)
+    return _IET(p, l)
 
 IET = IntervalExchangeTransformation
 
@@ -894,5 +887,3 @@ IET = IntervalExchangeTransformation
 #     pass
 
 # LI = LinearInvolution
-
-

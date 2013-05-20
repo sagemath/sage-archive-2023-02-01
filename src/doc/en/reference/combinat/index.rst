@@ -79,7 +79,6 @@ Combinatorics
    species
    developer
    words
-   iet
 
    sage/combinat/dict_addition
    sage/combinat/misc

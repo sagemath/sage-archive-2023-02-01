@@ -33,6 +33,10 @@ BSD terms. See http://www.scipy.org/License_Compatibility
 
 == Changelog ==
 
+=== scipy-0.12.0.p0 (Jean-Pierre Flori, 20 May 2013) ===
+ * #14617: update to version 0.12.0.
+ * Removed default_dir.patch which is now upstream.
+
 === scipy-0.11.0.p1 (François Bissey, 28 January 2013) ===
  * #14022: add "-fPIC" to fortran flags.
 

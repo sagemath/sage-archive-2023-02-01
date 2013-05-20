@@ -2,10 +2,10 @@ r"""
 Pseudolines
 
 This module gathers everything that has to do with pseudolines, and for a start
-a :class:`PseudolinesArrangement` class that can be used to describe an
+a :class:`PseudolineArrangement` class that can be used to describe an
 arrangement of pseudolines in several different ways, and to translate one
 description into another, as well as to display *Wiring diagrams* via the
-:meth:`show <sage.geometry.pseudolines.PseudolinesArrangement.show>` method.
+:meth:`show <sage.geometry.pseudolines.PseudolineArrangement.show>` method.
 
 In the following, we try to stick to the terminology given in [Felsner]_, which
 can be checked in case of doubt. And please fix this module's documentation
@@ -17,7 +17,7 @@ A *pseudoline* can not be defined by itself, though it can be thought of as a
 `x`-monotone curve in the plane. A *set* of pseudolines, however, represents a
 set of such curves that pairwise intersect exactly once (and hence mimic the
 behaviour of straight lines in general position). We also assume that those
-pseudolines are in general position, that is that no three of them cross on the
+pseudolines are in general position, that is that no three of them cross at the
 same point.
 
 The present class is made to deal with a combinatorial encoding of a pseudolines
@@ -27,11 +27,10 @@ arrangement, that is the ordering in which a pseudoline `l_i` of an arrangement
 .. WARNING::
 
     It is assumed through all the methods that the given lines are numbered
-    consistently : it is not possible that the first transposition be ``(0,2)``
+    according to their `y`-coordinate on the vertical line `x=-\infty`.
+    For instance, it is not possible that the first transposition be ``(0,2)``
     (or equivalently that the first line `l_0` crosses is `l_2` and conversely),
-    for it would mean that one of them cuts `l_1`. It is actually assumed that
-    the pseudolines are numbered according to their `y`-coordinate on the
-    vertical line `x=-\infty`.
+    because one of them would have to cross `l_1` first.
 
 Encodings
 ----------
@@ -39,15 +38,15 @@ Encodings
 **Permutations**
 
 An arrangement of pseudolines can be described by a sequence of `n` lists of
-length `n-1`, where the `i` list is a permutation of `\{1, ..., n\} \backslash
+length `n-1`, where the `i` list is a permutation of `\{0, ..., n-1\} \backslash
 i` representing the ordering in which the `i` th pseudoline meets the other
 ones.
 
 ::
 
-    sage: from sage.geometry.pseudolines import PseudolinesArrangement
+    sage: from sage.geometry.pseudolines import PseudolineArrangement
     sage: permutations = [[3, 2, 1], [3, 2, 0], [3, 1, 0], [2, 1, 0]]
-    sage: p = PseudolinesArrangement(permutations)
+    sage: p = PseudolineArrangement(permutations)
     sage: p
     Arrangement of pseudolines of size 4
     sage: p.show()
@@ -59,13 +58,13 @@ An arrangement of pseudolines can also be described as a sequence of `\binom n
 transposition `(2,3)` appears before `(8, 2)` iif `l_2` crosses `l_3` before it
 crosses `l_8`. This encoding is easy to obtain by reading the wiring diagram
 from left to right (see the :meth:`show
-<sage.geometry.pseudolines.PseudolinesArrangement.show>` method).
+<sage.geometry.pseudolines.PseudolineArrangement.show>` method).
 
 ::
 
-    sage: from sage.geometry.pseudolines import PseudolinesArrangement
+    sage: from sage.geometry.pseudolines import PseudolineArrangement
     sage: transpositions = [(3, 2), (3, 1), (0, 3), (2, 1), (0, 2), (0, 1)]
-    sage: p = PseudolinesArrangement(transpositions)
+    sage: p = PseudolineArrangement(transpositions)
     sage: p
     Arrangement of pseudolines of size 4
     sage: p.show()
@@ -107,16 +106,16 @@ In order to go back from Felsner's matrix to an encoding by a sequence of
 transpositions, it is sufficient to look for occurrences of
 `\begin{array}{c}0\\1\end{array}` in the first column of the matrix, as it
 corresponds in the wiring diagram to a line going up while the line immediately
-above it does down -- those two lines cross. Each time such a pattern is found
+above it goes down -- those two lines cross. Each time such a pattern is found
 it yields a new transposition, and the matrix can be updated so that this
 pattern disappears. A more detailed description of this algorithm is given in
 [Felsner]_.
 
 ::
 
-    sage: from sage.geometry.pseudolines import PseudolinesArrangement
+    sage: from sage.geometry.pseudolines import PseudolineArrangement
     sage: felsner_matrix = [[0, 0, 0], [0, 0, 1], [0, 1, 1], [1, 1, 1]]
-    sage: p = PseudolinesArrangement(felsner_matrix)
+    sage: p = PseudolineArrangement(felsner_matrix)
     sage: p
     Arrangement of pseudolines of size 4
 
@@ -133,20 +132,19 @@ avoid a common crossing of three lines by adding a random noise to `b`::
     sage: print l[:5]                            # not tested
     [(96, 278.0130613051349), (74, 332.92512282478714), (13, 155.65820951249867), (209, 34.753946221755307), (147, 193.51376457741441)]
     sage: l.sort()
-    sage: n = len(l)
 
-We can now compute for each `i` the order in which line `i` meet the other lines::
+We can now compute for each `i` the order in which line `i` meets the other lines::
 
     sage: permutations = [[0..i-1]+[i+1..n-1] for i in range(n)]
     sage: a = lambda x : l[x][0]
     sage: b = lambda x : l[x][1]
     sage: for i, perm in enumerate(permutations):
-    ...       perm.sort(key = lambda j : (b(j)-b(i))/(a(i)-a(j)))
+    ....:     perm.sort(key = lambda j : (b(j)-b(i))/(a(i)-a(j)))
 
 And finally build the line arrangement::
 
-    sage: from sage.geometry.pseudolines import PseudolinesArrangement
-    sage: p = PseudolinesArrangement(permutations)
+    sage: from sage.geometry.pseudolines import PseudolineArrangement
+    sage: p = PseudolineArrangement(permutations)
     sage: print p
     Arrangement of pseudolines of size 20
     sage: p.show(figsize=[20,8])
@@ -175,7 +173,7 @@ Methods
 
 from copy import deepcopy
 
-class PseudolinesArrangement:
+class PseudolineArrangement:
 
     def __init__(self, seq, encoding = "auto"):
         r"""
@@ -200,46 +198,46 @@ class PseudolinesArrangement:
            * The pseudolines are assumed to be integers `0..(n-1)`.
 
            * For more information on the different encodings, see the
-             :mod:`pseudolimes module <sage.geometry.pseudolines>`'s
+             :mod:`pseudolines module <sage.geometry.pseudolines>`'s
              documentation.
 
         TESTS:
 
         From permutations::
 
-            sage: from sage.geometry.pseudolines import PseudolinesArrangement
+            sage: from sage.geometry.pseudolines import PseudolineArrangement
             sage: permutations = [[3, 2, 1], [3, 2, 0], [3, 1, 0], [2, 1, 0]]
-            sage: PseudolinesArrangement(permutations)
+            sage: PseudolineArrangement(permutations)
             Arrangement of pseudolines of size 4
 
         From transpositions ::
 
-            sage: from sage.geometry.pseudolines import PseudolinesArrangement
+            sage: from sage.geometry.pseudolines import PseudolineArrangement
             sage: transpositions = [(3, 2), (3, 1), (0, 3), (2, 1), (0, 2), (0, 1)]
-            sage: PseudolinesArrangement(transpositions)
+            sage: PseudolineArrangement(transpositions)
             Arrangement of pseudolines of size 4
 
         From a Felsner matrix::
 
-            sage: from sage.geometry.pseudolines import PseudolinesArrangement
+            sage: from sage.geometry.pseudolines import PseudolineArrangement
             sage: permutations = [[3, 2, 1], [3, 2, 0], [3, 1, 0], [2, 1, 0]]
-            sage: p = PseudolinesArrangement(permutations)
+            sage: p = PseudolineArrangement(permutations)
             sage: matrix = p.felsner_matrix()
-            sage: PseudolinesArrangement(matrix) == p
+            sage: PseudolineArrangement(matrix) == p
             True
 
         TESTS:
 
         Wrong input::
 
-            sage: PseudolinesArrangement([[5, 2, 1], [3, 2, 0], [3, 1, 0], [2, 1, 0]])
+            sage: PseudolineArrangement([[5, 2, 1], [3, 2, 0], [3, 1, 0], [2, 1, 0]])
             Traceback (most recent call last):
             ...
-            ValueError: Are the lines really numbered from 0 to n-1 ?
-            sage: PseudolinesArrangement([(3, 2), (3, 1), (0, 3), (2, 1), (0, 2)])
+            ValueError: Are the lines really numbered from 0 to n-1?
+            sage: PseudolineArrangement([(3, 2), (3, 1), (0, 3), (2, 1), (0, 2)])
             Traceback (most recent call last):
             ...
-            ValueError: A line is numbered with 3but the number of transpositions ...
+            ValueError: A line is numbered 3 but the number of transpositions ...
         """
 
         # Sequence of transpositions
@@ -249,10 +247,10 @@ class PseudolinesArrangement:
             self._n = max(map(max, seq)) + 1
             if (self._n * (self._n-1))/2 != len(seq):
                 raise ValueError(
-                    "A line is numbered with "+str(self._n-1)+"but the number "+
-                    "of transpositions is different from binomial("+
-                    str(self._n-1)+",2). Are the lines numbered from 0 to n-1 ?"+
-                    "Are they really non-parallel ? Please check the documentation.")
+                    "A line is numbered "+str(self._n-1)+" but the number"+
+                    " of transpositions is different from binomial("+
+                    str(self._n-1)+",2). Are the lines numbered from 0 to n-1?"+
+                    " Are they really non-parallel? Please check the documentation.")
 
             self._permutations = [[] for i in range(self._n)]
 
@@ -268,7 +266,7 @@ class PseudolinesArrangement:
             self._permutations = deepcopy(seq)
 
             if max(map(max, seq)) != self._n -1 :
-                raise ValueError("Are the lines really numbered from 0 to n-1 ?")
+                raise ValueError("Are the lines really numbered from 0 to n-1?")
 
         # Felsner encoding
         elif (encoding == "Felsner" or
@@ -301,7 +299,7 @@ class PseudolinesArrangement:
 
                     if i > 0 and seq[i-1] is not []:
                         i -= 1
-                    elif seq[i] is not []:
+                    else:
                         i += 1
                 else:
                     i += 1
@@ -310,22 +308,22 @@ class PseudolinesArrangement:
             if encoding != "auto":
                 raise ValueError("The value of encoding must be one of 'transpositions', 'permutations', 'Felsner' or 'auto'.")
 
-            raise ValueError("The encoding you use could not be guessed. Your input string is probably badly formatted, or you have less than 3 lines and we can make no diffence between the encoding. Please specify the encoding you used.")
+            raise ValueError("The encoding you used could not be guessed. Your input string is probably badly formatted, or you have at most 3 lines and we cannot distinguish the encoding. Please specify the encoding you used.")
 
     def transpositions(self):
         r"""
         Returns the arrangement as `\binom n 2` transpositions.
 
-        See the :mod:`pseudolimes module <sage.geometry.pseudolines>`'s
+        See the :mod:`pseudolines module <sage.geometry.pseudolines>`'s
         documentation for more information on this encoding.
 
         EXAMPLE::
 
-            sage: from sage.geometry.pseudolines import PseudolinesArrangement
+            sage: from sage.geometry.pseudolines import PseudolineArrangement
             sage: permutations = [[3, 2, 1], [3, 2, 0], [3, 1, 0], [2, 1, 0]]
-            sage: p1 = PseudolinesArrangement(permutations)
+            sage: p1 = PseudolineArrangement(permutations)
             sage: transpositions = [(3, 2), (3, 1), (0, 3), (2, 1), (0, 2), (0, 1)]
-            sage: p2 = PseudolinesArrangement(transpositions)
+            sage: p2 = PseudolineArrangement(transpositions)
             sage: p1 == p2
             True
             sage: p1.transpositions()
@@ -373,14 +371,14 @@ class PseudolinesArrangement:
         r"""
         Returns the arrangements as `n` permutations of size `n-1`.
 
-        See the :mod:`pseudolimes module <sage.geometry.pseudolines>`'s
+        See the :mod:`pseudolines module <sage.geometry.pseudolines>`'s
         documentation for more information on this encoding.
 
         EXAMPLE::
 
-            sage: from sage.geometry.pseudolines import PseudolinesArrangement
+            sage: from sage.geometry.pseudolines import PseudolineArrangement
             sage: permutations = [[3, 2, 1], [3, 2, 0], [3, 1, 0], [2, 1, 0]]
-            sage: p = PseudolinesArrangement(permutations)
+            sage: p = PseudolineArrangement(permutations)
             sage: p.permutations()
             [[3, 2, 1], [3, 2, 0], [3, 1, 0], [2, 1, 0]]
         """
@@ -390,14 +388,14 @@ class PseudolinesArrangement:
         r"""
         Returns a Felsner matrix describing the arrangement.
 
-        See the :mod:`pseudolimes module <sage.geometry.pseudolines>`'s
+        See the :mod:`pseudolines module <sage.geometry.pseudolines>`'s
         documentation for more information on this encoding.
 
         EXAMPLE::
 
-            sage: from sage.geometry.pseudolines import PseudolinesArrangement
+            sage: from sage.geometry.pseudolines import PseudolineArrangement
             sage: permutations = [[3, 2, 1], [3, 2, 0], [3, 1, 0], [2, 1, 0]]
-            sage: p = PseudolinesArrangement(permutations)
+            sage: p = PseudolineArrangement(permutations)
             sage: p.felsner_matrix()
             [[0, 0, 0], [0, 0, 1], [0, 1, 1], [1, 1, 1]]
         """
@@ -425,16 +423,16 @@ class PseudolinesArrangement:
 
         EXAMPLE::
 
-            sage: from sage.geometry.pseudolines import PseudolinesArrangement
+            sage: from sage.geometry.pseudolines import PseudolineArrangement
             sage: permutations = [[3, 2, 1], [3, 2, 0], [3, 1, 0], [2, 1, 0]]
-            sage: p = PseudolinesArrangement(permutations)
+            sage: p = PseudolineArrangement(permutations)
             sage: p.show(figsize=[7,5])
 
         TESTS::
 
-            sage: from sage.geometry.pseudolines import PseudolinesArrangement
+            sage: from sage.geometry.pseudolines import PseudolineArrangement
             sage: permutations = [[3, 2, 1], [3, 2, 0], [3, 0, 1], [2, 0, 1]]
-            sage: p = PseudolinesArrangement(permutations)
+            sage: p = PseudolineArrangement(permutations)
             sage: p.show()
             Traceback (most recent call last):
             ...
@@ -471,21 +469,21 @@ class PseudolinesArrangement:
             l.append((x+2, l[-1][1]))
             L += line(l)
 
-            L += text(str(i), (0, l[0][1]+.3))
-            L += text(str(i), (x+2, l[-1][1]+.3))
+            L += text(str(i), (0, l[0][1]+.3), horizontal_alignment="right")
+            L += text(str(i), (x+2, l[-1][1]+.3), horizontal_alignment="left")
 
         return L.show(axes = False, **args)
 
 
     def __repr__(self):
         r"""
-        A short txt description of the pseudolines arrangement.
+        A short txt description of the pseudoline arrangement.
 
         EXAMPLE::
 
-            sage: from sage.geometry.pseudolines import PseudolinesArrangement
+            sage: from sage.geometry.pseudolines import PseudolineArrangement
             sage: permutations = [[3, 2, 1], [3, 2, 0], [3, 1, 0], [2, 1, 0]]
-            sage: p = PseudolinesArrangement(permutations)
+            sage: p = PseudolineArrangement(permutations)
             sage: p
             Arrangement of pseudolines of size 4
         """
@@ -497,11 +495,11 @@ class PseudolinesArrangement:
 
         TEST::
 
-            sage: from sage.geometry.pseudolines import PseudolinesArrangement
+            sage: from sage.geometry.pseudolines import PseudolineArrangement
             sage: permutations = [[3, 2, 1], [3, 2, 0], [3, 1, 0], [2, 1, 0]]
-            sage: p1 = PseudolinesArrangement(permutations)
+            sage: p1 = PseudolineArrangement(permutations)
             sage: transpositions = [(3, 2), (3, 1), (0, 3), (2, 1), (0, 2), (0, 1)]
-            sage: p2 = PseudolinesArrangement(transpositions)
+            sage: p2 = PseudolineArrangement(transpositions)
             sage: p1 == p2
             True
         """

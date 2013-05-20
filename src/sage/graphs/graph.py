@@ -3914,9 +3914,9 @@ class Graph(GenericGraph):
         Returns an independent set of representatives.
 
         Given a graph `G` and and a family `F=\{F_i:i\in [1,...,k]\}` of
-        subsets of ``g.vertices()``, an Independent Set of Reprersentatives
+        subsets of ``g.vertices()``, an Independent Set of Representatives
         (ISR) is an assignation of a vertex `v_i\in F_i` to each set `F_i`
-        such that `v_i != v_j` if `i<j` (they are represdentatives) and the
+        such that `v_i != v_j` if `i<j` (they are representatives) and the
         set `\cup_{i}v_i` is an independent set in `G`.
 
         It generalizes, for example, graph coloring and graph list coloring.
@@ -3941,7 +3941,7 @@ class Graph(GenericGraph):
 
         OUTPUT:
 
-        - A list whose `i^{\mbox{th}}` element is the representativeof the
+        - A list whose `i^{\mbox{th}}` element is the representative of the
           `i^{\mbox{th}}` element of the ``family`` list. If there is no ISR,
           ``None`` is returned.
 
@@ -3994,7 +3994,7 @@ class Graph(GenericGraph):
         # Boolean variable in two dimension whose first
         # element is a vertex and whose second element
         # is one of the sets given as arguments.
-        # When true, indicated that the vertex is the representent
+        # When true, indicated that the vertex is the representant
         # of the corresponding set
 
         classss=p.new_variable(dim=2)

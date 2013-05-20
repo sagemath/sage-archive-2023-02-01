@@ -463,6 +463,93 @@ def distances_all_pairs(G):
     sage_free(distances)
     return d
 
+def is_distance_regular(G, parameters = False):
+    r"""
+    Tests if the graph is distance-regular
+
+    A graph `G` is distance-regular if there exist integers `d_1,...,d_n` such
+    that for every vertex `v\in G` we have `d_i=\#\{u:d_G(u,v) =i\}`.
+
+    For more information on distance-regular graphs, see its associated
+    :wikipedia:`wikipedia page <Distance-regular_graph>`.
+
+    INPUT:
+
+    - ``parameters`` (boolean) -- whether to replace ``True`` answers with a
+      dictionary associating `d_i` to an integer `i>0` if `d_i>0` (one can then
+      obtain `d_i` by doing ``dictionary.get(i,0)``). Set to ``False`` by
+      default.
+
+    EXAMPLES::
+
+        sage: g = graphs.PetersenGraph()
+        sage: g.is_distance_regular()
+        True
+        sage: g.is_distance_regular(parameters = True)
+        {1: 3, 2: 6}
+
+    Cube graphs, which are not strongly regular, are a bit more interesting;;
+
+        sage: graphs.CubeGraph(4).is_distance_regular(parameters = True)
+        {1: 4, 2: 6, 3: 4, 4: 1}
+
+    """
+    cdef int i,l
+    cdef int n = G.order()
+
+    if n <= 2:
+        return {} if parameters else True
+
+    if not G.is_regular():
+        return False
+
+    cdef unsigned short * distance_matrix = c_distances_all_pairs(G)
+
+    # - d_array is the vector of d_i corresponding to the first vertex
+    #
+    # - d_tmp is a vector that we use to check that d_array is the same for
+    #   every vertex v
+    cdef unsigned short * d_array = <unsigned short *> sage_calloc(2*n, sizeof(unsigned short))
+    cdef unsigned short * d_tmp   = d_array + n
+
+    if d_array==NULL:
+        sage_free(distance_matrix)
+        raise MemoryError()
+
+    # Filling d_array
+    cdef unsigned short * pointer = distance_matrix
+    for i in range(n):
+        d_array[pointer[i]] += 1
+    pointer += n
+
+    # For each of the n-1 other vertices
+    for l in range(1,n):
+
+        # We set d_tmp and fill it with the data from the l^th row
+        memset(d_tmp, 0, n*sizeof(unsigned short))
+        for i in range(n):
+            d_tmp[pointer[i]] += 1
+
+        # If d_tmp != d_array, we are done
+        if memcmp(d_array, d_tmp, n*sizeof(unsigned short)) != 0:
+            sage_free(distance_matrix)
+            sage_free(d_array)
+            return False
+
+        pointer += n
+
+    cdef dict dict_parameters
+    if parameters:
+        dict_parameters = {i:d_array[i] for i in range(n) if i and d_array[i] > 0}
+
+    sage_free(distance_matrix)
+    sage_free(d_array)
+
+    if parameters:
+        return dict_parameters
+    else:
+        return True
+
 ###################################
 # Both distances and predecessors #
 ###################################

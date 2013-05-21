@@ -146,6 +146,7 @@ class Graphics(SageObject):
         self._bbox_extra_artists = []
         self._extra_kwds = {}
         self._fontsize = 10
+        self._legend_colors = []
         self._legend_opts = {}
         self._objects = []
         self._show_axes = True
@@ -1013,6 +1014,7 @@ class Graphics(SageObject):
         g._show_legend = self._show_legend or other._show_legend
         g._extra_kwds.update(self._extra_kwds)
         g._extra_kwds.update(other._extra_kwds)
+        g._legend_colors = self._legend_colors + other._legend_colors
         g._legend_opts.update(self._legend_opts)
         g._legend_opts.update(other._legend_opts)
         if self.aspect_ratio()=='automatic':
@@ -2258,7 +2260,10 @@ class Graphics(SageObject):
                 # color
                 lframe = leg.get_frame()
                 lframe.set_facecolor(color)
-
+                from sage.plot.colors import to_mpl_color
+                for txt,color in zip(leg.get_texts(), self._legend_colors):
+                    if color is not None:
+                        txt.set_color(to_mpl_color(color))
 
         subplot.set_xlim([xmin, xmax])
         subplot.set_ylim([ymin, ymax])

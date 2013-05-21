@@ -106,12 +106,14 @@ class GraphicPrimitive(SageObject):
         if 'alpha' in options:
             options_3d['opacity'] = options['alpha']
             del options['alpha']
-        if 'legend_label' in options:
-            del options['legend_label'] # no equivalent in 3d for now
-        if 'zorder' in options:
-            del options['zorder']
+
+        for o in ('legend_color', 'legend_label', 'zorder'):
+            if o in options:
+                del options[o]
+
         if len(options) != 0:
-            raise NotImplementedError, "Unknown plot3d equivalent for %s" % ", ".join(options.keys())
+            raise NotImplementedError("Unknown plot3d equivalent for {}".format(
+                                      ", ".join(options.keys())))
         return options_3d
 
     def set_zorder(self, zorder):

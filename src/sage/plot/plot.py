@@ -647,6 +647,8 @@ def plot(funcs, *args, **kwds):
     - ``detect_poles`` - (Default: False) If set to True poles are detected.
       If set to "show" vertical asymptotes are drawn.
 
+    - ``legend_color`` - the color of the text for this item in the legend
+
     - ``legend_label`` - the label for this item in the legend
 
     .. note::
@@ -833,6 +835,12 @@ def plot(funcs, *args, **kwds):
         sage: plot(sin, legend_label='sin')
         sage: plot(sin, legend_label='$sin$')
         sage: plot(sin, legend_label='$\sin$')
+
+    It is possible to use a different color for the text of each label::
+
+        sage: p1 = plot(sin, legend_label='sin', legend_color='red')
+        sage: p2 = plot(cos, legend_label='cos', legend_color='green')
+        sage: p1 + p2
 
     Note that the independent variable may be omitted if there is no
     ambiguity::

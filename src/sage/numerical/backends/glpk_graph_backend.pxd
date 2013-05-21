@@ -9,7 +9,7 @@ cdef extern from *:
 cdef extern from "float.h":
     cdef double DBL_MAX
 
-cdef extern from "../../../local/include/glpk.h":
+cdef extern from "glpk.h":
 
      # Graph structure
      ctypedef struct _glp_graph "glp_graph":

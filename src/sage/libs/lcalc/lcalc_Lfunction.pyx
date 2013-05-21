@@ -24,7 +24,7 @@ AUTHORS:
 include "sage/ext/interrupt.pxi"
 include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
-include "../mpfr.pxd"
+include "sage/libs/mpfr.pxd"
 
 from sage.rings.integer cimport Integer
 

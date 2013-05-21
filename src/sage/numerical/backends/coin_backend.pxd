@@ -22,23 +22,23 @@ from libcpp cimport bool
 cdef extern from *:
     ctypedef double* const_double_ptr "const double*"
 
-cdef extern from "../../local/include/coin/CbcStrategy.hpp":
+cdef extern from "coin/CbcStrategy.hpp":
     cdef cppclass CbcStrategy:
         pass
     cdef cppclass CbcStrategyDefault(CbcStrategy):
         CbcStrategyDefault()
 
-cdef extern from "../../local/include/coin/CoinPackedVectorBase.hpp":
+cdef extern from "coin/CoinPackedVectorBase.hpp":
     cdef cppclass CoinPackedVectorBase:
         pass
 
-cdef extern from "../../local/include/coin/CoinPackedVector.hpp":
+cdef extern from "coin/CoinPackedVector.hpp":
      cdef cppclass CoinPackedVector(CoinPackedVectorBase):
          void insert(float, float)
      CoinPackedVector *new_CoinPackedVector "new CoinPackedVector" ()
      void del_CoinPackedVector "delete" (CoinPackedVector *)
 
-cdef extern from "../../local/include/coin/CoinShallowPackedVector.hpp":
+cdef extern from "coin/CoinShallowPackedVector.hpp":
      cdef cppclass CoinShallowPackedVector:
          void insert(float, float)
          int * getIndices ()
@@ -47,7 +47,7 @@ cdef extern from "../../local/include/coin/CoinShallowPackedVector.hpp":
      CoinShallowPackedVector *new_CoinShallowPackedVector "new CoinShallowPackedVector" ()
      void del_CoinShallowPackedVector "delete" (CoinShallowPackedVector *)
 
-cdef extern from "../../local/include/coin/CoinPackedMatrix.hpp":
+cdef extern from "coin/CoinPackedMatrix.hpp":
      cdef cppclass CoinPackedMatrix:
          void setDimensions(int, int)
          void appendRow(CoinPackedVector)
@@ -55,7 +55,7 @@ cdef extern from "../../local/include/coin/CoinPackedMatrix.hpp":
      CoinPackedMatrix *new_CoinPackedMatrix "new CoinPackedMatrix" (bool, double, double)
      void del_CoinPackedMatrix "delete" (CoinPackedMatrix *)
 
-cdef extern from "../../local/include/coin/CoinMessageHandler.hpp":
+cdef extern from "coin/CoinMessageHandler.hpp":
      cdef cppclass CoinMessageHandler:
          void setLogLevel (int)
          int LogLevel ()
@@ -63,11 +63,11 @@ cdef extern from "../../local/include/coin/CoinMessageHandler.hpp":
      void del_CoinMessageHandler "delete" (CoinMessageHandler *)
 
 
-cdef extern from "../../local/include/coin/OsiSolverParameters.hpp":
+cdef extern from "coin/OsiSolverParameters.hpp":
     cdef enum OsiIntParam:
         OsiMaxNumIteration = 0, OsiMaxNumIterationHotStart, OsiNameDiscipline, OsiLastIntParam
 
-cdef extern from "../../local/include/coin/OsiSolverInterface.hpp":
+cdef extern from "coin/OsiSolverInterface.hpp":
 
      cdef cppclass OsiSolverInterface:
 
@@ -130,7 +130,7 @@ cdef extern from "../../local/include/coin/OsiSolverInterface.hpp":
         # miscellaneous
         double getInfinity()
 
-cdef extern from "../../local/include/coin/CbcModel.hpp":
+cdef extern from "coin/CbcModel.hpp":
      cdef cppclass CbcModel:
          # default constructor
          CbcModel()
@@ -160,11 +160,11 @@ cdef extern from "../../local/include/coin/CbcModel.hpp":
      CbcModel *new_CbcModel "new CbcModel" ()
      void del_CbcModel "delete" (CbcModel *)
 
-cdef extern from "../../local/include/coin/ClpSimplex.hpp":
+cdef extern from "coin/ClpSimplex.hpp":
     cdef cppclass ClpSimplex:
         void setNumberThreads(int)
 
-cdef extern from "../../local/include/coin/OsiClpSolverInterface.hpp":
+cdef extern from "coin/OsiClpSolverInterface.hpp":
 
      cdef cppclass OsiClpSolverInterface(OsiSolverInterface):
 

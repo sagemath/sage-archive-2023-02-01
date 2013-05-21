@@ -23,7 +23,7 @@ cdef class CPLEXBackend(GenericBackend):
     cdef current_sol
     cpdef CPLEXBackend copy(self)
 
-cdef extern from "../../local/include/cplex.h":
+cdef extern from "cplex.h":
 
      # Create problem
      c_cpxlp * CPXcreateprob (c_cpxlp *  env, int *status_p,
@@ -207,7 +207,7 @@ cdef extern from "../../local/include/cplex.h":
      int CPX_MAX = -1
      int CPX_MIN = 1
 
-cdef extern from "../../local/include/cpxconst.h":
+cdef extern from "cpxconst.h":
 
      # Solution quality
      #

@@ -16,7 +16,7 @@ include 'sage/ext/stdsage.pxi'
 #cdef extern from "float.h":
 #    cdef double DBL_MAX
 
-cdef extern from "../../../local/include/gurobi_c.h":
+cdef extern from "gurobi_c.h":
      ctypedef struct GRBmodel:
          pass
      ctypedef struct GRBenv:

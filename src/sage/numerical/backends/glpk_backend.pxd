@@ -16,7 +16,7 @@ cdef extern from *:
 cdef extern from "float.h":
     cdef double DBL_MAX
 
-cdef extern from "../../../local/include/glpk.h":
+cdef extern from "glpk.h":
      ctypedef struct c_glp_prob "glp_prob":
          pass
      ctypedef struct c_glp_iocp "glp_iocp":

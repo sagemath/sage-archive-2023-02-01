@@ -178,7 +178,7 @@ class Divisor_generic(FormalSum):
             sage: D._latex_()
             '\\mathrm{V}\\left(x + 2 y\\right)
             + 4\\mathrm{V}\\left(x\\right)
-            + \\left(-5\\right)\\mathrm{V}\\left(y\\right)'
+            - 5\\mathrm{V}\\left(y\\right)'
         """
         # The code is copied from _repr_ with latex adjustments
         terms = list(self)

@@ -696,10 +696,16 @@ def repr_lincomb(terms, coeffs = None, is_latex=False, scalar_mult="*", strip_on
 
     EXAMPLES::
 
-        sage: repr_lincomb([('a',1), ('b',2), ('c',3)])
-        'a + 2*b + 3*c'
-        sage: repr_lincomb([('a',1), ('b','2+3*x'), ('c',3)])
-        'a + (2+3*x)*b + 3*c'
+        sage: repr_lincomb([('a',1), ('b',-2), ('c',3)])
+        'a - 2*b + 3*c'
+        sage: repr_lincomb([('a',0), ('b',-2), ('c',3)])
+        '-2*b + 3*c'
+        sage: repr_lincomb([('a',0), ('b',2), ('c',3)])
+        '2*b + 3*c'
+        sage: repr_lincomb([('a',1), ('b',0), ('c',3)])
+        'a + 3*c'
+        sage: repr_lincomb([('a',-1), ('b','2+3*x'), ('c',3)])
+        '-a + (2+3*x)*b + 3*c'
         sage: repr_lincomb([('a', '1+x^2'), ('b', '2+3*x'), ('c', 3)])
         '(1+x^2)*a + (2+3*x)*b + 3*c'
         sage: repr_lincomb([('a', '1+x^2'), ('b', '-2+3*x'), ('c', 3)])
@@ -714,37 +720,40 @@ def repr_lincomb(terms, coeffs = None, is_latex=False, scalar_mult="*", strip_on
 
         sage: repr_lincomb([('a',1), ('b',2), ('c',3)], scalar_mult='*')
         'a + 2*b + 3*c'
-        sage: repr_lincomb([('a',1), ('b',2), ('c',3)], scalar_mult='**')
-        'a + 2**b + 3**c'
-        sage: repr_lincomb([('a',1), ('b',2), ('c',3)], scalar_mult='**')
-        'a + 2**b + 3**c'
+        sage: repr_lincomb([('a',2), ('b',0), ('c',-3)], scalar_mult='**')
+        '2**a - 3**c'
+        sage: repr_lincomb([('a',-1), ('b',2), ('c',3)], scalar_mult='**')
+        '-a + 2**b + 3**c'
 
     Examples for ``scalar_mult`` and ``is_latex``::
 
-        sage: repr_lincomb([('a',1), ('b',2), ('c',3)], is_latex=True)
-        'a + 2b + 3c'
-        sage: repr_lincomb([('a',1), ('b',2), ('c',3)], is_latex=True, scalar_mult='*')
-        'a + 2b + 3c'
-        sage: repr_lincomb([('a',1), ('b',2), ('c',3)], is_latex=True, scalar_mult='**')
-        'a + 2**b + 3**c'
-        sage: repr_lincomb([('a',1), ('b',2), ('c',3)], is_latex=True, latex_scalar_mult='*')
-        'a + 2*b + 3*c'
+        sage: repr_lincomb([('a',-1), ('b',2), ('c',3)], is_latex=True)
+        '-a + 2b + 3c'
+        sage: repr_lincomb([('a',-1), ('b',-1), ('c',3)], is_latex=True, scalar_mult='*')
+        '-a - b + 3c'
+        sage: repr_lincomb([('a',-1), ('b',2), ('c',-3)], is_latex=True, scalar_mult='**')
+        '-a + 2**b - 3**c'
+        sage: repr_lincomb([('a',-2), ('b',-1), ('c',-3)], is_latex=True, latex_scalar_mult='*')
+        '-2*a - b - 3*c'
 
     Examples for ``strip_one``::
 
-        sage: repr_lincomb([ ('a',1), (1,2), ('3',3) ])
-        'a + 2*1 + 3*3'
-        sage: repr_lincomb([ ('a',1), (1,1), ('3',3) ])
-        'a + 1 + 3*3'
-        sage: repr_lincomb([ ('a',1), (1,2), ('3',3) ], strip_one = True)
-        'a + 2 + 3*3'
-        sage: repr_lincomb([ ('a',1), (1,1), ('3',3) ], strip_one = True)
-        'a + 1 + 3*3'
+        sage: repr_lincomb([ ('a',1), (1,-2), ('3',3) ])
+        'a - 2*1 + 3*3'
+        sage: repr_lincomb([ ('a',-1), (1,1), ('3',3) ])
+        '-a + 1 + 3*3'
+        sage: repr_lincomb([ ('a',1), (1,-2), ('3',3) ], strip_one = True)
+        'a - 2 + 3*3'
+        sage: repr_lincomb([ ('a',-1), (1,1), ('3',3) ], strip_one = True)
+        '-a + 1 + 3*3'
+        sage: repr_lincomb([ ('a',1), (1,-1), ('3',3) ], strip_one = True)
+        'a - 1 + 3*3'
 
     Examples for ``repr_monomial``::
 
         sage: repr_lincomb([('a',1), ('b',2), ('c',3)], repr_monomial = lambda s: s+"1")
         'a1 + 2*b1 + 3*c1'
+
 
     TESTS:
 
@@ -783,34 +792,47 @@ def repr_lincomb(terms, coeffs = None, is_latex=False, scalar_mult="*", strip_on
 
     all_atomic = True
     for (monomial,c) in terms:
-        b = repr_monomial(monomial)
         if c != 0:
-            coeff = coeff_repr(c, is_latex)
+            coeff = coeff_repr(c)
+            negative = False
+            if len(coeff)>0 and coeff[0] == "-":
+                negative = True
+            #elif len(coeff) > 1 and coeff[1] == "-":
+                #negative = True
+            if c < 0 or negative:
+                coeff = coeff_repr(-c, is_latex)
+            else:
+                coeff = coeff_repr(c, is_latex)
+            #pdb.set_trace()
+            if coeff == "1":
+                coeff = ""
             if coeff != "0":
-                if coeff == "1":
-                    coeff = ""
-                elif coeff == "-1":
-                    coeff = "-"
-                elif len(b) > 0:
-                    if len(coeff) > 0 and b == "1" and strip_one:
-                        b = ""
+                if c < 0 or negative:
+                    if first:
+                        sign = "-" # add trailing space?
                     else:
-                        b = scalar_mult + b
-                if not first:
-                    if len(coeff) > 0 and coeff[0] == "-":
-                        coeff = " - %s"%coeff[1:]
-                    else:
-                        coeff = " + %s"%coeff
+                        sign = " - "
                 else:
-                    coeff = "%s"%coeff
-            s += "%s%s"%(coeff, b)
-            first = False
+                    if first:
+                        sign = ""
+                    else:
+                        sign= " + "
+                b = repr_monomial(monomial)
+                if len(b) > 0:
+                    if  coeff != "":
+                        if b =="1" and strip_one:
+                            b = ""
+                        else:
+                            b = scalar_mult + b
+                s += "%s%s%s"%(sign, coeff, b)
+                first = False
     if first:
-        return "0"
-    elif s == "":
-        return "1"
+        return "0" # this can happen only if are only terms with coeff_repr(c) == "0"
+    #elif s == "":
+        #return "1" # is empty string representation invalid?
     else:
         return s
+
 
 
 

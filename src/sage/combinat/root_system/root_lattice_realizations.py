@@ -1845,11 +1845,11 @@ class RootLatticeRealizations(Category_over_base_ring):
                  Arrow from (0.0,0.0) to (1.0,1.0),
                  Text '$\alpha_{1} + \alpha_{2}$' at the point (1.05,1.05),
                  Arrow from (0.0,0.0) to (-1.0,0.0),
-                 Text '$\left(-1\right)\alpha_{1}$' at the point (-1.05,0.0),
+                 Text '$-\alpha_{1}$' at the point (-1.05,0.0),
                  Arrow from (0.0,0.0) to (0.0,-1.0),
-                 Text '$\left(-1\right)\alpha_{2}$' at the point (0.0,-1.05),
+                 Text '$-\alpha_{2}$' at the point (0.0,-1.05),
                  Arrow from (0.0,0.0) to (-1.0,-1.0),
-                 Text '$\left(-1\right)\alpha_{1} + \left(-1\right)\alpha_{2}$' at the point (-1.05,-1.05)]
+                 Text '$-\alpha_{1} - \alpha_{2}$' at the point (-1.05,-1.05)]
             """
             plot_options = self.plot_parse_options(**options)
             root_lattice = self.root_system.root_lattice()

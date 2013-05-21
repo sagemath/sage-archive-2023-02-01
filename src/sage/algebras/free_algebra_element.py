@@ -106,10 +106,10 @@ class FreeAlgebraElement(AlgebraElement):
 
             sage: A.<x,y,z>=FreeAlgebra(ZZ,3)
             sage: latex(-x+3*y^20*z)   # indirect doctest
-            \left(-1\right)x + 3y^{20}z
+            -x + 3y^{20}z
             sage: alpha,beta,gamma=FreeAlgebra(ZZ,3,'alpha,beta,gamma').gens()
             sage: latex(alpha-beta)
-            \alpha + \left(-1\right)\beta
+            \alpha - \beta
         """
         v = sorted(self.__monomial_coefficients.items())
         return repr_lincomb(v, strip_one=True, is_latex=True)

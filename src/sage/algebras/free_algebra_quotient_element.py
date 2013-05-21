@@ -137,7 +137,7 @@ class FreeAlgebraQuotientElement(AlgebraElement):
 
             sage: H, (i,j,k) = sage.algebras.free_algebra_quotient.hamilton_quatalg(QQ)
             sage: ((2/3)*i - j)._latex_()
-            '\\frac{2}{3}i + \\left(-1\\right)j'
+            '\\frac{2}{3}i - j'
         """
         Q = self.parent()
         M = Q.monoid()

@@ -1299,17 +1299,17 @@ class BoundarySpace_wtk_eps(BoundarySpace):
             sage: [ B(Cusp(i,13)) for i in range(13) ]
             [[0],
             [1/13],
-            (-zeta4)*[1/13],
+            -zeta4*[1/13],
             [1/13],
-            (-1)*[1/13],
-            (-zeta4)*[1/13],
-            (-zeta4)*[1/13],
+            -[1/13],
+            -zeta4*[1/13],
+            -zeta4*[1/13],
             zeta4*[1/13],
             zeta4*[1/13],
             [1/13],
-            (-1)*[1/13],
+            -[1/13],
             zeta4*[1/13],
-            (-1)*[1/13]]
+            -[1/13]]
             sage: B._is_equiv(Cusp(oo), Cusp(1,13))
             (True, 1)
             sage: B._is_equiv(Cusp(0), Cusp(1,13))
@@ -1323,17 +1323,17 @@ class BoundarySpace_wtk_eps(BoundarySpace):
             sage: [ B(Cusp(i,13)) for i in range(13) ]
             [0,
             [1/13],
-            (-zeta4)*[1/13],
+            -zeta4*[1/13],
             [1/13],
-            (-1)*[1/13],
-            (-zeta4)*[1/13],
-            (-zeta4)*[1/13],
+            -[1/13],
+            -zeta4*[1/13],
+            -zeta4*[1/13],
             zeta4*[1/13],
             zeta4*[1/13],
             [1/13],
-            (-1)*[1/13],
+            -[1/13],
             zeta4*[1/13],
-            (-1)*[1/13]]
+            -[1/13]]
             sage: B = ModularSymbols(DirichletGroup(13).0**4, 5, sign=1).boundary_space()
             sage: B._coerce_cusp(Cusp(0))
             [0]

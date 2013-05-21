@@ -2190,7 +2190,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             sage: p([2,1]).omega_qt(q,t)
             ((-q^3+q^2+q-1)/(t^3-t^2-t+1))*p[2, 1]
             sage: p([3,2]).omega_qt(5,q)
-            ((-2976)/(q^5-q^3-q^2+1))*p[3, 2]
+            -(2976/(q^5-q^3-q^2+1))*p[3, 2]
             sage: p(0).omega_qt()
             0
             sage: p(1).omega_qt()

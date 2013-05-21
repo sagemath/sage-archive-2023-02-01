@@ -569,11 +569,11 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 5391::
     sage: ks3 = Sym.kschur(3,t=1)
     sage: p = Sym.p()
     sage: p(ks3z[2, 2, 2, 2, 2, 2, 2, 2])     # long time (17s on sage.math, 2013)
-    1/12*p[4, 4, 4, 4] + 1/4*p[8, 8] + (-1/3)*p[12, 4]
+    1/12*p[4, 4, 4, 4] + 1/4*p[8, 8] - 1/3*p[12, 4]
     sage: p(ks3[2,2])
-    1/12*p[1, 1, 1, 1] + 1/4*p[2, 2] + (-1/3)*p[3, 1]
+    1/12*p[1, 1, 1, 1] + 1/4*p[2, 2] - 1/3*p[3, 1]
     sage: p(ks3[2,2]).plethysm(p[4])
-    1/12*p[4, 4, 4, 4] + 1/4*p[8, 8] + (-1/3)*p[12, 4]
+    1/12*p[4, 4, 4, 4] + 1/4*p[8, 8] - 1/3*p[12, 4]
 
 Sage example in ./kschurnotes/notes-mike-anne.tex, line 5405::
 

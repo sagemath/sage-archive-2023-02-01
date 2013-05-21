@@ -2098,7 +2098,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             sage: K = eps.base_ring()
             sage: M = ModularSymbols(37,2,0,K)
             sage: M.twisted_winding_element(0,eps)
-            2*(1,23) + (-2)*(1,32) + 2*(1,34)
+            2*(1,23) - 2*(1,32) + 2*(1,34)
 
         """
 

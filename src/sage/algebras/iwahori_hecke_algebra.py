@@ -333,10 +333,10 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
             sage: H.base_ring()
             Fraction Field of Multivariate Polynomial Ring in q1, q2 over Rational Field
             sage: H.inverse_generator(1)
-            ((-1)/(q1*q2))*T1 + ((q1+q2)/(q1*q2))
+            -1/(q1*q2)*T1 + ((q1+q2)/(q1*q2))
             sage: H = IwahoriHeckeAlgebraT("A2",q1,-1,base_ring=F)
             sage: H.inverse_generator(2)
-            ((-1)/(-q1))*T2 + ((q1-1)/(-q1))
+            -(1/(-q1))*T2 + ((q1-1)/(-q1))
             sage: P1.<r1,r2>=LaurentPolynomialRing(QQ)
             sage: H1 = IwahoriHeckeAlgebraT("B2",r1,r2,base_ring=P1)
             sage: H1.base_ring()

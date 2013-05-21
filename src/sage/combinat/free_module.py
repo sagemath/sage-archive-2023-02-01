@@ -1078,11 +1078,11 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         sage: e['a'] - 3 * e['b']
         x{'a'} - 3 x{'b'}
         sage: latex(e['a'] - 3 * e['b'])
-        x_{a} + \left(-3\right) x_{b}
+        x_{a} - 3 x_{b}
 
         sage: F.print_options(latex_prefix='y')
         sage: latex(e['a'] - 3 * e['b'])
-        y_{a} + \left(-3\right) y_{b}
+        y_{a} - 3  y_{b}
 
         sage: F.print_options(monomial_cmp = lambda x,y: -cmp(x,y))
         sage: e['a'] - 3 * e['b']

@@ -1493,6 +1493,34 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             return antipode
         return self(self._change_basis_on_basis(t, 'serre-cartan').antipode())
 
+    def counit_on_basis(self, t):
+        """
+        The counit sends all elements of positive degree to zero.
+
+        EXAMPLES::
+
+            sage: A2 = SteenrodAlgebra(p=2)
+            sage: A2.counit_on_basis(())
+            1
+            sage: A2.counit_on_basis((0,0,1))
+            0
+            sage: parent(A2.counit_on_basis((0,0,1)))
+            Finite Field of size 2
+            sage: A3 = SteenrodAlgebra(p=3)
+            sage: A3.counit_on_basis(((1,2,3), (1,1,1)))
+            0
+            sage: A3.counit_on_basis(((), ()))
+            1
+            sage: A3.counit(A3.P(10,5))
+            0
+            sage: A3.counit(A3.P(0))
+            1
+        """
+        if t != () and t != ((), ()):
+            return self.base_ring().zero()
+        else:
+            return self.base_ring().one()
+
     def _milnor_on_basis(self, t):
         """
         Convert the tuple t in the current basis to an element in the

@@ -12,9 +12,9 @@ Utility classes for multi-modular algorithms.
 ######################################################################
 
 
-include "../ext/interrupt.pxi"
-include "../ext/stdsage.pxi"
-include "../ext/gmp.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/gmp.pxi"
 
 
 from sage.rings.integer_ring import ZZ

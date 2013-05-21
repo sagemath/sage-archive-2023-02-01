@@ -33,7 +33,7 @@ cdef cparent get_cparent(parent) except? NULL:
     return &(c.x)
 
 # first we include the definitions
-include "../../libs/ntl/ntl_ZZ_pEX_linkage.pxi"
+include "sage/libs/ntl/ntl_ZZ_pEX_linkage.pxi"
 
 # and then the interface
 include "polynomial_template.pxi"

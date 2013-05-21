@@ -1,5 +1,5 @@
 
-include '../ext/cdefs.pxi'
+include 'sage/ext/cdefs.pxi'
 
 cdef int *hamming_weights()
 

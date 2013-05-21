@@ -177,8 +177,8 @@ from sage.misc.randstate cimport randstate, current_randstate
 from sage.misc.misc_c import is_64_bit
 
 include 'pari_err.pxi'
-include '../../ext/stdsage.pxi'
-include '../../ext/python.pxi'
+include 'sage/ext/stdsage.pxi'
+include 'sage/ext/python.pxi'
 
 cdef extern from "mpz_pylong.h":
     cdef int mpz_set_pylong(mpz_t dst, src) except -1

@@ -1,5 +1,5 @@
-include "../ext/cdefs.pxi"
-include "../libs/ntl/decl.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 from ring cimport PrincipalIdealDomain
 from integer cimport Integer

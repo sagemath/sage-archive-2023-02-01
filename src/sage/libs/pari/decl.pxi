@@ -18,7 +18,7 @@ AUTHORS:
 
 """
 
-include '../../ext/cdefs.pxi'
+include 'sage/ext/cdefs.pxi'
 
 cdef extern from 'setjmp.h':
     struct __jmp_buf_tag:

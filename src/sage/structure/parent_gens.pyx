@@ -72,7 +72,7 @@ import gens_py
 cimport parent
 from sage.structure.coerce_dict import MonoDict
 
-include '../ext/stdsage.pxi'
+include 'sage/ext/stdsage.pxi'
 
 cdef inline check_old_coerce(parent.Parent p):
     if p._element_constructor is not None:

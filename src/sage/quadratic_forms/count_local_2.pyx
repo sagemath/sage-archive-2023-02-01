@@ -2,8 +2,8 @@ r"""
 Optimised Cython code for counting congruence solutions
 """
 
-include "../ext/cdefs.pxi"
-include "../ext/gmp.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/ext/gmp.pxi"
 
 from sage.rings.arith import valuation, kronecker_symbol, is_prime
 from sage.rings.finite_rings.integer_mod import IntegerMod, Mod

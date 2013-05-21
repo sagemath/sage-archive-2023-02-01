@@ -69,8 +69,8 @@ TESTS:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
-include '../ext/interrupt.pxi'
-include '../ext/stdsage.pxi'
+include 'sage/ext/interrupt.pxi'
+include 'sage/ext/stdsage.pxi'
 
 from sage.rings.finite_rings.integer_mod cimport (IntegerMod_int, IntegerMod_int64,
           IntegerMod_abstract, use_32bit_type)

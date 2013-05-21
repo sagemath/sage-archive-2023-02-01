@@ -101,8 +101,8 @@ TESTS::
 import math
 import operator
 
-include '../ext/cdefs.pxi'
-include '../ext/stdsage.pxi'
+include 'sage/ext/cdefs.pxi'
+include 'sage/ext/stdsage.pxi'
 from cpython.dict cimport *
 from cpython.list cimport *
 import sage.misc.misc as misc

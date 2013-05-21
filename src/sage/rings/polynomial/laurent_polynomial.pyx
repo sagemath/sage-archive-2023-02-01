@@ -1,7 +1,7 @@
 r"""
 Elements of Laurent polynomial rings
 """
-include "../../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 
 import re
 from sage.rings.integer import Integer

@@ -27,11 +27,11 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "../../libs/ntl/decl.pxi"
-include "../../ext/gmp.pxi"
-include "../../ext/interrupt.pxi"
-include "../../ext/stdsage.pxi"
-include "../../libs/pari/decl.pxi"
+include "sage/libs/ntl/decl.pxi"
+include "sage/ext/gmp.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/libs/pari/decl.pxi"
 
 cdef long maxint
 from sys import maxint

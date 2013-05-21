@@ -324,7 +324,7 @@ cdef void hold_reference(libGAP_Obj obj):
 cdef extern from 'stdlib.h':
     void abort()
 
-include '../../ext/interrupt.pxi'
+include 'sage/ext/interrupt.pxi'
 
 cdef void error_handler(char* msg):
     """

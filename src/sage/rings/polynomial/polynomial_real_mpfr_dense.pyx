@@ -1,8 +1,8 @@
 r"""
 Dense univariate polynomials over `\RR`, implemented using MPFR
 """
-include "../../ext/stdsage.pxi"
-include "../../ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
 
 from cpython cimport PyInt_AS_LONG, PyFloat_AS_DOUBLE
 

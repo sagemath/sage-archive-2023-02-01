@@ -70,8 +70,8 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "../../ext/stdsage.pxi"
-include "../../ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
 
 from sage.structure.sage_object cimport SageObject
 

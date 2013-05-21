@@ -1,4 +1,4 @@
-include "../../ext/cdefs.pxi"
+include "sage/ext/cdefs.pxi"
 
 cdef extern from "ntl_wrap.h":
     #### ZZ_c

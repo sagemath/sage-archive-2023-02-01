@@ -1,6 +1,6 @@
 from sage.libs.mpfr cimport *
 
-include '../ext/cdefs.pxi'
+include 'sage/ext/cdefs.pxi'
 
 ctypedef mpz_t mpz_srcptr
 ctypedef mpq_t mpq_srcptr

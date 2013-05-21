@@ -14,11 +14,11 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
-include "../ext/stdsage.pxi"
-include "../ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
 
 # randstate in template needs this
-include '../ext/random.pxi'
+include 'sage/ext/random.pxi'
 
 from sage.libs.linbox.echelonform cimport BlasMatrixDouble as BlasMatrix
 from sage.libs.linbox.modular cimport ModDoubleField as ModField, ModDoubleFieldElement as ModFieldElement

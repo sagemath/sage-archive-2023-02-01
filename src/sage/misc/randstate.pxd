@@ -1,4 +1,4 @@
-include "../ext/cdefs.pxi"
+include "sage/ext/cdefs.pxi"
 
 cdef class randstate:
     cdef gmp_randstate_t gmp_state

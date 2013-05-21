@@ -49,7 +49,7 @@ cdef inline cparent get_cparent(parent) except? 0:
         return 0
 
 # first we include the definitions
-include "../../libs/flint/nmod_poly_linkage.pxi"
+include "sage/libs/flint/nmod_poly_linkage.pxi"
 
 # and then the interface
 include "polynomial_template.pxi"
@@ -61,7 +61,7 @@ cdef extern from "zn_poly/zn_poly.h":
     cdef void zn_mod_clear(zn_mod_struct *mod)
     cdef void zn_array_mul(unsigned long* res, unsigned long* op1, size_t n1, unsigned long* op2, size_t n2, zn_mod_struct *mod)
 
-include "../../libs/flint/fmpz_poly.pxi"
+include "sage/libs/flint/fmpz_poly.pxi"
 
 cdef class Polynomial_zmod_flint(Polynomial_template):
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):

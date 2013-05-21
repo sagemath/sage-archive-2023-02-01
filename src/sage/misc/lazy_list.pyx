@@ -34,7 +34,7 @@ EXAMPLES::
 # in types.pxd
 #    bint PyType_Check(object o)
 #    bint PyType_CheckExact(object o)
-# include "../ext/python_iterator.pxi"
+# include "sage/ext/python_iterator.pxi"
 
 cdef extern from "Python.h":
     Py_ssize_t PY_SSIZE_T_MAX

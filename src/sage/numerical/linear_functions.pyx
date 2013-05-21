@@ -74,9 +74,9 @@ See :trac:`12091` ::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "../ext/stdsage.pxi"
-include "../ext/interrupt.pxi"
-include "../ext/cdefs.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/ext/cdefs.pxi"
 from cpython.object cimport *
 
 cdef extern from "limits.h":

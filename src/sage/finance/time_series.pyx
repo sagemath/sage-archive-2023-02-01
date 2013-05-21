@@ -36,10 +36,10 @@ AUTHOR:
 - William Stein
 """
 
-include "../ext/cdefs.pxi"
-include "../ext/stdsage.pxi"
-include "../ext/random.pxi"
-include "../ext/python_slice.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/random.pxi"
+include "sage/ext/python_slice.pxi"
 from cpython.string cimport *
 
 cdef extern from "math.h":

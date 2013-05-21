@@ -30,9 +30,9 @@ AUTHORS:
 
 import operator
 
-include '../../ext/interrupt.pxi'
+include 'sage/ext/interrupt.pxi'
 from cpython.int cimport *
-include "../../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 
 import sage.rings.field_element
 import sage.rings.infinity

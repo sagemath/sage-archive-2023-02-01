@@ -75,8 +75,8 @@ cdef extern from "fes_interface.h":
     void exhaustive_search_wrapper(int n, int n_eqs, int degree, int ***coeffs, solution_callback_t callback, void* callback_state, int verbose)
 
 
-include '../ext/interrupt.pxi'  #sig_on(), sig_off()
-include '../ext/stdsage.pxi'  #sage_calloc(), sage_free()
+include 'sage/ext/interrupt.pxi'  #sig_on(), sig_off()
+include 'sage/ext/stdsage.pxi'  #sage_calloc(), sage_free()
 
 from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity

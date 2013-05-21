@@ -52,7 +52,7 @@ import real_mpfi
 import real_mpfr
 cimport real_mpfr
 
-include "../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 
 cdef double LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
 

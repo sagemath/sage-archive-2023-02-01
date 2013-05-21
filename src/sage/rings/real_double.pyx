@@ -34,12 +34,12 @@ Test NumPy conversions::
 
 from cpython.ref cimport PyObject, PyTypeObject
 from cpython.float cimport *
-include "../ext/python_debug.pxi"
-include '../ext/cdefs.pxi'
-include '../ext/stdsage.pxi'
-include '../ext/random.pxi'
-include '../ext/interrupt.pxi'
-include '../gsl/gsl.pxi'
+include "sage/ext/python_debug.pxi"
+include 'sage/ext/cdefs.pxi'
+include 'sage/ext/stdsage.pxi'
+include 'sage/ext/random.pxi'
+include 'sage/ext/interrupt.pxi'
+include 'sage/gsl/gsl.pxi'
 
 gsl_set_error_handler_off()
 
@@ -2520,7 +2520,7 @@ def is_RealDoubleElement(x):
 ########### Based on fast integer creation code   #########
 ######## There is nothing to see here, move along   #######
 
-include "../ext/python_rich_object.pxi"
+include "sage/ext/python_rich_object.pxi"
 
 # We use a global element to steal all the references
 # from.  DO NOT INITIALIZE IT AGAIN and DO NOT REFERENCE IT!

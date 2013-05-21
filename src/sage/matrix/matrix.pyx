@@ -13,7 +13,7 @@ For design documentation see matrix/docs.py.
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
-include '../ext/stdsage.pxi'
+include 'sage/ext/stdsage.pxi'
 
 def is_Matrix(x):
     """

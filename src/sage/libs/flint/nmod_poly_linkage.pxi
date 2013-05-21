@@ -20,7 +20,7 @@ AUTHOR:
 from sage.libs.flint.nmod_poly cimport *, nmod_poly_t
 from sage.libs.flint.ulong_extras cimport *
 
-include "../../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 
 cdef inline celement *celement_new(unsigned long n):
     cdef celement *g = <celement *>sage_malloc(sizeof(nmod_poly_t))

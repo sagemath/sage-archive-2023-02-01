@@ -13,8 +13,8 @@ arith_llong = sage.rings.fast_arith.arith_llong()
 
 ctypedef long long llong
 
-include '../../ext/interrupt.pxi'
-include '../../ext/stdsage.pxi'
+include 'sage/ext/interrupt.pxi'
+include 'sage/ext/stdsage.pxi'
 
 ###############################################################
 #

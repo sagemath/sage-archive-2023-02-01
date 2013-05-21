@@ -182,10 +182,10 @@ REFERENCES:
   http://www.itwm.fraunhofer.de/zentral/download/berichte/bericht122.pdf
 """
 
-include "../../ext/interrupt.pxi"
-include "../../ext/stdsage.pxi"
-include "../../ext/cdefs.pxi"
-include "../../ext/python.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/ext/python.pxi"
 
 import operator
 import weakref

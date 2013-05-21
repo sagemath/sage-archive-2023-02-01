@@ -34,8 +34,8 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include '../ext/cdefs.pxi'
-include '../ext/interrupt.pxi'
+include 'sage/ext/cdefs.pxi'
+include 'sage/ext/interrupt.pxi'
 
 from sage.rings.integer cimport Integer
 

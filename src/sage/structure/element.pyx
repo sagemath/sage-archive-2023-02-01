@@ -174,9 +174,9 @@ cdef extern from *:
 # by any element.  Derived class must call __init__
 ##################################################################
 
-include "../ext/cdefs.pxi"
-include "../ext/stdsage.pxi"
-include "../ext/python.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/python.pxi"
 
 import operator, types
 import sys

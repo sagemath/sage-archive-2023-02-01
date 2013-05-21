@@ -1,4 +1,4 @@
-include "../../ext/cdefs.pxi"
+include "sage/ext/cdefs.pxi"
 
 from sage.structure.sage_object cimport SageObject
 from sage.rings.integer cimport Integer

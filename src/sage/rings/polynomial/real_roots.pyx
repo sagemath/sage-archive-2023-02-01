@@ -154,8 +154,8 @@ cimport numpy
 # TODO: Just for the fabs function below
 from math import fabs
 
-include "../../ext/cdefs.pxi"
-include "../../ext/gmp.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/ext/gmp.pxi"
 
 from sage.libs.mpfr cimport *
 

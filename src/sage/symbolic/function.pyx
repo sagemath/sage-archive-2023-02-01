@@ -12,8 +12,8 @@ r"""
 Support for symbolic functions.
 
 """
-include "../ext/interrupt.pxi"
-include "../ext/cdefs.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/ext/cdefs.pxi"
 
 from sage.libs.ginac cimport *
 

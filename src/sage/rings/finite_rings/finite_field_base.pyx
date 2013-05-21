@@ -8,7 +8,7 @@ TESTS::
     sage: loads(dumps(F)) == F
     True
 """
-include "../../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 
 from sage.structure.parent cimport Parent
 from sage.misc.prandom import randrange

@@ -26,10 +26,10 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "../../libs/ntl/decl.pxi"
-include "../../ext/interrupt.pxi"
-include "../../ext/stdsage.pxi"
-include "../../ext/cdefs.pxi"
+include "sage/libs/ntl/decl.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/cdefs.pxi"
 
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, ModuleElement, RingElement

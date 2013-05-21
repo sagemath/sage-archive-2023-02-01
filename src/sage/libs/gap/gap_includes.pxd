@@ -9,8 +9,8 @@
 ###############################################################################
 
 
-include "../../ext/stdsage.pxi"
-include "../../ext/interrupt.pxi"  # ctrl-c interrupt block support
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
 
 cdef extern from "gap/libgap.h":
     void libgap_initialize(int argc, char** argv)

@@ -31,8 +31,8 @@ TODO:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "../../ext/interrupt.pxi"
-include "../../ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
 
 from sage.structure.element cimport Element
 

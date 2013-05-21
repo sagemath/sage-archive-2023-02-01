@@ -20,9 +20,9 @@ from sage.all import ntl
 
 from sage.rings.integer cimport Integer
 
-include "../../ext/cdefs.pxi"
-include "../../ext/interrupt.pxi"
-include "../../libs/flint/fmpz_poly.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/libs/flint/fmpz_poly.pxi"
 
 from sage.libs.flint.nmod_poly cimport *, nmod_poly_t
 from sage.libs.flint.ulong_extras cimport *, n_factor_t

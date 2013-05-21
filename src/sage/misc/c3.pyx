@@ -16,7 +16,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-include "../ext/python.pxi"
+include "sage/ext/python.pxi"
 
 cpdef list C3_algorithm(object start, str bases, str attribute, bint proper):
     """

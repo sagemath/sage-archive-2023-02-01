@@ -1,10 +1,10 @@
-include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
-include "../ext/stdsage.pxi"
-include "../ext/python.pxi"
+include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
+include "sage/ext/stdsage.pxi"
+include "sage/ext/python.pxi"
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.int cimport *
-include "../ext/python_rich_object.pxi"
+include "sage/ext/python_rich_object.pxi"
 
 #def time_alloc_list(n):
     #"""

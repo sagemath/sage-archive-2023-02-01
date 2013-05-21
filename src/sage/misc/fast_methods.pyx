@@ -32,7 +32,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-include "../ext/python_rich_object.pxi"
+include "sage/ext/python_rich_object.pxi"
 from cpython.bool cimport *
 from cpython.ref cimport *
 

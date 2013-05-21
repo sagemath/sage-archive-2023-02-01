@@ -17,8 +17,8 @@ def _convert_dense_entries_to_list(entries):
     copy = False
     return e
 
-include "../ext/interrupt.pxi"
-include "../ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.ref cimport *

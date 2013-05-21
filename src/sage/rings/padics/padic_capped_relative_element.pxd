@@ -1,4 +1,4 @@
-include "../../ext/cdefs.pxi"
+include "sage/ext/cdefs.pxi"
 
 cimport sage.rings.padics.padic_base_generic_element
 from sage.rings.padics.padic_base_generic_element cimport pAdicBaseGenericElement

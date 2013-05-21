@@ -14,11 +14,11 @@
 #*****************************************************************************
 import sys
 
-include "../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 from cpython.sequence cimport *
 from cpython.list cimport *
 from cpython.tuple cimport *
-include "../ext/python_slice.pxi"
+include "sage/ext/python_slice.pxi"
 from cpython.number cimport *
 
 cdef extern from *:

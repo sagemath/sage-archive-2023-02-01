@@ -1,6 +1,6 @@
-include "../../ext/cdefs.pxi"
-include "../../ext/stdsage.pxi"
-include "../../ext/python.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/python.pxi"
 
 
 cdef extern from "ntl_wrap.h":

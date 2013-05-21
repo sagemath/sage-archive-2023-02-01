@@ -26,7 +26,7 @@ AUTHORS:
 ########################################################################
 
 
-include "../../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ

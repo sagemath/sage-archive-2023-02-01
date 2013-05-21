@@ -2,8 +2,8 @@
 Two by two matrices over the integers.
 """
 
-include "../ext/interrupt.pxi"
-include "../ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.ref cimport *

@@ -40,7 +40,7 @@ import infinity
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 
-include "../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 
 cdef object numpy_complex_interface = {'typestr': '=c16'}
 cdef object numpy_object_interface = {'typestr': '|O'}

@@ -11,7 +11,7 @@ AUTHOR:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "../../ext/interrupt.pxi"
+include "sage/ext/interrupt.pxi"
 
 cdef extern from *: # hack to get at cython macro
     int unlikely(int)

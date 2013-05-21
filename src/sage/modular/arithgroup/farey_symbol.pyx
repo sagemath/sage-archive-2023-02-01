@@ -23,9 +23,9 @@ for speed.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include '../../ext/interrupt.pxi'
-include '../../ext/stdsage.pxi'
-include '../../ext/cdefs.pxi'
+include 'sage/ext/interrupt.pxi'
+include 'sage/ext/stdsage.pxi'
+include 'sage/ext/cdefs.pxi'
 
 include "farey.pxd"
 

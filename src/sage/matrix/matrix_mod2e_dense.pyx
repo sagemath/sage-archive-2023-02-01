@@ -65,10 +65,10 @@ REFERENCES:
 2009. http://arxiv.org/abs/0901.1413
 """
 
-include "../ext/interrupt.pxi"
-include "../ext/cdefs.pxi"
-include '../ext/stdsage.pxi'
-include '../ext/random.pxi'
+include "sage/ext/interrupt.pxi"
+include "sage/ext/cdefs.pxi"
+include 'sage/ext/stdsage.pxi'
+include 'sage/ext/random.pxi'
 
 cimport matrix_dense
 from sage.structure.element cimport Matrix, Vector

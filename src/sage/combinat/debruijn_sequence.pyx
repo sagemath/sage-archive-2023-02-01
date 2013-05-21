@@ -65,7 +65,7 @@ AUTHOR:
 #                         http://www.gnu.org/licenses/
 #*******************************************************************************
 
-include "../misc/bitset.pxi"
+include "sage/misc/bitset.pxi"
 
 def debruijn_sequence(int k, int n):
     """

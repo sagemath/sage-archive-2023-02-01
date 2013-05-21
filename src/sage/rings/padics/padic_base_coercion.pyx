@@ -5,9 +5,9 @@ AUTHOR:
 -- David Roe (initial version: 2010-8-25)
 """
 
-include "../../ext/gmp.pxi"
-include "../../ext/interrupt.pxi"
-include "../../ext/stdsage.pxi"
+include "sage/ext/gmp.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
 
 from sage.structure.element cimport Element
 from sage.rings.padics.padic_capped_relative_element cimport pAdicCappedRelativeElement

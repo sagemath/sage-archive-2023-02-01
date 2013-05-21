@@ -1,4 +1,4 @@
-include "../ext/cdefs.pxi"
+include "sage/ext/cdefs.pxi"
 
 cpdef prime_range(start, stop=*, algorithm=*, bint py_ints=*)
 

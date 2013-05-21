@@ -15,7 +15,7 @@
 
 # This is a .pxi file so that one can inline functions. Doctests in misc_c.
 
-include "../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 
 cdef extern from *:
     void *memset(void *, int, size_t)

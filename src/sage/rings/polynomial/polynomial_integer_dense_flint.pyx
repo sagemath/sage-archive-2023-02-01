@@ -19,10 +19,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
-include "../../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
-include "../../ext/gmp.pxi"
-include "../../libs/ntl/decl.pxi"
+include "sage/ext/gmp.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport ModuleElement, RingElement

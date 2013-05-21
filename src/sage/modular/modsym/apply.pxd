@@ -1,8 +1,8 @@
-include "../../ext/stdsage.pxi"
-include "../../ext/cdefs.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/cdefs.pxi"
 
 from sage.libs.flint.flint cimport *
-include "../../libs/flint/fmpz_poly.pxi"
+include "sage/libs/flint/fmpz_poly.pxi"
 
 
 cdef class Apply:

@@ -15,9 +15,9 @@ AUTHORS:
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "../ext/interrupt.pxi"
-include '../ext/cdefs.pxi'
-include '../ext/stdsage.pxi'
+include "sage/ext/interrupt.pxi"
+include 'sage/ext/cdefs.pxi'
+include 'sage/ext/stdsage.pxi'
 
 # import from Python standard library
 from sage.misc.prandom import random

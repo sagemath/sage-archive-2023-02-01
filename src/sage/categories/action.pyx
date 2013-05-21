@@ -68,7 +68,7 @@ import homset
 import sage.structure.element
 from weakref import ref
 
-include "../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 
 cdef inline category(x):
     try:

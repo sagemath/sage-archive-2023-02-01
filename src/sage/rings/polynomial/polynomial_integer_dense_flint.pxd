@@ -1,6 +1,6 @@
-include "../../ext/cdefs.pxi"
-include "../../libs/flint/fmpz.pxi"
-include "../../libs/flint/fmpz_poly.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/libs/flint/fmpz.pxi"
+include "sage/libs/flint/fmpz_poly.pxi"
 
 from sage.libs.flint.ntl_interface cimport *
 

@@ -95,8 +95,8 @@ Or you can create a homomorphism from one lattice to any other::
 #*****************************************************************************
 
 
-include '../ext/cdefs.pxi'
-include '../ext/stdsage.pxi' # Needed for PY_NEW
+include 'sage/ext/cdefs.pxi'
+include 'sage/ext/stdsage.pxi' # Needed for PY_NEW
 
 from sage.geometry.toric_plotter import ToricPlotter
 from sage.modules.vector_integer_dense cimport Vector_integer_dense

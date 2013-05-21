@@ -90,9 +90,9 @@ from sage.plot.plot3d.index_face_set cimport IndexFaceSet
 from sage.rings.all import RDF
 from sage.plot.misc import setup_for_eval_on_grid
 
-include '../../ext/cdefs.pxi'
-include '../../ext/stdsage.pxi'
-include '../../gsl/gsl.pxi'
+include 'sage/ext/cdefs.pxi'
+include 'sage/ext/stdsage.pxi'
+include 'sage/gsl/gsl.pxi'
 from cpython.string cimport *
 
 include "point_c.pxi"

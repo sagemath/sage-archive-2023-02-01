@@ -2,7 +2,7 @@ r"""
 Base class for multivariate polynomial rings
 """
 
-include '../../ext/stdsage.pxi'
+include 'sage/ext/stdsage.pxi'
 
 
 from sage.structure.parent_gens cimport ParentWithGens

@@ -60,9 +60,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "../../libs/ntl/decl.pxi"
-include "../../ext/interrupt.pxi"
-include "../../ext/stdsage.pxi"
+include "sage/libs/ntl/decl.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
 
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.rings.finite_rings.finite_field_base cimport FiniteField

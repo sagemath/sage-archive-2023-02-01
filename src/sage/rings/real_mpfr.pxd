@@ -3,8 +3,8 @@ cdef extern from "stdlib.h":
 
 from sage.libs.mpfr cimport *
 
-include '../ext/cdefs.pxi'
-include '../libs/pari/decl.pxi'
+include 'sage/ext/cdefs.pxi'
+include 'sage/libs/pari/decl.pxi'
 
 cimport sage.rings.ring
 import  sage.rings.ring

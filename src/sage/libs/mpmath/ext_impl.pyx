@@ -3,8 +3,8 @@ This module provides the core implementation of multiprecision
 floating-point arithmetic. Operations are done in-place.
 """
 
-include '../../ext/interrupt.pxi'
-include "../../ext/stdsage.pxi"
+include 'sage/ext/interrupt.pxi'
+include "sage/ext/stdsage.pxi"
 from cpython.int cimport *
 from cpython.long cimport *
 from cpython.float cimport *

@@ -25,8 +25,8 @@ Development supported by NSF award No. 0702939.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "../ext/stdsage.pxi"
-include "../ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
 
 from sage.plot.primitive import GraphicPrimitive
 from sage.misc.decorators import options

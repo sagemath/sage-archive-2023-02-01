@@ -1,4 +1,4 @@
-include "../../libs/ntl/decl.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 from sage.rings.finite_rings.finite_field_base cimport FiniteField
 from sage.rings.finite_rings.element_base cimport FinitePolyExtElement

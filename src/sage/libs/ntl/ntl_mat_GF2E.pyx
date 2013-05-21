@@ -23,9 +23,9 @@
 #
 ##############################################################################
 
-include "../../ext/interrupt.pxi"
-include "../../ext/stdsage.pxi"
-include '../../ext/random.pxi'
+include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
+include 'sage/ext/random.pxi'
 include 'misc.pxi'
 include 'decl.pxi'
 

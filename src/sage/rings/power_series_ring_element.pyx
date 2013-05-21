@@ -96,7 +96,7 @@ only have to look at terms at positions = f.valuation().
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 
 import operator
 

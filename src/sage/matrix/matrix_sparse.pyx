@@ -8,10 +8,10 @@ from sage.structure.element cimport Element, RingElement, ModuleElement, Vector
 from sage.rings.ring import is_Ring
 from sage.misc.misc import verbose
 
-include '../ext/cdefs.pxi'
-include '../ext/stdsage.pxi'
-include '../ext/python.pxi'
-include '../ext/interrupt.pxi'
+include 'sage/ext/cdefs.pxi'
+include 'sage/ext/stdsage.pxi'
+include 'sage/ext/python.pxi'
+include 'sage/ext/interrupt.pxi'
 
 cdef extern from "Python.h":
     PyObject* PyTuple_GET_ITEM0 "PyTuple_GET_ITEM" (PyObject*  p, Py_ssize_t pos)

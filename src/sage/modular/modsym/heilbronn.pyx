@@ -21,11 +21,11 @@ import sage.rings.arith
 
 import sage.misc.misc
 
-include '../../ext/cdefs.pxi'
-include '../../ext/interrupt.pxi'
-include '../../ext/stdsage.pxi'
+include 'sage/ext/cdefs.pxi'
+include 'sage/ext/interrupt.pxi'
+include 'sage/ext/stdsage.pxi'
 from sage.libs.flint.flint cimport *
-include "../../libs/flint/fmpz_poly.pxi"
+include "sage/libs/flint/fmpz_poly.pxi"
 
 cdef extern from "<math.h>":
     float roundf(float x)

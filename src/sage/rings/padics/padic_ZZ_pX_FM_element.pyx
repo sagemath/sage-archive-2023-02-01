@@ -117,9 +117,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "../../ext/cdefs.pxi"
-include "../../ext/stdsage.pxi"
-include "../../ext/interrupt.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
 
 from sage.structure.element cimport Element
 from sage.rings.padics.padic_printing cimport pAdicPrinter_class

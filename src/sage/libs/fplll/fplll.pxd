@@ -1,4 +1,4 @@
-include "../../ext/cdefs.pxi"
+include "sage/ext/cdefs.pxi"
 include "fplll.pxi"
 
 cdef class FP_LLL:

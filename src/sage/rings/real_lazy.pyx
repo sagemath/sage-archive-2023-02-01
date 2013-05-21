@@ -27,7 +27,7 @@ from operator import add, sub, mul, div, pow, neg, inv
 cdef canonical_coercion
 from sage.structure.element import canonical_coercion
 
-include "../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 
 from sage.categories.morphism cimport Morphism
 from sage.rings.ring cimport Field

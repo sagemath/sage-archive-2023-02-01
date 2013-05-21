@@ -62,8 +62,8 @@ TESTS::
 #*****************************************************************************
 
 
-include "../../ext/interrupt.pxi"  # ctrl-c interrupt block support
-include "../../ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
+include "sage/ext/stdsage.pxi"
 from cpython.int cimport *
 from cpython.list cimport *
 from cpython.ref cimport *

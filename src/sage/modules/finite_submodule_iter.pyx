@@ -65,7 +65,7 @@ will result in improved running times::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 
 cdef class FiniteZZsubmodule_iterator:
     r"""

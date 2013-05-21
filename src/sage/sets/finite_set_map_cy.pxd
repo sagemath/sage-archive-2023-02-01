@@ -5,8 +5,8 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include '../ext/cdefs.pxi'
-include '../ext/stdsage.pxi'
+include 'sage/ext/cdefs.pxi'
+include 'sage/ext/stdsage.pxi'
 
 cpdef fibers(f, domain)
 

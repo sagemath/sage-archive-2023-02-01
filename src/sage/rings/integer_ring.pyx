@@ -51,11 +51,11 @@ other types will also coerce to the integers, when it makes sense.
 
 ###########################################################################
 
-include "../ext/cdefs.pxi"
-include "../ext/gmp.pxi"
-include "../ext/stdsage.pxi"
-include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
-include "../ext/random.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/ext/gmp.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
+include "sage/ext/random.pxi"
 
 from cpython.int cimport *
 from cpython.list cimport *

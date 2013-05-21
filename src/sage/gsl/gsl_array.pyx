@@ -1,6 +1,6 @@
 #include 'gsl.pxi'
 
-include '../ext/stdsage.pxi'
+include 'sage/ext/stdsage.pxi'
 
 cdef class GSLDoubleArray:
     r"""

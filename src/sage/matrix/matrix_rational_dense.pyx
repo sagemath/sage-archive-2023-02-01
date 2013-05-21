@@ -50,11 +50,11 @@ TESTS::
 
 from sage.modules.vector_rational_dense cimport Vector_rational_dense
 
-include "../ext/interrupt.pxi"
-include "../ext/stdsage.pxi"
-include "../ext/cdefs.pxi"
-include "../ext/gmp.pxi"
-include "../ext/random.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/ext/gmp.pxi"
+include "sage/ext/random.pxi"
 
 cimport sage.structure.element
 

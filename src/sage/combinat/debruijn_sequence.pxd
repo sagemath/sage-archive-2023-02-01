@@ -1,1 +1,1 @@
-include "../misc/bitset_pxd.pxi"
+include "sage/misc/bitset_pxd.pxi"

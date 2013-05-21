@@ -9,8 +9,8 @@ TESTS:
 """
 
 
-include "../ext/cdefs.pxi"
-include "../ext/stdsage.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/ext/stdsage.pxi"
 
 import matrix_window
 cimport matrix_window

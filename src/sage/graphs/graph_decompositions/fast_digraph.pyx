@@ -13,9 +13,9 @@ In the following code, sets are represented as integers, where the ith bit is
 set if element i belongs to the set.
 """
 
-include '../../ext/stdsage.pxi'
-include '../../ext/cdefs.pxi'
-include '../../ext/interrupt.pxi'
+include 'sage/ext/stdsage.pxi'
+include 'sage/ext/cdefs.pxi'
+include 'sage/ext/interrupt.pxi'
 
 from libc.stdint cimport uint8_t
 

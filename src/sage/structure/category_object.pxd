@@ -7,7 +7,7 @@
 ###############################################################################
 
 from cpython.object cimport *
-include '../ext/stdsage.pxi'
+include 'sage/ext/stdsage.pxi'
 
 from sage.structure.sage_object cimport SageObject
 from sage.structure.generators cimport Generators

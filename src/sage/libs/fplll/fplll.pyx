@@ -31,7 +31,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "../../ext/interrupt.pxi"
+include "sage/ext/interrupt.pxi"
 
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
 from sage.rings.integer_ring import ZZ

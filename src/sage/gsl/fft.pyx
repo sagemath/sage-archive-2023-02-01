@@ -23,7 +23,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include '../ext/stdsage.pxi'
+include 'sage/ext/stdsage.pxi'
 
 import sage.plot.all
 import sage.libs.pari.all

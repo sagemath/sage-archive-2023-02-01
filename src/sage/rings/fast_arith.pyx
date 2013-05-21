@@ -41,9 +41,9 @@ Basic arithmetic with c-integers.
 
 # The int definitions
 
-include "../ext/gmp.pxi"
-include "../ext/stdsage.pxi"
-include "../libs/pari/decl.pxi"
+include "sage/ext/gmp.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/libs/pari/decl.pxi"
 
 cdef extern from "pari/pari.h":
     cdef long NEXT_PRIME_VIADIFF(long, unsigned char*)

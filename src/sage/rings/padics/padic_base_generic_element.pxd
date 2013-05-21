@@ -1,4 +1,4 @@
-include "../../ext/cdefs.pxi"
+include "sage/ext/cdefs.pxi"
 
 from padic_generic_element cimport pAdicGenericElement
 from pow_computer cimport PowComputer_base

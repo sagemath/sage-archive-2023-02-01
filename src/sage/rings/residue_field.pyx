@@ -128,8 +128,8 @@ And now over a large prime field::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "../ext/cdefs.pxi"
-include "../ext/stdsage.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/ext/stdsage.pxi"
 
 from sage.rings.field import Field
 from sage.rings.integer import Integer

@@ -1,6 +1,6 @@
 cimport matrix_sparse
 
-include '../modules/vector_modn_sparse_h.pxi'
+include 'sage/modules/vector_modn_sparse_h.pxi'
 
 cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
     cdef c_vector_modint* rows

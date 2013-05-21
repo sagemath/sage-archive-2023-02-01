@@ -39,8 +39,8 @@ Methods
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "../misc/bitset_pxd.pxi"
-include "../misc/bitset.pxi"
+include "sage/misc/bitset_pxd.pxi"
+include "sage/misc/bitset.pxi"
 
 cdef inline int has_edge(bitset_t bs, int u, int v, int n):
     return bitset_in(bs, u*n+v)

@@ -9,7 +9,7 @@ Base class for old-style parent objects with a base ring
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
-include "../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 
 cimport parent
 

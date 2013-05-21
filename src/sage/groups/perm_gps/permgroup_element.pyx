@@ -58,8 +58,8 @@ import random
 
 import sage.groups.old as group
 
-include "../../ext/stdsage.pxi"
-include "../../ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
 from cpython.list cimport *
 
 from sage.rings.all      import ZZ, Integer, is_MPolynomial, is_Polynomial

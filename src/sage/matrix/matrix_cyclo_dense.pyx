@@ -34,12 +34,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 ######################################################################
 
-include "../ext/interrupt.pxi"
-# include "../ext/stdsage.pxi"
-include "../ext/cdefs.pxi"
-include "../ext/gmp.pxi"
-include "../ext/random.pxi"
-include "../libs/ntl/decl.pxi"
+include "sage/ext/interrupt.pxi"
+# include "sage/ext/stdsage.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/ext/gmp.pxi"
+include "sage/ext/random.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.misc.randstate cimport randstate, current_randstate

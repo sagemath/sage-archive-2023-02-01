@@ -23,7 +23,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "../../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 
 from sage.structure.element cimport FieldElement, RingElement, ModuleElement, Element
 

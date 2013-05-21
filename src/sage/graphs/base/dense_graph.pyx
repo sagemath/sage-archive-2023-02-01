@@ -120,7 +120,7 @@ refer to the documentation for ``CGraph``.
 #                         http://www.gnu.org/licenses/
 #*******************************************************************************
 
-include '../../misc/bitset.pxi'
+include 'sage/misc/bitset.pxi'
 
 cdef class DenseGraph(CGraph):
     """

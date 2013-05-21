@@ -9,10 +9,10 @@ AUTHORS:
 - David Roe
 """
 
-include "../../ext/stdsage.pxi"
-include "../../ext/cdefs.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/cdefs.pxi"
 from cpython.list cimport *
-include "../../libs/ntl/decl.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 from sage.libs.ntl.ntl_ZZ cimport ntl_ZZ
 from sage.libs.ntl.ntl_ZZ_p cimport ntl_ZZ_p

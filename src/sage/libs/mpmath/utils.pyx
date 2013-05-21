@@ -1,7 +1,7 @@
 # Utilities for Sage-mpmath interaction
 # Also patches some mpmath functions for speed
 
-include "../../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 
 from sage.rings.integer cimport Integer
 from sage.rings.real_mpfr cimport RealNumber

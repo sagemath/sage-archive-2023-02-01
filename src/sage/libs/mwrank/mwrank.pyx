@@ -22,8 +22,8 @@ EXAMPLES::
 import os
 import sys
 
-include '../../ext/interrupt.pxi'
-include '../../ext/stdsage.pxi'
+include 'sage/ext/interrupt.pxi'
+include 'sage/ext/stdsage.pxi'
 
 # Need to permit tabs in order to doctest verbose output.
 """

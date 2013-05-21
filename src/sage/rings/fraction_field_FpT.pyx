@@ -2,10 +2,10 @@
 
 import sys
 
-include "../ext/cdefs.pxi"
-include "../ext/gmp.pxi"
-include "../ext/interrupt.pxi"
-include "../ext/stdsage.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/ext/gmp.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
 
 from sage.rings.all import GF
 from sage.libs.flint.nmod_poly cimport *

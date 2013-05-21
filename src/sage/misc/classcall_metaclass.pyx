@@ -16,7 +16,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include '../ext/python.pxi'
+include 'sage/ext/python.pxi'
 
 cdef extern from "Python.h":
     ctypedef PyObject *(*callfunc)(type, object, object) except NULL

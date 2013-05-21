@@ -19,14 +19,14 @@ TESTS:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include '../modules/binary_search.pxi'
-include '../modules/vector_integer_sparse_h.pxi'
-include '../modules/vector_integer_sparse_c.pxi'
-include '../modules/vector_modn_sparse_h.pxi'
-include '../modules/vector_modn_sparse_c.pxi'
+include 'sage/modules/binary_search.pxi'
+include 'sage/modules/vector_integer_sparse_h.pxi'
+include 'sage/modules/vector_integer_sparse_c.pxi'
+include 'sage/modules/vector_modn_sparse_h.pxi'
+include 'sage/modules/vector_modn_sparse_c.pxi'
 from cpython.sequence cimport *
 
-include '../ext/stdsage.pxi'
+include 'sage/ext/stdsage.pxi'
 
 from sage.rings.integer  cimport Integer
 from matrix cimport Matrix

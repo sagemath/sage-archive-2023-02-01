@@ -1,5 +1,5 @@
-include '../ext/cdefs.pxi'
-include '../modules/vector_rational_sparse_h.pxi'
+include 'sage/ext/cdefs.pxi'
+include 'sage/modules/vector_rational_sparse_h.pxi'
 
 cimport matrix_sparse
 

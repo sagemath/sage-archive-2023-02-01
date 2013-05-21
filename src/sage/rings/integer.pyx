@@ -140,15 +140,15 @@ import operator
 
 import sys
 
-include "../ext/gmp.pxi"
-include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
-include "../ext/stdsage.pxi"
+include "sage/ext/gmp.pxi"
+include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
+include "sage/ext/stdsage.pxi"
 from cpython.list cimport *
 from cpython.number cimport *
 from cpython.int cimport *
-include "../ext/python_debug.pxi"
-include "../structure/coerce.pxi"   # for parent_c
-include "../libs/pari/decl.pxi"
+include "sage/ext/python_debug.pxi"
+include "sage/structure/coerce.pxi"   # for parent_c
+include "sage/libs/pari/decl.pxi"
 
 cdef extern from "limits.h":
     long LONG_MAX
@@ -5957,7 +5957,7 @@ cdef class long_to_Z(Morphism):
 # be consistent across future versions of GMP.
 # See extensive note in the fast_tp_new() function below.
 
-include "../ext/python_rich_object.pxi"
+include "sage/ext/python_rich_object.pxi"
 cdef extern from "gmp.h":
     ctypedef long mp_limb_t
     ctypedef mp_limb_t* mp_ptr #"mp_ptr"

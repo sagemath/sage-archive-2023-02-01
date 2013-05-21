@@ -1,7 +1,7 @@
 """
 Coerce maps
 """
-include "../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 
 import re
 import types

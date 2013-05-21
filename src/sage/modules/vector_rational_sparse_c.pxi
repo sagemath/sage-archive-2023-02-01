@@ -9,9 +9,9 @@
 
 
 include 'vector_rational_sparse_h.pxi'
-include "../ext/cdefs.pxi"
-include "../ext/gmp.pxi"
-include "../ext/stdsage.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/ext/gmp.pxi"
+include "sage/ext/stdsage.pxi"
 
 
 from sage.rings.rational cimport Rational

@@ -5,8 +5,8 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "../../ext/stdsage.pxi"
-include "../../ext/cdefs.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/cdefs.pxi"
 
 cdef extern from "ccobject.h":
     #We do this to get access to Construct_p, etc.

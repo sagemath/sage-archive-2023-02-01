@@ -25,7 +25,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "../ext/cdefs.pxi"
+include "sage/ext/cdefs.pxi"
 from cpython.object cimport *
 
 
@@ -33,7 +33,7 @@ import operator
 
 import homset
 
-include "../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 from sage.structure.element cimport Element
 
 def make_morphism(_class, parent, _dict, _slots):

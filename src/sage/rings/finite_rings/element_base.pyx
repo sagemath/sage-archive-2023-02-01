@@ -6,7 +6,7 @@ AUTHORS::
 - David Roe (2010-1-14) -- factored out of sage.structure.element
 
 """
-include "../../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 
 from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent

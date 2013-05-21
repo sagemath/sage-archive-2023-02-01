@@ -27,8 +27,8 @@ arith_int  = sage.rings.fast_arith.arith_int()
 from sage.matrix.matrix_integer_2x2 cimport Matrix_integer_2x2
 from sage.modular.modsym.p1list import lift_to_sl2z
 
-include "../../ext/cdefs.pxi"
-include '../../ext/stdsage.pxi'
+include "sage/ext/cdefs.pxi"
+include 'sage/ext/stdsage.pxi'
 
 
 # This is the C version of a function formerly implemented in python in

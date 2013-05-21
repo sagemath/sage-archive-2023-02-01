@@ -189,7 +189,7 @@ for both of these uses.
 #                         http://www.gnu.org/licenses/
 #*******************************************************************************
 
-include '../../misc/bitset.pxi'
+include 'sage/misc/bitset.pxi'
 
 cdef enum:
     BT_REORDERING_CONSTANT = 145533211

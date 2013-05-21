@@ -79,10 +79,10 @@ cdef extern from "convert.h":
 
 #########################################################
 
-include "../ext/interrupt.pxi"
-include "../ext/stdsage.pxi"
-include "../ext/gmp.pxi"
-include "../ext/random.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/gmp.pxi"
+include "sage/ext/random.pxi"
 
 cdef extern from "math.h":
     double log(double x)

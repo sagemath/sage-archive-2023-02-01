@@ -159,7 +159,7 @@ Cython routines this module implements (as they can not directly call methods
 with C arguments).
 """
 
-include "../../misc/bitset.pxi"
+include "sage/misc/bitset.pxi"
 
 ##############################################################################
 #       Copyright (C) 2010 Nathann Cohen <nathann.cohen@gmail.com>

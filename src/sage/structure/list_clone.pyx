@@ -129,7 +129,7 @@ AUTHORS:
 #*****************************************************************************
 
 
-include "../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 from cpython.list cimport *
 from cpython.int cimport *
 from cpython.ref cimport *

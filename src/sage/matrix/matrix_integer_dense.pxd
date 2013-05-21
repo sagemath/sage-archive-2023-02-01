@@ -1,4 +1,4 @@
-include "../ext/cdefs.pxi"
+include "sage/ext/cdefs.pxi"
 
 cimport matrix_dense
 cimport sage.rings.integer

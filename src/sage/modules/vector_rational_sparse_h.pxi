@@ -4,7 +4,7 @@
 #
 #############################################################
 
-include "../ext/cdefs.pxi"
+include "sage/ext/cdefs.pxi"
 
 cdef struct mpq_vector:
     mpq_t *entries      # array of nonzero entries

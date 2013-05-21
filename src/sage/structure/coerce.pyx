@@ -74,7 +74,7 @@ see the documentation for Parent.
 #*****************************************************************************
 
 
-include "../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 from cpython.object cimport *
 include "coerce.pxi"
 

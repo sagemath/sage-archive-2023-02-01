@@ -1,4 +1,4 @@
-include '../../ext/cdefs.pxi'
+include 'sage/ext/cdefs.pxi'
 
 cdef class PolyDict:
     cdef object __repn

@@ -1,6 +1,6 @@
-include "../../ext/interrupt.pxi"
-include "../../ext/cdefs.pxi"
-include "../ntl/decl.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/libs/ntl/decl.pxi"
 include "defs.pxi"
 
 cdef extern from "eclib/moddata.h":

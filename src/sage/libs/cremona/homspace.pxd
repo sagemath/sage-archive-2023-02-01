@@ -5,7 +5,7 @@ cdef extern from "eclib/symb.h":
 cdef extern from "eclib/cusp.h":
     pass
 
-include "../../ext/interrupt.pxi"
+include "sage/ext/interrupt.pxi"
 
 cdef extern from "eclib/homspace.h":
     # From mat.h

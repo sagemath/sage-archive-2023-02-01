@@ -1,5 +1,5 @@
 
-include '../../../../../devel/sage/sage/ext/stdsage.pxi'
+include 'sage/ext/stdsage.pxi'
 
 
 cdef extern from *:

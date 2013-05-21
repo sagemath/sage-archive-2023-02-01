@@ -26,9 +26,9 @@ method of univariate polynomial ring objects and the top-level
 
 import sys
 
-include "../../ext/stdsage.pxi"
-include "../../ext/interrupt.pxi"
-include "../../ext/cdefs.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/ext/cdefs.pxi"
 
 cdef extern from *:
     void memset(void *, char, int)

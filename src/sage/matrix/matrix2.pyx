@@ -27,9 +27,9 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "../ext/stdsage.pxi"
-include "../ext/python.pxi"
-include "../ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/python.pxi"
+include "sage/ext/interrupt.pxi"
 
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.structure.sequence import Sequence

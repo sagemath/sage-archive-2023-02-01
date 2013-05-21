@@ -1,4 +1,4 @@
-include "../../ext/cdefs.pxi"
+include "sage/ext/cdefs.pxi"
 
 from sage.structure.element cimport Element
 from sage.categories.morphism cimport Morphism

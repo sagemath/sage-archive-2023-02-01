@@ -74,10 +74,10 @@ TESTS:
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-include "../ext/cdefs.pxi"
-include '../ext/interrupt.pxi'
-include '../ext/stdsage.pxi'
-include '../modules/vector_modn_sparse_c.pxi'
+include "sage/ext/cdefs.pxi"
+include 'sage/ext/interrupt.pxi'
+include 'sage/ext/stdsage.pxi'
+include 'sage/modules/vector_modn_sparse_c.pxi'
 from cpython.sequence cimport *
 
 cimport matrix
@@ -97,9 +97,9 @@ from sage.structure.element import is_Vector
 cimport sage.structure.element
 from matrix_modn_dense cimport Matrix_modn_dense
 
-include '../modules/binary_search.pxi'
-include '../modules/vector_integer_sparse_h.pxi'
-include '../modules/vector_integer_sparse_c.pxi'
+include 'sage/modules/binary_search.pxi'
+include 'sage/modules/vector_integer_sparse_h.pxi'
+include 'sage/modules/vector_integer_sparse_c.pxi'
 from matrix_integer_sparse cimport Matrix_integer_sparse
 from sage.misc.decorators import rename_keyword
 

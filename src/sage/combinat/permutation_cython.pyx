@@ -26,8 +26,8 @@ speed, we provide a class that wraps our struct.
 
 """
 
-include "../ext/stdsage.pxi"
-include "../ext/cdefs.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/cdefs.pxi"
 from cpython.list cimport *
 
 ##########################################################

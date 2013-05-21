@@ -14,9 +14,9 @@ Library interface to Embeddable Common Lisp (ECL)
 #rationals to SAGE types Integer and Rational. These parts could easily be
 #adapted to work with pure Python types.
 
-include "../ext/signals.pxi"
-include "../ext/interrupt.pxi"
-include "../ext/cdefs.pxi"
+include "sage/ext/signals.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/ext/cdefs.pxi"
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational

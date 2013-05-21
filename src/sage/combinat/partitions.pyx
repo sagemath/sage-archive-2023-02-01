@@ -18,7 +18,7 @@ cdef extern from "partitions_c.h":
 
 #from libc.stdlib cimport malloc, free
 
-include "../ext/interrupt.pxi"
+include "sage/ext/interrupt.pxi"
 
 from sage.rings.integer cimport Integer
 

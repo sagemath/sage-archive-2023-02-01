@@ -38,8 +38,8 @@ REFERENCES:
 ##############################################################################
 
 import sage.plot.plot
-include '../ext/cdefs.pxi'
-include '../ext/stdsage.pxi'
+include 'sage/ext/cdefs.pxi'
+include 'sage/ext/stdsage.pxi'
 include 'gsl.pxi'
 #cimport sage.rings.real_double
 #import sage.rings.real_double

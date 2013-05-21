@@ -33,8 +33,8 @@ Methods
 #*****************************************************************************
 
 
-include "../ext/interrupt.pxi"
-include '../ext/stdsage.pxi'
+include "sage/ext/interrupt.pxi"
+include 'sage/ext/stdsage.pxi'
 
 def max_clique(graph):
     """

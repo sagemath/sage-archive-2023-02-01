@@ -1,6 +1,6 @@
 ctypedef unsigned short ushort
 
-include "../../misc/bitset_pxd.pxi"
+include "sage/misc/bitset_pxd.pxi"
 
 ctypedef struct short_digraph_s:
    ushort n

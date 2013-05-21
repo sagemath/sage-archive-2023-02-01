@@ -28,8 +28,8 @@ TODO:
 
 
 
-include "../../ext/stdsage.pxi"
-include "../../ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
 
 cdef extern from *:
      void memset(void *, int, Py_ssize_t)

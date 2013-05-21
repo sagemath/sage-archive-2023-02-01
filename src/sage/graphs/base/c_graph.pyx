@@ -37,7 +37,7 @@ method :meth:`realloc <sage.graphs.base.c_graph.CGraph.realloc>`.
 #                         http://www.gnu.org/licenses/
 #**************************************************************************
 
-include "../../misc/bitset.pxi"
+include "sage/misc/bitset.pxi"
 
 from graph_backends import GenericGraphBackend
 from sage.rings.integer cimport Integer

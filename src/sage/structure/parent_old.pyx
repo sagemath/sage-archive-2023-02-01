@@ -34,7 +34,7 @@ from sage.structure.coerce_dict import MonoDict, TripleDict
 
 from cpython.object cimport *
 from cpython.bool cimport *
-include '../ext/stdsage.pxi'
+include 'sage/ext/stdsage.pxi'
 
 cdef inline check_old_coerce(Parent p):
     if p._element_constructor is not None:

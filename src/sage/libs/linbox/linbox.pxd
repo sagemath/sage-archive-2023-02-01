@@ -1,6 +1,6 @@
-include "../../ext/cdefs.pxi"
+include "sage/ext/cdefs.pxi"
 
-include '../../modules/vector_modn_sparse_h.pxi'
+include 'sage/modules/vector_modn_sparse_h.pxi'
 
 from sage.matrix.matrix_integer_dense cimport mod_int
 

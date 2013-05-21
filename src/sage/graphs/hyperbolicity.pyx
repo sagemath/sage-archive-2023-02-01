@@ -141,7 +141,7 @@ from sage.rings.real_mpfr import RR
 from sage.functions.other import floor
 from sage.misc.bitset import Bitset
 from libc.stdint cimport uint16_t, uint32_t, uint64_t
-include "../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 
 
 # Defining a pair of vertices as a C struct

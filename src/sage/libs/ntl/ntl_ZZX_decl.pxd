@@ -1,4 +1,4 @@
-include "../../ext/cdefs.pxi"
+include "sage/ext/cdefs.pxi"
 
 from sage.libs.ntl.ntl_ZZ_decl cimport vec_ZZ_c
 from sage.libs.ntl.ntl_ZZ_decl cimport ZZ_c

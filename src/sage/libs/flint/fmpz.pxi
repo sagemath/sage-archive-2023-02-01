@@ -1,4 +1,4 @@
-include "../ntl/decl.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 cdef extern from "flint/fmpz.h":
 

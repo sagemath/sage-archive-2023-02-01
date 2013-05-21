@@ -1,4 +1,4 @@
-include "../../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 
 from sage.libs.flint.flint cimport *
 

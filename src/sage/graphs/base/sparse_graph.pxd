@@ -7,8 +7,8 @@
 #*******************************************************************************
 
 from c_graph cimport CGraph
-include '../../ext/stdsage.pxi'
-include '../../misc/bitset_pxd.pxi'
+include 'sage/ext/stdsage.pxi'
+include 'sage/misc/bitset_pxd.pxi'
 
 cdef struct SparseGraphLLNode:
     int label

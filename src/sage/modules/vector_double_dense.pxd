@@ -1,4 +1,4 @@
-include '../ext/cdefs.pxi'
+include 'sage/ext/cdefs.pxi'
 
 cimport free_module_element
 cimport numpy as cnumpy

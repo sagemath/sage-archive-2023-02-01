@@ -127,8 +127,8 @@ Functions
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "../misc/bitset_pxd.pxi"
-include "../misc/bitset.pxi"
+include "sage/misc/bitset_pxd.pxi"
+include "sage/misc/bitset.pxi"
 from libc.stdint cimport uint64_t
 from sage.graphs.base.c_graph cimport CGraph
 from sage.graphs.base.c_graph cimport vertex_label

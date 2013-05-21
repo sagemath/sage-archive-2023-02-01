@@ -153,9 +153,9 @@ from sage.libs.gmp.mpz cimport mpz_t, mpz_set
 from sage.rings.integer cimport Integer
 from sage.rings.rational import Rational
 
-include '../ext/interrupt.pxi'
-include "../ext/stdsage.pxi"
-include "../ext/cdefs.pxi"
+include 'sage/ext/interrupt.pxi'
+include "sage/ext/stdsage.pxi"
+include "sage/ext/cdefs.pxi"
 
 from libcpp cimport bool as cppbool
 

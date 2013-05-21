@@ -19,8 +19,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include '../ext/stdsage.pxi'
-include '../ext/interrupt.pxi'
+include 'sage/ext/stdsage.pxi'
+include 'sage/ext/interrupt.pxi'
 
 def _init_csage():
     """

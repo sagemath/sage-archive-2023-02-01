@@ -20,9 +20,9 @@ REFERENCE:
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer cimport Integer
 from sage.misc.misc import prod
-include '../ext/interrupt.pxi'
-include '../ext/cdefs.pxi'
-include '../ext/stdsage.pxi'
+include 'sage/ext/interrupt.pxi'
+include 'sage/ext/cdefs.pxi'
+include 'sage/ext/stdsage.pxi'
 
 def chromatic_polynomial(G, return_tree_basis = False):
     """

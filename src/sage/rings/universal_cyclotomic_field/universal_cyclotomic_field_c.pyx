@@ -15,9 +15,9 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "../../ext/stdsage.pxi"
-include "../../ext/cdefs.pxi"
-include "../../ext/gmp.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/ext/gmp.pxi"
 
 import sys
 import operator

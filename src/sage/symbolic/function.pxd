@@ -1,7 +1,7 @@
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element
 
-include "../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 
 # In many applications, such as plotting, these functions are called many times
 # repeatedly. This method is slightly faster than sage.structure.coerce.parent

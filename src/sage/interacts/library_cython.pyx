@@ -18,9 +18,9 @@ AUTHORS:
 
 from sage.misc.misc import prod
 
-include '../ext/interrupt.pxi'
-include '../ext/cdefs.pxi'
-include "../ext/stdsage.pxi"
+include 'sage/ext/interrupt.pxi'
+include 'sage/ext/cdefs.pxi'
+include "sage/ext/stdsage.pxi"
 
 cpdef julia(ff_j, z, int iterations):
     """

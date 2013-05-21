@@ -1,4 +1,4 @@
-include '../ext/stdsage.pxi'
+include 'sage/ext/stdsage.pxi'
 from sage.misc.sage_itertools import unique_merge
 
 def is_extension_type(cls):

@@ -68,7 +68,7 @@ from sage.structure.element cimport Element, ModuleElement, RingElement, Algebra
 
 from sage.misc.derivative import multi_derivative
 
-include "../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 
 def is_LaurentSeries(x):
     return isinstance(x, LaurentSeries)

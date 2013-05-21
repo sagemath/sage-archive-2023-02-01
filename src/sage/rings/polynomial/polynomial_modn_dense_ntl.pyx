@@ -52,9 +52,9 @@ from sage.libs.ntl.ntl_ZZ_pX_decl cimport *, ZZ_pX_c, ZZ_pX_Modulus_c
 def make_element(parent, args):
     return parent(*args)
 
-include "../../ext/stdsage.pxi"
-include "../../ext/interrupt.pxi"
-include "../../ext/cdefs.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/ext/cdefs.pxi"
 
 zz_p_max = NTL_SP_BOUND
 

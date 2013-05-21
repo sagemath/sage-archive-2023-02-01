@@ -6,8 +6,8 @@ AUTHORS:
 - Tom Boothby (2007-02-15).  Initial version free for any use (public domain).
 """
 
-include '../ext/stdsage.pxi'
-include '../ext/python.pxi'
+include 'sage/ext/stdsage.pxi'
+include 'sage/ext/python.pxi'
 
 cdef binary_tree_node *BinaryTreeNode(int key, object value):
     cdef binary_tree_node *t

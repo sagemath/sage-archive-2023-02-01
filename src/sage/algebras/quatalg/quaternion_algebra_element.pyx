@@ -33,12 +33,12 @@ from sage.rings.number_field.number_field_element cimport NumberFieldElement
 from sage.rings.all import PolynomialRing
 from sage.matrix.all import matrix
 
-include "../../ext/gmp.pxi"
-include "../../ext/stdsage.pxi"
+include "sage/ext/gmp.pxi"
+include "sage/ext/stdsage.pxi"
 
-include "../../libs/flint/fmpz.pxi"
-include "../../libs/flint/fmpz_poly.pxi"
-include "../../libs/flint/ntl_interface.pxd"
+include "sage/libs/flint/fmpz.pxi"
+include "sage/libs/flint/fmpz_poly.pxi"
+include "sage/libs/flint/ntl_interface.pxd"
 
 # variables for holding temporary values computed in
 # QuaternionAlgebraElement_rational_field._mul_()

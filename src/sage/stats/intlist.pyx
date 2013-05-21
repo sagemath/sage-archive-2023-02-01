@@ -29,10 +29,10 @@ max_print = 10
 # Imports
 from sage.rings.integer import Integer
 from sage.finance.time_series cimport TimeSeries
-include "../ext/stdsage.pxi"
-include "../ext/cdefs.pxi"
-include "../ext/interrupt.pxi"
-include "../ext/python_slice.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/ext/python_slice.pxi"
 from cpython.string cimport *
 
 cdef class IntList:

@@ -56,8 +56,8 @@ divisor representing a divisor class::
 #*****************************************************************************
 
 
-include '../../ext/cdefs.pxi'   # Needed for mpq* stuff
-include '../../ext/stdsage.pxi' # Needed for PY_NEW
+include 'sage/ext/cdefs.pxi'   # Needed for mpq* stuff
+include 'sage/ext/stdsage.pxi' # Needed for PY_NEW
 
 from sage.misc.all import latex
 from sage.modules.all import vector

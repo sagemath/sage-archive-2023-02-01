@@ -93,10 +93,10 @@ TODO:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "../ext/interrupt.pxi"
-include "../ext/cdefs.pxi"
-include '../ext/stdsage.pxi'
-include '../ext/random.pxi'
+include "sage/ext/interrupt.pxi"
+include "sage/ext/cdefs.pxi"
+include 'sage/ext/stdsage.pxi'
+include 'sage/ext/random.pxi'
 
 cimport matrix_dense
 from sage.structure.element cimport Matrix, Vector

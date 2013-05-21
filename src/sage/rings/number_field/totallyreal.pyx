@@ -111,8 +111,8 @@ Authors
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include '../../ext/stdsage.pxi'
-include '../../libs/pari/decl.pxi'
+include 'sage/ext/stdsage.pxi'
+include 'sage/libs/pari/decl.pxi'
 
 import math, sys, bisect
 

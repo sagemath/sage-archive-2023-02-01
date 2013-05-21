@@ -22,9 +22,9 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include '../ext/cdefs.pxi'
-include '../ext/stdsage.pxi'
-include '../ext/interrupt.pxi'
+include 'sage/ext/cdefs.pxi'
+include 'sage/ext/stdsage.pxi'
+include 'sage/ext/interrupt.pxi'
 
 from sage.rings.integer import Integer
 from sage.rings.fast_arith import prime_range

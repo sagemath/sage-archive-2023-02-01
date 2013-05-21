@@ -1,5 +1,5 @@
-include '../gsl/gsl_complex.pxi'
-include '../libs/pari/decl.pxi'
+include 'sage/gsl/gsl_complex.pxi'
+include 'sage/libs/pari/decl.pxi'
 
 cimport sage.structure.element
 cimport sage.rings.ring

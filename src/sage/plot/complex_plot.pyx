@@ -19,8 +19,8 @@ Complex Plots
 
 # TODO: use NumPy buffers and complex fast_callable (when supported)
 
-include "../ext/stdsage.pxi"
-include "../ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
 
 cimport numpy as cnumpy
 

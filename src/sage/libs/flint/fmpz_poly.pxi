@@ -1,5 +1,5 @@
 include "fmpz.pxi"
-include "../ntl/decl.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 from sage.libs.flint.nmod_poly cimport nmod_poly_t
 

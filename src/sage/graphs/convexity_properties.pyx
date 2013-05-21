@@ -30,7 +30,7 @@ Methods
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-include "../misc/bitset.pxi"
+include "sage/misc/bitset.pxi"
 from sage.numerical.backends.generic_backend cimport GenericBackend
 from sage.numerical.backends.generic_backend import get_solver
 

@@ -13,16 +13,16 @@ cdef extern from "pynac_cc.h":
     long double sage_tgammal(long double)
     long double sage_lgammal(long double)
 
-include "../ext/cdefs.pxi"
-include "../ext/stdsage.pxi"
-include "../ext/python.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/python.pxi"
 
 from sage.libs.ginac cimport *
 
 # for complex log and log gamma
-include "../gsl/gsl_complex.pxi"
-include "../gsl/gsl_sf_result.pxi"
-include "../gsl/gsl_gamma.pxi"
+include "sage/gsl/gsl_complex.pxi"
+include "sage/gsl/gsl_sf_result.pxi"
+include "sage/gsl/gsl_gamma.pxi"
 
 
 from sage.structure.element import Element

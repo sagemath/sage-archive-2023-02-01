@@ -54,8 +54,8 @@ TODO: actually remove unused points, fix the below code::
 
 
 
-include "../../ext/stdsage.pxi"
-include "../../ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
 
 include "point_c.pxi"
 

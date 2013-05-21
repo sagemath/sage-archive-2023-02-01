@@ -5,9 +5,9 @@
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include '../ext/cdefs.pxi'
-include '../ext/stdsage.pxi'
-include '../groups/perm_gps/partn_ref/data_structures_pxd.pxi'
+include 'sage/ext/cdefs.pxi'
+include 'sage/ext/stdsage.pxi'
+include 'sage/groups/perm_gps/partn_ref/data_structures_pxd.pxi'
 
 from sage.structure.sage_object cimport SageObject
 

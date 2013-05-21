@@ -30,7 +30,7 @@ do::
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
-include "../../ext/stdsage.pxi"
+include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 
 from sage.rings.polynomial.polynomial_element cimport Polynomial

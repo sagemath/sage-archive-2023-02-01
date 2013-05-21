@@ -1,5 +1,5 @@
-include "../../ext/cdefs.pxi"
-include "../../libs/ntl/decl.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational

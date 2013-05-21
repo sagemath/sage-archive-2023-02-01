@@ -55,8 +55,8 @@ EXAMPLES::
 #*****************************************************************************
 
 
-include "../ext/stdsage.pxi"
-include '../ext/interrupt.pxi'
+include "sage/ext/stdsage.pxi"
+include 'sage/ext/interrupt.pxi'
 
 import re
 import sage.misc.misc

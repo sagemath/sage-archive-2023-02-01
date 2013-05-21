@@ -4,8 +4,8 @@ for interaction with other types. Also implements the main
 context class, and related utilities.
 """
 
-include '../../ext/interrupt.pxi'
-include "../../ext/stdsage.pxi"
+include 'sage/ext/interrupt.pxi'
+include "sage/ext/stdsage.pxi"
 from cpython.int cimport *
 from cpython.long cimport *
 from cpython.float cimport *

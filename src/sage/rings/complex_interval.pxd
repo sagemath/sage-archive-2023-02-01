@@ -1,4 +1,4 @@
-include '../ext/cdefs.pxi'
+include 'sage/ext/cdefs.pxi'
 include 'mpfi.pxi'
 
 cimport sage.structure.element

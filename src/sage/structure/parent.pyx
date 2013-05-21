@@ -163,7 +163,7 @@ cdef object BuiltinMethodType = type(repr)
 
 from cpython.object cimport *
 from cpython.bool cimport *
-include '../ext/stdsage.pxi'
+include 'sage/ext/stdsage.pxi'
 
 
 def is_Parent(x):

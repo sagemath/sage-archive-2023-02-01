@@ -11,8 +11,8 @@ Coerce actions
 
 import operator
 
-include "../ext/stdsage.pxi"
-include "../ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/interrupt.pxi"
 from cpython.int cimport *
 from cpython.number cimport *
 include "coerce.pxi"

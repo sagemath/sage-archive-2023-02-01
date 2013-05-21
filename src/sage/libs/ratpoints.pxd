@@ -1,7 +1,7 @@
 
-include '../ext/cdefs.pxi'
-include '../ext/stdsage.pxi'
-include '../ext/interrupt.pxi'
+include 'sage/ext/cdefs.pxi'
+include 'sage/ext/stdsage.pxi'
+include 'sage/ext/interrupt.pxi'
 from sage.rings.integer cimport Integer
 
 cdef extern from "ratpoints.h":

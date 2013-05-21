@@ -1,5 +1,5 @@
-include '../ext/cdefs.pxi'
-include '../ext/interrupt.pxi'
+include 'sage/ext/cdefs.pxi'
+include 'sage/ext/interrupt.pxi'
 include 'gsl.pxi'
 
 cdef class FastFourierTransform_base:

@@ -10,19 +10,19 @@ Cython were fixed.  Probably all this code should be moved into the
 relevant classes and this file deleted.
 """
 
-include "../ext/interrupt.pxi"
-include "../ext/cdefs.pxi"
-include '../ext/stdsage.pxi'
+include "sage/ext/interrupt.pxi"
+include "sage/ext/cdefs.pxi"
+include 'sage/ext/stdsage.pxi'
 
 from sage.libs.mpfr cimport *
 
-include '../modules/binary_search.pxi'
-include '../modules/vector_integer_sparse_h.pxi'
-include '../modules/vector_integer_sparse_c.pxi'
-include '../modules/vector_rational_sparse_h.pxi'
-include '../modules/vector_rational_sparse_c.pxi'
-include '../modules/vector_modn_sparse_h.pxi'
-include '../modules/vector_modn_sparse_c.pxi'
+include 'sage/modules/binary_search.pxi'
+include 'sage/modules/vector_integer_sparse_h.pxi'
+include 'sage/modules/vector_integer_sparse_c.pxi'
+include 'sage/modules/vector_rational_sparse_h.pxi'
+include 'sage/modules/vector_rational_sparse_c.pxi'
+include 'sage/modules/vector_modn_sparse_h.pxi'
+include 'sage/modules/vector_modn_sparse_c.pxi'
 
 cdef extern from "../ext/multi_modular.h":
     ctypedef unsigned long mod_int

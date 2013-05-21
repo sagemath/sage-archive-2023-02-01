@@ -1,4 +1,4 @@
-include "../ext/cdefs.pxi"
+include "sage/ext/cdefs.pxi"
 
 from matrix_dense cimport Matrix_dense
 from matrix_rational_dense cimport Matrix_rational_dense

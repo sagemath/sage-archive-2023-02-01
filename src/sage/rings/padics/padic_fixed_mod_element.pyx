@@ -19,10 +19,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "../../libs/ntl/decl.pxi"
-include "../../ext/gmp.pxi"
-include "../../ext/interrupt.pxi"
-include "../../ext/stdsage.pxi"
+include "sage/libs/ntl/decl.pxi"
+include "sage/ext/gmp.pxi"
+include "sage/ext/interrupt.pxi"
+include "sage/ext/stdsage.pxi"
 
 cimport sage.rings.padics.padic_generic_element
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement

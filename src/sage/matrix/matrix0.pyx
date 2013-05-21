@@ -21,12 +21,12 @@ EXAMPLES::
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
-include "../ext/stdsage.pxi"
-include "../ext/cdefs.pxi"
-include "../ext/python.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/cdefs.pxi"
+include "sage/ext/python.pxi"
 from cpython.list cimport *
 from cpython.object cimport *
-include "../ext/python_slice.pxi"
+include "sage/ext/python_slice.pxi"
 from cpython.tuple cimport *
 
 import sage.modules.free_module

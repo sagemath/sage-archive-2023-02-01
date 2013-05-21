@@ -5,7 +5,7 @@
 #                         http://www.gnu.org/licenses/
 #**************************************************************************
 
-include "../../misc/bitset_pxd.pxi"
+include "sage/misc/bitset_pxd.pxi"
 
 cdef class CGraph:
     cdef int num_verts

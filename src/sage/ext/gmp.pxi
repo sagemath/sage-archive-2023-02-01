@@ -9,7 +9,7 @@
 #
 # to include this in a file.
 
-include '../ext/interrupt.pxi'
+include 'sage/ext/interrupt.pxi'
 
 cimport libc.stdlib
 from cpython.mem cimport *

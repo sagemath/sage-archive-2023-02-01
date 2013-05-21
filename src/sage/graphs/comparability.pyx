@@ -207,7 +207,7 @@ Methods
 #                         http://www.gnu.org/licenses/                         #
 ################################################################################
 
-include '../ext/stdsage.pxi'
+include 'sage/ext/stdsage.pxi'
 #####################
 # Greedy Algorithms #
 #####################

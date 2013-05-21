@@ -27,9 +27,9 @@ cdef extern from *:
     ctypedef int volatile_int "volatile int"
 
 
-include '../ext/signals.pxi'
-include '../ext/interrupt.pxi'
-include '../ext/stdsage.pxi'
+include 'sage/ext/signals.pxi'
+include 'sage/ext/interrupt.pxi'
+include 'sage/ext/stdsage.pxi'
 
 
 # Default delay in milliseconds before raising signals

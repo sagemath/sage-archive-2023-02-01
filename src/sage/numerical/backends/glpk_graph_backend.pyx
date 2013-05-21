@@ -67,7 +67,7 @@ Classes and methods
 
 from sage.numerical.mip import MIPSolverException
 
-include "../../ext/interrupt.pxi"
+include "sage/ext/interrupt.pxi"
 
 cdef class GLPKGraphBackend(object):
     """

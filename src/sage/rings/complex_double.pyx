@@ -66,8 +66,8 @@ import operator
 
 from sage.misc.randstate cimport randstate, current_randstate
 
-include '../ext/interrupt.pxi'
-include '../ext/stdsage.pxi'
+include 'sage/ext/interrupt.pxi'
+include 'sage/ext/stdsage.pxi'
 
 cdef extern from "<complex.h>":
     double complex csqrt(double complex)

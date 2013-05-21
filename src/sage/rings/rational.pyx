@@ -41,11 +41,11 @@ TESTS::
 #*****************************************************************************
 
 
-include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
-include "../ext/gmp.pxi"
-include "../ext/stdsage.pxi"
-include "../ext/python.pxi"
-include "../libs/pari/decl.pxi"
+include "sage/ext/interrupt.pxi"  # ctrl-c interrupt block support
+include "sage/ext/gmp.pxi"
+include "sage/ext/stdsage.pxi"
+include "sage/ext/python.pxi"
+include "sage/libs/pari/decl.pxi"
 
 
 import sys

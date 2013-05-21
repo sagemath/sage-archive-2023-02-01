@@ -11,7 +11,7 @@ Matrix windows
 
 from cpython.tuple cimport *
 
-include '../ext/stdsage.pxi'
+include 'sage/ext/stdsage.pxi'
 cdef extern from "stdsage.h":
     object PY_NEW(PyObject *)
 

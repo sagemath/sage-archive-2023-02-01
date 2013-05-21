@@ -1,1 +1,11 @@
 src
+lapack.*tar
+patches/ATLAS-lib/Makefile.in
+patches/ATLAS-lib/aclocal.m4
+patches/ATLAS-lib/configure$
+patches/ATLAS-lib/config.guess
+patches/ATLAS-lib/config.sub
+patches/ATLAS-lib/install-sh
+patches/ATLAS-lib/ltmain.sh
+patches/ATLAS-lib/m4
+patches/ATLAS-lib/missing

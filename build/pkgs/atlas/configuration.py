@@ -13,22 +13,24 @@ conf = dict()
 # strings:
 #
 # system:  Linux, SunOS, Darwin, FreeBSD, CYGWIN
+# release: (Version number of the operating system, output of uname -r)
 # machine: i386, x86_64,   # Linux, Darwin, *BSD
 #          sun4u, i86pc    # SunOS
 # processor: i386, x86_64, powerpc, sparc
 # bits:    32bit, 64bit
 # fortran: g95, gfortran
-# ld:      GNU, Solaris
+# ld:      GNU, Solaris, Darwin
 
 # The following pre-defined boolean values are determined from the
 # strings. The keys are distinguished by a question mark at the
 # end. If possible use these keys as they guard against typos.
 #
 # Linux?, Solaris?, Darwin?, FreeBSD?, CYGWIN?  # system
+# OS_X_Lion?                                    # release
 # Intel?, PPC?, SPARC?                          # processor
 # 64bit?, 32bit?                                # bit width
 # fortran_g95?, fortran_GNU?                    # sage_fortran
-# linker_GNU?, linker_Solaris?                  # ld
+# linker_GNU?, linker_Solaris?, linker_Darwin?  # ld
 
 
 ######################################################################
@@ -73,6 +75,35 @@ def cp(source_pattern, destination):
         shutil.copy2(filename, destination)
 
 
+def ln(source, destination):
+    """
+    Portable implementation of "ln -sf"
+    """
+    if os.path.exists(destination):
+        os.remove(destination)
+    print 'Linking', source, 'to', destination
+    os.symlink(source, destination)
+
+
+def is_executable_file(fpath):
+    """
+    Check that `fpath` is a file and executable (ie not a directory with +x set)
+    """
+    return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+def which(program):
+    """
+    Portable implementation of "which"
+    """
+    fpath, fname = os.path.split(program)
+    if fpath != '':
+        return program
+    for path in os.environ['PATH'].split(os.pathsep):
+        f = os.path.join(path, program)
+        if is_executable_file(f):
+            return f
+    raise ValueError('The program '+program+' is not in the $PATH.')
+
 class edit_in_place(object):
     """
     Edit a file in-place by search/replacing regular expressions.
@@ -102,9 +133,15 @@ try:
 except KeyError:
     conf['system'] = platform.system()
 
+try:
+    conf['release'] = subprocess.check_output(['uname', '-r']).strip()
+except subprocess.CalledProcessError:
+    conf['release'] = ""
+
 conf['Linux?'  ] = (conf['system'] == 'Linux')
 conf['Solaris?'] = (conf['system'] == 'SunOS')
 conf['Darwin?' ] = (conf['system'] == 'Darwin')
+conf['OS_X_Lion?'] = (conf['Darwin?'] and conf['release'].startswith('11.'))
 conf['FreeBSD?'] = (conf['system'] == 'FreeBSD')
 conf['CYGWIN?' ] = (conf['system'] == 'CYGWIN')
 
@@ -114,10 +151,12 @@ conf['processor'] = platform.processor()
 
 conf['Intel?'] = (platform.machine() in ('i386', 'i486', 'i586', 'i686', 'x86_64',
                                          'AMD64', 'i86pc'))
-conf['IA64?']   = (platform.processor() == 'ia64')
+conf['IA64?']   = ((platform.processor() == 'ia64')
+                   or (platform.machine() == 'ia64'))
 conf['PPC?']   = (platform.processor() == 'powerpc')
 conf['SPARC?'] = (platform.processor() == 'sparc')
 
+conf['generic_binary?'] = (os.environ.get('SAGE_FAT_BINARY', 'no') == 'yes')
 
 ######################################################################
 ### bit width
@@ -178,12 +217,15 @@ if 'GNU' in ld_version:
     conf['ld'] = 'GNU'
 elif 'Solaris' in ld_version:
     conf['ld'] = 'Solaris'
+elif 'Apple' in ld_version:
+    conf['ld'] = 'Darwin'
 else:
     print 'Unknown linker: '+ld_version
     conf['ld'] = None
 
 conf['linker_GNU?'] = (conf['ld'] == 'GNU')
 conf['linker_Solaris?'] = (conf['ld'] == 'Solaris')
+conf['linker_Darwin?'] = (conf['ld'] == 'Darwin')
 
 
 if conf['Solaris?'] and conf['linker_GNU?']:

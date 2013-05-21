@@ -2,46 +2,51 @@
 
 == Description ==
 
-This spkg builds ATLAS for Sage. It is build per default on Linux, but should
-also work on OSX and Solaris.
+This spkg builds ATLAS for Sage. It is build per default on Linux and
+Solaris, but should also work on OSX and Cygwin.
 
 == License ==
 
 3-clause BSD
 
 == SPKG Maintainers ==
+
  * David Kirkby
  * William Stein
+ * Volker Braun
 
 == Upstream Contact ==
 
  * Atlas devel mailing list.
-
  * Clint Whaley has frequently answered questions from the Sage project
 
 == Dependencies ==
 
  * Python
  * Fortran
- * Lapack
 
 == Build Instructions/Notes ==
 
  * patches/archinfo_linux.c.patch: Fix Itanium2 support on modern
    RHEL 5 and SLES 10 systems
- * patches/archinfo_x86.c.patch: add cpuid support for Pentium D, E models
- * patches/Make.top.patch: add make install target for shared libs
  * patches/probe_comp.c.patch: work around -m64 issue on Itanium2
- * Tuning info for K732SSE1.tgz, PM32SSE2.tgz and PPCG432.tgz
- * Changes linker flags on Solaris if the Sun linker is used.
- * AN UPDATE TO THE LATEST ATLAS IS WELL OVERDUE, BUT THIS IS NON-TRIVIAL
- * Changing this package, which takes a long time to build, so it (and the
-   Fortran package) did not use Python, would allow the ATLAS build to be
-   started sooner in parallel builds. This should reduce the overall time to
-   build Sage.
- * The package is never installed on Cygwin or OS X.
+ * patches/long_filenames.patch: fix for long filenames (>128 chars)
+ * patches/shell.patch: replace two instances of "test -e" by "test -f",
+   as the former is not portable (in particular for the Solaris shell).
+ * lapack-x.y.z.tgz: The netlib lapack tarball. If you update this,
+   make sure you also update the LAPACK_TARBALL variable in
+   spkg-install.
+ * If you update atlas to a new version make sure that the
+   ATLAS_OSTYPE, ATLAS_MACHTYPE, and ATLAS_ISAEXT variables in
+   spkg-install remain in sync with atlas' CONFIG/include/atlconf.h
+ * The package is never installed on Cygwin or OS X, unless you set
+   SAGE_ATLAS_ARCH.
 
-The package can be configured via two environment variables:
+We are using a dummy autotools/libtools project (see
+patches/ATLAS-lib) to repack the static ATLAS libraries into shared
+libraries.
+
+The package can be configured via three environment variables:
 
  * SAGE_ATLAS_LIB=path
    If this environment variable is set, the libraries libatlas,
@@ -54,14 +59,16 @@ The package can be configured via two environment variables:
    The given architectural default and instruction set extensions are
    used instead of the empirical tuning. Available architectures are
 
-     POWER3, POWER4, POWER5, PPCG4, PPCG5, P5, P5MMX, PPRO, PII, PIII,
-     PM, CoreSolo, CoreDuo, Core2Solo, Core2, Corei7, P4, P4E,
-     Efficeon, K7, HAMMER, AMD64K10h, UNKNOWNx86, IA64Itan, IA64Itan2,
-     USI, USII, USIII, USIV, UnknownUS, MIPSR1xK, MIPSICE9
+     POWER3, POWER4, POWER5, PPCG4, PPCG5, POWER6, POWER7, IBMz9,
+     IBMz10, IBMz196, x86x87, x86SSE1, x86SSE2, x86SSE3, P5, P5MMX,
+     PPRO, PII, PIII, PM, CoreSolo, CoreDuo, Core2Solo, Core2, Corei1,
+     Corei2, Atom, P4, P4E, Efficeon, K7, HAMMER, AMD64K10h, AMDDOZER,
+     UNKNOWNx86, IA64Itan, IA64Itan2, USI, USII, USIII, USIV, UST2,
+     UnknownUS, MIPSR1xK, MIPSICE9, ARMv7
 
    and instruction set extensions are
 
-     AltiVec, SSE3, SSE2, SSE1, 3DNow
+     VSX, AltiVec, AVXMAC, AVXFMA4, AVX, SSE3, SSE2, SSE1, 3DNow, NEON
 
    In addition, you can also set
 
@@ -73,19 +80,60 @@ The package can be configured via two environment variables:
 
    For example,
 
-     SAGE_ATLAS_ARCH=Corei7,SSE3,SSE2,SSE1
+     SAGE_ATLAS_ARCH=Corei2,AVX,SSE3,SSE2,SSE1
 
    would be appropriate for a Core i7 CPU.
 
-== TODO ==
-
- * The build is currently disabled on OSX until we sort out some
-   linking issues on OSX.
-
- * On FreeBSD dynamic libraries don't work since the wrong flags are
-   passed to the linker. This will be fixed soon.
+ * If SAGE_ATLAS_SAVE_ARCHDEF = <path> is given, then a new archdef
+   file is created and saved to the given path.
 
 == ChangeLog ==
+
+=== atlas-3.10.1.p0, lapack-3.4.2 (Jean-Pierre Flori, 26 February 2013) ===
+ * Trac #10508: Update ATLAS to version 3.10.1 and LAPACK to version 3.4.2.
+ * Removed patches integrated upstream.
+ * Add shell.patch to correctly build LAPACK on Solaris.
+ * Replace os.system() by subprocess.call()
+
+=== atlas-3.10.0.p1, lapack-3.4.1 (Volker Braun, September 20 2012) ===
+ * Trac #10508: Fix for long file names.
+ * Disable tuning on Itanium, go straight to "fast".
+
+=== atlas-3.10.0.p0, lapack-3.4.1 (Jeroen Demeyer, 19 September 2012) ===
+ * Trac #10508: re-run autotools in patches/ATLAS-lib to fix timestamps.
+ * Re-download sources to fix timestamps.
+ * Remove backup files (ending with ~).
+ * Uncompress lapack tarball, yielding a smaller spkg.
+
+=== atlas-3.10.0, lapack-3.4.1 (Volker Braun, July 11 2012) ===
+ * Stable release
+ * Now OSX and Cygwin will attempt to build if SAGE_ATLAS_ARCH is set.
+
+=== atlas-3.9.85, lapack-3.4.1 (Volker Braun, July 9 2012) ===
+ * Should be identical to the next stable release
+
+=== atlas-3.9.84, lapack-3.4.1 (Volker Braun, July 8 2012) ===
+ * Update to the newest upstream version
+ * flush before os.system()
+ * completely new shared library build system
+
+=== atlas-3.9.80, lapack-3.4.1 (Volker Braun, June 23rd 2012) ===
+ * Update to the newest upstream version
+ * remove obsoleted patches
+
+=== atlas-3.9.68, lapack-3.4.0 (Volker Braun, Jeroen Demeyer, March 6th 2012) ===
+ * In src/CONFIG/src/Makefile, change "rm -f" to "rm -rf" in
+   the "clean" rule to support Xcode creating directories like
+   xspew.dSYM.
+ * update to latest upstream version
+ * Make atlas respect CC environment variable.
+ * Cygwin library name fix.
+
+=== atlas-3.9.32, lapack-3.3.0 (Volker Braun, December 5th 2010) ===
+ * Introduce the SAGE_ATLAS_ARCH environment variable.
+ * Update to the developer release atlas-3.9.32 according to advice of
+   Clint Whaley (ATLAS developer).
+ * Now includes LAPACK source tarball.
 
 === atlas-3.8.4.p1 (Jeroen Demeyer, 15 January 2012) ===
  * Trac #12312: Completely disable parallel make everywhere
@@ -311,8 +359,3 @@ The package can be configured via two environment variables:
 === atlas-3.7.37 (Michael Abshoff, Aug. 15th, 2007) ===
  * new upstream release (3.7.37), initial release
  * {{{make check}}} added in spkg-check
-
-ToDo
-
-* compile threading support conditionally
-

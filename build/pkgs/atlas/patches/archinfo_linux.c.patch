@@ -1,17 +1,20 @@
---- archinfo_linux.c.orig	2011-06-15 10:25:07.837647902 -0700
-+++ archinfo_linux.c	2011-06-15 10:26:16.728647870 -0700
-@@ -100,12 +100,12 @@
+--- src/CONFIG/src/backend/archinfo_linux.c	2012-06-23 17:27:27.000000000 +0100
++++ new/CONFIG/src/backend/archinfo_linux.c	2012-06-24 03:17:47.297954105 +0100
+@@ -117,7 +117,7 @@
+       }
        break;
     case AFIA64:
-       res[0] = '\0';
--      ierr = CmndOneLine(NULL, "fgrep 'Itanium' /proc/cpuinfo", res);
-+      ierr = CmndOneLine(NULL, "fgrep 'IA-64' /proc/cpuinfo", res);
-       if (ierr || res[0] == '\0')
-          ierr = CmndOneLine(NULL, "fgrep \"model name\" /proc/cpuinfo", res);
-       if (!ierr && res[0] != '\0')
+-      res = atlsys_1L(NULL, "fgrep 'Itanium' /proc/cpuinfo", 0, 0);
++      res = atlsys_1L(NULL, "fgrep 'IA-64' /proc/cpuinfo", 0, 0);
+       if (res && res[0] == '\0')
        {
--         if (strstr(res, "Itanium 2") || strstr(res, "McKinley"))
-+         if (strstr(res, "IA-64") || strstr(res, "McKinley"))
-             mach = IA64Itan2;
-          else if (strstr(res, "Itanium")) mach = IA64Itan;
-       }
+          free(res);
+@@ -129,7 +129,7 @@
+       {
+          if (res[0] != '\0')
+          {
+-            if (strstr(res, "Itanium 2") || strstr(res, "McKinley"))
++            if (strstr(res, "IA-64") || strstr(res, "McKinley"))
+                mach = IA64Itan2;
+             else if (strstr(res, "Itanium")) mach = IA64Itan;
+          }

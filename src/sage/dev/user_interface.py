@@ -10,6 +10,35 @@ import os
 
 from getpass import getpass
 
+try:
+    import struct
+    import fcntl
+    import termios
+    def _ioctl_GWINSZ(fd):
+        """
+        gets window size of the terminal at the
+        file descriptor ``fd``
+
+        TESTS::
+
+            sage: import os
+            sage: from sage.dev.user_interface import _ioctl_GWINSZ
+            sage: try:                                    # not tested
+            ....:     fd = os.open(os.ctermid(), os.O_RDONLY)
+            ....:     _ioctl_GWINSZ(fd)
+            ....: finally:
+            ....:     os.close(fd)
+            (48, 194)
+        """
+        try:
+            return struct.unpack('hh',
+                    fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
+        except IOError:
+            return
+
+except ImportError:
+    _ioctl_GWINSZ = lambda fd: None
+
 class UserInterface(object):
     def select(self, prompt, options, default=None):
         """
@@ -247,6 +276,30 @@ class CmdLineInterface(UserInterface):
         """
         return self._get_input(prompt, input_func=getpass)
 
+    def _get_dimensions(self):
+        """
+        trys to return the dimensions of the terminal
+
+        TESTS::
+
+            sage: UI = sage.dev.user_interface.CmdLineInterface()
+            sage: UI._get_dimensions()        # not tested
+            (48, 194)
+        """
+        dim = _ioctl_GWINSZ(0) or _ioctl_GWINSZ(1) or _ioctl_GWINSZ(2)
+
+        if dim is None:
+            try:
+                fd = os.open(os.ctermid(), os.O_RDONLY)
+                dim = _ioctl_GWINSZ(fd)
+            finally:
+                os.close(fd)
+
+        if dim is None:
+            raise EnvironmentError("cannot determine dimensions of terminal")
+
+        return tuple(int(x) for x in dim)
+
     def show(self, message):
         """
         displays message to user
@@ -257,7 +310,24 @@ class CmdLineInterface(UserInterface):
             sage: UI.show("I ate fillet mignon for dinner.")
             I ate fillet mignon for dinner.
         """
-        print(message)
+        try:
+            height, width = self._get_dimensions()
+        except EnvironmentError:
+            height, width = float('inf'), float('inf')
+
+        message = message.strip().splitlines()
+        message = [line.rstrip() for line in message]
+        if (len(message)+2 <= height and
+                max(len(line) for line in message) <= width):
+            print(*message, sep='\n')
+        else:
+            message = '\n'.join(message)+'\n'
+            try:
+                self._pager(message)
+            except AttributeError:
+                import pydoc
+                self._pager = pydoc.getpager()
+                self._pager(message)
 
     def edit(self, filename):
         """

@@ -1,10 +1,33 @@
 = SQLite =
 
+== Description ==
+
 SQLite is a software library that implements a self-contained,
 serverless, zero-configuration, transactional SQL database engine.
 
+== License ==
+
+Public Domain
+
 == Upstream contact ==
- * URL: http://www.sqlite.org
+
+ * http://www.sqlite.org
+
+== Dependencies ==
+
+* readline
+
+== Special Update/Build Instructions ==
+
+None
+
+== Changelog ==
+
+=== sqlite-3.7.17 (Jeroen Demeyer, 24 May 2013) ===
+ * #14629: upgrade to version 3.7.17
+ * Use standard template for SPKG.txt and spkg-install, use $MAKE instead of make
+ * Remove Fortran and C++ stuff from spkg-install
+ * Compile with -DSQLITE_WITHOUT_ZONEMALLOC on OS X <= 10.4
 
 === sqlite-3.7.5.p1 (William Stein, 10 May 2012) ===
  * #12937: sqlite sometimes picks up the wrong libraries (e.g., readline) since we forgot to set LDFLAGS.  Thus, set LDFLAGS.

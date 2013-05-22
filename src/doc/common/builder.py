@@ -202,7 +202,8 @@ class DocBuilder(object):
         self.latex()
         tex_dir = self._output_dir('latex')
         pdf_dir = self._output_dir('pdf')
-        subprocess.check_call("cd '%s' && make all-pdf && mv -f *.pdf '%s'"%(tex_dir, pdf_dir), shell=True)
+        if subprocess.call("cd '%s' && $MAKE all-pdf && mv -f *.pdf '%s'"%(tex_dir, pdf_dir), shell=True):
+            raise RuntimeError("failed to run $MAKE all-pdf in %s"%tex_dir)
 
         logger.warning("Build finished.  The built documents can be found in %s", pdf_dir)
 

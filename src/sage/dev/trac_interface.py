@@ -490,6 +490,29 @@ class TracInterface(object):
                 self.__username = self._UI.get_input('Trac username:')
             return self.__username
 
+    def set_username(self, username=None):
+        """
+        a method for setting and saving a developer's username for trac
+
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import SageDev, Config, doctest_config
+            sage: conf = doctest_config()
+            sage: t = SageDev(conf).trac
+            sage: t._username
+            'doctest'
+            sage: t.set_username('user')
+            sage: t._username
+            'user'
+            sage: t = SageDev(conf).trac
+            sage: t._username
+            'user'
+        """
+        if username is None:
+            username = self._UI.get_input('Trac username:')
+        self._config['username'] = username
+        self.__username = username
+
     @property
     def _password(self):
         """
@@ -499,40 +522,57 @@ class TracInterface(object):
 
             sage: from sage.dev.sagedev import SageDev, doctest_config
             sage: t = SageDev(doctest_config()).trac
-            sage: t._UI.extend(["yes", "passwd", "", "pass"])
+            sage: t._UI.append('pass')
             sage: t._password
             Trac password:
-            Would you like to store your password locally? (it will be stored in a plaintext file that only you may read) [yes/No/stop asking]
             'pass'
-            sage: t._password
-            Trac password:
-            Would you like to store your password locally? (it will be stored in a plaintext file that only you may read) [yes/No/stop asking] yes
-            'passwd'
-            sage: t._password
-            'passwd'
         """
-        if self._config.get('password'):
+        if self._config.get('password') is not None:
             self.__auth_timeout = float('inf')
             return self._config['password']
 
-        passwd = self._UI.get_password("Trac password:")
-
-        if self._config.get('password') is None:
-            r = self._UI.select("Would you like to store your password "+
-                                "locally? (it will be stored in a plaintext "+
-                                "file that only you may read)",
-                                options=("yes","no","stop asking"), default=1)
-            if r == 'yes':
-                self.__auth_timeout = float('inf')
-                self._config['password'] = passwd
-                return passwd
-            elif r == 'stop asking':
-                self._config['password'] = ""
-
+        passwd = self._UI.get_password('Trac password:')
         # default timeout is 5 minutes, like sudo
         self.__auth_timeout = time.time() + float(
                 self._config.get('password_timeout', 300))
         return passwd
+
+    def set_password(self):
+        """
+        a method for setting and saving a developer's password for trac
+
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import SageDev, Config, doctest_config
+            sage: conf = doctest_config()
+            sage: t = SageDev(conf).trac
+            sage: t._UI.extend(['passwd','passwd','yes','','pass'])
+            sage: t._password
+            Trac password:
+            'pass'
+            sage: t.set_password()
+            Doing this will save your password in plaintext on the filesystem, are you sure you want to continue? [yes/No]
+            sage: t.set_password()
+            Doing this will save your password in plaintext on the filesystem, are you sure you want to continue? [yes/No] yes
+            Trac password:
+            Confirm password:
+            sage: t._password
+            'passwd'
+            sage: t = SageDev(conf).trac
+            sage: t._password
+            'passwd'
+        """
+        if not self._UI.confirm("Doing this will save your password in "+
+                                "plaintext on the filesystem, are you sure "+
+                                "you want to continue?", default_no=True):
+            return
+
+        passwd = self._UI.get_password('Trac password:')
+        while passwd != self._UI.get_password('Confirm password:'):
+            self._UI.show('Passwords disagree')
+            passwd = self._UI.get_password('Trac password:')
+
+        self._config['password'] = passwd
 
     @property
     def sshkeys(self):

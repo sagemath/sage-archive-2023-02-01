@@ -125,8 +125,7 @@ class AlgebrasCategory(CovariantConstructionCategory, Category_over_base_ring):
             sage: latex(C) # todo: improve that
             \mathbf{Algebras}(\mathbf{Semigroups})
         """
-        CovariantConstructionCategory.__init__(self, base_category, base_ring)
-        Category_over_base_ring.__init__(self, base_ring)
+        super(AlgebrasCategory, self).__init__(base_category, base_ring)
 
     def _repr_object_names(self):
         """

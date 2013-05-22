@@ -43,11 +43,11 @@ class Bimodules(CategoryWithParameters):
             sage: C = Bimodules(QQ, ZZ)
             sage: TestSuite(C).run()
         """
-        Category.__init__(self, name)
         assert left_base  in _Rings, "The left base must be a ring"
         assert right_base in _Rings, "The right base must be a ring"
         self._left_base_ring = left_base
         self._right_base_ring = right_base
+        Category.__init__(self, name)
 
     def _make_named_class_key(self, name):
         r"""

@@ -467,9 +467,8 @@ class KBoundedQuotientBases(Category_realization_of_parent):
             sage: Sym = SymmetricFunctions(QQ['t'])
             sage: from sage.combinat.sf.k_dual import KBoundedQuotientBases
             sage: Q = Sym.kBoundedQuotient(3,t=1)
-            sage: F = Q.affineSchur()
-            sage: KQB = KBoundedQuotientBases(F); KQB
-            Category of k bounded quotient bases of 3-Bounded Quotient of Symmetric Functions over Univariate Polynomial Ring in t over Rational Field with t=1 in the 3-bounded affine Schur basis
+            sage: KQB = KBoundedQuotientBases(Q); KQB
+            Category of k bounded quotient bases of 3-Bounded Quotient of Symmetric Functions over Univariate Polynomial Ring in t over Rational Field with t=1
         """
         Category_realization_of_parent.__init__(self, base)
 

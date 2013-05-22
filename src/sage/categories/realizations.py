@@ -36,7 +36,7 @@ class RealizationsCategory(RegressiveCovariantConstructionCategory):
     TESTS::
 
         sage: Sets().Realizations
-        <bound method Sets.Realizations of Category of sets>
+        <bound method Sets_with_category.Realizations of Category of sets>
         sage: Sets().Realizations()
         Category of realizations of sets
         sage: Sets().Realizations().super_categories()
@@ -158,13 +158,13 @@ class Category_realization_of_parent(Category_over_base, BindableClass):
 
             sage: from sage.categories.realizations import Category_realization_of_parent
             sage: class MultiplicativeBasesOnPrimitiveElements(Category_realization_of_parent):
-            ...       pass
+            ...       def super_categories(self): return [Objects()]
             sage: Sym = SymmetricFunctions(QQ); Sym.rename("Sym")
             sage: MultiplicativeBasesOnPrimitiveElements(Sym)._get_name()
             'multiplicative bases on primitive elements'
         """
         import re
-        return re.sub(".[A-Z]", lambda s: s.group()[0]+" "+s.group()[1], self.__class__.__name__.split(".")[-1]).lower()
+        return re.sub(".[A-Z]", lambda s: s.group()[0]+" "+s.group()[1], self.__class__.__base__.__name__.split(".")[-1]).lower()
 
     def _repr_(self):
         """
@@ -172,8 +172,7 @@ class Category_realization_of_parent(Category_over_base, BindableClass):
 
             sage: from sage.categories.realizations import Category_realization_of_parent
             sage: class MultiplicativeBasesOnPrimitiveElements(Category_realization_of_parent):
-            ...       pass
-            ...
+            ...       def super_categories(self): return [Objects()]
             sage: Sym = SymmetricFunctions(QQ); Sym.rename("Sym")
             sage: MultiplicativeBasesOnPrimitiveElements(Sym)     # indirect doctest
             Category of multiplicative bases on primitive elements of Sym

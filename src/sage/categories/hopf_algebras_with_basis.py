@@ -243,7 +243,6 @@ class HopfAlgebrasWithBasis(Category_over_base_ring):
                 sage: s._test_antipode()
 
             """
-            from sage.categories.tensor import tensor
             tester = self._tester(**options)
 
             S = self.antipode

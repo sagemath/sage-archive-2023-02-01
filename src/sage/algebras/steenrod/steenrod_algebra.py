@@ -564,8 +564,6 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
         from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
         from sage.rings.infinity import Infinity
-        from sage.sets.family import Family
-        from sage.sets.non_negative_integers import NonNegativeIntegers
         from sage.sets.set_from_iterator import EnumeratedSetFromIterator
         from functools import partial
         from steenrod_algebra_bases import steenrod_algebra_basis
@@ -832,7 +830,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             serre_cartan_mono_to_string, wood_mono_to_string, \
             wall_mono_to_string, wall_long_mono_to_string, \
             arnonA_mono_to_string, arnonA_long_mono_to_string, \
-            serre_cartan_mono_to_string, pst_mono_to_string, \
+            pst_mono_to_string, \
             comm_long_mono_to_string, comm_mono_to_string
         p = self.prime()
         basis = self.basis_name()
@@ -1331,7 +1329,6 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                             tens[((q[0], l), (q[1], r))] = tens_q[q]
                     return self.tensor_square()._from_dict(tens)
             elif basis == 'serre-cartan':
-                from sage.categories.tensor import tensor
                 result = self.tensor_square().one()
                 if p == 2:
                     for n in t:
@@ -1357,7 +1354,6 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                         result = result * s
                     return result
         else:
-            from sage.categories.tensor import tensor
             A = SteenrodAlgebra(p=p, basis=algorithm)
             x = A(self._change_basis_on_basis(t, algorithm)).coproduct(algorithm=algorithm)
             result = []
@@ -1496,6 +1492,10 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
     def counit_on_basis(self, t):
         """
         The counit sends all elements of positive degree to zero.
+
+        INPUT:
+
+        - ``t`` -- tuple, the index of a basis element of self
 
         EXAMPLES::
 
@@ -2234,7 +2234,6 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         p = self.prime()
         if not self._has_nontrivial_profile():
             return True
-        profile = self.profile
         if p == 2:
             return all([self.profile(i+1) == Infinity
                         or t[i] < 2**self.profile(i+1)
@@ -2904,8 +2903,8 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             ans = AM.monomial(tuple((1<<k)-1 for k in self._profile))
         else:
             rp,ep = self._profile
-            e = [k for k in range(0,len(ep)) if ep[k]==2]
-            r = [p**k-1 for k in rp]
+            e = [kk for kk in range(0,len(ep)) if ep[kk]==2]
+            r = [p**kk-1 for kk in rp]
             ans = AM.monomial((tuple(e),tuple(r)))
         return self(ans.change_basis(self.basis_name()))
 

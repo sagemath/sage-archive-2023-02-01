@@ -392,7 +392,6 @@ class TracInterface(object):
         except AttributeError:
             pass
 
-        realm = self._config.get('realm', REALM)
         server = self._config.get('server', TRAC_SERVER_URI)
 
         url = urlparse.urljoin(server, 'xmlrpc')
@@ -593,13 +592,14 @@ class TracInterface(object):
         """
         return self._authenticated_server_proxy.sshkeys
 
-    def create_ticket(self, summary, description, attributes={}, notify=False):
+    def _create_ticket(self,
+            summary, description, attributes={}, notify=False):
         """
-        Create a ticket on trac and return the new ticket number.
+        create a ticket on trac and return the new ticket number
 
         EXAMPLES::
 
-            sage: dev.trac.create_ticket("Summary", "Description",
+            sage: dev.trac._create_ticket("Summary", "Description",
             ....:         {'type':'defect', 'component':'algebra'})
             14366
         """
@@ -739,18 +739,20 @@ class TracInterface(object):
         os.unlink(F.name)
         return ret
 
-    def create_ticket_interactive(self):
-        """
-        Interactive version of :meth:`create_ticket`.
+    def create_ticket(self):
+        r"""
+        drops user into an editor for creating a ticket
 
         EXAMPLE::
 
             sage: from sage.dev.sagedev import SageDev, doctest_config
             sage: import os
-            sage: t = SageDev(doctest_config()).trac
+            sage: conf  = doctest_config()
+            sage: conf['trac']['server'] = 'http://trac.sagemath.org/'
+            sage: t = SageDev(conf).trac
             sage: os.environ['EDITOR'] = 'cat'
             sage: t._UI.extend(["no"]*3)
-            sage: t.create_ticket_interactive()
+            sage: t.create_ticket()
             Summary:
             Priority: major
             Component: PLEASE CHANGE
@@ -772,17 +774,16 @@ class TracInterface(object):
             TicketSyntaxError: no valid summary found
             Do you want to try to fix your ticket file? [Yes/no] no
             sage: os.environ['EDITOR'] = 'echo "Summary: Foo" >'
-            sage: t.create_ticket_interactive()
+            sage: t.create_ticket()
             TicketSyntaxError: no description found
             Do you want to try to fix your ticket file? [Yes/no] no
             sage: os.environ['EDITOR'] = 'echo "Summary: Foo\nFoo: Foo\nFoo" >'
-            sage: t.create_ticket_interactive()
+            sage: t.create_ticket()
             TicketSyntaxError: line 2: field `Foo` not supported
             Do you want to try to fix your ticket file? [Yes/no] no
             sage: os.environ['EDITOR'] = 'echo "Summary: Foo\nCc: Foo\nFoo" >'
-            sage: t.create_ticket_interactive()
-            Created ticket #14366.
-            14366
+            sage: t.create_ticket()
+            Created ticket #14366 (http://trac.sagemath.org/14366).
         """
         attributes = {
                 "Type":         "PLEASE CHANGE",
@@ -795,10 +796,10 @@ class TracInterface(object):
         if ret is None:
             return
 
-        ticket = self.create_ticket(*ret)
-        self._UI.show("Created ticket #%s."%ticket)
-
-        return ticket
+        ticket = self._create_ticket(*ret)
+        ticket_url = urlparse.urljoin(
+                self._config.get('server', TRAC_SERVER_URI), str(ticket))
+        self._UI.show("Created ticket #%s (%s)."%(ticket, ticket_url))
 
     def set_dependencies(self, ticket, dependencies):
         """

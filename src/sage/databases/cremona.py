@@ -9,7 +9,7 @@ If the optional full CremonaDatabase is not installed, a mini-version
 is included by default with Sage.  It contains Weierstrass equations,
 rank, and torsion for curves up to conductor 10000.
 
-The large database includes all curves of conductor up to 240,000. It
+The large database includes all curves of conductor up to 300,000. It
 also includes data related to the BSD conjecture and modular degrees
 for all of these curves, and generators for the Mordell-Weil
 groups. To install it type the following in Sage::
@@ -645,8 +645,8 @@ class MiniCremonaDatabase(SQLDatabase):
             sage: it.next().label()
             '45a3'
         """
-        for c in self.__connection__.cursor().execute('SELECT curve FROM ' \
-            + 't_curve'):
+        query = "SELECT curve FROM t_curve,t_class USING(class) ORDER BY conductor"
+        for c in self.__connection__.cursor().execute(query):
             yield self.elliptic_curve(c[0])
 
     def __getitem__(self, N):

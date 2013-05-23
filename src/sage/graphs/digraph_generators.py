@@ -317,11 +317,13 @@ class DiGraphGenerators():
         g.set_pos({i:(i,0) for i in range(n)})
         return g
 
-    def TransitiveTournament(self,n):
+    def TransitiveTournament(self, n):
         r"""
         Returns a transitive tournament on `n` vertices.
 
         In this tournament there is an edge from `i` to `j` if `i<j`.
+
+        See :wikipedia:`Tournament (graph theory)`
 
         INPUT:
 
@@ -349,7 +351,7 @@ class DiGraphGenerators():
 
         for i in range(n-1):
             for j in range(i+1, n):
-                g.add_edge(i,j)
+                g.add_edge(i, j)
 
         if n:
             from sage.graphs.graph_plot import _circle_embedding
@@ -357,12 +359,15 @@ class DiGraphGenerators():
 
         return g
 
-    def RandomTournament(self,n):
+    def RandomTournament(self, n):
         r"""
         Returns a random tournament on `n` vertices.
 
-        The tournament returned has an edge from `i` to `j` with probability
-        `1/2`.
+        For every pair of vertices, the tournament has an edge from
+        `i` to `j` with probability `1/2`, otherwise it has an edge
+        from `j` to `i`.
+
+        See :wikipedia:`Tournament (graph theory)`
 
         INPUT:
 
@@ -370,8 +375,10 @@ class DiGraphGenerators():
 
         EXAMPLES::
 
-            sage: digraphs.RandomTournament(10)
+            sage: T = digraphs.RandomTournament(10); T
             Random Tournament: Digraph on 10 vertices
+            sage: T.size() == binomial(10, 2)
+            True
             sage: digraphs.RandomTournament(-1)
             Traceback (most recent call last):
             ...
@@ -383,10 +390,10 @@ class DiGraphGenerators():
 
         for i in range(n-1):
             for j in range(i+1, n):
-                if random()<=.5:
-                    g.add_edge(i,j)
+                if random() <= .5:
+                    g.add_edge(i, j)
                 else:
-                    g.add_edge(j,i)
+                    g.add_edge(j, i)
 
         if n:
             from sage.graphs.graph_plot import _circle_embedding
@@ -482,7 +489,7 @@ class DiGraphGenerators():
 
                 if j == n-1:
                     i += 1
-                    j  = i+1
+                    j = i+1
                 else:
                     j += 1
 

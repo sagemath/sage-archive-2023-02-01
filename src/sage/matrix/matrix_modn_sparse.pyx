@@ -113,8 +113,7 @@ ai = arith_int()
 # The 46341 below is because the mod-n sparse code still uses
 # int's, even on 64-bit computers.  Improving this is
 # Trac Ticket #12679.
-import sage.ext.multi_modular
-MAX_MODULUS = min(sage.ext.multi_modular.MAX_MODULUS, 46341)
+MAX_MODULUS = 46341
 
 from sage.libs.linbox.linbox cimport Linbox_modn_sparse
 cdef Linbox_modn_sparse linbox
@@ -644,10 +643,12 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                 setPixel( (x,y), colorExact((r-delta,g-delta,b-delta)) )
 
         if filename is None:
-            filename = sage.misc.temporary_file.graphics_filename()
-            if sage.doctest.DOCTEST_MODE:
+            from sage.misc.temporary_file import graphics_filename, tmp_dir
+            from sage.doctest import DOCTEST_MODE
+            filename = graphics_filename()
+            if DOCTEST_MODE:
                 import os
-                filename = os.path.join(sage.misc.temporary_file.tmp_dir(), filename)
+                filename = os.path.join(tmp_dir(), filename)
 
         im.writePng(filename)
 

@@ -3885,7 +3885,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             d = Integer(1)
             return pivots, nonpivots, X, d
 
-        from matrix_modn_dense import MAX_MODULUS
+        from matrix_modn_dense_double import MAX_MODULUS
         A = self
         # Step 1: Compute the rank
 

@@ -41,6 +41,7 @@ include "sage/ext/gmp.pxi"
 include "sage/ext/random.pxi"
 include "sage/libs/ntl/decl.pxi"
 
+from sage.ext.mod_int cimport *
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.misc.randstate cimport randstate, current_randstate
 
@@ -51,7 +52,7 @@ import matrix_dense
 from matrix_integer_dense import _lift_crt
 from sage.structure.element cimport Matrix as baseMatrix
 from misc import matrix_integer_dense_rational_reconstruction
-from sage.ext.multi_modular import MAX_MODULUS
+from sage.matrix.matrix_modn_dense_double import MAX_MODULUS
 
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
@@ -71,7 +72,6 @@ import math
 # parameters for tuning
 echelon_primes_increment = 15
 echelon_verbose_level = 1
-
 
 cdef class Matrix_cyclo_dense(matrix_dense.Matrix_dense):
     ########################################################################

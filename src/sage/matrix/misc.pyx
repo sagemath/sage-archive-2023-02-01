@@ -14,6 +14,7 @@ include "sage/ext/interrupt.pxi"
 include "sage/ext/cdefs.pxi"
 include 'sage/ext/stdsage.pxi'
 
+from sage.ext.mod_int cimport *
 from sage.libs.mpfr cimport *
 
 include 'sage/modules/binary_search.pxi'
@@ -24,21 +25,11 @@ include 'sage/modules/vector_rational_sparse_c.pxi'
 include 'sage/modules/vector_modn_sparse_h.pxi'
 include 'sage/modules/vector_modn_sparse_c.pxi'
 
-cdef extern from "../ext/multi_modular.h":
-    ctypedef unsigned long mod_int
-    mod_int MOD_INT_OVERFLOW
-
-
 from matrix0 cimport Matrix
-from matrix_modn_dense cimport Matrix_modn_dense
-from matrix_modn_sparse cimport Matrix_modn_sparse
 from matrix_integer_dense cimport Matrix_integer_dense
 from matrix_integer_sparse cimport Matrix_integer_sparse
 from matrix_rational_dense cimport Matrix_rational_dense
 from matrix_rational_sparse cimport Matrix_rational_sparse
-
-import matrix_modn_dense
-import matrix_modn_sparse
 
 from sage.rings.integer_ring   import ZZ
 from sage.rings.rational_field import QQ
@@ -324,9 +315,11 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         M = height_guess + 1
 
     if self.is_sparse():
-        p = matrix_modn_sparse.MAX_MODULUS + 1
+        from sage.matrix.matrix_modn_sparse import MAX_MODULUS
+        p = MAX_MODULUS + 1
     else:
-        p = matrix_modn_dense.MAX_MODULUS + 1
+        from sage.matrix.matrix_modn_dense_double import MAX_MODULUS
+        p = MAX_MODULUS + 1
     t = None
     X = []
     best_pivots = []

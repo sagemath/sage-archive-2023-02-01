@@ -2067,3 +2067,90 @@ def SymplecticGraph(d,q):
     G.relabel()
     return G
 
+def AffinePolarGraph(d,q,sign="+"):
+    r"""
+    Returns the affine polar graph `VO^+(d,q),VO^-(d,q)` or `VO(d,q)`.
+
+    Affine Polar graphs are built from a `d`-dimensional vector space over
+    `F_q`, and a quadratic form which is hyperbolic, elliptic or parabolic
+    according to the value of ``sign``.
+
+    Note that `VO^+(d,q),VO^-(d,q)` are strongly regular graphs, while `VO(d,q)`
+    is not.
+
+    For more information on Affine Polar graphs, see the corresponding `page of
+    Andries Brouwer's website <http://www.win.tue.nl/~aeb/graphs/VO.html>`_.
+
+    INPUT:
+
+    - ``d`` (integer) -- ``d`` must be even if ``sign != None``, and odd
+      otherwise.
+
+    - ``q`` (integer) -- a power of a prime number, as `F_q` must exist.
+
+    - ``sign`` -- must be qual to ``"+"``, ``"-"``, or ``None`` to compute
+      (respectively) `VO^+(d,q),VO^-(d,q)` or `VO(d,q)`. By default
+      ``sign="+"``.
+
+    EXAMPLES:
+
+    The :meth:`Brouwer-Haemers graph <BrouwerHaemersGraph>` is isomorphic to
+    `VO^-(4,3)`::
+
+        sage: g = graphs.AffinePolarGraph(4,3,"-")
+        sage: g.is_isomorphic(graphs.BrouwerHaemersGraph())
+        True
+
+    Some examples from `Brouwer's table or strongly regular graphs
+    <http://www.win.tue.nl/~aeb/graphs/srg/srgtab.html>`_::
+
+        sage: g = graphs.AffinePolarGraph(6,2,"-"); g
+        Affine Polar Graph VO^-(6,2): Graph on 64 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (64, 27, 10, 12)
+        sage: g = graphs.AffinePolarGraph(6,2,"+"); g
+        Affine Polar Graph VO^+(6,2): Graph on 64 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        (64, 35, 18, 20)
+
+    When ``sign is None``::
+
+        sage: g = graphs.AffinePolarGraph(5,2,None); g
+        Affine Polar Graph VO^-(5,2): Graph on 32 vertices
+        sage: g.is_strongly_regular(parameters=True)
+        False
+        sage: g.is_regular()
+        True
+        sage: g.is_vertex_transitive()
+        True
+    """
+    if sign in ["+","-"]:
+        s = 1 if sign == "+" else -1
+        if d%2 == 1:
+            raise ValueError("d must be even when sign!=None")
+    else:
+        if d%2 == 0:
+            raise ValueError("d must be odd when sign==None")
+        s = 0
+
+    from sage.interfaces.gap import gap
+    from sage.rings.finite_rings.constructor import FiniteField
+    from sage.modules.free_module import VectorSpace
+    from sage.matrix.constructor import Matrix
+    from itertools import combinations
+
+    m = gap("InvariantQuadraticForm(GO("+str(s)+","+str(d)+","+str(q)+")).matrix")
+    F = FiniteField(q,"x")
+    V = list(VectorSpace(F,d))
+    M = [[F(y) for y in mm] for mm in m]
+    M = Matrix(F,M)
+
+    G = Graph()
+    G.add_vertices(map(tuple,V))
+    for x,y in combinations(V,2):
+        if not (x-y)*(M*(x-y)):
+            G.add_edge(tuple(x),tuple(y))
+
+    G.name("Affine Polar Graph VO^"+str('+' if s == 1 else '-')+"("+str(d)+","+str(q)+")")
+    G.relabel()
+    return G

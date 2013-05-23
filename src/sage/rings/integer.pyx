@@ -147,7 +147,7 @@ from cpython.list cimport *
 from cpython.number cimport *
 from cpython.int cimport *
 include "sage/ext/python_debug.pxi"
-include "sage/structure/coerce.pxi"   # for parent_c
+include "../structure/coerce.pxi"   # for parent_c
 include "sage/libs/pari/decl.pxi"
 
 cdef extern from "limits.h":

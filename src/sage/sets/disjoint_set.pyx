@@ -49,7 +49,7 @@ Disjoint set of hashables objects::
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'sage/groups/perm_gps/partn_ref/data_structures_pyx.pxi'
+include '../groups/perm_gps/partn_ref/data_structures_pyx.pxi'
 
 import itertools
 from sage.rings.integer import Integer

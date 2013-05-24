@@ -15,10 +15,16 @@ check_error() {
     fi
 }
 
+# Sometimes, ECL gives interactive prompts when something goes wrong
+# during the build. Avoid this by redirecting stdin from /dev/null.
+# See http://trac.sagemath.org/sage_trac/ticket/11884#comment:34
+exec </dev/null
+
+
 # We don't have to set up CFLAGS etc., since these are taken from ECL
 # (i.e., ECL uses the ones that were specified when ECL was built).
 
-MAKE="$MAKE -j1"  # force sequential build (1 job)
+export MAKE="$MAKE -j1"  # force sequential build (1 job)
 
 CUR=`pwd`
 
@@ -50,18 +56,8 @@ check_error "Failed to touch documentation files."
 
 
 echo
-if [[ "$UNAME" = "Darwin" ]]; then
-    echo "Now building Maxima; this takes a few minutes."
-    echo "Since we're on MacOS X and there is a very weird"
-    echo "bug with buffered output while building Maxima,"
-    echo "you will not be able to see the output of the build"
-    echo "as it occurs.  Don't worry, the build process does"
-    echo "not hang."
-    $MAKE >> "$CUR"/output.log  2>> "$CUR"/error.log
-else
-    echo "Now building Maxima..."
-    $MAKE
-fi
+echo "Now building Maxima..."
+$MAKE
 check_error "Failed to build Maxima."
 
 

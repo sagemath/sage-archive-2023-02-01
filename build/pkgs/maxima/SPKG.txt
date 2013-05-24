@@ -40,6 +40,12 @@ COPYING.
 
 == Changelog ==
 
+=== maxima-5.29.1.p3 (Jeroen Demeyer, 24 June 2013) ===
+ * #14556: fix improper quoting in spkg-src script
+ * Remove redirection of stdout/stderr on OS X (why was that needed?)
+ * Redirect stdin from /dev/null to avoid interactive prompts during
+   install
+
 === maxima-5.29.1.p2 (Julien Puydt, 11 May 2013) ===
  * #14556: don't create the maxima-noreadline script, which is now useless
    (it dated back to when sage was using clisp instead of ecl)

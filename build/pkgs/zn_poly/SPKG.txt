@@ -58,8 +58,16 @@ the file src/COPYING for details.
    Fix a potential problem when the value of ZNP_mpn_smp_kara_thresh is
    SIZE_MAX, this is usually irrealistic but can happen at least on linux
    on power7 with gcc-4.7.1 (see #14098).
+ * fix_fudge_factor_in_nuss-test.c.patch:
+   As the name says; fix provided by upstream (David Harvey); see #13947.
 
 == Changelog ==
+
+=== zn_poly-0.9.p11 (Leif Leonhardy, May 24th, 2013) ===
+ * #13947: Fix `nuss_mul()` test failing especially if tuning happened
+   under "heavy" load (at least on MacOS X and Cygwin)
+   Add `fix_fudge_factor_in_nuss-test.c.patch`; fix suggested by David
+   Harvey.
 
 === zn_poly-0.9.p10 ( Francois Bissey, 14 February 2013 ) ===
  * Trac #14098: Fix a potential problem with the tests where values can get out of

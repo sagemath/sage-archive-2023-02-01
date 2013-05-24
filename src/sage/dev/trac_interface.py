@@ -852,7 +852,8 @@ class TracInterface(object):
 
     def dependencies(self, ticketnum, all=False, _seen=None):
         """
-        Retrieve the dependencies of ticket ``ticketnum``.
+        retrieve the dependencies of ticket ``ticketnum``, sorted by
+        ticket number
 
         INPUT:
 
@@ -880,23 +881,28 @@ class TracInterface(object):
             return
         else:
             seen = _seen
+
         seen.append(ticketnum)
-        data = self._get_attributes(ticketnum)
-        if 'dependencies' not in data: return []
-        dependencies = data['dependencies']
-        if dependencies.strip() == '': return []
-        dependencies = [a.strip(" ,;+-\nabcdefghijklmnopqrstuvwxyz") for a in data['dependencies'].split('#')]
-        dependencies = [a for a in dependencies if a]
-        dependencies = [int(a) if a.isdigit() else a for a in dependencies]
+
+        data = self._get_attributes(ticketnum).get('dependencies', '').strip()
+
+        if not data:
+            return []
+
+        data2 = (a.strip() for a in data.split(','))
+        data3 = (a[1:] for a in data2 if a)
+        data4 = (int(a) if a.isdigit() else a for a in data3)
         if not all:
-            return dependencies
-        for a in dependencies:
+            return sorted(data4)
+
+        for a in data4:
             if isinstance(a, int):
                 self.dependencies(a, True, seen)
             else:
                 seen.append(a)
+
         if _seen is None:
-            return seen[1:]
+            return sorted(seen[1:])
 
     def attachment_names(self, ticketnum):
         """

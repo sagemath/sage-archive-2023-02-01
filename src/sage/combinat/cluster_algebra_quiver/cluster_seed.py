@@ -1212,6 +1212,12 @@ class ClusterSeed(SageObject):
             (A seed for a cluster algebra of rank 2 of type ['A', 2], [0, 1, 0, 1])
             (A seed for a cluster algebra of rank 2 of type ['A', 2], [1, 0, 1, 0, 1])
 
+        Check that :trac:`14638` is fixed::
+
+            sage: S = ClusterSeed(['E',6])
+            sage: MC = S.mutation_class(depth=7); len(MC)
+            534
+
         Infinite type examples::
 
             sage: S = ClusterSeed(['A',[1,1],1])
@@ -1270,7 +1276,7 @@ class ClusterSeed(SageObject):
                         else:
                             cl2 = tuple(sd2._cluster)
                         if cl2 in clusters:
-                            if i in clusters[cl2][1]:
+                            if not up_to_equivalence and i in clusters[cl2][1]:
                                 clusters[cl2][1].remove(i)
                         else:
                             gets_bigger = True

@@ -1194,9 +1194,6 @@ Alternatively, we could construct an interator on the counter-examples::
         [0 1]
         [1 1]
         <BLANKLINE>
-        [1 1]
-        [0 1]
-        <BLANKLINE>
         [1 0]
         [0 1]
         <BLANKLINE>
@@ -1204,7 +1201,11 @@ Alternatively, we could construct an interator on the counter-examples::
         [1 1]
         <BLANKLINE>
         [1 1]
+        [0 1]
+        <BLANKLINE>
+        [1 1]
         [1 0]
+        <BLANKLINE>
 
     ::
 

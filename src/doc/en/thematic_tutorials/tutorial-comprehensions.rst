@@ -335,14 +335,14 @@ one may iterate through their elements::
     [0 1]
     [1 1]
     <BLANKLINE>
-    [1 1]
-    [0 1]
-    <BLANKLINE>
     [1 0]
     [0 1]
     <BLANKLINE>
     [1 0]
     [1 1]
+    <BLANKLINE>
+    [1 1]
+    [0 1]
     <BLANKLINE>
     [1 1]
     [1 0]

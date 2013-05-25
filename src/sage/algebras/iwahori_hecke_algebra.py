@@ -49,7 +49,7 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
         sage: w0
         s1*s2*s3*s1*s2*s1
         sage: H.an_element()
-        s1*s2*s3 + 3*s1*s2 + 2*s1 + 1
+        s1*s2*s3*s1*s2*s1 + 2*s1*s2*s3*s1*s2 + 3*s1*s2*s3*s2*s1 + s1*s2*s3
 
     Iwahori Hecke algebras have proved to be fundamental. See for example:
 
@@ -204,8 +204,7 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
             sage: R.<q>=QQ[]
             sage: H = IwahoriHeckeAlgebraT("A2",q)
             sage: [H(x) for x in H.coxeter_group()]   # indirect doctest
-            [1, T1, T1*T2, T1*T2*T1, T2, T2*T1]
-
+            [T1*T2*T1, T1*T2, T2*T1, T1, T2, 1]
         """
         assert w in self.basis().keys()
         return self.monomial(w)

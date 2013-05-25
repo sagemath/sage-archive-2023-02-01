@@ -301,7 +301,7 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
         except StandardError:
             raise NotImplementedError, "reflections are only implemented for finite Weyl groups"
 
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES::
 
@@ -314,53 +314,6 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
                                                                            self._domain._name_string(capitalize=False,
                                                                                                       base_ring=False,
                                                                                                       type=False))
-
-
-    def list(self):
-        """
-        Returns a list of the elements of self.
-
-        EXAMPLES::
-
-            sage: G = WeylGroup(['A',1])
-            sage: G.list()
-            [
-            [1 0]  [0 1]
-            [0 1], [1 0]
-            ]
-
-            sage: G = WeylGroup(['A',3,1])
-            sage: G.list()
-            Traceback (most recent call last):
-              ...
-            NotImplementedError: infinite list
-
-        This overrides the implementation of MatrixGroup_gap.
-        Those seem typical timings (without the overriding):
-
-        #   sage: W = WeylGroup(["C",4])
-
-        #   sage: %time  len(W.list())
-            CPU times: user 7.63 s, sys: 0.60 s, total: 8.22 s
-            Wall time: 8.63 s
-
-        #    sage: %time  len([ x for x in W])
-            CPU times: user 3.23 s, sys: 0.09 s, total: 3.32 s
-            Wall time: 3.34 s
-
-        #    sage: %time  len(list(W))
-            CPU times: user 3.26 s, sys: 0.02 s, total: 3.28 s
-            Wall time: 3.29 s
-
-        Note: listing the matrices in GAP is much faster than the
-        timings above suggest; the slowness apparently comes from the
-        interface with GAP, and are therefore highly subject to
-        improvement.
-        """
-        if hasattr(self, "_list_from_iterator"):
-            return self._list_from_iterator()
-        else:
-            raise NotImplementedError, "infinite list"
 
     def character_table(self):
         """
@@ -680,7 +633,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
     """
     Class for a Weyl Group elements
     """
-    def __init__(self, g, parent):
+    def __init__(self, g, parent, check=False):
         """
         EXAMPLES::
 
@@ -688,7 +641,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
             sage: s1 = G.simple_reflection(1)
             sage: TestSuite(s1).run()
         """
-        MatrixGroupElement_gap.__init__(self, g, parent, check=False)
+        MatrixGroupElement_gap.__init__(self, g, parent, check=check)
         self.__matrix = self.matrix()
         self._parent = parent
 

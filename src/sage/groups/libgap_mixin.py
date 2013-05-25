@@ -443,6 +443,27 @@ class GroupMixinLibGAP(object):
         """
         return self(self.gap().Random())
 
+    def __iter__(self):
+        """
+        Iterate over the elements of the group.
+
+        EXAMPLES::
+
+            sage: F = GF(3)
+            sage: gens = [matrix(F,2, [1,0, -1,1]), matrix(F, 2, [1,1,0,1])]
+            sage: G = MatrixGroup(gens)
+            sage: iter(G).next()
+            [0 1]
+            [2 0]
+        """
+        if hasattr(self.list, 'get_cache') and self.list.get_cache() is not None:
+            for g in self.list():
+                yield g
+            return
+        iterator = self.gap().Iterator()
+        while not iterator.IsDoneIterator().sage():
+            yield self(iterator.NextIterator(), check=False)
+
     @cached_method
     def list(self):
         """
@@ -510,10 +531,10 @@ class GroupMixinLibGAP(object):
             sage: GL(2,ZZ).list()
             Traceback (most recent call last):
             ...
-            ValueError: group must be finite
+            NotImplementedError: group must be finite
         """
         if not self.is_finite():
-            raise ValueError('group must be finite')
+            raise NotImplementedError('group must be finite')
         elements = self.gap().Elements()
         return tuple(self(x, check=False) for x in elements)
 

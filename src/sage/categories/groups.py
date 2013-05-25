@@ -207,12 +207,12 @@ class Groups(Category_singleton):
                 sage: M.cayley_table()
                 *  a b c d e f
                  +------------
-                a| d c b a f e
-                b| e f a b c d
-                c| f e d c b a
-                d| a b c d e f
-                e| b a f e d c
-                f| c d e f a b
+                a| c e a f b d
+                b| d f b e a c
+                c| a b c d e f
+                d| b a d c f e
+                e| f d e b c a
+                f| e c f a d b
 
             ::
 

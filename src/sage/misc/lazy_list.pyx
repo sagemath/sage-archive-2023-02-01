@@ -29,6 +29,20 @@ EXAMPLES::
     0 -2
     sage: print i1.next(), i2.next()
     -2 -2
+
+It is possible to prepend a list to a lazy list::
+
+    sage: from itertools import count
+    sage: l = [3,7] + lazy_list(i**2 for i in count())
+    sage: l
+    lazy list [3, 7, 0, ...]
+
+But, naturally, not the other way around::
+
+    sage: lazy_list(i-1 for i in count()) + [3,2,5]
+    Traceback (most recent call last):
+    ...
+    TypeError: can only add list to lazy_list
 """
 
 # in types.pxd
@@ -430,6 +444,29 @@ cdef class lazy_list(object):
         print "start       ", self.start
         print "stop        ", self.stop
         print "step        ", self.step
+
+    def __add__(self, other):
+        r"""
+        If ``self`` is a list then return the lazy_list that consists of the
+        concatenation of ``self`` and ``other``.
+
+        TESTS::
+
+            sage: from sage.misc.lazy_list import lazy_list
+            sage: from itertools import count
+            sage: l = lazy_list(i**3 - i + 1 for i in count()); l
+            lazy list [1, 1, 7, ...]
+            sage: p = ['huit', 'douze']
+            sage: ll = p + l; ll
+            lazy list ['huit', 'douze', 1, ...]
+            sage: l[:10].list() == ll[2:12].list()
+            True
+            sage: p
+            ['huit', 'douze']
+        """
+        if isinstance(self, list):
+            return lazy_list(iter(other), cache=self[:])
+        raise TypeError("can only add list to lazy_list")
 
     def __repr__(self):
         r"""

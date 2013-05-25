@@ -2003,30 +2003,29 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             TESTS::
 
-                sage: from sage.combinat.root_system.plot import plot_expose
                 sage: L = RootSystem(["A",2]).ambient_space()
-                sage: plot_expose(L.plot_reflection_hyperplanes())
-                Line defined by 2 points: [(-1.73..., 3.0), (1.73..., -3.0)]
+                sage: L.plot_reflection_hyperplanes().describe()
                 Text '$H_{\alpha^\vee_{1}}$' at the point (-1.81...,3.15)
-                Line defined by 2 points: [(1.73..., 3.0), (-1.73..., -3.0)]
                 Text '$H_{\alpha^\vee_{2}}$' at the point (1.81...,3.15)
+                Line defined by 2 points: [(-1.73..., 3.0), (1.73..., -3.0)]
+                Line defined by 2 points: [(1.73..., 3.0), (-1.73..., -3.0)]
 
-                sage: plot_expose(L.plot_reflection_hyperplanes("all"))
-                Line defined by 2 points: [(-1.73..., 3.0), (1.73..., -3.0)]
-                Text '$H_{\alpha^\vee_{1}}$' at the point (-1.81...,3.15)
-                Line defined by 2 points: [(1.73..., 3.0), (-1.73..., -3.0)]
-                Text '$H_{\alpha^\vee_{2}}$' at the point (1.81...,3.15)
-                Line defined by 2 points: [(3.0, 0.0), (-3.0, 0.0)]
+                sage: L.plot_reflection_hyperplanes("all").describe()
                 Text '$H_{\alpha^\vee_{1} + \alpha^\vee_{2}}$' at the point (3.15,0.0)
+                Text '$H_{\alpha^\vee_{1}}$' at the point (-1.81...,3.15)
+                Text '$H_{\alpha^\vee_{2}}$' at the point (1.81...,3.15)
+                Line defined by 2 points: [(-1.73..., 3.0), (1.73..., -3.0)]
+                Line defined by 2 points: [(1.73..., 3.0), (-1.73..., -3.0)]
+                Line defined by 2 points: [(3.0, 0.0), (-3.0, 0.0)]
 
                 sage: L = RootSystem(["A",2,1]).ambient_space()
-                sage: plot_expose(L.plot_reflection_hyperplanes())
-                Line defined by 2 points: [(3.0, 0.86...), (-3.0, 0.86...)]
+                sage: L.plot_reflection_hyperplanes().describe()
                 Text '$H_{\alpha^\vee_{0}}$' at the point (3.15,0.90...)
-                Line defined by 2 points: [(-1.73..., 3.0), (1.73..., -3.0)]
                 Text '$H_{\alpha^\vee_{1}}$' at the point (-1.81...,3.15)
-                Line defined by 2 points: [(1.73..., 3.0), (-1.73..., -3.0)]
                 Text '$H_{\alpha^\vee_{2}}$' at the point (1.81...,3.15)
+                Line defined by 2 points: [(-1.73..., 3.0), (1.73..., -3.0)]
+                Line defined by 2 points: [(1.73..., 3.0), (-1.73..., -3.0)]
+                Line defined by 2 points: [(3.0, 0.86...), (-3.0, 0.86...)]
 
             .. TODO:: Provide an option for transparency?
             """
@@ -2082,19 +2081,18 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             TESTS::
 
-                sage: from sage.combinat.root_system.plot import plot_expose
                 sage: L = RootSystem(["B",2]).ambient_space()
-                sage: plot_expose(L.plot_hedron())
+                sage: L.plot_hedron().describe()
+                Polygon defined by 8 points: [(1.5, 0.5), (0.5, 1.5), (-0.5, 1.5), (-1.5, 0.5), (-1.5, -0.5), (-0.5, -1.5), (0.5, -1.5), (1.5, -0.5)]
+                Line defined by 2 points: [(-0.5, -1.5), (0.5, -1.5)]
+                Line defined by 2 points: [(-0.5, 1.5), (0.5, 1.5)]
+                Line defined by 2 points: [(-1.5, -0.5), (-0.5, -1.5)]
+                Line defined by 2 points: [(-1.5, -0.5), (-1.5, 0.5)]
+                Line defined by 2 points: [(-1.5, 0.5), (-0.5, 1.5)]
+                Line defined by 2 points: [(0.5, -1.5), (1.5, -0.5)]
+                Line defined by 2 points: [(0.5, 1.5), (1.5, 0.5)]
+                Line defined by 2 points: [(1.5, -0.5), (1.5, 0.5)]
                 Point set defined by 8 point(s): [(-1.5, -0.5), (-1.5, 0.5), (-0.5, -1.5), (-0.5, 1.5), (0.5, -1.5), (0.5, 1.5), (1.5, -0.5), (1.5, 0.5)]
-                Line defined by 2 points:        [(-1.5, -0.5), (-1.5, 0.5)]
-                Line defined by 2 points:        [(-1.5, -0.5), (-0.5, -1.5)]
-                Line defined by 2 points:        [(-1.5, 0.5), (-0.5, 1.5)]
-                Line defined by 2 points:        [(-0.5, -1.5), (0.5, -1.5)]
-                Line defined by 2 points:        [(-0.5, 1.5), (0.5, 1.5)]
-                Line defined by 2 points:        [(0.5, -1.5), (1.5, -0.5)]
-                Line defined by 2 points:        [(0.5, 1.5), (1.5, 0.5)]
-                Line defined by 2 points:        [(1.5, -0.5), (1.5, 0.5)]
-                Polygon defined by 8 points:     [(1.5, 0.5), (0.5, 1.5), (-0.5, 1.5), (-1.5, 0.5), (-1.5, -0.5), (-0.5, -1.5), (0.5, -1.5), (1.5, -0.5)]
             """
             from sage.geometry.polyhedron.all import Polyhedron
             plot_options = self.plot_parse_options(**options)
@@ -2141,12 +2139,11 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             TESTS::
 
-                sage: from sage.combinat.root_system.plot import plot_expose
                 sage: L = RootSystem(["B",2,1]).ambient_space()
-                sage: plot_expose(L.plot_fundamental_chamber())
+                sage: L.plot_fundamental_chamber().describe()
                 Polygon defined by 3 points:     [(0.5, 0.5), (1.0, 0.0), (0.0, 0.0)]
 
-                sage: plot_expose(L.plot_fundamental_chamber(style="classical"))
+                sage: L.plot_fundamental_chamber(style="classical").describe()
                 Polygon defined by 3 points:     [(0.0, 0.0), (3.0, 3.0), (3.0, 0.0)]
             """
             plot_options = self.plot_parse_options(**options)
@@ -2206,21 +2203,20 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             TESTS::
 
-                sage: from sage.combinat.root_system.plot import plot_expose
                 sage: L = RootSystem(["A",2,1]).weight_space()
-                sage: plot_expose(L.plot_alcoves(alcoves=[[0,0]]))
-                Line defined by 2 points: [(0.0, 1.0), (1.0, 0.0)]
-                Line defined by 2 points: [(0.0, 1.0), (0.0, 0.0)]
-                Line defined by 2 points: [(1.0, 0.0), (0.0, 0.0)]
-                Line defined by 2 points: [(0.0, 1.0), (-1.0, 1.0)]
-                Line defined by 2 points: [(-1.0, 1.0), (0.0, 0.0)]
-                Line defined by 2 points: [(-1.0, 1.0), (-1.0, 0.0)]
-                Line defined by 2 points: [(0.0, 0.0), (-1.0, 0.0)]
+                sage: L.plot_alcoves(alcoves=[[0,0]]).describe()
                 Line defined by 2 points: [(-1.0, 0.0), (0.0, -1.0)]
-                Line defined by 2 points: [(1.0, 0.0), (1.0, -1.0)]
-                Line defined by 2 points: [(0.0, 0.0), (1.0, -1.0)]
-                Line defined by 2 points: [(1.0, -1.0), (0.0, -1.0)]
+                Line defined by 2 points: [(-1.0, 1.0), (-1.0, 0.0)]
+                Line defined by 2 points: [(-1.0, 1.0), (0.0, 0.0)]
+                Line defined by 2 points: [(0.0, 0.0), (-1.0, 0.0)]
                 Line defined by 2 points: [(0.0, 0.0), (0.0, -1.0)]
+                Line defined by 2 points: [(0.0, 0.0), (1.0, -1.0)]
+                Line defined by 2 points: [(0.0, 1.0), (-1.0, 1.0)]
+                Line defined by 2 points: [(0.0, 1.0), (0.0, 0.0)]
+                Line defined by 2 points: [(0.0, 1.0), (1.0, 0.0)]
+                Line defined by 2 points: [(1.0, -1.0), (0.0, -1.0)]
+                Line defined by 2 points: [(1.0, 0.0), (0.0, 0.0)]
+                Line defined by 2 points: [(1.0, 0.0), (1.0, -1.0)]
             """
             plot_options = self.plot_parse_options(**options)
             if not hasattr(self, "fundamental_weights"):
@@ -2425,26 +2421,25 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             TESTS::
 
-                sage: from sage.combinat.root_system.plot import plot_expose
                 sage: L = RootSystem(["A",2,1]).weight_space()
                 sage: p = L.plot_alcove_walk([0,1,2,0,2,0,1,2,0,1],
                 ...                          foldings = [False, False, True, False, False, False, True, False, True, False],
                 ...                          color="green",
                 ...                          start=L.rho())
-                sage: plot_expose(p)
-                Arrow from (1.0,1.0) to (2.0,2.0)
-                Arrow from (2.0,2.0) to (1.0,4.0)
-                Line defined by 2 points: [(1.0, 4.0), (1.5, 4.5)]
-                Arrow from (1.5,4.5) to (1.0,4.0)
-                Arrow from (1.0,4.0) to (-1.0,5.0)
-                Arrow from (-1.0,5.0) to (-2.0,7.0)
-                Arrow from (-2.0,7.0) to (-1.0,8.0)
+                sage: p.describe()
                 Line defined by 2 points: [(-1.0, 8.0), (-1.5, 9.0)]
-                Arrow from (-1.5,9.0) to (-1.0,8.0)
-                Arrow from (-1.0,8.0) to (1.0,7.0)
+                Line defined by 2 points: [(1.0, 4.0), (1.5, 4.5)]
                 Line defined by 2 points: [(1.0, 7.0), (1.5, 6.0)]
-                Arrow from (1.5,6.0) to (1.0,7.0)
+                Arrow from (-1.0,5.0) to (-2.0,7.0)
+                Arrow from (-1.0,8.0) to (1.0,7.0)
+                Arrow from (-1.5,9.0) to (-1.0,8.0)
+                Arrow from (-2.0,7.0) to (-1.0,8.0)
+                Arrow from (1.0,1.0) to (2.0,2.0)
+                Arrow from (1.0,4.0) to (-1.0,5.0)
                 Arrow from (1.0,7.0) to (2.0,8.0)
+                Arrow from (1.5,4.5) to (1.0,4.0)
+                Arrow from (1.5,6.0) to (1.0,7.0)
+                Arrow from (2.0,2.0) to (1.0,4.0)
             """
             from sage.plot.line import line
             from sage.plot.arrow import arrow

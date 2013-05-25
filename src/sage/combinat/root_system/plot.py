@@ -1089,10 +1089,9 @@ class PlotOptions:
 
         TESTS::
 
-            sage: from sage.combinat.root_system.plot import plot_expose
-            sage: plot_expose(H)
-            Line defined by 2 points: [(0.0, 3.0), (0.0, -3.0)]
+            sage: H.describe()
             Text '$H_{\alpha^\vee_{1}}$' at the point (0.0,3.15)
+            Line defined by 2 points: [(0.0, 3.0), (0.0, -3.0)]
 
         ::
 
@@ -1138,27 +1137,6 @@ class PlotOptions:
             text_label = "$H_{%s}$"%(latex(label))
         return self.cone(lines = basis, color = self.color(label), label=text_label,
                          as_polyhedron=as_polyhedron)
-
-def plot_expose(graphic_object):
-    r"""
-    Print some data on a 2D graphic objects for testing purposes.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.root_system.plot import plot_expose
-        sage: plot_expose(polytopes.n_cube(2).plot())
-        Point set defined by 4 point(s): [(-1.0, -1.0), (-1.0, 1.0), (1.0, -1.0), (1.0, 1.0)]
-        Line defined by 2 points: [(-1.0, -1.0), (-1.0, 1.0)]
-        Line defined by 2 points: [(-1.0, -1.0), (1.0, -1.0)]
-        Line defined by 2 points: [(-1.0, 1.0), (1.0, 1.0)]
-        Line defined by 2 points: [(1.0, -1.0), (1.0, 1.0)]
-        Polygon defined by 4 points: [(1.0, 1.0), (-1.0, 1.0), (-1.0, -1.0), (1.0, -1.0)]
-    """
-    for g in graphic_object:
-        if hasattr(g, "xdata"):
-            print "%s:\t%s"%(g, zip(g.xdata, g.ydata))
-        else:
-            print g
 
 
 @cached_function

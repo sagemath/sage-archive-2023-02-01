@@ -2688,6 +2688,34 @@ class Graphics(SageObject):
                 figure.savefig(filename, dpi=dpi,
                            transparent=transparent)
 
+    def describe(self):
+        r"""
+        Print a textual description to stdout.
+
+        This method is mostly used for doctests.
+
+        EXAMPLES::
+
+            sage: polytopes.n_cube(2).plot().describe()
+            Polygon defined by 4 points: [(1.0, 1.0), (-1.0, 1.0), (-1.0, -1.0), (1.0, -1.0)]
+            Line defined by 2 points: [(-1.0, -1.0), (-1.0, 1.0)]
+            Line defined by 2 points: [(-1.0, -1.0), (1.0, -1.0)]
+            Line defined by 2 points: [(-1.0, 1.0), (1.0, 1.0)]
+            Line defined by 2 points: [(1.0, -1.0), (1.0, 1.0)]
+            Point set defined by 4 point(s): [(-1.0, -1.0), (-1.0, 1.0), (1.0, -1.0), (1.0, 1.0)]
+        """
+        data = []
+        for g in self:
+            g_zorder = g.options().get('zorder', 0)
+            if hasattr(g, 'xdata'):
+                g_str = '{0}:\t{1}'.format(g, zip(g.xdata, g.ydata))
+            else:
+                g_str = repr(g)
+            data.append([g_zorder, g_str, g])
+        data.sort()
+        for g in data:
+            print g[1]
+
 
 class GraphicsArray(SageObject):
     """

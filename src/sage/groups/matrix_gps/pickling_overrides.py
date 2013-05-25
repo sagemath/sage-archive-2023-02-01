@@ -85,6 +85,21 @@ register_unpickle_override(
 class LegacyGeneralLinearGroup(LinearMatrixGroup_generic):
 
     def __setstate__(self, state):
+        """
+        Restore from old pickle
+
+        EXAMPLES::
+
+            sage: from sage.groups.group import Group
+            sage: from sage.groups.matrix_gps.pickling_overrides import *
+            sage: state = dict()
+            sage: state['_MatrixGroup_gap__n'] = 2
+            sage: state['_MatrixGroup_gap__R'] = ZZ
+            sage: M = Group.__new__(LegacyGeneralLinearGroup)
+            sage: M.__setstate__(state)
+            sage: M
+            General Linear Group of degree 2 over Integer Ring
+        """
         ring = state['_MatrixGroup_gap__R']
         n = state['_MatrixGroup_gap__n']
         G = GL(n, ring)
@@ -94,4 +109,3 @@ class LegacyGeneralLinearGroup(LinearMatrixGroup_generic):
 register_unpickle_override(
     'sage.groups.matrix_gps.general_linear', 'GeneralLinearGroup_finite_field',
     LegacyGeneralLinearGroup)
-

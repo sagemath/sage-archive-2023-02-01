@@ -1,4 +1,6 @@
 r"""
+Library of Interesting Groups
+
 Type ``groups.matrix.<tab>`` to access examples
 of groups implemented as permutation groups.
 """

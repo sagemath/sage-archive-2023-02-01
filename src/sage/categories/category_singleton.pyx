@@ -110,9 +110,9 @@ class Category_singleton(Category):
 
         sage: from sage.categories.category_singleton import Category_singleton
         sage: class MyRings(Category):
-        ...        super_categories = Rings.__dict__['super_categories']
+        ....:         super_categories = Rings.__dict__['super_categories']
         sage: class MyRingsSingleton(Category_singleton):
-        ...        super_categories = Rings.__dict__['super_categories']
+        ....:         super_categories = Rings.__dict__['super_categories']
 
     We create three rings. One of them is contained in the usual category of
     rings, one in the category of "my rings" and the third in the category of
@@ -189,7 +189,7 @@ class Category_singleton(Category):
         :class:`Category_singleton` are supported::
 
             sage: class MyRingsSingleton(Category_singleton):
-            ...        super_categories = Rings.__dict__['super_categories']
+            ....:         super_categories = Rings.__dict__['super_categories']
             sage: class Disaster(MyRingsSingleton): pass
             sage: Disaster()
             Traceback (most recent call last):
@@ -205,7 +205,7 @@ class Category_singleton(Category):
 
             sage: from sage.categories.category_singleton import Category_singleton
             sage: class R(Category_singleton):
-            ...       def super_categories(self): return [Sets()]
+            ....:        def super_categories(self): return [Sets()]
             sage: R()
             Category of r
             sage: R().__class__
@@ -251,7 +251,7 @@ class Category_singleton(Category):
 
             sage: from sage.categories.category_singleton import Category_singleton
             sage: class MyRingsSingleton(Category_singleton):
-            ...        super_categories = Rings.__dict__['super_categories']
+            ....:         super_categories = Rings.__dict__['super_categories']
             sage: MyRingsSingleton()
             Category of my rings singleton
 
@@ -266,7 +266,7 @@ class Category_singleton(Category):
         also triggers an assertion error::
 
             sage: class MyStuff(Category_singleton):
-            ...       def super_categories(self): return [Sets()]
+            ....:        def super_categories(self): return [Sets()]
             sage: class MySubStuff(MyStuff): pass
             sage: MySubStuff()
             Traceback (most recent call last):
@@ -296,7 +296,7 @@ class Category_singleton(Category):
 
             sage: from sage.categories.category_singleton import Category_singleton
             sage: class MyRingsSingleton(Category_singleton):
-            ...        super_categories = Rings.__dict__['super_categories']
+            ....:         super_categories = Rings.__dict__['super_categories']
             sage: ZZ in MyRingsSingleton()
             False
             sage: Parent(category=MyRingsSingleton()) in MyRingsSingleton()

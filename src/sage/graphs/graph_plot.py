@@ -79,14 +79,15 @@ __doc__ += """
 
 This module defines two dictionaries containing default options for the
 :meth:`GenericGraph.plot` and :meth:`GenericGraph.show` methods. These two
-dictionaries are ``sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS`` and
-``sage.graphs.graph_plot.DEFAULT_PLOT_OPTIONS``.
+dictionaries are ``sage.graphs.graph_plot.DEFAULT_PLOT_OPTIONS`` and
+``sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS``, respectively.
 
-Obviously, these values are overruled when arguments are given explicitely.
+
+Obviously, these values are overruled when arguments are given explicitly.
 
 Here is how to define the default size of a graph drawing to be ``[6,6]``. The
 first two calls to :meth:`~sage.graphs.generic_graph.show` use this option,
-while the third does not (a value for ``figsize`` is explicitely given)::
+while the third does not (a value for ``figsize`` is explicitly given)::
 
     sage: sage.graphs.graph_plot.DEFAULT_SHOW_OPTIONS['figsize'] = [6,6]
     sage: graphs.PetersenGraph().show() # long time
@@ -209,39 +210,15 @@ class GraphPlot(SageObject):
             sage: g = Graph({0:[1,2], 2:[3], 4:[0,1]})
             sage: GP = GraphPlot(g, options)
 
-        TESTS::
-
-            sage: g = graphs.CompleteGraph(2); g.show()
-
-        Wrong input::
-
-            sage: graphs.PetersenGraph().plot(kujhfuhf="23")
-            doctest:...: DeprecationWarning: You provided kujhfuhf as an
-            argument to a function which has always silently ignored its
-            inputs. This method may soon be updated so that the method raises an
-            exception instead of this warning, which will break your code : to
-            be on the safe side, update it !
-            ...
         """
         # Setting the default values if needed
         for k,value in DEFAULT_PLOT_OPTIONS.iteritems():
             if k not in options:
                 options[k] = value
-
-        for opt in options:
-            if not opt in graphplot_options:
-                from sage.misc.superseded import deprecation
-                deprecation(13891, ("You provided "+str(opt)+" as an argument to a "
-                                    "function which has always silently ignored "
-                                    "its inputs. This method may soon be updated "
-                                    "so that the method raises an exception "
-                                    "instead of this warning, which will break "
-                                    "your code : to be on the safe side, update it !"))
-
         self._plot_components = {}
         self._nodelist = graph.vertices()
         self._graph = graph
-        self._options = options
+        self._options = options # contains both plot and show options
         self.set_pos()
         self._arcs = self._graph.has_multiple_edges(to_undirected=True)
         self._loops = self._graph.has_loops()
@@ -722,7 +699,8 @@ class GraphPlot(SageObject):
         INPUT:
 
         The options accepted by this method are to be found in the documentation
-        of module :mod:`sage.graphs.graph_plot`.
+        of the :mod:`sage.graphs.graph_plot` module, and the
+        :meth:`~sage.plot.plot.Graphics.show` method.
 
         .. NOTE::
 
@@ -863,21 +841,31 @@ class GraphPlot(SageObject):
             ...     (0,1,'e'),(0,1,'f'),(0,1,'f'),(2,1,'g'),(2,2,'h')])
             sage: g.graphplot(edge_labels=True, color_by_label=True, edge_style='dashed').plot()
 
-        Wrong input (any input) :trac:`13891`::
+        TESTS:
 
-            sage: graphs.PetersenGraph().graphplot().plot(aertataert=346345345)
-            doctest:...: DeprecationWarning: This method takes no argument ! You may want to give it as an argument to graphplot instead.
-            See http://trac.sagemath.org/13891 for details.
-            <BLANKLINE>
+        Make sure that show options work with plot also::
+
+            sage: g = Graph({})
+            sage: g.plot(title='empty graph', axes=True)
+
+        Check for invalid inputs::
+
+            sage: p = graphs.PetersenGraph().plot(egabrag='garbage')
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid input 'egabrag=garbage'
+
         """
-        # This method takes NO input
-        # This has been added in early 2013. Remove it before my death, please.
-        if kwds:
-            from sage.misc.superseded import deprecation
-            deprecation(13891, "This method takes no argument ! You may want "
-                               "to give it as an argument to graphplot instead.")
-
         G = Graphics()
+        options = self._options.copy()
+        options.update(kwds)
+        G._set_extra_kwds(Graphics._extract_kwds_for_show(options))
+
+        # Check the arguments
+        for o in options:
+            if o not in graphplot_options and o not in G._extra_kwds:
+                raise ValueError("Invalid input '{}={}'".format(o, options[o]))
+
         for comp in self._plot_components.values():
             if not isinstance(comp, list):
                 G += comp

@@ -172,7 +172,8 @@ __append_to_doc(
      "line_graph_forbidden_subgraphs",
      "PermutationGraph",
      "SymplecticGraph",
-     "trees"])
+     "trees",
+     "fullerenes"])
 
 __doc__ += """
 **Chessboard graphs**
@@ -275,6 +276,8 @@ AUTHORS:
 
 - David Coudert (2012-08-02): added chessboard graphs: Queen, King,
   Knight, Bishop, and Rook graphs
+
+- Nico Van Cleemput (2013-05-26): added fullerenes
 
 Functions and methods
 ---------------------
@@ -904,6 +907,155 @@ class GraphGenerators():
                 cospectral_graphs.append(g_list)
 
         return cospectral_graphs
+
+    def fullerenes(self, order, ipr=False):
+        r"""
+        Returns a generator which creates fullerene graphs using
+        the buckygen generator (see [buckygen]_).
+
+        INPUT:
+
+        - ``order`` - a positive even integer smaller than or equal to 300.
+          This specifies the number of vertices in the generated fullerenes.
+
+        - ``ipr`` - default: ``False`` - if ``True`` only fullerenes that
+          satisfy the Isolated Pentagon Rule are generated. This means that
+          no pentagonal faces share an edge.
+
+        OUTPUT:
+
+        A generator which will produce the fullerene graphs as Sage graphs
+        with an embedding set. These will be simple graphs: no loops, no
+        multiple edges, no directed edges.
+
+        EXAMPLES:
+
+        There are 1812 isomers of `\textrm{C}_60`, i.e., 1812 fullerene graphs
+        on 60 vertices:  ::
+
+            sage: gen = graphs.fullerenes(60)  # optional buckygen
+            sage: len(list(gen))  # optional buckygen
+            1812
+
+        However, there is only one IPR fullerene graph on 60 vertices: the famous
+        Buckminster Fullerene:  ::
+
+            sage: gen = graphs.fullerenes(60, ipr=True)  # optional buckygen
+            sage: gen.next()  # optional buckygen
+            Graph on 60 vertices
+            sage: gen.next()  # optional buckygen
+            Traceback (most recent call last):
+            ...
+            StopIteration: Exhausted list of graphs from buckygen
+
+        The unique fullerene graph on 20 vertices is isomorphic to the dodecahedron
+        graph. ::
+
+            sage: gen = graphs.fullerenes(20)  # optional buckygen
+            sage: g = gen.next()  # optional buckygen
+            sage: g.get_embedding()  # optional buckygen
+            {1: [2, 3, 4],
+             2: [1, 5, 6],
+             3: [1, 7, 8],
+             4: [1, 9, 10],
+             5: [2, 10, 11],
+             6: [2, 12, 7],
+             7: [3, 6, 13],
+             8: [3, 14, 9],
+             9: [4, 8, 15],
+             10: [4, 16, 5],
+             11: [5, 17, 12],
+             12: [6, 11, 18],
+             13: [7, 18, 14],
+             14: [8, 13, 19],
+             15: [9, 19, 16],
+             16: [10, 15, 17],
+             17: [11, 16, 20],
+             18: [12, 20, 13],
+             19: [14, 20, 15],
+             20: [17, 19, 18]}
+            sage: g.plot3d(layout='spring')  # optional buckygen
+
+        REFERENCE:
+
+        .. [buckygen] G. Brinkmann, J. Goedgebeur and B.D. McKay, Generation of Fullerenes,
+          Journal of Chemical Information and Modeling, 52(11):2910-2918, 2012.
+        """
+        from sage.misc.package import is_package_installed
+        if not is_package_installed("buckygen"):
+            raise TypeError, "the optional buckygen package is not installed"
+
+        #number of vertices should be positive
+        if order < 0:
+            raise ValueError("Number of vertices should be positive 20.")
+        #buckygen can only handle fullerenes on up to 300 vertices
+        if order > 300:
+            raise ValueError("Number of vertices should be at most 300.")
+        #fullerenes only exist for an even number of vertices
+        if order % 2 == 1:
+            raise ValueError("Number of vertices should be even.")
+
+        #fullerenes only exist for numbers larger than 20 and different from 22
+        if order < 20 or order == 22:
+            raise StopIteration("Exhausted list of graphs from buckygen")
+
+        if ipr:
+            command = 'buckygen -Id {0}d'.format(order)
+        else:
+            command = 'buckygen -d {0}d'.format(order)
+
+        import subprocess
+        sp = subprocess.Popen(command, shell=True,
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE, close_fds=True)
+        out = sp.stdout
+
+        #start of code to read planar code
+
+        #read header
+        header = out.read(13)
+
+        assert header == '>>planar_code', 'Not a valid planar code header'
+
+        c = out.read(1)
+
+        while c != '<':
+            c = out.read(1)
+
+        #one more character to read full header
+        c = out.read(1)
+
+        #read graph per graph
+        c = out.read(1)
+        while True:
+            if len(c)==0:
+                raise StopIteration("Exhausted list of graphs from buckygen")
+            order = ord(c)
+
+            zeroCount = 0
+
+            l = []
+            g = {}
+
+            while zeroCount < order:
+                c = out.read(1)
+                if ord(c)==0:
+                    zeroCount += 1
+                    g[zeroCount] = l
+                    l = []
+                else:
+                    l.append(ord(c))
+
+            #construct graph based on g
+            G = graph.Graph(g)
+            G.set_embedding(g)
+            yield(G)
+
+
+            #prepare for next graph
+            g = {}
+
+            c = out.read(1)
 
 ###########################################################################
 # Chessboard graphs

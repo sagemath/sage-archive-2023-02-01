@@ -32,6 +32,10 @@ in the src directory.
 
 == Changelog ==
 
+=== pynac-0.3.0 (Burcin Erocal, 27 May 2013) ===
+ * Trac #9880: update to version 0.3.0
+ * Fix comparison functions so that they provide a SWO
+
 === pynac-0.2.6 (Jean-Pierre Flori, 21 November 2012) ===
  * Trac #13729: update to version 0.2.6.
  * Trac #13609: normalization of content in GF(2^k) leads to infinite loop.

@@ -928,9 +928,15 @@ class GraphGenerators():
         with an embedding set. These will be simple graphs: no loops, no
         multiple edges, no directed edges.
 
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.set_embedding`,
+              :meth:`~sage.graphs.generic_graph.GenericGraph.get_embedding` --
+              get/set methods for embeddings.
+
         EXAMPLES:
 
-        There are 1812 isomers of `\textrm{C}_60`, i.e., 1812 fullerene graphs
+        There are 1812 isomers of `\textrm{C}_{60}`, i.e., 1812 fullerene graphs
         on 60 vertices:  ::
 
             sage: gen = graphs.fullerenes(60)  # optional buckygen
@@ -946,13 +952,15 @@ class GraphGenerators():
             sage: gen.next()  # optional buckygen
             Traceback (most recent call last):
             ...
-            StopIteration: Exhausted list of graphs from buckygen
+            StopIteration
 
         The unique fullerene graph on 20 vertices is isomorphic to the dodecahedron
         graph. ::
 
             sage: gen = graphs.fullerenes(20)  # optional buckygen
             sage: g = gen.next()  # optional buckygen
+            sage: g.is_isomorphic(graphs.DodecahedralGraph()) # optional buckygen
+            True
             sage: g.get_embedding()  # optional buckygen
             {1: [2, 3, 4],
              2: [1, 5, 6],
@@ -983,26 +991,22 @@ class GraphGenerators():
         """
         from sage.misc.package import is_package_installed
         if not is_package_installed("buckygen"):
-            raise TypeError, "the optional buckygen package is not installed"
+            raise TypeError("the optional buckygen package is not installed")
 
-        #number of vertices should be positive
+        # number of vertices should be positive
         if order < 0:
-            raise ValueError("Number of vertices should be positive 20.")
-        #buckygen can only handle fullerenes on up to 300 vertices
+            raise ValueError("Number of vertices should be positive.")
+
+        # buckygen can only handle fullerenes on up to 300 vertices
         if order > 300:
             raise ValueError("Number of vertices should be at most 300.")
-        #fullerenes only exist for an even number of vertices
-        if order % 2 == 1:
-            raise ValueError("Number of vertices should be even.")
 
-        #fullerenes only exist for numbers larger than 20 and different from 22
-        if order < 20 or order == 22:
-            raise StopIteration("Exhausted list of graphs from buckygen")
+        # fullerenes only exist for an even number of vertices, larger than 20
+        # and different from 22
+        if order % 2 == 1 or order < 20 or order == 22:
+            return
 
-        if ipr:
-            command = 'buckygen -Id {0}d'.format(order)
-        else:
-            command = 'buckygen -d {0}d'.format(order)
+        command = 'buckygen -'+('I' if ipr else '')+'d {0}d'.format(order)
 
         import subprocess
         sp = subprocess.Popen(command, shell=True,
@@ -1012,50 +1016,42 @@ class GraphGenerators():
 
         #start of code to read planar code
 
-        #read header
-        header = out.read(13)
-
-        assert header == '>>planar_code', 'Not a valid planar code header'
-
-        c = out.read(1)
-
-        while c != '<':
-            c = out.read(1)
-
-        #one more character to read full header
-        c = out.read(1)
+        header = out.read(15)
+        assert header == '>>planar_code<<', 'Not a valid planar code header'
 
         #read graph per graph
-        c = out.read(1)
         while True:
+            c = out.read(1)
             if len(c)==0:
-                raise StopIteration("Exhausted list of graphs from buckygen")
+                return
+
+            # Each graph is stored in the following way :
+            #
+            # The first character is the number of vertices, followed by
+            # n11,...,n1k,null character,n21,...,n2k',null character, ...
+            #
+            # where the n1* are all neighbors of n1 and all n2* are the
+            # neighbors of n2, ...
+            #
+            # Besides, these neighbors are enumerated in clockwise order.
             order = ord(c)
 
             zeroCount = 0
 
-            l = []
-            g = {}
+            g = [[] for i in range(order)]
 
             while zeroCount < order:
                 c = out.read(1)
                 if ord(c)==0:
                     zeroCount += 1
-                    g[zeroCount] = l
-                    l = []
                 else:
-                    l.append(ord(c))
+                    g[zeroCount].append(ord(c))
 
             #construct graph based on g
+            g = {i+1:di for i,di in enumerate(g)}
             G = graph.Graph(g)
             G.set_embedding(g)
             yield(G)
-
-
-            #prepare for next graph
-            g = {}
-
-            c = out.read(1)
 
 ###########################################################################
 # Chessboard graphs

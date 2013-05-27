@@ -17,6 +17,7 @@ test.spyx
 --ecl
 --experimental
 --gap
+--gdb
 --gp
 -h
 --help
@@ -461,6 +462,12 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: err.replace('gap: halving pool size.', '').strip()
         ''
         sage: ret
+        0
+
+        sage: (out, err, ret) = test_executable(["sage", "--gdb"], 'quit\n')  # optional - gdb
+        sage: out.find('(gdb) ') >= 0  # optional - gdb
+        True
+        sage: ret  # optional - gdb
         0
 
         sage: (out, err, ret) = test_executable(["sage", "--kash", "-b", "3^33;\n"])  # optional - kash

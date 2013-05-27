@@ -510,6 +510,7 @@ if not sdist:
 
     from Cython.Build import cythonize
     import Cython.Compiler.Options
+    import Cython.Compiler.Main
 
     # Sage uses these directives (mostly for historical reasons).
     Cython.Compiler.Options.embed_pos_in_docstring = True
@@ -520,6 +521,10 @@ if not sdist:
     # but Sage relies on the broken behavior of returning to the nearest
     # enclosing Python scope (e.g. to perform variable injection).
     Cython.Compiler.Options.old_style_globals = True
+
+    if os.environ.get('SAGE_DEBUG', None) != 'no':
+        Cython.Compiler.Main.default_options['gdb_debug'] = True
+        Cython.Compiler.Main.default_options['output_dir'] = 'build'
 
     force = True
     version_file = os.path.join(os.path.dirname(__file__), '.cython_version')

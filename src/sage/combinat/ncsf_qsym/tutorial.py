@@ -49,6 +49,7 @@ names. ::
     Injecting M as shorthand for Quasisymmetric functions over the Rational Field in the Monomial basis
     Injecting F as shorthand for Quasisymmetric functions over the Rational Field in the Fundamental basis
     Injecting dI as shorthand for Quasisymmetric functions over the Rational Field in the dualImmaculate basis
+    Injecting QS as shorthand for Quasisymmetric functions over the Rational Field in the Quasisymmetric Schur basis
 
 Now one can start constructing quasisymmetric functions.
 

@@ -11,6 +11,8 @@ AUTHORS:
 
 - Jeroen Demeyer (2011-05-06): Make cliquer interruptible (#11252)
 
+- Nico Van Cleemput (2013-05-27): Handle the empty graph (#14525)
+
 REFERENCE:
 
 .. [NisOst2003] Sampo Niskanen and Patric R. J. Ostergard,
@@ -56,7 +58,7 @@ def max_clique(graph):
         []
     """
     if graph.order() == 0:
-        return graph.vertices()
+        return []
 
     graph,d = graph.relabel(inplace=False, return_map=True)
     d_inv = {}
@@ -124,7 +126,15 @@ def all_max_clique(graph):
         sage: C = Graph('DJ{')
         sage: C.cliques_maximum()
         [[1, 2, 3, 4]]
+
+    TEST::
+
+        sage: g = Graph()
+        sage: g.cliques_maximum()
+        [[]]
     """
+    if graph.order() == 0:
+        return [[]]
 
     graph,d = graph.relabel(inplace=False, return_map=True)
     d_inv = {}
@@ -181,7 +191,16 @@ def clique_number(graph):
         sage: G.show(figsize=[2,2])
         sage: clique_number(G)
         3
+
+    TEST::
+
+        sage: g = Graph()
+        sage: g.clique_number()
+        0
     """
+    if graph.order() == 0:
+        return 0
+
     graph=graph.relabel(inplace=False)
     cdef graph_t *g
     g=graph_new(graph.order())

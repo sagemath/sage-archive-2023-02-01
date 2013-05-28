@@ -637,6 +637,7 @@ ext_modules = [
               libraries = ['gmp', 'mpfr', 'stdc++', 'fplll'],
               language="c++",
               include_dirs = [SAGE_INC + '/fplll'],
+              extra_compile_args=["-DFPLLL_V3_COMPAT"],
               depends = [SAGE_INC + "/fplll/fplll.h"]),
 
     Extension('sage.libs.linbox.linbox',

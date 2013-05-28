@@ -15,8 +15,8 @@ the packages that come with Sage (e.g., Singular).
 
 The Sage distribution includes most programs on which Sage depends --
 see a partial list below. These programs are all released under a
-GPL-compatible license (see the COPYING.txt file in the Sage home
-directory for more details).
+license compatible with the GNU General Public License (GPL), version 3.
+See the COPYING.txt file in the Sage root directory for more details.
 
 Here is a list of some of the software included with Sage:
 
@@ -139,7 +139,4 @@ Here is a list of some of the software included with Sage:
 
 * zlib: zlib compression library
 
-* zn_poly: C library for polynomial arithmetic in Z/nZ[x]
-
-* ZODB: Zope Object Database
-
+* zn_poly: C library for polynomial arithmetic in `\ZZ/n\ZZ[x]`

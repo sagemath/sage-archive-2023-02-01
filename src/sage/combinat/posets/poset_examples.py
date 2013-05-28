@@ -296,6 +296,38 @@ class Posets(object):
         return Poset(H.reverse())
 
     @staticmethod
+    def PartitionsDominanceOrder(n):
+        r"""
+        Returns the poset of integer partitions on the integer `n`
+        ordered by dominance. That is, if `p=(p_1,\ldots,p_i)` and `q=(q_1,\ldots,q_j)` are integer partitions
+        of `n`, then `p` is greater than `q` if and only if `p_1+\cdots+p_k > q_1+\cdots+q_k` for all `k`.
+
+        INPUT:
+
+        - ``n`` - a positive integer
+
+        EXAMPLES::
+
+            sage: P = Posets.PartitionsDominanceOrder(6); P
+            Finite poset containing 11 elements
+            sage: P.cover_relations()
+            [[[1, 1, 1, 1, 1, 1], [2, 1, 1, 1, 1]],
+             [[2, 1, 1, 1, 1], [2, 2, 1, 1]],
+             [[2, 2, 1, 1], [2, 2, 2]],
+             [[2, 2, 1, 1], [3, 1, 1, 1]],
+             [[2, 2, 2], [3, 2, 1]],
+             [[3, 1, 1, 1], [3, 2, 1]],
+             [[3, 2, 1], [4, 1, 1]],
+             [[3, 2, 1], [3, 3]],
+             [[4, 1, 1], [4, 2]],
+             [[3, 3], [4, 2]],
+             [[4, 2], [5, 1]],
+             [[5, 1], [6]]]            
+        """
+        from sage.combinat.partition import Partitions, Partition
+        return Poset((Partitions(n),Partition.dominates)).dual()
+
+    @staticmethod
     def RandomPoset(n,p):
         r"""
         Generate a random poset on ``n`` vertices according to a
@@ -369,6 +401,24 @@ class Posets(object):
                     if not D.is_directed_acyclic():
                         D.delete_edge(i,j)
         return Poset(D,cover_relations=False)
+
+    @staticmethod
+    def SetPartitions(n):
+        r"""
+        Returns the poset of set partitions of the set `\{1,\ldots,n\}` ordered by refinement.
+
+        INPUT:
+
+        - ``n`` - a positive integer
+
+        EXAMPLES::
+
+            sage: Posets.SetPartitions(4)
+            Finite poset containing 15 elements
+        """
+        from sage.combinat.set_partition import SetPartitions
+        S = SetPartitions(n)
+        return Poset((S, S.is_less_than))
 
     @staticmethod
     def SSTPoset(s,f=None):
@@ -523,5 +573,170 @@ class Posets(object):
                 return [v for v in s.bruhat_succ() if
                     s.length() + (s.inverse().left_action_product(v)).length() == v.length()]
         return Poset(dict([[s,weak_covers(s)] for s in Permutations(n)]),element_labels)
+
+    @staticmethod
+    def SymmetricGroupAbsoluteOrderPoset(n, labels="permutations"):
+        r"""
+        Return the poset of permutations with respect to absolute order.
+
+        INPUT:
+
+        - ``n`` --  a positive integer less than 10
+
+        - ``label`` -- a (default: ``permutations``) label for the elements
+          of the poset
+          returned by the function. The options are ``permutations``, which 
+          labels the elements by their one-line notation, ``reduced_words``,
+          which labels the elements by the lexicographically minimal reduced
+          word, 
+          and ``cycles``, which labels the elements by their expression
+          as a product of cycles.
+
+        EXAMPLES::
+
+            sage: Posets.SymmetricGroupAbsoluteOrderPoset(4)
+            Finite poset containing 24 elements
+        """
+        from sage.groups.perm_gps.permgroup_named import SymmetricGroup
+        if n >= 10:
+            raise ValueError('too big')
+        if labels == "permutations":
+            element_labels = dict([[s, "".join(map(str, s))]
+                                   for s in Permutations(n)])
+        if labels == "reduced_words":
+            element_labels = dict([[s, "".join(map(str, s.reduced_word_lexmin()))] for s in Permutations(n)])
+        if labels == "cycles":
+            element_labels = dict([[s, "".join(filter(lambda x: x != ',',
+                                                      s.cycle_string()))]
+                                   for s in Permutations(n)])
+
+        def absolute_length(w):
+            r"""
+            Nested function for computing the absolute length of
+            a permutation `w`.
+
+            *TODO* This should go in SymmetricGroup
+
+            Absolute length is the size of `w` minus the number of its disjoint
+            cycles, including one element cycles
+            """
+            return w.size() - len(w.cycle_type())
+
+        def absolute_covers(w):
+            r"""
+            Nested function that returns list of covers of `s` in
+            absolute order.
+
+            *TODO* This should go in CoxeterGroup
+            """
+            return [w * t for t in transpositions
+                    if absolute_length(w) < absolute_length(w * t)]
+
+        G = SymmetricGroup(n)
+        transpositions = [Permutation(x) for x in G.conjugacy_class(G((1,2)))]
+        return Poset(dict([[s, absolute_covers(s)]
+                           for s in Permutations(n)]), element_labels)
+
+    @staticmethod
+    def YoungDiagramPoset(lam):
+        """
+        Return the poset of cells in the Young diagram of a partition.
+
+        INPUT:
+
+        - ``lam`` -- a partition
+
+        EXAMPLES::
+
+            sage: P = Posets.YoungDiagramPoset(Partition([2,2]))
+            sage: P.cover_relations()
+            [[(0, 0), (0, 1)], [(0, 0), (1, 0)], [(0, 1), (1, 1)], [(1, 0),
+            (1, 1)]]
+        """
+        def cell_leq(a, b):
+            """
+            Nested function that returns `True` if the cell `a` is
+            to the left or above
+            the cell `b` in the (English) Young diagram.
+            """
+            return ((a[0] == b[0] - 1 and a[1] == b[1])
+                    or (a[1] == b[1] - 1 and a[0] == b[0]))
+        return Poset((lam.cells(), cell_leq), cover_relations=True)
+
+    @staticmethod
+    def YoungsLattice(n):
+        """
+        Return Young's Lattice up to rank `n`.
+
+        In other words, the poset of partitions
+        of size less than or equal to `n` ordered by inclusion.
+
+        INPUT:
+
+        - ``n`` -- a positive integer
+
+        EXAMPLES::
+
+            sage: P = Posets.YoungsLattice(3)
+            sage: P.cover_relations()
+            [[[], [1]],
+             [[1], [1, 1]],
+             [[1], [2]],
+             [[1, 1], [2, 1]],
+             [[1, 1], [1, 1, 1]],
+             [[2], [2, 1]],
+             [[2], [3]]]
+        """
+        from sage.combinat.partition import Partitions, Partition
+        from sage.misc.flatten import flatten
+        partitions = flatten([list(Partitions(i)) for i in range(n + 1)])
+        return Poset((partitions, Partition.contains)).dual()
+
+    @staticmethod
+    def YoungsLatticePrincipalOrderIdeal(lam):
+        """
+        Return the principal order ideal of the
+        partition `lam` in Young's Lattice.
+
+        INPUT:
+
+        - ``lam`` -- a partition
+
+        EXAMPLES::
+
+            sage: P = Posets.YoungsLatticePrincipalOrderIdeal(Partition([2,2]))
+            sage: P.cover_relations()
+            [[[], [1]],
+             [[1], [2]],
+             [[1], [1, 1]],
+             [[2], [2, 1]],
+             [[1, 1], [2, 1]],
+             [[2, 1], [2, 2]]]
+        """
+        from sage.misc.flatten import flatten
+        from sage.combinat.partition import Partition
+
+        def lower_covers(l):
+            """
+            Nested function returning those partitions obtained
+            from the partition `l` by removing
+            a single cell.
+            """
+            return [l.remove_cell(c[0], c[1]) for c in l.removable_cells()]
+
+        def contained_partitions(l):
+            """
+            Nested function returning those partitions contained in
+            the partition `l`
+            """
+            if l == Partition([]):
+                return l
+            return flatten([l, [contained_partitions(m)
+                                for m in lower_covers(l)]])
+
+        ideal = list(set(contained_partitions(lam)))
+        H = DiGraph(dict([[p, lower_covers(p)] for p in ideal]))
+        return Poset(H.reverse())
+
 
 posets = Posets

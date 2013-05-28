@@ -1089,7 +1089,7 @@ class PlotOptions:
 
         TESTS::
 
-            sage: H.describe()
+            sage: print H.description()
             Text '$H_{\alpha^\vee_{1}}$' at the point (0.0,3.15)
             Line defined by 2 points: [(0.0, 3.0), (0.0, -3.0)]
 

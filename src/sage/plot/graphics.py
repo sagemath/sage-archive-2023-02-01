@@ -2688,7 +2688,7 @@ class Graphics(SageObject):
                 figure.savefig(filename, dpi=dpi,
                            transparent=transparent)
 
-    def describe(self):
+    def description(self):
         r"""
         Print a textual description to stdout.
 
@@ -2696,7 +2696,7 @@ class Graphics(SageObject):
 
         EXAMPLES::
 
-            sage: polytopes.n_cube(2).plot().describe()
+            sage: print polytopes.n_cube(2).plot().description()
             Polygon defined by 4 points: [(1.0, 1.0), (-1.0, 1.0), (-1.0, -1.0), (1.0, -1.0)]
             Line defined by 2 points: [(-1.0, -1.0), (-1.0, 1.0)]
             Line defined by 2 points: [(-1.0, -1.0), (1.0, -1.0)]
@@ -2713,9 +2713,7 @@ class Graphics(SageObject):
                 g_str = repr(g)
             data.append([g_zorder, g_str, g])
         data.sort()
-        for g in data:
-            print g[1]
-
+        return '\n'.join(g[1] for g in data)
 
 class GraphicsArray(SageObject):
     """

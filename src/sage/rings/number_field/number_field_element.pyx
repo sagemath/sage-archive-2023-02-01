@@ -554,7 +554,7 @@ cdef class NumberFieldElement(FieldElement):
 
     def _libgap_(self):
         """
-        Return a LibGAP representation of self.
+        Return a LibGAP representation of ``self``.
 
         EXAMPLES::
 

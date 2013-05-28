@@ -471,7 +471,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
 
         Boolean.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: G.<a,b> = FreeGroup('a, b')
             sage: x = G([1, 2, -1, -2])

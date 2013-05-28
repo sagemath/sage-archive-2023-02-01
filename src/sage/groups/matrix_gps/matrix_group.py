@@ -12,7 +12,7 @@ Loading, saving, ... works::
     [4 0]
     sage: TestSuite(g).run()
 
-We test that #9437 is fixed::
+We test that :trac:`9437` is fixed::
 
     sage: len(list(SL(2, Zmod(4))))
     48
@@ -70,6 +70,7 @@ from sage.groups.matrix_gps.group_element import (
 def is_MatrixGroup(x):
     """
     Test whether ``x`` is a matrix group.
+
     EXAMPLES::
 
         sage: from sage.groups.matrix_gps.matrix_group import is_MatrixGroup
@@ -93,7 +94,7 @@ def is_MatrixGroup(x):
 
 class MatrixGroup_base(Group):
     """
-    Base class for all matrix groups
+    Base class for all matrix groups.
 
     This base class just holds the base ring, but not the degree. So
     it can be a base for affine groups where the natural matrix is
@@ -287,7 +288,7 @@ class MatrixGroup_generic(MatrixGroup_base):
         INPUT:
 
         - ``degree`` -- integer. The degree (matrix size) of the
-           matrix group.
+          matrix group.
 
         - ``base_ring`` -- ring. The base ring of the matrices.
 
@@ -513,7 +514,7 @@ class MatrixGroup_gap(GroupMixinLibGAP, MatrixGroup_generic, ParentLibGAP):
         INPUT:
 
         - ``degree`` -- integer. The degree (matrix size) of the
-           matrix group.
+          matrix group.
 
         - ``base_ring`` -- ring. The base ring of the matrices.
 

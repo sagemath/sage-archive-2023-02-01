@@ -97,9 +97,9 @@ class ClassFunction_gap(SageObject):
     """
     def __init__(self, G, values):
         r"""
-        Returns the character of the group G with values given by the list
+        Return the character of the group ``G`` with values given by the list
         values. The order of the values must correspond to the output of
-        G.conjugacy_classes_representatives().
+        ``G.conjugacy_classes_representatives()``.
 
         EXAMPLES::
 
@@ -789,9 +789,9 @@ class ClassFunction_libgap(SageObject):
 
     def __init__(self, G, values):
         r"""
-        Returns the character of the group G with values given by the list
+        Return the character of the group ``G`` with values given by the list
         values. The order of the values must correspond to the output of
-        G.conjugacy_classes_representatives().
+        ``G.conjugacy_classes_representatives()``.
 
         EXAMPLES::
 
@@ -917,7 +917,7 @@ class ClassFunction_libgap(SageObject):
 
     def domain(self):
         r"""
-        Returns the domain of the self.
+        Return the domain of ``self``.
 
         OUTPUT:
 
@@ -933,8 +933,8 @@ class ClassFunction_libgap(SageObject):
 
     def __call__(self, g):
         """
-        Evaluate the character on the group element g. Returns an error if
-        g is not in G.
+        Evaluate the character on the group element ``g``. Returns an error if
+        ``g`` is not in ``G`.
 
         EXAMPLES::
 
@@ -965,7 +965,7 @@ class ClassFunction_libgap(SageObject):
 
     def __add__(self, other):
         r"""
-        Returns the sum of the characters self and other.
+        Return the sum of the characters ``self`` and ``other``.
 
         INPUT:
 
@@ -993,7 +993,7 @@ class ClassFunction_libgap(SageObject):
 
     def __sub__(self, other):
         r"""
-        Returns the difference of the characters ``self`` and ``other``.
+        Return the difference of the characters ``self`` and ``other``.
 
         INPUT:
 
@@ -1133,7 +1133,7 @@ class ClassFunction_libgap(SageObject):
 
     def __pow__(self, other):
         r"""
-        Returns the product of self with itself other times.
+        Return the product of ``self`` with itself ``other`` times.
 
         EXAMPLES::
 
@@ -1151,11 +1151,11 @@ class ClassFunction_libgap(SageObject):
 
     def symmetric_power(self, n):
         r"""
-        Returns the symmetrized product of self with itself ``n`` times.
+        Return the symmetrized product of ``self`` with itself ``n`` times.
 
         INPUT:
 
-        - ``n`` -- a positive integer.
+        - ``n`` -- a positive integer
 
         OUTPUT:
 
@@ -1178,11 +1178,11 @@ class ClassFunction_libgap(SageObject):
 
     def exterior_power(self, n):
         r"""
-        Returns the anti-symmetrized product of self with itself ``n`` times.
+        Return the anti-symmetrized product of ``self`` with itself ``n`` times.
 
         INPUT:
 
-        - ``n`` -- a positive integer.
+        - ``n`` -- a positive integer
 
         OUTPUT:
 
@@ -1207,7 +1207,7 @@ class ClassFunction_libgap(SageObject):
 
     def scalar_product(self, other):
         r"""
-        Returns the scalar product of self with other.
+        Return the scalar product of ``self`` with ``other``.
 
         EXAMPLES::
 
@@ -1225,8 +1225,8 @@ class ClassFunction_libgap(SageObject):
 
     def is_irreducible(self):
         r"""
-        Returns True if self cannot be written as the sum of two nonzero
-        characters of self.
+        Return ``True`` if ``self`` cannot be written as the sum of two nonzero
+        characters of ``self``.
 
         EXAMPLES::
 
@@ -1240,7 +1240,7 @@ class ClassFunction_libgap(SageObject):
 
     def degree(self):
         r"""
-        Returns the degree of the character self.
+        Return the degree of the character ``self``.
 
         EXAMPLES::
 
@@ -1254,8 +1254,8 @@ class ClassFunction_libgap(SageObject):
 
     def irreducible_constituents(self):
         r"""
-        Returns a list of the characters that appear in the decomposition
-        of chi.
+        Return a list of the characters that appear in the decomposition
+        of ``self``.
 
         EXAMPLES::
 
@@ -1290,8 +1290,8 @@ class ClassFunction_libgap(SageObject):
 
     def decompose(self):
         r"""
-        Returns a list of the characters that appear in the decomposition
-        of chi.
+        Return a list of the characters that appear in the decomposition
+        of ``self``.
 
         EXAMPLES::
 
@@ -1309,7 +1309,7 @@ class ClassFunction_libgap(SageObject):
 
     def norm(self):
         r"""
-        Returns the norm of self.
+        Return the norm of ``self``.
 
         EXAMPLES::
 
@@ -1351,7 +1351,7 @@ class ClassFunction_libgap(SageObject):
 
     def central_character(self):
         r"""
-        Returns the central character of self.
+        Return the central character of ``self``.
 
         EXAMPLES::
 
@@ -1364,7 +1364,7 @@ class ClassFunction_libgap(SageObject):
 
     def determinant_character(self):
         r"""
-        Returns the determinant character of self.
+        Return the determinant character of ``self``.
 
         EXAMPLES::
 
@@ -1377,6 +1377,8 @@ class ClassFunction_libgap(SageObject):
 
     def tensor_product(self, other):
         r"""
+        Return the tensor product of ``self`` and ``other``.
+
         EXAMPLES::
 
             sage: S3 = SymmetricGroup(3)
@@ -1453,7 +1455,4 @@ class ClassFunction_libgap(SageObject):
             gapG = libgap(G)
         ind = self._gap_classfunction.InducedClassFunction(gapG)
         return ClassFunction(G, ind)
-
-
-
 

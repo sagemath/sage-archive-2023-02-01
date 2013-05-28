@@ -28,7 +28,7 @@ Groups
    sage/groups/matrix_gps/matrix_group
    sage/groups/matrix_gps/group_element
    sage/groups/matrix_gps/finitely_generated
-   sage/groups/matrix_gps/matrix_group_morphism
+   sage/groups/matrix_gps/morphism
    sage/groups/matrix_gps/homset
    sage/groups/matrix_gps/linear
    sage/groups/matrix_gps/orthogonal

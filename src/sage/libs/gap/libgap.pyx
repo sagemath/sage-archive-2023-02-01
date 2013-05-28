@@ -304,11 +304,11 @@ class Gap(Parent):
 
     def _coerce_map_from_(self, S):
         """
-        Whether a coercion from `S` exists
+        Whether a coercion from `S` exists.
 
         INPUT / OUTPUT:
 
-        See :mod:`sage.structure.parent`
+        See :mod:`sage.structure.parent`.
 
         EXAMPLES::
 
@@ -323,7 +323,7 @@ class Gap(Parent):
 
     def _element_constructor_(self, x):
         r"""
-        Construct elements of this parent class
+        Construct elements of this parent class.
 
         INPUT:
 
@@ -396,7 +396,7 @@ class Gap(Parent):
 
     def eval(self, gap_command):
         """
-        Evaluate a gap command and wrap the result
+        Evaluate a gap command and wrap the result.
 
         INPUT:
 
@@ -421,7 +421,7 @@ class Gap(Parent):
 
     def _an_element_(self):
         r"""
-        Return a :class:`GapElement`
+        Return a :class:`GapElement`.
 
         OUTPUT:
 
@@ -437,7 +437,7 @@ class Gap(Parent):
 
     def zero_element(self):
         """
-        Return (integer) zero in GAP
+        Return (integer) zero in GAP.
 
         OUTPUT:
 

@@ -14,7 +14,7 @@ class LegacyMatrixGroup(FinitelyGeneratedMatrixGroup_gap):
 
     def __setstate__(self, state):
         """
-        Restore from old pickle
+        Restore from old pickle.
 
         EXAMPLES::
 
@@ -48,7 +48,7 @@ class LegacyMatrixGroupElement(MatrixGroupElement_gap):
 
     def __setstate__(self, state):
         """
-        Restore from old pickle
+        Restore from old pickle.
 
         EXAMPLES::
 
@@ -86,7 +86,7 @@ class LegacyGeneralLinearGroup(LinearMatrixGroup_generic):
 
     def __setstate__(self, state):
         """
-        Restore from old pickle
+        Restore from old pickle.
 
         EXAMPLES::
 

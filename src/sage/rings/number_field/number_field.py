@@ -7777,7 +7777,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 
     def _libgap_(self):
         """
-        Return a LibGAP representation of ``self``
+        Return a LibGAP representation of ``self``.
 
         TESTS:
 

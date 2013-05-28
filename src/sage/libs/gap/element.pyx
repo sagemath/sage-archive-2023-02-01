@@ -534,8 +534,6 @@ cdef class GapElement(RingElement):
 
         EXAMPLES::
 
-        EXAMPLES::
-
             sage: a = libgap(123)
             sage: a == a
             True
@@ -544,7 +542,7 @@ cdef class GapElement(RingElement):
 
     def __hash__(self):
         """
-        Make hashable
+        Make hashable.
 
         EXAMPLES::
 
@@ -1301,7 +1299,7 @@ cdef class GapElement_IntegerMod(GapElement):
 
 cdef GapElement_FiniteField make_GapElement_FiniteField(parent, libGAP_Obj obj):
     r"""
-    Turn a Gap finite field object into a :class:`GapElement_FiniteField` Sage object
+    Turn a GAP finite field object into a :class:`GapElement_FiniteField` Sage object
 
     EXAMPLES::
 
@@ -1358,7 +1356,7 @@ cdef class GapElement_FiniteField(GapElement):
 
     def sage(self, ring=None, var='a'):
         r"""
-        Return the Sage equivalent of the :class:`GapElement_FiniteField`
+        Return the Sage equivalent of the :class:`GapElement_FiniteField`.
 
         INPUT:
 
@@ -1410,7 +1408,8 @@ cdef class GapElement_FiniteField(GapElement):
 
 cdef GapElement_Cyclotomic make_GapElement_Cyclotomic(parent, libGAP_Obj obj):
     r"""
-    Turn a Gap cyclotomic object into a :class:`GapElement_Cyclotomic` Sage object
+    Turn a Gap cyclotomic object into a :class:`GapElement_Cyclotomic` Sage
+    object.
 
     EXAMPLES::
 
@@ -1438,7 +1437,7 @@ cdef class GapElement_Cyclotomic(GapElement):
 
     def sage(self, ring=None):
         r"""
-        Return the Sage equivalent of the :class:`GapElement_Cyclotomic`
+        Return the Sage equivalent of the :class:`GapElement_Cyclotomic`.
 
         INPUT:
 
@@ -1509,7 +1508,7 @@ cdef class GapElement_Rational(GapElement):
 
     def sage(self, ring=None):
         r"""
-        Return the Sage equivalent of the :class:`GapElement`
+        Return the Sage equivalent of the :class:`GapElement`.
 
         INPUT:
 
@@ -1544,7 +1543,7 @@ cdef class GapElement_Rational(GapElement):
 cdef GapElement_Ring make_GapElement_Ring(parent, libGAP_Obj obj):
     r"""
     Turn a Gap integer object into a :class:`GapElement_Ring` Sage
-    object
+    object.
 
     EXAMPLES::
 
@@ -1636,7 +1635,7 @@ cdef class GapElement_Ring(GapElement):
 
     def sage(self, **kwds):
         r"""
-        Return the Sage equivalent of the :class:`GapElement_Ring`
+        Return the Sage equivalent of the :class:`GapElement_Ring`.
 
         INPUT:
 

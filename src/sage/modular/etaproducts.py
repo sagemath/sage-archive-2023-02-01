@@ -192,8 +192,8 @@ class EtaGroup_class(AbelianGroup):
             [Eta product of level 5 : (eta_1)^6 (eta_5)^-6]
             sage: EtaGroup(12).basis()
             [Eta product of level 12 : (eta_1)^2 (eta_2)^1 (eta_3)^2 (eta_4)^-1 (eta_6)^-7 (eta_12)^3,
-            Eta product of level 12 : (eta_1)^-2 (eta_2)^3 (eta_3)^6 (eta_4)^-1 (eta_6)^-9 (eta_12)^3,
-            Eta product of level 12 : (eta_1)^-3 (eta_2)^2 (eta_3)^1 (eta_4)^-1 (eta_6)^-2 (eta_12)^3,
+            Eta product of level 12 : (eta_1)^-4 (eta_2)^2 (eta_3)^4 (eta_6)^-2,
+            Eta product of level 12 : (eta_1)^-1 (eta_2)^3 (eta_3)^3 (eta_4)^-2 (eta_6)^-9 (eta_12)^6,
             Eta product of level 12 : (eta_1)^1 (eta_2)^-1 (eta_3)^-3 (eta_4)^-2 (eta_6)^7 (eta_12)^-2,
             Eta product of level 12 : (eta_1)^-6 (eta_2)^9 (eta_3)^2 (eta_4)^-3 (eta_6)^-3 (eta_12)^1]
             sage: EtaGroup(12).basis(reduce=False) # much bigger coefficients
@@ -417,7 +417,7 @@ class EtaGroupElement(MultiplicativeGroupElement):
 
             sage: eta1, eta2 = EtaGroup(4).basis() # indirect doctest
             sage: eta1 * eta2
-            Eta product of level 4 : (eta_2)^24 (eta_4)^-24
+            Eta product of level 4 : (eta_1)^8 (eta_4)^-8
         """
         newdict = {}
         for d in union(self._keys, other._keys):
@@ -432,7 +432,7 @@ class EtaGroupElement(MultiplicativeGroupElement):
 
             sage: eta1, eta2 = EtaGroup(4).basis()
             sage: eta1 / eta2 # indirect doctest
-            Eta product of level 4 : (eta_1)^-16 (eta_2)^24 (eta_4)^-8
+            Eta product of level 4 : (eta_1)^-24 (eta_2)^48 (eta_4)^-24
             sage: (eta1 / eta2) * eta2 == eta1
             True
         """
@@ -965,7 +965,7 @@ def _eta_relations_helper(eta1, eta2, degree, qexp_terms, labels, verbose):
         sage: from sage.modular.etaproducts import _eta_relations_helper
         sage: r,s = EtaGroup(4).basis()
         sage: _eta_relations_helper(r,s,4,100,['a','b'],False)
-        [a - b - 16]
+        [a*b - a + 16]
         sage: _eta_relations_helper(EtaProduct(26, {2:2,13:2,26:-2,1:-2}),EtaProduct(26, {2:4,13:2,26:-4,1:-2}),3,12,['a','b'],False) # not enough terms, will return rubbish
         [1]
     """

@@ -642,7 +642,10 @@ cdef class SubgraphSearch:
         self.directed = G.is_directed()
 
         cdef int i, j, k
-        cdef int *tmp_array
+
+        self.tmp_array = <int *>sage_malloc(self.ng * sizeof(int))
+        if self.tmp_array == NULL:
+            raise MemoryError()
 
         # Should we look for induced subgraphs ?
         if induced:
@@ -686,14 +689,21 @@ cdef class SubgraphSearch:
         # in h relative to vertices 0, 1, ..., i-1
         self.line_h_out = <int **>sage_malloc(self.nh * sizeof(int *))
         for 0 <= i < self.nh:
-            self.line_h_out[i] = <int *>self.h.adjacency_sequence_out(i, self.vertices, i)
+            self.line_h_out[i] = <int *> sage_malloc(self.nh * sizeof(int *))
+            if self.line_h_out[i] is NULL:
+                raise MemoryError()
+            self.h.adjacency_sequence_out(i, self.vertices, i, self.line_h_out[i])
 
         # Similarly in the opposite direction (only useful if the
         # graphs are directed)
         if self.directed:
             self.line_h_in = <int **>sage_malloc(self.nh * sizeof(int *))
             for 0 <= i < self.nh:
-                self.line_h_in[i] = <int *>self.h.adjacency_sequence_in(i, self.vertices, i)
+                self.line_h_in[i] = <int *> sage_malloc(self.nh * sizeof(int *))
+                if self.line_h_in[i] is NULL:
+                    raise MemoryError()
+
+                self.h.adjacency_sequence_in(i, self.vertices, i, self.line_h_in[i])
 
     def __next__(self):
         r"""
@@ -710,9 +720,8 @@ cdef class SubgraphSearch:
             [0, 1, 2]
         """
         sig_on()
-        cdef int *tmp_array_out
-        cdef int *tmp_array_in
         cdef bint is_admissible
+        cdef int * tmp_array = self.tmp_array
 
         # as long as there is a non-void partial copy of H in G
         while self.active >= 0:
@@ -729,17 +738,15 @@ cdef class SubgraphSearch:
                     # correct extension by checking the edges from the
                     # vertices already selected to self.i satisfy the
                     # constraints
-                    tmp_array_out = self.g.adjacency_sequence_out(self.active, self.stack, self.i)
-                    is_admissible = self.is_admissible(self.active, tmp_array_out, self.line_h_out[self.active])
-                    sage_free(tmp_array_out)
+                    self.g.adjacency_sequence_out(self.active, self.stack, self.i, tmp_array)
+                    is_admissible = self.is_admissible(self.active, tmp_array, self.line_h_out[self.active])
 
                     # If G and H are digraphs, we also need to ensure
                     # the edges going in the opposite direction
                     # satisfy the constraints
                     if is_admissible and self.directed:
-                        tmp_array_in = self.g.adjacency_sequence_in(self.active, self.stack, self.i)
-                        is_admissible = is_admissible and self.is_admissible(self.active, tmp_array_in, self.line_h_in[self.active])
-                        sage_free(tmp_array_in)
+                        self.g.adjacency_sequence_in(self.active, self.stack, self.i, tmp_array)
+                        is_admissible = is_admissible and self.is_admissible(self.active, tmp_array, self.line_h_in[self.active])
 
                     if is_admissible:
                         break
@@ -798,6 +805,9 @@ cdef class SubgraphSearch:
             for 0 <= i < self.nh:
                 sage_free(self.line_h_in[i])
             sage_free(self.line_h_in)
+
+        if self.tmp_array != NULL:
+            sage_free(self.tmp_array)
 
 cdef inline bint vectors_equal(int n, int *a, int *b):
     r"""

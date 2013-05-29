@@ -1493,10 +1493,10 @@ def _test_adjacency_sequence_out():
     for v in randg.vertex_iterator():
         V[i] = v
         i += 1
-    cdef int *seq
+    cdef int *seq = <int *> sage_malloc(n * sizeof(int))
     for 0 <= i < randint(50, 101):
         u = randint(low, n - 1)
-        seq = g.adjacency_sequence_out(n, V, u)
+        g.adjacency_sequence_out(n, V, u, seq)
         A = [seq[k] for k in range(n)]
         try:
             assert A == list(M[u])
@@ -1504,7 +1504,7 @@ def _test_adjacency_sequence_out():
             sage_free(V)
             sage_free(seq)
             raise AssertionError("Graph adjacency mismatch")
-        sage_free(seq)
+    sage_free(seq)
     sage_free(V)
 
 ###########################################

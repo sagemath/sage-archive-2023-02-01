@@ -24,6 +24,7 @@ cdef class SubgraphSearch:
     cdef list g_vertices
     cdef int i
     cdef bint directed
+    cdef int * tmp_array
 
 
 cdef inline bint vectors_equal(int n, int *a, int *b)

@@ -850,12 +850,13 @@ cdef class CGraph:
         """
         raise NotImplementedError()
 
-    cdef int * adjacency_sequence_in(self, int n, int *vertices, int v):
+    cdef adjacency_sequence_in(self, int n, int *vertices, int v, int* sequence):
         r"""
-        Returns the adjacency sequence corresponding to a list of vertices
+        Computes the adjacency sequence corresponding to a list of vertices
         and a vertex.
 
-        See the OUTPUT section for a formal definition.
+        This method fills the array ``sequence``, whose i-th element is set to
+        `1` iff ``(v,vertices[i])`` is an edge.
 
         See the function ``_test_adjacency_sequence()`` of
         ``dense_graph.pyx`` and ``sparse_graph.pyx`` for unit tests.
@@ -876,14 +877,8 @@ cdef class CGraph:
 
         - ``v`` -- a vertex.
 
-        - ``reverse`` (bool) -- if set to ``True``, considers the
-          edges ``(v,vertices[i])`` instead of ``(v,vertices[i])``
-          (only useful for digraphs).
-
-        OUTPUT:
-
-        Returns a list of ``n`` integers, whose i-th element is set to
-        `1` iff ``(v,vertices[i])`` is an edge.
+        - ``sequence`` (int *) -- the memory segment of length `>= n` that is to
+          be filled.
 
         .. SEEALSO::
 
@@ -892,18 +887,16 @@ cdef class CGraph:
             difference only matters for digraphs).
         """
         cdef int i = 0
-        cdef int *seq = <int *>sage_malloc(n * sizeof(int))
         for 0 <= i < n:
-            seq[i] = 1 if self.has_arc_unsafe(vertices[i], v) else 0
+            sequence[i] = self.has_arc_unsafe(vertices[i], v)
 
-        return seq
-
-    cdef int * adjacency_sequence_out(self, int n, int *vertices, int v):
+    cdef adjacency_sequence_out(self, int n, int *vertices, int v, int* sequence):
         r"""
         Returns the adjacency sequence corresponding to a list of vertices
         and a vertex.
 
-        See the OUTPUT section for a formal definition.
+        This method fills the array ``sequence``, whose i-th element is set to
+        `1` iff ``(v,vertices[i])`` is an edge.
 
         See the function ``_test_adjacency_sequence()`` of
         ``dense_graph.pyx`` and ``sparse_graph.pyx`` for unit tests.
@@ -924,10 +917,8 @@ cdef class CGraph:
 
         - ``v`` -- a vertex.
 
-        OUTPUT:
-
-        Returns a list of ``n`` integers, whose i-th element is set to
-        `1` iff ``(v,vertices[i])`` is an edge.
+        - ``sequence`` (int *) -- the memory segment of length `>= n` that is to
+          be filled.
 
         .. SEEALSO::
 
@@ -937,12 +928,8 @@ cdef class CGraph:
 
         """
         cdef int i = 0
-        cdef int *seq = <int *>sage_malloc(n * sizeof(int))
         for 0 <= i < n:
-            seq[i] = 1 if self.has_arc_unsafe(v, vertices[i]) else 0
-
-        return seq
-
+            sequence[i] = self.has_arc_unsafe(v, vertices[i])
 
     cpdef list all_arcs(self, int u, int v):
         """

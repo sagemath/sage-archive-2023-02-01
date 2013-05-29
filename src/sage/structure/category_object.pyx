@@ -46,11 +46,10 @@ This example illustrates generators for a free module over `\ZZ`.
     ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
 """
 
-cdef int bad_parent_warnings = 0
-
 import generators
 import sage_object
 from sage.categories.category import Category, JoinCategory
+from sage.structure.debug_options import debug
 
 def guess_category(obj):
     # this should be obsolete if things declare their categories
@@ -153,7 +152,7 @@ cdef class CategoryObject(sage_object.SageObject):
             Join of Category of semigroups and Category of commutative additive semigroups
         """
         if category is None:
-            if bad_parent_warnings:
+            if debug.bad_parent_warnings:
                 print "No category for %s" % type(self)
             category = guess_category(self) # so generators don't crash
         elif (type(category) == tuple or type(category) == list):

@@ -119,8 +119,8 @@ an inheritance can be partially emulated using :meth:`__getattr__`. See
 from sage.misc.cachefunc import weak_cached_function
 from sage.structure.unique_representation import ClasscallMetaclass
 
-def dynamic_class(name, bases, cls = None, reduction = None, doccls = None,
-                  prepend_cls_bases = True, cache=True):
+def dynamic_class(name, bases, cls=None, reduction=None, doccls=None,
+                  prepend_cls_bases=True, cache=True):
     r"""
     INPUT:
 
@@ -322,7 +322,7 @@ def dynamic_class(name, bases, cls = None, reduction = None, doccls = None,
 
 
 @weak_cached_function
-def dynamic_class_internal(name, bases, cls = None, reduction = None, doccls = None, prepend_cls_bases=True):
+def dynamic_class_internal(name, bases, cls=None, reduction=None, doccls=None, prepend_cls_bases=True):
     r"""
     See sage.structure.dynamic_class.dynamic_class? for indirect doctests.
 

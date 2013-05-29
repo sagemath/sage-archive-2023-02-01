@@ -136,7 +136,7 @@ Naturally, Sage knows all of the derivatives you want.
 ::
 
     sage: derivative(sinh(x^2+sqrt(x-1)),x)
-    1/2*(4*x + 1/sqrt(x - 1))*cosh(sqrt(x - 1) + x^2)
+    1/2*(4*x + 1/sqrt(x - 1))*cosh(x^2 + sqrt(x - 1))
 
 And maybe even knows those you don't want.  In this case, we put the
 computation inside ``show()`` since the output is so long.
@@ -290,7 +290,7 @@ though not all the ones you will find in a comprehensive table.
 
     sage: h(x)=sec(x)
     sage: h.integrate(x)
-    x |--> log(tan(x) + sec(x))
+    x |--> log(sec(x) + tan(x))
 
 Since I defined ``h`` as a function, the answer I get is also a
 function.  If I just want an expression as the answer, I can do the
@@ -299,7 +299,7 @@ following.
 ::
 
     sage: integrate(sec(x),x)
-    log(tan(x) + sec(x))
+    log(sec(x) + tan(x))
 
 Here is another (longer) example.  Do you remember what command would
 help it look nicer in the browser?
@@ -307,7 +307,7 @@ help it look nicer in the browser?
 ::
 
     sage: integrate(1/(1+x^5),x)
-    1/5*(sqrt(5) - 1)*sqrt(5)*arctan((4*x - sqrt(5) - 1)/sqrt(-2*sqrt(5) + 10))/sqrt(-2*sqrt(5) + 10) + 1/5*(sqrt(5) + 1)*sqrt(5)*arctan((4*x + sqrt(5) - 1)/sqrt(2*sqrt(5) + 10))/sqrt(2*sqrt(5) + 10) - 1/2*(sqrt(5) - 3)*log((sqrt(5) - 1)*x + 2*x^2 + 2)/(5*sqrt(5) - 5) - 1/2*(sqrt(5) + 3)*log(-(sqrt(5) + 1)*x + 2*x^2 + 2)/(5*sqrt(5) + 5) + 1/5*log(x + 1)
+    1/5*sqrt(5)*(sqrt(5) + 1)*arctan((4*x + sqrt(5) - 1)/sqrt(2*sqrt(5) + 10))/sqrt(2*sqrt(5) + 10) + 1/5*sqrt(5)*(sqrt(5) - 1)*arctan((4*x - sqrt(5) - 1)/sqrt(-2*sqrt(5) + 10))/sqrt(-2*sqrt(5) + 10) - 1/2*(sqrt(5) + 3)*log(2*x^2 - x*(sqrt(5) + 1) + 2)/(5*sqrt(5) + 5) - 1/2*(sqrt(5) - 3)*log(2*x^2 + x*(sqrt(5) - 1) + 2)/(5*sqrt(5) - 5) + 1/5*log(x + 1)
 
 Some integrals are a little tricky, of course.  If Sage doesn't know the
 whole antiderivative, it returns as much of it as it (more properly, as
@@ -392,7 +392,7 @@ Fundamental Theorem of Calculus is not entirely helpful.  Recall that
 ::
 
     sage: integral(h,(x,0,pi/8))
-    -1/2*log(-sin(1/8*pi) + 1) + 1/2*log(sin(1/8*pi) + 1)
+    1/2*log(sin(1/8*pi) + 1) - 1/2*log(-sin(1/8*pi) + 1)
 
 Here, just a number might be more helpful.  Sage has several ways of
 numerical evaluating integrals.

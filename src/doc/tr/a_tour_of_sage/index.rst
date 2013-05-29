@@ -37,7 +37,7 @@ Burada basit bir fonksiyonun integralini alıyoruz.
 
     sage: x = var('x')   # değişkeni sembolik olarak yaratıyoruz
     sage: integrate(sqrt(x)*sqrt(1+x), x)
-    1/4*((x + 1)^(3/2)/x^(3/2) + sqrt(x + 1)/sqrt(x))/((x + 1)^2/x^2 - 2*(x + 1)/x + 1) + 1/8*log(sqrt(x + 1)/sqrt(x) - 1) - 1/8*log(sqrt(x + 1)/sqrt(x) + 1)
+    1/4*((x + 1)^(3/2)/x^(3/2) + sqrt(x + 1)/sqrt(x))/((x + 1)^2/x^2 - 2*(x + 1)/x + 1) - 1/8*log(sqrt(x + 1)/sqrt(x) + 1) + 1/8*log(sqrt(x + 1)/sqrt(x) - 1)
 
 Bu komut Sage'e ikinci derece denklemi çözdürür. ``==`` sembolü Sage'de eşitlik anlamına gelir.
 

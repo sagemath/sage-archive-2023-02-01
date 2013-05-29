@@ -1382,10 +1382,11 @@ class GenericGraph(GenericGraph_pyx):
             [-1 -1  3 -1]
             [-1  0 -1  2]
             sage: M = G.laplacian_matrix(normalized=True); M
-            [                   1 -1/6*sqrt(2)*sqrt(3) -1/6*sqrt(2)*sqrt(3)         -1/3*sqrt(3)]
-            [-1/6*sqrt(2)*sqrt(3)                    1                 -1/2                    0]
-            [-1/6*sqrt(2)*sqrt(3)                 -1/2                    1                    0]
+            [                   1 -1/6*sqrt(3)*sqrt(2) -1/6*sqrt(3)*sqrt(2)         -1/3*sqrt(3)]
+            [-1/6*sqrt(3)*sqrt(2)                    1                 -1/2                    0]
+            [-1/6*sqrt(3)*sqrt(2)                 -1/2                    1                    0]
             [        -1/3*sqrt(3)                    0                    0                    1]
+
             sage: Graph({0:[],1:[2]}).laplacian_matrix(normalized=True)
             [ 0  0  0]
             [ 0  1 -1]

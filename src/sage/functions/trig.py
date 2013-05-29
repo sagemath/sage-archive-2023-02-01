@@ -204,7 +204,7 @@ class Function_sec(BuiltinFunction):
             sage: bool(diff(sec(x), x) == diff(1/cos(x), x))
             True
             sage: diff(sec(x), x)
-            tan(x)*sec(x)
+            sec(x)*tan(x)
         """
         return sec(x)*tan(x)
 
@@ -296,7 +296,7 @@ class Function_csc(BuiltinFunction):
             sage: bool(diff(csc(x), x) == diff(1/sin(x), x))
             True
             sage: diff(csc(x), x)
-            -csc(x)*cot(x)
+            -cot(x)*csc(x)
         """
         return -csc(x)*cot(x)
 
@@ -687,7 +687,7 @@ class Function_arccsc(BuiltinFunction):
         EXAMPLES::
 
             sage: diff(acsc(x), x)
-            -1/(sqrt(-1/x^2 + 1)*x^2)
+            -1/(x^2*sqrt(-1/x^2 + 1))
         """
         return -1/(x**2 * (1 - x**(-2)).sqrt())
 
@@ -750,7 +750,7 @@ class Function_arcsec(BuiltinFunction):
         EXAMPLES::
 
             sage: diff(asec(x), x)
-            1/(sqrt(-1/x^2 + 1)*x^2)
+            1/(x^2*sqrt(-1/x^2 + 1))
         """
         return 1/(x**2 * (1 - x**(-2)).sqrt())
 

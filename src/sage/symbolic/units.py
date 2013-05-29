@@ -1278,7 +1278,7 @@ def convert(expr, target):
     You can also convert quantities of units::
 
         sage: sage.symbolic.units.convert(cos(50) * units.angles.radian, units.angles.degree)
-        (180*cos(50)/pi)*degree
+        degree*(180*cos(50)/pi)
         sage: sage.symbolic.units.convert(cos(30) * units.angles.radian, units.angles.degree).polynomial(RR)
         8.83795706233228*degree
         sage: sage.symbolic.units.convert(50 * units.length.light_year / units.time.year, units.length.foot / units.time.second)
@@ -1287,7 +1287,7 @@ def convert(expr, target):
     Quantities may contain variables (not for temperature conversion, though)::
 
         sage: sage.symbolic.units.convert(50 * x * units.area.square_meter, units.area.acre)
-        (1953125/158080329*x)*acre
+        acre*(1953125/158080329*x)
     """
     base_target = target
     z = {}

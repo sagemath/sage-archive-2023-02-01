@@ -322,7 +322,7 @@ one may iterate through their elements::
     x^3 + 2*x^2 + 2*x + 1
 
     sage: factor(sum( x^p.length() for p in Permutations(3) ))
-    (x + 1)*(x^2 + x + 1)
+    (x^2 + x + 1)*(x + 1)
 
     sage: P = Permutations(5)
     sage: all( p in P for p in P )

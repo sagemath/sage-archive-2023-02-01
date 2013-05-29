@@ -78,7 +78,7 @@ We mix Singular variables with symbolic variables::
     sage: var('a,b,c')
     (a, b, c)
     sage: expand((u + v + a + b + c)^2)
-    a^2 + 2*a*b + 2*a*c + 2*a*u + 2*a*v + b^2 + 2*b*c + 2*b*u + 2*b*v + c^2 + 2*c*u + 2*c*v + u^2 + 2*u*v + v^2
+    a^2 + 2*a*b + b^2 + 2*a*c + 2*b*c + c^2 + 2*a*u + 2*b*u + 2*c*u + u^2 + 2*a*v + 2*b*v + 2*c*v + 2*u*v + v^2
 
 TESTS:
 
@@ -108,7 +108,7 @@ Test if comparison bugs from #6256 are fixed::
     sage: t*u
     1
     sage: t + u
-    e^sqrt(x) + e^(-sqrt(x))
+    e^(-sqrt(x)) + e^sqrt(x)
     sage: t
     e^sqrt(x)
 
@@ -120,7 +120,7 @@ Test if #9947 is fixed::
     sage: a.real_part()
     4*sqrt(3)/(sqrt(3) + 5)
     sage: a.imag_part()
-    sqrt(abs(4*(sqrt(3) - 5)*(sqrt(3) + 5) + 48))/(sqrt(3) + 5)
+    sqrt(abs(4*(sqrt(3) + 5)*(sqrt(3) - 5) + 48))/(sqrt(3) + 5)
 """
 
 ###############################################################################
@@ -327,7 +327,7 @@ cdef class Expression(CommutativeRingElement):
             sage: t = 2*x*y^z+3
             sage: u = loads(dumps(t)) # indirect doctest
             sage: u
-            2*y^z*x + 3
+            2*x*y^z + 3
             sage: bool(t == u)
             True
             sage: u.subs(x=z)
@@ -563,7 +563,7 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
             sage: gap(e + pi^2 + x^3)
-            pi^2 + x^3 + e
+            x^3 + pi^2 + e
         """
         return '"%s"'%repr(self)
 
@@ -575,7 +575,7 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
             sage: singular(e + pi^2 + x^3)
-            pi^2 + x^3 + e
+            x^3 + pi^2 + e
         """
         return '"%s"'%repr(self)
 
@@ -591,7 +591,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x = var('x')
             sage: f = sin(cos(x^2) + log(x))
             sage: f._magma_init_(magma)
-            '"sin(log(x) + cos(x^2))"'
+            '"sin(cos(x^2) + log(x))"'
             sage: magma(f)                         # optional - magma
             sin(log(x) + cos(x^2))
             sage: magma(f).Type()                  # optional - magma
@@ -610,11 +610,11 @@ cdef class Expression(CommutativeRingElement):
             sage: latex(y + 3*(x^(-1)))
             y + \frac{3}{x}
             sage: latex(x^(y+z^(1/y)))
-            x^{z^{\left(\frac{1}{y}\right)} + y}
+            x^{y + z^{\left(\frac{1}{y}\right)}}
             sage: latex(1/sqrt(x+y))
             \frac{1}{\sqrt{x + y}}
             sage: latex(sin(x*(z+y)^x))
-            \sin\left({\left(y + z\right)}^{x} x\right)
+            \sin\left(x {\left(y + z\right)}^{x}\right)
             sage: latex(3/2*(x+y)/z/y)
             \frac{3 \, {\left(x + y\right)}}{2 \, y z}
             sage: latex((2^(x^y)))
@@ -624,7 +624,7 @@ cdef class Expression(CommutativeRingElement):
             sage: latex((x*y).conjugate())
             \overline{x} \overline{y}
             sage: latex(x*(1/(x^2)+sqrt(x^7)))
-            {\left(\sqrt{x^{7}} + \frac{1}{x^{2}}\right)} x
+            x {\left(\sqrt{x^{7}} + \frac{1}{x^{2}}\right)}
 
         Check spacing of coefficients of mul expressions (#3202)::
 
@@ -687,9 +687,9 @@ cdef class Expression(CommutativeRingElement):
             sage: latex((x+2)/(x^3+1))
             \frac{x + 2}{x^{3} + 1}
             sage: latex((x+2)*(x+1)/(x^3+1))
-            \frac{{\left(x + 1\right)} {\left(x + 2\right)}}{x^{3} + 1}
+            \frac{{\left(x + 2\right)} {\left(x + 1\right)}}{x^{3} + 1}
             sage: latex((x+2)/(x^3+1)/(x+1))
-            \frac{x + 2}{{\left(x + 1\right)} {\left(x^{3} + 1\right)}}
+            \frac{x + 2}{{\left(x^{3} + 1\right)} {\left(x + 1\right)}}
 
         Check that the sign is correct (#9086)::
 
@@ -1270,7 +1270,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x^3 -y == y + x
             x^3 - y == x + y
             sage: x^3 - y^10 >= y + x^10
-            x^3 - y^10 >= x^10 + y
+            -y^10 + x^3 >= x^10 + y
             sage: x^2 > x
             x^2 > x
 
@@ -1425,7 +1425,7 @@ cdef class Expression(CommutativeRingElement):
             sage: v,c = var('v,c')
             sage: assume(c != 0)
             sage: integral((1+v^2/c^2)^3/(1-v^2/c^2)^(3/2),v)
-            -17/8*v^3/(sqrt(-v^2/c^2 + 1)*c^2) - 1/4*v^5/(sqrt(-v^2/c^2 + 1)*c^4) + 83/8*v/sqrt(-v^2/c^2 + 1) - 75/8*arcsin(v/(c^2*sqrt(c^(-2))))/sqrt(c^(-2))
+            83/8*v/sqrt(-v^2/c^2 + 1) - 17/8*v^3/(c^2*sqrt(-v^2/c^2 + 1)) - 1/4*v^5/(c^4*sqrt(-v^2/c^2 + 1)) - 75/8*arcsin(v/(c^2*sqrt(c^(-2))))/sqrt(c^(-2))
             sage: forget()
         """
         from sage.symbolic.assumptions import _assumptions
@@ -2542,7 +2542,7 @@ cdef class Expression(CommutativeRingElement):
 
             # check if comparison of constant terms in Pynac add objects work
             sage: (y-1)*(y-2)
-            (y - 2)*(y - 1)
+            (y - 1)*(y - 2)
 
         Check if Pynac can compute inverses of Python longs (:trac:`13107`)::
 
@@ -2791,11 +2791,11 @@ cdef class Expression(CommutativeRingElement):
 
             sage: x,y = var('x,y')
             sage: x.__cmp__(y)
-            -1
+            1
             sage: x < y
             x < y
             sage: cmp(x,y)
-            -1
+            1
             sage: cmp(SR(0.5), SR(0.7))
             -1
             sage: SR(0.5) < SR(0.7)
@@ -3144,9 +3144,9 @@ cdef class Expression(CommutativeRingElement):
 
             sage: h = sin(x)/cos(x)
             sage: derivative(h,x,x,x)
-            6*sin(x)^4/cos(x)^4 + 8*sin(x)^2/cos(x)^2 + 2
+            8*sin(x)^2/cos(x)^2 + 6*sin(x)^4/cos(x)^4 + 2
             sage: derivative(h,x,3)
-            6*sin(x)^4/cos(x)^4 + 8*sin(x)^2/cos(x)^2 + 2
+            8*sin(x)^2/cos(x)^2 + 6*sin(x)^4/cos(x)^4 + 2
 
         ::
 
@@ -3154,19 +3154,19 @@ cdef class Expression(CommutativeRingElement):
             (x, y)
             sage: u = (sin(x) + cos(y))*(cos(x) - sin(y))
             sage: derivative(u,x,y)
-            sin(x)*sin(y) - cos(x)*cos(y)
+            -cos(x)*cos(y) + sin(x)*sin(y)
             sage: f = ((x^2+1)/(x^2-1))^(1/4)
             sage: g = derivative(f, x); g # this is a complex expression
-            1/2*(x/(x^2 - 1) - (x^2 + 1)*x/(x^2 - 1)^2)/((x^2 + 1)/(x^2 - 1))^(3/4)
+            -1/2*((x^2 + 1)*x/(x^2 - 1)^2 - x/(x^2 - 1))/((x^2 + 1)/(x^2 - 1))^(3/4)
             sage: g.factor()
-            -x/((x - 1)^2*(x + 1)^2*((x^2 + 1)/(x^2 - 1))^(3/4))
+            -x/((x + 1)^2*(x - 1)^2*((x^2 + 1)/(x^2 - 1))^(3/4))
 
         ::
 
             sage: y = var('y')
             sage: f = y^(sin(x))
             sage: derivative(f, x)
-            y^sin(x)*log(y)*cos(x)
+            y^sin(x)*cos(x)*log(y)
 
         ::
 
@@ -3184,7 +3184,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: g = 1/(sqrt((x^2-1)*(x+5)^6))
             sage: derivative(g, x)
-            -((x + 5)^6*x + 3*(x + 5)^5*(x^2 - 1))/((x + 5)^6*(x^2 - 1))^(3/2)
+            -((x + 5)^6*x + 3*(x^2 - 1)*(x + 5)^5)/((x^2 - 1)*(x + 5)^6)^(3/2)
 
         TESTS::
 
@@ -3358,7 +3358,7 @@ cdef class Expression(CommutativeRingElement):
             sage: g = f.series(x==1, 4); g
             (-sin(y) - 1) + (-2*sin(y) - 2)*(x - 1) + (-sin(y) + 3)*(x - 1)^2 + 1*(x - 1)^3
             sage: h = g.truncate(); h
-            -(sin(y) - 3)*(x - 1)^2 + (x - 1)^3 - 2*(sin(y) + 1)*(x - 1) - sin(y) - 1
+            (x - 1)^3 - (x - 1)^2*(sin(y) - 3) - 2*(x - 1)*(sin(y) + 1) - sin(y) - 1
             sage: h.expand()
             x^3 - x^2*sin(y) - 5*x + 3
 
@@ -3368,9 +3368,9 @@ cdef class Expression(CommutativeRingElement):
             sage: f.series(x,7)
             1*x^(-1) + (-1/6)*x + 1/120*x^3 + (-1/5040)*x^5 + Order(x^7)
             sage: f.series(x==1,3)
-            (sin(1)) + (-2*sin(1) + cos(1))*(x - 1) + (5/2*sin(1) - 2*cos(1))*(x - 1)^2 + Order((x - 1)^3)
+            (sin(1)) + (cos(1) - 2*sin(1))*(x - 1) + (-2*cos(1) + 5/2*sin(1))*(x - 1)^2 + Order((x - 1)^3)
             sage: f.series(x==1,3).truncate().expand()
-            5/2*x^2*sin(1) - 2*x^2*cos(1) - 7*x*sin(1) + 5*x*cos(1) + 11/2*sin(1) - 3*cos(1)
+            -2*x^2*cos(1) + 5/2*x^2*sin(1) + 5*x*cos(1) - 7*x*sin(1) - 3*cos(1) + 11/2*sin(1)
 
         Following the GiNaC tutorial, we use John Machin's amazing
         formula `\pi = 16 \tan^{-1}(1/5) - 4 \tan^{-1}(1/239)` to compute
@@ -3421,7 +3421,7 @@ cdef class Expression(CommutativeRingElement):
             sage: var('a, x, z')
             (a, x, z)
             sage: taylor(a*log(z), z, 2, 3)
-            1/24*(z - 2)^3*a - 1/8*(z - 2)^2*a + 1/2*(z - 2)*a + a*log(2)
+            1/24*a*(z - 2)^3 - 1/8*a*(z - 2)^2 + 1/2*a*(z - 2) + a*log(2)
 
         ::
 
@@ -3458,7 +3458,7 @@ cdef class Expression(CommutativeRingElement):
         Check that ticket #7472 is fixed (Taylor polynomial in more variables)::
 
             sage: x,y=var('x y'); taylor(x*y^3,(x,1),(y,1),4)
-            (y - 1)^3*(x - 1) + (y - 1)^3 + 3*(y - 1)^2*(x - 1) + 3*(y - 1)^2 + 3*(y - 1)*(x - 1) + x + 3*y - 3
+            (x - 1)*(y - 1)^3 + 3*(x - 1)*(y - 1)^2 + (y - 1)^3 + 3*(x - 1)*(y - 1) + 3*(y - 1)^2 + x + 3*y - 3
             sage: expand(_)
             x*y^3
 
@@ -3503,7 +3503,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f.series(x,7).truncate()
             -1/5040*x^5 + 1/120*x^3 - 1/6*x + 1/x
             sage: f.series(x==1,3).truncate().expand()
-            5/2*x^2*sin(1) - 2*x^2*cos(1) - 7*x*sin(1) + 5*x*cos(1) + 11/2*sin(1) - 3*cos(1)
+            -2*x^2*cos(1) + 5/2*x^2*sin(1) + 5*x*cos(1) - 7*x*sin(1) - 3*cos(1) + 11/2*sin(1)
         """
         if not is_a_series(self._gobj):
             return self
@@ -3554,9 +3554,9 @@ cdef class Expression(CommutativeRingElement):
             sage: ((x + (2/3)*y)^3).expand()
             x^3 + 2*x^2*y + 4/3*x*y^2 + 8/27*y^3
             sage: expand( (x*sin(x) - cos(y)/x)^2 )
-            x^2*sin(x)^2 - 2*sin(x)*cos(y) + cos(y)^2/x^2
+            x^2*sin(x)^2 - 2*cos(y)*sin(x) + cos(y)^2/x^2
             sage: f = (x-y)*(x+y); f
-            (x - y)*(x + y)
+            (x + y)*(x - y)
             sage: f.expand()
             x^2 - y^2
         """
@@ -3613,29 +3613,29 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
             sage: sin(5*x).expand_trig()
-            sin(x)^5 - 10*sin(x)^3*cos(x)^2 + 5*sin(x)*cos(x)^4
+            5*cos(x)^4*sin(x) - 10*cos(x)^2*sin(x)^3 + sin(x)^5
             sage: cos(2*x + var('y')).expand_trig()
-            -sin(2*x)*sin(y) + cos(2*x)*cos(y)
+            cos(2*x)*cos(y) - sin(2*x)*sin(y)
 
         We illustrate various options to this function::
 
             sage: f = sin(sin(3*cos(2*x))*x)
             sage: f.expand_trig()
-            sin(-(sin(cos(2*x))^3 - 3*sin(cos(2*x))*cos(cos(2*x))^2)*x)
+            sin((3*cos(cos(2*x))^2*sin(cos(2*x)) - sin(cos(2*x))^3)*x)
             sage: f.expand_trig(full=True)
-            sin(((sin(sin(x)^2)*cos(cos(x)^2) - sin(cos(x)^2)*cos(sin(x)^2))^3 - 3*(sin(sin(x)^2)*cos(cos(x)^2) - sin(cos(x)^2)*cos(sin(x)^2))*(sin(sin(x)^2)*sin(cos(x)^2) + cos(sin(x)^2)*cos(cos(x)^2))^2)*x)
+            sin((3*(cos(cos(x)^2)*cos(sin(x)^2) + sin(cos(x)^2)*sin(sin(x)^2))^2*(cos(sin(x)^2)*sin(cos(x)^2) - cos(cos(x)^2)*sin(sin(x)^2)) - (cos(sin(x)^2)*sin(cos(x)^2) - cos(cos(x)^2)*sin(sin(x)^2))^3)*x)
             sage: sin(2*x).expand_trig(times=False)
             sin(2*x)
             sage: sin(2*x).expand_trig(times=True)
-            2*sin(x)*cos(x)
+            2*cos(x)*sin(x)
             sage: sin(2 + x).expand_trig(plus=False)
             sin(x + 2)
             sage: sin(2 + x).expand_trig(plus=True)
-            sin(2)*cos(x) + sin(x)*cos(2)
+            cos(x)*sin(2) + cos(2)*sin(x)
             sage: sin(x/2).expand_trig(half_angles=False)
             sin(1/2*x)
             sage: sin(x/2).expand_trig(half_angles=True)
-            sqrt(-1/2*cos(x) + 1/2)*(-1)^floor(1/2*x/pi)
+            (-1)^floor(1/2*x/pi)*sqrt(-1/2*cos(x) + 1/2)
 
         ALIASES:
 
@@ -3676,12 +3676,12 @@ cdef class Expression(CommutativeRingElement):
             sage: y=var('y')
             sage: f=sin(x)*cos(x)^3+sin(y)^2
             sage: f.reduce_trig()
-            1/4*sin(2*x) + 1/8*sin(4*x) - 1/2*cos(2*y) + 1/2
+            -1/2*cos(2*y) + 1/8*sin(4*x) + 1/4*sin(2*x) + 1/2
 
         To reduce only the expressions involving x we use optional parameter::
 
             sage: f.reduce_trig(x)
-            sin(y)^2 + 1/4*sin(2*x) + 1/8*sin(4*x)
+            sin(y)^2 + 1/8*sin(4*x) + 1/4*sin(2*x)
 
         ALIASES: :meth:`trig_reduce` and :meth:`reduce_trig` are the same
         """
@@ -3737,10 +3737,13 @@ cdef class Expression(CommutativeRingElement):
             {$0: x + y}
             sage: t = ((a+b)*(a+c)).match((a+w0)*(a+w1))
             sage: t[w0], t[w1]
-            (b, c)
+            (c, b)
             sage: ((a+b)*(a+c)).match((w0+b)*(w0+c))
             {$0: a}
-            sage: print ((a+b)*(a+c)).match((w0+w1)*(w0+w2))    # surprising?
+            sage: t = ((a+b)*(a+c)).match((w0+w1)*(w0+w2))
+            sage: t[w0], t[w1], t[w2]
+            (a, c, b)
+            sage: print ((a+b)*(a+c)).match((w0+w1)*(w1+w2))
             None
             sage: t = (a*(x+y)+a*z+b).match(a*w0+w1)
             sage: t[w0], t[w1]
@@ -3806,15 +3809,15 @@ cdef class Expression(CommutativeRingElement):
             sage: w0 = SR.wild(0); w1 = SR.wild(1)
 
             sage: (sin(x)*sin(y)).find(sin(w0))
-            [sin(x), sin(y)]
+            [sin(y), sin(x)]
 
             sage: ((sin(x)+sin(y))*(a+b)).expand().find(sin(w0))
-            [sin(x), sin(y)]
+            [sin(y), sin(x)]
 
             sage: (1+x+x^2+x^3).find(x)
             [x]
             sage: (1+x+x^2+x^3).find(x^w0)
-            [x^3, x^2]
+            [x^2, x^3]
 
             sage: (1+x+x^2+x^3).find(y)
             []
@@ -3831,6 +3834,7 @@ cdef class Expression(CommutativeRingElement):
         while itr.is_not_equal(found.end()):
             res.append(new_Expression_from_GEx(self._parent, itr.obj()))
             itr.inc()
+        res.sort(cmp)
         return res
 
     def has(self, pattern):
@@ -3901,11 +3905,11 @@ cdef class Expression(CommutativeRingElement):
             (x + y)^3 + b^2 + c
 
             sage: t.subs({w0^2: w0^3})
-            (x + y)^3 + a^3 + b^3
+            a^3 + b^3 + (x + y)^3
 
             # substitute with a relational expression
             sage: t.subs(w0^2 == w0^3)
-            (x + y)^3 + a^3 + b^3
+            a^3 + b^3 + (x + y)^3
 
             sage: t.subs(w0==w0^2)
             (x^2 + y^2)^18 + a^16 + b^16
@@ -4023,11 +4027,11 @@ cdef class Expression(CommutativeRingElement):
             (x, y, z, a, b, c, d, f)
             sage: w0 = SR.wild(0); w1 = SR.wild(1)
             sage: (a^2 + b^2 + (x+y)^2)._subs_expr(w0^2 == w0^3)
-            (x + y)^3 + a^3 + b^3
+            a^3 + b^3 + (x + y)^3
             sage: (a^4 + b^4 + (x+y)^4)._subs_expr(w0^2 == w0^3)
-            (x + y)^4 + a^4 + b^4
+            a^4 + b^4 + (x + y)^4
             sage: (a^2 + b^4 + (x+y)^4)._subs_expr(w0^2 == w0^3)
-            (x + y)^4 + a^3 + b^4
+            b^4 + (x + y)^4 + a^3
             sage: ((a+b+c)^2)._subs_expr(a+b == x)
             (a + b + c)^2
             sage: ((a+b+c)^2)._subs_expr(a+b+w0 == x+w0)
@@ -4051,7 +4055,7 @@ cdef class Expression(CommutativeRingElement):
             sage: (sin(x)^2 + cos(x)^2)._subs_expr(sin(w0)^2+cos(w0)^2==1)
             1
             sage: (1 + sin(x)^2 + cos(x)^2)._subs_expr(sin(w0)^2+cos(w0)^2==1)
-            sin(x)^2 + cos(x)^2 + 1
+            cos(x)^2 + sin(x)^2 + 1
             sage: (17*x + sin(x)^2 + cos(x)^2)._subs_expr(w1 + sin(w0)^2+cos(w0)^2 == w1 + 1)
             17*x + 1
             sage: ((x-1)*(sin(x)^2 + cos(x)^2)^2)._subs_expr(sin(w0)^2+cos(w0)^2 == 1)
@@ -4098,18 +4102,18 @@ cdef class Expression(CommutativeRingElement):
             x^4 + x
             sage: f = cos(x^2) + sin(x^2)
             sage: f.subs_expr(x^2 == x)
-            sin(x) + cos(x)
+            cos(x) + sin(x)
 
         ::
 
             sage: f(x,y,t) = cos(x) + sin(y) + x^2 + y^2 + t
             sage: f.subs_expr(y^2 == t)
-            (x, y, t) |--> x^2 + 2*t + sin(y) + cos(x)
+            (x, y, t) |--> x^2 + 2*t + cos(x) + sin(y)
 
         The following seems really weird, but it *is* what Maple does::
 
             sage: f.subs_expr(x^2 + y^2 == t)
-            (x, y, t) |--> x^2 + y^2 + t + sin(y) + cos(x)
+            (x, y, t) |--> x^2 + y^2 + t + cos(x) + sin(y)
             sage: maple.eval('subs(x^2 + y^2 = t, cos(x) + sin(y) + x^2 + y^2 + t)')          # optional - maple
             'cos(x)+sin(y)+x^2+y^2+t'
             sage: maxima.quit()
@@ -4158,7 +4162,7 @@ cdef class Expression(CommutativeRingElement):
             sage: var('x,y,z')
             (x, y, z)
             sage: (x+y)(x=z^2, y=x^y)
-            x^y + z^2
+            z^2 + x^y
         """
         return self._parent._call_element_(self, *args, **kwds)
 
@@ -4296,7 +4300,7 @@ cdef class Expression(CommutativeRingElement):
             sage: var('a,b,c,x,y')
             (a, b, c, x, y)
             sage: (a^2 + b^2 + (x+y)^2).operands()
-            [(x + y)^2, a^2, b^2]
+            [a^2, b^2, (x + y)^2]
             sage: (a^2).operands()
             [a, 2]
             sage: (a*b^2*c).operands()
@@ -4672,7 +4676,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f
             (x, y) |--> x^n + y^n
             sage: f(2,3)
-            2^n + 3^n
+            3^n + 2^n
         """
         # we override type checking in CallableSymbolicExpressionRing,
         # since it checks for old SymbolicVariable's
@@ -4729,11 +4733,11 @@ cdef class Expression(CommutativeRingElement):
             sage: x.add(x, hold=True)
             x + x
             sage: x.add(x, (2+x), hold=True)
-            x + x + (x + 2)
+            (x + 2) + x + x
             sage: x.add(x, (2+x), x, hold=True)
-            x + x + (x + 2) + x
+            (x + 2) + x + x + x
             sage: x.add(x, (2+x), x, 2*x, hold=True)
-            x + x + (x + 2) + x + 2*x
+            (x + 2) + 2*x + x + x + x
 
         To then evaluate again, we currently must use Maxima via
         :meth:`simplify`::
@@ -4762,11 +4766,11 @@ cdef class Expression(CommutativeRingElement):
             sage: x.mul(x, hold=True)
             x*x
             sage: x.mul(x, (2+x), hold=True)
-            x*x*(x + 2)
+            (x + 2)*x*x
             sage: x.mul(x, (2+x), x, hold=True)
-            x*x*(x + 2)*x
+            (x + 2)*x*x*x
             sage: x.mul(x, (2+x), x, 2*x, hold=True)
-            x*x*(x + 2)*x*(2*x)
+            (2*x)*(x + 2)*x*x*x
 
         To then evaluate again, we currently must use Maxima via
         :meth:`simplify`::
@@ -4826,7 +4830,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f.coefficient(sin(x*y))
             x^3 + 2/x
             sage: f.collect(sin(x*y))
-            (x^3 + 2/x)*sin(x*y) + a*x + x*y + x/y + 100
+            a*x + x*y + (x^3 + 2/x)*sin(x*y) + x/y + 100
 
             sage: var('a, x, y, z')
             (a, x, y, z)
@@ -5013,7 +5017,7 @@ cdef class Expression(CommutativeRingElement):
             sage: bool(p.poly(a) == (x-a*sqrt(2))^2 + x + 1)
             True
             sage: p.poly(x)
-            -(2*sqrt(2)*a - 1)*x + 2*a^2 + x^2 + 1
+            2*a^2 - (2*sqrt(2)*a - 1)*x + x^2 + 1
         """
         from sage.symbolic.ring import SR
         f = self._maxima_()
@@ -5159,7 +5163,7 @@ cdef class Expression(CommutativeRingElement):
             sage: R = SR[x]
             sage: a = R(sqrt(2) + x^3 + y)
             sage: a
-            y + sqrt(2) + x^3
+            x^3 + y + sqrt(2)
             sage: type(a)
             <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
             sage: a.degree()
@@ -5329,7 +5333,10 @@ cdef class Expression(CommutativeRingElement):
             sage: lcm(x^100-y^100, x^10-y^10)
             -x^100 + y^100
             sage: lcm(expand( (x^2+17*x+3/7*y)*(x^5 - 17*y + 2/3) ), expand((x^13+17*x+3/7*y)*(x^5 - 17*y + 2/3)) )
-            1/21*(21*x^7 + 357*x^6 + 9*x^5*y - 357*x^2*y + 14*x^2 - 6069*x*y - 153*y^2 + 238*x + 6*y)*(21*x^18 - 357*x^13*y + 14*x^13 + 357*x^6 + 9*x^5*y - 6069*x*y - 153*y^2 + 238*x + 6*y)/(3*x^5 - 51*y + 2)
+             1/21*(21*x^18 - 357*x^13*y + 14*x^13 + 357*x^6 + 9*x^5*y -
+                     6069*x*y - 153*y^2 + 238*x + 6*y)*(21*x^7 + 357*x^6 +
+                             9*x^5*y - 357*x^2*y + 14*x^2 - 6069*x*y -
+                             153*y^2 + 238*x + 6*y)/(3*x^5 - 51*y + 2)
 
         TESTS:
 
@@ -5384,7 +5391,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x,y,z = var('x,y,z')
             sage: f = 4*x*y + x*z + 20*y^2 + 21*y*z + 4*z^2 + x^2*y^2*z^2
             sage: f.collect(x)
-            x^2*y^2*z^2 + (4*y + z)*x + 20*y^2 + 21*y*z + 4*z^2
+            x^2*y^2*z^2 + x*(4*y + z) + 20*y^2 + 21*y*z + 4*z^2
 
         Here we do the same thing for `y` and `z`; however, note that
         we don't factor the `y^{2}` and `z^{2}` terms before
@@ -5393,7 +5400,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f.collect(y)
             (x^2*z^2 + 20)*y^2 + (4*x + 21*z)*y + x*z + 4*z^2
             sage: f.collect(z)
-            (x^2*y^2 + 4)*z^2 + (x + 21*y)*z + 4*x*y + 20*y^2
+            (x^2*y^2 + 4)*z^2 + 4*x*y + 20*y^2 + (x + 21*y)*z
 
         Sometimes, we do have to call :meth:`expand()` on the
         expression first to achieve the desired result::
@@ -5402,7 +5409,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f.collect(x)
             x^2 + x*y - x*z - y*z
             sage: f.expand().collect(x)
-            (y - z)*x + x^2 - y*z
+            x^2 + x*(y - z) - y*z
 
         TESTS:
 
@@ -5783,7 +5790,7 @@ cdef class Expression(CommutativeRingElement):
             (a, b)
             sage: f = log(a + b*I)
             sage: f.imag_part()
-            arctan2(real_part(b) + imag_part(a), real_part(a) - imag_part(b))
+            arctan2(imag_part(a) + real_part(b), -imag_part(b) + real_part(a))
 
         Using the ``hold`` parameter it is possible to prevent automatic
         evaluation::
@@ -6319,7 +6326,7 @@ cdef class Expression(CommutativeRingElement):
         To prevent automatic evaluation use the ``hold`` argument::
 
             sage: arccosh(x).sinh()
-            sqrt(x - 1)*sqrt(x + 1)
+            sqrt(x + 1)*sqrt(x - 1)
             sage: arccosh(x).sinh(hold=True)
             sinh(arccosh(x))
 
@@ -6328,13 +6335,13 @@ cdef class Expression(CommutativeRingElement):
             sage: sinh(arccosh(x),hold=True)
             sinh(arccosh(x))
             sage: sinh(arccosh(x))
-            sqrt(x - 1)*sqrt(x + 1)
+            sqrt(x + 1)*sqrt(x - 1)
 
         To then evaluate again, we currently must use Maxima via
         :meth:`simplify`::
 
             sage: a = arccosh(x).sinh(hold=True); a.simplify()
-            sqrt(x - 1)*sqrt(x + 1)
+            sqrt(x + 1)*sqrt(x - 1)
 
         TESTS::
 
@@ -6808,7 +6815,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x.factorial()
             factorial(x)
             sage: (x^2+y^3).factorial()
-            factorial(x^2 + y^3)
+            factorial(y^3 + x^2)
 
         To prevent automatic evaluation use the ``hold`` argument::
 
@@ -7102,7 +7109,9 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f = x*(x-1)/(x^2 - 7) + y^2/(x^2-7) + 1/(x+1) + b/a + c/a
             sage: f.normalize()
-            (a*x^3 + a*x*y^2 + b*x^3 + c*x^3 + a*x^2 + a*y^2 + b*x^2 + c*x^2 - a*x - 7*b*x - 7*c*x - 7*a - 7*b - 7*c)/((x + 1)*(x^2 - 7)*a)
+            (a*x^3 + b*x^3 + c*x^3 + a*x*y^2 + a*x^2 + b*x^2 + c*x^2 +
+                    a*y^2 - a*x - 7*b*x - 7*c*x - 7*a - 7*b - 7*c)/((x^2 -
+                        7)*a*(x + 1))
 
         ALGORITHM: Uses GiNaC.
 
@@ -7224,12 +7233,12 @@ cdef class Expression(CommutativeRingElement):
             sage: f.numerator()
             sqrt(x) + sqrt(y) + sqrt(z)
             sage: f.denominator()
-            -sqrt(theta) + x^10 - y^10
+            x^10 - y^10 - sqrt(theta)
 
             sage: f.numerator(normalize=False)
-            -(sqrt(x) + sqrt(y) + sqrt(z))
+            (sqrt(x) + sqrt(y) + sqrt(z))
             sage: f.denominator(normalize=False)
-            sqrt(theta) - x^10 + y^10
+            x^10 - y^10 - sqrt(theta)
 
             sage: y = var('y')
             sage: g = x + y/(x + 2); g
@@ -7437,9 +7446,9 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
             sage: t = log(sqrt(2) - 1) + log(sqrt(2) + 1); t
-            log(sqrt(2) - 1) + log(sqrt(2) + 1)
+            log(sqrt(2) + 1) + log(sqrt(2) - 1)
             sage: res = t.maxima_methods().logcontract(); res
-            log((sqrt(2) - 1)*(sqrt(2) + 1))
+            log((sqrt(2) + 1)*(sqrt(2) - 1))
             sage: type(res)
             <type 'sage.symbolic.expression.Expression'>
         """
@@ -7499,7 +7508,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f = e^(I*x)
             sage: f.rectform()
-            I*sin(x) + cos(x)
+            cos(x) + I*sin(x)
 
         TESTS:
 
@@ -7626,9 +7635,9 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
             sage: f = sin(x)^2 + cos(x)^2; f
-            sin(x)^2 + cos(x)^2
+            cos(x)^2 + sin(x)^2
             sage: f.simplify()
-            sin(x)^2 + cos(x)^2
+            cos(x)^2 + sin(x)^2
             sage: f.simplify_trig()
             1
             sage: h = sin(x)*csc(x)
@@ -7699,7 +7708,7 @@ cdef class Expression(CommutativeRingElement):
         ::
 
             sage: f = ((x - 1)^(3/2) - (x + 1)*sqrt(x - 1))/sqrt((x - 1)*(x + 1)); f
-            ((x - 1)^(3/2) - sqrt(x - 1)*(x + 1))/sqrt((x - 1)*(x + 1))
+            -((x + 1)*sqrt(x - 1) - (x - 1)^(3/2))/sqrt((x + 1)*(x - 1))
             sage: f.simplify_rational()
             -2*sqrt(x - 1)/sqrt(x^2 - 1)
 
@@ -7723,7 +7732,7 @@ cdef class Expression(CommutativeRingElement):
             sage: y = var('y')
             sage: g = (x^(y/2) + 1)^2*(x^(y/2) - 1)^2/(x^y - 1)
             sage: g.simplify_rational(algorithm='simple')
-            -(2*x^y - x^(2*y) - 1)/(x^y - 1)
+            (x^(2*y) - 2*x^y + 1)/(x^y - 1)
             sage: g.simplify_rational()
             x^y - 1
 
@@ -7734,8 +7743,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f.simplify_rational()
             (2*x^2 + 5*x + 4)/(x^3 + 5*x^2 + 8*x + 4)
             sage: f.simplify_rational(algorithm='noexpand')
-            ((x + 1)*x + (x + 2)^2)/((x + 1)*(x + 2)^2)
-
+            ((x + 2)^2 + (x + 1)*x)/((x + 2)^2*(x + 1))
         """
         self_m = self._maxima_()
         if algorithm == 'full':
@@ -7787,14 +7795,14 @@ cdef class Expression(CommutativeRingElement):
         ::
 
             sage: f = binomial(n, k)*factorial(k)*factorial(n-k); f
-            factorial(-k + n)*factorial(k)*binomial(n, k)
+            binomial(n, k)*factorial(k)*factorial(-k + n)
             sage: f.simplify_factorial()
             factorial(n)
 
         A more complicated example, which needs further processing::
 
             sage: f = factorial(x)/factorial(x-2)/2 + factorial(x+1)/factorial(x)/2; f
-            1/2*factorial(x)/factorial(x - 2) + 1/2*factorial(x + 1)/factorial(x)
+            1/2*factorial(x + 1)/factorial(x) + 1/2*factorial(x)/factorial(x - 2)
             sage: g = f.simplify_factorial(); g
             1/2*(x - 1)*x + 1/2*x + 1/2
             sage: g.simplify_rational()
@@ -7881,9 +7889,9 @@ cdef class Expression(CommutativeRingElement):
             sage: e1 = 1/(sqrt(5)+sqrt(2))
             sage: e2 = (sqrt(5)-sqrt(2))/3
             sage: e1.simplify_radical()
-            1/(sqrt(2) + sqrt(5))
+            1/(sqrt(5) + sqrt(2))
             sage: e2.simplify_radical()
-            -1/3*sqrt(2) + 1/3*sqrt(5)
+            1/3*sqrt(5) - 1/3*sqrt(2)
             sage: (e1-e2).simplify_radical()
             0
         """
@@ -7980,7 +7988,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: f = log(x)+log(y)-1/3*log((x+1))
             sage: f.simplify_log()
-            -1/3*log(x + 1) + log(x*y)
+            log(x*y) - 1/3*log(x + 1)
 
             sage: f.simplify_log('ratios')
             log(x*y/(x + 1)^(1/3))
@@ -8006,7 +8014,7 @@ cdef class Expression(CommutativeRingElement):
 
             sage: log_expr = (log(sqrt(2)-1)+log(sqrt(2)+1))
             sage: log_expr.simplify_log('all')
-            log((sqrt(2) - 1)*(sqrt(2) + 1))
+            log((sqrt(2) + 1)*(sqrt(2) - 1))
             sage: _.simplify_rational()
             0
             sage: log_expr.simplify_full()   # applies both simplify_log and simplify_rational
@@ -8101,7 +8109,7 @@ cdef class Expression(CommutativeRingElement):
         To expand also log(3/4) use ``algorithm='all'``::
 
             sage: (log(3/4*x^pi)).log_expand('all')
-            pi*log(x) + log(3) - log(4)
+            pi*log(x) - log(4) + log(3)
 
         To expand only the power use ``algorithm='powers'``.::
 
@@ -8124,7 +8132,7 @@ cdef class Expression(CommutativeRingElement):
             pi*log(x) + log(3/4)
 
             sage: (log(3/4*x^pi)).log_expand('all')
-            pi*log(x) + log(3) - log(4)
+            pi*log(x) - log(4) + log(3)
 
             sage: (log(3/4*x^pi)).log_expand()
             pi*log(x) + log(3/4)
@@ -8195,12 +8203,12 @@ cdef class Expression(CommutativeRingElement):
 
             sage: x,y,z = var('x, y, z')
             sage: (x^3-y^3).factor()
-            (x - y)*(x^2 + x*y + y^2)
+            (x^2 + x*y + y^2)*(x - y)
             sage: factor(-8*y - 4*x + z^2*(2*y + x))
-            (z - 2)*(z + 2)*(x + 2*y)
+            (x + 2*y)*(z + 2)*(z - 2)
             sage: f = -1 - 2*x - x^2 + y^2 + 2*x*y^2 + x^2*y^2
             sage: F = factor(f/(36*(1 + 2*y + y^2)), dontfactor=[x]); F
-            1/36*(y - 1)*(x^2 + 2*x + 1)/(y + 1)
+            1/36*(x^2 + 2*x + 1)*(y - 1)/(y + 1)
 
         If you are factoring a polynomial with rational coefficients (and
         dontfactor is empty) the factorization is done using Singular
@@ -8210,7 +8218,14 @@ cdef class Expression(CommutativeRingElement):
             sage: var('x,y')
             (x, y)
             sage: (x^99 + y^99).factor()
-            (x + y)*(x^2 - x*y + y^2)*(x^6 - x^3*y^3 + y^6)*...
+            (x^60 + x^57*y^3 - x^51*y^9 - x^48*y^12 + x^42*y^18 + x^39*y^21 -
+            x^33*y^27 - x^30*y^30 - x^27*y^33 + x^21*y^39 + x^18*y^42 -
+            x^12*y^48 - x^9*y^51 + x^3*y^57 + y^60)*(x^20 + x^19*y -
+            x^17*y^3 - x^16*y^4 + x^14*y^6 + x^13*y^7 - x^11*y^9 -
+            x^10*y^10 - x^9*y^11 + x^7*y^13 + x^6*y^14 - x^4*y^16 -
+            x^3*y^17 + x*y^19 + y^20)*(x^10 - x^9*y + x^8*y^2 - x^7*y^3 +
+            x^6*y^4 - x^5*y^5 + x^4*y^6 - x^3*y^7 + x^2*y^8 - x*y^9 +
+            y^10)*(x^6 - x^3*y^3 + y^6)*(x^2 - x*y + y^2)*(x + y)
         """
         from sage.calculus.calculus import symbolic_expression_from_maxima_string, symbolic_expression_from_string
         if len(dontfactor) > 0:
@@ -8251,17 +8266,17 @@ cdef class Expression(CommutativeRingElement):
             (x, y, z)
             sage: f = x^3-y^3
             sage: f.factor()
-            (x - y)*(x^2 + x*y + y^2)
+            (x^2 + x*y + y^2)*(x - y)
 
         Notice that the -1 factor is separated out::
 
             sage: f.factor_list()
-            [(x - y, 1), (x^2 + x*y + y^2, 1)]
+            [(x^2 + x*y + y^2, 1), (x - y, 1)]
 
         We factor a fairly straightforward expression::
 
             sage: factor(-8*y - 4*x + z^2*(2*y + x)).factor_list()
-            [(z - 2, 1), (z + 2, 1), (x + 2*y, 1)]
+            [(x + 2*y, 1), (z + 2, 1), (z - 2, 1)]
 
         A more complicated example::
 
@@ -8269,9 +8284,9 @@ cdef class Expression(CommutativeRingElement):
             (x, u, v)
             sage: f = expand((2*u*v^2-v^2-4*u^3)^2 * (-u)^3 * (x-sin(x))^3)
             sage: f.factor()
-            -(x - sin(x))^3*(4*u^3 - 2*u*v^2 + v^2)^2*u^3
+            -(4*u^3 - 2*u*v^2 + v^2)^2*u^3*(x - sin(x))^3
             sage: g = f.factor_list(); g
-            [(x - sin(x), 3), (4*u^3 - 2*u*v^2 + v^2, 2), (u, 3), (-1, 1)]
+            [(4*u^3 - 2*u*v^2 + v^2, 2), (u, 3), (x - sin(x), 3), (-1, 1)]
 
         This function also works for quotients::
 
@@ -8279,9 +8294,9 @@ cdef class Expression(CommutativeRingElement):
             sage: g = f/(36*(1 + 2*y + y^2)); g
             1/36*(x^2*y^2 + 2*x*y^2 - x^2 + y^2 - 2*x - 1)/(y^2 + 2*y + 1)
             sage: g.factor(dontfactor=[x])
-            1/36*(y - 1)*(x^2 + 2*x + 1)/(y + 1)
+            1/36*(x^2 + 2*x + 1)*(y - 1)/(y + 1)
             sage: g.factor_list(dontfactor=[x])
-            [(y - 1, 1), (y + 1, -1), (x^2 + 2*x + 1, 1), (1/36, 1)]
+            [(x^2 + 2*x + 1, 1), (y + 1, -1), (y - 1, 1), (1/36, 1)]
 
         This example also illustrates that the exponents do not have to be
         integers::
@@ -8304,9 +8319,9 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
             sage: g = factor(x^3 - 1); g
-            (x - 1)*(x^2 + x + 1)
+            (x^2 + x + 1)*(x - 1)
             sage: v = g._factor_list(); v
-            [(x - 1, 1), (x^2 + x + 1, 1)]
+            [(x^2 + x + 1, 1), (x - 1, 1)]
             sage: type(v)
             <type 'list'>
         """
@@ -8489,7 +8504,7 @@ cdef class Expression(CommutativeRingElement):
             sage: var('a,b,c,x')
             (a, b, c, x)
             sage: (a*x^2 + b*x + c).roots(x)
-            [(-1/2*(b + sqrt(-4*a*c + b^2))/a, 1), (-1/2*(b - sqrt(-4*a*c + b^2))/a, 1)]
+            [(-1/2*(b + sqrt(b^2 - 4*a*c))/a, 1), (-1/2*(b - sqrt(b^2 - 4*a*c))/a, 1)]
 
         By default, all the roots are required to be explicit rather than
         implicit. To get implicit roots, pass ``explicit_solutions=False``
@@ -8503,7 +8518,7 @@ cdef class Expression(CommutativeRingElement):
             ...
             RuntimeError: no explicit roots found
             sage: f.roots(explicit_solutions=False)
-            [((2^(8/9) - 2^(1/9) + x^(8/9) - x^(1/9))/(2^(8/9) - 2^(1/9)), 1)]
+            [((2^(8/9) + x^(8/9) - 2^(1/9) - x^(1/9))/(2^(8/9) - 2^(1/9)), 1)]
 
         Another example, but involving a degree 5 poly whose roots don't
         get computed explicitly::
@@ -8549,7 +8564,7 @@ cdef class Expression(CommutativeRingElement):
             (f6, f5, f4, x)
             sage: e=15*f6*x^2 + 5*f5*x + f4
             sage: res = e.roots(x); res
-            [(-1/30*(5*f5 + sqrt(-60*f4*f6 + 25*f5^2))/f6, 1), (-1/30*(5*f5 - sqrt(-60*f4*f6 + 25*f5^2))/f6, 1)]
+            [(-1/30*(5*f5 + sqrt(25*f5^2 - 60*f4*f6))/f6, 1), (-1/30*(5*f5 - sqrt(25*f5^2 - 60*f4*f6))/f6, 1)]
             sage: e.subs(x=res[0][0]).is_zero()
             True
         """
@@ -8997,7 +9012,7 @@ cdef class Expression(CommutativeRingElement):
             sage: a.solve(t)
             []
             sage: b = a.simplify_radical(); b
-            -23040*(25.0*e^(900*t) - 2.0*e^(1800*t) - 32.0)*e^(-2400*t)
+            -23040*(-2.0*e^(1800*t) + 25.0*e^(900*t) - 32.0)*e^(-2400*t)
             sage: b.solve(t)
             []
             sage: b.solve(t, to_poly_solve=True)
@@ -9377,7 +9392,7 @@ cdef class Expression(CommutativeRingElement):
         ::
 
             sage: (k * binomial(n, k)).sum(k, 1, n)
-            n*2^(n - 1)
+            2^(n - 1)*n
 
         ::
 
@@ -9646,7 +9661,7 @@ cdef class Expression(CommutativeRingElement):
             sage: f*(-2/3)
             -2/3*x - 2 < -2/3*y + 4/3
             sage: f*(-pi)
-            -(x + 3)*pi < -(y - 2)*pi
+            -pi*(x + 3) < -pi*(y - 2)
 
         Since the direction of the inequality never changes when doing
         arithmetic with equations, you can multiply or divide the

@@ -93,9 +93,9 @@ def derivative(f, *args, **kwds):
         (a, x)
         sage: f = exp(sin(a - x^2))/x
         sage: derivative(f, x)
-        -2*e^(sin(-x^2 + a))*cos(-x^2 + a) - e^(sin(-x^2 + a))/x^2
+        -2*cos(-x^2 + a)*e^(sin(-x^2 + a)) - e^(sin(-x^2 + a))/x^2
         sage: derivative(f, a)
-        e^(sin(-x^2 + a))*cos(-x^2 + a)/x
+        cos(-x^2 + a)*e^(sin(-x^2 + a))/x
 
     Syntax for repeated differentiation::
 
@@ -167,7 +167,7 @@ def integral(f, *args, **kwds):
     ::
 
         sage: integral(x/(x^3-1), x)
-        1/3*sqrt(3)*arctan(1/3*(2*x + 1)*sqrt(3)) + 1/3*log(x - 1) - 1/6*log(x^2 + x + 1)
+        1/3*sqrt(3)*arctan(1/3*sqrt(3)*(2*x + 1)) - 1/6*log(x^2 + x + 1) + 1/3*log(x - 1)
 
     ::
 
@@ -214,7 +214,7 @@ def integral(f, *args, **kwds):
     Note, however, that::
 
         sage: integral( exp(-x^2)*ln(x), x, 0, oo)
-        -1/4*(euler_gamma + 2*log(2))*sqrt(pi)
+        -1/4*sqrt(pi)*(euler_gamma + 2*log(2))
 
     This definite integral is easy::
 
@@ -371,7 +371,7 @@ def taylor(f, *args):
     Taylor polynomial in two variables::
 
         sage: x,y=var('x y'); taylor(x*y^3,(x,1),(y,-1),4)
-        (y + 1)^3*(x - 1) + (y + 1)^3 - 3*(y + 1)^2*(x - 1) - 3*(y + 1)^2 + 3*(y + 1)*(x - 1) - x + 3*y + 3
+        (x - 1)*(y + 1)^3 - 3*(x - 1)*(y + 1)^2 + (y + 1)^3 + 3*(x - 1)*(y + 1) - 3*(y + 1)^2 - x + 3*y + 3
     """
     if not isinstance(f, Expression):
         f = SR(f)
@@ -382,7 +382,7 @@ def expand(x, *args, **kwds):
     EXAMPLES::
 
         sage: a = (x-1)*(x^2 - 1); a
-        (x - 1)*(x^2 - 1)
+        (x^2 - 1)*(x - 1)
         sage: expand(a)
         x^3 - x^2 - x + 1
 

@@ -456,7 +456,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
                  x y  + Sqrt[--] FresnelS[Sqrt[--] x]
                              2                 Pi
         sage: print f.integral(x)
-        y^z*x + 1/8*((I - 1)*sqrt(2)*erf((1/2*I - 1/2)*sqrt(2)*x) + (I + 1)*sqrt(2)*erf((1/2*I + 1/2)*sqrt(2)*x))*sqrt(pi)
+        x*y^z + 1/8*sqrt(pi)*((I + 1)*sqrt(2)*erf((1/2*I + 1/2)*sqrt(2)*x) + (I - 1)*sqrt(2)*erf((1/2*I - 1/2)*sqrt(2)*x))
 
     Alternatively, just use algorithm='mathematica_free' to integrate via Mathematica
     over the internet (does NOT require a Mathematica license!)::
@@ -489,7 +489,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
     ::
 
         sage: A = integral(1/ ((x-4) * (x^3+2*x+1)), x); A
-        1/73*log(x - 4) - 1/73*integrate((x^2 + 4*x + 18)/(x^3 + 2*x + 1), x)
+        -1/73*integrate((x^2 + 4*x + 18)/(x^3 + 2*x + 1), x) + 1/73*log(x - 4)
 
     We now show that floats are not converted to rationals
     automatically since we by default have keepfloat: true in maxima.
@@ -519,7 +519,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
 
         sage: assume(a>0)
         sage: integrate(1/(x^3 *(a+b*x)^(1/3)), x)
-        2/9*sqrt(3)*b^2*arctan(1/3*(2*(b*x + a)^(1/3) + a^(1/3))*sqrt(3)/a^(1/3))/a^(7/3) + 2/9*b^2*log((b*x + a)^(1/3) - a^(1/3))/a^(7/3) - 1/9*b^2*log((b*x + a)^(2/3) + (b*x + a)^(1/3)*a^(1/3) + a^(2/3))/a^(7/3) + 1/6*(4*(b*x + a)^(5/3)*b^2 - 7*(b*x + a)^(2/3)*a*b^2)/((b*x + a)^2*a^2 - 2*(b*x + a)*a^3 + a^4)
+        2/9*sqrt(3)*b^2*arctan(1/3*sqrt(3)*(2*(b*x + a)^(1/3) + a^(1/3))/a^(1/3))/a^(7/3) - 1/9*b^2*log((b*x + a)^(2/3) + (b*x + a)^(1/3)*a^(1/3) + a^(2/3))/a^(7/3) + 2/9*b^2*log((b*x + a)^(1/3) - a^(1/3))/a^(7/3) + 1/6*(4*(b*x + a)^(5/3)*b^2 - 7*(b*x + a)^(2/3)*a*b^2)/((b*x + a)^2*a^2 - 2*(b*x + a)*a^3 + a^4)
 
     TESTS:
 
@@ -527,7 +527,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
     see #3013::
 
         sage: integrate(sin(x)*cos(10*x)*log(x), x)
-        1/198*(11*cos(9*x) - 9*cos(11*x))*log(x) + 1/44*Ei(-11*I*x) - 1/36*Ei(-9*I*x) - 1/36*Ei(9*I*x) + 1/44*Ei(11*I*x)
+        -1/198*(9*cos(11*x) - 11*cos(9*x))*log(x) + 1/44*Ei(11*I*x) - 1/36*Ei(9*I*x) - 1/36*Ei(-9*I*x) + 1/44*Ei(-11*I*x)
 
     It is no longer possible to use certain functions without an
     explicit variable.  Instead, evaluate the function at a variable,
@@ -554,7 +554,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         Is  50015104*y^2-50015103  positive, negative, or zero?
         sage: assume(y>1)
         sage: res = integral(f,x,0.0001414, 1.); res
-        2*y*arctan(1/y) - 2*y*arctan(0.0001414/y) - 0.0001414*log(y^2 + 1.999396e-08) + log(y^2 + 1.0) - 1.9997172
+        -2*y*arctan(0.0001414/y) + 2*y*arctan(1/y) + log(y^2 + 1.0) - 0.0001414*log(y^2 + 1.999396e-08) - 1.9997172
         sage: nres = numerical_integral(f.subs(y=2), 0.0001414, 1.); nres
         (1.4638323264144..., 1.6251803529759...e-14)
         sage: res.subs(y=2).n()
@@ -592,8 +592,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         sage: integrate(t*cos(-theta*t),(t,-oo,oo))
         integrate(t*cos(t*theta), t, -Infinity, +Infinity)
 
-    Check if #6189 is fixed (which, by the way, also
-    demonstrates it's not always good to expand)::
+    Check if #6189 is fixed::
 
         sage: n = N; n
         <function numerical_approx at ...>
@@ -603,8 +602,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
         0.000000000000000
         sage: integrate( ((F(x)-G(x))^2).expand(), x, -infinity, infinity).n()
         -6.26376265908397e-17
-        sage: integrate( (F(x)-G(x))^2, x, -infinity, infinity).n()
-        -6.26376265908397e-17
+        sage: integrate( (F(x)-G(x))^2, x, -infinity, infinity).n()# abstol 1e-6
+        0
 
     This was broken before Maxima 5.20::
 
@@ -641,7 +640,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None):
 
         sage: actual_result = integral(e^(-1/x^2), x, 0, 1)
         sage: actual_result.full_simplify()
-        ((e*erf(1) - e)*sqrt(pi) + 1)*e^(-1)
+        (sqrt(pi)*(erf(1)*e - e) + 1)*e^(-1)
         sage: ideal_result = 1/2*gamma(-1/2, 1)
         sage: error = actual_result - ideal_result
         sage: error.numerical_approx() # abs tol 1e-10

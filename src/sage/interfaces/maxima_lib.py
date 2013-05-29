@@ -656,7 +656,7 @@ class MaximaLib(MaximaAbstract):
             Is  a  positive or negative?
             sage: assume(a>0)
             sage: integrate(1/(x^3 *(a+b*x)^(1/3)),x)
-            2/9*sqrt(3)*b^2*arctan(1/3*(2*(b*x + a)^(1/3) + a^(1/3))*sqrt(3)/a^(1/3))/a^(7/3) + 2/9*b^2*log((b*x + a)^(1/3) - a^(1/3))/a^(7/3) - 1/9*b^2*log((b*x + a)^(2/3) + (b*x + a)^(1/3)*a^(1/3) + a^(2/3))/a^(7/3) + 1/6*(4*(b*x + a)^(5/3)*b^2 - 7*(b*x + a)^(2/3)*a*b^2)/((b*x + a)^2*a^2 - 2*(b*x + a)*a^3 + a^4)
+            2/9*sqrt(3)*b^2*arctan(1/3*sqrt(3)*(2*(b*x + a)^(1/3) + a^(1/3))/a^(1/3))/a^(7/3) - 1/9*b^2*log((b*x + a)^(2/3) + (b*x + a)^(1/3)*a^(1/3) + a^(2/3))/a^(7/3) + 2/9*b^2*log((b*x + a)^(1/3) - a^(1/3))/a^(7/3) + 1/6*(4*(b*x + a)^(5/3)*b^2 - 7*(b*x + a)^(2/3)*a*b^2)/((b*x + a)^2*a^2 - 2*(b*x + a)*a^3 + a^4)
             sage: var('x, n')
             (x, n)
             sage: integral(x^n,x)
@@ -689,17 +689,17 @@ class MaximaLib(MaximaAbstract):
         ::
 
             sage: integrate(1 / (1 + abs(x-5)), x, -5, 6)
-            log(2) + log(11)
+            log(11) + log(2)
 
         ::
 
             sage: integrate(1/(1 + abs(x)), x)
-            1/2*(log(-x + 1) + log(x + 1))*sgn(x) - 1/2*log(-x + 1) + 1/2*log(x + 1)
+            1/2*(log(x + 1) + log(-x + 1))*sgn(x) + 1/2*log(x + 1) - 1/2*log(-x + 1)
 
         ::
 
             sage: integrate(cos(x + abs(x)), x)
-            1/4*(sgn(x) + 1)*sin(2*x) - 1/2*x*sgn(x) + 1/2*x
+            -1/2*x*sgn(x) + 1/4*(sgn(x) + 1)*sin(2*x) + 1/2*x
 
         An example from sage-support thread e641001f8b8d1129::
 
@@ -715,7 +715,7 @@ class MaximaLib(MaximaAbstract):
         ::
 
             sage: integrate(sqrt(x + sqrt(x)), x).simplify_full()
-            1/12*sqrt(sqrt(x) + 1)*((8*x - 3)*x^(1/4) + 2*x^(3/4)) - 1/8*log(sqrt(sqrt(x) + 1) - x^(1/4)) + 1/8*log(sqrt(sqrt(x) + 1) + x^(1/4))
+            1/12*((8*x - 3)*x^(1/4) + 2*x^(3/4))*sqrt(sqrt(x) + 1) + 1/8*log(sqrt(sqrt(x) + 1) + x^(1/4)) - 1/8*log(sqrt(sqrt(x) + 1) - x^(1/4))
 
         And :trac:`11594`::
 

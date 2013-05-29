@@ -64,19 +64,19 @@ cdef class OperandsWrapper(SageObject):
 
         sage: x,y,z = var('x,y,z')
         sage: e = x + x*y + z^y + 3*y*z; e
-        x*y + 3*y*z + z^y + x
+        x*y + 3*y*z + x + z^y
         sage: e.op[1]
         3*y*z
         sage: e.op[1,1]
         z
         sage: e.op[-1]
-        x
+        z^y
         sage: e.op[1:]
-        [3*y*z, z^y, x]
+        [3*y*z, x, z^y]
         sage: e.op[:2]
         [x*y, 3*y*z]
         sage: e.op[-2:]
-        [z^y, x]
+        [x, z^y]
         sage: e.op[:-2]
         [x*y, 3*y*z]
         sage: e.op[-5]

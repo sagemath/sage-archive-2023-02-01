@@ -48,13 +48,13 @@ Tutorial der richtige Ort um damit anzufangen. Zum Beispiel:
     1
 
     sage: k = 1/(sqrt(3)*I + 3/4 + sqrt(73)*5/9); k
-    1/(I*sqrt(3) + 5/9*sqrt(73) + 3/4)
+    36/(20*sqrt(73) + 36*I*sqrt(3) + 27)
     sage: N(k)
     0.165495678130644 - 0.0521492082074256*I
     sage: N(k,30)      # 30 "bits"
     0.16549568 - 0.052149208*I
     sage: latex(k)
-    \frac{1}{i \, \sqrt{3} + \frac{5}{9} \, \sqrt{73} + \frac{3}{4}}
+    \frac{36}{20 \, \sqrt{73} + 36 i \, \sqrt{3} + 27}
 
 .. _installation:
 

@@ -609,7 +609,7 @@ class Function_log_integral_offset(BuiltinFunction):
         EXAMPLES::
 
             sage: log_integral_offset(3)
-            -log_integral(2) + log_integral(3)
+            log_integral(3) - log_integral(2)
 
         """
         BuiltinFunction.__init__(self, "log_integral_offset", nargs=1,
@@ -737,7 +737,7 @@ class Function_sin_integral(BuiltinFunction):
         x*sin_integral(x) + cos(x)
 
         sage: integrate(sin(x)/x, x)
-        1/2*I*Ei(-I*x) - 1/2*I*Ei(I*x)
+        -1/2*I*Ei(I*x) + 1/2*I*Ei(-I*x)
 
 
     Compare values of the functions `\operatorname{Si}(x)` and

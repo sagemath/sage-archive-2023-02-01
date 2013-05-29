@@ -95,7 +95,7 @@ class Function_sinh(GinacFunction):
         :meth:`sage.symbolic.expression.Expression.simplify`::
 
             sage: sinh(arccosh(x),hold=True).simplify()
-            sqrt(x - 1)*sqrt(x + 1)
+            sqrt(x + 1)*sqrt(x - 1)
 
         """
         GinacFunction.__init__(self, "sinh", latex_name=r"\sinh")
@@ -274,7 +274,7 @@ class Function_sech(HyperbolicFunction):
             sage: bool(diff(sech(x), x) == diff(1/cosh(x), x))
             True
             sage: diff(sech(x), x)
-            -tanh(x)*sech(x)
+            -sech(x)*tanh(x)
         """
         x = args[0]
         return -sech(x)*tanh(x)
@@ -668,7 +668,7 @@ class Function_arccsch(HyperbolicFunction):
         EXAMPLES::
 
             sage: diff(acsch(x), x)
-            -1/(sqrt(1/x^2 + 1)*x^2)
+            -1/(x^2*sqrt(1/x^2 + 1))
         """
         x = args[0]
         return -1/(x**2 * (1 + x**(-2)).sqrt())

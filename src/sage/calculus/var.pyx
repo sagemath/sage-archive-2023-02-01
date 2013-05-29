@@ -220,7 +220,7 @@ def function(s, *args, **kwds):
     method to replace functions::
 
         sage: k.substitute_function(supersin, sin)
-        2*sin(x)*cos(x)
+        2*cos(x)*sin(x)
     """
     if len(args) > 0:
         return function(s, **kwds)(*args)
@@ -254,7 +254,7 @@ def clear_vars():
         ...
         NameError: name 'x' is not defined
         sage: expand((e + i)^2)
-        2*I*e + e^2 - 1
+        e^2 + 2*I*e - 1
         sage: k
         15
     """

@@ -1928,9 +1928,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 2^I                # complex number
             2^I
             sage: f = 2^(sin(x)-cos(x)); f
-            2^(sin(x) - cos(x))
+            2^(-cos(x) + sin(x))
             sage: f(x=3)
-            2^(sin(3) - cos(3))
+            2^(-cos(3) + sin(3))
 
         A symbolic sum::
 

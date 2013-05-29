@@ -10,8 +10,8 @@ example, we derive the quadratic formula as follows::
     a*x^2 + b*x + c == 0
     sage: print solve(qe, x)
     [
-    x == -1/2*(b + sqrt(-4*a*c + b^2))/a,
-    x == -1/2*(b - sqrt(-4*a*c + b^2))/a
+    x == -1/2*(b + sqrt(b^2 - 4*a*c))/a,
+    x == -1/2*(b - sqrt(b^2 - 4*a*c))/a
     ]
 
 
@@ -238,7 +238,7 @@ Variables appearing in the relation::
     sage: var('x,y,z,w')
     (x, y, z, w)
     sage: f =  (x+y+w) == (x^2 - y^2 - z^3);   f
-    w + x + y == x^2 - y^2 - z^3
+    w + x + y == -z^3 + x^2 - y^2
     sage: f.variables()
     (w, x, y, z)
 
@@ -276,11 +276,11 @@ below::
     x == y - 5
     sage: h =  x^3 + sqrt(2) == x*y*sin(x)
     sage: h
-    sqrt(2) + x^3 == x*y*sin(x)
+    x^3 + sqrt(2) == x*y*sin(x)
     sage: h - sqrt(2)
     x^3 == x*y*sin(x) - sqrt(2)
     sage: h + f
-    x + sqrt(2) + x^3 + 3 == x*y*sin(x) + y - 2
+    x^3 + x + sqrt(2) + 3 == x*y*sin(x) + y - 2
     sage: f = x + 3 < y - 2
     sage: g = 2 < x+10
     sage: f - g
@@ -648,7 +648,7 @@ def solve(f, *args, **kwds):
 
        sage: x,y=var('x y'); c1(x,y)=(x-5)^2+y^2-16; c2(x,y)=(y-3)^2+x^2-9
        sage: solve([c1(x,y),c2(x,y)],[x,y])
-       [[x == -9/68*sqrt(55) + 135/68, y == -15/68*sqrt(5)*sqrt(11) + 123/68], [x == 9/68*sqrt(55) + 135/68, y == 15/68*sqrt(5)*sqrt(11) + 123/68]]
+       [[x == -9/68*sqrt(55) + 135/68, y == -15/68*sqrt(11)*sqrt(5) + 123/68], [x == 9/68*sqrt(55) + 135/68, y == 15/68*sqrt(11)*sqrt(5) + 123/68]]
 
     TESTS::
 

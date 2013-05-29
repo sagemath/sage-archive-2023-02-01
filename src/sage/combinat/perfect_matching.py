@@ -728,7 +728,7 @@ class PerfectMatching(ElementWrapper):
             sage: m = PerfectMatching([(1,3),(2,4)])
             sage: n = PerfectMatching([(1,2),(3,4)])
             sage: factor(m.Weingarten_function(N,n))
-            -1/((N - 1)*(N + 2)*N)
+            -1/((N + 2)*(N - 1)*N)
         """
         if other is None:
             other = self.parent().an_element()

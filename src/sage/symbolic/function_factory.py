@@ -185,7 +185,7 @@ def function(s, *args, **kwds):
         -b*sin(a)
 
         sage: g.substitute_function(cr, (sin(x) + cos(x)).function(x))
-        -(sin(a) - cos(a))*b
+        b*(cos(a) - sin(a))
 
     In Sage 4.0, basic arithmetic with unevaluated functions is no
     longer supported::

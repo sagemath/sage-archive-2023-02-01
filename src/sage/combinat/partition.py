@@ -2106,9 +2106,9 @@ class Partition(CombinatorialObject, Element):
         EXAMPLES::
 
             sage: Partition([3,2,1]).hook_product(x)
-            (x + 2)^2*(2*x + 3)
+            (2*x + 3)*(x + 2)^2
             sage: Partition([2,2]).hook_product(x)
-            2*(x + 1)*(x + 2)
+            2*(x + 2)*(x + 1)
         """
 
         nu = self.conjugate()
@@ -3684,11 +3684,11 @@ class Partition(CombinatorialObject, Element):
             abs(x)
 
             sage: Partition([1]).outline()
-            abs(x - 1) + abs(x + 1) - abs(x)
+            abs(x + 1) + abs(x - 1) - abs(x)
 
             sage: y=sage.symbolic.ring.var("y")
             sage: Partition([6,5,1]).outline(variable=y)
-            abs(y - 3) - abs(y - 2) + abs(y - 1) - abs(y + 3) + abs(y + 4) - abs(y + 5) + abs(y + 6)
+            abs(y + 6) - abs(y + 5) + abs(y + 4) - abs(y + 3) + abs(y - 1) - abs(y - 2) + abs(y - 3)
 
         TESTS::
 

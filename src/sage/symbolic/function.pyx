@@ -1038,7 +1038,7 @@ cdef class SymbolicFunction(Function):
         Test pickling expressions with symbolic functions::
 
             sage: u = loads(dumps(foo(x)^2 + foo(y) + x^y)); u
-            x^y + foo(x)^2 + foo(y)
+            foo(x)^2 + x^y + foo(y)
             sage: u.subs(y=0)
             foo(x)^2 + foo(0) + 1
             sage: u.subs(y=0).n()

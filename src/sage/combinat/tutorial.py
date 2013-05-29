@@ -518,7 +518,7 @@ It is trivial to verify this equation on the closed form::
     sage: Cf = sage.symbolic.function_factory.function('C')
     sage: equadiff.substitute_function(Cf, s0)
     doctest:...: DeprecationWarning:...
-    sqrt(-4*z + 1) + (4*z - 1)/sqrt(-4*z + 1) == 0
+    (4*z - 1)/sqrt(-4*z + 1) + sqrt(-4*z + 1) == 0
     sage: bool(equadiff.substitute_function(Cf, s0))
     True
 
@@ -1177,7 +1177,7 @@ Alternatively, we could construct an interator on the counter-examples::
     ::
 
         sage: factor(sum( x^p.length() for p in Permutations(3) ))
-        (x + 1)*(x^2 + x + 1)
+        (x^2 + x + 1)*(x + 1)
 
     ::
 

@@ -416,7 +416,7 @@ class Spherical(_Coordinates):
 
         sage: r, phi, theta = var('r phi theta')
         sage: T.transform(radius=r, azimuth=theta, inclination=phi)
-        (r*sin(phi)*cos(theta), r*sin(phi)*sin(theta), r*cos(phi))
+        (r*cos(theta)*sin(phi), r*sin(phi)*sin(theta), r*cos(phi))
 
     We can plot with this transform.  Remember that the dependent
     variable is the radius, and the independent variables are the
@@ -442,7 +442,7 @@ class Spherical(_Coordinates):
 
             sage: T = Spherical('radius', ['azimuth', 'inclination'])
             sage: T.transform(radius=var('r'), azimuth=var('theta'), inclination=var('phi'))
-            (r*sin(phi)*cos(theta), r*sin(phi)*sin(theta), r*cos(phi))
+            (r*cos(theta)*sin(phi), r*sin(phi)*sin(theta), r*cos(phi))
         """
         return (radius * sin(inclination) * cos(azimuth),
                 radius * sin(inclination) * sin(azimuth),
@@ -471,7 +471,7 @@ class SphericalElevation(_Coordinates):
         sage: T = SphericalElevation('radius', ['azimuth', 'elevation'])
         sage: r, theta, phi = var('r theta phi')
         sage: T.transform(radius=r, azimuth=theta, elevation=phi)
-        (r*cos(phi)*cos(theta), r*sin(theta)*cos(phi), r*sin(phi))
+        (r*cos(phi)*cos(theta), r*cos(phi)*sin(theta), r*sin(phi))
 
     We can plot with this transform.  Remember that the dependent
     variable is the radius, and the independent variables are the
@@ -519,7 +519,7 @@ class SphericalElevation(_Coordinates):
 
             sage: T = SphericalElevation('radius', ['azimuth', 'elevation'])
             sage: T.transform(radius=var('r'), azimuth=var('theta'), elevation=var('phi'))
-            (r*cos(phi)*cos(theta), r*sin(theta)*cos(phi), r*sin(phi))
+            (r*cos(phi)*cos(theta), r*cos(phi)*sin(theta), r*sin(phi))
         """
         return (radius * cos(elevation) * cos(azimuth),
                 radius * cos(elevation) * sin(azimuth),

@@ -109,7 +109,7 @@ Here we calculate the Jacobian for the polar coordinate transformation::
     [   (r, theta) |--> cos(theta) (r, theta) |--> -r*sin(theta)]
     [   (r, theta) |--> sin(theta)  (r, theta) |--> r*cos(theta)]
     sage: T.diff().det() # Jacobian
-    (r, theta) |--> r*sin(theta)^2 + r*cos(theta)^2
+    (r, theta) |--> r*cos(theta)^2 + r*sin(theta)^2
 
 When the order of variables is ambiguous, Sage will raise an
 exception when differentiating::
@@ -206,7 +206,7 @@ Sage preparser.
 ::
 
     sage: f(x,y) = log(x)*cos(y); f
-    (x, y) |--> log(x)*cos(y)
+    (x, y) |--> cos(y)*log(x)
 
 Then we have fixed an order of variables and there is no ambiguity
 substituting or evaluating::
@@ -269,7 +269,7 @@ We coerce various symbolic expressions into the complex numbers::
     sage: ComplexField(200)(sin(I))
     1.1752011936438014568823818505956008151557179813340958702296*I
     sage: f = sin(I) + cos(I/2); f
-    sin(I) + cos(1/2*I)
+    cos(1/2*I) + sin(I)
     sage: CC(f)
     1.12762596520638 + 1.17520119364380*I
     sage: ComplexField(200)(f)
@@ -370,8 +370,15 @@ Doubly ensure that Trac #7479 is working::
 Check that the problem with Taylor expansions of the gamma function
 (Trac #9217) is fixed::
 
-    sage: taylor(gamma(1/3+x),x,0,3)      # random output - remove this in trac #9880
-    -1/432*((36*(pi*sqrt(3) + 9*log(3))*euler_gamma^2 + 27*pi^2*log(3) + 72*euler_gamma^3 + 243*log(3)^3 + 18*(6*pi*sqrt(3)*log(3) + pi^2 + 27*log(3)^2 + 12*psi(1, 1/3))*euler_gamma + 324*psi(1, 1/3)*log(3) + (pi^3 + 9*(9*log(3)^2 + 4*psi(1, 1/3))*pi)*sqrt(3))*gamma(1/3) - 72*gamma(1/3)*psi(2, 1/3))*x^3 + 1/24*(6*pi*sqrt(3)*log(3) + 4*(pi*sqrt(3) + 9*log(3))*euler_gamma + pi^2 + 12*euler_gamma^2 + 27*log(3)^2 + 12*psi(1, 1/3))*x^2*gamma(1/3) - 1/6*(6*euler_gamma + pi*sqrt(3) + 9*log(3))*x*gamma(1/3) + gamma(1/3)
+    sage: taylor(gamma(1/3+x),x,0,3)
+    -1/432*((72*euler_gamma^3 + 36*euler_gamma^2*(sqrt(3)*pi + 9*log(3)) +
+    27*pi^2*log(3) + 243*log(3)^3 + 18*euler_gamma*(6*sqrt(3)*pi*log(3) + pi^2
+    + 27*log(3)^2 + 12*psi(1, 1/3)) + 324*log(3)*psi(1, 1/3) + sqrt(3)*(pi^3 +
+    9*pi*(9*log(3)^2 + 4*psi(1, 1/3))))*gamma(1/3) - 72*psi(2,
+    1/3)*gamma(1/3))*x^3 + 1/24*(6*sqrt(3)*pi*log(3) + 12*euler_gamma^2 + pi^2
+    + 4*euler_gamma*(sqrt(3)*pi + 9*log(3)) + 27*log(3)^2 + 12*psi(1,
+    1/3))*x^2*gamma(1/3) - 1/6*(6*euler_gamma + sqrt(3)*pi +
+    9*log(3))*x*gamma(1/3) + gamma(1/3)
     sage: map(lambda f:f[0].n(), _.coeffs())  # numerical coefficients to make comparison easier; Maple 12 gives same answer
     [2.6789385347..., -8.3905259853..., 26.662447494..., -80.683148377...]
 
@@ -379,7 +386,7 @@ Ensure that ticket #8582 is fixed::
 
     sage: k = var("k")
     sage: sum(1/(1+k^2), k, -oo, oo)
-    1/2*I*psi(-I) - 1/2*I*psi(I) + 1/2*I*psi(-I + 1) - 1/2*I*psi(I + 1)
+    -1/2*I*psi(I + 1) + 1/2*I*psi(-I + 1) - 1/2*I*psi(I) + 1/2*I*psi(-I)
 
 Ensure that ticket #8624 is fixed::
 
@@ -487,7 +494,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima'):
     ::
 
         sage: symbolic_sum(k * binomial(n, k), k, 1, n)
-        n*2^(n - 1)
+        2^(n - 1)*n
 
     ::
 
@@ -865,7 +872,7 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
 
         sage: f = x^3 - x + 1
         sage: a = f.solve(x)[0].rhs(); a
-        -1/2*(I*sqrt(3) + 1)*(1/18*sqrt(3)*sqrt(23) - 1/2)^(1/3) - 1/6*(-I*sqrt(3) + 1)/(1/18*sqrt(3)*sqrt(23) - 1/2)^(1/3)
+        -1/2*(1/18*sqrt(23)*sqrt(3) - 1/2)^(1/3)*(I*sqrt(3) + 1) - 1/6*(-I*sqrt(3) + 1)/(1/18*sqrt(23)*sqrt(3) - 1/2)^(1/3)
         sage: a.minpoly()
         x^3 - x + 1
 
@@ -878,7 +885,7 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
         sage: f = a.minpoly(); f
         x^8 - 40*x^6 + 352*x^4 - 960*x^2 + 576
         sage: f(a)
-        ((((sqrt(2) + sqrt(3) + sqrt(5))^2 - 40)*(sqrt(2) + sqrt(3) + sqrt(5))^2 + 352)*(sqrt(2) + sqrt(3) + sqrt(5))^2 - 960)*(sqrt(2) + sqrt(3) + sqrt(5))^2 + 576
+        ((((sqrt(5) + sqrt(3) + sqrt(2))^2 - 40)*(sqrt(5) + sqrt(3) + sqrt(2))^2 + 352)*(sqrt(5) + sqrt(3) + sqrt(2))^2 - 960)*(sqrt(5) + sqrt(3) + sqrt(2))^2 + 576
         sage: f(a).expand()
         0
 
@@ -1301,9 +1308,9 @@ def laplace(ex, t, s):
         sage: xt = E[0,2].inverse_laplace(s,t)
         sage: yt = E[1,2].inverse_laplace(s,t)
         sage: xt
-        629/2*e^(-4*t) - 91/2*e^(4*t) + 1
+        -91/2*e^(4*t) + 629/2*e^(-4*t) + 1
         sage: yt
-        629/8*e^(-4*t) + 91/8*e^(4*t)
+        91/8*e^(4*t) + 629/8*e^(-4*t)
         sage: p1 = plot(xt,0,1/2,rgbcolor=(1,0,0))
         sage: p2 = plot(yt,0,1/2,rgbcolor=(0,1,0))
         sage: (p1+p2).save(os.path.join(SAGE_TMP, "de_plot.png"))
@@ -1726,7 +1733,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     Trac #8459 fixed::
 
         sage: maxima('3*li[2](u)+8*li[33](exp(u))').sage()
-        3*polylog(2, u) + 8*polylog(33, e^u)
+        8*polylog(33, e^u) + 3*polylog(2, u)
 
     Check if #8345 is fixed::
 

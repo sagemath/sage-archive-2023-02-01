@@ -915,7 +915,7 @@ class GraphGenerators():
 
         INPUT:
 
-        - ``order`` - a positive even integer smaller than or equal to 300.
+        - ``order`` - a positive even integer smaller than or equal to 254.
           This specifies the number of vertices in the generated fullerenes.
 
         - ``ipr`` - default: ``False`` - if ``True`` only fullerenes that
@@ -997,9 +997,9 @@ class GraphGenerators():
         if order < 0:
             raise ValueError("Number of vertices should be positive.")
 
-        # buckygen can only handle fullerenes on up to 300 vertices
-        if order > 300:
-            raise ValueError("Number of vertices should be at most 300.")
+        # buckygen can only output fullerenes on up to 254 vertices
+        if order > 254:
+            raise ValueError("Number of vertices should be at most 254.")
 
         # fullerenes only exist for an even number of vertices, larger than 20
         # and different from 22

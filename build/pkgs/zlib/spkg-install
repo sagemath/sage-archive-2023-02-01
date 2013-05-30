@@ -19,9 +19,6 @@ for patch in ../patches/*.patch; do
 done
 
 
-unset AR
-
-
 if [ "$UNAME" = CYGWIN ]; then
     export BINARY_PATH="$SAGE_LOCAL/bin"
     export INCLUDE_PATH="$SAGE_LOCAL/include"

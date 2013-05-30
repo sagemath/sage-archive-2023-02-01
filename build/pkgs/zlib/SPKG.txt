@@ -25,6 +25,10 @@ Free, Not to Mention Unencumbered by Patents)
 
  * None
 
+=== zlib-1.2.8 (Jeroen Demeyer, 30 May 2013) ===
+ * Trac #14661: Upgrade to version 1.2.8
+ * Do not unset AR (why was that needed?)
+
 === zlib-1.2.6.p0 (Jean-Pierre Flori, 5 January 2013) ===
  * Trac #13914: Install shared objects on Cygwin.
 

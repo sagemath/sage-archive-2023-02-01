@@ -60,7 +60,7 @@ from sage.rings.all import QQ
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.words.word import Word
 from sage.misc.latex import latex
-
+from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices
 from sage.misc.superseded import deprecated_function_alias
 
 open_symbol = 1
@@ -2780,6 +2780,37 @@ class DyckWord_complete(DyckWord_class):
                 if (alist[i]-alist[j] == 0 and (labeling is None or labeling[i]<labeling[j])) or (alist[i]-alist[j]==1 and (labeling is None or labeling[i]>labeling[j])):
                     cnt+=1
         return cnt
+
+    @combinatorial_map(name='to alternating sign matrix')
+    def to_alternating_sign_matrix(self):
+        r"""
+        This is an inclusion map from Dyck words of length `2n` to certain `n\times n` alternating sign matrices.
+
+        EXAMPLES::
+
+            sage: DyckWord([1,1,1,0,1,0,0,0]).to_alternating_sign_matrix()
+            [ 0  0  1  0]
+            [ 1  0 -1  1]
+            [ 0  1  0  0]
+            [ 0  0  1  0]
+            sage: a = DyckWord([1,0,1,0,1,1,0,0]).to_alternating_sign_matrix(); a
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 0 1]
+            [0 0 1 0]
+            sage: parent(a)
+            Alternating sign matrices of size 4
+
+        """
+        parkfn = self.reverse().to_non_decreasing_parking_function()
+        parkfn2 = [len(parkfn) + 1 - parkfn[i] for i in range(len(parkfn))]
+        monotone_triangle = [[0]*(len(parkfn2) - j) for j in range(len(parkfn2))]
+        for i in range(len(monotone_triangle)):
+            for j in range(len(monotone_triangle[i])):
+                monotone_triangle[i][j] = len(monotone_triangle[i]) - j
+            monotone_triangle[i][0]=parkfn2[i]
+        A = AlternatingSignMatrices(len(parkfn))
+        return A.from_monotone_triangle(monotone_triangle)
 
 def DyckWords(k1=None, k2=None):
     r"""

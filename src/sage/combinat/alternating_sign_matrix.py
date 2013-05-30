@@ -42,6 +42,8 @@ from sage.rings.integer import Integer
 from sage.combinat.posets.lattices import LatticePoset
 from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPatternsTopRow
 from sage.sets.set import Set
+from sage.combinat.combinatorial_map import combinatorial_map
+from sage.combinat.non_decreasing_parking_function import NonDecreasingParkingFunction
 
 class AlternatingSignMatrix(Element):
     """
@@ -159,9 +161,12 @@ class AlternatingSignMatrix(Element):
             sage: A = AlternatingSignMatrices(3)
             sage: A([[1, 0, 0],[0, 1, 0],[0, 0, 1]]).to_monotone_triangle()
             [[3, 2, 1], [2, 1], [1]]
-            sage: asm = A([[0,1, 0],[1, -1, 1],[0, 1, 0]])
+            sage: asm = A([[0, 1, 0],[1, -1, 1],[0, 1, 0]])
             sage: asm.to_monotone_triangle()
             [[3, 2, 1], [3, 1], [2]]
+            sage: asm = A([[0, 0, 1],[1, 0, 0],[0, 1, 0]])
+            sage: asm.to_monotone_triangle()
+            [[3, 2, 1], [3, 1], [3]]
             sage: A.from_monotone_triangle(asm.to_monotone_triangle()) == asm
             True
         """
@@ -174,6 +179,168 @@ class AlternatingSignMatrix(Element):
             triangle[n-1-j] = list(reversed(line))
             prev = add_row
         return MonotoneTriangles(n)(triangle)
+
+    @combinatorial_map(name='to Dyck word')
+    def to_dyck_word(self):
+        r"""
+        Return the Dyck word determined by the last diagonal of
+        the monotone triangle corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: A([[0,1,0],[1,0,0],[0,0,1]]).to_dyck_word()
+            [1, 1, 0, 0, 1, 0]
+            sage: d = A([[0,1,0],[1,-1,1],[0,1,0]]).to_dyck_word(); d
+            [1, 1, 0, 1, 0, 0]
+            sage: parent(d)
+            <class 'sage.combinat.dyck_word.DyckWord_complete'>
+
+        """
+        MT = self.to_monotone_triangle()
+        asm = self.to_matrix()
+        parkfn = [asm.nrows() + 1 - row[0] for row in list(MT) if len(row) > 0]
+        return NonDecreasingParkingFunction(parkfn).to_dyck_word().reverse()
+
+    def number_negative_ones(self):
+        """
+        Return the number of entries in ``self`` equal to -1.
+
+        EXAMPLES::
+            sage: A = AlternatingSignMatrices(3)
+            sage: asm = A([[0,1,0],[1,0,0],[0,0,1]])
+            sage: asm.number_negative_ones()
+            0
+            sage: asm = A([[0,1,0],[1,-1,1],[0,1,0]])
+            sage: asm.number_negative_ones()
+            1
+        """
+        a = self.to_matrix()
+        return len([(i,j) for (i,j) in a.nonzero_positions() if a[i,j] == -1])
+
+    def is_permutation(self):
+        """
+        Returns ``True`` if ``self`` is a permutation matrix
+        and ``False`` otherwise.
+
+        EXAMPLES::
+            sage: A = AlternatingSignMatrices(3)
+            sage: asm = A([[0,1,0],[1,0,0],[0,0,1]])
+            sage: asm.is_permutation()
+            True
+            sage: asm = A([[0,1,0],[1,-1,1],[0,1,0]])
+            sage: asm.is_permutation()
+            False
+        """
+        return self.number_negative_ones() == 0
+
+    def to_permutation(self):
+        """
+        Tests to see whether ``self`` is a permutation matrix,
+        and, if so, returns the corresponding permutation in one-line
+        notation.
+
+        EXAMPLES::
+            sage: A = AlternatingSignMatrices(3)
+            sage: asm = A([[0,1,0],[1,0,0],[0,0,1]])
+            sage: p = asm.to_permutation(); p
+            [2, 1, 3]
+            sage: parent(p)
+            <class 'sage.combinat.permutation.Permutation_class'>
+            sage: asm = A([[0,1,0],[1,-1,1],[0,1,0]])
+            sage: asm.to_permutation()
+            'Not a permutation matrix'
+
+        """
+        if self.is_permutation():
+            from sage.combinat.permutation import Permutation
+            asm_matrix = self.to_matrix()
+            return Permutation([ j+1 for (i,j) in asm_matrix.nonzero_positions() ])
+        else:
+            return 'Not a permutation matrix'
+
+    def to_semistandard_tableau(self):
+        """
+        Returns the monotone triangle corresponding to ``self`` in the form
+        of a semistandard tableau rather than a Gelfand-Tsetlin pattern.
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: A([[0,0,1],[1,0,0],[0,1,0]]).to_semistandard_tableau()
+            [[1, 1, 3], [2, 3], [3]]
+            sage: t = A([[0,1,0],[1,-1,1],[0,1,0]]).to_semistandard_tableau(); t
+            [[1, 1, 2], [2, 3], [3]]
+            sage: parent(t)
+            Semistandard tableaux
+            """
+        from sage.combinat.tableau import SemistandardTableau, SemistandardTableaux
+        mt = self.to_monotone_triangle()
+        ssyt = [[0]*(len(mt) - j) for j in range(len(mt))]
+        for i in range(len(mt)):
+            for j in range(len(mt[i])):
+                ssyt[i][j] = mt[j][-(i+1)]
+        return SemistandardTableau(ssyt)
+
+    def left_key(self):
+        """
+        Returns the left key of the alternating sign matrix ``self``.
+        The left key of an alternating sign matrix was defined by Lascoux
+        in [2] and is obtained by successively removing all the -1's until
+        what remains is a permutation matrix. This notion corresponds to
+        the notion of left key for semistandard tableaux. So our algorithm
+        proceeds as follows: we map ``self`` to its corresponding monotone
+        triangle, view that monotone triangle as a semistandard tableaux,
+        take its left key, and then map back through monotone triangles
+        to the permutation matrix which is the left key.
+
+        REFERENCES:
+
+        --[1] J.-C. Aval. Keys and alternating sign matrices. Sem. Lothar.
+        Combin. 59 (2007/10), Art. B59f, 13 pp.
+
+        --[2] A. Lascoux. Chern and Yang through ice, preprint.
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: A([[0,0,1],[1,0,0],[0,1,0]]).left_key()
+            [0 0 1]
+            [1 0 0]
+            [0 1 0]
+            sage: t = A([[0,1,0],[1,-1,1],[0,1,0]]).left_key(); t
+            [1 0 0]
+            [0 0 1]
+            [0 1 0]
+            sage: parent(t)
+            Alternating sign matrices of size 3
+            """
+        from sage.combinat.tableau import SemistandardTableau, SemistandardTableaux
+        lkey = self.to_semistandard_tableau().left_key_tableau()
+        mt = [[0]*(len(lkey) - j) for j in range(len(lkey))]
+        for i in range(len(lkey)):
+            for j in range(len(lkey[i])):
+                mt[i][j] = lkey[len(lkey[i])-j-1][i]
+        A = AlternatingSignMatrices(len(lkey))
+        return A.from_monotone_triangle(mt)
+
+    @combinatorial_map(name='to left key permutation')
+    def left_key_as_permutation(self):
+        """
+        This function defines a combinatorial map from AlternatingSignMatrices
+        to Permutations given by computing the left key of ``self``.
+
+        EXAMPLES::
+            sage: A = AlternatingSignMatrices(3)
+            sage: A([[0,0,1],[1,0,0],[0,1,0]]).left_key_as_permutation()
+            [3, 1, 2]
+            sage: t = A([[0,1,0],[1,-1,1],[0,1,0]]).left_key_as_permutation(); t
+            [1, 3, 2]
+            sage: parent(t)
+            <class 'sage.combinat.permutation.Permutation_class'>
+        """
+        return self.left_key().to_permutation()
+
 
 class AlternatingSignMatrices(Parent, UniqueRepresentation):
     r"""

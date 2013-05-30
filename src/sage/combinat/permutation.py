@@ -1107,6 +1107,24 @@ class Permutation_class(CombinatorialObject):
             entries[(p[i]-1,i)] = 1
         return matrix(n, entries, sparse = True)
 
+    @combinatorial_map(name='to alternating sign matrix')
+    def to_alternating_sign_matrix(self):
+        r"""
+        Returns a matrix representing the permutation in the
+        AlternatingSignMatrix class.
+
+        EXAMPLES::
+
+            sage: m = Permutation([1,2,3]).to_alternating_sign_matrix(); m
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: parent(m)
+            Alternating sign matrices of size 3
+        """
+        from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix
+        return AlternatingSignMatrix(self.to_matrix().rows())
+
     def __mul__(self, rp):
         """
         TESTS::

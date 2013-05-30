@@ -69,6 +69,7 @@ fflas-ffpack-config
 fourier
 fourier_gmp
 fplll
+latticegen
 freetype-config
 frobby
 fsdump.py

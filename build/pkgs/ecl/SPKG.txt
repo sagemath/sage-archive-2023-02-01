@@ -67,6 +67,9 @@ Website: http://ecls.sourceforge.net/
 
 == Changelog ==
 
+=== ecl-12.12.1.p4 (Jeroen Demeyer, 30 May 2013) ===
+ * #14662: Add symbolic link local/lib/ecl/ecl -> local/include/ecl
+
 === ecl-12.12.1.p3 (Volker Braun, 4 May 2013) ===
  * #14055: Disable ECL's SIGCHLD handler
 

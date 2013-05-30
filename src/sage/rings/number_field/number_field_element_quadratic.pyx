@@ -9,10 +9,10 @@ AUTHORS:
 - Robert Bradshaw (2007-09): Initial version
 - David Harvey (2007-10): fix up a few bugs, polish around the edges
 - David Loeffler (2009-05): add more documentation and tests
-- Vincent Delecroix (2012-07): comparisons for quadratic number fields (#13213),
-  abs, floor and ceil functions (#13256)
+- Vincent Delecroix (2012-07): comparisons for quadratic number fields
+  (:trac:`13213`), abs, floor and ceil functions (:trac:`13256`)
 
-TODO:
+.. TODO::
 
     The ``_new()`` method should be overridden in this class to copy the ``D``
     and ``standard_embedding`` attributes
@@ -78,7 +78,7 @@ def __make_NumberFieldElement_quadratic1(parent, cls, a, b, denom):
         sage: loads(dumps(a)) == a # indirect doctest
         True
 
-    We test that #6462 is fixed::
+    We test that :trac:`6462` is fixed::
 
         sage: L = QuadraticField(-11,'a'); OL = L.maximal_order(); w = OL.0
         sage: loads(dumps(w)) == w # indirect doctest
@@ -202,7 +202,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             self._ntl_coeff_as_mpz(&self.a, 0)
             self._ntl_coeff_as_mpz(&self.b, 1)
             if mpz_cmp_ui(self.a, 0) or mpz_cmp_ui(self.b, 0):
-                gen = parent.gen() # should this be cached?
+                gen = parent.gen()  # should this be cached?
                 self._ntl_denom_as_mpz(&self.denom)
                 if mpz_cmp_ui(self.b, 0):
                     mpz_mul(self.a, self.a, gen.denom)
@@ -227,8 +227,8 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
                     pass
             else:
                 raise ValueError("A parent of NumberFieldElement_quadratic with "
-                      "a canonical embedding should have an attribute "
-                      "_standard_embedding (used for comparisons of elements)")
+                                 "a canonical embedding should have an attribute "
+                                 "_standard_embedding (used for comparisons of elements)")
 
     cdef _new(self):
         """
@@ -426,7 +426,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         if check:
             if not isinstance(self.number_field(), number_field.NumberField_cyclotomic) \
                    or not isinstance(new_parent, number_field.NumberField_cyclotomic):
-                raise TypeError, "The field and the new parent field must both be cyclotomic fields."
+                raise TypeError("The field and the new parent field must both be cyclotomic fields.")
 
         if rel == 0:
             small_order = self.number_field()._n()
@@ -435,7 +435,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             try:
                 rel = ZZ(large_order / small_order)
             except TypeError:
-                raise TypeError, "The zeta_order of the new field must be a multiple of the zeta_order of the original."
+                raise TypeError("The zeta_order of the new field must be a multiple of the zeta_order of the original.")
 
         cdef NumberFieldElement_quadratic x2
         cdef int n = self._parent._n()
@@ -731,7 +731,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
         The following is tested because of the implementation of
         func:`Q_to_quadratic_field_element` which was the cause of some problems
-        with #13213::
+        with :trac:`13213`::
 
             sage: K.<sqrt2> = QuadraticField(2,name='sqrt2')
             sage: 1/2 + sqrt2 > 0
@@ -1179,7 +1179,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: (3*a-2)/7 * b
             1
 
-        This fixes ticket #9357::
+        This fixes ticket :trac:`9357`::
 
             sage: K.<a> = NumberField(x^2+1)
             sage: d = K(0)
@@ -1279,7 +1279,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         """
         cdef Integer res
         if mpz_cmp_ui(self.b, 0) != 0 or mpz_cmp_ui(self.denom, 1) != 0:
-            raise TypeError, "Unable to coerce %s to an integer"%self
+            raise TypeError("Unable to coerce %s to an integer" % self)
         else:
             res = PY_NEW(Integer)
             mpz_set(res.value, self.a)
@@ -1299,7 +1299,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         """
         cdef Rational res
         if mpz_cmp_ui(self.b, 0)!=0:
-            raise TypeError, "Unable to coerce %s to a rational"%self
+            raise TypeError("Unable to coerce %s to a rational" % self)
         else:
             res = <Rational>PY_NEW(Rational)
             mpz_set(mpq_numref(res.value), self.a)
@@ -1333,7 +1333,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         """
         cdef Rational res
         if mpz_sgn(self.D.value) > 0:
-            return self # totally real
+            return self  # totally real
         else:
             res = <Rational>PY_NEW(Rational)
             mpz_set(mpq_numref(res.value), self.a)
@@ -1379,7 +1379,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
         """
         if mpz_sgn(self.D.value) > 0:
-            return PY_NEW(Rational) # = 0
+            return PY_NEW(Rational)  # = 0
         embedding =  self._parent.coerce_embedding()
         cdef Integer negD = -self.D
         cdef NumberFieldElement_quadratic q = <NumberFieldElement_quadratic>self._new()
@@ -1390,7 +1390,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         if mpz_cmp_ui(negD.value, 1) == 0 or negD.is_square():
             # D = -1 is the most common case we'll see here
             if embedding is None:
-                raise ValueError, "Embedding must be specified."
+                raise ValueError("Embedding must be specified.")
             res = <Rational>PY_NEW(Rational)
             if mpz_cmp_ui(negD.value, 1) == 0:
                 mpz_set(mpq_numref(res.value), self.b)
@@ -1433,7 +1433,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             [1/5, 3]
         """
         # In terms of the generator...
-        cdef NumberFieldElement_quadratic gen = self.number_field().gen() # should this be cached?
+        cdef NumberFieldElement_quadratic gen = self.number_field().gen()  # should this be cached?
         cdef Rational const = <Rational>PY_NEW(Rational), lin = <Rational>PY_NEW(Rational)
         ad, bd = self.parts()
         if not self:
@@ -1476,7 +1476,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             True
         """
         # In terms of the generator...
-        cdef NumberFieldElement_quadratic gen = self.number_field().gen() # should this be cached?
+        cdef NumberFieldElement_quadratic gen = self.number_field().gen()  # should this be cached?
         cdef Integer denom
         if gen.is_sqrt_disc():
             denom = PY_NEW(Integer)
@@ -1596,7 +1596,7 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
         if K is None or K == QQ:
         # norm = (a^2 - d b^2) / self.denom^2
             mpz_pow_ui(mpq_numref(res.value), self.a, 2)
-            mpz_pow_ui(mpq_denref(res.value), self.b, 2) # use as temp
+            mpz_pow_ui(mpq_denref(res.value), self.b, 2)  # use as temp
             mpz_mul(mpq_denref(res.value), mpq_denref(res.value), self.D.value)
             mpz_sub(mpq_numref(res.value), mpq_numref(res.value), mpq_denref(res.value))
             mpz_pow_ui(mpq_denref(res.value), self.denom, 2)

@@ -2784,7 +2784,10 @@ class DyckWord_complete(DyckWord_class):
     @combinatorial_map(name='to alternating sign matrix')
     def to_alternating_sign_matrix(self):
         r"""
-        This is an inclusion map from Dyck words of length `2n` to certain `n\times n` alternating sign matrices.
+        Return ``self`` as an alternating sign matrix.
+
+        This is an inclusion map from Dyck words of length `2n` to certain
+        `n \times n` alternating sign matrices.
 
         EXAMPLES::
 
@@ -2793,14 +2796,11 @@ class DyckWord_complete(DyckWord_class):
             [ 1  0 -1  1]
             [ 0  1  0  0]
             [ 0  0  1  0]
-            sage: a = DyckWord([1,0,1,0,1,1,0,0]).to_alternating_sign_matrix(); a
+            sage: DyckWord([1,0,1,0,1,1,0,0]).to_alternating_sign_matrix()
             [1 0 0 0]
             [0 1 0 0]
             [0 0 0 1]
             [0 0 1 0]
-            sage: parent(a)
-            Alternating sign matrices of size 4
-
         """
         parkfn = self.reverse().to_non_decreasing_parking_function()
         parkfn2 = [len(parkfn) + 1 - parkfn[i] for i in range(len(parkfn))]

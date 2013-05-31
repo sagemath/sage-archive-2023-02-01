@@ -44,12 +44,13 @@ from sage.combinat.gelfand_tsetlin_patterns import GelfandTsetlinPatternsTopRow
 from sage.sets.set import Set
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.combinat.non_decreasing_parking_function import NonDecreasingParkingFunction
+from sage.combinat.permutation import Permutation
 
 class AlternatingSignMatrix(Element):
-    """
+    r"""
     An alternating sign matrix.
 
-    An alternating sign matrix is a square matrix of `0`s, `1`s and `-1`s
+    An alternating sign matrix is a square matrix of `0`'s, `1`'s and `-1`'s
     such that the sum of each row and column is `1` and the non-zero
     entries in each row and column alternate in sign.
     """
@@ -195,11 +196,10 @@ class AlternatingSignMatrix(Element):
             [1, 1, 0, 1, 0, 0]
             sage: parent(d)
             <class 'sage.combinat.dyck_word.DyckWord_complete'>
-
         """
         MT = self.to_monotone_triangle()
-        asm = self.to_matrix()
-        parkfn = [asm.nrows() + 1 - row[0] for row in list(MT) if len(row) > 0]
+        nplus = self._matrix.nrows() + 1
+        parkfn = [nplus - row[0] for row in list(MT) if len(row) > 0]
         return NonDecreasingParkingFunction(parkfn).to_dyck_word().reverse()
 
     def number_negative_ones(self):
@@ -207,6 +207,7 @@ class AlternatingSignMatrix(Element):
         Return the number of entries in ``self`` equal to -1.
 
         EXAMPLES::
+
             sage: A = AlternatingSignMatrices(3)
             sage: asm = A([[0,1,0],[1,0,0],[0,0,1]])
             sage: asm.number_negative_ones()
@@ -215,15 +216,16 @@ class AlternatingSignMatrix(Element):
             sage: asm.number_negative_ones()
             1
         """
-        a = self.to_matrix()
-        return len([(i,j) for (i,j) in a.nonzero_positions() if a[i,j] == -1])
+        a = self._matrix
+        return sum(1 for (i,j) in a.nonzero_positions() if a[i,j] == -1)
 
     def is_permutation(self):
         """
-        Returns ``True`` if ``self`` is a permutation matrix
+        Return ``True`` if ``self`` is a permutation matrix
         and ``False`` otherwise.
 
         EXAMPLES::
+
             sage: A = AlternatingSignMatrices(3)
             sage: asm = A([[0,1,0],[1,0,0],[0,0,1]])
             sage: asm.is_permutation()
@@ -236,11 +238,11 @@ class AlternatingSignMatrix(Element):
 
     def to_permutation(self):
         """
-        Tests to see whether ``self`` is a permutation matrix,
-        and, if so, returns the corresponding permutation in one-line
-        notation.
+        Return the corresponding permutation if ``self`` is a permutation
+        matrix.
 
         EXAMPLES::
+
             sage: A = AlternatingSignMatrices(3)
             sage: asm = A([[0,1,0],[1,0,0],[0,0,1]])
             sage: p = asm.to_permutation(); p
@@ -249,20 +251,19 @@ class AlternatingSignMatrix(Element):
             <class 'sage.combinat.permutation.Permutation_class'>
             sage: asm = A([[0,1,0],[1,-1,1],[0,1,0]])
             sage: asm.to_permutation()
-            'Not a permutation matrix'
-
+            Traceback (most recent call last):
+            ...
+            ValueError: Not a permutation matrix
         """
-        if self.is_permutation():
-            from sage.combinat.permutation import Permutation
-            asm_matrix = self.to_matrix()
-            return Permutation([ j+1 for (i,j) in asm_matrix.nonzero_positions() ])
-        else:
-            return 'Not a permutation matrix'
+        if not self.is_permutation():
+            raise ValueError('Not a permutation matrix')
+        asm_matrix = self.to_matrix()
+        return Permutation([ j+1 for (i,j) in asm_matrix.nonzero_positions() ])
 
     def to_semistandard_tableau(self):
         """
-        Returns the monotone triangle corresponding to ``self`` in the form
-        of a semistandard tableau rather than a Gelfand-Tsetlin pattern.
+        Return the semistandard tableau corresponding the monotone triangle
+        corresponding to ``self``.
 
         EXAMPLES::
 
@@ -283,23 +284,25 @@ class AlternatingSignMatrix(Element):
         return SemistandardTableau(ssyt)
 
     def left_key(self):
-        """
-        Returns the left key of the alternating sign matrix ``self``.
+        r"""
+        Return the left key of the alternating sign matrix ``self``.
+
         The left key of an alternating sign matrix was defined by Lascoux
-        in [2] and is obtained by successively removing all the -1's until
-        what remains is a permutation matrix. This notion corresponds to
-        the notion of left key for semistandard tableaux. So our algorithm
-        proceeds as follows: we map ``self`` to its corresponding monotone
-        triangle, view that monotone triangle as a semistandard tableaux,
-        take its left key, and then map back through monotone triangles
-        to the permutation matrix which is the left key.
+        in [LascouxPreprint]_ and is obtained by successively removing all the
+        `-1`'suntil what remains is a permutation matrix. This notion
+        corresponds to the notion of left key for semistandard tableaux. So
+        our algorithm proceeds as follows: we map ``self`` to its
+        corresponding monotone triangle, view that monotone triangle as a
+        semistandard tableaux, take its left key, and then map back through
+        monotone triangles to the permutation matrix which is the left key.
 
         REFERENCES:
 
-        --[1] J.-C. Aval. Keys and alternating sign matrices. Sem. Lothar.
-        Combin. 59 (2007/10), Art. B59f, 13 pp.
+        .. [Aval07] J.-C. Aval. *Keys and alternating sign matrices*.
+           Sem. Lothar. Combin. 59 (2007/10), Art. B59f, 13 pp.
 
-        --[2] A. Lascoux. Chern and Yang through ice, preprint.
+        .. [LascouxPreprint] A. Lascoux. *Chern and Yang through ice*.
+           Preprint.
 
         EXAMPLES::
 
@@ -327,10 +330,14 @@ class AlternatingSignMatrix(Element):
     @combinatorial_map(name='to left key permutation')
     def left_key_as_permutation(self):
         """
-        This function defines a combinatorial map from AlternatingSignMatrices
-        to Permutations given by computing the left key of ``self``.
+        Return the permutation of the left key of ``self``.
+
+        .. SEEALSO::
+
+            - :meth:`left_key()`
 
         EXAMPLES::
+
             sage: A = AlternatingSignMatrices(3)
             sage: A([[0,0,1],[1,0,0],[0,1,0]]).left_key_as_permutation()
             [3, 1, 2]
@@ -346,8 +353,8 @@ class AlternatingSignMatrices(Parent, UniqueRepresentation):
     r"""
     Class of all `n \times n` alternating sign matrices.
 
-    An alternating sign matrix of size `n` is an `n \times n` matrix of `0`s,
-    `1`s and `-1`s such that the sum of each row and column is `1` and the
+    An alternating sign matrix of size `n` is an `n \times n` matrix of `0`'s,
+    `1`'s and `-1`'s such that the sum of each row and column is `1` and the
     non-zero entries in each row and column alternate in sign.
 
     Alternating sign matrices of size `n` are in bijection with

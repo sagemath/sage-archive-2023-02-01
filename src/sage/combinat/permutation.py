@@ -1110,8 +1110,8 @@ class Permutation_class(CombinatorialObject):
     @combinatorial_map(name='to alternating sign matrix')
     def to_alternating_sign_matrix(self):
         r"""
-        Returns a matrix representing the permutation in the
-        AlternatingSignMatrix class.
+        Return a matrix representing the permutation in the
+        :class:`AlternatingSignMatrix` class.
 
         EXAMPLES::
 

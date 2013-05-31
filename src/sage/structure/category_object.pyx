@@ -193,11 +193,10 @@ cdef class CategoryObject(sage_object.SageObject):
             Join of Category of magmas and Category of enumerated sets
             sage: P._refine_category_([Semigroups(), CommutativeAdditiveSemigroups()])
             sage: P.category()
-            Join of Category of enumerated sets and Category of semigroups and Category of commutative additive semigroups
+            Join of Category of semigroups and Category of commutative additive semigroups and Category of enumerated sets
             sage: P._refine_category_((CommutativeAdditiveMonoids(), Monoids()))
             sage: P.category()
-            Join of Category of enumerated sets and Category of commutative additive monoids and Category of monoids
-
+            Join of Category of monoids and Category of commutative additive monoids and Category of enumerated sets
         """
         if self._category is None:
             self._init_category_(category)
@@ -226,18 +225,18 @@ cdef class CategoryObject(sage_object.SageObject):
              Category of unique factorization domains,
              Category of gcd domains,
              Category of integral domains,
-             Category of commutative rings,
              Category of domains,
+             Category of commutative rings,
              Category of rings,
              Category of rngs,
-             Category of commutative additive groups,
              Category of semirings,
-             Category of commutative additive monoids,
-             Category of commutative additive semigroups,
-             Category of additive magmas,
              Category of monoids,
              Category of semigroups,
              Category of magmas,
+             Category of commutative additive groups,
+             Category of commutative additive monoids,
+             Category of commutative additive semigroups,
+             Category of additive magmas,
              Category of sets,
              Category of sets with partial maps,
              Category of objects]

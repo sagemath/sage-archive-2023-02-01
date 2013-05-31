@@ -1145,6 +1145,9 @@ ext_modules = [
     Extension('sage.misc.c3',
               sources = ['sage/misc/c3.pyx']),
 
+    Extension('sage.misc.c3_controlled',
+              sources = ['sage/misc/c3_controlled.pyx']),
+
     Extension('sage.misc.derivative',
               sources = ['sage/misc/derivative.pyx']),
 

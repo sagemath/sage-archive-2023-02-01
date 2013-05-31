@@ -423,7 +423,7 @@ cdef class Parent(category_object.CategoryObject):
             sage: first_class = Q.__class__
             sage: Q._refine_category_(Fields())
             sage: Q.category()
-            Join of Category of subquotients of monoids and Category of quotients of semigroups and Category of fields
+            Join of Category of fields and Category of subquotients of monoids and Category of quotients of semigroups
             sage: first_class == Q.__class__
             False
             sage: TestSuite(Q).run()

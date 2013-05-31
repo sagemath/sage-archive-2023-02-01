@@ -817,8 +817,7 @@ class Crystals(Category_singleton):
             EXAMPLES::
 
                 sage: C = CrystalOfLetters(['A', 5])
-                sage: show_default(False) #do not show the plot by default
-                sage: C.plot()
+                sage: print(C.plot())
                 Graphics object consisting of 17 graphics primitives
             """
             return self.digraph().plot(edge_labels=True,vertex_size=0,**options)
@@ -830,7 +829,7 @@ class Crystals(Category_singleton):
             EXAMPLES::
 
                 sage: C = KirillovReshetikhinCrystal(['A',3,1],2,1)
-                sage: C.plot3d()
+                sage: print(C.plot3d())
                 Graphics3d Object
             """
             G = self.digraph(**options)

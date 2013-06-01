@@ -657,8 +657,20 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
 
             sage: F /  [a*b^2*a, b^3]
             Finitely presented group < a, b | a*b^2*a, b^3 >
+
+        Relations are converted to the free group, even if they are not
+        elements of it (if possible) ::
+
+            sage: F1.<a,b,c,d>=FreeGroup()
+            sage: F2.<a,b>=FreeGroup()
+            sage: r=a*b/a
+            sage: r.parent()
+            Free Group on generators {a, b}
+            sage: F1/[r]
+            Finitely presented group < a, b, c, d | a*b*a^-1 >
+
         """
         from sage.groups.finitely_presented import FinitelyPresentedGroup
-        return FinitelyPresentedGroup(self, tuple(relations))
+        return FinitelyPresentedGroup(self, tuple(map(self, relations) ) )
 
     __div__ = quotient

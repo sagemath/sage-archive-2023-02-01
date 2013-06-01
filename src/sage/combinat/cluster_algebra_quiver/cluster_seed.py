@@ -1894,6 +1894,11 @@ class ClusterSeed(SageObject):
             (x0^12 + x1^12 + 4*x0^9 + 4*x1^9 + 6*x0^6 + 4*x0^3*x1^3 + 6*x1^6 + 4*x0^3 + 4*x1^3 + 1)/(x0^4*x1^4)
             sage: S.greedy(4, 4, 'just_numbers')
             35
+            sage: S = ClusterSeed(['R2', [2, 2]])
+            sage: S.greedy(1, 2)
+            (x0^4 + 2*x0^2 + x1^2 + 1)/(x0*x1^2)
+            sage: S.greedy(1, 2, 'by_combinatorics')
+            (x0^4 + 2*x0^2 + x1^2 + 1)/(x0*x1^2)
 
         REFERENCES:
 
@@ -1908,7 +1913,7 @@ class ClusterSeed(SageObject):
                 for p in range(max(a2, 0)+1):
                     for q in range(max(a1, 0)+1):
                         if p != 0 or q != 0:
-                            ans += self._R(cc(p, q, a1, a2, b, c))*self.x(0)**(b*p-a1)*self.x(1)**(c*q-a2)
+                            ans += self._R(coeff_recurs(p, q, a1, a2, b, c))*self.x(0)**(b*p-a1)*self.x(1)**(c*q-a2)
                 return(ans)
             elif method == 'by_combinatorics':
                 if b == 0:
@@ -1916,13 +1921,22 @@ class ClusterSeed(SageObject):
                 else:
                     S = ClusterSeed(['R2', [b, b]])
                 ans = 0
-                PS = PathSubset(a1, a2)
+                if a1 >= a2:
+                    PS = PathSubset(a1, a2)
+                elif a1 < a2:
+                    PS = PathSubset(a2, a1)
                 from sage.combinat.subset import Subsets
                 for T in Subsets(PS):
-                    if is_LeeLiZel_allowable(T, a1, a2, b, c):
-                        oddT = set(T).intersection(PathSubset(a1, 0))
-                        evenT = set(T).symmetric_difference(oddT)
-                        ans = ans + S.x(0)**(b*len(evenT)) * S.x(1)**(c*len(oddT))
+                    if a1 >= a2:
+                        if is_LeeLiZel_allowable(T, a1, a2, b, c):
+                            oddT = set(T).intersection(PathSubset(a1, 0))
+                            evenT = set(T).symmetric_difference(oddT)
+                            ans = ans + S.x(0)**(b*len(evenT)) * S.x(1)**(c*len(oddT))
+                    elif a1 < a2:
+                        if is_LeeLiZel_allowable(T, a2, a1, b, c):
+                            oddT = set(T).intersection(PathSubset(a2, 0))
+                            evenT = set(T).symmetric_difference(oddT)
+                            ans = ans + S.x(0)**(b*len(oddT)) * S.x(1)**(c*len(evenT))
                 ans = ans*S.x(0)**(-a1)*S.x(1)**(-a2)
                 return ans
             elif method == 'just_numbers':
@@ -1930,7 +1944,7 @@ class ClusterSeed(SageObject):
                 for p in range(max(a2, 0)+1):
                     for q in range(max(a1, 0)+1):
                         if p != 0 or q != 0:
-                            ans += cc(p, q, a1, a2, b, c)
+                            ans += coeff_recurs(p, q, a1, a2, b, c)
                 return(ans)
             else:
                 raise ValueError("The third input should be 'by_recursion', "
@@ -1957,14 +1971,14 @@ def _bino(n, k):
     else:
         return 0
 
-def cc(p, q, a1, a2, b, c):
+def coeff_recurs(p, q, a1, a2, b, c):
     """
     Coefficients in Laurent expansion of greedy element, as defined by recursion.
 
     EXAMPLES::
 
-        sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import cc
-        sage: cc(1, 1, 5, 5, 3, 3)
+        sage: from sage.combinat.cluster_algebra_quiver.cluster_seed import coeff_recurs
+        sage: coeff_recurs(1, 1, 5, 5, 3, 3)
         10
     """
     if p == 0 and q == 0:
@@ -1973,10 +1987,10 @@ def cc(p, q, a1, a2, b, c):
         return 0
     else:
         if c*a1*q <= b*a2*p:
-            return sum((-1)**(k-1)*cc(p-k, q, a1, a2, b, c)*_bino(a2-c*q+k-1, k)
+            return sum((-1)**(k-1)*coeff_recurs(p-k, q, a1, a2, b, c)*_bino(a2-c*q+k-1, k)
                        for k in range(1, p+1))
         else:
-            return sum((-1)**(k-1)*cc(p, q-k, a1, a2, b, c)*_bino(a1-b*p+k-1, k)
+            return sum((-1)**(k-1)*coeff_recurs(p, q-k, a1, a2, b, c)*_bino(a1-b*p+k-1, k)
                        for k in range(1, q+1))
 
 def PathSubset(n,m):

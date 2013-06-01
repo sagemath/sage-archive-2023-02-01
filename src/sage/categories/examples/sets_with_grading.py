@@ -1,5 +1,5 @@
 r"""
-An example of graded set: non-negative integers graded by themselves.
+Example of a set with grading
 """
 
 from sage.structure.parent import Parent

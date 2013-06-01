@@ -163,6 +163,7 @@ Examples of parents using categories
    sage/categories/examples/semigroups_cython
    sage/categories/examples/sets_cat
    sage/categories/examples/with_realizations
+   sage/categories/examples/sets_with_grading
 
 Miscellaneous
 =============

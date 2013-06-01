@@ -19,11 +19,11 @@ class SetsWithGrading(Category):
     r"""
     The category of sets with a grading.
 
-    An *set with a grading* is a set `S` equipped with a
-    grading by some other set `I` (by default the set `\NN` of the non
-    negative integers):
+    A *set with a grading* is a set `S` equipped with a
+    grading by some other set `I` (by default the set `\NN` of the
+    non-negative integers):
 
-    .. math::
+    .. MATH::
 
          S = \biguplus_{i\in I} S_i
 
@@ -31,23 +31,35 @@ class SetsWithGrading(Category):
     sets. The *grading* function maps each element `s` of
     `S` to its *grade* `i`, so that `s\in S_i`.
 
-    From implementation point of vue, if the graded set is enumerated then each
-    graded component should be enumerated (there is a check in the method
+    From implementation point of view, if the graded set is enumerated then
+    each graded component should be enumerated (there is a check in the method
     :meth:`~SetsWithGrading.ParentMethods._test_graded_components`). The
     contrary needs not be true.
 
+    To implement this category, a parent must either implement
+    :meth:`~SetsWithGrading.ParentMethods.graded_component()` or
+    :meth:`~SetsWithGrading.ParentMethods.subset()`. If only
+    :meth:`~SetsWithGrading.ParentMethods.subset()` is implemented, the first
+    argument must be the grading for compatibility with
+    :meth:`~SetsWithGrading.ParentMethods.graded_component()`. Additionally
+    either the parent must implement
+    :meth:`~SetsWithGrading.ParentMethods.grading()` or its elements must
+    implement a method ``grade()``. See the example
+    :class:`sage.categories.examples.sets_with_grading.NonNegativeIntegers`.
+
+    Finally, if the graded set is enumerated (see
+    :class:`~sage.categories.enumerated_sets.EnumeratedSets`) then each graded
+    component should be enumerated. The contrary needs not be true.
+
     EXAMPLES:
 
-    A typical example of set with grading is the set of non-negative integers
-    graded by themselves::
+    A typical example of a set with a grading is the set of non-negative
+    integers graded by themselves::
 
         sage: N = SetsWithGrading().example(); N
         Non negative integers
         sage: N.category()
         Category of facade sets with grading
-
-    It is graded by `\NN`::
-
         sage: N.grading_set()
         Non negative integers
 
@@ -78,7 +90,7 @@ class SetsWithGrading(Category):
 
     .. TODO::
 
-        - This should be moved to Sets().WithGrading()
+        - This should be moved to ``Sets().WithGrading()``.
         - Should the grading set be a parameter for this category?
         - Does the enumeration need to be compatible with the grading? Be
           careful that the fact that graded components are allowed to be finite
@@ -106,7 +118,7 @@ class SetsWithGrading(Category):
             r"""
             Test that some graded components of ``self`` are parent with
             initialized category and that the parent has a properly implemented
-            ``grading`` method.
+            ``grading()`` method.
 
             EXAMPLES::
 
@@ -124,8 +136,8 @@ class SetsWithGrading(Category):
 
         def grading_set(self):
             """
-            Returns the set ``self`` is graded by. By default, this is
-            the set of non negative integers.
+            Return the set ``self`` is graded by. By default, this is
+            the set of non-negative integers.
 
             EXAMPLES::
 
@@ -141,9 +153,11 @@ class SetsWithGrading(Category):
         @abstract_method(optional=True)
         def subset(self, *args, **options):
             """
-            Returns the subset of ``self`` described by the given parameters
+            Return the subset of ``self`` described by the given parameters.
 
-            See also: :meth:`graded_component`
+            .. SEEALSO::
+
+                -:meth:`graded_component()`
 
             EXAMPLES::
 
@@ -157,8 +171,8 @@ class SetsWithGrading(Category):
             """
             Return the graded component of ``self`` with grade ``grade``.
 
-            The default implementation just calls the method :meth:`subset` with
-            the argument ``grade``.
+            The default implementation just calls the method :meth:`subset()`
+            with the first argument ``grade``.
 
             EXAMPLES::
 
@@ -171,7 +185,7 @@ class SetsWithGrading(Category):
 
         def grading(self, elt):
             """
-            Return the grading of the element ``elt`` of self.`
+            Return the grading of the element ``elt`` of ``self``.
 
             This default implementation calls ``elt.grade()``.
 
@@ -188,7 +202,9 @@ class SetsWithGrading(Category):
             """
             Default implementation for generating series.
 
-            OUTPUT: a series, indexed by the grading set
+            OUTPUT:
+
+            A series, indexed by the grading set.
 
             EXAMPLES::
 

@@ -124,10 +124,10 @@ fi
 export SAGE_ROOT
 
 # Run the actual Sage script
-if [ -x "$SAGE_ROOT/local/bin/sage" ]; then
-    "$SAGE_ROOT/local/bin/sage" "$@"
-elif [ -x "$SAGE_ROOT/src/bin/sage" ]; then   # For errors pre-installation
+if [ -x "$SAGE_ROOT/src/bin/sage" ]; then
     "$SAGE_ROOT/src/bin/sage" "$@"
+elif [ -x "$SAGE_ROOT/local/bin/sage" ]; then # if in a striped binary
+    "$SAGE_ROOT/local/bin/sage" "$@"
 else
     echo >&2 "$0: no Sage installation found in \$SAGE_ROOT=$SAGE_ROOT"
     exit 1

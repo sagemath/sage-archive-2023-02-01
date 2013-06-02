@@ -784,6 +784,7 @@ class TracInterface(object):
             sage: os.environ['EDITOR'] = 'echo "Summary: Foo\nCc: Foo\nFoo" >'
             sage: t.create_ticket()
             Created ticket #14366 (http://trac.sagemath.org/14366).
+            14366
         """
         attributes = {
                 "Type":         "PLEASE CHANGE",
@@ -800,6 +801,7 @@ class TracInterface(object):
         ticket_url = urlparse.urljoin(
                 self._config.get('server', TRAC_SERVER_URI), str(ticket))
         self._UI.show("Created ticket #%s (%s)."%(ticket, ticket_url))
+        return ticket
 
     def set_dependencies(self, ticket, dependencies):
         """
@@ -811,16 +813,17 @@ class TracInterface(object):
 
         - ``dependencies`` -- a list of ints
         """
+        dep = ', '.join('#'+str(d) for d in dependencies)
+
         ticket = int(ticket)
-        if len(dependencies) == 0:
-            dep = ''
-        else:
-            dep = '#' + ', #'.join([str(d) for d in dependencies])
-        tid, time0, time1, attributes = self._anonymous_server_proxy.ticket.get(ticket)
+        attributes = self._get_attributes(ticket)
+
         olddep = attributes.get('dependencies', '')
         if dep != olddep:
-            self._authenticated_server_proxy.ticket.update(tid, 'Set by SageDev: dependencies changed from %s to %s'%(olddep, dep), {'dependencies':dep})
-            self._UI.show("Dependencies updated")
+            self._authenticated_server_proxy.ticket.update(ticket,
+                    'Set by SageDev: dependencies changed from '+
+                    '%s to %s'%(olddep, dep), {'dependencies':dep})
+            self._UI.show("Dependencies updated.")
 
         # makes the trac ticket for new_ticket depend on the old_ticket
         raise NotImplementedError
@@ -927,7 +930,6 @@ class TracInterface(object):
                 self._anonymous_server_proxy.ticket.listAttachments(ticketnum))
 
     def _set_branch(self, ticketnum, remote_branch, commit_id):
-        tid = self._anonymous_server_proxy.ticket.get(int(ticketnum))[0]
-        self._authenticated_server_proxy.ticket.update(tid,
+        self._authenticated_server_proxy.ticket.update(int(ticketnum),
                 'Set by SageDev: commit %s'%(commit_id),
                 {'branch':remote_branch})

@@ -30,7 +30,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple):
             True
             sage: ct.is_affine()
             False
-            sage: ct.is_crystalographic()
+            sage: ct.is_crystallographic()
             False
             sage: ct.is_simply_laced()
             False

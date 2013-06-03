@@ -10,7 +10,7 @@ Root system data for reducible Cartan types
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
-from sage.combinat.root_system.cartan_type import CartanType_abstract, CartanType_simple, CartanType_finite, CartanType_simply_laced, CartanType_crystalographic
+from sage.combinat.root_system.cartan_type import CartanType_abstract, CartanType_simple, CartanType_finite, CartanType_simply_laced, CartanType_crystallographic
 from sage.matrix.constructor import block_diagonal_matrix
 from sage.sets.family import Family
 import ambient_space
@@ -38,12 +38,12 @@ class CartanType(SageObject, CartanType_abstract):
         A1xB2
         sage: t = CartanType("A2xB2")
 
-    A reducible Cartan type is finite (resp. crystalographic,
+    A reducible Cartan type is finite (resp. crystallographic,
     simply laced) if all its components are::
 
         sage: t.is_finite()
         True
-        sage: t.is_crystalographic()
+        sage: t.is_crystallographic()
         True
         sage: t.is_simply_laced()
         False
@@ -52,7 +52,7 @@ class CartanType(SageObject, CartanType_abstract):
     super classes (see :meth:`~sage.combinat.root_system.cartan_type.CartanType_abstract._add_abstract_superclass`)::
 
         sage: t.__class__.mro()
-        [<class 'sage.combinat.root_system.type_reducible.CartanType_with_superclass'>, <class 'sage.combinat.root_system.type_reducible.CartanType'>, <type 'sage.structure.sage_object.SageObject'>, <class 'sage.combinat.root_system.cartan_type.CartanType_finite'>, <class 'sage.combinat.root_system.cartan_type.CartanType_crystalographic'>, <class 'sage.combinat.root_system.cartan_type.CartanType_abstract'>, <type 'object'>]
+        [<class 'sage.combinat.root_system.type_reducible.CartanType_with_superclass'>, <class 'sage.combinat.root_system.type_reducible.CartanType'>, <type 'sage.structure.sage_object.SageObject'>, <class 'sage.combinat.root_system.cartan_type.CartanType_finite'>, <class 'sage.combinat.root_system.cartan_type.CartanType_crystallographic'>, <class 'sage.combinat.root_system.cartan_type.CartanType_abstract'>, <type 'object'>]
 
     The index set of the reducible Cartan type is obtained by
     relabelling successively the nodes of the Dynkin diagrams of
@@ -124,9 +124,9 @@ class CartanType(SageObject, CartanType_abstract):
 
         self.tools = root_system.type_reducible
         # a direct product of finite Cartan types is again finite;
-        # idem for simply laced and crystalographic.
+        # idem for simply laced and crystallographic.
         super_classes = tuple( cls
-                               for cls in (CartanType_finite, CartanType_simply_laced, CartanType_crystalographic)
+                               for cls in (CartanType_finite, CartanType_simply_laced, CartanType_crystallographic)
                                if all(isinstance(t, cls) for t in types) )
         self._add_abstract_superclass(super_classes)
 

@@ -171,7 +171,7 @@ class RootSystem(UniqueRepresentation, SageObject):
     scalar product, which admits simultaneous embeddings of the
     (extended) weight and the (extended) coweight lattice, and
     therefore the root and the coroot lattice. This is implemented on
-    a type by type basis for the finite crystalographic root systems
+    a type by type basis for the finite crystallographic root systems
     following Bourbaki's conventions and is extended to the affine
     cases. Coefficients permitting, this is also available as an
     ambient lattice.
@@ -298,7 +298,7 @@ class RootSystem(UniqueRepresentation, SageObject):
 
     ::
 
-        sage: for T in CartanType.samples(crystalographic=True):  # long time (13s on sage.math, 2012)
+        sage: for T in CartanType.samples(crystallographic=True):  # long time (13s on sage.math, 2012)
         ...       TestSuite(RootSystem(T)).run()
     """
 
@@ -690,7 +690,7 @@ class RootSystem(UniqueRepresentation, SageObject):
         from the Cartan matrix. Instead is is constructed from hard
         coded type by type data, according to the usual Bourbaki
         conventions. Such data is provided for all the finite
-        (crystalographic) types. From this data, ambient spaces can be
+        (crystallographic) types. From this data, ambient spaces can be
         built as well for dual types, reducible types and affine
         types. When no data is available, or if the base ring is not
         large enough, None is returned.

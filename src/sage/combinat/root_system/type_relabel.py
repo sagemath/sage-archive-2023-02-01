@@ -127,7 +127,7 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_abstra
             True
             sage: isinstance(ct, cartan_type.CartanType_affine)
             False
-            sage: isinstance(ct, cartan_type.CartanType_crystalographic)
+            sage: isinstance(ct, cartan_type.CartanType_crystallographic)
             True
             sage: isinstance(ct, cartan_type.CartanType_simply_laced)
             False
@@ -140,7 +140,7 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_abstra
             False
             sage: isinstance(ct, cartan_type.CartanType_affine)
             True
-            sage: isinstance(ct, cartan_type.CartanType_crystalographic)
+            sage: isinstance(ct, cartan_type.CartanType_crystallographic)
             True
             sage: isinstance(ct, cartan_type.CartanType_simply_laced)
             True
@@ -189,7 +189,7 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_abstra
         cartan_type.CartanType_affine,
         cartan_type.CartanType_simple,
         cartan_type.CartanType_simply_laced,
-        cartan_type.CartanType_crystalographic]
+        cartan_type.CartanType_crystallographic]
 
     def _repr_(self, compact = False):
         """
@@ -333,15 +333,15 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_abstra
         """
         return self._type.is_finite()
 
-    def is_crystalographic(self):
+    def is_crystallographic(self):
         """
         EXAMPLES::
 
             sage: ct = CartanType(['G', 2]).relabel({1:2,2:1})
-            sage: ct.is_crystalographic()
+            sage: ct.is_crystallographic()
             True
         """
-        return self._type.is_crystalographic()
+        return self._type.is_crystallographic()
 
     def is_affine(self):
         """

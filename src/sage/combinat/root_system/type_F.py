@@ -197,8 +197,8 @@ class AmbientSpace(ambient_space.AmbientSpace):
                         3: v*(3*self.monomial(0)+self.monomial(1)+self.monomial(2)+self.monomial(3)),
                         4: self.monomial(0)})
 
-from cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystalographic
-class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_crystalographic):
+from cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystallographic
+class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_crystallographic):
     def __init__(self):
         """
         EXAMPLES::
@@ -213,7 +213,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             True
             sage: ct.is_finite()
             True
-            sage: ct.is_crystalographic()
+            sage: ct.is_crystallographic()
             True
             sage: ct.is_simply_laced()
             False

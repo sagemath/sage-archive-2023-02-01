@@ -477,7 +477,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
             This matches with http://en.wikipedia.org/wiki/Root_systems::
 
-                sage: for T in CartanType.samples(finite = True, crystalographic = True):
+                sage: for T in CartanType.samples(finite = True, crystallographic = True):
                 ...       print "%s %3s %3s"%(T, len(RootSystem(T).root_lattice().roots()), len(RootSystem(T).weight_lattice().roots()))
                 ['A', 1]   2   2
                 ['A', 5]  30  30

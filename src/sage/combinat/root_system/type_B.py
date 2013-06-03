@@ -123,8 +123,8 @@ class  AmbientSpace(ambient_space.AmbientSpace):
         else:
             return self.sum(self.monomial(j) for j in range(i))
 
-from cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystalographic, CartanType_simply_laced
-class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_crystalographic):
+from cartan_type import CartanType_standard_finite, CartanType_simple, CartanType_crystallographic, CartanType_simply_laced
+class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_crystallographic):
     def __init__(self, n):
         """
         EXAMPLES::
@@ -141,7 +141,7 @@ class CartanType(CartanType_standard_finite, CartanType_simple, CartanType_cryst
             True
             sage: ct.is_affine()
             False
-            sage: ct.is_crystalographic()
+            sage: ct.is_crystallographic()
             True
             sage: ct.is_simply_laced()
             False

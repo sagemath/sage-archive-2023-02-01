@@ -17,11 +17,11 @@ from sage.combinat.root_system import cartan_type
 from sage.combinat.root_system.root_lattice_realizations import RootLatticeRealizations
 from sage.combinat.root_system import ambient_space
 
-class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_crystalographic):
+class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_crystallographic):
     r"""
     A class for dual Cartan types.
 
-    The dual of a (crystalographic) Cartan type is a Cartan type with
+    The dual of a (crystallographic) Cartan type is a Cartan type with
     the same index set, but all arrows reversed in the Dynkin diagram
     (otherwise said, the Cartan matrix is transposed). It shares a lot
     of properties in common with its dual. In particular, the Weyl
@@ -56,7 +56,7 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_crysta
 
         sage: F4d.is_irreducible()
         True
-        sage: F4d.is_crystalographic()
+        sage: F4d.is_crystallographic()
         True
         sage: F4d.is_simply_laced()
         False
@@ -109,7 +109,7 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_crysta
             False
             sage: isinstance(ct, cartan_type.CartanType_affine)
             True
-            sage: isinstance(ct, cartan_type.CartanType_crystalographic)
+            sage: isinstance(ct, cartan_type.CartanType_crystallographic)
             True
             sage: isinstance(ct, cartan_type.CartanType_simply_laced)
             False
@@ -135,12 +135,12 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_crysta
             False
             sage: isinstance(ct, cartan_type.CartanType_affine)
             False
-            sage: isinstance(ct, cartan_type.CartanType_crystalographic)
+            sage: isinstance(ct, cartan_type.CartanType_crystallographic)
             True
             sage: isinstance(ct, cartan_type.CartanType_simply_laced)
             False
        """
-        assert type.is_crystalographic()
+        assert type.is_crystallographic()
         self._dual = type
         # TODO: design an appropriate infrastructure to handle this
         # automatically? Maybe using categories and axioms?

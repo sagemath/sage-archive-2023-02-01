@@ -53,7 +53,7 @@ class AmbientSpace(ClearCacheOnPickle, CombinatorialFreeModule):
 
     TESTS::
 
-        sage: types = CartanType.samples(crystalographic = True)+[CartanType(["A",2],["C",5])]
+        sage: types = CartanType.samples(crystallographic = True)+[CartanType(["A",2],["C",5])]
         sage: for e in [ct.root_system().ambient_space() for ct in types]:
         ...            TestSuite(e).run()
     """

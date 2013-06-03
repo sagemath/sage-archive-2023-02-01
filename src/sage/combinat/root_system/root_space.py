@@ -42,7 +42,7 @@ class RootSpace(ClearCacheOnPickle, CombinatorialFreeModule):
 
     TESTS::
 
-        sage: for ct in CartanType.samples(crystalographic=True)+[CartanType(["A",2],["C",5,1])]:
+        sage: for ct in CartanType.samples(crystallographic=True)+[CartanType(["A",2],["C",5,1])]:
         ...       TestSuite(ct.root_system().root_lattice()).run()
         ...       TestSuite(ct.root_system().root_space()).run()
         sage: r = RootSystem(['A',4]).root_lattice()

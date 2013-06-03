@@ -24,6 +24,7 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.graphs.digraph import DiGraph
 from cartan_type import CartanType, CartanType_abstract
+from sage.misc.superseded import deprecated_function_alias
 
 def DynkinDiagram(*args):
     r"""
@@ -369,19 +370,27 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         result._cartan_type = self._cartan_type.dual() if not self._cartan_type is None else None
         return result
 
-    def is_crystalographic(self):
+    def is_crystallographic(self):
         """
-        Implements :meth:`CartanType_abstract.is_crystalographic`
+        Implements :meth:`CartanType_abstract.is_crystallographic`
 
-        A Dynkin diagram always corresponds to a crystalographic root system.
+        A Dynkin diagram always corresponds to a crystallographic root system.
 
         EXAMPLES::
 
-            sage: CartanType(['F',4]).dynkin_diagram().is_crystalographic()
+            sage: CartanType(['F',4]).dynkin_diagram().is_crystallographic()
+            True
+
+        TESTS::
+
+            sage: CartanType(['G',2]).dynkin_diagram().is_crystalographic()
+            doctest:...: DeprecationWarning: is_crystalographic is deprecated. Please use is_crystallographic instead.
+            See http://trac.sagemath.org/14673 for details.
             True
         """
         return True
 
+    is_crystalographic = deprecated_function_alias(14673, is_crystallographic)
 
     def __getitem__(self, i):
         r"""

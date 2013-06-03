@@ -30,7 +30,7 @@ class CartanType(CartanType_standard_untwisted_affine, CartanType_simply_laced):
             True
             sage: ct.is_untwisted_affine()
             True
-            sage: ct.is_crystalographic()
+            sage: ct.is_crystallographic()
             True
             sage: ct.is_simply_laced()
             True

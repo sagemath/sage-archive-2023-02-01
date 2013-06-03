@@ -88,7 +88,7 @@ def CoxeterGroup(cartan_type, implementation = None):
     if implementation == "permutation" and is_chevie_available() and \
        cartan_type.is_finite() and cartan_type.is_irreducible():
         return CoxeterGroupAsPermutationGroup(cartan_type)
-    elif implementation == "matrix" and cartan_type.is_crystalographic():
+    elif implementation == "matrix" and cartan_type.is_crystallographic():
         return WeylGroup(cartan_type)
     else:
         raise NotImplementedError, "Coxeter group of type %s as %s group not implemented "%(cartan_type, implementation)

@@ -72,28 +72,28 @@ For example::
     sage: C.cardinality()
     15
 
-Here is a sample of all the finite irreducible crystalographic Cartan
+Here is a sample of all the finite irreducible crystallographic Cartan
 types::
 
-    sage: CartanType.samples(finite = True, crystalographic = True)
+    sage: CartanType.samples(finite = True, crystallographic = True)
     [['A', 1], ['A', 5], ['B', 1], ['B', 5], ['C', 1], ['C', 5], ['D', 2], ['D', 3], ['D', 5],
      ['E', 6], ['E', 7], ['E', 8], ['F', 4], ['G', 2]]
 
-One can also get latex representations of the crystalographic Cartan
+One can also get latex representations of the crystallographic Cartan
 types and their corresponding Dynkin diagrams::
 
-    sage: [latex(ct) for ct in CartanType.samples(crystalographic=True)]
+    sage: [latex(ct) for ct in CartanType.samples(crystallographic=True)]
     [A_{1}, A_{5}, B_{1}, B_{5}, C_{1}, C_{5}, D_{2}, D_{3}, D_{5},
      E_6, E_7, E_8, F_4, G_2,
      A_{1}^{(1)}, A_{5}^{(1)}, B_{1}^{(1)}, B_{5}^{(1)}, C_{1}^{(1)}, C_{5}^{(1)}, D_{3}^{(1)}, D_{5}^{(1)},
      E_6^{(1)}, E_7^{(1)}, E_8^{(1)}, F_4^{(1)}, G_2^{(1)},
      BC_{1}^{(2)}, BC_{5}^{(2)},
      B_{5}^{(1)\vee}, C_{4}^{(1)\vee}, F_4^{(1)\vee}, G_2^{(1)\vee}, BC_{1}^{(2)\vee}, BC_{5}^{(2)\vee}]
-    sage: view([DynkinDiagram(ct) for ct in CartanType.samples(crystalographic=True)]) # not tested
+    sage: view([DynkinDiagram(ct) for ct in CartanType.samples(crystallographic=True)]) # not tested
 
-Non-crystalographic Cartan types are also partially supported::
+Non-crystallographic Cartan types are also partially supported::
 
-    sage: CartanType.samples(finite = True, crystalographic = False)
+    sage: CartanType.samples(finite = True, crystallographic = False)
     [['I', 5], ['H', 3], ['H', 4]]
 
 In Sage, a Cartan type is used as a database of type-specific
@@ -102,7 +102,7 @@ This database includes how to construct the Dynkin diagram, the ambient space
 for the root system (see :wikipedia:`Root_system`), and further
 mathematical properties::
 
-    sage: T.is_finite(), T.is_simply_laced(), T.is_affine(), T.is_crystalographic()
+    sage: T.is_finite(), T.is_simply_laced(), T.is_affine(), T.is_crystallographic()
     (True, True, False, True)
 
 It will eventually include Coxeter numbers, etc.
@@ -247,7 +247,7 @@ or using the following short hand notation::
 .. rubric:: Degenerate cases
 
 When possible, type `I_n` is automatically converted to the isomorphic
-crystalographic Cartan types (any reason not to do so?)::
+crystallographic Cartan types (any reason not to do so?)::
 
     sage: CartanType(["I",1])
     A1xA1
@@ -402,10 +402,12 @@ from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.global_options import GlobalOptions
 from sage.sets.family import Family
+from sage.misc.superseded import deprecated_function_alias
+from sage.misc.decorators import rename_keyword
 
 # TODO:
 # Implement the Kac conventions by relabeling/dual/... of the above
-# Implement coxeter diagrams for non crystalographic
+# Implement coxeter diagrams for non crystallographic
 
 
 # Intention: we want simultaneously CartanType to be a factory for
@@ -655,7 +657,8 @@ class CartanTypeFactory(SageObject):
         """
         return "CartanType"
 
-    def samples(self, finite=None, affine=None, crystalographic=None):
+    @rename_keyword(deprecation=14673, crystalographic='crystallographic')
+    def samples(self, finite=None, affine=None, crystallographic=None):
         """
         Return a sample of the available Cartan types.
 
@@ -665,7 +668,7 @@ class CartanTypeFactory(SageObject):
 
         - ``affine`` -- a boolean or ``None`` (default: ``None``)
 
-        - ``crystalographic`` -- a boolean or ``None`` (default: ``None``)
+        - ``crystallographic`` -- a boolean or ``None`` (default: ``None``)
 
         The sample contains all the exceptional finite and affine
         Cartan types, as well as typical representatives of the
@@ -681,9 +684,9 @@ class CartanTypeFactory(SageObject):
              ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['BC', 1, 2], ['BC', 5, 2],
              ['B', 5, 1]^*, ['C', 4, 1]^*, ['F', 4, 1]^*, ['G', 2, 1]^*, ['BC', 1, 2]^*, ['BC', 5, 2]^*]
 
-        The finite, affine and crystalographic options allow
+        The finite, affine and crystallographic options allow
         respectively for restricting to (non) finite, (non) affine,
-        and (non) crystalographic Cartan types::
+        and (non) crystallographic Cartan types::
 
             sage: CartanType.samples(finite=True)
             [['A', 1], ['A', 5], ['B', 1], ['B', 5], ['C', 1], ['C', 5], ['D', 2], ['D', 3], ['D', 5],
@@ -695,7 +698,7 @@ class CartanTypeFactory(SageObject):
              ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['BC', 1, 2], ['BC', 5, 2],
              ['B', 5, 1]^*, ['C', 4, 1]^*, ['F', 4, 1]^*, ['G', 2, 1]^*, ['BC', 1, 2]^*, ['BC', 5, 2]^*]
 
-            sage: CartanType.samples(crystalographic=True)
+            sage: CartanType.samples(crystallographic=True)
             [['A', 1], ['A', 5], ['B', 1], ['B', 5], ['C', 1], ['C', 5], ['D', 2], ['D', 3], ['D', 5],
              ['E', 6], ['E', 7], ['E', 8], ['F', 4], ['G', 2],
              ['A', 1, 1], ['A', 5, 1], ['B', 1, 1], ['B', 5, 1],
@@ -703,7 +706,7 @@ class CartanTypeFactory(SageObject):
              ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['BC', 1, 2], ['BC', 5, 2],
              ['B', 5, 1]^*, ['C', 4, 1]^*, ['F', 4, 1]^*, ['G', 2, 1]^*, ['BC', 1, 2]^*, ['BC', 5, 2]^*]
 
-            sage: CartanType.samples(crystalographic=False)
+            sage: CartanType.samples(crystallographic=False)
             [['I', 5], ['H', 3], ['H', 4]]
 
         .. TODO:: add some reducible Cartan types (suggestions?)
@@ -711,10 +714,14 @@ class CartanTypeFactory(SageObject):
         TESTS::
 
             sage: for ct in CartanType.samples(): TestSuite(ct).run()
+            sage: CartanType.samples(crystalographic=False)
+            doctest:...: DeprecationWarning: use the option 'crystallographic' instead of 'crystalographic'
+            See http://trac.sagemath.org/14673 for details.
+            [['I', 5], ['H', 3], ['H', 4]]
         """
         result = self._samples()
-        if crystalographic is not None:
-            result = [t for t in result if t.is_crystalographic() == crystalographic ]
+        if crystallographic is not None:
+            result = [t for t in result if t.is_crystallographic() == crystallographic ]
         if finite is not None:
             result = [t for t in result if t.is_finite() == finite]
         if affine is not None:
@@ -738,7 +745,7 @@ class CartanTypeFactory(SageObject):
              ['E', 6, 1], ['E', 7, 1], ['E', 8, 1], ['F', 4, 1], ['G', 2, 1], ['BC', 1, 2], ['BC', 5, 2],
              ['B', 5, 1]^*, ['C', 4, 1]^*, ['F', 4, 1]^*, ['G', 2, 1]^*, ['BC', 1, 2]^*, ['BC', 5, 2]^*]
         """
-        finite_crystalographic = \
+        finite_crystallographic = \
             [CartanType (t)       for t in [['A', 1], ['A', 5], ['B', 1], ['B', 5],
                                             ['C', 1], ['C', 5], ['D', 2], ['D', 3], ['D', 5],
                                             ["E", 6], ["E", 7], ["E", 8],
@@ -748,9 +755,9 @@ class CartanTypeFactory(SageObject):
         # Support for hand constructed Dynkin diagrams as Cartan types is not yet ready enough for including an example here.
         # from sage.combinat.root_system.dynkin_diagram import DynkinDiagram_class
         # g = DynkinDiagram_class.an_instance()
-        return finite_crystalographic + \
+        return finite_crystallographic + \
             [CartanType(t)        for t in [["I", 5], ["H", 3], ["H", 4]]] + \
-            [t.affine()           for t in finite_crystalographic if t.is_irreducible()] + \
+            [t.affine()           for t in finite_crystallographic if t.is_irreducible()] + \
             [CartanType(t)        for t in [["BC", 1, 2], ["BC", 5, 2]]] + \
             [CartanType(t).dual() for t in [["B", 5, 1], ["C", 4, 1], ["F", 4, 1], ["G", 2, 1],["BC", 1, 2], ["BC", 5, 2]]] #+ \
             # [ g ]
@@ -1135,16 +1142,16 @@ class CartanType_abstract(object):
             True
         """
 
-    def is_crystalographic(self):
+    def is_crystallographic(self):
         """
-        Return whether this Cartan type is crystalographic.
+        Return whether this Cartan type is crystallographic.
 
         This returns ``False`` by default. Derived class should override this
         appropriately.
 
         EXAMPLES::
 
-            sage: [ [t, t.is_crystalographic() ] for t in CartanType.samples(finite=True) ]
+            sage: [ [t, t.is_crystallographic() ] for t in CartanType.samples(finite=True) ]
             [[['A', 1], True], [['A', 5], True],
              [['B', 1], True], [['B', 5], True],
              [['C', 1], True], [['C', 5], True],
@@ -1155,10 +1162,16 @@ class CartanType_abstract(object):
 
         TESTS::
 
-            sage: all(t.is_crystalographic() for t in CartanType.samples(affine=True))
+            sage: all(t.is_crystallographic() for t in CartanType.samples(affine=True))
+            True
+            sage: t = CartanType(['A',3]); t.is_crystalographic()
+            doctest:...: DeprecationWarning: is_crystalographic is deprecated. Please use is_crystallographic instead.
+            See http://trac.sagemath.org/14673 for details.
             True
         """
         return False
+
+    is_crystalographic = deprecated_function_alias(14673, is_crystallographic)
 
     def is_simply_laced(self):
         """
@@ -1219,9 +1232,9 @@ class CartanType_abstract(object):
 
     global_options = CartanTypeOptions
 
-class CartanType_crystalographic(CartanType_abstract):
+class CartanType_crystallographic(CartanType_abstract):
     """
-    An abstract class for crystalographic cartan types.
+    An abstract class for crystallographic cartan types.
     """
     # The default value should really be lambda x:x, but sphinx does
     # not like it currently (see #14553); since this is an abstract method
@@ -1353,17 +1366,26 @@ class CartanType_crystalographic(CartanType_abstract):
                     coxeter_diagram.add_edge(i,j, scalarproducts_to_order[a[i,j]*a[j,i]])
         return coxeter_diagram
 
-    def is_crystalographic(self):
+    def is_crystallographic(self):
         """
-        Implements :meth:`CartanType_abstract.is_crystalographic`
+        Implements :meth:`CartanType_abstract.is_crystallographic`
         by returning ``True``.
 
         EXAMPLES::
 
-            sage: CartanType(['A', 3, 1]).is_crystalographic()
+            sage: CartanType(['A', 3, 1]).is_crystallographic()
+            True
+
+        TESTS::
+
+            sage: t = CartanType(['A',3]); t.is_crystalographic()
+            doctest:...: DeprecationWarning: is_crystalographic is deprecated. Please use is_crystallographic instead.
+            See http://trac.sagemath.org/14673 for details.
             True
         """
         return True
+
+    is_crystalographic = deprecated_function_alias(14673, is_crystallographic)
 
     @cached_method
     def symmetrizer(self):
@@ -1478,7 +1500,7 @@ class CartanType_crystalographic(CartanType_abstract):
 
 
 
-class CartanType_simply_laced(CartanType_crystalographic):
+class CartanType_simply_laced(CartanType_crystallographic):
     """
     An abstract class for simply laced cartan types.
     """
@@ -1553,7 +1575,7 @@ class CartanType_finite(CartanType_abstract):
         """
         return False
 
-class CartanType_affine(CartanType_simple, CartanType_crystalographic):
+class CartanType_affine(CartanType_simple, CartanType_crystallographic):
     """
     An abstract class for simple affine Cartan types
     """
@@ -1664,7 +1686,7 @@ class CartanType_affine(CartanType_simple, CartanType_crystalographic):
             ['G', 2]
 
         We check that :meth:`classical`,
-        :meth:`sage.combinat.root_system.cartan_type.CartanType_crystalographic.dynkin_diagram`,
+        :meth:`sage.combinat.root_system.cartan_type.CartanType_crystallographic.dynkin_diagram`,
         and :meth:`.special_node` are consistent::
 
             sage: for ct in CartanType.samples(affine = True):

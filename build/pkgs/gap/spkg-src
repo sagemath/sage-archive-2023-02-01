@@ -7,7 +7,7 @@ shopt -s extglob
 
 # Remove old sources and download new
 rm -rf src
-tar xjf <( curl ftp://ftp.gap-system.org/pub/gap/gap4/tar.bz2/gap4r6p3_2013_03_18-17_40.tar.bz2 )
+tar xjf <( curl ftp://ftp.gap-system.org/pub/gap/gap4/tar.bz2/gap4r6p4_2013_05_04-16_36.tar.bz2 )
 mv gap4r6 src
 
 

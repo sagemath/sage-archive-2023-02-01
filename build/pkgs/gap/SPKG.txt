@@ -52,6 +52,9 @@ update GAP, please also update and use the spkg-src script.
 
 == Changelog ==
 
+=== gap-4.6.4.p0 (Volker Braun, 3 June 2013) ===
+ * #14682: Upgrade to version 4.6.4
+
 === gap-4.6.3.p0 (Jeroen Demeyer, Volker Braun, 25 April 2013) ===
  * #14039: Upgrade to version 4.6.3.
  * Use standard spkg-install boilerplate.

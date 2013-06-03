@@ -60,9 +60,9 @@ diff -ur src/setup.py new/setup.py
 +                               depends=['hashlib.h']) )
 +        exts.append( Extension('_sha512', ['sha512module.c'],
 +                               depends=['hashlib.h']) )
-+        exts.append( Extension('_md5', ['md5module.c'],
++        exts.append( Extension('_md5', ['md5module.c', 'md5.c'],
 +                               depends=['hashlib.h']) )
-+        exts.append( Extension('_sha1', ['sha1module.c'],
++        exts.append( Extension('_sha', ['shamodule.c'],
 +                               depends=['hashlib.h']) )
  
          # Modules that provide persistent dictionary-like semantics.  You will

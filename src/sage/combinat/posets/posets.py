@@ -29,6 +29,7 @@ This module implements finite partialy ordered sets. It defines :
     :meth:`~FinitePoset.chain_polytope` | Returns the chain polytope of the poset.
     :meth:`~FinitePoset.closed_interval` | Returns a list of the elements `z` such that `x \le z \le y`.
     :meth:`~FinitePoset.compare_elements` | Compare `x` and `y` in the poset.
+    :meth:`~FinitePoset.comparability_graph` | Returns the comparability graph of the poset.
     :meth:`~FinitePoset.cover_relations_iterator` | Returns an iterator for the cover relations of the poset.
     :meth:`~FinitePoset.cover_relations` | Returns the list of pairs [u,v] which are cover relations
     :meth:`~FinitePoset.covers` | Returns True if y covers x and False otherwise.
@@ -41,6 +42,7 @@ This module implements finite partialy ordered sets. It defines :
     :meth:`~FinitePoset.has_bottom` | Returns True if the poset has a unique minimal element.
     :meth:`~FinitePoset.hasse_diagram` | Returns the Hasse diagram of ``self`` as a Sage :class:`DiGraph`.
     :meth:`~FinitePoset.has_top` | Returns True if the poset contains a unique maximal element, and False otherwise.
+    :meth:`~FinitePoset.incomparability_graph` | Returns the incomparability graph of the poset.
     :meth:`~FinitePoset.interval` | Returns a list of the elements `z` such that `x \le z \le y`.
     :meth:`~FinitePoset.is_bounded` | Returns True if the poset contains a unique maximal element and a unique minimal element, and False otherwise.
     :meth:`~FinitePoset.is_chain` | Returns True if the poset is totally ordered, and False otherwise.
@@ -2877,13 +2879,61 @@ class FinitePoset(UniqueRepresentation, Parent):
         return map(self._vertex_to_element,self._hasse_diagram.open_interval(
                 self._element_to_vertex(x),self._element_to_vertex(y)))
 
+    def comparability_graph(self):
+        r"""
+        Returns the comparability graph of ``self``.
+
+        See :wikipedia:`Comparability graph`
+
+        .. SEEALSO:: :meth:`incomparability_graph`, :mod:`sage.graphs.comparability`
+
+        EXAMPLES::
+
+            sage: p = posets.ChainPoset(4)
+            sage: p.comparability_graph().is_isomorphic(graphs.CompleteGraph(4))
+            True
+
+            sage: p = posets.DiamondPoset(5)
+            sage: g = p.comparability_graph(); g
+            Comparability graph on 5 vertices
+            sage: g.size()
+            7
+        """
+        G = self.hasse_diagram().transitive_closure().to_undirected()
+        G.rename('Comparability graph on %s vertices' % self.cardinality())
+        return G
+
+    def incomparability_graph(self):
+        r"""
+        Returns the incomparability graph of ``self``.
+
+        This is the complement of the comparability graph.
+
+        .. SEEALSO:: :meth:`comparability_graph`, :mod:`sage.graphs.comparability`
+
+        EXAMPLES::
+
+            sage: p = posets.ChainPoset(4)
+            sage: p.incomparability_graph().size()
+            0
+
+            sage: p = posets.DiamondPoset(5)
+            sage: g = p.incomparability_graph(); g
+            Incomparability graph on 5 vertices
+            sage: g.size()
+            3
+        """
+        G = self.comparability_graph().complement()
+        G.rename('Incomparability graph on %s vertices' % self.cardinality())
+        return G
+
     def maximal_chains(self, partial=None):
         """
-        Returns all maximal chains of this poset.  Each chain
-        is listed in increasing order.
+        Returns all maximal chains of this poset.
+
+        Each chain is listed in increasing order.
 
         INPUT:
-
 
         -  ``partial`` - list (optional).  If present, find all maximal
            chains starting with the elements in partial.
@@ -3295,7 +3345,6 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         from sage.graphs.digraph import DiGraph
         P0 = [(0, i) for i in self]
-        P1 = [(1, i) for i in self]
         pdict = { (-1, 0): P0, (2, 0): [] }
         for i in self:
             pdict[(0, i)] = [(1, j) for j in self if self.ge(i, j)]
@@ -3621,7 +3670,6 @@ def _ford_fulkerson_chronicle(G, s, t, a):
             val += 1
         else:
             # Step MC2b in Britz-Fomin, Algorithm 7.2.
-            Xkeys = X.keys()
             for v in G.vertex_iterator():
                 if not X.has_key(v):
                     pi[v] += 1

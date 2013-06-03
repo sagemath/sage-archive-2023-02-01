@@ -102,7 +102,7 @@ values are the reflections, you may use the inverse family::
     Finite family {(1, 0, 0): s1*s2*s3*s2*s1, (1, 0, 1): s3*s1*s2*s3*s1, (0, 1, 0): s2*s3*s2,
     (0, 1, -1): s2, (1, 0, -1): s1*s2*s1, (0, 1, 1): s3*s2*s3, (1, 1, 0): s2*s3*s1*s2*s3*s1*s2,
     (0, 0, 1): s3, (1, -1, 0): s1}
-    sage: [a1,a2,a3]=W.domain().simple_roots()
+    sage: [a1,a2,a3] = W.domain().simple_roots()
     sage: a1+a2+a3
     (1, 0, 0)
     sage: altref[a1+a2+a3]
@@ -270,7 +270,7 @@ Let us search for such reflections. Put the following commands in a
 file and load the file::
 
     W = WeylGroup("A3",prefix="s")
-    [s1,s2,s3]=W.simple_reflections()
+    [s1,s2,s3] = W.simple_reflections()
     ref = W.reflections().keys()
 
     def find_reflection(u,v):

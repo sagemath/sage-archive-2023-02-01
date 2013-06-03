@@ -79,27 +79,27 @@ level of crystals via:
 
 In Sage this can be achieved as follows::
 
-   sage: K = KirillovReshetikhinCrystal(['A',3,1],2,1)
-   sage: b = K.module_generator(); b
-   [[1], [2]]
-   sage: b.f(0)
-   sage: b.e(0)
-   [[2], [4]]
+    sage: K = KirillovReshetikhinCrystal(['A',3,1],2,1)
+    sage: b = K.module_generator(); b
+    [[1], [2]]
+    sage: b.f(0)
+    sage: b.e(0)
+    [[2], [4]]
 
-   sage: K.promotion()(b.lift())
-   [[2], [3]]
-   sage: K.promotion()(b.lift()).e(1)
-   [[1], [3]]
-   sage: K.promotion_inverse()(K.promotion()(b.lift()).e(1))
-   [[2], [4]]
+    sage: K.promotion()(b.lift())
+    [[2], [3]]
+    sage: K.promotion()(b.lift()).e(1)
+    [[1], [3]]
+    sage: K.promotion_inverse()(K.promotion()(b.lift()).e(1))
+    [[2], [4]]
 
 KR crystals are level `0` crystals, meaning that the weight of all elements in these crystals is zero::
 
-   sage: K = KirillovReshetikhinCrystal(['A',3,1],2,1)
-   sage: b = K.module_generator(); b.weight()
-   -Lambda[0] + Lambda[2]
-   sage: b.weight().level()
-   0
+    sage: K = KirillovReshetikhinCrystal(['A',3,1],2,1)
+    sage: b = K.module_generator(); b.weight()
+    -Lambda[0] + Lambda[2]
+    sage: b.weight().level()
+    0
 
 The KR crystal `B^{1,1}` of type `A_2^{(1)}` looks as follows:
 
@@ -270,13 +270,13 @@ and `1\le r\le n` for type `A_{2n}^{(2)}` is given by:
 where `\lambda` is obtained from `s\omega_r` (or equivalently a rectangular partition of shape `(s^r)`)
 by removing single boxes::
 
-   sage: K = KirillovReshetikhinCrystal(['D',5,2],2,2)
-   sage: K.classical_decomposition()
-   The crystal of tableaux of type ['B', 4] and shape(s) [[], [1], [2], [1, 1], [2, 1], [2, 2]]
+    sage: K = KirillovReshetikhinCrystal(['D',5,2],2,2)
+    sage: K.classical_decomposition()
+    The crystal of tableaux of type ['B', 4] and shape(s) [[], [1], [2], [1, 1], [2, 1], [2, 2]]
 
-   sage: K = KirillovReshetikhinCrystal(['A',8,2],2,2)
-   sage: K.classical_decomposition()
-   The crystal of tableaux of type ['C', 4] and shape(s) [[], [1], [2], [1, 1], [2, 1], [2, 2]]
+    sage: K = KirillovReshetikhinCrystal(['A',8,2],2,2)
+    sage: K.classical_decomposition()
+    The crystal of tableaux of type ['C', 4] and shape(s) [[], [1], [2], [1, 1], [2, 1], [2, 2]]
 
 The KR crystals are constructed using an injective map into a KR crystal of type `C_n^{(1)}`
 
@@ -404,12 +404,12 @@ automorphism `\sigma` of order 3 which maps `0\mapsto 1 \mapsto 6 \mapsto 0`::
 
 The crystals `B^{1,s}` and `B^{6,s}` are irreducible as classical crystals::
 
-   sage: K = KirillovReshetikhinCrystal(['E',6,1],1,1)
-   sage: K.classical_decomposition()
-   Direct sum of the crystals Family (Finite dimensional highest weight crystal of type ['E', 6] and highest weight Lambda[1],)
-   sage: K = KirillovReshetikhinCrystal(['E',6,1],6,1)
-   sage: K.classical_decomposition()
-   Direct sum of the crystals Family (Finite dimensional highest weight crystal of type ['E', 6] and highest weight Lambda[6],)
+    sage: K = KirillovReshetikhinCrystal(['E',6,1],1,1)
+    sage: K.classical_decomposition()
+    Direct sum of the crystals Family (Finite dimensional highest weight crystal of type ['E', 6] and highest weight Lambda[1],)
+    sage: K = KirillovReshetikhinCrystal(['E',6,1],6,1)
+    sage: K.classical_decomposition()
+    Direct sum of the crystals Family (Finite dimensional highest weight crystal of type ['E', 6] and highest weight Lambda[6],)
 
 whereas for the adjoint node `r=2` we have the decomposition
 

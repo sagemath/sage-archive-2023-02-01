@@ -17,10 +17,6 @@ if [ "x$SAGE64" = xyes ]; then
     export CC
 fi
 
-# Old versions of sage-env set RM, which breaks libtool
-# See http://trac.sagemath.org/sage_trac/ticket/3537
-unset RM
-
 # Make sure that we prefer Sage's mpir library over system-wide gmp/mpir installs
 export LDFLAGS="$LDFLAGS -L$SAGE_LOCAL/lib"
 export CXXFLAGS="$CXXFLAGS -I$SAGE_LOCAL/include"
@@ -39,14 +35,30 @@ for patch in ../patches/*.patch; do
     fi
 done
 
+# Enable only what's needed for Sage
+PPL_CONFIGURE="--enable-coefficients=mpz --disable-fpmath $PPL_CONFIGURE"
+
+# First try configuring both the C and C++ interfaces.
+# If that fails (for example, because of a broken version of m4),
+# try to configure again with only the C++ interface, which is
+# sufficient for Sage.  See #11391 and #12672.
 ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
     --with-gmp-include="$SAGE_LOCAL/include" \
     --with-gmp-lib="$SAGE_LOCAL/lib" \
-    --enable-coefficients=mpz \
-    --enable-interfaces=c++ --disable-fpmath
+    --enable-interfaces=c,c++ \
+    $PPL_CONFIGURE
 if [ $? -ne 0 ]; then
-   echo >&2 "Error configuring the Parma Polyhedra Library."
-   exit 1
+    echo >&2 "Error configuring PPL with both C and C++ interfaces, trying"
+    echo >&2 "again with only the C++ interface."
+    ./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib" \
+        --with-gmp-include="$SAGE_LOCAL/include" \
+        --with-gmp-lib="$SAGE_LOCAL/lib" \
+        $PPL_CONFIGURE \
+        --enable-interfaces=c++
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error configuring the Parma Polyhedra Library."
+        exit 1
+    fi
 fi
 
 $MAKE
@@ -55,7 +67,7 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 
-$MAKE install-strip
+$MAKE install
 if [ $? -ne 0 ]; then
    echo >&2 "Error installing the Parma Polyhedra Library."
    exit 1

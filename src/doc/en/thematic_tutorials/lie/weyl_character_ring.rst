@@ -265,9 +265,9 @@ the Frobenius-Schur indicators of the spin representations of some
 odd spin groups::
 
     sage: def spinrepn(r):
-    ...       R = WeylCharacterRing(['B',r])
-    ...       return R(R.fundamental_weights()[r])
-    ...
+    ....:     R = WeylCharacterRing(['B',r])
+    ....:     return R(R.fundamental_weights()[r])
+    ....:
     sage: spinrepn(3)
     B3(1/2,1/2,1/2)
     sage: for r in [1..4]: print r, spinrepn(r).frobenius_schur_indicator()
@@ -491,10 +491,10 @@ itself, that is, the integral of `|tr(g)|^{10}`::
 So far we have been working with `n=3`. For general `n`::
 
     sage: def f(n,k):
-    ...      R = WeylCharacterRing(['A',n-1])
-    ...      tr = R(R.fundamental_weights()[1])
-    ...      return sum(x^2 for x in (tr^k).coefficients())
-    ...
+    ....:    R = WeylCharacterRing(['A',n-1])
+    ....:    tr = R(R.fundamental_weights()[1])
+    ....:    return sum(x^2 for x in (tr^k).coefficients())
+    ....:
     sage: [f(n,5) for n in [2..7]]  # long time (31s on sage.math, 2012)
     [42, 103, 119, 120, 120, 120]
 

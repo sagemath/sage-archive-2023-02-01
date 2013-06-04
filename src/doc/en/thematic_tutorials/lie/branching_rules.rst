@@ -419,8 +419,8 @@ by other methods::
     sage: ad.frobenius_schur_indicator()
     1
     sage: for r in D7.fundamental_weights():  # long time (26s on sage.math, 2012)
-    ...      print D7(r).branch(G2, rule=branching_rule_from_plethysm(ad, "D7"))
-    ...
+    ....:    print D7(r).branch(G2, rule=branching_rule_from_plethysm(ad, "D7"))
+    ....:
     G2(0,1)
     G2(0,1) + G2(3,0)
     G2(0,0) + G2(2,0) + G2(3,0) + G2(0,2) + G2(4,0)

@@ -55,14 +55,14 @@ is a nontrivial automorphism, the permutation might or might not be
 trivial::
 
     sage: def roots_not_permuted(ct):
-    ...       W = WeylGroup(ct)
-    ...       w0 = W.long_element()
-    ...       sr = W.domain().simple_roots()
-    ...       return all(a == -w0.action(a) for a in sr)
-    ...
+    ....:     W = WeylGroup(ct)
+    ....:     w0 = W.long_element()
+    ....:     sr = W.domain().simple_roots()
+    ....:     return all(a == -w0.action(a) for a in sr)
+    ....:
     sage: for ct in [CartanType(['D',r]) for r in [2..8]]:
-    ...      print ct,roots_not_permuted(ct)
-    ...
+    ....:    print ct,roots_not_permuted(ct)
+    ....:
     ['D', 2] True
     ['D', 3] False
     ['D', 4] True
@@ -163,8 +163,8 @@ Although ``W1`` in this example is isomorphic to ``WeylGroup("A2")`` it
 has a different matrix realization::
 
     sage: for s in WeylGroup(['A',2,1]).classical().simple_reflections():
-    ...      print s
-    ...      print
+    ....:    print s
+    ....:    print
     ...
     [ 1  0  0]
     [ 1 -1  1]
@@ -175,8 +175,8 @@ has a different matrix realization::
     [ 1  1 -1]
 
     sage: for s in WeylGroup(['A',2]).simple_reflections():
-    ...      print s
-    ...      print
+    ....:    print s
+    ....:    print
     ...
     [0 1 0]
     [1 0 0]

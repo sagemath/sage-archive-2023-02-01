@@ -355,7 +355,7 @@ an `r`-dimensional ambient space::
     (5/2, 3/2, 1/2)
 
 This is the Cartan type of `spin(2r+1)`. The last fundamental weight
-``(1/2, 1/2, ... , 1/2)`` is the highest weight of the `2^r`
+``(1/2, 1/2, ..., 1/2)`` is the highest weight of the `2^r`
 dimensional *spin representation*. All the other fundamental
 representations factor through the homomorphism
 `spin(2r+1) \to SO(2r+1)` and are representations of the orthogonal

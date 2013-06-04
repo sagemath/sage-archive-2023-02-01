@@ -332,7 +332,7 @@ on the `C_n` decomposition up to a relabeling of the arrows
     sage: Gdual = Kdual.digraph()
     sage: f = { 1:1, 0:2, 2:0 }
     sage: for u,v,label in Gdual.edges():
-    ...       Gdual.set_edge_label(u,v,f[label])
+    ....:     Gdual.set_edge_label(u,v,f[label])
     sage: G.is_isomorphic(Gdual, edge_labels = True, certify = True) #todo not implemented (see #10904 and #10549)
     (True, {[[-2]]: [[1]], [[-1]]: [[2]], [[1]]: [[-2]], []: [[0]], [[2]]: [[-1]]})
 
@@ -502,8 +502,8 @@ and has been implemented in Sage::
     sage: T = TensorProductOfCrystals(K,K,K)
     sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2])]
     sage: for b in hw:
-    ...      print b, b.energy_function()
-    ...
+    ....:    print b, b.energy_function()
+    ....:
     [[[1]], [[1]], [[1]]] 0
     [[[1]], [[2]], [[1]]] 2
     [[[2]], [[1]], [[1]]] 1
@@ -516,8 +516,8 @@ The affine grading can be computed even for nonperfect crystals::
     sage: T = TensorProductOfCrystals(K,K1)
     sage: hw = [b for b in T if all(b.epsilon(i)==0 for i in [1,2,3,4])]
     sage: for b in hw:
-    ...       print b, b.affine_grading()
-    ...
+    ....:     print b, b.affine_grading()
+    ....:
     [[], [[1]]] 1
     [[[1, 1]], [[1]]] 2
     [[[1, 2]], [[1]]] 1

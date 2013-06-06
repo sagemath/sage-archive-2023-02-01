@@ -13,8 +13,8 @@
 #
 ###############################################################################
 
-if [ "$SAGE_LOCAL" = "" ]; then
-    echo >&2 "SAGE_LOCAL undefined ... exiting";
+if [ -z "$SAGE_LOCAL" ]; then
+    echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
     echo >&2 "Maybe run 'sage -sh'?"
     exit 1
 fi
@@ -37,6 +37,7 @@ ntl_libtool()
 
 ntl_patch()
 {
+    echo
     echo "Applying patches to NTL."
 
     cd "$CUR/src"
@@ -53,6 +54,7 @@ ntl_patch()
 
 ntl_configure()
 {
+    echo
     echo "Configuring NTL."
 
     cd "$CUR/src/src"
@@ -63,18 +65,22 @@ ntl_configure()
     CXXFLAGS="-O2 -g $CXXFLAGS"
 
     if [ "$SAGE64" = "yes" ]; then
-        CFLAGS=" -m64 $CFLAGS"
-        CXXFLAGS=" -m64 $CXXFLAGS"
+        if [ -z "$CFLAG64" ]; then
+            CFLAG64="-m64"
+        fi
+        CFLAGS="$CFLAG64 $CFLAGS"
+        CXXFLAGS="$CFLAG64 $CXXFLAGS"
     fi
 
-    if [ $UNAME = "Darwin" ]; then
+    case "$UNAME" in
+      Darwin)
         echo "Setting SHAREDFLAGS to '-fno-common'"
         SHAREDFLAGS="-fno-common"
-    fi
-
-    if [ $UNAME = "CYGWIN" ]; then
+        ;;
+      CYGWIN)
         LIBTOOL_LINK_FLAGS="-no-undefined"
-    fi
+        ;;
+    esac
 
     ./configure DEF_PREFIX="$SAGE_LOCAL" SHARED=on \
         CC="$CC" CFLAGS="$CFLAGS $SHAREDFLAGS" \
@@ -84,13 +90,14 @@ ntl_configure()
         LIBTOOL=../../libtool/libtool
 
     if [ $? -ne 0 ]; then
-        echo >&2 "Unable to configure NTL."
+        echo >&2 "Error configuring NTL."
         exit 1
     fi
 }
 
 ntl_build()
 {
+    echo
     echo "Tuning and building NTL."
 
     cd "$CUR/src/src"
@@ -98,13 +105,14 @@ ntl_build()
     $MAKE
 
     if [ $? -ne 0 ]; then
-        echo >&2 "Unable to tune and build NTL."
+        echo >&2 "Error building/tuning NTL."
         exit 1
     fi
 }
 
 ntl_install()
 {
+    echo
     echo "Installing NTL."
 
     cd "$CUR/src/src"
@@ -112,7 +120,7 @@ ntl_install()
     $MAKE install
 
     if [ $? -ne 0 ]; then
-        echo >&2 "Unable to tune and build NTL."
+        echo >&2 "Error installing NTL."
         exit 1
     fi
 }

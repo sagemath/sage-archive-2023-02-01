@@ -40,9 +40,9 @@ cdef inline int ismaximal(binary_matrix_t g, int n, bitset_t s):
 
 cdef class IndependentSets:
     r"""
-    An instance of this class represents the set of independent sets of a graph.
+    The set of independent sets of a graph.
 
-    For more information on independent sets, see the
+    For more information on independent sets, see
     :wikipedia:`Independent_set_(graph_theory)`.
 
     INPUT:
@@ -58,8 +58,8 @@ cdef class IndependentSets:
     ALGORITHM:
 
     The enumeration of independent sets is done naively : given an independent
-    sets, this implementation considers all ways to add a new vertex to it
-    (while keeping it an independent sets), and then creates new independent
+    set, this implementation considers all ways to add a new vertex to it
+    (while keeping it an independent set), and then creates new independent
     sets from all those that were created this way.
 
     The implementation, however, is not recursive.
@@ -78,22 +78,24 @@ cdef class IndependentSets:
 
         sage: from sage.graphs.independent_sets import IndependentSets
         sage: g = graphs.ClawGraph()
-        sage: list(IndependentSets(g))
+        sage: I = IndependentSets(g)
+        sage: list(I)
         [[0], [1], [1, 2], [1, 2, 3], [1, 3], [2], [2, 3], [3], []]
 
     Count them::
 
-        sage: IndependentSets(g).cardinality()
+        sage: I.cardinality()
         9
 
     List only the maximal independent sets::
 
-        sage: list(IndependentSets(g, maximal = True))
+        sage: Im = IndependentSets(g, maximal = True)
+        sage: list(Im)
         [[0], [1, 2, 3]]
 
     And count them::
 
-        sage: IndependentSets(g, maximal = True).cardinality()
+        sage: Im.cardinality()
         2
 
     One can easily obtain an iterator over all independent sets of given
@@ -107,11 +109,28 @@ cdef class IndependentSets:
     Similarly, one can easily count the number of independent sets of each
     cardinality::
 
-        sage: number_of_is = [0] * g.order()
+        sage: number_of = [0] * g.order()
         sage: for x in IndependentSets(g):
-        ...      number_of_is[len(x)] += 1
-        sage: print number_of_is
+        ....:     number_of[len(x)] += 1
+        sage: print number_of
         [1, 10, 30, 30, 5, 0, 0, 0, 0, 0]
+
+    Given a subset of the vertices, it is possible to test whether it is an
+    independent set::
+
+        sage: g = graphs.DurerGraph()
+        sage: I = IndependentSets(g)
+        sage: [0,2] in I
+        True
+        sage: [0,3,5] in I
+        False
+
+    If an element of the subset is not a vertex, then an error is raised::
+
+        sage: [0, 'a', 'b', 'c'] in I
+        Traceback (most recent call last):
+        ...
+        ProgrammerError: It should not be a segfault!
     """
     def __init__(self, G, maximal = False, complement = False):
         r"""
@@ -150,6 +169,13 @@ cdef class IndependentSets:
             ...          print len(IS), len(set(IS2))
             sage: for i in range(5):
             ...       check_matching(graphs.RandomGNP(11,.3))
+
+        Check the error for the empty graph::
+
+            sage: IndependentSets(graphs.empty_graph())
+            Traceback (most recent call last):
+            ...
+            ProgrammerError: It should not be a segfault!
         """
         cdef int i
         if G.order() == 0:
@@ -171,25 +197,22 @@ cdef class IndependentSets:
 
     def __iter__(self):
         r"""
-        Returns self, as it has a __next__ method.
+        Returns an iterator over the independent sets of self.
 
         TESTS::
 
             sage: from sage.graphs.independent_sets import IndependentSets
-            sage: list(IndependentSets(graphs.PetersenGraph()))
-            [[0], [0, 2], [0, 2, 6], [0, 2, 8], [0, 2, 8, 9], [0, 2, 9],
-             [0, 3], [0, 3, 6], [0, 3, 6, 7], [0, 3, 7], [0, 3, 9],
-             [0, 6], [0, 6, 7], [0, 7], [0, 7, 8], [0, 8], [0, 8, 9],
-             [0, 9], [1], [1, 3], [1, 3, 5], [1, 3, 5, 9], [1, 3, 7],
-             [1, 3, 9], [1, 4], [1, 4, 5], [1, 4, 7], [1, 4, 7, 8],
-             [1, 4, 8], [1, 5], [1, 5, 9], [1, 7], [1, 7, 8], [1, 8],
-             [1, 8, 9], [1, 9], [2], [2, 4], [2, 4, 5], [2, 4, 5, 6],
-             [2, 4, 6], [2, 4, 8], [2, 5], [2, 5, 6], [2, 5, 9],
-             [2, 6], [2, 8], [2, 8, 9], [2, 9], [3], [3, 5],
-             [3, 5, 6], [3, 5, 9], [3, 6], [3, 6, 7], [3, 7],
-             [3, 9], [4], [4, 5], [4, 5, 6], [4, 6], [4, 6, 7], [4, 7],
-             [4, 7, 8], [4, 8], [5], [5, 6], [5, 9], [6], [6, 7], [7],
-             [7, 8], [8], [8, 9], [9], []]
+            sage: I = IndependentSets(graphs.PetersenGraph())
+            sage: iter1 = iter(I)
+            sage: iter2 = iter(I)
+            sage: iter1.next()      # indirect doctest
+            [0]
+            sage: iter2.next()      # indirect doctest
+            [0]
+            sage: iter2.next()
+            [0, 2]
+            sage: iter1.next()
+            [0, 2]
         """
         cdef int i = 0
 
@@ -252,8 +275,8 @@ cdef class IndependentSets:
                 if i == 0:
                     if not self.maximal:
                         count+=1
-                        yield []
-
+                        if not self.count_only:
+                            yield []
                     break
 
                 # Going backward, we explored all we could there !
@@ -271,7 +294,6 @@ cdef class IndependentSets:
 
         bitset_free(current_set)
         bitset_free(tmp)
-
 
     def __dealloc__(self):
         r"""
@@ -310,21 +332,34 @@ cdef class IndependentSets:
         r"""
         Checks whether the set is an independent set (possibly maximal)
 
+        INPUT:
+
         - ``S`` -- a set of vertices to be tested.
 
-        EXAMPLE::
+        TESTS::
 
-        All independent sets of PetersenGraph are ... independent sets ::
+        All independent sets of PetersenGraph are... independent sets::
 
             sage: from sage.graphs.independent_sets import IndependentSets
+            sage: G = graphs.PetersenGraph()
             sage: IS = IndependentSets(graphs.PetersenGraph())
-            sage: all( s in IS for s in IS)
+            sage: all(s in IS for s in IS)
+            True
+
+        And only them are::
+
+            sage: IS2 = [x for x in subsets(G.vertices()) if x in IS]
+            sage: sorted(IS) == sorted(IS2)
             True
 
         Same with maximal independent sets::
 
             sage: IS = IndependentSets(graphs.PetersenGraph(), maximal = True)
-            sage: all( s in IS for s in IS)
+            sage: S = Subsets(G.vertices())
+            sage: all(s in IS for s in IS)
+            True
+            sage: IS2 = [x for x in subsets(G.vertices()) if x in IS]
+            sage: sorted(IS) == sorted(IS2)
             True
         """
         # Set of vertices as a bitset

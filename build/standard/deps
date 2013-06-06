@@ -55,6 +55,7 @@ all-sage: \
      $(INST)/$(GD) \
      $(INST)/$(GDMODULE) \
      $(INST)/$(GFAN) \
+     $(INST)/$(GF2X) \
      $(INST)/$(GIVARO) \
      $(INST)/$(GLPK) \
      $(INST)/$(GRAPHS) \
@@ -230,7 +231,10 @@ $(INST)/$(MPIR): $(INST)/$(ICONV)
 $(INST)/$(GSL): $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(GSL) 2>&1" "tee -a $(SAGE_LOGS)/$(GSL).log"
 
-$(INST)/$(NTL): $(INST)/$(MPIR)
+$(INST)/$(GF2X):
+	+$(PIPE) "$(SAGE_SPKG) $(GF2X) 2>&1" "tee -a $(SAGE_LOGS)/$(GF2X).log"
+
+$(INST)/$(NTL): $(INST)/$(MPIR) $(INST)/$(GF2X)
 	+$(PIPE) "$(SAGE_SPKG) $(NTL) 2>&1" "tee -a $(SAGE_LOGS)/$(NTL).log"
 
 $(INST)/$(FPLLL): $(INST)/$(MPIR) $(INST)/$(MPFR)

@@ -52,6 +52,7 @@ ATLAS_ISAEXT = (  # static char *ISAXNAM
 os.environ['MAKE'] += ' -j1'
 MAKE = os.environ['MAKE']
 
+
 ######################################################################
 ### Some auxiliary functions to facilitate IO and error checking
 ######################################################################
@@ -77,6 +78,7 @@ def assert_success(rc, good=None, bad=None):
     if bad is not None:
         print 'Error: ', bad
     sys.exit(rc)
+
 
 ######################################################################
 ### Skip building ATLAS on specific systems
@@ -232,8 +234,9 @@ edit_in_place('src/CONFIG/src/config.c') \
 
 shutil.copytree(os.path.join(PATCH_DIR, 'ATLAS-lib'), BUILD_LIB_DIR)
 
+
 ######################################################################
-### configure
+### configure functions
 ######################################################################
 
 def configure_options_from_environment():
@@ -423,32 +426,12 @@ def configure_base():
     return (arch, isa_ext, archdef_dir)
 
 
-
-
 ######################################################################
-### make
+### make function
 ######################################################################
 
-def make_atlas():
+def make_atlas(target=None):
     os.chdir(BUILD_DIR)
-    rc = system_with_flush(MAKE)
-    return rc
-
-
-def configure_atlas_library():
-    os.chdir(BUILD_LIB_DIR)
-    static_library_dir = os.path.join(BUILD_DIR, 'lib')
-    for static_lib in glob.glob(os.path.join(static_library_dir, 'lib*.a')):
-        shutil.copy(static_lib, BUILD_LIB_DIR)
-    cmd = './configure'
-    cmd += ' --prefix=' + conf['SAGE_LOCAL']
-    cmd += ' --libdir=' + os.path.join(conf['SAGE_LOCAL'],'lib')
-    cmd += ' --disable-static'
-    return system_with_flush(cmd)
-
-
-def make_atlas_library(target=None):
-    os.chdir(BUILD_LIB_DIR)
     if target is None:
         return system_with_flush(MAKE)
     else:
@@ -456,7 +439,7 @@ def make_atlas_library(target=None):
 
 
 ######################################################################
-### make and save archdef
+### make and save archdef function
 ######################################################################
 
 def build_and_save_archdef():
@@ -474,7 +457,7 @@ def build_and_save_archdef():
 
 
 ######################################################################
-### build atlas and lapack
+### static libraries functions
 ######################################################################
 
 def build(arch=None, isa_ext=None, archdef_dir=None):
@@ -510,6 +493,33 @@ def build_tuning():
     return make_atlas()
 
 
+######################################################################
+### shared libraries functions
+######################################################################
+
+def configure_atlas_library():
+    os.chdir(BUILD_LIB_DIR)
+    static_library_dir = os.path.join(BUILD_DIR, 'lib')
+    for static_lib in glob.glob(os.path.join(static_library_dir, 'lib*.a')):
+        shutil.copy(static_lib, BUILD_LIB_DIR)
+    cmd = './configure'
+    cmd += ' --prefix=' + conf['SAGE_LOCAL']
+    cmd += ' --libdir=' + os.path.join(conf['SAGE_LOCAL'],'lib')
+    cmd += ' --disable-static'
+    return system_with_flush(cmd)
+
+def make_atlas_library(target=None):
+    os.chdir(BUILD_LIB_DIR)
+    if target is None:
+        return system_with_flush(MAKE)
+    else:
+        return system_with_flush(MAKE + ' ' + target)
+
+
+######################################################################
+### build atlas and lapack static libraries
+######################################################################
+
 #
 # Workaround for specific platforms: Disable tuning and go straight to
 # fast/base architectural defaults
@@ -539,34 +549,57 @@ assert_success(rc, bad='Failed to build ATLAS.', good='Finished building ATLAS c
 
 build_and_save_archdef()
 
+
+######################################################################
+### install atlas and lapack headers and static libraries
+######################################################################
+
+rc = make_atlas('install')
+assert_success(rc, bad='Failed to install ATLAS headers and static libraries', good='Installed ATLAS headers and static libraries')
+
+
+######################################################################
+### configure and build atlas and lapack shared libraries
+######################################################################
+
 rc = configure_atlas_library()
 assert_success(rc, bad='Configuring shared ATLAS library failed.',
                good='Finished configuring shared ATLAS library.')
+
+have_serial_libs = False
+have_parallel_libs = False
 
 rc = make_atlas_library()
 if rc!=0:
     print 'Failed to build serial+parallel shared libraries, possibly because your'
     print 'system does not support both. Trying to build serial libraries only.'
     rc = make_atlas_library('all_serial')
-    have_parallel_libs = False
+    if rc!=0:
+        print 'Failed to build serial shared libraries.'
+        print 'Your Sage installation will only include static libraries.'
+    else:
+        have_serial_libs = True
 else:
     have_parallel_libs = True
-assert_success(rc, bad='Building shared ATLAS library failed.',
-               good='Finished building shared ATLAS library.')
 
 
 ######################################################################
-### install
+### install shared libraries
 ######################################################################
 
 if have_parallel_libs:
     rc = make_atlas_library('install')
-else:
+    assert_success(rc, bad='Installing the parallel+serial shared ATLAS library failed.',
+                   good='Finished installing parallel+serial shared ATLAS library.')
+elif have_serial_libs:
     rc = make_atlas_library('install_serial')
-assert_success(rc, bad='Installing the shared ATLAS library failed.',
-               good='Finished installing shared ATLAS library.')
+    assert_success(rc, bad='Installing the serial shared ATLAS library failed.',
+                   good='Finished installing serial shared ATLAS library.')
 
+
+######################################################################
+### install script to tune and build ATLAS
+######################################################################
 
 cp(os.path.join(PATCH_DIR, 'atlas-config'),
    os.path.join(conf['SAGE_LOCAL'], 'bin'))
-

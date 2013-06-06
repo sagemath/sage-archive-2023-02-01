@@ -332,6 +332,7 @@ homcubes
 PolyGUI
 cygdb
 ppl-config
+ppl_lpsol
 ppl_pips
 nosetests*
 webassets

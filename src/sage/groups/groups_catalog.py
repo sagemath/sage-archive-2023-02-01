@@ -37,6 +37,12 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
     - :func:`groups.matrix.GO <sage.groups.matrix_gps.orthogonal.GO>`
     - :func:`groups.matrix.SO <sage.groups.matrix_gps.orthogonal.SO>`
 
+- Finitely Presented Groups (``groups.presentation.<tab>``)
+    - :func:`groups.presentation.Cyclic <sage.groups.finitely_presented_named.CyclicPresentation>`
+    - :func:`groups.presentation.Dihedral <sage.groups.finitely_presented_named.DihedralPresentation>`
+    - :func:`groups.presentation.DiCyclic <sage.groups.finitely_presented_named.DiCyclicPresentation>`
+    - :func:`groups.presentation.KleinFour <sage.groups.finitely_presented_named.KleinFourPresentation>`
+
 - Miscellaneous Groups (``groups.misc.<tab>``)
 """
 
@@ -62,4 +68,4 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 from sage.groups.matrix_gps import catalog as matrix
 from sage.groups.perm_gps import permutation_groups_catalog as permutation
 from sage.groups.misc_gps import misc_groups_catalog as misc
-
+from sage.groups import finitely_presented_catalog as presentation

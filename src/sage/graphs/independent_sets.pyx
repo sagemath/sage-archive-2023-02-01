@@ -98,22 +98,24 @@ cdef class IndependentSets:
         sage: Im.cardinality()
         2
 
-    One can easily obtain an iterator over all independent sets of given
+    One can easily count the number of independent sets of each
     cardinality::
 
         sage: g = graphs.PetersenGraph()
-        sage: is4 = (x for x in IndependentSets(g) if len(x) == 4)
-        sage: list(is4)
-        [[0, 2, 8, 9], [0, 3, 6, 7], [1, 3, 5, 9], [1, 4, 7, 8], [2, 4, 5, 6]]
-
-    Similarly, one can easily count the number of independent sets of each
-    cardinality::
-
         sage: number_of = [0] * g.order()
         sage: for x in IndependentSets(g):
         ....:     number_of[len(x)] += 1
         sage: print number_of
         [1, 10, 30, 30, 5, 0, 0, 0, 0, 0]
+
+    It is also possible to define an an iterator over all independent sets of a
+    given cardinality. Note, however, that Sage will generate them *all*, to
+    return only those that satisfy the cardinality constraints. Getting the list
+    of independent sets of size 0 in this way can thus take a very long time::
+
+        sage: is4 = (x for x in IndependentSets(g) if len(x) == 4)
+        sage: list(is4)
+        [[0, 2, 8, 9], [0, 3, 6, 7], [1, 3, 5, 9], [1, 4, 7, 8], [2, 4, 5, 6]]
 
     Given a subset of the vertices, it is possible to test whether it is an
     independent set::
@@ -130,7 +132,7 @@ cdef class IndependentSets:
         sage: [0, 'a', 'b', 'c'] in I
         Traceback (most recent call last):
         ...
-        ProgrammerError: It should not be a segfault!
+        ValueError: a is not a vertex of the graph.
     """
     def __init__(self, G, maximal = False, complement = False):
         r"""
@@ -170,16 +172,15 @@ cdef class IndependentSets:
             sage: for i in range(5):
             ...       check_matching(graphs.RandomGNP(11,.3))
 
-        Check the error for the empty graph::
+        Empty graph::
 
-            sage: IndependentSets(graphs.empty_graph())
-            Traceback (most recent call last):
-            ...
-            ProgrammerError: It should not be a segfault!
+            sage: IS0 = IndependentSets(graphs.EmptyGraph())
+            sage: list(IS0)
+            [[]]
+            sage: IS0.cardinality()
+            1
         """
         cdef int i
-        if G.order() == 0:
-            raise ValueError("This class can only handle non-empty graphs")
 
         # Map from Vertex to Integer, and from Integer to Vertex
         self.vertices = G.vertices()
@@ -214,6 +215,10 @@ cdef class IndependentSets:
             sage: iter1.next()
             [0, 2]
         """
+        if self.n == 0:
+            yield []
+            return
+
         cdef int i = 0
 
         cdef bitset_t current_set
@@ -251,7 +256,6 @@ cdef class IndependentSets:
                         bitset_discard(current_set,i)
 
                     # Returning the result if necessary ...
-
                     if self.maximal and not ismaximal(self.g,self.n, tmp):
                         continue
 
@@ -273,10 +277,6 @@ cdef class IndependentSets:
             # Not already included in the set
             else:
                 if i == 0:
-                    if not self.maximal:
-                        count+=1
-                        if not self.count_only:
-                            yield []
                     break
 
                 # Going backward, we explored all we could there !
@@ -288,6 +288,10 @@ cdef class IndependentSets:
                     if i == -1:
                         break
 
+        if not self.maximal:
+            count += 1
+            if not self.count_only:
+                yield []
 
         if self.count_only:
             yield count
@@ -299,7 +303,8 @@ cdef class IndependentSets:
         r"""
         Frees everything we ever allocated
         """
-        binary_matrix_free(self.g)
+        if self.g.rows != NULL:
+            binary_matrix_free(self.g)
 
     @cached_method
     def cardinality(self):
@@ -318,6 +323,9 @@ cdef class IndependentSets:
             sage: IndependentSets(graphs.PetersenGraph(), maximal = True).cardinality()
             15
         """
+        if self.n == 0:
+            return 1
+
         self.count_only = 1
 
         for i in self:
@@ -373,7 +381,7 @@ cdef class IndependentSets:
             try:
                 i = self.vertex_to_int[I]
             except KeyError:
-                raise ValueError("An element of the set being tested does not belong to ")
+                raise ValueError(str(I)+" is not a vertex of the graph.")
 
             # Adding the new vertex to s
             bitset_add(s, i)

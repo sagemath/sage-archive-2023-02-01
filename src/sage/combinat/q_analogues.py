@@ -464,3 +464,90 @@ def q_jordan(t, q):
             res += q_jordan(Partition(tp),q) * ((q**ti - q**tj) // (q-1))
             tj = ti
     return res
+
+def SubgroupsOfAbelianGroup(la, mu, p = None):
+    r"""
+    Return the number of subgroups of type ``mu`` in a finite abelian group of type ``la``.
+
+    INPUT:
+
+    - ``la`` -- Partition object (type of the ambient group)
+    - ``mu`` -- Partition object (type of the subgroup)
+    - ``simplify`` -- Boolean; if set to ``True``, then answer is simplified before returning
+
+    OUTPUT:
+
+    The number of subgroups of type ``mu`` in a group of your ``la`` as a polynomial in ``q``.
+
+    EXAMPLES:
+
+    ::
+
+        sage: SubgroupsOfAbelianGroup(Partition([1,1]),Partition([1]))
+        q+1
+
+    ::
+
+        sage: (SubgroupsOfAbelianGroup(Partition([1,1,1]),Partition([1])) - SubgroupsOfAbelianGroup(Partition([1,1,1]),Partition([1,1]))).is_zero()
+        True
+
+    ::
+
+        sage: SubgroupsOfAbelianGroup(Partition([5]),Partition([3]))
+        1
+
+
+    EXPLANATION:
+
+    We use the formula from [D]_, which works as follows:
+
+    Let `q` be a prime number and `\lambda = (\lambda_1,\dotsc,\lambda_l)` be a partition.
+    A finite abelian `q`-group is of type `\lambda` if it is isomorphic to
+
+    .. MATH::
+
+        \mathbf Z/q^{\lambda_1}\mathbf Z \times\dotsb\times \mathbf Z/q^{\lambda_l}\mathbf Z
+
+
+    Let `\lambda` and `\mu` be partitions.
+    Let `(s_1,s_2,\dotsc,s_k,s_{k+1},\dotsc,s_l)` and `(r_1,r_2,\dotsc,r_k)` denote the parts of the partitions conjugate to
+    `\lambda` and `\mu` respectively. Let
+
+    .. MATH::
+
+        \mathfrak F(\xi_1,\dotsc,\xi_k) = \xi_1^{r_2}\xi_2^{r_3}\dotsb\xi_{k-1}^{r_k}
+        \prod_{i_1=r_2}^{r_1-1}(\xi_1-q^{i_1})\prod_{i_2=r_3}^{r_2-1}(\xi_2-q^{i_2})\dotsb\prod_{i_k=0}^{r_k-1}(\xi_k-q^{-i_k}).
+
+    Then the number of subgroups of type `\mu` in a group of type `\lambda` is given by
+
+    .. MATH::
+
+        \frac{\mathfrak F(q^{s_1},q^{s_2},\dotsc,q^{s_k})}{\mathfrak F(q^{r_1},q^{r_2},\dotsc,q^{r_k})}.
+
+    REFERENCES:
+
+
+    .. [D] S Delsarte, Fonctions de Mobius Sur Les Groupes Abeliens Finis,
+    Annals of Mathematics, second series, Vol. 45, No. 3, (Jul 1948), pp. 600-609. Available from: http://www.jstor.org/stable/1969047
+
+    AUTHOR:
+
+    - Amritanshu Prasad (2013-06-07)
+    """
+    if p == None:
+        p = ZZ['q'].gens()[0]
+    s = la.conjugate()
+    r = mu.conjugate()
+    k = r.length()
+    if k > s.length():
+        return 0*p
+
+    def F(vars):
+        F1 = reduce(mul, [vars[i]^r[i+1] for i in range(k-1)], 1)
+        def prd(j):
+            return reduce(mul, [vars[j]-p^i for i in range(r[j+1],r[j])], 1)
+        F2 = reduce(mul, [prd(j) for j in range(k-1)],1)
+        F3 = reduce(mul, [vars[k-1]-p^i for i in range(r[k-1])],1)
+        return F1*F2*F3
+
+    return F([p^ss for ss in s[:k]])/F([p^rr for rr in r])

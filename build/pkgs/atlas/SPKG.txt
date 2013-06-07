@@ -89,8 +89,8 @@ The package can be configured via three environment variables:
 
 == ChangeLog ==
 
-=== atlas-3.10.1.p1, lapack-3.4.2 (Jean-Pierre Flori, 7 June 2013) ===
- * Trac #14699: Install ATLAS header files and static libraries.
+=== atlas-3.10.1.p1, lapack-3.4.2 (Volker Braun, Jean-Pierre Flori, 7 June 2013) ===
+ * Trac #14699: Install ATLAS header files
 
 === atlas-3.10.1.p0, lapack-3.4.2 (Jean-Pierre Flori, 26 February 2013) ===
  * Trac #10508: Update ATLAS to version 3.10.1 and LAPACK to version 3.4.2.

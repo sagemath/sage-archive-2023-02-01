@@ -510,10 +510,8 @@ def configure_atlas_library():
 
 def make_atlas_library(target=None):
     os.chdir(BUILD_LIB_DIR)
-    if target is None:
-        return system_with_flush(MAKE)
-    else:
-        return system_with_flush(MAKE + ' ' + target)
+    cmd = (MAKE + ' ' + target) if target else MAKE
+    return system_with_flush(cmd)
 
 
 ######################################################################
@@ -551,11 +549,16 @@ build_and_save_archdef()
 
 
 ######################################################################
-### install atlas and lapack headers and static libraries
+### install atlas and lapack headers
 ######################################################################
 
+edit_in_place(os.path.join(BUILD_DIR, 'Makefile')) \
+    .replace('.*Make.top install_lib.*', '') \
+    .close()
+
 rc = make_atlas('install')
-assert_success(rc, bad='Failed to install ATLAS headers and static libraries', good='Installed ATLAS headers and static libraries')
+assert_success(rc, bad='Failed to install ATLAS headers',
+               good='Installed ATLAS headers')
 
 
 ######################################################################
@@ -574,11 +577,9 @@ if rc!=0:
     print 'Failed to build serial+parallel shared libraries, possibly because your'
     print 'system does not support both. Trying to build serial libraries only.'
     rc = make_atlas_library('all_serial')
-    if rc!=0:
-        print 'Failed to build serial shared libraries.'
-        print 'Your Sage installation will only include static libraries.'
-    else:
-        have_serial_libs = True
+    assert_success(rc, bad='Failed to build any shared library.',
+                   good='Finished building serial shared ATLAS library.')
+    have_serial_libs = True
 else:
     have_parallel_libs = True
 
@@ -591,7 +592,8 @@ if have_parallel_libs:
     rc = make_atlas_library('install')
     assert_success(rc, bad='Installing the parallel+serial shared ATLAS library failed.',
                    good='Finished installing parallel+serial shared ATLAS library.')
-elif have_serial_libs:
+
+if have_serial_libs:
     rc = make_atlas_library('install_serial')
     assert_success(rc, bad='Installing the serial shared ATLAS library failed.',
                    good='Finished installing serial shared ATLAS library.')

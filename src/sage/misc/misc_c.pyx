@@ -1,3 +1,17 @@
+"""
+Miscellaneous functions
+
+This file contains support for products, running totals, balanced sums, and
+bitset tests.
+
+AUTHORS:
+
+- William Stein (2005)
+- Joel B. Mohler (2007-10-03): Reimplemented in Cython and optimized
+- Robert Bradshaw (2007-10-26): Balanced product tree, other optimizations, (lazy) generator support
+- Robert Bradshaw (2008-03-26): Balanced product tree for generators and iterators
+- Stefan van Zwam (2013-06-06): Added bitset tests, some docstring cleanup
+"""
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -27,12 +41,11 @@ cdef extern from *:
 
 def running_total(L, start=None):
     """
-    Returns a list where the i-th entry is the sum of all entries up to (and including) i.
+    Return a list where the i-th entry is the sum of all entries up to (and including) i.
 
     INPUT:
 
     - ``L`` -- the list
-
     - ``start`` -- (optional) a default start value
 
     EXAMPLES::
@@ -60,11 +73,12 @@ def running_total(L, start=None):
     return running
 
 
-def prod(x, z=None, Py_ssize_t recursion_cutoff = 5):
+def prod(x, z=None, Py_ssize_t recursion_cutoff=5):
     """
-    Return the product of the elements in the list x.  If optional
-    argument z is not given, start the product with the first element
-    of the list, otherwise use z.  The empty product is the int 1 if z
+    Return the product of the elements in the list x.
+
+    If optional argument z is not given, start the product with the first
+    element of the list, otherwise use z.  The empty product is the int 1 if z
     is not specified, and is z if given.
 
     This assumes that your multiplication is associative; we don't promise
@@ -85,9 +99,9 @@ def prod(x, z=None, Py_ssize_t recursion_cutoff = 5):
 
     AUTHORS:
 
-        - Joel B. Mohler (2007-10-03): Reimplemented in Cython and optimized
-        - Robert Bradshaw (2007-10-26): Balanced product tree, other optimizations, (lazy) generator support
-        - Robert Bradshaw (2008-03-26): Balanced product tree for generators and iterators
+    - Joel B. Mohler (2007-10-03): Reimplemented in Cython and optimized
+    - Robert Bradshaw (2007-10-26): Balanced product tree, other optimizations, (lazy) generator support
+    - Robert Bradshaw (2008-03-26): Balanced product tree for generators and iterators
     """
     cdef Py_ssize_t n
 
@@ -107,7 +121,7 @@ def prod(x, z=None, Py_ssize_t recursion_cutoff = 5):
 
             try:
                 n = len(x)
-                if n < 1000: # arbitrary limit
+                if n < 1000:   # arbitrary limit
                     x = list(x)
             except TypeError:
                 pass
@@ -130,7 +144,7 @@ def prod(x, z=None, Py_ssize_t recursion_cutoff = 5):
     prod = balanced_list_prod(x, 0, n, recursion_cutoff)
 
     if z is not None:
-        prod = z*prod
+        prod = z * prod
 
     return prod
 
@@ -138,37 +152,41 @@ def prod(x, z=None, Py_ssize_t recursion_cutoff = 5):
 cdef balanced_list_prod(L, Py_ssize_t offset, Py_ssize_t count, Py_ssize_t cutoff):
     """
     INPUT:
-        L      -- the terms (MUST be a tuple or list)
-        off    -- offset in the list from which to start
-        count  -- how many terms in the product
-        cutoff -- the minimum count to recurse on
+
+    - ``L`` -- the terms (MUST be a tuple or list)
+    - ``off`` -- offset in the list from which to start
+    - ``count`` -- how many terms in the product
+    - ``cutoff`` -- the minimum count to recurse on
 
     OUTPUT:
-        L[offset] * L[offset+1] * ... * L[offset+count-1]
 
-    NOTE: The parameter cutoff must be at least 1, and there is no reason to
-          ever make it less than 3. However, there are at least two advantages
-          to setting it higher (and consequently not recursing all the way
-          down the tree). First, one avoids the overhead of the function
-          calls at the base of the tree (which is the majority of them) and
-          second, it allows one to save on object creation if inplace
-          operations are used. The asymptotic gains should usually be at the
-          top of the tree anyway.
+    ``L[offset] * L[offset+1] * ... * L[offset+count-1]``
+
+    .. NOTE::
+
+        The parameter cutoff must be at least 1, and there is no reason to
+        ever make it less than 3. However, there are at least two advantages
+        to setting it higher (and consequently not recursing all the way
+        down the tree). First, one avoids the overhead of the function
+        calls at the base of the tree (which is the majority of them) and
+        second, it allows one to save on object creation if inplace
+        operations are used. The asymptotic gains should usually be at the
+        top of the tree anyway.
     """
     cdef Py_ssize_t k
     if count <= cutoff:
         prod = <object>PySequence_Fast_GET_ITEM(L, offset)
-        for k from offset < k < offset+count:
+        for k from offset < k < offset + count:
             prod *= <object>PySequence_Fast_GET_ITEM(L, k)
         return prod
     else:
-        k = (1+count) >> 1
-        return balanced_list_prod(L, offset, k, cutoff) * balanced_list_prod(L, offset+k, count-k, cutoff)
+        k = (1 + count) >> 1
+        return balanced_list_prod(L, offset, k, cutoff) * balanced_list_prod(L, offset + k, count - k, cutoff)
 
 
 cpdef iterator_prod(L, z=None):
     """
-    Attempts to do a balanced product of an arbitrary and unknown length
+    Attempt to do a balanced product of an arbitrary and unknown length
     sequence (such as a generator). Intermediate multiplications are always
     done with subproducts of the same size (measured by the number of original
     factors) up until the iterator terminates. This is optimal when and only
@@ -223,10 +241,9 @@ cpdef iterator_prod(L, z=None):
 
     while tip > 0:
         tip -= 1
-        sub_prods[tip] *= sub_prods[tip+1]
+        sub_prods[tip] *= sub_prods[tip + 1]
 
     return sub_prods[0]
-
 
 
 class NonAssociative:
@@ -291,7 +308,8 @@ class NonAssociative:
 
 from copy import copy
 
-def balanced_sum(x, z=None, Py_ssize_t recursion_cutoff = 5):
+
+def balanced_sum(x, z=None, Py_ssize_t recursion_cutoff=5):
     """
     Return the sum of the elements in the list x.  If optional
     argument z is not given, start the sum with the first element of
@@ -302,7 +320,6 @@ def balanced_sum(x, z=None, Py_ssize_t recursion_cutoff = 5):
 
     This assumes that your addition is associative; we don't promise
     which end of the list we start at.
-
 
     EXAMPLES::
 
@@ -338,11 +355,11 @@ def balanced_sum(x, z=None, Py_ssize_t recursion_cutoff = 5):
 
     AUTHORS:
 
-        - Joel B. Mohler (2007-10-03): Reimplemented in Cython and optimized
-        - Robert Bradshaw (2007-10-26): Balanced product tree, other optimizations, (lazy) generator support
+    - Joel B. Mohler (2007-10-03): Reimplemented in Cython and optimized
+    - Robert Bradshaw (2007-10-26): Balanced product tree, other optimizations, (lazy) generator support
     """
-    if recursion_cutoff<3:
-        raise ValueError, "recursion_cutoff must be at least 3"
+    if recursion_cutoff < 3:
+        raise ValueError("recursion_cutoff must be at least 3")
 
     if not PyList_CheckExact(x) and not PyTuple_CheckExact(x):
 
@@ -375,39 +392,43 @@ def balanced_sum(x, z=None, Py_ssize_t recursion_cutoff = 5):
     sum = balanced_list_sum(x, 0, n, recursion_cutoff)
 
     if z is not None:
-        sum = z+sum
+        sum = z + sum
 
     return sum
 
 cdef balanced_list_sum(L, Py_ssize_t offset, Py_ssize_t count, Py_ssize_t cutoff):
     """
     INPUT:
-        L      -- the terms (MUST be a tuple or list)
-        off    -- offset in the list from which to start
-        count  -- how many terms in the product
-        cutoff -- the minimum count to recurse on.  Must be at least 2
+
+    - ``L`` -- the terms (MUST be a tuple or list)
+    - ``off`` -- offset in the list from which to start
+    - ``count`` -- how many terms in the product
+    - ``cutoff`` -- the minimum count to recurse on.  Must be at least 2
 
     OUTPUT:
-        L[offset] + L[offset+1] + ... + L[offset+count-1]
 
-    NOTE: The parameter cutoff must be at least 3. However, there are
-          at least two advantages to setting it higher (and
-          consequently not recursing all the way down the
-          tree). First, one avoids the overhead of the function calls
-          at the base of the tree (which is the majority of them) and
-          second, it allows one to save on object creation if inplace
-          operations are used. The asymptotic gains should usually be
-          at the top of the tree anyway.
+    ``L[offset] + L[offset+1] + ... + L[offset+count-1]``
+
+    .. NOTE::
+
+        The parameter cutoff must be at least 3. However, there are
+        at least two advantages to setting it higher (and
+        consequently not recursing all the way down the
+        tree). First, one avoids the overhead of the function calls
+        at the base of the tree (which is the majority of them) and
+        second, it allows one to save on object creation if inplace
+        operations are used. The asymptotic gains should usually be
+        at the top of the tree anyway.
     """
     cdef Py_ssize_t k
     if count <= cutoff:
-        sum = <object>PySequence_Fast_GET_ITEM(L, offset)+<object>PySequence_Fast_GET_ITEM(L, offset+1)
-        for k from offset+1 < k < offset+count:
+        sum = <object>PySequence_Fast_GET_ITEM(L, offset) + <object>PySequence_Fast_GET_ITEM(L, offset + 1)
+        for k from offset + 1 < k < offset + count:
             sum += <object>PySequence_Fast_GET_ITEM(L, k)
         return sum
     else:
-        k = (1+count) >> 1
-        return balanced_list_sum(L, offset, k, cutoff) + balanced_list_sum(L, offset+k, count-k, cutoff)
+        k = (1 + count) >> 1
+        return balanced_list_sum(L, offset, k, cutoff) + balanced_list_sum(L, offset + k, count - k, cutoff)
 
 
 #############################################################################
@@ -416,6 +437,7 @@ cdef balanced_list_sum(L, Py_ssize_t offset, Py_ssize_t count, Py_ssize_t cutoff
 
 include "bitset_pxd.pxi"
 include "bitset.pxi"
+
 
 def test_bitset(py_a, py_b, long n):
     """
@@ -442,6 +464,7 @@ def test_bitset(py_a, py_b, long n):
         a.isempty()  False
         a.eq(b)      False
         a.cmp(b)     1
+        a.lex_cmp(b) -1
         a.issubset(b) False
         a.issuperset(b) False
         a.copy()     00101
@@ -459,6 +482,8 @@ def test_bitset(py_a, py_b, long n):
         a.next_diff(b, n)   4
         a.hamming_weight()  2
         a.hamming_weight_sparse()  2
+        a.map(m)  10100
+        a == loads(dumps(a))  True
         reallocating a      00101
         to size 4          0010
         to size 8          00100000
@@ -484,6 +509,7 @@ def test_bitset(py_a, py_b, long n):
         a.isempty()  False
         a.eq(b)      False
         a.cmp(b)     1
+        a.lex_cmp(b) 1
         a.issubset(b) False
         a.issuperset(b) True
         a.copy()     11101
@@ -501,6 +527,8 @@ def test_bitset(py_a, py_b, long n):
         a.next_diff(b, n)   2
         a.hamming_weight()  4
         a.hamming_weight_sparse()  4
+        a.map(m)  10111
+        a == loads(dumps(a))  True
         reallocating a      11101
         to size 2          11
         to size 4          1100
@@ -526,6 +554,7 @@ def test_bitset(py_a, py_b, long n):
         a.isempty()  True
         a.eq(b)      False
         a.cmp(b)     -1
+        a.lex_cmp(b) -1
         a.issubset(b) True
         a.issuperset(b) False
         a.copy()     00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -543,6 +572,8 @@ def test_bitset(py_a, py_b, long n):
         a.next_diff(b, n)   127
         a.hamming_weight()  0
         a.hamming_weight_sparse()  0
+        a.map(m)  00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+        a == loads(dumps(a))  True
         rshifts add  True
         lshifts add  True
         intersection commutes True
@@ -578,6 +609,7 @@ def test_bitset(py_a, py_b, long n):
         a.isempty()  False
         a.eq(b)      False
         a.cmp(b)     -1
+        a.lex_cmp(b) 1
         a.issubset(b) False
         a.issuperset(b) False
         a.copy()     111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001111001
@@ -595,6 +627,8 @@ def test_bitset(py_a, py_b, long n):
         a.next_diff(b, n)   73
         a.hamming_weight()  100
         a.hamming_weight_sparse()  100
+        a.map(m)  100111100111100111100111100111100111100111100111100111100111100111100111100111100111100111100111100111100111100111100111100111100111100111100111100111
+        a == loads(dumps(a))  True
         rshifts add  True
         lshifts add  True
         intersection commutes True
@@ -618,12 +652,12 @@ def test_bitset(py_a, py_b, long n):
     bitset_from_str(b, py_b)
 
     if a.size != b.size:
-        raise ValueError, "inputs must have same size"
+        raise ValueError("inputs must have same size")
 
     print "a", bitset_string(a)
     print "list a", bitset_list(a)
     print "a.size", a.size
-    print "len(a)" , bitset_len(a)
+    print "len(a)", bitset_len(a)
     print "a.limbs", a.limbs
     print "b", bitset_string(b)
     print "a.in(n)  ", bitset_in(a, n)
@@ -643,14 +677,14 @@ def test_bitset(py_a, py_b, long n):
     print "a.set_first_n(n)   ", bitset_string(a)
     print "a.first_in_complement()   ", bitset_first_in_complement(a)
 
-
     bitset_from_str(a, py_a)
     bitset_from_str(b, py_b)
     print "a.isempty() ", bitset_isempty(a)
     print "a.eq(b)     ", bitset_eq(a, b)
     print "a.cmp(b)    ", bitset_cmp(a, b)
-    print "a.issubset(b)", bitset_issubset(a,b)
-    print "a.issuperset(b)", bitset_issuperset(a,b)
+    print "a.lex_cmp(b)", bitset_lex_cmp(a, b)
+    print "a.issubset(b)", bitset_issubset(a, b)
+    print "a.issuperset(b)", bitset_issuperset(a, b)
 
     bitset_from_str(a, py_a)
     bitset_from_str(b, py_b)
@@ -684,6 +718,16 @@ def test_bitset(py_a, py_b, long n):
 
     print "a.hamming_weight() ", bitset_hamming_weight(a)
     print "a.hamming_weight_sparse() ", bitset_hamming_weight_sparse(a)
+
+    morphism = {}
+    for i in xrange(a.size):
+        morphism[i] = a.size - i - 1
+    bitset_map(r, a, morphism)
+    print "a.map(m) ", bitset_string(r)
+
+    data = bitset_pickle(a)
+    bitset_unpickle(r, data)
+    print "a == loads(dumps(a)) ", bitset_eq(r, a)
 
     cdef bitset_t s
     bitset_init(s, a.size)
@@ -739,9 +783,9 @@ def test_bitset(py_a, py_b, long n):
 
     print "reallocating a     ", bitset_string(a)
     bitset_realloc(a, n)
-    print "to size %d         "%n, bitset_string(a)
-    bitset_realloc(a, 2*n)
-    print "to size %d         "%(2*n), bitset_string(a)
+    print "to size %d         " % n, bitset_string(a)
+    bitset_realloc(a, 2 * n)
+    print "to size %d         " % (2 * n), bitset_string(a)
     bitset_realloc(a, b.size)
     print "to original size   ", bitset_string(a)
 
@@ -749,6 +793,7 @@ def test_bitset(py_a, py_b, long n):
     bitset_free(b)
     bitset_free(r)
     bitset_free(s)
+
 
 def test_bitset_set_first_n(py_a, long n):
     """
@@ -769,11 +814,13 @@ def test_bitset_set_first_n(py_a, long n):
     print "a.set_first_n(n)   ", bitset_string(a)
     bitset_free(a)
 
+
 def test_bitset_remove(py_a, long n):
     """
-    Tests for the bitset_remove function.
+    Test the bitset_remove function.
 
-    TESTS:
+    TESTS::
+
         sage: from sage.misc.misc_c import test_bitset_remove
         sage: test_bitset_remove('01', 0)
         Traceback (most recent call last):
@@ -804,7 +851,8 @@ def test_bitset_pop(py_a):
     """
     Tests for the bitset_pop function.
 
-    TESTS:
+    TESTS::
+
         sage: from sage.misc.misc_c import test_bitset_pop
         sage: test_bitset_pop('0101')
         a.pop()   1
@@ -816,11 +864,40 @@ def test_bitset_pop(py_a):
     """
     cdef bitset_t a
     bitset_from_str(a, py_a)
-    i=bitset_pop(a)
+    i = bitset_pop(a)
     print "a.pop()  ", i
     print "new set: ", bitset_string(a)
     bitset_free(a)
 
+
+def test_bitset_unpickle(data):
+    """
+    This (artificially) tests pickling of bitsets across systems.
+
+    INPUT:
+
+    - ``data`` -- A tuple of data as would be produced by the internal, Cython-only, method ``bitset_pickle``.
+
+    OUTPUT:
+
+    A list form of the bitset corresponding to the pickled data.
+
+    EXAMPLES:
+
+    We compare 64-bit and 32-bit encoding. Both should unpickle on any system::
+
+        sage: from sage.misc.misc_c import test_bitset_unpickle
+        sage: test_bitset_unpickle((0, 100, 2, 8, (33, 6001)))
+        [0, 5, 64, 68, 69, 70, 72, 73, 74, 76]
+        sage: test_bitset_unpickle((0, 100, 4, 4, (33, 0, 6001, 0)))
+        [0, 5, 64, 68, 69, 70, 72, 73, 74, 76]
+    """
+    cdef bitset_t bs
+    bitset_init(bs, 1)
+    bitset_unpickle(bs, data)
+    L = bitset_list(bs)
+    bitset_free(bs)
+    return L
 
 #################################################################
 # 32/64-bit computer?
@@ -834,15 +911,18 @@ cpdef list normalize_index(object key, int size):
     Normalize an index key and return a valid index or list of indices
     within the range(0, size).
 
-    INPUT
-        key -- the index key, which can be either an integer, a tuple/list of integers, or a slice.
-        size -- the size of the collection
+    INPUT:
 
-    OUTPUT
-        a tuple (SINGLE, VALUE), where SINGLE is True (i.e., 1) if VALUE
-        is an integer and False (i.e., 0) if VALUE is a list.
+    - ``key`` -- the index key, which can be either an integer, a tuple/list of integers, or a slice.
+    - ``size`` -- the size of the collection
 
-    EXAMPLES
+    OUTPUT:
+
+    A tuple (SINGLE, VALUE), where SINGLE is True (i.e., 1) if VALUE
+    is an integer and False (i.e., 0) if VALUE is a list.
+
+    EXAMPLES::
+
         sage: from sage.misc.misc_c import normalize_index
         sage: normalize_index(-6,5)
         Traceback (most recent call last):
@@ -976,7 +1056,7 @@ cpdef list normalize_index(object key, int size):
         if index < 0:
             index += size
         if index < 0 or index >= size:
-            raise IndexError, "index out of range"
+            raise IndexError("index out of range")
         return [index]
     elif PySlice_Check(key):
         return range(*key.indices(size))
@@ -985,7 +1065,7 @@ cpdef list normalize_index(object key, int size):
     elif PyList_CheckExact(key):
         index_tuple = PyList_AsTuple(key)
     else:
-        raise TypeError, "index must be an integer or slice or a tuple/list of integers and slices"
+        raise TypeError("index must be an integer or slice or a tuple/list of integers and slices")
 
     # Cython doesn't automatically use PyTuple_GET_SIZE, even though
     # it knows that index_tuple is tuple
@@ -996,10 +1076,10 @@ cpdef list normalize_index(object key, int size):
             if index < 0:
                 index += size
             if index < 0 or index >= size:
-                raise IndexError, "index out of range"
+                raise IndexError("index out of range")
             return_list.append(index)
         elif PySlice_Check(index_obj):
             return_list.extend(range(*index_obj.indices(size)))
         else:
-            raise TypeError, "index must be an integer or slice"
+            raise TypeError("index must be an integer or slice")
     return return_list

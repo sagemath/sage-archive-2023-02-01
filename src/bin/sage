@@ -393,7 +393,7 @@ fi
 
 if [ "$1" = '-sws2rst' -o "$1" = '--sws2rst' ]; then
     shift
-    sage-sws2rst "$@"
+    exec sage-sws2rst "$@"
 fi
 
 if [ "$1" = '-twistd' -o "$1" = '--twistd' ]; then

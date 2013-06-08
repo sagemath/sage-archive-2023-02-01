@@ -566,9 +566,14 @@ class FinitelyPresentedGroup(UniqueRepresentation, Group, ParentLibGAP):
         return self._relations
 
     @cached_method
-    def cardinality(self):
+    def cardinality(self, limit=4096000):
         """
         Compute the size of self.
+
+        INPUT:
+
+        - ``limit`` -- integer (default: 4096000). The maximal number
+          of cosets before the computation is aborted.
 
         OUTPUT:
 
@@ -592,31 +597,42 @@ class FinitelyPresentedGroup(UniqueRepresentation, Group, ParentLibGAP):
 
         .. WARNING::
 
-            This is in general not a decidable problem, so it is not guaranteed to give an answer. If all
-            the memory available for the Gap session is used before reaching a satisfactory answer, a
-            MemoryError is raised. In this case, there could be future issues with orphaned objects.
-
-            It is in general a good idea to be cautious when using this method. If the group is infinite,
-            or too big, you should be prepared for a long computation that consumes all the memory without
-            finishing.
+            This is in general not a decidable problem, so it is not
+            guaranteed to give an answer. If the group is infinite, or
+            too big, you should be prepared for a long computation
+            that consumes all the memory without finishing if you do
+            not set a sensible ``limit``.
         """
-        if not libgap.IsFinite(self.gap()):
-            from sage.rings.infinity import Infinity
-            return Infinity
-        try:
-            size = self.gap().Size()
-        except StandardError:
-            raise MemoryError('Coset Enumeration ran out of memory of the GAP session')
+        with libgap.global_context('CosetTableDefaultMaxLimit', limit):
+            if not libgap.IsFinite(self.gap()):
+                from sage.rings.infinity import Infinity
+                return Infinity
+            try:
+                size = self.gap().Size()
+            except ValueError:
+                raise ValueError('Coset enumeration ran out of memory, is the group finite?')
         return size.sage()
 
     order = cardinality
 
-    def as_permutation_group(self):
+    def as_permutation_group(self, limit=4096000):
         """
         Return an isomorphic permutation group.
 
         The generators of the resulting group correspond to the images
         by the isomorphism of the generators of the given group.
+
+        INPUT:
+
+        - ``limit`` -- integer (default: 4096000). The maximal number
+          of cosets before the computation is aborted.
+
+        OUTPUT:
+
+        A Sage
+        :func:`~sage.groups.perm_gps.permgroup.PermutationGroup`. If
+        the number of cosets exceeds the given ``limit``, a
+        ``ValueError`` is returned.
 
         EXAMPLES::
 
@@ -625,27 +641,36 @@ class FinitelyPresentedGroup(UniqueRepresentation, Group, ParentLibGAP):
             sage: H.as_permutation_group()
             Permutation Group with generators [(1,2)(3,5)(4,6), (1,3,4)(2,5,6)]
 
+            sage: G.<a,b> = FreeGroup()
+            sage: H = G / [a^3*b]
+            sage: H.as_permutation_group(limit=1000)
+            Traceback (most recent call last):
+            ...
+            ValueError: Coset enumeration exceeded limit, is the group finite?
+
         ALGORITHM:
 
             Uses GAP's coset enumeration on the trivial subgroup.
 
         .. WARNING::
 
-            This is in general not a decidable problem (in fact, it is not even posible to check if the
-            group is finite or not). If all the memory available in the gap session is used, it returns a
-            Memory Error. In this case, there could be future issues with orphaned objects.
-
-            It is in general a good idea to be cautious when using this method. If the group is infinite,
-            or too big, you should be prepared for a long computation that consumes all the memory without
-            finishing.
+            This is in general not a decidable problem (in fact, it is
+            not even posible to check if the group is finite or
+            not). If the group is infinite, or too big, you should be
+            prepared for a long computation that consumes all the
+            memory without finishing if you do not set a sensible
+            ``limit``.
         """
-        try:
-            l=list(map(lambda i: i.sage(), self.gap().CosetTable(self.gap().TrivialSubgroup())))
-        except StandardError:
-            MemoryError('Coset Enumeration ran out of memory of the GAP session')
+        with libgap.global_context('CosetTableDefaultMaxLimit', limit):
+            try:
+                trivial_subgroup = self.gap().TrivialSubgroup()
+                coset_table = self.gap().CosetTable(trivial_subgroup).sage()
+            except ValueError:
+                raise ValueError('Coset enumeration exceeded limit, is the group finite?')
         from sage.combinat.permutation import Permutation
         from sage.groups.perm_gps.permgroup import PermutationGroup
-        return PermutationGroup(map(Permutation, [l[2*i] for i in range(len(l)/2)]))
+        return PermutationGroup([
+                Permutation(coset_table[2*i]) for i in range(len(coset_table)/2)])
 
     def _element_constructor_(self, *args, **kwds):
         """

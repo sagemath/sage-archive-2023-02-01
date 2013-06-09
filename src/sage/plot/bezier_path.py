@@ -18,6 +18,7 @@ Bezier Paths
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from copy import deepcopy
 from sage.plot.primitive import GraphicPrimitive_xydata
 from sage.misc.decorators import options, rename_keyword
 from sage.plot.colors import to_mpl_color
@@ -50,7 +51,7 @@ class BezierPath(GraphicPrimitive_xydata):
             Bezier path from (0, 0) to (0, 0)
         """
         import numpy as np
-        self.path = path
+        self.path = deepcopy(path)
         codes = [1] + (len(self.path[0])-1)*[len(self.path[0])]
         vertices = self.path[0]
         for curve in self.path[1:]:
@@ -279,6 +280,16 @@ def bezier_path(path, **options):
 
         sage: bezier_path([[(0,1),(.5,0),(1,1)]], fontsize=50)
         sage: bezier_path([[(0,1),(.5,0),(1,1)]]).show(fontsize=50) # These are equivalent
+
+    TESTS:
+
+    We shouldn't modify our argument, :trac:`13822`::
+
+        sage: bp = [[(1,1),(2,3),(3,3)], [(4,4),(5,5)]]
+        sage: foo = bezier_path(bp)
+        sage: bp
+        [[(1, 1), (2, 3), (3, 3)], [(4, 4), (5, 5)]]
+
     """
     from sage.plot.all import Graphics
     g = Graphics()

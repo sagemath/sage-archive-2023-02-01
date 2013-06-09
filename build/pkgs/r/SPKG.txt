@@ -45,6 +45,9 @@ much code written for S runs unaltered under R.
 
 == Changelog ==
 
+=== r-3.0.1.p0 (Emmanuel Charpentier, 8 June 2013) ===
+ * #14706: Drop-in replacement of upstream sources.
+
 === r-2.15.2.p2 (John H. Palmieri, 17 March 2013) ===
  * #9668: fix hardcoding of paths in R by defining R_SHARE_DIR,
    R_INCLUDE_DIR, and R_DOC_DIR relative to R_HOME_DIR, or rather, by

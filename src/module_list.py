@@ -635,7 +635,6 @@ ext_modules = [
     Extension('sage.libs.flint.arith',
               sources = ["sage/libs/flint/arith.pyx"],
               libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],
-              include_dirs = [SAGE_INC + 'flint/'],
               extra_compile_args = ["-std=c99", "-D_XPG6"],
               depends = flint_depends),
 

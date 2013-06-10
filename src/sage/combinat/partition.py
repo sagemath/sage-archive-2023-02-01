@@ -4522,10 +4522,10 @@ class Partitions_n(Partitions):
 
         INPUT:
 
-        - ``algorithm``  - (default: ``'bober'``)
+        - ``algorithm``  - (default: ``'flint'``)
 
-          - ``'bober'`` -- Use Jonathan Bober's implementation (*very* fast).
-          - ``'flint'`` -- use FLINT.
+          - ``'flint'`` -- use FLINT (currently the fastest)
+          - ``'bober'`` -- Use Jonathan Bober's implementation (*very* fast)
           - ``'gap'`` -- use GAP (VERY *slow*)
           - ``'pari'`` -- use PARI. Speed seems the same as GAP until
             `n` is in the thousands, in which case PARI is faster.
@@ -4592,11 +4592,11 @@ class Partitions_n(Partitions):
 
         - :wikipedia:`Partition\_(number\_theory)`
         """
-        if algorithm == 'bober':
+        if algorithm == 'flint':
             return cached_number_of_partitions(self.n)
 
-        elif algorithm == 'flint':
-            return flint_number_of_partitions(self.n)
+        elif algorithm == 'bober':
+            return bober_number_of_partitions(self.n)
 
         elif algorithm == 'gap':
             return ZZ(gap.eval("NrPartitions(%s)" % (ZZ(self.n))))
@@ -5944,8 +5944,7 @@ def number_of_partitions(n, k=None, algorithm='default'):
     The options of :meth:`number_of_partitions()` are being deprecated
     :trac:`13072` in favour of :meth:`Partitions_n.cardinality()` so that
     :meth:`number_of_partitions()` can become a stripped down version of
-    the fastest algorithm available (currently this is due to Bober, but an
-    faster implementation using FLINT will soon be merged into sage).
+    the fastest algorithm available (currently this is using FLINT).
 
     INPUT:
 
@@ -5960,8 +5959,9 @@ def number_of_partitions(n, k=None, algorithm='default'):
        [Will be deprecated except in Partition().cardinality() ]
 
        -  ``'default'`` -- If ``k`` is not ``None``, then use Gap (very slow).
-          If  ``k`` is ``None``, use Jonathan Bober's highly optimized
-          implementation.
+          If  ``k`` is ``None``, use FLINT.
+
+       -  ``'flint'`` -- use FLINT
 
        -  ``'bober'`` -- use Jonathan Bober's implementation
 
@@ -6103,11 +6103,11 @@ def number_of_partitions(n, k=None, algorithm='default'):
     if k is not None:
         raise ValueError("only the GAP algorithm works if k is specified.")
 
-    if algorithm == 'bober':
+    if algorithm == 'flint':
         return cached_number_of_partitions(n)
 
-    elif algorithm == 'flint':
-        return flint_number_of_partitions(n)
+    elif algorithm == 'bober':
+        return bober_number_of_partitions(n)
 
     elif algorithm == 'pari':
         deprecation(13072,"sage.combinat.number_of_partitions is deprecated. Use  Partitions().cardinality(algorithm='pari')")
@@ -6129,11 +6129,10 @@ _Partitions = Partitions()
 from sage.misc.superseded import deprecated_function_alias
 _numpart = deprecated_function_alias(13072, sage.combinat.partitions.number_of_partitions)
 
-# Rather than caching an under used function I have cached the default
-# number_of_partitions functions which is currently that implemented by Bober,
-# although this will soon need to be replaced by the FLINT implementation.
+# Rather than caching an under-used function I have cached the default
+# number_of_partitions functions which is currently using FLINT.
 # AM :trac:`13072`
-cached_number_of_partitions = cached_function( bober_number_of_partitions )
+cached_number_of_partitions = cached_function( flint_number_of_partitions )
 
 def cyclic_permutations_of_partition(partition):
     """

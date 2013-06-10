@@ -1754,8 +1754,6 @@ def _latex_file_(objects, title='SAGE', debug=False, \
         sage: s = sage.misc.latex._latex_file_(blah())
         coucou
     """
-    MACROS = latex_extra_preamble()
-
     process = True
     if has_latex_attr(objects):
         objects = [objects]
@@ -1768,8 +1766,7 @@ def _latex_file_(objects, title='SAGE', debug=False, \
     else:
         size=''
 
-    s = LATEX_HEADER + '\n' + MACROS
-    s += '%s\n\\begin{document}\n\\begin{center}{\\Large\\bf %s}\\end{center}\n%s'%(
+    s = '%s\n\\begin{document}\n\\begin{center}{\\Large\\bf %s}\\end{center}\n%s'%(
         extra_preamble, title, size)
 
     #s += "(If something is missing it may be on the next page or there may be errors in the latex.  Use view with {\\tt debug=True}.)\\vfill"
@@ -1787,7 +1784,13 @@ def _latex_file_(objects, title='SAGE', debug=False, \
     else:
         s += "\n\n".join([str(x) for x in objects])
 
-    s += '\n\\end{document}'
+    # latex_extra_preamble() is called here and not before because some objects
+    # may require additional packages to be displayed in LaTeX. Hence, the call
+    # to latex(x) in the previous loop may change the result of
+    # latex_extra_preamble()
+    MACROS = latex_extra_preamble()
+    s = LATEX_HEADER + '\n' + MACROS + s + '\n\\end{document}'
+
     if debug:
         print s
 

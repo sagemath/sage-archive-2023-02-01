@@ -6,6 +6,7 @@ lazy_import("sage.graphs.hypergraph_generators", "hypergraphs")
 from graph_database import GraphDatabase, GenericGraphQuery, GraphQuery
 from graph import Graph
 from digraph import DiGraph
+from hypergraph import Hypergraph
 from bipartite_graph import BipartiteGraph
 from graph_bundle import GraphBundle
 import weakly_chordal

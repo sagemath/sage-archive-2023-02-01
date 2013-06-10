@@ -1051,11 +1051,14 @@ class FinitePoset(UniqueRepresentation, Parent):
         return super(FinitePoset, self).__call__(element)
 
     def hasse_diagram(self, wrapped = True):
-        """
-        Returns the Hasse diagram of ``self`` as a Sage :class:`DiGraph`.
+        r"""
+        Return the Hasse diagram of ``self`` as a Sage :class:`DiGraph`. If
+        ``dot2tex`` is installed, then this sets the Hasse diagram's latex
+        options to use the ``dot2tex`` formatting.
 
-        .. todo:: should the vertices of the diagram have the poset as
-                  parent?
+        .. TODO::
+
+            Should the vertices of the diagram have the poset as parent?
 
         EXAMPLES::
 
@@ -1076,10 +1079,17 @@ class FinitePoset(UniqueRepresentation, Parent):
             [1, 5, 3, 15]
             sage: H.edges()
             [(1, 3, None), (1, 5, None), (5, 15, None), (3, 15, None)]
-            sage: H.set_latex_options(format = "dot2tex")   # optional
-            sage: view(H, tight_page=True, pdflatex = True) # optional
+            sage: H.set_latex_options(format = "dot2tex")   # optional - dot2tex
+            sage: view(H, tight_page=True) # optional - dot2tex
         """
-        return DiGraph(self._hasse_diagram).relabel(self._list, inplace = False)
+        G = DiGraph(self._hasse_diagram).relabel(self._list, inplace = False)
+        from sage.graphs.dot2tex_utils import have_dot2tex
+        if have_dot2tex():
+            G.set_latex_options(format='dot2tex',
+                                prog='dot',
+                                layout='acyclic',
+                                edge_options=lambda x: {'backward':True})
+        return G
 
     def _latex_(self):
         r"""

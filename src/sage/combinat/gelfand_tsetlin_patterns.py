@@ -170,8 +170,14 @@ class GelfandTsetlinPattern(ClonableArray):
             sage: gt = G([[3,2,1],[2,1],[1]])
             sage: hash(gt) == hash(gt)
             True
+
+        Check that :trac:`14717` is fixed::
+
+            sage: GT = GelfandTsetlinPattern([[2, 1, 0], [2, 0], [1]])
+            sage: GT in {}
+            False
         """
-        return hash(self.parent()) + hash(tuple(map(tuple, self)))
+        return hash(tuple(map(tuple, self)))
 
     def _repr_diagram(self):
         """

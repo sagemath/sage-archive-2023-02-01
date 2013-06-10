@@ -11,7 +11,7 @@ much code written for S runs unaltered under R.
 (taken from http://www.r-project.org/)
 
 == License ==
- * GPL 2 (2.15.2 release)
+ * GPL v2 or GPL v3
 
 == SPKG Maintainers ==
 
@@ -41,9 +41,14 @@ much code written for S runs unaltered under R.
      R_HOME_DIR, but scripts/Makefile.in hardcodes these
      locations. This patch removes this hardcoding. See Sage trac
      #9668.
-   - cygwin-logl.patch: disable use of logl on Cygwin, see #14078.
+   - sqrtl.patch: upstream patch to disable sqrtl when --disable-long-double
+     is passed to configure.
 
 == Changelog ==
+
+=== r-3.0.1.p1 (Jean-Pierre Flori, 10 June 2013) ===
+ * #14706: Use --disable-long-double on Cygwin rather than patching.
+ * Add sqrtl.patch from upstream to make --disable-long-double work.
 
 === r-3.0.1.p0 (Emmanuel Charpentier, 8 June 2013) ===
  * #14706: Drop-in replacement of upstream sources.

@@ -70,6 +70,12 @@ if [ "$UNAME" = "Darwin" ]; then
     R_CONFIGURE="--enable-R-framework=no $R_CONFIGURE"
 fi
 
+if [ "$UNAME" = "CYGWIN" ]; then
+    # Cygwin libm does not provide "long double" functions
+    # and we do not install Cephes on Cygwin at the moment
+    R_CONFIGURE="--disable-long-double $R_CONFIGURE"
+fi
+
 if [ "$SAGE_FAT_BINARY" = yes ]; then
     echo "Disabling ICU for a binary build"
     R_CONFIGURE="--without-ICU $R_CONFIGURE"

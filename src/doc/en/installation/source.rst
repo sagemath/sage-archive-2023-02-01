@@ -35,8 +35,7 @@ on which Sage is supported and the level of support for these systems.
 
 Sage is supported on a number of `Linux <http://en.wikipedia.org/wiki/Linux>`_,
 Mac `OS X <http://www.apple.com/macosx/>`_ ,
-Sun/Oracle `Solaris <http://www.oracle.com/solaris>`_
-and `OpenSolaris <http://en.wikipedia.org/wiki/OpenSolaris>`_ releases,
+Sun/Oracle `Solaris <http://www.oracle.com/solaris>`_ releases,
 but not necessarily all versions of these operating systems.
 There is no native version of Sage which installs on
 `Microsoft Windows <http://en.wikipedia.org/wiki/Microsoft_Windows>`_,
@@ -55,22 +54,28 @@ Prerequisites
 General requirements
 ~~~~~~~~~~~~~~~~~~~~
 
-Your computer comes with at least 4 GB of free disk space running one of the
+Your computer comes with at least 5 GB of free disk space running one of the
 supported versions of an operating system listed at
 http://wiki.sagemath.org/SupportedPlatforms.
+It is recommended to have at least 2 GB of RAM, but you might get away
+with less (be sure to have some swap space in this case).
 
 In addition to standard `POSIX <http://en.wikipedia.org/wiki/POSIX>`_ utilities
 and a `bash <http://en.wikipedia.org/wiki/Bash_(Unix_shell)>`_-compatible shell,
 the following standard command-line development tools must be installed on your
 computer:
 
-- A **C compiler**: GCC version 4.0.1 or newer should work.
-  Older versions may or may not work.
-  On Solaris or OpenSolaris systems, the Sun compiler should also work.
-- **make**: GNU make, version 3.80 or later.
-- **m4**.
+- A **C compiler**: Since Sage builds its own GCC if needed,
+  a wide variety of C compilers is supported.
+  Many GCC versions work,
+  from as old as version 3.4.3 to the most recent release.
+  On Solaris systems, the Sun compiler should also work.
+  Clang currently does not work.
+  See also `Using alternative compilers`_.
+- **make**: GNU make, version 3.80 or later. Version 3.82 or later is recommended.
+- **m4**: GNU m4 1.4.2 or later (non-GNU or older versions might also work).
 - **perl**: version 5.8.0 or later.
-- **ranlib**.
+- **ar** and **ranlib**: can be obtained as part of GNU binutils.
 - **tar**: GNU tar version 1.17 or later, or BSD tar.
 
 Sage also needs a C++ compiler and a Fortran compiler.
@@ -129,7 +134,7 @@ on the command line. If it gives an error (or returns nothing), then
 either ``perl`` is not installed, or it is installed but not in your
 `PATH <http://en.wikipedia.org/wiki/PATH_%28variable%29>`_.
 
-On Linux systems (e.g., Ubuntu, Redhat, etc), ``ranlib`` is in the
+On Linux systems (e.g., Ubuntu, Redhat, etc), ``ar`` and ``ranlib`` are in the
 `binutils <http://www.gnu.org/software/binutils/>`_ package.
 The other programs are usually located in packages with their respective names.
 Assuming you have sufficient privileges, you can install the ``binutils`` and
@@ -172,7 +177,7 @@ On Solaris, you would use ``pkgadd`` and on OpenSolaris ``ipf`` to install
 the necessary software.
 
 On Cygwin, you would use the ``setup.exe`` program.
-As on Linux systems ``ranlib`` is provided by the ``binutils`` package.
+As on Linux systems, ``ar`` and ``ranlib`` are provided by the ``binutils`` package.
 As far as compilers are concerned, you should either install matching versions
 of the ``gcc4-core``, ``gcc4-g++``, and ``gcc4-gfortran`` packages, or
 the ``gcc4-core`` package alone if you plan on using Sage's own GCC.
@@ -220,15 +225,15 @@ If you don't want this and want to try building Sage with a different set of
 compilers,
 you need to set the environment variable :envvar:`SAGE_INSTALL_GCC` to ``no``.
 
+Clang is currently not supported, see :trac:`12426`.
+
 If you are interested in working on support for commerical compilers from
 `HP <http://docs.hp.com/en/5966-9844/ch01s03.html>`_,
 `IBM <http://www-01.ibm.com/software/awdtools/xlcpp/>`_,
 `Intel <http://software.intel.com/en-us/articles/intel-compilers/>`_,
 `Sun/Oracle <http://www.oracle.com/technetwork/server-storage/solarisstudio/overview/index.html>`_,
 etc,
-or the open-source `Clang <http://clang.llvm.org/>`_,
-please email the sage-devel mailing list, also known as the sage-devel Google
-group at http://groups.google.com/group/sage-devel.
+please email the sage-devel mailing list at http://groups.google.com/group/sage-devel.
 
 
 Additional software
@@ -740,6 +745,8 @@ Here are some of the more commonly used variables affecting the build process:
 - :envvar:`MAKE` - one useful setting for this variable when building Sage is
   ``MAKE='make -jNUM'`` to tell the ``make`` program to run ``NUM`` jobs in
   parallel when building.
+  Note that not all Sage packages (e.g. ATLAS) support this variable.
+
   Some people advise using more jobs than there are CPU cores, at least if the
   system is not heavily loaded and has plenty of RAM; for example, a good
   setting for ``NUM`` might be between 1 and 1.5 times the number of cores.
@@ -1295,15 +1302,5 @@ will run through the full automated tuning, and::
 would be appropriate if you have a Core i3/5/7 processor with AVX support.
 
 
-zn_poly
-~~~~~~~
 
-It has been reported (see :trac:`13947`) that the zn_poly spkg fails to build
-on loaded systems, especially on Mac OS X and Cygwin.
-If you encounter this problem, you can try to build zn_poly serially before
-reissuing ``make``::
-
-    MAKE="make -j1" ./sage -i zn_poly && make
-
-
-**This page was last updated in April 2013 (Sage 5.9).**
+**This page was last updated in June 2013 (Sage 5.10).**

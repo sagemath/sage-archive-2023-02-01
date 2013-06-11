@@ -400,7 +400,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     def is_empty(self):
         """
-        Returns whether ``self`` is  empty.
+        Return whether ``self`` is  empty.
 
         EXAMPLES::
 
@@ -444,7 +444,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     def canonical_labelling(self,shift=1):
         """
-        Returns a labelled version of ``self``.
+        Return a labelled version of ``self``.
 
         The actual canonical labelling is currently unspecified. However, it
         is guaranteed to have labels in `1...n` where `n` is the number of
@@ -652,10 +652,93 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             raise ValueError, "%s is not a correct map"%(usemap)
         return DyckWord(self._to_dyck_word_rec(usemap))
 
+    def _to_ordered_tree(self, bijection="left", root=None):
+        r"""
+        Internal recursive method to obtain an ordered tree from a binary
+        tree.
+
+        EXAMPLES::
+
+            sage: bt = BinaryTree([[],[]])
+            sage: bt._to_ordered_tree()
+            [[], [[]]]
+            sage: bt._to_ordered_tree(bijection="right")
+            [[[]], []]
+            sage: bt._to_ordered_tree(bijection="none")
+            Traceback (most recent call last):
+            ...
+            ValueError: the bijection argument should be either left or right
+            sage: bt = BinaryTree([[[], [[], None]], [[], []]])
+            sage: bt._to_ordered_tree()
+            [[], [[], []], [[], [[]]]]
+            sage: bt._to_ordered_tree(bijection="right")
+            [[[[]], [[]]], [[]], []]
+        """
+        close_root = False
+        if(root is None):
+            from sage.combinat.ordered_tree import OrderedTree
+            root = OrderedTree().clone()
+            close_root = True
+        if(self):
+            left, right = self[0],self[1]
+            if(bijection == "left"):
+                root = left._to_ordered_tree(bijection=bijection,root=root)
+                root.append(right._to_ordered_tree(bijection=bijection,root=None))
+            elif(bijection =="right"):
+                root.append(left._to_ordered_tree(bijection=bijection, root=None))
+                root = right._to_ordered_tree(bijection=bijection,root=root)
+            else:
+                raise ValueError("the bijection argument should be either left or right")
+        if(close_root):
+            root.set_immutable()
+        return root
+
+    @combinatorial_map(name="To ordered tree, left child = left brother")
+    def to_ordered_tree_left_branch(self):
+        r"""
+        Return an ordered tree of size `n+1` by the following recursive rule:
+
+        - if `x` is the left child of `y`, `x` becomes the left brother
+          of `y`
+        - if `x` is the right child of `y`, `x` becomes the last child
+          of `y`
+
+        EXAMPLES::
+
+            sage: bt = BinaryTree([[],[]])
+            sage: bt.to_ordered_tree_left_branch()
+            [[], [[]]]
+            sage: bt = BinaryTree([[[], [[], None]], [[], []]])
+            sage: bt.to_ordered_tree_left_branch()
+            [[], [[], []], [[], [[]]]]
+        """
+        return self._to_ordered_tree()
+
+    @combinatorial_map(name="To ordered tree, right child = right brother")
+    def to_ordered_tree_right_branch(self):
+        r"""
+        Return an ordered tree of size n+1 by the following recursive rule:
+
+        - if `x` is the right child of `y`, `x` becomes the right brother
+          of `y`
+        - if `x` is the left child of `y`, `x` becomes the first child
+          of `y`
+
+        EXAMPLES::
+
+            sage: bt = BinaryTree([[],[]])
+            sage: bt.to_ordered_tree_right_branch()
+            [[[]], []]
+            sage: bt = BinaryTree([[[], [[], None]], [[], []]])
+            sage: bt.to_ordered_tree_right_branch()
+            [[[[]], [[]]], [[]], []]
+        """
+        return self._to_ordered_tree(bijection="right")
+
     @combinatorial_map(order = 2, name="Left-right symmetry")
     def left_right_symmetry(self):
         r"""
-        Returns the left-right symmetrized tree of ``self``.
+        Return the left-right symmetrized tree of ``self``.
 
         EXAMPLES::
 
@@ -677,7 +760,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
     @combinatorial_map(order=2, name="Left border symmetry")
     def left_border_symmetry(self):
         r"""
-        Returns the tree where a symmetry has been applied recursively on
+        Return the tree where a symmetry has been applied recursively on
         all left borders. If a tree is made of three trees `[T_1, T_2,
         T_3]` on its left border, it becomes `[T_3', T_2', T_1']` where
         same symmetry has been applied to `T_1, T_2, T_3`.
@@ -717,7 +800,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     def canopee(self):
         """
-        Returns the canopee of ``self``
+        Return the canopee of ``self``
 
         The *canopee* of a non empty binary tree `T` with `n` internal nodes is
         the list `l` of `0` and `1` of length `n-1` obtained by going along the
@@ -783,6 +866,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
                     res.append(1-i)
         add_leaf_rec(self)
         return res[1:-1]
+
 
 
 from sage.structure.parent import Parent
@@ -930,7 +1014,7 @@ class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
 
     def unlabelled_trees(self):
         """
-        Returns the set of unlabelled trees associated to ``self``
+        Return the set of unlabelled trees associated to ``self``
 
         EXAMPLES::
 
@@ -941,7 +1025,7 @@ class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
 
     def labelled_trees(self):
         """
-        Returns the set of labelled trees associated to ``self``
+        Return the set of labelled trees associated to ``self``
 
         EXAMPLES::
 
@@ -1232,7 +1316,7 @@ class LabelledBinaryTrees(LabelledOrderedTrees):
 
     def _an_element_(self):
         """
-        Returns a labelled binary tree
+        Return a labelled binary tree
 
         EXAMPLE::
 
@@ -1247,7 +1331,7 @@ class LabelledBinaryTrees(LabelledOrderedTrees):
 
     def unlabelled_trees(self):
         """
-        Returns the set of unlabelled trees associated to ``self``
+        Return the set of unlabelled trees associated to ``self``
 
         EXAMPLES::
 
@@ -1271,7 +1355,7 @@ class LabelledBinaryTrees(LabelledOrderedTrees):
 
     def labelled_trees(self):
         """
-        Returns the set of labelled trees associated to ``self``
+        Return the set of labelled trees associated to ``self``
 
         EXAMPLES::
 

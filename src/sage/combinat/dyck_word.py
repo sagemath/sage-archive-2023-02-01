@@ -2158,16 +2158,47 @@ class DyckWord_complete(DyckWord_class):
         dyck_word.extend([close_symbol]*(2*len(code)-len(dyck_word)))
         return cls(dyck_word)
 
+    @combinatorial_map(name="To Ordered tree")
     def to_ordered_tree(self):
         r"""
+        Return the ordered tree corresponding to ``self`` where the depth
+        of the tree is the maximal height of ``self``.
+
+        EXAMPLES::
+
+            sage: D = DyckWord([1,1,0,0])
+            sage: D.to_ordered_tree()
+            [[[]]]
+            sage: D = DyckWord([1,0,1,0])
+            sage: D.to_ordered_tree()
+            [[], []]
+            sage: D = DyckWord([1, 0, 1, 1, 0, 0])
+            sage: D.to_ordered_tree()
+            [[], [[]]]
+            sage: D = DyckWord([1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0])
+            sage: D.to_ordered_tree()
+            [[], [[], []], [[], [[]]]]
+
         TESTS::
 
-            sage: DyckWord([1, 1, 0, 0]).to_ordered_tree()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: TODO
+            sage: D = DyckWord([1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0])
+            sage: D == D.to_ordered_tree().to_dyck_word()
+            True
         """
-        raise NotImplementedError, "TODO"
+        from sage.combinat.ordered_tree import OrderedTree
+        levels = [OrderedTree().clone()]
+        for u in self:
+            if u == 1:
+                levels.append(OrderedTree().clone())
+            else:
+                tree =levels.pop()
+                tree.set_immutable()
+                root = levels.pop()
+                root.append(tree)
+                levels.append(root)
+        root = levels[0]
+        root.set_immutable()
+        return root
 
     def to_triangulation(self):
         r"""
@@ -2251,7 +2282,7 @@ class DyckWord_complete(DyckWord_class):
 
     def major_index(self):
         r"""
-        Returns the major index of ``self`` . This is
+        Return the major index of ``self`` . This is
         the sum of the positions of the valleys of ``self``
         (when started counting at position ``1``).
 
@@ -2316,7 +2347,7 @@ class DyckWord_complete(DyckWord_class):
 
     def tunnels(self):
         r"""
-        Returns the list of ranges of the matching parentheses in the Dyck word.
+        Return the list of ranges of the matching parentheses in the Dyck word.
         That is, if ``(a,b)`` is in ``self.tunnels()``, then the matching parenthesis
         to ``self[a]`` is ``self[b-1]`` .
 
@@ -2373,9 +2404,10 @@ class DyckWord_complete(DyckWord_class):
         else:
             raise ValueError, "The given tunnel_type is not valid."
 
+    @combinatorial_map(order = 2, name="Reverse path")
     def reverse(self):
         r"""
-        Returns the reverse and complement of the Dyck word ``self`` .
+        Return the reverse and complement of the Dyck word ``self`` .
         This operation corresponds to flipping the Dyck path across the `y=-x` line.
 
         EXAMPLES::
@@ -2442,9 +2474,10 @@ class DyckWord_complete(DyckWord_class):
             D1,D2 = self.first_return_decomposition()
             return DyckWord([1]+list(D2.decomposition_reverse())+[0]+list(D1.decomposition_reverse()))
 
+    @combinatorial_map(name="Area-dinv to bounce-area")
     def area_dinv_to_bounce_area_map(self):
         r"""
-        Returns the image of the Dyck word under the map which sends a
+        Return the image of the Dyck word under the map which sends a
         Dyck word with ``area`` equal to `r` and ``dinv`` equal to `s` to a Dyck
         word with ``bounce`` equal to `r` and ``area`` equal to `s` .
 
@@ -2486,9 +2519,10 @@ class DyckWord_complete(DyckWord_class):
                     image.append(0)
         return DyckWord(image)
 
+    @combinatorial_map(name="Bounce-area to area-dinv")
     def bounce_area_to_area_dinv_map( D ):
         r"""
-        Returns the image of the Dyck word under the map which sends a
+        Return the image of the Dyck word under the map which sends a
         Dyck word with ``bounce`` equal to `r` and ``area`` equal to `s` to a Dyck
         word with ``area`` equal to `r` and ``dinv`` equal to `s` .
 
@@ -2532,7 +2566,7 @@ class DyckWord_complete(DyckWord_class):
 
     def area(self):
         r"""
-        Returns the area for the Dyck word corresponding to the area
+        Return the area for the Dyck word corresponding to the area
         of the Dyck path.
 
         One can view a balanced Dyck word as a lattice path from
@@ -2604,7 +2638,7 @@ class DyckWord_complete(DyckWord_class):
 
     def bounce_path(self):
         r"""
-        Returns the bounce path of the Dyck path formed by starting at `(n,n)` and
+        Return the bounce path of the Dyck path formed by starting at `(n,n)` and
         traveling West until encountering the first vertical step of ``self``,
         then South until encountering the diagonal, then West again to hit the path,
         etc. until the `(0,0)` point is reached.  The path followed by this walk
@@ -2646,7 +2680,7 @@ class DyckWord_complete(DyckWord_class):
 
     def bounce(self):
         r"""
-        Returns the bounce statistic of ``self`` due to J. Haglund, see [Hag2008]_.
+        Return the bounce statistic of ``self`` due to J. Haglund, see [Hag2008]_.
 
         One can view a balanced Dyck word as a lattice path from `(0,0)` to
         `(n,n)` in the first quadrant by letting '1's represent steps in
@@ -2744,7 +2778,7 @@ class DyckWord_complete(DyckWord_class):
 
     def dinv(self, labeling = None):
         r"""
-        Returns the dinv statistic of ``self`` due to M. Haiman, see [Hag2008]_.
+        Return the dinv statistic of ``self`` due to M. Haiman, see [Hag2008]_.
         If a labeling is provided then this function returns the dinv of the labeled
         Dyck word.
 
@@ -2814,7 +2848,7 @@ class DyckWord_complete(DyckWord_class):
 
 def DyckWords(k1=None, k2=None):
     r"""
-    Returns the combinatorial class of Dyck words. A Dyck word is a
+    Return the combinatorial class of Dyck words. A Dyck word is a
     sequence `(w_1, ..., w_n)` consisting of 1 s and 0 s, with the property that for any
     `i` with `1 \le i \le n`, the sequence `(w_1,...,w_i)` contains at least as many 1 s as 0 .
 
@@ -3109,7 +3143,7 @@ class DyckWords_size(CombinatorialClass):
 
     def cardinality(self):
         r"""
-        Returns the number of complete Dyck words of semilength `n`, i.e. the `n`-th :func:`Catalan number<sage.combinat.combinat.catalan_number>`.
+        Return the number of complete Dyck words of semilength `n`, i.e. the `n`-th :func:`Catalan number<sage.combinat.combinat.catalan_number>`.
 
         EXAMPLES::
 
@@ -3152,7 +3186,7 @@ class DyckWords_size(CombinatorialClass):
 
     def list(self):
         r"""
-        Returns a list of all the Dyck words with ``k1`` opening and ``k2``
+        Return a list of all the Dyck words with ``k1`` opening and ``k2``
         closing parentheses.
 
         EXAMPLES::
@@ -3168,7 +3202,7 @@ class DyckWords_size(CombinatorialClass):
 
     def __iter__(self):
         r"""
-        Returns an iterator for Dyck words with ``k1`` opening and ``k2``
+        Return an iterator for Dyck words with ``k1`` opening and ``k2``
         closing parentheses.
 
         EXAMPLES::

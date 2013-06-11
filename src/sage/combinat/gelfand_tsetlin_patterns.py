@@ -293,7 +293,7 @@ class GelfandTsetlinPattern(ClonableArray):
 
         Using the *right-hand* rule, an entry `a_{i,j}` is boxed if
         `a_{i,j} = a_{i-1,j-1}`; i.e., `a_{i,j}` has the same value as its
-        neighbor to the northeast.
+        neighbor to the northwest.
 
         EXAMPLES::
 
@@ -314,8 +314,8 @@ class GelfandTsetlinPattern(ClonableArray):
         Return the circled entries of ``self``.
 
         Using the *right-hand* rule, an entry `a_{i,j}` is circled if
-        `a_{i,j} = a_{i-1,j}`, that is to say it is northwest neighbor has the
-        same value.
+        `a_{i,j} = a_{i-1,j}`; i.e., `a_{i,j}` has the same value as its
+        neighbor to the northeast.
 
         EXAMPLES::
 
@@ -744,14 +744,23 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
             sage: [it.next() for i in range(10)]
             [[],
              [[0]],
+             [[1]],
              [[0, 0], [0]],
              [[1, 0], [0]],
              [[1, 0], [1]],
              [[1, 1], [1]],
              [[0, 0, 0], [0, 0], [0]],
              [[1, 0, 0], [0, 0], [0]],
-             [[1, 0, 0], [1, 0], [0]],
-             [[1, 0, 0], [1, 0], [1]]]
+             [[1, 0, 0], [1, 0], [0]]]
+
+        Check that :trac:`14718` is fixed::
+
+            sage: T = GelfandTsetlinPatterns(1,3)
+            sage: list(T)
+            [[[0]],
+             [[1]],
+             [[2]],
+             [[3]]]
         """
         # Special cases
         if self._n is None:
@@ -771,7 +780,7 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
                             yield self.element_class(self, list(x))
                     n += 1
                 return
-            for x in xrange(self._k):
+            for x in xrange(self._k+1):
                 yield self.element_class(self, [[x]])
             n = 2
             while not self._strict or n <= self._k+1:
@@ -785,10 +794,8 @@ class GelfandTsetlinPatterns(Parent, UniqueRepresentation):
             yield self.element_class(self, [])
             return
         if self._n == 1:
-            if self._row is not None:
-                yield self.element_class(self, [list(self._row)])
-            elif self._k is not None:
-                for x in xrange(self._k):
+            if self._k is not None:
+                for x in xrange(self._k+1):
                     yield self.element_class(self, [[x]])
             else:
                 k = 1

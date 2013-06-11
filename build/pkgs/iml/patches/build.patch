@@ -1,0 +1,97 @@
+diff -ruN a/src/Makefile.in b/src/Makefile.in
+--- a/src/Makefile.in	2006-11-26 15:45:53.000000000 +0100
++++ b/src/Makefile.in	2013-06-11 08:27:59.432406016 +0200
+@@ -94,8 +94,8 @@
+ AMDEP_TRUE = @AMDEP_TRUE@
+ AMTAR = @AMTAR@
+ AR = @AR@
+-ATLAS_CFLAGS = @ATLAS_CFLAGS@
+-ATLAS_LIBS = @ATLAS_LIBS@
++ATLAS_CFLAGS =
++ATLAS_LIBS = 
+ AUTOCONF = @AUTOCONF@
+ AUTOHEADER = @AUTOHEADER@
+ AUTOMAKE = @AUTOMAKE@
+diff -ruN a/Makefile.in b/Makefile.in
+--- a/Makefile.in	2006-11-26 15:45:52.000000000 +0100
++++ b/Makefile.in	2013-06-11 08:27:59.432406016 +0200
+@@ -79,8 +79,8 @@
+ AMDEP_TRUE = @AMDEP_TRUE@
+ AMTAR = @AMTAR@
+ AR = @AR@
+-ATLAS_CFLAGS = @ATLAS_CFLAGS@
+-ATLAS_LIBS = @ATLAS_LIBS@
++ATLAS_CFLAGS =
++ATLAS_LIBS = 
+ AUTOCONF = @AUTOCONF@
+ AUTOHEADER = @AUTOHEADER@
+ AUTOMAKE = @AUTOMAKE@
+diff -ruN a/configure b/configure
+--- a/configure	2006-11-23 22:27:13.000000000 +0100
++++ b/configure	2007-03-06 17:56:30.000000000 +0100
+@@ -20040,15 +20040,15 @@
+ sed 's/^/| /' conftest.$ac_ext >&5
+ 
+ 
+-		   unset ATLAS_CFLAGS
+-		   unset ATLAS_LIBS
+-		   { { echo "$as_me:$LINENO: error: ATLAS not found!
+-ATLAS version 3.0 or greater is required for this library to compile. Please make sure ATLAS is installed and specify the header and libraries location with the options --with-atlas-include=<path> and --with-atlas-lib=<path> respectively when running configure.
+-" >&5
+-echo "$as_me: error: ATLAS not found!
+-ATLAS version 3.0 or greater is required for this library to compile. Please make sure ATLAS is installed and specify the header and libraries location with the options --with-atlas-include=<path> and --with-atlas-lib=<path> respectively when running configure.
+-" >&2;}
+-   { (exit 1); exit 1; }; }
++#		   unset ATLAS_CFLAGS
++#		   unset ATLAS_LIBS
++#		   { { echo "$as_me:$LINENO: error: ATLAS not found!
++#ATLAS version 3.0 or greater is required for this library to compile. Please make sure ATLAS is installed and specify the header and libraries location with the options --with-atlas-include=<path> and --with-atlas-lib=<path> respectively when running configure.
++#" >&5
++#echo "$as_me: error: ATLAS not found!
++#ATLAS version 3.0 or greater is required for this library to compile. Please make sure ATLAS is installed and specify the header and libraries location with the options --with-atlas-include=<path> and --with-atlas-lib=<path> respectively when running configure.
++#" >&2;}
++#   { (exit 1); exit 1; }; }
+ 
+ fi
+ rm -f conftest.err conftest.$ac_objext \
+@@ -20084,23 +20084,23 @@
+ elif test -n "$atlas_problem"; then
+ 	echo "$as_me:$LINENO: result: problem" >&5
+ echo "${ECHO_T}problem" >&6
+-	{ { echo "$as_me:$LINENO: error: ATLAS not found!
+-ATLAS version 3.0 or greater is required for this library to compile. Please make sure ATLAS is installed and specify the header and libraries location with the options --with-atlas-include=<path> and --with-atlas-lib=<path> respectively when running configure.
+-" >&5
+-echo "$as_me: error: ATLAS not found!
+-ATLAS version 3.0 or greater is required for this library to compile. Please make sure ATLAS is installed and specify the header and libraries location with the options --with-atlas-include=<path> and --with-atlas-lib=<path> respectively when running configure.
+-" >&2;}
+-   { (exit 1); exit 1; }; }
+-elif test "x$atlas_found" = "xno" ; then
+-	echo "$as_me:$LINENO: result: not found" >&5
+-echo "${ECHO_T}not found" >&6
+-	{ { echo "$as_me:$LINENO: error: ATLAS not found!
+-ATLAS version 3.0 or greater is required for this library to compile. Please make sure ATLAS is installed and specify the header and libraries location with the options --with-atlas-include=<path> and --with-atlas-lib=<path> respectively when running configure.
+-" >&5
+-echo "$as_me: error: ATLAS not found!
+-ATLAS version 3.0 or greater is required for this library to compile. Please make sure ATLAS is installed and specify the header and libraries location with the options --with-atlas-include=<path> and --with-atlas-lib=<path> respectively when running configure.
+-" >&2;}
+-   { (exit 1); exit 1; }; }
++#	{ { echo "$as_me:$LINENO: error: ATLAS not found!
++#ATLAS version 3.0 or greater is required for this library to compile. Please make sure ATLAS is installed and specify the header and libraries location with the options --with-atlas-include=<path> and --with-atlas-lib=<path> respectively when running configure.
++#" >&5
++#echo "$as_me: error: ATLAS not found!
++#ATLAS version 3.0 or greater is required for this library to compile. Please make sure ATLAS is installed and specify the header and libraries location with the options --with-atlas-include=<path> and --with-atlas-lib=<path> respectively when running configure.
++#" >&2;}
++#   { (exit 1); exit 1; }; }
++#elif test "x$atlas_found" = "xno" ; then
++#	echo "$as_me:$LINENO: result: not found" >&5
++#echo "${ECHO_T}not found" >&6
++#	{ { echo "$as_me:$LINENO: error: ATLAS not found!
++#ATLAS version 3.0 or greater is required for this library to compile. Please make sure ATLAS is installed and specify the header and libraries location with the options --with-atlas-include=<path> and --with-atlas-lib=<path> respectively when running configure.
++#" >&5
++#echo "$as_me: error: ATLAS not found!
++#ATLAS version 3.0 or greater is required for this library to compile. Please make sure ATLAS is installed and specify the header and libraries location with the options --with-atlas-include=<path> and --with-atlas-lib=<path> respectively when running configure.
++#" >&2;}
++#   { (exit 1); exit 1; }; }
+ fi
+ 
+ CFLAGS=${BACKUP_CFLAGS}

@@ -1,0 +1,36 @@
+# HG changeset patch
+# User William Stein <wstein@gmail.com>
+# Date 1172736931 28800
+# Node ID f0a617a1c36473f86e542406cba3e90778a45c49
+# Parent  65361f8749433213043132225730e8aaef9a2890
+Fix some memory leaks.
+
+--- a/src/nullspace.c
++++ b/src/nullspace.c
+@@ -273,12 +273,18 @@
+ 	    mp_N = XCALLOC(mpz_t, m * s);
+ 	    for (i = 0; i < m * s; i++)
+ 		mpz_init(mp_N[i]);
++
++
+ 	    nonsingSolvLlhsMM(RightSolu, r, s, C, mp_B, mp_N, mp_D);
++
+ 	    mpz_neg(mp_D, mp_D);
+ 	    for (i = 0; i < s; i++)
+ 		mpz_set(mp_N[(r + i) * s + i], mp_D);
+ 
++	    for (i = 0; i < r*r; i++)
++	        mpz_clear(C[i]);
+ 	    XFREE(C);
++
+ 	    for (i = 0; i < r * s; i++)
+ 		mpz_clear(mp_B[i]);
+ 	    XFREE(mp_B);
+@@ -323,6 +329,7 @@
+     XFREE(P);
+     XFREE(rp);
+ 
++    mpz_clear(mp_r);
+     return s;
+ 
+ }

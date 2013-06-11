@@ -1,0 +1,21 @@
+diff -ruN iml-1.0.1-sage/src/tinyatlas.h src/src/tinyatlas.h
+--- iml-1.0.1-sage/src/tinyatlas.h	1970-01-01 01:00:00.000000000 +0100
++++ src/src/tinyatlas.h	2007-03-01 04:11:42.000000000 +0100
+@@ -0,0 +1,17 @@
++/* 
++Compute Y = alpha * X + beta * Y
++
++where 
++   N = degree of each vector
++   incX = X stride
++   incY = Y stride
++*/
++
++void catlas_daxpby(const int N, const double alpha, const double *X,
++const int incX, const double beta, double *Y, const int incY) 
++{
++  int i;
++  for(i=0; i < N; i++) {
++    Y[i*incY] = alpha * X[i*incX] + beta * Y[i*incY];
++  }
++}

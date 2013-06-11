@@ -161,8 +161,9 @@ fi
 # sage-env version history:
 # - sage-4.7.1: version 1 (#10469)
 # - sage-5.4:   version 2 (#13395)
+# - sage-5.10:  version 3 (#14699)
 #
-SAGE_ENV_VERSION=2
+SAGE_ENV_VERSION=3
 if [ "$SAGE_ENV_SOURCED" = "$SAGE_ENV_VERSION" ]; then
     # Already sourced, nothing to do.
     return 0

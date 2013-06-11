@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Power Series Methods
 
@@ -1089,6 +1090,72 @@ cdef class PowerSeries_poly(PowerSeries):
             g += R(k.padded_list(i)[i - 1]/i)*t**i
         g = g.add_bigoh(out_prec)
         return PowerSeries_poly(out_parent, g, out_prec, check=False)
+
+    def pade(self, m, n):
+        r"""
+        Returns the Padé approximant of ``self`` of index `(m, n)`.
+
+        The Padé approximant of index `(m, n)` of a formal power
+        series `f` is the quotient `Q/P` of two polynomials `Q` and `P`
+        such that `deg(Q)\leq m`, `deg(P)\leq n` and
+
+        .. MATH::
+
+            f(z) - Q(z)/P(z) = O(z^{m+n+1}).
+
+        See :wikipedia:`Padé\_approximant`
+
+        INPUT:
+
+        - ``m``, ``n`` -- integers, describing the degrees of the polynomials
+
+        OUTPUT:
+
+        a ratio of two polynomials
+
+        .. NOTE::
+
+            This is a first implementation and may be rather slow.
+
+        ALGORITHM:
+
+        This method uses the formula as a quotient of two determinants.
+
+        EXAMPLES::
+
+            sage: z = PowerSeriesRing(QQ, 'z').gen()
+            sage: exp(z).pade(4, 0)
+            1/24*z^4 + 1/6*z^3 + 1/2*z^2 + z + 1
+            sage: exp(z).pade(1, 1)
+            (-z - 2)/(z - 2)
+            sage: exp(z).pade(3, 3)
+            (-z^3 - 12*z^2 - 60*z - 120)/(z^3 - 12*z^2 + 60*z - 120)
+            sage: log(1-z).pade(4, 4)
+            (25/6*z^4 - 130/3*z^3 + 105*z^2 - 70*z)/(z^4 - 20*z^3 + 90*z^2 - 140*z + 70)
+            sage: sqrt(1+z).pade(3, 2)
+            (1/6*z^3 + 3*z^2 + 8*z + 16/3)/(z^2 + 16/3*z + 16/3)
+        """
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.matrix.constructor import Matrix
+        fps = self.parent()
+        anneau = PolynomialRing(fps.base_ring(), str(fps.gen()))
+        z = anneau.gen()
+        c = self.list()
+        mat = Matrix(anneau, n+1, n+1)
+        for i in range(1, n+1):
+            for j in range(n+1):
+                mat[i, j] = c[m + i - j]
+        for j in range(n+1):
+            mat[0, j] = z**j
+        resu_v = mat.determinant()
+        lead_v = resu_v.leading_coefficient()
+        resu_v = resu_v/lead_v
+        for j in range(n+1):
+            mat[0, j] = z**j*(self.truncate(max(m-j+1, 0)))
+        resu_u = mat.determinant()
+        lead_u = resu_u.leading_coefficient()
+        resu_u = resu_u/lead_u
+        return lead_u/lead_v * resu_u/resu_v
 
 
 def make_powerseries_poly_v0(parent,  f, prec, is_gen):

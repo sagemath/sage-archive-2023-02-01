@@ -95,7 +95,7 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
 from sage.combinat.combinatorial_map import combinatorial_map
-
+from sage.misc.superseded import deprecated_function_alias
 
 TableauOptions=GlobalOptions(name='tableaux',
     doc=r"""
@@ -770,15 +770,19 @@ class Tableau(CombinatorialObject, Element):
 
     def to_permutation(self):
         """
-        Returns a permutation with the entries of self obtained by reading
-        self in the reading order.
+        Deprecated in :trac:`14724`. Use :meth:`reading_word_permutation()`
+        instead.
 
         EXAMPLES::
 
             sage: Tableau([[1,2],[3,4]]).to_permutation()
+            doctest:...: DeprecationWarning: to_permutation() is deprecated. Use instead reading_word_permutation()
+            See http://trac.sagemath.org/14724 for details.
             [3, 4, 1, 2]
         """
-        return permutation.Permutation(self.to_word())
+        from sage.misc.superseded import deprecation
+        deprecation(14724, 'to_permutation() is deprecated. Use instead reading_word_permutation()')
+        return self.reading_word_permutation()
 
     def descents(self):
         """
@@ -940,6 +944,8 @@ class Tableau(CombinatorialObject, Element):
             t = t.bump(wi[k])
         if isinstance(self, StandardTableau):
             return StandardTableau(list(t))
+        elif isinstance(self, SemistandardTableau):
+            return SemistandardTableau(list(t))
         return t
 
     def standardization(self, check=True):
@@ -1106,8 +1112,13 @@ class Tableau(CombinatorialObject, Element):
 
             sage: StandardTableau([[1,2],[3,4]]).reading_word_permutation()
             [3, 4, 1, 2]
+
+        Check that :trac:`14724` is fixed::
+
+            sage: SemistandardTableau([[1,1]]).reading_word_permutation()
+            [1, 2]
         """
-        return permutation.Permutation(self.to_word())
+        return permutation.Permutation(self.standardization().to_word())
 
     def entries(self):
         """
@@ -2328,8 +2339,6 @@ class Tableau(CombinatorialObject, Element):
         else:
             return Tableau([])
 
-
-    from sage.misc.superseded import deprecated_function_alias
     katabolism = deprecated_function_alias(13605, catabolism)
     katabolism_sequence = deprecated_function_alias(13605, catabolism_sequence)
     lambda_katabolism = deprecated_function_alias(13605, lambda_catabolism)

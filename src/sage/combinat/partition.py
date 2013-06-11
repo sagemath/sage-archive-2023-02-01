@@ -1660,8 +1660,7 @@ class Partition(CombinatorialObject, Element):
             [[1, 3, 6], [2, 5], [4]]
         """
         st = tableau.StandardTableaux(self).first()
-        from sage.combinat.rsk import RSK
-        return RSK(st.to_permutation())[1]
+        return st.reading_word_permutation().right_tableau()
 
     @combinatorial_map(name="initial tableau")
     def initial_tableau(self):

@@ -96,7 +96,7 @@ from sage.matrix.matrix import is_Matrix
 from sage.matrix.all import matrix
 from itertools import izip
 
-def RSK(obj1=None, obj2=None, insertion='RSK', **options):
+def RSK(obj1=None, obj2=None, insertion='RSK', check_standard=False, **options):
     r"""
     Perform the Robinson-Schensted-Knuth (RSK) correspondence.
 
@@ -146,19 +146,23 @@ def RSK(obj1=None, obj2=None, insertion='RSK', **options):
 
     INPUT:
 
-    Can be one of the following:
+    - ``obj1, obj2`` -- Can be one of the following:
 
-    - A word in an ordered alphabet
-    - An integer matrix
-    - Two lists of equal length representing a generalized permutation
-    - Any object which has a method ``_rsk_iter()`` which returns an iterator
-      over the object represented as generalized permutation or a pair of
-      lists.
+      - A word in an ordered alphabet
+      - An integer matrix
+      - Two lists of equal length representing a generalized permutation
+      - Any object which has a method ``_rsk_iter()`` which returns an iterator
+        over the object represented as generalized permutation or a pair of
+        lists.
 
-    The following types of insertion are currently supported:
+    - ``insertion`` -- (Default: ``'RSK'``) The following types of insertion
+      are currently supported:
 
-    - ``'RSK'`` -- Robinson-Schensted-Knuth
-    - ``'EG'`` -- Edelman-Greene
+      - ``'RSK'`` -- Robinson-Schensted-Knuth
+      - ``'EG'`` -- Edelman-Greene
+
+    - ``check_standard`` -- (Default: ``False``) Check if either of the resulting
+      tableaux should be standard tableau.
 
     EXAMPLES:
 
@@ -216,7 +220,7 @@ def RSK(obj1=None, obj2=None, insertion='RSK', **options):
         sage: RSK(Word([]), insertion='EG')
         [[], []]
     """
-    from sage.combinat.tableau import SemistandardTableau
+    from sage.combinat.tableau import SemistandardTableau, StandardTableau
 
     if obj1 is None and obj2 is None:
         if 'matrix' in options:
@@ -227,7 +231,7 @@ def RSK(obj1=None, obj2=None, insertion='RSK', **options):
     if is_Matrix(obj1):
         obj1 = obj1.rows()
     if len(obj1) == 0:
-        return [SemistandardTableau([]), SemistandardTableau([])]
+        return [StandardTableau([]), StandardTableau([])]
 
     if obj2 is None:
         try:
@@ -292,6 +296,16 @@ def RSK(obj1=None, obj2=None, insertion='RSK', **options):
         r.append(x)
         qr.append(i) # Values are always inserted to the right
 
+    if check_standard:
+        try:
+            P = StandardTableau(p)
+        except ValueError:
+            P = SemistandardTableau(p)
+        try:
+            Q = StandardTableau(q)
+        except ValueError:
+            Q = SemistandardTableau(q)
+        return [P, Q]
     return [SemistandardTableau(p), SemistandardTableau(q)]
 
 RobinsonSchenstedKnuth = RSK

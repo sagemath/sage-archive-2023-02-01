@@ -765,7 +765,7 @@ class Permutation_class(CombinatorialObject):
 
             sage: Permutation([3,4,1,2,5]).to_tableau_by_shape([3,2])
             [[1, 2, 5], [3, 4]]
-            sage: Permutation([3,4,1,2,5]).to_tableau_by_shape([3,2]).to_permutation()
+            sage: Permutation([3,4,1,2,5]).to_tableau_by_shape([3,2]).reading_word_permutation()
             [3, 4, 1, 2, 5]
         """
         if sum(shape) != len(self):
@@ -2993,7 +2993,7 @@ class Permutation_class(CombinatorialObject):
         """
         from sage.misc.superseded import deprecation
         deprecation(8392, 'p.robinson_schensted() is deprecated. Use instead RSK(p)')
-        return RSK(self)
+        return RSK(self, check_standard=True)
 
     def _rsk_iter(self):
         r"""
@@ -3026,7 +3026,7 @@ class Permutation_class(CombinatorialObject):
             sage: Permutation([1,4,3,2]).left_tableau()
             [[1, 2], [3], [4]]
         """
-        return RSK(self)[0]
+        return RSK(self, check_standard=True)[0]
 
     @combinatorial_map(name='Robinson-Schensted recording tableau')
     def right_tableau(self):
@@ -3039,7 +3039,7 @@ class Permutation_class(CombinatorialObject):
             sage: Permutation([1,4,3,2]).right_tableau()
             [[1, 2], [3], [4]]
         """
-        return RSK(self)[1]
+        return RSK(self, check_standard=True)[1]
 
     def increasing_tree(self, compare=min):
         """

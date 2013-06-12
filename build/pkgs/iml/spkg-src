@@ -4,6 +4,6 @@
 
 # Make various files executable
 cd src
-chmod ugo+x bootstrap configure
-chmod ugo+x config/compile config/depcomp config/install-sh config/ltmain.sh config/missing
+chmod ugo+x bootstrap
+chmod ugo+x config/compile config/depcomp config/ltmain.sh config/missing
 

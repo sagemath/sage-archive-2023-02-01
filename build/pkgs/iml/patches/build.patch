@@ -1,20 +1,6 @@
-diff -ruN a/src/Makefile.in b/src/Makefile.in
---- a/src/Makefile.in	2006-11-26 15:45:53.000000000 +0100
-+++ b/src/Makefile.in	2013-06-11 08:27:59.432406016 +0200
-@@ -94,8 +94,8 @@
- AMDEP_TRUE = @AMDEP_TRUE@
- AMTAR = @AMTAR@
- AR = @AR@
--ATLAS_CFLAGS = @ATLAS_CFLAGS@
--ATLAS_LIBS = @ATLAS_LIBS@
-+ATLAS_CFLAGS =
-+ATLAS_LIBS = 
- AUTOCONF = @AUTOCONF@
- AUTOHEADER = @AUTOHEADER@
- AUTOMAKE = @AUTOMAKE@
-diff -ruN a/Makefile.in b/Makefile.in
---- a/Makefile.in	2006-11-26 15:45:52.000000000 +0100
-+++ b/Makefile.in	2013-06-11 08:27:59.432406016 +0200
+diff -ruN src/Makefile.in b/Makefile.in
+--- src/Makefile.in	2008-07-28 16:53:18.000000000 +0200
++++ b/Makefile.in	2013-06-12 14:55:49.462405872 +0200
 @@ -79,8 +79,8 @@
  AMDEP_TRUE = @AMDEP_TRUE@
  AMTAR = @AMTAR@
@@ -26,10 +12,10 @@ diff -ruN a/Makefile.in b/Makefile.in
  AUTOCONF = @AUTOCONF@
  AUTOHEADER = @AUTOHEADER@
  AUTOMAKE = @AUTOMAKE@
-diff -ruN a/configure b/configure
---- a/configure	2006-11-23 22:27:13.000000000 +0100
-+++ b/configure	2007-03-06 17:56:30.000000000 +0100
-@@ -20040,15 +20040,15 @@
+diff -ruN src/configure b/configure
+--- src/configure	2008-06-16 01:52:33.000000000 +0200
++++ b/configure	2013-06-12 14:55:49.962394579 +0200
+@@ -20000,15 +20000,15 @@
  sed 's/^/| /' conftest.$ac_ext >&5
  
  
@@ -54,7 +40,7 @@ diff -ruN a/configure b/configure
  
  fi
  rm -f conftest.err conftest.$ac_objext \
-@@ -20084,23 +20084,23 @@
+@@ -20044,23 +20044,23 @@
  elif test -n "$atlas_problem"; then
  	echo "$as_me:$LINENO: result: problem" >&5
  echo "${ECHO_T}problem" >&6
@@ -95,3 +81,17 @@ diff -ruN a/configure b/configure
  fi
  
  CFLAGS=${BACKUP_CFLAGS}
+diff -ruN src/src/Makefile.in b/src/Makefile.in
+--- src/src/Makefile.in	2008-07-28 16:53:18.000000000 +0200
++++ b/src/Makefile.in	2013-06-12 14:55:49.962394579 +0200
+@@ -94,8 +94,8 @@
+ AMDEP_TRUE = @AMDEP_TRUE@
+ AMTAR = @AMTAR@
+ AR = @AR@
+-ATLAS_CFLAGS = @ATLAS_CFLAGS@
+-ATLAS_LIBS = @ATLAS_LIBS@
++ATLAS_CFLAGS =
++ATLAS_LIBS = 
+ AUTOCONF = @AUTOCONF@
+ AUTOHEADER = @AUTOHEADER@
+ AUTOMAKE = @AUTOMAKE@

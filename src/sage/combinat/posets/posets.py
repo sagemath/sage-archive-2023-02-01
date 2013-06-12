@@ -2647,6 +2647,47 @@ class FinitePoset(UniqueRepresentation, Parent):
                            category=self.category(),
                            facade=self._is_facade)
 
+    def canonical_label(self):
+        """
+        Return the unique poset on the labels `\{0, \ldots, n-1\}` (where `n`
+        is the number of elements in ``self``) that is isomorphic to ``self``
+        and invariant in the isomorphism class.
+
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.canonical_label()`
+
+        EXAMPLES::
+
+            sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True, facade = False)
+            sage: P.list()
+            [1, 2, 3, 4, 6, 12]
+            sage: P.cover_relations()
+            [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
+            sage: Q = P.canonical_label()
+            sage: Q.list()
+            [0, 1, 2, 3, 4, 5]
+            sage: Q.cover_relations()
+            [[0, 2], [0, 3], [1, 5], [2, 4], [3, 1], [3, 4], [4, 5]]
+
+        As a facade::
+
+            sage: P = Poset((divisors(12), attrcall("divides")), facade = True, linear_extension=True)
+            sage: P.list()
+            [1, 2, 3, 4, 6, 12]
+            sage: P.cover_relations()
+            [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
+            sage: Q = P.canonical_label()
+            sage: Q.list()
+            [0, 1, 2, 3, 4, 5]
+            sage: Q.cover_relations()
+            [[0, 2], [0, 3], [1, 5], [2, 4], [3, 1], [3, 4], [4, 5]]
+        """
+        return FinitePoset(DiGraph(self._hasse_diagram).canonical_label(),
+                           elements=range(len(self._elements)),
+                           category=self.category(),
+                           facade=self._is_facade)
+
     def with_linear_extension(self, linear_extension):
         """
         Returns a copy of ``self`` with a different default linear extension

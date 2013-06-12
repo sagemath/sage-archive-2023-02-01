@@ -505,7 +505,7 @@ from sage.misc.superseded import deprecated_function_alias
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.digraph import DiGraph
-
+from sage.combinat.combinatorial_map import combinatorial_map
 
 class Graph(GenericGraph):
     r"""
@@ -1640,6 +1640,22 @@ class Graph(GenericGraph):
             return ':' + generic_graph_pyx.N(n) + six_bits
 
     ### Attributes
+
+    @combinatorial_map(name="partition of connected components")
+    def to_partition(self):
+        """
+        Return the partition of connected components of ``self``.
+
+        EXAMPLES::
+
+            sage: for x in graphs(3):    print x.to_partition()
+            [1, 1, 1]
+            [2, 1]
+            [3]
+            [3]
+        """
+        from sage.combinat.partition import Partition
+        return Partition(sorted([len(y) for y in self.connected_components()], reverse=True))
 
     def is_directed(self):
         """

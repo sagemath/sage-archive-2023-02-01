@@ -813,7 +813,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
             sage: t
             [[[1, 1, 1, 2], [2, 2], [3]], [[1, 1, 1, 1, 2], [2, 2, 4], [3]]]
             sage: t.weight()
-            -2*alpha[1] - alpha[2] - alpha[3]
+            (-2, 1, 0, 1)
         """
         return sum(self[i].weight() for i in range(len(self)))
 

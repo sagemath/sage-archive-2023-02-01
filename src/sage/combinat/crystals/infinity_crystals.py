@@ -392,32 +392,89 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
             h = P.simple_coroots()
             return self.epsilon(i) + P(self.weight()).scalar(h[i])
 
+        @cached_method
         def weight(self):
             r"""
             Return the weight of ``self``.
 
-            The weight of `T \in \mathcal{B}(\infty)` is defined as `\mathrm{wt}(T)
+            From the definition of a crystal and that the highest weight
+            element `b_{\infty}` of `\mathcal{B}(\infty)` is `0`, the weight of
+            `T \in \mathcal{B}(\infty)` can be defined as `\mathrm{wt}(T)
             := -\sum_j \alpha_{i_j}` where `\widetilde{e}_{i_1} \cdots
-            \widetilde{e}_{i_{\ell}} T` is the highest weight vector in
-            `\mathcal{B}(\infty)` and `\{\alpha_i\}` is the set of simple roots.
-            (Note that the weight is independent of the path chosen to get to
-            the highest weight.)
+            \widetilde{e}_{i_{\ell}} T = b_{\infty}` and `\{\alpha_i\}` is the
+            set of simple roots. (Note that the weight is independent of the
+            path chosen to get to the highest weight.)
+
+            However we can also take advantage of the fact that
+            `\rho : R_{\lambda} \otimes \mathcal{B}(\infty) \to B(\lambda)`,
+            where `\lambda` is the shape of `T`, preserves the tableau
+            representation of `T`. Therefore
+
+            .. MATH::
+
+                \wt(T) = \wt\bigl( \rho(T) \bigr) - \lambda
+
+            where `\wt\bigl( \rho(T) \bigr)` is just the usual weight of the
+            tableau `T`.
+
+            Let `\Lambda_i` be the `i`-th fundamental weight. In type `D`, the
+            height `n-1` columns corresponds to `\Lambda_{n-1} + \Lambda_n` and
+            the in type `B`, the height `n` columns corresponds to
+            `2 \Lambda_n`.
 
             EXAMPLES::
-
-                sage: B = InfinityCrystalOfTableaux("B2")
-                sage: B.highest_weight_vector().weight()
-                0
 
                 sage: B = InfinityCrystalOfTableaux("C7")
                 sage: b = B.highest_weight_vector().f_string([1,6,4,7,4,2,4,6,2,4,6,7,1,2,4,7])
                 sage: b.weight()
-                -2*alpha[1] - 3*alpha[2] - 5*alpha[4] - 3*alpha[6] - 3*alpha[7]
+                (-2, -1, 3, -5, 5, -3, -3)
+
+            Check that the definitions agree::
+
+                sage: P = B.weight_lattice_realization()
+                sage: alpha = P.simple_roots()
+                sage: b.weight() == -2*alpha[1] - 3*alpha[2] - 5*alpha[4] - 3*alpha[6] - 3*alpha[7]
+                True
+
+            Check that it works for type `B`::
+
+                sage: B = InfinityCrystalOfTableaux("B2")
+                sage: B.highest_weight_vector().weight()
+                (0, 0)
+                sage: b = B.highest_weight_vector().f_string([1,2,2,2,1,2])
+                sage: P = B.weight_lattice_realization()
+                sage: alpha = P.simple_roots()
+                sage: b.weight() == -2*alpha[1] - 4*alpha[2]
+                True
+
+            Check that it works for type `D`::
+
+                sage: B = InfinityCrystalOfTableaux("D4")
+                sage: B.highest_weight_vector().weight()
+                (0, 0, 0, 0)
+                sage: b = B.highest_weight_vector().f_string([1,4,4,2,4,3,2,4,1,3,2,4])
+                sage: P = B.weight_lattice_realization()
+                sage: alpha = P.simple_roots()
+                sage: b.weight() == -2*alpha[1] - 3*alpha[2] - 2*alpha[3] - 5*alpha[4]
+                True
             """
-            path = self.to_highest_weight()[1]
-            Q = self.parent().cartan_type().root_system().root_lattice()
-            alpha = Q.simple_roots()
-            return Q(sum(-alpha[path[j]] for j in range(len(path))))
+            P = self.parent().weight_lattice_realization()
+            La = P.fundamental_weights()
+            cur_col_len = 1
+            shape_wt = P.zero()
+            n = self.cartan_type().rank()
+            ty = self.cartan_type().type()
+            for i in range(1, len(self)):
+                if self[i-1] < self[i] or (self[i-1].value != 0 and self[i-1] == self[i]):
+                    if (cur_col_len == n - 1 and ty == 'D') or \
+                            (cur_col_len == n and ty == 'B'):
+                        shape_wt += La[n]
+                    shape_wt += La[cur_col_len]
+                    cur_col_len = 1
+                else:
+                    cur_col_len += 1
+            shape_wt += La[1] # Since we miss the last column (which is always height 1)
+            return CrystalOfTableauxElement.weight(self) - shape_wt
 
         def reduced_form(self):
             r"""
@@ -588,6 +645,7 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
 
             INPUT:
 
+            - ``word`` -- A word in the alphabet of the index set
 
             EXAMPLES::
 
@@ -638,7 +696,7 @@ class InfinityCrystalOfTableauxTypeD(InfinityCrystalOfTableaux):
         2  2  2  2  3
         3 -4 -3
         sage: b.weight()
-        -alpha[1] - alpha[2] - alpha[3] - 2*alpha[4]
+        (-1, 0, -2, -1)
     """
     @staticmethod
     def __classcall_private__(cls, cartan_type):
@@ -750,3 +808,4 @@ class InfinityCrystalOfTableauxTypeD(InfinityCrystalOfTableaux):
                 for j in range(i-1):
                     ret._list.insert(0,self.parent().letters(j+1))
             return ret
+

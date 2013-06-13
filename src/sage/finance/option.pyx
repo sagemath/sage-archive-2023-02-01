@@ -13,21 +13,25 @@ cdef extern from "math.h":
 
 def black_scholes(double spot_price, double strike_price, double time_to_maturity, double risk_free_rate, double vol, opt_type):
     r"""
-    Calculates call/put price of Eurpoean style options using Black-Scholes formula.
+    Calculates call/put price of European style options
+    using Black-Scholes formula.  See [S]_ for one of many
+    standard references for this formula.
 
     INPUT:
 
-    - `spot_price` -- The current underlying asset price
-    - `strike_price` -- The strike of the option
-    - `time_to_maturity` --  The # of years until expiration
-    - `risk_free_rate` -- The risk-free interest-rate
-    - `vol` -- The volatility
-    - `opt_type` -- string; The type of option, either 'put' for put option or 'call' for call option
+    - ``spot_price`` -- The current underlying asset price
+    - ``strike_price`` -- The strike of the option
+    - ``time_to_maturity`` --  The # of years until expiration
+    - ``risk_free_rate`` -- The risk-free interest-rate
+    - ``vol`` -- The volatility
+    - ``opt_type`` -- string; The type of option, either ``'put'``
+      for put option or ``'call'`` for call option
 
     OUTPUT:
+
         The price of an option with the given parameters.
 
-    Examples::
+    EXAMPLES::
 
         sage: finance.black_scholes(42, 40, 0.5, 0.1, 0.2, 'call')       # abs tol 1e-10
         4.759422392871532
@@ -41,6 +45,11 @@ def black_scholes(double spot_price, double strike_price, double time_to_maturit
         Traceback (most recent call last):
         ...
         ValueError: 'whichever makes me more money' is not a valid string
+
+    REFERENCES:
+
+    .. [S] Shreve, S. Stochastic Calculus for Finance II: Continuous-Time
+      Models.  New York: Springer, 2004
     """
     #First we calculate d1, d1=d11*d12, d12=d121+d122*d123
     cdef double d11 = 1/(vol*sqrt(time_to_maturity))
@@ -72,10 +81,11 @@ def _std_norm_cdf(double x):
     - `x` -- The upper limit of integration for the standard normal cdf
 
     OUTPUT:
-        The probability that a random variable X, which is standard normally distributed, takes on a value
-        less than or equal to x.
 
-    Examples::
+        The probability that a random variable X, which is standard normally
+        distributed, takes on a value less than or equal to x.
+
+    EXAMPLES::
 
         sage: from sage.finance.option import _std_norm_cdf
         sage: _std_norm_cdf(0)                                # abs tol 1e-10

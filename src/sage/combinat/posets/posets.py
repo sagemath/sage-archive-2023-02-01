@@ -1450,11 +1450,18 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.to_graph()
             Graph on 4 vertices
             sage: P = Poset()
-            sage: P.to_graph()
+            sage: G = P.to_graph(); G
             Graph on 0 vertices
+
+        Check that it is hashable::
+
+            sage: hash(G) == hash(G)
+            True
         """
         from sage.graphs.graph import Graph
-        return Graph(self.hasse_diagram())
+        G = Graph(self.hasse_diagram())
+        G._immutable = True
+        return G
 
     def level_sets(self):
         """

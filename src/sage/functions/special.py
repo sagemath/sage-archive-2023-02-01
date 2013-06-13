@@ -1489,7 +1489,7 @@ class EllipticE(MaximaFunction):
         EXAMPLES::
 
             sage: elliptic_e(0.5, 0.1)
-            0.498011394499
+            0.498011394498832
         """
         MaximaFunction.__init__(self, "elliptic_e")
 

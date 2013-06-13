@@ -762,8 +762,8 @@ cdef class BuiltinFunction(Function):
 
             sage: from sage.symbolic.function import BuiltinFunction
             sage: class A:
-            ...       def foo(self):
-            ...           return 'foo'
+            ....:     def foo(self):
+            ....:         return 'foo'
             sage: foo = BuiltinFunction(name='foo')
             sage: foo(A())
             'foo'
@@ -830,12 +830,11 @@ cdef class BuiltinFunction(Function):
 
             sage: from sage.symbolic.function import BuiltinFunction
             sage: class AFunction(BuiltinFunction):
-            ...         def __init__(self, name, exp=1):
-            ...             self.exponent=exp
-            ...             BuiltinFunction.__init__(self, name, nargs=1)
-            ...         def _eval_(self, arg):
-            ...                 return arg**self.exponent
-            ...
+            ....:       def __init__(self, name, exp=1):
+            ....:           self.exponent=exp
+            ....:           BuiltinFunction.__init__(self, name, nargs=1)
+            ....:       def _eval_(self, arg):
+            ....:               return arg**self.exponent
             sage: p2 = AFunction('p2', 2)
             sage: p2(x)
             x^2
@@ -914,12 +913,12 @@ cdef class SymbolicFunction(Function):
 
             sage: from sage.symbolic.function import SymbolicFunction
             sage: class my_function(SymbolicFunction):
-            ...  def __init__(self):
-            ...     SymbolicFunction.__init__(self, 'foo', nargs=2)
-            ...  def _evalf_(self, x, y, parent=None):
-            ...     return x*y*2r
-            ...  def _conjugate_(self, x, y):
-            ...     return x
+            ....:     def __init__(self):
+            ....:         SymbolicFunction.__init__(self, 'foo', nargs=2)
+            ....:     def _evalf_(self, x, y, parent=None):
+            ....:         return x*y*2r
+            ....:     def _conjugate_(self, x, y):
+            ....:         return x
             sage: foo = my_function()
             sage: foo
             foo

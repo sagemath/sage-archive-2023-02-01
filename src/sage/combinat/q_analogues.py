@@ -518,7 +518,7 @@ def q_subgroups_of_abelian_group(la, mu, q=None):
 
         sage: from sage.combinat.q_analogues import q_subgroups_of_abelian_group
         sage: q_subgroups_of_abelian_group([1,1],[1])
-        q+1
+        q + 1
         sage: q_subgroups_of_abelian_group([3,3,2,1],[2,1])
         q^6 + 2*q^5 + 3*q^4 + 2*q^3 + q^2
         sage: R.<t> = QQ[]

@@ -128,12 +128,13 @@ toolchain: $(TOOLCHAIN)
 # reinstalled. Since system GCCs might use Sage's libraries, we do this
 # unconditionally. We still use the dependency checking from $(MAKE),
 # so this will not trigger useless rebuilds.
-# See http://trac.sagemath.org/sage_trac/ticket/14168
+# See #14168 and #14232.
 toolchain-deps:
 	$(MAKE) $(INST)/$(ZLIB)
 	$(MAKE) $(INST)/$(MPIR)
 	$(MAKE) $(INST)/$(MPFR)
 	$(MAKE) $(INST)/$(MPC)
+	$(MAKE) $(INST)/$(PPL)
 
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.
@@ -251,7 +252,7 @@ $(INST)/$(POLYTOPES_DB): $(INST)/$(SAGE_ROOT_REPO)
 # PPL depends on SAGE_ROOT_REPO because it *executes* C++ code at
 # build time.  Therefore, it needs an up-to-date version of sage-env
 # which adds $SAGE_LOCAL/lib64 to the LD_LIBRARY_PATH.
-$(INST)/$(PPL): $(INST)/$(MPIR) $(INST)/$(SAGE_ROOT_REPO)
+$(INST)/$(PPL): $(INST)/$(MPIR) $(INST)/$(GLPK) $(INST)/$(SAGE_ROOT_REPO)
 	+$(PIPE) "$(SAGE_SPKG) $(PPL) 2>&1" "tee -a $(SAGE_LOGS)/$(PPL).log"
 
 $(INST)/$(MPC): $(INST)/$(MPIR) $(INST)/$(MPFR)

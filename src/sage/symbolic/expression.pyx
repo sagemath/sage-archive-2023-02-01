@@ -8034,6 +8034,19 @@ cdef class Expression(CommutativeRingElement):
             1/3*sqrt(5) - 1/3*sqrt(2)
             sage: (e1-e2).simplify_radical()
             0
+
+        TESTS:
+
+        This tests that :trac:`11668` has been fixed (by :trac:`12780`)::
+
+            sage: a,b = var('a b')
+            sage: A = abs((a+I*b))^2
+            sage: A.simplify_radical()
+            abs(a + I*b)^2
+            sage: imag(A)
+            0
+            sage: imag(A.simplify_radical())
+            0
         """
         from sage.calculus.calculus import maxima
         res = self.parent()(self._maxima_().radcan())

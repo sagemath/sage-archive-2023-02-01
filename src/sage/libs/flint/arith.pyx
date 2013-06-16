@@ -93,14 +93,14 @@ def number_of_partitions(unsigned long n):
 
 def dedekind_sum(p, q):
     """
-    Returns the Dedekind sum s(p, q) where p and q are arbitrary integers.
+    Return the Dedekind sum `s(p, q)` where `p` and `q` are arbitrary integers.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.libs.flint.arith import dedekind_sum
         sage: dedekind_sum(4, 5)
         -1/5
     """
-
     p = Integer(p)
     q = Integer(q)
     s = Rational(0)
@@ -124,3 +124,4 @@ def dedekind_sum(p, q):
     fmpq_clear(s_fmpq)
 
     return s
+

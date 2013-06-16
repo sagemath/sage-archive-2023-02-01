@@ -5270,7 +5270,7 @@ def squarefree_divisors(x):
 
 def dedekind_sum(p, q, algorithm='default'):
     r"""
-    Returns the Dedekind sum `s(p,q)` defined for integers `p`, `q` as
+    Return the Dedekind sum `s(p,q)` defined for integers `p`, `q` as
 
     .. MATH::
 
@@ -5282,20 +5282,20 @@ def dedekind_sum(p, q, algorithm='default'):
     .. MATH::
 
         ((x))=\begin{cases}
-            x-\lfloor x\rfloor-1/2 &\mbox{if }
-                x\in\mathbb{Q}\setminus\mathbb{Z}\\
-            0 &\mbox{if } x\in\mathbb{Z}.
+            x-\lfloor x \rfloor - \frac{1}{2} &\mbox{if }
+                x \in \QQ \setminus \ZZ \\
+            0 & \mbox{if } x \in \ZZ.
             \end{cases}
 
-    Caution is required as the Dedekind sum sometimes is defined differently
-    or is left undefined when `p` and `q` are not coprime.
+    .. WARNING::
 
-    See :wikipedia:`Dedekind\_sum`
+        Caution is required as the Dedekind sum sometimes depends on the
+        algorithm or is left undefined when `p` and `q` are not coprime.
 
     INPUT:
 
-    -  ``p``, ``q`` - integers
-    -  ``algorithm``
+    -  ``p``, ``q`` -- integers
+    -  ``algorithm`` -- must be one of the following
 
        -  ``'default'`` - (default) use FLINT
        -  ``'flint'`` - use FLINT
@@ -5355,14 +5355,18 @@ def dedekind_sum(p, q, algorithm='default'):
 
     REFERENCES:
 
-        .. [Apostol] T. Apostol, Modular functions and Dirichlet series
-           in number theory, Springer, 1997 (2nd ed), section 3.7--3.9.
+    .. [Apostol] T. Apostol, Modular functions and Dirichlet series
+       in number theory, Springer, 1997 (2nd ed), section 3.7--3.9.
+
+    - :wikipedia:`Dedekind\_sum`
     """
     if algorithm == 'default' or algorithm == 'flint':
         return flint_arith.dedekind_sum(p, q)
-    elif algorithm == 'pari':
+
+    if algorithm == 'pari':
         import sage.interfaces.gp
         x = sage.interfaces.gp.gp('sumdedekind(%s,%s)' % (p, q))
         return sage.rings.rational.Rational(x)
-    else:
-        raise ValueError('unknown algorithm')
+
+    raise ValueError('unknown algorithm')
+

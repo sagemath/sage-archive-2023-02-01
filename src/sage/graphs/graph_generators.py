@@ -646,6 +646,7 @@ class GraphGenerators():
             extra_property = lambda x: x.size() == size
         else:
             extra_property = lambda x: True
+
         if augment == 'vertices':
             if vertices is None:
                 raise NotImplementedError
@@ -1427,7 +1428,6 @@ def canaug_traverse_vert(g, aut_gens, max_verts, property, dig=False, loops=Fals
     """
     from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
 
-
     if not property(g):
         return
     yield g
@@ -1612,6 +1612,7 @@ def canaug_traverse_edge(g, aut_gens, property, dig=False, loops=False, implemen
         Digraph on 3 vertices
     """
     from sage.groups.perm_gps.partn_ref.refinement_graphs import search_tree
+
     if not property(g):
         return
     yield g

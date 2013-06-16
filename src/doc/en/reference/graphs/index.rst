@@ -38,6 +38,7 @@ Low-level implementation
    sage/graphs/base/sparse_graph
    sage/graphs/base/dense_graph
    sage/graphs/base/static_sparse_graph
+   sage/graphs/base/static_sparse_backend
    sage/graphs/base/graph_backends
 
 Hypergraphs

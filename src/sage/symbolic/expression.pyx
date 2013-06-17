@@ -4995,32 +4995,145 @@ cdef class Expression(CommutativeRingElement):
         cdef Expression ss = self.coerce_in(s)
         return self._gobj.degree(ss._gobj)
 
-    def _content(self, s):
+    def unit(self, s):
         """
-        Return the content of this expression with respect to the
-        expression ``s``.
+        Return the unit of this expression when considered as a
+        polynomial in ``s``.
 
-        .. warning::
+        See also :meth:`content`, :meth:`primitive_part`, and
+        :meth:`unit_content_primitive`.
 
-            The values returned by this function may not be compatible with
-            the output of the ``content()`` method provided by various
-            polynomial rings in Sage.
+        INPUT:
+
+        - ``s`` -- a symbolic expression.
+
+        OUTPUT:
+
+        The unit part of a polynomial as a symbolic expression. It is
+        defined as the sign of the leading coefficient.
 
         EXAMPLES::
 
-            sage: (2*x+4)._content(x)
-            2
-            sage: (2*x+1)._content(x)
+            sage: (2*x+4).unit(x)
             1
-            sage: (2*x+1/2)._content(x)
+            sage: (-2*x+1).unit(x)
+            -1
+            sage: (2*x+1/2).unit(x)
+            1
+            sage: var('y')
+            y
+            sage: (2*x - 4*sin(y)).unit(sin(y))
+            -1
+        """
+        cdef Expression ss = self.coerce_in(s)
+        return new_Expression_from_GEx(self._parent, self._gobj.unit(ss._gobj))
+
+    def content(self, s):
+        """
+        Return the content of this expression when considered as a
+        polynomial in ``s``.
+
+        See also :meth:`unit`, :meth:`primitive_part`, and
+        :meth:`unit_content_primitive`.
+
+        INPUT:
+
+        - ``s`` -- a symbolic expression.
+
+        OUTPUT:
+
+        The content part of a polynomial as a symbolic expression. It
+        is defined as the gcd of the coefficients.
+
+        .. warning::
+
+            The expression is considered to be a univariate polynomial
+            in ``s``. The output is different from the ``content()``
+            method provided by multivariate polynomial rings in Sage.
+
+        EXAMPLES::
+
+            sage: (2*x+4).content(x)
+            2
+            sage: (2*x+1).content(x)
+            1
+            sage: (2*x+1/2).content(x)
             1/2
             sage: var('y')
             y
-            sage: (2*x + 4*sin(y))._content(sin(y))
+            sage: (2*x + 4*sin(y)).content(sin(y))
             2
         """
         cdef Expression ss = self.coerce_in(s)
         return new_Expression_from_GEx(self._parent, self._gobj.content(ss._gobj))
+
+    def primitive_part(self, s):
+        """
+        Return the primitive polynomial of this expression when
+        considered as a polynomial in ``s``.
+
+        See also :meth:`unit`, :meth:`content`, and
+        :meth:`unit_content_primitive`.
+
+        INPUT:
+
+        - ``s`` -- a symbolic expression.
+
+        OUTPUT:
+
+        The primitive polynomial as a symbolic expression. It is
+        defined as the quotient by the :meth:`unit` and
+        :meth:`content` parts (with respect to the variable ``s``).
+
+        EXAMPLES::
+
+            sage: (2*x+4).primitive_part(x)
+            x + 2
+            sage: (2*x+1).primitive_part(x)
+            2*x + 1
+            sage: (2*x+1/2).primitive_part(x)
+            4*x + 1
+            sage: var('y')
+            y
+            sage: (2*x + 4*sin(y)).primitive_part(sin(y))
+            x + 2*sin(y)
+        """
+        cdef Expression ss = self.coerce_in(s)
+        return new_Expression_from_GEx(self._parent, self._gobj.primpart(ss._gobj))
+
+    def unit_content_primitive(self, s):
+        """
+        Return the factorization into unit, content, and primitive part.
+
+        INPUT:
+
+        - ``s`` -- a symbolic expression, usually a symbolic
+          variable. The whole symbolic expression ``self`` will be
+          considered as a univariate polynomial in ``s``.
+
+        OUTPUT:
+
+        A triple (unit, content, primitive polynomial)` containing the
+        :meth:`unit <unit>`, :meth:`content <content>`, and
+        :meth:`primitive polynomial <primitive_part>`. Their product equals
+        ``self``.
+
+        EXAMPLES::
+
+            sage: var('x,y')
+            (x, y)
+            sage: ex = 9*x^3*y+3*y
+            sage: ex.unit_content_primitive(x)
+            (1, 3*y, 3*x^3 + 1)
+            sage: ex.unit_content_primitive(y)
+            (1, 9*x^3 + 3, y)
+        """
+        cdef Expression ss = self.coerce_in(s)
+        cdef GEx unit, cont, prim
+        self._gobj.unitcontprim(ss._gobj, unit, cont, prim)
+        return (new_Expression_from_GEx(self._parent, unit),
+                new_Expression_from_GEx(self._parent, cont),
+                new_Expression_from_GEx(self._parent, prim))
 
     def poly(self, x=None):
         r"""

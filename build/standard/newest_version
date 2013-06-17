@@ -1,7 +1,0 @@
-#
-# All the functionality of this file has been moved to
-# $SAGE_ROOT/spkg/install
-#
-# We cannot delete this file because older upgrade scripts still want to
-# download it.
-#

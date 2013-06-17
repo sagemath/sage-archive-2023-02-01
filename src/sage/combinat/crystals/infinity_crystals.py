@@ -249,7 +249,7 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
         Return the module generator (or highest weight element) of ``self``.
 
         The module generator is the unique tableau of shape `(n, n-1, \ldots,
-        2, 1)` with weight `(n, n-1, \ldots, 2, 1)`.
+        2, 1)` with weight `0`.
 
         EXAMPLES::
 
@@ -406,16 +406,16 @@ class InfinityCrystalOfTableaux(CrystalOfWords):
             path chosen to get to the highest weight.)
 
             However we can also take advantage of the fact that
-            `\rho : R_{\lambda} \otimes \mathcal{B}(\infty) \to B(\lambda)`,
-            where `\lambda` is the shape of `T`, preserves the tableau
-            representation of `T`. Therefore
+            `\rho \colon R_{\lambda} \otimes \mathcal{B}(\infty) \longrightarrow
+            B(\lambda)`, where `\lambda` is the shape of `T`, preserves the
+            tableau representation of `T`. Therefore
 
             .. MATH::
 
-                \wt(T) = \wt\bigl( \rho(T) \bigr) - \lambda
+                \mathrm{wt}(T) = \mathrm{wt}\bigl( \rho(T) \bigr) - \lambda
 
-            where `\wt\bigl( \rho(T) \bigr)` is just the usual weight of the
-            tableau `T`.
+            where `\mathrm{wt}\bigl( \rho(T) \bigr)` is just the usual weight of
+            the tableau `T`.
 
             Let `\Lambda_i` be the `i`-th fundamental weight. In type `D`, the
             height `n-1` columns corresponds to `\Lambda_{n-1} + \Lambda_n` and
@@ -718,7 +718,7 @@ class InfinityCrystalOfTableauxTypeD(InfinityCrystalOfTableaux):
         Return the module generator (or highest weight element) of ``self``.
 
         The module generator is the unique tableau of shape `(n-1, \ldots, 2,
-        1)` with weight `(n-1, \ldots, 2, 1)`.
+        1)` with weight `0`.
 
         EXAMPLES::
 

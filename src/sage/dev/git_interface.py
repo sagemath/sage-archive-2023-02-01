@@ -894,31 +894,21 @@ class GitInterface(object):
                 'retsuperquiet', 'stdout', 'dryrun'):
             raise ValueError('invalid output_type')
 
-        s = " ".join([self._gitcmd, "--git-dir=%s"%self._dot_git, cmd])
-        ckwds = {'env':dict(os.environ), 'shell':True}
+        s = [self._gitcmd, "--git-dir=%s"%self._dot_git, cmd]
+        ckwds = {'env':dict(os.environ)}
         ckwds['env'].update(kwds.pop('env', {}))
-
-        def _clean_str(s):
-            # for now, no error checking
-            s = str(s)
-            if " " in s:
-                if "'" not in s:
-                    return "'" + s + "'"
-                else:
-                    return '"' + s.replace('"', '\\"') + '"'
-            return s
 
         for k, v in kwds.iteritems():
             if len(k) == 1:
-                k = ' -' + k
+                k = '-' + k
             else:
-                k = ' --' + k.replace('_', '-')
+                k = '--' + k.replace('_', '-')
             if v is True:
-                s += k
+                s.append(k)
             elif v is not False:
-                s += k + " " + _clean_str(v)
+                s.extend((k, v))
         if args:
-            s += " " + " ".join(_clean_str(a) for a in args if a is not None)
+            s.extend(a for a in args if a is not None)
 
         if output_type == 'dryrun':
             return s
@@ -1178,7 +1168,7 @@ class GitInterface(object):
             ['first_branch', 'second_branch', 'master']
         """
         result = self.read_output('for-each-ref', 'refs/heads/',
-                    sort='-committerdate', format="'%(refname)'").splitlines()
+                    sort='-committerdate', format="%(refname)").splitlines()
         return [head[11:] for head in result]
 
     def current_branch(self):

@@ -114,6 +114,7 @@ namespace GiNaC {
     operator long int() const;
 
     unsigned hash() const;
+    int compare_same_type(const Number_T& right) const;
     bool operator==(const Number_T& right) const;
     bool operator!=(const Number_T& right) const;
     bool operator<=(const Number_T& right) const;
@@ -207,7 +208,6 @@ namespace GiNaC {
   class numeric : public basic
   {
     GINAC_DECLARE_REGISTERED_CLASS(numeric, basic)
-	
     // member functions
 	
     // other constructors

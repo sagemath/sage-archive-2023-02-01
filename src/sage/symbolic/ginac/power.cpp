@@ -28,6 +28,7 @@
 #include "ncmul.h"
 #include "numeric.h"
 #include "constant.h"
+#include "infinity.h"
 #include "operators.h"
 #include "inifcns.h" // for log() in power::derivative() and exp for printing
 #include "matrix.h"
@@ -45,6 +46,9 @@
 #include <limits>
 #include <sstream>
 #include <string>
+#ifdef DO_GINAC_ASSERT
+#  include <typeinfo>
+#endif
 
 namespace GiNaC {
 
@@ -200,7 +204,7 @@ void power::do_print_latex(const print_latex & c, unsigned level) const
 			bool exp_parenthesis = is_a<power>(exponent);
 			if (exp_parenthesis)
 				c.s << "\\left(";
-			exponent.print(c, level);
+			exponent.print(c, 0);
 			if (exp_parenthesis)
 				c.s << "\\right)";
 			c.s << '}';
@@ -466,53 +470,42 @@ ex power::eval(int level) const
 	}
 
 	// ^(\infty, x)
-	// error if x is not numeric and real
-	// -> 0 if x < 0
-	// -> error if x == 0
-	// -> Infinity if \infty is NegInfinity and x is even
-	// -> \infty otherwise
-	if (ebasis.info(info_flags::infinity)) {
-		if (exponent_is_numerical) {
-			if (!num_exponent->is_real()) {
-				throw(std::domain_error("power::eval(): pow(Infinity, x) is not defined for complex x."));
-			} else if (num_exponent->csgn() == -1)
-				return _ex0;
-			else if (num_exponent->is_zero())
-				throw(std::domain_error("power::eval(): pow(Infinity, 0) is undefined."));
-			else if (ebasis.is_equal(NegInfinity) && 
-					num_exponent->is_even())
+	if (is_a<infinity>(ebasis)) {
+		const infinity & basis_inf = ex_to<infinity>(ebasis);
+		if (eexponent.nsymbols()>0)
+			throw(std::domain_error("power::eval(): pow(Infinity, f(x)) is not defined."));
+		if (eexponent.is_zero())
+			throw(std::domain_error("power::eval(): pow(Infinity, 0) is undefined."));
+		if (eexponent.info(info_flags::negative))
+			return _ex0;
+		if (eexponent.info(info_flags::positive))
+			if (basis_inf.is_unsigned_infinity())
+				return UnsignedInfinity;
+			else
+				return mul(pow(basis_inf.get_direction(), eexponent), Infinity);
+		throw(std::domain_error("power::eval(): pow(Infinity, c)"
+					" for constant of undetermined sign is not defined."));
+	}
+
+	// ^(x, \infty)
+	if (is_a<infinity>(eexponent)) {
+		const infinity & exp_inf = ex_to<infinity>(eexponent);
+		if (exp_inf.is_unsigned_infinity())
+			throw(std::domain_error("power::eval(): pow(x, unsigned_infinity) is not defined."));
+		if (ebasis.nsymbols()>0) 
+			throw(std::domain_error("power::eval(): pow(f(x), infinity) is not defined."));
+		// x^(c*oo) --> (x^c)^(+oo)
+		const ex abs_base = abs(pow(ebasis, exp_inf.get_direction()));
+		if (abs_base > _ex1) 
+			if (ebasis.info(info_flags::positive))
 				return Infinity;
 			else
-				return ebasis;
-		} else
-			throw(std::domain_error("power::eval(): pow(Infinity, x) for non numeric x is not defined."));
-	}
-	// ^(x, \infty)
-	// error if x is not numeric
-	// error if \infty is UnsignedInfinity
-	// error if x \in {0, 1, -1}
-	// 0 if \infty is NegInfinity
-	// UnsignedInfinity if x < 0
-	// Infinity otherwise
-	if (eexponent.info(info_flags::infinity)) {
-		if (!basis_is_numerical) {
-			throw(std::domain_error("power::eval(): pow(x, Infinity) for non numeric x is not defined."));
-		} else if (!num_basis->is_real()) {
-			throw(std::domain_error("power::eval(): pow(x, Infinity) for non real x is not defined."));
-		} else if (ebasis.is_equal(UnsignedInfinity)) {
-			throw(std::domain_error("power::eval(): pow(x, UnsignedInfinity) is not defined."));
-		} else if (num_basis->is_zero()) {
-			throw(std::domain_error("power::eval(): pow(0, Infinity) is not defined."));
-		} else if (num_basis->is_equal(*_num1_p) || 
-				num_basis->is_equal(*_num_1_p)) {
+				return UnsignedInfinity;
+		if (abs_base < _ex1) return _ex0;
+		if (abs_base == _ex1)
 			throw(std::domain_error("power::eval(): pow(1, Infinity) is not defined."));
-		} else if (eexponent.is_equal(NegInfinity)) {
-			return _ex0;
-		} else if (num_basis->csgn() == -1) {
-			return UnsignedInfinity;
-		} else {
-			return Infinity;
-		}
+		throw(std::domain_error("power::eval(): pow(c, Infinity)"
+					" for unknown magnitude |c| is not defined."));
 	}
 	
 	// ^(x,0) -> 1  (0^0 also handled here)
@@ -603,6 +596,11 @@ ex power::eval(int level) const
 				
 					}
 					return this->hold();
+				} else if (r.is_zero()) {
+					// if r == 0, the following else clause causes the power
+					// constructor to be called again with the same parameter
+					// leading to an infinite loop
+					return num_basis->power(q);
 				} else {
 					// assemble resulting product, but allowing for a re-evaluation,
 					// because otherwise we'll end up with something like
@@ -639,7 +637,8 @@ ex power::eval(int level) const
 		if (num_exponent->is_integer() && is_exactly_a<add>(ebasis)) {
 			numeric icont = ebasis.integer_content();
 			const numeric lead_coeff = 
-				ex_to<numeric>(ex_to<add>(ebasis).seq.begin()->coeff).div(icont);
+				ex_to<numeric>(ex_to<add>(ebasis).\
+						lead_coeff()).div(icont);
 
 			const bool canonicalizable = lead_coeff.is_integer();
 			const bool unit_normal = lead_coeff.is_pos_integer();
@@ -652,6 +651,7 @@ ex power::eval(int level) const
 				addp->setflag(status_flags::dynallocated);
 				addp->clearflag(status_flags::hash_calculated);
 				addp->overall_coeff = ex_to<numeric>(addp->overall_coeff).div_dyn(icont);
+				addp->seq_sorted.resize(0);
 				for (epvector::iterator i = addp->seq.begin(); i != addp->seq.end(); ++i)
 					i->coeff = ex_to<numeric>(i->coeff).div_dyn(icont);
 
@@ -677,6 +677,7 @@ ex power::eval(int level) const
 						mulp->setflag(status_flags::dynallocated);
 						mulp->clearflag(status_flags::evaluated);
 						mulp->clearflag(status_flags::hash_calculated);
+						mulp->seq_sorted.resize(0);
 						return (new mul(power(*mulp,exponent),
 						                power(num_coeff,*num_exponent)))->setflag(status_flags::dynallocated);
 					} else {
@@ -687,6 +688,7 @@ ex power::eval(int level) const
 							mulp->setflag(status_flags::dynallocated);
 							mulp->clearflag(status_flags::evaluated);
 							mulp->clearflag(status_flags::hash_calculated);
+							mulp->seq_sorted.resize(0);
 							return (new mul(power(*mulp,exponent),
 							                power(abs(num_coeff),*num_exponent)))->setflag(status_flags::dynallocated);
 						}
@@ -902,39 +904,6 @@ ex power::derivative(const symbol & s) const
 	}
 }
 
-int power::compare(const basic& other) const
-{
-	static const tinfo_t mul_id = find_tinfo_key("mul");
-	static const tinfo_t symbol_id = find_tinfo_key("symbol");
-	static const tinfo_t function_id = find_tinfo_key("function");
-	static const tinfo_t fderivative_id = find_tinfo_key("fderivative");
-	const tinfo_t typeid_this = tinfo();
-	const tinfo_t typeid_other = other.tinfo();
-	if (typeid_this==typeid_other) {
-		GINAC_ASSERT(typeid(*this)==typeid(other));
-		return compare_same_type(other);
-	} else if (typeid_other == mul_id) {
-		return -static_cast<const mul&>(other).compare_pow(*this);
-	} else if (typeid_other == symbol_id) {
-		return compare_symbol(static_cast<const symbol&>(other));
-	} else if (typeid_other == function_id ||
-			typeid_other == fderivative_id) {
-		return -1;
-	} else {
-		return (typeid_this<typeid_other ? -1 : 1);
-	}
-}
-
-int power::compare_symbol(const symbol & other) const
-{
-	int cmpval;
-	cmpval = _ex1.compare(exponent);
-	if (cmpval != 0) {
-		return cmpval;
-	}
-	return basis.compare(other);
-}
-
 int power::compare_same_type(const basic & other) const
 {
 	GINAC_ASSERT(is_exactly_a<power>(other));
@@ -944,11 +913,7 @@ int power::compare_same_type(const basic & other) const
 	if (cmpval)
 		return cmpval;
 	else
-	  // SAGE -- I changed the sign below for consistency with standard
-	  // mathematics and all other math software (except mathematica).
-	  // This makes it so x^5 + x^2 prints correctly instead of 
-	  // as x^2 + x^5.   -- William Stein
-		return -exponent.compare(o.exponent);
+		return exponent.compare(o.exponent);
 }
 
 unsigned power::return_type() const

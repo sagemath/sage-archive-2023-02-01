@@ -31,7 +31,8 @@
 #include "operators.h"
 #include "utils.h"
 #include "indexed.h"
-#include "constant.h"
+#include "infinity.h"
+#include "compiler.h"
 
 #include <iostream>
 #include <algorithm>
@@ -308,6 +309,15 @@ ex expairseq::op(size_t i) const
 	return overall_coeff;
 }
 
+ex expairseq::stable_op(size_t i) const
+{
+	if (i < seq.size()) {
+		return recombine_pair_to_ex(get_sorted_seq()[i]);
+	}
+	GINAC_ASSERT(!overall_coeff.is_equal(default_overall_coeff()));
+	return overall_coeff;
+}
+
 ex expairseq::map(map_function &f) const
 {
 	std::auto_ptr<epvector> v(new epvector);
@@ -391,9 +401,9 @@ bool expairseq::match(const ex & pattern, lst & repl_lst) const
 		bool has_global_wildcard = false;
 		ex global_wildcard;
 		for (size_t i=0; i<pattern.nops(); i++) {
-			if (is_exactly_a<wildcard>(pattern.op(i))) {
+			if (is_exactly_a<wildcard>(pattern.sorted_op(i))) {
 				has_global_wildcard = true;
-				global_wildcard = pattern.op(i);
+				global_wildcard = pattern.sorted_op(i);
 				break;
 			}
 		}
@@ -405,12 +415,12 @@ bool expairseq::match(const ex & pattern, lst & repl_lst) const
 		exvector ops;
 		ops.reserve(nops());
 		for (size_t i=0; i<nops(); i++)
-			ops.push_back(op(i));
+			ops.push_back(stable_op(i));
 
 		// Now, for every term of the pattern, look for a matching term in
 		// the expression and remove the match
 		for (size_t i=0; i<pattern.nops(); i++) {
-			ex p = pattern.op(i);
+			ex p = ex_to<expairseq>(pattern).stable_op(i);
 			if (has_global_wildcard && p.is_equal(global_wildcard))
 				continue;
 			exvector::iterator it = ops.begin(), itend = ops.end();
@@ -491,46 +501,48 @@ int expairseq::compare_same_type(const basic &other) const
 {
 	GINAC_ASSERT(is_a<expairseq>(other));
 	const expairseq &o = static_cast<const expairseq &>(other);
-	
+
 	int cmpval;
-	
+
 	// compare number of elements
 	if (seq.size() != o.seq.size())
 		return (seq.size()<o.seq.size()) ? -1 : 1;
+
+	// compare overall_coeff
+	cmpval = overall_coeff.compare(o.overall_coeff);
+	if (cmpval!=0)
+		return cmpval;
 
 #if EXPAIRSEQ_USE_HASHTAB
 	GINAC_ASSERT(hashtabsize==o.hashtabsize);
 	if (hashtabsize==0) {
 #endif // EXPAIRSEQ_USE_HASHTAB
+
 		epvector::const_iterator cit1 = seq.begin();
 		epvector::const_iterator cit2 = o.seq.begin();
 		epvector::const_iterator last1 = seq.end();
 		epvector::const_iterator last2 = o.seq.end();
 
 		for (; (cit1!=last1)&&(cit2!=last2); ++cit1, ++cit2) {
-			cmpval = (*cit2).compare(*cit1);
+			cmpval = (*cit1).compare(*cit2);
 			if (cmpval!=0) return cmpval;
 		}
 
 		GINAC_ASSERT(cit1==last1);
 		GINAC_ASSERT(cit2==last2);
-	
-		// compare overall_coeff
-		cmpval = overall_coeff.compare(o.overall_coeff);
-		if (cmpval!=0)
-			return cmpval;
-	
+
 		return 0;
+
 #if EXPAIRSEQ_USE_HASHTAB
 	}
-	
+
 	// compare number of elements in each hashtab entry
 	for (unsigned i=0; i<hashtabsize; ++i) {
 		unsigned cursize=hashtab[i].size();
 		if (cursize != o.hashtab[i].size())
 			return (cursize < o.hashtab[i].size()) ? -1 : 1;
 	}
-	
+
 	// compare individual (sorted) hashtab entries
 	for (unsigned i=0; i<hashtabsize; ++i) {
 		unsigned sz = hashtab[i].size();
@@ -548,7 +560,6 @@ int expairseq::compare_same_type(const basic &other) const
 			}
 		}
 	}
-	
 	return 0; // equal
 #endif // EXPAIRSEQ_USE_HASHTAB
 }
@@ -866,17 +877,18 @@ void expairseq::construct_from_2_ex(const ex &lh, const ex &rh)
 			seq.push_back(split_ex_to_pair(rh));
 		}
 	} else {
-           if (is_exactly_a<numeric>(rh)) {
+		if (is_exactly_a<numeric>(rh)) {
 			combine_overall_coeff(rh);
 			seq.push_back(split_ex_to_pair(lh));
 		} else {
 			expair p1 = split_ex_to_pair(lh);
 			expair p2 = split_ex_to_pair(rh);
-			
+
 			int cmpval = p1.rest.compare(p2.rest);
-			if (cmpval==0 && !p1.rest.is_equal(UnsignedInfinity)) {
+			if (cmpval==0 && unlikely(!is_a<infinity>(p1.rest))) {
 				p1.coeff = ex_to<numeric>(p1.coeff).add_dyn(ex_to<numeric>(p2.coeff));
 				if (!ex_to<numeric>(p1.coeff).is_zero()) {
+
 					// no further processing is necessary, since this
 					// one element will usually be recombined in eval()
 					seq.push_back(p1);
@@ -896,7 +908,7 @@ void expairseq::construct_from_2_ex(const ex &lh, const ex &rh)
 }
 
 void expairseq::construct_from_2_expairseq(const expairseq &s1,
-										   const expairseq &s2)
+		const expairseq &s2)
 {
 	combine_overall_coeff(s1.overall_coeff);
 	combine_overall_coeff(s2.overall_coeff);
@@ -914,13 +926,20 @@ void expairseq::construct_from_2_expairseq(const expairseq &s1,
 		int cmpval = (*first1).rest.compare((*first2).rest);
 
 		if (cmpval==0) {
-			// combine terms
-			const numeric &newcoeff = ex_to<numeric>(first1->coeff).
-			                           add(ex_to<numeric>(first2->coeff));
-			if (!newcoeff.is_zero()) {
-				seq.push_back(expair(first1->rest,newcoeff));
-				if (expair_needs_further_processing(seq.end()-1)) {
-					needs_further_processing = true;
+			// infinity evaluation is handled in the eval() method
+			// do not let infinities cancel each other here
+			if (unlikely(is_a<infinity>(first1->rest))) {
+				seq.push_back(*first1);
+				seq.push_back(*first2);
+			} else {
+				// combine terms
+				const numeric &newcoeff = ex_to<numeric>(first1->coeff).
+					add(ex_to<numeric>(first2->coeff));
+				if (!newcoeff.is_zero()) {
+					seq.push_back(expair(first1->rest,newcoeff));
+					if (expair_needs_further_processing(seq.end()-1)) {
+						needs_further_processing = true;
+					}
 				}
 			}
 			++first1;
@@ -951,7 +970,7 @@ void expairseq::construct_from_2_expairseq(const expairseq &s1,
 }
 
 void expairseq::construct_from_expairseq_ex(const expairseq &s,
-											const ex &e)
+			const ex &e)
 {
 	combine_overall_coeff(s.overall_coeff);
 	if (is_exactly_a<numeric>(e)) {
@@ -963,6 +982,13 @@ void expairseq::construct_from_expairseq_ex(const expairseq &s,
 	epvector::const_iterator first = s.seq.begin();
 	epvector::const_iterator last = s.seq.end();
 	expair p = split_ex_to_pair(e);
+	// infinity evaluation is handled in eval()
+	// do not let infinities cancel each other here
+	if (unlikely(is_a<infinity>(p.rest))) {
+		seq.push_back(p);
+		seq.insert(seq.end(), first, last);
+		return;
+	}
 	
 	seq.reserve(s.seq.size()+1);
 	bool p_pushed = false;
@@ -1188,7 +1214,8 @@ void expairseq::combine_same_terms_sorted_seq()
 	// possible from then on the sequence has changed and must be compacted
 	bool must_copy = false;
 	while (itin2!=last) {
-		if (itin1->rest.compare(itin2->rest)==0) {
+		if (itin1->rest.compare(itin2->rest)==0 &&
+				unlikely(!is_a<infinity>(itin1->rest))) {
 			itin1->coeff = ex_to<numeric>(itin1->coeff).
 			               add_dyn(ex_to<numeric>(itin2->coeff));
 			if (expair_needs_further_processing(itin1))
@@ -1751,6 +1778,15 @@ std::auto_ptr<epvector> expairseq::subschildren(const exmap & m, unsigned option
 	
 	// Nothing has changed
 	return std::auto_ptr<epvector>(0);
+}
+
+
+const epvector & expairseq::get_sorted_seq() const
+{
+	if (seq_sorted.empty())
+		return seq;
+	else
+		return seq_sorted;
 }
 
 //////////

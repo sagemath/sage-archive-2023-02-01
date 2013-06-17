@@ -269,19 +269,4 @@ const constant Euler("euler_gamma", ConstantEvalf, "\\gamma_E", domain::positive
  *  Calls python function py_eval_constant for evalf(). */
 const constant Catalan("catalan", ConstantEvalf, "G", domain::positive);
 
-/** UnsignedInfinity. E.g., return value of gamma(-1).
- *  Calls python function py_eval_unsigned_infinity for evalf(). */
-const constant UnsignedInfinity("Infinity", UnsignedInfinityEvalf, "\\infty",
-		domain::infinity);
-
-/** Infinity, i.e., positive infinity.
- *  Calls python function py_eval_infinity for evalf(). */
-const constant Infinity("+Infinity", InfinityEvalf, "+\\infty",
-		domain::infinity);
-
-/** -Infinity, i.e., minus_infinity.
- *  Calls python function py_eval_neg_infinity for evalf(). */
-const constant NegInfinity("-Infinity", NegInfinityEvalf, "-\\infty",
-		domain::infinity);
-
 } // namespace GiNaC

@@ -1,3 +1,4 @@
+
 /** @file expairseq.h
  *
  *  Interface to sequences of expression pairs. */
@@ -38,7 +39,7 @@ namespace GiNaC {
  *  combining n terms into one large sum (or n terms into one large product)
  *  from O(n*log(n)) to about O(n).  There are, however, several drawbacks.
  *  The constant in front of O(n) is quite large, when copying such an object
- *  one also has to copy the has table, comparison is quite expensive because
+ *  one also has to copy the hash table, comparison is quite expensive because
  *  there is no ordering any more, it doesn't help at all when combining two
  *  expairseqs because due to the presorted nature the behaviour would be
  *  O(n) anyways, the code is quite messy, etc, etc.  The code is here as
@@ -67,6 +68,7 @@ class expairseq : public basic
 {
 	GINAC_DECLARE_REGISTERED_CLASS(expairseq, basic)
 
+	friend struct print_order;
 	// other constructors
 public:
 	expairseq(const ex & lh, const ex & rh);
@@ -80,6 +82,7 @@ public:
 	bool info(unsigned inf) const;
 	size_t nops() const;
 	ex op(size_t i) const;
+	virtual ex stable_op(size_t i) const;
 	ex map(map_function & f) const;
 	ex eval(int level=0) const;
 	ex to_rational(exmap & repl) const;
@@ -88,6 +91,7 @@ public:
 	ex subs(const exmap & m, unsigned options = 0) const;
 	ex conjugate() const;
 	numeric calc_total_degree() const;
+	virtual const epvector & get_sorted_seq() const;
 protected:
 	bool is_equal_same_type(const basic & other) const;
 	unsigned return_type() const;
@@ -161,6 +165,7 @@ protected:
 	
 protected:
 	epvector seq;
+	mutable epvector seq_sorted;
 	ex overall_coeff;
 #if EXPAIRSEQ_USE_HASHTAB
 	epplistvector hashtab;

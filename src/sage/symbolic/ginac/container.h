@@ -129,6 +129,8 @@ template <template <class T, class = std::allocator<T> > class C>
 class container : public basic, public container_storage<C> {
 	GINAC_DECLARE_REGISTERED_CLASS(container, basic)
 
+	friend struct print_order;
+
 protected:
 	typedef typename container_storage<C>::STLT STLT;
 

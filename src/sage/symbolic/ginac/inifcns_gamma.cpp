@@ -23,6 +23,7 @@
 
 #include "inifcns.h"
 #include "constant.h"
+#include "infinity.h"
 #include "pseries.h"
 #include "numeric.h"
 #include "power.h"
@@ -291,7 +292,8 @@ static ex beta_eval(const ex & x, const ex & y)
 		    (nx+ny).is_integer() &&
 		   !(nx+ny).is_positive())
 			 return _ex0;
-		if (!ex_to<numeric>(x).is_rational() || !ex_to<numeric>(x).is_rational())
+		if (!ex_to<numeric>(x).is_crational() ||
+				!ex_to<numeric>(y).is_crational())
 			return evalf(beta(x, y).hold());
 	}
 	
@@ -414,7 +416,8 @@ static ex psi1_eval(const ex & x)
 				return recur+psi(_ex1_2);
 			}
 		}
-		//  psi1_evalf should be called here once it becomes available
+		if (!ex_to<numeric>(x).is_crational())
+			return psi(ex_to<numeric>(x));
 	}
 	
 	return psi(x).hold();

@@ -310,6 +310,7 @@ class function : public exprseq
 {
 	GINAC_DECLARE_REGISTERED_CLASS(function, exprseq)
 
+	friend struct print_order;
 	// CINT has a linking problem
 #ifndef __MAKECINT__
 	friend void ginsh_get_ginac_functions();
@@ -347,7 +348,7 @@ public:
 	ex conjugate() const;
 	ex real_part() const;
 	ex imag_part() const;
-	int compare(const basic &other) const;
+	//int compare(const basic &other) const;
 protected:
 	ex derivative(const symbol & s) const;
 	bool is_equal_same_type(const basic & other) const;

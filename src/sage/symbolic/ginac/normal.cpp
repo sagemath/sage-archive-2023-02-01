@@ -98,7 +98,7 @@ static bool get_first_symbol(const ex &e, ex &x)
 		return true;
 	} else if (is_exactly_a<add>(e) || is_exactly_a<mul>(e)) {
 		for (size_t i=0; i<e.nops(); i++)
-			if (get_first_symbol(e.op(i), x))
+			if (get_first_symbol(e.sorted_op(i), x))
 				return true;
 	} else if (is_exactly_a<power>(e)) {
 		if (get_first_symbol(e.op(0), x))
@@ -174,7 +174,7 @@ static void collect_symbols(const ex &e, sym_desc_vec &v)
 		add_symbol(e, v);
 	} else if (is_exactly_a<add>(e) || is_exactly_a<mul>(e)) {
 		for (size_t i=0; i<e.nops(); i++)
-			collect_symbols(e.op(i), v);
+			collect_symbols(e.sorted_op(i), v);
 	} else if (is_exactly_a<power>(e)) {
 		collect_symbols(e.op(0), v);
 	}

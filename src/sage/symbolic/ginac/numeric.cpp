@@ -236,6 +236,7 @@ std::ostream& operator << (std::ostream& os, const Number_T& s) {
         return x.v._pyobject;
 
       default:
+	std::cout << x.t <<std::endl;
 	stub("Number_T_to_pyobject -- not able to do conversion to pyobject; everything else will be nonsense");
 	return 0;
       }
@@ -754,6 +755,30 @@ void Number_T::archive(archive_node &n) const {
     default:
       stub("invalid type: operator!= type not handled");
     }
+  }
+
+  int Number_T::compare_same_type(const Number_T& right) const { 
+    verbose("compare_same_type");
+    if (t != right.t) {
+      Number_T a, b;
+      coerce(a, b, *this, right);
+      return a.compare_same_type(b);
+    }
+    switch(t) {
+    case DOUBLE:
+      return (v._double < right.v._double)?-1:(v._double > right.v._double);
+    case LONG:
+      return (v._long < right.v._long)?-1:(v._long > right.v._long);
+    case PYOBJECT:
+      int result;
+      if (PyObject_Cmp(v._pyobject, right.v._pyobject, &result) == -1) {
+	py_error("compare_same_type");
+      }
+      return result;
+    default:
+      stub("invalid type: compare_same_type type not handled");
+    }
+
   }
 
   bool Number_T::operator<=(const Number_T& right) const { 
@@ -1574,7 +1599,7 @@ void Number_T::archive(archive_node &n) const {
     case info_flags::negative:
       return is_negative();
     case info_flags::nonnegative:
-      return !is_negative();
+      return is_zero() || is_positive();
     case info_flags::posint:
       return is_pos_integer();
     case info_flags::negint:
@@ -1696,10 +1721,8 @@ void Number_T::archive(archive_node &n) const {
   {
     GINAC_ASSERT(is_exactly_a<numeric>(other));
     const numeric &o = static_cast<const numeric &>(other);
-    int cmpval = (real() - o.real()).csgn();
-    if (cmpval != 0)
-	    return cmpval;
-    return (imag() - o.imag()).csgn();
+
+    return value.compare_same_type(o.value);
   }
 
 

@@ -202,20 +202,8 @@ if os.environ.has_key('SAGE_ATLAS_LIB'):
 
 # apply all patches
 for fname in glob.glob(os.path.join(PATCH_DIR,'*.patch')):
-    rc = system_with_flush('patch -p0 --input '+os.path.join(PATCH_DIR, fname))
+    rc = system_with_flush('patch -p1 -d src --input '+os.path.join(PATCH_DIR, fname))
     assert_success(rc, bad='Applying '+fname+' failed.', good='Applied '+fname+'.')
-
-# patches/Makefile
-# fix for Xcode creating directories like xspew.dSYM
-
-# patches/archinfo_linux.c
-# add PPC4 7447 CPU and better Itanium2 detection:
-
-# patches/archinfo_x86.c
-# add Core2Duo and Dunnington CPUid
-
-# patches/probe_comp.c
-# work around "-m64" cflag issue on Itanium
 
 # add extra architectural defaults
 # currently IA64Itan264 and x86SSE264SSE2
@@ -396,6 +384,8 @@ def configure_fast():
 
 
 def configure_base():
+    isa_ext = ('None',)
+    archdef_dir = None
     if conf['Intel?'] and conf['64bit?']:
         print 'Generic configuration on Intel x86_64 compatible CPUs.'
         arch = 'x86SSE2'
@@ -404,23 +394,15 @@ def configure_base():
     elif conf['Intel?'] and conf['32bit?']:
         print 'Generic configuration on Intel i386 compatible CPUs.'
         arch = 'x86x87'
-        isa_ext = ('3DNow',)
-        archdef_dir = None
     elif conf['SPARC?']:
         print 'Base configuration on SPARC.'
         arch = 'USIII'
-        isa_ext = ()
-        archdef_dir = None
     elif conf['PPC?']:
         print 'Base configuration on PPC.'
         arch = 'PPCG4'
-        isa_ext = ()
-        archdef_dir = None
     elif conf['IA64?']:
         print 'Base configuration on Itanium.'
         arch = 'IA64Itan'
-        isa_ext = ()
-        archdef_dir = None
     else:
         raise NotImplementedError, 'I don\'t know a "base" configuration for your cpu.'
     return (arch, isa_ext, archdef_dir)

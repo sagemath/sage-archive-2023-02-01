@@ -23,12 +23,11 @@ Solaris, but should also work on OSX and Cygwin.
 == Dependencies ==
 
  * Python
- * Fortran
 
 == Build Instructions/Notes ==
 
  * patches/archinfo_linux.c.patch: Fix Itanium2 support on modern
-   RHEL 5 and SLES 10 systems
+   RHEL 5 and SLES 10 systems.
  * patches/probe_comp.c.patch: work around -m64 issue on Itanium2
  * patches/long_filenames.patch: fix for long filenames (>128 chars)
  * patches/shell.patch: replace two instances of "test -e" by "test -f",
@@ -88,6 +87,12 @@ The package can be configured via three environment variables:
    file is created and saved to the given path.
 
 == ChangeLog ==
+
+=== atlas-3.10.1.p2, lapack-3.4.2 (Jeroen Demeyer, 18 June 2013) ===
+ * Trac #14754: Do not use 3DNow in configure_base().
+ * Use "None" instead of the empty tuple for isa_ext.
+ * Use $FC instead of sage_fortran in configuration.py.
+ * Apply patches at -p1 level like all other packages.
 
 === atlas-3.10.1.p1, lapack-3.4.2 (Volker Braun, Jean-Pierre Flori, 7 June 2013) ===
  * Trac #14699: Install ATLAS header files

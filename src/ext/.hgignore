@@ -1,8 +1,0 @@
-\.dat$
-\.sig$
-\.DS_Store$
-magma/stoll/polys
-pickle_jar.tar.bz2
-sage/ext/mac-app/build
-sage/ext/mac-app/Sage.xcodeproj/.*.pbxuser
-sage/ext/mac-app/Sage.xcodeproj/.*.mode1v3

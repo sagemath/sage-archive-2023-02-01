@@ -2,17 +2,17 @@ r"""
 Bessel Functions
 
 This module provides symbolic Bessel Functions. These functions use the
-`mpmath Library`_ for numerical evaluation and Maxima, GiNaC, Pynac for
+`mpmath library`_ for numerical evaluation and Maxima, GiNaC, Pynac for
 symbolics.
 
 The main objects which are exported from this module are:
 
- * `bessel_J` - The Bessel J function
- * `bessel_Y` - The Bessel J function
- * `bessel_I` - The Bessel J function
- * `bessel_K` - The Bessel J function
- * `Bessel`   - A factory function for producing Bessel functions of
-   various kinds and orders.
+ * ``bessel_J`` -- The Bessel J function
+ * ``bessel_Y`` -- The Bessel Y function
+ * ``bessel_I`` -- The Bessel I function
+ * ``bessel_K`` -- The Bessel K function
+ * ``Bessel``   -- A factory function for producing Bessel functions of
+   various kinds and orders
 
 -  Bessel functions, first defined by the Swiss mathematician
    Daniel Bernoulli and named after Friedrich Bessel, are canonical
@@ -20,9 +20,10 @@ The main objects which are exported from this module are:
 
    .. math::
 
-         x^2 \frac{d^2 y}{dx^2} + x \frac{dy}{dx} + (x^2 - \nu^2)y = 0,
+         x^2 \frac{d^2 y}{dx^2} + x \frac{dy}{dx} + \left(x^2 - \nu^2\right)y =
+         0,
 
-   for an arbitrary real number `\nu` (the order).
+   for an arbitrary complex number `\nu` (the order).
 
 -  In this module, `J_\nu` denotes the unique solution of Bessel's equation
    which is non-singular at `x = 0`. This function is known as the Bessel
@@ -138,7 +139,7 @@ EXAMPLES:
 
 AUTHORS:
 
-    - Benjamin Jones (2012-12-27): initial version.
+    - Benjamin Jones (2012-12-27): initial version
 
     - Some of the documentation here has been adapted from David Joyner's
       original documentation of Sage's special functions module (2006).
@@ -201,10 +202,10 @@ class Function_Bessel_J(BuiltinFunction):
     .. math::
 
         J_\nu(x) = \sum_{k=0}^\infty \frac{(-1)^k}{k! \Gamma(k+\nu+1)}
-        (\frac{x}{2})^{2k+\nu}
+        \left(\frac{x}{2}\right)^{2k+\nu}
 
     The parameter `\nu` is called the order and may be any real or
-    complex number, however the integer and half-integer values are most
+    complex number; however, integer and half-integer values are most
     common. It is defined for all complex numbers `x` when `\nu`
     is an integer or greater than zero and it diverges as `x \to 0`
     for negative non-integer values of `\nu`.
@@ -220,8 +221,8 @@ class Function_Bessel_J(BuiltinFunction):
 
     .. math::
 
-        J_\nu(x) = \frac{x^n}{2^\nu \Gamma(\nu + 1)} {}_0F_1(\nu +
-        1, -\frac{x^2}{4}).
+        J_\nu(x) = \frac{x^n}{2^\nu \Gamma(\nu + 1)} {}_0F_1\left(\nu +
+        1, -\frac{x^2}{4}\right).
 
     EXAMPLES::
 
@@ -288,15 +289,16 @@ class Function_Bessel_J(BuiltinFunction):
             bessel_J
         """
         BuiltinFunction.__init__(self, "bessel_J", nargs=2,
-                                 conversions=dict(maxima='bessel_j',
-                                                  mathematica='BesselJ'))
+                                 conversions=dict(mathematica='BesselJ',
+                                                  maxima='bessel_j',
+                                                  sympy='besselj'))
 
     # remove after deprecation period
     def __call__(self, *args, **kwds):
         """
-        Custom `__call__` method which uses the old Bessel function code if the
-        `algorithm` or `prec` arguments are used. This should be removed after
-        the deprecation period.
+        Custom ``__call__`` method which uses the old Bessel function code if
+        the ``algorithm`` or ``prec`` arguments are used. This should be
+        removed after the deprecation period.
 
         EXAMPLES::
 
@@ -355,7 +357,7 @@ class Function_Bessel_J(BuiltinFunction):
             sage: derivative(f, z)
             z |--> 1/2*bessel_J(9, z) - 1/2*bessel_J(11, z)
         """
-        return (bessel_J(n-1, x) - bessel_J(n+1, x))/Integer(2)
+        return (bessel_J(n - 1, x) - bessel_J(n + 1, x)) / Integer(2)
 
     def _print_latex_(self, n, z):
         """
@@ -448,15 +450,16 @@ class Function_Bessel_Y(BuiltinFunction):
             bessel_Y(0, x)
         """
         BuiltinFunction.__init__(self, "bessel_Y", nargs=2,
-                                 conversions=dict(maxima='bessel_y',
-                                                  mathematica='BesselY'))
+                                 conversions=dict(mathematica='BesselY',
+                                                  maxima='bessel_y',
+                                                  sympy='bessely'))
 
     # remove after deprecation period
     def __call__(self, *args, **kwds):
         """
-        Custom `__call__` method which uses the old Bessel function code if the
-        `algorithm` or `prec` arguments are used. This should be removed after
-        the deprecation period.
+        Custom ``__call__`` method which uses the old Bessel function code if
+        the ``algorithm`` or ``prec`` arguments are used. This should be
+        removed after the deprecation period.
 
         EXAMPLES::
 
@@ -514,7 +517,7 @@ class Function_Bessel_Y(BuiltinFunction):
             sage: derivative(f, x)
             x |--> 1/2*bessel_Y(9, x) - 1/2*bessel_Y(11, x)
         """
-        return (bessel_Y(n-1, x) - bessel_Y(n+1, x))/Integer(2)
+        return (bessel_Y(n - 1, x) - bessel_Y(n + 1, x)) / Integer(2)
 
     def _print_latex_(self, n, z):
         """
@@ -611,15 +614,16 @@ class Function_Bessel_I(BuiltinFunction):
             bessel_I(1, x)
         """
         BuiltinFunction.__init__(self, "bessel_I", nargs=2,
-                                 conversions=dict(maxima='bessel_i',
-                                                  mathematica='BesselI'))
+                                 conversions=dict(mathematica='BesselI',
+                                                  maxima='bessel_i',
+                                                  sympy='besseli'))
 
     # remove after deprecation period
     def __call__(self, *args, **kwds):
         """
-        Custom `__call__` method which uses the old Bessel function code if the
-        `algorithm` or `prec` arguments are used. This should be removed after
-        the deprecation period.
+        Custom ``__call__`` method which uses the old Bessel function code if
+        the ``algorithm`` or ``prec`` arguments are used. This should be
+        removed after the deprecation period.
 
         EXAMPLES::
 
@@ -658,10 +662,10 @@ class Function_Bessel_I(BuiltinFunction):
             return self._evalf_(n, x, parent(n))
 
         # special identities
-        if n == Integer(1)/Integer(2):
-            return sqrt(2/(pi*x))*sinh(x)
-        elif n == -Integer(1)/Integer(2):
-            return sqrt(2/(pi*x))*cosh(x)
+        if n == Integer(1) / Integer(2):
+            return sqrt(2 / (pi * x)) * sinh(x)
+        elif n == -Integer(1) / Integer(2):
+            return sqrt(2 / (pi * x)) * cosh(x)
 
         return None  # leaves the expression unevaluated
 
@@ -677,7 +681,7 @@ class Function_Bessel_I(BuiltinFunction):
 
     def _derivative_(self, n, x, diff_param=None):
         """
-        Return the derivative of the Bessel I function `I_n(x)` with repect
+        Return the derivative of the Bessel I function `I_n(x)` with respect
         to `x`.
 
         EXAMPLES::
@@ -686,7 +690,7 @@ class Function_Bessel_I(BuiltinFunction):
             sage: derivative(f, x)
             z |--> 1/2*bessel_I(9, x) + 1/2*bessel_I(11, x)
         """
-        return (bessel_I(n-1, x) + bessel_I(n+1, x))/Integer(2)
+        return (bessel_I(n - 1, x) + bessel_I(n + 1, x)) / Integer(2)
 
     def _print_latex_(self, n, z):
         """
@@ -799,15 +803,16 @@ class Function_Bessel_K(BuiltinFunction):
             bessel_K
         """
         BuiltinFunction.__init__(self, "bessel_K", nargs=2,
-                                 conversions=dict(maxima='bessel_k',
-                                                  mathematica='BesselK'))
+                                 conversions=dict(mathematica='BesselK',
+                                                  maxima='bessel_k',
+                                                  sympy='besselk'))
 
     # remove after deprecation period
     def __call__(self, *args, **kwds):
         """
-        Custom `__call__` method which uses the old Bessel function code if the
-        `algorithm` or `prec` arguments are used. This should be removed after
-        the deprecation period.
+        Custom ``__call__`` method which uses the old Bessel function code if
+        the ``algorithm`` or ``prec`` arguments are used. This should be
+        removed after the deprecation period.
 
         EXAMPLES::
 
@@ -843,8 +848,8 @@ class Function_Bessel_K(BuiltinFunction):
             return self._evalf_(n, x, parent(n))
 
         # special identity
-        if n == Integer(1)/Integer(2) and x > 0:
-            return sqrt(pi/2)*exp(-x)*x**(Integer(1)/Integer(2))
+        if n == Integer(1) / Integer(2) and x > 0:
+            return sqrt(pi / 2) * exp(-x) * x ** (-Integer(1) / Integer(2))
 
         return None  # leaves the expression unevaluated
 
@@ -870,7 +875,7 @@ class Function_Bessel_K(BuiltinFunction):
             sage: derivative(f, x)
             x |--> 1/2*bessel_K(9, x) + 1/2*bessel_K(11, x)
         """
-        return (bessel_K(n-1, x) + bessel_K(n+1, x))/Integer(2)
+        return (bessel_K(n - 1, x) + bessel_K(n + 1, x)) / Integer(2)
 
     def _print_latex_(self, n, z):
         """
@@ -902,8 +907,8 @@ def Bessel(*args, **kwds):
           function
         - ``Bessel()`` -- order is unspecified, type is 'J'
 
-    where `order` can be any integer and T must be one of the strings 'I', 'J',
-    'K', or 'Y'.
+    where ``order`` can be any integer and T must be one of the strings 'I',
+    'J', 'K', or 'Y'.
 
     See the EXAMPLES below.
 
@@ -1049,13 +1054,6 @@ def Bessel(*args, **kwds):
         _system = 'mpmath'
 
     # return the function
-    # TODO remove assertions
-    assert _type in ['I', 'J', 'K', 'Y']
-    assert _order is None or _order in RR
-    assert _nargs == 1 or _nargs == 2
-    assert _system == 'mpmath'
-
-    # TODO what to do with _system?
     _f = bessel_type_dict[_type]
     if _nargs == 1:
         return lambda x: _f(_order, x)

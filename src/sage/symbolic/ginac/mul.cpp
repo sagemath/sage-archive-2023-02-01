@@ -349,11 +349,35 @@ void mul::do_print_rat_func(const print_context & c, unsigned level,
 		}
 
 	} else {
+		// negative powers are empty
+		if (!latex_tags) {
+			print_overall_coeff(overall_coeff, c, sep, latex_tags);
 
-		print_overall_coeff(overall_coeff, c,
-				latex_tags ? " \\, " : sep, latex_tags);
+			print_exvector(others, c, sep);
+		} else {
+			// Decide which separator to use after the overall
+			// coefficient.
+			// overall coefficient is printed first in the
+			// output, if the first character after the
+			// coefficient is a number, then it is hard to
+			// distinguish these in the latex output:
+			//
+			// sage: e = 2 * 2^(1/3)
+			// sage: print latex(e)
+			// 2 \, 2^{\left(\frac{1}{3}\right)}
+			//
+			// In this case instead of the usual separator \,
+			// we use \cdot
 
-		print_exvector(others, c, sep);
+			std::stringstream tstream;
+			print_latex tcontext(tstream, c.options);
+			print_exvector(others, tcontext, sep);
+			print_overall_coeff(overall_coeff, c,
+					std::isdigit(tstream.peek()) ?
+						" \\cdot " : " \\, ",
+					latex_tags);
+			c.s<<tstream.str();
+		}
 	}
 	if (precedence() <= level){
 		if (latex_tags)

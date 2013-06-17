@@ -13965,7 +13965,7 @@ class GenericGraph(GenericGraph_pyx):
         mmax = max([len(ccc) for ccc in heights.values()])
         ymin = min(heights.keys())
         ymax = max(heights.keys())
-        dist = ((ymax-ymin)/(mmax+1.0))
+        dist = (max(ymax-ymin, 1)) / (mmax+1.0)
         for height in heights:
             num_xs = len(heights[height])
             if num_xs == 0:

@@ -16,3 +16,4 @@ from littelmann_path import CrystalOfLSPaths, CrystalOfProjectedLevelZeroLSPaths
 from generalized_young_walls import CrystalOfGeneralizedYoungWalls, HighestWeightCrystalOfGYW
 from infinity_crystals import InfinityCrystalOfTableaux
 from elementary_crystals import TCrystal, RCrystal, ElementaryCrystal, ComponentCrystal
+from monomial_crystals import InfinityCrystalOfNakajimaMonomials, CrystalOfNakajimaMonomials

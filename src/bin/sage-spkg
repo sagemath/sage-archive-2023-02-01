@@ -15,7 +15,6 @@
 #  variables are defined:
 #
 #      SAGE_ROOT     -- root directory of sage install
-#      SAGE_PACKAGES -- $SAGE_ROOT/spkg
 #      SAGE_LOCAL    -- $SAGE_ROOT/local
 #      SAGE_DATA     -- $SAGE_ROOT/data
 #      LIBRARY_PATH, PYTHONPATH, LD_LIBRARY_PATH, DYLD_LIBRARY_PATH
@@ -94,7 +93,7 @@ fi
 # The following sets environment variables for building packages.
 # Since this is sourced, it returns a non-zero value on errors rather
 # than exiting.  Using dot suggested by W. Cheung.
-. "$SAGE_ROOT/spkg/bin/sage-env"
+. "${0%spkg}env"
 
 if [ $? -ne 0 ]; then
     echo >&2 "Error setting environment variables by sourcing '$SAGE_ROOT/spkg/bin/sage-env';"
@@ -225,11 +224,11 @@ elif [ -z "$PKG_HAS_PATH" ]; then
     # If PKG_SRC is not an existing file and doesn't contain a slash,
     # we are in case 2a or 3.  Try to find a package in spkg/standard
     # or spkg/optional (or other possible directories under spkg).
-    cd "$SAGE_PACKAGES"
-    for spkg in `ls -1t */${PKG_NAME}.spkg */${PKG_NAME}-*.spkg 2>/dev/null`; do
+    cd "$SAGE_ROOT/upstream"
+    for spkg in `ls -1t ${PKG_NAME}.spkg ${PKG_NAME}-*.spkg 2>/dev/null`; do
         if [ -f "$spkg" ]; then
             # Found a good package
-            echo "Found package $PKG_NAME in spkg/$spkg"
+            echo "Found package $PKG_NAME in upstream/$spkg"
             PKG_SRC="`pwd`/$spkg"
             PKG_NAME=`basename "$spkg" | sed 's/\.spkg$//'`
             break

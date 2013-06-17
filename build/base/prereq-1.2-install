@@ -188,7 +188,7 @@ fi
 # does not update the base packages and we cannot retro-actively change
 # that in earlier versions.  So the only thing to do is to skip this
 # test.
-prereq_tarball="$SAGE_ROOT/spkg/base/$TARGET.tar.gz"
+prereq_tarball="$SAGE_ROOT/upstream/$TARGET.tar.gz"
 if [ -f "$prereq_tarball" ]; then
     gzip -cd "$prereq_tarball" | tar xf -
     if [ $? -ne 0 ]; then

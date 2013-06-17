@@ -124,11 +124,10 @@ fi
 export SAGE_ROOT
 
 # Run the actual Sage script
-if [ -x "$SAGE_ROOT/spkg/bin/sage" ]; then
-    "$SAGE_ROOT/spkg/bin/sage" "$@"
-elif [ -x "$SAGE_ROOT/local/bin/sage-sage" ]; then   # Support sage-4.x
-    export CUR=`pwd`
-    "$SAGE_ROOT/local/bin/sage-sage" "$@"
+if [ -x "$SAGE_ROOT/local/bin/sage" ]; then
+    "$SAGE_ROOT/local/bin/sage" "$@"
+elif [ -x "$SAGE_ROOT/src/bin/sage" ]; then   # For errors pre-installation
+    "$SAGE_ROOT/src/bin/sage" "$@"
 else
     echo >&2 "$0: no Sage installation found in \$SAGE_ROOT=$SAGE_ROOT"
     exit 1

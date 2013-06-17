@@ -49,10 +49,10 @@ import cPickle
 import os
 import random
 import shutil
+import subprocess
 import tempfile
 
 from cStringIO import StringIO
-from subprocess import call, check_output
 
 from sage.doctest import DOCTEST_MODE
 from sage.env import SAGE_DOT_GIT, SAGE_REPO, DOT_SAGE
@@ -837,18 +837,13 @@ class GitInterface(object):
 
         return True
 
-    def _run_git(self, output_type, cmd, args, kwds):
-        """
+    def _run_git(self, cmd, args, kwds, **ckwds):
+        r"""
         common implementation for :meth:`execute`,
         :meth:`execute_silent`, :meth:`execute_supersilent`, and
         :meth:`read_output`
 
         INPUT:
-
-        - ``output_type`` - one of `retval`, `retquiet`, `retsuperquiet`,
-          and `stdout`, which gives the behaviour of :meth:`execute`,
-          :meth:`execute_silent`, :meth:`execute_supersilent`, and
-          :meth:`read_output` respectively
 
         - ``cmd`` - git command run
 
@@ -856,11 +851,17 @@ class GitInterface(object):
 
         - ``kwds`` - extra keywords for git
 
+        - ``ckwds`` - Popen like keywords but with the following changes
+
+          - ``stdout`` - if set to `False` will supress stdout
+
+          - ``stderr`` - if set to `False` will supress stderr
+
         EXAMPLES::
 
             sage: from sage.dev.sagedev import SageDev, doctest_config
             sage: git = SageDev(doctest_config()).git
-            sage: r = git._run_git('retval', 'status', (), {})
+            sage: r = git._run_git('status', (), {})
             # On branch first_branch
             # Untracked files:
             #   (use "git add <file>..." to include in what will be committed)
@@ -869,12 +870,12 @@ class GitInterface(object):
             #   untracked_testfile2
             nothing added to commit but untracked files present (use "git add" to track)
             sage: r
-            0
-            sage: git._run_git('retquiet', 'status', (), {})
-            0
-            sage: git._run_git('retquiet','rebase', ('HEAD^',),
+            (0, None, None)
+            sage: git._run_git('status', (), {}, stdout=False)
+            (0, None, None)
+            sage: git._run_git('rebase', ('HEAD^',),
             ....:     {'interactive':True,
-            ....:      'env':{'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'}})
+            ....:      'env':{'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'}}, stdout=False)
             Stopped at ... edit the testfile differently
             You can amend the commit now, with
             <BLANKLINE>
@@ -884,19 +885,16 @@ class GitInterface(object):
             <BLANKLINE>
                 git rebase --continue
             <BLANKLINE>
-            0
-            sage: git._run_git('retsuperquiet', 'rebase', (), {'abort':True})
-            0
-            sage: git._run_git('stdout', 'log', (), {'oneline':True})
-            '... edit the testfile differently\n... add a testfile\n'
+            (0, None, None)
+            sage: git._run_git('rebase', (), {'abort':True}, stdout=False, stderr=False)
+            (0, None, None)
+            sage: git._run_git('log', (), {'oneline':True}, stdout=str)
+            (0, '... edit the testfile differently\n... add a testfile\n', None)
         """
-        if output_type not in ('retval', 'retquiet',
-                'retsuperquiet', 'stdout', 'dryrun'):
-            raise ValueError('invalid output_type')
-
         s = [self._gitcmd, "--git-dir=%s"%self._dot_git, cmd]
-        ckwds = {'env':dict(os.environ)}
-        ckwds['env'].update(kwds.pop('env', {}))
+
+        env = ckwds.setdefault('env', dict(os.environ))
+        env.update(kwds.pop('env', {}))
 
         for k, v in kwds.iteritems():
             if len(k) == 1:
@@ -910,16 +908,22 @@ class GitInterface(object):
         if args:
             s.extend(a for a in args if a is not None)
 
-        if output_type == 'dryrun':
+        if ckwds.get('dryrun', False):
             return s
-        elif output_type == 'stdout':
-            return check_output(s, **ckwds)
-        else:
-            if output_type == 'retquiet':
-                ckwds['stdout'] = open(os.devnull, 'w')
-            elif output_type == 'retsuperquiet':
-                ckwds['stdout'] = ckwds['stderr'] = open(os.devnull, 'w')
-            return call(s, **ckwds)
+
+        devnull = open(os.devnull, 'w')
+        if ckwds.get('stdout') is False:
+            ckwds['stdout'] = devnull
+        elif ckwds.get('stdout') is str:
+            ckwds['stdout'] = subprocess.PIPE
+        if ckwds.get('stderr') is False:
+            ckwds['stderr'] = devnull
+        elif ckwds.get('stderr') is str:
+            ckwds['stderr'] = subprocess.PIPE
+        process = subprocess.Popen(s, **ckwds)
+        stdout, stderr = process.communicate()
+        retcode = process.poll()
+        return retcode, stdout, stderr
 
     def execute(self, cmd, *args, **kwds):
         """
@@ -973,7 +977,7 @@ class GitInterface(object):
             sage: r
             1
         """
-        return self._run_git('retval', cmd, args, kwds)
+        return self._run_git(cmd, args, kwds)[0]
 
     __call__ = execute
 
@@ -1002,7 +1006,7 @@ class GitInterface(object):
             <BLANKLINE>
             0
         """
-        return self._run_git('retquiet', cmd, args, kwds)
+        return self._run_git(cmd, args, kwds, stdout=False)[0]
 
     def execute_supersilent(self, cmd, *args, **kwds):
         """
@@ -1021,7 +1025,7 @@ class GitInterface(object):
             ....:     env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
             0
         """
-        return self._run_git('retsuperquiet', cmd, args, kwds)
+        return self._run_git(cmd, args, kwds, stdout=False, stderr=False)[0]
 
     def read_output(self, cmd, *args, **kwds):
         r"""
@@ -1034,7 +1038,7 @@ class GitInterface(object):
             sage: dev.git.read_output('log', oneline=True)
             '... edit the testfile differently\n... add a testfile\n'
         """
-        return self._run_git('stdout', cmd, args, kwds)
+        return self._run_git(cmd, args, kwds, stdout=str)[1]
 
     def is_child_of(self, a, b):
         """

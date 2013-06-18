@@ -222,18 +222,49 @@ if [ -f "$PKG_SRC" ]; then
     fi
 elif [ -z "$PKG_HAS_PATH" ]; then
     # If PKG_SRC is not an existing file and doesn't contain a slash,
-    # we are in case 2a or 3.  Try to find a package in spkg/standard
-    # or spkg/optional (or other possible directories under spkg).
-    cd "$SAGE_ROOT/upstream"
-    for spkg in `ls -1t ${PKG_NAME}.spkg ${PKG_NAME}-*.spkg 2>/dev/null`; do
-        if [ -f "$spkg" ]; then
-            # Found a good package
-            echo "Found package $PKG_NAME in upstream/$spkg"
-            PKG_SRC="`pwd`/$spkg"
-            PKG_NAME=`basename "$spkg" | sed 's/\.spkg$//'`
-            break
+    # we are in case 2a or 3.  If version in 2a matches the version in
+    # build/pkgs or we are in case 3 use the local scripts, otherwise
+    # we try to find a package in upstream
+    PKG_VER="${PKG_NAME#${PKG_BASE}}"
+    PKG_VER="${PKG_VER#-}"
+    PKG_SCRIPTS="$SAGE_ROOT/build/pkgs/$PKG_BASE"
+    LOCAL_PKG_VER=`cat $PKG_SCRIPTS/package-version.txt 2>/dev/null`
+    if [ -n "$LOCAL_PKG_VER" ] && [ -z "$PKG_VER" -o "$PKG_VER" == "$LOCAL_PKG_VER" ]; then
+        PKG_VER="$LOCAL_PKG_VER"
+        PKG_NAME="${PKG_BASE}-${PKG_VER}"
+        USE_LOCAL_SCRIPTS=yes
+        PKG_NAME_UPSTREAM="${PKG_BASE}-`echo $PKG_VER | sed 's/\.p[0-9][0-9]*$//'`"
+        echo "Using local scripts to install $PKG_NAME"
+
+        if [ $INFO -eq 0 ]; then
+            # see if we can the source tarball locally
+            cd "$SAGE_ROOT/upstream"
+            for tarball in `ls -1t ${PKG_NAME_UPSTREAM}.tar* 2>/dev/null`; do
+                if [ -f "$tarball" ]; then
+                    # Found a good tarball
+                    echo "Found local sources at upstream/$tarball"
+                    PKG_SRC="`pwd`/$tarball"
+                    break
+                fi
+            done
         fi
-    done
+    else
+        cd "$SAGE_ROOT/upstream"
+        for spkg in `ls -1t ${PKG_NAME}.spkg ${PKG_NAME}-*.spkg 2>/dev/null`; do
+            if [ -f "$spkg" ]; then
+                # Found a good package
+                echo "Found package $PKG_NAME in upstream/$spkg"
+                PKG_SRC="`pwd`/$spkg"
+                PKG_NAME=`basename "$spkg" | sed 's/\.spkg$//'`
+                break
+            fi
+        done
+    fi
+fi
+
+if [ $INFO -ne 0 -a "$USE_LOCAL_SCRIPTS" == yes ]; then
+    cat "$PKG_SCRIPTS/SPKG.txt"
+    exit 0
 fi
 
 # Check whether the package is already installed.  We do this before
@@ -391,7 +422,8 @@ uncompress_spkg()
     bzip2 -d -c "$1" 2>/dev/null || gzip -d -c "$1" 2>/dev/null || cat "$1"
 }
 
-if [ $INFO -ne 0 ]; then
+if [ $INFO -ne 0 -a -z "$USE_LOCAL_SCRIPTS" ]; then
+        cat "$PKG_SCRIPTS/SPKG.txt"
     uncompress_spkg "$PKG_SRC" | tar Oxf - "$PKG_NAME/SPKG.txt"
     if [ $? -ne 0 ]; then
         echo >&2 "No file SPKG.txt in $PKG_NAME"
@@ -452,15 +484,28 @@ fi
 # Extract the package
 ##################################################################
 
-echo "Extracting package $PKG_SRC"
-ls -l "$PKG_SRC"
+if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
+    echo "Setting up build directory for $PKG_NAME"
+    cp -Rp "$PKG_SCRIPTS" "$PKG_NAME"
+    cd "$PKG_NAME"
+else
+    echo "Extracting package $PKG_SRC"
+    ls -l "$PKG_SRC"
+fi
 
 uncompress_spkg "$PKG_SRC" | tar x${UNTAR_VERBOSE}f - --no-same-owner
 if [ $? -ne 0 ]; then
     echo >&2 "Error: failed to extract $PKG_SRC"
     exit 1
 fi
-echo "Finished extraction"
+
+if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
+    mv "$PKG_NAME_UPSTREAM" src
+    cd ..
+    echo "Finished set up"
+else
+    echo "Finished extraction"
+fi
 
 ##################################################################
 # The package has been extracted, prepare for installation

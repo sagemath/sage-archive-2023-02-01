@@ -1508,7 +1508,7 @@ def _git_cmd_wrapper(git_cmd):
         0
     """
     def meth(self, *args, **kwds):
-        return self.execute(git_cmd, *args, **kwds)
+        return self.execute(git_cmd.replace("_", "-"), *args, **kwds)
     meth.__doc__ = """
             direct call to \`git %s\`
 
@@ -1528,6 +1528,7 @@ for git_cmd in (
         "commit",
         "diff",
         "fetch",
+        "format_patch",
         "grep",
         # "init",
         "log",

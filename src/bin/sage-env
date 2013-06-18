@@ -318,6 +318,10 @@ if [ -z "$SAGE_REPO" ]; then
     SAGE_REPO="git://github.com/sagemath/sage.git"
     export SAGE_REPO
 fi
+if [ -z "$SAGE_DISTFILES" ]; then
+    SAGE_DISTFILES="$SAGE_ROOT/upstream"
+    export SAGE_DISTFILES
+fi
 
 # Check that $HOME exists
 if [ "$HOME" = "" ]; then

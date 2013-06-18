@@ -14,8 +14,9 @@
 #  A package may assume that the following environment
 #  variables are defined:
 #
-#      SAGE_ROOT     -- root directory of sage install
-#      SAGE_LOCAL    -- $SAGE_ROOT/local
+#      SAGE_ROOT      -- root directory of sage install
+#      SAGE_LOCAL     -- $SAGE_ROOT/local
+#      SAGE_DISTFILES -- directory that stores upstream tarballs
 #      LIBRARY_PATH, PYTHONPATH, LD_LIBRARY_PATH, DYLD_LIBRARY_PATH
 #      CC, CXX, CFLAGS, CXXFLAGS, LDFLAGS, MAKE
 #
@@ -287,22 +288,22 @@ elif [ -z "$PKG_HAS_PATH" ]; then
 
         if [ $INFO -eq 0 ]; then
             # see if we can the source tarball locally
-            cd "$SAGE_ROOT/upstream"
+            cd "$SAGE_DISTFILES"
             for tarball in `ls -1t ${PKG_NAME_UPSTREAM}.tar* 2>/dev/null`; do
                 if [ -f "$tarball" ]; then
                     # Found a good tarball
-                    echo "Found local sources at upstream/$tarball"
+                    echo "Found local sources at $SAGE_DISTFILES/$tarball"
                     PKG_SRC="`pwd`/$tarball"
                     break
                 fi
             done
         fi
     else
-        cd "$SAGE_ROOT/upstream"
+        cd "$SAGE_DISTFILES"
         for spkg in `ls -1t ${PKG_NAME}.spkg ${PKG_NAME}-*.spkg 2>/dev/null`; do
             if [ -f "$spkg" ]; then
                 # Found a good package
-                echo "Found package $PKG_NAME in upstream/$spkg"
+                echo "Found package $PKG_NAME in $SAGE_DISTFILES/$spkg"
                 PKG_SRC="`pwd`/$spkg"
                 PKG_NAME=`basename "$spkg" | sed 's/\.spkg$//'`
                 break
@@ -429,12 +430,12 @@ if [ ! -f "$PKG_SRC" ]; then
     fi
 
     # Trac #5852: check write permissions
-    if [ ! -w "$SAGE_PACKAGES" ]; then
+    mkdir -p "$SAGE_DISTFILES"
+    if [ ! -w "$SAGE_DISTFILES" ]; then
         echo >&2 "Error: no write access to packages directory $SAGE_PACKAGES."
         exit 1
     fi
-    mkdir -p "$SAGE_PACKAGES/optional"
-    cd "$SAGE_PACKAGES/optional" || exit $?
+    cd "$SAGE_DISTFILES" || exit $?
 
     # Download to a temporary file (such that we don't end up with a
     # corrupted .spkg file).

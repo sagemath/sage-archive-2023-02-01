@@ -76,6 +76,7 @@ class CurveArrow(GraphicPrimitive):
              ('arrowstyle', 'todo'),
              ('head', '2-d only: Which end of the path to draw the head (one of 0 (start), 1 (end) or 2 (both)'),
              ('hue', 'The color given as a hue.'),
+             ('legend_color', 'The color of the legend text.'),
              ('legend_label', 'The label for this item in the legend.'),
              ('linestyle', "2d only: The style of the line, which is one of
              'dashed', 'dotted', 'solid', 'dashdot', or '--', ':', '-', '-.',
@@ -88,6 +89,7 @@ class CurveArrow(GraphicPrimitive):
                 'rgbcolor':'The color as an RGB tuple.',
                 'hue':'The color given as a hue.',
                 'legend_label':'The label for this item in the legend.',
+                'legend_color':'The color of the legend text.',
                 'arrowstyle': 'todo',
                 'arrowsize':'The size of the arrowhead',
                 'zorder':'2-d only: The layer level in which to draw',
@@ -207,6 +209,7 @@ class Arrow(GraphicPrimitive):
              ('head',
              '2-d only: Which end of the path to draw the head (one of 0 (start), 1 (end) or 2 (both)'),
              ('hue', 'The color given as a hue.'),
+             ('legend_color', 'The color of the legend text.'),
              ('legend_label', 'The label for this item in the legend.'),
              ('linestyle',
              "2d only: The style of the line, which is one of 'dashed',
@@ -222,6 +225,7 @@ class Arrow(GraphicPrimitive):
                 'arrowshorten':'The length in points to shorten the arrow.',
                 'arrowsize':'The size of the arrowhead',
                 'legend_label':'The label for this item in the legend.',
+                'legend_color':'The color of the legend text.',
                 'zorder':'2-d only: The layer level in which to draw',
                 'head':'2-d only: Which end of the path to draw the head (one of 0 (start), 1 (end) or 2 (both)',
                 'linestyle':"2d only: The style of the line, which is one of "
@@ -486,6 +490,8 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
 
     - ``legend_label`` - the label for this item in the legend
 
+    - ``legend_color`` - the color for the legend label
+
     - ``zorder`` - the layer level to draw the arrow-- note that this is ignored in 3D
       plotting.
 
@@ -523,10 +529,9 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
 
         sage: arrow2d(headpoint=None, tailpoint=None)
 
-
     We can also draw an arrow with a legend::
 
-        sage: arrow((0,0), (0,2), legend_label='up')
+        sage: arrow((0,0), (0,2), legend_label='up', legend_color='purple')
 
     Extra options will get passed on to show(), as long as they are valid::
 
@@ -549,4 +554,5 @@ def arrow2d(tailpoint=None, headpoint=None, path=None, **options):
         raise TypeError('Arrow requires either both headpoint and tailpoint or a path parameter.')
     if options['legend_label']:
         g.legend(True)
+        g._legend_colors = [options['legend_color']]
     return g

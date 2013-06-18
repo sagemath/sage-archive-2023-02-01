@@ -123,6 +123,7 @@ class Disk(GraphicPrimitive):
         return {'alpha':'How transparent the figure is.',
                 'fill':'Whether or not to fill the disk.',
                 'legend_label':'The label for this item in the legend.',
+                'legend_color':'The color of the legend text.',
                 'thickness':'How thick the border of the disk is.',
                 'rgbcolor':'The color as an RGB tuple.',
                 'hue':'The color given as a hue.',
@@ -283,6 +284,10 @@ def disk(point, radius, angle, **options):
 
     TESTS:
 
+    Testing that legend labels work right::
+
+        sage: disk((2,4), 3, (pi/8, pi/4), hue=1, legend_label='disk', legend_color='blue')
+
     We cannot currently plot disks in more than three dimensions::
 
         sage: d = disk((1,1,1,1), 1, (0,pi))
@@ -305,6 +310,7 @@ def disk(point, radius, angle, **options):
     g.add_primitive(Disk(point, radius, angle, options))
     if options['legend_label']:
         g.legend(True)
+        g._legend_colors = [options['legend_color']]
     if len(point)==2:
         return g
     elif len(point)==3:

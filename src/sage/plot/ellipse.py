@@ -144,6 +144,7 @@ class Ellipse(GraphicPrimitive):
         return {'alpha':'How transparent the figure is.',
                 'fill': 'Whether or not to fill the ellipse.',
                 'legend_label':'The label for this item in the legend.',
+                'legend_color':'The color of the legend text.',
                 'thickness':'How thick the border of the ellipse is.',
                 'edgecolor':'2D only: The color of the edge as an RGB tuple.',
                 'facecolor':'2D only: The color of the face as an RGB tuple.',
@@ -219,7 +220,7 @@ class Ellipse(GraphicPrimitive):
 
 @rename_keyword(color='rgbcolor')
 @options(alpha=1, fill=False, thickness=1, edgecolor='blue', facecolor='blue', linestyle='solid', zorder=5,
-         aspect_ratio=1.0, legend_label=None)
+         aspect_ratio=1.0, legend_label=None, legend_color=None)
 def ellipse(center, r1, r2, angle=0, **options):
     """
     Return an ellipse centered at a point center = ``(x,y)`` with radii =
@@ -254,6 +255,10 @@ def ellipse(center, r1, r2, angle=0, **options):
     - ``rgbcolor`` - 2D or 3D plotting.  This option overrides
       ``edgecolor`` and ``facecolor`` for 2D plotting.
 
+    - ``legend_label`` - the label for this item in the legend
+
+    - ``legend_color`` - the color for the legend label
+
     EXAMPLES:
 
     An ellipse centered at (0,0) with major and minor axes of lengths 2 and 1.
@@ -286,6 +291,10 @@ def ellipse(center, r1, r2, angle=0, **options):
         Traceback (most recent call last):
         ...
         NotImplementedError: plotting ellipse in 3D is not implemented
+
+    We can also give ellipses a legend::
+
+        sage: ellipse((0,0),2,1,legend_label="My ellipse", legend_color='green')
     """
     from sage.plot.all import Graphics
     g = Graphics()
@@ -302,6 +311,7 @@ def ellipse(center, r1, r2, angle=0, **options):
     g.add_primitive(Ellipse(center[0],center[1],r1,r2,angle,options))
     if options['legend_label']:
         g.legend(True)
+        g._legend_colors = [options['legend_color']]
     if len(center)==2:
         return g
     elif len(center)==3:

@@ -354,6 +354,11 @@ def point2d(points, **options):
 
         sage: point((0,0), rgbcolor='black', pointsize=40, legend_label='origin')
 
+    The legend can be colored::
+
+        sage: P = points([(0,0),(1,0)], pointsize=40, legend_label='origin', legend_color='red')
+        sage: P + plot(x^2,(x,0,1), legend_label='plot', legend_color='green')
+
     Extra options will get passed on to show(), as long as they are valid::
 
         sage: point([(cos(theta), sin(theta)) for theta in srange(0, 2*pi, pi/8)], frame=True)

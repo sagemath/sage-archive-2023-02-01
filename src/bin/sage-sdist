@@ -65,8 +65,8 @@ export SAGE_INSTALL_FETCH_ONLY=yes
 
 # create fake sage-spkg that only downloads files if necessary
 echo '
-set -e
 . "${0%spkg}env"
+set -e
 mkdir -p "$SAGE_SPKG_INST"
 PKG_NAME="$1"
 PKG_BASE=`echo "$PKG_NAME" | sed 's/-.*//'`
@@ -76,6 +76,7 @@ PKG_NAME_UPSTREAM="${PKG_BASE}-`echo $PKG_VER | sed 's/\.p[0-9][0-9]*$//'`"
 for tarball in `ls -1t ${SAGE_CURRENT_UPSTREAM}/${PKG_NAME_UPSTREAM}.tar* 2>/dev/null`; do
     if [ -f "$tarball" ]; then
         cp "$tarball" $SAGE_ROOT/upstream
+        touch "$SAGE_SPKG_INST/$PKG_NAME"
         exit 0
     fi
 done
@@ -84,7 +85,6 @@ PKG_URL="$SAGE_UPSTREAM$PKG_NAME_UPSTREAM"
 PKG_TMP="${PKG_URL##*/}.tmp"
 for EXT in .tar.bz2 .tar.gz .tar; do
     REAL_PKG_URL="$PKG_URL$EXT"
-    echo ">>> Trying to download $REAL_PKG_URL"
     sage-download-file "$REAL_PKG_URL" >"$PKG_TMP" &&
         { DOWNLOAD_SUCCESS=yes; break; }
 done
@@ -96,10 +96,12 @@ chmod +x src/bin/sage-spkg
 
 # use install to get all needed packages
 (
+    unset SAGE_ENV_SOURCED
+    unset SAGE_ROOT
     cd build
     SAGE_BUILD_GCC=yes ./install all
+    ../sage -i `ls -1t base/prereq* | sed 's+base/\(.*\)-install\**+\1+'`
 )
-cp "$SAGE_ROOT/upstream/prereq"*.tar.gz upstream
 
 # remove any artifacts from running install
 make distclean

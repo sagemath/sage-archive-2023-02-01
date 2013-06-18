@@ -1669,12 +1669,142 @@ class Partition(CombinatorialObject, Element):
                 conj.extend([i]*(p[i-1] - p[i]))
             return Partition(conj)
 
+    def suter_diagonal_slide(self, n, iteration=1):
+        r"""
+        Return the image of the partition ``self`` under Suter's
+        diagonal slide `\sigma_n` on `Y_n`, where the notations used
+        are those defined in [Sut2002]_. (See also below for their
+        definitions. While [Sut2002]_ gives two *non-equivalent*
+        definitions for `\sigma_n`, we are using the formulaic one,
+        not the one using the four steps.)
+
+        INPUT:
+
+        - ``n`` -- nonnegative integer.
+
+        - ``iteration`` -- an optional keyword argument which
+          defaults to `1`. It should be an integer, and
+          determines how often `\sigma_n` is to be applied.
+
+        OUTPUT:
+
+        The result of applying Suter's diagonal slide `\sigma_n` to
+        ``self``, assuming that ``self`` lies in `Y_n`. If the
+        optional argument ``iteration`` is set, then the slide
+        `\sigma_n` is applied not just once, but ``iteration`` times
+        (note that ``iteration`` is allowed to be negative, since
+        the slide has finite order).
+
+        Here is how `Y_n` and `\sigma_n` are defined:
+
+        The set `Y_n` is defined as the set of all partitions
+        `\lambda` such that the hook length of the northwesternmost
+        cell of `\lambda` (i. e., the cell with coordinates `(1, 1)`
+        if we start counting from `1`) is less than `n`. (This is
+        considered true if `\lambda` is empty.)
+
+        The map `\sigma_n` sends a partition
+        `(\lambda_1, \lambda_2, ..., \lambda_m) \in Y_n` with length
+        `m` to the partition
+        `(\lambda_2 + 1, \lambda_3 + 1, ..., \lambda_m + 1,
+        \underbrace{1, 1, ..., 1}_{n - m - \lambda_1\text{ ones}})`.
+        In other words, it pads the partition with trailing zeroes
+        until it has length `n - \lambda_1`, then removes its first
+        part, and finally adds `1` to each part.
+
+        By Theorem 2.1 of [Sut2002]_, the dihedral group `D_n` with
+        `2n` elements acts on `Y_n` by letting the primitive rotation
+        act as `\sigma_n` and the reflection act as conjugation of
+        partitions (:meth:`conjugate()`). This action is faithful if
+        `n \geq 3`.
+
+        EXAMPLES:
+
+            sage: Partition([5,4,1]).suter_diagonal_slide(8)
+            [5, 2]
+            sage: Partition([5,4,1]).suter_diagonal_slide(9)
+            [5, 2, 1]
+            sage: Partition([]).suter_diagonal_slide(7)
+            [1, 1, 1, 1, 1, 1]
+            sage: Partition([]).suter_diagonal_slide(1)
+            []
+            sage: Partition([]).suter_diagonal_slide(7, iteration=-1)
+            [6]
+            sage: Partition([]).suter_diagonal_slide(1, iteration=-1)
+            []
+            sage: P7 = Partitions(7)
+            sage: all( p == p.suter_diagonal_slide(9, iteration=-1).suter_diagonal_slide(9)
+            ....:      for p in P7 )
+            True
+            sage: all( p == p.suter_diagonal_slide(9, iteration=3)
+            ....:            .suter_diagonal_slide(9, iteration=3)
+            ....:            .suter_diagonal_slide(9, iteration=3)
+            ....:      for p in P7 )
+            True
+            sage: all( p == p.suter_diagonal_slide(9, iteration=6)
+            ....:            .suter_diagonal_slide(9, iteration=6)
+            ....:            .suter_diagonal_slide(9, iteration=6)
+            ....:      for p in P7 )
+            True
+            sage: all( p == p.suter_diagonal_slide(9, iteration=-1)
+            ....:            .suter_diagonal_slide(9, iteration=1)
+            ....:      for p in P7 )
+            True
+            sage: all( p.suter_diagonal_slide(8).conjugate()
+            ....:      == p.conjugate().suter_diagonal_slide(8, iteration=-1)
+            ....:      for p in P7 )      # Check of [Sut2002]_'s assertion
+            ....:                         # that \sigma_n(\sigma_n(\lambda')') = \lambda
+            True
+            sage: P5 = Partitions(5)
+            sage: all( all( (p.suter_diagonal_slide(6) in q.suter_diagonal_slide(6).down())
+            ....:           or (q.suter_diagonal_slide(6) in p.suter_diagonal_slide(6).down())
+            ....:           for p in q.down() )
+            ....:      for q in P5 )    # Claim 1 in [Sut2002]_.
+            True
+
+        REFERENCES:
+
+        .. [Sut2002] Ruedi Suter.
+           *Young’s Lattice and Dihedral Symmetries*.
+           Europ. J. Combinatorics (2002) 23, 233–238.
+           http://www.sciencedirect.com/science/article/pii/S0195669801905414
+        """
+        if iteration == 1:
+            # Suter's map \sigma_n
+            leng = self.length()
+            if leng == 0:   # Taking extra care about the empty partition.
+                return Partition([1] * (n - 1))
+            res = [i + 1 for i in self._list[1:]]
+            res += [1] * (n - leng - self._list[0])
+            return Partition(res)
+        elif iteration == -1:
+            # inverse map \sigma_n^{-1}
+            leng = self.length()
+            if leng == 0:   # Taking extra care about the empty partition.
+                return Partition([n - 1])
+            res = [n - leng - 1]
+            res.extend([i - 1 for i in self._list if i > 1])
+            return Partition(res)
+        # Arbitrary number of iterations
+        iteration = iteration % n
+        sc = self
+        if iteration < n/2:
+            while iteration > 0:
+                iteration -= 1
+                sc = sc.suter_diagonal_slide(n)
+        else:
+            iteration = -iteration
+            while iteration < 0:
+                iteration += 1
+                sc = sc.suter_diagonal_slide(n, iteration=-1)
+        return sc
+
     @combinatorial_map(name="reading tableau")
     def reading_tableau(self):
         r"""
-        Return the reading tableau of the reading word under the
-        Robinson-Schensted correspondence of the (standard) tableau `T` labeled
-        down (in English convention) each column to the shape of ``self``.
+        Return the RSK recording tableau of the reading word of the
+        (standard) tableau `T` labeled down (in English convention)
+        each column to the shape of ``self``.
 
         For an example of the tableau `T`, consider the partition
         `\lambda = (3,2,1)`, then we have::
@@ -1715,13 +1845,13 @@ class Partition(CombinatorialObject, Element):
         r"""
         Return the Garnir tableau of shape ``self`` corresponding to the cell
         ``cell``. If ``cell`` `= (a,c)` then `(a+1,c)` must belong to the
-        diagram of the :class:`PartitionTuple`.
+        diagram of the :class:`Partition` ``self``.
 
-        The Garnir tableau play an important role in integral and
+        The Garnir tableaux play an important role in integral and
         non-semisimple representation theory because they determine the
         "straightening" rules for the Specht modules over an arbitrary ring.
 
-        The Garnir tableau are the "first" non-standard tableaux which arise
+        The Garnir tableaux are the "first" non-standard tableaux which arise
         when you act by simple transpositions. If `(a,c)` is a cell in the
         Young diagram of a partition, which is not at the bottom of its
         column, then the corresponding Garnir tableau has the integers

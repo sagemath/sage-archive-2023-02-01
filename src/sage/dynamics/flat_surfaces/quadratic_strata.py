@@ -16,27 +16,26 @@ class QuadraticStratum(SageObject):
             sage: a = QuadraticStratum(-1,-1,-1,-1)
             sage: loads(dumps(a)) == a
             True
+            sage: QuadraticStratum([])
+            Traceback (most recent call last):
+            ...
+            ValueError: the list must be non empty !
         """
-        if l == []:
-            raise ValueError("The list must be non empty !")
-
         if isinstance(l[0], list) or isinstance(l[0], tuple):
+            if not l[0]:
+                raise ValueError("the list must be non empty !")
             self._zeroes = []
             for (i, j) in l.iteritems():
-                assert(isinstance(i, (int, Integer)) and
-                       isinstance(j, (int, Integer)))
+                i = Integer(i)
+                j = Integer(j)
                 self._zeroes += [i]*j
-
         else:
             for i in l:
-                assert(isinstance(i, (int, Integer)))
+                i = Integer(i)
             self._zeroes = sorted(list(l), reverse=True)
 
 
         self._genus = sum(l)/4 + 1
-        assert(isinstance(self._genus, (int, Integer))  or
-               (isinstance(self._genus,Rational) and self._genus.is_integral()))
-
         self._genus = Integer(self._genus)
 
     def __repr__(self):

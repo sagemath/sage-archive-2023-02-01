@@ -195,6 +195,17 @@ class IntervalExchangeTransformation(SageObject):
             2
             sage: s.lengths()
             [1/2, 3/2]
+
+        TESTS::
+
+           sage: s = t.normalize('bla')
+           Traceback (most recent call last):
+           ...
+           TypeError: unable to convert total (='bla') into a real number
+           sage: s = t.normalize(-691)
+           Traceback (most recent call last):
+           ...
+           ValueError: the total length must be positive
         """
         try:
             float(total)
@@ -387,10 +398,17 @@ class IntervalExchangeTransformation(SageObject):
             cb da ca
             sage: r2.lengths()
             [1, 2, 3]
+
+        ::
+
+            sage: r * s
+            Traceback (most recent call last):
+            ...
+            ValueError: self and other are not IET of the same length
         """
-        assert(
-            isinstance(other, IntervalExchangeTransformation) and
-            self.length() == other.length())
+        if not(isinstance(other, IntervalExchangeTransformation) and
+               self.length() == other.length()):
+            raise ValueError("self and other are not IET of the same length")
 
         from labelled import LabelledPermutationIET
 
@@ -533,6 +551,13 @@ class IntervalExchangeTransformation(SageObject):
             'b'
             sage: t.in_which_interval(2.9,'bottom')
             'a'
+
+        TESTS::
+
+            sage: t.in_which_interval(-2.9,'bottom')
+            Traceback (most recent call last):
+            ...
+            ValueError: your value does not lie in [0;l[
         """
         interval = interval_conversion(interval)
 
@@ -623,8 +648,16 @@ class IntervalExchangeTransformation(SageObject):
             1/2
             sage: t(3/2)
             1
+
+        TESTS::
+
+            sage: t(-3/2)
+            Traceback (most recent call last):
+            ...
+            ValueError: value must positive and smaller than length
         """
-        assert(value >= 0 and value < self.length())
+        if not(value >= 0 and value < self.length()):
+            raise ValueError("value must positive and smaller than length")
 
         dom_sg = self.domain_singularities()
         im_sg = self.range_singularities()

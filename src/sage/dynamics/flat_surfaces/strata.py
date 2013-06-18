@@ -403,15 +403,26 @@ class AbelianStrata_g(CombinatorialClass):
             sage: s = AbelianStrata(genus=3)
             sage: s == loads(dumps(s))
             True
+
+            sage: AbelianStrata(genus=-3)
+            Traceback (most recent call last):
+            ...
+            ValueError: genus must be positive
+
+            sage: AbelianStrata(genus=3, marked_separatrix='yes')
+            Traceback (most recent call last):
+            ...
+            ValueError: marked_separatrix must be no, out or in
         """
-        assert(isinstance(genus, (int, Integer)))
-        assert(genus >= 0)
+        genus = Integer(genus)
+
+        if not(genus >= 0):
+            raise ValueError('genus must be positive')
 
         if marked_separatrix is None:
             marked_separatrix = 'no'
-        assert(marked_separatrix == 'no' or
-               marked_separatrix == 'out' or
-               marked_separatrix == 'in')
+        if not marked_separatrix in ['no', 'out', 'in']:
+            raise ValueError("marked_separatrix must be no, out or in")
         self._marked_separatrix = marked_separatrix
 
         self._genus = genus
@@ -471,17 +482,28 @@ class AbelianStrata_d(CombinatorialClass):
             sage: s = AbelianStrata(nintervals=10)
             sage: s == loads(dumps(s))
             True
+
+            sage: AbelianStrata(nintervals=1)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of intervals must be at least 2
+
+            sage: AbelianStrata(nintervals=4, marked_separatrix='maybe')
+            Traceback (most recent call last):
+            ...
+            ValueError: marked_separatrix must be no, out or in
         """
-        assert(isinstance(nintervals, (int, Integer)))
-        assert(nintervals > 1)
+        nintervals = Integer(nintervals)
+
+        if not(nintervals > 1):
+            raise ValueError("number of intervals must be at least 2")
 
         self._nintervals = nintervals
 
         if marked_separatrix is None:
             marked_separatrix = 'out'
-        assert(marked_separatrix == 'no' or
-               marked_separatrix == 'out' or
-               marked_separatrix == 'in')
+        if not marked_separatrix in ['no', 'out', 'in']:
+            raise ValueError("marked_separatrix must be no, out or in")
         self._marked_separatrix = marked_separatrix
 
     def _repr_(self):
@@ -521,7 +543,7 @@ class AbelianStrata_d(CombinatorialClass):
 
 class AbelianStrata_gd(CombinatorialClass):
     r"""
-    Abelian strata of presrcribed genus and number of intervals.
+    Abelian strata of prescribed genus and number of intervals.
 
     INPUT:
 
@@ -538,20 +560,38 @@ class AbelianStrata_gd(CombinatorialClass):
             sage: s = AbelianStrata(genus=4,nintervals=10)
             sage: s == loads(dumps(s))
             True
+
+            sage: AbelianStrata(genus=-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: genus must be positive
+
+            sage: AbelianStrata(genus=1, nintervals=1)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of intervals must be at least 2
+
+            sage: AbelianStrata(genus=1, marked_separatrix='so')
+            Traceback (most recent call last):
+            ...
+            ValueError: marked_separatrix must be no, out or in
         """
-        assert(isinstance(genus, (int, Integer)))
-        assert(genus >= 0)
+        genus = Integer(genus)
+
+        if not(genus >= 0):
+            raise ValueError("genus must be positive")
         self._genus = genus
 
-        assert(isinstance(nintervals, (int, Integer)))
-        assert(nintervals > 1)
+        nintervals = Integer(nintervals)
+        if not(nintervals > 1):
+            raise ValueError("number of intervals must be at least 2")
         self._nintervals = nintervals
 
         if marked_separatrix is None:
             marked_separatrix = 'out'
-        assert(marked_separatrix == 'no' or
-               marked_separatrix == 'out' or
-               marked_separatrix == 'in')
+        if not marked_separatrix in ['no', 'out', 'in']:
+            raise ValueError("marked_separatrix must be no, out or in")
+
         self._marked_separatrix = marked_separatrix
 
     def __repr__(self):
@@ -714,6 +754,16 @@ class AbelianStratum(SageObject):
             sage: s = AbelianStratum(1,1,1,1)
             sage: s == loads(dumps(s))
             True
+
+            sage: AbelianStratum('no','way')
+            Traceback (most recent call last):
+            ...
+            ValueError: input must be a list of integers
+
+            sage: AbelianStratum([1,1,1,1], marked_separatrix='full')
+            Traceback (most recent call last):
+            ...
+            ValueError: marked_separatrix must be one of 'no', 'in', 'out'
         """
         if l == ():
             pass
@@ -721,8 +771,8 @@ class AbelianStratum(SageObject):
         elif hasattr(l[0], "__iter__") and len(l) == 1:
             l = l[0]
 
-        for i in l:
-            assert(isinstance(i, (int, Integer)))
+        if not all(isinstance(i, (Integer, int)) for i in l):
+            raise ValueError("input must be a list of integers")
 
         if 'marked_separatrix' in d:
             m = d['marked_separatrix']
@@ -746,9 +796,6 @@ class AbelianStratum(SageObject):
             self._zeroes.sort(reverse=True)
 
         self._genus = sum(l)/2 + 1
-        assert(isinstance(self._genus, (int, Integer)) or
-               (isinstance(self._genus, Rational) and
-                self._genus.is_integral()))
 
         self._genus = Integer(self._genus)
 
@@ -836,9 +883,14 @@ class AbelianStratum(SageObject):
             False
             sage: c == e  # difference between out mark adn in mark
             False
+
+            sage: a == False
+            Traceback (most recent call last):
+            ...
+            TypeError: the right member must be a stratum
         """
         if type(self) != type(other):
-            raise TypeError("The right member must be a stratum")
+            raise TypeError("the right member must be a stratum")
 
         return (self._marked_separatrix == other._marked_separatrix and
                 self._zeroes == other._zeroes)
@@ -865,9 +917,13 @@ class AbelianStratum(SageObject):
             True
             sage: c != e  # difference between out mark adn in mark
             True
+            sage: a != False
+            Traceback (most recent call last):
+            ...
+            TypeError: the right member must be a stratum
         """
         if type(self) != type(other):
-            raise TypeError("The right member must be a stratum")
+            raise TypeError("the right member must be a stratum")
 
         return (self._marked_separatrix != other._marked_separatrix or
                 self._zeroes != other._zeroes)
@@ -892,7 +948,7 @@ class AbelianStratum(SageObject):
         """
         if (type(self) != type(other) or
             self._marked_separatrix != other._marked_separatrix):
-            raise TypeError("The other must be a stratum with same marking")
+            raise TypeError("the other must be a stratum with same marking")
 
         if self._zeroes < other._zeroes:
             return 1
@@ -1249,12 +1305,10 @@ class ConnectedComponentOfAbelianStratum(SageObject):
             from sage.dynamics.interval_exchanges.reduced import ReducedPermutationIET
             return ReducedPermutationIET([l0, l1], alphabet=alphabet)
 
-        elif not reduced:
+        else:
             from sage.dynamics.interval_exchanges.labelled import LabelledPermutationIET
             return LabelledPermutationIET([l0, l1], alphabet=alphabet)
 
-        else:
-            raise ValueError("reduced must be boolean")
 
     def genus(self):
         r"""
@@ -1351,10 +1405,13 @@ class ConnectedComponentOfAbelianStratum(SageObject):
             True
             sage: c2_hyp != c2_odd
             True
-
+            sage: c1 == True
+            Traceback (most recent call last):
+            ...
+            TypeError: other must be a connected component
         """
         if not isinstance(other, CCA):
-            raise TypeError("Must be a connected component")
+            raise TypeError("other must be a connected component")
 
         if type(self) == type(other):
             if self._parent._zeroes > other._parent._zeroes:
@@ -1668,15 +1725,12 @@ class OddConnectedComponentOfAbelianStratum(CCA):
             l0.reverse()
             l1.reverse()
 
-        if reduced is True:
+        if reduced:
             from sage.dynamics.interval_exchanges.reduced import ReducedPermutationIET
             return ReducedPermutationIET([l0, l1], alphabet=alphabet)
 
-        elif reduced is False:
+        else:
             from sage.dynamics.interval_exchanges.labelled import LabelledPermutationIET
             return LabelledPermutationIET([l0, l1], alphabet=alphabet)
-
-        else:
-            raise ValueError("reduced must be boolean")
 
 OddCCA = OddConnectedComponentOfAbelianStratum

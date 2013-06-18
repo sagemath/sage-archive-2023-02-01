@@ -180,6 +180,10 @@ def _two_lists(a):
         Traceback (most recent call last):
         ...
         TypeError: argument not accepted
+        sage: _two_lists([1,2,3])
+        Traceback (most recent call last):
+        ...
+        ValueError: your argument can not be split in two parts
     """
     from sage.combinat.permutation import Permutation_class
 
@@ -318,6 +322,21 @@ def Permutation(*args,**kargs):
         sage: p = iet.Permutation('a b c','c b a',reduced=True)
         sage: iet.Permutation(p) == p
         True
+
+    TESTS::
+
+        sage: iet.Permutation('a b c','c b a',reduced='badly')
+        Traceback (most recent call last):
+        ...
+        TypeError: reduced must be of type boolean
+        sage: iet.Permutation('a','a',flips='b',reduced=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: flips contains not valid letters
+        sage: iet.Permutation('a b c','c a a',reduced=True)
+        Traceback (most recent call last):
+        ...
+        ValueError: letters must appear once in each interval
     """
     from labelled import LabelledPermutation
     from labelled import LabelledPermutationIET
@@ -454,6 +473,21 @@ def GeneralizedPermutation(*args,**kargs):
         sage: iet.GeneralizedPermutation('a b c a', 'd c d b', flips = ['a','b'])
         -a -b  c -a
          d  c  d -b
+
+    TESTS::
+
+        sage: iet.GeneralizedPermutation('a a b b', 'c c d d', reduced = 'may')
+        Traceback (most recent call last):
+        ...
+        TypeError: reduced must be of type boolean
+        sage: iet.GeneralizedPermutation('a b c a', 'd c d b', flips = ['e','b'])
+        Traceback (most recent call last):
+        ...
+        TypeError: The flip list is not valid
+        sage: iet.GeneralizedPermutation('a b c a', 'd c c b', flips = ['a','b'])
+        Traceback (most recent call last):
+        ...
+        ValueError: Letters must reappear twice
     """
     from labelled import LabelledPermutation
     from labelled import LabelledPermutationLI
@@ -545,7 +579,7 @@ def GeneralizedPermutation(*args,**kargs):
         if l.count(letter) != 2:
             raise ValueError("Letters must reappear twice")
 
-    # check exitence of admissible length
+    # check existence of admissible length
     b0 = a[0][:]
     b1 = a[1][:]
     for letter in letters :
@@ -614,6 +648,17 @@ def Permutations_iterator(nintervals=None, irreducible=True,
         a b c
         c b a
         * * *
+
+    TESTS::
+
+        sage: P = iet.Permutations_iterator(nintervals=None, alphabet=None)
+        Traceback (most recent call last):
+        ...
+        ValueError: You must specify an alphabet or a length
+        sage: P = iet.Permutations_iterator(nintervals=None, alphabet=ZZ)
+        Traceback (most recent call last):
+        ...
+        ValueError: You must specify a length with infinite alphabet
     """
     from labelled import LabelledPermutationsIET_iterator
     from reduced import ReducedPermutationsIET_iterator
@@ -841,6 +886,21 @@ def IntervalExchangeTransformation(permutation=None, lengths=None):
         sage: s = t.rauzy_move(iterations=8)
         sage: s.normalize() == t.normalize()
         True
+
+    TESTS::
+
+        sage: iet.IntervalExchangeTransformation(('a b c','c b a'),[0.123,2])
+        Traceback (most recent call last):
+        ...
+        ValueError: bad number of lengths
+        sage: iet.IntervalExchangeTransformation(('a b c','c b a'),[0.1,'rho',2])
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert x (='rho') into a real number
+        sage: iet.IntervalExchangeTransformation(('a b c','c b a'),[0.1,-2,2])
+        Traceback (most recent call last):
+        ...
+        ValueError: lengths must be positive
     """
     from iet import IntervalExchangeTransformation as _IET
     from labelled import LabelledPermutationIET

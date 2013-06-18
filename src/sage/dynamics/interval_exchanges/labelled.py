@@ -713,16 +713,18 @@ def LabelledPermutationsIET_iterator(nintervals=None,
     if not irreducible:
         if nintervals is None:
             raise ValueError("choose a number of intervals")
-        else:
-            assert(isinstance(nintervals,(int,Integer)))
-            assert(nintervals > 0)
 
-            f = lambda x: LabelledPermutationIET([list(x[0]),list(x[1])],alphabet=alphabet)
+        nintervals = Integer(nintervals)
 
-            alphabet = Alphabet(alphabet)
-            g = lambda x: [alphabet.unrank(k-1) for k in x]
-            P = map(g, Permutations(nintervals))
-            return imap(f,product(P,P))
+        if not(nintervals > 0):
+            raise ValueError("nintervals must be positive")
+
+        f = lambda x: LabelledPermutationIET([list(x[0]),list(x[1])],alphabet=alphabet)
+
+        alphabet = Alphabet(alphabet)
+        g = lambda x: [alphabet.unrank(k-1) for k in x]
+        P = map(g, Permutations(nintervals))
+        return imap(f,product(P,P))
     else:
         return ifilter(
             lambda x: x.is_irreducible(),

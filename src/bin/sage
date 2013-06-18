@@ -848,8 +848,8 @@ if [ "$1" = '-bdist' -o "$1" = "--bdist" ]; then
         exit 2
     fi
     maybe_sage_location
-    cd "$SAGE_ROOT"
-    exec sage-bdist $2 "$SAGE_ROOT"
+    shift
+    exec sage-bdist "$@"
 fi
 
 #if [ "$1" = '-update' ]; then

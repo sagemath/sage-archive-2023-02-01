@@ -346,11 +346,11 @@ cdef class Cylinder(ParametricSurface):
             sage: from sage.plot.plot3d.shapes import Cylinder
             sage: C = Cylinder(1/2, 4, closed=False)
             sage: C.tachyon_repr(C.default_render_params())
-            'FCylinder \n   Base 0 0 0\n   Apex 0 0 4.0\n   Rad 0.5\n   texture...     '
+            'FCylinder\n   Base 0 0 0\n   Apex 0 0 4.0\n   Rad 0.5\n   texture...     '
             sage: C = Cylinder(1, 2)
             sage: C.tachyon_repr(C.default_render_params())
                 ['Ring Center 0 0 0 Normal 0 0 1 Inner 0 Outer 1.0 texture...',
-                 'FCylinder \n   Base 0 0 0\n   Apex 0 0 2.0\n   Rad 1.0\n   texture...     ',
+                 'FCylinder\n   Base 0 0 0\n   Apex 0 0 2.0\n   Rad 1.0\n   texture...     ',
                  'Ring Center 0 0 2.0 Normal 0 0 1 Inner 0 Outer 1.0 texture...']
         """
         transform = render_params.transform

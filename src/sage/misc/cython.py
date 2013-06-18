@@ -19,7 +19,7 @@ from __future__ import print_function
 
 import os, sys, platform
 
-from sage.env import SAGE_ROOT, SAGE_LOCAL, SAGE_SRC, UNAME
+from sage.env import SAGE_LOCAL, SAGE_SRC, UNAME
 from misc import SPYX_TMP
 
 def cblas():
@@ -139,7 +139,7 @@ def environ_parse(s):
     EXAMPLES::
 
         sage: from sage.misc.cython import environ_parse
-        sage: environ_parse('$SAGE_ROOT') == SAGE_ROOT
+        sage: environ_parse('$SAGE_LOCAL') == SAGE_LOCAL
         True
         sage: environ_parse('$THIS_IS_NOT_DEFINED_ANYWHERE')
         '$THIS_IS_NOT_DEFINED_ANYWHERE'
@@ -185,8 +185,8 @@ def pyx_preparse(s):
       space separated list is split and passed to distutils.
 
     - ``cfile`` - additional C or C++ files to be compiled. Also,
-      :envvar:`$SAGE_ROOT` is expanded, but other environment variables are
-      not.
+      :envvar:`$SAGE_SRC` and :envvar:`$SAGE_LOCAL` are expanded, but other
+      environment variables are not.
 
     - ``cargs`` - additional parameters passed to the compiler
 
@@ -213,9 +213,9 @@ def pyx_preparse(s):
         '.../include',
         '.../include/python2.7',
         '.../lib/python/site-packages/numpy/core/include',
-        '.../devel/sage/sage/ext',
-        '.../devel/sage',
-        '.../devel/sage/sage/gsl'],
+        '.../sage/ext',
+        '...',
+        '.../sage/gsl'],
         'c',
         [], ['-w', '-O2'])
         sage: s, libs, inc, lang, f, args = pyx_preparse("# clang c++\n #clib foo\n # cinclude bar\n")
@@ -241,9 +241,9 @@ def pyx_preparse(s):
         '.../include',
         '.../include/python2.7',
         '.../lib/python/site-packages/numpy/core/include',
-        '.../devel/sage/sage/ext',
-        '.../devel/sage',
-        '.../devel/sage/sage/gsl']
+        '.../sage/ext',
+        '...',
+        '.../sage/gsl']
 
         sage: s, libs, inc, lang, f, args = pyx_preparse("# cargs -O3 -ggdb\n")
         sage: args
@@ -434,7 +434,8 @@ def cython(filename, verbose=False, compile_message=False,
 
     file_list = []
     for fname in additional_source_files:
-        fname = fname.replace("$SAGE_ROOT",SAGE_ROOT)
+        fname = fname.replace("$SAGE_SRC", SAGE_SRC)
+        fname = fname.replace("$SAGE_LOCAL", SAGE_LOCAL)
         if fname.startswith(os.path.sep):
             file_list.append("'"+fname+"'")
         else:
@@ -759,7 +760,7 @@ def compile_and_load(code):
 TESTS = {
 'trac11680':"""
 #cargs -std=c99 -O3 -ggdb
-#cinclude $SAGE_ROOT/devel/sage/sage/libs/flint $SAGE_LOCAL/include/flint
+#cinclude $SAGE_SRC/sage/libs/flint $SAGE_LOCAL/include/FLINT
 #clib flint
 
 from sage.rings.rational cimport Rational

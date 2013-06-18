@@ -21,9 +21,9 @@ TESTS:
         sage: allowed = [os.path.join("lib","python","threading.py")]
         sage: allowed.append(os.path.join("lib","python","multiprocessing"))
         sage: allowed.append(os.path.join("sage","doctest"))
-        sage: allowed.append(os.path.join("local","bin","sage-runtests"))
+        sage: allowed.append(os.path.join("bin","sage-runtests"))
         sage: allowed.append(os.path.join("site-packages","IPython"))
-        sage: allowed.append(os.path.join("local","bin","sage-ipython"))
+        sage: allowed.append(os.path.join("bin","sage-ipython"))
         sage: allowed.append("<ipython console>")
         sage: allowed.append("<doctest sage.all[3]>")
         sage: allowed.append(os.path.join("sage","combinat","species","generating_series.py"))

@@ -2251,7 +2251,7 @@ class RDFInterpreter(StackInterpreter):
             sage: instrs['add']
             add: SS->S = 'o0 = i0 + i1;'
             sage: instrs['py_call']
-            py_call: *->S = ' \nPyObject *py_arg...goto error;\n}\n'
+            py_call: *->S = '\nPyObject *py_arg...goto error;\n}\n'
 
         Make sure that pow behaves reasonably::
 

@@ -443,10 +443,10 @@ if [ ! -f "$PKG_SRC" ]; then
     if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
         EXT_LIST=".tar.bz2 .tar.gz .tar"
     else
-        EXT_LIST=.spkg
+        EXT_LIST=".spkg"
     fi
     for EXT in $EXT_LIST; do
-        REAL_PKG_URL="$PKG_URL$EXT"
+        REAL_PKG_URL="$PKG_URL${EXT#.spkg}"
         echo ">>> Trying to download $REAL_PKG_URL"
         sage-download-file "$REAL_PKG_URL" >"$PKG_TMP"
         if [ $? -eq 0 ]; then
@@ -461,7 +461,7 @@ if [ ! -f "$PKG_SRC" ]; then
         exit 1
     fi
 
-    PKG_SRC="`pwd`/${PKG_URL##*/}$EXT"
+    PKG_SRC="`pwd`/${PKG_URL##*/}${EXT#.spkg}"
     if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
         verify_checksum "$PKG_TMP" "$PKG_SCRIPTS/checksums.ini"
     fi

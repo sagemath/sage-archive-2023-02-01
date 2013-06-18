@@ -81,7 +81,7 @@ for tarball in `ls -1t ${SAGE_CURRENT_UPSTREAM}/${PKG_NAME_UPSTREAM}.tar* 2>/dev
     fi
 done
 cd "$SAGE_ROOT/upstream"
-PKG_URL="$SAGE_UPSTREAM$PKG_NAME_UPSTREAM"
+PKG_URL="$SAGE_UPSTREAM/$PKG_BASE/$PKG_NAME_UPSTREAM"
 PKG_TMP="${PKG_URL##*/}.tmp"
 for EXT in .tar.bz2 .tar.gz .tar; do
     REAL_PKG_URL="$PKG_URL$EXT"

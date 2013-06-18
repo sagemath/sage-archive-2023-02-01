@@ -295,7 +295,7 @@ if [ ! -f "$PKG_SRC" ]; then
         PKG_URL="$PKG_SRC"
     else
         if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
-            PKG_URL="$SAGE_UPSTREAM$PKG_NAME_UPSTREAM"
+            PKG_URL="$SAGE_UPSTREAM/$PKG_BASE/$PKG_NAME_UPSTREAM"
         else
             # Handle cases 2a and 3, where the package name is something
             # like "foo" or "foo-1.2.3".

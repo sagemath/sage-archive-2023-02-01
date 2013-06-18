@@ -310,6 +310,11 @@ if [ "$SAGE_SERVER" = "" ]; then
     export SAGE_SERVER
 fi
 
+if [ "$SAGE_UPSTREAM" = "" ]; then
+    SAGE_UPSTREAM="http://www.sagemath.org/packages/upstream/"
+    export SAGE_UPSTREAM
+fi
+
 # Check that $HOME exists
 if [ "$HOME" = "" ]; then
     echo >&2 'Error: environment variable $HOME is not set.'

@@ -33,7 +33,7 @@ if [ -z "$URL_GRABBER" ]; then
     if [ -n "$SAGE_LOCAL" ] && [ -x "$SAGE_LOCAL/bin/python" ]; then
         URL_GRABBER="$SAGE_LOCAL/bin/python"
     elif command -v curl &>/dev/null; then
-        URL_GRABBER="curl"
+        URL_GRABBER="curl --fail"
     elif command -v wget &>/dev/null; then
         URL_GRABBER="wget -nv -O-"
     # Pick Python last because we don't know which version it is,

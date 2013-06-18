@@ -230,7 +230,11 @@ elif [ -z "$PKG_HAS_PATH" ]; then
     LOCAL_PKG_VER=`cat $PKG_SCRIPTS/package-version.txt 2>/dev/null`
     if [ -n "$LOCAL_PKG_VER" ] && [ -z "$PKG_VER" -o "$PKG_VER" == "$LOCAL_PKG_VER" ]; then
         PKG_VER="$LOCAL_PKG_VER"
-        PKG_NAME="${PKG_BASE}-${PKG_VER}"
+        if [ -z "$PKG_VER" ]; then
+            PKG_NAME="${PKG_BASE}"
+        else
+            PKG_NAME="${PKG_BASE}-${PKG_VER}"
+        fi
         USE_LOCAL_SCRIPTS=yes
         PKG_NAME_UPSTREAM="${PKG_BASE}-`echo $PKG_VER | sed 's/\.p[0-9][0-9]*$//'`"
         echo "Using local scripts to install $PKG_NAME"
@@ -290,75 +294,79 @@ if [ ! -f "$PKG_SRC" ]; then
     if [ -n "$PKG_HAS_PATH" ]; then
         PKG_URL="$PKG_SRC"
     else
-        # Handle cases 2a and 3, where the package name is something
-        # like "foo" or "foo-1.2.3".
-        for repo in optional experimental standard huge archive; do
-            # Download the list of packages.
-            echo ">>> Checking online list of $repo packages."
+        if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
+            PKG_URL="$SAGE_UPSTREAM$PKG_NAME_UPSTREAM"
+        else
+            # Handle cases 2a and 3, where the package name is something
+            # like "foo" or "foo-1.2.3".
+            for repo in optional experimental standard huge archive; do
+                # Download the list of packages.
+                echo ">>> Checking online list of $repo packages."
 
-            # Huge packages are not mirrored
-            if [ $repo = huge ]; then
-                URL_REPO="http://www.sagemath.org/spkg/huge"
-            else
-                URL_REPO="${SAGE_SERVER}spkg/$repo"
-            fi
-
-            # File inside DOT_SAGE should be writable
-            repolist="${DOT_SAGE}/${repo}.list"
-
-            sage-download-file "$URL_REPO/list" >$repolist
-            if [ $? -ne 0 ]; then
-                echo >&2 "Error: failed to download $URL_REPO/list, aborting"
-                rm -f $repolist
-                exit 1
-            fi
-
-            # The contrived sed commands print out either ${PKG_NAME} if
-            # it appears as a complete line or some string starting with
-            # ${PKG_NAME}- whichever occurs first.
-            # Tested with GNU sed, BSD sed (on OS X) and Solaris sed.
-            pkg=`sed -n -f <( echo "/^${PKG_NAME}\$/{p;q;}" && echo "/^${PKG_NAME}-/{p;q;}" ) $repolist`
-            rm -f $repolist
-            if [ -n "$pkg" ]; then
-                echo ">>> Found $pkg"
-                PKG_NAME=$pkg
-
-                # If INFO is set, try downloading only the .txt file
-                if [ $INFO -eq 1 ]; then
-                    PKG_URL="$URL_REPO/$pkg.txt"
-                    sage-download-file 2>/dev/null "$PKG_URL" && exit 0
-                    # If the download failed (for whatever reason),
-                    # fall through and use the .spkg file.
+                # Huge packages are not mirrored
+                if [ $repo = huge ]; then
+                    URL_REPO="http://www.sagemath.org/spkg/huge"
                 else
-                    # Warn and ask the user if downloading an
-                    # experimental or archive package.
-                    if [ $repo = experimental ]; then
-                        echo
-                        echo "WARNING: you are about to download and install an experimental package."
-                        echo "This probably won't work at all for you! There is no guarantee that it"
-                        echo "has ever been built correctly! Use at your own risk!"
-                        ask_download=yes
-                    elif [ $repo = archive ]; then
-                        echo
-                        echo "WARNING: you are about to download and install an archived package."
-                        echo "This means the package is likely to be outdated and it probably won't"
-                        echo "work at all for you! Use at your own risk!"
-                        ask_download=yes
-                    else
-                        ask_download=no
-                    fi
-
-                    if [ $ask_download = yes ]; then
-                        read -p "Are you sure you want to continue [Y/n]? " answer
-                        case "$answer" in
-                            n*|N*) exit 0;;
-                        esac
-                    fi
+                    URL_REPO="${SAGE_SERVER}spkg/$repo"
                 fi
-                PKG_URL="$URL_REPO/$pkg.spkg"
-                break
-            fi
-        done
+
+                # File inside DOT_SAGE should be writable
+                repolist="${DOT_SAGE}/${repo}.list"
+
+                sage-download-file "$URL_REPO/list" >$repolist
+                if [ $? -ne 0 ]; then
+                    echo >&2 "Error: failed to download $URL_REPO/list, aborting"
+                    rm -f $repolist
+                    exit 1
+                fi
+
+                # The contrived sed commands print out either ${PKG_NAME} if
+                # it appears as a complete line or some string starting with
+                # ${PKG_NAME}- whichever occurs first.
+                # Tested with GNU sed, BSD sed (on OS X) and Solaris sed.
+                pkg=`sed -n -f <( echo "/^${PKG_NAME}\$/{p;q;}" && echo "/^${PKG_NAME}-/{p;q;}" ) $repolist`
+                rm -f $repolist
+                if [ -n "$pkg" ]; then
+                    echo ">>> Found $pkg"
+                    PKG_NAME=$pkg
+
+                    # If INFO is set, try downloading only the .txt file
+                    if [ $INFO -eq 1 ]; then
+                        PKG_URL="$URL_REPO/$pkg.txt"
+                        sage-download-file 2>/dev/null "$PKG_URL" && exit 0
+                        # If the download failed (for whatever reason),
+                        # fall through and use the .spkg file.
+                    else
+                        # Warn and ask the user if downloading an
+                        # experimental or archive package.
+                        if [ $repo = experimental ]; then
+                            echo
+                            echo "WARNING: you are about to download and install an experimental package."
+                            echo "This probably won't work at all for you! There is no guarantee that it"
+                            echo "has ever been built correctly! Use at your own risk!"
+                            ask_download=yes
+                        elif [ $repo = archive ]; then
+                            echo
+                            echo "WARNING: you are about to download and install an archived package."
+                            echo "This means the package is likely to be outdated and it probably won't"
+                            echo "work at all for you! Use at your own risk!"
+                            ask_download=yes
+                        else
+                            ask_download=no
+                        fi
+
+                        if [ $ask_download = yes ]; then
+                            read -p "Are you sure you want to continue [Y/n]? " answer
+                            case "$answer" in
+                                n*|N*) exit 0;;
+                            esac
+                        fi
+                    fi
+                    PKG_URL="$URL_REPO/$pkg.spkg"
+                    break
+                fi
+            done
+        fi
         if [ -z "$PKG_URL" ]; then
             echo >&2 "Error: could not find a package matching $PKG_NAME on $SAGE_SERVER"
             exit 1
@@ -385,16 +393,28 @@ if [ ! -f "$PKG_SRC" ]; then
     # Download to a temporary file (such that we don't end up with a
     # corrupted .spkg file).
     PKG_TMP="$PKG_NAME.tmp"
-    echo ">>> Downloading $PKG_URL."
-    sage-download-file "$PKG_URL" >"$PKG_TMP"
-    if [ $? -ne 0 ]; then
+    if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
+        EXT_LIST=".tar .tar.gz .tar.bz2"
+    else
+        EXT_LIST=.spkg
+    fi
+    for EXT in $EXT_LIST; do
+        REAL_PKG_URL="$PKG_URL$EXT"
+        echo ">>> Trying to download $REAL_PKG_URL"
+        sage-download-file "$REAL_PKG_URL" >"$PKG_TMP"
+        if [ $? -eq 0 ]; then
+            DOWNLOAD_SUCCESS=yes
+            break
+        fi
+    done
+    if [ -z "$DOWNLOAD_SUCCESS" ]; then
         # Delete failed download
         rm -f "$PKG_TMP"
         echo >&2 "Error: failed to download package $PKG_NAME"
         exit 1
     fi
 
-    PKG_SRC="`pwd`/$PKG_NAME.spkg"
+    PKG_SRC="`pwd`/$PKG_NAME$EXT"
     mv -f "$PKG_TMP" "$PKG_SRC"
 fi
 

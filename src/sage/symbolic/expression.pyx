@@ -320,16 +320,20 @@ cdef class Expression(CommutativeRingElement):
 
         EXAMPLES::
 
-            sage: (1+x)._dbgprint() # not tested
+            sage: (1+x)._dbgprint()
             x + 1
         """
         self._gobj.dbgprint()
 
     def _dbgprinttree(self):
         r"""
-        Print pynac debug output to ``stderr``.
+        Print pynac expression tree debug output to ``stderr``.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        The expression tree is composed of Ginac primitives
+        and functions, organized by the tree, with various
+        other memory and hash information which will vary::
 
             sage: (1+x+exp(x+1))._dbgprinttree()    # not tested
             add @0x65e5960, hash=0x4727e01a, flags=0x3, nops=3
@@ -349,6 +353,19 @@ cdef class Expression(CommutativeRingElement):
                 -----
                 overall_coeff
                 1 (numeric) @0x663cc40, hash=0x7fd3, flags=0x7
+                =====
+
+        TESTS:
+
+        This test is just to make sure the function is working::
+
+            sage: (1+x+exp(x+1))._dbgprinttree()
+            add @...
+                x (symbol) ...
+                1 (numeric) ...
+                ...
+                overall_coeff
+                1 (numeric) ...
                 =====
         """
         self._gobj.dbgprinttree();

@@ -89,19 +89,16 @@ _add_variable_or_fallback('SAGE_ROOT',       None)
 _add_variable_or_fallback('SAGE_LOCAL',      opj('$SAGE_ROOT', 'local'))
 _add_variable_or_fallback('SAGE_SHARE',      opj('$SAGE_LOCAL', 'share'))
 
-# for backwards compatibility we include SAGE_DATA
-_add_variable_or_fallback('SAGE_DATA',       '$SAGE_SHARE')
-_add_variable_or_fallback('SAGE_EXTCODE',    opj('$SAGE_SHARE', 'sage', 'ext'))
-_add_variable_or_fallback('SAGE_PACKAGES',   opj('$SAGE_ROOT', 'spkg'))
-_add_variable_or_fallback('SAGE_LOGS',       opj('$SAGE_ROOT', 'logs', 'pkgs'))
-_add_variable_or_fallback('SAGE_SPKG_INST',  opj('$SAGE_ROOT', 'spkg', 'installed'))
-_add_variable_or_fallback('SAGE_DOC',        opj('$SAGE_ROOT', 'devel', 'sage', 'doc'))
-_add_variable_or_fallback('DOT_SAGE',        opj(os.environ.get('HOME','$SAGE_ROOT'), '.sage'))
-
 # SAGE_LIB is the site-packages directory if the sage library
 # has been installed, otherwise it is the same of SAGE_SRC
-_add_variable_or_fallback('SAGE_SRC',        opj('$SAGE_ROOT', 'devel', 'sage'))
+_add_variable_or_fallback('SAGE_SRC',        opj('$SAGE_ROOT', 'src'))
 _add_variable_or_fallback('SAGE_LIB',        os.path.dirname(os.path.dirname(__file__)))
+
+_add_variable_or_fallback('SAGE_EXTCODE',    opj('$SAGE_SHARE', 'sage', 'ext'))
+_add_variable_or_fallback('SAGE_LOGS',       opj('$SAGE_ROOT', 'logs', 'pkgs'))
+_add_variable_or_fallback('SAGE_SPKG_INST',  opj('$SAGE_LOCAL', 'var', 'lib', 'sage', 'installed'))
+_add_variable_or_fallback('SAGE_DOC',        opj('$SAGE_SRC', 'doc'))
+_add_variable_or_fallback('DOT_SAGE',        opj(os.environ.get('HOME','$SAGE_ROOT'), '.sage'))
 
 # misc
 _add_variable_or_fallback('SAGE_URL',        'http://sage.math.washington.edu/sage/')

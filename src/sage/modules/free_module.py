@@ -3624,6 +3624,31 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             Basis matrix:
             [ 1  0 -1]
             [ 0  1  0]
+
+        All these complements are only done with respect to the inner
+        product in the usual basis.  Over finite fields, this means
+        we can get complements which are only isomorphic to a vector
+        space decomposition complement.
+
+            sage: F2 = GF(2,x)
+            sage: V = F2^6
+            sage: W = V.span([[1,1,0,0,0,0]])
+            sage: W
+            Vector space of degree 6 and dimension 1 over Finite Field of size 2
+            Basis matrix:
+            [1 1 0 0 0 0]
+            sage: W.complement()
+            Vector space of degree 6 and dimension 5 over Finite Field of size 2
+            Basis matrix:
+            [1 1 0 0 0 0]
+            [0 0 1 0 0 0]
+            [0 0 0 1 0 0]
+            [0 0 0 0 1 0]
+            [0 0 0 0 0 1]
+            sage: W.intersection(W.complement())
+            Vector space of degree 6 and dimension 1 over Finite Field of size 2
+            Basis matrix:
+            [1 1 0 0 0 0]
         """
         # Check simple cases
         if self.dimension() == 0:

@@ -1,0 +1,235 @@
+#!/usr/bin/env bash
+
+if [[ -z $SAGE_LOCAL ]]; then
+    echo >&2 "Error: SAGE_LOCAL undefined - exiting..."
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
+fi
+
+if [[ -z $CFLAG64 ]]; then
+    CFLAG64=-m64
+fi
+
+# Compile for 64-bit if SAGE64 is set to 'yes':
+if [[ $SAGE64 = yes ]]; then
+    echo "Building a 64-bit version of Readline."
+    CFLAGS="$CFLAGS $CFLAG64"
+    CPPFLAGS="$CPPFLAGS $CFLAG64"
+    # Some packages may need LDFLAGS and/or ABI set here.
+    LDFLAGS="$LDFLAGS $CFLAG64"
+fi
+
+if [[ $SAGE_DEBUG = yes ]]; then
+    CFLAGS="$CFLAGS -g -O0"
+else
+    CFLAGS="-g -O2 $CFLAGS"
+fi
+
+# NOTE: Do *not* add -L$SAGE_LOCAL/lib to LDFLAGS,
+#       nor -I$SAGE_LOCAL/include to CPPFLAGS or CFLAGS.
+#       Sage ships and builds a libtermcap, but only a static one,
+#       and we actually *want* readline to use the system's
+#       libtermcap (or libncurses, or libtinfo).
+#       Readline does not need any [other] headers or libraries
+#       shipped / installed by Sage, so this is pretty ok.
+
+
+echo "The following environment variables will be exported:"
+echo "Using CC=$CC"
+echo "Using CFLAGS=$CFLAGS"
+echo "Using CPPFLAGS=$CPPFLAGS"
+echo "Using LDFLAGS=$LDFLAGS"
+echo "Configure scripts and/or makefiles might override these later."
+echo
+
+export CFLAGS
+export CPPFLAGS
+export LDFLAGS
+
+# End of pretty generic spkg-install file.
+# Now do the specific things needed for this package (Readline).
+
+# OVERWRITE_READLINE=false; export OVERWRITE_READLINE
+
+# First we check for OpenSUSE 11.x, since there bash is linked dynamically with
+# a potentially more recent readline such that bash crashes when we build Sage's
+# readline (or more precisely Sage's version is found along LD_LIBRARY_PATH), so
+# we work around this for now by not building Sage's version and instead using
+# the system's one.
+#
+# Since Sage's readline version (6.2) is meanwhile (or at the moment) current,
+# there are no problems building it on OpenSuSE (and Arch Linux) as well, so
+# we can bypass the work-arounds.  This might change once these operating
+# systems are again ahead of Sage w.r.t. their readline version.
+
+if [[ -f /etc/SuSE-release ]]; then
+    echo "OpenSuSE or SuSE Linux detected."
+    # #11882: Bypass this work-around for OpenSuSE.
+    #
+    # Note that "-q" doesn't work with Solaris' non-POSIX grep
+    # in the default path, but we're certainly on Linux here:
+    if false && grep -q 11\\. /etc/SuSE-release 2>/dev/null; then
+	echo "OpenSuSE 11 detected."
+	if [[ -d /usr/include/readline/ ]]; then
+	    echo "The development version of libreadline is installed => copying..."
+	    # Note that "cp -a" isn't POSIX, but again: We're on Linux.
+	    # ("uname -p" gives "unknown" on at least some Linuces, so we
+	    # better use the more portable "-m".)
+	    if [[ "`uname -m`" = x86_64 ]]; then
+		cp -af /lib64/libreadline.so.6* "$SAGE_LOCAL"/lib
+	    else
+		cp -af /lib/libreadline.so.6* "$SAGE_LOCAL"/lib
+	    fi
+	    if [[ $? -ne 0 ]]; then
+		echo >&2 "Error copying the system's libreadline."
+		exit 1
+	    fi
+	    ln -snf libreadline.so.6 "$SAGE_LOCAL"/lib/libreadline.so
+	    if [[ $? -ne 0 ]]; then
+		echo >&2 "Error creating symbolic link to libreadline.so.6."
+		exit 1
+	    fi
+	    cp -rf /usr/include/readline "$SAGE_LOCAL"/include
+	    if [[ $? -ne 0 ]]; then
+		echo >&2 "Error copying the system's readline header files."
+		exit 1
+	    fi
+	    # Copying succeeded, nothing else to be done.
+	    exit 0
+        else
+	    echo >&2 "Error: No readline headers found. Please install OpenSuSE's development"
+	    echo >&2 "version of libreadline 6.x since building the version currently shipped"
+	    echo >&2 "with Sage would break your shell (bash). Sorry."
+	    exit 1
+	    # # This variable is only set to "true" on openSUSE 11.1.
+            # OVERWRITE_READLINE="true"; export OVERWRITE_READLINE
+        fi
+    else
+	if false; then
+	    echo "... but not OpenSuSE 11 => building Sage's version of libreadline."
+	else
+	    echo "Building Sage's version of readline 6.2 anyway, since it is assumed"
+	    echo "to be current and to not break your dynamically linked bash..."
+	    echo "(Please report if this is no longer the case.)"
+	fi
+    fi
+fi
+
+# #11882: Bypass this test / work-around for Arch Linux since it apparently
+#         is no longer needed, at least at the moment (October 2011).
+#
+# We also check for Arch Linux, since it crashes with "undefined symbol: PC".
+# If anyone knows a better way to fix this, please do.
+# [This is likely to be fixed by putting libtermcap or libncurses into
+#  the NEEDED tags of our shared libreadline. -leif (October 2011)]
+if [[ -f /etc/arch-release ]]; then
+    echo "Arch Linux detected."
+fi
+if false && [[ -f /etc/arch-release ]]; then
+    if [[ -f "/lib/libreadline.so.6" ]]; then
+	echo "Copying over system's libreadline (version 6.x)..."
+	cp -af /lib/libreadline.so.6* "$SAGE_LOCAL"/lib
+	if [[ $? -ne 0 ]]; then
+	    echo >&2 "Error copying the system's libreadline."
+	    exit 1
+	fi
+	ln -snf libreadline.so.6 "$SAGE_LOCAL"/lib/libreadline.so
+	if [[ $? -ne 0 ]]; then
+	    echo >&2 "Error creating symbolic link to libreadline.so.6."
+	    exit 1
+	fi
+	# We shouldn't have to copy the headers...
+	# (On Arch Linux, these are installed by default.)
+	exit 0
+    elif [[ -f "/lib/libreadline.so.5" ]]; then
+	# We might have only an older version of libreadline.
+	echo "Couldn't find a system copy of libreadline 6.x, only 5.x."
+	echo "Building Sage's more recent version of libreadline..."
+    else
+	echo >&2 "Error: Could not find a system copy of libreadline 5.x or 6.x."
+	echo >&2 "This is abnormal, so we better stop here..."
+	exit 1
+    fi
+fi
+
+
+cd src/
+
+echo "Applying patches to upstream source..."
+for patch in ../patches/*.patch; do
+    patch -p1 <"$patch"
+    if [[ $? -ne 0 ]]; then
+        echo >&2 "Error applying '$patch'."
+        exit 1
+    fi
+done
+
+echo "Configuring readline..."
+./configure --prefix="$SAGE_LOCAL" --libdir="$SAGE_LOCAL/lib"
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error configuring readline."
+    exit 1
+fi
+
+echo "Now building static and shared readline libraries..."
+$MAKE
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error building readline."
+    exit 1
+fi
+
+echo "Build succeedeed.  Deleting old readline headers and libs"
+echo "before installing the new ones..."
+# (Note; Actually also readline does this by itself, but doing it
+# here, too, doesn't hurt either.)
+rm -rf "$SAGE_LOCAL"/include/readline/ "$SAGE_LOCAL"/lib/libreadline.*
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error removing old version of readline."
+    exit 1
+fi
+
+echo "Now installing the new readline headers and libraries..."
+$MAKE install
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error installing readline."
+    exit 1
+fi
+
+case "$UNAME" in
+    Darwin)
+	DYLIB_NAME=libreadline.dylib;;
+    CYGWIN)
+	# It is of course very lame that readline names the file .dll.a, but that's what it does.
+	DYLIB_NAME=libreadline.dll.a;;
+    OpenBSD)
+	# Untested. (David Kirkby, 11th November 2010)
+        # Extension changed from 6.1 to 6.2; still untested. (October 2011)
+	DYLIB_NAME=libreadline.so.6.2;;
+    FreeBSD)
+	DYLIB_NAME=libreadline.so.6;;
+    HP-UX)
+	DYLIB_NAME=libreadline.sl.6;;
+    *)  # e.g. "Linux" or "SunOS"
+	DYLIB_NAME=libreadline.so
+esac
+
+# Make sure that the install worked, despite whatever the
+# exit code of 'make' or 'make install' was:
+if [[ -f "$SAGE_LOCAL/lib/$DYLIB_NAME" && -f "$SAGE_LOCAL"/lib/libreadline.a ]]; then
+    # Both the shared and the static library are present, i.e.
+    # have successfully been (re)installed.
+    # Fix permissions:
+    echo "Fixing permissions of libraries..."
+    chmod 755 "$SAGE_LOCAL"/lib/libreadline.*
+    chmod 755 "$SAGE_LOCAL"/lib/libhistory.*
+    # It's pretty wrong to also make the static library executable:
+    chmod 644 "$SAGE_LOCAL"/lib/lib{readline,history}.a
+    exit 0
+else
+    # One or both of the readline libraries are missing, i.e.
+    # haven't been installed.
+    echo >&2 "Error: Readline's build claims to have finished, but files"
+    echo >&2 "that should have been built and installed weren't."
+    echo >&2 "(In particular, libreadline.a or $DYLIB_NAME, or both.)"
+    exit 1
+fi

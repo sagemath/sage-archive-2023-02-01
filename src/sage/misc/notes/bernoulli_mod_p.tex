@@ -1,0 +1,41 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+
+\newcommand{\ZZ}{\mathbf{Z}}
+\newcommand{\Z}{\mathbf{Z}}
+\newcommand{\FF}{\mathbf{F}}
+
+\begin{document}
+
+\title{Some notes about an algorithm for computing Bernoulli numbers mod $p$}
+\author{David Harvey}
+\maketitle
+
+Conceptually the algorithm has two parts. The first part involves an expression for the Bernoulli numbers in terms of distributions on $\Z_p$ from Lang's ``Cyclotomic Fields'' (chapter 2, Theorem 2.3), which in down-to-earth terms says that
+    $$ B_k/k = \frac1{1 - g^k} \sum_{x \in \Z/p\Z} x^{k-1} h(x)  \pmod p $$
+where $g$ is a generator of $(\Z/p\Z)^*$, and where $h$ is
+    $$ h(x) = \left\{ \frac xp \right\} - g \left\{ \frac{g^{-1}x}p \right\} + \frac{g-1}2. $$
+($\{ \cdot \}$ denotes fractional part.) Substituting $x = g^j$, using the fact that $h(g^j)/g^j$ has period $(p-1)/2$ as a function of $j$, and since we are only interested in even $k$, we have
+    $$ B_{2k} = \frac{4k}{1 - g^{2k}} \sum_{j=0}^{(p-3)/2} g^{2jk}\frac{h(g^j)}{g^j} \pmod p. $$
+The sum on the right is a \emph{number-theoretic transform} of length $(p-1)/2$. The second part of the algorithm involves evaluating this transform by using \emph{Bluestein's trick}: any transform of the form
+   $$ b_k = \sum_{j=0}^{(p-3)/2} g^{2jk} a_j $$
+can be rewritten using the identity $2jk = k^2 + j^2 - (k-j)^2$ as
+   $$ b_k = g^{k^2} \sum_{j=0}^{(p-3)/2} c_{k-j} d_j,$$
+where $c_j = g^{-j^2}$ and $d_j = g^{j^2} a_j$. This last sum is a convolution, and so is tantamount to computing the product of the polynomials
+        $$ F(X) = \sum_{j=-(p-3)/2}^{(p-3)/2} c_j X^j \quad \text{and} \quad  G(X) = \sum_{j=0}^{(p-3)/2} d_j X^j. $$
+In fact one checks that $c_{j+(p-1)/2} = (-1)^{(p-1)/2} c_j$, so
+   $$ F(X) = 1 + \left(1 + (-1)^{(p-1)/2}X^{-(p-1)/2}\right) \sum_{j=1}^{(p-3)/2} c_j X^j; $$
+this observation reduces the problem to multiplying two polynomials of length $(p-1)/2$, which we do using NTL.
+
+This algorithm seems closely related to the one described in ``Irregular primes and cyclotomic invariants to 12 million'' (Buhler et al). What they do can be interpreted as evaluating the same number-theoretic transform that we do here, but they evaluate it using completely different methods. In particular they take advantage of the factorisation of $p-1$ to improve the running time and reduce memory requirements.
+
+
+\section*{Further improvements?}
+
+Here's an interesting question, which someone (else) might want to think about someday. In the paper by Buhler et al where they do the power series inversion method, they explain how to use something called ``multisectioning'' to reduce to inversion of a series of length $p/8$ (plus a few multiplications), instead of inversion of length $p/2$ which my first piece of code does. The idea is to use some slightly more tricky series, kind of analogous to using $x^2/(\cosh x - 1)$ instead of $x/(e^x - 1)$ to remove all the even index terms, but even trickier. (That should be implemented in SAGE sometime too.) Now this *suggests* that there might be a way to improve my second algorithm to a few multiplications of length $p/8$, by rewriting the number-theoretic transform in some clever way. I haven't thought about how this might work, but I wouldn't be at all surprised if such an improvement was possible, and I bet it would be faster than their power series method.
+
+
+
+\end{document}

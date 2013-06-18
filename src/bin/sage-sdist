@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+
+########################################################
+# Build Sage source distribution
+# This script should be called by the spkg/bin/sage script
+########################################################
+
+if [ $# -ne 2 ]; then
+    echo "Usage: $0 <SAGE_VERSION> <SAGE_ROOT>"
+    exit 1
+fi
+
+# If $1 starts with "sage-", remove this prefix
+export SAGE_VERSION=`echo "$1" | sed 's/^sage-//'`
+export SAGE_ROOT=$2
+
+# are we trying to sdist a bdist copy? If so, tell the user about it and
+# fail.
+if [ -f "$SAGE_ROOT/spkg/standard/.from_bdist" ]
+then
+    cat <<EOF
+You are running 'sage --sdist' on a copy of Sage that was created with
+'sage --bdist'; this copy includes placeholders for the spkg files and
+does not have the SAGE_ROOT/spkg/base directory, so a source
+distribution cannot be made from this copy of Sage.
+
+You can fix this by:
+
+  * putting the "real" spkg files into spkg/standard; get a source
+    tarball for this version of Sage and copy the directory.
+  * copying the spkg/base directory from the source tarball into this
+    copy of Sage.
+  * removing the file spkg/standard/.from_bdist.
+
+Cannot create source distribution. Exiting.
+EOF
+    exit 1
+fi
+
+TARGET="sage-$SAGE_VERSION"
+
+SAGE_RELEASE_DATE=`date -u +'%Y-%m-%d'`
+
+# Update Sage version file in SAGE_ROOT.
+echo "Sage version $SAGE_VERSION, released $SAGE_RELEASE_DATE" > "$SAGE_ROOT"/VERSION.txt
+
+# Update Sage version file in devel/sage/sage: this is done here so
+# the banner produced below this if block is correct.
+if [ -d "$SAGE_ROOT"/devel/sage/sage ]; then
+    cd "$SAGE_ROOT"/devel/sage/sage
+    echo '"""nodoctests"""' > version.py
+    echo "version='"$SAGE_VERSION"'; date='"$SAGE_RELEASE_DATE"'" >> version.py
+    cd "$SAGE_ROOT"/devel/sage
+    python setup.py install
+fi
+
+cd "$SAGE_ROOT"/local/bin/
+echo "import sage.misc.banner; sage.misc.banner.banner()" | ./python > sage-banner
+
+# Copy sage root directory.  Cloning needs to be done in an empty
+# directory, so we do this now.  Creating the sage_root spkg is done
+# in sage-make_devel_packages below.
+cd "$SAGE_ROOT"
+
+hg diff
+hg status
+hg tag "$SAGE_VERSION"
+hg commit -m "$SAGE_VERSION"
+if [ $? -gt 1 ]; then  # Status 1 is returned when there are no changes
+    echo >&2 "Error committing SAGE_ROOT repository."
+    exit 1
+fi
+
+# Create new sage_root, sage_scripts,... packages
+./local/bin/sage-make_devel_packages "$SAGE_VERSION" "$SAGE_ROOT"
+
+if [ $? -ne 0 ]; then
+    echo >&2 "Error building the Sage packages."
+    exit 1
+fi
+
+
+# Top directory for temporary files
+TOP=`mktemp -d "${TMPDIR:-/tmp}/sage-sdist-XXXXXX"`
+if [ $? -ne 0 ]; then
+    echo >&2 "Error creating temporary directory."
+    exit 1
+fi
+
+
+# Copy all files and create the tarball
+copy_sdist()
+{
+    # Exit on errors
+    set -e
+
+    # Temporary "SAGE_ROOT" for the sdist.
+    TMPROOT="$TOP/$TARGET"
+
+    ROOT_REPO="sage_root-$SAGE_VERSION"
+
+    # Extract the SAGE_ROOT repository to $TOP/$ROOT_REPO, then rename to
+    # $TMPROOT.  This will become the root directory of the source tarball.
+    cd "$TOP"
+    tar xjf "$SAGE_ROOT/spkg/standard/${ROOT_REPO}.spkg"
+    mv "$ROOT_REPO" "$TMPROOT"
+    cd "$TMPROOT"
+
+    # Remove spkg-install which is only needed in the spkg
+    rm spkg-install
+
+    # Copy all base and standard packages
+    cp -p "$SAGE_ROOT"/spkg/base/*.tar* spkg/base
+    cp -p "$SAGE_ROOT"/spkg/standard/*.spkg spkg/standard
+
+    # Put VERSION.txt in the new tarball root and also in spkg/standard,
+    # a directory available for download during the update process.
+    # (See sage-update)
+    cp -p "$SAGE_ROOT/VERSION.txt" .
+    cp -p "$SAGE_ROOT/VERSION.txt" spkg/standard
+
+
+    # Package the sdist repository
+    cd "$TOP"
+    tar cf "$TARGET".tar "$TARGET"
+
+    mkdir -p "$SAGE_ROOT"/dist
+
+    rm -rf "$SAGE_ROOT/dist/$TARGET"
+
+    mv "$TARGET" "$SAGE_ROOT"/dist/
+    mv "$TARGET.tar" "$SAGE_ROOT"/dist/
+}
+
+# Get exit status of copy_sdist function.
+# We want to remove $TOP no matter what happens.
+( copy_sdist ); status=$?
+
+rm -rf "$TOP"
+
+if [ $status -ne 0 ]; then
+    echo >&2 "Copying and packing source distribution failed"
+fi
+
+exit $status

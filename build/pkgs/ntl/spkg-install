@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+
+###############################################################################
+#
+#  NTL sage install script
+#
+#  Copyright (C) 2005 William Stein <wstein@ucsd.edu>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#  AUTHORS: William Stein (original version)
+#           David Kirkby (2005-12-13); <david.kirkby@onetel.net>
+#           Jean-Pierre Flori (2012-08-07) <jean-pierre.flori@ssi.gouv.fr>
+#
+###############################################################################
+
+if [ "$SAGE_LOCAL" = "" ]; then
+    echo >&2 "SAGE_LOCAL undefined ... exiting";
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
+fi
+
+CUR=`pwd`
+
+ntl_libtool()
+{
+    echo "Generating libtool."
+
+    cd "$CUR/libtool"
+
+    ./configure
+
+    if [ $? -ne 0 ]; then
+        echo >&2 "Error generating libtool."
+        exit 1
+    fi
+}
+
+ntl_patch()
+{
+    echo "Applying patches to NTL."
+
+    cd "$CUR/src"
+
+    # Apply all patches
+    for patch in ../patches/*.patch; do
+        patch -p1 < "$patch"
+        if [ $? -ne 0 ]; then
+            echo >&2 "Error applying '$patch'."
+            exit 1
+        fi
+    done
+}
+
+ntl_configure()
+{
+    echo "Configuring NTL."
+
+    cd "$CUR/src/src"
+
+    # Run the configure script, setting CC, CXX, CFLAGS etc as needed.
+    # This ensures that they get written by DoConfig into 'makefile'.
+    CFLAGS="-O2 -g $CFLAGS"
+    CXXFLAGS="-O2 -g $CXXFLAGS"
+
+    if [ "$SAGE64" = "yes" ]; then
+        CFLAGS=" -m64 $CFLAGS"
+        CXXFLAGS=" -m64 $CXXFLAGS"
+    fi
+
+    if [ $UNAME = "Darwin" ]; then
+        echo "Setting SHAREDFLAGS to '-fno-common'"
+        SHAREDFLAGS="-fno-common"
+    fi
+
+    if [ $UNAME = "CYGWIN" ]; then
+        LIBTOOL_LINK_FLAGS="-no-undefined"
+    fi
+
+    ./configure DEF_PREFIX="$SAGE_LOCAL" SHARED=on \
+        CC="$CC" CFLAGS="$CFLAGS $SHAREDFLAGS" \
+        CXX="$CXX" CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" \
+        LDFLAGS="$LDFLAGS" LIBTOOL_LINK_FLAGS="$LIBTOOL_LINK_FLAGS" \
+        NTL_GMP_LIP=on NTL_STD_CXX=on \
+        LIBTOOL=../../libtool/libtool
+
+    if [ $? -ne 0 ]; then
+        echo >&2 "Unable to configure NTL."
+        exit 1
+    fi
+}
+
+ntl_build()
+{
+    echo "Tuning and building NTL."
+
+    cd "$CUR/src/src"
+
+    $MAKE
+
+    if [ $? -ne 0 ]; then
+        echo >&2 "Unable to tune and build NTL."
+        exit 1
+    fi
+}
+
+ntl_install()
+{
+    echo "Installing NTL."
+
+    cd "$CUR/src/src"
+
+    $MAKE install
+
+    if [ $? -ne 0 ]; then
+        echo >&2 "Unable to tune and build NTL."
+        exit 1
+    fi
+}
+
+ntl_libtool
+ntl_patch
+ntl_configure
+ntl_build
+ntl_install

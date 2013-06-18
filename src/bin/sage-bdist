@@ -1,0 +1,169 @@
+#!/usr/bin/env bash
+
+########################################################
+# Build Sage *binary* distribution
+# This script should be called by the spkg/bin/sage script
+#
+# Released under the GNU GPL-v2+ -- (c) William Stein
+########################################################
+
+PKGDIR=spkg
+
+CUR=`pwd`
+
+if [ $# -ne 2 ]; then
+   echo "Usage: $0 <SAGE_VERSION> <SAGE_ROOT>"
+   exit 1
+fi
+
+# If $1 starts with "sage-", remove this prefix
+export SAGE_VERSION=`echo "$1" | sed 's/^sage-//'`
+export SAGE_ROOT=$2
+export SAGE_SPKG_INST="$SAGE_ROOT/$PKGDIR/installed"
+
+TARGET=sage-"$SAGE_VERSION"-`uname -m`-`uname`
+TARGET=`echo $TARGET | sed 's/ //g'`   # Remove spaces
+
+# Copy all files in the bdist to $TMP
+TMP="$CUR/tmp/$TARGET"
+
+rm -rf "$TMP"
+mkdir -p "$TMP"
+
+
+# Copy sage_root repository
+cd "$SAGE_ROOT"
+echo "Copying root repository..."
+hg clone --pull . "$TMP"
+if [ $? -ne 0 ]; then
+    echo "Error copying Sage root repository."
+    exit 1
+fi
+
+rm "$TMP"/.hg/hgrc
+
+# Copy VERSION.txt (which is untracked)
+cp -p VERSION.txt "$TMP/"
+
+# Make data symlink for backwards compatibility
+ln -s local/share "$TMP/data"
+
+echo "Done copying root repository."
+
+echo "Copying files over to tmp directory"
+# We use "tar" to copy files for portability,
+# see http://trac.sagemath.org/sage_trac/ticket/14236
+tar cf - local | ( cd "$TMP" && tar xf - )
+
+# Copy devel/ subdirectories.  We only copy the currently active
+# branches, which become the default branches in the bdisted tarball.
+if [ -d devel/sage ]; then
+    echo "Copying Sage library"
+    mkdir -p "$TMP/devel/sage-main"
+    ln -s sage-main "$TMP/devel/sage"
+    ( cd devel/sage && tar cf - . ) | ( cd "$TMP/devel/sage-main" && tar xf - )
+fi
+
+if [ -d devel/sagenb ]; then
+    echo "Copying Sage Notebook"
+    mkdir -p "$TMP/devel/sagenb-main"
+    ln -s sagenb-main "$TMP/devel/sagenb"
+    ( cd devel/sagenb && tar cf - . ) | ( cd "$TMP/devel/sagenb-main" && tar xf - )
+fi
+
+if [ -d devel/ext ]; then
+    echo "Copying Extcode"
+    mkdir -p "$TMP/devel/ext-main"
+    ln -s ext-main "$TMP/devel/ext"
+    ( cd devel/ext && tar cf - . ) | ( cd "$TMP/devel/ext-main" && tar xf - )
+fi
+
+
+if [ -d "$PKGDIR" ]; then
+    cp -pR "$SAGE_SPKG_INST" "$TMP/$PKGDIR/"
+    # sage --sdist uses the following file to detect if it's working
+    # with a "bdisted" copy.
+    touch $TMP/$PKGDIR/standard/.from_bdist
+fi
+
+cd "$CUR"/tmp/
+if [ "$UNAME" = "Darwin" ]; then
+    cd "$TARGET"
+    # Move everything into a subdirectory sage, but first name it
+    # .sage_tmp to avoid it being globbed by *.
+    mkdir .sage_tmp
+    mv * .hg* .sage_tmp
+    mv .sage_tmp sage
+    cp -p sage/local/bin/sage-README-osx.txt README.txt
+
+    if [ "$SAGE_APP_BUNDLE" = "yes" ]; then
+
+        echo 'Building the Mac Application'
+
+        # Some people don't have the 10.4 sdk installed, but using the default on 10.4 causes problems
+        if [ "$MACOSX_DEPLOYMENT_TARGET" = "10.4" -a -e '/Developer/SDKs/MacOSX10.4u.sdk' ]; then
+            SET_SDKROOT='SDKROOT=/Developer/SDKs/MacOSX10.4u.sdk'
+        else
+            SET_SDKROOT=''
+        fi
+
+        CONFIGURATION='Debug'
+        # Note that we don't have to build this part with the same
+        # compiler as everything else, and in fact it causes problems
+        # to do so.
+        (cd "$SAGE_EXTCODE/sage/ext/mac-app/" && \
+            unset CC LD && \
+            xcodebuild -target 'Sage' -configuration "$CONFIGURATION" \
+            ARCHES="$(uname -m)" \
+            $SET_SDKROOT)
+
+        if [ $? -ne 0 ]; then
+            echo "Failed to build Sage.app."
+            echo "If you don't wish to build Sage.app set SAGE_APP_BUNDLE=no"
+            exit 1
+        fi
+
+        echo 'Copying Sage.app'
+        cp -pRL "$SAGE_EXTCODE/sage/ext/mac-app/build/$CONFIGURATION/Sage.app" ./Sage.app
+        # Info.plist is a binary plist, so convert it for processing with sed.
+        # I would just change it to be an xml plist, but xcode changes it back.
+        plutil -convert xml1 ./Sage.app/Contents/Info.plist
+        sed -i '' "s/SAGE_VERSION/$SAGE_VERSION/" \
+            ./Sage.app/Contents/Info.plist
+
+        mv sage ./Sage.app/Contents/Resources/
+
+        # Rename it with the version number
+        mv Sage.app "Sage-$SAGE_VERSION.app"
+    else
+        echo 'If you wish to create a Mac Application please set'
+        echo 'SAGE_APP_BUNDLE=yes'
+    fi
+
+    # Go back to the right directory for later copying
+    cd "$CUR"/tmp/
+    if [ "$SAGE_APP_DMG" != "no" ]; then
+        echo "Creating $TARGET.dmg"
+        echo "(If you don't wish to create a disk image please set SAGE_APP_DMG=no)"
+        DYLD_LIBRARY_PATH="$SAGE_ORIG_DYLD_LIBRARY_PATH"; export DYLD_LIBRARY_PATH
+        hdiutil create -srcfolder "$TARGET" -format UDBZ "$TARGET".dmg
+    else
+        echo 'If you wish to create a disk image please set'
+        echo 'SAGE_APP_DMG=yes'
+        echo '(or unset SAGE_APP_DMG since SAGE_APP_DMG=yes is the default)'
+        echo "Creating $TARGET.tar.gz ..."
+        tar zcf "$TARGET".tar.gz "$TARGET"
+    fi
+else
+    echo "Creating $TARGET.tar.gz ..."
+    tar zcf "$TARGET".tar.gz "$TARGET"
+fi
+
+mkdir -p "$SAGE_ROOT"/dist
+
+rm -rf "$SAGE_ROOT/dist/$TARGET"
+
+echo "Moving final distribution file to $SAGE_ROOT/dist"
+
+mv "$TARGET" "$SAGE_ROOT"/dist/
+mv "$TARGET".* "$SAGE_ROOT"/dist/

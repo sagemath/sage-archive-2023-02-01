@@ -1,0 +1,6 @@
+#!/bin/sh
+
+hg status
+hg diff
+hg commit -m "new"
+hg push ssh://sage@localhost/www/hg/extcode-main

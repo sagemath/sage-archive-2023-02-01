@@ -1,0 +1,2 @@
+#!/bin/sh
+sage -hg pull http://www.sagemath.org/hg/sage-main

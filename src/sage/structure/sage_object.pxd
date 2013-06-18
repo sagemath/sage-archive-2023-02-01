@@ -1,0 +1,3 @@
+cdef class SageObject:
+    pass
+

@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+
+###########################################
+## GAP
+###########################################
+
+SPKG_ROOT=`pwd` # Save GAP's spkg build directory.
+
+if [[ -z "$SAGE_LOCAL" ]]; then
+    echo >&2 "SAGE_LOCAL undefined - exiting..."
+    echo >&2 "Maybe run 'sage -sh'?"
+    exit 1
+fi
+
+# Read gap-version, which was written by spkg-src
+VERSION=`cat gap-version`
+GAP_DIR="gap-$VERSION"
+INSTALL_DIR="$SAGE_LOCAL/gap/$GAP_DIR"
+
+echo "spkg-install is using"
+echo "VERSION = $VERSION"
+echo "GAP_DIR = $GAP_DIR"
+echo "INSTALL_DIR = $INSTALL_DIR"
+
+if [[ "$SAGE64" = yes ]]; then
+    if [[ -z $CFLAG64 ]]; then
+        CFLAG64=-m64
+    fi
+    CFLAGS="$CFLAGS $CFLAG64"
+    CXXFLAGS="$CXXFLAGS $CFLAG64"
+    echo "Building a 64-bit version of GAP (with '$CFLAG64')."
+fi
+
+# Workaround for MPIR missing macro issue
+export CPPFLAGS="$CPPFLAGS -D__GMP_MP_RELEASE=50002"
+
+# Enable debug info if requested.
+# Note that -g3 allows you to use preprocessor macros in gdb which are widely used
+if [ "$SAGE_DEBUG" = yes ] ; then
+    export CFLAGS="-O0 -g3 -DDEBUG_MASTERPOINTERS -DDEBUG_GLOBAL_BAGS -DDEBUG_FUNCTIONS_BAGS $CFLAGS"
+else
+    # Default flags
+    export CFLAGS="-O2 -g $CFLAGS"
+fi
+
+# Apply fixes to upstream source
+echo "Applying patches..."
+cd "$SPKG_ROOT/src"
+ls ../patches/*.patch &>/dev/null && \
+for patch in ../patches/*.patch; do
+    patch -p1 <"$patch"
+    if [ $? -ne 0 ]; then
+       echo >&2 "Error applying '$patch'"
+       exit 1
+    fi
+done
+
+# Configure
+echo "Configuring GAP..."
+cd "$SPKG_ROOT/src"
+./configure \
+    --prefix="$SAGE_LOCAL" PREFIX="$SAGE_LOCAL" \
+    --with-gmp="$SAGE_LOCAL" \
+    CC="$CC" CXX="$CXX" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS"
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error configuring GAP."
+    exit 1
+fi
+
+echo "Building GAP..."
+cd "$SPKG_ROOT/src"
+$MAKE -j1
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error building GAP."
+    exit 1
+fi
+if [[ ! -f bin/gap.sh ]]; then
+    echo "Error building GAP ('gap.sh' not found)."
+    exit 1
+fi
+
+echo "Installing (copying) files..."
+# gap has no notion of installing itself (similar to sage), copy everything
+# See http://trac.sagemath.org/13211 for rationale of the filesystem layout
+mkdir -p "$INSTALL_DIR" &&
+cp -r "$SPKG_ROOT/src"/* "$INSTALL_DIR"
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error copying built GAP files."
+    exit 1
+fi
+
+echo "Creating symlink to new GAP installation..."
+cd "$SAGE_LOCAL/gap"
+rm -f latest
+ln -s "$GAP_DIR" latest
+
+echo "Copying GAP startup script..."
+rm -f "$SAGE_LOCAL/bin/gap"
+cd "$SPKG_ROOT"
+cp src/bin/gap.sh "$SAGE_LOCAL/bin/gap"
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error copying customized GAP startup script."
+    exit 1
+fi
+
+if [[ "$SAGE_SPKG_INSTALL_DOCS" = yes ]]; then
+    # The (pre-built) HTML documentation is currently (GAP 4.5.5)
+    # included, so we don't have to /build/ it here.
+    # echo "Now building GAP's documentation..."
+    # <COMMAND TO BUILD THE [HTML] DOCUMENTATION>
+    echo "Now copying GAP's (HTML) documentation..."
+    cd "$SPKG_ROOT"
+    mkdir -p "$SAGE_LOCAL/share/doc/gap" &&
+    cp -r src/doc/ref src/doc/tut "$SAGE_LOCAL/share/doc/gap/"
+    if [[ $? -ne 0 ]]; then
+        echo >&2 "Error copying GAP's HTML documentation."
+        exit 1
+    fi
+fi

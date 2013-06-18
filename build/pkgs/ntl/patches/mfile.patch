@@ -1,0 +1,21 @@
+--- src.orig/src/mfile	2012-08-06 11:54:53.485534200 +0200
++++ src/src/mfile	2012-08-06 11:59:46.819241900 +0200
+@@ -68,6 +68,9 @@
+ LIBTOOL=@{LIBTOOL}
+ # libtool command
+ 
++LIBTOOL_LINK_FLAGS=@{LIBTOOL_LINK_FLAGS}
++# flags to pass to libtool when linking
++
+ DEF_PREFIX=@{DEF_PREFIX}
+ 
+ PREFIX=@{PREFIX}
+@@ -370,7 +373,7 @@
+ ntl.a:	$(OBJ) 
+ @{LSTAT}	$(AR) $(ARFLAGS) ntl.a $(OBJ) #LSTAT
+ @{LSTAT}	- $(RANLIB) ntl.a #LSTAT
+-@{LSHAR}	$(LIBTOOL) --mode=link $(LINK_CXX) -o libntl.la $(OBJ:.o=.lo) $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(GF2X_OPT_LIBDIR) $(GF2X_OPT_LIB) $(LDLIBS_CXX) -rpath $(LIBDIR) -version-info `cat VERSION_INFO` #LSHAR
++@{LSHAR}	$(LIBTOOL) --mode=link $(LINK_CXX) $(LIBTOOL_LINK_FLAGS) -o libntl.la $(OBJ:.o=.lo) $(GMP_OPT_LIBDIR) $(GMP_OPT_LIB) $(GF2X_OPT_LIBDIR) $(GF2X_OPT_LIB) $(LDLIBS_CXX) -rpath $(LIBDIR) -version-info `cat VERSION_INFO` #LSHAR
+ 
+ @{LSTAT}LCOMP= #LSTAT
+ @{LSHAR}LCOMP=$(LIBTOOL) --mode=compile #LSHAR

@@ -1,0 +1,2 @@
+cdef class SatSolver:
+    pass

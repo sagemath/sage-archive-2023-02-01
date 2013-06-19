@@ -65,6 +65,7 @@ from sage.combinat.combinat import (CombinatorialClass, CombinatorialObject,
                       InfiniteAbstractCombinatorialClass)
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.dyck_word import DyckWord
+from sage.combinat.combinatorial_map import combinatorial_map
 
 def ParkingFunctions(n=None):
     r"""
@@ -576,6 +577,7 @@ class ParkingFunction_class(CombinatorialObject):
         """
         return self.cars_permutation().inverse()
 
+    @combinatorial_map(name='to car permutation')
     def cars_permutation(self):     # indices are parking spaces, entries are car labels
         r"""
         Returns the sequence of cars that take parking spots 1 through `n`
@@ -905,6 +907,7 @@ class ParkingFunction_class(CombinatorialObject):
         """
         return sum(self.to_area_sequence())
 
+    @combinatorial_map(name='to ides composition')
     def ides_composition(self):
         r"""
         Returns the :meth:`~sage.combinat.permutation.Permutation_class.descents_composition`
@@ -1006,6 +1009,7 @@ class ParkingFunction_class(CombinatorialObject):
         """
         return self.to_dyck_word().touch_points()
 
+    @combinatorial_map(name = 'to touch composition')
     def touch_composition(self):
         r"""
         Returns the composition of the labelled Dyck path corresponding to the
@@ -1041,6 +1045,7 @@ class ParkingFunction_class(CombinatorialObject):
 
     diagonal_composition = touch_composition
 
+    @combinatorial_map(name = 'to labelling permutation')
     def to_labelling_permutation(self):
         r"""
         Returns the labelling of the support Dyck path of the parking function.
@@ -1134,6 +1139,7 @@ class ParkingFunction_class(CombinatorialObject):
         """
         return (self.to_labelling_permutation(), self.to_area_sequence())
 
+    @combinatorial_map(name='to dyck word')
     def to_dyck_word(self):
         r"""
         Returns the support Dyck word of the parking function.
@@ -1235,6 +1241,7 @@ class ParkingFunction_class(CombinatorialObject):
         """
         return (self.to_labelling_permutation(), self.to_dyck_word())
 
+    @combinatorial_map(name = 'to non-decreasing parking function')
     def to_NonDecreasingParkingFunction(self):
         r"""
         Returns the non-decreasing parking function which underlies the parking

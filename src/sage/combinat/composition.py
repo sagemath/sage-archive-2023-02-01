@@ -232,6 +232,7 @@ class Composition(CombinatorialObject, Element):
         """
         return self.parent()(reversed(self))
 
+    @combinatorial_map(name = 'complement')
     def complement(self):
         """
         Return the complement composition of ``self``. The complement is the

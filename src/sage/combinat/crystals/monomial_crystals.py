@@ -814,7 +814,7 @@ class InfinityCrystalOfNakajimaMonomials(Parent,UniqueRepresentation):
         sage: M = InfinityCrystalOfNakajimaMonomials(['A',2,1])
         sage: T = M.subcrystal(max_depth=3)
         sage: H = M.digraph(subset=T) # long time
-        sage: Y = CrystalOfGeneralizedYoungWalls(2) # long time
+        sage: Y = InfinityCrystalOfGeneralizedYoungWalls(2) # long time
         sage: YS = Y.subcrystal(max_depth=3) # long time
         sage: YG = Y.digraph(subset=YS) # long time
         sage: YG.is_isomorphic(H,edge_labels=True) # long time
@@ -993,7 +993,7 @@ class CrystalOfNakajimaMonomials(InfinityCrystalOfNakajimaMonomials):
 
         sage: La = RootSystem(['A',3,1]).weight_lattice().fundamental_weights()
         sage: M = CrystalOfNakajimaMonomials(['A',3,1],La[0]+La[2])
-        sage: B = HighestWeightCrystalOfGYW(3,La[0]+La[2])
+        sage: B = CrystalOfGeneralizedYoungWalls(3,La[0]+La[2])
         sage: SM = M.subcrystal(max_depth=4)
         sage: SB = B.subcrystal(max_depth=4)
         sage: GM = M.digraph(subset=SM) # long time

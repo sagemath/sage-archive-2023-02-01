@@ -1581,11 +1581,10 @@ class FinitePoset(UniqueRepresentation, Parent):
         If ``m`` is a tuple of pairs of chain lengths, returns ``True`` if the poset
         does not contain a pair of incomparable chains whose lengths comprise
         one of the chain pairs, and ``False`` if not.
-
         A poset is `(m+n)`-free if it contains no induced subposet that is
         isomorphic to the poset consisting of two disjoint chains of lengths
         `m` and `n`.  See, for example, Exercise 15 in Chapter 3 of
-        Stanley, *Enumerative Combinatorics, Volume 1*, 2nd edition.
+        [EnumComb1]_.
 
         INPUT:
 
@@ -1657,6 +1656,13 @@ class FinitePoset(UniqueRepresentation, Parent):
         AUTHOR:
 
         - Eric Rowland (2013-05-28)
+
+        REFERENCES:
+
+        .. [EnumComb1] Enumerative Combinatorics I,
+          Second Edition,
+          Richard P. Stanley,
+          Cambridge University Press (2011)
         """
         if n is None:
             try:

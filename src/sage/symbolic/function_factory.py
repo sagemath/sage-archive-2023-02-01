@@ -13,6 +13,7 @@ Symbolic functions
 
 from sage.symbolic.function import SymbolicFunction, sfunctions_funcs, \
         unpickle_wrapper
+from sage.misc.decorators import sage_wraps
 
 def function_factory(name, nargs=0, latex_name=None, conversions=None,
             evalf_params_first=True, eval_func=None, evalf_func=None,
@@ -349,3 +350,37 @@ def deprecated_custom_evalf_wrapper(func):
         return func(*args, prec=prec)
     return new_evalf
 
+
+# This code is used when constructing dynamic methods for symbolic
+# expressions representing evaluated symbolic functions. See
+# get_dynamic_class_for_function in sage/symbolic/expression.pyx.
+# Since Cython does not support closures, this needs to live in a Python
+# file. This file is the only pure Python file we have related to symbolic
+# functions.
+def eval_on_operands(f):
+    """
+    Given a method ``f`` return a new method which takes a single symbolic
+    expression argument and passes the operands of the given expression as
+    arguments to ``f``.
+
+    EXAMPLES::
+
+        sage: def f(x, y):
+        ....:     '''
+        ....:     Some documentation.
+        ....:     '''
+        ....:     return x + 2*y
+        ....:
+        sage: f(x, 1)
+        x + 2
+        sage: from sage.symbolic.function_factory import eval_on_operands
+        sage: g = eval_on_operands(f)
+        sage: g(x + 1)
+        x + 2
+        sage: g.__doc__.strip()
+        'Some documentation.'
+    """
+    @sage_wraps(f)
+    def new_f(ex):
+        return f(*ex.operands())
+    return new_f

@@ -245,6 +245,7 @@ cdef extern from "ginac_wrap.h":
     bint is_a_power "is_a<power>" (GEx e)
     bint is_a_fderivative "is_a<fderivative>" (GEx e)
     bint is_a_function "is_a<function>" (GEx e)
+    bint is_exactly_a_function "is_exactly_a<function>" (GEx e)
     bint is_a_ncmul "is_a<ncmul>" (GEx e)
 
     # Arithmetic

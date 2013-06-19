@@ -24,6 +24,9 @@ from yang_baxter_graph import YangBaxterGraph
 from permutation import Permutation, Permutations, Arrangements, PermutationOptions, CyclicPermutations, CyclicPermutationsOfPartition
 from derangements import Derangements
 
+#RSK
+from rsk import RSK, RSK_inverse, RobinsonSchenstedKnuth, RobinsonSchenstedKnuth_inverse
+
 #PerfectMatchings
 from perfect_matching import PerfectMatching, PerfectMatchings
 

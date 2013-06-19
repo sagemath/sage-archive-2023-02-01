@@ -56,7 +56,6 @@ Hyperelliptic Curves
    sage/schemes/hyperelliptic_curves/hyperelliptic_finite_field
    sage/schemes/hyperelliptic_curves/hyperelliptic_generic
 
-   sage/schemes/hyperelliptic_curves/jacobian_constructor
    sage/schemes/hyperelliptic_curves/jacobian_g2
    sage/schemes/hyperelliptic_curves/jacobian_generic
    sage/schemes/hyperelliptic_curves/jacobian_homset

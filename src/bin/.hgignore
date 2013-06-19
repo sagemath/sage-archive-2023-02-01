@@ -69,6 +69,7 @@ fflas-ffpack-config
 fourier
 fourier_gmp
 fplll
+latticegen
 freetype-config
 frobby
 fsdump.py
@@ -331,6 +332,7 @@ homcubes
 PolyGUI
 cygdb
 ppl-config
+ppl_lpsol
 ppl_pips
 nosetests*
 webassets

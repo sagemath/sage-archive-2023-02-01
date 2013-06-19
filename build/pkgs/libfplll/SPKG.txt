@@ -2,19 +2,19 @@
 
 == Description ==
 
-fpLLL-3.0.7  contains different implementations of the floating-point LLL reduction algorithm, offering different speed/guarantees ratios. It contains a 'wrapper' choosing the estimated best sequence of variants in order to provide a guaranteed output as fast as possible. In the case of the wrapper, the succession of variants is oblivious to the user.
+fplll is a code distributed under the LGPL that LLL-reduces euclidean lattices.
+Since version 3, it can also solve the shortest vector problem.
 
-Website: http://perso.ens-lyon.fr/damien.stehle/english.html
+Website: http://perso.ens-lyon.fr/damien.stehle/fplll.html
 
 == License ==
- * LGPL V2+
+ * LGPL V2.1+
 
 == SPKG Maintainers ==
  * Martin Albrecht
 
 == Upstream Contact ==
- * Damien Stehle
- * David Cade
+ * Damien Stehlé (damien.stehle@ens-lyon.fr)
 
 == Dependencies ==
  * gmp
@@ -22,7 +22,11 @@ Website: http://perso.ens-lyon.fr/damien.stehle/english.html
 
 == Changelog ==
 
-=== libfplll-3.0.12.p3 (Simon King, 6 December 2011) ===
+=== libfplll-4.0.4 (Jean-Pierre Flori, 30 May 2013) ===
+ * #12835: update to version 4.0.4.
+ * Removed dpe.h patch which has been integrated upstream.
+
+=== libfplll-3.0.12.p3 (Jean-Pierre Flori, 6 December 2012) ===
  * #13804: Disable parallel build and install on Cygwin.
  * Clean up spkg-install and spkg-check.
 

@@ -3341,15 +3341,27 @@ class EllipticCurveIsogeny(Morphism):
 
             sage: E = EllipticCurve(j=GF(7)(0))
             sage: phi = EllipticCurveIsogeny(E, [E(0), E((0,1)), E((0,-1))])
-            sage: phi*phi
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
             sage: phi._composition_(phi, phi.parent())
             Traceback (most recent call last):
             ...
             NotImplementedError
 
+        The following should test that :meth:`_composition_` is called
+        upon a product. However phi is currently improperly
+        constructed (see :trac:`12880`), which triggers an assertion
+        failure before the actual call ::
+
+            sage: phi*phi
+            Traceback (most recent call last):
+            ...
+            TypeError: Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 7 is not in Category of hom sets in Category of Schemes
+
+        Here would be the desired output::
+
+            sage: phi*phi            # not tested
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         raise NotImplementedError
 

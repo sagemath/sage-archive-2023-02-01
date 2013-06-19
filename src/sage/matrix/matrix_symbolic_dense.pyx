@@ -40,8 +40,8 @@ Computing inverses::
 
     sage: M = matrix(SR, 2, var('a,b,c,d'))
     sage: ~M
-    [-b*c/((b*c/a - d)*a^2) + 1/a            b/((b*c/a - d)*a)]
-    [           c/((b*c/a - d)*a)               -1/(b*c/a - d)]
+    [1/a - b*c/(a^2*(b*c/a - d))           b/(a*(b*c/a - d))]
+    [          c/(a*(b*c/a - d))              -1/(b*c/a - d)]
     sage: (~M*M).simplify_rational()
     [1 0]
     [0 1]
@@ -103,7 +103,7 @@ Determinant::
     sage: t = var('t')
     sage: M = matrix(SR, 2, 2, [cos(t), sin(t), -sin(t), cos(t)])
     sage: M.det()
-    sin(t)^2 + cos(t)^2
+    cos(t)^2 + sin(t)^2
 
 Permanents::
 
@@ -206,11 +206,11 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
             [3 4 5]
             [6 7 8]
             sage: es = A.eigenvectors_left(); es
-            [(-3*sqrt(6) + 6, [(1, -1/5*sqrt(6) + 4/5, -2/5*sqrt(2)*sqrt(3) + 3/5)], 1), (3*sqrt(6) + 6, [(1, 1/5*sqrt(6) + 4/5, 2/5*sqrt(2)*sqrt(3) + 3/5)], 1), (0, [(1, -2, 1)], 1)]
+            [(-3*sqrt(6) + 6, [(1, -1/5*sqrt(6) + 4/5, -2/5*sqrt(3)*sqrt(2) + 3/5)], 1), (3*sqrt(6) + 6, [(1, 1/5*sqrt(6) + 4/5, 2/5*sqrt(3)*sqrt(2) + 3/5)], 1), (0, [(1, -2, 1)], 1)]
             sage: eval, [evec], mult = es[0]
             sage: delta = eval*evec - evec*A
             sage: abs(abs(delta)) < 1e-10
-            abs(sqrt(144/25*(sqrt(2)*sqrt(3) - sqrt(6))^2 + 1/25*(3*(sqrt(6) - 2)*(2*sqrt(2)*sqrt(3) - 3) + 16*sqrt(2)*sqrt(3) + 5*sqrt(6) - 54)^2 + 1/25*(3*(sqrt(6) - 4)*(sqrt(6) - 2) + 14*sqrt(2)*sqrt(3) + 4*sqrt(6) - 42)^2)) < (1.00000000000000e-10)
+            abs(sqrt(1/25*(3*(2*sqrt(3)*sqrt(2) - 3)*(sqrt(6) - 2) + 16*sqrt(3)*sqrt(2) + 5*sqrt(6) - 54)^2 + 1/25*(3*(sqrt(6) - 2)*(sqrt(6) - 4) + 14*sqrt(3)*sqrt(2) + 4*sqrt(6) - 42)^2 + 144/25*(sqrt(3)*sqrt(2) - sqrt(6))^2)) < (1.00000000000000e-10)
             sage: abs(abs(delta)).n() < 1e-10
             True
 
@@ -218,9 +218,9 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
 
             sage: A = matrix(SR, 2, 2, var('a,b,c,d'))
             sage: A.eigenvectors_left()
-            [(1/2*a + 1/2*d - 1/2*sqrt(a^2 - 2*a*d + 4*b*c + d^2), [(1, -1/2*(a - d + sqrt(a^2 - 2*a*d + 4*b*c + d^2))/c)], 1), (1/2*a + 1/2*d + 1/2*sqrt(a^2 - 2*a*d + 4*b*c + d^2), [(1, -1/2*(a - d - sqrt(a^2 - 2*a*d + 4*b*c + d^2))/c)], 1)]
+            [(1/2*a + 1/2*d - 1/2*sqrt(a^2 + 4*b*c - 2*a*d + d^2), [(1, -1/2*(a - d + sqrt(a^2 + 4*b*c - 2*a*d + d^2))/c)], 1), (1/2*a + 1/2*d + 1/2*sqrt(a^2 + 4*b*c - 2*a*d + d^2), [(1, -1/2*(a - d - sqrt(a^2 + 4*b*c - 2*a*d + d^2))/c)], 1)]
             sage: es = A.eigenvectors_left(); es
-            [(1/2*a + 1/2*d - 1/2*sqrt(a^2 - 2*a*d + 4*b*c + d^2), [(1, -1/2*(a - d + sqrt(a^2 - 2*a*d + 4*b*c + d^2))/c)], 1), (1/2*a + 1/2*d + 1/2*sqrt(a^2 - 2*a*d + 4*b*c + d^2), [(1, -1/2*(a - d - sqrt(a^2 - 2*a*d + 4*b*c + d^2))/c)], 1)]
+            [(1/2*a + 1/2*d - 1/2*sqrt(a^2 + 4*b*c - 2*a*d + d^2), [(1, -1/2*(a - d + sqrt(a^2 + 4*b*c - 2*a*d + d^2))/c)], 1), (1/2*a + 1/2*d + 1/2*sqrt(a^2 + 4*b*c - 2*a*d + d^2), [(1, -1/2*(a - d - sqrt(a^2 + 4*b*c - 2*a*d + d^2))/c)], 1)]
             sage: eval, [evec], mult = es[0]
             sage: delta = eval*evec - evec*A
             sage: delta.apply_map(lambda x: x.full_simplify())
@@ -400,7 +400,7 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
 
             sage: M = matrix(SR, 2, 2, var('a,b,c,d'))
             sage: M.charpoly('t')
-            t^2 + (-a - d)*t + a*d - b*c
+            t^2 + (-a - d)*t - b*c + a*d
             sage: matrix(SR, 5, [1..5^2]).charpoly()
             x^5 - 65*x^4 - 250*x^3
 
@@ -525,8 +525,8 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
             sage: theta = var('theta')
             sage: M = matrix(SR, 2, 2, [cos(theta), sin(theta), -sin(theta), cos(theta)])
             sage: ~M
-            [-sin(theta)^2/((sin(theta)^2/cos(theta) + cos(theta))*cos(theta)^2) + 1/cos(theta)                    -sin(theta)/((sin(theta)^2/cos(theta) + cos(theta))*cos(theta))]
-            [                    sin(theta)/((sin(theta)^2/cos(theta) + cos(theta))*cos(theta))                                           1/(sin(theta)^2/cos(theta) + cos(theta))]
+            [1/cos(theta) - sin(theta)^2/((sin(theta)^2/cos(theta) + cos(theta))*cos(theta)^2)                   -sin(theta)/((sin(theta)^2/cos(theta) + cos(theta))*cos(theta))]
+            [                   sin(theta)/((sin(theta)^2/cos(theta) + cos(theta))*cos(theta))                                          1/(sin(theta)^2/cos(theta) + cos(theta))]
             sage: (~M).simplify_trig()
             [ cos(theta) -sin(theta)]
             [ sin(theta)  cos(theta)]
@@ -539,7 +539,12 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
 
             sage: M = matrix(SR, 3, 3, range(9)) - var('t')
             sage: (~M*M)[0,0]
-            -(3*((6/t + 7)/((t - 3/t - 4)*t) + 2/t)*((6/t + 5)/((t - 3/t - 4)*t) + 2/t)/((6/t + 5)*(6/t + 7)/(t - 3/t - 4) - t + 12/t + 8) - 1/t - 3/((t - 3/t - 4)*t^2))*t + 3*(6/t + 7)*((6/t + 5)/((t - 3/t - 4)*t) + 2/t)/((t - 3/t - 4)*((6/t + 5)*(6/t + 7)/(t - 3/t - 4) - t + 12/t + 8)) + 6*((6/t + 5)/((t - 3/t - 4)*t) + 2/t)/((6/t + 5)*(6/t + 7)/(t - 3/t - 4) - t + 12/t + 8) - 3/((t - 3/t - 4)*t)
+            t*(3*(2/t + (6/t + 7)/((t - 3/t - 4)*t))*(2/t + (6/t + 5)/((t - 3/t
+            - 4)*t))/(t - (6/t + 7)*(6/t + 5)/(t - 3/t - 4) - 12/t - 8) + 1/t +
+            3/((t - 3/t - 4)*t^2)) - 6*(2/t + (6/t + 5)/((t - 3/t - 4)*t))/(t -
+            (6/t + 7)*(6/t + 5)/(t - 3/t - 4) - 12/t - 8) - 3*(6/t + 7)*(2/t +
+            (6/t + 5)/((t - 3/t - 4)*t))/((t - (6/t + 7)*(6/t + 5)/(t - 3/t -
+            4) - 12/t - 8)*(t - 3/t - 4)) - 3/((t - 3/t - 4)*t)
             sage: expand((~M*M)[0,0])
             1
             sage: (~M * M).simplify_rational()
@@ -646,29 +651,29 @@ cdef class Matrix_symbolic_dense(matrix_generic_dense.Matrix_generic_dense):
             sage: M = MatrixSpace(SR,2,2)
             sage: h = M(sin(x)+cos(x))
             sage: h
-            [sin(x) + cos(x)               0]
-            [              0 sin(x) + cos(x)]
+            [cos(x) + sin(x)               0]
+            [              0 cos(x) + sin(x)]
             sage: h(x=1)
-            [sin(1) + cos(1)               0]
-            [              0 sin(1) + cos(1)]
+            [cos(1) + sin(1)               0]
+            [              0 cos(1) + sin(1)]
             sage: h(x=x)
-            [sin(x) + cos(x)               0]
-            [              0 sin(x) + cos(x)]
+            [cos(x) + sin(x)               0]
+            [              0 cos(x) + sin(x)]
 
             sage: h = M((sin(x)+cos(x)).function(x))
             sage: h
-            [sin(x) + cos(x)               0]
-            [              0 sin(x) + cos(x)]
+            [cos(x) + sin(x)               0]
+            [              0 cos(x) + sin(x)]
             sage: h(1)
             doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
             See http://trac.sagemath.org/4513 for details.
             doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
             See http://trac.sagemath.org/5930 for details.
-            [sin(1) + cos(1)               0]
-            [              0 sin(1) + cos(1)]
+            [cos(1) + sin(1)               0]
+            [              0 cos(1) + sin(1)]
             sage: h(x)
-            [sin(x) + cos(x)               0]
-            [              0 sin(x) + cos(x)]
+            [cos(x) + sin(x)               0]
+            [              0 cos(x) + sin(x)]
 
             sage: f = M([0,x,y,z]); f
             [0 x]

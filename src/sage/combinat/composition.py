@@ -156,6 +156,25 @@ class Composition(CombinatorialObject, Element):
         CombinatorialObject.__init__(self, lst)
         Element.__init__(self, parent)
 
+    def _ascii_art_(self):
+        """
+        TESTS::
+
+            sage: ascii_art(Compositions(4).list())
+            [ *                                  ]
+            [ *  **   *        *                 ]
+            [ *  *   **  ***   *   **    *       ]
+            [ *, * , * , *  , **, ** , ***, **** ]
+            sage: Partitions.global_options(diagram_str='#', convention="French")
+            sage: ascii_art(Compositions(4).list())
+            [ #                                  ]
+            [ #  #   #        ##                 ]
+            [ #  #   ##  #     #  ##   ###       ]
+            [ #, ##,  #, ###,  #,  ##,   #, #### ]
+        """
+        from sage.misc.ascii_art import ascii_art
+        return ascii_art(self.to_skew_partition())
+
     def __setstate__(self, state):
         r"""
         In order to maintain backwards compatibility and be able to unpickle a

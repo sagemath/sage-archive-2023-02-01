@@ -13,10 +13,6 @@ Generalized Young walls are certain generalizations of Young tableaux
 introduced in [KS10]_ and designed to be a realization of the crystals
 `\mathcal{B}(\infty)` and `\mathcal{B}(\lambda)` in type `A_n^{(1)}`.
 
-.. WARNING::
-
-    Does not work with :func:`TensorProductOfCrystals`.
-
 REFERENCES:
 
 .. [KS10] J.-A. Kim and D.-U. Shin.

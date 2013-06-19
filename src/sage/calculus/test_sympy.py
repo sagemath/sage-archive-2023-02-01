@@ -164,7 +164,7 @@ Mixing SymPy with Sage::
     sage: type(e)
     <type 'sage.symbolic.expression.Expression'>
     sage: e
-    sin(y) + cos(x)
+    cos(x) + sin(y)
     sage: e = sage.all.cos(var("y")**3)**4+var("x")**2
     sage: e = e._sympy_()
     sage: e

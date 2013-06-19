@@ -658,8 +658,6 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             alpha_1*beta_2
 
         """
-        from weakref import WeakKeyDictionary
-        self._coerce_cache = WeakKeyDictionary()
         if not names:
             names = ['x']
         for n in names:
@@ -706,7 +704,6 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             VarList = [X+'_0' for X in names]
         VarList.sort(cmp=self.varname_cmp, reverse=True)
         self._minP = PolynomialRing(R, len(VarList), VarList)
-        self._coerce_cache[self] = True
         self._populate_coercion_lists_()
 
     def __repr__(self):
@@ -816,10 +813,6 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
         """
         return [InfinitePolynomialFunctor(self._names, self._order, 'sparse'), self._base]
 
-    #@cached_method  -- better no "strong" caching!
-    # Otherwise, 1000s of polynomial rings will be
-    # strongly referenced. We do weak value caching
-    # internally
     def _coerce_map_from_(self, S):
         """
         Coerce things into ``self``.
@@ -850,12 +843,6 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             a_4^2*x_1 + a_2*x_3
 
         """
-        try:
-            v = self._coerce_cache.get(S)
-        except TypeError:
-            v = None
-        if v is not None:
-            return v
         # Use Construction Functors!
         from sage.categories.pushout import pushout, construction_tower
         try:
@@ -865,14 +852,9 @@ class InfinitePolynomialRing_sparse(CommutativeRing):
             P = pushout(self,S)
             # We don't care about the orders. But base ring and generators
             # of the pushout should remain the same as in self.
-            v = (P._names == self._names and P._base == self._base)
+            return (P._names == self._names and P._base == self._base)
         except StandardError:
-            v = False
-        try:
-            self._coerce_cache[S] = v
-        except StandardError:
-            pass
-        return v
+            return False
 
     def _element_constructor_(self, x):
         """

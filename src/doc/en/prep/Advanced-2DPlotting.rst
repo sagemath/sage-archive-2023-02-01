@@ -312,7 +312,7 @@ So we just define the numbers and coordinate pairs we are about to plot.
     sage: fibonacci
     [(0, 0), (1, 1), (2, 1), (3, 2), (4, 3), (5, 5)]
     sage: asymptotic
-    [(0, 1/5*sqrt(5)), (1, 1/10*(sqrt(5) + 1)*sqrt(5)), (2, 1/20*(sqrt(5) + 1)^2*sqrt(5)), (3, 1/40*(sqrt(5) + 1)^3*sqrt(5)), (4, 1/80*(sqrt(5) + 1)^4*sqrt(5)), (5, 1/160*(sqrt(5) + 1)^5*sqrt(5))]
+    [(0, 1/5*sqrt(5)), (1, 1/10*sqrt(5)*(sqrt(5) + 1)), (2, 1/20*sqrt(5)*(sqrt(5) + 1)^2), (3, 1/40*sqrt(5)*(sqrt(5) + 1)^3), (4, 1/80*sqrt(5)*(sqrt(5) + 1)^4), (5, 1/160*sqrt(5)*(sqrt(5) + 1)^5)]
 
 Now we can plot not just the two sets of points, but also use several of
 the documented options for plotting points. Those coming from other

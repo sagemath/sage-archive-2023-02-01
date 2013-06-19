@@ -451,7 +451,7 @@ def entropy(x,q):
         sage: entropy(0, 2)
         0
         sage: entropy(1/5,4)
-        -1/5*log(1/5)/log(4) - 4/5*log(4/5)/log(4) + 1/5*log(3)/log(4)
+        1/5*log(3)/log(4) - 4/5*log(4/5)/log(4) - 1/5*log(1/5)/log(4)
         sage: entropy(1, 3)
         log(2)/log(3)
 

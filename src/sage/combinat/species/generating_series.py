@@ -501,6 +501,49 @@ class CycleIndexSeries(LazyPowerSeries):
         for i in _integers_from(ao):
             yield self.coefficient(i).coefficient([1]*i)
 
+    def __invert__(self):
+        """
+        Return the multiplicative inverse of self.
+        This algorithm is derived from [BLL]_.
+
+        EXAMPLES::
+
+            sage: E = species.SetSpecies().cycle_index_series()
+            sage: E.__invert__().coefficients(4)
+            [p[], -p[1], 1/2*p[1, 1] - 1/2*p[2], -1/6*p[1, 1, 1] + 1/2*p[2, 1] - 1/3*p[3]]
+
+        The defining characteristic of the multiplicative inverse `F^{-1}` of a cycle index series `F`
+        is that `F \cdot F^{-1} = F^{-1} \cdot F = 1` (that is, both products with `F` yield the multiplicative identity `1`)::
+
+            sage: E = species.SetSpecies().cycle_index_series()
+            sage: (E * ~E).coefficients(6)
+            [p[], 0, 0, 0, 0, 0]
+
+        REFERENCES:
+
+        .. [BLL] F. Bergeron, G. Labelle, and P. Leroux. "Combinatorial species and tree-like structures". Encyclopedia of Mathematics and its Applications, vol. 67, Cambridge Univ. Press. 1998.
+
+        AUTHORS:
+
+        - Andrew Gainer-Dewar
+        """
+        if self.coefficient(0) == 0:
+            raise ValueError("Constant term must be non-zero")
+
+        def multinv_builder(i):
+            return self.coefficient(0)**(-i-1) * (self.coefficient(0) + (-1)*self)**i
+
+        return self.parent().sum_generator(multinv_builder(i) for i in _integers_from(0))
+
+    def _div_(self, y):
+        """
+        TESTS::
+
+            sage: E = species.SetSpecies().cycle_index_series()
+            sage: (E / E).coefficients(6)
+            [p[], 0, 0, 0, 0, 0]
+        """
+        return self*(~y)
 
     def functorial_composition(self, g):
         r"""

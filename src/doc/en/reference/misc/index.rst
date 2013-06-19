@@ -5,6 +5,7 @@ Miscellaneous
    :maxdepth: 2
 
    sage/misc/abstract_method
+   sage/misc/ascii_art
    sage/misc/bindable_class
    sage/misc/cachefunc
    sage/misc/c3

@@ -391,7 +391,7 @@ class IndexedSequence(SageObject):
             sage: s = IndexedSequence(A,J)
             sage: s.dct()
             <BLANKLINE>
-            Indexed sequence: [1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) + 1, 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) + 1, 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) + 1, 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) + 1, 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) + 1]
+            Indexed sequence: [1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1, 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1, 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1, 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1, 1/4*(sqrt(5) - 1)*e^(-2/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-4/5*I*pi) - 1/4*(sqrt(5) + 1)*e^(-6/5*I*pi) + 1/4*(sqrt(5) - 1)*e^(-8/5*I*pi) + 1]
             indexed by [0, 1, 2, 3, 4]
         """
         from sage.symbolic.constants import pi

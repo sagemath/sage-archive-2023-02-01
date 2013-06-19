@@ -95,7 +95,7 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
 from sage.combinat.combinatorial_map import combinatorial_map
-
+from sage.misc.superseded import deprecated_function_alias
 
 TableauOptions=GlobalOptions(name='tableaux',
     doc=r"""
@@ -144,6 +144,24 @@ TableauOptions=GlobalOptions(name='tableaux',
         sage: T
           1  2  3
           4  5
+
+    The ASCII art can also be changed::
+
+        sage: t = Tableau([[1,2,3],[4,5]])
+        sage: ascii_art(t)
+          1  2  3
+          4  5
+        sage: Tableaux.global_options(ascii_art="normal")
+        sage: ascii_art(t)
+        +---+---+
+        | 4 | 5 |
+        +---+---+---+
+        | 1 | 2 | 3 |
+        +---+---+---+
+        sage: Tableaux.global_options(ascii_art="compact")
+        sage: ascii_art(t)
+        |4|5|
+        |1|2|3|
         sage: Tableaux.global_options.reset()
     """,
     display=dict(default="list",
@@ -152,6 +170,12 @@ TableauOptions=GlobalOptions(name='tableaux',
                              diagram='display as Young diagram (simlar to :meth:`~sage.combinat.tableau.Tableau.pp()`',
                              compact='minimal length string representation'),
                  alias=dict(array="diagram", ferrers_diagram="diagram", young_diagram="diagram"),
+                 case_sensitive=False),
+    ascii_art=dict(default="repr",
+                 description='Controls the ascii art output for tableaux',
+                 values=dict(repr='display using the diagram string representation',
+                             table='display as a table',
+                             compact='minimal length ascii art'),
                  case_sensitive=False),
     latex=dict(default="diagram",
                description='Controls the way in wich tableaux are latexed',
@@ -386,6 +410,86 @@ class Tableau(CombinatorialObject, Element):
             return '-'
         else: return '/'.join(','.join('%s'%r for r in row) for row in self._list)
 
+    def _ascii_art_(self):
+        """
+        TESTS::
+
+            sage: ascii_art(list(StandardTableaux(3)))
+            [                              1 ]
+            [              1  3    1  2    2 ]
+            [   1  2  3,   2   ,   3   ,   3 ]
+            sage: Tableaux.global_options(ascii_art="compact")
+            sage: ascii_art(list(StandardTableaux(3)))
+            [                        |3| ]
+            [          |2|    |3|    |2| ]
+            [ |1|2|3|, |1|3|, |1|2|, |1| ]
+            sage: Tableaux.global_options(ascii_art="table")
+            sage: ascii_art(list(StandardTableaux(3)))
+            [                                      +---+ ]
+            [                                      | 3 | ]
+            [                +---+      +---+      +---+ ]
+            [                | 2 |      | 3 |      | 2 | ]
+            [ +---+---+---+  +---+---+  +---+---+  +---+ ]
+            [ | 1 | 2 | 3 |  | 1 | 3 |  | 1 | 2 |  | 1 | ]
+            [ +---+---+---+, +---+---+, +---+---+, +---+ ]
+            sage: Tableaux.global_options(convention="french")
+            sage: Tableaux.global_options(ascii_art="repr")
+            sage: ascii_art(list(StandardTableaux(3)))
+            [                              3 ]
+            [              2       3       2 ]
+            [   1  2  3,   1  3,   1  2,   1 ]
+            sage: Tableaux.global_options.reset()
+        """
+        ascii = self.parent().global_options.dispatch(self,'_ascii_art_','ascii_art')
+        from sage.misc.ascii_art import AsciiArt
+        return AsciiArt(ascii.splitlines())
+
+    _ascii_art_repr = _repr_diagram
+
+    def _ascii_art_table(self):
+        """
+        TESTS::
+
+            sage: t = Tableau([[1,2,3],[4,5]]); print t._ascii_art_table()
+            +---+---+
+            | 4 | 5 |
+            +---+---+---+
+            | 1 | 2 | 3 |
+            +---+---+---+
+            sage: t = Tableau([]); print t._ascii_art_table()
+            ++
+            ++
+        """
+        if len(self) == 0: return "++\n++"
+        matr = ""
+        for row in self:
+            l1 = ""; l2 =  ""
+            for e in row:
+                l1 += "+---"
+                l2 += "| " + str(e) + " "
+            l1 += "+"; l2 += "|"
+            matr = l1 + "\n" + l2 + "\n" + matr
+        matr += "+---"** Integer(len(self[0])) + "+"
+        return matr
+
+    def _ascii_art_compact(self):
+        """
+        TESTS::
+
+            sage: t = Tableau([[1,2,3],[4,5]]); print t._ascii_art_compact()
+            |4|5|
+            |1|2|3|
+        """
+        if len(self) == 0:
+            return "."
+        matr = ''
+        for row in self:
+            l1 = ""; l2 =  ""
+            for e in row:
+                l1 += "|" + str(e)
+            l1 += "|"
+            matr = l1 + "\n" + matr
+        return matr
 
     def _latex_(self):
         r"""
@@ -666,15 +770,19 @@ class Tableau(CombinatorialObject, Element):
 
     def to_permutation(self):
         """
-        Returns a permutation with the entries of self obtained by reading
-        self in the reading order.
+        Deprecated in :trac:`14724`. Use :meth:`reading_word_permutation()`
+        instead.
 
         EXAMPLES::
 
             sage: Tableau([[1,2],[3,4]]).to_permutation()
+            doctest:...: DeprecationWarning: to_permutation() is deprecated. Use instead reading_word_permutation()
+            See http://trac.sagemath.org/14724 for details.
             [3, 4, 1, 2]
         """
-        return permutation.Permutation(self.to_word())
+        from sage.misc.superseded import deprecation
+        deprecation(14724, 'to_permutation() is deprecated. Use instead reading_word_permutation()')
+        return self.reading_word_permutation()
 
     def descents(self):
         """
@@ -836,6 +944,8 @@ class Tableau(CombinatorialObject, Element):
             t = t.bump(wi[k])
         if isinstance(self, StandardTableau):
             return StandardTableau(list(t))
+        elif isinstance(self, SemistandardTableau):
+            return SemistandardTableau(list(t))
         return t
 
     def standardization(self, check=True):
@@ -1002,8 +1112,13 @@ class Tableau(CombinatorialObject, Element):
 
             sage: StandardTableau([[1,2],[3,4]]).reading_word_permutation()
             [3, 4, 1, 2]
+
+        Check that :trac:`14724` is fixed::
+
+            sage: SemistandardTableau([[1,1]]).reading_word_permutation()
+            [1, 2]
         """
-        return permutation.Permutation(self.to_word())
+        return permutation.Permutation(self.standardization().to_word())
 
     def entries(self):
         """
@@ -1094,7 +1209,7 @@ class Tableau(CombinatorialObject, Element):
 
     def is_standard(self):
         """
-        Returns True if t is a standard tableau and False otherwise.
+        Return ``True`` if ``t`` is a standard tableau and ``False`` otherwise.
 
         EXAMPLES::
 
@@ -1110,6 +1225,28 @@ class Tableau(CombinatorialObject, Element):
         entries=self.entries()
         entries.sort()
         return entries==range(1,self.size()+1) and self.is_row_strict() and self.is_column_strict()
+
+    def is_increasing(self):
+        """
+        Return ``True`` if ``t`` is an increasing tableau and
+        ``False`` otherwise.
+
+        A tableau is increasing if it is both row strict and column strict.
+
+        EXAMPLES::
+
+            sage: Tableau([[1, 3], [2, 4]]).is_increasing()
+            True
+            sage: Tableau([[1, 2], [2, 4]]).is_increasing()
+            True
+            sage: Tableau([[2, 3], [2, 4]]).is_increasing()
+            False
+            sage: Tableau([[5, 3], [2, 4]]).is_increasing()
+            False
+            sage: Tableau([[1, 2, 3], [2, 3], [3]]).is_increasing()
+            True
+        """
+        return self.is_row_strict() and self.is_column_strict()
 
     def is_rectangular(self):
         """
@@ -2202,8 +2339,6 @@ class Tableau(CombinatorialObject, Element):
         else:
             return Tableau([])
 
-
-    from sage.misc.superseded import deprecated_function_alias
     katabolism = deprecated_function_alias(13605, catabolism)
     katabolism_sequence = deprecated_function_alias(13605, catabolism_sequence)
     lambda_katabolism = deprecated_function_alias(13605, lambda_catabolism)

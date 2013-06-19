@@ -30,7 +30,7 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 from sage.matrix.matrix_space import MatrixSpace
-from sage.groups.matrix_gps.matrix_group import MatrixGroup
+from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.matrix.constructor import matrix
 
 Mat2Z = MatrixSpace(ZZ,2)
@@ -1181,8 +1181,10 @@ class GammaH_class(CongruenceSubgroup):
         EXAMPLE::
 
             sage: Gamma0(3).image_mod_n()
-            Matrix group over Ring of integers modulo 3 with 2 generators:
-             [[[2, 0], [0, 2]], [[1, 1], [0, 1]]]
+            Matrix group over Ring of integers modulo 3 with 2 generators (
+            [2 0]  [1 1]
+            [0 2], [0 1]
+            )
 
         TEST::
 

@@ -59,7 +59,7 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
 #       groups.presentation - free groups with relations
 #       groups.symmetries - permutation groups of regular solids, or similar
 
-from sage.groups.matrix_gps import matrix_groups_catalog as matrix
+from sage.groups.matrix_gps import catalog as matrix
 from sage.groups.perm_gps import permutation_groups_catalog as permutation
 from sage.groups.misc_gps import misc_groups_catalog as misc
 

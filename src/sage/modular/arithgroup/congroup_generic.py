@@ -25,7 +25,7 @@ AUTHORS:
 from sage.rings.all import QQ, ZZ, Zmod
 from sage.rings.arith import gcd
 from sage.sets.set import Set
-from sage.groups.matrix_gps.matrix_group import MatrixGroup, MatrixGroup_generic
+from sage.groups.matrix_gps.all import MatrixGroup
 from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.misc_c import prod
 
@@ -61,16 +61,22 @@ def CongruenceSubgroup_constructor(*args):
         sage: from sage.modular.arithgroup.congroup_generic import CongruenceSubgroup_constructor as CS
         sage: CS(2, [[1,1,0,1]])
         Congruence subgroup of SL(2,Z) of level 2, preimage of:
-         Matrix group over Ring of integers modulo 2 with 1 generators:
-         [[[1, 1], [0, 1]]]
+         Matrix group over Ring of integers modulo 2 with 1 generators (
+        [1 1]
+        [0 1]
+        )
         sage: CS([matrix(Zmod(2), 2, [1,1,0,1])])
         Congruence subgroup of SL(2,Z) of level 2, preimage of:
-         Matrix group over Ring of integers modulo 2 with 1 generators:
-         [[[1, 1], [0, 1]]]
+         Matrix group over Ring of integers modulo 2 with 1 generators (
+        [1 1]
+        [0 1]
+        )
         sage: CS(MatrixGroup([matrix(Zmod(2), 2, [1,1,0,1])]))
         Congruence subgroup of SL(2,Z) of level 2, preimage of:
-         Matrix group over Ring of integers modulo 2 with 1 generators:
-         [[[1, 1], [0, 1]]]
+         Matrix group over Ring of integers modulo 2 with 1 generators (
+        [1 1]
+        [0 1]
+        )
         sage: CS(SL(2, 2))
         Modular Group SL(2,Z)
 
@@ -81,7 +87,8 @@ def CongruenceSubgroup_constructor(*args):
         ...
         TypeError: Ring of definition must be Z / NZ for some N
     """
-    if isinstance(args[0], MatrixGroup_generic):
+    from sage.groups.matrix_gps.matrix_group import is_MatrixGroup
+    if is_MatrixGroup(args[0]):
         G = args[0]
 
     elif type(args[0]) == type([]):
@@ -222,8 +229,10 @@ class CongruenceSubgroupFromGroup(CongruenceSubgroupBase):
 
         sage: G = CongruenceSubgroup(5, [[0,-1,1,0]]); G
         Congruence subgroup of SL(2,Z) of level 5, preimage of:
-         Matrix group over Ring of integers modulo 5 with 1 generators:
-         [[[0, 4], [1, 0]]]
+         Matrix group over Ring of integers modulo 5 with 1 generators (
+        [0 4]
+        [1 0]
+        )
         sage: G == loads(dumps(G))
         True
     """
@@ -251,8 +260,11 @@ class CongruenceSubgroupFromGroup(CongruenceSubgroupBase):
 
             sage: G = CongruenceSubgroup(5, [[0,-1,1,0]])
             sage: G.__reduce__()
-            (<function CongruenceSubgroup_constructor at ...>, (Matrix group over Ring of integers modulo 5 with 1 generators:
-                 [[[0, 4], [1, 0]]],))
+            (<function CongruenceSubgroup_constructor at ...>,
+             (Matrix group over Ring of integers modulo 5 with 1 generators (
+             [0 4]
+             [1 0]
+             ),))
         """
         return CongruenceSubgroup_constructor, (self.image_mod_n(),)
 
@@ -304,14 +316,16 @@ class CongruenceSubgroupFromGroup(CongruenceSubgroupBase):
             sage: G = Gamma(3)
             sage: G.to_even_subgroup()
             Congruence subgroup of SL(2,Z) of level 3, preimage of:
-             Matrix group over Ring of integers modulo 3 with 1 generators:
-             [[[2, 0], [0, 2]]]
+             Matrix group over Ring of integers modulo 3 with 1 generators (
+            [2 0]
+            [0 2]
+            )
         """
         if self.is_even():
             return self
         else:
             G = self.image_mod_n()
-            H = MatrixGroup(G.gens() + [G.matrix_space()(-1)])
+            H = MatrixGroup([ g.matrix() for g in G.gens()] + [G.matrix_space()(-1)])
             return CongruenceSubgroup_constructor(H)
 
     def _repr_(self):
@@ -321,7 +335,7 @@ class CongruenceSubgroupFromGroup(CongruenceSubgroupBase):
         EXAMPLE::
 
             sage: sage.modular.arithgroup.congroup_generic.CongruenceSubgroupFromGroup(MatrixGroup([matrix(Zmod(2), 2, [1,1,1,0])]))._repr_()
-            'Congruence subgroup of SL(2,Z) of level 2, preimage of:\n Matrix group over Ring of integers modulo 2 with 1 generators: \n [[[1, 1], [1, 0]]]'
+            'Congruence subgroup of SL(2,Z) of level 2, preimage of:\n Matrix group over Ring of integers modulo 2 with 1 generators (\n[1 1]\n[1 0]\n)'
         """
         return "Congruence subgroup of SL(2,Z) of level %s, preimage of:\n %s" % (self.level(), self.image_mod_n())
 
@@ -346,8 +360,10 @@ class CongruenceSubgroupFromGroup(CongruenceSubgroupBase):
 
             sage: G = MatrixGroup([matrix(Zmod(2), 2, [1,1,1,0])])
             sage: H = sage.modular.arithgroup.congroup_generic.CongruenceSubgroupFromGroup(G); H.image_mod_n()
-            Matrix group over Ring of integers modulo 2 with 1 generators:
-             [[[1, 1], [1, 0]]]
+            Matrix group over Ring of integers modulo 2 with 1 generators (
+            [1 1]
+            [1 0]
+            )
             sage: H.image_mod_n() == G
             True
         """
@@ -504,15 +520,20 @@ def _minimize_level(G):
 
         sage: M = MatrixSpace(Zmod(9), 2, 2)
         sage: G = MatrixGroup([M(x) for x in [[1,1,0,1],[1,3,0,1],[1,0,3,1],[4,0,0,7]]]); G
-        Matrix group over Ring of integers modulo 9 with 4 generators:
-         [[[1, 1], [0, 1]], [[1, 3], [0, 1]], [[1, 0], [3, 1]], [[4, 0], [0, 7]]]
+        Matrix group over Ring of integers modulo 9 with 4 generators (
+        [1 1]  [1 3]  [1 0]  [4 0]
+        [0 1], [0 1], [3 1], [0 7]
+        )
         sage: sage.modular.arithgroup.congroup_generic._minimize_level(G)
-        Matrix group over Ring of integers modulo 3 with 1 generators:
-         [[[1, 1], [0, 1]]]
-
+        Matrix group over Ring of integers modulo 3 with 1 generators (
+        [1 1]
+        [0 1]
+        )
         sage: G = MatrixGroup([M(x) for x in [[1,3,0,1],[1,0,3,1],[4,0,0,7]]]); G
-        Matrix group over Ring of integers modulo 9 with 3 generators:
-         [[[1, 3], [0, 1]], [[1, 0], [3, 1]], [[4, 0], [0, 7]]]
+        Matrix group over Ring of integers modulo 9 with 3 generators (
+        [1 3]  [1 0]  [4 0]
+        [0 1], [3 1], [0 7]
+        )
         sage: sage.modular.arithgroup.congroup_generic._minimize_level(G)
         3
     """

@@ -30,7 +30,7 @@ Compare the cost of evaluating Wilkinson's polynomial (in unexpanded
 form) at x=30:
 
 sage: wilk = prod((x-i) for i in [1 .. 20]); wilk
-(x - 20)*(x - 19)*(x - 18)*(x - 17)*(x - 16)*(x - 15)*(x - 14)*(x - 13)*(x - 12)*(x - 11)*(x - 10)*(x - 9)*(x - 8)*(x - 7)*(x - 6)*(x - 5)*(x - 4)*(x - 3)*(x - 2)*(x - 1)
+(x - 1)*(x - 2)*(x - 3)*(x - 4)*(x - 5)*(x - 6)*(x - 7)*(x - 8)*(x - 9)*(x - 10)*(x - 11)*(x - 12)*(x - 13)*(x - 14)*(x - 15)*(x - 16)*(x - 17)*(x - 18)*(x - 19)*(x - 20)
 sage: timeit('wilk.subs(x=30)') # random, long time
 625 loops, best of 3: 1.43 ms per loop
 sage: fc_wilk = fast_callable(wilk, vars=[x])
@@ -370,7 +370,7 @@ def fast_callable(x, domain=None, vars=None,
         sage: fp(e, pi, sqrt(2))
         -98.0015640336
         sage: symbolic_result = p(e, pi, sqrt(2)); symbolic_result
-        -pi^2*e - pi^2 - 3*sqrt(2)*e - 2*e - 6*e^2
+        -pi^2*e - pi^2 - 3*sqrt(2)*e - 6*e^2 - 2*e
         sage: n(symbolic_result)
         -98.0015640336293
 

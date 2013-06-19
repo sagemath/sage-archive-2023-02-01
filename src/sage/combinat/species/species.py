@@ -54,6 +54,7 @@ from generating_series import OrdinaryGeneratingSeriesRing, ExponentialGeneratin
 from sage.rings.all import QQ
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
+from sage.combinat.species.misc import accept_size
 from sage.combinat.species.structure import StructuresWrapper, IsotypesWrapper
 
 class GenericCombinatorialSpecies(SageObject):
@@ -92,9 +93,9 @@ class GenericCombinatorialSpecies(SageObject):
         EXAMPLES::
 
             sage: species.SetSpecies()._unique_info()
-            (<class 'sage.combinat.species.set_species.SetSpecies_class'>, None, None, 1)
+            (<class 'sage.combinat.species.set_species.SetSpecies'>, None, None, 1)
             sage: species.SingletonSpecies()._unique_info()
-            (<class 'sage.combinat.species.characteristic_species.SingletonSpecies_class'>,
+            (<class 'sage.combinat.species.characteristic_species.SingletonSpecies'>,
              None,
              None,
              1)
@@ -104,7 +105,7 @@ class GenericCombinatorialSpecies(SageObject):
             sage: X = species.SingletonSpecies()
             sage: Y = X + X
             sage: Y._unique_info()
-            (<class 'sage.combinat.species.sum_species.SumSpecies_class'>,
+            (<class 'sage.combinat.species.sum_species.SumSpecies'>,
              None,
              None,
              1,
@@ -185,8 +186,8 @@ class GenericCombinatorialSpecies(SageObject):
             sage: C2.__setstate__(C4.__getstate__()); C2
             Characteristic species of order 4
         """
-        args, kwds = state
-        self.__class__.__init__(self, *[args[i] for i in range(len(args))], **kwds)
+        args_dict, kwds = state
+        self.__class__.__init__(self, *[args_dict[i] for i in range(len(args_dict))], **kwds)
 
     def weighted(self, weight):
         """
@@ -200,9 +201,9 @@ class GenericCombinatorialSpecies(SageObject):
             sage: C.weighted(t)
             Cyclic permutation species with weight=t
         """
-        args, kwds = self.__getstate__()
+        args_dict, kwds = self.__getstate__()
         kwds.update({'weight': weight})
-        return self._cached_constructor(*[args[i] for i in range(len(args))], **kwds)
+        return self.__class__(*[args_dict[i] for i in range(len(args_dict))], **kwds)
 
     def __repr__(self):
         """
@@ -316,6 +317,7 @@ class GenericCombinatorialSpecies(SageObject):
         return FunctorialCompositionSpecies(self, g)
 
 
+    @accept_size
     def restricted(self, min=None, max=None):
         """
         EXAMPLES::
@@ -327,11 +329,10 @@ class GenericCombinatorialSpecies(SageObject):
             sage: S.generating_series().coefficients(5)
             [0, 0, 0, 1/6, 1/24]
         """
-        import copy
-        res = copy.deepcopy(self)
-        res._min = min
-        res._max = max
-        return res
+        kwargs = {'min': self._min if min is None else min,
+                  'max': self._max if max is None else max,
+                  'weight': self._weight}
+        return self.__class__(**kwargs)
 
     def structures(self, labels, structure_class=None):
         """

@@ -43,7 +43,7 @@ Intégrer une fonction simple.
 
     sage: x = var('x')   # Créer une variable symbolique
     sage: integrate(sqrt(x)*sqrt(1+x), x)
-    1/4*((x + 1)^(3/2)/x^(3/2) + sqrt(x + 1)/sqrt(x))/((x + 1)^2/x^2 - 2*(x + 1)/x + 1) + 1/8*log(sqrt(x + 1)/sqrt(x) - 1) - 1/8*log(sqrt(x + 1)/sqrt(x) + 1)
+    1/4*((x + 1)^(3/2)/x^(3/2) + sqrt(x + 1)/sqrt(x))/((x + 1)^2/x^2 - 2*(x + 1)/x + 1) - 1/8*log(sqrt(x + 1)/sqrt(x) + 1) + 1/8*log(sqrt(x + 1)/sqrt(x) - 1)
 
 Ceci permet de demander à Sage de résoudre une équation
 quadratique. Le symbole ``==`` représente l'égalité sous Sage.

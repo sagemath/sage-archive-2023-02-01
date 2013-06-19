@@ -19,6 +19,7 @@ from species import GenericCombinatorialSpecies
 from structure import GenericSpeciesStructure
 from subset_species import SubsetSpecies
 from sage.misc.cachefunc import cached_function
+from sage.structure.unique_representation import UniqueRepresentation
 
 class ProductSpeciesStructure(GenericSpeciesStructure):
     def __repr__(self):
@@ -188,30 +189,15 @@ class ProductSpeciesStructure(GenericSpeciesStructure):
         gens = uniq(gens) if len(gens) > 0 else [[]]
         return PermutationGroup(gens)
 
-@cached_function
-def ProductSpecies(*args, **kwds):
-    """
-    Returns the product of two species.
-
-    EXAMPLES::
-
-        sage: X = species.SingletonSpecies()
-        sage: A = X*X
-        sage: A.generating_series().coefficients(4)
-        [0, 0, 1, 0]
-
-    TESTS::
-
-        sage: X = species.SingletonSpecies()
-        sage: X*X is X*X
-        True
-    """
-    return ProductSpecies_class(*args, **kwds)
-
-class ProductSpecies_class(GenericCombinatorialSpecies):
+class ProductSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
     def __init__(self, F, G, min=None, max=None, weight=None):
         """
         EXAMPLES::
+
+            sage: X = species.SingletonSpecies()
+            sage: A = X*X
+            sage: A.generating_series().coefficients(4)
+            [0, 0, 1, 0]
 
             sage: P = species.PermutationSpecies()
             sage: F = P * P; F
@@ -219,6 +205,12 @@ class ProductSpecies_class(GenericCombinatorialSpecies):
             sage: F == loads(dumps(F))
             True
             sage: F._check()
+            True
+
+        TESTS::
+
+            sage: X = species.SingletonSpecies()
+            sage: X*X is X*X
             True
         """
         self._F = F
@@ -228,8 +220,6 @@ class ProductSpecies_class(GenericCombinatorialSpecies):
 
 
     _default_structure_class = ProductSpeciesStructure
-
-    _cached_constructor = staticmethod(ProductSpecies)
 
     def _name(self):
         """
@@ -383,3 +373,6 @@ class ProductSpecies_class(GenericCombinatorialSpecies):
         from sage.rings.all import prod
         return prod(var_mapping[operand] for operand in self._state_info)
 
+
+#Backward compatibility
+ProductSpecies_class = ProductSpecies

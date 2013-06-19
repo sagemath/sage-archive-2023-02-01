@@ -30,6 +30,7 @@ all:
 # All targets except for the base packages
 all-sage: \
      $(INST)/$(ATLAS) \
+     $(INST)/$(BLAS) \
      $(INST)/$(BOEHM_GC) \
      $(INST)/$(BOOST_CROPPED) \
      $(INST)/$(CDDLIB) \
@@ -53,6 +54,7 @@ all-sage: \
      $(INST)/$(GD) \
      $(INST)/$(GDMODULE) \
      $(INST)/$(GFAN) \
+     $(INST)/$(GF2X) \
      $(INST)/$(GIVARO) \
      $(INST)/$(GIT) \
      $(INST)/$(GLPK) \
@@ -63,6 +65,7 @@ all-sage: \
      $(INST)/$(IPYTHON) \
      $(INST)/$(JINJA2) \
      $(INST)/$(JMOL) \
+     $(INST)/$(LAPACK) \
      $(INST)/$(LCALC) \
      $(INST)/$(LRCALC) \
      $(INST)/$(LIBGAP) \
@@ -126,12 +129,13 @@ toolchain: $(TOOLCHAIN)
 # reinstalled. Since system GCCs might use Sage's libraries, we do this
 # unconditionally. We still use the dependency checking from $(MAKE),
 # so this will not trigger useless rebuilds.
-# See http://trac.sagemath.org/sage_trac/ticket/14168
+# See #14168 and #14232.
 toolchain-deps:
 	$(MAKE) $(INST)/$(ZLIB)
 	$(MAKE) $(INST)/$(MPIR)
 	$(MAKE) $(INST)/$(MPFR)
 	$(MAKE) $(INST)/$(MPC)
+	$(MAKE) $(INST)/$(PPL)
 
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.
@@ -164,7 +168,7 @@ $(INST)/$(PATCH): $(INST)/$(BZIP2)
 # Building normal packages
 ###############################################################################
 
-$(INST)/$(ATLAS): $(INST)/$(PYTHON)
+$(INST)/$(ATLAS): $(INST)/$(LAPACK) $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(ATLAS) 2>&1" "tee -a $(SAGE_LOGS)/$(ATLAS).log"
 
 $(INST)/$(BOEHM_GC):
@@ -217,7 +221,10 @@ $(INST)/$(MPIR): $(INST)/$(ICONV)
 $(INST)/$(GSL): $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(GSL) 2>&1" "tee -a $(SAGE_LOGS)/$(GSL).log"
 
-$(INST)/$(NTL): $(INST)/$(MPIR)
+$(INST)/$(GF2X):
+	+$(PIPE) "$(SAGE_SPKG) $(GF2X) 2>&1" "tee -a $(SAGE_LOGS)/$(GF2X).log"
+
+$(INST)/$(NTL): $(INST)/$(MPIR) $(INST)/$(GF2X)
 	+$(PIPE) "$(SAGE_SPKG) $(NTL) 2>&1" "tee -a $(SAGE_LOGS)/$(NTL).log"
 
 $(INST)/$(FPLLL): $(INST)/$(MPIR) $(INST)/$(MPFR)
@@ -234,7 +241,7 @@ $(INST)/$(POLYBORI): $(INST)/$(PYTHON) $(INST)/$(IPYTHON) \
 $(INST)/$(POLYTOPES_DB):
 	+$(PIPE) "$(SAGE_SPKG) $(POLYTOPES_DB) 2>&1" "tee -a $(SAGE_LOGS)/$(POLYTOPES_DB).log"
 
-$(INST)/$(PPL): $(INST)/$(MPIR)
+$(INST)/$(PPL): $(INST)/$(MPIR) $(INST)/$(GLPK)
 	+$(PIPE) "$(SAGE_SPKG) $(PPL) 2>&1" "tee -a $(SAGE_LOGS)/$(PPL).log"
 
 $(INST)/$(MPC): $(INST)/$(MPIR) $(INST)/$(MPFR)
@@ -492,14 +499,25 @@ $(INST)/$(GCC): $(INST)/$(MPIR) $(INST)/$(MPFR) $(INST)/$(MPC) \
 $(INST)/$(PIL): $(INST)/$(PYTHON)
 	+$(PIPE) "$(SAGE_SPKG) $(PIL) 2>&1" "tee -a $(SAGE_LOGS)/$(PIL).log"
 
-$(INST)/$(NUMPY): $(INST)/$(PYTHON) $(INST)/$(ATLAS)
+# Lapack depends on SAGE_ROOT_REPO because it *executes* Fortran code at
+# build time.  Therefore, it needs an up-to-date version of sage-env
+# which adds $SAGE_LOCAL/lib64 to the LD_LIBRARY_PATH.
+$(INST)/$(LAPACK): $(INST)/$(SAGE_ROOT_REPO)
+	+$(PIPE) "$(SAGE_SPKG) $(LAPACK) 2>&1" "tee -a $(SAGE_LOGS)/$(LAPACK).log"
+
+$(INST)/$(BLAS):
+	+$(PIPE) "$(SAGE_SPKG) $(BLAS) 2>&1" "tee -a $(SAGE_LOGS)/$(BLAS).log"
+
+$(INST)/$(NUMPY): $(INST)/$(PYTHON) \
+		  $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(ATLAS)
 	+$(PIPE) "$(SAGE_SPKG) $(NUMPY) 2>&1" "tee -a $(SAGE_LOGS)/$(NUMPY).log"
 
-$(INST)/$(SCIPY): $(INST)/$(ATLAS) $(INST)/$(NUMPY)
+$(INST)/$(SCIPY): $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(NUMPY)
 	+$(PIPE) "$(SAGE_SPKG) $(SCIPY) 2>&1" "tee -a $(SAGE_LOGS)/$(SCIPY).log"
 
 # matplotlib is needed to test cvxopt (i.e., if SAGE_CHECK=yes). See #12742.
-$(INST)/$(CVXOPT): $(INST)/$(NUMPY) \
+$(INST)/$(CVXOPT): \
+		   $(INST)/$(LAPACK) $(INST)/$(BLAS) $(INST)/$(NUMPY) \
 		   $(INST)/$(ATLAS) $(INST)/$(CEPHES) \
 		   $(INST)/$(GSL) $(INST)/$(GLPK) $(INST)/$(MATPLOTLIB)
 	+$(PIPE) "$(SAGE_SPKG) $(CVXOPT) 2>&1" "tee -a $(SAGE_LOGS)/$(CVXOPT).log"

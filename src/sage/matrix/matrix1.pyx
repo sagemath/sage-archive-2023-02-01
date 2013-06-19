@@ -140,6 +140,29 @@ cdef class Matrix(matrix0.Matrix):
         # otherwise the result would not be a gap matrix
         return '[%s]*One(%s)'%(','.join(v),sage.interfaces.gap.gap(self.base_ring()).name())
 
+    def _libgap_(self):
+        """
+        Construct a LibGAP matrix.
+
+        INPUT:
+
+        - ``M`` -- a matrix.
+
+        OUTPUT:
+
+        A GAP matrix, that is, a list of lists with entries over a
+        common ring.
+
+        EXAMPLES::
+
+            sage: libgap(identity_matrix(ZZ,2))
+            [ [ 1, 0 ], [ 0, 1 ] ]
+            sage: libgap(matrix(GF(3),2,2,[4,5,6,7]))
+            [ [ Z(3)^0, Z(3) ], [ 0*Z(3), Z(3)^0 ] ]
+        """
+        from sage.libs.gap.libgap import libgap
+        return libgap._construct_matrix(self)
+
     def _giac_init_(self):
         """
         Return a Giac string representation of this matrix.

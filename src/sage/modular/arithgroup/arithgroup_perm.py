@@ -1329,8 +1329,10 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
 
             sage: Gamma1(3).as_permutation_group().congruence_closure()
             Congruence subgroup of SL(2,Z) of level 3, preimage of:
-             Matrix group over Ring of integers modulo 3 with 2 generators:
-              [[[1, 2], [0, 1]], [[1, 1], [0, 1]]]
+             Matrix group over Ring of integers modulo 3 with 2 generators (
+            [1 2]  [1 1]
+            [0 1], [0 1]
+            )
             sage: sage.modular.arithgroup.arithgroup_perm.HsuExample10().congruence_closure()  # long time (11s on sage.math, 2012)
             Modular Group SL(2,Z)
         """
@@ -1657,7 +1659,7 @@ class OddArithmeticSubgroup_Permutation(ArithmeticSubgroup_Permutation_class):
             return False
         else:
             N = 2*self.generalised_level()
-            from sage.groups.matrix_gps.matrix_group import MatrixGroup
+            from sage.groups.matrix_gps.all import MatrixGroup
             H = MatrixGroup([x.matrix().change_ring(Zmod(N)) for x in self.gens()])
             from congroup_gamma import Gamma_constructor as Gamma
             return Gamma(N).index() == self.index() * H.order()

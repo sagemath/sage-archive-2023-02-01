@@ -204,7 +204,7 @@ class Function_sec(BuiltinFunction):
             sage: bool(diff(sec(x), x) == diff(1/cos(x), x))
             True
             sage: diff(sec(x), x)
-            tan(x)*sec(x)
+            sec(x)*tan(x)
         """
         return sec(x)*tan(x)
 
@@ -296,7 +296,7 @@ class Function_csc(BuiltinFunction):
             sage: bool(diff(csc(x), x) == diff(1/sin(x), x))
             True
             sage: diff(csc(x), x)
-            -csc(x)*cot(x)
+            -cot(x)*csc(x)
         """
         return -csc(x)*cot(x)
 
@@ -687,7 +687,7 @@ class Function_arccsc(BuiltinFunction):
         EXAMPLES::
 
             sage: diff(acsc(x), x)
-            -1/(sqrt(-1/x^2 + 1)*x^2)
+            -1/(x^2*sqrt(-1/x^2 + 1))
         """
         return -1/(x**2 * (1 - x**(-2)).sqrt())
 
@@ -750,7 +750,7 @@ class Function_arcsec(BuiltinFunction):
         EXAMPLES::
 
             sage: diff(asec(x), x)
-            1/(sqrt(-1/x^2 + 1)*x^2)
+            1/(x^2*sqrt(-1/x^2 + 1))
         """
         return 1/(x**2 * (1 - x**(-2)).sqrt())
 
@@ -849,7 +849,7 @@ class Function_arctan2(GinacFunction):
             sage: arctan2(x,x)._sympy_()
             atan2(x, x)
 
-        Check if numerical evaluation works #9913::
+        Check if numerical evaluation works :trac:`9913`::
 
             sage: arctan2(0, -log(2)).n()
             3.14159265358979
@@ -869,6 +869,11 @@ class Function_arctan2(GinacFunction):
             ...
             ValueError: arctan2(0,0) undefined
 
+        Check if :trac:`10062` is fixed, this was caused by
+        ``(I*I)._is_positive()`` returning ``True``::
+
+            sage: arctan2(0, I*I)
+            pi
         """
         GinacFunction.__init__(self, "arctan2", nargs=2, latex_name=r'\arctan',
                 conversions=dict(maxima='atan2', sympy='atan2'))

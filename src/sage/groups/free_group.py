@@ -167,6 +167,46 @@ class FreeGroupElement(ElementLibGAP):
             x = AbstractWordTietzeWord(l, parent._gap_gens())
         ElementLibGAP.__init__(self, x, parent)
 
+    def _latex_(self):
+        """
+        Return a LaTeX representation
+
+        OUTPUT:
+
+        String. A valid LaTeX math command sequence.
+
+        EXAMPLES::
+
+            sage: F.<a,b,c> = FreeGroup()
+            sage: f = F([1, 2, 2, -3, -1]) * c^15 * a^(-23)
+            sage: f._latex_()
+            'a\\cdot b^{2}\\cdot c^{-1}\\cdot a^{-1}\\cdot c^{15}\\cdot a^{-23}'
+
+            sage: F = FreeGroup(3)
+            sage: f = F([1, 2, 2, -3, -1]) * F.gen(2)^11 * F.gen(0)^(-12)
+            sage: f._latex_()
+            'x_{0}\\cdot x_{1}^{2}\\cdot x_{2}^{-1}\\cdot x_{0}^{-1}\\cdot x_{2}^{11}\\cdot x_{0}^{-12}'
+
+            sage: F.<a,b,c> = FreeGroup()
+            sage: G = F /  (F([1, 2, 1, -3, 2, -1]), F([2, -1]))
+            sage: f = G([1, 2, 2, -3, -1]) * G.gen(2)^15 * G.gen(0)^(-23)
+            sage: f._latex_()
+            'a\\cdot b^{2}\\cdot c^{-1}\\cdot a^{-1}\\cdot c^{15}\\cdot a^{-23}'
+
+            sage: F = FreeGroup(4)
+            sage: G = F.quotient((F([1, 2, 4, -3, 2, -1]), F([2, -1])))
+            sage: f = G([1, 2, 2, -3, -1]) * G.gen(3)^11 * G.gen(0)^(-12)
+            sage: f._latex_()
+            'x_{0}\\cdot x_{1}^{2}\\cdot x_{2}^{-1}\\cdot x_{0}^{-1}\\cdot x_{3}^{11}\\cdot x_{0}^{-12}'
+        """
+        import re
+        s = self._repr_()
+        s = re.sub('([a-z]|[A-Z])([0-9]+)', '\g<1>_{\g<2>}', s)
+        s = re.sub('(\^)(-)([0-9]+)', '\g<1>{\g<2>\g<3>}', s)
+        s = re.sub('(\^)([0-9]+)', '\g<1>{\g<2>}', s)
+        s = s.replace('*', '\cdot ')
+        return s
+
     def __reduce__(self):
         """
         Implement pickling.
@@ -617,8 +657,20 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
 
             sage: F /  [a*b^2*a, b^3]
             Finitely presented group < a, b | a*b^2*a, b^3 >
+
+        Relations are converted to the free group, even if they are not
+        elements of it (if possible) ::
+
+            sage: F1.<a,b,c,d>=FreeGroup()
+            sage: F2.<a,b>=FreeGroup()
+            sage: r=a*b/a
+            sage: r.parent()
+            Free Group on generators {a, b}
+            sage: F1/[r]
+            Finitely presented group < a, b, c, d | a*b*a^-1 >
+
         """
         from sage.groups.finitely_presented import FinitelyPresentedGroup
-        return FinitelyPresentedGroup(self, tuple(relations))
+        return FinitelyPresentedGroup(self, tuple(map(self, relations) ) )
 
     __div__ = quotient

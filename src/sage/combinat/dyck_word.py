@@ -13,8 +13,12 @@ AUTHORS:
 
 - Christian Stump (2011--12): added combinatorial maps and statistics
 
-- Mike Zabrocki (2012--10): added pretty print, characteristic function, more functions
-                (2013--01): added inverse of area/dinv, bounce/area map
+- Mike Zabrocki:
+
+  * (2012--10): added pretty print, characteristic function, more functions
+  * (2013--01): added inverse of area/dinv, bounce/area map
+
+- Jean--Baptiste Priez, Travis Scrimshaw (2013--05-17): Added ASCII art
 
 REFERENCES:
 
@@ -52,11 +56,11 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.all import Posets
 
-from sage.rings.all import ZZ, QQ
+from sage.rings.all import QQ
 from sage.combinat.permutation import Permutation, Permutations
 from sage.combinat.words.word import Word
 from sage.misc.latex import latex
-
+from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix, AlternatingSignMatrices
 from sage.misc.superseded import deprecated_function_alias
 
 open_symbol = 1
@@ -384,9 +388,108 @@ class DyckWord_class(CombinatorialObject):
         else:
             return super(DyckWord_class, self).__repr__()
 
+    def _repr_lattice(self, type="N-E", labelling=None, underpath=True):
+        r"""
+        See :meth:`pretty_print()`.
+
+        TESTS::
+
+            sage: print DyckWord(area_sequence=[0,1,0])._repr_lattice(type="NE-SE")
+             /\
+            /  \/\
+            sage: print DyckWord(area_sequence=[0,1,0])._repr_lattice(labelling=[1,3,2],underpath=False)
+                 _
+             ___|  2
+            | x  . 3
+            |  . . 1
+        """
+        if type == "NE-SE":
+            if labelling is not None or underpath is not True:
+                raise ValueError("The labelling cannot be shown with Northeast-Southeast paths.")
+            return self.to_path_string()
+        elif type == "N-E":
+            alst = self.to_area_sequence()
+            n = len(alst)
+            if n == 0:
+                return ".\n"
+            if labelling is None:
+                labels = [" "]*n
+            else:
+                if len(labelling) != n:
+                    raise ValueError("The given labelling has the wrong length.")
+                labels = [ str(label) for label in labelling ]
+                if not underpath:
+                    max_length = max( len(label) for label in labels )
+                    labels = [ label.rjust(max_length+1) for label in labels ]
+
+            length_of_final_fall = list(reversed(self)).index(open_symbol)
+            if length_of_final_fall == 0:
+                final_fall = " "
+            else:
+                final_fall = " _" + "__"*(length_of_final_fall-1)
+            row = "  "*(n - alst[-1]-1) + final_fall + "\n"
+            for i in range(n-1):
+                c=0
+                row = row + "  "*(n-i-2-alst[-i-2])
+                c+=n-i-2-alst[-i-2]
+                if alst[-i-2]+1!=alst[-i-1]:
+                    row+=" _"
+                c+=alst[-i-2]-alst[-i-1]
+                if underpath:
+                    row+="__"*(alst[-i-2]-alst[-i-1])+"|" + labels[-1] + "x "*(n-c-2-i)+ " ."*i + "\n"
+                else:
+                    row+="__"*(alst[-i-2]-alst[-i-1])+"| " + "x "*(n-c-2-i)+ " ."*i + labels[-1] + "\n"
+                labels.pop()
+            if underpath:
+                row = row + "|" + labels[-1] + " ."*(n-1) + "\n"
+            else:
+                row = row + "| "+" ."*(n-1) + labels[-1] + "\n"
+            return row
+        else:
+            raise ValueError("The given type (=\s) is not valid."%type)
+
+    @staticmethod
+    def set_ascii_art(repr="path"):
+        r"""
+        TESTS::
+
+            sage: ascii_art(list(DyckWords(3)))
+            [                                   /\   ]
+            [            /\    /\      /\/\    /  \  ]
+            [ /\/\/\, /\/  \, /  \/\, /    \, /    \ ]
+            sage: from sage.combinat.dyck_word import DyckWord_class
+            sage: DyckWord_class.set_ascii_art("pretty_output")
+            sage: ascii_art(list(DyckWords(3)))
+            [      _     ___       _     ___   _____ ]
+            [    _|     | x    ___|    _| x   | x x  ]
+            [  _|  .   _|  .  | x  .  | x  .  | x  . ]
+            [ |  . ., |  . ., |  . ., |  . ., |  . . ]
+            sage: DyckWord_class.set_ascii_art("path")
+        """
+        if repr == "path":
+            DyckWord_class._active_repr = lambda x: x.to_path_string()
+        elif repr == "pretty_output":
+            DyckWord_class._active_repr = lambda x: x._repr_lattice()
+        else:
+            raise ValueError("'%s' must be 'path' or 'pretty_output'"%repr)
+
+    def _ascii_art_(self):
+        r"""
+        Return an ASCII art representation of ``self``.
+
+        TESTS::
+
+            sage: ascii_art(list(DyckWords(3)))
+            [                                   /\   ]
+            [            /\    /\      /\/\    /  \  ]
+            [ /\/\/\, /\/  \, /  \/\, /    \, /    \ ]
+        """
+        from sage.misc.ascii_art import AsciiArt
+        return AsciiArt(str(DyckWord_class._active_repr(self)).splitlines(), baseline=0)
+
     def __str__(self):
         r"""
-        Returns a string consisting of matched parentheses corresponding to
+        Return a string consisting of matched parentheses corresponding to
         the Dyck word.
 
         EXAMPLES::
@@ -403,16 +506,20 @@ class DyckWord_class(CombinatorialObject):
 
     def to_path_string(self):
         r"""
-        A path representation of the Dyck word consisting of steps ``/`` and ``\`` .
+        A path representation of the Dyck word consisting of steps
+        ``/`` and ``\`` .
 
         EXAMPLES::
 
-            sage: DyckWord([1, 0, 1, 0]).to_path_string()
-            '/\\/\\'
-            sage: DyckWord([1, 1, 0, 0]).to_path_string()
-            ' /\\ \n/  \\'
-            sage: DyckWord([1,1,0,1,1,0,0,1,0,1,0,0]).to_path_string()
-            '    /\\      \n /\\/  \\/\\/\\ \n/          \\'
+            sage: print DyckWord([1, 0, 1, 0]).to_path_string()
+            /\/\
+            sage: print DyckWord([1, 1, 0, 0]).to_path_string()
+             /\
+            /  \
+            sage: print DyckWord([1,1,0,1,1,0,0,1,0,1,0,0]).to_path_string()
+                /\
+             /\/  \/\/\
+            /          \
         """
         res = [([" "]*len(self)) for _ in range(self.height())]
         h = 1
@@ -425,9 +532,11 @@ class DyckWord_class(CombinatorialObject):
                 res[-h][i] = "\\"
         return "\n".join("".join(l) for l in res)
 
-    def pretty_print( self, type="N-E", labelling=None, underpath=True ):
+    _active_repr = to_path_string
+
+    def pretty_print(self, type="N-E", labelling=None, underpath=True):
         r"""
-        Display a DyckWord as a lattice path in the `\mathbb{Z}^2` grid.
+        Display a DyckWord as a lattice path in the `\ZZ^2` grid.
 
         If the ``type`` is "N-E", then the a cell below the diagonal is
         indicated by a period, a cell below the path, but above the
@@ -439,15 +548,18 @@ class DyckWord_class(CombinatorialObject):
 
         INPUT:
 
-        - ``type`` -- can either be
-                        - "N-E" to show ``self`` as a path of north and east steps, or
-                        - "NE-SE" to show ``self`` as a path of north-east and south-east steps.
+        - ``type`` -- can either be:
 
-        - ``labelling`` -- (if type is "N-E") a list of labels assigned to the up steps in ``self``.
+          - "N-E" to show ``self`` as a path of north and east steps, or
+          - "NE-SE" to show ``self`` as a path of north-east and
+            south-east steps.
 
-        - ``underpath`` -- (if type is "N-E", default:True)
-                            - if True, the labelling is shown under the path
-                            - otherwise, it is shown to the right of the path.
+        - ``labelling`` -- (if type is "N-E") a list of labels assigned to
+          the up steps in ``self``.
+
+        - ``underpath`` -- (if type is "N-E", default:``True``) If ``True``,
+          the labelling is shown under the path otherwise, it is shown to
+          the right of the path.
 
         EXAMPLES::
 
@@ -580,54 +692,7 @@ class DyckWord_class(CombinatorialObject):
             .
 
         """
-        if type == "NE-SE":
-            if labelling is not None or underpath is not True:
-                raise ValueError, "The labelling cannot be shown with Northeast-Southeast paths."
-            print self.to_path_string()+"\n"
-            return None
-        elif type == "N-E":
-            alst = self.to_area_sequence()
-            n = len(alst)
-            if n == 0:
-                print(".\n")
-                return None
-            if labelling is None:
-                labels = [" "]*n
-            else:
-                if len(labelling) != n:
-                    raise ValueError, "The given labelling has the wrong length."
-                labels = [ str(label) for label in labelling ]
-                if not underpath:
-                    max_length = max( len(label) for label in labels )
-                    labels = [ label.rjust(max_length+1) for label in labels ]
-
-            length_of_final_fall = list(reversed(self)).index(open_symbol)
-            if length_of_final_fall == 0:
-                final_fall = " "
-            else:
-                final_fall = " _" + "__"*(length_of_final_fall-1)
-            row = "  "*(n - alst[-1]-1) + final_fall + "\n"
-            for i in range(n-1):
-                c=0
-                row = row + "  "*(n-i-2-alst[-i-2])
-                c+=n-i-2-alst[-i-2]
-                if alst[-i-2]+1!=alst[-i-1]:
-                    row+=" _"
-                c+=alst[-i-2]-alst[-i-1]
-                if underpath:
-                    row+="__"*(alst[-i-2]-alst[-i-1])+"|" + labels[-1] + "x "*(n-c-2-i)+ " ."*i + "\n"
-                else:
-                    row+="__"*(alst[-i-2]-alst[-i-1])+"| " + "x "*(n-c-2-i)+ " ."*i + labels[-1] + "\n"
-                labels.pop()
-            if underpath:
-                row = row + "|" + labels[-1] + " ."*(n-1) + "\n"
-            else:
-                row = row + "| "+" ."*(n-1) + labels[-1] + "\n"
-            print(row)
-            return None
-        else:
-            raise ValueError, "The given type (=\s) is not valid."%type
-
+        print self._repr_lattice(type, labelling, underpath)
 
     def _latex_(self):
         r"""
@@ -1825,9 +1890,9 @@ class DyckWord_complete(DyckWord_class):
             ...       for D in DyckWords(5))
             True
         """
-        from sage.combinat.permutation import robinson_schensted_inverse
+        from sage.combinat.rsk import RSK_inverse
         A,B = self.to_pair_of_standard_tableaux()
-        return robinson_schensted_inverse(A,B)
+        return RSK_inverse(A,B, output='permutation')
 
     @combinatorial_map(name='to 132 avoiding permutation')
     def to_132_avoiding_permutation(self):
@@ -2093,16 +2158,47 @@ class DyckWord_complete(DyckWord_class):
         dyck_word.extend([close_symbol]*(2*len(code)-len(dyck_word)))
         return cls(dyck_word)
 
+    @combinatorial_map(name="To Ordered tree")
     def to_ordered_tree(self):
         r"""
+        Return the ordered tree corresponding to ``self`` where the depth
+        of the tree is the maximal height of ``self``.
+
+        EXAMPLES::
+
+            sage: D = DyckWord([1,1,0,0])
+            sage: D.to_ordered_tree()
+            [[[]]]
+            sage: D = DyckWord([1,0,1,0])
+            sage: D.to_ordered_tree()
+            [[], []]
+            sage: D = DyckWord([1, 0, 1, 1, 0, 0])
+            sage: D.to_ordered_tree()
+            [[], [[]]]
+            sage: D = DyckWord([1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0])
+            sage: D.to_ordered_tree()
+            [[], [[], []], [[], [[]]]]
+
         TESTS::
 
-            sage: DyckWord([1, 1, 0, 0]).to_ordered_tree()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: TODO
+            sage: D = DyckWord([1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0])
+            sage: D == D.to_ordered_tree().to_dyck_word()
+            True
         """
-        raise NotImplementedError, "TODO"
+        from sage.combinat.ordered_tree import OrderedTree
+        levels = [OrderedTree().clone()]
+        for u in self:
+            if u == 1:
+                levels.append(OrderedTree().clone())
+            else:
+                tree =levels.pop()
+                tree.set_immutable()
+                root = levels.pop()
+                root.append(tree)
+                levels.append(root)
+        root = levels[0]
+        root.set_immutable()
+        return root
 
     def to_triangulation(self):
         r"""
@@ -2186,7 +2282,7 @@ class DyckWord_complete(DyckWord_class):
 
     def major_index(self):
         r"""
-        Returns the major index of ``self`` . This is
+        Return the major index of ``self`` . This is
         the sum of the positions of the valleys of ``self``
         (when started counting at position ``1``).
 
@@ -2251,7 +2347,7 @@ class DyckWord_complete(DyckWord_class):
 
     def tunnels(self):
         r"""
-        Returns the list of ranges of the matching parentheses in the Dyck word.
+        Return the list of ranges of the matching parentheses in the Dyck word.
         That is, if ``(a,b)`` is in ``self.tunnels()``, then the matching parenthesis
         to ``self[a]`` is ``self[b-1]`` .
 
@@ -2308,9 +2404,10 @@ class DyckWord_complete(DyckWord_class):
         else:
             raise ValueError, "The given tunnel_type is not valid."
 
+    @combinatorial_map(order = 2, name="Reverse path")
     def reverse(self):
         r"""
-        Returns the reverse and complement of the Dyck word ``self`` .
+        Return the reverse and complement of the Dyck word ``self`` .
         This operation corresponds to flipping the Dyck path across the `y=-x` line.
 
         EXAMPLES::
@@ -2377,9 +2474,10 @@ class DyckWord_complete(DyckWord_class):
             D1,D2 = self.first_return_decomposition()
             return DyckWord([1]+list(D2.decomposition_reverse())+[0]+list(D1.decomposition_reverse()))
 
+    @combinatorial_map(name="Area-dinv to bounce-area")
     def area_dinv_to_bounce_area_map(self):
         r"""
-        Returns the image of the Dyck word under the map which sends a
+        Return the image of the Dyck word under the map which sends a
         Dyck word with ``area`` equal to `r` and ``dinv`` equal to `s` to a Dyck
         word with ``bounce`` equal to `r` and ``area`` equal to `s` .
 
@@ -2421,9 +2519,10 @@ class DyckWord_complete(DyckWord_class):
                     image.append(0)
         return DyckWord(image)
 
+    @combinatorial_map(name="Bounce-area to area-dinv")
     def bounce_area_to_area_dinv_map( D ):
         r"""
-        Returns the image of the Dyck word under the map which sends a
+        Return the image of the Dyck word under the map which sends a
         Dyck word with ``bounce`` equal to `r` and ``area`` equal to `s` to a Dyck
         word with ``area`` equal to `r` and ``dinv`` equal to `s` .
 
@@ -2467,7 +2566,7 @@ class DyckWord_complete(DyckWord_class):
 
     def area(self):
         r"""
-        Returns the area for the Dyck word corresponding to the area
+        Return the area for the Dyck word corresponding to the area
         of the Dyck path.
 
         One can view a balanced Dyck word as a lattice path from
@@ -2539,7 +2638,7 @@ class DyckWord_complete(DyckWord_class):
 
     def bounce_path(self):
         r"""
-        Returns the bounce path of the Dyck path formed by starting at `(n,n)` and
+        Return the bounce path of the Dyck path formed by starting at `(n,n)` and
         traveling West until encountering the first vertical step of ``self``,
         then South until encountering the diagonal, then West again to hit the path,
         etc. until the `(0,0)` point is reached.  The path followed by this walk
@@ -2581,7 +2680,7 @@ class DyckWord_complete(DyckWord_class):
 
     def bounce(self):
         r"""
-        Returns the bounce statistic of ``self`` due to J. Haglund, see [Hag2008]_.
+        Return the bounce statistic of ``self`` due to J. Haglund, see [Hag2008]_.
 
         One can view a balanced Dyck word as a lattice path from `(0,0)` to
         `(n,n)` in the first quadrant by letting '1's represent steps in
@@ -2679,7 +2778,7 @@ class DyckWord_complete(DyckWord_class):
 
     def dinv(self, labeling = None):
         r"""
-        Returns the dinv statistic of ``self`` due to M. Haiman, see [Hag2008]_.
+        Return the dinv statistic of ``self`` due to M. Haiman, see [Hag2008]_.
         If a labeling is provided then this function returns the dinv of the labeled
         Dyck word.
 
@@ -2716,9 +2815,40 @@ class DyckWord_complete(DyckWord_class):
                     cnt+=1
         return cnt
 
+    @combinatorial_map(name='to alternating sign matrix')
+    def to_alternating_sign_matrix(self):
+        r"""
+        Return ``self`` as an alternating sign matrix.
+
+        This is an inclusion map from Dyck words of length `2n` to certain
+        `n \times n` alternating sign matrices.
+
+        EXAMPLES::
+
+            sage: DyckWord([1,1,1,0,1,0,0,0]).to_alternating_sign_matrix()
+            [ 0  0  1  0]
+            [ 1  0 -1  1]
+            [ 0  1  0  0]
+            [ 0  0  1  0]
+            sage: DyckWord([1,0,1,0,1,1,0,0]).to_alternating_sign_matrix()
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 0 1]
+            [0 0 1 0]
+        """
+        parkfn = self.reverse().to_non_decreasing_parking_function()
+        parkfn2 = [len(parkfn) + 1 - parkfn[i] for i in range(len(parkfn))]
+        monotone_triangle = [[0]*(len(parkfn2) - j) for j in range(len(parkfn2))]
+        for i in range(len(monotone_triangle)):
+            for j in range(len(monotone_triangle[i])):
+                monotone_triangle[i][j] = len(monotone_triangle[i]) - j
+            monotone_triangle[i][0]=parkfn2[i]
+        A = AlternatingSignMatrices(len(parkfn))
+        return A.from_monotone_triangle(monotone_triangle)
+
 def DyckWords(k1=None, k2=None):
     r"""
-    Returns the combinatorial class of Dyck words. A Dyck word is a
+    Return the combinatorial class of Dyck words. A Dyck word is a
     sequence `(w_1, ..., w_n)` consisting of 1 s and 0 s, with the property that for any
     `i` with `1 \le i \le n`, the sequence `(w_1,...,w_i)` contains at least as many 1 s as 0 .
 
@@ -3013,7 +3143,7 @@ class DyckWords_size(CombinatorialClass):
 
     def cardinality(self):
         r"""
-        Returns the number of complete Dyck words of semilength `n`, i.e. the `n`-th :func:`Catalan number<sage.combinat.combinat.catalan_number>`.
+        Return the number of complete Dyck words of semilength `n`, i.e. the `n`-th :func:`Catalan number<sage.combinat.combinat.catalan_number>`.
 
         EXAMPLES::
 
@@ -3056,7 +3186,7 @@ class DyckWords_size(CombinatorialClass):
 
     def list(self):
         r"""
-        Returns a list of all the Dyck words with ``k1`` opening and ``k2``
+        Return a list of all the Dyck words with ``k1`` opening and ``k2``
         closing parentheses.
 
         EXAMPLES::
@@ -3072,7 +3202,7 @@ class DyckWords_size(CombinatorialClass):
 
     def __iter__(self):
         r"""
-        Returns an iterator for Dyck words with ``k1`` opening and ``k2``
+        Return an iterator for Dyck words with ``k1`` opening and ``k2``
         closing parentheses.
 
         EXAMPLES::

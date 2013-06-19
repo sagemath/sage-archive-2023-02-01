@@ -927,9 +927,9 @@ class Function_gamma_inc(BuiltinFunction):
             sage: gamma_inc(2,0)
             1
             sage: gamma_inc(1/2,2)
-            -(erf(sqrt(2)) - 1)*sqrt(pi)
+            -sqrt(pi)*(erf(sqrt(2)) - 1)
             sage: gamma_inc(1/2,1)
-            -(erf(1) - 1)*sqrt(pi)
+            -sqrt(pi)*(erf(1) - 1)
             sage: gamma_inc(1/2,0)
             sqrt(pi)
             sage: gamma_inc(x,0)
@@ -1516,23 +1516,23 @@ class Function_beta(GinacFunction):
             sage: beta(-1/2,-1/2)
             0
             sage: beta(x/2,3)
-            beta(1/2*x, 3)
+            beta(3, 1/2*x)
             sage: beta(.5,.5)
             3.14159265358979
             sage: beta(1,2.0+I)
             0.400000000000000 - 0.200000000000000*I
             sage: beta(3,x+I)
-            beta(x + I, 3)
+            beta(3, x + I)
 
         Note that the order of arguments does not matter::
 
             sage: beta(1/2,3*x)
-            beta(3*x, 1/2)
+            beta(1/2, 3*x)
 
         The result is symbolic if exact input is given::
 
             sage: beta(2,1+5*I)
-            beta(5*I + 1, 2)
+            beta(2, 5*I + 1)
             sage: beta(2, 2.)
             0.166666666666667
             sage: beta(I, 2.)
@@ -2018,7 +2018,7 @@ class Function_conjugate(GinacFunction):
             sage: var('a')
             a
             sage: conjugate(a*sqrt(-2)*sqrt(-3))
-            conjugate(a)*conjugate(sqrt(-3))*conjugate(sqrt(-2))
+            conjugate(sqrt(-2))*conjugate(sqrt(-3))*conjugate(a)
 
         Test pickling::
 

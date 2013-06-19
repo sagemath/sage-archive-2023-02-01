@@ -203,9 +203,11 @@ class RingClassField(SageObject):
     """
     A Ring class field of a quadratic imaginary field of given conductor.
 
-    NOTE: This is a *ring* class field, not a ray class field.  In
-    general, the ring class field of given conductor is a subfield of
-    the ray class field of the same conductor.
+    .. NOTE::
+
+        This is a *ring* class field, not a ray class field. In
+        general, the ring class field of given conductor is a subfield
+        of the ray class field of the same conductor.
 
     EXAMPLES::
 
@@ -232,7 +234,7 @@ class RingClassField(SageObject):
 
             - `c` -- conductor (positive integer coprime to `D`)
 
-            - ``check`` -- bool (default: True); whether to check
+            - ``check`` -- bool (default: ``True``); whether to check
               validity of input
 
         EXAMPLES::
@@ -265,7 +267,7 @@ class RingClassField(SageObject):
 
     def __hash__(self):
         """
-        Used for computing hash of self.
+        Used for computing hash of ``self``.
 
         EXAMPLES::
 
@@ -293,7 +295,7 @@ class RingClassField(SageObject):
 
     def discriminant_of_K(self):
         """
-        Return the discriminant of the quadratic imaginary field `K` contained in self.
+        Return the discriminant of the quadratic imaginary field `K` contained in ``self``.
 
         EXAMPLES::
 
@@ -489,11 +491,11 @@ class RingClassField(SageObject):
     @cached_method
     def galois_group(self, base=QQ):
         """
-        Return the Galois group of self over base.
+        Return the Galois group of ``self`` over base.
 
         INPUT:
 
-            - ``base`` -- (default: `\QQ`) a subfield of self or `\QQ`
+            - ``base`` -- (default: `\QQ`) a subfield of ``self`` or `\QQ`
 
         EXAMPLES::
 
@@ -521,7 +523,7 @@ class RingClassField(SageObject):
 
     def is_subfield(self, M):
         """
-        Return True if this ring class field is a subfield of the ring class field `M`.
+        Return ``True`` if this ring class field is a subfield of the ring class field `M`.
         If `M` is not a ring class field, then a TypeError is raised.
 
         EXAMPLES::
@@ -545,7 +547,7 @@ class RingClassField(SageObject):
             True
         """
         if not isinstance(M, RingClassField):
-            raise TypeError, "M must be a ring class field"
+            raise TypeError("M must be a ring class field")
         return self.quadratic_field() == M.quadratic_field() and \
                M.conductor() % self.conductor() == 0
 
@@ -597,12 +599,12 @@ class GaloisGroup(SageObject):
             Galois group of Ring class field extension of QQ[sqrt(-7)] of conductor 5 over Hilbert class field of QQ[sqrt(-7)]
         """
         if not isinstance(field, RingClassField):
-            raise TypeError, "field must be of type RingClassField"
+            raise TypeError("field must be of type RingClassField")
         if base != QQ and base != field.quadratic_field():
             if not isinstance(base, RingClassField):
-                raise TypeError, "base must be of type RingClassField or QQ or quadratic field"
+                raise TypeError("base must be of type RingClassField or QQ or quadratic field")
             if not base.is_subfield(field):
-                raise TypeError, "base must be a subfield of field"
+                raise TypeError("base must be a subfield of field")
         self.__field = field
         self.__base = base
 
@@ -640,8 +642,8 @@ class GaloisGroup(SageObject):
 
     def __call__(self, x):
         """
-        Coerce `x` into self, where `x` is a Galois group element, or
-        in case self has base field the Hilbert class field, `x` can
+        Coerce `x` into ``self``, where `x` is a Galois group element, or
+        in case ``self`` has base field the Hilbert class field, `x` can
         also be an element of the ring of integers.
 
         INPUT:
@@ -666,7 +668,7 @@ class GaloisGroup(SageObject):
             sage: G(alpha)
             Class field automorphism defined by 14*x^2 - 10*x*y + 25*y^2
 
-        A TypeError is raised when the coercion isn't possible::
+        A TypeError is raised when the coercion is not possible::
 
             sage: G(0)
             Traceback (most recent call last):
@@ -678,8 +680,8 @@ class GaloisGroup(SageObject):
             return x
         try:
             return self._alpha_to_automorphism(x)
-        except Exception, msg:
-            raise TypeError, "x does not define element of (O_K/c*O_K)^*"
+        except (ZeroDivisionError, TypeError):
+            raise TypeError("x does not define element of (O_K/c*O_K)^*")
 
     def _repr_(self):
         """
@@ -758,7 +760,7 @@ class GaloisGroup(SageObject):
 
         OUTPUT:
 
-            - list of elements of self
+            - list of elements of ``self``
 
         EXAMPLES::
 
@@ -777,9 +779,9 @@ class GaloisGroup(SageObject):
         M = self.field()
         c = M.conductor()
         if not (self._base_is_hilbert_class_field() and self.is_kolyvagin()):
-            raise ValueError, "field must be of the form Gal(K_c/K_1)"
+            raise ValueError("field must be of the form Gal(K_c/K_1)")
         if not c.is_prime():
-            raise NotImplementedError, "only implemented when c is prime"
+            raise NotImplementedError("only implemented when c is prime")
 
         # Since c satisfies Kolyvagin and is prime, the group is cyclic,
         # so we just find a generator.
@@ -812,7 +814,7 @@ class GaloisGroup(SageObject):
             2
         """
         if not self._base_is_quad_imag_field():
-            raise ValueError, "Galois group must be of the form Gal(K_c/K)"
+            raise ValueError("Galois group must be of the form Gal(K_c/K)")
         K = self.base_field()
         C = K.class_group()
         v = []
@@ -828,7 +830,7 @@ class GaloisGroup(SageObject):
     @cached_method
     def _list(self):
         r"""
-        Enumerate the elements of self.
+        Enumerate the elements of ``self``.
 
         EXAMPLES::
 
@@ -862,7 +864,7 @@ class GaloisGroup(SageObject):
             (Class field automorphism defined by x^2 + 117*y^2, Class field automorphism defined by 9*x^2 - 6*x*y + 14*y^2, Class field automorphism defined by 9*x^2 + 13*y^2, Class field automorphism defined by 9*x^2 + 6*x*y + 14*y^2)
         """
         if self._base_is_QQ():
-            raise NotImplementedError, "Galois group over QQ not yet implemented"
+            raise NotImplementedError("Galois group over QQ not yet implemented")
         elif self._base_is_quad_imag_field():
             # Over the quadratic imaginary field, so straightforward
             # enumeration of all reduced primitive binary quadratic
@@ -877,7 +879,6 @@ class GaloisGroup(SageObject):
             # a principal ideal.
             M = self.field()
             K = M.quadratic_field()
-            A = K.maximal_order().free_module()
             v = []
             self.__p1_to_automorphism = {}
             for sigma in M.galois_group(K)._list():
@@ -889,7 +890,7 @@ class GaloisGroup(SageObject):
                     self.__p1_to_automorphism[t.p1_element()] = t
                     v.append(t)
         else:
-            raise NotImplementedError, "general Galois group not yet implemented"
+            raise NotImplementedError("general Galois group not yet implemented")
 
         v.sort()
         assert len(v) == self.cardinality(), "bug enumerating Galois group elements"
@@ -924,19 +925,17 @@ class GaloisGroup(SageObject):
         A,B,C = f
         K = self.field().quadratic_field()
         if f.discriminant() != self.field().conductor()**2 * K.discriminant():
-            raise ValueError, "quadratic form has the wrong discriminant"
+            raise ValueError("quadratic form has the wrong discriminant")
 
         R = K['X']
-        S = K.maximal_order()
-        M = S.free_module()
         v = R([C,B,A]).roots()[0][0]
         return v
 
     def _alpha_to_automorphism(self, alpha):
         r"""
-        Assuming self has base field the Hilbert class field, make an
+        Assuming ``self`` has base field the Hilbert class field, make an
         automorphism from the element `\alpha` of the ring of integers
-        into self.
+        into ``self``.
 
         INPUT:
 
@@ -953,7 +952,7 @@ class GaloisGroup(SageObject):
             True
         """
         if not self._base_is_hilbert_class_field() and self.is_kolyvagin():
-            raise TypeError, "base must be Hilbert class field with Kolyvagin condition on conductor"
+            raise TypeError("base must be Hilbert class field with Kolyvagin condition on conductor")
         R = self.field().quadratic_field().maximal_order()
         uv = self._alpha_to_p1_element(R(alpha))
         try:
@@ -1041,7 +1040,7 @@ class GaloisGroup(SageObject):
 
     def _base_is_QQ(self):
         r"""
-        Return True if the base field of this ring class field is `\QQ`.
+        Return ``True`` if the base field of this ring class field is `\QQ`.
 
         EXAMPLES::
 
@@ -1057,7 +1056,7 @@ class GaloisGroup(SageObject):
 
     def _base_is_quad_imag_field(self):
         """
-        Return True if the base field of this ring class field is the
+        Return ``True`` if the base field of this ring class field is the
         quadratic imaginary field `K`.
 
         EXAMPLES::
@@ -1074,7 +1073,7 @@ class GaloisGroup(SageObject):
 
     def is_kolyvagin(self):
         """
-        Return True if conductor `c` is prime to the discriminant of the
+        Return ``True`` if conductor `c` is prime to the discriminant of the
         quadratic field, `c` is squarefree and each prime dividing `c`
         is inert.
 
@@ -1103,7 +1102,7 @@ class GaloisGroup(SageObject):
 
     def _base_is_hilbert_class_field(self):
         """
-        Return True if the base field of this ring class field is the
+        Return ``True`` if the base field of this ring class field is the
         Hilbert class field of `K` viewed as a ring class field (so
         not of data type QuadraticField).
 
@@ -1171,7 +1170,7 @@ class GaloisGroup(SageObject):
     @cached_method
     def complex_conjugation(self):
         """
-        Return the automorphism of self determined by complex
+        Return the automorphism of ``self`` determined by complex
         conjugation.  The base field must be the rational numbers.
 
         EXAMPLES::
@@ -1182,7 +1181,7 @@ class GaloisGroup(SageObject):
             Complex conjugation automorphism of Ring class field extension of QQ[sqrt(-7)] of conductor 5
         """
         if self.base_field() != QQ:
-            raise ValueError, "the base field must be fixed by complex conjugation"
+            raise ValueError("the base field must be fixed by complex conjugation")
         return GaloisAutomorphismComplexConjugation(self)
 
 
@@ -1192,12 +1191,14 @@ class GaloisGroup(SageObject):
 #
 ##################################################################################
 
-
-# TODO -- make GaloisAutomorphism derive from GroupElement so get powers for free, etc.
-
 class GaloisAutomorphism(SageObject):
     """
     An abstract automorphism of a ring class field.
+
+    .. TODO::
+
+        make :class:`GaloisAutomorphism` derive from GroupElement, so
+        that one gets powers for free, etc.
     """
     def __init__(self, parent):
         """
@@ -1326,7 +1327,7 @@ class GaloisAutomorphismComplexConjugation(GaloisAutomorphism):
 
     def __invert__(self):
         """
-        Return the inverse of self, which is just self again.
+        Return the inverse of ``self``, which is just ``self`` again.
 
         EXAMPLES::
 
@@ -1369,7 +1370,7 @@ class GaloisAutomorphismQuadraticForm(GaloisAutomorphism):
             - ``quadratic_form`` -- a binary quadratic form that
               defines an element of the Galois group of `K_c` over `K`.
 
-            - ``\alpha`` -- (default: None) optional data that specified
+            - ``\alpha`` -- (default: ``None``) optional data that specified
               element corresponding element of `(\mathcal{O}_K /
               c\mathcal{O}_K)^* / (\ZZ/c\ZZ)^*`, via class field
               theory.
@@ -1405,7 +1406,7 @@ class GaloisAutomorphismQuadraticForm(GaloisAutomorphism):
         """
         alpha = self.__alpha
         if alpha is None:
-            raise NotImplementedError, "order only currently implemented when alpha given in construction"
+            raise NotImplementedError("order only currently implemented when alpha given in construction")
         G = self.parent()
         one = G(1).p1_element()
         ans = ZZ(1)
@@ -1446,7 +1447,7 @@ class GaloisAutomorphismQuadraticForm(GaloisAutomorphism):
 
         """
         if self.__alpha is None:
-            raise ValueError, "alpha data not defined"
+            raise ValueError("alpha data not defined")
         return self.__alpha
 
     @cached_method
@@ -1505,7 +1506,7 @@ class GaloisAutomorphismQuadraticForm(GaloisAutomorphism):
 
     def __cmp__(self, right):
         """
-        Compare self and right.  Used mainly so that lists of
+        Compare ``self`` and right.  Used mainly so that lists of
         automorphisms are sorted consistently between runs.
 
         EXAMPLES::
@@ -1554,7 +1555,7 @@ class GaloisAutomorphismQuadraticForm(GaloisAutomorphism):
             True
         """
         if self.parent() != right.parent():
-            raise TypeError, "automorphisms must be of the same class field"
+            raise TypeError("automorphisms must be of the same class field")
         if not isinstance(right, GaloisAutomorphismQuadraticForm):
             # TODO: special case when right is complex conjugation
             raise NotImplementedError
@@ -1904,7 +1905,7 @@ class HeegnerPoints(SageObject):
         """
         self.__N = ZZ(N)
         if self.__N <= 0:
-            raise ValueError, "N must a positive integer"
+            raise ValueError("N must a positive integer")
 
     def level(self):
         """
@@ -1959,7 +1960,7 @@ class HeegnerPoints_level(HeegnerPoints):
 
     def reduce_mod(self, ell):
         r"""
-        eturn object that allows for computation with Heegner points
+        Return object that allows for computation with Heegner points
         of level `N` modulo the prime `\ell`, represented using
         quaternion algebras.
 
@@ -1983,7 +1984,7 @@ class HeegnerPoints_level(HeegnerPoints):
 
             - `n` -- nonnegative integer
 
-            - ``weak`` -- bool (default: False); if True only require
+            - ``weak`` -- bool (default: ``False``); if ``True`` only require
               weak Heegner hypothesis, which is the same as usual but
               without the condition that `\gcd(D,N)=1`.
 
@@ -2058,7 +2059,7 @@ class HeegnerPoints_level_disc(HeegnerPoints):
         HeegnerPoints.__init__(self, N)
         D = ZZ(D)
         if not satisfies_weak_heegner_hypothesis(N,D):
-            raise ValueError, "D (=%s) must satisfy the weak Heegner hypothesis for N (=%s)"%(D,N)
+            raise ValueError("D (=%s) must satisfy the weak Heegner hypothesis for N (=%s)"%(D,N))
         self.__D = D
 
     def __eq__(self, other):
@@ -2131,7 +2132,7 @@ class HeegnerPoints_level_disc(HeegnerPoints):
 
         INPUT:
 
-            - `r` -- (default: None) nonnegative integer or None
+            - `r` -- (default: ``None``) nonnegative integer or ``None``
 
             - `n` -- positive integer
 
@@ -2157,21 +2158,20 @@ class HeegnerPoints_level_disc(HeegnerPoints):
         """
         D = self.__D
         if not satisfies_weak_heegner_hypothesis(self.level(),D):
-            raise ValueError, "D must satisfy the weak Heegner hypothesis"
+            raise ValueError("D must satisfy the weak Heegner hypothesis")
         n = ZZ(n)
         if n <= 0:
-            raise ValueError, "n must be a positive integer"
+            raise ValueError("n must be a positive integer")
         if r is not None:
             r = ZZ(r)
             if r < 0:
-                raise ValueError, "n must be a nonnegative integer"
+                raise ValueError("n must be a nonnegative integer")
         if r == 0:
             return [ZZ(1)]
 
         c = ZZ(1)
         v = []
         N = self.level()
-        ND = N * D
 
         if E is not None:
             m = ZZ(m)
@@ -2186,21 +2186,21 @@ class HeegnerPoints_level_disc(HeegnerPoints):
 
 def is_kolyvagin_conductor(N, E, D, r, n, c):
     r"""
-    Return True if `c` is a Kolyvagin conductor for level `N`,
+    Return ``True`` if `c` is a Kolyvagin conductor for level `N`,
     discriminant `D`, mod `n`, etc., i.e., `c` is divisible by exactly
     `r` prime factors, is coprime to `ND`, each prime dividing `c` is
-    inert, and if `E` is not None then `n | \gcd(p+1, a_p(E))`
+    inert, and if `E` is not ``None`` then `n | \gcd(p+1, a_p(E))`
     for each prime `p` dividing `c`.
 
     INPUT:
 
         - `N` -- level (positive integer)
 
-        - `E` -- elliptic curve or None
+        - `E` -- elliptic curve or ``None``
 
         - `D` -- negative fundamental discriminant
 
-        - `r` -- number of prime factors (nonnegative integer) or None
+        - `r` -- number of prime factors (nonnegative integer) or ``None``
 
         - `n` -- torsion order (i.e., do we get class in `(E(K_c)/n E(K_c))^{Gal(K_c/K)}`?)
 
@@ -2338,13 +2338,13 @@ class HeegnerPoints_level_disc_cond(HeegnerPoints_level, HeegnerPoints_level_dis
     @cached_method
     def satisfies_kolyvagin_hypothesis(self):
         """
-        Return True if self satisfies the Kolyvagin hypothesis, i.e.,
-        that each prime dividing the conductor `c` of self is inert in
+        Return ``True`` if ``self`` satisfies the Kolyvagin hypothesis, i.e.,
+        that each prime dividing the conductor `c` of ``self`` is inert in
         `K` and coprime to `ND`.
 
         EXAMPLES:
 
-        The prime 5 is inert, but the prime 11 isn't::
+        The prime 5 is inert, but the prime 11 is not::
 
             sage: heegner_points(389,-7,5).satisfies_kolyvagin_hypothesis()
             True
@@ -2440,7 +2440,7 @@ class HeegnerPoints_level_disc_cond(HeegnerPoints_level, HeegnerPoints_level_dis
     @cached_method
     def points(self, beta=None):
         r"""
-        Return the Heegner points in self.  If `\beta` is given,
+        Return the Heegner points in ``self``.  If `\beta` is given,
         return only those Heegner points with given `\beta`, i.e.,
         whose quadratic form has `B` congruent to `\beta` modulo `2 N`.
 
@@ -2558,7 +2558,7 @@ class HeegnerPointOnX0N(HeegnerPoint):
                     of `AX^2 + BXY + CY^2`, or element of quadratic imaginary
                     field `\QQ(\sqrt{D})` in the upper half plan.
 
-           - ``check`` -- bool, default: True.  should not be used
+           - ``check`` -- bool, default: ``True``.  should not be used
                     except internally.
 
 
@@ -2574,13 +2574,13 @@ class HeegnerPointOnX0N(HeegnerPoint):
         if check:
             N = ZZ(N); D = ZZ(D); c = ZZ(c)
             if c.gcd(N) != 1:
-                raise ValueError, "conductor c (=%s) must be coprime to N (=%s)" % (c, N)
+                raise ValueError("conductor c (=%s) must be coprime to N (=%s)" % (c, N))
             if not satisfies_weak_heegner_hypothesis(N, D):
-                raise ValueError, "N (=%s) and D (=%s) must satisfy the Heegner hypothesis"%(N, D)
+                raise ValueError("N (=%s) and D (=%s) must satisfy the Heegner hypothesis"%(N, D))
             if f is not None:
                 if isinstance(f, tuple):
                     if len(f) != 3:
-                        raise ValueError, "if f is a tuple, it must have length 3"
+                        raise ValueError("if f is a tuple, it must have length 3")
                     f = tuple(ZZ(a) for a in f)
                 elif isinstance(f, BinaryQF):
                     # convert from BinaryQF
@@ -2589,14 +2589,14 @@ class HeegnerPointOnX0N(HeegnerPoint):
                     # tau = number field element
                     g = f.minpoly()
                     if g.degree() != 2:
-                        raise TypeError, "number field element f must have degree 2"
+                        raise TypeError("number field element f must have degree 2")
                     g *= g.denominator()  # make integral
                     f = (ZZ(g[2]), ZZ(g[1]), ZZ(g[0]))
                 else:
-                    raise TypeError, "f must be a 3-tuple, quadratic form, or element of the upper half plane"
+                    raise TypeError("f must be a 3-tuple, quadratic form, or element of the upper half plane")
                 A, B, C = f
                 if B*B - 4*A*C != D*c*c:
-                    raise ValueError, "f (=%s) must have discriminant %s"%(f, D*c*c)
+                    raise ValueError("f (=%s) must have discriminant %s"%(f, D*c*c))
         HeegnerPoint.__init__(self, N, D, c)
         if f is None:
             # We know that N|A, so A = N is optimal.
@@ -2705,7 +2705,7 @@ class HeegnerPointOnX0N(HeegnerPoint):
             return self  # trivial special case
         g, u, v = arith.xgcd(Q*Q, -N)
         if g != Q:
-            raise ValueError, "Q must divide N and be coprime to N/Q"
+            raise ValueError("Q must divide N and be coprime to N/Q")
         tau = self.tau()
         WQ_tau = ((u*Q*tau + v) / (N*tau + Q))
         return HeegnerPointOnX0N(N, self.discriminant(), self.conductor(), f=WQ_tau, check=True)
@@ -2722,8 +2722,8 @@ class HeegnerPointOnX0N(HeegnerPoint):
             sage: heegner_point(389,-7,5).quadratic_form()
             389*x^2 + 147*x*y + 14*y^2
         """
-        # It's good/important that this return a copy, since
-        # BinaryQF's stupidly are mutable and can't be made immutable.
+        # It is good/important that this return a copy, since
+        # BinaryQF's stupidly are mutable and cannot be made immutable.
         # In particular, they have a stupid reduce method that changes
         # them in place.
         return BinaryQF(self.__f)
@@ -2768,7 +2768,7 @@ class HeegnerPointOnX0N(HeegnerPoint):
         """
         Return the image of this Heegner point on the elliptic curve
         `E`, which must also have conductor `N`, where `N` is the
-        level of self.
+        level of ``self``.
 
         EXAMPLES::
 
@@ -2867,7 +2867,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
 
            - `x` -- Heegner point on `X_0(N)`
 
-           - ``check`` -- bool (default: True); if True, ensure that `D`,
+           - ``check`` -- bool (default: ``True``); if ``True``, ensure that `D`,
                       `c` are of type Integer and define a Heegner point
                       on `E`
 
@@ -2880,7 +2880,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         """
         if check:
             if E.conductor() != x.level():
-                raise ValueError, "conductor of curve must equal level of Heegner point"
+                raise ValueError("conductor of curve must equal level of Heegner point")
         self.__E = E
         self.__x = x
         HeegnerPoint.__init__(self, x.level(), x.discriminant(), x.conductor())
@@ -2888,10 +2888,10 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
     @cached_method
     def satisfies_kolyvagin_hypothesis(self, n=None):
         """
-        Return True if this Heegner point and `n` satisfy the
+        Return ``True`` if this Heegner point and `n` satisfy the
         Kolyvagin hypothesis, i.e., that each prime dividing the
-        conductor `c` of self is inert in K and coprime to `ND`.
-        Moreover, if `n` isn't None, also check that for each prime
+        conductor `c` of ``self`` is inert in K and coprime to `ND`.
+        Moreover, if `n` is not ``None``, also check that for each prime
         `p` dividing `c` we have that `n | \gcd(a_p(E), p+1)`.
 
         INPUT:
@@ -2909,7 +2909,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         """
         if n is not None:
             n = ZZ(n)
-            if n <= 0: raise ValueError, "n must be a positive integer"
+            if n <= 0: raise ValueError("n must be a positive integer")
         return is_kolyvagin_conductor(N=self.level(), E=self.__E, D=self.discriminant(),
                                       r=None, n=n, c=self.conductor())
 
@@ -3081,14 +3081,14 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             0
         """
         if self.conductor() != 1:
-            raise ValueError, "conductor of Heegner point must be 1"
+            raise ValueError("conductor of Heegner point must be 1")
         i = self.__E.heegner_index(self.discriminant(), *args, **kwds)
         lower = i.lower().round()
         upper = i.upper().round()
         if lower == upper:
             return lower
         # here we would say raise precision somehow.
-        raise NotImplementedError, "unable to compute index"
+        raise NotImplementedError("unable to compute index")
 
     def curve(self):
         """
@@ -3129,15 +3129,15 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         Return a numerical approximation to this Heegner point
         computed using a working precision of prec bits.
 
-        .. warning::
+        .. WARNING::
 
-           The answer is *not* provably correct to prec bits!  A
-           priori, due to rounding and other errors, it's possible that
-           not a single digit is correct.
+            The answer is *not* provably correct to prec bits!  A
+            priori, due to rounding and other errors, it is possible that
+            not a single digit is correct.
 
         INPUT:
 
-            - prec     -- (default: None) the working precision
+            - prec     -- (default: ``None``) the working precision
 
         EXAMPLES::
 
@@ -3215,11 +3215,11 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         ValueError is raised if the precision is clearly insignificant
         to define a point on the curve.
 
-        .. warning::
+        .. WARNING::
 
-           It is in theory possible for this function to not raise a
-           ValueError, find a polynomial, but via some very unlikely
-           coincidence that point is not actually this Heegner point.
+            It is in theory possible for this function to not raise a
+            ValueError, find a polynomial, but via some very unlikely
+            coincidence that point is not actually this Heegner point.
 
         INPUT:
 
@@ -3272,7 +3272,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         if algorithm == 'lll':
             P = self.numerical_approx(prec)
             g = None
-            for e in [1,2]:   # is there a condition under which we shouldn't bother trying e=1?
+            for e in [1,2]:   # is there a condition under which we should not bother trying e=1?
                 f = P[0].algdep(e*n)
 
                 # If f is correct, then disc(f) = m^2 * (a product of primes dividing D*c).
@@ -3286,7 +3286,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
                         break
 
             if g is None:
-                raise ValueError, "insufficient precision to determine Heegner point (fails discriminant test)"
+                raise ValueError("insufficient precision to determine Heegner point (fails discriminant test)")
             f = g
             f = f/f.leading_coefficient()
 
@@ -3298,7 +3298,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
 
     def _check_poly_discriminant(self, f):
         """
-        Return True if the prime to `Dc` part of the discriminant of
+        Return ``True`` if the prime to `Dc` part of the discriminant of
         each factor of the polynomial `f` is plus or minus a square.
         This is used for verifying that a polynomial is likely to
         define a subfield of a specific ring class field.
@@ -3340,17 +3340,17 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         bits of precision.   A ValueError is raised if the precision
         is clearly insignificant to define a point on the curve.
 
-        .. warning::
+        .. WARNING::
 
-           It is in theory possible for this function to not raise a
-           ValueError, find a point on the curve, but via some very
-           unlikely coincidence that point is not actually this Heegner
-           point.
+            It is in theory possible for this function to not raise a
+            ValueError, find a point on the curve, but via some very
+            unlikely coincidence that point is not actually this Heegner
+            point.
 
-        .. warning::
+        .. WARNING::
 
-           Currently we make an arbitrary choice of `y`-coordinate for
-           the lift of the `x`-coordinate.
+            Currently we make an arbitrary choice of `y`-coordinate for
+            the lift of the `x`-coordinate.
 
         INPUT:
 
@@ -3361,7 +3361,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
 
             - ``var`` -- string (default: 'a')
 
-            - ``optimize`` -- book (default; False) if True, try to
+            - ``optimize`` -- book (default; False) if ``True``, try to
               optimize defining polynomial for the number field that
               the point is defined over.  Off by default, since this
               can be very expensive.
@@ -3415,7 +3415,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         elif len(F) == 2:
             # reducible -- 2 factors
             y0 = -F[0][0][0]
-            y1 = -F[1][0][0]
+            # y1 = -F[1][0][0]
             # Figure out which of y0 or y1 is right by
             # P = self.numerical_approx(prec)
             # TODO: finish this -- have to do some thing numerical
@@ -3478,7 +3478,6 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             [(-1.9 - 0.44*I : -1.5 + 2.1*I : 1.0), ...
              (-1.9 - 0.44*I : -1.5 + 2.1*I : 1.0)]
         """
-        E = self.curve()
         v = []
         for z in self.conjugates_over_K():
             m = z.numerical_approx(prec)
@@ -3515,9 +3514,9 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
         S = RealField(prec)['X']
         X = R.gen()
         fx = prod(X-a[0] for a in v)
-        fx = S([a.real() for a in fx])
-        fy = prod(X-a[1] for a in v)
-        fy = S([a.real() for a in fy])
+        fx = S([b.real() for b in fx])
+        fy = prod(X-c[1] for c in v)
+        fy = S([d.real() for d in fy])
         return fx, fy
 
     def _xy_poly_nearby(self, prec=53, max_error=10**(-10)):
@@ -3588,7 +3587,6 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             sage: parent(P._square_roots_mod_2N_of_D_mod_4N()[0])
             Ring of integers modulo 74
         """
-        D = self.discriminant()
         N = self.__E.conductor()
         R = Integers(4*N)
         m = 2*N
@@ -3624,7 +3622,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
             (1 : 0 : 1)
         """
         if self.conductor() != 1:
-            raise ValueError, "conductor must be 1"
+            raise ValueError("conductor must be 1")
         R, U = self._good_tau_representatives()
         E = self.__E
         phi = E.modular_parametrization()
@@ -3825,7 +3823,7 @@ class HeegnerPointOnEllipticCurve(HeegnerPoint):
 
             - `n` -- positive integer that divides the gcd of `a_p`
               and `p+1` for all `p` dividing the conductor.  If `n` is
-              None, choose the largest valid `n`.
+              ``None``, choose the largest valid `n`.
 
         EXAMPLES::
 
@@ -3887,14 +3885,14 @@ class KolyvaginPoint(HeegnerPoint):
             Kolyvagin point of discriminant -7 on elliptic curve of conductor 37
         """
         if not heegner_point.satisfies_kolyvagin_hypothesis():
-            raise ValueError, "Heegner point doesn't satisfy Kolyvagin hypothesis"
+            raise ValueError("Heegner point does not satisfy Kolyvagin hypothesis")
         self.__heegner_point = heegner_point
         HeegnerPoint.__init__(self, heegner_point.level(), heegner_point.discriminant(),
                               heegner_point.conductor())
 
     def satisfies_kolyvagin_hypothesis(self, n=None):
         r"""
-        Return True if this Kolyvagin point satisfies the Heegner
+        Return ``True`` if this Kolyvagin point satisfies the Heegner
         hypothesis for `n`, so that it defines a Galois equivariant
         element of `E(K_c)/n E(K_c)`.
 
@@ -3965,7 +3963,7 @@ class KolyvaginPoint(HeegnerPoint):
         When the conductor is 1, this is computed numerically using
         the Gross-Zagier formula and explicit point search, and it may
         be off by $2$. See the documentation for ``E.heegner_index``,
-        where `E` is the curve attached to self.
+        where `E` is the curve attached to ``self``.
 
         EXAMPLES::
 
@@ -4062,13 +4060,13 @@ class KolyvaginPoint(HeegnerPoint):
                 K = self.quadratic_field()
                 roots = [r[0] for r in f.roots(K)]
                 if len(roots) == 0:
-                    raise RuntimeError, "insufficient precision to find exact point"
+                    raise RuntimeError("insufficient precision to find exact point")
                 if len(roots) == 1:
                     X = roots[0]
                 else:
                     d = [abs(C(r) - x) for r in roots]
                     if d[0] == d[1]:
-                        raise RuntimeError, "insufficient precision to distinguish roots"
+                        raise RuntimeError("insufficient precision to distinguish roots")
                     if d[0] < d[1]:
                         X = roots[0]
                     else:
@@ -4078,11 +4076,11 @@ class KolyvaginPoint(HeegnerPoint):
                 if len(Q) == 1:
                     return Q[0]
                 if len(Q) == 0:
-                    raise RuntimeError, "insufficient precision"
+                    raise RuntimeError("insufficient precision")
                 y = P[1]
                 d = [abs(C(r[1])-y) for r in Q]
                 if d[0] == d[1]:
-                    raise RuntimeError, "insufficient precision to distinguish roots"
+                    raise RuntimeError("insufficient precision to distinguish roots")
                 if d[0] < d[1]:
                     return Q[0]
                 else:
@@ -4173,7 +4171,7 @@ class KolyvaginPoint(HeegnerPoint):
             12.0000000000000
         """
         if not self.conductor() == 1:
-            raise ValueError, "the conductor must be 1"
+            raise ValueError("the conductor must be 1")
 
         P = self.trace_to_real_numerical(prec)
         return self._recognize_point_over_QQ(P, 2*self.index())
@@ -4207,19 +4205,20 @@ class KolyvaginPoint(HeegnerPoint):
             # the coercion below also checks if point is on elliptic curve
             return E([x.real().nearby_rational(max_denominator=max_denominator) for x in P])
         except TypeError:
-            raise RuntimeError, "insufficient precision to find exact point"
+            raise RuntimeError("insufficient precision to find exact point")
 
     def mod(self, p, prec=53):
         r"""
         Return the trace of the reduction `Q` modulo a prime over `p` of this
         Kolyvagin point as an element of `E(\GF{p})`, where
         `p` is any prime that is inert in `K` that is coprime to `NDc`.
+
         The point `Q` is only well defined up to an element of
         `(p+1) E(\GF{p})`, i.e., it gives a well defined element
         of the abelian group `E(\GF{p}) / (p+1) E(\GF{p})`.
 
-        See Stein, "Toward a Generalization of the Gross-Zagier Conjecture",
-        Proposition 5.4 for a proof of the above well-definedness assertion.
+        See [SteinToward]_, Proposition 5.4 for a proof of the above
+        well-definedness assertion.
 
         EXAMPLES:
 
@@ -4259,18 +4258,22 @@ class KolyvaginPoint(HeegnerPoint):
             ValueError: p must be coprime to conductors and discriminant
             sage: P.mod(13,70)
             (3 : 4 : 1)
+
+        REFERENCES:
+
+        .. [SteinToward] Stein, "Toward a Generalization of the Gross-Zagier Conjecture", Int Math Res Notices (2011), :doi:`10.1093/imrn/rnq075`
         """
         # check preconditions
         p = ZZ(p)
         if not p.is_prime():
-            raise ValueError, "p must be prime"
+            raise ValueError("p must be prime")
         E = self.curve()
         D = self.discriminant()
         if (E.conductor() * D * self.conductor()) % p == 0:
-            raise ValueError, "p must be coprime to conductors and discriminant"
+            raise ValueError("p must be coprime to conductors and discriminant")
         K = self.heegner_point().quadratic_field()
         if len(K.factor(p)) != 1:
-            raise ValueError, "p must be inert"
+            raise ValueError("p must be inert")
 
         # do actual calculation
         if self.conductor() == 1:
@@ -4308,7 +4311,7 @@ class KolyvaginPoint(HeegnerPoint):
 
             - `n` -- positive integer that divides the gcd of `a_p`
               and `p+1` for all `p` dividing the conductor.  If `n` is
-              None, choose the largest valid `n`.
+              ``None``, choose the largest valid `n`.
 
         EXAMPLES::
 
@@ -4321,9 +4324,6 @@ class KolyvaginPoint(HeegnerPoint):
             sage: y.kolyvagin_cohomology_class()
             Kolyvagin cohomology class c(5) in H^1(K,E[2])
         """
-        D = self.discriminant()
-        c = self.conductor()
-
         return KolyvaginCohomologyClassEn(self, n)
 
 
@@ -4359,7 +4359,7 @@ class KolyvaginCohomologyClass(SageObject):
             n = arith.GCD([(p+1).gcd(E.ap(p)) for p in c.prime_divisors()])
 
         if not kolyvagin_point.satisfies_kolyvagin_hypothesis(n):
-            raise ValueError, "Kolyvagin point doesn't satisfy Kolyvagin hypothesis for %s"%n
+            raise ValueError("Kolyvagin point does not satisfy Kolyvagin hypothesis for %s"%n)
         self.__kolyvagin_point = kolyvagin_point
         self.__n = n
 
@@ -4373,7 +4373,7 @@ class KolyvaginCohomologyClass(SageObject):
             sage: c == y.kolyvagin_cohomology_class(5)
             False
 
-        This does not mean that c is nonzero (!) -- it just means c isn't the number 0::
+        This does not mean that c is nonzero (!) -- it just means c is not the number 0::
 
             sage: c == 0
             False
@@ -4499,9 +4499,9 @@ class HeegnerQuatAlg(SageObject):
         """
         level = ZZ(level); ell = ZZ(ell)
         if not ell.is_prime():
-            raise ValueError, "ell must be prime"
+            raise ValueError("ell must be prime")
         if level.gcd(ell) != 1:
-            raise ValueError, "level and ell must be coprime"
+            raise ValueError("level and ell must be coprime")
         self.__level = level
         self.__ell = ell
 
@@ -4792,7 +4792,7 @@ class HeegnerQuatAlg(SageObject):
             4
         """
         if not self.satisfies_heegner_hypothesis(D, c):
-            raise ValueError, "D and c must be coprime to N and ell"
+            raise ValueError("D and c must be coprime to N and ell")
 
         B = self.brandt_module()
 
@@ -4808,7 +4808,7 @@ class HeegnerQuatAlg(SageObject):
             a = Q.theta_series(n+1)[n]
             if a > 0:
                 reps = Q.representation_vector_list(n+1)[-1]
-                k = len([z for z in reps if arith.gcd(z) == 1])
+                k = len([r for r in reps if arith.gcd(r) == 1])
                 assert k%2 == 0
                 v[i] += k/2
         return B(v)
@@ -4881,12 +4881,12 @@ class HeegnerQuatAlg(SageObject):
         """
         p = ZZ(p)
         if not p.is_prime():
-            raise ValueError, "p (=%s) must be prime"%p
+            raise ValueError("p (=%s) must be prime"%p)
         if p == 2:
-            raise ValueError, "p must be odd"
+            raise ValueError("p must be odd")
         Q = self.quaternion_algebra()
         if Q.discriminant() % p == 0:
-            raise ValueError, "p (=%s) must be an unramified prime"%p
+            raise ValueError("p (=%s) must be an unramified prime"%p)
         i, j, k = Q.gens()
         F = GF(p)
         i2 = F(i*i)
@@ -4904,7 +4904,7 @@ class HeegnerQuatAlg(SageObject):
                 break
         assert a is not None, "bug in that no splitting solution found"
         J = M([a,b,(j2-a*a)/b, -a])
-        assert I*J == -J*I, "bug in that I,J don't skew commute"
+        assert I*J == -J*I, "bug in that I,J do not skew commute"
         return I, J
 
     def modp_splitting_map(self, p):
@@ -4974,9 +4974,9 @@ class HeegnerQuatAlg(SageObject):
         """
         c = ZZ(c)
         if not c.is_prime():
-            raise NotImplementedError, "currently c must be prime"
+            raise NotImplementedError("currently c must be prime")
         if c == 2:
-            raise NotImplementedError, "currently c must be odd"
+            raise NotImplementedError("currently c must be odd")
         phi = self.modp_splitting_map(c)
         B = self.brandt_module()
         P1 = P1List(c)
@@ -5136,19 +5136,19 @@ class HeegnerQuatAlg(SageObject):
         """
         p = ZZ(p)
         if not p.is_prime():
-            raise NotImplementedError, "p must be prime"
+            raise NotImplementedError("p must be prime")
         if K.discriminant() % p == 0:
-            raise ValueError, "p must be unramified"
+            raise ValueError("p must be unramified")
         if len(K.factor(p)) != 1:
-            raise ValueError, "p must be inert"
+            raise ValueError("p must be inert")
 
         F = K.residue_field(p)
         a = F.gen()
-        assert a*a == K.discriminant(), "bug: we assumed generator of finite field must be square root of discriminant, but for some reason this isn't true"
+        assert a*a == K.discriminant(), "bug: we assumed generator of finite field must be square root of discriminant, but for some reason this is not true"
         for n in range(1,p):
             if (a + n).multiplicative_order() % (p*p-1) == 0:
                 return K.gen() + n
-        raise RuntimeError, "there is a bug in kolyvagin_generator"
+        raise RuntimeError("there is a bug in kolyvagin_generator")
 
     @cached_method
     def kolyvagin_generators(self, K, c):
@@ -5182,7 +5182,7 @@ class HeegnerQuatAlg(SageObject):
         B = crt_basis([x[0] for x in F])
         for i, (p, e) in enumerate(F):
             if e > 1:
-                raise ValueError, "c must be square free"
+                raise ValueError("c must be square free")
             alpha = self.kolyvagin_generator(K, p)
             # Now we use the Chinese Remainder Theorem to make an element
             # of O_K that equals alpha modulo p and equals 1 modulo
@@ -5210,7 +5210,7 @@ class HeegnerQuatAlg(SageObject):
 
             - `r` -- nonnegative integer
 
-            - ``bound`` -- (default: None), if given, controls
+            - ``bound`` -- (default: ``None``), if given, controls
               precision of computation of theta series, which could
               impact performance, but does not impact correctness
 
@@ -5290,7 +5290,7 @@ class HeegnerQuatAlg(SageObject):
         F = c.factor()
         I = RI[r]
         for i, (p, e) in enumerate(F):
-            if e > 1: raise ValueError, "c must be square free"
+            if e > 1: raise ValueError("c must be square free")
             X = I.cyclic_right_subideals(p, alpha_quaternions[i])
             J_lists.append(dict(enumerate(X)))
 
@@ -5312,7 +5312,7 @@ class HeegnerQuatAlg(SageObject):
                         # we found the right j
                         break
             if j is None:
-                raise RuntimeError, "bug finding equivalent ideal"
+                raise RuntimeError("bug finding equivalent ideal")
             ans[j] += prod(v)
         return B(ans)
 
@@ -5341,10 +5341,10 @@ class HeegnerQuatAlg(SageObject):
             2 x 52 dense matrix over Ring of integers modulo 3
         """
         if E.conductor() != self.level():
-            raise ValueError, "conductor of E must equal level of self"
+            raise ValueError("conductor of E must equal level of self")
         p = ZZ(p)
         if not p.is_prime():
-            raise ValueError, "p (=%s) must be prime"%p
+            raise ValueError("p (=%s) must be prime"%p)
         bad = self.__level * self.__ell
 
         V = None
@@ -5396,12 +5396,12 @@ class HeegnerQuatAlg(SageObject):
             [1, 0]
         """
         if not self.satisfies_heegner_hypothesis(D, c):
-            raise ValueError, "D and c must be coprime to N and ell"
+            raise ValueError("D and c must be coprime to N and ell")
 
         hd = self.heegner_divisor(D)
         v = hd.element()
         if class_number(D) != 1:
-            raise NotImplementedError, "class number greater than 1 not implemented"
+            raise NotImplementedError("class number greater than 1 not implemented")
         i = min(v.nonzero_positions())
         return self.kolyvagin_sigma_operator(D, c, i)
 
@@ -5456,10 +5456,10 @@ def kolyvagin_reduction_data(E, q, first_only=True):
 
         - `E` -- elliptic curve over `\QQ` of rank 1 or 2
 
-        - `q` -- an odd prime that doesn't divide the order of the
+        - `q` -- an odd prime that does not divide the order of the
            rational torsion subgroup of `E`
 
-        - ``first_only`` -- bool (default: True) whether two only return
+        - ``first_only`` -- bool (default: ``True``) whether two only return
            the first prime that one can work modulo to get data about
            the Euler system
 
@@ -5554,20 +5554,20 @@ def kolyvagin_reduction_data(E, q, first_only=True):
     """
     from ell_generic import is_EllipticCurve
     if not is_EllipticCurve(E):
-        raise TypeError, "E must be an elliptic curve"
+        raise TypeError("E must be an elliptic curve")
 
     q = ZZ(q)
     if not q.is_prime():
-        raise ValueError, "q must be a prime"
+        raise ValueError("q must be a prime")
 
     if q.gcd(E.torsion_order()) != 1:
-        raise NotImplementedError, "q must be coprime to torsion"
+        raise NotImplementedError("q must be coprime to torsion")
 
     N = E.conductor()
     r = E.rank()
 
     if r == 0:
-        raise ValueError, "E must have positive rank"
+        raise ValueError("E must have positive rank")
 
     if E.rank() == 1:
         first_only = True
@@ -5606,7 +5606,7 @@ def kolyvagin_reduction_data(E, q, first_only=True):
             while N % ell == 0 or gcd(ell+1,E.ap(ell)) % q != 0:
                 ell = ell.next_prime()
             # determine if mod ell reduction is surjective, using
-            # partly that it's a lemma that E(F_ell)/q is cyclic.
+            # partly that it is a lemma that E(F_ell)/q is cyclic.
             m = ZZ(E.Np(ell) / q)
             for P in E.gens():
                 if red(P,ell) * m != 0:
@@ -5617,7 +5617,7 @@ def kolyvagin_reduction_data(E, q, first_only=True):
             ell = ell.next_prime()
 
     if E.rank() != 2:
-        raise ValueError, "if first_only is not True, then the curve E must have rank 1 or 2"
+        raise ValueError("if first_only is not True, then the curve E must have rank 1 or 2")
 
     P, Q = E.gens()
     def kernel_of_reduction(ell):
@@ -5764,7 +5764,6 @@ class HeegnerQuatAlgEmbedding(SageObject):
             [ 1  0  0  0]
             [ 0  1 -1 -1]
         """
-        from sage.matrix.all import matrix
         return matrix(QQ,2,4,[[1,0,0,0], self.__beta.coefficient_tuple()])
 
     @cached_method
@@ -5855,7 +5854,6 @@ class HeegnerQuatAlgEmbedding(SageObject):
             sage: f = H.optimal_embeddings(-7, 2, R)[0]; f._repr_()
             'Embedding sending 2*sqrt(-7) to -5*i + k'
         """
-        R = self.domain()
         a = '%ssqrt(%s)'%('%s*'%self.__c if self.__c > 1 else '', self.__D)
         return "Embedding sending %s to %s"%(a, self.__beta)
 
@@ -5942,12 +5940,12 @@ def class_number(D):
         ValueError: D (=-5) must be a fundamental discriminant
     """
     if not number_field.is_fundamental_discriminant(D):
-        raise ValueError, "D (=%s) must be a fundamental discriminant"%D
+        raise ValueError("D (=%s) must be a fundamental discriminant"%D)
     return QuadraticField(D,'a').class_number()
 
 def is_inert(D, p):
     r"""
-    Return True if p is an inert prime in the field `\QQ(\sqrt{D})`.
+    Return ``True`` if p is an inert prime in the field `\QQ(\sqrt{D})`.
 
     INPUT:
 
@@ -5970,7 +5968,7 @@ def is_inert(D, p):
 
 def is_split(D, p):
     r"""
-    Return True if p is a split prime in the field `\QQ(\sqrt{D})`.
+    Return ``True`` if p is a split prime in the field `\QQ(\sqrt{D})`.
 
     INPUT:
 
@@ -5993,7 +5991,7 @@ def is_split(D, p):
 
 def is_ramified(D, p):
     r"""
-    Return True if p is a ramified prime in the field `\QQ(\sqrt{D})`.
+    Return ``True`` if p is a ramified prime in the field `\QQ(\sqrt{D})`.
 
     INPUT:
 
@@ -6094,7 +6092,6 @@ def satisfies_weak_heegner_hypothesis(N, D):
     if not number_field.is_fundamental_discriminant(D):
         return False
     if D >= 0: return False
-    K = QuadraticField(D,'a')
     for p, e in N.factor():
         if D % p == 0:
             if e > 1:
@@ -6165,7 +6162,7 @@ def ell_heegner_point(self, D, c=ZZ(1), f=None, check=True):
         - `f`        -- binary quadratic form or 3-tuple `(A,B,C)` of coefficients
                         of `AX^2 + BXY + CY^2`
 
-        - ``check``  -- bool (default: True)
+        - ``check``  -- bool (default: ``True``)
 
 
     OUTPUT::
@@ -6227,7 +6224,7 @@ def kolyvagin_point(self, D, c=ZZ(1), check=True):
 
         - `c`        -- (default: 1) conductor, must be coprime to `DN`
 
-        - ``check``  -- bool (default: True)
+        - ``check``  -- bool (default: ``True``)
 
 
     OUTPUT:
@@ -6307,7 +6304,7 @@ def heegner_point_height(self, D, prec=2, check_rank=True):
     r"""
     Use the Gross-Zagier formula to compute the Neron-Tate canonical
     height over `K` of the Heegner point corresponding to `D`, as an
-    interval (it's computed to some precision using `L`-functions).
+    interval (it is computed to some precision using `L`-functions).
 
     If the curve has rank at least 2, then the returned height is the
     exact Sage integer 0.
@@ -6346,13 +6343,13 @@ def heegner_point_height(self, D, prec=2, check_rank=True):
     """
 
     if not self.satisfies_heegner_hypothesis(D):
-        raise ArithmeticError, "Discriminant (=%s) must be a fundamental discriminant that satisfies the Heegner hypothesis."%D
+        raise ArithmeticError("Discriminant (=%s) must be a fundamental discriminant that satisfies the Heegner hypothesis."%D)
 
     if check_rank and self.rank() >= 2:
         return ZZ(0)
 
     if D == -3 or D == -4:
-        raise ArithmeticError, "Discriminant (=%s) must not be -3 or -4."%D
+        raise ArithmeticError("Discriminant (=%s) must not be -3 or -4."%D)
     eps = self.root_number()
     L1_vanishes = self.lseries().L1_vanishes()
 
@@ -6400,14 +6397,14 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
 
     If the curve has rank > 1, then the returned index is infinity.
 
-    .. note::
+    .. NOTE::
 
-       If ``min_p`` is bigger than 2 then the index can be off by
-       any prime less than ``min_p``. This function returns the
-       index divided by `2` exactly when the rank of `E(K)` is
-       greater than 1 and `E(\QQ)_{/tor} \oplus E^D(\QQ)_{/tor}`
-       has index `2` in `E(K)_{/tor}`, where the second factor
-       undergoes a twist.
+        If ``min_p`` is bigger than 2 then the index can be off by
+        any prime less than ``min_p``. This function returns the
+        index divided by `2` exactly when the rank of `E(K)` is
+        greater than 1 and `E(\QQ)_{/tor} \oplus E^D(\QQ)_{/tor}`
+        has index `2` in `E(K)_{/tor}`, where the second factor
+        undergoes a twist.
 
     INPUT:
 
@@ -6416,7 +6413,7 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
     -  ``min_p (int)`` - (default: 2) only rule out primes
        = min_p dividing the index.
 
-    -  ``verbose_mwrank (bool)`` - (default: False); print lots of
+    -  ``verbose_mwrank (bool)`` - (default: ``False``); print lots of
        mwrank search status information when computing regulator
 
     -  ``prec (int)`` - (default: 5), use prec\*sqrt(N) +
@@ -6473,7 +6470,7 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
     condition, i.e., sometimes the index must be multiplied by
     `2` even though the denominator is not `2`.
 
-    This example demonstrates the `descent_second_limit` option,
+    This example demonstrates the ``descent_second_limit`` option,
     which can be used to fine tune the 2-descent used to compute
     the regulator of the twist::
 
@@ -6503,7 +6500,7 @@ def heegner_index(self, D,  min_p=2, prec=5, descent_second_limit=12, verbose_mw
         True
     """
     if not self.satisfies_heegner_hypothesis(D):
-        raise ArithmeticError, "Discriminant (=%s) must be a fundamental discriminant that satisfies the Heegner hypothesis."%D
+        raise ArithmeticError("Discriminant (=%s) must be a fundamental discriminant that satisfies the Heegner hypothesis."%D)
 
     if check_rank and self.rank() >= 2:
         return rings.infinity
@@ -6603,7 +6600,7 @@ def _adjust_heegner_index(self, a):
 
 def heegner_index_bound(self, D=0,  prec=5, max_height=None):
     r"""
-    Assume self has rank 0.
+    Assume ``self`` has rank 0.
 
     Return a list `v` of primes such that if an odd prime `p` divides
     the index of the Heegner point in the group of rational points
@@ -6625,7 +6622,7 @@ def heegner_index_bound(self, D=0,  prec=5, max_height=None):
        0, use the first discriminant -4 that satisfies the Heegner
        hypothesis
 
-    -  ``verbose (bool)`` - (default: True)
+    -  ``verbose (bool)`` - (default: ``True``)
 
     -  ``prec (int)`` - (default: 5), use `prec \cdot \sqrt(N) + 20`
        terms of `L`-series in computations, where `N` is the conductor.
@@ -6659,7 +6656,7 @@ def heegner_index_bound(self, D=0,  prec=5, max_height=None):
     else:
         max_height = min(float(max_height), _MAX_HEIGHT)
     if self.root_number() != 1:
-        raise RuntimeError, "The rank must be 0."
+        raise RuntimeError("The rank must be 0.")
 
     if D == 0:
         D = -5
@@ -6717,7 +6714,7 @@ def heegner_index_bound(self, D=0,  prec=5, max_height=None):
             t, i = ind.is_int()
             if t:   # unique integer in interval, so we've found exact index squared.
                 return arith.prime_divisors(i), D, i
-        raise RuntimeError, "Unable to compute bound for e=%s, D=%s (try increasing precision)"%(self,D)
+        raise RuntimeError("Unable to compute bound for e=%s, D=%s (try increasing precision)"%(self, D))
 
     # First try a quick search, in case we get lucky and find
     # a generator.
@@ -6732,7 +6729,7 @@ def heegner_index_bound(self, D=0,  prec=5, max_height=None):
     P = [x for x in P if x.order() == rings.infinity]
     if len(P) == 0:
         # We've eliminated the possibility of a divisor up to p.
-        return rings.prime_range(3,p), D, False
+        return rings.prime_range(3, p), D, False
     else:
         return _bound(P)
 
@@ -6771,7 +6768,7 @@ def _heegner_index_in_EK(self, D):
     """
     # check conditions, then use cache if possible.
     if not self.satisfies_heegner_hypothesis(D):
-        raise ValueError, "D (=%s) must satisfy the Heegner hypothesis"%D
+        raise ValueError("D (=%s) must satisfy the Heegner hypothesis"%D)
     try:
         return self.__heegner_index_in_EK[D]
     except AttributeError:
@@ -6802,7 +6799,7 @@ def _heegner_index_in_EK(self, D):
 
     E     = self  # nice shortcut
     F     = E.quadratic_twist(D).minimal_model()
-    K     = rings.QuadraticField(D,'a')
+    K     = rings.QuadraticField(D, 'a')
 
     # Define a map phi that we'll use to put the points of E^D(QQ)
     # into E(K):
@@ -6830,7 +6827,7 @@ def _heegner_index_in_EK(self, D):
 
     A = rings.ZZ**r
     # Take span of our vectors in (1/2)*ZZ^r, along with ZZ^r.  This is E(K)/tor.
-    W     = V.span(B,rings.ZZ) + A
+    W     = V.span(B, rings.ZZ) + A
 
     # Compute the index in E(K)/tor of A = E(Q)/tor + E^D(Q)/tor, cache, and return.
     index = A.index_in(W)
@@ -6852,13 +6849,13 @@ def heegner_sha_an(self, D, prec=53):
 
     (floating point number) an approximation to the conjectural order of Sha.
 
-    .. note::
+    .. NOTE::
 
-       Often you'll want to do ``proof.elliptic_curve(False)`` when
-       using this function, since often the twisted elliptic
-       curves that come up have enormous conductor, and Sha is
-       nontrivial, which makes provably finding the Mordell-Weil
-       group using 2-descent difficult.
+        Often you'll want to do ``proof.elliptic_curve(False)`` when
+        using this function, since often the twisted elliptic
+        curves that come up have enormous conductor, and Sha is
+        nontrivial, which makes provably finding the Mordell-Weil
+        group using 2-descent difficult.
 
 
     EXAMPLES:
@@ -6918,9 +6915,9 @@ def heegner_sha_an(self, D, prec=53):
     """
     # check conditions, then return from cache if possible.
     if not self.satisfies_heegner_hypothesis(D):
-        raise ValueError, "D (=%s) must satisfy the Heegner hypothesis"%D
+        raise ValueError("D (=%s) must satisfy the Heegner hypothesis"%D)
     try:
-        return self.__heegner_sha_an[(D,prec)]
+        return self.__heegner_sha_an[(D, prec)]
     except AttributeError:
         self.__heegner_sha_an = {}
     except KeyError:
@@ -6930,7 +6927,7 @@ def heegner_sha_an(self, D, prec=53):
     # see page 311 of [Gross-Zagier, 1986] for the formula.
     E   = self  # notational convenience
     F   = E.quadratic_twist(D).minimal_model()
-    K   = rings.QuadraticField(D,'a')
+    K   = rings.QuadraticField(D, 'a')
 
     # Compute each of the quantities in BSD
     #  - The torsion subgroup over K.
@@ -6956,7 +6953,7 @@ def heegner_sha_an(self, D, prec=53):
     #    into Sage to be convinced.
     L = rings.binomial(rE + rF, rE) * (L_E * L_F / (rings.factorial(rE+rF)) )
 
-    #  - ||omega||^2 -- the period.  It's twice the volume of the
+    #  - ||omega||^2 -- the period.  It is twice the volume of the
     #    period lattice.  See the following paper for a derivation:
     #    "Verification of the Birch and Swinnerton-Dyer Conjecture
     #     for Specific Elliptic Curves", G. Grigorov, A. Jorza, S. Patrikis,
@@ -6989,7 +6986,7 @@ def heegner_sha_an(self, D, prec=53):
     sha_an = (L * T**2 * sqrtD) / (omega * Reg * cqprod**2)
 
     #  - We cache and return the answer.
-    self.__heegner_sha_an[(D,prec)] = sha_an
+    self.__heegner_sha_an[(D, prec)] = sha_an
     return sha_an
 
 def _heegner_forms_list(self, D, beta=None, expected_count=None):
@@ -6999,7 +6996,7 @@ def _heegner_forms_list(self, D, beta=None, expected_count=None):
     `D` mod `4N`. Specifically, given a quadratic form
     `f = Ax^2 + Bxy + Cy^2` we let `\tau_f` be a root of `Ax^2 + Bx + C`
     and the discriminant `\Delta(\tau_f) = \Delta(f) = D` must be
-    invariant under multiplication by `N`, the conductor of self.
+    invariant under multiplication by `N`, the conductor of ``self``.
 
         `\Delta(N\tau_f) = \Delta(\tau_f) = \Delta(f) = D`
 
@@ -7068,12 +7065,12 @@ def _heegner_best_tau(self, D, prec=None):
     # We know that N|A, so A = N is optimal.
     N = self.conductor()
     b = ZZ(Integers(4*N)(D).sqrt(extend=False) % (2*N))
-    # TODO: make sure a different choice of b isn't better?
+    # TODO: make sure a different choice of b is not better?
     return (-b + ZZ(D).sqrt(prec=prec)) / (2*N)
 
 def satisfies_heegner_hypothesis(self, D):
     """
-    Returns True precisely when `D` is a fundamental discriminant that
+    Returns ``True`` precisely when `D` is a fundamental discriminant that
     satisfies the Heegner hypothesis for this elliptic curve.
 
     EXAMPLES::

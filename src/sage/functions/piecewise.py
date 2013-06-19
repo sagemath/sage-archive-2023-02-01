@@ -1159,7 +1159,7 @@ class PiecewisePolynomial:
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f._fourier_series_helper(3, 1, lambda n: 1)
-            -4*cos(pi*x)/pi^2 + cos(2*pi*x)/pi^2 + 1/3
+            cos(2*pi*x)/pi^2 - 4*cos(pi*x)/pi^2 + 1/3
         """
         from sage.all import pi, sin, cos, srange
         x = self.default_variable()
@@ -1186,12 +1186,12 @@ class PiecewisePolynomial:
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_partial_sum(3,1)
-            -4*cos(pi*x)/pi^2 + cos(2*pi*x)/pi^2 + 1/3
+            cos(2*pi*x)/pi^2 - 4*cos(pi*x)/pi^2 + 1/3
             sage: f1(x) = -1
             sage: f2(x) = 2
             sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_partial_sum(3,pi)
-            -3*sin(2*x)/pi + 3*sin(x)/pi - 3*cos(x)/pi - 1/4
+            -3*cos(x)/pi - 3*sin(2*x)/pi + 3*sin(x)/pi - 1/4
         """
         return self._fourier_series_helper(N, L, lambda n: 1)
 
@@ -1212,12 +1212,12 @@ class PiecewisePolynomial:
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_partial_sum_cesaro(3,1)
-            -8/3*cos(pi*x)/pi^2 + 1/3*cos(2*pi*x)/pi^2 + 1/3
+            1/3*cos(2*pi*x)/pi^2 - 8/3*cos(pi*x)/pi^2 + 1/3
             sage: f1(x) = -1
             sage: f2(x) = 2
             sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_partial_sum_cesaro(3,pi)
-            -sin(2*x)/pi + 2*sin(x)/pi - 2*cos(x)/pi - 1/4
+            -2*cos(x)/pi - sin(2*x)/pi + 2*sin(x)/pi - 1/4
         """
         return self._fourier_series_helper(N, L, lambda n: 1-n/N)
 
@@ -1238,12 +1238,12 @@ class PiecewisePolynomial:
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_partial_sum_hann(3,1)
-            -3*cos(pi*x)/pi^2 + 1/4*cos(2*pi*x)/pi^2 + 1/3
+            1/4*cos(2*pi*x)/pi^2 - 3*cos(pi*x)/pi^2 + 1/3
             sage: f1(x) = -1
             sage: f2(x) = 2
             sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_partial_sum_hann(3,pi)
-            -3/4*sin(2*x)/pi + 9/4*sin(x)/pi - 9/4*cos(x)/pi - 1/4
+            -9/4*cos(x)/pi - 3/4*sin(2*x)/pi + 9/4*sin(x)/pi - 1/4
         """
         from sage.all import cos, pi
         return self._fourier_series_helper(N, L, lambda n: (1+cos(pi*n/N))/2)
@@ -1265,12 +1265,12 @@ class PiecewisePolynomial:
             sage: f(x) = x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_partial_sum_filtered(3,1,[1,1,1])
-            -4*cos(pi*x)/pi^2 + cos(2*pi*x)/pi^2 + 1/3
+            cos(2*pi*x)/pi^2 - 4*cos(pi*x)/pi^2 + 1/3
             sage: f1(x) = -1
             sage: f2(x) = 2
             sage: f = Piecewise([[(-pi,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_partial_sum_filtered(3,pi,[1,1,1])
-            -3*sin(2*x)/pi + 3*sin(x)/pi - 3*cos(x)/pi - 1/4
+            -3*cos(x)/pi - 3*sin(2*x)/pi + 3*sin(x)/pi - 1/4
         """
         return self._fourier_series_helper(N, L, lambda n: F[n])
 
@@ -1577,9 +1577,9 @@ class PiecewisePolynomial:
             sage: x, s, w = var('x, s, w')
             sage: f = Piecewise([[(0,1),1],[(1,2), 1-x]])
             sage: f.laplace(x, s)
-            (s + 1)*e^(-2*s)/s^2 - e^(-s)/s + 1/s - e^(-s)/s^2
+            -e^(-s)/s + (s + 1)*e^(-2*s)/s^2 + 1/s - e^(-s)/s^2
             sage: f.laplace(x, w)
-            (w + 1)*e^(-2*w)/w^2 - e^(-w)/w + 1/w - e^(-w)/w^2
+            -e^(-w)/w + (w + 1)*e^(-2*w)/w^2 + 1/w - e^(-w)/w^2
 
         ::
 

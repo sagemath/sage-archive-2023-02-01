@@ -578,7 +578,7 @@ def symbolic_sum(expression, *args, **kwds):
     ::
 
         sage: sum(k * binomial(n, k), k, 1, n)
-        n*2^(n - 1)
+        2^(n - 1)*n
 
     ::
 
@@ -707,7 +707,7 @@ def integral(x, *args, **kwds):
         sage: integral(sin(x)^2, x, algorithm='maxima')
         1/2*x - 1/4*sin(2*x)
         sage: integral(sin(x)^2, x, algorithm='sympy')
-        -1/2*sin(x)*cos(x) + 1/2*x
+        -1/2*cos(x)*sin(x) + 1/2*x
 
     TESTS:
 
@@ -725,7 +725,7 @@ def integral(x, *args, **kwds):
 
         sage: f = exp(-x) * sinh(sqrt(x))
         sage: t = integrate(f, x, 0, Infinity); t            # long time
-        -1/4*((erf(1) - 1)*sqrt(pi) - sqrt(pi) + 2*e^(-1) - 2)*e^(1/4) + 1/4*((erf(1) - 1)*sqrt(pi) + sqrt(pi) + 2*e^(-1) - 2)*e^(1/4)
+        1/4*(sqrt(pi)*(erf(1) - 1) + sqrt(pi) + 2*e^(-1) - 2)*e^(1/4) - 1/4*(sqrt(pi)*(erf(1) - 1) - sqrt(pi) + 2*e^(-1) - 2)*e^(1/4)
         sage: t.simplify_exp()  # long time
         1/2*sqrt(pi)*e^(1/4)
 

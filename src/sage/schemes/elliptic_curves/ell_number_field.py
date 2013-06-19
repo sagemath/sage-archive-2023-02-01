@@ -108,6 +108,8 @@ from sage.rings.integer import Integer
 from sage.rings.infinity import Infinity # just for verbose output
 from sage.rings.arith import valuation
 
+import gal_reps_number_field
+
 class EllipticCurve_number_field(EllipticCurve_field):
     r"""
     Elliptic curve over a number field.
@@ -2141,3 +2143,35 @@ class EllipticCurve_number_field(EllipticCurve_field):
             k = k+1
 
         raise NotImplementedError, "Not all isogenies implemented over general number fields."
+
+
+    def galois_representation(self):
+        r"""
+        The compatible family of the Galois representation
+        attached to this elliptic curve.
+
+        Given an elliptic curve `E` over a number field `K`
+        and a rational prime number `p`, the `p^n`-torsion
+        `E[p^n]` points of `E` is a representation of the
+        absolute Galois group of `K`. As `n` varies
+        we obtain the Tate module `T_p E` which is a
+        a representation of `G_K` on a free `\ZZ_p`-module
+        of rank `2`. As `p` varies the representations
+        are compatible.
+
+        EXAMPLES::
+
+            sage: K = NumberField(x**2 + 1, 'a')
+            sage: E = EllipticCurve('11a1').change_ring(K)
+            sage: rho = E.galois_representation()
+            sage: rho
+            Compatible family of Galois representations associated to the Elliptic Curve defined by y^2 + y = x^3 + (-1)*x^2 + (-10)*x + (-20) over Number Field in a with defining polynomial x^2 + 1
+            sage: rho.is_surjective(3)
+            True
+            sage: rho.is_surjective(5)
+            False
+            sage: rho.non_surjective()
+            [5]
+        """
+        return gal_reps_number_field.GaloisRepresentation(self)
+

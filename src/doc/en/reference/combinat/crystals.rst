@@ -8,6 +8,7 @@ Crystals
    ../sage/combinat/crystals/crystals
    ../sage/combinat/crystals/direct_sum
    ../sage/combinat/crystals/letters
+   ../sage/combinat/crystals/elementary_crystals
    ../sage/combinat/crystals/fast_crystals
    ../sage/combinat/crystals/highest_weight_crystals
    ../sage/combinat/crystals/kirillov_reshetikhin
@@ -16,3 +17,4 @@ Crystals
    ../sage/combinat/crystals/tensor_product
    ../sage/combinat/crystals/generalized_young_walls
    ../sage/combinat/crystals/infinity_crystals
+

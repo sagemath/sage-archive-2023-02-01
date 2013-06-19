@@ -26,6 +26,7 @@ For display options, see :obj:`Partitions.global_options`.
     - If given coordinates of the form ``(r, c)``, then use Python's
       \*-operator.
 
+
     - Throughout this documentation, for a partition `\lambda` we will denote
       its conjugate partition by `\lambda^{\prime}`. For more on conjugate
       partitions, see :meth:`Partition.conjugate()`.
@@ -272,6 +273,7 @@ We use the lexicographic ordering::
 
 from sage.interfaces.all import gap
 from sage.libs.all import pari
+from sage.libs.flint.arith import number_of_partitions as flint_number_of_partitions
 
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
@@ -763,6 +765,20 @@ class Partition(CombinatorialObject, Element):
             return self._repr_compact_high()
 
         return self.parent().global_options.dispatch(self, '_repr_', 'display')
+
+    def _ascii_art_(self):
+        """
+        TESTS::
+
+            sage: ascii_art(Partitions(5).list())
+            [                                * ]
+            [                            **  * ]
+            [                   ***  **  *   * ]
+            [        ****  ***  *    **  *   * ]
+            [ *****, *   , ** , *  , * , * , * ]
+        """
+        from sage.misc.ascii_art import AsciiArt
+        return AsciiArt(self._repr_diagram().splitlines(), baseline=0)
 
     def _repr_list(self):
         """
@@ -1636,7 +1652,7 @@ class Partition(CombinatorialObject, Element):
             2 5
             3
 
-        For more on RSK, see :meth:`permutation.robinson_schensted()`.
+        For more, see :func:`~sage.combinat.rsk.RSK()`.
 
         EXAMPLES::
 
@@ -1644,7 +1660,7 @@ class Partition(CombinatorialObject, Element):
             [[1, 3, 6], [2, 5], [4]]
         """
         st = tableau.StandardTableaux(self).first()
-        return st.to_permutation().robinson_schensted()[1]
+        return st.reading_word_permutation().right_tableau()
 
     @combinatorial_map(name="initial tableau")
     def initial_tableau(self):
@@ -2091,9 +2107,9 @@ class Partition(CombinatorialObject, Element):
         EXAMPLES::
 
             sage: Partition([3,2,1]).hook_product(x)
-            (x + 2)^2*(2*x + 3)
+            (2*x + 3)*(x + 2)^2
             sage: Partition([2,2]).hook_product(x)
-            2*(x + 1)*(x + 2)
+            2*(x + 2)*(x + 1)
         """
 
         nu = self.conjugate()
@@ -3669,11 +3685,11 @@ class Partition(CombinatorialObject, Element):
             abs(x)
 
             sage: Partition([1]).outline()
-            abs(x - 1) + abs(x + 1) - abs(x)
+            abs(x + 1) + abs(x - 1) - abs(x)
 
             sage: y=sage.symbolic.ring.var("y")
             sage: Partition([6,5,1]).outline(variable=y)
-            abs(y - 3) - abs(y - 2) + abs(y - 1) - abs(y + 3) + abs(y + 4) - abs(y + 5) + abs(y + 6)
+            abs(y + 6) - abs(y + 5) + abs(y + 4) - abs(y + 3) + abs(y - 1) - abs(y - 2) + abs(y - 3)
 
         TESTS::
 
@@ -4499,15 +4515,16 @@ class Partitions_n(Partitions):
             lst = [self.n-1, 1]
         return self.element_class(self, lst)
 
-    def cardinality(self, algorithm='bober'):
+    def cardinality(self, algorithm='flint'):
         r"""
         Returns the number of partitions of the specified size.
 
         INPUT:
 
-        - ``algorithm``  - (default: ``'bober'``)
+        - ``algorithm``  - (default: ``'flint'``)
 
-          - ``'bober'`` -- Use Jonathan Bober's implementation (*very* fast).
+          - ``'flint'`` -- use FLINT (currently the fastest)
+          - ``'bober'`` -- Use Jonathan Bober's implementation (*very* fast)
           - ``'gap'`` -- use GAP (VERY *slow*)
           - ``'pari'`` -- use PARI. Speed seems the same as GAP until
             `n` is in the thousands, in which case PARI is faster.
@@ -4531,6 +4548,8 @@ class Partitions_n(Partitions):
             sage: Partitions(5).cardinality(algorithm='pari')
             7
             sage: Partitions(5).cardinality(algorithm='bober')
+            7
+            sage: number_of_partitions(5, algorithm='flint')
             7
 
         The input must be a nonnegative integer or a ``ValueError`` is raised.
@@ -4572,16 +4591,19 @@ class Partitions_n(Partitions):
 
         - :wikipedia:`Partition\_(number\_theory)`
         """
-        if algorithm == 'bober':
+        if algorithm == 'flint':
             return cached_number_of_partitions(self.n)
 
+        elif algorithm == 'bober':
+            return bober_number_of_partitions(self.n)
+
         elif algorithm == 'gap':
-            return ZZ( gap.eval("NrPartitions(%s)"%(ZZ(self.n))) )
+            return ZZ(gap.eval("NrPartitions(%s)" % (ZZ(self.n))))
 
         elif algorithm == 'pari':
             return ZZ(pari(ZZ(self.n)).numbpart())
 
-        raise ValueError("unknown algorithm '%s'"%algorithm)
+        raise ValueError("unknown algorithm '%s'" % algorithm)
 
     def random_element(self, measure = 'uniform'):
         """
@@ -5913,7 +5935,7 @@ def number_of_partitions_set(S,k):
     deprecation(13072,'number_of_partitions_set is deprecated. Use SetPartitions().cardinality() instead.')
     return sage.combinat.set_partition.SetPartitions(S,k).cardinality()
 
-def number_of_partitions(n,k=None, algorithm='default'):
+def number_of_partitions(n, k=None, algorithm='default'):
     r"""
     Returns the number of partitions of `n` with, optionally, at most `k`
     parts.
@@ -5921,8 +5943,7 @@ def number_of_partitions(n,k=None, algorithm='default'):
     The options of :meth:`number_of_partitions()` are being deprecated
     :trac:`13072` in favour of :meth:`Partitions_n.cardinality()` so that
     :meth:`number_of_partitions()` can become a stripped down version of
-    the fastest algorithm available (currently this is due to Bober, but an
-    faster implementation using FLINT will soon be merged into sage).
+    the fastest algorithm available (currently this is using FLINT).
 
     INPUT:
 
@@ -5937,8 +5958,9 @@ def number_of_partitions(n,k=None, algorithm='default'):
        [Will be deprecated except in Partition().cardinality() ]
 
        -  ``'default'`` -- If ``k`` is not ``None``, then use Gap (very slow).
-          If  ``k`` is ``None``, use Jonathan Bober's highly optimized
-          implementation.
+          If  ``k`` is ``None``, use FLINT.
+
+       -  ``'flint'`` -- use FLINT
 
        -  ``'bober'`` -- use Jonathan Bober's implementation
 
@@ -6064,7 +6086,7 @@ def number_of_partitions(n,k=None, algorithm='default'):
 
     if algorithm == 'default':
         if k is None:
-            algorithm = 'bober'
+            algorithm = 'flint'
         else:
             algorithm = 'gap'
 
@@ -6080,8 +6102,11 @@ def number_of_partitions(n,k=None, algorithm='default'):
     if k is not None:
         raise ValueError("only the GAP algorithm works if k is specified.")
 
-    if algorithm == 'bober':
+    if algorithm == 'flint':
         return cached_number_of_partitions(n)
+
+    elif algorithm == 'bober':
+        return bober_number_of_partitions(n)
 
     elif algorithm == 'pari':
         deprecation(13072,"sage.combinat.number_of_partitions is deprecated. Use  Partitions().cardinality(algorithm='pari')")
@@ -6103,11 +6128,10 @@ _Partitions = Partitions()
 from sage.misc.superseded import deprecated_function_alias
 _numpart = deprecated_function_alias(13072, sage.combinat.partitions.number_of_partitions)
 
-# Rather than caching an under used function I have cached the default
-# number_of_partitions functions which is currently that implemented by Bober,
-# although this will soon need to be replaced by the FLINT implementation.
+# Rather than caching an under-used function I have cached the default
+# number_of_partitions functions which is currently using FLINT.
 # AM :trac:`13072`
-cached_number_of_partitions = cached_function( bober_number_of_partitions )
+cached_number_of_partitions = cached_function( flint_number_of_partitions )
 
 def cyclic_permutations_of_partition(partition):
     """

@@ -140,13 +140,13 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         sage: y = function('y', x)
         sage: de = diff(y,x,2) - y == x
         sage: desolve(de, y)
-        k1*e^x + k2*e^(-x) - x
+        k2*e^(-x) + k1*e^x - x
 
 
     ::
 
         sage: f = desolve(de, y, [10,2,1]); f
-        -x + 5*e^(-x + 10) + 7*e^(x - 10)
+        -x + 7*e^(x - 10) + 5*e^(-x + 10)
 
     ::
 
@@ -162,12 +162,12 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
 
         sage: de = diff(y,x,2) + y == 0
         sage: desolve(de, y)
-        k1*sin(x) + k2*cos(x)
+        k2*cos(x) + k1*sin(x)
 
     ::
 
         sage: desolve(de, y, [0,1,pi/2,4])
-        4*sin(x) + cos(x)
+        cos(x) + 4*sin(x)
 
     ::
 
@@ -219,22 +219,22 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     ::
 
         sage: desolve(diff(y,x)*sin(y) == cos(x),y,[pi/2,1])
-        -cos(y(x)) == sin(x) - cos(1) - 1
+        -cos(y(x)) == -cos(1) + sin(x) - 1
 
     Linear equation - Sage returns the expression on the right hand side only::
 
         sage: desolve(diff(y,x)+(y) == cos(x),y)
-        1/2*((sin(x) + cos(x))*e^x + 2*c)*e^(-x)
+        1/2*((cos(x) + sin(x))*e^x + 2*c)*e^(-x)
 
     ::
 
         sage: desolve(diff(y,x)+(y) == cos(x),y,show_method=True)
-        [1/2*((sin(x) + cos(x))*e^x + 2*c)*e^(-x), 'linear']
+        [1/2*((cos(x) + sin(x))*e^x + 2*c)*e^(-x), 'linear']
 
     ::
 
         sage: desolve(diff(y,x)+(y) == cos(x),y,[0,1])
-        1/2*(e^x*sin(x) + e^x*cos(x) + 1)*e^(-x)
+        1/2*(cos(x)*e^x + e^x*sin(x) + 1)*e^(-x)
 
     This ODE with separated variables is solved as
     exact. Explanation - factor does not split `e^{x-y}` in Maxima
@@ -312,12 +312,12 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     ::
 
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == cos(x),y,[0,3,pi/2,2])
-        3*((e^(1/2*pi) - 2)*x/pi + 1)*e^(-x) + 1/2*sin(x)
+        3*(x*(e^(1/2*pi) - 2)/pi + 1)*e^(-x) + 1/2*sin(x)
 
     ::
 
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == cos(x),y,[0,3,pi/2,2],show_method=True)
-        [3*((e^(1/2*pi) - 2)*x/pi + 1)*e^(-x) + 1/2*sin(x), 'variationofparameters']
+        [3*(x*(e^(1/2*pi) - 2)/pi + 1)*e^(-x) + 1/2*sin(x), 'variationofparameters']
 
     ::
 
@@ -342,12 +342,12 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     ::
 
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == 0,y,[0,3,pi/2,2])
-        (2*(2*e^(1/2*pi) - 3)*x/pi + 3)*e^(-x)
+        (2*x*(2*e^(1/2*pi) - 3)/pi + 3)*e^(-x)
 
     ::
 
         sage: desolve(diff(y,x,2)+2*diff(y,x)+y == 0,y,[0,3,pi/2,2],show_method=True)
-        [(2*(2*e^(1/2*pi) - 3)*x/pi + 3)*e^(-x), 'constcoeff']
+        [(2*x*(2*e^(1/2*pi) - 3)/pi + 3)*e^(-x), 'constcoeff']
 
     TESTS:
 
@@ -365,9 +365,10 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
         sage: sage.calculus.calculus.maxima('domain:complex')  # back to the default complex domain
         complex
         sage: desolve(x*diff(y,x)-x*sqrt(y^2+x^2)-y == 0, y, contrib_ode=True)
-        [1/2*(2*x^2*sqrt(x^(-2)) - 2*x*sqrt(x^(-2))*arcsinh(y(x)/sqrt(x^2))
-        - 2*x*sqrt(x^(-2))*arcsinh(y(x)^2/(sqrt(y(x)^2)*x))
-        + log(4*(2*x^2*sqrt((x^2*y(x)^2 + y(x)^4)/x^2)*sqrt(x^(-2)) + x^2 + 2*y(x)^2)/x^2))/(x*sqrt(x^(-2))) == c]
+        [1/2*(2*x^2*sqrt(x^(-2)) - 2*x*sqrt(x^(-2))*arcsinh(y(x)/sqrt(x^2)) -
+            2*x*sqrt(x^(-2))*arcsinh(y(x)^2/(x*sqrt(y(x)^2))) +
+            log(4*(2*x^2*sqrt((x^2*y(x)^2 + y(x)^4)/x^2)*sqrt(x^(-2)) + x^2 +
+            2*y(x)^2)/x^2))/(x*sqrt(x^(-2))) == c]
 
     Trac #6479 fixed::
 
@@ -702,7 +703,7 @@ def desolve_system(des, vars, ics=None, ivar=None):
         sage: de2 = diff(y,t) - x + 1 == 0
         sage: desolve_system([de1, de2], [x,y])
         [x(t) == (x(0) - 1)*cos(t) - (y(0) - 1)*sin(t) + 1,
-         y(t) == (x(0) - 1)*sin(t) + (y(0) - 1)*cos(t) + 1]
+         y(t) == (y(0) - 1)*cos(t) + (x(0) - 1)*sin(t) + 1]
 
     Now we give some initial conditions::
 

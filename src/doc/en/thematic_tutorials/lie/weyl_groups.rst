@@ -55,14 +55,14 @@ is a nontrivial automorphism, the permutation might or might not be
 trivial::
 
     sage: def roots_not_permuted(ct):
-    ...       W = WeylGroup(ct)
-    ...       w0 = W.long_element()
-    ...       sr = W.domain().simple_roots()
-    ...       return all(a == -w0.action(a) for a in sr)
-    ...
+    ....:     W = WeylGroup(ct)
+    ....:     w0 = W.long_element()
+    ....:     sr = W.domain().simple_roots()
+    ....:     return all(a == -w0.action(a) for a in sr)
+    ....:
     sage: for ct in [CartanType(['D',r]) for r in [2..8]]:
-    ...      print ct,roots_not_permuted(ct)
-    ...
+    ....:    print ct,roots_not_permuted(ct)
+    ....:
     ['D', 2] True
     ['D', 3] False
     ['D', 4] True
@@ -102,7 +102,7 @@ values are the reflections, you may use the inverse family::
     Finite family {(1, 0, 0): s1*s2*s3*s2*s1, (1, 0, 1): s3*s1*s2*s3*s1, (0, 1, 0): s2*s3*s2,
     (0, 1, -1): s2, (1, 0, -1): s1*s2*s1, (0, 1, 1): s3*s2*s3, (1, 1, 0): s2*s3*s1*s2*s3*s1*s2,
     (0, 0, 1): s3, (1, -1, 0): s1}
-    sage: [a1,a2,a3]=W.domain().simple_roots()
+    sage: [a1,a2,a3] = W.domain().simple_roots()
     sage: a1+a2+a3
     (1, 0, 0)
     sage: altref[a1+a2+a3]
@@ -163,8 +163,8 @@ Although ``W1`` in this example is isomorphic to ``WeylGroup("A2")`` it
 has a different matrix realization::
 
     sage: for s in WeylGroup(['A',2,1]).classical().simple_reflections():
-    ...      print s
-    ...      print
+    ....:    print s
+    ....:    print
     ...
     [ 1  0  0]
     [ 1 -1  1]
@@ -175,8 +175,8 @@ has a different matrix realization::
     [ 1  1 -1]
 
     sage: for s in WeylGroup(['A',2]).simple_reflections():
-    ...      print s
-    ...      print
+    ....:    print s
+    ....:    print
     ...
     [0 1 0]
     [1 0 0]
@@ -212,7 +212,7 @@ this as follows::
     sage: def bi(u,v) : return [t for t in W if u.bruhat_le(t) and t.bruhat_le(v)]
     ...
     sage: bi(s1,s1*s2*s1)
-    [s1, s1*s2, s1*s2*s1, s2*s1]
+    [s1*s2*s1, s1*s2, s2*s1, s1]
 
 This would not be a good definition since it would fail if `W` is
 affine and be inefficient of `W` is large. Sage has a Bruhat interval
@@ -270,7 +270,7 @@ Let us search for such reflections. Put the following commands in a
 file and load the file::
 
     W = WeylGroup("A3",prefix="s")
-    [s1,s2,s3]=W.simple_reflections()
+    [s1,s2,s3] = W.simple_reflections()
     ref = W.reflections().keys()
 
     def find_reflection(u,v):

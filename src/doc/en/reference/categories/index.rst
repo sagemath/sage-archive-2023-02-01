@@ -127,6 +127,7 @@ Categories
    sage/categories/semigroups
    sage/categories/semirings
    sage/categories/sets_cat
+   sage/categories/sets_with_grading
    sage/categories/unique_factorization_domains
    sage/categories/vector_spaces
    sage/categories/weyl_groups
@@ -162,6 +163,7 @@ Examples of parents using categories
    sage/categories/examples/semigroups_cython
    sage/categories/examples/sets_cat
    sage/categories/examples/with_realizations
+   sage/categories/examples/sets_with_grading
 
 Miscellaneous
 =============

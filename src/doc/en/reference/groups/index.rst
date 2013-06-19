@@ -26,15 +26,17 @@ Groups
    sage/groups/perm_gps/permgroup_morphism
    sage/groups/perm_gps/cubegroup
    sage/groups/matrix_gps/matrix_group
-   sage/groups/matrix_gps/matrix_group_element
-   sage/groups/matrix_gps/matrix_group_morphism
+   sage/groups/matrix_gps/group_element
+   sage/groups/matrix_gps/finitely_generated
+   sage/groups/matrix_gps/morphism
    sage/groups/matrix_gps/homset
    sage/groups/matrix_gps/linear
-   sage/groups/matrix_gps/general_linear
-   sage/groups/matrix_gps/special_linear
    sage/groups/matrix_gps/orthogonal
    sage/groups/matrix_gps/symplectic
    sage/groups/matrix_gps/unitary
+   sage/groups/affine_gps/affine_group
+   sage/groups/affine_gps/euclidean_group
+   sage/groups/affine_gps/group_element
    sage/groups/misc_gps/misc_groups
 
    sage/groups/conjugacy_classes

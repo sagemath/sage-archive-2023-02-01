@@ -1193,11 +1193,11 @@ class MaximaAbstractElement(InterfaceElement):
         We illustrate an automatic coercion::
 
             sage: c = b + sqrt(3); c
-            sqrt(2) + sqrt(3) + 2.5
+            sqrt(3) + sqrt(2) + 2.5
             sage: type(c)
             <type 'sage.symbolic.expression.Expression'>
             sage: d = sqrt(3) + b; d
-            sqrt(2) + sqrt(3) + 2.5
+            sqrt(3) + sqrt(2) + 2.5
             sage: type(d)
             <type 'sage.symbolic.expression.Expression'>
 

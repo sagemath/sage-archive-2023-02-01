@@ -28,6 +28,8 @@ from g_sets import GSets
 from pointed_sets import PointedSets
 
 from sets_with_partial_maps import SetsWithPartialMaps
+from sets_with_grading import SetsWithGrading
+
 from groupoid import Groupoid
 
 # enumerated sets

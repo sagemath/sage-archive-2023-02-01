@@ -72,6 +72,22 @@ def init_sage():
         Traceback (most recent call last):
         ...
         RuntimeError: Gap produced error output...
+
+    Check that SymPy equation pretty printer is limited in doctest
+    mode to default width (80 chars)::
+
+        sage: from sympy import sympify
+        sage: from sympy.printing.pretty.pretty import PrettyPrinter
+        sage: s = sympify('+x^'.join(str(i) for i in range(30)))
+        sage: print PrettyPrinter(settings={'wrap_line':True}).doprint(s)
+         29    28    27    26    25    24    23    22    21    20    19    18    17
+        x   + x   + x   + x   + x   + x   + x   + x   + x   + x   + x   + x   + x   +
+        <BLANKLINE>
+         16    15    14    13    12    11    10    9    8    7    6    5    4    3
+        x   + x   + x   + x   + x   + x   + x   + x  + x  + x  + x  + x  + x  + x  + x
+        <BLANKLINE>
+        2
+          + x
     """
     # Do this once before forking.
     import sage.all_cmdline
@@ -91,6 +107,10 @@ def init_sage():
     # Workarounds for https://github.com/sagemath/sagenb/pull/84
     import sagenb.notebook.misc
     import sagenb.notebook.sage_email
+
+    # Disable SymPy terminal width detection
+    from sympy.printing.pretty.stringpict import stringPict
+    stringPict.terminal_width = lambda self:0
 
     def fixed_default_email_address():
         import socket

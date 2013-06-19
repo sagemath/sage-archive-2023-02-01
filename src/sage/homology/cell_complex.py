@@ -392,9 +392,10 @@ class GenericCellComplex(SageObject):
         :param subcomplex: a subcomplex of this simplicial complex.
            Compute homology relative to this subcomplex.
         :type subcomplex: optional, default empty
-        :param generators: If True, return generators for the homology
-           groups along with the groups.  NOTE: this is only implemented
-           if the CHomP package is available.
+        :param generators: If ``True``, return generators for the homology
+           groups along with the groups.  NOTE: Since :trac:`6100`, the result
+           may not be what you expect when not using CHomP since its return
+           is in terms of the chain complex.
         :type generators: boolean; optional, default False
         :param cohomology: If True, compute cohomology rather than homology.
         :type cohomology: boolean; optional, default False

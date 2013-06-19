@@ -299,10 +299,12 @@ class PieriFactors_finite_type(PieriFactors):
             [[5, 4, 3, 2, 1]]
 
             sage: WeylGroup(['B',4]).pieri_factors().maximal_elements()
-            [[-1  0  0  0]
+            [
+            [-1  0  0  0]
             [ 0  1  0  0]
             [ 0  0  1  0]
-            [ 0  0  0  1]]
+            [ 0  0  0  1]
+            ]
         """
         ct = self.W.cartan_type()
 

@@ -759,7 +759,7 @@ cdef class MIP_Problem(_mutable_or_immutable):
             Traceback (most recent call last):
             ...
             ValueError: PPL::MIP_Problem::optimizing_point():
-            *this doesn't have an optimizing point.
+            *this does not have an optimizing point.
         """
         cdef PPL_Coefficient sup_n
         cdef PPL_Coefficient sup_d
@@ -2880,17 +2880,17 @@ cdef class Polyhedron(_mutable_or_immutable):
             -ZE -EM  +CM +GM  +CS +GS  -CP -GP  -SC +SG
             con_sys (up-to-date)
             topology NECESSARILY_CLOSED
-            2 x 3 (sorted)
+            2 x 2 SPARSE (sorted)
             index_first_pending 2
-            -1 3 2 =
-            1 0 0 >=
+            size 3 -1 3 2 = (C)
+            size 3 1 0 0 >= (C)
             <BLANKLINE>
             gen_sys (up-to-date)
             topology NECESSARILY_CLOSED
-            2 x 3 (not_sorted)
+            2 x 2 DENSE (not_sorted)
             index_first_pending 2
-            0 2 -3 L
-            2 0 1 P
+            size 3 0 2 -3 L (C)
+            size 3 2 0 1 P (C)
             <BLANKLINE>
             sat_c
             0 x 0
@@ -2917,10 +2917,10 @@ cdef class Polyhedron(_mutable_or_immutable):
 
             sage: from sage.libs.ppl import C_Polyhedron
             sage: C_Polyhedron(1, 'empty').max_space_dimension()   # random output
-            1152921504606846973
-            sage: max_dim = C_Polyhedron(1, 'empty').max_space_dimension()
-            sage: max_dim in (357913939, 1152921504606846973)  # 32 or 64 bit
-            True
+            1152921504606846974
+            sage: C_Polyhedron(1, 'empty').max_space_dimension()
+            357913940            # 32-bit
+            1152921504606846974  # 64-bit
         """
         return self.thisptr.max_space_dimension()
 
@@ -3932,7 +3932,7 @@ cdef class Linear_Expression(object):
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
             sage: print err  # long time
-            size 3 1 3 2 f -RPI_V -RPI  -NNC_V -NNC
+            size 3 1 3 2
         """
         self.thisptr.ascii_dump()
 
@@ -4826,7 +4826,7 @@ cdef class Generator(object):
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
             sage: print err  # long time
-            size 3 1 3 2 f -RPI_V +RPI  -NNC_V -NNC
+            size 3 1 3 2 P (C)
         """
         self.thisptr.ascii_dump()
 
@@ -5128,9 +5128,9 @@ cdef class Generator_System(_mutable_or_immutable):
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
             sage: print err  # long time
             topology NECESSARILY_CLOSED
-            1 x 3 (sorted)
+            1 x 2 SPARSE (sorted)
             index_first_pending 1
-            1 3 2 P
+            size 3 1 3 2 P (C)
         """
         self.thisptr.ascii_dump()
 
@@ -5774,7 +5774,7 @@ cdef class Constraint(object):
             sage: from sage.tests.cmdline import test_executable
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
             sage: print err  # long time
-            size 4 1 3 2 -1 f -RPI_V +RPI  -NNC_V +NNC
+            size 4 1 3 2 -1 > (NNC)
         """
         self.thisptr.ascii_dump()
 
@@ -5932,7 +5932,7 @@ cdef class Constraint_System(object):
         sage: cs.insert( 6*x<3*y )
         sage: cs.insert( x >= 2*x-7*y )
         sage: cs
-        Constraint_System {5*x0-2*x1>0, -6*x0+3*x1>0, -x0+7*x1>=0}
+        Constraint_System {5*x0-2*x1>0, -2*x0+x1>0, -x0+7*x1>=0}
     """
 
     cdef PPL_Constraint_System *thisptr
@@ -6121,9 +6121,9 @@ cdef class Constraint_System(object):
             sage: (out, err, ret) = test_executable(['sage', '-c', sage_cmd], timeout=100);  # long time, indirect doctest
             sage: print err  # long time
             topology NOT_NECESSARILY_CLOSED
-            1 x 4 (sorted)
+            1 x 2 SPARSE (sorted)
             index_first_pending 1
-            -1 3 -2 -1 >
+            size 4 -1 3 -2 -1 > (NNC)
         """
         self.thisptr.ascii_dump()
 
@@ -6288,7 +6288,7 @@ cdef class Constraint_System_iterator(object):
             sage: x = Variable(0)
             sage: cs = Constraint_System( 5*x > 0 )
             sage: Constraint_System_iterator(cs).next()
-            5*x0>0
+            x0>0
         """
         if is_end_cs_iterator((<Constraint_System>self.cs).thisptr[0], self.csi_ptr):
             raise StopIteration

@@ -26,6 +26,7 @@ For more details see http://www.python.org/psf/license/
  * William Stein
  * Mike Hansen
  * Craig Citro
+ * Volker Braun
 
 == Upstream Contact ==
 
@@ -53,24 +54,41 @@ http://www.python.org/community/
 
 === Patches ===
 
- * sdist.py.patch: Make sure that sdist copies over the .hg directory.
- * socket.py.patch: Work around an SSL issue.
- * Makefile.pre.in.patch: Changes the permission of installed libraries
+ * sdist.patch: Make sure that sdist copies over the .hg directory.
+ * socket.patch: Work around an SSL issue.
+ * permissions.patch: Changes the permission of installed libraries
    to 0755 (like any other library) instead of 0555.
  * sys_path_security.patch: ensure that the current working directory
    or the script directory is prepended to sys.path only if there is no
    security risk in doing so.
  * io-issue_14437.patch: Fixes Python issue #14437 (building _io on Cygwin)
  * ncurses-issue_9665.patch: Fixes Python issue #9665 (by patching configure
-   and configure.in after running autotools)
+   and configure.in after running autotools).
  * ncurses-issue_14438.patch: Fixes Python issue #14438 (ncurses)
  * disable_print_refs_debug.patch: Remove some unused debug output
-   that breaks doctests
- * no_strict_proto.patch: don't add -Wstrict-prototypes compiler flag,
-   which isn't valid for C++ (but Python uses the same compiler flags
-   for C and C++). See http://bugs.python.org/issue5755
+   that breaks doctests.
+ * no_strict_proto-issue_5755.patch: don't add -Wstrict-prototypes compiler
+   flag, which isn't valid for C++ (but Python uses the same compiler flags
+   for C and C++). See http://bugs.python.org/issue5755.
+ * re_unsigned_ptrdiff-issue_17016.patch: Fixes Python issue #17016.
+ * hashlibfallbacks-issue_18000.patch: Fixed Python issue #18000.
+ * inc_lib_dirs-issue_17990.patch: Only modify include and library search
+   paths when cross-compiling.
+ * node-issue_3871.patch: fix _PyNode_Sizeof declaration.
 
 == Changelog ==
+
+=== python-2.7.5.p1 (Jean-Pierre Flori, 3 June 2013) ===
+ * Trac #14600: give patches more talkative names.
+ * Fix hashlibfallbacks patch.
+ * Add patch to fix _PyNode_SizeOf declaration on Cygwin64,
+   from Python issue #3871.
+ * Add patch from Python issue #17990 to mitigate the use of a possibly
+   incompatible system-wide Python at build time.
+
+=== python-2.7.5.p0 (Volker Braun, 17 May 2013)
+ * Trac #14600: Update to latest upstream version
+ * add patches for upstream regressions
 
 === python-2.7.4.p0 (Volker Braun, Jeroen Demeyer, 11 April 2013)
  * Trac #14423: Update to latest upstream version

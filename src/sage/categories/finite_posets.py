@@ -3,7 +3,7 @@ Finite posets
 
 Here is some terminology used in this file:
 
-- An *order filter* (or *upper set*) is a subset `S` such that if `x\leq y` and `x\in S` then `y\in S`.
+- An *order filter* (or *upper set*) is a subset `S` such that if `x \leq y` and `x\in S` then `y\in S`.
 
 - An *order ideal* (or *lower set*) is a subset `S` such that if `x \leq y` and `y\in S` then `x\in S`.
 """
@@ -310,7 +310,7 @@ class FinitePosets(Category):
             INPUT:
 
             - ``antichain`` -- an antichain of ``self``, as a list (or
-              iterable), or more generaly generators of an order ideal
+              iterable), or, more generally, generators of an order ideal
               (resp. order filter)
             - ``direction`` -- 'up' or 'down' (default: 'up')
 
@@ -432,9 +432,9 @@ class FinitePosets(Category):
                 [[], [0], [1], [1, 2], [1, 3], [2], [3], [4]]
             """
 
-        def ideals_of_subsets(self, direction):
+        def directed_subsets(self, direction):
             r"""
-            Return the order filters (resp. order ideals) of ``self``
+            Return the order filters (resp. order ideals) of ``self``, as lists.
 
             If ``direction`` is 'up', returns the order filters (upper sets).
 
@@ -447,13 +447,13 @@ class FinitePosets(Category):
             EXAMPLES::
 
                 sage: P = Poset((divisors(12), attrcall("divides")), facade=True)
-                sage: A = P.ideals_of_subsets('up')
+                sage: A = P.directed_subsets('up')
                 sage: sorted(list(A))
                 [[], [1, 2, 4, 3, 6, 12], [2, 4, 3, 6, 12], [2, 4, 6, 12], [3, 6, 12], [4, 3, 6, 12], [4, 6, 12], [4, 12], [6, 12], [12]]
 
             TESTS::
 
-                sage: list(Poset().ideals_of_subsets('up'))
+                sage: list(Poset().directed_subsets('up'))
                 [[]]
             """
-            return self.antichains().map(lambda elements: self.ideal_of_subset(elements, direction))
+            return self.antichains().map(lambda elements: self.directed_subset(elements, direction))

@@ -925,10 +925,21 @@ class GelfandTsetlinPatternsTopRow(GelfandTsetlinPatterns):
 
             sage: G = GelfandTsetlinPatterns(top_row=[4,4,3,1])
             sage: TestSuite(G).run()
+
+        TESTS:
+
+        Check a border case in :trac:`14765`::
+
+            sage: G = GelfandTsetlinPatterns(top_row=[])
+            sage: list(G)
+            [[]]
         """
         self._row = top_row
         n = len(top_row)
-        k = top_row[0]
+        if n == 0:
+            k = 0
+        else:
+            k = top_row[0]
         GelfandTsetlinPatterns.__init__(self, n, k, strict)
 
     def _repr_(self):
@@ -989,8 +1000,10 @@ class GelfandTsetlinPatternsTopRow(GelfandTsetlinPatterns):
              [[4, 2, 1], [4, 2], [4]]]
         """
         # If we enforce strictness, check to see if a specified top row is strict
-        if self._strict and self._row is not None and \
-                any(self._row[i] == self._row[i+1] for i in range(self._n-1)):
+        if self._strict and any(self._row[i] == self._row[i+1] for i in range(self._n-1)):
+            return
+        if self._n == 0:
+            yield self.element_class(self, [])
             return
         if self._n == 1:
             yield self.element_class(self, [list(self._row)])

@@ -99,7 +99,7 @@ EXAMPLES:
         sage: bessel_J(0, 0)
         bessel_J(0, 0)
         sage: bessel_J(0, x).diff(x)
-        1/2*bessel_J(-1, x) - 1/2*bessel_J(1, x)
+        -1/2*bessel_J(1, x) + 1/2*bessel_J(-1, x)
 
         sage: N(bessel_J(0, 0), digits = 20)
         1.0000000000000000000
@@ -133,7 +133,11 @@ EXAMPLES:
         sage: a, b = var('a, b')
         sage: diffeq = x^2*diff(y,x,x) + x*diff(y,x) + x^2*y == 0
         sage: f = desolve(diffeq, y, [1, a, b]); f
-        (a*bessel_Y(1, 1) + b*bessel_Y(0, 1))*bessel_J(0, x)/(bessel_J(0, 1)*bessel_Y(1, 1) - bessel_J(1, 1)*bessel_Y(0, 1)) - (a*bessel_J(1, 1) + b*bessel_J(0, 1))*bessel_Y(0, x)/(bessel_J(0, 1)*bessel_Y(1, 1) - bessel_J(1, 1)*bessel_Y(0, 1))
+        (a*bessel_Y(1, 1) + b*bessel_Y(0, 1))*bessel_J(0, x)/(bessel_J(0,
+        1)*bessel_Y(1, 1) - bessel_J(1, 1)*bessel_Y(0, 1)) -
+        (a*bessel_J(1, 1) + b*bessel_J(0, 1))*bessel_Y(0, x)/(bessel_J(0,
+        1)*bessel_Y(1, 1) - bessel_J(1, 1)*bessel_Y(0, 1))
+
 
     For more examples, see the docstring for :meth:`Bessel`.
 
@@ -246,12 +250,12 @@ class Function_Bessel_J(BuiltinFunction):
 
         sage: f = bessel_J(2, x)
         sage: f.diff(x)
-        1/2*bessel_J(1, x) - 1/2*bessel_J(3, x)
+        -1/2*bessel_J(3, x) + 1/2*bessel_J(1, x)
 
     Comparison to a well-known integral representation of `J_1(1)`::
 
         sage: A = numerical_integral(1/pi*cos(x - sin(x)), 0, pi)
-        sage: A[0]
+        sage: A[0]  # abs tol 1e-14
         0.44005058574493355
         sage: bessel_J(1.0, 1.0) - A[0] < 1e-15
         True
@@ -355,7 +359,7 @@ class Function_Bessel_J(BuiltinFunction):
 
             sage: f(z) = bessel_J(10, z)
             sage: derivative(f, z)
-            z |--> 1/2*bessel_J(9, z) - 1/2*bessel_J(11, z)
+            z |--> -1/2*bessel_J(11, z) + 1/2*bessel_J(9, z)
         """
         return (bessel_J(n - 1, x) - bessel_J(n + 1, x)) / Integer(2)
 
@@ -419,7 +423,7 @@ class Function_Bessel_Y(BuiltinFunction):
 
         sage: f = bessel_Y(2, x)
         sage: f.diff(x)
-        1/2*bessel_Y(1, x) - 1/2*bessel_Y(3, x)
+        -1/2*bessel_Y(3, x) + 1/2*bessel_Y(1, x)
 
     High precision and complex valued inputs (see :trac:`4230`)::
 
@@ -515,7 +519,7 @@ class Function_Bessel_Y(BuiltinFunction):
 
             sage: f(x) = bessel_Y(10, x)
             sage: derivative(f, x)
-            x |--> 1/2*bessel_Y(9, x) - 1/2*bessel_Y(11, x)
+            x |--> -1/2*bessel_Y(11, x) + 1/2*bessel_Y(9, x)
         """
         return (bessel_Y(n - 1, x) - bessel_Y(n + 1, x)) / Integer(2)
 
@@ -563,17 +567,17 @@ class Function_Bessel_I(BuiltinFunction):
 
         sage: f = bessel_I(2, x)
         sage: f.diff(x)
-        1/2*bessel_I(1, x) + 1/2*bessel_I(3, x)
+        1/2*bessel_I(3, x) + 1/2*bessel_I(1, x)
 
     Special identities that bessel_I satisfies::
 
         sage: bessel_I(1/2, x)
-        sqrt(1/(pi*x))*sqrt(2)*sinh(x)
+        sqrt(2)*sqrt(1/(pi*x))*sinh(x)
         sage: eq = bessel_I(1/2, x) == bessel_I(0.5, x)
         sage: eq.test_relation()
         True
         sage: bessel_I(-1/2, x)
-        sqrt(1/(pi*x))*sqrt(2)*cosh(x)
+        sqrt(2)*sqrt(1/(pi*x))*cosh(x)
         sage: eq = bessel_I(-1/2, x) == bessel_I(-0.5, x)
         sage: eq.test_relation()
         True
@@ -688,7 +692,7 @@ class Function_Bessel_I(BuiltinFunction):
 
             sage: f(z) = bessel_I(10, x)
             sage: derivative(f, x)
-            z |--> 1/2*bessel_I(9, x) + 1/2*bessel_I(11, x)
+            z |--> 1/2*bessel_I(11, x) + 1/2*bessel_I(9, x)
         """
         return (bessel_I(n - 1, x) + bessel_I(n + 1, x)) / Integer(2)
 
@@ -737,14 +741,14 @@ class Function_Bessel_K(BuiltinFunction):
 
         sage: f = bessel_K(2, x)
         sage: f.diff(x)
-        1/2*bessel_K(1, x) + 1/2*bessel_K(3, x)
+        1/2*bessel_K(3, x) + 1/2*bessel_K(1, x)
 
         sage: bessel_K(1/2, x)
         bessel_K(1/2, x)
         sage: bessel_K(1/2, -1)
         bessel_K(1/2, -1)
         sage: bessel_K(1/2, 1)
-        sqrt(pi)*sqrt(1/2)*e^(-1)
+        sqrt(1/2)*sqrt(pi)*e^(-1)
 
     Examples of asymptotic behavior::
 
@@ -873,7 +877,7 @@ class Function_Bessel_K(BuiltinFunction):
 
             sage: f(x) = bessel_K(10, x)
             sage: derivative(f, x)
-            x |--> 1/2*bessel_K(9, x) + 1/2*bessel_K(11, x)
+            x |--> 1/2*bessel_K(11, x) + 1/2*bessel_K(9, x)
         """
         return (bessel_K(n - 1, x) + bessel_K(n + 1, x)) / Integer(2)
 
@@ -951,9 +955,9 @@ def Bessel(*args, **kwds):
 
         sage: f(x) = Bessel(0, 'J')(x)
         sage: derivative(f, x)
-        x |--> 1/2*bessel_J(-1, x) - 1/2*bessel_J(1, x)
+        x |--> -1/2*bessel_J(1, x) + 1/2*bessel_J(-1, x)
         sage: derivative(f, x, x)
-        x |--> 1/4*bessel_J(-2, x) - 1/2*bessel_J(0, x) + 1/4*bessel_J(2, x)
+        x |--> 1/4*bessel_J(2, x) - 1/2*bessel_J(0, x) + 1/4*bessel_J(-2, x)
 
     Verify that `J_0` satisfies Bessel's differential equation numerically
     using the ``test_relation()`` method::
@@ -979,8 +983,10 @@ def Bessel(*args, **kwds):
         sage: y = function('y', x)
         sage: diffeq = x^2*diff(y,x,x) + x*diff(y,x) + x^2*y == 0
         sage: f = desolve(diffeq, y, [1, 1, 1]); f
-        (bessel_Y(0, 1) + bessel_Y(1, 1))*bessel_J(0, x)/(bessel_J(0, 1)*bessel_Y(1, 1) - bessel_J(1, 1)*bessel_Y(0, 1)) - (bessel_J(0, 1) + bessel_J(1, 1))*bessel_Y(0, x)/(bessel_J(0, 1)*bessel_Y(1, 1) - bessel_J(1, 1)*bessel_Y(0, 1))
-
+        (bessel_Y(1, 1) + bessel_Y(0, 1))*bessel_J(0, x)/(bessel_J(0,
+        1)*bessel_Y(1, 1) - bessel_J(1, 1)*bessel_Y(0, 1)) - (bessel_J(1,
+        1) + bessel_J(0, 1))*bessel_Y(0, x)/(bessel_J(0, 1)*bessel_Y(1, 1)
+        - bessel_J(1, 1)*bessel_Y(0, 1))
         sage: f.subs(x=1).n() # numerical verification
         1.00000000000000
         sage: fp = f.diff(x)

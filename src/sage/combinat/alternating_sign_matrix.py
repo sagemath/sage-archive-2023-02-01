@@ -153,6 +153,7 @@ class AlternatingSignMatrix(Element):
         """
         return copy.copy(self._matrix)
 
+    @combinatorial_map(name='to monotone triangle')
     def to_monotone_triangle(self):
         r"""
         Return a monotone triangle from ``self``.
@@ -260,6 +261,7 @@ class AlternatingSignMatrix(Element):
         asm_matrix = self.to_matrix()
         return Permutation([ j+1 for (i,j) in asm_matrix.nonzero_positions() ])
 
+    @combinatorial_map(name='to semistandard tableau')
     def to_semistandard_tableau(self):
         """
         Return the semistandard tableau corresponding the monotone triangle
@@ -347,7 +349,6 @@ class AlternatingSignMatrix(Element):
             <class 'sage.combinat.permutation.Permutation_class'>
         """
         return self.left_key().to_permutation()
-
 
 class AlternatingSignMatrices(Parent, UniqueRepresentation):
     r"""

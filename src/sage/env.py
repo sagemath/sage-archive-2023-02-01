@@ -102,6 +102,8 @@ _add_variable_or_fallback('DOT_SAGE',        opj(os.environ.get('HOME','$SAGE_RO
 
 # misc
 _add_variable_or_fallback('SAGE_URL',        'http://sage.math.washington.edu/sage/')
+_add_variable_or_fallback('REALM',           'sage.math.washington.edu')
+_add_variable_or_fallback('TRAC_SERVER_URI', 'https://trac.sagemath.org')
 _add_variable_or_fallback('SAGE_VERSION',    version.version)
 _add_variable_or_fallback('SAGE_DATE',       version.date)
 

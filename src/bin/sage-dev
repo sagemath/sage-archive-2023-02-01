@@ -1,0 +1,141 @@
+#!/usr/bin/env python
+
+import argparse
+import inspect
+import sys
+import types
+
+from sage.dev.sagedev import sagedev
+
+def str_to_value(s):
+    """
+    Returns s as a boolean or int if possible, otherwise returns s itself.
+    """
+    if s.lower() in ('true', 'false'):
+        return s.lower() == 'true'
+    try:
+        return int(s)
+    except ValueError:
+        return s
+
+def unbound_args(func):
+    """
+    Returns the arguments of func, omitting self if func is a bound method.
+    """
+    argspec = inspect.getargspec(func)
+    func_args = list(argspec.args)
+    if isinstance(func, types.MethodType) and func.im_self is not None:
+        del func_args[0] # self
+    return func_args
+
+def args_parser(func):
+    """
+    Constructs an argument parser based on the signature of func.
+    """
+    parser = argparse.ArgumentParser(prog='sage dev ' + func.__name__)
+    argspec = inspect.getargspec(func)
+    func_args = unbound_args(func)
+    default_start = len(func_args) - len(argspec.defaults or [])
+    for ix, arg in enumerate(func_args):
+        if ix < default_start:
+            name = arg
+            default = None
+        else:
+            name = '--' + arg
+            default = argspec.defaults[ix - default_start]
+        parser.add_argument(name, default=default)
+    if argspec.varargs:
+        parser.add_argument(argspec.varargs, nargs='*')
+    if argspec.keywords:
+        parser.add_argument(argspec.keywords, nargs=argparse.REMAINDER)
+    return parser
+
+
+def parse(func, arg_values):
+    """
+    Use the signature of ``func`` to parse the list of arguments ``arg_values``
+    into prepositional and keyword arguments.
+
+    Arguments are parsed in the same order they appear in the function,
+    with optional arguments becoming (optional) flags.  Vararg and kwds
+    are also handled.
+
+    EXAMPLES::
+
+        sage: parse(lambda a, b, c='default': None, ['1','2'])
+        ([1, 2, 'default'], {})
+        sage: parse(lambda a, b, c='default': None, ['1','2','--c=3'])
+        ([1, 2, 3], {})
+    """
+    parser = args_parser(func)
+    argspec = inspect.getargspec(func)
+    parsed = vars(parser.parse_args(arg_values))
+    positional = []
+    for arg in unbound_args(func):
+        positional.append(parsed[arg])
+        del parsed[arg]
+    if argspec.varargs:
+        positional.extend(parsed[argspec.varargs])
+        del parsed[argspec.varargs]
+    if argspec.keywords:
+        kwds = parsed[argspec.keywords]
+        subparser = argparse.ArgumentParser()
+        for subarg in kwds:
+            if subarg.startswith('--'):
+                if '=' in subarg:
+                    subparser.add_argument(subarg[:subarg.find('=')])
+                else:
+                    subparser.add_argument(subarg)
+        for key, value in vars(subparser.parse_args(kwds)).items():
+            parsed[key] = value
+        del parsed[argspec.keywords]
+    return [str_to_value(x) for x in positional], {key: str_to_value(value) for key, value in parsed.items()}
+
+def exposed_methods(o):
+    """
+    Lists the callable, public attributes of ``o``.
+    """
+    for name in sorted(dir(dev)):
+        if name[0] == '_':
+            continue
+        method = getattr(dev, name)
+        if callable(method):
+            yield name, method
+
+def commands():
+    ""
+    for name, method in exposed_methods(dev):
+        print '    ', name.ljust(20), method.__doc__.strip().split('\n')[0]
+
+def help(command):
+    ""
+    method = getattr(dev, parsed.args[0], None)
+    if method is None:
+        print "Unknown command: '%s'" % parsed.args[0]
+        sys.exit(1)
+    else:
+        args_parser(method).print_help()
+        print method.__doc__
+
+if __name__ == '__main__':
+    dev = sagedev
+    dev.help = help
+    dev.commands = commands
+    parser = argparse.ArgumentParser(prog='sage dev', epilog="For a list of valid commands, run 'sage dev commands'.")
+    parser.add_argument('command', nargs='?')
+    parser.add_argument('args', nargs=argparse.REMAINDER)
+    parsed = parser.parse_args()
+    if parsed.command is None:
+        print """
+Usage: sage dev command ...
+
+For a list of valid commands, run 'sage dev commands'.
+        """.strip()
+        sys.exit(1)
+    elif hasattr(dev, parsed.command):
+        method = getattr(dev, parsed.command)
+        args, kwds = parse(method, parsed.args)
+        method(*args, **kwds)
+    else:
+        print "Unknown command: '%s'" % parsed.command
+        sys.exit(1)

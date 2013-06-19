@@ -195,6 +195,7 @@ class Composition(CombinatorialObject, Element):
             self._set_parent(state[0])
             self.__dict__ = state[1]
 
+    @combinatorial_map(name='conjugate')
     def conjugate(self):
         r"""
         Returns the conjugate of the composition comp.
@@ -219,6 +220,7 @@ class Composition(CombinatorialObject, Element):
 
         return self.parent()([cocjg[0]] + [cocjg[i]-cocjg[i-1]+1 for i in range(1,len(cocjg))])
 
+    @combinatorial_map(name='reversed')
     def reversed(self):
         """
         Return the reverse composition of ``self``.

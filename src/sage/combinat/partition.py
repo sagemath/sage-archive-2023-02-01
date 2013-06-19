@@ -1669,45 +1669,20 @@ class Partition(CombinatorialObject, Element):
                 conj.extend([i]*(p[i-1] - p[i]))
             return Partition(conj)
 
-    def suter_diagonal_slide(self, n, iteration=1):
+    def suter_diagonal_slide(self, n, exp=1):
         r"""
-        Return the image of the partition ``self`` under Suter's
-        diagonal slide `\sigma_n` on `Y_n`, where the notations used
-        are those defined in [Sut2002]_. (See also below for their
-        definitions. While [Sut2002]_ gives two *non-equivalent*
-        definitions for `\sigma_n`, we are using the formulaic one,
-        not the one using the four steps.)
-
-        INPUT:
-
-        - ``n`` -- nonnegative integer.
-
-        - ``iteration`` -- an optional keyword argument which
-          defaults to `1`. It should be an integer, and
-          determines how often `\sigma_n` is to be applied.
-
-        OUTPUT:
-
-        The result of applying Suter's diagonal slide `\sigma_n` to
-        ``self``, assuming that ``self`` lies in `Y_n`. If the
-        optional argument ``iteration`` is set, then the slide
-        `\sigma_n` is applied not just once, but ``iteration`` times
-        (note that ``iteration`` is allowed to be negative, since
-        the slide has finite order).
-
-        Here is how `Y_n` and `\sigma_n` are defined:
+        Return the image of ``self`` in `Y_n` under Suter's diagonal slide
+        `\sigma_n`, where the notations used are those defined in [Sut2002]_.
 
         The set `Y_n` is defined as the set of all partitions
-        `\lambda` such that the hook length of the northwesternmost
-        cell of `\lambda` (i. e., the cell with coordinates `(1, 1)`
-        if we start counting from `1`) is less than `n`. (This is
-        considered true if `\lambda` is empty.)
+        `\lambda` such that the hook length of the `(0, 0)`-cell (i.e. the
+        northwestern most cell in English notation) of `\lambda` is less
+        than `n`, including the empty partition.
 
-        The map `\sigma_n` sends a partition
-        `(\lambda_1, \lambda_2, ..., \lambda_m) \in Y_n` with length
-        `m` to the partition
-        `(\lambda_2 + 1, \lambda_3 + 1, ..., \lambda_m + 1,
-        \underbrace{1, 1, ..., 1}_{n - m - \lambda_1\text{ ones}})`.
+        The map `\sigma_n` sends a partition (with non-zero entries)
+        `(\lambda_1, \lambda_2, \ldots, \lambda_m) \in Y_n` to the partition
+        `(\lambda_2 + 1, \lambda_3 + 1, \ldots, \lambda_m + 1,
+        \underbrace{1, 1, \ldots, 1}_{n - m - \lambda_1\text{ ones}})`.
         In other words, it pads the partition with trailing zeroes
         until it has length `n - \lambda_1`, then removes its first
         part, and finally adds `1` to each part.
@@ -1718,7 +1693,28 @@ class Partition(CombinatorialObject, Element):
         partitions (:meth:`conjugate()`). This action is faithful if
         `n \geq 3`.
 
-        EXAMPLES:
+        .. NOTE::
+
+            There are two *non-equivalent* definitions for `\sigma_n` in
+            [Sut2002]_. Here are using the formulaic one, not the one using
+            the four steps which actually defines `\sigma_n^{-1}` instead.
+
+        INPUT:
+
+        - ``n`` -- nonnegative integer
+
+        - ``exp`` -- (default: 1) how many times `\sigma_n` should be applied
+
+        OUTPUT:
+
+        The result of applying Suter's diagonal slide `\sigma_n` to
+        ``self``, assuming that ``self`` lies in `Y_n`. If the
+        optional argument ``exp`` is set, then the slide
+        `\sigma_n` is applied not just once, but ``exp`` times
+        (note that ``exp`` is allowed to be negative, since
+        the slide has finite order).
+
+        EXAMPLES::
 
             sage: Partition([5,4,1]).suter_diagonal_slide(8)
             [5, 2]
@@ -1728,76 +1724,102 @@ class Partition(CombinatorialObject, Element):
             [1, 1, 1, 1, 1, 1]
             sage: Partition([]).suter_diagonal_slide(1)
             []
-            sage: Partition([]).suter_diagonal_slide(7, iteration=-1)
+            sage: Partition([]).suter_diagonal_slide(7, exp=-1)
             [6]
-            sage: Partition([]).suter_diagonal_slide(1, iteration=-1)
+            sage: Partition([]).suter_diagonal_slide(1, exp=-1)
             []
             sage: P7 = Partitions(7)
-            sage: all( p == p.suter_diagonal_slide(9, iteration=-1).suter_diagonal_slide(9)
+            sage: all( p == p.suter_diagonal_slide(9, exp=-1).suter_diagonal_slide(9)
             ....:      for p in P7 )
             True
-            sage: all( p == p.suter_diagonal_slide(9, iteration=3)
-            ....:            .suter_diagonal_slide(9, iteration=3)
-            ....:            .suter_diagonal_slide(9, iteration=3)
+            sage: all( p == p.suter_diagonal_slide(9, exp=3)
+            ....:            .suter_diagonal_slide(9, exp=3)
+            ....:            .suter_diagonal_slide(9, exp=3)
             ....:      for p in P7 )
             True
-            sage: all( p == p.suter_diagonal_slide(9, iteration=6)
-            ....:            .suter_diagonal_slide(9, iteration=6)
-            ....:            .suter_diagonal_slide(9, iteration=6)
+            sage: all( p == p.suter_diagonal_slide(9, exp=6)
+            ....:            .suter_diagonal_slide(9, exp=6)
+            ....:            .suter_diagonal_slide(9, exp=6)
             ....:      for p in P7 )
             True
-            sage: all( p == p.suter_diagonal_slide(9, iteration=-1)
-            ....:            .suter_diagonal_slide(9, iteration=1)
+            sage: all( p == p.suter_diagonal_slide(9, exp=-1)
+            ....:            .suter_diagonal_slide(9, exp=1)
             ....:      for p in P7 )
             True
+
+        Check of the assertion in [Sut2002]_ that `\sigma_n\bigl( \sigma_n(
+        \lambda^{\prime})^{\prime} \bigr) = \lambda`::
+
             sage: all( p.suter_diagonal_slide(8).conjugate()
-            ....:      == p.conjugate().suter_diagonal_slide(8, iteration=-1)
-            ....:      for p in P7 )      # Check of [Sut2002]_'s assertion
-            ....:                         # that \sigma_n(\sigma_n(\lambda')') = \lambda
+            ....:      == p.conjugate().suter_diagonal_slide(8, exp=-1)
+            ....:      for p in P7 )
             True
+
+        Check of Claim 1 in [Sut2002]_::
+
             sage: P5 = Partitions(5)
             sage: all( all( (p.suter_diagonal_slide(6) in q.suter_diagonal_slide(6).down())
             ....:           or (q.suter_diagonal_slide(6) in p.suter_diagonal_slide(6).down())
             ....:           for p in q.down() )
-            ....:      for q in P5 )    # Claim 1 in [Sut2002]_.
+            ....:      for q in P5 )
             True
+
+        TESTS:
+
+        Check for ``exp = 0``::
+
+            sage: P = Partitions(4)
+            sage: all(p == p.suter_diagonal_slide(7, 0) for p in P)
+            True
+
+        Check for invalid input::
+
+            sage: p = Partition([2,1])
+            sage: p.hook_length(0, 0)
+            3
+            sage: p.suter_diagonal_slide(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: the hook length must be less than n
 
         REFERENCES:
 
         .. [Sut2002] Ruedi Suter.
-           *Young’s Lattice and Dihedral Symmetries*.
-           Europ. J. Combinatorics (2002) 23, 233–238.
+           *Young's Lattice and Dihedral Symmetries*.
+           Europ. J. Combinatorics (2002) 23, 233--238.
            http://www.sciencedirect.com/science/article/pii/S0195669801905414
         """
-        if iteration == 1:
-            # Suter's map \sigma_n
-            leng = self.length()
-            if leng == 0:   # Taking extra care about the empty partition.
-                return Partition([1] * (n - 1))
-            res = [i + 1 for i in self._list[1:]]
-            res += [1] * (n - leng - self._list[0])
-            return Partition(res)
-        elif iteration == -1:
-            # inverse map \sigma_n^{-1}
-            leng = self.length()
-            if leng == 0:   # Taking extra care about the empty partition.
-                return Partition([n - 1])
-            res = [n - leng - 1]
-            res.extend([i - 1 for i in self._list if i > 1])
-            return Partition(res)
-        # Arbitrary number of iterations
-        iteration = iteration % n
-        sc = self
-        if iteration < n/2:
-            while iteration > 0:
-                iteration -= 1
-                sc = sc.suter_diagonal_slide(n)
-        else:
-            iteration = -iteration
-            while iteration < 0:
-                iteration += 1
-                sc = sc.suter_diagonal_slide(n, iteration=-1)
-        return sc
+        # Check for valid input
+        if len(self) > 0 and len(self) + self._list[0] - 1 >= n: # -1 since we double count the (0,0) cell
+            raise ValueError("the hook length must be less than n")
+        ret = self
+        # Arbitrary exp
+        exp = exp % n # It is at most order n
+        if exp > n / 2:
+            exp -= n
+        while exp != 0:
+            leng = len(ret)
+            if exp > 0:
+                # Suter's map \sigma_n
+                if leng == 0:   # Taking extra care about the empty partition.
+                    ret = Partition([1] * (n - 1))
+                    exp -= 1
+                    continue
+                res = [i + 1 for i in ret._list[1:]]
+                res += [1] * (n - leng - ret._list[0])
+                ret = Partition(res)
+                exp -= 1
+            else: # exp < 0 since if exp == 0, we would exit the while loop
+                # inverse map \sigma_n^{-1}
+                if leng == 0:   # Taking extra care about the empty partition.
+                    ret = Partition([n - 1])
+                    exp += 1
+                    continue
+                res = [n - leng - 1]
+                res.extend([i - 1 for i in ret._list if i > 1])
+                ret = Partition(res)
+                exp += 1
+        return ret
 
     @combinatorial_map(name="reading tableau")
     def reading_tableau(self):
@@ -1845,7 +1867,7 @@ class Partition(CombinatorialObject, Element):
         r"""
         Return the Garnir tableau of shape ``self`` corresponding to the cell
         ``cell``. If ``cell`` `= (a,c)` then `(a+1,c)` must belong to the
-        diagram of the :class:`Partition` ``self``.
+        diagram of ``self``.
 
         The Garnir tableaux play an important role in integral and
         non-semisimple representation theory because they determine the

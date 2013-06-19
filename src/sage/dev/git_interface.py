@@ -7,7 +7,7 @@ from cStringIO import StringIO
 import random
 import os
 
-from sage.env import SAGE_ROOT
+from sage.env import SAGE_DOT_GIT, SAGE_REPO, DOT_SAGE
 
 def return_none():
     return None
@@ -65,9 +65,8 @@ class authenticated(object):
         self.func = func
 
     def __call__(self, git, *args, **kwargs):
-        sshkeyfile = os.path.join(os.environ['HOME'], '.ssh', 'id_rsa')
-        if "sshkeyfile" in git._config:
-            sshkeyfile = git._config['sshkeyfile']
+        sshkeyfile = git._config.get('sshkeyfile',
+                os.path.join(os.environ['HOME'], '.ssh', 'id_rsa'))
 
         if not "sshkey_set" in git._config or not git._config['sshkey_set']:
             git._sagedev._upload_ssh_key(sshkeyfile)
@@ -75,11 +74,9 @@ class authenticated(object):
             git._config['sshkey_set'] = True
             git._config._write_config()
 
-        gitcmd = "git"
-        if "gitcmd" in git._config:
-            gitcmd = git._config['gitcmd']
+        gitcmd = git._gitcmd
 
-        ssh_git = 'ssh -i "%s"' % sshkeyfile
+        ssh_git = "ssh -i '%s'" % sshkeyfile
         ssh_git = 'GIT_SSH="%s" ' % ssh_git
         try:
             saved_git_cmd = git._gitcmd
@@ -92,43 +89,35 @@ class GitInterface(object):
     def __init__(self, sagedev):
         self._sagedev = sagedev
         self._UI = self._sagedev._UI
-        self._dryrun = False
 
-        if 'git' not in self._sagedev._config:
-            self._sagedev._config['git'] = {}
-        self._config = self._sagedev._config['git']
+        self._config  = self._sagedev._config.get('git', {})
+        self._doctest = self._config.get('doctest', None)
+        self._dot_git = self._config.get('dot_git', SAGE_DOT_GIT)
+        self._gitcmd  = self._config.get('gitcmd', 'git')
+        self._repo    = self._config.get('repo', SAGE_REPO)
 
-        if 'dot_git' in self._config:
-            self._dot_git = self._config['dot_git']
-        else:
-            self._dot_git = os.environ.get("SAGE_DOT_GIT", os.path.join(SAGE_ROOT,".git"))
-
-        if 'gitcmd' in self._config:
-            self._gitcmd = self._config['gitcmd']
-        else:
-            self._gitcmd = 'git'
-
-        if 'repo' in self._config:
-            self._repo = self._config['repo']
-        else:
-            self._repo = 'git@trac.tangentpsace.org:sage.git'
+        if self._doctest is not None:
+            # prepare the doctesting repository
+            os.chdir(self._doctest)
+            self.execute_silent('init')
+            with open('testfile', 'w') as f:
+                f.write('this is a test file\n')
+            self.execute_silent('add', 'testfile')
+            self.execute_silent('commit', '--message="add a testfile"')
+            self.execute_silent('checkout', '-qb', 't/13838')
+            self.execute_silent('checkout', '-qb', 't/13624')
 
         if not os.path.exists(self._dot_git):
-            raise ValueError("`%s` does not point to an existing directory."%self._dot_git)
+                raise ValueError("`%s` does not point to an existing directory."%self._dot_git)
 
-        from sagedev import DOT_SAGE
-        ticket_file = os.path.join(DOT_SAGE, 'branch_to_ticket')
-        if 'ticketfile' in self._config:
-            ticket_file = self._config['ticketfile']
-        branch_file = os.path.join(DOT_SAGE, 'ticket_to_branch')
-        if 'branchfile' in self._config:
-            branch_file = self._config['branchfile']
-        dependencies_file = os.path.join(DOT_SAGE, 'dependencies')
-        if 'dependenciesfile' in self._config:
-            dependencies_file = self._config['dependenciesfile']
-        remote_branches_file = os.path.join(DOT_SAGE, 'remote_branches')
-        if 'remotebranchesfile' in self._config:
-            remote_branches_file = self._config['remotebranchesfile']
+        ticket_file = self._config.get('ticketfile',
+                os.path.join(DOT_SAGE, 'branch_to_ticket'))
+        branch_file = self._config.get('branchfile',
+                os.path.join(DOT_SAGE, 'ticket_to_branch'))
+        dependencies_file = self._config.get('dependenciesfile',
+                os.path.join(DOT_SAGE, 'dependencies'))
+        remote_branches_file = self._config.get('remotebranchesfile',
+                os.path.join(DOT_SAGE, 'remote_branches'))
 
         self._load_dicts(ticket_file, branch_file, dependencies_file, remote_branches_file)
 
@@ -163,24 +152,23 @@ class GitInterface(object):
 
     def get_state(self):
         ret = []
-        if os.path.exists(os.path.join(self._dot_git,"rebase-apply")):
+        if os.path.exists(os.path.join(self._dot_git, "rebase-apply")):
             ret.append("am")
         return ret
 
     def reset_to_clean_state(self, interactive=True):
-        state = self.get_state()
-        if not state:
+        states = self.get_state()
+        if not states:
             return True
-        if state:
-            state = state[0]
-        if state == "am":
-            if interactive and not self._UI.confirm("Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard any changes which are not commited.)"):
-                return False
+        for state in states:
+            if state == "am":
+                if interactive and not self._UI.confirm("Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard any changes which are not commited.)"):
+                    return False
 
-            self.am("--abort")
-            return self.reset_to_clean_state(interactive=interactive)
-        else:
-            raise NotImplementedError(state)
+                self.execute_silent('am', '--abort')
+                return self.reset_to_clean_state(interactive=interactive)
+            else:
+                raise NotImplementedError(state)
 
     def reset_to_clean_working_directory(self, interactive=True):
         if not self.has_uncommitted_changes():
@@ -189,7 +177,7 @@ class GitInterface(object):
         if interactive and not self._UI.confirm("You have uncommited changes in your working directory. To run this command you have to discard your changes. Do you want me to discard any changes which are not commited?"):
             return False
 
-        self.reset("--hard")
+        self.execute_silent('reset', '--hard')
 
         return True
 
@@ -206,7 +194,7 @@ class GitInterface(object):
         return s
 
     def _run_git(self, output_type, cmd, args, kwds):
-        s = self._gitcmd + " " + cmd
+        s = " ".join([self._gitcmd, "--git-dir=%s"%self._dot_git, cmd])
         dryrun = kwds.pop("dryrun", None)
         for k, v in kwds.iteritems():
             if len(k) == 1:
@@ -219,8 +207,6 @@ class GitInterface(object):
                 s += k + " " + self._clean_str(v)
         if args:
             s += " " + " ".join([self._clean_str(a) for a in args if a is not None])
-        if self._dryrun:
-            print s
         if dryrun:
             return s
         else:
@@ -285,7 +271,8 @@ class GitInterface(object):
 
         EXAMPLES::
 
-            sage: git = sage_dev.git
+            sage: from sage.dev.sagedev import Config, SageDev
+            sage: git = SageDev(Config._doctest_config()).git
             sage: git.local_branches()
             ['master', 't/13624', 't/13838']
         """
@@ -294,13 +281,27 @@ class GitInterface(object):
         return result
 
     def current_branch(self):
+        """
+        Return the current branch
+
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import Config, SageDev
+            sage: git = SageDev(Config._doctest_config()).git
+            sage: git.current_branch()
+            't/13624'
+        """
         try:
             branch = self.read_output('symbolic-ref', 'HEAD').strip()
-            if not branch.startswith('refs/heads/'):
-                raise RuntimeError('HEAD is bizarre!')
-            return branch[11:]
+            if branch.startswith('refs/heads/'):
+                return branch[11:]
+            int(branch, 16)
         except CalledProcessError:
             return None
+        except ValueError:
+            raise RuntimeError('HEAD is bizarre!')
+        else:
+            raise ValueError('HEAD is detached')
 
     def _ticket_to_branch(self, ticket):
         """

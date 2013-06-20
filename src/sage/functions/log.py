@@ -661,7 +661,20 @@ class Function_lambert_w(BuiltinFunction):
             sage: x = var('x')
             sage: derivative(lambert_w(x), x)
             lambert_w(x)/(x*lambert_w(x) + x)
+
+        TESTS:
+
+        Differentiation in the first parameter raises an error :trac:`14788`::
+
+            sage: n = var('n')
+            sage: lambert_w(n, x).diff(n)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot differentiate lambert_w in the first parameter
         """
+        if diff_param == 0:
+            raise ValueError("cannot differentiate lambert_w in the first parameter")
+
         return lambert_w(n, z)/(z*lambert_w(n, z)+z)
 
     def _maxima_init_evaled_(self, n, z):

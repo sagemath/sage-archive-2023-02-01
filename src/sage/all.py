@@ -101,6 +101,7 @@ from sage.symbolic.all   import *
 
 from sage.functions.all  import *
 from sage.calculus.all   import *
+from sage.quivers.all import *
 
 from sage.server.all     import *
 import sage.tests.all as tests

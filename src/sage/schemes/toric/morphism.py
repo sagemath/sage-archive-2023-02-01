@@ -161,6 +161,12 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+# For now, the scheme morphism base class cannot derive from Morphism
+# since this would clash with elliptic curves. So we derive only on
+# the toric varieties level from Morphism. See
+# https://groups.google.com/d/msg/sage-devel/qF4yU6Vdmao/wQlNrneSmWAJ
+from sage.categories.morphism import Morphism
+
 from sage.structure.sequence  import Sequence
 from sage.rings.all import ZZ
 
@@ -174,7 +180,7 @@ from sage.schemes.generic.morphism import (
 
 ############################################################################
 # A points on a toric variety determined by homogeneous coordinates.
-class SchemeMorphism_point_toric_field(SchemeMorphism_point):
+class SchemeMorphism_point_toric_field(SchemeMorphism_point, Morphism):
     """
     A point of a toric variety determined by homogeneous coordinates
     in a field.
@@ -245,7 +251,7 @@ class SchemeMorphism_point_toric_field(SchemeMorphism_point):
 
 ############################################################################
 # A morphism of toric varieties determined by homogeneous polynomials.
-class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial):
+class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial, Morphism):
     """
     A morphism determined by homogeneous polynomials.
 
@@ -341,7 +347,7 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial):
 
 ############################################################################
 # A morphism of toric varieties determined by a fan morphism
-class SchemeMorphism_fan_toric_variety(SchemeMorphism):
+class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
     """
     Construct a morphism determined by a fan morphism
 
@@ -462,7 +468,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism):
         else:
             return cmp(type(self), type(right))
 
-    def __imul__(self, right):
+    def _composition_(self, right, homset):
         """
         Return the composition of ``self`` and ``right``.
 
@@ -480,24 +486,18 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism):
             sage: P3 = toric_varieties.P(3)
             sage: m = matrix([(2,0,0), (1,1,0)])
             sage: phi = A2.hom(m, P3)
-            sage: phi
+            sage: phi1, phi2, phi3 = phi.factor()
+            sage: phi1 * phi2
             Scheme morphism:
               From: 2-d affine toric variety
               To:   3-d CPR-Fano toric variety covered by 4 affine patches
-              Defn: Defined by sending Rational polyhedral fan in 2-d lattice N to
-                    Rational polyhedral fan in 3-d lattice N.
-            sage: prod(phi.factor()) # indirect test
-            Scheme morphism:
-              From: 2-d affine toric variety
-              To:   3-d CPR-Fano toric variety covered by 4 affine patches
-              Defn: Defined by sending Rational polyhedral fan in 2-d lattice N to
-                    Rational polyhedral fan in 3-d lattice N.
+              Defn: Defined by sending Rational polyhedral fan in Sublattice
+                    <N(1, 0, 0), N(0, 1, 0)> to Rational polyhedral fan in 3-d lattice N.
+            sage: phi1 * phi2 * phi3 == phi
+            True
         """
-        if not isinstance(right, SchemeMorphism_fan_toric_variety):
-            raise NotImplementedError("only composing toric morphisms based on "
-                                "fan morphisms is implemented at the moment")
         f = self.fan_morphism() * right.fan_morphism()
-        return right.domain().hom(f, self.codomain())
+        return homset(f, self.codomain())
 
     def _repr_defn(self):
         """

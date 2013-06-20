@@ -1310,9 +1310,9 @@ def wedge(left, right):
         sage: g[1] = sin(y); g
         sin(y)*dy
         sage: wedge(f, g)
-        -sin(y)*cos(x)*dy/\dz
+        -cos(x)*sin(y)*dy/\dz
         sage: f.wedge(g)
-        -sin(y)*cos(x)*dy/\dz
+        -cos(x)*sin(y)*dy/\dz
         sage: wedge(f, g) == f.wedge(g)
         True
     """

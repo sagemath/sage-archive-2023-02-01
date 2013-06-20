@@ -18,7 +18,7 @@ Cycle Species
 from species import GenericCombinatorialSpecies
 from structure import GenericSpeciesStructure
 from generating_series import _integers_from
-
+from sage.structure.unique_representation import UniqueRepresentation
 from sage.rings.all import ZZ, divisors, euler_phi
 from sage.misc.cachefunc import cached_function
 from sage.combinat.species.misc import accept_size
@@ -105,38 +105,42 @@ class CycleSpeciesStructure(GenericSpeciesStructure):
         p = self.permutation_group_element()
         return PermutationGroup(S.centralizer(p).gens())
 
-@accept_size
-@cached_function
-def CycleSpecies(*args, **kwds):
-    """
-    Returns the species of cycles.
 
-    EXAMPLES::
+class CycleSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
+    @staticmethod
+    @accept_size
+    def __classcall__(cls, *args, **kwds):
+        r"""
+        EXAMPLES::
 
-        sage: C = species.CycleSpecies(); C
-        Cyclic permutation species
-        sage: C.structures([1,2,3,4]).list()
-        [(1, 2, 3, 4),
-         (1, 2, 4, 3),
-         (1, 3, 2, 4),
-         (1, 3, 4, 2),
-         (1, 4, 2, 3),
-         (1, 4, 3, 2)]
+            sage: C = species.CycleSpecies(); C
+            Cyclic permutation species
+        """
+        return super(CycleSpecies, cls).__classcall__(cls, *args, **kwds)
 
-    TESTS: We check to verify that the caching of species is actually
-    working.
-
-    ::
-
-        sage: species.CycleSpecies() is species.CycleSpecies()
-        True
-    """
-    return CycleSpecies_class(*args, **kwds)
-
-class CycleSpecies_class(GenericCombinatorialSpecies):
     def __init__(self, min=None, max=None, weight=None):
         """
+        Returns the species of cycles.
+
         EXAMPLES::
+
+            sage: C = species.CycleSpecies(); C
+            Cyclic permutation species
+            sage: C.structures([1,2,3,4]).list()
+            [(1, 2, 3, 4),
+             (1, 2, 4, 3),
+             (1, 3, 2, 4),
+             (1, 3, 4, 2),
+             (1, 4, 2, 3),
+             (1, 4, 3, 2)]
+
+        TESTS: We check to verify that the caching of species is actually
+        working.
+
+        ::
+
+            sage: species.CycleSpecies() is species.CycleSpecies()
+            True
 
             sage: P = species.CycleSpecies()
             sage: c = P.generating_series().coefficients(3)
@@ -149,8 +153,6 @@ class CycleSpecies_class(GenericCombinatorialSpecies):
         self._name = "Cyclic permutation species"
 
     _default_structure_class = CycleSpeciesStructure
-
-    _cached_constructor = staticmethod(CycleSpecies)
 
     def _structures(self, structure_class, labels):
         """
@@ -276,3 +278,6 @@ class CycleSpecies_class(GenericCombinatorialSpecies):
                 res += euler_phi(k)*p([k])**(n//k)
             res /= n
             yield self._weight*res
+
+#Backward compatibility
+CycleSpecies_class = CycleSpecies

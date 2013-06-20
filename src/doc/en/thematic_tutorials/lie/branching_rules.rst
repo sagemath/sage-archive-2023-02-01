@@ -1,7 +1,8 @@
+.. linkall
+
 -------------------------------------
 Maximal Subgroups and Branching Rules
 -------------------------------------
-
 
 Branching rules
 ---------------
@@ -76,11 +77,7 @@ We see that we may remove the node 3 and obtain A2, or the node 2 and
 obtain A1xA1. These correspond to the Levi subgroups `GL(3)` and
 `GL(2) \times GL(2)` of `GL(4)`. Let us construct the irreducible
 representations of `GL(4)` and branch them down to these down to
-`GL(3)` and `GL(2) \times GL(2)`:
-
-.. link
-
-::
+`GL(3)` and `GL(2) \times GL(2)`::
 
     sage: reps = [A3(v) for v in A3.fundamental_weights()]; reps
     [A3(1,0,0,0), A3(1,1,0,0), A3(1,1,1,0)]
@@ -91,7 +88,7 @@ representations of `GL(4)` and branch them down to these down to
     sage: [pi.branch(A1xA1, rule="levi") for pi in reps]
     [A1xA1(1,0,0,0) + A1xA1(0,0,1,0),
      A1xA1(1,1,0,0) + A1xA1(1,0,1,0) + A1xA1(0,0,1,1),
-      A1xA1(1,1,1,0) + A1xA1(1,0,1,1)]
+     A1xA1(1,1,1,0) + A1xA1(1,0,1,1)]
 
 Let us redo this calculation in coroot notation. As we have explained,
 coroot notation does not distinguish between representations of
@@ -239,11 +236,7 @@ This is ``D4xD3``.  Therefore use the "extended" branching rule:
     sage: spin.branch(D4xD3, rule="extended")
     D4xD3(0,0,1,0,0,1,0) + D4xD3(0,0,0,1,0,0,1)
 
-But we could equally well use the "orthogonal_sum" rule.
-
-.. link
-
-::
+But we could equally well use the "orthogonal_sum" rule::
 
     sage: spin.branch(D4xD3, rule="orthogonal_sum")
     D4xD3(0,0,1,0,0,1,0) + D4xD3(0,0,0,1,0,0,1)
@@ -278,13 +271,13 @@ Finally, there is an embedding ::
 This is *not* of extended type, so you may not use ``rule="extended"``.
 You *must* use ``rule="orthogonal_sum"``::
 
-     sage: D5=WeylCharacterRing("D5",style="coroots")
-     sage: B2xB2=WeylCharacterRing("B2xB2",style="coroots")
-     sage: [D5(v).branch(B2xB2,rule="orthogonal_sum") for v in D5.fundamental_weights()]
-     [B2xB2(1,0,0,0) + B2xB2(0,0,1,0),
-      B2xB2(0,2,0,0) + B2xB2(1,0,1,0) + B2xB2(0,0,0,2),
-      B2xB2(0,2,0,0) + B2xB2(0,2,1,0) + B2xB2(1,0,0,2) + B2xB2(0,0,0,2),
-      B2xB2(0,1,0,1), B2xB2(0,1,0,1)]
+    sage: D5 = WeylCharacterRing("D5",style="coroots")
+    sage: B2xB2 = WeylCharacterRing("B2xB2",style="coroots")
+    sage: [D5(v).branch(B2xB2,rule="orthogonal_sum") for v in D5.fundamental_weights()]
+    [B2xB2(1,0,0,0) + B2xB2(0,0,1,0),
+     B2xB2(0,2,0,0) + B2xB2(1,0,1,0) + B2xB2(0,0,0,2),
+     B2xB2(0,2,0,0) + B2xB2(0,2,1,0) + B2xB2(1,0,0,2) + B2xB2(0,0,0,2),
+     B2xB2(0,1,0,1), B2xB2(0,1,0,1)]
 
 Symmetric subgroups
 -------------------
@@ -426,8 +419,8 @@ by other methods::
     sage: ad.frobenius_schur_indicator()
     1
     sage: for r in D7.fundamental_weights():  # long time (26s on sage.math, 2012)
-    ...      print D7(r).branch(G2, rule=branching_rule_from_plethysm(ad, "D7"))
-    ...
+    ....:    print D7(r).branch(G2, rule=branching_rule_from_plethysm(ad, "D7"))
+    ....:
     G2(0,1)
     G2(0,1) + G2(3,0)
     G2(0,0) + G2(2,0) + G2(3,0) + G2(0,2) + G2(4,0)
@@ -507,7 +500,7 @@ Such an involution exists in the cases `A_r`, `D_r`, `E_6`.
 So the automorphism acts on the representations of `G`, and its
 effect may be computed using the branching rule code::
 
-    sage: A4=WeylCharacterRing("A4",style="coroots")
+    sage: A4 = WeylCharacterRing("A4",style="coroots")
     sage: A4(1,0,1,0).degree()
     45
     sage: A4(0,1,0,1).degree()
@@ -518,8 +511,7 @@ effect may be computed using the branching rule code::
 In the special case where `G=D4`, the Dynkin diagram has
 extra symmetries::
 
-
-    sage: D4=WeylCharacterRing("D4",style="coroots")
+    sage: D4 = WeylCharacterRing("D4",style="coroots")
     sage: D4.dynkin_diagram()
         O 4
         |
@@ -537,11 +529,7 @@ automorphisms of `SO(8)`, but of its double cover
 `spin(8)`. Note that `spin(8)` has three representations
 of degree 8, namely the standard representation of
 `SO(8)` and the two eight-dimensional spin
-representations. These are permuted by triality:
-
-.. link:
-
-::
+representations. These are permuted by triality::
 
     sage: D4(0,0,0,1).branch(D4,rule="triality")
     D4(1,0,0,0)
@@ -551,11 +539,7 @@ representations. These are permuted by triality:
     D4(0,0,0,1)
 
 By contrast, ``rule="automorphic"`` simply interchanges the two
-spin representations, as it always does in Type D:
-
-.. link:
-
-::
+spin representations, as it always does in Type D::
 
     sage: D4(0,0,0,1).branch(D4,rule="automorphic")
     D4(0,0,1,0)

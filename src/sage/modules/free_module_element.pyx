@@ -1775,9 +1775,9 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
             sage: x = var('x')
             sage: v = vector([x/(2*x)+sqrt(2)+var('theta')^3,x/(2*x)]); v
-            (sqrt(2) + theta^3 + 1/2, 1/2)
+            (theta^3 + sqrt(2) + 1/2, 1/2)
             sage: v._repr_()
-            '(sqrt(2) + theta^3 + 1/2, 1/2)'
+            '(theta^3 + sqrt(2) + 1/2, 1/2)'
         """
         d = self.degree()
         if d == 0: return "()"
@@ -3331,7 +3331,7 @@ p-norm use 'normalized', and for division by the first nonzero entry use \
             [   (r, theta) |--> cos(theta) (r, theta) |--> -r*sin(theta)]
             [   (r, theta) |--> sin(theta)  (r, theta) |--> r*cos(theta)]
             sage: T.diff().det() # Jacobian
-            (r, theta) |--> r*sin(theta)^2 + r*cos(theta)^2
+            (r, theta) |--> r*cos(theta)^2 + r*sin(theta)^2
         """
         if var is None:
             if sage.symbolic.callable.is_CallableSymbolicExpressionRing(self.base_ring()):

@@ -65,19 +65,19 @@ EXAMPLES::
     [ 1  0 36]
     [ 0  1  2]
 
-We create a matrix group and coerce it to GAP::
+We create a matrix group::
 
     sage: M = MatrixSpace(GF(3),3,3)
     sage: G = MatrixGroup([M([[0,1,0],[0,0,1],[1,0,0]]), M([[0,1,0],[1,0,0],[0,0,1]])])
     sage: G
-    Matrix group over Finite Field of size 3 with 2 generators:
-     [[[0, 1, 0], [0, 0, 1], [1, 0, 0]], [[0, 1, 0], [1, 0, 0], [0, 0, 1]]]
-    sage: gap(G)
-    Group(
-    [ [ [ 0*Z(3), Z(3)^0, 0*Z(3) ], [ 0*Z(3), 0*Z(3), Z(3)^0 ], [ Z(3)^0, 0*Z(3),
-               0*Z(3) ] ],
-      [ [ 0*Z(3), Z(3)^0, 0*Z(3) ], [ Z(3)^0, 0*Z(3), 0*Z(3) ],
-          [ 0*Z(3), 0*Z(3), Z(3)^0 ] ] ])
+    Matrix group over Finite Field of size 3 with 2 generators (
+    [0 1 0]  [0 1 0]
+    [0 0 1]  [1 0 0]
+    [1 0 0], [0 0 1]
+    )
+    sage: G.gap()
+    Group([ [ [ 0*Z(3), Z(3)^0, 0*Z(3) ], [ 0*Z(3), 0*Z(3), Z(3)^0 ], [ Z(3)^0, 0*Z(3), 0*Z(3) ] ],
+            [ [ 0*Z(3), Z(3)^0, 0*Z(3) ], [ Z(3)^0, 0*Z(3), 0*Z(3) ], [ 0*Z(3), 0*Z(3), Z(3)^0 ] ] ])
 
 TESTS::
 

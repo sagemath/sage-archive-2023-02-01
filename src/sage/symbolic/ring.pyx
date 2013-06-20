@@ -318,7 +318,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: x,y = var('x,y')
             sage: w0 = SR.wild(0); w1 = SR.wild(1)
             sage: pattern = sin(x)*w0*w1^2; pattern
-            $0*$1^2*sin(x)
+            $1^2*$0*sin(x)
             sage: f = atan(sin(x)*3*x^2); f
             arctan(3*x^2*sin(x))
             sage: f.has(pattern)

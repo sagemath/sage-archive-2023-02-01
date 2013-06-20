@@ -232,7 +232,7 @@ class Converter(object):
             sage: c.get_fake_div(-x)
             FakeExpression([x], <built-in function neg>)
             sage: c.get_fake_div((2*x^3+2*x-1)/((x-2)*(x+1)))
-            FakeExpression([2*x^3 + 2*x - 1, FakeExpression([x - 2, x + 1], <built-in function mul>)], <built-in function div>)
+            FakeExpression([2*x^3 + 2*x - 1, FakeExpression([x + 1, x - 2], <built-in function mul>)], <built-in function div>)
 
         Check if #8056 is fixed, i.e., if numerator is 1.::
 
@@ -1425,7 +1425,7 @@ def fast_callable(ex, etb):
 
         sage: f = (2*x^3+2*x-1)/((x-2)*(x+1))
         sage: f._fast_callable_(etb)
-        div(add(add(mul(ipow(v_0, 3), 2), mul(v_0, 2)), -1), mul(add(v_0, -2), add(v_0, 1)))
+        div(add(add(mul(ipow(v_0, 3), 2), mul(v_0, 2)), -1), mul(add(v_0, 1), add(v_0, -2)))
 
     """
     return FastCallableConverter(ex, etb)()

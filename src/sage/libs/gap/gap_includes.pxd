@@ -76,7 +76,7 @@ cdef extern from "gap/objects.h":
     cdef int libGAP_T_CHAR
     cdef int libGAP_T_FUNCTION
     cdef int libGAP_T_FLAGS
-    cdef int libGAP_T_FLOAT
+    cdef int libGAP_T_MACFLOAT
     cdef int libGAP_T_RESERVED_BY_GAP
     cdef int libGAP_LAST_CONSTANT_TNUM
     cdef int libGAP_IMMUTABLE

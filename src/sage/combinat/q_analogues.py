@@ -218,7 +218,7 @@ def q_binomial(n, k, q=None, algorithm='auto'):
 
         sage: z = var('z')
         sage: factor(q_binomial(4,2,z))
-        (z^2 + 1)*(z^2 + z + 1)
+        (z^2 + z + 1)*(z^2 + 1)
 
     This also works for complex roots of unity::
 

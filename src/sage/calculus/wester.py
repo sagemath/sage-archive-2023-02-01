@@ -29,7 +29,7 @@ explicit calls to Maxima or other systems.
 
     sage: # (YES) Evaluate  e^(Pi*Sqrt(163)) to 50 decimal digits
     sage: a = e^(pi*sqrt(163)); a
-    e^(pi*sqrt(163))
+    e^(sqrt(163)*pi)
     sage: print RealField(150)(a)
     2.6253741264076874399999999999925007259719820e17
 
@@ -156,7 +156,7 @@ explicit calls to Maxima or other systems.
 
     sage: # (YES) Factorize x^100-1.
     sage: factor(x^100-1)
-    (x - 1)*(x + 1)*(x^2 + 1)*(x^4 - x^3 + x^2 - x + 1)*(x^4 + x^3 + x^2 + x + 1)*(x^8 - x^6 + x^4 - x^2 + 1)*(x^20 - x^15 + x^10 - x^5 + 1)*(x^20 + x^15 + x^10 + x^5 + 1)*(x^40 - x^30 + x^20 - x^10 + 1)
+    (x^40 - x^30 + x^20 - x^10 + 1)*(x^20 + x^15 + x^10 + x^5 + 1)*(x^20 - x^15 + x^10 - x^5 + 1)*(x^8 - x^6 + x^4 - x^2 + 1)*(x^4 + x^3 + x^2 + x + 1)*(x^4 - x^3 + x^2 - x + 1)*(x^2 + 1)*(x + 1)*(x - 1)
     sage: # Also, algebraically
     sage: x = polygen(QQ)
     sage: factor(x^100 - 1)
@@ -193,7 +193,7 @@ explicit calls to Maxima or other systems.
     sage: f = (x^2+2*x+3)/(x^3+4*x^2+5*x+2); f
     (x^2 + 2*x + 3)/(x^3 + 4*x^2 + 5*x + 2)
     sage: f.partial_fraction()
-    -2/(x + 1) + 2/(x + 1)^2 + 3/(x + 2)
+    3/(x + 2) - 2/(x + 1) + 2/(x + 1)^2
 
 ::
 
@@ -233,7 +233,7 @@ explicit calls to Maxima or other systems.
     sage: eqn = prod(x-i for i in range(1,5 +1)) < 0
     sage: # but don't know how to solve
     sage: eqn
-    (x - 5)*(x - 4)*(x - 3)*(x - 2)*(x - 1) < 0
+    (x - 1)*(x - 2)*(x - 3)*(x - 4)*(x - 5) < 0
 
 ::
 
@@ -287,7 +287,7 @@ explicit calls to Maxima or other systems.
 
     sage: # (YES) (2^(1/3) + 4^(1/3))^3 - 6*(2^(1/3) + 4^(1/3))-6 = 0
     sage: a = (2^(1/3) + 4^(1/3))^3 - 6*(2^(1/3) + 4^(1/3)) - 6; a
-    (2^(1/3) + 4^(1/3))^3 - 6*2^(1/3) - 6*4^(1/3) - 6
+    (4^(1/3) + 2^(1/3))^3 - 6*4^(1/3) - 6*2^(1/3) - 6
     sage: bool(a==0)
     True
     sage: abs(float(a)) < 1e-10
@@ -339,7 +339,7 @@ explicit calls to Maxima or other systems.
     sage: assume(r>0)
     sage: f = (4*r+4*sqrt(r)+1)^(sqrt(r)/(2*sqrt(r)+1))*(2*sqrt(r)+1)^(2*sqrt(r)+1)^(-1)-2*sqrt(r)-1
     sage: f
-    (2*sqrt(r) + 1)^(1/(2*sqrt(r) + 1))*(4*r + 4*sqrt(r) + 1)^(sqrt(r)/(2*sqrt(r) + 1)) - 2*sqrt(r) - 1
+    (4*r + 4*sqrt(r) + 1)^(sqrt(r)/(2*sqrt(r) + 1))*(2*sqrt(r) + 1)^(1/(2*sqrt(r) + 1)) - 2*sqrt(r) - 1
     sage: bool(f == 0)
     False
     sage: [abs(float(f(r=i))) < 1e-10 for i in [0.1,0.3,0.5]]
@@ -362,9 +362,9 @@ explicit calls to Maxima or other systems.
     sage: a = tan(z); a
     tan(z)
     sage: a.real()
-    tan(real_part(z))/(tan(real_part(z))^2*tan(imag_part(z))^2 + 1)
+    tan(real_part(z))/(tan(imag_part(z))^2*tan(real_part(z))^2 + 1)
     sage: a.imag()
-    tanh(imag_part(z))/(tan(real_part(z))^2*tan(imag_part(z))^2 + 1)
+    tanh(imag_part(z))/(tan(imag_part(z))^2*tan(real_part(z))^2 + 1)
 
 
 ::
@@ -455,7 +455,7 @@ explicit calls to Maxima or other systems.
     [  1   d d^2 d^3]
     sage: d = m.determinant()
     sage: d.factor()
-    (c - d)*(b - d)*(b - c)*(a - d)*(a - c)*(a - b)
+    (a - b)*(a - c)*(a - d)*(b - c)*(b - d)*(c - d)
 
 ::
 
@@ -555,7 +555,7 @@ explicit calls to Maxima or other systems.
     sage: # (YES) Taylor expansion of Ln(x)^a*Exp(-b*x) at x=1.
     sage: a,b = var('a,b')
     sage: taylor(log(x)^a*exp(-b*x), x, 1, 3)
-    -1/48*(x - 1)^3*((6*b + 5)*(x - 1)^a*a^2 + (x - 1)^a*a^3 + 8*(x - 1)^a*b^3 + 2*(6*b^2 + 5*b + 3)*(x - 1)^a*a)*e^(-b) + 1/24*(x - 1)^2*((12*b + 5)*(x - 1)^a*a + 3*(x - 1)^a*a^2 + 12*(x - 1)^a*b^2)*e^(-b) - 1/2*(x - 1)*((x - 1)^a*a + 2*(x - 1)^a*b)*e^(-b) + (x - 1)^a*e^(-b)
+    -1/48*(a^3*(x - 1)^a + a^2*(6*b + 5)*(x - 1)^a + 8*b^3*(x - 1)^a + 2*(6*b^2 + 5*b + 3)*a*(x - 1)^a)*(x - 1)^3*e^(-b) + 1/24*(3*a^2*(x - 1)^a + a*(12*b + 5)*(x - 1)^a + 12*b^2*(x - 1)^a)*(x - 1)^2*e^(-b) - 1/2*(a*(x - 1)^a + 2*b*(x - 1)^a)*(x - 1)*e^(-b) + (x - 1)^a*e^(-b)
 
 ::
 

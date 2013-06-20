@@ -243,7 +243,7 @@ def clebsch_gordan(j_1, j_2, j_3, m_1, m_2, m_3, prec=None):
         sage: clebsch_gordan(1.5,0.5,1, 1.5,-0.5,1)
         1/2*sqrt(3)
         sage: clebsch_gordan(3/2,1/2,1, -1/2,1/2,0)
-        -sqrt(1/6)*sqrt(3)
+        -sqrt(3)*sqrt(1/6)
 
     NOTES:
 

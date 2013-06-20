@@ -6,6 +6,8 @@ AUTHORS:
 - Travis Scrimshaw (2012-04-22): Nicolas M. Thiery moved Cartan matrix creation
   to here and I cached results for speed.
 
+- Travis Scrimshaw (2013-06-11): Changed inputs of Dynkin diagrams to handle
+  other Dynkin diagrams and graphs. Implemented remaining Cartan type methods.
 """
 #*****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
@@ -41,8 +43,8 @@ def DynkinDiagram(*args):
 
        i <--k-- j <==> a_ij = -k
                   <==> -scalar(coroot[i], root[j]) = k
-                  <==> multiple arrows point from the shorter root
-                       to the longer one
+                  <==> multiple arrows point from the longer root
+                       to the shorter one
 
     For example, in type `C_2`, we have::
 
@@ -123,7 +125,7 @@ def dynkin_diagram(t):
 
 
 class DynkinDiagram_class(DiGraph, CartanType_abstract):
-    def __init__(self, t = None):
+    def __init__(self, t = None, **options):
         """
         INPUT:
 
@@ -132,28 +134,36 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
         EXAMPLES::
 
             sage: d = DynkinDiagram(["A", 3])
-            sage: d == loads(dumps(d))
+            sage: TestSuite(d).run()
+
+        Check that the correct type is returned when copied::
+
+            sage: d = DynkinDiagram(["A", 3])
+            sage: type(copy(d))
+            <class 'sage.combinat.root_system.dynkin_diagram.DynkinDiagram_class'>
+
+        We check that :trac:`14655` is fixed::
+
+            sage: cd = copy(d)
+            sage: cd.add_vertex(4)
+            sage: d.vertices() != cd.vertices()
             True
 
         Implementation note: if a Cartan type is given, then the nodes
         are initialized from the index set of this Cartan type.
         """
-        DiGraph.__init__(self)
+        if isinstance(t, DiGraph):
+            if isinstance(t, DynkinDiagram_class):
+                self._cartan_type = t._cartan_type
+            else:
+                self._cartan_type = None
+            DiGraph.__init__(self, data=t, **options)
+            return
+
+        DiGraph.__init__(self, **options)
         self._cartan_type = t
         if t is not None:
             self.add_vertices(t.index_set())
-
-    def __copy__(self):
-        """
-        EXAMPLES::
-
-            sage: d = DynkinDiagram(["A", 3])
-            sage: type(copy(d))
-            <class 'sage.combinat.root_system.dynkin_diagram.DynkinDiagram_class'>
-        """
-        import copy
-        # we have to go back to the generic copy method because the DiGraph one returns a DiGraph, not a DynkinDiagram
-        return copy._reconstruct(self,self.__reduce_ex__(2),0)
 
     def _repr_(self):
         """
@@ -369,6 +379,39 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             result.add_edge(target, source, label)
         result._cartan_type = self._cartan_type.dual() if not self._cartan_type is None else None
         return result
+
+    def is_finite(self):
+        """
+        Check if ``self`` corresponds to a finite root system.
+
+        EXAMPLES::
+
+            sage: CartanType(['F',4]).dynkin_diagram().is_finite()
+            True
+        """
+        return self._cartan_type.is_finite()
+
+    def is_affine(self):
+        """
+        Check if ``self`` corresponds to an affine root system.
+
+        EXAMPLES::
+
+            sage: CartanType(['F',4]).dynkin_diagram().is_affine()
+            False
+        """
+        return self._cartan_type.is_affine()
+
+    def is_irreducible(self):
+        """
+        Check if ``self`` corresponds to an irreducible root system.
+
+        EXAMPLES::
+
+            sage: CartanType(['F',4]).dynkin_diagram().is_irreducible()
+            True
+        """
+        return self._cartan_type.is_irreducible()
 
     def is_crystallographic(self):
         """

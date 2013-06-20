@@ -64,66 +64,13 @@ exclude_trees = exclude_trees + ['_sage']
 
 multidocs_is_master = True
 
-# List of subdocs
-multidocs_subdoc_list = [
-    'algebras',
-    'arithgroup',
-    'calculus',
-    'categories',
-    'cmd',
-    'coding',
-    'coercion',
-    'combinat',
-    'constants',
-    'cryptography',
-    'databases',
-    'doctest',
-    'finance',
-    'finite_rings',
-    'function_fields',
-    'functions',
-    'games',
-    'geometry',
-    'graphs',
-    'groups',
-    'hecke',
-    'history_and_license',
-    'homology',
-    'interfaces',
-    'lfunctions',
-    'libs',
-    'logic',
-    'matrices',
-    'misc',
-    'modabvar',
-    'modfrm',
-    'modmisc',
-    'modsym',
-    'modules',
-    'monoids',
-    'notebook',
-    'number_fields',
-    'numerical',
-    'padics',
-    'parallel',
-    'plane_curves',
-    'plot3d',
-    'plotting',
-    'polynomial_rings',
-    'power_series',
-    'probability',
-    'quadratic_forms',
-    'quat_algebras',
-    'rings',
-    'rings_numerical',
-    'rings_standard',
-    'sat',
-    'schemes',
-    'semirings',
-    'stats',
-    'structure',
-    'tensor'
-    ]
+# Sorted list of subdocs. Include all subdirectories of ref_src except
+# for 'static' and 'templates', and to deal with upgrades: 'sage',
+# 'sagenb', 'media', and 'other'.
+bad_directories = ['static', 'templates', 'sage', 'sagenb', 'media', 'other']
+multidocs_subdoc_list = sorted([x for x in os.listdir(ref_src)
+                                if os.path.isdir(os.path.join(ref_src, x))
+                                and x not in bad_directories])
 
 # List of directories, relative to source directory, that shouldn't be
 # searched for source files.

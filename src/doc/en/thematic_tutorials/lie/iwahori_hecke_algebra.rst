@@ -64,7 +64,7 @@ with ``T0`` instead of ``T1``.
 You may coerce a Weyl group element into the Iwahori Hecke algebra::
 
     sage: W = WeylGroup("G2",prefix="s")
-    sage: [s1,s2]=W.simple_reflections()
+    sage: [s1,s2] = W.simple_reflections()
     sage: P.<q> = LaurentPolynomialRing(QQ)
     sage: H = IwahoriHeckeAlgebraT(W,q)
     sage: H(s1*s2)

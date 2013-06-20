@@ -623,13 +623,19 @@ ext_modules = [
     Extension('sage.libs.flint.flint',
               sources = ["sage/libs/flint/flint.pyx"],
               libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],
-              extra_compile_args=["-std=c99", "-D_XPG6"],
+              extra_compile_args = ["-std=c99", "-D_XPG6"],
               depends = flint_depends),
 
     Extension('sage.libs.flint.fmpz_poly',
               sources = ["sage/libs/flint/fmpz_poly.pyx"],
               libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],
-              extra_compile_args=["-std=c99", "-D_XPG6"],
+              extra_compile_args = ["-std=c99", "-D_XPG6"],
+              depends = flint_depends),
+
+    Extension('sage.libs.flint.arith',
+              sources = ["sage/libs/flint/arith.pyx"],
+              libraries = ["csage", "flint", "gmp", "gmpxx", "m", "stdc++"],
+              extra_compile_args = ["-std=c99", "-D_XPG6"],
               depends = flint_depends),
 
     Extension('sage.libs.fplll.fplll',
@@ -637,6 +643,7 @@ ext_modules = [
               libraries = ['gmp', 'mpfr', 'stdc++', 'fplll'],
               language="c++",
               include_dirs = [SAGE_INC + '/fplll'],
+              extra_compile_args=["-DFPLLL_V3_COMPAT"],
               depends = [SAGE_INC + "/fplll/fplll.h"]),
 
     Extension('sage.libs.linbox.linbox',
@@ -1140,6 +1147,9 @@ ext_modules = [
     Extension('sage.misc.function_mangling',
               sources = ['sage/misc/function_mangling.pyx']),
 
+    Extension('sage.misc.lazy_attribute',
+              sources = ['sage/misc/lazy_attribute.pyx']),
+
     Extension('sage.misc.lazy_import',
               sources = ['sage/misc/lazy_import.pyx']),
 
@@ -1375,6 +1385,10 @@ ext_modules = [
 
     Extension('sage.quadratic_forms.quadratic_form__evaluate',
               sources = ['sage/quadratic_forms/quadratic_form__evaluate.pyx']),
+
+
+    Extension('sage.quadratic_forms.ternary',
+              sources = ['sage/quadratic_forms/ternary.pyx']),
 
     ################################
     ##

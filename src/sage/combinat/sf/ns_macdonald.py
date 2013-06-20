@@ -534,7 +534,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: q,t = var('q,t')
             sage: a.coeff(q,t)
-            (t - 1)^4/((q*t^2 - 1)^2*(q^2*t^3 - 1)^2)
+            (t - 1)^4/((q^2*t^3 - 1)^2*(q*t^2 - 1)^2)
         """
         res = 1
         shape = self.shape()
@@ -554,7 +554,7 @@ class AugmentedLatticeDiagramFilling(CombinatorialObject):
             sage: a = AugmentedLatticeDiagramFilling([[1,6],[2],[3,4,2],[],[],[5,5]])
             sage: q,t = var('q,t')
             sage: a.coeff_integral(q,t)
-            (t - 1)^4*(q*t^2 - 1)^2*(q^2*t^3 - 1)^2
+            (q^2*t^3 - 1)^2*(q*t^2 - 1)^2*(t - 1)^4
         """
         res = 1
         shape = self.shape()

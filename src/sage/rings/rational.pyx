@@ -74,6 +74,7 @@ import sage.structure.factorization
 
 import sage.rings.real_mpfr
 import sage.rings.real_double
+from libc.stdint cimport uint64_t
 
 cimport sage.rings.fast_arith
 import  sage.rings.fast_arith
@@ -2000,8 +2001,40 @@ cdef class Rational(sage.structure.element.FieldElement):
             -0.23529411764705882
             sage: float(-4/17)
             -0.23529411764705882
+            sage: float(1/3)
+            0.3333333333333333
+            sage: float(1/10)
+            0.1
+
+        TESTS:
+
+        Test that conversion agrees with `RR`::
+
+            sage: Q = [a/b for a in [-99..99] for b in [1..99]]
+            sage: all([RDF(q) == RR(q) for q  in Q])
+            True
+
+        Test that the conversion has correct rounding on simple rationals::
+
+            sage: for p in [-100..100]:
+            ....:   for q in [1..100]:
+            ....:       r = RDF(p/q)
+            ....:       assert (RR(r).exact_rational() - p/q) <= r.ulp()/2
+
+        Test larger rationals::
+
+            sage: Q = continued_fraction(pi, bits=3000).convergents()
+            sage: all([RDF(q) == RR(q) for q  in Q])
+            True
+
+        At some point, the continued fraction and direct conversion
+        to ``RDF`` should agree::
+
+            sage: RDFpi = RDF(pi)
+            sage: all([RDF(q) == RDFpi for q  in Q[20:]])
+            True
         """
-        return mpq_get_d(self.value)
+        return mpq_get_d_nearest(self.value)
 
     def __hash__(self):
         """
@@ -3429,6 +3462,207 @@ cdef class Rational(sage.structure.element.FieldElement):
             v = sib(num)/sib.int(self.denominator())
         if neg: v = -v
         return v
+
+
+# The except value is just some random double, it doesn't matter what it is.
+cdef double mpq_get_d_nearest(mpq_t x) except? -648555075988944.5:
+    """
+    Convert a ``mpq_t`` to a ``double``, with round-to-nearest-even.
+    This differs from ``mpq_get_d()`` which does round-to-zero.
+
+    TESTS::
+
+        sage: q= QQ(); float(q)
+        0.0
+        sage: q = 2^-10000; float(q)
+        0.0
+        sage: float(-q)
+        -0.0
+        sage: q = 2^10000/1; float(q)
+        inf
+        sage: float(-q)
+        -inf
+
+    ::
+
+        sage: q = 2^-1075; float(q)
+        0.0
+        sage: float(-q)
+        -0.0
+        sage: q = 2^52 / 2^1074; float(q)  # Smallest normal double
+        2.2250738585072014e-308
+        sage: float(-q)
+        -2.2250738585072014e-308
+        sage: q = (2^52 + 1/2) / 2^1074; float(q)
+        2.2250738585072014e-308
+        sage: float(-q)
+        -2.2250738585072014e-308
+        sage: q = (2^52 + 1) / 2^1074; float(q)  # Next normal double
+        2.225073858507202e-308
+        sage: float(-q)
+        -2.225073858507202e-308
+        sage: q = (2^52 - 1) / 2^1074; float(q)  # Largest denormal double
+        2.225073858507201e-308
+        sage: float(-q)
+        -2.225073858507201e-308
+        sage: q = 1 / 2^1074; float(q)  # Smallest denormal double
+        5e-324
+        sage: float(-q)
+        -5e-324
+        sage: q = (1/2) / 2^1074; float(q)
+        0.0
+        sage: float(-q)
+        -0.0
+        sage: q = (3/2) / 2^1074; float(q)
+        1e-323
+        sage: float(-q)
+        -1e-323
+        sage: q = (2/3) / 2^1074; float(q)
+        5e-324
+        sage: float(-q)
+        -5e-324
+        sage: q = (1/3) / 2^1074; float(q)
+        0.0
+        sage: float(-q)
+        -0.0
+        sage: q = (2^53 - 1) * 2^971/1; float(q)  # Largest double
+        1.7976931348623157e+308
+        sage: float(-q)
+        -1.7976931348623157e+308
+        sage: q = (2^53) * 2^971/1; float(q)
+        inf
+        sage: float(-q)
+        -inf
+        sage: q = (2^53 - 1/2) * 2^971/1; float(q)
+        inf
+        sage: float(-q)
+        -inf
+        sage: q = (2^53 - 2/3) * 2^971/1; float(q)
+        1.7976931348623157e+308
+        sage: float(-q)
+        -1.7976931348623157e+308
+
+    AUTHORS:
+
+    - Paul Zimmermann, Jeroen Demeyer (:trac:`14416`)
+    """
+    cdef __mpz_struct* a = <__mpz_struct*>(mpq_numref(x))
+    cdef __mpz_struct* b = <__mpz_struct*>(mpq_denref(x))
+    cdef int resultsign = mpz_sgn(a)
+
+    if resultsign == 0:
+        return 0.0
+
+    cdef Py_ssize_t sa = mpz_sizeinbase(a, 2)
+    cdef Py_ssize_t sb = mpz_sizeinbase(b, 2)
+
+    # Easy case: both numerator and denominator are exactly
+    # representable as doubles.
+    if sa <= 53 and sb <= 53:
+        return mpz_get_d(a) / mpz_get_d(b)
+
+    # General case
+
+    # We should shift a right by this amount
+    cdef Py_ssize_t shift = sa - sb - 54
+
+    # At this point, we know that q0 = a/b / 2^shift satisfies
+    # 2^53 < q0 < 2^55.
+    # The end result d = q0 * 2^shift (rounded).
+
+    # Check for obvious overflow/underflow before shifting
+    if shift <= -1130:  # |d| < 2^-1075
+        if resultsign < 0:
+            return -0.0
+        else:
+            return 0.0
+    elif shift >= 971:  # |d| > 2^1024
+        if resultsign < 0:
+            return -1.0/0.0
+        else:
+            return 1.0/0.0
+
+    sig_on()
+
+    # Compute q = trunc(a / 2^shift) and let remainder_is_zero be True
+    # if and only if no truncation occurred.
+    cdef mpz_t q, r
+    mpz_init(q)
+    mpz_init(r)
+    cdef bint remainder_is_zero
+    if shift > 0:
+        mpz_tdiv_r_2exp(r, a, shift)
+        remainder_is_zero = (mpz_cmp_ui(r, 0) == 0)
+        mpz_tdiv_q_2exp(q, a, shift)
+    else:
+        mpz_mul_2exp(q, a, -shift)
+        remainder_is_zero = True
+
+    # Now divide by b to get q = trunc(a/b / 2^shift).
+    # remainder_is_zero is True if and only if no truncation occurred
+    # (in neither division).
+    mpz_tdiv_qr(q, r, q, b)
+    if remainder_is_zero:
+        remainder_is_zero = (mpz_cmp_ui(r, 0) == 0)
+
+    # Convert q to a 64-bit integer.
+    cdef mp_limb_t* q_limbs = (<__mpz_struct*>q)._mp_d
+    cdef uint64_t q64
+    if sizeof(mp_limb_t) >= 8:
+        q64 = q_limbs[0]
+    else:
+        assert sizeof(mp_limb_t) == 4
+        q64 = q_limbs[1]
+        q64 = (q64 << 32) + q_limbs[0]
+
+    mpz_clear(q)
+    mpz_clear(r)
+    sig_off()
+
+    # The quotient q64 has 54 or 55 bits, but we need exactly 54.
+    # Shift it down by 1 one if needed.
+    cdef Py_ssize_t add_shift
+    if q64 < (1ULL << 54):
+        add_shift = 0
+    else:
+        add_shift = 1
+
+    if (shift + add_shift) < -1075:
+        # The result will be denormal, ensure the final shift is -1075
+        # to avoid a double rounding.
+        add_shift = -1075 - shift
+
+    # Add add_shift to shift and let q = trunc(a/b / 2^shift)
+    # for the new shift value.
+    cdef uint64_t mask
+    if add_shift:
+        assert add_shift > 0
+        assert add_shift < 64
+        shift += add_shift
+        # We do an additional division of q by 2^add_shift.
+        if remainder_is_zero:
+            mask = ((1ULL << add_shift)-1)
+            remainder_is_zero = ((q64 & mask) == 0)
+        q64 = q64 >> add_shift
+
+    if ((q64 & 1) == 0):
+        # Round towards zero
+        pass
+    else:
+        if not remainder_is_zero:
+            # Remainder is non-zero: round away from zero
+            q64 += 1
+        else:
+            q64 += (q64 & 2) - 1
+
+    # The conversion of q64 to double is *exact*.
+    # This is because q64 is even and satisfies q64 <= 2^54,
+    # (with 2^53 <= q64 <= 2^54 unless in the denormal case).
+    cdef double d = <double>q64
+    if resultsign < 0:
+        d = -d
+    return ldexp(d, shift)
+
 
 def pyrex_rational_reconstruction(integer.Integer a, integer.Integer m):
     """

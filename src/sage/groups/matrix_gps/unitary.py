@@ -4,6 +4,22 @@ Unitary Groups `GU(n,q)` and `SU(n,q)`
 These are `n \times n` unitary matrices with entries in
 `GF(q^2)`.
 
+EXAMPLES::
+
+    sage: G = SU(3,5)
+    sage: G.order()
+    378000
+    sage: G
+    Special Unitary Group of degree 3 over Finite Field in a of size 5^2
+    sage: G.gens()
+    (
+    [      a       0       0]  [4*a   4   1]
+    [      0 2*a + 2       0]  [  4   4   0]
+    [      0       0     3*a], [  1   0   0]
+    )
+    sage: G.base_ring()
+    Finite Field in a of size 5^2
+
 AUTHORS:
 
 - David Joyner (2006-03): initial version, modified from
@@ -14,239 +30,233 @@ AUTHORS:
 
 - William Stein (2006-12): rewrite
 
-EXAMPLES::
-
-    sage: G = SU(3,GF(5))
-    sage: G.order()
-    378000
-    sage: G
-    Special Unitary Group of degree 3 over Finite Field of size 5
-    sage: G._gap_init_()
-    'SU(3, 5)'
-    sage: G.random_element()
-    [4*a + 1 4*a + 4   a + 4]
-    [3*a + 3       3       3]
-    [  a + 2 4*a + 1 3*a + 3]
-    sage: G.base_ring()
-    Finite Field of size 5
-    sage: G.field_of_definition()
-    Finite Field in a of size 5^2
+- Volker Braun (2013-1) port to new Parent, libGAP, extreme refactoring.
 """
 
 #*********************************************************************************
 #       Copyright (C) 2006 David Joyner and William Stein
+#       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*********************************************************************************
 
-from sage.rings.all import is_FiniteField, GF, Integer
-from matrix_group import MatrixGroup_gap_finite_field
+from sage.rings.all import ZZ, is_FiniteField, GF
+from sage.misc.latex import latex
+from sage.groups.matrix_gps.named_group import (
+    normalize_args_vectorspace, NamedMatrixGroup_generic, NamedMatrixGroup_gap )
+
+
+def finite_field_sqrt(ring):
+    """
+    Helper function.
+
+    INPUT:
+
+    A ring.
+
+    OUTPUT:
+
+    Integer q such that ``ring`` is the finite field with `q^2` elements.
+
+    EXAMPLES::
+
+        sage: from sage.groups.matrix_gps.unitary import finite_field_sqrt
+        sage: finite_field_sqrt(GF(4, 'a'))
+        2
+    """
+    if not is_FiniteField(ring):
+        raise ValueError('not a finite field')
+    q, rem = ring.cardinality().sqrtrem()
+    if rem != 0:
+        raise ValueError('cardinatity not a square')
+    return q
+
 
 ###############################################################################
 # General Unitary Group
 ###############################################################################
 
-def GU(n, F, var='a'):
-    """
-    Return the general unitary group of degree n over the finite field
-    F.
+def GU(n, R, var='a'):
+    r"""
+    Return the general unitary group.
+
+    The general unitary group `GU( d, R )` consists of all `d \times
+    d` matrices that preserve a nondegenerate sequilinear form over
+    the ring `R`.
+
+    .. note::
+
+        For a finite field the matrices that preserve a sesquilinear
+        form over `F_q` live over `F_{q^2}`. So ``GU(n,q)`` for
+        integer ``q`` constructs the matrix group over the base ring
+        ``GF(q^2)``.
+
+    .. note::
+
+        This group is also available via ``groups.matrix.GU()``.
 
     INPUT:
 
+    - ``n`` -- a positive integer.
 
-    -  ``n`` - a positive integer
+    - ``R`` -- ring or an integer. If an integer is specified, the
+      corresponding finite field is used.
 
-    -  ``F`` - finite field
+    - ``var`` -- variable used to represent generator of the finite
+      field, if needed.
 
-    -  ``var`` - variable used to represent generator of
-       quadratic extension of F, if needed.
+    OUTPUT:
 
-
-    .. note::
-        This group is also available via ``groups.matrix.GU()``.
+    Return the general unitary group.
 
     EXAMPLES::
 
-        sage: G = GU(3,GF(7)); G
-        General Unitary Group of degree 3 over Finite Field of size 7
+        sage: G = GU(3, 7); G
+        General Unitary Group of degree 3 over Finite Field in a of size 7^2
         sage: G.gens()
-        [
-        [  a   0   0]
-        [  0   1   0]
-        [  0   0 5*a],
-        [6*a   6   1]
-        [  6   6   0]
-        [  1   0   0]
-        ]
-        sage: G = GU(2,QQ)
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: general unitary group only implemented over finite fields
+        (
+        [  a   0   0]  [6*a   6   1]
+        [  0   1   0]  [  6   6   0]
+        [  0   0 5*a], [  1   0   0]
+        )
+        sage: GU(2,QQ)
+        General Unitary Group of degree 2 over Rational Field
 
-    ::
-
-        sage: G = GU(3,GF(5), var='beta')
+        sage: G = GU(3, 5, var='beta')
+        sage: G.base_ring()
+        Finite Field in beta of size 5^2
         sage: G.gens()
-        [
-        [  beta      0      0]
-        [     0      1      0]
-        [     0      0 3*beta],
-        [4*beta      4      1]
-        [     4      4      0]
-        [     1      0      0]
-        ]
+        (
+        [  beta      0      0]  [4*beta      4      1]
+        [     0      1      0]  [     4      4      0]
+        [     0      0 3*beta], [     1      0      0]
+        )
 
     TESTS::
 
         sage: groups.matrix.GU(2, 3)
-        General Unitary Group of degree 2 over Finite Field of size 3
+        General Unitary Group of degree 2 over Finite Field in a of size 3^2
     """
-    if isinstance(F, (int, long, Integer)):
-        F = GF(F,var)
-    if is_FiniteField(F):
-        return GeneralUnitaryGroup_finite_field(n, F, var)
+    degree, ring = normalize_args_vectorspace(n, R, var=var)
+    if is_FiniteField(ring):
+        q = ring.cardinality()
+        ring = GF(q ** 2, name=var)
+    name = 'General Unitary Group of degree {0} over {1}'.format(degree, ring)
+    ltx  = r'\text{{GU}}_{{{0}}}({1})'.format(degree, latex(ring))
+    if is_FiniteField(ring):
+        cmd  = 'GU({0}, {1})'.format(degree, q)
+        return UnitaryMatrixGroup_gap(degree, ring, False, name, ltx, cmd)
     else:
-        raise NotImplementedError, "general unitary group only implemented over finite fields"
+        return UnitaryMatrixGroup_generic(degree, ring, False, name, ltx)
 
-class UnitaryGroup_finite_field(MatrixGroup_gap_finite_field):
-    def field_of_definition(self):
-        """
-        Return the field of definition of this general unity group.
-
-        EXAMPLES::
-
-            sage: G = GU(3,GF(5))
-            sage: G.field_of_definition()
-            Finite Field in a of size 5^2
-            sage: G.base_field()
-            Finite Field of size 5
-        """
-        try:
-            return self._field_of_definition
-        except AttributeError:
-            if self.base_ring().degree() % 2 == 0:
-                k = self.base_ring()
-            else:
-                k = GF(self.base_ring().order()**2, names=self._var)
-            self._field_of_definition = k
-            return k
-
-class GeneralUnitaryGroup_finite_field(UnitaryGroup_finite_field):
-    def _gap_init_(self):
-        """
-        Return string that evaluates to creates this group as an element of
-        GAP.
-
-        EXAMPLES::
-
-            sage: G = GU(3,GF(7)); G
-            General Unitary Group of degree 3 over Finite Field of size 7
-            sage: G._gap_init_()
-            'GU(3, 7)'
-            sage: gap(G._gap_init_())
-            GU(3,7)
-        """
-        return "GU(%s, %s)"%(self.degree(), self.base_ring().order())
-
-    def _latex_(self):
-        r"""
-        Return LaTeX string representation of this group.
-
-        EXAMPLES::
-
-            sage: G = GU(3,GF(7)); G
-            General Unitary Group of degree 3 over Finite Field of size 7
-            sage: latex(G)
-            \text{GU}_{3}(\Bold{F}_{7^{2}})
-        """
-        return "\\text{GU}_{%s}(%s)"%(self.degree(), self.field_of_definition()._latex_())
-
-    def _repr_(self):
-        """
-        Return text representation of self.
-
-        EXAMPLES::
-
-            sage: G = GU(3,GF(5))
-            sage: G
-            General Unitary Group of degree 3 over Finite Field of size 5
-        """
-        return "General Unitary Group of degree %s over %s"%(self.degree(), self.base_ring())
 
 
 ###############################################################################
 # Special Unitary Group
 ###############################################################################
 
-def SU(n, F, var='a'):
+def SU(n, R, var='a'):
     """
-    Return the special unitary group of degree `n` over
-    `F`.
+    The special unitary group `SU( d, R )` consists of all `d \times d`
+    matrices that preserve a nondegenerate sequilinear form over the
+    ring `R` and have determinant one.
 
     .. note::
+
+        For a finite field the matrices that preserve a sesquilinear
+        form over `F_q` live over `F_{q^2}`. So ``SU(n,q)`` for
+        integer ``q`` constructs the matrix group over the base ring
+        ``GF(q^2)``.
+
+    .. note::
+
         This group is also available via ``groups.matrix.SU()``.
+
+    INPUT:
+
+    - ``n`` -- a positive integer.
+
+    - ``R`` -- ring or an integer. If an integer is specified, the
+      corresponding finite field is used.
+
+    - ``var`` -- variable used to represent generator of the finite
+      field, if needed.
+
+    OUTPUT:
+
+    Return the special unitary group.
 
     EXAMPLES::
 
         sage: SU(3,5)
-        Special Unitary Group of degree 3 over Finite Field of size 5
+        Special Unitary Group of degree 3 over Finite Field in a of size 5^2
+        sage: SU(3, GF(5))
+        Special Unitary Group of degree 3 over Finite Field in a of size 5^2
         sage: SU(3,QQ)
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: special unitary group only implemented over finite fields
+        Special Unitary Group of degree 3 over Rational Field
 
     TESTS::
 
         sage: groups.matrix.SU(2, 3)
-        Special Unitary Group of degree 2 over Finite Field of size 3
+        Special Unitary Group of degree 2 over Finite Field in a of size 3^2
     """
-    if isinstance(F, (int, long, Integer)):
-        F = GF(F,var)
-    if is_FiniteField(F):
-        return SpecialUnitaryGroup_finite_field(n, F, var=var)
+    degree, ring = normalize_args_vectorspace(n, R, var=var)
+    if is_FiniteField(ring):
+        q = ring.cardinality()
+        ring = GF(q ** 2, name=var)
+    name = 'Special Unitary Group of degree {0} over {1}'.format(degree, ring)
+    ltx  = r'\text{{SU}}_{{{0}}}({1})'.format(degree, latex(ring))
+    if is_FiniteField(ring):
+        cmd  = 'SU({0}, {1})'.format(degree, q)
+        return UnitaryMatrixGroup_gap(degree, ring, True, name, ltx, cmd)
     else:
-        raise NotImplementedError, "special unitary group only implemented over finite fields"
+        return UnitaryMatrixGroup_generic(degree, ring, True, name, ltx)
 
-class SpecialUnitaryGroup_finite_field(UnitaryGroup_finite_field):
 
-    def _gap_init_(self):
-        """
-        Return string that creates this group in GAP.
+########################################################################
+# Unitary Group class
+########################################################################
+
+class UnitaryMatrixGroup_generic(NamedMatrixGroup_generic):
+    r"""
+    General Unitary Group over arbitrary rings.
+
+    EXAMPLES::
+
+        sage: G = GU(3, GF(7)); G
+        General Unitary Group of degree 3 over Finite Field in a of size 7^2
+        sage: latex(G)
+        \text{GU}_{3}(\Bold{F}_{7^{2}})
+
+        sage: G = SU(3, GF(5));  G
+        Special Unitary Group of degree 3 over Finite Field in a of size 5^2
+        sage: latex(G)
+        \text{SU}_{3}(\Bold{F}_{5^{2}})
+    """
+
+    def _check_matrix(self, x, *args):
+        """a
+        Check whether the matrix ``x`` is unitary.
+
+        See :meth:`~sage.groups.matrix_gps.matrix_group._check_matrix`
+        for details.
 
         EXAMPLES::
 
-            sage: SU(3,5)._gap_init_()
-            'SU(3, 5)'
+            sage: G = GU(2, GF(5))
+            sage: G._check_matrix(G.an_element().matrix())
+            sage: G = SU(2, GF(5))
+            sage: G._check_matrix(G.an_element().matrix())
         """
-        return "SU(%s, %s)"%(self.degree(), self.base_ring().order())
-
-    def _latex_(self):
-        """
-        Return latex representation of this group.
-
-        EXAMPLES::
-
-            sage: G = SU(3,GF(5))
-            sage: latex(G)
-            \text{SU}_{3}(\Bold{F}_{5^{2}})
-        """
-        return "\\text{SU}_{%s}(%s)"%(self.degree(), self.field_of_definition()._latex_())
+        if self._special and x.determinant() != 1:
+            raise TypeError('matrix must have determinant one')
+        if not x.is_unitary():
+            raise TypeError('matrix must be unitary')
 
 
-    def _repr_(self):
-        """
-        Return text representation of this special unitary group.
-
-        EXAMPLES::
-
-            sage: G = SU(3,GF(5))
-            sage: G
-            Special Unitary Group of degree 3 over Finite Field of size 5
-        """
-        return "Special Unitary Group of degree %s over %s"%(self.degree(), self.base_ring())
-
-
+class UnitaryMatrixGroup_gap(UnitaryMatrixGroup_generic, NamedMatrixGroup_gap):
+    pass
 
 
 

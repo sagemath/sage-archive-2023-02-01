@@ -17,40 +17,23 @@ Sum species
 #*****************************************************************************
 from species import GenericCombinatorialSpecies
 from structure import SpeciesStructureWrapper
-from sage.misc.cachefunc import cached_function
+from sage.structure.unique_representation import UniqueRepresentation
 
 
 class SumSpeciesStructure(SpeciesStructureWrapper):
     pass
 
-@cached_function
-def SumSpecies(*args, **kwds):
-    """
-    Returns the sum of two species.
-
-    EXAMPLES::
-
-        sage: S = species.PermutationSpecies()
-        sage: A = S+S
-        sage: A.generating_series().coefficients(5)
-        [2, 2, 2, 2, 2]
-
-    TESTS::
-
-        sage: A = species.SingletonSpecies() + species.SingletonSpecies()
-        sage: B = species.SingletonSpecies() + species.SingletonSpecies()
-        sage: C = species.SingletonSpecies() + species.SingletonSpecies(min=2)
-        sage: A is B
-        True
-        sage: (A is C) or (A == C)
-        False
-    """
-    return SumSpecies_class(*args, **kwds)
-
-class SumSpecies_class(GenericCombinatorialSpecies):
+class SumSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
     def __init__(self, F, G, min=None, max=None, weight=None):
         """
+        Returns the sum of two species.
+
         EXAMPLES::
+
+            sage: S = species.PermutationSpecies()
+            sage: A = S+S
+            sage: A.generating_series().coefficients(5)
+            [2, 2, 2, 2, 2]
 
             sage: P = species.PermutationSpecies()
             sage: F = P + P
@@ -58,6 +41,16 @@ class SumSpecies_class(GenericCombinatorialSpecies):
             True
             sage: F == loads(dumps(F))
             True
+
+        TESTS::
+
+            sage: A = species.SingletonSpecies() + species.SingletonSpecies()
+            sage: B = species.SingletonSpecies() + species.SingletonSpecies()
+            sage: C = species.SingletonSpecies() + species.SingletonSpecies(min=2)
+            sage: A is B
+            True
+            sage: (A is C) or (A == C)
+            False
         """
         self._F = F
         self._G = G
@@ -67,8 +60,6 @@ class SumSpecies_class(GenericCombinatorialSpecies):
         GenericCombinatorialSpecies.__init__(self, min=None, max=None, weight=None)
 
     _default_structure_class = SumSpeciesStructure
-
-    _cached_constructor = staticmethod(SumSpecies)
 
     def _name(self):
         """
@@ -197,3 +188,5 @@ class SumSpecies_class(GenericCombinatorialSpecies):
         """
         return sum(var_mapping[operand] for operand in self._state_info)
 
+#Backward compatibility
+SumSpecies_class = SumSpecies

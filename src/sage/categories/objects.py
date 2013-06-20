@@ -86,5 +86,5 @@ class Objects(Category):
             from sets_cat import Sets
             return [Sets()]
 
-        class ParentMethods(Homset):
+        class ParentMethods:
             pass

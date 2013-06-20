@@ -900,7 +900,7 @@ class Function_gamma_inc(BuiltinFunction):
             sage: gamma_inc(CDF(0,1), 3)
             0.00320857499337 + 0.0124061858119*I
             sage: gamma_inc(RDF(1), 3)
-            0.0497870683678639
+            0.0497870683679
             sage: gamma_inc(3,2)
             gamma(3, 2)
             sage: gamma_inc(x,0)
@@ -1803,7 +1803,7 @@ class Function_arg(BuiltinFunction):
             sage: arg(ComplexIntervalField(90)(3)).parent()
             Real Interval Field with 90 bits of precision
             sage: arg(3.0r)
-            0.000000000000000
+            0.0
             sage: arg(RDF(3))
             0.0
             sage: arg(RDF(3)).parent()

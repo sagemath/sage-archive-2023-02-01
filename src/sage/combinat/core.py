@@ -35,6 +35,7 @@ from sage.combinat.partition import Partitions, Partition
 from sage.combinat.combinat import CombinatorialObject
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.functions.other import floor
+from sage.combinat.combinatorial_map import combinatorial_map
 
 class Core(CombinatorialObject, Element):
     r"""
@@ -137,6 +138,7 @@ class Core(CombinatorialObject, Element):
         """
         return self.parent().k
 
+    @combinatorial_map(name="to partition")
     def to_partition(self):
         r"""
         Turns the core ``self`` into the partition identical to ``self``.
@@ -149,6 +151,7 @@ class Core(CombinatorialObject, Element):
         """
         return Partition(self)
 
+    @combinatorial_map(name="to bounded partition")
     def to_bounded_partition(self):
         r"""
         Bijection between `k`-cores and `(k-1)`-bounded partitions.

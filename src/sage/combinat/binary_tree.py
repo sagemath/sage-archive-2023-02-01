@@ -735,6 +735,99 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         """
         return self._to_ordered_tree(bijection="right")
 
+    def _postfix_word(self, left_first = True, start = 1):
+        r"""
+        Internal recursive method to obtain a postfix canonical read of the
+        binary tree.
+
+        EXAMPLES::
+
+            sage: bt = BinaryTree([[],[]])
+            sage: bt._postfix_word()
+            [1, 3, 2]
+            sage: bt._postfix_word(left_first=False)
+            [3, 1, 2]
+            sage: bt = BinaryTree([[[], [[], None]], [[], []]])
+            sage: bt._postfix_word()
+            [1, 3, 4, 2, 6, 8, 7, 5]
+            sage: bt._postfix_word(left_first=False)
+            [8, 6, 7, 3, 4, 1, 2, 5]
+        """
+        if not self:
+            return []
+        left = self[0]._postfix_word(left_first, start)
+        label = start + self[0].node_number()
+        right = self[1]._postfix_word(left_first, start = label +1)
+        if left_first:
+            left.extend(right)
+            left.append(label)
+            return left
+        else:
+            right.extend(left)
+            right.append(label)
+            return right
+
+    @combinatorial_map(name="To 312 avoiding permutation")
+    def to_312_avoiding_permutation(self):
+        r"""
+        Return a 312-avoiding permutation corresponding to the binary tree.
+
+        The linear extensions of a binary tree form an interval of the weak
+        order called the sylester class of the tree. This permutation is
+        the minimal element of this sylvester class.
+
+        EXAMPLES::
+
+            sage: bt = BinaryTree([[],[]])
+            sage: bt.to_312_avoiding_permutation()
+            [1, 3, 2]
+            sage: bt = BinaryTree([[[], [[], None]], [[], []]])
+            sage: bt.to_312_avoiding_permutation()
+            [1, 3, 4, 2, 6, 8, 7, 5]
+
+        TESTS::
+
+            sage: bt = BinaryTree([[],[]])
+            sage: bt == bt.to_312_avoiding_permutation().binary_search_tree_shape(left_to_right=False)
+            True
+            sage: bt = BinaryTree([[[], [[], None]], [[], []]])
+            sage: bt == bt.to_312_avoiding_permutation().binary_search_tree_shape(left_to_right=False)
+            True
+        """
+        from sage.combinat.permutation import Permutation
+        return Permutation(self._postfix_word())
+
+
+    @combinatorial_map(name="To 132 avoiding permutation")
+    def to_132_avoiding_permutation(self):
+        r"""
+        Return a 132-avoiding permutation corresponding to the binary tree.
+
+        The linear extensions of a binary tree form an interval of the weak
+        order called the sylester class of the tree. This permutation is
+        the maximal element of this sylvester class.
+
+        EXAMPLES::
+
+            sage: bt = BinaryTree([[],[]])
+            sage: bt.to_132_avoiding_permutation()
+            [3, 1, 2]
+            sage: bt = BinaryTree([[[], [[], None]], [[], []]])
+            sage: bt.to_132_avoiding_permutation()
+            [8, 6, 7, 3, 4, 1, 2, 5]
+
+        TESTS::
+
+            sage: bt = BinaryTree([[],[]])
+            sage: bt == bt.to_132_avoiding_permutation().binary_search_tree_shape(left_to_right=False)
+            True
+            sage: bt = BinaryTree([[[], [[], None]], [[], []]])
+            sage: bt == bt.to_132_avoiding_permutation().binary_search_tree_shape(left_to_right=False)
+            True
+        """
+        from sage.combinat.permutation import Permutation
+        return Permutation(self._postfix_word(left_first=False))
+
     @combinatorial_map(order = 2, name="Left-right symmetry")
     def left_right_symmetry(self):
         r"""

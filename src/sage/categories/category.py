@@ -105,7 +105,7 @@ from sage.misc.unknown import Unknown
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.structure.dynamic_class import dynamic_class
+from sage.structure.dynamic_class import DynamicMetaclass, dynamic_class
 
 from weakref import WeakValueDictionary
 _join_cache = WeakValueDictionary()
@@ -430,6 +430,37 @@ class Category(UniqueRepresentation, SageObject):
         True
 
     """
+    @staticmethod
+    def __classcall__(cls, *args, **options):
+        """
+        Input mangling for unique representation.
+
+        Let ``C = Cs(...)`` be a category. Since :trac:`12895`, the
+        class of ``C`` is a dynamic subclass ``Cs_with_category`` of
+        ``Cs`` in order for ``C`` to inherit code from the
+        ``SubcategoryMethods`` nested classes of its super categories.
+
+        The purpose of this ``__classcall__`` method is to ensure that
+        reconstructing ``C`` from its class with
+        ``Cs_with_category(...)`` actually calls properly ``Cs(...)``
+        and gives back ``C``.
+
+        .. SEEALSO:: :meth:`subcategory_class`
+
+        EXAMPLES::
+
+            sage: A = Algebras(QQ)
+            sage: A.__class__
+            <class 'sage.categories.algebras.Algebras_with_category'>
+            sage: A is Algebras(QQ)
+            True
+            sage: A is A.__class__(QQ)
+            True
+        """
+        if isinstance(cls, DynamicMetaclass):
+            cls = cls.__base__
+        return super(Category, cls).__classcall__(cls, *args, **options)
+
     def __init__(self, s=None):
         """
         Initializes this category.
@@ -453,14 +484,19 @@ class Category(UniqueRepresentation, SageObject):
             sage: C = SemiprimitiveRings("SPR")
             sage: C
             Category of SPR
+            sage: C.__class__
+            <class '__main__.SemiprimitiveRings_with_category'>
         """
-        if s is None:
-            return
-        if isinstance(s, str):
-            self._label = s
-            self.__repr_object_names = s
-        else:
-            raise TypeError, "Argument string must be a string."
+        if s is not None:
+            if isinstance(s, str):
+                self._label = s
+                self.__repr_object_names = s
+            else:
+                raise TypeError, "Argument string must be a string."
+        self.__class__ = dynamic_class("%s_with_category"%self.__class__.__name__,
+                                       (self.__class__, self.subcategory_class, ),
+                                       cache = False, reduction = None,
+                                       doccls=self.__class__)
 
     @lazy_attribute
     def _label(self):
@@ -473,7 +509,7 @@ class Category(UniqueRepresentation, SageObject):
             'Rings'
 
         """
-        t = str(type(self))
+        t = str(self.__class__.__base__)
         t = t[t.rfind('.')+1:]
         return t[:t.rfind("'")]
 
@@ -1124,6 +1160,8 @@ class Category(UniqueRepresentation, SageObject):
             <class '__main__.BrokenCategory.morphism_class'>
         """
         cls = self.__class__
+        if isinstance(cls, DynamicMetaclass):
+            cls = cls.__base__
         class_name = "%s.%s"%(cls.__name__, name)
         method_provider_cls = getattr(self, method_provider, None)
         if method_provider_cls is None:
@@ -1149,6 +1187,47 @@ class Category(UniqueRepresentation, SageObject):
                              method_provider_cls, prepend_cls_bases = False, doccls = doccls,
                              reduction = reduction, cache = cache)
 
+
+    @lazy_attribute
+    def subcategory_class(self):
+        """
+        A common superclass for all subcategories of this category (including this one).
+
+        This class derives from ``D.subcategory_class`` for each super
+        category `D` of ``self``, and includes all the methods from
+        the nested class ``self.SubcategoryMethods``, if it exists.
+
+        .. SEEALSO::
+
+            - :trac:`12895`
+            - :meth:`parent_class`
+            - :meth:`element_class`
+            - :meth:`_make_named_class`
+
+        EXAMPLES::
+
+            sage: cls = Rings().subcategory_class; cls
+            <class 'sage.categories.rings.Rings.subcategory_class'>
+            sage: type(cls)
+            <class 'sage.structure.dynamic_class.DynamicMetaclass'>
+
+        ``Rings()`` is an instance of this class, as well as all its subcategories::
+
+            sage: isinstance(Rings(), cls)
+            True
+            sage: isinstance(AlgebrasWithBasis(QQ), cls)
+            True
+
+        TESTS::
+
+            sage: cls = Algebras(QQ).subcategory_class; cls
+            <class 'sage.categories.algebras.Algebras.subcategory_class'>
+            sage: type(cls)
+            <class 'sage.structure.dynamic_class.DynamicMetaclass'>
+
+        """
+        return self._make_named_class('subcategory_class', 'SubcategoryMethods',
+                                      cache=False, picklable=False)
 
     @lazy_attribute
     def parent_class(self):
@@ -1684,8 +1763,8 @@ class HomCategory(Category):
             Category of hom sets in Category of rings
             sage: TestSuite(C).run(skip=['_test_category_graph'])
         """
-        Category.__init__(self, name)
         self.base_category = category
+        Category.__init__(self, name)
 
     def _repr_object_names(self): # improve?
         """
@@ -1872,6 +1951,8 @@ class CategoryWithParameters(Category):
             True
         """
         cls = self.__class__
+        if isinstance(cls, DynamicMetaclass):
+            cls = cls.__base__
         key = (cls, name, self._make_named_class_key(name))
         try:
             return self._make_named_class_cache[key]
@@ -2003,11 +2084,11 @@ class JoinCategory(CategoryWithParameters):
         """
         assert(len(super_categories) >= 2)
         assert(all(not isinstance(category, JoinCategory) for category in super_categories))
+        self._super_categories = list(super_categories)
         if kwds.has_key('name'):
             Category.__init__(self, kwds['name'])
         else:
             Category.__init__(self)
-        self._super_categories = list(super_categories)
 
     def _make_named_class_key(self, name):
         r"""

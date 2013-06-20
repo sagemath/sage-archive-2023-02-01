@@ -267,11 +267,11 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
             sage: Sets.Subquotients
             <class 'sage.categories.sets_cat.Sets.Subquotients'>
             sage: Sets().Subquotients
-            <bound method Sets.Subquotients of Category of sets>
+            <bound method Sets_with_category.Subquotients of Category of sets>
         """
         if category is None:
             return cls
-        return getattr(super(category.__class__, category), cls._functor_category)
+        return getattr(super(category.__class__.__base__, category), cls._functor_category)
 
     @classmethod #cached_function or cached_method are not available for a classmethod
     def category_of(cls, category, *args):
@@ -375,9 +375,9 @@ class CovariantConstructionCategory(Category): # Should this be CategoryWithBase
             sage: TestSuite(C).run()
         """
         assert isinstance(category, Category)
-        Category.__init__(self)
         self._base_category = category
         self._args = args
+        super(CovariantConstructionCategory, self).__init__(*args)
 
     def base_category(self):
         """

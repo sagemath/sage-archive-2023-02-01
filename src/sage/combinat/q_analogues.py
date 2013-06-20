@@ -464,3 +464,101 @@ def q_jordan(t, q):
             res += q_jordan(Partition(tp),q) * ((q**ti - q**tj) // (q-1))
             tj = ti
     return res
+
+def q_subgroups_of_abelian_group(la, mu, q=None):
+    r"""
+    Return the `q`-number of subgroups of type ``mu`` in a finite abelian
+    group of type ``la``.
+
+    INPUT:
+
+    - ``la`` -- Type of the ambient group as a Partition object
+    - ``mu`` -- Type of the subgroup as a Partition object
+    - ``q`` -- (Default: ``None``) An indeterminat or a prime number. If
+      ``None``, this defaults to `q \in \ZZ[q]`.
+
+    OUTPUT:
+
+    The number of subgroups of type ``mu`` in a group of type ``la`` as a
+    polynomial in ``q``.
+
+
+    ALGORITHM:
+
+    We use the formula from [Delsarte48]_, which works as follows:
+
+    Let `q` be a prime number and `\lambda = (\lambda_1, \ldots, \lambda_l)`
+    be a partition. A finite abelian `q`-group is of type `\lambda` if it
+    is isomorphic to
+
+    .. MATH::
+
+        \ZZ / q^{\lambda_1} \ZZ \times \cdots \times \ZZ / q^{\lambda_l} \ZZ.
+
+    Let `\lambda` and `\mu` be partitions. Let `(s_1, s_2, \ldots, s_l)`
+    and `(r_1, r_2, \ldots, r_k)` denote the parts of the partitions
+    conjugate to `\lambda` and `\mu` respectively. Let
+
+    .. MATH::
+
+        \mathfrak{F}(\xi_1,\ldots,\xi_k) = \xi_1^{r_2} \xi_2^{r_3} \cdots
+        \xi_{k-1}^{r_k} \prod_{i_1=r_2}^{r_1-1} (\xi_1-q^{i_1})
+        \prod_{i_2=r_3}^{r_2-1} (\xi_2-q^{i_2}) \cdots
+        \prod_{i_k=0}^{r_k-1} (\xi_k-q^{-i_k}).
+
+    Then the number of subgroups of type `\mu` in a group of type `\lambda`
+    is given by
+
+    .. MATH::
+
+        \frac{\mathfrak{F}(q^{s_1}, q^{s_2}, \ldots, q^{s_k})}{\mathfrak{F}
+        (q^{r_1}, q^{r_2}, \ldots, q^{r_k})}.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.q_analogues import q_subgroups_of_abelian_group
+        sage: q_subgroups_of_abelian_group([1,1],[1])
+        q + 1
+        sage: q_subgroups_of_abelian_group([3,3,2,1],[2,1])
+        q^6 + 2*q^5 + 3*q^4 + 2*q^3 + q^2
+        sage: R.<t> = QQ[]
+        sage: q_subgroups_of_abelian_group([5,3,1],[3,1],t)
+        t^4 + 2*t^3 + t^2
+        sage: q_subgroups_of_abelian_group([5,3,1],[3,1],3)
+        144
+
+        sage: q_subgroups_of_abelian_group([1,1,1],[1]) == q_subgroups_of_abelian_group([1,1,1],[1,1])
+        True
+        sage: q_subgroups_of_abelian_group([5],[3])
+        1
+
+        sage: q_subgroups_of_abelian_group([1],[2])
+        0
+        sage: q_subgroups_of_abelian_group([2],[1,1])
+        0
+
+    REFERENCES:
+
+    .. [Delsarte48] S Delsarte, Fonctions de Mobius Sur Les Groupes Abeliens
+       Finis, Annals of Mathematics, second series, Vol. 45, No. 3, (Jul 1948),
+       pp. 600-609. http://www.jstor.org/stable/1969047
+
+    AUTHOR:
+
+    - Amritanshu Prasad (2013-06-07)
+    """
+    if q == None:
+        q = ZZ['q'].gens()[0]
+    s = Partition(la).conjugate()
+    r = Partition(mu).conjugate()
+    k = r.length()
+    if k > s.length():
+        return q.parent().zero()
+
+    def F(vars):
+        prd = lambda j: prod(vars[j]-q**i for i in range(r[j+1],r[j]))
+        F1 = prod(vars[i]**r[i+1] * prd(i) for i in range(k-1))
+        return F1 * prod(vars[k-1]-q**i for i in range(r[k-1]))
+
+    return F([q**ss for ss in s[:k]])/F([q**rr for rr in r])
+

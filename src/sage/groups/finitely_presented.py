@@ -7,7 +7,7 @@ Finitely presented groups are constructed as quotients of
     sage: F.<a,b,c> = FreeGroup()
     sage: G = F / [a^2, b^2, c^2, a*b*c*a*b*c]
     sage: G
-    Finitely presented group < a, b, c | a^2, b^2, c^2, a*b*c*a*b*c >
+    Finitely presented group < a, b, c | a^2, b^2, c^2, (a*b*c)^2 >
 
 One can create their elements by mutiplying the generators or by
 specifying a Tietze list (see
@@ -23,7 +23,7 @@ as in the case of free groups::
     sage: G.inject_variables()
     Defining a, b, c
     sage: a.parent()
-    Finitely presented group < a, b, c | a^2, b^2, c^2, a*b*c*a*b*c >
+    Finitely presented group < a, b, c | a^2, b^2, c^2, (a*b*c)^2 >
 
 Notice that, even if they are represented in the same way, the
 elements of a finitely presented group and the elements of the

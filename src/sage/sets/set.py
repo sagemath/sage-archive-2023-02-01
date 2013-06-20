@@ -567,6 +567,42 @@ class Set_object(Set_generic):
         except TypeError:
             raise NotImplementedError, "computation of cardinality of %s not yet implemented"%self.__object
 
+    def is_empty(self):
+        """
+        Return boolean representing emptiness of the set.
+
+        OUTPUT:
+
+        True if the set is empty, false if otherwise.
+
+        EXAMPLES::
+
+            sage: Set([]).is_empty()
+            True
+            sage: Set([0]).is_empty()
+            False
+            sage: Set([1..100]).is_empty()
+            False
+            sage: Set(SymmetricGroup(2).list()).is_empty()
+            False
+            sage: Set(ZZ).is_empty()
+            False
+
+        TESTS::
+
+            sage: Set([]).is_empty()
+            True
+            sage: Set([1,2,3]).is_empty()
+            False
+            sage: Set([1..100]).is_empty()
+            False
+            sage: Set(DihedralGroup(4).list()).is_empty()
+            False
+            sage: Set(QQ).is_empty()
+            False
+        """
+        return not self.__nonzero__()
+
     def is_finite(self):
         """
         EXAMPLES::

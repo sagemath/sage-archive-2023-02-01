@@ -17,8 +17,8 @@ diff -ruN iml-1.0.1-sage/examples/exam-nullspace.c src/examples/exam-nullspace.c
  
    /* generate a n x m random left hand side matrix A */
    n = 5;
--  m = 8;
--  bd = 16;			/* entris of A satisfying -2^bd < e < 2^bd */
+-  m = 10;
+-  bd = 34;			/* entris of A satisfying -2^bd < e < 2^bd */
 +  m = 6;
 +  bd = 3;			/* entris of A satisfying -2^bd < e < 2^bd */
    A = randomLongMat (n, m, bd);

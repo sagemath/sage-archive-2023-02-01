@@ -27,19 +27,34 @@ Website: http://www.cs.uwaterloo.ca/~astorjoh/iml.html
 
 == Special Update/Build Instructions ==
 
- * Sage's current version is fairly out of date. As of June 2013, the
-   latest upstream release is 1.0.3 (dated July 28th 2008).
  * Various files should be made executable. Run spkg-src after
    extracting the sources to src/ to fix this.
 
 === Patches ===
 
- * rename_lift.patch: Change lift to iml_lift in padiclift.* and
-   nonsingsolve.*, since otherwise  on OSX you'll have horrible weird
-   conflict problems.
- * Modified some of the examples, and made build scripts that work.
+ * blas_headers.patch: Add BLAS header files from GSL, needed in case
+   ATLAS has not been installed.
+ * build.patch: Made build scripts that work.
+ * configure_default_cflags.patch: get rid of the following error
+   during configure:
+     ./configure: line 18624: -O3: command not found
+ * examples.patch: Modified some of the examples.
+ * memleak.patch: use mpz_set_ui instead of mpz_init_set_ui on mpz
+   which is already allocated.
+ * remove_repl.patch: Do not build/install src/repl at all, since it
+   does nothing anyway and creating empty archives fails on OS X.
 
 == Changelog ==
+
+=== iml-1.0.3.p0 (Jeroen Demeyer, 12 June 2013) ===
+ * #748: Upgrade to latest upstream version, rebase patches.
+ * Remove rename_lift.patch and sage2.patch, which were upstreamed.
+ * Removed tinyatlas.patch and #include "tinyatlas.h"
+ * Removed sage1.patch
+ * Apply sage3_memleak.patch in all 3 places with similar code, rename
+   to memleak.patch
+ * Use -O3 optimization level by default.
+ * Add configure_default_cflags.patch.
 
 === iml-1.0.1.p15 (Jean-Pierre Flori, Jeroen Demeyer, 11 June 2013) ===
  * #14699: Cleanup spkg, restore upstream sources, moved patches

@@ -130,6 +130,7 @@ from sage.rings.integer_ring import ZZ
 from sage.graphs.digraph import DiGraph
 from sage.combinat.posets.hasse_diagram import HasseDiagram
 from sage.combinat.posets.elements import PosetElement
+from sage.combinat.combinatorial_map import combinatorial_map
 
 def Poset(data=None, element_labels=None, cover_relations=False, linear_extension=False, category = None, facade = None, key = None):
     r"""
@@ -1437,6 +1438,31 @@ class FinitePoset(UniqueRepresentation, Parent):
         self.plot(label_elements=label_elements, element_labels=element_labels,
             vertex_size=vertex_size, vertex_colors=vertex_colors, layout=layout).show(**kwds)
 
+    @combinatorial_map(name="to graph")
+    def to_graph(self):
+        """
+        Return the graph of ``self`` corresponding to forgetting the
+        poset structure.
+
+        EXAMPLES::
+
+            sage: P = Poset({0:[1,2],1:[3],2:[3],3:[]})
+            sage: P.to_graph()
+            Graph on 4 vertices
+            sage: P = Poset()
+            sage: G = P.to_graph(); G
+            Graph on 0 vertices
+
+        Check that it is hashable::
+
+            sage: hash(G) == hash(G)
+            True
+        """
+        from sage.graphs.graph import Graph
+        G = Graph(self.hasse_diagram())
+        G._immutable = True
+        return G
+
     def level_sets(self):
         """
         Returns a list l such that l[i+1] is the set of minimal elements of
@@ -2618,6 +2644,47 @@ class FinitePoset(UniqueRepresentation, Parent):
         elements = tuple(relabelling(x) for x in self._elements)
         return FinitePoset(self._hasse_diagram,
                            elements = elements,
+                           category=self.category(),
+                           facade=self._is_facade)
+
+    def canonical_label(self):
+        """
+        Return the unique poset on the labels `\{0, \ldots, n-1\}` (where `n`
+        is the number of elements in ``self``) that is isomorphic to ``self``
+        and invariant in the isomorphism class.
+
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.canonical_label()`
+
+        EXAMPLES::
+
+            sage: P = Poset((divisors(12), attrcall("divides")), linear_extension=True, facade = False)
+            sage: P.list()
+            [1, 2, 3, 4, 6, 12]
+            sage: P.cover_relations()
+            [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
+            sage: Q = P.canonical_label()
+            sage: Q.list()
+            [0, 1, 2, 3, 4, 5]
+            sage: Q.cover_relations()
+            [[0, 2], [0, 3], [1, 5], [2, 4], [3, 1], [3, 4], [4, 5]]
+
+        As a facade::
+
+            sage: P = Poset((divisors(12), attrcall("divides")), facade = True, linear_extension=True)
+            sage: P.list()
+            [1, 2, 3, 4, 6, 12]
+            sage: P.cover_relations()
+            [[1, 2], [1, 3], [2, 4], [2, 6], [3, 6], [4, 12], [6, 12]]
+            sage: Q = P.canonical_label()
+            sage: Q.list()
+            [0, 1, 2, 3, 4, 5]
+            sage: Q.cover_relations()
+            [[0, 2], [0, 3], [1, 5], [2, 4], [3, 1], [3, 4], [4, 5]]
+        """
+        return FinitePoset(DiGraph(self._hasse_diagram).canonical_label(),
+                           elements=range(len(self._elements)),
                            category=self.category(),
                            facade=self._is_facade)
 

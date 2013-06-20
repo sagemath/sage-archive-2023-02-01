@@ -14,6 +14,7 @@ Finite Fields
 from sage.misc.cachefunc import cached_method
 from sage.categories.category import Category
 from sage.categories.fields import Fields
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 _Fields = Fields()
 
 class FiniteFields(Category):
@@ -47,7 +48,6 @@ class FiniteFields(Category):
             sage: FiniteFields().super_categories()
             [Category of fields, Category of finite enumerated sets]
         """
-        from sage.categories.all import Fields, FiniteEnumeratedSets
         return [Fields(), FiniteEnumeratedSets()]
 
     def __contains__(self, x):

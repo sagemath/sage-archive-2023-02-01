@@ -5184,6 +5184,47 @@ cdef class Generator_System(_mutable_or_immutable):
         return Generator_System_iterator(self)
 
 
+    def __getitem__(self, int k):
+        """
+        Return the ``k``-th generator.
+
+        The correct way to read the individual generators is to
+        iterate over the generator system. This method is for
+        convenience only.
+
+        INPUT:
+
+        - ``k`` -- integer. The index of the generator.
+
+        OUTPUT:
+
+        The ``k``-th constraint of the generator system.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Generator_System, Variable, point
+            sage: x = Variable(0)
+            sage: gs = Generator_System()
+            sage: gs.insert(point(3*x))
+            sage: gs.insert(point(-2*x))
+            sage: gs
+            Generator_System {point(3/1), point(-2/1)}
+            sage: gs[0]
+            point(3/1)
+            sage: gs[1]
+            point(-2/1)
+        """
+        if k < 0:
+            raise IndexError('index must be nonnegative')
+        iterator = self.__iter__()
+        try:
+            for i in range(k):
+                iterator.next()
+        except StopIteration:
+            raise IndexError('index is past-the-end')
+        return iterator.next()
+
+
     def __repr__(self):
         r"""
         Return a string representation of the generator system.
@@ -6176,6 +6217,46 @@ cdef class Constraint_System(object):
             [x0>0]
         """
         return Constraint_System_iterator(self)
+
+
+    def __getitem__(self, int k):
+        """
+        Return the k-th constraint.
+
+        The correct way to read the individual constraints is to
+        iterate over the constraint system. This method is for
+        convenience only.
+
+        INPUT:
+
+        - ``k`` -- integer. The index of the constraint.
+
+        OUTPUT:
+
+        The `k`-th constraint of the constraint system.
+
+        EXAMPLES::
+
+            sage: from sage.libs.ppl import Variable, Constraint_System
+            sage: x = Variable(0)
+            sage: cs = Constraint_System( x>0 )
+            sage: cs.insert( x<1 )
+            sage: cs
+            Constraint_System {x0>0, -x0+1>0}
+            sage: cs[0]
+            x0>0
+            sage: cs[1]
+            -x0+1>0
+        """
+        if k < 0:
+            raise IndexError('index must be nonnegative')
+        iterator = self.__iter__()
+        try:
+            for i in range(k):
+                iterator.next()
+        except StopIteration:
+            raise IndexError('index is past-the-end')
+        return iterator.next()
 
 
     def __repr__(self):

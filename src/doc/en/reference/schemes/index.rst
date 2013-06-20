@@ -38,6 +38,7 @@ Schemes
    sage/schemes/toric/chow_group
    sage/schemes/toric/ideal
    sage/schemes/toric/morphism
+   sage/schemes/toric/weierstrass
 
 
 .. include:: ../footer.txt

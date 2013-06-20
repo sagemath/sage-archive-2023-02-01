@@ -42,6 +42,11 @@ namespace collisions in Sage.
 
 == Changelog ==
 
+=== libgap-4.6.4.p0 (Volker Braun, 3 June 2013) ===
+ * Trac #14682: Update to latest upstream
+ * Code cleanups following a code review by Fedora GAP packager Jerry
+   James, see https://bugzilla.redhat.com/show_bug.cgi?id=919703
+
 === libgap-4.5.7.p2 (Volker Braun, 28 Feb 2013) ===
  * Trac #14323: remove one more SIGCHLD handler
 

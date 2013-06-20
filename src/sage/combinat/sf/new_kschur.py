@@ -268,9 +268,8 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
             sage: Sym = SymmetricFunctions(QQ['t'])
             sage: from sage.combinat.sf.new_kschur import KBoundedSubspaceBases
             sage: KB = Sym.kBoundedSubspace(3)
-            sage: ks = KB.kschur()
-            sage: KBB = KBoundedSubspaceBases(ks); KBB
-            Category of k bounded subspace bases of 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis
+            sage: KBB = KBoundedSubspaceBases(KB); KBB
+            Category of k bounded subspace bases of 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field
         """
         self.t = t
         Category_realization_of_parent.__init__(self, base)

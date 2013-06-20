@@ -637,7 +637,7 @@ cdef class ElementLibGAP(MultiplicativeGroupElement):
             sage: y^(2) # indirect doctest
             b^3*a^2*b^-3
             sage: x^(-3) # indirect doctest
-            b*a*b^-1*a^-1*b*a*b^-1*a^-1*b*a*b^-1*a^-1
+            (b*a*b^-1*a^-1)^3
             sage: y^3  ==  y.__pow__(3)
             True
         """

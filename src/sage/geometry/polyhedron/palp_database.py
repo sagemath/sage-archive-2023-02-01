@@ -79,7 +79,7 @@ class PALPreader(SageObject):
         sage: iter(PALPreader(2, output='PPL')).next()
         A 2-dimensional lattice polytope in ZZ^2 with 3 vertices
         sage: type(_)
-        <class 'sage.geometry.polyhedron.ppl_lattice_polytope.LatticePolytope_PPL_class'>
+        <class 'sage.geometry.polyhedron.ppl_lattice_polygon.LatticePolygon_PPL_class'>
 
         sage: iter(PALPreader(2, output='PointCollection')).next()
         [ 1,  0],

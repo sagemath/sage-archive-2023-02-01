@@ -13,6 +13,7 @@ Crystals
    ../sage/combinat/crystals/highest_weight_crystals
    ../sage/combinat/crystals/kirillov_reshetikhin
    ../sage/combinat/crystals/littelmann_path
+   ../sage/combinat/crystals/alcove_path
    ../sage/combinat/crystals/spins
    ../sage/combinat/crystals/tensor_product
    ../sage/combinat/crystals/generalized_young_walls

@@ -336,12 +336,6 @@ class GenericGraph(GenericGraph_pyx):
             Graph on 0 vertices
         """
         self._latex_opts = None
-        # FIXME: this has nothing to do here. Ideally, we would want
-        # this to be run just once, just before the creation of a full
-        # latex file including a graph.
-        # There should be a Sage-wide strategy for handling this.
-        from sage.graphs.graph_latex import setup_latex_preamble
-        setup_latex_preamble()
 
     def __add__(self, other_graph):
         """
@@ -628,6 +622,9 @@ class GenericGraph(GenericGraph_pyx):
             %
             \end{tikzpicture}
         """
+        from sage.graphs.graph_latex import setup_latex_preamble
+        setup_latex_preamble()
+
         return self.latex_options().latex()
 
     def _matrix_(self, R=None):
@@ -13968,7 +13965,7 @@ class GenericGraph(GenericGraph_pyx):
         mmax = max([len(ccc) for ccc in heights.values()])
         ymin = min(heights.keys())
         ymax = max(heights.keys())
-        dist = ((ymax-ymin)/(mmax+1.0))
+        dist = (max(ymax-ymin, 1)) / (mmax+1.0)
         for height in heights:
             num_xs = len(heights[height])
             if num_xs == 0:

@@ -1479,7 +1479,7 @@ class EllipticE(MaximaFunction):
         sage: elliptic_e(z, 0)
         z
         sage: elliptic_e(0.5, 0.1)
-        0.498011394499
+        0.498011394498832
 
         sage: loads(dumps(elliptic_e))
         elliptic_e
@@ -1489,7 +1489,7 @@ class EllipticE(MaximaFunction):
         EXAMPLES::
 
             sage: elliptic_e(0.5, 0.1)
-            0.498011394499
+            0.498011394498832
         """
         MaximaFunction.__init__(self, "elliptic_e")
 
@@ -1507,7 +1507,7 @@ class EllipticEC(MaximaFunction):
     EXAMPLES::
 
         sage: elliptic_ec(0.1)
-        1.5307576369
+        1.53075763689776
         sage: elliptic_ec(x).diff()
         1/2*(elliptic_ec(x) - elliptic_kc(x))/x
 
@@ -1519,7 +1519,7 @@ class EllipticEC(MaximaFunction):
         EXAMPLES::
 
             sage: elliptic_ec(0.1)
-            1.5307576369
+            1.53075763689776
         """
         MaximaFunction.__init__(self, "elliptic_ec", nargs=1)
 
@@ -1552,14 +1552,14 @@ class EllipticEU(MaximaFunction):
     EXAMPLES::
 
         sage: elliptic_eu (0.5, 0.1)
-        0.496054551287
+        0.496054551286597
     """
     def __init__(self):
         r"""
         EXAMPLES::
 
             sage: elliptic_eu (0.5, 0.1)
-            0.496054551287
+            0.496054551286597
         """
         MaximaFunction.__init__(self, "elliptic_eu")
 
@@ -1585,14 +1585,14 @@ class EllipticF(MaximaFunction):
         sage: elliptic_f (z, 1)
         log(tan(1/4*pi + 1/2*z))
         sage: elliptic_f (0.2, 0.1)
-        0.200132506748
+        0.200132506747543
     """
     def __init__(self):
         r"""
         EXAMPLES::
 
             sage: elliptic_f (0.2, 0.1)
-            0.200132506748
+            0.200132506747543
         """
         MaximaFunction.__init__(self, "elliptic_f")
 
@@ -1610,18 +1610,18 @@ class EllipticKC(MaximaFunction):
     EXAMPLES::
 
         sage: elliptic_kc(0.5)
-        1.8540746773
+        1.85407467730137
         sage: elliptic_f(RR(pi/2), 0.5)
-        1.8540746773
+        1.85407467730137
     """
     def __init__(self):
         r"""
         EXAMPLES::
 
             sage: elliptic_kc(0.5)
-            1.8540746773
+            1.85407467730137
             sage: elliptic_f(RR(pi/2), 0.5)
-            1.8540746773
+            1.85407467730137
         """
         MaximaFunction.__init__(self, "elliptic_kc", nargs=1)
 
@@ -1654,7 +1654,7 @@ class EllipticPi(MaximaFunction):
     (using GSL)::
 
         sage: elliptic_pi(0.1, 0.2, 0.3)
-        0.200665068221
+        0.200665068220979
         sage: numerical_integral(1/(1-0.1*sin(x)^2)/sqrt(1-0.3*sin(x)^2), 0.0, 0.2)
         (0.2006650682209791, 2.227829789769088e-15)
 
@@ -1675,7 +1675,7 @@ class EllipticPi(MaximaFunction):
         EXAMPLES::
 
             sage: elliptic_pi(0.1, 0.2, 0.3)
-            0.200665068221
+            0.200665068220979
         """
         MaximaFunction.__init__(self, "elliptic_pi", nargs=3)
 

@@ -592,8 +592,8 @@ class GroupAlgebra(CombinatorialFreeModule, Algebra):
             sage: GroupAlgebra(DihedralGroup(6), QQ).random_element()
             -1/95*(2,6)(3,5) - 1/2*(1,3)(4,6)
             sage: GroupAlgebra(SU(2, 13), QQ).random_element(1)
-            1/2*[      12 12*a + 7]
-            [   a + 6        7]
+            1/2*[      11    a + 6]
+            [2*a + 12       11]
         """
         a = self(0)
         for i in range(n):

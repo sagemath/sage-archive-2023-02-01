@@ -200,8 +200,8 @@ class Sequences(Category):
 #############################################################
 class Category_over_base(CategoryWithParameters):
     def __init__(self, base, name=None):
-        Category.__init__(self, name)
         self.__base = base
+        Category.__init__(self, name)
 
     def _make_named_class_key(self, name):
         r"""
@@ -325,7 +325,6 @@ class Category_over_base_ring(Category_over_base):
         from sage.categories.rings import Rings
         assert base in Rings(), "base must be a ring"
         Category_over_base.__init__(self, base, name)
-        self.__base = base
 
     def base_ring(self):
         """
@@ -339,8 +338,8 @@ class Category_over_base_ring(Category_over_base):
 #############################################################
 class Category_in_ambient(Category):
     def __init__(self, ambient, name=None):
-        Category.__init__(self, name)
         self.__ambient = ambient
+        Category.__init__(self, name)
 
     def ambient(self):
         """

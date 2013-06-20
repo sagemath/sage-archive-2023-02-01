@@ -1002,13 +1002,19 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             sage: (f*f).parent()
             Modular Forms space of dimension 4 for Congruence Subgroup Gamma0(3) of weight 10 over Rational Field
 
-        An example with no character::
-
             sage: f = ModularForms(Gamma1(3), 7).0
             sage: f*f
             q^2 - 54*q^4 + 128*q^5 + O(q^6)
             sage: (f*f).parent()
             Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(3) of weight 14 over Rational Field
+
+        An example with no character::
+
+            sage: f = ModularForms(Gamma1(5), 2).0
+            sage: f*f
+            1 + 120*q^3 - 240*q^4 + 480*q^5 + O(q^6)
+            sage: (f*f).parent()
+            Modular Forms space of dimension 5 for Congruence Subgroup Gamma1(5) of weight 4 over Rational Field
 
         TESTS:
 
@@ -1038,7 +1044,7 @@ class ModularFormElement(ModularForm_abstract, element.HeckeModuleElement):
             verbose("character of right is %s" % eps2)
             newchar = eps1 * eps2
             verbose("character of product is %s" % newchar)
-        except NotImplementedError:
+        except (NotImplementedError, ValueError):
             newchar = None
             verbose("character of product not determined")
 

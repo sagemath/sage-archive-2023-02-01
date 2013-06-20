@@ -161,7 +161,8 @@ This power series solution is pretty good for a while!
 
 ::
 
-    sage: plot(h,(t,-2,5))+plot(2+e^-x,(x,-2,5),color='red',linestyle=':',thickness=3)
+    sage: h = h.polynomial()
+    sage: plot(h,-2,5)+plot(2+e^-x,(x,-2,5),color='red',linestyle=':',thickness=3)
 
 This was just an introduction; there are a lot of resources for
 differential equations using Sage elsewhere, including a book by David

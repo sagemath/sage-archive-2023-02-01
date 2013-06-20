@@ -105,11 +105,12 @@ has statistics built in: `Scipy <http://www.scipy.org>`_.
 The ``bar_chart`` function performs some of the duties of histograms.
 
 Scipy's statistics can do other things too.  Here, we find the median
-(as the fiftieth percentile) of an earlier data set.
+(as the fiftieth percentile) of an earlier data set.  (We use a Python
+``int`` to work around a bug in Numpy.)
 
 ::
 
-    sage: scipy.stats.scoreatpercentile(my_data, 50) # random
+    sage: scipy.stats.scoreatpercentile(my_data, int(50)) # random
     0.51271641116183286
 
 The key thing to remember here is to look at the documentation!
@@ -201,10 +202,3 @@ the top which currently has ``sage`` in it.
 (There is also yet another Python interface to R called the `rpy2
 <http://rpy.sourceforge.net/rpy2.html>`_ interface, but we do not currently
 recommend its use with Sage.)
-
-There are a number of `other <http://tutorial.sagenb.org/home/pub/4/>`_
-worksheets where `people <http://www.sagenb.org/home/pub/2270/>`_ have
-discussed where have discussed integrating Sage and R more, and it's a
-great place to get involved, as R has many introductory textbooks in
-statistics available.
-

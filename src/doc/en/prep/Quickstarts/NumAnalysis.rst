@@ -96,8 +96,8 @@ Let's see exactly what the fraction is.
     sage: n(233017/2097152)
     0.111111164093018
 
-Converting to floating point binary
------------------------------------
+Converting to floating point binary (IEEE format)
+-------------------------------------------------
 
 ::
 
@@ -130,10 +130,11 @@ involved).
     sage: x.exact_rational()
     425/32
 
-The first step is to normalize the number ``x`` by multiplying by a
-suitable power of 2.  For `IEEE 754
-<http://grouper.ieee.org/groups/754/>`_, we normalize so that the number
-is between 1 and 2.
+Now let's convert ``x`` to the IEEE 754 binary format that is commonly
+used in computers.  For `IEEE 754 <http://grouper.ieee.org/groups/754/>`_,
+the first step in getting the binary format is to normalize the number,
+or express the number as a number between 1 and 2 multiplied by a power of 2.
+For our ``x`` above, we multiply by `2^{-3}` to get a number between 1 and 2.
 
 ::
 

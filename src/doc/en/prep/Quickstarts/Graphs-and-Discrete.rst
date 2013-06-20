@@ -119,7 +119,7 @@ cube.
     Order of automorphism group:  48
     sage: print "Group: \n", Aut
     Group:
-    Permutation Group with generators [(2,4)(3,5), (1,2)(5,6), (1,8)(2,3)(4,5)(6,7)]
+    Permutation Group with generators [('010','100')('011','101'), ('001','010')('101','110'), ('000','001')('010','011')('100','101')('110','111')]
 
 ::
 
@@ -201,15 +201,15 @@ Others somewhat less so:
 
 ::
 
-    sage: D = derangements([1,1,2,2,3,4,5])
-    sage: D[:5]
+    sage: D = Derangements([1,1,2,2,3,4,5])
+    sage: D.list()[:5]
     [[2, 2, 1, 1, 4, 5, 3], [2, 2, 1, 1, 5, 3, 4], [2, 2, 1, 3, 1, 5, 4], [2, 2, 1, 3, 4, 5, 1], [2, 2, 1, 3, 5, 1, 4]]
 
 And some somewhat more advanced -- in this case, symmetric polynomials.
 
 ::
 
-    sage: s = SFASchur(QQ)
+    sage: s = SymmetricFunctions(QQ).schur()
     sage: a = s([2,1])
     sage: a.expand(3)
     x0^2*x1 + x0*x1^2 + x0^2*x2 + 2*x0*x1*x2 + x1^2*x2 + x0*x2^2 + x1*x2^2

@@ -12,8 +12,9 @@ Mathematics Software with Undergraduates" (funding provided by NSF DUE
 
 Invaluable resources are the Sage wiki
 `http://wiki.sagemath.org/interact <http://wiki.sagemath.org/interact>`_
-(type "sage interact" into Google) and the `interact documentation
-<http://sagemath.org/doc/reference/sagenb/notebook/interact.html#sagenb.notebook.interact.interact>`_.
+(type "sage interact" into Google), `http://interact.sagemath.org <http://interact.sagemath.org>`_
+(a collection of contributed interacts), and the `interact documentation
+<http://www.sagemath.org/doc/reference/notebook/sagenb/notebook/interact.html#sagenb.notebook.interact.interact>`_.
 
 Start with just one command
 ---------------------------
@@ -178,7 +179,7 @@ controls in a grid (at the top, bottom, left, or right) using the
     sage: @interact(layout=dict(top=[['f', 'color']],
     ...   left=[['axes'],['fill']],
     ...   bottom=[['zoom']]))
-    ...   def _(f=input_box(x^2,width=20),
+    sage: def _(f=input_box(x^2,width=20),
     ...   color=color_selector(widget='colorpicker', label=""),
     ...   axes=True,
     ...   fill=True,
@@ -211,7 +212,7 @@ interactive control.  Sage has all of the following:
 
 We illustrate some more of these below.
 For complete detail, see the official
-`interact documentation <http://sagemath.org/doc/reference/sagenb/notebook/interact.html#sagenb.notebook.interact.interact>`_.
+`interact documentation <http://www.sagemath.org/doc/reference/notebook/sagenb/notebook/interact.html#sagenb.notebook.interact.interact>`_.
 
 .. skip
 

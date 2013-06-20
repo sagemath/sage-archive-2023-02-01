@@ -19,7 +19,7 @@ from arithgroup_element import ArithmeticSubgroupElement
 from sage.misc.misc import prod
 from sage.rings.all import ZZ, Zmod, gcd, QQ
 from sage.rings.integer import GCD_list
-from sage.groups.matrix_gps.matrix_group import MatrixGroup
+from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.matrix.constructor import matrix
 from sage.modular.cusps import Cusp
 
@@ -287,8 +287,10 @@ class Gamma_class(CongruenceSubgroup):
         EXAMPLE::
 
             sage: Gamma(3).image_mod_n()
-            Matrix group over Ring of integers modulo 3 with 1 generators:
-             [[[1, 0], [0, 1]]]
+            Matrix group over Ring of integers modulo 3 with 1 generators (
+            [1 0]
+            [0 1]
+            )
         """
         return MatrixGroup([matrix(Zmod(self.level()), 2, 2, 1)])
 

@@ -13,7 +13,7 @@ EXAMPLES::
 
     sage: x, y = var('x, y')
     sage: u = vector([sin(x)^2 + cos(x)^2, log(2*y) + log(3*y)]); u
-    (sin(x)^2 + cos(x)^2, log(2*y) + log(3*y))
+    (cos(x)^2 + sin(x)^2, log(3*y) + log(2*y))
     sage: type(u)
     <class 'sage.modules.vector_symbolic_dense.Vector_symbolic_dense'>
     sage: u.simplify_full()
@@ -84,17 +84,17 @@ def apply_map(phi):
             sage: v.simplify_trig()
             (1, log(x*y), sin(1/(x + 1)), factorial(x + 1)/factorial(x))
             sage: v.simplify_radical()
-            (sin(x)^2 + cos(x)^2, log(x) + log(y), sin(1/(x + 1)), factorial(x + 1)/factorial(x))
+            (cos(x)^2 + sin(x)^2, log(x) + log(y), sin(1/(x + 1)), factorial(x + 1)/factorial(x))
             sage: v.simplify_rational()
-            (sin(x)^2 + cos(x)^2, log(x*y), sin(1/(x + 1)), factorial(x + 1)/factorial(x))
+            (cos(x)^2 + sin(x)^2, log(x*y), sin(1/(x + 1)), factorial(x + 1)/factorial(x))
             sage: v.simplify_factorial()
-            (sin(x)^2 + cos(x)^2, log(x*y), sin(x/(x^2 + x)), x + 1)
+            (cos(x)^2 + sin(x)^2, log(x*y), sin(x/(x^2 + x)), x + 1)
             sage: v.simplify_full()
             (1, log(x*y), sin(1/(x + 1)), x + 1)
 
             sage: v = vector([sin(2*x), sin(3*x)])
             sage: v.simplify_trig()
-            (2*sin(x)*cos(x), (4*cos(x)^2 - 1)*sin(x))
+            (2*cos(x)*sin(x), (4*cos(x)^2 - 1)*sin(x))
             sage: v.simplify_trig(False)
             (sin(2*x), sin(3*x))
             sage: v.simplify_trig(expand=False)

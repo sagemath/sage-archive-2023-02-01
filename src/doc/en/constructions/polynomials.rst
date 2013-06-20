@@ -260,7 +260,7 @@ Sage also performs symbolic manipulation:
     (3*y + 25*y/z^2 + 5/z)^3
     sage: h = g.rational_simplify(); h
     (27*y^3*z^6 + 135*y^2*z^5 + 225*(3*y^3 + y)*z^4 + 125*(18*y^2 + 1)*z^3 +
-    1875*(3*y^3 + y)*z^2 + 15625*y^3 + 9375*y^2*z)/z^6
+    15625*y^3 + 9375*y^2*z + 1875*(3*y^3 + y)*z^2)/z^6
 
 Roots of multivariate polynomials
 =================================

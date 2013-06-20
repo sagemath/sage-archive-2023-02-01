@@ -552,6 +552,28 @@ cdef class NumberFieldElement(FieldElement):
         s = self._repr_()
         return s.replace(str(self.parent().gen()), 'GeneratorsOfField(%s)[1]'%sage.interfaces.gap.gap(self.parent()).name())
 
+    def _libgap_(self):
+        """
+        Return a LibGAP representation of ``self``.
+
+        EXAMPLES::
+
+            sage: F = CyclotomicField(8)
+            sage: F.gen()._libgap_()
+            E(8)
+            sage: libgap(F.gen())   # syntactic sugar
+            E(8)
+            sage: E8 = F.gen()
+            sage: libgap(E8 + 3/2*E8^2 + 100*E8^7)
+            E(8)+3/2*E(8)^2-100*E(8)^3
+            sage: type(_)
+            <type 'sage.libs.gap.element.GapElement_Cyclotomic'>
+        """
+        n = self.parent()._n()
+        from sage.libs.gap.libgap import libgap
+        En = libgap(self.parent()).GeneratorsOfField()[0]
+        return self.polynomial()(En)
+
     def _pari_(self, name='y'):
         r"""
         Return PARI representation of self.
@@ -2071,7 +2093,7 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: K.<a> = NumberField(x^3 + x - 1, embedding=0.68)
             sage: b = SR(a); b # indirect doctest
-            1/3*(3*(1/18*sqrt(3)*sqrt(31) + 1/2)^(2/3) - 1)/(1/18*sqrt(3)*sqrt(31) + 1/2)^(1/3)
+            1/3*(3*(1/18*sqrt(31)*sqrt(3) + 1/2)^(2/3) - 1)/(1/18*sqrt(31)*sqrt(3) + 1/2)^(1/3)
 
             sage: (b^3 + b - 1).simplify_radical()
             0

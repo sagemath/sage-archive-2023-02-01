@@ -37,6 +37,7 @@ from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.modules.free_module import FreeModule, VectorSpace
+from sage.modules.free_module_element import vector
 from sage.matrix.matrix0 import Matrix
 from sage.matrix.constructor import matrix, prepare_dict
 from sage.misc.latex import latex
@@ -620,13 +621,9 @@ class ChainComplex(SageObject):
            base ring for the chain complex).  Must be either the
            integers `\ZZ` or a field.
 
-        -  ``generators`` -- boolean (optional, default False).  If
-           True, return generators for the homology groups along with
-           the groups.
-
-           .. NOTE::
-
-               This is only implemented if the CHomP package is available.
+        -  ``generators`` -- boolean (optional, default ``False``).  If
+           ``True``, return generators for the homology groups along with
+           the groups. See :trac:`6100`.
 
         -  ``verbose`` - boolean (optional, default ``False``).  If
            ``True``, print some messages as the homology is computed.
@@ -635,7 +632,9 @@ class ChainComplex(SageObject):
            options are ``'auto'``, ``'dhsw'``, ``'pari'`` or ``'no_chomp'``.
            See below for descriptions.
 
-        OUTPUT: if dim is specified, the homology in dimension dim.
+        OUTPUT:
+
+        If dim is specified, the homology in dimension ``dim``.
         Otherwise, the homology in every dimension as a dictionary
         indexed by dimension.
 
@@ -693,18 +692,41 @@ class ChainComplex(SageObject):
             sage: D.homology()
             {0: 0, 1: 0, 4: 0, 5: 0}
 
-        Generators (only available via CHomP): generators are given as
+        Generators: generators are given as
         a list of cycles, each of which is an element in the
         appropriate free module, and hence is represented as a vector::
 
             sage: C.homology(1, generators=True)  # optional - CHomP
             (Z x C3, [(1, 0), (0, 1)])
+
+        Tests for :trac:`6100`, the Klein bottle with generators::
+
+            sage: d0 = matrix(ZZ, 0,1)
+            sage: d1 = matrix(ZZ, 1,3, [[0,0,0]])
+            sage: d2 = matrix(ZZ, 3,2, [[1,1], [1,-1], [-1,1]])
+            sage: C_k = ChainComplex({0:d0, 1:d1, 2:d2}, degree=-1)
+            sage: C_k.homology(generators=true)
+            {0: [(Z, (1))], 1: [(C2, (1, 0, 0)), (Z, (0, 0, 1))], 2: [(0, ())]}
+
+        From a torus using a field::
+
+            sage: T = simplicial_complexes.Torus()
+            sage: C_t = T.chain_complex()
+            sage: C_t.homology(base_ring=QQ, generators=True)
+            {0: [(Vector space of dimension 1 over Rational Field, (0, 0, 0, 0, 0, 0, 1))],
+             1: [(Vector space of dimension 1 over Rational Field,
+               (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0, 0, -1, 0, 1, 0)),
+              (Vector space of dimension 1 over Rational Field,
+               (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, -1, -1))],
+             2: [(Vector space of dimension 1 over Rational Field,
+               (1, -1, -1, -1, 1, -1, -1, 1, 1, 1, 1, 1, -1, -1))]}
         """
         from sage.interfaces.chomp import have_chomp, homchain
 
         algorithm = kwds.get('algorithm', 'auto')
         verbose = kwds.get('verbose', False)
         base_ring = kwds.get('base_ring', None)
+        generators = kwds.get('generators', False)
         if base_ring is None or base_ring == self._base_ring:
             change_ring = False
             base_ring = self._base_ring
@@ -759,10 +781,12 @@ class ChainComplex(SageObject):
                     print "Computing homology of the chain complex in dimension %s..." % n
                 if base_ring == self._base_ring:
                     answer[n] = self.homology(n, verbose=verbose,
+                                              generators=generators,
                                               algorithm=algorithm)
                 else:
                     answer[n] = self.homology(n, base_ring=base_ring,
                                               verbose=verbose,
+                                              generators=generators,
                                               algorithm=algorithm)
             return answer
         # now compute the homology in the given dimension
@@ -770,6 +794,7 @@ class ChainComplex(SageObject):
         # check that dim is in grading_group
         if not dim in self._grading_group:
             raise ValueError, "The dimension does not appear to be an element of the grading group."
+
         if dim in self._diff:
             # d_out is the differential going out of degree dim,
             # d_in is the differential entering degree dim
@@ -793,75 +818,104 @@ class ChainComplex(SageObject):
                     d_out_rank = self._diff[dim].rank()
                 self._ranks[(dim, temp_ring)] = d_out_rank
 
-            if dim-degree in self._diff:
+            if dim - degree in self._diff:
                 if change_ring:
                     d_in = self._diff[dim-degree].change_ring(base_ring)
                 else:
                     d_in = self._diff[dim-degree]
-                if base_ring.is_field():
-                    # avoid bugs in rank of sparse mod n matrices (#5099):
-                    if d_out_cols == 0:
-                        null = 0
-                    elif d_out_rows == 0:
-                        null = d_out_cols
-                    else:
-                        null = d_out_cols - d_out_rank
-                    if d_in.nrows() == 0 or d_in.ncols() == 0:
-                        rk = 0
-                    else:
-                        if (dim-degree, temp_ring) in self._ranks:
-                            rk = self._ranks[(dim-degree, temp_ring)]
+
+                if generators:
+                    # Find the kernel of the out-going differential.
+                    K = self._diff[dim].right_kernel().matrix().transpose().change_ring(base_ring)
+
+                    # Compute the induced map to the kernel
+                    S = K.augment(d_in).hermite_form()
+                    d_in_induced = S.submatrix(row=0, nrows=d_in.nrows()-d_out_rank,
+                                               col=d_in.nrows()-d_out_rank, ncols=d_in.ncols())
+
+                    # Find the SNF of the induced matrix and appropriate generators
+                    (N, P, Q) = d_in_induced.smith_form()
+                    all_divs = [0]*N.nrows()
+                    non_triv = 0
+                    for i in range(0, N.nrows()):
+                        if i >= N.ncols():
+                            break
+                        all_divs[i] = N[i][i]
+                        if N[i][i] == 1:
+                            non_triv = non_triv + 1
+                    divisors = filter(lambda x: x != 1, all_divs)
+                    gens = (K * P.inverse().submatrix(col=non_triv)).transpose()
+                    if base_ring.is_field():
+                        answer = [(VectorSpace(base_ring, 1), gens[i] ) \
+                                    for i in range(len(divisors))]
+                    elif base_ring == ZZ:
+                        answer = [(HomologyGroup(1, [divisors[i]]), gens[i] ) \
+                                    for i in range(len(divisors))]
+                else:
+                    if base_ring.is_field():
+                        # avoid bugs in rank of sparse mod n matrices (#5099):
+                        if d_out_cols == 0:
+                            null = 0
+                        elif d_out_rows == 0:
+                            null = d_out_cols
                         else:
-                            rk = d_in.rank()
-                            self._ranks[(dim-degree, temp_ring)] = rk
-                    answer = VectorSpace(base_ring, null - rk)
-                elif base_ring == ZZ:
-                    nullity = d_out_cols - d_out_rank
-                    if d_in.ncols() == 0:
-                        all_divs = [0] * nullity
-                    else:
-                        if algorithm == 'auto' or algorithm == 'no_chomp':
-                            if ((d_in.ncols() > 300 and d_in.nrows() > 300)
-                                or (min(d_in.ncols(), d_in.nrows()) > 100 and
-                                    d_in.ncols() + d_in.nrows() > 600)):
-                                algorithm = 'dhsw'
+                            null = d_out_cols - d_out_rank
+                        if d_in.nrows() == 0 or d_in.ncols() == 0:
+                            rk = 0
+                        else:
+                            if (dim-degree, temp_ring) in self._ranks:
+                                rk = self._ranks[(dim-degree, temp_ring)]
+                            else:
+                                rk = d_in.rank()
+                                self._ranks[(dim-degree, temp_ring)] = rk
+                        answer = VectorSpace(base_ring, null - rk)
+                    elif base_ring == ZZ:
+                        nullity = d_out_cols - d_out_rank
+                        if d_in.ncols() == 0:
+                            all_divs = [0] * nullity
+                        else:
+                            if algorithm == 'auto':
+                                if ((d_in.ncols() > 300 and d_in.nrows() > 300)
+                                    or (min(d_in.ncols(), d_in.nrows()) > 100 and
+                                        d_in.ncols() + d_in.nrows() > 600)):
+                                    algorithm = 'dhsw'
+                                else:
+                                    algorithm = 'pari'
+                            if algorithm == 'dhsw':
+                                all_divs = dhsw_snf(d_in, verbose=verbose)
                             else:
                                 algorithm = 'pari'
-                        if algorithm == 'dhsw':
-                            all_divs = dhsw_snf(d_in, verbose=verbose)
-                        else:
-                            if d_in.is_sparse():
-                                all_divs = d_in.dense_matrix().elementary_divisors(algorithm)
-                            else:
-                                all_divs = d_in.elementary_divisors(algorithm)
-                    all_divs = all_divs[:nullity]
-                    # divisors equal to 1 produce trivial
-                    # summands, so filter them out
-                    divisors = filter(lambda x: x != 1, all_divs)
-                    answer = HomologyGroup(len(divisors), divisors)
-                else:
-                    # This code is not in use: base ring isn't a field
-                    # or ZZ
-                    pass
+                                if d_in.is_sparse():
+                                    all_divs = d_in.dense_matrix().elementary_divisors(algorithm)
+                                else:
+                                    all_divs = d_in.elementary_divisors(algorithm)
+                        all_divs = all_divs[:nullity]
+                        # divisors equal to 1 produce trivial
+                        # summands, so filter them out
+                        divisors = filter(lambda x: x != 1, all_divs)
+                        answer = HomologyGroup(len(divisors), divisors)
             else: # no incoming differential: it's zero
                 if base_ring.is_field():
                     answer = VectorSpace(base_ring, d_out_cols - d_out_rank)
                 elif base_ring == ZZ:
-                    nullity = d_out_cols - d_out_rank
-                    answer = HomologyGroup(nullity)
-                else:
-                    # This code is not in use: base ring isn't a field
-                    # or ZZ
-                    pass
+                    answer = HomologyGroup(d_out_cols - d_out_rank)
+
+                if generators: #Include the generators of the nullspace
+                    # Find the kernel of the out-going differential.
+                    K = self._diff[dim].right_kernel().matrix().change_ring(base_ring)
+                    answer = [( answer, vector(base_ring, K.list()) )]
         else:  # chain complex is zero here, so return the zero module
             if base_ring.is_field():
                 answer = VectorSpace(base_ring, 0)
             elif base_ring == ZZ:
                 answer = HomologyGroup(0)
             else:
-                # This code is not in use: base ring isn't a field
-                # or ZZ
+            # This code is not in use: base ring isn't a field
+            # or ZZ
                 answer = FreeModule(self._base_ring, rank=0)
+
+            if generators:
+                answer = [(answer, vector(base_ring, []))]
         if verbose:
             print "  Homology is %s" % answer
         return answer

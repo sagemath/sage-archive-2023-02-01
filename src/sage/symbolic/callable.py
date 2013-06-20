@@ -15,7 +15,7 @@ When you do arithmetic with
     sage: f(x, y, z) = sin(x+y+z)
     sage: g(w, t) = cos(w - t)
     sage: f + g
-    (t, w, x, y, z) |--> sin(x + y + z) + cos(-t + w)
+    (t, w, x, y, z) |--> cos(-t + w) + sin(x + y + z)
 
 ::
 

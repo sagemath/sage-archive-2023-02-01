@@ -176,7 +176,6 @@ from decorators import specialize, sage_wraps, infix_operator
 
 from unknown import Unknown
 
-from readline_extra_commands import *
 ##########################################################################
 def benchmark(n=-1):
     """
@@ -209,3 +208,5 @@ class logstr(str):
 
 
 import messaging
+
+from ascii_art import ascii_art

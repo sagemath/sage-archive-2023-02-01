@@ -7,12 +7,10 @@ include bundle export install pull sage-push
 include spkg-delauto spkg-dist spkg-install
 
 include c_lib/SConstruct
-include sage/ext/mac-app/README
-include sage/graphs/graph_decompositions/rankwidth_c/README
-include sage/schemes/hyperelliptic_curves/hypellfrob/README
 graft   sage/server/notebook/templates
-include sage/tests/french_book/README
 graft   sage/libs/gap/test
+recursive-include sage README
+recursive-exclude sage/ext/interpreters *.c *.h *.pyx *.pxd
 
 graft   doc/common/static
 graft   doc/common/themes

@@ -127,8 +127,7 @@ class SchemeMorphism(Element):
 
     EXAMPLES::
 
-        sage: from sage.schemes.generic.scheme import Scheme
-        sage: X = Scheme(ZZ)
+        sage: X = Spec(ZZ)
         sage: Hom = X.Hom(X)
         sage: from sage.schemes.generic.morphism import SchemeMorphism
         sage: f = SchemeMorphism(Hom)
@@ -141,8 +140,7 @@ class SchemeMorphism(Element):
 
         EXAMPLES::
 
-            sage: from sage.schemes.generic.scheme import Scheme
-            sage: X = Scheme(ZZ)
+            sage: X = Spec(ZZ)
             sage: Hom = X.Hom(X)
             sage: from sage.schemes.generic.morphism import SchemeMorphism
             sage: f = SchemeMorphism(Hom)
@@ -165,8 +163,7 @@ class SchemeMorphism(Element):
 
         EXAMPLES::
 
-            sage: from sage.schemes.generic.scheme import Scheme
-            sage: X = Scheme(ZZ)
+            sage: X = Spec(ZZ)
             sage: Hom = X.Hom(X)
             sage: from sage.schemes.generic.morphism import SchemeMorphism
             sage: f = SchemeMorphism(Hom)
@@ -207,8 +204,7 @@ class SchemeMorphism(Element):
 
         EXAMPLES::
 
-            sage: from sage.schemes.generic.scheme import Scheme
-            sage: X = Scheme(ZZ)
+            sage: X = Spec(ZZ)
             sage: Hom = X.Hom(X)
             sage: from sage.schemes.generic.morphism import SchemeMorphism
             sage: f = SchemeMorphism(Hom)

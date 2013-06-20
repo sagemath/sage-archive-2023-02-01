@@ -2,7 +2,6 @@ from sage.libs.ginac cimport *
 
 from sage.structure.element cimport CommutativeRingElement
 
-
 cdef class Expression(CommutativeRingElement):
     cdef GEx _gobj
     cdef Expression coerce_in(self, z)
@@ -13,6 +12,8 @@ cdef class Expression(CommutativeRingElement):
     cpdef bint is_infinity(self)
     cpdef object pyobject(self)
     cpdef Expression _subs_expr(self, expr)
+    cpdef int _cmp_add(Expression left, Expression right) except -2
+    cpdef int _cmp_mul(Expression left, Expression right) except -2
 
 cpdef bint is_Expression(x)
 cdef Expression new_Expression_from_GEx(parent, GEx juice)

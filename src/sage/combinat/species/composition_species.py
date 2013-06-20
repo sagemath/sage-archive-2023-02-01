@@ -19,6 +19,7 @@ from species import GenericCombinatorialSpecies
 from structure import GenericSpeciesStructure
 from partition_species import PartitionSpecies
 from sage.misc.cachefunc import cached_function
+from sage.structure.unique_representation import UniqueRepresentation
 
 class CompositionSpeciesStructure(GenericSpeciesStructure):
     def __init__(self, parent, labels, pi, f, gs):
@@ -84,30 +85,23 @@ class CompositionSpeciesStructure(GenericSpeciesStructure):
         g = [g.change_labels(part) for g,part in zip(gs, pi.labels())]
         return self.__class__(self, labels, pi, f, g)
 
-@cached_function
-def CompositionSpecies(*args, **kwds):
-    """
-    Returns the composition of two species.
 
-    EXAMPLES::
-
-        sage: E = species.SetSpecies()
-        sage: C = species.CycleSpecies()
-        sage: S = E(C)
-        sage: S.generating_series().coefficients(5)
-        [1, 1, 1, 1, 1]
-
-    TESTS::
-
-        sage: E(C) is S
-        True
-    """
-    return CompositionSpecies_class(*args, **kwds)
-
-class CompositionSpecies_class(GenericCombinatorialSpecies):
+class CompositionSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
     def __init__(self, F, G, min=None, max=None, weight=None):
         """
+        Returns the composition of two species.
+
         EXAMPLES::
+
+            sage: E = species.SetSpecies()
+            sage: C = species.CycleSpecies()
+            sage: S = E(C)
+            sage: S.generating_series().coefficients(5)
+            [1, 1, 1, 1, 1]
+            sage: E(C) is S
+            True
+
+        TESTS::
 
             sage: E = species.SetSpecies(); C = species.CycleSpecies()
             sage: L = E(C)
@@ -124,8 +118,6 @@ class CompositionSpecies_class(GenericCombinatorialSpecies):
         GenericCombinatorialSpecies.__init__(self, min=None, max=None, weight=None)
 
     _default_structure_class = CompositionSpeciesStructure
-
-    _cached_constructor = staticmethod(CompositionSpecies)
 
     def _structures(self, structure_class, labels):
         """
@@ -271,3 +263,6 @@ class CompositionSpecies_class(GenericCombinatorialSpecies):
             Rational Field
         """
         return self._common_parent([self._F.weight_ring(), self._G.weight_ring()])
+
+
+CompositionSpecies_class = CompositionSpecies

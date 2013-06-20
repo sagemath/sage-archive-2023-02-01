@@ -44,6 +44,16 @@ Enea Zaffanella (University of Parma)
 
 == Changelog ==
 
+=== ppl-1.0.p0 (Jeroen Demeyer, 10 June 2013) ===
+ * #12672: Build PPL with its C interface if possible, fall back to
+   only C++ interface if needed.
+ * Add support for PPL_CONFIGURE environment variable.
+ * Use "make install" instead of "make install-strip".
+
+=== ppl-1.0 (Volker Braun, 2 March 2013) ===
+ * #14232: Update to latest upstream version
+ * #14201: Set gmp/gmpxx include dir
+
 === ppl-0.11.2.p1 (Jeroen Demeyer, 29 February 2012) ===
  * #12608: remove useless "Dependencies check".
  * General clean-up of spkg-install, use patch for patching.

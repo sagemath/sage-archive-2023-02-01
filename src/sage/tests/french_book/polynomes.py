@@ -7,7 +7,7 @@ Sage example in ./polynomes.tex, line 55 (in svn rev 1261)::
 
   sage: x = var('x'); p = (2*x+1)*(x+2)*(x^4-1)
   sage: print p, "est de degré", p.degree(x)
-  (x + 2)*(2*x + 1)*(x^4 - 1) est de degré 6
+  (x^4 - 1)*(2*x + 1)*(x + 2) est de degré 6
 
 Sage example in ./polynomes.tex, line 69::
 

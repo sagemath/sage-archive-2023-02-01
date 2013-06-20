@@ -156,15 +156,15 @@ class ClassicalCrystals(Category_singleton):
                 sage: weight.reduced_word()
                 [2, 1]
                 sage: T.demazure_character(weight)
-                x1^2*x2 + x1^2*x3 + x1*x2^2 + x1*x2*x3 + x1*x3^2
+                x1^2*x2 + x1*x2^2 + x1^2*x3 + x1*x2*x3 + x1*x3^2
 
                 sage: T = CrystalOfTableaux(['A',3],shape=[2,1])
                 sage: T.demazure_character([1,2,3])
-                x1^2*x2 + x1^2*x3 + x1*x2^2 + x1*x2*x3 + x2^2*x3
+                x1^2*x2 + x1*x2^2 + x1^2*x3 + x1*x2*x3 + x2^2*x3
                 sage: W = WeylGroup(['A',3])
                 sage: w = W.from_reduced_word([1,2,3])
                 sage: T.demazure_character(w)
-                x1^2*x2 + x1^2*x3 + x1*x2^2 + x1*x2*x3 + x2^2*x3
+                x1^2*x2 + x1*x2^2 + x1^2*x3 + x1*x2*x3 + x2^2*x3
 
                 sage: T = CrystalOfTableaux(['B',2], shape = [2])
                 sage: e = T.weight_lattice_realization().basis()

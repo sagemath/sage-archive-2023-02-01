@@ -18,6 +18,7 @@ GPL
 
 == Dependencies ==
  * gmp
+ * gf2x
 
 == Special Update/Build Instructions ==
  * We need to modfiy new.h to accomodate Singular
@@ -30,6 +31,9 @@ GPL
    with the minimal configure.ac file.
 
 == Changelog ==
+
+=== ntl-5.5.2.p1 (Jean-Pierre Flori, 4 June 2013) ===
+ * #2114: build NTL with gf2x support.
 
 === ntl-5.5.2.p0 (Jean-Pierre Flori, 7 August 2012) ===
  * #11635: use NTL libtool system for building and installing.

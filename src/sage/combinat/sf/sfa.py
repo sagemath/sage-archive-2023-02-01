@@ -2447,7 +2447,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
             490/1539
             sage: (x,y) = var('x,y')
             sage: a.scalar_qt(a,q=x,t=y)
-            2/3*(x - 1)^3/(y - 1)^3 + 1/3*(x^3 - 1)/(y^3 - 1)
+            1/3*(x^3 - 1)/(y^3 - 1) + 2/3*(x - 1)^3/(y - 1)^3
             sage: Rn = QQ['q','t','y','z'].fraction_field()
             sage: (q,t,y,z) = Rn.gens()
             sage: Mac = SymmetricFunctions(Rn).macdonald(q=y,t=z)

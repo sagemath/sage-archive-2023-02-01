@@ -52,8 +52,8 @@ symbolically:
     sage: eq2 = q*y+p*x==-6
     sage: eq3 = q*y^2+p*x^2==24
     sage: solve([eq1,eq2,eq3,p==1],p,q,x,y)
-    [[p == 1, q == 8, x == -4/3*sqrt(10) - 2/3, y == 1/6*sqrt(2)*sqrt(5) - 2/3],
-     [p == 1, q == 8, x == 4/3*sqrt(10) - 2/3, y == -1/6*sqrt(2)*sqrt(5) - 2/3]]
+    [[p == 1, q == 8, x == -4/3*sqrt(10) - 2/3, y == 1/6*sqrt(5)*sqrt(2) - 2/3],
+     [p == 1, q == 8, x == 4/3*sqrt(10) - 2/3, y == -1/6*sqrt(5)*sqrt(2) - 2/3]]
 
 For numerical approximations of the solutions, you can instead use:
 
@@ -138,7 +138,7 @@ To compute the partial fraction decomposition of
 
     sage: f = 1/((1+x)*(x-1))
     sage: f.partial_fraction(x)
-    1/2/(x - 1) - 1/2/(x + 1)
+    -1/2/(x + 1) + 1/2/(x - 1)
 
 .. _section-systems:
 
@@ -170,7 +170,7 @@ You can compute Laplace transforms also; the Laplace transform of
     sage: t = var("t")
     sage: f = t^2*exp(t) - sin(t)
     sage: f.laplace(t,s)
-    2/(s - 1)^3 - 1/(s^2 + 1)
+    -1/(s^2 + 1) + 2/(s - 1)^3
 
 Here is a more involved example. The displacement from equilibrium
 (respectively) for a coupled spring attached to a wall on the left

@@ -54,15 +54,6 @@ import matrix_mpolynomial_dense
 ## import matrix_cyclo_sparse
 
 
-# IMPORTANT - these two guys get imported below only later
-# since they currently force numpy to import, which takes
-# a *long* time.
-#import matrix_real_double_dense
-#import matrix_complex_double_dense
-
-import sage.groups.matrix_gps.matrix_group_element
-
-
 # Sage imports
 import sage.structure.coerce
 import sage.structure.parent_gens as parent_gens
@@ -1344,7 +1335,7 @@ class MatrixSpace(UniqueRepresentation, parent_gens.ParentWithGens):
                 else:
                     raise ValueError("a matrix from %s cannot be converted to "
                                      "a matrix in %s!" % (x.parent(), self))
-        from sage.groups.matrix_gps.matrix_group_element import \
+        from sage.groups.matrix_gps.group_element import \
             is_MatrixGroupElement
         from sage.modular.arithgroup.arithgroup_element import \
             ArithmeticSubgroupElement

@@ -130,7 +130,7 @@ EXAMPLES: Arithmetic with constants
     sage: f^2
     (I*e + I)^2
     sage: _.expand()
-    -2*e - e^2 - 1
+    -e^2 - 2*e - 1
 
 ::
 
@@ -180,16 +180,16 @@ Coercing the sum of a bunch of the constants to many different
 floating point rings::
 
     sage: a = pi + e + golden_ratio + log2 + euler_gamma + catalan + khinchin + twinprime + mertens; a
-    pi + euler_gamma + catalan + golden_ratio + log2 + khinchin + twinprime + mertens + e
+    mertens + twinprime + khinchin + log2 + golden_ratio + catalan + euler_gamma + pi + e
     sage: parent(a)
     Symbolic Ring
-    sage: RR(a)
+    sage: RR(a) #abstol 1e11
     13.2713479401972
     sage: RealField(212)(a)
     13.2713479401972493100988191995758139408711068200030748178329712
     sage: RealField(230)(a)
     13.271347940197249310098819199575813940871106820003074817832971189555
-    sage: CC(a)
+    sage: CC(a) #abstol 1e11
     13.2713479401972
     sage: CDF(a)
     13.2713479402

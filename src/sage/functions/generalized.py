@@ -441,7 +441,8 @@ class FunctionSignum(BuiltinFunction):
             sgn(x)
         """
         BuiltinFunction.__init__(self, "sgn", latex_name=r"\mathrm{sgn}",
-                conversions=dict(maxima='signum',mathematica='Sign',sympy='sign'))
+                conversions=dict(maxima='signum',mathematica='Sign',sympy='sign'),
+                alt_name="sign")
 
     def _eval_(self, x):
         """

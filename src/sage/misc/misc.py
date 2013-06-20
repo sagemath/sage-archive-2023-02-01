@@ -797,17 +797,20 @@ def repr_lincomb(terms, coeffs = None, is_latex=False, scalar_mult="*", strip_on
             negative = False
             if len(coeff)>0 and coeff[0] == "-":
                 negative = True
-            #elif len(coeff) > 1 and coeff[1] == "-":
-                #negative = True
-            if c < 0 or negative:
+            try:
+                if c < 0:
+                    negative = True
+            except NotImplementedError:
+                # comparisons may not be implemented for some coefficients
+                pass
+            if negative:
                 coeff = coeff_repr(-c, is_latex)
             else:
                 coeff = coeff_repr(c, is_latex)
-            #pdb.set_trace()
             if coeff == "1":
                 coeff = ""
             if coeff != "0":
-                if c < 0 or negative:
+                if negative:
                     if first:
                         sign = "-" # add trailing space?
                     else:
@@ -832,8 +835,6 @@ def repr_lincomb(terms, coeffs = None, is_latex=False, scalar_mult="*", strip_on
         #return "1" # is empty string representation invalid?
     else:
         return s
-
-
 
 
 def strunc(s, n = 60):

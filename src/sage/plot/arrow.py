@@ -290,7 +290,7 @@ class Arrow(GraphicPrimitive):
         return "Arrow from (%s,%s) to (%s,%s)"%(self.xtail, self.ytail, self.xhead, self.yhead)
 
     def _render_on_subplot(self, subplot):
-        """
+        r"""
         Render this arrow in a subplot.  This is the key function that
         defines how this arrow graphics primitive is rendered in
         matplotlib's library.
@@ -319,6 +319,23 @@ class Arrow(GraphicPrimitive):
             sage: p1.shrinkB == p2.shrinkB
             True
 
+        Dashed arrows should have solid arrowheads,
+        :trac:`12852`. This test saves the plot of a dashed arrow to
+        an EPS file. Within the EPS file, ``stroke`` will be called
+        twice: once to draw the line, and again to draw the
+        arrowhead. We check that both calls do not occur while the
+        dashed line style is enabled::
+
+            sage: a = arrow((0,0), (1,1), linestyle='dashed')
+            sage: filename = tmp_filename(ext='.eps')
+            sage: a.save(filename=filename)
+            sage: with open(filename, 'r') as f:
+            ....:     contents = f.read().replace('\n', ' ')
+            sage: two_stroke_pattern = r'setdash.*stroke.*stroke.*setdash'
+            sage: import re
+            sage: two_stroke_re = re.compile(two_stroke_pattern)
+            sage: two_stroke_re.search(contents) is None
+            True
         """
         options = self.options()
         head = options.pop('head')
@@ -339,6 +356,60 @@ class Arrow(GraphicPrimitive):
                             fc=color, ec=color, linestyle=options['linestyle'])
         p.set_zorder(options['zorder'])
         p.set_label(options['legend_label'])
+
+        if options['linestyle']!='solid':
+            # The next few lines work around a design issue in matplotlib. Currently, the specified
+            # linestyle is used to draw both the path and the arrowhead.  If linestyle is 'dashed', this
+            # looks really odd.  This code is from Jae-Joon Lee in response to a post to the matplotlib mailing
+            # list.  See http://sourceforge.net/mailarchive/forum.php?thread_name=CAG%3DuJ%2Bnw2dE05P9TOXTz_zp-mGP3cY801vMH7yt6vgP9_WzU8w%40mail.gmail.com&forum_name=matplotlib-users
+
+            import matplotlib.patheffects as pe
+            class CheckNthSubPath(object):
+                def __init__(self, patch, n):
+                    """
+                    creates an callable object that returns True if the provided
+                    path is the n-th path from the patch.
+                    """
+                    self._patch = patch
+                    self._n = n
+
+                def get_paths(self, renderer):
+                    self._patch.set_dpi_cor(renderer.points_to_pixels(1.))
+                    paths, fillables = self._patch.get_path_in_displaycoord()
+                    return paths
+
+                def __call__(self, renderer, gc, tpath, affine, rgbFace):
+                    path = self.get_paths(renderer)[self._n]
+                    vert1, code1 = path.vertices, path.codes
+                    import numpy as np
+
+                    if np.all(vert1 == tpath.vertices) and np.all(code1 == tpath.codes):
+                        return True
+                    else:
+                        return False
+
+
+            class ConditionalStroke(pe._Base):
+
+                def __init__(self, condition_func, pe_list):
+                    """
+                    path effect that is only applied when the condition_func
+                    returns True.
+                    """
+                    super(ConditionalStroke, self).__init__()
+                    self._pe_list = pe_list
+                    self._condition_func = condition_func
+
+                def draw_path(self, renderer, gc, tpath, affine, rgbFace):
+
+                    if self._condition_func(renderer, gc, tpath, affine, rgbFace):
+                        for pe1 in self._pe_list:
+                            pe1.draw_path(renderer, gc, tpath, affine, rgbFace)
+
+            pe1 = ConditionalStroke(CheckNthSubPath(p, 0),[pe.Stroke()])
+            pe2 = ConditionalStroke(CheckNthSubPath(p, 1),[pe.Stroke(linestyle="solid")])
+            p.set_path_effects([pe1, pe2])
+
         subplot.add_patch(p)
         return p
 

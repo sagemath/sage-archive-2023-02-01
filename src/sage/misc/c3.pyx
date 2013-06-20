@@ -73,16 +73,30 @@ cpdef list C3_algorithm(object start, str bases, str attribute, bint proper):
         sage: class Foo(Category):
         ...    def super_categories(self):
         ...       return [A(), B()]
-        sage: F = Foo()
 
     Python is not able to create a consistent method resolution order
-    for the parent class::
+    for the parent / element / subcategory classes. Since trac:`12895`
+    the subcategory class is constructed when the category is
+    constructed, so an error is raised right away::
 
-        sage: F.parent_class
+        sage: F = Foo()
         Traceback (most recent call last):
         ...
         TypeError: Cannot create a consistent method resolution
-        order (MRO) for bases ....parent_class, ....parent_class
+        order (MRO) for bases ....subcategory_class, ....subcategory_class
+
+    To illustrate those effects further and exercise this C3
+    implementation, we cheat to construct ``Foo()`` anyway,
+    temporarily changing its super categories to bypass the above
+    failure::
+
+        sage: Foo.super_categories_orig = Foo.super_categories
+        sage: Foo.super_categories = lambda self: []
+        sage: F = Foo()
+        sage: Foo.super_categories = Foo.super_categories_orig
+        sage: delattr(F, "_super_categories")
+        sage: F.super_categories()
+        [Category of a, Category of b]
 
     Since the C3 algorithm is used for determining the list of
     all super categories (by trac ticket #11943), a similar error
@@ -92,6 +106,16 @@ cpdef list C3_algorithm(object start, str bases, str attribute, bint proper):
         Traceback (most recent call last):
         ...
         ValueError: Can not merge the items Category of x, Category of y.
+        sage: F.parent_class
+        Traceback (most recent call last):
+        ...
+        TypeError: Cannot create a consistent method resolution
+        order (MRO) for bases ....parent_class, ....parent_class
+        sage: F.element_class
+        Traceback (most recent call last):
+        ...
+        TypeError: Cannot create a consistent method resolution
+        order (MRO) for bases ....element_class, ....element_class
 
     Next, we demonstrate how our implementation of the C3 algorithm
     is used to compute the list of all super categories::

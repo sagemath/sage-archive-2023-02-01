@@ -23,7 +23,7 @@ if [ "$SAGE_DEBUG" = "yes" ]; then
     echo "Building a debug version of IML."
     export CFLAGS="-O0 -g $CFLAGS"
 else
-    export CFLAGS="-O2 -g $CFLAGS"
+    export CFLAGS="-O3 -g $CFLAGS"
 fi
 
 if [ "$SAGE64" = "yes" ]; then

@@ -1599,6 +1599,37 @@ class Partition(CombinatorialObject, Element):
         else:
             return default
 
+    @combinatorial_map(name="partition to minimal Dyck word")
+    def to_dyck_word(self):
+        """
+        Returns the smallest Dyck word whose corresponding partition is ``self``. This
+        corresponds to the unique Dyck path whose complement is the partition is ``self``
+        for which the partition touches the diagonal.
+
+        EXAMPLES::
+
+            sage: Partition([2,2]).to_dyck_word()
+            [1, 1, 0, 0, 1, 1, 0, 0]
+            sage: Partition([6,3,1]).to_dyck_word()
+            [1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0]
+        """
+        from sage.combinat.dyck_word import DyckWord
+        if self == []:
+            return DyckWord([])
+        list_of_word = []
+        cells = self.cells()
+        n = max(i+j for (i,j) in cells) + 2
+        list_of_word.extend([1]*(n-self.length()))
+        copy_part = list(self)
+        while copy_part != []:
+            c = copy_part.pop()
+            list_of_word.extend([0]*c)
+            for i in range(len(copy_part)):
+                copy_part[i] -= c
+            list_of_word.append(1)
+        list_of_word.extend([0]*(n-self[0]))
+        return DyckWord(list_of_word)
+
     @combinatorial_map(name="conjugate partition")
     def conjugate(self):
         """

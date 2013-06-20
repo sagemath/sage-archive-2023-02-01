@@ -11,11 +11,19 @@ FLINT Arithmetic Functions
 include "../../ext/interrupt.pxi"
 include "fmpz.pxi"
 
+cdef extern from "flint/fmpq.h":
+    ctypedef void * fmpq_t
+    void fmpq_init(fmpq_t)
+    void fmpq_clear(fmpq_t)
+    void fmpq_get_mpq(mpq_t, fmpq_t)
+    void fmpq_set_mpq(fmpq_t, mpq_t)
+
 cdef extern from "flint/arith.h":
     void arith_number_of_partitions(fmpz_t x, unsigned long n)
+    void arith_dedekind_sum(fmpq_t, fmpz_t, fmpz_t)
 
 from sage.rings.integer cimport Integer
-
+from sage.rings.rational cimport Rational
 
 def number_of_partitions(unsigned long n):
     """
@@ -82,4 +90,38 @@ def number_of_partitions(unsigned long n):
     fmpz_get_mpz(ans.value, ans_fmpz)
     fmpz_clear(ans_fmpz)
     return ans
+
+def dedekind_sum(p, q):
+    """
+    Return the Dedekind sum `s(p, q)` where `p` and `q` are arbitrary integers.
+
+    EXAMPLES::
+
+        sage: from sage.libs.flint.arith import dedekind_sum
+        sage: dedekind_sum(4, 5)
+        -1/5
+    """
+    p = Integer(p)
+    q = Integer(q)
+    s = Rational(0)
+
+    cdef fmpz_t p_fmpz, q_fmpz
+    cdef fmpq_t s_fmpq
+
+    fmpz_init(p_fmpz)
+    fmpz_init(q_fmpz)
+    fmpq_init(s_fmpq)
+
+    fmpz_set_mpz(p_fmpz, (<Integer>p).value)
+    fmpz_set_mpz(q_fmpz, (<Integer>q).value)
+
+    arith_dedekind_sum(s_fmpq, p_fmpz, q_fmpz)
+
+    fmpq_get_mpq((<Rational>s).value, s_fmpq)
+
+    fmpz_clear(p_fmpz)
+    fmpz_clear(q_fmpz)
+    fmpq_clear(s_fmpq)
+
+    return s
 

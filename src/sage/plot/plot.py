@@ -940,6 +940,11 @@ def plot(funcs, *args, **kwds):
 
         sage: plot(lambda x : RR(x).nth_root(3), (x,-1, 1))
 
+    Another way to avoid getting complex numbers for negative input is to
+    calculate for the positive and negate the answer::
+
+        sage: plot(sign(x)*abs(x)^(1/3),-1,1)
+
     We can detect the poles of a function::
 
         sage: plot(gamma, (-3, 4), detect_poles = True).show(ymin = -5, ymax = 5)

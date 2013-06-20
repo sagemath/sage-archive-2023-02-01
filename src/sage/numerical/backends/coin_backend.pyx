@@ -1087,7 +1087,7 @@ cdef class CoinBackend(GenericBackend):
             else:
                 return ""
         else:
-            self.prob_name = name
+            self.prob_name = str(name)
 
 
     cpdef row_name(self, int index):

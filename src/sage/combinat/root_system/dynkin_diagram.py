@@ -26,6 +26,7 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.graphs.digraph import DiGraph
 from cartan_type import CartanType, CartanType_abstract
+from sage.combinat.root_system.cartan_matrix import CartanMatrix
 from sage.misc.superseded import deprecated_function_alias
 
 def DynkinDiagram(*args):
@@ -175,12 +176,13 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             1   2
             G2
         """
-        result = self.cartan_type().ascii_art() +"\n" if hasattr(self.cartan_type(), "ascii_art") else ""
+        ct = self.cartan_type()
+        result = ct.ascii_art() +"\n" if hasattr(ct, "ascii_art") else ""
 
-        if self.cartan_type() is None:
+        if ct is None or isinstance(ct, CartanMatrix):
             return result+"Dynkin diagram of rank %s"%self.rank()
         else:
-            return result+"%s"%self.cartan_type()._repr_(compact = True)
+            return result+"%s"%ct._repr_(compact=True)
             #return result+"Dynkin diagram of type %s"%self.cartan_type()._repr_(compact = True)
 
     def _latex_(self, scale=0.5):
@@ -325,15 +327,7 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
             [-1  2 -2]
             [ 0 -1  2]
         """
-        from sage.matrix.constructor import identity_matrix
-        from sage.rings.all import ZZ
-        index_set = self.index_set()
-        reverse = dict((index_set[i], i) for i in range(len(index_set)))
-        m = 2*identity_matrix(ZZ, len(self.index_set()), sparse=True)
-        for (i,j,l) in self.edge_iterator():
-            m[reverse[j], reverse[i]] = -l
-        m.set_immutable()
-        return m
+        return CartanMatrix(self)
 
     def dual(self):
         r"""

@@ -54,6 +54,7 @@ database engine.
    sage/databases/stein_watkins
    sage/databases/jones
    sage/databases/lincodes
+   sage/databases/oeis
    sage/databases/sloane
    sage/databases/conway
    sage/databases/odlyzko

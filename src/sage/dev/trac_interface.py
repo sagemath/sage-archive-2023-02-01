@@ -933,3 +933,22 @@ class TracInterface(object):
         self._authenticated_server_proxy.ticket.update(int(ticketnum),
                 'Set by SageDev: commit %s'%(commit_id),
                 {'branch':remote_branch})
+
+    def update(self, ticketnum, **kwds):
+        """
+        Updates the ticket ``tickenum`` with the values specified
+        in ``kwds``
+
+        EXAMPLES::
+
+            sage: dev.trac.update(5614, branch='a/branch/name')
+            sage: dev.trac.update(5614, summary='a summary',
+            ....:         AuthorS='a developer')
+        """
+        attributes = {}
+        for k,v in kwds.iteritems():
+            k = k.lower()
+            if k in ALLOWED_FIELDS:
+                attributes[k] = v
+        self._authenticated_server_proxy.ticket.update(int(ticketnum), '',
+                attributes)

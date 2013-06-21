@@ -233,8 +233,8 @@ class DiGraph(GenericGraph):
                ``convert_empty_dict_labels_to_None`` to ``False`` (it is
                ``True`` by default).
 
-    -  ``boundary`` - a list of boundary vertices, if none,
-       digraph is considered as a 'digraph without boundary'
+    -  ``boundary`` - a list of boundary vertices, if
+       empty, digraph is considered as a 'graph without boundary'
 
     -  ``implementation`` - what to use as a backend for
        the graph. Currently, the options are either 'networkx' or
@@ -393,11 +393,17 @@ class DiGraph(GenericGraph):
         sage: DiGraph({0:Set([1,2,3]), 2:Set([4])}).edges()
         [(0, 1, None), (0, 2, None), (0, 3, None), (2, 4, None)]
 
+    Get rid of mutable default argument for `boundary` (:trac:`14794`)::
+
+        sage: D = DiGraph(boundary=None)
+        sage: D._boundary
+        []
+
     """
     _directed = True
 
     def __init__(self, data=None, pos=None, loops=None, format=None,
-                 boundary=[], weighted=None, implementation='c_graph',
+                 boundary=None, weighted=None, implementation='c_graph',
                  sparse=True, vertex_labels=True, name=None,
                  multiedges=None, convert_empty_dict_labels_to_None=None):
         """
@@ -873,7 +879,7 @@ class DiGraph(GenericGraph):
         else:
             assert format == 'int'
         self._pos = pos
-        self._boundary = boundary
+        self._boundary = boundary if boundary is not None else []
         if format != 'DiGraph' or name is not None:
             self.name(name)
 

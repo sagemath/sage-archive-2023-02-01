@@ -149,6 +149,7 @@ from sage.misc.derivative import multi_derivative
 from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_infinity
 from sage.misc.decorators import rename_keyword
 from sage.misc.superseded import deprecated_function_alias
+from sage.structure.dynamic_class import dynamic_class
 
 LOG_TEN_TWO_PLUS_EPSILON = 3.321928094887363 # a small overestimate of log(10,2)
 
@@ -313,6 +314,62 @@ cdef class Expression(CommutativeRingElement):
         ar.archive_ex(self._gobj, "sage_ex")
         ar_str = GArchive_to_str(&ar)
         return (0, map(repr, self.variables()), ar_str)
+
+    def _dbgprint(self):
+        r"""
+        Print pynac debug output to ``stderr``.
+
+        EXAMPLES::
+
+            sage: (1+x)._dbgprint()
+            x + 1
+        """
+        self._gobj.dbgprint()
+
+    def _dbgprinttree(self):
+        r"""
+        Print pynac expression tree debug output to ``stderr``.
+
+        EXAMPLES:
+
+        The expression tree is composed of Ginac primitives
+        and functions, organized by the tree, with various
+        other memory and hash information which will vary::
+
+            sage: (1+x+exp(x+1))._dbgprinttree()    # not tested
+            add @0x65e5960, hash=0x4727e01a, flags=0x3, nops=3
+                x (symbol) @0x6209150, serial=6, hash=0x2057b15e, flags=0xf, domain=0
+                1 (numeric) @0x3474cf0, hash=0x0, flags=0x7
+                -----
+                function exp @0x24835d0, hash=0x765c2165, flags=0xb, nops=1
+                    add @0x65df570, hash=0x420740d2, flags=0xb, nops=2
+                        x (symbol) @0x6209150, serial=6, hash=0x2057b15e, flags=0xf, domain=0
+                        1 (numeric) @0x3474cf0, hash=0x0, flags=0x7
+                        -----
+                        overall_coeff
+                        1 (numeric) @0x65e4df0, hash=0x7fd3, flags=0x7
+                        =====
+                    =====
+                1 (numeric) @0x3474cf0, hash=0x0, flags=0x7
+                -----
+                overall_coeff
+                1 (numeric) @0x663cc40, hash=0x7fd3, flags=0x7
+                =====
+
+        TESTS:
+
+        This test is just to make sure the function is working::
+
+            sage: (1+x+exp(x+1))._dbgprinttree()
+            add @...
+                x (symbol) ...
+                1 (numeric) ...
+                ...
+                overall_coeff
+                1 (numeric) ...
+                =====
+        """
+        self._gobj.dbgprinttree();
 
     def __setstate__(self, state):
         """
@@ -8034,6 +8091,19 @@ cdef class Expression(CommutativeRingElement):
             1/3*sqrt(5) - 1/3*sqrt(2)
             sage: (e1-e2).simplify_radical()
             0
+
+        TESTS:
+
+        This tests that :trac:`11668` has been fixed (by :trac:`12780`)::
+
+            sage: a,b = var('a b')
+            sage: A = abs((a+I*b))^2
+            sage: A.simplify_radical()
+            abs(a + I*b)^2
+            sage: imag(A)
+            0
+            sage: imag(A.simplify_radical())
+            0
         """
         from sage.calculus.calculus import maxima
         res = self.parent()(self._maxima_().radcan())
@@ -9887,10 +9957,112 @@ cdef class Expression(CommutativeRingElement):
     #    return new_Expression_from_GEx(self._parent, g_psi2(self._gobj, x._gobj))
 
 
+cdef dict dynamic_class_cache = {}
+cdef get_dynamic_class_for_function(unsigned serial):
+    r"""
+    Create a dynamic class corresponding to the function with given
+    ``serial`` that includes dynamic methods defined by the function.
+
+    Dynamic methods can be defined in a subclass ``EvaluationMethods`` in
+    the function body. These will be available in symbolic expressions
+    representing evaluations of the said function on some arguments.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.function import BuiltinFunction
+        sage: class TFunc(BuiltinFunction):
+        ....:     def __init__(self):
+        ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=1)
+        ....:
+        ....:     class EvaluationMethods:
+        ....:         def argp1(self, x):
+        ....:             '''
+        ....:             Some documentation about a bogus function.
+        ....:             '''
+        ....:             return x+1
+        ....:
+        ....:         @property
+        ....:         def foo(self):
+        ....:             return 5
+        ....:
+        sage: tfunc = TFunc()
+        sage: e = tfunc(x); e
+        tfunc(x)
+        sage: type(e)
+        <class '__main__.Expression_with_dynamic_methods'>
+        sage: e.argp1()
+        x + 1
+        sage: e.foo
+        5
+        sage: x.argp1()
+        Traceback (most recent call last):
+        ...
+        AttributeError: 'sage.symbolic.expression.Expression' object has no
+        attribute 'argp1'
+        sage: t = (e + 1).op[0]; t
+        tfunc(x)
+        sage: t
+        tfunc(x)
+        sage: type(t)
+        <class '__main__.Expression_with_dynamic_methods'>
+        sage: t.argp1()
+        x + 1
+        sage: import sagenb.misc.support as s
+        sage: s.completions('t.argp', globals(), system='python')
+        ['t.argp1']
+        sage: t.argp1.__doc__.strip()
+        'Some documentation about a bogus function.'
+
+    Now with two arguments::
+
+        sage: class TFunc2(BuiltinFunction):
+        ....:     def __init__(self):
+        ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=2)
+        ....:
+        ....:     class EvaluationMethods:
+        ....:         def argsum(self, x, y):
+        ....:             return x + y
+        ....:
+        sage: tfunc2 = TFunc2()
+        sage: e = tfunc2(x, 1)
+        sage: e.argsum()
+        x + 1
+    """
+    cls = dynamic_class_cache.get(serial)
+    if cls is None:
+        # if operator is a special function defined by us
+        # find the python equivalent and return it
+        func_class = get_sfunction_from_serial(serial)
+        eval_methods = getattr(func_class, 'EvaluationMethods', None)
+        if eval_methods is not None:
+            # callable methods need to be wrapped to extract the operands
+            # and pass them as arguments
+            from sage.symbolic.function_factory import eval_on_operands
+            from sage.structure.parent import getattr_from_other_class
+            for name in dir(eval_methods):
+                m = getattr_from_other_class(func_class, eval_methods, name)
+                if callable(m):
+                    setattr(eval_methods, name, eval_on_operands(m))
+            cls = dynamic_class('Expression_with_dynamic_methods',
+                    (eval_methods, Expression))
+        else:
+            cls = Expression
+
+        dynamic_class_cache[serial] = cls
+
+    return cls
 
 cdef Expression new_Expression_from_GEx(parent, GEx juice):
     cdef Expression nex
-    nex = <Expression>PY_NEW(Expression)
+    cdef unsigned serial
+    if is_exactly_a_function(juice):
+        # if the function defines any dynamic methods these are made
+        # available through a dynamic class
+        cls = get_dynamic_class_for_function(ex_to_function(juice).get_serial())
+    else:
+        cls = Expression
+
+    nex = <Expression>PY_NEW(cls)
     GEx_construct_ex(&nex._gobj, juice)
     nex._parent = parent
     return nex

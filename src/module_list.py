@@ -290,6 +290,9 @@ ext_modules = [
     Extension('sage.finance.markov_multifractal_cython',
               sources = ['sage/finance/markov_multifractal_cython.pyx']),
 
+    Extension('sage.finance.option',
+              sources = ['sage/finance/option.pyx']),
+
     Extension('sage.finance.time_series',
               sources = ['sage/finance/time_series.pyx'],
               include_dirs = numpy_include_dirs,

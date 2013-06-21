@@ -2871,6 +2871,64 @@ class Permutation_class(CombinatorialObject):
 
         return __builtin__.list(itertools.ifilter(lambda pos: to_standard(map(lambda z: p[z], pos)) == patt, iter(subword.Subwords(range(len(p)), len(patt))) ))
 
+    @combinatorial_map(name='Simion-Schmidt map')
+    def simion_schmidt(self, avoid=[1,2,3]):
+        r"""
+        Implements the Simion-Schmidt map which sends an arbitrary permutation
+        to a pattern avoiding permutation, where the permutation pattern is one
+        of four length-three patterns.  This method also implements the bijection
+        between (for example) ``[1,2,3]``- and ``[1,3,2]``-avoiding permutations.
+
+        INPUT:
+
+        - ``avoid`` -- one of the patterns ``[1,2,3]``, ``[1,3,2]``, ``[3,1,2]``, ``[3,2,1]``.
+
+        EXAMPLES::
+
+            sage: P=Permutations(6)
+            sage: p=P([4,5,1,6,3,2])
+            sage: pl= [ [1,2,3], [1,3,2], [3,1,2], [3,2,1] ]
+            sage: for q in pl:
+            ....:     s=p.simion_schmidt(q)
+            ....:     print s, s.has_pattern(q)
+            ....:
+            [4, 6, 1, 5, 3, 2] False
+            [4, 2, 1, 3, 5, 6] False
+            [4, 5, 3, 6, 2, 1] False
+            [4, 5, 1, 6, 2, 3] False
+        """
+        if len(list(self))<=2: return self
+        targetPermutation=[self[0]]
+        extreme=self[0]
+        nonMinima=[]
+        if avoid==[1,2,3] or avoid==[1,3,2]:
+            for i in xrange(1,len(list(self))):
+                if self[i]<extreme:
+                    targetPermutation.append(self[i])
+                    extreme=self[i]
+                else:
+                    targetPermutation.append(None)
+                    nonMinima.append(self[i])
+            nonMinima.sort()
+            if avoid==[1,3,2]:
+                nonMinima.reverse()
+        if avoid==[3,2,1] or avoid==[3,1,2]:
+            for i in xrange(1,len(list(self))):
+                if self[i]>extreme:
+                    targetPermutation.append(self[i])
+                    extreme=self[i]
+                else:
+                    targetPermutation.append(None)
+                    nonMinima.append(self[i])
+            nonMinima.sort()
+            if avoid==[3,2,1]:
+                nonMinima.reverse()
+
+        for i in xrange(1,len(list(self))):
+            if targetPermutation[i]==None:
+                targetPermutation[i] = nonMinima.pop()
+        return Permutation(targetPermutation)
+
     @combinatorial_map(order=2,name='reverse')
     def reverse(self):
         """

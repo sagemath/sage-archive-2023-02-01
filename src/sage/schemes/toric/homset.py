@@ -231,6 +231,28 @@ class SchemeHomset_toric_variety(SchemeHomset_generic):
         raise TypeError, "x must be a fan morphism or a list/tuple of polynomials"
 
 
+    def _an_element_(self):
+        """
+        Construct a sample morphism.
+
+        OUTPUT:
+
+        An element of the homset.
+
+        EXAMPLES::
+
+            sage: P2 = toric_varieties.P2()
+            sage: homset = P2.Hom(P2)
+            sage: homset.an_element()   # indirect doctest
+            Scheme endomorphism of 2-d CPR-Fano toric variety covered by 3 affine patches
+              Defn: Defined by sending Rational polyhedral fan in 2-d lattice N to
+                    Rational polyhedral fan in 2-d lattice N.
+        """
+        from sage.matrix.constructor import zero_matrix
+        zero = zero_matrix(self.domain().dimension_relative(),
+                           self.codomain().dimension_relative())
+        return self(zero)
+
 class SchemeHomset_points_toric_field(SchemeHomset_points):
     """
     Set of rational points of a toric variety.

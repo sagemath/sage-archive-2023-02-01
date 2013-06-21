@@ -383,6 +383,12 @@ function_options& function_options::series_func(PyObject* s)
 	series_f = series_funcp(s);
 	return *this;
 }
+function_options& function_options::subs_func(PyObject* e)
+{
+	python_func |= subs_python_f;
+	subs_f = subs_funcp(e);
+	return *this;
+}
 
 function_options & function_options::set_return_type(unsigned rt, tinfo_t rtt)
 {
@@ -984,6 +990,35 @@ ex function::series(const relational & r, int order, unsigned options) const
 		// end of generated lines
 	}
 	throw(std::logic_error("function::series(): invalid nparams"));
+}
+
+
+/** Implementation of ex::subs for functions. */
+ex function::subs(const exmap & m, unsigned options) const
+{
+	GINAC_ASSERT(serial<registered_functions().size());
+	const function_options & opt = registered_functions()[serial];
+
+	if (opt.python_func & function_options::subs_python_f) {
+		// convert seq to a PyTuple of Expressions
+		PyObject* args = py_funcs.subs_args_to_PyTuple(m, options, seq);
+		// call opt.subs_f with this list
+		PyObject* pyresult = PyObject_CallMethod(
+				(PyObject*)opt.subs_f,
+				"_subs_", "O", args);
+		Py_DECREF(args);
+		if (!pyresult) { 
+			throw(std::runtime_error("function::subs(): python method (_subs_) raised exception"));
+		}
+		// convert output Expression to an ex
+		ex result = py_funcs.pyExpression_to_ex(pyresult);
+		Py_DECREF(pyresult);
+		if (PyErr_Occurred()) { 
+			throw(std::runtime_error("function::subs(): python function (pyExpression_to_ex) raised exception"));
+		}
+		return result;
+	} else
+		return exprseq::subs(m, options);
 }
 
 /** Implementation of ex::conjugate for functions. */

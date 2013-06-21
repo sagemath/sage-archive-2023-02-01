@@ -104,6 +104,7 @@ namespace GiNaC {
     PyObject* (*ex_to_pyExpression)(GiNaC::ex e);
     std::string* (*py_print_function)(unsigned id, PyObject* args);
     std::string* (*py_latex_function)(unsigned id, PyObject* args);
+    PyObject* (*subs_args_to_PyTuple)(const GiNaC::exmap & m, unsigned options, const GiNaC::exvector & seq);
     int (*py_get_ginac_serial)();
     PyObject* (*py_get_sfunction_from_serial)(unsigned id);
     unsigned (*py_get_serial_from_sfunction)(PyObject* f);

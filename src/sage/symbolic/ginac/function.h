@@ -75,6 +75,7 @@ typedef ex (* imag_part_funcp)();
 typedef ex (* derivative_funcp)();
 typedef ex (* power_funcp)();
 typedef ex (* series_funcp)();
+typedef ex (* subs_funcp)(PyObject* parent);
 typedef void (* print_funcp)();
 
 // the following lines have been generated for max. 14 parameters
@@ -220,6 +221,7 @@ public:
 	function_options & derivative_func(PyObject* e);
 	function_options & power_func(PyObject* e);
 	function_options & series_func(PyObject* e);
+	function_options & subs_func(PyObject* e);
 
 	function_options & set_return_type(unsigned rt, tinfo_t rtt=NULL);
 	function_options & do_not_evalf_params();
@@ -246,6 +248,7 @@ public:
 		derivative_python_f	= 0x0020,
 		power_python_f		= 0x0040,
 		series_python_f		= 0x0080,
+		subs_python_f           = 0x0100,
 	};
 
 protected:
@@ -267,6 +270,7 @@ protected:
 	derivative_funcp derivative_f;
 	power_funcp power_f;
 	series_funcp series_f;
+        subs_funcp subs_f;
 	std::vector<print_funcp> print_dispatch_table;
 
 	bool evalf_params_first;
@@ -343,6 +347,7 @@ public:
 	ex evalf(int level=0, PyObject* parent=NULL) const;
 	unsigned calchash() const;
 	ex series(const relational & r, int order, unsigned options = 0) const;
+        ex subs(const exmap & m, unsigned options = 0) const;
 	ex thiscontainer(const exvector & v) const;
 	ex thiscontainer(std::auto_ptr<exvector> vp) const;
 	ex conjugate() const;

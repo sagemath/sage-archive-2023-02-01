@@ -543,7 +543,7 @@ class TensorProductOfCrystals(CrystalOfWords):
         [The infinity crystal of tableaux of type ['D', 10],
          The infinity crystal of tableaux of type ['D', 10]]
 
-        sage: B = CrystalOfGeneralizedYoungWalls(15)
+        sage: B = InfinityCrystalOfGeneralizedYoungWalls(15)
         sage: T = TensorProductOfCrystals(B,B,B)
         sage: T
         Full tensor product of the crystals
@@ -552,9 +552,9 @@ class TensorProductOfCrystals(CrystalOfWords):
          Crystal of generalized Young walls of type ['A', 15, 1]]
 
         sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()
-        sage: B = HighestWeightCrystalOfGYW(2,La[0]+La[1])
-        sage: C = HighestWeightCrystalOfGYW(2,2*La[2])
-        sage: D = HighestWeightCrystalOfGYW(2,3*La[0]+La[2])
+        sage: B = CrystalOfGeneralizedYoungWalls(2,La[0]+La[1])
+        sage: C = CrystalOfGeneralizedYoungWalls(2,2*La[2])
+        sage: D = CrystalOfGeneralizedYoungWalls(2,3*La[0]+La[2])
         sage: T = TensorProductOfCrystals(B,C,D)
         sage: T
         Full tensor product of the crystals
@@ -848,7 +848,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
         EXAMPLES::
 
             sage: La = RootSystem(['A',2,1]).weight_lattice().fundamental_weights()
-            sage: B = HighestWeightCrystalOfGYW(2,La[0]+La[1])
+            sage: B = CrystalOfGeneralizedYoungWalls(2,La[0]+La[1])
             sage: T = TensorProductOfCrystals(B,B)
             sage: b1 = B.highest_weight_vector().f_string([1,0])
             sage: b2 = B.highest_weight_vector().f_string([0,1])
@@ -884,7 +884,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
 
         EXAMPLES::
 
-            sage: B = CrystalOfGeneralizedYoungWalls(3)
+            sage: B = InfinityCrystalOfGeneralizedYoungWalls(3)
             sage: T = TensorProductOfCrystals(B,B)
             sage: b1 = B.highest_weight_vector().f_string([0,3,1])
             sage: b2 = B.highest_weight_vector().f_string([3,2,1,0,2,3])
@@ -940,7 +940,7 @@ class TensorProductOfCrystalsElement(ImmutableListWithParent):
         EXAMPLES::
 
             sage: La = RootSystem(['A',3,1]).weight_lattice().fundamental_weights()
-            sage: B = HighestWeightCrystalOfGYW(3,La[0])
+            sage: B = CrystalOfGeneralizedYoungWalls(3,La[0])
             sage: T = TensorProductOfCrystals(B,B,B)
             sage: b1 = B.highest_weight_vector().f_string([0,3])
             sage: b2 = B.highest_weight_vector().f_string([0])

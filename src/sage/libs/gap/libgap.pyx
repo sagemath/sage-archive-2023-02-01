@@ -248,6 +248,7 @@ from sage.structure.sage_object cimport SageObject
 from sage.structure.parent cimport Parent
 from sage.structure.element cimport ModuleElement, RingElement
 from sage.rings.all import ZZ
+from sage.misc.cachefunc import cached_method
 from sage.libs.gap.element cimport *
 
 
@@ -418,6 +419,137 @@ class Gap(Parent):
             gap_command = str(gap_command._gap_init_())
         return make_any_gap_element(self, gap_eval(gap_command))
 
+    @cached_method
+    def function_factory(self, function_name):
+        """
+        Return a GAP function wrapper
+
+        This is almost the same as calling
+        ``libgap.eval(function_name)``, but faster and makes it
+        obvious in your code that you are wrapping a function.
+
+        INPUT:
+
+        - ``function_name`` -- string. The name of a GAP function.
+
+        OUTPUT:
+
+        A function wrapper
+        :class:`~sage.libs.gap.element.GapElement_Function` for the
+        GAP function. Calling it from Sage is equivalent to calling
+        the wrapped function from GAP.
+
+        EXAMPLES::
+
+            sage: libgap.function_factory('Print')
+            <Gap function "Print">
+        """
+        return make_GapElement_Function(self, gap_eval(function_name))
+
+    def set_global(self, variable, value):
+        """
+        Set a GAP global variable
+
+        INPUT:
+
+        - ``variable`` -- string. The variable name.
+
+        - ``value`` -- anything that defines a GAP object.
+
+        EXAMPLES::
+
+            sage: libgap.set_global('FooBar', 1)
+            sage: libgap.get_global('FooBar')
+            1
+            sage: libgap.unset_global('FooBar')
+            sage: libgap.get_global('FooBar')
+            Traceback (most recent call last):
+            ...
+            ValueError: libGAP: Error, VAL_GVAR: No value bound to FooBar
+        """
+        is_bound = self.function_factory('IsBoundGlobal')
+        bind_global = self.function_factory('BindGlobal')
+        if is_bound(variable):
+            self.unset_global(variable)
+        bind_global(variable, value)
+
+    def unset_global(self, variable):
+        """
+        Remove a GAP global variable
+
+        INPUT:
+
+        - ``variable`` -- string. The variable name.
+
+        EXAMPLES::
+
+            sage: libgap.set_global('FooBar', 1)
+            sage: libgap.get_global('FooBar')
+            1
+            sage: libgap.unset_global('FooBar')
+            sage: libgap.get_global('FooBar')
+            Traceback (most recent call last):
+            ...
+            ValueError: libGAP: Error, VAL_GVAR: No value bound to FooBar
+        """
+        make_readwrite = self.function_factory('MakeReadWriteGlobal')
+        unbind_global = self.function_factory('UnbindGlobal')
+        make_readwrite(variable)
+        unbind_global(variable)
+
+    def get_global(self, variable):
+        """
+        Get a GAP global variable
+
+        INPUT:
+
+        - ``variable`` -- string. The variable name.
+
+        OUTPUT:
+
+        A :class:`~sage.libs.gap.element.GapElement` wrapping the GAP
+        output. A ``ValueError`` is raised if there is no such
+        variable in GAP.
+
+        EXAMPLES::
+
+            sage: libgap.set_global('FooBar', 1)
+            sage: libgap.get_global('FooBar')
+            1
+            sage: libgap.unset_global('FooBar')
+            sage: libgap.get_global('FooBar')
+            Traceback (most recent call last):
+            ...
+            ValueError: libGAP: Error, VAL_GVAR: No value bound to FooBar
+        """
+        value_global = self.function_factory('ValueGlobal')
+        return value_global(variable)
+
+    def global_context(self, variable, value):
+        """
+        Temporarily change a global variable
+
+        INPUT:
+
+        - ``variable`` -- string. The variable name.
+
+        - ``value`` -- anything that defines a GAP object.
+
+        OUTPUT:
+
+        A context manager that sets/reverts the given global variable.
+
+        EXAMPLES::
+
+            sage: libgap.set_global('FooBar', 1)
+            sage: with libgap.global_context('FooBar', 2):
+            ....:     print libgap.get_global('FooBar')
+            2
+            sage: libgap.get_global('FooBar')
+            1
+        """
+        from sage.libs.gap.context_managers import GlobalVariableContext
+        return GlobalVariableContext(variable, value)
 
     def _an_element_(self):
         r"""
@@ -433,7 +565,6 @@ class Gap(Parent):
             0
         """
         return self(0)
-
 
     def zero_element(self):
         """

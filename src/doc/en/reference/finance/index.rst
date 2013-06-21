@@ -6,6 +6,7 @@ Quantitative Finance
 
    sage/finance/time_series
    sage/finance/stock
+   sage/finance/option
    sage/finance/fractal
    sage/finance/markov_multifractal
 

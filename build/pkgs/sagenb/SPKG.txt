@@ -7,7 +7,7 @@ mathematical software.
 
 == License ==
 
-GPLv2+
+GPLv3+
 
 == SPKG Maintainers ==
 

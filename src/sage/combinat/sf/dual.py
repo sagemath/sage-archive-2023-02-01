@@ -25,19 +25,47 @@ import classical
 
 class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical):
     def __init__(self, dual_basis, scalar, scalar_name="", basis_name=None, prefix=None):
-        """
-        Generic dual base of a basis of symmetric functions.
+        r"""
+        Generic dual basis of a basis of symmetric functions.
 
         INPUT:
 
-        - ``self`` -- a dual basis of the symmetric functions
-        - ``dual_basis`` -- a basis of the symmetric functions dual to ``self``
-        - ``scalar`` -- a function `zee` on partitions which determines the scalar product
-          on the power sum basis with normalization `<p_\mu, p_\mu> = zee(\mu)`.
-        - ``scalar_name`` -- a string giving a description of the scalar product
-          specified by the parameter ``scalar`` (default : the empty string)
-        - ``prefix`` -- a string to use as the symbol for the basis.  The default
-          string will be "d" + the prefix for ``dual_basis``
+        - ``dual_basis`` -- a basis of the ring of symmetric functions
+
+        - ``scalar`` -- A function `z` on partitions which determines the
+          scalar product on the power sum basis by
+          `\langle p_{\mu}, p_{\mu} \rangle = z(\mu)`. (Independently on the
+          function chosen, the power sum basis will always be orthogonal; the
+          function ``scalar`` only determines the norms of the basis elements.)
+          This defaults to the function ``zee`` defined in
+          ``sage.combinat.sf.sfa``, that is, the function is defined by:
+
+          .. MATH::
+
+              \lambda \mapsto \prod_{i = 1}^\infty m_i(\lambda)!
+              i^{m_i(\lambda)}`,
+
+          where `m_i(\lambda)` means the number of times `i` appears in
+          `\lambda`. This default function gives the standard Hall scalar
+          product on the ring of symmetric functions.
+
+        - ``scalar_name`` -- (default: the empty string) a string giving a
+          description of the scalar product specified by the parameter
+          ``scalar``
+
+        - ``basis_name`` -- (optional) a string to serve as name for the basis
+          to be generated (such as "forgotten" in "the forgotten basis"); don't
+          set it to any of the already existing basis names (such as
+          ``homogeneous``, ``monomial``, ``forgotten``, etc.).
+
+        - ``prefix`` -- (default: ``'d'`` and the prefix for ``dual_basis``)
+          a string to use as the symbol for the basis
+
+        OUTPUT:
+
+        The basis of the ring of symmetric functions dual to the basis
+        ``dual_basis`` with respect to the scalar product determined
+        by ``scalar``.
 
         EXAMPLES::
 
@@ -64,7 +92,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         Inversions may not be possible if the base ring is not a field::
 
             sage: m = SymmetricFunctions(ZZ).m()
-            sage: h = m.dual_basis(sage.combinat.sf.sfa.zee)
+            sage: h = m.dual_basis(lambda x: 1)
             sage: h[2,1]
             Traceback (most recent call last):
             ...
@@ -81,7 +109,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
         TESTS:
 
-        Regression test for :trac:`12489`. This ticked improving
+        Regression test for :trac:`12489`. This ticket improving
         equality test revealed that the conversion back from the dual
         basis did not strip cancelled terms from the dictionary::
 
@@ -94,13 +122,21 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         self._scalar = scalar
         self._scalar_name = scalar_name
 
-        #Set up the cache
+        # Set up the cache
+
+        # cache for the coordinates of the elements
+        # of ``dual_basis`` with respect to ``self``
         self._to_self_cache = {}
+        # cache for the coordinates of the elements
+        # of ``self`` with respect to ``dual_basis``
         self._from_self_cache = {}
+        # cache for transition matrices which contain the coordinates of
+        # the elements of ``dual_basis`` with respect to ``self``
         self._transition_matrices = {}
+        # cache for transition matrices which contain the coordinates of
+        # the elements of ``self`` with respect to ``dual_basis``
         self._inverse_transition_matrices = {}
 
-        #
         scalar_target = scalar(sage.combinat.partition.Partition([1])).parent()
         scalar_target = (scalar_target(1)*dual_basis.base_ring()(1)).parent()
 
@@ -122,11 +158,10 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
     def _dual_to_self(self, x):
         """
-        Coerce an element of the dual of ``self`` canonically into ``self``
+        Coerce an element of the dual of ``self`` canonically into ``self``.
 
         INPUT:
 
-        - ``self`` -- a dual basis of the symmetric functions
         - ``x`` -- an element in the dual basis of ``self``
 
         OUTPUT:
@@ -165,7 +200,6 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
         INPUT:
 
-        - ``self`` -- a dual basis of the symmetric functions
         - ``x`` -- an element of ``self``
 
         OUTPUT:
@@ -228,10 +262,6 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         """
         Representation of ``self``.
 
-        INPUT:
-
-        - ``self`` -- a dual basis of the symmetric functions
-
         OUPUT
 
         - a string description of ``self``
@@ -254,13 +284,13 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
     def _precompute(self, n):
         """
-        Computes the transition matrix between ``self`` and its dual basis for
-        the homogenous component of size `n`.
+        Compute the transition matrices between ``self`` and its dual basis for
+        the homogeneous component of size `n`. The result is not returned,
+        but stored in the cache.
 
         INPUT:
 
-        - ``self`` -- a dual basis of the symmetric functions
-        - ``n`` -- nonegative integer
+        - ``n`` -- nonnegative integer
 
         EXAMPLES::
 
@@ -284,7 +314,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         base_ring = self.base_ring()
         zero = base_ring(0)
 
-        #Handle the n == 0 and n == 1 cases separately
+        # Handle the n == 0 and n == 1 cases separately
         if n == 0 or n == 1:
             part = sage.combinat.partition.Partition([1]*n)
             self._to_self_cache[ part ] = { part: base_ring(1) }
@@ -293,52 +323,110 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
             self._inverse_transition_matrices[n] = matrix(base_ring, [[1]])
             return
 
-        #Get all the basis elements of the n^th homogeneous component
-        #of the dual basis and express them in the power-sum basis
         partitions_n = sage.combinat.partition.Partitions_n(n).list()
-        d = {}
-        for part in partitions_n:
-            d[part] = self._p(self._dual_basis(part))._monomial_coefficients
 
-        #This contains the data for the transition matrix from the
-        #dual basis to self.
-        transition_matrix_n = matrix(base_ring, len(partitions_n), len(partitions_n))
+        # We now get separated into two cases, depending on whether we can
+        # use the power-sum basis to compute the matrix, or we have to use
+        # the Schur basis.
 
-        #This first section calculates how the basis elements of the
-        #dual basis are expressed in terms of self's basis.
+        from sage.rings.rational_field import RationalField
+        if (not base_ring.has_coerce_map_from(RationalField())) and self._scalar == sage.combinat.sf.sfa.zee:
+            # This is the case when (due to the base ring not being a
+            # \mathbb{Q}-algebra) we cannot use the power-sum basis,
+            # but (due to zee being the standard zee function) we can
+            # use the Schur basis.
 
-        #For every partition p of size n, compute self(p) in
-        #terms of the dual basis using the scalar product.
-        i = 0
-        for s_part in partitions_n:
-            #s_part corresponds to self(dual_basis(part))
-            #s_mcs  corresponds to self(dual_basis(part))._monomial_coefficients
-            s_mcs = {}
+            schur = self._sym.schur()
 
-            #We need to compute the scalar product of d[s_part] and
-            #all of the d[p_part]'s
-            j = 0
-            for p_part in partitions_n:
-                #Compute the scalar product of d[s_part] and d[p_part]
-                sp = zero
-                for ds_part in d[s_part]:
-                    if ds_part in d[p_part]:
-                        sp += d[s_part][ds_part]*d[p_part][ds_part]*self._scalar(ds_part)
-                if sp != zero:
-                    s_mcs[p_part] = sp
-                    transition_matrix_n[i,j] = sp
+            # Get all the basis elements of the n^th homogeneous component
+            # of the dual basis and express them in the Schur basis
+            d = {}
+            for part in partitions_n:
+                d[part] = schur(self._dual_basis(part))._monomial_coefficients
 
-                j += 1
+            # This contains the data for the transition matrix from the
+            # dual basis to self.
+            transition_matrix_n = matrix(base_ring, len(partitions_n), len(partitions_n))
 
-            self._to_self_cache[ s_part ] = s_mcs
-            i += 1
+            # This first section calculates how the basis elements of the
+            # dual basis are expressed in terms of self's basis.
 
-        #Save the transition matrix
+            # For every partition p of size n, compute self(p) in
+            # terms of the dual basis using the scalar product.
+            i = 0
+            for s_part in partitions_n:
+                # s_part corresponds to self(dual_basis(part))
+                # s_mcs  corresponds to self(dual_basis(part))._monomial_coefficients
+                s_mcs = {}
+
+                # We need to compute the scalar product of d[s_part] and
+                # all of the d[p_part]'s
+                j = 0
+                for p_part in partitions_n:
+                    # Compute the scalar product of d[s_part] and d[p_part]
+                    sp = zero
+                    for ds_part in d[s_part]:
+                        if ds_part in d[p_part]:
+                            sp += d[s_part][ds_part]*d[p_part][ds_part]
+                    if sp != zero:
+                        s_mcs[p_part] = sp
+                        transition_matrix_n[i,j] = sp
+
+                    j += 1
+
+                self._to_self_cache[ s_part ] = s_mcs
+                i += 1
+
+        else:
+            # Now the other case. Note that just being in this case doesn't
+            # guarantee that we can use the power-sum basis, but we can at
+            # least try.
+
+            # Get all the basis elements of the n^th homogeneous component
+            # of the dual basis and express them in the power-sum basis
+            d = {}
+            for part in partitions_n:
+                d[part] = self._p(self._dual_basis(part))._monomial_coefficients
+
+            # This contains the data for the transition matrix from the
+            # dual basis to self.
+            transition_matrix_n = matrix(base_ring, len(partitions_n), len(partitions_n))
+
+            # This first section calculates how the basis elements of the
+            # dual basis are expressed in terms of self's basis.
+
+            # For every partition p of size n, compute self(p) in
+            # terms of the dual basis using the scalar product.
+            i = 0
+            for s_part in partitions_n:
+                # s_part corresponds to self(dual_basis(part))
+                # s_mcs  corresponds to self(dual_basis(part))._monomial_coefficients
+                s_mcs = {}
+
+                # We need to compute the scalar product of d[s_part] and
+                # all of the d[p_part]'s
+                j = 0
+                for p_part in partitions_n:
+                    # Compute the scalar product of d[s_part] and d[p_part]
+                    sp = zero
+                    for ds_part in d[s_part]:
+                        if ds_part in d[p_part]:
+                            sp += d[s_part][ds_part]*d[p_part][ds_part]*self._scalar(ds_part)
+                    if sp != zero:
+                        s_mcs[p_part] = sp
+                        transition_matrix_n[i,j] = sp
+
+                    j += 1
+
+                self._to_self_cache[ s_part ] = s_mcs
+                i += 1
+
+        # Save the transition matrix
         self._transition_matrices[n] = transition_matrix_n
 
-        #This second section calculates how the basis elements of
-        #self in terms of the dual basis.  We do this by computing
-        #the inverse of the matrix obtained above.
+        # This second section calculates how the basis elements of
+        # self expand in terms of the dual basis.  We do this by
+        # computing the inverse of the matrix obtained above.
         inverse_transition = ~transition_matrix_n
 
         for i in range(len(partitions_n)):
@@ -351,20 +439,20 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
         self._inverse_transition_matrices[n] = inverse_transition
 
-    def transition_matrix(self, basis, n ):
+    def transition_matrix(self, basis, n):
         r"""
-        Returns the transition matrix between the `n^{th}` homogeneous component of ``self`` and ``basis``.
+        Returns the transition matrix between the `n^{th}` homogeneous components
+        of ``self`` and ``basis``.
 
         INPUT:
 
-        - ``self`` -- a dual basis of the symmetric functions
         - ``basis`` -- a target basis of the ring of symmetric functions
         - ``n`` -- nonnegative integer
 
         OUTPUT:
 
-        - returns a transition matrix from ``self`` to ``basis`` for
-          the elements of degree ``n``.  The indexing order of the rows and
+        - A transition matrix from ``self`` to ``basis`` for the elements
+          of degree ``n``.  The indexing order of the rows and
           columns is the order of ``Partitions(n)``.
 
         EXAMPLES::
@@ -405,19 +493,18 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
     def _multiply(self, left, right):
         """
-        Returns product of ``left`` and ``right``.
+        Return product of ``left`` and ``right``.
+
+        Multiplication is done by performing the multiplication in the dual
+        basis of ``self`` and then converting back to ``self``.
 
         INPUT:
 
-        - ``self`` -- a dual basis of the symmetric functions
-        - ``left``, ``right`` -- elements of dual bases in the ring of symmetric functions
+        - ``left``, ``right`` -- elements of ``self``
 
         OUTPUT:
 
         - the product of ``left`` and ``right`` in the basis ``self``
-
-        Multiplication is done by performing the multiplication in the dual basis of ``self``
-        and then converting back to ``self``.
 
         EXAMPLES::
 
@@ -439,21 +526,22 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
         return eclass(self, dual=d_product)
 
     class Element(classical.SymmetricFunctionAlgebra_classical.Element):
+        """
+        An element in the dual basis.
+
+        INPUT:
+
+        At least one of the following must be specified. The one (if
+        any) which is not provided will be computed.
+
+        - ``dictionary`` -- an internal dictionary for the
+          monomials and coefficients of ``self``
+
+        - ``dual`` -- self as an element of the dual basis.
+        """
         def __init__(self, A, dictionary=None, dual=None):
             """
             Create an element of a dual basis.
-
-            INPUT:
-
-            - ``self`` -- an element of the symmetric functions in a dual basis
-
-            At least one of the following must be specified. The one (if
-            any) which is not provided will be computed.
-
-            - ``dictionary`` -- an internal dictionary for the
-              monomials and coefficients of ``self``
-
-            - ``dual`` -- self as an element of the dual basis.
 
             TESTS::
 
@@ -474,28 +562,28 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
                 m[1, 1] + m[2]
             """
             if dictionary is None and dual is None:
-                raise ValueError, "you must specify either x or dual"
+                raise ValueError("you must specify either x or dual")
 
             parent = A
             base_ring = parent.base_ring()
             zero = base_ring(0)
 
             if dual is None:
-                #We need to compute the dual
+                # We need to compute the dual
                 dual_dict = {}
                 from_self_cache = parent._from_self_cache
 
-                #Get the underlying dictionary for self
+                # Get the underlying dictionary for self
                 s_mcs = dictionary
 
-                #Make sure all the conversions from self to
-                #to the dual basis have been precomputed
+                # Make sure all the conversions from self to
+                # to the dual basis have been precomputed
                 for part in s_mcs:
                     if part not in from_self_cache:
                         parent._precompute(sum(part))
 
-                #Create the monomial coefficient dictionary from the
-                #the monomial coefficient dictionary of dual
+                # Create the monomial coefficient dictionary from the
+                # the monomial coefficient dictionary of dual
                 for s_part in s_mcs:
                     from_dictionary = from_self_cache[s_part]
                     for part in from_dictionary:
@@ -505,36 +593,31 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
 
             if dictionary is None:
-                #We need to compute the monomial coefficients dictionary
+                # We need to compute the monomial coefficients dictionary
                 dictionary = {}
                 to_self_cache = parent._to_self_cache
 
-                #Get the underlying dictionary for the
-                #dual
+                # Get the underlying dictionary for the dual
                 d_mcs = dual._monomial_coefficients
 
-                #Make sure all the conversions from the dual basis
-                #to self have been precomputed
+                # Make sure all the conversions from the dual basis
+                # to self have been precomputed
                 for part in d_mcs:
                     if part not in to_self_cache:
                         parent._precompute(sum(part))
 
-                #Create the monomial coefficient dictionary from the
-                #the monomial coefficient dictionary of dual
+                # Create the monomial coefficient dictionary from the
+                # the monomial coefficient dictionary of dual
                 dictionary = dict_linear_combination( (to_self_cache[d_part], d_mcs[d_part]) for d_part in d_mcs)
 
-            #Initialize self
+            # Initialize self
             self._dual = dual
             classical.SymmetricFunctionAlgebra_classical.Element.__init__(self, A, dictionary)
 
 
         def dual(self):
             """
-            Returns ``self`` in the dual basis.
-
-            INPUT:
-
-            - ``self`` -- an element of the symmetric functions in a dual basis
+            Return ``self`` in the dual basis.
 
             OUTPUT:
 
@@ -554,16 +637,21 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
             return self._dual
 
         def omega(self):
-            """
-            Returns the image of ``self`` under the Frobenius / omega automorphism.
+            r"""
+            Return the image of ``self`` under the omega automorphism.
 
-            INPUT:
-
-            - ``self`` -- an element of the symmetric functions in a dual basis
+            The omega automorphism is defined to be the unique algebra
+            endomorphism `\omega` of the ring of symmetric functions that
+            satisfies `\omega(e_k) = h_k` for all positive integers `k`
+            (where `e_k` stands for the `k`-th elementary symmetric
+            function, and `h_k` stands for the `k`-th complete homogeneous
+            symmetric function). It furthermore is a Hopf algebra
+            endomorphism, and sends the power-sum symmetric function `p_k`
+            to `(-1)^{k-1} p_k` for every positive integer `k`.
 
             OUTPUT:
 
-            - returns omega applied to ``self``
+            - the result of applying omega to ``self``
 
             EXAMPLES::
 
@@ -581,11 +669,10 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
         def scalar(self, x):
             """
-            Returns the standard scalar product of ``self`` and ``x``.
+            Return the standard scalar product of ``self`` and ``x``.
 
             INPUT:
 
-            - ``self`` -- an element of the symmetric functions in a dual basis
             - ``x`` -- element of the symmetric functions
 
             OUTPUT:
@@ -605,16 +692,15 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
         def scalar_hl(self, x):
             """
-            Returns the Hall-Littlewood scalar product of ``self`` and ``x``.
+            Return the Hall-Littlewood scalar product of ``self`` and ``x``.
 
             INPUT:
 
-            - ``self`` -- an element of the symmetric functions in a dual basis
-            - ``x`` -- element of ``self``
+            - ``x`` -- element of the same dual basis as ``self``
 
             OUTPUT:
 
-            - the scalar product between ``x`` and ``self``
+            - the Hall-Littlewood scalar product between ``x`` and ``self``
 
             EXAMPLES::
 
@@ -629,12 +715,11 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
         def _add_(self, y):
             """
-            Adds elements in the dual basis.
+            Add two elements in the dual basis.
 
             INPUT:
 
-            - ``self`` -- an element of the symmetric functions in a dual basis
-            - ``y`` -- element of the dual basis of ``self``
+            - ``y`` -- element of the same dual basis as ``self``
 
             OUTPUT:
 
@@ -657,15 +742,7 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
         def _neg_(self):
             """
-            Takes negative of element in the dual basis.
-
-            INPUT:
-
-            - ``self`` -- an element of the symmetric functions in a dual basis
-
-            OUTPUT:
-
-            - the negative of the element ``self``
+            Return the negative of ``self``.
 
             EXAMPLES::
 
@@ -680,12 +757,11 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
         def _sub_(self, y):
             """
-            Subtracts elements in the dual basis.
+            Subtract two elements in the dual basis.
 
             INPUT:
 
-            - ``self`` -- an element of the symmetric functions in a dual basis
-            - ``y`` -- element of the dual basis of ``self``
+            - ``y`` -- element of the same dual basis as ``self``
 
             OUTPUT:
 
@@ -706,16 +782,15 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
         def _div_(self, y):
             """
-            Divides an element in the dual basis of ``self`` by ``y``.
+            Divide an element ``self`` of the dual basis by ``y``.
 
             INPUT:
 
-            - ``self`` -- an element of the symmetric functions in a dual basis
             - ``y`` -- element of base field
 
             OUTPUT:
 
-            - the element ``self`` divided by ``y``.
+            - the element ``self`` divided by ``y``
 
             EXAMPLES::
 
@@ -730,15 +805,12 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
         def __invert__(self):
             """
-            Inverts coefficients (only possible if working over field)
-
-            INPUT:
-
-            - ``self`` -- an element of the symmetric functions in a dual basis
+            Invert ``self`` (only possible if ``self`` is a scalar
+            multiple of `1` and we are working over a field).
 
             OUTPUT:
 
-            - invert the element ``self`` if possible
+            - multiplicative inverse of ``self`` if possible
 
             EXAMPLES::
 
@@ -760,17 +832,17 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 
         def expand(self, n, alphabet='x'):
             """
-            Expands the symmetric function as a symmetric polynomial in `n` variables.
+            Expand the symmetric function ``self`` as a symmetric polynomial
+            in `n` variables.
 
             INPUT:
 
-            - ``self`` -- an element of the symmetric functions in a dual basis
             - ``n`` -- a positive integer
             - ``alphabet`` -- a variable for the expansion (default: `x`)
 
             OUTPUT:
 
-            - a monomial expansion of an instance of dual of ``self`` in `n` variable
+            - a monomial expansion of an instance of ``self`` in `n` variables
 
             EXAMPLES::
 
@@ -792,3 +864,4 @@ class SymmetricFunctionAlgebra_dual(classical.SymmetricFunctionAlgebra_classical
 # Backward compatibility for unpickling
 from sage.structure.sage_object import register_unpickle_override
 register_unpickle_override('sage.combinat.sf.dual', 'SymmetricFunctionAlgebraElement_dual',  SymmetricFunctionAlgebra_dual.Element)
+

@@ -796,8 +796,11 @@ class Tableau(CombinatorialObject, Element):
     def descents(self):
         """
         Return a list of the cells ``(i,j)`` such that
-        ``self[i][j] > self[i-1][j]``. This is not to be confused with
-        the descents of a standard tableau!
+        ``self[i][j] > self[i-1][j]``.
+
+        .. WARNING::
+
+            This is not to be confused with the descents of a standard tableau.
 
         EXAMPLES::
 
@@ -817,11 +820,16 @@ class Tableau(CombinatorialObject, Element):
 
     def major_index(self):
         """
-        Return the major index of ``self``. The major index is defined
-        to be the sum of the number of descents of ``self`` (defined in
-        :meth:`.descents`) with the sum of their legs' lengths. This
-        is not to be confused with the major index of a standard
-        tableau.
+        Return the major index of ``self``.
+
+        The major index of a tableau `T` is defined to be the sum of the number
+        of descents of ``T`` (defined in :meth:`descents`) with the sum of
+        their legs' lengths.
+
+        .. WARNING::
+
+            This is not to be confused with the major index of a
+            standard tableau.
 
         EXAMPLES::
 
@@ -829,7 +837,11 @@ class Tableau(CombinatorialObject, Element):
             1
             sage: Tableau( [[1,2],[3,4]] ).major_index()
             2
-            sage: Tableau( [[1,2,3],[4,5]] ).major_index()    # not 3
+
+        If the major index would be defined in the sense of standard tableaux
+        theory, then the following would give 3 for a result::
+
+            sage: Tableau( [[1,2,3],[4,5]] ).major_index()
             2
         """
         descents = self.descents()
@@ -878,10 +890,13 @@ class Tableau(CombinatorialObject, Element):
     def inversions(self):
         """
         Return a list of the inversions of ``self``. An inversion is an
-        attacking pair `(c,d)` (see :meth:`.attacking_pairs` for
+        attacking pair `(c,d)` (see :meth:`attacking_pairs` for
         a definition of this) such that the entry of `c` in ``self`` is
-        greater than the entry of `d`. Do not mistake this for the
-        inversions of a standard tableau!
+        greater than the entry of `d`.
+
+        .. WARNING::
+
+            Do not mistake this for the inversions of a standard tableau.
 
         EXAMPLES::
 
@@ -901,9 +916,13 @@ class Tableau(CombinatorialObject, Element):
 
         The inversion number is defined to be the number of inversions of
         ``self`` minus the sum of the arm lengths of the descents of ``self``
-        (see the :meth:`.inversions` and :meth:`.descents` methods for the
-        relevant definitions). This is none of the meanings in which the word
-        "inversion" is used in the theory of standard tableaux!
+        (see the :meth:`inversions` and :meth:`descents` methods for the
+        relevant definitions).
+
+        .. WARNING::
+
+            This has none of the meanings in which the word "inversion"
+            is used in the theory of standard tableaux.
 
         EXAMPLES::
 
@@ -1307,7 +1326,7 @@ class Tableau(CombinatorialObject, Element):
             [[3, 4], [1, 2]]
         """
         if not self.is_rectangular():
-            raise TypeError, "the tableau must be rectangular to use vertical_flip()"
+            raise TypeError("the tableau must be rectangular to use vertical_flip()")
 
         return Tableau([row for row in reversed(self)])
 
@@ -1321,7 +1340,7 @@ class Tableau(CombinatorialObject, Element):
             [[4, 3], [2, 1]]
         """
         if not self.is_rectangular():
-            raise TypeError, "the tableau must be rectangular to use rotate_180()"
+            raise TypeError("the tableau must be rectangular to use rotate_180()")
 
         return Tableau([ [l for l in reversed(row)] for row in reversed(self) ])
 
@@ -1368,7 +1387,7 @@ class Tableau(CombinatorialObject, Element):
 
     def k_weight(self, k):
         """
-        Returns the ``k``-weight of self.
+        Return the ``k``-weight of ``self``.
 
         EXAMPLES::
 
@@ -1492,7 +1511,7 @@ class Tableau(CombinatorialObject, Element):
     def anti_restrict(self, n):
         """
         Return the skew tableau formed by removing all of the cells from
-        ``self`` that are filled with a number `\leq n`.
+        ``self`` that are filled with a number at most `n`.
 
         EXAMPLES::
 
@@ -1517,6 +1536,73 @@ class Tableau(CombinatorialObject, Element):
                     t[row][col] = None
         return sage.combinat.skew_tableau.SkewTableau( t )
 
+    def up(self):
+        """
+        Deprecated in :trac:`7983` since this is an operation on standard
+        tableaux.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,2]])
+            sage: [x for x in t.up()]
+            doctest:...: DeprecationWarning: Tableau.up() is deprecated since it is an operation on standard tableaux.
+            See http://trac.sagemath.org/7983 for details.
+            [[[1, 2, 3]], [[1, 2], [3]]]
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(7983,'Tableau.up() is deprecated since it is an operation on standard tableaux.')
+        return StandardTableau(self).up()
+
+    def up_list(self):
+        """
+        Deprecated in :trac:`7983` since this is an operation on standard
+        tableaux.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,2]])
+            sage: t.up_list()
+            doctest:...: DeprecationWarning: Tableau.up_list() is deprecated since it is an operation on standard tableaux.
+            See http://trac.sagemath.org/7983 for details.
+            [[[1, 2, 3]], [[1, 2], [3]]]
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(7983,'Tableau.up_list() is deprecated since it is an operation on standard tableaux.')
+        return StandardTableau(self).up_list()
+
+    def down(self):
+        """
+        Deprecated in :trac:`7983` since this is an operation on standard
+        tableaux.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,2],[3]])
+            sage: [x for x in t.down()]
+            doctest:...: DeprecationWarning: Tableau.down() is deprecated since it is an operation on standard tableaux.
+            See http://trac.sagemath.org/7983 for details.
+            [[[1, 2]]]
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(7983,'Tableau.down() is deprecated since it is an operation on standard tableaux.')
+        return StandardTableau(self).down()
+
+    def down_list(self):
+        """
+        Deprecated in :trac:`7983` since this is an operation on standard
+        tableaux.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,2],[3]])
+            sage: t.down_list()
+            doctest:...: DeprecationWarning: Tableau.down_list() is deprecated since it is an operation on standard tableaux.
+            See http://trac.sagemath.org/7983 for details.
+            [[[1, 2]]]
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(7983,'Tableau.down_list() is deprecated since it is an operation on standard tableaux.')
+        return StandardTableau(self).down_list()
 
     def to_list(self):
         """
@@ -1917,18 +2003,21 @@ class Tableau(CombinatorialObject, Element):
             sage: t.promotion_inverse(2)
             []
 
+        TESTS:
+
+        We check the equivalence of two definitions of inverse promotion
+        on semistandard tableaux::
+
             sage: ST = SemistandardTableaux(shape=[4,2,1], max_entry=7)
             sage: def bk_promotion_inverse7(st):
             ....:     st2 = st
             ....:     for i in range(1, 7):
             ....:         st2 = st2.bender_knuth_involution(i, check=False)
             ....:     return st2
-            sage: all( bk_promotion_inverse7(st) == st.promotion_inverse(6) for st in ST )
-            ....: # equivalence of two definitions of inverse promotion on SSYT
+            sage: all( bk_promotion_inverse7(st) == st.promotion_inverse(6) for st in ST ) # long time
             True
             sage: ST = SemistandardTableaux(shape=[2,2,2], max_entry=7)
-            sage: all( bk_promotion_inverse7(st) == st.promotion_inverse(6) for st in ST )
-            ....: # equivalence of two definitions of inverse promotion on SSYT
+            sage: all( bk_promotion_inverse7(st) == st.promotion_inverse(6) for st in ST ) # long time
             True
 
         A test for :trac:`13203`::
@@ -1987,11 +2076,6 @@ class Tableau(CombinatorialObject, Element):
 
         REFERENCES:
 
-        .. [St2009] Richard P. Stanley,
-           *Promotion and Evacuation*,
-           Electronic Journal of Combinatorics 16 (2) (2009), #R9,
-           http://www-math.mit.edu/~rstan/papers/evac.pdf
-
         .. [Hai1992] Mark D. Haiman,
            *Dual equivalence with applications, including a conjecture of Proctor*,
            Discrete Mathematics 99 (1992), 79-113,
@@ -1999,8 +2083,7 @@ class Tableau(CombinatorialObject, Element):
 
         .. [Sg2011] Bruce E. Sagan,
            *The cyclic sieving phenomenon: a survey*,
-           arXiv:1008.0790v3,
-           http://arxiv.org/abs/1008.0790v3
+           :arXiv:`1008.0790v3`
 
         EXAMPLES::
 
@@ -2028,21 +2111,28 @@ class Tableau(CombinatorialObject, Element):
             sage: t.promotion(2)
             []
 
+        TESTS:
+
+        We check the equivalence of two definitions of promotion on
+        semistandard tableaux::
+
             sage: ST = SemistandardTableaux(shape=[3,2,2,1], max_entry=6)
             sage: def bk_promotion6(st):
             ....:     st2 = st
             ....:     for i in range(5, 0, -1):
             ....:         st2 = st2.bender_knuth_involution(i, check=False)
             ....:     return st2
-            sage: all( bk_promotion6(st) == st.promotion(5) for st in ST )
-            ....: # equivalence of two definitions of promotion on SSYT
+            sage: all( bk_promotion6(st) == st.promotion(5) for st in ST ) # long time
             True
             sage: ST = SemistandardTableaux(shape=[4,4], max_entry=6)
-            sage: all( bk_promotion6(st) == st.promotion(5) for st in ST )
-            ....: # equivalence of two definitions of promotion on SSYT
+            sage: all( bk_promotion6(st) == st.promotion(5) for st in ST ) # long time
             True
+
+        We also check :meth:`promotion_inverse()` is the inverse
+        of :meth:`promotion()`::
+
             sage: ST = SemistandardTableaux(shape=[3,2,1], max_entry=7)
-            sage: all( st.promotion(6).promotion_inverse(6) == st for st in ST )
+            sage: all( st.promotion(6).promotion_inverse(6) == st for st in ST ) # long time
             True
         """
         if self.is_rectangular():
@@ -3171,7 +3261,7 @@ class StandardTableau(SemistandardTableau):
 
     def down_list(self):
         """
-        Returns a list of all the standard tableaux that can be obtained
+        Return a list of all the standard tableaux that can be obtained
         from ``self`` by removing a cell. Note that this is just a singleton
         list if ``self`` is nonempty, and an empty list otherwise.
 
@@ -3225,7 +3315,7 @@ class StandardTableau(SemistandardTableau):
         strictly further north than `i + 1` in ``self`` (this is not
         to say that `i` and `i + 1` must be in the same column). A
         list of these integers can be obtained using the
-        :meth:`.standard_descents` method.
+        :meth:`standard_descents` method.
 
         EXAMPLES::
 
@@ -3243,7 +3333,7 @@ class StandardTableau(SemistandardTableau):
         """
         Return the major index of the standard tableau ``self`` in the
         standard meaning of the word. The major index is defined to be
-        the sum of the descents of ``self`` (see :meth:`.standard_descents`
+        the sum of the descents of ``self`` (see :meth:`standard_descents`
         for their definition).
 
         EXAMPLES::
@@ -3285,16 +3375,17 @@ class StandardTableau(SemistandardTableau):
             sage: t.promotion_inverse()
             [[1, 2], [3, 4]]
 
+        We check the equivalence of two definitions of inverse promotion on
+        standard tableaux::
+
             sage: ST = StandardTableaux(7)
             sage: def bk_promotion_inverse7(st):
             ....:     st2 = st
             ....:     for i in range(1, 7):
             ....:         st2 = st2.bender_knuth_involution(i, check=False)
             ....:     return st2
-            sage: all( bk_promotion_inverse7(st) == st.promotion_inverse() for st in ST )
-            ....: # equivalence of two definitions of inverse promotion on SYT
+            sage: all( bk_promotion_inverse7(st) == st.promotion_inverse() for st in ST ) # long time
             True
-
         """
         if m is None:
             m = self.size() - 1
@@ -3324,9 +3415,9 @@ class StandardTableau(SemistandardTableau):
         EXAMPLES::
 
             sage: ST = StandardTableaux(7)
-            sage: all( st.promotion().promotion_inverse() == st for st in ST )
+            sage: all( st.promotion().promotion_inverse() == st for st in ST ) # long time
             True
-            sage: all( st.promotion_inverse().promotion() == st for st in ST )
+            sage: all( st.promotion_inverse().promotion() == st for st in ST ) # long time
             True
             sage: st = StandardTableau([[1,2,5],[3,4]])
             sage: parent(st.promotion())

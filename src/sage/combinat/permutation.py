@@ -318,7 +318,7 @@ def Permutation(l, check_input = True):
       - a :class:`PermutationGroupElement`
 
       - a pair of two standard tableaux of the same shape. This uses the
-        inverse of Robinson Schensted algorithm.
+        inverse of the Robinson-Schensted algorithm.
 
     - ``check_input`` (boolean) -- whether to check that input is correct. Slows
        the function down, but ensures that nothing bad happens. This is set to
@@ -393,7 +393,7 @@ def Permutation(l, check_input = True):
         [2, 1, 3]
 
     From a pair of tableaux of the same shape. This uses the inverse
-    of Robinson Schensted algorithm::
+    of the Robinson-Schensted algorithm::
 
         sage: p = [[1, 4, 7], [2, 5], [3], [6]]
         sage: q = [[1, 2, 5], [3, 6], [4], [7]]
@@ -631,7 +631,7 @@ class Permutation_class(CombinatorialObject):
 
     def size(self):
         """
-        Returns the size of the permutation 'self'.
+        Return the size of ``self``.
 
         EXAMPLES::
 
@@ -644,7 +644,7 @@ class Permutation_class(CombinatorialObject):
         """
         Returns a string of the permutation in cycle notation.
 
-        If singletons=True, it includes 1-cycles in the string.
+        If ``singletons=True``, it includes 1-cycles in the string.
 
         EXAMPLES::
 
@@ -665,8 +665,9 @@ class Permutation_class(CombinatorialObject):
 
     def next(self):
         r"""
-        Returns the permutation that follows p in lexicographic order. If p
-        is the last permutation, then next returns false.
+        Return the permutation that follows ``self`` in lexicographic order on
+        the symmetric group containing ``self``. If ``self`` is the last
+        permutation, then ``next`` returns ``False``.
 
         EXAMPLES::
 
@@ -674,6 +675,12 @@ class Permutation_class(CombinatorialObject):
             sage: p.next()
             [2, 1, 3]
             sage: p = Permutation([4,3,2,1])
+            sage: p.next()
+            False
+
+        TESTS::
+
+            sage: p = Permutation([])
             sage: p.next()
             False
         """
@@ -710,9 +717,9 @@ class Permutation_class(CombinatorialObject):
 
     def prev(self):
         r"""
-        Returns the permutation that comes directly before p in
-        lexicographic order. If p is the first permutation, then it returns
-        False.
+        Return the permutation that comes directly before ``self`` in
+        lexicographic order on the symmetric group containing ``self``.
+        If ``self`` is the first permutation, then it returns ``False``.
 
         EXAMPLES::
 
@@ -722,6 +729,12 @@ class Permutation_class(CombinatorialObject):
             sage: p = Permutation([1,3,2])
             sage: p.prev()
             [1, 2, 3]
+
+        TESTS::
+
+            sage: p = Permutation([])
+            sage: p.prev()
+            False
         """
 
         p = self[:]
@@ -780,10 +793,10 @@ class Permutation_class(CombinatorialObject):
 
     def to_cycles(self, singletons=True):
         """
-        Returns the permutation p as a list of disjoint cycles.
+        Return the permutation ``self`` as a list of disjoint cycles.
 
-        If ``singletons=False`` is given, don't returns the singletons in the
-        list of cycles.
+        If ``singletons=False`` is given, the list does not contain the
+        singleton cycles.
 
         EXAMPLES::
 
@@ -811,7 +824,7 @@ class Permutation_class(CombinatorialObject):
 
         Note: there is an alternative implementation called ``_to_cycle_set``
         which could be slightly (10%) faster for some input (typically for
-        permutations of size in the range [100, 10000]. You can run the
+        permutations of size in the range [100, 10000]). You can run the
         following benchmarks. For small permutations::
 
             sage: for size in range(9): # not tested
@@ -822,7 +835,7 @@ class Permutation_class(CombinatorialObject):
             ...    timeit('[p._to_cycles_list(False) for p in lp]')
             ...    timeit('[p._to_cycles_orig(False) for p in lp]')
 
-       and larger one::
+       and larger ones::
 
             sage: for size in [10, 20, 50, 75, 100, 200, 500, 1000, # not tested
             ...         2000, 5000, 10000, 15000, 20000, 30000,
@@ -916,7 +929,7 @@ class Permutation_class(CombinatorialObject):
 
     def _to_cycles_set(self, singletons=True):
         r"""
-        Returns the permutation p as a list of disjoint cycles.
+        Return the permutation ``self`` as a list of disjoint cycles.
 
         EXAMPLES::
 
@@ -1019,9 +1032,10 @@ class Permutation_class(CombinatorialObject):
         else:
             return PermutationGroupElement( cycles , parent=grp)
 
-    def signature(p):
+    def signature(self):
         r"""
-        Returns the signature of a permutation.
+        Return the signature of the permutation ``self``. This is
+        `(-1)^l`, where `l` is the number of inversions of ``self``.
 
         .. NOTE::
 
@@ -1034,14 +1048,15 @@ class Permutation_class(CombinatorialObject):
             sage: Permutation([1,3,2,5,4]).sign()
             1
         """
-        return (-1)**(len(p)-len(p.to_cycles()))
+        return (-1)**(len(self)-len(self.to_cycles()))
 
     #one can also use sign as an alias for signature
     sign = signature
 
     def is_even(self):
         r"""
-        Returns True if the permutation p is even and false otherwise.
+        Return ``True`` if the permutation ``self`` is even and
+        ``False`` otherwise.
 
         EXAMPLES::
 
@@ -1201,7 +1216,7 @@ class Permutation_class(CombinatorialObject):
 
     def __call__(self, i):
         r"""
-        Returns the image of the integer i under this permutation.
+        Return the image of the integer `i` under ``self``.
 
         EXAMPLES::
 
@@ -1240,7 +1255,8 @@ class Permutation_class(CombinatorialObject):
 
     def rank(self):
         r"""
-        Returns the rank of a permutation in lexicographic ordering.
+        Return the rank of ``self`` in the lexicographic ordering on the
+        symmetric group to which ``self`` belongs.
 
         EXAMPLES::
 
@@ -1269,7 +1285,7 @@ class Permutation_class(CombinatorialObject):
 
     def to_inversion_vector(self):
         r"""
-        Returns the inversion vector of a permutation p.
+        Return the inversion vector of ``self``.
 
         If `iv` is the inversion vector, then `iv[i]` is the number of elements
         larger than `i` that appear to the left of `i` in the permutation.
@@ -1326,7 +1342,7 @@ class Permutation_class(CombinatorialObject):
 
     def _to_inversion_vector_orig(self):
         r"""
-        Returns the inversion vector of a permutation p.
+        Return the inversion vector of ``self``.
 
         (it's probably not the most efficient implementation)
 
@@ -1351,7 +1367,7 @@ class Permutation_class(CombinatorialObject):
 
     def _to_inversion_vector_small(self):
         r"""
-        Returns the inversion vector of a permutation p.
+        Return the inversion vector of ``self``.
 
         (best choice for `5 < size < 420` approximately)
 
@@ -1375,7 +1391,7 @@ class Permutation_class(CombinatorialObject):
 
     def _to_inversion_vector_divide_and_conquer(self):
         r"""
-        Returns the inversion vector of a permutation p.
+        Returns the inversion vector of a permutation ``self``.
 
         (best choice for `size > 410` approximately)
 
@@ -1436,7 +1452,7 @@ class Permutation_class(CombinatorialObject):
 
     def inversions(self):
         r"""
-        Returns a list of the inversions of the permutation `p`.
+        Return a list of the inversions of ``self``.
 
         An inversion is a pair `(i,j)` such that `i<j` and `p(i)>p(j)`.
 
@@ -1752,7 +1768,16 @@ class Permutation_class(CombinatorialObject):
 
     def runs(self):
         r"""
-        Returns a list of the runs in the permutation p.
+        Return a list of the runs in the nonempty permutation
+        ``self``.
+
+        A run in a permutation is defined to be a maximal (with
+        respect to inclusion) nonempty increasing substring (i. e.,
+        contiguous subsequence). For instance, the runs in the
+        permutation ``[6,1,7,3,4,5,2]`` are ``[6]``, ``[1,7]``,
+        ``[3,4,5]`` and ``[2]``.
+
+        Runs in an empty permutation are not defined.
 
         REFERENCES:
 
@@ -1766,6 +1791,20 @@ class Permutation_class(CombinatorialObject):
             [[4], [3], [2], [1]]
             sage: Permutation([2,4,1,3]).runs()
             [[2, 4], [1, 3]]
+            sage: Permutation([1]).runs()
+            [[1]]
+
+        The example from above:
+
+            sage: Permutation([6,1,7,3,4,5,2]).runs()
+            [[6], [1, 7], [3, 4, 5], [2]]
+
+        The number of runs in a nonempty permutation equals its
+        number of descents plus 1:
+
+            sage: all( len(p.runs()) == p.number_of_descents() + 1
+            ....:      for p in Permutations(6) )
+            True
         """
         p = self[:]
         runs = []
@@ -1785,8 +1824,7 @@ class Permutation_class(CombinatorialObject):
 
     def longest_increasing_subsequence_length(self):
         r"""
-        Returns the length of the longest increasing subsequences of the
-        permutation p.
+        Return the length of the longest increasing subsequences of ``self``.
 
         EXAMPLES::
 
@@ -1806,8 +1844,7 @@ class Permutation_class(CombinatorialObject):
 
     def longest_increasing_subsequences(self):
         r"""
-        Returns the list of the longest increasing subsequences of the
-        permutation p.
+        Return the list of the longest increasing subsequences of ``self``.
 
         .. note::
 
@@ -1825,8 +1862,9 @@ class Permutation_class(CombinatorialObject):
 
     def cycle_type(self):
         r"""
-        Returns a partition of len(p) corresponding to the cycle type of p.
-        This is a non-increasing sequence of the cycle lengths of p.
+        Return a partition of ``len(self)`` corresponding to the cycle
+        type of ``self``.
+        This is a non-increasing sequence of the cycle lengths of ``self``.
 
         EXAMPLES::
 
@@ -1839,8 +1877,11 @@ class Permutation_class(CombinatorialObject):
 
     def to_lehmer_code(self):
         r"""
-        Returns the Lehmer code of the permutation p.
-        `c[i]` is the number of `j>i` such that `p(j)<p(i)`.
+        Returns the Lehmer code of the permutation ``self``.
+
+        The Lehmer code of a permutation `p` is defined as the
+        list `[c[1],c[2],...,c[n]]`, where `c[i]` is the number of
+        `j>i` such that `p(j)<p(i)`.
 
         EXAMPLES::
 
@@ -1875,8 +1916,11 @@ class Permutation_class(CombinatorialObject):
 
     def _to_lehmer_code_small(self):
         r"""
-        Returns the Lehmer code of the permutation p.
-        `c[i]` is the number of `j>i` such that `p(j)<p(i)`.
+        Return the Lehmer code of the permutation ``self``.
+
+        The Lehmer code of a permutation `p` is defined as the
+        list `(c_1, c_2, \ldots, c_n)`, where `c_i` is the number
+        of `j > i` such that `p(j) < p(i)`.
 
         (best choice for `size<577` approximately)
 
@@ -1897,7 +1941,11 @@ class Permutation_class(CombinatorialObject):
 
     def to_lehmer_cocode(self):
         r"""
-        Returns the Lehmer cocode of p.
+        Return the Lehmer cocode of the permutation ``self``.
+
+        The Lehmer cocode of a permutation `p` is defined as the
+        list `(c_1, c_2, \ldots, c_n)`, where `c_i` is the number
+        of `j < i` such that `p(j) > p(i)`.
 
         EXAMPLES::
 
@@ -1941,7 +1989,7 @@ class Permutation_class(CombinatorialObject):
 
     def reduced_words(self):
         r"""
-        Returns a list of the reduced words of the permutation p.
+        Return a list of the reduced words of ``self``.
 
         EXAMPLES::
 
@@ -1996,7 +2044,7 @@ class Permutation_class(CombinatorialObject):
 
     def fixed_points(self):
         r"""
-        Returns a list of the fixed points of the permutation p.
+        Return a list of the fixed points of ``self``.
 
         EXAMPLES::
 
@@ -2014,7 +2062,7 @@ class Permutation_class(CombinatorialObject):
 
     def number_of_fixed_points(self):
         r"""
-        Returns the number of fixed points of the permutation p.
+        Return the number of fixed points of ``self``.
 
         EXAMPLES::
 
@@ -2032,16 +2080,20 @@ class Permutation_class(CombinatorialObject):
     ############
     def recoils(self):
         r"""
-        Returns the list of the positions of the recoils of the permutation
-        p.
+        Return the list of the positions of the recoils of ``self``.
 
-        A recoil of a permutation is an integer i such that i+1 is to the
-        left of it.
+        A recoil of a permutation `p` is an integer `i` such that `i+1`
+        appears to the left of `i` in `p`.
+        Here, the positions are being counted starting at `0`.
+        (Note that it is the positions, not the recoils themselves, which
+        are being listed.)
 
         EXAMPLES::
 
             sage: Permutation([1,4,3,2]).recoils()
             [2, 3]
+            sage: Permutation([]).recoils()
+            []
         """
         p = self
         recoils  = []
@@ -2053,7 +2105,7 @@ class Permutation_class(CombinatorialObject):
 
     def number_of_recoils(self):
         r"""
-        Returns the number of recoils of the permutation p.
+        Return the number of recoils of the permutation ``self``.
 
         EXAMPLES::
 
@@ -2064,17 +2116,21 @@ class Permutation_class(CombinatorialObject):
 
     def recoils_composition(self):
         """
-        Returns the composition corresponding to recoils of the
-        permutation.
+        Return the composition corresponding to the recoils of ``self``.
+
+        The recoils composition of a permutation `p` is a composition of
+        `\ell(p)` whose descent set is the set of the recoils of `p` (not
+        their positions). In other words, this is the descents
+        composition of `p^{-1}`.
 
         EXAMPLES::
 
             sage: Permutation([1,3,2,4]).recoils_composition()
-            [3]
+            [2, 2]
+            sage: Permutation([]).recoils_composition()
+            []
         """
-        d = self.recoils()
-        d = [ -1 ] + d
-        return [ d[i+1]-d[i] for i in range(len(d)-1)]
+        return self.inverse().descents_composition()
 
 
     ############
@@ -2083,10 +2139,11 @@ class Permutation_class(CombinatorialObject):
 
     def descents(self, final_descent=False):
         r"""
-        Returns the list of the descents of the permutation p.
+        Return the list of the descents of ``self``.
 
-        A descent of a permutation is an integer i such that p[i] > p[i+1].
-        With the final_descent option, the last position of a non empty
+        A descent of a permutation `p` is an integer `i` such that
+        `p(i) > p(i+1)`.
+        With the ``final_descent`` option, the last position of a non-empty
         permutation is also considered as a descent.
 
         EXAMPLES::
@@ -2142,7 +2199,7 @@ class Permutation_class(CombinatorialObject):
 
     def number_of_descents(self, final_descent=False):
         r"""
-        Returns the number of descents of the permutation p.
+        Return the number of descents of ``self``.
 
         EXAMPLES::
 
@@ -2155,7 +2212,7 @@ class Permutation_class(CombinatorialObject):
 
     def number_of_idescents(self, final_descent=False):
         r"""
-        Returns the number of descents of the permutation p.
+        Return the number of idescents of ``self``.
 
         EXAMPLES::
 
@@ -2169,16 +2226,20 @@ class Permutation_class(CombinatorialObject):
     @combinatorial_map(name='descent composition')
     def descents_composition(self):
         """
-        Returns the composition corresponding to the descents of the
-        permutation.
+        Return the composition corresponding to the descents of ``self``.
 
         EXAMPLES::
 
             sage: Permutation([1,3,2,4]).descents_composition()
             [2, 2]
+            sage: Permutation([4,1,6,7,2,3,8,5]).descents_composition()
+            [1, 3, 3, 1]
+            sage: Permutation([]).descents_composition()
+            []
         """
-        d = self.descents()
-        d = [ -1 ] + d + [len(self)-1]
+        if len(self) == 0:
+            return Composition([])
+        d = [ -1 ] + self.descents() + [len(self)-1]
         return Composition([ d[i+1]-d[i] for i in range(len(d)-1)])
 
     def descent_polynomial(self):
@@ -2219,11 +2280,11 @@ class Permutation_class(CombinatorialObject):
 
     def major_index(self, final_descent=False):
         r"""
-        Returns the major index of the permutation p.
+        Return the major index of ``self``.
 
-        The major index is the sum of the descents of p. Since our
-        permutation indices are 0-based, we need to add one the number of
-        descents.
+        The major index of a permutation `p` is the sum of the descents of `p`.
+        Since our permutation indices are 0-based, we need to add the
+        number of descents.
 
         EXAMPLES::
 
@@ -2240,12 +2301,12 @@ class Permutation_class(CombinatorialObject):
 
     def imajor_index(self, final_descent=False):
         """
-        Returns the inverse major index of the permutation self, which is
-        the major index of the inverse of self.
+        Return the inverse major index of the permutation ``self``, which is
+        the major index of the inverse of ``self``.
 
-        The major index is the sum of the descents of p. Since our
-        permutation indices are 0-based, we need to add one the number of
-        descents.
+        The major index of a permutation `p` is the sum of the descents of `p`.
+        Since our permutation indices are 0-based, we need to add the
+        number of descents.
 
         EXAMPLES::
 
@@ -2262,17 +2323,22 @@ class Permutation_class(CombinatorialObject):
 
     def to_major_code(self, final_descent=False):
         r"""
-        Returns the major code of the permutation p, which is defined as
-        the list [m1-m2, m2-m3,..,mn] where mi := maj(pi) is the major
-        indices of the permutation math obtained by erasing the letters
-        smaller than math in p.
+        Return the major code of the permutation ``self``.
+
+        The major code of a permutation `p` is defined as the sequence
+        `(m_1-m_2, m_2-m_3, \ldots, m_n)`, where `m_i` is the major
+        index of the permutation obtained by erasing all letters smaller than
+        `i` from `p`.
 
         REFERENCES:
 
-        - Carlitz, L. 'q-Bernoulli and Eulerian Numbers' Trans.
-          Amer. Math. Soc. 76 (1954) 332-350 Skandera, M. 'An Eulerian
-          Partner for Inversions', Sem. Lothar. Combin. 46 (2001)
-          B46d.
+        - Carlitz, L. *q-Bernoulli and Eulerian Numbers*,
+          Trans. Amer. Math. Soc. 76 (1954) 332-350.
+          http://www.ams.org/journals/tran/1954-076-02/S0002-9947-1954-0060538-2/
+
+        - Skandera, M. *An Eulerian Partner for Inversions*,
+          Sem. Lothar. Combin. 46 (2001) B46d.
+          http://www.lehigh.edu/~mas906/papers/partner.ps
 
         EXAMPLES::
 
@@ -2300,10 +2366,10 @@ class Permutation_class(CombinatorialObject):
 
     def peaks(self):
         r"""
-        Returns a list of the peaks of the permutation p.
+        Return a list of the peaks of the permutation ``self``.
 
-        A peak of a permutation is an integer i such that p[i-1] < p[i] and
-        p[i] > p[i+1].
+        A peak of a permutation `p` is an integer `i` such that
+        `p(i-1) < p(i)` and `p(i) > p(i+1)`.
 
         EXAMPLES::
 
@@ -2311,6 +2377,8 @@ class Permutation_class(CombinatorialObject):
             [1]
             sage: Permutation([4,1,3,2,6,5]).peaks()
             [2, 4]
+            sage: Permutation([]).peaks()
+            []
         """
         p = self
         peaks = []
@@ -2323,10 +2391,10 @@ class Permutation_class(CombinatorialObject):
 
     def number_of_peaks(self):
         r"""
-        Returns the number of peaks of the permutation p.
+        Return the number of peaks of the permutation ``self``.
 
-        A peak of a permutation is an integer i such that p[i-1] < p[i] and
-        p[i] > p[i+1].
+        A peak of a permutation `p` is an integer `i` such that
+        `p(i-1) < p(i)` and `p(i) > p(i+1)`.
 
         EXAMPLES::
 
@@ -2343,10 +2411,10 @@ class Permutation_class(CombinatorialObject):
 
     def saliances(self):
         r"""
-        Returns a list of the saliances of the permutation p.
+        Return a list of the saliances of the permutation ``self``.
 
-        A saliance of a permutation p is an integer i such that p[i] > p[j]
-        for all j > i.
+        A saliance of a permutation `p` is an integer `i` such that
+        `p(i) > p(j)` for all `j > i`.
 
         EXAMPLES::
 
@@ -2370,7 +2438,7 @@ class Permutation_class(CombinatorialObject):
 
     def number_of_saliances(self):
         r"""
-        Returns the number of saliances of the permutation p.
+        Return the number of saliances of ``self``.
 
         EXAMPLES::
 
@@ -2386,7 +2454,7 @@ class Permutation_class(CombinatorialObject):
     ################
     def bruhat_lequal(self, p2):
         r"""
-        Returns True if self is less than p2 in the Bruhat order.
+        Return ``True`` if ``self`` is less than ``p2`` in the Bruhat order.
 
         EXAMPLES::
 
@@ -2416,7 +2484,7 @@ class Permutation_class(CombinatorialObject):
 
     def weak_excedences(self):
         """
-        Returns all the numbers self[i] such that self[i] >= i+1.
+        Return all the numbers ``self[i]`` such that ``self[i] >= i+1``.
 
         EXAMPLES::
 
@@ -2432,12 +2500,13 @@ class Permutation_class(CombinatorialObject):
 
     def bruhat_inversions(self):
         r"""
-        Returns the list of inversions of p such that the application of
-        this inversion to p decrements its number of inversions.
+        Return the list of inversions of ``self`` such that the application of
+        this inversion to ``self`` decreases its number of inversions by
+        exactly 1.
 
-        Equivalently, it returns the list of pairs (i,j), i < j such that p[i]
-        < p[j] and such that there exists no k between i and j satisfying
-        p[i] < p[k].
+        Equivalently, it returns the list of pairs `(i,j)` such that `i < j`,
+        such that `p(i) > p(j)` and such that there exists no `k` (strictly)
+        between `i` and `j` satisfying `p(i) > p(k) > p(j)`.
 
         EXAMPLES::
 
@@ -2450,9 +2519,9 @@ class Permutation_class(CombinatorialObject):
 
     def bruhat_inversions_iterator(self):
         """
-        Returns the iterator for the inversions of p such that the
-        application of this inversion to p decrements its number of
-        inversions.
+        Return the iterator for the inversions of ``self`` such that the
+        application of this inversion to ``self`` decreases its number of
+        inversions by exactly 1.
 
         EXAMPLES::
 
@@ -2478,9 +2547,9 @@ class Permutation_class(CombinatorialObject):
 
     def bruhat_succ(self):
         r"""
-        Returns a list of the permutations strictly greater than p in the
-        Bruhat order such that there is no permutation between one of those
-        and p.
+        Return a list of the permutations strictly greater than ``self`` in
+        the Bruhat order (on the symmetric group containing ``self``) such
+        that there is no permutation between one of those and ``self``.
 
         EXAMPLES::
 
@@ -2494,9 +2563,10 @@ class Permutation_class(CombinatorialObject):
 
     def bruhat_succ_iterator(self):
         """
-        An iterator for the permutations that are strictly greater than p
-        in the Bruhat order such that there is no permutation between one
-        of those and p.
+        An iterator for the permutations that are strictly greater than
+        ``self`` in the Bruhat order (on the symmetric group containing
+        ``self``) such that there is no permutation between one
+        of those and ``self``.
 
         EXAMPLES::
 
@@ -2519,9 +2589,9 @@ class Permutation_class(CombinatorialObject):
 
     def bruhat_pred(self):
         r"""
-        Returns a list of the permutations strictly smaller than p in the
-        Bruhat order such that there is no permutation between one of those
-        and p.
+        Return a list of the permutations strictly smaller than ``self``
+        in the Bruhat order (on the symmetric group containing ``self``) such
+        that there is no permutation between one of those and ``self``.
 
         EXAMPLES::
 
@@ -2538,9 +2608,9 @@ class Permutation_class(CombinatorialObject):
 
     def bruhat_pred_iterator(self):
         """
-        An iterator for the permutations strictly smaller than p in the
-        Bruhat order such that there is no permutation between one of those
-        and p.
+        An iterator for the permutations strictly smaller than ``self`` in
+        the Bruhat order (on the symmetric group containing ``self``) such
+        that there is no permutation between one of those and ``self``.
 
         EXAMPLES::
 
@@ -2563,8 +2633,9 @@ class Permutation_class(CombinatorialObject):
 
     def bruhat_smaller(self):
         r"""
-        Returns a the combinatorial class of permutations smaller than or
-        equal to p in the Bruhat order.
+        Return the combinatorial class of permutations smaller than or
+        equal to ``self`` in the Bruhat order (on the symmetric group
+        containing ``self``).
 
         EXAMPLES::
 
@@ -2584,7 +2655,8 @@ class Permutation_class(CombinatorialObject):
     def bruhat_greater(self):
         r"""
         Returns the combinatorial class of permutations greater than or
-        equal to p in the Bruhat order.
+        equal to ``self`` in the Bruhat order (on the symmetric group
+        containing ``self``).
 
         EXAMPLES::
 

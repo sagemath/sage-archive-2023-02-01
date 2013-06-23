@@ -4,6 +4,10 @@ The Sage Input Hook
 This is a hook into the IPython input prompt and will be called
 periodically (every 100ms) while Python is sitting idle. We use it to
 reload attached files if they have changed.
+
+IPython has analogous code to set an input hook, but we are not using
+their implementation. For once, it unsets signal handlers which will
+disable Ctrl-C.
 """
 
 ###########################################################################
@@ -13,8 +17,55 @@ reload attached files if they have changed.
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
+include 'sage/ext/stdsage.pxi'
+include 'sage/ext/interrupt.pxi'
 
+cdef extern from 'pythonrun.h':
+    int (*PyOS_InputHook)() nogil except *
+
+import sage.libs.readline as readline
 from sage.misc.attached_files import reload_attached_files_if_modified
+
+
+cdef int c_sage_inputhook() nogil except *:
+    """
+    This is the C function that is installed as PyOS_InputHook
+    """
+    with gil:
+        try:
+            sig_check()
+            return sage_inputhook()
+        except KeyboardInterrupt:
+            # The user pressed Ctrl-C while at the prompt; We match the normal
+            # Python behavior for consistency
+            print '\nKeyboardInterrupt'
+            readline.initialize()
+            readline.forced_update_display()
+        return 0
+
+def install():
+    """
+    Install the Sage input hook
+
+    EXAMPLES::
+
+        sage: from sage.misc.inputhook import install
+        sage: install()
+    """
+    global PyOS_InputHook
+    PyOS_InputHook = c_sage_inputhook
+
+def uninstall():
+    """
+    Uninstall the Sage input hook
+
+    EXAMPLES::
+
+        sage: from sage.misc.inputhook import uninstall
+        sage: uninstall()
+    """
+    global PyOS_InputHook
+    PyOS_InputHook = NULL
 
 
 def sage_inputhook():
@@ -33,6 +84,7 @@ def sage_inputhook():
         sage: shell.run_cell('%attach ' + tmp)
         sage: shell.run_cell('a')
         2
+        sage: sleep(1)  # filesystem timestamp granularity
         sage: f = open(tmp, 'w'); f.write('a = 3\n'); f.close()
 
     Note that the doctests are never really at the command prompt, so

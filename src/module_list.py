@@ -703,6 +703,10 @@ ext_modules = [
               depends = [SAGE_INC + '/ratpoints.h'],
               libraries = ["ratpoints", "gmp"]),
 
+    Extension('sage.libs.readline',
+              sources = ['sage/libs/readline.pyx'],
+              libraries = ['readline']),
+
     Extension('sage.libs.singular.singular',
               sources = ['sage/libs/singular/singular.pyx'],
               libraries = singular_libs,
@@ -1152,6 +1156,9 @@ ext_modules = [
 
     Extension('sage.misc.lazy_attribute',
               sources = ['sage/misc/lazy_attribute.pyx']),
+
+    Extension('sage.misc.inputhook',
+              sources = ['sage/misc/inputhook.pyx']),
 
     Extension('sage.misc.lazy_import',
               sources = ['sage/misc/lazy_import.pyx']),

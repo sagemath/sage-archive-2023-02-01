@@ -577,6 +577,8 @@ def reload_attached_files_if_modified():
     for filename, mtime in modified_file_iterator():
         basename = os.path.basename(filename)
         timestr = time.strftime('%T', mtime)
-        print '### reloading attached file {0} modified at {1} ###'.format(basename, timestr)
-        code = load_wrap(filename, attach=True)
-        get_ipython().run_cell(code)
+        from sage.libs.readline import interleaved_output
+        with interleaved_output():
+            print '### reloading attached file {0} modified at {1} ###'.format(basename, timestr)
+            code = load_wrap(filename, attach=True)
+            get_ipython().run_cell(code)

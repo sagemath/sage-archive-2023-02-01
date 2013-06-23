@@ -98,6 +98,7 @@ class SageMagics(Magics):
             sage: shell.run_cell('%attach ' + tmp)
             sage: shell.run_cell('a')
             2
+            sage: sleep(1)  # filesystem timestamp granularity
             sage: f = open(tmp, 'w'); f.write('a = 3\n'); f.close()
 
         Note that the doctests are never really at the command prompt, so
@@ -401,9 +402,9 @@ from sage.misc.interpreter import sage_prompt
         self.init_inspector()
         self.init_line_transforms()
         self.register_interface_magics()
-        from sage.misc.inputhook import sage_inputhook
-        from IPython.lib import inputhook
-        inputhook.set_inputhook(sage_inputhook)
+
+        import sage.misc.inputhook
+        sage.misc.inputhook.install()
 
         # right now, the shutdown hook calling quit_sage() doesn't
         # work when we run doctests that involve creating test shells.

@@ -1604,6 +1604,10 @@ ext_modules = [
               libraries = ['ntl', 'gmp'],
               language = 'c++'),
 
+    Extension('sage.rings.finite_rings.element_pari_ffelt',
+              sources = ['sage/rings/finite_rings/element_pari_ffelt.pyx'],
+              libraries = ['pari', 'gmp']),
+
         ################################
         ##
         ## sage.rings.function_field

@@ -1046,6 +1046,7 @@ cdef extern from 'pari/pari.h':
     void    pari_err(long numerr, ...)
     long    err_catch(long errnum, jmp_buf *penv)
     GEN     gcopy(GEN x)
+    GEN     gcopy_avma(GEN x, pari_sp *AVMA)
     void    gunclone(GEN x)
     void    msgtimer(char *format, ...)
     GEN     newblock(long n)

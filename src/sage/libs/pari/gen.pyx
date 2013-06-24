@@ -10395,33 +10395,14 @@ cdef size_t fix_size(size_t a):
     return b
 
 cdef GEN deepcopy_to_python_heap(GEN x, pari_sp* address):
-    cdef size_t s
-    cdef pari_sp tmp_bot, tmp_top, tmp_avma
-    global avma, bot, top, mytop
-    cdef GEN h
+    cdef size_t s = <size_t> gsizebyte(x)
+    cdef pari_sp tmp_bot, tmp_top
 
-    tmp_top = top
-    tmp_bot = bot
-    tmp_avma = avma
+    tmp_bot = <pari_sp> sage_malloc(s)
+    tmp_top = tmp_bot + s
+    address[0] = tmp_bot
+    return gcopy_avma(x, &tmp_top)
 
-    h = gcopy(x)
-    s = <size_t> (tmp_avma - avma)
-
-    #print "Allocating %s bytes for PARI/Python object"%(<long> s)
-    bot = <pari_sp> sage_malloc(s)
-    top = bot + s
-    avma = top
-    h = gcopy(x)
-    address[0] = bot
-
-    # Restore the stack to how it was before x was created.
-    top = tmp_top
-    bot = tmp_bot
-    avma = tmp_avma
-    return h
-
-# The first one makes a separate copy on the heap, so the stack
-# won't overflow -- but this costs more time...
 cdef gen _new_gen (GEN x):
     cdef GEN h
     cdef pari_sp address

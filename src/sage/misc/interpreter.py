@@ -172,22 +172,18 @@ class SageInteractiveShell(TerminalInteractiveShell):
             sage: from sage.misc.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: shell.system_raw('false')
-            sage: status = shell.user_ns['_exit_code']
-            sage: os.WIFEXITED(status) and os.WEXITSTATUS(status) != 0
+            sage: shell.user_ns['_exit_code'] > 0
             True
             sage: shell.system_raw('true')
-            sage: status = shell.user_ns['_exit_code']
-            sage: os.WIFEXITED(status) and os.WEXITSTATUS(status) == 0
-            True
+            sage: shell.user_ns['_exit_code']
+            0
             sage: shell.system_raw('env | grep "^LD_LIBRARY_PATH=" | grep $SAGE_LOCAL')
-            sage: status = shell.user_ns['_exit_code']
-            sage: os.WIFEXITED(status) and os.WEXITSTATUS(status) != 0
-            True
+            sage: shell.user_ns['_exit_code']
+            1
             sage: shell.system_raw('R --version')
             R version ...
-            sage: status = shell.user_ns['_exit_code']
-            sage: os.WIFEXITED(status) and os.WEXITSTATUS(status) == 0
-            True
+            sage: shell.user_ns['_exit_code']
+            0
         """
         path = os.path.join(os.environ['SAGE_LOCAL'],'bin',
                             re.split('[ |\n\t;&]', cmd)[0])

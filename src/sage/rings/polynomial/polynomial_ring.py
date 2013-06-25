@@ -1811,6 +1811,44 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
         PolynomialRing_field.__init__(self, base_ring, sparse=False, name=name,
                                       element_class=element_class)
 
+    def irreducible_element(self, n, algorithm=None):
+        """
+        Construct an irreducible polynomial of degree `n`.
+
+        INPUT:
+
+        - ``n`` -- integer: degree of the polynomial to construct
+
+        - ``algorithm`` -- string: algorithm to use, or ``None``
+
+          - ``'random'``: try random polynomials until an irreducible
+            one is found.  This is currently the only algorithm
+            available over non-prime finite fields.
+
+        OUTPUT:
+
+        A monic irreducible polynomial of degree `n` in ``self``.
+
+        EXAMPLES:
+
+            sage: GF(5^3, 'a')['x'].irreducible_element(2)
+            x^2 + (4*a^2 + a + 4)*x + 2*a^2 + 2
+
+        AUTHORS:
+
+        - Peter Bruin (June 2013)
+        """
+        if n < 1:
+            raise ValueError("degree must be at least 1")
+
+        if algorithm is None or algorithm == "random":
+            while True:
+                f = self.gen()**n + self.random_element(n - 1)
+                if f.is_irreducible():
+                    return f
+        else:
+            raise ValueError("no such algorithm for finding an irreducible polynomial: %s" % algorithm)
+
 class PolynomialRing_dense_padic_ring_generic(PolynomialRing_integral_domain):
     pass
 
@@ -2067,6 +2105,100 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
         from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
         self._has_singular = can_convert_to_singular(self)
 
+    def irreducible_element(self, n, algorithm=None):
+        """
+        Construct an irreducible polynomial of degree `n`.
+
+        INPUT:
+
+        - ``n`` -- integer: the degree of the polynomial to construct
+
+        - ``algorithm`` -- string: algorithm to use, or ``None``.
+          Currently available options are:
+
+          - ``'adleman-lenstra'``: a variant of the Adleman--Lenstra
+              algorithm as implemented in PARI.
+
+          - ``'conway'``: look up the Conway polynomial of degree `n`
+            over the field of `p` elements in the database; raise a
+            ``RuntimeError`` if it is not found.
+
+          - ``'first_lexicographic'``: return the lexicographically
+            smallest irreducible polynomial of degree `n`.  Only
+            implemented for `p = 2`.
+
+          - ``'minimal_weight'``: return an irreducible polynomial of
+            degree `n` with minimal number of non-zero coefficients.
+            Only implemented for `p = 2`.
+
+          - ``'random'``: try random polynomials until an irreducible
+            one is found.
+
+          If ``algorithm`` is ``None``, the Conway polynomial is used
+          if it is found in the database.  If no Conway polynomial is
+          found, the algorithm ``minimal_weight`` is used if `p = 2`,
+          and the algorithm ``adleman-lenstra`` if `p > 2`.
+
+        OUTPUT:
+
+        A monic irreducible polynomial of degree `n` in ``self``.
+
+        EXAMPLES:
+
+            sage: GF(5)['x'].irreducible_element(2)
+            x^2 + 4*x + 2
+            sage: GF(5)['x'].irreducible_element(2, algorithm="adleman-lenstra")
+            x^2 + x + 1
+
+            sage: GF(2)['x'].irreducible_element(33)
+            x^33 + x^13 + x^12 + x^11 + x^10 + x^8 + x^6 + x^3 + 1
+            sage: GF(2)['x'].irreducible_element(33, algorithm="minimal_weight")
+            x^33 + x^10 + 1
+
+        AUTHORS:
+
+        - Peter Bruin (June 2013)
+        """
+        from sage.libs.pari.all import pari
+        from sage.rings.finite_rings.constructor import (conway_polynomial,
+                                                         exists_conway_polynomial)
+        from polynomial_gf2x import (GF2X_BuildIrred_list, GF2X_BuildSparseIrred_list,
+                                     GF2X_BuildRandomIrred_list)
+
+        p = self.characteristic()
+        n = int(n)
+        if n < 1:
+            raise ValueError("degree must be at least 1")
+        if algorithm is None:
+            if exists_conway_polynomial(p, n):
+                algorithm = "conway"
+            elif p == 2:
+                algorithm = "minimal_weight"
+            else:
+                algorithm = "adleman-lenstra"
+
+        if algorithm == "adleman-lenstra":
+            return self(pari(p).ffinit(n))
+        elif algorithm == "conway":
+            return self(conway_polynomial(p, n))
+        elif algorithm == "first_lexicographic":
+            if p == 2:
+                return self(GF2X_BuildIrred_list(n))
+            else:
+                raise NotImplementedError("'first_lexicographic' option only implemented for p = 2")
+        elif algorithm == "minimal_weight":
+            if p == 2:
+                return self(GF2X_BuildSparseIrred_list(n))
+            else:
+                raise NotImplementedError("'minimal_weight' option only implemented for p = 2")
+        elif algorithm == "random":
+            if p == 2:
+                return self(GF2X_BuildRandomIrred_list(n))
+            else:
+                pass
+
+        # No suitable algorithm found, try algorithms from the base class.
+        return PolynomialRing_dense_finite_field.irreducible_element(self, n, algorithm)
 
 def polygen(ring_or_element, name="x"):
     """

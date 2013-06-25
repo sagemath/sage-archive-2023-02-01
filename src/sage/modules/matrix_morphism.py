@@ -1172,7 +1172,7 @@ class MatrixMorphism(MatrixMorphism_abstract):
 
         -  ``parent`` - a homspace
 
-        -  ``A`` - matrix
+        -  ``A`` - matrix or a :class:`MatrixMorphism_abstract` instance
 
 
         EXAMPLES::
@@ -1185,6 +1185,10 @@ class MatrixMorphism(MatrixMorphism_abstract):
             sage: loads(A.dumps()) == A
             True
         """
+        if parent is None:
+            raise ValueError, "no parent given when creating this matrix morphism"
+        if isinstance(A, MatrixMorphism_abstract):
+            A = A.matrix()
         R = A.base_ring()
         if A.nrows() != parent.domain().rank():
             raise ArithmeticError, "number of rows of matrix (=%s) must equal rank of domain (=%s)"%(A.nrows(), parent.domain().rank())

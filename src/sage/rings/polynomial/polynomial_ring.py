@@ -1404,7 +1404,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
                            PolynomialRing_singular_repr,
                            principal_ideal_domain.PrincipalIdealDomain,
                            ):
-    def __init__(self, base_ring, name="x", sparse=False, element_class=None, implementation=None):
+    def __init__(self, base_ring, name="x", sparse=False, element_class=None):
         """
         TESTS:
             sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_field as PRing
@@ -1426,20 +1426,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             sage: x^(10^20) # this should be fast
             x^100000000000000000000
         """
-        from sage.rings.finite_rings.finite_field_base import is_FiniteField
-        from sage.rings.rational_field import QQ
         from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
-        if implementation is None:
-            implementation = "NTL"
-
-        if implementation == "NTL" and is_FiniteField(base_ring) and not(sparse):
-            from sage.libs.ntl.ntl_ZZ_pEContext import ntl_ZZ_pEContext
-            from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
-            from sage.rings.polynomial.polynomial_zz_pex import Polynomial_ZZ_pEX
-
-            p=base_ring.characteristic()
-            self._modulus = ntl_ZZ_pEContext(ntl_ZZ_pX(list(base_ring.polynomial()), p))
-            element_class = Polynomial_ZZ_pEX
 
         if not element_class:
             if sparse:
@@ -1798,6 +1785,32 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
                 self._fraction_field = FractionField_1poly_field(self)
             return self._fraction_field
 
+class PolynomialRing_dense_finite_field(PolynomialRing_field):
+    """
+    Univariate polynomial ring over a finite field.
+
+    EXAMPLE::
+
+        sage: R = PolynomialRing(GF(27, 'a'), 'x')
+        sage: type(R)
+        <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_dense_finite_field_with_category'>
+    """
+    def __init__(self, base_ring, name="x", element_class=None, implementation=None):
+        if implementation is None:
+            implementation = "NTL"
+
+        if implementation == "NTL":
+            from sage.libs.ntl.ntl_ZZ_pEContext import ntl_ZZ_pEContext
+            from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
+            from sage.rings.polynomial.polynomial_zz_pex import Polynomial_ZZ_pEX
+
+            p=base_ring.characteristic()
+            self._modulus = ntl_ZZ_pEContext(ntl_ZZ_pX(list(base_ring.polynomial()), p))
+            element_class = Polynomial_ZZ_pEX
+
+        PolynomialRing_field.__init__(self, base_ring, sparse=False, name=name,
+                                      element_class=element_class)
+
 class PolynomialRing_dense_padic_ring_generic(PolynomialRing_integral_domain):
     pass
 
@@ -1995,7 +2008,7 @@ class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
         return s + self._implementation_repr
 
 
-class PolynomialRing_dense_mod_p(PolynomialRing_field,
+class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
                                  PolynomialRing_dense_mod_n,
                                  PolynomialRing_singular_repr):
     def __init__(self, base_ring, name="x", implementation=None):

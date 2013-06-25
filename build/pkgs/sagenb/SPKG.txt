@@ -77,6 +77,10 @@ To produce a new spkg:
 
 == Changelog ==
 
+=== sagenb-0.10.7.1 (Keshav Kini, 2013-06-25) ===
+
+ * Upgraded to 0.10.7.1 (revert published worksheet sanitization)
+
 === sagenb-0.10.7 (Keshav Kini, 2013-06-22) ===
 
  * Upgraded to 0.10.7 (MathJax 2.2, GPLv3+, bugfixes)

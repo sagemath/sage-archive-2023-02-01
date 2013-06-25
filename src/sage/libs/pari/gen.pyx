@@ -5504,6 +5504,40 @@ cdef class gen(sage.structure.element.RingElement):
         sig_on()
         return P.new_gen(pnqn(x.g))
 
+    def ffgen(gen T, v=-1):
+        r"""
+        Return the generator `g=x \bmod T` of the finite field defined
+        by the polynomial `T`.
+
+        INPUT:
+
+        - ``P`` -- ``gen``: a polynomial over a finite prime field
+
+        - ``v`` -- a variable (optional)
+
+        If `v \geq 0', then `g` will be a polynomial in `v`, else the
+        variable of the polynomial `T` is used.
+        """
+        sig_on()
+        return P.new_gen(ffgen(T.g, P.get_var(v)))
+
+    def ffinit(gen p, long n, v=-1):
+        r"""
+        Return a monic irreducible polynomial of degree `n` over the
+        finite field of `p` elements.
+
+        INPUT:
+
+        - ``P`` -- ``gen``: a polynomial over a finite prime field
+
+        - ``v`` -- a variable (optional)
+
+        If `v \geq 0', then `g` will be a polynomial in `v`, else the
+        variable `x` is used.
+        """
+        sig_on()
+        return P.new_gen(ffinit(p.g, n, P.get_var(v)))
+
     def fibonacci(gen x):
         r"""
         Return the Fibonacci number of index x.

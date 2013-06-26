@@ -358,6 +358,7 @@ if [ ! -f "$PKG_SRC" ]; then
                 fi
 
                 # File inside DOT_SAGE should be writable
+                mkdir -p "${DOT_SAGE}"
                 repolist="${DOT_SAGE}/${repo}.list"
 
                 sage-download-file "$URL_REPO/list" >$repolist

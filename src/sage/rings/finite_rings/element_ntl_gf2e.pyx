@@ -139,7 +139,6 @@ cdef unsigned int switch_endianess(unsigned int i):
         (<unsigned char*>&ret)[j] = (<unsigned char*>&i)[sizeof(int)-j-1]
     return ret
 
-
 cdef class Cache_ntl_gf2e(SageObject):
     """
     This class stores information for an NTL finite field in a Cython
@@ -1266,7 +1265,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
             'Z(65536)^1'
         """
         F = self._parent
-        if not F._is_conway:
+        if not F.is_conway():
             raise NotImplementedError, "conversion of (NTL) finite field element to GAP not implemented except for fields defined by Conway polynomials."
         if F.order() > 65536:
             raise TypeError, "order (=%s) must be at most 65536."%F.order()

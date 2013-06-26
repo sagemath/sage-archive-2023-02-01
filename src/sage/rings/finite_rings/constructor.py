@@ -342,9 +342,9 @@ class FiniteFieldFactory(UniqueFactory):
         EXAMPLES::
 
             sage: GF.create_key_and_extra_args(9, 'a')
-            ((9, ('a',), 'conway', None, '{}', 3, 2, True), {})
+            ((9, ('a',), x^2 + 2*x + 2, None, '{}', 3, 2, True), {})
             sage: GF.create_key_and_extra_args(9, 'a', foo='value')
-            ((9, ('a',), 'conway', None, "{'foo': 'value'}", 3, 2, True), {'foo': 'value'})
+            ((9, ('a',), x^2 + 2*x + 2, None, "{'foo': 'value'}", 3, 2, True), {'foo': 'value'})
         """
         from sage.structure.proof.all import WithProof, arithmetic
         if proof is None: proof = arithmetic()
@@ -364,27 +364,18 @@ class FiniteFieldFactory(UniqueFactory):
 
                 p, n = arith.factor(order)[0]
 
-                if modulus is None or modulus == "default":
-                    if exists_conway_polynomial(p, n):
-                        modulus = "conway"
-                    else:
-                        if p == 2:
-                            modulus = "minimal_weight"
-                        else:
-                            modulus = "random"
-                elif modulus == "random":
-                    modulus += str(random.randint(0, 1<<128))
-
-                if isinstance(modulus, (list, tuple)):
-                    modulus = FiniteField(p)['x'](modulus)
-                # some classes use 'random' as the modulus to
-                # generate a random modulus, but we don't want
-                # to cache it
+                if modulus is None or isinstance(modulus, str):
+                    # A string specifies an algorithm to find a suitable modulus.
+                    if modulus == "default":    # for backward compatibility
+                        modulus = None
+                    modulus = GF(p)['x'].irreducible_element(n, algorithm=modulus)
+                elif isinstance(modulus, (list, tuple)):
+                    modulus = GF(p)['x'](modulus)
                 elif sage.rings.polynomial.polynomial_element.is_Polynomial(modulus):
                     modulus = modulus.change_variable_name('x')
-                elif not isinstance(modulus, str):
-                    raise ValueError("Modulus parameter not understood.")
-            else:  # Neither a prime, nor a prime power
+                else:
+                    raise TypeError("wrong type for modulus parameter")
+            else:
                 raise ValueError("the order of a finite field must be a prime power.")
 
             return (order, name, modulus, impl, str(kwds), p, n, proof), kwds
@@ -416,9 +407,6 @@ class FiniteFieldFactory(UniqueFactory):
             proof = True
         else:
             order, name, modulus, impl, _, p, n, proof = key
-
-        if isinstance(modulus, str) and modulus.startswith("random"):
-            modulus = "random"
 
         if elem_cache is None:
             elem_cache = order < 500
@@ -466,7 +454,7 @@ class FiniteFieldFactory(UniqueFactory):
         EXAMPLES::
 
             sage: key, extra = GF.create_key_and_extra_args(9, 'a'); key
-            (9, ('a',), 'conway', None, '{}', 3, 2, True)
+            (9, ('a',), x^2 + 2*x + 2, None, '{}', 3, 2, True)
             sage: K = GF.create_object(0, key); K
             Finite Field in a of size 3^2
             sage: GF.other_keys(key, K)

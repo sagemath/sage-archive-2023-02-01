@@ -124,14 +124,12 @@ class FiniteField_givaro(FiniteField):
         self._kwargs['repr'] = repr
         self._kwargs['cache'] = cache
 
-        self._is_conway = False
         if modulus is None or modulus == 'conway':
             if k == 1:
                 modulus = 'random' # this will use the gfq_factory_pk function.
             elif ConwayPolynomials().has_polynomial(p, k):
                 from sage.rings.finite_rings.constructor import conway_polynomial
                 modulus = conway_polynomial(p, k)
-                self._is_conway = True
             elif modulus is None:
                 modulus = 'random'
             else:

@@ -64,6 +64,44 @@ cdef public object ex_to_pyExpression(GEx juice):
     nex._parent = ring.SR
     return nex
 
+cdef public object exprseq_to_PyTuple(GEx seq):
+    """
+    Convert an exprseq to a Python tuple.
+
+    Used while converting arguments of symbolic functions to Python objects.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.function import BuiltinFunction
+        sage: class TFunc(BuiltinFunction):
+        ....:     def __init__(self):
+        ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=0)
+        ....:
+        ....:     def _eval_(self, *args):
+        ....:         print "len(args): %s, types: %s"%(len(args), str(map(type, args)))
+        ....:         for i, a in enumerate(args):
+        ....:             if isinstance(a, tuple):
+        ....:                 print "argument %s is a tuple, with types %s"%(str(i), str(map(type, a)))
+        ....:
+        sage: tfunc = TFunc()
+        sage: u = SR._force_pyobject((1, x+1, 2))
+        sage: tfunc(u, x, SR._force_pyobject((3.0, 2^x)))
+        len(args): 3, types: [<type 'tuple'>, <type 'sage.symbolic.expression.Expression'>, <type 'tuple'>]
+        argument 0 is a tuple, with types [<type 'sage.rings.integer.Integer'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.rings.integer.Integer'>]
+        argument 2 is a tuple, with types [<type 'sage.rings.real_mpfr.RealLiteral'>, <type 'sage.symbolic.expression.Expression'>]
+        tfunc((1, x + 1, 2), x, (3.00000000000000, 2^x))
+    """
+    from sage.symbolic.ring import SR
+    res = []
+    for i in range(seq.nops()):
+        if is_a_numeric(seq.op(i)):
+            res.append(py_object_from_numeric(seq.op(i)))
+        elif is_exactly_a_exprseq(seq.op(i)):
+            res.append(exprseq_to_PyTuple(seq.op(i)))
+        else:
+            res.append(new_Expression_from_GEx(SR, seq.op(i)))
+    return tuple(res)
+
 cdef public object exvector_to_PyTuple(GExVector seq):
     """
     Converts arguments list given to a function to a PyTuple.
@@ -73,12 +111,39 @@ cdef public object exvector_to_PyTuple(GExVector seq):
 
     We convert Python objects wrapped in symbolic expressions back to regular
     Python objects.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.function import BuiltinFunction
+        sage: class TFunc(BuiltinFunction):
+        ....:     def __init__(self):
+        ....:         BuiltinFunction.__init__(self, 'tfunc', nargs=0)
+        ....:
+        ....:     def _eval_(self, *args):
+        ....:         print "len(args): %s, types: %s"%(len(args), str(map(type, args)))
+        sage: tfunc = TFunc()
+        sage: u = SR._force_pyobject((1, x+1, 2))
+        sage: tfunc(u, x, 3.0, 5.0r, 1r)
+        len(args): 5, types: [<type 'tuple'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.rings.real_mpfr.RealLiteral'>, <type 'float'>, <type 'int'>]
+        tfunc((1, x + 1, 2), x, 3.00000000000000, 5.0, 1)
+
+    TESTS:
+
+    Check if symbolic functions in the arguments are preserved::
+
+        sage: tfunc(sin(x), tfunc(1, x^2))
+        len(args): 2, types: [<type 'sage.rings.integer.Integer'>, <type 'sage.symbolic.expression.Expression'>]
+        len(args): 2, types: [<type 'sage.symbolic.expression.Expression'>, <type 'sage.symbolic.expression.Expression'>]
+        tfunc(sin(x), tfunc(1, x^2))
+
     """
     from sage.symbolic.ring import SR
     res = []
     for i in range(seq.size()):
         if is_a_numeric(seq.at(i)):
             res.append(py_object_from_numeric(seq.at(i)))
+        elif is_exactly_a_exprseq(seq.at(i)):
+            res.append(exprseq_to_PyTuple(seq.at(i)))
         else:
             res.append(new_Expression_from_GEx(SR, seq.at(i)))
     return tuple(res)

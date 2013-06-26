@@ -608,8 +608,12 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
         sage: cubic = x^3+y^3+z^3
         sage: P = [1,-1,0]
         sage: E = EllipticCurve_from_cubic(cubic, P, morphism=False); E
-        Elliptic Curve defined by y^2 + 2*x*y - 1/3*y = x^3 - x^2 + 1/3*x - 1/27 over Rational Field
+        Elliptic Curve defined by y^2 + 2*x*y + 1/3*y = x^3 - x^2 - 1/3*x - 1/27 over Rational Field
         sage: E.cremona_label()
+        '27a1'
+        sage: EllipticCurve_from_cubic(cubic, [0,1,-1], morphism=False).cremona_label()
+        '27a1'
+        sage: EllipticCurve_from_cubic(cubic, [1,0,-1], morphism=False).cremona_label()
         '27a1'
 
     Next we find the minimal model and conductor of the Jacobian of the
@@ -619,7 +623,7 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
         sage: cubic = a^3+b^3+60*c^3
         sage: P = [1,-1,0]
         sage: E = EllipticCurve_from_cubic(cubic, P, morphism=False);  E
-        Elliptic Curve defined by y^2 + 2*x*y - 20*y = x^3 - x^2 + 20*x - 400/3 over Rational Field
+        Elliptic Curve defined by y^2 + 2*x*y + 20*y = x^3 - x^2 - 20*x - 400/3 over Rational Field
         sage: E.minimal_model()
         Elliptic Curve defined by y^2 = x^3 - 24300 over Rational Field
         sage: E.conductor()
@@ -633,20 +637,20 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
         sage: f
         Scheme morphism:
           From: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
-          a^3 + b^3 + 60*c^3
-          To:   Elliptic Curve defined by y^2 + 2*x*y - 20*y = x^3 - x^2 + 20*x - 400/3
+                a^3 + b^3 + 60*c^3
+          To:   Elliptic Curve defined by y^2 + 2*x*y + 20*y = x^3 - x^2 - 20*x - 400/3
                 over Rational Field
           Defn: Defined on coordinates by sending (a : b : c) to
-                (c : -b - c : -1/20*a - 1/20*b)
+                (-c : -b + c : 1/20*a + 1/20*b)
 
         sage: finv = f.inverse();  finv
         Scheme morphism:
-          From: Elliptic Curve defined by y^2 + 2*x*y - 20*y = x^3 - x^2 + 20*x - 400/3
+          From: Elliptic Curve defined by y^2 + 2*x*y + 20*y = x^3 - x^2 - 20*x - 400/3
                 over Rational Field
           To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
           a^3 + b^3 + 60*c^3
           Defn: Defined on coordinates by sending (x : y : z) to
-                (x + y - 20*z : -x - y : x)
+                (x + y + 20*z : -x - y : -x)
 
     We verify that `f` maps the chosen point `P=(1,-1,0)` on the cubic
     to the origin of the elliptic curve::
@@ -660,7 +664,7 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
     this indeed transforms the cubic into Weierstrass form::
 
         sage: cubic(finv.defining_polynomials()) * finv.post_rescaling()
-        -x^3 + x^2*z + 2*x*y*z + y^2*z - 20*x*z^2 - 20*y*z^2 + 400/3*z^3
+        -x^3 + x^2*z + 2*x*y*z + y^2*z + 20*x*z^2 + 20*y*z^2 + 400/3*z^3
 
         sage: E.defining_polynomial()(f.defining_polynomials()) * f.post_rescaling()
         a^3 + b^3 + 60*c^3
@@ -673,38 +677,38 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
         sage: P = [2,2,-1]
         sage: f = EllipticCurve_from_cubic(cubic, P, morphism=True)
         sage: E = f.codomain();  E
-        Elliptic Curve defined by y^2 - 361/157*x*y - 2733750/3869893*y
-        = x^3 + 23579/98596*x^2 over Rational Field
+        Elliptic Curve defined by y^2 + 722*x*y + 21870000*y = x^3
+        + 23579*x^2 over Rational Field
         sage: E.minimal_model()
         Elliptic Curve defined by y^2 + y = x^3 - 331 over Rational Field
 
         sage: f
         Scheme morphism:
           From: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
-          a^3 + 7*b^3 + 64*c^3
-          To:   Elliptic Curve defined by y^2 - 361/157*x*y - 2733750/3869893*y
-                = x^3 + 23579/98596*x^2 over Rational Field
+                a^3 + 7*b^3 + 64*c^3
+          To:   Elliptic Curve defined by y^2 + 722*x*y + 21870000*y =
+                x^3 + 23579*x^2 over Rational Field
           Defn: Defined on coordinates by sending (a : b : c) to
-                (785/56448*a^2 + 2669/20160*a*b + 157/640*b^2 + 4553/17640*a*c + 2041/2520*b*c
-                 + 1256/2205*c^2 :
-                 4055/112896*a^2 + 4787/40320*a*b + 91/1280*b^2 + 7769/35280*a*c + 1993/5040*b*c
-                 + 724/2205*c^2 :
-                 -3869893/571536000*a^2 - 3869893/40824000*a*b - 3869893/11664000*b^2
-                 - 3869893/17860500*a*c - 3869893/2551500*b*c - 7739786/4465125*c^2)
+                (-5/112896*a^2 - 17/40320*a*b - 1/1280*b^2 - 29/35280*a*c
+                 - 13/5040*b*c - 4/2205*c^2 :
+                 4055/112896*a^2 + 4787/40320*a*b + 91/1280*b^2 + 7769/35280*a*c
+                 + 1993/5040*b*c + 724/2205*c^2 :
+                 1/4572288000*a^2 + 1/326592000*a*b + 1/93312000*b^2 + 1/142884000*a*c
+                 + 1/20412000*b*c + 1/17860500*c^2)
 
         sage: finv = f.inverse();  finv
         Scheme morphism:
-          From: Elliptic Curve defined by y^2 - 361/157*x*y - 2733750/3869893*y
-                = x^3 + 23579/98596*x^2 over Rational Field
+          From: Elliptic Curve defined by y^2 + 722*x*y + 21870000*y =
+                x^3 + 23579*x^2 over Rational Field
           To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
-          a^3 + 7*b^3 + 64*c^3
+                a^3 + 7*b^3 + 64*c^3
           Defn: Defined on coordinates by sending (x : y : z) to
-                (2*x^2 + 56925/24649*x*z - 450/157*y*z :
-                 2*x^2 - 8235/24649*x*z + 270/157*y*z :
-                 -x^2 - 90/157*x*z - 90/157*y*z)
+                (2*x^2 + 227700*x*z + 900*y*z :
+                 2*x^2 - 32940*x*z - 540*y*z :
+                 -x^2 - 56520*x*z + 180*y*z)
 
         sage: cubic(finv.defining_polynomials()) * finv.post_rescaling()
-        -x^3 - 23579/98596*x^2*z - 361/157*x*y*z + y^2*z - 2733750/3869893*y*z^2
+        -x^3 - 23579*x^2*z + 722*x*y*z + y^2*z + 21870000*y*z^2
 
         sage: E.defining_polynomial()(f.defining_polynomials()) * f.post_rescaling()
         a^3 + 7*b^3 + 64*c^3
@@ -730,47 +734,26 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
         raise TypeError('%s is not a projective point'%P)
     x, y, z = R.gens()
 
-    # get two additional points on the curve
+    # First case: if P = P2 then P is a flex
     P2 = chord_and_tangent(F, P)
-    P3 = chord_and_tangent(F, P2)
-    # First case: if P2 = P3 then P2 is a flex
-    if are_projectively_equivalent(P2, P3):
+    if are_projectively_equivalent(P, P2, base_ring=K):
         # find the tangent to F in P
-        dx = F.derivative(x)
-        dy = F.derivative(y)
-        dz = F.derivative(z)
-        # find a second point Q on the tangent line
-        if P2[0] != 0:
-            Q0 = P[0]
-            if dy == 0:
-                Q1 = P[1] + 1
-                Q2 = P[2]
-            else:
-                Q1 = P[1] - dz//dy
-                Q2 = P[2] + 1
-        elif P2[1] != 0:
-            Q1 = P2[1]
-            if dx == 0:
-                Q0 = P[0] + 1
-                Q2 = P[2]
-            else:
-                Q0 = P[0] - dz//dy
-                Q2 = P[2] + 1
-        else:
-            Q2 = P[2]
-            if dx == 0:
-                Q0 = P[0] + 1
-                Q1 = P[1]
-            else:
-                Q0 = P[0] - dy//dx
-                Q1 = P[1] + 1
-        # send P to [0:1:0] and Q to [1:0:0]
-        M = matrix.matrix(K, [[Q0, Q1, Q2], P2, [1, 0, 0]]).transpose()
-        # if M is singular, we change the first column
-        if (not M.is_invertible()):
-            M = matrix.matrix(K, [[Q0, Q1, Q2], P2, [0, 1, 0]]).transpose()
-        if (not M.is_invertible()):
-            M = matrix.matrix(K, [[Q0, Q1, Q2], P2, [0, 0, 1]]).transpose()
+        dx = K(F.derivative(x)(P))
+        dy = K(F.derivative(y)(P))
+        dz = K(F.derivative(z)(P))
+        # find a second point Q on the tangent line but not on the cubic
+        for tangent in [[dy, -dx, K.zero()], [dz, K.zero(), -dx], [K.zero(), -dz, dx]]:
+            tangent = projective_point(tangent)
+            Q = [tangent[0]+P[0], tangent[1]+P[1], tangent[2]+P[2]]
+            F_Q = F(Q)
+            if F_Q != 0:  # At most one further point may accidentally be on the cubic
+                break
+        assert F_Q != 0
+        # pick linearly independent third point
+        for third_point in [(1,0,0), (0,1,0), (0,0,1)]:
+            M = matrix.matrix(K, [Q, P, third_point]).transpose()
+            if M.is_invertible():
+                break
         F2 = R(M.act_on_polynomial(F))
         # scale and dehomogenise
         a = K(F2.coefficient(x**3))
@@ -790,8 +773,9 @@ def EllipticCurve_from_cubic(F, P, morphism=True):
         fwd_defining_poly = [trans_x, trans_y, -b*trans_z]
         fwd_post = -a
 
-    # Second case: P and P2 are both not a flex, so P, P2, P3 are different
+    # Second case: P is not a flex, then P, P2, P3 are different
     else:
+        P3 = chord_and_tangent(F, P2)
         # send P, P2, P3 to (1:0:0), (0:1:0), (0:0:1) respectively
         M = matrix.matrix(K, [P, P2, P3]).transpose()
         F2 = M.act_on_polynomial(F)
@@ -848,15 +832,22 @@ def chord_and_tangent(F, P):
 
         sage: R.<x,y,z> = QQ[]
         sage: from sage.schemes.elliptic_curves.constructor import chord_and_tangent
+        sage: F = x^3+y^3+60*z^3
+        sage: chord_and_tangent(F, [1,-1,0])
+        [1, -1, 0]
+
         sage: F = x^3+7*y^3+64*z^3
-        sage: p = chord_and_tangent(F, [2,2,-1]);  p
+        sage: p0 = [2,2,-1]
+        sage: p1 = chord_and_tangent(F, p0);  p1
         [5, -3, 1]
+        sage: p2 = chord_and_tangent(F, p1);  p2
+        [1265, -183, -314]
 
     TESTS::
 
-        sage: F(p)
+        sage: F(p2)
         0
-        sage: map(type, p)
+        sage: map(type, p2)
         [<type 'sage.rings.rational.Rational'>,
          <type 'sage.rings.rational.Rational'>,
          <type 'sage.rings.rational.Rational'>]
@@ -881,24 +872,17 @@ def chord_and_tangent(F, P):
         raise ValueError('%s is not a point on %s'%(P,F))
 
     # find the tangent to F in P
-    dx = F.derivative(x)
-    dy = F.derivative(y)
-    dz = F.derivative(z)
-    dxP = K(dx(P))
-    dyP = K(dy(P))
-    dzP = K(dz(P))
-
-    # find the points on F where the derivative is 0
-    solutions = [[K.zero()]*3 for i in range(3)]
-    num_solutions = 0
-    if dyP == 0:
-        # if dF/dy(P) = 0, change variables so that dF/dy != 0
-        if dxP != 0:
+    dx = K(F.derivative(x)(P))
+    dy = K(F.derivative(y)(P))
+    dz = K(F.derivative(z)(P))
+    # if dF/dy(P) = 0, change variables so that dF/dy != 0
+    if dy == 0:
+        if dx != 0:
             g = F.substitute({x:y, y:x})
             Q = [P[1], P[0], P[2]]
             R = chord_and_tangent(g, Q)
             return [R[1], R[0], R[2]]
-        elif dzP != 0:
+        elif dz != 0:
             g = F.substitute({y:z, z:y})
             Q = [P[0], P[2], P[1]]
             R = chord_and_tangent(g, Q)
@@ -906,63 +890,63 @@ def chord_and_tangent(F, P):
         else:
             raise ValueError('%s is singular at %s'%(F, P))
 
+    # t will be our choice of parmeter of the tangent plane
+    #     dxP*(x-P[0]) + dyP*(y-P[1]) + dzP*(z-P[2])
+    # through the point P
+    t = rings.PolynomialRing(K, 't').gen(0)
+    Ft = F(dy*t+P[0], (-dx-dz)*t+P[1], dy*t+P[2])
+    # Ft has a double zero at t=0 by construction, which we now remove
+    Ft = Ft // t**2
+
+    # first case: the third point is at t=infinity
+    if Ft.is_constant():
+        return projective_point([dy, -dx-dz, dy])
+    # second case: the third point is at finite t
     else:
-        # we now know that dF/dy(P) != 0
-        # scale P to z=1 if possible
-        if (P[2] != 0):
-            P[0] = P[0]/P[2]
-            P[1] = P[1]/P[2]
-            P[2] = K.one()
+        assert Ft.degree() == 1
+        t0 = Ft.roots()[0][0]
+        return projective_point([dy*t0+P[0], (-dx-dz)*t0+P[1], dy*t0+P[2]])
 
-        # option 1: z = 0
-        g = F.substitute({y:-dxP/dyP*x, z:K.zero()})
-        if g == 0:
-            solutions[0][0] = K.one()
-            solutions[0][1] = -dxP/dyP
-            solutions[0][2] = K.zero()
-            num_solutions = num_solutions + 1
 
-            # check whether the solution is equal to P
-            equal_to_P = False
-            if P[2] == 0:
-                if P[1] != 0:
-                    if P[0] != 0:
-                        if (solutions[0][0]/P[0] == P[1]/solutions[0][1]/P[1]):
-                            equal_to_P = True
-                    elif (solutions[0][0] == 0):
-                        equal_to_P = True
-                elif (solutions[0][1] == 0):
-                    equal_to_P = true
-            if not equal_to_P: # a new point was found
-                return solutions[0]
+def projective_point(p):
+    """
+    Return equivalent point with denominators removed
 
-        # option 2: z != 0
-        g = F.substitute({y:-dzP/dyP - dxP/dyP*x, z:K.one()})
-        assert (g != 0)
-        h = g.factor(proof=False)
-        for factor in h:
-            factor = factor[0]
-            sol_x = K(-factor.constant_coefficient() / factor.coefficient(x))
-            solutions[num_solutions][0] = sol_x
-            solutions[num_solutions][1] = -dzP/dyP-dxP/dyP*sol_x
-            solutions[num_solutions][2] = K.one()
-            num_solutions = num_solutions + 1
-        if (solutions[0] != [0,0,0]) and not are_projectively_equivalent(solutions[0],P):
-            return solutions[0]
-        elif (solutions[1] != [0,0,0]) and not are_projectively_equivalent(solutions[1],P):
-            return solutions[1]
-        elif (solutions[2] != [0,0,0]) and not are_projectively_equivalent(solutions[2],P):
-            return solutions[2]
-        else:
-            return P
+    INPUT:
 
-def are_projectively_equivalent(P, Q):
+    - ``P``, ``Q`` -- list/tuple of projective coordinates.
+
+    OUTPUT:
+
+    List of projective coordinates.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.elliptic_curves.constructor import projective_point
+        sage: projective_point([4/5, 6/5, 8/5])
+        [2, 3, 4]
+        sage: F = GF(11)
+        sage: projective_point([F(4), F(8), F(2)])
+        [4, 8, 2]
+    """
+    try:
+        p_gcd = rings.integer.GCD_list([x.numerator() for x in p])
+        p_lcm = rings.integer.LCM_list([x.denominator() for x in p])
+    except AttributeError:
+        return p
+    scale = p_lcm / p_gcd
+    return [scale * x for x in p]
+
+
+def are_projectively_equivalent(P, Q, base_ring):
     """
     Test whether ``P`` and ``Q`` are projectively equivalent.
 
     INPUT:
 
     - ``P``, ``Q`` -- list/tuple of projective coordinates.
+
+    - ``base_ring`` -- the base ring.
 
     OUTPUT:
 
@@ -971,26 +955,13 @@ def are_projectively_equivalent(P, Q):
     EXAMPLES::
 
         sage: from sage.schemes.elliptic_curves.constructor import are_projectively_equivalent
-        sage: are_projectively_equivalent([0,1,2,3], [0,1,2,2])
+        sage: are_projectively_equivalent([0,1,2,3], [0,1,2,2], base_ring=QQ)
         False
-        sage: are_projectively_equivalent([0,1,2,3], [0,2,4,6])
+        sage: are_projectively_equivalent([0,1,2,3], [0,2,4,6], base_ring=QQ)
         True
     """
-    length_P = len(P)
-    if length_P != len(Q):
-        raise TypeError('%s and %s do not have the same length'%P,Q)
-    ratio = 0
-    for i in range(len(P)):
-        if (ratio != 0):
-            if (Q[i] != (P[i])*ratio):
-                return False
-        else:
-            if (P[i] == 0):
-                if (Q[i] != 0):
-                    return False
-            else:
-                ratio = Q[i]/P[i]
-    return True
+    from sage.matrix.constructor import matrix
+    return matrix(base_ring, [P, Q]).rank() < 2
 
 
 def EllipticCurve_from_plane_curve(C, P):

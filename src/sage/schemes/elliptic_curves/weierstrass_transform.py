@@ -15,22 +15,22 @@ EXAMPLES::
     Scheme morphism:
       From: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
       u^3 + v^3 + w^3
-      To:   Elliptic Curve defined by y^2 + 2*x*y - 1/3*y
-            = x^3 - x^2 + 1/3*x - 1/27 over Rational Field
+      To:   Elliptic Curve defined by y^2 + 2*x*y + 1/3*y
+            = x^3 - x^2 - 1/3*x - 1/27 over Rational Field
       Defn: Defined on coordinates by sending (u : v : w) to
-            (w : -v - w : -3*u - 3*v)
+            (-w : -v + w : 3*u + 3*v)
 
     sage: finv = f.inverse();  finv
     Scheme morphism:
-      From: Elliptic Curve defined by y^2 + 2*x*y - 1/3*y
-            = x^3 - x^2 + 1/3*x - 1/27 over Rational Field
+      From: Elliptic Curve defined by y^2 + 2*x*y + 1/3*y
+            = x^3 - x^2 - 1/3*x - 1/27 over Rational Field
       To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
       u^3 + v^3 + w^3
       Defn: Defined on coordinates by sending (x : y : z) to
-            (x + y - 1/3*z : -x - y : x)
+            (x + y + 1/3*z : -x - y : -x)
 
     sage: (u^3 + v^3 + w^3)(f.inverse().defining_polynomials()) * f.inverse().post_rescaling()
-    -x^3 + x^2*z + 2*x*y*z + y^2*z - 1/3*x*z^2 - 1/3*y*z^2 + 1/27*z^3
+    -x^3 + x^2*z + 2*x*y*z + y^2*z + 1/3*x*z^2 + 1/3*y*z^2 + 1/27*z^3
 
     sage: E = finv.domain()
     sage: E.defining_polynomial()(f.defining_polynomials()) * f.post_rescaling()
@@ -41,7 +41,7 @@ EXAMPLES::
     sage: f([1,0,-1])
     (1/3 : -1/3 : 1)
     sage: f([0,1,-1])
-    (1/3 : 0 : 1)
+    (1/3 : -2/3 : 1)
 """
 
 ##############################################################################
@@ -136,7 +136,7 @@ class WeierstrassTransformation(SchemeMorphism_polynomial):
             sage: P = [2,2,-1]
             sage: f = EllipticCurve_from_cubic(cubic, P, morphism=True).inverse()
             sage: f.post_rescaling()
-            (-157/30240)/(-90/157*x^2*z)
+            1/60480/(180*x^2*z)
 
         So here is what it does. If we just plug in the coordinate
         transformation, we get the defining polynomial up to
@@ -144,11 +144,10 @@ class WeierstrassTransformation(SchemeMorphism_polynomial):
         equation to bring the result into the standard form::
 
             sage: cubic(f.defining_polynomials())
-            -2721600/24649*x^5*z - 16043151600/607573201*x^4*z^2
-            - 982497600/3869893*x^3*y*z^2 + 2721600/24649*x^2*y^2*z^2
-            - 7440174000000/95388992557*x^2*y*z^3
+            -10886400*x^5*z - 256690425600*x^4*z^2 + 7859980800*x^3*y*z^2
+            + 10886400*x^2*y^2*z^2 + 238085568000000*x^2*y*z^3
             sage: cubic(f.defining_polynomials()) * f.post_rescaling()
-            -x^3 - 23579/98596*x^2*z - 361/157*x*y*z + y^2*z - 2733750/3869893*y*z^2
+            -x^3 - 23579*x^2*z + 722*x*y*z + y^2*z + 21870000*y*z^2
         """
         return self._post
 
@@ -167,10 +166,10 @@ def WeierstrassTransformationWithInverse(domain, codomain,
         Scheme morphism:
           From: Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
           u^3 + v^3 + w^3
-          To:   Elliptic Curve defined by y^2 + 2*x*y - 1/3*y
-                = x^3 - x^2 + 1/3*x - 1/27 over Rational Field
+          To:   Elliptic Curve defined by y^2 + 2*x*y + 1/3*y
+                = x^3 - x^2 - 1/3*x - 1/27 over Rational Field
           Defn: Defined on coordinates by sending (u : v : w) to
-                (w : -v - w : -3*u - 3*v)
+                (-w : -v + w : 3*u + 3*v)
     """
     fwd = WeierstrassTransformationWithInverse_class(
         domain, codomain, defining_polynomials, post_multiplication)
@@ -198,12 +197,12 @@ class WeierstrassTransformationWithInverse_class(WeierstrassTransformation):
             sage: f = EllipticCurve_from_cubic(u^3 + v^3 + w^3, [1,-1,0], morphism=True)
             sage: f.inverse()
             Scheme morphism:
-              From: Elliptic Curve defined by y^2 + 2*x*y - 1/3*y
-                    = x^3 - x^2 + 1/3*x - 1/27 over Rational Field
+              From: Elliptic Curve defined by y^2 + 2*x*y + 1/3*y
+                    = x^3 - x^2 - 1/3*x - 1/27 over Rational Field
               To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               u^3 + v^3 + w^3
               Defn: Defined on coordinates by sending (x : y : z) to
-                    (x + y - 1/3*z : -x - y : x)
+                    (x + y + 1/3*z : -x - y : -x)
         """
         return self._inverse
 

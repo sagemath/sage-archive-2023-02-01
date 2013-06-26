@@ -122,6 +122,7 @@ from copy import copy, deepcopy
 from sage.rings.all import ZZ, QQ, FiniteField, GF
 import itertools
 from itertools import combinations
+import sage.matroids.unpickling
 
 cdef bint GF2_not_defined = True
 cdef GF2, GF2_one, GF2_zero
@@ -2677,54 +2678,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             gs = rows + cols
             reduced = True
         data = (A, gs, reduced, getattr(self, '__custom_name'))
-        return unpickle_lean_linear_matroid, (version, data)
-
-
-def unpickle_lean_linear_matroid(version, data):
-    """
-    Unpickle a LinearMatroid.
-
-    *Pickling* is Python's term for the loading and saving of objects.
-    Functions like these serve to reconstruct a saved object. This all happens
-    transparently through the ``load`` and ``save`` commands, and you should
-    never have to call this function directly.
-
-    INPUT:
-
-    - ``version`` -- an integer (currently 0).
-    - ``data`` -- a tuple ``(A, E, reduced, name)`` where ``A`` is the
-      representation matrix, ``E`` is the groundset of the matroid,
-      ``reduced`` is a boolean indicating whether ``A`` is a reduced matrix,
-      and ``name`` is a custom name.
-
-    OUTPUT:
-
-    A :class:`LinearMatroid` instance.
-
-    .. WARNING::
-
-        Users should never call this function directly.
-
-    EXAMPLES::
-
-        sage: M = Matroid(Matrix(GF(7), [[1, 0, 0, 1, 1], [0, 1, 0, 1, 2],
-        ....:                                               [0, 1, 1, 1, 3]]))
-        sage: M == loads(dumps(M))  # indirect doctest
-        True
-        sage: M.rename("U35")
-        sage: loads(dumps(M))
-        U35
-    """
-    if version != 0:
-        raise TypeError("object was created with newer version of Sage. Please upgrade.")
-    A, gs, reduced, name = data
-    if not reduced:
-        M = LinearMatroid(groundset=gs, matrix=A, keep_initial_representation=True)
-    else:
-        M = LinearMatroid(groundset=gs, reduced_matrix=A)
-    if name is not None:
-        M.rename(name)
-    return M
+        return sage.matroids.unpickling.unpickle_linear_matroid, (version, data)
 
 # Binary matroid
 
@@ -3617,8 +3571,8 @@ cdef class BinaryMatroid(LinearMatroid):
 
         OUTPUT:
 
-        A tuple ``(unpickle_lean_binary_matroid, (version, data))``, where
-        ``unpickle_lean_binary_matroid`` is the name of a function that, when
+        A tuple ``(unpickle_binary_matroid, (version, data))``, where
+        ``unpickle_binary_matroid`` is the name of a function that, when
         called with ``(version, data)``, produces a matroid isomorphic to
         ``self``. ``version`` is an integer (currently 0) and ``data`` is a
         tuple ``(A, E, B, name)`` where ``A`` is the representation
@@ -3656,54 +3610,7 @@ cdef class BinaryMatroid(LinearMatroid):
             rows, cols = self._current_rows_cols()
             gs = rows + cols
         data = (A, gs, basis, getattr(self, '__custom_name'))
-        return unpickle_lean_binary_matroid, (version, data)
-
-
-def unpickle_lean_binary_matroid(version, data):
-    """
-    Unpickle a BinaryMatroid.
-
-    *Pickling* is Python's term for the loading and saving of objects.
-    Functions like these serve to reconstruct a saved object. This all happens
-    transparently through the ``load`` and ``save`` commands, and you should
-    never have to call this function directly.
-
-    INPUT:
-
-    - ``version`` -- an integer (currently 0).
-    - ``data`` -- a tuple ``(A, E, B, name)`` where ``A`` is the
-      representation matrix, ``E`` is the groundset of the matroid, ``B`` is
-      the currently displayed basis, and ``name`` is a custom name.
-
-      OUTPUT:
-
-      A :class:`BinaryMatroid` instance.
-
-    .. WARNING::
-
-        Users should never call this function directly.
-
-    EXAMPLES::
-
-        sage: M = Matroid(Matrix(GF(2), [[1, 0, 0, 1], [0, 1, 0, 1],
-        ....:                            [0, 0, 1, 1]]))
-        sage: M == loads(dumps(M))  # indirect doctest
-        True
-        sage: M.rename("U34")
-        sage: loads(dumps(M))
-        U34
-    """
-    if version != 0:
-        raise TypeError("object was created with newer version of Sage. Please upgrade.")
-    A, gs, basis, name = data
-    if basis is None:
-        M = BinaryMatroid(groundset=gs, matrix=A, keep_initial_representation=True)
-    else:
-        M = BinaryMatroid(groundset=gs, matrix=A, basis=basis)
-    if name is not None:
-        M.rename(name)
-    return M
-
+        return sage.matroids.unpickling.unpickle_binary_matroid, (version, data)
 
 cdef class TernaryMatroid(LinearMatroid):
     r"""
@@ -4455,8 +4362,8 @@ cdef class TernaryMatroid(LinearMatroid):
 
         OUTPUT:
 
-        A tuple ``(unpickle_lean_ternary_matroid, (version, data))``, where
-        ``unpickle_lean_ternary_matroid`` is the name of a function that, when
+        A tuple ``(unpickle_ternary_matroid, (version, data))``, where
+        ``unpickle_ternary_matroid`` is the name of a function that, when
         called with ``(version, data)``, produces a matroid isomorphic to
         ``self``. ``version`` is an integer (currently 0) and ``data`` is a
         tuple ``(A, E, B, name)`` where ``A`` is the representation
@@ -4495,54 +4402,7 @@ cdef class TernaryMatroid(LinearMatroid):
             rows, cols = self._current_rows_cols()
             gs = rows + cols
         data = (A, gs, basis, getattr(self, '__custom_name'))
-        return unpickle_lean_ternary_matroid, (version, data)
-
-
-def unpickle_lean_ternary_matroid(version, data):
-    """
-    Unpickle a TernaryMatroid.
-
-    *Pickling* is Python's term for the loading and saving of objects.
-    Functions like these serve to reconstruct a saved object. This all happens
-    transparently through the ``load`` and ``save`` commands, and you should
-    never have to call this function directly.
-
-    INPUT:
-
-    - ``version`` -- an integer (currently 0).
-    - ``data`` -- a tuple ``(A, E, B, name)`` where ``A`` is the
-      representation matrix, ``E`` is the groundset of the matroid, ``B`` is
-      the currently displayed basis, and ``name`` is a custom name.
-
-    OUTPUT:
-
-    A :class:`TernaryMatroid` instance.
-
-    .. WARNING::
-
-        Users should never call this function directly.
-
-    EXAMPLES::
-
-        sage: from sage.matroids.advanced import *
-        sage: M = TernaryMatroid(Matrix(GF(3), [[1, 0, 0, 1], [0, 1, 0, 1],
-        ....:           [0, 0, 1, 1]]))
-        sage: M == loads(dumps(M))  # indirect doctest
-        True
-        sage: M.rename("U34")
-        sage: loads(dumps(M))
-        U34
-    """
-    if version != 0:
-        raise TypeError("object was created with newer version of Sage. Please upgrade.")
-    A, gs, basis, name = data
-    if basis is None:
-        M = TernaryMatroid(groundset=gs, matrix=A, keep_initial_representation=True)
-    else:
-        M = TernaryMatroid(groundset=gs, matrix=A, basis=basis)
-    if name is not None:
-        M.rename(name)
-    return M
+        return sage.matroids.unpickling.unpickle_ternary_matroid, (version, data)
 
 # Quaternary Matroids
 
@@ -5188,8 +5048,8 @@ cdef class QuaternaryMatroid(LinearMatroid):
 
         OUTPUT:
 
-        A tuple ``(unpickle_lean_quaternary_matroid, (version, data))``, where
-        ``unpickle_lean_quaternary_matroid`` is the name of a function that,
+        A tuple ``(unpickle_quaternary_matroid, (version, data))``, where
+        ``unpickle_quaternary_matroid`` is the name of a function that,
         when called with ``(version, data)``, produces a matroid isomorphic to
         ``self``. ``version`` is an integer (currently 0) and ``data`` is a
         tuple ``(A, E, B, name)`` where ``A`` is the representation
@@ -5223,60 +5083,7 @@ cdef class QuaternaryMatroid(LinearMatroid):
             rows, cols = self._current_rows_cols()
             gs = rows + cols
         data = (A, gs, basis, getattr(self, '__custom_name'))
-        return unpickle_lean_quaternary_matroid, (version, data)
-
-
-def unpickle_lean_quaternary_matroid(version, data):
-    """
-    Unpickle a TernaryMatroid.
-
-    *Pickling* is Python's term for the loading and saving of objects.
-    Functions like these serve to reconstruct a saved object. This all happens
-    transparently through the ``load`` and ``save`` commands, and you should
-    never have to call this function directly.
-
-    INPUT:
-
-    - ``version`` -- an integer (currently 0).
-    - ``data`` -- a tuple ``(A, E, B, name)`` where ``A`` is the
-      representation matrix, ``E`` is the groundset of the matroid, ``B`` is
-      the currently displayed basis, and ``name`` is a custom name.
-
-    OUTPUT:
-
-    A :class:`TernaryMatroid` instance.
-
-    .. WARNING::
-
-        Users should never call this function directly.
-
-    EXAMPLES::
-
-        sage: from sage.matroids.advanced import *
-        sage: M = QuaternaryMatroid(Matrix(GF(3), [[1, 0, 0, 1], [0, 1, 0, 1],
-        ....:          [0, 0, 1, 1]]))
-        sage: M == loads(dumps(M))  # indirect doctest
-        True
-        sage: M.rename("U34")
-        sage: loads(dumps(M))
-        U34
-        sage: M = QuaternaryMatroid(Matrix(GF(4, 'x'), [[1, 0, 1],
-        ....:                                           [1, 0, 1]]))
-        sage: loads(dumps(M)).representation()
-        [1 0 1]
-        [1 0 1]
-    """
-    if version != 0:
-        raise TypeError("object was created with newer version of Sage. Please upgrade.")
-    A, gs, basis, name = data
-    if basis is None:
-        M = QuaternaryMatroid(groundset=gs, matrix=A, keep_initial_representation=True)
-    else:
-        M = QuaternaryMatroid(groundset=gs, matrix=A, basis=basis)
-    if name is not None:
-        M.rename(name)
-    return M
-
+        return sage.matroids.unpickling.unpickle_quaternary_matroid, (version, data)
 
 # Regular Matroids
 
@@ -5967,7 +5774,7 @@ cdef class RegularMatroid(LinearMatroid):
 
         OUTPUT:
 
-        A tuple ``(unpickle_lean_linear_matroid, (version, data))``, where
+        A tuple ``(unpickle_regular_matroid, (version, data))``, where
         ``unpickle_regular_matroid`` is the name of a function that, when
         called with ``(version, data)``, produces a matroid isomorphic to
         ``self``. ``version`` is an integer (currently 0) and ``data`` is a
@@ -6007,50 +5814,4 @@ cdef class RegularMatroid(LinearMatroid):
             gs = rows + cols
             reduced = True
         data = (A, gs, reduced, getattr(self, '__custom_name'))
-        return unpickle_regular_matroid, (version, data)
-
-
-def unpickle_regular_matroid(version, data):
-    """
-    Unpickle a RegularMatroid.
-
-    *Pickling* is Python's term for the loading and saving of objects.
-    Functions like these serve to reconstruct a saved object. This all happens
-    transparently through the ``load`` and ``save`` commands, and you should
-    never have to call this function directly.
-
-    INPUT:
-
-    - ``version`` -- an integer (currently 0).
-    - ``data`` -- a tuple ``(A, E, reduced, name)`` where ``A`` is the
-      representation matrix, ``E`` is the groundset of the matroid,
-      ``reduced`` is a boolean indicating whether ``A`` is a reduced matrix,
-      and ``name`` is a custom name.
-
-    OUTPUT:
-
-    A :class:`RegularMatroid` instance.
-
-    .. WARNING::
-
-        Users should never call this function directly.
-
-    EXAMPLES::
-
-        sage: M = matroids.named_matroids.R10()
-        sage: M == loads(dumps(M))  # indirect doctest
-        True
-        sage: M.rename("R_{10}")
-        sage: loads(dumps(M))
-        R_{10}
-    """
-    if version != 0:
-        raise TypeError("object was created with newer version of Sage. Please upgrade.")
-    A, gs, reduced, name = data
-    if not reduced:
-        M = RegularMatroid(groundset=gs, matrix=A, keep_initial_representation=True)
-    else:
-        M = RegularMatroid(groundset=gs, reduced_matrix=A)
-    if name is not None:
-        M.rename(name)
-    return M
+        return sage.matroids.unpickling.unpickle_regular_matroid, (version, data)

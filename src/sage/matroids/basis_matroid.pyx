@@ -79,6 +79,7 @@ from itertools import permutations
 from sage.rings.arith import binomial
 from set_system cimport SetSystem
 from itertools import combinations
+import sage.matroids.unpickling
 
 # class of general matroids, represented by their list of bases
 
@@ -1143,7 +1144,7 @@ cdef class BasisMatroid(BasisExchangeMatroid):
         BB = bitset_pickle(self._bb)
         data = (self._E, self._matroid_rank, getattr(self, '__custom_name'), BB)
         version = 0
-        return unpickle, (version, data)
+        return sage.matroids.unpickling.unpickle_basis_matroid, (version, data)
 
 
 cdef long binom[2956][33]   # Cached binomial table
@@ -1202,48 +1203,3 @@ cdef  index_to_set(bitset_t S, long index, long k, long n):
             index = index - binom[s][k]
             k = k - 1
             bitset_add(S, s)
-
-
-def unpickle(version, data):
-    """
-    Unpickle a BasisMatroid.
-
-    *Pickling* is Python's term for the loading and saving of objects.
-    Functions like these serve to reconstruct a saved object. This all happens
-    transparently through the ``load`` and ``save`` commands, and you should
-    never have to call this function directly.
-
-    INPUT:
-
-    - ``version`` -- an integer, expected to be 0
-    - ``data`` -- a tuple ``(E, R, name, BB)`` in which ``E`` is the groundset
-      of the matroid, ``R`` is the rank, ``name`` is a custom name, and ``BB``
-      is the bitpacked list of bases, as pickled by Sage's ``bitset_pickle``.
-
-    OUTPUT:
-
-    A matroid.
-
-    .. WARNING::
-
-        Users should never call this function directly.
-
-    EXAMPLES::
-
-        sage: from sage.matroids.advanced import *
-        sage: M = BasisMatroid(matroids.named_matroids.Vamos())
-        sage: M == loads(dumps(M))  # indirect doctest
-        True
-
-    """
-    cdef BasisMatroid M
-    if version != 0:
-        raise TypeError("object was created with newer version of Sage. Please upgrade.")
-    E, R, name, BB = data
-    M = BasisMatroid(groundset=E, rank=R)
-    bitset_unpickle(M._bb, BB)
-    M._reset_invariants()
-    M.reset_current_basis()
-    if name is not None:
-        M.rename(name)
-    return M

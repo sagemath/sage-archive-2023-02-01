@@ -76,6 +76,7 @@ Methods
 #*****************************************************************************
 from matroid import Matroid
 from utilities import sanitize_contractions_deletions, setprint_s
+import sage.matroids.unpickling
 
 
 class MinorMatroid(Matroid):
@@ -528,43 +529,4 @@ class MinorMatroid(Matroid):
         """
         data = (self._matroid, self._contractions, self._deletions, getattr(self, '__custom_name'))
         version = 0
-        return unpickle, (version, data)
-
-
-def unpickle(version, data):
-    """
-    Unpickle a MinorMatroid.
-
-    *Pickling* is Python's term for the loading and saving of objects.
-    Functions like these serve to reconstruct a saved object. This all happens
-    transparently through the ``load`` and ``save`` commands, and you should
-    never have to call this function directly.
-
-    INPUT:
-
-    - ``version`` -- an integer, currently `0`.
-    - ``data`` -- a tuple ``(M, C, D, name)``, where ``M`` is the original
-      matroid of which the output is a minor, ``C`` is the set of
-      contractions, ``D`` is the set of deletions, and ``name`` is a custom
-      name.
-
-    OUTPUT:
-
-    A :class:`MinorMatroid` instance.
-
-    .. WARNING::
-
-        Users should never call this function directly.
-
-    EXAMPLES::
-
-        sage: M = matroids.named_matroids.Vamos().minor('abc', 'g')
-        sage: M == loads(dumps(M))  # indirect doctest
-        True
-    """
-    if version != 0:
-        raise TypeError("object was created with newer version of Sage. Please upgrade.")
-    M = MinorMatroid(matroid=data[0], contractions=data[1], deletions=data[2])
-    if data[3] is not None:
-        M.rename(data[3])
-    return M
+        return sage.matroids.unpickling.unpickle_minor_matroid, (version, data)

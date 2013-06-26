@@ -35,6 +35,7 @@ from sage.matrix.matrix2 cimport Matrix
 from sage.rings.all import ZZ, FiniteField, GF
 from sage.rings.integer cimport Integer
 import sage.matrix.constructor
+import sage.matroids.unpickling
 
 cdef class LeanMatrix:
     """
@@ -791,31 +792,7 @@ cdef class GenericMatrix(LeanMatrix):
         """
         version = 0
         data = (self.nrows(), self.ncols(), self.base_ring(), self._entries)
-        return unpickle_GenericMatrix, (version, data)
-
-
-def unpickle_GenericMatrix(version, data):
-    """
-    Reconstruct the object.
-
-    .. WARNING::
-
-        Users should not call this method directly.
-
-    EXAMPLES::
-
-        sage: from sage.matroids.lean_matrix import *
-        sage: A = GenericMatrix(2, 5, ring=QQ)
-        sage: A == loads(dumps(A))  # indirect doctest
-        True
-    """
-    if version != 0:
-        raise TypeError("object was created with newer version of Sage. Please upgrade.")
-    cdef GenericMatrix A = GenericMatrix(0, 0, ring=data[2])
-    A._entries = data[3][:]
-    A._nrows = data[0]
-    A._ncols = data[1]
-    return A
+        return sage.matroids.unpickling.unpickle_generic_matrix, (version, data)
 
 # Binary matrices
 
@@ -1366,36 +1343,7 @@ cdef class BinaryMatrix(LeanMatrix):
             versionB, size, limbs, longsize, data = bitset_pickle(self._M[i])
             M.append(data)
         data = (self.nrows(), self.ncols(), versionB, size, limbs, longsize, M)
-        return unpickle_BinaryMatrix, (version, data)
-
-
-def unpickle_BinaryMatrix(version, data):
-    """
-    Reconstruct the object.
-
-    .. WARNING::
-
-        Users should not call this method directly.
-
-    EXAMPLES::
-
-        sage: from sage.matroids.lean_matrix import *
-        sage: A = BinaryMatrix(2, 5)
-        sage: A == loads(dumps(A))  # indirect doctest
-        True
-        sage: C = BinaryMatrix(2, 2, Matrix(GF(2), [[1, 1], [0, 1]]))
-        sage: C == loads(dumps(C))
-        True
-    """
-    cdef BinaryMatrix A
-    cdef long i
-    if version != 0:
-        raise TypeError("object was created with newer version of Sage. Please upgrade.")
-    nrows, ncols, versionB, size, limbs, longsize, M = data
-    A = BinaryMatrix(nrows, ncols)
-    for i from 0 <= i < nrows:
-        bitset_unpickle(A._M[i], (versionB, size, limbs, longsize, M[i]))
-    return A
+        return sage.matroids.unpickling.unpickle_binary_matrix, (version, data)
 
 cdef bint GF3_not_defined = True
 cdef GF3, GF3_one, GF3_zero, GF3_minus_one
@@ -1887,38 +1835,7 @@ cdef class TernaryMatrix(LeanMatrix):
             versionB, size, limbs, longsize, data = bitset_pickle(self._M1[i])
             M1.append(data)
         data = (self.nrows(), self.ncols(), versionB, size, limbs, longsize, M0, M1)
-        return unpickle_TernaryMatrix, (version, data)
-
-
-def unpickle_TernaryMatrix(version, data):
-    """
-    Reconstruct the object.
-
-    .. WARNING::
-
-        Users should not call this method directly.
-
-    EXAMPLES::
-
-        sage: from sage.matroids.lean_matrix import *
-        sage: A = TernaryMatrix(2, 5)
-        sage: A == loads(dumps(A))  # indirect doctest
-        True
-        sage: C = TernaryMatrix(2, 2, Matrix(GF(3), [[1, 1], [0, 1]]))
-        sage: C == loads(dumps(C))
-        True
-    """
-    cdef TernaryMatrix A
-    cdef long i
-    if version != 0:
-        raise TypeError("object was created with newer version of Sage. Please upgrade.")
-    nrows, ncols, versionB, size, limbs, longsize, M0, M1 = data
-    A = TernaryMatrix(nrows, ncols)
-    for i from 0 <= i < nrows:
-        bitset_unpickle(A._M0[i], (versionB, size, limbs, longsize, M0[i]))
-        bitset_unpickle(A._M1[i], (versionB, size, limbs, longsize, M1[i]))
-    return A
-
+        return sage.matroids.unpickling.unpickle_ternary_matrix, (version, data)
 
 cdef class QuaternaryMatrix(LeanMatrix):
     """
@@ -2452,38 +2369,7 @@ cdef class QuaternaryMatrix(LeanMatrix):
             versionB, size, limbs, longsize, data = bitset_pickle(self._M1[i])
             M1.append(data)
         data = (self.nrows(), self.ncols(), ring, versionB, size, limbs, longsize, M0, M1)
-        return unpickle_QuaternaryMatrix, (version, data)
-
-
-def unpickle_QuaternaryMatrix(version, data):
-    """
-    Reconstruct the object.
-
-    .. WARNING::
-
-        Users should not call this method directly.
-
-    EXAMPLES::
-
-        sage: from sage.matroids.lean_matrix import *
-        sage: A = QuaternaryMatrix(2, 5, ring=GF(4, 'x'))
-        sage: A == loads(dumps(A))  # indirect doctest
-        True
-        sage: C = QuaternaryMatrix(2, 2, Matrix(GF(4, 'x'), [[1, 1], [0, 1]]))
-        sage: C == loads(dumps(C))
-        True
-    """
-    cdef QuaternaryMatrix A
-    cdef long i
-    if version != 0:
-        raise TypeError("object was created with newer version of Sage. Please upgrade.")
-    nrows, ncols, ring, versionB, size, limbs, longsize, M0, M1 = data
-    A = QuaternaryMatrix(nrows, ncols, ring=ring)
-    for i from 0 <= i < nrows:
-        bitset_unpickle(A._M0[i], (versionB, size, limbs, longsize, M0[i]))
-        bitset_unpickle(A._M1[i], (versionB, size, limbs, longsize, M1[i]))
-    return A
-
+        return sage.matroids.unpickling.unpickle_quaternary_matrix, (version, data)
 
 cpdef GenericMatrix generic_identity(n, ring):
     """
@@ -2933,28 +2819,4 @@ cdef class IntegerMatrix(LeanMatrix):
             entries.append(self._entries[i])
         version = 0
         data = (self.nrows(), self.ncols(), entries)
-        return unpickle_IntegerMatrix, (version, data)
-
-
-def unpickle_IntegerMatrix(version, data):
-    """
-    Reconstruct the object.
-
-    .. WARNING::
-
-        Users should not call this method directly.
-
-    EXAMPLES::
-
-        sage: from sage.matroids.lean_matrix import *
-        sage: A = IntegerMatrix(2, 5)
-        sage: A == loads(dumps(A))  # indirect doctest
-        True
-    """
-    if version != 0:
-        raise TypeError("object was created with newer version of Sage. Please upgrade.")
-    cdef IntegerMatrix A = IntegerMatrix(data[0], data[1])
-    cdef long i
-    for i from 0 <= i < A._nrows * A._ncols:
-        A._entries[i] = data[2][i]
-    return A
+        return sage.matroids.unpickling.unpickle_integer_matrix, (version, data)

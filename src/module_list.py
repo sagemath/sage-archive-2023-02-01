@@ -1139,6 +1139,9 @@ ext_modules = [
     Extension('sage.matroids.circuit_closures_matroid',
             ['sage/matroids/circuit_closures_matroid.pyx']),
 
+    Extension('sage.matroids.unpickling',
+            ['sage/matroids/unpickling.pyx']),
+
     ################################
     ##
     ## sage.media

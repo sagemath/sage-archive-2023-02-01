@@ -56,6 +56,7 @@ Methods
 #*****************************************************************************
 
 from matroid import Matroid
+import sage.matroids.unpickling
 
 
 class DualMatroid(Matroid):
@@ -563,41 +564,4 @@ class DualMatroid(Matroid):
         """
         data = (self._matroid, getattr(self, '__custom_name'))
         version = 0
-        return unpickle, (version, data)
-
-
-def unpickle(version, data):
-    """
-    Unpickle a DualMatroid.
-
-    *Pickling* is Python's term for the loading and saving of objects.
-    Functions like these serve to reconstruct a saved object. This all happens
-    transparently through the ``load`` and ``save`` commands, and you should
-    never have to call this function directly.
-
-    INPUT:
-
-    - ``version`` -- an integer, expected to be 0
-    - ``data`` -- a tuple ``(M, name)`` in which ``M`` is
-      the internal matroid, and ``name`` is a custom name.
-
-    OUTPUT:
-
-    A matroid.
-
-    .. WARNING::
-
-        Users should not call this function directly. Instead, use load/save.
-
-    EXAMPLES::
-
-        sage: M = matroids.named_matroids.Vamos().dual()
-        sage: M == loads(dumps(M))  # indirect doctest
-        True
-    """
-    if version != 0:
-        raise TypeError("object was created with newer version of Sage. Please upgrade.")
-    M = DualMatroid(data[0])
-    if data[1] is not None:
-        M.rename(data[1])
-    return M
+        return sage.matroids.unpickling.unpickle_dual_matroid, (version, data)

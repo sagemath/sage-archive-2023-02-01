@@ -68,6 +68,7 @@ Methods
 from matroid cimport Matroid
 from set_system cimport SetSystem
 from utilities import setprint_s
+import sage.matroids.unpickling
 
 cdef class CircuitClosuresMatroid(Matroid):
     """
@@ -556,44 +557,6 @@ cdef class CircuitClosuresMatroid(Matroid):
         """
         data = (self._groundset, self._circuit_closures, getattr(self, '__custom_name'))
         version = 0
-        return unpickle, (version, data)
-
-
-def unpickle(version, data):
-    """
-    Unpickle a CircuitClosuresMatroid.
-
-    *Pickling* is Python's term for the loading and saving of objects.
-    Functions like these serve to reconstruct a saved object. This all happens
-    transparently through the ``load`` and ``save`` commands, and you should
-    never have to call this function directly.
-
-    INPUT:
-
-    - ``version`` -- an integer, expected to be 0
-    - ``data`` -- a tuple ``(E, CC, name)`` in which ``E`` is the groundset
-      of the matroid, ``CC`` is the dictionary of circuit closures, and
-      ``name`` is a custom name.
-
-    OUTPUT:
-
-    A matroid.
-
-    .. WARNING::
-
-        Users should never call this function directly.
-
-    EXAMPLES::
-
-        sage: M = matroids.named_matroids.Vamos()
-        sage: M == loads(dumps(M))  # indirect doctest
-        True
-    """
-    if version != 0:
-        raise TypeError("object was created with newer version of Sage. Please upgrade.")
-    M = CircuitClosuresMatroid(groundset=data[0], circuit_closures=data[1])
-    if data[2] is not None:
-        M.rename(data[2])
-    return M
+        return sage.matroids.unpickling.unpickle_circuit_closures_matroid, (version, data)
 
 # todo: customized minor, extend methods.

@@ -360,18 +360,18 @@ def deprecated_custom_evalf_wrapper(func):
 def eval_on_operands(f):
     """
     Given a method ``f`` return a new method which takes a single symbolic
-    expression argument and passes the operands of the given expression as
-    arguments to ``f``.
+    expression argument and appends operands of the given expression to
+    the arguments of ``f``.
 
     EXAMPLES::
 
-        sage: def f(x, y):
+        sage: def f(ex, x, y):
         ....:     '''
         ....:     Some documentation.
         ....:     '''
         ....:     return x + 2*y
         ....:
-        sage: f(x, 1)
+        sage: f(None, x, 1)
         x + 2
         sage: from sage.symbolic.function_factory import eval_on_operands
         sage: g = eval_on_operands(f)
@@ -381,6 +381,8 @@ def eval_on_operands(f):
         'Some documentation.'
     """
     @sage_wraps(f)
-    def new_f(ex):
-        return f(*ex.operands())
+    def new_f(ex, *args, **kwds):
+        new_args = list(ex._unpack_operands())
+        new_args.extend(args)
+        return f(ex, *new_args, **kwds)
     return new_f

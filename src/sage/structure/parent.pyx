@@ -450,16 +450,23 @@ cdef class Parent(category_object.CategoryObject):
             ....:     def __hash__(self):
             ....:         return hash(type(self))   # subtle mistake
             sage: a = MyParent()
-            sage: h = hash(a)
+            sage: h_a = hash(a)
             sage: a._refine_category_(Algebras(QQ))
             hash of <class '__main__.MyParent_with_category'> changed in
             Parent._refine_category_ during initialisation
 
             sage: b = MyParent(category=Rings())
-            sage: h = hash(b)
+            sage: h_b = hash(b)
+            sage: h_a == h_b
+            False
             sage: b._refine_category_(Algebras(QQ))
             hash of <class '__main__.MyParent_with_category'> changed in
             Parent._refine_category_ during refinement
+            sage: hash(a) == hash(b)
+            True
+            sage: hash(a) != h_a
+            True
+
         """
         if debug.refine_category_hash_check:
             # check that the hash stays the same after refinement

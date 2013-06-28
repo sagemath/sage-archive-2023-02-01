@@ -201,6 +201,9 @@ ext_modules = [
     Extension('sage.structure.list_clone',
               sources=['sage/structure/list_clone.pyx']),
 
+    Extension('sage.structure.list_clone_demo',
+              sources=['sage/structure/list_clone_demo.pyx']),
+
     Extension('sage.structure.list_clone_timings_cy',
               sources=['sage/structure/list_clone_timings_cy.pyx']),
 

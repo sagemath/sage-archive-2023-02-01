@@ -37,13 +37,13 @@ from sage.structure.element import Element
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.superseded import deprecated_function_alias
 from sage.rings.all import ZZ
-import sage.combinat.skew_partition
 from combinat import CombinatorialObject
 from cartesian_product import CartesianProduct
 from integer_list import IntegerListsLex
 import __builtin__
 from sage.rings.integer import Integer
 from sage.combinat.combinatorial_map import combinatorial_map
+
 
 class Composition(CombinatorialObject, Element):
     r"""
@@ -699,10 +699,11 @@ class Composition(CombinatorialObject, Element):
         EXAMPLES::
 
             sage: Composition([3,4,1]).to_skew_partition()
-            [[6, 6, 3], [5, 2]]
+            [6, 6, 3] / [5, 2]
             sage: Composition([3,4,1]).to_skew_partition(overlap=0)
-            [[8, 7, 3], [7, 3]]
+            [8, 7, 3] / [7, 3]
         """
+        from sage.combinat.skew_partition import SkewPartition
         outer = []
         inner = []
         sum_outer = -1*overlap
@@ -715,9 +716,9 @@ class Composition(CombinatorialObject, Element):
         if self != []:
             outer += [self[-1]+sum_outer+overlap]
         else:
-            return [[],[]]
+            return SkewPartition([[],[]])
 
-        return sage.combinat.skew_partition.SkewPartition(
+        return SkewPartition(
             [ filter(lambda x: x != 0, [l for l in reversed(outer)]),
               filter(lambda x: x != 0, [l for l in reversed(inner)])])
 

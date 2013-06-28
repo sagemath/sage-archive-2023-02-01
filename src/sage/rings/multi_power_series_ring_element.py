@@ -133,7 +133,7 @@ Inversion::
     sage: f = 1 - 5*s^29 - 5*s^28*t + 4*s^18*t^35 + \
     4*s^17*t^36 - s^45*t^25 - s^44*t^26 + s^7*t^83 + \
     s^6*t^84 + R.O(101)
-    sage: h = 1/f; h
+    sage: h = ~f; h
     1 + 5*s^29 + 5*s^28*t - 4*s^18*t^35 - 4*s^17*t^36 + 25*s^58 + 50*s^57*t
     + 25*s^56*t^2 + s^45*t^25 + s^44*t^26 - 40*s^47*t^35 - 80*s^46*t^36
     - 40*s^45*t^37 + 125*s^87 + 375*s^86*t + 375*s^85*t^2 + 125*s^84*t^3
@@ -158,7 +158,6 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
 
 from sage.rings.power_series_ring_element import PowerSeries
 
@@ -580,11 +579,11 @@ class MPowerSeries(PowerSeries):
             sage: f._latex_()
             '- t_{0}^{4} t_{1}^{3} t_{2}^{4} + 3 t_{0} t_{1}^{4} t_{2}^{7} +
             2 t_{1} t_{2}^{12} + 2 t_{0}^{7} t_{1}^{5} t_{2}^{2}
-            + O(t0, t1, t2)^15'
+            + O(t0, t1, t2)^{15}'
         """
         if self._prec == infinity:
             return "%s" % self._value()
-        return "%(val)s + O(%(gens)s)^%(prec)s" \
+        return "%(val)s + O(%(gens)s)^{%(prec)s}" \
                %{'val':self._value()._latex_(),
                  'gens':', '.join(g._latex_() for g in self.parent().gens()),
                  'prec':self._prec}
@@ -647,7 +646,7 @@ class MPowerSeries(PowerSeries):
 
             sage: R.<a,b,c> = PowerSeriesRing(ZZ)
             sage: f = 1 + a + b - a*b - b*c - a*c + R.O(4)
-            sage: 1/f
+            sage: ~f
             1 - a - b + a^2 + 3*a*b + a*c + b^2 + b*c - a^3 - 5*a^2*b
             - 2*a^2*c - 5*a*b^2 - 4*a*b*c - b^3 - 2*b^2*c + O(a, b, c)^4
         """
@@ -786,11 +785,97 @@ class MPowerSeries(PowerSeries):
         f = c * self._bg_value
         return MPowerSeries(self.parent(), f, prec=f.prec())
 
-    def _div_(self, denom_r):
+    def trailing_monomial(self):
         """
-        Division by a unit works, but cancellation doesn't.
+        Return the trailing monomial of ``self``
+
+        EXAMPLE::
+
+            sage: R.<a,b,c> = PowerSeriesRing(ZZ)
+            sage: f = 1 + a + b - a*b + R.O(3)
+            sage: f.trailing_monomial()
+            1
+            sage: f = a^2*b^3*f; f
+            a^2*b^3 + a^3*b^3 + a^2*b^4 - a^3*b^4 + O(a, b, c)^8
+            sage: f.trailing_monomial()
+            a^2*b^3
 
         TESTS::
+
+            sage: (f-f).trailing_monomial()
+            0
+        """
+        return self.polynomial().lt()
+
+    def quo_rem(self, other):
+        r"""
+        Quotient and remainder for increassing power division
+
+        INPUT: ``other`` - an element of the same power series ring as ``self``
+
+        EXAMPLE::
+
+            sage: R.<a,b,c> = PowerSeriesRing(ZZ)
+            sage: f = 1 + a + b - a*b + R.O(3)
+            sage: g = 1 + 2*a - 3*a*b + R.O(3)
+            sage: q, r = f.quo_rem(g); q, r
+            (1 - a + b + 2*a^2 + O(a, b, c)^3, 0 + O(a, b, c)^3)
+            sage: f == q*g+r
+            True
+
+            sage: q, r = (a*f).quo_rem(g); q, r
+            (a - a^2 + a*b + 2*a^3 + O(a, b, c)^4, 0 + O(a, b, c)^4)
+            sage: a*f == q*g+r
+            True
+
+            sage: q, r = (a*f).quo_rem(a*g); q, r
+            (1 - a + b + 2*a^2 + O(a, b, c)^3, 0 + O(a, b, c)^4)
+            sage: a*f == q*(a*g)+r
+            True
+
+            sage: q, r = (a*f).quo_rem(b*g); q, r
+            (a - 3*a^2 + O(a, b, c)^3, a + a^2 + O(a, b, c)^4)
+            sage: a*f == q*(b*g)+r
+            True
+
+        TESTS::
+
+            sage: (f).quo_rem(R.zero())
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError
+
+            sage: (f).quo_rem(R.zero().add_bigoh(2))
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError
+        """
+        if other.parent() is not self.parent():
+            raise ValueError, "Don't know how to divide by a element of %s"%(other.parent())
+        other_tt = other.trailing_monomial()
+        if not other_tt:
+            raise ZeroDivisionError()
+        mprec = min(self.prec(), other.prec())
+        rem = self.parent().zero().add_bigoh(self.prec())
+        quo = self.parent().zero().add_bigoh(self.prec()-other.valuation())
+        while self:
+            self_tt = self.trailing_monomial()
+            assert self_tt
+            if not other_tt.divides(self_tt):
+                self -= self_tt
+                rem += self_tt
+            else:
+                d = self_tt//other_tt
+                self -= d * other
+                quo += d
+                quo = quo.add_bigoh(self.prec()-other_tt.degree())
+        return quo, rem
+
+    def _div_(self, denom_r):
+        r"""
+        Division in the ring of power series.
+
+        EXAMPLE::
 
             sage: R.<a,b,c> = PowerSeriesRing(ZZ)
             sage: f = 1 + a + b - a*b + R.O(3)
@@ -798,14 +883,44 @@ class MPowerSeries(PowerSeries):
             1 - a - b + a^2 + 3*a*b + b^2 + O(a, b, c)^3
             sage: g in R
             True
-            sage: g = a/(a*f)
+            sage: g == ~f
+            True
+
+        When possible, division by non unit also works::
+
+            sage: a/(a*f)
+            1 - a - b + a^2 + 3*a*b + b^2 + O(a, b, c)^3
+
+            sage: a/(R.zero())
+            Traceback (most recent call last):
+            ZeroDivisionError
+
+            sage: (a*f)/f
+            a + O(a, b, c)^4
+            sage: f/(a*f)
             Traceback (most recent call last):
             ...
-            TypeError: denominator must be a unit
+            ValueError: Not divisible
 
+        An example where one looses precision::
+
+            sage: ((1+a)*f - f) / a*f
+            1 + 2*a + 2*b + O(a, b, c)^2
+
+        TESTS::
+
+            sage: ((a+b)*f) / f == (a+b)
+            True
+            sage: ((a+b)*f) / (a+b) == f
+            True
         """
-        f = self._bg_value / denom_r._bg_value
-        return MPowerSeries(self.parent(), f, prec=f.prec())
+        if denom_r.is_unit(): # faster if denom_r is a unit
+            return self*~denom_r
+        quo, rem = self.quo_rem(denom_r)
+        if rem:
+            raise ValueError("Not divisible")
+        else:
+            return quo
 
 #    def _r_action_(self, c):
 #        # multivariate power series rings are assumed to be commutative
@@ -1318,7 +1433,7 @@ class MPowerSeries(PowerSeries):
         The formal derivative of this power series, with respect to
         variables supplied in ``args``.
 
-        TESTS::
+        EXAMPLES::
 
             sage: T.<a,b> = PowerSeriesRing(ZZ,2)
             sage: f = a + b + a^2*b + T.O(5)
@@ -1341,6 +1456,124 @@ class MPowerSeries(PowerSeries):
         deriv = self.polynomial().derivative(variables)
         new_prec = max(self.prec()-len(variables), 0)
         return R(deriv) + R.O(new_prec)
+
+    def integral(self, *args):
+        """
+        The formal integral of this multivariate power series, with respect to
+        variables supplied in ``args``.
+
+        EXAMPLES::
+
+            sage: T.<a,b> = PowerSeriesRing(QQ,2)
+            sage: f = a + b + a^2*b + T.O(5)
+            sage: f.integral(a, 2)
+            1/6*a^3 + 1/2*a^2*b + 1/12*a^4*b + O(a, b)^7
+            sage: f.integral(a, b)
+            1/2*a^2*b + 1/2*a*b^2 + 1/6*a^3*b^2 + O(a, b)^7
+            sage: f.integral(a, 5)
+            1/720*a^6 + 1/120*a^5*b + 1/2520*a^7*b + O(a, b)^10
+
+        Only integration with respect to variables works::
+
+            sage: f.integral(a+b)
+            Traceback (most recent call last):
+            ...
+            ValueError: a + b is not a variable
+
+        .. warning:: Coefficient division.
+
+            If the base ring is not a field (e.g. `ZZ`), or if it has a non
+            zero characteristic, (e.g. `ZZ/3ZZ`), integration is not always
+            possible, while staying with the same base ring. In the first
+            case, Sage will report that it hasn't been able to coerce some
+            coefficient to the base ring::
+
+                sage: T.<a,b> = PowerSeriesRing(ZZ,2)
+                sage: f = a + T.O(5)
+                sage: f.integral(a)
+                Traceback (most recent call last):
+                ...
+                TypeError: no conversion of this rational to integer
+
+            One can get the correct result by changing the base ring first::
+
+                sage: f.change_ring(QQ).integral(a)
+                1/2*a^2 + O(a, b)^6
+
+            However, a correct result is returned if the denominator cancels::
+
+                sage: f = 2*b + T.O(5)
+                sage: f.integral(b)
+                b^2 + O(a, b)^6
+
+            In non zero characteristic, Sage will report that a zero division
+            occurred ::
+
+                sage: T.<a,b> = PowerSeriesRing(Zmod(3),2)
+                sage: (a^3).integral(a)
+                a^4
+                sage: (a^2).integral(a)
+                Traceback (most recent call last):
+                ...
+                ZeroDivisionError: Inverse does not exist.
+        """
+        from sage.misc.derivative import derivative_parse
+        res = self
+        for v in derivative_parse(args):
+            res = res._integral(v)
+        return res
+
+    def _integral(self, xx):
+        """
+        Formal integral for multivariate power series
+
+        INPUT: ``xx`` a generator of the power series ring
+
+        EXAMPLES::
+
+            sage: T.<a,b> = PowerSeriesRing(QQ,2)
+            sage: f = a + b + a^2*b + T.O(5)
+            sage: f._integral(a)
+            1/2*a^2 + a*b + 1/3*a^3*b + O(a, b)^6
+            sage: f._integral(b)
+            a*b + 1/2*b^2 + 1/2*a^2*b^2 + O(a, b)^6
+
+        TESTS:
+
+        We try to recognise variables even if they are not recognized as
+        genrators of the rings::
+
+            sage: T.<a,b> = PowerSeriesRing(QQ,2)
+            sage: a.is_gen()
+            True
+            sage: (a+0).is_gen()
+            False
+            sage: (a+b).integral(a+0)
+            1/2*a^2 + a*b
+
+            sage: T.<a,b> = PowerSeriesRing(ZZ,2)
+            sage: aa = a.change_ring(Zmod(5))
+            sage: aa.is_gen()
+            False
+            sage: aa.integral(aa)
+            -2*a^2
+            sage: aa.integral(a)
+            -2*a^2
+        """
+        P = self.parent()
+        R = P.base_ring()
+        xx = P(xx)
+        if not xx.is_gen():
+            for g in P.gens(): # try to find a generator equal to xx
+                if g == xx:
+                    xx = g
+                    break
+            else:
+                raise ValueError, "%s is not a variable"%(xx)
+        xxe = xx.exponents()[0]
+        pos = [i for i, c in enumerate(xxe) if c != 0][0] # get the position of the variable
+        res = { mon.eadd(xxe) : R(co / (mon[pos]+1)) for mon, co in self.dict().iteritems() }
+        return P( res ).add_bigoh(self.prec()+1)
 
     def ogf(self):
         """

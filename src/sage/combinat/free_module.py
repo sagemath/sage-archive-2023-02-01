@@ -1877,7 +1877,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         return r
 
     def _latex_term(self, m):
-        """
+        r"""
         Returns a string for the LaTeX code for the basis element
         indexed by m.
 
@@ -1915,13 +1915,13 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             2[1, 2, 3] + 4[3, 2, 1]
             sage: QS3.print_options(latex_bracket=True)
             sage: latex(a)                     # indirect doctest
-            2\left[[1, 2, 3]\right] + 4\left[[3, 2, 1]\right]
+            2\left[ [1, 2, 3] \right] + 4\left[ [3, 2, 1] \right]
             sage: QS3.print_options(latex_bracket="(")
             sage: latex(a)                     # indirect doctest
-            2\left([1, 2, 3]\right) + 4\left([3, 2, 1]\right)
+            2\left( [1, 2, 3] \right) + 4\left( [3, 2, 1] \right)
             sage: QS3.print_options(latex_bracket=('\\myleftbracket', '\\myrightbracket'))
             sage: latex(a)                     # indirect doctest
-            2\myleftbracket[1, 2, 3]\myrightbracket + 4\myleftbracket[3, 2, 1]\myrightbracket
+            2\myleftbracket [1, 2, 3] \myrightbracket + 4\myleftbracket [3, 2, 1] \myrightbracket
             sage: QS3.print_options(**original_print_options) # reset
 
         TESTS::

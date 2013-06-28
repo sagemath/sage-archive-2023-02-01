@@ -516,7 +516,7 @@ class UniversalCyclotomicField(UniqueRepresentation, Field):
             sage: UCF(p)
             Traceback (most recent call last):
             ...
-            TypeError: No coercion to the universal cyclotomic field found for the input [2, 1].
+            TypeError: No coercion to the universal cyclotomic field found for the input [2, 1] with parent Standard permutations.
         """
         if hasattr(arg,"_universal_cyclotomic_field_"):
             return arg._universal_cyclotomic_field_()

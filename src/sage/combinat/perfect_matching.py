@@ -61,7 +61,7 @@ from sage.structure.element_wrapper import ElementWrapper
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
 from sage.misc.flatten import flatten
-from sage.combinat.permutation import Permutation, Permutation_class
+from sage.combinat.permutation import Permutation
 from sage.sets.set import Set
 from sage.combinat.partition import Partition
 from sage.misc.misc_c import prod
@@ -186,7 +186,7 @@ class PerfectMatching(ElementWrapper):
         # check if it is a fix-point-free involution.
         elif ((isinstance(p, list) and
                all(map(lambda x: (isinstance(x, Integer) or isinstance(x, int)), p)))
-              or isinstance(p, Permutation_class)):
+              or isinstance(p, Permutation)):
             p = Permutation(p)
             n = len(p)
             if not(p.cycle_type() == [2 for i in range(n//2)]):

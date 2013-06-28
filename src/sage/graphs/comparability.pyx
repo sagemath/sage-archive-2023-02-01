@@ -591,7 +591,7 @@ def is_permutation(g, algorithm = "greedy", certificate = False, check = True):
         As the ``True`` certificate is a :class:`Permutation` object, the
         segment intersection model of the permutation graph can be visualized
         through a call to :meth:`Permutation.show
-        <sage.combinat.permutation.Permutation_class.show>`.
+        <sage.combinat.permutation.Permutation.show>`.
 
     EXAMPLE:
 

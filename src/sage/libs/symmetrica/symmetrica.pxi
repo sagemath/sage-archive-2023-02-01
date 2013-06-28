@@ -369,7 +369,7 @@ cdef object Integer
 cdef object Tableau, SkewTableau, SkewTableau_class
 cdef object SkewPartition, SkewPartition_class
 cdef object Partition
-cdef object Permutation_class, Permutations
+cdef object Permutation, Permutations
 cdef object builtinlist
 cdef object sqrt
 cdef object Rational
@@ -391,7 +391,7 @@ cdef void late_import():
            SkewPartition, \
            SkewPartition_class, \
            Partition, \
-           Permutation_class, Permutations,\
+           Permutation, Permutations,\
            prod, \
            PolynomialRing, \
            Rational, \
@@ -428,7 +428,7 @@ cdef void late_import():
     Partition = sage.combinat.partition.Partition
 
     import sage.combinat.permutation
-    Permutation_class = sage.combinat.permutation.Permutation_class
+    Permutation = sage.combinat.permutation.Permutation
     Permutations = sage.combinat.permutation.Permutations
 
     import sage.functions.all
@@ -736,7 +736,7 @@ cdef object _py_permutation(OP a):
     n = s_p_li(a)
     for i from 0 <= i < n:
         res.append(s_p_ii(a, i))
-    return Permutation_class(res)
+    return Permutation(res)
 
 #####################
 #Barred Permutations#

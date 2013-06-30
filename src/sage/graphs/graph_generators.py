@@ -174,7 +174,8 @@ __append_to_doc(
      "PermutationGraph",
      "SymplecticGraph",
      "trees",
-     "fullerenes"])
+     "fullerenes",
+     "benzenoids"])
 
 __doc__ += """
 **Chessboard graphs**
@@ -279,6 +280,8 @@ AUTHORS:
   Knight, Bishop, and Rook graphs
 
 - Nico Van Cleemput (2013-05-26): added fullerenes
+
+- Nico Van Cleemput (2013-07-01): added benzenoids
 
 Functions and methods
 ---------------------
@@ -1008,6 +1011,135 @@ class GraphGenerators():
             return
 
         command = 'buckygen -'+('I' if ipr else '')+'d {0}d'.format(order)
+
+        import subprocess
+        sp = subprocess.Popen(command, shell=True,
+                              stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE, close_fds=True)
+        out = sp.stdout
+
+        #start of code to read planar code
+
+        header = out.read(15)
+        assert header == '>>planar_code<<', 'Not a valid planar code header'
+
+        #read graph per graph
+        while True:
+            c = out.read(1)
+            if len(c)==0:
+                return
+
+            # Each graph is stored in the following way :
+            #
+            # The first character is the number of vertices, followed by
+            # n11,...,n1k,null character,n21,...,n2k',null character, ...
+            #
+            # where the n1* are all neighbors of n1 and all n2* are the
+            # neighbors of n2, ...
+            #
+            # Besides, these neighbors are enumerated in clockwise order.
+            order = ord(c)
+
+            zeroCount = 0
+
+            g = [[] for i in range(order)]
+
+            while zeroCount < order:
+                c = out.read(1)
+                if ord(c)==0:
+                    zeroCount += 1
+                else:
+                    g[zeroCount].append(ord(c))
+
+            #construct graph based on g
+            g = {i+1:di for i,di in enumerate(g)}
+            G = graph.Graph(g)
+            G.set_embedding(g)
+            yield(G)
+
+    def fusenes(self, hexagon_count, benzenoids=False):
+        r"""
+        Returns a generator which creates fusenes and benzenoids using
+        the benzene generator (see [benzene]_). Fusenes are planar
+        polycyclic hydrocarbons with all bounded faces hexagons. Benzenoids
+        are fusenes that are subgraphs of the hexagonal lattice.
+
+        INPUT:
+
+        - ``hexagon_count`` - a positive integer smaller than or equal to 30.
+          This specifies the number of hexagons in the generated benzenoids.
+
+        - ``benzenoids`` - default: ``False`` - if ``True`` only benzenoids are
+          generated.
+
+        OUTPUT:
+
+        A generator which will produce the fusenes as Sage graphs
+        with an embedding set. These will be simple graphs: no loops, no
+        multiple edges, no directed edges.
+
+        .. SEEALSO::
+
+            - :meth:`~sage.graphs.generic_graph.GenericGraph.set_embedding`,
+              :meth:`~sage.graphs.generic_graph.GenericGraph.get_embedding` --
+              get/set methods for embeddings.
+
+        EXAMPLES:
+
+        There is a unique fusene with 2 hexagons:  ::
+
+            sage: gen = graphs.fusenes(2)  # optional benzene
+            sage: len(list(gen))  # optional benzene
+            1
+
+        This fusene is naphtalene (`\textrm{C}_{10}\textrm{H}_{8}`).
+        In the fusene graph the H-atoms are not stored, so this is
+        a graph on just 10 vertices:  ::
+
+            sage: gen = graphs.fusenes(2)  # optional benzene
+            sage: gen.next()  # optional benzene
+            Graph on 10 vertices
+            sage: gen.next()  # optional benzene
+            Traceback (most recent call last):
+            ...
+            StopIteration
+
+        There are 6505 benzenoids with 9 hexagons:  ::
+
+            sage: gen = graphs.fusenes(9, benzenoids=True)  # optional benzene
+            sage: len(list(gen))  # optional benzene
+            6505
+
+        REFERENCE:
+
+        .. [benzene] G. Brinkmann, G. Caporossi and P. Hansen, A Constructive Enumeration of Fusenes and Benzenoids,
+          Journal of Algorithms, 45:155-166, 2002.
+        """
+        from sage.misc.package import is_package_installed
+        if not is_package_installed("benzene"):
+            raise TypeError("the optional benzene package is not installed")
+
+        # number of hexagons should be positive
+        if hexagon_count < 0:
+            raise ValueError("Number of hexagons should be positive.")
+
+        # benzene is only built for fusenes with up to 30 hexagons
+        if hexagon_count > 30:
+            raise ValueError("Number of hexagons should be at most 30.")
+
+        # there are no fusenes with 0 hexagons
+        if hexagon_count == 0:
+            return
+
+        # there is only one unique fusene with 1 hexagon (and benzene doesn't generate it)
+        if hexagon_count == 1:
+            g = {1:[6, 2], 2:[1, 3], 3:[2, 4], 4:[3, 5], 5:[4, 6], 6:[5, 1]}
+            G = graph.Graph(g)
+            G.set_embedding(g)
+            yield(G)
+            return
+
+        command = 'benzene '+('b' if benzenoids else '')+' {0} p'.format(hexagon_count)
 
         import subprocess
         sp = subprocess.Popen(command, shell=True,

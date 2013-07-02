@@ -7781,12 +7781,6 @@ cdef class Expression(CommutativeRingElement):
 
         EXAMPLES::
 
-            sage: a = log(8)/log(2)
-            sage: a.simplify_full()
-            3
-
-        ::
-
             sage: f = sin(x)^2 + cos(x)^2
             sage: f.simplify_full()
             1
@@ -7804,12 +7798,21 @@ cdef class Expression(CommutativeRingElement):
             sage: f = binomial(n,k)*factorial(k)*factorial(n-k)
             sage: f.simplify_full()
             factorial(n)
+
+        TESTS:
+
+        There are two square roots of `$(x + 1)^2$`, so this should
+        not be simplified to `$x + 1$`, :trac:`12737`::
+
+            sage: f = sqrt((x + 1)^2)
+            sage: f.simplify_full()
+            sqrt(x^2 + 2*x + 1)
+
         """
         x = self
         x = x.simplify_factorial()
         x = x.simplify_trig()
         x = x.simplify_rational()
-        x = x.simplify_radical()
         x = x.simplify_log('one')
         x = x.simplify_rational()
         return x
@@ -8072,6 +8075,12 @@ cdef class Expression(CommutativeRingElement):
             sage: f = log(x*y)
             sage: f.simplify_radical()
             log(x) + log(y)
+
+        ::
+
+            sage: f = log(8)/log(2)
+            sage: f.simplify_radical()
+            3
 
         ::
 

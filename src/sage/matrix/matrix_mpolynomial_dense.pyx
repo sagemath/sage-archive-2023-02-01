@@ -1,29 +1,23 @@
 """
-Dense matrices over multivariate polynomials over fields.
+Dense matrices over multivariate polynomials over fields
 
 This implementation inherits from Matrix_generic_dense, i.e. it is not
 optimized for speed only some methods were added.
 
-AUTHOR: Martin Albrecht <malb@informatik.uni-bremen.de>
+AUTHOR:
+
+* Martin Albrecht <malb@informatik.uni-bremen.de>
 """
 
 #*****************************************************************************
-#
-#   Sage: System for Algebra and Geometry Experimentation
-#
-#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#       Copyright (C) 2013 Martin Albrecht <malb@informatik.uni-bremen.de>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 
 include "sage/ext/python.pxi"
 include "sage/ext/interrupt.pxi"
@@ -47,7 +41,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
     Dense matrix over a multivariate polynomial ring over a field.
     """
 
-    def echelon_form(self, algorithm="row_reduction", **kwds):
+    def echelon_form(self, algorithm='row_reduction', **kwds):
         """
         Return an echelon form of ``self`` using chosen algorithm.
 
@@ -59,28 +53,31 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
 
         INPUT:
 
-        - ``algorithm`` - string, which algorithm to use (default: 'row_reduction')
-                         'row_reduction' (default) -- reduce as far as possible,
-                                                      only divide by constant
-                                                      entries
-                         'frac' -- reduced echelon form over fraction field
-                         'bareiss' -- fraction free Gauss-Bareiss algorithm with
-                                      column swaps
+        - ``algorithm`` -- string, which algorithm to use (default:
+          'row_reduction'). Valid options are:
+
+            - ``'row_reduction'`` (default) -- reduce as far as
+              possible, only divide by constant entries
+
+            - ``'frac'`` -- reduced echelon form over fraction field
+
+            - ``'bareiss'`` -- fraction free Gauss-Bareiss algorithm
+              with column swaps
 
         OUTPUT:
 
-            matrix - A row echelon form of A depending on the chosen algorithm,
-            as an immutable matrix.  Note that self is *not* changed by this
-            command.  Use A.echelonize() to change A in place.
+        The row echelon form of A depending on the chosen algorithm,
+        as an immutable matrix.  Note that ``self`` is *not* changed
+        by this command. Use ``A.echelonize()``` to change `A` in
+        place.
 
         EXAMPLES::
 
-            sage: P.<x,y> = PolynomialRing(GF(127),2)
-            sage: A = matrix(P,2,2,[1,x,1,y])
+            sage: P.<x,y> = PolynomialRing(GF(127), 2)
+            sage: A = matrix(P, 2, 2, [1, x, 1, y])
             sage: A
             [1 x]
             [1 y]
-
             sage: A.echelon_form()
             [     1      x]
             [     0 -x + y]
@@ -92,27 +89,25 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             [1 0]
             [0 1]
 
-        Alternatively, the Gauss-Bareiss algorithm may be chosen.::
+        Alternatively, the Gauss-Bareiss algorithm may be chosen::
 
             sage: E = A.echelon_form('bareiss'); E
             [    1     y]
             [    0 x - y]
 
         After the application of the Gauss-Bareiss algorithm the swapped columns
-        may inspected.::
+        may inspected::
 
             sage: E.swapped_columns(), E.pivots()
             ((0, 1), (0, 1))
-
             sage: A.swapped_columns(), A.pivots()
             (None, (0, 1))
 
-        Another approach is to row reduce as far as possible.::
+        Another approach is to row reduce as far as possible::
 
             sage: A.echelon_form('row_reduction')
             [     1      x]
             [     0 -x + y]
-
         """
         x = self.fetch('echelon_form_'+algorithm)
         if x is not None: return x
@@ -146,11 +141,11 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
 
         OUTPUT:
 
-        -  ``list`` - a list of Python ints
+        A list of Python ints.
 
         EXAMPLES::
 
-            sage: matrix([PolynomialRing(GF(2),2,'x').gen()]).pivots()
+            sage: matrix([PolynomialRing(GF(2), 2, 'x').gen()]).pivots()
             (0,)
             sage: K = QQ['x,y']
             sage: x, y = K.gens()
@@ -172,24 +167,28 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
         return x
 
 
-    def echelonize(self, algorithm="row_reduction", **kwds):
+    def echelonize(self, algorithm='row_reduction', **kwds):
         """
         Transform self into a matrix in echelon form over the same base ring as
         ``self``.
 
         If Gauss-Bareiss algorithm is chosen, column swaps are recorded and can
-        be retrieved via meth:`swapped_columns`.
+        be retrieved via :meth:`swapped_columns`.
 
         INPUT:
 
-        - ``algorithm`` - string, which algorithm to use (default: 'row_reduction')
-                          'row_reduction' - reduce as far as possible, only divide by constant entries
-                          'bareiss' - fraction free Gauss-Bareiss algorithm with column swaps
+        - ``algorithm`` -- string, which algorithm to use. Valid options are:
+
+            - ``'row_reduction'`` -- reduce as far as possible, only
+              divide by constant entries
+
+            - ``'bareiss'`` -- fraction free Gauss-Bareiss algorithm
+              with column swaps
 
         EXAMPLES::
 
-            sage: P.<x,y> = PolynomialRing(QQ,2)
-            sage: A = matrix(P,2,2,[1/2,x,1,3/4*y+1])
+            sage: P.<x,y> = PolynomialRing(QQ, 2)
+            sage: A = matrix(P, 2, 2, [1/2, x, 1, 3/4*y+1])
             sage: A
             [      1/2         x]
             [        1 3/4*y + 1]
@@ -204,7 +203,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             [               1              2*x]
             [               0 -2*x + 3/4*y + 1]
 
-            sage: P.<x,y> = PolynomialRing(QQ,2)
+            sage: P.<x,y> = PolynomialRing(QQ, 2)
             sage: A = matrix(P,2,3,[2,x,0,3,y,1]); A
             [2 x 0]
             [3 y 1]
@@ -212,10 +211,8 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             sage: E = A.echelon_form('bareiss'); E
             [1 3 y]
             [0 2 x]
-
             sage: E.swapped_columns()
             (2, 0, 1)
-
             sage: A.pivots()
             (0, 1, 2)
         """
@@ -240,29 +237,31 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
 
     def _echelonize_gauss_bareiss(self):
         """
-        Transform this martrix into a matrix in upper triangular form over the
+        Transform this matrix into a matrix in upper triangular form over the
         same base ring as ``self`` using the fraction free Gauss-Bareiss
         algorithm with column swaps.
 
         The performed column swaps can be accessed via
-        :meth:`self.swapped_columns`.
+        :meth:`swapped_columns`.
 
         EXAMPLE::
 
             sage: R.<x,y> = QQ[]
-            sage: C = random_matrix(R,2,2,terms=2)
+            sage: C = random_matrix(R, 2, 2, terms=2)
             sage: C
             [-6/5*x*y - y^2 -6*y^2 - 1/4*y]
             [  -1/3*x*y - 3        x*y - x]
 
-            sage: E = C.echelon_form('bareiss')
+            sage: E = C.echelon_form('bareiss')     # indirect doctest
             sage: E
             [ -1/3*x*y - 3                                                          x*y - x]
             [            0 6/5*x^2*y^2 + 3*x*y^3 - 6/5*x^2*y - 11/12*x*y^2 + 18*y^2 + 3/4*y]
             sage: E.swapped_columns()
             (0, 1)
 
-        ALGORITHM: Uses libSINGULAR or SINGULAR
+        ALGORITHM:
+
+        Uses libSINGULAR or SINGULAR
         """
         cdef R = self.base_ring()
 
@@ -331,24 +330,23 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
         EXAMPLES:
 
         If all entries are constant, then this method performs the same
-        operations as ``echelon_form('default')``.::
+        operations as ``echelon_form('default')`` ::
 
-            sage: P.<x0,x1,y0,y1> = PolynomialRing(GF(127),4)
-            sage: A = Matrix(P,4,4,[-14,0,45,-55,-61,-16,0,0,0,0,25,-62,-22,0,52,0]); A
+            sage: P.<x0,x1,y0,y1> = PolynomialRing(GF(127), 4)
+            sage: A = Matrix(P, 4, 4, [-14,0,45,-55,-61,-16,0,0,0,0,25,-62,-22,0,52,0]); A
             [-14   0  45 -55]
             [-61 -16   0   0]
             [  0   0  25 -62]
             [-22   0  52   0]
-
             sage: E1 = A.echelon_form()
-            sage: E2 = A.echelon_form('row_reduction')
+            sage: E2 = A.echelon_form('row_reduction')  # indirect doctest
             sage: E1 == E2
             True
 
         If no entries are constant, nothing happens::
 
-            sage: P.<x0,x1,y0,y1> = PolynomialRing(GF(2),4)
-            sage: A = Matrix(P,2,2,[x0,y0,x0,y0]); A
+            sage: P.<x0,x1,y0,y1> = PolynomialRing(GF(2), 4)
+            sage: A = Matrix(P, 2, 2, [x0, y0, x0, y0]); A
             [x0 y0]
             [x0 y0]
 
@@ -359,7 +357,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
 
         A more interesting example::
 
-            sage: P.<x0,x1,y0,y1> = PolynomialRing(GF(2),4)
+            sage: P.<x0,x1,y0,y1> = PolynomialRing(GF(2), 4)
             sage: l = [1, 1, 1, 1,     1, \
                        0, 1, 0, 1,    x0, \
                        0, 0, 1, 1,    x1, \
@@ -369,7 +367,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
                        0, 1, 0, 1, x0*y1, \
                        0, 0, 0, 0, x1*y0, \
                        0, 0, 0, 1, x1*y1]
-            sage: A = Matrix(P,9,5,l)
+            sage: A = Matrix(P, 9, 5, l)
             sage: B = A.__copy__()
             sage: B.echelonize('row_reduction'); B
             [                 1                  0                  0                  0     x0*y0 + x1 + 1]
@@ -383,16 +381,16 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             [                 0                  0                  0                  0 x0*y0 + x1*y1 + x0]
 
         This is the same result as SINGULAR's ``rowred`` command which
-        returns.::
+        returns::
 
             sage: E = A._singular_().rowred()._sage_(P)
             sage: E == B
             True
 
+        ALGORITHM:
 
-        ALGORITHM: Gaussian elimination with division limited to constant
-        entries. Based on SINGULAR's rowred command.
-
+        Gaussian elimination with division limited to constant
+        entries. Based on SINGULAR's rowred commamnd.
         """
         from sage.matrix.constructor import matrix
 
@@ -440,8 +438,12 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
 
     def swapped_columns(self):
         """
+        Return which columns were swapped during the Gauss-Bareiss reduction
+
+        OUTPUT:
+
         Return a tuple representing the column swaps during the last application
-        of the Gauss-Bareiss algorithms (see self.echelon_form() for details).
+        of the Gauss-Bareiss algorithm (see :meth:`echelon_form` for details).
 
         The tuple as length equal to the rank of self and the value at the
         $i$-th position indicates the source column which was put as the $i$-th
@@ -449,23 +451,32 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
 
         If no Gauss-Bareiss reduction was performed yet, None is
         returned.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: C = random_matrix(R, 2, 2, terms=2)
+            sage: C.swapped_columns()
+            sage: E = C.echelon_form('bareiss')
+            sage: E.swapped_columns()
+            (0, 1)
         """
         return self.fetch('swapped_columns')
 
     def determinant(self, algorithm=None):
         """
-        Return the determinant of this matrix.
+        Return the determinant of this matrix
 
         INPUT:
 
-        - ``algorithm`` - ignored
+        - ``algorithm`` -- ignored
 
         EXAMPLES:
 
         We compute the determinant of the arbitrary 3x3 matrix::
 
-            sage: R = PolynomialRing(QQ,9,'x')
-            sage: A = matrix(R,3,R.gens())
+            sage: R = PolynomialRing(QQ, 9, 'x')
+            sage: A = matrix(R, 3, R.gens())
             sage: A
             [x0 x1 x2]
             [x3 x4 x5]
@@ -476,7 +487,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
         We check if two implementations agree on the result::
 
             sage: R.<x,y> = QQ[]
-            sage: C = random_matrix(R,2,2,terms=2)
+            sage: C = random_matrix(R, 2, 2, terms=2)
             sage: C
             [-6/5*x*y - y^2 -6*y^2 - 1/4*y]
             [  -1/3*x*y - 3        x*y - x]
@@ -489,7 +500,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
         Finally, we check whether the Singular interface is working::
 
             sage: R.<x,y> = RR[]
-            sage: C = random_matrix(R,2,2,terms=2)
+            sage: C = random_matrix(R, 2, 2, terms=2)
             sage: C
             [0.368965517352886*y^2 + 0.425700773972636*x  -0.800362171389760*y^2 - 0.807635502485287]
             [  0.706173539423122*y^2 - 0.915986060298440     0.897165181570476*y + 0.107903328188376]
@@ -500,9 +511,16 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
 
         TESTS::
 
-            sage: R = PolynomialRing(QQ,9,'x')
-            sage: matrix(R,0,0).det()
+            sage: R = PolynomialRing(QQ, 9, 'x')
+            sage: matrix(R, 0, 0).det()
             1
+
+            sage: R.<h,y> = QQ[]
+            sage: m = matrix([[y,y,y,y]] * 4)  # larger than 3x3
+            sage: m.charpoly()   # put charpoly in the cache
+            x^4 - 4*y*x^3
+            sage: m.det()
+            0
         """
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")
@@ -522,7 +540,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             # if charpoly known, then det is easy.
             D = self.fetch('charpoly')
             if not D is None:
-                c = D[D.keys()[0]][0]
+                c = D[0]
                 if self._nrows % 2 != 0:
                     c = -c
                 d = self._coerce_element(c)

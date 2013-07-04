@@ -137,7 +137,7 @@ class LatticeEuclideanGroupElement(SageObject):
 
     def domain_dim(self):
         """
-        Return the rank of the domain lattice
+        Return the dimension of the domain lattice
 
         EXAMPLES::
 
@@ -158,7 +158,7 @@ class LatticeEuclideanGroupElement(SageObject):
 
     def codomain_dim(self):
         """
-        Return the rank of the codomain lattice
+        Return the dimension of the codomain lattice
 
         EXAMPLES::
 

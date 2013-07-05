@@ -14,7 +14,7 @@ def permutation_to_perm(p):
     EXAMPLES::
 
         sage: from sage.misc.permutation import permutation_to_perm
-        sage: permutation_to_perm(PermutationGroupElement([3,1,2]))
+        sage: permutation_to_perm(PermutationGroupElement([3, 1, 2]))
         [2, 0, 1]
     """
     return map(lambda x: x-1, p.domain())
@@ -27,7 +27,7 @@ def perm_to_permutation(l):
     EXAMPLES::
 
         sage: from sage.misc.permutation import perm_to_permutation
-        sage: perm_to_permutation([2,1,0])
+        sage: perm_to_permutation([2, 1, 0])
         (1,3)
     """
     from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
@@ -85,6 +85,13 @@ def init_perm(data):
 
         sage: init_perm('(0,1)(3,2)')
         [1, 0, 3, 2]
+
+    TESTS::
+
+        sage: init_perm(ZZ(691))
+        Traceback (most recent call last):
+        ...
+        TypeError: the input must be list, tuple or string
     """
     if isinstance(data, list):
         return map(Integer, data)
@@ -93,10 +100,9 @@ def init_perm(data):
         return cycles_to_list(data)
 
     if isinstance(data, str):
-        c = str_to_cycles(data)
-        return cycles_to_list(c)
+        return cycles_to_list(str_to_cycles(data))
 
-    raise TypeError("The input must be list, tuple or string")
+    raise TypeError("the input must be list, tuple or string")
 
 
 def equalize_perms(l):
@@ -128,11 +134,23 @@ def perm_check(l):
 
         sage: from sage.misc.permutation import perm_check
         sage: perm_check([1, 0, 3, 2])
+
+    TESTS::
+
+        sage: perm_check([1, 0, 4, 2])
+        Traceback (most recent call last):
+        ...
+        ValueError: wrong entries in permutation [1, 0, 4, 2]
+
+        sage: perm_check([1, 0, 2, 2])
+        Traceback (most recent call last):
+        ...
+        ValueError: repetition in permutation [1, 0, 2, 2]
     """
     n = len(l)
     seen = [False]*n
     for i in xrange(n):
-        if l[i] < 0 or l[i] > n:
+        if l[i] < 0 or l[i] > n-1 :
             raise ValueError("wrong entries in permutation %s" % str(l))
         if seen[l[i]]:
             raise ValueError("repetition in permutation %s" % str(l))
@@ -147,9 +165,10 @@ def perm_invert(l):
 
         sage: from itertools import permutations
         sage: from sage.misc.permutation import perm_invert, perm_compose
-        sage: all(perm_compose(perm_invert(p),p) == range(3) for p in permutations(range(3)))
+        sage: s3 =permutations(range(3))
+        sage: all(perm_compose(perm_invert(p),p) == range(3) for p in s3)
         True
-        sage: all(perm_compose(p,perm_invert(p)) == range(3) for p in permutations(range(3)))
+        sage: all(perm_compose(p,perm_invert(p)) == range(3) for p in s3)
         True
     """
     res = [0]*len(l)
@@ -190,8 +209,13 @@ def perm_compose_i(l1, l2):
         sage: from sage.misc.permutation import perm_compose_i
         sage: perm_compose_i([0,1,2],[1,2,0])
         [2, 0, 1]
+        sage: perm_compose_i([0,1,2],[1,2])
+        Traceback (most recent call last):
+        ...
+        ValueError: inputs must have the same size
     """
-    assert(len(l1) == len(l2))
+    if not(len(l1) == len(l2)):
+        raise ValueError('inputs must have the same size')
 
     res = [None]*len(l1)
     for i in xrange(len(l1)):
@@ -271,7 +295,8 @@ def perm_cycle_string(p, singletons=False):
 
 def perm_switch(p1, p2, i, j):
     """
-    Exchanges the values at positions `i` and `j` in two permutations `p_1` and `p_2`
+    Exchanges the values at positions `i` and `j` in two permutations
+    `p_1` and `p_2`
 
     EXAMPLES::
 
@@ -282,6 +307,7 @@ def perm_switch(p1, p2, i, j):
         sage: a;b
         [1, 0, 2]
         [2, 1, 0]
+
     """
     i1 = p1[i]
     j1 = p1[j]
@@ -428,7 +454,37 @@ def perms_canonical_labels_from(x, y, j0, verbose=False):
 
 
 def perms_canonical_labels(p, e=None):
-    assert(len(p) > 1)
+    """
+    does something but what ?
+
+    INPUT:
+
+    - p is a list of at least 2 permutations
+
+    - e is None or a permutation ?
+
+    OUTPUT:
+
+    - ?
+
+    EXAMPLES::
+
+        sage: from sage.combinat.constellation import perms_canonical_labels
+        sage: perms_canonical_labels([[0,1,2],[1,2,0]])
+        ([[0, 1, 2], [1, 2, 0]], [1, 2, 0])
+        sage: perms_canonical_labels([[0,3,2,1],[1,2,0,3]])
+        ([[0, 1, 3, 2], [1, 2, 0, 3]], [1, 2, 0, 3])
+        sage: perms_canonical_labels([[0,3,2,1],[1,3,0,2]])
+        ([[0, 1, 3, 2], [1, 2, 3, 0]], [1, 2, 0, 3])
+
+        sage: from sage.combinat.constellation import perms_canonical_labels
+        sage: perms_canonical_labels([])
+        Traceback (most recent call last):
+        ...
+        ValueError: input must have length >= 2
+    """
+    if not len(p) > 1:
+        raise ValueError('input must have length >= 2')
     n = len(p[0])
 
     c_win = None
@@ -450,5 +506,3 @@ def perms_canonical_labels(p, e=None):
             m_win = m_test
 
     return c_win, m_win
-
-

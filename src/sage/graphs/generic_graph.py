@@ -16798,16 +16798,16 @@ class GenericGraph(GenericGraph_pyx):
             sage: g.is_isomorphic(gg)
             False
 
-        Ensure that trac:'14777' is is fixed::
+        Ensure that trac:`14777` is fixed ::
 
-            sage: g=Graph()
-            sage: h=Graph()
+            sage: g = Graph()
+            sage: h = Graph()
             sage: g.is_isomorphic(h)
             True
         """
         from sage.groups.perm_gps.partn_ref.refinement_graphs import isomorphic
         possible = True
-        if self.num_verts()==0 and other.num_verts()=0:
+        if self.num_verts() == 0 and other.num_verts() == 0:
             return True
         if self._directed != other._directed:
             possible = False

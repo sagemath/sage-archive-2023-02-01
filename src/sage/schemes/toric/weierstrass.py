@@ -474,6 +474,9 @@ def WeierstrassForm(polynomial, variables=None, transformation=False):
         (-241/48, 3689/864)
         (215/48, -5291/864)
     """
+    if isinstance(polynomial, (list, tuple)):
+        from sage.schemes.toric.weierstrass_higher import WeierstrassForm2
+        return WeierstrassForm2(polynomial, variables=variables, transformation=transformation)
     if transformation:
         from sage.schemes.toric.weierstrass_covering import WeierstrassMap
         return WeierstrassMap(polynomial, variables=variables)

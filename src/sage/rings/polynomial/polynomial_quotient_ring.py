@@ -985,8 +985,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: R.<x> = K[]
             sage: S.<xbar> = R.quotient((x^2 + 23)*(x^2 + 31))
             sage: S.S_class_group([])
-            [((1/4*xbar^2 + 31/4, (-1/8*a + 1/8)*xbar^2 - 31/8*a + 31/8, 1/16*xbar^3 + 1/16*xbar^2 + 31/16*xbar + 31/16, -1/16*a*xbar^3 + (1/16*a + 1/8)*xbar^2 - 31/16*a*xbar + 31/16*a + 31/8), 6, -1/16*xbar^3 + 1/16*xbar^2 - 31/16*xbar + 47/16), ((-1/4*xbar^2 - 23/4, (1/8*a - 1/8)*xbar^2 + 23/8*a - 23/8, -1/16*xbar^3 - 1/16*xbar^2 - 23/16*xbar - 23/16, 1/16*a*xbar^3 + (-1/16*a - 1/8)*xbar^2 + 23/16*a*xbar - 23/16*a - 23/8), 6, 1/16*xbar^3 + 3/16*xbar^2 + 23/16*xbar + 85/16), ((-5/4*xbar^2 - 115/4, 5/4*a*xbar^2 + 115/4*a, -5/16*xbar^3 + 5/16*xbar^2 - 115/16*xbar + 115/16, 1/16*a*xbar^3 + 7/16*a*xbar^2 + 23/16*a*xbar + 161/16*a), 2, 5/16*xbar^3 + 37/16*xbar^2 + 115/16*xbar + 867/16)]  # 32-bit
-            [((1/4*xbar^2 + 31/4, (-1/8*a + 1/8)*xbar^2 - 31/8*a + 31/8, 1/16*xbar^3 + 1/16*xbar^2 + 31/16*xbar + 31/16, -1/16*a*xbar^3 + (1/16*a + 1/8)*xbar^2 - 31/16*a*xbar + 31/16*a + 31/8), 6, 1/16*xbar^3 - 5/16*xbar^2 + 31/16*xbar - 139/16), ((-1/4*xbar^2 - 23/4, (1/8*a - 1/8)*xbar^2 + 23/8*a - 23/8, -1/16*xbar^3 - 1/16*xbar^2 - 23/16*xbar - 23/16, 1/16*a*xbar^3 + (-1/16*a - 1/8)*xbar^2 + 23/16*a*xbar - 23/16*a - 23/8), 6, 1/16*xbar^3 + 3/16*xbar^2 + 23/16*xbar + 85/16), ((-5/4*xbar^2 - 115/4, 5/4*a*xbar^2 + 115/4*a, -5/16*xbar^3 + 5/16*xbar^2 - 115/16*xbar + 115/16, 1/16*a*xbar^3 + 7/16*a*xbar^2 + 23/16*a*xbar + 161/16*a), 2, 5/16*xbar^3 + 37/16*xbar^2 + 115/16*xbar + 867/16)]  # 64-bit
+            [((1/4*xbar^2 + 31/4, (-1/8*a + 1/8)*xbar^2 - 31/8*a + 31/8, 1/16*xbar^3 + 1/16*xbar^2 + 31/16*xbar + 31/16, -1/16*a*xbar^3 + (1/16*a + 1/8)*xbar^2 - 31/16*a*xbar + 31/16*a + 31/8), 6, 1/16*xbar^3 - 5/16*xbar^2 + 31/16*xbar - 139/16), ((-1/4*xbar^2 - 23/4, (1/8*a - 1/8)*xbar^2 + 23/8*a - 23/8, -1/16*xbar^3 - 1/16*xbar^2 - 23/16*xbar - 23/16, 1/16*a*xbar^3 + (-1/16*a - 1/8)*xbar^2 + 23/16*a*xbar - 23/16*a - 23/8), 6, 1/16*xbar^3 + 3/16*xbar^2 + 23/16*xbar + 85/16), ((-5/4*xbar^2 - 115/4, 5/4*a*xbar^2 + 115/4*a, -5/16*xbar^3 + 5/16*xbar^2 - 115/16*xbar + 115/16, 1/16*a*xbar^3 + 7/16*a*xbar^2 + 23/16*a*xbar + 161/16*a), 2, 5/16*xbar^3 + 37/16*xbar^2 + 115/16*xbar + 867/16)]
 
         By using the ideal `(a)`, we cut the part of the class group coming from
         `x^2 + 31` from 12 to 2, i.e. we lose a generator of order 6 (this was
@@ -1062,8 +1061,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
             sage: R.<x> = K[]
             sage: S.<xbar> = R.quotient(x^2 + 23)
             sage: S.class_group()
-            [((2, -a + 1, 1/2*xbar + 1/2, -1/2*a*xbar + 1/2*a + 1), 6, 1/2*xbar - 3/2)]  # 32-bit
-            [((2, -a + 1, 1/2*xbar + 1/2, -1/2*a*xbar + 1/2*a + 1), 6, -1/2*xbar + 3/2)]  # 64-bit
+            [((2, -a + 1, 1/2*xbar + 1/2, -1/2*a*xbar + 1/2*a + 1), 6, -1/2*xbar + 3/2)]
 
         Here is an example of a product of number fields, both of which
         contribute to the class group::

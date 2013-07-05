@@ -2,9 +2,9 @@ r"""
 Hypergraphs
 
 This module consists in a very basic implementation of :class:`Hypergraph`,
-whose only current purpose is to provide method to visualize them. This is
-done at the moment through `\LaTeX` and TikZ, and can be obtained from Sage
-through the ``view`` command::
+whose only current purpose is to observe them : it can be used to compute
+automorphism groups and to draw them. The latter is done at the moment through
+`\LaTeX` and TikZ, and can be obtained from Sage through the ``view`` command::
 
     sage: H = Hypergraph([{1,2,3},{2,3,4},{3,4,5},{4,5,6}]); H
     Hypergraph on 6 vertices containing 4 sets
@@ -252,3 +252,36 @@ class Hypergraph:
         tex += "\\end{tikzpicture}"
         return tex
 
+
+    def automorphism_group(self):
+        r"""
+        Returns the automorphism group.
+
+        For more information on the automorphism group of a hypergraph, see the
+        :wikipedia:`Hypergraph`.
+
+        EXAMPLE::
+
+            sage: H = designs.steiner_triple_system(7).blocks()
+            sage: H = Hypergraph(H)
+            sage: g = H.automorphism_group(); g
+            Permutation Group with generators [(2,4)(5,6), (2,5)(4,6), (1,2)(3,4), (1,3)(5,6), (0,1)(2,5)]
+            sage: g.is_isomorphic(groups.permutation.PGL(3,2))
+            True
+        """
+        from sage.graphs.graph import Graph
+        from sage.groups.perm_gps.permgroup import PermutationGroup
+
+        G = Graph()
+        domain = list(self.domain())
+        G.add_vertices(domain)
+        for s in self._sets:
+            for i in s:
+                G.add_edge(s,i)
+
+        ag = G.automorphism_group(partition=[domain,list(self._sets)])
+
+        gens =  [ [tuple(c) for c in g.cycle_tuples() if c[0] in domain]
+                  for g in ag.gens()]
+
+        return PermutationGroup(gens = gens, domain = domain)

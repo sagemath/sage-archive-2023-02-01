@@ -18,8 +18,8 @@ AUTHORS:
 #*****************************************************************************
 def Krawtchouk(n,q,l,i):
     """
-    Compute ``K^{n,q}_l(i)``, the Krawtchouk polynomial: see
-    `en.wikipedia.org/wiki/Kravchuk_polynomials <http://en.wikipedia.org/wiki/Kravchuk_polynomials>`_.
+    Compute ``K^{n,q}_l(i)``, the Krawtchouk polynomial:
+    see :wikipedia:`Kravchuk_polynomials`.
     It is given by
 
     .. math::
@@ -46,6 +46,42 @@ def Krawtchouk(n,q,l,i):
 def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
     """
     LP builder - common for the two functions; not exported.
+
+    EXAMPLES::
+
+        sage: from sage.coding.delsarte_bounds import _delsarte_LP_building
+        sage: _,p=_delsarte_LP_building(7, 3, 0, 2, False, "PPL")
+        sage: p.show()
+        Maximization:
+          x_0 + x_1 + x_2 + x_3 + x_4 + x_5 + x_6 + x_7
+        Constraints:
+          constraint_0: 1 <= x_0 <= 1
+          constraint_1: 0 <= x_1 <= 0
+          constraint_2: 0 <= x_2 <= 0
+          constraint_3: -7 x_0 - 5 x_1 - 3 x_2 - x_3 + x_4 + 3 x_5 + 5 x_6 + 7 x_7 <= 0
+          constraint_4: -7 x_0 - 5 x_1 - 3 x_2 - x_3 + x_4 + 3 x_5 + 5 x_6 + 7 x_7 <= 0
+          constraint_5: -21 x_0 - 9 x_1 - x_2 + 3 x_3 + 3 x_4 - x_5 - 9 x_6 - 21 x_7 <= 0
+          constraint_6: -21 x_0 - 9 x_1 - x_2 + 3 x_3 + 3 x_4 - x_5 - 9 x_6 - 21 x_7 <= 0
+          constraint_7: -35 x_0 - 5 x_1 + 5 x_2 + 3 x_3 - 3 x_4 - 5 x_5 + 5 x_6 + 35 x_7 <= 0
+          constraint_8: -35 x_0 - 5 x_1 + 5 x_2 + 3 x_3 - 3 x_4 - 5 x_5 + 5 x_6 + 35 x_7 <= 0
+          constraint_9: -35 x_0 + 5 x_1 + 5 x_2 - 3 x_3 - 3 x_4 + 5 x_5 + 5 x_6 - 35 x_7 <= 0
+          constraint_10: -35 x_0 + 5 x_1 + 5 x_2 - 3 x_3 - 3 x_4 + 5 x_5 + 5 x_6 - 35 x_7 <= 0
+          constraint_11: -21 x_0 + 9 x_1 - x_2 - 3 x_3 + 3 x_4 + x_5 - 9 x_6 + 21 x_7 <= 0
+          constraint_12: -21 x_0 + 9 x_1 - x_2 - 3 x_3 + 3 x_4 + x_5 - 9 x_6 + 21 x_7 <= 0
+          constraint_13: -7 x_0 + 5 x_1 - 3 x_2 + x_3 + x_4 - 3 x_5 + 5 x_6 - 7 x_7 <= 0
+          constraint_14: -7 x_0 + 5 x_1 - 3 x_2 + x_3 + x_4 - 3 x_5 + 5 x_6 - 7 x_7 <= 0
+          constraint_15: - x_0 + x_1 - x_2 + x_3 - x_4 + x_5 - x_6 + x_7 <= 0
+          constraint_16: - x_0 + x_1 - x_2 + x_3 - x_4 + x_5 - x_6 + x_7 <= 0
+        Variables:
+          x_0 is a continuous variable (min=0, max=+oo)
+          x_1 is a continuous variable (min=0, max=+oo)
+          x_2 is a continuous variable (min=0, max=+oo)
+          x_3 is a continuous variable (min=0, max=+oo)
+          x_4 is a continuous variable (min=0, max=+oo)
+          x_5 is a continuous variable (min=0, max=+oo)
+          x_6 is a continuous variable (min=0, max=+oo)
+          x_7 is a continuous variable (min=0, max=+oo)
+
     """
     from sage.numerical.mip import MixedIntegerLinearProgram
 

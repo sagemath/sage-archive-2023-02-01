@@ -4765,9 +4765,17 @@ def from_major_code(mc, final_descent=False):
         [3, 2, 0, 2, 2, 0, 0]
         sage: permutation.from_major_code([3, 2, 0, 2, 2, 0, 0])
         [2, 1, 6, 4, 7, 3, 5]
+
+    TESTS::
+
+        sage: permutation.from_major_code([])
+        []
     """
-    #define w^(n) to be the one-letter word n
-    w = [len(mc)]
+    if len(mc) == 0:
+        w = []
+    else:
+        #define w^(n) to be the one-letter word n
+        w = [len(mc)]
 
     #for i=n-1,..,1 let w^i be the unique word obtained by inserting
     #the letter i into the word w^(i+1) in such a way that

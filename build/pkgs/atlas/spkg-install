@@ -11,6 +11,7 @@
 
 import os, sys, shutil, time, glob
 from configuration import conf, cp, ln, which, try_run, edit_in_place
+from enums import ATLAS_OSTYPE, ATLAS_MACHTYPE, ATLAS_ISAEXT, make_check_enums
 
 
 ######################################################################
@@ -21,32 +22,13 @@ from configuration import conf, cp, ln, which, try_run, edit_in_place
 PATCH_DIR = os.path.join(conf['SPKG_DIR'], 'patches')
 
 # the current lapack source tarball
-LAPACK_TARFILE = os.path.join(conf['SPKG_DIR'], 'lapack-3.4.2.tar')
+LAPACK_TARFILE = os.path.join(conf['SPKG_DIR'], 'src', 'lapack-3.4.2.tar')
 
 # temporary directory to build everything in
 BUILD_DIR = os.path.join(conf['SPKG_DIR'], 'ATLAS-build')
-BUILD_LIB_DIR = os.path.join(conf['SPKG_DIR'], 'ATLAS-lib')
 
-# constants from src/CONFIG/include/atlconf.h
-# Note: must be lists, not tuples, for Python-2.4 support
-ATLAS_OSTYPE = (  # static char *osnam
-    'UNKNOWN', 'Linux', 'SunOS', 'SunOS4', 'OSF1',
-    'IRIX', 'AIX', 'Win9x', 'WinNT', 'Win64',
-    'HPUX', 'FreeBSD', 'OSX')
-ATLAS_MACHTYPE = (  # static char *machnam
-    'UNKNOWN', 'POWER3', 'POWER4', 'POWER5', 'PPCG4', 'PPCG5',
-    'POWER6', 'POWER7', 'IBMz9', 'IBMz10', 'IBMz196',
-    'x86x87', 'x86SSE1', 'x86SSE2', 'x86SSE3',
-    'P5', 'P5MMX', 'PPRO', 'PII', 'PIII', 'PM', 'CoreSolo',
-    'CoreDuo', 'Core2Solo', 'Core2', 'Corei1', 'Corei2', 'Atom', 'P4', 'P4E',
-    'Efficeon', 'K7', 'HAMMER', 'AMD64K10h', 'AMDDOZER', 'UNKNOWNx86',
-    'IA64Itan', 'IA64Itan2',
-    'USI', 'USII', 'USIII', 'USIV', 'UST2', 'UnknownUS',
-    'MIPSR1xK', 'MIPSICE9', 'ARMv7')
-
-ATLAS_ISAEXT = (  # static char *ISAXNAM
-    'None', 'VSX', 'AltiVec', 'AVXMAC', 'AVXFMA4', 'AVX', 'SSE3', 'SSE2', 'SSE1',
-    '3DNow', 'NEON' )
+# the shared library autotools stub project
+BUILD_LIB_DIR = os.path.join(conf['SPKG_DIR'], 'src', 'ATLAS-lib')
 
 # we need to disable parallel builds
 os.environ['MAKE'] += ' -j1'
@@ -202,57 +184,71 @@ if os.environ.has_key('SAGE_ATLAS_LIB'):
 
 # apply all patches
 for fname in glob.glob(os.path.join(PATCH_DIR,'*.patch')):
-    rc = system_with_flush('patch -p1 -d src --input '+os.path.join(PATCH_DIR, fname))
+    rc = system_with_flush('patch -p1 -d src/ATLAS --input '+os.path.join(PATCH_DIR, fname))
     assert_success(rc, bad='Applying '+fname+' failed.', good='Applied '+fname+'.')
 
 # add extra architectural defaults
 # currently IA64Itan264 and x86SSE264SSE2
-cp('patches/ARCHS/*.tar.bz2', 'src/CONFIG/ARCHS')
+cp('patches/ARCHS/*.tar.bz2', 'src/ATLAS/CONFIG/ARCHS')
 
 # hardcoded gcc in SpewMakeInc.c
-edit_in_place('src/CONFIG/src/SpewMakeInc.c') \
+edit_in_place('src/ATLAS/CONFIG/src/SpewMakeInc.c') \
     .replace('   goodgcc = .*', '   goodgcc = "' + os.environ['CC'] + '";') \
     .close()
 
 
 # override throttling check if architecture is specified
-edit_in_place('src/CONFIG/src/config.c') \
+edit_in_place('src/ATLAS/CONFIG/src/config.c') \
     .replace('if \(mach == MACHOther\)', 'if (mach != MACHOther) thrchk=0; else') \
     .close()
 
-shutil.copytree(os.path.join(PATCH_DIR, 'ATLAS-lib'), BUILD_LIB_DIR)
 
 
 ######################################################################
 ### configure functions
 ######################################################################
 
+# For debug purposes one can install static libraries via SAGE_ATLAS_ARCH=static,...
+INSTALL_STATIC_LIBRARIES = False
+
 def configure_options_from_environment():
     # Figure out architecture (see ATLAS_MACHTYPE) and isa extensions (see
     # ATLAS_ISAEXT) from environment variables:
     arch = None
     isa_ext = None
-    archdef_dir = None
+    thread_limit = None
     if conf['generic_binary?']:
         print 'Sage "fat" binary mode set: Building "base" binary'
         print 'NOTE: This can result in a Sage that is significantly slower at certain numerical'
         print 'linear algebra since full FAT binary support has not been implemented yet.'
-        arch, isa_ext, archdef_dir = configure_base()
-    elif os.environ.has_key('SAGE_ATLAS_ARCH'):
-        opts = os.environ['SAGE_ATLAS_ARCH'].split(',')
-        arch = opts[0]
-        if arch not in ATLAS_MACHTYPE + ('fast', 'base'):
-            print 'SAGE_ATLAS_ARCH architecture must be one of '+ ', '.join(ATLAS_MACHTYPE)
-            sys.exit(1)
-        if len(opts)>0:
-            isa_ext = opts[1:]
-        if not all(ext in ATLAS_ISAEXT for ext in isa_ext):
+        arch = 'generic'
+    if not os.environ.has_key('SAGE_ATLAS_ARCH'):
+        return (arch, isa_ext, thread_limit)
+    for opt in os.environ['SAGE_ATLAS_ARCH'].split(','):
+        if opt.startswith('thread'):
+            thread_limit = int(opt.split(':')[-1])
+        elif opt == 'static':
+            global INSTALL_STATIC_LIBRARIES
+            INSTALL_STATIC_LIBRARIES = True
+        elif opt in ATLAS_MACHTYPE + ('fast', 'base'):
+            if arch is not None:
+                raise ValuError('multiple architectures specified: {0} and {1}'.format(arch, opt))
+            arch = opt
+        elif opt in ATLAS_ISAEXT:
+            if isa_ext is None:
+                isa_ext = [opt]
+            else:
+                isa_ext.append(opt)
+        else:
+            print 'unknown SAGE_ATLAS_ARCH option: '+opt
+            print 'SAGE_ATLAS_ARCH architecture must be "fast", "base", or one of '+ \
+                ', '.join(ATLAS_MACHTYPE)
             print 'SAGE_ATLAS_ARCH ISA extension must be one of '+ ', '.join(ATLAS_ISAEXT)
             sys.exit(1)
-    return (arch, isa_ext, archdef_dir)
+    return (arch, isa_ext, thread_limit)
 
 
-def configure(arch=None, isa_ext=None, archdef_dir=None):
+def configure(arch=None, isa_ext=None):
     """
     Configure for ``arch``.
 
@@ -263,16 +259,14 @@ def configure(arch=None, isa_ext=None, archdef_dir=None):
     - ``isa_ext`` -- ``None`` or a sublist of ``ATLAS_ISAEXT``
     """
     if arch is None:
-        arch, isa_ext, archdef_dir = configure_options_from_environment()
+        arch, isa_ext, thread_limit = configure_options_from_environment()
     if arch=='fast':
-        arch, isa_ext, archdef_dir = configure_fast()
+        arch, isa_ext, thread_limit = configure_fast()
     if arch=='generic' or arch=='base':
-        arch, isa_ext, archdef_dir = configure_base()
+        arch, isa_ext, thread_limit = configure_base()
 
     print 'Running configure with arch = '+str(arch)+ \
-        ', isa extensions '+str(isa_ext)+ \
-        ', archdef dir '+str(archdef_dir)
-    os.chdir(conf['SPKG_DIR'])
+        ', isa extensions '+str(isa_ext), ' thread limit '+str(thread_limit)
     if os.path.isdir(BUILD_DIR):
         shutil.rmtree(BUILD_DIR)
     os.mkdir(BUILD_DIR)
@@ -298,7 +292,7 @@ def configure(arch=None, isa_ext=None, archdef_dir=None):
     else:
         CCbin, CCopt = CC, ''
 
-    cmd = '../src/configure'
+    cmd = '../src/ATLAS/configure'
     cmd += ' --prefix=' + conf['SAGE_LOCAL']
     cmd += ' --with-netlib-lapack-tarfile=' + LAPACK_TARFILE
     cmd += ' --cc="' + CC + '"'
@@ -310,8 +304,9 @@ def configure(arch=None, isa_ext=None, archdef_dir=None):
     # -Fa alg -fPIC: set flags so we can build dynamic libraries
     cmd += ' -Fa alg -fPIC'
 
-    ## -t 0: disable threading
-    #cmd += ' -t 0'
+    # set number of threads limit: 0 = off, -1 = unlimited
+    if thread_limit is not None:
+        cmd += ' -t ' + str(thread_limit)
 
     # set fortran compiler
     cmd += ' -C if "' + which(FCbin) + FCopt + '"'
@@ -344,53 +339,44 @@ def configure(arch=None, isa_ext=None, archdef_dir=None):
         isa_extension = sum(1 << ATLAS_ISAEXT.index(x) for x in isa_ext)
         cmd += ' -V '+str(isa_extension)
 
-    # use a predefined archdef file in the archdef_dir directory
-    if archdef_dir is not None:
-        cmd += ' -Ss ADdir '+str(archdef_dir)
-
     rc = system_with_flush(cmd)
+    make_check_enums()
     return rc
 
 
 def configure_fast():
+    isa_ext = ('None',)
+    thread_limit = None
     if conf['Intel?'] and conf['64bit?']:
         print 'Fast configuration on Intel x86_64 compatible CPUs.'
         arch = 'P4E'
         isa_ext = ('SSE3', 'SSE2', 'SSE1')
-        archdef_dir = None
     elif conf['Intel?'] and conf['32bit?']:
         print 'Fast configuration on Intel i386 compatible CPUs.'
-        arch = 'x86SSE3'
-        isa_ext = ('SSE3', 'SSE2', 'SSE1')
-        archdef_dir = None
+        arch = 'x86SSE2'
+        isa_ext = ('SSE2', 'SSE1')
     elif conf['SPARC?']:
         print 'Fast configuration on SPARC.'
         arch = 'USIV'
-        isa_ext = ()
-        archdef_dir = None
     elif conf['PPC?']:
         print 'Fast configuration on PPC.'
         arch = 'PPCG5'
         isa_ext = ('AltiVec', )
-        archdef_dir = None
     elif conf['IA64?']:
         print 'Fast configuration on Itanium.'
         arch = 'IA64Itan2'
-        isa_ext = ()
-        archdef_dir = None
     else:
         raise NotImplementedError, 'I don\'t know a "fast" configuration for your cpu.'
-    return (arch, isa_ext, archdef_dir)
+    return (arch, isa_ext, thread_limit)
 
 
 def configure_base():
     isa_ext = ('None',)
-    archdef_dir = None
+    thread_limit = 0   # disable threading in "base"
     if conf['Intel?'] and conf['64bit?']:
         print 'Generic configuration on Intel x86_64 compatible CPUs.'
         arch = 'x86SSE2'
         isa_ext = ('SSE2', 'SSE1')
-        archdef_dir = PATCH_DIR
     elif conf['Intel?'] and conf['32bit?']:
         print 'Generic configuration on Intel i386 compatible CPUs.'
         arch = 'x86x87'
@@ -405,7 +391,7 @@ def configure_base():
         arch = 'IA64Itan'
     else:
         raise NotImplementedError, 'I don\'t know a "base" configuration for your cpu.'
-    return (arch, isa_ext, archdef_dir)
+    return (arch, isa_ext, thread_limit)
 
 
 ######################################################################
@@ -420,6 +406,12 @@ def make_atlas(target=None):
         return system_with_flush(MAKE + ' ' + target)
 
 
+def make_atlas_library(target=None):
+    os.chdir(os.path.join(BUILD_DIR, 'lib'))
+    cmd = (MAKE + ' ' + target) if target else MAKE
+    return system_with_flush(cmd)
+
+
 ######################################################################
 ### make and save archdef function
 ######################################################################
@@ -431,9 +423,11 @@ def build_and_save_archdef():
         return
     os.chdir(os.path.join(BUILD_DIR, 'ARCHS'))
     rc = system_with_flush(MAKE + ' ArchNew')
-    assert_success(rc, bad='Making archdef failed.', good='Finished building archdef.')
+    assert_success(rc, bad='Making archdef failed.',
+                   good='Finished building archdef.')
     rc = system_with_flush(MAKE + ' tarfile')
-    assert_success(rc, bad='Making archdef tarfile failed.', good='Finished building archdef tarfile.')
+    assert_success(rc, bad='Making archdef tarfile failed.',
+                   good='Finished building archdef tarfile.')
     for tarfile in glob.glob('*.tar.bz2'):
         cp(tarfile, ARCHDEF_SAVE_DIR)
 
@@ -442,13 +436,13 @@ def build_and_save_archdef():
 ### static libraries functions
 ######################################################################
 
-def build(arch=None, isa_ext=None, archdef_dir=None):
+def build(arch=None, isa_ext=None):
     """
     Configure/build with given architectural information.
 
     Return ``0`` if successfull.
     """
-    rc = configure(arch, isa_ext, archdef_dir)
+    rc = configure(arch, isa_ext)
     assert_success(rc, bad='Configure failed.', good='Finished configuring ATLAS.')
     return make_atlas()
 
@@ -476,10 +470,10 @@ def build_tuning():
 
 
 ######################################################################
-### shared libraries functions
+### shared library hack functions
 ######################################################################
 
-def configure_atlas_library():
+def configure_shared_library():
     os.chdir(BUILD_LIB_DIR)
     static_library_dir = os.path.join(BUILD_DIR, 'lib')
     for static_lib in glob.glob(os.path.join(static_library_dir, 'lib*.a')):
@@ -490,7 +484,7 @@ def configure_atlas_library():
     cmd += ' --disable-static'
     return system_with_flush(cmd)
 
-def make_atlas_library(target=None):
+def make_shared_library(target=None):
     os.chdir(BUILD_LIB_DIR)
     cmd = (MAKE + ' ' + target) if target else MAKE
     return system_with_flush(cmd)
@@ -531,54 +525,77 @@ build_and_save_archdef()
 
 
 ######################################################################
-### install atlas and lapack headers
+### build ATLAS shared libraries
 ######################################################################
 
-edit_in_place(os.path.join(BUILD_DIR, 'Makefile')) \
-    .replace('.*Make.top install_lib.*', '') \
-    .close()
+rc = make_atlas_library('shared')
+assert_success(rc, bad='Failed to install ATLAS single-threaded shared library',
+               good='Installed ATLAS single-threaded shared library')
 
-rc = make_atlas('install')
-assert_success(rc, bad='Failed to install ATLAS headers',
-               good='Installed ATLAS headers')
+rc = make_atlas_library('ptshared')
+if rc!=0:
+    print 'Failed to build threaded library, possibly because your'
+    print 'system does not support it.'
 
 
 ######################################################################
-### configure and build atlas and lapack shared libraries
+### configure and build atlas and lapack shared library hack
 ######################################################################
 
-rc = configure_atlas_library()
+rc = configure_shared_library()
 assert_success(rc, bad='Configuring shared ATLAS library failed.',
                good='Finished configuring shared ATLAS library.')
 
 have_serial_libs = False
 have_parallel_libs = False
 
-rc = make_atlas_library()
+rc = make_shared_library()
 if rc!=0:
     print 'Failed to build serial+parallel shared libraries, possibly because your'
     print 'system does not support both. Trying to build serial libraries only.'
-    rc = make_atlas_library('all_serial')
-    assert_success(rc, bad='Failed to build any shared library.',
-                   good='Finished building serial shared ATLAS library.')
+    rc = make_shared_library('all_serial')
+    if rc!=0:
+        print 'Failed to build any shared library, installing static library as last resort.'
+        INSTALL_STATIC_LIBRARIES = True
+    else:
+        print 'Finished building serial shared ATLAS library.'
     have_serial_libs = True
 else:
     have_parallel_libs = True
 
 
 ######################################################################
-### install shared libraries
+### install shared library hack
 ######################################################################
 
 if have_parallel_libs:
-    rc = make_atlas_library('install')
+    rc = make_shared_library('install')
     assert_success(rc, bad='Installing the parallel+serial shared ATLAS library failed.',
                    good='Finished installing parallel+serial shared ATLAS library.')
 
 if have_serial_libs:
-    rc = make_atlas_library('install_serial')
+    rc = make_shared_library('install_serial')
     assert_success(rc, bad='Installing the serial shared ATLAS library failed.',
                    good='Finished installing serial shared ATLAS library.')
+
+
+######################################################################
+### install atlas and lapack headers and libraries
+######################################################################
+
+if not INSTALL_STATIC_LIBRARIES:
+    edit_in_place(os.path.join(BUILD_DIR, 'Make.top')) \
+        .replace('.*/liblapack.a.*', '') \
+        .replace('.*/libcblas.a.*', '') \
+        .replace('.*/libf77blas.a.*', '') \
+        .replace('.*/libptcblas.a.*', '') \
+        .replace('.*/libptf77blas.a.*', '') \
+        .replace('.*/libatlas.a.*', '') \
+        .close()
+
+rc = make_atlas('install')
+assert_success(rc, bad='Failed to install ATLAS headers',
+               good='Installed ATLAS headers')
 
 
 ######################################################################

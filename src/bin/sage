@@ -342,7 +342,7 @@ fi
 #####################################################################
 
 if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
-    exec sed -n -e '/Version/s/^[ |]\{1,\}//;/Version/s/[ |]\{1,\}$//p' \
+    exec sed -n -e 's/.*\(Sage Version.*Date: [0-9-]*\).*/\1/p' \
         "$SAGE_LOCAL"/bin/sage-banner
 fi
 

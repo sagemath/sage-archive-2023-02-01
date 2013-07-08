@@ -359,6 +359,9 @@ class CHomP:
                     if verbose:
                         print "raw generators: %s" % gens
                 if g:
+                    if not mod_p:
+                        # sort generators to match up with corresponding invariant
+                        g = [_[1] for _ in sorted(zip(invts, g), cmp=lambda x,y: cmp(x[0], y[0]))]
                     d[dim] = (hom, g)
                 else:
                     d[dim] = hom

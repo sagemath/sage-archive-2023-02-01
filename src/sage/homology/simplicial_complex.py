@@ -1532,7 +1532,7 @@ class SimplicialComplex(GenericCellComplex):
             else:
                 return self.join(SimplicialComplex([["0"], ["1"]], is_mutable=is_mutable),
                                  rename_vertices = True)
-        return self.suspension(is_mutable).suspension(int(n-1), is_mutable)
+        return self.suspension(1, is_mutable).suspension(int(n-1), is_mutable)
 
     def disjoint_union(self, right, rename_vertices=True, is_mutable=True):
         """
@@ -3237,8 +3237,8 @@ class SimplicialComplex(GenericCellComplex):
             sage: s.add_face(['a', 'b', 123])
             sage: s._translation_to_numeric()   # random output
             {'a': 1, 123: 0, 'b': 2}
-            sage: sorted(s._translation_to_numeric().keys())
-            [123, 'a', 'b']
+            sage: set(s._translation_to_numeric().keys()) == set(['a', 'b', 123])
+            True
             sage: sorted(s._translation_to_numeric().values())
             [0, 1, 2]
         """
@@ -3267,8 +3267,8 @@ class SimplicialComplex(GenericCellComplex):
             {0: 123, 1: 'a', 2: 'b'}
             sage: sorted(s._translation_from_numeric().keys())
             [0, 1, 2]
-            sage: sorted(s._translation_from_numeric().values())
-            [123, 'a', 'b']
+            sage: set(s._translation_from_numeric().values()) == set(['a', 'b', 123])
+            True
         """
         return dict(enumerate(self._vertex_set))
 

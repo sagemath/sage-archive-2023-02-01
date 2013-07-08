@@ -697,7 +697,7 @@ class ChainComplex(SageObject):
         appropriate free module, and hence is represented as a vector::
 
             sage: C.homology(1, generators=True)  # optional - CHomP
-            (Z x C3, [(1, 0), (0, 1)])
+            (Z x C3, [(0, 1), (1, 0)])
 
         Tests for :trac:`6100`, the Klein bottle with generators::
 
@@ -706,7 +706,7 @@ class ChainComplex(SageObject):
             sage: d2 = matrix(ZZ, 3,2, [[1,1], [1,-1], [-1,1]])
             sage: C_k = ChainComplex({0:d0, 1:d1, 2:d2}, degree=-1)
             sage: C_k.homology(generators=true)   # optional - CHomP
-            {0: (Z, [(1)]), 1: (Z x C2, [(0, 1, -1), (0, 0, 1)])}
+            {0: (Z, [(1)]), 1: (Z x C2, [(0, 0, 1), (0, 1, -1)])}
 
         From a torus using a field::
 

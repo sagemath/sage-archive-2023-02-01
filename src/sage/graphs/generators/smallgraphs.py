@@ -2822,31 +2822,31 @@ def McLaughlinGraph():
     from sage.sets.set import Set
 
     blocks = WittDesign(23).blocks()
-    blocks = map(Set,blocks)
-    B = [b for b in blocks if     0 in b]
+    blocks = map(Set, blocks)
+    B = [b for b in blocks if 0 in b]
     C = [b for b in blocks if not 0 in b]
     g = graph.Graph()
     for b in B:
         for x in range(23):
             if not x in b:
-                g.add_edge(b,x)
+                g.add_edge(b, x)
 
     for b in C:
         for x in b:
-            g.add_edge(b,x)
+            g.add_edge(b, x)
 
-    for b,bb in combinations(B,2):
-        if len(b&bb) == 1:
-            g.add_edge(b,bb)
+    for b, bb in combinations(B, 2):
+        if len(b & bb) == 1:
+            g.add_edge(b, bb)
 
-    for c,cc in combinations(C,2):
-        if len(c&cc) == 1:
-            g.add_edge(c,cc)
+    for c, cc in combinations(C, 2):
+        if len(c & cc) == 1:
+            g.add_edge(c, cc)
 
     for b in B:
         for c in C:
-            if len(b&c) == 3:
-                g.add_edge(b,c)
+            if len(b & c) == 3:
+                g.add_edge(b, c)
 
     g.relabel()
     g.name("McLaughlin")

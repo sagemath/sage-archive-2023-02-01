@@ -9109,7 +9109,7 @@ cdef class Matrix(matrix1.Matrix):
 
     def is_similar(self, other, transformation=False):
         r"""
-        Returns true if ``self`` and ``other`` are similar,
+        Returns ``True`` if ``self`` and ``other`` are similar,
         i.e. related by a change-of-basis matrix.
 
         INPUT:
@@ -9218,7 +9218,7 @@ cdef class Matrix(matrix1.Matrix):
         Jordan form, as provided by :meth:`jordan_form`.  The matrices
         below have identical eigenvalues (as evidenced by equal
         characteristic polynomials), but slightly different Jordan forms,
-        and hence are not similar.
+        and hence are not similar.  ::
 
             sage: A = matrix(QQ, [[ 19, -7, -29],
             ...                   [-16, 11,  30],

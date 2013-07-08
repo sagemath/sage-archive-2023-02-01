@@ -346,14 +346,11 @@ class CHomP:
                         for x in g:
                             v = module(0)
                             for term in x:
-                                if complex._numeric:
+                                if complex._is_numeric():
                                     v += term[0] * basis[term[1]]
                                 else:
-                                    # if not numeric: have to
-                                    # translate vertices from numbers
-                                    # to their original form.
-                                    translate = dict([(b,a) for (a,b) in complex._numeric_translation])
-                                    simplex = Simplex([translate[a] for a in tuple(term[1])])
+                                    translate = complex._translation_from_numeric()
+                                    simplex = Simplex([translate[a] for a in term[1]])
                                     v += term[0] * basis[simplex]
                             output.append(v)
                         g = output
@@ -753,9 +750,6 @@ def process_generators_simplicial(gen_string, dim, complex):
     if g:
         g = g.group(1)
     if g:
-        if not complex._numeric:
-            # need to rename the vertices
-            translate = dict([(b,a) for (a,b) in complex._numeric_translation])
         lines = g.splitlines()
         newlines = []
         for l in lines:

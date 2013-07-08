@@ -705,8 +705,8 @@ class ChainComplex(SageObject):
             sage: d1 = matrix(ZZ, 1,3, [[0,0,0]])
             sage: d2 = matrix(ZZ, 3,2, [[1,1], [1,-1], [-1,1]])
             sage: C_k = ChainComplex({0:d0, 1:d1, 2:d2}, degree=-1)
-            sage: C_k.homology(generators=true)
-            {0: [(Z, (1))], 1: [(C2, (1, 0, 0)), (Z, (0, 0, 1))], 2: [(0, ())]}
+            sage: C_k.homology(generators=true)   # optional - CHomP
+            {0: (Z, [(1)]), 1: (Z x C2, [(0, 1, -1), (0, 0, 1)])}
 
         From a torus using a field::
 

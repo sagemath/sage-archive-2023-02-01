@@ -117,3 +117,6 @@ cdef class PowComputer_flint_eis(PowComputer_flint_1step):
     def __init__(self):
         self.e = fmpz_poly_degree(self.modulus)
         self.f = 1
+
+def PowComputer_flint_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly):
+    return PowComputer_flint_unram(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly)

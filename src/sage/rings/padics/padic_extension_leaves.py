@@ -21,6 +21,7 @@ AUTHORS:
 #*****************************************************************************
 
 from pow_computer_ext import PowComputer_ext_maker
+from pow_computer_flint import PowComputer_flint_maker
 from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
 
 from unramified_extension_generic import UnramifiedExtensionGeneric
@@ -54,7 +55,7 @@ class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCap
         sage: R.<a> = ZqCR(27,10000); R == loads(dumps(R))
         True
     """
-    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names):
+    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation=None):
         """
         A capped relative representation of Zq.
 

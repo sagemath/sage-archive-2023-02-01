@@ -342,7 +342,8 @@ cdef inline int cdivunit(celement out, celement a, celement b, long prec, PowCom
     - ``prec`` -- a long, the precision.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    raise NotImplementedError
+    cinvert(out, b, prec, prime_pow)
+    cmul(out, a, b, prec, prime_pow)
 
 cdef inline int csetone(celement out, PowComputer_class prime_pow) except -1:
     """

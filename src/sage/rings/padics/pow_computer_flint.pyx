@@ -347,15 +347,46 @@ cdef class PowComputer_flint_unram(PowComputer_flint_1step):
         FLINT PowComputer for 5 with polynomial x^3 - 8*x - 2
     """
     def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None):
+        """
+        Initialization.
+
+        TESTS::
+
+            sage: from sage.rings.padics.pow_computer_flint import PowComputer_flint_maker
+            sage: R.<x> = ZZ[]; f = x^3 - 8*x - 2
+            sage: A = PowComputer_flint_maker(5, 20, 20, 20, False, f)
+            sage: type(A)
+            <type 'sage.rings.padics.pow_computer_flint.PowComputer_flint_unram'>
+            sage: TestSuite(A).run()
+        """
         self.e = 1
         self.f = fmpz_poly_degree(self.modulus)
 
 cdef class PowComputer_flint_eis(PowComputer_flint_1step):
+    """
+    A PowComputer for a `p`-adic extension defined by an Eisenstein polynomial.
+
+    For a description of inputs see :func:`PowComputer_flint_maker`.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.pow_computer_flint import PowComputer_flint_maker
+        sage: R.<x> = ZZ[]; f = x^3 - 25*x + 5
+        sage: A = PowComputer_flint_maker(5, 20, 20, 20, False, f); A
+        FLINT PowComputer for 5 with polynomial x^3 - 8*x - 2
+    """
     def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None, shift_seed=None):
+        """
+        Initialization.
+
+        TESTS::
+
+
+        """
         self.e = fmpz_poly_degree(self.modulus)
         self.f = 1
 
-def PowComputer_flint_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly):
+def PowComputer_flint_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly=None, shift_seed=None):
     if poly is None:
         return PowComputer_flint(prime, cache_limit, prec_cap, ram_prec_cap, in_field)
     else:

@@ -82,22 +82,7 @@ mpfr_patch()
         echo
     fi # $UNAME=SunOS
 
-    # Apply official upstream patches (if any):
-    ls ../patches/upstream/*.patch &>/dev/null &&
-    echo "Applying official upstream patches..." &&
-    for patch in ../patches/upstream/*.patch; do
-        basename "$patch"
-        # We don't need '-N' and '-Z' here, options suggested by upstream:
-        if ! patch -p1 <"$patch"; then
-            echo >&2 "Error: '$patch' failed to apply."
-            exit 1
-        fi
-    done &&
-    echo
-
-    # Further patches for Sage should get applied here, i.e., after all
-    # upstream patches have been applied, which also means they should be
-    # based on the already (upstream-)patched upstream sources.
+    # Further patches for Sage should get applied here
 }
 
 mpfr_get_upstream_selected_cflags() # Get MPFR's choice on empty CC and CFLAGS.

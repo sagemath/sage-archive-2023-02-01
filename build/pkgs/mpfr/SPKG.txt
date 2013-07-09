@@ -46,12 +46,6 @@ The MPFR team can be contacted via the MPFR mailing list: mpfr@loria.fr
  * When building Sage binaries for wide-spread distribution, set the variable
    `INCLUDE_MPFR_PATCH` to 1, to include a patch which avoids failures on sun4v
    machines.  (This applies to at least SunOS / Solaris.)
- * Check whether there are new "official" upstream patches, i.e., such put into
-   http://www.mpfr.org/mpfr-current/allpatches (if our version is the latest
-   released one); see also http://www.mpfr.org/mpfr-current/#bugs .
-   (As of April 13th 2012, our current version is 3.1.0-p8; the sources in
-   `src/` are kept vanilla, the cumulative upstream patch is in
-   `patches/upstream/` and gets applied by `spkg-install`.)
  * Make sure the patches still apply.
  * Make sure MPFR's settings of `CC` and `CFLAGS` still get properly extracted,
    currently from its `config.log` in the `src/` directory.
@@ -59,7 +53,21 @@ The MPFR team can be contacted via the MPFR mailing list: mpfr@loria.fr
    the issues without that have meanwhile been fixed.  (Then we should
    actually pass `--enable-thread-safe`.)
 
+== TODO ==
+
+* The workaround for a gcc bug on the T2 Solaris box is probably no
+  longer needed; Isthere is a T2 to test on left?
+
+* --disable-thread-safe should be switched to --enable-thread-safe,
+  need to check that this works on the buildbot machines
+
 == Changelog ==
+
+=== mpfr-3.1.2.p0 (Volker Braun, 8 July 2013) ===
+ * Trac #14869: Update to latest upstream
+ * It seems that upstream is no longer distributing official patches
+   on top of official releases but only a single tarball (good!), so the
+   references to "official" upstream patches have been removed.
 
 === mpfr-3.1.0.p2 (Jeroen Demeyer, 28 May 2012) ===
  * Trac #12751: Apply the ia64 workaround for gcc-4.7.0 *only* on

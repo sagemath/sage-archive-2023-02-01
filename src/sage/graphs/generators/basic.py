@@ -28,7 +28,7 @@ def BullGraph():
     A bull graph is named for its shape. It's a triangle with horns.
     This constructor depends on `NetworkX <http://networkx.lanl.gov>`_
     numeric labeling. For more information, see this
-    `Wikipedia article on the bull graph <http://en.wikipedia.org/wiki/Bull_graph>`_.
+    :wikipedia:`Wikipedia article on the bull graph <Bull_graph>`_.
 
     PLOTTING:
 

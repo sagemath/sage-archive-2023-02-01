@@ -3,7 +3,7 @@ r"""
 A Sample Session using SymPy
 
 In this first part, we do all of the examples in the SymPy tutorial
-(http://code.google.com/p/sympy/wiki/Tutorial), but using Sage
+(https://github.com/sympy/sympy/wiki/Tutorial), but using Sage
 instead of SymPy.
 
 ::

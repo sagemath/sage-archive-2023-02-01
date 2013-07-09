@@ -4874,7 +4874,7 @@ exponent %s: the length of the word (%s) times the exponent \
 
         [3] A. Lascoux, B. Leclerc, and J.Y. Thibon.  *The Plactic Monoid*.
         Survey article available at
-        [http://www.combinatorics.net/lascoux/articles/plactic.ps]
+        [http://www-igm.univ-mlv.fr/~jyt/ARTICLES/plactic.ps]
 
         TESTS::
 

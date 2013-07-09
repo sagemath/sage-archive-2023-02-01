@@ -7,8 +7,8 @@ an incidence matrix ([1]_, [2]_).
 REFERENCES:
 
 .. [1] Block designs and incidence structures from wikipedia,
-  http://en.wikipedia.org/wiki/Block_design
-  http://en.wikipedia.org/wiki/Incidence_structure
+  :wikipedia:`Block_design`
+  :wikipedia:`Incidence_structure`
 
 .. [2] E. Assmus, J. Key, Designs and their codes, CUP, 1992.
 
@@ -249,7 +249,7 @@ class IncidenceStructure(object):
         """
         This is *not* a wrapper for GAP Design's IsBlockDesign. The GAP
         Design function IsBlockDesign
-        http://www.gap-system.org/Manuals/pkg/design/htm/CHAP004.htmSSEC001.1
+        http://www.gap-system.org/Manuals/pkg/design/htm/CHAP004.htm
         apparently simply checks the record structure and no mathematical
         properties. Instead, the function below checks some necessary (but
         not sufficient) "easy" identities arising from the identity.

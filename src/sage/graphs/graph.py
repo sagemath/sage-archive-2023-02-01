@@ -4351,7 +4351,7 @@ class Graph(GenericGraph):
 
         .. [Brandes2003] Ulrik Brandes. (2003). Faster Evaluation of
            Shortest-Path Based Centrality Indices. [Online] Available:
-           http://citeseer.nj.nec.com/brandes00faster.html
+           http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.43.1504
 
         EXAMPLES::
 
@@ -5717,7 +5717,7 @@ class Graph(GenericGraph):
         REFERENCE:
 
         .. [WPkcore] K-core. Wikipedia. (2007). [Online] Available:
-          http://en.wikipedia.org/wiki/K-core
+          :wikipedia:`K-core`
 
         .. [PSW1996] Boris Pittel, Joel Spencer and Nicholas Wormald. Sudden
           Emergence of a Giant k-Core in a Random
@@ -5727,8 +5727,7 @@ class Graph(GenericGraph):
 
         .. [BZ] Vladimir Batagelj and Matjaz Zaversnik. An `O(m)`
           Algorithm for Cores Decomposition of
-          Networks. arXiv:cs/0310049v1. [Online] Available:
-          http://arxiv.org/abs/cs/0310049
+          Networks. :arxiv:`cs/0310049v1`.
 
         EXAMPLES::
 

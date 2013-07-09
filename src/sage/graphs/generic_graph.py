@@ -4517,7 +4517,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. [KaisPacking] Thomas Kaiser
           A short proof of the tree-packing theorem
-          http://arxiv.org/abs/0911.2809
+          :arxiv:`0911.2809`
 
         .. [SchrijverCombOpt] Alexander Schrijver
           Combinatorial optimization: polyhedra and efficiency

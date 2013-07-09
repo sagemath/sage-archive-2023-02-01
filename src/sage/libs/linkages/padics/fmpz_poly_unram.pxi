@@ -478,7 +478,12 @@ cdef inline long chash(celement a, long ordp, long prec, PowComputer_class prime
     - ``prec`` -- a long storing the precision.
     - ``prime_pow`` -- a PowComputer for the ring.
     """
-    raise NotImplementedError
+    if ciszero(a, prime_pow):
+        return 0
+
+    cdef Integer h = PY_NEW(Integer)
+    fmpz_poly_get_coeff_mpz(h.value, a, 0)
+    return hash(h)
 
 cdef clist(celement a, long prec, bint pos, PowComputer_class prime_pow_):
     """

@@ -82,7 +82,7 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
         try:
             n = PyInt_AsLong(x)
         except OverflowError:
-            x = Integer(x)
+            return get_ordp(Integer(x), prime_pow)
         else:
             if mpz_fits_slong_p(prime_pow.prime.value) == 0:
                 # x is not divisible by p
@@ -92,7 +92,7 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
             while n % p == 0:
                 k += 1
                 n = n / p
-    if PY_TYPE_CHECK(x, Integer):
+    elif PY_TYPE_CHECK(x, Integer):
         if mpz_sgn((<Integer>x).value) == 0:
             return maxordp
         k = mpz_remove(temp.value, (<Integer>x).value, prime_pow.prime.value)

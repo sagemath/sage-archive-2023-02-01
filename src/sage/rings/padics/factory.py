@@ -515,7 +515,7 @@ Qp = Qp_class("Qp")
 def Qq(q, prec = DEFAULT_PREC, type = 'capped-rel', modulus = None, names=None,
           print_mode=None, halt = DEFAULT_HALT, ram_name = None, res_name = None, print_pos = None,
        print_sep = None, print_max_ram_terms = None,
-       print_max_unram_terms = None, print_max_terse_terms = None, check = True):
+       print_max_unram_terms = None, print_max_terse_terms = None, check = True, implementation = 'NTL'):
     """
     Given a prime power `q = p^n`, return the unique unramified
     extension of `\mathbb{Q}_p` of degree `n`.
@@ -968,7 +968,7 @@ def Qq(q, prec = DEFAULT_PREC, type = 'capped-rel', modulus = None, names=None,
     if modulus is None:
         from sage.rings.finite_rings.constructor import FiniteField as GF
         modulus = PolynomialRing(base, 'x')(GF(q, res_name).modulus().change_ring(ZZ))
-    return ExtensionFactory(base=base, premodulus=modulus, prec=prec, print_mode=print_mode, halt=halt, names=names, res_name=res_name, ram_name=ram_name, print_pos=print_pos, print_sep=print_sep, print_max_ram_terms=print_max_ram_terms, print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms, check=check, unram=True)
+    return ExtensionFactory(base=base, premodulus=modulus, prec=prec, print_mode=print_mode, halt=halt, names=names, res_name=res_name, ram_name=ram_name, print_pos=print_pos, print_sep=print_sep, print_max_ram_terms=print_max_ram_terms, print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms, check=check, unram=True, implementation=implementation)
 
 ######################################################
 # Short constructor names for different types
@@ -1466,7 +1466,7 @@ Zp = Zp_class("Zp")
 def Zq(q, prec = DEFAULT_PREC, type = 'capped-abs', modulus = None, names=None,
           print_mode=None, halt = DEFAULT_HALT, ram_name = None, res_name = None, print_pos = None,
        print_sep = None, print_max_ram_terms = None,
-       print_max_unram_terms = None, print_max_terse_terms = None, check = True):
+       print_max_unram_terms = None, print_max_terse_terms = None, check = True, implementation = 'NTL'):
     """
     Given a prime power `q = p^n`, return the unique unramified
     extension of `\mathbb{Z}_p` of degree `n`.
@@ -1945,7 +1945,7 @@ def Zq(q, prec = DEFAULT_PREC, type = 'capped-abs', modulus = None, names=None,
         if ram_name is None:
             ram_name = str(F[0][0])
         modulus = PolynomialRing(base, 'x')(GF(q, res_name).modulus().change_ring(ZZ))
-    return ExtensionFactory(base=base, premodulus=modulus, prec=prec, print_mode=print_mode, halt=halt, names=names, res_name=res_name, ram_name=ram_name, print_pos=print_pos, print_sep=print_sep, print_max_ram_terms=print_max_ram_terms, print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms, check=check, unram=True)
+    return ExtensionFactory(base=base, premodulus=modulus, prec=prec, print_mode=print_mode, halt=halt, names=names, res_name=res_name, ram_name=ram_name, print_pos=print_pos, print_sep=print_sep, print_max_ram_terms=print_max_ram_terms, print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms, check=check, unram=True, implementation=implementation)
 
 ######################################################
 # Short constructor names for different types
@@ -2109,7 +2109,7 @@ class pAdicExtension_class(UniqueFactory):
         sage: W.precision_cap()
         12
     """
-    def create_key_and_extra_args(self, base, premodulus, prec = None, print_mode = None, halt = None, names = None, var_name = None, res_name = None, unram_name = None, ram_name = None, print_pos = None, print_sep = None, print_alphabet = None, print_max_ram_terms = None, print_max_unram_terms = None, print_max_terse_terms = None, check = True, unram = False):
+    def create_key_and_extra_args(self, base, premodulus, prec = None, print_mode = None, halt = None, names = None, var_name = None, res_name = None, unram_name = None, ram_name = None, print_pos = None, print_sep = None, print_alphabet = None, print_max_ram_terms = None, print_max_unram_terms = None, print_max_terse_terms = None, check = True, unram = False, implementation='NTL'):
         """
         Creates a key from input parameters for pAdicExtension.
 
@@ -2262,6 +2262,8 @@ class pAdicExtension_class(UniqueFactory):
         else:
             upoly, epoly, prec = split(modulus, prec)
             key = (polytype, base, premodulus, upoly, epoly, names, prec, halt, print_mode, print_pos, print_sep, tuple(print_alphabet), print_max_ram_terms, print_max_unram_terms, print_max_terse_terms)
+        if implementation != 'NTL':
+            key += (implementation,)
         return key, {'shift_seed': shift_seed}
 
     def create_object(self, version, key, shift_seed):
@@ -2278,9 +2280,11 @@ class pAdicExtension_class(UniqueFactory):
             Eisenstein Extension of 5-adic Ring with capped relative precision 3 in w defined by (1 + O(5^3))*x^4 + (2*5 + 4*5^2 + 4*5^3 + O(5^4))
         """
         polytype = key[0]
+        implementation = (,) if len(key) == 15 else (key[-1],)
+        if len(implementation) > 0: key = key[:-1]
         if polytype == 'u' or polytype == 'e':
             polytype, base, premodulus, modulus, names, prec, halt, print_mode, print_pos, print_sep, print_alphabet, print_max_ram_terms, print_max_unram_terms, print_max_terse_terms = key
-            return ext_table[polytype, type(base.ground_ring_of_tower()).__base__](premodulus, modulus, prec, halt, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet, 'max_ram_terms': print_max_ram_terms, 'max_unram_terms': print_max_unram_terms, 'max_terse_terms': print_max_terse_terms}, shift_seed, names)
+            return ext_table[polytype, type(base.ground_ring_of_tower()).__base__](premodulus, modulus, prec, halt, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet, 'max_ram_terms': print_max_ram_terms, 'max_unram_terms': print_max_unram_terms, 'max_terse_terms': print_max_terse_terms}, shift_seed, names, *implementation)
         elif polytype == 'p':
             polytype, base, premodulus, upoly, epoly, names, prec, halt, print_mode, print_pos, print_sep, print_alphabet, print_max_ram_terms, print_max_unram_terms, print_max_terse_terms = key
             precmult = epoly.degree()

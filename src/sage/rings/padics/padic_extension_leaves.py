@@ -20,6 +20,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.rings.integer_ring import ZZ
 from pow_computer_ext import PowComputer_ext_maker
 from pow_computer_flint import PowComputer_flint_maker
 from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
@@ -46,7 +47,7 @@ from generic_nodes import pAdicCappedRelativeRingGeneric, \
 from padic_ZZ_pX_FM_element import pAdicZZpXFMElement
 from padic_ZZ_pX_CR_element import pAdicZZpXCRElement
 from padic_ZZ_pX_CA_element import pAdicZZpXCAElement
-
+from qadic_flint_CR import qAdicCappedRelativeElement
 
 class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCappedRelativeRingGeneric):
     """
@@ -87,14 +88,21 @@ class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCap
             sage: R.<a> = ZqCR(next_prime(10^30)^3, 3); R.prime()
             1000000000000000000000000000057
         """
-        ntl_poly = ntl_ZZ_pX([a.lift() for a in poly.list()], poly.base_ring().prime()**prec)
-        if prec <= 30:
-            self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), prec, prec, prec, False, ntl_poly, "small", "u")
-        else:
-            self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), 30, prec, prec, False, ntl_poly, "big", "u")
         self._shift_seed = None
         self._pre_poly = prepoly
-        UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, pAdicZZpXCRElement)
+        if implementation == 'NTL':
+            ntl_poly = ntl_ZZ_pX([a.lift() for a in poly.list()], poly.base_ring().prime()**prec)
+            if prec <= 30:
+                self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), prec, prec, prec, False, ntl_poly, "small", "u")
+            else:
+                self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), 30, prec, prec, False, ntl_poly, "big", "u")
+            element_class = pAdicZZpXCRElement
+        else:
+            Zpoly = prepoly.change_ring(ZZ)
+            cache_limit = min(prec, 30)
+            self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, False, Zpoly)
+            element_class = qAdicCappedRelativeElement
+        UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
 
 class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCappedRelativeFieldGeneric):
     """
@@ -136,14 +144,21 @@ class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCa
             1000000000000000000000000000057
         """
         # Currently doesn't support polynomials with non-integral coefficients
-        ntl_poly = ntl_ZZ_pX([a.lift() for a in poly.list()], poly.base_ring().prime()**prec)
-        if prec <= 30:
-            self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), prec, prec, prec, True, ntl_poly, "small", "u")
-        else:
-            self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), 30, prec, prec, True, ntl_poly, "big", "u")
         self._shift_seed = None
         self._pre_poly = prepoly
-        UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, pAdicZZpXCRElement)
+        if implementation == 'NTL':
+            ntl_poly = ntl_ZZ_pX([a.lift() for a in poly.list()], poly.base_ring().prime()**prec)
+            if prec <= 30:
+                self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), prec, prec, prec, True, ntl_poly, "small", "u")
+            else:
+                self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), 30, prec, prec, True, ntl_poly, "big", "u")
+            element_class = pAdicZZpXCRElement
+        else:
+            Zpoly = prepoly.change_ring(ZZ)
+            cache_limit = min(prec, 30)
+            self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, True, Zpoly)
+            element_class = qAdicCappedRelativeElement
+        UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
 
 #class UnramifiedExtensionRingLazy(UnramifiedExtensionGeneric, pAdicLazyRingGeneric):
 #    def __init__(self, poly, prec, halt, print_mode, names):

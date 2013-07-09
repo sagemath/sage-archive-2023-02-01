@@ -14,6 +14,7 @@ cdef extern from "flint/fmpz_poly.h":
     void fmpz_poly_init2(fmpz_poly_t poly, unsigned long alloc)
     void fmpz_poly_realloc(fmpz_poly_t poly, unsigned long alloc)
     void _fmpz_poly_set_length(fmpz_poly_t poly, long newlen)
+    void _fmpz_poly_normalise(fmpz_poly_t poly)
 
     void fmpz_poly_fit_length(fmpz_poly_t poly, unsigned long alloc)
 
@@ -131,3 +132,5 @@ cdef extern from "flint/fmpz_poly.h":
 
     int fmpz_poly_is_one(fmpz_poly_t op)
     int fmpz_poly_is_zero(fmpz_poly_t op)
+
+    void fmpz_poly_sqr(fmpz_poly_t rop, fmpz_poly_t op)

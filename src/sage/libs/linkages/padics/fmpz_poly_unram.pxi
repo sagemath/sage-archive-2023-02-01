@@ -5,8 +5,8 @@
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 
-include "sage/flint/fmpz_poly.pxi"
-include "sage/flint/fmpz_mod_poly.pxi"
+include "sage/libs/flint/fmpz_poly.pxi"
+include "sage/libs/flint/fmpz_mod_poly.pxi"
 
 from sage.rings.padics.pow_computer_flint cimport PowComputer_flint_unram
 

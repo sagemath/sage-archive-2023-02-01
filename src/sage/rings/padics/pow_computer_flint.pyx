@@ -51,14 +51,21 @@ cdef class PowComputer_flint(PowComputer_class):
 
 cdef class PowComputer_flint_1step(PowComputer_flint):
     def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, _poly, shift_seed=None):
+        self._initialized = 0
         cdef Polynomial_integer_dense_flint poly = _poly
         cdef long length = fmpz_poly_length(poly.__poly)
+        self.deg = length - 1
         fmpz_poly_init2(self.modulus, length)
+        self._initialized = 1
         fmpz_poly_set(self.modulus, poly.__poly)
         fmpz_poly_init(self.tmp_poly)
+        self._initialized = 2
         sig_on()
         self._moduli = <fmpz_poly_t*>sage_malloc(sizeof(fmpz_poly_t) * (cache_limit + 2))
         sig_off()
+        if self._moduli == NULL:
+            raise MemoryError
+        self._initialized = 3
 
         cdef Py_ssize_t i
         cdef fmpz* coeffs = (<fmpz_poly_struct*>self._moduli[i])[0].coeffs
@@ -66,18 +73,30 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         for i from 1 <= i <= cache_limit:
             fmpz_mul(self.ftmp, self.ftmp, self.fprime)
             fmpz_poly_init2(self._moduli[i], length)
-            _fmpz_vec_scalar_mod_fmpz((<fmpz_poly_struct*>self._moduli[i])[0].coeffs, coeffs, self.ftmp)
+            self._initialized += 1
+            _fmpz_vec_scalar_mod_fmpz((<fmpz_poly_struct*>self._moduli[i])[0].coeffs, coeffs, length, self.ftmp)
             _fmpz_poly_set_length(self._moduli[i], length)
         # We use cache_limit + 1 as a temporary holder
         fmpz_poly_init2(self._moduli[cache_limit+1], length)
+        self._initialized += 1
         _fmpz_poly_set_length(self._moduli[cache_limit+1], length)
+
+    def __dealloc__(self):
+        cdef int init = self._initialized
+        if init > 0: fmpz_poly_clear(self.modulus)
+        if init > 1: fmpz_poly_clear(self.tmp_poly)
+        cdef Py_ssize_t i
+        for i from 1 <= i <= cache_limit+1:
+            if init >= 3+i: fmpz_poly_clear(self._moduli[i])
+        if init > 2: sage_free(self._moduli)
 
     cdef fmpz_poly_t* get_modulus(self, unsigned long n):
         if n <= self.cache_limit:
             return &(self._moduli[n])
         else:
-            _fmpz_vec_scalar_mod_fmpz((<fmpz_poly_struct*>self._moduli[self.cache_limit+1])[0],
-                                      (<fmpz_poly_struct*>self.modulus)[0],
+            _fmpz_vec_scalar_mod_fmpz((<fmpz_poly_struct*>self._moduli[self.cache_limit+1])[0].coeffs,
+                                      (<fmpz_poly_struct*>self.modulus)[0].coeffs,
+                                      self.deg + 1,
                                       self.pow_fmpz_t_tmp(n)[0])
             return &(self._moduli[self.cache_limit+1])
 

@@ -4078,7 +4078,19 @@ def continued_fraction_list(x, partial_convergents=False, bits=None, nterms=None
         [1, 100000000000000000000, 2688, 8, 1]
         sage: continued_fraction_list(1 + 10^-20 - e^-100, bits=1000, nterms=5)
         [1, 100000000000000000000, 2688, 8, 1]
+
+    Check that :trac:`14858` is fixed::
+
+        sage: continued_fraction_list(3/4) == continued_fraction_list(SR(3/4))
+        True
+
     """
+    if isinstance(x, sage.symbolic.expression.Expression):
+        try:
+            x = x.pyobject()
+        except TypeError:
+            pass
+
     if isinstance(x, (integer.Integer, int, long)):
         if partial_convergents:
             return [x], [(x,1)]
@@ -4729,11 +4741,18 @@ def falling_factorial(x, a):
         sage: falling_factorial(x, 4)
         x^4 - 6*x^3 + 11*x^2 - 6*x
 
+    Check that :trac:`14858` is fixed::
+
+        sage: falling_factorial(-4, SR(2))
+        20
+
     AUTHORS:
 
     - Jaap Spies (2006-03-05)
     """
-    if isinstance(a, (integer.Integer, int, long)) and a >= 0:
+    if (isinstance(a, (integer.Integer, int, long)) or
+        (isinstance(a, sage.symbolic.expression.Expression) and
+         a.is_integer())) and a >= 0:
         return misc.prod([(x - i) for i in range(a)])
     from sage.functions.all import gamma
     return gamma(x+1) / gamma(x-a+1)
@@ -4800,11 +4819,20 @@ def rising_factorial(x, a):
         sage: rising_factorial(x, 4)
         x^4 + 6*x^3 + 11*x^2 + 6*x
 
+    Check that :trac:`14858` is fixed::
+
+        sage: bool(rising_factorial(-4, 2) ==
+        ....:      rising_factorial(-4, SR(2)) ==
+        ....:      rising_factorial(SR(-4), SR(2)))
+        True
+
     AUTHORS:
 
     - Jaap Spies (2006-03-05)
     """
-    if isinstance(a, (integer.Integer, int, long)) and a >= 0:
+    if (isinstance(a, (integer.Integer, int, long)) or
+        (isinstance(a, sage.symbolic.expression.Expression) and
+         a.is_integer())) and a >= 0:
         return misc.prod([(x + i) for i in range(a)])
     from sage.functions.all import gamma
     return gamma(x+a) / gamma(x)

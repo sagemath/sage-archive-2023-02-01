@@ -63,23 +63,29 @@ cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint redu
     cdef PowComputer_flint_unram prime_pow = <PowComputer_flint_unram>prime_pow_
     cdef long cmp
 
+    csub(prime_pow.tmp_poly, a, b, prec, prime_pow)
+    creduce(prime_pow.tmp_poly, prime_pow.tmp_poly, prec, prime_pow)
+
     if reduce_a or reduce_b:
-        csub(prime_pow.tmp_poly, a, b, prec, prime_pow)
-        creduce(prime_pow.tmp_poly, prime_pow.tmp_poly, prec, prime_pow)
         return not ciszero(prime_pow.tmp_poly, prime_pow)
+
+    if prec == 0:
+        return 0
+
+    if ciszero(prime_pow.tmp_poly, prime_pow): return 0
 
     cdef long da = fmpz_poly_degree(a)
     cdef long db = fmpz_poly_degree(b)
-    cdef long i
     if da < db: return -1
     elif da > db: return 1
+
+    cdef long i
     for i from 0 <= i <= da:
-        fmpz_poly_get_coeff_fmpz(prime_pow.ftmp, a, i)
-        fmpz_poly_get_coeff_fmpz(prime_pow.ftmp2, b, i)
-        cmp = fmpz_cmp(prime_pow.ftmp, prime_pow.ftmp2)
+        fmpz_poly_get_coeff_fmpz(prime_pow.ftmp, prime_pow.tmp_poly, i)
+        cmp = fmpz_cmp_si(prime_pow.ftmp, 0)
         if cmp < 0: return -1
         elif cmp > 0: return 1
-    return 0
+    assert False
 
 cdef inline int cneg(celement out, celement a, long prec, PowComputer_class prime_pow) except -1:
     """

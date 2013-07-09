@@ -27,6 +27,7 @@ cdef extern from "mpz_pylong.h":
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
+from sage.rings.padics.common_conversion cimport cconv_mpz_t_out_shared, cconv_mpz_t_shared, cconv_mpq_t_out_shared, cconv_mpq_t_shared, cconv_shared
 import sage.rings.finite_rings.integer_mod
 
 cdef Integer holder = PY_NEW(Integer)
@@ -601,84 +602,7 @@ cdef int cconv(mpz_t out, x, long prec, long valshift, PowComputer_class prime_p
 
     - ``prime_pow`` -- a PowComputer for the ring.
     """
-    if PY_TYPE_CHECK(x, pari_gen):
-        x = x.sage()
-    if PY_TYPE_CHECK(x, pAdicGenericElement) or sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
-        x = x.lift()
-    if PY_TYPE_CHECK(x, Integer):
-        if valshift > 0:
-            mpz_divexact(out, (<Integer>x).value, prime_pow.pow_mpz_t_tmp(valshift)[0])
-            mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec)[0])
-        elif valshift < 0:
-            raise RuntimeError("Integer should not have negative valuation")
-        else:
-            mpz_mod(out, (<Integer>x).value, prime_pow.pow_mpz_t_tmp(prec)[0])
-    elif PY_TYPE_CHECK(x, Rational):
-        if valshift == 0:
-            mpz_invert(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(prec)[0])
-            mpz_mul(out, out, mpq_numref((<Rational>x).value))
-        elif valshift < 0:
-            mpz_divexact(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(-valshift)[0])
-            mpz_invert(out, out, prime_pow.pow_mpz_t_tmp(prec)[0])
-            mpz_mul(out, out, mpq_numref((<Rational>x).value))
-        else:
-            mpz_invert(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(prec)[0])
-            mpz_divexact(holder.value, mpq_numref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(valshift)[0])
-            mpz_mul(out, out, holder.value)
-        mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec)[0])
-    else:
-        raise NotImplementedError("No conversion defined")
-
-cdef inline long cconv_mpz_t(mpz_t out, mpz_t x, long prec, bint absolute, PowComputer_class prime_pow) except -2:
-    """
-    A fast pathway for conversion of integers that doesn't require
-    precomputation of the valuation.
-
-    INPUT:
-
-    - ``out`` -- an ``mpz_t`` to store the output.
-    - ``x`` -- an ``mpz_t`` giving the integer to be converted.
-    - ``prec`` -- a long, giving the precision desired: absolute or
-                  relative depending on the ``absolute`` input.
-    - ``absolute`` -- if False then extracts the valuation and returns
-                      it, storing the unit in ``out``; if True then
-                      just reduces ``x`` modulo the precision.
-    - ``prime_pow`` -- a PowComputer for the ring.
-
-    OUTPUT:
-
-    - If ``absolute`` is False then returns the valuation that was
-      extracted (``maxordp`` when `x = 0`).
-    """
-    cdef long val
-    if absolute:
-        mpz_mod(out, x, prime_pow.pow_mpz_t_tmp(prec)[0])
-    elif mpz_sgn(x) == 0:
-        mpz_set_ui(out, 0)
-        return maxordp
-    else:
-        val = mpz_remove(out, x, prime_pow.prime.value)
-        mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec)[0])
-        return val
-
-cdef inline int cconv_mpz_t_out(mpz_t out, mpz_t x, long valshift, long prec, PowComputer_class prime_pow) except -1:
-    """
-    Converts the underlying `p`-adic element into an integer if
-    possible.
-
-    - ``out`` -- stores the resulting integer as an integer between 0
-      and `p^{prec + valshift}`.
-    - ``x`` -- an ``mpz_t`` giving the underlying `p`-adic element.
-    - ``valshift`` -- a long giving the power of `p` to shift `x` by.
-    -` ``prec`` -- a long, the precision of ``x``: currently not used.
-    - ``prime_pow`` -- a PowComputer for the ring.
-    """
-    if valshift == 0:
-        mpz_set(out, x)
-    elif valshift < 0:
-        raise ValueError("negative valuation")
-    else:
-        mpz_mul(out, x, prime_pow.pow_mpz_t_tmp(valshift)[0])
+    return cconv_shared(out, x, prec, valshift, prime_pow)
 
 cdef inline long cconv_mpq_t(mpz_t out, mpq_t x, long prec, bint absolute, PowComputer_class prime_pow) except? -10000:
     """
@@ -701,30 +625,7 @@ cdef inline long cconv_mpq_t(mpz_t out, mpq_t x, long prec, bint absolute, PowCo
     - If ``absolute`` is False then returns the valuation that was
       extracted (``maxordp`` when `x = 0`).
     """
-    cdef long numval, denval
-    cdef bint success
-    if prec <= 0:
-        raise ValueError
-    if absolute:
-        success = mpz_invert(out, mpq_denref(x), prime_pow.pow_mpz_t_tmp(prec)[0])
-        if not success:
-            raise ValueError("p divides denominator")
-        mpz_mul(out, out, mpq_numref(x))
-        mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec)[0])
-    elif mpq_sgn(x) == 0:
-        mpz_set_ui(out, 0)
-        return maxordp
-    else:
-        denval = mpz_remove(out, mpq_denref(x), prime_pow.prime.value)
-        mpz_invert(out, out, prime_pow.pow_mpz_t_tmp(prec)[0])
-        if denval == 0:
-            numval = mpz_remove(holder.value, mpq_numref(x), prime_pow.prime.value)
-            mpz_mul(out, out, holder.value)
-        else:
-            numval = 0
-            mpz_mul(out, out, mpq_numref(x))
-        mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec)[0])
-        return numval - denval
+    return cconv_mpq_t_shared(out, x, prec, absolute, prime_pow)
 
 cdef inline int cconv_mpq_t_out(mpq_t out, mpz_t x, long valshift, long prec, PowComputer_class prime_pow) except -1:
     """
@@ -737,12 +638,41 @@ cdef inline int cconv_mpq_t_out(mpq_t out, mpz_t x, long valshift, long prec, Po
     -` ``prec`` -- a long, the precision of ``x``, used in rational reconstruction
     - ``prime_pow`` -- a PowComputer for the ring
     """
-    mpq_rational_reconstruction(out, x, prime_pow.pow_mpz_t_tmp(prec)[0])
+    return cconv_mpq_t_out_shared(out, x, valshift, prec, prime_pow)
 
-    # if valshift is nonzero then we starte with x as a p-adic unit,
-    # so there will be no powers of p in the numerator or denominator
-    # and the following operations yield reduced rationals.
-    if valshift > 0:
-        mpz_mul(mpq_numref(out), mpq_numref(out), prime_pow.pow_mpz_t_tmp(valshift)[0])
-    elif valshift < 0:
-        mpz_mul(mpq_denref(out), mpq_denref(out), prime_pow.pow_mpz_t_tmp(-valshift)[0])
+cdef inline long cconv_mpz_t(mpz_t out, mpz_t x, long prec, bint absolute, PowComputer_class prime_pow) except -2:
+    """
+    A fast pathway for conversion of integers that doesn't require
+    precomputation of the valuation.
+
+    INPUT:
+
+    - ``out`` -- an ``mpz_t`` to store the output.
+    - ``x`` -- an ``mpz_t`` giving the integer to be converted.
+    - ``prec`` -- a long, giving the precision desired: absolute or
+                  relative depending on the ``absolute`` input.
+    - ``absolute`` -- if False then extracts the valuation and returns
+                      it, storing the unit in ``out``; if True then
+                      just reduces ``x`` modulo the precision.
+    - ``prime_pow`` -- a PowComputer for the ring.
+
+    OUTPUT:
+
+    - If ``absolute`` is False then returns the valuation that was
+      extracted (``maxordp`` when `x = 0`).
+    """
+    return cconv_mpz_t_shared(out, x, prec, absolute, prime_pow)
+
+cdef inline int cconv_mpz_t_out(mpz_t out, mpz_t x, long valshift, long prec, PowComputer_class prime_pow) except -1:
+    """
+    Converts the underlying `p`-adic element into an integer if
+    possible.
+
+    - ``out`` -- stores the resulting integer as an integer between 0
+      and `p^{prec + valshift}`.
+    - ``x`` -- an ``mpz_t`` giving the underlying `p`-adic element.
+    - ``valshift`` -- a long giving the power of `p` to shift `x` by.
+    -` ``prec`` -- a long, the precision of ``x``: currently not used.
+    - ``prime_pow`` -- a PowComputer for the ring.
+    """
+    return cconv_mpz_t_out_shared(out, x, valshift, prec, prime_pow)

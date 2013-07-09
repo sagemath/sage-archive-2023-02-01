@@ -2280,7 +2280,7 @@ class pAdicExtension_class(UniqueFactory):
             Eisenstein Extension of 5-adic Ring with capped relative precision 3 in w defined by (1 + O(5^3))*x^4 + (2*5 + 4*5^2 + 4*5^3 + O(5^4))
         """
         polytype = key[0]
-        implementation = (,) if len(key) == 15 else (key[-1],)
+        implementation = () if len(key) == 15 else (key[-1],)
         if len(implementation) > 0: key = key[:-1]
         if polytype == 'u' or polytype == 'e':
             polytype, base, premodulus, modulus, names, prec, halt, print_mode, print_pos, print_sep, print_alphabet, print_max_ram_terms, print_max_unram_terms, print_max_terse_terms = key

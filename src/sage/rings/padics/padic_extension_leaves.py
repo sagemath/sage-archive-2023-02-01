@@ -111,7 +111,7 @@ class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCa
         sage: R.<a> = QqCR(27,10000); R == loads(dumps(R))
         True
     """
-    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names):
+    def __init__(self, prepoly, poly, prec, halt, print_mode, shift_seed, names, implementation='NTL'):
         """
         A representation of Qq.
 

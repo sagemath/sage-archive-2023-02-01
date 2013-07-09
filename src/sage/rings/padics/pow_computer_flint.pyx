@@ -68,7 +68,7 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         self._initialized = 3
 
         cdef Py_ssize_t i
-        cdef fmpz* coeffs = (<fmpz_poly_struct*>self._moduli[i])[0].coeffs
+        cdef fmpz* coeffs = (<fmpz_poly_struct*>self.modulus)[0].coeffs
         fmpz_one(self.ftmp)
         for i from 1 <= i <= cache_limit:
             fmpz_mul(self.ftmp, self.ftmp, self.fprime)
@@ -103,18 +103,24 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
     cdef fmpz_poly_t* get_modulus_capdiv(self, unsigned long n):
         return self.get_modulus(self.capdiv(n))
 
-    def polynomial(self):
-        cdef Polynomial_integer_dense_flint ans = PY_NEW(Polynomial_integer_dense_flint)
-        fmpz_poly_set(ans.__poly, self.modulus)
+    def polynomial(self, _n=None, var='x'):
+        from sage.rings.all import ZZ
+        R = ZZ[var]
+        x = R.gen()
+        cdef Polynomial_integer_dense_flint ans = (<Polynomial_integer_dense_flint?>x)._new()
+        if _n is None:
+            fmpz_poly_set(ans.__poly, self.modulus)
+        else:
+            fmpz_poly_set(ans.__poly, self.get_modulus(_n)[0])
         return ans
 
 cdef class PowComputer_flint_unram(PowComputer_flint_1step):
-    def __init__(self):
+    def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None):
         self.e = 1
         self.f = fmpz_poly_degree(self.modulus)
 
 cdef class PowComputer_flint_eis(PowComputer_flint_1step):
-    def __init__(self):
+    def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None, shift_seed=None):
         self.e = fmpz_poly_degree(self.modulus)
         self.f = 1
 

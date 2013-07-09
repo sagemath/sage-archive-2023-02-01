@@ -86,7 +86,7 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         if init > 0: fmpz_poly_clear(self.modulus)
         if init > 1: fmpz_poly_clear(self.tmp_poly)
         cdef Py_ssize_t i
-        for i from 1 <= i <= cache_limit+1:
+        for i from 1 <= i <= self.cache_limit+1:
             if init >= 3+i: fmpz_poly_clear(self._moduli[i])
         if init > 2: sage_free(self._moduli)
 

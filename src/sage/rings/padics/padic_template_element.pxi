@@ -25,8 +25,7 @@ AUTHORS:
 
 from cpython.int cimport *
 include "sage/libs/pari/decl.pxi"
-include "sage/ext/python_list.pxi"
-include "sage/ext/python_tuple.pxi"
+include "sage/ext/python.pxi"
 
 import sage.rings.finite_rings.integer_mod
 from sage.libs.pari.gen cimport gen as pari_gen

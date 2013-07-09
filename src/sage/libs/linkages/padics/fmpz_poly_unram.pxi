@@ -208,6 +208,8 @@ cdef inline long cvaluation(celement a, long prec, PowComputer_ prime_pow) excep
     cdef long i
     for i from 0 <= i <= fmpz_poly_degree(a):
         fmpz_poly_get_coeff_fmpz(prime_pow.ftmp, a, i)
+        if fmpz_is_zero(prime_pow.ftmp):
+            continue
         val = fmpz_remove(prime_pow.ftmp, prime_pow.ftmp, prime_pow.fprime)
         if val < ret: ret = val
     return ret

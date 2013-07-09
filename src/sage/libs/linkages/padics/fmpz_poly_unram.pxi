@@ -289,7 +289,7 @@ cdef inline int csub(celement out, celement a, celement b, long prec, PowCompute
     """
     fmpz_poly_sub(out, a, b)
 
-cdef inline int cinvert(celement out, celement a, long prec, PowComputer_class prime_pow) except -1:
+cdef inline int cinvert(celement out, celement a, long prec, PowComputer_class prime_pow_) except -1:
     """
     Inversion
 
@@ -302,7 +302,14 @@ cdef inline int cinvert(celement out, celement a, long prec, PowComputer_class p
     - ``prec`` -- a long, the precision.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    raise NotImplementedError
+    cdef PowComputer_flint_unram prime_pow = <PowComputer_flint_unram>prime_pow_
+
+    _fmpz_poly_set_length(out, prime_pow.deg)
+    cdef fmpz* out_coeffs = (<fmpz_poly_struct*>out)[0].coeffs
+    cdef fmpz* a_coeffs = (<fmpz_poly_struct*>a)[0].coeffs
+    cdef fmpz* modulus_coeffs = (<fmpz_poly_struct*>prime_pow.get_modulus(prec)[0]).coeffs
+    _fmpz_mod_poly_invmod(out_coeffs, a_coeffs, fmpz_poly_degree(a)+1, modulus_coeffs, prime_pow.deg+1, prime_pow.pow_fmpz_t_tmp(prec)[0])
+    _fmpz_poly_normalise(out)
 
 cdef inline int cmul(celement out, celement a, celement b, long prec, PowComputer_class prime_pow) except -1:
     """

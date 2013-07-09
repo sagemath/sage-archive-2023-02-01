@@ -511,7 +511,7 @@ cdef class PowComputer_base(PowComputer_class):
         return &(self.temp_m)
 
 pow_comp_cache = {}
-cdef PowComputer_base PowComputer_c(Integer m, Integer cache_limit, Integer prec_cap, in_field):
+cdef PowComputer_base PowComputer_c(Integer m, Integer cache_limit, Integer prec_cap, in_field, prec_type=None):
     """
     Returns a PowComputer.
 
@@ -528,18 +528,26 @@ cdef PowComputer_base PowComputer_c(Integer m, Integer cache_limit, Integer prec
     if mpz_cmp_si((<Integer>prec_cap).value, maxpreccap) >= 0:
         raise ValueError, "cannot create p-adic parents with precision cap larger than (1 << (sizeof(long)*8 - 2))"
 
-    key = (m, cache_limit, prec_cap, in_field)
+    key = (m, cache_limit, prec_cap, in_field, prec_type)
     if pow_comp_cache.has_key(key):
         PC = pow_comp_cache[key]()
         if PC is not None:
             return PC
-    PC = PowComputer_base(m, mpz_get_ui(cache_limit.value), mpz_get_ui(prec_cap.value), mpz_get_ui(prec_cap.value), in_field)
+    if prec_type == 'CR':
+        from padic_capped_relative_element import PowComputer_ as PC_class
+    elif prec_type == 'CA':
+        from padic_capped_absolute_element import PowComputer_ as PC_class
+    elif prec_type == 'FM':
+        from padic_fixed_mod_element import PowComputer_ as PC_class
+    else:
+        raise RuntimeError
+    PC = PC_class(m, mpz_get_ui(cache_limit.value), mpz_get_ui(prec_cap.value), mpz_get_ui(prec_cap.value), in_field)
     pow_comp_cache[key] = weakref.ref(PC)
     return PC
 
 # To speed up the creation of PowComputers with the same m, we might eventually want to copy over data from an existing PowComputer.
 
-def PowComputer(m, cache_limit, prec_cap, in_field = False):
+def PowComputer(m, cache_limit, prec_cap, in_field = False, prec_type=None):
     r"""
     Returns a PowComputer that caches the values `1, m, m^2, \ldots, m^{C}`,
     where `C` is ``cache_limit``.
@@ -572,5 +580,5 @@ def PowComputer(m, cache_limit, prec_cap, in_field = False):
         cache_limit = Integer(cache_limit)
     if not PY_TYPE_CHECK(prec_cap, Integer):
         prec_cap = Integer(prec_cap)
-    return PowComputer_c(m, cache_limit, prec_cap, in_field)
+    return PowComputer_c(m, cache_limit, prec_cap, in_field, prec_type)
 

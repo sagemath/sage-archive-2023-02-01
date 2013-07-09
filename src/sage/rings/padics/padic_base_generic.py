@@ -34,7 +34,7 @@ class pAdicBaseGeneric(pAdicGeneric):
 
             sage: R = Zp(5) #indirect doctest
         """
-        self.prime_pow = PowComputer(p, max(min(prec - 1, 30), 1), prec, self.is_field())
+        self.prime_pow = PowComputer(p, max(min(prec - 1, 30), 1), prec, self.is_field(), self._type_code())
         pAdicGeneric.__init__(self, self, p, prec, print_mode, names, element_class)
         if self.is_field():
             coerce_list = [pAdicCoercion_ZZ_CR(self), pAdicCoercion_QQ_CR(self)]
@@ -51,6 +51,16 @@ class pAdicBaseGeneric(pAdicGeneric):
         else:
             raise RuntimeError
         self._populate_coercion_lists_(coerce_list=coerce_list, convert_list=convert_list, element_constructor=element_class)
+
+    def _type_code(self):
+        if self.is_capped_relative():
+            return 'CR'
+        elif self.is_capped_absolute():
+            return 'CA'
+        elif self.is_fixed_mod():
+            return 'FM'
+        else:
+            raise RuntimeError
 
     def fraction_field(self, print_mode=None):
         r"""

@@ -15,7 +15,7 @@ cdef class PowComputer_flint(PowComputer_class):
     cdef fmpz_t ftmp2
     cdef mpz_t top_power
 
-    cdef fmpz_t* pow_fmpz_t_tmp(self, unsigned long n)
+    cdef fmpz_t* pow_fmpz_t_tmp(self, unsigned long n) except NULL
     cdef unsigned long capdiv(self, unsigned long n)
 
 cdef class PowComputer_flint_1step(PowComputer_flint):

@@ -65,7 +65,7 @@ cdef class PowComputer_flint(PowComputer_class):
         """
         return "FLINT PowComputer for %s"%(self.prime)
 
-    cdef fmpz_t* pow_fmpz_t_tmp(self, unsigned long n):
+    cdef fmpz_t* pow_fmpz_t_tmp(self, unsigned long n) except NULL:
         """
         Returns a pointer to a FLINT ``fmpz_t`` holding `p^n`.
 
@@ -74,6 +74,7 @@ cdef class PowComputer_flint(PowComputer_class):
         but with FLINT ``fmpz_t`` rather than GMP ``mpz_t``.  The same
         important warnings apply.
         """
+        if n == 0: raise RuntimeError
         cdef padic_ctx_struct ctx = (<padic_ctx_struct*>self.ctx)[0]
         if ctx.min <= n and n < ctx.max:
             self.ftmp[0] = (ctx.pow + (n - ctx.min))[0]
@@ -89,6 +90,7 @@ cdef class PowComputer_flint(PowComputer_class):
         :meth:`sage.rings.padics.pow_computer.PowComputer_class.pow_mpz_t_tmp`
         for important warnings.
         """
+        if n == 0: raise RuntimeError
         fmpz_get_mpz(self.temp_m, self.pow_fmpz_t_tmp(n)[0])
         return &(self.temp_m)
 
@@ -386,8 +388,9 @@ cdef class PowComputer_flint_eis(PowComputer_flint_1step):
         self.e = fmpz_poly_degree(self.modulus)
         self.f = 1
 
-def PowComputer_flint_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly=None, shift_seed=None):
+def PowComputer_flint_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly=None, shift_seed=None, prec_type=None):
     if poly is None:
         return PowComputer_flint(prime, cache_limit, prec_cap, ram_prec_cap, in_field)
     else:
-        return PowComputer_flint_unram(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly)
+        from qadic_flint_CR import PowComputer_
+        return PowComputer_(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly)

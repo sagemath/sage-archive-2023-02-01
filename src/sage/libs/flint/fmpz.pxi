@@ -19,3 +19,5 @@ cdef extern from "flint/fmpz.h":
     void fmpz_set_mpz(fmpz_t rop, mpz_t op)
 
     void fmpz_add_ui(fmpz_t f, fmpz_t g, unsigned long c)
+
+    void fmpz_pow_ui(fmpz_t f, fmpz_t g, unsigned long exp)

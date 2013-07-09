@@ -585,7 +585,7 @@ cdef class PowComputer_ext(PowComputer_class):
         mpz_clear(self.temp_m)
         ZZ_destruct(&self.temp_z)
 
-    cdef mpz_t* pow_mpz_t_tmp(self, long n):
+    cdef mpz_t* pow_mpz_t_tmp(self, unsigned long n):
         """
         Provides fast access to an mpz_t* pointing to self.prime^n.
 

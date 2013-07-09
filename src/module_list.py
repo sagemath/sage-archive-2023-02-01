@@ -1723,6 +1723,12 @@ ext_modules = [
               libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"],
               language='c++'),
 
+    Extension('sage.rings.padics.pow_computer_flint',
+              sources = ['sage/rings/padics/pow_computer_flint.pyx'],
+              libraries = ["csage", "flint", "gmpxx", "gmp"],
+              include_dirs = [SAGE_INC + 'FLINT/'],
+              depends = flint_depends),
+
         ################################
         ##
         ## sage.rings.polynomial

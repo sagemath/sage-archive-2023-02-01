@@ -181,7 +181,7 @@ cdef class PowComputer_class(SageObject):
                 raise ValueError, "result too big"
             return self.pow_Integer(mpz_get_ui(_n.value))
 
-    cdef mpz_t* pow_mpz_t_tmp(self, long n):
+    cdef mpz_t* pow_mpz_t_tmp(self, unsigned long n):
         """
         Provides fast access to an mpz_t* pointing to self.prime^n.
 
@@ -491,7 +491,7 @@ cdef class PowComputer_base(PowComputer_class):
         """
         return &self.top_power
 
-    cdef mpz_t* pow_mpz_t_tmp(self, long n):
+    cdef mpz_t* pow_mpz_t_tmp(self, unsigned long n):
         """
         Computes self.prime^n.
 

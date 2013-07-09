@@ -21,7 +21,7 @@ cdef class PowComputer_class(SageObject):
 
     cdef Integer pow_Integer(self, long n)
     cdef mpz_t* pow_mpz_t_top(self)
-    cdef mpz_t* pow_mpz_t_tmp(self, long n)
+    cdef mpz_t* pow_mpz_t_tmp(self, unsigned long n)
 
 cdef class PowComputer_base(PowComputer_class):
     cdef mpz_t* small_powers

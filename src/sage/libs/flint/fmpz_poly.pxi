@@ -6,6 +6,11 @@ from sage.libs.flint.nmod_poly cimport nmod_poly_t
 cdef extern from "flint/fmpz_poly.h":
     ctypedef void* fmpz_poly_t
 
+    ctypedef struct fmpz_poly_struct:
+        fmpz* coeffs
+        long alloc
+        long length
+
     void fmpz_poly_init(fmpz_poly_t poly)
     void fmpz_poly_init2(fmpz_poly_t poly, unsigned long alloc)
     void fmpz_poly_realloc(fmpz_poly_t poly, unsigned long alloc)

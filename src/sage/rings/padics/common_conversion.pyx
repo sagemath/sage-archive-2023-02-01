@@ -378,9 +378,11 @@ cdef inline int cconv_shared(mpz_t out, x, long prec, long valshift, PowComputer
 
     - ``prime_pow`` -- a PowComputer for the ring.
     """
-    if PY_TYPE_CHECK(x, pari_gen):
+    if PyInt_Check(x):
+        x = Integer(x)
+    elif PY_TYPE_CHECK(x, pari_gen):
         x = x.sage()
-    if PY_TYPE_CHECK(x, pAdicGenericElement) or sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
+    elif PY_TYPE_CHECK(x, pAdicGenericElement) or sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
         x = x.lift()
     if PY_TYPE_CHECK(x, Integer):
         if valshift > 0:

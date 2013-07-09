@@ -14,9 +14,14 @@ cdef class PowComputer_flint(PowComputer_class):
     cdef mpz_t top_power
 
     cdef fmpz_t* pow_fmpz_t_tmp(self, unsigned long n)
+    cdef unsigned long capdiv(self, unsigned long n)
 
 cdef class PowComputer_flint_1step(PowComputer_flint):
     cdef fmpz_poly_t modulus
+    cdef fmpz_poly_t tmp_poly
+    cdef fmpz_poly_t* _moduli
+    cdef fmpz_poly_t* get_modulus(self, unsigned long n)
+    cdef fmpz_poly_t* get_modulus_capdiv(self, unsigned long n)
 
 cdef class PowComputer_flint_unram(PowComputer_flint_1step):
     pass

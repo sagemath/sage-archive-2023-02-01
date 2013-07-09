@@ -7,7 +7,7 @@
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "sage/ntl/decl.pxi"
+include "sage/libs/ntl/decl.pxi"
 include "nmod_vec.pxi"
 
 cdef extern from "flint/fmpz.h":

@@ -1,16 +1,27 @@
+# -*- coding: utf-8 -*-
 """
-Binary trees
+Binary Trees
 
 This module deals with binary trees as mathematical (in particular immmutable)
 objects.
 
-.. NOTE :: If you need the data-structure for example to represent sets or hash
-           tables with AVL trees, you should have a look at
-           :mod:`sage.misc.sagex_ds`.
+.. NOTE::
 
-**AUTHORS:**
+    If you need the data-structure for example to represent sets or hash
+    tables with AVL trees, you should have a look at :mod:`sage.misc.sagex_ds`.
+
+AUTHORS:
 
 - Florent Hivert (2010-2011): initial implementation.
+
+References
+----------
+
+.. [LodayRonco] Jean-Louis Loday and María O. Ronco.
+   *Hopf algebra of the planar binary trees*.
+    
+.. [HNT05] Florent Hivert, Jean-Christophe Novelli, and Jean-Yves Thibon.
+   *The algebra of binary search trees*.
 """
 #*****************************************************************************
 #       Copyright (C) 2010 Florent Hivert <Florent.Hivert@univ-rouen.fr>,
@@ -31,7 +42,7 @@ from sage.combinat.combinatorial_map import combinatorial_map
 
 class BinaryTree(AbstractClonableTree, ClonableArray):
     """
-    The class of binary trees
+    Binary trees.
 
     Binary trees here mean ordered (a.k.a. plane) binary trees,
     meaning that the children of each node are ordered.
@@ -1070,7 +1081,847 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         add_leaf_rec(self)
         return res[1:-1]
 
+    def in_order_traversal_iter(self):
+        """
+        The depth-first infix-order traversal iterator.
 
+        This method iters each node following the infix order traversal
+        algorithm.
+
+        For example on the following binary tree `T` where we denote leaves by
+        `a, b, c, \ldots` and nodes by `1, 2, 3, \ldots`::
+
+            |     ____3____          |
+            |    /         \         |
+            |   1          __7__     |
+            |  / \        /     \    |
+            | a   2      _5_     8   |
+            |    / \    /   \   / \  |
+            |   b   c  4     6 h   i |
+            |         / \   / \      |
+            |        d   e f   g     |
+
+        the *depth-first infixe-order traversal algorithm* explores `T` in
+        the following order of nodes `a,1,b,2,c,3,d,4,e,5,f,6,g,7,h,8,i`.
+
+        ALGORITHM::
+
+            explore the left subtree
+            manipulate the root with function `node_action` if the root is
+                a node and with function `leaf_action` if it is a leaf
+            explore the right subtree
+
+        TESTS::
+
+            sage: b = BinaryTree([[],[[],[]]]); ascii_art([b])
+            [   _o_     ]
+            [  /   \    ]
+            [ o     o   ]
+            [      / \  ]
+            [     o   o ]
+            sage: ascii_art(list(b.in_order_traversal_iter()))
+            [                                       ]
+            [ , o, ,   _o_        o      o      o   ]
+            [         /   \             / \         ]
+            [        o     o           o   o        ]
+            [             / \                       ]
+            [            o   o, ,  , ,      , ,  ,  ]
+            sage: ascii_art(filter(lambda node: node.label() is not None,
+            ....:     b.canonical_labelling().in_order_traversal_iter()))
+            [                           ]
+            [ 1,   _2_      3    4    5 ]
+            [     /   \         / \     ]
+            [    1     4       3   5    ]
+            [         / \               ]
+            [        3   5,  ,      ,   ]
+        """
+        if self.is_empty():
+            yield self
+            return
+        # TODO:: PYTHON 3
+        # yield from self[0].in_order_traversal_iter()
+        for left_subtree in self[0].in_order_traversal_iter():
+            yield left_subtree
+        yield self
+        # TODO:: PYTHON 3
+        # yield from self[1].in_order_traversal_iter()
+        for right_subtree in self[1].in_order_traversal_iter():
+            yield right_subtree
+
+    def in_order_traversal(self, node_action=None, leaf_action=None):
+        r"""
+        The depth-first infix-order traversal algorithm.
+
+        .. SEEALSO::
+
+            :meth:`~sage.combinat.binary_tree.BinaryTree.in_order_traversal_iter()`
+
+        INPUT:
+
+        - ``node_action`` -- (optional) a function which takes a node in input
+          and does something during the exploration
+        - ``leaf_action`` -- (optional) a function which takes a leaf in input
+          and does something during the exploration
+
+        TESTS::
+
+            sage: nb_leaf = 0
+            sage: def l_action(_):
+            ....:    global nb_leaf
+            ....:    nb_leaf += 1
+            sage: nb_node = 0
+            sage: def n_action(_):
+            ....:    global nb_node
+            ....:    nb_node += 1
+            sage: BinaryTree().in_order_traversal(n_action, l_action)
+            sage: nb_leaf, nb_node
+            (1, 0)
+            sage: nb_leaf, nb_node = 0, 0
+            sage: b = BinaryTree([[],[[],[]]]); b
+            [[., .], [[., .], [., .]]]
+            sage: b.in_order_traversal(n_action, l_action)
+            sage: nb_leaf, nb_node
+            (6, 5)
+            sage: nb_leaf, nb_node = 0, 0
+            sage: b = b.canonical_labelling()
+            sage: b.in_order_traversal(n_action, l_action)
+            sage: nb_leaf, nb_node
+            (6, 5)
+            sage: l = []
+            sage: b.in_order_traversal(lambda node: l.append( node.label() ))
+            sage: l
+            [1, 2, 3, 4, 5]
+            sage: leaf = 'a'
+            sage: l = []
+            sage: def l_action(_):
+            ....:    global leaf, l
+            ....:    l.append(leaf)
+            ....:    leaf = chr( ord(leaf)+1 )
+            sage: n_action = lambda node: l.append( node.label() )
+            sage: b = BinaryTree([[None,[]],[[[],[]],[]]]).\
+            ....:     canonical_labelling()
+            sage: b.in_order_traversal(n_action, l_action)
+            sage: l
+            ['a', 1, 'b', 2, 'c', 3, 'd', 4, 'e', 5, 'f', 6, 'g', 7, 'h', 8,
+             'i']
+        """
+        if leaf_action is None:
+            leaf_action = lambda x: None
+        if node_action is None:
+            node_action = lambda x: None
+
+        for node in self.in_order_traversal_iter():
+            if node.is_empty():
+                leaf_action(node)
+            else:
+                node_action(node)
+
+    def tamari_greater(self):
+        r"""
+        The list of all trees greater than ``self``.
+        This is the transitive ideal of its successors.
+
+        The tree::
+
+            |     __o__   |
+            |    /     \  |
+            |   o       o |
+            |  / \     /  |
+            | o   o   o   |
+
+        has these trees greater than it::
+
+            |o          , o        , o        , o        ,  o       ,   o      ,|
+            | \            \          \          \           \           \      |
+            |  o            o          o           o         _o_        __o__   |
+            |   \            \          \           \       /   \      /     \  |
+            |    o            o          o          _o_    o     o    o       o |
+            |     \            \        / \        /   \    \     \    \     /  |
+            |      o            o      o   o      o     o    o     o    o   o   |
+            |       \            \          \          /                        |
+            |        o            o          o        o                         |
+            |         \          /                                              |
+            |          o        o                                               |
+            <BLANKLINE>
+            |   o        ,   o      ,   _o_      ,   _o__     ,   __o__    ,   ___o___  ,|
+            |  / \          / \        /   \        /    \       /     \      /       \  |
+            | o   o        o   o      o     o      o     _o_    o       o    o         o |
+            |      \            \          / \          /   \    \       \    \       /  |
+            |       o            o        o   o        o     o    o       o    o     o   |
+            |        \            \            \            /      \            \        |
+            |         o            o            o          o        o            o       |
+            |          \          /                                                      |
+            |           o        o                                                       |
+            <BLANKLINE>
+            |     _o_    ,     __o__  |
+            |    /   \        /     \ |
+            |   o     o      o       o|
+            |  / \     \    / \     / |
+            | o   o     o  o   o   o  |
+
+        TESTS::
+
+            sage: B = BinaryTree
+            sage: b = B([None, B([None, B([None, B([])])])]);b
+            [., [., [., [., .]]]]
+            sage: b.tamari_greater()
+            [[., [., [., [., .]]]]]
+            sage: b = B([B([B([B([]), None]), None]), None]);b
+            [[[[., .], .], .], .]
+            sage: b.tamari_greater()
+            [[., [., [., [., .]]]], [., [., [[., .], .]]], [., [[., .], [., .]]], [., [[., [., .]], .]], [., [[[., .], .], .]], [[., .], [., [., .]]], [[., .], [[., .], .]], [[., [., .]], [., .]], [[., [., [., .]]], .], [[., [[., .], .]], .], [[[., .], .], [., .]], [[[., .], [., .]], .], [[[., [., .]], .], .], [[[[., .], .], .], .]]
+        """
+        from sage.combinat.tools import transitive_ideal
+        return transitive_ideal(lambda x: x.tamari_succ(), self)
+
+    def tamari_pred(self):
+        r"""
+        Compute the list of predecessor of ``self`` in the tamari poset.
+        This list is computed by all left rotate possible on
+        its nodes.
+
+        For this tree::
+
+            |     __o__   |
+            |    /     \  |
+            |   o       o |
+            |  / \     /  |
+            | o   o   o   |
+
+        the list is::
+
+            |        o ,       _o_   |
+            |       /         /   \  |
+            |     _o_        o     o |
+            |    /   \      /     /  |
+            |   o     o    o     o   |
+            |  / \        /          |
+            | o   o      o           |
+
+        TESTS::
+
+            sage: B = BinaryTree
+            sage: b = B([B([B([B([]), None]), None]), None]);b
+            [[[[., .], .], .], .]
+            sage: b.tamari_pred()
+            []
+            sage: b = B([None, B([None, B([None, B([])])])]);b
+            [., [., [., [., .]]]]
+            sage: b.tamari_pred()
+            [[[., .], [., [., .]]], [., [[., .], [., .]]], [., [., [[., .], .]]]]
+        """
+        res = []
+        if self.is_empty():
+            return []
+        if not self[1].is_empty():
+            res.append(self.left_rotate())
+        B = self.parent()._element_constructor_
+        return (res +
+                [B([g, self[1]]) for g in self[0].tamari_pred()] +
+                [B([self[0], d]) for d in self[1].tamari_pred()])
+
+    def tamari_smaller(self):
+        r"""
+        The list of all trees smaller than ``self``.
+        This is the transitive ideal of its predecessors.
+
+        The tree::
+
+            |     __o__   |
+            |    /     \  |
+            |   o       o |
+            |  / \     /  |
+            | o   o   o   |
+
+        has these trees smaller than it::
+
+            |    __o__  ,       _o_  ,        o ,         o,         o,           o |
+            |   /     \        /   \         /           /          /            /  |
+            |  o       o      o     o      _o_          o          o            o   |
+            | / \     /      /     /      /   \        / \        /            /    |
+            |o   o   o      o     o      o     o      o   o      o            o     |
+            |              /            / \          /          /            /      |
+            |             o            o   o        o          o            o       |
+            |                                      /          / \          /        |
+            |                                     o          o   o        o         |
+            |                                                            /          |
+            |                                                           o           |
+
+        TESTS::
+
+            sage: B = BinaryTree
+            sage: b = B([None, B([None, B([None, B([])])])]);b
+            [., [., [., [., .]]]]
+            sage: b.tamari_smaller()
+            [[., [., [., [., .]]]], [., [., [[., .], .]]], [., [[., .], [., .]]], [., [[., [., .]], .]], [., [[[., .], .], .]], [[., .], [., [., .]]], [[., .], [[., .], .]], [[., [., .]], [., .]], [[., [., [., .]]], .], [[., [[., .], .]], .], [[[., .], .], [., .]], [[[., .], [., .]], .], [[[., [., .]], .], .], [[[[., .], .], .], .]]
+            sage: b = B([B([B([B([]), None]), None]), None]);b
+            [[[[., .], .], .], .]
+            sage: b.tamari_smaller()
+            [[[[[., .], .], .], .]]
+        """
+        from sage.combinat.tools import transitive_ideal
+        return transitive_ideal(lambda x: x.tamari_pred(), self)
+
+    def tamari_succ(self):
+        r"""
+        Compute the list of successors of ``self`` in the tamari poset.
+        There is the list of all trees obtains by a right rotate of
+        one of its nodes.
+
+        The list of successor of::
+
+            |     __o__   |
+            |    /     \  |
+            |   o       o |
+            |  / \     /  |
+            | o   o   o   |
+
+        is::
+
+            |   _o__     ,   ___o___  ,     _o_     |
+            |  /    \       /       \      /   \    |
+            | o     _o_    o         o    o     o   |
+            |      /   \    \       /    / \     \  |
+            |     o     o    o     o    o   o     o |
+            |          /      \                     |
+            |         o        o                    |
+
+        TESTS::
+
+            sage: B = BinaryTree
+            sage: b = B([B([B([B([]), None]), None]), None]);b
+            [[[[., .], .], .], .]
+            sage: b.tamari_succ()
+            [[[[., .], .], [., .]], [[[., .], [., .]], .], [[[., [., .]], .], .]]
+        """
+        res = []
+        if self.is_empty():
+            return []
+        B = self.parent()._element_constructor_
+        if not self[0].is_empty():
+            res.append(self.right_rotate())
+        return (res +
+             [B([g, self[1]]) for g in self[0].tamari_succ()] +
+             [B([self[0], d]) for d in self[1].tamari_succ()])
+
+    def q_hook_length_formula(self):
+        r"""
+        Compute the ``q-hook length formula`` of a binary tree.
+
+        If `q=1` then ``q-hook length formula`` computes the number of
+        permutations such that the shape of binary search tree associated is
+        *self*.
+
+        .. MATH::
+
+            f_{q} (T) = \frac{[\lvert T \rvert]_q!}{\prod_{t \in T}
+            q^{right(t)} \lvert t \rvert]_q}
+
+        where `\lvert T \rvert` is the node number of `T`, `t \in T` the set
+        of all subtrees of `T`, and `right(t)` the number of nodes of the
+        right subtree of `t`.
+
+        There are `20` permutations which give a binary tree of the
+        following shape::
+
+            |     __o__   |
+            |    /     \  |
+            |   o       o |
+            |  / \     /  |
+            | o   o   o   |
+
+        by the binary search insertion algorithm.
+
+        TESTS::
+
+            sage: b = BinaryTree([[[],[]],[[],None]]); b
+            [[[., .], [., .]], [[., .], .]]
+            sage: b.q_hook_length_formula()(q=1)
+            20
+            sage: BinaryTree([[],[]]).q_hook_length_formula()
+            (((q + 2)*q + 2)*q + 1)*q/((q + 1)*q + 1)
+        """
+        from sage.combinat.q_analogues import q_factorial, q_int
+        from sage.symbolic.ring import SymbolicRing
+
+        q = SymbolicRing().var('q')
+
+        def product_of_subtrees(b):
+            if b.is_empty():
+                return q ** 0
+            return (q ** (-b[0].node_number()) * q_int(b.node_number())) * \
+                product_of_subtrees(b[0]) * product_of_subtrees(b[1])
+
+        return q_factorial(self.node_number()) / product_of_subtrees(self)
+
+    @combinatorial_map(name="Right rotate")
+    def right_rotate(self):
+        r"""
+        Right rotation operation of tree.
+
+        The right rotation is defined by;:
+
+            |     o                     _o_   |
+            |    /                     /   \  |
+            |   o    -right-rotate->  o     o |
+            |  / \                         /  |
+            | o   o                       o   |
+            <BLANKLINE>
+            |       __o__                         _o__      |
+            |      /     \                       /    \     |
+            |     o       o  -right-rotate->    o     _o_   |
+            |    / \                           /     /   \  |
+            |   o   o                         o     o     o |
+            |  /     \                               \      |
+            | o       o                               o     |
+
+        EXAMPLES::
+
+            sage: b = BinaryTree([[[],[]], None]); ascii_art([b])
+            [     o ]
+            [    /  ]
+            [   o   ]
+            [  / \  ]
+            [ o   o ]
+            sage: ascii_art([b.right_rotate()])
+            [   _o_   ]
+            [  /   \  ]
+            [ o     o ]
+            [      /  ]
+            [     o   ]
+            sage: b = BinaryTree([[[[],None],[None,[]]], []]);ascii_art([b])
+            [       __o__   ]
+            [      /     \  ]
+            [     o       o ]
+            [    / \        ]
+            [   o   o       ]
+            [  /     \      ]
+            [ o       o     ]
+            sage: ascii_art([b.right_rotate()])
+            [     _o__      ]
+            [    /    \     ]
+            [   o     _o_   ]
+            [  /     /   \  ]
+            [ o     o     o ]
+            [        \      ]
+            [         o     ]
+        """
+        B = self.parent()._element_constructor_
+        return B([self[0][0], B([self[0][1], self[1]])])
+
+    @combinatorial_map(name="Left rotate")
+    def left_rotate(self):
+        r"""
+        Left rotation operation of tree.
+
+        The left rotation is defined by;:
+
+            |   _o_                        o |
+            |  /   \                      /  |
+            | o     o  -left-rotate->    o   |
+            |      /                    / \  |
+            |     o                    o   o |
+            <BLANKLINE>
+            |       __o__                            o |
+            |      /     \                          /  |
+            |     o       o  -left-rotate->        o   |
+            |    / \                              /    |
+            |   o   o                            o     |
+            |  /     \                          / \    |
+            | o       o                        o   o   |
+            |                                 /     \  |
+            |                                o       o |
+
+        EXAMPLES::
+
+            sage: b = BinaryTree([[],[[],None]]); ascii_art([b])
+            [   _o_   ]
+            [  /   \  ]
+            [ o     o ]
+            [      /  ]
+            [     o   ]
+            sage: ascii_art([b.left_rotate()])
+            [     o ]
+            [    /  ]
+            [   o   ]
+            [  / \  ]
+            [ o   o ]
+            sage: b.left_rotate().right_rotate() == b
+            True
+        """
+        B = self.parent()._element_constructor_
+        return B([B([self[0], self[1][0]]), self[1][1]])
+
+    @combinatorial_map(name="Over operation on Binary Trees")
+    def over(self, bt):
+        r"""
+        The ``over`` (`/`) operation defined by Loday-Ronco [LodayRonco]_.
+
+        This is defined by::
+
+            |   o       __o__       _o_         |
+            |  / \  /  /     \  =  /   \        |
+            | o   o   o       o   o     o       |
+            |          \     /           \      |
+            |           o   o           __o__   |
+            |                          /     \  |
+            |                         o       o |
+            |                          \     /  |
+            |                           o   o   |
+
+        EXAMPLES::
+
+            sage: b1 = BinaryTree([[],[[],[]]])
+            sage: b2 = BinaryTree([[None, []],[]])
+            sage: ascii_art((b1, b2, b1/b2))
+            (   _o_        _o_      _o_           )
+            (  /   \      /   \    /   \          )
+            ( o     o    o     o  o     o_        )
+            (      / \    \            /  \       )
+            (     o   o,   o    ,     o    o      )
+            (                               \     )
+            (                               _o_   )
+            (                              /   \  )
+            (                             o     o )
+            (                              \      )
+            (                               o     )
+
+        TESTS::
+
+            sage: b1 = BinaryTree([[],[]]); ascii_art([b1])
+            [   o   ]
+            [  / \  ]
+            [ o   o ]
+            sage: b2 = BinaryTree([[None,[]],[[],None]]); ascii_art([b2])
+            [   __o__   ]
+            [  /     \  ]
+            [ o       o ]
+            [  \     /  ]
+            [   o   o   ]
+            sage: ascii_art([b1.over(b2)])
+            [   _o_         ]
+            [  /   \        ]
+            [ o     o       ]
+            [        \      ]
+            [       __o__   ]
+            [      /     \  ]
+            [     o       o ]
+            [      \     /  ]
+            [       o   o   ]
+        """
+        B = self.parent()._element_constructor_
+        if self.is_empty():
+            return bt
+        lab = None
+        if hasattr(self, "label"):
+            lab = self.label()
+        else:
+            return B([self[0], self[1].over(bt)], lab)
+
+    __div__ = over
+
+    @combinatorial_map(name="Under operation on Binary Trees")
+    def under(self, bt):
+        r"""
+        The ``under`` (`\backslash`) operation defined by Loday-Ronco
+        [LodayRonco]_.
+
+        EXAMPLES::
+
+            sage: b1 = BinaryTree([[],[]])
+            sage: b2 = BinaryTree([None,[]])
+            sage: ascii_art((b1, b2, b1 \ b2))
+            (   o    o        _o_   )
+            (  / \    \      /   \  )
+            ( o   o,   o,   o     o )
+            (              / \      )
+            (             o   o     )
+
+        TESTS::
+
+            sage: b1 = BinaryTree([[],[[None,[]],None]]); ascii_art([b1])
+            [   _o_   ]
+            [  /   \  ]
+            [ o     o ]
+            [      /  ]
+            [     o   ]
+            [      \  ]
+            [       o ]
+            sage: b2 = BinaryTree([[],[None,[]]]); ascii_art([b2])
+            [   o     ]
+            [  / \    ]
+            [ o   o   ]
+            [      \  ]
+            [       o ]
+            sage: ascii_art([b1.under(b2)])
+            [        o_     ]
+            [       /  \    ]
+            [      o    o   ]
+            [     /      \  ]
+            [   _o_       o ]
+            [  /   \        ]
+            [ o     o       ]
+            [      /        ]
+            [     o         ]
+            [      \        ]
+            [       o       ]
+        """
+        B = self.parent()._element_constructor_
+        if bt.is_empty():
+            return self
+        lab = None
+        if hasattr(bt, "label"):
+            lab = bt.label()
+        else:
+            return B([self.under(bt[0]), bt[1]], lab)
+
+    _backslash_ = under
+
+    def sylvester_class(self, left_to_right=False):
+        r"""
+        Iterate the sylvester class corresponding to the binary tree.
+
+        The sylvester class is the set of permutations corresponding to the 
+        canonical binary search tree with same shape of ``self``.
+        See [HNT05]_ for more.
+        
+        For example the following has the permutations `(1,3,2)` and `(3,1,2)`
+        associated::
+
+            [   o   ]
+            [  / \  ]
+            [ o   o ]
+        
+        TESTS::
+        
+            sage: list(BinaryTree([[],[]]).sylvester_class())
+            [[1, 3, 2], [3, 1, 2]]
+            sage: bt = BinaryTree([[[],None],[[],[]]])
+            sage: l = list(bt.sylvester_class()); l
+            [[1, 2, 4, 6, 5, 3],
+             [1, 4, 2, 6, 5, 3],
+             [1, 4, 6, 2, 5, 3],
+             [1, 4, 6, 5, 2, 3],
+             [4, 1, 2, 6, 5, 3],
+             [4, 1, 6, 2, 5, 3],
+             [4, 1, 6, 5, 2, 3],
+             [4, 6, 1, 2, 5, 3],
+             [4, 6, 1, 5, 2, 3],
+             [4, 6, 5, 1, 2, 3],
+             [1, 2, 6, 4, 5, 3],
+             [1, 6, 2, 4, 5, 3],
+             [1, 6, 4, 2, 5, 3],
+             [1, 6, 4, 5, 2, 3],
+             [6, 1, 2, 4, 5, 3],
+             [6, 1, 4, 2, 5, 3],
+             [6, 1, 4, 5, 2, 3],
+             [6, 4, 1, 2, 5, 3],
+             [6, 4, 1, 5, 2, 3],
+             [6, 4, 5, 1, 2, 3]]
+            sage: len(l) == Integer(bt.q_hook_length_formula()(q=1))
+            True
+        """
+        if self.is_empty():
+            yield []
+            return
+        import itertools
+        from sage.combinat.words.word import Word as W
+        from sage.combinat.words.shuffle_product import ShuffleProduct_w1w2 \
+            as shuffle
+
+        if left_to_right:
+            builder = lambda i, p: [i] + list(p)
+        else:
+            builder = lambda i, p: list(p) + [i]
+
+        shift = self[0].node_number() + 1
+        for l, r in itertools.product(
+                    self[0].sylvester_class(),
+                    self[1].sylvester_class()):
+           for p in shuffle(W(l), W([shift + ri for ri in r])):
+               yield builder(shift, p)
+
+    def is_full(self):
+        r"""
+        A full binary tree is a tree in which every node other than the leaves
+        has two children.
+
+        This is also known as *proper binary tree* or *2-tree* or *strictly
+        binary tree*.
+
+        For example::
+
+            |       __o__   |
+            |      /     \  |
+            |     o       o |
+            |    / \        |
+            |   o   o       |
+            |  /     \      |
+            | o       o     |
+
+        is not full but the next one is::
+
+            |         ___o___   |
+            |        /       \  |
+            |     __o__       o |
+            |    /     \        |
+            |   o       o       |
+            |  / \     / \      |
+            | o   o   o   o     |
+
+        EXAMPLES::
+
+            sage: BinaryTree([[[[],None],[None,[]]], []]).is_full()
+            False
+            sage: BinaryTree([[[[],[]],[[],[]]], []]).is_full()
+            True
+            sage: ascii_art(filter(lambda bt: bt.is_full(), BinaryTrees(5)))
+            [   _o_          _o_   ]
+            [  /   \        /   \  ]
+            [ o     o      o     o ]
+            [      / \    / \      ]
+            [     o   o, o   o     ]
+        """
+        if self.is_empty():
+            return True
+        if self[0].is_empty() != self[1].is_empty():
+            return False
+        return self[0].is_full() and self[1].is_full()
+
+    def is_perfect(self):
+        r"""
+        A perfect binary tree is a full tree in which all leaves are at the
+        same depth.
+
+        For example::
+
+            |         ___o___   |
+            |        /       \  |
+            |     __o__       o |
+            |    /     \        |
+            |   o       o       |
+            |  / \     / \      |
+            | o   o   o   o     |
+
+        is not perfect but the next one is::
+
+            |     __o__     |
+            |    /     \    |
+            |   o       o   |
+            |  / \     / \  |
+            | o   o   o   o |
+
+        EXAMPLES::
+
+            sage: lst = lambda i: filter(lambda bt: bt.is_perfect(), BinaryTrees(i))
+            sage: for i in range(10): ascii_art(lst(i)) # long time
+            [  ]
+            [ o ]
+            [  ]
+            [   o   ]
+            [  / \  ]
+            [ o   o ]
+            [  ]
+            [  ]
+            [  ]
+            [     __o__     ]
+            [    /     \    ]
+            [   o       o   ]
+            [  / \     / \  ]
+            [ o   o   o   o ]
+            [  ]
+            [  ]
+        """
+        return 2 ** self.depth() - 1 == self.node_number()
+
+    def is_complete(self):
+        r"""
+        A complete binary tree is a perfect binary tree except possibly in the
+        last level.
+
+        A complete binary tree (also called binary heap) is a binary tree in
+        which every level, except possibly the last one (the deepest), is
+        completely filled. At depth `n` all nodes must be as far left as
+        possible.
+
+        For example::
+
+            |         ___o___   |
+            |        /       \  |
+            |     __o__       o |
+            |    /     \        |
+            |   o       o       |
+            |  / \     / \      |
+            | o   o   o   o     |
+
+        is not complet but the following ones are::
+
+            |     __o__          _o_            ___o___     |
+            |    /     \        /   \          /       \    |
+            |   o       o      o     o      __o__       o   |
+            |  / \     / \    / \          /     \     / \  |
+            | o   o   o   o, o   o    ,   o       o   o   o |
+            |                            / \     /          |
+            |                           o   o   o           |
+
+        EXAMPLES::
+
+
+            sage: lst = lambda i: filter(lambda bt: bt.is_complete(), BinaryTrees(i))
+            sage: for i in range(9): ascii_art(lst(i)) # long time
+            [  ]
+            [ o ]
+            [   o ]
+            [  /  ]
+            [ o   ]
+            [   o   ]
+            [  / \  ]
+            [ o   o ]
+            [     o   ]
+            [    / \  ]
+            [   o   o ]
+            [  /      ]
+            [ o       ]
+            [     _o_   ]
+            [    /   \  ]
+            [   o     o ]
+            [  / \      ]
+            [ o   o     ]
+            [     __o__   ]
+            [    /     \  ]
+            [   o       o ]
+            [  / \     /  ]
+            [ o   o   o   ]
+            [     __o__     ]
+            [    /     \    ]
+            [   o       o   ]
+            [  / \     / \  ]
+            [ o   o   o   o ]
+            [       __o__     ]
+            [      /     \    ]
+            [     o       o   ]
+            [    / \     / \  ]
+            [   o   o   o   o ]
+            [  /              ]
+            [ o               ]
+        """
+        if self.is_empty():
+            return True
+        # self := L ^ R
+        dL = self[0].depth()
+        dR = self[1].depth()
+        # if L is perfect
+        if self[0].is_perfect():
+            # if the depth of R == depth of L then R must be complete
+            if dL == dR:
+                return self[1].is_complete()
+            # else R is perfect with depth equals depth of L - 1
+            elif dL == dR + 1:
+                return self[1].is_perfect()
+            return False
+        # L is not perfect then R is perfect and the depth of L = the depth of
+        # R + 1
+        return self[0].is_complete() and self[1].is_perfect() and dL == dR + 1
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -1176,7 +2027,7 @@ class BinaryTrees_all(DisjointUnionEnumeratedSets, BinaryTrees):
 
             sage: B is BinaryTrees_all()
             True
-            sage: TestSuite(B).run()
+            sage: TestSuite(B).run() # long time
             """
         DisjointUnionEnumeratedSets.__init__(
             self, Family(NonNegativeIntegers(), BinaryTrees_size),
@@ -1499,6 +2350,136 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
             else:
                 fils = self[1].binary_search_insert(letter)
                 return LT([self[0], fils], label=self.label())
+
+    def right_rotate(self):
+        r"""
+        Right rotation operation of a tree.
+
+        The right rotation of a tree is defined by::
+
+            |     y                      x     |
+            |    / \                    / \    |
+            |   x   C -right-rotate->  A   y   |
+            |  / \                        / \  |
+            | A   B                      B   C |
+
+        TESTS::
+
+            sage: LB = LabelledBinaryTree
+            sage: b = LB([LB([LB([],"A"), LB([],"B")],"x"),LB([],"C")], "y"); b
+            y[x[A[., .], B[., .]], C[., .]]
+            sage: b.right_rotate()
+            x[A[., .], y[B[., .], C[., .]]]
+        """
+        B = self.parent()._element_constructor_
+        return B([
+            self[0][0],
+            B([self[0][1], self[1]], self.label())
+        ], self[0].label())
+
+    def left_rotate(self):
+        r"""
+        Left rotation operation of a tree.
+
+        The left rotation of a tree is defined by::
+
+           |     y                    x     |
+           |    / \                  / \    |
+           |   x   C <-left-rotate- A   y   |
+           |  / \                      / \  |
+           | A   B                    B   C |
+
+        TESTS::
+
+            sage: LB = LabelledBinaryTree
+            sage: b = LB([LB([LB([],"A"), LB([],"B")],"x"),LB([],"C")], "y"); b
+            y[x[A[., .], B[., .]], C[., .]]
+            sage: b == b.right_rotate().left_rotate()
+            True
+        """
+        B = self.parent()._element_constructor_
+        return B([
+            B([self[0], self[1][0]], self.label()),
+            self[1][1]
+        ], self[1].label())
+
+    def heap_insert(self, l):
+        r"""
+        Insert a letter in a binary heap (tree).
+
+        Roughly, a binary heap will be a complete binary tree such that for
+        each nodes the label is greater or equals to the label of its children.
+
+        For example::
+
+            |     _7_   |
+            |    /   \  |
+            |   5     6 |
+            |  / \      |
+            | 3   4     |
+
+        INPUT:
+
+        - ``letter`` -- any object comparable with the label of ``self``
+
+        .. NOTE::
+
+            ``self`` is assumed to be a binary heap (tree). No check is
+            performed.
+
+        TESTS::
+
+            sage: h = LabelledBinaryTree(None)
+            sage: h = h.heap_insert(3); ascii_art([h])
+            [ 3 ]
+            sage: h = h.heap_insert(4); ascii_art([h])
+            [   4 ]
+            [  /  ]
+            [ 3   ]
+            sage: h = h.heap_insert(6); ascii_art([h])
+            [   6   ]
+            [  / \  ]
+            [ 3   4 ]
+            sage: h = h.heap_insert(2); ascii_art([h])
+            [     6   ]
+            [    / \  ]
+            [   3   4 ]
+            [  /      ]
+            [ 2       ]
+            sage: ascii_art([h.heap_insert(5)])
+            [     _6_   ]
+            [    /   \  ]
+            [   5     4 ]
+            [  / \      ]
+            [ 2   3     ]
+        """
+        B = self.parent()._element_constructor_
+        if self.is_empty():
+            return B([], l)
+
+        if self.label() < l:
+            label_root = l
+            label_insert = self.label()
+        else:
+            label_root = self.label()
+            label_insert = l
+        L, R = self
+        dL = L.depth()
+        dR = R.depth()
+        # if depth of L is greater than the depth of R
+        if dL > dR:
+            # if L is perfect we insert in R
+            if L.is_perfect():
+                return B([L, R.heap_insert(label_insert)], label_root)
+            # we insert in L
+            return B([L.heap_insert(label_insert), R], label_root)
+        # else ==> dL == dR
+        # if R is perfect we have to insert on the most left leaf
+        if R.is_perfect():
+            # ## TODO:: can be optimized...
+            return B([L.heap_insert(label_insert), R], label_root)
+        # else we insert on the right
+        return B([L, R.heap_insert(label_insert)], label_root)
 
     _UnLabelled = BinaryTree
 

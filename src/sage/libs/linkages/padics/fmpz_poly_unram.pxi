@@ -396,7 +396,7 @@ cdef inline bint ciszero(celement a, PowComputer_class prime_pow) except -1:
     """
     return fmpz_poly_is_zero(a)
 
-cdef inline int cpow(celement out, celement a, mpz_t n, long prec, PowComputer_class prime_pow) except -1:
+cdef inline int cpow(celement out, celement a, mpz_t n, long prec, PowComputer_class prime_pow_) except -1:
     """
     Exponentiation.
 
@@ -408,7 +408,22 @@ cdef inline int cpow(celement out, celement a, mpz_t n, long prec, PowComputer_c
     - ``prec`` -- a long, the working absolute precision.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    raise NotImplementedError
+    cdef PowComputer_flint_unram prime_pow = <PowComputer_flint_unram>prime_pow_
+
+    if mpz_sgn(n) < 0:
+        raise NotImplementedError("negative exponent")
+    elif mpz_sgn(n) == 0:
+        csetone(out, prime_pow)
+    elif mpz_even_p(n):
+        mpz_divexact_ui(prime_pow.ftmp, n, 2)
+        cpow(out, a, prime_pow.ftmp, prec, prime_pow)
+        fmpz_poly_sqr(out, out)
+    else:
+        mpz_sub_ui(prime_pow.ftmp, n, 1)
+        cpow(out, a, prime_pow.ftmp, prec, prime_pow)
+        fmpz_poly_mul(out, out, a)
+
+    creduce(out, out, prec, prime_pow)
 
 cdef inline int ccopy(celement out, celement a, PowComputer_class prime_pow) except -1:
     """

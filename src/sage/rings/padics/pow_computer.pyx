@@ -428,6 +428,7 @@ cdef class PowComputer_base(PowComputer_class):
             raise MemoryError, "out of memory allocating power storing"
         mpz_init(self.top_power)
         mpz_init(self.temp_m)
+        mpz_init(self.temp_m2)
 
         cdef Py_ssize_t i
         cdef Integer x
@@ -464,7 +465,7 @@ cdef class PowComputer_base(PowComputer_class):
             sage_free(self.small_powers)
             mpz_clear(self.top_power)
             mpz_clear(self.temp_m)
-
+            mpz_clear(self.temp_m2)
 
     def __reduce__(self):
         """

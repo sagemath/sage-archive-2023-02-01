@@ -18,6 +18,7 @@ cdef class PowComputer_class(SageObject):
     cdef unsigned long prec_cap
 
     cdef mpz_t temp_m
+    cdef mpz_t temp_m2
 
     cdef Integer pow_Integer(self, long n)
     cdef mpz_t* pow_mpz_t_top(self)

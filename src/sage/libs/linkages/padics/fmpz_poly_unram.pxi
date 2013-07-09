@@ -59,27 +59,26 @@ cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint redu
     - If at least one needs to be reduced, returns
       0 (if ``a == b mod p^prec``) or 1 (otherwise)
     """
-    cdef long cmp
-
-    csub(prime_pow.tmp_poly, a, b, prec, prime_pow)
-    creduce(prime_pow.tmp_poly, prime_pow.tmp_poly, prec, prime_pow)
+    csub(prime_pow.tmp_poly2, a, b, prec, prime_pow)
+    creduce(prime_pow.tmp_poly2, prime_pow.tmp_poly2, prec, prime_pow)
 
     if reduce_a or reduce_b:
-        return not ciszero(prime_pow.tmp_poly, prime_pow)
+        return not ciszero(prime_pow.tmp_poly2, prime_pow)
 
     if prec == 0:
         return 0
 
-    if ciszero(prime_pow.tmp_poly, prime_pow): return 0
+    if ciszero(prime_pow.tmp_poly2, prime_pow): return 0
 
     cdef long da = fmpz_poly_degree(a)
     cdef long db = fmpz_poly_degree(b)
     if da < db: return -1
     elif da > db: return 1
 
+    cdef long cmp
     cdef long i
     for i from 0 <= i <= da:
-        fmpz_poly_get_coeff_fmpz(prime_pow.ftmp, prime_pow.tmp_poly, i)
+        fmpz_poly_get_coeff_fmpz(prime_pow.ftmp, prime_pow.tmp_poly2, i)
         cmp = fmpz_cmp_si(prime_pow.ftmp, 0)
         if cmp < 0: return -1
         elif cmp > 0: return 1

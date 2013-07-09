@@ -368,6 +368,12 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
                 n -= self.valuation()
         return L[:n] + [zero] * (n - len(L))
 
+    def _ext_p_list(self, pos):
+        if pos:
+            return self.unit_part().list('simple')
+        else:
+            return self.unit_part().list('smallest')
+
     cpdef pAdicTemplateElement unit_part(self):
         """
         Returns the unit part of this element.

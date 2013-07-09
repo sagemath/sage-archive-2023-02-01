@@ -36,7 +36,7 @@ from sage.rings.infinity import infinity
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 # The following Integer is used so that the functions here don't need to initialize an mpz_t.
-cdef Integer tmp = PY_NEW(Integer)
+cdef Integer temp = PY_NEW(Integer)
 
 include "sage/libs/pari/decl.pxi"
 include "sage/ext/python.pxi"
@@ -95,13 +95,13 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
     if PY_TYPE_CHECK(x, Integer):
         if mpz_sgn((<Integer>x).value) == 0:
             return maxordp
-        k = mpz_remove(tmp.value, (<Integer>x).value, prime_pow.prime.value)
+        k = mpz_remove(temp.value, (<Integer>x).value, prime_pow.prime.value)
     elif PY_TYPE_CHECK(x, Rational):
         if mpq_sgn((<Rational>x).value) == 0:
             return maxordp
-        k = mpz_remove(tmp.value, mpq_numref((<Rational>x).value), prime_pow.prime.value)
+        k = mpz_remove(temp.value, mpq_numref((<Rational>x).value), prime_pow.prime.value)
         if k == 0:
-            k = -mpz_remove(tmp.value, mpq_denref((<Rational>x).value), prime_pow.prime.value)
+            k = -mpz_remove(temp.value, mpq_denref((<Rational>x).value), prime_pow.prime.value)
     elif PyList_Check(x) or PyTuple_Check(x):
         f = prime_pow.f
         if (e == 1 and len(x) > f) or (e != 1 and len(x) > e):
@@ -136,7 +136,7 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
         value = <Integer>x.lift()
         if mpz_sgn(value.value) == 0:
             return maxordp
-        k = mpz_remove(tmp.value, value.value, prime_pow.prime.value)
+        k = mpz_remove(temp.value, value.value, prime_pow.prime.value)
     else:
         raise TypeError("Unsupported type")
     # Should check for overflow
@@ -201,8 +201,8 @@ cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
         # since get_ordp has been called typ(x.g) == t_PADIC
         k = valp(pari_tmp) + precp(pari_tmp)
     elif sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
-        k = mpz_remove(tmp.value, (<Integer>x.modulus()).value, prime_pow.prime.value)
-        if mpz_cmp_ui(tmp.value, 1) != 0:
+        k = mpz_remove(temp.value, (<Integer>x.modulus()).value, prime_pow.prime.value)
+        if mpz_cmp_ui(temp.value, 1) != 0:
             raise TypeError("cannot coerce from the given integer mod ring (not a power of the same prime)")
     else:
         raise RuntimeError
@@ -331,8 +331,8 @@ cdef inline long cconv_mpq_t_shared(mpz_t out, mpq_t x, long prec, bint absolute
         denval = mpz_remove(out, mpq_denref(x), prime_pow.prime.value)
         mpz_invert(out, out, prime_pow.pow_mpz_t_tmp(prec)[0])
         if denval == 0:
-            numval = mpz_remove(tmp.value, mpq_numref(x), prime_pow.prime.value)
-            mpz_mul(out, out, tmp.value)
+            numval = mpz_remove(temp.value, mpq_numref(x), prime_pow.prime.value)
+            mpz_mul(out, out, temp.value)
         else:
             numval = 0
             mpz_mul(out, out, mpq_numref(x))
@@ -400,8 +400,8 @@ cdef inline int cconv_shared(mpz_t out, x, long prec, long valshift, PowComputer
             mpz_mul(out, out, mpq_numref((<Rational>x).value))
         else:
             mpz_invert(out, mpq_denref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(prec)[0])
-            mpz_divexact(tmp.value, mpq_numref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(valshift)[0])
-            mpz_mul(out, out, tmp.value)
+            mpz_divexact(temp.value, mpq_numref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(valshift)[0])
+            mpz_mul(out, out, temp.value)
         mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec)[0])
     else:
         raise NotImplementedError("No conversion defined")

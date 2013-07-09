@@ -56,6 +56,7 @@ cdef class PowComputer_class(SageObject):
         self.in_field = in_field
         self.cache_limit = cache_limit
         self.prec_cap = prec_cap
+        self.ram_prec_cap = ram_prec_cap
 
     def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None, shift_seed=None):
         """

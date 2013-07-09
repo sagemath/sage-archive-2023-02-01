@@ -129,3 +129,6 @@ cdef extern from "flint/fmpz_poly.h":
 
     void fmpz_poly_scalar_mod_fmpz(fmpz_poly_t poly1, fmpz_poly_t poly2, fmpz_t x)
     void fmpz_poly_scalar_fdiv_fmpz(fmpz_poly_t poly1, fmpz_poly_t poly2, fmpz_t x)
+
+    int fmpz_poly_is_one(fmpz_poly_t op)
+    int fmpz_poly_is_zero(fmpz_poly_t op)

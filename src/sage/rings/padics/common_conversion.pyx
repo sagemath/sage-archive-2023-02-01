@@ -103,7 +103,7 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
             k = -mpz_remove(tmp.value, mpq_denref((<Rational>x).value), prime_pow.prime.value)
     elif PyList_Check(x) or PyTuple_Check(x):
         f = prime_pow.f
-        if (e == 1 and len(a) > f) or (e != 1 and len(a) > e):
+        if (e == 1 and len(x) > f) or (e != 1 and len(x) > e):
             # could reduce modulo the defining polynomial but that isn't currently supported
             raise ValueError("List too long")
         k = maxordp
@@ -115,10 +115,10 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
                 for b in a:
                     if PyList_Check(b) or PyTuple_Check(b):
                         raise ValueError("list nesting too deep")
-                    curterm = get_val(b, prime_pow)
+                    curterm = get_ordp(b, prime_pow)
                     k = min(k, curterm + shift)
             else:
-                curterm = get_val(a, prime_pow)
+                curterm = get_ordp(a, prime_pow)
                 k = min(k, curterm + shift)
             if e != 1: shift += 1
         # We don't want to multiply by e again.

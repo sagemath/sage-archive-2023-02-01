@@ -146,12 +146,18 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         if self._moduli == NULL:
             raise MemoryError
         self._initialized = 3
-        sig_on()
-        self._inv_an = <fmpz_t*>sage_malloc(sizeof(fmpz_t) * (cache_limit + 2))
-        sig_off()
-        if self._inv_an == NULL:
-            raise MemoryError
+        fmpz_init(self._an)
         self._initialized = 4
+        fmpz_poly_get_coeff_fmpz(self._an, self.modulus, self.deg)
+        if fmpz_is_one(self._an):
+            self.is_monic = True
+        else:
+            sig_on()
+            self._inv_an = <fmpz_t*>sage_malloc(sizeof(fmpz_t) * (cache_limit + 2))
+            sig_off()
+            if self._inv_an == NULL:
+                raise MemoryError
+        self._initialized = 5
 
         cdef Py_ssize_t i
         cdef fmpz* coeffs = (<fmpz_poly_struct*>self.modulus)[0].coeffs
@@ -162,16 +168,17 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
             self._initialized += 1
             _fmpz_vec_scalar_mod_fmpz((<fmpz_poly_struct*>self._moduli[i])[0].coeffs, coeffs, length, self.ftmp)
             _fmpz_poly_set_length(self._moduli[i], length)
-            fmpz_init(self._inv_an[i])
+            if not self.is_monic:
+                fmpz_init(self._inv_an[i])
+                # Could use Newton lifting here
+                fmpz_invmod(self._inv_an[i], self._an, self.pow_fmpz_t_tmp(i)[0])
             self._initialized += 1
-            fmpz_poly_get_coeff_fmpz(self._inv_an[i], self.modulus, self.deg)
-            # Could use Newton lifting here
-            fmpz_invmod(self._inv_an[i], self._inv_an[i], self.pow_fmpz_t_tmp(i)[0])
         # We use cache_limit + 1 as a temporary holder
         fmpz_poly_init2(self._moduli[cache_limit+1], length)
-        self._initialized += 1
         _fmpz_poly_set_length(self._moduli[cache_limit+1], length)
-        fmpz_init(self._inv_an[cache_limit+1])
+        self._initialized += 1
+        if not self.is_monic:
+            fmpz_init(self._inv_an[cache_limit+1])
         self._initialized += 1
 
     def __dealloc__(self):
@@ -190,10 +197,11 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         if init > 1: fmpz_poly_clear(self.tmp_poly)
         cdef Py_ssize_t i
         for i from 1 <= i <= self.cache_limit+1:
-            if init >= 2+2*i: fmpz_poly_clear(self._moduli[i])
-            if init >= 3+2*i: fmpz_clear(self._inv_an[i])
+            if init >= 3+2*i: fmpz_poly_clear(self._moduli[i])
+            if init >= 4+2*i and not self.is_monic: fmpz_clear(self._inv_an[i])
         if init > 2: sage_free(self._moduli)
-        if init > 3: sage_free(self._inv_an)
+        if init > 3: fmpz_clear(self._an)
+        if init > 4 and not self.is_monic: sage_free(self._inv_an)
 
     def _repr_(self):
         """
@@ -230,41 +238,43 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         #return cmp(self.polynomial(), other.polynomial())
         return 1
 
-    cdef fmpz_poly_t* get_modulus(self, unsigned long n):
+    cdef fmpz_poly_t* get_modulus(self, unsigned long k):
         """
-        Returns the defining polynomial reduced modulo `p^n`.
+        Returns the defining polynomial reduced modulo `p^k`.
 
         The same warnings apply as for
         :meth:`sage.rings.padics.pow_computer.PowComputer_class.pow_mpz_t_tmp`.
         """
         cdef long c
-        if n == 0: raise RuntimeError
-        if n <= self.cache_limit:
-            return &(self._moduli[n])
+        if k <= self.cache_limit:
+            return &(self._moduli[k])
         else:
             c = self.cache_limit+1
             _fmpz_vec_scalar_mod_fmpz((<fmpz_poly_struct*>self._moduli[c])[0].coeffs,
                                       (<fmpz_poly_struct*>self.modulus)[0].coeffs,
                                       self.deg + 1,
-                                      self.pow_fmpz_t_tmp(n)[0])
+                                      self.pow_fmpz_t_tmp(k)[0])
             return &(self._moduli[c])
 
-    cdef fmpz_poly_t* get_modulus_capdiv(self, unsigned long n):
+    cdef fmpz_poly_t* get_modulus_capdiv(self, unsigned long k):
         """
-        Returns the defining polynomial reduced modulo `p^k`, where
-        `k` is the ceiling of `n/e`.
+        Returns the defining polynomial reduced modulo `p^a`, where
+        `a` is the ceiling of `k/e`.
 
         The same warnings apply as for
         :meth:`sage.rings.padics.pow_computer.PowComputer_class.pow_mpz_t_tmp`.
         """
-        return self.get_modulus(self.capdiv(n))
+        return self.get_modulus(self.capdiv(k))
 
     cdef fmpz_poly_t* get_inv_an(self, unsigned long k):
         """
+        Returns the inverse of the leading coefficient modulo `p^k`.
 
+        The same warnings apply as for
+        :meth:`sage.rings.padics.pow_computer.PowComputer_class.pow_mpz_t_tmp`.
         """
         cdef long c
-        if k == 0: raise RuntimeError
+        if self.is_monic: return &(self._an)
         if k <= self.cache_limit:
             return &(self._inv_an[k])
         else:
@@ -275,6 +285,14 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
             return &(self._inv_an[c])
 
     cdef fmpz_poly_t* get_inv_an_capdiv(self, unsigned long k):
+        """
+        Returns the inverse of the leading coefficient modulo `p^k`, where
+        `k` is the ceiling of `n/e`.
+
+        The same warnings apply as for
+        :meth:`sage.rings.padics.pow_computer.PowComputer_class.pow_mpz_t_tmp`.
+        """
+        if self.is_monic: return &(self._an)
         return self.get_inv_an(self.capdiv(k))
 
     def polynomial(self, _n=None, var='x'):

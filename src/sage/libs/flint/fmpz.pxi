@@ -12,6 +12,8 @@ cdef extern from "flint/fmpz.h":
     void fmpz_set_si(fmpz_t res, long x)
     void fmpz_one(fmpz_t f)
 
+    int fmpz_cmp(fmpz_t f, fmpz_t g)
+
     void fmpz_clear(fmpz_t f)
     void fmpz_print(fmpz_t f)
     int fmpz_is_one(fmpz_t f)

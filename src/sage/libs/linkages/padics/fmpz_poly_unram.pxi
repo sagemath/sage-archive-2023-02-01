@@ -36,7 +36,7 @@ cdef inline int cdestruct(celement value, PowComputer_class prime_pow) except -1
     """
     fmpz_poly_clear(value)
 
-cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint reduce_b, PowComputer_class prime_pow) except -2:
+cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint reduce_b, PowComputer_class prime_pow_) except -2:
     """
     Comparison of two elements.
 
@@ -57,7 +57,25 @@ cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint redu
     - If at least one needs to be reduced, returns
       0 (if ``a == b mod p^prec``) or 1 (otherwise)
     """
-    raise NotImplementedError
+    cdef PowComputer_flint_unram prime_pow = <PowComputer_flint_unram>prime_pow_
+    cdef long cmp
+
+    if reduce_a or reduce_b:
+        csub(prime_pow.tmp_poly, a, b, prec, prime_pow)
+        creduce(prime_pow.tmp_poly, prime_pow.tmp_poly, prec, prime_pow)
+        return not ciszero(prime_pow.tmp_poly, prime_pow)
+
+    cdef long da = fmpz_poly_degree(a)
+    cdef long db = fmpz_poly_degree(b)
+    if da < db: return -1
+    elif da > db: return 1
+    for i from 0 <= i <= da:
+        fmpz_poly_get_coeff_fmpz(prime_pow.ftmp, a, i)
+        fmpz_poly_get_coeff_fmpz(prime_pow.ftmp2, b, i)
+        cmp = fmpz_cmp(prime_pow.ftmp, prime_pow.ftmp2)
+        if cmp < 0: return -1
+        elif cmp > 0: return 1
+    return 0
 
 cdef inline int cneg(celement out, celement a, long prec, PowComputer_class prime_pow) except -1:
     """

@@ -560,8 +560,15 @@ cdef int cconv(celement out, x, long prec, long valshift, PowComputer_class prim
 
     - ``prime_pow`` -- a PowComputer for the ring.
     """
-    cconv_shared(prime_pow.temp_m, x, prec, valshift, prime_pow)
-    fmpz_poly_set_mpz(out, prime_pow.temp_m)
+    if PY_TYPE_CHECK(x, list):
+        if len(x) > prime_pow.deg:
+            raise ValueError
+        for i from 0 <= i < prime_pow.deg:
+            fmpz_poly_set_mpz(out, x[i], i)
+        creduce(out, out, prec, prime_pow)
+    else:
+        cconv_shared(prime_pow.temp_m, x, prec, valshift, prime_pow)
+        fmpz_poly_set_mpz(out, prime_pow.temp_m)
 
 cdef inline long cconv_mpq_t(celement out, celement x, long prec, bint absolute, PowComputer_class prime_pow) except? -10000:
     """

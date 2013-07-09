@@ -176,9 +176,10 @@ cdef inline long cremove(celement out, celement a, long prec, PowComputer_ prime
     if ciszero(a, prime_pow):
         return prec
     cdef long ret = cvaluation(a, prec, prime_pow)
-    sig_on()
-    fmpz_poly_scalar_divexact_fmpz(out, a, (<PowComputer_flint_unram>prime_pow).pow_fmpz_t_tmp(ret)[0])
-    sig_off()
+    if ret:
+        sig_on()
+        fmpz_poly_scalar_divexact_fmpz(out, a, (<PowComputer_flint_unram>prime_pow).pow_fmpz_t_tmp(ret)[0])
+        sig_off()
     return ret
 
 cdef inline long cvaluation(celement a, long prec, PowComputer_ prime_pow) except -1:

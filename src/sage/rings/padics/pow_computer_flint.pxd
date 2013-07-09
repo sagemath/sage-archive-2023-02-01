@@ -19,7 +19,6 @@ cdef class PowComputer_flint(PowComputer_class):
     cdef unsigned long capdiv(self, unsigned long n)
 
 cdef class PowComputer_flint_1step(PowComputer_flint):
-    cdef unsigned long deg
     cdef fmpz_poly_t modulus
     cdef fmpz_poly_t tmp_poly
     cdef fmpz_poly_t* _moduli

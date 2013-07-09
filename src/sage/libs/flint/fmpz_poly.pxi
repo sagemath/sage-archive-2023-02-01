@@ -21,6 +21,7 @@ cdef extern from "flint/fmpz_poly.h":
     void fmpz_poly_truncate(fmpz_poly_t poly, unsigned long length)
 
     void fmpz_poly_set(fmpz_poly_t result, fmpz_poly_t poly)
+    void fmpz_poly_set_ui(fmpz_poly_t poly, unsigned long c)
     void fmpz_poly_zero(fmpz_poly_t poly)
     void fmpz_poly_set_coeff_si(fmpz_poly_t poly, unsigned long n, long x)
     void fmpz_poly_set_coeff_ui(fmpz_poly_t poly, unsigned long n, \
@@ -32,6 +33,7 @@ cdef extern from "flint/fmpz_poly.h":
     void fmpz_poly_get_coeff_mpz_read_only(mpz_t x, fmpz_poly_t poly, \
             unsigned long n)
     fmpz* fmpz_poly_get_coeff_ptr(fmpz_poly_t poly, unsigned long n)
+    void fmpz_poly_get_coeff_fmpz(fmpz_t x, fmpz_poly_t poly, long n)
 
     void fmpz_poly_get_nmod_poly(nmod_poly_t res, fmpz_poly_t poly)
 
@@ -83,6 +85,7 @@ cdef extern from "flint/fmpz_poly.h":
     int fmpz_poly_equal(fmpz_poly_t poly1, fmpz_poly_t poly2)
 
     int fmpz_poly_set_str(fmpz_poly_t poly, char* s)
+    void fmpz_poly_set_mpz(fmpz_poly_t poly, mpz_t c)
     char* fmpz_poly_get_str(fmpz_poly_t poly)
     void fmpz_poly_print(fmpz_poly_t poly)
     bint fmpz_poly_read(fmpz_poly_t poly)
@@ -117,3 +120,6 @@ cdef extern from "flint/fmpz_poly.h":
     void fmpz_poly_compose(fmpz_poly_t output, fmpz_poly_t f, fmpz_poly_t g)
 
     unsigned long fmpz_poly_max_limbs(fmpz_poly_t poly)
+
+    void fmpz_poly_scalar_mod_fmpz(fmpz_poly_t poly1, fmpz_poly_t poly2, fmpz_t x)
+    void fmpz_poly_scalar_fdiv_fmpz(fmpz_poly_t poly1, fmpz_poly_t poly2, fmpz_t x)

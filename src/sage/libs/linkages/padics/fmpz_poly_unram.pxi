@@ -451,7 +451,7 @@ cdef inline cpickle(celement a, PowComputer_class prime_pow):
 
     - a serializable object storing ``a``.
     """
-    raise NotImplementedError
+    return fmpz_poly_get_str(a).decode("UTF-8")
 
 cdef inline int cunpickle(celement out, x, PowComputer_class prime_pow) except -1:
     """
@@ -463,7 +463,9 @@ cdef inline int cunpickle(celement out, x, PowComputer_class prime_pow) except -
     - ``x`` -- the result of `meth`:cpickle.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    raise NotImplementedError
+    byte_string = x.encode("UTF-8")
+    cdef char* c_str = byte_string
+    fmpz_poly_set_str(out, c_str)
 
 cdef inline long chash(celement a, long ordp, long prec, PowComputer_class prime_pow) except -1:
     """

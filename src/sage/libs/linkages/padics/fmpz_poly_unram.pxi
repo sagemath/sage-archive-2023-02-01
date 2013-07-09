@@ -6,6 +6,7 @@ include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
 
 include "sage/flint/fmpz_poly.pxi"
+include "sage/flint/fmpz_mod_poly.pxi"
 
 from sage.rings.padics.pow_computer_flint cimport PowComputer_flint_unram
 
@@ -108,7 +109,7 @@ cdef inline int cadd(celement out, celement a, celement b, long prec, PowCompute
     """
     fmpz_poly_add(out, a, b)
 
-cdef inline bint creduce(celement out, celement a, long prec, PowComputer_class prime_pow) except -1:
+cdef inline bint creduce(celement out, celement a, long prec, PowComputer_class prime_pow_) except -1:
     """
     Reduce modulo a power of the maximal ideal.
 
@@ -123,8 +124,9 @@ cdef inline bint creduce(celement out, celement a, long prec, PowComputer_class 
 
     - returns True if the reduction is zero; False otherwise.
     """
-
-    fmpz_poly_scalar_mod_fmpz(out, a, (<PowComputer_flint_unram>prime_pow).pow_fmpz_t_tmp(prec)[0])
+    cdef PowComputer_flint_unram prime_pow = <PowComputer_flint_unram>prime_pow_
+    fmpz_poly_divrem(prime_pow.tmp_poly, out, a, prime_pow.get_modulus(prec)[0])
+    fmpz_poly_scalar_mod_fmpz(out, out, prime_pow.pow_fmpz_t_tmp(prec)[0])
     return ciszero(out, prime_pow)
 
 cdef inline bint creduce_small(celement out, celement a, long prec, PowComputer_class prime_pow) except -1:

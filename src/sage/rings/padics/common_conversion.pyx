@@ -62,7 +62,7 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
 
     - ``x`` -- data defining a new p-adic element: a Python int, an
       Integer, Rational, an element of Zp or Qp with the same prime, a
-      PARI p-adic element, or an IntegerMod.
+      PARI p-adic element, a list, a tuple, or an IntegerMod.
 
     - a PowComputer associated to a `p`-adic ring, which determines
       the prime and the ramification degree.
@@ -72,7 +72,7 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
     - a long, giving the valuation of the resulting `p`-adic element.
       If the input is zero, returns ``maxordp``
     """
-    cdef long k, n, p
+    cdef long k, n, p, curterm, shift, f, e = prime_pow.e
     cdef Integer value
     cdef GEN pari_tmp
     if PyInt_Check(x):
@@ -101,6 +101,28 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
         k = mpz_remove(tmp.value, mpq_numref((<Rational>x).value), prime_pow.prime.value)
         if k == 0:
             k = -mpz_remove(tmp.value, mpq_denref((<Rational>x).value), prime_pow.prime.value)
+    elif PyList_Check(x) or PyTuple_Check(x):
+        f = prime_pow.f
+        if (e == 1 and len(a) > f) or (e != 1 and len(a) > e):
+            # could reduce modulo the defining polynomial but that isn't currently supported
+            raise ValueError("List too long")
+        k = maxordp
+        shift = 0
+        for a in x:
+            if PyList_Check(a) or PyTuple_Check(a):
+                if e == 1 or f == 1:
+                    raise ValueError("nested lists not allowed for unramified and eisenstein extensions")
+                for b in a:
+                    if PyList_Check(b) or PyTuple_Check(b):
+                        raise ValueError("list nesting too deep")
+                    curterm = get_val(b, prime_pow)
+                    k = min(k, curterm + shift)
+            else:
+                curterm = get_val(a, prime_pow)
+                k = min(k, curterm + shift)
+            if e != 1: shift += 1
+        # We don't want to multiply by e again.
+        return k
     elif PY_TYPE_CHECK(x, pAdicGenericElement) and (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
         k = (<pAdicGenericElement>x).valuation_c()
     elif PY_TYPE_CHECK(x, pari_gen):
@@ -115,9 +137,9 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
             return maxordp
         k = mpz_remove(tmp.value, value.value, prime_pow.prime.value)
     else:
-        raise RuntimeError
+        raise TypeError("Unsupported type")
     # Should check for overflow
-    return k * prime_pow.e
+    return k * e
 
 cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
     """
@@ -139,7 +161,7 @@ cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
 
     - ``x`` -- data defining a new p-adic element: an Integer,
       Rational, an element of Zp or Qp with the same prime, a PARI
-      p-adic element, or an IntegerMod.
+      p-adic element, a list, a tuple, or an IntegerMod.
     - ``prime_pow`` -- the PowComputer for the ring into which ``x``
       is being converted.  This is used to determine the prime and the
       ramification degree.
@@ -149,11 +171,25 @@ cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
     - a long, giving the absolute precision modulo which the input is
       defined.  If the input is exact, returns ``maxordp``
     """
-    cdef long k
+    cdef long k, shift, e = prime_pow.e
     cdef Integer prec
     cdef GEN pari_tmp
     if PyInt_Check(x) or PY_TYPE_CHECK(x, Integer) or PY_TYPE_CHECK(x, Rational):
         return maxordp
+    elif PyList_Check(x) or PyTuple_Check(x):
+        k = maxordp
+        shift = 0
+        for a in x:
+            if PyList_Check(a) or PyTuple_Check(a):
+                for b in a:
+                    curterm = get_preccap(b, prime_pow)
+                    k = min(k, curterm + shift)
+            else:
+                curterm = get_preccap(a, prime_pow)
+                k = min(k, curterm + shift)
+            if e != 1: shift += 1
+        # We don't want to multiply by e again.
+        return k
     elif PY_TYPE_CHECK(x, pAdicGenericElement) and (<pAdicGenericElement>x)._is_base_elt(prime_pow.prime):
         if (<pAdicGenericElement>x)._is_exact_zero():
             return maxordp
@@ -169,7 +205,7 @@ cdef long get_preccap(x, PowComputer_class prime_pow) except? -10000:
             raise TypeError("cannot coerce from the given integer mod ring (not a power of the same prime)")
     else:
         raise RuntimeError
-    return k * prime_pow.e
+    return k * e
 
 cdef long comb_prec(iprec, long prec) except? -10000:
     """

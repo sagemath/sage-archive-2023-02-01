@@ -66,6 +66,12 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         if self._moduli == NULL:
             raise MemoryError
         self._initialized = 3
+        sig_on()
+        self._inv_an = <fmpz_t*>sage_malloc(sizeof(fmpz_t) * (cache_limit + 2))
+        sig_off()
+        if self._inv_an == NULL:
+            raise MemoryError
+        self._initialized = 4
 
         cdef Py_ssize_t i
         cdef fmpz* coeffs = (<fmpz_poly_struct*>self.modulus)[0].coeffs
@@ -76,10 +82,17 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
             self._initialized += 1
             _fmpz_vec_scalar_mod_fmpz((<fmpz_poly_struct*>self._moduli[i])[0].coeffs, coeffs, length, self.ftmp)
             _fmpz_poly_set_length(self._moduli[i], length)
+            fmpz_init(self._inv_an[i])
+            self._initialized += 1
+            fmpz_poly_get_coeff_fmpz(self._inv_an[i], self.modulus, self.deg)
+            # Could use Newton lifting here
+            fmpz_invmod(self._inv_an[i], self._inv_an[i], self.pow_fmpz_t_tmp(i)[0])
         # We use cache_limit + 1 as a temporary holder
         fmpz_poly_init2(self._moduli[cache_limit+1], length)
         self._initialized += 1
         _fmpz_poly_set_length(self._moduli[cache_limit+1], length)
+        fmpz_init(self._inv_an[cache_limit+1])
+        self._initialized += 1
 
     def __dealloc__(self):
         cdef int init = self._initialized
@@ -87,21 +100,41 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         if init > 1: fmpz_poly_clear(self.tmp_poly)
         cdef Py_ssize_t i
         for i from 1 <= i <= self.cache_limit+1:
-            if init >= 3+i: fmpz_poly_clear(self._moduli[i])
+            if init >= 2+2*i: fmpz_poly_clear(self._moduli[i])
+            if init >= 3+2*i: fmpz_clear(self._inv_an[i])
         if init > 2: sage_free(self._moduli)
+        if init > 3: sage_free(self._inv_an)
 
     cdef fmpz_poly_t* get_modulus(self, unsigned long n):
+        cdef long c
+        if n == 0: raise RuntimeError
         if n <= self.cache_limit:
             return &(self._moduli[n])
         else:
-            _fmpz_vec_scalar_mod_fmpz((<fmpz_poly_struct*>self._moduli[self.cache_limit+1])[0].coeffs,
+            c = self.cache_limit+1
+            _fmpz_vec_scalar_mod_fmpz((<fmpz_poly_struct*>self._moduli[c])[0].coeffs,
                                       (<fmpz_poly_struct*>self.modulus)[0].coeffs,
                                       self.deg + 1,
                                       self.pow_fmpz_t_tmp(n)[0])
-            return &(self._moduli[self.cache_limit+1])
+            return &(self._moduli[c])
 
     cdef fmpz_poly_t* get_modulus_capdiv(self, unsigned long n):
         return self.get_modulus(self.capdiv(n))
+
+    cdef fmpz_poly_t* get_inv_an(self, unsigned long k):
+        cdef long c
+        if k == 0: raise RuntimeError
+        if k <= self.cache_limit:
+            return &(self._inv_an[k])
+        else:
+            c = self.cache_limit+1
+            fmpz_poly_get_coeff_fmpz(self._inv_an[c], self.modulus, self.deg)
+            # Could use Newton lifting here
+            fmpz_invmod(self._inv_an[c], self._inv_an[c], self.pow_fmpz_t_tmp(i)[0])
+            return &(self._inv_an[c])
+
+    cdef fmpz_poly_t* get_inv_an_capdiv(self, unsigned long k):
+        return self.get_inv_an(self.capdiv(n))
 
     def polynomial(self, _n=None, var='x'):
         from sage.rings.all import ZZ

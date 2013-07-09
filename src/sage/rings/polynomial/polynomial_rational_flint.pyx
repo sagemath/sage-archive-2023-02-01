@@ -65,7 +65,7 @@ cdef inline bint _do_sig(fmpq_poly_t op):
     # the max limb size
     return fmpq_poly_length(op) > 0 and \
        (fmpq_poly_degree(op) > 1000 or
-        _fmpz_vec_max_limbs(fmpq_poly_numref(op), fmpq_poly_length(op)) > 1)
+        _fmpz_vec_max_limbs(<fmpz*>fmpq_poly_numref(op), fmpq_poly_length(op)) > 1)
 
 cdef class Polynomial_rational_flint(Polynomial):
     """

@@ -5,6 +5,8 @@
 #                                                                             #
 #                        http://www.gnu.org/licenses/                         #
 ###############################################################################
+include "fmpz_poly.pxi"
+include "fmpz.pxi"
 
 cdef extern from "gmp.h":
     ctypedef void * mpz_t
@@ -16,9 +18,6 @@ cdef extern from "flint/fmpq.h":
     void fmpq_clear(fmpq_t)
     void fmpq_get_mpq(mpq_t, fmpq_t)
     void fmpq_set_mpq(fmpq_t, mpq_t)
-
-cdef extern from "flint/fmpz_vec.h":
-    long _fmpz_vec_max_limbs(void * c, long n)
 
 cdef extern from "flint/fmpq_poly.h":
     ctypedef void * fmpz_t

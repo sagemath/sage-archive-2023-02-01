@@ -1425,6 +1425,23 @@ class Tableau(CombinatorialObject, Element):
 
         return res
 
+    def is_k_tableau(self, k):
+        r"""
+        Checks whether ``self`` is a valid weak `k`-tableau.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,2,3],[2,3],[3]])
+            sage: t.is_k_tableau(3)
+            True
+            sage: t = Tableau([[1,1,3],[2,2],[3]])
+            sage: t.is_k_tableau(3)
+            False
+        """
+        shapes = self.to_chain()
+        kshapes = [ la.k_conjugate(k) for la in shapes ]
+        return all( kshapes[i+1].contains(kshapes[i]) for i in range(len(shapes)-1) )
+
     def restrict(self, n):
         """
         Return the restriction of the (standard) tableau to `n`. If possible,

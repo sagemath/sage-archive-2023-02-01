@@ -274,7 +274,7 @@ cdef inline int cshift_notrunc(celement out, celement a, long n, long prec, PowC
         fmpz_poly_scalar_mul_fmpz(out, a, prime_pow.pow_fmpz_t_tmp(n)[0])
     elif n < 0:
         sig_on()
-        fmpz_poly_scalar_divexact_fmpz(out, a, prime_pow.pow_fmpz_t_tmp(-n)[0]) # ??
+        fmpz_poly_scalar_divexact_fmpz(out, a, prime_pow.pow_fmpz_t_tmp(-n)[0])
         sig_off()
     else:
         fmpz_poly_set(out, a)
@@ -517,12 +517,13 @@ cdef clist(celement a, long prec, bint pos, PowComputer_ prime_pow):
         j = 0
         while True:
             if fmpz_is_zero(prime_pow.ftmp): break
-            if len(ret) <= j: ret.append([])
-            while len(ret[j]) <= i: ret[j].append(0)
             digit = PY_NEW(Integer)
             fmpz_fdiv_qr(prime_pow.ftmp, prime_pow.ftmp2, prime_pow.ftmp, prime_pow.fprime)
-            fmpz_get_mpz(digit.value, prime_pow.ftmp2)
-            ret[j][i] =digit
+            if not fmpz_is_zero(prime_pow.ftmp2):
+                while len(ret) <= j: ret.append([])
+                while len(ret[j]) <= i: ret[j].append(0)
+                fmpz_get_mpz(digit.value, prime_pow.ftmp2)
+                ret[j][i] =digit
             j += 1
     return ret
 

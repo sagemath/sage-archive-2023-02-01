@@ -225,7 +225,8 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.connected_components_subgraphs` | Returns a list of connected components as graph objects.
     :meth:`~GenericGraph.connected_component_containing_vertex` | Returns a list of the vertices connected to vertex.
     :meth:`~GenericGraph.blocks_and_cut_vertices` | Computes the blocks and cut vertices of the graph.
-    :meth:=`~GenericGraph.is_cut_edge` | Returns True if the input edge is a cut-edge or a bridge.
+    :meth:`~GenericGraph.blocks_and_cuts_tree` | Computes the blocks-and-cuts tree of the graph.
+    :meth:`~GenericGraph.is_cut_edge` | Returns True if the input edge is a cut-edge or a bridge.
     :meth:`~GenericGraph.is_cut_vertex` | Returns True if the input vertex is a cut-vertex.
     :meth:`~GenericGraph.edge_cut` | Returns a minimum edge cut between vertices `s` and `t`
     :meth:`~GenericGraph.vertex_cut` | Returns a minimum vertex cut between non-adjacent vertices `s` and `t`
@@ -3871,6 +3872,7 @@ class GenericGraph(GenericGraph_pyx):
           We implement the algorithm proposed by Tarjan in [Tarjan72]_. The
           original version is recursive. We emulate the recursion using a stack.
 
+        .. SEEALSO:: :meth:`blocks_and_cuts_tree`
 
         EXAMPLES::
 
@@ -4004,6 +4006,55 @@ class GenericGraph(GenericGraph_pyx):
 
         return blocks,sorted(list(cut_vertices))
 
+    def blocks_and_cuts_tree(self):
+        """
+        Returns the blocks-and-cuts tree of ``self``.
+
+        This new graph has two different kinds of vertices, some
+        representing the blocks (type B) and some other the cut
+        vertices of the graph ``self`` (type C).
+
+        There is an edge between a vertex `u` of type B and a vertex
+        `v` of type C if the cut-vertex corresponding to `v` is in the
+        block corresponding to `u`.
+
+        The resulting graph is a tree, with the additional
+        characteristic property that the distance between two leaves
+        is even.
+
+        .. SEEALSO:: :meth:`blocks_and_cut_vertices`
+
+        EXAMPLES::
+
+            sage: T = graphs.KrackhardtKiteGraph().blocks_and_cuts_tree(); T
+            Graph on 5 vertices
+            sage: T.is_isomorphic(graphs.PathGraph(5))
+            True
+
+            sage: T = graphs.RandomTree(40).blocks_and_cuts_tree()
+            sage: T.is_tree()
+            True
+            sage: leaves = [v for v in T if T.degree(v) == 1]
+            sage: all(T.distance(u,v) % 2 == 0 for u in leaves for v in leaves)
+            True
+
+        REFERENCES:
+
+        .. [HarPri] F. Harary and G. Prins. The block-cutpoint-tree of
+           a graph. Publ. Math. Debrecen 13 1966 103-107.
+        .. [Gallai] T. Gallai, Elementare Relationen bezueglich der
+           Glieder und trennenden Punkte von Graphen, Magyar
+           Tud. Akad. Mat. Kutato Int. Kozl. 9 (1964) 235-236
+        """
+        from sage.graphs.graph import Graph
+        B, C = self.blocks_and_cut_vertices()
+        B = map(tuple, B)
+        G = Graph()
+        for bloc in B:
+            for c in bloc:
+                if c in C:
+                    G.add_edge(('B', bloc), ('C', c))
+        return G
 
     def is_cut_edge(self, u, v=None, label=None):
         """

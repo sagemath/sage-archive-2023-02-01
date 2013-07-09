@@ -546,7 +546,7 @@ cdef int cteichmuller(celement out, celement value, long prec, PowComputer_class
     """
     raise NotImplementedError
 
-cdef int cconv(celement out, x, long prec, long valshift, PowComputer_class prime_pow) except -2:
+cdef int cconv(celement out, x, long prec, long valshift, PowComputer_class prime_pow_) except -2:
     """
     Conversion from other Sage types.
 
@@ -564,11 +564,20 @@ cdef int cconv(celement out, x, long prec, long valshift, PowComputer_class prim
 
     - ``prime_pow`` -- a PowComputer for the ring.
     """
+    cdef PowComputer_flint_unram prime_pow = <PowComputer_flint_unram>prime_pow_
+    cdef long i
+    cdef long degree
+
     if PyList_Check(x):
-        if len(x) > prime_pow.deg:
-            raise ValueError
-        for i from 0 <= i < prime_pow.deg:
-            fmpz_poly_set_mpz(out, x[i], i)
+        for i from 0 <= i < len(x):
+            cconv(prime_pow.tmp_poly, x[i], prec, valshift, prime_pow)
+            degree = fmpz_poly_degree(prime_pow.tmp_poly)
+            if degree == -1: continue
+            elif degree == 0:
+                fmpz_poly_get_coeff_fmpz(prime_pow.ftmp, prime_pow.tmp_poly, 0)
+                fmpz_poly_set_coeff_fmpz(out, i, prime_pow.ftmp)
+            else:
+                raise ValueError
         creduce(out, out, prec, prime_pow)
     else:
         cconv_shared(prime_pow.temp_m, x, prec, valshift, prime_pow)

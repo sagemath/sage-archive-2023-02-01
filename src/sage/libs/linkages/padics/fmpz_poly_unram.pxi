@@ -401,7 +401,7 @@ cdef inline bint ciszero(celement a, PowComputer_class prime_pow) except -1:
     """
     return fmpz_poly_is_zero(a)
 
-cdef inline int cpow(celement out, celement a, mpz_t n, long prec, PowComputer_class prime_pow_) except -1:
+cdef inline int cpow(celement out, celement a, mpz_t n, long prec, PowComputer_class prime_pow) except -1:
     """
     Exponentiation.
 
@@ -413,19 +413,17 @@ cdef inline int cpow(celement out, celement a, mpz_t n, long prec, PowComputer_c
     - ``prec`` -- a long, the working absolute precision.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    cdef PowComputer_flint_unram prime_pow = <PowComputer_flint_unram>prime_pow_
-
     if mpz_sgn(n) < 0:
         raise NotImplementedError("negative exponent")
     elif mpz_sgn(n) == 0:
         csetone(out, prime_pow)
     elif mpz_even_p(n):
-        mpz_divexact_ui(prime_pow.ftmp, n, 2)
-        cpow(out, a, prime_pow.ftmp, prec, prime_pow)
+        mpz_divexact_ui(prime_pow.temp_m2, n, 2)
+        cpow(out, a, prime_pow.temp_m2, prec, prime_pow)
         fmpz_poly_sqr(out, out)
     else:
-        mpz_sub_ui(prime_pow.ftmp, n, 1)
-        cpow(out, a, prime_pow.ftmp, prec, prime_pow)
+        mpz_sub_ui(prime_pow.temp_m2, n, 1)
+        cpow(out, a, prime_pow.temp_m2, prec, prime_pow)
         fmpz_poly_mul(out, out, a)
 
     creduce(out, out, prec, prime_pow)
@@ -513,14 +511,14 @@ cdef clist(celement a, long prec, bint pos, PowComputer_class prime_pow_):
 
     ret = []
     cdef Integer digit
-    cdef long i
+    cdef long i,j
     for i from 0 <= i <= fmpz_poly_degree(a):
         fmpz_poly_get_coeff_fmpz(prime_pow.ftmp, a, i)
         j = 0
         while True:
             if fmpz_is_zero(prime_pow.ftmp): break
             if len(ret) <= j: ret.append([])
-            while len(ret[j]) <= i: ret[j].append([])
+            while len(ret[j]) <= i: ret[j].append(0)
             digit = PY_NEW(Integer)
             fmpz_fdiv_qr(prime_pow.ftmp, prime_pow.ftmp2, prime_pow.ftmp, prime_pow.fprime)
             fmpz_get_mpz(digit.value, prime_pow.ftmp2)
@@ -580,8 +578,8 @@ cdef int cconv(celement out, x, long prec, long valshift, PowComputer_class prim
                 raise ValueError
         creduce(out, out, prec, prime_pow)
     else:
-        cconv_shared(prime_pow.temp_m, x, prec, valshift, prime_pow)
-        fmpz_poly_set_mpz(out, prime_pow.temp_m)
+        cconv_shared(prime_pow.temp_m2, x, prec, valshift, prime_pow)
+        fmpz_poly_set_mpz(out, prime_pow.temp_m2)
 
 cdef inline long cconv_mpq_t(celement out, celement x, long prec, bint absolute, PowComputer_class prime_pow) except? -10000:
     """
@@ -604,8 +602,8 @@ cdef inline long cconv_mpq_t(celement out, celement x, long prec, bint absolute,
     - If ``absolute`` is False then returns the valuation that was
       extracted (``maxordp`` when `x = 0`).
     """
-    cconv_mpq_t_shared(prime_pow.temp_m, x, prec, absolute, prime_pow)
-    fmpz_poly_set_mpz(out, prime_pow.temp_m)
+    cconv_mpq_t_shared(prime_pow.temp_m2, x, prec, absolute, prime_pow)
+    fmpz_poly_set_mpz(out, prime_pow.temp_m2)
 
 cdef inline int cconv_mpq_t_out(mpq_t out, celement x, long valshift, long prec, PowComputer_class prime_pow) except -1:
     """
@@ -622,11 +620,11 @@ cdef inline int cconv_mpq_t_out(mpq_t out, celement x, long valshift, long prec,
     if degree > 0:
         raise ValueError
     elif degree == -1:
-        mpz_set_ui(prime_pow.temp_m, 0)
+        mpz_set_ui(prime_pow.temp_m2, 0)
     else:
-        fmpz_poly_get_coeff_mpz(prime_pow.temp_m, x, 0)
+        fmpz_poly_get_coeff_mpz(prime_pow.temp_m2, x, 0)
 
-    cconv_mpq_t_out_shared(out, prime_pow.temp_m, valshift, prec, prime_pow)
+    cconv_mpq_t_out_shared(out, prime_pow.temp_m2, valshift, prec, prime_pow)
 
 cdef inline long cconv_mpz_t(celement out, mpz_t x, long prec, bint absolute, PowComputer_class prime_pow) except -2:
     """
@@ -649,8 +647,8 @@ cdef inline long cconv_mpz_t(celement out, mpz_t x, long prec, bint absolute, Po
     - If ``absolute`` is False then returns the valuation that was
       extracted (``maxordp`` when `x = 0`).
     """
-    cconv_mpz_t_shared(prime_pow.temp_m, x, prec, absolute, prime_pow)
-    fmpz_poly_set_mpz(out, prime_pow.temp_m)
+    cconv_mpz_t_shared(prime_pow.temp_m2, x, prec, absolute, prime_pow)
+    fmpz_poly_set_mpz(out, prime_pow.temp_m2)
 
 cdef inline int cconv_mpz_t_out(mpz_t out, celement x, long valshift, long prec, PowComputer_class prime_pow) except -1:
     """
@@ -668,8 +666,8 @@ cdef inline int cconv_mpz_t_out(mpz_t out, celement x, long valshift, long prec,
     if degree > 0:
         raise ValueError
     elif degree == -1:
-        mpz_set_ui(prime_pow.temp_m, 0)
+        mpz_set_ui(prime_pow.temp_m2, 0)
     else:
-        fmpz_poly_get_coeff_mpz(prime_pow.temp_m, x, 0)
+        fmpz_poly_get_coeff_mpz(prime_pow.temp_m2, x, 0)
 
-    cconv_mpz_t_out_shared(out, prime_pow.temp_m, valshift, prec, prime_pow)
+    cconv_mpz_t_out_shared(out, prime_pow.temp_m2, valshift, prec, prime_pow)

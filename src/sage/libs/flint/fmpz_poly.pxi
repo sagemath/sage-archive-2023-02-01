@@ -95,6 +95,7 @@ cdef extern from "flint/fmpz_poly.h":
     void fmpz_poly_set_mpz(fmpz_poly_t poly, mpz_t c)
     char* fmpz_poly_get_str(fmpz_poly_t poly)
     void fmpz_poly_print(fmpz_poly_t poly)
+    void fmpz_poly_print_pretty(fmpz_poly_t poly, char* x)
     bint fmpz_poly_read(fmpz_poly_t poly)
 
     void fmpz_poly_pow(fmpz_poly_t output, fmpz_poly_t poly, \

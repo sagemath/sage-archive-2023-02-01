@@ -6,7 +6,7 @@ include "sage/libs/flint/padic.pxi"
 #from sage.libs.flint.ntl_interface cimport *
 from sage.rings.padics.pow_computer cimport PowComputer_class
 
-cdef class PowComputer_flint_base(PowComputer_class):
+cdef class PowComputer_flint(PowComputer_class):
     cdef padic_ctx_t ctx
     cdef fmpz_t fprime
     cdef fmpz_t ftmp
@@ -14,3 +14,12 @@ cdef class PowComputer_flint_base(PowComputer_class):
     cdef mpz_t top_power
 
     cdef fmpz_t* pow_fmpz_t_tmp(self, unsigned long n)
+
+cdef class PowComputer_flint_1step(PowComputer_flint):
+    cdef fmpz_poly_t modulus
+
+cdef class PowComputer_flint_unram(PowComputer_flint_1step):
+    pass
+
+cdef class PowComputer_flint_eis(PowComputer_flint_1step):
+    pass

@@ -1,7 +1,8 @@
 
 from sage.rings.integer cimport Integer
+from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint
 
-cdef class PowComputer_flint_base(PowComputer_class):
+cdef class PowComputer_flint(PowComputer_class):
     def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None, shift_seed=None):
         self._initialized = 0
         fmpz_init(self.fprime)
@@ -42,3 +43,7 @@ cdef class PowComputer_flint_base(PowComputer_class):
 
     cdef mpz_t* pow_mpz_t_top(self):
         return &self.top_power
+
+cdef class PowComputer_flint_1step(PowComputer_flint):
+    def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly, shift_seed=None):
+        fmpz_poly_set(self.modulus, (<Polynomial_integer_dense_flint?>poly).__poly)

@@ -1726,7 +1726,7 @@ ext_modules = [
     Extension('sage.rings.padics.pow_computer_flint',
               sources = ['sage/rings/padics/pow_computer_flint.pyx'],
               libraries = ["csage", "flint", "gmpxx", "gmp"],
-              include_dirs = [SAGE_INC + 'FLINT/'],
+              include_dirs = [SAGE_INC + 'flint/'],
               depends = flint_depends),
 
         ################################

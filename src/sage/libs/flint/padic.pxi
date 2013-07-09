@@ -1,6 +1,6 @@
 include "fmpz.pxi"
 
-cdef extern from "FLINT/padic.h":
+cdef extern from "flint/padic.h":
 
     ctypedef void * padic_t
     ctypedef void * padic_ctx_t

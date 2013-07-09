@@ -70,6 +70,7 @@ cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint redu
 
     cdef long da = fmpz_poly_degree(a)
     cdef long db = fmpz_poly_degree(b)
+    cdef long i
     if da < db: return -1
     elif da > db: return 1
     for i from 0 <= i <= da:
@@ -198,6 +199,7 @@ cdef inline long cvaluation(celement a, long prec, PowComputer_class prime_pow_)
         return prec
     cdef long ret = maxordp
     cdef long val
+    cdef long i
     fmpz_set_si(prime_pow.ftmp, prec)
     for i from 0 <= i <= fmpz_poly_degree(a):
         fmpz_poly_get_coeff_fmpz(prime_pow.ftmp2, a, i)
@@ -511,6 +513,7 @@ cdef clist(celement a, long prec, bint pos, PowComputer_class prime_pow_):
 
     ret = []
     cdef Integer digit
+    cdef long i
     for i from 0 <= i <= fmpz_poly_degree(a):
         fmpz_poly_get_coeff_fmpz(prime_pow.ftmp, a, i)
         j = 0

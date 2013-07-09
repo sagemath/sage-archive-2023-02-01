@@ -305,8 +305,9 @@ cdef class CRElement(pAdicTemplateElement):
         cdef CRElement ans = self._new_c()
         ans.relprec = self.relprec
         ans.ordp = self.ordp
-        cneg(ans.unit, self.unit, ans.relprec, ans.prime_pow)
-        creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
+        if ans.relprec != 0:
+            cneg(ans.unit, self.unit, ans.relprec, ans.prime_pow)
+            creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
         return ans
 
     cpdef ModuleElement _add_(self, ModuleElement _right):
@@ -332,8 +333,9 @@ cdef class CRElement(pAdicTemplateElement):
             # possibly decreasing if we got cancellation
             ans.ordp = self.ordp
             ans.relprec = min(self.relprec, right.relprec)
-            cadd(ans.unit, self.unit, right.unit, ans.relprec, ans.prime_pow)
-            ans._normalize()
+            if ans.relprec != 0:
+                cadd(ans.unit, self.unit, right.unit, ans.relprec, ans.prime_pow)
+                ans._normalize()
         else:
             if self.ordp > right.ordp:
                 # Addition is commutative, swap so self.ordp < right.ordp
@@ -344,9 +346,10 @@ cdef class CRElement(pAdicTemplateElement):
             ans = self._new_c()
             ans.ordp = self.ordp
             ans.relprec = min(self.relprec, tmpL + right.relprec)
-            cshift(ans.unit, right.unit, tmpL, ans.relprec, ans.prime_pow, False)
-            cadd(ans.unit, ans.unit, self.unit, ans.relprec, ans.prime_pow)
-            creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
+            if ans.relprec != 0:
+                cshift(ans.unit, right.unit, tmpL, ans.relprec, ans.prime_pow, False)
+                cadd(ans.unit, ans.unit, self.unit, ans.relprec, ans.prime_pow)
+                creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
         return ans
 
     cpdef ModuleElement _sub_(self, ModuleElement _right):
@@ -370,8 +373,9 @@ cdef class CRElement(pAdicTemplateElement):
             # possibly decreasing if we got cancellation
             ans.ordp = self.ordp
             ans.relprec = min(self.relprec, right.relprec)
-            csub(ans.unit, self.unit, right.unit, ans.relprec, ans.prime_pow)
-            ans._normalize()
+            if ans.relprec != 0:
+                csub(ans.unit, self.unit, right.unit, ans.relprec, ans.prime_pow)
+                ans._normalize()
         elif self.ordp < right.ordp:
             tmpL = right.ordp - self.ordp
             if tmpL > self.relprec:
@@ -379,9 +383,10 @@ cdef class CRElement(pAdicTemplateElement):
             ans = self._new_c()
             ans.ordp = self.ordp
             ans.relprec = min(self.relprec, tmpL + right.relprec)
-            cshift(ans.unit, right.unit, tmpL, ans.relprec, ans.prime_pow, False)
-            csub(ans.unit, self.unit, ans.unit, ans.relprec, ans.prime_pow)
-            creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
+            if ans.relprec != 0:
+                cshift(ans.unit, right.unit, tmpL, ans.relprec, ans.prime_pow, False)
+                csub(ans.unit, self.unit, ans.unit, ans.relprec, ans.prime_pow)
+                creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
         else:
             tmpL = self.ordp - right.ordp
             if tmpL > right.relprec:
@@ -389,9 +394,10 @@ cdef class CRElement(pAdicTemplateElement):
             ans = self._new_c()
             ans.ordp = right.ordp
             ans.relprec = min(right.relprec, tmpL + self.relprec)
-            cshift(ans.unit, self.unit, tmpL, ans.relprec, ans.prime_pow, False)
-            csub(ans.unit, ans.unit, right.unit, ans.relprec, ans.prime_pow)
-            creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
+            if ans.relprec != 0:
+                cshift(ans.unit, self.unit, tmpL, ans.relprec, ans.prime_pow, False)
+                csub(ans.unit, ans.unit, right.unit, ans.relprec, ans.prime_pow)
+                creduce(ans.unit, ans.unit, ans.relprec, ans.prime_pow)
         return ans
 
     def __invert__(self):

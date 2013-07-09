@@ -294,7 +294,7 @@ cdef class PowComputer_class(SageObject):
         mpz_set(ans.value, self.pow_mpz_t_top()[0])
         return ans
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Returns a string representation of self.
 

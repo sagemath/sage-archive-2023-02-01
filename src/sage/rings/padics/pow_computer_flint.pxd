@@ -27,8 +27,8 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
     cdef fmpz_poly_t* _moduli
     cdef fmpz_poly_t* get_modulus(self, unsigned long n)
     cdef fmpz_poly_t* get_modulus_capdiv(self, unsigned long n)
-    cdef fmpz_poly_t* get_inv_an(self, unsigned long k)
-    cdef fmpz_poly_t* get_inv_an_capdiv(self, unsigned long k)
+    cdef fmpz_t* get_inv_an(self, unsigned long k)
+    cdef fmpz_t* get_inv_an_capdiv(self, unsigned long k)
 
 cdef class PowComputer_flint_unram(PowComputer_flint_1step):
     pass

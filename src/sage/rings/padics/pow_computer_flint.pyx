@@ -266,7 +266,7 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         """
         return self.get_modulus(self.capdiv(k))
 
-    cdef fmpz_poly_t* get_inv_an(self, unsigned long k):
+    cdef fmpz_t* get_inv_an(self, unsigned long k):
         """
         Returns the inverse of the leading coefficient modulo `p^k`.
 
@@ -281,10 +281,10 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
             c = self.cache_limit+1
             fmpz_poly_get_coeff_fmpz(self._inv_an[c], self.modulus, self.deg)
             # Could use Newton lifting here
-            fmpz_invmod(self._inv_an[c], self._inv_an[c], self.pow_fmpz_t_tmp(i)[0])
+            fmpz_invmod(self._inv_an[c], self._inv_an[c], self.pow_fmpz_t_tmp(k)[0])
             return &(self._inv_an[c])
 
-    cdef fmpz_poly_t* get_inv_an_capdiv(self, unsigned long k):
+    cdef fmpz_t* get_inv_an_capdiv(self, unsigned long k):
         """
         Returns the inverse of the leading coefficient modulo `p^k`, where
         `k` is the ceiling of `n/e`.
@@ -296,6 +296,33 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         return self.get_inv_an(self.capdiv(k))
 
     def polynomial(self, _n=None, var='x'):
+        """
+        Returns the polynomial attached to this ``PowComputer``, possibly reduced modulo a power of `p`.
+
+        INPUT:
+
+        - ``_n`` -- (default ``None``) an integer, the power of `p`
+          modulo which to reduce.
+
+        - ``var`` -- (default ``'x'``) the variable for the returned polynomial
+
+        .. NOTE::
+
+            From Cython you should use :meth:`get_modulus` instead for
+            speed.
+
+        EXAMPLES::
+
+            sage: from sage.rings.padics.pow_computer_flint import PowComputer_flint_maker
+            sage: R.<y> = ZZ[]; f = y^3 - 8*y - 2
+            sage: A = PowComputer_flint_maker(5, 20, 20, 20, False, f)
+            sage: A.polynomial()
+            x^3 - 8*x - 2
+            sage: A.polynomial(var='y')
+            y^3 - 8*y - 2
+            sage: A.polynomial(2)
+            x^3 + 17*x + 23
+        """
         from sage.rings.all import ZZ
         R = ZZ[var]
         x = R.gen()
@@ -307,6 +334,18 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         return ans
 
 cdef class PowComputer_flint_unram(PowComputer_flint_1step):
+    """
+    A PowComputer for a `p`-adic extension defined by an unramified polynomial.
+
+    For a description of inputs see :func:`PowComputer_flint_maker`.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.pow_computer_flint import PowComputer_flint_maker
+        sage: R.<x> = ZZ[]; f = x^3 - 8*x - 2
+        sage: A = PowComputer_flint_maker(5, 20, 20, 20, False, f); A
+        FLINT PowComputer for 5 with polynomial x^3 - 8*x - 2
+    """
     def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None):
         self.e = 1
         self.f = fmpz_poly_degree(self.modulus)

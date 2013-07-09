@@ -38,8 +38,8 @@ from sage.misc.misc import prod
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/cdefs.pxi'
 include 'sage/ext/stdsage.pxi'
-include 'sage/libs/flint/fmpz.pxi'
-include 'sage/libs/flint/fmpz_poly.pxi'
+from sage.libs.flint.fmpz_poly cimport *
+from sage.libs.flint.fmpz cimport fmpz
 
 x = polygen(ZZ, 'x')
 

@@ -1,4 +1,7 @@
-
+from sage.libs.flint.padic cimport *
+from sage.libs.flint.fmpz_poly cimport *
+from sage.libs.flint.nmod_vec cimport *
+from sage.libs.flint.fmpz_vec cimport *
 from sage.rings.integer cimport Integer
 from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint
 

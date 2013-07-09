@@ -5,8 +5,8 @@
 #                                                                             #
 #                        http://www.gnu.org/licenses/                         #
 ###############################################################################
-include "fmpz_poly.pxi"
-include "fmpz.pxi"
+from sage.libs.flint.fmpz_poly cimport *
+from sage.libs.flint.fmpz cimport *
 
 cdef extern from "gmp.h":
     ctypedef void * mpz_t

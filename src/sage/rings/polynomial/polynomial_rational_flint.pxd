@@ -7,10 +7,8 @@
 ###############################################################################
 
 include "sage/ext/cdefs.pxi"
-include "sage/libs/flint/fmpz.pxi"
-include "sage/libs/flint/fmpz_poly.pxi"
-include "sage/libs/flint/fmpq_poly.pxd"
 
+from sage.libs.flint.fmpq_poly cimport fmpq_poly_t
 from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.parent cimport Parent
 

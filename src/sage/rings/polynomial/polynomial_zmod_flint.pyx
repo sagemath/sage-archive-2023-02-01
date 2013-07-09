@@ -34,6 +34,8 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.libs.ntl.ntl_lzz_pX import ntl_zz_pX
+from sage.libs.flint.fmpz_poly cimport *
+from sage.libs.flint.nmod_poly cimport *
 from sage.structure.factorization import Factorization
 from sage.structure.element import coerce_binop, parent
 from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint
@@ -60,8 +62,6 @@ cdef extern from "zn_poly/zn_poly.h":
     cdef void zn_mod_init(zn_mod_struct *mod, unsigned long m)
     cdef void zn_mod_clear(zn_mod_struct *mod)
     cdef void zn_array_mul(unsigned long* res, unsigned long* op1, size_t n1, unsigned long* op2, size_t n2, zn_mod_struct *mod)
-
-include "sage/libs/flint/fmpz_poly.pxi"
 
 cdef class Polynomial_zmod_flint(Polynomial_template):
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):

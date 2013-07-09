@@ -1,11 +1,9 @@
 include "sage/ext/cdefs.pxi"
 include "sage/ext/interrupt.pxi"
-include "sage/libs/flint/fmpz.pxi"
-include "sage/libs/flint/fmpz_poly.pxi"
-include "sage/libs/flint/fmpz_vec.pxi"
-include "sage/libs/flint/padic.pxi"
 
-#from sage.libs.flint.ntl_interface cimport *
+from sage.libs.flint.padic cimport padic_ctx_t
+from sage.libs.flint.fmpz cimport fmpz_t
+from sage.libs.flint.fmpz_poly cimport fmpz_poly_t
 from sage.rings.padics.pow_computer cimport PowComputer_class
 
 cdef class PowComputer_flint(PowComputer_class):

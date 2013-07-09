@@ -8,6 +8,7 @@
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.libs.flint.fmpz cimport *
 
 cdef extern from "flint/fmpz_vec.h":
     #  Memory management  ******************************************************

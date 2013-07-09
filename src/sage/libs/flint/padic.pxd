@@ -7,9 +7,8 @@
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "fmpz.pxi"
-
 from sage.libs.flint.fmpq_poly cimport fmpq_t
+from sage.libs.flint.fmpz cimport *
 
 cdef extern from "flint/padic.h":
     ctypedef struct padic_struct:

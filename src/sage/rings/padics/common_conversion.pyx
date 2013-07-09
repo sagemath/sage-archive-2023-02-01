@@ -41,6 +41,7 @@ cdef Integer tmp = PY_NEW(Integer)
 include "sage/libs/pari/decl.pxi"
 include "sage/ext/python.pxi"
 include "sage/ext/stdsage.pxi"
+include "sage/ext/gmp.pxi"
 
 cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
     """

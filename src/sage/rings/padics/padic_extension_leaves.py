@@ -103,6 +103,10 @@ class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCap
             self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, False, Zpoly)
             element_class = qAdicCappedRelativeElement
         UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
+        if implementation != 'NTL':
+            from qadic_flint_CR import pAdicCoercion_ZZ_CR, pAdicConvert_QQ_CR
+            self.register_coercion(pAdicCoercion_ZZ_CR)
+            self.register_conversion(pAdicConvert_QQ_CR)
 
 class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCappedRelativeFieldGeneric):
     """
@@ -159,6 +163,10 @@ class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCa
             self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, True, Zpoly)
             element_class = qAdicCappedRelativeElement
         UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
+        if implementation != 'NTL':
+            from qadic_flint_CR import pAdicCoercion_ZZ_CR, pAdicCoercion_QQ_CR
+            self.register_coercion(pAdicCoercion_ZZ_CR)
+            self.register_coercion(pAdicCoercion_QQ_CR)
 
 #class UnramifiedExtensionRingLazy(UnramifiedExtensionGeneric, pAdicLazyRingGeneric):
 #    def __init__(self, poly, prec, halt, print_mode, names):

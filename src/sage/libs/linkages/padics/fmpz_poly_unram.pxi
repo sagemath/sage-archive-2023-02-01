@@ -130,8 +130,8 @@ cdef inline bint creduce(celement out, celement a, long prec, PowComputer_class 
     cdef PowComputer_flint_unram prime_pow = <PowComputer_flint_unram>prime_pow_
     sig_on()
     fmpz_poly_divrem(prime_pow.tmp_poly, out, a, prime_pow.get_modulus(prec)[0])
-    sig_off()
     fmpz_poly_scalar_mod_fmpz(out, out, prime_pow.pow_fmpz_t_tmp(prec)[0])
+    sig_off()
     return ciszero(out, prime_pow)
 
 cdef inline bint creduce_small(celement out, celement a, long prec, PowComputer_class prime_pow) except -1:
@@ -174,7 +174,9 @@ cdef inline long cremove(celement out, celement a, long prec, PowComputer_class 
     if ciszero(a, prime_pow):
         return prec
     cdef long ret = cvaluation(a, prec, prime_pow)
+    sig_on()
     fmpz_poly_scalar_divexact_fmpz(out, a, (<PowComputer_flint_unram>prime_pow).pow_fmpz_t_tmp(ret)[0])
+    sig_off()
     return ret
 
 cdef inline long cvaluation(celement a, long prec, PowComputer_class prime_pow_) except -1:
@@ -310,10 +312,12 @@ cdef inline int cinvert(celement out, celement a, long prec, PowComputer_class p
     """
     cdef PowComputer_flint_unram prime_pow = <PowComputer_flint_unram>prime_pow_
 
+    sig_on()
     fmpz_poly_realloc(out, prime_pow.deg)
     _fmpz_poly_set_length(out, prime_pow.deg)
     _fmpz_mod_poly_invmod(fmpz_poly_get_coeff_ptr(out, 0), fmpz_poly_get_coeff_ptr(a, 0), fmpz_poly_degree(a)+1, fmpz_poly_get_coeff_ptr(prime_pow.get_modulus(prec)[0], 0), prime_pow.deg+1, prime_pow.pow_fmpz_t_tmp(prec)[0])
     _fmpz_poly_normalise(out)
+    sig_off()
 
 cdef inline int cmul(celement out, celement a, celement b, long prec, PowComputer_class prime_pow) except -1:
     """

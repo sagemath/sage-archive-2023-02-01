@@ -39,6 +39,7 @@ cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
 cdef Integer tmp = PY_NEW(Integer)
 
 include "sage/libs/pari/decl.pxi"
+include "sage/ext/python.pxi"
 include "sage/ext/stdsage.pxi"
 
 cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:

@@ -368,7 +368,7 @@ cdef class CAElement(pAdicTemplateElement):
         cdef long relprec, val, rval
         cdef mpz_t tmp
         cdef Integer right
-        cdef CAElement base, pright, ans
+        cdef CAElement pright, ans
         cdef bint exact_exp
         if PY_TYPE_CHECK(_right, Integer) or isinstance(_right, (int, long)) \
                                           or PY_TYPE_CHECK(_right, Rational):

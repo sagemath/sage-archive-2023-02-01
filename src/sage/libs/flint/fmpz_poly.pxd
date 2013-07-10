@@ -388,4 +388,4 @@ cdef extern from "flint/fmpz_poly.h":
 
 from sage.structure.sage_object cimport SageObject
 cdef class Fmpz_poly(SageObject):
-	cdef fmpz_poly_t poly
+    cdef fmpz_poly_t poly

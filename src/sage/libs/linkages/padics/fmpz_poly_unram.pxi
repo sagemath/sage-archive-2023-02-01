@@ -31,7 +31,6 @@ from sage.rings.finite_rings.integer_mod_ring import Zmod
 
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
-from sage.libs.flint.fmpz_mod_poly cimport *
 
 cdef inline int cconstruct(celement value, PowComputer_ prime_pow) except -1:
     """

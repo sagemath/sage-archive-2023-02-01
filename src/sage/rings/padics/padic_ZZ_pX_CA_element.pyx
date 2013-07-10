@@ -1863,7 +1863,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             sage: W(0).list()
             [0]
             sage: A(0,4).list()
-            [[]]
+            []
         """
         if lift_mode == 'simple':
             ulist = self.ext_p_list(1)

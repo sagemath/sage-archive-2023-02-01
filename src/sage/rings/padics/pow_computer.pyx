@@ -86,7 +86,6 @@ cdef class PowComputer_class(SageObject):
             sage: PC.pow_Integer_Integer(2)
             9
         """
-        self._prec_type = None
         self.prime = prime
         self.in_field = in_field
         self.cache_limit = cache_limit

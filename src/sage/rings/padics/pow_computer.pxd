@@ -7,7 +7,7 @@ cdef class PowComputer_class(SageObject):
     cdef Integer prime
     cdef bint in_field
     cdef int __allocated
-	cdef public object _prec_type
+    cdef public object _prec_type
 
     # the following three should be set by the subclasses
     cdef long ram_prec_cap # = prec_cap * e

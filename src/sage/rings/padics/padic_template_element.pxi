@@ -28,7 +28,7 @@ include "sage/libs/pari/decl.pxi"
 include "sage/ext/python.pxi"
 
 import sage.rings.finite_rings.integer_mod
-from sage.rings.finite_rings.element_base
+from sage.rings.finite_rings import element_base
 from sage.libs.pari.gen cimport gen as pari_gen
 cdef extern from "convert.h":
     cdef void t_INT_to_ZZ( mpz_t value, GEN g )

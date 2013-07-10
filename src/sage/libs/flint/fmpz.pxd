@@ -7,7 +7,7 @@
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-include "sage/ntl/decl.pxi"
+include "sage/libs/ntl/decl.pxi"
 
 from sage.libs.flint.nmod_poly cimport *
 from sage.libs.flint.flint cimport *

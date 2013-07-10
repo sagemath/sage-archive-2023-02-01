@@ -409,8 +409,18 @@ cdef inline int cconv_shared(mpz_t out, x, long prec, long valshift, PowComputer
             mpz_divexact(temp.value, mpq_numref((<Rational>x).value), prime_pow.pow_mpz_t_tmp(valshift)[0])
             mpz_mul(out, out, temp.value)
         mpz_mod(out, out, prime_pow.pow_mpz_t_tmp(prec)[0])
+    elif PY_TYPE_CHECK(x, list):
+        if valshift == 0:
+            if len(x) == 0:
+                cconv_shared(out, Integer(0), prec, valshift, prime_pow)
+            elif len(x) == 1:
+                cconv_shared(out, x[0], prec, valshift, prime_pow)
+            else:
+                raise NotImplementedError("conversion not implemented from non-prime residue field")
+        else:
+            raise NotImplementedError
     else:
-        raise NotImplementedError("No conversion defined")
+        raise NotImplementedError("No conversion defined for %s which is a %s in %s"%(x,type(x),x.parent() if hasattr(x,"parent") else "no parent"))
 
 cdef inline long cconv_mpz_t_shared(mpz_t out, mpz_t x, long prec, bint absolute, PowComputer_class prime_pow) except -2:
     """

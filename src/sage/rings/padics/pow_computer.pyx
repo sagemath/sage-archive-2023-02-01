@@ -44,7 +44,7 @@ cdef long maxpreccap = (1L << (sizeof(long) * 8 - 2)) - 1
 cdef class PowComputer_class(SageObject):
     def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None, shift_seed=None):
         """
-        Creates a new PowComputer_class.
+        Memory allocation.
 
         EXAMPLES::
 
@@ -52,11 +52,10 @@ cdef class PowComputer_class(SageObject):
             sage: PC.pow_Integer_Integer(2)
             9
         """
-        self.prime = prime
-        self.in_field = in_field
-        self.cache_limit = cache_limit
-        self.prec_cap = prec_cap
-        self.ram_prec_cap = ram_prec_cap
+        sig_on()
+        mpz_init(self.temp_m)
+        sig_off()
+        self.__allocated = 1
 
     def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None, shift_seed=None):
         """
@@ -87,7 +86,11 @@ cdef class PowComputer_class(SageObject):
             sage: PC.pow_Integer_Integer(2)
             9
         """
-        self._initialized = 1
+        self.prime = prime
+        self.in_field = in_field
+        self.cache_limit = cache_limit
+        self.prec_cap = prec_cap
+        self.ram_prec_cap = ram_prec_cap
 
     def __cmp__(self, other):
         """
@@ -413,40 +416,68 @@ cdef class PowComputer_class(SageObject):
 cdef class PowComputer_base(PowComputer_class):
     def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None, shift_seed=None):
         """
-        Initializes a PowComputer_base.
+        Allocates a PowComputer_base.
 
         EXAMPLES::
 
             sage: PC = PowComputer(5, 7, 10)
             sage: PC(3)
             125
+
         """
-        (<PowComputer_class>self)._initialized = 0
+        cdef Py_ssize_t i
+
         sig_on()
         self.small_powers = <mpz_t *>sage_malloc(sizeof(mpz_t) * (cache_limit + 1))
-        sig_off()
         if self.small_powers == NULL:
             raise MemoryError, "out of memory allocating power storing"
-        mpz_init(self.top_power)
-        mpz_init(self.temp_m)
-        mpz_init(self.temp_m2)
+        try:
+            mpz_init(self.top_power)
+            try:
+                for i from 0 <= i <= cache_limit:
+                    try:
+                        mpz_init(self.small_powers[i])
+                    except:
+                        while i:
+                            i-=1
+                            mpz_clear(self.small_powers[i])
+                        raise
+            except:
+                mpz_clear(self.top_power)
+                raise
+        except:
+            sage_free(self.small_powers)
+            raise
+        sig_off()
+
+        self.__allocated = 2
+
+    def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None, shift_seed=None):
+        """
+        Initialization.
+
+        TESTS::
+
+            sage: PC = PowComputer(5, 7, 10)
+            sage: PC(3)
+            125
+
+        """
+        PowComputer_class.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, shift_seed)
 
         cdef Py_ssize_t i
         cdef Integer x
 
-        mpz_init_set_ui(self.small_powers[0], 1)
+        mpz_set_ui(self.small_powers[0], 1)
         if cache_limit > 0:
-            mpz_init_set(self.small_powers[1], prime.value)
-
+            mpz_set(self.small_powers[1], prime.value)
         for i from 2 <= i <= cache_limit:
-            mpz_init(self.small_powers[i])
             mpz_mul(self.small_powers[i], self.small_powers[i - 1], prime.value)
         mpz_pow_ui(self.top_power, prime.value, prec_cap)
         self.deg = 1
         self.e = 1
         self.f = 1
         self.ram_prec_cap = prec_cap
-        (<PowComputer_class>self)._initialized = 1
 
     def __dealloc__(self):
         """
@@ -460,13 +491,13 @@ cdef class PowComputer_base(PowComputer_class):
             PowComputer for 5
         """
         cdef Py_ssize_t i
-        if (<PowComputer_class>self)._initialized:
+
+        if self.__allocated >= 2:
             for i from 0 <= i <= self.cache_limit:
                 mpz_clear(self.small_powers[i])
-            sage_free(self.small_powers)
             mpz_clear(self.top_power)
             mpz_clear(self.temp_m)
-            mpz_clear(self.temp_m2)
+            sage_free(self.small_powers)
 
     def __reduce__(self):
         """
@@ -581,4 +612,3 @@ def PowComputer(m, cache_limit, prec_cap, in_field = False, prec_type=None):
     if not PY_TYPE_CHECK(prec_cap, Integer):
         prec_cap = Integer(prec_cap)
     return PowComputer_c(m, cache_limit, prec_cap, in_field, prec_type)
-

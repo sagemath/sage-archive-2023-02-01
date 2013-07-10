@@ -116,7 +116,6 @@ cdef class PowComputer_flint(PowComputer_class):
         but with FLINT ``fmpz_t`` rather than GMP ``mpz_t``.  The same
         important warnings apply.
         """
-        if n == 0: raise RuntimeError
         cdef padic_ctx_struct ctx = (<padic_ctx_struct*>self.ctx)[0]
         if ctx.min <= n and n < ctx.max:
             self._fpow_array[0] = (ctx.pow + (n - ctx.min))[0]
@@ -133,7 +132,6 @@ cdef class PowComputer_flint(PowComputer_class):
         :meth:`sage.rings.padics.pow_computer.PowComputer_class.pow_mpz_t_tmp`
         for important warnings.
         """
-        if n == 0: raise RuntimeError
         fmpz_get_mpz(self.temp_m, self.pow_fmpz_t_tmp(n)[0])
         return &(self.temp_m)
 

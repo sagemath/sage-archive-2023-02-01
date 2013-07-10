@@ -3,6 +3,7 @@ from sage.libs.flint.fmpz_poly cimport *
 from sage.libs.flint.nmod_vec cimport *
 from sage.libs.flint.fmpz_vec cimport *
 from sage.rings.integer cimport Integer
+from sage.rings.all import ZZ
 from sage.rings.polynomial.polynomial_integer_dense_flint cimport Polynomial_integer_dense_flint
 
 cdef class PowComputer_flint(PowComputer_class):
@@ -368,7 +369,6 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
             sage: A.polynomial(2)
             x^3 + 17*x + 23
         """
-        from sage.rings.all import ZZ
         R = ZZ[var]
         x = R.gen()
         cdef Polynomial_integer_dense_flint ans = (<Polynomial_integer_dense_flint?>x)._new()
@@ -376,6 +376,17 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
             fmpz_poly_set(ans.__poly, self.modulus)
         else:
             fmpz_poly_set(ans.__poly, self.get_modulus(_n)[0])
+        return ans
+
+    cdef _new_fmpz_poly(self, fmpz_poly_t value, var='x'):
+        """
+        Returns a polynomial with the value stored in ``value`` and
+        variable name ``var``.
+        """
+        R = ZZ[var]
+        x = R.gen()
+        cdef Polynomial_integer_dense_flint ans = (<Polynomial_integer_dense_flint?>x)._new()
+        fmpz_poly_set(ans.__poly, value)
         return ans
 
 cdef class PowComputer_flint_unram(PowComputer_flint_1step):
@@ -428,16 +439,21 @@ cdef class PowComputer_flint_unram(PowComputer_flint_1step):
                         try:
                             fmpz_poly_init(self.poly_cinv2)
                             try:
-                                mpz_init(self.mpz_cpow)
+                                fmpz_poly_init(self.poly_flint_rep)
                                 try:
-                                    mpz_init(self.mpz_ctm)
+                                    mpz_init(self.mpz_cpow)
                                     try:
-                                        mpz_init(self.mpz_cconv)
+                                        mpz_init(self.mpz_ctm)
+                                        try:
+                                            mpz_init(self.mpz_cconv)
+                                        except:
+                                            mpz_clear(self.mpz_ctm)
+                                            raise
                                     except:
-                                        mpz_clear(self.mpz_ctm)
+                                        mpz_clear(self.mpz_cpow)
                                         raise
                                 except:
-                                    mpz_clear(self.mpz_cpow)
+                                    fmpz_poly_clear(self.poly_flint_rep)
                                     raise
                             except:
                                 fmpz_poly_clear(self.poly_cinv2)

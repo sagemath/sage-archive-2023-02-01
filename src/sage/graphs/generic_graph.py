@@ -13108,11 +13108,18 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        -  ``verbose_relabel`` - (defaults to True) If True, each vertex v
-           in the first graph will be changed to '0,v' and each vertex u
-           in the second graph will be changed to '1,u'. If False, the
-           vertices of the first graph and the second graph will be
-           relabeled with consecutive integers.
+        - ``verbose_relabel`` - (defaults to True) If True, each
+           vertex v in the first graph will be named '0,v' and each
+           vertex u in the second graph will be named '1,u' in the
+           final graph. If False, the vertices of the first graph and
+           the second graph will be relabeled with consecutive
+           integers.
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.generic_graph.GenericGraph.union`
+
+            * :meth:`~Graph.join`
 
         EXAMPLES::
 
@@ -13163,6 +13170,12 @@ class GenericGraph(GenericGraph_pyx):
 
         If the graphs have common vertices, the common vertices will be
         identified.
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.generic_graph.GenericGraph.disjoint_union`
+
+            * :meth:`~Graph.join`
 
         EXAMPLES::
 

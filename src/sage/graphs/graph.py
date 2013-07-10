@@ -204,7 +204,7 @@ AUTHORS:
 - Birk Eisermann (2012-06): added recognition of weakly chordal graphs and
                             long-hole-free / long-antihole-free graphs
 
--  Alexandre P. Zuge (2013-07): added join operation.
+- Alexandre P. Zuge (2013-07): added join operation.
 
 
 Graph Format
@@ -4467,11 +4467,17 @@ class Graph(GenericGraph):
 
         INPUT:
 
-        -  ``verbose_relabel`` - (defaults to True) If True, each vertex v
-           in the first graph will be changed to '0,v' and each vertex u
-           in the second graph will be changed to '1,u'. If False, the
-           vertices of the first graph and the second graph will be
-           relabeled with consecutive integers.
+        - ``verbose_relabel`` - (defaults to True) If True, each vertex `v` in
+           the first graph will be named '0,v' and each vertex u in the second
+           graph will be named'1,u' in the final graph. If False, the vertices
+           of the first graph and the second graph will be relabeled with
+           consecutive integers.
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.generic_graph.GenericGraph.union`
+
+            * :meth:`~sage.graphs.generic_graph.GenericGraph.disjoint_union`
 
         EXAMPLES::
 
@@ -4485,7 +4491,7 @@ class Graph(GenericGraph):
             Cycle graph join : Graph on 5 vertices
             sage: J.vertices()
             [0, 1, 2, 3, 4]
-            sage: print str(J.edges())
+            sage: J.edges()
             [(0, 1, None), (0, 2, None), (0, 3, None), (0, 4, None), (1, 2, None), (1, 3, None), (1, 4, None), (2, 3, None), (2, 4, None)]
 
         ::
@@ -4500,7 +4506,7 @@ class Graph(GenericGraph):
             [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1)]
             sage: J = G.join(H, verbose_relabel=False); J
             Graph on 3 vertices join Graph on 2 vertices: Graph on 5 vertices
-            sage: print str(J.edges())
+            sage: J.edges()
             [(0, 3, None), (0, 4, None), (1, 3, None), (1, 4, None), (2, 3, None), (2, 4, None)]
         """
         G = self.disjoint_union(other, verbose_relabel)
@@ -4513,7 +4519,6 @@ class Graph(GenericGraph):
 
         G.name('%s join %s'%(self.name(), other.name()))
         return G
-
 
     ### Visualization
 

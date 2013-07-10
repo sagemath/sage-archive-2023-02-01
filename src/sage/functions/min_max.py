@@ -1,16 +1,21 @@
 r"""
 Symbolic Minimum and Maximum
 
-This function was introduced due to the fact that max and min were not
-able to deal with variables as expected. This function strives to be a better evaluator of
-expressions by waiting to evaluate if there are variables.
+Sage provides a symbolic maximum and minimum due to the fact that the Python
+builtin max and min are not able to deal with variables as users might expect.
+These functions wait to evaluate if there are variables.
 
-Here you can see some Differences::
+Here you can see some differences::
 
    sage: max(x,x^2)
    x
    sage: max_symbolic(x,x^2)
    max(x, x^2)
+   sage: f(x) = max_symbolic(x,x^2); f(1/2)
+   1/2
+
+This works as expected for more than two entries::
+
    sage: max(3,5,x)
    5
    sage: min(3,5,x)

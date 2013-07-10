@@ -231,7 +231,7 @@ cdef inline bint cisunit(celement a, PowComputer_ prime_pow) except -1:
     - returns True if `a` has valuation 0, and False otherwise.
     """
     fmpz_poly_scalar_mod_fmpz(prime_pow.tmp_poly, a, prime_pow.fprime)
-    return ciszero(prime_pow.tmp_poly, prime_pow)
+    return not ciszero(prime_pow.tmp_poly, prime_pow)
 
 cdef inline int cshift(celement out, celement a, long n, long prec, PowComputer_ prime_pow, bint reduce_afterward) except -1:
     """

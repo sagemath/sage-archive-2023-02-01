@@ -87,7 +87,7 @@ cdef class PowComputer_flint(PowComputer_class):
             sage: A = PowComputer_flint_maker(5, 20, 20, 20, False);
             sage: A._test_pickling() # indirect doctest
         """
-        return PowComputer_flint_maker, (self.prime, self.cache_limit, self.prec_cap, self.ram_prec, self.in_field, self.polynomial())
+        return PowComputer_flint_maker, (self.prime, self.cache_limit, self.prec_cap, self.ram_prec_cap, self.in_field, self.polynomial())
 
     def _repr_(self):
         """

@@ -493,6 +493,8 @@ cdef class PowComputer_ext(PowComputer_class):
 
             sage: PC = PowComputer_ext_maker(5, 10, 10, 20, False, ntl.ZZ_pX([-5, 0, 1], 5^10), 'small', 'e',ntl.ZZ_pX([1],5^10)) #indirect doctest
         """
+        PowComputer_class.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly, shift_seed)
+
         self._initialized = 0
         sig_on()
         self.small_powers = <ZZ_c *>sage_malloc(sizeof(ZZ_c) * (cache_limit + 1))
@@ -519,6 +521,7 @@ cdef class PowComputer_ext(PowComputer_class):
         ZZ_power(self.top_power, self.top_power, prec_cap)
         sig_off()
         mpz_init(self.temp_m)
+        mpz_init(self.temp_m2)
         ZZ_construct(&self.temp_z)
 
         self._poly = poly
@@ -583,6 +586,7 @@ cdef class PowComputer_ext(PowComputer_class):
         sage_free(self.small_powers)
         ZZ_destruct(&self.top_power)
         mpz_clear(self.temp_m)
+        mpz_clear(self.temp_m2)
         ZZ_destruct(&self.temp_z)
 
     cdef mpz_t* pow_mpz_t_tmp(self, unsigned long n):

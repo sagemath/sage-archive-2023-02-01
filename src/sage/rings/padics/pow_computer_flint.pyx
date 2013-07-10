@@ -155,6 +155,8 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         self._initialized = 4
         fmpz_init(self._an)
         self._initialized = 5
+        fmpz_init(self.q)
+        self._initialized = 6
         fmpz_poly_get_coeff_fmpz(self._an, self.modulus, self.deg)
         if fmpz_is_one(self._an):
             self.is_monic = True
@@ -164,7 +166,7 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
             sig_off()
             if self._inv_an == NULL:
                 raise MemoryError
-        self._initialized = 6
+        self._initialized = 7
 
         cdef Py_ssize_t i
         cdef fmpz* coeffs = (<fmpz_poly_struct*>self.modulus)[0].coeffs
@@ -205,11 +207,12 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         if init > 2: fmpz_poly_clear(self.tmp_poly2)
         cdef Py_ssize_t i
         for i from 1 <= i <= self.cache_limit+1:
-            if init >= 4+2*i: fmpz_poly_clear(self._moduli[i])
-            if init >= 5+2*i and not self.is_monic: fmpz_clear(self._inv_an[i])
+            if init >= 5+2*i: fmpz_poly_clear(self._moduli[i])
+            if init >= 6+2*i and not self.is_monic: fmpz_clear(self._inv_an[i])
         if init > 3: sage_free(self._moduli)
         if init > 4: fmpz_clear(self._an)
-        if init > 5 and not self.is_monic: sage_free(self._inv_an)
+        if init > 5: fmpz_clear(self.q)
+        if init > 6 and not self.is_monic: sage_free(self._inv_an)
 
     def _repr_(self):
         """
@@ -369,6 +372,7 @@ cdef class PowComputer_flint_unram(PowComputer_flint_1step):
         """
         self.e = 1
         self.f = fmpz_poly_degree(self.modulus)
+        fmpz_pow_ui(self.q, self.fprime, self.f)
 
 cdef class PowComputer_flint_eis(PowComputer_flint_1step):
     """
@@ -393,10 +397,17 @@ cdef class PowComputer_flint_eis(PowComputer_flint_1step):
         """
         self.e = fmpz_poly_degree(self.modulus)
         self.f = 1
+        fmpz_set(self.q, self.fprime)
 
 def PowComputer_flint_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly=None, shift_seed=None, prec_type=None):
     if poly is None:
-        return PowComputer_flint(prime, cache_limit, prec_cap, ram_prec_cap, in_field)
-    else:
+        PowComputer_ = PowComputer_flint
+    elif prec_type == 'CR':
         from qadic_flint_CR import PowComputer_
-        return PowComputer_(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly)
+    elif prec_type == 'CA':
+        from qadic_flint_CA import PowComputer_
+    elif prec_type == 'FM':
+        from qadic_flint_CR import PowComputer_
+    else:
+        raise RuntimeError
+    return PowComputer_(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly)

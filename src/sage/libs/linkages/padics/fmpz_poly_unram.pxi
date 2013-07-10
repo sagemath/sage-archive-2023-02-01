@@ -646,8 +646,10 @@ cdef inline long cconv_mpq_t(celement out, celement x, long prec, bint absolute,
     - If ``absolute`` is False then returns the valuation that was
       extracted (``maxordp`` when `x = 0`).
     """
-    cconv_mpq_t_shared(prime_pow.mpz_cconv, x, prec, absolute, prime_pow)
+    cdef long val
+    val = cconv_mpq_t_shared(prime_pow.mpz_cconv, x, prec, absolute, prime_pow)
     fmpz_poly_set_mpz(out, prime_pow.mpz_cconv)
+    return val
 
 cdef inline int cconv_mpq_t_out(mpq_t out, celement x, long valshift, long prec, PowComputer_ prime_pow) except -1:
     """
@@ -691,8 +693,10 @@ cdef inline long cconv_mpz_t(celement out, mpz_t x, long prec, bint absolute, Po
     - If ``absolute`` is False then returns the valuation that was
       extracted (``maxordp`` when `x = 0`).
     """
-    cconv_mpz_t_shared(prime_pow.mpz_cconv, x, prec, absolute, prime_pow)
+    cdef long val
+    val = cconv_mpz_t_shared(prime_pow.mpz_cconv, x, prec, absolute, prime_pow)
     fmpz_poly_set_mpz(out, prime_pow.mpz_cconv)
+    return val
 
 cdef inline int cconv_mpz_t_out(mpz_t out, celement x, long valshift, long prec, PowComputer_ prime_pow) except -1:
     """

@@ -51,6 +51,43 @@ from qadic_flint_CR import qAdicCappedRelativeElement
 from qadic_flint_CA import qAdicCappedAbsoluteElement
 from qadic_flint_FM import qAdicFixedModElement
 
+def _make_integral_poly(prepoly, p, prec):
+    """
+    Converts a defining polynomial into one with integral coefficients.
+
+    INPUTS:
+
+    - ``prepoly`` - a univariate polynomial or symbolic expression
+
+    - ``p`` -- a prime
+
+    - ``prec`` -- the precision
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.padic_extension_leaves import _make_integral_poly
+        sage: R.<x> = QQ[]
+        sage: f = _make_integral_poly(x^2 - 2, 5, 3); f
+        x^2 - 2
+        sage: f.parent()
+        Univariate Polynomial Ring in x over Integer Ring
+        sage: f = _make_integral_poly(x^2 - 2/7, 5, 3); f
+        x^2 + 36
+        sage: f.parent()
+        Univariate Polynomial Ring in x over Integer Ring
+    """
+    try:
+        Zpoly = prepoly.change_ring(ZZ)
+    except AttributeError:
+        # should be a symoblic expression
+        Zpoly = prepoly.polynomial(QQ)
+    except (TypeError, ValueError):
+        Zpoly = prepoly.change_ring(QQ)
+    if Zpoly.base_ring() is not ZZ:
+        from sage.rings.finite_rings.integer_mod_ring import Zmod
+        Zpoly = Zpoly.change_ring(Zmod(p**prec)).change_ring(ZZ)
+    return Zpoly
+
 class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCappedRelativeRingGeneric):
     """
     TESTS::
@@ -101,7 +138,7 @@ class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCap
                 self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), 30, prec, prec, False, ntl_poly, "big", "u")
             element_class = pAdicZZpXCRElement
         else:
-            Zpoly = prepoly.change_ring(ZZ)
+            Zpoly = _make_integral_poly(prepoly, poly.base_ring().prime(), prec)
             cache_limit = min(prec, 30)
             self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, False, Zpoly, prec_type='capped-rel')
             element_class = qAdicCappedRelativeElement
@@ -162,7 +199,7 @@ class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCa
                 self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), 30, prec, prec, True, ntl_poly, "big", "u")
             element_class = pAdicZZpXCRElement
         else:
-            Zpoly = prepoly.change_ring(ZZ)
+            Zpoly = _make_integral_poly(prepoly, poly.base_ring().prime(), prec)
             cache_limit = min(prec, 30)
             self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, True, Zpoly, prec_type='capped-rel')
             element_class = qAdicCappedRelativeElement
@@ -233,7 +270,7 @@ class UnramifiedExtensionRingCappedAbsolute(UnramifiedExtensionGeneric, pAdicCap
                 self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), 30, prec, prec, True, ntl_poly, "big", "u")
             element_class = pAdicZZpXCAElement
         else:
-            Zpoly = prepoly.change_ring(ZZ)
+            Zpoly = _make_integral_poly(prepoly, poly.base_ring().prime(), prec)
             cache_limit = min(prec, 30)
             self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, False, Zpoly, prec_type='capped-abs')
             element_class = qAdicCappedAbsoluteElement
@@ -290,7 +327,7 @@ class UnramifiedExtensionRingFixedMod(UnramifiedExtensionGeneric, pAdicFixedModR
             self.prime_pow = PowComputer_ext_maker(poly.base_ring().prime(), max(min(prec - 1, 30), 1), prec, prec, False, ntl_poly, "FM", "u")
             element_class = pAdicZZpXFMElement
         else:
-            Zpoly = prepoly.change_ring(ZZ)
+            Zpoly = _make_integral_poly(prepoly, poly.base_ring().prime(), prec)
             cache_limit = 0 # prevents caching
             self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, False, Zpoly, prec_type='fixed-mod')
             element_class = qAdicFixedModElement

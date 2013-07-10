@@ -30,8 +30,10 @@ cdef class PowComputer_flint(PowComputer_class):
         """
         # fmpz_init does not allocate memory
         fmpz_init(self.fprime)
+        fmpz_init(self.half_prime)
         fmpz_set_mpz(self.fprime, prime.value)
         fmpz_init(self._fpow_variable)
+        fmpz_fdiv_q_2exp(self.half_prime, self.fprime, 1)
         fmpz_init(self.tfmpz)
 
         sig_on()
@@ -72,6 +74,7 @@ cdef class PowComputer_flint(PowComputer_class):
         """
         if self.__allocated >= 4:
             fmpz_clear(self.fprime)
+            fmpz_clear(self.half_prime)
             fmpz_clear(self._fpow_variable)
             fmpz_clear(self.tfmpz)
             mpz_clear(self.top_power)

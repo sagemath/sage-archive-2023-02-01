@@ -539,18 +539,21 @@ cdef clist(celement a, long prec, bint pos, PowComputer_ prime_pow):
     """
 
     ret = []
-    cdef Integer digit
+    cdef Integer digit, zero = Integer(0)
     cdef long i,j
     for i from 0 <= i <= fmpz_poly_degree(a):
         fmpz_poly_get_coeff_fmpz(prime_pow.fmpz_clist, a, i)
         j = 0
-        while True:
+        while j < prec:
             if fmpz_is_zero(prime_pow.fmpz_clist): break
-            digit = PY_NEW(Integer)
             fmpz_fdiv_qr(prime_pow.fmpz_clist, prime_pow.fmpz_clist2, prime_pow.fmpz_clist, prime_pow.fprime)
             if not fmpz_is_zero(prime_pow.fmpz_clist2):
+                if not pos and fmpz_cmp(prime_pow.fmpz_clist2, prime_pow.half_prime) > 0:
+                    fmpz_sub(prime_pow.fmpz_clist2, prime_pow.fmpz_clist2, prime_pow.fprime)
+                    fmpz_add_ui(prime_pow.fmpz_clist, prime_pow.fmpz_clist, 1)
                 while len(ret) <= j: ret.append([])
-                while len(ret[j]) <= i: ret[j].append(0)
+                while len(ret[j]) <= i: ret[j].append(zero)
+                digit = PY_NEW(Integer)
                 fmpz_get_mpz(digit.value, prime_pow.fmpz_clist2)
                 ret[j][i] =digit
             j += 1

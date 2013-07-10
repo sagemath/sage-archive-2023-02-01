@@ -9,6 +9,7 @@ from sage.rings.padics.pow_computer cimport PowComputer_class
 cdef class PowComputer_flint(PowComputer_class):
     cdef padic_ctx_t ctx
     cdef fmpz_t fprime
+    cdef fmpz_t half_prime
     cdef fmpz_t _fpow_array
     cdef fmpz_t _fpow_variable
     cdef mpz_t top_power

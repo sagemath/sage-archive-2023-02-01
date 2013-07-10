@@ -557,8 +557,38 @@ cdef int cteichmuller(celement out, celement value, long prec, PowComputer_ prim
     - ``value`` -- an ``celement``, the element mod `\pi` to lift.
     - ``prec`` -- a long, the precision to which to lift.
     - ``prime_pow`` -- the Powcomputer of the ring.
+
+    ALGORITHM:
+
+    We use Hensel lifting to solve the equation `f(T)=T^q-T`. Instead of
+    dividing by the derivative of `f`, we divide by `( q - 1 )` whose first
+    digits coincide with `f'`. This does probably not yield quadratic
+    convergence but taking inverses would be much more expansive than what is
+    done here.
+
     """
-    raise NotImplementedError
+    fmpz_poly_set(out, value)
+
+    if prec == 0:
+        return 0
+
+    # ftmp2 = 1 / (1 - q) (mod p^prec)
+    fmpz_set_ui(prime_pow.ftmp2, 1)
+    fmpz_sub(prime_pow.ftmp2, prime_pow.ftmp2, prime_pow.q)
+    fmpz_invmod(prime_pow.ftmp2, prime_pow.ftmp2, prime_pow.pow_fmpz_t_tmp(prec)[0])
+    while True:
+        # tmp_poly3 = out + ftmp2*(out^q - out)
+        fmpz_get_mpz(prime_pow.temp_m2, prime_pow.q)
+        cpow(prime_pow.tmp_poly3, out, prime_pow.temp_m2, prec, prime_pow)
+        csub(prime_pow.tmp_poly3, prime_pow.tmp_poly3, out, prec, prime_pow)
+        fmpz_poly_scalar_mul_fmpz(prime_pow.tmp_poly3, prime_pow.tmp_poly3, prime_pow.ftmp2)
+        cadd(prime_pow.tmp_poly3, prime_pow.tmp_poly3, out, prec, prime_pow)
+        creduce(prime_pow.tmp_poly3, prime_pow.tmp_poly3, prec, prime_pow)
+        # break if out == tmp_poly3
+        if ccmp(prime_pow.tmp_poly3, out, prec, False, False, prime_pow) == 0:
+            return 0
+        # out = tmp_poly3
+        fmpz_poly_set(out, prime_pow.tmp_poly3)
 
 cdef int cconv(celement out, x, long prec, long valshift, PowComputer_ prime_pow) except -2:
     """

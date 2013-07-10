@@ -150,16 +150,18 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         self._initialized = 2
         fmpz_poly_init(self.tmp_poly2)
         self._initialized = 3
+        fmpz_poly_init(self.tmp_poly3)
+        self._initialized = 4
         sig_on()
         self._moduli = <fmpz_poly_t*>sage_malloc(sizeof(fmpz_poly_t) * (cache_limit + 2))
         sig_off()
         if self._moduli == NULL:
             raise MemoryError
-        self._initialized = 4
-        fmpz_init(self._an)
         self._initialized = 5
-        fmpz_init(self.q)
+        fmpz_init(self._an)
         self._initialized = 6
+        fmpz_init(self.q)
+        self._initialized = 7
         fmpz_poly_get_coeff_fmpz(self._an, self.modulus, self.deg)
         if fmpz_is_one(self._an):
             self.is_monic = True
@@ -169,7 +171,7 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
             sig_off()
             if self._inv_an == NULL:
                 raise MemoryError
-        self._initialized = 7
+        self._initialized = 8
 
         cdef Py_ssize_t i
         cdef fmpz* coeffs = (<fmpz_poly_struct*>self.modulus)[0].coeffs
@@ -208,14 +210,15 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         if init > 0: fmpz_poly_clear(self.modulus)
         if init > 1: fmpz_poly_clear(self.tmp_poly)
         if init > 2: fmpz_poly_clear(self.tmp_poly2)
+        if init > 3: fmpz_poly_clear(self.tmp_poly3)
         cdef Py_ssize_t i
         for i from 1 <= i <= self.cache_limit+1:
-            if init >= 5+2*i: fmpz_poly_clear(self._moduli[i])
-            if init >= 6+2*i and not self.is_monic: fmpz_clear(self._inv_an[i])
-        if init > 3: sage_free(self._moduli)
-        if init > 4: fmpz_clear(self._an)
-        if init > 5: fmpz_clear(self.q)
-        if init > 6 and not self.is_monic: sage_free(self._inv_an)
+            if init >= 6+2*i: fmpz_poly_clear(self._moduli[i])
+            if init >= 7+2*i and not self.is_monic: fmpz_clear(self._inv_an[i])
+        if init > 4: sage_free(self._moduli)
+        if init > 5: fmpz_clear(self._an)
+        if init > 6: fmpz_clear(self.q)
+        if init > 7 and not self.is_monic: sage_free(self._inv_an)
 
     def _repr_(self):
         """

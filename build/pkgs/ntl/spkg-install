@@ -25,7 +25,7 @@ ntl_libtool()
 {
     echo "Generating libtool."
 
-    cd "$CUR/libtool"
+    cd "$CUR/src/libtool"
 
     ./configure
 
@@ -40,10 +40,10 @@ ntl_patch()
     echo
     echo "Applying patches to NTL."
 
-    cd "$CUR/src"
+    cd "$CUR/src/ntl"
 
     # Apply all patches
-    for patch in ../patches/*.patch; do
+    for patch in "$CUR"/patches/*.patch; do
         patch -p1 < "$patch"
         if [ $? -ne 0 ]; then
             echo >&2 "Error applying '$patch'."
@@ -57,7 +57,7 @@ ntl_configure()
     echo
     echo "Configuring NTL."
 
-    cd "$CUR/src/src"
+    cd "$CUR/src/ntl/src"
 
     # Run the configure script, setting CC, CXX, CFLAGS etc as needed.
     # This ensures that they get written by DoConfig into 'makefile'.
@@ -87,7 +87,7 @@ ntl_configure()
         CXX="$CXX" CXXFLAGS="$CXXFLAGS $SHAREDFLAGS" \
         LDFLAGS="$LDFLAGS" LIBTOOL_LINK_FLAGS="$LIBTOOL_LINK_FLAGS" \
         NTL_GMP_LIP=on NTL_GF2X_LIB=on NTL_STD_CXX=on \
-        LIBTOOL=../../libtool/libtool
+        LIBTOOL="$CUR/src/libtool/libtool"
 
     if [ $? -ne 0 ]; then
         echo >&2 "Error configuring NTL."
@@ -100,7 +100,7 @@ ntl_build()
     echo
     echo "Tuning and building NTL."
 
-    cd "$CUR/src/src"
+    cd "$CUR/src/ntl/src"
 
     $MAKE
 
@@ -115,7 +115,7 @@ ntl_install()
     echo
     echo "Installing NTL."
 
-    cd "$CUR/src/src"
+    cd "$CUR/src/ntl/src"
 
     $MAKE install
 

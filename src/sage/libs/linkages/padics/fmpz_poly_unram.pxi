@@ -377,7 +377,7 @@ cdef inline int cdivunit(celement out, celement a, celement b, long prec, PowCom
     - ``prime_pow`` -- the PowComputer for the ring.
     """
     cinvert(out, b, prec, prime_pow)
-    cmul(out, a, b, prec, prime_pow)
+    cmul(out, a, out, prec, prime_pow)
 
 cdef inline int csetone(celement out, PowComputer_ prime_pow) except -1:
     """

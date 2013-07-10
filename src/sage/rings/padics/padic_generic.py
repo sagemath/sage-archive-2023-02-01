@@ -703,6 +703,33 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             tester.assertEqual(x.is_zero(),y.is_zero())
             tester.assertEqual(x.is_unit(),y.is_unit())
 
+    def _test_teichmuller(self, **options):
+        """
+        Test Teichmuller lifts.
+
+        INPUT:
+
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+
+        EXAMPLES::
+
+            sage: Zp(3)._test_teichmuller()
+
+        .. SEEALSO::
+
+            :class:`TestSuite`
+
+        """
+        tester = self._tester(**options)
+        for x in tester.some_elements():
+            try:
+                y = self.teichmuller(x)
+            except ValueError:
+                tester.assertLess(x.valuation(), 0)
+            else:
+                tester.assertEqual(x.residue(), y.residue())
+                tester.assertEqual(y^self.residue_field().order(), y)
+
     @cached_method
     def _log_unit_part_p(self):
         """

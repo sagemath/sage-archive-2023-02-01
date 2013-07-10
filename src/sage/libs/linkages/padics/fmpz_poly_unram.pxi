@@ -26,7 +26,8 @@ from sage.rings.padics.common_conversion cimport cconv_mpz_t_out_shared, cconv_m
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
-import sage.rings.finite_rings.integer_mod
+from sage.rings.finite_rings.integer_mod cimport IntegerMod_abstract
+from sage.rings.finite_rings.integer_mod_ring import Zmod
 
 from sage.libs.flint.fmpz cimport *
 from sage.libs.flint.fmpz_poly cimport *
@@ -740,3 +741,36 @@ cdef inline int cconv_mpz_t_out(mpz_t out, celement x, long valshift, long prec,
         fmpz_poly_get_coeff_mpz(prime_pow.mpz_cconv, x, 0)
 
     cconv_mpz_t_out_shared(out, prime_pow.mpz_cconv, valshift, prec, prime_pow)
+
+
+## Extra functions ##
+
+cdef cmatrix_mod_pn(celement a, long aprec, long valshift, PowComputer_ prime_pow):
+    """
+    Returns the matrix of right multiplication by the element on
+    the power basis `1, x, x^2, \ldots, x^{d-1}` for this
+    extension field.  Thus the *rows* of this matrix give the
+    images of each of the `x^i`.  The entries of the matrices are
+    IntegerMod elements, defined modulo ``p^(self.absprec() / e)``.
+    """
+    cdef Py_ssize_t i, j, d, deg = prime_pow.deg
+    cdef int fail
+    R = Zmod(prime_pow.pow_Integer(aprec))
+    cdef IntegerMod_abstract zero = R(0)
+    cdef IntegerMod_abstract item
+    L = []
+    cshift(prime_pow.poly_matmod, a, valshift, aprec, prime_pow, True)
+    for i in range(deg):
+        L.append([])
+        d = fmpz_poly_degree(prime_pow.poly_matmod)
+        for j in range(d+1):
+            item = zero._new_c_from_long(0)
+            fmpz_poly_get_coeff_mpz(prime_pow.mpz_matmod, prime_pow.poly_matmod, j)
+            item.set_from_mpz(prime_pow.mpz_matmod)
+            L[-1].append(item)
+        for j in range(d+1,deg):
+            L[-1].append(zero)
+        fmpz_poly_shift_left(prime_pow.poly_matmod, prime_pow.poly_matmod, 1)
+        creduce(prime_pow.poly_matmod, prime_pow.poly_matmod, aprec, prime_pow)
+    from sage.matrix.all import matrix
+    return matrix(R, deg, deg, L)

@@ -441,17 +441,26 @@ cdef class PowComputer_flint_unram(PowComputer_flint_1step):
                             try:
                                 fmpz_poly_init(self.poly_flint_rep)
                                 try:
-                                    mpz_init(self.mpz_cpow)
+                                    fmpz_poly_init(self.poly_matmod)
                                     try:
-                                        mpz_init(self.mpz_ctm)
+                                        mpz_init(self.mpz_cpow)
                                         try:
-                                            mpz_init(self.mpz_cconv)
+                                            mpz_init(self.mpz_ctm)
+                                            try:
+                                                mpz_init(self.mpz_cconv)
+                                                try:
+                                                    mpz_init(self.mpz_matmod)
+                                                except:
+                                                    mpz_clear(self.mpz_cconv)
+                                                    raise
+                                            except:
+                                                mpz_clear(self.mpz_ctm)
+                                                raise
                                         except:
-                                            mpz_clear(self.mpz_ctm)
+                                            mpz_clear(self.mpz_cpow)
                                             raise
                                     except:
-                                        mpz_clear(self.mpz_cpow)
-                                        raise
+                                        fmpz_poly_clear(self.poly_matmod)
                                 except:
                                     fmpz_poly_clear(self.poly_flint_rep)
                                     raise
@@ -501,13 +510,15 @@ cdef class PowComputer_flint_unram(PowComputer_flint_1step):
             mpz_clear(self.mpz_cconv)
             mpz_clear(self.mpz_ctm)
             mpz_clear(self.mpz_cpow)
+            mpz_clear(self.mpz_matmod)
             fmpz_poly_clear(self.poly_cconv)
             fmpz_poly_clear(self.poly_ctm)
             fmpz_poly_clear(self.poly_ccmp)
             fmpz_poly_clear(self.poly_cinv)
             fmpz_poly_clear(self.poly_cisunit)
             fmpz_poly_clear(self.poly_cinv2)
-
+            fmpz_poly_clear(self.poly_flint_rep)
+            fmpz_poly_clear(self.poly_matmod)
 
     def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None):
         """

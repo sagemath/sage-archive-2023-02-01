@@ -14,6 +14,49 @@ cdef class qAdicCappedRelativeElement(CRElement):
     trace = MethodType(trace_unram, None, qAdicCappedRelativeElement)
     norm = MethodType(norm_unram, None, qAdicCappedRelativeElement)
 
+    def matrix_mod_pn(self):
+        """
+        Returns the matrix of right multiplication by the element on
+        the power basis `1, x, x^2, \ldots, x^{d-1}` for this
+        extension field.  Thus the *rows* of this matrix give the
+        images of each of the `x^i`.  The entries of the matrices are
+        IntegerMod elements, defined modulo ``p^(self.absprec() / e)``.
+
+        Raises an error if ``self`` has negative valuation.
+
+        EXAMPLES::
+
+            sage: R.<a> = QqCR(5^5,5)
+            sage: b = (5 + 15*a)^3
+            sage: b.matrix_mod_pn()
+            [   125   1125   3375   3375      0]
+            [     0    125   1125   3375   3375]
+            [380500 377125    125   1125   3375]
+            [380500 367000 377125    125   1125]
+            [387250 376000 367000 377125    125]
+
+            sage: M = R(0,3).matrix_mod_pn(); M == 0
+            True
+            sage: M.base_ring()
+            Ring of integers modulo 125
+
+        Check that :trac:`13617` has been fixed::
+
+            sage: R(0).matrix_mod_pn()
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+        """
+        if self.ordp < 0:
+            raise ValueError("self must be integral")
+        if exactzero(self.ordp):
+            from sage.matrix.all import matrix
+            return matrix(ZZ, self.prime_pow.deg, self.prime_pow.deg)
+        else:
+            return cmatrix_mod_pn(self.unit, self.ordp + self.relprec, self.ordp, self.prime_pow)
+
     def _flint_rep(self, var='x'):
         """
         Replacement for _ntl_rep for use in printing and debugging.

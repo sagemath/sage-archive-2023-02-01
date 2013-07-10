@@ -721,14 +721,18 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         """
         tester = self._tester(**options)
+
         for x in tester.some_elements():
             try:
                 y = self.teichmuller(x)
             except ValueError:
                 tester.assertLess(x.valuation(), 0)
             else:
-                tester.assertEqual(x.residue(), y.residue())
-                tester.assertEqual(y^self.residue_field().order(), y)
+                try:
+                    tester.assertEqual(x.residue(), y.residue())
+                except (NotImplementedError, AttributeError):
+                    pass
+                tester.assertEqual(y**self.residue_field().order(), y)
 
     @cached_method
     def _log_unit_part_p(self):

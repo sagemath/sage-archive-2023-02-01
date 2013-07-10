@@ -31,6 +31,7 @@ cdef class PowComputer_flint(PowComputer_class):
         fmpz_init(self.fprime)
         fmpz_init(self.ftmp)
         fmpz_init(self.ftmp2)
+        fmpz_init(self._fpow_variable)
         mpz_init(self.temp_m)
         mpz_init(self.top_power)
         fmpz_set_mpz(self.fprime, prime.value)
@@ -52,6 +53,7 @@ cdef class PowComputer_flint(PowComputer_class):
             fmpz_clear(self.fprime)
             fmpz_clear(self.ftmp)
             fmpz_clear(self.ftmp2)
+            fmpz_clear(self._fpow_variable)
             mpz_clear(self.temp_m)
             mpz_clear(self.top_power)
             padic_ctx_clear(self.ctx)
@@ -80,10 +82,11 @@ cdef class PowComputer_flint(PowComputer_class):
         if n == 0: raise RuntimeError
         cdef padic_ctx_struct ctx = (<padic_ctx_struct*>self.ctx)[0]
         if ctx.min <= n and n < ctx.max:
-            self.ftmp[0] = (ctx.pow + (n - ctx.min))[0]
+            self._fpow_array[0] = (ctx.pow + (n - ctx.min))[0]
+            return &self._fpow_array
         else:
-            fmpz_pow_ui(self.ftmp, self.fprime, n)
-        return &self.ftmp
+            fmpz_pow_ui(self._fpow_variable, self.fprime, n)
+            return &self._fpow_variable
 
     cdef mpz_t* pow_mpz_t_tmp(self, unsigned long n):
         """
@@ -407,7 +410,7 @@ def PowComputer_flint_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field
     elif prec_type == 'CA':
         from qadic_flint_CA import PowComputer_
     elif prec_type == 'FM':
-        from qadic_flint_CR import PowComputer_
+        from qadic_flint_FM import PowComputer_
     else:
         raise RuntimeError
     return PowComputer_(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly)

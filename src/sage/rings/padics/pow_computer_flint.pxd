@@ -11,6 +11,8 @@ cdef class PowComputer_flint(PowComputer_class):
     cdef fmpz_t fprime
     cdef fmpz_t ftmp
     cdef fmpz_t ftmp2
+    cdef fmpz_t _fpow_array
+    cdef fmpz_t _fpow_variable
     cdef mpz_t top_power
 
     cdef fmpz_t* pow_fmpz_t_tmp(self, unsigned long n) except NULL

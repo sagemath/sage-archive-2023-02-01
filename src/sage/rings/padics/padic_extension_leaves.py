@@ -103,7 +103,7 @@ class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCap
         else:
             Zpoly = prepoly.change_ring(ZZ)
             cache_limit = min(prec, 30)
-            self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, False, Zpoly, prec_type='CR')
+            self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, False, Zpoly, prec_type='capped-rel')
             element_class = qAdicCappedRelativeElement
         UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
         if implementation != 'NTL':
@@ -164,7 +164,7 @@ class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCa
         else:
             Zpoly = prepoly.change_ring(ZZ)
             cache_limit = min(prec, 30)
-            self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, True, Zpoly, prec_type='CR')
+            self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, True, Zpoly, prec_type='capped-rel')
             element_class = qAdicCappedRelativeElement
         UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
         if implementation != 'NTL':
@@ -235,7 +235,7 @@ class UnramifiedExtensionRingCappedAbsolute(UnramifiedExtensionGeneric, pAdicCap
         else:
             Zpoly = prepoly.change_ring(ZZ)
             cache_limit = min(prec, 30)
-            self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, False, Zpoly, prec_type='CA')
+            self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, False, Zpoly, prec_type='capped-abs')
             element_class = qAdicCappedAbsoluteElement
         UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
         if implementation != 'NTL':
@@ -292,7 +292,7 @@ class UnramifiedExtensionRingFixedMod(UnramifiedExtensionGeneric, pAdicFixedModR
         else:
             Zpoly = prepoly.change_ring(ZZ)
             cache_limit = 0 # prevents caching
-            self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, False, Zpoly, prec_type='FM')
+            self.prime_pow = PowComputer_flint_maker(poly.base_ring().prime(), cache_limit, prec, prec, False, Zpoly, prec_type='fixed-mod')
             element_class = qAdicFixedModElement
         UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
         if implementation != 'NTL':

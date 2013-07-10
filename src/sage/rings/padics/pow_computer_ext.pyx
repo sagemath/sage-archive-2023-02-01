@@ -786,6 +786,16 @@ cdef class PowComputer_ext(PowComputer_class):
 
 cdef class PowComputer_ZZ_pX(PowComputer_ext):
     def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly, shift_seed = None):
+        """
+        Initialization.
+
+        For input types see :func:`PowComputer_ext_maker`
+
+        TESTS::
+
+            sage: PC = PowComputer_ext_maker(5, 5, 10, 20, False, ntl.ZZ_pX([-5,0,1],5^10), 'FM', 'e',ntl.ZZ_pX([1],5^10))
+            sage: TestSuite(PC).run()
+        """
         if not PY_TYPE_CHECK(poly, ntl_ZZ_pX):
             raise TypeError
         self.deg = ZZ_pX_deg((<ntl_ZZ_pX>poly).x)
@@ -1845,6 +1855,18 @@ cdef class PowComputer_ZZ_pX_small_Eis(PowComputer_ZZ_pX_small):
     These are only stored at maximal precision: in order to get lower precision versions just reduce mod p^n.
     """
     def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly, shift_seed = None):
+        """
+        Initialization.
+
+        For input types see :func:`PowComputer_ext_maker`
+
+        TESTS::
+
+            sage: A = PowComputer_ext_maker(5, 10, 10, 40, False, ntl.ZZ_pX([-5,75,15,0,1],5^10), 'small', 'e',ntl.ZZ_pX([1,-15,-3],5^10))
+            sage: type(A)
+            <type 'sage.rings.padics.pow_computer_ext.PowComputer_ZZ_pX_small_Eis'>
+            sage: TestSuite(A).run()
+        """
         self._ext_type = 'e'
         if not PY_TYPE_CHECK(shift_seed, ntl_ZZ_pX):
             raise TypeError, "shift_seed must be an ntl_ZZ_pX"
@@ -2274,6 +2296,18 @@ cdef class PowComputer_ZZ_pX_big_Eis(PowComputer_ZZ_pX_big):
     These are only stored at maximal precision: in order to get lower precision versions just reduce mod p^n.
     """
     def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly, shift_seed = None):
+        """
+        Initialization.
+
+        For input types see :func:`PowComputer_ext_maker`
+
+        TESTS::
+
+            sage: A = PowComputer_ext_maker(5, 3, 10, 40, False, ntl.ZZ_pX([-5,75,15,0,1],5^10), 'big', 'e',ntl.ZZ_pX([1,-15,-3],5^10))
+            sage: type(A)
+            <type 'sage.rings.padics.pow_computer_ext.PowComputer_ZZ_pX_big_Eis'>
+            sage: TestSuite(A).run()
+        """
         self._ext_type = 'e'
         if not PY_TYPE_CHECK(shift_seed, ntl_ZZ_pX):
             raise TypeError, "shift_seed must be an ntl_ZZ_pX"

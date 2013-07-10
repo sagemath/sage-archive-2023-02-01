@@ -533,11 +533,11 @@ cdef PowComputer_base PowComputer_c(Integer m, Integer cache_limit, Integer prec
         PC = pow_comp_cache[key]()
         if PC is not None:
             return PC
-    if prec_type == 'CR':
+    if prec_type == 'capped-rel':
         from padic_capped_relative_element import PowComputer_ as PC_class
-    elif prec_type == 'CA':
+    elif prec_type == 'capped-abs':
         from padic_capped_absolute_element import PowComputer_ as PC_class
-    elif prec_type == 'FM':
+    elif prec_type == 'fixed-mod':
         from padic_fixed_mod_element import PowComputer_ as PC_class
     else:
         raise RuntimeError

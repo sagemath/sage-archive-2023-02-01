@@ -388,10 +388,10 @@ cdef class PowComputer_flint_eis(PowComputer_flint_1step):
 
     EXAMPLES::
 
-        sage: from sage.rings.padics.pow_computer_flint import PowComputer_flint_maker
+        sage: from sage.rings.padics.pow_computer_flint import PowComputer_flint_eis
         sage: R.<x> = ZZ[]; f = x^3 - 25*x + 5
-        sage: A = PowComputer_flint_maker(5, 20, 20, 20, False, f); A
-        FLINT PowComputer for 5 with polynomial x^3 - 8*x - 2
+        sage: A = PowComputer_flint_eis(5, 20, 20, 60, False, f); A
+        FLINT PowComputer for 5 with polynomial x^3 - 25*x + 5
     """
     def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None, shift_seed=None):
         """
@@ -399,20 +399,76 @@ cdef class PowComputer_flint_eis(PowComputer_flint_1step):
 
         TESTS::
 
-
+            sage: from sage.rings.padics.pow_computer_flint import PowComputer_flint_eis
+            sage: R.<x> = ZZ[]; f = x^3 - 25*x + 5
+            sage: A = PowComputer_flint_eis(5, 20, 20, 60, False, f)
+            sage: TestSuite(A).run()
         """
         self.e = fmpz_poly_degree(self.modulus)
         self.f = 1
         fmpz_set(self.q, self.fprime)
 
-def PowComputer_flint_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly=None, shift_seed=None, prec_type=None):
+def PowComputer_flint_maker(prime, cache_limit, prec_cap, ram_prec_cap, in_field, poly=None, prec_type=None):
+    """
+    Return an appropriate FLINT PowComputer for the given input.
+
+    INPUT:
+
+    - ``prime`` -- an integral prime
+
+    - ``cache_limit`` -- a non-negative integer, controlling the
+      caching.  Powers of ``prime``, reductions of ``poly`` modulo
+      different powers of ``prime`` and inverses of the leading
+      coefficient modulo different powers of ``prime`` are cached.
+      Additional data is cached for ramified extensions.
+
+    - ``prec_cap`` -- the power of `p` modulo which elements of
+      largest precision are defined.
+
+    - ``ram_prec_cap`` -- Approximately ``e*prec_cap``, where ``e`` is
+      the ramification degree of the extension.  For a ramified
+      extension this is what Sage calls the precision cap of the ring.
+      In fact, it's possible to have rings with precision cap not a
+      multiple of `e`, in which case the actual relationship between
+      ``ram_prec_cap`` and ``prec_cap`` is that
+      ``prec_cap = ceil(n/e)``
+
+    - ``in_field`` -- (boolean) whether the associated ring is
+      actually a field.
+
+    - ``poly`` -- the polynomial defining the extension.
+
+    - `prec_type`` -- one of ``"capped-rel"``, ``"capped-abs"`` or
+      ``"fixed-mod"``, the precision type of the ring.
+
+    .. NOTE::
+
+        Because of the way templates work, this function imports the
+        class of its return value from the appropriate element files.
+        This means that the returned PowComputer will have the
+        appropriate compile-time-type for Cython.
+
+    EXAMPLES::
+
+        sage: from sage.rings.padics.pow_computer_flint import PowComputer_flint_maker
+        sage: R.<x> = ZZ[]
+        sage: A = PowComputer_flint_maker(3, 20, 20, 20, False); type(A)
+        <type 'sage.rings.padics.pow_computer_flint.PowComputer_flint'>
+        sage: A = PowComputer_flint_maker(3, 20, 20, 20, False, x^3 + 2*x + 1, 'capped-rel'); type(A)
+        <type 'sage.rings.padics.qadic_flint_CR.PowComputer_'>
+        sage: A = PowComputer_flint_maker(3, 20, 20, 20, False, x^3 + 2*x + 1, 'capped-abs'); type(A)
+        <type 'sage.rings.padics.qadic_flint_CA.PowComputer_'>
+        sage: A = PowComputer_flint_maker(3, 20, 20, 20, False, x^3 + 2*x + 1, 'fixed-mod'); type(A)
+        <type 'sage.rings.padics.qadic_flint_FM.PowComputer_'>
+
+    """
     if poly is None:
         PowComputer_ = PowComputer_flint
-    elif prec_type == 'CR':
+    elif prec_type == 'capped-rel':
         from qadic_flint_CR import PowComputer_
-    elif prec_type == 'CA':
+    elif prec_type == 'capped-abs':
         from qadic_flint_CA import PowComputer_
-    elif prec_type == 'FM':
+    elif prec_type == 'fixed-mod':
         from qadic_flint_FM import PowComputer_
     else:
         raise RuntimeError

@@ -1,6 +1,21 @@
 """
+This linkage file implements the API for unramified extensions of the padics
+using FLINT's fmpz_poly_t.
+
+AUTHORS:
+
+- David Roe, Julian Rueth (2013-03-21) -- initial version
+
 """
-# COPYRIGHT
+#*****************************************************************************
+#       Copyright (C) 2013 David Roe <roed.math@gmail.com>
+#                          Julian Rueth <julian.rueth@fsfe.org>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"

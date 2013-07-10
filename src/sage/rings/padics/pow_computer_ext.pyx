@@ -536,7 +536,7 @@ cdef class PowComputer_ext(PowComputer_class):
             sage: PC = PowComputer_ext_maker(5, 5, 10, 20, False, ntl.ZZ_pX([-5,0,1],5^10), 'FM', 'e',ntl.ZZ_pX([1],5^10))
             sage: del PC # indirect doctest
         """
-        if (<PowComputer_class>self)._initialized:
+        if (<PowComputer_ext>self)._initialized:
             self.cleanup_ext()
 
     def __repr__(self):

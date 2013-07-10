@@ -60,16 +60,16 @@ cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint redu
     - If at least one needs to be reduced, returns
       0 (if ``a == b mod p^prec``) or 1 (otherwise)
     """
-    csub(prime_pow.tmp_poly2, a, b, prec, prime_pow)
-    creduce(prime_pow.tmp_poly2, prime_pow.tmp_poly2, prec, prime_pow)
+    csub(prime_pow.poly_ccmp, a, b, prec, prime_pow)
+    creduce(prime_pow.poly_ccmp, prime_pow.poly_ccmp, prec, prime_pow)
 
     if reduce_a or reduce_b:
-        return not ciszero(prime_pow.tmp_poly2, prime_pow)
+        return not ciszero(prime_pow.poly_ccmp, prime_pow)
 
     if prec == 0:
         return 0
 
-    if ciszero(prime_pow.tmp_poly2, prime_pow): return 0
+    if ciszero(prime_pow.poly_ccmp, prime_pow): return 0
 
     cdef long da = fmpz_poly_degree(a)
     cdef long db = fmpz_poly_degree(b)
@@ -79,8 +79,8 @@ cdef inline int ccmp(celement a, celement b, long prec, bint reduce_a, bint redu
     cdef long cmp
     cdef long i
     for i from 0 <= i <= da:
-        fmpz_poly_get_coeff_fmpz(prime_pow.ftmp, prime_pow.tmp_poly2, i)
-        cmp = fmpz_cmp_si(prime_pow.ftmp, 0)
+        fmpz_poly_get_coeff_fmpz(prime_pow.fmpz_ccmp, prime_pow.poly_ccmp, i)
+        cmp = fmpz_cmp_si(prime_pow.fmpz_ccmp, 0)
         if cmp < 0: return -1
         elif cmp > 0: return 1
     assert False
@@ -132,7 +132,7 @@ cdef inline bint creduce(celement out, celement a, long prec, PowComputer_ prime
     - returns True if the reduction is zero; False otherwise.
     """
     sig_on()
-    fmpz_poly_divrem(prime_pow.tmp_poly, out, a, prime_pow.get_modulus(prec)[0])
+    fmpz_poly_rem(out, a, prime_pow.get_modulus(prec)[0])
     fmpz_poly_scalar_mod_fmpz(out, out, prime_pow.pow_fmpz_t_tmp(prec)[0])
     sig_off()
     return ciszero(out, prime_pow)
@@ -210,10 +210,10 @@ cdef inline long cvaluation(celement a, long prec, PowComputer_ prime_pow) excep
     cdef long val
     cdef long i
     for i from 0 <= i <= fmpz_poly_degree(a):
-        fmpz_poly_get_coeff_fmpz(prime_pow.ftmp, a, i)
-        if fmpz_is_zero(prime_pow.ftmp):
+        fmpz_poly_get_coeff_fmpz(prime_pow.fmpz_cval, a, i)
+        if fmpz_is_zero(prime_pow.fmpz_cval):
             continue
-        val = fmpz_remove(prime_pow.ftmp, prime_pow.ftmp, prime_pow.fprime)
+        val = fmpz_remove(prime_pow.fmpz_cval, prime_pow.fmpz_cval, prime_pow.fprime)
         if val < ret: ret = val
     return ret
 
@@ -230,8 +230,8 @@ cdef inline bint cisunit(celement a, PowComputer_ prime_pow) except -1:
 
     - returns True if `a` has valuation 0, and False otherwise.
     """
-    fmpz_poly_scalar_mod_fmpz(prime_pow.tmp_poly, a, prime_pow.fprime)
-    return not ciszero(prime_pow.tmp_poly, prime_pow)
+    fmpz_poly_scalar_mod_fmpz(prime_pow.poly_cisunit, a, prime_pow.fprime)
+    return not ciszero(prime_pow.poly_cisunit, prime_pow)
 
 cdef inline int cshift(celement out, celement a, long n, long prec, PowComputer_ prime_pow, bint reduce_afterward) except -1:
     """
@@ -313,20 +313,19 @@ cdef inline int cinvert(celement out, celement a, long prec, PowComputer_ prime_
     - ``prec`` -- a long, the precision.
     - ``prime_pow`` -- the PowComputer for the ring.
     """
-    # TODO: this can probably be done faster
     sig_on()
-    fmpz_poly_set(prime_pow.tmp_poly2, prime_pow.get_modulus(prec)[0])
-    fmpz_poly_primitive_part(prime_pow.tmp_poly2, prime_pow.tmp_poly2)
+    fmpz_poly_set(prime_pow.poly_cinv, prime_pow.get_modulus(prec)[0])
+    fmpz_poly_primitive_part(prime_pow.poly_cinv, prime_pow.poly_cinv)
 
-    fmpz_poly_content(prime_pow.ftmp2, a)
-    fmpz_poly_scalar_divexact_fmpz(out, a, prime_pow.ftmp2)
+    fmpz_poly_content(prime_pow.fmpz_cinv, a)
+    fmpz_poly_scalar_divexact_fmpz(out, a, prime_pow.fmpz_cinv)
 
-    fmpz_poly_xgcd(prime_pow.ftmp, out, prime_pow.tmp_poly, out, prime_pow.tmp_poly2)
-    if fmpz_is_zero(prime_pow.ftmp): raise ValueError("polynomials are not coprime")
+    fmpz_poly_xgcd(prime_pow.fmpz_cinv2, out, prime_pow.poly_cinv2, out, prime_pow.poly_cinv)
+    if fmpz_is_zero(prime_pow.tfmpz): raise ValueError("polynomials are not coprime")
 
-    fmpz_mul(prime_pow.ftmp2, prime_pow.ftmp, prime_pow.ftmp2)
-    if not fmpz_invmod(prime_pow.ftmp2, prime_pow.ftmp2, prime_pow.pow_fmpz_t_tmp(prec)[0]): raise ValueError("content or xgcd is not a unit")
-    fmpz_poly_scalar_mul_fmpz(out, out, prime_pow.ftmp2)
+    fmpz_mul(prime_pow.fmpz_cinv2, prime_pow.fmpz_cinv, prime_pow.fmpz_cinv2)
+    if not fmpz_invmod(prime_pow.fmpz_cinv2, prime_pow.fmpz_cinv2, prime_pow.pow_fmpz_t_tmp(prec)[0]): raise ValueError("content or xgcd is not a unit")
+    fmpz_poly_scalar_mul_fmpz(out, out, prime_pow.fmpz_cinv2)
 
     creduce(out, out, prec, prime_pow)
     sig_off()
@@ -434,12 +433,12 @@ cdef inline int cpow(celement out, celement a, mpz_t n, long prec, PowComputer_ 
     elif mpz_sgn(n) == 0:
         csetone(out, prime_pow)
     elif mpz_even_p(n):
-        mpz_divexact_ui(prime_pow.temp_m2, n, 2)
-        cpow(out, a, prime_pow.temp_m2, prec, prime_pow)
+        mpz_divexact_ui(prime_pow.mpz_cpow, n, 2)
+        cpow(out, a, prime_pow.mpz_cpow, prec, prime_pow)
         fmpz_poly_sqr(out, out)
     else:
-        mpz_sub_ui(prime_pow.temp_m2, n, 1)
-        cpow(out, a, prime_pow.temp_m2, prec, prime_pow)
+        mpz_sub_ui(prime_pow.mpz_cpow, n, 1)
+        cpow(out, a, prime_pow.mpz_cpow, prec, prime_pow)
         fmpz_poly_mul(out, out, a)
 
     creduce(out, out, prec, prime_pow)
@@ -528,16 +527,16 @@ cdef clist(celement a, long prec, bint pos, PowComputer_ prime_pow):
     cdef Integer digit
     cdef long i,j
     for i from 0 <= i <= fmpz_poly_degree(a):
-        fmpz_poly_get_coeff_fmpz(prime_pow.ftmp, a, i)
+        fmpz_poly_get_coeff_fmpz(prime_pow.fmpz_clist, a, i)
         j = 0
         while True:
-            if fmpz_is_zero(prime_pow.ftmp): break
+            if fmpz_is_zero(prime_pow.fmpz_clist): break
             digit = PY_NEW(Integer)
-            fmpz_fdiv_qr(prime_pow.ftmp, prime_pow.ftmp2, prime_pow.ftmp, prime_pow.fprime)
-            if not fmpz_is_zero(prime_pow.ftmp2):
+            fmpz_fdiv_qr(prime_pow.fmpz_clist, prime_pow.fmpz_clist2, prime_pow.fmpz_clist, prime_pow.fprime)
+            if not fmpz_is_zero(prime_pow.fmpz_clist2):
                 while len(ret) <= j: ret.append([])
                 while len(ret[j]) <= i: ret[j].append(0)
-                fmpz_get_mpz(digit.value, prime_pow.ftmp2)
+                fmpz_get_mpz(digit.value, prime_pow.fmpz_clist2)
                 ret[j][i] =digit
             j += 1
     return ret
@@ -572,23 +571,23 @@ cdef int cteichmuller(celement out, celement value, long prec, PowComputer_ prim
     if prec == 0:
         return 0
 
-    # ftmp2 = 1 / (1 - q) (mod p^prec)
-    fmpz_set_ui(prime_pow.ftmp2, 1)
-    fmpz_sub(prime_pow.ftmp2, prime_pow.ftmp2, prime_pow.q)
-    fmpz_invmod(prime_pow.ftmp2, prime_pow.ftmp2, prime_pow.pow_fmpz_t_tmp(prec)[0])
+    # fmpz_ctm = 1 / (1 - q) (mod p^prec)
+    fmpz_set_ui(prime_pow.fmpz_ctm, 1)
+    fmpz_sub(prime_pow.fmpz_ctm, prime_pow.fmpz_ctm, prime_pow.q)
+    fmpz_invmod(prime_pow.fmpz_ctm, prime_pow.fmpz_ctm, prime_pow.pow_fmpz_t_tmp(prec)[0])
     while True:
-        # tmp_poly3 = out + ftmp2*(out^q - out)
-        fmpz_get_mpz(prime_pow.temp_m2, prime_pow.q)
-        cpow(prime_pow.tmp_poly3, out, prime_pow.temp_m2, prec, prime_pow)
-        csub(prime_pow.tmp_poly3, prime_pow.tmp_poly3, out, prec, prime_pow)
-        fmpz_poly_scalar_mul_fmpz(prime_pow.tmp_poly3, prime_pow.tmp_poly3, prime_pow.ftmp2)
-        cadd(prime_pow.tmp_poly3, prime_pow.tmp_poly3, out, prec, prime_pow)
-        creduce(prime_pow.tmp_poly3, prime_pow.tmp_poly3, prec, prime_pow)
-        # break if out == tmp_poly3
-        if ccmp(prime_pow.tmp_poly3, out, prec, False, False, prime_pow) == 0:
+        # poly_ctm = out + fmpz_ctm*(out^q - out)
+        fmpz_get_mpz(prime_pow.mpz_ctm, prime_pow.q)
+        cpow(prime_pow.poly_ctm, out, prime_pow.mpz_ctm, prec, prime_pow)
+        csub(prime_pow.poly_ctm, prime_pow.poly_ctm, out, prec, prime_pow)
+        fmpz_poly_scalar_mul_fmpz(prime_pow.poly_ctm, prime_pow.poly_ctm, prime_pow.fmpz_ctm)
+        cadd(prime_pow.poly_ctm, prime_pow.poly_ctm, out, prec, prime_pow)
+        creduce(prime_pow.poly_ctm, prime_pow.poly_ctm, prec, prime_pow)
+        # break if out == poly_ctm
+        if ccmp(prime_pow.poly_ctm, out, prec, False, False, prime_pow) == 0:
             return 0
-        # out = tmp_poly3
-        fmpz_poly_set(out, prime_pow.tmp_poly3)
+        # out = poly_ctm
+        fmpz_poly_set(out, prime_pow.poly_ctm)
 
 cdef int cconv(celement out, x, long prec, long valshift, PowComputer_ prime_pow) except -2:
     """
@@ -613,18 +612,18 @@ cdef int cconv(celement out, x, long prec, long valshift, PowComputer_ prime_pow
 
     if PyList_Check(x):
         for i from 0 <= i < len(x):
-            cconv(prime_pow.tmp_poly, x[i], prec, valshift, prime_pow)
-            degree = fmpz_poly_degree(prime_pow.tmp_poly)
+            cconv(prime_pow.poly_cconv, x[i], prec, valshift, prime_pow)
+            degree = fmpz_poly_degree(prime_pow.poly_cconv)
             if degree == -1: continue
             elif degree == 0:
-                fmpz_poly_get_coeff_fmpz(prime_pow.ftmp, prime_pow.tmp_poly, 0)
-                fmpz_poly_set_coeff_fmpz(out, i, prime_pow.ftmp)
+                fmpz_poly_get_coeff_fmpz(prime_pow.fmpz_cconv, prime_pow.poly_cconv, 0)
+                fmpz_poly_set_coeff_fmpz(out, i, prime_pow.fmpz_cconv)
             else:
                 raise ValueError
         creduce(out, out, prec, prime_pow)
     else:
-        cconv_shared(prime_pow.temp_m2, x, prec, valshift, prime_pow)
-        fmpz_poly_set_mpz(out, prime_pow.temp_m2)
+        cconv_shared(prime_pow.mpz_cconv, x, prec, valshift, prime_pow)
+        fmpz_poly_set_mpz(out, prime_pow.mpz_cconv)
 
 cdef inline long cconv_mpq_t(celement out, celement x, long prec, bint absolute, PowComputer_ prime_pow) except? -10000:
     """
@@ -647,8 +646,8 @@ cdef inline long cconv_mpq_t(celement out, celement x, long prec, bint absolute,
     - If ``absolute`` is False then returns the valuation that was
       extracted (``maxordp`` when `x = 0`).
     """
-    cconv_mpq_t_shared(prime_pow.temp_m2, x, prec, absolute, prime_pow)
-    fmpz_poly_set_mpz(out, prime_pow.temp_m2)
+    cconv_mpq_t_shared(prime_pow.mpz_cconv, x, prec, absolute, prime_pow)
+    fmpz_poly_set_mpz(out, prime_pow.mpz_cconv)
 
 cdef inline int cconv_mpq_t_out(mpq_t out, celement x, long valshift, long prec, PowComputer_ prime_pow) except -1:
     """
@@ -665,11 +664,11 @@ cdef inline int cconv_mpq_t_out(mpq_t out, celement x, long valshift, long prec,
     if degree > 0:
         raise ValueError
     elif degree == -1:
-        mpz_set_ui(prime_pow.temp_m2, 0)
+        mpz_set_ui(prime_pow.mpz_cconv, 0)
     else:
-        fmpz_poly_get_coeff_mpz(prime_pow.temp_m2, x, 0)
+        fmpz_poly_get_coeff_mpz(prime_pow.mpz_cconv, x, 0)
 
-    cconv_mpq_t_out_shared(out, prime_pow.temp_m2, valshift, prec, prime_pow)
+    cconv_mpq_t_out_shared(out, prime_pow.mpz_cconv, valshift, prec, prime_pow)
 
 cdef inline long cconv_mpz_t(celement out, mpz_t x, long prec, bint absolute, PowComputer_ prime_pow) except -2:
     """
@@ -692,8 +691,8 @@ cdef inline long cconv_mpz_t(celement out, mpz_t x, long prec, bint absolute, Po
     - If ``absolute`` is False then returns the valuation that was
       extracted (``maxordp`` when `x = 0`).
     """
-    cconv_mpz_t_shared(prime_pow.temp_m2, x, prec, absolute, prime_pow)
-    fmpz_poly_set_mpz(out, prime_pow.temp_m2)
+    cconv_mpz_t_shared(prime_pow.mpz_cconv, x, prec, absolute, prime_pow)
+    fmpz_poly_set_mpz(out, prime_pow.mpz_cconv)
 
 cdef inline int cconv_mpz_t_out(mpz_t out, celement x, long valshift, long prec, PowComputer_ prime_pow) except -1:
     """
@@ -711,8 +710,8 @@ cdef inline int cconv_mpz_t_out(mpz_t out, celement x, long valshift, long prec,
     if degree > 0:
         raise ValueError
     elif degree == -1:
-        mpz_set_ui(prime_pow.temp_m2, 0)
+        mpz_set_ui(prime_pow.mpz_cconv, 0)
     else:
-        fmpz_poly_get_coeff_mpz(prime_pow.temp_m2, x, 0)
+        fmpz_poly_get_coeff_mpz(prime_pow.mpz_cconv, x, 0)
 
-    cconv_mpz_t_out_shared(out, prime_pow.temp_m2, valshift, prec, prime_pow)
+    cconv_mpz_t_out_shared(out, prime_pow.mpz_cconv, valshift, prec, prime_pow)

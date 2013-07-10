@@ -74,7 +74,7 @@ def _make_integral_poly(prepoly, p, prec):
         sage: f.parent()
         Univariate Polynomial Ring in x over Integer Ring
         sage: f = _make_integral_poly(x^2 - 2/7, 5, 3); f
-        x^2 + 36
+        x^2 + 89
         sage: f.parent()
         Univariate Polynomial Ring in x over Integer Ring
     """

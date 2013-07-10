@@ -146,6 +146,9 @@ cdef inline bint creduce(celement out, celement a, long prec, PowComputer_ prime
 
     - returns True if the reduction is zero; False otherwise.
     """
+    if prec == 0:
+        csetzero(out, prime_pow)
+        return True
     sig_on()
     fmpz_poly_rem(out, a, prime_pow.get_modulus(prec)[0])
     fmpz_poly_scalar_mod_fmpz(out, out, prime_pow.pow_fmpz_t_tmp(prec)[0])

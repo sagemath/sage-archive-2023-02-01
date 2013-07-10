@@ -21,6 +21,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from pow_computer_ext import PowComputer_ext_maker
 from pow_computer_flint import PowComputer_flint_maker
 from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX

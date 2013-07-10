@@ -405,6 +405,18 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         """
         return self.prime_pow.prime == p and self.prime_pow.deg == 1
 
+    def _prime_pow(self):
+        """
+        Provides access to this element's ``prime_pow``.
+
+        EXAMPLES::
+
+            sage: R = ZpCR(5,5)
+            sage: R(1)._prime_pow()
+            PowComputer for 5
+        """
+        return self.prime_pow
+
 cdef Integer exact_pow_helper(long *ansrelprec, long relprec, _right, PowComputer_class prime_pow):
     """
     This function is used by exponentiation in both CR_template.pxi

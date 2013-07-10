@@ -108,8 +108,8 @@ class UnramifiedExtensionRingCappedRelative(UnramifiedExtensionGeneric, pAdicCap
         UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
         if implementation != 'NTL':
             from qadic_flint_CR import pAdicCoercion_ZZ_CR, pAdicConvert_QQ_CR
-            self.register_coercion(pAdicCoercion_ZZ_CR)
-            self.register_conversion(pAdicConvert_QQ_CR)
+            self.register_coercion(pAdicCoercion_ZZ_CR(self))
+            self.register_conversion(pAdicConvert_QQ_CR(self))
 
 class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCappedRelativeFieldGeneric):
     """
@@ -169,8 +169,8 @@ class UnramifiedExtensionFieldCappedRelative(UnramifiedExtensionGeneric, pAdicCa
         UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
         if implementation != 'NTL':
             from qadic_flint_CR import pAdicCoercion_ZZ_CR, pAdicCoercion_QQ_CR
-            self.register_coercion(pAdicCoercion_ZZ_CR)
-            self.register_coercion(pAdicCoercion_QQ_CR)
+            self.register_coercion(pAdicCoercion_ZZ_CR(self))
+            self.register_coercion(pAdicCoercion_QQ_CR(self))
 
 #class UnramifiedExtensionRingLazy(UnramifiedExtensionGeneric, pAdicLazyRingGeneric):
 #    def __init__(self, poly, prec, halt, print_mode, names):
@@ -240,8 +240,8 @@ class UnramifiedExtensionRingCappedAbsolute(UnramifiedExtensionGeneric, pAdicCap
         UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
         if implementation != 'NTL':
             from qadic_flint_CA import pAdicCoercion_ZZ_CA, pAdicConvert_QQ_CA
-            self.register_coercion(pAdicCoercion_ZZ_CA)
-            self.register_conversion(pAdicConvert_QQ_CA)
+            self.register_coercion(pAdicCoercion_ZZ_CA(self))
+            self.register_conversion(pAdicConvert_QQ_CA(self))
 
 class UnramifiedExtensionRingFixedMod(UnramifiedExtensionGeneric, pAdicFixedModRingGeneric):
     """
@@ -297,8 +297,8 @@ class UnramifiedExtensionRingFixedMod(UnramifiedExtensionGeneric, pAdicFixedModR
         UnramifiedExtensionGeneric.__init__(self, poly, prec, print_mode, names, element_class)
         if implementation != 'NTL':
             from qadic_flint_FM import pAdicCoercion_ZZ_FM, pAdicConvert_QQ_FM
-            self.register_coercion(pAdicCoercion_ZZ_FM)
-            self.register_conversion(pAdicConvert_QQ_FM)
+            self.register_coercion(pAdicCoercion_ZZ_FM(self))
+            self.register_conversion(pAdicConvert_QQ_FM(self))
 
     #def coerce_map_explicit(self, S):
     #    from sage.rings.padics.morphism import Morphism_ZZ_UnrFM, Morphism_ZpFM_UnrFM

@@ -28,6 +28,7 @@ include "sage/libs/pari/decl.pxi"
 include "sage/ext/python.pxi"
 
 import sage.rings.finite_rings.integer_mod
+from sage.rings.finite_rings.element_base
 from sage.libs.pari.gen cimport gen as pari_gen
 cdef extern from "convert.h":
     cdef void t_INT_to_ZZ( mpz_t value, GEN g )
@@ -107,6 +108,8 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         elif PY_TYPE_CHECK(x, pAdicGenericElement):
             if not ((<pAdicGenericElement>x)._is_base_elt(self.prime_pow.prime) or x.parent() is self.parent()):
                 raise NotImplementedError("conversion between padic extensions not implemented")
+        elif sage.rings.finite_rings.element_base.is_FiniteFieldElement(x) and x.parent() is self.parent().residue_field():
+            x = x.polynomial().list()
         elif not (PY_TYPE_CHECK(x, Integer) or \
                   PY_TYPE_CHECK(x, Rational) or \
                   PY_TYPE_CHECK(x, pari_gen) or \

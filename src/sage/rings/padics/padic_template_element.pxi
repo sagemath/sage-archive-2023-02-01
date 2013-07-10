@@ -91,7 +91,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             <type 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
             sage: TestSuite(a).run()
         """
-        self.prime_pow = <PowComputer_class?>parent.prime_pow
+        self.prime_pow = <PowComputer_?>parent.prime_pow
         pAdicGenericElement.__init__(self, parent)
         cdef long val, xprec
         cdef GEN pari_tmp
@@ -417,7 +417,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         """
         return self.prime_pow
 
-cdef Integer exact_pow_helper(long *ansrelprec, long relprec, _right, PowComputer_class prime_pow):
+cdef Integer exact_pow_helper(long *ansrelprec, long relprec, _right, PowComputer_ prime_pow):
     """
     This function is used by exponentiation in both CR_template.pxi
     and CA_template.pxi to determine the extra precision gained from
@@ -457,7 +457,7 @@ cdef Integer exact_pow_helper(long *ansrelprec, long relprec, _right, PowCompute
     return right
 
 cdef long padic_pow_helper(celement result, celement base, long base_val, long base_relprec,
-                           celement right_unit, long right_val, long right_relprec, PowComputer_class prime_pow) except -1:
+                           celement right_unit, long right_val, long right_relprec, PowComputer_ prime_pow) except -1:
     """
     INPUT:
 

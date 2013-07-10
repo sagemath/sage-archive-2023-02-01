@@ -27,6 +27,7 @@ include "CR_template.pxi"
 from sage.libs.pari.pari_instance cimport PariInstance
 cdef PariInstance P = sage.libs.pari.pari_instance.pari
 from sage.rings.finite_rings.integer_mod import Mod
+from sage.rings.padics.pow_computer cimport PowComputer_class
 
 cdef class PowComputer_(PowComputer_base):
     def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field):

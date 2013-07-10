@@ -1510,7 +1510,7 @@ def unpickle_cae_v2(cls, parent, value, absprec):
     """
     cdef CAElement ans = PY_NEW(cls)
     ans._parent = parent
-    ans.prime_pow = <PowComputer_class?>parent.prime_pow
+    ans.prime_pow = <PowComputer_?>parent.prime_pow
     cconstruct(ans.value, ans.prime_pow)
     cunpickle(ans.value, value, ans.prime_pow)
     ans.absprec = absprec

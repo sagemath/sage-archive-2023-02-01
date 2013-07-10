@@ -2216,7 +2216,7 @@ def unpickle_cre_v2(cls, parent, unit, ordp, relprec):
     """
     cdef CRElement ans = PY_NEW(cls)
     ans._parent = parent
-    ans.prime_pow = <PowComputer_class?>parent.prime_pow
+    ans.prime_pow = <PowComputer_?>parent.prime_pow
     cconstruct(ans.unit, ans.prime_pow)
     cunpickle(ans.unit, unit, ans.prime_pow)
     ans.ordp = ordp

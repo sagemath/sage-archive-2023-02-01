@@ -181,6 +181,8 @@ cdef inline long cremove(celement out, celement a, long prec, PowComputer_ prime
         sig_on()
         fmpz_poly_scalar_divexact_fmpz(out, a, (<PowComputer_flint_unram>prime_pow).pow_fmpz_t_tmp(ret)[0])
         sig_off()
+    else:
+        fmpz_poly_set(out, a)
     return ret
 
 cdef inline long cvaluation(celement a, long prec, PowComputer_ prime_pow) except -1:

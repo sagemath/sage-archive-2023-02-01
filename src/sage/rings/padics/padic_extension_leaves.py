@@ -22,6 +22,7 @@ AUTHORS:
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
+from sage.rings.finite_rings.integer_mod_ring import Zmod
 from pow_computer_ext import PowComputer_ext_maker
 from pow_computer_flint import PowComputer_flint_maker
 from sage.libs.ntl.ntl_ZZ_pX import ntl_ZZ_pX
@@ -85,7 +86,6 @@ def _make_integral_poly(prepoly, p, prec):
     except (TypeError, ValueError):
         Zpoly = prepoly.change_ring(QQ)
     if Zpoly.base_ring() is not ZZ:
-        from sage.rings.finite_rings.integer_mod_ring import Zmod
         Zpoly = Zpoly.change_ring(Zmod(p**prec)).change_ring(ZZ)
     return Zpoly
 

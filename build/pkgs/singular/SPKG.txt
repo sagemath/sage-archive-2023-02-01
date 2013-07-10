@@ -27,9 +27,9 @@ GNU patch, GMP/MPIR, NTL, Termcap, Readline and MPFR
 
 == Special Update/Build Instructions ==
 
-See spkg-changes for how to delete unnecessary stuff under src/
+See spkg-src.
 
-Several patches are applied.
+== Patches ==
  * assert.patch: logic seems to be broken on some platforms
  * install_table.patch: install singular/table.h header file, needed
    for the libsing GAP package.
@@ -62,6 +62,8 @@ Several patches are applied.
    http://trac.sagemath.org/sage_trac/ticket/14295 and the changelog
    entry for singular-3-1-5.p5 below.
  * osx_link.patch: #14415: Fixes linker problems on OS X PPC.
+ * sanitize_gmp_header_hack.patch:
+   Fix and simplify generation of `factory/cf_gmp.h` (cf. #14737).
 
 Other notes
  * The option '--without-dynamic-kernel' is used on *all*
@@ -88,6 +90,11 @@ Other notes
    for easier debugging of memory corruptions.
 
 == ChangeLog ==
+
+=== singular-3-1-5.p8 (Leif Leonhardy, Volker Braun, 10 July 2013) ===
+ * #14737: Fix and simplify generation of `factory/cf_gmp.h`
+   (by adding `patches/sanitize_gmp_header_hack.patch`).
+ * Add spkg-src and track all files
 
 === singular-3-1-5.p7 (Jeroen Demeyer, 9 April 2013) ===
  * #14429: On sparc processors, build with --with-align=8.

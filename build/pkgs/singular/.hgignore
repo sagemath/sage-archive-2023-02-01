@@ -1,4 +1,2 @@
-# use glob syntax.
-syntax: glob
-src
-shared
+^src/
+

@@ -726,7 +726,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             try:
                 y = self.teichmuller(x)
             except ValueError:
-                tester.assertLess(x.valuation(), 0)
+                tester.assertTrue(x.valuation() < 0 or x.precision_absolute()==0)
             else:
                 try:
                     tester.assertEqual(x.residue(), y.residue())

@@ -17,7 +17,7 @@ cdef class PowComputer_flint(PowComputer_class):
         sage: A = PowComputer_flint_maker(5, 20, 20, 20, False); A
         FLINT PowComputer for 5
     """
-    def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None, shift_seed=None):
+    def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None):
         """
         Memory initialization.
 
@@ -77,6 +77,18 @@ cdef class PowComputer_flint(PowComputer_class):
             mpz_clear(self.top_power)
             padic_ctx_clear(self.ctx)
 
+    def __reduce__(self):
+        """
+        Pickling.
+
+        TESTS::
+
+            sage: from sage.rings.padics.pow_computer_flint import PowComputer_flint_maker
+            sage: A = PowComputer_flint_maker(5, 20, 20, 20, False);
+            sage: A._test_pickling() # indirect doctest
+        """
+        return PowComputer_flint_maker, (self.prime, self.cache_limit, self.prec_cap, self.ram_prec, self.in_field, self.polynomial())
+
     def _repr_(self):
         """
         String representation of this powcomputer.
@@ -134,6 +146,21 @@ cdef class PowComputer_flint(PowComputer_class):
         if n == 0: return 0
         return (n-1) / self.e + 1
 
+    def polynomial(self, n=None, var='x'):
+        """
+        Returns ``None``.
+
+        For consistency with subclasses.
+
+        EXAMPLES::
+
+            sage: from sage.rings.padics.pow_computer_flint import PowComputer_flint_maker
+            sage: A = PowComputer_flint_maker(5, 20, 20, 20, False, None)
+            sage: A.polynomial() is None
+            True
+        """
+        return None
+
 cdef class PowComputer_flint_1step(PowComputer_flint):
     """
     A PowComputer for a `p`-adic extension defined by a single polynomial.
@@ -147,7 +174,7 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         sage: A = PowComputer_flint_maker(5, 20, 20, 20, False, f); A
         FLINT PowComputer for 5 with polynomial x^3 - 8*x - 2
     """
-    def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, _poly, shift_seed=None):
+    def __cinit__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, _poly):
         """
         Memory initialization.
 
@@ -485,7 +512,7 @@ cdef class PowComputer_flint_eis(PowComputer_flint_1step):
         sage: A = PowComputer_flint_eis(5, 20, 20, 60, False, f); A
         FLINT PowComputer for 5 with polynomial x^3 - 25*x + 5
     """
-    def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None, shift_seed=None):
+    def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None):
         """
         Initialization.
 

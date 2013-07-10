@@ -451,7 +451,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 #         """
 #         raise NotImplementedError
 
-    def extension(self, modulus, prec = None, names = None, print_mode = None, halt = None, implementation=None, **kwds):
+    def extension(self, modulus, prec = None, names = None, print_mode = None, halt = None, implementation='FLINT', **kwds):
         """
         Create an extension of this p-adic ring.
 

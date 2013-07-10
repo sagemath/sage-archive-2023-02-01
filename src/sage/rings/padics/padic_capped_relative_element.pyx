@@ -28,6 +28,11 @@ from sage.libs.pari.pari_instance cimport PariInstance
 cdef PariInstance P = sage.libs.pari.pari_instance.pari
 from sage.rings.finite_rings.integer_mod import Mod
 
+cdef class PowComputer_(PowComputer_base):
+    def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field):
+        _prec_type = 'capped-rel'
+        PowComputer_base.__init__(self, prime, cache_limit, prec_cap, ram_prec_cap, in_field)
+
 cdef class pAdicCappedRelativeElement(CRElement):
     """
     Constructs new element with given parent and value.

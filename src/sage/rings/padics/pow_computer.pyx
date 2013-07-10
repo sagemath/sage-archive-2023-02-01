@@ -86,6 +86,7 @@ cdef class PowComputer_class(SageObject):
             sage: PC.pow_Integer_Integer(2)
             9
         """
+        self._prec_type = None
         self.prime = prime
         self.in_field = in_field
         self.cache_limit = cache_limit
@@ -571,7 +572,7 @@ cdef PowComputer_base PowComputer_c(Integer m, Integer cache_limit, Integer prec
     elif prec_type == 'fixed-mod':
         from padic_fixed_mod_element import PowComputer_ as PC_class
     else:
-        raise RuntimeError
+        PC_class = PowComputer_base
     PC = PC_class(m, mpz_get_ui(cache_limit.value), mpz_get_ui(prec_cap.value), mpz_get_ui(prec_cap.value), in_field)
     pow_comp_cache[key] = weakref.ref(PC)
     return PC

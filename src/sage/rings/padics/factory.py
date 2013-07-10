@@ -2119,7 +2119,7 @@ class pAdicExtension_class(UniqueFactory):
 
             sage: R = Zp(5,3)
             sage: S.<x> = ZZ[]
-            sage: pAdicExtension.create_key_and_extra_args(R, x^4-15,names='w')
+            sage: pAdicExtension.create_key_and_extra_args(R, x^4-15,names='w') # not tested FLINT
             (('e', 5-adic Ring with capped relative precision 3, x^4 - 15, (1 + O(5^3))*x^4 + (O(5^4))*x^3 + (O(5^4))*x^2 + (O(5^4))*x + (2*5 + 4*5^2 + 4*5^3 + O(5^4)), ('w', None, None, 'w'), 12, None, 'series', True, '|', (), -1, -1, -1, 'NTL'), {'shift_seed': (3 + O(5^3))})
         """
         if print_mode is None:

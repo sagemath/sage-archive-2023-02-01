@@ -1660,12 +1660,6 @@ ext_modules = [
         ##
         ################################
 
-    Extension('sage.rings.padics.qadic_flint_CR',
-              sources = ['sage/rings/padics/qadic_flint_CR.pyx'],
-              include_dirs = [SAGE_INC + 'flint/'],
-              depends = flint_depends,
-              libraries = ["csage", "flint"]),
-
     Extension('sage.rings.padics.common_conversion',
               sources = ['sage/rings/padics/common_conversion.pyx'],
               libraries=['gmp']),
@@ -1735,6 +1729,24 @@ ext_modules = [
               language='c++',
               include_dirs = [SAGE_INC + 'flint/'],
               depends = flint_depends),
+
+    Extension('sage.rings.padics.qadic_flint_CR',
+              sources = ['sage/rings/padics/qadic_flint_CR.pyx'],
+              include_dirs = [SAGE_INC + 'flint/'],
+              depends = flint_depends,
+              libraries = ["csage", "flint"]),
+
+    Extension('sage.rings.padics.qadic_flint_CA',
+              sources = ['sage/rings/padics/qadic_flint_CA.pyx'],
+              include_dirs = [SAGE_INC + 'flint/'],
+              depends = flint_depends,
+              libraries = ["csage", "flint"]),
+
+    Extension('sage.rings.padics.qadic_flint_FM',
+              sources = ['sage/rings/padics/qadic_flint_FM.pyx'],
+              include_dirs = [SAGE_INC + 'flint/'],
+              depends = flint_depends,
+              libraries = ["csage", "flint"]),
 
         ################################
         ##

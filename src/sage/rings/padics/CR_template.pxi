@@ -1979,6 +1979,224 @@ cdef class pAdicConvert_QQ_CR(Morphism):
         """
         return self._section
 
+cdef class pAdicCoercion_CR_frac_field(RingHomomorphism_coercion):
+    """
+    The canonical inclusion of Zq into its fraction field.
+
+    EXAMPLES::
+
+        sage: R.<a> = Zq(27, implementation='FLINT')
+        sage: K = R.fraction_field()
+        sage: K.coerce_map_from(R)
+        Ring Coercion morphism:
+          From: Unramified Extension of 3-adic Ring with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (2 + O(3^20))*x + (1 + O(3^20))
+          To:   Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+    """
+    def __init__(self, R, K):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCR(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R); type(f)
+            <type 'sage.rings.padics.qadic_flint_CA.pAdicCoercion_CR_frac_field'>
+        """
+        RingHomomorphism_coercion.__init__(self, R.Hom(K), check=False)
+        self._zero = K(0)
+        self._section = pAdicConvert_CR_frac_field(K, R)
+
+    cpdef Element _call_(self, _x):
+        """
+        Evaluation.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCR(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: f(a)
+            a + O(3^20)
+            sage: f(R(0))
+            0
+        """
+        cdef CRElement x = _x
+        cdef CRElement ans = self._zero._new_c()
+        ans.ordp = x.ordp
+        ans.relprec = x.relprec
+        cshift(ans.unit, x.unit, 0, ans.relprec, x.prime_pow, False)
+        return ans
+
+    cpdef Element _call_with_args(self, _x, args=(), kwds={}):
+        """
+        This function is used when some precision cap is passed in
+        (relative or absolute or both).
+
+        See the documentation for
+        :meth:`pAdicCappedAbsoluteElement.__init__` for more details.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCR(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: f(a, 3)
+            a + O(3^3)
+            sage: b = 9*a
+            sage: f(b, 3)
+            a*3^2 + O(3^3)
+            sage: f(b, 4, 1)
+            a*3^2 + O(3^3)
+            sage: f(b, 4, 3)
+            a*3^2 + O(3^4)
+            sage: f(b, absprec=4)
+            a*3^2 + O(3^4)
+            sage: f(b, relprec=3)
+            a*3^2 + O(3^5)
+            sage: f(b, absprec=1)
+            O(3)
+            sage: f(R(0))
+            O(3^20)
+        """
+        cdef long aprec, rprec
+        cdef CRElement x = _x
+        cdef CRElement ans = self._zero._new_c()
+        cdef bint reduce = False
+        _process_args_and_kwds(&aprec, &rprec, args, kwds, False, ans.prime_pow)
+        if aprec <= x.ordp:
+            csetzero(ans.unit, x.prime_pow)
+            ans.relprec = 0
+            ans.ordp = aprec
+        else:
+            if rprec < x.relprec:
+                reduce = True
+            else:
+                rprec = x.relprec
+            if aprec < rprec + x.ordp:
+                rprec = aprec - x.ordp
+                reduce = True
+            ans.ordp = x.ordp
+            ans.relprec = rprec
+            cshift(ans.unit, x.unit, 0, rprec, x.prime_pow, reduce)
+        return ans
+
+    def section(self):
+        """
+        Returns a map back to the ring that converts elements of
+        non-negative valuation.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCR(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = K.coerce_map_from(R)
+            sage: f(K.gen())
+            a + O(3^20)
+        """
+        return self._section
+
+cdef class pAdicConvert_CR_frac_field(Morphism):
+    """
+    The section of the inclusion from `\ZZ_q`` to its fraction field.
+
+    EXAMPLES::
+
+        sage: R.<a> = ZqCR(27, implementation='FLINT')
+        sage: K = R.fraction_field()
+        sage: f = R.convert_map_from(K); f
+        Generic morphism:
+          From: Unramified Extension of 3-adic Field with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (O(3^20))*x^2 + (2 + O(3^20))*x + (1 + O(3^20))
+          To:   Unramified Extension of 3-adic Ring with capped relative precision 20 in a defined by (1 + O(3^20))*x^3 + (2 + O(3^20))*x + (1 + O(3^20))
+    """
+    def __init__(self, K, R):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCR(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = R.convert_map_from(K); type(f)
+            <type 'sage.rings.padics.qadic_flint_CA.pAdicConvert_CR_frac_field'>
+        """
+        Morphism.__init__(self, Hom(K, R, SetsWithPartialMaps()))
+        self._zero = R(0)
+
+    cpdef Element _call_(self, _x):
+        """
+        Evaluation.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCR(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = R.convert_map_from(K)
+            sage: f(K.gen())
+            a + O(3^20)
+        """
+        cdef CRElement x = _x
+        if x.ordp < 0: raise ValueError("negative valuation")
+        cdef CRElement ans = self._zero._new_c()
+        ans.relprec = x.relprec
+        ans.ordp = x.ordp
+        cshift(ans.unit, x.unit, 0, ans.relprec, ans.prime_pow, False)
+        return ans
+
+    cpdef Element _call_with_args(self, _x, args=(), kwds={}):
+        """
+        This function is used when some precision cap is passed in
+        (relative or absolute or both).
+
+        See the documentation for
+        :meth:`pAdicCappedAbsoluteElement.__init__` for more details.
+
+        EXAMPLES::
+
+            sage: R.<a> = ZqCR(27, implementation='FLINT')
+            sage: K = R.fraction_field()
+            sage: f = R.convert_map_from(K); a = K(a)
+            sage: f(a, 3)
+            a + O(3^3)
+            sage: b = 9*a
+            sage: f(b, 3)
+            a*3^2 + O(3^3)
+            sage: f(b, 4, 1)
+            a*3^2 + O(3^3)
+            sage: f(b, 4, 3)
+            a*3^2 + O(3^4)
+            sage: f(b, absprec=4)
+            a*3^2 + O(3^4)
+            sage: f(b, relprec=3)
+            a*3^2 + O(3^5)
+            sage: f(b, absprec=1)
+            O(3)
+            sage: f(K(0))
+            O(3^20)
+        """
+        cdef long aprec, rprec
+        cdef CRElement x = _x
+        if x.ordp < 0: raise ValueError("negative valuation")
+        cdef CRElement ans = self._zero._new_c()
+        cdef bint reduce = False
+        _process_args_and_kwds(&aprec, &rprec, args, kwds, False, ans.prime_pow)
+        if aprec <= x.ordp:
+            csetzero(ans.unit, x.prime_pow)
+            ans.relprec = 0
+            ans.ordp = aprec
+        else:
+            if rprec < x.relprec:
+                reduce = True
+            else:
+                rprec = x.relprec
+            if aprec < rprec + x.ordp:
+                rprec = aprec - x.ordp
+                reduce = True
+            ans.ordp = x.ordp
+            ans.relprec = rprec
+            cshift(ans.unit, x.unit, 0, rprec, x.prime_pow, reduce)
+        return ans
+
 def unpickle_cre_v2(cls, parent, unit, ordp, relprec):
     """
     Unpickles a capped relative element.

@@ -1009,7 +1009,7 @@ def QpCR(p, prec = DEFAULT_PREC, print_mode = None, halt = DEFAULT_HALT, names =
 def QqCR(q, prec = DEFAULT_PREC, modulus = None, names=None,
           print_mode=None, halt = DEFAULT_HALT, ram_name = None, print_pos = None,
        print_sep = None, print_alphabet = None, print_max_ram_terms = None,
-       print_max_unram_terms = None, print_max_terse_terms = None, check = True):
+       print_max_unram_terms = None, print_max_terse_terms = None, check = True, implementation = 'NTL'):
     """
     A shortcut function to create capped relative unramified `p`-adic
     fields.
@@ -1024,8 +1024,8 @@ def QqCR(q, prec = DEFAULT_PREC, modulus = None, names=None,
     """
     return Qq(q, prec=prec, modulus=modulus, names=names, print_mode=print_mode,
               halt=halt, ram_name=ram_name, print_pos=print_pos, print_max_ram_terms=print_max_ram_terms,
-              print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms, check=check,
-              type = 'capped-rel')
+              print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms,
+              check=check, implementation=implementation, type = 'capped-rel')
 
 #def QqL(q, prec = DEFAULT_PREC, modulus = None, names=None,
 #          print_mode=None, halt = DEFAULT_HALT, ram_name = None, print_pos = None,
@@ -2017,7 +2017,7 @@ def ZpFM(p, prec = DEFAULT_PREC, print_mode = None, halt = DEFAULT_HALT, names =
 def ZqCR(q, prec = DEFAULT_PREC, modulus = None, names=None,
           print_mode=None, halt = DEFAULT_HALT, ram_name = None, print_pos = None,
        print_sep = None, print_alphabet = None, print_max_ram_terms = None,
-       print_max_unram_terms = None, print_max_terse_terms = None, check = True):
+       print_max_unram_terms = None, print_max_terse_terms = None, check = True, implementation = 'NTL'):
     """
     A shortcut function to create capped relative unramified `p`-adic rings.
 
@@ -2031,13 +2031,13 @@ def ZqCR(q, prec = DEFAULT_PREC, modulus = None, names=None,
     """
     return Zq(q, prec=prec, modulus=modulus, names=names, print_mode=print_mode,
               halt=halt, ram_name=ram_name, print_pos=print_pos, print_max_ram_terms=print_max_ram_terms,
-              print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms, check=check,
-              type = 'capped-rel')
+              print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms,
+              check=check, implementation=implementation, type = 'capped-rel')
 
 def ZqCA(q, prec = DEFAULT_PREC, modulus = None, names=None,
           print_mode=None, halt = DEFAULT_HALT, ram_name = None, print_pos = None,
        print_sep = None, print_alphabet = None, print_max_ram_terms = None,
-       print_max_unram_terms = None, print_max_terse_terms = None, check = True):
+       print_max_unram_terms = None, print_max_terse_terms = None, check = True, implementation='NTL'):
     """
     A shortcut function to create capped absolute unramified `p`-adic rings.
 
@@ -2050,13 +2050,13 @@ def ZqCA(q, prec = DEFAULT_PREC, modulus = None, names=None,
     """
     return Zq(q, prec=prec, modulus=modulus, names=names, print_mode=print_mode,
               halt=halt, ram_name=ram_name, print_pos=print_pos, print_max_ram_terms=print_max_ram_terms,
-              print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms, check=check,
-              type = 'capped-abs')
+              print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms,
+              check=check, implementation=implementation, type = 'capped-abs')
 
 def ZqFM(q, prec = DEFAULT_PREC, modulus = None, names=None,
           print_mode=None, halt = DEFAULT_HALT, ram_name = None, print_pos = None,
        print_sep = None, print_alphabet = None, print_max_ram_terms = None,
-       print_max_unram_terms = None, print_max_terse_terms = None, check = True):
+       print_max_unram_terms = None, print_max_terse_terms = None, check = True, implementation='NTL'):
     """
     A shortcut function to create fixed modulus unramified `p`-adic rings.
 
@@ -2069,8 +2069,8 @@ def ZqFM(q, prec = DEFAULT_PREC, modulus = None, names=None,
     """
     return Zq(q, prec=prec, modulus=modulus, names=names, print_mode=print_mode,
               halt=halt, ram_name=ram_name, print_pos=print_pos, print_max_ram_terms=print_max_ram_terms,
-              print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms, check=check,
-              type = 'fixed-mod')
+              print_max_unram_terms=print_max_unram_terms, print_max_terse_terms=print_max_terse_terms,
+              check=check, implementation=implementation, type = 'fixed-mod')
 
 #def ZqL(q, prec = DEFAULT_PREC, modulus = None, names=None,
 #          print_mode=None, halt = DEFAULT_HALT, ram_name = None, print_pos = None,
@@ -2258,12 +2258,10 @@ class pAdicExtension_class(UniqueFactory):
             polytype = 'p'
         #print "polytype = %s"%polytype
         if polytype == 'u' or polytype == 'e':
-            key = (polytype, base, premodulus, modulus, names, prec, halt, print_mode, print_pos, print_sep, tuple(print_alphabet), print_max_ram_terms, print_max_unram_terms, print_max_terse_terms)
+            key = (polytype, base, premodulus, modulus, names, prec, halt, print_mode, print_pos, print_sep, tuple(print_alphabet), print_max_ram_terms, print_max_unram_terms, print_max_terse_terms, implementation)
         else:
             upoly, epoly, prec = split(modulus, prec)
-            key = (polytype, base, premodulus, upoly, epoly, names, prec, halt, print_mode, print_pos, print_sep, tuple(print_alphabet), print_max_ram_terms, print_max_unram_terms, print_max_terse_terms)
-        if implementation != 'NTL':
-            key += (implementation,)
+            key = (polytype, base, premodulus, upoly, epoly, names, prec, halt, print_mode, print_pos, print_sep, tuple(print_alphabet), print_max_ram_terms, print_max_unram_terms, print_max_terse_terms, implementation)
         return key, {'shift_seed': shift_seed}
 
     def create_object(self, version, key, shift_seed):
@@ -2280,15 +2278,13 @@ class pAdicExtension_class(UniqueFactory):
             Eisenstein Extension of 5-adic Ring with capped relative precision 3 in w defined by (1 + O(5^3))*x^4 + (2*5 + 4*5^2 + 4*5^3 + O(5^4))
         """
         polytype = key[0]
-        implementation = () if len(key) == 14 else (key[-1],)
-        if len(implementation) > 0: key = key[:-1]
         if polytype == 'u' or polytype == 'e':
-            polytype, base, premodulus, modulus, names, prec, halt, print_mode, print_pos, print_sep, print_alphabet, print_max_ram_terms, print_max_unram_terms, print_max_terse_terms = key
-            return ext_table[polytype, type(base.ground_ring_of_tower()).__base__](premodulus, modulus, prec, halt, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet, 'max_ram_terms': print_max_ram_terms, 'max_unram_terms': print_max_unram_terms, 'max_terse_terms': print_max_terse_terms}, shift_seed, names, *implementation)
+            polytype, base, premodulus, modulus, names, prec, halt, print_mode, print_pos, print_sep, print_alphabet, print_max_ram_terms, print_max_unram_terms, print_max_terse_terms, implementation = key
+            return ext_table[polytype, type(base.ground_ring_of_tower()).__base__](premodulus, modulus, prec, halt, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet, 'max_ram_terms': print_max_ram_terms, 'max_unram_terms': print_max_unram_terms, 'max_terse_terms': print_max_terse_terms}, shift_seed, names, implementation)
         elif polytype == 'p':
-            polytype, base, premodulus, upoly, epoly, names, prec, halt, print_mode, print_pos, print_sep, print_alphabet, print_max_ram_terms, print_max_unram_terms, print_max_terse_terms = key
+            polytype, base, premodulus, upoly, epoly, names, prec, halt, print_mode, print_pos, print_sep, print_alphabet, print_max_ram_terms, print_max_unram_terms, print_max_terse_terms, implementation = key
             precmult = epoly.degree()
-            return ext_table['p', type(base.ground_ring_of_tower()).__base__](premodulus, upoly, epoly, prec*precmult, halt, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet, 'max_ram_terms': print_max_ram_terms, 'max_unram_terms': print_max_unram_terms, 'max_terse_terms': print_max_terse_terms}, names)
+            return ext_table['p', type(base.ground_ring_of_tower()).__base__](premodulus, upoly, epoly, prec*precmult, halt, {'mode': print_mode, 'pos': print_pos, 'sep': print_sep, 'alphabet': print_alphabet, 'max_ram_terms': print_max_ram_terms, 'max_unram_terms': print_max_unram_terms, 'max_terse_terms': print_max_terse_terms}, names, implementation)
 
 ExtensionFactory = pAdicExtension = pAdicExtension_class("pAdicExtension")
 

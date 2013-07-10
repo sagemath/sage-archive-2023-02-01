@@ -5,6 +5,7 @@ from sage.rings.padics.pow_computer cimport PowComputer_base
 cdef class PowComputer_(PowComputer_base):
     pass
 from sage.libs.pari.gen cimport gen as pari_gen
+from sage.rings.padics.padic_capped_relative_element cimport CRElement
 
 include "CA_template_header.pxi"
 

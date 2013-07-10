@@ -9,5 +9,5 @@ ctypedef fmpz_poly_t celement
 
 include "FM_template_header.pxi"
 
-cdef class qAdicCappedAbsoluteElement(FMElement):
+cdef class qAdicFixedModElement(FMElement):
     pass

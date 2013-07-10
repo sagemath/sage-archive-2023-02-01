@@ -48,3 +48,8 @@ cdef class pAdicConvert_CR_QQ(RingMap):
 cdef class pAdicConvert_QQ_CR(Morphism):
     cdef CRElement _zero
     cdef RingMap _section
+cdef class pAdicCoercion_CR_frac_field(RingHomomorphism_coercion):
+    cdef CRElement _zero
+    cdef Morphism _section
+cdef class pAdicConvert_CR_frac_field(Morphism):
+    cdef CRElement _zero

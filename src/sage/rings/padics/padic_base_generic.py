@@ -26,6 +26,7 @@ from sage.rings.padics.padic_capped_absolute_element import pAdicCoercion_ZZ_CA,
 from sage.rings.padics.padic_fixed_mod_element import pAdicCoercion_ZZ_FM, pAdicConvert_QQ_FM
 
 class pAdicBaseGeneric(pAdicGeneric):
+    _implementation = 'GMP'
     def __init__(self, p, prec, print_mode, names, element_class):
         """
         Initialization

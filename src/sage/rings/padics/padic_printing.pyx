@@ -996,6 +996,7 @@ cdef class pAdicPrinter_class(SageObject):
                 if elt.parent()._implementation == 'FLINT':
                     poly, k = elt._flint_rep_abs()
                     L = [repr(a) for a in poly.coeffs()]
+                    ZZ_pEX = 1
                 else:
                     if elt.parent().is_capped_relative():
                         poly, k = elt._ntl_rep_abs()

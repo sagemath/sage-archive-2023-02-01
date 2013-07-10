@@ -36,9 +36,9 @@ cdef class qAdicFixedModElement(FMElement):
             sage: M = R(0,3).matrix_mod_pn(); M == 0
             True
             sage: M.base_ring()
-            Ring of integers modulo 125
+            Ring of integers modulo 3125
         """
-        return cmatrix_mod_pn(self.value, self.absprec, 0, self.prime_pow)
+        return cmatrix_mod_pn(self.value, self.prime_pow.prec_cap, 0, self.prime_pow)
 
     def _flint_rep(self, var='x'):
         """

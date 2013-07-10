@@ -56,6 +56,9 @@ from skew_partition import SkewPartition, SkewPartitions
 #Partition algebra
 from partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk, SetPartitionsIk, SetPartitionsBk, SetPartitionsSk, SetPartitionsRk, SetPartitionsRk, SetPartitionsPRk
 
+#Vector Partitions
+from vector_partition import VectorPartition, VectorPartitions
+
 #Cores
 from core import Core, Cores
 

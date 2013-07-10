@@ -59,6 +59,7 @@ Combinatorics
    sage/combinat/subword
    sage/combinat/tiling
    sage/combinat/tuple
+   sage/combinat/vector_partition
    cluster_algebras
 
    algebra

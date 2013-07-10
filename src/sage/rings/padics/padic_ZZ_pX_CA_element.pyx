@@ -1559,7 +1559,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             sage: a = (1 + w)^25 - 1
             sage: b = (1 + w)^5 - 1
             sage: c = (1 + w)^20 + (1 + w)^15 + (1 + w)^10 + (1 + w)^5 + 1
-            sage: d = a / b; d == c # not tested FLINT
+            sage: d = a / b; d == c
             True
             sage: d.precision_absolute()
             95
@@ -1862,7 +1862,7 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             4*a*5 + (3*a^2 + a + 3)*5^2 + 4*a^2*5^3 + a^2*5^4 + O(5^5)
             sage: W(0).list()
             [0]
-            sage: A(0,4).list() # not tested FLINT
+            sage: A(0,4).list()
             [[]]
         """
         if lift_mode == 'simple':

@@ -122,11 +122,11 @@ Unramified extensions::
     sage: R(FFp(3))
     3 + O(5)
     sage: QQq.<zz> = Qq(25,4)
-    sage: QQq(FFp(3)) # not tested FLINT
+    sage: QQq(FFp(3))
     3 + O(5)
     sage: FFq = QQq.residue_field(); QQq(FFq(3))
     3 + O(5)
-    sage: zz0 = FFq.gen(); QQq(zz0^2) # not tested FLINT
+    sage: zz0 = FFq.gen(); QQq(zz0^2)
     (zz + 3) + O(5)
 
 Different printing modes::

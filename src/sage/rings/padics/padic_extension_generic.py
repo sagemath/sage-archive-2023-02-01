@@ -64,7 +64,7 @@ class pAdicExtensionGeneric(pAdicGeneric):
 
             sage: R = Zp(5); S.<x> = ZZ[]; f = x^5 + 25*x - 5; W.<w> = R.ext(f)
             sage: L = W.fraction_field()
-            sage: w + L(w) #indirect doctest
+            sage: w + L(w) #indirect doctest not tested FLINT
             2*w + O(w^101)
             sage: w + R(5,2)
             w + w^5 + O(w^10)

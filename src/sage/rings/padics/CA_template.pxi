@@ -84,7 +84,10 @@ cdef class CAElement(pAdicTemplateElement):
             self.absprec = aprec
         else:
             self.absprec = min(aprec, val + rprec)
-            cconv(self.value, x, self.absprec, 0, self.prime_pow)
+            if PY_TYPE_CHECK(x,CAElement) and x.parent() is self.parent():
+                cshift(self.value, (<CAElement>x).value, 0, self.absprec, self.prime_pow, True)
+            else:
+                cconv(self.value, x, self.absprec, 0, self.prime_pow)
 
     cdef CAElement _new_c(self):
         """

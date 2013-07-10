@@ -143,7 +143,10 @@ cdef class CRElement(pAdicTemplateElement):
         else:
             self.relprec = min(rprec, aprec - val)
             self.ordp = val
-            cconv(self.unit, x, self.relprec, val, self.prime_pow)
+            if PY_TYPE_CHECK(x,CRElement) and x.parent() is self.parent():
+                cshift(self.unit, (<CRElement>x).unit, 0, self.relprec, self.prime_pow, True)
+            else:
+                cconv(self.unit, x, self.relprec, val, self.prime_pow)
 
     cdef int _set_exact_zero(self) except -1:
         """

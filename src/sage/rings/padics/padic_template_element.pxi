@@ -104,9 +104,11 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
                 t_INT_to_ZZ((<Integer>x).value, pari_tmp)
             elif typ(pari_tmp) == t_FRAC:
                 x = Rational(x)
+        elif PY_TYPE_CHECK(x, pAdicGenericElement):
+            if not ((<pAdicGenericElement>x)._is_base_elt(self.prime_pow.prime) or x.parent() is self.parent()):
+                raise NotImplementedError("conversion between padic extensions not implemented")
         elif not (PY_TYPE_CHECK(x, Integer) or \
                   PY_TYPE_CHECK(x, Rational) or \
-                  PY_TYPE_CHECK(x, pAdicGenericElement) or \
                   PY_TYPE_CHECK(x, pari_gen) or \
                   PyList_Check(x) or \
                   PyTuple_Check(x) or \

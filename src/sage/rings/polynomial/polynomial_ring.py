@@ -1829,7 +1829,7 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
 
         A monic irreducible polynomial of degree `n` in ``self``.
 
-        EXAMPLES:
+        EXAMPLE::
 
             sage: GF(5^3, 'a')['x'].irreducible_element(2)
             x^2 + (4*a^2 + a + 4)*x + 2*a^2 + 2
@@ -2143,7 +2143,7 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
 
         A monic irreducible polynomial of degree `n` in ``self``.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: GF(5)['x'].irreducible_element(2)
             x^2 + 4*x + 2

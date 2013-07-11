@@ -288,7 +288,7 @@ def GF2X_BuildIrred_list(n):
     Return the list of coefficients of the lexicographically smallest
     irreducible polynomial of degree `n` over the field of 2 elements.
 
-    EXAMPLE:
+    EXAMPLE::
 
         sage: from sage.rings.polynomial.polynomial_gf2x import GF2X_BuildIrred_list
         sage: GF2X_BuildIrred_list(2)
@@ -311,7 +311,7 @@ def GF2X_BuildSparseIrred_list(n):
     Return the list of coefficients of an irreducible polynomial of
     degree `n` of minimal weight over the field of 2 elements.
 
-    EXAMPLE:
+    EXAMPLE::
 
         sage: from sage.rings.polynomial.polynomial_gf2x import GF2X_BuildIrred_list, GF2X_BuildSparseIrred_list
         sage: all([GF2X_BuildSparseIrred_list(n) == GF2X_BuildIrred_list(n)
@@ -331,7 +331,7 @@ def GF2X_BuildRandomIrred_list(n):
     Return the list of coefficients of an irreducible polynomial of
     degree `n` of minimal weight over the field of 2 elements.
 
-    EXAMPLE:
+    EXAMPLE::
 
         sage: from sage.rings.polynomial.polynomial_gf2x import GF2X_BuildRandomIrred_list
         sage: GF2X_BuildRandomIrred_list(2)

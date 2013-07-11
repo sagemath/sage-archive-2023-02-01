@@ -83,8 +83,8 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
     cdef int do_it
     import math
 
+    sig_on()
     try:
-        sig_on()
         mpz_init_set_si(denom, 1)
         mpz_init(a)
         mpz_init_set_si(one, 1)
@@ -165,8 +165,8 @@ def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integ
     cdef mpq_vector* R_row
     import math
 
+    sig_on()
     try:
-        sig_on()
         mpq_init(t)
         mpz_init_set_si(denom, 1)
         mpz_init(a)

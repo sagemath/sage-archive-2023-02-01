@@ -1,5 +1,5 @@
 """
-Dense matrices over `\ZZ/n\ZZ` for `n < 2^{23}` using LinBox's ``Modular<float>``
+Dense matrices over `\ZZ/n\ZZ` for `n < 2^{23}` using LinBox's ``Modular<double>``
 
 AUTHORS:
 - Burcin Erocal
@@ -30,6 +30,7 @@ from sage.libs.linbox.fflas cimport ModDouble_fgemm as Mod_fgemm, ModDouble_fgem
     ModDouble_MinPoly as Mod_MinPoly, \
     ModDouble_CharPoly as Mod_CharPoly
 
+# Limit for LinBox Modular<double>
 MAX_MODULUS = 2**23
 
 from sage.rings.finite_rings.integer_mod cimport IntegerMod_int64
@@ -39,12 +40,12 @@ include "matrix_modn_dense_template.pxi"
 
 cdef class Matrix_modn_dense_double(Matrix_modn_dense_template):
     r"""
-    Dense matrices over `\ZZ/n\ZZ` for `n < 2^{23}` using LinBox's ``Modular<float>``
+    Dense matrices over `\ZZ/n\ZZ` for `n < 2^{23}` using LinBox's ``Modular<double>``
 
     These are matrices with integer entries mod ``n`` represented as
     floating-point numbers in a 64-bit word for use with LinBox routines.
-    This allows for ``n`` up to `2^{23}`.  The
-    ``Matrix_modn_dense_float`` class specializes to smaller moduli.
+    This allows for ``n`` up to `2^{23}`.  The analogous
+    ``Matrix_modn_dense_float`` class is used for smaller moduli.
 
     Routines here are for the most basic access, see the
     `matrix_modn_dense_template.pxi` file for higher-level routines.

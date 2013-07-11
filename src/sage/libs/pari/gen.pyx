@@ -5511,29 +5511,47 @@ cdef class gen(sage.structure.element.RingElement):
 
         INPUT:
 
-        - ``P`` -- ``gen``: a polynomial over a finite prime field
+        - ``T`` -- a gen of type t_POL with coefficients of type t_INTMOD:
+                   a polynomial over a prime finite field
 
-        - ``v`` -- a variable (optional)
+        - ``v`` -- string: a variable name or -1 (optional)
 
-        If `v \geq 0', then `g` will be a polynomial in `v`, else the
+        If `v` is a string, then `g` will be a polynomial in `v`, else the
         variable of the polynomial `T` is used.
+
+        EXAMPLES::
+
+            sage: x = GF(2)['x'].gen()
+            sage: pari(x^2+x+2).ffgen()
+            x
+            sage: pari(x^2+x+1).ffgen('a')
+            a
         """
         sig_on()
         return P.new_gen(ffgen(T.g, P.get_var(v)))
 
     def ffinit(gen p, long n, v=-1):
         r"""
-        Return a monic irreducible polynomial of degree `n` over the
+        Return a monic irreducible polynomial `g` of degree `n` over the
         finite field of `p` elements.
 
         INPUT:
 
-        - ``P`` -- ``gen``: a polynomial over a finite prime field
+        - ``p`` -- a gen of type t_INT: a prime number
 
-        - ``v`` -- a variable (optional)
+        - ``n`` -- integer: the degree of the polynomial
+
+        - ``v`` -- string: a variable name or -1 (optional)
 
         If `v \geq 0', then `g` will be a polynomial in `v`, else the
         variable `x` is used.
+
+        EXAMPLES::
+
+            sage: pari(7).ffinit(11)
+            Mod(1, 7)*x^11 + Mod(1, 7)*x^10 + Mod(4, 7)*x^9 + Mod(5, 7)*x^8 + Mod(1, 7)*x^7 + Mod(1, 7)*x^2 + Mod(1, 7)*x + Mod(6, 7)
+            sage: pari(2003).ffinit(3)
+            Mod(1, 2003)*x^3 + Mod(1, 2003)*x^2 + Mod(1993, 2003)*x + Mod(1995, 2003)
         """
         sig_on()
         return P.new_gen(ffinit(p.g, n, P.get_var(v)))

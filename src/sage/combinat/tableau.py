@@ -2724,7 +2724,7 @@ class Tableau(CombinatorialObject, Element):
             sage: _.category()
             Category of elements of Tableaux
         """
-        w=w*permutation.Permutation( (self.size(),) )   #need to ensure that it belongs to Sym_size
+        w = w + [i+1 for i in range(len(w), self.size())]   #need to ensure that it belongs to Sym_size
         try:
             return self.parent()([[w[entry-1] for entry in row] for row in self])
         except StandardError:

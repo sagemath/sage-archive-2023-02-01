@@ -2172,6 +2172,9 @@ class Tableau(CombinatorialObject, Element):
         Return the PermutationGroup corresponding to the row stabilizer of
         ``self``.
 
+        This assumes that every integer from `1` to the size of ``self``
+        appears exactly once in ``self``.
+
         EXAMPLES::
 
             sage: rs = Tableau([[1,2,3],[4,5]]).row_stabilizer()
@@ -2189,11 +2192,17 @@ class Tableau(CombinatorialObject, Element):
             sage: rs = Tableau([[1],[2],[3]]).row_stabilizer()
             sage: rs.order()
             1
+            sage: rs = Tableau([[2,4,5],[1,3]]).row_stabilizer()
+            sage: rs.order()
+            12
+            sage: rs = Tableau([]).row_stabilizer()
+            sage: rs.order()
+            1
         """
 
         # Ensure that the permutations involve all elements of the
         # tableau, by including the identity permutation on the set [1..k].
-        k = max(self.entries())
+        k = self.size()
         gens = [range(1,k+1)]
         for i in range(len(self)):
             for j in range(0, len(self[i])-1):
@@ -2205,6 +2214,9 @@ class Tableau(CombinatorialObject, Element):
         """
         Return the PermutationGroup corresponding to the column stabilizer
         of ``self``.
+
+        This assumes that every integer from `1` to the size of ``self``
+        appears exactly once in ``self``.
 
         EXAMPLES::
 
@@ -2221,7 +2233,7 @@ class Tableau(CombinatorialObject, Element):
 
     def height(self):
         """
-        Returns the height of the tableau.
+        Return the height of ``self``.
 
         EXAMPLES::
 
@@ -2420,7 +2432,7 @@ class Tableau(CombinatorialObject, Element):
 
     def catabolism(self):
         """
-        Remove the top row of ``self`` and inserts it back in using
+        Remove the top row of ``self`` and insert it back in using
         column Schensted insertion (starting with the largest letter).
 
         EXAMPLES::

@@ -9,4 +9,5 @@ from root_system import RootSystem, WeylDim
 from weyl_group import WeylGroup, WeylGroupElement
 from coxeter_group import CoxeterGroup
 from weyl_characters import WeylCharacterRing, branch_weyl_character, branching_rule_from_plethysm, get_branching_rule, WeightRing
+lazy_import('sage.combinat.root_system.non_symmetric_macdonald_polynomials', 'NonSymmetricMacdonaldPolynomials')
 

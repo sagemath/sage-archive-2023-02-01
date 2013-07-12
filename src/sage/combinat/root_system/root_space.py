@@ -326,7 +326,7 @@ class RootSpaceElement(CombinatorialFreeModuleElement):
 
         """
 
-        return len(self.associated_reflection()) == -1 + (self.parent().positive_roots_nonparabolic_sum(())).scalar(self.associated_coroot())
+        return len(self.associated_reflection()) == -1 + (self.parent().nonparabolic_positive_root_sum(())).scalar(self.associated_coroot())
 
     def max_coroot_le(self):
         r"""

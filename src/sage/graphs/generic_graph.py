@@ -13109,11 +13109,11 @@ class GenericGraph(GenericGraph_pyx):
         INPUT:
 
         - ``verbose_relabel`` - (defaults to True) If True, each
-           vertex v in the first graph will be named '0,v' and each
-           vertex u in the second graph will be named '1,u' in the
-           final graph. If False, the vertices of the first graph and
-           the second graph will be relabeled with consecutive
-           integers.
+          vertex v in the first graph will be named '0,v' and each
+          vertex u in the second graph will be named '1,u' in the
+          final graph. If False, the vertices of the first graph and
+          the second graph will be relabeled with consecutive
+          integers.
 
         .. SEEALSO::
 

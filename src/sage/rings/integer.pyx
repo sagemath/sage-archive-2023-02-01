@@ -618,6 +618,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef unsigned int ibase
 
         cdef Element lift
+        cdef PariInstance pari
 
         if x is None:
             if mpz_sgn(self.value) != 0:
@@ -671,6 +672,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                         break
                     elif paritype == t_POLMOD:
                         x = x.lift()
+                    elif paritype == t_FFELT:
+                        # x = (f modulo defining polynomial of finite field);
+                        # we extract f.
+                        pari = sage.libs.pari.gen.pari
+                        sig_on()
+                        x = pari.new_gen(FF_to_FpXQ_i((<pari_gen>x).g))
                     else:
                         raise TypeError, "Unable to coerce PARI %s to an Integer"%x
 

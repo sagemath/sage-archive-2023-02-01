@@ -68,7 +68,7 @@ EXAMPLES::
 ::
 
     sage: k = GF(3^16,'c'); type(k)
-    <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari_with_category'>
+    <class 'sage.rings.finite_rings.finite_field_pari_ffelt.FiniteField_pari_ffelt_with_category'>
 
 Finite Fields support iteration, starting with 0.
 
@@ -112,7 +112,7 @@ We output the base rings of several finite fields.
 ::
 
     sage: k = GF(3^40,'b'); type(k)
-    <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari_with_category'>
+    <class 'sage.rings.finite_rings.finite_field_pari_ffelt.FiniteField_pari_ffelt_with_category'>
     sage: k.base_ring()
     Finite Field of size 3
 
@@ -443,7 +443,7 @@ class FiniteFieldFactory(UniqueFactory):
                     elif order % 2 == 0:
                         impl = 'ntl'
                     else:
-                        impl = 'pari_mod'
+                        impl = 'pari_ffelt'
                 if impl == 'givaro':
                     K = FiniteField_givaro(order, name, modulus, cache=elem_cache,**kwds)
                 elif impl == 'ntl':

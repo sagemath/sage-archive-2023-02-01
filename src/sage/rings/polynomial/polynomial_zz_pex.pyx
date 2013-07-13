@@ -376,13 +376,13 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             sage: P3 = (a**2+a+1)*x^2+  x+1
             sage: P4 =                  x+1
             sage: P1 < P3
-            True
+            False
             sage: P1 < P4
             False
             sage: P1 > P2
             True
             sage: P1 > P3
-            False
+            True
             sage: P1 > P4
             True
         """

@@ -27,7 +27,6 @@ dictionary are vertices ``u``.  The value associated to each ``u`` is a dictiona
 whose keys are also vertices ``v`` and the value associated to ``v`` is a list of
 strings that label the edges from ``u`` to ``v``::
 
-    sage: from sage.quivers.quiver import *
     sage: Q = Quiver({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
     sage: Q.edges()
     [(1, 2, 'a'), (1, 2, 'b'), (1, 3, 'c'), (2, 3, 'd')]
@@ -114,16 +113,17 @@ definition there are three paths from 1 to 3 in our example::
 The all_quiver_paths method returns a list of objects of type
 :class:`~sage.quivers.paths.QuiverPath`, which are elements in the free small
 category that is associated with the quiver. You can specify a QuiverPath by
-giving an edge or a list of edges.  Here an edge is a tuple of the form (i, j,
-l), where i and j are vertices and l is the label of an edge from i to j::
+giving an edge or a list of edges, passed as arguments to the free small
+category containing this path.  Here an edge is a tuple of the form (i, j, l),
+where i and j are vertices and l is the label of an edge from i to j::
 
-    sage: p = QuiverPath([(1, 2, 'a'), (2, 3, 'd')], parent=Q.free_small_category())
+    sage: p = Q.free_small_category()([(1, 2, 'a'), (2, 3, 'd')])
     sage: p
     a*d
 
 Trivial paths are indicated by passing the tuple (vertex, vertex)::
 
-    sage: QuiverPath((6, 6), parent=Q.free_small_category())
+    sage: Q.free_small_category()((6, 6))
     e_6
 
 Trivial edges can occur in the input.  They are simply deleted if their vertex
@@ -140,10 +140,10 @@ adjacent edges do not match, no error is raised.  Instead the invalid path is
 returned.  The invalid path can be detected by converting a QuiverPath to a
 Boolean.  Valid paths are True, the invalid path is False::
 
-    sage: inv1 = QuiverPath([(1, 2, 'a'), (1, 1)], parent=F)
+    sage: inv1 = F([(1, 2, 'a'), (1, 1)])
     sage: print inv1
     invalid path
-    sage: inv2 = QuiverPath([(1, 2, 'a'), (1, 2, 'a')], parent=F)
+    sage: inv2 = F([(1, 2, 'a'), (1, 2, 'a')])
     sage: inv1 is inv2
     False
     sage: inv1 == inv2
@@ -297,8 +297,8 @@ created from the Quiver::
 
 Radicals, socles, tops, and quotients can all be computed and we can test if
 modules are simple or semisimple, get their dimension, and test for equality.
-Like Quivers, QuiverRep objects are unique and therefore equal if and only if
-they are identical::
+Like Quivers, :class:`~sage.quivers.representation.QuiverRep` objects are
+unique and therefore equal if and only if they are identical::
 
     sage: P.is_simple()
     False
@@ -316,11 +316,9 @@ they are identical::
 
 There are special methods to deal with modules that are given as right ideals
 in the quiver algebra.  To create such a module pass the keyword option='paths'
-to the constructor along with a path or list of paths that generate the desired
-ideal::
+along with a path or list of paths that generate the desired ideal::
 
-    sage: from sage.quivers.representation import QuiverRep
-    sage: M = QuiverRep(QQ, Q, [[(1, 1)], [(1, 2, 'a')]], option='paths')
+    sage: M = Q.representation(QQ, [[(1, 1)], [(1, 2, 'a')]], option='paths')
     sage: M.dimension_vector()
     (1, 2, 3)
 
@@ -330,18 +328,18 @@ pass the keyword option='dual paths' to the constructor along with a path or
 list of paths.  The module returned is the dual of the ideal created in the
 opposite quiver by the reverse of the given paths::
 
-    sage: D = QuiverRep(QQ, Q, [[(1, 1)], [(1, 2, 'a')]], option='dual paths')
+    sage: D = Q.representation(QQ, [[(1, 1)], [(1, 2, 'a')]], option='dual paths')
     sage: D.dimension_vector()
     (2, 0, 0)
 
 For modules that are not a standard module or an ideal of the quiver algebra
-QuiverRep can take as input two dictionaries.  The first associates to each
-vertex a vector space or an integer (the desired dimension of the vector
-space), the second associates to each edge a map or a matrix or something from
-which sage can construct a map::
+:class:`~sage.quivers.representation.QuiverRep` can take as input two
+dictionaries.  The first associates to each vertex a vector space or an
+integer (the desired dimension of the vector space), the second associates to
+each edge a map or a matrix or something from which sage can construct a map::
 
     sage: Q2 = Quiver({1:{2:['a', 'b']}})
-    sage: M2 = QuiverRep(QQ, Q2, {1: QQ^2, 2: QQ^1}, {(1, 2, 'a'): [1, 0], (1, 2, 'b'): [0, 1]})
+    sage: M2 = Q2.representation(QQ, {1: QQ^2, 2: QQ^1}, {(1, 2, 'a'): [1, 0], (1, 2, 'b'): [0, 1]})
     sage: M.get_space(2)
     Vector space of dimension 2 over Rational Field
     sage: M2.get_space(2)
@@ -354,13 +352,12 @@ which sage can construct a map::
 
 A homomorphism between two quiver representations is given by homomorphisms
 between the spaces assigned to the vertices of those representations such that
-those homomorphisms commute with the edge maps of the representations.  In Sage
-these are created by the QuiverRepHom command.  It takes as input the domain,
-codomain, and a dictionary associating maps to vertexes::
+those homomorphisms commute with the edge maps of the representations. The
+homomorphisms are created in the usual Sage syntax, the defining data given by
+a dictionary associating maps to vertexes::
 
     sage: P2 = Q2.P(QQ, 1)
-    sage: from sage.quivers.morphism import QuiverRepHom
-    sage: f = QuiverRepHom(P2, M2, {1:[1, 1], 2:[[1], [1]]})
+    sage: f = P2.hom({1:[1, 1], 2:[[1], [1]]}, M2)
 
 When the domain is given as a right ideal in the quiver algebra we can also
 create a homomorphism by just giving a single element in the codomain.  The map
@@ -369,7 +366,7 @@ is then induced by acting on that element::
     sage: x = P2.gens('x')[0]
     sage: x
     x_0
-    sage: f == QuiverRepHom(P2, M2, f(x))
+    sage: f == P2.hom(f(x), M2)
     True
 
 As you can see above homomorphisms can be applied to elements.  Just like
@@ -380,7 +377,9 @@ composition, so scalar multiplication is done using a method::
     sage: g = f + f
     sage: g == f.scalar_mult(2)
     True
-    sage: g(x) == 2*f(x) # This applies the map, then multiplies by a scalar
+    sage: g == 2*f       # This multiplies the map with the scalar 2
+    True
+    sage: g(x) == 2*f(x) # This applies the map, then multiplies by the scalar
     True
 
 The ``direct_sum`` method for modules returns only the resulting module by
@@ -426,14 +425,15 @@ the inclusion map of a submodule or the factor homomorphism of a quotient use
     sage: incl.is_injective()
     True
 
-Both QuiverRep objects and QuiverRepHom objects have ``linear_dual`` and
+Both :class:`~sage.quivers.representation.QuiverRep` objects and
+:class:`~sage.quivers.homspace.QuiverRepHom` objects have ``linear_dual`` and
 ``algebraic_dual`` methods.  The ``linear_dual`` method applies the functor
-Hom_k(-, k) where k is the base ring of the representation and the
-``algebraic_dual`` method applies the functor Hom_Q(-, kQ) where kQ is the quiver
-algebra.  Both these functors yeild left modules.  A left module is equivalent
-to a right module over the opposite algebra and the opposite of a quiver
-algebra is the algebra of the opposite quiver, so both these methods yeild
-modules and representations of the opposite quiver::
+`Hom_k(..., k)` where k is the base ring of the representation and the
+``algebraic_dual`` method applies the functor `Hom_Q(..., kQ)` where kQ is the
+quiver algebra.  Both these functors yeild left modules.  A left module is
+equivalent to a right module over the opposite algebra and the opposite of a
+quiver algebra is the algebra of the opposite quiver, so both these methods
+yeild modules and representations of the opposite quiver::
 
     sage: f.linear_dual()
     Homomorphism of representations of Quiver on Reverse of ()
@@ -479,7 +479,7 @@ To create a specific element of a given representation we just specify the
 representation and a dictionary associating to each vertex an element of the
 space associated to that vertex in the representation::
 
-    sage: w = QuiverRepElement(M2, {1:(1, -1), 2:(3,)})
+    sage: w = M2({1:(1, -1), 2:(3,)})
     sage: w.get_element(1)
     (1, -1)
 
@@ -508,7 +508,6 @@ operator::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.factory import UniqueFactory
 from sage.structure.unique_representation import UniqueRepresentation, CachedRepresentation
 from sage.misc.function_mangling import ArgumentFixer
 from sage.misc.cachefunc import cached_method
@@ -529,7 +528,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
     TESTS::
 
-        sage: from sage.quivers.quiver import Quiver
         sage: Q1 = Quiver({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
     """
     ###########################################################################
@@ -545,7 +543,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         TESTS::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
             sage: Q is Quiver({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
             True
@@ -602,10 +599,10 @@ class Quiver(UniqueRepresentation, DiGraph):
         cache[KeyArgs, KeyKwds] = G
         return G
 
-    # boundary is None, not [], so that the arguments can be used in caching.
-    # We assume that quivers have no boundary anyway.
+    # boundary is (), not [], so that the arguments can be used in caching.
+    # In our current applications, quivers have no boundary anyway.
     def __init__(self, data=None, pos=None, loops=True, format=None,
-                 boundary=None, weighted=True, implementation='c_graph',
+                 boundary=(), weighted=True, implementation='c_graph',
                  sparse=True, vertex_labels=True, name=None,
                  multiedges=True, convert_empty_dict_labels_to_None=False, **kwds):
         """
@@ -613,7 +610,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         TESTS::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
         """
         # DiGraph.__init__ is normally called during __classcall__
@@ -636,7 +632,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Quiver({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
             Quiver on 3 vertices
             sage: Quiver({1:{2:['a','b'], 3:['c']}, 2:{3:['e_']}}) # indirect doctest
@@ -684,7 +679,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a']}})
             sage: Q.add_vertex(3) # indirect doctest
             Traceback (most recent call last):
@@ -708,7 +702,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a']}})
             sage: Q.add_vertex(3) # indirect doctest
             Traceback (most recent call last):
@@ -747,7 +740,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         TESTS::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: acyQ = Quiver({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
             sage: acyQ.is_acyclic_quiver()
             True
@@ -769,7 +761,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         TESTS::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Quiver({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}}) # indirect doctest
             Quiver on 3 vertices
         """
@@ -791,7 +782,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         TESTS::
 
-            sage: from sage.quivers.quiver import *
             sage: Q1 = Quiver({1:{2:['a']}, 2:{3:['b']}})
             sage: Q2 = Quiver({1:{2:['a']}})
             sage: Q1 < Q1
@@ -834,7 +824,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         TESTS::
 
-            sage: from sage.quivers.quiver import *
             sage: Q1 = Quiver({1:{2:['a']}, 2:{3:['b']}})
             sage: Q2 = Quiver({1:{2:['a']}})
             sage: Q1 > Q1
@@ -875,7 +864,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         TESTS::
 
-            sage: from sage.quivers.quiver import *
             sage: Q1 = Quiver({1:{2:['a']}, 2:{3:['b']}})
             sage: Q2 = Quiver({1:{2:['a']}})
             sage: Q1 <= Q1
@@ -917,7 +905,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         TESTS::
 
-            sage: from sage.quivers.quiver import *
             sage: Q1 = Quiver({1:{2:['a']}, 2:{3:['b']}})
             sage: Q2 = Quiver({1:{2:['a']}})
             sage: Q1 >= Q1
@@ -964,7 +951,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a']}})
             sage: type(Q.to_directed()) == DiGraph
             True
@@ -987,7 +973,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a','b']}, 2:{3:['c']}})
 
         There are no edges into vertex 1::
@@ -1020,7 +1005,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a','b']}, 2:{3:['c']}})
 
         There are edges out of vertexes 1 and 2::
@@ -1048,7 +1032,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{3:['a']}, 2:{3:['b']}})
             sage: Q.sources()
             [1, 2]
@@ -1069,7 +1052,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{3:['a']}, 2:{3:['b']}})
             sage: Q.sinks()
             [3]
@@ -1105,7 +1087,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
             sage: Q.all_paths(1, 3)
             [[1, 2, 3], [1, 3]]
@@ -1188,7 +1169,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a', 'b']}})
             sage: Qrev = Q.reverse()
             sage: Q.edges()
@@ -1213,6 +1193,18 @@ class Quiver(UniqueRepresentation, DiGraph):
     ###########################################################################
 
     def free_small_category(self):
+        """
+        The free small category formed by the paths of this quiver.
+
+        EXAMPLES::
+
+            sage: Q = Quiver({1:{2:['a','c']}, 2:{3:['b']}})
+            sage: F = Q.free_small_category(); F
+            Free small category of Quiver on 3 vertices
+            sage: list(F)
+            [e_1, e_2, e_3, c, a, b, c*b, a*b]
+
+        """
         from free_small_category import FreeSmallCategory
         return FreeSmallCategory(self)
 
@@ -1224,8 +1216,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         TESTS::
 
-            sage: from sage.quivers.quiver import Quiver
-            sage: from sage.quivers.representation import QuiverRep_generic
             sage: Q = Quiver({1:{3:['a']}, 2:{3:['b']}})
             sage: spaces = {1: QQ^2, 2: QQ^3, 3: QQ^2}
             sage: maps = {(1, 3, 'a'): (QQ^2).Hom(QQ^2).identity(), (2, 3, 'b'): [[1, 0], [0, 0], [0, 0]]}
@@ -1250,7 +1240,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a','b']}, 2:{3:['c','d']}})
             sage: S1 = Q.S(GF(3), 1)
             sage: Q.S(ZZ, 3).dimension_vector()
@@ -1292,7 +1281,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a','b']}, 2:{3:['c','d']}})
             sage: P2 = Q.P(GF(3), 2)
             sage: Q.P(ZZ, 3).dimension_vector()
@@ -1330,7 +1318,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a','b']}, 2:{3:['c','d']}})
             sage: I2 = Q.I(GF(3), 2)
             sage: Q.I(ZZ, 3).dimension_vector()
@@ -1368,7 +1355,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a', 'b'], 3: ['c', 'd']}, 2:{3:['e']}})
             sage: Q.free_module(GF(3)).dimension_vector()
             (1, 3, 6)
@@ -1390,7 +1376,6 @@ class Quiver(UniqueRepresentation, DiGraph):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a'], 3:['b']}, 2:{4:['c']}, 3:{4:['d']}})
             sage: Q.algebra(GF(7))
             Algebra of Quiver on 4 vertices over Finite Field of size 7

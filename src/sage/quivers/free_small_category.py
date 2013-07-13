@@ -2,6 +2,8 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.magmas import Magmas
 from sage.categories.monoids import Monoids
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
+from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.cachefunc import cached_method
 from paths import QuiverPath
 from quiver import Quiver
@@ -18,26 +20,45 @@ class FreeSmallCategory(UniqueRepresentation, Parent):
 
     EXAMPLES::
 
-        sage: from sage.quivers.quiver import Quiver
         sage: Q = Quiver({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
         sage: F = Q.free_small_category()
         sage: F
         Free small category of Quiver on 3 vertices
+        sage: F.variable_names()
+        ('e_1', 'e_2', 'e_3', 'a', 'b', 'c', 'd')
+        sage: F.gens()
+        (e_1, e_2, e_3, a, b, c, d)
         sage: F.category()
-        Category of magmas
+        Join of Category of finite enumerated sets and Category of magmas
         sage: TestSuite(F).run()
 
-    If there is only a single vertex, the free algebra is a monoid. ::
+    If there is only a single vertex, the free small category is a monoid. If
+    the underlying quiver has cycles or loops, then the free small category is
+    of course only an infinite enumerated set::
 
         sage: Q = Quiver({1:{1:['a','b', 'c', 'd']}})
         sage: F = Q.free_small_category()
         sage: F.category()
-        Category of monoids
+        Join of Category of infinite enumerated sets and Category of monoids
         sage: TestSuite(F).run()
 
     """
     @staticmethod
     def __classcall__(cls, *args, **kwds):
+        """
+        Preprocessing: Convert input into a quiver before using the cache.
+
+        EXAMPLES::
+
+            sage: Q = Quiver({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
+            sage: from sage.quivers.free_small_category import FreeSmallCategory
+            sage: F = FreeSmallCategory({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
+            sage: F is FreeSmallCategory(Q) # indirect doctest
+            True
+            sage: F is loads(dumps(F))
+            True
+
+        """
         if args:
             Q = args[0]
             if isinstance(Q,Quiver):
@@ -47,14 +68,40 @@ class FreeSmallCategory(UniqueRepresentation, Parent):
 
     Element = QuiverPath
     def __init__(self, Q):
+        """
+        INPUT:
+
+        - a :class:`~sage.quivers.quiver.Quiver`.
+
+        NOTE:
+
+        There is a pre-processing. The class' constructor will also
+        accept data which a quiver can be created from.
+
+        EXAMPLES::
+
+            sage: Q = Quiver({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
+            sage: from sage.quivers.free_small_category import FreeSmallCategory
+            sage: F = FreeSmallCategory({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
+            sage: F is FreeSmallCategory(Q) # indirect doctest
+            True
+            sage: F
+            Free small category of Quiver on 3 vertices
+
+        """
         self._quiver = Q
         nvert = len(Q.vertices())
         if nvert == 0:
             raise TypeError("The quiver must not be empty")
-        if nvert == 1:
-            Parent.__init__(self, category=Monoids())
+        if Q.is_acyclic_quiver():
+            cat = FiniteEnumeratedSets()
         else:
-            Parent.__init__(self, category=Magmas())
+            cat = InfiniteEnumeratedSets()
+        names=['e_{0}'.format(v) for v in Q.vertices()] + [e[2] for e in Q.edges()]
+        if nvert == 1:
+            Parent.__init__(self, names=names, category=cat.join([cat,Monoids()]))
+        else:
+            Parent.__init__(self, names=names, category=cat.join([cat,Magmas()]))
 
     def _repr_(self):
         """
@@ -62,7 +109,6 @@ class FreeSmallCategory(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
             sage: Q.free_small_category()
             Free small category of Quiver on 3 vertices
@@ -71,6 +117,45 @@ class FreeSmallCategory(UniqueRepresentation, Parent):
         return "Free small category of %s"%self._quiver
 
     def _coerce_map_from_(self, other):
+        """
+        A coercion exists from A to B exists, if the underlying quiver
+        of A is a sub-quiver of the underlying quiver of B (preserving
+        names).
+
+        EXAMPLES::
+
+            sage: Q1 = Quiver({1:{2:['a','b'], 3:['c']}, 3:{1:['d']}})
+            sage: Q2 = Quiver({1:{2:['a'], 3:['c']}})
+            sage: Q3 = Quiver({1:{2:['a','x'], 3:['c']}, 3:{1:['d']}})
+            sage: F1 = Q1.free_small_category()
+            sage: F2 = Q2.free_small_category()
+            sage: F3 = Q3.free_small_category()
+            sage: F1.has_coerce_map_from(F2)   # indirect doctest
+            True
+            sage: F1.has_coerce_map_from(F3)
+            False
+            sage: d = F1([(3,1,'d')]); d
+            d
+            sage: c = F2([(1,3,'c')]); c
+            c
+            sage: c.parent() is F1
+            False
+            sage: c in F1    # indirect doctest
+            True
+            sage: d*c        # indirect doctest
+            d*c
+            sage: (d*c).parent() is F1
+            True
+            sage: c3 = F3([(1,3,'c')]); c3
+            c
+            sage: c3 in F1   # indirect doctest
+            False
+            sage: d*c3
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for '*': 'Free small category of Quiver on 3 vertices' and 'Free small category of Quiver on 3 vertices'
+
+        """
         if not isinstance(other, FreeSmallCategory):
             return
         return other.quiver().is_subgraph(self._quiver, induced=False)
@@ -82,7 +167,6 @@ class FreeSmallCategory(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a','b'], 3:['c']}, 3:{1:['d']}})
             sage: F = Q.free_small_category()
             sage: F.zero()
@@ -91,6 +175,102 @@ class FreeSmallCategory(UniqueRepresentation, Parent):
         """
         return self.element_class(None, parent=self)
 
+    @cached_method
+    def arrows(self):
+        """
+        The elements corresponding to edges of the underlying quiver.
+
+        EXAMPLES::
+
+            sage: F = Quiver({1:{2:['a','b'], 3:['c']}, 3:{1:['d']}}).free_small_category()
+            sage: F.arrows()
+            (a, b, c, d)
+        """
+        return tuple(self([e]) for e in self._quiver.edges())
+
+    @cached_method
+    def idempotents(self):
+        """
+        The idempotents corresponding to the vertices of the underlying quiver.
+
+        EXAMPLES::
+
+            sage: F = Quiver({1:{2:['a','b'], 3:['c']}, 3:{1:['d']}}).free_small_category()
+            sage: F.idempotents()
+            (e_1, e_2, e_3)
+
+        """
+        return tuple(self((v,v)) for v in self._quiver.vertices())
+
+    def ngens(self):
+        """
+        The number of generators (:meth:`arrows` and :meth:`idempotents`)
+
+        EXAMPLES::
+
+            sage: F = Quiver({1:{2:['a','b'], 3:['c']}, 3:{1:['d']}}).free_small_category()
+            sage: F.ngens()
+            7
+
+        """
+        Q = self._quiver
+        return Q.num_verts() + Q.num_edges()
+
+    @cached_method
+    def gen(self, i):
+        """
+        Generator number i
+
+        INPUT:
+
+        i, and integer
+
+        OUTPUT:
+
+        An idempotent, if i is smaller than the number of vertices,
+        or an arrow otherwise.
+
+        EXAMPLES::
+
+            sage: F = Quiver({1:{2:['a','b'], 3:['c']}, 3:{1:['d']}}).free_small_category()
+            sage: F.1         # indirect doctest
+            e_2
+            sage: F.idempotents()[1]
+            e_2
+            sage: F.5
+            c
+            sage: F.gens()[5]
+            c
+
+        """
+        Q = self._quiver
+        nv = Q.num_verts()
+        if i < nv:
+            v = Q.vertices()[i]
+            return self((v,v))
+        e = Q.edges()[i-nv]
+        return self([e])
+
+    def gens(self):
+        """
+        The tuple of generators.
+
+        NOTE:
+
+        This coincides with the sum of the output of :meth:`idempotents`
+        and :meth:`arrows`.
+
+        EXAMPLES::
+
+            sage: F = Quiver({1:{2:['a','b'], 3:['c']}, 3:{1:['d']}}).free_small_category()
+            sage: F.gens()
+            (e_1, e_2, e_3, a, b, c, d)
+            sage: F.gens() == F.idempotents() + F.arrows()
+            True
+
+        """
+        return self.idempotents() + self.arrows()
+
     def is_finite(self):
         """
         This free small category is finite if and only if the underlying
@@ -98,7 +278,6 @@ class FreeSmallCategory(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
             sage: Q.free_small_category().is_finite()
             True
@@ -113,7 +292,6 @@ class FreeSmallCategory(UniqueRepresentation, Parent):
         """
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
             sage: F = Q.free_small_category()
             sage: len(F)
@@ -130,13 +308,40 @@ class FreeSmallCategory(UniqueRepresentation, Parent):
         """
         return len(self.all_paths())
 
+    def cardinality(self):
+        """
+        EXAMPLES::
+
+            sage: Q = Quiver({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
+            sage: F = Q.free_small_category()
+            sage: F.cardinality()
+            9
+            sage: A = F.algebra(QQ)
+            sage: list(A.basis())
+            [e_1, e_2, e_3, b, a, c, d, b*d, a*d]
+            sage: Q = Quiver({1:{2:['a','b'], 3:['c']}, 3:{1:['d']}})
+            sage: F = Q.free_small_category()
+            sage: F.cardinality()
+            +Infinity
+            sage: A = F.algebra(QQ)
+            sage: list(A.basis())
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: infinite list
+
+        """
+        from sage.all import ZZ
+        if self._quiver.is_acyclic_quiver():
+            return ZZ(len(self))
+        from sage.rings.infinity import Infinity
+        return Infinity
+
     def __iter__(self):
         """
         Iterate over the elements of self, i.e., over quiver paths
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
             sage: F = Q.free_small_category()
             sage: list(F)
@@ -195,6 +400,52 @@ class FreeSmallCategory(UniqueRepresentation, Parent):
             d += 1
 
     def iter_paths_by_length_and_startpoint(self, d, v):
+        """
+        An iterator over quiver paths with a fixed length and start point.
+
+        INPUT:
+
+        - d, an integer, path length
+        - v, a vertex, start point of the paths
+
+        EXAMPLES::
+
+            sage: Q = Quiver({1:{2:['a','b']}, 2:{3:['d']}, 3:{1:['c']}})
+            sage: F = Q.free_small_category()
+            sage: F.is_finite()
+            False
+            sage: list(F.iter_paths_by_length_and_startpoint(4,1))
+            [b*d*c*b, b*d*c*a, a*d*c*b, a*d*c*a]
+            sage: list(F.iter_paths_by_length_and_startpoint(5,1))
+            [b*d*c*b*d, b*d*c*a*d, a*d*c*b*d, a*d*c*a*d]
+            sage: list(F.iter_paths_by_length_and_startpoint(5,2))
+            [d*c*b*d*c, d*c*a*d*c]
+
+        TEST::
+
+             sage: Q = Quiver({1:{1:['a','b', 'c', 'd']}})
+             sage: F = Q.free_small_category()
+             sage: list(F.iter_paths_by_length_and_startpoint(2,1))
+             [d*d,
+              d*c,
+              d*b,
+              d*a,
+              c*d,
+              c*c,
+              c*b,
+              c*a,
+              b*d,
+              b*c,
+              b*b,
+              b*a,
+              a*d,
+              a*c,
+              a*b,
+              a*a]
+             sage: len(list(F.iter_paths_by_length_and_startpoint(2,1)))
+             16
+
+        """
         # iterate over length d paths starting at vertex v
         if not d>=0:
             raise ValueError("Path length must be a non-negative integer")
@@ -208,6 +459,28 @@ class FreeSmallCategory(UniqueRepresentation, Parent):
                     yield self(list(w)+[a],check=False)
 
     def iter_paths_by_length_and_endpoint(self, d, v):
+        """
+        An iterator over quiver paths with a fixed length and end point.
+
+        INPUT:
+
+        - d, an integer, path length
+        - v, a vertex, end point of the paths
+
+        EXAMPLES::
+
+            sage: Q = Quiver({1:{2:['a','b']}, 2:{3:['d']}, 3:{1:['c']}})
+            sage: F = Q.free_small_category()
+            sage: F.is_finite()
+            False
+            sage: list(F.iter_paths_by_length_and_endpoint(4,1))
+            [c*b*d*c, c*a*d*c]
+            sage: list(F.iter_paths_by_length_and_endpoint(5,1))
+            [d*c*b*d*c, d*c*a*d*c]
+            sage: list(F.iter_paths_by_length_and_endpoint(5,2))
+            [c*b*d*c*b, c*a*d*c*b, c*b*d*c*a, c*a*d*c*a]
+
+        """
         # iterate over length d paths ending at vertex v
         if not d>=0:
             raise ValueError("Path length must be a non-negative integer")
@@ -221,12 +494,48 @@ class FreeSmallCategory(UniqueRepresentation, Parent):
                     yield self([a]+list(w),check=False)
 
     def quiver(self):
+        """
+        The underlying quiver of this free small category.
+
+        EXAMPLES::
+
+            sage: Q = Quiver({1:{2:['a','b']}, 2:{3:['d']}, 3:{1:['c']}})
+            sage: F = Q.free_small_category()
+            sage: F.quiver() is Q
+            True
+        """
         return self._quiver
 
     def reverse(self):
+        """
+        The free small category of the reverse quiver.
+
+        EXAMPLES::
+
+            sage: Q = Quiver({1:{2:['a','b']}, 2:{3:['d']}, 3:{1:['c']}})
+            sage: F = Q.free_small_category()
+            sage: F.reverse() is Q.reverse().free_small_category()
+            True
+
+        """
         return self._quiver.reverse().free_small_category()
 
     def algebra(self, R):
+        """
+        Path algebra of the underlying quiver.
+
+        INPUT:
+
+        R, a commutative ring
+
+        EXAMPLES::
+
+            sage: Q = Quiver({1:{2:['a','b']}, 2:{3:['d']}, 3:{1:['c']}})
+            sage: F = Q.free_small_category()
+            sage: F.algebra(GF(3)) is Q.algebra(GF(3))
+            True
+
+        """
         return self._quiver.algebra(R)
 
     def all_paths(self, start=None, end=None):
@@ -255,7 +564,6 @@ class FreeSmallCategory(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a','b'], 3:['c']}, 2:{3:['d']}})
             sage: F = Q.free_small_category()
             sage: F.all_paths(1, 3)
@@ -357,56 +665,3 @@ class FreeSmallCategory(UniqueRepresentation, Parent):
 
         # The result is all paths from start to end
         return result
-
-
-#    def __contains__(self, other):
-#        """
-#        Implements the ``in`` keyword.
-#
-#        If other is a QuiverPath then ``other in self`` returns True if and only if
-#        each edge of other is an edge of self.  In the case of a trivial path at a
-#        vertex the vertex must be a vertex of the graph.  The invalid path belongs to
-#        every quiver.  If other is not a QuiverPath then the call is passed up to
-#        ``DiGraph.__contains__()`` which returns True if and only if other is a vertex.
-#
-#        TESTS::
-#
-#            sage: from sage.modules.quiver_module import Quiver, QuiverPath
-#            sage: Q = Quiver({1: {2:['a']}, 2:{3:['b']}})
-#            sage: x = QuiverPath([(1, 2, 'a'), (2, 3, 'b')])
-#            sage: y = x*(3, 4, 'c')
-#            sage: x in Q
-#            True
-#            sage: y in Q
-#            False
-#            sage: 1 in Q
-#            True
-#            sage: 4 in Q
-#            False
-#            sage: QuiverPath((1, 1)) in Q
-#            True
-#            sage: QuiverPath((4, 4)) in Q
-#            False
-#            sage: QuiverPath([(1, 1), (2, 2)]) in Q
-#            True
-#        """
-#
-#        # Pass up if not a QuiverPath
-#        if not isinstance(other, QuiverPath):
-#            return super(Quiver, self).__contains__(other)
-#
-#        # Empty paths are in every quiver
-#        if not other._path:
-#            return True
-#
-#        # If its a trivial path just check the vertex
-#        if other._path[0][0] == other._path[0][1]:
-#            return super(Quiver, self).__contains__(other._path[0][0])
-#
-#        # Otherwise check each edge
-#        for e in other:
-#            if (not super(Quiver, self).__contains__(e[0]) or
-#                    not super(Quiver, self).__contains__(e[1]) or
-#                    e[2] not in self.edge_label(e[0], e[1])):
-#                return False
-#        return True

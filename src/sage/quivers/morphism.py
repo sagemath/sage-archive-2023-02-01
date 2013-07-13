@@ -1,6 +1,5 @@
 from sage.categories.morphism import CallMorphism
-
-from sage.categories.morphism import CallMorphism
+from sage.matrix.constructor import Matrix
 
 class QuiverRepHom(CallMorphism):
     """
@@ -46,13 +45,13 @@ class QuiverRepHom(CallMorphism):
         sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
         sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
         sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-        sage: M = QuiverRep(QQ, Q, spaces, maps)
+        sage: M = Q.representation(QQ, spaces, maps)
         sage: spaces2 = {2: QQ^1, 3: QQ^1}
-        sage: S = QuiverRep(QQ, Q, spaces2)
+        sage: S = Q.representation(QQ, spaces2)
 
     With no additional data this creates the zero map::
 
-        sage: f = QuiverRepHom(S, M)
+        sage: f = S.hom(M)
         sage: f.is_zero()
         True
 
@@ -61,13 +60,13 @@ class QuiverRepHom(CallMorphism):
     are equal then Sage will construct the identity matrix from ``1``::
 
         sage: maps2 = {2:[1, -1], 3:1}
-        sage: g = QuiverRepHom(S, M, maps2)
+        sage: g = S.hom(maps2, M)
 
     Here we create the same map by specifying images for the generators::
 
-        sage: x = QuiverRepElement(M, {2: (1, -1)})
-        sage: y = QuiverRepElement(M, {3: (1,)})
-        sage: h = QuiverRepHom(S, M, [x, y])
+        sage: x = M({2: (1, -1)})
+        sage: y = M({3: (1,)})
+        sage: h = S.hom([x, y], M)
         sage: g == h
         True
 
@@ -76,8 +75,8 @@ class QuiverRepHom(CallMorphism):
 
         sage: Proj = Q.P(GF(7), 3)
         sage: Simp = Q.S(GF(7), 3)
-        sage: im = QuiverRepElement(Simp, {3: (1,)})
-        sage: QuiverRepHom(Proj, Simp, im).is_surjective()
+        sage: im = Simp({3: (1,)})
+        sage: Proj.hom(im, Simp).is_surjective()
         True
     """
 
@@ -97,24 +96,33 @@ class QuiverRepHom(CallMorphism):
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-            sage: M = QuiverRep(QQ, Q, spaces, maps)
+            sage: M = Q.representation(QQ, spaces, maps)
             sage: spaces2 = {2: QQ^1, 3: QQ^1}
-            sage: S = QuiverRep(QQ, Q, spaces2)
-            sage: f = QuiverRepHom(S, M)
+            sage: S = Q.representation(QQ, spaces2)
+            sage: f = S.hom(M)
             sage: f.is_zero()
             True
             sage: maps2 = {2:[1, -1], 3:1}
-            sage: g = QuiverRepHom(S, M, maps2)
-            sage: x = QuiverRepElement(M, {2: (1, -1)})
-            sage: y = QuiverRepElement(M, {3: (1,)})
-            sage: h = QuiverRepHom(S, M, [x, y])
+            sage: g = S.hom(maps2, M)
+            sage: x = M({2: (1, -1)})
+            sage: y = M({3: (1,)})
+            sage: h = S.hom([x, y], M)
             sage: g == h
             True
             sage: Proj = Q.P(GF(7), 3)
             sage: Simp = Q.S(GF(7), 3)
-            sage: im = QuiverRepElement(Simp, {3: (1,)})
-            sage: QuiverRepHom(Proj, Simp, im).is_surjective()
+            sage: im = Simp({3: (1,)})
+            sage: Proj.hom(im, Simp).is_surjective()
             True
+
+        TESTS::
+
+            sage: Q = Quiver({1:{2:['a']}})
+            sage: H1 = Q.P(GF(3), 2).Hom(Q.S(GF(3), 2))
+            sage: H2 = Q.P(GF(3), 2).Hom(Q.S(GF(3), 1))
+            sage: H1.an_element() in H1   # indirect doctest
+            True
+
         """
         # The data of a representation is held in the following private
         # variables:
@@ -164,6 +172,7 @@ class QuiverRepHom(CallMorphism):
         if data in self._base_ring**total_dim:
             self._vector = data
             self._assert_valid_hom()
+            super(QuiverRepHom, self).__init__(domain.Hom(codomain))
             return
 
         # If data is not a dict, create one
@@ -228,7 +237,6 @@ class QuiverRepHom(CallMorphism):
 
         # Get the coordinates of the vector
         from sage.categories.morphism import is_Morphism
-        from sage.matrix.constructor import Matrix
         vector = []
         for v in self._quiver:
             if v in maps_dict:
@@ -249,8 +257,7 @@ class QuiverRepHom(CallMorphism):
         # Wrap as a vector, check it, and return
         self._vector = (self._base_ring**total_dim)(vector)
         self._assert_valid_hom()
-
-        super(QuiverRepHom, self).__init__(QuiverHomSpace(domain, codomain), codomain)
+        super(QuiverRepHom, self).__init__(domain.Hom(codomain))
 
     def _repr_(self):
         """
@@ -261,10 +268,10 @@ class QuiverRepHom(CallMorphism):
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-            sage: M = QuiverRep(QQ, Q, spaces, maps)
+            sage: M = Q.representation(QQ, spaces, maps)
             sage: spaces2 = {2: QQ^1, 3: QQ^1}
-            sage: S = QuiverRep(QQ, Q, spaces2)
-            sage: QuiverRepHom(S, M) # indirect doctest
+            sage: S = Q.representation(QQ, spaces2)
+            sage: S.hom(M) # indirect doctest
             Homomorphism of representations of Quiver on 3 vertices
         """
 
@@ -279,12 +286,12 @@ class QuiverRepHom(CallMorphism):
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-            sage: M = QuiverRep(QQ, Q, spaces, maps)
+            sage: M = Q.representation(QQ, spaces, maps)
             sage: spaces2 = {2: QQ^1, 3: QQ^1}
-            sage: S = QuiverRep(QQ, Q, spaces2)
-            sage: x = QuiverRepElement(M, {2: (1, -1)})
-            sage: y = QuiverRepElement(M, {3: (1,)})
-            sage: h = QuiverRepHom(S, M, [x, y])
+            sage: S = Q.representation(QQ, spaces2)
+            sage: x = M({2: (1, -1)})
+            sage: y = M({3: (1,)})
+            sage: h = S.hom([x, y], M)
             sage: h(S.gens()[0]) == x
             True
             sage: h(S.gens()[1]) == y
@@ -297,7 +304,7 @@ class QuiverRepHom(CallMorphism):
             raise ValueError("QuiverRepHom can only be called on QuiverRepElement")
 
         elements = dict((v, self.get_map(v)(x._elems[v])) for v in self._quiver)
-        return QuiverRepElement(self._codomain, elements)
+        return self._codomain(elements)
 
     def __add__(left, right):
         """
@@ -308,13 +315,13 @@ class QuiverRepHom(CallMorphism):
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-            sage: M = QuiverRep(QQ, Q, spaces, maps)
+            sage: M = Q.representation(QQ, spaces, maps)
             sage: spaces2 = {2: QQ^1, 3: QQ^1}
-            sage: S = QuiverRep(QQ, Q, spaces2)
-            sage: x = QuiverRepElement(M, {2: (1, -1)})
+            sage: S = Q.representation(QQ, spaces2)
+            sage: x = M({2: (1, -1)})
             sage: z = M.zero()
-            sage: h = QuiverRepHom(S, M, [x, z])
-            sage: g = QuiverRepHom(S, M, [z, z])
+            sage: h = S.hom([x, z], M)
+            sage: g = S.hom([z, z], M)
             sage: f = g + h
             sage: f(S.gens()[0]) == x
             True
@@ -324,7 +331,7 @@ class QuiverRepHom(CallMorphism):
 
         from sage.quivers.morphism import QuiverRepHom
         new_vector = left._vector + right._vector
-        return QuiverRepHom(left._domain, left._codomain, new_vector)
+        return left._domain.hom(new_vector, left._codomain)
 
     def __iadd__(self, other):
         """
@@ -335,13 +342,13 @@ class QuiverRepHom(CallMorphism):
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-            sage: M = QuiverRep(QQ, Q, spaces, maps)
+            sage: M = Q.representation(QQ, spaces, maps)
             sage: spaces2 = {2: QQ^1, 3: QQ^1}
-            sage: S = QuiverRep(QQ, Q, spaces2)
-            sage: x = QuiverRepElement(M, {2: (1, -1)})
+            sage: S = Q.representation(QQ, spaces2)
+            sage: x = M({2: (1, -1)})
             sage: z = M.zero()
-            sage: h = QuiverRepHom(S, M, [x, z])
-            sage: g = QuiverRepHom(S, M, [z, z])
+            sage: h = S.hom([x, z], M)
+            sage: g = S.hom([z, z], M)
             sage: g += h
             sage: g(S.gens()[0]) == x
             True
@@ -362,14 +369,14 @@ class QuiverRepHom(CallMorphism):
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-            sage: M = QuiverRep(QQ, Q, spaces, maps)
+            sage: M = Q.representation(QQ, spaces, maps)
             sage: spaces2 = {2: QQ^1, 3: QQ^1}
-            sage: S = QuiverRep(QQ, Q, spaces2)
-            sage: x = QuiverRepElement(M, {2: (1, -1)})
-            sage: y = QuiverRepElement(M, {3: (1,)})
+            sage: S = Q.representation(QQ, spaces2)
+            sage: x = M({2: (1, -1)})
+            sage: y = M({3: (1,)})
             sage: z = M.zero()
-            sage: h = QuiverRepHom(S, M, [x, z])
-            sage: g = QuiverRepHom(S, M, [z, y])
+            sage: h = S.hom([x, z], M)
+            sage: g = S.hom([z, y], M)
             sage: f = h - g
             sage: f(S.gens()[0]) == x
             True
@@ -379,7 +386,7 @@ class QuiverRepHom(CallMorphism):
 
         from sage.quivers.morphism import QuiverRepHom
         new_vector = left._vector - right._vector
-        return QuiverRepHom(left._domain, left._codomain, new_vector)
+        return left._domain.hom(new_vector, left._codomain)
 
     def __isub__(self, other):
         """
@@ -390,14 +397,14 @@ class QuiverRepHom(CallMorphism):
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-            sage: M = QuiverRep(QQ, Q, spaces, maps)
+            sage: M = Q.representation(QQ, spaces, maps)
             sage: spaces2 = {2: QQ^1, 3: QQ^1}
-            sage: S = QuiverRep(QQ, Q, spaces2)
-            sage: x = QuiverRepElement(M, {2: (1, -1)})
-            sage: y = QuiverRepElement(M, {3: (1,)})
+            sage: S = Q.representation(QQ, spaces2)
+            sage: x = M({2: (1, -1)})
+            sage: y = M({3: (1,)})
             sage: z = M.zero()
-            sage: h = QuiverRepHom(S, M, [x, z])
-            sage: g = QuiverRepHom(S, M, [z, y])
+            sage: h = S.hom([x, z], M)
+            sage: g = S.hom([z, y], M)
             sage: h -= g
             sage: h(S.gens()[0]) == x
             True
@@ -418,12 +425,12 @@ class QuiverRepHom(CallMorphism):
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-            sage: M = QuiverRep(QQ, Q, spaces, maps)
+            sage: M = Q.representation(QQ, spaces, maps)
             sage: spaces2 = {2: QQ^1, 3: QQ^1}
-            sage: S = QuiverRep(QQ, Q, spaces2)
-            sage: x = QuiverRepElement(M, {2: (1, -1)})
-            sage: y = QuiverRepElement(M, {3: (1,)})
-            sage: h = QuiverRepHom(S, M, [x, y])
+            sage: S = Q.representation(QQ, spaces2)
+            sage: x = M({2: (1, -1)})
+            sage: y = M({3: (1,)})
+            sage: h = S.hom([x, y], M)
             sage: g = -h
             sage: g(S.gens()[0]) == -x
             True
@@ -432,7 +439,7 @@ class QuiverRepHom(CallMorphism):
         """
 
         from sage.quivers.morphism import QuiverRepHom
-        return QuiverRepHom(self._domain, self._codomain, -self._vector)
+        return self._domain.hom(-self._vector, self._codomain)
 
     def __pos__(self):
         """
@@ -443,12 +450,12 @@ class QuiverRepHom(CallMorphism):
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-            sage: M = QuiverRep(QQ, Q, spaces, maps)
+            sage: M = Q.representation(QQ, spaces, maps)
             sage: spaces2 = {2: QQ^1, 3: QQ^1}
-            sage: S = QuiverRep(QQ, Q, spaces2)
-            sage: x = QuiverRepElement(M, {2: (1, -1)})
-            sage: y = QuiverRepElement(M, {3: (1,)})
-            sage: h = QuiverRepHom(S, M, [x, y])
+            sage: S = Q.representation(QQ, spaces2)
+            sage: x = M({2: (1, -1)})
+            sage: y = M({3: (1,)})
+            sage: h = S.hom([x, y], M)
             sage: g = +h
             sage: g == h
             True
@@ -465,13 +472,13 @@ class QuiverRepHom(CallMorphism):
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-            sage: M = QuiverRep(QQ, Q, spaces, maps)
+            sage: M = Q.representation(QQ, spaces, maps)
             sage: spaces2 = {2: QQ^1, 3: QQ^1}
-            sage: S = QuiverRep(QQ, Q, spaces2)
-            sage: x = QuiverRepElement(M, {2: (1, -1)})
-            sage: y = QuiverRepElement(M, {3: (1,)})
-            sage: g = QuiverRepHom(S, M, [x, y])
-            sage: h = QuiverRepHom(S, M, [x, y])
+            sage: S = Q.representation(QQ, spaces2)
+            sage: x = M({2: (1, -1)})
+            sage: y = M({3: (1,)})
+            sage: g = S.hom([x, y], M)
+            sage: h = S.hom([x, y], M)
             sage: g == h
             True
         """
@@ -494,14 +501,14 @@ class QuiverRepHom(CallMorphism):
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-            sage: M = QuiverRep(QQ, Q, spaces, maps)
+            sage: M = Q.representation(QQ, spaces, maps)
             sage: spaces2 = {2: QQ^1, 3: QQ^1}
-            sage: S = QuiverRep(QQ, Q, spaces2)
-            sage: x = QuiverRepElement(M, {2: (1, -1)})
-            sage: y = QuiverRepElement(M, {3: (1,)})
+            sage: S = Q.representation(QQ, spaces2)
+            sage: x = M({2: (1, -1)})
+            sage: y = M({3: (1,)})
             sage: z = M.zero()
-            sage: g = QuiverRepHom(S, M, [x, y])
-            sage: h = QuiverRepHom(S, M, [x, z])
+            sage: g = S.hom([x, y], M)
+            sage: h = S.hom([x, z], M)
             sage: g != h
             True
         """
@@ -523,18 +530,18 @@ class QuiverRepHom(CallMorphism):
 
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: spaces2 = {2: QQ^1, 3: QQ^1}
-            sage: S = QuiverRep(QQ, Q, spaces2)
+            sage: S = Q.representation(QQ, spaces2)
             sage: x = S.gens()[0]
             sage: y = S.gens()[1]
-            sage: g = QuiverRepHom(S, S, [x, y])
-            sage: h = QuiverRepHom(S, S)
+            sage: g = S.hom([x, y], S)
+            sage: h = S.hom(S)
             sage: (g*h).is_zero()
             True
         """
 
         from sage.quivers.morphism import QuiverRepHom
         maps = dict((v, other.get_matrix(v)*self.get_matrix(v)) for v in self._quiver)
-        return QuiverRepHom(other._domain, self._codomain, maps)
+        return other._domain.hom(maps, self._codomain)
 
     ###########################################################################
     #                                                                         #
@@ -556,15 +563,16 @@ class QuiverRepHom(CallMorphism):
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-            sage: M = QuiverRep(QQ, Q, spaces, maps)
+            sage: M = Q.representation(QQ, spaces, maps)
             sage: spaces2 = {2: QQ^1, 3: QQ^1}
-            sage: S = QuiverRep(QQ, Q, spaces2)
+            sage: S = Q.representation(QQ, spaces2)
             sage: maps2 = {2:[1, -1], 3:1}
-            sage: g = QuiverRepHom(S, M, maps2) # indirect doctest
-            sage: f = QuiverRepHom(S, S, maps2) # indirect doctest
+            sage: g = S.hom(maps2, M) # indirect doctest
+            sage: f = S.hom(maps2, S) # indirect doctest
             Traceback (most recent call last):
             ...
-            ValueError: entries has the wrong length
+            TypeError: Unable to coerce x (={...}) to a morphism in Dimension 2 QuiverHomSpace
+
         """
 
         # Check that the domain and codomains dimensions add correctly
@@ -597,9 +605,9 @@ class QuiverRepHom(CallMorphism):
         sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
         sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
         sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-        sage: M = QuiverRep(QQ, Q, spaces, maps)
-        sage: S = QuiverRep(QQ, Q)
-        sage: g = QuiverRepHom(M, S)
+        sage: M = Q.representation(QQ, spaces, maps)
+        sage: S = Q.representation(QQ)
+        sage: g = M.hom(S)
         sage: g.domain() is M
         True
         """
@@ -617,9 +625,9 @@ class QuiverRepHom(CallMorphism):
         sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
         sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
         sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-        sage: M = QuiverRep(QQ, Q, spaces, maps)
-        sage: S = QuiverRep(QQ, Q)
-        sage: g = QuiverRepHom(S, M)
+        sage: M = Q.representation(QQ, spaces, maps)
+        sage: S = Q.representation(QQ)
+        sage: g = S.hom(M)
         sage: g.codomain() is M
         True
         """
@@ -649,20 +657,18 @@ class QuiverRepHom(CallMorphism):
             [1 0]
             [0 1]
         """
-
         # Get dimensions
         startdim = 0
         for v in self._quiver:
             if v == vertex:
                 break
             startdim += self._domain._spaces[v].dimension()*self._codomain._spaces[v].dimension()
+
         rows = self._domain._spaces[vertex].dimension()
         cols = self._codomain._spaces[vertex].dimension()
 
         # Slice out the matrix and return
-        from sage.matrix.constructor import Matrix
-        mat = list(self._vector[startdim:startdim + rows*cols])
-        return Matrix(self._base_ring, rows, cols, mat)
+        return Matrix(self._base_ring, rows, cols, self._vector.list()[startdim:startdim + rows*cols])
 
     def get_map(self, vertex):
         """
@@ -700,7 +706,7 @@ class QuiverRepHom(CallMorphism):
 
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: P = Q.P(QQ, 1)
-            sage: f = QuiverRepHom(P, P, {1: 1, 2: 1, 3: 1})
+            sage: f = P.hom({1: 1, 2: 1, 3: 1}, P)
             sage: f.quiver() is Q
             True
         """
@@ -719,7 +725,7 @@ class QuiverRepHom(CallMorphism):
 
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: P = Q.P(QQ, 1)
-            sage: f = QuiverRepHom(P, P, {1: 1, 2: 1, 3: 1})
+            sage: f = P.hom({1: 1, 2: 1, 3: 1}, P)
             sage: f.base_ring() is QQ
             True
         """
@@ -745,10 +751,10 @@ class QuiverRepHom(CallMorphism):
 
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: P = Q.P(QQ, 1)
-            sage: f = QuiverRepHom(P, P, {1: 1, 2: 1, 3: 1})
+            sage: f = P.hom({1: 1, 2: 1, 3: 1}, P)
             sage: f.is_injective()
             True
-            sage: g = QuiverRepHom(P, P)
+            sage: g = P.hom(P)
             sage: g.is_injective()
             False
         """
@@ -773,10 +779,10 @@ class QuiverRepHom(CallMorphism):
 
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: P = Q.P(QQ, 1)
-            sage: f = QuiverRepHom(P, P, {1: 1, 2: 1, 3: 1})
+            sage: f = P.hom({1: 1, 2: 1, 3: 1}, P)
             sage: f.is_surjective()
             True
-            sage: g = QuiverRepHom(P, P)
+            sage: g = P.hom(P)
             sage: g.is_surjective()
             False
         """
@@ -802,10 +808,10 @@ class QuiverRepHom(CallMorphism):
 
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: P = Q.P(QQ, 1)
-            sage: f = QuiverRepHom(P, P, {1: 1, 2: 1, 3: 1})
+            sage: f = P.hom({1: 1, 2: 1, 3: 1}, P)
             sage: f.is_isomorphism()
             True
-            sage: g = QuiverRepHom(P, P)
+            sage: g = P.hom(P)
             sage: g.is_isomorphism()
             False
         """
@@ -829,10 +835,10 @@ class QuiverRepHom(CallMorphism):
 
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: P = Q.P(QQ, 1)
-            sage: f = QuiverRepHom(P, P, {1: 1, 2: 1, 3: 1})
+            sage: f = P.hom({1: 1, 2: 1, 3: 1}, P)
             sage: f.is_zero()
             False
-            sage: g = QuiverRepHom(P, P)
+            sage: g = P.hom(P)
             sage: g.is_zero()
             True
         """
@@ -856,7 +862,7 @@ class QuiverRepHom(CallMorphism):
 
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: P = Q.P(QQ, 1)
-            sage: f = QuiverRepHom(P, P, {1: 1, 2: 1, 3: 1})
+            sage: f = P.hom({1: 1, 2: 1, 3: 1}, P)
             sage: f.is_endomorphism()
             True
             sage: S = P/P.radical()
@@ -917,11 +923,11 @@ class QuiverRepHom(CallMorphism):
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-            sage: M = QuiverRep(QQ, Q, spaces, maps)
+            sage: M = Q.representation(QQ, spaces, maps)
             sage: spaces2 = {2: QQ^2, 3: QQ^1}
-            sage: N = QuiverRep(QQ, Q, spaces2, {(2, 3, 'c'): [[1], [0]]})
+            sage: N = Q.representation(QQ, spaces2, {(2, 3, 'c'): [[1], [0]]})
             sage: maps2 = {2:[[1, 0], [0, 0]], 3:1}
-            sage: g = QuiverRepHom(N, M, maps2)
+            sage: g = N.hom(maps2, M)
             sage: g.kernel().dimension_vector()
             (0, 1, 0)
         """
@@ -947,11 +953,11 @@ class QuiverRepHom(CallMorphism):
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-            sage: M = QuiverRep(QQ, Q, spaces, maps)
+            sage: M = Q.representation(QQ, spaces, maps)
             sage: spaces2 = {2: QQ^2, 3: QQ^1}
-            sage: N = QuiverRep(QQ, Q, spaces2, {(2, 3, 'c'): [[1], [0]]})
+            sage: N = Q.representation(QQ, spaces2, {(2, 3, 'c'): [[1], [0]]})
             sage: maps2 = {2:[[1, 0], [0, 0]], 3:1}
-            sage: g = QuiverRepHom(N, M, maps2)
+            sage: g = N.hom(maps2, M)
             sage: g.image().dimension_vector()
             (0, 1, 1)
         """
@@ -977,11 +983,11 @@ class QuiverRepHom(CallMorphism):
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-            sage: M = QuiverRep(QQ, Q, spaces, maps)
+            sage: M = Q.representation(QQ, spaces, maps)
             sage: spaces2 = {2: QQ^2, 3: QQ^1}
-            sage: N = QuiverRep(QQ, Q, spaces2, {(2, 3, 'c'): [[1], [0]]})
+            sage: N = Q.representation(QQ, spaces2, {(2, 3, 'c'): [[1], [0]]})
             sage: maps2 = {2:[[1, 0], [0, 0]], 3:1}
-            sage: g = QuiverRepHom(N, M, maps2)
+            sage: g = N.hom(maps2, M)
             sage: g.cokernel().dimension_vector()
             (2, 1, 0)
         """
@@ -1034,7 +1040,7 @@ class QuiverRepHom(CallMorphism):
         # The effect of the functor D is that it just transposes the matrix of
         # a hom
         maps = dict((v, self.get_matrix(v).transpose()) for v in self._quiver)
-        return QuiverRepHom(self._codomain.linear_dual(), self._domain.linear_dual(), maps)
+        return self._codomain.linear_dual().hom(maps, self._domain.linear_dual())
 
     def algebraic_dual(self):
         """
@@ -1073,9 +1079,9 @@ class QuiverRepHom(CallMorphism):
 
         # Find the images in the domain and create the module
         # H = QuiverHomSpace(self._domain, self._quiver.free_module(self._base_ring))
-        im_gens = [QuiverRepElement(codomain, {v: (g*self)._vector})
+        im_gens = [codomain({v: (g*self)._vector})
                     for v in self._quiver for g in domain_gens[v]]
-        return QuiverRepHom(domain, codomain, im_gens)
+        return domain.hom(im_gens, codomain)
 
     def direct_sum(self, maps, return_maps=False, pinch=None):
         """
@@ -1163,7 +1169,7 @@ class QuiverRepHom(CallMorphism):
             codomain, c_incl, c_proj = self._codomain.direct_sum([x._codomain for x in maplist[1:]], return_maps=True)
 
         # Start with the zero map
-        result = QuiverRepHom(domain, codomain)
+        result = domain.hom(codomain)
 
         # Add each factor
         for i in range(0, len(maplist)):
@@ -1218,7 +1224,7 @@ class QuiverRepHom(CallMorphism):
         from sage.quivers.representation import QuiverRepElement
         # Lift at each vertex
         elems = dict((v, self.get_map(v).lift(x._elems[v])) for v in self._quiver)
-        return QuiverRepElement(self._domain, elems)
+        return self._domain(elems)
 
     ###########################################################################
     #                                                                         #
@@ -1244,7 +1250,7 @@ class QuiverRepHom(CallMorphism):
         """
 
         from sage.quivers.morphism import QuiverRepHom
-        return QuiverRepHom(self._domain, self._codomain, scalar*self._vector)
+        return self._domain.hom(scalar*self._vector, self._codomain)
 
     def iscalar_mult(self, scalar):
         """

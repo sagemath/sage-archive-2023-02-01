@@ -14,10 +14,11 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.factory import UniqueFactory
-from sage.structure.parent import Parent
+from sage.categories.homset import Homset
+from sage.quivers.morphism import QuiverRepHom
+from sage.misc.cachefunc import cached_method
 
-class QuiverHomSpaceFactory(UniqueFactory):
+class QuiverHomSpace(Homset):
     """
     A homomorphism of quiver representations is for each vertex of the quiver a
     homomorphism of the spaces assigned to those vertices such that these
@@ -41,99 +42,16 @@ class QuiverHomSpaceFactory(UniqueFactory):
 
     EXAMPLES::
 
-        sage: from sage.quivers.quiver import Quiver
-        sage: from sage.quivers.homspace import QuiverHomSpace
-        sage: from sage.quivers.representation import QuiverRep
         sage: Q = Quiver({1:{2:['a', 'b']}})
-        sage: H = QuiverHomSpace(Q.S(QQ, 2), Q.P(QQ, 1))
+        sage: H = Q.S(QQ, 2).Hom(Q.P(QQ, 1))
         sage: H.dimension()
         2
         sage: H.gens()
         [Homomorphism of representations of Quiver on 2 vertices, Homomorphism of representations of Quiver on 2 vertices]
+        sage: TestSuite(H).run()
+
     """
-
-    def create_key(self, domain, codomain):
-        """
-        Returns a key for the specified Hom space.
-
-        The key is a tuple of length two, the two entries being the keys for the domain
-        and codomain.
-
-        EXAMPLES::
-
-            sage: from sage.quivers.quiver import Quiver
-            sage: from sage.quivers.homspace import QuiverHomSpace
-            sage: Q = Quiver({1:{2:['a', 'b']}})
-            sage: QuiverHomSpace.create_key(Q.P(GF(3), 1), Q.S(GF(3), 1))
-            ((Finite Field of size 3, Quiver on 2 vertices, 'paths', (a, b, invalid path, e_1)), (Finite Field of size 3, Quiver on 2 vertices, 'values', Vector space of dimension 1 over Finite Field of size 3, Vector space of dimension 0 over Finite Field of size 3, [], []))
-        """
-
-        # Check that the quivers and base rings are the same
-        if domain._quiver is not codomain._quiver:
-            raise ValueError("The quivers of the domain and codomain must be identical.")
-        if domain._base_ring is not codomain._base_ring:
-            raise ValueError("The base rings of the domain and codomain must be identical.")
-
-        # Create and return the key
-        return tuple([domain._factory_data[2], codomain._factory_data[2]])
-
-    def create_object(self, version, key, **extra_args):
-        """
-        Creates a QuiverHomSpace from the key.
-
-        The key is a tuple of length two, the two entries being the keys for the domain
-        and codomain.
-
-        EXAMPLES::
-
-            sage: from sage.quivers.quiver import Quiver
-            sage: from sage.quivers.homspace import QuiverHomSpace
-            sage: Q = Quiver({1:{2:['a', 'b']}})
-            sage: key = QuiverHomSpace.create_key(Q.P(GF(3), 1), Q.S(GF(3), 1))
-            sage: QuiverHomSpace.create_object(Q.version(), key)
-            Dimension 1 QuiverHomSpace
-        """
-        from sage.quivers.representation import QuiverRep
-        return QuiverHomSpace_generic(QuiverRep.get_object(version, key[0], []),
-                                      QuiverRep.get_object(version, key[1], []))
-
-QuiverHomSpace = QuiverHomSpaceFactory("QuiverHomSpace")
-
-####################################################################################################
-
-class QuiverHomSpace_generic(Parent):
-    """
-    A homomorphism of quiver representations is for each vertex of the quiver a
-    homomorphism of the spaces assigned to those vertices such that these
-    homomorphisms commute with the edge maps.  This class handles the set of all
-    such maps, Hom_Q(M, N).
-
-    INPUT:
-
-    - ``domain`` - QuiverRep, the domain of the homomorphism space
-
-    - ``codomain`` - QuiverRep, the codomain of the homomorphism space
-
-    OUTPUT:
-
-    - QuiverHomSpace, the homomorphism space Hom_Q(domain, codomain)
-
-    .. NOTES::
-
-        The quivers of the domain and codomain must be equal or a ValueError is
-        raised.
-
-    EXAMPLES::
-
-        sage: from sage.quivers.quiver import Quiver
-        sage: from sage.quivers.homspace import QuiverHomSpace
-        sage: Q = Quiver({1:{2:['a', 'b']}})
-        sage: H = QuiverHomSpace(Q.S(QQ, 2), Q.P(QQ, 1))
-        sage: H.dimension()
-        2
-        sage: H.gens()
-        [Homomorphism of representations of Quiver on 2 vertices, Homomorphism of representations of Quiver on 2 vertices]
-    """
+    Element = QuiverRepHom
 
     ###########################################################################
     #                                                                         #
@@ -142,16 +60,14 @@ class QuiverHomSpace_generic(Parent):
     #                                                                         #
     ###########################################################################
 
-    def __init__(self, domain, codomain):
+    def __init__(self, domain, codomain, category=None):
         """
         Type QuiverHomSpace? for more information.
 
         TESTS::
 
-            sage: from sage.quivers.quiver import Quiver
-            sage: from sage.quivers.homspace import QuiverHomSpace
             sage: Q = Quiver({1:{2:['a', 'b']}})
-            sage: H = QuiverHomSpace(Q.S(QQ, 2), Q.P(QQ, 1))
+            sage: H = Q.S(QQ, 2).Hom(Q.P(QQ, 1))
             sage: H.dimension()
             2
             sage: H.gens()
@@ -178,13 +94,14 @@ class QuiverHomSpace_generic(Parent):
 
         # Get the quiver and base ring and check they they are the same for
         # both modules
-        self._quiver = domain._quiver
-        self._domain = domain
-        self._codomain = codomain
-        if self._quiver != codomain._quiver:
+        if domain._quiver != codomain._quiver:
             raise ValueError("Representations are not over the same quiver.")
+        self._quiver = domain._quiver
+
+        # Check that the bases are compatible, and then initialise the homset:
         if codomain._base_ring != domain._base_ring:
             raise ValueError("Representations are not over the same base ring.")
+        Homset.__init__(self, domain, codomain, category=category, base = domain._base_ring)
 
         # To compute the Hom Space we set up a 'generic' homomorphism where the
         # maps at each vertex are described by matrices whose entries are
@@ -252,8 +169,29 @@ class QuiverHomSpace_generic(Parent):
         if domain is codomain:
             self.identity = self._identity
 
-        super(QuiverHomSpace_generic, self).__init__(base=codomain._base_ring,
-                                                     element_constructor=self._element_constructor_)
+    @cached_method
+    def zero(self):
+        """
+        Return the zero morphism.
+
+        NOTE:
+
+        It is needed to override the method inherited from
+        the category of modules, because it would create
+        a morphism that is of the wrong type and does not
+        comply with :class:`~sage.quivers.morphism.QuiverRepHom`.
+
+        EXAMPLES::
+
+            sage: Q = Quiver({1:{2:['a', 'b']}})
+            sage: H = Q.S(QQ, 2).Hom(Q.P(QQ, 1))
+            sage: H.zero() + H.an_element() == H.an_element()
+            True
+            sage: isinstance(H.zero(), H.element_class)
+            True
+
+        """
+        return self()
 
     def _coerce_map_from_(self, other):
         """
@@ -264,8 +202,6 @@ class QuiverHomSpace_generic(Parent):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
-            sage: from sage.quivers.homspace import QuiverHomSpace
             sage: Q = Quiver({1:{2:['a']}})
             sage: P = Q.P(QQ, 1)
             sage: S = Q.S(QQ, 1)
@@ -277,7 +213,7 @@ class QuiverHomSpace_generic(Parent):
                   To:   Dimension 1 QuiverHomSpace
         """
 
-        if not isinstance(other, QuiverHomSpace_generic):
+        if not isinstance(other, QuiverHomSpace):
             return False
         if not other._domain.has_coerce_map_from(self._domain):
             return False
@@ -285,7 +221,7 @@ class QuiverHomSpace_generic(Parent):
             return False
         return True
 
-    def _element_constructor_(self, data=None):
+    def __call__(self, *data, **kwds):
         """
         A homomorphism of quiver representations is for each vertex of the quiver a
         homomorphism of the spaces assigned to those vertices such that these
@@ -295,8 +231,9 @@ class QuiverHomSpace_generic(Parent):
 
         INPUT:
 
-        - ``data`` - dict, list, QuiverRepElement or QuiverRepHom (default: empty dict)
-          as follows:
+        Usually, one would provide a single dict, list, QuiverRepElement or QuiverRepHom
+        as arguments. The semantics is as follows:
+
           - list, data can be a list of images for the generators of the domain.  An
             error will be generated if the map so defined is not equivariant with
             respect to the action of the quiver.
@@ -317,23 +254,23 @@ class QuiverHomSpace_generic(Parent):
             coercion from the domain of self to ``D`` and from ``C`` to the codomain of
             self.  The composition of these maps is the result.
 
+        If there additionally are keyword arguments or if a QuiverRepHom can
+        not be created from the data, then the default call method of
+        :class:`~sage.categories.homset.Homset` is called instead.
+
         OUTPUT:
 
         - QuiverRepHom
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
-            sage: from sage.quivers.representation import QuiverRep
-            sage: from sage.quivers.homspace import QuiverHomSpace
-            sage: from sage.quivers.representation import QuiverRepElement
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
             sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
             sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-            sage: M = QuiverRep(QQ, Q, spaces, maps)
+            sage: M = Q.representation(QQ, spaces, maps)
             sage: spaces2 = {2: QQ^1, 3: QQ^1}
-            sage: S = QuiverRep(QQ, Q, spaces2)
-            sage: H = QuiverHomSpace(S, M)
+            sage: S = Q.representation(QQ, spaces2)
+            sage: H = S.Hom(M)
 
         With no additional data this creates the zero map::
 
@@ -350,8 +287,8 @@ class QuiverHomSpace_generic(Parent):
 
         Here we create the same map by specifying images for the generators::
 
-            sage: x = QuiverRepElement(M, {2: (1, -1)})
-            sage: y = QuiverRepElement(M, {3: (1,)})
+            sage: x = M({2: (1, -1)})
+            sage: y = M({3: (1,)})
             sage: h = H([x, y]) # indirect doctest
             sage: g == h
             True
@@ -361,17 +298,24 @@ class QuiverHomSpace_generic(Parent):
 
             sage: Proj = Q.P(GF(7), 3)
             sage: Simp = Q.S(GF(7), 3)
-            sage: im = QuiverRepElement(Simp, {3: (1,)})
-            sage: H2 = QuiverHomSpace(Proj, Simp)
+            sage: im = Simp({3: (1,)})
+            sage: H2 = Proj.Hom(Simp)
             sage: H2(im).is_surjective() # indirect doctest
             True
         """
+        if kwds or (len(data)>1):
+            return super(Homset,self).__call__(*data,**kwds)
 
-        from sage.quivers.morphism import QuiverRepHom
-        if data is None or data == 0:
-            data = {}
+        if not data:
+            return self.natural_map()
 
-        return QuiverRepHom(self._domain, self._codomain, data)
+        data0 = data[0]
+        if data0 is None or data0 == 0:
+            data0 = {}
+        try:
+            return self.element_class(self._domain, self._codomain, data0)
+        except StandardError:
+            return super(QuiverHomSpace,self).__call__(*data,**kwds)
 
     def _repr_(self):
         """
@@ -379,7 +323,6 @@ class QuiverHomSpace_generic(Parent):
 
         TESTS::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a']}})
             sage: Q.P(GF(3), 2).Hom(Q.S(GF(3), 2)) # indirect doctest
             Dimension 1 QuiverHomSpace
@@ -387,33 +330,25 @@ class QuiverHomSpace_generic(Parent):
 
         return "Dimension " + str(self._space.dimension()) + " QuiverHomSpace"
 
-    def __contains__(self, map):
+    def natural_map(self):
         """
-        This overloads the in operator
+        The natural map from domain to codomain.
 
-        TESTS::
+        EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
-            sage: Q = Quiver({1:{2:['a']}})
-            sage: H1 = Q.P(GF(3), 2).Hom(Q.S(GF(3), 2))
-            sage: H2 = Q.P(GF(3), 2).Hom(Q.S(GF(3), 1))
-            sage: H1.an_element() in H1
+            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
+            sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
+            sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
+            sage: M = Q.representation(QQ, spaces, maps)
+            sage: spaces2 = {2: QQ^1, 3: QQ^1}
+            sage: S = Q.representation(QQ, spaces2)
+            sage: S.hom(M)      # indirect doctest
+            Homomorphism of representations of Quiver on 3 vertices
+            sage: S.hom(M) == S.Hom(M).natural_map()
             True
-            sage: H2.an_element() in H1
-            False
+
         """
-
-        from sage.quivers.morphism import QuiverRepHom
-        # First check the type
-        if not isinstance(map, QuiverRepHom):
-            return False
-
-        # Then check the quivers, domain, and codomain
-        if self._quiver != map._quiver or self._domain != map._domain or self._codomain != map._codomain:
-            return False
-
-        # Finally check the vector
-        return map._vector in self._space
+        return self.element_class(self._domain, self._codomain, {})
 
     def _identity(self):
         """
@@ -425,7 +360,6 @@ class QuiverHomSpace_generic(Parent):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a']}})
             sage: P = Q.P(QQ, 1)
             sage: H = P.Hom(P)
@@ -435,11 +369,10 @@ class QuiverHomSpace_generic(Parent):
         """
 
         from sage.matrix.constructor import Matrix
-        from sage.quivers.morphism import QuiverRepHom
         maps = dict((v, Matrix(self._domain._spaces[v].dimension(),
                                self._domain._spaces[v].dimension(), self._base(1)))
                                for v in self._quiver)
-        return QuiverRepHom(self._domain, self._codomain, maps)
+        return self.element_class(self._domain, self._codomain, maps)
 
     ###########################################################################
     #                                                                         #
@@ -458,10 +391,8 @@ class QuiverHomSpace_generic(Parent):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
-            sage: from sage.quivers.homspace import QuiverHomSpace
             sage: Q = Quiver({1:{2:['a', 'b']}})
-            sage: H = QuiverHomSpace(Q.S(QQ, 2), Q.P(QQ, 1))
+            sage: H = Q.S(QQ, 2).Hom(Q.P(QQ, 1))
             sage: H.base_ring()
             Rational Field
         """
@@ -478,10 +409,8 @@ class QuiverHomSpace_generic(Parent):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
-            sage: from sage.quivers.homspace import QuiverHomSpace
             sage: Q = Quiver({1:{2:['a', 'b']}})
-            sage: H = QuiverHomSpace(Q.S(QQ, 2), Q.P(QQ, 1))
+            sage: H = Q.S(QQ, 2).Hom(Q.P(QQ, 1))
             sage: H.quiver() is Q
             True
         """
@@ -498,11 +427,9 @@ class QuiverHomSpace_generic(Parent):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
-            sage: from sage.quivers.homspace import QuiverHomSpace
             sage: Q = Quiver({1:{2:['a', 'b']}})
             sage: S = Q.S(QQ, 2)
-            sage: H = QuiverHomSpace(S, Q.P(QQ, 1))
+            sage: H = S.Hom(Q.P(QQ, 1))
             sage: H.domain() is S
             True
         """
@@ -519,11 +446,9 @@ class QuiverHomSpace_generic(Parent):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
-            sage: from sage.quivers.homspace import QuiverHomSpace
             sage: Q = Quiver({1:{2:['a', 'b']}})
             sage: P = Q.P(QQ, 1)
-            sage: H = QuiverHomSpace(Q.S(QQ, 2), P)
+            sage: H = Q.S(QQ, 2).Hom(P)
             sage: H.codomain() is P
             True
         """
@@ -547,10 +472,8 @@ class QuiverHomSpace_generic(Parent):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
-            sage: from sage.quivers.homspace import QuiverHomSpace
             sage: Q = Quiver({1:{2:['a', 'b']}})
-            sage: H = QuiverHomSpace(Q.S(QQ, 2), Q.P(QQ, 1))
+            sage: H = Q.S(QQ, 2).Hom(Q.P(QQ, 1))
             sage: H.dimension()
             2
         """
@@ -567,16 +490,13 @@ class QuiverHomSpace_generic(Parent):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
-            sage: from sage.quivers.homspace import QuiverHomSpace
             sage: Q = Quiver({1:{2:['a', 'b']}})
-            sage: H = QuiverHomSpace(Q.S(QQ, 2), Q.P(QQ, 1))
+            sage: H = Q.S(QQ, 2).Hom(Q.P(QQ, 1))
             sage: H.gens()
             [Homomorphism of representations of Quiver on 2 vertices, Homomorphism of representations of Quiver on 2 vertices]
         """
 
-        from sage.quivers.morphism import QuiverRepHom
-        return [QuiverRepHom(self._domain, self._codomain, f) for f in self._space.gens()]
+        return [self.element_class(self._domain, self._codomain, f) for f in self._space.gens()]
 
     def coordinates(self, hom):
         """
@@ -593,13 +513,11 @@ class QuiverHomSpace_generic(Parent):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
-            sage: from sage.quivers.homspace import QuiverHomSpace
             sage: Q = Quiver({1:{2:['a', 'b']}})
             sage: S = Q.S(QQ, 2)
             sage: P = Q.P(QQ, 1)
-            sage: H = QuiverHomSpace(S, P)
-            sage: f = S.hom(P, {2: [[1,-1]]})
+            sage: H = S.Hom(P)
+            sage: f = S.hom({2: [[1,-1]]}, P)
             sage: H.coordinates(f)
             [1, -1]
         """
@@ -614,63 +532,20 @@ class QuiverHomSpace_generic(Parent):
         #                                                                         #
         ###########################################################################
 
-    def hom(self, maps = {}):
-        """
-        Creates a homomorphism.
-
-        See the QuiverRepHom documentation for more information.
-
-        TESTS::
-
-            sage: from sage.quivers.quiver import Quiver
-            sage: from sage.quivers.homspace import QuiverHomSpace
-            sage: from sage.quivers.representation import QuiverRepElement
-            sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}})
-            sage: spaces = {1: QQ^2, 2: QQ^2, 3:QQ^1}
-            sage: maps = {(1, 2, 'a'): [[1, 0], [0, 0]], (1, 2, 'b'): [[0, 0], [0, 1]], (2, 3, 'c'): [[1], [1]]}
-            sage: M = QuiverRep(QQ, Q, spaces, maps)
-            sage: spaces2 = {2: QQ^1, 3: QQ^1}
-            sage: S = QuiverRep(QQ, Q, spaces2)
-            sage: H1 = QuiverHomSpace(S, M)
-            sage: f = H1()
-            sage: f.is_zero()
-            True
-            sage: maps2 = {2:[1, -1], 3:1}
-            sage: g = H1(maps2)
-            sage: x = QuiverRepElement(M, {2: (1, -1)})
-            sage: y = QuiverRepElement(M, {3: (1,)})
-            sage: h = H1([x, y])
-            sage: g == h
-            True
-            sage: Proj = Q.P(GF(7), 3)
-            sage: Simp = Q.S(GF(7), 3)
-            sage: H2 = QuiverHomSpace(Proj, Simp)
-            sage: im = H2({3: (1,)})
-            sage: H2(im).is_surjective()
-            True
-        """
-
-        from sage.quivers.morphism import QuiverRepHom
-        return QuiverRepHom(self._domain, self._codomain, maps)
-
-    def an_element(self):
+    def _an_element_(self):
         """
         Returns a homomorphism in the Hom space.
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
-            sage: from sage.quivers.homspace import QuiverHomSpace
             sage: Q = Quiver({1:{2:['a', 'b']}})
             sage: S = Q.S(QQ, 2)
             sage: P = Q.P(QQ, 1)
-            sage: H = QuiverHomSpace(S, P)
-            sage: H.an_element() in H
+            sage: H = S.Hom(P)
+            sage: H.an_element() in H   # indirect doctest
             True
         """
-
-        from sage.quivers.morphism import QuiverRepHom
-        return QuiverRepHom(self._domain, self._codomain, self._space.an_element())
+        return self.element_class(self._domain, self._codomain, self._space.an_element())
 
     def left_module(self, basis=False):
         """
@@ -701,7 +576,6 @@ class QuiverHomSpace_generic(Parent):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a', 'b'], 3: ['c', 'd']}, 2:{3:['e']}})
             sage: P = Q.P(GF(3), 3)
             sage: A = Q.free_module(GF(3))
@@ -722,15 +596,14 @@ class QuiverHomSpace_generic(Parent):
         """
 
         from sage.quivers.representation import QuiverRep
-        from sage.quivers.morphism import QuiverRepHom
         if not self._codomain.is_left_module():
             raise ValueError("The codomain must be a left module.")
 
         # Create the spaces
         spaces = {}
         for v in self._quiver:
-            im_gens = [self.hom([self._codomain.left_edge_action((v, v), f(x))
-                for x in self._domain.gens()])._vector
+            im_gens = [self([self._codomain.left_edge_action((v, v), f(x)) 
+                             for x in self._domain.gens()])._vector
                 for f in self.gens()]
             spaces[v] = self._space.submodule(im_gens)
 
@@ -740,7 +613,7 @@ class QuiverHomSpace_generic(Parent):
             e_op = (e[1], e[0], e[2])
             maps[e_op] = []
             for vec in spaces[e[1]].gens():
-                vec_im = spaces[e_op[1]].coordinate_vector(self.hom([self._codomain.left_edge_action(e, self.hom(vec)(x))
+                vec_im = spaces[e_op[1]].coordinate_vector(self([self._codomain.left_edge_action(e, self(vec)(x))
                                                                      for x in self._domain.gens()])._vector)
                 maps[e_op].append(vec_im)
 
@@ -748,7 +621,7 @@ class QuiverHomSpace_generic(Parent):
         if basis:
             basis_dict = {}
             for v in self._quiver:
-                basis_dict[v] = [QuiverRepHom(self._domain, self._codomain, vec) for vec in spaces[v].gens()]
+                basis_dict[v] = [self.element_class(self._domain, self._codomain, vec) for vec in spaces[v].gens()]
             return (QuiverRep(self._base, self._quiver.reverse(), spaces, maps), basis_dict)
         else:
             return QuiverRep(self._base, self._quiver.reverse(), spaces, maps)

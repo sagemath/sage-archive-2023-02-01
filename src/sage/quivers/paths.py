@@ -54,7 +54,6 @@ class QuiverPath(MonoidElement):
 
     Specify a path by giving a list of edges::
 
-        sage: from sage.quivers.quiver import Quiver
         sage: Q = Quiver({1:{2:['a','d'], 3:['e']}, 2:{3:['b']}, 3:{1:['f'], 4:['c']}})
         sage: F = Q.free_small_category()
         sage: p = F([(1, 2, 'a'), (2, 2), (2, 3, 'b')])
@@ -136,10 +135,15 @@ class QuiverPath(MonoidElement):
 
         TESTS::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: from sage.quivers.paths import QuiverPath
             sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).free_small_category()
             sage: p = Q([(1, 1), (1, 1)])
+
+        Note that QuiverPath should not be called directly, because
+        the elements of the free small category associated with a quiver
+        use a sub-class of QuiverPath. Nonetheless, just for test, we
+        show that it *is* possible to create a path in a deprecated way::
+
             sage: p == QuiverPath((1, 1), parent=Q)
             True
             sage: Q([(1, 1), (1, 2, 'a'), (2, 2), (2, 3, 'b'), (3, 3)])._path
@@ -154,12 +158,13 @@ class QuiverPath(MonoidElement):
         if not check:
             self._path = tuple(path)
             return
-        E = parent.quiver().edges()
         if path == 1:
             # We do not guarantee that there is only one vertex.
             # However, this element certainly exists.
-            self._path = ((E[0],E[0]),)
+            v = parent.quiver().vertices()[0]
+            self._path = ((v,v),)
             return
+        E = parent.quiver().edges()
         if isinstance(path, QuiverPath):
             if path.parent() is parent:
                 self._path = path._path
@@ -190,11 +195,11 @@ class QuiverPath(MonoidElement):
         while i + 1 < len(new_path):
             if new_path[i][1] != new_path[i + 1][0]:
                 new_path = []
-            elif new_path[i][0] == new_path[i][1]:
+            elif len(new_path[i])!=3:
                 del new_path[i]
             else:
                 i += 1
-        if len(new_path) > 1 and new_path[-1][0] == new_path[-1][1]:
+        if len(new_path) > 1 and len(new_path[-1])!=3:
             del new_path[-1]
         self._path = tuple(new_path)
 
@@ -204,7 +209,6 @@ class QuiverPath(MonoidElement):
 
         TESTS::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).free_small_category()
             sage: Q([(1, 2, 'a'), (1, 2, 'a')]) # indirect doctest
             invalid path
@@ -215,7 +219,7 @@ class QuiverPath(MonoidElement):
         """
         if not self._path:
             return 'invalid path'
-        elif self._path[0][0] == self._path[0][1]:
+        elif len(self._path[0])!=3:
             return 'e_{0}'.format(self._path[0][0])
         else:
             return '*'.join([e[2] for e in self._path])
@@ -226,7 +230,6 @@ class QuiverPath(MonoidElement):
 
         TESTS::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).free_small_category()
             sage: len(Q([(1, 2, 'a'), (1, 2, 'a')]))
             0
@@ -237,9 +240,7 @@ class QuiverPath(MonoidElement):
             sage: len(Q((1, 2, 'a')))
             1
         """
-        if not self._path:
-            return 0
-        elif self._path[0][0] == self._path[0][1]:
+        if (not self._path) or (len(self._path[0])==2):
             return 0
         else:
             return len(self._path)
@@ -250,7 +251,6 @@ class QuiverPath(MonoidElement):
 
         TESTS::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).free_small_category()
             sage: Q([(1, 2, 'a'), (1, 2, 'a')]).deg()
             0
@@ -274,8 +274,6 @@ class QuiverPath(MonoidElement):
 
         TESTS::
 
-
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).free_small_category()
             sage: a = Q((1, 2, 'a'))
             sage: b = Q((2, 3, 'b'))
@@ -306,7 +304,6 @@ class QuiverPath(MonoidElement):
 
         TESTS::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a', 'b']}, 2:{3:['c'], 4:['d']}}).free_small_category()
             sage: a = Q((1, 2, 'a'))
             sage: b = Q((1, 2, 'b'))
@@ -344,7 +341,6 @@ class QuiverPath(MonoidElement):
 
         TESTS::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}, 3:{4:['c']}}).free_small_category()
             sage: p = Q([(1, 2, 'a'), (2, 3, 'b'), (3, 4, 'c')])
             sage: p
@@ -368,7 +364,6 @@ class QuiverPath(MonoidElement):
 
         TESTS::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}, 3:{4:['c']}}).free_small_category()
             sage: p = Q([(1, 2, 'a'), (2, 3, 'b'), (3, 4, 'c')])
             sage: for e in p: print e
@@ -379,7 +374,7 @@ class QuiverPath(MonoidElement):
 
         # Return an iterator over an empty tuple for trivial paths, otherwise
         # return an iterator for _path as a list
-        if self._path and self._path[0][0] == self._path[0][1]:
+        if not len(self):
             return list().__iter__()
         else:
             return list(self._path).__iter__()
@@ -390,7 +385,6 @@ class QuiverPath(MonoidElement):
 
         TESTS::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}, 3:{4:['c']}, 4:{5:['d']}}).free_small_category()
             sage: x = Q([(1, 2, 'a'), (2, 3, 'b')])
             sage: y = Q([(3, 4, 'c'), (4, 5, 'd')])
@@ -434,7 +428,6 @@ class QuiverPath(MonoidElement):
 
         TESTS::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).free_small_category()
             sage: p = Q([(1, 2, 'a'), (2, 3, 'b')])
             sage: a = Q((1, 2, 'a'))
@@ -489,7 +482,6 @@ class QuiverPath(MonoidElement):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).free_small_category()
             sage: y = Q([(1, 2, 'a'), (2, 3, 'b')])
             sage: y.initial_vertex()
@@ -515,7 +507,6 @@ class QuiverPath(MonoidElement):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).free_small_category()
             sage: y = Q([(1, 2, 'a'), (2, 3, 'b')])
             sage: y.terminal_vertex()
@@ -535,7 +526,6 @@ class QuiverPath(MonoidElement):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).free_small_category()
             sage: p = Q([(1, 2, 'a'), (2, 3, 'b')])
             sage: p.reverse()

@@ -1,3 +1,4 @@
+from sage.misc.cachefunc import cached_method
 from sage.combinat.free_module import CombinatorialFreeModule, CombinatorialFreeModuleElement
 
 class QuiverAlgebra(CombinatorialFreeModule):
@@ -22,14 +23,14 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
     EXAMPLES::
 
-        sage: from sage.quivers.quiver import Quiver
         sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}})
         sage: A = Q.algebra(GF(7))
         sage: A
         Algebra of Quiver on 3 vertices over Finite Field of size 7
+        sage: A.variable_names()
+        ('e_1', 'e_2', 'e_3', 'a', 'b')
 
-    Quivers have a method that creates their algebra over a given field.  Note that
-    QuiverAlgebras are uniquely defined by their Quiver and field::
+    Note that QuiverAlgebras are uniquely defined by their Quiver and field::
 
         sage: A is Q.algebra(GF(7))
         True
@@ -37,6 +38,13 @@ class QuiverAlgebra(CombinatorialFreeModule):
         False
         sage: A is Quiver({1:{2:['a']}}).algebra(GF(7))
         False
+
+    The QuiverAlgebra of an acyclic quiver has a finite basis::
+
+        sage: A.dimension()
+        6
+        sage: list(A.basis())
+        [e_1, e_2, e_3, a, b, a*b]
 
     The QuiverAlgebra can create elements from QuiverPaths or from elements of the
     base ring::
@@ -73,6 +81,11 @@ class QuiverAlgebra(CombinatorialFreeModule):
         Free module spanned by [a, b] over Finite Field of size 7
         sage: A[2]
         Free module spanned by [a*b] over Finite Field of size 7
+
+    TESTS::
+
+        sage: TestSuite(A).run()
+
     """
 
     ###########################################################################
@@ -82,30 +95,12 @@ class QuiverAlgebra(CombinatorialFreeModule):
     #                                                                         #
     ###########################################################################
 
-#    @staticmethod
-#    def __classcall__(self, k, Q):
-#        """
-#        Convert the Quiver Q into its key so that unique representation works.
-#
-#        TESTS::
-#
-#            sage: from sage.quivers.quiver import Quiver
-#            sage: Q1 = Quiver({4:{2:['a']}})
-#            sage: Q2 = Quiver(DiGraph({4:{2:['a']}}))
-#            sage: Q1 is Q2
-#            True
-#        """
-#
-#        Qkey = Quiver.create_key(Q)
-#        return super(QuiverAlgebra, self).__classcall__(self, k, Qkey)
-
     def __init__(self, k, Q):
         """
         Creates a QuiverAlgebra object.  Type QuiverAlgebra? for more information.
 
         TESTS::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a']}, 2:{3:['b', 'c']}, 4:{}})
             sage: Q.algebra(GF(5))
             Algebra of Quiver on 4 vertices over Finite Field of size 5
@@ -130,6 +125,87 @@ class QuiverAlgebra(CombinatorialFreeModule):
                                             element_class=self.Element,
                                             category=GradedAlgebrasWithBasis(k),
                                             bracket=False)
+        self._assign_names(self._free_small_category.variable_names())
+
+    @cached_method
+    def gens(self):
+        """
+        Generators of this algebra (idempotents and arrows).
+
+        EXAMPLES::
+
+            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b', 'c']}, 4:{}})
+            sage: A = Q.algebra(GF(5))
+            sage: A.variable_names()
+            ('e_1', 'e_2', 'e_3', 'e_4', 'a', 'b', 'c')
+            sage: A.gens()
+            (e_1, e_2, e_3, e_4, a, b, c)
+
+        """
+        return tuple(self._from_dict( {index: self.base_ring().one()}, remove_zeros = False ) for index in self._free_small_category.gens())
+
+    @cached_method
+    def arrows(self):
+        """
+        Arrows of this algebra (corresponding to edges of the underlying quiver).
+
+        EXAMPLES::
+
+            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b', 'c']}, 4:{}})
+            sage: A = Q.algebra(GF(5))
+            sage: A.arrows()
+            (a, b, c)
+
+        """
+        return tuple(self._from_dict( {index: self.base_ring().one()}, remove_zeros = False ) for index in self._free_small_category.arrows())
+
+    @cached_method
+    def idempotents(self):
+        """
+        Idempotents of this algebra (corresponding to vertices of the underlying quiver).
+
+        EXAMPLES::
+
+            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b', 'c']}, 4:{}})
+            sage: A = Q.algebra(GF(5))
+            sage: A.idempotents()
+            (e_1, e_2, e_3, e_4)
+
+        """
+        return tuple(self._from_dict( {index: self.base_ring().one()}, remove_zeros = False ) for index in self._free_small_category.idempotents())
+
+
+    def gen(self, i):
+        """
+        `i`-th generator of this algebra.
+
+        EXAMPLES::
+
+            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b', 'c']}, 4:{}})
+            sage: A = Q.algebra(GF(5))
+            sage: A.gens()
+            (e_1, e_2, e_3, e_4, a, b, c)
+            sage: A.gen(2)
+            e_3
+            sage: A.gen(5)
+            b
+
+        """
+        return self._from_dict( {self._free_small_category.gen(i): self.base_ring().one()}, remove_zeros = False )
+
+    def ngens(self):
+        """
+        Number of generators of this algebra.
+
+        EXAMPLES::
+
+            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b', 'c']}, 4:{}})
+            sage: A = Q.algebra(GF(5))
+            sage: A.ngens()
+            7
+
+        """
+        return self._free_small_category.ngens()
 
     def _element_constructor_(self, x):
         """
@@ -137,7 +213,6 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         TESTS::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: A = Quiver({1:{2:['a']}}).algebra(QQ)
             sage: B = Quiver({1:{2:['a']}, 2:{3:['b']}}).algebra(QQ)
             sage: x = A((1, 2, 'a')) + 1 # indirect doctest
@@ -148,7 +223,6 @@ class QuiverAlgebra(CombinatorialFreeModule):
             sage: A(1) # indirect doctest
             e_1 + e_2
         """
-
         from sage.quivers.paths import QuiverPath
         # If it's an element of another quiver algebra, do a linear combination
         # of the basis
@@ -161,7 +235,10 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         # If it's a QuiverPath return the associated basis element
         if isinstance(x, QuiverPath):
-            return self.monomial(x)
+            if x:
+                return self.monomial(x)
+            else:
+                return self.zero()
 
         # If it's a tuple or a list try and create a QuiverPath from it and
         # then return the associated basis element
@@ -179,9 +256,10 @@ class QuiverAlgebra(CombinatorialFreeModule):
         kQ such that k has a coercion into the base ring of self and Q is a subquiver
         of the quiver of self.
 
+        In addition, the free algebra of a subquiver coerces into the algebra.
+
         TESTS::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q1 = Quiver({1:{2:['a']}})
             sage: Q2 = Quiver({1:{2:['a','b']}})
             sage: A1 = Q1.algebra(GF(3))
@@ -203,14 +281,38 @@ class QuiverAlgebra(CombinatorialFreeModule):
                           From: Finite Field of size 3
                           To:   Algebra of Quiver on 2 vertices over Finite Field of size 3
             sage: A1.coerce_map_from(QQ) # indirect doctest
+            sage: A1.coerce_map_from(ZZ)
+            Composite map:
+              From: Integer Ring
+              To:   Algebra of Quiver on 2 vertices over Finite Field of size 3
+              Defn:   Natural morphism:
+                      From: Integer Ring
+                      To:   Finite Field of size 3
+                    then
+                      Generic morphism:
+                      From: Finite Field of size 3
+                      To:   Algebra of Quiver on 2 vertices over Finite Field of size 3
+
+        ::
+
+            sage: A2.coerce_map_from(Q1.free_small_category())
+            Conversion map:
+              From: Free small category of Quiver on 2 vertices
+              To:   Algebra of Quiver on 2 vertices over Finite Field of size 3
+            sage: a = Q1.free_small_category()(Q1.free_small_category().arrows()[0]); a
+            a
+            sage: A2.one() * a == a     # indirect doctest
+            True
+
         """
 
         if (isinstance(other, QuiverAlgebra) and
                 self._base.has_coerce_map_from(other._base) and
                 other._quiver <= self._quiver):
             return True
-        else:
-            return self._base.has_coerce_map_from(other)
+        if self._free_small_category.has_coerce_map_from(other):
+            return True
+        return self._base.has_coerce_map_from(other)
 
     def _repr_(self):
         """
@@ -218,7 +320,6 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         TESTS::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}})
             sage: Q.algebra(RR) # indirect doctest
             Algebra of Quiver on 3 vertices over Real Field with 53 bits of precision
@@ -234,6 +335,24 @@ class QuiverAlgebra(CombinatorialFreeModule):
     #                                                                         #
     ###########################################################################
 
+    def _monomial(self, index):
+        """
+        This method makes sure that the invalid path evaluates as zero.
+
+        TESTS::
+
+            sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}}).free_small_category()
+            sage: inv = Q([(1,3,'x')])
+            sage: inv
+            invalid path
+            sage: Q.algebra(ZZ)(inv)          # indirect doctest
+            0
+
+        """
+        if index:
+            return self._from_dict( {index: self.base_ring().one()}, remove_zeros = False )
+        return self.zero()
+
     def product_on_basis(self, p1, p2):
         """
         Returns the element corresponding to p1*p2 in the quiver algebra.
@@ -248,7 +367,6 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a']}, 2:{3:['b']}, 3:{4:['c']}}).free_small_category()
             sage: p1 = Q((1, 2, 'a'))
             sage: p2 = Q([(2, 3, 'b'), (3, 4, 'c')])
@@ -272,7 +390,6 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: A = Quiver({1:{2:['a']}, 2:{3:['b']}}).algebra(QQ)
             sage: A.degree_on_basis((1, 1))
             0
@@ -293,7 +410,6 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: A = Quiver({1:{2:['a']}, 2:{3:['b']}}).algebra(QQ)
             sage: A.one()
             e_1 + e_2 + e_3
@@ -322,7 +438,6 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         EXAMPLES:
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a', 'b']}})
             sage: A = Q.algebra(GF(3))
             sage: A.quiver() is Q
@@ -345,7 +460,6 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         EXAMPLES:
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a', 'b']}})
             sage: A = Q.algebra(GF(3))
             sage: A.semigroup() is Q.free_small_category()
@@ -368,7 +482,6 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.quivers.quiver import Quiver
             sage: Q = Quiver({1:{2:['a'], 3:['b']}, 2:{4:['c']}, 3:{4:['d']}})
             sage: A = Q.algebra(GF(7))
             sage: A.homogeneous_component(2)
@@ -396,7 +509,6 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
             EXAMPLES::
 
-                sage: from sage.quivers.quiver import Quiver
                 sage: A = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}}).algebra(QQ)
                 sage: (A((1, 2, 'a')) + A((1, 2, 'b'))).is_homogeneous()
                 True
@@ -422,7 +534,6 @@ class QuiverAlgebra(CombinatorialFreeModule):
 
             EXAMPLES::
 
-                sage: from sage.quivers.quiver import Quiver
                 sage: A = Quiver({1:{2:['a', 'b']}, 2:{3:['c']}}).algebra(QQ)
                 sage: A((1, 1)).degree()
                 0

@@ -1,5 +1,5 @@
 cdef extern from "cliquer/graph.h":
-    struct graph_t:
+    ctypedef struct graph_t:
        pass
 
 cdef extern from "cliquer/cliquer.h":
@@ -23,6 +23,6 @@ cdef extern from "cliquer/cl.h":
 cdef extern from "cliquer/graph.h":
      cdef graph_t * graph_new(int n)
      cdef void graph_print(graph_t *g)
-     cdef void parse_input(char *str,graph_t *g)
      cdef void graph_free(graph_t *g)
+     cdef void GRAPH_ADD_EDGE(graph_t *g, int, int)
 

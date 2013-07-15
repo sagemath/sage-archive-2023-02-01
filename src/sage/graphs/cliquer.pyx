@@ -67,13 +67,9 @@ def max_clique(graph):
 
     cdef graph_t *g
     g=graph_new(graph.order())
-    buf="p edges %d %d" %(graph.order(),graph.size())
-    parse_input(buf,g)
-
     for e in graph.edge_iterator():
         (u,v,w)=e
-        buf=' e %d %d' %(u+1,v+1)
-        parse_input(buf,g)
+        GRAPH_ADD_EDGE(g,u,v)
 
     cdef int* list
     cdef int size
@@ -143,13 +139,10 @@ def all_max_clique(graph):
 
     cdef graph_t *g
     g=graph_new(graph.order())
-    buf="p edges %d %d" %(graph.order(),graph.size())
-    parse_input(buf,g)
 
     for e in graph.edge_iterator():
         (u,v,w)=e
-        buf=' e %d %d' %(u+1,v+1)
-        parse_input(buf,g)
+        GRAPH_ADD_EDGE(g,u,v)
 
     cdef int* list
     cdef int size
@@ -204,13 +197,10 @@ def clique_number(graph):
     graph=graph.relabel(inplace=False)
     cdef graph_t *g
     g=graph_new(graph.order())
-    buf="p edges %d %d" %(graph.order(),graph.size())
-    parse_input(buf,g)
 
     for e in graph.edge_iterator():
         (u,v,w)=e
-        buf=' e %d %d' %(u+1,v+1)
-        parse_input(buf,g)
+        GRAPH_ADD_EDGE(g,u,v)
 
     cdef int c
     sig_on()

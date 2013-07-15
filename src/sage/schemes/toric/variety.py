@@ -2747,6 +2747,73 @@ class ToricVariety_field(AmbientSpace):
         from sage.geometry.fan import discard_faces
         return ToricVariety(Fan(discard_faces(cones), check=False))
 
+    def toricPointCount(self,q):
+        r"""
+        This function computes the number of points in the ambient toric variety over F_q using the formula in Fulton [F], section 4.5, as long as the variety is smooth.
+
+        INPUT:
+
+        - ``q`` -- a positive prime integer or prime power.
+
+        OUTPUT:
+
+        - The number of points on the toric variety over Fq.
+
+
+        REFERENCES:
+
+        .. [F] Fulton, W., "Introduction to Toric Varieties", Princeton University Press, 1993.
+
+
+        EXAMPLES:
+
+        This example illustrates the point count for a few primes and powers of primes.
+
+            ::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: cube = o.polar()
+            sage: V=ToricVariety(NormalFan(cube))
+            sage: V.toricPointCount(2)
+            27
+            sage: V.toricPointCount(8)
+            729
+            sage: V.toricPointCount(101)
+            1061208
+
+        This is an example of what happens for a non-smooth variety.
+
+            ::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: V=ToricVariety(NormalFan(o))
+            sage: V.toricPointCount(31)
+            Traceback (most recent call last):
+            ...
+            TypeError: The variety is not smooth
+
+        AUTHORS:
+
+        - Beth Malmskog (2013-07-14): 0.1
+        - Adriana Salerno (2013-07-14): 0.1
+        - Yiwei She (2013-07-14): 0.1
+        - Christelle Vincent (2013-07-14): 0.1
+        - Ursula Whitcher (2013-07-14): 0.1
+
+        """
+        if self.is_smooth():
+            fan = self.fan()
+            cones=fan.cones()
+            n = self.dimension()
+            d = []
+            for i in range(n+1):
+                d.append(len(cones[i]))
+            card = 0
+            for k in range(n+1):
+                card = card + d[n-k]*(q-1)**k
+            return card
+        else:
+            raise TypeError, "The variety is not smooth"
 
 
 

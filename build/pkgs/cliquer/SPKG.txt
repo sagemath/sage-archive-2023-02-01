@@ -18,11 +18,21 @@ http://users.tkk.fi/pat/cliquer.html
 == Dependencies ==
  * None
 
-== Special Update/Build Instructions ==
- * TODO - A MAJOR cleanup of this package is required.
-   See #9870
+== TODO ==
+ * A MAJOR cleanup of this package is required, see #9870, #14349
+
+== Patches ==
+ * Makefile.patch: Patch the Makefile for Sage. This custom Makefile
+   contains Sage specific compilation and linking flags. More
+   importantly, we're building cliquer as a dynamic shared library,
+   instead of a stand alone program.
+ * cl_c.patch, cl_h.patch: Hook into cliquer to access internal
+   functions. Could probably be done better (see TODO)
 
 == Changelog ==
+
+=== cliquer-1.21.p1 (Volker Braun, Felix Salfelder, 15 July 2013) ===
+ * Trac #14892: Track all patches, remove unnecessary graph.c.patch
 
 === cliquer-1.21.p0 (Nathann Cohen, 4 May 2012) ===
  * Solved memory leaks reported on #12905

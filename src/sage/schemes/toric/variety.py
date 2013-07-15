@@ -329,7 +329,7 @@ from sage.matrix.all import matrix
 from sage.misc.all import latex, prod, uniq, cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.modules.free_module_element import vector
-from sage.rings.all import PolynomialRing, ZZ, QQ
+from sage.rings.all import Infinity, PolynomialRing, ZZ, QQ
 from sage.rings.quotient_ring_element import QuotientRingElement
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.schemes.affine.affine_space import AffineSpace
@@ -2747,74 +2747,70 @@ class ToricVariety_field(AmbientSpace):
         from sage.geometry.fan import discard_faces
         return ToricVariety(Fan(discard_faces(cones), check=False))
 
-    def toricPointCount(self,q):
+    def count_points(self):
         r"""
-        This function computes the number of points in the ambient toric variety over F_q using the formula in Fulton [F], section 4.5, as long as the variety is smooth.
+        Return the number of points of ``self``.
 
-        INPUT:
-
-        - ``q`` -- a positive prime integer or prime power.
+        Over a finite field only smooth varieties are supported.
 
         OUTPUT:
 
-        - The number of points on the toric variety over Fq.
+        - an integer.
 
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: V = ToricVariety(FaceFan(o))
+            sage: V.change_ring(GF(2)).count_points()
+            27
+            sage: V.change_ring(GF(8, "a")).count_points()
+            729
+            sage: V.change_ring(GF(101)).count_points()
+            1061208
+
+        Only smooth varieties over finite fields are currently handled::
+
+            sage: V = ToricVariety(NormalFan(o))
+            sage: V.change_ring(GF(2)).count_points()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the variety is not smooth
+
+        Over infinite fields the number of points is not very tricky::
+
+            sage: V.count_points()
+            +Infinity
+
+        ALGORITHM:
+
+        Uses the formula in Fulton [F]_, section 4.5.
 
         REFERENCES:
 
-        .. [F] Fulton, W., "Introduction to Toric Varieties", Princeton University Press, 1993.
-
-
-        EXAMPLES:
-
-        This example illustrates the point count for a few primes and powers of primes.
-
-            ::
-
-            sage: o = lattice_polytope.octahedron(3)
-            sage: cube = o.polar()
-            sage: V=ToricVariety(NormalFan(cube))
-            sage: V.toricPointCount(2)
-            27
-            sage: V.toricPointCount(8)
-            729
-            sage: V.toricPointCount(101)
-            1061208
-
-        This is an example of what happens for a non-smooth variety.
-
-            ::
-
-            sage: o = lattice_polytope.octahedron(3)
-            sage: V=ToricVariety(NormalFan(o))
-            sage: V.toricPointCount(31)
-            Traceback (most recent call last):
-            ...
-            TypeError: The variety is not smooth
+        ..  [F]
+            Fulton, W., "Introduction to Toric Varieties",
+            Princeton University Press, 1993.
 
         AUTHORS:
 
-        - Beth Malmskog (2013-07-14): 0.1
-        - Adriana Salerno (2013-07-14): 0.1
-        - Yiwei She (2013-07-14): 0.1
-        - Christelle Vincent (2013-07-14): 0.1
-        - Ursula Whitcher (2013-07-14): 0.1
+        - Beth Malmskog (2013-07-14)
 
+        - Adriana Salerno (2013-07-14)
+
+        - Yiwei She (2013-07-14)
+
+        - Christelle Vincent (2013-07-14)
+
+        - Ursula Whitcher (2013-07-14)
         """
-        if self.is_smooth():
-            fan = self.fan()
-            cones=fan.cones()
-            n = self.dimension()
-            d = []
-            for i in range(n+1):
-                d.append(len(cones[i]))
-            card = 0
-            for k in range(n+1):
-                card = card + d[n-k]*(q-1)**k
-            return card
-        else:
-            raise TypeError, "The variety is not smooth"
-
+        if not self.base_ring().is_finite():
+            return Infinity
+        if not self.is_smooth():
+            raise NotImplementedError("the variety is not smooth")
+        q = self.base_ring().order()
+        n = self.dimension()
+        d = map(len, self.fan().cones())
+        return sum(dk * (q-1)**(n-k) for k, dk in enumerate(d))
 
 
 def normalize_names(names=None, ngens=None, prefix=None, indices=None,

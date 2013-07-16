@@ -49,6 +49,7 @@ gunzip $LAPACK
 cp -rp "$SPKG_ROOT"/patches/ATLAS-lib .
 cd ATLAS-lib
 autoreconf -fiv
+rm -rf autom4te.cache
 
 
 ### Finished creating the src/ directory

@@ -232,7 +232,7 @@ def configure_options_from_environment():
             INSTALL_STATIC_LIBRARIES = True
         elif opt in ATLAS_MACHTYPE + ('fast', 'base'):
             if arch is not None:
-                raise ValuError('multiple architectures specified: {0} and {1}'.format(arch, opt))
+                raise ValueError('multiple architectures specified: {0} and {1}'.format(arch, opt))
             arch = opt
         elif opt in ATLAS_ISAEXT:
             if isa_ext is None:

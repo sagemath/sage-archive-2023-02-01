@@ -29,7 +29,6 @@ from sage.calculus.var import var
 from sage.libs.symmetrica.all import hall_littlewood
 import sfa
 import sage.combinat.partition
-import kfpoly
 from sage.matrix.all import matrix
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
@@ -946,9 +945,10 @@ class HallLittlewood_p(HallLittlewood_generic):
             sage: [f21(p) for p in Partitions(3)]
             [0, 1, t^2 + t]
         """
+        from sage.combinat.sf.kfpoly import schur_to_hl
         t = QQt.gen()
         zero = self.base_ring()(0)
-        res_dict = kfpoly.schur_to_hl(part, t)
+        res_dict = schur_to_hl(part, t)
         f = lambda part2: res_dict.get(part2,zero)
         return f
 

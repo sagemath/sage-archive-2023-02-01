@@ -56,6 +56,19 @@ TESTS::
     ....:     if online_list[:L] != sage_list:
     ....:         print t, 'seems wrong'
 
+
+
+.. SEEALSO::
+
+    - If you want to get more informations relative to a sequence (references,
+      links, examples, programs, ...), you can use the On-Line Encyclopedia of
+      Integer Sequences provided by the :mod:`OEIS <sage.databases.oeis>`
+      module.
+    - If you plan to do a lot of automatic searches for subsequences, you
+      should consider installing :mod:`SloaneEncyclopedia
+      <sage.databases.sloane>`, a local partial copy of the OEIS.
+
+
 AUTHORS:
 
 - William Stein: framework

@@ -41,9 +41,12 @@ Results in either case are of the form [ (number, list) ].
 
 .. SEEALSO::
 
-    If you want to get other informations relative to a sequence (references,
-    links, examples, programs, ...), you can use the On-Line Encyclopedia of
-    Integer Sequences, use the :mod:`OEIS <sage.databases.oeis>` module.
+    - If you want to get more informations relative to a sequence (references,
+      links, examples, programs, ...), you can use the On-Line Encyclopedia of
+      Integer Sequences provided by the :mod:`OEIS <sage.databases.oeis>`
+      module.
+    - Some infinite OEIS sequences are implemented in Sage, via the
+      :mod:`sloane_functions <sage.combinat.sloane_functions>` module.
 
 
 AUTHORS:
@@ -380,33 +383,37 @@ def parse_sequence(text=''):
     """
     deprecation(10358, "The function parse_sequence is not used anymore (2012-01-01).")
 
-def sloane_sequence(number, verbose = True):
+def sloane_sequence(number=1, verbose=True):
     r"""
-    This function is broken for more than a year. It is replaced by the
-    oeis class.
+    This function is broken. It is replaced by the
+    :mod:`OEIS <sage.databases.oeis>` module.
+
+    Type ``oeis?`` for more information.
 
     TESTS::
 
         sage: sloane_sequence(123)
-        doctest:1: DeprecationWarning: The function sloane_sequence is broken for a while, please use oeis instead (2012-01-01).
+        doctest:1: DeprecationWarning: The function sloane_sequence is deprecated. Use oeis() instead (2012-01-01).
         See http://trac.sagemath.org/10358 for details.
     """
     deprecation(10358,
-            "The function sloane_sequence is broken for a while, "
-            "please use oeis instead (2012-01-01).")
+            "The function sloane_sequence is deprecated. "
+            "Use oeis() instead (2012-01-01).")
 
-def sloane_find(list, nresults = 30, verbose=True):
+def sloane_find(list=[], nresults=30, verbose=True):
     r"""
-    This function is broken for more than a year. It is replaced by the
-    oeis class.
+    This function is broken. It is replaced by the
+    :mod:`OEIS <sage.databases.oeis>` module.
+
+    Type ``oeis?`` for more information.
 
     TESTS::
 
         sage: sloane_find([1,2,3])
-        doctest:1: DeprecationWarning: The function sloane_find is broken for a while, please use oeis instead (2012-01-01).
+        doctest:1: DeprecationWarning: The function sloane_find is deprecated. Use oeis() instead (2012-01-01).
         See http://trac.sagemath.org/10358 for details.
     """
     deprecation(10358,
-            "The function sloane_find is broken for a while, "
-            "please use oeis instead (2012-01-01).")
+            "The function sloane_find is deprecated. "
+            "Use oeis() instead (2012-01-01).")
 

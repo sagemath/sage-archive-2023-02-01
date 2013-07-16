@@ -60,7 +60,8 @@ from install import database_install
 
 from sloane import sloane_sequence, sloane_find, SloaneEncyclopedia
 
-from oeis import oeis
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.databases.oeis', 'oeis')
 
 from symbolic_data import SymbolicData
 

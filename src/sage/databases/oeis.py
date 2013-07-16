@@ -1,9 +1,17 @@
 r"""
 The On-Line Encyclopedia of Integer Sequences (OEIS)
 
+The OEIS is an online database for integer sequences, you can query it through
+Sage in order to
+
+    - identify a sequence, of which you know the first terms,
+    - obtain more terms, formulae, references, etc. for a given sequence.
+
+
 AUTHORS:
 
     - Thierry Monteil (2012-02-10 -- 2013-06-21): initial version.
+
 
 EXAMPLES::
 
@@ -112,9 +120,11 @@ What the Taylor expansion of the ``e^(e^x-1)`` function has to do with primes ?
 
 .. SEEALSO::
 
-    If you plan to do a lot of automatic searches for subsequences, you should
-    consider installing :mod:`SloaneEncyclopedia <sage.databases.sloane>`, a
-    local partial copy of the OEIS.
+    - If you plan to do a lot of automatic searches for subsequences, you
+      should consider installing :mod:`SloaneEncyclopedia
+      <sage.databases.sloane>`, a local partial copy of the OEIS.
+    - Some infinite OEIS sequences are implemented in Sage, via the
+      :mod:`sloane_functions <sage.combinat.sloane_functions>` module.
 
 
 .. TODO::
@@ -135,7 +145,6 @@ What the Taylor expansion of the ``e^(e^x-1)`` function has to do with primes ?
 
 from sage.structure.sage_object import SageObject
 from sage.structure.sequence import Sequence
-# from sage.rings.semirings.non_negative_integer_semiring import NonNegativeIntegerSemiring
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.rings.semirings.non_negative_integer_semiring', 'NN')
 from sage.rings.integer_ring import IntegerRing
@@ -150,8 +159,6 @@ from sage.misc.misc import embedded
 from sage.misc.html import html
 from collections import defaultdict
 from urllib import urlopen, urlencode
-from HTMLParser import HTMLParser
-import webbrowser
 import re
 
 oeis_url = 'http://oeis.org/'
@@ -207,6 +214,7 @@ def _urls(html_string):
 
     """
     urls = []
+    from HTMLParser import HTMLParser
     class MyHTMLParser(HTMLParser):
         def handle_starttag(self, tag, attrs):
             if tag == 'a':
@@ -300,7 +308,7 @@ class OEIS:
 
             sage: fibo = oeis('A000045')                # optional -- internet
 
-        Do not do this, it is slow, it costs bandwidth and server ressources !
+        Do not do this, it is slow, it costs bandwidth and server resources !
         Instead, do the following, to reuse the result of the search to create
         the sequence::
 
@@ -321,7 +329,7 @@ class OEIS:
 
         - ``query`` - it can be:
             - a string representing an OEIS ID (e.g. 'A000045')
-            - an integer repesenting an OEIS ID (e.g. 45)
+            - an integer representing an OEIS ID (e.g. 45)
             - a list representing a sequence of integers
             - a string, representing a text search
 
@@ -331,7 +339,7 @@ class OEIS:
 
         - ``first_result`` - (integer, default: 0) allow to skip the
           ``first_result`` first results in the search, to go further.
-          This is usefull if you are looking for a sequence that may appear
+          This is useful if you are looking for a sequence that may appear
           after the 100 first found sequences.
 
         OUTPUT:
@@ -388,7 +396,7 @@ class OEIS:
 
         INPUT:
 
-        - ``ident`` - a string reptresenting the A-number of the sequence
+        - ``ident`` - a string representing the A-number of the sequence
           or an integer representing its number.
 
         OUTPUT:
@@ -422,12 +430,12 @@ class OEIS:
         - ``description`` - (string) the description the searched sequences.
 
         - ``max_results`` - (integer, default: 3) the maximum number of results
-          we want. In any case, the on-line encyclopaedia will not return more
+          we want. In any case, the on-line encyclopedia will not return more
           than 100 results.
 
         - ``first_result`` - (integer, default: 0) allow to skip the
           ``first_result`` first results in the search, to go further.
-          This is usefull if you are looking for a sequence that may appear
+          This is useful if you are looking for a sequence that may appear
           after the 100 first found sequences.
 
         OUTPUT:
@@ -445,8 +453,24 @@ class OEIS:
 
             sage: prime_gaps = _[1] ; prime_gaps        # optional -- internet
             A073490: Number of prime gaps in factorization of n.
+
+        ::
+
+            sage: oeis('beaver')                        # optional -- internet
+            0: A028444: Busy Beaver sequence, or Rado's sigma function: ...
+            1: A060843: Busy Beaver problem: a(n) = maximal number of steps ...
+            2: A131956: Busy Beaver variation: maximum number of steps for ...
+
+            sage: oeis('beaver', max_results=4, first_result=2)     # optional -- internet
+            0: A131956: Busy Beaver variation: maximum number of steps for ...
+            1: A141475: Number of Turing machines with n states following ...
+            2: A131957: Busy Beaver sigma variation: maximum number of 1's ...
+            3: A052200: Number of n-state, 2-symbol, d+ in {LEFT, RIGHT}, ...
         """
-        options = {'q':description, 'n':str(max_results), 'fmt':'text'}
+        options = {'q':description,
+                   'n':str(max_results),
+                   'fmt':'text',
+                   'start':str(first_result)}
         url = oeis_url + "search?" + urlencode(options)
         sequence_list = _fetch(url).split('\n\n')[2:-1]
         return FancyTuple(map(OEISSequence, sequence_list))
@@ -463,7 +487,7 @@ class OEIS:
 
         - ``first_result`` - (integer, default: 0) allow to skip the
           ``first_result`` first results in the search, to go further.
-          This is usefull if you are looking for a sequence that may appear
+          This is useful if you are looking for a sequence that may appear
           after the 100 first found sequences.
 
         OUTPUT:
@@ -484,6 +508,17 @@ class OEIS:
         """
         subsequence = str(subsequence)[1:-1]
         return self.find_by_description(subsequence, max_results, first_result)
+
+    def browse(self):
+        r"""
+        Open the OEIS web page in a browser.
+
+        EXAMPLES::
+
+            sage: oeis.browse()                         # optional -- webbrowser
+        """
+        import webbrowser
+        webbrowser.open(oeis_url)
 
     def _imaginary_entry(self, keywords=''):
         r"""
@@ -517,7 +552,7 @@ class OEIS:
                 '%V A999999 1,1,1,1,-1,1,1,1,\n'
                 '%W A999999 1,1,1,1,1,1,1,1,1,\n'
                 '%X A999999 1,1,1,1,1,1,1,1,1\n'
-                '%N A999999 The oposite of twice the characteristic sequence of 42 plus one, starting from 38.\n'
+                '%N A999999 The opposite of twice the characteristic sequence of 42 plus one, starting from 38.\n'
                 '%D A999999 Lewis Carroll, Alice\'s Adventures in Wonderland.\n'
                 '%D A999999 Lewis Carroll, The Hunting of the Snark.\n'
                 '%D A999999 Deep Thought, The Answer to the Ultimate Question of Life, The Universe, and Everything.\n'
@@ -564,7 +599,7 @@ class OEIS:
 
             sage: s = oeis._imaginary_sequence()
             sage: s
-            A999999: The oposite of twice the characteristic sequence of 42 plus one, starting from 38.
+            A999999: The opposite of twice the characteristic sequence of 42 plus one, starting from 38.
             sage: s[4]
             -1
             sage: s(42)
@@ -584,7 +619,7 @@ class OEISSequence(SageObject):
     .. NOTE::
 
         Since some sequences do not start with index 0, there is a difference
-        between calling and geting item::
+        between calling and getting item::
 
             sage: sfibo = oeis('A039834')               # optional -- internet
             sage: sfibo.first_terms()[:10]              # optional -- internet
@@ -604,12 +639,21 @@ class OEISSequence(SageObject):
     """
 
     def __init__(self, entry):
+        r"""
+        Initializes an OEIS sequence.
+
+        TESTS::
+
+            sage: sfibo = oeis('A039834')               # optional -- internet
+
+            sage: s = oeis._imaginary_sequence()
+        """
         self._raw = entry
         self._id = entry[3:10]
-        self.fields = defaultdict(list)
+        self._fields = defaultdict(list)
         for line in entry.splitlines():
-            self.fields[line[1]].append(line[11:])
-            # self.fields[line[1]].append(line[11:].strip())
+            self._fields[line[1]].append(line[11:])
+            # self._fields[line[1]].append(line[11:].strip())
 
     def id(self, format='A'):
         r"""
@@ -618,7 +662,7 @@ class OEISSequence(SageObject):
 
         INPUT:
 
-        - ``format`` - (string, default 'A')
+        - ``format`` - (string, default: 'A')
 
         OUTPUT:
 
@@ -696,9 +740,9 @@ class OEISSequence(SageObject):
 
             sage: s = oeis._imaginary_sequence()
             sage: s.name()
-            'The oposite of twice the characteristic sequence of 42 plus one, starting from 38.'
+            'The opposite of twice the characteristic sequence of 42 plus one, starting from 38.'
         """
-        return self.fields['N'][0]
+        return self._fields['N'][0]
 
     def old_IDs(self):
         r"""
@@ -725,7 +769,7 @@ class OEISSequence(SageObject):
             sage: s.old_IDs()
             ('M9999', 'N9999')
         """
-        return tuple(self.fields['I'][0].split(' '))
+        return tuple(self._fields['I'][0].split(' '))
 
     def offsets(self):
         r"""
@@ -760,7 +804,7 @@ class OEISSequence(SageObject):
             sage: s.offsets()
             (38, 4)
         """
-        return to_tuple(self.fields['O'][0])
+        return to_tuple(self._fields['O'][0])
 
     def author(self):
         r"""
@@ -784,7 +828,7 @@ class OEISSequence(SageObject):
             sage: s.author()
             'Anonymous.'
         """
-        return self.fields['A'][0]
+        return self._fields['A'][0]
 
     def keywords(self):
         r"""
@@ -812,7 +856,7 @@ class OEISSequence(SageObject):
             sage: s.keywords()
             ('nonn', 'hard')
         """
-        return tuple(self.fields['K'][0].split(','))
+        return tuple(self._fields['K'][0].split(','))
 
     def natural_object(self):
         r"""
@@ -866,10 +910,10 @@ class OEISSequence(SageObject):
 
         ::
 
-            sage: av = oeis('A087778') ; av
+            sage: av = oeis('A087778') ; av             # optional -- internet
             A087778: Decimal expansion of Avogadro's constant.
 
-            sage: av.natural_object()
+            sage: av.natural_object()                   # optional -- internet
             6.022141000000000?e23
 
         ::
@@ -918,8 +962,8 @@ class OEISSequence(SageObject):
         Tells whether the sequence is finite.
 
         Currently, OEIS only provides a keyword when the sequence is known to
-        be finite. So, when this keyword is not there, we do not know wether it
-        is infinite or not.
+        be finite. So, when this keyword is not there, we do not know whether
+        it is infinite or not.
 
         OUTPUT:
 
@@ -968,8 +1012,8 @@ class OEISSequence(SageObject):
         elements are listed in ``self.first_terms()``.
 
         Currently, OEIS only provides a keyword when the sequence is known to
-        be full. So, when this keyword is not there, we do not know wether some
-        elements are missing or not.
+        be full. So, when this keyword is not there, we do not know whether
+        some elements are missing or not.
 
         OUTPUT:
 
@@ -1007,16 +1051,19 @@ class OEISSequence(SageObject):
         else:
             return Unknown
 
+    @cached_method
     def first_terms(self, number=None, absolute_value=False):
         r"""
 
         INPUT:
 
-        - ``number`` - (integer or None, default=None) the number of
-              terms returned (if less than the number of available terms).
-              When set to None, returns all the known terms.
+        - ``number`` - (integer or ``None``, default: ``None``) the number of
+          terms returned (if less than the number of available terms). When set
+          to None, returns all the known terms.
 
-        - ``absolute_value`` - (bool, default False) expliquer le bordel.
+        - ``absolute_value`` - (bool, default: ``False``) when a sequence has
+          negative entries, OEIS also stores the absolute values of its first
+          terms, when ``absolute_value`` is set to ``True``, you will get them.
 
         OUTPUT:
 
@@ -1060,7 +1107,7 @@ class OEISSequence(SageObject):
             fields = ['V','W','X']
         else:
             raise TypeError("You found a sign inconsistency, please contact OEIS")
-        return to_tuple(" ".join(flatten([self.fields[a] for a in fields])))[:number]
+        return to_tuple(" ".join(flatten([self._fields[a] for a in fields])))[:number]
 
     def _repr_(self):
         r"""
@@ -1080,7 +1127,7 @@ class OEISSequence(SageObject):
 
             sage: s = oeis._imaginary_sequence()
             sage: s
-            A999999: The oposite of twice the characteristic sequence of 42 plus one, starting from 38.
+            A999999: The opposite of twice the characteristic sequence of 42 plus one, starting from 38.
         """
         return "%s: %s" % (self.id(), self.name())
 
@@ -1160,10 +1207,10 @@ class OEISSequence(SageObject):
 
         EXAMPLES::
 
-            sage: sfibo = oeis('A039834')
-            sage: sfibo[8]
+            sage: sfibo = oeis('A039834')               # optional -- internet
+            sage: sfibo[8]                              # optional -- internet
             -8
-            sage: sfibo(8)
+            sage: sfibo(8)                              # optional -- internet
             -21
 
         TESTS::
@@ -1342,7 +1389,7 @@ class OEISSequence(SageObject):
             sage: s.references()[1]
             'Lewis Carroll, The Hunting of the Snark.'
         """
-        return FancyTuple(self.fields['D'])
+        return FancyTuple(self._fields['D'])
 
     def links(self, browse=None, format='guess'):
         r"""
@@ -1351,9 +1398,9 @@ class OEISSequence(SageObject):
         INPUT:
 
         - ``browse`` - an integer, a list of integers, or the word 'all'
-          (default:``None``) : which links to open in a webbrowser.
+          (default: ``None``) : which links to open in a web browser.
 
-        - ``format`` - string (default='guess') : how to display the links.
+        - ``format`` - string (default: 'guess') : how to display the links.
 
         OUTPUT:
 
@@ -1400,14 +1447,15 @@ class OEISSequence(SageObject):
                 else:
                     return self.links(format='url')
             elif format == 'raw':
-                return FancyTuple(self.fields['H'])
+                return FancyTuple(self._fields['H'])
             elif format == 'html':
-                return html(FancyTuple(map(url_absolute, self.fields['H'])))
+                return html(FancyTuple(map(url_absolute, self._fields['H'])))
             elif format == 'url':
-                url_list = flatten([_urls(url_absolute(string)) for string in self.fields['H']])
+                url_list = flatten([_urls(url_absolute(string)) for string in self._fields['H']])
                 return FancyTuple(url_list)
         else:
-            url_list = flatten([_urls(url_absolute(string)) for string in self.fields['H']])
+            import webbrowser
+            url_list = flatten([_urls(url_absolute(string)) for string in self._fields['H']])
             if isinstance(browse, (int, Integer)):
                 webbrowser.open(url_list[browse])
             elif isinstance(browse, (list, tuple)):
@@ -1440,7 +1488,7 @@ class OEISSequence(SageObject):
             0: For n big enough, s(n+1) - s(n) = 0.
 
         """
-        return FancyTuple(self.fields['F'])
+        return FancyTuple(self._fields['F'])
 
     def cross_references(self, fetch=False):
         r"""
@@ -1449,7 +1497,7 @@ class OEISSequence(SageObject):
 
         INPUT:
 
-        - ``fetch`` - boolean (default: False).
+        - ``fetch`` - boolean (default: ``False``).
 
         OUTPUT:
 
@@ -1478,7 +1526,7 @@ class OEISSequence(SageObject):
             sage: s.cross_references()
             ['A000042', 'A000024']
         """
-        ref_list = re.findall('A[0-9]{6}', " ".join(self.fields['Y']))
+        ref_list = re.findall('A[0-9]{6}', " ".join(self._fields['Y']))
         if fetch:
             return FancyTuple(map(oeis.find_by_id, ref_list))
         else:
@@ -1508,7 +1556,7 @@ class OEISSequence(SageObject):
             0: This sequence does not contain errors.
 
         """
-        return FancyTuple(self.fields['E'])
+        return FancyTuple(self._fields['E'])
 
     def examples(self):
         r"""
@@ -1534,7 +1582,7 @@ class OEISSequence(SageObject):
 
 
         """
-        return FancyTuple(self.fields['e'])
+        return FancyTuple(self._fields['e'])
 
     def comments(self):
         r"""
@@ -1561,7 +1609,7 @@ class OEISSequence(SageObject):
             0: 42 is the product of the first 4 prime numbers, except 5 and perhaps 1.
             1: Apart from that, i have no comment.
         """
-        return FancyTuple(self.fields['C'])
+        return FancyTuple(self._fields['C'])
 
     def url(self):
         r"""
@@ -1589,17 +1637,30 @@ class OEISSequence(SageObject):
 
     def browse(self):
         r"""
-        Open the OEIS webpage associated to the squence ``self`` in a browser.
+        Open the OEIS web page associated to the sequence ``self`` in a browser.
+
+        EXAMPLES::
+
+            sage: f = oeis(45) ; f                      # optional -- internet, webbrowser
+            A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
+
+            sage: f.browse()                            # optional -- internet, webbrowser
+
+        TESTS::
+
+            sage: s = oeis._imaginary_sequence()        # optional -- webbrowser
+            sage: s.browse()                            # optional -- webbrowser
         """
+        import webbrowser
         webbrowser.open(self.url())
 
     def programs(self, language='other'):
         r"""
-        Returns programs implementing the sequence ``self`` in the given ``langugage``.
+        Returns programs implementing the sequence ``self`` in the given ``language``.
 
         INPUT:
 
-        - ``language`` - string (default ``other``) - the language of the
+        - ``language`` - string (default: 'other') - the language of the
           program. Current values are: 'maple', 'mathematica' and 'other'.
 
         OUTPUT:
@@ -1637,11 +1698,11 @@ class OEISSequence(SageObject):
             0: Mathematica neither.
         """
         if language == "maple":
-            return FancyTuple(self.fields['p'])
+            return FancyTuple(self._fields['p'])
         elif language == "mathematica":
-            return FancyTuple(self.fields['t'])
+            return FancyTuple(self._fields['t'])
         else:
-            return FancyTuple(self.fields['o'])
+            return FancyTuple(self._fields['o'])
 
 class FancyTuple(tuple):
     r"""
@@ -1661,10 +1722,19 @@ class FancyTuple(tuple):
         sage: t[2]
         'two'
     """
-    def __repr__(self, numbered=True):
+    def __repr__(self):
         r"""
         Prints the tuple with one value per line, each line begins with the
         index of the value in ``self``.
+
+        EXAMPLES::
+            sage: from sage.databases.oeis import FancyTuple
+            sage: t = FancyTuple(['zero', 'one', 'two', 'three', 4]) ; t
+            0: zero
+            1: one
+            2: two
+            3: three
+            4: 4
         """
         return '\n'.join(map(lambda i: str(i) + ': ' + str(self[i]),
                              range(len(self))))

@@ -1779,6 +1779,44 @@ def FlowerSnark():
                         12:[13,19],13:[14],15:[19],16:[15,17],18:[17,19]}, \
                         pos=pos_dict, name="Flower Snark")
 
+
+def FolkmanGraph():
+    """
+    Returns the Folkman graph.
+
+    See the :wikipedia:`Wikipedia page on the Folkman Graph
+    <Folkman_graph>`.
+
+    EXAMPLE::
+
+        sage: g = graphs.FolkmanGraph()
+        sage: g.order()
+        20
+        sage: g.size()
+        40
+        sage: g.diameter()
+        4
+        sage: g.girth()
+        4
+        sage: g.charpoly().factor()
+        (x - 4) * (x + 4) * x^10 * (x^2 - 6)^4
+        sage: g.chromatic_number()
+        2
+        sage: g.is_eulerian()
+        True
+        sage: g.is_hamiltonian()
+        True
+        sage: g.is_vertex_transitive()
+        False
+        sage: g.is_bipartite()
+        True
+    """
+    from sage.graphs.generators.families import LCFGraph
+    g= LCFGraph(20, [5, -7, -7, 5], 5)
+    g.name("Folkman Graph")
+    return g
+
+
 def FosterGraph():
     """
     Returns the Foster graph.

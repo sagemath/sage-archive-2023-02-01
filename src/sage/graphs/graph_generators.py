@@ -108,6 +108,7 @@ __append_to_doc(
      "EllinghamHorton78Graph",
      "ErreraGraph",
      "FlowerSnark",
+     "FolkmanGraph",
      "FosterGraph",
      "FranklinGraph",
      "FruchtGraph",
@@ -1121,6 +1122,7 @@ class GraphGenerators():
     EllinghamHorton78Graph   = staticmethod(sage.graphs.generators.smallgraphs.EllinghamHorton78Graph)
     ErreraGraph              = staticmethod(sage.graphs.generators.smallgraphs.ErreraGraph)
     FlowerSnark              = staticmethod(sage.graphs.generators.smallgraphs.FlowerSnark)
+    FolkmanGraph             = staticmethod(sage.graphs.generators.smallgraphs.FolkmanGraph)
     FosterGraph              = staticmethod(sage.graphs.generators.smallgraphs.FosterGraph)
     FranklinGraph            = staticmethod(sage.graphs.generators.smallgraphs.FranklinGraph)
     FruchtGraph              = staticmethod(sage.graphs.generators.smallgraphs.FruchtGraph)

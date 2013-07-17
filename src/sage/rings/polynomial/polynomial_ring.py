@@ -1796,6 +1796,18 @@ class PolynomialRing_dense_finite_field(PolynomialRing_field):
         <class 'sage.rings.polynomial.polynomial_ring.PolynomialRing_dense_finite_field_with_category'>
     """
     def __init__(self, base_ring, name="x", element_class=None, implementation=None):
+        """
+        TESTS::
+
+            sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_dense_finite_field
+            sage: R = PolynomialRing_dense_finite_field(GF(5), implementation='generic')
+            sage: type(R(0))
+            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense_field'>
+
+            sage: S = PolynomialRing_dense_finite_field(GF(25, 'a'), implementation='NTL')
+            sage: type(S(0))
+            <type 'sage.rings.polynomial.polynomial_zz_pex.Polynomial_ZZ_pEX'>
+        """
         if implementation is None:
             implementation = "NTL"
 

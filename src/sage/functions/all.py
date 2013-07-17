@@ -29,8 +29,7 @@ from transcendental import (zeta, zetaderiv, zeta_symmetric, hurwitz_zeta,
 
 from sage.functions.bessel import (bessel_I, bessel_J, bessel_K, bessel_Y, Bessel)
 
-from special import (hypergeometric_U,
-                     spherical_bessel_J, spherical_bessel_Y,
+from special import (spherical_bessel_J, spherical_bessel_Y,
                      spherical_hankel1, spherical_hankel2,
                      spherical_harmonic,
                      lngamma, error_fcn, elliptic_e,
@@ -77,4 +76,4 @@ from exp_integral import (exp_integral_e, exp_integral_e1, log_integral, li, Li,
                           sinh_integral, cosh_integral, Shi, Chi,
                           exponential_integral_1, Ei)
 
-from hypergeometric import hypergeometric
+from hypergeometric import hypergeometric, hypergeometric_M, hypergeometric_U

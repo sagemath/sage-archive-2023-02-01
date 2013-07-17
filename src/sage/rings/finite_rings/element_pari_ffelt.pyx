@@ -144,11 +144,10 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         self._parent = parent
         self.construct_from(x)
 
-    def __cinit__(FiniteFieldElement_pari_ffelt self):
-        """
-        Cython constructor.
-        """
-        self.block = NULL
+    # The Cython constructor __cinit__ is not necessary: according to
+    # the Cython documentation, C attributes are initialised to 0.
+    # def __cinit__(FiniteFieldElement_pari_ffelt self):
+    #     self.block = NULL
 
     def __dealloc__(FiniteFieldElement_pari_ffelt self):
         """

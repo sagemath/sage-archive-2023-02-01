@@ -131,6 +131,14 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         Create an empty finite field element with the given parent.
 
         This is called when constructing elements from Python.
+
+        TEST::
+
+            sage: from sage.rings.finite_rings.element_pari_ffelt import FiniteFieldElement_pari_ffelt
+            sage: K = FiniteField(101^2, 'a', impl='pari_ffelt')
+            sage: x = FiniteFieldElement_pari_ffelt(K, 'a + 1')
+            sage: x
+            a + 1
         """
         # FinitePolyExtElement.__init__(self, parent)
         self._parent = parent
@@ -336,7 +344,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
         """
         For pickling.
 
-        TEST:
+        TEST::
 
             sage: K = FiniteField(10007^10, 'a', impl='pari_ffelt')
             sage: a = K.gen()

@@ -2,7 +2,7 @@ r"""
 Hypergraphs
 
 This module consists in a very basic implementation of :class:`Hypergraph`,
-whose only current purpose is to observe them : it can be used to compute
+whose only current purpose is to observe them: it can be used to compute
 automorphism groups and to draw them. The latter is done at the moment through
 `\LaTeX` and TikZ, and can be obtained from Sage through the ``view`` command::
 
@@ -192,7 +192,6 @@ class Hypergraph:
             sage: sets = Set(map(Set,list(g.subgraph_search_iterator(C4))))
             sage: H = Hypergraph(sets)
             sage: view(H) # not tested
-
         """
         from sage.rings.integer import Integer
         from sage.functions.trig import arctan2
@@ -252,6 +251,39 @@ class Hypergraph:
         tex += "\\end{tikzpicture}"
         return tex
 
+    def to_bipartite_graph(self, with_partition=False):
+        r"""
+        Returns the associated bipartite graph
+
+        INPUT:
+
+        - with_partition -- boolean (default: False)
+
+        OUTPUT:
+
+        - a graph or a pair (graph, partition)
+
+        EXAMPLES::
+
+            sage: H = designs.steiner_triple_system(7).blocks()
+            sage: H = Hypergraph(H)
+            sage: g = H.to_bipartite_graph(); g
+            Graph on 14 vertices
+            sage: g.is_regular()
+            True
+        """
+        from sage.graphs.graph import Graph
+
+        G = Graph()
+        domain = list(self.domain())
+        G.add_vertices(domain)
+        for s in self._sets:
+            for i in s:
+                G.add_edge(s, i)
+        if with_partition:
+            return (G, [domain, list(self._sets)])
+        else:
+            return G
 
     def automorphism_group(self):
         r"""
@@ -269,19 +301,15 @@ class Hypergraph:
             sage: g.is_isomorphic(groups.permutation.PGL(3,2))
             True
         """
-        from sage.graphs.graph import Graph
         from sage.groups.perm_gps.permgroup import PermutationGroup
 
-        G = Graph()
-        domain = list(self.domain())
-        G.add_vertices(domain)
-        for s in self._sets:
-            for i in s:
-                G.add_edge(s,i)
+        G, part = self.to_bipartite_graph(with_partition=True)
 
-        ag = G.automorphism_group(partition=[domain,list(self._sets)])
+        domain = part[0]
 
-        gens =  [ [tuple(c) for c in g.cycle_tuples() if c[0] in domain]
-                  for g in ag.gens()]
+        ag = G.automorphism_group(partition=part)
+
+        gens =  [[tuple(c) for c in g.cycle_tuples() if c[0] in domain]
+                 for g in ag.gens()]
 
         return PermutationGroup(gens = gens, domain = domain)

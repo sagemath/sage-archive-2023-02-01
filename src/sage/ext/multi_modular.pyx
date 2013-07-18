@@ -847,7 +847,8 @@ cdef class MultiModularBasis_base:
             sage: from sage.ext.multi_modular import MultiModularBasis_base
             sage: mm = MultiModularBasis_base([10007, 10009])
             sage: mm[1]
-            10009
+            10009             # 64-bit
+            10009L            # 32-bit
             sage: mm[-1]
             Traceback (most recent call last):
             ...
@@ -966,7 +967,8 @@ cdef class MutableMultiModularBasis(MultiModularBasis):
             sage: from sage.ext.multi_modular import MutableMultiModularBasis
             sage: mm = MutableMultiModularBasis([10007])
             sage: mm.next_prime()
-            4561
+            4561             # 64-bit
+            4561L            # 32-bit
             sage: mm
             MultiModularBasis with moduli [10007, 4561]
 
@@ -995,7 +997,8 @@ cdef class MutableMultiModularBasis(MultiModularBasis):
             sage: mm.partial_product(2)
             1005306552331
             sage: mm.replace_prime(1)
-            4561
+            4561             # 64-bit
+            4561L            # 32-bit
             sage: mm
             MultiModularBasis with moduli [10007, 4561, 10037, 10039]
             sage: mm.prod()

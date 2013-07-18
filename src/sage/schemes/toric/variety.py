@@ -2826,14 +2826,14 @@ class ToricVariety_field(AmbientSpace):
 
         ..  [Demazure]
             M. Demazure
-            Sous-groupes algebriques de rang maximum du groupe de Cremona.
+            Sous-groupes algébriques de rang maximum du groupe de Cremona.
             Ann. Sci. Ecole Norm. Sup. 1970, 3, 507–588.
 
         ..  [Bazhov]
             Ivan Bazhov:
             On orbits of the automorphism group on a complete toric variety.
-            http://arxiv.org/abs/1110.4275,
-            http://dx.doi.org/10.1007/s13366-011-0084-0.
+            :arxiv:`1110.4275`,
+            :doi:`10.1007/s13366-011-0084-0`.
 
         EXAMPLE::
 
@@ -2867,11 +2867,12 @@ class ToricVariety_field(AmbientSpace):
             NotImplementedError: Demazure_roots() is only implemented for complete toric varieties.
         """
         if not self.is_complete():
-            raise NotImplementedError('Demazure_roots() is only implemented for complete toric varieties.')
+            raise NotImplementedError('Demazure_roots() is only implemented '
+                                      'for complete toric varieties.')
         antiK = -self.K()
         fan_rays = self.fan().rays()
-        roots = [ m for m in antiK.sections()
-                  if [ ray*m for ray in fan_rays ].count(-1) == 1 ]
+        roots = [m for m in antiK.sections()
+                 if [ray*m for ray in fan_rays].count(-1) == 1]
         return tuple(roots)
 
 
@@ -2909,7 +2910,8 @@ class ToricVariety_field(AmbientSpace):
             NotImplementedError: Aut_dimension() is only implemented for complete toric varieties.
         """
         if not self.is_complete():
-            raise NotImplementedError('Aut_dimension() is only implemented for complete toric varieties.')
+            raise NotImplementedError('Aut_dimension() is only implemented '
+                                      'for complete toric varieties.')
         return self.fan().lattice_dim() + len(self.Demazure_roots())
 
 

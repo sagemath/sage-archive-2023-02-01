@@ -977,8 +977,14 @@ Environment variables dealing with specific Sage packages:
 
 - :envvar:`SAGE_ATLAS_ARCH` - if you are compiling ATLAS (in particular,
   if :envvar:`SAGE_ATLAS_LIB` is not set), you can use this environment
-  variable to set a particular architecture and instruction set extension.
-  The syntax is ``SAGE_ATLAS_ARCH=arch[,isaext1][,isaext2]...[,isaextN]``.
+  variable to set a particular architecture and instruction set extension,
+  to control the maximum number of threads ATLAS can use, and to trigger the
+  installation of a static library (which is disabled by default unless
+  building our custom shared libraries fails).
+  The syntax is
+
+    ``SAGE_ATLAS_ARCH=[threads:n,][static,]arch[,isaext1][,isaext2]...[,isaextN]``.
+
   While ATLAS comes with precomputed timings for a variety of CPUs, it only
   uses them if it finds an exact match.
   Otherwise, ATLAS runs through a lengthy automated tuning process in order

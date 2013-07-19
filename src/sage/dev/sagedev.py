@@ -1574,7 +1574,7 @@ class SageDev(object):
         if repository is None:
             repository = self.git._repo
         local_ref = "refs/remotes/trac/%s"%branch
-        retcode = self.git.fetch(repository, "%s:%s"%(branch, local_ref))
+        retcode = self.git.fetch(repository, "+%s:%s"%(branch, local_ref))
         if retcode:
             raise RuntimeError('could not fetch '+
                     '%s from %s'%(branch, repository))

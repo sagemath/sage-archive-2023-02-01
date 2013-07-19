@@ -1122,31 +1122,6 @@ class GitInterface(object):
         # Need to delete remote branch (and have a hook move it to /g/abandoned/ and update the trac symlink)
         #remotename = self._remote[branchname]
 
-    def _fetch(self, branch, repository=None):
-        """
-        fetches ``branch`` from the remote repository, returning the name of
-        the newly-updated local ref
-
-        INPUT:
-
-        - ``branch`` -- name of a remote branch
-
-        - ``repo`` -- name of a remote repository
-
-        OUTPUT:
-
-        The name of a newly created/updated local ref.
-        """
-        if repository is None:
-            repository = self.git._repo
-        local_ref = "refs/remotes/trac/%s"%branch
-        cmd = ['fetch', repository, "%s:%s"%(branch, local_ref)]
-        retcode, _, stderr = self._run_git(
-                *cmd, stderr=subprocess.PIPE, stdout=None)
-        if retcode:
-            raise subprocess.CalledProcessError(retcode, cmd, output=stderr)
-        return local_ref
-
 def _git_cmd_wrapper(git_cmd):
     """
     creates a method for GitInterface that wraps a git command

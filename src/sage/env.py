@@ -99,9 +99,13 @@ _add_variable_or_fallback('SAGE_LOGS',       opj('$SAGE_ROOT', 'logs', 'pkgs'))
 _add_variable_or_fallback('SAGE_SPKG_INST',  opj('$SAGE_LOCAL', 'var', 'lib', 'sage', 'installed'))
 _add_variable_or_fallback('SAGE_DOC',        opj('$SAGE_SRC', 'doc'))
 _add_variable_or_fallback('DOT_SAGE',        opj(os.environ.get('HOME','$SAGE_ROOT'), '.sage'))
+_add_variable_or_fallback('SAGE_DOT_GIT',    opj('$SAGE_ROOT', '.git'))
 
 # misc
 _add_variable_or_fallback('SAGE_URL',        'http://sage.math.washington.edu/sage/')
+_add_variable_or_fallback('REALM',           'sage.math.washington.edu')
+_add_variable_or_fallback('TRAC_SERVER_URI', 'https://trac.sagemath.org')
+_add_variable_or_fallback('SAGE_REPO',       'git@trac.sagemath.org:sage.git')
 _add_variable_or_fallback('SAGE_VERSION',    version.version)
 _add_variable_or_fallback('SAGE_DATE',       version.date)
 

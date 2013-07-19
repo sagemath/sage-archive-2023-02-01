@@ -1,0 +1,308 @@
+#!/usr/bin/env python
+
+import argparse
+import inspect
+import re
+import sys
+import types
+
+space_matcher_re = re.compile(r'^\ +')
+
+# based on https://gist.github.com/jtriley/1108174
+try:
+    import struct
+    import fcntl
+    import termios
+    def ioctl_GWINSZ(fd):
+        try:
+            return struct.unpack('hh',
+                    fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
+        except Exception: # TODO: figure out the correct exceptions here
+            pass
+
+    WIDTH = ioctl_GWINSZ(0) or ioctl_GWINSZ(1) or ioctl_GWINSZ(2)
+
+    if WIDTH is None:
+        try:
+            fd = os.open(os.ctermid(), os.O_RDONLY)
+            WIDTH = ioctl_GWINSZ(fd)
+        finally:
+            os.close(fd)
+    if WIDTH is not None:
+        WIDTH = int(WIDTH[1])-2
+except ImportError:
+    WIDTH = None
+
+class SageHelpFormatter(argparse.HelpFormatter):
+    """
+    Special formatter class that is better at reading
+    terminal width, and doesn't print off all possible
+    subcommands in curly brackets (since it gets ugly)
+    """
+    def __init__(self, *args, **kwds):
+        super(SageHelpFormatter, self).__init__(width=WIDTH, *args, **kwds)
+
+    def _format_args(self, action, default_metavar):
+        get_metavar = self._metavar_formatter(action, default_metavar)
+        if action.nargs is None:
+            result = '%s' % get_metavar(1)
+        elif action.nargs == argparse.OPTIONAL:
+            result = '[%s]' % get_metavar(1)
+        elif action.nargs == argparse.ZERO_OR_MORE:
+            result = '[%s [%s ...]]' % get_metavar(2)
+        elif action.nargs == argparse.ONE_OR_MORE:
+            result = '%s [%s ...]' % get_metavar(2)
+        elif action.nargs == argparse.REMAINDER:
+            result = '...'
+        elif action.nargs == argparse.PARSER:
+            result = 'subcommand ...'
+            #result = '%s ...' % get_metavar(1)
+        else:
+            formats = ['%s' for _ in range(action.nargs)]
+            result = ' '.join(formats) % get_metavar(action.nargs)
+        return result
+
+    def _format_action(self, action):
+        # determine the required width and the entry label
+        help_position = min(self._action_max_length + 2,
+                            self._max_help_position)
+        help_width = self._width - help_position
+        action_width = help_position - self._current_indent - 2
+        action_header = self._format_action_invocation(action)
+
+        # ho nelp; start on same line and add a final newline
+        if not action.help:
+            tup = self._current_indent, '', action_header
+            action_header = '%*s%s\n' % tup
+
+        # short action name; start on the same line and pad two spaces
+        elif len(action_header) <= action_width:
+            tup = self._current_indent, '', action_width, action_header
+            action_header = '%*s%-*s  ' % tup
+            indent_first = 0
+
+        # long action name; start on the next line
+        else:
+            tup = self._current_indent, '', action_header
+            action_header = '%*s%s\n' % tup
+            indent_first = help_position
+
+        # collect the pieces of the action help
+        parts = []
+        if action.nargs != argparse.PARSER:
+            parts.append(action_header)
+        #parts = [action_header]
+
+        # if there was help for the action, add lines of help text
+        if action.help:
+            help_text = self._expand_help(action)
+            help_lines = self._split_lines(help_text, help_width)
+            parts.append('%*s%s\n' % (indent_first, '', help_lines[0]))
+            for line in help_lines[1:]:
+                parts.append('%*s%s\n' % (help_position, '', line))
+
+        # or add a newline if the description doesn't end with one
+        elif not action_header.endswith('\n'):
+            parts.append('\n')
+
+        # if there are any sub-actions, add their help as well
+        for subaction in self._iter_indented_subactions(action):
+            parts.append(self._format_action(subaction))
+
+        # return a single string
+        return self._join_parts(parts)
+
+def get_help(method):
+    """
+    gets the short help for a method
+
+    Returns a dictionary whose keys are the arguments
+    of method, and whose values are the help strings.
+
+    EXAMPLE::
+
+        >>> get_help(get_help)
+        {'method': 'method to get help', 'return': 'gets the short help for a method'}
+
+    INPUT:
+
+    - ``method`` -- method to get help
+
+      can continue input description with a line break
+    """
+    docstring = method.__doc__.strip('\n')
+    indent = len(space_matcher_re.search(docstring).group())
+    docstring = (l[indent:].rstrip() for l in docstring.splitlines())
+
+    tmp = []
+    for line in docstring:
+        if line:
+            tmp.append(line)
+        else:
+            break
+    ret = {'return':' '.join(tmp)}
+
+    for line in docstring:
+        if line == 'INPUT:':
+            break
+    else:
+        return ret
+
+    tmp = []
+    for line in docstring:
+        if not line:
+            if tmp:
+                ret[arg] = ' '.join(tmp)
+                tmp = []
+            continue
+        elif line.startswith('-'):
+            arg = line.split('``')[1]
+            tmp.append(line.split('--')[1].strip())
+        elif tmp:
+            tmp.append(line.strip())
+        elif not line.startswith(' '):
+            break
+    if tmp:
+        ret[arg] = ' '.join(tmp)
+    return ret
+
+def exposed_methods(obj):
+    """
+    Lists the callable, public attributes of ``obj``.
+    """
+    for name in dir(obj):
+        if name.startswith('_'):
+            continue
+        method = getattr(obj, name)
+        if callable(method):
+            yield name.replace('_','-'), method
+
+
+def getargspec(func):
+    """
+    Returns the argspec of func, omitting self if func is a bound method.
+    """
+    argspec = inspect.getargspec(func)
+    if isinstance(func, types.MethodType) and func.im_self is not None:
+        del argspec.args[0] # self
+    return argspec
+
+def parser_from_method(parser, func, help_dict):
+    """
+    Constructs an argument parser based on the signature of func.
+    """
+    argspec = getargspec(func)
+    default_start = len(argspec.args) - len(argspec.defaults or [])
+    for ix, arg in enumerate(argspec.args):
+        extra = {}
+        if ix < default_start:
+            name = arg
+        else:
+            name = '--' + arg
+            extra['default'] = str(argspec.defaults[ix - default_start])
+        if arg in help_dict:
+            extra['help'] = help_dict[arg]
+        parser.add_argument(name, **extra)
+    if argspec.varargs is not None:
+        extra = {'nargs':'*'}
+        if argspec.varargs in help_dict:
+            extra['help'] = help_dict[argspec.varargs]
+        parser.add_argument(argspec.varargs, **extra)
+    if argspec.keywords is not None:
+        extra = {'nargs':argparse.REMAINDER}
+        if argspec.keywords in help_dict:
+            extra['help'] = help_dict[argspec.keywords]
+        parser.add_argument(argspec.keywords, **extra)
+
+def str_to_value(s):
+    """
+    Returns s as a boolean or int if possible, otherwise returns s itself.
+    """
+    try:
+        return eval(s)
+    except Exception:
+        pass
+    if s.lower() in ('true', 'false'):
+        return s.lower() == 'true'
+    try:
+        return int(s)
+    except ValueError:
+        return s
+
+def parser_from_object(obj, *args, **kwds):
+    kwds['formatter_class'] = SageHelpFormatter
+    if 'description' not in kwds:
+        kwds['description'] = get_help(obj)['return']
+
+    parser = argparse.ArgumentParser(*args, **kwds)
+    subparsers = parser.add_subparsers(title='subcommands')
+
+    def help(args=None,namespace=None):
+        if args is None:
+            args = sys.argv[2:]
+        else:
+            args = list(args)[1:]
+        args.append('--help')
+        parser.parse_args(args=args, namespace=namespace)
+
+    helped = False
+
+    for name, method in exposed_methods(obj):
+        if name > 'help' and not helped:
+            subparser = subparsers.add_parser('help',
+                    help='show help message and exit')
+            subparser.set_defaults(method=help)
+            subparser.add_argument('subcommand',
+                    help='show help message for given command',
+                    nargs=argparse.REMAINDER)
+            helped = True
+
+        help_dict = get_help(method)
+        subparser = subparsers.add_parser(name,
+                help=help_dict['return'], description=help_dict['return'])
+        subparser.set_defaults(method=method)
+        parser_from_method(subparser, method, help_dict)
+
+    def run(args=None, namespace=None):
+        parsed = vars(parser.parse_args(args=args,namespace=namespace))
+
+        method = parsed['method']
+        del parsed['method']
+        if method == help:
+            # help subcommand
+            help(args=args,namespace=namespace)
+
+        argspec = getargspec(method)
+
+        args = []
+        for arg in argspec.args:
+            args.append(str_to_value(parsed[arg]))
+            del parsed[arg]
+        if argspec.varargs:
+            args.extend(str_to_value(parsed[argspec.varargs]))
+            del parsed[argspec.varargs]
+
+        if argspec.keywords:
+            kwds = parsed[argspec.keywords]
+            kwdparser = argparse.ArgumentParser(formatter_class=SageHelpFormatter)
+            for kwdarg in kwds:
+                if kwdarg.startswith('--'):
+                    if '=' in kwdarg:
+                        kwdparser.add_argument(kwdarg.split('=')[0])
+                    else:
+                        kwdparser.add_argument(kwdarg)
+            for key, value in vars(kwdparser.parse_args(kwds)).items():
+                parsed[key] = value
+            del parsed[argspec.keywords]
+
+        kwds = {key: str_to_value(value) for key, value in parsed.items()}
+
+        method(*args,**kwds)
+    parser.run = run
+
+    return parser
+
+if __name__ == '__main__':
+    from sage.dev.sagedev import dev
+    parser = parser_from_object(dev)
+    parser.run()

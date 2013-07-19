@@ -810,7 +810,7 @@ class SageDev(object):
         self.git.create_branch(branchname, base, remote_branch)
         self._ticket[branchname] = ticketnum
         if base != MASTER_BRANCH:
-            self.git._dependencies[branchname] = [base]
+            self._dependencies[branchname] = [base]
         self.git.switch_branch(branchname)
 
     def commit(self, message=None, interactive=False):
@@ -999,7 +999,7 @@ class SageDev(object):
                 deps = set(trac_deps)
                 git_deps = self._dependencies_as_tickets(branch)
                 deps.update(git_deps)
-                self.git._dependencies[ticket] = tuple(sorted(deps))
+                self._dependencies[ticket] = tuple(sorted(deps))
 
     def remote_status(self, ticket=None, quiet=False):
         """
@@ -1458,7 +1458,7 @@ class SageDev(object):
                 ref = dep = int(ticket)
             except ValueError:
                 ref = ticket
-        if create_dependency and dep and dep not in self.git._dependencies[curbranch]:
+        if create_dependency and dep and dep not in self._dependencies[curbranch]:
             self._dependencies[curbranch] += (dep,)
         if message is None:
             kwds = {}
@@ -2195,7 +2195,7 @@ class SageDev(object):
         raise ValueError
 
     def _dependencies_as_tickets(self, branch):
-        dep = self.git._dependencies[branch]
+        dep = self._dependencies[branch]
         dep = [d if isinstance(d, int) else self._ticket[d] for d in dep]
         dep = [d for d in dep if d]
         return dep

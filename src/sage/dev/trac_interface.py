@@ -515,7 +515,7 @@ class TracInterface(object):
     @property
     def _password(self):
         """
-        A lazy property to get the username of trac.
+        A lazy property to get the password for trac.
 
         EXAMPLES::
 

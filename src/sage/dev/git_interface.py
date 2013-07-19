@@ -50,7 +50,7 @@ import subprocess
 import tempfile
 
 from sage.doctest import DOCTEST_MODE
-from sage.env import SAGE_DOT_GIT, SAGE_REPO, DOT_SAGE
+from sage.env import SAGE_DOT_GIT, SAGE_REPO_AUTHENTICATED, DOT_SAGE
 
 def is_atomic_name(x):
     """
@@ -241,7 +241,7 @@ class GitInterface(object):
         self._config  = self._sagedev._config.get('git', {})
         self._dot_git = self._config.get('dot_git', SAGE_DOT_GIT)
         self._gitcmd  = self._config.get('gitcmd', 'git')
-        self._repo    = self._config.get('repo', SAGE_REPO)
+        self._repo    = self._config.get('repo', SAGE_REPO_AUTHENTICATED)
 
         if DOCTEST_MODE:
             self._tmp_dir = tempfile.mkdtemp()

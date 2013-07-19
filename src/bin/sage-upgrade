@@ -18,7 +18,7 @@ usage () {
 [ "$#" -le 2 ] || die `usage`
 
 if [ "$#" -gt 0 ]; then
-    SAGE_REPO="$1"
+    SAGE_REPO_ANONYMOUS="$1"
     shift
 fi
 
@@ -53,7 +53,7 @@ if [ -z "$BRANCH" ]; then
     exit 1
 fi
 
-git pull "$SAGE_REPO" "$BRANCH"
+git pull "$SAGE_REPO_ANONYMOUS" "$BRANCH"
 
 hash -r
 sage-real-upgrade

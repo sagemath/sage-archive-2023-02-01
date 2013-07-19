@@ -102,12 +102,13 @@ _add_variable_or_fallback('DOT_SAGE',        opj(os.environ.get('HOME','$SAGE_RO
 _add_variable_or_fallback('SAGE_DOT_GIT',    opj('$SAGE_ROOT', '.git'))
 
 # misc
-_add_variable_or_fallback('SAGE_URL',        'http://sage.math.washington.edu/sage/')
-_add_variable_or_fallback('REALM',           'sage.math.washington.edu')
-_add_variable_or_fallback('TRAC_SERVER_URI', 'https://trac.sagemath.org')
-_add_variable_or_fallback('SAGE_REPO',       'git@trac.sagemath.org:sage.git')
-_add_variable_or_fallback('SAGE_VERSION',    version.version)
-_add_variable_or_fallback('SAGE_DATE',       version.date)
+_add_variable_or_fallback('SAGE_URL',                'http://sage.math.washington.edu/sage/')
+_add_variable_or_fallback('REALM',                   'sage.math.washington.edu')
+_add_variable_or_fallback('TRAC_SERVER_URI',         'https://trac.sagemath.org')
+_add_variable_or_fallback('SAGE_REPO_AUTHENTICATED', 'ssh://git@trac.sagemath.org:2222/sage.git')
+_add_variable_or_fallback('SAGE_REPO_ANONYMOUS',     'git://github.com/sagemath/sage.git')
+_add_variable_or_fallback('SAGE_VERSION',            version.version)
+_add_variable_or_fallback('SAGE_DATE',               version.date)
 
 # post process
 if ' ' in DOT_SAGE:

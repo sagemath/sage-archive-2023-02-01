@@ -925,7 +925,7 @@ class SageDev(object):
         if self.git.push(repository, "%s:%s"%(branch, remote_branch), force=force):
             raise RuntimeError("failed to push changes to %s"%repository)
         if ticket:
-            git_deps = self._dependencies_as_tickets(branch)
+            git_deps = ", ".join(["#%s"%d for d in self._dependencies_as_tickets(branch)])
             self.trac.update(ticket, branch=remote_branch,
                     dependencies=git_deps)
 

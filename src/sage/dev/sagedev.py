@@ -1361,8 +1361,10 @@ class SageDev(object):
         - :meth:`diff` -- Show the changes in this branch over the
           dependencies.
         """
+        if ticket is None:
+            ticket = self.current_ticket()
         try:
-            branchname = self._ticket_to_branch(ticket)
+            branchname = self._branch[ticket]
         except KeyError:
             raise ValueError("you must specify a valid ticket")
         if _seen is None:
@@ -1374,12 +1376,12 @@ class SageDev(object):
             seen.append(ticket)
         dep = self._dependencies_as_tickets(branchname)
         if not all:
-            self._UI.show("Ticket %s depends on %s"%(self._print(ticket), ", ".join([self._print(d) for d in dep])))
+            self._UI.show("Ticket %s depends on %s"%(ticket, ", ".join([d for d in dep])))
         else:
             for d in dep:
                 self.show_dependencies(d, True, seen)
-        if _seen is None:
-            self._UI.show("Ticket %s depends on %s"%(self._print(ticket), ", ".join([self._print(d) for d in seen])))
+            if _seen is None:
+                self._UI.show("Ticket %s depends on %s"%(ticket, ", ".join([d for d in seen])))
 
     def merge(self, ticket=MASTER_BRANCH, create_dependency=True, download=False, message=None):
         """

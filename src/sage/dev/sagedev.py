@@ -12,6 +12,7 @@ import re
 import shutil
 import tempfile
 import time
+import urllib2
 
 from cStringIO import StringIO
 from datetime import datetime

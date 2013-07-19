@@ -46,6 +46,12 @@ GIT_DIFF_REGEX = re.compile(r"^diff --git a/(.*) b/(.*)$") # this regex should w
 HG_PATH_REGEX = re.compile(r"^(?=sage/)|(?=doc/)|(?=module_list\.py)|(?=setup\.py)|(?=c_lib/)")
 GIT_PATH_REGEX = re.compile(r"^(?=src/)")
 
+# the name of the branch which holds the vanilla clone of sage - in the long
+# run this should be "master", currently, "build_system" contains some changes
+# over "master" which have not been reviewed yet but which are needed to work
+# using git
+MASTER_BRANCH = "build_system"
+
 TracConnectionError = RuntimeError("could not connect with trac server")
 
 def load_dict_from_file(filename):
@@ -746,7 +752,7 @@ class SageDev(object):
                 tracbranch = None
             if tracbranch is None:
                 # there is not yet a branch on trac for this ticket
-                ref = "master"
+                ref = MASTER_BRANCH
             else:
                 ref = self._fetch(tracbranch)
             self.git.create_branch(branchname, ref)
@@ -761,7 +767,7 @@ class SageDev(object):
                 pass
 
     def create_ticket(self,
-            branchname=None, base="master", remote_branch=None):
+            branchname=None, base=MASTER_BRANCH, remote_branch=None):
         """
         create a new ticket on trac and switch to a new local branch to
         work on said ticket
@@ -803,7 +809,7 @@ class SageDev(object):
             base = self.git.current_branch()
         self.git.create_branch(branchname, base, remote_branch)
         self._ticket[branchname] = ticketnum
-        if base != "master":
+        if base != MASTER_BRANCH:
             self.git._dependencies[branchname] = [base]
         self.git.switch_branch(branchname)
 
@@ -1242,7 +1248,7 @@ class SageDev(object):
         - :meth:`abandon_ticket` -- Abandon a single ticket or branch.
         """
         for branch in self.git.local_branches():
-            if self.git.is_ancestor_of(branch, "master"):
+            if self.git.is_ancestor_of(branch, MASTER_BRANCH):
                 self._UI.show("Abandoning %s"%branch)
                 self.git.abandon(branch)
 
@@ -1372,7 +1378,7 @@ class SageDev(object):
         if _seen is None:
             self._UI.show("Ticket %s depends on %s"%(self._print(ticket), ", ".join([self._print(d) for d in seen])))
 
-    def merge(self, ticket="master", create_dependency=True, download=False, message=None):
+    def merge(self, ticket=MASTER_BRANCH, create_dependency=True, download=False, message=None):
         """
         Merge changes from another branch into the current branch.
 

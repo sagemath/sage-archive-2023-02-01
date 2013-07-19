@@ -1465,11 +1465,6 @@ class Graphics(SageObject):
               ``base`` is set to, it will default to 10 and will remain
               unused.
 
-            - Although it is possible to provide a noninteger ``base``, the
-              tick labeling and formatting is not ideal. Hence, in case you
-              do use noninteger ``base`` for the logarithm, then provide
-              your own tick formatter using the option ``tick_formatter``.
-
         - ``typeset`` -- (default: ``"default"``) string. The type of
           font rendering that should be used for the text. The possible
           values are
@@ -1552,15 +1547,14 @@ class Graphics(SageObject):
 
         The scale can be also given as a 2-tuple or a 3-tuple.::
 
-            sage: G.show(scale=('loglog', 2)) # both x and y axes in base 2
+            sage: G.show(scale=('loglog', 2.1)) # both x and y axes in base 2.1
 
         ::
 
             sage: G.show(scale=('loglog', 2, 3)) # x in base 2, y in base 3
 
         The base need not be an integer, though it does have to be made
-        a float.  Also, currently the formatting is wrong for non-integer bases,
-        such as in this example::
+        a float.::
 
             sage: G.show(scale='semilogx', base=float(e)) # base is e
 

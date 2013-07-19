@@ -855,7 +855,7 @@ class SageDev(object):
 
         kwds = {}
         if interactive:
-            kwds['interactive'] = True
+            kwds['patch'] = True
         else:
             kwds['all'] = True
 

@@ -887,6 +887,8 @@ class SageDev(object):
         - :meth:`download` -- Update a ticket with changes from the
           remote repository.
         """
+        if repository is None:
+            repository = self.git._repo
         branch = self.git.current_branch()
         try:
             oldticket = self._ticket[branch]

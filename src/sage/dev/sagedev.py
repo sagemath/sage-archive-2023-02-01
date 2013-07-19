@@ -2178,7 +2178,7 @@ class SageDev(object):
             try:
                 ticket = self._branch[ticket]
             except KeyError:
-                return self._remote[branchname]
+                return self._remote[ticket]
         if isinstance(ticket, int):
             return self._trac_branch(ticket)
         raise ValueError

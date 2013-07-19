@@ -563,6 +563,8 @@ class GitInterface(object):
         if args:
             s.extend(a for a in args if a is not None)
 
+        print "git: %s"%(" ".join(s))
+
         if ckwds.get('dryrun', False):
             return s
 

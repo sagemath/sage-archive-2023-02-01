@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Quotients of Univariate Polynomial Rings
 
@@ -916,6 +917,39 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         Compute the decomposition of self into a product of number
         fields.  This is an internal function used by
         :meth:.S_class_group, :meth:.S_units and :meth:.selmer_group.
+
+        EXAMPLE::
+
+            sage: K.<a> = QuadraticField(-5)
+            sage: R.<x> = K[]
+            sage: S.<xbar> = R.quotient((x^2 + 23)*(x^2 + 31))
+            sage: fields, isos, iso_classes = S._S_decomposition(tuple(K.primes_above(3)))
+
+        Representatives of the number fields up to isomorphism that
+        occur in the decomposition::
+
+            sage: fields
+            [Number Field in x0 with defining polynomial x^2 + 23 over its base field,
+             Number Field in x1 with defining polynomial x^2 + 31 over its base field]
+
+        In this case, the isomorphisms of these representatives to the components
+        are the identity maps::
+
+            sage: isos
+            [(Ring endomorphism of Number Field in y0 with defining polynomial x^4 + 56*x^2 + 324
+              Defn: y0 |--> y0,
+              0),
+             (Ring endomorphism of Number Field in y1 with defining polynomial x^4 + 72*x^2 + 676
+              Defn: y1 |--> y1,
+              1)]
+
+        There are four primes above 3 in the first component and two
+        in the second component::
+
+            sage: len(iso_classes[0][1])
+            4
+            sage: len(iso_classes[1][1])
+            2
         """
         from sage.rings.number_field.all import is_NumberField
         K = self.base_ring()
@@ -947,9 +981,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
                 if D_abs.is_isomorphic(D_iso):
                     seen_before = True; break
                 j += 1
-            if seen_before:
-                isos.append((D_iso.embeddings(D_abs)[0], j))
-            else:
+            if not seen_before:
                 S_abs = []
                 for p in S:
                     abs_gens = []
@@ -957,11 +989,11 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
                         abs_gens.append(D_abs.structure()[1](g))
                     S_abs += [pp for pp,_ in D_abs.ideal(abs_gens).factor()]
                 iso_classes.append((D_abs,S_abs))
-                isos.append((D_abs.embeddings(D_abs)[0], j))
+            isos.append((D_abs.embeddings(D_abs)[0], j))
         return fields, isos, iso_classes
 
     def S_class_group(self, S, proof=True):
-        """
+        r"""
         If self is an étale algebra `D` over a number field `K` (i.e.
         a quotient of `K[x]` by a squarefree polynomial) and `S` is a
         finite set of places of `K`, return a list of generators of
@@ -1306,7 +1338,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         return self.S_units((), proof=proof)
 
     def selmer_group(self, S, m, proof=True):
-        """
+        r"""
         If self is an étale algebra `D` over a number field `K` (i.e.
         a quotient of `K[x]` by a squarefree polynomial) and `S` is a
         finite set of places of `K`, compute the Selmer group

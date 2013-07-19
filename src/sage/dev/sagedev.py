@@ -748,16 +748,15 @@ class SageDev(object):
         if create:
             try:
                 tracbranch = self._trac_branch(ticket)
-            except urllib2.HTTPError:
-                tracbranch = None
-            if tracbranch is None:
-                # there is not yet a branch on trac for this ticket
-                ref = MASTER_BRANCH
-            else:
                 ref = self._fetch(tracbranch)
+            except (urllib2.HTTPError, KeyError) as e:
+                # there is not yet a branch on trac for this ticket
+                tracbranch = None
+                ref = MASTER_BRANCH
             self.git.create_branch(branchname, ref)
-        else:
-            self.git.switch_branch(branchname)
+
+        self.git.switch_branch(branchname)
+
         if isinstance(ticket, int):
             self._branch.setdefault(ticket, branchname)
             try:

@@ -1452,7 +1452,7 @@ class SageDev(object):
                 ref = self._fetch(remote_branch)
                 dep = ticket
         if ref is None:
-            dep = ref = self.git._ticket_to_branch(ticket)
+            dep = ref = self._ticket_to_branch(ticket)
         if ref is None:
             try:
                 ref = dep = int(ticket)
@@ -1494,7 +1494,7 @@ class SageDev(object):
         """
         raw_branches = self.git.read_output("branch").split()
         raw_branches.remove('*')
-        branch_info = [(b, self.git._ticket[b]) for b in raw_branches
+        branch_info = [(b, self._ticket[b]) for b in raw_branches
             if abandoned or not b.startswith("trash/")]
         if quiet:
             return branch_info
@@ -1517,8 +1517,8 @@ class SageDev(object):
         - :meth:`local_tickets` -- show all local tickets.
         """
         curbranch = self.git.current_branch()
-        if curbranch is not None and curbranch in self.git._ticket:
-            return self.git._ticket[curbranch]
+        if curbranch is not None and curbranch in self._ticket:
+            return self._ticket[curbranch]
         if error: raise ValueError("You must specify a ticket")
 
     def vanilla(self, release="release"):

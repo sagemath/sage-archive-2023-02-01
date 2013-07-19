@@ -1,5 +1,25 @@
---- src.orig/src/mfile	2012-08-06 11:54:53.485534200 +0200
-+++ src/src/mfile	2012-08-06 11:59:46.819241900 +0200
+--- src.orig/src/DoConfig	2012-08-07 12:15:52.820361339 +0200
++++ src/src/DoConfig	2012-08-07 12:17:12.828358360 +0200
+@@ -21,11 +21,12 @@
+ 'RANLIB'      => 'ranlib',
+ 'LIBTOOL'     => 'libtool',
+ 
+-'LDFLAGS'     => '',
+-'LDFLAGS_CXX' => '$(LDFLAGS)',
+-'LDLIBS'      => '-lm',
+-'LDLIBS_CXX'  => '$(LDLIBS)',
+-'CPPFLAGS'    => '',
++'LDFLAGS'            => '',
++'LDFLAGS_CXX'        => '$(LDFLAGS)',
++'LDLIBS'             => '-lm -lstdc++',
++'LDLIBS_CXX'         => '$(LDLIBS)',
++'CPPFLAGS'           => '',
++'LIBTOOL_LINK_FLAGS' => '',
+ 
+ 'DEF_PREFIX'  => '/usr/local',
+ 
+--- src/src/mfile	2009-08-14 14:53:11.000000000 +0200
++++ src/src/mfile	2013-06-05 20:43:25.845240069 +0200
 @@ -68,6 +68,9 @@
  LIBTOOL=@{LIBTOOL}
  # libtool command
@@ -10,7 +30,7 @@
  DEF_PREFIX=@{DEF_PREFIX}
  
  PREFIX=@{PREFIX}
-@@ -370,7 +373,7 @@
+@@ -370,7 +373,7 @@ 
  ntl.a:	$(OBJ) 
  @{LSTAT}	$(AR) $(ARFLAGS) ntl.a $(OBJ) #LSTAT
  @{LSTAT}	- $(RANLIB) ntl.a #LSTAT

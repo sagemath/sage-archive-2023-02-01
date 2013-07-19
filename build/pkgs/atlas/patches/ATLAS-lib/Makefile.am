@@ -1,7 +1,7 @@
 ACLOCAL_AMFLAGS = -I m4
 
-# Replace with the actual destination directory
-SO_VERSION=3:0:1
+# Upstream doesn't version libraries, so this is kind of arbitrary
+SO_VERSION=3:0
 
 # You shouldn't have to customize anything from here on
 

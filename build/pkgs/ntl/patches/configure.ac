@@ -1,0 +1,5 @@
+AC_INIT(NTL, 6.0.0, victor@shoup.net)
+AC_PROG_LIBTOOL
+AC_OUTPUT
+AM_INIT_AUTOMAKE([1.9 foreign])
+AC_CONFIG_FILES([Makefile])

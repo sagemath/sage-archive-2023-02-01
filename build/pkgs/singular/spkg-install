@@ -4,8 +4,9 @@
 ## Singular
 ###########################################
 
-SRC=`pwd`/src
-SHARED=`pwd`/shared
+SRC=`pwd`/src/latest
+SHARED=`pwd`/src/shared
+PATCHES=`pwd`/patches
 
 if [ "$SAGE_LOCAL" = "" ]; then
     echo >&2 "SAGE_LOCAL undefined ... exiting";
@@ -92,7 +93,7 @@ fi
 
 apply_patches()
 {
-    cd ../patches || return $?
+    cd "$PATCHES" || return $?
 
     # Move some patches which are conditionally applied
     if [ "$UNAME" = "CYGWIN" ]; then
@@ -102,16 +103,17 @@ apply_patches()
     if [ "x$SAGE_DEBUG" = "xyes" ]; then
         mv conditional/sage_debug.patch . || return $?
         # Remove old omalloc files, except for configure
-        mv ../src/omalloc/configure configure_omalloc
-        rm -r ../src/omalloc/*
-        mv configure_omalloc ../src/omalloc/configure
+        mv "$SRC/omalloc/configure" configure_omalloc
+        rm -r "$SRC/omalloc"/*
+        mv configure_omalloc "$SRC/omalloc/configure"
         mv conditional/singular_xalloc.patch . || return $?
     fi
 
     # Apply all patches
     cd "$SRC" || return $?
-    for patch in ../patches/*.patch; do
+    for patch in `ls "$PATCHES"/*.patch`; do
         [ -r "$patch" ] || continue  # Skip non-existing or non-readable patches
+	echo "Applying $patch"
         patch -p1 <"$patch"
         if [ $? -ne 0 ]; then
             echo >&2 "Error applying '$patch'"
@@ -130,6 +132,8 @@ remove_old_version()
 
 config()
 {
+    cd "$SRC" || return $?
+
     # configure notes:
     # 1) We really need to add --exec-prefix and --bindir as Singular
     #    uses some wierd defaults.
@@ -228,7 +232,7 @@ build_libsingular()
 
 build_factory()
 {
-    cd factory || return $?
+    cd "$SRC/factory" || return $?
 
     $MAKE distclean
 
@@ -271,7 +275,7 @@ build_factory()
 
 build_libfac()
 {
-    cd libfac || return $?
+    cd "$SRC/libfac" || return $?
 
     $MAKE distclean
 

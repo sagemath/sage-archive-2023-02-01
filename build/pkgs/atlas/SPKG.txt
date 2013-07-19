@@ -23,16 +23,19 @@ Solaris, but should also work on OSX and Cygwin.
 == Dependencies ==
 
  * Python
- * Fortran
 
 == Build Instructions/Notes ==
 
  * patches/archinfo_linux.c.patch: Fix Itanium2 support on modern
-   RHEL 5 and SLES 10 systems
+   RHEL 5 and SLES 10 systems.
  * patches/probe_comp.c.patch: work around -m64 issue on Itanium2
  * patches/long_filenames.patch: fix for long filenames (>128 chars)
  * patches/shell.patch: replace two instances of "test -e" by "test -f",
-   as the former is not portable (in particular for the Solaris shell).
+   as the former is not portable (in particular for the Solaris
+   shell).
+ * patches/threads.patch: Avoid thread-related symbols
+   ATL_(Set|Reset|Free|Dec)AtomicCount symbols in single-threaded
+   library.
  * lapack-x.y.z.tgz: The netlib lapack tarball. If you update this,
    make sure you also update the LAPACK_TARBALL variable in
    spkg-install.
@@ -43,7 +46,7 @@ Solaris, but should also work on OSX and Cygwin.
    SAGE_ATLAS_ARCH.
 
 We are using a dummy autotools/libtools project (see
-patches/ATLAS-lib) to repack the static ATLAS libraries into shared
+src/ATLAS-lib) to repack the static ATLAS libraries into shared
 libraries.
 
 The package can be configured via three environment variables:
@@ -88,6 +91,18 @@ The package can be configured via three environment variables:
    file is created and saved to the given path.
 
 == ChangeLog ==
+
+=== atlas-3.10.1.p3, lapack-3.4.2 (Volker Braun, 6 July 2013) ===
+ * Trac #14781: move untracked files to src/ in preparation for git
+ * Added spkg-src to populate the src/ directory
+ * Remove the archdef_dir variable, we already copy our own archdefs into src/
+ * Trac #14754: Match other isa_ext level to existing archdefs too, if possible.
+
+=== atlas-3.10.1.p2, lapack-3.4.2 (Jeroen Demeyer, 18 June 2013) ===
+ * Trac #14754: Do not use 3DNow in configure_base().
+ * Use "None" instead of the empty tuple for isa_ext.
+ * Use $FC instead of sage_fortran in configuration.py.
+ * Apply patches at -p1 level like all other packages.
 
 === atlas-3.10.1.p1, lapack-3.4.2 (Volker Braun, Jean-Pierre Flori, 7 June 2013) ===
  * Trac #14699: Install ATLAS header files

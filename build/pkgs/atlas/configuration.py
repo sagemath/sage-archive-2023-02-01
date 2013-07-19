@@ -28,8 +28,8 @@ conf = dict()
 # Linux?, Solaris?, Darwin?, FreeBSD?, CYGWIN?  # system
 # OS_X_Lion?                                    # release
 # Intel?, PPC?, SPARC?                          # processor
-# 64bit?, 32bit?                                # bit width
-# fortran_g95?, fortran_GNU?                    # sage_fortran
+# 64bit?, 32bit?                                # bits
+# fortran_g95?, fortran_GNU?                    # fortran
 # linker_GNU?, linker_Solaris?, linker_Darwin?  # ld
 
 
@@ -177,9 +177,9 @@ conf['32bit?'] = not conf['64bit?']
 ### fortran compiler
 ######################################################################
 
-fortran_version = try_run('sage_fortran --version')
+fortran_version = try_run('$FC --version')
 if fortran_version is None:
-    print 'Cannot execute fortran compiler (sage_fortran)!'
+    print 'Cannot execute fortran compiler ($FC)!'
     sys.exit(3)
 if 'G95' in fortran_version:
     conf['fortran'] = 'g95'

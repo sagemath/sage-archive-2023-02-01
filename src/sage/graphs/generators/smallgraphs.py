@@ -3043,6 +3043,41 @@ def PetersenGraph():
     P.name("Petersen graph")
     return P
 
+
+def RobertsonGraph():
+    """
+    Returns the Robertson graph.
+
+    See the :wikipedia:`Wikipedia page on the Robertson Graph
+    <Robertson_graph>`.
+
+    EXAMPLE::
+
+        sage: g = graphs.RobertsonGraph()
+        sage: g.order()
+        19
+        sage: g.size()
+        38
+        sage: g.diameter()
+        3
+        sage: g.girth()
+        5
+        sage: g.charpoly().factor()
+        (x - 4) * (x - 1)^2 * (x^2 + x - 5) * (x^2 + x - 1) * (x^2 - 3)^2 * (x^2 + x - 4)^2 * (x^2 + x - 3)^2
+        sage: g.chromatic_number()
+        3
+        sage: g.is_hamiltonian()
+        True
+        sage: g.is_vertex_transitive()
+        False
+    """
+    from sage.graphs.generators.families import LCFGraph
+    lcf = [8, 4, 7, 4, 8, 5, 7, 4, 7, 8, 4, 5, 7, 8, 4, 8, 4, 8, 4]
+    g = LCFGraph(19, lcf, 1)
+    g.name("Robertson Graph")
+    return g
+
+
 def SchlaefliGraph():
     r"""
     Returns the Schläfli graph.

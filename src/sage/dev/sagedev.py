@@ -1456,20 +1456,28 @@ class SageDev(object):
             if remote_branch is not None:
                 ref = self._fetch(remote_branch)
                 dep = ticket
-        if ref is None:
-            dep = ref = self._ticket_to_branch(ticket)
+            else:
+                raise ValueError("could not download branch for ticket %s - its `branch` field on trac is empty or invalid")
         if ref is None:
             try:
-                ref = dep = int(ticket)
-            except ValueError:
-                ref = ticket
+                dep = ref = self._branch[ticket]
+            except KeyError:
+                pass # ticket does not exists locally but we were not asked to download it
+        if dep is None:
+            dep = int(ticket)
+
         if create_dependency and dep and dep not in self._dependencies[curbranch]:
             self._dependencies[curbranch] += (dep,)
         if message is None:
             kwds = {}
         else:
             kwds = {'m':message}
-        self.git.merge(ref, **kwds)
+
+        print self._dependencies[curbranch]
+        if ref is None:
+            print "The dependency on ticket %s has been recorded. However, nothing has been merged because the branch for the ticket could not be found. "%ticket+ ("Probably the branch field for the ticket is empty or invalid." if download else "Probably the branch for the ticket does not exist locally, consider using '--download True'")
+        else:
+            self.git.merge(ref, **kwds)
 
     def local_tickets(self, abandoned=False, quiet=False):
         """
@@ -2176,7 +2184,7 @@ class SageDev(object):
         branch = self.trac._get_attributes(ticket).get('branch')
         if branch:
             return branch
-        raise KeyError(ticket)
+        raise KeyError("branch field not set for ticket %s on trac"%ticket)
 
     def _remote_pull_branch(self, ticket):
         if isinstance(ticket, basestring):

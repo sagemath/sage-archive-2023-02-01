@@ -130,6 +130,9 @@ def get_help(method):
 
       can continue input description with a line break
     """
+    if method.__doc__ is None:
+        return None
+
     docstring = method.__doc__.strip('\n')
     indent = len(space_matcher_re.search(docstring).group())
     docstring = (l[indent:].rstrip() for l in docstring.splitlines())
@@ -218,6 +221,9 @@ def str_to_value(s):
     """
     Returns s as a boolean or int if possible, otherwise returns s itself.
     """
+    if not isinstance(s, str):
+        return s
+
     try:
         return eval(s)
     except Exception:
@@ -258,6 +264,8 @@ def parser_from_object(obj, *args, **kwds):
             helped = True
 
         help_dict = get_help(method)
+        if help_dict is None:
+            continue
         subparser = subparsers.add_parser(name,
                 help=help_dict['return'], description=help_dict['return'])
         subparser.set_defaults(method=method)

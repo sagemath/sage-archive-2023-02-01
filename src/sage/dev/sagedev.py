@@ -22,7 +22,7 @@ from git_interface import GitInterface
 from trac_interface import TracInterface
 from user_interface import UserInterface, CmdLineInterface, DoctestInterface
 
-from sage.env import DOT_SAGE
+from sage.env import DOT_SAGE, TRAC_SERVER_URI
 from sage.doctest import DOCTEST_MODE
 
 # regular expressions to parse mercurial patches
@@ -1200,7 +1200,7 @@ class SageDev(object):
             return ret
         elif ticketnum:
             if patchname:
-                return self.download_patch(url = self._config['trac']['server']+"raw-attachment/ticket/%s/%s"%(ticketnum,patchname))
+                return self.download_patch(url = TRAC_SERVER_URI+"/raw-attachment/ticket/%s/%s"%(ticketnum,patchname))
             else:
                 attachments = self.trac.attachment_names(ticketnum)
                 if len(attachments) == 0:

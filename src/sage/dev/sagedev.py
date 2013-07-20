@@ -1030,7 +1030,7 @@ class SageDev(object):
           the remote server.
         """
         def show(ret):
-            ret = [[a,b,c] for a,b,c in ret]
+            ret = [[a,b,c,d] for a,b,c,d in ret]
             l  = [0,0,0,0]
             for line in ret:
                 for i in range(4):
@@ -1044,7 +1044,7 @@ class SageDev(object):
                 for i in range(4):
                     if len(line) < 4 and i >= 2:
                         break
-                    line[i] += ' '*(len[i]-len(line[i]))
+                    line[i] += ' '*(l[i]-len(line[i]))
                 if len(line) == 4:
                     line.insert(3, 'behind')
                     line.insert(2, 'ahead')
@@ -1072,7 +1072,7 @@ class SageDev(object):
         else:
             branch = ticket
         ahead, behind = self.git.read_output("rev-list",
-                "%s..%s"%(branch, remote_ref),
+                "%s...%s"%(branch, remote_ref),
                 left_right=True, count=True).split()
         behind = int(behind)
         ahead = int(ahead)

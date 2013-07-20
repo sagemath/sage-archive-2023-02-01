@@ -40,7 +40,8 @@ What about a sequence starting with 3, 7, 15, 1 ?
     0: Pi = 3.1415926535897932384... = 3 + 1/(7 + 1/(15 + 1/(1 + 1/(292 + ...))))
 
     sage: c.comments()                                  # optional -- internet
-    0: The first 5,821,569,425 terms were computed by Eric Weisstein on Sep 18 2011.
+    0: The first 5,821,569,425 terms were computed by _Eric W. Weisstein_ on Sep 18 2011.
+    1: The first 10,672,905,501 terms were computed by _Eric W. Weisstein_ on Jul 17 2013.
 
     sage: c[4]                                          # optional -- internet
     292
@@ -1510,7 +1511,7 @@ class OEISSequence(SageObject):
             A005598: a(n)=1+sum((n-i+1)*phi(i),i=1..n).
 
             sage: nbalanced.cross_references()              # optional -- internet
-            ['A049703', 'A049695', 'A103116', 'A000010']
+            ('A049703', 'A049695', 'A103116', 'A000010')
 
             sage: nbalanced.cross_references(fetch=True)    # optional -- internet
             0: A049703: a(0) = 0; for n>0, a(n) = A005598(n)/2.
@@ -1524,13 +1525,13 @@ class OEISSequence(SageObject):
 
             sage: s = oeis._imaginary_sequence()
             sage: s.cross_references()
-            ['A000042', 'A000024']
+            ('A000042', 'A000024')
         """
         ref_list = re.findall('A[0-9]{6}', " ".join(self._fields['Y']))
         if fetch:
             return FancyTuple(map(oeis.find_by_id, ref_list))
         else:
-            return ref_list
+            return tuple(ref_list)
 
     def extensions_or_errors(self):
         r"""
@@ -1654,6 +1655,66 @@ class OEISSequence(SageObject):
         import webbrowser
         webbrowser.open(self.url())
 
+    def show(self):
+        r"""
+        Display most available informations about the sequence ``self``.
+
+        EXAMPLES::
+
+            sage: s = oeis(12345)                       # optional -- internet
+            sage: s.show()                              # optional -- internet
+            ID
+            A012345
+            <BLANKLINE>
+            NAME
+            sinh(arcsin(x)*arcsin(x))=2/2!*x^2+8/4!*x^4+248/6!*x^6+11328/8!*x^8...
+            <BLANKLINE>
+            FIRST TERMS
+            (2, 8, 248, 11328, 849312, 94857600, 14819214720, 3091936512000, ...
+            <BLANKLINE>
+            KEYWORDS
+            ('nonn',)
+            <BLANKLINE>
+            OFFSETS
+            (0, 1)
+            URL
+            http://oeis.org/A012345
+            <BLANKLINE>
+            AUTHOR
+            Patrick Demichel (patrick.demichel(AT)hp.com)
+            <BLANKLINE>
+
+        TESTS::
+
+            sage: s = oeis._imaginary_sequence()
+            sage: s.show()
+            ID
+            A999999
+            <BLANKLINE>
+            NAME
+            The opposite of twice the characteristic sequence of 42 plus ...
+            FIRST TERMS
+            (1, 1, 1, 1, -1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
+            <BLANKLINE>
+            COMMENTS
+            0: 42 is the product of the first 4 prime numbers, except ...
+            1: Apart from that, i have no comment.
+            ...
+        """
+        for s in ['id', 'name', 'first_terms', 'comments', 'references',
+                  'links', 'formulas', 'examples', 'cross_references',
+                  'programs', 'keywords', 'offsets', 'url', 'old_IDs',
+                  'author', 'extensions_or_errors']:
+            if embedded() and s == 'links':
+                print re.sub('_',' ',s).upper()
+                getattr(self, s)()
+                print '\n'
+            else:
+                result = getattr(self, s)()
+                if result != '' and result != ('',) and result != ():
+                    print re.sub('_',' ',s).upper()
+                    print str(result) +  '\n'
+
     def programs(self, language='other'):
         r"""
         Returns programs implementing the sequence ``self`` in the given ``language``.
@@ -1736,7 +1797,8 @@ class FancyTuple(tuple):
             3: three
             4: 4
         """
-        return '\n'.join(map(lambda i: str(i) + ': ' + str(self[i]),
+        length = len(str(len(self)-1))
+        return '\n'.join(map(lambda i: ('{0:>%d}' % length).format(str(i)) + ': ' + str(self[i]),
                              range(len(self))))
 
 oeis = OEIS()

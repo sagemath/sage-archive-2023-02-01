@@ -169,6 +169,11 @@ from sage.categories.morphism import Morphism
 
 from sage.structure.sequence  import Sequence
 from sage.rings.all import ZZ
+from sage.misc.all import cached_method
+from sage.matrix.constructor import matrix, block_matrix, zero_matrix, identity_matrix
+from sage.modules.free_module_element import vector
+from sage.geometry.cone import Cone
+from sage.geometry.fan import Fan
 
 from sage.schemes.generic.scheme import is_Scheme
 from sage.schemes.generic.morphism import (
@@ -364,9 +369,9 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
     .. WARNING::
 
         You should not create objects of this class directly. Use the
-        :meth:`~sage.schemes.generic.toric_variety.ToricVariety_field.orbit_closure`
+        :meth:`~sage.schemes.toric.variety.ToricVariety_field.orbit_closure`
         method of :class:`toric varieties
-        <sage.schemes.generic.toric_variety.ToricVariety_field>`
+        <sage.schemes.toric.variety.ToricVariety_field>`
         instead.
 
     EXAMPLES::
@@ -874,6 +879,544 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
                 polys[i] *= x**d
         return SchemeMorphism_polynomial_toric_variety(self.parent(), polys)
 
+    def is_bundle(self):
+        r"""
+        Check if ``self`` is a bundle.
+
+        See :meth:`~sage.geometry.fan_morphism.FanMorphism.is_bundle`
+        for details.
+
+        OUTPUT:
+
+        - ``True`` if ``self`` is a bundle, ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: P1xP1 = toric_varieties.P1xP1()
+            sage: P1 = toric_varieties.P1()
+            sage: P1xP1.hom(matrix([[1],[0]]), P1).is_bundle()
+            True
+        """
+        return self.fan_morphism().is_bundle()
+
+    def is_fibration(self):
+        r"""
+        Check if ``self`` is a fibration.
+
+        See
+        :meth:`~sage.geometry.fan_morphism.FanMorphism.is_fibration`
+        for details.
+
+        OUTPUT:
+
+        - ``True`` if ``self`` is a fibration, ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: P1xP1 = toric_varieties.P1xP1()
+            sage: P1 = toric_varieties.P1()
+            sage: P1xP1.hom(matrix([[1],[0]]), P1).is_fibration()
+            True
+        """
+        return self.fan_morphism().is_fibration()
+
+    def is_injective(self):
+        r"""
+        Check if ``self`` is injective.
+
+        See
+        :meth:`~sage.geometry.fan_morphism.FanMorphism.is_injective`
+        for details.
+
+        OUTPUT:
+
+        - ``True`` if ``self`` is injective, ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: P1xP1 = toric_varieties.P1xP1()
+            sage: P1 = toric_varieties.P1()
+            sage: P1xP1.hom(matrix([[1],[0]]), P1).is_injective()
+            False
+        """
+        return self.fan_morphism().is_injective()
+
+    def is_surjective(self):
+        r"""
+        Check if ``self`` is surjective.
+
+        See
+        :meth:`~sage.geometry.fan_morphism.FanMorphism.is_surjective`
+        for details.
+
+        OUTPUT:
+
+        - ``True`` if ``self`` is surjective, ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: P1xP1 = toric_varieties.P1xP1()
+            sage: P1 = toric_varieties.P1()
+            sage: P1xP1.hom(matrix([[1],[0]]), P1).is_surjective()
+            True
+        """
+        return self.fan_morphism().is_surjective()
+
+    @cached_method
+    def fiber(self):
+        """
+        Return a connected component of the generic fiber of the
+        morphism.
+
+        Note that the fiber of a toric morphism is constant over the
+        maximal torus, so it makes sense to talk about the "generic"
+        fiber even if the morphism is not surjective. This method
+        returns the fiber over the base point with homogeneous
+        coordinates `[1:1:\cdots:1]`.
+
+        The embedding of the generic fiber is a toric morphism. By
+        contrast, the embedding of the fiber over lower-dimensional
+        torus orbits of the codomain is not a toric morphism. Use
+        :meth:`fiber_component` for the latter (non-generic) fibers.
+
+        EXAMPLES::
+
+            sage: P1xP1 = toric_varieties.P1xP1()
+            sage: P1 = toric_varieties.P1()
+            sage: fiber = P1xP1.hom(matrix([[1],[0]]), P1).fiber()
+            sage: fiber
+            1-d toric variety covered by 2 affine patches
+            sage: f = fiber.embedding_morphism();  f
+            Scheme morphism:
+              From: 1-d toric variety covered by 2 affine patches
+              To:   2-d CPR-Fano toric variety covered by 4 affine patches
+              Defn: Defined by sending Rational polyhedral fan in 1-d lattice N to
+                    Rational polyhedral fan in 2-d lattice N.
+            sage: f.as_polynomial_map()
+            Scheme morphism:
+              From: 1-d toric variety covered by 2 affine patches
+              To:   2-d CPR-Fano toric variety covered by 4 affine patches
+              Defn: Defined on coordinates by sending [z0 : z1] to
+                    [1 : 1 : z0 : z1]
+
+            sage: A1 = toric_varieties.A1()
+            sage: fan = Fan([(0,1,2)], [(1,1,0),(1,0,1),(1,-1,-1)]).subdivide(new_rays=[(1,0,0)])
+            sage: f = ToricVariety(fan).hom(matrix([[1],[0],[0]]), A1)
+            sage: f.fiber()
+            2-d affine toric variety
+            sage: f.fiber().fan().cones()
+            ((0-d cone of Rational polyhedral fan in 2-d lattice N,),)
+        """
+        from sage.schemes.toric.variety import ToricVariety
+        from sage.geometry.toric_lattice import ToricLattice
+        fm = self.fan_morphism()
+
+        # The ker_fan is in a sublattice which does not work yet;
+        # rewrite the fan to use a generic lattice
+        ker_fan = fm.kernel_fan()
+        K = ker_fan.lattice()
+        rays = []
+        N = ToricLattice(K.dimension())
+        for r in ker_fan.rays():
+            ray = N(K.echelon_coordinates(r))
+            ray.set_immutable()
+            rays.append(ray)
+        cones = []
+        for c in ker_fan.generating_cones():
+            cones.append([ker_fan.rays().index(r) for r in c.rays()])
+        fiber_fan = Fan(cones, rays, lattice=N)
+        fiber = ToricVariety(fiber_fan)
+
+        from sage.geometry.fan_morphism import FanMorphism
+        fan_embedding = FanMorphism(K.echelonized_basis_matrix(), fiber_fan, self.domain().fan())
+        homset = fiber.Hom(self.domain())
+        embedding = SchemeMorphism_fan_toric_variety(homset, fan_embedding)
+        fiber._embedding_morphism = embedding
+        return embedding.domain()
+
+    def fiber_component(self, domain_cone):
+        r"""
+        Return the torus orbit closure in the fiber corresponding to
+        ``domain_cone``.
+
+        EXAMPLES::
+
+            sage: polytope = Polyhedron(
+            ...       [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
+            ...        (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
+            sage: coarse_fan = FaceFan(polytope.lattice_polytope())
+            sage: P2 = toric_varieties.P2()
+            sage: proj24 = matrix([[0,0],[1,0],[0,0],[0,1]])
+            sage: fm = FanMorphism(proj24, coarse_fan, P2.fan(), subdivide=True)
+            sage: fibration = ToricVariety(fm.domain_fan()).hom(fm, P2)
+            sage: primitive_cones = fibration.fan_morphism().primitive_preimage_cones(P2.fan(1)[0])
+            sage: primitive_cone = primitive_cones[0]
+            sage: fibration.fiber_component(primitive_cone)
+            2-d toric variety covered by 4 affine patches
+
+            sage: for primitive_cone in primitive_cones:
+            ...       print fibration.fiber_component(primitive_cone)
+            2-d toric variety covered by 4 affine patches
+            2-d toric variety covered by 3 affine patches
+            2-d toric variety covered by 3 affine patches
+        """
+        if domain_cone.is_trivial():
+            return self.fiber()
+        embedding = SchemeMorphism_fan_fiber_toric_variety(self.domain(), self.fan_morphism(), domain_cone)
+        return embedding.domain()
+
+    @cached_method
+    def fiber_dimension(self, codomain_cone):
+        r"""
+        Return the dimension of the fiber over a particular torus
+        orbit in the base.
+
+        EXAMPLES::
+
+            sage: P1xP1 = toric_varieties.P1xP1()
+            sage: P1 = toric_varieties.P1()
+            sage: f = P1xP1.hom(matrix([[1],[0]]), P1)
+            sage: f.fiber_dimension(P1.fan(0)[0])
+            1
+            sage: f.fiber_dimension(P1.fan(1)[0])
+            1
+            sage: f.fiber_dimension(P1.fan(1)[1])
+            1
+
+        Here is a more complicated example that is not a flat fibration::
+
+            sage: A2_Z2 = toric_varieties.A2_Z2()
+            sage: O2_P1 = A2_Z2.resolve(new_rays=[(1,1)])
+            sage: blowup = O2_P1.hom(identity_matrix(2), A2_Z2)
+            sage: blowup.fiber_dimension(A2_Z2.fan(0)[0])
+            0
+            sage: blowup.fiber_dimension(A2_Z2.fan(1)[0])
+            0
+            sage: blowup.fiber_dimension(A2_Z2.fan(2)[0])
+            1
+
+        This corresponds to the three different fibers::
+
+            sage: blowup.fiber()
+            0-d affine toric variety
+            sage: blowup.fiber_component(Cone([(1,0)]))
+            0-d affine toric variety
+            sage: blowup.fiber_component(Cone([(1,1)]))
+            1-d toric variety covered by 2 affine patches
+        """
+        dim = []
+        fm = self.fan_morphism()
+        base_dim = codomain_cone.dim()
+        for c in fm.primitive_preimage_cones(codomain_cone):
+            dim.append(base_dim - c.dim())
+        return max(dim) + self.domain().dimension() - self.fan_morphism().matrix().rank()
+
+    def fiber_graph(self, codomain_cone):
+        r"""
+        Return the fiber over a given torus orbit in the codomain.
+
+        INPUT:
+
+        - ``codomain_cone`` -- a cone `\sigma` of the codomain,
+          specifying a torus orbit `O(\sigma)`.
+
+        OUTPUT:
+
+        A graph whose nodes are the irreducible components of the
+        fiber. If two irreducible components intersect, the
+        corresponding nodes of the graph are joined by an edge.
+
+        EXAMPLES::
+
+            sage: polytope = Polyhedron(
+            ...       [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
+            ...        (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
+            sage: coarse_fan = FaceFan(polytope.lattice_polytope())
+
+            sage: P2 = toric_varieties.P2()
+            sage: proj34 = block_matrix(2,1,[zero_matrix(2,2), identity_matrix(2)])
+            sage: fm = FanMorphism(proj34, coarse_fan, P2.fan(), subdivide=True)
+            sage: fibration = ToricVariety(fm.domain_fan()).hom(fm, P2)
+
+            sage: fibration.fiber_graph( P2.fan(0)[0] )
+            Graph on 1 vertex
+            sage: for c1 in P2.fan(1):
+            ...       fibration.fiber_graph(c1)
+            Graph on 1 vertex
+            Graph on 1 vertex
+            Graph on 4 vertices
+
+            sage: fibration.fiber_graph(P2.fan(1)[2]).get_vertices()
+            {0: 2-d toric variety covered by 4 affine patches,
+             1: 2-d toric variety covered by 3 affine patches,
+             2: 2-d toric variety covered by 3 affine patches,
+             3: 2-d toric variety covered by 4 affine patches}
+
+            sage: fibration
+            Scheme morphism:
+              From: 4-d toric variety covered by 18 affine patches
+              To:   2-d CPR-Fano toric variety covered by 3 affine patches
+              Defn: Defined by sending Rational polyhedral fan in 4-d lattice N
+                    to Rational polyhedral fan in 2-d lattice N.
+        """
+        fm = self.fan_morphism()
+        prim = fm.primitive_preimage_cones(codomain_cone)
+        n = len(prim)
+
+        def is_union_in_fan(self, c0, c1):
+            c = Cone(c0.rays() + c1.rays(), lattice=c0.lattice())
+            return fm.domain_fan().contains(c)
+        m = matrix(ZZ, n, n, lambda i,j:is_union_in_fan(self,prim[i], prim[j]))
+
+        for i in range(0,n):
+            m[i,i]=0
+        from sage.graphs.graph import Graph
+        graph = Graph(m, loops=False, multiedges=False)
+        for i in range(0,n):
+            graph.set_vertex(i, self.fiber_component(prim[i]))
+        return graph
+
+
+############################################################################
+# The embedding morphism of an orbit closure
+class SchemeMorphism_fan_fiber_toric_variety(SchemeMorphism):
+    """
+    The embedding of an orbit closure inside the fiber of a a toric
+    morphism.
+
+    Note that the embedding map of the fiber of a toric morphism is
+    itself not a toric morphism!
+
+    INPUT:
+
+    - ``toric_morphism`` -- a toric morphism. The toric morphism whose
+      fiber we are describing.
+
+    - ``defining_cone`` -- a cone of a fan. The primitive preimage
+      cones of the fan morphism definine the irreducible components of
+      the fiber of a toric morphism.
+
+    - ``check`` -- if ``True`` (default), the input will be checked for
+      correctness.
+
+    EXAMPLES::
+
+        sage: polytope = Polyhedron(
+        ...       [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
+        ...        (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
+        sage: coarse_fan = FaceFan(polytope.lattice_polytope())
+        sage: P2 = toric_varieties.P2()
+        sage: proj24 = matrix([[0,0],[1,0],[0,0],[0,1]])
+        sage: fm = FanMorphism(proj24, coarse_fan, P2.fan(), subdivide=True)
+        sage: fibration = ToricVariety(fm.domain_fan()).hom(fm, P2)
+        sage: primitive_cones = fibration.fan_morphism().primitive_preimage_cones(P2.fan(1)[0])
+        sage: primitive_cone = primitive_cones[0]
+        sage: fiber_component = fibration.fiber_component(primitive_cone)
+        sage: fiber_component
+        2-d toric variety covered by 4 affine patches
+        sage: fiber_component.embedding_morphism()
+        Scheme morphism:
+          From: 2-d toric variety covered by 4 affine patches
+          To:   4-d toric variety covered by 23 affine patches
+          Defn: Defined by embedding the fiber irreducible component defined by the
+                primitive preimage cone 1-d cone of Rational polyhedral fan in 4-d lattice N.
+        sage: fiber_component.embedding_morphism().as_polynomial_map()
+        Scheme morphism:
+          From: 2-d toric variety covered by 4 affine patches
+          To:   4-d toric variety covered by 23 affine patches
+          Defn: Defined on coordinates by sending [z0 : z1 : z2 : z3] to
+                [1 : 1 : 1 : 1 : z1 : 0 : 1 : z0 : 1 : 1 : 1 : 1 : 1 : z3 : z2]
+        sage: type(fiber_component.embedding_morphism())
+        <class 'sage.schemes.toric.morphism.SchemeMorphism_fan_fiber_toric_variety'>
+    """
+
+    def __init__(self, toric_variety, fan_morphism, defining_cone, check=True):
+        """
+        The Python constructor.
+
+        TESTS::
+
+            sage: polytope = Polyhedron(
+            ...       [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
+            ...        (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
+            sage: coarse_fan = FaceFan(polytope.lattice_polytope())
+            sage: P2 = toric_varieties.P2()
+            sage: proj24 = matrix([[0,0],[1,0],[0,0],[0,1]])
+            sage: fm = FanMorphism(proj24, coarse_fan, P2.fan(), subdivide=True)
+            sage: fibration = ToricVariety(fm.domain_fan()).hom(fm, P2)
+            sage: primitive_cone = Cone([(-1, 2, -1, 0)])
+            sage: fibration.fiber_component(primitive_cone)
+            2-d toric variety covered by 3 affine patches
+        """
+        if check and toric_variety.fan()!=fan_morphism.domain_fan():
+            raise ValueError('The total space toric variety must be the fan morphism codomain.')
+        self._fan_morphism = fan_morphism
+        self._defining_cone = fan_morphism.domain_fan().embed(defining_cone)
+        self._base_cone = fan_morphism.image_cone(defining_cone)
+        fiber = self._make_fiber()
+        fiber._embedding_morphism = self
+        parent = fiber.Hom(toric_variety)
+        SchemeMorphism.__init__(self, parent)
+
+    def _repr_defn(self):
+        """
+        Return a string representation of the definition of ``self``.
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: P1xP1 = toric_varieties.P1xP1()
+            sage: P1 = toric_varieties.P1()
+            sage: fiber = P1xP1.hom(matrix([[1],[0]]), P1).fiber_component(Cone([(1,0)]))
+            sage: fiber.embedding_morphism()._repr_defn()
+            'Defined by embedding the fiber irreducible component defined by the primitive preimage cone 1-d cone of Rational polyhedral fan in 2-d lattice N.'
+        """
+        s  = 'Defined by embedding the fiber irreducible component defined by the primitive preimage cone '
+        s += str(self.defining_cone())
+        s += '.'
+        return s
+
+    def as_polynomial_map(self):
+        """
+        Express the embedding morphism via homogeneous polynomials.
+
+        OUTPUT:
+
+        A :class:`SchemeMorphism_polynomial_toric_variety`. Raises a
+        ``TypeError`` if the morphism cannot be written in terms of
+        homogeneous polynomials.
+
+        EXAMPLES::
+
+            sage: polytope = Polyhedron(
+            ...       [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
+            ...        (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
+            sage: coarse_fan = FaceFan(polytope.lattice_polytope())
+            sage: P2 = toric_varieties.P2()
+            sage: proj24 = matrix([[0,0],[1,0],[0,0],[0,1]])
+            sage: fm = FanMorphism(proj24, coarse_fan, P2.fan(), subdivide=True)
+            sage: fibration = ToricVariety(fm.domain_fan()).hom(fm, P2)
+
+            sage: primitive_cone = Cone([(0, 1, 0, 0)])
+            sage: f = fibration.fiber_component(primitive_cone).embedding_morphism()
+            sage: f.as_polynomial_map()
+            Scheme morphism:
+              From: 2-d toric variety covered by 4 affine patches
+              To:   4-d toric variety covered by 23 affine patches
+              Defn: Defined on coordinates by sending [z0 : z1 : z2 : z3] to
+                    [1 : 1 : 1 : 1 : z1 : 0 : 1 : z0 : 1 : 1 : 1 : 1 : 1 : z3 : z2]
+
+            sage: primitive_cone = Cone([(-1, 2, -1, 0)])
+            sage: f = fibration.fiber_component(primitive_cone).embedding_morphism()
+            sage: f.as_polynomial_map()
+            Traceback (most recent call last):
+            ...
+            TypeError: The morphism cannot be written using homogeneous polynomials.
+        """
+        fiber = self.domain()
+        toric_variety = self.codomain()
+        R = fiber.coordinate_ring()
+        polys = [ R.one() ] * toric_variety.fan().nrays()
+        for i in self.defining_cone().ambient_ray_indices():
+            polys[i] = R.zero()
+        for ray, x in zip(fiber.fan().rays(), R.gens()):
+            try:
+                ray_index = self._ray_index_map[ray]
+            except KeyError:
+                raise TypeError('The morphism cannot be written using homogeneous polynomials.')
+            polys[ray_index] = x
+        return SchemeMorphism_polynomial_toric_variety(self.parent(), polys)
+
+    def _make_fiber(self):
+        """
+        Construct the fiber component as a toric variety.
+
+        OUTPUT:
+
+        The fiber component as a toric variety.
+
+        EXAMPLES::
+
+            sage: P1xP1 = toric_varieties.P1xP1()
+            sage: P1 = toric_varieties.P1()
+            sage: fiber = P1xP1.hom(matrix([[1],[0]]), P1).fiber_component(Cone([(1,0)]))
+            sage: f = fiber.embedding_morphism()
+            sage: f._ray_index_map  # indirect doctest
+            {N(-1): 3, N(1): 2}
+
+        TESTS::
+
+            sage: A2_Z2 = toric_varieties.A2_Z2()
+            sage: O2_P1 = A2_Z2.resolve(new_rays=[(1,1)])
+            sage: blowup = O2_P1.hom(identity_matrix(2), A2_Z2)
+            sage: blowup.fiber()
+            0-d affine toric variety
+            sage: blowup.fiber_component(Cone([(1,0)]))
+            0-d affine toric variety
+            sage: blowup.fiber_component(Cone([(1,1)]))
+            1-d toric variety covered by 2 affine patches
+        """
+        fm = self._fan_morphism
+        defining_cone = self._defining_cone
+        base_cone = self._base_cone
+
+        ker = fm.kernel().basis()
+        base_cone_preimg = [ fm.matrix().solve_left(r) for r in base_cone.rays() ]
+        L = fm.domain_fan().lattice().submodule(ker+base_cone_preimg).saturation()
+
+        cone_L = Cone([L.coordinates(r) for r in defining_cone.rays()])
+        L_quotient = cone_L.sublattice_quotient()
+
+        def projection(ray):
+            ray_L = L.coordinates(ray)
+            return vector(ZZ, L_quotient(ray_L))
+
+        cones = []
+        star_rays = set()
+        for cone in fm.relative_star_generators(defining_cone):
+            star_rays.update(cone.rays())
+            projected_rays = [ projection(r) for r in cone.rays() ]
+            cones.append(Cone(projected_rays))
+        fiber_fan = Fan(cones)
+
+        ray_index_map = dict()
+        for ray in star_rays:
+            ray_index = fm.domain_fan().rays().index(ray)
+            projected_ray = fiber_fan.lattice()(projection(ray))
+            if projected_ray.is_zero():
+                assert ray in defining_cone.rays()
+                continue
+            projected_ray.set_immutable()
+            ray_index_map[projected_ray] = ray_index
+        self._ray_index_map = ray_index_map
+
+        from sage.schemes.toric.variety import ToricVariety
+        return ToricVariety(fiber_fan)
+
+    def defining_cone(self):
+        r"""
+        Return the cone corresponding to the fiber torus orbit.
+
+        OUTPUT:
+
+        A cone of the fan of the total space of the toric fibration.
+        """
+        return self._defining_cone
+
+    def base_cone(self):
+        r"""
+        Return the base cone `\sigma`.
+
+        The fiber is constant over the base orbit closure `V(\sigma)`.
+
+        OUTPUT:
+
+        A cone of the base of the toric fibration.
+        """
+        return self._base_cone
     def is_birational(self):
         r"""
         Check if ``self`` is birational.

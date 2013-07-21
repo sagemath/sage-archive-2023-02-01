@@ -677,8 +677,8 @@ class FanMorphism(FreeModuleMorphism):
         chambers = None # preimages of codomain cones, computed if necessary
         new_cones = []
         for cone_index, domain_cone in enumerate(domain_fan):
-            if reduce(operator.and_, (RISGIS[i]
-                                for i in domain_cone.ambient_ray_indices())):
+            if reduce(operator.and_,
+                      (RISGIS[i] for i in domain_cone.ambient_ray_indices())):
                 # There is a codomain cone containing all rays of this domain
                 # cone, no need to subdivide it.
                 new_cones.append(domain_cone)
@@ -848,6 +848,18 @@ class FanMorphism(FreeModuleMorphism):
             Rational polyhedral fan in 3-d lattice N3
             into the support of
             Rational polyhedral fan in 2-d lattice N2!
+
+
+        TESTS::
+
+            sage: trivialfan2 = Fan([],[],lattice=ToricLattice(2))
+            sage: trivialfan3 = Fan([],[],lattice=ToricLattice(3))
+            sage: FanMorphism(zero_matrix(2,3), trivialfan2, trivialfan3)
+            Fan morphism defined by the matrix
+            [0 0 0]
+            [0 0 0]
+            Domain fan: Rational polyhedral fan in 2-d lattice N
+            Codomain fan: Rational polyhedral fan in 3-d lattice N
         """
         domain_fan = self._domain_fan
         if domain_fan.lattice() is not self.domain():
@@ -859,8 +871,9 @@ class FanMorphism(FreeModuleMorphism):
                              % (codomain_fan, self.codomain()))
         RISGIS = self._RISGIS()
         for n, domain_cone in enumerate(domain_fan):
-            if not reduce(operator.and_,
-                (RISGIS[i] for i in domain_cone.ambient_ray_indices())):
+            if not domain_cone.is_trivial() and \
+                    not reduce(operator.and_,
+                               (RISGIS[i] for i in domain_cone.ambient_ray_indices())):
                 raise ValueError("the image of generating cone #%d of the "
                                  "domain fan is not contained in a single "
                                  "cone of the codomain fan!" % n)
@@ -1828,3 +1841,23 @@ class FanMorphism(FreeModuleMorphism):
                             check=False)
         phi_i = FanMorphism(L.basis_matrix(), Sigma_i, Sigma_prime, check=False)
         return (phi_i, phi_b, phi_s)
+
+    def relative_star_generators(self, domain_cone):
+        """
+        Returns the relative star of ``domain_cone``.
+
+        EXAMPLES::
+
+            sage: A2 = toric_varieties.A(2).fan()
+            sage: Bl = A2.subdivide([(1,1)])
+            sage: f = FanMorphism(identity_matrix(2), Bl, A2)
+            sage: for c1 in Bl(1):
+            ...       print f.relative_star_generators(c1)
+            (1-d cone of Rational polyhedral fan in 2-d lattice N,)
+            (1-d cone of Rational polyhedral fan in 2-d lattice N,)
+            (2-d cone of Rational polyhedral fan in 2-d lattice N,
+             2-d cone of Rational polyhedral fan in 2-d lattice N)
+        """
+        base_cone = self.image_cone(domain_cone)
+        preimg_fan = self.preimage_fan(base_cone)
+        return preimg_fan.embed(domain_cone).star_generators()

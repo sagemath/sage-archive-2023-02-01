@@ -1827,6 +1827,12 @@ class FanMorphism(FreeModuleMorphism):
             True
             sage: phi_i.codomain_fan() is phi.codomain_fan()
             True
+
+            sage: trivialfan2 = Fan([],[],lattice=ToricLattice(2))
+            sage: trivialfan3 = Fan([],[],lattice=ToricLattice(3))
+            sage: f = FanMorphism(zero_matrix(2,3), trivialfan2, trivialfan3)
+            sage: [phi.matrix().dimensions() for phi in f.factor()]
+            [(0, 3), (0, 0), (2, 0)]
         """
         L = self.image().saturation()
         d = L.dimension()
@@ -1834,7 +1840,7 @@ class FanMorphism(FreeModuleMorphism):
         m = matrix(ZZ, m.nrows(), d, (L.coordinates(c) for c in m.rows()))
         phi_s = FanMorphism(m, self.domain_fan(), L, check=False)
         Sigma_prime = self.codomain_fan()
-        L_cone = Cone(sum(([g, -g] for g in L.gens()), []))
+        L_cone = Cone(sum(([g, -g] for g in L.gens()), []), lattice=L)
         Sigma_i = Fan(cones=(L_cone.intersection(cone) for cone in Sigma_prime),
                       lattice=L, discard_faces=True, check=False)
         phi_b = FanMorphism(identity_matrix(d), phi_s.codomain_fan(), Sigma_i,
@@ -1844,7 +1850,17 @@ class FanMorphism(FreeModuleMorphism):
 
     def relative_star_generators(self, domain_cone):
         """
-        Returns the relative star of ``domain_cone``.
+        Return the relative star generators of ``domain_cone``.
+        
+        INPUT:
+        
+        - ``domain_cone`` -- a cone of the :meth:`domain_fan` of ``self``.
+        
+        OUTPUT:
+        
+        - :meth:`~RationalPolyhedralFan.star_generators` of ``domain_cone``
+          viewed as a cone of :meth:`preimage_fan` of :meth:`image_cone` of
+          ``domain_cone``.
 
         EXAMPLES::
 

@@ -175,7 +175,7 @@ from sage.schemes.generic.morphism import (
     is_SchemeMorphism,
     SchemeMorphism, SchemeMorphism_point, SchemeMorphism_polynomial
 )
-
+from sage.misc.cachefunc import cached_method
 
 
 ############################################################################
@@ -344,6 +344,201 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial, Morphis
         raise NotImplementedError("expressing toric morphisms as fan "
                                   "morphisms is not implemented yet!")
 
+
+############################################################################
+# The embedding morphism of an orbit closure
+class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
+    """
+    The embedding of an orbit closure.
+
+    INPUT:
+
+    - ``parent`` -- the parent homset.
+
+    - ``defining_cone`` -- the defining cone.
+
+    - ``ray_map`` -- a dictionary ``{ambient ray generator: orbit ray
+      generator}``. Note that the image of the ambient ray generator
+      is not necessarily primitive.
+
+    .. WARNING::
+
+        You should not create objects of this class directly. Use the
+        :meth:`~sage.schemes.generic.toric_variety.ToricVariety_field.orbit_closure`
+        method of :class:`toric varieties
+        <sage.schemes.generic.toric_variety.ToricVariety_field>`
+        instead.
+
+    EXAMPLES::
+
+        sage: P1xP1 = toric_varieties.P1xP1()
+        sage: H = P1xP1.fan(1)[0]
+        sage: V = P1xP1.orbit_closure(H)
+        sage: V.embedding_morphism()
+        Scheme morphism:
+          From: 1-d toric variety covered by 2 affine patches
+          To:   2-d CPR-Fano toric variety covered by 4 affine patches
+          Defn: Defined by embedding the torus closure associated to the 1-d 
+                cone of Rational polyhedral fan in 2-d lattice N.
+
+    TESTS::
+    
+        sage: V.embedding_morphism()._reverse_ray_map()
+        {N(-1): 3, N(1): 2}
+        sage: V.embedding_morphism()._defining_cone
+        1-d cone of Rational polyhedral fan in 2-d lattice N
+    """
+    def __init__(self, parent, defining_cone, ray_map):
+        """
+        The Python constructor.
+
+        EXAMPLES::
+
+            sage: P2 = toric_varieties.P2()
+            sage: P1 = P2.orbit_closure(P2.fan(1)[0])
+            sage: P1.embedding_morphism()
+            Scheme morphism:
+              From: 1-d toric variety covered by 2 affine patches
+              To:   2-d CPR-Fano toric variety covered by 3 affine patches
+              Defn: Defined by embedding the torus closure associated to the 1-d cone 
+                    of Rational polyhedral fan in 2-d lattice N.
+        """
+        SchemeMorphism.__init__(self, parent)
+        self._defining_cone = defining_cone
+        self._ray_map = ray_map
+
+    def defining_cone(self):
+        r"""
+        Return the cone corresponding to the torus orbit.
+        
+        OUTPUT:
+        
+        A cone of the fan of the ambient toric variety.
+        
+        EXAMPLES::
+
+            sage: P2 = toric_varieties.P2()
+            sage: cone = P2.fan(1)[0]
+            sage: P1 = P2.orbit_closure(cone)
+            sage: P1.embedding_morphism().defining_cone() 
+            1-d cone of Rational polyhedral fan in 2-d lattice N
+            sage: _ is cone
+            True
+        """
+        return self._defining_cone
+
+    @cached_method
+    def _reverse_ray_map(self):
+        """
+        Reverse ``self._ray_map``.
+
+        OUTPUT:
+
+        Return a dictionary `{orbit ray generator : preimage ray
+        index}`. Note that the orbit ray generator need not be
+        primitive. Also, the preimage ray is not necessarily unique.
+
+        EXAMPLES::
+
+            sage: P2_112 = toric_varieties.P2_112()
+            sage: P1 = P2_112.orbit_closure(Cone([(1,0)]))
+            sage: f = P1.embedding_morphism()
+            sage: f._ray_map
+            {N(0, 1): (1), N(1, 0): (0), N(-1, -2): (-2)}
+            sage: f._reverse_ray_map()
+            {N(-2): 2, N(1): 1}
+        """
+        orbit = self.parent().domain()
+        codomain_fan = self.parent().codomain().fan()
+        reverse_ray_dict = dict()
+        defining_cone_indices = []
+        for n1,n2 in self._ray_map.iteritems():
+            ray_index = codomain_fan.rays().index(n1)
+            if n2.is_zero(): 
+                assert ray_index in self._defining_cone.ambient_ray_indices()
+                continue
+            n2 = orbit.fan().lattice()(n2)
+            n2.set_immutable()
+            reverse_ray_dict[n2] = ray_index
+        return reverse_ray_dict
+
+    def _repr_defn(self):
+        """
+        Return a string representation of the definition of ``self``.
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: P2 = toric_varieties.P2()
+            sage: V = P2.orbit_closure(P2.fan(1)[0]);  V
+            1-d toric variety covered by 2 affine patches
+            sage: V.embedding_morphism()._repr_defn()
+            'Defined by embedding the torus closure associated to the 1-d cone of 
+             Rational polyhedral fan in 2-d lattice N.'
+        """
+        s  = 'Defined by embedding the torus closure associated to the '
+        s += str(self._defining_cone)
+        s += '.'
+        return s
+
+    def as_polynomial_map(self):
+        """
+        Express the morphism via homogeneous polynomials.
+
+        OUTPUT:
+
+        A :class:`SchemeMorphism_polynomial_toric_variety`. Raises a
+        ``TypeError`` if the morphism cannot be written in terms of
+        homogeneous polynomials.
+
+        The defining polynomials are not necessarily unique. There are
+        choices if multiple ambient space ray generators project to
+        the same orbit ray generator, and one such choice is made
+        implicitly. The orbit embedding can be written as a polynomial
+        map if and only if each primitive orbit ray generator is the
+        image of at least one primitive ray generator of the ambient
+        toric variety.
+        
+        EXAMPLES::
+
+            sage: P2 = toric_varieties.P2()
+            sage: V = P2.orbit_closure(P2.fan(1)[0]);  V
+            1-d toric variety covered by 2 affine patches
+            sage: V.embedding_morphism().as_polynomial_map()
+            Scheme morphism:
+              From: 1-d toric variety covered by 2 affine patches
+              To:   2-d CPR-Fano toric variety covered by 3 affine patches
+              Defn: Defined on coordinates by sending [z0 : z1] to
+                    [0 : z1 : z0]
+
+        If the toric variety is singular, then some orbit closure
+        embeddings cannot be written with homogeneous polynomials::
+
+            sage: P2_112 = toric_varieties.P2_112()
+            sage: P1 = P2_112.orbit_closure(Cone([(1,0)]))
+            sage: P1.embedding_morphism().as_polynomial_map()
+            Traceback (most recent call last):
+            ...
+            TypeError: The embedding cannot be written with homogeneous polynomials.
+        """
+        orbit = self.domain()
+        codomain_fan = self.codomain().fan()
+        R = orbit.coordinate_ring()
+        polys = [ R.one() ] * codomain_fan.nrays()
+        for i in self._defining_cone.ambient_ray_indices():
+            polys[i] = R.zero()
+        ray_index_map = self._reverse_ray_map()
+        for i, ray in enumerate(orbit.fan().rays()):
+            try:
+                ray_index = ray_index_map[ray]
+            except KeyError:
+                raise TypeError('The embedding cannot be written with homogeneous polynomials.')
+            polys[ray_index] = R.gen(i)
+        return SchemeMorphism_polynomial_toric_variety(self.parent(), polys)
+        
 
 ############################################################################
 # A morphism of toric varieties determined by a fan morphism

@@ -168,7 +168,7 @@ REFERENCES:
 from sage.categories.morphism import Morphism
 
 from sage.structure.sequence  import Sequence
-from sage.rings.all import ZZ
+from sage.rings.all import ZZ, gcd
 from sage.misc.all import cached_method
 from sage.matrix.constructor import matrix, block_matrix, zero_matrix, identity_matrix
 from sage.modules.free_module_element import vector
@@ -544,6 +544,43 @@ class SchemeMorphism_orbit_closure_toric_variety(SchemeMorphism, Morphism):
             polys[ray_index] = R.gen(i)
         return SchemeMorphism_polynomial_toric_variety(self.parent(), polys)
         
+    def pullback_divisor(self, divisor):
+        r"""
+        Pull back a toric divisor.
+
+        INPUT:
+
+        - ``divisor`` -- a torus-invariant QQ-Cartier divisor on the
+          codomain of the embedding map.
+
+        OUTPUT:
+
+        A divisor on the domain of the embedding map (the orbit
+        closure) that is isomorphic to the pull-back divisor `f^*(D)`
+        but with possibly different linearization.
+
+        EXAMPLES::
+
+            sage: P2 = toric_varieties.P2()
+            sage: P1 = P2.orbit_closure(P2.fan(1)[0])
+            sage: f = P1.embedding_morphism()
+            sage: D = P2.divisor([1,2,3]); D
+            V(x) + 2*V(y) + 3*V(z)
+            sage: f.pullback_divisor(D)
+            4*V(z0) + 2*V(z1)
+        """
+        from sage.schemes.toric.divisor import is_ToricDivisor
+        if not (is_ToricDivisor(divisor) and divisor.is_QQ_Cartier()):
+            raise ValueError('The divisor must be torus-invariant and QQ-Cartier.')
+        m = divisor.m(self._defining_cone)
+        values = []
+        codomain_rays = self.codomain().fan().rays()
+        for ray in self.domain().fan().rays():
+            ray = codomain_rays[self._reverse_ray_map()[ray]]
+            value = divisor.function_value(ray) - m*ray
+            values.append(value)
+        return self.domain().divisor(values)
+
 
 ############################################################################
 # A morphism of toric varieties determined by a fan morphism
@@ -1176,6 +1213,45 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
             graph.set_vertex(i, self.fiber_component(prim[i]))
         return graph
 
+    def pullback_divisor(self, divisor):
+        r"""
+        Pull back a toric divisor.
+
+        INPUT:
+
+        - ``divisor`` -- a torus-invariant QQ-Cartier divisor on the
+          codomain of ``self``.
+
+        OUTPUT:
+
+        The pull-back divisor `f^*(D)`.
+
+        EXAMPLES::
+
+            sage: A2_Z2 = toric_varieties.A2_Z2()
+            sage: A2 = toric_varieties.A2()
+            sage: f = A2.hom( matrix([[1,0],[1,2]]), A2_Z2)
+            sage: f.pullback_divisor(A2_Z2.divisor(0))
+            V(x)
+
+            sage: A1 = toric_varieties.A1()
+            sage: square = A1.hom(matrix([[2]]), A1)
+            sage: D = A1.divisor(0);  D
+            V(z)
+            sage: square.pullback_divisor(D)
+            2*V(z)
+        """
+        from sage.schemes.toric.divisor import is_ToricDivisor
+        if not (is_ToricDivisor(divisor) and divisor.is_QQ_Cartier()):
+            raise ValueError('The divisor must be torus-invariant and QQ-Cartier.')
+        fm = self.fan_morphism()
+        values = []
+        for ray in self.domain().fan().rays():
+            value = divisor.function_value(fm(ray))
+            values.append(value)
+        return self.domain().divisor(values)
+
+
 
 ############################################################################
 # The embedding morphism of an orbit closure
@@ -1417,6 +1493,102 @@ class SchemeMorphism_fan_fiber_toric_variety(SchemeMorphism):
         A cone of the base of the toric fibration.
         """
         return self._base_cone
+
+    def _image_ray_multiplicity(self, fiber_ray):
+        """
+        Find the image ray of ``fiber_ray`` with multiplicity in the relative star.
+
+        INPUT:
+
+        A ray of the domain fan (the fiber component).
+
+        OUTPUT:
+
+        A pair ``(codomain ray index, multiplicity)``
+
+        EXAMPLES::
+
+            sage: polytope = Polyhedron(
+            ...       [(-3,0,-1,-1),(-1,2,-1,-1),(0,-1,0,0),(0,0,0,1),(0,0,1,0),
+            ...        (0,1,0,0),(0,2,-1,-1),(1,0,0,0),(2,0,-1,-1)])
+            sage: coarse_fan = FaceFan(polytope.lattice_polytope())
+            sage: P2 = toric_varieties.P2()
+            sage: proj24 = matrix([[0,0],[1,0],[0,0],[0,1]])
+            sage: fm = FanMorphism(proj24, coarse_fan, P2.fan(), subdivide=True)
+            sage: fibration = ToricVariety(fm.domain_fan()).hom(fm, P2)
+            sage: primitive_cone = Cone([(-1, 2, -1, 0)])
+            sage: fiber = fibration.fiber_component(primitive_cone)
+            sage: f = fiber.embedding_morphism()
+            sage: for r in fiber.fan().rays():
+            ...       print r, f._image_ray_multiplicity(r)
+            N(0, 1) (5, 1)
+            N(1, -3) (9, 2)
+            N(-1, 2) (14, 1)
+            sage: f._ray_index_map
+            {N(0, 1): 5, N(-3, 4): 11, N(-1, 2): 14, N(1, 0): 4, N(2, -6): 9}
+        """
+        try:
+            image_ray_index = self._ray_index_map[fiber_ray]
+            return (image_ray_index, 1)
+        except KeyError:
+            pass
+        multiplicity = None
+        image_ray_index = None
+        for ray, index in self._ray_index_map.iteritems():
+            d = gcd(ray)
+            if d*fiber_ray != ray:
+                continue
+            if multiplicity is not None and d>multiplicity:
+                continue
+            multiplicity = d
+            image_ray_index = index
+        return (image_ray_index, multiplicity)
+
+    def pullback_divisor(self, divisor):
+        r"""
+        Pull back a toric divisor.
+
+        INPUT:
+
+        - ``divisor`` -- a torus-invariant QQ-Cartier divisor on the
+          codomain of the embedding map.
+
+        OUTPUT:
+
+        A divisor on the domain of the embedding map (irreducible
+        component of a fiber of a toric morphism) that is isomorphic
+        to the pull-back divisor `f^*(D)` but with possibly different
+        linearization.
+
+        EXAMPLES::
+
+            sage: A1 = toric_varieties.A1()
+            sage: fan = Fan([(0,1,2)], [(1,1,0),(1,0,1),(1,-1,-1)]).subdivide(new_rays=[(1,0,0)])
+            sage: f = ToricVariety(fan).hom(matrix([[1],[0],[0]]), A1)
+            sage: D = f.domain().divisor([1,1,3,4]); D
+            V(z0) + V(z1) + 3*V(z2) + 4*V(z3)
+            sage: fiber = f.fiber_component(Cone([(1,1,0)]))
+            sage: fiber.embedding_morphism().pullback_divisor(D)
+            3*V(z0) + 2*V(z2)
+            sage: fiber = f.fiber_component(Cone([(1,0,0)]))
+            sage: fiber.embedding_morphism().pullback_divisor(D)
+            -3*V(z0) - 3*V(z1) - V(z2)
+        """
+        from sage.schemes.toric.divisor import is_ToricDivisor
+        if not (is_ToricDivisor(divisor) and divisor.is_QQ_Cartier()):
+            raise ValueError('The divisor must be torus-invariant and QQ-Cartier.')
+        m = divisor.m(self.defining_cone())
+        values = []
+        codomain_rays = self.codomain().fan().rays()
+        for ray in self.domain().fan().rays():
+            image_ray_index, multiplicity = self._image_ray_multiplicity(ray)
+            image_ray = codomain_rays[image_ray_index]
+            value = divisor.function_value(image_ray) - m*image_ray
+            value /= multiplicity
+            values.append(value)
+        return self.domain().divisor(values)
+
+
     def is_birational(self):
         r"""
         Check if ``self`` is birational.

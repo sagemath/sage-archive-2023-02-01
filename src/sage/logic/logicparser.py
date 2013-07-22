@@ -90,45 +90,45 @@ def tokenize(s):
     toks = ['(']
     vars_order = []
 
-    while(i < len(s)):
+    while i < len(s):
         tok = ""
         skip = valid = 1
-        if(s[i] in '()~&|^'):
+        if s[i] in '()~&|^':
             tok = s[i]
-        elif(s[i:i + 2] == '->'):
+        elif s[i:i + 2] == '->':
             tok = '->'
             skip = 2
-        elif(s[i:i + 3] == '<->'):
+        elif s[i:i + 3] == '<->':
             tok = '<->'
             skip = 3
         # check to see if '-', '<' or '>' are used incorretly
-        elif(s[i] in '<->'):
+        elif s[i] in '<->':
             msg = "'%s' can only be used as part of the operators '<->' or '->'." % (s[i])
             raise SyntaxError, msg
-        if(len(tok) > 0):
+        if len(tok) > 0:
             toks.append(tok)
             i += skip
             continue
         else:
             # token is a variable name
-            if(s[i] == ' '):
+            if s[i] == ' ':
                 i += 1
                 continue
 
-            while(i < len(s) and s[i] not in __symbols and s[i] != ' '):
+            while i < len(s) and s[i] not in __symbols and s[i] != ' ':
                 tok += s[i]
                 i += 1
 
-            if(len(tok) > 0):
-                if(tok[0] not in string.letters):
+            if len(tok) > 0:
+                if tok[0] not in string.letters:
                     valid = 0
                 for c in tok:
-                    if(c not in string.letters and c not in string.digits and c != '_'):
+                    if c not in string.letters and c not in string.digits and c != '_':
                         valid = 0
 
-            if(valid == 1):
+            if valid == 1:
                 toks.append(tok)
-                if(tok not in vars_order):
+                if tok not in vars_order:
                     vars_order.append(tok)
             else:
                 msg = 'invalid variable name ' + tok
@@ -172,9 +172,9 @@ def tree_parse(toks, polish = False):
     stack = []
     for tok in toks:
         stack.append(tok)
-        if(tok == ')'):
+        if tok == ')':
             lrtoks = []
-            while(tok != '('):
+            while tok != '(':
                 tok = stack.pop()
                 lrtoks.insert(0, tok)
             branch = parse_ltor(lrtoks[1:-1], polish = polish)
@@ -216,11 +216,11 @@ def parse_ltor(toks, n = 0, polish = False):
     """
     i = 0
     for tok in toks:
-        if(tok == __op_list[n]):
-            if(tok == '~'):
+        if tok == __op_list[n]:
+            if tok == '~':
                 if not polish:
                     # cancel double negations
-                    if(toks[i] == '~' and toks[i + 1] == '~'):
+                    if toks[i] == '~' and toks[i + 1] == '~':
                         del toks[i]
                         del toks[i]
                         return parse_ltor(toks, n)
@@ -246,9 +246,9 @@ def parse_ltor(toks, n = 0, polish = False):
                 del toks[i]
                 return parse_ltor(toks, n)
         i += 1
-    if(n + 1 < len(__op_list)):
+    if n + 1 < len(__op_list):
         return parse_ltor(toks, n + 1)
-    if(len(toks) > 1):
+    if len(toks) > 1:
         raise SyntaxError
     return toks[0]
 
@@ -271,13 +271,13 @@ def apply_func(tree, func):
         sage: logicparser.apply_func(t, f)
         ['|', ['&', 'a', 'b'], ['&', 'a', 'c']]
     """
-    if(type(tree[1]) is ListType and type(tree[2]) is ListType):
+    if type(tree[1]) is ListType and type(tree[2]) is ListType:
         lval = apply_func(tree[1], func)
         rval = apply_func(tree[2], func)
-    elif(type(tree[1]) is ListType):
+    elif type(tree[1]) is ListType:
         lval = apply_func(tree[1], func)
         rval = tree[2]
-    elif(type(tree[2]) is ListType):
+    elif type(tree[2]) is ListType:
         lval = tree[1]
         rval = apply_func(tree[2], func)
     else:

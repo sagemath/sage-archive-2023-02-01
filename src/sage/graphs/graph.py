@@ -6259,8 +6259,8 @@ Graph.is_distance_regular = types.MethodType(sage.graphs.distances_all_pairs.is_
 import sage.graphs.line_graph
 Graph.is_line_graph = sage.graphs.line_graph.is_line_graph
 
-import sage.graphs.tuttepoly
-Graph.tutte_polynomial = sage.graphs.tuttepoly.tutte_polynomial 
+from sage.graphs.tutte_polynomial import tutte_polynomial
+Graph.tutte_polynomial = tutte_polynomial
 
 
 def compare_edges(x, y):

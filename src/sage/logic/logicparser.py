@@ -38,10 +38,36 @@ def parse(s):
     """
     toks, vars_order = tokenize(s)
     tree = tree_parse(toks)
-        #special case of tree == single variable
-    if(type(tree) is StringType and len([tree]) == 1):
-                return ['&', tree, tree], vars_order
+    # special case of tree == single variable
+    if isinstance(tree, StringType):
+        return ['&', tree, tree], vars_order
     return tree, vars_order
+
+def polish_parse(s):
+    r"""
+    This function produces a full syntax parse tree from
+    a boolean formlua s.
+
+    INPUT:
+        s -- a string containing a boolean expression
+
+    OUTPUT:
+        Returns a list representing the full syntax parse tree of s, with
+        the symbols in s arranged from left to right as in polish notation
+
+    EXAMPLES:
+        sage: import sage.logic.logicparser as logicparser
+        sage: s = 'a|~~b'
+        sage: t = logicparser.polish_parse(s)
+        sage: t
+        ['|', 'a', ['~', ['~', 'b']]]
+    """
+    toks, vars_order = tokenize(s)
+    tree = tree_parse(toks, polish = True)
+    # special case where the formula s is a single variable
+    if isinstance(tree, StringType):
+        return vars_order
+    return tree
 
 def tokenize(s):
     r"""
@@ -75,12 +101,16 @@ def tokenize(s):
         elif(s[i:i + 3] == '<->'):
             tok = '<->'
             skip = 3
+        # check to see if '-', '<' or '>' are used incorretly
+        elif(s[i] in '<->'):
+            msg = "'%s' can only be used as part of the operators '<->' or '->'." % (s[i])
+            raise SyntaxError, msg
         if(len(tok) > 0):
             toks.append(tok)
             i += skip
             continue
         else:
-            #token is a variable name
+            # token is a variable name
             if(s[i] == ' '):
                 i += 1
                 continue
@@ -109,21 +139,35 @@ def tokenize(s):
     toks.append(')')
     return toks, vars_order
 
-def tree_parse(toks):
+def tree_parse(toks, polish = False):
     r"""
     This function produces a parse tree from the tokens in toks.
 
     INPUT:
         toks -- a list of tokens.
+        polish -- (default : False) A boolean value.
+                  When true, causes the function to produce the full
+                  syntax parse tree from toks
 
     OUTPUT:
-        Returns a parse tree of the tokens toks.
+        -- Returns a parse tree of the tokens toks.
+        -- If polish = True is passed as an argument,
+           returns the full syntax parse tree of toks
+
 
     EXAMPLES:
         sage: import sage.logic.logicparser as logicparser
         sage: t = ['(', 'a', '|', 'b', '&', 'c', ')']
         sage: logicparser.tree_parse(t)
         ['|', 'a', ['&', 'b', 'c']]
+
+        note the difference when polish = True
+        sage: t = ['(', 'a', '->', '~', '~', 'b', ')']
+        sage: logicparser.tree_parse(t)
+        ['->', 'a', 'b']
+        sage: t = ['(', 'a', '->', '~', '~', 'b', ')']
+        sage: logicparser.tree_parse(t, polish = True)
+        ['->', 'a', ['~', ['~', 'b']]]
     """
     stack = []
     for tok in toks:
@@ -133,11 +177,11 @@ def tree_parse(toks):
             while(tok != '('):
                 tok = stack.pop()
                 lrtoks.insert(0, tok)
-            branch = parse_ltor(lrtoks[1:-1])
+            branch = parse_ltor(lrtoks[1:-1], polish = polish)
             stack.append(branch)
     return stack[0]
 
-def parse_ltor(toks, n = 0):
+def parse_ltor(toks, n = 0, polish = False):
     r"""
     This function produces a parse tree from the tokens in toks under
     the precondition that each token in toks is atomic.
@@ -146,29 +190,55 @@ def parse_ltor(toks, n = 0):
         toks -- a list of tokens.
         n -- an integer representing which order of operations
              are occurring.
+        polish -- (default : False) A boolean value. If True,
+                  double negations are not cancelled and negated statements
+                  are turned into lists of length 2
 
     OUTPUT:
-        Returns a parse tree of the tokens toks.
+       -- Returns a parse tree of the tokens toks.
+       -- If polish = True is passed as an argument, returns the full syntax parse
+          tree of the tokens toks
 
     EXAMPLES:
         sage: import sage.logic.logicparser as logicparser
         sage: t = ['a', '|', 'b', '&', 'c']
         sage: logicparser.parse_ltor(t)
         ['|', 'a', ['&', 'b', 'c']]
+
+        note the difference when polish = True is passed
+        sage: t = ['a', '->', '~', '~', 'b']
+        sage: logicparser.parse_ltor(t)
+        ['->', 'a', 'b']
+        sage: t = ['a', '->', '~', '~', 'b']
+        sage: logicparser.parse_ltor(t, polish = True)
+        ['->', 'a', ['~', ['~', 'b']]]
+
     """
     i = 0
     for tok in toks:
         if(tok == __op_list[n]):
             if(tok == '~'):
-                #cancel double negations
-                if(toks[i] == '~' and toks[i + 1] == '~'):
-                    del toks[i]
-                    del toks[i]
+                if not polish:
+                    # cancel double negations
+                    if(toks[i] == '~' and toks[i + 1] == '~'):
+                        del toks[i]
+                        del toks[i]
+                        return parse_ltor(toks, n)
+                    args = [toks[i], toks[i + 1], None]
+                    toks[i] = args
+                    del toks[i + 1]
                     return parse_ltor(toks, n)
-                args = [toks[i], toks[i + 1], None]
-                toks[i] = args
-                del toks[i + 1]
-                return parse_ltor(toks, n)
+                # This executes when creating the full syntax parse tree
+                else:
+                    j = i
+                    while toks[j] == '~':
+                        j += 1
+                    while j > i:
+                        args = [toks[j - 1], toks[j]]
+                        toks[j - 1] = args
+                        del toks[j]
+                        j -= 1
+                    return parse_ltor(toks, n = n, polish = polish)
             else:
                 args = [toks[i - 1], toks[i], toks[i + 1]]
                 toks[i - 1] = [args[1], args[0], args[2]]

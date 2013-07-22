@@ -703,6 +703,14 @@ class SupersingularModule(hecke.HeckeModule_free_module):
             sage: X = SupersingularModule(37)
             sage: X.free_module()
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
+
+        This illustrates the fix at :trac:`4306`::
+
+            sage: X = SupersingularModule(389)
+            sage: X.basis()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         return rings.ZZ**self.dimension()
 

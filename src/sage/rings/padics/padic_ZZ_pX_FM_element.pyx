@@ -137,6 +137,7 @@ from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
 from sage.rings.rational cimport Rational
 from sage.libs.pari.gen import gen as pari_gen
+from sage.interfaces.gp import GpElement
 from sage.rings.finite_rings.integer_mod import is_IntegerMod
 from sage.rings.all import IntegerModRing
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ZZ_pX_FM_Eis
@@ -172,6 +173,11 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             sage: W.<w> = R.ext(f)
             sage: z = (1+w)^5; z # indirect doctest
             1 + w^5 + w^6 + 2*w^7 + 4*w^8 + 3*w^10 + w^12 + 4*w^13 + 4*w^14 + 4*w^15 + 4*w^16 + 4*w^17 + 4*w^20 + w^21 + 4*w^24 + O(w^25)
+
+        Check that :trac:`3865` is fixed::
+
+            sage: W(gp('2 + O(5^2)'))
+            2 + O(w^25)
         """
         pAdicZZpXElement.__init__(self, parent)
         ZZ_pX_construct(&self.value)
@@ -192,6 +198,8 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
             self._set_from_mpz(tmp)
             mpz_clear(tmp)
             return
+        if isinstance(x, GpElement):
+            x = x._pari_()
         if isinstance(x, pari_gen):
             if x.type() == "t_PADIC":
                 if x.variable() != self.prime_pow.prime:

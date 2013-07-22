@@ -191,6 +191,7 @@ from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
 from sage.rings.padics.padic_base_generic_element cimport pAdicBaseGenericElement
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 from sage.libs.pari.gen import gen as pari_gen
+from sage.interfaces.gp import GpElement
 from sage.rings.all import is_IntegerMod
 from sage.rings.padics.padic_ext_element cimport pAdicExtElement
 from sage.rings.padics.precision_error import PrecisionError
@@ -257,6 +258,10 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             sage: W(w, 14)
             w + O(w^14)
 
+        Check that #3865 is fixed::
+
+            sage: W(gp('3 + O(5^10)'))
+            3 + O(w^3125)
         """
         pAdicZZpXElement.__init__(self, parent)
         self.relprec = 0
@@ -305,6 +310,8 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
             self._set_from_mpq_both(tmp_q, aprec, rprec)
             mpq_clear(tmp_q)
             return
+        if isinstance(x, GpElement):
+            x = x._pari_()
         if isinstance(x, pari_gen):
             if x.type() == "t_PADIC":
                 if x.variable() != self.prime_pow.prime:

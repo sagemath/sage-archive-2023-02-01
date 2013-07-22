@@ -171,6 +171,7 @@ from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
 from sage.rings.padics.padic_base_generic_element cimport pAdicBaseGenericElement
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 from sage.libs.pari.gen import gen as pari_gen
+from sage.interfaces.gp import GpElement
 from sage.rings.all import is_IntegerMod
 from sage.rings.all import IntegerModRing
 from sage.rings.padics.padic_ext_element cimport pAdicExtElement
@@ -235,6 +236,10 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
             sage: W(K.zero().add_bigoh(3))
             O(w^3)
 
+        Check that :trac:`3865` is fixed:
+
+            sage: W(gp('5 + O(5^2)'))
+            w^5 + 2*w^7 + 4*w^9 + O(w^10)
         """
         pAdicZZpXElement.__init__(self, parent)
         cdef long aprec, rprec, ctx_prec
@@ -293,7 +298,9 @@ cdef class pAdicZZpXCAElement(pAdicZZpXElement):
                 self._set_from_mpz_both(tmp, aprec, rprec)
             mpz_clear(tmp)
             return
-        if isinstance(x, pari_gen):
+        if isinstance(x, pari_gen) or isinstance(x, GpElement):
+            if isinstance(x, GpElement):
+                x = x._pari_()
             if x.type() == "t_PADIC":
                 if x.variable() != self.prime_pow.prime:
                     raise TypeError, "Cannot coerce a pari p-adic with the wrong prime."

@@ -2213,7 +2213,8 @@ class SageDev(object):
                 return self._remote[ticket]
         if isinstance(ticket, int):
             return self._trac_branch(ticket)
-        raise ValueError
+        raise ValueError("ticket(={value}) must be instance of basesting of int, but is instance of {type}"
+                         .format(value = ticket, type = type(ticket)))
 
     def _ticket_repr(self, ticket):
         if isinstance(ticket, basestring):

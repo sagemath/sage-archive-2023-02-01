@@ -9337,16 +9337,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         _x = t0heap[i]
         return _x.g
 
-        # TODO: Refactor code out of __call__ so it...
-
-        s = str(x)
-        cdef GEN g
-        sig_on()
-        g = gp_read_str(s)
-        sig_off()
-        return g
-
-
     def set_real_precision(self, long n):
         """
         Sets the PARI default real precision.

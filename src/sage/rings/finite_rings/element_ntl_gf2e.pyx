@@ -108,8 +108,8 @@ cdef int late_import() except -1:
     import sage.databases.conway
     ConwayPolynomials = sage.databases.conway.ConwayPolynomials
 
-    import sage.rings.finite_rings.constructor
-    conway_polynomial = sage.rings.finite_rings.constructor.conway_polynomial
+    import sage.rings.finite_rings.conway_polynomials
+    conway_polynomial = sage.rings.finite_rings.conway_polynomials.conway_polynomial
 
     import sage.rings.polynomial.multi_polynomial_element
     MPolynomial = sage.rings.polynomial.multi_polynomial_element.MPolynomial

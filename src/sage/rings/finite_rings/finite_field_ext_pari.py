@@ -206,7 +206,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         self.__is_field = True
 
         if modulus is None or modulus == "default":
-            from constructor import exists_conway_polynomial
+            from conway_polynomials import exists_conway_polynomial
             if exists_conway_polynomial(self.__char, self.__degree):
                 modulus = "conway"
             else:
@@ -214,7 +214,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         if isinstance(modulus,str):
             if modulus == "conway":
-                from constructor import conway_polynomial
+                from conway_polynomials import conway_polynomial
                 modulus = conway_polynomial(self.__char, self.__degree)
             elif modulus == "random":
                 # The following is fast/deterministic, but has serious problems since

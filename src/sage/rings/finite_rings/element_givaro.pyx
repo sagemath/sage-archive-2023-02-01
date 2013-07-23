@@ -125,7 +125,7 @@ cdef void late_import():
     ConwayPolynomials = sage.databases.conway.ConwayPolynomials
 
     import sage.rings.finite_rings.constructor
-    conway_polynomial = sage.rings.finite_rings.constructor.conway_polynomial
+    conway_polynomial = sage.rings.finite_rings.conway_polynomials.conway_polynomial
 
     import sage.rings.polynomial.multi_polynomial_element
     MPolynomial = sage.rings.polynomial.multi_polynomial_element.MPolynomial

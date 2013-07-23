@@ -1193,7 +1193,7 @@ class SageDev(object):
         if url:
             if ticketnum or patchname:
                 raise ValueError("If `url` is specifed, `ticketnum` and `patchname` must not be specified.")
-            ret = tempfile.mkstemp(dir=self.tmp_dir)
+            ret = tempfile.mkstemp(dir=self.tmp_dir)[1]
             check_call(["wget","-r","-O",ret,url])
             return ret
         elif ticketnum:

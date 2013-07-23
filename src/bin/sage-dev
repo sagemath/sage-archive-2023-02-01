@@ -224,10 +224,6 @@ def str_to_value(s):
     if not isinstance(s, str):
         return s
 
-    try:
-        return eval(s)
-    except Exception:
-        pass
     if s.lower() in ('true', 'false'):
         return s.lower() == 'true'
     try:

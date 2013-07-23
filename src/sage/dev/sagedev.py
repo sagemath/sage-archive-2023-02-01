@@ -1067,9 +1067,7 @@ class SageDev(object):
         else:
             branch = ticket
 
-        # XXX this is ugly: the command line 'sage -dev remote-status --ticket=all'
-        # results in the ticket argument being set to the builtin function all
-        if ticket == all:
+        if ticket == 'all':
             ret = (self.remote_status(ticket or branch, quiet=True)
                     for ticket, branch in self.local_tickets(quiet=True))
             if quiet:

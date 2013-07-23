@@ -2,7 +2,7 @@
 r"""
 Degree Sequence
 
-The methods defined here appear in sage.graphs.grah_generators.
+The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
 
 ###########################################################################

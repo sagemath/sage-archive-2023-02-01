@@ -2,8 +2,7 @@
 r"""
 Random Graphs
 
-The methods defined here appear in sage.graphs.grah_generators.
-
+The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
 ###########################################################################
 #
@@ -21,10 +20,6 @@ from sage.graphs import graph
 from math import sin, cos, pi
 from sage.misc.randstate import current_randstate
 
-################################################################################
-#   Random Graphs
-################################################################################
-
 def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
     r"""
     Returns a random graph on `n` nodes. Each edge is inserted independently
@@ -32,7 +27,7 @@ def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
 
     INPUTS:
 
-    - ``n`` -- number of nodes of the digraph
+    - ``n`` -- number of nodes of the graph
 
     - ``p`` -- probability of an edge
 

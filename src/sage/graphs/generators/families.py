@@ -2,7 +2,7 @@
 r"""
 Families of graphs
 
-The methods defined here appear in sage.graphs.grah_generators.
+The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 
 AUTHORS:
 
@@ -159,124 +159,6 @@ def IntervalGraph(intervals):
     g.set_vertices(rep)
 
     return g
-
-def MycielskiGraph(k=1, relabel=True):
-    r"""
-    Returns the `k`-th Mycielski Graph.
-
-    The graph `M_k` is triangle-free and has chromatic number
-    equal to `k`. These graphs show, constructively, that there
-    are triangle-free graphs with arbitrarily high chromatic
-    number.
-
-    The Mycielski graphs are built recursively starting with
-    `M_0`, an empty graph; `M_1`, a single vertex graph; and `M_2`
-    is the graph `K_2`.  `M_{k+1}` is then built from `M_k`
-    as follows:
-
-    If the vertices of `M_k` are `v_1,\ldots,v_n`, then the
-    vertices of `M_{k+1}` are
-    `v_1,\ldots,v_n,w_1,\ldots,w_n,z`. Vertices `v_1,\ldots,v_n`
-    induce a copy of `M_k`. Vertices `w_1,\ldots,w_n` are an
-    independent set. Vertex `z` is adjacent to all the
-    `w_i`-vertices. Finally, vertex `w_i` is adjacent to vertex
-    `v_j` iff `v_i` is adjacent to `v_j`.
-
-    INPUT:
-
-    - ``k`` Number of steps in the construction process.
-
-    - ``relabel`` Relabel the vertices so their names are the integers
-      ``range(n)`` where ``n`` is the number of vertices in the graph.
-
-    EXAMPLE:
-
-    The Mycielski graph `M_k` is triangle-free and has chromatic
-    number equal to `k`. ::
-
-        sage: g = graphs.MycielskiGraph(5)
-        sage: g.is_triangle_free()
-        True
-        sage: g.chromatic_number()
-        5
-
-    The graphs `M_4` is (isomorphic to) the Grotzsch graph. ::
-
-        sage: g = graphs.MycielskiGraph(4)
-        sage: g.is_isomorphic(graphs.GrotzschGraph())
-        True
-
-    REFERENCES:
-
-    -  [1] Weisstein, Eric W. "Mycielski Graph."
-       From MathWorld--A Wolfram Web Resource.
-       http://mathworld.wolfram.com/MycielskiGraph.html
-
-    """
-    g = graph.Graph()
-    g.name("Mycielski Graph " + str(k))
-
-    if k<0:
-        raise ValueError, "parameter k must be a nonnegative integer"
-
-    if k == 0:
-        return g
-
-    if k == 1:
-        g.add_vertex(0)
-        return g
-
-    if k == 2:
-        g.add_edge(0,1)
-        return g
-
-    g0 = MycielskiGraph(k-1)
-    g = MycielskiStep(g0)
-    g.name("Mycielski Graph " + str(k))
-    if relabel: g.relabel()
-
-    return g
-
-def MycielskiStep(g):
-    r"""
-    Perform one iteration of the Mycielski construction.
-
-    See the documentation for ``MycielskiGraph`` which uses this
-    method. We expose it to all users in case they may find it
-    useful.
-
-    EXAMPLE. One iteration of the Mycielski step applied to the
-    5-cycle yields a graph isomorphic to the Grotzsch graph ::
-
-        sage: g = graphs.CycleGraph(5)
-        sage: h = graphs.MycielskiStep(g)
-        sage: h.is_isomorphic(graphs.GrotzschGraph())
-        True
-    """
-
-    # Make a copy of the input graph g
-    gg = g.copy()
-
-    # rename a vertex v of gg as (1,v)
-    renamer = dict( [ (v, (1,v)) for v in g.vertices() ] )
-    gg.relabel(renamer)
-
-    # add the w vertices to gg as (2,v)
-    wlist = [ (2,v) for v in g.vertices() ]
-    gg.add_vertices(wlist)
-
-    # add the z vertex as (0,0)
-    gg.add_vertex((0,0))
-
-    # add the edges from z to w_i
-    gg.add_edges( [ ( (0,0) , (2,v) ) for v in g.vertices() ] )
-
-    # make the v_i w_j edges
-    for v in g.vertices():
-        gg.add_edges( [ ((1,v),(2,vv)) for vv in g.neighbors(v) ] )
-
-    return gg
-
 
 def JohnsonGraph(n, k):
     r"""
@@ -1232,6 +1114,123 @@ def LCFGraph(n, shift_list, repeats):
         pos_dict[i] = [x,y]
     return graph.Graph(networkx.LCF_graph(n, shift_list, repeats),\
                        pos=pos_dict, name="LCF Graph")
+
+def MycielskiGraph(k=1, relabel=True):
+    r"""
+    Returns the `k`-th Mycielski Graph.
+
+    The graph `M_k` is triangle-free and has chromatic number
+    equal to `k`. These graphs show, constructively, that there
+    are triangle-free graphs with arbitrarily high chromatic
+    number.
+
+    The Mycielski graphs are built recursively starting with
+    `M_0`, an empty graph; `M_1`, a single vertex graph; and `M_2`
+    is the graph `K_2`.  `M_{k+1}` is then built from `M_k`
+    as follows:
+
+    If the vertices of `M_k` are `v_1,\ldots,v_n`, then the
+    vertices of `M_{k+1}` are
+    `v_1,\ldots,v_n,w_1,\ldots,w_n,z`. Vertices `v_1,\ldots,v_n`
+    induce a copy of `M_k`. Vertices `w_1,\ldots,w_n` are an
+    independent set. Vertex `z` is adjacent to all the
+    `w_i`-vertices. Finally, vertex `w_i` is adjacent to vertex
+    `v_j` iff `v_i` is adjacent to `v_j`.
+
+    INPUT:
+
+    - ``k`` Number of steps in the construction process.
+
+    - ``relabel`` Relabel the vertices so their names are the integers
+      ``range(n)`` where ``n`` is the number of vertices in the graph.
+
+    EXAMPLE:
+
+    The Mycielski graph `M_k` is triangle-free and has chromatic
+    number equal to `k`. ::
+
+        sage: g = graphs.MycielskiGraph(5)
+        sage: g.is_triangle_free()
+        True
+        sage: g.chromatic_number()
+        5
+
+    The graphs `M_4` is (isomorphic to) the Grotzsch graph. ::
+
+        sage: g = graphs.MycielskiGraph(4)
+        sage: g.is_isomorphic(graphs.GrotzschGraph())
+        True
+
+    REFERENCES:
+
+    -  [1] Weisstein, Eric W. "Mycielski Graph."
+       From MathWorld--A Wolfram Web Resource.
+       http://mathworld.wolfram.com/MycielskiGraph.html
+
+    """
+    g = graph.Graph()
+    g.name("Mycielski Graph " + str(k))
+
+    if k<0:
+        raise ValueError, "parameter k must be a nonnegative integer"
+
+    if k == 0:
+        return g
+
+    if k == 1:
+        g.add_vertex(0)
+        return g
+
+    if k == 2:
+        g.add_edge(0,1)
+        return g
+
+    g0 = MycielskiGraph(k-1)
+    g = MycielskiStep(g0)
+    g.name("Mycielski Graph " + str(k))
+    if relabel: g.relabel()
+
+    return g
+
+def MycielskiStep(g):
+    r"""
+    Perform one iteration of the Mycielski construction.
+
+    See the documentation for ``MycielskiGraph`` which uses this
+    method. We expose it to all users in case they may find it
+    useful.
+
+    EXAMPLE. One iteration of the Mycielski step applied to the
+    5-cycle yields a graph isomorphic to the Grotzsch graph ::
+
+        sage: g = graphs.CycleGraph(5)
+        sage: h = graphs.MycielskiStep(g)
+        sage: h.is_isomorphic(graphs.GrotzschGraph())
+        True
+    """
+
+    # Make a copy of the input graph g
+    gg = g.copy()
+
+    # rename a vertex v of gg as (1,v)
+    renamer = dict( [ (v, (1,v)) for v in g.vertices() ] )
+    gg.relabel(renamer)
+
+    # add the w vertices to gg as (2,v)
+    wlist = [ (2,v) for v in g.vertices() ]
+    gg.add_vertices(wlist)
+
+    # add the z vertex as (0,0)
+    gg.add_vertex((0,0))
+
+    # add the edges from z to w_i
+    gg.add_edges( [ ( (0,0) , (2,v) ) for v in g.vertices() ] )
+
+    # make the v_i w_j edges
+    for v in g.vertices():
+        gg.add_edges( [ ((1,v),(2,vv)) for vv in g.neighbors(v) ] )
+
+    return gg
 
 def NKStarGraph(n,k):
     r"""

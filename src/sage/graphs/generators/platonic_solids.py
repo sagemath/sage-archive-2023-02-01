@@ -2,7 +2,7 @@
 r"""
 Platonic solids
 
-The methods defined here appear in sage.graphs.grah_generators.
+The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 
 """
 ###########################################################################
@@ -20,10 +20,6 @@ from sage.graphs.graph import Graph
 from sage.graphs import graph
 from math import sin, cos, pi
 from sage.graphs.graph_plot import _circle_embedding, _line_embedding
-
-################################################################################
-#   Platonic Solids
-################################################################################
 
 def TetrahedralGraph():
     """

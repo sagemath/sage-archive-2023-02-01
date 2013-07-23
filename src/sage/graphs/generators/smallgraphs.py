@@ -2,7 +2,7 @@
 r"""
 Small graphs
 
-The methods defined here appear in sage.graphs.grah_generators.
+The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 """
 #*****************************************************************************
 #           Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>

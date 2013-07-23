@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
-Chessboard Graphs Generators
-============================
+Chessboard Graphs
+
+The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 
 - :meth:`BishopGraph <GraphGenerators.BishopGraph>`
 - :meth:`KingGraph <GraphGenerators.KingGraph>`
@@ -12,7 +13,6 @@ Chessboard Graphs Generators
 AUTHORS:
 
 - David Coudert    (2012)
-
 """
 
 ################################################################################
@@ -21,10 +21,6 @@ AUTHORS:
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ################################################################################
-
-###########################################################################
-# Chessboard graphs
-###########################################################################
 
 def ChessboardGraphGenerator(dim_list,
                              rook = True,    rook_radius = None,

@@ -22,7 +22,7 @@ from git_interface import GitInterface
 from trac_interface import TracInterface
 from user_interface import UserInterface, CmdLineInterface, DoctestInterface
 
-from sage.env import DOT_SAGE
+from sage.env import DOT_SAGE, TRAC_SERVER_URI
 from sage.doctest import DOCTEST_MODE
 
 # regular expressions to parse mercurial patches
@@ -1041,29 +1041,34 @@ class SageDev(object):
         - :meth:`upload` -- Pushes the changes on a given ticket to
           the remote server.
         """
-        def show(ret):
-            ret = [[a,b,c] for a,b,c in ret]
-            l  = [0,0,0,0]
-            for line in ret:
-                for i in range(4):
-                    if len(line) < 4 and i >= 2:
-                        break
-                    tmp = line[i] = str(line[i])
-                    tmp = len(tmp)
-                    if tmp > l[i]:
-                        l[i] = tmp
-            for line in ret:
-                for i in range(4):
-                    if len(line) < 4 and i >= 2:
-                        break
-                    line[i] += ' '*(len[i]-len(line[i]))
-                if len(line) == 4:
+        def show(lines):
+            lines = [list(str(l) for l in line) if not isinstance(line, basestring) else line
+                              for line in lines]
+            tabulated_lines = [line for line in lines if not isinstance(line, basestring)]
+            if tabulated_lines:
+                column_widths = [max(len(x) for x in col) for col in zip(*tabulated_lines)]
+            to_display = []
+            for line in lines:
+                if isinstance(line, basestring):
+                    to_display.append(line)
+                else:
+                    for i in xrange(len(line)):
+                        line[i] += ' '*(column_widths[i]-len(line[i]))
                     line.insert(3, 'behind')
                     line.insert(2, 'ahead')
-            self._UI.show('\n'.join(' '.join(line) for line in ret))
-        if ticket == "all":
+                    to_display.append(' '.join(line))
+            self._UI.show('\n'.join(to_display))
+
+        if isinstance(ticket, int):
+            branch = self._branch[ticket]
+        else:
+            branch = ticket
+
+        # XXX this is ugly: the command line 'sage -dev remote-status --ticket=all'
+        # results in the ticket argument being set to the builtin function all
+        if ticket == all:
             ret = (self.remote_status(ticket or branch, quiet=True)
-                    for ticket, branch in self.local_tickets)
+                    for ticket, branch in self.local_tickets(quiet=True))
             if quiet:
                 return tuple(ret)
             else:
@@ -1071,26 +1076,22 @@ class SageDev(object):
                 return
         try:
             remote_branch = self._remote_pull_branch(ticket)
-        except KeyError:
-            ret = (ticket or '     ', branch, 'not tracked remotely')
+            remote_ref = self._fetch(remote_branch)
+        except (KeyError, RuntimeError):
+            ret = '%s not tracked remotely' % ticket
             if quiet:
                 return ret
             else:
                 show((ret,))
                 return
-        remote_ref = self._fetch(remote_branch)
-        if isinstance(ticket, int):
-            branch = self._branch[ticket]
-        else:
-            branch = ticket
         ahead, behind = self.git.read_output("rev-list",
-                "%s..%s"%(branch, remote_ref),
+                "%s...%s"%(branch, remote_ref),
                 left_right=True, count=True).split()
         behind = int(behind)
         ahead = int(ahead)
-        ret = (ticket or '     ', branch, ahead, behind)
+        ret = (ticket or '     ', remote_branch, ahead, behind)
         if quiet:
-            return (ticket or '     ', branch, ahead, behind)
+            return (ticket or '     ', remote_branch, ahead, behind)
         else:
             show((ret,))
 
@@ -1205,12 +1206,13 @@ class SageDev(object):
         if url:
             if ticketnum or patchname:
                 raise ValueError("If `url` is specifed, `ticketnum` and `patchname` must not be specified.")
-            ret = tempfile.mkstemp(dir=self.tmp_dir)[1]
-            check_call(["wget","-r","-O",ret,url])
+            fd, ret = tempfile.mkstemp(dir=self.tmp_dir)
+            os.close(fd)
+            check_call(["wget","-r","--no-check-certificate", "-O",ret,url])
             return ret
         elif ticketnum:
             if patchname:
-                return self.download_patch(url = self._config['trac']['server']+"raw-attachment/ticket/%s/%s"%(ticketnum,patchname))
+                return self.download_patch(url = TRAC_SERVER_URI+"/raw-attachment/ticket/%s/%s"%(ticketnum,patchname))
             else:
                 attachments = self.trac.attachment_names(ticketnum)
                 if len(attachments) == 0:
@@ -1522,7 +1524,7 @@ class SageDev(object):
         raw_branches = self.git.read_output("branch").split()
         raw_branches.remove('*')
         branch_info = [(b, self._ticket[b]) for b in raw_branches
-            if abandoned or not b.startswith("trash/")]
+            if b in self._ticket and (abandoned or not b.startswith("trash/"))]
         if quiet:
             return branch_info
         else:

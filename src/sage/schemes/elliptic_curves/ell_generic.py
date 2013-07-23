@@ -19,7 +19,7 @@ We construct an elliptic curve over an elaborate base ring::
     sage: E = EllipticCurve(T, [a, b]); E
     Elliptic Curve defined by y^2  = x^3 + x + 3 over Fraction Field of Univariate Polynomial Ring in v over Univariate Polynomial Ring in u over Finite Field of size 97
     sage: latex(E)
-    y^2  = x^3 + x + 3
+    y^2  = x^{3} + x + 3
 
 AUTHORS:
 
@@ -268,50 +268,35 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
     def _latex_(self):
         """
         Internal function. Returns a latex string for this elliptic curve.
+
         Users will normally use latex() instead.
 
         EXAMPLES::
 
-            sage: E=EllipticCurve(QQ,[1,1])
+            sage: E = EllipticCurve(QQ, [1,1])
             sage: E._latex_()
-            'y^2 = x^3 + x + 1 '
-            sage: latex(E)
-            y^2 = x^3 + x + 1
+            'y^2 = x^{3} + x + 1 '
+
+            sage: E = EllipticCurve(QQ, [1,2,3,4,5])
+            sage: E._latex_()
+            'y^2 + x y + 3 y = x^{3} + 2 x^{2} + 4 x + 5 '
+
+        Check that :trac:`12524` is solved::
+
+            sage: K.<phi> = NumberField(x^2-x-1)
+            sage: E = EllipticCurve([0,0,phi,27*phi-43,-80*phi+128])
+            sage: E._latex_()
+            'y^2 + \\phi y = x^{3} + \\left(27 \\phi - 43\\right) x - 80 \\phi + 128 '
         """
-        b = self.ainvs()
-        a = [z._latex_coeff_repr() for z in b]
-        s = "y^2 "
-        if a[0] == '-1':
-            s += "- xy "
-        elif a[0] == '1':
-            s += "+ xy "
-        elif b[0]:
-            s += "+ %sxy "%a[0]
-        if a[2] == '-1':
-            s += "- y "
-        elif a[2] == '1':
-            s += "+ y "
-        elif b[2]:
-            s += "+ %sy "%a[2]
-        s += "= x^3 "
-        if a[1] == '-1':
-            s += "- x^2 "
-        elif a[1] == '1':
-            s += "+ x^2 "
-        elif b[1]:
-            s += "+ %sx^2 "%a[1]
-        if a[3] == '-1':
-            s += "- x "
-        elif a[3] == '1':
-            s += "+ x "
-        elif b[3]:
-            s += "+ %sx "%a[3]
-        if a[4] == '-1':
-            s += "- 1 "
-        elif a[4] == '1':
-            s += "+ 1 "
-        elif b[4]:
-            s += "+ %s "%a[4]
+        from sage.rings.polynomial.polynomial_ring import polygen
+        a = self.ainvs()
+        x, y = polygen(self.base_ring(), 'x, y')
+        s = "y^2"
+        if a[0] or a[2]:
+            s += " + " + (a[0]*x*y + a[2]*y)._latex_()
+        s += " = "
+        s += (x**3 + a[1]*x**2 + a[3]*x + a[4])._latex_()
+        s += " "
         s = s.replace("+ -","- ")
         return s
 

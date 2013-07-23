@@ -50,7 +50,7 @@ GIT_PATH_REGEX = re.compile(r"^(?=src/)")
 # run this should be "master", currently, "build_system" contains some changes
 # over "master" which have not been reviewed yet but which are needed to work
 # using git
-MASTER_BRANCH = "build_system"
+MASTER_BRANCH = "u/tkluck/master"
 
 TracConnectionError = RuntimeError("could not connect with trac server")
 
@@ -865,7 +865,7 @@ class SageDev(object):
 
     def upload(self, ticket=None, remote_branch=None, force=False, repository=None):
         """
-        upload the current branch to the Sage repository
+        Upload the current branch to the Sage repository
 
         INPUT:
 
@@ -908,25 +908,37 @@ class SageDev(object):
                                  "(%s)"%branch)
             oldticket = ticket
         remote_branch = remote_branch or self.git._local_to_remote_name(branch)
+        ref = None
         try:
             ref = self._fetch(remote_branch, repository=repository)
-            if not (self.git.is_ancestor_of(ref, branch) or force):
-                if self._UI.confirm("Changes not compatible with remote "+
-                                    "branch; consider downloading first. Are "+
-                                    "you sure you want to continue?",
-                                    default_no=True):
-                    force = True
-                else:
-                    return
-        except ValueError:
-            # nothing at remote_branch
-            pass
+        except RuntimeError:
+            if not self._UI.confirm("There does not seem to be a branch %s on the remote server yet. Do you want to create such a branch?"%remote_branch, default_no=False):
+                return
+
+        if ref and not (self.git.is_ancestor_of(ref, branch) or force):
+            if self._UI.confirm("Changes not compatible with remote branch %s; consider downloading first. Are you sure you want to continue?"%remote_branch, default_no=True):
+                force = True
+            else: return
+
         if self.git.push(repository, "%s:%s"%(branch, remote_branch), force=force):
             raise RuntimeError("failed to push changes to %s"%repository)
+
         if ticket:
+            ticket_branch = self.trac._get_attributes(ticket).get("branch", "").strip()
+            if ticket_branch:
+                ref = None
+                try:
+                    ref = self._fetch(ticket_branch, repository=repository)
+                except RuntimeError: # no such branch
+                    self._UI.show("The ticket %s refers to a non-existant branch %s - will overwrite the branch field on the ticket with %s"%(ticket,ticket_branch,remote_branch))
+
+                if ref and not (self.git.is_ancestor_of(ref, branch) or force):
+                    if not self._UI.show("Your changes would discard some of the commits on the current branch %s of the ticket %s. Download these changes first or use 'force' to overwrite them."%(ticket_branch,ticket)):
+                        return
+
             git_deps = ", ".join(["#%s"%d for d in self._dependencies_as_tickets(branch)])
-            self.trac.update(ticket, branch=remote_branch,
-                    dependencies=git_deps)
+            self.trac.update(ticket, branch=remote_branch, dependencies=git_deps)
+            self._UI.show("Ticket %s now refers to your branch %s."%(ticket,remote_branch))
 
     def download(self, ticket=None, branchname=None, force=False, repository=None):
         """
@@ -1108,14 +1120,13 @@ class SageDev(object):
         - :meth:`download` -- This function is used to merge in
           changes from a git branch rather than a patch.
         """
-        ticketnum = self.current_ticket()
         if not self.git.reset_to_clean_state(): return
         if not self.git.reset_to_clean_working_directory(): return
 
         if not local_file:
             return self.import_patch(
                     local_file=self.download_patch(
-                        ticketnum=ticketnum, patchname=patchname, url=url),
+                        patchname=patchname, url=url),
                     diff_format=diff_format,
                     header_format=header_format,
                     path_format=path_format)
@@ -1464,21 +1475,25 @@ class SageDev(object):
                 dep = ref = self._branch[ticket]
             except KeyError:
                 pass # ticket does not exists locally but we were not asked to download it
-        if dep is None:
-            dep = int(ticket)
+        if ref is None:
+            ref = ticket
 
-        if create_dependency and dep and dep not in self._dependencies[curbranch]:
-            self._dependencies[curbranch] += (dep,)
+        if create_dependency:
+            if dep is None:
+                dep = int(ticket)
+            if dep and dep not in self._dependencies[curbranch]:
+                self._dependencies[curbranch] += (dep,)
+                self._UI.show("recorded dependency on %s"%dep)
         if message is None:
             kwds = {}
         else:
             kwds = {'m':message}
 
-        print self._dependencies[curbranch]
         if ref is None:
-            print "The dependency on ticket %s has been recorded. However, nothing has been merged because the branch for the ticket could not be found. "%ticket+ ("Probably the branch field for the ticket is empty or invalid." if download else "Probably the branch for the ticket does not exist locally, consider using '--download True'")
-        else:
-            self.git.merge(ref, **kwds)
+            self._UI.show("Nothing has been merged because the branch for %s could not be found. "%ticket+ ("Probably the branch field for the ticket is empty or invalid." if download else "Probably the branch for the ticket does not exist locally, consider using '--download True'"))
+            return
+
+        self.git.merge(ref, **kwds)
 
     def local_tickets(self, abandoned=False, quiet=False):
         """

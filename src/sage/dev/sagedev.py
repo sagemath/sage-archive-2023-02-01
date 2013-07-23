@@ -908,25 +908,37 @@ class SageDev(object):
                                  "(%s)"%branch)
             oldticket = ticket
         remote_branch = remote_branch or self.git._local_to_remote_name(branch)
+        ref = None
         try:
             ref = self._fetch(remote_branch, repository=repository)
-            if not (self.git.is_ancestor_of(ref, branch) or force):
-                if self._UI.confirm("Changes not compatible with remote "+
-                                    "branch; consider downloading first. Are "+
-                                    "you sure you want to continue?",
-                                    default_no=True):
-                    force = True
-                else:
-                    return
-        except ValueError:
-            # nothing at remote_branch
-            pass
+        except RuntimeError:
+            if not self._UI.confirm("There does not seem to be a branch %s on the remote server yet. Do you want to create such a branch?"%remote_branch, default_no=False):
+                return
+
+        if ref and not (self.git.is_ancestor_of(ref, branch) or force):
+            if self._UI.confirm("Changes not compatible with remote branch %s; consider downloading first. Are you sure you want to continue?"%remote_branch, default_no=True):
+                force = True
+            else: return
+
         if self.git.push(repository, "%s:%s"%(branch, remote_branch), force=force):
             raise RuntimeError("failed to push changes to %s"%repository)
+
         if ticket:
+            ticket_branch = self.trac._get_attributes(ticket).get("branch", "").strip()
+            if ticket_branch:
+                ref = None
+                try:
+                    ref = self._fetch(ticket_branch, repository=repository)
+                except RuntimeError: # no such branch
+                    self._UI.show("The ticket %s refers to a non-existant branch %s - will overwrite the branch field on the ticket with %s"%(ticket,ticket_branch,remote_branch))
+
+                if ref and not (self.git.is_ancestor_of(ref, branch) or force):
+                    if not self._UI.show("Your changes would discard some of the commits on the current branch %s of the ticket %s. Download these changes first or use 'force' to overwrite them."%(ticket_branch,ticket)):
+                        return
+
             git_deps = ", ".join(["#%s"%d for d in self._dependencies_as_tickets(branch)])
-            self.trac.update(ticket, branch=remote_branch,
-                    dependencies=git_deps)
+            self.trac.update(ticket, branch=remote_branch, dependencies=git_deps)
+            self._UI.show("Ticket %s now refers to your branch %s."%(ticket,remote_branch))
 
     def download(self, ticket=None, branchname=None, force=False, repository=None):
         """

@@ -417,6 +417,7 @@ class TracInterface(object):
             sage: dev.trac._authenticated_server_proxy
             <sage.dev.trac_interface.DoctestServerProxy object at ...>
         """
+        ret = None
         try:
             if time.time() < self.__auth_timeout:
                 # default timeout is 5 minutes, like sudo
@@ -424,11 +425,16 @@ class TracInterface(object):
                         self._config.get('password_timeout', 300))
                 if new_timeout > self.__auth_timeout:
                     self.__auth_timeout = new_timeout
-                return self.__authenticated_server_proxy
+                ret = self.__authenticated_server_proxy
             else:
                 del self.__authenticated_server_proxy
         except AttributeError:
             pass
+
+        if ret:
+            if sage.doctest.DOCTEST_MODE:
+                assert type(ret, DoctestServerProxy), "running doctests which use git/trac is not supported from within a running session of sage"
+            return ret
 
         if DOCTEST_MODE:
             self.__authenticated_server_proxy = DoctestServerProxy(self)

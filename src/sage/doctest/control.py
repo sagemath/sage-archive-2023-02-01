@@ -954,12 +954,6 @@ def run_doctests(module, options=None):
         old_config_color = IP.config.TerminalInteractiveShell.colors
         IP.config.TerminalInteractiveShell.colors = 'NoColor'
 
-        import sage.dev.sagedev
-        old_sagedev = sage.dev.sagedev.dev
-        sage.dev.sagedev.dev = sage.dev.sagedev.SageDev(sage.dev.sagedev.doctest_config())
-        import all
-        all.dev = sage.dev.sagedev.dev
-
     try:
         DC.run()
     finally:
@@ -967,8 +961,3 @@ def run_doctests(module, options=None):
         if not save_dtmode:
             IP.run_line_magic('colors', old_color)
             IP.config.TerminalInteractiveShell.colors = old_config_color
-
-            import sage.dev.sagedev
-            sage.dev.sagedev.dev = old_sagedev
-            import all
-            all.dev = old_sagedev

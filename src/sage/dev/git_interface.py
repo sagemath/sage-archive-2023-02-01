@@ -548,7 +548,7 @@ class GitInterface(object):
             sage: git._run_git('log', (), {'oneline':True}, stdout=str)
             (0, '... edit the testfile differently\n... add a testfile\n', None)
         """
-        assert self._doctest_mode or not sage.doctest.DOCTEST_MODE
+        assert self._doctest_mode or not sage.doctest.DOCTEST_MODE, "running doctests which use git/trac is not supported from within a running session of sage"
 
         s = [self._gitcmd, "--git-dir=%s"%self._dot_git, cmd]
 

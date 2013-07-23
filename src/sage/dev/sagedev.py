@@ -413,6 +413,7 @@ class Config(collections.MutableMapping):
         self._config = configparser.ConfigParser()
         self._devrc = devrc
         self._read_config()
+        self._doctest_config = False
 
     def __repr__(self):
         """
@@ -2281,6 +2282,7 @@ def doctest_config():
             os.unlink(f)
     atexit.register(foo, ret._devrc)
     ret['trac'] = {'username': 'doctest', 'password_timeout': '.5'}
+    ret._doctest_config = True
     return ret
 
 # default sagedev object

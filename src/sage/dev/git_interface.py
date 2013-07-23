@@ -49,7 +49,7 @@ import shutil
 import subprocess
 import tempfile
 
-from sage.doctest import DOCTEST_MODE
+import sage.doctest
 from sage.env import SAGE_DOT_GIT, SAGE_REPO_AUTHENTICATED, DOT_SAGE
 
 def is_atomic_name(x):
@@ -242,15 +242,17 @@ class GitInterface(object):
         self._dot_git = self._config.get('dot_git', SAGE_DOT_GIT)
         self._gitcmd  = self._config.get('gitcmd', 'git')
         self._repo    = self._config.get('repo', SAGE_REPO_AUTHENTICATED)
+        self._doctest_mode = False
 
-        if DOCTEST_MODE:
+        if sage.doctest.DOCTEST_MODE:
             self._tmp_dir = tempfile.mkdtemp()
             atexit.register(shutil.rmtree, self._tmp_dir)
             self._dot_git = os.path.join(self._tmp_dir, '.git')
+            self._doctest_mode = True
             self._prep_doctest_repo()
 
         if not os.path.exists(self._dot_git):
-                raise ValueError("`%s` does not point to an existing directory."%self._dot_git)
+            raise ValueError("`%s` does not point to an existing directory."%self._dot_git)
 
     def _prep_doctest_repo(self):
         """
@@ -546,6 +548,8 @@ class GitInterface(object):
             sage: git._run_git('log', (), {'oneline':True}, stdout=str)
             (0, '... edit the testfile differently\n... add a testfile\n', None)
         """
+        assert self._doctest_mode or not sage.doctest.DOCTEST_MODE
+
         s = [self._gitcmd, "--git-dir=%s"%self._dot_git, cmd]
 
         env = ckwds.setdefault('env', dict(os.environ))
@@ -563,7 +567,8 @@ class GitInterface(object):
         if args:
             s.extend(a for a in args if a is not None)
 
-        print "git: %s"%(" ".join(s))
+        if not self._doctest_mode:
+            self._UI.show("[git] %s"%(" ".join(s)))
 
         if ckwds.get('dryrun', False):
             return s

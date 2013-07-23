@@ -1,4 +1,4 @@
-"""
+r"""
 Sagedev
 """
 import atexit
@@ -55,7 +55,7 @@ MASTER_BRANCH = "build_system"
 TracConnectionError = RuntimeError("could not connect with trac server")
 
 def load_dict_from_file(filename):
-    """
+    r"""
     loads a pickled dictionary from filename, defaults to {} if no file
     is found
 
@@ -84,7 +84,7 @@ def load_dict_from_file(filename):
     return {}
 
 def _raise():
-    """
+    r"""
     function that raises exceptions
 
     TESTS::
@@ -109,7 +109,7 @@ class SavingDict(collections.MutableMapping):
             values      = None,
             default     = _raise,
             paired      = None):
-        """
+        r"""
         dictionary-like class that saves itself on the filesystem
 
         INPUT:
@@ -159,7 +159,7 @@ class SavingDict(collections.MutableMapping):
             self.set_paired(paired)
 
     def __repr__(self):
-        """
+        r"""
         TESTS::
 
             sage: from sage.dev.git_interface import SavingDict
@@ -170,7 +170,7 @@ class SavingDict(collections.MutableMapping):
         return repr(self._dict)
 
     def unset_pairing(self):
-        """
+        r"""
         unset any pairing that was constructed
 
         EXAMPLES::
@@ -197,7 +197,7 @@ class SavingDict(collections.MutableMapping):
         self._pairing = None
 
     def set_paired(self, other):
-        """
+        r"""
         set another SavingDict to be updated with the reverse of this one
         and vice versa
 
@@ -252,7 +252,7 @@ class SavingDict(collections.MutableMapping):
         self._pairing, other._pairing = Pairing(self), Pairing(other)
 
     def _write(self):
-        """
+        r"""
         writes self to disk
 
         EXAMPLES::
@@ -276,7 +276,7 @@ class SavingDict(collections.MutableMapping):
         os.rename(tmpfile, self._filename)
 
     def __setitem__(self, key, value):
-        """
+        r"""
         TESTS::
 
             sage: from sage.dev.git_interface import SavingDict
@@ -297,7 +297,7 @@ class SavingDict(collections.MutableMapping):
         self._write()
 
     def __delitem__(self, key):
-        """
+        r"""
         TESTS::
 
             sage: from sage.dev.git_interface import SavingDict
@@ -321,7 +321,7 @@ class SavingDict(collections.MutableMapping):
         self._write()
 
     def __getitem__(self, key):
-        """
+        r"""
         TESTS::
 
             sage: from sage.dev.git_interface import SavingDict
@@ -340,7 +340,7 @@ class SavingDict(collections.MutableMapping):
             return self._default()
 
     def __contains__(self, key):
-        """
+        r"""
         TESTS::
 
             sage: from sage.dev.git_interface import SavingDict
@@ -354,7 +354,7 @@ class SavingDict(collections.MutableMapping):
         return key in self._dict
 
     def __len__(self):
-        """
+        r"""
         TESTS::
 
             sage: from sage.dev.git_interface import SavingDict
@@ -370,7 +370,7 @@ class SavingDict(collections.MutableMapping):
         return len(self._dict)
 
     def __iter__(self):
-        """
+        r"""
         TESTS::
 
             sage: from sage.dev.git_interface import SavingDict
@@ -384,7 +384,7 @@ class SavingDict(collections.MutableMapping):
         return iter(self._dict)
 
 class Config(collections.MutableMapping):
-    """
+    r"""
     Wrapper around the ``devrc`` file storing the configuration for
     :class:`SageDev`.
 
@@ -402,7 +402,7 @@ class Config(collections.MutableMapping):
         ''')
     """
     def __init__(self, devrc = os.path.join(DOT_SAGE, 'devrc')):
-        """
+        r"""
         Initialization.
 
         TESTS::
@@ -415,7 +415,7 @@ class Config(collections.MutableMapping):
         self._read_config()
 
     def __repr__(self):
-        """
+        r"""
         Return a printable representation of this element.
 
         EXAMPLES::
@@ -426,7 +426,7 @@ class Config(collections.MutableMapping):
         return "Config('''\n"+"\n".join([ "[%s]\n"%s+"\n".join(["%s = %s"%(o,self[s][o]) for o in self[s] ]) for s in self ])+"\n''')"
 
     def _read_config(self):
-        """
+        r"""
         Read the configuration from disk.
 
         EXAMPLES::
@@ -447,7 +447,7 @@ class Config(collections.MutableMapping):
             self._config.read(self._devrc)
 
     def _write_config(self):
-        """
+        r"""
         Write the configuration to disk.
 
         EXAMPLES::
@@ -468,7 +468,7 @@ class Config(collections.MutableMapping):
         os.chmod(self._devrc, 0600)
 
     def __getitem__(self, section):
-        """
+        r"""
         Return the configurations in ``section``.
 
         EXAMPLES::
@@ -514,7 +514,7 @@ class Config(collections.MutableMapping):
         return IndexableForSection(section)
 
     def __contains__(self, section):
-        """
+        r"""
         returns true if section is in the configuration
 
         EXAMPLES::
@@ -527,7 +527,7 @@ class Config(collections.MutableMapping):
         return section in self._config.sections()
 
     def __iter__(self):
-        """
+        r"""
         Return an iterator over the section names.
 
         EXAMPLES::
@@ -538,7 +538,7 @@ class Config(collections.MutableMapping):
         return iter(self._config.sections())
 
     def __setitem__(self, section, dictionary):
-        """
+        r"""
         Set ``section`` to ``dictionary``.
 
         EXAMPLES::
@@ -557,7 +557,7 @@ class Config(collections.MutableMapping):
         self._write_config()
 
     def __len__(self):
-        """
+        r"""
         get the number of sections in the configuration
 
         EXAMPLES::
@@ -568,7 +568,7 @@ class Config(collections.MutableMapping):
         return len(self._config.sections())
 
     def __delitem__(self, section):
-        """
+        r"""
         remove ``section`` from the configuration
 
         EXAMPLES::
@@ -583,7 +583,7 @@ class Config(collections.MutableMapping):
         self._write_config()
 
 class SageDev(object):
-    """
+    r"""
     The developer interface for sage.
 
     This class facilitates access to git and trac.
@@ -594,7 +594,7 @@ class SageDev(object):
         <class 'sage.dev.sagedev.SageDev'>
     """
     def __init__(self, config = Config(), UI=None):
-        """
+        r"""
         Initialization.
 
         TESTS::
@@ -630,7 +630,7 @@ class SageDev(object):
 
     @property
     def tmp_dir(self):
-        """
+        r"""
         a lazy property to provide a temporary directory
 
         TESTS::
@@ -648,7 +648,7 @@ class SageDev(object):
 
     @property
     def git(self):
-        """
+        r"""
         a lazy property to provide a
         :class:`sage.dev.git_interface.GitInterface`
 
@@ -667,7 +667,7 @@ class SageDev(object):
 
     @property
     def trac(self):
-        """
+        r"""
         a lazy property to provide a
         :class:`sage.dev.trac_interface.TracInterface`
 
@@ -685,7 +685,7 @@ class SageDev(object):
             return self._trac
 
     def __repr__(self):
-        """
+        r"""
         return a printable representation of this object
 
         TESTS::
@@ -700,7 +700,7 @@ class SageDev(object):
     ##
 
     def switch_ticket(self, ticket, branchname=None):
-        """
+        r"""
         switch to a branch associated to ``ticket``
 
         If there is already a local branch for ``ticket`` then
@@ -767,7 +767,7 @@ class SageDev(object):
 
     def create_ticket(self,
             branchname=None, base=MASTER_BRANCH, remote_branch=None):
-        """
+        r"""
         create a new ticket on trac and switch to a new local branch to
         work on said ticket
 
@@ -813,7 +813,7 @@ class SageDev(object):
         self.git.switch_branch(branchname)
 
     def commit(self, message=None, interactive=False):
-        """
+        r"""
         create a commit from the pending changes on the current branch
 
         This is most akin to mercurial's commit command, not git's.
@@ -864,7 +864,7 @@ class SageDev(object):
         self.git.commit(**kwds)
 
     def upload(self, ticket=None, remote_branch=None, force=False, repository=None):
-        """
+        r"""
         Upload the current branch to the Sage repository
 
         INPUT:
@@ -941,7 +941,7 @@ class SageDev(object):
             self._UI.show("Ticket %s now refers to your branch %s."%(ticket,remote_branch))
 
     def download(self, ticket=None, branchname=None, force=False, repository=None):
-        """
+        r"""
         download the changes made to a remote branch into a given
         ticket or the current branch
 
@@ -1016,7 +1016,7 @@ class SageDev(object):
                 self._dependencies[ticket] = tuple(sorted(deps))
 
     def remote_status(self, ticket=None, quiet=False):
-        """
+        r"""
         show the remote status of ``ticket``
 
         For tickets and remote branches, this shows the commit log of the branch on
@@ -1098,7 +1098,7 @@ class SageDev(object):
 
     def import_patch(self, patchname=None, url=None, local_file=None,
             diff_format=None, header_format=None, path_format=None):
-        """
+        r"""
         Import a patch into the branch for the current ticket.
 
         If ``local_file`` is specified, apply the file it points to.
@@ -1173,7 +1173,7 @@ class SageDev(object):
                 self.git.am(resolved=True)
 
     def download_patch(self, ticketnum=None, patchname=None, url=None):
-        """
+        r"""
         download a patch to a temporary directory
 
         If only ``ticketnum`` is specified and the ticket has only one
@@ -1226,7 +1226,7 @@ class SageDev(object):
             raise ValueError("If `url` is not specified, `ticketnum` must be specified")
 
     def diff(self, base=None):
-        """
+        r"""
         Show how the current file system differs from ``base``.
 
         INPUT:
@@ -1256,7 +1256,7 @@ class SageDev(object):
             self.git.execute("diff", base)
 
     def prune_closed_tickets(self):
-        """
+        r"""
         Remove branches for tickets that are already merged into master.
 
         .. SEEALSO::
@@ -1269,7 +1269,7 @@ class SageDev(object):
                 self.git.abandon(branch)
 
     def abandon_ticket(self, ticket=None):
-        """
+        r"""
         Abandon a ticket branch.
 
         INPUT:
@@ -1290,7 +1290,7 @@ class SageDev(object):
             self.git.abandon(ticketnum)
 
     def gather(self, branchname, *tickets, **kwds):
-        """
+        r"""
         Create a new branch ``branchname`` with ``tickets`` applied.
 
         INPUT:
@@ -1340,7 +1340,7 @@ class SageDev(object):
                     **kwds)
 
     def show_dependencies(self, ticket=None, all=False, _seen=None): # all = recursive
-        """
+        r"""
         show the dependencies of the given ticket
 
         INPUT:
@@ -1397,7 +1397,7 @@ class SageDev(object):
                 self._UI.show("Ticket %s depends on %s"%(ticket, ", ".join([str(d) for d in seen])))
 
     def merge(self, ticket=MASTER_BRANCH, create_dependency=True, download=False, message=None):
-        """
+        r"""
         Merge changes from another branch into the current branch.
 
         INPUT:
@@ -1497,7 +1497,7 @@ class SageDev(object):
         self.git.merge(ref, **kwds)
 
     def local_tickets(self, abandoned=False, quiet=False):
-        """
+        r"""
         Print the tickets currently being worked on in your local
         repository.
 
@@ -1533,7 +1533,7 @@ class SageDev(object):
                 print ticket or '     ', '\t', branch
 
     def current_ticket(self, error=False):
-        """
+        r"""
         Returns the current ticket as an int, or ``None`` if there is
         no current ticket.
 
@@ -1552,7 +1552,7 @@ class SageDev(object):
         if error: raise ValueError("You must specify a ticket")
 
     def vanilla(self, release="release"):
-        """
+        r"""
         Returns to a basic release of Sage.
 
         INPUT:
@@ -1587,7 +1587,7 @@ class SageDev(object):
     ##
 
     def _fetch(self, branch, repository=None):
-        """
+        r"""
         fetches ``branch`` from the remote repository, returning the name of
         the newly-updated local ref
 
@@ -1611,7 +1611,7 @@ class SageDev(object):
         return local_ref
 
     def _detect_patch_diff_format(self, lines):
-        """
+        r"""
         Determine the format of the ``diff`` lines in ``lines``.
 
         INPUT:
@@ -1679,7 +1679,7 @@ class SageDev(object):
             return format
 
     def _detect_patch_path_format(self, lines, diff_format = None):
-        """
+        r"""
         Determine the format of the paths in the patch given in ``lines``.
 
         INPUT:
@@ -1761,7 +1761,7 @@ class SageDev(object):
            return path_format
 
     def _rewrite_patch_diff_paths(self, lines, to_format, from_format=None, diff_format=None):
-        """
+        r"""
         Rewrite the ``diff`` lines in ``lines`` to use ``to_format``.
 
         INPUT:
@@ -1924,7 +1924,7 @@ class SageDev(object):
             raise NotImplementedError(from_format)
 
     def _detect_patch_header_format(self, lines):
-        """
+        r"""
         Detect the format of the patch header in ``lines``.
 
         INPUT:
@@ -1998,7 +1998,7 @@ class SageDev(object):
         return list(ret)
 
     def _rewrite_patch_header(self, lines, to_format, from_format = None, diff_format = None):
-        """
+        r"""
         Rewrite ``lines`` to match ``to_format``.
 
         INPUT:
@@ -2149,7 +2149,7 @@ class SageDev(object):
         raise NotImplementedError
 
     def _upload_ssh_key(self, keyfile, create_key_if_not_exists=True):
-        """
+        r"""
         Upload ``keyfile`` to gitolite through the trac interface.
 
         INPUT:
@@ -2232,7 +2232,7 @@ class SageDev(object):
         return dep
 
     def _save_uncommitted_changes(self):
-        """
+        r"""
         Returns True if changes should be unstashed
         """
         if not self._UI.confirm("You have uncommitted changes, would you "+
@@ -2264,7 +2264,7 @@ class SageDev(object):
                           "They are now in your stash.")
 
 def doctest_config():
-    """
+    r"""
     creates a fake configuration used for doctesting
 
     TESTS::

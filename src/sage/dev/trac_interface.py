@@ -11,8 +11,8 @@ import urlparse
 
 from xmlrpclib import SafeTransport, ServerProxy
 
-from sage.doctest import DOCTEST_MODE
 from sage.env import REALM, TRAC_SERVER_URI
+import sage.doctest
 
 FIELD_REGEX = re.compile("^([A-Za-z ]+):(.*)$")
 ALLOWED_FIELDS = {
@@ -436,7 +436,7 @@ class TracInterface(object):
                 assert type(ret, DoctestServerProxy), "running doctests which use git/trac is not supported from within a running session of sage"
             return ret
 
-        if DOCTEST_MODE:
+        if sage.doctest.DOCTEST_MODE:
             self.__authenticated_server_proxy = DoctestServerProxy(self)
             return self.__authenticated_server_proxy
 

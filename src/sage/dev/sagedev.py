@@ -1059,6 +1059,9 @@ class SageDev(object):
                     to_display.append(' '.join(line))
             self._UI.show('\n'.join(to_display))
 
+        if ticket is None :
+            ticket = self.current_ticket()
+
         if isinstance(ticket, int):
             branch = self._branch[ticket]
         else:

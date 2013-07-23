@@ -1107,14 +1107,13 @@ class SageDev(object):
         - :meth:`download` -- This function is used to merge in
           changes from a git branch rather than a patch.
         """
-        ticketnum = self.current_ticket()
         if not self.git.reset_to_clean_state(): return
         if not self.git.reset_to_clean_working_directory(): return
 
         if not local_file:
             return self.import_patch(
                     local_file=self.download_patch(
-                        ticketnum=ticketnum, patchname=patchname, url=url),
+                        patchname=patchname, url=url),
                     diff_format=diff_format,
                     header_format=header_format,
                     path_format=path_format)

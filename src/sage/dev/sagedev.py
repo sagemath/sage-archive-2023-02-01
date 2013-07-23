@@ -1473,6 +1473,8 @@ class SageDev(object):
                 dep = ref = self._branch[ticket]
             except KeyError:
                 pass # ticket does not exists locally but we were not asked to download it
+        if ref is None:
+            ref = ticket
 
         if create_dependency:
             if dep is None:

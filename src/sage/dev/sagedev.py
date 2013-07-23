@@ -865,7 +865,7 @@ class SageDev(object):
 
     def upload(self, ticket=None, remote_branch=None, force=False, repository=None):
         """
-        upload the current branch to the Sage repository
+        Upload the current branch to the Sage repository
 
         INPUT:
 

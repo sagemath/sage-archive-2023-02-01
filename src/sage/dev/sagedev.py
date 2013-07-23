@@ -1479,15 +1479,17 @@ class SageDev(object):
                 dep = int(ticket)
             if dep and dep not in self._dependencies[curbranch]:
                 self._dependencies[curbranch] += (dep,)
+                self._UI.show("recorded dependency on %s"%dep)
         if message is None:
             kwds = {}
         else:
             kwds = {'m':message}
 
         if ref is None:
-            print "The dependency on ticket %s has been recorded. However, nothing has been merged because the branch for the ticket could not be found. "%ticket+ ("Probably the branch field for the ticket is empty or invalid." if download else "Probably the branch for the ticket does not exist locally, consider using '--download True'")
-        else:
-            self.git.merge(ref, **kwds)
+            self._UI.show("Nothing has been merged because the branch for %s could not be found. "%ticket+ ("Probably the branch field for the ticket is empty or invalid." if download else "Probably the branch for the ticket does not exist locally, consider using '--download True'"))
+            return
+
+        self.git.merge(ref, **kwds)
 
     def local_tickets(self, abandoned=False, quiet=False):
         """

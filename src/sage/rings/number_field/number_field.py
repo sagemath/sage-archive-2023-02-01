@@ -1544,23 +1544,21 @@ class NumberField_generic(number_field_base.NumberField):
 
     def subfield(self, alpha, name=None, names=None):
         r"""
-        Return an absolute number field K isomorphic to QQ(alpha) and a map
-        from K to self that sends the generator of K to alpha.
+        Return a number field `K` isomorphic to `\QQ(\alpha)`
+        (if this is an absolute number field) or `L(\alpha)` (if this
+        is a relative extension `M/L`) and a map from K to self that
+        sends the generator of K to alpha.
 
         INPUT:
 
         -  ``alpha`` - an element of self, or something that
            coerces to an element of self.
 
-
         OUTPUT:
 
-
-        -  ``K`` - a number field
-
-        -  ``from_K`` - a homomorphism from K to self that
-           sends the generator of K to alpha.
-
+        - ``K`` - a number field
+        - ``from_K`` - a homomorphism from K to self that
+          sends the generator of K to alpha.
 
         EXAMPLES::
 
@@ -1576,6 +1574,15 @@ class NumberField_generic(number_field_base.NumberField):
               From: Number Field in b with defining polynomial x^2 - 3
               To:   Number Field in a with defining polynomial x^4 - 3
               Defn: b |--> a^2
+
+        A relative example. Note that the result returned is the subfield generated
+        by `\alpha` over ``self.base_field()``, not over `\QQ` (see :trac:`5392`)::
+
+          sage: K.<a> = NumberField(x^2 - 3)
+          sage: L.<b> = K.extension(x^4 + 1)
+          sage: M = L.subfield(b^2)
+          sage: M[0].base_field() is K
+          True
 
         Subfields inherit embeddings::
 

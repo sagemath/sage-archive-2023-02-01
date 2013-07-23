@@ -1473,17 +1473,17 @@ class SageDev(object):
                 dep = ref = self._branch[ticket]
             except KeyError:
                 pass # ticket does not exists locally but we were not asked to download it
-        if dep is None:
-            dep = int(ticket)
 
-        if create_dependency and dep and dep not in self._dependencies[curbranch]:
-            self._dependencies[curbranch] += (dep,)
+        if create_dependency:
+            if dep is None:
+                dep = int(ticket)
+            if dep and dep not in self._dependencies[curbranch]:
+                self._dependencies[curbranch] += (dep,)
         if message is None:
             kwds = {}
         else:
             kwds = {'m':message}
 
-        print self._dependencies[curbranch]
         if ref is None:
             print "The dependency on ticket %s has been recorded. However, nothing has been merged because the branch for the ticket could not be found. "%ticket+ ("Probably the branch field for the ticket is empty or invalid." if download else "Probably the branch for the ticket does not exist locally, consider using '--download True'")
         else:

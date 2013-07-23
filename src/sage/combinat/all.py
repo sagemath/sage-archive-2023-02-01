@@ -56,6 +56,9 @@ from skew_partition import SkewPartition, SkewPartitions
 #Partition algebra
 from partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk, SetPartitionsIk, SetPartitionsBk, SetPartitionsSk, SetPartitionsRk, SetPartitionsRk, SetPartitionsPRk
 
+#Diagram algebra
+from diagram_algebras import PartitionAlgebra, BrauerAlgebra, TemperleyLiebAlgebra, PlanarAlgebra, PropagatingIdeal
+
 #Vector Partitions
 from vector_partition import VectorPartition, VectorPartitions
 

@@ -50,7 +50,7 @@ GIT_PATH_REGEX = re.compile(r"^(?=src/)")
 # run this should be "master", currently, "build_system" contains some changes
 # over "master" which have not been reviewed yet but which are needed to work
 # using git
-MASTER_BRANCH = "build_system"
+MASTER_BRANCH = "u/tkluck/master"
 
 TracConnectionError = RuntimeError("could not connect with trac server")
 

@@ -1578,11 +1578,11 @@ class NumberField_generic(number_field_base.NumberField):
         A relative example. Note that the result returned is the subfield generated
         by `\alpha` over ``self.base_field()``, not over `\QQ` (see :trac:`5392`)::
 
-          sage: K.<a> = NumberField(x^2 - 3)
-          sage: L.<b> = K.extension(x^4 + 1)
-          sage: M = L.subfield(b^2)
-          sage: M[0].base_field() is K
-          True
+            sage: L.<a> = NumberField(x^2 - 3)
+            sage: M.<b> = L.extension(x^4 + 1)
+            sage: K, phi = M.subfield(b^2)
+            sage: K.base_field() is L
+            True
 
         Subfields inherit embeddings::
 

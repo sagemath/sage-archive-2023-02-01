@@ -47,10 +47,10 @@ HG_PATH_REGEX = re.compile(r"^(?=sage/)|(?=doc/)|(?=module_list\.py)|(?=setup\.p
 GIT_PATH_REGEX = re.compile(r"^(?=src/)")
 
 # the name of the branch which holds the vanilla clone of sage - in the long
-# run this should be "master", currently, "build_system" contains some changes
+# run this should be "master", currently, "public/sage-git/master" contains some changes
 # over "master" which have not been reviewed yet but which are needed to work
 # using git
-MASTER_BRANCH = "u/tkluck/master"
+MASTER_BRANCH = "public/sage-git/master"
 
 TracConnectionError = RuntimeError("could not connect with trac server")
 
@@ -1059,14 +1059,15 @@ class SageDev(object):
                     to_display.append(' '.join(line))
             self._UI.show('\n'.join(to_display))
 
+        if ticket is None :
+            ticket = self.current_ticket()
+
         if isinstance(ticket, int):
             branch = self._branch[ticket]
         else:
             branch = ticket
 
-        # XXX this is ugly: the command line 'sage -dev remote-status --ticket=all'
-        # results in the ticket argument being set to the builtin function all
-        if ticket == all:
+        if ticket == 'all':
             ret = (self.remote_status(ticket or branch, quiet=True)
                     for ticket, branch in self.local_tickets(quiet=True))
             if quiet:
@@ -2210,7 +2211,8 @@ class SageDev(object):
                 return self._remote[ticket]
         if isinstance(ticket, int):
             return self._trac_branch(ticket)
-        raise ValueError
+        raise ValueError("ticket(={value}) must be instance of basesting of int, but is instance of {type}"
+                         .format(value = ticket, type = type(ticket)))
 
     def _ticket_repr(self, ticket):
         if isinstance(ticket, basestring):

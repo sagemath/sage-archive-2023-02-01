@@ -200,14 +200,29 @@ def parser_from_method(parser, func, help_dict):
         extra = {}
         if ix < default_start:
             name = arg
+            extra['type'] = str_to_value
         else:
             name = '--' + arg
-            extra['default'] = str(argspec.defaults[ix - default_start])
+
+            default_value = argspec.defaults[ix - default_start]
+            if default_value is False:
+                extra['action'] = 'store_true'
+            else:
+                extra['default'] = default_value
+
+                if isinstance(default_value, int) :
+                    extra['type'] = int
+                elif isinstance(default_value, bool):
+                    extra['type'] = bool
+                else:
+                    extra['type'] = str_to_value
+
         if arg in help_dict:
             extra['help'] = help_dict[arg]
         parser.add_argument(name, **extra)
     if argspec.varargs is not None:
-        extra = {'nargs':'*'}
+        extra = {'nargs': '*',
+                 'type': str_to_value}
         if argspec.varargs in help_dict:
             extra['help'] = help_dict[argspec.varargs]
         parser.add_argument(argspec.varargs, **extra)
@@ -219,17 +234,18 @@ def parser_from_method(parser, func, help_dict):
 
 def str_to_value(s):
     """
-    Returns s as a boolean or int if possible, otherwise returns s itself.
+    Returns s as none, a boolean, or an int, if possible.  Otherwise,
+    returns s itself.
     """
     if not isinstance(s, str):
         return s
 
-    try:
-        return eval(s)
-    except Exception:
-        pass
-    if s.lower() in ('true', 'false'):
-        return s.lower() == 'true'
+    slower = s.lower()
+    if slower in ('true', 'false'):
+        return slower == 'true'
+    if slower == 'none':
+        return None
+
     try:
         return int(s)
     except ValueError:
@@ -284,23 +300,20 @@ def parser_from_object(obj, *args, **kwds):
 
         args = []
         for arg in argspec.args:
-            args.append(str_to_value(parsed[arg]))
+            args.append(parsed[arg])
             del parsed[arg]
         if argspec.varargs:
             args.extend(str_to_value(parsed[argspec.varargs]))
             del parsed[argspec.varargs]
 
         if argspec.keywords:
-            kwds = parsed[argspec.keywords]
+            kwds = map(lambda k: k.split('=')[0],
+                       filter(lambda k: k.startswith('--'),
+                              parsed[argspec.keywords]))
             kwdparser = argparse.ArgumentParser(formatter_class=SageHelpFormatter)
             for kwdarg in kwds:
-                if kwdarg.startswith('--'):
-                    if '=' in kwdarg:
-                        kwdparser.add_argument(kwdarg.split('=')[0])
-                    else:
-                        kwdparser.add_argument(kwdarg)
-            for key, value in vars(kwdparser.parse_args(kwds)).items():
-                parsed[key] = value
+                kwdparser.add_argument(kwdarg, type=str_to_value)
+            parsed.update(vars(kwdparser.parse_args(kwds)))
             del parsed[argspec.keywords]
 
         kwds = {key: str_to_value(value) for key, value in parsed.items()}

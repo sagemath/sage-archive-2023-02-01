@@ -567,6 +567,8 @@ class GitInterface(object):
         if args:
             s.extend(a for a in args if a is not None)
 
+        s = [str(arg) for arg in s]
+
         if not self._doctest_mode:
             self._UI.show("[git] %s"%(" ".join(s)))
 

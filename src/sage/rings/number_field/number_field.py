@@ -5624,7 +5624,7 @@ class NumberField_absolute(NumberField_generic):
             sage: K._coerce_from_other_number_field(b)
             Traceback (most recent call last):
             ...
-            ValueError: Cannot convert b to Number Field in a with defining polynomial x^3 + 2 (regardless of embeddings)
+            TypeError: No compatible natural embeddings found for Number Field in a with defining polynomial x^3 + 2 and Number Field in b with defining polynomial x^2 + 1
 
         Two number fields both containing `i`::
 

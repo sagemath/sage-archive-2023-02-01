@@ -5723,12 +5723,6 @@ class NumberField_absolute(NumberField_generic):
         # Convert from L to K
         K = self
         L = x.parent()
-        # List of candidates for K(x)
-        f = x.minpoly()
-        ys = f.roots(ring=K, multiplicities=False)
-        if not ys:
-            raise ValueError, "Cannot convert %s to %s (regardless of embeddings)"%(x,K)
-
         # Find embeddings for K and L.  If no embedding is given, simply
         # take the identity map as "embedding".  This handles the case
         # where one field is created as subfield of the other.
@@ -5762,6 +5756,12 @@ class NumberField_absolute(NumberField_generic):
             Kgen = F(Kgen)
         else:
             raise TypeError, "No compatible natural embeddings found for %s and %s"%(KF,LF)
+
+        # List of candidates for K(x)
+        f = x.minpoly()
+        ys = f.roots(ring=K, multiplicities=False)
+        if not ys:
+            raise ValueError, "Cannot convert %s to %s (regardless of embeddings)"%(x,K)
 
         # Define a function are_roots_equal to determine whether two
         # roots of f are equal.  A simple a == b does not suffice for

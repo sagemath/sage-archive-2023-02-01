@@ -263,11 +263,25 @@ class SagePreparseTransformer():
             sage: spt('2', 0)
             '2'
             sage: preparser(True)
+
+        TESTS:
+
+        A check that :trac:`14961` does not crash sage, however because of the
+        nature of the error, the doctesting framework crashes when trying
+        to run this test::
+
+            sage: R.<t> = QQ{] # not tested
+            SyntaxError: Mismatched ']'
+            SyntaxError: Mismatched ']'
         """
         if do_preparse and not line.startswith('%'):
             # we use preparse_file instead of just preparse because preparse_file
             # automatically prepends attached files
-            return preparse(line, reset=(line_number==0))
+            try:
+                return preparse(line, reset=(line_number==0))
+            except SyntaxError as err:
+                print "SyntaxError: {0}".format(err)
+            return ''
         else:
             return line
 

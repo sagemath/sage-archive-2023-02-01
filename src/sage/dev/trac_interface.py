@@ -11,8 +11,8 @@ import urlparse
 
 from xmlrpclib import SafeTransport, ServerProxy
 
-from sage.doctest import DOCTEST_MODE
 from sage.env import REALM, TRAC_SERVER_URI
+import sage.doctest
 
 FIELD_REGEX = re.compile("^([A-Za-z ]+):(.*)$")
 ALLOWED_FIELDS = {
@@ -417,6 +417,7 @@ class TracInterface(object):
             sage: dev.trac._authenticated_server_proxy
             <sage.dev.trac_interface.DoctestServerProxy object at ...>
         """
+        ret = None
         try:
             if time.time() < self.__auth_timeout:
                 # default timeout is 5 minutes, like sudo
@@ -424,13 +425,18 @@ class TracInterface(object):
                         self._config.get('password_timeout', 300))
                 if new_timeout > self.__auth_timeout:
                     self.__auth_timeout = new_timeout
-                return self.__authenticated_server_proxy
+                ret = self.__authenticated_server_proxy
             else:
                 del self.__authenticated_server_proxy
         except AttributeError:
             pass
 
-        if DOCTEST_MODE:
+        if ret:
+            if sage.doctest.DOCTEST_MODE:
+                assert type(ret, DoctestServerProxy), "running doctests which use git/trac is not supported from within a running session of sage"
+            return ret
+
+        if sage.doctest.DOCTEST_MODE:
             self.__authenticated_server_proxy = DoctestServerProxy(self)
             return self.__authenticated_server_proxy
 

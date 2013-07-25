@@ -921,8 +921,7 @@ class SageDev(object):
                 force = True
             else: return
 
-        if self.git.push(repository, "%s:%s"%(branch, remote_branch), force=force):
-            raise RuntimeError("failed to push changes to %s"%repository)
+        self.git.push(repository, "%s:%s"%(branch, remote_branch), force=force)
 
         if ticket:
             ticket_branch = self.trac._get_attributes(ticket).get("branch", "").strip()
@@ -1146,8 +1145,9 @@ class SageDev(object):
             open(outfile, 'w').writelines("\n".join(lines)+"\n")
 
             self._UI.show("Trying to apply reformatted patch `%s` ..."%outfile)
-            am = self.git.am(outfile, ignore_whitespace=True, resolvemsg='')
-            if am: # apply failed
+            try:
+                self.git.am(outfile, ignore_whitespace=True, resolvemsg='')
+            except GitError:
                 if not self._UI.confirm("The patch does not apply cleanly. "+
                                         "Would you like to apply it anyway "+
                                         "and create reject files for the "+
@@ -1157,18 +1157,20 @@ class SageDev(object):
                     self.git.reset_to_clean_state(interactive=False)
                     return
 
-                apply = self.git.apply(output, ignore_whitespace=True, reject=True)
-                if apply and self._UI.select("The patch did not apply "+
+                try:
+                    self.git.apply(output, ignore_whitespace=True, reject=True)
+                except GitError:
+                    if self._UI.select("The patch did not apply "+
                         "cleanly. Please integrate the `.rej` files that "+
                         "were created and resolve conflicts. After you do, "+
                         "type `resolved`. If you want to abort this process, "+
                         "type `abort`.", ("resolved","abort")) == "abort":
-                    self.git.reset_to_clean_state(interactive=False)
-                    self.git.reset_to_clean_working_directory(interactive=False)
-                    return
-                elif not apply:
-                    self._UI.show("It seemed that the patch would not apply, "+
-                                  "but in fact it did.")
+                        self.git.reset_to_clean_state(interactive=False)
+                        self.git.reset_to_clean_working_directory(interactive=False)
+                        return
+
+                self._UI.show("It seemed that the patch would not apply, "+
+                              "but in fact it did.")
 
                 self.git.add(update=True)
                 self.git.am(resolved=True)
@@ -1606,10 +1608,7 @@ class SageDev(object):
         if repository is None:
             repository = self.git._repo
         local_ref = "refs/remotes/trac/%s"%branch
-        retcode = self.git.fetch(repository, "+%s:%s"%(branch, local_ref))
-        if retcode:
-            raise RuntimeError('could not fetch '+
-                    '%s from %s'%(branch, repository))
+        self.git.fetch(repository, "+%s:%s"%(branch, local_ref))
         return local_ref
 
     def _detect_patch_diff_format(self, lines):
@@ -2249,18 +2248,15 @@ class SageDev(object):
         if dest == "stash":
             self.git.stash()
         elif dest == "new branch":
-            success = self.git.execute_silent("stash")
-            if success != 0:
-                raise RuntimeError("failed to stash changes")
+            self.git.execute_silent("stash")
             return True
         elif dest == "current branch":
             self.commit()
 
     def _unstash_changes(self):
-        success = self.git.execute_silent("stash", "apply")
-        if success == 0:
+        try self.git.execute_silent("stash", "apply"):
             self.git.execute_silent("stash", "drop")
-        else:
+        except GitError:
             self.git.execute_silent("reset", hard=True)
             self._UI.show("Changes did not apply cleanly to the new branch. "+
                           "They are now in your stash.")

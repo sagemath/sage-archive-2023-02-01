@@ -233,6 +233,10 @@ def normalize_ticket_name(x):
     """
     return '/'.join(('ticket', x[1]))
 
+class GitError(RuntimeError):
+    def __init__(self, exit_code):
+        RuntimeError("git returned with non-zero exit code (%s)"%exit_code)
+
 class GitInterface(object):
     def __init__(self, sagedev):
         self._sagedev = sagedev
@@ -514,6 +518,11 @@ class GitInterface(object):
 
           - ``stderr`` - if set to `False` will supress stderr
 
+        .. WARNING::
+
+            This method does not raise an exception if the git call returns a
+            non-zero exit code.
+
         EXAMPLES::
 
             sage: from sage.dev.sagedev import SageDev, doctest_config
@@ -591,7 +600,9 @@ class GitInterface(object):
 
     def execute(self, cmd, *args, **kwds):
         """
-        returns exit code of a git command
+        Run git.
+
+        Raises an exception if git has non-zero exit code.
 
         INPUT:
 
@@ -641,15 +652,19 @@ class GitInterface(object):
             sage: r
             1
         """
-        return self._run_git(cmd, args, kwds)[0]
+        exit_code = self._run_git(cmd, args, kwds)[0]
+        if exit_code:
+            raise GitError(exit_code)
 
     __call__ = execute
 
     def execute_silent(self, cmd, *args, **kwds):
         """
-        returns exit code of a git command while supressing stdout
+        Run git and supress its output to stdout.
 
-        same input as :meth:`execute`
+        Same input as :meth:`execute`.
+
+        Raises an error if git returns a non-zero exit code.
 
         EXAMPLES::
 
@@ -670,14 +685,17 @@ class GitInterface(object):
             <BLANKLINE>
             0
         """
-        return self._run_git(cmd, args, kwds, stdout=False)[0]
+        exit_code = self._run_git(cmd, args, kwds, stdout=False)[0]
+        if exit_code:
+            raise GitError(exit_code)
 
     def execute_supersilent(self, cmd, *args, **kwds):
         """
-        returns exit code of a git command while supressing both stdout
-        and stderr
+        Run git and supress its output to stdout and stderr.
 
-        same input as :meth:`execute`
+        Same input as :meth:`execute`.
+
+        Raises an error if git returns a non-zero exit code.
 
         EXAMPLES::
 
@@ -689,20 +707,27 @@ class GitInterface(object):
             ....:     env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
             0
         """
-        return self._run_git(cmd, args, kwds, stdout=False, stderr=False)[0]
+        exit_code = self._run_git(cmd, args, kwds, stdout=False, stderr=False)[0]
+        if exit_code:
+            raise GitError(exit_code)
 
     def read_output(self, cmd, *args, **kwds):
         r"""
-        returns stdout of a git command
+        Run git and return its output to stdout.
 
-        same input as :meth:`execute`
+        Same input as :meth:`execute`.
+
+        Raises an error if git returns a non-zero exit code.
 
         EXAMPLES::
 
             sage: dev.git.read_output('log', oneline=True)
             '... edit the testfile differently\n... add a testfile\n'
         """
-        return self._run_git(cmd, args, kwds, stdout=str)[1]
+        exit_code, ret, _ = self._run_git(cmd, args, kwds, stdout=str, stderr=False)
+        if exit_code:
+            raise GitError(exit_code)
+        return ret
 
     def is_child_of(self, a, b):
         """
@@ -981,12 +1006,10 @@ class GitInterface(object):
             40
             sage: git.ref_exists("refs/tags/asdlkfjasdlf")
         """
-        # TODO: optimize and make this atomic :-)
-        if self.execute("show-ref", ref, quiet=True, verify=True):
-            return None
-        else:
-            return self.read_output("show-ref", ref,
-                                hash=True, verify=True).strip()
+        try self.execute("show-ref", ref, quiet=True, verify=True):
+            return self.read_output("show-ref", ref, hash=True, verify=True).strip()
+        except GitError:
+            pass
 
     def create_branch(self, branchname, basebranch=None, remote_branch=True):
         """
@@ -1088,8 +1111,7 @@ class GitInterface(object):
             if self.create_branch(branchname) is not None:
                 raise RuntimeError("could not create new branch")
 
-        if self.execute("checkout", branchname, detach=detached) != 0:
-            raise RuntimeError("failed to switch to new branch")
+        self.execute("checkout", branchname, detach=detached)
 
         if move:
             self._sagedev._unstash_changes()
@@ -1146,7 +1168,7 @@ def _git_cmd_wrapper(git_cmd):
         0
     """
     def meth(self, *args, **kwds):
-        return self.execute(git_cmd.replace("_", "-"), *args, **kwds)
+        self.execute(git_cmd.replace("_", "-"), *args, **kwds)
     meth.__doc__ = """
             direct call to \`git %s\`
 

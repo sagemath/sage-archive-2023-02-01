@@ -317,8 +317,7 @@ class CmdLineInterface(UserInterface):
 
         message = message.strip().splitlines()
         message = [line.rstrip() for line in message]
-        if (len(message)+2 <= height and
-                max(len(line) for line in message) <= width):
+        if sum(len(l) // width + 1 for l in message) + 2 <= height:
             print(*message, sep='\n')
         else:
             message = '\n'.join(message)+'\n'

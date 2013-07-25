@@ -1006,6 +1006,9 @@ class SageDev(object):
             overwrite_deps = self.git.is_ancestor_of(branch, ref)
             self.merge(ref, create_dependency=False, download=False)
         if ticket is not None:
+            old_dependencies = ", ".join(self._dependencies[branch])
+            if old_dependencies == "": old_dependencies = "(no dependencies)"
+
             trac_deps = self.trac.dependencies(ticket)
             if overwrite_deps:
                 self._dependencies[branch] = trac_deps
@@ -1014,6 +1017,12 @@ class SageDev(object):
                 git_deps = self._dependencies_as_tickets(branch)
                 deps.update(git_deps)
                 self._dependencies[branch] = tuple(sorted(deps))
+
+            new_dependencies = ", ".join(self._dependencies[branch])
+            if new_dependencies == "": new_dependencies = "(no dependencies)"
+
+            if old_dependencies != new_dependencies:
+                self._UI.show("WARNING: the dependencies of this ticket have changed from %s to %s"%(old_dependencies, new_dependencies))
 
     def remote_status(self, ticket=None, quiet=False):
         r"""

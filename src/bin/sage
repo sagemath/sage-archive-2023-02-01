@@ -439,6 +439,11 @@ if [ "$1" = '-ipython' -o "$1" = '--ipython' ]; then
     exec "$SAGE_LOCAL/bin/ipython" "$@"
 fi
 
+if [ "$1" = '-git' -o "$1" = '--git' ]; then
+    shift
+    exec "$SAGE_LOCAL/bin/git" "$@"
+fi
+
 if [ "$1" = '-sh' -o "$1" = '--sh' ]; then
     # AUTHORS:
     # - Carl Witty and William Stein: initial version

@@ -47,10 +47,10 @@ HG_PATH_REGEX = re.compile(r"^(?=sage/)|(?=doc/)|(?=module_list\.py)|(?=setup\.p
 GIT_PATH_REGEX = re.compile(r"^(?=src/)")
 
 # the name of the branch which holds the vanilla clone of sage - in the long
-# run this should be "master", currently, "build_system" contains some changes
+# run this should be "master", currently, "public/sage-git/master" contains some changes
 # over "master" which have not been reviewed yet but which are needed to work
 # using git
-MASTER_BRANCH = "build_system"
+MASTER_BRANCH = "public/sage-git/master"
 
 TracConnectionError = RuntimeError("could not connect with trac server")
 

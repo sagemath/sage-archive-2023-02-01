@@ -1530,8 +1530,9 @@ class SageDev(object):
         if quiet:
             return branch_info
         else:
-            for branch, ticket in branch_info:
-                print ticket or '     ', '\t', branch
+            self._UI.show('\n'.join([
+                        "{0}\t{1}".format(ticket or "     ", branch)
+                        for (branch, ticket) in branch_info]))
 
     def current_ticket(self, error=False):
         r"""

@@ -766,6 +766,28 @@ class SageDev(object):
             except TracConnectionError:
                 pass
 
+    def edit_ticket(self, ticket=None):
+        r"""
+        Edit the description of ``ticket`` on trac.
+
+        INPUT:
+
+        - ``ticket`` -- an integer or ``None`` (default: ``None``), the number
+          of the ticket to edit. If ``None``, edit the :meth:`current_ticket`.
+
+        .. SEEALSO::
+
+            :meth:`create_ticket`, :meth:`add_comment`
+
+        """
+        if ticket is None:
+            ticket = self.current_ticket()
+
+        if ticket is None:
+            raise ValueError("must specify a ticket")
+
+        self.trac.edit_ticket(ticket)
+
     def create_ticket(self,
             branchname=None, base=MASTER_BRANCH, remote_branch=None):
         r"""

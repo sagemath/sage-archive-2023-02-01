@@ -374,7 +374,7 @@ cdef class Parent(category_object.CategoryObject):
 
         Most parents initialize their category upon construction, and
         this is the recommended behavior. For example, this happens
-        when the constructor calls `Parent.__init__()` directly or
+        when the constructor calls :meth:`Parent.__init__` directly or
         indirectly. However, some parents defer this for performance
         reasons. For example,
         :mod:`sage.matrix.matrix_space.MatrixSpace` does not.

@@ -907,7 +907,7 @@ class SageDev(object):
             if ticket is None and remote_branch is None:
                 raise ValueError("You don't have a ticket for this branch "+
                                  "(%s)"%branch)
-            oldticket = ticket
+
         remote_branch = remote_branch or self.git._local_to_remote_name(branch)
         ref = None
         try:
@@ -1009,12 +1009,12 @@ class SageDev(object):
         if ticket is not None:
             trac_deps = self.trac.dependencies(ticket)
             if overwrite_deps:
-                self._dependencies[ticket] = trac_deps
+                self._dependencies[branch] = trac_deps
             else:
                 deps = set(trac_deps)
                 git_deps = self._dependencies_as_tickets(branch)
                 deps.update(git_deps)
-                self._dependencies[ticket] = tuple(sorted(deps))
+                self._dependencies[branch] = tuple(sorted(deps))
 
     def remote_status(self, ticket=None, quiet=False):
         r"""

@@ -8,6 +8,8 @@ from __future__ import print_function
 
 import os
 
+from subprocess import check_call, CalledProcessError
+
 from getpass import getpass
 
 try:
@@ -343,10 +345,16 @@ class CmdLineInterface(UserInterface):
             stuff to put in file
             sage: os.unlink(tmp)
         """
-        r = os.system(" ".join((os.environ.get('EDITOR', 'nano'), filename)))
-        if r: return r
+        try:
+            check_call([os.environ.get('EDITOR', 'nano'), filename])
+        except CalledProcessError:
+            raise RuntimeError("Editor returned non-zero exit value")
 
 class DoctestInterface(CmdLineInterface, list):
+    def __init__(self, *args, **kwds):
+        CmdLineInterface.__init__(self, *args, **kwds)
+        self._edits = 0
+
     def _get_input(self, *args, **kwds):
         """
         overwrites `input_func` with custom function for doctesting
@@ -371,3 +379,10 @@ class DoctestInterface(CmdLineInterface, list):
         kwds['input_func'] = input_func
 
         return super(DoctestInterface, self)._get_input(*args, **kwds)
+
+    def edit(self, filename):
+        lines = open(filename).read()
+        self._edits += 1
+        lines = lines.replace("Summary: \n", "Summary: ticket number %s\n" % self._edits)
+        lines = lines.replace("ADD DESCRIPTION", "A description after edit number %s" % self._edits)
+        open(filename, 'w').write(lines)

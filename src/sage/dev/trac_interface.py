@@ -263,6 +263,7 @@ class DoctestServerProxy(object):
         sage: sage.dev.trac_interface.DoctestServerProxy(dev.trac)
         <sage.dev.trac_interface.DoctestServerProxy object at ...>
     """
+    _ticket_data = dict()
     def __init__(self, trac):
         """
         Initialization.
@@ -341,10 +342,21 @@ class DoctestServerProxy(object):
         """
         class Ticket(object):
             def create(self, summary, description, attributes, notify):
-                return 14366
+                ticketnum = 14366
+                DoctestServerProxy._ticket_data[ticketnum] = [ticketnum, summary, description, attributes, notify]
+                return ticketnum
             def update(self, ticketnum, comment, attributes):
                 assert isinstance(ticketnum, int)
+                try:
+                    DoctestServerProxy._ticket_data[ticketnum][3] = attributes
+                except KeyError:
+                    DoctestServerProxy._ticket_data[ticketnum] = [ticketnum, None, None, attributes, None]
                 return (ticketnum,)
+            def get(self, ticketnum):
+                assert isinstance(ticketnum, int)
+                print("returning attributes %s" %  DoctestServerProxy._ticket_data[ticketnum])
+                return DoctestServerProxy._ticket_data[ticketnum]
+                
 
         return Ticket()
 
@@ -441,7 +453,7 @@ class TracInterface(object):
             return ret
 
         if sage.doctest.DOCTEST_MODE:
-            self.__authenticated_server_proxy = DoctestServerProxy(self)
+            self.__authenticated_server_proxy = self.__anonymous_server_proxy = DoctestServerProxy(self)
             return self.__authenticated_server_proxy
 
         realm = self._config.get('realm', REALM)
@@ -762,13 +774,11 @@ class TracInterface(object):
             F.write(TICKET_FILE_GUIDE)
 
         while True:
-            if self._UI.edit(filename):
-                raise RuntimeError("editor exited with non-zero exit code")
-
             try:
+                self._UI.edit(filename)
                 ret = _parse_ticket_file(filename)
                 break
-            except TicketSyntaxError as error:
+            except (RuntimeError, TicketSyntaxError) as error:
                 pass
 
             self._UI.show("TicketSyntaxError: "+error.message)

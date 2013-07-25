@@ -267,58 +267,12 @@ class GitInterface(object):
             sage: from sage.dev.sagedev import SageDev, doctest_config
             sage: import os
             sage: git = SageDev(doctest_config()).git  # indirect doctest
-            sage: os.path.isfile(os.path.join(git._tmp_dir, 'testfile'))
-            True
-            sage: os.path.isfile(os.path.join(git._tmp_dir, 'untracked_testfile1'))
-            True
-            sage: os.path.isfile(os.path.join(git._tmp_dir, 'untracked_testfile2'))
-            True
-            sage: len(git.read_output('log','--oneline','first_branch').splitlines())
-            2
-            sage: len(git.read_output('log','--oneline','second_branch').splitlines())
-            2
-            sage: len(git.read_output('log','--oneline','master').splitlines())
-            1
-            sage: len(git.read_output('log','--oneline','test_tag').splitlines())
-            1
         """
-        os.chdir(self._tmp_dir)
-        env = {s:'doctest' for s in
-                ('GIT_COMMITTER_NAME', 'GIT_COMMITTER_EMAIL',
-                 'GIT_AUTHOR_NAME',     'GIT_AUTHOR_EMAIL') }
-
+        _dot_git = self._dot_git
         self.execute_silent('init')
-
-        with open('testfile', 'w') as f:
-            f.write('this is a test file\n')
-        self.execute_silent('add', 'testfile')
-        env['GIT_COMMITTER_DATE'] = env['GIT_AUTHOR_DATE'] = '100000000 +0000'
-        self.execute_silent('commit', message="add a testfile", env=env)
-
-        self.execute_silent('tag', 'test_tag')
-        self.execute_silent('branch', 'first_branch')
-        self.execute_silent('checkout', 'HEAD', quiet=True, detach=True)
-
-        with open('testfile', 'w') as f:
-            f.write('this test file has been edited\n')
-        self.execute_silent('add', 'testfile')
-        env['GIT_COMMITTER_DATE'] = env['GIT_AUTHOR_DATE'] = '200000000 +0000'
-        self.execute_silent('commit', message="edit the testfile", env=env)
-
-        self.execute_silent('branch', 'second_branch')
-        self.execute_silent('checkout', 'first_branch', quiet=True)
-
-        with open('testfile', 'w') as f:
-            f.write('this test file has been edited differently\n')
-        self.execute_silent('add', 'testfile')
-        env['GIT_COMMITTER_DATE'] = env['GIT_AUTHOR_DATE'] = '300000000 +0000'
-        self.execute_silent('commit',
-                message="edit the testfile differently", env=env)
-
-        with open('untracked_testfile1', 'w') as f:
-            f.write('this test is untracked\n')
-        with open('untracked_testfile2', 'w') as f:
-            f.write('this test is also untracked\n')
+        self.execute_silent('commit', '--allow-empty', '-m', "initial empty commit")
+        from sage.dev.sagedev import MASTER_BRANCH
+        self.execute_silent('branch', MASTER_BRANCH)
 
     def __repr__(self):
         """
@@ -776,7 +730,11 @@ class GitInterface(object):
             sage: git.has_uncommitted_changes()
             True
         """
-        return self.execute('diff', quiet=True) != 0
+        try:
+            self.execute('diff', quiet=True)
+            return False
+        except GitError:
+            return True
 
     def commit_all(self, *args, **kwds):
         r"""

@@ -1,5 +1,77 @@
 r"""
 Sagedev
+
+TESTS::
+
+    sage: from sage.dev.sagedev import doctest_config, SageDev
+    sage: dummy_dev = SageDev(doctest_config("dummy_user"))
+    sage: remote_repo = dummy_dev.git
+    sage: dev1 = SageDev(doctest_config("user1", remote=remote_repo._tmp_dir))
+    sage: dev2 = SageDev(doctest_config("user2", remote=remote_repo._tmp_dir))
+
+Collaboration::
+
+    sage: # developer 1 creates a revision:
+    sage: os.chdir(dev1.git._tmp_dir)
+    sage: ticket = dev1.create_ticket()
+    Created ticket #14366 (https://trac.sagemath.org/14366).
+    Switched to branch 'ticket/14366'
+    sage: with open('a_file', 'w') as f:
+    ....:     f.write("revision 1")
+    ....:
+    sage: dev1.git.add('a_file')  # when not doctesting, you would do this interactively
+    sage: dev1.commit(message="revision 1")
+    Are you sure you want to save your changes to ticket #14366? [Yes/no]
+    [ticket/14366 ...] revision 1
+     1 file changed, 1 insertion(+)
+     create mode 100644 a_file
+    sage: dev1.diff()
+    sage: dev1.upload()
+    There does not seem to be a branch u/user1/ticket/14366 on the remote server yet. Do you want to create such a branch? [Yes/no]
+    To ...
+     * [new branch]      ticket/14366 -> u/user1/ticket/14366
+    Ticket 14366 now refers to your branch u/user1/ticket/14366.
+    sage: # developer 2 works on the ticket
+    sage: os.chdir(dev2.git._tmp_dir)
+    sage: dev2.switch_ticket(ticket)  # (or download??)
+    Switched to branch 'ticket/14366'
+    sage: dev2.download()
+    sage: open('a_file').read()
+    "revision 1"
+    sage: with open('a_file, 'w') as f:
+    ....:     f.write("revision 2a")
+    ....:
+    sage: dev2.commit()
+    sage: dev2.upload()
+    There does not seem to be a branch u/user2/ticket/14366 on the remote server yet. Do you want to create such a branch? [Yes/no]
+    To ...
+     * [new branch]      ticket/14366 -> u/user2/ticket/14366
+    Ticket 14366 now refers to your branch u/user2/ticket/14366.
+
+Merge conflicts (developer 1 is behind)::
+
+    sage: $ developer 1 tries to work simultaneously
+    sage: os.chdir(dev1.git._tmp_dir)
+    sage: with open('a_file', 'w') as f:
+    ....:     f.write("revision 2b")
+    ....:
+    sage: dev1.commit()
+    sage: dev1.upload()
+    ##### conflict!
+    sage: dev1.download()
+    #### resolve something
+    sage: dev1.upload()
+
+THINGS TO TEST:
+
+    * not on a branch
+    * in a merge / rebase /etc
+    * pending changes
+    * untracked files that are overwritten
+    * no such remote branch
+    * no such ticket
+    * network errors, access errors
+    * ticket<->branch association invalid
 """
 import atexit
 import collections
@@ -856,6 +928,7 @@ class SageDev(object):
         if base != MASTER_BRANCH:
             self._dependencies[branchname] = [base]
         self.git.switch_branch(branchname)
+        return ticketnum
 
     def commit(self, message=None, interactive=False):
         r"""
@@ -1661,7 +1734,7 @@ class SageDev(object):
         if repository is None:
             repository = self.git._repo
         local_ref = "refs/remotes/trac/%s"%branch
-        self.git.fetch(repository, "+%s:%s"%(branch, local_ref))
+        self.git.execute_supersilent('fetch', repository, "+%s:%s"%(branch, local_ref))
         return local_ref
 
     def _detect_patch_diff_format(self, lines):
@@ -2309,15 +2382,13 @@ class SageDev(object):
     def _unstash_changes(self):
         try:
             self.git.execute_silent("stash", "apply")
+            self.git.execute_silent("stash", "drop")
         except GitError:
             self.git.execute_silent("reset", hard=True)
             self._UI.show("Changes did not apply cleanly to the new branch. "+
                           "They are now in your stash.")
-            return
 
-        self.git.execute_silent("stash", "drop")
-
-def doctest_config():
+def doctest_config(trac_username = 'doctest', remote=None):
     r"""
     creates a fake configuration used for doctesting
 
@@ -2336,7 +2407,9 @@ def doctest_config():
         if os.path.exists(f):
             os.unlink(f)
     atexit.register(foo, ret._devrc)
-    ret['trac'] = {'username': 'doctest', 'password_timeout': '.5'}
+    ret['trac'] = {'username': trac_username, 'password_timeout': '.5'}
+    if remote:
+        ret['git'] = {'repo': remote}
     ret._doctest_config = True
     return ret
 

@@ -788,6 +788,28 @@ class SageDev(object):
 
         self.trac.edit_ticket(ticket)
 
+    def add_comment(self, ticket=None):
+        r"""
+        Add a comment to ``ticket`` on trac.
+
+        INPUT:
+
+        - ``ticket`` -- an integer or ``None`` (default: ``None``), the number
+          of the ticket to edit. If ``None``, edit the :meth:`current_ticket`.
+
+        .. SEEALSO::
+
+            :meth:`create_ticket`, :meth:`edit_ticket`
+
+        """
+        if ticket is None:
+            ticket = self.current_ticket()
+
+        if ticket is None:
+            raise ValueError("must specify a ticket")
+
+        self.trac.add_comment(ticket)
+
     def create_ticket(self,
             branchname=None, base=MASTER_BRANCH, remote_branch=None):
         r"""

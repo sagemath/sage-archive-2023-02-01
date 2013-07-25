@@ -44,6 +44,10 @@ TICKET_FILE_GUIDE = """
 #
 # An empty file aborts ticket creation/editing.
 """
+COMMENT_FILE_GUIDE = """
+# Lines starting with `#` are ignored.
+# An empty file aborts the comment.
+"""
 
 class TicketSyntaxError(SyntaxError): # we don't want to catch normal syntax errors
     pass
@@ -611,6 +615,38 @@ class TracInterface(object):
         """
         return self._authenticated_server_proxy.ticket.create(summary,
                 description, attributes, notify)
+
+    def add_comment(self, ticketnum, comment=None, notify=False):
+        r"""
+        Add a comment to a ticket on trac.
+
+        INPUT:
+
+        - ``comment`` -- a string or ``None`` (default: ``None``), the comment
+          to add. If ``None``, an editor will be spawned to create the comment.
+
+        """
+        ticketnum = int(ticketnum)
+        attributes = self._get_attributes(ticketnum)
+
+        if comment is None:
+            filename = tempfile.mkstemp()[1]
+            with open(filename, "w") as F:
+                F.write("\n")
+                F.write(COMMENT_FILE_GUIDE)
+
+            if self._UI.edit(filename):
+                return
+
+            comment = list(open(filename).read().splitlines())
+            comment = [line for line in comment if not line.startswith("#")]
+            if all([line.strip()=="" for line in comment]):
+                return
+            comment = "\n".join(comment)
+
+        self._authenticated_server_proxy.ticket.update(ticketnum, comment, attributes, notify)
+
+        self._UI.show("your comment has been recorded.")
 
     def edit_ticket(self, ticketnum):
         """

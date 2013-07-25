@@ -55,6 +55,7 @@ from sage.libs.all import pari_gen, PariError
 from sage.rings.ideal import (Ideal_generic, Ideal_fractional)
 from sage.misc.misc import prod
 from sage.misc.mrange import xmrange_iter
+from sage.misc.cachefunc import cached_method
 from sage.structure.element import generic_power
 from sage.structure.factorization import Factorization
 from sage.structure.sequence import Sequence
@@ -341,8 +342,7 @@ class NumberFieldIdeal(Ideal_generic):
             ``x`` -- an element of the number field (or ring of integers) of this ideal.
 
         OUTPUT:
-            A vector of length `n` (the degree of the field) giving
-            the coordinates of `x` with respect to the integral basis
+            List giving the coordinates of `x` with respect to the integral basis
             of the ideal.  In general this will be a vector of
             rationals; it will consist of integers if and only if `x`
             is in the ideal.
@@ -351,7 +351,7 @@ class NumberFieldIdeal(Ideal_generic):
 
         ALGORITHM:
 
-        Uses linear algebra.  The change-of-basis matrix is cached.
+        Uses linear algebra.
         Provides simpler implementations for ``_contains_()``,
         ``is_integral()`` and ``smallest_integer()``.
 
@@ -371,17 +371,20 @@ class NumberFieldIdeal(Ideal_generic):
             (-18573/58, 456)
             sage: sum([Ibasis[j]*bcoords[j] for j in range(2)]) == b
             True
+            sage: J = K.ideal(0)
+            sage: J.coordinates(0)
+            ()
+            sage: J.coordinates(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: vector is not in free module
        """
         K = self.number_field()
         V, from_V, to_V = K.absolute_vector_space()
-
         try:
-            M = self.__basis_matrix_inverse
-        except AttributeError:
-            from sage.matrix.constructor import Matrix
-            self.__basis_matrix_inverse = Matrix(map(to_V, self.integral_basis())).inverse()
-            M = self.__basis_matrix_inverse
-        return to_V(K(x))*M
+            return self.free_module().coordinate_vector(to_V(K(x)))
+        except ArithmeticError,e:
+            raise TypeError(e)
 
     def _contains_(self, x):
         """
@@ -405,6 +408,11 @@ class NumberFieldIdeal(Ideal_generic):
             False
             sage: a + 9 in I
             True
+            sage: J = K.ideal(0)
+            sage: 0 in J
+            True
+            sage: 1 in J
+            False
 
             sage: K.<a> = NumberField(x^4 + 3); K
             Number Field in a with defining polynomial x^4 + 3
@@ -421,8 +429,15 @@ class NumberFieldIdeal(Ideal_generic):
             True
             sage: I   # random sign in output
             Fractional ideal (-2*a^2 - 1)
+
+            sage: K.<y>=NumberField(x^2-3)
+            sage: L.<z>=K.extension(x^2-5)
+            sage: 0 in L.ideal(0)
+            True
+            sage: 1 in L.ideal(0)
+            False
         """
-        return self.coordinates(self.number_field()(x)).denominator() == 1
+        return self.coordinates(x).denominator() == 1
 
     def __elements_from_hnf(self, hnf):
         """
@@ -604,6 +619,7 @@ class NumberFieldIdeal(Ideal_generic):
                 self.__pari_hnf = nf.idealadd(self.__pari_hnf, ideal)
             return self.__pari_hnf
 
+    @cached_method
     def basis(self):
         r"""
         Return an immutable sequence of elements of this ideal (note:
@@ -628,16 +644,12 @@ class NumberFieldIdeal(Ideal_generic):
             sage: J.basis()           # warning -- choice of basis can be somewhat random
             [1, z, z^2, 1/11*z^3 + 7/11*z^2 + 6/11*z + 10/11, 1/11*z^4 + 1/11*z^2 + 1/11*z + 7/11, 1/11*z^5 + 1/11*z^4 + 1/11*z^3 + 2/11*z^2 + 8/11*z + 7/11]
         """
-        try:
-            return self.__basis
-        except AttributeError:
-            pass
         hnf = self.pari_hnf()
         v = self.__elements_from_hnf(hnf)
         O = self.number_field().maximal_order()
-        self.__basis = Sequence(v, immutable=True)
-        return self.__basis
+        return Sequence(v, immutable=True)
 
+    @cached_method
     def free_module(self):
         r"""
         Return the free `\ZZ`-module contained in the vector space
@@ -727,13 +739,7 @@ class NumberFieldIdeal(Ideal_generic):
             User basis matrix:
             20 x 20 dense matrix over Rational Field
         """
-        try:
-            return self.__free_module
-        except AttributeError:
-            pass
-        M = basis_to_module(self.basis(), self.number_field())
-        self.__free_module = M
-        return M
+        return basis_to_module(self.basis(), self.number_field())
 
     def reduce_equiv(self):
         """

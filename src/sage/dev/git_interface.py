@@ -1006,10 +1006,11 @@ class GitInterface(object):
             40
             sage: git.ref_exists("refs/tags/asdlkfjasdlf")
         """
-        try self.execute("show-ref", ref, quiet=True, verify=True):
-            return self.read_output("show-ref", ref, hash=True, verify=True).strip()
+        try:
+            self.execute("show-ref", ref, quiet=True, verify=True)
         except GitError:
-            pass
+            return None
+        return self.read_output("show-ref", ref, hash=True, verify=True).strip()
 
     def create_branch(self, branchname, basebranch=None, remote_branch=True):
         """

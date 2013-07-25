@@ -1006,7 +1006,7 @@ class SageDev(object):
             overwrite_deps = self.git.is_ancestor_of(branch, ref)
             self.merge(ref, create_dependency=False, download=False)
         if ticket is not None:
-            old_dependencies = ", ".join(self._dependencies[branch])
+            old_dependencies = ", ".join(map(str,self._dependencies[branch]))
             if old_dependencies == "": old_dependencies = "(no dependencies)"
 
             trac_deps = self.trac.dependencies(ticket)
@@ -1018,7 +1018,7 @@ class SageDev(object):
                 deps.update(git_deps)
                 self._dependencies[branch] = tuple(sorted(deps))
 
-            new_dependencies = ", ".join(self._dependencies[branch])
+            new_dependencies = ", ".join(map(str,self._dependencies[branch]))
             if new_dependencies == "": new_dependencies = "(no dependencies)"
 
             if old_dependencies != new_dependencies:
@@ -2263,12 +2263,15 @@ class SageDev(object):
             self.commit()
 
     def _unstash_changes(self):
-        try self.git.execute_silent("stash", "apply"):
-            self.git.execute_silent("stash", "drop")
+        try:
+            self.git.execute_silent("stash", "apply")
         except GitError:
             self.git.execute_silent("reset", hard=True)
             self._UI.show("Changes did not apply cleanly to the new branch. "+
                           "They are now in your stash.")
+            return
+
+        self.git.execute_silent("stash", "drop")
 
 def doctest_config():
     r"""

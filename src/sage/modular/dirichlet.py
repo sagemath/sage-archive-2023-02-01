@@ -299,11 +299,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             pass
 
         val = self.__modulus - 1
-        if not val:
-            one = self.base_ring()(1)
-            self.__values = [self.base_ring()(1)]
-            return self.__values[0]
-        elif m == val:
+        if m == val:
             return self.__eval_at_minus_one()
         else:
             self.values()  # compute all values
@@ -1449,6 +1445,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
             zeta10,
             zeta10^3 - zeta10^2 + zeta10 - 1,
             zeta10^2]
+
+        Test that :trac:`14368` is fixed::
+
+            sage: DirichletGroup(1).list()[0].values()
+            [1]
         """
         try:
             return self.__values
@@ -1466,12 +1467,14 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         if self.is_trivial():  # easy special case
             x = [ one ] * int(mod)
-            x[0] = zero
+
             for p in mod.prime_divisors():
                 p_mult = p
                 while p_mult < mod:
                     x[p_mult] = zero
                     p_mult += p
+            if not (mod == 1):
+                x[0] = zero
             self.__values = x
             return x
 

@@ -2744,8 +2744,7 @@ def KrackhardtKiteGraph():
     REFERENCES:
 
     - [1] Kreps, V. (2002). "Social Network Analysis".  [Online] Available:
-      http://www.fsu.edu/~spap/water/network/intro.htm [2007,
-      January 17]
+      http://www.orgnet.com/sna.html
 
     This constructor depends on NetworkX numeric labeling.
 

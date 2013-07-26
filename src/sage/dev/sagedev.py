@@ -1258,6 +1258,9 @@ class SageDev(object):
 
         If ``url`` is specified, download ``url``.
 
+        If nothing is specified, and if the ''current'' ticket has only
+        one attachment, download it.
+
         Raise an error on any other combination of parameters.
 
         INPUT:
@@ -1296,6 +1299,8 @@ class SageDev(object):
                     return self.download_patch(ticketnum = ticketnum, patchname = attachments[0])
                 else:
                     raise ValueError("Ticket %s has more than one attachment but parameter `patchname` is not present."%self._ticket_repr(ticketnum))
+        elif not patchname:
+            return self.download_patch(ticketnum=self.current_ticket())
         else:
             raise ValueError("If `url` is not specified, `ticketnum` must be specified")
 

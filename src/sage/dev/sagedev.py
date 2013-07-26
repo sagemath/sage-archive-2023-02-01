@@ -810,6 +810,24 @@ class SageDev(object):
 
         self.trac.add_comment(ticket)
 
+    def browse_ticket(self, ticket=None):
+        r"""
+        start a webbrowser at the ticket page on Sage trac
+
+        INPUT:
+        - ``ticket`` -- an integer or ``None`` (default: ``None``), the number
+          of the ticket to edit. If ``None``, edit the :meth:`current_ticket`.
+        """
+        from sage.misc.viewer import browser
+        if ticket is None:
+            ticket = self.current_ticket()
+
+        if ticket is None:
+            raise ValueError("must specify a ticket")
+
+        browser_cmdline = browser() + ' ' + TRAC_SERVER_URI + '/ticket/' + str(ticket)
+        os.system(browser_cmdline)
+
     def create_ticket(self,
             branchname=None, base=MASTER_BRANCH, remote_branch=None):
         r"""

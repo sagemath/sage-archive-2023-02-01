@@ -451,6 +451,40 @@ class CycleIndexSeries(LazyPowerSeries):
         OGS = OrdinaryGeneratingSeriesRing(R)()
         return OGS._new(self._ogs_gen, lambda ao: ao, self)
 
+    def expand_as_sf(self, n, alphabet='x'):
+        """
+        Returns the expansion of a cycle index series as a symmetric function in
+        ``n`` variables.
+
+        Specifically, this returns a :class:`~sage.combinat.species.series.LazyPowerSeries` whose
+        ith term is obtained by calling :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.expand`
+        on the ith term of ``self``.
+
+        This relies on the (standard) interpretation of a cycle index series as a symmetric function
+        in the power sum basis.
+
+        INPUT:
+
+        - ``self`` -- a cycle index series
+
+        - ``n`` -- a positive integer
+
+        - ``alphabet`` -- a variable for the expansion (default: `x`)
+
+        EXAMPLES::
+
+            sage: from sage.combinat.species.set_species import SetSpecies
+            sage: SetSpecies().cycle_index_series().expand_as_sf(2).coefficients(4)
+            [1, x0 + x1, x0^2 + x0*x1 + x1^2, x0^3 + x0^2*x1 + x0*x1^2 + x1^3]
+
+        """
+        expanded_poly_ring = self.coefficient(0).expand(n, alphabet).parent()
+        LPSR = LazyPowerSeriesRing(expanded_poly_ring)
+
+        expander_gen = (LPSR.term(self.coefficient(i).expand(n, alphabet), i) for i in _integers_from(0))
+
+        return LPSR.sum_generator(expander_gen)
+
     def _ogs_gen(self, ao):
         """
         Returns a generator for the coefficients of the ordinary generating

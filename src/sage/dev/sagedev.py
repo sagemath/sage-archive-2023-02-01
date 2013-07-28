@@ -882,6 +882,24 @@ class SageDev(object):
 
         self.trac.add_comment(ticket)
 
+    def browse_ticket(self, ticket=None):
+        r"""
+        start a webbrowser at the ticket page on Sage trac
+
+        INPUT:
+        - ``ticket`` -- an integer or ``None`` (default: ``None``), the number
+          of the ticket to edit. If ``None``, edit the :meth:`current_ticket`.
+        """
+        from sage.misc.viewer import browser
+        if ticket is None:
+            ticket = self.current_ticket()
+
+        if ticket is None:
+            raise ValueError("must specify a ticket")
+
+        browser_cmdline = browser() + ' ' + TRAC_SERVER_URI + '/ticket/' + str(ticket)
+        os.system(browser_cmdline)
+
     def create_ticket(self,
             branchname=None, base=MASTER_BRANCH, remote_branch=None):
         r"""
@@ -1313,6 +1331,9 @@ class SageDev(object):
 
         If ``url`` is specified, download ``url``.
 
+        If nothing is specified, and if the ''current'' ticket has only
+        one attachment, download it.
+
         Raise an error on any other combination of parameters.
 
         INPUT:
@@ -1351,6 +1372,8 @@ class SageDev(object):
                     return self.download_patch(ticketnum = ticketnum, patchname = attachments[0])
                 else:
                     raise ValueError("Ticket %s has more than one attachment but parameter `patchname` is not present."%self._ticket_repr(ticketnum))
+        elif not patchname:
+            return self.download_patch(ticketnum=self.current_ticket())
         else:
             raise ValueError("If `url` is not specified, `ticketnum` must be specified")
 

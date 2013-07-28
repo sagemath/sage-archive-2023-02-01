@@ -49,317 +49,6 @@ COMMENT_FILE_GUIDE = """
 # An empty file aborts the comment.
 """
 
-class TicketSyntaxError(SyntaxError): # we don't want to catch normal syntax errors
-    pass
-
-def _parse_ticket_file(filename):
-    r"""
-    parses ticket file
-
-    INPUT:
-
-    - ``filename`` -- filename to parse
-
-    OUTPUT:
-
-    - ``summary`` -- a string consisting of the ticket's summary
-
-    - ``description`` -- a string consisting of the ticket's description
-
-    - ``fields`` -- a dictionary containing field, entry pairs
-
-    TESTS::
-
-        sage: from sage.dev.trac_interface import _parse_ticket_file
-        sage: import os, tempfile
-        sage: tmp = tempfile.mkstemp()[1]
-        sage: with open(tmp, 'w') as f:
-        ....:     f.write("no summary\n")
-        sage: _parse_ticket_file(tmp)
-        Traceback (most recent call last):
-        ...
-        TicketSyntaxError: no valid summary found
-        sage: with open(tmp, 'w') as f:
-        ....:     f.write("summary:no description\n")
-        sage: _parse_ticket_file(tmp)
-        Traceback (most recent call last):
-        ...
-        TicketSyntaxError: no description found
-        sage: with open(tmp, 'w') as f:
-        ....:     f.write("summary:double summary\n")
-        ....:     f.write("summary:double summary\n")
-        sage: _parse_ticket_file(tmp)
-        Traceback (most recent call last):
-        ...
-        TicketSyntaxError: line 2: only one value for summary allowed
-        sage: with open(tmp, 'w') as f:
-        ....:     f.write("bad field:bad field entry\n")
-        sage: _parse_ticket_file(tmp)
-        Traceback (most recent call last):
-        ...
-        TicketSyntaxError: line 1: field `bad field` not supported
-        sage: with open(tmp, 'w') as f:
-        ....:     f.write("summary:a summary\n")
-        ....:     f.write("branch:a branch\n")
-        ....:     f.write("some description\n")
-        ....:     f.write("#an ignored line\n")
-        ....:     f.write("more description\n")
-        ....:     f.write("\n")
-        sage: _parse_ticket_file(tmp)
-        ('a summary', 'some description\nmore description\n', {'branch': 'a branch'})
-        sage: with open(tmp, 'w') as f:
-        ....:     f.write("summary:a summary\n")
-        ....:     f.write("some description\n")
-        ....:     f.write("branch:a branch\n")
-        sage: _parse_ticket_file(tmp)
-        ('a summary', 'some description\nbranch:a branch\n', {})
-        sage: os.unlink(tmp)
-    """
-    lines = list(open(filename).read().splitlines())
-
-    if all(l.rstrip().startswith('#') for l in lines if l.rstrip()):
-        return
-
-    fields = {}
-    for i, line in enumerate(lines):
-        line = line.strip()
-        if not line or line.startswith('#'):
-            continue
-
-        m = FIELD_REGEX.match(line)
-        if m:
-            field = m.groups()[0]
-            if not (field.lower() == 'summary' or
-                    field.lower() in ALLOWED_FIELDS):
-                raise TicketSyntaxError("line %s: "%(i+1) +
-                                        "field `%s` not supported"%field)
-            elif field.lower() in fields:
-                raise TicketSyntaxError("line %s: "%(i+1) +
-                                        "only one value for %s allowed"%field)
-            else:
-                fields[field.lower()] = m.groups()[1].strip()
-                continue
-        else:
-            break
-    else: # no description
-        i += 1
-
-    # separate summary from other fields
-    try:
-        summary = fields.pop('summary')
-    except KeyError:
-        summary = None
-
-    description = [line.rstrip() for line in lines[i:]
-            if not line.startswith('#')]
-
-    # remove leading and trailing empty newlines
-    while description and not description[0]:
-        description.pop(0)
-    while description and not description[-1]:
-        description.pop()
-
-    if not summary:
-        raise TicketSyntaxError("no valid summary found")
-    elif not description:
-        raise TicketSyntaxError("no description found")
-    else:
-        return summary, "\n".join(description)+"\n", fields
-
-class DigestTransport(object, SafeTransport):
-    """
-    Handles an HTTP transaction to an XML-RPC server.
-
-    EXAMPLES::
-
-        sage: sage.dev.trac_interface.DigestTransport()
-        <sage.dev.trac_interface.DigestTransport object at ...>
-    """
-    def __init__(self, **kwds):
-        """
-        Initialization.
-
-        EXAMPLES::
-
-            sage: type(sage.dev.trac_interface.DigestTransport())
-            <class 'sage.dev.trac_interface.DigestTransport'>
-            sage: type(sage.dev.trac_interface.DigestTransport(realm='realm',
-            ....:         url='url', username='username', password='password'))
-            <class 'sage.dev.trac_interface.DigestTransport'>
-        """
-        def get_pop(this, k, d=None):
-            try:
-                return this.pop(k)
-            except KeyError:
-                return d
-
-        auth = tuple(get_pop(kwds, x) for x in
-                ('realm', 'url', 'username', 'password'))
-
-        SafeTransport.__init__(self, **kwds)
-
-        authhandler = urllib2.HTTPDigestAuthHandler()
-        if all(x is not None for x in auth):
-            authhandler.add_password(*auth)
-
-        self.opener = urllib2.build_opener(authhandler)
-
-    def single_request(self, host, handler, request_body, verbose):
-        """
-        Issue an XML-RPC request.
-
-        EXAMPLES::
-
-            sage: from sage.env import TRAC_SERVER_URI
-            sage: import urlparse
-            sage: url = urlparse.urlparse(TRAC_SERVER_URI).netloc
-            sage: d = sage.dev.trac_interface.DigestTransport()
-            sage: d.single_request(url, 'xmlrpc',         # optional: internet
-            ....: '''<?xml version='1.0'?>
-            ....: <methodCall>
-            ....: <methodName>ticket.get</methodName>
-            ....: <params>
-            ....: <param>
-            ....: <value><int>1000</int></value>
-            ....: </param>
-            ....: </params>
-            ....: </methodCall>
-            ....: ''', 0)
-            ([1000,
-              <DateTime '20071025T16:48:05' at ...>,
-              <DateTime '20080110T08:28:40' at ...>,
-              {'status': 'closed',
-               'changetime': <DateTime '20080110T08:28:40' at ...>,
-               'description': '',
-               'reporter': 'was',
-               'cc': '',
-               'type': 'defect',
-               'milestone': 'sage-2.10',
-               '_ts': '1199953720000000',
-               'component': 'distribution',
-               'summary': 'Sage does not have 10000 users yet.',
-               'priority': 'major',
-               'owner': 'was',
-               'time': <DateTime '20071025T16:48:05' at ...>,
-               'keywords': '',
-               'resolution': 'fixed'}],)
-        """
-        req = urllib2.Request(
-                urlparse.urlunparse(('http', host, handler, '', '', '')),
-                request_body, {'Content-Type': 'text/xml',
-                    'User-Agent': self.user_agent})
-
-        response = self.opener.open(req)
-
-        self.verbose = verbose
-        return self.parse_response(response)
-
-class DoctestServerProxy(object):
-    """
-    A fake trac proxy for doctesting the functionality in this file which would require authentication by trac.
-
-    EXAMPLES::
-
-        sage: sage.dev.trac_interface.DoctestServerProxy(dev.trac)
-        <sage.dev.trac_interface.DoctestServerProxy object at ...>
-    """
-    _ticket_data = dict()
-    def __init__(self, trac):
-        """
-        Initialization.
-
-        EXAMPLES::
-
-            sage: type(sage.dev.trac_interface.DoctestServerProxy(dev.trac))
-            <class 'sage.dev.trac_interface.DoctestServerProxy'>
-        """
-        self._trac = trac
-        self._sshkeys = {}
-
-    @property
-    def sshkeys(self):
-        """
-        fake sshkeys trac plugin for doctest
-
-        TESTS::
-
-            sage: from sage.dev.trac_interface import DoctestServerProxy
-            sage: proxy = DoctestServerProxy(dev.trac)
-            sage: sshkeys = proxy.sshkeys
-            sage: type(sshkeys)
-            <class 'sage.dev.trac_interface.SshKeys'>
-            sage: sshkeys.listusers()
-            []
-            sage: sshkeys.getkeys()
-            []
-            sage: sshkeys.setkeys(["foo", "bar"])
-            0
-            sage: sshkeys.getkeys()
-            ['foo', 'bar']
-        """
-        try:
-            return self._sshkeys_impl
-        except AttributeError:
-            pass
-        class SshKeys(object):
-            def _user(this):
-                return self._trac._username
-            def _setdefault(this):
-                return self._sshkeys.setdefault(this._user(), set())
-            def __setitem__(this, key, value):
-                self._sshkeys[key] = value
-            def setkeys(this, keys):
-                this[this._user()] = this._setdefault().union(set(keys))
-                return 0
-            def getkeys(this):
-                return list(this._setdefault())
-            def listusers(this):
-                return self._sshkeys.keys()
-
-        self._sshkeys_impl = SshKeys()
-        return self._sshkeys_impl
-
-    @property
-    def ticket(self):
-        """
-        fake ticket methods for trac xmlrpc plugin
-
-        TESTS::
-
-            sage: from sage.dev.trac_interface import DoctestServerProxy
-            sage: proxy = DoctestServerProxy(dev.trac)
-            sage: ticket = proxy.ticket
-            sage: type(ticket)
-            <class 'sage.dev.trac_interface.Ticket'>
-            sage: ticket.create('a comment', 'a description', {}, False)
-            14366
-            sage: ticket.update(5614, 'a comment', {})
-            Traceback (most recent call last):
-            ...
-            AssertionError
-            sage: ticket.update(int(5614), 'a comment', {})
-            (5614,)
-        """
-        class Ticket(object):
-            def create(self, summary, description, attributes, notify):
-                ticketnum = 14366
-                DoctestServerProxy._ticket_data[ticketnum] = [ticketnum, summary, description, attributes, notify]
-                return ticketnum
-            def update(self, ticketnum, comment, attributes):
-                assert isinstance(ticketnum, int)
-                try:
-                    DoctestServerProxy._ticket_data[ticketnum][3] = attributes
-                except KeyError:
-                    DoctestServerProxy._ticket_data[ticketnum] = [ticketnum, None, None, attributes, None]
-                return (ticketnum,)
-            def get(self, ticketnum):
-                assert isinstance(ticketnum, int)
-                print("returning attributes %s" %  DoctestServerProxy._ticket_data[ticketnum])
-                return DoctestServerProxy._ticket_data[ticketnum]
-                
-
-        return Ticket()
-
 class TracInterface(object):
     """
     Wrapper around the XML-RPC interface of trac.
@@ -369,7 +58,7 @@ class TracInterface(object):
         sage: dev.trac
         <sage.dev.trac_interface.TracInterface object at ...>
     """
-    def __init__(self, sagedev):
+    def __init__(self, config, UI):
         """
         Initialization.
 
@@ -378,10 +67,8 @@ class TracInterface(object):
             sage: type(sage.dev.trac_interface.TracInterface(dev))
             <class 'sage.dev.trac_interface.TracInterface'>
         """
-        self._sagedev = sagedev
-        self._UI = sagedev._UI
-        sagedev._config.setdefault('trac', {})
-        self._config = sagedev._config['trac']
+        self._UI = UI
+        self._config = config
 
     @property
     def _anonymous_server_proxy(self):
@@ -613,6 +300,123 @@ class TracInterface(object):
             ['foo', 'bar']
         """
         return self._authenticated_server_proxy.sshkeys
+
+	class TicketSyntaxError(SyntaxError): # we don't want to catch normal syntax errors
+		pass
+
+	def _parse_ticket_file(filename):
+		r"""
+		parses ticket file
+
+		INPUT:
+
+		- ``filename`` -- filename to parse
+
+		OUTPUT:
+
+		- ``summary`` -- a string consisting of the ticket's summary
+
+		- ``description`` -- a string consisting of the ticket's description
+
+		- ``fields`` -- a dictionary containing field, entry pairs
+
+		TESTS::
+
+			sage: from sage.dev.trac_interface import _parse_ticket_file
+			sage: import os, tempfile
+			sage: tmp = tempfile.mkstemp()[1]
+			sage: with open(tmp, 'w') as f:
+			....:     f.write("no summary\n")
+			sage: _parse_ticket_file(tmp)
+			Traceback (most recent call last):
+			...
+			TicketSyntaxError: no valid summary found
+			sage: with open(tmp, 'w') as f:
+			....:     f.write("summary:no description\n")
+			sage: _parse_ticket_file(tmp)
+			Traceback (most recent call last):
+			...
+			TicketSyntaxError: no description found
+			sage: with open(tmp, 'w') as f:
+			....:     f.write("summary:double summary\n")
+			....:     f.write("summary:double summary\n")
+			sage: _parse_ticket_file(tmp)
+			Traceback (most recent call last):
+			...
+			TicketSyntaxError: line 2: only one value for summary allowed
+			sage: with open(tmp, 'w') as f:
+			....:     f.write("bad field:bad field entry\n")
+			sage: _parse_ticket_file(tmp)
+			Traceback (most recent call last):
+			...
+			TicketSyntaxError: line 1: field `bad field` not supported
+			sage: with open(tmp, 'w') as f:
+			....:     f.write("summary:a summary\n")
+			....:     f.write("branch:a branch\n")
+			....:     f.write("some description\n")
+			....:     f.write("#an ignored line\n")
+			....:     f.write("more description\n")
+			....:     f.write("\n")
+			sage: _parse_ticket_file(tmp)
+			('a summary', 'some description\nmore description\n', {'branch': 'a branch'})
+			sage: with open(tmp, 'w') as f:
+			....:     f.write("summary:a summary\n")
+			....:     f.write("some description\n")
+			....:     f.write("branch:a branch\n")
+			sage: _parse_ticket_file(tmp)
+			('a summary', 'some description\nbranch:a branch\n', {})
+			sage: os.unlink(tmp)
+		"""
+		lines = list(open(filename).read().splitlines())
+
+		if all(l.rstrip().startswith('#') for l in lines if l.rstrip()):
+			return
+
+		fields = {}
+		for i, line in enumerate(lines):
+			line = line.strip()
+			if not line or line.startswith('#'):
+				continue
+
+			m = FIELD_REGEX.match(line)
+			if m:
+				field = m.groups()[0]
+				if not (field.lower() == 'summary' or
+						field.lower() in ALLOWED_FIELDS):
+					raise TicketSyntaxError("line %s: "%(i+1) +
+											"field `%s` not supported"%field)
+				elif field.lower() in fields:
+					raise TicketSyntaxError("line %s: "%(i+1) +
+											"only one value for %s allowed"%field)
+				else:
+					fields[field.lower()] = m.groups()[1].strip()
+					continue
+			else:
+				break
+		else: # no description
+			i += 1
+
+		# separate summary from other fields
+		try:
+			summary = fields.pop('summary')
+		except KeyError:
+			summary = None
+
+		description = [line.rstrip() for line in lines[i:]
+				if not line.startswith('#')]
+
+		# remove leading and trailing empty newlines
+		while description and not description[0]:
+			description.pop(0)
+		while description and not description[-1]:
+			description.pop()
+
+		if not summary:
+			raise TicketSyntaxError("no valid summary found")
+		elif not description:
+			raise TicketSyntaxError("no description found")
+		else:
+			return summary, "\n".join(description)+"\n", fields
 
     def _create_ticket(self,
             summary, description, attributes={}, notify=False):

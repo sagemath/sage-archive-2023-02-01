@@ -52,200 +52,14 @@ import tempfile
 import sage.doctest
 from sage.env import SAGE_DOT_GIT, SAGE_REPO_AUTHENTICATED, DOT_SAGE
 
-def is_atomic_name(x):
-    """
-    returns true if x is a valid atomic branch name
-
-    EXAMPLES::
-
-        sage: from sage.dev.git_interface import is_atomic_name
-        sage: is_atomic_name(["branch"])
-        True
-        sage: is_atomic_name(["/branch"])
-        False
-        sage: is_atomic_name(["refs","heads","branch"])
-        False
-        sage: is_atomic_name([""])
-        False
-        sage: is_atomic_name(["u"])
-        False
-        sage: is_atomic_name(["1234"])
-        True
-    """
-    if len(x) != 1:
-        return False
-    if '/' in x[0]:
-        return False
-    return x[0] not in ("t", "ticket", "u", "g", "abandoned","")
-
-def is_ticket_name(x):
-    """
-    returns true if x is a valid ticket branch name
-
-    EXAMPLES::
-
-        sage: from sage.dev.git_interface import is_ticket_name
-        sage: is_ticket_name(["t", "1234"])
-        True
-        sage: is_ticket_name(["u", "doctest", "branch"])
-        False
-        sage: is_ticket_name(["padics", "feature"])
-        False
-        sage: is_ticket_name(["ticket", "myticket"])
-        False
-        sage: is_ticket_name(["ticket", "9876"])
-        True
-    """
-    if len(x) != 2:
-        return False
-    if x[0] not in ('ticket', 't'):
-        return False
-    return x[1].isdigit()
-
-def is_local_group_name(x):
-    """
-    returns true if x is a valid local group branch name
-
-    EXAMPLES::
-
-        sage: from sage.dev.git_interface import is_local_group_name
-        sage: is_local_group_name(["padic", "feature"])
-        True
-        sage: is_local_group_name(["g", "padic", "feature"])
-        False
-        sage: is_local_group_name(["padic", "feature", "1234"])
-        False
-        sage: is_local_group_name(["padic", "ticket", "1234"])
-        True
-    """
-    if len(x) == 0:
-        return False
-    if not is_atomic_name(x[0:1]):
-        return False
-    if len(x) == 2:
-        return is_atomic_name(x[1:])
-    else:
-        return is_ticket_name(x[1:])
-
-def is_remote_group_name(x):
-    """
-    returns true if x is a valid remote group branch name
-
-    EXAMPLES::
-
-        sage: from sage.dev.git_interface import is_remote_group_name
-        sage: is_remote_group_name(["padic", "feature"])
-        False
-        sage: is_remote_group_name(["g", "padic", "feature"])
-        True
-        sage: is_remote_group_name(["g", "padic", "feature", "1234"])
-        False
-        sage: is_remote_group_name(["g", "padic", "ticket", "1234"])
-        True
-        sage: is_remote_group_name(["u", "doctest", "ticket", "1234"])
-        False
-    """
-    if len(x) < 3:
-        return False
-    if x[0] != "g":
-        return False
-    return is_local_group_name(x[1:])
-
-def is_remote_user_name(x):
-    """
-    returns true if x is a valid remote user branch name
-
-    EXAMPLES::
-
-        sage: from sage.dev.git_interface import is_remote_user_name
-        sage: is_remote_user_name(["u", "doctest", "ticket", "12345"])
-        True
-        sage: is_remote_user_name(["u", "doctest", "ticket", ""])
-        False
-        sage: is_remote_user_name(["u", "doctest"])
-        False
-        sage: is_remote_user_name(["g", "padic", "feature"])
-        False
-        sage: is_remote_user_name(["u", "doctest", "feature"])
-        True
-    """
-    if len(x) < 3:
-        return False
-    if x[0] != "u":
-        return False
-    return all(x[1:])
-
-def is_release_name(x):
-    """
-    returns true if x is a valid release name
-
-    WARNING: this does not imply the existence of such a release
-
-    EXAMPLES::
-
-        sage: from sage.dev.git_interface import is_release_name
-        sage: is_release_name(['5', '2', '7'])
-        True
-        sage: is_release_name(['6', '-2'])
-        False
-        sage: is_release_name(['6', 'beta0'])
-        True
-        sage: is_release_name(['7', 'rc'])
-        False
-        sage: is_release_name(['7', 'rc1'])
-        True
-    """
-    for v in x[:-1]:
-        try:
-            if int(v) < 0:
-                return False
-        except ValueError:
-            return False
-    v = x[-1]
-    if v.startswith('alpha'):
-        v = v[5:]
-    elif v.startswith('beta'):
-        v = v[4:]
-    elif v.startswith('rc'):
-        v = v[2:]
-    try:
-        return int(v) >= 0
-    except ValueError:
-        return False
-
-def normalize_ticket_name(x):
-    """
-    returns the normalized ticket branch name for x
-
-    WARNING: it does not check to see if x is a valid ticket branch name
-
-    EXAMPLES::
-
-        sage: from sage.dev.git_interface import normalize_ticket_name
-        sage: normalize_ticket_name(["t", "12345"])
-        'ticket/12345'
-        sage: normalize_ticket_name(["cow", "goes", "moo"])
-        'ticket/goes'
-        sage: normalize_ticket_name(["branch"])
-        Traceback (most recent call last):
-        ...
-        IndexError: list index out of range
-    """
-    return '/'.join(('ticket', x[1]))
-
-class GitError(RuntimeError):
-    def __init__(self, exit_code):
-        RuntimeError("git returned with non-zero exit code (%s)"%exit_code)
-
 class GitInterface(object):
-    def __init__(self, sagedev):
-        self._sagedev = sagedev
-        self._UI = self._sagedev._UI
+    def __init__(self, config, UI):
+        self._UI = UI
+        self._config = config
 
-        self._config  = self._sagedev._config.get('git', {})
         self._dot_git = self._config.get('dot_git', SAGE_DOT_GIT)
-        self._gitcmd  = self._config.get('gitcmd', 'git')
-        self._repo    = self._config.get('repo', SAGE_REPO_AUTHENTICATED)
+        self._gitcmd = self._config.get('gitcmd', 'git')
+        self._repo = self._config.get('repo', SAGE_REPO_AUTHENTICATED)
         self._doctest_mode = False
 
         if sage.doctest.DOCTEST_MODE:
@@ -1064,7 +878,7 @@ class GitInterface(object):
         """
         move = None
         if self.has_uncommitted_changes():
-            move = self._sagedev._save_uncommitted_changes()
+            move = self.save_uncommitted_changes()
 
         if not detached and self.branch_exists(branchname) is None:
             if self.create_branch(branchname) is not None:
@@ -1073,7 +887,37 @@ class GitInterface(object):
         self.execute("checkout", branchname, detach=detached)
 
         if move:
-            self._sagedev._unstash_changes()
+            self.unstash_changes()
+
+    def save_uncommitted_changes(self):
+        r"""
+        Returns True if changes should be unstashed
+        """
+        if not self._UI.confirm("You have uncommitted changes, would you "+
+                                "like to save them?"):
+            return
+        try:
+            curbranch = self.git.current_branch()
+            options = ["current branch", "new branch", "stash"]
+        except ValueError:
+            options = ["new branch", "stash"]
+        dest = self._UI.select("Where do you want to store your changes?", options)
+        if dest == "stash":
+            self.stash()
+        elif dest == "new branch":
+            self.execute_silent("stash")
+            return True
+        elif dest == "current branch":
+            self.commit()
+
+    def unstash_changes(self):
+        try:
+            self.execute_silent("stash", "apply")
+            self.execute_silent("stash", "drop")
+        except GitError:
+            self.execute_silent("reset", hard=True)
+            self._UI.show("Changes did not apply cleanly to the new branch. "+
+                          "They are now in your stash.")
 
     def vanilla(self, release=True):
         """
@@ -1111,6 +955,194 @@ class GitInterface(object):
         self.rename_branch(branchname, trashname)
         # Need to delete remote branch (and have a hook move it to /g/abandoned/ and update the trac symlink)
         #remotename = self._remote[branchname]
+
+    @classmethod
+    def is_atomic_name(x):
+        """
+        returns true if x is a valid atomic branch name
+
+        EXAMPLES::
+
+            sage: from sage.dev.git_interface import is_atomic_name
+            sage: is_atomic_name(["branch"])
+            True
+            sage: is_atomic_name(["/branch"])
+            False
+            sage: is_atomic_name(["refs","heads","branch"])
+            False
+            sage: is_atomic_name([""])
+            False
+            sage: is_atomic_name(["u"])
+            False
+            sage: is_atomic_name(["1234"])
+            True
+        """
+        if len(x) != 1:
+            return False
+        if '/' in x[0]:
+            return False
+        return x[0] not in ("t", "ticket", "u", "g", "abandoned","")
+
+    @classmethod
+    def is_ticket_name(x):
+        """
+        returns true if x is a valid ticket branch name
+
+        EXAMPLES::
+
+            sage: from sage.dev.git_interface import is_ticket_name
+            sage: is_ticket_name(["t", "1234"])
+            True
+            sage: is_ticket_name(["u", "doctest", "branch"])
+            False
+            sage: is_ticket_name(["padics", "feature"])
+            False
+            sage: is_ticket_name(["ticket", "myticket"])
+            False
+            sage: is_ticket_name(["ticket", "9876"])
+            True
+        """
+        if len(x) != 2:
+            return False
+        if x[0] not in ('ticket', 't'):
+            return False
+        return x[1].isdigit()
+
+    @classmethod
+    def is_local_group_name(x):
+        """
+        returns true if x is a valid local group branch name
+
+        EXAMPLES::
+
+            sage: from sage.dev.git_interface import is_local_group_name
+            sage: is_local_group_name(["padic", "feature"])
+            True
+            sage: is_local_group_name(["g", "padic", "feature"])
+            False
+            sage: is_local_group_name(["padic", "feature", "1234"])
+            False
+            sage: is_local_group_name(["padic", "ticket", "1234"])
+            True
+        """
+        if len(x) == 0:
+            return False
+        if not is_atomic_name(x[0:1]):
+            return False
+        if len(x) == 2:
+            return is_atomic_name(x[1:])
+        else:
+            return is_ticket_name(x[1:])
+
+    @classmethod
+    def is_remote_group_name(x):
+        """
+        returns true if x is a valid remote group branch name
+
+        EXAMPLES::
+
+            sage: from sage.dev.git_interface import is_remote_group_name
+            sage: is_remote_group_name(["padic", "feature"])
+            False
+            sage: is_remote_group_name(["g", "padic", "feature"])
+            True
+            sage: is_remote_group_name(["g", "padic", "feature", "1234"])
+            False
+            sage: is_remote_group_name(["g", "padic", "ticket", "1234"])
+            True
+            sage: is_remote_group_name(["u", "doctest", "ticket", "1234"])
+            False
+        """
+        if len(x) < 3:
+            return False
+        if x[0] != "g":
+            return False
+        return is_local_group_name(x[1:])
+
+    @classmethod
+    def is_remote_user_name(x):
+        """
+        returns true if x is a valid remote user branch name
+
+        EXAMPLES::
+
+            sage: from sage.dev.git_interface import is_remote_user_name
+            sage: is_remote_user_name(["u", "doctest", "ticket", "12345"])
+            True
+            sage: is_remote_user_name(["u", "doctest", "ticket", ""])
+            False
+            sage: is_remote_user_name(["u", "doctest"])
+            False
+            sage: is_remote_user_name(["g", "padic", "feature"])
+            False
+            sage: is_remote_user_name(["u", "doctest", "feature"])
+            True
+        """
+        if len(x) < 3:
+            return False
+        if x[0] != "u":
+            return False
+        return all(x[1:])
+
+    @classmethod
+    def is_release_name(x):
+        """
+        returns true if x is a valid release name
+
+        WARNING: this does not imply the existence of such a release
+
+        EXAMPLES::
+
+            sage: from sage.dev.git_interface import is_release_name
+            sage: is_release_name(['5', '2', '7'])
+            True
+            sage: is_release_name(['6', '-2'])
+            False
+            sage: is_release_name(['6', 'beta0'])
+            True
+            sage: is_release_name(['7', 'rc'])
+            False
+            sage: is_release_name(['7', 'rc1'])
+            True
+        """
+        for v in x[:-1]:
+            try:
+                if int(v) < 0:
+                    return False
+            except ValueError:
+                return False
+        v = x[-1]
+        if v.startswith('alpha'):
+            v = v[5:]
+        elif v.startswith('beta'):
+            v = v[4:]
+        elif v.startswith('rc'):
+            v = v[2:]
+        try:
+            return int(v) >= 0
+        except ValueError:
+            return False
+
+    @classmethod
+    def normalize_ticket_name(x):
+        """
+        returns the normalized ticket branch name for x
+
+        WARNING: it does not check to see if x is a valid ticket branch name
+
+        EXAMPLES::
+
+            sage: from sage.dev.git_interface import normalize_ticket_name
+            sage: normalize_ticket_name(["t", "12345"])
+            'ticket/12345'
+            sage: normalize_ticket_name(["cow", "goes", "moo"])
+            'ticket/goes'
+            sage: normalize_ticket_name(["branch"])
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+        """
+        return '/'.join(('ticket', x[1]))
 
 def _git_cmd_wrapper(git_cmd):
     """
@@ -1164,3 +1196,4 @@ for git_cmd in (
         # "tag"
         ):
     setattr(GitInterface, git_cmd, _git_cmd_wrapper(git_cmd))
+

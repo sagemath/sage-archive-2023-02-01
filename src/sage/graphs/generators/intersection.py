@@ -17,9 +17,8 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 
 # import from Sage library
 from sage.graphs.graph import Graph
-from sage.graphs import graph
 
-def IntervalGraph(intervals):
+def IntervalGraph(intervals, points_ordered = False):
     r"""
     Returns the graph corresponding to the given intervals.
 
@@ -30,17 +29,17 @@ def IntervalGraph(intervals):
 
     INPUT:
 
-    - ``intervals`` -- the list of pairs `(a_i,b_i)`
-      defining the graph.
+    - ``intervals`` -- the list of pairs `(a_i,b_i)` defining the graph.
+
+    - ``points_ordered`` -- states whether every interval `(a_i,b_i)` of
+      `intervals` satisfies `a_i<b_i`. If satisfied then setting
+      ``points_ordered`` to ``True`` will speed up the creation of the graph.
 
     .. NOTE::
 
-        * The vertices are named 0, 1, 2, and so on. The
-          intervals used to create the graph are saved with the
-          graph and can be recovered using ``get_vertex()`` or
-          ``get_vertices()``.
-
-        * The intervals `(a_i,b_i)` need not verify `a_i<b_i`.
+        * The vertices are named 0, 1, 2, and so on. The intervals used
+          to create the graph are saved with the graph and can be recovered
+          using ``get_vertex()`` or ``get_vertices()``.
 
     EXAMPLE:
 
@@ -70,27 +69,40 @@ def IntervalGraph(intervals):
     The intervals in the list need not be distinct. ::
 
         sage: intervals = [ (1,2), (1,2), (1,2), (2,3), (3,4) ]
-        sage: g = graphs.IntervalGraph(intervals)
+        sage: g = graphs.IntervalGraph(intervals,True)
         sage: g.clique_maximum()
         [0, 1, 2, 3]
         sage: g.get_vertices()
         {0: (1, 2), 1: (1, 2), 2: (1, 2), 3: (2, 3), 4: (3, 4)}
 
+    The endpoints of the intervals are not ordered we get the same graph
+    (except for the vertex labels). ::
+
+        sage: rev_intervals = [ (2,1), (2,1), (2,1), (3,2), (4,3) ]
+        sage: h = graphs.IntervalGraph(rev_intervals,False)
+        sage: h.get_vertices()
+        {0: (2, 1), 1: (2, 1), 2: (2, 1), 3: (3, 2), 4: (4, 3)}
+        sage: g.edges() == h.edges()
+        True
     """
 
     n = len(intervals)
-    g = graph.Graph(n)
+    g = Graph(n)
 
-    edges = []
-
-    for i in range(n-1):
-        I = intervals[i]
-        for j in range(i+1,n):
-            J = intervals[j]
-            if max(I) < min(J) or max(J) < min(I): continue
-            edges.append((i,j))
-
-    g.add_edges(edges)
+    if points_ordered:
+        for i in xrange(n-1):
+            li,ri = intervals[i]
+            for j in xrange(i+1,n):
+                lj,rj = intervals[j]
+                if ri < lj or rj < li: continue
+                g.add_edge(i,j)
+    else:
+        for i in xrange(n-1):
+            I = intervals[i]
+            for j in xrange(i+1,n):
+                J = intervals[j]
+                if max(I) < min(J) or max(J) < min(I): continue
+                g.add_edge(i,j)
 
     rep = dict( zip(range(n),intervals) )
     g.set_vertices(rep)
@@ -104,9 +116,9 @@ def PermutationGraph(second_permutation, first_permutation = None):
     General definition
 
     A Permutation Graph can be encoded by a permutation `\sigma`
-    of `0, ..., n`. It is then built in the following way :
+    of `1, ..., n`. It is then built in the following way :
 
-      Take two horizontal lines in the euclidean plane, and mark points `0,
+      Take two horizontal lines in the euclidean plane, and mark points `1,
       ..., n` from left to right on the first of them. On the second one,
       still from left to right, mark point in the order in which they appear
       in `\sigma`. Now, link by a segment the two points marked with 1, then
@@ -181,7 +193,7 @@ def PermutationGraph(second_permutation, first_permutation = None):
     p2 = p2 * p1.inverse()
     p2 = p2.inverse()
 
-    g = graph.Graph(name="Permutation graph for "+str(second_permutation))
+    g = Graph(name="Permutation graph for "+str(second_permutation))
     g.add_vertices(second_permutation)
 
     for u,v in p2.inversions():

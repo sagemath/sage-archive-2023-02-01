@@ -401,6 +401,20 @@ def RandomHolmeKim(n, m, p, seed=None):
 
 def RandomInterval(n):
     """
+    :meth:`RandomInterval` is deprecated.  Use :meth:`RandomIntervalGraph` instead.
+
+    TEST::
+
+        sage: g = graphs.RandomInterval(8)
+        doctest:...: DeprecationWarning: RandomInterval() is deprecated. Use RandomIntervalGraph() instead.
+        See http://trac.sagemath.org/13283 for details.
+    """
+    from sage.misc.superseded import deprecation
+    deprecation(13283, "RandomInterval() is deprecated.  Use RandomIntervalGraph() instead.")
+    return RandomIntervalGraph(n)
+
+def RandomIntervalGraph(n):
+    """
     Returns a random interval graph.
 
     An interval graph is built from a list `(a_i,b_i)_{1\leq i \leq n}`
@@ -431,7 +445,7 @@ def RandomInterval(n):
     As for any interval graph, the chromatic number is equal to
     the clique number ::
 
-        sage: g = graphs.RandomInterval(8)
+        sage: g = graphs.RandomIntervalGraph(8)
         sage: g.clique_number() == g.chromatic_number()
         True
 
@@ -448,7 +462,7 @@ def RandomInterval(n):
     from sage.graphs.generators.intersection import IntervalGraph
 
     intervals = [tuple(sorted((random(), random()))) for i in range(n)]
-    return IntervalGraph(intervals)
+    return IntervalGraph(intervals,True)
 
 def RandomLobster(n, p, q, seed=None):
     """

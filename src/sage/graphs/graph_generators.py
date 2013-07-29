@@ -213,7 +213,8 @@ of objects yield the graph edges.
 
 __append_to_doc(
     ["IntervalGraph",
-     "PermutationGraph"])
+     "PermutationGraph",
+     "ToleranceGraph"])
 
 __doc__ += """
 **Random graphs**
@@ -222,6 +223,7 @@ __doc__ += """
 __append_to_doc(
     ["RandomBarabasiAlbert",
      "RandomBipartite",
+     "RandomBoundedToleranceGraph",
      "RandomGNM",
      "RandomGNP",
      "RandomHolmeKim",
@@ -230,6 +232,7 @@ __append_to_doc(
      "RandomNewmanWattsStrogatz",
      "RandomRegular",
      "RandomShell",
+     "RandomToleranceGraph",
      "RandomTree",
      "RandomTreePowerlaw"])
 
@@ -303,6 +306,10 @@ AUTHORS:
 - Nico Van Cleemput (2013-05-26): added fullerenes
 
 - Nico Van Cleemput (2013-07-01): added benzenoids
+
+- Birk Eisermann (2013-07-29): new section 'intersection graphs',
+  added (random, bounded) tolerance graphs
+
 
 Functions and methods
 ---------------------
@@ -1353,6 +1360,7 @@ class GraphGenerators():
     import sage.graphs.generators.intersection
     IntervalGraph            = staticmethod(sage.graphs.generators.intersection.IntervalGraph)
     PermutationGraph         = staticmethod(sage.graphs.generators.intersection.PermutationGraph)
+    ToleranceGraph           = staticmethod(sage.graphs.generators.intersection.ToleranceGraph)
 
 ###########################################################################
 # Random Graphs
@@ -1360,6 +1368,7 @@ class GraphGenerators():
     import sage.graphs.generators.random
     RandomBarabasiAlbert     = staticmethod(sage.graphs.generators.random.RandomBarabasiAlbert)
     RandomBipartite          = staticmethod(sage.graphs.generators.random.RandomBipartite)
+    RandomBoundedToleranceGraph = staticmethod(sage.graphs.generators.random.RandomBoundedToleranceGraph)
     RandomGNM                = staticmethod(sage.graphs.generators.random.RandomGNM)
     RandomGNP                = staticmethod(sage.graphs.generators.random.RandomGNP)
     RandomHolmeKim           = staticmethod(sage.graphs.generators.random.RandomHolmeKim)
@@ -1369,6 +1378,7 @@ class GraphGenerators():
     RandomNewmanWattsStrogatz = staticmethod(sage.graphs.generators.random.RandomNewmanWattsStrogatz)
     RandomRegular            = staticmethod(sage.graphs.generators.random.RandomRegular)
     RandomShell              = staticmethod(sage.graphs.generators.random.RandomShell)
+    RandomToleranceGraph     = staticmethod(sage.graphs.generators.random.RandomToleranceGraph)
     RandomTreePowerlaw       = staticmethod(sage.graphs.generators.random.RandomTreePowerlaw)
     RandomTree               = staticmethod(sage.graphs.generators.random.RandomTree)
 

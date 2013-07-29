@@ -241,6 +241,47 @@ def RandomBipartite(n1,n2, p):
 
     return g
 
+def RandomBoundedToleranceGraph(n):
+    r"""
+    Returns a random bounded tolerance graph.
+
+    The random tolerance graph is built from a random bounded
+    tolerance representation by using the function
+    `ToleranceGraph`. This representation is a list
+    `((l_0,r_0,t_0), (l_1,r_1,t_1), ..., (l_k,r_k,t_k))` where
+    `k = n-1` and `I_i = (l_i,r_i)` denotes a random interval and
+    `t_i` a random positive value less then or equal to the length
+    of the interval `I_i`. The width of the representation is
+    limited to n**2 * 2**n.
+
+    .. NOTE::
+
+        The tolerance representation used to create the graph can
+        be recovered using ``get_vertex()`` or ``get_vertices()``.
+
+    INPUT:
+
+    - ``n`` -- number of vertices of the random graph.
+
+    EXAMPLE:
+
+    Every (bounded) tolerance graph is perfect. Hence, the
+    chromatic number is equal to the clique number ::
+
+        sage: g = graphs.RandomBoundedToleranceGraph(8)
+        sage: g.clique_number() == g.chromatic_number()
+        True
+    """
+    from sage.misc.prandom import randint
+    from sage.graphs.generators.intersection import ToleranceGraph
+
+    W = n**2 * 2**n
+
+    tolrep = map(lambda (l,r): (l,r,randint(0,r-l)),
+        [sorted((randint(0,W), randint(0,W))) for i in range(n)])
+
+    return ToleranceGraph(tolrep)
+
 def RandomGNM(n, m, dense=False, seed=None):
     """
     Returns a graph randomly picked out of all graphs on n vertices
@@ -692,4 +733,45 @@ def RandomShell(constructor, seed=None):
         seed = current_randstate().long_seed()
     import networkx
     return Graph(networkx.random_shell_graph(constructor, seed=seed))
+
+def RandomToleranceGraph(n):
+    r"""
+    Returns a random tolerance graph.
+
+    The random tolerance graph is built from a random tolerance
+    representation by using the function `ToleranceGraph`. This
+    representation is a list
+    `((l_0,r_0,t_0), (l_1,r_1,t_1), ..., (l_k,r_k,t_k))` where
+    `k = n-1` and `I_i = (l_i,r_i)` denotes a random interval and
+    `t_i` a random positive value. The width of the representation
+    is limited to n**2 * 2**n.
+
+    .. NOTE::
+
+        The vertices are named 0, 1, ..., n-1. The tolerance
+        representation used to create the graph is saved with the
+        graph and can be recovered using ``get_vertex()`` or
+        ``get_vertices()``.
+
+    INPUT:
+
+    - ``n`` -- number of vertices of the random graph.
+
+    EXAMPLE:
+
+    Every tolerance graph is perfect. Hence, the chromatic
+    number is equal to the clique number ::
+
+        sage: g = graphs.RandomToleranceGraph(8)
+        sage: g.clique_number() == g.chromatic_number()
+        True
+    """
+    from sage.misc.prandom import randint
+    from sage.graphs.generators.intersection import ToleranceGraph
+
+    W = n**2 * 2**n
+
+    tolrep = [tuple(sorted((randint(0,W), randint(0,W)))) + (randint(0,W),) for i in range(n)]
+
+    return ToleranceGraph(tolrep)
 

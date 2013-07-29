@@ -445,10 +445,9 @@ def RandomInterval(n):
     """
 
     from sage.misc.prandom import random
+    from sage.graphs.generators.intersection import IntervalGraph
 
     intervals = [tuple(sorted((random(), random()))) for i in range(n)]
-
-    from sage.graphs.generators.families import IntervalGraph
     return IntervalGraph(intervals)
 
 def RandomLobster(n, p, q, seed=None):

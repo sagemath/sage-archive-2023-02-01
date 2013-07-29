@@ -645,9 +645,9 @@ class CycleIndexSeries(LazyPowerSeries):
             yield res
             n += 1
 
-    def arithmetic_product(self, g):
+    def arithmetic_product(self, g, check_input = True):
         """
-        Returns the arithmetic product of ``self`` with ``g``.
+        Return the arithmetic product of ``self`` with ``g``.
 
         For species `M` and `N` such that `M[\\varnothing] = N[\\varnothing] = \\varnothing`,
         their arithmetic product is the species `M \\boxdot N` of "`M`-assemblies of cloned `N`-structures".
@@ -655,6 +655,21 @@ class CycleIndexSeries(LazyPowerSeries):
 
         The cycle index series for `M \\boxdot N` can be computed in terms of the component series `Z_M` and `Z_N`,
         as implemented in this method.
+
+        INPUT:
+
+        - ``g`` -- a cycle index series having the same parent as ``self``.
+
+        - ``check_input`` -- (default: ``True``) a Boolean which, when set
+          to ``False``, will cause input checks to be skipped.
+
+        OUTPUT:
+
+        The arithmetic product of ``self`` with ``g``. This is a cycle
+        index series defined in terms of ``self`` and ``g`` such that
+        if ``self`` and ``g`` are the cycle index series of two species
+        `M` and `N`, their arithmetic product is the cycle index series
+        of the species `M \\boxdot N`.
 
         EXAMPLES:
 
@@ -683,8 +698,9 @@ class CycleIndexSeries(LazyPowerSeries):
 
         REFERENCES:
 
-        .. [MM] M. Maia and M. Mendez. "On the arithmetic product of combinatorial species." Discrete Mathematics, vol. 308, issue 23, 2008, pp. 5407-5427.
-          http://arxiv.org/abs/math/0503436.
+        .. [MM] M. Maia and M. Mendez. "On the arithmetic product of combinatorial species".
+           Discrete Mathematics, vol. 308, issue 23, 2008, pp. 5407-5427.
+           :arXiv:`math/0503436v2`.
 
         """
         from sage.combinat.partition import Partition, Partitions
@@ -694,35 +710,41 @@ class CycleIndexSeries(LazyPowerSeries):
 
         p = self.base_ring()
 
-        assert self.coefficient(0) == p.zero()
-        assert g.coefficient(0) == p.zero()
+        if check_input:
+            assert self.coefficient(0) == p.zero()
+            assert g.coefficient(0) == p.zero()
 
         # We first define an operation `\\boxtimes` on partitions as in Lemma 2.1 of [MM]_.
-        def arith_prod_of_partitions (l1, l2):
+        def arith_prod_of_partitions(l1, l2):
             # Given two partitions `l_1` and `l_2`, we construct a new partition `l_1 \\boxtimes l_2` by
-            # the following procedure: each pair of parts `a \\in l_1` and `b \\in l_2` contributes a part
-            # `\\lcm (a, b)` to `l_1 \\boxtimes l_2` with multiplicity `\\gcm (l_1, l_2)``.
+            # the following procedure: each pair of parts `a \\in l_1` and `b \\in l_2` contributes
+            # `\\gcd (a, b)`` parts of size `\\lcm (a, b)` to `l_1 \\boxtimes l_2`. If `l_1` and `l_2`
+            # are partitions of integers `n` and `m`, respectively, then `l_1 \\boxtimes l_2` is a
+            # partition of `nm`.
             term_iterable = chain.from_iterable( repeat(lcm(pair), times=gcd(pair)) for pair in product(l1, l2) )
             term_list = sorted(term_iterable, reverse=True)
             res = Partition(term_list)
             return res
 
-        # We then extend this to an operation on symmetric functions as per eq. 52 of [MM]_.
-        def arith_prod_sf (x, y):
+        # We then extend this to an operation on symmetric functions as per eq. (52) of [MM]_.
+        # (Maia and Mendez, in [MM]_, are talking about polynomials instead of symmetric
+        # functions, but this boils down to the same: Their x_i corresponds to the i-th power
+        # sum symmetric function.)
+        def arith_prod_sf(x, y):
             ap_sf_wrapper = lambda l1, l2: p(arith_prod_of_partitions(l1, l2))
             return p._apply_multi_module_morphism(x, y, ap_sf_wrapper)
 
         # Sage stores cycle index series by degree.
         # Thus, to compute the arithmetic product `Z_M \\boxdot Z_N` it is useful
         # to compute all terms of a given degree `n` at once.
-        def arith_prod_coeff (n):
+        def arith_prod_coeff(n):
             if n == 0:
                 res = p.zero()
             else:
-                index_set = ((d, n/d) for d in divisors(n))
+                index_set = ((d, n // d) for d in divisors(n))
                 res = sum(arith_prod_sf(self.coefficient(i), g.coefficient(j)) for i,j in index_set)
 
-            # Build a list which has res in the nth slot and 0's before and after
+            # Build a list which has res in the `n`th slot and 0's before and after
             # to feed to sum_generator
             res_in_seq = [p.zero()]*n + [res, p.zero()]
 

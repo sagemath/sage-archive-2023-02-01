@@ -6910,7 +6910,7 @@ cdef class gen(sage.structure.element.RingElement):
         REFERENCES:
 
         .. [PariUsers] User's Guide to PARI/GP,
-           http://pari.math.u-bordeaux.fr/pub/pari/manuals/2.4.2/users.pdf
+           http://pari.math.u-bordeaux.fr/pub/pari/manuals/2.5.1/users.pdf
         """
         cdef long n
         sig_on()

@@ -1111,6 +1111,36 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.matroids
+    ##
+    ################################
+
+    Extension('sage.matroids.matroid',
+            ['sage/matroids/matroid.pyx']),
+
+    Extension('sage.matroids.extension',
+            ['sage/matroids/extension.pyx']),
+
+    Extension('sage.matroids.set_system',
+            ['sage/matroids/set_system.pyx']),
+
+    Extension('sage.matroids.lean_matrix',
+            ['sage/matroids/lean_matrix.pyx']),
+
+    Extension('sage.matroids.basis_exchange_matroid',
+            ['sage/matroids/basis_exchange_matroid.pyx']),
+
+    Extension('sage.matroids.basis_matroid',
+            ['sage/matroids/basis_matroid.pyx']),
+
+    Extension('sage.matroids.linear_matroid',
+            ['sage/matroids/linear_matroid.pyx']),
+
+    Extension('sage.matroids.circuit_closures_matroid',
+            ['sage/matroids/circuit_closures_matroid.pyx']),
+
+    ################################
+    ##
     ## sage.media
     ##
     ################################

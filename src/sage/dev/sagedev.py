@@ -148,10 +148,19 @@ class SageDev(object):
             <class 'sage.dev.sagedev.SageDev'>
         """
         self._config = config
+
+        if not "UI" in config:
+            config["UI"] = {}
         if UI is not None:
             self._UI = UI
         else:
             self._UI = CmdLineInterface(config.get("UI"))
+
+        if not "git" in config:
+            config["git"] = {}
+
+        if not "trac" in config:
+            config["trac"] = {}
 
         self.__git = None
         self.__trac = None
@@ -204,7 +213,7 @@ class SageDev(object):
         try:
             return self._git
         except AttributeError:
-            self._git = GitInterface(self)
+            self._git = GitInterface(self._config['git'], self._UI)
             return self._git
 
     @property

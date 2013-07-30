@@ -345,12 +345,17 @@ class Config(collections.MutableMapping):
             'foo'
 
         """
+        was_empty = True
+
         if self._config.has_section(section):
+            was_empty = len(self._config[section]) == 0
             self.remove_section(section)
         self._config.add_section(section)
         for option, value in dictionary.iteritems():
             self._config.set(section, option, value)
-        self._write_config()
+
+        if not was_empty or len(dictionary) != 0:
+            self._write_config()
 
     def __len__(self):
         r"""

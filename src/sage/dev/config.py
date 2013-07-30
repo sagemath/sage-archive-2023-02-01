@@ -1,8 +1,8 @@
 r"""
 Configuration wrapper
 
-A wrapper around the ``devrc`` file in ``DOT_SAGE`` directory which stores the
-configuration for :class:`SageDev`.
+This module provides a wrapper for the ``devrc`` file in ``DOT_SAGE`` directory
+which stores the configuration for :class:`SageDev`.
 
 AUTHORS:
 
@@ -24,9 +24,11 @@ import ConfigParser as configparser
 
 from sage.env import DOT_SAGE
 
+DEVRC = os.path.join(DOT_SAGE, 'devrc')
+
 class Config(collections.MutableMapping):
     r"""
-    Wrapper around the ``devrc`` file storing the configuration for
+    Wrapper for the ``devrc`` file storing the configuration for
     :class:`SageDev`.
 
     INPUT:
@@ -36,23 +38,23 @@ class Config(collections.MutableMapping):
 
     EXAMPLES::
 
-        sage: from sage.dev.sagedev import Config
+        sage: from sage.dev.config import Config
         sage: Config() # random output, the output depends on the user's config
-        sage: dev._config
         Config('''
         [trac]
         username = doctest
         ''')
 
     """
-    def __init__(self, devrc = os.path.join(DOT_SAGE, 'devrc')):
+    def __init__(self, devrc = DEVRC):
         r"""
         Initialization.
 
         TESTS::
 
-            sage: from sage.dev.sagedev import Config
+            sage: from sage.dev.config import Config
             sage: type(Config())
+            <class 'sage.dev.config.Config'>
 
         """
         self._config = configparser.ConfigParser()
@@ -66,8 +68,9 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: repr(dev._config)
-            "Config('''\n[trac]\nusername = doctest\npassword_timeout = .5\n''')"
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: repr(DoctestConfig())
+            "Config('''\n[trac]\nusername = doctest\n[UI]\nlog_level = 0\n[git]\ndot_git = ...\n''')"
 
         """
         return "Config('''\n"+"\n".join([ "[%s]\n"%s+"\n".join(["%s = %s"%(o,self[s][o]) for o in self[s] ]) for s in self ])+"\n''')"
@@ -78,19 +81,31 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev.test.config import Config
-            sage: c = Config()
-            sage: c["trac"]["username"] = "foo"
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: c = DoctestConfig()
 
-            sage: from sage.dev.sagedev.config import Config
+            sage: from sage.dev.config import Config
             sage: c2 = Config(c._devrc)
+            sage: c["trac"]["username"] = "foo"
             sage: c2
+            Config('''
+            [trac]
+            username = doctest
+            [UI]
+            log_level = 0
+            [git]
+            dot_git = ...
+            ''')
             sage: c._write_config()
             sage: c2._read_config()
             sage: c2
             Config('''
             [trac]
             username = foo
+            [UI]
+            log_level = 0
+            [git]
+            dot_git = ...
             ''')
 
         """
@@ -103,8 +118,8 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev.test.config import Config
-            sage: c = Config()
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: c = DoctestConfig()
             sage: os.unlink(c._devrc)
             sage: os.path.exists(c._devrc)
             False
@@ -113,6 +128,9 @@ class Config(collections.MutableMapping):
             True
 
         """
+        import sage.doctest
+        assert not sage.doctest.DOCTEST_MODE or self._devrc != DEVRC, "attempt to overwrite devrc in doctest"
+
         with open(self._devrc, 'w') as F:
             self._config.write(F)
         # set the configuration file to read only by this user,
@@ -125,8 +143,8 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev.test.config import Config
-            sage: c = Config()
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: c = DoctestConfig()
             sage: c['trac']
             IndexableForSection('''
             username = doctest
@@ -146,9 +164,12 @@ class Config(collections.MutableMapping):
 
             TESTS::
 
-                sage: from sage.dev.sagedev.test.config import Config
-                sage: c = Config()
+                sage: from sage.dev.test.config import DoctestConfig
+                sage: c = DoctestConfig()
                 sage: c["trac"]
+                IndexableForSection('''
+                username = doctest
+                ''')
 
             """
             def __init__(this, section):
@@ -157,9 +178,10 @@ class Config(collections.MutableMapping):
 
                 TESTS::
 
-                    sage: from sage.dev.sagedev.test.config import Config
-                    sage: c = Config()
+                    sage: from sage.dev.test.config import DoctestConfig
+                    sage: c = DoctestConfig()
                     sage: type(c['trac'])
+                    <class 'sage.dev.config.IndexableForSection'>
 
                 """
                 this._section = section
@@ -170,9 +192,12 @@ class Config(collections.MutableMapping):
 
                 TESTS::
 
-                    sage: from sage.dev.sagedev.test.config import Config
-                    sage: c = Config()
+                    sage: from sage.dev.test.config import DoctestConfig
+                    sage: c = DoctestConfig()
                     sage: c["trac"]
+                    IndexableForSection('''
+                    username = doctest
+                    ''')
 
                 """
                 return "IndexableForSection('''\n"+"\n".join(["%s = %s"%(o,this[o]) for o in this])+"\n''')"
@@ -184,14 +209,14 @@ class Config(collections.MutableMapping):
 
                 TESTS::
 
-                    sage: from sage.dev.sagedev.test.config import Config
-                    sage: c = Config()
+                    sage: from sage.dev.test.config import DoctestConfig
+                    sage: c = DoctestConfig()
                     sage: c["trac"]["username"]
-                    doctest
+                    'doctest'
                     sage: c["trac"]["nousername"]
                     Traceback (most recent call last):
                     ...
-                    KeyError: nousername
+                    KeyError: 'nousername'
 
                 """
                 try:
@@ -205,9 +230,10 @@ class Config(collections.MutableMapping):
 
                 TESTS::
 
-                    sage: from sage.dev.sagedev.test.config import Config
-                    sage: c = Config()
+                    sage: from sage.dev.test.config import DoctestConfig
+                    sage: c = DoctestConfig()
                     sage: list(c["trac"])
+                    ['username']
 
                 """
                 return iter(self._config.options(this._section))
@@ -218,21 +244,15 @@ class Config(collections.MutableMapping):
 
                 TESTS::
 
-                    sage: from sage.dev.sagedev.test.config import Config
-                    sage: c = Config()
+                    sage: from sage.dev.test.config import DoctestConfig
+                    sage: c = DoctestConfig()
                     sage: c["trac"]["username"] = "foo"
                     sage: c["trac"]["username"]
-                    foo
+                    'foo'
 
                 """
                 self._config.set(this._section, option, value)
                 self._write_config()
-
-            def getboolean(this, option):
-                r"""
-                TODO
-                """
-                return self._config.getboolean(this._section, option)
 
             def __delitem__(this, option):
                 r"""
@@ -240,13 +260,13 @@ class Config(collections.MutableMapping):
 
                 TESTS::
 
-                    sage: from sage.dev.sagedev.test.config import Config
-                    sage: c = Config()
+                    sage: from sage.dev.test.config import DoctestConfig
+                    sage: c = DoctestConfig()
                     sage: del(c["trac"]["username"])
                     sage: c["trac"]["username"]
                     Traceback (most recent call last):
                     ...
-                    KeyError: username
+                    KeyError: 'username'
 
                 """
                 self._config.remove_option(this._section, option)
@@ -258,9 +278,10 @@ class Config(collections.MutableMapping):
 
                 TESTS::
 
-                    sage: from sage.dev.sagedev.test.config import Config
-                    sage: c = Config()
+                    sage: from sage.dev.test.config import DoctestConfig
+                    sage: c = DoctestConfig()
                     sage: len(c["trac"])
+                    1
 
                 """
                 return len(self._config.options(this._section))
@@ -271,8 +292,8 @@ class Config(collections.MutableMapping):
 
                 TESTS::
 
-                    sage: from sage.dev.sagedev.test.config import Config
-                    sage: c = Config()
+                    sage: from sage.dev.test.config import DoctestConfig
+                    sage: c = DoctestConfig()
                     sage: "username" in c["trac"]
                     True
 
@@ -287,8 +308,8 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev.test.config import Config
-            sage: c = Config()
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: c = DoctestConfig()
             sage: 'trac' in c
             True
             sage: 'nottrac' in c
@@ -303,10 +324,10 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev.test.config import Config
-            sage: c = Config()
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: c = DoctestConfig()
             sage: list(c)
-            ['git', 'trac']
+            ['trac', 'UI', 'git']
 
         """
         return iter(self._config.sections())
@@ -317,8 +338,8 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev.test.config import Config
-            sage: c = Config()
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: c = DoctestConfig()
             sage: c["foo"] = {"foo":"foo"}
             sage: c["foo"]["foo"]
             'foo'
@@ -337,10 +358,10 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev.test.config import Config
-            sage: c = Config()
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: c = DoctestConfig()
             sage: len(c)
-            2
+            3
 
         """
         return len(self._config.sections())
@@ -351,11 +372,25 @@ class Config(collections.MutableMapping):
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev.test.config import Config
-            sage: c = Config()
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: c = DoctestConfig()
+            sage: c
+            Config('''
+            [trac]
+            username = doctest
+            [UI]
+            log_level = 0
+            [git]
+            dot_git = ...
+            ''')
             sage: del c['git']
-            sage: list(c)
-            ['trac']
+            sage: c
+            Config('''
+            [trac]
+            username = doctest
+            [UI]
+            log_level = 0
+            ''')
 
         """
         self._config.remove_section(section)

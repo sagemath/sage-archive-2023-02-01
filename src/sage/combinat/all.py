@@ -59,6 +59,9 @@ from partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk,
 #Diagram algebra
 from diagram_algebras import PartitionAlgebra, BrauerAlgebra, TemperleyLiebAlgebra, PlanarAlgebra, PropagatingIdeal
 
+#Descent algebra
+from descent_algebra import DescentAlgebra
+
 #Vector Partitions
 from vector_partition import VectorPartition, VectorPartitions
 

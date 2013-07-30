@@ -18,6 +18,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import collections
+import os
+import ConfigParser as configparser
+
 from sage.env import DOT_SAGE
 
 class Config(collections.MutableMapping):

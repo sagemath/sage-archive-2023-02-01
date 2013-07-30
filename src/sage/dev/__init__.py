@@ -1,1 +1,2 @@
-from sagedev import dev
+from sagedev import SageDev
+dev = SageDev()

@@ -75,9 +75,6 @@ THINGS TO TEST:
     * ticket<->branch association invalid
 """
 import atexit
-import collections
-import ConfigParser as configparser
-import cPickle
 import email.utils
 import os
 import random
@@ -87,13 +84,15 @@ import tempfile
 import time
 import urllib2
 
-from cStringIO import StringIO
 from datetime import datetime
 from subprocess import call, check_call
 
 from git_interface import GitInterface
 from trac_interface import TracInterface
-from user_interface import UserInterface, CmdLineInterface, DoctestInterface
+from user_interface import UserInterface
+from cmd_line_interface import CmdLineInterface
+from config import Config
+from saving_dict import SavingDict
 
 from sage.env import DOT_SAGE, TRAC_SERVER_URI
 from sage.doctest import DOCTEST_MODE
@@ -127,55 +126,6 @@ MASTER_BRANCH = "public/sage-git/master"
 
 TracConnectionError = RuntimeError("could not connect with trac server")
 
-def load_dict_from_file(filename):
-    r"""
-    loads a pickled dictionary from filename, defaults to {} if no file
-    is found
-
-    TESTS::
-
-        sage: from sage.dev.git_interface import load_dict_from_file
-        sage: d = load_dict_from_file(''); d
-        {}
-        sage: d['cow'] = 'moo'
-        sage: import cPickle, tempfile
-        sage: f = tempfile.NamedTemporaryFile()
-        sage: f.write(cPickle.dumps(d, protocol=2)); f.flush()
-        sage: load_dict_from_file(f.name)
-        {'cow': 'moo'}
-        sage: f.close()
-    """
-    if os.path.exists(filename):
-        with open(filename) as F:
-            s = F.read()
-        if s:
-            unpickler = cPickle.Unpickler(StringIO(s))
-            try:
-                return unpickler.load()
-            except cPickle.UnpicklingError:
-                pass
-    return {}
-
-def _raise():
-    r"""
-    function that raises exceptions
-
-    TESTS::
-
-        sage: from sage.dev.git_interface import _raise
-        sage: try:
-        ....:     raise Exception("this is a test")
-        ....: except Exception:
-        ....:     s = "the exception was caught"
-        ....:     _raise()
-        Traceback (most recent call last):
-        ...
-        Exception: this is a test
-        sage: print s
-        the exception was caught
-    """
-    raise
-
 class SageDev(object):
     r"""
     The developer interface for sage.
@@ -200,8 +150,6 @@ class SageDev(object):
         self._config = config
         if UI is not None:
             self._UI = UI
-        elif DOCTEST_MODE:
-            self._UI = DoctestInterface()
         else:
             self._UI = CmdLineInterface()
 

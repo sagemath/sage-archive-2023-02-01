@@ -1,36 +1,104 @@
-class DoctestInterface(CmdLineInterface, list):
-    def __init__(self, *args, **kwds):
-        CmdLineInterface.__init__(self, *args, **kwds)
-        self._edits = 0
+r"""
+Command line user interface for doctesting
 
-    def _get_input(self, *args, **kwds):
-        """
-        overwrites `input_func` with custom function for doctesting
+This module provides :class:`DoctestUserInterface`, an implementation of a
+:class:`sage.dev.user_interface.UserInterface` on the command line which can be
+used for (non-interactive) doctesting.
+
+AUTHORS:
+
+- TODO: add authors from github's history and trac's history
+
+"""
+#*****************************************************************************
+#       Copyright (C) 2013 TODO
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+from getpass import getpass
+
+from sage.dev.cmd_line_interface import CmdLineInterface
+
+class DoctestUserInterface(CmdLineInterface, list):
+    r"""
+    A :class:`sage.dev.user_interface.UserInterface` which can be used for
+    doctesting. Whenever the user would normally be prompted for input, the
+    answer to the question is taken to be `self.pop()`, i.e., answers can be
+    provided by appending them via :meth:`append`.
+
+    EXAMPLES::
+
+        sage: from sage.dev.test.user_interface import DoctestUserInterface
+        sage: UI = DoctestUserInterface()
+        sage: UI.append("Answer")
+        sage: UI._get_input("Question?")
+        Question? Answer
+        'Answer'
+        sage: UI._get_input("Question?")
+        Traceback (most recent call last):
+        ...
+        RuntimeError: no answers left in DoctestUserInterface
+
+    """
+    def _get_input(self, prompt, options=None, default=None, input_func=raw_input):
+        r"""
+        Overwrites
+        :meth:`sage.dev.cmd_line_interface.CmdLineInterface._get_input` for
+        doctesting.
 
         TESTS::
 
-            sage: UI = sage.dev.user_interface.DoctestInterface()
-            sage: r = UI._get_input("Should I delete your home directory?",
-            ....:         ("yes","no","maybe"), default=0)
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: UI = DoctestUserInterface()
+            sage: UI.append('')
+            sage: UI._get_input("Should I delete your home directory?", ("yes","no","maybe"), default=0)
             Should I delete your home directory? [Yes/no/maybe]
-            sage: print r
-            yes
+            'yes'
+            sage: UI._get_input("Should I delete your home directory?", ("yes","no","maybe"), default=0)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: no answers left in DoctestUserInterface
+
         """
-        old_input_func = kwds.get('input_func')
+        old_input_func = input_func
         def input_func(prompt):
-            ret = "" if not self else self.pop()
+            if not self:
+                raise RuntimeError("no answers left in DoctestUserInterface")
+            ret = self.pop()
             if old_input_func is getpass:
                 self.show(prompt)
             else:
                 self.show(prompt+ret)
             return ret
-        kwds['input_func'] = input_func
-
-        return super(DoctestInterface, self)._get_input(*args, **kwds)
+        return CmdLineInterface._get_input(self, prompt, options, default, input_func)
 
     def edit(self, filename):
-        lines = open(filename).read()
-        self._edits += 1
-        lines = lines.replace("Summary: \n", "Summary: ticket number %s\n" % self._edits)
-        lines = lines.replace("ADD DESCRIPTION", "A description after edit number %s" % self._edits)
-        open(filename, 'w').write(lines)
+        r"""
+        Overwrites :meth:`sage.dev.cmd_line_interface.CmdLineInterface.edit`
+        for doctesting.
+
+        TESTS::
+
+            sage: import os, tempfile
+            sage: tmp = tempfile.mkstemp()[1]
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: UI = DoctestUserInterface()
+            sage: UI.append("Some\nlines\n")
+            sage: UI.edit(tmp)
+            sage: print open(tmp,'r').read()
+            Some
+            lines
+            <BLANKLINE>
+            sage: UI.edit(tmp)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: no answers left in DoctestUserInterface
+            sage: os.unlink(tmp)
+
+        """
+        if not self:
+            raise RuntimeError("no answers left in DoctestUserInterface")
+        open(filename, 'w').write(self.pop())

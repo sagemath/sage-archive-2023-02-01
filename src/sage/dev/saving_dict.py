@@ -1,3 +1,57 @@
+import cPickle
+from cStringIO import StringIO
+import os
+import collections
+
+def _raise():
+    r"""
+    function that raises exceptions
+
+    TESTS::
+
+        sage: from sage.dev.git_interface import _raise
+        sage: try:
+        ....:     raise Exception("this is a test")
+        ....: except Exception:
+        ....:     s = "the exception was caught"
+        ....:     _raise()
+        Traceback (most recent call last):
+        ...
+        Exception: this is a test
+        sage: print s
+        the exception was caught
+    """
+    raise
+
+def load_dict_from_file(filename):
+    r"""
+    loads a pickled dictionary from filename, defaults to {} if no file
+    is found
+
+    TESTS::
+
+        sage: from sage.dev.git_interface import load_dict_from_file
+        sage: d = load_dict_from_file(''); d
+        {}
+        sage: d['cow'] = 'moo'
+        sage: import cPickle, tempfile
+        sage: f = tempfile.NamedTemporaryFile()
+        sage: f.write(cPickle.dumps(d, protocol=2)); f.flush()
+        sage: load_dict_from_file(f.name)
+        {'cow': 'moo'}
+        sage: f.close()
+    """
+    if os.path.exists(filename):
+        with open(filename) as F:
+            s = F.read()
+        if s:
+            unpickler = cPickle.Unpickler(StringIO(s))
+            try:
+                return unpickler.load()
+            except cPickle.UnpicklingError:
+                pass
+    return {}
+
 class SavingDict(collections.MutableMapping):
     def __init__(self,
             filename,

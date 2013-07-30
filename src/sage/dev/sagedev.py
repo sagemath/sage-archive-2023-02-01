@@ -1901,3 +1901,84 @@ class SageDev(object):
         dep = [d if isinstance(d, int) else self._ticket[d] for d in dep]
         dep = [d for d in dep if d]
         return dep
+
+    def _reset_to_clean_state(self, interactive=True):
+        states = self.git.get_state()
+        if not states:
+            return True
+        if (interactive and not
+                self._UI.confirm("Your repository is in an unclean state. It "+
+                                 "seems you are in the middle of a merge of "+
+                                 "some sort. To run this command you have to "+
+                                 "reset your respository to a clean state. "+
+                                 "Do you want me to reset your respository? "+
+                                 "(This will discard any changes which are "+
+                                 "not commited.)")):
+            return False
+
+    def _reset_to_clean_working_directory(self, interactive=True):
+        if not self.git.has_uncommitted_changes():
+            return True
+
+        if (interactive and not
+                self._UI.confirm("You have uncommited changes in your "+
+                                 "working directory. To run this command you "+
+                                 "have to discard your changes. Do you want "+
+                                 "me to discard any changes which are not "+
+                                 "commited?")):
+            return False
+
+        return self.git._reset_to_clean_working_directory()
+
+# unused method
+#    def save(self, interactive=True):
+#        r"""
+#        guided command for making a commit which includes all changes
+#
+#        EXAMPLES::
+#
+#            sage: from sage.dev.sagedev import SageDev, doctest_config
+#            sage: git = SageDev(doctest_config()).git
+#            sage: git.save(False)
+#            [first_branch ...] doctesting message
+#             2 files changed, 2 insertions(+)
+#             create mode 100644 untracked_testfile1
+#             create mode 100644 untracked_testfile2
+#        """
+#        if (interactive and
+#                self._UI.confirm("Would you like to see a diff of the "+
+#                                 "changes?", default_yes=False)):
+#            self.execute("diff")
+#        for F in self.unknown_files():
+#            if (not interactive or
+#                    self._UI.confirm("Would you like to start tracking "+
+#                                     "%s?"%F)):
+#                self.execute('add', F)
+#        if interactive:
+#            msg = self._UI.get_input("Please enter a commit message:")
+#        else:
+#            msg = 'doctesting message'
+#        self.commit_all(m=msg)
+#
+
+    def _save_uncommitted_changes(self):
+        r"""
+        Returns True if changes should be unstashed
+        """
+        if not self._UI.confirm("You have uncommitted changes, would you "+
+                                "like to save them?"):
+            return
+        try:
+            curbranch = self.git.current_branch()
+            options = ["current branch", "new branch", "stash"]
+        except ValueError:
+            options = ["new branch", "stash"]
+        dest = self._UI.select("Where do you want to store your changes?", options)
+        if dest == "stash":
+            self.stash()
+        elif dest == "new branch":
+            self.execute_silent("stash")
+            return True
+        elif dest == "current branch":
+            self.commit()
+

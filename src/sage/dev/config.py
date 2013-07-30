@@ -58,7 +58,7 @@ class Config(collections.MutableMapping):
 
     def __repr__(self):
         r"""
-        Return a printable representation of this element.
+        Return a printable representation of this object.
 
         EXAMPLES::
 

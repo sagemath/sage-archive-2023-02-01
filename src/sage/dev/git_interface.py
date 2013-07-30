@@ -1,4 +1,4 @@
-"""
+r"""
 Git Interface
 
 This module provides a python interface to Sage's git repository.
@@ -42,69 +42,84 @@ TESTS::
     @@ -0,0 +1 @@
     +this is a test file
     0
+
+AUTHORS:
+
+- TODO: add authors from github's history and trac's history
+
 """
-import atexit
+#*****************************************************************************
+#       Copyright (C) 2013 TODO
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 import os
-import shutil
 import subprocess
-import tempfile
 
 import sage.doctest
-from sage.env import SAGE_DOT_GIT, SAGE_REPO_AUTHENTICATED, DOT_SAGE
+from sage.env import SAGE_DOT_GIT, SAGE_REPO_AUTHENTICATED
 
 class GitInterface(object):
+    r"""
+    A wrapper around the ``git`` command line tool.
+
+    Most methods of this class correspond to actual git commands. Some add
+    functionality which is not directly available in git. However, all of the
+    methods should be non-interactive. If interaction is required the method
+    should live in :class:`saged.dev.sagedev.SageDev`.
+
+    EXAMPLES::
+
+        sage: from sage.dev.test.config import Config
+        sage: from sage.dev.git_interface import GitInterface
+        sage: GitInterface(Config())
+
+    """
     def __init__(self, config, UI):
+        r"""
+        Initialization.
+
+        TESTS::
+
+            sage: from sage.dev.git_interface import GitInterface
+            sage: type(GitInterface())
+
+        """
         self._UI = UI
         self._config = config
 
         self._dot_git = self._config.get('dot_git', SAGE_DOT_GIT)
         self._gitcmd = self._config.get('gitcmd', 'git')
-        self._repo = self._config.get('repo', SAGE_REPO_AUTHENTICATED)
-        self._doctest_mode = False
-
-        if sage.doctest.DOCTEST_MODE:
-            self._tmp_dir = tempfile.mkdtemp()
-            atexit.register(shutil.rmtree, self._tmp_dir)
-            self._dot_git = os.path.join(self._tmp_dir, '.git')
-            self._doctest_mode = True
-            self._prep_doctest_repo()
+        self._repository = self._config.get('repository', SAGE_REPO_AUTHENTICATED)
 
         if not os.path.exists(self._dot_git):
             raise ValueError("`%s` does not point to an existing directory."%self._dot_git)
 
-    def _prep_doctest_repo(self):
-        """
-        creates a fake repository at self._tmp_dir for doctesting
-
-        TESTS::
-
-            sage: from sage.dev.sagedev import SageDev, doctest_config
-            sage: import os
-            sage: git = SageDev(doctest_config()).git  # indirect doctest
-        """
-        _dot_git = self._dot_git
-        self.execute_silent('init')
-        self.execute_silent('commit', '--allow-empty', '-m', "initial empty commit")
-        from sage.dev.sagedev import MASTER_BRANCH
-        self.execute_silent('branch', MASTER_BRANCH)
-
     def __repr__(self):
-        """
+        r"""
+        Return a printable representation of this instance.
+
         TESTS::
 
             sage: repr(dev.git)
             'GitInterface()'
+
         """
         return "GitInterface()"
-
-    #def released_sage_ver(self):
-        # should return a string with the most recent released version
-        # of Sage (in this branch's past?)
-    #    raise NotImplementedError
-
+    
     def get_state(self):
-        """
-        get the current state of merge/rebase/am/etc operations
+        r"""
+        Get the current state of merge/rebase/am/etc operations.
+
+        RETURN VALUE:
+
+        A tuple of strings which consists of any of the following:
+        ``'rebase'``, ``'am'``, ``'rebase-i'``, ``'rebase-m'``, ``'merge'``,
+        ``'bisect'``, ``'cherry-seq'``, ``'cherry'``.
 
         EXAMPLES::
 
@@ -139,6 +154,7 @@ class GitInterface(object):
             0
             sage: git.get_state()
             ()
+
         """
         # logic based on zsh's git backend for vcs_info
         opj = os.path.join
@@ -172,9 +188,9 @@ class GitInterface(object):
         # return in reverse order so reset operations are correctly ordered
         return tuple(reversed(ret))
 
-    def reset_to_clean_state(self, interactive=True):
-        """
-        gets out of a merge/am/rebase/etc state and returns True
+    def reset_to_clean_state(self):
+        r"""
+        Get out of a merge/am/rebase/etc state and returns True
         if successful
 
         EXAMPLES::
@@ -204,35 +220,24 @@ class GitInterface(object):
         states = self.get_state()
         if not states:
             return True
-        if (interactive and not
-                self._UI.confirm("Your repository is in an unclean state. It "+
-                                 "seems you are in the middle of a merge of "+
-                                 "some sort. To run this command you have to "+
-                                 "reset your respository to a clean state. "+
-                                 "Do you want me to reset your respository? "+
-                                 "(This will discard any changes which are "+
-                                 "not commited.)")):
-            return False
 
-        for state in states:
-            if state.startswith('rebase'):
-                self.execute_silent('rebase', abort=True)
-            elif state == 'am':
-                self.execute_silent('am', abort=True)
-            elif state == 'merge':
-                self.execute_silent('merge', abort=True)
-            elif state == 'bisect':
-                raise NotImplementedError(state)
-            elif state.startswith('cherry'):
-                self.execute_silent('cherry-pick', abort=True)
-            else:
-                raise RuntimeError("'%s' is not a valid state"%state)
+        state = states[0]
+        if state.startswith('rebase'):
+            self.execute_silent('rebase', abort=True)
+        elif state == 'am':
+            self.execute_silent('am', abort=True)
+        elif state == 'merge':
+            self.execute_silent('merge', abort=True)
+        elif state == 'bisect':
+            raise NotImplementedError(state)
+        elif state.startswith('cherry'):
+            self.execute_silent('cherry-pick', abort=True)
+        else:
+            raise RuntimeError("'%s' is not a valid state"%state)
 
-        if self.get_state():
-            raise RuntimeError("failed to reset to clean state")
-        return True
+        return self.reset_to_clean_state()
 
-    def reset_to_clean_working_directory(self, interactive=True):
+    def reset_to_clean_working_directory(self, remove_untracked_files=False, remove_untracked_directories=False, remove_ignored=False):
         r"""
         resets any changes made to the working directory and returns
         True if successful
@@ -254,15 +259,12 @@ class GitInterface(object):
         if not self.has_uncommitted_changes():
             return True
 
-        if (interactive and not
-                self._UI.confirm("You have uncommited changes in your "+
-                                 "working directory. To run this command you "+
-                                 "have to discard your changes. Do you want "+
-                                 "me to discard any changes which are not "+
-                                 "commited?")):
-            return False
-
         self.execute_silent('reset', hard=True)
+        if remove_untracked_files:
+            switches = ['-f']
+            if remove_untracked_directories: switches.append("-d")
+            if remove_ignored: switches.append("-x")
+            self.clean(*switches)
 
         return True
 
@@ -367,7 +369,7 @@ class GitInterface(object):
         return retcode, stdout, stderr
 
     def execute(self, cmd, *args, **kwds):
-        """
+        r"""
         Run git.
 
         Raises an exception if git has non-zero exit code.
@@ -427,7 +429,7 @@ class GitInterface(object):
     __call__ = execute
 
     def execute_silent(self, cmd, *args, **kwds):
-        """
+        r"""
         Run git and supress its output to stdout.
 
         Same input as :meth:`execute`.
@@ -458,7 +460,7 @@ class GitInterface(object):
             raise GitError(exit_code)
 
     def execute_supersilent(self, cmd, *args, **kwds):
-        """
+        r"""
         Run git and supress its output to stdout and stderr.
 
         Same input as :meth:`execute`.
@@ -498,7 +500,7 @@ class GitInterface(object):
         return ret
 
     def is_child_of(self, a, b):
-        """
+        r"""
         returns True if a is a child of b
 
         EXAMPLES::
@@ -513,7 +515,7 @@ class GitInterface(object):
         return self.is_ancestor_of(b, a)
 
     def is_ancestor_of(self, a, b):
-        """
+        r"""
         returns True if a is an ancestor of b
 
         EXAMPLES::
@@ -583,7 +585,7 @@ class GitInterface(object):
         self.execute("commit", *args, **kwds)
 
     def unknown_files(self):
-        """
+        r"""
         returns the list of files that are not being tracked by git
 
         EXAMPLES::
@@ -594,37 +596,8 @@ class GitInterface(object):
         return self.read_output('ls-files',
                         other=True, exclude_standard=True).splitlines()
 
-    def save(self, interactive=True):
-        """
-        guided command for making a commit which includes all changes
-
-        EXAMPLES::
-
-            sage: from sage.dev.sagedev import SageDev, doctest_config
-            sage: git = SageDev(doctest_config()).git
-            sage: git.save(False)
-            [first_branch ...] doctesting message
-             2 files changed, 2 insertions(+)
-             create mode 100644 untracked_testfile1
-             create mode 100644 untracked_testfile2
-        """
-        if (interactive and
-                self._UI.confirm("Would you like to see a diff of the "+
-                                 "changes?", default_yes=False)):
-            self.execute("diff")
-        for F in self.unknown_files():
-            if (not interactive or
-                    self._UI.confirm("Would you like to start tracking "+
-                                     "%s?"%F)):
-                self.execute('add', F)
-        if interactive:
-            msg = self._UI.get_input("Please enter a commit message:")
-        else:
-            msg = 'doctesting message'
-        self.commit_all(m=msg)
-
     def local_branches(self):
-        """
+        r"""
         return the list of the local branches sorted by last commit time
 
         EXAMPLES::
@@ -637,7 +610,7 @@ class GitInterface(object):
         return [head[11:] for head in result]
 
     def current_branch(self):
-        """
+        r"""
         return the current branch
 
         EXAMPLES::
@@ -656,7 +629,7 @@ class GitInterface(object):
             raise ValueError('HEAD is detached')
 
     def _branch_printname(self, branchname):
-        """
+        r"""
         return branchname, where ticket branches are specially recognized
 
         EXAMPLES::
@@ -676,7 +649,7 @@ class GitInterface(object):
             return branchname
 
     def _local_to_remote_name(self, branchname):
-        """
+        r"""
         convert local branch name to 'canonical' remote branch name
 
         EXAMPLES::
@@ -708,7 +681,7 @@ class GitInterface(object):
             return '/'.join(('u', self._sagedev.trac._username, branchname))
 
     def _remote_to_local_name(self, branchname):
-        """
+        r"""
         convert remote branch name to 'canonical' local branch name
 
         EXAMPLES::
@@ -740,7 +713,7 @@ class GitInterface(object):
         raise ValueError("not a valid remote branch name")
 
     def branch_exists(self, branch):
-        """
+        r"""
         returns the commit id of the local branch, or ``None`` if
         branch does not exist
 
@@ -761,7 +734,7 @@ class GitInterface(object):
         return self.ref_exists("refs/heads/%s"%branch)
 
     def ref_exists(self, ref):
-        """
+        r"""
         returns the commit id of the ref, or ``None`` if
         branch does not exist
 
@@ -785,7 +758,7 @@ class GitInterface(object):
         return self.read_output("show-ref", ref, hash=True, verify=True).strip()
 
     def create_branch(self, branchname, basebranch=None, remote_branch=True):
-        """
+        r"""
         creates branch ``branchname`` based off of ``basebranch`` or the
         current branch if ``basebranch`` is ``None``
 
@@ -820,7 +793,7 @@ class GitInterface(object):
             return ret
 
     def rename_branch(self, oldname, newname):
-        """
+        r"""
         renames branch ``oldname`` to ``newname``
 
         EXAMPLES::
@@ -843,7 +816,7 @@ class GitInterface(object):
         raise NotImplementedError
 
     def switch_branch(self, branchname, detached = False):
-        """
+        r"""
         switch to ``branchname`` in a detached state if ``detached`` is
         set to True
 
@@ -889,27 +862,6 @@ class GitInterface(object):
         if move:
             self.unstash_changes()
 
-    def save_uncommitted_changes(self):
-        r"""
-        Returns True if changes should be unstashed
-        """
-        if not self._UI.confirm("You have uncommitted changes, would you "+
-                                "like to save them?"):
-            return
-        try:
-            curbranch = self.git.current_branch()
-            options = ["current branch", "new branch", "stash"]
-        except ValueError:
-            options = ["new branch", "stash"]
-        dest = self._UI.select("Where do you want to store your changes?", options)
-        if dest == "stash":
-            self.stash()
-        elif dest == "new branch":
-            self.execute_silent("stash")
-            return True
-        elif dest == "current branch":
-            self.commit()
-
     def unstash_changes(self):
         try:
             self.execute_silent("stash", "apply")
@@ -920,7 +872,7 @@ class GitInterface(object):
                           "They are now in your stash.")
 
     def vanilla(self, release=True):
-        """
+        r"""
         switch to released version of sage
         """
         if release is False:
@@ -937,7 +889,7 @@ class GitInterface(object):
         self.switch_branch(release)
 
     def abandon(self, branchname):
-        """
+        r"""
         move branch to trash
 
         EXAMPLES::
@@ -958,7 +910,7 @@ class GitInterface(object):
 
     @classmethod
     def is_atomic_name(x):
-        """
+        r"""
         returns true if x is a valid atomic branch name
 
         EXAMPLES::
@@ -985,7 +937,7 @@ class GitInterface(object):
 
     @classmethod
     def is_ticket_name(x):
-        """
+        r"""
         returns true if x is a valid ticket branch name
 
         EXAMPLES::
@@ -1010,7 +962,7 @@ class GitInterface(object):
 
     @classmethod
     def is_local_group_name(x):
-        """
+        r"""
         returns true if x is a valid local group branch name
 
         EXAMPLES::
@@ -1036,7 +988,7 @@ class GitInterface(object):
 
     @classmethod
     def is_remote_group_name(x):
-        """
+        r"""
         returns true if x is a valid remote group branch name
 
         EXAMPLES::
@@ -1061,7 +1013,7 @@ class GitInterface(object):
 
     @classmethod
     def is_remote_user_name(x):
-        """
+        r"""
         returns true if x is a valid remote user branch name
 
         EXAMPLES::
@@ -1086,7 +1038,7 @@ class GitInterface(object):
 
     @classmethod
     def is_release_name(x):
-        """
+        r"""
         returns true if x is a valid release name
 
         WARNING: this does not imply the existence of such a release
@@ -1125,7 +1077,7 @@ class GitInterface(object):
 
     @classmethod
     def normalize_ticket_name(x):
-        """
+        r"""
         returns the normalized ticket branch name for x
 
         WARNING: it does not check to see if x is a valid ticket branch name
@@ -1145,7 +1097,7 @@ class GitInterface(object):
         return '/'.join(('ticket', x[1]))
 
 def _git_cmd_wrapper(git_cmd):
-    """
+    r"""
     creates a method for GitInterface that wraps a git command
 
     EXAMPLES::
@@ -1160,7 +1112,7 @@ def _git_cmd_wrapper(git_cmd):
     """
     def meth(self, *args, **kwds):
         self.execute(git_cmd.replace("_", "-"), *args, **kwds)
-    meth.__doc__ = """
+    meth.__doc__ = r"""
             direct call to \`git %s\`
 
             see :meth:`execute` for full documentation

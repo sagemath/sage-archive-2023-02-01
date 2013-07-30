@@ -1,6 +1,7 @@
 from __future__ import print_function
 from subprocess import check_call, CalledProcessError
 from getpass import getpass
+
 import os
 
 class CmdLineInterface(UserInterface):

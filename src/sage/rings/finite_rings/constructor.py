@@ -323,7 +323,7 @@ class FiniteFieldFactory(UniqueFactory):
         2
 
     The following demonstrate coercions for finite fields using Conway
-    or pseudo-Conway polynomials::
+    polynomials::
 
         sage: k = GF(5^2, conway=True, prefix='z'); a = k.gen()
         sage: l = GF(5^5, conway=True, prefix='z'); b = l.gen()
@@ -386,9 +386,9 @@ class FiniteFieldFactory(UniqueFactory):
                 # implemented in Sage.  It requires the user to
                 # specify two parameters:
                 #
-                # - `conway` -- either True or PseudoConwayPolyTree;
-                #   if True, a PseudoConwayPolyTree is generated
-                #   automatically.
+                # - `conway` -- boolean; if True, this field is
+                #   constructed to fit in a compatible system using
+                #   a Conway polynomial.
                 # - `prefix` -- a string used to generate names for
                 #   automatically constructed finite fields
                 #
@@ -402,6 +402,13 @@ class FiniteFieldFactory(UniqueFactory):
                 #     sage: F, e = Fpbar.subfield(3)  # e is the embedding into Fpbar
                 #     sage: F
                 #     Finite field in z3 of size 5^3
+                #
+                # This temporary solution only uses actual Conway
+                # polynomials (no pseudo-Conway polynomials), since
+                # pseudo-Conway polynomials are not unique, and until
+                # we have algebraic closures of finite fields, there
+                # is no good place to store a specific choice of
+                # pseudo-Conway polynomials.
                 if name is None:
                     if not (kwds.has_key('conway') and kwds['conway']):
                         raise ValueError("parameter 'conway' is required if no name given")
@@ -410,27 +417,13 @@ class FiniteFieldFactory(UniqueFactory):
                     name = kwds['prefix'] + str(n)
 
                 if kwds.has_key('conway') and kwds['conway']:
-                    from conway_polynomials import PseudoConwayPolyTree, find_pseudo_conway_polynomial_tree
-                    pcpt = kwds['conway']
-                    if (isinstance(pcpt, PseudoConwayPolyTree)
-                        and pcpt.p == p and pcpt.n == n):
-                        pass
-                    elif pcpt is True:
-                        pcpt = find_pseudo_conway_polynomial_tree(p, n)
-                    else:
-                        raise ValueError("invalid value for parameter 'conway'")
+                    from conway_polynomials import conway_polynomial
                     if not kwds.has_key('prefix'):
-                        raise ValueError("a prefix must be specified for finite fields defined by Conway polynomials")
+                        raise ValueError("a prefix must be specified if conway=True")
                     if modulus is not None:
-                        raise ValueError("no modulus may be specified for finite fields defined by Conway polynomials")
-                    # Always use the polynomial specified by pcpt.
-                    modulus = pcpt.f
-                    # We do not store `pcpt` in the finite field, so
-                    # that we will not be forced in the future to
-                    # recognise it for unpickling.  The pseudo-Conway
-                    # polynomial tree is currently cached by the code
-                    # in conway_polynomials.py, and should be cached
-                    # in Fpbar in the future.
+                        raise ValueError("no modulus may be specified if conway=True")
+                    # The following raises a RuntimeError if no polynomial is found.
+                    modulus = conway_polynomial(p, n)
 
                 if modulus is None or isinstance(modulus, str):
                     # A string specifies an algorithm to find a suitable modulus.

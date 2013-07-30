@@ -17,9 +17,9 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from sage.dev.config import Config
+import sage.dev.config
 
-class DoctestConfig(Config):
+class DoctestConfig(sage.dev.config.Config):
     r"""
     A :class:`sage.dev.config.Config` which lives in a temporary file and sets
     some sensible defaults for doctesting.
@@ -63,19 +63,25 @@ class DoctestConfig(Config):
         devrc = tempfile.mkstemp()[1]
         atexit.register(lambda: os.path.exists(devrc) or os.unlink(devrc))
 
-        Config.__init__(self, devrc = devrc)
+        sage.dev.config.Config.__init__(self, devrc = devrc)
 
         self['trac'] = {'username': trac_username}
         self['UI'] = {'log_level': 0}
         self['git'] = {}
 
-        if repository:
-            self['git']['repository'] = repository
+        self['git']['repository'] = repository if repository else "remote_repository_undefined"
 
         self._tmp_dir = tempfile.mkdtemp()
         atexit.register(shutil.rmtree, self._tmp_dir)
-        self['git']['dot_git'] = self._tmp_dir
+        self['git']['src'] = self._tmp_dir
+        self['git']['dot_git'] = os.path.join(self._tmp_dir,".git")
+        os.mkdir(self['git']['dot_git'])
 
         from sage.dev.git_interface import GitInterface, SILENT
         from sage.dev.test.user_interface import DoctestUserInterface
-        GitInterface(self['git'], DoctestUserInterface(self["UI"])).init(SILENT, self._tmp_dir)
+        old_cwd = os.getcwd()
+        os.chdir(self['git']['src'])
+        try:
+            GitInterface(self['git'], DoctestUserInterface(self["UI"])).init(SILENT, self['git']['src'])
+        finally:
+            os.chdir(old_cwd)

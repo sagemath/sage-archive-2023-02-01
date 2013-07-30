@@ -63,6 +63,12 @@ import subprocess
 import sage.doctest
 from sage.env import SAGE_DOT_GIT, SAGE_REPO_AUTHENTICATED
 
+from git_error import GitError
+
+SILENT = object()
+SUPER_SILENT = object()
+READ_OUTPUT = object()
+
 class GitInterface(object):
     r"""
     A wrapper around the ``git`` command line tool.
@@ -327,8 +333,6 @@ class GitInterface(object):
             sage: git._run_git('log', (), {'oneline':True}, stdout=str)
             (0, '... edit the testfile differently\n... add a testfile\n', None)
         """
-        assert self._doctest_mode or not sage.doctest.DOCTEST_MODE, "running doctests which use git/trac is not supported from within a running session of sage"
-
         s = [self._gitcmd, "--git-dir=%s"%self._dot_git, cmd]
 
         env = ckwds.setdefault('env', dict(os.environ))
@@ -348,8 +352,8 @@ class GitInterface(object):
 
         s = [str(arg) for arg in s]
 
-        if not self._doctest_mode:
-            self._UI.show("[git] %s"%(" ".join(s)))
+        from sage.dev.user_interface import INFO
+        self._UI.show("[git] %s"%(" ".join(s)), log_level=INFO)
 
         if ckwds.get('dryrun', False):
             return s
@@ -1096,30 +1100,7 @@ class GitInterface(object):
         """
         return '/'.join(('ticket', x[1]))
 
-def _git_cmd_wrapper(git_cmd):
-    r"""
-    creates a method for GitInterface that wraps a git command
-
-    EXAMPLES::
-
-        sage: from sage.dev.git_interface import _git_cmd_wrapper, GitInterface
-        sage: cmd = _git_cmd_wrapper("ls-tree")
-        sage: setattr(GitInterface, 'ls_tree', cmd)
-        sage: r = dev.git.ls_tree('first_branch')
-        100644 blob 13d5431ac2f249eb07313624ec8fa041ea0f34a4        testfile
-        sage: r
-        0
-    """
-    def meth(self, *args, **kwds):
-        self.execute(git_cmd.replace("_", "-"), *args, **kwds)
-    meth.__doc__ = r"""
-            direct call to \`git %s\`
-
-            see :meth:`execute` for full documentation
-            """%git_cmd
-    return meth
-
-for git_cmd in (
+for git_cmd_ in (
         "add",
         "am",
         "apply",
@@ -1133,7 +1114,7 @@ for git_cmd in (
         "fetch",
         "format_patch",
         "grep",
-        # "init",
+        "init",
         "log",
         "merge",
         "mv",
@@ -1145,7 +1126,55 @@ for git_cmd in (
         "show",
         "stash",
         "status",
-        # "tag"
+        "tag"
         ):
-    setattr(GitInterface, git_cmd, _git_cmd_wrapper(git_cmd))
+    def create_wrapper(git_cmd__):
+        r"""
+        Create a wrapper for `git_cmd__`.
 
+        EXAMPLES::
+
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: from sage.dev.git_interface import GitInterface
+            sage: GitInterface(DoctestConfig(), DoctestUserInterface()).status()
+
+        """
+        git_cmd = git_cmd__.replace("_","-")
+        def meth(self, *args, **kwds):
+            r"""
+            Call `git {0}`.
+
+            If `args` contains ``SILENT``, then output to stdout is surpressed.
+
+            If `args` contains ``SUPER_SILENT``, then output to stdout and stderr
+            is surpressed.
+
+            OUTPUT:
+
+            Returns ``None`` unless `args` contains ``READ_OUTPUT``; in that case,
+            the commands output to stdout is returned.
+
+            See :meth:`execute` for more information.
+
+            EXAMPLES:
+
+                sage: dev.git.{1}() # not tested
+
+            """.format(git_cmd, git_cmd__)
+            args = list(args)
+            if len([arg for arg in args if arg in (SILENT, SUPER_SILENT, READ_OUTPUT)]) > 1:
+                raise ValueError("at most one of SILENT, SUPER_SILENT, READ_OUTPUT allowed")
+            if SILENT in args:
+                args.remove(SILENT)
+                return self.execute_silent(git_cmd, *args, **kwds)
+            elif SUPER_SILENT in args:
+                args.remove(SUPER_SILENT)
+                return self.execute_supersilent(git_cmd, *args, **kwds)
+            elif READ_OUTPUT in args:
+                args.remove(READ_OUTPUT)
+                return self.read_output(git_cmd, *args, **kwds)
+            else:
+                return self.execute(git_cmd, *args, **kwds)
+        return meth
+    setattr(GitInterface, git_cmd_, create_wrapper(git_cmd_))

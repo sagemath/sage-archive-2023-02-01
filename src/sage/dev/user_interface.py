@@ -22,6 +22,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+# log levels
+SILENT = -1 # display only prompts and errors
+NORMAL = 0
+INFO = 1 # display informational messages, such as git commands executed
+DEBUG = 2 # display additional debug information
+
 class UserInterface(object):
     r"""
     An abstract base class for displaying messages and prompting the user for
@@ -30,10 +36,21 @@ class UserInterface(object):
     TESTS::
 
         sage: from sage.dev.user_interface import UserInterface
-        sage: UI = UserInterface()
-        sage: type(UI)
+        sage: UserInterface()
 
     """
+    def __init__(self, config):
+        r"""
+        Initialization.
+
+        TESTS:
+
+            sage: from sage.dev.user_interface import UserInterface
+            sage: type(UserInterface())
+
+        """
+        self._config = config
+
     def select(self, prompt, options, default=None):
         r"""
         Ask the user to select from list of options and return selected option.
@@ -110,9 +127,16 @@ class UserInterface(object):
         """
         raise NotImplementedError
 
-    def show(self, message):
+    def show(self, message, log_level=NORMAL):
         r"""
         Display ``message``.
+
+        INPUT:
+
+            - ``message`` -- a string
+
+            - ``log_level`` -- one of ``SILENT``, ``NORMAL``, ``INFO``, or
+              ``DEBUG`` (default: ``NORMAL``)
 
         TESTS::
 
@@ -123,7 +147,8 @@ class UserInterface(object):
             NotImplementedError
 
         """
-        raise NotImplementedError
+        if self._config.get("log_level", NORMAL) >= log_level:
+            self._show(message)
 
     def edit(self, filename):
         r"""

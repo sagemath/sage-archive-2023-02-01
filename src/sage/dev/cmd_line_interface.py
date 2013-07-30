@@ -33,8 +33,9 @@ class CmdLineInterface(UserInterface):
 
     EXAMPLES::
 
+        sage: from sage.dev.test.config import DoctestConfig
         sage: from sage.dev.cmd_line_interface import CmdLineInterface
-        sage: CmdLineInterface()
+        sage: CmdLineInterface(DoctestConfig()["UI"])
         CmdLineInterface()
 
     """
@@ -44,8 +45,9 @@ class CmdLineInterface(UserInterface):
 
         EXAMPLES::
 
+            sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
-            sage: CmdLineInterface()
+            sage: CmdLineInterface(DoctestConfig()["UI"])
             CmdLineInterface()
 
         """
@@ -57,8 +59,9 @@ class CmdLineInterface(UserInterface):
 
         TESTS::
 
+            sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
-            sage: UI = CmdLineInterface()
+            sage: UI = CmdLineInterface(DoctestConfig()["UI"])
             sage: UI._std_values("Should I delete your home directory?", ("yes","no","maybe"), default=1)
             ('Should I delete your home directory? [yes/No/maybe] ', ('yes', 'no', 'maybe'), 'no')
 
@@ -95,8 +98,9 @@ class CmdLineInterface(UserInterface):
 
         TESTS::
 
+            sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
-            sage: UI = CmdLineInterface()
+            sage: UI = CmdLineInterface(DoctestConfig()["UI"])
             sage: def input_func(prompt):
             ....:     print(prompt)
             ....:     return "no"
@@ -152,14 +156,15 @@ class CmdLineInterface(UserInterface):
 
         TESTS::
 
+            sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
-            sage: UI = CmdLineInterface()
+            sage: UI = CmdLineInterface(DoctestConfig()["UI"])
             sage: UI.select("Should I delete your home directory?", ("yes","no","maybe"), default=2) # not tested
             Should I delete your home directory? [yes/no/Maybe] m
             'maybe'
 
             sage: from sage.dev.test.user_interface import DoctestUserInterface
-            sage: UI = DoctestUserInterface()
+            sage: UI = DoctestUserInterface(DoctestConfig()["UI"])
             sage: UI.append("n")
             sage: UI.select("Should I delete your home directory?", ("yes","no","maybe"), default=2) # indirect doctest
             Should I delete your home directory? [yes/no/Maybe] n
@@ -182,14 +187,15 @@ class CmdLineInterface(UserInterface):
 
         TESTS::
 
+            sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
-            sage: UI = CmdLineInterface()
+            sage: UI = CmdLineInterface(DoctestConfig()["UI"])
             sage: UI.get_input("What do you want for dinner?") # not tested
             What do you want for dinner? filet mignon
             'filet mignon'
 
             sage: from sage.dev.test.user_interface import DoctestUserInterface
-            sage: UI = DoctestUserInterface()
+            sage: UI = DoctestUserInterface(DoctestConfig()["UI"])
             sage: UI.append("filet mignon")
             sage: UI.get_input("What do you want for dinner?") # indirect doctest
             What do you want for dinner? filet mignon
@@ -212,14 +218,15 @@ class CmdLineInterface(UserInterface):
 
         TESTS::
 
+            sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
-            sage: UI = CmdLineInterface()
+            sage: UI = CmdLineInterface(DoctestConfig()["UI"])
             sage: UI.get_password("What is the key combo for your safe?") # not tested
             What is the key combo for your safe?
             '9247'
 
             sage: from sage.dev.test.user_interface import DoctestUserInterface
-            sage: UI = DoctestUserInterface()
+            sage: UI = DoctestUserInterface(DoctestConfig()["UI"])
             sage: UI.append('9247')
             sage: UI.get_password("What is the key combo for your safe?") # indirect doctest
             What is the key combo for your safe?
@@ -238,8 +245,9 @@ class CmdLineInterface(UserInterface):
 
         TESTS::
 
+            sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
-            sage: UI = CmdLineInterface()
+            sage: UI = CmdLineInterface(DoctestConfig()["UI"])
             sage: UI._get_dimensions() # not tested
             (48, 194)
 
@@ -270,9 +278,10 @@ class CmdLineInterface(UserInterface):
         TESTS::
 
             sage: import os
+            sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
             sage: fd = os.open(os.ctermid(), os.O_RDONLY) # not tested
-            sage: CmdLineInterface()._ioctl_GWINSZ(fd) # not tested
+            sage: CmdLineInterface(DoctestConfig()["UI"])._ioctl_GWINSZ(fd) # not tested
             (48, 194)
 
         """
@@ -288,7 +297,7 @@ class CmdLineInterface(UserInterface):
         except IOError:
             return None
 
-    def show(self, message):
+    def _show(self, message):
         r"""
         Display ``message``.
 
@@ -298,9 +307,10 @@ class CmdLineInterface(UserInterface):
 
         TESTS::
 
+            sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
-            sage: UI = CmdLineInterface()
-            sage: UI.show("I ate filet mignon for dinner.")
+            sage: UI = CmdLineInterface(DoctestConfig()["UI"])
+            sage: UI.show("I ate filet mignon for dinner.") # indirect doctest
             I ate filet mignon for dinner.
 
         """
@@ -334,8 +344,9 @@ class CmdLineInterface(UserInterface):
 
             sage: import os, tempfile
             sage: tmp = tempfile.mkstemp()[1]
+            sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
-            sage: UI = CmdLineInterface()
+            sage: UI = CmdLineInterface(DoctestConfig()["UI"])
             sage: UI.edit(tmp) # not tested
             sage: print open(tmp,'r').read() # not tested
             Some

@@ -31,8 +31,9 @@ class DoctestUserInterface(CmdLineInterface, list):
 
     EXAMPLES::
 
+        sage: from sage.dev.test.config import DoctestConfig
         sage: from sage.dev.test.user_interface import DoctestUserInterface
-        sage: UI = DoctestUserInterface()
+        sage: UI = DoctestUserInterface(DoctestConfig()["UI"])
         sage: UI.append("Answer")
         sage: UI._get_input("Question?")
         Question? Answer
@@ -51,8 +52,9 @@ class DoctestUserInterface(CmdLineInterface, list):
 
         TESTS::
 
+            sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.test.user_interface import DoctestUserInterface
-            sage: UI = DoctestUserInterface()
+            sage: UI = DoctestUserInterface(DoctestConfig()["UI"])
             sage: UI.append('')
             sage: UI._get_input("Should I delete your home directory?", ("yes","no","maybe"), default=0)
             Should I delete your home directory? [Yes/no/maybe]
@@ -84,8 +86,9 @@ class DoctestUserInterface(CmdLineInterface, list):
 
             sage: import os, tempfile
             sage: tmp = tempfile.mkstemp()[1]
+            sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.test.user_interface import DoctestUserInterface
-            sage: UI = DoctestUserInterface()
+            sage: UI = DoctestUserInterface(DoctestConfig()["UI"])
             sage: UI.append("Some\nlines\n")
             sage: UI.edit(tmp)
             sage: print open(tmp,'r').read()

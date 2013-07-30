@@ -151,7 +151,7 @@ class SageDev(object):
         if UI is not None:
             self._UI = UI
         else:
-            self._UI = CmdLineInterface()
+            self._UI = CmdLineInterface(config.get("UI"))
 
         self.__git = None
         self.__trac = None

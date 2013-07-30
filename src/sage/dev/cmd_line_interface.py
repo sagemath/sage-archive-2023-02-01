@@ -160,8 +160,8 @@ class CmdLineInterface(UserInterface):
 
             sage: from sage.dev.test.user_interface import DoctestUserInterface
             sage: UI = DoctestUserInterface()
-            sage: UI.push("n")
-            sage: UI.select("Should I delete your home directory?", ("yes","no","maybe"), default=2)
+            sage: UI.append("n")
+            sage: UI.select("Should I delete your home directory?", ("yes","no","maybe"), default=2) # indirect doctest
             Should I delete your home directory? [yes/no/Maybe] n
             'no'
 
@@ -190,8 +190,8 @@ class CmdLineInterface(UserInterface):
 
             sage: from sage.dev.test.user_interface import DoctestUserInterface
             sage: UI = DoctestUserInterface()
-            sage: UI.push("filet mignon")
-            sage: UI.get_input("What do you want for dinner?")
+            sage: UI.append("filet mignon")
+            sage: UI.get_input("What do you want for dinner?") # indirect doctest
             What do you want for dinner? filet mignon
             'filet mignon'
 
@@ -220,8 +220,8 @@ class CmdLineInterface(UserInterface):
 
             sage: from sage.dev.test.user_interface import DoctestUserInterface
             sage: UI = DoctestUserInterface()
-            sage: UI.push('9247')
-            sage: UI.get_password("What is the key combo for your safe?")
+            sage: UI.append('9247')
+            sage: UI.get_password("What is the key combo for your safe?") # indirect doctest
             What is the key combo for your safe?
             '9247'
 
@@ -256,7 +256,7 @@ class CmdLineInterface(UserInterface):
         if dim is None:
             raise EnvironmentError("cannot determine dimensions of terminal")
 
-        return (int(x) for x in dim)
+        return tuple(int(x) for x in dim)
 
     def _ioctl_GWINSZ(self, fd):
         r"""
@@ -336,10 +336,11 @@ class CmdLineInterface(UserInterface):
             sage: tmp = tempfile.mkstemp()[1]
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
             sage: UI = CmdLineInterface()
-            sage: os.environ['EDITOR'] = 'echo "stuff to put in file" >'
-            sage: UI.edit(tmp)
-            sage: print open(tmp,'r').read()
-            stuff to put in file
+            sage: UI.edit(tmp) # not tested
+            sage: print open(tmp,'r').read() # not tested
+            Some
+            lines
+            <BLANKLINE>
             sage: os.unlink(tmp)
 
         """

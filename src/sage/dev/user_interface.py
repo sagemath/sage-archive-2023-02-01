@@ -1,7 +1,7 @@
 r"""
 User Interface
 
-This file provides an abstract base class that is used for displaying messages
+This module provides an abstract base class that is used for displaying messages
 and prompting for user input.
 
 .. SEEALSO::
@@ -36,7 +36,9 @@ class UserInterface(object):
     TESTS::
 
         sage: from sage.dev.user_interface import UserInterface
-        sage: UserInterface()
+        sage: from sage.dev.test.config import DoctestConfig
+        sage: UserInterface(DoctestConfig())
+        <sage.dev.user_interface.UserInterface object at 0x...>
 
     """
     def __init__(self, config):
@@ -46,7 +48,9 @@ class UserInterface(object):
         TESTS:
 
             sage: from sage.dev.user_interface import UserInterface
-            sage: type(UserInterface())
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: type(UserInterface(DoctestConfig()))
+            <class 'sage.dev.user_interface.UserInterface'>
 
         """
         self._config = config
@@ -67,7 +71,9 @@ class UserInterface(object):
         TESTS::
 
             sage: from sage.dev.user_interface import UserInterface
-            sage: UserInterface().select("Should I delete your home directory?", ("yes","no","maybe"), default=1)
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: UI = UserInterface(DoctestConfig())
+            sage: UI.select("Should I delete your home directory?", ("yes","no","maybe"), default=1)
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -89,7 +95,9 @@ class UserInterface(object):
         TESTS::
 
             sage: from sage.dev.user_interface import UserInterface
-            sage: UserInterface().confirm("Should I delete your home directory?")
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: UI = UserInterface(DoctestConfig())
+            sage: UI.confirm("Should I delete your home directory?")
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -104,7 +112,9 @@ class UserInterface(object):
         TESTS::
 
             sage: from sage.dev.user_interface import UserInterface
-            sage: UserInterface().get_input("What do you want for dinner?")
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: UI = UserInterface(DoctestConfig())
+            sage: UI.get_input("What do you want for dinner?")
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -119,7 +129,9 @@ class UserInterface(object):
         TESTS::
 
             sage: from sage.dev.user_interface import UserInterface
-            sage: UserInterface().get_password("What is the passphrase for your safe?")
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: UI = UserInterface(DoctestConfig())
+            sage: UI.get_password("What is the passphrase for your safe?")
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -133,22 +145,46 @@ class UserInterface(object):
 
         INPUT:
 
-            - ``message`` -- a string
+        - ``message`` -- a string
 
-            - ``log_level`` -- one of ``SILENT``, ``NORMAL``, ``INFO``, or
-              ``DEBUG`` (default: ``NORMAL``)
+        - ``log_level`` -- one of ``SILENT``, ``NORMAL``, ``INFO``, or
+          ``DEBUG`` (default: ``NORMAL``)
+
+        TESTS::
+
+            sage: from sage.dev.user_interface import UserInterface, DEBUG
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: UI = UserInterface(DoctestConfig())
+            sage: UI.show("I ate filet mignon for dinner.")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+            sage: UI.show("I ate filet mignon for dinner.", DEBUG)
+
+        """
+        if self._config.get("log_level", NORMAL) >= log_level:
+            self._show(message)
+
+    def _show(self, message):
+        r"""
+        Display ``message``.
+
+        INPUT:
+
+        - ``message`` -- a string
 
         TESTS::
 
             sage: from sage.dev.user_interface import UserInterface
-            sage: UserInterface().show("I ate filet mignon for dinner.")
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: UI = UserInterface(DoctestConfig())
+            sage: UI._show("I ate filet mignon for dinner.")
             Traceback (most recent call last):
             ...
             NotImplementedError
 
         """
-        if self._config.get("log_level", NORMAL) >= log_level:
-            self._show(message)
+        raise NotImplementedError
 
     def edit(self, filename):
         r"""
@@ -157,7 +193,9 @@ class UserInterface(object):
         TESTS::
 
             sage: from sage.dev.user_interface import UserInterface
-            sage: UserInterface().edit("filename")
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: UI = UserInterface(DoctestConfig())
+            sage: UI.edit("filename")
             Traceback (most recent call last):
             ...
             NotImplementedError

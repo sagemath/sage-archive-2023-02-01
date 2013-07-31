@@ -1939,3 +1939,382 @@ class SageDev(object):
         elif dest == "current branch":
             self.commit()
 
+    def _local_to_remote_name(self, branchname):
+        r"""
+        Convert local ``branchname`` to 'canonical' remote branch name
+
+        EXAMPLES::
+
+            sage: dev.git._local_to_remote_name('padics/feature')
+            'g/padics/feature'
+            sage: dev.git._local_to_remote_name('t/12345')
+            'u/doctest/ticket/12345'
+            sage: dev.git._local_to_remote_name('ticket/12345')
+            'u/doctest/ticket/12345'
+            sage: dev.git._local_to_remote_name('u/doctest0/ticket/12345')
+            'u/doctest0/ticket/12345'
+            sage: dev.git._local_to_remote_name('some/local/project')
+            'u/doctest/some/local/project'
+        """
+        if branchname in ("release", "beta", "master"):
+            return branchname
+        x = branchname.split('/')
+        if is_local_group_name(x):
+            if is_ticket_name(x[1:]):
+                return '/'.join(('g', x[0], normalize_ticket_name(x[1:])))
+            return '/'.join(['g']+x)
+        elif is_ticket_name(x):
+            return '/'.join(('u', self._sagedev.trac._username,
+                normalize_ticket_name(x)))
+        elif is_remote_user_name(x):
+            return branchname
+        else:
+            return '/'.join(('u', self._sagedev.trac._username, branchname))
+
+    def _remote_to_local_name(self, branchname):
+        r"""
+        convert remote branch name to 'canonical' local branch name
+
+        EXAMPLES::
+
+            sage: dev.git._remote_to_local_name('g/padics/feature')
+            'padics/feature'
+            sage: dev.git._remote_to_local_name('u/doctest/t/12345')
+            'ticket/12345'
+            sage: dev.git._remote_to_local_name('u/doctest/ticket/12345')
+            'ticket/12345'
+            sage: dev.git._remote_to_local_name('u/doctest0/ticket/12345')
+            'u/doctest0/ticket/12345'
+            sage: dev.git._remote_to_local_name('u/doctest/some/remote/project')
+            'some/remote/project'
+        """
+        if branchname in ("release", "beta", "master"):
+            return branchname
+        x = branchname.split('/')
+        if is_remote_group_name(x):
+            if is_ticket_name(x[2:]):
+                return '/'.join((x[1], normalize_ticket_name(x[2:])))
+            return '/'.join(x[1:])
+        elif is_remote_user_name(x):
+            if x[1] != self._sagedev.trac._username:
+                return branchname
+            elif is_ticket_name(x[2:]):
+                return normalize_ticket_name(x[2:])
+            return '/'.join(x[2:])
+        raise ValueError("not a valid remote branch name")
+
+    def _create_branch(self, branchname, basebranch=None, remote_branch=True):
+        r"""
+        creates branch ``branchname`` based off of ``basebranch`` or the
+        current branch if ``basebranch`` is ``None``
+
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import SageDev, doctest_config
+            sage: git = SageDev(doctest_config()).git
+            sage: git.create_branch("third_branch")
+            sage: git.branch_exists("third_branch") == git.branch_exists("first_branch")
+            True
+            sage: git.create_branch("fourth_branch", "second_branch")
+            sage: git.branch_exists("fourth_branch") == git.branch_exists("second_branch")
+            True
+        """
+        if branchname in ("t", "ticket", "all", "dependencies", "commit",
+                "release", "beta", "master"):
+            raise ValueError("bad branchname")
+        if self.branch_exists(branchname):
+            raise ValueError("branch already exists")
+
+        if basebranch is None:
+            ret = self.execute("branch", branchname)
+        else:
+            ret = self.execute("branch", branchname, basebranch)
+
+        if remote_branch is True:
+            remote_branch = self._local_to_remote_name(branchname)
+        if remote_branch:
+            self._sagedev._remote[branchname] = remote_branch
+
+        if ret: # return non-zero exit codes
+            return ret
+
+    def _switch_branch(self, branchname, detached = False):
+        r"""
+        switch to ``branchname`` in a detached state if ``detached`` is
+        set to True
+
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import SageDev, doctest_config
+            sage: git = SageDev(doctest_config()).git
+            sage: git.current_branch()
+            'first_branch'
+            sage: git.switch_branch('second_branch')
+            Switched to branch 'second_branch'
+            sage: git.current_branch()
+            'second_branch'
+            sage: git.branch_exists('third_branch')
+            sage: git.switch_branch('third_branch')
+            Switched to branch 'third_branch'
+            sage: git.branch_exists('third_branch') # random
+            '5249e7a56067e9f30244930192503d502558b6c3'
+            sage: git.switch_branch('first_branch', detached=True)
+            Note: checking out 'first_branch'.
+            <BLANKLINE>
+            You are in 'detached HEAD' state. You can look around, make experimental
+            changes and commit them, and you can discard any commits you make in this
+            state without impacting any branches by performing another checkout.
+            <BLANKLINE>
+            If you want to create a new branch to retain commits you create, you may
+            do so (now or later) by using -b with the checkout command again. Example:
+            <BLANKLINE>
+              git checkout -b new_branch_name
+            <BLANKLINE>
+            HEAD is now at ... edit the testfile differently
+        """
+        move = None
+        if self.has_uncommitted_changes():
+            move = self.save_uncommitted_changes()
+
+        if not detached and self.branch_exists(branchname) is None:
+            if self.create_branch(branchname) is not None:
+                raise RuntimeError("could not create new branch")
+
+        self.execute("checkout", branchname, detach=detached)
+
+        if move:
+            self.unstash_changes()
+
+    def _unstash_changes(self):
+        try:
+            self.execute_silent("stash", "apply")
+            self.execute_silent("stash", "drop")
+        except GitError:
+            self.execute_silent("reset", hard=True)
+            self._UI.show("Changes did not apply cleanly to the new branch. "+
+                          "They are now in your stash.")
+
+    def _vanilla(self, release=True):
+        r"""
+        switch to released version of sage
+        """
+        if release is False:
+            release = "master"
+        elif release is True:
+            release = "release"
+        else:
+            release = str(release)
+            if is_release_name(release.split('.')):
+                self.execute('fetch', 'origin', tags=True)
+                release = self.ref_exists('refs/tags/%s'%release)
+                if release is None:
+                    raise ValueError("was unable to find desired release")
+        self.switch_branch(release)
+
+    def _abandon(self, branchname):
+        r"""
+        move branch to trash
+
+        EXAMPLES::
+
+            sage: from sage.dev.sagedev import SageDev, doctest_config
+            sage: git = SageDev(doctest_config()).git
+            sage: git.abandon('second_branch')
+            sage: git.local_branches()
+            ['first_branch', 'abandoned/second_branch', 'master']
+        """
+        trashname = "abandoned/" + branchname
+        oldtrash = self.branch_exists(trashname)
+        if oldtrash is not None:
+            self._UI.show("Overwriting %s in trash"%oldtrash)
+        self.rename_branch(branchname, trashname)
+        # Need to delete remote branch (and have a hook move it to /g/abandoned/ and update the trac symlink)
+        #remotename = self._remote[branchname]
+
+    @classmethod
+    def _is_atomic_name(x):
+        r"""
+        returns true if x is a valid atomic branch name
+
+        EXAMPLES::
+
+            sage: from sage.dev.git_interface import is_atomic_name
+            sage: is_atomic_name(["branch"])
+            True
+            sage: is_atomic_name(["/branch"])
+            False
+            sage: is_atomic_name(["refs","heads","branch"])
+            False
+            sage: is_atomic_name([""])
+            False
+            sage: is_atomic_name(["u"])
+            False
+            sage: is_atomic_name(["1234"])
+            True
+        """
+        if len(x) != 1:
+            return False
+        if '/' in x[0]:
+            return False
+        return x[0] not in ("t", "ticket", "u", "g", "abandoned","")
+
+    @classmethod
+    def _is_ticket_name(x):
+        r"""
+        returns true if x is a valid ticket branch name
+
+        EXAMPLES::
+
+            sage: from sage.dev.git_interface import is_ticket_name
+            sage: is_ticket_name(["t", "1234"])
+            True
+            sage: is_ticket_name(["u", "doctest", "branch"])
+            False
+            sage: is_ticket_name(["padics", "feature"])
+            False
+            sage: is_ticket_name(["ticket", "myticket"])
+            False
+            sage: is_ticket_name(["ticket", "9876"])
+            True
+        """
+        if len(x) != 2:
+            return False
+        if x[0] not in ('ticket', 't'):
+            return False
+        return x[1].isdigit()
+
+    @classmethod
+    def _is_local_group_name(x):
+        r"""
+        returns true if x is a valid local group branch name
+
+        EXAMPLES::
+
+            sage: from sage.dev.git_interface import is_local_group_name
+            sage: is_local_group_name(["padic", "feature"])
+            True
+            sage: is_local_group_name(["g", "padic", "feature"])
+            False
+            sage: is_local_group_name(["padic", "feature", "1234"])
+            False
+            sage: is_local_group_name(["padic", "ticket", "1234"])
+            True
+        """
+        if len(x) == 0:
+            return False
+        if not is_atomic_name(x[0:1]):
+            return False
+        if len(x) == 2:
+            return is_atomic_name(x[1:])
+        else:
+            return is_ticket_name(x[1:])
+
+    @classmethod
+    def _is_remote_group_name(x):
+        r"""
+        returns true if x is a valid remote group branch name
+
+        EXAMPLES::
+
+            sage: from sage.dev.git_interface import is_remote_group_name
+            sage: is_remote_group_name(["padic", "feature"])
+            False
+            sage: is_remote_group_name(["g", "padic", "feature"])
+            True
+            sage: is_remote_group_name(["g", "padic", "feature", "1234"])
+            False
+            sage: is_remote_group_name(["g", "padic", "ticket", "1234"])
+            True
+            sage: is_remote_group_name(["u", "doctest", "ticket", "1234"])
+            False
+        """
+        if len(x) < 3:
+            return False
+        if x[0] != "g":
+            return False
+        return is_local_group_name(x[1:])
+
+    @classmethod
+    def _is_remote_user_name(x):
+        r"""
+        returns true if x is a valid remote user branch name
+
+        EXAMPLES::
+
+            sage: from sage.dev.git_interface import is_remote_user_name
+            sage: is_remote_user_name(["u", "doctest", "ticket", "12345"])
+            True
+            sage: is_remote_user_name(["u", "doctest", "ticket", ""])
+            False
+            sage: is_remote_user_name(["u", "doctest"])
+            False
+            sage: is_remote_user_name(["g", "padic", "feature"])
+            False
+            sage: is_remote_user_name(["u", "doctest", "feature"])
+            True
+        """
+        if len(x) < 3:
+            return False
+        if x[0] != "u":
+            return False
+        return all(x[1:])
+
+    @classmethod
+    def _is_release_name(x):
+        r"""
+        returns true if x is a valid release name
+
+        WARNING: this does not imply the existence of such a release
+
+        EXAMPLES::
+
+            sage: from sage.dev.git_interface import is_release_name
+            sage: is_release_name(['5', '2', '7'])
+            True
+            sage: is_release_name(['6', '-2'])
+            False
+            sage: is_release_name(['6', 'beta0'])
+            True
+            sage: is_release_name(['7', 'rc'])
+            False
+            sage: is_release_name(['7', 'rc1'])
+            True
+        """
+        for v in x[:-1]:
+            try:
+                if int(v) < 0:
+                    return False
+            except ValueError:
+                return False
+        v = x[-1]
+        if v.startswith('alpha'):
+            v = v[5:]
+        elif v.startswith('beta'):
+            v = v[4:]
+        elif v.startswith('rc'):
+            v = v[2:]
+        try:
+            return int(v) >= 0
+        except ValueError:
+            return False
+
+    @classmethod
+    def _normalize_ticket_name(x):
+        r"""
+        returns the normalized ticket branch name for x
+
+        WARNING: it does not check to see if x is a valid ticket branch name
+
+        EXAMPLES::
+
+            sage: from sage.dev.git_interface import normalize_ticket_name
+            sage: normalize_ticket_name(["t", "12345"])
+            'ticket/12345'
+            sage: normalize_ticket_name(["cow", "goes", "moo"])
+            'ticket/goes'
+            sage: normalize_ticket_name(["branch"])
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
+        """
+        return '/'.join(('ticket', x[1]))

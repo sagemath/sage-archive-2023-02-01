@@ -9,7 +9,7 @@ import urllib
 import urllib2
 import urlparse
 
-from xmlrpclib import SafeTransport, ServerProxy
+from xmlrpclib import ServerProxy
 
 from sage.env import REALM, TRAC_SERVER_URI
 import sage.doctest

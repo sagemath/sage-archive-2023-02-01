@@ -190,6 +190,11 @@ class UserInterface(object):
         r"""
         Drop user into an editor with ``filename`` open.
 
+        OUTPUT:
+
+        Raises a :class:`sage.dev.user_interface_error.OperationCancelledError`
+        if the editor exits with non-zero exit code.
+
         TESTS::
 
             sage: from sage.dev.user_interface import UserInterface

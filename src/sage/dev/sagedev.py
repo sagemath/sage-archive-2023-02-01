@@ -232,7 +232,7 @@ class SageDev(object):
         try:
             return self._trac
         except AttributeError:
-            self._trac = TracInterface(self)
+            self._trac = TracInterface(self._config['trac'], self._UI)
             return self._trac
 
     def __repr__(self):
@@ -1823,7 +1823,7 @@ class SageDev(object):
         with open(keyfile + '.pub', 'r') as F:
             pubkey = F.read().strip()
 
-        self.trac.sshkeys.setkeys(pubkey)
+        self.trac._authenticated_server_proxy.sshkeys.setkeys(pubkey)
 
     def _trac_branch(self, ticket):
         branch = self.trac._get_attributes(ticket).get('branch')

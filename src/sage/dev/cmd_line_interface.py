@@ -109,33 +109,37 @@ class CmdLineInterface(UserInterface):
             'no'
 
         """
-        prompt, options, default = self._std_values(prompt, options, default)
+        try:
+            prompt, options, default = self._std_values(prompt, options, default)
 
-        while True:
-            s = input_func(prompt)
+            while True:
+                s = input_func(prompt)
 
-            if options is None:
-                return s
+                if options is None:
+                    return s
 
-            if len(s.strip()) == 0:
-                if default is None:
-                    self.show("Please enter an option.")
+                if len(s.strip()) == 0:
+                    if default is None:
+                        self.show("Please enter an option.")
+                        continue
+                    else:
+                        return default
+
+                itr = (opt for opt in options if opt.startswith(s))
+                try:
+                    ret = itr.next()
+                except StopIteration:
+                    self.show("Please specify an allowable option.")
                     continue
-                else:
-                    return default
 
-            itr = (opt for opt in options if opt.startswith(s))
-            try:
-                ret = itr.next()
-            except StopIteration:
-                self.show("Please specify an allowable option.")
-                continue
-
-            try:
-                ret = itr.next()
-                self.show("Please disambiguate between options.")
-            except StopIteration:
-                return ret
+                try:
+                    ret = itr.next()
+                    self.show("Please disambiguate between options.")
+                except StopIteration:
+                    return ret
+        except KeyboardInterrupt:
+            from user_interface_error import OperationCancelledError
+            raise OperationCancelledError("cancelled by keyboard interrupt")
 
     def select(self, prompt, options, default=None):
         r"""
@@ -358,4 +362,5 @@ class CmdLineInterface(UserInterface):
         try:
             check_call([os.environ.get('EDITOR', 'nano'), filename])
         except CalledProcessError:
-            raise RuntimeError("Editor returned non-zero exit value")
+            from user_interface_error import OperationCancelledError
+            raise OperationCancelledError("Editor returned non-zero exit value")

@@ -1,19 +1,24 @@
-"""
+r"""
 Trac Interface
+
+This module provides an interface to access sage's issue tracker 'trac' through
+its RPC interface.
+
+AUTHORS:
+
+- TODO: add authors from github's history and trac's history
+
 """
-import os
+#*****************************************************************************
+#       Copyright (C) 2013 TODO
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 import re
-import tempfile
-import time
-import urllib
-import urllib2
-import urlparse
-
-from xmlrpclib import ServerProxy
-
-from sage.env import REALM, TRAC_SERVER_URI
-import sage.doctest
-
 FIELD_REGEX = re.compile("^([A-Za-z ]+):(.*)$")
 ALLOWED_FIELDS = {
         "authors":          "Authors",
@@ -32,7 +37,7 @@ ALLOWED_FIELDS = {
         "type":             "Type",
         "work issues":      "Work issues",
         }
-TICKET_FILE_GUIDE = """
+TICKET_FILE_GUIDE = r"""
 # Lines starting with `#` are ignored.
 # Lines starting with `Field: ` correspond to fields of
 # the trac ticket, and can be followed by text on the same line.
@@ -44,649 +49,440 @@ TICKET_FILE_GUIDE = """
 #
 # An empty file aborts ticket creation/editing.
 """
-COMMENT_FILE_GUIDE = """
+COMMENT_FILE_GUIDE = r"""
 # Lines starting with `#` are ignored.
 # An empty file aborts the comment.
 """
 
-class TracInterface(object):
+class TicketSyntaxError(SyntaxError): # we don't want to catch normal syntax errors
+    r"""
+    A syntax error when parsing a ticket description modified by the user.
+
+    EXAMPLES::
+
+        sage: from sage.dev.trac_interface import TicketSyntaxError
+        sage: raise TicketSyntaxError()
+        Traceback (most recent call last):
+        ...
+        TicketSyntaxError: None
+
     """
+
+class TracInterface(object):
+    r"""
     Wrapper around the XML-RPC interface of trac.
 
     EXAMPLES::
 
-        sage: dev.trac
-        <sage.dev.trac_interface.TracInterface object at ...>
+        sage: from sage.dev.test.config import DoctestConfig
+        sage: from sage.dev.test.user_interface import DoctestUserInterface
+        sage: from sage.dev.trac_interface import TracInterface
+        sage: config = DoctestConfig()
+        sage: trac = TracInterface(config['trac'], DoctestUserInterface(config['UI']))
+        sage: trac
+        <sage.dev.trac_interface.TracInterface object at 0x...>
+
     """
     def __init__(self, config, UI):
-        """
+        r"""
         Initialization.
 
-        EXAMPLES::
+        TESTS::
 
-            sage: type(sage.dev.trac_interface.TracInterface(dev))
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: from sage.dev.trac_interface import TracInterface
+            sage: config = DoctestConfig()
+            sage: trac = TracInterface(config['trac'], DoctestUserInterface(config['UI']))
+            sage: type(trac)
             <class 'sage.dev.trac_interface.TracInterface'>
+
         """
         self._UI = UI
         self._config = config
 
-    @property
-    def _anonymous_server_proxy(self):
-        """
-        Lazy wrapper around a non-authenticated XML-RPC interface to trac.
+        self.__anonymous_server_proxy = None
+        self.__authenticated_server_proxy = None
 
-        .. NOTE::
-
-            Unlike the authenticated server proxy, this is not replaced with a
-            fake proxy for doctesting. All doctests using it should therefore
-            be labeled as optional ``internet``
-
-        EXAMPLES::
-
-            sage: from sage.dev.sagedev import SageDev, doctest_config
-            sage: conf  = doctest_config()
-            sage: conf['trac']['server'] = 'http://trac.sagemath.org/'
-            sage: trac = SageDev(conf).trac
-            sage: trac._anonymous_server_proxy
-            <ServerProxy for trac.sagemath.org/xmlrpc>
-        """
-        try:
-            return self.__anonymous_server_proxy
-        except AttributeError:
-            pass
-
-        server = self._config.get('server', TRAC_SERVER_URI)
-
-        url = urlparse.urljoin(server, 'xmlrpc')
-
-        transport = DigestTransport()
-        self.__anonymous_server_proxy = ServerProxy(url, transport=transport)
-        return self.__anonymous_server_proxy
-
-    @property
-    def _authenticated_server_proxy(self):
-        """
-        Get an XML-RPC proxy object that is authenticated using the users
-        username and password.
-
-        EXAMPLES::
-
-            sage: dev.trac._authenticated_server_proxy # not tested
-            <ServerProxy for trac.sagemath.org/login/xmlrpc>
-
-        For convenient doctesting, this is replaced with a fake object
-        during doctesting::
-
-            sage: dev.trac._authenticated_server_proxy
-            <sage.dev.trac_interface.DoctestServerProxy object at ...>
-        """
-        ret = None
-        try:
-            if time.time() < self.__auth_timeout:
-                # default timeout is 5 minutes, like sudo
-                new_timeout = time.time() + float(
-                        self._config.get('password_timeout', 300))
-                if new_timeout > self.__auth_timeout:
-                    self.__auth_timeout = new_timeout
-                ret = self.__authenticated_server_proxy
-            else:
-                del self.__authenticated_server_proxy
-        except AttributeError:
-            pass
-
-        if ret:
-            if sage.doctest.DOCTEST_MODE:
-                assert type(ret, DoctestServerProxy), "running doctests which use git/trac is not supported from within a running session of sage"
-            return ret
-
-        if sage.doctest.DOCTEST_MODE:
-            self.__authenticated_server_proxy = self.__anonymous_server_proxy = DoctestServerProxy(self)
-            return self.__authenticated_server_proxy
-
-        realm = self._config.get('realm', REALM)
-        server = self._config.get('server', TRAC_SERVER_URI)
-
-        url = urlparse.urljoin(server,
-                urllib.pathname2url(os.path.join('login', 'xmlrpc')))
-
-        while True:
-            transport = DigestTransport(realm=realm, url=server,
-                    username=self._username, password=self._password)
-            proxy = ServerProxy(url, transport=transport)
-            try:
-                proxy.system.listMethods()
-                break
-            except urllib2.HTTPError as error:
-                if error.code == 401:
-                    self._UI.show("Invalid username/password pair.")
-                    del self.__username
-                    del self._config['password']
-                else:
-                    self._UI.show(
-                            "Could not verify password, will try to proceed.")
-                    break
-
-        self.__authenticated_server_proxy = proxy
-        return self.__authenticated_server_proxy
+        self.__username = None
+        self.__password = None
+        self.__auth_timeout = None
 
     @property
     def _username(self):
-        """
+        r"""
         A lazy property to get the username on trac.
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev import SageDev, Config, doctest_config
-            sage: conf = doctest_config()
-            sage: t = SageDev(conf).trac
-            sage: t._username
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: from sage.dev.trac_interface import TracInterface
+            sage: config = DoctestConfig()
+            sage: UI = DoctestUserInterface(config['UI'])
+            sage: trac = TracInterface(config['trac'], UI)
+            sage: trac._username # username is read from config
             'doctest'
-            sage: del conf['trac']['username']
-            sage: t = SageDev(conf).trac
-            sage: t._UI.append("user")
-            sage: t._username
-            Trac username: user
-            'user'
-            sage: t._username
-            'user'
-        """
-        try:
-            return self.__username
-        except AttributeError:
-            self.__username = self._config.get('username')
-            if self.__username is None:
-                self.__username = self._UI.get_input('Trac username:')
-            return self.__username
+            sage: trac.reset_username()
+            sage: UI.append('doctest2')
+            sage: trac._username # user is prompted for a username
+            Trac username: doctest2
+            'doctest2'
+            sage: config['trac']['username']
+            'doctest2'
 
-    def set_username(self, username=None):
         """
-        a method for setting and saving a developer's username for trac
+        if self.__username is None:
+            self.__username = self._config.get('username', None)
+
+        if self.__username is None:
+            self.__username = self._config['username'] = self._UI.get_input('Trac username:')
+            from user_interface import INFO
+            self._UI.show("Your trac username has been written to a configuration file for future sessions. To reset your username, use `dev.trac.reset_username()`.", INFO)
+
+        return self.__username
+
+    def reset_username(self):
+        r"""
+        Reset username and password stored in this object and in the
+        configuration.
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev import SageDev, Config, doctest_config
-            sage: conf = doctest_config()
-            sage: t = SageDev(conf).trac
-            sage: t._username
-            'doctest'
-            sage: t.set_username('user')
-            sage: t._username
-            'user'
-            sage: t = SageDev(conf).trac
-            sage: t._username
-            'user'
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: from sage.dev.trac_interface import TracInterface
+            sage: config = DoctestConfig()
+            sage: UI = DoctestUserInterface(config['UI'])
+            sage: trac = TracInterface(config['trac'], UI)
+            sage: trac.reset_username()
+            sage: UI.append("doctest2")
+            sage: trac._username
+            Trac username: doctest2
+            'doctest2'
+
         """
-        if username is None:
-            username = self._UI.get_input('Trac username:')
-        self._config['username'] = username
-        self.__username = username
+        self.__username = None
+        if 'username' in self._config:
+            del self._config['username']
+
+        self.reset_password()
 
     @property
     def _password(self):
-        """
+        r"""
         A lazy property to get the password for trac.
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev import SageDev, doctest_config
-            sage: t = SageDev(doctest_config()).trac
-            sage: t._UI.append('pass')
-            sage: t._password
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: from sage.dev.trac_interface import TracInterface
+            sage: config = DoctestConfig()
+            sage: UI = DoctestUserInterface(config['UI'])
+            sage: trac = TracInterface(config['trac'], UI)
+            sage: UI.append('')
+            sage: UI.append('secret')
+            sage: trac._password
             Trac password:
-            'pass'
-        """
-        if self._config.get('password') is not None:
-            self.__auth_timeout = float('inf')
-            return self._config['password']
+            Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.) [yes/No]
+            'secret'
+            sage: trac._password # password is stored for some time, so there is no need to type it immediately afterwards
+            'secret'
+            sage: config['trac']['password']
+            Traceback (most recent call last):
+            ...
+            KeyError: 'password'
+            sage: trac.reset_password()
 
-        passwd = self._UI.get_password('Trac password:')
-        # default timeout is 5 minutes, like sudo
-        self.__auth_timeout = time.time() + float(
-                self._config.get('password_timeout', 300))
-        return passwd
+            sage: UI.append('y')
+            sage: UI.append('secret')
+            sage: trac._password
+            Trac password:
+            Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.) [yes/No] y
+            'secret'
+            sage: config['trac']['password']
+            'secret'
+            sage: trac._password
+            'secret'
 
-    def set_password(self):
         """
-        a method for setting and saving a developer's password for trac
+        self._check_password_timeout()
+
+        if self.__password is None:
+            self.__password = self._config.get('password', None)
+
+        if self.__password is None:
+            self.__password = self._UI.get_password('Trac password:')
+            store_password = self._config.get('store_password', None)
+            if store_password is None:
+                store_password = "yes" if self._UI.confirm("Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.)", default_no=True) else "no"
+                if store_password == "no":
+                    self._config['store_password'] = store_password # remember the user's decision (if negative) and do not ask every time
+
+            if store_password == "yes":
+                self._config['password'] = self.__password
+                from sage.dev.user_interface import INFO
+                self._UI.show("Your trac password has been written to a configuration file. To reset your password, use `dev.trac.reset_password()`.", INFO)
+
+        self._postpone_password_timeout()
+        return self.__password
+
+    def reset_password(self):
+        r"""
+        Reset password stored in this object and in the configuration.
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev import SageDev, Config, doctest_config
-            sage: conf = doctest_config()
-            sage: t = SageDev(conf).trac
-            sage: t._UI.extend(['passwd','passwd','yes','','pass'])
-            sage: t._password
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: from sage.dev.trac_interface import TracInterface
+            sage: config = DoctestConfig()
+            sage: UI = DoctestUserInterface(config['UI'])
+            sage: trac = TracInterface(config['trac'], UI)
+            sage: UI.append('y')
+            sage: UI.append('secret')
+            sage: trac._password
             Trac password:
-            'pass'
-            sage: t.set_password()
-            Doing this will save your password in plaintext on the filesystem, are you sure you want to continue? [yes/No]
-            sage: t.set_password()
-            Doing this will save your password in plaintext on the filesystem, are you sure you want to continue? [yes/No] yes
-            Trac password:
-            Confirm password:
-            sage: t._password
-            'passwd'
-            sage: t = SageDev(conf).trac
-            sage: t._password
-            'passwd'
+            Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.) [yes/No] y
+            'secret'
+            sage: config['trac']['password']
+            'secret'
+            sage: trac.reset_password()
+            sage: config['trac']['password']
+            Traceback (most recent call last):
+            ...
+            KeyError: 'password'
+
         """
-        if not self._UI.confirm("Doing this will save your password in "+
-                                "plaintext on the filesystem, are you sure "+
-                                "you want to continue?", default_no=True):
-            return
+        self.__password = None
+        self.__authenticated_server_proxy = None
+        self.__auth_timeout = None
+        if 'password' in self._config:
+            del self._config['password']
+        if 'store_password' in self._config:
+            del self._config['store_password']
 
-        passwd = self._UI.get_password('Trac password:')
-        while passwd != self._UI.get_password('Confirm password:'):
-            self._UI.show('Passwords disagree')
-            passwd = self._UI.get_password('Trac password:')
+    def _check_password_timeout(self):
+        r"""
+        Reset all attributes that depend on the saved password if it has timed
+        out (usually after 5 minutes without using it).
 
-        self._config['password'] = passwd
+        EXAMPLES::
+
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: from sage.dev.trac_interface import TracInterface
+            sage: config = DoctestConfig()
+            sage: UI = DoctestUserInterface(config['UI'])
+            sage: trac = TracInterface(config['trac'], UI)
+            sage: UI.append('')
+            sage: UI.append('secret')
+            sage: config['trac']['password_timeout'] = 0
+            sage: trac._password
+            Trac password:
+            Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.) [yes/No]
+            'secret'
+            sage: UI.append('secret')
+            sage: trac._password # indirect doctest
+            Trac password:
+            'secret'
+            sage: trac.reset_password()
+            sage: UI.append('y')
+            sage: UI.append('secret')
+            sage: trac._password
+            Trac password:
+            Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.) [yes/No] y
+            'secret'
+            sage: trac._password # the timeout has no effect if the password can be read from the configuration file
+            'secret'
+
+        """
+        import time
+        if self.__auth_timeout is None or time.time() >= self.__auth_timeout:
+            self.__password = None
+            self.__authenticated_server_proxy = None
+            self.__auth_timeout = None
+
+    def _postpone_password_timeout(self):
+        r"""
+        Postpone the password timeout.
+
+        EXAMPLES::
+
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: from sage.dev.trac_interface import TracInterface
+            sage: config = DoctestConfig()
+            sage: UI = DoctestUserInterface(config['UI'])
+            sage: trac = TracInterface(config['trac'], UI)
+            sage: UI.append('')
+            sage: UI.append('secret')
+            sage: trac._password
+            Trac password:
+            Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.) [yes/No]
+            'secret'
+            sage: trac._password # indirect doctest
+            'secret'
+
+        """
+        import time
+        new_timeout = time.time() + float(self._config.get('password_timeout', 300))
+
+        if self.__auth_timeout is None or new_timeout > self.__auth_timeout:
+            self.__auth_timeout = new_timeout
 
     @property
-    def sshkeys(self):
+    def _anonymous_server_proxy(self):
         """
-        Retrieve the interface to the ssh keys stored for the user.
+        Return a non-authenticated XML-RPC interface to trac.
+
+        .. NOTE::
+
+            Unlike the authenticated server proxy, this can be used in
+            doctesting. However, all doctests relying on it talking to the
+            actual trac server should be marked as ``optional: internet``.
 
         EXAMPLES::
 
-            sage: sshkeys = dev.trac.sshkeys
-            sage: sshkeys.listusers()
-            []
-            sage: sshkeys.getkeys()
-            []
-            sage: sshkeys.setkeys(["foo", "bar"])
-            0
-            sage: sshkeys.getkeys()
-            ['foo', 'bar']
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: from sage.dev.trac_interface import TracInterface
+            sage: config = DoctestConfig()
+            sage: trac = TracInterface(config['trac'], DoctestUserInterface(config['UI']))
+            sage: trac._anonymous_server_proxy
+            <ServerProxy for trac.sagemath.org/xmlrpc>
+
         """
-        return self._authenticated_server_proxy.sshkeys
+        if self.__anonymous_server_proxy is None:
+            from sage.env import TRAC_SERVER_URI
+            server = self._config.get('server', TRAC_SERVER_URI)
+            import urlparse
+            url = urlparse.urljoin(server, 'xmlrpc')
+            from digest_transport import DigestTransport
+            transport = DigestTransport()
+            from xmlrpclib import ServerProxy
+            self.__anonymous_server_proxy = ServerProxy(url, transport=transport)
 
-	class TicketSyntaxError(SyntaxError): # we don't want to catch normal syntax errors
-		pass
+        return self.__anonymous_server_proxy
 
-	def _parse_ticket_file(filename):
-		r"""
-		parses ticket file
-
-		INPUT:
-
-		- ``filename`` -- filename to parse
-
-		OUTPUT:
-
-		- ``summary`` -- a string consisting of the ticket's summary
-
-		- ``description`` -- a string consisting of the ticket's description
-
-		- ``fields`` -- a dictionary containing field, entry pairs
-
-		TESTS::
-
-			sage: from sage.dev.trac_interface import _parse_ticket_file
-			sage: import os, tempfile
-			sage: tmp = tempfile.mkstemp()[1]
-			sage: with open(tmp, 'w') as f:
-			....:     f.write("no summary\n")
-			sage: _parse_ticket_file(tmp)
-			Traceback (most recent call last):
-			...
-			TicketSyntaxError: no valid summary found
-			sage: with open(tmp, 'w') as f:
-			....:     f.write("summary:no description\n")
-			sage: _parse_ticket_file(tmp)
-			Traceback (most recent call last):
-			...
-			TicketSyntaxError: no description found
-			sage: with open(tmp, 'w') as f:
-			....:     f.write("summary:double summary\n")
-			....:     f.write("summary:double summary\n")
-			sage: _parse_ticket_file(tmp)
-			Traceback (most recent call last):
-			...
-			TicketSyntaxError: line 2: only one value for summary allowed
-			sage: with open(tmp, 'w') as f:
-			....:     f.write("bad field:bad field entry\n")
-			sage: _parse_ticket_file(tmp)
-			Traceback (most recent call last):
-			...
-			TicketSyntaxError: line 1: field `bad field` not supported
-			sage: with open(tmp, 'w') as f:
-			....:     f.write("summary:a summary\n")
-			....:     f.write("branch:a branch\n")
-			....:     f.write("some description\n")
-			....:     f.write("#an ignored line\n")
-			....:     f.write("more description\n")
-			....:     f.write("\n")
-			sage: _parse_ticket_file(tmp)
-			('a summary', 'some description\nmore description\n', {'branch': 'a branch'})
-			sage: with open(tmp, 'w') as f:
-			....:     f.write("summary:a summary\n")
-			....:     f.write("some description\n")
-			....:     f.write("branch:a branch\n")
-			sage: _parse_ticket_file(tmp)
-			('a summary', 'some description\nbranch:a branch\n', {})
-			sage: os.unlink(tmp)
-		"""
-		lines = list(open(filename).read().splitlines())
-
-		if all(l.rstrip().startswith('#') for l in lines if l.rstrip()):
-			return
-
-		fields = {}
-		for i, line in enumerate(lines):
-			line = line.strip()
-			if not line or line.startswith('#'):
-				continue
-
-			m = FIELD_REGEX.match(line)
-			if m:
-				field = m.groups()[0]
-				if not (field.lower() == 'summary' or
-						field.lower() in ALLOWED_FIELDS):
-					raise TicketSyntaxError("line %s: "%(i+1) +
-											"field `%s` not supported"%field)
-				elif field.lower() in fields:
-					raise TicketSyntaxError("line %s: "%(i+1) +
-											"only one value for %s allowed"%field)
-				else:
-					fields[field.lower()] = m.groups()[1].strip()
-					continue
-			else:
-				break
-		else: # no description
-			i += 1
-
-		# separate summary from other fields
-		try:
-			summary = fields.pop('summary')
-		except KeyError:
-			summary = None
-
-		description = [line.rstrip() for line in lines[i:]
-				if not line.startswith('#')]
-
-		# remove leading and trailing empty newlines
-		while description and not description[0]:
-			description.pop(0)
-		while description and not description[-1]:
-			description.pop()
-
-		if not summary:
-			raise TicketSyntaxError("no valid summary found")
-		elif not description:
-			raise TicketSyntaxError("no description found")
-		else:
-			return summary, "\n".join(description)+"\n", fields
-
-    def _create_ticket(self,
-            summary, description, attributes={}, notify=False):
-        """
-        create a ticket on trac and return the new ticket number
-
-        EXAMPLES::
-
-            sage: dev.trac._create_ticket("Summary", "Description",
-            ....:         {'type':'defect', 'component':'algebra'})
-            14366
-        """
-        return self._authenticated_server_proxy.ticket.create(summary,
-                description, attributes, notify)
-
-    def add_comment(self, ticketnum, comment=None, notify=False):
+    @property
+    def _authenticated_server_proxy(self):
         r"""
-        Add a comment to a ticket on trac.
+        Get an XML-RPC proxy object that is authenticated using the users
+        username and password.
 
-        INPUT:
+        .. NOTE::
 
-        - ``comment`` -- a string or ``None`` (default: ``None``), the comment
-          to add. If ``None``, an editor will be spawned to create the comment.
-
-        """
-        ticketnum = int(ticketnum)
-        attributes = self._get_attributes(ticketnum)
-
-        if comment is None:
-            filename = tempfile.mkstemp()[1]
-            with open(filename, "w") as F:
-                F.write("\n")
-                F.write(COMMENT_FILE_GUIDE)
-
-            if self._UI.edit(filename):
-                return
-
-            comment = list(open(filename).read().splitlines())
-            comment = [line for line in comment if not line.startswith("#")]
-            if all([line.strip()=="" for line in comment]):
-                return
-            comment = "\n".join(comment)
-
-        self._authenticated_server_proxy.ticket.update(ticketnum, comment, attributes, notify)
-
-        self._UI.show("your comment has been recorded.")
-
-    def edit_ticket(self, ticketnum):
-        """
-        edit a ticket on trac
+            To make sure that doctests do not tamper with the live trac server,
+            it is an error to access this property during a doctest.
 
         EXAMPLES::
 
-            sage: import os
-            sage: os.environ['EDITOR'] = 'cat'
-            sage: dev.trac.edit_ticket(1000) # optional: internet
-            Summary: Sage does not have 10000 users yet.
-            Cc:
-            Type: defect
-            Milestone: sage-2.10
-            Component: distribution
-            Priority: major
-            Keywords:
-            <BLANKLINE>
-            ADD DESCRIPTION
-            <BLANKLINE>
-            <BLANKLINE>
-            # Lines starting with `#` are ignored.
-            # Lines starting with `Field: ` correspond to fields of
-            # the trac ticket, and can be followed by text on the same line.
-            # They will be assigned to the corresponding field on the trac
-            # ticket.
-            #
-            # Lines not following this format will be put into the ticket
-            # description. Trac markup is supported.
-            #
-            # An empty file aborts ticket creation/editing.
-            Modified ticket #1000.
-            sage: os.environ['EDITOR'] = 'echo "more description" >>'
-            sage: dev.trac.edit_ticket(13147) # optional: internet
-            Modified ticket #13147.
-        """
-        ticketnum = int(ticketnum)
-        attributes = self._get_attributes(ticketnum)
-
-        summary = attributes.get('summary', 'No Summary')
-        description = attributes.get('description', 'No Description')
-
-        ret = self._edit_ticket_interactive(summary, description, attributes)
-        if ret is None:
-            return
-
-        attributes['summary'] = ret[0]
-        attributes['description'] = ret[1]
-        attributes.update(ret[2])
-
-        ticket = self._authenticated_server_proxy.ticket.update(ticketnum,
-                "", attributes)[0]
-        self._UI.show("Modified ticket #%s."%ticket)
-
-    def _edit_ticket_interactive(self, summary, description, attributes):
-        r"""
-        edit a ticket interactively
-
-        INPUT:
-
-        - ``summary`` -- summary of ticket
-
-        - ``description`` -- description of ticket
-
-        - ``attributes`` -- dictionary containing field, value pairs
-
-        OUTPUT: updated version of input after user has edited the ticket
-        or ``None`` if editing is aborted
+            sage: dev.trac._authenticated_server_proxy # not tested
+            Trac username: username
+            Trac password:
+            Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.) [yes/No]
+            <ServerProxy for trac.sagemath.org/login/xmlrpc>
 
         TESTS::
 
-            sage: import os
-            sage: os.environ['EDITOR'] = 'cat'
-            sage: tup = ('a summary', 'a description', {'Branch': 'a branch'})
-            sage: tup = dev.trac._edit_ticket_interactive(*tup)
-            Summary: a summary
-            Branch: a branch
-            a description
-            <BLANKLINE>
-            # Lines starting with `#` are ignored.
-            # Lines starting with `Field: ` correspond to fields of
-            # the trac ticket, and can be followed by text on the same line.
-            # They will be assigned to the corresponding field on the trac
-            # ticket.
-            #
-            # Lines not following this format will be put into the ticket
-            # description. Trac markup is supported.
-            #
-            # An empty file aborts ticket creation/editing.
-            sage: print tup
-            ('a summary', 'a description\n', {'branch': 'a branch'})
-            sage: os.environ['EDITOR'] = 'echo "added more description" >>'
-            sage: print dev.trac._edit_ticket_interactive(*tup)
-            ('a summary', 'a description\n\n\nadded more description\n', {'branch': 'a branch'})
-            sage: os.environ['EDITOR'] = r"sed -i 's+^\(Summary: \).*$+\1new summary+'"
-            sage: print dev.trac._edit_ticket_interactive(*tup)
-            ('new summary', 'a description\n', {'branch': 'a branch'})
-            sage: os.environ['EDITOR'] = r"sed -i 's+^\(Branch: \).*$+\1new branch+'"
-            sage: print dev.trac._edit_ticket_interactive(*tup)
-            ('a summary', 'a description\n', {'branch': 'new branch'})
+            sage: dev.trac._authenticated_server_proxy
+            Traceback (most recent call last):
+            ...
+            AssertionError: doctest tried to access an authenticated session to trac
+
         """
-        filename = tempfile.mkstemp()[1]
-        with open(filename, "w") as F:
-            F.write("Summary: %s\n"%summary)
-            for k,v in attributes.items():
-                k = ALLOWED_FIELDS.get(k.lower())
-                if k is not None:
-                    F.write("%s: %s\n"%(k,v))
+        import sage.doctest
+        assert not sage.doctest.DOCTEST_MODE, "doctest tried to access an authenticated session to trac"
 
-            if description is None or not description.strip():
-                description = "\nADD DESCRIPTION\n"
-            F.write(description + "\n")
-            F.write(TICKET_FILE_GUIDE)
+        self._check_password_timeout()
 
-        while True:
-            try:
-                self._UI.edit(filename)
-                ret = _parse_ticket_file(filename)
-                break
-            except (RuntimeError, TicketSyntaxError) as error:
-                pass
+        if self.__authenticated_server_proxy is None:
+            from sage.env import REALM
+            realm = self._config.get('realm', REALM)
+            from sage.env import TRAC_SERVER_URI
+            server = self._config.get('server', TRAC_SERVER_URI)
 
-            self._UI.show("TicketSyntaxError: "+error.message)
+            import os, urllib, urllib2, urlparse
+            url = urlparse.urljoin(server, urllib.pathname2url(os.path.join('login', 'xmlrpc')))
 
-            if not self._UI.confirm("Do you want to try to fix your ticket "+
-                                    "file?"):
-                ret = None
-                break
+            while True:
+                from xmlrpclib import ServerProxy
+                from digest_transport import DigestTransport
+                transport = DigestTransport()
+                transport.add_authentication(realm=realm, url=server, username=self._username, password=self._password)
+                proxy = ServerProxy(url, transport=transport)
+                try:
+                    proxy.system.listMethods()
+                    break
+                except urllib2.HTTPError as error:
+                    if error.code == 401:
+                        self._UI.show("Invalid username/password")
+                        self.reset_username()
+                    else:
+                        self._UI.show("Could not verify password, will try to proceed.")
+                        break
 
-        os.unlink(F.name)
-        return ret
+            self.__authenticated_server_proxy = proxy
 
-    def create_ticket(self):
+        self._postpone_password_timeout()
+
+        return self.__authenticated_server_proxy
+
+    def create_ticket(self, summary, description, attributes={}):
         r"""
-        drops user into an editor for creating a ticket
+        Create a ticket on trac and return the new ticket number.
 
-        EXAMPLE::
+        .. SEEALSO::
 
-            sage: from sage.dev.sagedev import SageDev, doctest_config
-            sage: import os
-            sage: conf  = doctest_config()
-            sage: conf['trac']['server'] = 'http://trac.sagemath.org/'
-            sage: t = SageDev(conf).trac
-            sage: os.environ['EDITOR'] = 'cat'
-            sage: t._UI.extend(["no"]*3)
-            sage: t.create_ticket()
-            Summary:
-            Priority: major
-            Component: PLEASE CHANGE
-            Type: PLEASE CHANGE
-            <BLANKLINE>
-            ADD DESCRIPTION
-            <BLANKLINE>
-            <BLANKLINE>
-            # Lines starting with `#` are ignored.
-            # Lines starting with `Field: ` correspond to fields of
-            # the trac ticket, and can be followed by text on the same line.
-            # They will be assigned to the corresponding field on the trac
-            # ticket.
-            #
-            # Lines not following this format will be put into the ticket
-            # description. Trac markup is supported.
-            #
-            # An empty file aborts ticket creation/editing.
-            TicketSyntaxError: no valid summary found
-            Do you want to try to fix your ticket file? [Yes/no] no
-            sage: os.environ['EDITOR'] = 'echo "Summary: Foo" >'
-            sage: t.create_ticket()
-            TicketSyntaxError: no description found
-            Do you want to try to fix your ticket file? [Yes/no] no
-            sage: os.environ['EDITOR'] = 'echo "Summary: Foo\nFoo: Foo\nFoo" >'
-            sage: t.create_ticket()
-            TicketSyntaxError: line 2: field `Foo` not supported
-            Do you want to try to fix your ticket file? [Yes/no] no
-            sage: os.environ['EDITOR'] = 'echo "Summary: Foo\nCc: Foo\nFoo" >'
-            sage: t.create_ticket()
-            Created ticket #14366 (http://trac.sagemath.org/14366).
-            14366
+            :meth:`create_ticket_interactive`
+
+        EXAMPLES::
+
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: from sage.dev.test.trac_interface import DoctestTracInterface
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: config = DoctestConfig()
+            sage: config['trac']['password'] = 'secret'
+            sage: UI = DoctestUserInterface(config['UI'])
+            sage: trac = DoctestTracInterface(config['trac'], UI, DoctestTracServer())
+            sage: trac.create_ticket('Summary', 'Description', {'type':'defect', 'component':'algebra'})
+            1
+
         """
-        attributes = {
-                "Type":         "PLEASE CHANGE",
-                "Priority":     "major",
-                "Component":    "PLEASE CHANGE",
-                }
+        return self._authenticated_server_proxy.ticket.create(summary, description, attributes)
 
-        ret = self._edit_ticket_interactive("", None, attributes)
+    def add_comment(self, ticket, comment):
+        r"""
+        Add ``comment`` to ``ticket`` on trac.
 
-        if ret is None:
-            return
+        .. SEEALSO::
 
-        ticket = self._create_ticket(*ret)
-        ticket_url = urlparse.urljoin(
-                self._config.get('server', TRAC_SERVER_URI), str(ticket))
-        self._UI.show("Created ticket #%s (%s)."%(ticket, ticket_url))
-        return ticket
+            :meth:`add_comment_interactive`
 
-    def set_dependencies(self, ticket, dependencies):
+        EXAMPLES::
+
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: from sage.dev.test.trac_interface import DoctestTracInterface
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: config = DoctestConfig()
+            sage: config['trac']['password'] = 'secret'
+            sage: UI = DoctestUserInterface(config['UI'])
+            sage: trac = DoctestTracInterface(config['trac'], UI, DoctestTracServer())
+            sage: ticket = trac.create_ticket('Summary', 'Description', {'type':'defect', 'component':'algebra'})
+            sage: trac.add_comment(ticket, "a comment")
+
         """
-        Overwrites the dependencies for the given ticket.
-
-        INPUT:
-
-        - ``ticket`` -- an int
-
-        - ``dependencies`` -- a list of ints
-        """
-        dep = ', '.join('#'+str(d) for d in dependencies)
-
         ticket = int(ticket)
         attributes = self._get_attributes(ticket)
+        self._authenticated_server_proxy.ticket.update(ticket, comment, attributes)
 
-        olddep = attributes.get('dependencies', '')
-        if dep != olddep:
-            self._authenticated_server_proxy.ticket.update(ticket,
-                    'Set by SageDev: dependencies changed from '+
-                    '%s to %s'%(olddep, dep), {'dependencies':dep})
-            self._UI.show("Dependencies updated.")
-
-        # makes the trac ticket for new_ticket depend on the old_ticket
-        raise NotImplementedError
-
-    def _get_attributes(self, ticketnum):
-        """
-        Retrieve the properties of ticket ``ticketnum``.
+    def _get_attributes(self, ticket):
+        r"""
+        Retrieve the properties of ``ticket``.
 
         EXAMPLES::
 
@@ -706,66 +502,68 @@ class TracInterface(object):
              'time': <DateTime '20071025T16:48:05' at ...>,
              'keywords': '',
              'resolution': 'fixed'}
-        """
-        return self._anonymous_server_proxy.ticket.get(int(ticketnum))[3]
 
-    def dependencies(self, ticketnum, all=False, _seen=None):
         """
-        retrieve the dependencies of ticket ``ticketnum``, sorted by
-        ticket number
+        return self._anonymous_server_proxy.ticket.get(int(ticket))[3]
+
+    def dependencies(self, ticket, recurse=False, seen=None):
+        r"""
+        Retrieve dependencies of ``ticket``, sorted by ticket number.
 
         INPUT:
 
-        - ``ticketnum`` -- an integer, the number of a ticket
+        - ``ticket`` -- an integer, the number of the ticket
 
-        - ``all`` -- a boolean (default: ``False``), whether to get indirect
-          dependencies of ``ticketnum``
+        - ``recurse`` -- a boolean (default: ``False``), whether to get
+          indirect dependencies of ``ticket``
 
-        - ``_seen`` -- (default: ``None``), used internally in recursive calls
+        - ``seen`` -- a list (default: ``[]``), used internally to implement
+          ``recurse``
 
-        EXAMPLES::
+       EXAMPLES::
 
             sage: dev.trac.dependencies(1000)            # optional: internet (an old ticket with no dependency field)
             []
             sage: dev.trac.dependencies(13147)           # optional: internet
             [13579, 13681]
-            sage: dev.trac.dependencies(13147, all=True) # long time, optional: internet
+            sage: dev.trac.dependencies(13147, recurse=True) # long time, optional: internet
             [13579, 13631, 13681]
+
         """
-        # returns the list of all ticket dependencies, sorted by ticket number
-        if _seen is None:
-            ticketnum = int(ticketnum)
+        ticket = int(ticket)
+
+        if seen is None:
             seen = []
-        elif ticketnum in _seen:
-            return
-        else:
-            seen = _seen
 
-        seen.append(ticketnum)
-
-        data = self._get_attributes(ticketnum).get('dependencies', '').strip()
-
-        if not data:
+        if ticket in seen:
             return []
 
-        data2 = (a.strip() for a in data.split(','))
-        data3 = (a[1:] for a in data2 if a)
-        data4 = (int(a) if a.isdigit() else a for a in data3)
-        if not all:
-            return sorted(data4)
+        seen.append(ticket)
+        dependencies = self._get_attributes(ticket).get('dependencies','').strip()
+        dependencies = dependencies.split(',')
+        dependencies = [dep.strip() for dep in dependencies]
+        dependencies = [dep for dep in dependencies if dep]
+        if not all(dep[0]=="#" for dep in dependencies):
+            raise RuntimeError("malformatted dependency on ticket `%s`"%ticket)
+        dependencies = [dep[1:] for dep in dependencies]
+        try:
+            dependencies = [int(dep) for dep in dependencies]
+        except ValueError:
+            raise RuntimeError("malformatted dependency on ticket `%s`"%ticket)
 
-        for a in data4:
-            if isinstance(a, int):
-                self.dependencies(a, True, seen)
-            else:
-                seen.append(a)
+        if recurse:
+            for dep in dependencies:
+                self.dependencies(dep, recurse, seen)
+        else:
+            seen.extend(dependencies)
 
-        if _seen is None:
-            return sorted(seen[1:])
+        ret = sorted(seen)
+        ret.remove(ticket)
+        return ret
 
-    def attachment_names(self, ticketnum):
+    def attachment_names(self, ticket):
         """
-        Retrieve the names of the attachments for ticket ``ticketnum``.
+        Retrieve the names of the attachments for ``ticket``.
 
         EXAMPLES::
 
@@ -781,30 +579,342 @@ class TracInterface(object):
              'trac_13147-rebased-to-13681.patch',
              'trac_13681_root.patch')
         """
-        ticketnum = int(ticketnum)
-        return tuple(a[0] for a in
-                self._anonymous_server_proxy.ticket.listAttachments(ticketnum))
+        ticket = int(ticket)
+        return tuple(a[0] for a in self._anonymous_server_proxy.ticket.listAttachments(ticket))
 
-    def _set_branch(self, ticketnum, remote_branch, commit_id):
-        self._authenticated_server_proxy.ticket.update(int(ticketnum),
-                'Set by SageDev: commit %s'%(commit_id),
-                {'branch':remote_branch})
+    def add_comment_interactive(self, ticket, comment=''):
+        r"""
+        Add a comment to ``ticket`` on trac.
 
-    def update(self, ticketnum, **kwds):
-        """
-        Updates the ticket ``tickenum`` with the values specified
-        in ``kwds``
+        INPUT:
+
+        - ``comment`` -- a string (default: ``''``), the default value for the
+          comment to add.
 
         EXAMPLES::
 
-            sage: dev.trac.update(5614, branch='a/branch/name')
-            sage: dev.trac.update(5614, summary='a summary',
-            ....:         AuthorS='a developer')
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: from sage.dev.test.trac_interface import DoctestTracInterface
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: config = DoctestConfig()
+            sage: config['trac']['password'] = 'secret'
+            sage: UI = DoctestUserInterface(config['UI'])
+            sage: trac = DoctestTracInterface(config['trac'], UI, DoctestTracServer())
+            sage: ticket = trac.create_ticket('Summary', 'Description', {'type':'defect', 'component':'algebra'})
+
+            sage: UI.append("# empty comment")
+            sage: trac.add_comment_interactive(ticket)
+            Traceback (most recent call last):
+            ...
+            OperationCancelledError: comment creation aborted
+
+            sage: UI.append("a comment")
+            sage: trac.add_comment_interactive(ticket)
+
         """
-        attributes = {}
-        for k,v in kwds.iteritems():
-            k = k.lower()
-            if k in ALLOWED_FIELDS:
-                attributes[k] = v
-        self._authenticated_server_proxy.ticket.update(int(ticketnum), '',
-                attributes)
+        ticket = int(ticket)
+
+        attributes = self._get_attributes(ticket)
+
+        import tempfile
+        fd, filename = tempfile.mkstemp()
+        import os
+        with os.fdopen(fd, "w") as F:
+            F.write(comment)
+            F.write("\n")
+            F.write(COMMENT_FILE_GUIDE)
+
+        self._UI.edit(filename)
+
+        comment = list(open(filename).read().splitlines())
+        comment = [line for line in comment if not line.startswith("#")]
+        if all([line.strip()=="" for line in comment]):
+            from user_interface_error import OperationCancelledError
+            raise OperationCancelledError("comment creation aborted")
+        comment = "\n".join(comment)
+
+        url = self._authenticated_server_proxy.ticket.update(ticket, comment, attributes)
+
+        from user_interface import INFO
+        self._UI.show("Your comment has been recorded: %s"%url, INFO)
+
+    def edit_ticket_interactive(self, ticket):
+        """
+        Edit ``ticket`` on trac.
+
+        EXAMPLES::
+
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: from sage.dev.test.trac_interface import DoctestTracInterface
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: config = DoctestConfig()
+            sage: config['trac']['password'] = 'secret'
+            sage: UI = DoctestUserInterface(config['UI'])
+            sage: trac = DoctestTracInterface(config['trac'], UI, DoctestTracServer())
+            sage: ticket = trac.create_ticket('Summary', 'Description', {'type':'defect', 'component':'algebra'})
+
+            sage: UI.append("# empty")
+            sage: trac.edit_ticket_interactive(ticket)
+            Traceback (most recent call last):
+            ...
+            OperationCancelledError: ticket edit aborted
+
+            sage: UI.append("Summary: summary\ndescription\n")
+            sage: trac.edit_ticket_interactive(ticket)
+
+        """
+        ticket = int(ticket)
+        attributes = self._get_attributes(ticket)
+
+        summary = attributes.get('summary', 'No Summary')
+        description = attributes.get('description', 'No Description')
+
+        ret = self._edit_ticket_interactive(summary, description, attributes)
+        if ret is None:
+            from user_interface_error import OperationCancelledError
+            raise OperationCancelledError("edit aborted")
+
+        attributes['summary'] = ret[0]
+        attributes['description'] = ret[1]
+        attributes.update(ret[2])
+
+        url = self._authenticated_server_proxy.ticket.update(ticket, "", attributes)
+        from user_interface import INFO
+        self._UI.show("Ticket modified: %s"%url, INFO)
+
+    def _edit_ticket_interactive(self, summary, description, attributes):
+        r"""
+        Helper method for :meth:`edit_ticket_interactive` and
+        :meth:`create_ticket_interactive`.
+
+        INPUT:
+
+        - ``summary`` -- a string, summary of ticket
+
+        - ``description`` -- a string, description of ticket
+
+        - ``attributes`` -- dictionary containing field, value pairs
+
+        OUTPUT:
+
+        A tuple ``(summary, description, attributes)``, the updated version of
+        input after user has edited the ticket.
+
+        TESTS::
+
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: from sage.dev.trac_interface import TracInterface
+            sage: config = DoctestConfig()
+            sage: UI = DoctestUserInterface(config['UI'])
+            sage: trac = TracInterface(config['trac'], UI)
+            sage: UI.append("# abort")
+            sage: trac._edit_ticket_interactive('summary', 'description', {'branch':'branch1'})
+            Traceback (most recent call last):
+            ...
+            OperationCancelledError: ticket edit aborted
+
+            sage: UI.append("Summary: new summary\nBranch: branch2\nnew description")
+            sage: trac._edit_ticket_interactive('summary', 'description', {'branch':'branch1'})
+            ('new summary', 'new description', {'branch': 'branch2'})
+
+            sage: UI.append("Summary: new summary\nBranch: branch2\nnew description")
+            sage: UI.append("")
+            sage: UI.append("Summary: new summary\nInvalid: branch2\nnew description")
+            sage: trac._edit_ticket_interactive('summary', 'description', {'branch':'branch1'})
+            TicketSyntaxError: line 2: field `Invalid` not supported
+            Do you want to try to fix your ticket file? [Yes/no]
+            ('new summary', 'new description', {'branch': 'branch2'})
+
+        """
+        import tempfile, os
+        fd, filename = tempfile.mkstemp()
+        try:
+            with os.fdopen(fd, "w") as F:
+                F.write("Summary: %s\n"%summary)
+                for k,v in attributes.items():
+                    k = ALLOWED_FIELDS.get(k.lower())
+                    if k is not None:
+                        F.write("%s: %s\n"%(k,v))
+
+                if description is None or not description.strip():
+                    description = "\nADD DESCRIPTION\n"
+                F.write(description + "\n")
+                F.write(TICKET_FILE_GUIDE)
+
+            while True:
+                try:
+                    self._UI.edit(filename)
+                    ret = self._parse_ticket_file(filename)
+                    break
+                except (RuntimeError, TicketSyntaxError) as error:
+                    pass
+
+                self._UI.show("TicketSyntaxError: "+error.message)
+
+                if not self._UI.confirm("Do you want to try to fix your ticket file?", default_no=False):
+                    ret = None
+                    break
+
+            if ret is None:
+                from user_interface_error import OperationCancelledError
+                raise OperationCancelledError("ticket edit aborted")
+
+        finally:
+            os.unlink(filename)
+
+        return ret
+
+    def create_ticket_interactive(self):
+        r"""
+        Drop user into an editor for creating a ticket.
+
+        EXAMPLE::
+
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: from sage.dev.test.trac_interface import DoctestTracInterface
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: config = DoctestConfig()
+            sage: config['trac']['password'] = 'secret'
+            sage: UI = DoctestUserInterface(config['UI'])
+            sage: trac = DoctestTracInterface(config['trac'], UI, DoctestTracServer())
+            sage: UI.append("Summary: summary\nType: defect\nPriority: minor\nComponent: algebra\ndescription")
+            sage: trac.create_ticket_interactive()
+            1
+
+        """
+        attributes = {
+                "Type":         "PLEASE CHANGE",
+                "Priority":     "major",
+                "Component":    "PLEASE CHANGE",
+                }
+
+        ret = self._edit_ticket_interactive("", None, attributes)
+
+        if ret is None:
+            from user_interface_error import OperationCancelledError
+            raise OperationCancelledError("ticket creation aborted")
+
+        ticket = self.create_ticket(*ret)
+        import urlparse
+        from sage.env import TRAC_SERVER_URI
+        ticket_url = urlparse.urljoin(self._config.get('server', TRAC_SERVER_URI), str(ticket))
+        from user_interface import INFO
+        self._UI.show("Created ticket #%s (%s)."%(ticket, ticket_url), INFO)
+        return ticket
+
+    @classmethod
+    def _parse_ticket_file(cls, filename):
+        r"""
+        Parse ticket file ``filename``, helper for
+        :meth:`create_ticket_interactive` and :meth:`edit_ticket_interactive`.
+
+        OUTPUT:
+
+        ``None`` if the filename contains only comments; otherwise a triple
+        ``(summary, description, attributes)``, where ``summary`` is a string
+        consisting of the ticket's summary, ``description`` is a string
+        containing the ticket's description, and ``attributes`` is a dictionary
+        with additional fields of the ticket.
+
+        TESTS::
+
+            sage: from sage.dev.trac_interface import TracInterface
+            sage: import os, tempfile
+            sage: tmp = tempfile.mkstemp()[1]
+            sage: with open(tmp, 'w') as f:
+            ....:     f.write("no summary\n")
+            sage: TracInterface._parse_ticket_file(tmp)
+            Traceback (most recent call last):
+            ...
+            TicketSyntaxError: no valid summary found
+            sage: with open(tmp, 'w') as f:
+            ....:     f.write("summary:no description\n")
+            sage: TracInterface._parse_ticket_file(tmp)
+            Traceback (most recent call last):
+            ...
+            TicketSyntaxError: no description found
+            sage: with open(tmp, 'w') as f:
+            ....:     f.write("summary:double summary\n")
+            ....:     f.write("summary:double summary\n")
+            sage: TracInterface._parse_ticket_file(tmp)
+            Traceback (most recent call last):
+            ...
+            TicketSyntaxError: line 2: only one value for summary allowed
+            sage: with open(tmp, 'w') as f:
+            ....:     f.write("bad field:bad field entry\n")
+            sage: TracInterface._parse_ticket_file(tmp)
+            Traceback (most recent call last):
+            ...
+            TicketSyntaxError: line 1: field `bad field` not supported
+            sage: with open(tmp, 'w') as f:
+            ....:     f.write("summary:a summary\n")
+            ....:     f.write("branch:a branch\n")
+            ....:     f.write("some description\n")
+            ....:     f.write("#an ignored line\n")
+            ....:     f.write("more description\n")
+            ....:     f.write("\n")
+            sage: TracInterface._parse_ticket_file(tmp)
+            ('a summary', 'some description\nmore description', {'branch': 'a branch'})
+            sage: with open(tmp, 'w') as f:
+            ....:     f.write("summary:a summary\n")
+            ....:     f.write("some description\n")
+            ....:     f.write("branch:a branch\n")
+            sage: TracInterface._parse_ticket_file(tmp)
+            ('a summary', 'some description\nbranch:a branch', {})
+            sage: os.unlink(tmp)
+
+        """
+        lines = list(open(filename).read().splitlines())
+
+        if all(l.rstrip().startswith('#') for l in lines if l.rstrip()):
+            return
+
+        fields = {}
+        for i, line in enumerate(lines):
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+
+            m = FIELD_REGEX.match(line)
+            if m:
+                field = m.groups()[0]
+                if not (field.lower() == 'summary' or
+                        field.lower() in ALLOWED_FIELDS):
+                    raise TicketSyntaxError("line %s: "%(i+1) +
+                                            "field `%s` not supported"%field)
+                elif field.lower() in fields:
+                    raise TicketSyntaxError("line %s: "%(i+1) +
+                                            "only one value for %s allowed"%field)
+                else:
+                    fields[field.lower()] = m.groups()[1].strip()
+                    continue
+            else:
+                break
+        else: # no description
+            i += 1
+
+        # separate summary from other fields
+        try:
+            summary = fields.pop('summary')
+        except KeyError:
+            summary = None
+
+        description = [line.rstrip() for line in lines[i:]
+                if not line.startswith('#')]
+
+        # remove leading and trailing empty newlines
+        while description and not description[0]:
+            description.pop(0)
+        while description and not description[-1]:
+            description.pop()
+
+        if not summary:
+            raise TicketSyntaxError("no valid summary found")
+        elif not description:
+            raise TicketSyntaxError("no description found")
+        else:
+            return summary, "\n".join(description), fields

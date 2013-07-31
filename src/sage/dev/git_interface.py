@@ -760,35 +760,89 @@ class GitInterface(object):
 
     def local_branches(self):
         r"""
-        return the list of the local branches sorted by last commit time
+        Return a list of local branches sorted by last commit time.
 
         EXAMPLES::
 
-            sage: dev.git.local_branches()
-            ['first_branch', 'second_branch', 'master']
+        Create a :class:`GitInterface` for doctesting::
+
+            sage: import os
+            sage: from sage.dev.git_interface import GitInterface, SILENT, SUPER_SILENT
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
+
+        Create some branches::
+
+            sage: os.chdir(config['git']['src'])
+            sage: git.commit(SILENT, '-m','initial commit','--allow-empty')
+            sage: git.branch('branch1')
+            sage: git.branch('branch2')
+
+        Use this repository as a remote repository::
+
+            sage: config2 = DoctestConfig()
+            sage: git2 = GitInterface(config2["git"], DoctestUserInterface(config["UI"]))
+            sage: os.chdir(config2['git']['src'])
+            sage: git2.commit(SILENT, '-m','initial commit','--allow-empty')
+            sage: git2.remote('add', 'git', config['git']['src'])
+            sage: git2.fetch(SUPER_SILENT, 'git')
+            sage: git2.checkout(SUPER_SILENT, "branch1")
+            sage: git2.branch("-a")
+            * branch1
+              master
+              remotes/git/branch1
+              remotes/git/branch2
+              remotes/git/master
+
+            sage: git2.local_branches()
+            ['branch1', 'master']
+            sage: os.chdir(config['git']['src'])
+            sage: git.local_branches()
+            ['branch1', 'branch2', 'master']
+
         """
-        result = self.read_output('for-each-ref', 'refs/heads/',
+        result = self.for_each_ref(READ_OUTPUT, 'refs/heads/',
                     sort='-committerdate', format="%(refname)").splitlines()
         return [head[11:] for head in result]
 
     def current_branch(self):
         r"""
-        return the current branch
+        Return the current branch
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: dev.git.current_branch()
-            'first_branch'
+        Create a :class:`GitInterface` for doctesting::
+
+            sage: import os
+            sage: from sage.dev.git_interface import GitInterface, SILENT, SUPER_SILENT
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
+
+        Create some branches::
+
+            sage: os.chdir(config['git']['src'])
+            sage: git.commit(SILENT, '-m','initial commit','--allow-empty')
+            sage: git.commit(SILENT, '-m','second commit','--allow-empty')
+            sage: git.branch('branch1')
+            sage: git.branch('branch2')
+
+            sage: git.current_branch()
+            'master'
+            sage: git.checkout(SUPER_SILENT, 'branch1')
+            sage: git.current_branch()
+            'branch1'
+            sage: git.checkout(SUPER_SILENT, 'master~')
+            sage: git.current_branch()
+
         """
-        try:
-            branch = self.read_output('symbolic-ref', 'HEAD').strip()
-            if branch.startswith('refs/heads/'):
-                return branch[11:]
-            int(branch, 16)
-        except ValueError:
-            raise RuntimeError('HEAD is bizarre!')
-        else:
-            raise ValueError('HEAD is detached')
+        branch = self.symbolic_ref(READ_OUTPUT, 'HEAD').strip()
+        if branch.startswith('refs/heads/'):
+            return branch[11:]
+        raise NotImplementedError(branch)
 
     def _branch_printname(self, branchname):
         r"""
@@ -1270,6 +1324,7 @@ for git_cmd_ in (
         "commit",
         "diff",
         "fetch",
+        "for_each_ref",
         "format_patch",
         "grep",
         "init",
@@ -1279,12 +1334,14 @@ for git_cmd_ in (
         "pull",
         "push",
         "rebase",
+        "remote",
         "reset",
         "rev_list",
         "rm",
         "show",
         "stash",
         "status",
+        "symbolic_ref",
         "tag"
         ):
     def create_wrapper(git_cmd__):

@@ -506,6 +506,26 @@ class TracInterface(object):
         """
         return self._anonymous_server_proxy.ticket.get(int(ticket))[3]
 
+    def _branch_for_ticket(self, ticket):
+        r"""
+        Return the branch field for ``ticket`` or ``None`` if it is not set.
+
+        INPUT:
+
+        - ``ticket`` -- an int
+
+        EXAMPLES::
+
+            sage: dev.trac._branch_for_ticket(1000) is None # optional: internet
+            True
+
+        """
+        attributes = self._get_attributes(ticket)
+        if 'branch' in attributes:
+            return attributes[branch]
+        else:
+            return None
+
     def dependencies(self, ticket, recurse=False, seen=None):
         r"""
         Retrieve dependencies of ``ticket``, sorted by ticket number.

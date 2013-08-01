@@ -15,7 +15,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from xmlrpclib import SafeTransport
+from xmlrpclib import SafeTransport, Fault
 import urllib2
 
 class DigestTransport(object, SafeTransport):
@@ -115,14 +115,20 @@ class DigestTransport(object, SafeTransport):
                'resolution': 'fixed'}],)
 
         """
-        import urlparse
-        req = urllib2.Request(
-                urlparse.urlunparse(('http', host, handler, '', '', '')),
-                request_body, {'Content-Type': 'text/xml',
-                    'User-Agent': self.user_agent})
+        try:
+            import urlparse
+            req = urllib2.Request(
+                    urlparse.urlunparse(('http', host, handler, '', '', '')),
+                    request_body, {'Content-Type': 'text/xml',
+                        'User-Agent': self.user_agent})
 
-        response = self.opener.open(req)
+            response = self.opener.open(req)
 
-        self.verbose = verbose
-        return self.parse_response(response)
-
+            self.verbose = verbose
+            return self.parse_response(response)
+        except Fault as e:
+            from trac_error import TracInternalError
+            raise TracInternalError(e)
+        except IOError as e:
+            from trac_error import TracConnectionError
+            raise TracConnectionError(e)

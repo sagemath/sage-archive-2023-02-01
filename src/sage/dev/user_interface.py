@@ -23,7 +23,8 @@ AUTHORS:
 #*****************************************************************************
 
 # log levels
-SILENT = -1 # display only prompts and errors
+ERROR = -2
+WARNING = -1
 NORMAL = 0
 INFO = 1 # display informational messages, such as git commands executed
 DEBUG = 2 # display additional debug information
@@ -147,8 +148,8 @@ class UserInterface(object):
 
         - ``message`` -- a string
 
-        - ``log_level`` -- one of ``SILENT``, ``NORMAL``, ``INFO``, or
-          ``DEBUG`` (default: ``NORMAL``)
+        - ``log_level`` -- one of ``ERROR``, ``WARNING``, ``NORMAL``, ``INFO``,
+          or ``DEBUG`` (default: ``NORMAL``)
 
         TESTS::
 
@@ -164,6 +165,88 @@ class UserInterface(object):
         """
         if self._config.get("log_level", NORMAL) >= log_level:
             self._show(message)
+
+    def debug(self, message):
+        r"""
+        Display ``message``.
+
+        INPUT:
+
+        - ``message`` -- a string
+
+        TESTS:
+
+        Debug messages are not displayed in doctests::
+
+            sage: from sage.dev.user_interface import UserInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: UI = UserInterface(DoctestConfig())
+            sage: UI.debug("I ate filet mignon for dinner.")
+
+        """
+        self.show(message, DEBUG)
+
+    def info(self, message):
+        r"""
+        Display ``message``.
+
+        INPUT:
+
+        - ``message`` -- a string
+
+        TESTS:
+
+        Info messages are not displayed in doctests::
+
+            sage: from sage.dev.user_interface import UserInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: UI = UserInterface(DoctestConfig())
+            sage: UI.info("I ate filet mignon for dinner.")
+
+        """
+        self.show(message, INFO)
+
+    def warning(self, message):
+        r"""
+        Display ``message``.
+
+        INPUT:
+
+        - ``message`` -- a string
+
+        TESTS:
+
+            sage: from sage.dev.user_interface import UserInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: UI = UserInterface(DoctestConfig())
+            sage: UI.warning("I ate filet mignon for dinner.")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+        """
+        self.show(message, WARNING)
+
+    def error(self, message):
+        r"""
+        Display ``message``.
+
+        INPUT:
+
+        - ``message`` -- a string
+
+        TESTS:
+
+            sage: from sage.dev.user_interface import UserInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: UI = UserInterface(DoctestConfig())
+            sage: UI.error("I ate filet mignon for dinner.")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+
+        """
+        self.show(message, ERROR)
 
     def _show(self, message):
         r"""

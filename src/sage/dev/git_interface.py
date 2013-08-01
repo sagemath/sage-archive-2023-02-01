@@ -852,7 +852,7 @@ class GitInterface(object):
                raise DetachedHeadError()
             raise
 
-    def branch_exists(self, branch):
+    def commit_for_branch(self, branch):
         r"""
         Return the commit id of the local ``branch``, or ``None`` if the branch
         does not exist
@@ -877,17 +877,17 @@ class GitInterface(object):
 
         Check existence of branches::
 
-            sage: git.branch_exists('branch1') # random output
+            sage: git.commit_for_branch('branch1') # random output
             '087e1fdd0fe6f4c596f5db22bc54567b032f5d2b'
-            sage: git.branch_exists('branch2') is not None
+            sage: git.commit_for_branch('branch2') is not None
             True
-            sage: git.branch_exists('branch3') is not None
+            sage: git.commit_for_branch('branch3') is not None
             False
 
         """
-        return self.ref_exists("refs/heads/%s"%branch)
+        return self.commit_for_ref("refs/heads/%s"%branch)
 
-    def ref_exists(self, ref):
+    def commit_for_ref(self, ref):
         r"""
         Return the commit id of the ``ref``, or ``None`` if the ``ref`` does
         not exist.
@@ -912,11 +912,11 @@ class GitInterface(object):
 
         Check existence of branches::
 
-            sage: git.ref_exists('refs/heads/branch1') # random output
+            sage: git.commit_for_ref('refs/heads/branch1') # random output
             '087e1fdd0fe6f4c596f5db22bc54567b032f5d2b'
-            sage: git.ref_exists('refs/heads/branch2') is not None
+            sage: git.commit_for_ref('refs/heads/branch2') is not None
             True
-            sage: git.ref_exists('refs/heads/branch3') is not None
+            sage: git.commit_for_ref('refs/heads/branch3') is not None
             False
 
         """

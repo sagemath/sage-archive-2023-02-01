@@ -215,8 +215,10 @@ class SavingDict(collections.MutableMapping):
             sage: os.unlink(tmp)
 
         """
+        import sage.doctest, os, sage.env
+        assert not sage.doctest.DOCTEST_MODE or not os.path.abspath(self._filename).startswith(sage.env.DOT_SAGE), "doctest attempted to write to saving dict of live sage"
+
         import tempfile
-        import os
         fd, tmpfile = tempfile.mkstemp(dir=os.path.dirname(os.path.abspath(self._filename)))
         s = cPickle.dumps(self._dict, protocol=2)
         with os.fdopen(fd, "wb") as F:

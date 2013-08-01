@@ -428,7 +428,7 @@ class GitInterface(object):
         """
         import sage.doctest
         import os
-        assert not sage.doctest.DOCTEST_MODE or (self._dot_git != SAGE_DOT_GIT and self._repository != SAGE_REPO_AUTHENTICATED and os.path.abspath(os.getcwd()).startswith(self._src)), "attempt to work with the live repository or directory in a doctest"
+        assert not sage.doctest.DOCTEST_MODE or (self._dot_git != SAGE_DOT_GIT and self._repository != SAGE_REPO_AUTHENTICATED and os.path.abspath(os.getcwd()).startswith(self._src)), "possible attempt to work with the live repository or directory in a doctest"
 
         s = [self._gitcmd, "--git-dir=%s"%self._dot_git, cmd]
 

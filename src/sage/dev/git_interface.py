@@ -974,6 +974,7 @@ for git_cmd_ in (
         "grep",
         "init",
         "log",
+        "ls_remote",
         "merge",
         "mv",
         "pull",

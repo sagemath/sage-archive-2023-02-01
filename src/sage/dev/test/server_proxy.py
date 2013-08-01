@@ -31,7 +31,7 @@ class DoctestServerProxy(object):
         sage: from sage.dev.test.server_proxy import DoctestServerProxy
         sage: from sage.dev.test.trac_server import DoctestTracServer
         sage: DoctestServerProxy(DoctestTracServer())
-         <sage.dev.test.server_proxy.DoctestServerProxy at 0x...>
+         <sage.dev.test.server_proxy.DoctestServerProxy object at 0x...>
 
     """
     def __init__(self, server):
@@ -91,7 +91,7 @@ class AuthenticatedDoctestServerProxy(DoctestServerProxy):
         sage: from sage.dev.test.server_proxy import AuthenticatedDoctestServerProxy
         sage: from sage.dev.test.trac_server import DoctestTracServer
         sage: AuthenticatedDoctestServerProxy(DoctestTracServer(), 'username', 'password')
-        <sage.dev.test.server_proxy.AuthenticatedDoctestServerProxy at 0x...>
+        <sage.dev.test.server_proxy.AuthenticatedDoctestServerProxy object at 0x...>
 
     """
     def __init__(self, server, username, password):
@@ -151,7 +151,7 @@ class DoctestTicketProxy(object):
         sage: from sage.dev.test.server_proxy import DoctestServerProxy
         sage: from sage.dev.test.trac_server import DoctestTracServer
         sage: DoctestServerProxy(DoctestTracServer()).ticket
-        <sage.dev.test.server_proxy.DoctestTicketProxy at 0x...>
+        <sage.dev.test.server_proxy.DoctestTicketProxy object at 0x...>
 
     """
     def __init__(self, server_proxy):
@@ -251,5 +251,8 @@ class DoctestTicketProxy(object):
             [1, 'not implemented', 'not implemented', {'description': 'description', 'summary': 'summary'}]
 
         """
+        if ticket not in self._server_proxy._server.tickets:
+            import xmlrpclib
+            raise xmlrpclib.Fault(404, "ticket does not exist")
         ticket = self._server_proxy._server.tickets[ticket]
         return [ticket.id, ticket.time_created, ticket.time_changed, ticket.attributes]

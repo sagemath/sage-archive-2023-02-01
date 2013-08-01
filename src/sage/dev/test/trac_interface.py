@@ -56,6 +56,7 @@ class DoctestTracInterface(sage.dev.trac_interface.TracInterface):
         sage.dev.trac_interface.TracInterface.__init__(self, config, UI)
 
         self._server = server
+        self._connected = True
 
     @property
     def _anonymous_server_proxy(self):
@@ -76,6 +77,10 @@ class DoctestTracInterface(sage.dev.trac_interface.TracInterface):
             <sage.dev.test.server_proxy.DoctestServerProxy object at 0x...>
 
         """
+        if not self._connected:
+            from sage.dev.trac_error import TracConnectionError
+            raise TracConnectionError
+
         from server_proxy import DoctestServerProxy
         return DoctestServerProxy(self._server)
 
@@ -99,5 +104,9 @@ class DoctestTracInterface(sage.dev.trac_interface.TracInterface):
             <sage.dev.test.server_proxy.AuthenticatedDoctestServerProxy object at 0x...>
 
         """
+        if not self._connected:
+            from sage.dev.trac_error import TracConnectionError
+            raise TracConnectionError
+
         from server_proxy import AuthenticatedDoctestServerProxy
         return AuthenticatedDoctestServerProxy(self._server, self._username, self._password)

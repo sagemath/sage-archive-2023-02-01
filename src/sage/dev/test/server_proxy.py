@@ -73,12 +73,13 @@ class DoctestServerProxy(object):
             sage: trac._anonymous_server_proxy._check_authentication("TICKET_CREATE")
             Traceback (most recent call last):
             ...
-            Fault: <Fault 403: "TICKET_CREATE privileges are required to perform this operation. You don't have the required permissions.">
+            TracInternalError: <Fault 403: "TICKET_CREATE privileges are required to perform this operation. You don't have the required permissions.">
             sage: trac._authenticated_server_proxy._check_authentication("TICKET_CREATE")
 
         """
+        from sage.dev.trac_error import TracInternalError
         import xmlrpclib
-        raise xmlrpclib.Fault(403, "%s privileges are required to perform this operation. You don't have the required permissions."%privilege)
+        raise TracInternalError(xmlrpclib.Fault(403, "%s privileges are required to perform this operation. You don't have the required permissions."%privilege))
 
 class AuthenticatedDoctestServerProxy(DoctestServerProxy):
     r"""
@@ -135,7 +136,7 @@ class AuthenticatedDoctestServerProxy(DoctestServerProxy):
             sage: trac._anonymous_server_proxy._check_authentication("TICKET_CREATE")
             Traceback (most recent call last):
             ...
-            Fault: <Fault 403: "TICKET_CREATE privileges are required to perform this operation. You don't have the required permissions.">
+            TracInternalError: <Fault 403: "TICKET_CREATE privileges are required to perform this operation. You don't have the required permissions.">
             sage: trac._authenticated_server_proxy._check_authentication("TICKET_CREATE")
 
         """
@@ -252,7 +253,8 @@ class DoctestTicketProxy(object):
 
         """
         if ticket not in self._server_proxy._server.tickets:
+            from sage.dev.trac_error import TracInternalError
             import xmlrpclib
-            raise xmlrpclib.Fault(404, "ticket does not exist")
+            raise TracInternalError(xmlrpclib.Fault(404, "ticket does not exist"))
         ticket = self._server_proxy._server.tickets[ticket]
         return [ticket.id, ticket.time_created, ticket.time_changed, ticket.attributes]

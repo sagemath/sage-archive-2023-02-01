@@ -247,21 +247,26 @@ class SageDev(object):
         In this example ``base`` does not exist::
 
             sage: dev.create_ticket(base=1000)
+            Traceback (most recent call last):
+            ...
+            ValueError: `1000` is not a valid ticket name or ticket does not exist on trac.
 
         In this example ``base`` does not exist locally::
 
             sage: dev.trac.create_ticket("summary5","description",{})
             5
             sage: dev.create_ticket(base=5)
+            Traceback (most recent call last):
+            ...
+            ValueError: Branch field is not set for ticket #5 on trac.
 
-        Check that this still works if the internet connection is broken::
+        This also fails if the internet connection is broken::
 
-            sage: dev.trac._disconnect()
-            sage: dev.create_ticket(base=5)
-
-        However, if the ticket is not known locally, then this does not work::
-
-            sage: dev.create_ticket(base=1000)
+            sage: dev.trac._connected = False
+            sage: dev.create_ticket(base=4)
+            Traceback (most recent call last):
+            ...
+            TracConnectionError: Connection to trac server failed.
 
         """
         dependencies = []
@@ -288,8 +293,10 @@ class SageDev(object):
             ticket = self.trac.create_ticket_interactive()
         except OperationCancelledError:
             self._UI.info("Ticket creation aborted.")
+            raise
         except TracConnectionError as e:
-            self._UI.error("A network error ocurred, ticket creation aborted: {0}".format(str(e)))
+            self._UI.error("A network error ocurred, ticket creation aborted.")
+            raise
 
         # note that the dependencies are not recorded on the newly created
         # ticket but only stored locally - a first push to trac will set the
@@ -464,7 +471,8 @@ class SageDev(object):
 
         self._UI.info("Fetching remote branch {0} into {1}.".format(remote_branch, branch))
         try:
-            self.git.fetch(self._git._repository, "{0}:{1}".format(remote_branch, branch))
+            from sage.dev.git_interface import SUPER_SILENT
+            self.git.fetch(SUPER_SILENT, self.git._repository, "{0}:{1}".format(remote_branch, branch))
         except:
             # TODO
             raise
@@ -707,17 +715,10 @@ class SageDev(object):
             sage: dev._is_remote_branch_name('ticket/1')
             True
 
-        Setting ``exists`` to anything else but ``any`` is currently not
-        supported::
-
             sage: dev._is_remote_branch_name('ticket/1', exists=True)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            False
             sage: dev._is_remote_branch_name('ticket/1', exists=False)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            True
 
         """
         if not isinstance(name, str):
@@ -728,8 +729,22 @@ class SageDev(object):
 
         if exists is any:
             return True
+
+        from git_error import GitError
+        from git_interface import SUPER_SILENT
+        try:
+            self.git.ls_remote(SUPER_SILENT, self.git._repository, name, exit_code=True)
+            remote_exists = True
+        except GitError as e:
+            if e.exit_code == 2:
+                remote_exists = False
+            else:
+                raise
+
+        if exists == True or exists == False:
+            return remote_exists == exists
         else:
-            raise NotImplementedError
+            raise ValueError
 
     def _check_local_branch_name(self, name, exists=any):
         r"""
@@ -816,16 +831,11 @@ class SageDev(object):
             ValueError: `` is not a valid branch name.
             sage: dev._check_remote_branch_name('ticket/1')
 
-        Currently, only ``any`` is supported as a value for ``exists``::
-
             sage: dev._check_remote_branch_name('ticket/1', exists=True)
             Traceback (most recent call last):
             ...
-            NotImplementedError
+            ValueError: Branch `ticket/1` does not exist on the remote system.
             sage: dev._check_remote_branch_name('ticket/1', exists=False)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
 
         """
         try:
@@ -981,14 +991,23 @@ class SageDev(object):
             Traceback (most recent call last):
             ...
             ValueError: Branch field is not set for ticket #1 on trac.
-            sage: dev1.trac.edit_ticket("summary", "description", {'branch':'public/ticket/1'})
+            sage: attributes = dev1.trac._get_attributes(ticket)
+            sage: attributes['branch'] = 'public/ticket/1'
+            sage: dev1.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
+            'https://trac.sagemath.org/ticket/1#comment:1'
             sage: dev2._local_branch_for_ticket(ticket, download_if_not_found=True)
             Traceback (most recent call last):
             ...
-            No such branch
+            ValueError: Branch `public/ticket/1` does not exist on the remote system.
+
+            sage: import os
+            sage: os.chdir(server.git._config['src'])
             sage: server.git.branch('public/ticket/1')
-            sage: dev._local_branch_for_ticket(ticket, download_if_not_found=True)
-            sage: dev._local_branch_for_ticket(ticket)
+            sage: dev2._chdir()
+            sage: dev2._local_branch_for_ticket(ticket, download_if_not_found=True)
+            'ticket/1'
+            sage: dev2._local_branch_for_ticket(ticket)
+            'ticket/1'
 
         """
         ticket = self._ticket_from_ticket_name(ticket)
@@ -999,7 +1018,9 @@ class SageDev(object):
         if not download_if_not_found:
             raise KeyError("No branch for ticket #{0} in your repository.".format(ticket))
 
-        self.download(ticket, self._new_local_branch_for_ticket(ticket))
+        branch = self._new_local_branch_for_ticket(ticket)
+        self.download(ticket, branch)
+        self._set_local_branch_for_ticket(ticket, branch)
         return self._local_branch_for_ticket(ticket, download_if_not_found=False)
 
     def _new_local_branch_for_ticket(self, ticket):

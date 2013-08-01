@@ -522,7 +522,7 @@ class TracInterface(object):
         """
         attributes = self._get_attributes(ticket)
         if 'branch' in attributes:
-            return attributes[branch]
+            return attributes['branch']
         else:
             return None
 

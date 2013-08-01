@@ -44,7 +44,14 @@ class DoctestConfig(sage.dev.config.Config):
         [UI]
         log_level = 0
         [git]
+        repository = remote_repository_undefined
+        src = ...
         dot_git = ...
+        [sagedev]
+        ticketfile = ...
+        branchfile = ...
+        dependenciesfile = ...
+        remotebranchesfile = ...
         ''')
 
     """
@@ -68,6 +75,7 @@ class DoctestConfig(sage.dev.config.Config):
         self['trac'] = {'username': trac_username}
         self['UI'] = {'log_level': 0}
         self['git'] = {}
+        self['sagedev'] = {}
 
         self['git']['repository'] = repository if repository else "remote_repository_undefined"
 
@@ -76,6 +84,11 @@ class DoctestConfig(sage.dev.config.Config):
         self['git']['src'] = self._tmp_dir
         self['git']['dot_git'] = os.path.join(self._tmp_dir,".git")
         os.mkdir(self['git']['dot_git'])
+
+        self['sagedev']['ticketfile'] = os.path.join(self._tmp_dir,"branch_to_ticket")
+        self['sagedev']['branchfile'] = os.path.join(self._tmp_dir,"ticket_to_branch")
+        self['sagedev']['dependenciesfile'] = os.path.join(self._tmp_dir,"dependencies")
+        self['sagedev']['remotebranchesfile'] = os.path.join(self._tmp_dir,"remote_branches")
 
         from sage.dev.git_interface import GitInterface, SILENT
         from sage.dev.test.user_interface import DoctestUserInterface

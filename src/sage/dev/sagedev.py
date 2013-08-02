@@ -249,8 +249,6 @@ class SageDev(object):
         In this example ``base`` does not exist::
 
             sage: dev.create_ticket(base=1000)
-            Traceback (most recent call last):
-            ...
             ValueError: `1000` is not a valid ticket name or ticket does not exist on trac.
 
         In this example ``base`` does not exist locally::
@@ -258,17 +256,14 @@ class SageDev(object):
             sage: dev.trac.create_ticket("summary5","description",{})
             5
             sage: dev.create_ticket(base=5)
-            Traceback (most recent call last):
-            ...
             ValueError: Branch field is not set for ticket #5 on trac.
 
         This also fails if the internet connection is broken::
 
             sage: dev.trac._connected = False
             sage: dev.create_ticket(base=4)
-            Traceback (most recent call last):
-            ...
-            TracConnectionError: Connection to trac server failed.
+            A network error ocurred, ticket creation aborted.
+            Your command failed because no connection to trac could be established.
 
         """
         dependencies = []
@@ -461,8 +456,6 @@ class SageDev(object):
 
             sage: bob._chdir()
             sage: bob.download(ticket)
-            Traceback (most recent call last):
-            ...
             ValueError: Branch field is not set for ticket #1 on trac.
 
         So, Bob starts to work on the ticket on a new branch::
@@ -520,9 +513,8 @@ class SageDev(object):
 
             sage: alice._chdir()
             sage: alice.download()
-            Traceback (most recent call last):
-            ...
-            GitError: git returned with non-zero exit code (1)
+            GitError: git exited with a non-zero exit code (1).
+            Pulling `u/bob/ticket/1` into `ticket/1` failed. Most probably this happened because this did not resolve as a fast-forward, i.e., there were conflicting changes. Maybe there are untracked files in your working directory which made the pull impossible.
 
         Undo the latest commit by alice, so we can download again::
 
@@ -548,9 +540,8 @@ class SageDev(object):
 
             sage: alice._chdir()
             sage: alice.download()
-            Traceback (most recent call last):
-            ...
-            GitError: git returned with non-zero exit code (1)
+            GitError: git exited with a non-zero exit code (1).
+            Pulling `u/bob/ticket/1` into `ticket/1` failed. Most probably this happened because this did not resolve as a fast-forward, i.e., there were conflicting changes. Maybe there are untracked files in your working directory which made the pull impossible.
 
         """
         if ticket_or_branch is None:
@@ -600,7 +591,8 @@ class SageDev(object):
                 # fast-forward or because there were untracked files around
                 # that made a pull impossible
                 # is there a way to find out?
-                self._UI.info("Pulling {0} into {1} failed. Most probably this happened because this did not resolve as a fast-forward, i.e., there were conflicting changes. Probably there are also untracked files in your working directory which made the pull impossible. You can try to use {2} to resolve any conflicts manually.".format(remote_branch, branch, self._format_command("merge",{"remote_branch":remote_branch})))
+                e.explain = "Pulling `{0}` into `{1}` failed. Most probably this happened because this did not resolve as a fast-forward, i.e., there were conflicting changes. Maybe there are untracked files in your working directory which made the pull impossible.".format(remote_branch, branch)
+                e.advice =  "You can try to use {0} to resolve any conflicts manually.".format(self._format_command("merge",{"remote_branch":remote_branch}))
                 raise
         else:
             try:
@@ -612,8 +604,10 @@ class SageDev(object):
                 # resolve as a fast-forward; in any case, if the fetch fails,
                 # then just nothing happened and we can abort the download
                 # safely without a need to cleanup
+                e.explain = "Fetching `{0}` into `{1}` failed.".format(remote_branch, branch)
                 if self._is_local_branch_name(branch, exists=True):
-                    self._UI.info("Fetching {0} into {1} failed. Most probably this happened because the fetch did not resolve as a fast-forward, i.e., there were conflicting changes. You can try to use {2} to switch to {1} and then use {3} to resolve these conflicts manually.".format(remote_branch, branch, self._format_command("switch-branch",branch), self._format_command("merge",{"remote_branch":remote_branch})))
+                    e.explain += " Most probably this happened because the fetch did not resolve as a fast-forward, i.e., there were conflicting changes."
+                    e.advice = "You can try to use {2} to switch to {1} and then use {3} to resolve these conflicts manually.".format(remote_branch, branch, self._format_command("switch-branch",branch), self._format_command("merge",{"remote_branch":remote_branch}))
                 else:
                     # is there any advice one could give to the user?
                     pass
@@ -2679,9 +2673,6 @@ class SageDev(object):
             except SageDevValueError:
                 return False
 
-        if name < 0:
-            return False
-
         if exists:
             try:
                 self.trac._anonymous_server_proxy.ticket.get(name)
@@ -2716,17 +2707,17 @@ class SageDev(object):
             sage: dev._check_ticket_name("1 000")
             Traceback (most recent call last):
             ...
-            ValueError: `1 000` is not a valid ticket name.
+            SageDevValueError: `1 000` is not a valid ticket name.
             sage: dev._check_ticket_name("#1000")
             sage: dev._check_ticket_name("master")
             Traceback (most recent call last):
             ...
-            ValueError: `master` is not a valid ticket name.
+            SageDevValueError: `master` is not a valid ticket name.
             sage: dev._check_ticket_name(1000, exists=True) # optional: internet
             sage: dev._check_ticket_name(2^30, exists=True) # optional: internet
             Traceback (most recent call last):
             ...
-            ValueError: `1073741824` is not a valid ticket name or ticket does not exist on trac.
+            SageDevValueError: `1073741824` is not a valid ticket name or ticket does not exist on trac.
 
         """
         if not self._is_ticket_name(name, exists=exists):
@@ -2753,18 +2744,22 @@ class SageDev(object):
             sage: dev._ticket_from_ticket_name("1 000")
             Traceback (most recent call last):
             ...
-            ValueError: `1 000` is not a valid ticket name.
+            SageDevValueError: `1 000` is not a valid ticket name.
 
         """
-        if not isinstance(name, int):
-            if isinstance(name, str) and name[0] == "#":
-                name = name[1:]
+        ticket = name
+        if not isinstance(ticket, int):
+            if isinstance(ticket, str) and ticket[0] == "#":
+                ticket = ticket[1:]
             try:
-                name = int(name)
+                ticket = int(ticket)
             except ValueError:
                 raise SageDevValueError("`{0}` is not a valid ticket name.".format(name))
 
-        return name
+        if ticket < 0:
+            raise SageDevValueError("`{0}` is not a valid ticket name.".format(name))
+
+        return ticket
 
     def _is_local_branch_name(self, name, exists=any):
         r"""
@@ -2914,19 +2909,19 @@ class SageDev(object):
             sage: dev._check_local_branch_name('')
             Traceback (most recent call last):
             ...
-            ValueError: `` is not a valid branch name.
+            SageDevValueError: `` is not a valid name for a local branch.
             sage: dev._check_local_branch_name('ticket/1')
             sage: dev._check_local_branch_name('ticket/1', exists=True)
             Traceback (most recent call last):
             ...
-            ValueError: Branch `ticket/1` does not exist locally.
+            SageDevValueError: Branch `ticket/1` does not exist locally.
             sage: dev._check_local_branch_name('ticket/1', exists=False)
             sage: dev.git.branch('ticket/1')
             sage: dev._check_local_branch_name('ticket/1', exists=True)
             sage: dev._check_local_branch_name('ticket/1', exists=False)
             Traceback (most recent call last):
             ...
-            ValueError: Branch `ticket/1` already exists, please choose a different name.
+            SageDevValueError: Branch `ticket/1` already exists, please choose a different name.
 
         """
         try:
@@ -2971,13 +2966,13 @@ class SageDev(object):
             sage: dev._check_remote_branch_name('')
             Traceback (most recent call last):
             ...
-            ValueError: `` is not a valid branch name.
+            SageDevValueError: `` is not a valid name for a remote branch.
             sage: dev._check_remote_branch_name('ticket/1')
 
             sage: dev._check_remote_branch_name('ticket/1', exists=True)
             Traceback (most recent call last):
             ...
-            ValueError: Branch `ticket/1` does not exist on the remote system.
+            SageDevValueError: Branch `ticket/1` does not exist on the remote system.
             sage: dev._check_remote_branch_name('ticket/1', exists=False)
 
         """
@@ -3033,7 +3028,7 @@ class SageDev(object):
             sage: dev._remote_branch_for_ticket("master")
             Traceback (most recent call last):
             ...
-            ValueError: `master` is not a valid ticket name.
+            SageDevValueError: `master` is not a valid ticket name.
 
             sage: dev._UI.append("Summary: summary1\ndescription")
             sage: ticket = dev.create_ticket()
@@ -3133,7 +3128,7 @@ class SageDev(object):
             sage: dev2._local_branch_for_ticket(ticket, download_if_not_found=True)
             Traceback (most recent call last):
             ...
-            ValueError: Branch field is not set for ticket #1 on trac.
+            SageDevValueError: Branch field is not set for ticket #1 on trac.
             sage: attributes = dev1.trac._get_attributes(ticket)
             sage: attributes['branch'] = 'public/ticket/1'
             sage: dev1.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
@@ -3141,7 +3136,7 @@ class SageDev(object):
             sage: dev2._local_branch_for_ticket(ticket, download_if_not_found=True)
             Traceback (most recent call last):
             ...
-            ValueError: Branch `public/ticket/1` does not exist on the remote system.
+            SageDevValueError: Branch `public/ticket/1` does not exist on the remote system.
 
             sage: import os
             sage: os.chdir(server.git._config['src'])
@@ -3432,7 +3427,7 @@ class SageDev(object):
             sage: dev._set_local_branch_for_ticket(1, 'ticket/1')
             Traceback (most recent call last):
             ...
-            ValueError: Branch `ticket/1` does not exist locally.
+            SageDevValueError: Branch `ticket/1` does not exist locally.
             sage: dev.git.branch('ticket/1')
             sage: dev._set_local_branch_for_ticket(1, 'ticket/1')
             sage: dev._local_branch_for_ticket(1)
@@ -3523,6 +3518,7 @@ class SageDevValueError(ValueError):
     EXAMPLES::
 
         sage: dev.switch_ticket(-1)
+        ValueError: `-1` is not a valid ticket name.
 
     """
     def __init__(self, message):
@@ -3533,6 +3529,7 @@ class SageDevValueError(ValueError):
 
             sage: from sage.dev.sagedev import SageDevValueError
             sage: type(SageDevValueError("message"))
+            <class 'sage.dev.sagedev.SageDevValueError'>
 
         """
         ValueError.__init__(self, message)

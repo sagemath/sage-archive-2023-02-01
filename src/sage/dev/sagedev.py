@@ -21,8 +21,6 @@ from user_interface_error import OperationCancelledError
 from trac_error import TracConnectionError, TracInternalError, TracError
 from git_error import GitError
 
-#TODO: configure author and email
-
 import re
 # regular expressions to parse mercurial patches
 HG_HEADER_REGEX = re.compile(r"^# HG changeset patch$")

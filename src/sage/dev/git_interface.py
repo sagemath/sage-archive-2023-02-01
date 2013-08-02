@@ -423,12 +423,17 @@ class GitInterface(object):
             sage: dev.git.status()
             Traceback (most recent call last):
             ...
-            AssertionError: attempt to work with the live repository or directory in a doctest
+            AssertionError: possible attempt to work with the live repository/directory in a doctest - did you forget to dev._chdir()?
 
         """
         import sage.doctest
         import os
-        assert not sage.doctest.DOCTEST_MODE or (self._dot_git != SAGE_DOT_GIT and self._repository != SAGE_REPO_AUTHENTICATED and os.path.abspath(os.getcwd()).startswith(self._src)), "possible attempt to work with the live repository or directory in a doctest"
+        assert not sage.doctest.DOCTEST_MODE or (self._dot_git != SAGE_DOT_GIT and self._repository != SAGE_REPO_AUTHENTICATED and os.path.abspath(os.getcwd()).startswith(self._src)), "possible attempt to work with the live repository/directory in a doctest - did you forget to dev._chdir()?"
+
+        # not sure which commands could possibly create a commit object with
+        # some crazy flags set - these commands should be safe
+        if cmd not in [ "config", "diff", "grep", "log", "ls_remote", "remote", "reset", "show", "show_ref", "status", "symbolic_ref" ]:
+            self._check_user_email()
 
         s = [self._gitcmd, "--git-dir=%s"%self._dot_git, cmd]
 
@@ -957,12 +962,57 @@ class GitInterface(object):
         """
         self.branch(oldname, newname, move=True)
 
+    def _check_user_email(self):
+        r"""
+        Make sure that a real name and an email are set for git. These will
+        show up next to any commit that user creates.
+
+        TESTS::
+
+            sage: import os
+            sage: from sage.dev.git_interface import GitInterface, SILENT, SUPER_SILENT
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: del config['git']['user.name']
+            sage: del config['git']['user.email']
+            sage: UI = DoctestUserInterface(config["UI"])
+            sage: git = GitInterface(config["git"], UI)
+            sage: os.chdir(config['git']['src'])
+            sage: UI.append("Doc Test")
+            sage: UI.append("doc@test")
+            sage: git._check_user_email()
+
+        """
+        try:
+            self.config(SUPER_SILENT, "user.name")
+        except GitError as e:
+            if e.exit_code == 1:
+                self._UI.normal("No real name has been set for git. This name shows up as the author for any commits you contribute to sage.")
+                name = self._UI.question("Your real name:")
+                self.git.config("user.name",name,local=True,add=True)
+                self._UI.info("Your real name has been saved.")
+            else:
+                raise
+
+        try:
+            self.config(SUPER_SILENT, "user.email")
+        except GitError as e:
+            if e.exit_code == 1:
+                self._UI.normal("No email address has been set for git. This email shows up as the author for any commits you contribute to sage.")
+                email = self._UI.question("Your email address:")
+                self.git.config("user.email",email,local=True,add=True)
+                self._UI.info("Your email has been saved.")
+            else:
+                raise
+
 for git_cmd_ in (
         "add",
         "am",
         "apply",
         "bisect",
         "branch",
+        "config",
         "checkout",
         "clean",
         "clone",

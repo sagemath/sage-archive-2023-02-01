@@ -1,4 +1,15 @@
 import sage.dev.sagedev
+import sage.dev.sagedev_wrapper
+
+class DoctestSageDevWrapper(sage.dev.sagedev_wrapper.SageDevWrapper):
+    def __init__(self, config, trac_server):
+        sagedev = DoctestSageDev(config, trac_server)
+        sage.dev.sagedev_wrapper.SageDevWrapper.__init__(self, sagedev)
+
+        self._UI = sagedev._UI
+
+        self._wrap("_chdir")
+        self._wrap("_pull_master_branch")
 
 class DoctestSageDev(sage.dev.sagedev.SageDev):
     def __init__(self, config, trac_server):

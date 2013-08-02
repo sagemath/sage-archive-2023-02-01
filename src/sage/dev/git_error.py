@@ -74,3 +74,30 @@ class DetachedHeadError(RuntimeError):
 
         """
         RuntimeError.__init__(self, "unexpectedly, git is in a detached HEAD state")
+
+class InvalidStateError(RuntimeError):
+    r"""
+    Error raised when a git command can not be executed because the repository
+    is not in a clean state.
+
+    EXAMPLES::
+
+        sage: from sage.dev.git_error import InvalidStateError
+        sage: raise InvalidStateError()
+        Traceback (most recent call last):
+        ...
+        InvalidStateError: unexpectedly, git is in an unclean state
+
+    """
+    def __init__(self):
+        r"""
+        Initialization.
+
+        TESTS::
+
+            sage: from sage.dev.git_error import InvalidStateError
+            sage: type(InvalidStateError())
+            <class 'sage.dev.git_error.InvalidStateError'>
+
+        """
+        RuntimeError.__init__(self, "unexpectedly, git is in an unclean state")

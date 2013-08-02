@@ -17,6 +17,7 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
 from user_interface_error import OperationCancelledError
 from trac_error import TracConnectionError, TracInternalError, TracError
 from git_error import GitError
@@ -78,7 +79,7 @@ class SageDev(object):
 
     EXAMPLES::
 
-        sage: dev
+        sage: dev._sagedev
         SageDev()
 
     """
@@ -88,7 +89,7 @@ class SageDev(object):
 
         TESTS::
 
-            sage: type(dev)
+            sage: type(dev._sagedev)
             <class 'sage.dev.sagedev.SageDev'>
 
         """
@@ -144,7 +145,7 @@ class SageDev(object):
         TESTS::
 
             sage: import os
-            sage: os.path.isdir(dev.tmp_dir)
+            sage: os.path.isdir(dev._sagedev.tmp_dir)
             True
 
         """
@@ -203,13 +204,14 @@ class SageDev(object):
         Set up a single user environment::
 
             sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDev
+            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
             sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDev(config, server)
+            sage: dev = DoctestSageDevWrapper(config, server)
+            sage: dev._wrap("_dependencies_for_ticket")
             sage: UI = dev._UI
             sage: dev._pull_master_branch()
             sage: dev._chdir()
@@ -277,7 +279,7 @@ class SageDev(object):
         if base is None:
             base = self.current_ticket
         if base is None:
-            raise ValueError("currently on no ticket, base must not be None")
+            raise SageDevValueError("currently on no ticket, `base` must not be None")
         if self._is_ticket_name(base):
             base = self._ticket_from_ticket_name(base)
             dependencies.append(base)
@@ -434,18 +436,18 @@ class SageDev(object):
         Create a doctest setup with two users::
 
             sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDev
+            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
             sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config_alice = DoctestConfig('alice')
             sage: config_alice['trac']['password'] = 'secret'
-            sage: alice = DoctestSageDev(config_alice, server)
+            sage: alice = DoctestSageDevWrapper(config_alice, server)
             sage: alice._pull_master_branch()
 
             sage: config_bob = DoctestConfig('bob')
             sage: config_bob['trac']['password'] = 'secret'
-            sage: bob = DoctestSageDev(config_bob, server)
+            sage: bob = DoctestSageDevWrapper(config_bob, server)
             sage: bob._pull_master_branch()
 
         Alice creates ticket 1::
@@ -556,7 +558,7 @@ class SageDev(object):
             branch = self.git.current_branch()
 
         if ticket_or_branch is None:
-            raise ValueError("No ticket or branch specified to download.")
+            raise SageDevValueError("No `ticket_or_branch` specified to download.")
 
         if self._is_ticket_name(ticket_or_branch):
             ticket = self._ticket_from_ticket_name(ticket_or_branch)
@@ -564,7 +566,7 @@ class SageDev(object):
 
             remote_branch = self.trac._branch_for_ticket(ticket)
             if remote_branch is None:
-                raise ValueError("Branch field is not set for ticket #{0} on trac.".format(ticket))
+                raise SageDevValueError("Branch field is not set for ticket #{0} on trac.".format(ticket))
             if branch is None:
                 branch = self._new_local_branch_for_ticket(ticket)
             self._check_local_branch_name(branch)
@@ -2654,6 +2656,7 @@ class SageDev(object):
 
         EXAMPLES::
 
+            sage: dev = dev._sagedev
             sage: dev._is_ticket_name(1000)
             True
             sage: dev._is_ticket_name("1000")
@@ -2673,7 +2676,7 @@ class SageDev(object):
         if not isinstance(name, int):
             try:
                 name = self._ticket_from_ticket_name(name)
-            except ValueError:
+            except SageDevValueError:
                 return False
 
         if name < 0:
@@ -2707,6 +2710,7 @@ class SageDev(object):
 
         TESTS::
 
+            sage: dev = dev._sagedev
             sage: dev._check_ticket_name(1000)
             sage: dev._check_ticket_name("1000")
             sage: dev._check_ticket_name("1 000")
@@ -2727,9 +2731,9 @@ class SageDev(object):
         """
         if not self._is_ticket_name(name, exists=exists):
             if exists:
-                raise ValueError("`{0}` is not a valid ticket name or ticket does not exist on trac.".format(name))
+                raise SageDevValueError("`{0}` is not a valid ticket name or ticket does not exist on trac.".format(name))
             else:
-                raise ValueError("`{0}` is not a valid ticket name.".format(name))
+                raise SageDevValueError("`{0}` is not a valid ticket name.".format(name))
 
     def _ticket_from_ticket_name(self, name):
         r"""
@@ -2737,6 +2741,7 @@ class SageDev(object):
 
         EXAMPLES::
 
+            sage: dev = dev._sagedev
             sage: dev._ticket_from_ticket_name("1000")
             1000
             sage: dev._ticket_from_ticket_name("#1000")
@@ -2757,7 +2762,7 @@ class SageDev(object):
             try:
                 name = int(name)
             except ValueError:
-                raise ValueError("`{0}` is not a valid ticket name.".format(name))
+                raise SageDevValueError("`{0}` is not a valid ticket name.".format(name))
 
         return name
 
@@ -2815,7 +2820,7 @@ class SageDev(object):
         elif exists is any:
             return True
         else:
-            raise ValueError
+            raise ValueError("exists")
 
     def _is_remote_branch_name(self, name, exists=any):
         r"""
@@ -2882,12 +2887,12 @@ class SageDev(object):
         if exists == True or exists == False:
             return remote_exists == exists
         else:
-            raise ValueError
+            raise ValueError("exists")
 
     def _check_local_branch_name(self, name, exists=any):
         r"""
         Check whether ``name`` is a valid name for a local branch, raise a
-        ``ValueError`` if it is not.
+        ``SageDevValueError`` if it is not.
 
         INPUT:
 
@@ -2926,25 +2931,25 @@ class SageDev(object):
         """
         try:
             if not self._is_local_branch_name(name, exists=any):
-                raise ValueError
-        except ValueError:
-            raise ValueError("`{0}` is not a valid branch name.".format(name))
+                raise SageDevValueError("caught below")
+        except SageDevValueError:
+            raise SageDevValueError("`{0}` is not a valid name for a local branch.".format(name))
 
         if exists == any:
             return
         elif exists == True:
             if not self._is_local_branch_name(name, exists=exists):
-                raise ValueError("Branch `{0}` does not exist locally.".format(name))
+                raise SageDevValueError("Branch `{0}` does not exist locally.".format(name))
         elif exists == False:
             if not self._is_local_branch_name(name, exists=exists):
-                raise ValueError("Branch `{0}` already exists, please choose a different name.".format(name))
+                raise SageDevValueError("Branch `{0}` already exists, please choose a different name.".format(name))
         else:
             assert False
 
     def _check_remote_branch_name(self, name, exists=any):
         r"""
         Check whether ``name`` is a valid name for a remote branch, raise a
-        ``ValueError`` if it is not.
+        ``SageDevValueError`` if it is not.
 
         INPUT:
 
@@ -2978,18 +2983,18 @@ class SageDev(object):
         """
         try:
             if not self._is_remote_branch_name(name, exists=any):
-                raise ValueError
-        except ValueError:
-            raise ValueError("`{0}` is not a valid branch name.".format(name))
+                raise SageDevValueError("caught below")
+        except SageDevValueError:
+            raise SageDevValueError("`{0}` is not a valid name for a remote branch.".format(name))
 
         if exists == any:
             return
         elif exists == True:
             if not self._is_remote_branch_name(name, exists=exists):
-                raise ValueError("Branch `{0}` does not exist on the remote system.".format(name))
+                raise SageDevValueError("Branch `{0}` does not exist on the remote system.".format(name))
         elif exists == False:
             if not self._is_remote_branch_name(name, exists=exists):
-                raise ValueError("Branch `{0}` already exists, please choose a different name.".format(name))
+                raise SageDevValueError("Branch `{0}` already exists, please choose a different name.".format(name))
         else:
             assert False
 
@@ -3510,3 +3515,24 @@ class SageDev(object):
             return self.__branch_to_ticket[branch]
 
         return None
+
+class SageDevValueError(ValueError):
+    r"""
+    A ``ValueError`` to indicate that the user supplied an invaid value.
+
+    EXAMPLES::
+
+        sage: dev.switch_ticket(-1)
+
+    """
+    def __init__(self, message):
+        r"""
+        Initialization.
+
+        TESTS::
+
+            sage: from sage.dev.sagedev import SageDevValueError
+            sage: type(SageDevValueError("message"))
+
+        """
+        ValueError.__init__(self, message)

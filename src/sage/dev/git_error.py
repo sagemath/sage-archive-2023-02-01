@@ -30,7 +30,7 @@ class GitError(RuntimeError):
         GitError: git returned with non-zero exit code (128)
 
     """
-    def __init__(self, exit_code):
+    def __init__(self, exit_code, cmd, stdout, stderr, advice=None):
         r"""
         Initialization.
 
@@ -42,6 +42,10 @@ class GitError(RuntimeError):
 
         """
         self.exit_code = exit_code
+        self.cmd = cmd
+        self.stdout = stdout
+        self.stderr = stderr
+        self.advice = advice
         RuntimeError.__init__(self, "git returned with non-zero exit code (%s)"%exit_code)
 
 class DetachedHeadError(RuntimeError):

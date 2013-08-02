@@ -412,9 +412,9 @@ class GitInterface(object):
             # Initial commit
             #
             nothing to commit (create/copy files and use "git add" to track)
-            (0, None, None)
+            (0, None, None, 'git --git-dir=... status')
             sage: git._run_git('status', (), {}, stdout=False)
-            (0, None, None)
+            (0, None, None, 'git --git-dir=... status')
 
         TESTS:
 
@@ -455,25 +455,45 @@ class GitInterface(object):
         s = [str(arg) for arg in s]
 
         from sage.dev.user_interface import INFO
-        self._UI.show("[git] %s"%(" ".join(s)), log_level=INFO)
+        complete_cmd = " ".join(s)
+        self._UI.show("[git] %s"%complete_cmd, log_level=INFO)
 
         if ckwds.get('dryrun', False):
             return s
 
         import subprocess
-        devnull = open(os.devnull, 'w')
-        if ckwds.get('stdout') is False:
-            ckwds['stdout'] = devnull
-        elif ckwds.get('stdout') is str:
+        drop_stdout = ckwds.get('stdout') is False
+        read_stdout = ckwds.get('stdout') is str
+        drop_stderr = ckwds.get('stderr') is False
+        read_stderr = ckwds.get('stderr') is str
+
+        if drop_stdout or read_stdout:
             ckwds['stdout'] = subprocess.PIPE
-        if ckwds.get('stderr') is False:
-            ckwds['stderr'] = devnull
-        elif ckwds.get('stderr') is str:
+        if drop_stderr or read_stderr:
             ckwds['stderr'] = subprocess.PIPE
+
         process = subprocess.Popen(s, **ckwds)
         stdout, stderr = process.communicate()
         retcode = process.poll()
-        return retcode, stdout, stderr
+
+        # recover stdout and stderr for debugging on non-zero exit code
+        if retcode:
+            if drop_stdout or read_stdout:
+                pass
+            else:
+                stdout = None
+
+            if drop_stderr or read_stderr:
+                pass
+            else:
+                stderr = None
+        else:
+            if not read_stdout:
+                stdout = None
+            if not read_stderr:
+                stderr = None
+
+        return retcode, stdout, stderr, complete_cmd
 
     def execute(self, cmd, *args, **kwds):
         r"""
@@ -511,9 +531,9 @@ class GitInterface(object):
             GitError: git returned with non-zero exit code (129)
 
         """
-        exit_code = self._run_git(cmd, args, kwds)[0]
+        exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds)
         if exit_code:
-            raise GitError(exit_code)
+            raise GitError(exit_code, cmd, stdout, stderr)
 
     __call__ = execute
 
@@ -542,9 +562,9 @@ class GitInterface(object):
             GitError: git returned with non-zero exit code (129)
 
         """
-        exit_code = self._run_git(cmd, args, kwds, stdout=False)[0]
+        exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds, stdout=False)
         if exit_code:
-            raise GitError(exit_code)
+            raise GitError(exit_code, cmd, stdout, stderr)
 
     def execute_supersilent(self, cmd, *args, **kwds):
         r"""
@@ -571,9 +591,9 @@ class GitInterface(object):
             GitError: git returned with non-zero exit code (129)
 
         """
-        exit_code = self._run_git(cmd, args, kwds, stdout=False, stderr=False)[0]
+        exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds, stdout=False, stderr=False)
         if exit_code:
-            raise GitError(exit_code)
+            raise GitError(exit_code, cmd, stdout, stderr)
 
     def read_output(self, cmd, *args, **kwds):
         r"""
@@ -601,10 +621,10 @@ class GitInterface(object):
             GitError: git returned with non-zero exit code (129)
 
         """
-        exit_code, ret, _ = self._run_git(cmd, args, kwds, stdout=str, stderr=False)
+        exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds, stdout=str, stderr=False)
         if exit_code:
-            raise GitError(exit_code)
-        return ret
+            raise GitError(exit_code, cmd, stdout, stderr)
+        return stdout
 
     def is_child_of(self, a, b):
         r"""
@@ -1043,7 +1063,7 @@ for git_cmd_ in (
         ):
     def create_wrapper(git_cmd__):
         r"""
-        Create a wrapper for `git_cmd__`.
+        Create a wrapper for ``git_cmd__``.
 
         EXAMPLES::
 

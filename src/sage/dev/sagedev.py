@@ -440,99 +440,117 @@ class SageDev(object):
             sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
-            sage: config1 = DoctestConfig()
-            sage: config1['trac']['password'] = 'secret'
-            sage: dev1 = DoctestSageDev(config1, server)
-            sage: dev1._pull_master_branch()
+            sage: config_alice = DoctestConfig('alice')
+            sage: config_alice['trac']['password'] = 'secret'
+            sage: alice = DoctestSageDev(config_alice, server)
+            sage: alice._pull_master_branch()
 
-            sage: config2 = DoctestConfig('doctest2')
-            sage: config2['trac']['password'] = 'secret'
-            sage: dev2 = DoctestSageDev(config2, server)
-            sage: dev2._pull_master_branch()
+            sage: config_bob = DoctestConfig('bob')
+            sage: config_bob['trac']['password'] = 'secret'
+            sage: bob = DoctestSageDev(config_bob, server)
+            sage: bob._pull_master_branch()
 
-        Developer 1 creates ticket 1::
+        Alice creates ticket 1::
 
-            sage: dev1._chdir()
-            sage: dev1._UI.append("Summary: summary1\ndescription")
-            sage: ticket = dev1.create_ticket()
+            sage: alice._chdir()
+            sage: alice._UI.append("Summary: summary1\ndescription")
+            sage: ticket = alice.create_ticket()
 
-        Developer 2 attempts to download the ticket but fails because there is
-        no branch for the ticket yet::
+        Bob attempts to download the ticket but fails because there is no
+        branch for the ticket yet::
 
-            sage: dev2._chdir()
-            sage: dev2.download(ticket)
+            sage: bob._chdir()
+            sage: bob.download(ticket)
             Traceback (most recent call last):
             ...
             ValueError: Branch field is not set for ticket #1 on trac.
 
-        So, developer 2 starts to work on the ticket on a new branch::
+        So, Bob starts to work on the ticket on a new branch::
 
-            sage: dev2.switch_ticket(ticket)
+            sage: bob.switch_ticket(ticket)
 
-        Developer 1 pushes some commits::
+        Alice pushes a commit::
 
-            sage: dev1._chdir()
-            sage: dev1.git.commit(SUPER_SILENT, allow_empty=True, message="second commit")
-            sage: dev1.upload()
+            sage: alice._chdir()
+            sage: alice.git.commit(SUPER_SILENT, allow_empty=True, message="alice: empty commit")
+            sage: alice.upload()
 
-        Developer 2 downloads the changes for ticket 1::
+        Bob downloads the changes for ticket 1::
 
-            sage: dev2._chdir()
-            sage: dev2.download()
+            sage: bob._chdir()
+            sage: bob.download()
+            sage: bob.git.log('--pretty=%s')
+            alice: empty commit
+            initial commit
 
-        Developer 2 commits some changes::
+        Bob commits a change::
 
-            sage: open("tracked","w").close()
-            sage: dev2.git.add("tracked")
-            sage: dev2.git.commit(SUPER_SILENT, message="added tracked")
-            sage: dev2.upload()
+            sage: open("bobs_file","w").close()
+            sage: bob.git.add("bobs_file")
+            sage: bob.git.commit(SUPER_SILENT, message="bob: added bobs_file")
+            sage: bob.upload()
 
-        Developer 1 commits non-conflicting changes::
+        Alice commits non-conflicting changes::
 
-            sage: dev1._chdir()
-            sage: with open("tracked2","w") as f: f.write("1")
-            sage: dev1.git.add("tracked2")
-            sage: dev1.git.commit(SUPER_SILENT, message="added tracked2")
+            sage: alice._chdir()
+            sage: with open("alices_file","w") as f: f.write("1")
+            sage: alice.git.add("alices_file")
+            sage: alice.git.commit(SUPER_SILENT, message="alice: added alices_file")
 
-        Developer 1 can now download the changes by developer 2 without the
-        need to merge manually::
+        Alice can now download the changes by Bob without the need to merge
+        manually::
 
-            sage: dev1.download()
+            sage: alice.download()
+            sage: alice.git.log('--pretty=%s')
+            Merge branch 'u/bob/ticket/1' of /dev/shm/... into ticket/1
+            alice: added alices_file
+            bob: added bobs_file
+            alice: empty commit
+            initial commit
 
-        Now, developer 2 commits some conflicting changes::
+        Now, Bob commits some conflicting changes::
 
-            sage: dev2._chdir()
-            sage: with open("tracked2","w") as f: f.write("2")
-            sage: dev2.git.add("tracked2")
-            sage: dev2.git.commit(SUPER_SILENT, message="added tracked2")
-            sage: dev2.upload()
+            sage: bob._chdir()
+            sage: with open("alices_file","w") as f: f.write("2")
+            sage: bob.git.add("alices_file")
+            sage: bob.git.commit(SUPER_SILENT, message="bob: added alices_file")
+            sage: bob.upload()
 
         Now, the download fails; one would have to use :meth:`merge`::
 
-            sage: dev1._chdir()
-            sage: dev1.download()
-            Error
+            sage: alice._chdir()
+            sage: alice.download()
+            Traceback (most recent call last):
+            ...
+            GitError: git returned with non-zero exit code (1)
 
-        Undo the latest commit by developer 2, so we can download again::
+        Undo the latest commit by alice, so we can download again::
 
-            sage: dev1.git.reset(SUPER_SILENT, hard=True, 'HEAD~')
-            sage: dev1.download()
+            sage: alice.git.reset(SUPER_SILENT, 'HEAD~~', hard=True)
+            sage: alice.download()
+            sage: alice.git.log('--pretty=%s')
+            bob: added alices_file
+            bob: added bobs_file
+            alice: empty commit
+            initial commit
 
-        In this example, there is an untracked file which makes a trivial merge
+        Now, Alice creates an untracked file which makes a trivial merge
         impossible::
 
-            sage: dev1._chdir()
-            sage: open("tracked3","w").close()
+            sage: alice._chdir()
+            sage: open("bobs_other_file","w").close()
 
-            sage: dev2._chdir()
-            sage: open("tracked3","w").close()
-            sage: dev2.git.add("tracked3")
-            sage: dev2.git.commit(message="added tracked3")
-            sage: dev2.upload()
+            sage: bob._chdir()
+            sage: open("bobs_other_file","w").close()
+            sage: bob.git.add(SUPER_SILENT, "bobs_other_file")
+            sage: bob.git.commit(SUPER_SILENT, message="bob: added bobs_other_file")
+            sage: bob.upload()
 
-            sage: dev1._chdir()
-            sage: dev1.download()
-            Error, untracked files.
+            sage: alice._chdir()
+            sage: alice.download()
+            Traceback (most recent call last):
+            ...
+            GitError: git returned with non-zero exit code (1)
 
         """
         if ticket_or_branch is None:
@@ -565,11 +583,41 @@ class SageDev(object):
 
         self._UI.info("Fetching remote branch {0} into {1}.".format(remote_branch, branch))
         try:
-            from sage.dev.git_interface import SUPER_SILENT
-            self.git.fetch(SUPER_SILENT, self.git._repository, "{0}:{1}".format(remote_branch, branch))
-        except:
-            # TODO
-            raise
+            current_branch = self.git.current_branch()
+        except DetachedHeadError:
+            current_branch = None
+
+        if current_branch == branch:
+            # we cannot fetch onto the current branch - we have to pull
+            self.reset_to_clean_state()
+            self.reset_to_clean_working_directory()
+
+            try:
+                from sage.dev.git_interface import SUPER_SILENT
+                self.git.pull(SUPER_SILENT, self.git._repository, remote_branch)
+            except GitError as e:
+                # this might fail because the pull did not resolve as a
+                # fast-forward or because there were untracked files around
+                # that made a pull impossible
+                # is there a way to find out?
+                self._UI.info("Pulling {0} into {1} failed. Most probably this happened because this did not resolve as a fast-forward, i.e., there were conflicting changes. Probably there are also untracked files in your working directory which made the pull impossible. You can try to use {2} to resolve any conflicts manually.".format(remote_branch, branch, self._format_command("merge",{"remote_branch":remote_branch})))
+                raise
+        else:
+            try:
+                from sage.dev.git_interface import SUPER_SILENT
+                self.git.fetch(SUPER_SILENT, self.git._repository, "{0}:{1}".format(remote_branch, branch))
+            except GitError as e:
+                # there is not many scenarios in which this can fail - the most
+                # likely being that branch already exists and this does not
+                # resolve as a fast-forward; in any case, if the fetch fails,
+                # then just nothing happened and we can abort the download
+                # safely without a need to cleanup
+                if self._is_local_branch_name(branch, exists=True):
+                    self._UI.info("Fetching {0} into {1} failed. Most probably this happened because the fetch did not resolve as a fast-forward, i.e., there were conflicting changes. You can try to use {2} to switch to {1} and then use {3} to resolve these conflicts manually.".format(remote_branch, branch, self._format_command("switch-branch",branch), self._format_command("merge",{"remote_branch":remote_branch})))
+                else:
+                    # is there any advice one could give to the user?
+                    pass
+                raise
 
     def commit(self, message=None, interactive=False):
         r"""
@@ -640,6 +688,34 @@ class SageDev(object):
         attributes = self.trac._get_attributes(ticket)
         attributes['branch'] = remote_branch
         self.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
+
+    def reset_to_clean_state(self):
+        #TODO
+        states = self.git.get_state()
+        if not states:
+            return
+        if not self._UI.confirm("Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard any changes which are not commited.)", defalt_no=True):
+            raise OperationCancelledError
+
+        try:
+            self.git.reset_to_clean_state()
+        except:
+            #TODO
+            raise
+
+    def reset_to_clean_working_directory(self):
+        #TODO
+        if not self.git.has_uncommitted_changes():
+            return
+
+        if not self._UI.confirm("You have uncommited changes in your working directory. To run this command you have to discard your changes. Do you want me to discard any changes which are not commited?", default_no=True):
+            raise OperationCancelledError
+
+        try:
+            self.git.reset_to_clean_working_directory()
+        except:
+            #TODO
+            raise
 
 ###    def edit_ticket(self, ticket=None):
 ###        r"""
@@ -2159,34 +2235,6 @@ class SageDev(object):
 ###        dep = [d for d in dep if d]
 ###        return dep
 ###
-###    def _reset_to_clean_state(self, interactive=True):
-###        states = self.git.get_state()
-###        if not states:
-###            return True
-###        if (interactive and not
-###                self._UI.confirm("Your repository is in an unclean state. It "+
-###                                 "seems you are in the middle of a merge of "+
-###                                 "some sort. To run this command you have to "+
-###                                 "reset your respository to a clean state. "+
-###                                 "Do you want me to reset your respository? "+
-###                                 "(This will discard any changes which are "+
-###                                 "not commited.)")):
-###            return False
-###
-###    def _reset_to_clean_working_directory(self, interactive=True):
-###        if not self.git.has_uncommitted_changes():
-###            return True
-###
-###        if (interactive and not
-###                self._UI.confirm("You have uncommited changes in your "+
-###                                 "working directory. To run this command you "+
-###                                 "have to discard your changes. Do you want "+
-###                                 "me to discard any changes which are not "+
-###                                 "commited?")):
-###            return False
-###
-###        return self.git._reset_to_clean_working_directory()
-###
 #### unused method
 ####    def save(self, interactive=True):
 ####        r"""
@@ -3410,9 +3458,9 @@ class SageDev(object):
 
         EXAMPLES::
 
-            sage: dev._format_command('switch-ticket')
+            sage: dev._format_command('switch-ticket') # not tested (output depends on whether this test is run from within sage or not)
             'dev.switch_ticket()'
-            sage: dev._format_command('switch-ticket',int(1))
+            sage: dev._format_command('switch-ticket',int(1)) # not tested
             'dev.switch_ticket(1)'
 
         """
@@ -3420,12 +3468,12 @@ class SageDev(object):
             __IPYTHON__
         except NameError:
             args = [str(arg) for arg in args]
-            kwargs = [ "{0}={1}".format(str(key).replace("-","_"),kwargs[key]) for key in kwargs ]
-            return "dev.{0}({1})".format(command.replace("-","_"), ", ".join(args+kwargs))
-        else:
-            args = [str(arg) for arg in args]
             kwargs = [ "--{0}={1}".format(str(key).replace("_","-"),kwargs[key]) for key in kwargs ]
             return "sage --dev {0} {1}".format(command.replace("_","-"), " ".join(args+kwargs))
+        else:
+            args = [str(arg) for arg in args]
+            kwargs = [ "{0}={1}".format(str(key).replace("-","_"),kwargs[key]) for key in kwargs ]
+            return "dev.{0}({1})".format(command.replace("-","_"), ", ".join(args+kwargs))
 
     def _current_ticket(self):
         r"""

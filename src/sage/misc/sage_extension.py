@@ -98,8 +98,17 @@ class SageMagics(Magics):
             sage: shell.run_cell('%attach ' + tmp)
             sage: shell.run_cell('a')
             2
-            sage: import time; time.sleep(1)
+            sage: sleep(1)  # filesystem timestamp granularity
             sage: f = open(tmp, 'w'); f.write('a = 3\n'); f.close()
+
+        Note that the doctests are never really at the command prompt, so
+        we call the input hook manually::
+
+            sage: shell.run_cell('from sage.misc.inputhook import sage_inputhook')
+            sage: shell.run_cell('sage_inputhook()')
+            ### reloading attached file run_cell.py modified at ... ###
+            0
+
             sage: shell.run_cell('a')
             3
             sage: shell.run_cell('detach(%r)'%tmp)
@@ -109,37 +118,6 @@ class SageMagics(Magics):
         """
         from sage.misc.preparser import load_wrap
         return self.shell.ex(load_wrap(s, attach=True))
-
-    def pre_run_code_hook(self, ip):
-        """
-        Load the attached files (if needed) before running some code.
-
-        The examples are from the %attach magic.
-
-        EXAMPLES::
-
-            sage: import os
-            sage: from sage.misc.interpreter import get_test_shell
-            sage: shell = get_test_shell()
-            sage: tmp = os.path.normpath(os.path.join(SAGE_TMP, 'run_cell.py'))
-            sage: f = open(tmp, 'w'); f.write('a = 2\n'); f.close()
-            sage: shell.run_cell('%attach ' + tmp)
-            sage: shell.run_cell('a')
-            2
-            sage: import time; time.sleep(1)
-            sage: f = open(tmp, 'w'); f.write('a = 3\n'); f.close()
-            sage: shell.run_cell('a')
-            3
-            sage: shell.run_cell('detach(%r)'%tmp)
-            sage: shell.run_cell('attached_files()')
-            []
-            sage: os.remove(tmp)
-        """
-        from sage.misc.preparser import load_attached
-        s=load_attached()
-        if s:
-            self.shell.ex(s)
-        raise TryNext
 
     @line_magic
     def iload(self, s):
@@ -417,7 +395,6 @@ from sage.misc.interpreter import sage_prompt
         self.shell = shell
         self.auto_magics = SageMagics(shell)
         shell.register_magics(self.auto_magics)
-        shell.set_hook('pre_run_code_hook', self.auto_magics.pre_run_code_hook)
         displayhook.SPTextFormatter = displayhook.SagePlainTextFormatter(config=shell.config)
         shell.display_formatter.formatters['text/plain'] = displayhook.SPTextFormatter
         from sage.misc.edit_module import edit_devel
@@ -425,6 +402,9 @@ from sage.misc.interpreter import sage_prompt
         self.init_inspector()
         self.init_line_transforms()
         self.register_interface_magics()
+
+        import sage.misc.inputhook
+        sage.misc.inputhook.install()
 
         # right now, the shutdown hook calling quit_sage() doesn't
         # work when we run doctests that involve creating test shells.

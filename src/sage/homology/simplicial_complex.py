@@ -852,8 +852,6 @@ class SimplicialComplex(GenericCellComplex):
             self.__contractible = copy(C.__contractible)
             self.__enlarged = copy(C.__enlarged)
             self._graph = copy(C._graph)
-            self._numeric = C._numeric
-            self._numeric_translation = copy(C._numeric_translation)
             self._is_mutable = True
             return
 
@@ -933,16 +931,6 @@ class SimplicialComplex(GenericCellComplex):
         self.__enlarged = {}
         # initialize self._graph to None.
         self._graph = None
-        # in self._numeric, record whether vertices are integers or
-        # something else.  if something else, in
-        # self._numeric_translation, store a tuple of pairs for
-        # translating them back and forth.
-        numeric = all([isinstance(v, (int, Integer, long)) for v in vertices])
-        d = None
-        if not numeric:
-            d = zip(vertices, range(len(tuple(vertices))))
-        self._numeric = numeric
-        self._numeric_translation = d
 
         # Handle mutability keywords
         self._is_mutable = True
@@ -1544,7 +1532,7 @@ class SimplicialComplex(GenericCellComplex):
             else:
                 return self.join(SimplicialComplex([["0"], ["1"]], is_mutable=is_mutable),
                                  rename_vertices = True)
-        return self.suspension(is_mutable).suspension(int(n-1), is_mutable)
+        return self.suspension(1, is_mutable).suspension(int(n-1), is_mutable)
 
     def disjoint_union(self, right, rename_vertices=True, is_mutable=True):
         """
@@ -3207,6 +3195,83 @@ class SimplicialComplex(GenericCellComplex):
         from sage.homology.simplicial_complex_homset import SimplicialComplexHomset
         return SimplicialComplexHomset(self, other)
 
+    # @cached_method    when we switch to immutable SimplicialComplex
+    def _is_numeric(self):
+        """
+        Test whether all vertices are labeled by integers
+
+        OUTPUT:
+
+        Boolean. Whether all vertices are labeled by (not necessarily
+        consecutive) integers.
+
+        EXAMPLES::
+
+            sage: s = SimplicialComplex()
+            sage: s._is_numeric()
+            True
+            sage: s.add_face(['a', 'b', 123])
+            sage: s._is_numeric()
+            False
+        """
+        return all([isinstance(v, (int, Integer, long)) for v in self._vertex_set])
+
+    # @cached_method    when we switch to immutable SimplicialComplex
+    def _translation_to_numeric(self):
+        """
+        Return a dictionary enumerating the vertices
+
+        See also :meth:`_translation_from_numeric`, which returns the
+        inverse map.
+
+        OUTPUT:
+
+        A dictionary. The keys are the vertices, and the associated
+        values are integers from 0 to number of vertices - 1.
+
+        EXAMPLES::
+
+            sage: s = SimplicialComplex()
+            sage: s._translation_to_numeric()
+            {}
+            sage: s.add_face(['a', 'b', 123])
+            sage: s._translation_to_numeric()   # random output
+            {'a': 1, 123: 0, 'b': 2}
+            sage: set(s._translation_to_numeric().keys()) == set(['a', 'b', 123])
+            True
+            sage: sorted(s._translation_to_numeric().values())
+            [0, 1, 2]
+        """
+        return dict((vertex, i) for i, vertex in enumerate(self._vertex_set))
+
+    # @cached_method    when we switch to immutable SimplicialComplex
+    def _translation_from_numeric(self):
+        """
+        Return a dictionary mapping vertex indices to vertices
+
+        See also :meth:`_translation_to_numeric`, which returns the
+        inverse map.
+
+        OUTPUT:
+
+        A dictionary. The keys are integers from 0 to the number of
+        vertices - 1. The associated values are the vertices.
+
+        EXAMPLES::
+
+            sage: s = SimplicialComplex()
+            sage: s._translation_from_numeric()
+            {}
+            sage: s.add_face(['a', 'b', 123])
+            sage: s._translation_from_numeric()   # random output
+            {0: 123, 1: 'a', 2: 'b'}
+            sage: sorted(s._translation_from_numeric().keys())
+            [0, 1, 2]
+            sage: set(s._translation_from_numeric().values()) == set(['a', 'b', 123])
+            True
+        """
+        return dict(enumerate(self._vertex_set))
+
     def _chomp_repr_(self):
         r"""
         String representation of ``self`` suitable for use by the CHomP
@@ -3227,20 +3292,15 @@ class SimplicialComplex(GenericCellComplex):
             '(0, 1, 2)\n'
         """
         s = ""
-        if not self._numeric:
-            d = dict(self._numeric_translation)
+        numeric = self._is_numeric()
+        if not numeric:
+            d = self._translation_to_numeric()
         for f in self.facets():
-            if self._numeric:
+            if numeric:
                 s += str(f)
             else:
-                f_str = "("
-                for a in f:
-                    f_str += str(d[a])
-                    f_str += ", "
-                f_str = f_str.replace("'", "")
-                f_str = f_str.replace('"', "")
-                s += f_str.rstrip(", ") + ")"
-            s += "\n"
+                s += '(' + ', '.join(str(d[a]) for a in f) + ')'
+            s += '\n'
         return s
 
     # this function overrides the standard one for GenericCellComplex,

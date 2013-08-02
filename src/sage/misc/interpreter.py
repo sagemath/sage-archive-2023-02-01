@@ -68,8 +68,7 @@ import os, log, re, new, sys
 from IPython.utils.py3compat import cast_unicode
 from IPython.utils.traitlets import (Integer, CBool, CaselessStrEnum, Enum,
                                      List, Unicode, Instance, Type)
-from preparser import (preparse, preparse_file, load_wrap,
-                       modified_attached_files, attached_files)
+from preparser import (preparse, preparse_file, load_wrap)
 
 def embedded():
     """

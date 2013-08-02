@@ -55,6 +55,7 @@ ckeygen
 clisp
 conch
 conductor
+csdp
 cstest
 dsage_setup.py
 dsage_worker.py

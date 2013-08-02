@@ -150,7 +150,9 @@ class Ellipse(GraphicPrimitive):
                 'rgbcolor':'The color (edge and face) as an RGB tuple.',
                 'hue':'The color given as a hue.',
                 'zorder':'2D only: The layer level in which to draw',
-                'linestyle':"2D only: The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'."}
+                'linestyle':"2D only: The style of the line, which is one of "
+                "'dashed', 'dotted', 'solid', 'dashdot', or '--', ':', '-', '-.', "
+                "respectively."}
 
     def _repr_(self):
         """
@@ -179,6 +181,8 @@ class Ellipse(GraphicPrimitive):
             sage: ellipse((3,2),1,2)
         """
         import matplotlib.patches as patches
+        from sage.plot.misc import get_matplotlib_linestyle
+
         options = self.options()
         p = patches.Ellipse(
                 (self.x,self.y),
@@ -193,7 +197,7 @@ class Ellipse(GraphicPrimitive):
             ec = fc = to_mpl_color(options['rgbcolor'])
         p.set_edgecolor(ec)
         p.set_facecolor(fc)
-        p.set_linestyle(options['linestyle'])
+        p.set_linestyle(get_matplotlib_linestyle(options['linestyle'],return_type='long'))
         p.set_label(options['legend_label'])
         z = int(options.pop('zorder', 0))
         p.set_zorder(z)
@@ -239,7 +243,9 @@ def ellipse(center, r1, r2, angle=0, **options):
 
     - ``thickness`` - default: 1 - thickness of the line
 
-    - ``linestyle`` - default: 'solid'
+    - ``linestyle`` - default: ``'solid'`` - The style of the line, which is one
+      of ``'dashed'``, ``'dotted'``, ``'solid'``, ``'dashdot'``, or ``'--'``,
+      ``':'``, ``'-'``, ``'-.'``,  respectively.
 
     - ``edgecolor`` - default: 'black' - color of the contour
 
@@ -258,6 +264,7 @@ def ellipse(center, r1, r2, angle=0, **options):
     More complicated examples with tilted axes and drawing options::
 
         sage: ellipse((0,0),3,1,pi/6,fill=True,alpha=0.3,linestyle="dashed")
+        sage: ellipse((0,0),3,1,pi/6,fill=True,alpha=0.3,linestyle="--")
 
     ::
 

@@ -135,6 +135,20 @@ class GraphicPrimitive(SageObject):
         """
         self._options['zorder'] = zorder
 
+    def set_options(self, new_options):
+        """
+        Change the options to `new_options`.
+
+        EXAMPLES::
+
+            sage: from sage.plot.circle import Circle
+            sage: c = Circle(0,0,1,{})
+            sage: c.set_options({'thickness': 0.6})
+            sage: c.options()
+            {'thickness': 0.6...}
+        """
+        if new_options is not None: self._options = new_options
+
     def options(self):
         """
         Return the dictionary of options for this graphics primitive.

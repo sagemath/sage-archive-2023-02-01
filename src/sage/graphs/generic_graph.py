@@ -16797,9 +16797,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: gg = Graph([(0, 0, 0), (0, 1, 0), (1, 1, 0), (1, 2, 0), (2, 2, 0), (2, 2, 1)])
             sage: g.is_isomorphic(gg)
             False
+
+        Ensure that trac:`14777` is fixed ::
+
+            sage: g = Graph()
+            sage: h = Graph()
+            sage: g.is_isomorphic(h)
+            True
         """
         from sage.groups.perm_gps.partn_ref.refinement_graphs import isomorphic
         possible = True
+        if self.num_verts() == 0 and other.num_verts() == 0:
+            return True
         if self._directed != other._directed:
             possible = False
         if self.order() != other.order():

@@ -42,6 +42,7 @@ Combinatorics
    sage/combinat/partition
    sage/combinat/partition_tuple
    sage/combinat/permutation
+   sage/combinat/affine_permutation
    sage/combinat/perfect_matching
    sage/combinat/q_analogues
    sage/combinat/q_bernoulli

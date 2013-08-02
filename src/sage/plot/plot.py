@@ -654,11 +654,6 @@ def plot(funcs, *args, **kwds):
         - If the ``scale`` is ``"linear"``, then irrespective of what
           ``base`` is set to, it will default to 10 and will remain unused.
 
-        - Although it is possible to provide a noninteger ``base``, the
-          tick labeling and formatting is not ideal. Hence, in case you do
-          use noninteger ``base`` for the logarithm, then provide your own
-          tick formatter using the option ``tick_formatter``.
-
         - If you want to limit the plot along the horizontal axis in the
           final rendered figure, then pass the ``xmin`` and ``xmax``
           keywords to the :meth:`~sage.plot.graphics.Graphics.show` method.
@@ -687,11 +682,11 @@ def plot(funcs, *args, **kwds):
 
     Any MATPLOTLIB line option may also be passed in.  E.g.,
 
-    - ``linestyle`` -- The style of the line, which is one of
-       - ``"-"`` (solid) -- default
-       - ``"--"`` (dashed)
-       - ``"-."`` (dash dot)
-       - ``":"`` (dotted)
+    - ``linestyle`` - (default: "-") The style of the line, which is one of
+       - ``"-"`` or ``"solid"``
+       - ``"--"`` or ``"dashed"``
+       - ``"-."`` or ``"dash dot"``
+       - ``":"`` or ``"dotted"``
        - ``"None"`` or ``" "`` or ``""`` (nothing)
 
        The linestyle can also be prefixed with a drawing style (e.g., ``"steps--"``)
@@ -1808,20 +1803,13 @@ def plot_loglog(funcs, *args, **kwds):
 
     For all other inputs, look at the documentation of :func:`plot`.
 
-    .. note::
-
-        - Although it is possible to provide a noninteger ``base``, the
-          tick labeling and formatting is not ideal. Hence, in case you do
-          use noninteger ``base`` for the logarithm, then provide your own
-          tick formatter using the option ``tick_formatter``.
-
     EXAMPLES::
 
         sage: plot_loglog(exp, (1,10)) # plot in loglog scale with base 10
 
     ::
 
-        sage: plot_loglog(exp, (1,10), base=2) # with base 2 on both axes
+        sage: plot_loglog(exp, (1,10), base=2.1) # with base 2.1 on both axes
 
     ::
 
@@ -1844,13 +1832,6 @@ def plot_semilogx(funcs, *args, **kwds):
     - ``funcs`` -- any Sage object which is acceptable to the :func:`plot`.
 
     For all other inputs, look at the documentation of :func:`plot`.
-
-    .. note::
-
-        - Although it is possible to provide a noninteger ``base``, the
-          tick labeling and formatting is not ideal. Hence, in case you do
-          use noninteger ``base`` for the logarithm, then provide your own
-          tick formatter using the option ``tick_formatter``.
 
     EXAMPLES::
 
@@ -1877,13 +1858,6 @@ def plot_semilogy(funcs, *args, **kwds):
     - ``funcs`` -- any Sage object which is acceptable to the :func:`plot`.
 
     For all other inputs, look at the documentation of :func:`plot`.
-
-    .. note::
-
-        - Although it is possible to provide a noninteger ``base``, the
-          tick labeling and formatting is not ideal. Hence, in case you do
-          use noninteger ``base`` for the logarithm, then provide your own
-          tick formatter using the option ``tick_formatter``.
 
     EXAMPLES::
 
@@ -1912,13 +1886,6 @@ def list_plot_loglog(data, plotjoined=False, **kwds):
     For all other inputs, look at the documentation of :func:`list_plot`.
 
 
-    .. note::
-
-        - Although it is possible to provide a noninteger ``base``, the
-          tick labeling and formatting is not ideal. Hence, in case you do
-          use noninteger ``base`` for the logarithm, then provide your own
-          tick formatter using the option ``tick_formatter``.
-
     EXAMPLES::
 
         sage: yl = [5**k for k in range(10)]; xl = [2**k for k in range(10)]
@@ -1926,7 +1893,7 @@ def list_plot_loglog(data, plotjoined=False, **kwds):
 
     ::
 
-        sage: list_plot_loglog(zip(xl, yl), base=2) # with base 2 on both axes
+        sage: list_plot_loglog(zip(xl, yl), base=2.1) # with base 2.1 on both axes
 
     ::
 
@@ -1963,14 +1930,6 @@ def list_plot_semilogx(data, plotjoined=False, **kwds):
       greater than 1.
 
     For all other inputs, look at the documentation of :func:`list_plot`.
-
-    .. note::
-
-        - Although it is possible to provide a noninteger ``base``, the
-          tick labeling and formatting is not ideal. Hence, in case you do
-          use noninteger ``base`` for the logarithm, then provide your own
-          tick formatter using the option ``tick_formatter``.
-
 
     EXAMPLES::
 
@@ -2011,13 +1970,6 @@ def list_plot_semilogy(data, plotjoined=False, **kwds):
       greater than 1.
 
     For all other inputs, look at the documentation of :func:`list_plot`.
-
-    .. note::
-
-        - Although it is possible to provide a noninteger ``base``, the
-          tick labeling and formatting is not ideal. Hence, in case you do
-          use noninteger ``base`` for the logarithm, then provide your own
-          tick formatter using the option ``tick_formatter``.
 
     EXAMPLES::
 

@@ -2813,6 +2813,106 @@ class ToricVariety_field(AmbientSpace):
         return sum(dk * (q-1)**(n-k) for k, dk in enumerate(d))
 
 
+    @cached_method
+    def Demazure_roots(self):
+        """
+        Return the Demazure roots.
+
+        OUTPUT:
+
+        The roots as points of the `M`-lattice.
+
+        REFERENCES:
+
+        ..  [Demazure]
+            M. Demazure
+            Sous-groupes algebriques de rang maximum du groupe de Cremona.
+            Ann. Sci. Ecole Norm. Sup. 1970, 3, 507–588.
+
+        ..  [Bazhov]
+            Ivan Bazhov:
+            On orbits of the automorphism group on a complete toric variety.
+            http://arxiv.org/abs/1110.4275,
+            http://dx.doi.org/10.1007/s13366-011-0084-0.
+
+        EXAMPLE::
+
+            sage: P2 = toric_varieties.P2()
+            sage: P2.Demazure_roots()
+            (M(-1, 0), M(-1, 1), M(0, -1), M(0, 1), M(1, -1), M(1, 0))
+
+        Here are the remaining three examples listed in [Bazhov]_, Example 2.1 and 2.3::
+
+            sage: s = 3
+            sage: cones = [(0,1),(1,2),(2,3),(3,0)]
+            sage: Hs = ToricVariety(Fan(rays=[(1,0),(0,-1),(-1,s),(0,1)], cones=cones))
+            sage: Hs.Demazure_roots()
+            (M(-1, 0), M(1, 0), M(0, 1), M(1, 1), M(2, 1), M(3, 1))
+
+            sage: P11s = ToricVariety(Fan(rays=[(1,0),(0,-1),(-1,s)], cones=[(0,1),(1,2),(2,0)]))
+            sage: P11s.Demazure_roots()
+            (M(-1, 0), M(1, 0), M(0, 1), M(1, 1), M(2, 1), M(3, 1))
+            sage: P11s.Demazure_roots() == Hs.Demazure_roots()
+            True
+
+            sage: Bs = ToricVariety(Fan(rays=[(s,1),(s,-1),(-s,-1),(-s,1)], cones=cones))
+            sage: Bs.Demazure_roots()
+            ()
+
+        TESTS::
+
+            sage: toric_varieties.A1().Demazure_roots()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Demazure_roots() is only implemented for complete toric varieties.
+        """
+        if not self.is_complete():
+            raise NotImplementedError('Demazure_roots() is only implemented for complete toric varieties.')
+        antiK = -self.K()
+        fan_rays = self.fan().rays()
+        roots = [ m for m in antiK.sections()
+                  if [ ray*m for ray in fan_rays ].count(-1) == 1 ]
+        return tuple(roots)
+
+
+    def Aut_dimension(self):
+        r"""
+        Return the dimension of the automorphism group
+
+        There are three kinds of symmetries of toric varieties:
+
+          * Toric automorphisms (rescaling of homogeneous coordinates)
+
+          * Demazure roots. These are translations `x_i \to x_i +
+            \epsilon x^m` of a homogeneous coordinate `x_i` by a
+            monomial `x^m` of the same homogeneous degree.
+
+          * Symmetries of the fan. These yield discrete subgroups.
+
+        OUTPUT:
+
+        An integer. The dimension of the automorphism group. Equals
+        the dimension of the `M`-lattice plus the number of Demazure
+        roots.
+
+        EXAMPLES::
+
+            sage: P2 = toric_varieties.P2()
+            sage: P2.Aut_dimension()
+            8
+
+        TESTS::
+
+            sage: toric_varieties.A1().Aut_dimension()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Aut_dimension() is only implemented for complete toric varieties.
+        """
+        if not self.is_complete():
+            raise NotImplementedError('Aut_dimension() is only implemented for complete toric varieties.')
+        return self.fan().lattice_dim() + len(self.Demazure_roots())
+
+
 def normalize_names(names=None, ngens=None, prefix=None, indices=None,
                     return_prefix=False):
     r"""

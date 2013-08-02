@@ -13,11 +13,11 @@ Website: http://tiswww.case.edu/php/chet/readline/rltop.html
 
 == License ==
 
- * GPL V2+
+ * GPL V3+
 
 == SPKG Maintainers ==
 
- * Nobody
+ * Volker Braun
 
 == Upstream Contact ==
 
@@ -25,11 +25,7 @@ Website: http://tiswww.case.edu/php/chet/readline/rltop.html
 
 == Dependencies ==
 
- * GNU patch
-
- * libtermcap (or libncurses or libtinfo), but not Sage's one,
-   since we only build a static version. I.e., the system has
-   to provide one of these.
+ * ncurses
 
 == Special Update/Build Instructions ==
 

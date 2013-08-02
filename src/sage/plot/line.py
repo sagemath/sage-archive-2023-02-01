@@ -114,8 +114,9 @@ class Line(GraphicPrimitive_xydata):
         if 'zorder' in options:
             del options['zorder']
         if 'linestyle' in options:
-            if options['linestyle'] != '--':
-                raise NotImplementedError, "Invalid 3d line style: '%s'" % options['linestyle']
+            if options['linestyle'] not in ('-', 'solid'):
+                raise NotImplementedError("Invalid 3d line style: '%s'"%
+                                          (options['linestyle']))
             del options['linestyle']
         options_3d.update(GraphicPrimitive_xydata._plot3d_options(self, options))
         return options_3d
@@ -255,7 +256,9 @@ class Line(GraphicPrimitive_xydata):
         # we don't pass linestyle in directly since the drawstyles aren't
         # pulled off automatically.  This (I think) is a bug in matplotlib 1.0.1
         if 'linestyle' in options:
-            p.set_linestyle(options['linestyle'])
+            from sage.plot.misc import get_matplotlib_linestyle
+            p.set_linestyle(get_matplotlib_linestyle(options['linestyle'],
+                                                     return_type='short'))
         subplot.add_line(p)
 
 def line(points, **kwds):
@@ -305,11 +308,11 @@ def line2d(points, **options):
 
     Any MATPLOTLIB line option may also be passed in.  E.g.,
 
-    - ``linestyle`` - The style of the line, which is one of
-       - ``"-"`` (solid) -- default
-       - ``"--"`` (dashed)
-       - ``"-."`` (dash dot)
-       - ``":"`` (dotted)
+    - ``linestyle`` - (default: "-") The style of the line, which is one of
+       - ``"-"`` or ``"solid"``
+       - ``"--"`` or ``"dashed"``
+       - ``"-."`` or ``"dash dot"``
+       - ``":"`` or ``"dotted"``
        - ``"None"`` or ``" "`` or ``""`` (nothing)
 
        The linestyle can also be prefixed with a drawing style (e.g., ``"steps--"``)

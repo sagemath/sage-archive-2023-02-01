@@ -1738,6 +1738,23 @@ class MPolynomialIdeal_singular_repr(
             sage: I = Ideal([f])
             sage: I.genus()
             2
+
+        TESTS:
+
+        Check that the answer is correct for reducible curves::
+
+            sage: R.<x, y, z> = QQ[]
+            sage: C = Curve(x^2 - 2*y^2)
+            sage: C.is_singular()
+            True
+            sage: C.genus()
+            -1
+            sage: Ideal(x^4+y^2*x+x).genus()
+            0
+            sage: T.<t1,t2,u1,u2> = QQ[]
+            sage: TJ = Ideal([t1^2 + u1^2 - 1,t2^2 + u2^2 - 1, (t1-t2)^2 + (u1-u2)^2 -1])
+            sage: TJ.genus()
+            -1
         """
         try:
             return self.__genus

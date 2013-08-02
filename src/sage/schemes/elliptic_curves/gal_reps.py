@@ -860,6 +860,11 @@ class GaloisRepresentation(SageObject):
             sage: EllipticCurve([0, 1, 0, -4788, 109188]).galois_representation().image_type(13)
             'The image in PGL_2(F_13) is the exceptional group S_4.'
 
+        Test :trac:`14752`::
+
+            sage: EllipticCurve([0, 0, 0, -1129345880,-86028258620304]).galois_representation().image_type(11)
+            'The image is contained in the normalizer of a non-split Cartan group.'
+
         For `p=2`::
 
             sage: E = EllipticCurve('11a1')
@@ -1051,7 +1056,7 @@ class GaloisRepresentation(SageObject):
                 self.__image_type[p] = a4_str
                 return self.__image_type[p]
             if K.degree() == 6:
-                self.__image_type[p] = nonsplit_str
+                self.__image_type[p] = non_split_str
                 return self.__image_type[p]
 
             if K.degree() == 12:
@@ -1105,7 +1110,7 @@ class GaloisRepresentation(SageObject):
                     self.__image_type[p] = split_str
                     return self.__image_type[p]
                 if could_be_non_split == 1 :
-                    self.__image_type[p] = nonsplit_str
+                    self.__image_type[p] = non_split_str
                     return self.__image_type[p]
                 if could_be_exc == 1:
                     # here we can distinguish further

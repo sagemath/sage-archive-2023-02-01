@@ -1465,11 +1465,6 @@ class Graphics(SageObject):
               ``base`` is set to, it will default to 10 and will remain
               unused.
 
-            - Although it is possible to provide a noninteger ``base``, the
-              tick labeling and formatting is not ideal. Hence, in case you
-              do use noninteger ``base`` for the logarithm, then provide
-              your own tick formatter using the option ``tick_formatter``.
-
         - ``typeset`` -- (default: ``"default"``) string. The type of
           font rendering that should be used for the text. The possible
           values are
@@ -1552,15 +1547,14 @@ class Graphics(SageObject):
 
         The scale can be also given as a 2-tuple or a 3-tuple.::
 
-            sage: G.show(scale=('loglog', 2)) # both x and y axes in base 2
+            sage: G.show(scale=('loglog', 2.1)) # both x and y axes in base 2.1
 
         ::
 
             sage: G.show(scale=('loglog', 2, 3)) # x in base 2, y in base 3
 
         The base need not be an integer, though it does have to be made
-        a float.  Also, currently the formatting is wrong for non-integer bases,
-        such as in this example::
+        a float.::
 
             sage: G.show(scale='semilogx', base=float(e)) # base is e
 
@@ -2177,6 +2171,14 @@ class Graphics(SageObject):
             ...
             ValueError: typeset must be set to one of 'default', 'latex', or
             'type1'; got 'garbage'.
+
+        We verify that numerical options are changed to float before saving (:trac:`14741`).
+        By default, Sage 5.10 changes float objects to the `RealLiteral` type.
+        The patch changes them to float before creating `matplotlib` objects.::
+
+            sage: f = lambda x, y : (abs(cos((x + I * y) ** 4)) - 1)
+            sage: g = implicit_plot(f,(-4, 4),(-3, 3),linewidth=0.6)
+            sage: gm = g.matplotlib() # without the patch, this goes BOOM -- er, TypeError
         """
         if not isinstance(ticks, (list, tuple)):
             ticks = (ticks, None)
@@ -2244,7 +2246,14 @@ class Graphics(SageObject):
         else:
             subplot.set_aspect(aspect_ratio, adjustable='box')
         #add all the primitives to the subplot
+        old_opts = dict()
         for g in self._objects:
+            opts, old_opts[g] = g.options(), g.options()
+            for k,v in opts.items():
+                try:
+                    if v.parent() in sage.categories.fields.Fields(): opts[k] = float(v)
+                except (AttributeError, TypeError): pass
+            g.set_options(opts)
             g._render_on_subplot(subplot)
             if hasattr(g, '_bbox_extra_artists'):
                 self._bbox_extra_artists.extend(g._bbox_extra_artists)
@@ -2604,6 +2613,9 @@ class Graphics(SageObject):
                 if title_pos is None:
                     title_pos = (0.5, 1.05)
                 subplot.set_title(title, fontsize=fontsize, position=title_pos)
+
+        for g in self._objects:
+            g.set_options(old_opts[g])
 
         return figure
 

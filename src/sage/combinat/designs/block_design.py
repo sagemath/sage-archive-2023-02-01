@@ -264,7 +264,7 @@ def steiner_triple_system(n):
     the complete graph `K_n` with triangles.
 
     A Steiner Triple System of a `n`-set exists if and only if
-    `n \equiv 1 mod 6` or `n \equiv 3 mod 6`, in which case
+    `n \equiv 1 \pmod 6` or `n \equiv 3 \pmod 6`, in which case
     one can be found through Bose's and Skolem's constructions,
     respectively [AndHon97]_.
 

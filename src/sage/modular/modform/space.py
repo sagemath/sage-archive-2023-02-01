@@ -70,6 +70,7 @@ import sage.modular.modform.constructor
 
 from sage.matrix.constructor import zero_matrix
 from sage.rings.arith import gcd
+from sage.rings.infinity import PlusInfinity
 
 WARN=False
 
@@ -1118,6 +1119,22 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             ValueError: q-expansion does not correspond to a form in self
             sage: f = q-24*q^2+O(q^3) ; S(f)
             q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
+
+        Test that :trac:`13156` is fixed::
+
+            sage: R.<q> = QQ[[]]
+            sage: ModularForms(1, 12)(R(0))
+            0
+            sage: ModularForms(1, 12)(R(1))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to create modular form from exact non-zero polynomial
+
+            sage: E=ModularForms(3,12).cuspidal_subspace()
+            sage: f=E.gens()[0]
+            sage: g=f-f
+            sage: g.is_old()
+            True
         """
         if isinstance(x, element.ModularFormElement):
             if x.parent() is self:
@@ -1138,6 +1155,11 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             raise TypeError, "unable to coerce x (= %s) into %s"%(x, self)
 
         elif rings.is_PowerSeries(x):
+            if x.prec() == PlusInfinity():
+                if x == 0:
+                    return element.ModularFormElement(self, self.free_module().zero_element())
+                else:
+                    raise TypeError, "unable to create modular form from exact non-zero polynomial"
             W = self._q_expansion_module()
             if W.degree() <= x.prec():
                 try:

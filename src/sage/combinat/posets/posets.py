@@ -57,6 +57,7 @@ This module implements finite partialy ordered sets. It defines :
     :meth:`~FinitePoset.is_linear_extension` | Returns whether ``l`` is a linear extension of ``self``
     :meth:`~FinitePoset.is_meet_semilattice` | Returns True if self has a meet operation, and False otherwise.
     :meth:`~FinitePoset.join_matrix` | Returns a matrix whose ``(i,j)`` entry is ``k``, where ``self.linear_extension()[k]`` is the join (least upper bound) of ``self.linear_extension()[i]`` and ``self.linear_extension()[j]``.
+    :meth:`~FinitePoset.is_incomparable_chain_free` | Returns whether the poset is `(m+n)`-free.
     :meth:`~FinitePoset.is_ranked` | Returns whether this poset is ranked.
     :meth:`~FinitePoset.is_slender` | Returns whether the poset ``self`` is slender or not.
     :meth:`~FinitePoset.lequal_matrix` | Computes the matrix whose ``(i,j)`` entry is 1 if ``self.linear_extension()[i] < self.linear_extension()[j]`` and 0 otherwise
@@ -128,6 +129,7 @@ from sage.structure.parent import Parent
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.graphs.digraph import DiGraph
+from sage.graphs.digraph_generators import digraphs
 from sage.combinat.posets.hasse_diagram import HasseDiagram
 from sage.combinat.posets.elements import PosetElement
 from sage.combinat.combinatorial_map import combinatorial_map
@@ -1570,6 +1572,114 @@ class FinitePoset(UniqueRepresentation, Parent):
             for j in range(i, n):
                 if leq_mat[i,j]:
                     yield [elements[i], elements[j]]
+
+    def is_incomparable_chain_free(self, m, n = None):
+        r"""
+        Returns ``True`` if the poset is `(m+n)`-free (that is, there is no pair
+        of incomparable chains of lengths `m` and `n`), and ``False`` if not.
+
+        If ``m`` is a tuple of pairs of chain lengths, returns ``True`` if the poset
+        does not contain a pair of incomparable chains whose lengths comprise
+        one of the chain pairs, and ``False`` if not.
+        A poset is `(m+n)`-free if it contains no induced subposet that is
+        isomorphic to the poset consisting of two disjoint chains of lengths
+        `m` and `n`.  See, for example, Exercise 15 in Chapter 3 of
+        [EnumComb1]_.
+
+        INPUT:
+
+        - ``m`` - tuple of pairs of nonnegative integers
+        - ``m``, ``n`` - nonnegative integers
+
+        EXAMPLES::
+
+            sage: P = Poset({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
+            sage: P.is_incomparable_chain_free(1, 1)
+            False
+            sage: P.is_incomparable_chain_free(2, 1)
+            True
+
+        ::
+
+            sage: P = Poset(((0, 1, 2, 3, 4), ((0, 1), (1, 2), (0, 3), (4, 2))))
+            sage: P.is_incomparable_chain_free(((3, 1), (2, 2)))
+            True
+
+        ::
+
+            sage: P = Poset((("a", "b", "c", "d", "e", "f", "g", "h", "i", "j"), (("d", "a"), ("e", "a"), ("f", "a"), ("g", "a"), ("h", "b"), ("f", "b"), ("h", "c"), ("g", "c"), ("h", "d"), ("i", "d"), ("h", "e"), ("i", "e"), ("j", "f"), ("i", "f"), ("j", "g"), ("i", "g"), ("j", "h"))))
+            sage: P.is_incomparable_chain_free(3, 1)
+            True
+            sage: P.is_incomparable_chain_free(2, 2)
+            False
+
+        ::
+
+            sage: [len([p for p in Posets(n) if p.is_incomparable_chain_free(((3, 1), (2, 2)))]) for n in range(6)]
+            [1, 1, 2, 5, 14, 42]
+
+        TESTS::
+
+            sage: Q = Poset({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
+            sage: Q.is_incomparable_chain_free(2, 20/10)
+            True
+            sage: Q.is_incomparable_chain_free(2, pi)
+            Traceback (most recent call last):
+            ...
+            TypeError: 2 and pi must be integers.
+            sage: Q.is_incomparable_chain_free(2, -1)
+            Traceback (most recent call last):
+            ...
+            ValueError: 2 and -1 must be nonnegative integers.
+            sage: P = Poset(((0, 1, 2, 3, 4), ((0, 1), (1, 2), (0, 3), (4, 2))))
+            sage: P.is_incomparable_chain_free((3, 1))
+            Traceback (most recent call last):
+            ...
+            TypeError: (3, 1) is not a tuple of tuples.
+            sage: P.is_incomparable_chain_free([3, 1], [2, 2])
+            Traceback (most recent call last):
+            ...
+            TypeError: [3, 1] and [2, 2] must be integers.
+            sage: P.is_incomparable_chain_free([[3, 1], [2, 2]])
+            True
+            sage: P.is_incomparable_chain_free(([3, 1], [2, 2]))
+            True
+            sage: P.is_incomparable_chain_free([3, 1], 2)
+            Traceback (most recent call last):
+            ...
+            TypeError: [3, 1] and 2 must be integers.
+            sage: P.is_incomparable_chain_free(([3, 1], [2, 2, 2]))
+            Traceback (most recent call last):
+            ...
+            ValueError: '([3, 1], [2, 2, 2])' is not a tuple of length-2 tuples.
+
+        AUTHOR:
+
+        - Eric Rowland (2013-05-28)
+
+        REFERENCES:
+
+        .. [EnumComb1] Enumerative Combinatorics I,
+          Second Edition,
+          Richard P. Stanley,
+          Cambridge University Press (2011)
+        """
+        if n is None:
+            try:
+                chain_pairs = [tuple(chain_pair) for chain_pair in m]
+            except TypeError:
+                raise TypeError('%s is not a tuple of tuples.' % str(tuple(m)))
+            if not all(len(chain_pair) is 2 for chain_pair in chain_pairs):
+                raise ValueError('%r is not a tuple of length-2 tuples.' % str(tuple(m)))
+            return all(self.is_incomparable_chain_free(*chain_pair) for chain_pair in chain_pairs)
+        try:
+            m, n = Integer(m), Integer(n)
+        except TypeError:
+            raise TypeError('%s and %s must be integers.' % (m, n))
+        if m < 0 or n < 0:
+            raise ValueError("%s and %s must be nonnegative integers." % (m, n))
+        twochains = digraphs.TransitiveTournament(m) + digraphs.TransitiveTournament(n)
+        return self.hasse_diagram().transitive_closure().subgraph_search(twochains, induced = True) is None
 
     def is_lequal(self, x, y):
         """

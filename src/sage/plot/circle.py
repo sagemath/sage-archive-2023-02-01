@@ -116,7 +116,9 @@ class Circle(GraphicPrimitive):
                 'rgbcolor':'The color (edge and face) as an RGB tuple.',
                 'hue':'The color given as a hue.',
                 'zorder':'2D only: The layer level in which to draw',
-                'linestyle':"2D only: The style of the line, which is one of 'dashed', 'dotted', 'solid', 'dashdot'.",
+                'linestyle':"2D only: The style of the line, which is one of "
+                "'dashed', 'dotted', 'solid', 'dashdot', or '--', ':', '-', '-.', "
+                "respectively.",
                 'clip': 'Whether or not to clip the circle.'}
 
     def _repr_(self):
@@ -138,6 +140,8 @@ class Circle(GraphicPrimitive):
             sage: C = circle((2,pi), 2, edgecolor='black', facecolor='green', fill=True)
         """
         import matplotlib.patches as patches
+        from sage.plot.misc import get_matplotlib_linestyle
+
         options = self.options()
         p = patches.Circle((float(self.x), float(self.y)), float(self.r), clip_on=options['clip'])
         if not options['clip']:
@@ -152,7 +156,7 @@ class Circle(GraphicPrimitive):
             ec = fc = to_mpl_color(options['rgbcolor'])
         p.set_edgecolor(ec)
         p.set_facecolor(fc)
-        p.set_linestyle(options['linestyle'])
+        p.set_linestyle(get_matplotlib_linestyle(options['linestyle'],return_type='long'))
         p.set_label(options['legend_label'])
         z = int(options.pop('zorder', 0))
         p.set_zorder(z)
@@ -229,7 +233,9 @@ def circle(center, radius, **options):
 
     - ``thickness`` - default: 1
 
-    - ``linestyle`` - default: 'solid' (2D plotting only)
+    - ``linestyle`` - default: ``'solid'`` (2D plotting only) The style of the
+      line, which is one of ``'dashed'``, ``'dotted'``, ``'solid'``, ``'dashdot'``,
+      or ``'--'``, ``':'``, ``'-'``, ``'-.'``, respectively.
 
     - ``edgecolor`` - default: 'blue' (2D plotting only)
 
@@ -243,14 +249,14 @@ def circle(center, radius, **options):
 
     EXAMPLES:
 
-    The default color is blue, but this is easy to change::
+    The default color is blue, the default linestyle is solid, but this is easy to change::
 
         sage: c = circle((1,1), 1)
         sage: c
 
     ::
 
-        sage: c = circle((1,1), 1, rgbcolor=(1,0,0))
+        sage: c = circle((1,1), 1, rgbcolor=(1,0,0), linestyle='-.')
         sage: c
 
     We can also use this command to plot three-dimensional circles parallel

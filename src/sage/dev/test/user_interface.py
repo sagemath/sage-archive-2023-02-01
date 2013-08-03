@@ -41,7 +41,7 @@ class DoctestUserInterface(CmdLineInterface, list):
         sage: UI._get_input("Question?")
         Traceback (most recent call last):
         ...
-        RuntimeError: no answers left in DoctestUserInterface
+        RuntimeError: no answers left in DoctestUserInterface for question `Question? `.
 
     """
     def _get_input(self, prompt, options=None, default=None, input_func=raw_input):
@@ -62,13 +62,13 @@ class DoctestUserInterface(CmdLineInterface, list):
             sage: UI._get_input("Should I delete your home directory?", ("yes","no","maybe"), default=0)
             Traceback (most recent call last):
             ...
-            RuntimeError: no answers left in DoctestUserInterface
+            RuntimeError: no answers left in DoctestUserInterface for question `Should I delete your home directory? [Yes/no/maybe] `.
 
         """
         old_input_func = input_func
         def input_func(prompt):
             if not self:
-                raise RuntimeError("no answers left in DoctestUserInterface")
+                raise RuntimeError("no answers left in DoctestUserInterface for question `{0}`.".format(prompt))
             ret = self.pop()
             if old_input_func is getpass:
                 self.show(prompt)

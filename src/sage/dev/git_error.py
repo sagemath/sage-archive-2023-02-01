@@ -47,7 +47,7 @@ class GitError(RuntimeError):
         self.stderr = stderr
         self.explain = explain
         self.advice = advice
-        RuntimeError.__init__(self, "git returned with non-zero exit code (%s)"%exit_code)
+        RuntimeError.__init__(self, "git returned with non-zero exit code (%s) when executing %s\nSTDOUT: %s\nSTDERR: %s\n"%(exit_code,cmd,stdout,stderr))
 
 class DetachedHeadError(RuntimeError):
     r"""

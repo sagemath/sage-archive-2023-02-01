@@ -856,44 +856,67 @@ class SageDev(object):
 
         - :meth:`diff` -- Show changes that will be committed.
         """
-        #TODO: implement this
-        from sage.dev.git_interface import SUPER_SILENT
-        self.git.commit(SUPER_SILENT, all=True, message=message)
-###        curticket = self.current_ticket()
-###
-###        prompt = "Are you sure you want to save your changes to "
-###        if curticket is None:
-###            curbranch = self.git.current_branch()
-###            prompt += "branch %s?"%curbranch
-###        else:
-###            prompt += "ticket %s?"%self._ticket_repr(curticket)
-###        if not self._UI.confirm(prompt):
-###            self._UI.show("If you want to commit these changes to another "+
-###                          "ticket use the switch_ticket() method")
-###            return
-###
-###        for file in self.git.unknown_files():
-###            if self._UI.confirm("Would you like to commit %s"%file,
-###                    default_no=True):
-###                self.git.add(file)
-###
-###        kwds = {}
-###        if interactive:
-###            kwds['patch'] = True
-###        else:
-###            kwds['all'] = True
-###
-###        if message is not None:
-###            kwds['message'] = message
-###
-###        self.git.commit(**kwds)
-###
+        raise NotImplementedError # the code below most probably does not work
+        curticket = self.current_ticket()
+
+        prompt = "Are you sure you want to save your changes to "
+        if curticket is None:
+            curbranch = self.git.current_branch()
+            prompt += "branch %s?"%curbranch
+        else:
+            prompt += "ticket %s?"%self._ticket_repr(curticket)
+        if not self._UI.confirm(prompt):
+            self._UI.show("If you want to commit these changes to another "+
+                          "ticket use the switch_ticket() method")
+            return
+
+        for file in self.git.unknown_files():
+            if self._UI.confirm("Would you like to commit %s"%file,
+                    default_no=True):
+                self.git.add(file)
+
+        kwds = {}
+        if interactive:
+            kwds['patch'] = True
+        else:
+            kwds['all'] = True
+
+        if message is not None:
+            kwds['message'] = message
+
+        self.git.commit(**kwds)
 
     def set_remote(self, branch, remote_branch):
         raise NotImplementedError() #TODO
 
-    def upload(self):
-        #TODO: implement this method
+    def upload(self, ticket=None, remote_branch=None, force=False):
+        r"""
+        Upload the current branch to the Sage repository.
+
+        INPUT:
+
+        - ``ticket`` -- an integer or string identifying a ticket or ``None``
+          (default: ``None``), if ``None`` and currently working on a ticket or
+          if ``ticket`` specifies a ticket, then the branch on that ticket is
+          set to ``remote_branch`` after the current branch has been uploaded there.
+
+        - ``remote_branch`` -- a string or ``None`` (default: ``None``), the remote
+          branch to upload to; if ``None``, then a default is chosen
+
+        - ``force`` -- a boolean (default: ``False``), whether to upload if
+          this is not a fast-forward.
+
+        .. SEEALSO::
+
+        - :meth:`commit` -- Save changes to the local repository.
+
+        - :meth:`download` -- Update a ticket with changes from the remote
+          repository.
+
+        TESTS::
+
+            TODO
+        """
         from git_interface import SUPER_SILENT
         ticket = self._current_ticket()
         remote_branch = self._remote_branch_for_ticket(ticket)
@@ -902,82 +925,61 @@ class SageDev(object):
         attributes = self.trac._get_attributes(ticket)
         attributes['branch'] = remote_branch
         self.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
-###    def upload(self, ticket=None, remote_branch=None, force=False, repository=None):
-###        r"""
-###        Upload the current branch to the Sage repository
-###
-###        INPUT:
-###
-###        - ``ticket`` -- an integer or ``None`` (default: ``None``), if an integer
-###          or if this branch is associated to a ticket, set the trac ticket to point
-###          to this branch.
-###
-###        - ``remote_branch`` -- a string or ``None`` (default: ``None``), the remote
-###          branch to upload to; if ``None``, then a default is chosen (XXX: how?)
-###
-###        - ``force`` -- a boolean (default: ``False``), whether to upload if this is
-###          not a fast-forward.
-###
-###        .. SEEALSO::
-###
-###        - :meth:`commit` -- Save changes to the local repository.
-###
-###        - :meth:`download` -- Update a ticket with changes from the
-###          remote repository.
-###        """
-###        if repository is None:
-###            repository = self.git._repo
-###        branch = self.git.current_branch()
-###        try:
-###            oldticket = self._ticket[branch]
-###            if ticket is None:
-###                ticket = oldticket
-###            elif oldticket != ticket:
-###                if not self._UI.confirm("Are you sure you want to upload "+
-###                                        "your changes to ticket "+
-###                                        "%s "%self._ticket_repr(ticket)+
-###                                        "instead of "+
-###                                        "%s?"%self._ticket_repr(oldticket),
-###                                        default_no=True):
-###                    return
-###                self._ticket[branch] = ticket
-###        except KeyError:
-###            if ticket is None and remote_branch is None:
-###                raise ValueError("You don't have a ticket for this branch "+
-###                                 "(%s)"%branch)
-###
-###        remote_branch = remote_branch or self.git._local_to_remote_name(branch)
-###        ref = None
-###        try:
-###            ref = self._fetch(remote_branch, repository=repository)
-###        except RuntimeError:
-###            if not self._UI.confirm("There does not seem to be a branch %s on the remote server yet. Do you want to create such a branch?"%remote_branch, default_no=False):
-###                return
-###
-###        if ref and not (self.git.is_ancestor_of(ref, branch) or force):
-###            if self._UI.confirm("Changes not compatible with remote branch %s; consider downloading first. Are you sure you want to continue?"%remote_branch, default_no=True):
-###                force = True
-###            else: return
-###
-###        self.git.push(repository, "%s:%s"%(branch, remote_branch), force=force)
-###
-###        if ticket:
-###            ticket_branch = self.trac._get_attributes(ticket).get("branch", "").strip()
-###            if ticket_branch:
-###                ref = None
-###                try:
-###                    ref = self._fetch(ticket_branch, repository=repository)
-###                except RuntimeError: # no such branch
-###                    self._UI.show("The ticket %s refers to a non-existant branch %s - will overwrite the branch field on the ticket with %s"%(ticket,ticket_branch,remote_branch))
-###
-###                if ref and not (self.git.is_ancestor_of(ref, branch) or force):
-###                    if not self._UI.show("Your changes would discard some of the commits on the current branch %s of the ticket %s. Download these changes first or use 'force' to overwrite them."%(ticket_branch,ticket)):
-###                        return
-###
-###            git_deps = ", ".join(["#%s"%d for d in self._dependencies_as_tickets(branch)])
-###            self.trac.update(ticket, branch=remote_branch, dependencies=git_deps)
-###            self._UI.show("Ticket %s now refers to your branch %s."%(ticket,remote_branch))
-###
+
+        raise NotImplementedError # the following does not work anymor
+        if repository is None:
+            repository = self.git._repo
+        branch = self.git.current_branch()
+        try:
+            oldticket = self._ticket[branch]
+            if ticket is None:
+                ticket = oldticket
+            elif oldticket != ticket:
+                if not self._UI.confirm("Are you sure you want to upload "+
+                                        "your changes to ticket "+
+                                        "%s "%self._ticket_repr(ticket)+
+                                        "instead of "+
+                                        "%s?"%self._ticket_repr(oldticket),
+                                        default_no=True):
+                    return
+                self._ticket[branch] = ticket
+        except KeyError:
+            if ticket is None and remote_branch is None:
+                raise ValueError("You don't have a ticket for this branch "+
+                                 "(%s)"%branch)
+
+        remote_branch = remote_branch or self.git._local_to_remote_name(branch)
+        ref = None
+        try:
+            ref = self._fetch(remote_branch, repository=repository)
+        except RuntimeError:
+            if not self._UI.confirm("There does not seem to be a branch %s on the remote server yet. Do you want to create such a branch?"%remote_branch, default_no=False):
+                return
+
+        if ref and not (self.git.is_ancestor_of(ref, branch) or force):
+            if self._UI.confirm("Changes not compatible with remote branch %s; consider downloading first. Are you sure you want to continue?"%remote_branch, default_no=True):
+                force = True
+            else: return
+
+        self.git.push(repository, "%s:%s"%(branch, remote_branch), force=force)
+
+        if ticket:
+            ticket_branch = self.trac._get_attributes(ticket).get("branch", "").strip()
+            if ticket_branch:
+                ref = None
+                try:
+                    ref = self._fetch(ticket_branch, repository=repository)
+                except RuntimeError: # no such branch
+                    self._UI.show("The ticket %s refers to a non-existant branch %s - will overwrite the branch field on the ticket with %s"%(ticket,ticket_branch,remote_branch))
+
+                if ref and not (self.git.is_ancestor_of(ref, branch) or force):
+                    if not self._UI.show("Your changes would discard some of the commits on the current branch %s of the ticket %s. Download these changes first or use 'force' to overwrite them."%(ticket_branch,ticket)):
+                        return
+
+            git_deps = ", ".join(["#%s"%d for d in self._dependencies_as_tickets(branch)])
+            self.trac.update(ticket, branch=remote_branch, dependencies=git_deps)
+            self._UI.show("Ticket %s now refers to your branch %s."%(ticket,remote_branch))
+
 
     def reset_to_clean_state(self):
         #TODO: docstring
@@ -1059,6 +1061,7 @@ class SageDev(object):
         if not self.git.has_uncommitted_changes():
             return
 
+        #TODO: which files are affected?
         sel = self._UI.select("You have uncommited changes in your working directory. Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later?", options=('discard','keep','stash'), default=1)
         if sel == 'discard':
             self.git.reset_to_clean_working_directory()
@@ -1119,156 +1122,185 @@ class SageDev(object):
 
         self.git.reset(SUPER_SILENT)
 
-        # TODO: should I drop the stash?
+        # TODO: should I drop the stash branch?
 
     def edit_ticket(self, ticket=None):
-        raise NotImplementedError # TODO
-###        r"""
-###        Edit the description of ``ticket`` on trac.
-###
-###        INPUT:
-###
-###        - ``ticket`` -- an integer or ``None`` (default: ``None``), the number
-###          of the ticket to edit. If ``None``, edit the :meth:`current_ticket`.
-###
-###        .. SEEALSO::
-###
-###            :meth:`create_ticket`, :meth:`add_comment`
-###
-###        """
-###        if ticket is None:
-###            ticket = self.current_ticket()
-###
-###        if ticket is None:
-###            raise ValueError("must specify a ticket")
-###
-###        self.trac.edit_ticket(ticket)
+        r"""
+        Edit the description of ``ticket`` on trac.
+
+        INPUT:
+
+        - ``ticket`` -- an integer or string identifying a ticket or ``None``
+          (default: ``None``), the number of the ticket to edit. If ``None``,
+          edit the :meth:`current_ticket`.
+
+        .. SEEALSO::
+
+            :meth:`create_ticket`, :meth:`add_comment`
+
+        TESTS::
+
+            TODO
+
+        """
+        if ticket is None:
+            ticket = self.current_ticket()
+
+        if ticket is None:
+            raise SageDevValueError("ticket must be specified if not currently on a ticket.")
+
+        ticket = self._ticket_from_ticket_name(ticket)
+        self.trac.edit_ticket(ticket)
 
     def add_comment(self, ticket=None):
-        raise NotImplementedError # TODO
-###        r"""
-###        Add a comment to ``ticket`` on trac.
-###
-###        INPUT:
-###
-###        - ``ticket`` -- an integer or ``None`` (default: ``None``), the number
-###          of the ticket to edit. If ``None``, edit the :meth:`current_ticket`.
-###
-###        .. SEEALSO::
-###
-###            :meth:`create_ticket`, :meth:`edit_ticket`
-###
-###        """
-###        if ticket is None:
-###            ticket = self.current_ticket()
-###
-###        if ticket is None:
-###            raise ValueError("must specify a ticket")
-###
-###        self.trac.add_comment(ticket)
+        r"""
+        Add a comment to ``ticket`` on trac.
+
+        INPUT:
+
+        - ``ticket`` -- an integer or string identifying a ticket or ``None``
+          (default: ``None``), the number of the ticket to edit. If ``None``,
+          edit the :meth:`current_ticket`.
+
+        .. SEEALSO::
+
+            :meth:`create_ticket`, :meth:`edit_ticket`
+
+        TESTS::
+
+            TODO
+
+        """
+        if ticket is None:
+            ticket = self.current_ticket()
+
+        if ticket is None:
+            raise SageDevValueError("ticket must be specified if not currently on a ticket.")
+
+        ticket = self._ticket_from_ticket_name(ticket)
+        self.trac.add_comment(ticket)
 
     def browse_ticket(self, ticket=None):
-        raise NotImplementedError # TODO
-###        r"""
-###        start a webbrowser at the ticket page on Sage trac
-###
-###        INPUT:
-###        - ``ticket`` -- an integer or ``None`` (default: ``None``), the number
-###          of the ticket to edit. If ``None``, edit the :meth:`current_ticket`.
-###        """
-###        from sage.misc.viewer import browser
-###        if ticket is None:
-###            ticket = self.current_ticket()
-###
-###        if ticket is None:
-###            raise ValueError("must specify a ticket")
-###
-###        from sage.env import TRAC_SERVER_URI
-###        browser_cmdline = browser() + ' ' + TRAC_SERVER_URI + '/ticket/' + str(ticket)
-###        import os
-###        os.system(browser_cmdline)
+        r"""
+        Start a webbrowser at the ticket page on trac.
+
+        INPUT:
+
+        - ``ticket`` -- an integer or string identifying a ticket or ``None``
+          (default: ``None``), the number of the ticket to edit. If ``None``,
+          edit the :meth:`current_ticket`.
+
+        .. SEEALSO::
+
+            :meth:`edit_ticket`, :meth:`add_comment`
+
+        TESTS::
+
+            TODO
+
+        """
+        if ticket is None:
+            ticket = self.current_ticket()
+
+        if ticket is None:
+            raise SageDevValueError("ticket must be specified if not currently on a ticket.")
+
+        ticket = self._ticket_from_ticket_name(ticket)
+
+        from sage.misc.viewer import browser
+        from sage.env import TRAC_SERVER_URI
+        browser_cmdline = browser() + ' ' + TRAC_SERVER_URI + '/ticket/' + str(ticket)
+        import os
+        os.system(browser_cmdline)
 
     def remote_status(self, ticket=None, quiet=False):
-        raise NotImplementedError # TODO
-###        r"""
-###        show the remote status of ``ticket``
-###
-###        For tickets and remote branches, this shows the commit log of the branch on
-###        the trac ticket a summary of their difference to your related branches, and
-###        an overview of patchbot results (where applicable).
-###
-###        INPUT:
-###
-###        - ``ticket`` -- None, an integer, a string, or the special string "all"
-###
-###        .. SEEALSO::
-###
-###        - :meth:`local_tickets` -- Just shows local tickets without
-###          comparing them to the remote server.
-###
-###        - :meth:`diff` -- Shows the actual differences on a given
-###          ticket.
-###
-###        - :meth:`download` -- Merges in the changes on a given ticket
-###          from the remote server.
-###
-###        - :meth:`upload` -- Pushes the changes on a given ticket to
-###          the remote server.
-###        """
-###        def show(lines):
-###            lines = [list(str(l) for l in line) if not isinstance(line, basestring) else line
-###                              for line in lines]
-###            tabulated_lines = [line for line in lines if not isinstance(line, basestring)]
-###            if tabulated_lines:
-###                column_widths = [max(len(x) for x in col) for col in zip(*tabulated_lines)]
-###            to_display = []
-###            for line in lines:
-###                if isinstance(line, basestring):
-###                    to_display.append(line)
-###                else:
-###                    for i in xrange(len(line)):
-###                        line[i] += ' '*(column_widths[i]-len(line[i]))
-###                    line.insert(3, 'behind')
-###                    line.insert(2, 'ahead')
-###                    to_display.append(' '.join(line))
-###            self._UI.show('\n'.join(to_display))
-###
-###        if ticket is None :
-###            ticket = self.current_ticket()
-###
-###        if isinstance(ticket, int):
-###            branch = self._branch[ticket]
-###        else:
-###            branch = ticket
-###
-###        if ticket == 'all':
-###            ret = (self.remote_status(ticket or branch, quiet=True)
-###                    for ticket, branch in self.local_tickets(quiet=True))
-###            if quiet:
-###                return tuple(ret)
-###            else:
-###                show(ret)
-###                return
-###        try:
-###            remote_branch = self._remote_pull_branch(ticket)
-###            remote_ref = self._fetch(remote_branch)
-###        except (KeyError, RuntimeError):
-###            ret = '%s not tracked remotely' % ticket
-###            if quiet:
-###                return ret
-###            else:
-###                show((ret,))
-###                return
-###        ahead, behind = self.git.read_output("rev-list",
-###                "%s...%s"%(branch, remote_ref),
-###                left_right=True, count=True).split()
-###        behind = int(behind)
-###        ahead = int(ahead)
-###        ret = (ticket or '     ', remote_branch, ahead, behind)
-###        if quiet:
-###            return (ticket or '     ', remote_branch, ahead, behind)
-###        else:
-###            show((ret,))
+        r"""
+        Show the remote status of ``ticket``.
+
+        For tickets and remote branches, this shows the commit log of the branch on
+        the trac ticket a summary of their difference to your related branches, and
+        an overview of patchbot results (where applicable).
+
+        INPUT:
+
+        - ``ticket`` -- an integer or string identifying a ticket or ``None``
+          or ``'all'`` (default: ``None``), the number of the ticket to edit.
+          If ``None``, edit the :meth:`current_ticket`.
+
+        .. SEEALSO::
+
+        - :meth:`local_tickets` -- Just shows local tickets without
+          comparing them to the remote server.
+
+        - :meth:`diff` -- Shows the actual differences on a given
+          ticket.
+
+        - :meth:`download` -- Merges in the changes on a given ticket
+          from the remote server.
+
+        - :meth:`upload` -- Pushes the changes on a given ticket to
+          the remote server.
+
+        TESTS::
+
+            TODO
+
+        """
+        raise NotImplementedError # the below does most probably not work anymore
+        def show(lines):
+            lines = [list(str(l) for l in line) if not isinstance(line, basestring) else line
+                              for line in lines]
+            tabulated_lines = [line for line in lines if not isinstance(line, basestring)]
+            if tabulated_lines:
+                column_widths = [max(len(x) for x in col) for col in zip(*tabulated_lines)]
+            to_display = []
+            for line in lines:
+                if isinstance(line, basestring):
+                    to_display.append(line)
+                else:
+                    for i in xrange(len(line)):
+                        line[i] += ' '*(column_widths[i]-len(line[i]))
+                    line.insert(3, 'behind')
+                    line.insert(2, 'ahead')
+                    to_display.append(' '.join(line))
+            self._UI.show('\n'.join(to_display))
+
+        if ticket is None :
+            ticket = self.current_ticket()
+
+        if isinstance(ticket, int):
+            branch = self._branch[ticket]
+        else:
+            branch = ticket
+
+        if ticket == 'all':
+            ret = (self.remote_status(ticket or branch, quiet=True)
+                    for ticket, branch in self.local_tickets(quiet=True))
+            if quiet:
+                return tuple(ret)
+            else:
+                show(ret)
+                return
+        try:
+            remote_branch = self._remote_pull_branch(ticket)
+            remote_ref = self._fetch(remote_branch)
+        except (KeyError, RuntimeError):
+            ret = '%s not tracked remotely' % ticket
+            if quiet:
+                return ret
+            else:
+                show((ret,))
+                return
+        ahead, behind = self.git.read_output("rev-list",
+                "%s...%s"%(branch, remote_ref),
+                left_right=True, count=True).split()
+        behind = int(behind)
+        ahead = int(ahead)
+        ret = (ticket or '     ', remote_branch, ahead, behind)
+        if quiet:
+            return (ticket or '     ', remote_branch, ahead, behind)
+        else:
+            show((ret,))
 
     def import_patch(self, patchname=None, url=None, local_file=None, diff_format=None, header_format=None, path_format=None):
         r"""
@@ -1420,351 +1452,388 @@ class SageDev(object):
             raise SageDevValueError("If `url` is not specified, `ticket` must be specified")
 
     def diff(self, base=None):
-        raise NotImplementedError # TODO
-###        r"""
-###        Show how the current file system differs from ``base``.
-###
-###        INPUT:
-###
-###        - ``base`` -- show the differences against the latest
-###          ``'commit'`` (the default), against the branch ``'master'``
-###          (or any other branch name), or the merge of the
-###          ``'dependencies'`` of the current ticket (if the
-###          dependencies merge cleanly)
-###
-###        .. SEEALSO::
-###
-###        - :meth:`commit` -- record changes into the repository.
-###
-###        - :meth:`local_tickets` -- list local tickets (you may want to
-###          commit your changes to a branch other than the current one).
-###        """
-###        base = None
-###        if base == "dependencies":
-###            branch = self.git.current_branch()
-###            try:
-###                self.gather(self.trac.dependencies())
-###                self.git.diff("%s..%s"%(HEAD,branch))
-###            finally:
-###                self.git.checkout(branch)
-###        else:
-###            self.git.execute("diff", base)
+        r"""
+        Show how the current file system differs from ``base``.
+
+        INPUT:
+
+        - ``base`` -- show the differences against the latest
+          ``'commit'`` (the default), against the branch ``'master'``
+          (or any other branch name), or the merge of the
+          ``'dependencies'`` of the current ticket (if the
+          dependencies merge cleanly)
+
+        .. SEEALSO::
+
+        - :meth:`commit` -- record changes into the repository.
+
+        - :meth:`local_tickets` -- list local tickets (you may want to
+          commit your changes to a branch other than the current one).
+
+        TESTS::
+
+            TODO
+
+        """
+        raise NotImplementedError # the below does most probably not work anymore
+        base = None
+        if base == "dependencies":
+            branch = self.git.current_branch()
+            try:
+                self.gather(self.trac.dependencies())
+                self.git.diff("%s..%s"%(HEAD,branch))
+            finally:
+                self.git.checkout(branch)
+        else:
+            self.git.execute("diff", base)
 
     def prune_closed_tickets(self):
-        raise NotImplementedError # TODO
-###        r"""
-###        Remove branches for tickets that are already merged into master.
-###
-###        .. SEEALSO::
-###
-###        - :meth:`abandon_ticket` -- Abandon a single ticket or branch.
-###        """
-###        for branch in self.git.local_branches():
-###            if self.git.is_ancestor_of(branch, MASTER_BRANCH):
-###                self._UI.show("Abandoning %s"%branch)
-###                self.git.abandon(branch)
+        r"""
+        Remove branches for tickets that are already merged into master.
 
-    def abandon_ticket(self, ticket=None):
-        raise NotImplementedError # TODO
-###        r"""
-###        Abandon a ticket branch.
-###
-###        INPUT:
-###
-###        - ``ticket`` -- an integer or ``None`` (default: ``None``),
-###          remove the branch for ``ticket`` (or the current branch if
-###          ``None``). Also removes the users remote tracking branch.
-###
-###        .. SEEALSO::
-###
-###        - :meth:`prune_closed_tickets` -- abandon tickets that have
-###          been closed.
-###
-###        - :meth:`local_tickets` -- list local tickets (by default only
-###          showing the non-abandoned ones).
-###        """
-###        if self._UI.confirm("Are you sure you want to delete your work on %s?"%self._ticket_repr(ticketnum), default_no=True):
-###            self.git.abandon(ticketnum)
+        .. SEEALSO::
+
+            :meth:`abandon_ticket` -- Abandon a single ticket or branch.
+
+        TESTS::
+
+            TODO
+
+        """
+        raise NotImplementedError # the below does most probably not work anymore
+        for branch in self.git.local_branches():
+            if self.git.is_ancestor_of(branch, MASTER_BRANCH):
+                self._UI.show("Abandoning %s"%branch)
+                self.git.abandon(branch)
+
+    def abandon(self, ticket_or_branch=None):
+        r"""
+        Abandon a ticket branch.
+
+        INPUT:
+
+        - ``ticket_or_branch`` -- an integer or string identifying a ticket or
+          the name of a local branch or ``None`` (default: ``None``), remove
+          the branch ``ticket_or_branch`` or the branch for the ticket
+          ``ticket_or_branch`` (or the current branch if ``None``). Also
+          removes the users remote tracking branch.
+
+        .. SEEALSO::
+
+        - :meth:`prune_closed_tickets` -- abandon tickets that have
+          been closed.
+
+        - :meth:`local_tickets` -- list local tickets (by default only
+          showing the non-abandoned ones).
+
+        TESTS::
+
+            TODO
+
+        """
+        raise NotImplementedError # the below does most probably not work anymore
+        if self._UI.confirm("Are you sure you want to delete your work on %s?"%self._ticket_repr(ticketnum), default_no=True):
+            self.git.abandon(ticketnum)
 
     def gather(self, branchname, *tickets, **kwds):
-        raise NotImplementedError # TODO
-###        r"""
-###        Create a new branch ``branchname`` with ``tickets`` applied.
-###
-###        INPUT:
-###
-###        - ``branchname`` -- a string, the name of the new branch
-###
-###        - ``tickets`` -- a list of integers or strings; for an
-###          integer, the branch on the trac ticket gets merged, for a
-###          string, that branch (or remote branch) gets merged.
-###
-###        - ``create_dependency`` -- boolean (default ``True``, keyword
-###          only), whether to append the other ticket to the list of
-###          dependencies.  See :meth:`merge` for the consequences of
-###          having another branch as a dependency.
-###
-###        - ``download`` -- boolean (default ``False``, keyword only),
-###          whether to download the most recent version of the other
-###          tickets before merging.
-###
-###        .. SEEALSO::
-###
-###        - :meth:`merge` -- merge into the current branch rather than
-###          creating a new one.
-###
-###        - :meth:`show_dependencies` -- show the dependencies of a
-###          given branch.
-###        """
-###        create_dependencies = kwds.pop('create_dependencies', True)
-###        download = kwds.pop('download', False)
-###        if len(tickets) == 0:
-###            raise ValueError("must include at least one input branch")
-###        if self.git.commit_for_branch(branchname):
-###            if not self._UI.confirm("The branch %s already "%branchname+
-###                                    "exists; do you want to merge into it?",
-###                                    default_no=True):
-###                return
-###            self.git.execute_supersilent("checkout", branchname)
-###        else:
-###            self.switch_ticket(tickets[0],
-###                    branchname=branchname)
-###            tickets = tickets[1:]
-###        for ticket in tickets:
-###            self.merge(
-###                    ticket,
-###                    message="Gathering %s into "%self._ticket_repr(ticket) +
-###                            "branch %s"%branchname,
-###                    **kwds)
+        r"""
+        Create a new branch ``branchname`` with ``tickets`` applied.
+
+        INPUT:
+
+        - ``branchname`` -- a string, the name of the new branch
+
+        - ``tickets`` -- a list of integers and strings; for an integer or
+          string identifying a ticket, the branch on the trac ticket gets
+          merged, for the name of a local or remote branch, that branch gets
+          merged.
+
+        - ``create_dependency`` -- boolean (default: ``True``, keyword only),
+          whether to append the other ticket to the list of dependencies.  See
+          :meth:`merge` for the consequences of having another branch as a
+          dependency.
+
+        - ``download`` -- boolean (default: ``False``, keyword only), whether
+          to download the most recent version of the other tickets before
+          merging.
+
+        .. SEEALSO::
+
+        - :meth:`merge` -- merge into the current branch rather than
+          creating a new one.
+
+        - :meth:`show_dependencies` -- show the dependencies of a
+          given branch.
+
+        TEST::
+
+            TODO
+
+        """
+        raise NotImplementedError # the below does most probably not work anymore
+        create_dependencies = kwds.pop('create_dependencies', True)
+        download = kwds.pop('download', False)
+        if len(tickets) == 0:
+            raise ValueError("must include at least one input branch")
+        if self.git.commit_for_branch(branchname):
+            if not self._UI.confirm("The branch %s already "%branchname+
+                                    "exists; do you want to merge into it?",
+                                    default_no=True):
+                return
+            self.git.execute_supersilent("checkout", branchname)
+        else:
+            self.switch_ticket(tickets[0],
+                    branchname=branchname)
+            tickets = tickets[1:]
+        for ticket in tickets:
+            self.merge(
+                    ticket,
+                    message="Gathering %s into "%self._ticket_repr(ticket) +
+                            "branch %s"%branchname,
+                    **kwds)
 
     def show_dependencies(self, ticket=None, all=False, _seen=None): # all = recursive
-        raise NotImplementedError # TODO
-###        r"""
-###        show the dependencies of the given ticket
-###
-###        INPUT:
-###
-###        - ``ticket`` -- string, int or None (default ``None``), the
-###          ticket for which dependencies are desired.  An int indicates
-###          a ticket number while a string indicates a branch name;
-###          ``None`` asks for the dependencies of the current ticket.
-###
-###        - ``all`` -- boolean (default ``True``), whether to
-###          recursively list all tickets on which this ticket depends
-###          (in depth-first order), only including tickets that have a
-###          local branch.
-###
-###        .. NOTE::
-###
-###            Ticket dependencies are stored locally and only updated
-###            with respect to the remote server during :meth:`upload`
-###            and :meth:`download`.
-###
-###        .. SEEALSO::
-###
-###        - :meth:`TracInterface.dependencies` -- Query Trac to find
-###          dependencies.
-###
-###        - :meth:`remote_status` -- will show the status of tickets
-###          with respect to the remote server.
-###
-###        - :meth:`merge` -- Merge in changes from a dependency.
-###
-###        - :meth:`diff` -- Show the changes in this branch over the
-###          dependencies.
-###        """
-###        if ticket is None:
-###            ticket = self.current_ticket()
-###        try:
-###            branchname = self._branch[ticket]
-###        except KeyError:
-###            raise ValueError("you must specify a valid ticket")
-###        if _seen is None:
-###            seen = []
-###        elif ticket in _seen:
-###            return
-###        else:
-###            seen = _seen
-###            seen.append(ticket)
-###        dep = self._dependencies_as_tickets(branchname)
-###        if not all:
-###            self._UI.show("Ticket %s depends on %s"%(ticket, ", ".join([str(d) for d in dep])))
-###        else:
-###            for d in dep:
-###                self.show_dependencies(d, True, seen)
-###            if _seen is None:
-###                self._UI.show("Ticket %s depends on %s"%(ticket, ", ".join([str(d) for d in seen])))
+        r"""
+        Show the dependencies of ``ticket``.
+
+        INPUT:
+
+        - ``ticket`` -- a string or integer identifying a ticket or ``None``
+          (default: ``None``), the ticket for which dependencies are displayed.
+          If ``None``, then the dependencies for the current ticket are
+          displayed.
+
+        - ``all`` -- boolean (default: ``True``), whether to recursively list
+          all tickets on which this ticket depends (in depth-first order), only
+          including tickets that have a local branch.
+
+        .. NOTE::
+
+            Ticket dependencies are stored locally and only updated with
+            respect to the remote server during :meth:`upload` and
+            :meth:`download`.
+
+        .. SEEALSO::
+
+        - :meth:`TracInterface.dependencies` -- Query Trac to find
+          dependencies.
+
+        - :meth:`remote_status` -- will show the status of tickets
+          with respect to the remote server.
+
+        - :meth:`merge` -- Merge in changes from a dependency.
+
+        - :meth:`diff` -- Show the changes in this branch over the
+          dependencies.
+
+        TESTS::
+
+            TODO
+
+        """
+        raise NotImplementedError # the below does most probably not work anymore
+        if ticket is None:
+            ticket = self.current_ticket()
+        try:
+            branchname = self._branch[ticket]
+        except KeyError:
+            raise ValueError("you must specify a valid ticket")
+        if _seen is None:
+            seen = []
+        elif ticket in _seen:
+            return
+        else:
+            seen = _seen
+            seen.append(ticket)
+        dep = self._dependencies_as_tickets(branchname)
+        if not all:
+            self._UI.show("Ticket %s depends on %s"%(ticket, ", ".join([str(d) for d in dep])))
+        else:
+            for d in dep:
+                self.show_dependencies(d, True, seen)
+            if _seen is None:
+                self._UI.show("Ticket %s depends on %s"%(ticket, ", ".join([str(d) for d in seen])))
 
     def merge(self, ticket=MASTER_BRANCH, create_dependency=True, download=False, message=None):
-        raise NotImplementedError # TODO
-###        r"""
-###        Merge changes from another branch into the current branch.
-###
-###        INPUT:
-###
-###        - ``ticket`` -- string or int (default ``"master"``), a
-###          branch, ticket number or the current set of dependencies
-###          (indicated by the string ``"dependencies"``): the source of
-###          the changes to be merged.  If ``ticket = "dependencies"``
-###          then each updated dependency is merged in one by one,
-###          starting with the one listed first in the dependencies field
-###          on trac.  An int indicates a ticket number while a string
-###          indicates a branch name.
-###
-###        - ``create_dependency`` -- boolean (default ``True``), whether
-###          to append the other ticket to the list of dependencies.
-###
-###          Listing the other ticket as a dependency has the following
-###          consequences:
-###
-###          - the other ticket must be positively reviewed and merged
-###            before this ticket may be merged into master.  The commits
-###            included from a dependency don't need to be reviewed in
-###            this ticket, whereas commits reviewed in this ticket from
-###            a non-dependency may make reviewing the other ticket
-###            easier.
-###
-###          - you can more easily merge in future changes to
-###            dependencies.  So if you need a feature from another
-###            ticket it may be appropriate to create a dependency to
-###            that you may more easily benefit from others' work on that
-###            ticket.
-###
-###          - if you depend on another ticket then you need to worry
-###            about the progress on that ticket.  If that ticket is
-###            still being actively developed then you may need to make
-###            many merges to keep up.
-###
-###          Note that dependencies are stored locally and only updated
-###          with respect to the remote server during :meth:`upload` and
-###          :meth:`download`.
-###
-###        - ``download`` -- boolean (default ``False``), whether to
-###          download the most recent version of the other ticket(s)
-###          before merging.
-###
-###        .. SEEALSO::
-###
-###        - :meth: `download` -- will download remote changes before
-###          merging.
-###
-###        - :meth:`show_dependencies` -- see the current dependencies.
-###
-###        - :meth:`GitInterface.merge` -- git's merge command has more
-###          options and can merge multiple branches at once.
-###
-###        - :meth:`gather` -- creates a new branch to merge into rather
-###          than merging into the current branch.
-###        """
-###        curbranch = self.git.current_branch()
-###        if ticket == "dependencies":
-###            for dep in self._dependencies[curbranch]:
-###                self.merge(dep, False, download, message)
-###            return
-###        elif ticket is None:
-###            raise ValueError("you must specify a ticket to merge")
-###        ref = dep = None
-###        if download:
-###            remote_branch = self._remote_pull_branch(ticket)
-###            if remote_branch is not None:
-###                ref = self._fetch(remote_branch)
-###                dep = ticket
-###            else:
-###                raise ValueError("could not download branch for ticket %s - its `branch` field on trac is empty or invalid")
-###        if ref is None:
-###            try:
-###                dep = ref = self._branch[ticket]
-###            except KeyError:
-###                pass # ticket does not exists locally but we were not asked to download it
-###        if ref is None:
-###            ref = ticket
-###
-###        if create_dependency:
-###            if dep is None:
-###                dep = int(ticket)
-###            if dep and dep not in self._dependencies[curbranch]:
-###                self._dependencies[curbranch] += (dep,)
-###                self._UI.show("recorded dependency on %s"%dep)
-###        if message is None:
-###            kwds = {}
-###        else:
-###            kwds = {'m':message}
-###
-###        if ref is None:
-###            self._UI.show("Nothing has been merged because the branch for %s could not be found. "%ticket+ ("Probably the branch field for the ticket is empty or invalid." if download else "Probably the branch for the ticket does not exist locally, consider using '--download True'"))
-###            return
-###
-###        self.git.merge(ref, **kwds)
+        r"""
+        TODO: fix this docstring
+
+        Merge changes from another branch into the current branch.
+
+        INPUT:
+
+        - ``ticket`` -- string or int (default ``"master"``), a
+          branch, ticket number or the current set of dependencies
+          (indicated by the string ``"dependencies"``): the source of
+          the changes to be merged.  If ``ticket = "dependencies"``
+          then each updated dependency is merged in one by one,
+          starting with the one listed first in the dependencies field
+          on trac.  An int indicates a ticket number while a string
+          indicates a branch name.
+
+        - ``create_dependency`` -- boolean (default ``True``), whether
+          to append the other ticket to the list of dependencies.
+
+          Listing the other ticket as a dependency has the following
+          consequences:
+
+          - the other ticket must be positively reviewed and merged
+            before this ticket may be merged into master.  The commits
+            included from a dependency don't need to be reviewed in
+            this ticket, whereas commits reviewed in this ticket from
+            a non-dependency may make reviewing the other ticket
+            easier.
+
+          - you can more easily merge in future changes to
+            dependencies.  So if you need a feature from another
+            ticket it may be appropriate to create a dependency to
+            that you may more easily benefit from others' work on that
+            ticket.
+
+          - if you depend on another ticket then you need to worry
+            about the progress on that ticket.  If that ticket is
+            still being actively developed then you may need to make
+            many merges to keep up.
+
+          Note that dependencies are stored locally and only updated
+          with respect to the remote server during :meth:`upload` and
+          :meth:`download`.
+
+        - ``download`` -- boolean (default ``False``), whether to
+          download the most recent version of the other ticket(s)
+          before merging.
+
+        .. SEEALSO::
+
+        - :meth: `download` -- will download remote changes before
+          merging.
+
+        - :meth:`show_dependencies` -- see the current dependencies.
+
+        - :meth:`GitInterface.merge` -- git's merge command has more
+          options and can merge multiple branches at once.
+
+        - :meth:`gather` -- creates a new branch to merge into rather
+          than merging into the current branch.
+        """
+        raise NotImplementedError # the below does most probably not work anymore
+        curbranch = self.git.current_branch()
+        if ticket == "dependencies":
+            for dep in self._dependencies[curbranch]:
+                self.merge(dep, False, download, message)
+            return
+        elif ticket is None:
+            raise ValueError("you must specify a ticket to merge")
+        ref = dep = None
+        if download:
+            remote_branch = self._remote_pull_branch(ticket)
+            if remote_branch is not None:
+                ref = self._fetch(remote_branch)
+                dep = ticket
+            else:
+                raise ValueError("could not download branch for ticket %s - its `branch` field on trac is empty or invalid")
+        if ref is None:
+            try:
+                dep = ref = self._branch[ticket]
+            except KeyError:
+                pass # ticket does not exists locally but we were not asked to download it
+        if ref is None:
+            ref = ticket
+
+        if create_dependency:
+            if dep is None:
+                dep = int(ticket)
+            if dep and dep not in self._dependencies[curbranch]:
+                self._dependencies[curbranch] += (dep,)
+                self._UI.show("recorded dependency on %s"%dep)
+        if message is None:
+            kwds = {}
+        else:
+            kwds = {'m':message}
+
+        if ref is None:
+            self._UI.show("Nothing has been merged because the branch for %s could not be found. "%ticket+ ("Probably the branch field for the ticket is empty or invalid." if download else "Probably the branch for the ticket does not exist locally, consider using '--download True'"))
+            return
+
+        self.git.merge(ref, **kwds)
 
     def local_tickets(self, abandoned=False, quiet=False):
-        raise NotImplementedError # TODO
-###        r"""
-###        Print the tickets currently being worked on in your local
-###        repository.
-###
-###        This function will show the branch names as well as the ticket
-###        numbers for all active tickets.  It will also show local
-###        branches that are not associated to ticket numbers.
-###
-###        INPUT:
-###
-###        - ``abandoned`` -- boolean (default ``False``), whether to show
-###          abandoned branches.
-###
-###        - ``quite`` -- boolean (default ``False``), whether to show
-###          return the list of branches rather than printing them.
-###
-###        .. SEEALSO::
-###
-###        - :meth:`abandon_ticket` -- hide tickets from this method.
-###
-###        - :meth:`remote_status` -- also show status compared to the
-###          trac server.
-###
-###        - :meth:`current_ticket` -- get the current ticket.
-###        """
-###        raw_branches = self.git.read_output("branch").split()
-###        raw_branches.remove('*')
-###        branch_info = [(b, self._ticket[b]) for b in raw_branches
-###            if b in self._ticket and (abandoned or not b.startswith("trash/"))]
-###        if quiet:
-###            return branch_info
-###        else:
-###            self._UI.show('\n'.join([
-###                        "{0}\t{1}".format(ticket or "     ", branch)
-###                        for (branch, ticket) in branch_info]))
+        r"""
+        Print the tickets currently being worked on in your local
+        repository.
+
+        This function will show the branch names as well as the ticket
+        numbers for all active tickets.  It will also show local
+        branches that are not associated to ticket numbers.
+
+        INPUT:
+
+        - ``abandoned`` -- boolean (default: ``False``), whether to show
+          abandoned branches.
+
+        - ``quite`` -- boolean (default: ``False``), whether to show return the
+          list of branches rather than printing them.
+
+        .. SEEALSO::
+
+        - :meth:`abandon_ticket` -- hide tickets from this method.
+
+        - :meth:`remote_status` -- also show status compared to the
+          trac server.
+
+        - :meth:`current_ticket` -- get the current ticket.
+
+        TESTS::
+
+            TODO
+
+        """
+        raise NotImplementedError # the below does most probably not work anymore
+        raw_branches = self.git.read_output("branch").split()
+        raw_branches.remove('*')
+        branch_info = [(b, self._ticket[b]) for b in raw_branches
+            if b in self._ticket and (abandoned or not b.startswith("trash/"))]
+        if quiet:
+            return branch_info
+        else:
+            self._UI.show('\n'.join([
+                        "{0}\t{1}".format(ticket or "     ", branch)
+                        for (branch, ticket) in branch_info]))
 
     def vanilla(self, release="release"):
-        raise NotImplementedError # TODO
-###        r"""
-###        Returns to a basic release of Sage.
-###
-###        INPUT:
-###
-###        - ``release`` -- a string or decimal giving the release name.
-###          In fact, any tag, commit or branch will work.  If the tag
-###          does not exist locally an attempt to fetch it from the
-###          server will be made.
-###
-###        Git equivalent::
-###
-###            Checks out a given tag, commit or branch in detached head
-###            mode.
-###
-###        .. SEEALSO::
-###
-###        - :meth:`switch_ticket` -- switch to another branch, ready to
-###          develop on it.
-###
-###        - :meth:`download` -- download a branch from the server and
-###          merge it.
-###
-###        """
-###        if hasattr(release, 'literal'):
-###            release = release.literal
-###        release = str(release)
-###        if self._UI.confirm("Are you sure you want to revert to %s?"%(release)):
-###            self.git.switch_branch(release, detached = True)
+        r"""
+        Returns to an official release of Sage.
+
+        INPUT:
+
+        - ``release`` -- a string or decimal giving the release name.
+          In fact, any tag, commit or branch will work.  If the tag
+          does not exist locally an attempt to fetch it from the
+          server will be made.
+
+        Git equivalent::
+
+            Checks out a given tag, commit or branch in detached head mode.
+
+        .. SEEALSO::
+
+        - :meth:`switch_ticket` -- switch to another branch, ready to
+          develop on it.
+
+        - :meth:`download` -- download a branch from the server and
+          merge it.
+
+        TESTS::
+
+            TODO
+
+        """
+        raise NotImplementedError # the below most probably does not work anymore
+        if hasattr(release, 'literal'):
+            release = release.literal
+        release = str(release)
+        if self._UI.confirm("Are you sure you want to revert to %s?"%(release)):
+            self.git.switch_branch(release, detached = True)
 
     def _detect_patch_diff_format(self, lines):
         r"""
@@ -2307,57 +2376,62 @@ class SageDev(object):
         #TODO: docstring
         return self._rewrite_patch_diff_paths(self._rewrite_patch_header(lines, to_format=to_header_format, from_format=from_header_format, diff_format=from_diff_format), to_format=to_path_format, diff_format=from_diff_format, from_format=from_path_format)
 
+    # TODO: make sure this gets called before accessing the remote repository
     def _upload_ssh_key(self, keyfile, create_key_if_not_exists=True):
-        raise NotImplementedError #TODO
-###        r"""
-###        Upload ``keyfile`` to gitolite through the trac interface.
-###
-###        INPUT:
-###
-###        - ``keyfile`` -- the absolute path of the key file (default:
-###          ``~/.ssh/id_rsa``)
-###
-###        - ``create_key_if_not_exists`` -- use ``ssh-keygen`` to create
-###          ``keyfile`` if ``keyfile`` or ``keyfile.pub`` does not exist.
-###
-###        EXAMPLES::
-###
-###            sage: import tempfile, os
-###            sage: tmp = tempfile.NamedTemporaryFile().name
-###            sage: dev._upload_ssh_key(tmp, create_key_if_not_exists = False)
-###            Traceback (most recent call last):
-###            ...
-###            IOError: [Errno 2] No such file or directory: ...
-###            sage: dev._upload_ssh_key(tmp, create_key_if_not_exists = True)
-###            Generating ssh key....
-###            Ssh key successfully generated
-###            sage: os.unlink(tmp)
-###            sage: os.unlink(tmp+'.pub')
-###        """
-###        cfg = self._config
-###
-###        try:
-###            with open(keyfile, 'r') as F:
-###                pass
-###            with open(keyfile + '.pub', 'r') as F:
-###                pass
-###        except IOError:
-###            if create_key_if_not_exists:
-###                self._UI.show("Generating ssh key....")
-###                from subprocess import call
-###                success = call(["ssh-keygen", "-q", "-f", keyfile, "-P", ""])
-###                if success == 0:
-###                    self._UI.show("Ssh key successfully generated")
-###                else:
-###                    raise RuntimeError("Ssh key generation failed.  Please create a key in `%s` and retry"%(keyfile))
-###            else:
-###                raise
-###
-###        with open(keyfile + '.pub', 'r') as F:
-###            pubkey = F.read().strip()
-###
-###        self.trac._authenticated_server_proxy.sshkeys.setkeys(pubkey)
-###
+        r"""
+        Upload ``keyfile.pub`` to gitolite through the trac interface.
+
+        INPUT:
+
+        - ``keyfile`` -- the absolute path of the key file (default:
+          ``~/.ssh/id_rsa``)
+
+        - ``create_key_if_not_exists`` -- use ``ssh-keygen`` to create
+          ``keyfile`` if ``keyfile`` or ``keyfile.pub`` does not exist.
+
+        EXAMPLES::
+
+            sage: import tempfile, os
+            sage: tmp = tempfile.NamedTemporaryFile().name
+            sage: dev._upload_ssh_key(tmp, create_key_if_not_exists = False)
+            Traceback (most recent call last):
+            ...
+            IOError: [Errno 2] No such file or directory: ...
+            sage: dev._upload_ssh_key(tmp, create_key_if_not_exists = True)
+            Generating ssh key....
+            Ssh key successfully generated
+            sage: os.unlink(tmp)
+            sage: os.unlink(tmp+'.pub')
+
+        TESTS::
+
+            TODO
+
+        """
+        raise NotImplementedError # the below does most probably not work anymore
+        cfg = self._config
+
+        try:
+            with open(keyfile, 'r') as F:
+                pass
+            with open(keyfile + '.pub', 'r') as F:
+                pass
+        except IOError:
+            if create_key_if_not_exists:
+                self._UI.show("Generating ssh key....")
+                from subprocess import call
+                success = call(["ssh-keygen", "-q", "-f", keyfile, "-P", ""])
+                if success == 0:
+                    self._UI.show("Ssh key successfully generated")
+                else:
+                    raise RuntimeError("Ssh key generation failed.  Please create a key in `%s` and retry"%(keyfile))
+            else:
+                raise
+
+        with open(keyfile + '.pub', 'r') as F:
+            pubkey = F.read().strip()
+
+        self.trac._authenticated_server_proxy.sshkeys.setkeys(pubkey)
 
     def _is_ticket_name(self, name, exists=False):
         r"""

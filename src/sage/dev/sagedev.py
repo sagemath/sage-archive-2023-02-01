@@ -856,7 +856,7 @@ class SageDev(object):
 
         - :meth:`diff` -- Show changes that will be committed.
         """
-        #TODO
+        #TODO: implement this
         from sage.dev.git_interface import SUPER_SILENT
         self.git.commit(SUPER_SILENT, all=True, message=message)
 ###        curticket = self.current_ticket()
@@ -893,7 +893,7 @@ class SageDev(object):
         raise NotImplementedError() #TODO
 
     def upload(self):
-        #TODO
+        #TODO: implement this method
         from git_interface import SUPER_SILENT
         ticket = self._current_ticket()
         remote_branch = self._remote_branch_for_ticket(ticket)
@@ -980,7 +980,7 @@ class SageDev(object):
 ###
 
     def reset_to_clean_state(self):
-        #TODO
+        #TODO: docstring
         states = self.git.get_state()
         if not states:
             return
@@ -990,7 +990,7 @@ class SageDev(object):
         try:
             self.git.reset_to_clean_state()
         except:
-            #TODO
+            #TODO: what should happen here?
             raise
 
     def reset_to_clean_working_directory(self):
@@ -1098,7 +1098,7 @@ class SageDev(object):
             assert False
 
     def unstash(self, branch=None):
-        #TODO
+        #TODO: docstring
         if branch is None:
             stashes = [stash for stash in self.git.local_branches() if self._is_stash_name(stash)]
             stashes = [" "+stash for stash in stashes]

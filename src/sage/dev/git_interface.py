@@ -414,9 +414,9 @@ class GitInterface(object):
             # Initial commit
             #
             nothing to commit (create/copy files and use "git add" to track)
-            (0, None, None, 'git --git-dir=... status')
+            (0, None, None, 'git status')
             sage: git._run_git('status', (), {}, stdout=False)
-            (0, None, None, 'git --git-dir=... status')
+            (0, None, None, 'git status')
 
         TESTS:
 
@@ -457,7 +457,7 @@ class GitInterface(object):
         s = [str(arg) for arg in s]
 
         from sage.dev.user_interface import INFO
-        complete_cmd = " ".join(s)
+        complete_cmd = " ".join([arg for i,arg in enumerate(s) if i!=1]) # drop --git-dir from debug output
         self._UI.show("[git] %s"%complete_cmd, log_level=INFO)
 
         if ckwds.get('dryrun', False):

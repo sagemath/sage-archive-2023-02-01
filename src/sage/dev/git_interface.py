@@ -1041,6 +1041,7 @@ for git_cmd_ in (
         "branch",
         "config",
         "checkout",
+        "cherry_pick",
         "clean",
         "clone",
         "commit",

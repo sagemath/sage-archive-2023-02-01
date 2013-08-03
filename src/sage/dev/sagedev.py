@@ -508,7 +508,8 @@ class SageDev(object):
         else:
             try:
                 self.download(remote_branch, branch)
-            except: #TODO
+            except:
+                self._UI.error("Could not switch to ticket #{0} because the remote branch `{1}` for that ticket could not be downloaded.".format(ticket, remote_branch))
                 raise
 
         try:
@@ -584,17 +585,22 @@ class SageDev(object):
 
             sage: dev._UI.append("s")
             sage: dev.switch_branch("branch1")
+            You have uncommited changes in your working directory. Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] s
+            Your changes have been recorded on a new branch `stash/1`.
 
         And unstash the changes later::
 
-            sage: dev.switch_branch("branch2")
+            sage: dev.switch_branch('branch2')
             sage: dev.unstash()
-            sage: dev.unstash(...)
+            Use `sage --dev unstash --branch=name` to apply the changes recorded in the stash to your working directory where `name` is one of the following:
+             stash/1
+            sage: dev.unstash('stash/1')
 
         Or we can just discard the changes::
 
-            sage: dev._UI.append("y")
+            sage: dev._UI.append("d")
             sage: dev.switch_branch("branch1")
+            You have uncommited changes in your working directory. Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] d
 
         Switching branches when in the middle of a merge::
 
@@ -1041,6 +1047,7 @@ class SageDev(object):
             sage: dev.reset_to_clean_working_directory()
             You have uncommited changes in your working directory. Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] stash
             Your changes have been recorded on a new branch `stash/1`.
+            sage: dev.reset_to_clean_working_directory()
 
         """
         try:
@@ -1071,8 +1078,10 @@ class SageDev(object):
                     from git_interface import SUPER_SILENT
                     self.git.stash(SUPER_SILENT)
                     try:
-                        self._UI.info("Creating a new branch `{0}` which contains your stashed changes.")
+                        self._UI.info("Creating a new branch `{0}` which contains your stashed changes.".format(branch))
                         self.git.stash(SUPER_SILENT,'branch',branch,'stash@{0}')
+                        self._UI.info("Committing your changes to `{0}`.".format(branch))
+                        self.git.commit(SUPER_SILENT,'-a',message="Changes stashed by reset_to_clean_working_directory()")
                     except:
                         self.git.stash(SUPER_SILENT, 'drop')
                         raise
@@ -1088,8 +1097,29 @@ class SageDev(object):
         else:
             assert False
 
-    def unstash(self, TODO):
-        raise NotImplementedError # TODO
+    def unstash(self, branch=None):
+        #TODO
+        if branch is None:
+            stashes = [stash for stash in self.git.local_branches() if self._is_stash_name(stash)]
+            stashes = [" "+stash for stash in stashes]
+            stashes = "\n".join(stashes)
+            stashes = stashes or " (no stashes)"
+            self._UI.show("Use `{0}` to apply the changes recorded in the stash to your working directory where `name` is one of the following:\n{1}".format(self._format_command("unstash",branch="name"), stashes))
+            return
+
+        self._check_stash_name(branch, exists=True)
+
+        self.reset_to_clean_state()
+
+        from git_interface import SUPER_SILENT
+        try:
+            self.git.cherry_pick(SUPER_SILENT, branch, no_commit=True)
+        except GitError as e:
+            raise NotImplementedError
+
+        self.git.reset(SUPER_SILENT)
+
+        # TODO: should I drop the stash?
 
     def edit_ticket(self, ticket=None):
         raise NotImplementedError # TODO
@@ -2502,6 +2532,93 @@ class SageDev(object):
         else:
             raise ValueError("exists")
 
+    def _is_stash_name(self, name, exists=any):
+        r"""
+        Return whether ``name`` is a valid name for a stash.
+
+        INPUT:
+
+        - ``name`` -- a string
+
+        - ``exists`` - a boolean or ``any`` (default: ``any``), if ``True``,
+          check whether ``name`` is the name of an existing stash; if
+          ``False``, check whether ``name`` is the name of a stash that does
+          not exist yet.
+
+        TESTS::
+
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: from sage.dev.test.sagedev import DoctestSageDev
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.git_interface import SUPER_SILENT
+            sage: server = DoctestTracServer()
+            sage: config = DoctestConfig()
+            sage: config['trac']['password'] = 'secret'
+            sage: dev = DoctestSageDev(config, server)
+            sage: dev._chdir()
+            sage: dev._pull_master_branch()
+
+            sage: dev._is_stash_name("branch1")
+            False
+            sage: dev._is_stash_name("stash")
+            False
+            sage: dev._is_stash_name("stash/")
+            False
+            sage: dev._is_stash_name("stash/1")
+            True
+            sage: dev._is_stash_name("stash/1", exists=True)
+            False
+
+        """
+        if not isinstance(name, str):
+            raise ValueError("name must be a string")
+
+        if not name.startswith("stash/"):
+            return False
+
+        return self._is_local_branch_name(name, exists)
+
+    def _check_stash_name(self, name, exists=any):
+        r"""
+        Check whether ``name`` is a valid name for a stash.
+
+        INPUT:
+
+        - ``name`` -- a string
+
+        - ``exists`` - a boolean or ``any`` (default: ``any``), if ``True``,
+          check whether ``name`` is the name of an existing stash; if
+          ``False``, check whether ``name`` is the name of a stash that does
+          not exist yet.
+
+        TESTS::
+
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: from sage.dev.test.sagedev import DoctestSageDev
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.git_interface import SUPER_SILENT
+            sage: server = DoctestTracServer()
+            sage: config = DoctestConfig()
+            sage: config['trac']['password'] = 'secret'
+            sage: dev = DoctestSageDev(config, server)
+            sage: dev._chdir()
+            sage: dev._pull_master_branch()
+
+            sage: dev._check_stash_name("stash/1")
+            sage: dev._check_stash_name("stash/1", exists=True)
+            Traceback (most recent call last):
+            ...
+            SageDevValueError: `stash/1` does not exist.
+            sage: dev._check_stash_name("stash/1", exists=False)
+
+        """
+        if not self._is_stash_name(name):
+            raise SageDevValueError("`{0}` is not a valid name for a stash.".format(name))
+        if exists == True and not self._is_stash_name(name, exists):
+            raise SageDevValueError("`{0}` does not exist.".format(name))
+        elif exists == False and not self._is_stash_name(name, exists):
+            raise SageDevValueError("`{0}` already exists, please choose a different name for the stash.")
+
     def _is_remote_branch_name(self, name, exists=any):
         r"""
         Return whether ``name`` is a valid name for a remote branch.
@@ -2885,7 +3002,7 @@ class SageDev(object):
         while True:
             i+=1
             branch = 'stash/{0}'.format(i)
-            if self._is_local_branch_name(branch, exists=False):
+            if self._is_stash_name(branch, exists=False):
                 return branch
 
     def _new_local_branch_for_ticket(self, ticket):

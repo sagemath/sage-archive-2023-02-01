@@ -68,6 +68,8 @@ class GitInterface(object):
         self._gitcmd = self._config.get('gitcmd', 'git')
         self._repository = self._config.get('repository', SAGE_REPO_AUTHENTICATED)
 
+        self.__user_email_set = False
+
         if not os.path.exists(self._dot_git):
             raise ValueError("`%s` does not point to an existing directory."%self._dot_git)
 
@@ -1004,6 +1006,9 @@ class GitInterface(object):
             sage: git._check_user_email()
 
         """
+        if self.__user_email_set:
+            return
+
         try:
             self.config(SUPER_SILENT, "user.name")
         except GitError as e:
@@ -1025,6 +1030,8 @@ class GitInterface(object):
                 self._UI.info("Your email has been saved.")
             else:
                 raise
+
+        self.__user_email_set = True
 
 for git_cmd_ in (
         "add",

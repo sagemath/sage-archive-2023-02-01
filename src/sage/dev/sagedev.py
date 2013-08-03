@@ -459,14 +459,22 @@ class SageDev(object):
             sage: alice.switch_ticket(2)
             sage: open("untracked","w").close()
             sage: alice.switch_ticket(1)
+            GitError: git exited with a non-zero exit code (1).
+            This happened while executing `git checkout ticket/1`.
+            git printed nothing to STDOUT.
+            git printed the following to STDERR:
+            error: The following untracked working tree files would be overwritten by checkout:
+                untracked
+            Please move or remove them before you can switch branches.
+            Aborting
 
         Switching to a ticket with uncommited changes::
 
             sage: open("tracked","w").close()
             sage: alice.git.add(SUPER_SILENT, "tracked")
-            sage: alice._UI.append('y')
+            sage: alice._UI.append('d')
             sage: alice.switch_ticket(2)
-            You have uncommited changes in your working directory. To run this command you have to discard your changes. Do you want me to discard any changes which are not commited? [yes/No] y
+            You have uncommited changes in your working directory. Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] d
 
         """
         self._check_ticket_name(ticket, exists=True)

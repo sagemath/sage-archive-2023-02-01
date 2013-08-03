@@ -53,6 +53,13 @@ GIT_BRANCH_REGEX = re.compile(r'^(?!.*/\.)(?!.*\.\.)(?!/)(?!.*//)(?!.*@\{)(?!.*\
 # using git
 MASTER_BRANCH = "public/sage-git/master"
 
+COMMIT_GUIDE=r"""
+# Please type your commit message above.
+# Lines starting with '#' are ignored.
+#
+# An empty file aborts the commit.
+"""
+
 class SageDev(object):
     r"""
     The developer interface for sage.
@@ -836,15 +843,14 @@ class SageDev(object):
 
     def commit(self, message=None, interactive=False):
         r"""
-        create a commit from the pending changes on the current branch
+        Create a commit from the pending changes on the current branch.
 
         This is most akin to mercurial's commit command, not git's.
 
         INPUT:
 
-        - ``message`` -- the message of the commit (default: ``None``)
-
-          if ``None``, prompt for a message
+        - ``message`` -- the message of the commit (default: ``None``), if
+          ``None``, prompt for a message.
 
         - ``interactive`` -- if set, interactively select which part of the
           changes should be part of the commit
@@ -855,36 +861,105 @@ class SageDev(object):
           is the next step once you've committed some changes.
 
         - :meth:`diff` -- Show changes that will be committed.
+
+        TESTS:
+
+        Set up a single user for doctesting::
+
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.git_interface import SUPER_SILENT
+            sage: server = DoctestTracServer()
+            sage: config = DoctestConfig()
+            sage: config['trac']['password'] = 'secret'
+            sage: dev = DoctestSageDevWrapper(config, server)
+            sage: dev._wrap("_dependencies_for_ticket")
+            sage: UI = dev._UI
+            sage: dev._pull_master_branch()
+            sage: dev._chdir()
+
+        Commit an untracked file::
+
+            sage: dev.git.checkout('-b','branch1')
+            Switched to a new branch 'branch1'
+
+            sage: open("tracked","w").close()
+            sage: dev._UI.extend(["added tracked","y","y","y"])
+            sage: dev.commit()
+            The following files in your working directory are not tracked by git:
+             tracked
+            Do you want to add any of these files in this commit? [yes/No] y
+            Do you want to add `tracked`? [yes/No] y
+            Do you want to commit your changes to branch `branch1`? I will prompt you for a commit message if you do. [Yes/no] y
+            [branch1 ...] added tracked
+             0 files changed
+             create mode ... tracked
+
+        Commit a tracked file::
+
+            sage: with open("tracked","w") as F: F.write("foo")
+            sage: dev._UI.extend(["modified tracked","y"])
+            sage: dev.commit()
+            Do you want to commit your changes to branch `branch1`? I will prompt you for a commit message if you do. [Yes/no] y
+            [branch1 ...] modified tracked
+             1 file changed, 1 insertion(+)
+
         """
-        raise NotImplementedError # the code below most probably does not work
-        curticket = self.current_ticket()
+        from git_error import DetachedHeadError
+        try:
+            branch = self.git.current_branch()
+        except DetachedHeadError:
+            self._UI.error("Cannot commit changes when not on any branch.")
+            self._UI.info("Use {0} or {1} to switch to a branch.".format(self._format("switch_branch"), self._format("switch_ticket")))
+            raise OperationCancelledError("cannot proceed in detached HEAD mode")
 
-        prompt = "Are you sure you want to save your changes to "
-        if curticket is None:
-            curbranch = self.git.current_branch()
-            prompt += "branch %s?"%curbranch
-        else:
-            prompt += "ticket %s?"%self._ticket_repr(curticket)
-        if not self._UI.confirm(prompt):
-            self._UI.show("If you want to commit these changes to another "+
-                          "ticket use the switch_ticket() method")
-            return
+        # make sure the index is clean
+        from git_interface import SUPER_SILENT
+        self.git.reset(SUPER_SILENT)
 
-        for file in self.git.unknown_files():
-            if self._UI.confirm("Would you like to commit %s"%file,
-                    default_no=True):
-                self.git.add(file)
+        try:
+            self._UI.info("Committing pending changes to branch `{0}`.".format(branch))
 
-        kwds = {}
-        if interactive:
-            kwds['patch'] = True
-        else:
-            kwds['all'] = True
+            try:
+                untracked_files = self.git.untracked_files()
+                if untracked_files:
+                    if self._UI.confirm("The following files in your working directory are not tracked by git:\n{0}\nDo you want to add any of these files in this commit?".format("\n".join([" "+fname for fname in untracked_files])), default_no=True):
+                        for file in untracked_files:
+                            if self._UI.confirm("Do you want to add `{0}`?".format(file), default_no=True):
+                                self.git.add(file)
 
-        if message is not None:
-            kwds['message'] = message
+                if interactive:
+                    self.git.add(patch=True)
+                else:
+                    self.git.add(update=True)
 
-        self.git.commit(**kwds)
+                if not self._UI.confirm("Do you want to commit your changes to branch `{0}`? I will prompt you for a commit message if you do.".format(branch), default_no=False):
+                    self._UI.info("If you want to commit to a different branch/ticket, run {0} or {1} first.".format(self._format("switch_branch"), self._format("switch_ticket")))
+                    raise OperationCancelledError("user does not want to create a commit")
+
+                from tempfile import NamedTemporaryFile
+                commit_message = NamedTemporaryFile()
+                if message: commit_message.write(message)
+                commit_message.write(COMMIT_GUIDE)
+                commit_message.close()
+
+                self._UI.edit(commit_message.name)
+
+                message = "\n".join([line for line in open(commit_message.name).read().splitlines() if not line.startswith("#")]).strip()
+
+                if not message:
+                    raise OperationCancelledError("empty commit message")
+
+                self.git.commit(message=message)
+
+            except OperationCancelledError:
+                self._UI.info("Not creating a commit.")
+                raise
+
+        finally:
+            # do not leave a non-clean index behind
+            self.git.reset(SUPER_SILENT)
 
     def set_remote(self, branch, remote_branch):
         raise NotImplementedError() #TODO

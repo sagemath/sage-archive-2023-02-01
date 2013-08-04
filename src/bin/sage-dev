@@ -324,6 +324,6 @@ def parser_from_object(obj, *args, **kwds):
     return parser
 
 if __name__ == '__main__':
-    from sage.dev.sagedev import dev
+    from sage.dev.all import dev
     parser = parser_from_object(dev)
     parser.run()

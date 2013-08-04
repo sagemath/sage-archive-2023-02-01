@@ -295,7 +295,7 @@ class SageDev(object):
             self._check_local_branch_name(branch, exists=False)
 
         if base is None:
-            base = self.current_ticket
+            base = self._current_ticket()
         if base is None:
             raise SageDevValueError("currently on no ticket, `base` must not be None")
         if self._is_ticket_name(base):
@@ -424,6 +424,7 @@ class SageDev(object):
 
             sage: bob._chdir()
             sage: bob.git.commit(SUPER_SILENT, allow_empty=True,message="empty commit")
+            sage: bob._UI.append("y")
             sage: bob.upload()
 
             sage: alice._chdir()
@@ -991,70 +992,94 @@ class SageDev(object):
         TESTS::
 
             TODO
+
         """
         from git_interface import SUPER_SILENT
-        ticket = self._current_ticket()
-        remote_branch = self._remote_branch_for_ticket(ticket)
-        self.git.push(SUPER_SILENT, self.git._repository, "{0}:{1}".format(self.git.current_branch(), remote_branch))
+        #TODO: add some self._UI.confirm messages to tell the user what is happening
 
-        attributes = self.trac._get_attributes(ticket)
-        attributes['branch'] = remote_branch
-        self.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
+        if ticket is None:
+            ticket = self._current_ticket()
+        if ticket is not None:
+            ticket = self._ticket_from_ticket_name(ticket)
+            self._check_ticket_name(ticket, exists=True)
 
-        raise NotImplementedError # the following does not work anymor
-        if repository is None:
-            repository = self.git._repo
-        branch = self.git.current_branch()
+        from git_error import DetachedHeadError
         try:
-            oldticket = self._ticket[branch]
-            if ticket is None:
-                ticket = oldticket
-            elif oldticket != ticket:
-                if not self._UI.confirm("Are you sure you want to upload "+
-                                        "your changes to ticket "+
-                                        "%s "%self._ticket_repr(ticket)+
-                                        "instead of "+
-                                        "%s?"%self._ticket_repr(oldticket),
-                                        default_no=True):
-                    return
-                self._ticket[branch] = ticket
-        except KeyError:
-            if ticket is None and remote_branch is None:
-                raise ValueError("You don't have a ticket for this branch "+
-                                 "(%s)"%branch)
+            branch = self.git.current_branch()
+        except DetachedHeadError:
+            self._UI.error("Cannot upload while in detached HEAD state.")
+            raise OperationCancelledError("cannot upload while in detached HEAD state")
 
-        remote_branch = remote_branch or self.git._local_to_remote_name(branch)
-        ref = None
+        if remote_branch is None:
+            if ticket:
+                remote_branch = self._remote_branch_for_ticket(ticket)
+                if remote_branch is None:
+                    raise SageDevValueError("remote_branch must be specified since #{0} has no remote branch set.".format(ticket))
+            else:
+                remote_branch = self._remote_branch_for_branch(branch)
+                if remote_branch is None:
+                    raise SageDevValueError("remote_branch must be specified since the current branch has no remote branch set.")
+
+        self._check_remote_branch_name(remote_branch)
+
+        if ticket is not None:
+            if self._has_local_branch_for_ticket(ticket) and self._local_branch_for_ticket(ticket) != branch:
+                raise NotImplementedError # ask the user if this is really what should happen
+            # TODO: do the same the other way round: check if the current branch belongs to a different ticket
+
+
+        self._UI.info("Uploading your changes in `{0}` to `{1}`.".format(branch, remote_branch))
         try:
-            ref = self._fetch(remote_branch, repository=repository)
-        except RuntimeError:
-            if not self._UI.confirm("There does not seem to be a branch %s on the remote server yet. Do you want to create such a branch?"%remote_branch, default_no=False):
-                return
+            if self._is_remote_branch_name(remote_branch, exists=False):
+                if not self._UI.confirm("The branch {0} does not exist on the remote server yet. Do you want to create the branch?".format(remote_branch), default_no=False):
+                    raise OperationCancelledError("User did not want to create remote branch.")
+            else:
+                # check whether force is necessary
+                self.git.fetch(SUPER_SILENT, self.git._repository, remote_branch)
+                if not self.git.is_ancestor_of(branch, 'FETCH_HEAD'):
+                    if not force:
+                        self._UI.error("Your changes would discard some of the commints on the remote branch `{0}`. If this is really what you want, use `{1}` to upload your changes.".format(remote_branch, self._format("upload",ticket=ticket,remote_branch=remote_branch,force=True)))
+                        raise OperationCancelledError("not a fast-forward")
 
-        if ref and not (self.git.is_ancestor_of(ref, branch) or force):
-            if self._UI.confirm("Changes not compatible with remote branch %s; consider downloading first. Are you sure you want to continue?"%remote_branch, default_no=True):
-                force = True
-            else: return
+            try:
+                self.git.push(SUPER_SILENT, self.git._repository, "{0}:{1}".format(self.git.current_branch(), remote_branch))
+            except GitError as e:
+                # can we give any advice if this fails?
+                raise
 
-        self.git.push(repository, "%s:%s"%(branch, remote_branch), force=force)
+            self._UI.info("Your changes in `{0}` have been uploaded to `{1}`.".format(branch, remote_branch))
+
+        except OperationCancelledError:
+            self._UI.info("Did not upload any changes.")
+            raise
+
 
         if ticket:
-            ticket_branch = self.trac._get_attributes(ticket).get("branch", "").strip()
-            if ticket_branch:
-                ref = None
-                try:
-                    ref = self._fetch(ticket_branch, repository=repository)
-                except RuntimeError: # no such branch
-                    self._UI.show("The ticket %s refers to a non-existant branch %s - will overwrite the branch field on the ticket with %s"%(ticket,ticket_branch,remote_branch))
+            self._UI.info("Setting the branch field of ticket #{0} to `{1}`.".format(ticket, remote_branch))
 
-                if ref and not (self.git.is_ancestor_of(ref, branch) or force):
-                    if not self._UI.show("Your changes would discard some of the commits on the current branch %s of the ticket %s. Download these changes first or use 'force' to overwrite them."%(ticket_branch,ticket)):
-                        return
+            current_remote_branch = self.trac._branch_for_ticket(ticket)
+            if current_remote_branch is None:
+                comment = ""
+            else:
+                self.git.fetch(SUPER_SILENT, self.git._repository, current_remote_branch)
+                # TODO: only if this is a fast-forward
 
-            git_deps = ", ".join(["#%s"%d for d in self._dependencies_as_tickets(branch)])
-            self.trac.update(ticket, branch=remote_branch, dependencies=git_deps)
-            self._UI.show("Ticket %s now refers to your branch %s."%(ticket,remote_branch))
+            attributes = self.trac._get_attributes(ticket)
+            attributes['branch'] = remote_branch
+            self.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
 
+
+        if ticket:
+            old_dependencies = self.trac.dependencies(ticket)
+            old_dependencies = ", ".join(["#"+dep for dep in old_dependencies])
+            new_dependencies = self._dependencies_for_ticket(ticket)
+            new_dependencies = ", ".join(["#"+dep for dep in new_dependencies])
+            if old_dependencies != new_dependencies:
+                self._UI.info("Uploading your dependencies for ticket #{0}: `{1}` => `{2}`".format(ticket, old_dependencies, new_dependencies))
+
+                attributes = self.trac._get_attributes(ticket)
+                attributes['dependencies'] = new_dependencies
+                self.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
 
     def reset_to_clean_state(self):
         #TODO: docstring

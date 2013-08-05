@@ -301,9 +301,8 @@ def edit_devel(self, filename, linenum):
     editor supports it, also at the line in wich gcd is defined.
     """
     import IPython.core.hooks
-    sageroot = sage.misc.sageinspect.SAGE_ROOT+'/'
-    runpathpattern = '^'+sageroot+'local/lib/python[^/]*/site-packages'
-    develbranch = sageroot+'devel/sage'
+    runpathpattern = '^'+sage.env.SAGE_LIB
+    develbranch = sage.env.SAGE_SRC
     filename=re.sub(runpathpattern,develbranch,filename)
     IPython.core.hooks.editor(self, filename, linenum)
 

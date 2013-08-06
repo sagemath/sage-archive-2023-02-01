@@ -144,6 +144,94 @@ then the blow-up map is [BB]_:
 
 which requires square roots.
 
+
+Fibrations
+----------
+
+If a toric morphism is :meth:`dominant
+<SchemeMorphism_fan_toric_variety.is_dominant>`, then all fibers over
+a fixed torus orbit in the base are isomorphic. Hence, studying the
+fibers is again a combinatorial question and Sage implements
+additional methods to study such fibrations that are not available
+otherwise (however, note that you can always
+:meth:`~SchemeMorphism_fan_toric_variety.factor` to pick out the part
+that is dominant over the image).
+
+For example, consider the blow-up restricted to one of the two
+coordinate charts of $O_{\mathbb{P}^1}(2)$ ::
+
+
+    sage: O2_P1_chart = ToricVariety(Fan([O2_P1.fan().generating_cones()[1]]))
+    sage: single_chart = O2_P1_chart.hom(identity_matrix(2), A2_Z2)
+    sage: single_chart.is_dominant()
+    True
+    sage: single_chart.is_surjective()
+    False
+
+    sage: fiber = single_chart.fiber_generic();  fiber
+    0-d affine toric variety
+    sage: fiber.embedding_morphism().as_polynomial_map()
+    Scheme morphism:
+      From: 0-d affine toric variety
+      To:   2-d affine toric variety
+      Defn: Defined on coordinates by sending [] to
+            [1 : 1]
+
+The fibers are labeled by torus orbits in the base, that is, cones of
+the codomain fan. In this case, the fibers over lower-dimensional
+torus orbits are::
+ 
+    sage: A2_Z2_cones = flatten(A2_Z2.fan().cones())
+    sage: table([('cone', 'dim')] +
+    ....:       [(cone.ambient_ray_indices(), single_chart.fiber_dimension(cone))
+    ....:        for cone in A2_Z2_cones], header_row=True)
+      cone     dim
+    +--------+-----+
+      ()       0
+      (0,)     0
+      (1,)     -1
+      (0, 1)   1
+
+Lets look closer at the one-dimensional fiber. Although not the case
+in this example, fibers over higher-dimensional cones (corresponding
+to lower-dimensional torus orbits) of the base are usually not
+irreducible. The irreducible components are labelled by the
+:meth:`~sage.geometry.fan_morphism.FanMorphism.primitive_preimage_cones`,
+which are certain cones of the domain fan that map to the cone in the
+base that defines the torus orbit::
+
+    sage: table([('base cone', 'primitive preimage cones')] + 
+    ....:       [(cone.ambient_ray_indices(),
+    ....:         single_chart.fan_morphism().primitive_preimage_cones(cone))
+    ....:        for cone in A2_Z2_cones], header_row=True)
+      base cone   primitive preimage cones
+    +-----------+---------------------------------------------------------+
+      ()          (0-d cone of Rational polyhedral fan in 2-d lattice N,)
+      (0,)        (1-d cone of Rational polyhedral fan in 2-d lattice N,)
+      (1,)        ()
+      (0, 1)      (1-d cone of Rational polyhedral fan in 2-d lattice N,)
+
+The fiber over the trivial cone is the generic fiber that we have
+already encountered. The interesting fiber is the one over the
+2-dimensional cone, which represents the exceptional set of the
+blow-up in this single coordinate chart. Lets investigate further::
+
+    sage: exceptional_cones = single_chart.fan_morphism().primitive_preimage_cones(A2_Z2.fan(2)[0])
+    sage: exceptional_set = single_chart.fiber_component(exceptional_cones[0])
+    sage: exceptional_set
+    1-d affine toric variety
+    sage: exceptional_set.embedding_morphism().as_polynomial_map()
+    Scheme morphism:
+      From: 1-d affine toric variety
+      To:   2-d affine toric variety
+      Defn: Defined on coordinates by sending [z0] to
+            [z0 : 0]
+
+So we see that the fiber over this point is an affine line. Together
+with another affine line in the other coordinate patch, this covers
+the exceptional $\mathbb{P}^1$ of the blowup $O_{\mathbb{P}^1}(2) \to
+\CC^2/\ZZ_2$.
+
 REFERENCES:
 
 .. [BB]
@@ -271,11 +359,11 @@ class SchemeMorphism_polynomial_toric_variety(SchemeMorphism_polynomial, Morphis
     INPUT:
 
     Same as for
-    :class:`~sage.schemes.generic.morphism.SchemeMorphism_polynomial`.
+    :class:`~sage.schemes.toric.morphism.SchemeMorphism_polynomial`.
 
     OUPUT:
 
-    A :class:`~sage.schemes.generic.morphism.SchemeMorphism_polynomial_toric_variety`.
+    A :class:`~sage.schemes.toric.morphism.SchemeMorphism_polynomial_toric_variety`.
 
     TESTS::
 
@@ -607,19 +695,29 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
     - ``check`` -- boolean (optional, default:``True``). Whether to
       check the input for consistency.
 
+    .. WARNING::
+
+        A fibration is a dominant morphism; if you are interested in
+        these then you have to make sure that your fan morphism is
+        dominant. For example, this can be achieved by
+        :meth:`factoring the morphism
+        <sage.schemes.toric.morphism.SchemeMorphism_fan_toric_variety.factor>`. See
+        :class:`SchemeMorphism_fan_toric_variety_dominant` for
+        additional functionality for fibrations.
+
     OUPUT:
 
-    A :class:`~sage.schemes.generic.morphism.SchemeMorphism_fan_toric_variety`.
+    A :class:`~sage.schemes.toric.morphism.SchemeMorphism_fan_toric_variety`.
 
     EXAMPLES::
 
-        sage: P2 = toric_varieties.P2()
-        sage: dP8 = toric_varieties.dP8()
-        sage: f = dP8.hom(identity_matrix(2), P2);  f
+        sage: P1xP1 = toric_varieties.P1xP1()
+        sage: P1 = toric_varieties.P1()
+        sage: f = P1.hom(matrix([[1,0]]), P1xP1);  f
         Scheme morphism:
-          From: 2-d CPR-Fano toric variety covered by 4 affine patches
-          To:   2-d CPR-Fano toric variety covered by 3 affine patches
-          Defn: Defined by sending Rational polyhedral fan in 2-d lattice N
+          From: 1-d CPR-Fano toric variety covered by 2 affine patches
+          To:   2-d CPR-Fano toric variety covered by 4 affine patches
+          Defn: Defined by sending Rational polyhedral fan in 1-d lattice N
                 to Rational polyhedral fan in 2-d lattice N.
         sage: type(f)
         <class 'sage.schemes.toric.morphism.SchemeMorphism_fan_toric_variety'>
@@ -770,7 +868,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
           and ``self`` is equal to `\phi_i \circ \phi_b \circ \phi_s`.
 
         The intermediate varieties are universal in the following sense. Let
-        ``self`` map `X` to `X'` and let `X_s`, `X_i` seat in between, i.e.
+        ``self`` map `X` to `X'` and let `X_s`, `X_i` sit in between, that is,
 
         .. math::
 
@@ -922,7 +1020,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
         Check if ``self`` is a bundle.
 
         See :meth:`~sage.geometry.fan_morphism.FanMorphism.is_bundle`
-        for details.
+        for fan morphisms for details.
 
         OUTPUT:
 
@@ -943,7 +1041,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
 
         See
         :meth:`~sage.geometry.fan_morphism.FanMorphism.is_fibration`
-        for details.
+        for fan morphisms for details.
 
         OUTPUT:
 
@@ -964,17 +1062,28 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
 
         See
         :meth:`~sage.geometry.fan_morphism.FanMorphism.is_injective`
-        for details.
+        for fan morphisms for a description of the toric algorithm.
 
         OUTPUT:
 
-        - ``True`` if ``self`` is injective, ``False`` otherwise.
+        Boolean. Whether ``self`` is injective.
 
         EXAMPLES::
 
             sage: P1xP1 = toric_varieties.P1xP1()
             sage: P1 = toric_varieties.P1()
             sage: P1xP1.hom(matrix([[1],[0]]), P1).is_injective()
+            False
+
+            sage: X = toric_varieties.A(2)
+            sage: m = identity_matrix(2)
+            sage: f = X.hom(m, X)
+            sage: f.is_injective()
+            True
+
+            sage: Y = ToricVariety(Fan([Cone([(1,0), (1,1)])]))
+            sage: f = Y.hom(m, X)
+            sage: f.is_injective()
             False
         """
         return self.fan_morphism().is_injective()
@@ -985,11 +1094,11 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
 
         See
         :meth:`~sage.geometry.fan_morphism.FanMorphism.is_surjective`
-        for details.
+        for fan morphisms for a description of the toric algorithm.
 
         OUTPUT:
 
-        - ``True`` if ``self`` is surjective, ``False`` otherwise.
+        Boolean. Whether ``self`` is surjective.
 
         EXAMPLES::
 
@@ -997,6 +1106,17 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
             sage: P1 = toric_varieties.P1()
             sage: P1xP1.hom(matrix([[1],[0]]), P1).is_surjective()
             True
+
+            sage: X = toric_varieties.A(2)
+            sage: m = identity_matrix(2)
+            sage: f = X.hom(m, X)
+            sage: f.is_surjective()
+            True
+
+            sage: Y = ToricVariety(Fan([Cone([(1,0), (1,1)])]))
+            sage: f = Y.hom(m, X)
+            sage: f.is_surjective()
+            False
         """
         return self.fan_morphism().is_surjective()
 
@@ -1006,11 +1126,11 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
 
         See
         :meth:`~sage.geometry.fan_morphism.FanMorphism.is_birational`
-        for details.
+        for fan morphisms for a description of the toric algorithm.
 
         OUTPUT:
 
-        - ``True`` if ``self`` is birational, ``False`` otherwise.
+        Boolean. Whether ``self`` is birational.
 
         EXAMPLES::
 
@@ -1018,29 +1138,150 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
             sage: P2 = toric_varieties.P2()
             sage: dP8.hom(identity_matrix(2), P2).is_birational()
             True
+
+            sage: X = toric_varieties.A(2)
+            sage: Y = ToricVariety(Fan([Cone([(1,0), (1,1)])]))
+            sage: m = identity_matrix(2)
+            sage: f = Y.hom(m, X)
+            sage: f.is_birational()
+            True
         """
         return self.fan_morphism().is_birational()
+
+    def is_dominant(self):
+        r"""
+        Return whether ``self`` is dominant.
+
+        See
+        :meth:`~sage.geometry.fan_morphism.FanMorphism.is_dominant`
+        for fan morphisms for a description of the toric algorithm.
+
+        OUTPUT:
+
+        Boolean. Whether ``self`` is a dominant scheme morphism.
+
+        EXAMPLES::
+
+            sage: P1 = toric_varieties.P1()
+            sage: A1 = toric_varieties.A1()
+            sage: phi = A1.hom(identity_matrix(1), P1);  phi
+            Scheme morphism:
+              From: 1-d affine toric variety
+              To:   1-d CPR-Fano toric variety covered by 2 affine patches
+              Defn: Defined by sending Rational polyhedral fan in 1-d lattice N 
+                    to Rational polyhedral fan in 1-d lattice N.
+            sage: phi.is_dominant()
+            True
+            sage: phi.is_surjective()
+            False
+        """
+        return self.fan_morphism().is_dominant()
+
+    def pullback_divisor(self, divisor):
+        r"""
+        Pull back a toric divisor.
+
+        INPUT:
+
+        - ``divisor`` -- a torus-invariant QQ-Cartier divisor on the
+          codomain of ``self``.
+
+        OUTPUT:
+
+        The pull-back divisor `f^*(D)`.
+
+        EXAMPLES::
+
+            sage: A2_Z2 = toric_varieties.A2_Z2()
+            sage: A2 = toric_varieties.A2()
+            sage: f = A2.hom( matrix([[1,0],[1,2]]), A2_Z2)
+            sage: f.pullback_divisor(A2_Z2.divisor(0))
+            V(x)
+
+            sage: A1 = toric_varieties.A1()
+            sage: square = A1.hom(matrix([[2]]), A1)
+            sage: D = A1.divisor(0);  D
+            V(z)
+            sage: square.pullback_divisor(D)
+            2*V(z)
+        """
+        from sage.schemes.toric.divisor import is_ToricDivisor
+        if not (is_ToricDivisor(divisor) and divisor.is_QQ_Cartier()):
+            raise ValueError('The divisor must be torus-invariant and QQ-Cartier.')
+        fm = self.fan_morphism()
+        values = []
+        for ray in self.domain().fan().rays():
+            value = divisor.function_value(fm(ray))
+            values.append(value)
+        return self.domain().divisor(values)
+
+
+
+############################################################################
+# A morphism of toric varieties determined by a dominant fan morphism
+class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety):
+    """
+    Construct a morphism determined by a dominant fan morphism
+    
+    A dominant morphism is one that is surjective onto a dense
+    subset. In the context of toric morphisms, this means that it is
+    onto the big torus orbit.
+    
+    .. WARNING::
+
+        You should not create objects of this class directly. Use the
+        :meth:`~sage.schemes.generic.scheme.hom` method of
+        :class:`toric varieties
+        <sage.schemes.toric.variety.ToricVariety_field>`
+        instead.
+
+    INPUT:
+
+    See :class:`SchemeMorphism_fan_toric_variety`. The given fan
+    morphism :meth:`must be dominant
+    <sage.geometry.fan_morphism.FanMorphism.is_dominant>`.
+
+    OUPUT:
+
+    A :class:`~sage.schemes.toric.morphism.SchemeMorphism_fan_toric_variety_dominant`.
+
+    EXAMPLES::
+
+        sage: P2 = toric_varieties.P2()
+        sage: dP8 = toric_varieties.dP8()
+        sage: f = dP8.hom(identity_matrix(2), P2);  f
+        Scheme morphism:
+          From: 2-d CPR-Fano toric variety covered by 4 affine patches
+          To:   2-d CPR-Fano toric variety covered by 3 affine patches
+          Defn: Defined by sending Rational polyhedral fan in 2-d lattice N
+                to Rational polyhedral fan in 2-d lattice N.
+        sage: type(f)
+        <class 'sage.schemes.toric.morphism.SchemeMorphism_fan_toric_variety_dominant'>
+    """
 
     @cached_method
     def fiber_generic(self):
         """
-        Return the generic fiber of ``self``.
+        Return the generic fiber.
+
+        The embedding of the generic fiber is a toric morphism with
+        the :meth:`~sage.geometry.fan_morphism.FanMorphism.domain_fan`
+        being the
+        :meth:`~sage.geometry.fan_morphism.FanMorphism.kernel_fan` of
+        the defining fan morphism. By contrast, embedding the fiber
+        over lower-dimensional torus orbits of the image are not toric
+        morphisms. Use :meth:`fiber_component` for the latter
+        (non-generic) fibers.
 
         OUTPUT:
 
-        - a :class:`toric variety <sage.toric.variety.ToricVariety_field>`.
+        A :class:`toric variety <sage.schemes.toric.variety.ToricVariety_field>`.
 
         This method returns the fiber over the base point with homogeneous
         coordinates `[1:1:\cdots:1]`. Note that fibers of a toric morphism are
         isomorphic over the maximal torus of its image (which can have smaller
         dimension than it codomain), so it makes sense to talk about "the
         generic" fiber.
-
-        The embedding of the generic fiber is a toric morphism with the
-        :meth:`~sage.geometry.fan_morphism.FanMorphism.domain_fan` being the
-        :meth:`kernel_fan` of ``self``. By contrast, embedding of fibers over
-        lower-dimensional torus orbits of the image are not toric morphism. Use
-        :meth:`fiber_component` for the latter (non-generic) fibers.
 
         EXAMPLES::
 
@@ -1070,6 +1311,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
             2-d affine toric variety
             sage: _.fan().cones()
             ((0-d cone of Rational polyhedral fan in 2-d lattice N,),)
+
         """
         from sage.schemes.toric.variety import ToricVariety
         from sage.geometry.toric_lattice import ToricLattice
@@ -1104,21 +1346,23 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
         Return the torus orbit closure in the fiber corresponding to
         ``domain_cone``.
 
+        Let `\phi: \Sigma \to \Sigma'` be the :class:`fan morphism
+        <sage.geometry.fan_morphism.FanMorphism>` corresponding to
+        ``self``. Let `\sigma \in \Sigma` and `\sigma' \in \Sigma'` be
+        the :meth:`~sage.geometry.fan_morphism.FanMorphism.image_cone`
+        of `\sigma`.  The fiber over a generic point corresponding to
+        `\sigma'` is a union of toric varieties intersecting along
+        their torus invariant subvarieties.
+
         INPUT:
 
         - ``domain_cone`` -- a cone of the domain fan of ``self``.
 
         OUTPUT:
 
-        - a :class:`toric variety
-          <sage.schemes.toric.variety.ToricVariety_field>` with the embedding
-          morphism into domain of ``self``.
-
-        Let `\phi: Sigma \to \Sigma'` be the :meth:`fan morphism` corresponding
-        to ``self``. Let `\sigma \in \Sigma` and `\sigma' \in \Sigma'` be the
-        :meth:`~sage.geometry.fan_morphism.FanMorphism.image_cone` of `\sigma`.
-        The fiber over a generic point corresponding to `\sigma'` is a union of
-        toric varieties intersecting along their torus invariant subvarieties.
+        A :class:`toric variety
+        <sage.schemes.toric.variety.ToricVariety_field>` with the
+        embedding morphism into domain of ``self``.
 
         EXAMPLES::
 
@@ -1153,6 +1397,18 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
         r"""
         Return the dimension of the fiber over a particular torus
         orbit in the base.
+
+        INPUT:
+
+        - ``codomain_cone`` -- a cone `\sigma` of the codomain,
+          specifying a torus orbit `O(\sigma)`.
+
+        OUTPUT:
+
+        An integer. The dimension of the fiber over the torus orbit
+        corresponding to ``codomain_cone``. If the fiber is the empty
+        set, ``-1`` is returned. Note that all fibers over this torus
+        orbit are isomorphic, and therefore have the same dimension.
 
         EXAMPLES::
 
@@ -1192,7 +1448,10 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
         base_dim = codomain_cone.dim()
         for c in fm.primitive_preimage_cones(codomain_cone):
             dim.append(base_dim - c.dim())
-        return max(dim) + self.domain().dimension() - self.fan_morphism().matrix().rank()
+        if dim:
+            return max(dim) + self.domain().dimension() - self.fan_morphism().matrix().rank()
+        else:
+            return ZZ(-1)
 
     def fiber_graph(self, codomain_cone):
         r"""
@@ -1258,45 +1517,6 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
         for i in range(0,n):
             graph.set_vertex(i, self.fiber_component(prim[i]))
         return graph
-
-    def pullback_divisor(self, divisor):
-        r"""
-        Pull back a toric divisor.
-
-        INPUT:
-
-        - ``divisor`` -- a torus-invariant QQ-Cartier divisor on the
-          codomain of ``self``.
-
-        OUTPUT:
-
-        The pull-back divisor `f^*(D)`.
-
-        EXAMPLES::
-
-            sage: A2_Z2 = toric_varieties.A2_Z2()
-            sage: A2 = toric_varieties.A2()
-            sage: f = A2.hom( matrix([[1,0],[1,2]]), A2_Z2)
-            sage: f.pullback_divisor(A2_Z2.divisor(0))
-            V(x)
-
-            sage: A1 = toric_varieties.A1()
-            sage: square = A1.hom(matrix([[2]]), A1)
-            sage: D = A1.divisor(0);  D
-            V(z)
-            sage: square.pullback_divisor(D)
-            2*V(z)
-        """
-        from sage.schemes.toric.divisor import is_ToricDivisor
-        if not (is_ToricDivisor(divisor) and divisor.is_QQ_Cartier()):
-            raise ValueError('The divisor must be torus-invariant and QQ-Cartier.')
-        fm = self.fan_morphism()
-        values = []
-        for ray in self.domain().fan().rays():
-            value = divisor.function_value(fm(ray))
-            values.append(value)
-        return self.domain().divisor(values)
-
 
 
 ############################################################################
@@ -1525,6 +1745,19 @@ class SchemeMorphism_fan_fiber_toric_variety(SchemeMorphism):
         OUTPUT:
 
         A cone of the fan of the total space of the toric fibration.
+
+        EXAMPLES::
+
+            sage: P1xP1 = toric_varieties.P1xP1()
+            sage: P1 = toric_varieties.P1()
+            sage: fiber = P1xP1.hom(matrix([[1],[0]]), P1).fiber_component(Cone([(1,0)]))
+            sage: f = fiber.embedding_morphism()
+            sage: f.defining_cone().rays()
+            N(1, 0)
+            in 2-d lattice N
+            sage: f.base_cone().rays()
+            N(1)
+            in 1-d lattice N
         """
         return self._defining_cone
 
@@ -1537,6 +1770,19 @@ class SchemeMorphism_fan_fiber_toric_variety(SchemeMorphism):
         OUTPUT:
 
         A cone of the base of the toric fibration.
+
+        EXAMPLES::
+
+            sage: P1xP1 = toric_varieties.P1xP1()
+            sage: P1 = toric_varieties.P1()
+            sage: fiber = P1xP1.hom(matrix([[1],[0]]), P1).fiber_component(Cone([(1,0)]))
+            sage: f = fiber.embedding_morphism()
+            sage: f.defining_cone().rays()
+            N(1, 0)
+            in 2-d lattice N
+            sage: f.base_cone().rays()
+            N(1)
+            in 1-d lattice N       
         """
         return self._base_cone
 
@@ -1635,79 +1881,3 @@ class SchemeMorphism_fan_fiber_toric_variety(SchemeMorphism):
         return self.domain().divisor(values)
 
 
-    def is_birational(self):
-        r"""
-        Check if ``self`` is birational.
-
-        See
-        :meth:`~sage.geometry.fan_morphism.FanMorphism.is_birational`
-        for a description of the toric algorithm.
-
-        OUTPUT:
-
-        Boolean. Whether ``self`` is birational.
-
-        EXAMPLES::
-
-            sage: X = toric_varieties.A(2)
-            sage: Y = ToricVariety(Fan([Cone([(1,0), (1,1)])]))
-            sage: m = identity_matrix(2)
-            sage: f = Y.hom(m, X)
-            sage: f.is_birational()
-            True
-        """
-        return self.fan_morphism().is_birational()
-
-    def is_injective(self):
-        r"""
-        Check if ``self`` is injective.
-
-        See
-        :meth:`~sage.geometry.fan_morphism.FanMorphism.is_injective`
-        for a description of the toric algorithm.
-
-        OUTPUT:
-
-        Boolean. Whether ``self`` is injective.
-
-        EXAMPLES::
-
-            sage: X = toric_varieties.A(2)
-            sage: m = identity_matrix(2)
-            sage: f = X.hom(m, X)
-            sage: f.is_injective()
-            True
-
-            sage: Y = ToricVariety(Fan([Cone([(1,0), (1,1)])]))
-            sage: f = Y.hom(m, X)
-            sage: f.is_injective()
-            False
-        """
-        return self.fan_morphism().is_injective()
-
-    def is_surjective(self):
-        r"""
-        Check if ``self`` is surjective.
-
-        See
-        :meth:`~sage.geometry.fan_morphism.FanMorphism.is_surjective`
-        for a description of the toric algorithm.
-
-        OUTPUT:
-
-        Boolean. Whether ``self`` is surjective.
-
-        EXAMPLES::
-
-            sage: X = toric_varieties.A(2)
-            sage: m = identity_matrix(2)
-            sage: f = X.hom(m, X)
-            sage: f.is_surjective()
-            True
-
-            sage: Y = ToricVariety(Fan([Cone([(1,0), (1,1)])]))
-            sage: f = Y.hom(m, X)
-            sage: f.is_surjective()
-            False
-        """
-        return self.fan_morphism().is_surjective()

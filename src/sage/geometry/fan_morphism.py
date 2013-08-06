@@ -1244,11 +1244,13 @@ class FanMorphism(FreeModuleMorphism):
 
         - ``True`` if ``self`` is a fibration, ``False`` otherwise.
 
-        A fan morphism `\phi: \Sigma \to \Sigma'` is a **fibration** if for any
-        cone `\sigma' \in \Sigma'` and any primitive preimage cone `\sigma \in
-        \Sigma` corresponding to `\sigma'` the linear map of vector spaces
-        `\phi_\RR` induces a bijection between `\sigma` and `\sigma'`, and, in
-        addition, `\phi_\RR: N_\RR \to N'_\RR$ is surjective.
+        A fan morphism `\phi: \Sigma \to \Sigma'` is a **fibration**
+        if for any cone `\sigma' \in \Sigma'` and any primitive
+        preimage cone `\sigma \in \Sigma` corresponding to `\sigma'`
+        the linear map of vector spaces `\phi_\RR` induces a bijection
+        between `\sigma` and `\sigma'`, and, in addition, `phi` is
+        :meth:`dominant <is_dominant>` (that is, `\phi_\RR: N_\RR \to
+        N'_\RR$ is surjective).
 
         If a fan morphism `\phi: \Sigma \to \Sigma'` is a fibration, then the
         associated morphism between toric varieties `\tilde{\phi}: X_\Sigma \to
@@ -1348,7 +1350,7 @@ class FanMorphism(FreeModuleMorphism):
         associated morphism between toric varieties `\tilde{\phi}: X_\Sigma \to
         X_{\Sigma'}` is injective.
 
-        .. seealso:: :meth:`restrict_to_image`.
+        .. seealso:: :meth:`factor`.
 
         EXAMPLES:
 
@@ -1422,7 +1424,7 @@ class FanMorphism(FreeModuleMorphism):
         X_{\Sigma'}` is surjective.
 
         .. seealso:: :meth:`is_bundle`, :meth:`is_fibration`,
-            :meth:`preimage_cones`.
+            :meth:`preimage_cones`, :meth:`is_complete`.
 
         EXAMPLES:
 
@@ -1449,7 +1451,7 @@ class FanMorphism(FreeModuleMorphism):
 
         TESTS:
 
-        We check that reviewer's example on Trac 11200 works as expected::
+        We check that reviewer's example on :trac:`11200` works as expected::
 
             sage: P1 = toric_varieties.P1()
             sage: A1 = toric_varieties.A1()
@@ -1464,6 +1466,40 @@ class FanMorphism(FreeModuleMorphism):
                 if not self.preimage_cones(sigma_p):
                     return False
         return True
+
+    @cached_method
+    def is_dominant(self):
+        r"""
+        Return whether the fan morphism is dominant.
+
+        A fan morphism $\phi$ is dominant if it is surjective as a map
+        of vector spaces. That is, $\phi_\RR: N_\RR \to N'_\RR$ is
+        surjective.
+
+        If the domain fan is :meth:`complete
+        <sage.geometry.fan.RationalPolyhedralFan.is_complete>`, then
+        this implies that the fan morphism is :meth:`surjective
+        <is_surjective>`.
+
+        If the fan morphism is dominant, then the associated morphism
+        of toric varieties is dominant in the algebraic-geometric
+        sense (that is, surjective onto a dense subset).
+        
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: P1 = toric_varieties.P1()
+            sage: A1 = toric_varieties.A1()
+            sage: phi = FanMorphism(matrix([[1]]), A1.fan(), P1.fan())
+            sage: phi.is_dominant()
+            True
+            sage: phi.is_surjective()
+            False
+        """
+        return self.matrix().rank() == self.codomain_fan().dim()
 
     @cached_method
     def kernel_fan(self):

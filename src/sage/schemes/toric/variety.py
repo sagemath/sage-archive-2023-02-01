@@ -2751,6 +2751,12 @@ class ToricVariety_field(AmbientSpace):
               To:   2-d CPR-Fano toric variety covered by 4 affine patches
               Defn: Defined on coordinates by sending [z0 : z1] to
                     [0 : 1 : z1 : z0]
+
+        TESTS::
+
+            sage: A2 = toric_varieties.A2()
+            sage: A2.orbit_closure(A2.fan(2)[0])
+            0-d affine toric variety
         """
         cone = self.fan().embed(cone)
         cones = []

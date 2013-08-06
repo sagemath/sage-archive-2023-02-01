@@ -113,14 +113,13 @@ def stringdecorator(end_on_blank_line=False):
         except TokenError:
             # something went really wrong
             continue
-        print "transformed to %r"%line
 
 def load_ipython_extension(ipython):
     # The `ipython` argument is the currently active `InteractiveShell`
     # instance, which can be used in any way. This allows you to register
     # new magics or aliases, for example.
-    ipython.input_splitter.physical_line_transforms.prepend(stringdecorator(end_on_blank_line=True))
-    ipython.input_transformer_manager.physical_line_transforms.prepend(stringdecorator(end_on_blank_line=False))
+    ipython.input_splitter.physical_line_transforms.insert(0,stringdecorator(end_on_blank_line=True))
+    ipython.input_transformer_manager.physical_line_transforms.insert(0,stringdecorator(end_on_blank_line=False))
 
 def unload_ipython_extension(ipython):
     # If you want your extension to be unloadable, put that logic here.

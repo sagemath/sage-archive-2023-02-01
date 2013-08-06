@@ -229,64 +229,60 @@ class SageInteractiveShell(TerminalInteractiveShell):
 ###################################################################
 # Transformers used in the SageInputSplitter
 ###################################################################
-# These used to be part of the older PrefilterTransformer framework,
-# but that is not the modern way of doing things. For more details, see
-# http://mail.scipy.org/pipermail/ipython-dev/2011-March/007334.html
+from IPython.core.inputtransformer import (CoroutineInputTransformer,
+                                           StatelessInputTransformer,
+                                           _strip_prompts)
 
-class SagePreparseTransformer():
+@CoroutineInputTransformer.wrap
+def sage_preparse_transformer():
     """
-    Preparse the line of code before it get evaluated by IPython.
+    Implement Sage-specific preparsing (see sage.misc.preparser.preparse)
+
+    EXAMPLES::
+
+        sage: from sage.misc.interpreter import sage_preparse_transformer
+        sage: spt = sage_preparse_transformer()
+        sage: spt.push('1+1r+2.3^2.3r')
+        "Integer(1)+1+RealNumber('2.3')**2.3"
+        sage: preparser(False)
+        sage: spt.push('2.3^2')
+        '2.3^2'
+
+    TESTS:
+
+    Check that syntax errors in the preparser do not crash IPython,
+    see :trac:`14961`. ::
+
+        sage: bad_syntax = "R.<t> = QQ{]"
+        sage: preparse(bad_syntax)
+        Traceback (most recent call last):
+        ...
+        SyntaxError: Mismatched ']'
+        sage: from sage.misc.interpreter import get_test_shell
+        sage: shell = get_test_shell()
+        sage: shell.run_cell(bad_syntax)
+        SyntaxError: Mismatched ']'
     """
-    def __call__(self, line, line_number):
-        """
-        Transform ``line``.
-
-        INPUT:
-
-        - ``line`` -- string. The line to be transformed.
-
-        OUTPUT:
-
-        A string, the transformed line.
-
-        EXAMPLES::
-
-            sage: from sage.misc.interpreter import SagePreparseTransformer
-            sage: spt = SagePreparseTransformer()
-            sage: spt('2', 0)
-            'Integer(2)'
-            sage: preparser(False)
-            sage: spt('2', 0)
-            '2'
-            sage: preparser(True)
-
-        TESTS:
-
-        Check that syntax errors in the preparser do not crash IPython,
-        see :trac:`14961`. ::
-
-            sage: bad_syntax = "R.<t> = QQ{]"
-            sage: preparse(bad_syntax)
-            Traceback (most recent call last):
-            ...
-            SyntaxError: Mismatched ']'
-            sage: from sage.misc.interpreter import get_test_shell
-            sage: shell = get_test_shell()
-            sage: shell.run_cell(bad_syntax)
-            SyntaxError: Mismatched ']'
-        """
-        if do_preparse and not line.startswith('%'):
-            # we use preparse_file instead of just preparse because preparse_file
-            # automatically prepends attached files
+    line = (yield '')
+    while True:
+        if line is None:
+            rline = preparse('', reset=True)
+        elif do_preparse and not line.startswith('%'):
             try:
-                return preparse(line, reset=(line_number==0))
+                rline = preparse(line)
             except SyntaxError as err:
-                print "SyntaxError: {0}".format(err)
-            return ''
+                import traceback
+                traceback.print_exc()
+                rline = preparse('', reset=True)
         else:
-            return line
+            rline = line
+        line = (yield rline)
 
-class MagicTransformer():
+_magic_deprecations = {'load': '%runfile',
+                       'attach': '%attach',
+                       'time': '%time'}
+@StatelessInputTransformer.wrap
+def magic_transformer(line):
     r"""
     Handle input lines that start out like ``load ...`` or ``attach
     ...``.
@@ -295,126 +291,53 @@ class MagicTransformer():
     ``attach``, IPython's automagic will not transform these lines
     into ``%load ...`` and ``%attach ...``, respectively.  Thus, we
     have to do it manually.
-    """
-    deprecations = {'load': '%runfile',
-                    'attach': '%attach',
-                    'time': '%time'}
-    def __call__(self, line, line_number):
-        """
-        Transform ``line``.
-
-        INPUT:
-
-        - ``line`` -- string. The line to be transformed.
-
-        OUTPUT:
-
-        A string, the transformed line.
 
         EXAMPLES::
 
-            sage: from sage.misc.interpreter import get_test_shell, MagicTransformer
-            sage: mt = MagicTransformer()
-            sage: mt('load /path/to/file', 0)
-            doctest:1: DeprecationWarning: Use %runfile instead of load.
+            sage: from sage.misc.interpreter import get_test_shell, magic_transformer
+            sage: mt = magic_transformer()
+            sage: mt.push('load /path/to/file')
+            doctest:...: DeprecationWarning: Use %runfile instead of load.
             See http://trac.sagemath.org/12719 for details.
             '%runfile /path/to/file'
-            sage: mt('attach /path/to/file', 0)
-            doctest:1: DeprecationWarning: Use %attach instead of attach.
+            sage: mt.push('attach /path/to/file')
+            doctest:...: DeprecationWarning: Use %attach instead of attach.
             See http://trac.sagemath.org/12719 for details.
             '%attach /path/to/file'
-            sage: mt('time 1+2', 0)
-            doctest:1: DeprecationWarning: Use %time instead of time.
+            sage: mt.push('time 1+2')
+            doctest:...: DeprecationWarning: Use %time instead of time.
             See http://trac.sagemath.org/12719 for details.
             '%time 1+2'
-        """
-        for old,new in self.deprecations.items():
-            if line.startswith(old+' '):
-                from sage.misc.superseded import deprecation
-                deprecation(12719, 'Use %s instead of %s.'%(new,old))
-                return new+line[len(old):]
-        return line
-
-class SagePromptTransformer():
     """
-    Remove Sage prompts from the input line.
+    global _magic_deprecations
+    for old,new in _magic_deprecations.items():
+        if line.startswith(old+' '):
+            from sage.misc.superseded import deprecation
+            deprecation(12719, 'Use %s instead of %s.'%(new,old))
+            return new+line[len(old):]
+    return line
+
+
+@CoroutineInputTransformer.wrap
+def sage_prompt_transformer():
     """
-    _sage_prompt_re = re.compile(r'(^[ \t]*sage: |^[ \t]*\.+:? )+')
+    Strip the sage:/... prompts of Sage.
 
-    def __call__(self, line, line_number):
-        """
-        Transform ``line``.
+    EXAMPLES::
 
-        INPUT:
-
-        - ``line`` -- string. The line to be transformed.
-
-        OUTPUT:
-
-        A string, the transformed line.
-
-        EXAMPLES::
-
-            sage: from sage.misc.interpreter import SagePromptTransformer
-            sage: spt = SagePromptTransformer()
-            sage: spt("sage: sage: 2 + 2", 0)
-            '2 + 2'
-            sage: spt('', 0)
-            ''
-            sage: spt("      sage: 2+2", 0)
-            '2+2'
-            sage: spt("      ... 2+2", 0)
-            '2+2'
-        """
-        if not line or line.isspace() or line.strip() == '...':
-            # This allows us to recognize multiple input prompts separated by
-            # blank lines and pasted in a single chunk, very common when
-            # pasting doctests or long tutorial passages.
-            return ''
-        while True:
-            m = self._sage_prompt_re.match(line)
-            if m:
-                line = line[len(m.group(0)):]
-            else:
-                break
-        return line
-
-class SagePromptDedenter():
+        sage: from sage.misc.interpreter import sage_prompt_transformer
+        sage: spt = sage_prompt_transformer()
+        sage: spt.push("sage: sage: 2 + 2")
+        '2 + 2'
+        sage: spt.push('')
+        ''
+        sage: spt.push("sage: 2+2")
+        '2+2'
+        sage: spt.push("... .... ....: ...: 2+2")
+        '2+2'
     """
-    Remove leading spaces from the input line.
-    """
-    def __call__(self, line, line_number):
-        """
-        Transform ``line``.
-
-        INPUT:
-
-        - ``line`` -- string. The line to be transformed.
-
-        - ``line_number`` -- integer. The line number. For a single-line input, this is always zero.
-
-        OUTPUT:
-
-        A string, the transformed line.
-
-        EXAMPLES::
-
-            sage: from sage.misc.interpreter import SagePromptDedenter
-            sage: spd = SagePromptDedenter()
-            sage: spd('  1 + \\', 0)
-            '1 + \\'
-            sage: spd('  2', 1)
-            '2'
-            sage: spd('3', 2)   # try our best with incorrect indentation
-            '3'
-        """
-        if line_number == 0:
-            dedent_line = line.lstrip()
-            self._dedent = len(line) - len(dedent_line)
-            return dedent_line
-        else:
-            dedent = min(len(line)-len(line.lstrip()), self._dedent)
-            return line[dedent:]
+    _sage_prompt_re = re.compile(r'^(sage: |\.\.\.\.?:? )+')
+    return _strip_prompts(_sage_prompt_re)
 
 ###################
 # Interface shell #

@@ -22,7 +22,15 @@ Website: http://gf2x.gforge.inria.fr/
 == Dependencies ==
  * None
 
+== Special Update/Build Instructions ==
+
+=== Patches ===
+ * no-undefined.patch: pass -no-undefined flag to libtool.
+
 == Changelog ==
+
+=== gf2x-1.1.p0 (Jean-Pierre Flori, 6 August 2013) ===
+  * Trac #15014: Let gf2x build a shared library on Cygwin.
 
 === gf2x-1.1 (Jean-Pierre Flori, 4 June 2013) ===
   * Trac #2114: gf2x-1.1.

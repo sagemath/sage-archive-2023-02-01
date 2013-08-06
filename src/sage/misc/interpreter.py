@@ -155,7 +155,7 @@ def sage_prompt():
 ####################
 # InteractiveShell #
 ####################
-from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
+from IPython.terminal.interactiveshell import TerminalInteractiveShell
 class SageInteractiveShell(TerminalInteractiveShell):
 
     def system_raw(self, cmd):
@@ -343,7 +343,7 @@ def sage_prompt_transformer():
 # Interface shell #
 ###################
 from IPython.core.prefilter import PrefilterTransformer
-from IPython.frontend.terminal.embed import InteractiveShellEmbed
+from IPython.terminal.embed import InteractiveShellEmbed
 from IPython import Config
 
 class InterfaceShellTransformer(PrefilterTransformer):
@@ -561,7 +561,7 @@ def get_test_shell():
 #######################
 # IPython TerminalApp #
 #######################
-from IPython.frontend.terminal.ipapp import TerminalIPythonApp, IPAppCrashHandler
+from IPython.terminal.ipapp import TerminalIPythonApp, IPAppCrashHandler
 from IPython.core.crashhandler import CrashHandler
 from IPython import Config
 
@@ -621,7 +621,6 @@ class SageTerminalApp(TerminalIPythonApp):
 
 
     def load_config_file(self, *args, **kwds):
-        from IPython.frontend.terminal.ipapp import default_config_file_name
         from IPython.config.loader import PyFileConfigLoader, ConfigFileNotFound
         from IPython.core.profiledir import ProfileDir
         from IPython.utils.path import get_ipython_dir
@@ -634,7 +633,7 @@ class SageTerminalApp(TerminalIPythonApp):
         sage_profile_dir = ProfileDir.find_profile_dir_by_name(
             get_ipython_dir(), 'sage').location
         try:
-            cl = PyFileConfigLoader(default_config_file_name, sage_profile_dir)
+            cl = PyFileConfigLoader('ipython_config.py', sage_profile_dir)
             conf._merge(cl.load_config())
         except ConfigFileNotFound:
             pass

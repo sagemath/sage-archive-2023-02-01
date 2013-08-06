@@ -6985,7 +6985,7 @@ cdef class gen(sage.structure.element.RingElement):
     def bnfissunit(self, sunit_data, x):
         t0GEN(x)
         t1GEN(sunit_data)
-        sig_on()
+        pari_catch_sig_on()
         return self.new_gen(bnfissunit(self.g, t1, t0))
 
     def dirzetak(self, n):

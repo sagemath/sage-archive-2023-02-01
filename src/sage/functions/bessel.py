@@ -351,7 +351,7 @@ class Function_Bessel_J(BuiltinFunction):
         import mpmath
         return mpmath_utils.call(mpmath.besselj, n, x, parent=parent)
 
-    def _derivative_(self, n, x, diff_param=None):
+    def _derivative_(self, n, x, diff_param):
         """
         Return the derivative of the Bessel J function.
 
@@ -360,8 +360,17 @@ class Function_Bessel_J(BuiltinFunction):
             sage: f(z) = bessel_J(10, z)
             sage: derivative(f, z)
             z |--> -1/2*bessel_J(11, z) + 1/2*bessel_J(9, z)
+            sage: nu = var('nu')
+            sage: bessel_J(nu, z).diff(nu)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: derivative with respect to order
+
         """
-        return (bessel_J(n - 1, x) - bessel_J(n + 1, x)) / Integer(2)
+        if diff_param == 1:
+            return (bessel_J(n - 1, x) - bessel_J(n + 1, x)) / Integer(2)
+        else:
+            raise NotImplementedError('derivative with respect to order')
 
     def _print_latex_(self, n, z):
         """
@@ -511,7 +520,7 @@ class Function_Bessel_Y(BuiltinFunction):
         import mpmath
         return mpmath_utils.call(mpmath.bessely, n, x, parent=parent)
 
-    def _derivative_(self, n, x, diff_param=None):
+    def _derivative_(self, n, x, diff_param):
         """
         Return the derivative of the Bessel Y function.
 
@@ -520,8 +529,16 @@ class Function_Bessel_Y(BuiltinFunction):
             sage: f(x) = bessel_Y(10, x)
             sage: derivative(f, x)
             x |--> -1/2*bessel_Y(11, x) + 1/2*bessel_Y(9, x)
+            sage: nu = var('nu')
+            sage: bessel_Y(nu, x).diff(nu)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: derivative with respect to order
         """
-        return (bessel_Y(n - 1, x) - bessel_Y(n + 1, x)) / Integer(2)
+        if diff_param == 1:
+            return (bessel_Y(n - 1, x) - bessel_Y(n + 1, x)) / Integer(2)
+        else:
+            raise NotImplementedError('derivative with respect to order')
 
     def _print_latex_(self, n, z):
         """
@@ -683,7 +700,7 @@ class Function_Bessel_I(BuiltinFunction):
         import mpmath
         return mpmath_utils.call(mpmath.besseli, n, x, parent=parent)
 
-    def _derivative_(self, n, x, diff_param=None):
+    def _derivative_(self, n, x, diff_param):
         """
         Return the derivative of the Bessel I function `I_n(x)` with respect
         to `x`.
@@ -693,8 +710,16 @@ class Function_Bessel_I(BuiltinFunction):
             sage: f(z) = bessel_I(10, x)
             sage: derivative(f, x)
             z |--> 1/2*bessel_I(11, x) + 1/2*bessel_I(9, x)
+            sage: nu = var('nu')
+            sage: bessel_I(nu, x).diff(nu)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: derivative with respect to order
         """
-        return (bessel_I(n - 1, x) + bessel_I(n + 1, x)) / Integer(2)
+        if diff_param == 1:
+            return (bessel_I(n - 1, x) + bessel_I(n + 1, x)) / Integer(2)
+        else:
+            raise NotImplementedError('derivative with respect to order')
 
     def _print_latex_(self, n, z):
         """
@@ -869,7 +894,7 @@ class Function_Bessel_K(BuiltinFunction):
         import mpmath
         return mpmath_utils.call(mpmath.besselk, n, x, parent=parent)
 
-    def _derivative_(self, n, x, diff_param=None):
+    def _derivative_(self, n, x, diff_param):
         """
         Return the derivative of the Bessel K function.
 
@@ -878,8 +903,16 @@ class Function_Bessel_K(BuiltinFunction):
             sage: f(x) = bessel_K(10, x)
             sage: derivative(f, x)
             x |--> 1/2*bessel_K(11, x) + 1/2*bessel_K(9, x)
+            sage: nu = var('nu')
+            sage: bessel_K(nu, x).diff(nu)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: derivative with respect to order
         """
-        return (bessel_K(n - 1, x) + bessel_K(n + 1, x)) / Integer(2)
+        if diff_param == 1:
+            return (bessel_K(n - 1, x) + bessel_K(n + 1, x)) / Integer(2)
+        else:
+            raise NotImplementedError('derivative with respect to order')
 
     def _print_latex_(self, n, z):
         """

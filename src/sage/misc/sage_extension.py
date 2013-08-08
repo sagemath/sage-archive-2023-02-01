@@ -385,3 +385,4 @@ def load_ipython_extension(ip):
     """Load the extension in IPython."""
     # this modifies ip
     SageCustomizations(shell=ip)
+    ip.magic(u'load_ext sage.misc.stringdecorators')

@@ -83,6 +83,7 @@ def stringdecorator(end_on_blank_line=False):
                 # maybe we should just pass %% on to IPython cell decorators
                 # and ignore them here?  That's probably too confusing.
                 code,value,start,end,_ = g.next()
+                continue #ignore cell decorators
             # optionally have a string end marker
             if code==token.STRING:
                 end_marker = literal_eval(value)

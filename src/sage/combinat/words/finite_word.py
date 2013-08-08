@@ -3306,6 +3306,9 @@ exponent %s: the length of the word (%s) times the exponent \
         r"""
         Returns a longest subword of ``self`` and ``other``.
 
+        A subword of a word is a subset of the word's letters, read in the
+        order in which they appear in the word.
+
         For more information, see
         :wikipedia:`Longest_common_subsequence_problem`.
 
@@ -3315,17 +3318,22 @@ exponent %s: the length of the word (%s) times the exponent \
 
         ALGORITHM:
 
-        For any indices `i,j'`, we compute the longest common subword ``lcs[i,j]`` of
-        `self[:i]` and `other[:j]`. This can be easily obtained as the maximum
+        For any indices `i,j`, we compute the longest common subword ``lcs[i,j]`` of
+        `self[:i]` and `other[:j]`. This can be easily obtained as the longest
         of
 
         - ``lcs[i-1,j]``
 
         - ``lcs[i,j-1]``
 
-        - ``lcs[i-1,j-1]+1`` if ``self[i]==other[j]``
+        - ``lcs[i-1,j-1]+self[i]`` if ``self[i]==other[j]``
 
-        EXAMPLE::
+        EXAMPLES::
+
+            sage: v1 = Word("abc")
+            sage: v2 = Word("ace")
+            sage: v1.longest_common_subword(v2)
+            word: ac
 
             sage: w1 = Word("1010101010101010101010101010101010101010")
             sage: w2 = Word("0011001100110011001100110011001100110011")
@@ -3349,17 +3357,17 @@ exponent %s: the length of the word (%s) times the exponent \
 
         # In order to avoid storing lcs[i,j] for each pair i,j of indices, we
         # only store the lcs[i,j] for two consecutive values of i. At any step
-        # of the algorithm, lcs[i,j] is stored at lcs[0][j] and lcs[-1,j] is
+        # of the algorithm, lcs[i,j] is stored at lcs[0][j] and lcs[i-1,j] is
         # stored at lcs[1][j]
-        l1 = self[0]
 
         # The weird +1 that follows exists to make sure that lcs[i,-1] returns
-        # the empty word
+        # the empty word.
         lcs = [[[] for i in range(len(w2)+1)] for j in range(2)]
 
         for i,l1 in enumerate(self):
             for j,l2 in enumerate(other):
-                lcs[0][j] = max(lcs[0][j-1],lcs[1][j],lcs[1][j-1] + ([l1] if l1==l2 else []),key=len)
+                lcs[0][j] = max(lcs[0][j-1], lcs[1][j],
+                                lcs[1][j-1] + ([l1] if l1==l2 else []),key=len)
 
             # Maintaining the meaning of lcs for the next loop
             lcs.pop(1)

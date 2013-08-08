@@ -51,7 +51,7 @@ def SymmetricGroupAlgebra(R, n):
         True
 
     The canonical embedding from the symmetric group algebra of order
-    `n` to the symmetric group algebra of order `p>n` is available as
+    `n` to the symmetric group algebra of order `p > n` is available as
     a coercion::
 
         sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
@@ -98,8 +98,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         TESTS::
 
             sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
-            sage: QS3 is loads(dumps(QS3))
-            True
+            sage: TestSuite(QS3).run()
         """
         self.n = n
         self._name = "Symmetric group algebra of order %s"%self.n
@@ -116,7 +115,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         """
         Return the underlying group.
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: SymmetricGroupAlgebra(QQ,4).group()
             Symmetric group of order 4! as a permutation group
@@ -156,10 +155,10 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         """
         Return the canonical embedding of ``self`` into ``other``.
 
-        INPUTS:
+        INPUT:
 
-         - ``self``, ``other`` -- two symmetric group algebras with respective
-           orders `p` and `n` satisfying `p < n`.
+        - ``other`` -- a symmetric group algebra with order `p`
+          satisfying `p \leq n` where `n` is the order of ``self``.
 
         EXAMPLES::
 
@@ -179,8 +178,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
               From: Symmetric group algebra of order 2 over Rational Field
               To:   Symmetric group algebra of order 4 over Rational Field
         """
-        assert isinstance(other, SymmetricGroupAlgebra_n)
-        assert self.n < other.n
+        if not isinstance(other, SymmetricGroupAlgebra_n) or self.n > other.n:
+            raise ValueError("There is no canonical embedding from {0} to {1}".format(other, self))
         return self.module_morphism(other.monomial_from_smaller_permutation, codomain = other) # category = self.category() (currently broken)
 
     def monomial_from_smaller_permutation(self, permutation):
@@ -271,7 +270,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             TypeError: p (= [2, 2]) must be a partition of n (= 3)
         """
         if p not in partition.Partitions_n(self.n):
-            raise TypeError("p (= %(p)s) must be a partition of n (= %(n)d)" % {'p': p, 'n': self.n})
+            raise TypeError("p (= {p}) must be a partition of n (= {n})".format(p=p, n=self.n))
 
         character_table = eval(gap.eval("Display(Irr(SymmetricGroup(%d)));"%self.n))
 
@@ -295,7 +294,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         list of permutations.
 
         The generators used for the group algebra of `S_n` are the
-        transposition `(2, 1)` and the `n`-cycle `(1, 2, ..., n)`,
+        transposition `(2, 1)` and the `n`-cycle `(1, 2, \ldots, n)`,
         unless `n \leq 1` (in which case no generators are needed).
 
         EXAMPLES::
@@ -369,7 +368,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         res = self.zero()
 
         if k < 1 or k > self.n:
-            raise ValueError("k (= %(k)d) must be between 1 and n (= %(n)d) (inclusive)" % {'k': k, 'n': self.n})
+            raise ValueError("k (= {k}) must be between 1 and n (= {n}) (inclusive)".format(k=k, n=self.n))
 
         for i in range(1, k):
             p = range(1, self.n+1)
@@ -605,14 +604,14 @@ def kappa(alpha):
 
 
 def a(tableau, star=0):
-    """
+    r"""
     The row projection operator corresponding to the Young tableau
     ``tableau`` (which is supposed to contain every integer from
     `1` to its size precisely once, but may and may not be standard).
 
     This is the sum (in the group algebra of the relevant symmetric
-    group over `\\mathbb{Q}`) of all the permutations which preserve
-    the rows of ``tableau``. It is called `a_{\\text{tableau}}` in
+    group over `\QQ`) of all the permutations which preserve
+    the rows of ``tableau``. It is called `a_{\text{tableau}}` in
     [EtRT]_, Section 4.2.
 
     REFERENCES:
@@ -663,15 +662,15 @@ def a(tableau, star=0):
     return sgalg._from_dict(rd)
 
 def b(tableau, star=0):
-    """
+    r"""
     The column projection operator corresponding to the Young tableau
     ``tableau`` (which is supposed to contain every integer from
     `1` to its size precisely once, but may and may not be standard).
 
     This is the signed sum (in the group algebra of the relevant
-    symmetric group over `\\mathbb{Q}`) of all the permutations which
+    symmetric group over `\QQ`) of all the permutations which
     preserve the column of ``tableau`` (where the signs are the usual
-    signs of the permutations). It is called `b_{\\text{tableau}}` in
+    signs of the permutations). It is called `b_{\text{tableau}}` in
     [EtRT]_, Section 4.2.
 
     EXAMPLES::

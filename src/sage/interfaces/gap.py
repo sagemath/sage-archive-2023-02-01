@@ -1451,8 +1451,10 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
         sage: ORIGINAL_WORKSPACE = sage.interfaces.gap.WORKSPACE
         sage: sage.interfaces.gap.GAP_DIR = os.path.join(tmp_dir(), "test_gap_dir")
         sage: sage.interfaces.gap.WORKSPACE = os.path.join(sage.interfaces.gap.GAP_DIR, "test_workspace")
-        sage: gap_reset_workspace()  # long time
-        sage: os.path.isfile(sage.interfaces.gap.WORKSPACE)  # workspace created?
+        sage: os.path.isfile(sage.interfaces.gap.WORKSPACE)  # long time
+        False
+        sage: gap_reset_workspace()                          # long time
+        sage: os.path.isfile(sage.interfaces.gap.WORKSPACE)  # long time
         True
         sage: sage.interfaces.gap.GAP_DIR = ORIGINAL_GAP_DIR
         sage: sage.interfaces.gap.WORKSPACE = ORIGINAL_WORKSPACE

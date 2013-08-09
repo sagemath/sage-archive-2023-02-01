@@ -4862,7 +4862,7 @@ cdef class Matrix(matrix1.Matrix):
                 elif format == 'all':
                     try:
                         alpha_conj = alpha.galois_conjugates(sage.rings.qqbar.QQbar)
-                    except (AttributeError, TypeError):
+                    except AttributeError:
                         msg = ("unable to construct eigenspaces for eigenvalues outside the base field,\n"
                                "try the keyword option: format='galois'")
                         raise NotImplementedError(''.join(msg))
@@ -5181,7 +5181,7 @@ cdef class Matrix(matrix1.Matrix):
                     F = h.root_field('%s%s'%('a',i))
                     try:
                         alpha = F.gen(0).galois_conjugates(QQbar)
-                    except AttributeError, TypeError:
+                    except AttributeError:
                         raise NotImplementedError, "eigenvalues() is not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar"
                     V.extend(alpha*e)
             i+=1
@@ -5271,7 +5271,7 @@ cdef class Matrix(matrix1.Matrix):
                 else:
                     try:
                         eigval_conj = eigval.galois_conjugates(QQbar)
-                    except AttributeError, TypeError:
+                    except AttributeError:
                         raise NotImplementedError, "eigenvectors are not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar"
 
                     for e in eigval_conj:

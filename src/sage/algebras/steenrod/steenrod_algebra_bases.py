@@ -157,7 +157,7 @@ def convert_to_milnor_matrix(n, basis, p=2):
         [0 1]
         [1 1]
         sage: convert_to_milnor_matrix(45, 'milnor')
-        111 x 111 dense matrix over Finite Field of size 2
+        111 x 111 dense matrix over Finite Field of size 2 (use the '.str()' method to see the entries)
         sage: convert_to_milnor_matrix(12,'wall')
         [1 0 0 1 0 0 0]
         [1 1 0 0 0 1 0]
@@ -233,7 +233,7 @@ def convert_from_milnor_matrix(n, basis, p=2):
         [1 1 1 0 0 0 0]
         [1 0 1 0 1 0 1]
         sage: convert_from_milnor_matrix(38,'serre_cartan')
-        72 x 72 dense matrix over Finite Field of size 2
+        72 x 72 dense matrix over Finite Field of size 2 (use the '.str()' method to see the entries)
         sage: x = convert_to_milnor_matrix(20,'wood_y')
         sage: y = convert_from_milnor_matrix(20,'wood_y')
         sage: x*y

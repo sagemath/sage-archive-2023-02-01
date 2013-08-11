@@ -16,5 +16,6 @@ Functions
    sage/functions/wigner
    sage/functions/generalized
    sage/functions/prime_pi
+   sage/functions/min_max
 
 .. include:: ../footer.txt

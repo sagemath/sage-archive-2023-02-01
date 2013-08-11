@@ -25,6 +25,17 @@ AUTHORS:
 cdef class _lazy_attribute(object):
     """
     Cython base class for lazy attributes.
+
+    EXAMPLE:
+
+    Only Python subclasses of this class are supposed to be instantiated::
+
+        sage: from sage.misc.lazy_attribute import _lazy_attribute
+        sage: _lazy_attribute(lambda x:1)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Only instantiate wrapper python class
+
     """
 
     cdef public f
@@ -62,7 +73,7 @@ cdef class _lazy_attribute(object):
             sage: Parent.element_class.__module__
             'sage.misc.lazy_attribute'
         """
-        raise NotImplemented("Only instantiate wrapper python class")
+        raise NotImplementedError("Only instantiate wrapper python class")
 
     def _sage_src_lines_(self):
         r"""

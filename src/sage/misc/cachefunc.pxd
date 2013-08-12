@@ -7,6 +7,8 @@ cdef class CachedFunction(object):
     # cache is not always of type "dict"!
     cdef public object cache
     cdef tuple _default_key
+    cdef bint is_classmethod
+    cdef argfix_init(self)
     cpdef get_cache(self)
     cpdef clear_cache(self)
 

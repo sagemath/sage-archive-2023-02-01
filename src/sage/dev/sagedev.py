@@ -641,8 +641,7 @@ class SageDev(object):
 
             sage: dev.switch_branch('branch2')
             sage: dev.unstash()
-            Use `sage --dev unstash --branch=name` to apply the changes recorded in the stash to your working directory where `name` is one of the following:
-             stash/1
+            stash/1
             sage: dev.unstash('stash/1')
 
         Or we can just discard the changes::

@@ -279,22 +279,47 @@ class SageDev(object):
             sage: dev.create_ticket(base=4)
             A network error ocurred, ticket creation aborted.
             Your command failed because no connection to trac could be established.
+            sage: dev.trac._connected = True
 
         Creating a ticket when in detached HEAD state::
 
-            TODO
+            sage: dev.git.checkout(SUPER_SILENT, 'HEAD', detach=True)
+            sage: UI.append("Summary: ticket detached\ndescription")
+            sage: dev.create_ticket()
+            6
+            sage: dev.git.current_branch()
+            'ticket/6'
 
         Creating a ticket when in the middle of a merge::
 
-            TODO
+            sage: dev.git.checkout(SUPER_SILENT, '-b','merge_branch')
+            sage: with open('merge', 'w') as f: f.write("version 0")
+            sage: dev.git.add(SUPER_SILENT, 'merge')
+            sage: dev.git.commit(SUPER_SILENT, '-m','some change')
+            sage: dev.git.checkout(SUPER_SILENT, 'ticket/6')
+            sage: with open('merge', 'w') as f: f.write("version 1")
+            sage: dev.git.add(SUPER_SILENT, 'merge')
+            sage: dev.git.commit(SUPER_SILENT, '-m','conflicting change')
+            sage: from sage.dev.git_error import GitError
+            sage: try:
+            ....:     dev.git.merge(SUPER_SILENT, 'merge_branch')
+            ....: except GitError: pass
+            sage: UI.append("n")
+            sage: UI.append("Summary: ticket merge\ndescription")
+            sage: dev.create_ticket()
+            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard any changes which are not commited.) [yes/No] n
+            Could not switch to branch ticket/7 because your working directory is not clean.
+            sage: dev.git.reset_to_clean_state()
 
         Creating a ticket with uncommitted changes::
 
-            TODO
-
-        Creating a ticket with conflicting changes::
-
-            TODO
+            sage: open('tracked', 'w').close()
+            sage: dev.git.add(SUPER_SILENT, 'tracked')
+            sage: UI.append("keep")
+            sage: UI.append("Summary: ticket merge\ndescription")
+            sage: dev.create_ticket()
+            You have uncommited changes in your working directory. Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
+            Could not switch to branch ticket/8 because your working directory is not clean.
 
         """
         dependencies = []
@@ -360,7 +385,7 @@ class SageDev(object):
         try:
             self.switch_ticket(ticket)
         except:
-            self._UI.info("An error ocurred while switching to your new branch {0}. Use {1} to manually switch to {0}.".format(branch,self._format_command("switch_ticket",str(ticket))))
+            self._UI.info("Your ticket has been created on trac. However, an error ocurred while switching to your new branch {0}. Use {1} to manually switch to {0}.".format(branch,self._format_command("switch_ticket",str(ticket))))
             raise
 
         return ticket
@@ -1100,7 +1125,7 @@ class SageDev(object):
         states = self.git.get_state()
         if not states:
             return
-        if not self._UI.confirm("Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard any changes which are not commited.)", defalt_no=True):
+        if not self._UI.confirm("Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard any changes which are not commited.)", default_no=True):
             raise OperationCancelledError("User requested not to clean the current state.")
 
         try:

@@ -426,6 +426,7 @@ class SageDev(object):
             sage: bob.git.commit(SUPER_SILENT, allow_empty=True,message="empty commit")
             sage: bob._UI.append("y")
             sage: bob.upload()
+            The branch u/bob/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
 
             sage: alice._chdir()
             sage: alice.switch_ticket(1)
@@ -694,7 +695,9 @@ class SageDev(object):
 
             sage: alice._chdir()
             sage: alice.git.commit(SUPER_SILENT, allow_empty=True, message="alice: empty commit")
+            sage: alice._UI.append("y")
             sage: alice.upload()
+            The branch u/alice/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
 
         Bob downloads the changes for ticket 1::
 
@@ -709,7 +712,9 @@ class SageDev(object):
             sage: open("bobs_file","w").close()
             sage: bob.git.add("bobs_file")
             sage: bob.git.commit(SUPER_SILENT, message="bob: added bobs_file")
+            sage: bob._UI.append("y")
             sage: bob.upload()
+            The branch u/bob/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
 
         Alice commits non-conflicting changes::
 
@@ -912,7 +917,7 @@ class SageDev(object):
             branch = self.git.current_branch()
         except DetachedHeadError:
             self._UI.error("Cannot commit changes when not on any branch.")
-            self._UI.info("Use {0} or {1} to switch to a branch.".format(self._format("switch_branch"), self._format("switch_ticket")))
+            self._UI.info("Use {0} or {1} to switch to a branch.".format(self._format_command("switch_branch"), self._format_command("switch_ticket")))
             raise OperationCancelledError("cannot proceed in detached HEAD mode")
 
         # make sure the index is clean
@@ -936,7 +941,7 @@ class SageDev(object):
                     self.git.add(update=True)
 
                 if not self._UI.confirm("Do you want to commit your changes to branch `{0}`? I will prompt you for a commit message if you do.".format(branch), default_no=False):
-                    self._UI.info("If you want to commit to a different branch/ticket, run {0} or {1} first.".format(self._format("switch_branch"), self._format("switch_ticket")))
+                    self._UI.info("If you want to commit to a different branch/ticket, run {0} or {1} first.".format(self._format_command("switch_branch"), self._format_command("switch_ticket")))
                     raise OperationCancelledError("user does not want to create a commit")
 
                 from tempfile import NamedTemporaryFile
@@ -1036,9 +1041,10 @@ class SageDev(object):
             else:
                 # check whether force is necessary
                 self.git.fetch(SUPER_SILENT, self.git._repository, remote_branch)
-                if not self.git.is_ancestor_of(branch, 'FETCH_HEAD'):
+                if not self.git.is_child_of(branch, 'FETCH_HEAD'):
                     if not force:
-                        self._UI.error("Your changes would discard some of the commints on the remote branch `{0}`. If this is really what you want, use `{1}` to upload your changes.".format(remote_branch, self._format("upload",ticket=ticket,remote_branch=remote_branch,force=True)))
+                        self._UI.error("Not uploading your changes because they would discard some of the commits on the remote branch `{0}`.".format(remote_branch))
+                        self._UI.info("If this is really what you want, use `{0}` to upload your changes.".format(remote_branch, self._format_command("upload",ticket=ticket,remote_branch=remote_branch,force=True)))
                         raise OperationCancelledError("not a fast-forward")
 
             try:

@@ -1997,7 +1997,7 @@ class SageDev(object):
 
     def import_patch(self, patchname=None, url=None, local_file=None, diff_format=None, header_format=None, path_format=None):
         r"""
-        Import a patch into the branch for the current ticket.
+        Import a patch into the current branch.
 
         If ``local_file`` is specified, apply the file it points to.
 
@@ -2006,32 +2006,160 @@ class SageDev(object):
 
         INPUT:
 
-        - ``patchname`` -- a string or ``None`` (default: ``None``)
+        - ``patchname`` -- a string or ``None`` (default: ``None``), passed on
+          to :meth:`download_patch`
 
-        - ``url`` -- a string or ``None`` (default: ``None``)
+        - ``url`` -- a string or ``None`` (default: ``None``), passed on to
+          :meth:`download_patch`
 
-        - ``local_file`` -- a string or ``None`` (default: ``None``)
+        - ``local_file`` -- a string or ``None`` (default: ``None``), if
+          specified, ``url`` and ``patchname`` must be ``None``; instead of
+          downloading the patch, apply this patch file.
+
+        - ``diff_format`` -- a string or ``None`` (default: ``None``), per
+          default the format of the patch file is autodetected; it can be
+          specified explicitly with this parameter
+
+        - ``header_format`` -- a string or ``None`` (default: ``None``), per
+          default the format of the patch header is autodetected; it can be
+          specified explicitly with this parameter
+
+        - ``path_format`` -- a string or ``None`` (default: ``None``), per
+          default the format of the paths is autodetected; it can be specified
+          explicitly with this parameter
+
+        .. NOTE::
+
+            This method calls :meth:`_rewrite_patch` if necessary to rewrite
+            patches which were created for sage before the move to git
+            happened. In other words, this is not just a simple wrapper for
+            ``git am``.
 
         .. SEEALSO::
 
-        - :meth:`download_patch` -- This function downloads a patch to
-          a local file.
+        - :meth:`download_patch` -- download a patch to a local file.
 
-        - :meth:`download` -- This function is used to merge in
-          changes from a git branch rather than a patch.
+        - :meth:`download` -- merges in changes from a git branch rather than a
+          patch.
 
-        TESTS::
+        TESTS:
 
-            TODO
+        Set up a single user for doctesting::
+
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.git_interface import SUPER_SILENT, READ_OUTPUT
+            sage: server = DoctestTracServer()
+            sage: config = DoctestConfig()
+            sage: config['trac']['password'] = 'secret'
+            sage: dev = DoctestSageDevWrapper(config, server)
+            sage: UI = dev._UI
+            sage: dev._pull_master_branch()
+            sage: dev._chdir()
+
+        Create a patch::
+
+            sage: open("tracked", "w").close()
+            sage: open("tracked2", "w").close()
+            sage: import os
+            sage: patchfile = os.path.join(dev._sagedev.tmp_dir,"tracked.patch")
+            sage: dev.git.add(SUPER_SILENT, "tracked", "tracked2")
+            sage: with open(patchfile, "w") as f: f.write(dev.git.diff(READ_OUTPUT, cached=True))
+            sage: dev.git.reset(SUPER_SILENT)
+
+        Applying this patch fails::
+
+            sage: dev.import_patch(local_file=patchfile, path_format="new") # the autodetection of the path format fails since we are not in a sage repository
+            There are untracked files in your working directory:
+            tracked
+            tracked2
+            The patch cannot be imported unless these files are removed.
+
+        After moving away ``tracked`` and ``tracked2``, this works::
+
+            sage: os.unlink("tracked")
+            sage: os.unlink("tracked2")
+            sage: dev.import_patch(local_file=patchfile, path_format="new")
+            Applying: No Subject. Modified: tracked, tracked2
+
+         We create a patch which does not apply::
+
+            sage: with open("tracked", "w") as f: f.write("foo")
+            sage: dev.git.add(SUPER_SILENT, "tracked")
+            sage: with open("tracked", "w") as f: f.write("boo")
+            sage: with open("tracked2", "w") as f: f.write("boo")
+            sage: with open(patchfile, "w") as f: f.write(dev.git.diff(READ_OUTPUT))
+            sage: dev.git.reset_to_clean_working_directory()
+            sage: open("tracked").read()
+            ''
+
+         The import fails::
+
+            sage: UI.append("abort")
+            sage: UI.append("y")
+            sage: dev.import_patch(local_file=patchfile, path_format="new")
+            Applying: No Subject. Modified: tracked, tracked2
+            error: patch failed: tracked:1
+            error: tracked: patch does not apply
+            Patch failed at 0001 No Subject. Modified: tracked, tracked2
+            The copy of the patch that failed is found in:
+               .../rebase-apply/patch
+            <BLANKLINE>
+            The patch does not apply cleanly. Would you like to apply it anyway and create reject files for the parts that do not apply? [yes/No] y
+            Checking patch tracked...
+            error: while searching for:
+            foo
+            error: patch failed: tracked:1
+            Checking patch tracked2...
+            Applying patch tracked with 1 reject...
+            Rejected hunk #1.
+            Applied patch tracked2 cleanly.
+            The patch did not apply cleanly. Please integrate the `.rej` files that were created and resolve conflicts. After you do, type `resolved`. If you want to abort this process, type `abort`. [resolved/abort] abort
+            Removing tracked.rej
+            sage: open("tracked").read()
+            ''
+
+            sage: UI.append("resolved")
+            sage: UI.append("y")
+            sage: dev.import_patch(local_file=patchfile, path_format="new")
+            Applying: No Subject. Modified: tracked, tracked2
+            error: patch failed: tracked:1
+            error: tracked: patch does not apply
+            Patch failed at 0001 No Subject. Modified: tracked, tracked2
+            The copy of the patch that failed is found in:
+               .../rebase-apply/patch
+            <BLANKLINE>
+            The patch does not apply cleanly. Would you like to apply it anyway and create reject files for the parts that do not apply? [yes/No] y
+            Checking patch tracked...
+            error: while searching for:
+            foo
+            error: patch failed: tracked:1
+            Checking patch tracked2...
+            Applying patch tracked with 1 reject...
+            Rejected hunk #1.
+            Applied patch tracked2 cleanly.
+            The patch did not apply cleanly. Please integrate the `.rej` files that were created and resolve conflicts. After you do, type `resolved`. If you want to abort this process, type `abort`. [resolved/abort] resolved
+            Applying: No Subject. Modified: tracked, tracked2
+            Removing tracked.rej
+            sage: open("tracked").read() # we did not actually incorporate the .rej files in this doctest, so nothing has changed
+            ''
+            sage: open("tracked2").read()
+            'boo'
 
         """
         try:
             self.reset_to_clean_state()
-            # TODO: clean untracked, otherwise the add below is not correct
             self.reset_to_clean_working_directory()
         except OperationCancelledError:
             self._UI.error("Cannot import patch. Your working directory is not in a clean state.")
             raise
+
+        untracked = self.git.untracked_files()
+        # do not exclude .patch files here: they would be deleted by reset_to_clean_working_directory() later
+        if untracked:
+            self._UI.error("There are untracked files in your working directory:\n{0}\nThe patch cannot be imported unless these files are removed.".format("\n".join(untracked)))
+            raise OperationCancelledError("untracked files make import impossible")
 
         if not local_file:
             return self.import_patch(
@@ -2052,28 +2180,35 @@ class SageDev(object):
 
             self._UI.info("Trying to apply reformatted patch `%s`"%outfile)
             try:
-                self.git.am(outfile, ignore_whitespace=True, resolvemsg='')
+                self.git.am(outfile, "--resolvemsg= ", ignore_whitespace=True)
             except GitError:
                 if not self._UI.confirm("The patch does not apply cleanly. Would you like to apply it anyway and create reject files for the parts that do not apply?", default=False):
                     self._UI.info("Not applying patch.")
                     self.git.reset_to_clean_state()
+                    self.git.reset_to_clean_working_directory(remove_untracked_files=True)
                     raise OperationCancelledError("User requested to cancel the apply.")
 
                 try:
-                    self.git.apply(output, ignore_whitespace=True, reject=True)
-                except GitError:
-                    if self._UI.select("The patch did not apply cleanly. Please integrate the `.rej` files that were created and resolve conflicts. After you do, type `resolved`. If you want to abort this process, type `abort`.", ("resolved","abort")) == "abort":
-                        self.git.reset_to_clean_state()
-                        self.git.reset_to_clean_working_directory()
-                        raise OperationCancelledError("User requested to cancel the apply.")
+                    try:
+                        self.git.apply(outfile, ignore_whitespace=True, reject=True)
+                    except GitError:
+                        if self._UI.select("The patch did not apply cleanly. Please integrate the `.rej` files that were created and resolve conflicts. After you do, type `resolved`. If you want to abort this process, type `abort`.", ("resolved","abort")) == "abort":
+                            self.git.reset_to_clean_state()
+                            self.git.reset_to_clean_working_directory(remove_untracked_files=True)
+                            raise OperationCancelledError("User requested to cancel the apply.")
+                    else:
+                        self._UI.show("It seemed that the patch would not apply, but in fact it did.")
+                        return
 
-                self._UI.show("It seemed that the patch would not apply, but in fact it did.")
-
-                # TODO: add untracked (except .rej)
-                self.git.add(update=True)
-                self.git.am(resolved=True)
-
-                # TODO: reset to clean to remove the .rej files
+                    self.git.add(SUPER_SILENT, update=True)
+                    untracked = [fname for fname in self.git.untracked_files() if not fname.endswith(".rej")]
+                    if untracked:
+                        self._UI.confirm("The patch will introduce the following new files to the repository:\n{0}\nIs this correct?".format("\n".join(untracked)), default=True)
+                        self.git.add(SUPER_SILENT, *untracked)
+                    self.git.am('--resolvemsg= ', resolved=True)
+                    self._UI.info("A commit on the current branch has been created from the patch.")
+                finally:
+                    self.git.reset_to_clean_working_directory(remove_untracked_files=True)
 
     def download_patch(self, ticket=None, patchname=None, url=None):
         r"""
@@ -3052,7 +3187,7 @@ class SageDev(object):
                 subject = message[0]
                 message = message[1:]
             else:
-                subject = 'No Subject. Modified: %s'%(", ".join(self._detect_patch_modified_files(lines)))
+                subject = 'No Subject. Modified: %s'%(", ".join(sorted(self._detect_patch_modified_files(lines))))
             ret = []
             ret.append('From: %s'%user)
             ret.append('Subject: %s'%subject)

@@ -1380,7 +1380,7 @@ def irreducible_character_freudenthal(hwv, debug=False):
 def branch_weyl_character(chi, R, S, rule="default"):
     r"""
     A Branching rule describes the restriction of representations from
-    a Lie group or algebra G to a smaller one. See for example, R. C.
+    a Lie group or algebra `G` to a smaller one `H`. See for example, R. C.
     King, Branching rules for classical Lie groups using tensor and
     spinor methods. J. Phys. A 8 (1975), 429-449, Howe, Tan and
     Willenbring, Stable branching rules for classical symmetric pairs,
@@ -1392,22 +1392,29 @@ def branch_weyl_character(chi, R, S, rule="default"):
 
     INPUT:
 
-    - ``chi`` - a character of G
+    - ``chi`` -- a character of `G`
 
-    - ``R`` - the Weyl Character Ring of G
+    - ``R`` -- the Weyl Character Ring of `G`
 
-    - ``S`` - the Weyl Character Ring of H
+    - ``S`` -- the Weyl Character Ring of `H`
 
-    - ``rule`` - a set of r dominant weights in H where r is the rank
-      of G.
+    - ``rule`` -- a set of `r` dominant weights in `H` where `r` is the rank
+      of `G` or one of the following:
 
-    You may use a predefined rule by specifying rule = one of"levi",
-    "automorphic", "symmetric", "extended", "orthogonal_sum", "tensor",
-    "triality" or  "miscellaneous". The use of these rules will be
-    explained next. After the examples we will explain how to write
-    your own branching rules for cases that we have omitted.
+      * ``"levi"``
+      * ``"automorphic"``
+      * ``"symmetric"``
+      * ``"extended"``
+      * ``"orthogonal_sum"``
+      * ``"tensor"``
+      * ``"triality"``
+      * ``"miscellaneous"``
 
-    To explain the predefined rules we survey the most important
+    The use of the various input to ``rule`` will be explained next.
+    After the examples we will explain how to write your own branching
+    rules for cases that we have omitted.
+
+    To explain the predefined rules, we survey the most important
     branching rules. These may be classified into several cases, and
     once this is understood, the detailed classification can be read
     off from the Dynkin diagrams. Dynkin classified the maximal
@@ -1422,31 +1429,39 @@ def branch_weyl_character(chi, R, S, rule="default"):
     You may try omitting the rule if it is "obvious". Default
     rules are provided for the following cases:
 
-      ['A',2*s] => ['B',s]
-      ['A',2*s-1] => ['C',s]
-      ['A',2*s-1] => ['D',s]
+    .. MATH::
+
+        \begin{aligned}
+        A_{2s} & \to B_s,
+        \\ A_{2s-1} & \to C_s,
+        \\ A_{2*s-1} & \to D_s.
+        \end{aligned}
 
     The above default rules correspond to embedding the group
-    SO(2s+1), Sp(2s) or SO(2s) into the corresponding general
+    `SO(2s+1)`, `Sp(2s)` or `SO(2s)` into the corresponding general
     or special linear group by the standard representation. Default
-    rules are also specified for
+    rules are also specified for the following cases:
 
-      ['B',s+1] => ['D',s]
-      ['D',s] => ['B',s]
+    .. MATH::
 
-    corresponding to the embedding of O(n) into O(n+1) where
-    n = 2s or 2s+1. Finally, the branching rule for the embedding of
+        \begin{aligned}
+        B_{s+1} & \to D_s,
+        \\ D_s & \to B_s.
+        \end{aligned}
+
+    These correspond to the embedding of `O(n)` into `O(n+1)` where
+    `n = 2s` or `2s + 1`. Finally, the branching rule for the embedding of
     a Levi subgroup is also implemented as a default rule.
 
-    EXAMPLES ::
+    EXAMPLES::
 
-        sage: A1=WeylCharacterRing("A1",style="coroots")
-        sage: A2=WeylCharacterRing("A2",style="coroots")
-        sage: D4=WeylCharacterRing("D4",style="coroots")
-        sage: B3=WeylCharacterRing("B3",style="coroots")
-        sage: B4=WeylCharacterRing("B4",style="coroots")
-        sage: A6=WeylCharacterRing("A6",style="coroots")
-        sage: A7=WeylCharacterRing("A7",style="coroots")
+        sage: A1 = WeylCharacterRing("A1", style="coroots")
+        sage: A2 = WeylCharacterRing("A2", style="coroots")
+        sage: D4 = WeylCharacterRing("D4", style="coroots")
+        sage: B3 = WeylCharacterRing("B3", style="coroots")
+        sage: B4 = WeylCharacterRing("B4", style="coroots")
+        sage: A6 = WeylCharacterRing("A6", style="coroots")
+        sage: A7 = WeylCharacterRing("A7", style="coroots")
         sage: def try_default_rule(R,S): return [R(f).branch(S) for f in R.fundamental_weights()]
         sage: try_default_rule(A2,A1)
         [A1(0) + A1(1), A1(0) + A1(1)]
@@ -2075,15 +2090,16 @@ def get_branching_rule(Rtype, Stype, rule):
 
     INPUT:
 
-    - ``R`` -- the Weyl Character Ring of G
+    - ``R`` -- the Weyl Character Ring of `G`
 
-    - ``S`` -- the Weyl Character Ring of H
+    - ``S`` -- the Weyl Character Ring of `H`
 
     - ``rule`` -- a string describing the branching rule as a map from
-      the weight space of S to the weight space of R.
+      the weight space of `S` to the weight space of `R`.
 
-    If the rule parameter is omitted, in a very few cases, default
-    rule is supplied.
+    If the rule parameter is omitted, in a very few cases, a default
+    rule is supplied. See
+    :func:`~sage.combinat.root_system.weyl_characters.branch_weyl_character`.
 
     EXAMPLES::
 
@@ -2098,30 +2114,32 @@ def get_branching_rule(Rtype, Stype, rule):
     if Stype.is_compound():
         stypes = Stype.component_types()
     if rule == "default":
-        if Rtype.is_compound():
-            raise ValueError, "No default rule found (you must specify the rule)"
-        if Stype.is_compound() and s == r-1:
-            try:
-                return get_branching_rule(Rtype, Stype, rule="levi")
-            except:
-                raise ValueError, "No default rule found (you must specify the rule)"
-        if Rtype[0] == "A" and Stype[0] == "B" and r == 2*s:
-            return get_branching_rule(Rtype, Stype, rule="symmetric")
-        elif Rtype[0] == "A" and Stype[0] == "C" and r == 2*s-1:
-            return get_branching_rule(Rtype, Stype, rule="symmetric")
-        elif Rtype[0] == "A" and Stype[0] == "D" and r == 2*s-1:
-            return get_branching_rule(Rtype, Stype, rule="symmetric")
-        elif Rtype[0] == "B" and Stype[0] == "D" and r == s:
-            return get_branching_rule(Rtype, Stype, rule="extended")
-        elif Rtype[0] == "D" and Stype[0] == "B" and r == s+1:
-            return get_branching_rule(Rtype, Stype, rule="symmetric")
-        elif s == r-1:
-            try:
-                return get_branching_rule(Rtype, Stype, rule="levi")
-            except:
-                raise ValueError, "No default rule found (you must specify the rule)"
-        else:
-            raise ValueError, "No default rule found (you must specify the rule)"
+        if not Rtype.is_compound():
+            if Stype.is_compound() and s == r-1:
+                try:
+                    return get_branching_rule(Rtype, Stype, rule="levi")
+                except StandardError:
+                    pass
+
+            if Rtype[0] == "A":
+                if Stype[0] == "B" and r == 2*s:
+                    return get_branching_rule(Rtype, Stype, rule="symmetric")
+                elif Stype[0] == "C" and r == 2*s-1:
+                    return get_branching_rule(Rtype, Stype, rule="symmetric")
+                elif Stype[0] == "D" and r == 2*s-1:
+                    return get_branching_rule(Rtype, Stype, rule="symmetric")
+            elif Rtype[0] == "B" and Stype[0] == "D" and r == s:
+                return get_branching_rule(Rtype, Stype, rule="extended")
+            elif Rtype[0] == "D" and Stype[0] == "B" and r == s+1:
+                return get_branching_rule(Rtype, Stype, rule="symmetric")
+
+            if s == r-1:
+                try:
+                    return get_branching_rule(Rtype, Stype, rule="levi")
+                except StandardError:
+                    pass
+
+        raise ValueError("No default rule found (you must specify the rule)")
     elif rule == "levi":
         if not s == r-1:
             raise ValueError, "Incompatible ranks"

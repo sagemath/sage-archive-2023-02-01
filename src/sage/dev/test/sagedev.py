@@ -1,8 +1,53 @@
+r"""
+SageDev objects for doctesting
+
+This module provides special versions of :class:`sage.dev.sagedev.SageDev` and
+:class:`sage.dev.sagedev_wrapper.SageDevWrapper` which are suitable for
+doctesting.
+
+AUTHORS:
+
+- Julian Rueth: initial version
+
+"""
+#*****************************************************************************
+#       Copyright (C) 2013 Julian Rueth <julian.rueth@fsfe.org>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 import sage.dev.sagedev
 import sage.dev.sagedev_wrapper
 
 class DoctestSageDevWrapper(sage.dev.sagedev_wrapper.SageDevWrapper):
+    r"""
+    A :class:`sage.dev.sagedev_wrapper.SageDevWrapper` for doctesting.
+
+    EXAMPLES::
+
+        sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
+        sage: from sage.dev.test.config import DoctestConfig
+        sage: from sage.dev.test.trac_server import DoctestTracServer
+        sage: DoctestSageDevWrapper(DoctestConfig(), DoctestTracServer())
+        SageDev()
+
+    """
     def __init__(self, config, trac_server):
+        r"""
+        Initialization.
+
+        TESTS::
+
+            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: type(DoctestSageDevWrapper(DoctestConfig(), DoctestTracServer()))
+            <class 'sage.dev.test.sagedev.DoctestSageDevWrapper'>
+
+        """
         sagedev = DoctestSageDev(config, trac_server)
         sage.dev.sagedev_wrapper.SageDevWrapper.__init__(self, sagedev)
 
@@ -12,7 +57,31 @@ class DoctestSageDevWrapper(sage.dev.sagedev_wrapper.SageDevWrapper):
         self._wrap("_pull_master_branch")
 
 class DoctestSageDev(sage.dev.sagedev.SageDev):
+    r"""
+    A :class:`sage.dev.sagedev.SageDev` for doctesting.
+
+    EXAMPLES::
+
+        sage: from sage.dev.test.sagedev import DoctestSageDev
+        sage: from sage.dev.test.config import DoctestConfig
+        sage: from sage.dev.test.trac_server import DoctestTracServer
+        sage: DoctestSageDev(DoctestConfig(), DoctestTracServer())
+        SageDev()
+
+    """
     def __init__(self, config, trac_server):
+        r"""
+        Initialization.
+
+        TESTS::
+
+            sage: from sage.dev.test.sagedev import DoctestSageDev
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: type(DoctestSageDev(DoctestConfig(), DoctestTracServer()))
+            <class 'sage.dev.test.sagedev.DoctestSageDev'>
+
+        """
         from user_interface import DoctestUserInterface
         UI = DoctestUserInterface(config['UI'])
         from trac_interface import DoctestTracInterface
@@ -26,6 +95,19 @@ class DoctestSageDev(sage.dev.sagedev.SageDev):
         sage.dev.sagedev.SageDev.__init__(self, config, UI, trac, git)
 
     def _pull_master_branch(self):
+        r"""
+        Pull the master branch of the repository of the
+        :class:`trac_server.DoctestTracServer` into the local repository.
+
+        EXAMPLES::
+
+            sage: from sage.dev.test.sagedev import DoctestSageDev
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: dev = DoctestSageDev(DoctestConfig(), DoctestTracServer())
+            sage: dev._pull_master_branch()
+
+        """
         from sage.dev.git_interface import SUPER_SILENT
         import os
         old_cwd = os.getcwd()
@@ -38,6 +120,19 @@ class DoctestSageDev(sage.dev.sagedev.SageDev):
             os.chdir(old_cwd)
 
     def _chdir(self):
+        r"""
+        Change the current working directory to the directory of the git
+        repository of this object.
+
+        EXAMPLES::
+
+            sage: from sage.dev.test.sagedev import DoctestSageDev
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: dev = DoctestSageDev(DoctestConfig(), DoctestTracServer())
+            sage: dev._chdir()
+
+        """
         import os
         os.chdir(self.config['git']['src'])
 

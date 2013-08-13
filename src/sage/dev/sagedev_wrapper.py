@@ -85,6 +85,7 @@ class SageDevWrapper(object):
         """
         self._sagedev = sagedev
 
+        self._wrap("add_comment")
         self._wrap("commit")
         self._wrap("create_ticket")
         self._wrap("download")

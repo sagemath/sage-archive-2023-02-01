@@ -1727,19 +1727,41 @@ class SageDev(object):
 
             :meth:`create_ticket`, :meth:`edit_ticket`
 
-        TESTS::
+        TESTS:
 
-            TODO
+        Set up a single user for doctesting::
+
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: server = DoctestTracServer()
+            sage: config = DoctestConfig()
+            sage: config['trac']['password'] = 'secret'
+            sage: dev = DoctestSageDevWrapper(config, server)
+            sage: UI = dev._UI
+            sage: dev._pull_master_branch()
+            sage: dev._chdir()
+
+        Create a ticket and add a comment::
+
+            sage: UI.append("Summary: summary1\ndescription")
+            sage: dev.create_ticket()
+            1
+            sage: UI.append("comment")
+            sage: dev.add_comment()
+            sage: server.tickets[1].comments
+            ['comment']
 
         """
         if ticket is None:
-            ticket = self.current_ticket()
+            ticket = self._current_ticket()
 
         if ticket is None:
             raise SageDevValueError("ticket must be specified if not currently on a ticket.")
 
+        self._check_ticket_name(ticket, exists=True)
         ticket = self._ticket_from_ticket_name(ticket)
-        self.trac.add_comment(ticket)
+        self.trac.add_comment_interactive(ticket)
 
     def browse_ticket(self, ticket=None):
         r"""

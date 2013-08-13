@@ -779,8 +779,10 @@ class SageDev(object):
             sage: bob.git.add("bobs_file")
             sage: bob.git.commit(SUPER_SILENT, message="bob: added bobs_file")
             sage: bob._UI.append("y")
+            sage: bob._UI.append("y")
             sage: bob.upload()
             The branch u/bob/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            I will now change the branch field of ticket #1 from its current value `u/alice/ticket/1` to `u/bob/ticket/1`. Is this really what you want? [Yes/no] y
 
         Alice commits non-conflicting changes::
 
@@ -806,7 +808,11 @@ class SageDev(object):
             sage: with open("alices_file","w") as f: f.write("2")
             sage: bob.git.add("alices_file")
             sage: bob.git.commit(SUPER_SILENT, message="bob: added alices_file")
+            sage: bob._UI.append('y')
             sage: bob.upload()
+            I will now upload the following new commits to the remote branch `u/bob/ticket/1`:
+            ...: bob: added alices_file
+            Is this really what you want? [Yes/no] y
 
         Now, the download fails; one would have to use :meth:`merge`::
 
@@ -835,7 +841,11 @@ class SageDev(object):
             sage: open("bobs_other_file","w").close()
             sage: bob.git.add(SUPER_SILENT, "bobs_other_file")
             sage: bob.git.commit(SUPER_SILENT, message="bob: added bobs_other_file")
+            sage: bob._UI.append('y')
             sage: bob.upload()
+            I will now upload the following new commits to the remote branch `u/bob/ticket/1`:
+            ...: bob: added bobs_other_file
+            Is this really what you want? [Yes/no] y
 
             sage: alice._chdir()
             sage: alice.download()
@@ -1140,11 +1150,128 @@ class SageDev(object):
 
         TESTS::
 
-            TODO
+        Create a doctest setup with two users::
+
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.git_interface import SUPER_SILENT
+            sage: server = DoctestTracServer()
+            sage: config_alice = DoctestConfig('alice')
+            sage: config_alice['trac']['password'] = 'secret'
+            sage: alice = DoctestSageDevWrapper(config_alice, server)
+            sage: alice._pull_master_branch()
+
+            sage: config_bob = DoctestConfig('bob')
+            sage: config_bob['trac']['password'] = 'secret'
+            sage: bob = DoctestSageDevWrapper(config_bob, server)
+            sage: bob._pull_master_branch()
+
+        Alice tries to upload to ticket 1 which does not exist yet::
+
+            sage: alice._chdir()
+            sage: alice.upload(ticket=1)
+            ValueError: `1` is not a valid ticket name or ticket does not exist on trac.
+
+        Alice creates ticket 1 and uploads some changes to it::
+
+            sage: alice._UI.append("Summary: summary1\ndescription")
+            sage: ticket = alice.create_ticket()
+            sage: open("tracked", "w").close()
+            sage: alice.git.add(SUPER_SILENT, "tracked")
+            sage: alice.git.commit(SUPER_SILENT, message="alice: added tracked")
+            sage: alice._UI.append("y")
+            sage: alice.upload()
+            The branch u/alice/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+
+        Now Bob can switch to that ticket and upload changes himself::
+
+            sage: bob._chdir()
+            sage: bob.switch_ticket(1)
+            sage: with open("tracked", "w") as f: f.write("bob")
+            sage: bob.git.add(SUPER_SILENT, "tracked")
+            sage: bob.git.commit(SUPER_SILENT, message="bob: modified tracked")
+            sage: bob._UI.append("y")
+            sage: bob._UI.append("y")
+            sage: bob.upload()
+            The branch u/bob/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            I will now change the branch field of ticket #1 from its current value `u/alice/ticket/1` to `u/bob/ticket/1`. Is this what you want? [Yes/no] y
+
+        Now Alice can download these changes::
+
+            sage: alice._chdir()
+            sage: alice.download()
+
+        Alice and Bob make non-conflicting changes simultaneously::
+
+            sage: with open("tracked", "w") as f: f.write("alice")
+            sage: alice.git.add(SUPER_SILENT, "tracked")
+            sage: alice.git.commit(SUPER_SILENT, message="alice: modified tracked")
+
+            sage: bob._chdir()
+            sage: open("tracked2", "w").close()
+            sage: bob.git.add(SUPER_SILENT, "tracked2")
+            sage: bob.git.commit(SUPER_SILENT, message="bob: added tracked2")
+
+        After Alice uploaded her changes, Bob can not set the branch field anymore::
+
+            sage: alice._chdir()
+            sage: alice._UI.append("y")
+            sage: alice._UI.append("y")
+            sage: alice.upload()
+            I will now upload the following new commits to the remote branch `u/alice/ticket/1`:
+            ...: alice: modified tracked
+            ...: bob: modified tracked
+            Is this what you want? [Yes/no] y
+            I will now change the branch field of ticket #1 from its current value `u/bob/ticket/1` to `u/alice/ticket/1`. Is this what you want? [Yes/no] y
+
+            sage: bob._chdir()
+            sage: bob._UI.append("y")
+            sage: bob.upload()
+            I will now upload the following new commits to the remote branch `u/bob/ticket/1`:
+            ...: bob: added tracked2
+            Is this what you want? [Yes/no] y
+            Not setting the branch field for ticket #1 to `u/bob/ticket/1` because `u/bob/ticket/1` and the current value of the branch field `u/alice/ticket/1` have diverged.
+
+        After merging the changes, this works again::
+
+            sage: bob.download()
+            sage: bob._UI.append("y")
+            sage: bob._UI.append("y")
+            sage: bob.upload()
+            I will now upload the following new commits to the remote branch `u/bob/ticket/1`:
+            ...: Merge branch 'u/alice/ticket/1' of ... into ticket/1
+            ...: alice: modified tracked
+            Is this what you want? [Yes/no] y
+            I will now change the branch field of ticket #1 from its current value `u/alice/ticket/1` to `u/bob/ticket/1`. Is this what you want? [Yes/no] y
+
+        Check that ``ticket`` works::
+
+            sage: bob.upload(2)
+            ValueError: `2` is not a valid ticket name or ticket does not exist on trac.
+
+        After creating the ticket, this works with a warning::
+
+            sage: bob._UI.append("Summary: summary2\ndescription")
+            sage: bob.create_ticket()
+            2
+            sage: bob.switch_ticket(1)
+            sage: bob._UI.append("y")
+            sage: bob._UI.append("y")
+            sage: bob.upload(2)
+            You are trying to push the branch `ticket/1` to `u/bob/ticket/2` for ticket #2. However, your local branch for ticket #2 seems to be `ticket/2`. Do you really want to proceed? [yes/No] y
+            The branch u/bob/ticket/2 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+
+        Check that ``remote_branch`` works::
+
+            sage: bob._UI.append("y")
+            sage: bob._UI.append("y")
+            sage: bob.upload(remote_branch="u/bob/branch1")
+            The branch u/bob/branch1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            I will now change the branch field of ticket #1 from its current value `u/bob/ticket/1` to `u/bob/branch1`. Is this what you want? [Yes/no] y
 
         """
         from git_interface import SUPER_SILENT
-        #TODO: add some self._UI.confirm messages to tell the user what is happening
 
         if ticket is None:
             ticket = self._current_ticket()
@@ -1171,31 +1298,55 @@ class SageDev(object):
 
         self._check_remote_branch_name(remote_branch)
 
-        if ticket is not None:
-            if self._has_local_branch_for_ticket(ticket) and self._local_branch_for_ticket(ticket) != branch:
-                raise NotImplementedError # ask the user if this is really what should happen
-            # TODO: do the same the other way round: check if the current branch belongs to a different ticket
+        # whether the user already confirmed that he really wants to push and set the branch field
+        user_confirmation = force
 
+        if ticket is not None:
+            if self._has_local_branch_for_ticket(ticket) and self._local_branch_for_ticket(ticket) == branch:
+                pass
+            elif self._has_local_branch_for_ticket(ticket) and self._local_branch_for_ticket(ticket) != branch:
+                if user_confirmation or self._UI.confirm("You are trying to push the branch `{0}` to `{1}` for ticket #{2}. However, your local branch for ticket #{2} seems to be `{3}`. Do you really want to proceed?".format(branch, remote_branch, ticket, self._local_branch_for_ticket(ticket)), default_no = True):
+                    self._UI.info("To permanently set the branch associated to ticket #{0} to `{1}`, use `{2}`.".format(ticket, branch, self._format_command("switch_ticket",ticket=ticket,branch=branch)))
+                    user_confirmation = True
+                else:
+                    raise OperationCancelledError("user requsted")
+            elif self._has_ticket_for_local_branch(branch) and self._ticket_for_local_branch(branch) != ticket:
+                if user_confirmation or self._UI.confirm("You are trying to push the branch `{0}` to `{1}` for ticket #{2}. However, that branch is associated to ticket #{3}. Do you really want to proceed?".format(branch, remote_branch, ticket, self._ticket_for_local_branch(branch))):
+                    self._UI.info("To permanently set the branch associated to ticket #{0} to `{1}`, use `{2}`. To create a new branch from `{1}` for #{0}, use `{3}` and `{4}`.".format(ticket, branch, self._format_command("switch_ticket",ticket=ticket,branch=branch), self._format_command("switch_ticket",ticket=ticket), self._format_command("merge", branch=branch)))
+                    user_confirmation = True
 
         self._UI.info("Uploading your changes in `{0}` to `{1}`.".format(branch, remote_branch))
         try:
-            if self._is_remote_branch_name(remote_branch, exists=False):
+            remote_branch_exists = self._is_remote_branch_name(remote_branch, exists=True)
+            if not remote_branch_exists:
                 if not self._UI.confirm("The branch {0} does not exist on the remote server yet. Do you want to create the branch?".format(remote_branch), default_no=False):
                     raise OperationCancelledError("User did not want to create remote branch.")
             else:
-                # check whether force is necessary
                 self.git.fetch(SUPER_SILENT, self.git._repository, remote_branch)
-                if not self.git.is_child_of(branch, 'FETCH_HEAD'):
-                    if not force:
-                        self._UI.error("Not uploading your changes because they would discard some of the commits on the remote branch `{0}`.".format(remote_branch))
-                        self._UI.info("If this is really what you want, use `{0}` to upload your changes.".format(remote_branch, self._format_command("upload",ticket=ticket,remote_branch=remote_branch,force=True)))
-                        raise OperationCancelledError("not a fast-forward")
 
-            try:
-                self.git.push(SUPER_SILENT, self.git._repository, "{0}:{1}".format(self.git.current_branch(), remote_branch))
-            except GitError as e:
-                # can we give any advice if this fails?
-                raise
+            # check whether force is necessary
+            if remote_branch_exists and not self.git.is_child_of(branch, 'FETCH_HEAD'):
+                if not force:
+                    self._UI.error("Not uploading your changes because they would discard some of the commits on the remote branch `{0}`.".format(remote_branch))
+                    self._UI.info("If this is really what you want, use `{0}` to upload your changes.".format(remote_branch, self._format_command("upload",ticket=ticket,remote_branch=remote_branch,force=True)))
+                    raise OperationCancelledError("not a fast-forward")
+
+            # check whether this is a nop
+            if remote_branch_exists and not force and self.git.commit_for_branch(branch) == self.git.commit_for_branch('FETCH_HEAD'):
+                self._UI.info("Not uploading your changes because the remote branch `{0}` is idential to your local branch `{1}`. Did you forget to commit your changes with `{2}`?".format(remote_branch, branch, self._format_command("commit")))
+            else:
+                try:
+                    if not force:
+                        if remote_branch_exists:
+                            from git_interface import READ_OUTPUT
+                            commits = self.git.log(READ_OUTPUT, "{0}..{1}".format('FETCH_HEAD', branch), '--pretty=%h: %s')
+                            if not self._UI.confirm("I will now upload the following new commits to the remote branch `{0}`:\n{1}Is this what you want?".format(remote_branch, commits), default_no=False):
+                                raise OperationCancelledError("user requested")
+
+                    self.git.push(SUPER_SILENT, self.git._repository, "{0}:{1}".format(branch, remote_branch), force=force)
+                except GitError as e:
+                    # can we give any advice if this fails?
+                    raise
 
             self._UI.info("Your changes in `{0}` have been uploaded to `{1}`.".format(branch, remote_branch))
 
@@ -1205,19 +1356,28 @@ class SageDev(object):
 
 
         if ticket:
-            self._UI.info("Setting the branch field of ticket #{0} to `{1}`.".format(ticket, remote_branch))
-
             current_remote_branch = self.trac._branch_for_ticket(ticket)
-            if current_remote_branch is None:
-                comment = ""
+            if current_remote_branch == remote_branch:
+                self._UI.info("Not setting the branch field for ticket #{0} because it already points to your branch `{1}`.".format(ticket, remote_branch))
             else:
-                self.git.fetch(SUPER_SILENT, self.git._repository, current_remote_branch)
-                # TODO: only if this is a fast-forward
+                self._UI.info("Setting the branch field of ticket #{0} to `{1}`.".format(ticket, remote_branch))
 
-            attributes = self.trac._get_attributes(ticket)
-            attributes['branch'] = remote_branch
-            self.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
+                if current_remote_branch is not None:
+                    self.git.fetch(SUPER_SILENT, self.git._repository, current_remote_branch)
+                    if force or self.git.is_ancestor_of('FETCH_HEAD', branch):
+                        pass
+                    else:
+                        self._UI.error("Not setting the branch field for ticket #{0} to `{1}` because `{1}` and the current value of the branch field `{2}` have diverged.".format(ticket, remote_branch, current_remote_branch))
+                        self._UI.info("If you really want to overwrite the branch field use `{0}`. Otherwise, you need to merge in the changes introduced by `{0}` by using `{1}`.".format(self._format_command("upload",ticket=ticket,remote_branch=remote_branch,force=True), self._format_command("download", ticket=ticket)))
+                        raise OperationCancelledError("not a fast-forward")
 
+                if current_remote_branch is not None and not force and not user_confirmation:
+                    if not self._UI.confirm("I will now change the branch field of ticket #{0} from its current value `{1}` to `{2}`. Is this what you want?".format(ticket, current_remote_branch, remote_branch), default_no=False):
+                        raise OperationCancelledError("user requested")
+
+                attributes = self.trac._get_attributes(ticket)
+                attributes['branch'] = remote_branch
+                self.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
 
         if ticket:
             old_dependencies = self.trac.dependencies(ticket)
@@ -1230,6 +1390,8 @@ class SageDev(object):
                 attributes = self.trac._get_attributes(ticket)
                 attributes['dependencies'] = new_dependencies
                 self.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
+            elif new_dependencies:
+                self._UI.info("Not uploading your dependencies for ticket #{0} because the dependencies on trac are already up-to-date.".format(ticket))
 
     def reset_to_clean_state(self):
         #TODO: docstring

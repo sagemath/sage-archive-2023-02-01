@@ -29,6 +29,7 @@ AUTHORS:
 from user_interface_error import OperationCancelledError
 from trac_error import TracConnectionError, TracInternalError, TracError
 from git_error import GitError
+from git_interface import SUPER_SILENT
 
 import re
 # regular expressions to parse mercurial patches
@@ -712,7 +713,6 @@ class SageDev(object):
             raise
 
         try:
-            from sage.dev.git_interface import SUPER_SILENT
             self.git.checkout(SUPER_SILENT, branch)
         except GitError as e:
             # the error message should be self explanatory
@@ -905,7 +905,6 @@ class SageDev(object):
             self.reset_to_clean_working_directory()
 
             try:
-                from sage.dev.git_interface import SUPER_SILENT
                 self.git.pull(SUPER_SILENT, self.git._repository, remote_branch)
             except GitError as e:
                 # this might fail because the pull did not resolve as a
@@ -917,7 +916,6 @@ class SageDev(object):
                 raise
         else:
             try:
-                from sage.dev.git_interface import SUPER_SILENT
                 self.git.fetch(SUPER_SILENT, self.git._repository, "{0}:{1}".format(remote_branch, branch))
             except GitError as e:
                 # there is not many scenarios in which this can fail - the most
@@ -1006,7 +1004,6 @@ class SageDev(object):
             raise OperationCancelledError("cannot proceed in detached HEAD mode")
 
         # make sure the index is clean
-        from git_interface import SUPER_SILENT
         self.git.reset(SUPER_SILENT)
 
         try:
@@ -1280,8 +1277,6 @@ class SageDev(object):
             I will now change the branch field of ticket #1 from its current value `u/bob/ticket/1` to `u/bob/branch1`. Is this what you want? [Yes/no] y
 
         """
-        from git_interface import SUPER_SILENT
-
         if ticket is None:
             ticket = self._current_ticket()
         if ticket is not None:
@@ -1553,7 +1548,6 @@ class SageDev(object):
             branch = self._new_local_branch_for_stash()
             try:
                 try:
-                    from git_interface import SUPER_SILENT
                     self.git.stash(SUPER_SILENT)
                     try:
                         self._UI.info("Creating a new branch `{0}` which contains your stashed changes.".format(branch))
@@ -1651,7 +1645,6 @@ class SageDev(object):
 
         self.reset_to_clean_state()
 
-        from git_interface import SUPER_SILENT
         try:
             self.git.cherry_pick(SUPER_SILENT, branch, no_commit=True)
         except GitError as e:
@@ -3576,7 +3569,6 @@ class SageDev(object):
             return True
 
         from git_error import GitError
-        from git_interface import SUPER_SILENT
         try:
             self.git.ls_remote(SUPER_SILENT, self.git._repository, name, exit_code=True)
             remote_exists = True

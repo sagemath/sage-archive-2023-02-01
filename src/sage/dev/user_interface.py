@@ -83,7 +83,7 @@ class UserInterface(object):
         """
         raise NotImplementedError
 
-    def confirm(self, question, default_no=False):
+    def confirm(self, question, default=None):
         r"""
         Ask a yes/no question and return the response as a boolean.
 
@@ -91,8 +91,8 @@ class UserInterface(object):
 
         - ``question`` -- a string
 
-        - ``default_no`` -- boolean (default: ``False``), whether to default to
-          no
+        - ``default_no`` -- a boolean or ``None`` (default: ``None``), the
+          default value
 
         TESTS::
 
@@ -105,7 +105,16 @@ class UserInterface(object):
             NotImplementedError
 
         """
-        return self.select(question, ("yes", "no"), int(default_no)) == "yes"
+        if default is None:
+            default_option = None
+        elif default is True:
+            default_option = 0
+        elif default is False:
+            default_option = 1
+        else:
+            raise ValueError
+
+        return self.select(question, ("yes", "no"), default_option) == "yes"
 
     def get_input(self, prompt):
         r"""

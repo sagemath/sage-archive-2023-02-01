@@ -221,7 +221,7 @@ class TracInterface(object):
             self.__password = self._UI.get_password('Trac password:')
             store_password = self._config.get('store_password', None)
             if store_password is None:
-                store_password = "yes" if self._UI.confirm("Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.)", default_no=True) else "no"
+                store_password = "yes" if self._UI.confirm("Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.)", default=False) else "no"
                 if store_password == "no":
                     self._config['store_password'] = store_password # remember the user's decision (if negative) and do not ask every time
 
@@ -779,7 +779,7 @@ class TracInterface(object):
 
                 self._UI.show("TicketSyntaxError: "+error.message)
 
-                if not self._UI.confirm("Do you want to try to fix your ticket file?", default_no=False):
+                if not self._UI.confirm("Do you want to try to fix your ticket file?", default=True):
                     ret = None
                     break
 

@@ -1005,9 +1005,9 @@ class SageDev(object):
             try:
                 untracked_files = self.git.untracked_files()
                 if untracked_files:
-                    if self._UI.confirm("The following files in your working directory are not tracked by git:\n{0}\nDo you want to add any of these files in this commit?".format("\n".join([" "+fname for fname in untracked_files])), default_no=True):
+                    if self._UI.confirm("The following files in your working directory are not tracked by git:\n{0}\nDo you want to add any of these files in this commit?".format("\n".join([" "+fname for fname in untracked_files])), default=False):
                         for file in untracked_files:
-                            if self._UI.confirm("Do you want to add `{0}`?".format(file), default_no=True):
+                            if self._UI.confirm("Do you want to add `{0}`?".format(file), default=False):
                                 self.git.add(file)
 
                 if interactive:
@@ -1015,7 +1015,7 @@ class SageDev(object):
                 else:
                     self.git.add(update=True)
 
-                if not self._UI.confirm("Do you want to commit your changes to branch `{0}`? I will prompt you for a commit message if you do.".format(branch), default_no=False):
+                if not self._UI.confirm("Do you want to commit your changes to branch `{0}`? I will prompt you for a commit message if you do.".format(branch), default=True):
                     self._UI.info("If you want to commit to a different branch/ticket, run {0} or {1} first.".format(self._format_command("switch_branch"), self._format_command("switch_ticket")))
                     raise OperationCancelledError("user does not want to create a commit")
 
@@ -1305,7 +1305,7 @@ class SageDev(object):
             if self._has_local_branch_for_ticket(ticket) and self._local_branch_for_ticket(ticket) == branch:
                 pass
             elif self._has_local_branch_for_ticket(ticket) and self._local_branch_for_ticket(ticket) != branch:
-                if user_confirmation or self._UI.confirm("You are trying to push the branch `{0}` to `{1}` for ticket #{2}. However, your local branch for ticket #{2} seems to be `{3}`. Do you really want to proceed?".format(branch, remote_branch, ticket, self._local_branch_for_ticket(ticket)), default_no = True):
+                if user_confirmation or self._UI.confirm("You are trying to push the branch `{0}` to `{1}` for ticket #{2}. However, your local branch for ticket #{2} seems to be `{3}`. Do you really want to proceed?".format(branch, remote_branch, ticket, self._local_branch_for_ticket(ticket)), default=False):
                     self._UI.info("To permanently set the branch associated to ticket #{0} to `{1}`, use `{2}`.".format(ticket, branch, self._format_command("switch_ticket",ticket=ticket,branch=branch)))
                     user_confirmation = True
                 else:
@@ -1319,7 +1319,7 @@ class SageDev(object):
         try:
             remote_branch_exists = self._is_remote_branch_name(remote_branch, exists=True)
             if not remote_branch_exists:
-                if not self._UI.confirm("The branch {0} does not exist on the remote server yet. Do you want to create the branch?".format(remote_branch), default_no=False):
+                if not self._UI.confirm("The branch {0} does not exist on the remote server yet. Do you want to create the branch?".format(remote_branch), default=True):
                     raise OperationCancelledError("User did not want to create remote branch.")
             else:
                 self.git.fetch(SUPER_SILENT, self.git._repository, remote_branch)
@@ -1340,7 +1340,7 @@ class SageDev(object):
                         if remote_branch_exists:
                             from git_interface import READ_OUTPUT
                             commits = self.git.log(READ_OUTPUT, "{0}..{1}".format('FETCH_HEAD', branch), '--pretty=%h: %s')
-                            if not self._UI.confirm("I will now upload the following new commits to the remote branch `{0}`:\n{1}Is this what you want?".format(remote_branch, commits), default_no=False):
+                            if not self._UI.confirm("I will now upload the following new commits to the remote branch `{0}`:\n{1}Is this what you want?".format(remote_branch, commits), default=True):
                                 raise OperationCancelledError("user requested")
 
                     self.git.push(SUPER_SILENT, self.git._repository, "{0}:{1}".format(branch, remote_branch), force=force)
@@ -1372,7 +1372,7 @@ class SageDev(object):
                         raise OperationCancelledError("not a fast-forward")
 
                 if current_remote_branch is not None and not force and not user_confirmation:
-                    if not self._UI.confirm("I will now change the branch field of ticket #{0} from its current value `{1}` to `{2}`. Is this what you want?".format(ticket, current_remote_branch, remote_branch), default_no=False):
+                    if not self._UI.confirm("I will now change the branch field of ticket #{0} from its current value `{1}` to `{2}`. Is this what you want?".format(ticket, current_remote_branch, remote_branch), default=True):
                         raise OperationCancelledError("user requested")
 
                 attributes = self.trac._get_attributes(ticket)
@@ -1450,7 +1450,7 @@ class SageDev(object):
         states = self.git.get_state()
         if not states:
             return
-        if not self._UI.confirm("Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.)", default_no=True):
+        if not self._UI.confirm("Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.)", default=False):
             raise OperationCancelledError("User requested not to clean the current state.")
 
         self.git.reset_to_clean_state()
@@ -1820,7 +1820,7 @@ class SageDev(object):
             try:
                 self.git.am(outfile, ignore_whitespace=True, resolvemsg='')
             except GitError:
-                if not self._UI.confirm("The patch does not apply cleanly. Would you like to apply it anyway and create reject files for the parts that do not apply?", default_no=True):
+                if not self._UI.confirm("The patch does not apply cleanly. Would you like to apply it anyway and create reject files for the parts that do not apply?", default=False):
                     self._UI.info("Not applying patch.")
                     self.git.reset_to_clean_state()
                     raise OperationCancelledError("User requested to cancel the apply.")
@@ -1991,7 +1991,7 @@ class SageDev(object):
 
         """
         raise NotImplementedError # the below does most probably not work anymore
-        if self._UI.confirm("Are you sure you want to delete your work on %s?"%self._ticket_repr(ticketnum), default_no=True):
+        if self._UI.confirm("Are you sure you want to delete your work on %s?"%self._ticket_repr(ticketnum), default=False):
             self.git.abandon(ticketnum)
 
     def gather(self, branchname, *tickets, **kwds):
@@ -2037,7 +2037,7 @@ class SageDev(object):
         if self.git.commit_for_branch(branchname):
             if not self._UI.confirm("The branch %s already "%branchname+
                                     "exists; do you want to merge into it?",
-                                    default_no=True):
+                                    default=False):
                 return
             self.git.execute_supersilent("checkout", branchname)
         else:

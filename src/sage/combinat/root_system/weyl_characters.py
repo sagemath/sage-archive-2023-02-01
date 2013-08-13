@@ -1419,6 +1419,54 @@ def branch_weyl_character(chi, R, S, rule="default"):
     also give some branching rules to subgroups that are not maximal.
     For example, a Levi subgroup may or may not be maximal.
 
+    You may try omitting the rule if it is "obvious". Default
+    rules are provided for the following cases:
+
+      ['A',2*s] => ['B',s]
+      ['A',2*s-1] => ['C',s]
+      ['A',2*s-1] => ['D',s]
+
+    The above default rules correspond to embedding the group
+    SO(2s+1), Sp(2s) or SO(2s) into the corresponding general
+    or special linear group by the standard representation. Default
+    rules are also specified for
+
+      ['B',s+1] => ['D',s]
+      ['D',s] => ['B',s]
+
+    corresponding to the embedding of O(n) into O(n+1) where
+    n = 2s or 2s+1. Finally, the branching rule for the embedding of
+    a Levi subgroup is also implemented as a default rule.
+
+    EXAMPLES ::
+
+        sage: A1=WeylCharacterRing("A1",style="coroots")
+        sage: A2=WeylCharacterRing("A2",style="coroots")
+        sage: D4=WeylCharacterRing("D4",style="coroots")
+        sage: B3=WeylCharacterRing("B3",style="coroots")
+        sage: B4=WeylCharacterRing("B4",style="coroots")
+        sage: A6=WeylCharacterRing("A6",style="coroots")
+        sage: A7=WeylCharacterRing("A7",style="coroots")
+        sage: def try_default_rule(R,S): return [R(f).branch(S) for f in R.fundamental_weights()]
+        sage: try_default_rule(A2,A1)
+        [A1(0) + A1(1), A1(0) + A1(1)]
+        sage: try_default_rule(D4,B3)
+        [B3(0,0,0) + B3(1,0,0), B3(1,0,0) + B3(0,1,0), B3(0,0,1), B3(0,0,1)]
+        sage: try_default_rule(B4,D4)
+        [D4(0,0,0,0) + D4(1,0,0,0), D4(1,0,0,0) + D4(0,1,0,0),
+        D4(0,1,0,0) + D4(0,0,1,1), D4(0,0,1,0) + D4(0,0,0,1)]
+        sage: try_default_rule(A7,D4)
+        [D4(1,0,0,0), D4(0,1,0,0), D4(0,0,1,1), D4(0,0,2,0) + D4(0,0,0,2),
+        D4(0,0,1,1),
+        D4(0,1,0,0),
+        D4(1,0,0,0)]
+        sage: try_default_rule(A6,B3)
+        [B3(1,0,0), B3(0,1,0), B3(0,0,2), B3(0,0,2), B3(0,1,0), B3(1,0,0)]
+
+    If a default rule is not known, you may cue Sage as to what the
+    Lie group embedding is by supplying a rule from the list of
+    predefined rules. We will treat these next.
+
     LEVI TYPE. These can be read off from the Dynkin diagram. If
     removing a node from the Dynkin diagram produces another Dynkin
     diagram, there is a branching rule. Currently we require that the
@@ -2034,6 +2082,9 @@ def get_branching_rule(Rtype, Stype, rule):
     - ``rule`` -- a string describing the branching rule as a map from
       the weight space of S to the weight space of R.
 
+    If the rule parameter is omitted, in a very few cases, default
+    rule is supplied.
+
     EXAMPLES::
 
        sage: rule = get_branching_rule(CartanType("A3"),CartanType("C2"),"symmetric")
@@ -2047,7 +2098,30 @@ def get_branching_rule(Rtype, Stype, rule):
     if Stype.is_compound():
         stypes = Stype.component_types()
     if rule == "default":
-        return lambda x : x
+        if Rtype.is_compound():
+            raise ValueError, "No default rule found (you must specify the rule)"
+        if Stype.is_compound() and s == r-1:
+            try:
+                return get_branching_rule(Rtype, Stype, rule="levi")
+            except:
+                raise ValueError, "No default rule found (you must specify the rule)"
+        if Rtype[0] == "A" and Stype[0] == "B" and r == 2*s:
+            return get_branching_rule(Rtype, Stype, rule="symmetric")
+        elif Rtype[0] == "A" and Stype[0] == "C" and r == 2*s-1:
+            return get_branching_rule(Rtype, Stype, rule="symmetric")
+        elif Rtype[0] == "A" and Stype[0] == "D" and r == 2*s-1:
+            return get_branching_rule(Rtype, Stype, rule="symmetric")
+        elif Rtype[0] == "B" and Stype[0] == "D" and r == s:
+            return get_branching_rule(Rtype, Stype, rule="extended")
+        elif Rtype[0] == "D" and Stype[0] == "B" and r == s+1:
+            return get_branching_rule(Rtype, Stype, rule="symmetric")
+        elif s == r-1:
+            try:
+                return get_branching_rule(Rtype, Stype, rule="levi")
+            except:
+                raise ValueError, "No default rule found (you must specify the rule)"
+        else:
+            raise ValueError, "No default rule found (you must specify the rule)"
     elif rule == "levi":
         if not s == r-1:
             raise ValueError, "Incompatible ranks"

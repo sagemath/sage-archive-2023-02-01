@@ -318,7 +318,9 @@ class SageDev(object):
             sage: UI.append("keep")
             sage: UI.append("Summary: ticket merge\ndescription")
             sage: dev.create_ticket()
-            You have uncommited changes in your working directory. Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
+            The following files in your working directory contain uncommitted changes:
+             tracked
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
             Could not switch to branch ticket/8 because your working directory is not clean.
 
         """
@@ -516,7 +518,9 @@ class SageDev(object):
             sage: alice.git.add(SUPER_SILENT, "tracked")
             sage: alice._UI.append('d')
             sage: alice.switch_ticket(2)
-            You have uncommited changes in your working directory. Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] d
+            The following files in your working directory contain uncommitted changes:
+             tracked
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] d
 
         """
         self._check_ticket_name(ticket, exists=True)
@@ -619,14 +623,18 @@ class SageDev(object):
             sage: with open("tracked", "w") as f: f.write("foo")
             sage: dev._UI.append("keep")
             sage: dev.switch_branch("branch1")
-            You have uncommited changes in your working directory. Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
+            The following files in your working directory contain uncommitted changes:
+             tracked
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
             Could not switch to branch branch1 because your working directory is not clean.
 
         We can stash uncommitted changes::
 
             sage: dev._UI.append("s")
             sage: dev.switch_branch("branch1")
-            You have uncommited changes in your working directory. Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] s
+            The following files in your working directory contain uncommitted changes:
+             tracked
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] s
             Your changes have been recorded on a new branch `stash/1`.
 
         And unstash the changes later::
@@ -641,7 +649,9 @@ class SageDev(object):
 
             sage: dev._UI.append("d")
             sage: dev.switch_branch("branch1")
-            You have uncommited changes in your working directory. Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] d
+            The following files in your working directory contain uncommitted changes:
+             tracked
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] d
 
         Switching branches when in the middle of a merge::
 
@@ -674,7 +684,9 @@ class SageDev(object):
             sage: with open('tracked', 'w') as f: f.write("boo")
             sage: dev._UI.append("discard")
             sage: dev.switch_branch('branch1')
-            You have uncommited changes in your working directory. Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] discard
+            The following files in your working directory contain uncommitted changes:
+             tracked
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] discard
 
         Switching branches with untracked files that would be overwritten by
         the switch::
@@ -1492,7 +1504,9 @@ class SageDev(object):
             sage: with open("tracked", "w") as f: f.write("foo")
             sage: dev._UI.append("discard")
             sage: dev.reset_to_clean_working_directory()
-            You have uncommited changes in your working directory. Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] discard
+            The following files in your working directory contain uncommitted changes:
+             tracked
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] discard
             sage: dev.reset_to_clean_working_directory()
 
         Uncommitted changes can be kept::
@@ -1500,13 +1514,17 @@ class SageDev(object):
             sage: with open("tracked", "w") as f: f.write("foo")
             sage: dev._UI.append("keep")
             sage: dev.reset_to_clean_working_directory()
-            You have uncommited changes in your working directory. Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
+            The following files in your working directory contain uncommitted changes:
+             tracked
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
 
         Or stashed::
 
             sage: dev._UI.append("stash")
             sage: dev.reset_to_clean_working_directory()
-            You have uncommited changes in your working directory. Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] stash
+            The following files in your working directory contain uncommitted changes:
+             tracked
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] stash
             Your changes have been recorded on a new branch `stash/1`.
             sage: dev.reset_to_clean_working_directory()
 
@@ -1520,8 +1538,9 @@ class SageDev(object):
         if not self.git.has_uncommitted_changes():
             return
 
-        #TODO: which files are affected?
-        sel = self._UI.select("You have uncommited changes in your working directory. Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later?", options=('discard','keep','stash'), default=1)
+        from git_interface import READ_OUTPUT
+        files = "\n".join([line[2:] for line in self.git.status(READ_OUTPUT, porcelain=True).splitlines() if not line.startswith('?')])
+        sel = self._UI.select("The following files in your working directory contain uncommitted changes:\n{0}\nDo you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later?".format(files), options=('discard','keep','stash'), default=1)
         if sel == 'discard':
             self.git.reset_to_clean_working_directory()
         elif sel == 'keep':

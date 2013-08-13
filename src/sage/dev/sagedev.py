@@ -1771,7 +1771,7 @@ class SageDev(object):
 
         - ``ticket`` -- an integer or string identifying a ticket or ``None``
           (default: ``None``), the number of the ticket to edit. If ``None``,
-          edit the :meth:`current_ticket`.
+          browse the :meth:`_current_ticket`.
 
         .. SEEALSO::
 
@@ -1783,7 +1783,7 @@ class SageDev(object):
 
         """
         if ticket is None:
-            ticket = self.current_ticket()
+            ticket = self._current_ticket()
 
         if ticket is None:
             raise SageDevValueError("ticket must be specified if not currently on a ticket.")
@@ -2031,7 +2031,7 @@ class SageDev(object):
                 else:
                     raise SageDevValueError("Ticket #%s has more than one attachment but parameter `patchname` is not present."%ticket)
         elif not patchname:
-            return self.download_patch(ticket=self.current_ticket())
+            return self.download_patch(ticket=self._current_ticket())
         else:
             raise SageDevValueError("If `url` is not specified, `ticket` must be specified")
 
@@ -2217,7 +2217,7 @@ class SageDev(object):
         """
         raise NotImplementedError # the below does most probably not work anymore
         if ticket is None:
-            ticket = self.current_ticket()
+            ticket = self._current_ticket()
         try:
             branchname = self._branch[ticket]
         except KeyError:

@@ -307,7 +307,7 @@ class SageDev(object):
             sage: UI.append("n")
             sage: UI.append("Summary: ticket merge\ndescription")
             sage: dev.create_ticket()
-            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard any changes which are not commited.) [yes/No] n
+            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] n
             Could not switch to branch ticket/7 because your working directory is not clean.
             sage: dev.git.reset_to_clean_state()
 
@@ -1394,18 +1394,66 @@ class SageDev(object):
                 self._UI.info("Not uploading your dependencies for ticket #{0} because the dependencies on trac are already up-to-date.".format(ticket))
 
     def reset_to_clean_state(self):
-        #TODO: docstring
+        r"""
+        Reset the current working directory to a clean state.
+
+        TESTS:
+
+        Set up a single user for doctesting::
+
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.git_interface import SUPER_SILENT
+            sage: server = DoctestTracServer()
+            sage: config = DoctestConfig()
+            sage: config['trac']['password'] = 'secret'
+            sage: dev = DoctestSageDevWrapper(config, server)
+            sage: UI = dev._UI
+            sage: dev._pull_master_branch()
+            sage: dev._chdir()
+
+        Nothing happens if the directory is already clean::
+
+            sage: dev.reset_to_clean_state()
+
+        Bring the directory into a non-clean state::
+
+            sage: dev.git.checkout(SUPER_SILENT, b="branch1")
+            sage: with open("tracked", "w") as f: f.write("boo")
+            sage: dev.git.add(SUPER_SILENT, "tracked")
+            sage: dev.git.commit(SUPER_SILENT, message="added tracked")
+
+            sage: dev.git.checkout(SUPER_SILENT, 'HEAD~')
+            sage: dev.git.checkout(SUPER_SILENT, b="branch2")
+            sage: with open("tracked", "w") as f: f.write("foo")
+            sage: dev.git.add(SUPER_SILENT, "tracked")
+            sage: dev.git.commit(SUPER_SILENT, message="added tracked")
+            sage: from sage.dev.git_error import GitError
+            sage: try:
+            ....:     dev.git.merge(SUPER_SILENT, "branch1")
+            ....: except GitError: pass
+            sage: dev._UI.append("n")
+            sage: dev.reset_to_clean_state()
+            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] n
+            sage: dev._UI.append("y")
+            sage: dev.reset_to_clean_state()
+            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] y
+            sage: dev.reset_to_clean_state()
+
+        A detached HEAD does not count as a non-clean state::
+
+            sage: dev.git.checkout(SUPER_SILENT, 'HEAD', detach=True)
+            sage: dev.reset_to_clean_state()
+
+        """
         states = self.git.get_state()
         if not states:
             return
-        if not self._UI.confirm("Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard any changes which are not commited.)", default_no=True):
+        if not self._UI.confirm("Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.)", default_no=True):
             raise OperationCancelledError("User requested not to clean the current state.")
 
-        try:
-            self.git.reset_to_clean_state()
-        except:
-            #TODO: what should happen here?
-            raise
+        self.git.reset_to_clean_state()
 
     def reset_to_clean_working_directory(self):
         r"""

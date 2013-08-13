@@ -621,7 +621,7 @@ class SageDev(object):
             sage: dev.git.add(SUPER_SILENT, "tracked")
             sage: dev.git.commit(SUPER_SILENT, message="added tracked")
             sage: with open("tracked", "w") as f: f.write("foo")
-            sage: dev._UI.append("keep")
+            sage: UI.append("keep")
             sage: dev.switch_branch("branch1")
             The following files in your working directory contain uncommitted changes:
              tracked
@@ -630,7 +630,7 @@ class SageDev(object):
 
         We can stash uncommitted changes::
 
-            sage: dev._UI.append("s")
+            sage: UI.append("s")
             sage: dev.switch_branch("branch1")
             The following files in your working directory contain uncommitted changes:
              tracked
@@ -647,7 +647,7 @@ class SageDev(object):
 
         Or we can just discard the changes::
 
-            sage: dev._UI.append("d")
+            sage: UI.append("d")
             sage: dev.switch_branch("branch1")
             The following files in your working directory contain uncommitted changes:
              tracked
@@ -667,7 +667,7 @@ class SageDev(object):
             sage: try:
             ....:     dev.git.merge(SUPER_SILENT, 'merge_branch')
             ....: except GitError: pass
-            sage: dev._UI.append('n')
+            sage: UI.append('n')
             sage: dev.switch_branch('merge_branch')
             Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] n
             Could not switch to branch merge_branch because your working directory is not clean.
@@ -682,7 +682,7 @@ class SageDev(object):
 
             sage: dev.git.checkout(SUPER_SILENT, 'branch2', detach=True)
             sage: with open('tracked', 'w') as f: f.write("boo")
-            sage: dev._UI.append("discard")
+            sage: UI.append("discard")
             sage: dev.switch_branch('branch1')
             The following files in your working directory contain uncommitted changes:
              tracked
@@ -963,7 +963,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -1079,7 +1078,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -1445,10 +1443,10 @@ class SageDev(object):
             sage: try:
             ....:     dev.git.merge(SUPER_SILENT, "branch1")
             ....: except GitError: pass
-            sage: dev._UI.append("n")
+            sage: UI.append("n")
             sage: dev.reset_to_clean_state()
             Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] n
-            sage: dev._UI.append("y")
+            sage: UI.append("y")
             sage: dev.reset_to_clean_state()
             Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] y
             sage: dev.reset_to_clean_state()
@@ -1502,7 +1500,7 @@ class SageDev(object):
             sage: dev.git.add(SUPER_SILENT, "tracked")
             sage: dev.git.commit(SUPER_SILENT, message="added tracked")
             sage: with open("tracked", "w") as f: f.write("foo")
-            sage: dev._UI.append("discard")
+            sage: UI.append("discard")
             sage: dev.reset_to_clean_working_directory()
             The following files in your working directory contain uncommitted changes:
              tracked
@@ -1512,7 +1510,7 @@ class SageDev(object):
         Uncommitted changes can be kept::
 
             sage: with open("tracked", "w") as f: f.write("foo")
-            sage: dev._UI.append("keep")
+            sage: UI.append("keep")
             sage: dev.reset_to_clean_working_directory()
             The following files in your working directory contain uncommitted changes:
              tracked
@@ -1520,7 +1518,7 @@ class SageDev(object):
 
         Or stashed::
 
-            sage: dev._UI.append("stash")
+            sage: UI.append("stash")
             sage: dev.reset_to_clean_working_directory()
             The following files in your working directory contain uncommitted changes:
              tracked
@@ -1594,7 +1592,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -1609,7 +1606,7 @@ class SageDev(object):
             (no stashes)
             sage: with open("tracked", "w") as f: f.write("foo")
             sage: dev.git.add("tracked")
-            sage: dev._UI.append("s")
+            sage: UI.append("s")
             sage: dev.reset_to_clean_working_directory()
             The following files in your working directory contain uncommitted changes:
              tracked
@@ -1617,7 +1614,7 @@ class SageDev(object):
             Your changes have been recorded on a new branch `stash/1`.
             sage: with open("tracked", "w") as f: f.write("boo")
             sage: dev.git.add("tracked")
-            sage: dev._UI.append("s")
+            sage: UI.append("s")
             sage: dev.reset_to_clean_working_directory()
             The following files in your working directory contain uncommitted changes:
              tracked
@@ -1688,7 +1685,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -1697,12 +1693,12 @@ class SageDev(object):
             sage: dev._pull_master_branch()
             sage: dev._chdir()
 
-        Create a ticket::
+        Create a ticket and edit it::
 
-            sage: dev._UI.append("Summary: summary1\ndescription")
+            sage: UI.append("Summary: summary1\ndescription")
             sage: dev.create_ticket()
             1
-            sage: dev._UI.append("Summary: summary1\ndescription...")
+            sage: UI.append("Summary: summary1\ndescription...")
             sage: dev.edit_ticket()
             sage: dev.trac._get_attributes(1)
             {'description': 'description...', 'summary': 'summary1'}
@@ -1726,7 +1722,7 @@ class SageDev(object):
 
         - ``ticket`` -- an integer or string identifying a ticket or ``None``
           (default: ``None``), the number of the ticket to edit. If ``None``,
-          edit the :meth:`current_ticket`.
+          edit the :meth:`_current_ticket`.
 
         .. SEEALSO::
 
@@ -3141,7 +3137,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDev
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -3197,7 +3192,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDev
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -3243,7 +3237,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDev
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -3289,7 +3282,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDev
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -3347,7 +3339,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDev
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -3404,7 +3395,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDev
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -3460,11 +3450,11 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDev
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
             sage: dev = DoctestSageDev(config, server)
+            sage: UI = dev._UI
             sage: dev._pull_master_branch()
             sage: dev._chdir()
 
@@ -3479,7 +3469,7 @@ class SageDev(object):
             ...
             SageDevValueError: `master` is not a valid ticket name.
 
-            sage: dev._UI.append("Summary: summary1\ndescription")
+            sage: UI.append("Summary: summary1\ndescription")
             sage: ticket = dev.create_ticket()
 
             sage: dev._set_remote_branch_for_branch("ticket/1", "public/1")
@@ -3517,7 +3507,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDev
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -3558,7 +3547,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDev
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config1 = DoctestConfig()
             sage: config1['trac']['password'] = 'secret'
@@ -3630,7 +3618,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDev
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -3665,7 +3652,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDev
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -3707,15 +3693,15 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDev
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
             sage: dev = DoctestSageDev(config, server)
+            sage: UI = dev._UI
             sage: dev._pull_master_branch()
             sage: dev._chdir()
 
-            sage: dev._UI.append("Summary: ticket1\ndescription")
+            sage: UI.append("Summary: ticket1\ndescription")
             sage: ticket = dev.create_ticket()
             sage: dev._set_dependencies_for_ticket(ticket, [2, 3])
             sage: dev._dependencies_for_ticket(ticket)
@@ -3759,15 +3745,15 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDev
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
             sage: dev = DoctestSageDev(config, server)
+            sage: UI = dev._UI
             sage: dev._pull_master_branch()
             sage: dev._chdir()
 
-            sage: dev._UI.append("Summary: ticket1\ndescription")
+            sage: UI.append("Summary: ticket1\ndescription")
             sage: ticket = dev.create_ticket()
 
             sage: dev._set_dependencies_for_ticket(ticket, [2, 3])
@@ -3811,7 +3797,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDev
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -3859,7 +3844,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDev
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -3902,7 +3886,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDev
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -3974,18 +3957,18 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDev
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
             sage: dev = DoctestSageDev(config, server)
+            sage: UI = dev._UI
             sage: dev._pull_master_branch()
             sage: dev._chdir()
 
             sage: dev._current_ticket() is None
             True
 
-            sage: dev._UI.append("Summary: ticket1\ndescription")
+            sage: UI.append("Summary: ticket1\ndescription")
             sage: ticket = dev.create_ticket()
             sage: dev._current_ticket()
             1

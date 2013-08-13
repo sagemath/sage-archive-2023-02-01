@@ -659,7 +659,7 @@ class SageDev(object):
             ....: except GitError: pass
             sage: dev._UI.append('n')
             sage: dev.switch_branch('merge_branch')
-            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard any changes which are not commited.) [yes/No] n
+            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] n
             Could not switch to branch merge_branch because your working directory is not clean.
             sage: dev.git.reset_to_clean_state()
 
@@ -782,7 +782,7 @@ class SageDev(object):
             sage: bob._UI.append("y")
             sage: bob.upload()
             The branch u/bob/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
-            I will now change the branch field of ticket #1 from its current value `u/alice/ticket/1` to `u/bob/ticket/1`. Is this really what you want? [Yes/no] y
+            I will now change the branch field of ticket #1 from its current value `u/alice/ticket/1` to `u/bob/ticket/1`. Is this what you want? [Yes/no] y
 
         Alice commits non-conflicting changes::
 
@@ -812,7 +812,7 @@ class SageDev(object):
             sage: bob.upload()
             I will now upload the following new commits to the remote branch `u/bob/ticket/1`:
             ...: bob: added alices_file
-            Is this really what you want? [Yes/no] y
+            Is this what you want? [Yes/no] y
 
         Now, the download fails; one would have to use :meth:`merge`::
 
@@ -845,7 +845,7 @@ class SageDev(object):
             sage: bob.upload()
             I will now upload the following new commits to the remote branch `u/bob/ticket/1`:
             ...: bob: added bobs_other_file
-            Is this really what you want? [Yes/no] y
+            Is this what you want? [Yes/no] y
 
             sage: alice._chdir()
             sage: alice.download()

@@ -90,6 +90,7 @@ class SageDevWrapper(object):
         self._wrap("create_ticket")
         self._wrap("download")
         self._wrap("edit_ticket")
+        self._wrap("remote_status")
         self._wrap("reset_to_clean_state")
         self._wrap("reset_to_clean_working_directory")
         self._wrap("set_remote")

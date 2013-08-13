@@ -1797,94 +1797,203 @@ class SageDev(object):
         import os
         os.system(browser_cmdline)
 
-    def remote_status(self, ticket=None, quiet=False):
+    def remote_status(self, ticket=None):
         r"""
-        Show the remote status of ``ticket``.
-
-        For tickets and remote branches, this shows the commit log of the branch on
-        the trac ticket a summary of their difference to your related branches, and
-        an overview of patchbot results (where applicable).
+        Show information about the status of ``ticket``.
 
         INPUT:
 
         - ``ticket`` -- an integer or string identifying a ticket or ``None``
-          or ``'all'`` (default: ``None``), the number of the ticket to edit.
-          If ``None``, edit the :meth:`current_ticket`.
+          (default: ``None``), the number of the ticket to edit.  If ``None``,
+          show information for the :meth:`_current_ticket`.
 
-        .. SEEALSO::
+        TESTS:
 
-        - :meth:`local_tickets` -- Just shows local tickets without
-          comparing them to the remote server.
+        Set up a single user for doctesting::
 
-        - :meth:`diff` -- Shows the actual differences on a given
-          ticket.
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.git_interface import SUPER_SILENT
+            sage: server = DoctestTracServer()
+            sage: config = DoctestConfig()
+            sage: config['trac']['password'] = 'secret'
+            sage: dev = DoctestSageDevWrapper(config, server)
+            sage: UI = dev._UI
+            sage: dev._pull_master_branch()
+            sage: dev._chdir()
 
-        - :meth:`download` -- Merges in the changes on a given ticket
-          from the remote server.
+        It is an error to call this without parameters if not on a ticket::
 
-        - :meth:`upload` -- Pushes the changes on a given ticket to
-          the remote server.
+            sage: dev.remote_status()
+            ValueError: ticket must be specified if not currently on a ticket.
 
-        TESTS::
+        Create a ticket and show its remote status::
 
-            TODO
+            sage: UI.append("Summary: ticket1\ndescription")
+            sage: dev.create_ticket()
+            1
+            sage: dev.remote_status()
+            Ticket #1 (https://trac.sagemath.org/ticket/1)
+            ==============================================
+            Your branch `ticket/1` has 0 commits.
+            No branch has been set on the trac ticket yet.
+            You have not created a remote branch yet.
+
+        After uploading the local branch::
+
+            sage: UI.append("y")
+            sage: dev.upload()
+            The branch u/doctest/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            sage: dev.remote_status()
+            Ticket #1 (https://trac.sagemath.org/ticket/1)
+            ==============================================
+            Your branch `ticket/1` has 0 commits.
+            The trac ticket points to the branch `u/doctest/ticket/1` which has 0 commits. It does not differ from `ticket/1`.
+
+        Making local changes::
+
+            sage: open("tracked", "w").close()
+            sage: dev.git.add(SUPER_SILENT, "tracked")
+            sage: dev.git.commit(SUPER_SILENT, message="added tracked")
+            sage: dev.remote_status()
+            Ticket #1 (https://trac.sagemath.org/ticket/1)
+            ==============================================
+            Your branch `ticket/1` has 1 commits.
+            The trac ticket points to the branch `u/doctest/ticket/1` which has 0 commits. `ticket/1` is ahead of `u/doctest/ticket/1` by 1 commits:
+            ...: added tracked
+
+        Uploading them::
+
+            sage: UI.append("y")
+            sage: dev.upload()
+            I will now upload the following new commits to the remote branch `u/doctest/ticket/1`:
+            ...: added tracked
+            Is this what you want? [Yes/no] y
+            sage: dev.remote_status()
+            Ticket #1 (https://trac.sagemath.org/ticket/1)
+            ==============================================
+            Your branch `ticket/1` has 1 commits.
+            The trac ticket points to the branch `u/doctest/ticket/1` which has 1 commits. It does not differ from `ticket/1`.
+
+        The branch on the ticket is ahead of the local branch::
+
+            sage: dev.git.reset(SUPER_SILENT, 'HEAD~', hard=True)
+            sage: dev.remote_status()
+            Ticket #1 (https://trac.sagemath.org/ticket/1)
+            ==============================================
+            Your branch `ticket/1` has 0 commits.
+            The trac ticket points to the branch `u/doctest/ticket/1` which has 1 commits. `u/doctest/ticket/1` is ahead of `ticket/1` by 1 commits:
+            ...: added tracked
+
+        A mixed case::
+
+            sage: open("tracked2", "w").close()
+            sage: dev.git.add(SUPER_SILENT, "tracked2")
+            sage: dev.git.commit(SUPER_SILENT, message="added tracked2")
+            sage: open("tracked3", "w").close()
+            sage: dev.git.add(SUPER_SILENT, "tracked3")
+            sage: dev.git.commit(SUPER_SILENT, message="added tracked3")
+            sage: open("tracked4", "w").close()
+            sage: dev.git.add(SUPER_SILENT, "tracked4")
+            sage: dev.git.commit(SUPER_SILENT, message="added tracked4")
+            sage: dev._UI.append("y")
+            sage: dev.upload(remote_branch="u/doctest/branch1", force=True)
+            The branch u/doctest/branch1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            sage: dev.git.reset(SUPER_SILENT, 'HEAD~', hard=True)
+            sage: dev.remote_status()
+            Ticket #1 (https://trac.sagemath.org/ticket/1)
+            ==============================================
+            Your branch `ticket/1` has 2 commits.
+            The trac ticket points to the branch `u/doctest/branch1` which has 3 commits. `u/doctest/branch1` is ahead of `ticket/1` by 1 commits:
+            ...: added tracked4
+            Your remote branch `u/doctest/ticket/1` has 1 commits. The branches `u/doctest/ticket/1` and `ticket/1` have diverged.
+            `u/doctest/ticket/1` is ahead of `ticket/1` by 1 commits:
+            ...: added tracked
+            `ticket/1` is ahead of `u/doctest/ticket/1` by 2 commits:
+            ...: added tracked2
+            ...: added tracked3
 
         """
-        raise NotImplementedError # the below does most probably not work anymore
-        def show(lines):
-            lines = [list(str(l) for l in line) if not isinstance(line, basestring) else line
-                              for line in lines]
-            tabulated_lines = [line for line in lines if not isinstance(line, basestring)]
-            if tabulated_lines:
-                column_widths = [max(len(x) for x in col) for col in zip(*tabulated_lines)]
-            to_display = []
-            for line in lines:
-                if isinstance(line, basestring):
-                    to_display.append(line)
+        if ticket is None:
+            ticket = self._current_ticket()
+
+        if ticket is None:
+            raise SageDevValueError("ticket must be specified if not currently on a ticket.")
+
+        self._check_ticket_name(ticket, exists=True)
+        ticket = self._ticket_from_ticket_name(ticket)
+
+        from sage.env import TRAC_SERVER_URI
+        header = "Ticket #{0} ({1})".format(ticket, TRAC_SERVER_URI + '/ticket/' + str(ticket))
+        underline = "="*len(header)
+
+        from git_interface import READ_OUTPUT, SUPER_SILENT
+        commits = lambda a, b: list(reversed(self.git.log(READ_OUTPUT, "{0}..{1}".format(a,b), "--pretty=%an <%ae>: %s").splitlines()))
+
+        def detail(a, b, a_to_b, b_to_a):
+            if not a_to_b and not b_to_a:
+                return "It does not differ from `{0}`.".format(b)
+            elif not a_to_b:
+                return "`{0}` is ahead of `{1}` by {2} commits:\n{3}".format(a,b,len(b_to_a),"\n".join(b_to_a))
+            elif not b_to_a:
+                return "`{0}` is ahead of `{1}` by {2} commits:\n{3}".format(b,a,len(a_to_b),"\n".join(a_to_b))
+            else:
+                return "The branches `{0}` and `{1}` have diverged.\n`{0}` is ahead of `{1}` by {2} commits:\n{3}\n`{1}` is ahead of `{0}` by {4} commits:\n{5}".format(a,b,len(b_to_a),"\n".join(b_to_a),len(a_to_b),"\n".join(a_to_b))
+
+        branch = None
+        if self._has_local_branch_for_ticket(ticket):
+            branch = self._local_branch_for_ticket(ticket)
+            if not self.git.is_ancestor_of(MASTER_BRANCH, branch):
+                local_summary = "Your branch is `{0}`.".format(branch)
+            else:
+                master_to_branch = commits(MASTER_BRANCH, branch)
+                local_summary = "Your branch `{0}` has {1} commits.".format(branch, len(master_to_branch))
+        else:
+            local_summary = "You have no local branch for this ticket"
+
+        ticket_branch = self.trac._branch_for_ticket(ticket)
+        if ticket_branch:
+            ticket_to_local = None
+            local_to_ticket = None
+            if not self._is_remote_branch_name(ticket_branch, exists=True):
+                ticket_summary = "The trac ticket points to the branch `{0}` which does not exist."
+            else:
+                self.git.fetch(SUPER_SILENT, self.git._repository, ticket_branch)
+                if not self.git.is_ancestor_of(MASTER_BRANCH, 'FETCH_HEAD'):
+                    ticket_summary = "The trac ticket points to the branch `{0}`.".format(ticket_branch)
                 else:
-                    for i in xrange(len(line)):
-                        line[i] += ' '*(column_widths[i]-len(line[i]))
-                    line.insert(3, 'behind')
-                    line.insert(2, 'ahead')
-                    to_display.append(' '.join(line))
-            self._UI.show('\n'.join(to_display))
-
-        if ticket is None :
-            ticket = self.current_ticket()
-
-        if isinstance(ticket, int):
-            branch = self._branch[ticket]
+                    master_to_ticket = commits(MASTER_BRANCH, 'FETCH_HEAD')
+                    ticket_summary = "The trac ticket points to the branch `{0}` which has {1} commits.".format(ticket_branch, len(master_to_ticket))
+                    if self.git.is_ancestor_of(MASTER_BRANCH, branch):
+                        ticket_to_local = commits('FETCH_HEAD', branch)
+                        local_to_ticket = commits(branch, 'FETCH_HEAD')
+                        ticket_summary += " "+detail(ticket_branch, branch, ticket_to_local, local_to_ticket)
         else:
-            branch = ticket
+            ticket_summary = "No branch has been set on the trac ticket yet."
 
-        if ticket == 'all':
-            ret = (self.remote_status(ticket or branch, quiet=True)
-                    for ticket, branch in self.local_tickets(quiet=True))
-            if quiet:
-                return tuple(ret)
+        remote_branch = self._remote_branch_for_ticket(ticket)
+        if self._is_remote_branch_name(remote_branch, exists=True):
+            remote_to_local = None
+            local_to_remote = None
+            self.git.fetch(SUPER_SILENT, self.git._repository, remote_branch)
+            if not self.git.is_ancestor_of(MASTER_BRANCH, 'FETCH_HEAD'):
+                remote_summary = "Your remote branch is `{0}`.".format(remote_branch)
             else:
-                show(ret)
-                return
-        try:
-            remote_branch = self._remote_pull_branch(ticket)
-            remote_ref = self._fetch(remote_branch)
-        except (KeyError, RuntimeError):
-            ret = '%s not tracked remotely' % ticket
-            if quiet:
-                return ret
-            else:
-                show((ret,))
-                return
-        ahead, behind = self.git.read_output("rev-list",
-                "%s...%s"%(branch, remote_ref),
-                left_right=True, count=True).split()
-        behind = int(behind)
-        ahead = int(ahead)
-        ret = (ticket or '     ', remote_branch, ahead, behind)
-        if quiet:
-            return (ticket or '     ', remote_branch, ahead, behind)
+                master_to_remote = commits(MASTER_BRANCH, 'FETCH_HEAD')
+                remote_summary = "Your remote branch `{0}` has {1} commits.".format(remote_branch, len(master_to_remote))
+                if self.git.is_ancestor_of(MASTER_BRANCH, branch):
+                    remote_to_local = commits('FETCH_HEAD', branch)
+                    local_to_remote = commits(branch, 'FETCH_HEAD')
+                    remote_summary += " "+detail(remote_branch, branch, remote_to_local, local_to_remote)
         else:
-            show((ret,))
+            remote_summary = "You have not created a remote branch yet."
+
+        show = [header, underline, local_summary, ticket_summary]
+        if not self._is_remote_branch_name(remote_branch, exists=True) or remote_branch != ticket_branch:
+            show.append(remote_summary)
+
+        self._UI.show("\n".join(show))
 
     def import_patch(self, patchname=None, url=None, local_file=None, diff_format=None, header_format=None, path_format=None):
         r"""

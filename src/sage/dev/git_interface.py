@@ -130,7 +130,8 @@ class GitInterface(object):
             sage: git.merge(SUPER_SILENT, 'branch2')
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (1)
+            GitError: git returned with non-zero exit code (1) for `git merge branch2`.
+            ...
             sage: git.get_state()
             ('merge',)
             sage: git.merge(SUPER_SILENT,abort=True)
@@ -142,7 +143,8 @@ class GitInterface(object):
             sage: git.execute_supersilent('rebase', 'branch2')
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (1)
+            GitError: git returned with non-zero exit code (1) for `git rebase branch2`.
+            ...
             sage: git.get_state()
             ('rebase',)
             sage: git.rebase(SUPER_SILENT, abort=True)
@@ -157,7 +159,8 @@ class GitInterface(object):
             sage: git.merge(SUPER_SILENT, 'branch2')
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (1)
+            GitError: git returned with non-zero exit code (1) for `git merge branch2`.
+            ...
             sage: git.get_state()
             ('merge', 'rebase-i')
             sage: git.rebase(SUPER_SILENT, abort=True)
@@ -235,7 +238,8 @@ class GitInterface(object):
             sage: git.merge(SUPER_SILENT, 'branch2')
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (1)
+            GitError: git returned with non-zero exit code (1) for `git merge branch2`.
+            ...
             sage: git.get_state()
             ('merge', 'rebase-i')
 
@@ -530,7 +534,7 @@ class GitInterface(object):
             sage: git.execute_silent('status',foo=True) # --foo is not a valid parameter
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (129)
+            GitError: git returned with non-zero exit code (129) for `git status --foo`.
 
         """
         exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds)
@@ -561,7 +565,7 @@ class GitInterface(object):
             sage: git.execute_silent('status',foo=True) # --foo is not a valid parameter
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (129)
+            GitError: git returned with non-zero exit code (129) for `git status --foo`.
 
         """
         exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds, stdout=False)
@@ -590,7 +594,8 @@ class GitInterface(object):
             sage: git.execute_supersilent('status',foo=True) # --foo is not a valid parameter
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (129)
+            GitError: git returned with non-zero exit code (129) for `git status --foo`.
+            ...
 
         """
         exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds, stdout=False, stderr=False)
@@ -620,7 +625,8 @@ class GitInterface(object):
             sage: git.read_output('status',foo=True) # --foo is not a valid parameter
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (129)
+            GitError: git returned with non-zero exit code (129) for `git status --foo`.
+            ...
 
         """
         exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds, stdout=str, stderr=False)
@@ -708,7 +714,7 @@ class GitInterface(object):
             True
 
         """
-        return not self.rev_list(READ_OUTPUT, '{}..{}'.format(b, a)).splitlines()
+        return self.merge_base(READ_OUTPUT, a, b) == self.rev_parse(READ_OUTPUT, a)
 
     def has_uncommitted_changes(self):
         r"""
@@ -979,7 +985,7 @@ class GitInterface(object):
             sage: git.rename_branch('branch2', 'branch3')
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (128)
+            GitError: git returned with non-zero exit code (128) for `git branch --move branch2 branch3`.
 
         """
         self.branch(oldname, newname, move=True)
@@ -1054,6 +1060,7 @@ for git_cmd_ in (
         "log",
         "ls_remote",
         "merge",
+        "merge_base",
         "mv",
         "pull",
         "push",
@@ -1061,6 +1068,7 @@ for git_cmd_ in (
         "remote",
         "reset",
         "rev_list",
+        "rev_parse",
         "rm",
         "show",
         "show_ref",

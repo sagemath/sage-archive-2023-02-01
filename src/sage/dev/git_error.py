@@ -24,10 +24,10 @@ class GitError(RuntimeError):
     EXAMPLES::
 
         sage: from sage.dev.git_error import GitError
-        sage: raise GitError(128)
+        sage: raise GitError(128, "git foo", None, None)
         Traceback (most recent call last):
         ...
-        GitError: git returned with non-zero exit code (128)
+        GitError: git returned with non-zero exit code (128) for `git foo`.
 
     """
     def __init__(self, exit_code, cmd, stdout, stderr, explain=None, advice=None):
@@ -37,7 +37,7 @@ class GitError(RuntimeError):
         TESTS::
 
             sage: from sage.dev.git_error import GitError
-            sage: type(GitError(128))
+            sage: type(GitError(128, "git foo", None, None))
             <class 'sage.dev.git_error.GitError'>
 
         """
@@ -47,7 +47,14 @@ class GitError(RuntimeError):
         self.stderr = stderr
         self.explain = explain
         self.advice = advice
-        RuntimeError.__init__(self, "git returned with non-zero exit code (%s) when executing %s\nSTDOUT: %s\nSTDERR: %s\n"%(exit_code,cmd,stdout,stderr))
+
+        msg = ["git returned with non-zero exit code ({0}) for `{1}`.".format(exit_code, cmd)]
+        if stdout:
+            msg.append("output to stdout:" + "\n".join( " " + l for l in stdout.splitlines() ))
+        if stderr:
+            msg.append("output to stderr:" + "\n".join( " " + l for l in stderr.splitlines() ))
+
+        RuntimeError.__init__(self, "\n".join(msg))
 
 class DetachedHeadError(RuntimeError):
     r"""

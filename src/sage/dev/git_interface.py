@@ -5,11 +5,16 @@ This module provides a python interface to Sage's git repository.
 
 AUTHORS:
 
-- TODO: add authors from github's history and trac's history
+- David Roe, Julian Rueth, Keshav Kini, Nicolas M. Thiery, Robert Bradshaw:
+  initial version
 
 """
 #*****************************************************************************
-#       Copyright (C) 2013 TODO
+#       Copyright (C) 2013 David Roe <roed.math@gmail.com>
+#                          Julian Rueth <julian.rueth@fsfe.org>
+#                          Keshav Kini <keshav.kini@gmail.com>
+#                          Nicolas M. Thiery <Nicolas.Thiery@u-psud.fr>
+#                          Robert Bradshaw <robertwb@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of

@@ -6,11 +6,12 @@ This module provides :class:`CmdLineInterface`, an implementation of a
 
 AUTHORS:
 
-- TODO: add authors from github's history and trac's history
+- David Roe, Julian Rueth: initial version
 
 """
 #*****************************************************************************
-#       Copyright (C) 2013 TODO
+#       Copyright (C) 2013 David Roe <roed.math@gmail.com>
+#                          Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of

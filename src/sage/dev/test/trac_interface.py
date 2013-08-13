@@ -7,11 +7,11 @@ doctesting.
 
 AUTHORS:
 
-- TODO: add authors from github's history and trac's history
+- Julian Rueth: initial version
 
 """
 #*****************************************************************************
-#       Copyright (C) 2013 TODO
+#       Copyright (C) 2013 Julian Rueth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of

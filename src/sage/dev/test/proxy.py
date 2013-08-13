@@ -1,3 +1,20 @@
+r"""
+Trac server proxy for doctesting
+
+AUTHORS:
+
+- Julian Rueth: initial version
+
+"""
+#*****************************************************************************
+#       Copyright (C) 2013 Julian Rueth <julian.rueth@fsfe.org>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 class Proxy(object):
     """
     A fake trac proxy for doctesting the functionality in this file which would require authentication by trac.

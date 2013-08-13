@@ -6,11 +6,19 @@ which stores the configuration for :class:`SageDev`.
 
 AUTHORS:
 
-- TODO: add authors from github's history and trac's history
+- David Roe, Frej Drejhammar, Julian Rueth, Martin Raum, Nicolas M. Thiery, R.
+  Andrew Ohana, Robert Bradshaw, Timo Kluck: initial version
 
 """
 #*****************************************************************************
-#       Copyright (C) 2013 TODO
+#       Copyright (C) 2013 David Roe <roed.math@gmail.com>
+#                          Frej Drejhammar <frej.drejhammar@gmail.com>
+#                          Julian Rueth <julian.rueth@fsfe.org>
+#                          Martin Raum <martin@raum-brothers.eu>
+#                          Nicolas M. Thiery <Nicolas.Thiery@u-psud.fr>
+#                          R. Andrew Ohana <andrew.ohana@gmail.com>
+#                          Robert Bradshaw <robertwb@gmail.com>
+#                          Timo Kluck <tkluck@infty.nl>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of

@@ -1579,13 +1579,76 @@ class SageDev(object):
             assert False
 
     def unstash(self, branch=None):
-        #TODO: docstring
+        r"""
+        Unstash the changes recorded in ``branch``.
+
+        INPUT:
+
+        - ``branch`` -- the name of a local branch or ``None`` (default:
+          ``None``), if ``None`` list all stashes.
+
+        TESTS:
+
+        Set up a single user for doctesting::
+
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.git_interface import SUPER_SILENT
+            sage: server = DoctestTracServer()
+            sage: config = DoctestConfig()
+            sage: config['trac']['password'] = 'secret'
+            sage: dev = DoctestSageDevWrapper(config, server)
+            sage: UI = dev._UI
+            sage: dev._pull_master_branch()
+            sage: dev._chdir()
+
+        Create some stashes::
+
+            sage: dev.unstash()
+            (no stashes)
+            sage: with open("tracked", "w") as f: f.write("foo")
+            sage: dev.git.add("tracked")
+            sage: dev._UI.append("s")
+            sage: dev.reset_to_clean_working_directory()
+            The following files in your working directory contain uncommitted changes:
+             tracked
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] s
+            Your changes have been recorded on a new branch `stash/1`.
+            sage: with open("tracked", "w") as f: f.write("boo")
+            sage: dev.git.add("tracked")
+            sage: dev._UI.append("s")
+            sage: dev.reset_to_clean_working_directory()
+            The following files in your working directory contain uncommitted changes:
+             tracked
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] s
+            Your changes have been recorded on a new branch `stash/2`.
+            sage: dev.unstash()
+            stash/1
+            stash/2
+
+        Unstash a change::
+
+            sage: dev.unstash("stash/1")
+
+        Unstash something that is not a stash::
+
+            sage: dev.unstash("HEAD")
+            ValueError: `HEAD` is not a valid name for a stash.
+
+        Unstash a conflicting change::
+
+            sage: dev.unstash("stash/2")
+            The changes recorded in `stash/2` do not apply cleanly to your working directory.
+
+        """
         if branch is None:
             stashes = [stash for stash in self.git.local_branches() if self._is_stash_name(stash)]
-            stashes = [" "+stash for stash in stashes]
+            stashes.sort()
             stashes = "\n".join(stashes)
-            stashes = stashes or " (no stashes)"
-            self._UI.show("Use `{0}` to apply the changes recorded in the stash to your working directory where `name` is one of the following:\n{1}".format(self._format_command("unstash",branch="name"), stashes))
+            stashes = stashes or "(no stashes)"
+            self._UI.info("Use `{0}` to apply the changes recorded in the stash to your working directory where `name` is one of the following:\n{1}".format(self._format_command("unstash",branch="name"), stashes))
+            self._UI.show(stashes)
             return
 
         self._check_stash_name(branch, exists=True)
@@ -1596,11 +1659,13 @@ class SageDev(object):
         try:
             self.git.cherry_pick(SUPER_SILENT, branch, no_commit=True)
         except GitError as e:
-            raise NotImplementedError
+            self._UI.error("The changes recorded in `{0}` do not apply cleanly to your working directory.".format(branch))
+            self._UI.info("You can try to resolve the conflicts manually with `{0}`.".format(self._format_command("merge", branch_or_ticket=branch)))
+            raise OperationCancelledError("unstash failed")
 
         self.git.reset(SUPER_SILENT)
 
-        # TODO: should I drop the stash branch?
+        self._UI.info("The changes recorded in `{0}` have been restored in your working directory. If you do not need the stash anymore, you can drop it with `{1}`.".format(branch, self._format_command("abandon",branch=branch)))
 
     def edit_ticket(self, ticket=None):
         r"""

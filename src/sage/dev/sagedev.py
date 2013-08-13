@@ -646,16 +646,50 @@ class SageDev(object):
 
         Switching branches when in the middle of a merge::
 
-            TODO
+            sage: dev.git.checkout(SUPER_SILENT, '-b','merge_branch')
+            sage: with open('merge', 'w') as f: f.write("version 0")
+            sage: dev.git.add(SUPER_SILENT, 'merge')
+            sage: dev.git.commit(SUPER_SILENT, '-m','some change')
+            sage: dev.git.checkout(SUPER_SILENT, 'branch1')
+            sage: with open('merge', 'w') as f: f.write("version 1")
+            sage: dev.git.add(SUPER_SILENT, 'merge')
+            sage: dev.git.commit(SUPER_SILENT, '-m','conflicting change')
+            sage: from sage.dev.git_error import GitError
+            sage: try:
+            ....:     dev.git.merge(SUPER_SILENT, 'merge_branch')
+            ....: except GitError: pass
+            sage: dev._UI.append('n')
+            sage: dev.switch_branch('merge_branch')
+            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard any changes which are not commited.) [yes/No] n
+            Could not switch to branch merge_branch because your working directory is not clean.
+            sage: dev.git.reset_to_clean_state()
 
-        Switching branches when in a detached HEAD with uncommited changes::
+        Switching branches when in a detached HEAD::
 
-            TODO
+            sage: dev.git.checkout(SUPER_SILENT, 'branch2', detach=True)
+            sage: dev.switch_branch('branch1')
+
+        With uncommitted changes::
+
+            sage: dev.git.checkout(SUPER_SILENT, 'branch2', detach=True)
+            sage: with open('tracked', 'w') as f: f.write("boo")
+            sage: dev._UI.append("discard")
+            sage: dev.switch_branch('branch1')
+            You have uncommited changes in your working directory. Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] discard
 
         Switching branches with untracked files that would be overwritten by
         the switch::
 
-            TODO
+            sage: with open('tracked', 'w') as f: f.write("boo")
+            sage: dev.switch_branch('branch2')
+            GitError: git exited with a non-zero exit code (1).
+            This happened while executing `git checkout branch2`.
+            git printed nothing to STDOUT.
+            git printed the following to STDERR:
+            error: The following untracked working tree files would be overwritten by checkout:
+                tracked
+            Please move or remove them before you can switch branches.
+            Aborting
 
         """
         self._check_local_branch_name(branch, exists=True)

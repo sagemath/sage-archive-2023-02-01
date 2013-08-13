@@ -586,7 +586,6 @@ class SageDev(object):
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
             sage: dev = DoctestSageDevWrapper(config, server)
-            sage: dev._wrap("_dependencies_for_ticket")
             sage: UI = dev._UI
             sage: dev._pull_master_branch()
             sage: dev._chdir()
@@ -947,7 +946,6 @@ class SageDev(object):
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
             sage: dev = DoctestSageDevWrapper(config, server)
-            sage: dev._wrap("_dependencies_for_ticket")
             sage: UI = dev._UI
             sage: dev._pull_master_branch()
             sage: dev._chdir()
@@ -1034,8 +1032,87 @@ class SageDev(object):
             # do not leave a non-clean index behind
             self.git.reset(SUPER_SILENT)
 
-    def set_remote(self, branch, remote_branch):
-        raise NotImplementedError() #TODO
+    def set_remote(self, branch_or_ticket, remote_branch):
+        r"""
+        Set the remote branch to push to for ``branch_or_ticket`` to
+        ``remote_branch``.
+
+        INPUT:
+
+        - ``branch_or_ticket`` -- a string, the name of a local branch, or a
+          string or an integer identifying a ticket or ``None``; if ``None``,
+          the current branch is used.
+
+        - ``remote_branch`` -- a string, the name of a remote branch (this
+          branch may not exist yet)
+
+        .. SEEALSO::
+
+        - :meth:`upload` -- To upload changes after setting the remote branch
+
+        TESTS:
+
+        Set up a single user for doctesting::
+
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.git_interface import SUPER_SILENT
+            sage: server = DoctestTracServer()
+            sage: config = DoctestConfig()
+            sage: config['trac']['password'] = 'secret'
+            sage: dev = DoctestSageDevWrapper(config, server)
+            sage: dev._wrap("_remote_branch_for_ticket")
+            sage: UI = dev._UI
+            sage: dev._pull_master_branch()
+            sage: dev._chdir()
+
+        Create a new branch::
+
+            sage: UI.append("Summary: ticket1\ndescription")
+            sage: dev.create_ticket()
+            1
+
+        Modify the remote branch for this ticket's branch::
+
+            sage: dev._remote_branch_for_ticket(1)
+            'u/doctest/ticket/1'
+            sage: dev.set_remote('ticket/1', 'u/doctest/foo')
+            sage: dev._remote_branch_for_ticket(1)
+            'u/doctest/foo'
+            sage: dev.set_remote('ticket/1', 'foo')
+            The remote branch `foo` is not in your user scope. You might not have permission to push to that branch. Did you mean to set the remote branch to `u/doctest/foo`?
+            sage: dev._remote_branch_for_ticket(1)
+            'foo'
+            sage: dev.set_remote('#1', 'u/doctest/foo')
+            sage: dev._remote_branch_for_ticket(1)
+            'u/doctest/foo'
+
+        """
+        if branch_or_ticket is None:
+            from git_error import DetachedHeadError
+            try:
+                branch = self.git.current_branch()
+            except DetachedHeadError:
+                self._UI.error("`branch` must not be None because you are in detached HEAD state.")
+                self._UI.info("Switch to a branch with `{0}` or specify branch explicitly.".format(self._format_command('switch_branch')))
+                raise OperationCancelledError("detached head state")
+        elif self._is_ticket_name(branch_or_ticket):
+            ticket = self._ticket_from_ticket_name(branch_or_ticket)
+            if not self._has_local_branch_for_ticket(ticket):
+                self._UI.error("no local branch for ticket #{0} found. Cannot set remote branch for that ticket.".format(ticket))
+                raise OperationCancelledError("no such ticket")
+            branch = self._local_branch_for_ticket(ticket)
+        else:
+            branch = branch_or_ticket
+
+        self._check_local_branch_name(branch, exists=True)
+        self._check_remote_branch_name(remote_branch)
+
+        if not remote_branch.startswith('u/{0}/'.format(self.trac._username)):
+            self._UI.warning("The remote branch `{0}` is not in your user scope. You might not have permission to push to that branch. Did you mean to set the remote branch to `u/{1}/{0}`?".format(remote_branch, self.trac._username))
+
+        self._set_remote_branch_for_branch(branch, remote_branch)
 
     def upload(self, ticket=None, remote_branch=None, force=False):
         r"""
@@ -1184,7 +1261,6 @@ class SageDev(object):
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
             sage: dev = DoctestSageDevWrapper(config, server)
-            sage: dev._wrap("_dependencies_for_ticket")
             sage: UI = dev._UI
             sage: dev._pull_master_branch()
             sage: dev._chdir()

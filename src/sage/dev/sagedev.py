@@ -1675,25 +1675,48 @@ class SageDev(object):
 
         - ``ticket`` -- an integer or string identifying a ticket or ``None``
           (default: ``None``), the number of the ticket to edit. If ``None``,
-          edit the :meth:`current_ticket`.
+          edit the :meth:`_current_ticket`.
 
         .. SEEALSO::
 
             :meth:`create_ticket`, :meth:`add_comment`
 
-        TESTS::
+        TESTS:
 
-            TODO
+        Set up a single user for doctesting::
+
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.git_interface import SUPER_SILENT
+            sage: server = DoctestTracServer()
+            sage: config = DoctestConfig()
+            sage: config['trac']['password'] = 'secret'
+            sage: dev = DoctestSageDevWrapper(config, server)
+            sage: UI = dev._UI
+            sage: dev._pull_master_branch()
+            sage: dev._chdir()
+
+        Create a ticket::
+
+            sage: dev._UI.append("Summary: summary1\ndescription")
+            sage: dev.create_ticket()
+            1
+            sage: dev._UI.append("Summary: summary1\ndescription...")
+            sage: dev.edit_ticket()
+            sage: dev.trac._get_attributes(1)
+            {'description': 'description...', 'summary': 'summary1'}
 
         """
         if ticket is None:
-            ticket = self.current_ticket()
+            ticket = self._current_ticket()
 
         if ticket is None:
             raise SageDevValueError("ticket must be specified if not currently on a ticket.")
 
+        self._check_ticket_name(ticket, exists=True)
         ticket = self._ticket_from_ticket_name(ticket)
-        self.trac.edit_ticket(ticket)
+        self.trac.edit_ticket_interactive(ticket)
 
     def add_comment(self, ticket=None):
         r"""

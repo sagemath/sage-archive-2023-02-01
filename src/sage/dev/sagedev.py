@@ -1777,9 +1777,9 @@ class SageDev(object):
 
             :meth:`edit_ticket`, :meth:`add_comment`
 
-        TESTS::
+        EXAMPLES::
 
-            TODO
+            sage: dev.browse_ticket(10000) # not tested
 
         """
         if ticket is None:
@@ -1788,6 +1788,7 @@ class SageDev(object):
         if ticket is None:
             raise SageDevValueError("ticket must be specified if not currently on a ticket.")
 
+        self._check_ticket_name(ticket, exists=True)
         ticket = self._ticket_from_ticket_name(ticket)
 
         from sage.misc.viewer import browser

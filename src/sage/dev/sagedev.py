@@ -1385,9 +1385,9 @@ class SageDev(object):
 
         if ticket:
             old_dependencies = self.trac.dependencies(ticket)
-            old_dependencies = ", ".join(["#"+dep for dep in old_dependencies])
+            old_dependencies = ", ".join(["#"+str(dep) for dep in old_dependencies])
             new_dependencies = self._dependencies_for_ticket(ticket)
-            new_dependencies = ", ".join(["#"+dep for dep in new_dependencies])
+            new_dependencies = ", ".join(["#"+str(dep) for dep in new_dependencies])
             if old_dependencies != new_dependencies:
                 self._UI.info("Uploading your dependencies for ticket #{0}: `{1}` => `{2}`".format(ticket, old_dependencies, new_dependencies))
 

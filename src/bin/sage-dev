@@ -158,7 +158,7 @@ def get_help(method):
                 ret[arg] = ' '.join(tmp)
                 tmp = []
             continue
-        elif line.startswith('-'):
+        elif line.startswith('-') and '--' in line:
             arg = line.split('``')[1]
             tmp.append(line.split('--')[1].strip())
         elif tmp:
@@ -176,10 +176,9 @@ def exposed_methods(obj):
     for name in dir(obj):
         if name.startswith('_'):
             continue
-        method = getattr(obj, name)
-        if callable(method):
+        method = getattr(obj._sagedev, name)
+        if hasattr(method, 'im_func'):
             yield name.replace('_','-'), method
-
 
 def getargspec(func):
     """
@@ -254,7 +253,7 @@ def str_to_value(s):
 def parser_from_object(obj, *args, **kwds):
     kwds['formatter_class'] = SageHelpFormatter
     if 'description' not in kwds:
-        kwds['description'] = get_help(obj)['return']
+        kwds['description'] = get_help(obj._sagedev)['return']
 
     parser = argparse.ArgumentParser(*args, **kwds)
     subparsers = parser.add_subparsers(title='subcommands')

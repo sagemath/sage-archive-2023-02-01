@@ -60,7 +60,7 @@ GIT_BRANCH_REGEX = re.compile(r'^(?!.*/\.)(?!.*\.\.)(?!/)(?!.*//)(?!.*@\{)(?!.*\
 # run this should be "master", currently, "public/sage-git/master" contains some changes
 # over "master" which have not been reviewed yet but which are needed to work
 # using git
-MASTER_BRANCH = "public/sage-git/master"
+MASTER_BRANCH = "master"
 
 COMMIT_GUIDE=r"""
 # Please type your commit message above.

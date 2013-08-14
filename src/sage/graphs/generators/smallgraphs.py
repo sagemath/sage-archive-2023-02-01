@@ -1270,6 +1270,59 @@ def DoubleStarSnark():
 
     return g
 
+def MeredithGraph():
+    r"""
+    Returns the Meredith Graph
+
+    The Meredith Graph is a 4-regular 4-connected non-hamiltonian graph. For
+    more information on the Meredith Graph, see the :wikipedia:`Meredith_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.MeredithGraph()
+        sage: g.is_regular(4)
+        True
+        sage: g.order()
+        70
+        sage: g.size()
+        140
+        sage: g.radius()
+        7
+        sage: g.diameter()
+        8
+        sage: g.girth()
+        4
+        sage: g.chromatic_number()
+        3
+        sage: g.is_hamiltonian() # long time
+        False
+    """
+    g = Graph(name="Meredith Graph")
+    g.add_vertex(0)
+
+    # Edges between copies of K_{4,3}
+    for i in range(5):
+        g.add_edge(('outer',i,3),('outer',(i+1)%5,0))
+        g.add_edge(('inner',i,3),('inner',(i+2)%5,0))
+        g.add_edge(('outer',i,1),('inner',i      ,1))
+        g.add_edge(('outer',i,2),('inner',i      ,2))
+
+    # Edges inside of the K_{4,3}s.
+    for i in range(5):
+        for j in range(4):
+            for k in range(3):
+                g.add_edge(('inner',i,j),('inner',i,k+4))
+                g.add_edge(('outer',i,j),('outer',i,k+4))
+
+    _circle_embedding(g, sum([[('outer',i,j) for j in range(4)]+10*[0] for i in range(5)],[]), radius = 1, shift = 2)
+    _circle_embedding(g, sum([[('outer',i,j) for j in range(4,7)]+10*[0] for i in range(5)],[]), radius = 1.2, shift = 2.2)
+    _circle_embedding(g, sum([[('inner',i,j) for j in range(4)]+7*[0] for i in range(5)],[]), radius = .6, shift = 1.24)
+    _circle_embedding(g, sum([[('inner',i,j) for j in range(4,7)]+5*[0] for i in range(5)],[]), radius = .4, shift = 1.05)
+
+    g.delete_vertex(0)
+    g.relabel()
+    return g
+
 def CameronGraph():
     r"""
     Returns the Cameron graph.

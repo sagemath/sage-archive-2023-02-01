@@ -331,8 +331,8 @@ class Function_ceil(BuiltinFunction):
 
         ::
 
-            sage: ceil(log(8)/log(2))
-            3
+            sage: ceil(sin(8)/sin(2))
+            2
 
         ::
 
@@ -431,7 +431,7 @@ class Function_ceil(BuiltinFunction):
                 return lower_ceil
             else:
                 try:
-                    return ceil(SR(x).full_simplify())
+                    return ceil(SR(x).full_simplify().simplify_radical())
                 except ValueError:
                     pass
                 raise ValueError, "x (= %s) requires more than %s bits of precision to compute its ceiling"%(x, maximum_bits)
@@ -503,8 +503,8 @@ class Function_floor(BuiltinFunction):
 
         ::
 
-            sage: floor(log(8)/log(2))
-            3
+            sage: floor(cos(8)/cos(2))
+            0
 
         ::
 
@@ -592,7 +592,7 @@ class Function_floor(BuiltinFunction):
                 return lower_floor
             else:
                 try:
-                    return floor(SR(x).full_simplify())
+                    return floor(SR(x).full_simplify().simplify_radical())
                 except ValueError:
                     pass
                 raise ValueError, "x (= %s) requires more than %s bits of precision to compute its floor"%(x, maximum_bits)

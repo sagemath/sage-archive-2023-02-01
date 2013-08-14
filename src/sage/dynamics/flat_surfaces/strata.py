@@ -1,11 +1,14 @@
 r"""
 Strata of differentials on Riemann surfaces
 
-The space of Abelian (or quadratic) differentials is stratified by the degrees
-of the zeroes (and simple poles for quadratic differentials). Each stratum has
-one, two or three connected components and each is associated to an (extended) Rauzy class. The
-:meth:`~sage.combinat.iet.strata.AbelianStratum.connected_components` method
-(only available for Abelian stratum) give the decomposition of a stratum (which corresponds to the SAGE object :class:`~sage.combinat.iet.strata.AbelianStratum`).
+The space of Abelian (or quadratic) differentials is stratified by the
+degrees of the zeroes (and simple poles for quadratic
+differentials). Each stratum has one, two or three connected
+components and each is associated to an (extended) Rauzy class. The
+:meth:`~sage.dynamics.flat_surfaces.strata.AbelianStratum.connected_components`
+method (only available for Abelian stratum) give the decomposition of
+a stratum (which corresponds to the SAGE object
+:class:`~sage.dynamics.flat_surfaces.strata.AbelianStratum`).
 
 The work for Abelian differentials was done by Maxim Kontsevich and Anton
 Zorich in [KonZor03]_ and for quadratic differentials by Erwan Lanneau in
@@ -14,18 +17,19 @@ stratum to the associated Rauzy class (for both interval exchange
 transformations and linear involutions) in [Zor08]_ and is implemented for
 Abelian stratum at different level (approximately one for each component):
 
-- for connected stratum :meth:`~CCA.representative`
-- for hyperellitic component :meth:`~HypCCA.representative`
+- for connected stratum :meth:`~ConnectedComponentOfAbelianStratum.representative`
+- for hyperellitic component :meth:`~HypConnectedComponentOfAbelianStratum.representative`
 - for non hyperelliptic component, the algorithm is the same as for connected
   component
-- for odd component :meth:`~OddCCA.representative`
-- for even component :meth:`~EvenCCA.representative`
+- for odd component :meth:`~OddConnectedComponentOfAbelianStratum.representative`
+- for even component :meth:`~EvenConnectedComponentOfAbelianStratum.representative`
 
-The inverse operation (pass to an interval exchange transformation to the
-connected component) is partially written in [KonZor03]_ and simply names here
-:meth:`~sage.combinat.iet.template.PermutationIET.connected_component`.
+The inverse operation (pass from an interval exchange transformation to
+the connected component) is partially written in [KonZor03]_ and
+simply named here
+:meth:`~sage.dynamics.interval_exchanges.template.PermutationIET.connected_component`.
 
-All the code here was first available on Mathematica  [ZS]_.
+All the code here was first available on Mathematica [ZS]_.
 
 REFERENCES:
 
@@ -44,9 +48,9 @@ REFERENCES:
 .. [ZS] Anton Zorich, "Generalized Permutation software"
    (http://perso.univ-rennes1.fr/anton.zorich/Software/software_en.html)
 
-NOTE:
+.. NOTE::
 
-The quadratic strata are not yet implemented.
+    The quadratic strata are not yet implemented.
 
 AUTHORS:
 
@@ -86,9 +90,10 @@ By convention, the degrees are always written in decreasing order::
     sage: a1 == a2
     True
 
-It's also possible to consider stratum with an incoming or an outgoing separtrix
-marked (the aim of this consideration is to attached a specified degree at the
-left or the right or the associated interval exchange transformation)::
+It is also possible to consider stratum with an incoming or an
+outgoing separatrix marked (the aim of this consideration is to
+attach a specified degree at the left or the right of the associated
+interval exchange transformation)::
 
     sage: a_out = AbelianStratum(1, 1, marked_separatrix='out')
     sage: a_out
@@ -103,7 +108,7 @@ Get a list of strata with constraints on genus or on the number of intervals
 of a representative::
 
     sage: for a in AbelianStrata(genus=3):
-    ...       print a
+    ....:     print a
     H(4)
     H(3, 1)
     H(2, 2)
@@ -113,7 +118,7 @@ of a representative::
 ::
 
     sage: for a in AbelianStrata(nintervals=5):
-    ...       print a
+    ....:     print a
     H^out(0, 2)
     H^out(2, 0)
     H^out(1, 1)
@@ -122,7 +127,7 @@ of a representative::
 ::
 
     sage: for a in AbelianStrata(genus=2, nintervals=5):
-    ...       print a
+    ....:     print a
     H^out(0, 2)
     H^out(2, 0)
     H^out(1, 1)
@@ -140,7 +145,7 @@ Obtains the connected components of a stratum::
     sage: print cc
     [H_hyp(6), H_odd(6), H_even(6)]
     sage: for c in cc:
-    ...       print c, "\n", c.representative(alphabet=range(1,9))
+    ....:     print c, "\n", c.representative(alphabet=range(1,9))
     H_hyp(6)
     1 2 3 4 5 6 7 8
     8 7 6 5 4 3 2 1
@@ -161,7 +166,8 @@ Obtains the connected components of a stratum::
     a b c d e f g h i
     e d c f i h g b a
 
-The zero attached on the left of the associated Abelian permutation corresponds to the first singularity degree::
+The zero attached on the left of the associated Abelian permutation
+corresponds to the first singularity degree::
 
     sage: a = AbelianStratum(4, 2, marked_separatrix='out')
     sage: b = AbelianStratum(2, 4, marked_separatrix='out')
@@ -199,7 +205,7 @@ Rauzy diagrams from the classification of strata::
     sage: l = sum([stratum.connected_components() for stratum in a], [])
     sage: n = map(lambda x: x.rauzy_diagram().cardinality(), l)
     sage: for c,i in zip(l,n):
-    ...       print c, ":", i
+    ....:     print c, ":", i
     H_hyp^out(2) : 7
     H_hyp^out(0, 0, 0) : 6
     sage: print sum(n)
@@ -211,7 +217,7 @@ Rauzy diagrams from the classification of strata::
     sage: l = sum([stratum.connected_components() for stratum in a], [])
     sage: n = map(lambda x: x.rauzy_diagram().cardinality(), l)
     sage: for c,i in zip(l,n):
-    ...       print c, ":", i
+    ....:     print c, ":", i
     H_hyp^out(0, 2) : 11
     H_hyp^out(2, 0) : 35
     H_hyp^out(1, 1) : 15
@@ -225,7 +231,7 @@ Rauzy diagrams from the classification of strata::
     sage: l = sum([stratum.connected_components() for stratum in a], [])
     sage: n = map(lambda x: x.rauzy_diagram().cardinality(), l)
     sage: for c,i in zip(l,n):
-    ...       print c, ":", i
+    ....:     print c, ":", i
     H_hyp^out(4) : 31
     H_odd^out(4) : 134
     H_hyp^out(0, 2, 0) : 66
@@ -244,12 +250,14 @@ Rauzy diagrams from the classification of strata::
 #*****************************************************************************
 
 from sage.structure.sage_object import SageObject
+
 from sage.combinat.combinat import CombinatorialClass
 from sage.combinat.combinat import InfiniteAbstractCombinatorialClass
-
 from sage.combinat.partition import Partitions
+
 from sage.rings.integer import Integer
 from sage.rings.rational import Rational
+
 
 def AbelianStrata(genus=None, nintervals=None, marked_separatrix=None):
     r"""
@@ -257,9 +265,9 @@ def AbelianStrata(genus=None, nintervals=None, marked_separatrix=None):
 
     INPUT:
 
-    - ``genus`` - a non negative integer or None
+    - ``genus`` - a non negative integer or ``None``
 
-    - ``nintervals`` - a non negative integer or None
+    - ``nintervals`` - a non negative integer or ``None``
 
     - ``marked_separatrix`` - 'no' (for no marking), 'in' (for marking an
       incoming separatrix) or 'out' (for marking an outgoing separatrix)
@@ -377,6 +385,7 @@ def AbelianStrata(genus=None, nintervals=None, marked_separatrix=None):
                 nintervals=nintervals,
                 marked_separatrix=marked_separatrix)
 
+
 class AbelianStrata_g(CombinatorialClass):
     r"""
     Stratas of genus g surfaces.
@@ -387,22 +396,33 @@ class AbelianStrata_g(CombinatorialClass):
 
     - ``marked_separatrix`` - 'no', 'out' or 'in'
     """
-    def __init__(self, genus=None,marked_separatrix=None):
+    def __init__(self, genus=None, marked_separatrix=None):
         r"""
         TESTS::
 
             sage: s = AbelianStrata(genus=3)
             sage: s == loads(dumps(s))
             True
+
+            sage: AbelianStrata(genus=-3)
+            Traceback (most recent call last):
+            ...
+            ValueError: genus must be positive
+
+            sage: AbelianStrata(genus=3, marked_separatrix='yes')
+            Traceback (most recent call last):
+            ...
+            ValueError: marked_separatrix must be no, out or in
         """
-        assert(isinstance(genus,(int,Integer)))
-        assert(genus >= 0)
+        genus = Integer(genus)
+
+        if not(genus >= 0):
+            raise ValueError('genus must be positive')
 
         if marked_separatrix is None:
             marked_separatrix = 'no'
-        assert(marked_separatrix == 'no' or
-            marked_separatrix == 'out' or
-            marked_separatrix == 'in')
+        if not marked_separatrix in ['no', 'out', 'in']:
+            raise ValueError("marked_separatrix must be no, out or in")
         self._marked_separatrix = marked_separatrix
 
         self._genus = genus
@@ -415,11 +435,11 @@ class AbelianStrata_g(CombinatorialClass):
             'Abelian strata of genus 3 surfaces'
         """
         if self._marked_separatrix == 'no':
-            return "Abelian strata of genus %d surfaces" %(self._genus)
+            return "Abelian strata of genus %d surfaces" % (self._genus)
         elif self._marked_separatrix == 'in':
-            return "Abelian strata of genus %d surfaces and a marked incoming separatrix" %(self._genus)
+            return "Abelian strata of genus %d surfaces and a marked incoming separatrix" % (self._genus)
         else:
-            return "Abelian strata of genus %d surfaces and a marked outgoing separatrix" %(self._genus)
+            return "Abelian strata of genus %d surfaces and a marked outgoing separatrix" % (self._genus)
 
     def __iter__(self):
         r"""
@@ -431,7 +451,7 @@ class AbelianStrata_g(CombinatorialClass):
         if self._genus == 0:
             pass
         elif self._genus == 1:
-            yield AbelianStratum(0,marked_separatrix=self._marked_separatrix)
+            yield AbelianStratum(0, marked_separatrix=self._marked_separatrix)
         else:
             if self._marked_separatrix == 'no':
                 for p in Partitions(2*self._genus-2):
@@ -442,7 +462,8 @@ class AbelianStrata_g(CombinatorialClass):
                     for t in set(l):
                         i = l.index(t)
                         yield AbelianStratum([t] + l[:i] + l[i+1:],
-                            marked_separatrix=self._marked_separatrix)
+                                             marked_separatrix=self._marked_separatrix)
+
 
 class AbelianStrata_d(CombinatorialClass):
     r"""
@@ -454,25 +475,36 @@ class AbelianStrata_d(CombinatorialClass):
 
     - ``marked_separatrix`` - 'no', 'out' or 'in'
     """
-    def __init__(self, nintervals=None,marked_separatrix=None):
+    def __init__(self, nintervals=None, marked_separatrix=None):
         r"""
         TESTS::
 
             sage: s = AbelianStrata(nintervals=10)
             sage: s == loads(dumps(s))
             True
+
+            sage: AbelianStrata(nintervals=1)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of intervals must be at least 2
+
+            sage: AbelianStrata(nintervals=4, marked_separatrix='maybe')
+            Traceback (most recent call last):
+            ...
+            ValueError: marked_separatrix must be no, out or in
         """
-        assert(isinstance(nintervals, (int, Integer)))
-        assert(nintervals > 1)
+        nintervals = Integer(nintervals)
+
+        if not(nintervals > 1):
+            raise ValueError("number of intervals must be at least 2")
 
         self._nintervals = nintervals
 
         if marked_separatrix is None:
             marked_separatrix = 'out'
-        assert(marked_separatrix == 'no' or
-            marked_separatrix == 'out' or
-            marked_separatrix == 'in')
-        self._marked_separatrix=marked_separatrix
+        if not marked_separatrix in ['no', 'out', 'in']:
+            raise ValueError("marked_separatrix must be no, out or in")
+        self._marked_separatrix = marked_separatrix
 
     def _repr_(self):
         r"""
@@ -482,11 +514,11 @@ class AbelianStrata_d(CombinatorialClass):
             'Abelian strata with 2 intervals IET'
         """
         if self._marked_separatrix == 'no':
-            return "Abelian strata with %d intervals IET" %(self._nintervals)
+            return "Abelian strata with %d intervals IET" % (self._nintervals)
         elif self._marked_separatrix == 'in':
-            return "Abelian strata with %d intervals IET and a marked incoming separatrix" %(self._nintervals)
+            return "Abelian strata with %d intervals IET and a marked incoming separatrix" % (self._nintervals)
         else:
-            return "Abelian strata with %d intervals IET and a marked outgoing separatrix" %(self._nintervals)
+            return "Abelian strata with %d intervals IET and a marked outgoing separatrix" % (self._nintervals)
 
     def __iter__(self):
         r"""
@@ -497,20 +529,21 @@ class AbelianStrata_d(CombinatorialClass):
             H^out(0, 0, 0)
         """
         n = self._nintervals
-        for s in range(1+n%2, n, 2):
+        for s in range(1+n % 2, n, 2):
             for p in Partitions(n-1, length=s):
                 l = [k-1 for k in p]
                 if self._marked_separatrix == 'no':
-                    yield AbelianStratum(l,marked_separatrix='no')
+                    yield AbelianStratum(l, marked_separatrix='no')
                 else:
                     for t in set(l):
                         i = l.index(t)
-                        yield AbelianStratum([t] + l[:i] +
-                        l[i+1:],marked_separatrix=self._marked_separatrix)
+                        yield AbelianStratum([t] + l[:i] + l[i+1:],
+                                             marked_separatrix=self._marked_separatrix)
+
 
 class AbelianStrata_gd(CombinatorialClass):
     r"""
-    Abelian strata of presrcribed genus and number of intervals.
+    Abelian strata of prescribed genus and number of intervals.
 
     INPUT:
 
@@ -520,27 +553,45 @@ class AbelianStrata_gd(CombinatorialClass):
 
     - ``marked_separatrix`` - 'no', 'in' or 'out'
     """
-    def __init__(self, genus=None, nintervals=None,marked_separatrix=None):
+    def __init__(self, genus=None, nintervals=None, marked_separatrix=None):
         r"""
         TESTS::
 
             sage: s = AbelianStrata(genus=4,nintervals=10)
             sage: s == loads(dumps(s))
             True
+
+            sage: AbelianStrata(genus=-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: genus must be positive
+
+            sage: AbelianStrata(genus=1, nintervals=1)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of intervals must be at least 2
+
+            sage: AbelianStrata(genus=1, marked_separatrix='so')
+            Traceback (most recent call last):
+            ...
+            ValueError: marked_separatrix must be no, out or in
         """
-        assert(isinstance(genus, (int, Integer)))
-        assert(genus >= 0)
+        genus = Integer(genus)
+
+        if not(genus >= 0):
+            raise ValueError("genus must be positive")
         self._genus = genus
 
-        assert(isinstance(nintervals, (int, Integer)))
-        assert(nintervals > 1)
+        nintervals = Integer(nintervals)
+        if not(nintervals > 1):
+            raise ValueError("number of intervals must be at least 2")
         self._nintervals = nintervals
 
         if marked_separatrix is None:
             marked_separatrix = 'out'
-        assert(marked_separatrix == 'no' or
-            marked_separatrix == 'out' or
-            marked_separatrix == 'in')
+        if not marked_separatrix in ['no', 'out', 'in']:
+            raise ValueError("marked_separatrix must be no, out or in")
+
         self._marked_separatrix = marked_separatrix
 
     def __repr__(self):
@@ -552,11 +603,11 @@ class AbelianStrata_gd(CombinatorialClass):
             'Abelian strata of genus 2 surfaces and 4 intervals'
         """
         if self._marked_separatrix == 'no':
-            return "Abelian strata of genus %d surfaces and %d intervals" %(self._genus, self._nintervals)
+            return "Abelian strata of genus %d surfaces and %d intervals" % (self._genus, self._nintervals)
         elif self._marked_separatrix == 'in':
-            return "Abelian strata of genus %d surfaces and %d intervals and a marked incoming ihorizontal separatrix" %(self._genus, self._nintervals)
+            return "Abelian strata of genus %d surfaces and %d intervals and a marked incoming ihorizontal separatrix" % (self._genus, self._nintervals)
         else:
-            return "Abelian strata of genus %d surfaces and %d intervals and a marked outgoing horizontal separatrix" %(self._genus, self._nintervals)
+            return "Abelian strata of genus %d surfaces and %d intervals and a marked outgoing horizontal separatrix" % (self._genus, self._nintervals)
 
     def __iter__(self):
         r"""
@@ -570,7 +621,7 @@ class AbelianStrata_gd(CombinatorialClass):
         elif self._genus == 1:
             if self._nintervals >= 2:
                 yield AbelianStratum([0]*(self._nintervals-1),
-                    marked_separatrix='out')
+                                     marked_separatrix='out')
         else:
             s = self._nintervals - 2*self._genus + 1
             for p in Partitions(2*self._genus - 2 + s, length=s):
@@ -578,7 +629,8 @@ class AbelianStrata_gd(CombinatorialClass):
                 for t in set(l):
                     i = l.index(t)
                     yield AbelianStratum([t] + l[:i] +
-                    l[i+1:],marked_separatrix='out')
+                                         l[i+1:], marked_separatrix='out')
+
 
 class AbelianStrata_all(InfiniteAbstractCombinatorialClass):
     r"""
@@ -593,7 +645,7 @@ class AbelianStrata_all(InfiniteAbstractCombinatorialClass):
         """
         return "Abelian strata"
 
-    def _infinite_cclass_slice(self,g):
+    def _infinite_cclass_slice(self, g):
         r"""
         TESTS::
 
@@ -614,6 +666,7 @@ class AbelianStrata_all(InfiniteAbstractCombinatorialClass):
         """
         return AbelianStrata_g(g)
 
+
 class AbelianStratum(SageObject):
     """
     Stratum of Abelian differentials.
@@ -623,7 +676,7 @@ class AbelianStratum(SageObject):
     to Rauzy diagram with right induction.
     If there is no marked separatrix, the associated Rauzy diagram is the
     extended Rauzy diagram (consideration of the
-    :meth:`sage.combinat.iet.template.Permutation.symmetric`
+    :meth:`sage.dynamics.interval_exchanges.template.Permutation.symmetric`
     operation of Boissy-Lanneau).
 
     When you want to specify a marked separatrix, the degree on which it is is
@@ -631,12 +684,12 @@ class AbelianStratum(SageObject):
 
     INPUT:
 
-    - ``marked_separatrix`` - None (default) or 'in' (for incoming
+    - ``marked_separatrix`` - ``None`` (default) or 'in' (for incoming
       separatrix) or 'out' (for outgoing separatrix).
 
     EXAMPLES:
 
-    Creation of an Abelian stratum and get it's connected components::
+    Creation of an Abelian stratum and get its connected components::
 
         sage: a = AbelianStratum(2, 2)
         sage: print a
@@ -679,14 +732,14 @@ class AbelianStratum(SageObject):
         0 1 2 3 4 5 6
         3 2 4 6 5 1 0
 
-    You can precise the alphabet::
+    You can choose the alphabet::
 
         sage: print a_odd.representative(alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ")
         A B C D E F G
         D C E G F B A
 
-    By default, you get a reduced permutation, but you can specify that you want
-    a labelled one::
+    By default, you get a reduced permutation, but you can specify
+    that you want a labelled one::
 
         sage: p_reduced = a_odd.representative()
         sage: p_labelled = a_odd.representative(reduced=False)
@@ -701,41 +754,52 @@ class AbelianStratum(SageObject):
             sage: s = AbelianStratum(1,1,1,1)
             sage: s == loads(dumps(s))
             True
-        """
-        if l == (): pass
 
-        elif hasattr(l[0],"__iter__") and len(l) == 1:
+            sage: AbelianStratum('no','way')
+            Traceback (most recent call last):
+            ...
+            ValueError: input must be a list of integers
+
+            sage: AbelianStratum([1,1,1,1], marked_separatrix='full')
+            Traceback (most recent call last):
+            ...
+            ValueError: marked_separatrix must be one of 'no', 'in', 'out'
+        """
+        if l == ():
+            pass
+
+        elif hasattr(l[0], "__iter__") and len(l) == 1:
             l = l[0]
 
-        for i in l: assert(isinstance(i,(int,Integer)))
+        if not all(isinstance(i, (Integer, int)) for i in l):
+            raise ValueError("input must be a list of integers")
 
-        if d.has_key('marked_separatrix'):
+        if 'marked_separatrix' in d:
             m = d['marked_separatrix']
 
             if m is None:
                 m = 'no'
 
             if (m != 'no' and m != 'in' and m != 'out'):
-                raise ValueError, "marked_separatrix must be one of 'no', 'in', 'out'"
+                raise ValueError("marked_separatrix must be one of 'no', "
+                                 "'in', 'out'")
             self._marked_separatrix = m
 
-        else: # default value
+        else:  # default value
             self._marked_separatrix = 'no'
 
         self._zeroes = list(l)
 
         if not self._marked_separatrix is 'no':
-            self._zeroes[1:] = sorted(self._zeroes[1:],reverse=True)
+            self._zeroes[1:] = sorted(self._zeroes[1:], reverse=True)
         else:
             self._zeroes.sort(reverse=True)
 
         self._genus = sum(l)/2 + 1
-        assert(isinstance(self._genus,(int,Integer))  or
-            (isinstance(self._genus,Rational) and self._genus.is_integral()))
 
         self._genus = Integer(self._genus)
 
-        zeroes = filter(lambda x: x>0, self._zeroes)
+        zeroes = filter(lambda x: x > 0, self._zeroes)
         zeroes.sort()
 
         if self._genus == 1:
@@ -745,7 +809,7 @@ class AbelianStratum(SageObject):
             self._cc = (HypCCA,)
 
         elif self._genus == 3:
-            if zeroes == [2,2] or zeroes == [4]:
+            if zeroes == [2, 2] or zeroes == [4]:
                 self._cc = (HypCCA, OddCCA)
             else:
                 self._cc = (CCA,)
@@ -755,19 +819,19 @@ class AbelianStratum(SageObject):
             self._cc = (HypCCA, OddCCA, EvenCCA)
 
         elif zeroes == [self._genus-1, self._genus-1]:
-            # two similar zeros [g-1,g-1]
+            # two similar zeros [g-1, g-1]
             if self._genus % 2 == 0:
                 self._cc = (HypCCA, NonHypCCA)
 
             else:
                 self._cc = (HypCCA, OddCCA, EvenCCA)
 
-        elif len(filter(lambda x: x%2, zeroes)) == 0:
+        elif len(filter(lambda x: x % 2, zeroes)) == 0:
             # even zeroes [2 l_1, 2 l_2, ..., 2 l_n]
-            self._cc = (OddCCA,EvenCCA)
+            self._cc = (OddCCA, EvenCCA)
 
         else:
-            self._cc = (CCA,)
+            self._cc = (CCA, )
 
     def _repr_(self):
         """
@@ -780,8 +844,8 @@ class AbelianStratum(SageObject):
             return "H(" + str(self._zeroes)[1:-1] + ")"
         else:
             return ("H" +
-                '^' + self._marked_separatrix +
-                "(" + str(self._zeroes)[1:-1] + ")")
+                    '^' + self._marked_separatrix +
+                    "(" + str(self._zeroes)[1:-1] + ")")
 
     def __str__(self):
         r"""
@@ -794,8 +858,8 @@ class AbelianStratum(SageObject):
             return "H(" + str(self._zeroes)[1:-1] + ")"
         else:
             return ("H" +
-                '^' + self._marked_separatrix +
-                "(" + str(self._zeroes)[1:-1] + ")")
+                    '^' + self._marked_separatrix +
+                    "(" + str(self._zeroes)[1:-1] + ")")
 
     def __eq__(self, other):
         r"""
@@ -819,12 +883,17 @@ class AbelianStratum(SageObject):
             False
             sage: c == e  # difference between out mark adn in mark
             False
+
+            sage: a == False
+            Traceback (most recent call last):
+            ...
+            TypeError: the right member must be a stratum
         """
         if type(self) != type(other):
-            raise TypeError, "The right member must be a stratum"
+            raise TypeError("the right member must be a stratum")
 
         return (self._marked_separatrix == other._marked_separatrix and
-            self._zeroes == other._zeroes)
+                self._zeroes == other._zeroes)
 
     def __ne__(self, other):
         r"""
@@ -848,12 +917,16 @@ class AbelianStratum(SageObject):
             True
             sage: c != e  # difference between out mark adn in mark
             True
+            sage: a != False
+            Traceback (most recent call last):
+            ...
+            TypeError: the right member must be a stratum
         """
         if type(self) != type(other):
-            raise TypeError, "The right member must be a stratum"
+            raise TypeError("the right member must be a stratum")
 
         return (self._marked_separatrix != other._marked_separatrix or
-            self._zeroes != other._zeroes)
+                self._zeroes != other._zeroes)
 
     def __cmp__(self, other):
         r"""
@@ -875,7 +948,7 @@ class AbelianStratum(SageObject):
         """
         if (type(self) != type(other) or
             self._marked_separatrix != other._marked_separatrix):
-            raise TypeError, "The other must be a stratum with same marking"
+            raise TypeError("the other must be a stratum with same marking")
 
         if self._zeroes < other._zeroes:
             return 1
@@ -926,7 +999,7 @@ class AbelianStratum(SageObject):
 
         OUTPUT:
 
-        boolean -- True if it's connected else False
+        boolean -- ``True`` if it is connected else ``False``
 
         EXAMPLES:
 
@@ -989,6 +1062,7 @@ class AbelianStratum(SageObject):
             5
         """
         return 2 * self.genus() + len(self._zeroes) - 1
+
 
 class ConnectedComponentOfAbelianStratum(SageObject):
     r"""
@@ -1117,15 +1191,15 @@ class ConnectedComponentOfAbelianStratum(SageObject):
             'H_c(1, 1, 1, 1, 1, 1, 1, 1)'
         """
         if self._parent._marked_separatrix == 'no':
-            return ("H"+
-                "_" + self._name +
-                "(" + str(self._parent._zeroes)[1:-1]  + ")")
+            return ("H" +
+                    "_" + self._name +
+                    "(" + str(self._parent._zeroes)[1:-1] + ")")
 
         else:
             return ("H" +
-                "_" + self._name +
-                "^" + self._parent._marked_separatrix +
-                "(" + str(self._parent._zeroes)[1:-1] + ")")
+                    "_" + self._name +
+                    "^" + self._parent._marked_separatrix +
+                    "(" + str(self._parent._zeroes)[1:-1] + ")")
 
     def __str__(self):
         r"""
@@ -1135,15 +1209,15 @@ class ConnectedComponentOfAbelianStratum(SageObject):
             'H(1, 1, 1, 1, 1, 1, 1, 1)'
         """
         if self._parent._marked_separatrix == 'no':
-            return ("H"+
-                "_" + self._name +
-                "(" + str(self._parent._zeroes)[1:-1]  + ")")
+            return ("H" +
+                    "_" + self._name +
+                    "(" + str(self._parent._zeroes)[1:-1] + ")")
 
         else:
             return ("H" +
-                "_" + self._name +
-                "^" + self._parent._marked_separatrix +
-                "(" + str(self._parent._zeroes)[1:-1] + ")")
+                    "_" + self._name +
+                    "^" + self._parent._marked_separatrix +
+                    "(" + str(self._parent._zeroes)[1:-1] + ")")
 
     def parent(self):
         r"""
@@ -1166,16 +1240,16 @@ class ConnectedComponentOfAbelianStratum(SageObject):
         r"""
         Returns the Zorich representative of this connected component.
 
-        Zorich constructs explcitely interval exchange transformations for each
-        stratum in [Zor08]_.
+        Zorich constructs explicitely interval exchange
+        transformations for each stratum in [Zor08]_.
 
         INPUT:
 
-        - ``reduced`` - boolean (default: True): whether you obtain a reduced or
-          labelled permutation
+        - ``reduced`` - boolean (default: ``True``): whether you
+          obtain a reduced or labelled permutation
 
-        - ``alphabet`` - an alphabet or None: whether you want to specify an
-          alphabet for your permutation
+        - ``alphabet`` - an alphabet or ``None``: whether you want to
+          specify an alphabet for your permutation
 
         OUTPUT:
 
@@ -1196,15 +1270,16 @@ class ConnectedComponentOfAbelianStratum(SageObject):
             H_c(1, 1, 1, 1)
         """
         g = self._parent._genus
-        zeroes = filter(lambda x: x>0, self._parent._zeroes)
+        zeroes = filter(lambda x: x > 0, self._parent._zeroes)
         n = self._parent._zeroes.count(0)
 
-        l0 = range(0,4*g-3)
-        l1 = [4,3,2]
-        for k in range(5,4*g-6,4): l1 += [k,k+3,k+2,k+1]
-        l1 += [1,0]
+        l0 = range(0, 4*g-3)
+        l1 = [4, 3, 2]
+        for k in range(5, 4*g-6, 4):
+            l1 += [k, k+3, k+2, k+1]
+        l1 += [1, 0]
         k = 3
-        for d in zeroes :
+        for d in zeroes:
             for i in range(d-1):
                 del l0[l0.index(k)]
                 del l1[l1.index(k)]
@@ -1226,16 +1301,14 @@ class ConnectedComponentOfAbelianStratum(SageObject):
             l0.reverse()
             l1.reverse()
 
-        if reduced == True:
-            from sage.combinat.iet.reduced import ReducedPermutationIET
-            return ReducedPermutationIET([l0,l1], alphabet=alphabet)
-
-        elif reduced == False:
-            from sage.combinat.iet.labelled import LabelledPermutationIET
-            return LabelledPermutationIET([l0,l1], alphabet=alphabet)
+        if reduced:
+            from sage.dynamics.interval_exchanges.reduced import ReducedPermutationIET
+            return ReducedPermutationIET([l0, l1], alphabet=alphabet)
 
         else:
-            raise ValueError, "reduced must be boolean"
+            from sage.dynamics.interval_exchanges.labelled import LabelledPermutationIET
+            return LabelledPermutationIET([l0, l1], alphabet=alphabet)
+
 
     def genus(self):
         r"""
@@ -1332,10 +1405,13 @@ class ConnectedComponentOfAbelianStratum(SageObject):
             True
             sage: c2_hyp != c2_odd
             True
-
+            sage: c1 == True
+            Traceback (most recent call last):
+            ...
+            TypeError: other must be a connected component
         """
         if not isinstance(other, CCA):
-            raise TypeError, "Must be a connecte component"
+            raise TypeError("other must be a connected component")
 
         if type(self) == type(other):
             if self._parent._zeroes > other._parent._zeroes:
@@ -1344,9 +1420,10 @@ class ConnectedComponentOfAbelianStratum(SageObject):
                 return -1
             return 0
 
-        return cmp(type(self),type(other))
+        return cmp(type(self), type(other))
 
 CCA = ConnectedComponentOfAbelianStratum
+
 
 class HypConnectedComponentOfAbelianStratum(CCA):
     """
@@ -1362,16 +1439,17 @@ class HypConnectedComponentOfAbelianStratum(CCA):
         r"""
         Returns the Zorich representative of this connected component.
 
-        Zorich constructs explcitely interval exchange transformations for each
-        stratum in [Zor08]_.
+        Zorich constructs explicitely interval exchange
+        transformations for each stratum in [Zor08]_.
 
         INPUT:
 
-        - ``reduced`` - boolean (defaut: True): whether you obtain a reduced or
-          labelled permutation
+        - ``reduced`` - boolean (defaut: ``True``): whether you obtain
+          a reduced or labelled permutation
 
-        - ``alphabet`` - alphabet or None (defaut: None): whether you want to
-          specify an alphabet for your representative
+        - ``alphabet`` - alphabet or ``None`` (defaut: ``None``):
+          whether you want to specify an alphabet for your
+          representative
 
         EXAMPLES:
 
@@ -1427,18 +1505,18 @@ class HypConnectedComponentOfAbelianStratum(CCA):
         n = self._parent._zeroes.count(0)
         m = len(self._parent._zeroes) - n
 
-        if m == 0: # on the torus
+        if m == 0:  # on the torus
             if n == 1:
-                l0 = [0,1]
-                l1 = [1,0]
+                l0 = [0, 1]
+                l1 = [1, 0]
             elif n == 2:
-                l0 = [0,1,2]
-                l1 = [2,1,0]
+                l0 = [0, 1, 2]
+                l1 = [2, 1, 0]
             else:
                 l0 = range(1, n+2)
-                l1 = [n+1] + range(1,n+1)
+                l1 = [n+1] + range(1, n+1)
 
-        elif m == 1: # H(2g-2,0^n) or H(0,2g-2,0^(n-1))
+        elif m == 1:  # H(2g-2,0^n) or H(0,2g-2,0^(n-1))
             l0 = range(1, 2*g+1)
             l1 = range(2*g, 0, -1)
             interval = range(2*g+1, 2*g+n+1)
@@ -1450,7 +1528,7 @@ class HypConnectedComponentOfAbelianStratum(CCA):
                 l0[1:1] = interval
                 l1[1:1] = interval
 
-        else: # H(g-1,g-1,0^n) or H(0,g-1,g-1,0^(n-1))
+        else:  # H(g-1,g-1,0^n) or H(0,g-1,g-1,0^(n-1))
             l0 = range(1, 2*g+2)
             l1 = range(2*g+1, 0, -1)
             interval = range(2*g+2, 2*g+n+2)
@@ -1466,18 +1544,16 @@ class HypConnectedComponentOfAbelianStratum(CCA):
             l0.reverse()
             l1.reverse()
 
-        if reduced == True:
-            from sage.combinat.iet.reduced import ReducedPermutationIET
-            return ReducedPermutationIET([l0,l1], alphabet=alphabet)
-
-        elif reduced == False:
-            from sage.combinat.iet.labelled import LabelledPermutationIET
-            return LabelledPermutationIET([l0,l1], alphabet=alphabet)
+        if reduced:
+            from sage.dynamics.interval_exchanges.reduced import ReducedPermutationIET
+            return ReducedPermutationIET([l0, l1], alphabet=alphabet)
 
         else:
-            raise ValueError, "reduced must be boolean"
+            from sage.dynamics.interval_exchanges.labelled import LabelledPermutationIET
+            return LabelledPermutationIET([l0, l1], alphabet=alphabet)
 
 HypCCA = HypConnectedComponentOfAbelianStratum
+
 
 class NonHypConnectedComponentOfAbelianStratum(CCA):
     """
@@ -1490,6 +1566,7 @@ class NonHypConnectedComponentOfAbelianStratum(CCA):
     _name = 'nonhyp'
 
 NonHypCCA = NonHypConnectedComponentOfAbelianStratum
+
 
 class EvenConnectedComponentOfAbelianStratum(CCA):
     """
@@ -1505,8 +1582,8 @@ class EvenConnectedComponentOfAbelianStratum(CCA):
         r"""
         Returns the Zorich representative of this connected component.
 
-        Zorich constructs explcitely interval exchange transformations for each
-        stratum in [Zor08]_.
+        Zorich constructs explicitely interval exchange
+        transformations for each stratum in [Zor08]_.
 
         EXAMPLES:
 
@@ -1534,15 +1611,15 @@ class EvenConnectedComponentOfAbelianStratum(CCA):
             sage: p.connected_component()
             H_even(4, 4)
         """
-        zeroes = filter(lambda x: x>0, self._parent._zeroes)
+        zeroes = filter(lambda x: x > 0, self._parent._zeroes)
         n = self._parent._zeroes.count(0)
         g = self._parent._genus
 
         l0 = range(3*g-2)
-        l1 = [6,5,4,3,2,7,9,8]
-        for k in range(10,3*g-4,3) :
-            l1 += [k,k+2,k+1]
-        l1 += [1,0]
+        l1 = [6, 5, 4, 3, 2, 7, 9, 8]
+        for k in range(10, 3*g-4, 3):
+            l1 += [k, k+2, k+1]
+        l1 += [1, 0]
 
         k = 4
         for d in zeroes:
@@ -1568,22 +1645,20 @@ class EvenConnectedComponentOfAbelianStratum(CCA):
             l0.reverse()
             l1.reverse()
 
-        if reduced == True:
-            from sage.combinat.iet.reduced import ReducedPermutationIET
-            return ReducedPermutationIET([l0,l1], alphabet=alphabet)
-
-        elif reduced == False:
-            from sage.combinat.iet.labelled import LabelledPermutationIET
-            return LabelledPermutationIET([l0,l1], alphabet=alphabet)
+        if reduced:
+            from sage.dynamics.interval_exchanges.reduced import ReducedPermutationIET
+            return ReducedPermutationIET([l0, l1], alphabet=alphabet)
 
         else:
-            raise ValueError, "reduced must be boolean"
+            from sage.dynamics.interval_exchanges.labelled import LabelledPermutationIET
+            return LabelledPermutationIET([l0, l1], alphabet=alphabet)
 
 EvenCCA = EvenConnectedComponentOfAbelianStratum
 
+
 class OddConnectedComponentOfAbelianStratum(CCA):
     r"""
-    Connected component of an Abelian stratum wit odd spin parity.
+    Connected component of an Abelian stratum with odd spin parity.
 
     .. warning::
 
@@ -1595,8 +1670,8 @@ class OddConnectedComponentOfAbelianStratum(CCA):
         """
         Returns the Zorich representative of this connected component.
 
-        Zorich constructs explcitely interval exchange transformations for each
-        stratum in [Zor08]_.
+        Zorich constructs explicitely interval exchange
+        transformations for each stratum in [Zor08]_.
 
         EXAMPLES:
 
@@ -1614,16 +1689,17 @@ class OddConnectedComponentOfAbelianStratum(CCA):
             0 1 2 3 4 5 6 7 8 9 10
             3 2 5 4 6 8 7 10 9 1 0
         """
-        zeroes = filter(lambda x: x>0, self._parent._zeroes)
+        zeroes = filter(lambda x: x > 0, self._parent._zeroes)
         zeroes = map(lambda x: x/2, zeroes)
 
         n = self._parent._zeroes.count(0)
         g = self._parent._genus
 
         l0 = range(3*g-2)
-        l1 = [3,2]
-        for k in range(4, 3*g-4, 3): l1 += [k,k+2,k+1]
-        l1 += [1,0]
+        l1 = [3, 2]
+        for k in range(4, 3*g-4, 3):
+            l1 += [k, k+2, k+1]
+        l1 += [1, 0]
 
         k = 4
         for d in zeroes:
@@ -1649,103 +1725,12 @@ class OddConnectedComponentOfAbelianStratum(CCA):
             l0.reverse()
             l1.reverse()
 
-        if reduced == True:
-            from sage.combinat.iet.reduced import ReducedPermutationIET
-            return ReducedPermutationIET([l0,l1], alphabet=alphabet)
-
-        elif reduced == False:
-            from sage.combinat.iet.labelled import LabelledPermutationIET
-            return LabelledPermutationIET([l0,l1], alphabet=alphabet)
+        if reduced:
+            from sage.dynamics.interval_exchanges.reduced import ReducedPermutationIET
+            return ReducedPermutationIET([l0, l1], alphabet=alphabet)
 
         else:
-            raise ValueError, "reduced must be boolean"
+            from sage.dynamics.interval_exchanges.labelled import LabelledPermutationIET
+            return LabelledPermutationIET([l0, l1], alphabet=alphabet)
 
 OddCCA = OddConnectedComponentOfAbelianStratum
-
-class QuadraticStratum(SageObject):
-    r"""
-    Stratum of quadratic differentials.
-    """
-    def __init__(self, *l):
-        """
-        TESTS::
-
-            sage: a = QuadraticStratum(-1,-1,-1,-1)
-            sage: loads(dumps(a)) == a
-            True
-        """
-        if l == []: raise ValueError("The list must be non empty !")
-
-        if isinstance(l[0],list) or isinstance(l[0],tuple):
-            self._zeroes = []
-            for (i,j) in l.iteritems():
-                assert(isinstance(i, (int, Integer)) and
-                        isinstance(j, (int, Integer)))
-                self._zeroes += [i]*j
-
-        else:
-            for i in l: assert(isinstance(i,(int,Integer)))
-            self._zeroes = sorted(list(l), reverse=True)
-
-
-        self._genus = sum(l)/4 + 1
-        assert(isinstance(self._genus,(int,Integer))  or
-            (isinstance(self._genus,Rational) and self._genus.is_integral()))
-
-        self._genus = Integer(self._genus)
-
-    def __repr__(self):
-        r"""
-        TESTS::
-
-            sage: a = QuadraticStratum(-1,-1,-1,-1)
-            sage: print a
-            Q(-1, -1, -1, -1)
-        """
-        return "Q(" + str(self._zeroes)[1:-1] + ")"
-
-    def __str__(self):
-        r"""
-        TESTS::
-
-            sage: a = QuadraticStratum(-1,-1,-1,-1)
-            sage: print a
-            Q(-1, -1, -1, -1)
-        """
-        return "Q(" + str(self._zeroes)[1:-1] + ")"
-
-    def __eq__(self, other):
-        r"""
-        TESTS::
-
-            sage: QuadraticStratum(0) == QuadraticStratum(0)
-            True
-            sage: QuadraticStratum(4) == QuadraticStratum(0)
-            False
-        """
-        return type(self) == type(other) and self._zeroes == other._zeroes
-
-    def __ne__(self, other):
-        r"""
-        TESTS::
-
-            sage: QuadraticStratum(0) != QuadraticStratum(0)
-            False
-            sage: QuadraticStratum(4) != QuadraticStratum(0)
-            True
-        """
-        return type(self) != type(other) or self._zeroes != other._zeroes
-
-    def genus(self):
-        r"""
-        Returns the genus.
-
-        EXAMPLES:
-
-        ::
-
-            sage: QuadraticStratum(-1,-1,-1,-1).genus()
-            0
-        """
-        return self._genus
-

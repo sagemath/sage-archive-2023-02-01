@@ -922,7 +922,7 @@ class Graph(GenericGraph):
     _directed = False
 
     def __init__(self, data=None, pos=None, loops=None, format=None,
-                 boundary=[], weighted=None, implementation='c_graph',
+                 boundary=None, weighted=None, implementation='c_graph',
                  sparse=True, vertex_labels=True, name=None,
                  multiedges=None, convert_empty_dict_labels_to_None=None):
         """
@@ -1012,6 +1012,12 @@ class Graph(GenericGraph):
             sage: grafo4 = Graph(matad,format = "adjacency_matrix", weighted=True)
             sage: grafo4.shortest_path(0,6,by_weight=True)
             [0, 1, 2, 5, 4, 6]
+
+        Get rid of mutable default argument for `boundary` (:trac:`14794`)::
+
+            sage: G = Graph(boundary=None)
+            sage: G._boundary
+            []
         """
         GenericGraph.__init__(self)
         msg = ''
@@ -1538,7 +1544,7 @@ class Graph(GenericGraph):
             assert format == 'int'
 
         self._pos = pos
-        self._boundary = boundary
+        self._boundary = boundary if boundary is not None else []
         if format != 'Graph' or name is not None:
             self.name(name)
 

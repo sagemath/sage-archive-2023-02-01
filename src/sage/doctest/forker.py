@@ -96,28 +96,21 @@ def init_sage():
     import sage.misc.displayhook
     sys.displayhook = sage.misc.displayhook.DisplayHook(sys.displayhook)
 
+    # Switch on extra debugging
+    from sage.structure.debug_options import debug
+    debug.refine_category_hash_check = True
+
     # Disable IPython colors during doctests
     from sage.misc.interpreter import DEFAULT_SAGE_CONFIG
     DEFAULT_SAGE_CONFIG['TerminalInteractiveShell']['colors'] = 'NoColor'
 
     # We import readline before forking, otherwise Pdb doesn't work
-    # os OS X: http://trac.sagemath.org/sage_trac/ticket/14289
+    # os OS X: http://trac.sagemath.org/14289
     import readline
-
-    # Workarounds for https://github.com/sagemath/sagenb/pull/84
-    import sagenb.notebook.misc
-    import sagenb.notebook.sage_email
 
     # Disable SymPy terminal width detection
     from sympy.printing.pretty.stringpict import stringPict
     stringPict.terminal_width = lambda self:0
-
-    def fixed_default_email_address():
-        import socket
-        import getpass
-        return getpass.getuser() + "@" + socket.gethostname()
-
-    sagenb.notebook.sage_email.default_email_address = fixed_default_email_address
 
 
 def warning_function(file):

@@ -13,35 +13,35 @@ AUTHORS:
 
 TESTS::
 
-    sage: from sage.combinat.iet.reduced import ReducedPermutationIET
+    sage: from sage.dynamics.interval_exchanges.reduced import ReducedPermutationIET
     sage: ReducedPermutationIET([['a','b'],['b','a']])
     a b
     b a
     sage: ReducedPermutationIET([[1,2,3],[3,1,2]])
     1 2 3
     3 1 2
-    sage: from sage.combinat.iet.reduced import ReducedPermutationLI
+    sage: from sage.dynamics.interval_exchanges.reduced import ReducedPermutationLI
     sage: ReducedPermutationLI([[1,1],[2,2,3,3,4,4]])
     1 1
     2 2 3 3 4 4
     sage: ReducedPermutationLI([['a','a','b','b','c','c'],['d','d']])
     a a b b c c
     d d
-    sage: from sage.combinat.iet.reduced import FlippedReducedPermutationIET
+    sage: from sage.dynamics.interval_exchanges.reduced import FlippedReducedPermutationIET
     sage: FlippedReducedPermutationIET([[1,2,3],[3,2,1]],flips=[1,2])
     -1 -2  3
      3 -2 -1
     sage: FlippedReducedPermutationIET([['a','b','c'],['b','c','a']],flips='b')
      a -b  c
     -b  c  a
-    sage: from sage.combinat.iet.reduced import FlippedReducedPermutationLI
+    sage: from sage.dynamics.interval_exchanges.reduced import FlippedReducedPermutationLI
     sage: FlippedReducedPermutationLI([[1,1],[2,2,3,3,4,4]], flips=[1,4])
     -1 -1
      2  2  3  3 -4 -4
     sage: FlippedReducedPermutationLI([['a','a','b','b'],['c','c']],flips='ac')
     -a -a  b  b
     -c -c
-    sage: from sage.combinat.iet.reduced import ReducedRauzyDiagram
+    sage: from sage.dynamics.interval_exchanges.reduced import ReducedRauzyDiagram
     sage: p = ReducedPermutationIET([[1,2,3],[3,2,1]])
     sage: d = ReducedRauzyDiagram(p)
 """
@@ -84,14 +84,14 @@ class ReducedPermutation(SageObject) :
         r"""
         TESTS::
 
-            sage: from sage.combinat.iet.reduced import ReducedPermutationIET
+            sage: from sage.dynamics.interval_exchanges.reduced import ReducedPermutationIET
             sage: p = ReducedPermutationIET()
             sage: loads(dumps(p)) == p
             True
             sage: p = ReducedPermutationIET([['a','b'],['b','a']])
             sage: loads(dumps(p)) == p
             True
-            sage: from sage.combinat.iet.reduced import ReducedPermutationLI
+            sage: from sage.dynamics.interval_exchanges.reduced import ReducedPermutationLI
             sage: p = ReducedPermutationLI()
             sage: loads(dumps(p)) == p
             True
@@ -354,7 +354,7 @@ def alphabetized_atwin(twin, alphabet):
 
     TESTS::
 
-        sage: from sage.combinat.iet.reduced import alphabetized_atwin
+        sage: from sage.dynamics.interval_exchanges.reduced import alphabetized_atwin
 
     ::
 
@@ -403,7 +403,7 @@ def ReducedPermutationsIET_iterator(
     TESTS::
 
         sage: for p in iet.Permutations_iterator(3,reduced=True,alphabet="abc"):
-        ...    print p  #indirect doctest
+        ....:     print p  #indirect doctest
         a b c
         b c a
         a b c
@@ -416,15 +416,17 @@ def ReducedPermutationsIET_iterator(
 
     if irreducible is False:
         if nintervals is None:
-            raise NotImplementedError, "choose a number of intervals"
-        else:
-            assert(isinstance(nintervals,(int,Integer)))
-            assert(nintervals > 0)
+            raise ValueError("please choose a number of intervals")
 
-            a0 = range(1,nintervals+1)
-            f = lambda x: ReducedPermutationIET([a0,list(x)],
-                alphabet=alphabet)
-            return imap(f, Permutations(nintervals))
+        nintervals = Integer(nintervals)
+
+        if not(nintervals > 0):
+            raise ValueError('number of intervals must be positive')
+
+        a0 = range(1,nintervals+1)
+        f = lambda x: ReducedPermutationIET([a0,list(x)],
+            alphabet=alphabet)
+        return imap(f, Permutations(nintervals))
     else:
         return ifilter(lambda x: x.is_irreducible(),
         ReducedPermutationsIET_iterator(nintervals,False,alphabet))
@@ -581,7 +583,7 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
             True
         """
         if type(self) != type(other):
-            raise ValueError, "Permutations must be of the same type"
+            raise ValueError("Permutations must be of the same type")
 
         if len(self) > len(other):
             return 1
@@ -630,9 +632,9 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
         tmp = [self._twin[0][:], self._twin[1][:]]
 
         n = self.length_top()
-        for i in (0,1):
+        for i in (0, 1):
             for j in range(n):
-                tmp[i][n- 1 - j] = n - 1 - self._twin[i][j]
+                tmp[i][n - 1 - j] = n - 1 - self._twin[i][j]
 
         self._twin = tmp
 
@@ -728,7 +730,7 @@ class ReducedPermutationIET(ReducedPermutation, PermutationIET):
             sage: map(s_b, q_b[1]) == map(Word, p_b[1])
             True
         """
-        from sage.combinat.iet.labelled import LabelledPermutationIET
+        from sage.dynamics.interval_exchanges.labelled import LabelledPermutationIET
         from sage.combinat.words.morphism import WordMorphism
 
         winner = interval_conversion(winner)
@@ -831,7 +833,7 @@ def alphabetized_qtwin(twin, alphabet):
 
     TESTS::
 
-        sage: from sage.combinat.iet.reduced import alphabetized_qtwin
+        sage: from sage.dynamics.interval_exchanges.reduced import alphabetized_qtwin
 
     ::
 
@@ -865,11 +867,11 @@ def alphabetized_qtwin(twin, alphabet):
         [['a', 'b', 'a'], ['c', 'b', 'c']]
     """
     i_a = 0
-    l = [[False]*len(twin[0]),[False]*len(twin[1])]
+    l = [[False]*len(twin[0]), [False]*len(twin[1])]
     # False means empty here
     for i in range(2) :
         for j in range(len(l[i])) :
-            if  l[i][j] is False :
+            if l[i][j] is False :
                 l[i][j] = alphabet[i_a]
                 l[twin[i][j][0]][twin[i][j][1]] = alphabet[i_a]
                 i_a += 1
@@ -1137,7 +1139,7 @@ def labelize_flip(couple):
 
     TESTS::
 
-        sage: from sage.combinat.iet.reduced import labelize_flip
+        sage: from sage.dynamics.interval_exchanges.reduced import labelize_flip
         sage: labelize_flip((4,1))
         ' 4'
         sage: labelize_flip(('a',-1))
@@ -1637,12 +1639,12 @@ class FlippedReducedPermutationLI(
             True
         """
         i_a = 0
-        l = [[False]*len(self._twin[0]),[False]*len(self._twin[1])]
+        l = [[False]*len(self._twin[0]), [False]*len(self._twin[1])]
 
         if flips:
             for i in range(2):  # False means empty here
                 for j in range(len(l[i])):
-                   if  l[i][j] is False:
+                    if l[i][j] is False:
                         l[i][j] = (self._alphabet.unrank(i_a), self._flips[i][j])
                         l[self._twin[i][j][0]][self._twin[i][j][1]] = l[i][j]
                         i_a += 1
@@ -1650,7 +1652,7 @@ class FlippedReducedPermutationLI(
         else:
             for i in range(2):  # False means empty here
                 for j in range(len(l[i])):
-                   if  l[i][j] is False:
+                    if l[i][j] is False:
                         l[i][j] = self._alphabet.unrank(i_a)
                         l[self._twin[i][j][0]][self._twin[i][j][1]] = l[i][j]
                         i_a += 1
@@ -1769,5 +1771,3 @@ class FlippedReducedRauzyDiagram(FlippedRauzyDiagram, ReducedRauzyDiagram):
         """
         self._element._twin = [list(data[0][0]), list(data[0][1])]
         self._element._flips = [list(data[1][0]), list(data[1][1])]
-
-

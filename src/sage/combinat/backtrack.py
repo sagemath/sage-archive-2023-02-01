@@ -661,7 +661,7 @@ class PositiveIntegerSemigroup(UniqueRepresentation, SearchForest):
         sage: from sage.combinat.backtrack import PositiveIntegerSemigroup
         sage: PP = PositiveIntegerSemigroup()
         sage: PP.category()
-        Join of Category of infinite enumerated sets and Category of commutative additive semigroups and Category of monoids and Category of facade sets
+        Join of Category of monoids and Category of commutative additive semigroups and Category of infinite enumerated sets and Category of facade sets
         sage: PP.cardinality()
         +Infinity
         sage: PP.one()

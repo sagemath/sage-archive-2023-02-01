@@ -295,7 +295,7 @@ class CallableSymbolicExpressionRing_class(SymbolicRing):
             sage: hash(f.parent()) #random
             -8878119762643067638
         """
-        return hash((self.__class__, self._arguments))
+        return hash(('CallableSymbolicExpressionRing', self._arguments))
 
     def __cmp__(self, other):
         """

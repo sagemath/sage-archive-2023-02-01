@@ -10,6 +10,7 @@ TESTS::
 """
 include "sage/ext/stdsage.pxi"
 
+from sage.categories.finite_fields import FiniteFields
 from sage.structure.parent cimport Parent
 from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import randrange
@@ -74,13 +75,12 @@ cdef class FiniteFieldIterator:
         """
         return self
 
-from sage.categories.finite_fields import FiniteFields
-_FiniteFields = FiniteFields()
+
 cdef class FiniteField(Field):
     """
     Abstract base class for finite fields.
     """
-    def __init__(self, base, names, normalize):
+    def __init__(self, base, names, normalize, category=None):
         """
         Initialize ``self``.
 
@@ -97,7 +97,9 @@ cdef class FiniteField(Field):
             sage: loads(K.dumps()) == K
             True
         """
-        Field.__init__(self, base, names, normalize, category=_FiniteFields)
+        if category is None:
+            category = FiniteFields()
+        Field.__init__(self, base, names, normalize, category)
 
     def __repr__(self):
         """
@@ -320,20 +322,20 @@ cdef class FiniteField(Field):
             ...
             TypeError: images do not define a valid homomorphism
         """
-        if (self.characteristic() != codomain.characteristic()):
-            raise ValueError, "no map from %s to %s"%(self, codomain)
-        if (len(im_gens) != 1):
+        if not codomain.characteristic().divides(self.characteristic()):
+            raise ValueError, "no map from %s to %s" % (self, codomain)
+        if len(im_gens) != 1:
             raise ValueError, "only one generator for finite fields."
 
-        return (im_gens[0].charpoly())(self.gen(0)).is_zero()
+        return self.modulus()(im_gens[0]).is_zero()
 
-    def _Hom_(self, codomain, cat=None):
+    def _Hom_(self, codomain, category=None):
         """
-        Return homset of homomorphisms from ``self`` to the finite field
-        codomain. This function is implicitly called by the Hom method or
-        function.
+        Return the set of homomorphisms from ``self`` to ``codomain``
+        in ``category``.
 
-        The ``cat`` option is currently ignored.
+        This function is implicitly called by the ``Hom`` method or
+        function.
 
         EXAMPLES::
 
@@ -343,7 +345,11 @@ cdef class FiniteField(Field):
             Automorphism group of Finite Field in a of size 5^2
         """
         from sage.rings.finite_rings.homset import FiniteFieldHomset
-        return FiniteFieldHomset(self, codomain)
+        from sage.rings.homset import RingHomset
+        if category.is_subcategory(FiniteFields()):
+            return FiniteFieldHomset(self, codomain, category)
+        else:
+            return RingHomset(self, codomain, category)
 
     def gen(self):
         r"""
@@ -522,7 +528,7 @@ cdef class FiniteField(Field):
             sage: GF(997).order()
             997
         """
-        raise NotImplementedError
+        return self.characteristic()**self.degree()
 
     # cached because constructing the Factorization is slow;
     # see :trac:`11628`.
@@ -807,9 +813,9 @@ cdef class FiniteField(Field):
             if R.characteristic() == self.characteristic():
                 if R.degree() == 1:
                     return True
-                if self.degree() % R.degree() == 0:
-                    if hasattr(self, '_prefix') and hasattr(R, '_prefix'):
-                        return R.hom((self.gen() ** ((self.order() - 1)//(R.order() - 1)),))
+                elif (R.degree().divides(self.degree())
+                      and hasattr(self, '_prefix') and hasattr(R, '_prefix')):
+                    return R.hom((self.gen() ** ((self.order() - 1)//(R.order() - 1)),))
 
     def construction(self):
         """
@@ -982,22 +988,30 @@ cdef class FiniteField(Field):
                 raise ValueError, "name must be None, a string or a dictionary indexed by divisors of the degree"
             return [self.subfields(m, name=name[m])[0] for m in divisors]
 
-    def algebraic_closure(self):
+    def algebraic_closure(self, name):
         """
-        Return the algebraic closure of ``self`` (not implemented).
+        Return an algebraic closure of ``self``.
+
+        INPUT:
+
+        - ``name`` -- string: prefix to use for variable names of
+          subfields
+
+        EXAMPLE::
+
+            sage: F = GF(5).algebraic_closure('z')
+            sage: F
+            Algebraic closure of Finite Field of size 5
+            sage: F.gen(3)
+            z3
 
         .. NOTE::
 
-           This is not yet implemented for finite fields.
+            This is currently only implemented for prime fields.
 
-        EXAMPLES::
-
-            sage: GF(5).algebraic_closure()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Algebraic closures of finite fields not implemented.
         """
-        raise NotImplementedError, "Algebraic closures of finite fields not implemented."
+        from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField
+        return AlgebraicClosureFiniteField(self, name)
 
     @cached_method
     def is_conway(self):

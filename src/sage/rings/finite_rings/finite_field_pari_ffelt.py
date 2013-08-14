@@ -138,7 +138,6 @@ class FiniteField_pari_ffelt(FiniteField):
 
         self._modulus = modulus
         self._degree = n
-        self._card = p ** n
         self._kwargs = {}
 
         self._gen_pari = pari(modulus).ffgen()
@@ -162,7 +161,7 @@ class FiniteField_pari_ffelt(FiniteField):
         try:
             return self.__hash
         except AttributeError:
-            self.__hash = hash((self._card, self.variable_name(), self._modulus))
+            self.__hash = hash((self.cardinality(), self.variable_name(), self._modulus))
             return self.__hash
 
     def __reduce__(self):
@@ -197,8 +196,8 @@ class FiniteField_pari_ffelt(FiniteField):
         """
         if not isinstance(other, FiniteField_pari_ffelt):
             return cmp(type(self), type(other))
-        return cmp((self._card, self.variable_name(), self._modulus),
-                   (other._card, other.variable_name(), other._modulus))
+        return cmp((self.cardinality(), self.variable_name(), self._modulus),
+                   (other.cardinality(), other.variable_name(), other._modulus))
 
     def __richcmp__(left, right, op):
         """
@@ -499,17 +498,3 @@ class FiniteField_pari_ffelt(FiniteField):
             return x
         else:
             return self.element_class(self, x)
-
-    def order(self):
-        """
-        The number of elements of the finite field.
-
-        EXAMPLE::
-
-            sage: k = FiniteField(2^10, 'a', impl='pari_ffelt')
-            sage: k
-            Finite Field in a of size 2^10
-            sage: k.order()
-            1024
-        """
-        return self._card

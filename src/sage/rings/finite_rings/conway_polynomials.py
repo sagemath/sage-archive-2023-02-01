@@ -157,6 +157,26 @@ class PseudoConwayLattice(SageObject):
         else:
             self.nodes = {}
 
+    def __cmp__(self, other):
+        """
+        TEST::
+
+            sage: from sage.rings.finite_rings.conway_polynomials import PseudoConwayLattice
+            sage: PCL3 = PseudoConwayLattice(3)
+            sage: PCL5 = PseudoConwayLattice(5)
+            sage: PCL3 == PCL3
+            True
+            sage: PCL3 == PCL5
+            False
+
+        """
+        if self is other:
+            return 0
+        c = cmp(type(self), type(other))
+        if c != 0:
+            return c
+        return cmp(self.nodes, other.nodes)
+
     def polynomial(self, n):
         r"""
         Return the pseudo-Conway polynomial of degree `n` in this

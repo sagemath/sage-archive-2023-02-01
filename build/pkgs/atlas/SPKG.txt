@@ -92,6 +92,10 @@ The package can be configured via three environment variables:
 
 == ChangeLog ==
 
+=== atlas-3.10.1.p4, lapack-3.4.2 (Volker Braun, 14 August 2013) ===
+ * Trac #15045: Workaround for shared library bug,
+   non-deterministically affecting some old platforms
+
 === atlas-3.10.1.p3, lapack-3.4.2 (Volker Braun, 6 July 2013) ===
  * Trac #14781: move untracked files to src/ in preparation for git
  * Added spkg-src to populate the src/ directory

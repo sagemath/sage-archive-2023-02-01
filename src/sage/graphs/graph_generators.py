@@ -123,6 +123,7 @@ __append_to_doc(
      "KrackhardtKiteGraph",
      "LjubljanaGraph",
      "M22Graph",
+     "Markstroem",
      "McGeeGraph",
      "McLaughlinGraph",
      "MeredithGraph",
@@ -1270,10 +1271,11 @@ class GraphGenerators():
     KittellGraph             = staticmethod(sage.graphs.generators.smallgraphs.KittellGraph)
     KrackhardtKiteGraph      = staticmethod(sage.graphs.generators.smallgraphs.KrackhardtKiteGraph)
     LjubljanaGraph           = staticmethod(sage.graphs.generators.smallgraphs.LjubljanaGraph)
+    M22Graph                 = staticmethod(sage.graphs.generators.smallgraphs.M22Graph)
+    MarkstroemGraph          = staticmethod(sage.graphs.generators.smallgraphs.MarkstroemGraph)
     McGeeGraph               = staticmethod(sage.graphs.generators.smallgraphs.McGeeGraph)
     McLaughlinGraph          = staticmethod(sage.graphs.generators.smallgraphs.McLaughlinGraph)
     MeredithGraph            = staticmethod(sage.graphs.generators.smallgraphs.MeredithGraph)
-    M22Graph                 = staticmethod(sage.graphs.generators.smallgraphs.M22Graph)
     MoebiusKantorGraph       = staticmethod(sage.graphs.generators.smallgraphs.MoebiusKantorGraph)
     MoserSpindle             = staticmethod(sage.graphs.generators.smallgraphs.MoserSpindle)
     NauruGraph               = staticmethod(sage.graphs.generators.smallgraphs.NauruGraph)

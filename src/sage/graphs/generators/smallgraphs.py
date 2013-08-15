@@ -3056,6 +3056,52 @@ def M22Graph():
 
     return g
 
+def MarkstroemGraph():
+    r"""
+    Returns the Markström Graph.
+
+    The Markström Graph is a cubic planar graph with no cycles of length 4 nor
+    8, but containing cycles of length 16. For more information on the Markström
+    Graph, see the `corresponding Wolfram page
+    <http://mathworld.wolfram.com/MarkstroemGraph.html>`_.
+
+    EXAMPLES::
+
+        sage: g = graphs.MarkstroemGraph()
+        sage: g.order()
+        24
+        sage: g.size()
+        36
+        sage: g.is_planar()
+        True
+        sage: g.is_regular(3)
+        True
+        sage: g.subgraph_search(graphs.CycleGraph(4)) is None
+        True
+        sage: g.subgraph_search(graphs.CycleGraph(8)) is None
+        True
+        sage: g.subgraph_search(graphs.CycleGraph(16))
+        Subgraph of (Markstroem Graph): Graph on 16 vertices
+    """
+    g = Graph(name="Markstroem Graph")
+
+    g.add_cycle(range(9))
+    g.add_path([0,9,10,11,2,1,11])
+    g.add_path([3,12,13,14,5,4,14])
+    g.add_path([6,15,16,17,8,7,17])
+    g.add_cycle([10,9,18])
+    g.add_cycle([12,13,19])
+    g.add_cycle([15,16,20])
+    g.add_cycle([21,22,23])
+    g.add_edges([(19,22),(18,21),(20,23)])
+
+    _circle_embedding(g, sum([[9+3*i+j for j in range(3)]+[0]*2 for i in range(3)],[]), radius=.6, shift=.7)
+    _circle_embedding(g, [18,19,20], radius=.35, shift=.25)
+    _circle_embedding(g, [21,22,23], radius=.15, shift=.25)
+    _circle_embedding(g, range(9))
+
+    return g
+
 def McGeeGraph(embedding=2):
     r"""
     Returns the McGee Graph.

@@ -140,6 +140,7 @@ __append_to_doc(
      "Sousselier",
      "SylvesterGraph",
      "ThomsenGraph",
+     "TietzeGraph",
      "Tutte12Cage",
      "TutteCoxeterGraph",
      "TutteGraph",
@@ -1293,6 +1294,7 @@ class GraphGenerators():
     SousselierGraph          = staticmethod(sage.graphs.generators.smallgraphs.SousselierGraph)
     SylvesterGraph           = staticmethod(sage.graphs.generators.smallgraphs.SylvesterGraph)
     ThomsenGraph             = staticmethod(sage.graphs.generators.smallgraphs.ThomsenGraph)
+    TietzeGraph              = staticmethod(sage.graphs.generators.smallgraphs.TietzeGraph)
     Tutte12Cage              = staticmethod(sage.graphs.generators.smallgraphs.Tutte12Cage)
     TutteCoxeterGraph        = staticmethod(sage.graphs.generators.smallgraphs.TutteCoxeterGraph)
     TutteGraph               = staticmethod(sage.graphs.generators.smallgraphs.TutteGraph)

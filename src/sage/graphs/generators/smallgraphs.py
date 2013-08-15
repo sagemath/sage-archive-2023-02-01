@@ -3757,6 +3757,37 @@ def ThomsenGraph():
     G = networkx.complete_bipartite_graph(3,3)
     return Graph(G, pos=pos_dict, name="Thomsen graph")
 
+def TietzeGraph():
+    r"""
+    Returns the Tietze Graph.
+
+    For more information on the Tietze Graph, see the
+    :wikipedia:`Tietze's_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.TietzeGraph()
+        sage: g.order()
+        12
+        sage: g.size()
+        18
+        sage: g.diameter()
+        3
+        sage: g.girth()
+        3
+        sage: g.automorphism_group().cardinality()
+        12
+        sage: g.automorphism_group().is_isomorphic(groups.permutation.Dihedral(6))
+        True
+    """
+    g = Graph([(0,9),(3,10),(6,11),(1,5),(2,7),(4,8),(7,2)], name="Tietze Graph")
+    g.add_cycle(range(9))
+    g.add_cycle([9,10,11])
+    _circle_embedding(g,range(9))
+    _circle_embedding(g,[9,10,11],radius=.5)
+
+    return g
+
 def Tutte12Cage():
     r"""
     Returns Tutte's 12-Cage.

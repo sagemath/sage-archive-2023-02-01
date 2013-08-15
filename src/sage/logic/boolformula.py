@@ -117,6 +117,10 @@ AUTHORS:
 
 - Paul Scurek (2013-08-03): added polish_notation, full_tree,
   updated docstring formatting
+
+- Paul Scurek (2013-08-08): added
+  :meth:`~sage.logic.boolformula.BooleanFormula.implies()`
+
 """
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein.gmail.com>
@@ -144,7 +148,7 @@ latex_operators = [('&', '\\wedge '),
                    ('->', '\\rightarrow ')]
 
 
-class BooleanFormula:
+class BooleanFormula(object):
     __expression = ""
     __tree = []
     __vars_order = []
@@ -874,6 +878,54 @@ class BooleanFormula:
             False
         """
         return not self.is_satisfiable()
+
+    def implies(self, other):
+        r"""
+        Determine if calling formula implies other formula
+
+        INPUT:
+
+        - ``self`` -- calling object
+
+        - ``other`` -- instance of :class:`BooleanFormula`
+
+        OUTPUT:
+
+        A boolean value to be determined as follows:
+
+        True - if ``self`` implies ``other``
+
+        False - if ``self does not imply ``other``
+
+        EXAMPLES:
+
+        This example illustrates determining if one formula implies another
+
+        ::
+
+            sage: import sage.logic.propcalc as propcalc
+            sage: f = propcalc.formula("a<->b")
+            sage: g = propcalc.formula("b->a")
+            sage: f.implies(g)
+            True
+
+        ::
+
+            sage: h = propcalc.formula("a->(a|~b)")
+            sage: i = propcalc.formula("a")
+            sage: h.implies(i)
+            False
+
+        AUTHORS:
+
+        - Paul Scurek (2013-08-08)
+        """
+        # input validation
+        if not isinstance(other, BooleanFormula):
+            raise TypeError("implies() takes an instance of the BooleanFormula() class as input")
+
+        conditional = self.ifthen(other)
+        return (conditional).is_tautology()
 
     def equivalent(self, other):
         r"""

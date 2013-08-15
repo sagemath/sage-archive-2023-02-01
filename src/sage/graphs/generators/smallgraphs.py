@@ -1323,6 +1323,53 @@ def MeredithGraph():
     g.relabel()
     return g
 
+def KittellGraph():
+    r"""
+    Returns the Kittell Graph.
+
+    For more information on the Kittell Graph, see the `corresponding Wolfram
+    page <http://mathworld.wolfram.com/KittellGraph.html>`_.
+
+    EXAMPLES::
+
+        sage: g = graphs.KittellGraph()
+        sage: g.order()
+        23
+        sage: g.size()
+        63
+        sage: g.radius()
+        3
+        sage: g.diameter()
+        4
+        sage: g.girth()
+        3
+        sage: g.chromatic_number()
+        4
+    """
+    g = Graph({0: [1, 2, 4, 5, 6, 7], 1: [0, 2, 7, 10, 11, 13],
+               2: [0, 1, 11, 4, 14], 3: [16, 12, 4, 5, 14], 4: [0, 2, 3, 5, 14],
+               5: [0, 16, 3, 4, 6], 6: [0, 5, 7, 15, 16, 17, 18],
+               7: [0, 1, 6, 8, 13, 18], 8: [9, 18, 19, 13, 7],
+               9: [8, 10, 19, 20, 13], 10: [1, 9, 11, 13, 20, 21],
+               11: [1, 2, 10, 12, 14, 15, 21], 12: [11, 16, 3, 14, 15],
+               13: [8, 1, 10, 9, 7], 14: [11, 12, 2, 3, 4],
+               15: [6, 11, 12, 16, 17, 21, 22],
+               16: [3, 12, 5, 6, 15], 17: [18, 19, 22, 6, 15],
+               18: [8, 17, 19, 6, 7], 19: [8, 9, 17, 18, 20, 22],
+               20: [9, 10, 19, 21, 22], 21: [10, 11, 20, 22, 15],
+               22: [17, 19, 20, 21, 15]},
+              name = "Kittell Graph")
+
+    _circle_embedding(g, range(3), shift=.75)
+    _circle_embedding(g, range(3,13), radius = .4)
+    _circle_embedding(g, range(15,22), radius = .2, shift=-.15)
+    pos = g.get_pos()
+    pos[13] = (-.65,-.35)
+    pos[14] = (.65,-.35)
+    pos[22] = (0,0)
+
+    return g
+
 def CameronGraph():
     r"""
     Returns the Cameron graph.

@@ -253,19 +253,18 @@ Singular (Sage y fera tout de même appel en coulisses pour le calcul).
 Maxima
 ======
 
-Le système de calcul formel Maxima est fourni avec Sage accompagné de
-clisp, une version du langage Lisp, et d'openmath, un programme de tracé
-de courbes en Tcl/Tk utilisé par Maxima. En revanche, gnuplot (que
-Maxima utilise par défaut pour tracer des graphiques) n'est distribué
-que comme paquet optionnel de Sage. Maxima fournit notamment des
-routines de calcul sur des expressions formelles. Il permet de calculer
-des dérivées, primitives et intégrales, de résoudre des équations
-différentielles d'ordre 1 et souvent d'ordre 2, et de résoudre par
-transformée de Laplace les équations différentielles linéaires d'ordre
-quelconque. Maxima dispose aussi d'un grand nombre de fonctions
-spéciales, permet de tracer des graphes de fonctions via gnuplot, et de
-manipuler des matrices (réduction en lignes, valeurs propres, vecteurs
-propres...) ou encore des équations polynomiales.
+Le système de calcul formel Maxima est fourni avec Sage accompagné d'une
+implémentation du langage Lisp. Le logiciel gnuplot (que Maxima utilise
+par défaut pour tracer des graphiques) est disponible comme paquet
+optionnel. Maxima fournit notamment des routines de calcul sur des
+expressions formelles. Il permet de calculer des dérivées, primitives et
+intégrales, de résoudre des équations différentielles d'ordre 1 et
+souvent d'ordre 2, et de résoudre par transformée de Laplace les
+équations différentielles linéaires d'ordre quelconque. Maxima dispose
+aussi d'un grand nombre de fonctions spéciales, permet de tracer des
+graphes de fonctions via gnuplot, et de manipuler des matrices
+(réduction en lignes, valeurs propres, vecteurs propres...) ou encore
+des équations polynomiales.
 
 Utilisons par exemple l'interface Sage/Maxima pour construire
 la matrice dont le coefficient d'indice :math:`i,j` vaut :math:`i/j`,

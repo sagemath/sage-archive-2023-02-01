@@ -3387,6 +3387,35 @@ def PappusGraph():
                         10:[15,17],11:[12,16],12:[15],13:[16],14:[17]},\
                        pos=pos_dict, name="Pappus Graph")
 
+def PoussinGraph():
+    r"""
+    Returns the Poussin Graph.
+
+    For more information on the Poussin Graph, see its corresponding `Wolfram
+    page <http://mathworld.wolfram.com/PoussinGraph.html>`_.
+
+    EXAMPLES::
+
+        sage: g = graphs.PoussinGraph()
+        sage: g.order()
+        15
+        sage: g.is_planar()
+        True
+    """
+    g = Graph({2:[7,8,3,4],1:[7,6],0:[6,5,4],3:[5]},name="Poussin Graph")
+
+    g.add_cycle(range(3))
+    g.add_cycle(range(3,9))
+    g.add_cycle(range(9,14))
+    g.add_path([8,12,7,11,6,10,5,9,3,13,8,12])
+    g.add_edges([(14,i) for i in range(9,14)])
+    _circle_embedding(g, range(3), shift=.75)
+    _circle_embedding(g, range(3,9), radius=.4, shift=0)
+    _circle_embedding(g, range(9,14), radius=.2, shift=.4)
+    g.get_pos()[14] = (0,0)
+
+    return g
+
 def PetersenGraph():
     """
     The Petersen Graph is a named graph that consists of 10 vertices

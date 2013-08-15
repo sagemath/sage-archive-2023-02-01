@@ -1668,6 +1668,68 @@ def DyckGraph():
 
     return Graph(edge_dict, pos=pos_dict, name="Dyck graph")
 
+def HortonGraph():
+    r"""
+    Returns the Horton Graph.
+
+    The Horton graph is a cubic 3-connected non-hamiltonian graph. For more
+    information, see the :wikipedia:`Horton_Graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.HortonGraph()
+        sage: g.order()
+        96
+        sage: g.size()
+        144
+        sage: g.radius()
+        10
+        sage: g.diameter()
+        10
+        sage: g.girth()
+        6
+        sage: g.automorphism_group().cardinality()
+        96
+        sage: g.chromatic_number()
+        2
+        sage: g.is_hamiltonian() # not tested -- veeeery long
+        False
+    """
+    g = Graph(name = "Horton Graph")
+
+    # Each group of the 6 groups of vertices is based on the same 3-regular
+    # graph.
+    from sage.graphs.generators.families import LCFGraph
+    lcf = LCFGraph(16,[5,-5],8)
+    lcf.delete_edge(15,0)
+    lcf.delete_edge(7,8)
+
+    for i in range(6):
+        for u,v in lcf.edges(labels=False):
+            g.add_edge((i,u),(i,v))
+
+    # Modifying the groups and linking them together
+    for i in range(3):
+        g.add_edge((2*i,0),(2*i+1,7))
+        g.add_edge((2*i+1,8),(2*i,7))
+        g.add_edge((2*i,15),(2*i+1,0))
+        g.add_edge((2*i,8),1)
+        g.add_edge((2*i+1,14),2)
+        g.add_edge((2*i+1,10),0)
+
+    # Embedding
+    for i in range(6):
+        _circle_embedding(g, [(i,j) for j in range(16)], center=(cos(2*i*pi/6),sin(2*i*pi/6)), radius=.3)
+
+    for i in range(3):
+        g.delete_vertex((2*i+1,15))
+
+    _circle_embedding(g, range(3), radius=.2, shift=-0.75)
+
+    g.relabel()
+
+    return g
+
 def EllinghamHorton54Graph():
     r"""
     Returns the Ellingham-Horton 54-graph.

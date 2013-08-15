@@ -118,6 +118,7 @@ __append_to_doc(
      "HoffmanGraph",
      "HoffmanSingletonGraph",
      "HoltGraph",
+     "HortonGraph",
      "KrackhardtKiteGraph",
      "LjubljanaGraph",
      "M22Graph",
@@ -1264,6 +1265,7 @@ class GraphGenerators():
     HoffmanGraph             = staticmethod(sage.graphs.generators.smallgraphs.HoffmanGraph)
     HoffmanSingletonGraph    = staticmethod(sage.graphs.generators.smallgraphs.HoffmanSingletonGraph)
     HoltGraph                = staticmethod(sage.graphs.generators.smallgraphs.HoltGraph)
+    HortonGraph              = staticmethod(sage.graphs.generators.smallgraphs.HortonGraph)
     KrackhardtKiteGraph      = staticmethod(sage.graphs.generators.smallgraphs.KrackhardtKiteGraph)
     LjubljanaGraph           = staticmethod(sage.graphs.generators.smallgraphs.LjubljanaGraph)
     McGeeGraph               = staticmethod(sage.graphs.generators.smallgraphs.McGeeGraph)

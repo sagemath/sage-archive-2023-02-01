@@ -260,7 +260,7 @@ class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing
         sage: Q in Fields()
         True
         sage: Q.category()
-        Join of Category of commutative algebras over Rational Field and Category of subquotients of monoids and Category of quotients of semigroups and Category of fields
+        Join of Category of fields and Category of commutative algebras over Rational Field and Category of subquotients of monoids and Category of quotients of semigroups
         sage: first_class == Q.__class__
         False
         sage: [s for s in dir(Q.category().element_class) if not s.startswith('_')]

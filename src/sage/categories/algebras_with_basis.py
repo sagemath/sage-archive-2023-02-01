@@ -432,7 +432,8 @@ class AlgebrasWithBasis(Category_over_base_ring):
                 sage: AlgebrasWithBasis(QQ).CartesianProducts().extra_super_categories()
                 [Category of algebras with basis over Rational Field]
                 sage: AlgebrasWithBasis(QQ).CartesianProducts().super_categories()
-                [Category of algebras with basis over Rational Field, Category of Cartesian products of modules with basis over Rational Field, Category of Cartesian products of algebras over Rational Field]
+                [Category of algebras with basis over Rational Field, Category of Cartesian products of algebras over Rational Field, Category of Cartesian products of modules with basis over Rational Field]
+
             """
             return [self.base_category()]
 
@@ -503,8 +504,8 @@ class AlgebrasWithBasis(Category_over_base_ring):
                 [Category of algebras with basis over Rational Field]
                 sage: AlgebrasWithBasis(QQ).TensorProducts().super_categories()
                 [Category of algebras with basis over Rational Field,
-                 Category of tensor products of modules with basis over Rational Field,
-                 Category of tensor products of algebras over Rational Field]
+                 Category of tensor products of algebras over Rational Field,
+                 Category of tensor products of modules with basis over Rational Field]
             """
             return [self.base_category()]
 

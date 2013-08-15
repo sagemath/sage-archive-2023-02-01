@@ -98,6 +98,7 @@ This came up in some subtle bug once::
 cimport element
 cimport sage.categories.morphism as morphism
 cimport sage.categories.map as map
+from sage.structure.debug_options import debug
 from sage.structure.sage_object import SageObject
 from sage.structure.misc import (dir_with_other_class, getattr_from_other_class,
                                  is_extension_type)
@@ -106,9 +107,6 @@ from sage.categories.sets_cat import Sets, EmptySetError
 from copy import copy
 from sage.misc.sage_itertools import unique_merge
 from sage.misc.lazy_format import LazyFormat
-
-cdef int bad_parent_warnings = 0
-cdef int unique_parent_warnings = 0
 
 # Create a dummy attribute error, using some kind of lazy error message,
 # so that neither the error itself not the message need to be created
@@ -323,6 +321,7 @@ cdef class Parent(category_object.CategoryObject):
         .. automethod:: _get_action_
         .. automethod:: _an_element_
         .. automethod:: _repr_option
+        .. automethod:: _init_category_
         """
         # TODO: in the long run, we want to get rid of the element_constructor = argument
         # (element_constructor would always be set by inheritance)
@@ -347,10 +346,10 @@ cdef class Parent(category_object.CategoryObject):
         self._init_category_(category)
 
         if len(kwds) > 0:
-            if bad_parent_warnings:
+            if debug.bad_parent_warnings:
                 print "Illegal keywords for %s: %s" % (type(self), kwds)
         # TODO: many classes don't call this at all, but __new__ crashes Sage
-        if bad_parent_warnings:
+        if debug.bad_parent_warnings:
             if element_constructor is not None and not callable(element_constructor):
                 print "coerce BUG: Bad element_constructor provided", type(self), type(element_constructor), element_constructor
         if gens is not None:
@@ -371,6 +370,15 @@ cdef class Parent(category_object.CategoryObject):
 
     def _init_category_(self, category):
         """
+        Initialize the category framework
+
+        Most parents initialize their category upon construction, and
+        this is the recommended behavior. For example, this happens
+        when the constructor calls :meth:`Parent.__init__` directly or
+        indirectly. However, some parents defer this for performance
+        reasons. For example,
+        :mod:`sage.matrix.matrix_space.MatrixSpace` does not.
+
         EXAMPLES::
 
             sage: P = Parent()
@@ -393,7 +401,10 @@ cdef class Parent(category_object.CategoryObject):
             # TODO: assert that the category is consistent
             if not issubclass(self.__class__, Sets_parent_class) and not is_extension_type(self.__class__):
                 #documentation transfer is handled by dynamic_class
-                self.__class__     = dynamic_class("%s_with_category"%self.__class__.__name__, (self.__class__, category.parent_class, ), doccls=self.__class__)
+                self.__class__ = dynamic_class(
+                    '{0}_with_category'.format(self.__class__.__name__),
+                    (self.__class__, category.parent_class, ),
+                    doccls=self.__class__)
 
     def _refine_category_(self, category):
         """
@@ -423,14 +434,48 @@ cdef class Parent(category_object.CategoryObject):
             sage: first_class = Q.__class__
             sage: Q._refine_category_(Fields())
             sage: Q.category()
-            Join of Category of subquotients of monoids and Category of quotients of semigroups and Category of fields
+            Join of Category of fields and Category of subquotients of monoids and Category of quotients of semigroups
             sage: first_class == Q.__class__
             False
             sage: TestSuite(Q).run()
 
+
+        TESTS:
+
+        Here is a test against :trac:`14471`. Refining the category will issue
+        a warning, if this change affects the hash value (note that this will
+        only be seen in doctest mode)::
+
+            sage: class MyParent(Parent):
+            ....:     def __hash__(self):
+            ....:         return hash(type(self))   # subtle mistake
+            sage: a = MyParent()
+            sage: h_a = hash(a)
+            sage: a._refine_category_(Algebras(QQ))
+            hash of <class '__main__.MyParent_with_category'> changed in
+            Parent._refine_category_ during initialisation
+
+            sage: b = MyParent(category=Rings())
+            sage: h_b = hash(b)
+            sage: h_a == h_b
+            False
+            sage: b._refine_category_(Algebras(QQ))
+            hash of <class '__main__.MyParent_with_category'> changed in
+            Parent._refine_category_ during refinement
+            sage: hash(a) == hash(b)
+            True
+            sage: hash(a) != h_a
+            True
+
         """
+        if debug.refine_category_hash_check:
+            # check that the hash stays the same after refinement
+            hash_old = hash(self)
         if self._category is None:
             self._init_category_(category)
+            if debug.refine_category_hash_check and hash_old != hash(self):
+                print 'hash of {0} changed in Parent._refine_category_ during initialisation' \
+                    .format(str(self.__class__))
             return
         if category is self._category:
             return
@@ -455,6 +500,10 @@ cdef class Parent(category_object.CategoryObject):
             self.__dict__.__delitem__('element_class')
         except (AttributeError, KeyError):
             pass
+        if debug.refine_category_hash_check and hash_old != hash(self):
+            print 'hash of {0} changed in Parent._refine_category_ during refinement' \
+                .format(str(self.__class__))
+
 
     # This probably should go into Sets().Parent
     @lazy_attribute
@@ -2052,7 +2101,7 @@ cdef class Parent(category_object.CategoryObject):
         if S is self:
             return True
         elif S == self:
-            if unique_parent_warnings:
+            if debug.unique_parent_warnings:
                 print "Warning: non-unique parents %s"%(type(S))
             return True
         return self.coerce_map_from(S) is not None
@@ -2152,7 +2201,7 @@ cdef class Parent(category_object.CategoryObject):
 
         if S == self:
             # non-unique parents
-            if unique_parent_warnings:
+            if debug.unique_parent_warnings:
                 print "Warning: non-unique parents %s"%(type(S))
             return self._generic_convert_map(S)
 

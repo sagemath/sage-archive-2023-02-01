@@ -120,7 +120,7 @@ class WeightedIntegerVectors_all(DisjointUnionEnumeratedSets):
             sage: C.__class__
             <class 'sage.combinat.integer_vector_weighted.WeightedIntegerVectors_all_with_category'>
             sage: C.category()
-            Join of Category of sets with grading and Category of infinite enumerated sets
+            Join of Category of infinite enumerated sets and Category of sets with grading
             sage: TestSuite(C).run()
         """
         self._weights = weights

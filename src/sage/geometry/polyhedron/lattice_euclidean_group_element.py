@@ -134,3 +134,53 @@ class LatticeEuclideanGroupElement(SageObject):
         s = 'The map A*x+b with A=\n'+str(self._A)
         s += '\nb = \n'+str(self._b)
         return s
+
+    def domain_dim(self):
+        """
+        Return the dimension of the domain lattice
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.lattice_euclidean_group_element \
+            ....:     import LatticeEuclideanGroupElement
+            sage: M = LatticeEuclideanGroupElement([[1,2],[2,3],[-1,2]], [1,2,3])
+            sage: M
+            The map A*x+b with A=
+            [ 1  2]
+            [ 2  3]
+            [-1  2]
+            b =
+            (1, 2, 3)
+            sage: M.domain_dim()
+            2
+        """
+        return self._A.ncols()
+
+    def codomain_dim(self):
+        """
+        Return the dimension of the codomain lattice
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.lattice_euclidean_group_element \
+            ....:     import LatticeEuclideanGroupElement
+            sage: M = LatticeEuclideanGroupElement([[1,2],[2,3],[-1,2]], [1,2,3])
+            sage: M
+            The map A*x+b with A=
+            [ 1  2]
+            [ 2  3]
+            [-1  2]
+            b =
+            (1, 2, 3)
+            sage: M.codomain_dim()
+            3
+
+        Note that this is not the same as the rank. In fact, the
+        codomain dimension depends only on the matrix shape, and not
+        on the rank of the linear mapping::
+
+            sage: zero_map = LatticeEuclideanGroupElement([[0,0],[0,0],[0,0]], [0,0,0])
+            sage: zero_map.codomain_dim()
+            3
+        """
+        return self._A.nrows()

@@ -147,9 +147,6 @@ def skipdir(dirname):
     """
     if os.path.exists(os.path.join(dirname, "nodoctest.py")):
         return True
-    # Workaround for https://github.com/sagemath/sagenb/pull/84
-    if dirname.endswith(os.path.join(os.sep, 'sagenb', 'data')):
-        return True
     return False
 
 def skipfile(filename):

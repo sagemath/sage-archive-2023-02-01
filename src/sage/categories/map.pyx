@@ -387,7 +387,7 @@ cdef class Map(Element):
             sage: f.category_for()
             Join of Category of unique factorization domains and Category of commutative algebras over Rational Field
             sage: f.category()
-            Join of Category of hom sets in Category of rings and Category of hom sets in Category of modules over Rational Field
+            Join of Category of hom sets in Category of modules over Rational Field and Category of hom sets in Category of rings
 
         FIXME: find a better name for this method
         """

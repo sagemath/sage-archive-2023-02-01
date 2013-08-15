@@ -114,6 +114,7 @@ from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from matrix_integer_dense cimport Matrix_integer_dense
 from sage.rings.integer_ring  import ZZ
 from sage.structure.proof.proof import get_flag as get_proof_flag
+from sage.misc.randstate cimport randstate, current_randstate
 
 cdef long num = 1
 cdef bint little_endian = (<char*>(&num))[0]

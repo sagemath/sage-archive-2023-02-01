@@ -1145,6 +1145,9 @@ ext_modules = [
     Extension('sage.misc.c3',
               sources = ['sage/misc/c3.pyx']),
 
+    Extension('sage.misc.c3_controlled',
+              sources = ['sage/misc/c3_controlled.pyx']),
+
     Extension('sage.misc.derivative',
               sources = ['sage/misc/derivative.pyx']),
 
@@ -1791,6 +1794,15 @@ ext_modules = [
     Extension('sage.rings.polynomial.symmetric_reduction',
               sources = ['sage/rings/polynomial/symmetric_reduction.pyx']),
 
+        ################################
+        ##
+        ## sage.rings.semirings
+        ##
+        ################################
+
+    Extension('sage.rings.semirings.tropical_semiring',
+              sources = ['sage/rings/semirings/tropical_semiring.pyx']),
+
     ################################
     ##
     ## sage.schemes
@@ -1876,6 +1888,9 @@ ext_modules = [
 
     Extension('sage.structure.coerce_maps',
               sources = ['sage/structure/coerce_maps.pyx']),
+
+    Extension('sage.structure.debug_options',
+              sources=['sage/structure/debug_options.pyx']),
 
     # Compile this with -Os because it works around a bug with
     # GCC-4.7.3 + Cython 0.19 on Itanium, see Trac #14452. Moreover, it

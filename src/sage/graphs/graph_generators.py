@@ -136,6 +136,7 @@ __append_to_doc(
      "SchlaefliGraph",
      "ShrikhandeGraph",
      "SimsGewirtzGraph",
+     "Sousselier",
      "SylvesterGraph",
      "ThomsenGraph",
      "Tutte12Cage",
@@ -1285,6 +1286,7 @@ class GraphGenerators():
     SchlaefliGraph           = staticmethod(sage.graphs.generators.smallgraphs.SchlaefliGraph)
     ShrikhandeGraph          = staticmethod(sage.graphs.generators.smallgraphs.ShrikhandeGraph)
     SimsGewirtzGraph         = staticmethod(sage.graphs.generators.smallgraphs.SimsGewirtzGraph)
+    SousselierGraph          = staticmethod(sage.graphs.generators.smallgraphs.SousselierGraph)
     SylvesterGraph           = staticmethod(sage.graphs.generators.smallgraphs.SylvesterGraph)
     ThomsenGraph             = staticmethod(sage.graphs.generators.smallgraphs.ThomsenGraph)
     Tutte12Cage              = staticmethod(sage.graphs.generators.smallgraphs.Tutte12Cage)

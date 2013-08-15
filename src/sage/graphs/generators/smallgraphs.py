@@ -3665,6 +3665,46 @@ def SimsGewirtzGraph():
     g.name("Sims-Gewirtz Graph")
     return g
 
+def SousselierGraph():
+    r"""
+    Returns the Sousselier Graph.
+
+    The Sousselier graph is a hypohamiltonian graph on 16 vertices and 27
+    edges. For more information, see the corresponding `Wikpedia page (in
+    French) <http://fr.wikipedia.org/wiki/Graph_de_sousselier>`_.
+
+    EXAMPLES::
+
+        sage: g = graphs.SousselierGraph()
+        sage: g.order()
+        16
+        sage: g.size()
+        27
+        sage: g.radius()
+        2
+        sage: g.diameter()
+        3
+        sage: g.automorphism_group().cardinality()
+        2
+        sage: g.is_hamiltonian()
+        False
+        sage: g.delete_vertex(g.random_vertex())
+        sage: g.is_hamiltonian()
+        True
+    """
+    g = Graph(name="Sousselier Graph")
+
+    g.add_cycle(range(15))
+    g.add_path([12,8,3,14])
+    g.add_path([9,5,0,11])
+    g.add_edge(6,2)
+    g.add_edges([(15,i) for i in range(15) if i%3==1])
+
+    _circle_embedding(g, range(15), shift=-.25)
+    g.get_pos()[15] = (0,0)
+
+    return g
+
 def ThomsenGraph():
     """
     Returns the Thomsen Graph.

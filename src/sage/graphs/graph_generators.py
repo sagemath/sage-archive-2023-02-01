@@ -142,6 +142,7 @@ __append_to_doc(
      "ThomsenGraph",
      "Tutte12Cage",
      "TutteCoxeterGraph",
+     "TutteGraph",
      "WagnerGraph",
      "WellsGraph"])
 
@@ -1293,6 +1294,7 @@ class GraphGenerators():
     ThomsenGraph             = staticmethod(sage.graphs.generators.smallgraphs.ThomsenGraph)
     Tutte12Cage              = staticmethod(sage.graphs.generators.smallgraphs.Tutte12Cage)
     TutteCoxeterGraph        = staticmethod(sage.graphs.generators.smallgraphs.TutteCoxeterGraph)
+    TutteGraph               = staticmethod(sage.graphs.generators.smallgraphs.TutteGraph)
     WagnerGraph              = staticmethod(sage.graphs.generators.smallgraphs.WagnerGraph)
 
 ###########################################################################

@@ -3848,6 +3848,67 @@ def TutteCoxeterGraph(embedding=2):
     else:
         raise ValueError("The value of embedding must be 1 or 2.")
 
+def TutteGraph():
+    r"""
+    Returns the Tutte Graph.
+
+    The Tutte graph is a 3-regular, 3-connected, and planar non-hamiltonian
+    graph. For more information on the Tutte Graph, see the
+    :wikipedia:`Tutte_graph`.
+
+    EXAMPLES::
+
+        sage: g = graphs.TutteGraph()
+        sage: g.order()
+        46
+        sage: g.size()
+        69
+        sage: g.is_planar()
+        True
+        sage: g.vertex_connectivity() # long
+        3
+        sage: g.girth()
+        4
+        sage: g.automorphism_group().cardinality()
+        3
+        sage: g.is_hamiltonian()
+        False
+    """
+    g = Graph(name="Tutte Graph")
+    from sage.graphs.graph_plot import _circle_embedding
+
+    g.add_cycle([(i,j) for i in range(3) for j in range(3) ])
+    for i in range(3):
+        g.add_cycle([(i,j) for j in range(9)])
+        g.add_cycle([(i,j) for j in range(9,14)])
+        g.add_edge((i,5),0)
+        g.add_edge((i,13),(i,3))
+        g.add_edge((i,12),(i,1))
+        g.add_edge((i,11),(i,8))
+        g.add_edge((i,10),(i,7))
+        g.add_edge((i,6),(i,14))
+        g.add_edge((i,4),(i,14))
+        g.add_edge((i,9),(i,14))
+
+    _circle_embedding(g, [(i,j) for i in range(3)  for j in range(6)], shift=.5)
+    _circle_embedding(g, [(i,14) for i in range(3) ], radius=.3,shift=.25)
+
+    for i in range(3):
+        _circle_embedding(g, [(i,j) for j in range(3,9)]+[0]*5,
+                          shift=3.7*(i-2)+.75,
+                          radius=.4,
+                          center=(.6*cos(2*(i+.25)*pi/3),.6*sin(2*(i+.25)*pi/3)))
+        _circle_embedding(g, [(i,j) for j in range(9,14)],
+                          shift=1.7*(i-2)+1,
+                          radius=.2,
+                          center=(.6*cos(2*(i+.25)*pi/3),.6*sin(2*(i+.25)*pi/3)))
+
+    g.get_pos()[0] = (0,0)
+
+    return g
+
+
+
 def WagnerGraph():
     """
     Returns the Wagner Graph.

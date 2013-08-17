@@ -951,6 +951,90 @@ def BiggsSmithGraph(embedding=1):
 
     return g
 
+def BlanusaFirstSnarkGraph():
+    r"""
+    Returns the first Blanusa Snark Graph.
+
+    The Blanusa graphs are two snarks on 18 vertices and 27 edges. For more
+    information on them, see the :wikipedia:`Blanusa_snarks`.
+
+    EXAMPLES::
+
+        sage: g = graphs.BlanusaFirstSnarkGraph()
+        sage: g.order()
+        18
+        sage: g.size()
+        27
+        sage: g.diameter()
+        4
+        sage: g.girth()
+        5
+        sage: g.automorphism_group().cardinality()
+        8
+    """
+    g = Graph({17:[4,7,1],0:[5],
+               3:[8],13:[9],12:[16],
+               10:[15],11:[6],14:[2]},
+              name="Blanusa First Snark Graph")
+
+    g.add_cycle(range(17))
+    _circle_embedding(g, range(17), shift=0.25)
+    g.get_pos()[17] = (0,0)
+    return g
+
+def BlanusaSecondSnarkGraph():
+    r"""
+    Returns the second Blanusa Snark Graph.
+
+    The Blanusa graphs are two snarks on 18 vertices and 27 edges. For more
+    information on them, see the :wikipedia:`Blanusa_snarks`.
+
+    EXAMPLES::
+
+        sage: g = graphs.BlanusaSecondSnarkGraph()
+        sage: g.order()
+        18
+        sage: g.size()
+        27
+        sage: g.diameter()
+        4
+        sage: g.girth()
+        5
+        sage: g.automorphism_group().cardinality()
+        4
+    """
+    g = Graph({0:[(0,0),(1,4),1],1:[(0,3),(1,1)],(0,2):[(0,5)],
+               (0,6):[(0,4)],(0,7):[(0,1)],(1,7):[(1,2)],
+               (1,0):[(1,6)],(1,3):[(1,5)]},
+              name="Blanusa Second Snark Graph")
+
+    g.add_cycle([(0,i) for i in range(5)])
+    g.add_cycle([(1,i) for i in range(5)])
+    g.add_cycle([(0,5),(0,6),(0,7),(1,5),(1,6),(1,7)])
+
+    _circle_embedding(g,
+                      [(0,(2*i)%5) for i in range(5)],
+                      center = (-1.5,0),
+                      shift = .5)
+    _circle_embedding(g,
+                      [(1,(2*i)%5) for i in range(5)],
+                      center = (1.5,0))
+
+    _circle_embedding(g,
+                      [(0,i) for i in range(5,8)]+[0]*4,
+                      center = (-1.2,0),
+                      shift = 2.5,
+                      radius = 2.2)
+    _circle_embedding(g,
+                      [(1,i) for i in range(5,8)]+[0]*4,
+                      center = (1.2,0),
+                      shift = -1,
+                      radius = 2.2)
+
+    _circle_embedding(g,[0,1], shift=.5)
+    g.relabel()
+    return g
+
 def BrinkmannGraph():
     r"""
     Returns the Brinkmann graph.

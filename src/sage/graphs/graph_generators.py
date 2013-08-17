@@ -87,6 +87,8 @@ __append_to_doc(
      "Balaban11Cage",
      "BidiakisCube",
      "BiggsSmithGraph",
+     "BlanusaFirstSnarkGraph",
+     "BlanusaSecondSnarkGraph",
      "BrinkmannGraph",
      "BrouwerHaemersGraph",
      "BuckyBall",
@@ -1242,6 +1244,8 @@ class GraphGenerators():
     Balaban11Cage            = staticmethod(sage.graphs.generators.smallgraphs.Balaban11Cage)
     BidiakisCube             = staticmethod(sage.graphs.generators.smallgraphs.BidiakisCube)
     BiggsSmithGraph          = staticmethod(sage.graphs.generators.smallgraphs.BiggsSmithGraph)
+    BlanusaFirstSnarkGraph   = staticmethod(sage.graphs.generators.smallgraphs.BlanusaFirstSnarkGraph)
+    BlanusaSecondSnarkGraph  = staticmethod(sage.graphs.generators.smallgraphs.BlanusaSecondSnarkGraph)
     BrinkmannGraph           = staticmethod(sage.graphs.generators.smallgraphs.BrinkmannGraph)
     BrouwerHaemersGraph      = staticmethod(sage.graphs.generators.smallgraphs.BrouwerHaemersGraph)
     BuckyBall                = staticmethod(sage.graphs.generators.smallgraphs.BuckyBall)

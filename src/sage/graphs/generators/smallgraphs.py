@@ -4004,6 +4004,42 @@ def WagnerGraph():
     g.name("Wagner Graph")
     return g
 
+def WatkinsSnarkGraph():
+    r"""
+    Returns the Watkins Snark Graph.
+
+    The Watkins Graph is a snark with 50 vertices and 75 edges. For more
+    information, see the :wikipedia:`Watkins_snark`.
+
+    EXAMPLES::
+
+        sage: g = graphs.WatkinsSnarkGraph()
+        sage: g.order()
+        50
+        sage: g.size()
+        75
+        sage: g.chromatic_number()
+        3
+    """
+    g = Graph(name="Szekeres Snark Graph")
+
+    for i in range(5):
+        g.add_cycle([(i,j) for j in range(9)])
+        _circle_embedding(g,
+                          [(i,j) for j in range(4)]+[0]*2+[(i,4)]+[0]*2+[(i,j) for j in range(5,9)],
+                          radius=.3,
+                          center=(cos(2*(i+.25)*pi/5),sin(2*(i+.25)*pi/5)),
+                          shift=2.7*i+7.55)
+        g.add_edge((i,5),((i+1)%5,0))
+        g.add_edge((i,8),((i+2)%5,3))
+        g.add_edge((i,1),i)
+        g.add_edge((i,7),i)
+        g.add_edge((i,4),i)
+        g.add_edge((i,6),(i,2))
+
+    _circle_embedding(g, range(5), shift=.25, radius=1.1)
+    return g
+
 def WienerArayaGraph():
     r"""
     Returns the Wiener-Araya Graph.

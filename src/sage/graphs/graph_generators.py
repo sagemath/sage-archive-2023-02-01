@@ -146,6 +146,7 @@ __append_to_doc(
      "TutteCoxeterGraph",
      "TutteGraph",
      "WagnerGraph",
+     "WatkinsSnarkGraph",
      "WellsGraph",
      "WienerArayaGraph"])
 
@@ -1301,6 +1302,7 @@ class GraphGenerators():
     TutteCoxeterGraph        = staticmethod(sage.graphs.generators.smallgraphs.TutteCoxeterGraph)
     TutteGraph               = staticmethod(sage.graphs.generators.smallgraphs.TutteGraph)
     WagnerGraph              = staticmethod(sage.graphs.generators.smallgraphs.WagnerGraph)
+    WatkinsSnarkGraph        = staticmethod(sage.graphs.generators.smallgraphs.WatkinsSnarkGraph)
     WienerArayaGraph         = staticmethod(sage.graphs.generators.smallgraphs.WienerArayaGraph)
 
 ###########################################################################

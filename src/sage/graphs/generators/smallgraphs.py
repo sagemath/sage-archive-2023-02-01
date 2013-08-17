@@ -3907,8 +3907,6 @@ def TutteGraph():
 
     return g
 
-
-
 def WagnerGraph():
     """
     Returns the Wagner Graph.
@@ -3934,3 +3932,64 @@ def WagnerGraph():
     g.name("Wagner Graph")
     return g
 
+def WienerArayaGraph():
+    r"""
+    Returns the Wiener-Araya Graph.
+
+    The Wiener-Araya Graph is a planar hypohamiltonian graph on 42 vertices and
+    67 edges. For more information on the Wiener-Araya Graph, see its
+    corresponding `Wolfram Page
+    <http://mathworld.wolfram.com/Wiener-ArayaGraph.html>`_ or its `(french)
+    Wikipedia page <http://fr.wikipedia.org/wiki/Graphe_de_Wiener-Araya>`_.
+
+    EXAMPLES::
+
+        sage: g = graphs.WienerArayaGraph()
+        sage: g.order()
+        42
+        sage: g.size()
+        67
+        sage: g.girth()
+        4
+        sage: g.is_planar()
+        True
+        sage: g.is_hamiltonian() # not tested -- around 30s long
+        False
+        sage: g.delete_vertex(g.random_vertex())
+        sage: g.is_hamiltonian()
+        True
+    """
+    g = Graph(name="Wiener-Araya Graph")
+    from sage.graphs.graph_plot import _circle_embedding
+
+    g.add_cycle([(0,i) for i in range(4)])
+    g.add_cycle([(1,i) for i in range(12)])
+    g.add_cycle([(2,i) for i in range(20)])
+    g.add_cycle([(3,i) for i in range(6)])
+    _circle_embedding(g, [(0,i) for i in range(4)], shift=.5)
+    _circle_embedding(g,
+                      sum([[(1,3*i),(1,3*i+1)]+[0]*3+[(1,3*i+2)]+[0]*3 for i in range(4)],[]),
+                      shift=4,
+                      radius=.65)
+    _circle_embedding(g, [(2,i) for i in range(20)], radius=.5)
+    _circle_embedding(g, [(3,i) for i in range(6)], radius=.3, shift=.5)
+
+    for i in range(4):
+        g.delete_edge((1,3*i),(1,3*i+1))
+        g.add_edge((1,3*i),(0,i))
+        g.add_edge((1,3*i+1),(0,i))
+        g.add_edge((2,5*i+2),(1,3*i))
+        g.add_edge((2,5*i+3),(1,3*i+1))
+        g.add_edge((2,(5*i+5)%20),(1,3*i+2))
+        g.add_edge((2,(5*i+1)%20),(3,i+(i>=1)+(i>=3)))
+        g.add_edge((2,(5*i+4)%20),(3,i+(i>=1)+(i>=3)))
+
+    g.delete_edge((3,1),(3,0))
+    g.add_edge((3,1),(2,4))
+    g.delete_edge((3,4),(3,3))
+    g.add_edge((3,4),(2,14))
+    g.add_edge((3,1),(3,4))
+
+    g.get_pos().pop(0)
+    g.relabel()
+    return g

@@ -144,7 +144,8 @@ __append_to_doc(
      "TutteCoxeterGraph",
      "TutteGraph",
      "WagnerGraph",
-     "WellsGraph"])
+     "WellsGraph",
+     "WienerArayaGraph"])
 
 __doc__ += """
 *Platonic solids* (ordered ascending by number of vertices)
@@ -1296,6 +1297,7 @@ class GraphGenerators():
     TutteCoxeterGraph        = staticmethod(sage.graphs.generators.smallgraphs.TutteCoxeterGraph)
     TutteGraph               = staticmethod(sage.graphs.generators.smallgraphs.TutteGraph)
     WagnerGraph              = staticmethod(sage.graphs.generators.smallgraphs.WagnerGraph)
+    WienerArayaGraph         = staticmethod(sage.graphs.generators.smallgraphs.WienerArayaGraph)
 
 ###########################################################################
 # Platonic Solids

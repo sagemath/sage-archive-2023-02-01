@@ -16,20 +16,17 @@ AUTHORS:
 #     Copyright (C) 2008 Robert Bradshaw <robertwb@math.washington.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+include 'sage/ext/cdefs.pxi'
+include 'sage/ext/stdsage.pxi'
+from sage.libs.gmp.mpn cimport *
+from sage.misc.bitset cimport *
 
-# Doctests for the functions in this file are in misc_c.pyx
-
+# Doctests for the functions in this file are in sage/misc/bitset.pyx
 
 #############################################################################
 # Bitset Initalization
@@ -437,12 +434,7 @@ cdef inline long bitset_len(bitset_t bits):
     """
     Calculate the number of items in the set (i.e., the number of nonzero bits).
     """
-    cdef long len = 0
-    cdef long i = bitset_first(bits)
-    while i >= 0:
-        len += 1
-        i = bitset_next(bits, i + 1)
-    return len
+    return mpn_popcount(<mp_limb_t*>bits.bits, bits.limbs)
 
 cdef inline long bitset_hash(bitset_t bits):
     """
@@ -645,40 +637,8 @@ cdef inline void bitset_map(bitset_t r, bitset_t a, m):
 # Hamming Weights
 #############################################################################
 
-cdef enum:
-    _bitset_hamming_table_bits = 8
-
-cdef int _bitset_hamming_table[1 << _bitset_hamming_table_bits]
-
-cdef void _bitset_fill_hamming_table():
-    cdef int i, j
-    for i from 0 <= i < (1 << _bitset_hamming_table_bits):
-        _bitset_hamming_table[i] = 0
-        for j from 0 <= j < _bitset_hamming_table_bits:
-            _bitset_hamming_table[i] += (i >> j) & 1
-
-_bitset_fill_hamming_table()
-
-cdef inline int bitset_hamming_weight(bitset_t a):
-    cdef long i, j
-    cdef long w = 0
-    cdef unsigned long limb
-    for i from 0 <= i < a.limbs:
-        limb = a.bits[i]
-        for j from 0 <= j < (8 * sizeof(unsigned long) + _bitset_hamming_table_bits - 1) / _bitset_hamming_table_bits:
-            w += _bitset_hamming_table[(limb >> (j * _bitset_hamming_table_bits)) & ((1 << _bitset_hamming_table_bits) - 1)]
-    return w
-
-cdef inline long bitset_hamming_weight_sparse(bitset_t a):
-    cdef long i
-    cdef long w = 0
-    cdef unsigned long limb
-    for i from 0 <= i < a.limbs:
-        limb = a.bits[i]
-        while limb:
-            w += _bitset_hamming_table[limb & ((1 << _bitset_hamming_table_bits) - 1)]
-            limb = limb >> _bitset_hamming_table_bits
-    return w
+cdef inline long bitset_hamming_weight(bitset_t a):
+    return bitset_len(a)
 
 #############################################################################
 # Bitset Conversion

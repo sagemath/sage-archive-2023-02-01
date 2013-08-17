@@ -7809,6 +7809,15 @@ cdef class Expression(CommutativeRingElement):
             sage: f.simplify_full()
             sqrt(x^2 + 2*x + 1)
 
+        The imaginary part of an expression should not change under
+        simplification; :trac:`11934`::
+
+            sage: f = sqrt(-8*(4*sqrt(2) - 7)*x^4 + 16*(3*sqrt(2) - 5)*x^3)
+            sage: original = f.imag_part()
+            sage: simplified = f.full_simplify().imag_part()
+            sage: original - simplified
+            0
+
         """
         x = self
         x = x.simplify_factorial()

@@ -133,11 +133,11 @@ class IncidenceStructure(object):
 
         TESTS:
 
-        The following shows that Trac Ticket #11333  is fixed.  ::
+        The following shows that :trac:`11333` is fixed.  ::
 
             sage: A = IncidenceStructure([0,1],[[0]])
             sage: B = IncidenceStructure([1,0],[[0]])
-            sage: B==A
+            sage: B == A
             True
 
         REFERENCES:

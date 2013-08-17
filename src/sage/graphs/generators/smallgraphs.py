@@ -3734,12 +3734,53 @@ def SousselierGraph():
 
     return g
 
+def SzekeresSnarkGraph():
+    r"""
+    Returns the Szekeres Snark Graph.
+
+    The Szekeres graph is a snark with 50 vertices and 75 edges. For more
+    information on this graph, see the :wikipedia:`Szekeres_snark`.
+
+    EXAMPLES::
+
+        sage: g = graphs.SzekeresSnarkGraph()
+        sage: g.order()
+        50
+        sage: g.size()
+        75
+        sage: g.chromatic_number()
+        3
+    """
+    g = Graph(name="Szekeres Snark Graph")
+
+    for i in range(5):
+        g.add_cycle([(i,j) for j in range(9)])
+        g.delete_edge((i,0),(i,8))
+        g.add_edge((i,1),i)
+        g.add_edge((i,4),i)
+        g.add_edge((i,7),i)
+        g.add_edge((i,0),(i,5))
+        g.add_edge((i,8),(i,3))
+
+        g.add_edge((i,0),((i+1)%5,8))
+        g.add_edge((i,6),((i+2)%5,2))
+        _circle_embedding(g, [(i,j) for j in range(9)],
+                          radius=.3,
+                          center=(cos(2*(i+.25)*pi/5),sin(2*(i+.25)*pi/5)),
+                          shift=5.45+1.8*i)
+
+    _circle_embedding(g, range(5), radius=1, shift=.25)
+
+    g.relabel()
+    return g
+
+
 def ThomsenGraph():
     """
     Returns the Thomsen Graph.
 
-    The Thomsen Graph is actually a complete bipartite graph with (n1,
-    n2) = (3, 3). It is also called the Utility graph.
+    The Thomsen Graph is actually a complete bipartite graph with `(n1, n2) =
+    (3, 3)`. It is also called the Utility graph.
 
     PLOTTING: See CompleteBipartiteGraph.
 

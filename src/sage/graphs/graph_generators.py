@@ -2,10 +2,15 @@
 r"""
 Common Graphs (Graph Generators)
 
-All graphs in Sage can be built through the ``graphs`` object : in order to
-build a complete graph on `15` elements, one can do::
+All graphs in Sage can be built through the ``graphs`` object. In order to
+build a complete graph on 15 elements, one can do::
 
     sage: g = graphs.CompleteGraph(15)
+
+To get a path with 4 vertices, and the house graph::
+
+    sage: p = graphs.PathGraph(4)
+    sage: h = graphs.HouseGraph()
 
 More interestingly, one can get the list of all graphs that Sage knows how to
 build by typing ``graphs.`` in Sage and then hitting tab.
@@ -48,9 +53,7 @@ __doc__ += """
 """
 
 __append_to_doc(
-    ["BarbellGraph",
-     "BuckyBall",
-     "BullGraph",
+    ["BullGraph",
      "ButterflyGraph",
      "CircularLadderGraph",
      "ClawGraph",
@@ -64,14 +67,12 @@ __append_to_doc(
      "GridGraph",
      "HouseGraph",
      "HouseXGraph",
-     "KrackhardtKiteGraph",
      "LadderGraph",
      "LollipopGraph",
      "PathGraph",
      "StarGraph",
      "ToroidalGrid2dGraph",
-     "Toroidal6RegularGrid2dGraph",
-     "WheelGraph"]
+     "Toroidal6RegularGrid2dGraph"]
     )
 
 __doc__ += """
@@ -88,6 +89,7 @@ __append_to_doc(
      "BiggsSmithGraph",
      "BrinkmannGraph",
      "BrouwerHaemersGraph",
+     "BuckyBall",
      "CameronGraph",
      "ChvatalGraph",
      "ClebschGraph",
@@ -116,6 +118,7 @@ __append_to_doc(
      "HoffmanGraph",
      "HoffmanSingletonGraph",
      "HoltGraph",
+     "KrackhardtKiteGraph",
      "LjubljanaGraph",
      "McGeeGraph",
      "McLaughlinGraph",
@@ -158,6 +161,7 @@ or a list of graphs or ...)
 
 __append_to_doc(
     ["BalancedTree",
+     "BarbellGraph",
      "BubbleSortGraph",
      "CirculantGraph",
      "cospectral_graphs",
@@ -187,7 +191,8 @@ __append_to_doc(
      "PermutationGraph",
      "RingedTree",
      "SymplecticGraph",
-     "trees"])
+     "trees",
+     "WheelGraph"])
 
 __doc__ += """
 *Chessboard Graphs*
@@ -1194,6 +1199,31 @@ class GraphGenerators():
             yield(G)
 
 ###########################################################################
+# Basic Graphs
+###########################################################################
+    import sage.graphs.generators.basic
+    BullGraph                = staticmethod(sage.graphs.generators.basic.BullGraph)
+    ButterflyGraph           = staticmethod(sage.graphs.generators.basic.ButterflyGraph)
+    CircularLadderGraph      = staticmethod(sage.graphs.generators.basic.CircularLadderGraph)
+    ClawGraph                = staticmethod(sage.graphs.generators.basic.ClawGraph)
+    CycleGraph               = staticmethod(sage.graphs.generators.basic.CycleGraph)
+    CompleteGraph            = staticmethod(sage.graphs.generators.basic.CompleteGraph)
+    CompleteBipartiteGraph   = staticmethod(sage.graphs.generators.basic.CompleteBipartiteGraph)
+    CompleteMultipartiteGraph= staticmethod(sage.graphs.generators.basic.CompleteMultipartiteGraph)
+    DiamondGraph             = staticmethod(sage.graphs.generators.basic.DiamondGraph)
+    EmptyGraph               = staticmethod(sage.graphs.generators.basic.EmptyGraph)
+    Grid2dGraph              = staticmethod(sage.graphs.generators.basic.Grid2dGraph)
+    GridGraph                = staticmethod(sage.graphs.generators.basic.GridGraph)
+    HouseGraph               = staticmethod(sage.graphs.generators.basic.HouseGraph)
+    HouseXGraph              = staticmethod(sage.graphs.generators.basic.HouseXGraph)
+    LadderGraph              = staticmethod(sage.graphs.generators.basic.LadderGraph)
+    LollipopGraph            = staticmethod(sage.graphs.generators.basic.LollipopGraph)
+    PathGraph                = staticmethod(sage.graphs.generators.basic.PathGraph)
+    StarGraph                = staticmethod(sage.graphs.generators.basic.StarGraph)
+    Toroidal6RegularGrid2dGraph = staticmethod(sage.graphs.generators.basic.Toroidal6RegularGrid2dGraph)
+    ToroidalGrid2dGraph      = staticmethod(sage.graphs.generators.basic.ToroidalGrid2dGraph)
+
+###########################################################################
 # Small Graphs
 ###########################################################################
     import sage.graphs.generators.smallgraphs
@@ -1203,6 +1233,7 @@ class GraphGenerators():
     BiggsSmithGraph          = staticmethod(sage.graphs.generators.smallgraphs.BiggsSmithGraph)
     BrinkmannGraph           = staticmethod(sage.graphs.generators.smallgraphs.BrinkmannGraph)
     BrouwerHaemersGraph      = staticmethod(sage.graphs.generators.smallgraphs.BrouwerHaemersGraph)
+    BuckyBall                = staticmethod(sage.graphs.generators.smallgraphs.BuckyBall)
     CameronGraph             = staticmethod(sage.graphs.generators.smallgraphs.CameronGraph)
     ChvatalGraph             = staticmethod(sage.graphs.generators.smallgraphs.ChvatalGraph)
     ClebschGraph             = staticmethod(sage.graphs.generators.smallgraphs.ClebschGraph)
@@ -1232,6 +1263,7 @@ class GraphGenerators():
     HoffmanGraph             = staticmethod(sage.graphs.generators.smallgraphs.HoffmanGraph)
     HoffmanSingletonGraph    = staticmethod(sage.graphs.generators.smallgraphs.HoffmanSingletonGraph)
     HoltGraph                = staticmethod(sage.graphs.generators.smallgraphs.HoltGraph)
+    KrackhardtKiteGraph      = staticmethod(sage.graphs.generators.smallgraphs.KrackhardtKiteGraph)
     LjubljanaGraph           = staticmethod(sage.graphs.generators.smallgraphs.LjubljanaGraph)
     McGeeGraph               = staticmethod(sage.graphs.generators.smallgraphs.McGeeGraph)
     McLaughlinGraph          = staticmethod(sage.graphs.generators.smallgraphs.McLaughlinGraph)
@@ -1266,6 +1298,7 @@ class GraphGenerators():
 ###########################################################################
     import sage.graphs.generators.families
     BalancedTree           = staticmethod(sage.graphs.generators.families.BalancedTree)
+    BarbellGraph           = staticmethod(sage.graphs.generators.families.BarbellGraph)
     BubbleSortGraph        = staticmethod(sage.graphs.generators.families.BubbleSortGraph)
     CirculantGraph         = staticmethod(sage.graphs.generators.families.CirculantGraph)
     CubeGraph              = staticmethod(sage.graphs.generators.families.CubeGraph)
@@ -1293,6 +1326,7 @@ class GraphGenerators():
     RingedTree             = staticmethod(sage.graphs.generators.families.RingedTree)
     SymplecticGraph        = staticmethod(sage.graphs.generators.families.SymplecticGraph)
     trees                  = staticmethod(sage.graphs.generators.families.trees)
+    WheelGraph             = staticmethod(sage.graphs.generators.families.WheelGraph)
 
 ###########################################################################
 # Chessboard Graphs
@@ -1304,35 +1338,6 @@ class GraphGenerators():
     KnightGraph              = staticmethod(sage.graphs.generators.chessboard.KnightGraph)
     QueenGraph               = staticmethod(sage.graphs.generators.chessboard.QueenGraph)
     RookGraph                = staticmethod(sage.graphs.generators.chessboard.RookGraph)
-
-###########################################################################
-# Basic Graphs
-###########################################################################
-    import sage.graphs.generators.basic
-    BarbellGraph             = staticmethod(sage.graphs.generators.basic.BarbellGraph)
-    BuckyBall                = staticmethod(sage.graphs.generators.basic.BuckyBall)
-    BullGraph                = staticmethod(sage.graphs.generators.basic.BullGraph)
-    ButterflyGraph           = staticmethod(sage.graphs.generators.basic.ButterflyGraph)
-    CircularLadderGraph      = staticmethod(sage.graphs.generators.basic.CircularLadderGraph)
-    ClawGraph                = staticmethod(sage.graphs.generators.basic.ClawGraph)
-    CycleGraph               = staticmethod(sage.graphs.generators.basic.CycleGraph)
-    CompleteGraph            = staticmethod(sage.graphs.generators.basic.CompleteGraph)
-    CompleteBipartiteGraph   = staticmethod(sage.graphs.generators.basic.CompleteBipartiteGraph)
-    CompleteMultipartiteGraph= staticmethod(sage.graphs.generators.basic.CompleteMultipartiteGraph)
-    DiamondGraph             = staticmethod(sage.graphs.generators.basic.DiamondGraph)
-    EmptyGraph               = staticmethod(sage.graphs.generators.basic.EmptyGraph)
-    Grid2dGraph              = staticmethod(sage.graphs.generators.basic.Grid2dGraph)
-    GridGraph                = staticmethod(sage.graphs.generators.basic.GridGraph)
-    HouseGraph               = staticmethod(sage.graphs.generators.basic.HouseGraph)
-    HouseXGraph              = staticmethod(sage.graphs.generators.basic.HouseXGraph)
-    KrackhardtKiteGraph      = staticmethod(sage.graphs.generators.basic.KrackhardtKiteGraph)
-    LadderGraph              = staticmethod(sage.graphs.generators.basic.LadderGraph)
-    LollipopGraph            = staticmethod(sage.graphs.generators.basic.LollipopGraph)
-    PathGraph                = staticmethod(sage.graphs.generators.basic.PathGraph)
-    StarGraph                = staticmethod(sage.graphs.generators.basic.StarGraph)
-    Toroidal6RegularGrid2dGraph = staticmethod(sage.graphs.generators.basic.Toroidal6RegularGrid2dGraph)
-    ToroidalGrid2dGraph      = staticmethod(sage.graphs.generators.basic.ToroidalGrid2dGraph)
-    WheelGraph               = staticmethod(sage.graphs.generators.basic.WheelGraph)
 
 ###########################################################################
 # Random Graphs

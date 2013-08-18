@@ -1,4 +1,4 @@
-"""
+r"""
 Trigonometric Functions
 """
 from sage.symbolic.function import BuiltinFunction, GinacFunction
@@ -121,7 +121,7 @@ tan = Function_tan()
 
 class Function_sec(BuiltinFunction):
     def __init__(self):
-        """
+        r"""
         The secant function
 
         EXAMPLES::
@@ -212,7 +212,7 @@ sec = Function_sec()
 
 class Function_csc(BuiltinFunction):
     def __init__(self):
-        """
+        r"""
         The cosecant function.
 
         EXAMPLES::
@@ -304,7 +304,7 @@ csc = Function_csc()
 
 class Function_cot(BuiltinFunction):
     def __init__(self):
-        """
+        r"""
         The cotangent function.
 
         EXAMPLES::
@@ -758,7 +758,7 @@ arcsec = asec = Function_arcsec()
 
 class Function_arctan2(GinacFunction):
     def __init__(self):
-        """
+        r"""
         The modified arctangent function.
 
         Returns the arc tangent (measured in radians) of `y/x`, where

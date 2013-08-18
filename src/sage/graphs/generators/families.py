@@ -82,27 +82,6 @@ def HararyGraph( k, n ):
     G.name('Harary graph {0}, {1}'.format(k,n))
     return G
 
-def DorogovtsevGoltsevMendesGraph(n):
-    """
-    Construct the n-th generation of the Dorogovtsev-Goltsev-Mendes
-    graph.
-
-    EXAMPLE::
-
-        sage: G = graphs.DorogovtsevGoltsevMendesGraph(8)
-        sage: G.size()
-        6561
-
-    REFERENCE:
-
-    - [1] Dorogovtsev, S. N., Goltsev, A. V., and Mendes, J.
-      F. F., Pseudofractal scale-free web, Phys. Rev. E 066122
-      (2002).
-    """
-    import networkx
-    return graph.Graph(networkx.dorogovtsev_goltsev_mendes_graph(n),\
-           name="Dorogovtsev-Goltsev-Mendes Graph, %d-th generation"%n)
-
 def IntervalGraph(intervals):
     r"""
     Returns the graph corresponding to the given intervals.
@@ -764,6 +743,27 @@ def CubeGraph(n):
     r.set_pos(p)
 
     return r
+
+def DorogovtsevGoltsevMendesGraph(n):
+    """
+    Construct the n-th generation of the Dorogovtsev-Goltsev-Mendes
+    graph.
+
+    EXAMPLE::
+
+        sage: G = graphs.DorogovtsevGoltsevMendesGraph(8)
+        sage: G.size()
+        6561
+
+    REFERENCE:
+
+    - [1] Dorogovtsev, S. N., Goltsev, A. V., and Mendes, J.
+      F. F., Pseudofractal scale-free web, Phys. Rev. E 066122
+      (2002).
+    """
+    import networkx
+    return graph.Graph(networkx.dorogovtsev_goltsev_mendes_graph(n),\
+           name="Dorogovtsev-Goltsev-Mendes Graph, %d-th generation"%n)
 
 def FoldedCubeGraph(n):
     r"""

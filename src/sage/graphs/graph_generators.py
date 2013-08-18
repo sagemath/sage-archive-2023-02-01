@@ -8,7 +8,7 @@ build a complete graph on `15` elements, one can do::
     sage: g = graphs.CompleteGraph(15)
 
 More interestingly, one can get the list of all graphs that Sage knows how to
-buid by typing ``graphs.`` in Sage, then hitting tab.
+build by typing ``graphs.`` in Sage and then hitting tab.
 """
 
 # This method appends a list of methods to the doc as a 3xN table.
@@ -87,6 +87,9 @@ __append_to_doc(
 
 __doc__ += """
 **Small Graphs**
+
+A small graph is just a single graph and has no parameter influencing
+the number of edges or vertices.
 """
 
 __append_to_doc(
@@ -116,8 +119,6 @@ __append_to_doc(
      "GrayGraph",
      "GrotzschGraph",
      "HallJankoGraph",
-     "WellsGraph",
-     "HararyGraph",
      "HarriesGraph",
      "HarriesWongGraph",
      "HeawoodGraph",
@@ -143,41 +144,50 @@ __append_to_doc(
      "ThomsenGraph",
      "Tutte12Cage",
      "TutteCoxeterGraph",
-     "WagnerGraph"])
+     "WagnerGraph",
+     "WellsGraph"])
 
 __doc__ += """
 **Families of graphs**
+
+A family of graph is an infinite set of graphs which can be indexed by fixed
+number of parameters, e.g. two integer parameters. (A method whose name starts
+with a small letter does not return a single graph object but a graph iterator
+or a list of graphs or ...)
 """
 
 __append_to_doc(
     ["BalancedTree",
+     "benzenoids"
      "BubbleSortGraph",
      "CirculantGraph",
+     "cospectral_graphs",
      "CubeGraph",
+     "DorogovtsevGoltsevMendesGraph",
      "FibonacciTree",
      "FoldedCubeGraph",
      "FriendshipGraph",
+     "fullerenes",
      "FuzzyBallGraph",
      "GeneralizedPetersenGraph",
      "HanoiTowerGraph",
+     "HararyGraph",
      "HyperStarGraph",
      "IntervalGraph",
      "JohnsonGraph",
      "KneserGraph",
      "LCFGraph",
+     "line_graph_forbidden_subgraphs",
      "MycielskiGraph",
      "MycielskiStep",
      "NKStarGraph",
      "NStarGraph",
      "OddGraph",
      "PaleyGraph",
-     "RingedTree",
-     "line_graph_forbidden_subgraphs",
      "PermutationGraph",
+     "RingedTree",
      "SymplecticGraph",
-     "trees",
-     "fullerenes",
-     "benzenoids"])
+     "trees"])
 
 __doc__ += """
 **Chessboard graphs**
@@ -189,12 +199,6 @@ __append_to_doc(
      "KnightGraph",
      "QueenGraph",
      "RookGraph"])
-
-__doc__ += """
-**Pseudofractal graphs**
-"""
-
-__append_to_doc(["DorogovtsevGoltsevMendesGraph"])
 
 __doc__ += """
 **Random graphs**
@@ -1206,34 +1210,34 @@ class GraphGenerators():
 ###########################################################################
 
     import sage.graphs.generators.families
-    JohnsonGraph           = staticmethod(sage.graphs.generators.families.JohnsonGraph)
-    MycielskiGraph         = staticmethod(sage.graphs.generators.families.MycielskiGraph)
-    MycielskiStep          = staticmethod(sage.graphs.generators.families.MycielskiStep)
-    KneserGraph            = staticmethod(sage.graphs.generators.families.KneserGraph)
     BalancedTree           = staticmethod(sage.graphs.generators.families.BalancedTree)
     BubbleSortGraph        = staticmethod(sage.graphs.generators.families.BubbleSortGraph)
     CirculantGraph         = staticmethod(sage.graphs.generators.families.CirculantGraph)
     CubeGraph              = staticmethod(sage.graphs.generators.families.CubeGraph)
-    FoldedCubeGraph        = staticmethod(sage.graphs.generators.families.FoldedCubeGraph)
     DorogovtsevGoltsevMendesGraph = staticmethod(sage.graphs.generators.families.DorogovtsevGoltsevMendesGraph)
+    FibonacciTree          = staticmethod(sage.graphs.generators.families.FibonacciTree)
+    FoldedCubeGraph        = staticmethod(sage.graphs.generators.families.FoldedCubeGraph)
     FriendshipGraph        = staticmethod(sage.graphs.generators.families.FriendshipGraph)
     FuzzyBallGraph         = staticmethod(sage.graphs.generators.families.FuzzyBallGraph)
-    FibonacciTree          = staticmethod(sage.graphs.generators.families.FibonacciTree)
     GeneralizedPetersenGraph = staticmethod(sage.graphs.generators.families.GeneralizedPetersenGraph)
-    HyperStarGraph         = staticmethod(sage.graphs.generators.families.HyperStarGraph)
+    HanoiTowerGraph        = staticmethod(sage.graphs.generators.families.HanoiTowerGraph)
     HararyGraph            = staticmethod(sage.graphs.generators.families.HararyGraph)
+    HyperStarGraph         = staticmethod(sage.graphs.generators.families.HyperStarGraph)
     IntervalGraph          = staticmethod(sage.graphs.generators.families.IntervalGraph)
+    JohnsonGraph           = staticmethod(sage.graphs.generators.families.JohnsonGraph)
+    KneserGraph            = staticmethod(sage.graphs.generators.families.KneserGraph)
     LCFGraph               = staticmethod(sage.graphs.generators.families.LCFGraph)
+    line_graph_forbidden_subgraphs = staticmethod(sage.graphs.generators.families.line_graph_forbidden_subgraphs)
+    MycielskiGraph         = staticmethod(sage.graphs.generators.families.MycielskiGraph)
+    MycielskiStep          = staticmethod(sage.graphs.generators.families.MycielskiStep)
     NKStarGraph            = staticmethod(sage.graphs.generators.families.NKStarGraph)
     NStarGraph             = staticmethod(sage.graphs.generators.families.NStarGraph)
     OddGraph               = staticmethod(sage.graphs.generators.families.OddGraph)
     PaleyGraph             = staticmethod(sage.graphs.generators.families.PaleyGraph)
     PermutationGraph       = staticmethod(sage.graphs.generators.families.PermutationGraph)
-    SymplecticGraph        = staticmethod(sage.graphs.generators.families.SymplecticGraph)
-    HanoiTowerGraph        = staticmethod(sage.graphs.generators.families.HanoiTowerGraph)
-    line_graph_forbidden_subgraphs = staticmethod(sage.graphs.generators.families.line_graph_forbidden_subgraphs)
-    trees                  = staticmethod(sage.graphs.generators.families.trees)
     RingedTree             = staticmethod(sage.graphs.generators.families.RingedTree)
+    SymplecticGraph        = staticmethod(sage.graphs.generators.families.SymplecticGraph)
+    trees                  = staticmethod(sage.graphs.generators.families.trees)
 
 ###########################################################################
 # Small Graphs

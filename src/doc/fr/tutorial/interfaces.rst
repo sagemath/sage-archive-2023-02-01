@@ -1,3 +1,5 @@
+.. linkall
+
 **********
 Interfaces
 **********
@@ -105,8 +107,6 @@ Commençons par créer une liste PARI à partir d'une liste Python.
 En Sage, les objets PARI sont de type ``py_pari.gen``. Le type PARI de
 l'objet sous-jacent est donné par la méthode ``type``.
 
-.. link
-
 ::
 
     sage: v.type()
@@ -116,8 +116,6 @@ Pour créer une courbe elliptique en PARI, on utiliserait
 ``ellinit([1,2,3,4,5])``. La syntaxe Sage est semblable, à ceci près que
 ``ellinit`` devient une méthode qui peut être appelée sur n'importe quel
 objet PARI, par exemle notre ``t_VEC v``.
-
-.. link
 
 ::
 
@@ -129,8 +127,6 @@ objet PARI, par exemle notre ``t_VEC v``.
 
 À présent que nous disposons d'une courbe elliptique, faisons quelques
 calculs avec.
-
-.. link
 
 ::
 
@@ -216,8 +212,6 @@ fournie par Sage (n'entrez pas les ``...``) :
 
 Maintenant que nous avons défini :math:`f`, affichons-le puis
 factorisons-le.
-
-.. link
 
 ::
 

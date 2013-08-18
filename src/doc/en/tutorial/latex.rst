@@ -483,7 +483,7 @@ http://sourceforge.net/projects/dvipng/ and as part of
 Rendering combinatorial graphs requires a recent version of the
 PGF library, and the files ``tkz-graph.sty``, ``tkz-arith.sty``
 and perhaps ``tkz-berge.sty``, all from the `Altermundus site
-<http://altermundus.com/pages/graph.html>`_.
+<http://altermundus.com/pages/tkz/graph/>`_.
 
 External Programs
 =================

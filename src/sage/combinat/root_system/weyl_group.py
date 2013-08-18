@@ -206,10 +206,10 @@ class WeylGroup_gens(ClearCacheOnPickle, UniqueRepresentation,
 
             sage: G = WeylGroup(['F',4])
             sage: G.index_set()
-            [1, 2, 3, 4]
+            (1, 2, 3, 4)
             sage: G = WeylGroup(['A',3,1])
             sage: G.index_set()
-            [0, 1, 2, 3]
+            (0, 1, 2, 3)
         """
         return self.cartan_type().index_set()
 
@@ -534,7 +534,7 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
         sage: G.cardinality()
         24
         sage: G.index_set()
-        [1, 2, 3]
+        (1, 2, 3)
         sage: TestSuite(G).run()
 
     TESTS::
@@ -560,7 +560,7 @@ class ClassicalWeylSubgroup(WeylGroup_gens):
             sage: WeylGroup(['A',3,1]).classical().cartan_type()
             ['A', 3]
             sage: WeylGroup(['A',3,1]).classical().index_set()
-            [1, 2, 3]
+            (1, 2, 3)
 
         Note: won't be needed, once the lattice will be a parabolic sub root system
         """

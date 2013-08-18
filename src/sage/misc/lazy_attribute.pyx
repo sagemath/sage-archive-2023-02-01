@@ -68,15 +68,15 @@ cdef class _lazy_attribute(object):
         r"""
         Returns the source code location for the wrapped function.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.misc.sageinspect import sage_getsourcelines
             sage: g = lazy_attribute(banner)
             sage: (src, lines) = sage_getsourcelines(g)
             sage: src[0]
             'def banner():\n'
             sage: lines
-            77
-
+            79
         """
         from sage.misc.sageinspect import sage_getsourcelines
         return sage_getsourcelines(self.f)

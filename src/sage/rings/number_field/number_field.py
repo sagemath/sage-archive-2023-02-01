@@ -7738,8 +7738,8 @@ class NumberField_cyclotomic(NumberField_absolute):
             # _one_element to NumberFieldElement_absolute values, which is
             # wrong (and dangerous; such elements can actually be used to
             # crash Sage: see #5316).  Overwrite them with correct values.
-            self._zero_element = self(0)
-            self._one_element =  self(1)
+            self._zero_element = self._element_class(self, (QQ(0),QQ(0)))
+            self._one_element =  self._element_class(self, (QQ(1),QQ(0)))
 
         zeta = self.gen()
         zeta._set_multiplicative_order(n)
@@ -8014,8 +8014,14 @@ class NumberField_cyclotomic(NumberField_absolute):
                 return number_field_morphisms.NumberFieldEmbedding(K, self, -self.gen() ** e)
             else:
                 return None
-        else:
-            return NumberField_absolute._coerce_map_from_(self, K)
+
+        elif self.degree() == 2:
+            if K is ZZ:
+                return number_field_element_quadratic.Z_to_quadratic_field_element(self)
+            if K is QQ:
+                return number_field_element_quadratic.Q_to_quadratic_field_element(self)
+
+        return NumberField_absolute._coerce_map_from_(self, K)
 
     def _log_gen(self, x):
         """
@@ -8951,9 +8957,8 @@ class NumberField_quadratic(NumberField_absolute):
         # _one_element to NumberFieldElement_absolute values, which is
         # wrong (and dangerous; such elements can actually be used to
         # crash Sage: see #5316).  Overwrite them with correct values.
-        self._zero_element = self(0)
-        self._one_element =  self(1)
-
+        self._zero_element = self._element_class(self, (QQ(0), QQ(0)))
+        self._one_element  = self._element_class(self, (QQ(1), QQ(0)))
 
     def _coerce_map_from_(self, K):
         """
@@ -8968,11 +8973,21 @@ class NumberField_quadratic(NumberField_absolute):
             3/5
             sage: parent(f(3/5)) is K
             True
+
+            sage: g = K.coerce_map_from(ZZ); g # indirect doctest
+            Natural morphism:
+              From: Integer Ring
+              To:   Number Field in a with defining polynomial x^2 + 3
+            sage: g(1)
+            1
+            sage: parent(g(1)) is K
+            True
         """
+        if K is ZZ:
+            return number_field_element_quadratic.Z_to_quadratic_field_element(self)
         if K is QQ:
             return number_field_element_quadratic.Q_to_quadratic_field_element(self)
-        else:
-            return NumberField_absolute._coerce_map_from_(self, K)
+        return NumberField_absolute._coerce_map_from_(self, K)
 
     def _latex_(self):
         """

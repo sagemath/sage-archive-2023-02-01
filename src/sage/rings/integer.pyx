@@ -461,23 +461,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_init(self.value)
         self._parent = <SageObject>the_integer_ring
 
-    def __pyxdoc__init__(self):
-        """
-        You can create an integer from an int, long, string literal, or
-        integer modulo N.
-
-        EXAMPLES::
-
-            sage: Integer(495)
-            495
-            sage: Integer('495949209809328523')
-            495949209809328523
-            sage: Integer(Mod(3,7))
-            3
-            sage: 2^3
-            8
-        """
-
     def __init__(self, x=None, base=0):
         """
         EXAMPLES::

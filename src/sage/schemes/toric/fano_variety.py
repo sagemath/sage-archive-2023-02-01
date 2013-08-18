@@ -153,6 +153,8 @@ implementing them on your own as a patch for inclusion!
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import re
+
 from sage.geometry.all import Cone, FaceFan, Fan, LatticePolytope
 from sage.misc.all import latex, prod
 from sage.rings.all import (PolynomialRing, QQ,
@@ -162,7 +164,7 @@ from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme_tori
 from sage.schemes.toric.variety import (
                                             ToricVariety_field,
                                             normalize_names)
-from sage.symbolic.all import SR
+from sage.structure.all import get_coercion_model
 from sage.categories.fields import Fields
 _Fields = Fields()
 
@@ -787,11 +789,10 @@ class CPRFanoToricVariety_field(ToricVariety_field):
           will coincide with the index of the corresponding point of `\Delta`;
 
         - ``coefficients`` -- as an alternative to specifying coefficient
-          names and/or indices, you can give the coefficients themselves as a
-          list of rational functions. If you do it, then the base field of
-          ``self`` will be extended to include all necessary names. Each of
-          these rational functions can be given by any expression that can be
-          converted to a symbolic ring, e.g. strings.
+          names and/or indices, you can give the coefficients themselves as
+          arbitrary expressions and/or strings. Using strings allows you to
+          easily add "parameters": the base field of ``self`` will be extended
+          to include all necessary names.
 
         OUTPUT:
 
@@ -878,10 +879,8 @@ class CPRFanoToricVariety_field(ToricVariety_field):
 
         or even mix numerical coefficients with some expressions ::
 
-            sage: var("t")
-            t
             sage: H = FTV.anticanonical_hypersurface(
-            ...     coefficients=[0, t, 1/t, "psi/(psi^2 + phi)"])
+            ...     coefficients=[0, "t", "1/t", "psi/(psi^2 + phi)"])
             sage: H
             Closed subscheme of 2-d CPR-Fano toric variety
             covered by 3 affine patches defined by:
@@ -889,16 +888,8 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             sage: R = H.ambient_space().base_ring()
             sage: R
             Fraction Field of
-            Multivariate Polynomial Ring in t, phi, psi
+            Multivariate Polynomial Ring in phi, psi, t
             over Rational Field
-
-        Note that ``t`` in the base ring of the last example is **not** the
-        same as the symbolic variable ``t`` used for specifying coefficients::
-
-            sage: R.gen(0)
-            t
-            sage: R.gen(0) is t
-            False
         """
         # The example above is also copied to the tutorial section in the
         # main documentation of the module.
@@ -1110,10 +1101,9 @@ class CPRFanoToricVariety_field(ToricVariety_field):
 
         - ``coefficients`` -- as an alternative to specifying coefficient
           names and/or indices, you can give the coefficients themselves as
-          rational functions. If you do it, then the base field of ``self``
-          will be extended to include all necessary names. Each of these
-          rational functions can be given by any expression that can be
-          converted to a symbolic ring, e.g. strings.
+          arbitrary expressions and/or strings. Using strings allows you to
+          easily add "parameters": the base field of ``self`` will be extended
+          to include all necessary names.
 
         OUTPUT:
 
@@ -1154,11 +1144,11 @@ class CPRFanoToricVariety_field(ToricVariety_field):
 
             sage: X.nef_complete_intersection(np,  # long time
             ...         monomial_points="vertices",
-            ...         coefficients=[range(1,5), range(1,6)])
+            ...         coefficients=[("a", "a^2", "a/e", "c_i"), range(1,6)])
             Closed subscheme of 3-d CPR-Fano toric variety
             covered by 10 affine patches defined by:
-              3*z1*z4^2*z5^2*z7^3 + 2*z2*z4*z5*z6*z7^2*z8^2
-              + 4*z2*z3*z4*z7*z8 + z0*z2,
+              a/e*z1*z4^2*z5^2*z7^3 + a^2*z2*z4*z5*z6*z7^2*z8^2
+              + c_i*z2*z3*z4*z7*z8 + a*z0*z2,
               3*z1*z4*z5^2*z6^2*z7^2*z8^2 + z2*z5*z6^3*z7*z8^4
               + 4*z2*z3*z6^2*z8^3 + 2*z1*z3^2*z4 + 5*z0*z1*z5*z6
 
@@ -1388,6 +1378,17 @@ class AnticanonicalHypersurface(AlgebraicScheme_subscheme_toric):
             covered by 4 affine patches defined by:
               a1*z0^2*z1^2 + a0*z1^2*z2^2 + a6*z0*z1*z2*z3
             + a3*z0^2*z3^2 + a2*z2^2*z3^2
+
+        Check that finite fields are handled correctly :trac:`14899`::
+
+            sage: F = GF(5^2, "a")
+            sage: X = P1xP1.change_ring(F)
+            sage: X.anticanonical_hypersurface(monomial_points="all",
+            ...                     coefficients=[1]*X.Delta().npoints())
+            Closed subscheme of 2-d CPR-Fano toric variety
+            covered by 4 affine patches defined by:
+              z0^2*z1^2 + z0*z1^2*z2 + z1^2*z2^2 + z0^2*z1*z3 + z0*z1*z2*z3
+            + z1*z2^2*z3 + z0^2*z3^2 + z0*z2*z3^2 + z2^2*z3^2
         """
         if not is_CPRFanoToricVariety(P_Delta):
             raise TypeError("anticanonical hypersurfaces can only be "
@@ -1412,25 +1413,33 @@ class AnticanonicalHypersurface(AlgebraicScheme_subscheme_toric):
         monomial_points = tuple(monomial_points)
         self._monomial_points = monomial_points
         # Make the necessary ambient space
-        if coefficient_name_indices is None:
-            coefficient_name_indices = monomial_points
         if coefficients is None:
+            if coefficient_name_indices is None:
+                coefficient_name_indices = monomial_points
             coefficient_names = normalize_names(
                                 coefficient_names, len(monomial_points),
                                 DEFAULT_COEFFICIENT, coefficient_name_indices)
             # We probably don't want it: the analog in else-branch is unclear.
             # self._coefficient_names = coefficient_names
             F = add_variables(P_Delta.base_ring(), coefficient_names)
-            coefficients = (F(coef) for coef in coefficient_names)
+            coefficients = [F(coef) for coef in coefficient_names]
         else:
-            variables = []
+            variables = set()
+            nonstr = []
+            regex = re.compile("[_A-Za-z]\w*")
             for c in coefficients:
-                variables.extend(map(str, SR(c).variables()))
-            F = add_variables(P_Delta.base_ring(), variables)
-            # Direct conversion "a/b" to F does not work in Sage-4.6.alpha3,
-            # so we go through SR, even though it is quite slow.
-            coefficients = (F(SR(coef)) for coef in coefficients)
+                if isinstance(c, str):
+                    variables.update(regex.findall(c))
+                else:
+                    nonstr.append(c)
+            F = add_variables(P_Delta.base_ring(), sorted(variables))
+            F = get_coercion_model().common_parent(F, *nonstr)
+            coefficients = map(F, coefficients)
         P_Delta = P_Delta.base_extend(F)
+        if len(monomial_points) != len(coefficients):
+            raise ValueError("cannot construct equation of the anticanonical"
+                     " hypersurface with %d monomials and %d coefficients"
+                     % (len(monomial_points), len(coefficients)))
         # Defining polynomial
         h = sum(coef * prod(P_Delta.coordinate_point_to_coordinate(n)
                             ** (Delta.point(m) * Delta_polar.point(n) + 1)
@@ -1536,23 +1545,31 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
                                  "monomial points!" % monomial_points[i])
             monomial_points[i] = tuple(monomial_points[i])
             # Extend the base ring of the ambient space if necessary
-            if coefficient_name_indices[i] is None:
-                coefficient_name_indices[i] = monomial_points[i]
             if coefficients[i] is None:
+                if coefficient_name_indices[i] is None:
+                    coefficient_name_indices[i] = monomial_points[i]
                 coefficient_names[i] = normalize_names(
                         coefficient_names[i], len(monomial_points[i]),
                         DEFAULT_COEFFICIENTS[i], coefficient_name_indices[i])
                 F = add_variables(P_Delta.base_ring(), coefficient_names[i])
-                coefficients[i] = (F(coef) for coef in coefficient_names[i])
+                coefficients[i] = [F(coef) for coef in coefficient_names[i]]
             else:
-                variables = []
+                variables = set()
+                nonstr = []
+                regex = re.compile("[_A-Za-z]\w*")
                 for c in coefficients[i]:
-                    variables.extend(map(str, SR(c).variables()))
-                F = add_variables(P_Delta.base_ring(), variables)
-                # Direct conversion "a/b" to F does not work in Sage-4.6.alpha3
-                # so we go through SR, even though it is quite slow.
-                coefficients[i] = (F(SR(coef)) for coef in coefficients[i])
+                    if isinstance(c, str):
+                        variables.update(regex.findall(c))
+                    else:
+                        nonstr.append(c)
+                F = add_variables(P_Delta.base_ring(), sorted(variables))
+                F = get_coercion_model().common_parent(F, *nonstr)
+                coefficients[i] = map(F, coefficients[i])
             P_Delta = P_Delta.base_extend(F)
+            if len(monomial_points[i]) != len(coefficients[i]):
+                raise ValueError("cannot construct equation %d of the complete"
+                         " intersection with %d monomials and %d coefficients"
+                         % (i, len(monomial_points[i]), len(coefficients[i])))
             # Defining polynomial
             h = sum(coef * prod(P_Delta.coordinate_point_to_coordinate(n)
                                 ** (Delta_i.point(m) * Delta_polar.point(n)

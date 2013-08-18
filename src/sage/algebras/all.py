@@ -16,6 +16,7 @@ Algebras
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+from sage.misc.lazy_import import lazy_import
 
 from quatalg.all import *
 
@@ -35,6 +36,6 @@ from group_algebra_new import GroupAlgebra
 
 from iwahori_hecke_algebra import IwahoriHeckeAlgebraT
 from affine_nil_temperley_lieb import AffineNilTemperleyLiebTypeA
-from nil_coxeter_algebra import NilCoxeterAlgebra
+lazy_import('sage.algebras.nil_coxeter_algebra', 'NilCoxeterAlgebra')
 
-from shuffle_algebra import ShuffleAlgebra
+lazy_import('sage.algebras.shuffle_algebra', 'ShuffleAlgebra')

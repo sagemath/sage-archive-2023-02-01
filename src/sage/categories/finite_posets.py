@@ -386,10 +386,20 @@ class FinitePosets(Category):
                 orbits.append(map(element_constructor, orbit))
             return orbits
 
-        def order_ideals_lattice(self):
+        def order_ideals_lattice(self, as_ideals=True):
             r"""
             Returns the lattice of order ideals of a poset `P`,
             ordered by inclusion. The usual notation is `J(P)`.
+
+            The underlying set is by default the set of order ideals
+            of `P`. It can be alternatively chosen to be the set of
+            antichains of `P`.
+
+            INPUT:
+
+            - ``as_ideals`` -- Boolean, if ``True`` (default) returns
+              a poset on the set of order ideals, otherwise on the set
+              of antichains
 
             EXAMPLES::
 
@@ -401,6 +411,13 @@ class FinitePosets(Category):
                 sage: list(J)
                 [{}, {0}, {0, 2}, {0, 1}, {0, 1, 2}, {0, 2, 3}, {0, 1, 2, 3}, {0, 1, 2, 3, 4}]
 
+            As a lattice on antichains::
+
+                sage: J2 = P.order_ideals_lattice(False); J2
+                Finite lattice containing 8 elements
+                sage: list(J2)
+                [(0,), (1, 2), (1, 3), (1,), (2,), (3,), (4,), ()]
+
             TESTS::
 
                 sage: J = Posets.DiamondPoset(4, facade = True).order_ideals_lattice(); J
@@ -410,14 +427,24 @@ class FinitePosets(Category):
                 sage: J.cover_relations()
                 [[{}, {0}], [{0}, {0, 2}], [{0}, {0, 1}], [{0, 2}, {0, 1, 2}], [{0, 1}, {0, 1, 2}], [{0, 1, 2}, {0, 1, 2, 3}]]
 
-            .. note:: we use facade posets in the examples above just
+            .. NOTE:: we use facade posets in the examples above just
                to ensure a nicer ordering in the output.
             """
-            from sage.misc.misc import attrcall
-            from sage.sets.set import Set
             from sage.combinat.posets.lattices import LatticePoset
-            ideals = [Set( self.order_ideal(antichain) ) for antichain in self.antichains()]
-            return LatticePoset((ideals,attrcall("issubset")))
+            if as_ideals:
+                from sage.misc.misc import attrcall
+                from sage.sets.set import Set
+                ideals = [Set( self.order_ideal(antichain) ) for antichain in self.antichains()]
+                return LatticePoset((ideals,attrcall("issubset")))
+            else:
+                from sage.misc.cachefunc import cached_function
+                antichains = [tuple(a) for a in self.antichains()]
+                @cached_function
+                def is_above(a,xb):
+                    return any(self.is_lequal(xa,xb) for xa in a)
+                def cmp(a,b):
+                    return all(is_above(a,xb) for xb in b)
+                return LatticePoset((antichains,cmp))
 
         @abstract_method(optional = True)
         def antichains(self):

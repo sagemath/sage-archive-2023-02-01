@@ -626,8 +626,7 @@ class KleberTree(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: KT = KleberTree(['D', 4], [[2, 2]])
-            sage: show_default(False) #do not show the plot by default
-            sage: KT.plot()
+            sage: print(KT.plot())
             Graphics object consisting of 8 graphics primitives
         """
         return self.digraph().plot(edge_labels=True, vertex_size=0, **options)

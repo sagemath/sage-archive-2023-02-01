@@ -51,6 +51,7 @@ Combinatorics, Discrete Mathematics
 
 * :doc:`Combinatorics <combinat/index>`
 * :doc:`Graph Theory <graphs/index>`
+* :doc:`Matroid Theory <matroids/index>`
 * :doc:`Discrete Dynamics <dynamics/index>`
 
 Structures, Coercion, Categories

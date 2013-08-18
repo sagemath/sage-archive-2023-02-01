@@ -836,6 +836,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         EXAMPLES::
 
             sage: BinaryTree().left_right_symmetry()
+            .
             sage: BinaryTree([]).left_right_symmetry()
             [., .]
             sage: BinaryTree([[],None]).left_right_symmetry()
@@ -844,7 +845,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [., [[., .], .]]
         """
         if not self:
-            return None
+            return BinaryTree()
         tree = [self[1].left_right_symmetry(),self[0].left_right_symmetry()]
         if(not self in LabelledBinaryTrees()):
             return BinaryTree(tree)
@@ -861,6 +862,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         EXAMPLES::
 
             sage: BinaryTree().left_border_symmetry()
+            .
             sage: BinaryTree([]).left_border_symmetry()
             [., .]
             sage: BinaryTree([[None,[]],None]).left_border_symmetry()
@@ -874,7 +876,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             1[4[., .], 2[., 3[., .]]]
         """
         if not self:
-            return None
+            return BinaryTree()
         border = []
         labelled = self in LabelledBinaryTrees()
         labels = []

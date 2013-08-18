@@ -316,7 +316,7 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_crysta
 
            sage: ct = CartanType(['F', 4, 1]).dual()
            sage: ct.index_set()
-           [0, 1, 2, 3, 4]
+           (0, 1, 2, 3, 4)
         """
         return self._dual.index_set()
 

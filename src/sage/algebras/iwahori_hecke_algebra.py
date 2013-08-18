@@ -266,7 +266,7 @@ class IwahoriHeckeAlgebraT(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: IwahoriHeckeAlgebraT("B2",1).index_set()
-            [1, 2]
+            (1, 2)
         """
         return self._index_set
 

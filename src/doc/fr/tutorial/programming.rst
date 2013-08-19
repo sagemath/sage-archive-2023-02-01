@@ -712,12 +712,13 @@ Pour évaluer des inégalités symboliques, utilisez ``bool`` :
     sage: bool(x < x + 1)
     True
 
-Lorsque l'on cherche à comparer des objets de types différents, Sage
-essaie le plus souvent de trouver une coercition canonique des deux
-objets dans un même parent. Si cela réussit, la comparaison est faite
-entre les objets convertis ; sinon, les objets sont simplement considérés
-comme différents. Pour tester si deux variables font référence au même
-objet, on utilise l'opérateur ``is``.
+Lorsque l'on cherche à comparer des objets de types différents, Sage essaie le
+plus souvent de trouver une coercition canonique des deux objets dans un même
+parent (voir la section :ref:`section-coercion` pour plus de détails). Si cela
+réussit, la comparaison est faite entre les objets convertis ; sinon, les
+objets sont simplement considérés comme différents. Pour tester si deux
+variables font référence au même objet, on utilise l'opérateur ``is``. Ainsi,
+l'entier Python (``int``) ``1`` est unique, mais pas l'entier Sage ``1`` :
 
 ::
 

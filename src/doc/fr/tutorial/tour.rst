@@ -29,6 +29,7 @@ il vous faudra peut-être appuyer sur ``maj-return`` plutôt que
    tour_functions
    tour_rings
    tour_polynomial
+   tour_coercion
    tour_linalg
    tour_groups
    tour_numtheory

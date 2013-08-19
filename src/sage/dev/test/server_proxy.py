@@ -258,3 +258,28 @@ class DoctestTicketProxy(object):
             raise TracInternalError(xmlrpclib.Fault(404, "ticket does not exist"))
         ticket = self._server_proxy._server.tickets[ticket]
         return [ticket.id, ticket.time_created, ticket.time_changed, ticket.attributes]
+
+    def listAttachments(self, ticket):
+        r"""
+        Return a list of attachments to this ticket.
+
+        EXAMPLES::
+
+            sage: from sage.dev.test.trac_interface import DoctestTracInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: config = DoctestConfig()
+            sage: config['trac']['password'] = 'secret'
+            sage: UI = DoctestUserInterface(config['UI'])
+            sage: trac = DoctestTracInterface(config['trac'], UI, DoctestTracServer())
+            sage: ticket = trac._authenticated_server_proxy.ticket.create('summary', 'description', {})
+            sage: trac._anonymous_server_proxy.ticket.listAttachments(ticket)
+
+        """
+        if ticket not in self._server_proxy._server.tickets:
+            from sage.dev.trac_error import TracInternalError
+            import xmlrpclib
+            raise TracInternalError(xmlrpclib.Fault(404, "ticket does not exist"))
+        ticket = self._server_proxy._server.tickets[ticket]
+        return ticket.attachments.keys()

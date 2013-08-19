@@ -87,3 +87,4 @@ class Ticket(object):
         self.time_created = 'not implemented'
         self.time_changed = 'not implemented'
         self.comments = []
+        self.attachments = {}

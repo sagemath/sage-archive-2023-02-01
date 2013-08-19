@@ -2243,20 +2243,61 @@ class SageDev(object):
         - :meth:`import_patch` -- also creates a commit on the current branch
           from the patch.
 
-        TESTS::
+        EXAMPLES::
 
-            TODO
+            sage: dev.download_patch(ticket=14882) # optional: internet
+            ValueError: Ticket #14882 has more than one attachment but parameter `patchname` is not present, please set it to one of: trac_14882-backtrack_longtime-dg.patch, trac_14882-backtrack_longtime-dg-v2.patch, trac_14882-spelling_in_backtrack-dg.patch
+            sage: dev.download_patch(ticket=14882, patchname='trac_14882-backtrack_longtime-dg.patch')
+
+        TESTS:
+
+        Set up a single user for doctesting::
+
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.git_interface import SUPER_SILENT, READ_OUTPUT
+            sage: server = DoctestTracServer()
+            sage: config = DoctestConfig()
+            sage: config['trac']['password'] = 'secret'
+            sage: dev = DoctestSageDevWrapper(config, server)
+            sage: UI = dev._UI
+            sage: dev._pull_master_branch()
+            sage: dev._chdir()
+
+        Create a new ticket::
+
+            sage: UI.append("Summary: summary1\ndescription")
+            sage: dev.create_ticket()
+            1
+
+        There are no attachment to download yet::
+
+            sage: dev.download_patch(ticket=1)
+            ValueError: Ticket #1 has no attachments.
+
+        After adding one attachment, this works::
+
+            sage: server.tickets[1].attachments['first.patch'] = ''
+            sage: dev.download_patch(ticket=1) # not tested, download_patch tries to talk to the live server
+
+        After adding another attachment, this does not work anymore, one needs
+        to specify which attachment should be downloaded::
+
+            sage: server.tickets[1].attachments['second.patch'] = ''
+            sage: dev.download_patch(ticket=1)
+            sage: dev.download_patch(ticket=1, patchname = 'second.patch') # not tested, download_patch tries to talk to the live server
 
         """
         if url:
             if ticket or patchname:
                 raise ValueError("If `url` is specifed, `ticket` and `patchname` must not be specified.")
             import tempfile
-            fd, ret = tempfile.mkstemp(dir=self.tmp_dir)
+            fd, ret = tempfile.mkstemp()
             import os
             os.close(fd)
             from subprocess import check_call
-            check_call(["wget","-r","--no-check-certificate", "-O",ret,url])
+            check_call(["wget","-r","-O",ret,url])
             return ret
         elif ticket:
             ticket = self._ticket_from_ticket_name(ticket)
@@ -2271,7 +2312,7 @@ class SageDev(object):
                 if len(attachments) == 1:
                     return self.download_patch(ticket = ticket, patchname = attachments[0])
                 else:
-                    raise SageDevValueError("Ticket #%s has more than one attachment but parameter `patchname` is not present."%ticket)
+                    raise SageDevValueError("Ticket #%s has more than one attachment but parameter `patchname` is not present, please set it to one of: %s"%(ticket,", ".join(attachments)))
         elif not patchname:
             return self.download_patch(ticket=self._current_ticket())
         else:

@@ -2155,9 +2155,14 @@ class SageDev(object):
             raise OperationCancelledError("untracked files make import impossible")
 
         if not local_file:
-            return self.import_patch(
-                    local_file=self.download_patch(patchname=patchname, url=url),
-                    diff_format=diff_format, header_format=header_format, path_format=path_format)
+            local_file = sel.download_patch(patchname=patchname, url=url)
+            try:
+                return self.import_patch(
+                        local_file=local_file,
+                        diff_format=diff_format, header_format=header_format, path_format=path_format)
+            finally:
+                import os
+                os.unlink(local_file)
         elif patchname or url:
             raise SageDevValueError("if local_file is specified, patchname and url must not be specified")
         else:

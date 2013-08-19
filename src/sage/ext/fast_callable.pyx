@@ -192,7 +192,8 @@ class), implement a method \code{_fast_callable_(self, etb)} for your class.
 This method takes an \class{ExpressionTreeBuilder}, and returns an
 expression tree built up using the methods described above.
 
-EXAMPLES:
+EXAMPLES::
+
     sage: var('x')
     x
     sage: f = fast_callable(sqrt(x^7+1), vars=[x], domain=float)
@@ -323,7 +324,8 @@ def fast_callable(x, domain=None, vars=None,
     specified (unless x is a symbolic expression with only one variable,
     and expect_one_var is True, in which case we will use that variable).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: var('x')
         x
         sage: expr = sin(x) + 3*x^2
@@ -467,7 +469,8 @@ def function_name(fn):
 
     Only used when printing Expressions.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.fast_callable import function_name
         sage: function_name(operator.pow)
         'pow'
@@ -492,7 +495,8 @@ cdef class ExpressionTreeBuilder:
     you can also instantiate it yourself to create your own expressions
     for fast_callable, bypassing _fast_callable_.
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.fast_callable import ExpressionTreeBuilder
         sage: etb = ExpressionTreeBuilder('x')
         sage: x = etb.var('x')
@@ -517,7 +521,8 @@ cdef class ExpressionTreeBuilder:
         constants will be converted twice (once when building the
         Expression, and once when generating code).
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder('x')
             sage: etb(3^50)
@@ -544,7 +549,8 @@ cdef class ExpressionTreeBuilder:
         method, then call the method with self as an argument.  Otherwise,
         use self.constant() to turn it into a constant.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder('x')
             sage: v = etb(3); v, type(v)
@@ -568,7 +574,8 @@ cdef class ExpressionTreeBuilder:
         r"""
         Give a variable name, given a variable.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder('x')
             sage: var('x')
@@ -592,7 +599,8 @@ cdef class ExpressionTreeBuilder:
         Turn the argument into an ExpressionConstant, converting it to
         our domain if we have one.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder('x')
             sage: etb.constant(pi)
@@ -610,7 +618,8 @@ cdef class ExpressionTreeBuilder:
         Turn the argument into an ExpressionVariable.  Looks it up in
         the list of variables.  (Variables are matched by name.)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: var('a,b,some_really_long_name')
             (a, b, some_really_long_name)
@@ -638,7 +647,8 @@ cdef class ExpressionTreeBuilder:
         r"""
         Given an integer, return the variable with that index.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=('a','b','c','d'))
             sage: etb._var_number(0)
@@ -664,7 +674,8 @@ cdef class ExpressionTreeBuilder:
         the second argument is integral, and constructs an ExpressionIPow
         instead.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: etb.call(cos, x)
@@ -691,7 +702,8 @@ cdef class ExpressionTreeBuilder:
 
         (It's possible to create choice nodes, but they don't work yet.)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: etb.choice(etb.call(operator.eq, x, 0), 0, 1/x)
@@ -723,7 +735,8 @@ cdef class Expression:
     non-Expression is converted to an expression (using the
     __call__ method of the Expression's ExpressionTreeBuilder).
 
-    EXAMPLES:
+    EXAMPLES::
+
         sage: from sage.ext.fast_callable import ExpressionTreeBuilder
         sage: etb = ExpressionTreeBuilder(vars=(x,))
         sage: x = etb.var(x)
@@ -747,7 +760,8 @@ cdef class Expression:
         r"""
         Initialize an Expression.  Sets the _etb member.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: v = etb(3); v # indirect doctest
@@ -761,7 +775,8 @@ cdef class Expression:
         r"""
         Returns the ExpressionTreeBuilder used to build a given expression.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: v = etb(3); v
@@ -775,7 +790,8 @@ cdef class Expression:
         r"""
         Compute a sum of two Expressions.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: x = etb(x)
@@ -796,7 +812,8 @@ cdef class Expression:
         r"""
         Compute a difference of two Expressions.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: x = etb(x)
@@ -817,7 +834,8 @@ cdef class Expression:
         r"""
         Compute a product of two Expressions.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: x = etb(x)
@@ -838,7 +856,8 @@ cdef class Expression:
         r"""
         Compute a quotient of two Expressions.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: x = etb(x)
@@ -859,7 +878,8 @@ cdef class Expression:
         r"""
         Compute the floordiv (the floor of the quotient) of two Expressions.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: x = etb(x)
@@ -883,7 +903,8 @@ cdef class Expression:
         If the second Expression is a constant integer, then return
         an ExpressionIPow instead of an ExpressionCall.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: x = etb(x)
@@ -923,7 +944,8 @@ cdef class Expression:
         r"""
         Compute the negation of an Expression.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: x = etb(x)
@@ -938,7 +960,8 @@ cdef class Expression:
         r"""
         Compute the absolute value of an Expression.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: x = etb(x)
@@ -955,7 +978,8 @@ cdef class Expression:
         r"""
         Compute the absolute value of an Expression.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: x = etb(x)
@@ -972,7 +996,8 @@ cdef class Expression:
         r"""
         Compute the inverse of an Expression.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: x = etb(x)
@@ -1001,7 +1026,8 @@ cdef class ExpressionConstant(Expression):
         r"""
         Initialize an ExpressionConstant.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder, ExpressionConstant
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: etb(3)
@@ -1022,7 +1048,8 @@ cdef class ExpressionConstant(Expression):
         r"""
         Return the constant value of an ExpressionConstant.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: etb(3).value()
@@ -1035,7 +1062,8 @@ cdef class ExpressionConstant(Expression):
         Give a string representing this ExpressionConstant.
         (We use the repr of its value.)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: v = etb.constant(pi)
@@ -1064,7 +1092,8 @@ cdef class ExpressionVariable(Expression):
         r"""
         Initialize an ExpressionVariable.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder, ExpressionVariable
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: etb(x)
@@ -1083,7 +1112,8 @@ cdef class ExpressionVariable(Expression):
         r"""
         Return the variable index of an ExpressionVariable.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: etb(x).variable_index()
@@ -1095,7 +1125,8 @@ cdef class ExpressionVariable(Expression):
         r"""
         Give a string representing this ExpressionVariable.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: v = etb._var_number(0)
@@ -1128,7 +1159,8 @@ cdef class ExpressionCall(Expression):
         r"""
         Initialize an ExpressionCall.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder, ExpressionCall
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: x = etb(x)
@@ -1151,7 +1183,8 @@ cdef class ExpressionCall(Expression):
         r"""
         Return the function from this ExpressionCall.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: etb.call(sin, x).function()
@@ -1163,7 +1196,8 @@ cdef class ExpressionCall(Expression):
         r"""
         Return the arguments from this ExpressionCall.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: etb.call(sin, x).arguments()
@@ -1175,7 +1209,8 @@ cdef class ExpressionCall(Expression):
         r"""
         Give a string representing this ExpressionCall.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: x = etb.var(x)
@@ -1211,7 +1246,8 @@ cdef class ExpressionIPow(Expression):
         r"""
         Initialize an ExpressionIPow.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder, ExpressionIPow
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: x = etb(x)
@@ -1234,7 +1270,8 @@ cdef class ExpressionIPow(Expression):
         r"""
         Return the base from this ExpressionIPow.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: (etb(33)^42).base()
@@ -1246,7 +1283,8 @@ cdef class ExpressionIPow(Expression):
         r"""
         Return the exponent from this ExpressionIPow.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: (etb(x)^(-1)).exponent()
@@ -1258,7 +1296,8 @@ cdef class ExpressionIPow(Expression):
         r"""
         Give a string representing this ExpressionIPow.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: x = etb.var(x)
@@ -1297,7 +1336,8 @@ cdef class ExpressionChoice(Expression):
         r"""
         Initialize an ExpressionChoice.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder, ExpressionChoice
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: x = etb(x)
@@ -1323,7 +1363,8 @@ cdef class ExpressionChoice(Expression):
         r"""
         Return the condition of an ExpressionChoice.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: x = etb(x)
@@ -1336,7 +1377,8 @@ cdef class ExpressionChoice(Expression):
         r"""
         Return the true branch of an ExpressionChoice.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: x = etb(x)
@@ -1349,7 +1391,8 @@ cdef class ExpressionChoice(Expression):
         r"""
         Return the false branch of an ExpressionChoice.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: x = etb(x)
@@ -1363,7 +1406,8 @@ cdef class ExpressionChoice(Expression):
         Give a string representation for this ExpressionChoice.
         (Based on the syntax for Python conditional expressions.)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=(x,))
             sage: x = etb(x)
@@ -1459,7 +1503,8 @@ class IntegerPowerFunction(object):
         r"""
         Initializes an IntegerPowerFunction.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import IntegerPowerFunction
             sage: cube = IntegerPowerFunction(3)
             sage: cube
@@ -1475,7 +1520,8 @@ class IntegerPowerFunction(object):
         r"""
         Return a string representing this IntegerPowerFunction.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import IntegerPowerFunction
             sage: square = IntegerPowerFunction(2)
             sage: square
@@ -1496,7 +1542,8 @@ class IntegerPowerFunction(object):
         r"""
         Call this IntegerPowerFunction, to compute a power of its argument.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import IntegerPowerFunction
             sage: square = IntegerPowerFunction(2)
             sage: square.__call__(5)
@@ -1832,7 +1879,8 @@ cdef class InstructionStream:
             domain - The domain of interpretation (this is just passed to the
                      wrapper class)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.interpreters.wrapper_rdf import metadata
             sage: from sage.ext.fast_callable import InstructionStream
             sage: instr_stream = InstructionStream(metadata, 1)
@@ -1862,7 +1910,8 @@ cdef class InstructionStream:
         r"""
         Add a 'load_const' instruction to this InstructionStream.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.interpreters.wrapper_rdf import metadata
             sage: from sage.ext.fast_callable import InstructionStream, op_list
             sage: instr_stream = InstructionStream(metadata, 1)
@@ -1885,7 +1934,8 @@ cdef class InstructionStream:
         r"""
         Add a 'load_arg' instruction to this InstructionStream.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.interpreters.wrapper_rdf import metadata
             sage: from sage.ext.fast_callable import InstructionStream
             sage: instr_stream = InstructionStream(metadata, 12)
@@ -1903,7 +1953,8 @@ cdef class InstructionStream:
         Check whether this InstructionStream knows how to generate code
         for a given instruction.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.interpreters.wrapper_rdf import metadata
             sage: from sage.ext.fast_callable import InstructionStream
             sage: instr_stream = InstructionStream(metadata, 1)
@@ -1925,7 +1976,8 @@ cdef class InstructionStream:
         CompilerInstrSpec describes how to interpret the arguments.
         (This is documented in the class docstring for CompilerInstrSpec.)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.interpreters.wrapper_rdf import metadata
             sage: from sage.ext.fast_callable import InstructionStream
             sage: instr_stream = InstructionStream(metadata, 1)
@@ -2002,7 +2054,8 @@ cdef class InstructionStream:
         The code generator sometimes uses this to decide which code
         to generate.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.interpreters.wrapper_rdf import metadata
             sage: from sage.ext.fast_callable import InstructionStream
             sage: instr_stream = InstructionStream(metadata, 1)
@@ -2019,7 +2072,8 @@ cdef class InstructionStream:
 
         It's OK to call this, then add more instructions.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.interpreters.wrapper_rdf import metadata
             sage: from sage.ext.fast_callable import InstructionStream
             sage: instr_stream = InstructionStream(metadata, 1)
@@ -2040,7 +2094,8 @@ cdef class InstructionStream:
         NOTE: The dictionary includes internal data structures of the
         InstructionStream; you must not modify it.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.interpreters.wrapper_rdf import metadata
             sage: from sage.ext.fast_callable import InstructionStream
             sage: instr_stream = InstructionStream(metadata, 1)
@@ -2087,7 +2142,8 @@ cdef class InterpreterMetadata(object):
         r"""
         Initialize an InterpreterMetadata object.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import InterpreterMetadata
             sage: metadata = InterpreterMetadata(by_opname={'opname dict goes here': True}, by_opcode=['opcode list goes here'], ipow_range=(2, 57))
             sage: metadata.by_opname
@@ -2130,7 +2186,8 @@ class CompilerInstrSpec(object):
         r"""
         Initialize a CompilerInstrSpec.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import CompilerInstrSpec
             sage: CompilerInstrSpec(0, 1, ['py_constants', 'n_inputs'])
             CompilerInstrSpec(0, 1, ['py_constants', 'n_inputs'])
@@ -2143,7 +2200,8 @@ class CompilerInstrSpec(object):
         r"""
         Give a string representation for this CompilerInstrSpec.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import CompilerInstrSpec
             sage: v = CompilerInstrSpec(0, 1, ['py_constants', 'n_inputs'])
             sage: v
@@ -2214,7 +2272,8 @@ cdef class Wrapper:
         r"""
         Initialize a Wrapper object.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder, generate_code, InstructionStream
             sage: etb = ExpressionTreeBuilder('x')
             sage: x = etb.var('x')
@@ -2244,7 +2303,8 @@ cdef class Wrapper:
 
         (Probably only useful when writing doctests.)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: fast_callable(sin(x)/x, vars=[x], domain=RDF).get_orig_args()
             {'domain': Real Double Field, 'code': [0, 0, 16, 0, 0, 8, 2], 'py_constants': [], 'args': 1, 'stack': 2, 'constants': []}
         """
@@ -2254,7 +2314,8 @@ cdef class Wrapper:
         r"""
         Return the list of instructions in this wrapper.
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: fast_callable(cos(x)*x, vars=[x], domain=RDF).op_list()
             [('load_arg', 0), ('load_arg', 0), 'cos', 'mul', 'return']
         """
@@ -2269,7 +2330,8 @@ cdef class Wrapper:
         optimization opportunity where a Sage developer could speed
         this up by adding a new instruction to the interpreter.)
 
-        EXAMPLES:
+        EXAMPLES::
+
             sage: fast_callable(abs(sin(x)), vars=[x], domain=RDF).python_calls()
             []
             sage: fast_callable(abs(sin(factorial(x))), vars=[x]).python_calls()

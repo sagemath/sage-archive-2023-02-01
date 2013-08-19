@@ -1,11 +1,38 @@
 r"""
-Factory for unique objects
+Factory for cached representations
 
-More general than :mod:`~sage.structure.unique_representation`, the
-:class:`UniqueFactory` class can specify a subset of the arguments
-that serve as the unique key. Typically, this is used to construct
-objects that accept an optional ``check=[True|False]`` argument, but
-whose result should be unique irregardless of said optional argument.
+.. SEEALSO::
+
+    :mod:`sage.structure.unique_representation`
+
+Using a :class:`UniqueFactory` is one way of implementing a *cached
+representation behaviour*. In spite of its name, using a
+:class:`UniqueFactory` is not enough to ensure the *unique representation
+behaviour*. See :mod:`~sage.structure.unique_representation` for a
+detailed explanation.
+
+With a :class:`UniqueFactory`, one can preprocess the given arguments. There
+is special support for specifying a subset of the arguments that serve as the
+unique key, so that still *all* given arguments are used to create a new
+instance, but only the specified subset is used to look up in the
+cache. Typically, this is used to construct objects that accept an optional
+``check=[True|False]`` argument, but whose result should be unique
+regardless of said optional argument.
+
+For a class derived from
+:class:`~sage.structure.unique_representation.CachedRepresentation`, argument
+preprocessing can be obtained by providing a custom static ``__classcall__``
+or ``__classcall_private__`` method, but this seems less transparent. When
+argument preprocessing is not needed or the preprocess is not very
+sophisticated, then generally
+:class:`~sage.structure.unique_representation.CachedRepresentation` is much
+easier to use than a factory.
+
+AUTHORS:
+
+- Robert Bradshaw (2008), initial version.
+- Simon King (2013), extended documentation.
+
 """
 
 #*****************************************************************************
@@ -42,20 +69,165 @@ import sage.misc.weak_dict
 
 cdef class UniqueFactory(SageObject):
     """
-    This class is intended to make it easy to make unique, cached objects.
+    This class is intended to make it easy to cache objects. 
 
     It is based on the idea that the object is uniquely defined by a set of
-    defining data (the key). There is also the possibility some non-defining
-    data (extra args) which will be used in initial creation, but not affect
-    the caching.
+    defining data (the key). There is also the possibility of some
+    non-defining data (extra args) which will be used in initial creation,
+    but not affect the caching. 
+
+    .. WARNING::
+
+        This class only provides *cached representation behaviour*. Hence,
+        using :class:`UniqueFactory`, it is still possible to create distinct
+        objects that evaluate equal. Unique representation behaviour can be
+        added, for example, by additionally inheriting from
+        :class:`sage.misc.fast_methods.WithEqualityById`.
 
     The objects created are cached (using weakrefs) based on their key and
-    returned directly rather than re-created if requested again. Pickling
-    will return the same object for the same version of Sage, and distinct
-    (but hopefully equal) objects for different versions of Sage.
+    returned directly rather than re-created if requested again. Pickling is
+    taken care of by the factory, and will return the same object for the same
+    version of Sage, and distinct (but hopefully equal) objects for different
+    versions of Sage.
+
+    .. WARNING::
+
+        The objects returned by a :class:`UniqueFactory` must be instances of
+        new style classes (hence, they must be instances of :class:`object`)
+        that must not only allow a weak reference, but must accept general
+        attribute assignment. Otherwise, pickling won't work.
 
     Typically one only needs to implement :meth:`create_key` and
-    :meth:`create_object`.
+    :meth:`create_object`. Sometimes, one would also implement
+    :meth:`create_key_and_extra_args` or :meth:`other_keys`. Other methods are
+    not supposed to be overloaded.
+
+    In addition, it is required that a unique factory instance is provided
+    with a name that allows to find its definition.
+
+    EXAMPLES:
+
+    In many cases, a factory is implemented by providing the two methods
+    :meth:`create_key` and :meth:`create_object`. In our example, we want to
+    demonstrate how to use "extra arguments" to choose a specific
+    implementation, with preference given to an instance found in the cache,
+    even if its implementation is different. Hence, we implement
+    :meth:`create_key_and_extra_args` rather than :meth:`create_key`, putting
+    the chosen implementation into the extra arguments. Then, in the
+    :meth:`create_object` method, we create and return instances of the
+    specified implementation.
+    ::
+
+        sage: from sage.structure.factory import UniqueFactory
+        sage: class MyFactory(UniqueFactory):
+        ....:     def create_key_and_extra_args(self, *args, **kwds):
+        ....:         return args, {'impl':kwds.get('impl', None)}
+        ....:     def create_object(self, version, key, **extra_args):
+        ....:         impl = extra_args['impl']
+        ....:         if impl=='C':
+        ....:             return C(*key)
+        ....:         if impl=='D':
+        ....:             return D(*key)
+        ....:         return E(*key)
+        ....:
+
+    Now we can create a factory. It is supposed to be found under the name
+    ``"F"`` in the ``"__main__"`` module. Note that in an interactive session,
+    ``F`` would automatically be in the ``__main__`` module. Hence, the second
+    and third of the following four lines are only needed in doctests.  ::
+
+        sage: F = MyFactory("__main__.F")
+        sage: import __main__
+        sage: __main__.F = F
+        sage: loads(dumps(F)) is F
+        True
+
+    Now we create three classes ``C``, ``D`` and ``E``. The first is an
+    extension class that does not allow weak references nor attribute
+    assignment. The second is a Python class that is not derived from
+    :class:`object`. The third allows attribute assignment and is derived
+    from :class:`object`.  ::
+
+        sage: cython("cdef class C: pass")
+        sage: class D:
+        ....:     def __init__(self, *args):
+        ....:         self.t = args
+        ....:     def __repr__(self):
+        ....:         return "D%s"%repr(self.t)
+        ....:
+        sage: class E(D, object): pass
+
+    Again, being in a doctest, we need to put the class ``D`` into the
+    ``__main__`` module, so that Python can find it::
+
+        sage: import __main__
+        sage: __main__.D = D
+
+    It is impossible to create an instance of ``C`` with our factory, since it
+    does not allow weak references::
+
+        sage: F(1, impl='C')
+        Traceback (most recent call last):
+        ...
+        TypeError: cannot create weak reference to '....C' object
+
+    Let us try again, with a Cython class that does allow weak
+    references. Now, creation of an instance using the factory works::
+
+        sage: cython('''cdef class C:
+        ....:     cdef __weakref__
+        ....: ''')
+        ....:
+        sage: c = F(1, impl='C')
+        sage: isinstance(c, C)
+        True
+
+    The cache is used when calling the factory again---even if it is suggested
+    to use a different implementation. This is because the implementation is
+    only considered an "extra argument" that does not count for the key.
+    ::
+
+        sage: c is F(1, impl='C') is F(1, impl="D")
+        True
+
+    However, pickling and unpickling does not use the cache. This is because
+    the factory has tried to assign an attribute to the instance that provides
+    information on the key used to create the instance, but failed::
+
+        sage: loads(dumps(c)) is c
+        False
+        sage: hasattr(c, '_factory_data')
+        False
+
+    We have already seen that our factory will only take the requested
+    implementation into account if the arguments used as key have not been
+    used yet. So, we use other arguments to create an instance of class
+    ``D``::
+
+        sage: d = F(2, impl='D')
+        sage: isinstance(d, D)
+        True
+
+    The factory only knows about the pickling protocol used by new style
+    classes. Hence, again, pickling and unpickling fails to use the cache,
+    even though the "factory data" are now available::
+
+        sage: loads(dumps(d)) is d
+        False
+        sage: d._factory_data
+        (<class '__main__.MyFactory'>, (...), (2,), {'impl': 'D'})
+
+    Only when we have a new style class that can be weak referenced and allows
+    for attribute assignment, everything works::
+
+        sage: e = F(3)
+        sage: isinstance(e, E)
+        True
+        sage: loads(dumps(e)) is e
+        True
+        sage: e._factory_data
+        (<class '__main__.MyFactory'>, (...), (3,), {'impl': None})
+
     """
 
     cdef readonly _name

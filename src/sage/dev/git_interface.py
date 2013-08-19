@@ -794,7 +794,16 @@ class GitInterface(object):
             ['untracked', 'untracked_dir/untracked']
 
         """
-        return self.read_output('ls-files', other=True, exclude_standard=True).splitlines()
+        import os
+        old_cwd = os.getcwd()
+        from sage.env import SAGE_ROOT
+        os.chdir(SAGE_ROOT)
+        try:
+            fnames = self.ls_files(READ_OUTPUT, other=True, exclude_standard=True).splitlines()
+            fnames = [ os.path.abspath(fname) for fname in fnames ]
+            return [ os.path.relpath(fname, old_cwd) for fname in fnames ]
+        finally:
+            os.chdir(old_cwd)
 
     def local_branches(self):
         r"""
@@ -1063,6 +1072,7 @@ for git_cmd_ in (
         "grep",
         "init",
         "log",
+        "ls_files",
         "ls_remote",
         "merge",
         "merge_base",

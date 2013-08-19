@@ -100,6 +100,18 @@ Aussi, Sage se comporte différemment de Python à plusieurs égards.
        sage: "3^2"
        '3^2'
 
+    Le ou exclusif bit à bit est quant à lui noté ``^^``, et l'opération en
+    place ``^^=`` fonctionne comme on s'y attend :
+
+    ::
+
+        sage: 3^^2
+        1
+        sage: a = 2
+        sage: a ^^= 8
+        sage: a
+        10
+
 -  **Division entière :** L'expression Python ``2/3`` ne se comporte pas
    de la manière à laquelle s'attendraient des mathématiciens. En Python, si
    ``m`` et ``n`` sont de type int, alors ``m/n`` est aussi de type int, c'est

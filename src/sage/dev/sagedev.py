@@ -1336,7 +1336,7 @@ class SageDev(object):
                     raise OperationCancelledError("not a fast-forward")
 
             # check whether this is a nop
-            if remote_branch_exists and not force and self.git.commit_for_branch(branch) == self.git.commit_for_branch('FETCH_HEAD'):
+            if remote_branch_exists and not force and self.git.commit_for_branch(branch) == self.git.commit_for_ref('FETCH_HEAD'):
                 self._UI.info("Not uploading your changes because the remote branch `{0}` is idential to your local branch `{1}`. Did you forget to commit your changes with `{2}`?".format(remote_branch, branch, self._format_command("commit")))
             else:
                 try:

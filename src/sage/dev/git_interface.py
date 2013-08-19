@@ -968,7 +968,7 @@ class GitInterface(object):
 
         """
         try:
-            return self.show_ref(READ_OUTPUT, ref, hash=True, verify=True).strip()
+            return self.rev_parse(READ_OUTPUT, ref, verify=True).strip()
         except GitError:
             return None
 

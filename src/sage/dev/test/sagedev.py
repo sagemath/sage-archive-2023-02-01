@@ -114,8 +114,10 @@ class DoctestSageDev(sage.dev.sagedev.SageDev):
         self._chdir()
         try:
             from sage.dev.sagedev import MASTER_BRANCH
-            self.git.fetch(SUPER_SILENT, self._trac_server.git._config['src'], "{0}:{0}".format(MASTER_BRANCH))
-            self.git.checkout(SUPER_SILENT, MASTER_BRANCH)
+            if MASTER_BRANCH != "master":
+                self.git.chechkout(SUPER_SILENT, "-b",MASTER_BRANCH)
+                self.git.checkout(SUPER_SILENT, MASTER_BRANCH)
+            self.git.pull(SUPER_SILENT, self._trac_server.git._config['src'], MASTER_BRANCH)
         finally:
             os.chdir(old_cwd)
 

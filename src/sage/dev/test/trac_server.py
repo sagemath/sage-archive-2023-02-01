@@ -54,7 +54,7 @@ class DoctestTracServer(object):
         os.chdir(config['git']['src'])
         try:
             self.git.commit(SUPER_SILENT, allow_empty=True, message='initial commit')
-            self.git.checkout(SUPER_SILENT, "-b", MASTER_BRANCH)
+            if MASTER_BRANCH != "master": self.git.checkout(SUPER_SILENT, "-b", MASTER_BRANCH)
         finally:
             os.chdir(old_cwd)
 

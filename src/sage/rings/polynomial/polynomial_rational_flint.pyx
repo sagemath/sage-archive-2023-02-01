@@ -906,6 +906,19 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: g = -3 + 1/7 * t
             sage: f.xgcd(g)
             (1, -12/5095, -84/5095*t - 1701/5095)
+
+        TESTS:
+
+        The following example used to crash (cf. #11771)::
+
+            sage: R.<t> = QQ[]
+            sage: f = 10**383 * (t+1)
+            sage: g = 10**445 * t^2 + 1
+            sage: r = f.xgcd(g)
+            sage: r[0] == f.gcd(g)
+            True
+            sage: r[1]*f + r[2]*g == r[0]
+            True
         """
         cdef Polynomial_rational_flint d = self._new()
         cdef Polynomial_rational_flint s = self._new()

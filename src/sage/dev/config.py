@@ -77,8 +77,9 @@ class Config(collections.MutableMapping):
         EXAMPLES::
 
             sage: from sage.dev.test.config import DoctestConfig
-            sage: repr(DoctestConfig())
-            "Config('''\n[trac]\nusername = doctest\n[UI]\nlog_level = 0\n[git]\ndot_git = ...\n''')"
+            sage: c = DoctestConfig()
+            sage: repr(c)
+            "Config('''\n[trac]\nusername = doctest\n[UI]\nlog_level = 0\n[git]...\n[sagedev]...\n''')"
 
         """
         return "Config('''\n"+"\n".join([ "[%s]\n"%s+"\n".join(["%s = %s"%(o,self[s][o]) for o in self[s] ]) for s in self ])+"\n''')"
@@ -100,9 +101,11 @@ class Config(collections.MutableMapping):
             [trac]
             username = doctest
             [UI]
-            log_level = 0
+            ...
             [git]
-            dot_git = ...
+            ...
+            [sagedev]
+            ...
             ''')
             sage: c._write_config()
             sage: c2._read_config()
@@ -111,9 +114,11 @@ class Config(collections.MutableMapping):
             [trac]
             username = foo
             [UI]
-            log_level = 0
+            ...
             [git]
-            dot_git = ...
+            ...
+            [sagedev]
+            ...
             ''')
 
         """
@@ -335,7 +340,7 @@ class Config(collections.MutableMapping):
             sage: from sage.dev.test.config import DoctestConfig
             sage: c = DoctestConfig()
             sage: list(c)
-            ['trac', 'UI', 'git']
+            ['trac', 'UI', 'git', 'sagedev']
 
         """
         return iter(self._config.sections())
@@ -374,7 +379,7 @@ class Config(collections.MutableMapping):
             sage: from sage.dev.test.config import DoctestConfig
             sage: c = DoctestConfig()
             sage: len(c)
-            3
+            4
 
         """
         return len(self._config.sections())
@@ -394,7 +399,15 @@ class Config(collections.MutableMapping):
             [UI]
             log_level = 0
             [git]
+            repository = remote_repository_undefined
+            src = ...
             dot_git = ...
+            user_email_set = True
+            [sagedev]
+            ticketfile = ...
+            branchfile = ...
+            dependenciesfile = ...
+            remotebranchesfile = ...
             ''')
             sage: del c['git']
             sage: c
@@ -403,6 +416,11 @@ class Config(collections.MutableMapping):
             username = doctest
             [UI]
             log_level = 0
+            [sagedev]
+            ticketfile = ...
+            branchfile = ...
+            dependenciesfile = ...
+            remotebranchesfile = ...
             ''')
 
         """

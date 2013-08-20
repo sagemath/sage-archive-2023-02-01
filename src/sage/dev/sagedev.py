@@ -218,17 +218,9 @@ class SageDev(object):
 
         Set up a single user environment::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDevWrapper(config, server)
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
             sage: dev._wrap("_dependencies_for_ticket")
-            sage: UI = dev._UI
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
 
         Create some tickets::
 
@@ -419,19 +411,8 @@ class SageDev(object):
 
         Create a doctest setup with two users::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config_alice = DoctestConfig('alice')
-            sage: config_alice['trac']['password'] = 'secret'
-            sage: alice = DoctestSageDevWrapper(config_alice, server)
-            sage: alice._pull_master_branch()
-
-            sage: config_bob = DoctestConfig('bob')
-            sage: config_bob['trac']['password'] = 'secret'
-            sage: bob = DoctestSageDevWrapper(config_bob, server)
-            sage: bob._pull_master_branch()
+            sage: from sage.dev.test.sagedev import two_user_setup
+            sage: alice, config_alice, bob, config_bob, server = two_user_setup()
 
         Alice tries to switch to ticket #1 which does not exist yet::
 
@@ -580,16 +561,8 @@ class SageDev(object):
 
         Set up a single user for doctesting::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDevWrapper(config, server)
-            sage: UI = dev._UI
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
 
         Create a few branches::
 
@@ -732,19 +705,8 @@ class SageDev(object):
 
         Create a doctest setup with two users::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config_alice = DoctestConfig('alice')
-            sage: config_alice['trac']['password'] = 'secret'
-            sage: alice = DoctestSageDevWrapper(config_alice, server)
-            sage: alice._pull_master_branch()
-
-            sage: config_bob = DoctestConfig('bob')
-            sage: config_bob['trac']['password'] = 'secret'
-            sage: bob = DoctestSageDevWrapper(config_bob, server)
-            sage: bob._pull_master_branch()
+            sage: from sage.dev.test.sagedev import two_user_setup
+            sage: alice, config_alice, bob, config_bob, server = two_user_setup()
 
         Alice creates ticket 1::
 
@@ -952,16 +914,8 @@ class SageDev(object):
 
         Set up a single user for doctesting::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDevWrapper(config, server)
-            sage: UI = dev._UI
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
 
         Commit an untracked file::
 
@@ -1059,17 +1013,9 @@ class SageDev(object):
 
         Set up a single user for doctesting::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDevWrapper(config, server)
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
             sage: dev._wrap("_remote_branch_for_ticket")
-            sage: UI = dev._UI
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
 
         Create a new branch::
 
@@ -1146,19 +1092,8 @@ class SageDev(object):
 
         Create a doctest setup with two users::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config_alice = DoctestConfig('alice')
-            sage: config_alice['trac']['password'] = 'secret'
-            sage: alice = DoctestSageDevWrapper(config_alice, server)
-            sage: alice._pull_master_branch()
-
-            sage: config_bob = DoctestConfig('bob')
-            sage: config_bob['trac']['password'] = 'secret'
-            sage: bob = DoctestSageDevWrapper(config_bob, server)
-            sage: bob._pull_master_branch()
+            sage: from sage.dev.test.sagedev import two_user_setup
+            sage: alice, config_alice, bob, config_bob, server = two_user_setup()
 
         Alice tries to upload to ticket 1 which does not exist yet::
 
@@ -1391,16 +1326,8 @@ class SageDev(object):
 
         Set up a single user for doctesting::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDevWrapper(config, server)
-            sage: UI = dev._UI
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
 
         Nothing happens if the directory is already clean::
 
@@ -1452,16 +1379,8 @@ class SageDev(object):
 
         Set up a single user for doctesting::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDevWrapper(config, server)
-            sage: UI = dev._UI
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
 
         Check that nothing happens if there no changes::
 
@@ -1565,16 +1484,8 @@ class SageDev(object):
 
         Set up a single user for doctesting::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDevWrapper(config, server)
-            sage: UI = dev._UI
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
 
         Create some stashes::
 
@@ -1657,16 +1568,8 @@ class SageDev(object):
 
         Set up a single user for doctesting::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDevWrapper(config, server)
-            sage: UI = dev._UI
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
 
         Create a ticket and edit it::
 
@@ -1707,16 +1610,8 @@ class SageDev(object):
 
         Set up a single user for doctesting::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDevWrapper(config, server)
-            sage: UI = dev._UI
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
 
         Create a ticket and add a comment::
 
@@ -1787,16 +1682,8 @@ class SageDev(object):
 
         Set up a single user for doctesting::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDevWrapper(config, server)
-            sage: UI = dev._UI
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
 
         It is an error to call this without parameters if not on a ticket::
 
@@ -2020,16 +1907,8 @@ class SageDev(object):
 
         Set up a single user for doctesting::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDevWrapper(config, server)
-            sage: UI = dev._UI
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
 
         Create a patch::
 
@@ -2233,16 +2112,8 @@ class SageDev(object):
 
         Set up a single user for doctesting::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDevWrapper(config, server)
-            sage: UI = dev._UI
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
 
         Create a new ticket::
 
@@ -3368,7 +3239,10 @@ class SageDev(object):
 
         EXAMPLES::
 
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
             sage: dev = dev._sagedev
+
             sage: dev._ticket_from_ticket_name("1000")
             1000
             sage: dev._ticket_from_ticket_name("#1000")
@@ -3412,15 +3286,9 @@ class SageDev(object):
 
         TESTS::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDev
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDev(config, server)
-            sage: dev._chdir()
-            sage: dev._pull_master_branch()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: dev = dev._sagedev
 
             sage: dev._is_local_branch_name('')
             False
@@ -3467,15 +3335,9 @@ class SageDev(object):
 
         TESTS::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDev
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDev(config, server)
-            sage: dev._chdir()
-            sage: dev._pull_master_branch()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: dev = dev._sagedev
 
             sage: dev._is_stash_name("branch1")
             False
@@ -3512,15 +3374,9 @@ class SageDev(object):
 
         TESTS::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDev
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDev(config, server)
-            sage: dev._chdir()
-            sage: dev._pull_master_branch()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: dev = dev._sagedev
 
             sage: dev._check_stash_name("stash/1")
             sage: dev._check_stash_name("stash/1", exists=True)
@@ -3557,15 +3413,9 @@ class SageDev(object):
 
         TESTS::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDev
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDev(config, server)
-            sage: dev._chdir()
-            sage: dev._pull_master_branch()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: dev = dev._sagedev
 
             sage: dev._is_remote_branch_name('')
             False
@@ -3613,15 +3463,9 @@ class SageDev(object):
 
         TESTS::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDev
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDev(config, server)
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: dev = dev._sagedev
 
             sage: dev._check_local_branch_name('')
             Traceback (most recent call last):
@@ -3669,15 +3513,9 @@ class SageDev(object):
 
         TESTS::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDev
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDev(config, server)
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: dev = dev._sagedev
 
             sage: dev._check_remote_branch_name('')
             Traceback (most recent call last):
@@ -3724,16 +3562,9 @@ class SageDev(object):
 
         TESTS::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDev
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDev(config, server)
-            sage: UI = dev._UI
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: dev = dev._sagedev
 
             sage: dev._remote_branch_for_ticket(1)
             'u/doctest/ticket/1'
@@ -3781,14 +3612,9 @@ class SageDev(object):
 
         TESTS::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDev
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDev(config, server)
-            sage: dev._has_local_branch_for_ticket(1)
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: dev._sagedev._has_local_branch_for_ticket(1)
             False
 
         """
@@ -3821,44 +3647,33 @@ class SageDev(object):
 
         Create a doctest setup with two users::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDev
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config1 = DoctestConfig()
-            sage: config1['trac']['password'] = 'secret'
-            sage: dev1 = DoctestSageDev(config1, server)
-            sage: dev1._pull_master_branch()
-
-            sage: config2 = DoctestConfig('doctest2')
-            sage: config2['trac']['password'] = 'secret'
-            sage: dev2 = DoctestSageDev(config2, server)
-            sage: dev2._pull_master_branch()
+            sage: from sage.dev.test.sagedev import two_user_setup
+            sage: alice, config_alice, bob, config_bob, server = two_user_setup()
 
         If a local branch for the ticket exists, its name is returned::
 
-            sage: dev1._chdir()
-            sage: dev1._UI.append("Summary: ticket1\ndescription")
-            sage: ticket = dev1.create_ticket()
-            sage: dev1._local_branch_for_ticket(ticket)
+            sage: alice._chdir()
+            sage: alice._UI.append("Summary: ticket1\ndescription")
+            sage: ticket = alice.create_ticket()
+            sage: alice._sagedev._local_branch_for_ticket(ticket)
             'ticket/1'
 
         If no local branch exists, the behaviour depends on ``download_if_not_found``::
 
-            sage: dev2._chdir()
-            sage: dev2._local_branch_for_ticket(ticket)
+            sage: bob._chdir()
+            sage: bob._sagedev._local_branch_for_ticket(ticket)
             Traceback (most recent call last):
             ...
             KeyError: 'No branch for ticket #1 in your repository.'
-            sage: dev2._local_branch_for_ticket(ticket, download_if_not_found=True)
+            sage: bob._sagedev._local_branch_for_ticket(ticket, download_if_not_found=True)
             Traceback (most recent call last):
             ...
             SageDevValueError: Branch field is not set for ticket #1 on trac.
-            sage: attributes = dev1.trac._get_attributes(ticket)
+            sage: attributes = alice.trac._get_attributes(ticket)
             sage: attributes['branch'] = 'public/ticket/1'
-            sage: dev1.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
+            sage: alice.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
             'https://trac.sagemath.org/ticket/1#comment:1'
-            sage: dev2._local_branch_for_ticket(ticket, download_if_not_found=True)
+            sage: bob._sagedev._local_branch_for_ticket(ticket, download_if_not_found=True)
             Traceback (most recent call last):
             ...
             SageDevValueError: Branch `public/ticket/1` does not exist on the remote system.
@@ -3866,10 +3681,10 @@ class SageDev(object):
             sage: import os
             sage: os.chdir(server.git._config['src'])
             sage: server.git.silent.branch('public/ticket/1')
-            sage: dev2._chdir()
-            sage: dev2._local_branch_for_ticket(ticket, download_if_not_found=True)
+            sage: bob._chdir()
+            sage: bob._sagedev._local_branch_for_ticket(ticket, download_if_not_found=True)
             'ticket/1'
-            sage: dev2._local_branch_for_ticket(ticket)
+            sage: bob._sagedev._local_branch_for_ticket(ticket)
             'ticket/1'
 
         """
@@ -3892,15 +3707,9 @@ class SageDev(object):
 
         TESTS::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDev
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDev(config, server)
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: dev = dev._sagedev
 
             sage: dev._new_local_branch_for_stash()
             'stash/1'
@@ -3926,15 +3735,9 @@ class SageDev(object):
 
         TESTS::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDev
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDev(config, server)
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: dev = dev._sagedev
 
             sage: dev._new_local_branch_for_ticket(1)
             'ticket/1'
@@ -3967,16 +3770,9 @@ class SageDev(object):
 
         TESTS::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDev
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDev(config, server)
-            sage: UI = dev._UI
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: dev = dev._sagedev
 
             sage: UI.append("Summary: ticket1\ndescription")
             sage: ticket = dev.create_ticket()
@@ -4019,16 +3815,9 @@ class SageDev(object):
 
         TESTS::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDev
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDev(config, server)
-            sage: UI = dev._UI
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: dev = dev._sagedev
 
             sage: UI.append("Summary: ticket1\ndescription")
             sage: ticket = dev.create_ticket()
@@ -4071,15 +3860,9 @@ class SageDev(object):
 
         TESTS::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDev
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDev(config, server)
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: dev = dev._sagedev
 
             sage: dev.git.silent.branch('ticket/1')
 
@@ -4118,15 +3901,9 @@ class SageDev(object):
 
         TESTS::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDev
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDev(config, server)
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: dev = dev._sagedev
 
             sage: dev.git.silent.branch('ticket/1')
 
@@ -4160,15 +3937,9 @@ class SageDev(object):
 
         TESTS::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDev
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDev(config, server)
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: dev = dev._sagedev
 
             sage: dev._local_branch_for_ticket(1)
             Traceback (most recent call last):
@@ -4231,16 +4002,9 @@ class SageDev(object):
 
         TESTS::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDev
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: config['trac']['password'] = 'secret'
-            sage: dev = DoctestSageDev(config, server)
-            sage: UI = dev._UI
-            sage: dev._pull_master_branch()
-            sage: dev._chdir()
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: dev = dev._sagedev
 
             sage: dev._current_ticket() is None
             True
@@ -4268,12 +4032,8 @@ class SageDevValueError(ValueError):
 
     EXAMPLES::
 
-        sage: from sage.dev.test.trac_server import DoctestTracServer
-        sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
-        sage: from sage.dev.test.config import DoctestConfig
-        sage: server = DoctestTracServer()
-        sage: config = DoctestConfig()
-        sage: dev = DoctestSageDevWrapper(config, server)
+        sage: from sage.dev.test.sagedev import single_user_setup
+        sage: dev, config, UI, server = single_user_setup()
 
         sage: dev.switch_ticket(-1)
         ValueError: `-1` is not a valid ticket name or ticket does not exist on trac.

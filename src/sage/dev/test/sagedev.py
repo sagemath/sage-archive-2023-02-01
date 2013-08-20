@@ -137,3 +137,47 @@ class DoctestSageDev(sage.dev.sagedev.SageDev):
         import os
         os.chdir(self.config['git']['src'])
 
+def single_user_setup():
+    r"""
+    Create a typical single user setup for doctesting.
+
+    EXAMPLES::
+
+        sage: from sage.dev.test.sagedev import single_user_setup
+        sage: dev, config, UI, server = single_user_setup()
+
+    """
+    from trac_server import DoctestTracServer
+    from config import DoctestConfig
+    server = DoctestTracServer()
+    config = DoctestConfig()
+    config['trac']['password'] = 'secret'
+    dev = DoctestSageDevWrapper(config, server)
+    dev._pull_master_branch()
+    dev._chdir()
+    return dev, config, dev._UI, server
+
+def two_user_setup():
+    r"""
+    Create a typical two user setup for doctesting.
+
+    EXAMPLES::
+
+        sage: from sage.dev.test.sagedev import two_user_setup
+        sage: alice, alice_config, bob, bob_config, server = two_user_setup()
+
+    """
+    from trac_server import DoctestTracServer
+    from config import DoctestConfig
+    server = DoctestTracServer()
+    config_alice = DoctestConfig('alice')
+    config_alice['trac']['password'] = 'secret'
+    alice = DoctestSageDevWrapper(config_alice, server)
+    alice._pull_master_branch()
+
+    config_bob = DoctestConfig('bob')
+    config_bob['trac']['password'] = 'secret'
+    bob = DoctestSageDevWrapper(config_bob, server)
+    bob._pull_master_branch()
+
+    return alice, config_alice, bob, config_bob, server

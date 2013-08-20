@@ -30,6 +30,8 @@ from user_interface_error import OperationCancelledError
 from trac_error import TracConnectionError, TracInternalError, TracError
 from git_error import GitError
 
+from sage.env import SAGE_VERSION
+
 import re
 # regular expressions to parse mercurial patches
 HG_HEADER_REGEX = re.compile(r"^# HG changeset patch$")
@@ -2470,22 +2472,19 @@ class SageDev(object):
 
         self.git.merge(ref, **kwds)
 
-    def local_tickets(self, abandoned=False, quiet=False):
+    def local_tickets(self, include_abandoned=False):
         r"""
         Print the tickets currently being worked on in your local
         repository.
 
-        This function will show the branch names as well as the ticket
-        numbers for all active tickets.  It will also show local
-        branches that are not associated to ticket numbers.
+        This function shows the branch names as well as the ticket numbers for
+        all active tickets.  It also shows local branches that are not
+        associated to ticket numbers.
 
         INPUT:
 
-        - ``abandoned`` -- boolean (default: ``False``), whether to show
-          abandoned branches.
-
-        - ``quite`` -- boolean (default: ``False``), whether to show return the
-          list of branches rather than printing them.
+        - ``include_abandoned`` -- boolean (default: ``False``), whether to
+          include abandoned branches.
 
         .. SEEALSO::
 
@@ -2501,17 +2500,15 @@ class SageDev(object):
             TODO
 
         """
-        raise NotImplementedError # the below does most probably not work anymore TODO
-        raw_branches = self.git.read_output("branch").split()
-        raw_branches.remove('*')
-        branch_info = [(b, self._ticket[b]) for b in raw_branches
-            if b in self._ticket and (abandoned or not b.startswith("trash/"))]
-        if quiet:
-            return branch_info
-        else:
-            self._UI.show('\n'.join([
-                        "{0}\t{1}".format(ticket or "     ", branch)
-                        for (branch, ticket) in branch_info]))
+        branches = self.git.local_branches()
+        branches = [ branch for branch in branches if include_abandoned or not self._is_trash_name(branch) ]
+        if not branches:
+            return
+        branches = [ "{0:>7}: {1}".format("#"+str(self._ticket_for_local_branch(branch)) if self._has_ticket_for_local_branch(branch) else "", branch) for branch in branches ]
+        while all([branch.startswith(' ') for branch in branches]):
+            branches = [branch[1:] for branch in branches]
+        branches = sorted(branches)
+        self._UI.show("\n".join(branches))
 
     def vanilla(self, release="release"):
         r"""
@@ -3320,6 +3317,45 @@ class SageDev(object):
         else:
             raise ValueError("exists")
 
+    def _is_trash_name(self, name, exists=any):
+        r"""
+        Return whether ``name`` is a valid name for an abandoned branch.
+
+        INPUT:
+
+        - ``name`` -- a string
+
+        - ``exists`` - a boolean or ``any`` (default: ``any``), if ``True``,
+          check whether ``name`` is the name of an existing branch; if
+          ``False``, check whether ``name`` is the name of a branch that does
+          not exist yet.
+
+        TESTS::
+
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: dev = dev._sagedev
+
+            sage: dev._is_trash_name("branch1")
+            False
+            sage: dev._is_trash_name("trash")
+            False
+            sage: dev._is_trash_name("trash/")
+            False
+            sage: dev._is_trash_name("trash/1")
+            True
+            sage: dev._is_trash_name("trash/1", exists=True)
+            False
+
+        """
+        if not isinstance(name, str):
+            raise ValueError("name must be a string")
+
+        if not name.startswith("trash/"):
+            return False
+
+        return self._is_local_branch_name(name, exists)
+
     def _is_stash_name(self, name, exists=any):
         r"""
         Return whether ``name`` is a valid name for a stash.
@@ -3601,6 +3637,55 @@ class SageDev(object):
         if ret is None:
             return default
         return ret
+
+    def _ticket_for_local_branch(self, branch):
+        r"""
+        Return the ticket associated to the local ``branch``.
+
+        INPUT:
+
+        - ``branch`` -- a string, the name of a local branch
+
+        TESTS::
+
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: UI.append("Summary: summary\ndescription")
+            sage: dev.create_ticket()
+            1
+            sage: dev._sagedev._ticket_for_local_branch("ticket/1")
+            1
+
+        """
+        self._check_local_branch_name(branch, exists=True)
+
+        if not self._has_ticket_for_local_branch(branch):
+            raise SageDevValueError("branch must be associated to a ticket")
+
+        return self.__branch_to_ticket[branch]
+
+    def _has_ticket_for_local_branch(self, branch):
+        r"""
+        Return whether ``branch`` is associated to a ticket.
+
+        INPUT:
+
+        - ``branch`` -- a string, the name of a local branch
+
+        TESTS::
+
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: UI.append("Summary: summary\ndescription")
+            sage: dev.create_ticket()
+            1
+            sage: dev._sagedev._has_ticket_for_local_branch("ticket/1")
+            True
+
+        """
+        self._check_local_branch_name(branch, exists=True)
+
+        return branch in self.__branch_to_ticket
 
     def _has_local_branch_for_ticket(self, ticket):
         r"""

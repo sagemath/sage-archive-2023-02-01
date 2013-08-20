@@ -29,7 +29,6 @@ AUTHORS:
 from user_interface_error import OperationCancelledError
 from trac_error import TracConnectionError, TracInternalError, TracError
 from git_error import GitError
-from git_interface import SUPER_SILENT
 
 import re
 # regular expressions to parse mercurial patches
@@ -222,7 +221,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -240,7 +238,7 @@ class SageDev(object):
             sage: UI.append("Summary: ticket2\ndescription")
             sage: dev.create_ticket()
             2
-            sage: dev.git.commit(SUPER_SILENT, allow_empty=True, message="second commit")
+            sage: dev.git.silent.commit(allow_empty=True, message="second commit")
             sage: dev.git.commit_for_branch('ticket/2') != dev.git.commit_for_branch('ticket/1')
             True
 
@@ -284,7 +282,7 @@ class SageDev(object):
 
         Creating a ticket when in detached HEAD state::
 
-            sage: dev.git.checkout(SUPER_SILENT, 'HEAD', detach=True)
+            sage: dev.git.super_silent.checkout('HEAD', detach=True)
             sage: UI.append("Summary: ticket detached\ndescription")
             sage: dev.create_ticket()
             6
@@ -293,17 +291,17 @@ class SageDev(object):
 
         Creating a ticket when in the middle of a merge::
 
-            sage: dev.git.checkout(SUPER_SILENT, '-b','merge_branch')
+            sage: dev.git.super_silent.checkout('-b','merge_branch')
             sage: with open('merge', 'w') as f: f.write("version 0")
-            sage: dev.git.add(SUPER_SILENT, 'merge')
-            sage: dev.git.commit(SUPER_SILENT, '-m','some change')
-            sage: dev.git.checkout(SUPER_SILENT, 'ticket/6')
+            sage: dev.git.silent.add('merge')
+            sage: dev.git.silent.commit('-m','some change')
+            sage: dev.git.super_silent.checkout('ticket/6')
             sage: with open('merge', 'w') as f: f.write("version 1")
-            sage: dev.git.add(SUPER_SILENT, 'merge')
-            sage: dev.git.commit(SUPER_SILENT, '-m','conflicting change')
+            sage: dev.git.silent.add('merge')
+            sage: dev.git.silent.commit('-m','conflicting change')
             sage: from sage.dev.git_error import GitError
             sage: try:
-            ....:     dev.git.merge(SUPER_SILENT, 'merge_branch')
+            ....:     dev.git.silent.merge('merge_branch')
             ....: except GitError: pass
             sage: UI.append("n")
             sage: UI.append("Summary: ticket merge\ndescription")
@@ -315,7 +313,7 @@ class SageDev(object):
         Creating a ticket with uncommitted changes::
 
             sage: open('tracked', 'w').close()
-            sage: dev.git.add(SUPER_SILENT, 'tracked')
+            sage: dev.git.silent.add('tracked')
             sage: UI.append("keep")
             sage: UI.append("Summary: ticket merge\ndescription")
             sage: dev.create_ticket()
@@ -364,7 +362,7 @@ class SageDev(object):
             remote_branch = self._remote_branch_for_ticket(ticket)
 
         # create a new branch for the ticket
-        self.git.branch(branch, base)
+        self.git.silent.branch(branch, base)
         self._UI.info("Branch {0} created from branch {1}.".format(branch, base))
         try:
             self._set_local_branch_for_ticket(ticket, branch)
@@ -376,7 +374,7 @@ class SageDev(object):
         except:
             self._UI.info("An error ocurred. Deleting branch {0}.".format(branch))
 
-            self.git.branch(branch, delete=True)
+            self.git.silent.branch(branch, delete=True)
             self._set_dependencies_for_ticket(ticket, None)
             self._set_remote_branch_for_branch(branch, None)
             self._set_local_branch_for_ticket(ticket, None)
@@ -424,7 +422,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config_alice = DoctestConfig('alice')
             sage: config_alice['trac']['password'] = 'secret'
@@ -459,27 +456,27 @@ class SageDev(object):
         does not take his changes into account::
 
             sage: bob._chdir()
-            sage: bob.git.commit(SUPER_SILENT, allow_empty=True,message="empty commit")
+            sage: bob.git.super_silent.commit(allow_empty=True,message="empty commit")
             sage: bob._UI.append("y")
             sage: bob.upload()
             The branch u/bob/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
 
             sage: alice._chdir()
             sage: alice.switch_ticket(1)
-            sage: alice.git.log('--pretty=%s')
+            sage: alice.git.echo.log('--pretty=%s')
             initial commit
 
         If Alice had not switched to that ticket before, she would of course
         see Bob's changes (this also checks that we can handle a corrupt ticket
         database and a detached HEAD)::
 
-            sage: alice.git.checkout(SUPER_SILENT, 'HEAD', detach=True)
-            sage: alice.git.branch(SUPER_SILENT, '-d','ticket/1')
+            sage: alice.git.super_silent.checkout('HEAD', detach=True)
+            sage: alice.git.super_silent.branch('-d','ticket/1')
             sage: alice.switch_ticket(1) # ticket #1 refers to the non-existant branch 'ticket/1'
             Ticket #1 refers to the non-existant local branch ticket/1. If you have not manually interacted with git, then this is a bug in sagedev. Removing the association from ticket #1 to branch ticket/1.
             sage: alice.git.current_branch()
             'ticket/1'
-            sage: alice.git.log('--pretty=%s')
+            sage: alice.git.echo.log('--pretty=%s')
             empty commit
             initial commit
 
@@ -488,19 +485,19 @@ class SageDev(object):
             sage: alice._UI.append("Summary: summary2\ndescription")
             sage: alice.create_ticket()
             2
-            sage: alice.git.log('--pretty=%s')
+            sage: alice.git.echo.log('--pretty=%s')
             initial commit
             sage: open("untracked","w").close()
             sage: alice.switch_ticket(1)
-            sage: alice.git.log('--pretty=%s')
+            sage: alice.git.echo.log('--pretty=%s')
             empty commit
             initial commit
 
         Switching to a ticket with untracked files which make a switch
         impossible::
 
-            sage: alice.git.add(SUPER_SILENT, "untracked")
-            sage: alice.git.commit(SUPER_SILENT, message="added untracked")
+            sage: alice.git.super_silent.add("untracked")
+            sage: alice.git.super_silent.commit(message="added untracked")
             sage: alice.switch_ticket(2)
             sage: open("untracked","w").close()
             sage: alice.switch_ticket(1)
@@ -516,7 +513,7 @@ class SageDev(object):
         Switching to a ticket with uncommited changes::
 
             sage: open("tracked","w").close()
-            sage: alice.git.add(SUPER_SILENT, "tracked")
+            sage: alice.git.super_silent.add("tracked")
             sage: alice._UI.append('d')
             sage: alice.switch_ticket(2)
             The following files in your working directory contain uncommitted changes:
@@ -551,7 +548,7 @@ class SageDev(object):
         dependencies = self.trac.dependencies(ticket)
         if remote_branch is None: # branch field is not set on ticket
             self._UI.info("The branch field on ticket #{0} is not set. Creating a new branch {1} off the master branch {2}.".format(ticket, branch, MASTER_BRANCH))
-            self.git.branch(branch, MASTER_BRANCH)
+            self.git.silent.branch(branch, MASTER_BRANCH)
         else:
             try:
                 self.download(remote_branch, branch)
@@ -565,7 +562,7 @@ class SageDev(object):
         except:
             self._UI.info("An error ocurred. Deleting branch {0}.".format(branch))
             self._set_local_branch_for_ticket(ticket, None)
-            self.git.branch("-d",branch)
+            self.git.silent.branch("-d",branch)
             raise
 
         self._UI.info("Switching to newly created branch {0}.".format(branch))
@@ -586,7 +583,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -597,8 +593,8 @@ class SageDev(object):
 
         Create a few branches::
 
-            sage: dev.git.branch("branch1")
-            sage: dev.git.branch("branch2")
+            sage: dev.git.silent.branch("branch1")
+            sage: dev.git.silent.branch("branch2")
 
         Switch to a branch::
 
@@ -619,8 +615,8 @@ class SageDev(object):
         Switching branches with uncommitted changes::
 
             sage: open("tracked","w").close()
-            sage: dev.git.add(SUPER_SILENT, "tracked")
-            sage: dev.git.commit(SUPER_SILENT, message="added tracked")
+            sage: dev.git.silent.add("tracked")
+            sage: dev.git.silent.commit(message="added tracked")
             sage: with open("tracked", "w") as f: f.write("foo")
             sage: UI.append("keep")
             sage: dev.switch_branch("branch1")
@@ -655,17 +651,17 @@ class SageDev(object):
 
         Switching branches when in the middle of a merge::
 
-            sage: dev.git.checkout(SUPER_SILENT, '-b','merge_branch')
+            sage: dev.git.super_silent.checkout('-b','merge_branch')
             sage: with open('merge', 'w') as f: f.write("version 0")
-            sage: dev.git.add(SUPER_SILENT, 'merge')
-            sage: dev.git.commit(SUPER_SILENT, '-m','some change')
-            sage: dev.git.checkout(SUPER_SILENT, 'branch1')
+            sage: dev.git.silent.add('merge')
+            sage: dev.git.silent.commit('-m','some change')
+            sage: dev.git.super_silent.checkout('branch1')
             sage: with open('merge', 'w') as f: f.write("version 1")
-            sage: dev.git.add(SUPER_SILENT, 'merge')
-            sage: dev.git.commit(SUPER_SILENT, '-m','conflicting change')
+            sage: dev.git.silent.add('merge')
+            sage: dev.git.silent.commit('-m','conflicting change')
             sage: from sage.dev.git_error import GitError
             sage: try:
-            ....:     dev.git.merge(SUPER_SILENT, 'merge_branch')
+            ....:     dev.git.silent.merge('merge_branch')
             ....: except GitError: pass
             sage: UI.append('n')
             sage: dev.switch_branch('merge_branch')
@@ -675,12 +671,12 @@ class SageDev(object):
 
         Switching branches when in a detached HEAD::
 
-            sage: dev.git.checkout(SUPER_SILENT, 'branch2', detach=True)
+            sage: dev.git.super_silent.checkout('branch2', detach=True)
             sage: dev.switch_branch('branch1')
 
         With uncommitted changes::
 
-            sage: dev.git.checkout(SUPER_SILENT, 'branch2', detach=True)
+            sage: dev.git.super_silent.checkout('branch2', detach=True)
             sage: with open('tracked', 'w') as f: f.write("boo")
             sage: UI.append("discard")
             sage: dev.switch_branch('branch1')
@@ -713,7 +709,7 @@ class SageDev(object):
             raise
 
         try:
-            self.git.checkout(SUPER_SILENT, branch)
+            self.git.super_silent.checkout(branch)
         except GitError as e:
             # the error message should be self explanatory
             raise
@@ -739,7 +735,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config_alice = DoctestConfig('alice')
             sage: config_alice['trac']['password'] = 'secret'
@@ -771,7 +766,7 @@ class SageDev(object):
         Alice pushes a commit::
 
             sage: alice._chdir()
-            sage: alice.git.commit(SUPER_SILENT, allow_empty=True, message="alice: empty commit")
+            sage: alice.git.super_silent.commit(allow_empty=True, message="alice: empty commit")
             sage: alice._UI.append("y")
             sage: alice.upload()
             The branch u/alice/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
@@ -780,15 +775,15 @@ class SageDev(object):
 
             sage: bob._chdir()
             sage: bob.download()
-            sage: bob.git.log('--pretty=%s')
+            sage: bob.git.echo.log('--pretty=%s')
             alice: empty commit
             initial commit
 
         Bob commits a change::
 
             sage: open("bobs_file","w").close()
-            sage: bob.git.add("bobs_file")
-            sage: bob.git.commit(SUPER_SILENT, message="bob: added bobs_file")
+            sage: bob.git.silent.add("bobs_file")
+            sage: bob.git.super_silent.commit(message="bob: added bobs_file")
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.upload()
@@ -799,14 +794,14 @@ class SageDev(object):
 
             sage: alice._chdir()
             sage: with open("alices_file","w") as f: f.write("1")
-            sage: alice.git.add("alices_file")
-            sage: alice.git.commit(SUPER_SILENT, message="alice: added alices_file")
+            sage: alice.git.silent.add("alices_file")
+            sage: alice.git.super_silent.commit(message="alice: added alices_file")
 
         Alice can now download the changes by Bob without the need to merge
         manually::
 
             sage: alice.download()
-            sage: alice.git.log('--pretty=%s')
+            sage: alice.git.echo.log('--pretty=%s')
             Merge branch 'u/bob/ticket/1' of /dev/shm/... into ticket/1
             alice: added alices_file
             bob: added bobs_file
@@ -817,8 +812,8 @@ class SageDev(object):
 
             sage: bob._chdir()
             sage: with open("alices_file","w") as f: f.write("2")
-            sage: bob.git.add("alices_file")
-            sage: bob.git.commit(SUPER_SILENT, message="bob: added alices_file")
+            sage: bob.git.silent.add("alices_file")
+            sage: bob.git.super_silent.commit(message="bob: added alices_file")
             sage: bob._UI.append('y')
             sage: bob.upload()
             I will now upload the following new commits to the remote branch `u/bob/ticket/1`:
@@ -834,9 +829,9 @@ class SageDev(object):
 
         Undo the latest commit by alice, so we can download again::
 
-            sage: alice.git.reset(SUPER_SILENT, 'HEAD~~', hard=True)
+            sage: alice.git.super_silent.reset('HEAD~~', hard=True)
             sage: alice.download()
-            sage: alice.git.log('--pretty=%s')
+            sage: alice.git.echo.log('--pretty=%s')
             bob: added alices_file
             bob: added bobs_file
             alice: empty commit
@@ -850,8 +845,8 @@ class SageDev(object):
 
             sage: bob._chdir()
             sage: open("bobs_other_file","w").close()
-            sage: bob.git.add(SUPER_SILENT, "bobs_other_file")
-            sage: bob.git.commit(SUPER_SILENT, message="bob: added bobs_other_file")
+            sage: bob.git.super_silent.add("bobs_other_file")
+            sage: bob.git.super_silent.commit(message="bob: added bobs_other_file")
             sage: bob._UI.append('y')
             sage: bob.upload()
             I will now upload the following new commits to the remote branch `u/bob/ticket/1`:
@@ -905,7 +900,7 @@ class SageDev(object):
             self.reset_to_clean_working_directory()
 
             try:
-                self.git.pull(SUPER_SILENT, self.git._repository, remote_branch)
+                self.git.super_silent.pull(self.git._repository, remote_branch)
             except GitError as e:
                 # this might fail because the pull did not resolve as a
                 # fast-forward or because there were untracked files around
@@ -916,7 +911,7 @@ class SageDev(object):
                 raise
         else:
             try:
-                self.git.fetch(SUPER_SILENT, self.git._repository, "{0}:{1}".format(remote_branch, branch))
+                self.git.super_silent.fetch(self.git._repository, "{0}:{1}".format(remote_branch, branch))
             except GitError as e:
                 # there is not many scenarios in which this can fail - the most
                 # likely being that branch already exists and this does not
@@ -970,9 +965,7 @@ class SageDev(object):
 
         Commit an untracked file::
 
-            sage: dev.git.checkout('-b','branch1')
-            Switched to a new branch 'branch1'
-
+            sage: dev.git.super_silent.checkout('-b','branch1')
             sage: open("tracked","w").close()
             sage: dev._UI.extend(["added tracked","y","y","y"])
             sage: dev.commit()
@@ -981,9 +974,6 @@ class SageDev(object):
             Do you want to add any of these files in this commit? [yes/No] y
             Do you want to add `tracked`? [yes/No] y
             Do you want to commit your changes to branch `branch1`? I will prompt you for a commit message if you do. [Yes/no] y
-            [branch1 ...] added tracked
-             0 files changed
-             create mode ... tracked
 
         Commit a tracked file::
 
@@ -991,8 +981,6 @@ class SageDev(object):
             sage: dev._UI.extend(["modified tracked","y"])
             sage: dev.commit()
             Do you want to commit your changes to branch `branch1`? I will prompt you for a commit message if you do. [Yes/no] y
-            [branch1 ...] modified tracked
-             1 file changed, 1 insertion(+)
 
         """
         from git_error import DetachedHeadError
@@ -1004,7 +992,7 @@ class SageDev(object):
             raise OperationCancelledError("cannot proceed in detached HEAD mode")
 
         # make sure the index is clean
-        self.git.reset(SUPER_SILENT)
+        self.git.super_silent.reset()
 
         try:
             self._UI.info("Committing pending changes to branch `{0}`.".format(branch))
@@ -1047,7 +1035,7 @@ class SageDev(object):
 
         finally:
             # do not leave a non-clean index behind
-            self.git.reset(SUPER_SILENT)
+            self.git.super_silent.reset()
 
     def set_remote(self, branch_or_ticket, remote_branch):
         r"""
@@ -1161,7 +1149,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config_alice = DoctestConfig('alice')
             sage: config_alice['trac']['password'] = 'secret'
@@ -1184,8 +1171,8 @@ class SageDev(object):
             sage: alice._UI.append("Summary: summary1\ndescription")
             sage: ticket = alice.create_ticket()
             sage: open("tracked", "w").close()
-            sage: alice.git.add(SUPER_SILENT, "tracked")
-            sage: alice.git.commit(SUPER_SILENT, message="alice: added tracked")
+            sage: alice.git.super_silent.add("tracked")
+            sage: alice.git.super_silent.commit(message="alice: added tracked")
             sage: alice._UI.append("y")
             sage: alice.upload()
             The branch u/alice/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
@@ -1195,8 +1182,8 @@ class SageDev(object):
             sage: bob._chdir()
             sage: bob.switch_ticket(1)
             sage: with open("tracked", "w") as f: f.write("bob")
-            sage: bob.git.add(SUPER_SILENT, "tracked")
-            sage: bob.git.commit(SUPER_SILENT, message="bob: modified tracked")
+            sage: bob.git.super_silent.add("tracked")
+            sage: bob.git.super_silent.commit(message="bob: modified tracked")
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.upload()
@@ -1211,13 +1198,13 @@ class SageDev(object):
         Alice and Bob make non-conflicting changes simultaneously::
 
             sage: with open("tracked", "w") as f: f.write("alice")
-            sage: alice.git.add(SUPER_SILENT, "tracked")
-            sage: alice.git.commit(SUPER_SILENT, message="alice: modified tracked")
+            sage: alice.git.super_silent.add("tracked")
+            sage: alice.git.super_silent.commit(message="alice: modified tracked")
 
             sage: bob._chdir()
             sage: open("tracked2", "w").close()
-            sage: bob.git.add(SUPER_SILENT, "tracked2")
-            sage: bob.git.commit(SUPER_SILENT, message="bob: added tracked2")
+            sage: bob.git.super_silent.add("tracked2")
+            sage: bob.git.super_silent.commit(message="bob: added tracked2")
 
         After Alice uploaded her changes, Bob can not set the branch field anymore::
 
@@ -1326,7 +1313,7 @@ class SageDev(object):
                 if not self._UI.confirm("The branch {0} does not exist on the remote server yet. Do you want to create the branch?".format(remote_branch), default=True):
                     raise OperationCancelledError("User did not want to create remote branch.")
             else:
-                self.git.fetch(SUPER_SILENT, self.git._repository, remote_branch)
+                self.git.super_silent.fetch(self.git._repository, remote_branch)
 
             # check whether force is necessary
             if remote_branch_exists and not self.git.is_child_of(branch, 'FETCH_HEAD'):
@@ -1342,12 +1329,11 @@ class SageDev(object):
                 try:
                     if not force:
                         if remote_branch_exists:
-                            from git_interface import READ_OUTPUT
-                            commits = self.git.log(READ_OUTPUT, "{0}..{1}".format('FETCH_HEAD', branch), '--pretty=%h: %s')
+                            commits = self.git.log("{0}..{1}".format('FETCH_HEAD', branch), '--pretty=%h: %s')
                             if not self._UI.confirm("I will now upload the following new commits to the remote branch `{0}`:\n{1}Is this what you want?".format(remote_branch, commits), default=True):
                                 raise OperationCancelledError("user requested")
 
-                    self.git.push(SUPER_SILENT, self.git._repository, "{0}:{1}".format(branch, remote_branch), force=force)
+                    self.git.super_silent.push(self.git._repository, "{0}:{1}".format(branch, remote_branch), force=force)
                 except GitError as e:
                     # can we give any advice if this fails?
                     raise
@@ -1367,7 +1353,7 @@ class SageDev(object):
                 self._UI.info("Setting the branch field of ticket #{0} to `{1}`.".format(ticket, remote_branch))
 
                 if current_remote_branch is not None:
-                    self.git.fetch(SUPER_SILENT, self.git._repository, current_remote_branch)
+                    self.git.super_silent.fetch(self.git._repository, current_remote_branch)
                     if force or self.git.is_ancestor_of('FETCH_HEAD', branch):
                         pass
                     else:
@@ -1408,7 +1394,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -1423,19 +1408,19 @@ class SageDev(object):
 
         Bring the directory into a non-clean state::
 
-            sage: dev.git.checkout(SUPER_SILENT, b="branch1")
+            sage: dev.git.super_silent.checkout(b="branch1")
             sage: with open("tracked", "w") as f: f.write("boo")
-            sage: dev.git.add(SUPER_SILENT, "tracked")
-            sage: dev.git.commit(SUPER_SILENT, message="added tracked")
+            sage: dev.git.silent.add("tracked")
+            sage: dev.git.silent.commit(message="added tracked")
 
-            sage: dev.git.checkout(SUPER_SILENT, 'HEAD~')
-            sage: dev.git.checkout(SUPER_SILENT, b="branch2")
+            sage: dev.git.super_silent.checkout('HEAD~')
+            sage: dev.git.super_silent.checkout(b="branch2")
             sage: with open("tracked", "w") as f: f.write("foo")
-            sage: dev.git.add(SUPER_SILENT, "tracked")
-            sage: dev.git.commit(SUPER_SILENT, message="added tracked")
+            sage: dev.git.silent.add("tracked")
+            sage: dev.git.silent.commit(message="added tracked")
             sage: from sage.dev.git_error import GitError
             sage: try:
-            ....:     dev.git.merge(SUPER_SILENT, "branch1")
+            ....:     dev.git.silent.merge("branch1")
             ....: except GitError: pass
             sage: UI.append("n")
             sage: dev.reset_to_clean_state()
@@ -1447,7 +1432,7 @@ class SageDev(object):
 
         A detached HEAD does not count as a non-clean state::
 
-            sage: dev.git.checkout(SUPER_SILENT, 'HEAD', detach=True)
+            sage: dev.git.super_silent.checkout('HEAD', detach=True)
             sage: dev.reset_to_clean_state()
 
         """
@@ -1470,7 +1455,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -1491,8 +1475,8 @@ class SageDev(object):
         Uncommitted changes can simply be dropped::
 
             sage: open("tracked","w").close()
-            sage: dev.git.add(SUPER_SILENT, "tracked")
-            sage: dev.git.commit(SUPER_SILENT, message="added tracked")
+            sage: dev.git.silent.add("tracked")
+            sage: dev.git.silent.commit(message="added tracked")
             sage: with open("tracked", "w") as f: f.write("foo")
             sage: UI.append("discard")
             sage: dev.reset_to_clean_working_directory()
@@ -1530,8 +1514,7 @@ class SageDev(object):
         if not self.git.has_uncommitted_changes():
             return
 
-        from git_interface import READ_OUTPUT
-        files = "\n".join([line[2:] for line in self.git.status(READ_OUTPUT, porcelain=True).splitlines() if not line.startswith('?')])
+        files = "\n".join([line[2:] for line in self.git.status(porcelain=True).splitlines() if not line.startswith('?')])
         sel = self._UI.select("The following files in your working directory contain uncommitted changes:\n{0}\nDo you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later?".format(files), options=('discard','keep','stash'), default=1)
         if sel == 'discard':
             self.git.reset_to_clean_working_directory()
@@ -1548,21 +1531,21 @@ class SageDev(object):
             branch = self._new_local_branch_for_stash()
             try:
                 try:
-                    self.git.stash(SUPER_SILENT)
+                    self.git.super_silent.stash()
                     try:
                         self._UI.info("Creating a new branch `{0}` which contains your stashed changes.".format(branch))
-                        self.git.stash(SUPER_SILENT,'branch',branch,'stash@{0}')
+                        self.git.super_silent.stash('branch',branch,'stash@{0}')
                         self._UI.info("Committing your changes to `{0}`.".format(branch))
-                        self.git.commit(SUPER_SILENT,'-a',message="Changes stashed by reset_to_clean_working_directory()")
+                        self.git.super_silent.commit('-a',message="Changes stashed by reset_to_clean_working_directory()")
                     except:
-                        self.git.stash(SUPER_SILENT, 'drop')
+                        self.git.super_silent.stash('drop')
                         raise
                 except:
                     if self._is_local_branch_name(branch, exists=True):
-                        self.git.branch(SUPER_SILENT,"-D",branch)
+                        self.git.super_silent.branch("-D",branch)
                     raise
             finally:
-                self.git.checkout(SUPER_SILENT, current_branch or current_commit)
+                self.git.super_silent.checkout(current_branch or current_commit)
 
             self._UI.show("Your changes have been recorded on a new branch `{0}`.".format(branch))
             self._UI.info("To recover your changes later use {1}.".format(branch, self._format_command("unstash",branch)))
@@ -1598,7 +1581,7 @@ class SageDev(object):
             sage: dev.unstash()
             (no stashes)
             sage: with open("tracked", "w") as f: f.write("foo")
-            sage: dev.git.add("tracked")
+            sage: dev.git.silent.add("tracked")
             sage: UI.append("s")
             sage: dev.reset_to_clean_working_directory()
             The following files in your working directory contain uncommitted changes:
@@ -1606,7 +1589,7 @@ class SageDev(object):
             Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] s
             Your changes have been recorded on a new branch `stash/1`.
             sage: with open("tracked", "w") as f: f.write("boo")
-            sage: dev.git.add("tracked")
+            sage: dev.git.silent.add("tracked")
             sage: UI.append("s")
             sage: dev.reset_to_clean_working_directory()
             The following files in your working directory contain uncommitted changes:
@@ -1646,13 +1629,13 @@ class SageDev(object):
         self.reset_to_clean_state()
 
         try:
-            self.git.cherry_pick(SUPER_SILENT, branch, no_commit=True)
+            self.git.super_silent.cherry_pick(branch, no_commit=True)
         except GitError as e:
             self._UI.error("The changes recorded in `{0}` do not apply cleanly to your working directory.".format(branch))
             self._UI.info("You can try to resolve the conflicts manually with `{0}`.".format(self._format_command("merge", branch_or_ticket=branch)))
             raise OperationCancelledError("unstash failed")
 
-        self.git.reset(SUPER_SILENT)
+        self.git.super_silent.reset()
 
         self._UI.info("The changes recorded in `{0}` have been restored in your working directory. If you do not need the stash anymore, you can drop it with `{1}`.".format(branch, self._format_command("abandon",branch=branch)))
 
@@ -1807,7 +1790,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -1847,8 +1829,8 @@ class SageDev(object):
         Making local changes::
 
             sage: open("tracked", "w").close()
-            sage: dev.git.add(SUPER_SILENT, "tracked")
-            sage: dev.git.commit(SUPER_SILENT, message="added tracked")
+            sage: dev.git.silent.add("tracked")
+            sage: dev.git.silent.commit(message="added tracked")
             sage: dev.remote_status()
             Ticket #1 (https://trac.sagemath.org/ticket/1)
             ==============================================
@@ -1871,7 +1853,7 @@ class SageDev(object):
 
         The branch on the ticket is ahead of the local branch::
 
-            sage: dev.git.reset(SUPER_SILENT, 'HEAD~', hard=True)
+            sage: dev.git.silent.reset('HEAD~', hard=True)
             sage: dev.remote_status()
             Ticket #1 (https://trac.sagemath.org/ticket/1)
             ==============================================
@@ -1882,18 +1864,18 @@ class SageDev(object):
         A mixed case::
 
             sage: open("tracked2", "w").close()
-            sage: dev.git.add(SUPER_SILENT, "tracked2")
-            sage: dev.git.commit(SUPER_SILENT, message="added tracked2")
+            sage: dev.git.silent.add("tracked2")
+            sage: dev.git.silent.commit(message="added tracked2")
             sage: open("tracked3", "w").close()
-            sage: dev.git.add(SUPER_SILENT, "tracked3")
-            sage: dev.git.commit(SUPER_SILENT, message="added tracked3")
+            sage: dev.git.silent.add("tracked3")
+            sage: dev.git.silent.commit(message="added tracked3")
             sage: open("tracked4", "w").close()
-            sage: dev.git.add(SUPER_SILENT, "tracked4")
-            sage: dev.git.commit(SUPER_SILENT, message="added tracked4")
+            sage: dev.git.silent.add("tracked4")
+            sage: dev.git.silent.commit(message="added tracked4")
             sage: dev._UI.append("y")
             sage: dev.upload(remote_branch="u/doctest/branch1", force=True)
             The branch u/doctest/branch1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
-            sage: dev.git.reset(SUPER_SILENT, 'HEAD~', hard=True)
+            sage: dev.git.silent.reset('HEAD~', hard=True)
             sage: dev.remote_status()
             Ticket #1 (https://trac.sagemath.org/ticket/1)
             ==============================================
@@ -1921,8 +1903,7 @@ class SageDev(object):
         header = "Ticket #{0} ({1})".format(ticket, TRAC_SERVER_URI + '/ticket/' + str(ticket))
         underline = "="*len(header)
 
-        from git_interface import READ_OUTPUT, SUPER_SILENT
-        commits = lambda a, b: list(reversed(self.git.log(READ_OUTPUT, "{0}..{1}".format(a,b), "--pretty=%an <%ae>: %s").splitlines()))
+        commits = lambda a, b: list(reversed(self.git.log("{0}..{1}".format(a,b), "--pretty=%an <%ae>: %s").splitlines()))
 
         def detail(a, b, a_to_b, b_to_a):
             if not a_to_b and not b_to_a:
@@ -1952,7 +1933,7 @@ class SageDev(object):
             if not self._is_remote_branch_name(ticket_branch, exists=True):
                 ticket_summary = "The trac ticket points to the branch `{0}` which does not exist."
             else:
-                self.git.fetch(SUPER_SILENT, self.git._repository, ticket_branch)
+                self.git.super_silent.fetch(self.git._repository, ticket_branch)
                 if not self.git.is_ancestor_of(MASTER_BRANCH, 'FETCH_HEAD'):
                     ticket_summary = "The trac ticket points to the branch `{0}`.".format(ticket_branch)
                 else:
@@ -1969,7 +1950,7 @@ class SageDev(object):
         if self._is_remote_branch_name(remote_branch, exists=True):
             remote_to_local = None
             local_to_remote = None
-            self.git.fetch(SUPER_SILENT, self.git._repository, remote_branch)
+            self.git.super_silent.fetch(self.git._repository, remote_branch)
             if not self.git.is_ancestor_of(MASTER_BRANCH, 'FETCH_HEAD'):
                 remote_summary = "Your remote branch is `{0}`.".format(remote_branch)
             else:
@@ -2042,7 +2023,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT, READ_OUTPUT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -2057,9 +2037,9 @@ class SageDev(object):
             sage: open("tracked2", "w").close()
             sage: import os
             sage: patchfile = os.path.join(dev._sagedev.tmp_dir,"tracked.patch")
-            sage: dev.git.add(SUPER_SILENT, "tracked", "tracked2")
-            sage: with open(patchfile, "w") as f: f.write(dev.git.diff(READ_OUTPUT, cached=True))
-            sage: dev.git.reset(SUPER_SILENT)
+            sage: dev.git.silent.add("tracked", "tracked2")
+            sage: with open(patchfile, "w") as f: f.write(dev.git.diff(cached=True))
+            sage: dev.git.silent.reset()
 
         Applying this patch fails::
 
@@ -2079,10 +2059,10 @@ class SageDev(object):
          We create a patch which does not apply::
 
             sage: with open("tracked", "w") as f: f.write("foo")
-            sage: dev.git.add(SUPER_SILENT, "tracked")
+            sage: dev.git.silent.add("tracked")
             sage: with open("tracked", "w") as f: f.write("boo")
             sage: with open("tracked2", "w") as f: f.write("boo")
-            sage: with open(patchfile, "w") as f: f.write(dev.git.diff(READ_OUTPUT))
+            sage: with open(patchfile, "w") as f: f.write(dev.git.diff())
             sage: dev.git.reset_to_clean_working_directory()
             sage: open("tracked").read()
             ''
@@ -2178,7 +2158,7 @@ class SageDev(object):
 
             self._UI.info("Trying to apply reformatted patch `%s`"%outfile)
             try:
-                self.git.am(outfile, "--resolvemsg= ", ignore_whitespace=True)
+                self.git.echo.am(outfile, "--resolvemsg= ", ignore_whitespace=True)
             except GitError:
                 if not self._UI.confirm("The patch does not apply cleanly. Would you like to apply it anyway and create reject files for the parts that do not apply?", default=False):
                     self._UI.info("Not applying patch.")
@@ -2188,7 +2168,7 @@ class SageDev(object):
 
                 try:
                     try:
-                        self.git.apply(outfile, ignore_whitespace=True, reject=True)
+                        self.git.silent.apply(outfile, ignore_whitespace=True, reject=True)
                     except GitError:
                         if self._UI.select("The patch did not apply cleanly. Please integrate the `.rej` files that were created and resolve conflicts. After you do, type `resolved`. If you want to abort this process, type `abort`.", ("resolved","abort")) == "abort":
                             self.git.reset_to_clean_state()
@@ -2198,11 +2178,11 @@ class SageDev(object):
                         self._UI.show("It seemed that the patch would not apply, but in fact it did.")
                         return
 
-                    self.git.add(SUPER_SILENT, update=True)
+                    self.git.super_silent.add(update=True)
                     untracked = [fname for fname in self.git.untracked_files() if not fname.endswith(".rej")]
                     if untracked:
                         self._UI.confirm("The patch will introduce the following new files to the repository:\n{0}\nIs this correct?".format("\n".join(untracked)), default=True)
-                        self.git.add(SUPER_SILENT, *untracked)
+                        self.git.super_silent.add(*untracked)
                     self.git.am('--resolvemsg= ', resolved=True)
                     self._UI.info("A commit on the current branch has been created from the patch.")
                 finally:
@@ -2256,7 +2236,6 @@ class SageDev(object):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
             sage: from sage.dev.test.config import DoctestConfig
-            sage: from sage.dev.git_interface import SUPER_SILENT, READ_OUTPUT
             sage: server = DoctestTracServer()
             sage: config = DoctestConfig()
             sage: config['trac']['password'] = 'secret'
@@ -2345,7 +2324,7 @@ class SageDev(object):
                 self.gather(self.trac.dependencies())
                 self.git.diff("%s..%s"%(HEAD,branch))
             finally:
-                self.git.checkout(branch)
+                self.git.super_silent.checkout(branch)
         else:
             self.git.execute("diff", base)
 
@@ -2736,8 +2715,6 @@ class SageDev(object):
             ....:             SAGE_SRC,"sage","dev","test","data","diff.patch"
             ....:         )).read().splitlines())
             'hg'
-
-        TESTS::
 
             sage: dev._detect_patch_diff_format(["# HG changeset patch"])
             Traceback (most recent call last):
@@ -3452,7 +3429,7 @@ class SageDev(object):
             False
             sage: dev._is_local_branch_name('ticket/1', exists=False)
             True
-            sage: dev.git.branch('ticket/1')
+            sage: dev.git.silent.branch('ticket/1')
             sage: dev._is_local_branch_name('ticket/1', exists=True)
             True
             sage: dev._is_local_branch_name('ticket/1', exists=False)
@@ -3611,7 +3588,7 @@ class SageDev(object):
 
         from git_error import GitError
         try:
-            self.git.ls_remote(SUPER_SILENT, self.git._repository, name, exit_code=True)
+            self.git.super_silent.ls_remote(self.git._repository, name, exit_code=True)
             remote_exists = True
         except GitError as e:
             if e.exit_code == 2:
@@ -3655,7 +3632,7 @@ class SageDev(object):
             ...
             SageDevValueError: Branch `ticket/1` does not exist locally.
             sage: dev._check_local_branch_name('ticket/1', exists=False)
-            sage: dev.git.branch('ticket/1')
+            sage: dev.git.silent.branch('ticket/1')
             sage: dev._check_local_branch_name('ticket/1', exists=True)
             sage: dev._check_local_branch_name('ticket/1', exists=False)
             Traceback (most recent call last):
@@ -3887,7 +3864,7 @@ class SageDev(object):
 
             sage: import os
             sage: os.chdir(server.git._config['src'])
-            sage: server.git.branch('public/ticket/1')
+            sage: server.git.silent.branch('public/ticket/1')
             sage: dev2._chdir()
             sage: dev2._local_branch_for_ticket(ticket, download_if_not_found=True)
             'ticket/1'
@@ -3926,7 +3903,7 @@ class SageDev(object):
 
             sage: dev._new_local_branch_for_stash()
             'stash/1'
-            sage: dev.git.branch('stash/1')
+            sage: dev.git.silent.branch('stash/1')
             sage: dev._new_local_branch_for_stash()
             'stash/2'
 
@@ -3960,7 +3937,7 @@ class SageDev(object):
 
             sage: dev._new_local_branch_for_ticket(1)
             'ticket/1'
-            sage: dev.git.branch('ticket/1')
+            sage: dev.git.silent.branch('ticket/1')
             sage: dev._new_local_branch_for_ticket(1)
             'ticket/1_'
 
@@ -4103,7 +4080,7 @@ class SageDev(object):
             sage: dev._pull_master_branch()
             sage: dev._chdir()
 
-            sage: dev.git.branch('ticket/1')
+            sage: dev.git.silent.branch('ticket/1')
 
             sage: dev._remote_branch_for_ticket(1)
             'u/doctest/ticket/1'
@@ -4150,7 +4127,7 @@ class SageDev(object):
             sage: dev._pull_master_branch()
             sage: dev._chdir()
 
-            sage: dev.git.branch('ticket/1')
+            sage: dev.git.silent.branch('ticket/1')
 
             sage: dev._remote_branch_for_branch('ticket/1') is None
             True
@@ -4201,7 +4178,7 @@ class SageDev(object):
             Traceback (most recent call last):
             ...
             SageDevValueError: Branch `ticket/1` does not exist locally.
-            sage: dev.git.branch('ticket/1')
+            sage: dev.git.silent.branch('ticket/1')
             sage: dev._set_local_branch_for_ticket(1, 'ticket/1')
             sage: dev._local_branch_for_ticket(1)
             'ticket/1'

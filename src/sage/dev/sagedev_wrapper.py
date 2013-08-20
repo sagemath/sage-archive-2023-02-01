@@ -50,7 +50,6 @@ class SageDevWrapper(object):
         sage: from sage.dev.test.trac_server import DoctestTracServer
         sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
         sage: from sage.dev.test.config import DoctestConfig
-        sage: from sage.dev.git_interface import SUPER_SILENT
         sage: server = DoctestTracServer()
         sage: config = DoctestConfig()
         sage: config['trac']['password'] = 'secret'

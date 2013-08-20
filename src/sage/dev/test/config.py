@@ -90,11 +90,11 @@ class DoctestConfig(sage.dev.config.Config):
         self['sagedev']['dependenciesfile'] = os.path.join(self._tmp_dir,"dependencies")
         self['sagedev']['remotebranchesfile'] = os.path.join(self._tmp_dir,"remote_branches")
 
-        from sage.dev.git_interface import GitInterface, SILENT
+        from sage.dev.git_interface import GitInterface
         from sage.dev.test.user_interface import DoctestUserInterface
         old_cwd = os.getcwd()
         os.chdir(self['git']['src'])
         try:
-            GitInterface(self['git'], DoctestUserInterface(self["UI"])).init(SILENT, self['git']['src'])
+            GitInterface(self['git'], DoctestUserInterface(self["UI"])).silent.init(self['git']['src'])
         finally:
             os.chdir(old_cwd)

@@ -108,16 +108,15 @@ class DoctestSageDev(sage.dev.sagedev.SageDev):
             sage: dev._pull_master_branch()
 
         """
-        from sage.dev.git_interface import SUPER_SILENT
         import os
         old_cwd = os.getcwd()
         self._chdir()
         try:
             from sage.dev.sagedev import MASTER_BRANCH
             if MASTER_BRANCH != "master":
-                self.git.chechkout(SUPER_SILENT, "-b",MASTER_BRANCH)
-                self.git.checkout(SUPER_SILENT, MASTER_BRANCH)
-            self.git.pull(SUPER_SILENT, self._trac_server.git._config['src'], MASTER_BRANCH)
+                self.git.super_silent.chechkout("-b",MASTER_BRANCH)
+                self.git.super_silent.checkout(MASTER_BRANCH)
+            self.git.super_silent.pull(self._trac_server.git._config['src'], MASTER_BRANCH)
         finally:
             os.chdir(old_cwd)
 

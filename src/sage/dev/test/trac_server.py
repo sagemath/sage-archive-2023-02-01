@@ -42,10 +42,10 @@ class DoctestTracServer(object):
 
         """
         self.tickets = {}
-        from sage.dev.git_interface import GitInterface, SUPER_SILENT
         from sage.dev.test.user_interface import DoctestUserInterface
         from sage.dev.test.config import DoctestConfig
         from sage.dev.sagedev import MASTER_BRANCH
+        from sage.dev.git_interface import GitInterface
         config = DoctestConfig()
         self.git = GitInterface(config['git'], DoctestUserInterface(config['UI']))
 
@@ -53,8 +53,8 @@ class DoctestTracServer(object):
         old_cwd = os.getcwd()
         os.chdir(config['git']['src'])
         try:
-            self.git.commit(SUPER_SILENT, allow_empty=True, message='initial commit')
-            if MASTER_BRANCH != "master": self.git.checkout(SUPER_SILENT, "-b", MASTER_BRANCH)
+            self.git.super_silent.commit(allow_empty=True, message='initial commit')
+            if MASTER_BRANCH != "master": self.git.super_silent.checkout("-b", MASTER_BRANCH)
         finally:
             os.chdir(old_cwd)
 

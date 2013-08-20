@@ -2292,13 +2292,8 @@ class SageDev(object):
         if url:
             if ticket or patchname:
                 raise ValueError("If `url` is specifed, `ticket` and `patchname` must not be specified.")
-            import tempfile
-            fd, ret = tempfile.mkstemp()
-            import os
-            os.close(fd)
-            from subprocess import check_call
-            check_call(["wget","-r","-O",ret,url])
-            return ret
+            import urllib
+            return urllib.urlretrieve(url)[0]
         elif ticket:
             ticket = self._ticket_from_ticket_name(ticket)
 

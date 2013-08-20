@@ -276,7 +276,7 @@ des variables. Nous avons donc :
     sage: R2(y)
     y
 
-En l'absence den morphisme d'anneau qui préserve les noms de variable, la
+En l'absence d'un morphisme d'anneau qui préserve les noms de variable, la
 coercition entre anneaux de polynômes multivariés n'est pas définie. Il peut
 tout de même exister une conversion qui envoie les variables d'un anneau sur
 celle de l'autre en fonction de leur position dans la liste des générateurs :
@@ -337,7 +337,7 @@ De même, on a
     True
 
 Une autre conséquence de la condition de cohérence est que les coercitions ne
-sont possible que des anneaux exacts (comme les rationnels ``QQ``) vers les
+sont possibles que des anneaux exacts (comme les rationnels ``QQ``) vers les
 anneaux inexacts (comme les réels à précision donnée ``RR``), jamais l'inverse.
 En effet, pour qu'une conversion de ``RR`` dans ``QQ`` puisse être une
 coercition, il faudrait que la composée de la coercition de ``QQ`` dans ``RR``
@@ -389,7 +389,7 @@ Dans l'exemple suivant, il n'y a pas de coercition vers un parent commun :
     ...
     TypeError: unsupported operand parent(s) for '+': 'Univariate Polynomial Ring in x over Rational Field' and 'Univariate Polynomial Ring in y over Rational Field'
 
-En effet, Sage refuse de choisi entre les candidats  ``QQ['x']['y']``,
+En effet, Sage refuse de choisir entre les candidats  ``QQ['x']['y']``,
 ``QQ['y']['x']``, ``QQ['x','y']`` et ``QQ['y','x']``, car ces quatre structures
 deux à deux distinctes semblent toutes des parents communs naturels, et aucun
 choix canonique ne s'impose.

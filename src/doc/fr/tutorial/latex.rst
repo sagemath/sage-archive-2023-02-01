@@ -121,6 +121,16 @@ en image pour l'afficher dans le bloc-note. La section
 :ref:`sec-custom-generation` ci-dessous explique comment configurer et
 contrôler ce processus.
 
+La commande interne ``pretty_print()`` permet de convertir un objet Sage en code
+HTML utilisant MathJax. C'est le code qui sera ensuite utilisé dans le
+bloc-notes ::
+
+    sage: from sage.misc.latex import pretty_print
+    sage: pretty_print(x^12)
+    <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}x^{12}</script></html>
+    sage: pretty_print(integrate(sin(x), x))
+    <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}-\cos\left(x\right)</script></html>
+
 Le bloc-notes dispose de deux autres fonctionnalités pour appeler LaTeX.
 Premièrement, lorsque la case « Typeset » (juste au-dessus de la première
 cellule d'une feuille de travail, à droite des quatre listes déroulantes) est
@@ -277,9 +287,9 @@ Personnaliser le traitement du code par LaTeX
 
 En plus de modifier LaTeX produit par Sage, on peut choisir la variante de
 TeX appelée pour le traiter, et donc la nature du document produit. De même, il
-est possible de contrôler dans quelles circonstances le bloc-notes utilise
-MathJax (c'est-à-dire quels fragments de code TeX sont jugés suffisamment
-simples) et quand est-ce qu'il se rabat sur l'installation de TeX du système.
+est possible de contrôler dans quelles circonstances le bloc-notes utilisera
+MathJax (c'est-à-dire quels fragments de code TeX seront jugés suffisamment
+simples) et quand il choisira de se rabattre sur l'installation de TeX du système.
 
 La méthode ``latex.engine()`` permet de choisir lequel des moteurs TeX
 ``latex``, ``pdflatex`` et ``xelatex`` doit servir à compiler les expressions
@@ -427,11 +437,13 @@ L'utilitaire ``convert`` fait partie de la boîte à outils `ImageMagick
 paquets de votre système ou facile à télécharger et installer). Les programmes
 ``dvipng``, ``ps2pdf``, and ``dvips`` sont parfois inclus dans les
 installations de TeX, et les deux premiers sont par ailleurs disponibles
-respectivement à l'adresse http://sourceforge.net/projects/dvipng/ et dans 
+respectivement à l'adresse http://sourceforge.net/projects/dvipng/ et dans
 `Ghostscript <http://www.ghostscript.com/>`_.
 
 Le rendu des graphes nécessite une version suffisamment récente de PGF, ainsi
-que les fichiers ``tkz-graph.sty``, ``tkz-arith.sty`` et suivant les cas  ``tkz-berge.sty``, tous issus du site web `Altermundus <http://www.altermundus.fr/pages/graph.html>`_ (`version anglaise
+que les fichiers ``tkz-graph.sty``, ``tkz-arith.sty`` et suivant les cas
+``tkz-berge.sty``, tous issus du site web `Altermundus
+<http://www.altermundus.fr/pages/graph.html>`_ (`version anglaise
 <http://altermundus.com/pages/graph/>`_).
 
 Programmes externes

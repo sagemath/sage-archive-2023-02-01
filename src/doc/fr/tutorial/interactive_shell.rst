@@ -382,7 +382,10 @@ Trucs et astuces IPython
 
 Comme signalé plus haut, Sage utilise l'interpréteur de commandes IPython, et
 met donc à votre disposition toutes les commandes et fonctionnalités de
-celui-ci. Vous voudrez peut-être consulter la `documentation complète de IPython <http://ipython.scipy.org/moin/Documentation>`_. Voici en attendant quelques astuces utiles -- qui reposent sur ce que IPython appelle des « commandes magiques » :
+celui-ci. Vous voudrez peut-être consulter la `documentation complète de IPython
+<http://ipython.scipy.org/moin/Documentation>`_. Voici en attendant quelques
+astuces utiles -- qui reposent sur ce que IPython appelle des « commandes
+magiques » :
 
 - La commande magique ``%bg`` lance une commande en arrière-plan. Le résultat
   sera ensuite accessible à travers l'objet ``jobs``, comme dans l'exemple

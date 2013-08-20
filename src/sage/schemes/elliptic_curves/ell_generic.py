@@ -48,6 +48,7 @@ AUTHORS:
 import math
 
 from sage.rings.all import PolynomialRing
+from sage.rings.polynomial.polynomial_ring import polygen, polygens
 import sage.groups.additive_abelian.additive_abelian_group as groups
 import sage.groups.generic as generic
 import sage.plot.all as plot
@@ -2024,7 +2025,8 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         -  ``m`` - a nonzero integer
 
         -  ``x_only`` - bool (default: False) if True, return
-           only the `x`-coordinate of the map.
+           only the `x`-coordinate of the map (as a rational function
+           in one variable).
 
 
         OUTPUT:
@@ -2032,12 +2034,13 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         (2-tuple) `(f(x), g(x,y))`, where `f` and `g` are rational
         functions with the degree of `y` in `g(x,y)` exactly 1.
 
+        or just `f(x)` if ``x_only`` is ``True``
 
         .. note:
 
-           The result is not cached.
+            The result is not cached.
 
-           ``m`` is allowed to be negative (but not 0).
+            ``m`` is allowed to be negative (but not 0).
 
         EXAMPLES::
 
@@ -2056,8 +2059,10 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         Grab only the x-coordinate (less work)::
 
-            sage: E.multiplication_by_m(2, x_only=True)
+            sage: mx = E.multiplication_by_m(2, x_only=True); mx
             (x^4 + 2*x^2 - 24*x + 1)/(4*x^3 - 4*x + 12)
+            sage: mx.parent()
+            Fraction Field of Univariate Polynomial Ring in x over Rational Field
 
         We check that it works on a point::
 
@@ -2078,8 +2083,8 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         And the same with multiplication by -1,-2,-3,-4::
 
             sage: for m in [-1,-2,-3,-4]:
-            ...       f = E.multiplication_by_m(m)
-            ...       assert E(eval(f,P)) == m*P
+            ....:     f = E.multiplication_by_m(m)
+            ....:     assert E(eval(f,P)) == m*P
 
         TESTS:
 
@@ -2097,7 +2102,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             ...       Q = -n*P
             ...       assert Q == E(eval(f,P))
 
-        The following test shows that \#4364 is indeed fixed::
+        The following test shows that :trac:`4364` is indeed fixed::
 
             sage: p = next_prime(2^30-41)
             sage: a = GF(p)(1)
@@ -2110,30 +2115,34 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         # Coerce the input m to be an integer
         m = rings.Integer(m)
+        if m == 0:
+            raise ValueError("m must be a non-zero integer")
 
-        if m==0:
-            raise ValueError, "m must be a non-zero integer"
-
-        R = PolynomialRing(self.base_ring(), 2, 'x,y')
-
-        # Kxy is the function field, containing the full division polynomial.
-        Kxy = R.fraction_field()
-        x,y = Kxy.gens()
+        if x_only:
+            x = polygen(self.base_ring(), 'x')
+        else:
+            x, y = polygens(self.base_ring(), 'x,y')
 
         # Special case of multiplication by 1 is easy.
         if m == 1:
-            return (x, y)
+            if not x_only:
+                return (x, y)
+            else:
+                return x
 
         # Grab curve invariants
-        a1,a2,a3,a4,a6 = self.a_invariants()
+        a1, a2, a3, a4, a6 = self.a_invariants()
 
         if m == -1:
-            return (x, -y-a1*x-a3)
+            if not x_only:
+                return (x, -y-a1*x-a3)
+            else:
+                return x
 
         # the x-coordinate does not depend on the sign of m.  The work
         # here is done by functions defined earlier:
 
-        mx = self._multiple_x_numerator(m.abs(),x) / self._multiple_x_denominator(m.abs(),x)
+        mx = self._multiple_x_numerator(m.abs(), x) / self._multiple_x_denominator(m.abs(), x)
 
         if x_only:
             # Return it if the optional parameter x_only is set.

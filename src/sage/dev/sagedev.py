@@ -2317,7 +2317,7 @@ class SageDev(object):
             TODO
 
         """
-        raise NotImplementedError # the below does most probably not work anymore
+        raise NotImplementedError # the below does most probably not work anymore TODO
         base = None
         if base == "dependencies":
             branch = self.git.current_branch()
@@ -2342,7 +2342,7 @@ class SageDev(object):
             TODO
 
         """
-        raise NotImplementedError # the below does most probably not work anymore
+        raise NotImplementedError # the below does most probably not work anymore TODO
         for branch in self.git.local_branches():
             if self.git.is_ancestor_of(branch, MASTER_BRANCH):
                 self._UI.show("Abandoning %s"%branch)
@@ -2373,7 +2373,7 @@ class SageDev(object):
             TODO
 
         """
-        raise NotImplementedError # the below does most probably not work anymore
+        raise NotImplementedError # the below does most probably not work anymore TODO
         if self._UI.confirm("Are you sure you want to delete your work on %s?"%self._ticket_repr(ticketnum), default=False):
             self.git.abandon(ticketnum)
 
@@ -2412,7 +2412,7 @@ class SageDev(object):
             TODO
 
         """
-        raise NotImplementedError # the below does most probably not work anymore
+        raise NotImplementedError # the below does most probably not work anymore TODO
         create_dependencies = kwds.pop('create_dependencies', True)
         download = kwds.pop('download', False)
         if len(tickets) == 0:
@@ -2473,7 +2473,7 @@ class SageDev(object):
             TODO
 
         """
-        raise NotImplementedError # the below does most probably not work anymore
+        raise NotImplementedError # the below does most probably not work anymore TODO
         if ticket is None:
             ticket = self._current_ticket()
         try:
@@ -2558,7 +2558,7 @@ class SageDev(object):
         - :meth:`gather` -- creates a new branch to merge into rather
           than merging into the current branch.
         """
-        raise NotImplementedError # the below does most probably not work anymore
+        raise NotImplementedError # the below does most probably not work anymore TODO
         curbranch = self.git.current_branch()
         if ticket == "dependencies":
             for dep in self._dependencies[curbranch]:
@@ -2630,7 +2630,7 @@ class SageDev(object):
             TODO
 
         """
-        raise NotImplementedError # the below does most probably not work anymore
+        raise NotImplementedError # the below does most probably not work anymore TODO
         raw_branches = self.git.read_output("branch").split()
         raw_branches.remove('*')
         branch_info = [(b, self._ticket[b]) for b in raw_branches
@@ -2670,7 +2670,7 @@ class SageDev(object):
             TODO
 
         """
-        raise NotImplementedError # the below most probably does not work anymore
+        raise NotImplementedError # the below most probably does not work anymore TODO
         if hasattr(release, 'literal'):
             release = release.literal
         release = str(release)
@@ -3235,22 +3235,20 @@ class SageDev(object):
 
             sage: import tempfile, os
             sage: tmp = tempfile.NamedTemporaryFile().name
-            sage: dev._upload_ssh_key(tmp, create_key_if_not_exists = False)
+            sage: dev._sagedev._upload_ssh_key(tmp, create_key_if_not_exists = False)
             Traceback (most recent call last):
             ...
             IOError: [Errno 2] No such file or directory: ...
-            sage: dev._upload_ssh_key(tmp, create_key_if_not_exists = True)
+            sage: dev._upload_ssh_key(tmp, create_key_if_not_exists = True) # not tested
             Generating ssh key....
             Ssh key successfully generated
-            sage: os.unlink(tmp)
-            sage: os.unlink(tmp+'.pub')
 
         TESTS::
 
             TODO
 
         """
-        raise NotImplementedError # the below does most probably not work anymore
+        raise NotImplementedError # the below does most probably not work anymore TODO
         cfg = self._config
 
         try:

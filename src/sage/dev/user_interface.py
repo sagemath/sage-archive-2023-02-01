@@ -173,7 +173,7 @@ class UserInterface(object):
             sage: UI.show("I ate filet mignon for dinner.", DEBUG)
 
         """
-        if self._config.get("log_level", NORMAL) >= log_level:
+        if self._config.get("log_level", INFO) >= log_level:
             self._show(message)
 
     def debug(self, message):
@@ -212,6 +212,9 @@ class UserInterface(object):
             sage: from sage.dev.test.config import DoctestConfig
             sage: UI = UserInterface(DoctestConfig())
             sage: UI.info("I ate filet mignon for dinner.")
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
 
         """
         self.show(message, INFO)

@@ -275,6 +275,7 @@ class DoctestTicketProxy(object):
             sage: trac = DoctestTracInterface(config['trac'], UI, DoctestTracServer())
             sage: ticket = trac._authenticated_server_proxy.ticket.create('summary', 'description', {})
             sage: trac._anonymous_server_proxy.ticket.listAttachments(ticket)
+            []
 
         """
         if ticket not in self._server_proxy._server.tickets:

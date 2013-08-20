@@ -2227,7 +2227,8 @@ class SageDev(object):
 
             sage: dev.download_patch(ticket=14882) # optional: internet
             ValueError: Ticket #14882 has more than one attachment but parameter `patchname` is not present, please set it to one of: trac_14882-backtrack_longtime-dg.patch, trac_14882-backtrack_longtime-dg-v2.patch, trac_14882-spelling_in_backtrack-dg.patch
-            sage: dev.download_patch(ticket=14882, patchname='trac_14882-backtrack_longtime-dg.patch')
+            sage: dev.download_patch(ticket=14882, patchname='trac_14882-backtrack_longtime-dg.patch') # optional: internet
+            ...
 
         TESTS:
 
@@ -2265,6 +2266,7 @@ class SageDev(object):
 
             sage: server.tickets[1].attachments['second.patch'] = ''
             sage: dev.download_patch(ticket=1)
+            ValueError: Ticket #1 has more than one attachment but parameter `patchname` is not present, please set it to one of: first.patch, second.patch
             sage: dev.download_patch(ticket=1, patchname = 'second.patch') # not tested, download_patch tries to talk to the live server
 
         """
@@ -2693,9 +2695,15 @@ class SageDev(object):
             Most Sage developpers have configured mercurial to export
             patches in git format.
 
-        EXAMPLES::
+        TESTS::
 
-            sage: dev._wrap("_detect_patch_diff_format")
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: from sage.dev.test.sagedev import DoctestSageDev
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: server = DoctestTracServer()
+            sage: config = DoctestConfig()
+            sage: dev = DoctestSageDev(config, server)
+
             sage: dev._detect_patch_diff_format(
             ....:     ["diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py"])
             'hg'
@@ -4266,6 +4274,13 @@ class SageDevValueError(ValueError):
     A ``ValueError`` to indicate that the user supplied an invaid value.
 
     EXAMPLES::
+
+        sage: from sage.dev.test.trac_server import DoctestTracServer
+        sage: from sage.dev.test.sagedev import DoctestSageDevWrapper
+        sage: from sage.dev.test.config import DoctestConfig
+        sage: server = DoctestTracServer()
+        sage: config = DoctestConfig()
+        sage: dev = DoctestSageDevWrapper(config, server)
 
         sage: dev.switch_ticket(-1)
         ValueError: `-1` is not a valid ticket name or ticket does not exist on trac.

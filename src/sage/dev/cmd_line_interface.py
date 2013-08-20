@@ -324,7 +324,7 @@ class CmdLineInterface(UserInterface):
         except EnvironmentError:
             height, width = float('inf'), float('inf')
 
-        message = message.strip().splitlines()
+        message = message.rstrip().splitlines()
         message = [line.rstrip() for line in message]
         if sum(len(l) // width + 1 for l in message) + 2 <= height:
             print(*message, sep='\n')

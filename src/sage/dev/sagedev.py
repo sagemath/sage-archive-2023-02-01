@@ -2166,64 +2166,73 @@ class SageDev(object):
         else:
             raise SageDevValueError("If `url` is not specified, `ticket` must be specified")
 
-    def diff(self, base=None):
-        r"""
-        Show how the current file system differs from ``base``.
-
-        INPUT:
-
-        - ``base`` -- show the differences against the latest
-          ``'commit'`` (the default), against the branch ``'master'``
-          (or any other branch name), or the merge of the
-          ``'dependencies'`` of the current ticket (if the
-          dependencies merge cleanly)
-
-        .. SEEALSO::
-
-        - :meth:`commit` -- record changes into the repository.
-
-        - :meth:`local_tickets` -- list local tickets (you may want to
-          commit your changes to a branch other than the current one).
-
-        TESTS::
-
-            TODO
-
-        """
-        raise NotImplementedError # the below does most probably not work anymore TODO
-        base = None
-        if base == "dependencies":
-            branch = self.git.current_branch()
-            try:
-                self.gather(self.trac.dependencies())
-                self.git.diff("%s..%s"%(HEAD,branch))
-            finally:
-                self.git.super_silent.checkout(branch)
-        else:
-            self.git.execute("diff", base)
-
     def prune_closed_tickets(self):
         r"""
         Remove branches for tickets that are already merged into master.
 
         .. SEEALSO::
 
-            :meth:`abandon_ticket` -- Abandon a single ticket or branch.
+            :meth:`abandon` -- Abandon a single ticket or branch.
 
-        TESTS::
+        TESTS:
 
-            TODO
+        Create a single user for doctesting::
+
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+
+        Create a ticket branch::
+
+            sage: UI.append("Summary: summary\ndescription")
+            sage: dev.create_ticket()
+            1
+            sage: UI.append("Summary: summary\ndescription")
+            sage: dev.local_tickets()
+              : master
+            #1: ticket/1
+
+        With a commit on it, the branch is not abandoned::
+
+            sage: open("tracked","w").close()
+            sage: dev.git.silent.add("tracked")
+            sage: dev.git.super_silent.commit(message="added tracked")
+            sage: dev.prune_closed_tickets()
+            sage: dev.local_tickets()
+              : master
+            #1: ticket/1
+
+        After merging it to the master branch, it is abandoned. This does not
+        work, because we cannot move the current branch::
+
+            sage: dev.git.super_silent.checkout("master")
+            sage: dev.git.super_silent.merge("ticket/1")
+
+            sage: dev.git.super_silent.checkout("ticket/1")
+            sage: dev.prune_closed_tickets()
+            Abandoning #1.
+            Can not delete `ticket/1` because you are currently on that branch.
+
+        Now, the branch is abandoned::
+
+            sage: dev.vanilla()
+            sage: dev.prune_closed_tickets()
+            Abandoning #1.
+            Moved your branch `ticket/1` to `trash/ticket/1`.
+            sage: dev.local_tickets()
+            : master
+            sage: dev.prune_closed_tickets()
 
         """
-        raise NotImplementedError # the below does most probably not work anymore TODO
         for branch in self.git.local_branches():
-            if self.git.is_ancestor_of(branch, MASTER_BRANCH):
-                self._UI.show("Abandoning %s"%branch)
-                self.git.abandon(branch)
+            if self._has_ticket_for_local_branch(branch):
+                ticket = self._ticket_for_local_branch(branch)
+                if self.git.is_ancestor_of(branch, MASTER_BRANCH):
+                    self._UI.show("Abandoning #{0}.".format(ticket))
+                    self.abandon(ticket)
 
     def abandon(self, ticket_or_branch=None):
         r"""
-        Abandon a ticket branch.
+        Abandon a ticket or branch.
 
         INPUT:
 
@@ -2238,17 +2247,45 @@ class SageDev(object):
         - :meth:`prune_closed_tickets` -- abandon tickets that have
           been closed.
 
-        - :meth:`local_tickets` -- list local tickets (by default only
-          showing the non-abandoned ones).
+        - :meth:`local_tickets` -- list local non-abandoned tickets.
 
-        TESTS::
+        TESTS:
 
             TODO
 
         """
-        raise NotImplementedError # the below does most probably not work anymore TODO
-        if self._UI.confirm("Are you sure you want to delete your work on %s?"%self._ticket_repr(ticketnum), default=False):
-            self.git.abandon(ticketnum)
+        if self._is_ticket_name(ticket_or_branch):
+            ticket = self._ticket_from_ticket_name(ticket_or_branch)
+
+            if not self._has_local_branch_for_ticket(ticket):
+                raise SageDevValueError("Can not abandon #{0}. You have no local branch for this ticket.".format(ticket))
+            ticket_or_branch = self._local_branch_for_ticket(ticket)
+
+        if self._is_local_branch_name(ticket_or_branch):
+            branch = ticket_or_branch
+            self._check_local_branch_name(branch, exists=True)
+
+            if branch == MASTER_BRANCH:
+                self._UI.error("I will not delete the master branch.")
+                raise OperationCancelledError("protecting the user")
+
+            if not self.git.is_ancestor_of(branch, MASTER_BRANCH):
+                if not self._UI.confirm("I will delete your local branch `{0}`. Is this what you want?".format(branch), default=False):
+                    raise OperationCancelledError("user requested")
+            from git_error import DetachedHeadError
+            try:
+                if self.git.current_branch() == branch:
+                    self._UI.error("Can not delete `{0}` because you are currently on that branch.".format(branch))
+                    self._UI.info("Use {0} to move to a different branch.".format(self._format_command("vanilla")))
+                    raise OperationCancelledError("can not delete current branch")
+            except DetachedHeadError:
+                pass
+
+            new_branch = self._new_local_branch_for_trash(branch)
+            self.git.super_silent.branch("-m", branch, new_branch)
+            self._UI.show("Moved your branch `{0}` to `{1}`.".format(branch, new_branch))
+        else:
+            raise SageDevValueError("ticket_or_branch must be the name of a ticket or a local branch")
 
     def gather(self, branchname, *tickets, **kwds):
         r"""
@@ -2306,6 +2343,42 @@ class SageDev(object):
                     message="Gathering %s into "%self._ticket_repr(ticket) +
                             "branch %s"%branchname,
                     **kwds)
+
+    def diff(self, base=None):
+        r"""
+        Show how the current file system differs from ``base``.
+
+        INPUT:
+
+        - ``base`` -- show the differences against the latest
+          ``'commit'`` (the default), against the branch ``'master'``
+          (or any other branch name), or the merge of the
+          ``'dependencies'`` of the current ticket (if the
+          dependencies merge cleanly)
+
+        .. SEEALSO::
+
+        - :meth:`commit` -- record changes into the repository.
+
+        - :meth:`local_tickets` -- list local tickets (you may want to
+          commit your changes to a branch other than the current one).
+
+        TESTS::
+
+            TODO
+
+        """
+        raise NotImplementedError # the below does most probably not work anymore TODO
+        base = None
+        if base == "dependencies":
+            branch = self.git.current_branch()
+            try:
+                self.gather(self.trac.dependencies())
+                self.git.diff("%s..%s"%(HEAD,branch))
+            finally:
+                self.git.super_silent.checkout(branch)
+        else:
+            self.git.execute("diff", base)
 
     def show_dependencies(self, ticket=None, all=False, _seen=None): # all = recursive
         r"""
@@ -2510,7 +2583,7 @@ class SageDev(object):
         branches = sorted(branches)
         self._UI.show("\n".join(branches))
 
-    def vanilla(self, release="release"):
+    def vanilla(self, release=SAGE_VERSION):
         r"""
         Returns to an official release of Sage.
 
@@ -2538,12 +2611,28 @@ class SageDev(object):
             TODO
 
         """
-        raise NotImplementedError # the below most probably does not work anymore TODO
         if hasattr(release, 'literal'):
             release = release.literal
-        release = str(release)
-        if self._UI.confirm("Are you sure you want to revert to %s?"%(release)):
-            self.git.switch_branch(release, detached = True)
+
+        try:
+            self.reset_to_clean_state()
+            self.reset_to_clean_working_directory()
+        except OperationCancelledError:
+            self._UI.error("Cannot switch to a release while your working directory is not clean.")
+            raise OperationCancelledError("working directory not clean")
+
+        # we do not do any checking on the argument here, trying to be liberal
+        # about what are valid inputs
+        try:
+            self.git.super_silent.checkout(release, detach=True)
+        except GitError as e:
+            try:
+                self.git.super_silent.fetch(self.git._repository, release)
+            except GitError as e:
+                self._UI.error("`{0}` does not exist locally or on the remote server.".format(release))
+                raise OperationCancelledError("no such tag/branch/...")
+
+            self.git.super_silent.checkout('FETCH_HEAD', detach=True)
 
     def _detect_patch_diff_format(self, lines):
         r"""
@@ -3786,6 +3875,29 @@ class SageDev(object):
         self._set_local_branch_for_ticket(ticket, branch)
         return self._local_branch_for_ticket(ticket, download_if_not_found=False)
 
+    def _new_local_branch_for_trash(self, branch):
+        r"""
+        Return a new local branch name to trash ``branch``.
+
+        TESTS::
+
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: dev = dev._sagedev
+
+            sage: dev._new_local_branch_for_trash('branch')
+            'trash/branch'
+            sage: dev.git.silent.branch('trash/branch')
+            sage: dev._new_local_branch_for_trash('branch')
+            'trash/branch_'
+
+        """
+        while True:
+            trash_branch = 'trash/{0}'.format(branch)
+            if self._is_trash_name(trash_branch, exists=False):
+                return trash_branch
+            branch = branch + "_"
+
     def _new_local_branch_for_stash(self):
         r"""
         Return a new local branch name for a stash.
@@ -4006,6 +4118,8 @@ class SageDev(object):
 
         if branch in self.__branch_to_remote_branch:
             return self.__branch_to_remote_branch[branch]
+        if branch == MASTER_BRANCH:
+            return MASTER_BRANCH
 
         return None
 

@@ -55,6 +55,8 @@ class DoctestTracServer(object):
         try:
             self.git.super_silent.commit(allow_empty=True, message='initial commit')
             if MASTER_BRANCH != "master": self.git.super_silent.checkout("-b", MASTER_BRANCH)
+            from sage.env import SAGE_VERSION
+            self.git.super_silent.tag(SAGE_VERSION)
         finally:
             os.chdir(old_cwd)
 

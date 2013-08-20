@@ -91,6 +91,8 @@ class SageDevWrapper(object):
         self._wrap("download_patch")
         self._wrap("edit_ticket")
         self._wrap("import_patch")
+        self._wrap("local_tickets")
+        self._wrap("prune_closed_tickets")
         self._wrap("remote_status")
         self._wrap("reset_to_clean_state")
         self._wrap("reset_to_clean_working_directory")
@@ -99,6 +101,7 @@ class SageDevWrapper(object):
         self._wrap("switch_ticket")
         self._wrap("unstash")
         self._wrap("upload")
+        self._wrap("vanilla")
 
         self.git = sagedev.git
         self.trac = sagedev.trac

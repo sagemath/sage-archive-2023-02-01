@@ -2113,7 +2113,6 @@ class SageDev(object):
             Rejected hunk #1.
             Applied patch tracked2 cleanly.
             The patch did not apply cleanly. Please integrate the `.rej` files that were created and resolve conflicts. After you do, type `resolved`. If you want to abort this process, type `abort`. [resolved/abort] resolved
-            Applying: No Subject. Modified: tracked, tracked2
             Removing tracked.rej
             sage: open("tracked").read() # we did not actually incorporate the .rej files in this doctest, so nothing has changed
             ''
@@ -2288,7 +2287,7 @@ class SageDev(object):
                 if len(attachments) == 1:
                     return self.download_patch(ticket = ticket, patchname = attachments[0])
                 else:
-                    raise SageDevValueError("Ticket #%s has more than one attachment but parameter `patchname` is not present, please set it to one of: %s"%(ticket,", ".join(attachments)))
+                    raise SageDevValueError("Ticket #%s has more than one attachment but parameter `patchname` is not present, please set it to one of: %s"%(ticket,", ".join(sorted(attachments))))
         elif not patchname:
             return self.download_patch(ticket=self._current_ticket())
         else:
@@ -2697,13 +2696,7 @@ class SageDev(object):
 
         TESTS::
 
-            sage: from sage.dev.test.trac_server import DoctestTracServer
-            sage: from sage.dev.test.sagedev import DoctestSageDev
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: server = DoctestTracServer()
-            sage: config = DoctestConfig()
-            sage: dev = DoctestSageDev(config, server)
-
+            sage: dev = dev._sagedev
             sage: dev._detect_patch_diff_format(
             ....:     ["diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py"])
             'hg'
@@ -2731,7 +2724,9 @@ class SageDev(object):
             sage: dev._detect_patch_diff_format(
             ... ["diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py",
             ...  "diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi"])
-            ValueError: File appears to have mixed diff formats.
+            Traceback (most recent call last):
+            ...
+            SageDevValueError: File appears to have mixed diff formats.
 
         """
         format = None

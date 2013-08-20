@@ -283,4 +283,4 @@ class DoctestTicketProxy(object):
             import xmlrpclib
             raise TracInternalError(xmlrpclib.Fault(404, "ticket does not exist"))
         ticket = self._server_proxy._server.tickets[ticket]
-        return ticket.attachments.keys()
+        return [ [k,None,None,None,None] for k in ticket.attachments.keys()]

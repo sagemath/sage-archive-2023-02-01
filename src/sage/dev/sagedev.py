@@ -689,13 +689,13 @@ class SageDev(object):
             # the error message should be self explanatory
             raise
 
-    def download(self, ticket_or_branch=None, branch=None):
+    def download(self, ticket_or_remote_branch=None, branch=None):
         r"""
         Download ``ticket_or_branch`` to ``branch``.
 
         INPUT:
 
-        - ``ticket_or_branch`` -- a string or an integer or ``None`` (default:
+        - ``ticket_or_remote_branch`` -- a string or an integer or ``None`` (default:
           ``None``), a ticket or a remote branch name; setting this to ``None``
           has the same effect as setting it to the :meth:`current_ticket`.
 
@@ -825,7 +825,8 @@ class SageDev(object):
         """
         if ticket_or_branch is None:
             ticket_or_branch = self._current_ticket()
-            branch = self.git.current_branch()
+            if branch is not None and branch != self.git.current_branch():
+                raise SageDevValueError("local_branch must be None")
 
         if ticket_or_branch is None:
             raise SageDevValueError("No `ticket_or_branch` specified to download.")

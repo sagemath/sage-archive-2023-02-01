@@ -198,10 +198,11 @@ def parser_from_method(parser, func, help_dict):
     for ix, arg in enumerate(argspec.args):
         extra = {}
         if ix < default_start:
-            name = arg
+            name = [arg]
             extra['type'] = str_to_value
         else:
-            name = '--' + arg
+            name = ['--'+n for n in arg.replace('_','-').split('-or-')]
+            extra['dest'] = arg
 
             default_value = argspec.defaults[ix - default_start]
             if default_value is False:
@@ -218,7 +219,8 @@ def parser_from_method(parser, func, help_dict):
 
         if arg in help_dict:
             extra['help'] = help_dict[arg]
-        parser.add_argument(name, **extra)
+
+        parser.add_argument(*name, **extra)
     if argspec.varargs is not None:
         extra = {'nargs': '*',
                  'type': str_to_value}

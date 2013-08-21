@@ -1019,6 +1019,15 @@ def random_matrix(ring, nrows, ncols=None, algorithm='randomize', *args, **kwds)
     -  ``*args, **kwds`` - arguments and keywords to describe additional properties.
        See more detailed documentation below.
 
+    .. warning::
+
+        An upper bound on the absolute value of the entries may be set
+        when the ``algorithm`` is ``echelonizable`` or ``unimodular``.
+        In these cases it is possible for this constructor to fail with
+        a ``ValueError``.   If you *must* have this routine return
+        successfully, do not set ``upper_bound``.  This behavior can
+        be partially controlled by a ``max_tries`` keyword.
+
     .. note::
 
         When constructing matrices with random entries and no additional properties
@@ -3186,7 +3195,7 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
 
     - ``upper_bound`` - If designated, size control of the matrix entries is desired.
       Set ``upper_bound`` to 1 more than the maximum value entries can achieve.
-      If None, no size control occurs. (default: None)
+      If None, no size control occurs. But see the warning below.  (default: None)
 
     - ``max_tries`` - If designated, number of tries used to generate each new random row;
       only matters when upper_bound!=None. Used to prevent endless looping. (default: 100)
@@ -3194,6 +3203,14 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
     OUTPUT:
 
     A matrix not in reduced row-echelon form with the desired dimensions and properties.
+
+    .. warning::
+
+        When ``upper_bound`` is set, it is possible for this constructor to
+        fail with a ``ValueError``.  This may happen when the ``upper_bound``,
+        ``rank`` and/or matrix dimensions are all so small that it becomes
+        infeasible or unlikely to create the requested matrix.  If you *must*
+        have this routine return successfully, do not set ``upper_bound``.
 
     .. note::
 
@@ -3314,6 +3331,8 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
     rows = parent.nrows()
     if rank<0:
         raise ValueError("matrices must have rank zero or greater.")
+    if rank>min(rows,parent.ncols()):
+        raise ValueError("matrices cannot have rank greater than min(ncols,nrows).")
     matrix = random_rref_matrix(parent, rank)
 
     # Entries of matrices over the ZZ or QQ can get large, entry size is regulated by finding the largest
@@ -3343,13 +3362,9 @@ def random_echelonizable_matrix(parent, rank, upper_bound=None, max_tries=100):
                matrix_copy = matrix
 
             rrr = range(len(matrix.pivots())-1,-1,-1)
-            print rrr
-            print matrix
             for pivots in rrr:
-#            for pivots in range(len(matrix.pivots())-1,-1,-1):
             # keep track of the pivot column positions from the pivot column with the largest index to
             # the one with the smallest.
-                print pivots
                 row_index=0
                 tries = 0
                 while row_index<rows:
@@ -3561,8 +3576,10 @@ def random_subspaces_matrix(parent, rank=None):
         left_nullity_generator = pd.RealDistribution("beta", [1.4, 5.5])
         nullity = int(left_nullity_generator.get_random_element()*(rows-1) + 1)
         rank = rows - nullity
+    if rank<0:
+        raise ValueError("matrices must have rank zero or greater.")
     if rank > rows or rank > columns:
-        raise ValueError("Rank cannot exceed the number of rows or columns.")
+        raise ValueError("rank cannot exceed the number of rows or columns.")
     nullity = rows - rank
     B = random_matrix(ring, rows, columns, algorithm='echelon_form',
             num_pivots=rank)
@@ -3585,8 +3602,8 @@ def random_subspaces_matrix(parent, rank=None):
     return J.inverse()*B
 
 @matrix_method
-def random_unimodular_matrix(parent, upper_bound=None):
-    """
+def random_unimodular_matrix(parent, upper_bound=None, max_tries=100):
+    r"""
     Generate a random unimodular (determinant 1) matrix of a desired size over a desired ring.
 
     INPUT:
@@ -3596,11 +3613,25 @@ def random_unimodular_matrix(parent, upper_bound=None):
       must be exact.
 
     - ``upper_bound`` - For large matrices over QQ or ZZ,
-      ``upper_bound`` is the largest value matrix entries can achieve.
+      ``upper_bound`` is the largest value matrix entries can achieve.  But
+      see the warning below.
+
+    - ``max_tries`` - If designated, number of tries used to generate each new random row;
+      only matters when upper_bound!=None. Used to prevent endless looping. (default: 100)
+
+    A matrix not in reduced row-echelon form with the desired dimensions and properties.
 
     OUTPUT:
 
     An invertible matrix with the desired properties and determinant 1.
+
+    .. warning::
+
+        When ``upper_bound`` is set, it is possible for this constructor to
+        fail with a ``ValueError``.  This may happen when the ``upper_bound``,
+        ``rank`` and/or matrix dimensions are all so small that it becomes
+        infeasible or unlikely to create the requested matrix.  If you *must*
+        have this routine return successfully, do not set ``upper_bound``.
 
     .. note::
 
@@ -3681,7 +3712,7 @@ def random_unimodular_matrix(parent, upper_bound=None):
         # random_echelonizable_matrix() always returns a determinant one matrix if given full rank.
         return random_matrix(ring, size, algorithm='echelonizable', rank=size)
     elif upper_bound!=None and (ring==ZZ or ring==QQ):
-        return random_matrix(ring, size,algorithm='echelonizable',rank=size, upper_bound=upper_bound)
+        return random_matrix(ring, size,algorithm='echelonizable',rank=size, upper_bound=upper_bound, max_tries=max_tries)
 
 
 @matrix_method

@@ -1217,9 +1217,9 @@ class SageInputExpression(object):
         r"""
         Initialize a \class{SageInputExpression}.
 
-        EXAMPLES:
-            sage: from sage.misc.sage_input import SageInputBuilder
+        EXAMPLES::
 
+            sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sie = sib(3) # indirect doctest
             sage: sie
@@ -1243,9 +1243,9 @@ class SageInputExpression(object):
         enough that duplicate uses are not worth caching.  Normally
         this will be true if the expression represents a single token.
 
-        EXAMPLES:
-            sage: from sage.misc.sage_input import SageInputBuilder
+        EXAMPLES::
 
+            sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sib.name('QQ')._sie_is_simple()
             True
@@ -1259,9 +1259,9 @@ class SageInputExpression(object):
         Returns a list of the immediate subexpressions of this
         \class{SageInputExpression}.
 
-        EXAMPLES:
-            sage: from sage.misc.sage_input import SageInputBuilder
+        EXAMPLES::
 
+            sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: len(sib(GF(2))._sie_referenced())
             2
@@ -1277,9 +1277,9 @@ class SageInputExpression(object):
         to replace with a variable (rather than generating the value
         multiple times).
 
-        EXAMPLES:
-            sage: from sage.misc.sage_input import SageInputBuilder, SageInputFormatter
+        EXAMPLES::
 
+            sage: from sage.misc.sage_input import SageInputBuilder, SageInputFormatter
             sage: sib = SageInputBuilder()
             sage: sif = SageInputFormatter()
             sage: pair = sib((GF(2), GF(2)))
@@ -1317,9 +1317,9 @@ class SageInputExpression(object):
         and register it with a \class{SageInputFormatter} (which will
         allocate a variable name at the end of the preparatory phase).
 
-        EXAMPLES:
-            sage: from sage.misc.sage_input import SageInputBuilder, SageInputFormatter
+        EXAMPLES::
 
+            sage: from sage.misc.sage_input import SageInputBuilder, SageInputFormatter
             sage: sib = SageInputBuilder()
             sage: sif = SageInputFormatter()
             sage: sie = sib(3)
@@ -1337,9 +1337,9 @@ class SageInputExpression(object):
         Get the variable name that the \class{SageInputFormatter} allocated
         for this \class{SageInputExpression}.
 
-        EXAMPLES:
-            sage: from sage.misc.sage_input import SageInputBuilder, SageInputFormatter
+        EXAMPLES::
 
+            sage: from sage.misc.sage_input import SageInputBuilder, SageInputFormatter
             sage: sib = SageInputBuilder()
             sage: sif = SageInputFormatter()
             sage: sie = sib(3)
@@ -1361,9 +1361,9 @@ class SageInputExpression(object):
         See the documentation for \method{SIE_unary._sie_is_negation}
         for useful examples.
 
-        EXAMPLES:
-            sage: from sage.misc.sage_input import SageInputBuilder, SageInputFormatter
+        EXAMPLES::
 
+            sage: from sage.misc.sage_input import SageInputBuilder, SageInputFormatter
             sage: sib = SageInputBuilder()
             sage: sie = sib.name('foo')
             sage: sie._sie_is_negation()
@@ -1377,9 +1377,9 @@ class SageInputExpression(object):
         \class{SageInputExpression} representing a function call node
         (with \code{self} as the function).
 
-        EXAMPLES:
-            sage: from sage.misc.sage_input import SageInputBuilder
+        EXAMPLES::
 
+            sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sie = sib(3)
             sage: sie(4)
@@ -1398,9 +1398,9 @@ class SageInputExpression(object):
 
         Currently, slices are not supported.
 
-        EXAMPLES:
-            sage: from sage.misc.sage_input import SageInputBuilder
+        EXAMPLES::
 
+            sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sie = sib(3)
             sage: sie[4]
@@ -1416,9 +1416,9 @@ class SageInputExpression(object):
         Given a \class{SageInputExpression}, build a new
         \class{SageInputExpression} representing an attribute access.
 
-        EXAMPLES:
-            sage: from sage.misc.sage_input import SageInputBuilder
+        EXAMPLES::
 
+            sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sie = sib.name('x')
             sage: sie.foo
@@ -1428,13 +1428,30 @@ class SageInputExpression(object):
         """
         return SIE_getattr(self._sie_builder, self, attr)
 
+    def _graphics_(self):
+        """
+        Disable graphical output.
+
+        This is necessary because otherwise our :meth:`__getattr__`
+        would be called.
+
+        EXAMPLES::
+
+            sage: from sage.misc.sage_input import SageInputBuilder
+            sage: sib = SageInputBuilder()
+            sage: sie = sib.name('x')
+            sage: sie._graphics_()
+            False
+        """
+        return False
+
     def __pow__(self, other):
         r"""
         Compute an expression tree for \code{self ** other}.
 
-        EXAMPLES:
-            sage: from sage.misc.sage_input import SageInputBuilder
+        EXAMPLES::
 
+            sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sie = sib(3)
             sage: sie ^ 4
@@ -1446,9 +1463,9 @@ class SageInputExpression(object):
         r"""
         Compute an expression tree for \code{self * other}.
 
-        EXAMPLES:
-            sage: from sage.misc.sage_input import SageInputBuilder
+        EXAMPLES::
 
+            sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sie = sib(3)
             sage: sie * 4
@@ -1460,9 +1477,9 @@ class SageInputExpression(object):
         r"""
         Compute an expression tree for \code{self / other}.
 
-        EXAMPLES:
-            sage: from sage.misc.sage_input import SageInputBuilder
+        EXAMPLES::
 
+            sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sie = sib(3)
             sage: sie / 4
@@ -1474,9 +1491,9 @@ class SageInputExpression(object):
         r"""
         Compute an expression tree for \code{self + other}.
 
-        EXAMPLES:
-            sage: from sage.misc.sage_input import SageInputBuilder
+        EXAMPLES::
 
+            sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sie = sib(3)
             sage: sie + 4
@@ -1488,9 +1505,9 @@ class SageInputExpression(object):
         r"""
         Compute an expression tree for \code{self - other}.
 
-        EXAMPLES:
-            sage: from sage.misc.sage_input import SageInputBuilder
+        EXAMPLES::
 
+            sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sie = sib(3)
             sage: sie - 4
@@ -1504,9 +1521,9 @@ class SageInputExpression(object):
         where OP is a string representing a binary operator (such as
         '+' or '**').
 
-        EXAMPLES:
-            sage: from sage.misc.sage_input import SageInputBuilder
+        EXAMPLES::
 
+            sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: v = sib.name('x')._sie_binop('%', sib.name('y'))
             sage: type(v)
@@ -1522,9 +1539,9 @@ class SageInputExpression(object):
         r"""
         Compute an expression tree for \code{-self}.
 
-        EXAMPLES:
-            sage: from sage.misc.sage_input import SageInputBuilder
+        EXAMPLES::
 
+            sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sie = sib(3)
             sage: -sie
@@ -1536,9 +1553,9 @@ class SageInputExpression(object):
         r"""
         Compute an expression tree for \code{~self}.
 
-        EXAMPLES:
-            sage: from sage.misc.sage_input import SageInputBuilder
+        EXAMPLES::
 
+            sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sie = sib(3)
             sage: ~sie
@@ -1550,9 +1567,9 @@ class SageInputExpression(object):
         r"""
         Compute an expression tree for \code{abs(self)}.
 
-        EXAMPLES:
-            sage: from sage.misc.sage_input import SageInputBuilder
+        EXAMPLES::
 
+            sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sie = sib(3)
             sage: abs(sie)
@@ -1566,9 +1583,9 @@ class SageInputExpression(object):
         where OP is a string representing a unary operator (such as
         '-' or '~').
 
-        EXAMPLES:
-            sage: from sage.misc.sage_input import SageInputBuilder
+        EXAMPLES::
 
+            sage: from sage.misc.sage_input import SageInputBuilder
             sage: sib = SageInputBuilder()
             sage: sie = sib(3)
             sage: v = sie._sie_unop('~')
@@ -1594,7 +1611,6 @@ class SageInputExpression(object):
         (that cannot be instantiated).
 
             sage: from sage.misc.sage_input import SageInputBuilder, SageInputFormatter
-
             sage: sib = SageInputBuilder()
             sage: sif = SageInputFormatter()
             sage: sie = sib(3)
@@ -1627,9 +1643,9 @@ class SageInputExpression(object):
         an error.  (This is to prevent accidental use of
         \class{SIE_assign} as a value.)
 
-        EXAMPLES:
-            sage: from sage.misc.sage_input import SageInputBuilder, SageInputFormatter
+        EXAMPLES::
 
+            sage: from sage.misc.sage_input import SageInputBuilder, SageInputFormatter
             sage: sib = SageInputBuilder()
             sage: sif = SageInputFormatter()
             sage: v = sib(3)

@@ -70,14 +70,10 @@ class SL2Z_class(Gamma0_class):
             sage: G([1,-1,0,1])
             [ 1 -1]
             [ 0  1]
-            sage: loads(G.dumps()) == G
-            True
+            sage: TestSuite(G).run()
             sage: SL2Z.0 * SL2Z.1
             [ 0 -1]
             [ 1  1]
-
-            sage: SL2Z == loads(dumps(SL2Z))
-            True
             sage: SL2Z is loads(dumps(SL2Z))
             True
         """
@@ -94,20 +90,37 @@ class SL2Z_class(Gamma0_class):
         """
         return _SL2Z_ref, ()
 
-    def __call__(self, x, check=True):
+    def _element_constructor_(self, x, check=True):
         r"""
-        Create an element of self from x. If check=True (the default), check
-        that x really defines a 2x2 integer matrix of det 1.
+        Create an element of self from x, which must be something that can be
+        coerced into a 2x2 integer matrix. If check=True (the default), check
+        that x really has determinant 1.
 
         EXAMPLE::
 
-            sage: SL2Z([1,0,0,1])
+            sage: SL2Z([1,0,0,1]) # indirect doctest
             [1 0]
             [0 1]
-            sage: SL2Z([1, QQ, False], check=False) # don't do this!
-            [1, Rational Field, False]
+            sage: SL2Z([2, 0, 0, 2], check=False) # don't do this!
+            [2 0]
+            [0 2]
+            sage: SL2Z([1, QQ, False], check=False) # don't do this either!
+            Traceback (most recent call last):
+            ...
+            TypeError: entries has the wrong length
         """
         return ArithmeticSubgroupElement(self, x, check=check)
+
+    def _contains_sl2(self,a,b,c,d):
+        r"""
+        Test whether [a,b,c,d] is an element of self, where a,b,c,d are integers with `ad-bc=1`. In other words, always return True.
+
+        EXAMPLE::
+
+            sage: [8,7,9,8] in SL2Z # indirect doctest
+            True
+        """
+        return True
 
     def _repr_(self):
         """

@@ -517,6 +517,9 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
             6144
             sage: ModularSymbols(1,4,sign=1).cuspidal_submodule().hecke_algebra().discriminant()
             1
+            sage: H = CuspForms(1, 24).hecke_algebra()
+            sage: H.discriminant()
+            83041344
         """
         try:
             return self.__disc

@@ -19,6 +19,7 @@ graphs.
     :meth:`~Graph.bipartite_sets` | Returns `(X,Y)` where X and Y are the nodes in each bipartite set of graph.
     :meth:`~Graph.bipartite_color` | Returns a dictionary with vertices as the keys and the color class as the values.
     :meth:`~Graph.is_directed` | Since graph is undirected, returns False.
+    :meth:`~Graph.join` | Returns the join of self and other.
 
 
 **Distances:**
@@ -202,6 +203,8 @@ AUTHORS:
 
 - Birk Eisermann (2012-06): added recognition of weakly chordal graphs and
                             long-hole-free / long-antihole-free graphs
+
+- Alexandre P. Zuge (2013-07): added join operation.
 
 
 Graph Format
@@ -1712,6 +1715,17 @@ class Graph(GenericGraph):
             sage: -1 in cycle
             True
 
+        TESTS:
+
+        :trac:`14434` is fixed::
+
+            sage: g = Graph({0:[1,4,5],3:[4,8,9],4:[9],5:[7,8],7:[9]})
+            sage: _,cycle = g.is_tree(certificate=True)
+            sage: g.size()
+            10
+            sage: g.add_cycle(cycle)
+            sage: g.size()
+            10
         """
 
         if self.order() == 0:
@@ -1729,9 +1743,8 @@ class Graph(GenericGraph):
             n = self.order()
             seen = {}
             u = self.vertex_iterator().next()
-            v = self.neighbor_iterator(u).next()
             seen[u] = u
-            stack = [(u,v)]
+            stack = [(u,v) for v in self.neighbor_iterator(u)]
             while stack:
                 u,v = stack.pop(-1)
                 if v in seen:
@@ -1776,7 +1789,7 @@ class Graph(GenericGraph):
             sage: g.is_forest(certificate = True)
             (True, None)
             sage: (2*g + graphs.PetersenGraph() + g).is_forest(certificate = True)
-            (False, [60, 61, 62, 63, 64])
+            (False, [63, 62, 61, 60, 64])
         """
         number_of_connected_components = len(self.connected_components())
         isit = (self.num_verts() ==
@@ -4457,6 +4470,65 @@ class Graph(GenericGraph):
         """
         from copy import copy
         return copy(self)
+
+    def join(self, other, verbose_relabel=True):
+        """
+        Returns the join of self and other.
+
+        INPUT:
+
+        - ``verbose_relabel`` - (defaults to True) If True, each vertex `v` in
+          the first graph will be named '0,v' and each vertex u in the second
+          graph will be named'1,u' in the final graph. If False, the vertices
+          of the first graph and the second graph will be relabeled with
+          consecutive integers.
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.generic_graph.GenericGraph.union`
+
+            * :meth:`~sage.graphs.generic_graph.GenericGraph.disjoint_union`
+
+        EXAMPLES::
+
+            sage: G = graphs.CycleGraph(3)
+            sage: H = Graph(2)
+            sage: J = G.join(H); J
+            Cycle graph join : Graph on 5 vertices
+            sage: J.vertices()
+            [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1)]
+            sage: J = G.join(H, verbose_relabel=False); J
+            Cycle graph join : Graph on 5 vertices
+            sage: J.vertices()
+            [0, 1, 2, 3, 4]
+            sage: J.edges()
+            [(0, 1, None), (0, 2, None), (0, 3, None), (0, 4, None), (1, 2, None), (1, 3, None), (1, 4, None), (2, 3, None), (2, 4, None)]
+
+        ::
+
+            sage: G = Graph(3)
+            sage: G.name("Graph on 3 vertices")
+            sage: H = Graph(2)
+            sage: H.name("Graph on 2 vertices")
+            sage: J = G.join(H); J
+            Graph on 3 vertices join Graph on 2 vertices: Graph on 5 vertices
+            sage: J.vertices()
+            [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1)]
+            sage: J = G.join(H, verbose_relabel=False); J
+            Graph on 3 vertices join Graph on 2 vertices: Graph on 5 vertices
+            sage: J.edges()
+            [(0, 3, None), (0, 4, None), (1, 3, None), (1, 4, None), (2, 3, None), (2, 4, None)]
+        """
+        G = self.disjoint_union(other, verbose_relabel)
+        if not verbose_relabel:
+            G.add_edges((u,v) for u in range(self.order())
+                        for v in range(self.order(), self.order()+other.order()))
+        else:
+            G.add_edges(((0,u), (1,v)) for u in self.vertices()
+                        for v in other.vertices())
+
+        G.name('%s join %s'%(self.name(), other.name()))
+        return G
 
     ### Visualization
 

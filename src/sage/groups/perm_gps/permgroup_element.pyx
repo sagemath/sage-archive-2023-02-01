@@ -772,7 +772,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: v = IncreasingIntArrays()([1,2,3,4])
             sage: G = PermutationGroup([[(1,2,3,4)]])
             sage: id = G.identity()

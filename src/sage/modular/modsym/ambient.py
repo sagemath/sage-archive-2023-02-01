@@ -78,6 +78,7 @@ import sage.misc.latex as latex
 import sage.misc.misc as misc
 
 import sage.matrix.matrix_space as matrix_space
+from sage.matrix.matrix_integer_2x2 import MatrixSpace_ZZ_2x2 as M2Z
 import sage.modules.free_module_element as free_module_element
 import sage.modules.free_module as free_module
 import sage.misc.misc as misc
@@ -1432,6 +1433,19 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             [ 2  0  0  0  1  0 -1]
             [ 0  0 -1  3 -1 -1  1]
             [ 0 -1 -1  1  0  1 -1]
+
+        Check that :trac:`13198` is fixed::
+
+            sage: M22 = ModularSymbols(Gamma1(22), sign=1)
+            sage: M2 = ModularSymbols(Gamma1(2))
+            sage: d1 = M2.degeneracy_map(M22,1)
+            sage: d2 = M2.degeneracy_map(M22,11)
+            sage: M22.hecke_matrix(17).restrict((d1.image() + d2.image()).free_module())
+            [18  0]
+            [ 0 18]
+            sage: S = M22.cuspidal_submodule()
+            sage: S.new_submodule().intersection(S.old_submodule()) == S.zero_submodule()
+            True
         """
         if t == 1:
             return self._degeneracy_raising_matrix_1(M)
@@ -2501,7 +2515,15 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
         N = self.level()
 
         # 1. Find coset representatives H for Gamma_0(M.level()) \ Gamma_0(self.level())
-        H = arithgroup.degeneracy_coset_representatives_gamma0(level, N, 1)
+        #    (need to be careful in some small levels, cf. #13198)
+
+        if arithgroup.is_Gamma0(M.group()):
+            H = arithgroup.degeneracy_coset_representatives_gamma0(level, N, 1)
+        elif arithgroup.is_Gamma1(M.group()):
+            H = arithgroup.degeneracy_coset_representatives_gamma1(level, N, 1)
+        else:
+            raise NotImplementedError("Degeneracy raising maps not implemented for GammaH levels")
+
         # 2. The map is
         #        [P,pi(g)] |--> sum_{h in H} [P, pi(h*g)]
         #
@@ -2512,7 +2534,7 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
         B = self.manin_basis()
         syms = self.manin_symbols()
         k = self.weight()
-        G = matrix_space.MatrixSpace(integer_ring.IntegerRing(),2)
+        G = M2Z()
         H = [G(h) for h in H]
         for n in B:
             z = M(0)

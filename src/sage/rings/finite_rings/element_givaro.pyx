@@ -1815,7 +1815,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             g = int(gap.eval('Int(Z(%s))'%cache.order_c()))
             n = self.log(mod(g, cache.order_c()))
             return 'Z(%s)^%s'%(cache.order_c(), n)
-        if not F._is_conway:
+        if not F.is_conway():
             raise NotImplementedError, "conversion of (Givaro) finite field element to GAP not implemented except for fields defined by Conway polynomials."
         if cache.order_c() > 65536:
             raise TypeError, "order (=%s) must be at most 65536."%F.order_c()

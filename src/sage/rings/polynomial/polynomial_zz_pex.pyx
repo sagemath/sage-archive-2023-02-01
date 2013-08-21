@@ -328,7 +328,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
             sage: K.<a>=GF(next_prime(2**60)**3)
             sage: R.<x> = PolynomialRing(K,implementation='NTL')
-            sage: P = x^3+(a+3)*x+1
+            sage: P = x^3+(2-a)*x+1
             sage: P.is_irreducible(algorithm="fast_when_false")
             True
             sage: P.is_irreducible(algorithm="fast_when_true")

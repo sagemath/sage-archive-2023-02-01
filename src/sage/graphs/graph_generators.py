@@ -128,12 +128,14 @@ __append_to_doc(
      "HoltGraph",
      "LjubljanaGraph",
      "McGeeGraph",
+     "McLaughlinGraph",
      "M22Graph",
      "MoebiusKantorGraph",
      "MoserSpindle",
      "NauruGraph",
      "PappusGraph",
      "PetersenGraph",
+     "RobertsonGraph",
      "SchlaefliGraph",
      "ShrikhandeGraph",
      "SimsGewirtzGraph",
@@ -1273,12 +1275,14 @@ class GraphGenerators():
     HoltGraph                = staticmethod(sage.graphs.generators.smallgraphs.HoltGraph)
     LjubljanaGraph           = staticmethod(sage.graphs.generators.smallgraphs.LjubljanaGraph)
     McGeeGraph               = staticmethod(sage.graphs.generators.smallgraphs.McGeeGraph)
+    McLaughlinGraph          = staticmethod(sage.graphs.generators.smallgraphs.McLaughlinGraph)
     M22Graph                 = staticmethod(sage.graphs.generators.smallgraphs.M22Graph)
     MoebiusKantorGraph       = staticmethod(sage.graphs.generators.smallgraphs.MoebiusKantorGraph)
     MoserSpindle             = staticmethod(sage.graphs.generators.smallgraphs.MoserSpindle)
     NauruGraph               = staticmethod(sage.graphs.generators.smallgraphs.NauruGraph)
     PappusGraph              = staticmethod(sage.graphs.generators.smallgraphs.PappusGraph)
     PetersenGraph            = staticmethod(sage.graphs.generators.smallgraphs.PetersenGraph)
+    RobertsonGraph           = staticmethod(sage.graphs.generators.smallgraphs.RobertsonGraph)
     SchlaefliGraph           = staticmethod(sage.graphs.generators.smallgraphs.SchlaefliGraph)
     ShrikhandeGraph          = staticmethod(sage.graphs.generators.smallgraphs.ShrikhandeGraph)
     SimsGewirtzGraph         = staticmethod(sage.graphs.generators.smallgraphs.SimsGewirtzGraph)

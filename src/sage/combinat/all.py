@@ -59,6 +59,9 @@ from partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk,
 #Vector Partitions
 from vector_partition import VectorPartition, VectorPartitions
 
+#Similarity class types
+from similarity_class_type import PrimarySimilarityClassType, PrimarySimilarityClassTypes, SimilarityClassType, SimilarityClassTypes
+
 #Cores
 from core import Core, Cores
 

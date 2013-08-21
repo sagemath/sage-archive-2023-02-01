@@ -549,11 +549,25 @@ class CycleIndexSeries(LazyPowerSeries):
         r"""
         Returns the functorial composition of self and g.
 
-        If `F`, `G`, and `H` are combinatorial
-        species such that ` H = F \Box G `, then the cycle index
-        series `Z_H = Z_F \Box Z_G` is defined as
+        If `F` and `G` are species, their functorial composition is the species
+        `F \Box G` obtained by setting `(F \Box G) [A] = F[ G[A] ]`.
+        In other words, an `(F \Box G)`-structure on a set `A` of labels is an
+        `F`-structure whose labels are the set of all `G`-structures on `A`.
 
-        EXAMPLES::
+        It can be shown (as in section 2.2 of [BLL]_) that there is a corresponding operation on cycle indices:
+
+        .. math::
+
+            Z_{F} \Box Z_{G} = \sum_{n \geq 0} \frac{1}{n!} \sum_{\sigma \in \mathfrak{S}_{n}} \operatorname{fix} F[ (G[\sigma])_{1}, (G[\sigma])_{2}, \dots ] \, p_{1}^{\sigma_{1}} p_{2}^{\sigma_{2}} \dots.
+
+        This method implements that operation on cycle index series.
+
+        EXAMPLES:
+
+        The species `G` of simple graphs can be expressed in terms of a functorial
+        composition: `G = \mathfrak{p} \Box \mathfrak{p}_{2}`, where
+        `\mathfrak{p}` is the :class:`~sage.combinat.species.subset_species.SubsetSpecies`.
+        This is how it is implemented in :meth:`~sage.combinat.species.library.SimpleGraphSpecies`::
 
             sage: S = species.SimpleGraphSpecies()
             sage: S.cycle_index_series().coefficients(5)

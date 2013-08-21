@@ -40,6 +40,7 @@ import sage.rings.ring as ring
 import sage.rings.padics.padic_base_leaves as padic_base_leaves
 
 from sage.rings.integer import Integer
+from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 
 from sage.misc.cachefunc import weak_cached_function
@@ -533,6 +534,9 @@ def _single_variate(base_ring, name, sparse, implementation):
             else:  # n == 1!
                 R = m.PolynomialRing_integral_domain(base_ring, name)   # specialized code breaks in this case.
 
+        elif is_FiniteField(base_ring) and not sparse:
+            R = m.PolynomialRing_dense_finite_field(base_ring, name, implementation=implementation)
+
         elif isinstance(base_ring, padic_base_leaves.pAdicFieldCappedRelative):
             R = m.PolynomialRing_dense_padic_field_capped_relative(base_ring, name)
 
@@ -546,7 +550,7 @@ def _single_variate(base_ring, name, sparse, implementation):
             R = m.PolynomialRing_dense_padic_ring_fixed_mod(base_ring, name)
 
         elif base_ring.is_field(proof = False):
-            R = m.PolynomialRing_field(base_ring, name, sparse, implementation=implementation)
+            R = m.PolynomialRing_field(base_ring, name, sparse)
 
         elif base_ring.is_integral_domain(proof = False):
             R = m.PolynomialRing_integral_domain(base_ring, name, sparse, implementation)

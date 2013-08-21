@@ -225,7 +225,8 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.connected_components_subgraphs` | Returns a list of connected components as graph objects.
     :meth:`~GenericGraph.connected_component_containing_vertex` | Returns a list of the vertices connected to vertex.
     :meth:`~GenericGraph.blocks_and_cut_vertices` | Computes the blocks and cut vertices of the graph.
-    :meth:=`~GenericGraph.is_cut_edge` | Returns True if the input edge is a cut-edge or a bridge.
+    :meth:`~GenericGraph.blocks_and_cuts_tree` | Computes the blocks-and-cuts tree of the graph.
+    :meth:`~GenericGraph.is_cut_edge` | Returns True if the input edge is a cut-edge or a bridge.
     :meth:`~GenericGraph.is_cut_vertex` | Returns True if the input vertex is a cut-vertex.
     :meth:`~GenericGraph.edge_cut` | Returns a minimum edge cut between vertices `s` and `t`
     :meth:`~GenericGraph.vertex_cut` | Returns a minimum vertex cut between non-adjacent vertices `s` and `t`
@@ -281,6 +282,7 @@ can be applied on both. Here is what it can do:
 
     :meth:`~GenericGraph.steiner_tree` | Returns a tree of minimum weight connecting the given set of vertices.
     :meth:`~GenericGraph.edge_disjoint_spanning_trees` | Returns the desired number of edge-disjoint spanning trees/arborescences.
+    :meth:`~GenericGraph.feedback_vertex_set` | Computes the minimum feedback vertex set of a (di)graph.
     :meth:`~GenericGraph.multiway_cut` | Returns a minimum edge multiway cut
     :meth:`~GenericGraph.max_cut` | Returns a maximum edge cut of the graph.
     :meth:`~GenericGraph.longest_path` | Returns a longest path of ``self``.
@@ -3871,6 +3873,7 @@ class GenericGraph(GenericGraph_pyx):
           We implement the algorithm proposed by Tarjan in [Tarjan72]_. The
           original version is recursive. We emulate the recursion using a stack.
 
+        .. SEEALSO:: :meth:`blocks_and_cuts_tree`
 
         EXAMPLES::
 
@@ -4004,6 +4007,55 @@ class GenericGraph(GenericGraph_pyx):
 
         return blocks,sorted(list(cut_vertices))
 
+    def blocks_and_cuts_tree(self):
+        """
+        Returns the blocks-and-cuts tree of ``self``.
+
+        This new graph has two different kinds of vertices, some
+        representing the blocks (type B) and some other the cut
+        vertices of the graph ``self`` (type C).
+
+        There is an edge between a vertex `u` of type B and a vertex
+        `v` of type C if the cut-vertex corresponding to `v` is in the
+        block corresponding to `u`.
+
+        The resulting graph is a tree, with the additional
+        characteristic property that the distance between two leaves
+        is even.
+
+        .. SEEALSO:: :meth:`blocks_and_cut_vertices`
+
+        EXAMPLES::
+
+            sage: T = graphs.KrackhardtKiteGraph().blocks_and_cuts_tree(); T
+            Graph on 5 vertices
+            sage: T.is_isomorphic(graphs.PathGraph(5))
+            True
+
+            sage: T = graphs.RandomTree(40).blocks_and_cuts_tree()
+            sage: T.is_tree()
+            True
+            sage: leaves = [v for v in T if T.degree(v) == 1]
+            sage: all(T.distance(u,v) % 2 == 0 for u in leaves for v in leaves)
+            True
+
+        REFERENCES:
+
+        .. [HarPri] F. Harary and G. Prins. The block-cutpoint-tree of
+           a graph. Publ. Math. Debrecen 13 1966 103-107.
+        .. [Gallai] T. Gallai, Elementare Relationen bezueglich der
+           Glieder und trennenden Punkte von Graphen, Magyar
+           Tud. Akad. Mat. Kutato Int. Kozl. 9 (1964) 235-236
+        """
+        from sage.graphs.graph import Graph
+        B, C = self.blocks_and_cut_vertices()
+        B = map(tuple, B)
+        G = Graph()
+        for bloc in B:
+            for c in bloc:
+                if c in C:
+                    G.add_edge(('B', bloc), ('C', c))
+        return G
 
     def is_cut_edge(self, u, v=None, label=None):
         """
@@ -4999,7 +5051,7 @@ class GenericGraph(GenericGraph_pyx):
         height = p.new_variable(dim = 2)
 
         # cut[e] represents whether e is in the cut
-        cut = p.new_variable()
+        cut = p.new_variable(binary = True)
 
         # Reorder
         R = lambda x,y : (x,y) if x<y else (y,x)
@@ -5041,8 +5093,6 @@ class GenericGraph(GenericGraph_pyx):
                     p.add_constraint( height[(s,t)][u] - height[(s,t)][v] - cut[R(u,v)], max = 0)
                     p.add_constraint( height[(s,t)][v] - height[(s,t)][u] - cut[R(u,v)], max = 0)
 
-
-        p.set_binary(cut)
         if value_only:
             if use_edge_labels:
                 return p.solve(objective_only = True, log = verbose)
@@ -5054,10 +5104,10 @@ class GenericGraph(GenericGraph_pyx):
         cut = p.get_values(cut)
 
         if self.is_directed():
-            return filter(lambda (u,v,l) : cut[u,v] > .5, self.edge_iterator())
+            return filter(lambda (u,v,l) : cut[u,v] == 1, self.edge_iterator())
 
         else:
-            return filter(lambda (u,v,l) : cut[R(u,v)] > .5, self.edge_iterator())
+            return filter(lambda (u,v,l) : cut[R(u,v)] ==1, self.edge_iterator())
 
 
     def max_cut(self, value_only=True, use_edge_labels=False, vertices=False, solver=None, verbose=0):
@@ -5571,14 +5621,14 @@ class GenericGraph(GenericGraph_pyx):
         vertex_used = p.get_values(vertex_used)
         if self._directed:
             g = self.subgraph(
-                vertices=(v for v in self if vertex_used[v] >= 0.5),
+                vertices=(v for v in self if vertex_used[v] == 1),
                 edges=((u,v,l) for u, v, l in self.edges()
-                       if edge_used[(u,v)] >= 0.5))
+                       if edge_used[(u,v)] == 1))
         else:
             g = self.subgraph(
-                vertices=(v for v in self if vertex_used[v] >= 0.5),
+                vertices=(v for v in self if vertex_used[v] == 1),
                 edges=((u,v,l) for u, v, l in self.edges()
-                       if f_edge_used(u,v) >= 0.5))
+                       if f_edge_used(u,v) == 1))
         if use_edge_labels:
             return sum(map(weight, g.edge_labels())), g
         else:
@@ -5857,7 +5907,7 @@ class GenericGraph(GenericGraph_pyx):
                     # We build the DiGraph representing the current solution
                     h = DiGraph()
                     for u,v,l in g.edges():
-                        if p.get_values(b[u][v]) > .5:
+                        if p.get_values(b[u][v]) == 1:
                             h.add_edge(u,v,l)
 
                     # If there is only one circuit, we are done !
@@ -5908,7 +5958,7 @@ class GenericGraph(GenericGraph_pyx):
                     # We build the DiGraph representing the current solution
                     h = Graph()
                     for u,v,l in g.edges():
-                        if p.get_values(B(u,v)) > .5:
+                        if p.get_values(B(u,v)) == 1:
                             h.add_edge(u,v,l)
 
                     # If there is only one circuit, we are done !
@@ -6131,6 +6181,233 @@ class GenericGraph(GenericGraph_pyx):
 
         else:
             raise ValueError("``algorithm`` (%s) should be 'tsp' or 'backtrack'."%(algorithm))
+
+    def feedback_vertex_set(self, value_only=False, solver=None, verbose=0, constraint_generation = True):
+        r"""
+        Computes the minimum feedback vertex set of a (di)graph.
+
+        The minimum feedback vertex set of a (di)graph is a set of vertices that
+        intersect all of its cycles.  Equivalently, a minimum feedback vertex
+        set of a (di)graph is a set `S` of vertices such that the digraph `G-S`
+        is acyclic. For more information, see :wikipedia:`Feedback_vertex_set`.
+
+        INPUT:
+
+        - ``value_only`` -- boolean (default: ``False``)
+
+          - When set to ``True``, only the minimum cardinal of a minimum vertex
+            set is returned.
+
+          - When set to ``False``, the ``Set`` of vertices of a minimal feedback
+            vertex set is returned.
+
+        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
+          solver to be used. If set to ``None``, the default one is used. For
+          more information on LP solvers and which default solver is used,
+          see the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``verbose`` -- integer (default: ``0``). Sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        - ``constraint_generation`` (boolean) -- whether to use constraint
+          generation when solving the Mixed Integer Linear Program (default:
+          ``True``).
+
+        ALGORITHMS:
+
+        (Constraints generation)
+
+        When the parameter ``constraint_generation`` is enabled (default) the
+        following MILP formulation is used to solve the problem:
+
+        .. MATH::
+
+            \mbox{Minimize : }&\sum_{v\in G} b_{v}\\
+            \mbox{Such that : }&\\
+            &\forall C\text{ circuits }\subseteq G, \sum_{v\in C}b_{v}\geq 1\\
+
+        As the number of circuits contained in a graph is exponential, this LP
+        is solved through constraint generation. This means that the solver is
+        sequentially asked to solve the problem, knowing only a portion of the
+        circuits contained in `G`, each time adding to the list of its
+        constraints the circuit which its last answer had left intact.
+
+        (Another formulation based on an ordering of the vertices)
+
+        When the graph is directed, a second (and very slow) formulation is
+        available, which should only be used to check the result of the first
+        implementation in case of doubt.
+
+        .. MATH::
+
+            \mbox{Minimize : }&\sum_{v\in G} b_v\\
+            \mbox{Such that : }&\\
+            &\forall (u,v)\in G, d_u-d_v+nb_u+nb_v\geq 0\\
+            &\forall u\in G, 0\leq d_u\leq |G|\\
+
+        A brief explanation:
+
+        An acyclic digraph can be seen as a poset, and every poset has a linear
+        extension. This means that in any acyclic digraph the vertices can be
+        ordered with a total order `<` in such a way that if `(u,v)\in G`, then
+        `u<v`.  Thus, this linear program is built in order to assign to each
+        vertex `v` a number `d_v\in [0,\dots,n-1]` such that if there exists an
+        edge `(u,v)\in G` then either `d_v<d_u` or one of `u` or `v` is removed.
+        The number of vertices removed is then minimized, which is the
+        objective.
+
+        EXAMPLES:
+
+        The necessary example::
+
+            sage: g = graphs.PetersenGraph()
+            sage: fvs = g.feedback_vertex_set()
+            sage: len(fvs)
+            3
+            sage: g.delete_vertices(fvs)
+            sage: g.is_forest()
+            True
+
+        In a digraph built from a graph, any edge is replaced by arcs going in
+        the two opposite directions, thus creating a cycle of length two.
+        Hence, to remove all the cycles from the graph, each edge must see one
+        of its neighbors removed: a feedback vertex set is in this situation a
+        vertex cover::
+
+            sage: cycle = graphs.CycleGraph(5)
+            sage: dcycle = DiGraph(cycle)
+            sage: cycle.vertex_cover(value_only=True)
+            3
+            sage: feedback = dcycle.feedback_vertex_set()
+            sage: len(feedback)
+            3
+            sage: (u,v,l) = cycle.edge_iterator().next()
+            sage: u in feedback or v in feedback
+            True
+
+        For a circuit, the minimum feedback arc set is clearly `1`::
+
+            sage: circuit = digraphs.Circuit(5)
+            sage: circuit.feedback_vertex_set(value_only=True) == 1
+            True
+
+        TESTS:
+
+        Comparing with/without constraint generation::
+
+            sage: g = digraphs.RandomDirectedGNP(10,.3)
+            sage: x = g.feedback_vertex_set(value_only = True)
+            sage: y = g.feedback_vertex_set(value_only = True,
+            ....:          constraint_generation = False)
+            sage: x == y
+            True
+
+        Bad algorithm::
+
+            sage: g = graphs.PetersenGraph()
+            sage: g.feedback_vertex_set(constraint_generation = False)
+            Traceback (most recent call last):
+            ...
+            ValueError: The only implementation available for undirected graphs is with constraint_generation set to True.
+        """
+        if not constraint_generation and not self.is_directed():
+            raise ValueError("The only implementation available for "
+                             "undirected graphs is with constraint_generation "
+                             "set to True.")
+
+        # It would be a pity to start a LP if the graph is already acyclic
+        if ((not self.is_directed() and self.is_forest()) or
+            (    self.is_directed() and self.is_directed_acyclic())):
+            if value_only:
+                return 0
+            return []
+
+        from sage.numerical.mip import MixedIntegerLinearProgram
+
+        ########################################
+        # Constraint Generation Implementation #
+        ########################################
+        if constraint_generation:
+
+            p = MixedIntegerLinearProgram(constraint_generation = True,
+                                          maximization = False)
+
+            # A variable for each vertex
+            b = p.new_variable(binary = True)
+
+            # Variables are binary, and their coefficient in the objective is 1
+
+            p.set_objective(p.sum( b[v] for v in self))
+
+            p.solve(log = verbose)
+
+            # For as long as we do not break because the digraph is
+            # acyclic....
+            while True:
+
+                # Building the graph without the edges removed by the LP
+                h = self.subgraph(vertices =
+                                  [v for v in self if p.get_values(b[v]) == 0])
+
+                # Is the graph acyclic ?
+                if self.is_directed():
+                    isok, certificate = h.is_directed_acyclic(certificate = True)
+                else:
+                    isok, certificate = h.is_forest(certificate = True)
+
+                # If so, we are done !
+                if isok:
+                    break
+
+                if verbose:
+                    print "Adding a constraint on circuit : ",certificate
+
+                # There is a circuit left. Let's add the corresponding
+                # constraint !
+
+                p.add_constraint(p.sum(b[v] for v in certificate), min = 1)
+
+                obj = p.solve(log = verbose)
+
+            if value_only:
+                return obj
+
+            else:
+
+                # listing the edges contained in the MFVS
+                return [v for v in self if p.get_values(b[v]) == 1]
+
+        else:
+
+        ######################################
+        # Ordering-based MILP Implementation #
+        ######################################
+
+            p = MixedIntegerLinearProgram(maximization = False, solver = solver)
+
+            b = p.new_variable(binary = True)
+            d = p.new_variable(integer = True)
+            n = self.order()
+
+            # The removed vertices cover all the back arcs ( third condition )
+            for (u,v) in self.edges(labels = None):
+                p.add_constraint(d[u]-d[v]+n*(b[u]+b[v]), min = 1)
+
+            for u in self:
+                p.add_constraint(d[u], max = n)
+
+            p.set_objective(p.sum([b[v] for v in self]))
+
+            if value_only:
+                return Integer(round(p.solve(objective_only = True, log = verbose)))
+            else:
+                p.solve(log=verbose)
+                b_sol = p.get_values(b)
+
+                return [v for v in self if b_sol[v] == 1]
 
     def flow(self, x, y, value_only=True, integer=False, use_edge_labels=True, vertex_bound=False, method = None, solver=None, verbose=0):
         r"""
@@ -13055,17 +13332,20 @@ class GenericGraph(GenericGraph_pyx):
         """
         Returns the disjoint union of self and other.
 
-        If the graphs have common vertices, the vertices will be renamed to
-        form disjoint sets.
-
         INPUT:
 
-        -  ``verbose_relabel`` - (defaults to True) If True
-           and the graphs have common vertices, then each vertex v in the
-           first graph will be changed to '0,v' and each vertex u in the
-           second graph will be changed to '1,u'. If False, the vertices of
-           the first graph and the second graph will be relabeled with
-           consecutive integers.
+        - ``verbose_relabel`` - (defaults to True) If True, each
+          vertex v in the first graph will be named '0,v' and each
+          vertex u in the second graph will be named '1,u' in the
+          final graph. If False, the vertices of the first graph and
+          the second graph will be relabeled with consecutive
+          integers.
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.generic_graph.GenericGraph.union`
+
+            * :meth:`~Graph.join`
 
         EXAMPLES::
 
@@ -13080,9 +13360,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: J.vertices()
             [0, 1, 2, 3, 4, 5, 6]
 
-        If the vertices are already disjoint and verbose_relabel is True,
-        then the vertices are not relabeled.
-
         ::
 
             sage: G=Graph({'a': ['b']})
@@ -13093,7 +13370,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: J=G.disjoint_union(H); J
             Custom path disjoint_union Cycle graph: Graph on 5 vertices
             sage: J.vertices()
-            [0, 1, 2, 'a', 'b']
+            [(0, 'a'), (0, 'b'), (1, 0), (1, 1), (1, 2)]
         """
         if (self._directed and not other._directed) or (not self._directed and other._directed):
             raise TypeError('both arguments must be of the same class')
@@ -13105,12 +13382,10 @@ class GenericGraph(GenericGraph_pyx):
             for v in other:
                 r_other[v] = i; i += 1
             G = self.relabel(r_self, inplace=False).union(other.relabel(r_other, inplace=False))
-        elif any(u==v for u in self for v in other):
+        else:
             r_self = dict([[v,(0,v)] for v in self])
             r_other = dict([[v,(1,v)] for v in other])
             G = self.relabel(r_self, inplace=False).union(other.relabel(r_other, inplace=False))
-        else:
-            G = self.union(other)
 
         G.name('%s disjoint_union %s'%(self.name(), other.name()))
         return G
@@ -13121,6 +13396,12 @@ class GenericGraph(GenericGraph_pyx):
 
         If the graphs have common vertices, the common vertices will be
         identified.
+
+        .. SEEALSO::
+
+            * :meth:`~sage.graphs.generic_graph.GenericGraph.disjoint_union`
+
+            * :meth:`~Graph.join`
 
         EXAMPLES::
 

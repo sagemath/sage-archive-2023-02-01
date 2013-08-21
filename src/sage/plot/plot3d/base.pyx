@@ -50,8 +50,6 @@ include "point_c.pxi"
 
 from sage.interfaces.tachyon import tachyon_rt
 
-from sage.plot.all import show_default
-
 # import the double infinity constant
 cdef extern from "math.h":
      enum: INFINITY
@@ -64,24 +62,45 @@ cdef class Graphics3d(SageObject):
     """
     This is the baseclass for all 3d graphics objects.
     """
-    def __repr__(self):
+    def _repr_(self):
         """
-        When show_default is True, objects are displayed rather than
-        string representations printed.
+        Return a string representation.
+
+        OUTPUT:
+
+        String.
 
         EXAMPLES::
 
             sage: S = sphere((0, 0, 0), 1)
-            sage: show_default(False); S
+            sage: print S
             Graphics3d Object
-            sage: show_default(True); S
-
         """
-        if show_default():
-            self.show()
-            return ''
-        else:
-            return str(self)
+        return str(self)
+
+    def _graphics_(self):
+        """
+        Show graphics.
+
+        The presence of this method is used by the displayhook to
+        decide that we want to see a graphical output by default.
+
+        OUTPUT:
+
+        Return ``True`` if graphical output was generated (might not
+        be shown in doctest mode), otherwise ``False``.
+
+        EXAMPLES::
+
+            sage: S = sphere((0, 0, 0), 1)
+            sage: S._graphics_()
+            True
+            sage: S  # also productes graphics
+            sage: [S, S]
+            [Graphics3d Object, Graphics3d Object]
+        """
+        self.show()
+        return True
 
     def __str__(self):
         """

@@ -384,6 +384,7 @@ class PermutationGroup_generic(group.Group):
 
             sage: TestSuite(PermutationGroup([[]])).run()
             sage: TestSuite(PermutationGroup([])).run()
+            sage: TestSuite(PermutationGroup([(0,1)])).run()
         """
         from sage.categories.finite_permutation_groups import FinitePermutationGroups
         super(PermutationGroup_generic, self).__init__(category = FinitePermutationGroups().or_subcategory(category))
@@ -408,7 +409,7 @@ class PermutationGroup_generic(group.Group):
             #to make the domain contain all integers up to the max.
             #This is needed for backward compatibility
             if all(isinstance(p, (Integer, int, long)) for p in domain):
-                domain = range(1, max([1] + domain)+1)
+                domain = range(min([1] + domain), max([1] + domain)+1)
 
         if domain not in FiniteEnumeratedSets():
             domain = FiniteEnumeratedSet(domain)

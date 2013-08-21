@@ -696,6 +696,24 @@ class SupersingularModule(hecke.HeckeModule_free_module):
         else:
             return cmp( (self.__level, self.__prime, self.base_ring()), (other.__level, other.__prime, other.base_ring()))
 
+    def free_module(self):
+        """
+        EXAMPLES::
+
+            sage: X = SupersingularModule(37)
+            sage: X.free_module()
+            Ambient free module of rank 3 over the principal ideal domain Integer Ring
+
+        This illustrates the fix at :trac:`4306`::
+
+            sage: X = SupersingularModule(389)
+            sage: X.basis()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        return rings.ZZ**self.dimension()
+
     def dimension(self):
         r"""
         Return the dimension of the space of modular forms of weight 2

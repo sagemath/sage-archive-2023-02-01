@@ -46,7 +46,6 @@ from sage.rings.padics.padic_printing cimport pAdicPrinter_class
 from sage.rings.rational cimport Rational
 
 import sage.rings.padics.padic_generic_element
-#import sage.rings.padics.padic_lazy_element
 import sage.rings.finite_rings.integer_mod
 import sage.rings.integer
 import sage.rings.rational
@@ -56,7 +55,8 @@ from sage.rings.infinity import infinity
 from sage.rings.finite_rings.integer_mod import Mod
 from sage.rings.padics.precision_error import PrecisionError
 
-#from sage.rings.padics.padic_lazy_element import pAdicLazyElement
+from sage.interfaces.gp import GpElement
+
 
 cdef PariInstance P = sage.libs.pari.all.pari
 
@@ -163,8 +163,11 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
         # todo: doctests for converting from other types of p-adic rings
 
+        Test that :trac:`3865` is fixed::
+
+            sage: ZpCR(7, 10)(gp('7 + O(7^2)'))
+            7 + O(7^2)
         """
-        #print "x = %s, type = %s, absprec = %s, relprec = %s"%(x, type(x),absprec, relprec)
         cdef RingElement ordp
         cdef mpz_t modulus, tmp2
         cdef GEN pari_tmp
@@ -187,25 +190,6 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 raise ValueError, "element has negative valuation."
             if parent.prime() != x.parent().prime():
                 raise TypeError, "Cannot coerce between p-adic parents with different primes"
-        #if isinstance(x, pAdicLazyElement):
-        #    ## One can do this in a better way to minimize the amount of
-        #    ## increasing precision on x.
-        #    if absprec is infinity:
-        #        try:
-        #            x.set_precision_relative(relprec)
-        #        except PrecisionError:
-        #            pass
-        #    else:
-        #        try:
-        #            x.set_precision_absolute(absprec)
-        #        except PrecisionError:
-        #            pass
-
-        #    if (relprec is infinity) or (x.precision_relative() < relprec):
-        #        try:
-        #            x.set_precision_relative(relprec)
-        #        except PrecisionError:
-        #            pass
 
         if PY_TYPE_CHECK(x, Integer):
             self._set_from_Integer(x, absprec, relprec)
@@ -261,8 +245,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 mpz_clear(modulus)
                 raise TypeError, "cannot coerce from the given integer mod ring (not a power of the same prime)"
 
-        elif isinstance(x, pari_gen):
-
+        elif isinstance(x, pari_gen) or isinstance(x, GpElement):
+            if isinstance(x, GpElement):
+                x = x._pari_()
             pari_tmp = (<pari_gen>x).g
 
             #if x.type() == "t_PADIC":

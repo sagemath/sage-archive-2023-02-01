@@ -797,6 +797,114 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         from sage.combinat.permutation import Permutation
         return Permutation(self._postfix_word())
 
+    @combinatorial_map(name="To complete tree")
+    def as_ordered_tree(self,with_leaves=True):
+        r"""
+        Return the same tree seen as an ordered tree. By default, leaves
+        are transformed into actual nodes.
+
+        EXAMPLES::
+
+            sage: bt = BinaryTree([]); bt
+            [., .]
+            sage: bt.as_ordered_tree()
+            [[], []]
+            sage: bt.as_ordered_tree(with_leaves = False)
+            []
+            sage: bt = bt.canonical_labelling(); bt
+            1[., .]
+            sage: bt.as_ordered_tree()
+            1[None[], None[]]
+            sage: bt.as_ordered_tree(with_leaves=False)
+            1[]
+        """
+        if with_leaves:
+            children = [child.as_ordered_tree(with_leaves) for child in self]
+        else:
+            children = [child.as_ordered_tree(with_leaves) for child in self if not child.is_empty()]
+        if self in LabelledBinaryTrees():
+            from sage.combinat.ordered_tree import LabelledOrderedTree
+            return LabelledOrderedTree(children, label = self.label())
+        else:
+            from sage.combinat.ordered_tree import OrderedTree
+            return OrderedTree(children)
+
+    @combinatorial_map(name="To graph")
+    def to_undirected_graph(self, with_leaves = False):
+        r"""
+        Return the undirected graph obtained from the tree nodes and edges.
+        Leafs are ignored by default but can set ``with_leaves`` to ``True``
+        to obtain the graph of the complete tree.
+
+        EXAMPLES::
+
+            sage: bt = BinaryTree([])
+            sage: bt.to_undirected_graph()
+            Graph on 1 vertex
+            sage: bt.to_undirected_graph(with_leaves=True)
+            Graph on 3 vertices
+
+        If the tree is labelled, we use its labelling to label the graph.
+        Otherwise, we use the graph canonical labelling which means that
+        two different trees can have the same graph.
+
+        EXAMPLES::
+
+            sage: bt = BinaryTree([[],[None,[]]])
+            sage: bt.canonical_labelling()
+            2[1[., .], 3[., 4[., .]]]
+            sage: bt.canonical_labelling().to_undirected_graph().edges()
+            [(1, 2, None), (2, 3, None), (3, 4, None)]
+            sage: bt.to_undirected_graph().edges()
+            [(0, 3, None), (1, 2, None), (2, 3, None)]
+            sage: bt.canonical_labelling().to_undirected_graph() == bt.to_undirected_graph()
+            False
+            sage: BinaryTree([[],[]]).to_undirected_graph() == BinaryTree([[[],None],None]).to_undirected_graph()
+            True
+        """
+        return self.as_ordered_tree(with_leaves).to_undirected_graph()
+
+    @combinatorial_map(name="To poset")
+    def to_poset(self, with_leaves = False, root_to_leaf=False):
+        r"""
+        Return the poset obtained by interpreting the tree as a hasse
+        diagram.
+
+        The default orientation is from leaves to root but you can
+        pass ``root_to_leaf=True`` to obtain the inverse orientation.
+
+        Leafs are ignored by default but can set ``with_leaves`` to ``True``
+        to obtain the poset of the complete tree.
+
+        INPUT:
+
+        - ``with_leaves`` -- boolean, true if leaves should be added to the poset
+        - ``root_to_leaf`` -- boolean, true if the poset orientation should
+          be from root to leaves. It is false by default.
+
+        EXAMPLES::
+
+            sage: bt = BinaryTree([])
+            sage: bt.to_poset()
+            Finite poset containing 1 elements
+            sage: bt.to_poset(with_leaves=True)
+            Finite poset containing 3 elements
+            sage: bt.to_poset(with_leaves=True).cover_relations()
+            [[0, 2], [1, 2]]
+            sage: bt = BinaryTree([])
+            sage: bt.to_poset(with_leaves=True,root_to_leaf=True).cover_relations()
+            [[0, 1], [0, 2]]
+
+        If the tree is labelled, we use its labelling to label the poset.
+        Otherwise, we use the poset canonical labelling::
+
+            sage: bt = BinaryTree([[],[None,[]]]).canonical_labelling()
+            sage: bt
+            2[1[., .], 3[., 4[., .]]]
+            sage: bt.to_poset().cover_relations()
+            [[4, 3], [3, 2], [1, 2]]
+        """
+        return self.as_ordered_tree(with_leaves).to_poset(root_to_leaf)
 
     @combinatorial_map(name="To 132 avoiding permutation")
     def to_132_avoiding_permutation(self):
@@ -836,6 +944,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         EXAMPLES::
 
             sage: BinaryTree().left_right_symmetry()
+            .
             sage: BinaryTree([]).left_right_symmetry()
             [., .]
             sage: BinaryTree([[],None]).left_right_symmetry()
@@ -844,7 +953,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [., [[., .], .]]
         """
         if not self:
-            return None
+            return BinaryTree()
         tree = [self[1].left_right_symmetry(),self[0].left_right_symmetry()]
         if(not self in LabelledBinaryTrees()):
             return BinaryTree(tree)
@@ -861,6 +970,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         EXAMPLES::
 
             sage: BinaryTree().left_border_symmetry()
+            .
             sage: BinaryTree([]).left_border_symmetry()
             [., .]
             sage: BinaryTree([[None,[]],None]).left_border_symmetry()
@@ -874,7 +984,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             1[4[., .], 2[., 3[., .]]]
         """
         if not self:
-            return None
+            return BinaryTree()
         border = []
         labelled = self in LabelledBinaryTrees()
         labels = []

@@ -161,6 +161,8 @@ sage.misc.lazy_import.lazy_import('sage.sandpiles.all', '*', globals())
 
 from sage.tensor.all     import *
 
+from sage.matroids.all   import *
+
 from copy import copy, deepcopy
 
 # The code executed here uses a large amount of Sage components

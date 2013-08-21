@@ -917,27 +917,27 @@ class CartanType_abstract(object):
         EXAMPLES::
 
             sage: CartanType(['A', 3, 1]).index_set()
-            [0, 1, 2, 3]
+            (0, 1, 2, 3)
             sage: CartanType(['D', 4]).index_set()
-            [1, 2, 3, 4]
+            (1, 2, 3, 4)
             sage: CartanType(['A', 7, 2]).index_set()
-            [0, 1, 2, 3, 4]
+            (0, 1, 2, 3, 4)
             sage: CartanType(['A', 7, 2]).index_set()
-            [0, 1, 2, 3, 4]
+            (0, 1, 2, 3, 4)
             sage: CartanType(['A', 6, 2]).index_set()
-            [0, 1, 2, 3]
+            (0, 1, 2, 3)
             sage: CartanType(['D', 6, 2]).index_set()
-            [0, 1, 2, 3, 4, 5]
+            (0, 1, 2, 3, 4, 5)
             sage: CartanType(['E', 6, 1]).index_set()
-            [0, 1, 2, 3, 4, 5, 6]
+            (0, 1, 2, 3, 4, 5, 6)
             sage: CartanType(['E', 6, 2]).index_set()
-            [0, 1, 2, 3, 4]
+            (0, 1, 2, 3, 4)
             sage: CartanType(['A', 2, 2]).index_set()
-            [0, 1]
+            (0, 1)
             sage: CartanType(['G', 2, 1]).index_set()
-            [0, 1, 2]
+            (0, 1, 2)
             sage: CartanType(['F', 4, 1]).index_set()
-            [0, 1, 2, 3, 4]
+            (0, 1, 2, 3, 4)
         """
 
     # This coloring scheme is used for crystal graphs and will eventually
@@ -1643,9 +1643,9 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         the nodes of the classical Dynkin diagram::
 
             sage: CartanType(['A', 3, 1]).index_set()
-            [0, 1, 2, 3]
+            (0, 1, 2, 3)
             sage: CartanType(['A', 3, 1]).classical().index_set()
-            [1, 2, 3]
+            (1, 2, 3)
         """
 
     @abstract_method
@@ -1735,7 +1735,7 @@ class CartanType_affine(CartanType_simple, CartanType_crystallographic):
         """
         if m is None:
             m = self.cartan_matrix()
-        assert self.index_set() == list(range(m.ncols()))
+        assert self.index_set() == tuple(range(m.ncols()))
         annihilator_basis = m.integer_kernel().gens()
         assert(len(annihilator_basis) == 1)
         assert(all(coef > 0 for coef in annihilator_basis[0]))
@@ -2142,9 +2142,9 @@ class CartanType_standard_finite(UniqueRepresentation, SageObject, CartanType_fi
         EXAMPLES::
 
             sage: CartanType(['A', 5]).index_set()
-            [1, 2, 3, 4, 5]
+            (1, 2, 3, 4, 5)
         """
-        return range(1,self.n+1)
+        return tuple(range(1,self.n+1))
 
     def rank(self):
         """
@@ -2340,9 +2340,9 @@ class CartanType_standard_affine(UniqueRepresentation, SageObject, CartanType_af
         EXAMPLES::
 
             sage: CartanType(['A', 5, 1]).index_set()
-            [0, 1, 2, 3, 4, 5]
+            (0, 1, 2, 3, 4, 5)
         """
-        return range(0,self.n+1)
+        return tuple(range(self.n+1))
 
     def special_node(self):
         r"""

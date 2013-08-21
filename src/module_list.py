@@ -201,6 +201,9 @@ ext_modules = [
     Extension('sage.structure.list_clone',
               sources=['sage/structure/list_clone.pyx']),
 
+    Extension('sage.structure.list_clone_demo',
+              sources=['sage/structure/list_clone_demo.pyx']),
+
     Extension('sage.structure.list_clone_timings_cy',
               sources=['sage/structure/list_clone_timings_cy.pyx']),
 
@@ -241,6 +244,9 @@ ext_modules = [
 
     Extension('sage.combinat.q_bernoulli',
               sources = ['sage/combinat/q_bernoulli.pyx']),
+
+    Extension('sage.combinat.crystals.letters',
+              sources=['sage/combinat/crystals/letters.pyx']),
 
     ################################
     ##
@@ -1111,6 +1117,39 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.matroids
+    ##
+    ################################
+
+    Extension('sage.matroids.matroid',
+            ['sage/matroids/matroid.pyx']),
+
+    Extension('sage.matroids.extension',
+            ['sage/matroids/extension.pyx']),
+
+    Extension('sage.matroids.set_system',
+            ['sage/matroids/set_system.pyx']),
+
+    Extension('sage.matroids.lean_matrix',
+            ['sage/matroids/lean_matrix.pyx']),
+
+    Extension('sage.matroids.basis_exchange_matroid',
+            ['sage/matroids/basis_exchange_matroid.pyx']),
+
+    Extension('sage.matroids.basis_matroid',
+            ['sage/matroids/basis_matroid.pyx']),
+
+    Extension('sage.matroids.linear_matroid',
+            ['sage/matroids/linear_matroid.pyx']),
+
+    Extension('sage.matroids.circuit_closures_matroid',
+            ['sage/matroids/circuit_closures_matroid.pyx']),
+
+    Extension('sage.matroids.unpickling',
+            ['sage/matroids/unpickling.pyx']),
+
+    ################################
+    ##
     ## sage.media
     ##
     ################################
@@ -1231,6 +1270,9 @@ ext_modules = [
                          'sage/modular/arithgroup/sl2z.cpp'],
               libraries = ['gmpxx', 'gmp'],
               language = 'c++'),
+
+    Extension('sage.modular.arithgroup.arithgroup_element',
+              sources = ['sage/modular/arithgroup/arithgroup_element.pyx']),
 
     Extension('sage.modular.modform.eis_series_cython',
               sources = ['sage/modular/modform/eis_series_cython.pyx'],
@@ -1898,6 +1940,9 @@ ext_modules = [
     Extension('sage.structure.element',
               sources = ['sage/structure/element.pyx'],
               extra_compile_args=["-Os"]),
+
+    Extension('sage.structure.element_wrapper',
+              sources = ['sage/structure/element_wrapper.pyx']),
 
     Extension('sage.structure.factory',
               sources = ['sage/structure/factory.pyx']),

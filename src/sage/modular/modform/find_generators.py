@@ -207,10 +207,10 @@ class ModularFormsRing(SageObject):
         if isinstance(group, (int, long, Integer)):
             group = Gamma0(group)
         elif not is_CongruenceSubgroup(group):
-            raise ValueError("Group (=%s) should be a congruence subgroup"%group)
+            raise ValueError("Group (=%s) should be a congruence subgroup" % group)
 
         if base_ring != ZZ and not base_ring.is_prime_field():
-            raise ValueError("Base ring (=%s) should be QQ, ZZ or a finite prime field"%base_ring)
+            raise ValueError("Base ring (=%s) should be QQ, ZZ or a finite prime field" % base_ring)
 
         self.__group = group
         self.__base_ring = base_ring
@@ -218,8 +218,6 @@ class ModularFormsRing(SageObject):
         self.__cached_gens = []
         self.__cached_cusp_maxweight = ZZ(-1)
         self.__cached_cusp_gens = []
-
-
 
     def group(self):
         r"""

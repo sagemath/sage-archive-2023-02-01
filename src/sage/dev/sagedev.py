@@ -827,6 +827,7 @@ class SageDev(object):
             ticket_or_remote_branch = self._current_ticket()
             if branch is not None and branch != self.git.current_branch():
                 raise SageDevValueError("local_branch must be None")
+            branch = self.git.current_branch()
 
         if ticket_or_remote_branch is None:
             raise SageDevValueError("No `ticket_or_remote_branch` specified to download.")

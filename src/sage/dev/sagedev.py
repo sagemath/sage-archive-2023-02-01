@@ -691,7 +691,7 @@ class SageDev(object):
 
     def download(self, ticket_or_remote_branch=None, branch=None):
         r"""
-        Download ``ticket_or_branch`` to ``branch``.
+        Download ``ticket_or_remote_branch`` to ``branch``.
 
         INPUT:
 
@@ -823,16 +823,16 @@ class SageDev(object):
             Pulling `u/bob/ticket/1` into `ticket/1` failed. Most probably this happened because this did not resolve as a fast-forward, i.e., there were conflicting changes. Maybe there are untracked files in your working directory which made the pull impossible.
 
         """
-        if ticket_or_branch is None:
-            ticket_or_branch = self._current_ticket()
+        if ticket_or_remote_branch is None:
+            ticket_or_remote_branch = self._current_ticket()
             if branch is not None and branch != self.git.current_branch():
                 raise SageDevValueError("local_branch must be None")
 
-        if ticket_or_branch is None:
-            raise SageDevValueError("No `ticket_or_branch` specified to download.")
+        if ticket_or_remote_branch is None:
+            raise SageDevValueError("No `ticket_or_remote_branch` specified to download.")
 
-        if self._is_ticket_name(ticket_or_branch):
-            ticket = self._ticket_from_ticket_name(ticket_or_branch)
+        if self._is_ticket_name(ticket_or_remote_branch):
+            ticket = self._ticket_from_ticket_name(ticket_or_remote_branch)
             self._check_ticket_name(ticket, exists=True)
 
             remote_branch = self.trac._branch_for_ticket(ticket)
@@ -843,7 +843,7 @@ class SageDev(object):
             self._check_local_branch_name(branch)
 
         else:
-            remote_branch = ticket_or_branch
+            remote_branch = ticket_or_remote_branch
             self._check_remote_branch_name(remote_branch)
 
             if branch is None:

@@ -185,7 +185,7 @@ def _two_lists(a):
         ...
         ValueError: your argument can not be split in two parts
     """
-    from sage.combinat.permutation import Permutation_class
+    from sage.combinat.permutation import Permutation
 
     res = [None, None]
 
@@ -197,7 +197,7 @@ def _two_lists(a):
             res[0] = a[0].split()
             res[1] = a[1].split()
 
-    elif isinstance(a, Permutation_class):
+    elif isinstance(a, Permutation):
         res[0] = range(1,len(a)+1)
         res[1] = [a[i] for i in range(len(a))]
 
@@ -209,7 +209,7 @@ def _two_lists(a):
 
     elif len(a) == 1:
         a = a[0]
-        if isinstance(a, Permutation_class):
+        if isinstance(a, Permutation):
             res[0] = range(1,len(a)+1)
             res[1] = [a[i] for i in range(len(a))]
 

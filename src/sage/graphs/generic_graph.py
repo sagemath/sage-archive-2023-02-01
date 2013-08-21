@@ -11257,26 +11257,21 @@ class GenericGraph(GenericGraph_pyx):
 
     def cluster_triangles(self, nbunch=None, with_labels=False):
         r"""
-        Returns the number of triangles for nbunch of vertices as a
-        dictionary keyed by vertex.
+        Returns the number of triangles for the set `nbunch` of vertices
+        as a dictionary keyed by vertex.
 
-        The clustering coefficient of a graph is the fraction of possible
-        triangles that are triangles, `c_i = triangles_i /
-        (k_i\*(k_i-1)/2)` where `k_i` is the degree of vertex `i`, [HSSNX]_. A
-        coefficient for the whole graph is the average of the `c_i`.
-        Transitivity is the fraction of all possible triangles which are
-        triangles, T = 3\*triangles/triads, [HSSNX]_.
+        See also section "Clustering" in chapter "Algorithms" of [HSSNX]_.
 
         INPUT:
 
-        -  ``nbunch`` - The vertices to inspect. If
-           nbunch=None, returns data for all vertices in the graph
+        -  ``nbunch`` - The vertices to inspect. If ``nbunch=None``,
+           returns data for all vertices in the graph.
 
         REFERENCE:
 
         .. [HSSNX] Aric Hagberg, Dan Schult and Pieter Swart. NetworkX
           documentation. [Online] Available:
-          https://networkx.lanl.gov/reference/networkx/
+          http://networkx.github.io/documentation/latest/reference/index.html
 
         EXAMPLES::
 
@@ -11294,18 +11289,15 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Returns the average clustering coefficient.
 
-        The clustering coefficient of a graph is the fraction of possible
-        triangles that are triangles, `c_i = triangles_i /
-        (k_i\*(k_i-1)/2)` where `k_i` is the degree of vertex `i`, [NTX]_. A
-        coefficient for the whole graph is the average of the `c_i`.
-        Transitivity is the fraction of all possible triangles which are
-        triangles, T = 3\*triangles/triads, [NTX]_.
+        The clustering coefficient of a node `i` is the fraction
+        of existing triangles containing node `i` and all
+        possible triangles containing `i`: `c_i = T(i) / \binom {k_i} 2`
+        where `T(i)` is the number of existing triangles through `i`, and
+        `k_i` is the degree of vertex `i`.
 
-        REFERENCE:
+        A coefficient for the whole graph is the average of the `c_i`.
 
-        .. [NTX] Aric Hagberg, Dan Schult and Pieter Swart. NetworkX
-          documentation. [Online] Available:
-          https://networkx.lanl.gov/reference/networkx/
+        See also section "Clustering" in chapter "Algorithms" of [HSSNX]_.
 
         EXAMPLES::
 
@@ -11320,41 +11312,32 @@ class GenericGraph(GenericGraph_pyx):
         Returns the clustering coefficient for each vertex in ``nodes`` as
         a dictionary keyed by vertex.
 
-        For an unweighted graph, the clustering coefficient of a node
-        `i` is the fraction of possible triangles containing `i` that
-        exist. `\frac{2 T(i)}{k_i (k_i-1)}` where `T(i)` the number
-        of triangles through `i` and `k_i` is the degree of vertex `i`
-        [NX]_.
+        For an unweighted graph, the clustering coefficient of a node `i`
+        is the fraction of existing triangles containing node `i` and all
+        possible triangles containing `i`: `c_i = T(i) / \binom {k_i} 2`
+        where `T(i)` is the number of existing triangles through `i`, and
+        `k_i` is the degree of vertex `i`.
 
         For weighted graphs the clustering is defined as the geometric
-        average of the subgraph edge weights [NX]_, normalized by the
+        average of the subgraph edge weights, normalized by the
         maximum weight in the network.
 
-        The value of `c_i` is assigned to 0 if `k_i < 2`.
+        The value of `c_i` is assigned `0` if `k_i < 2`.
 
-        A coefficient for the whole graph is the average of the `c_i`.
-
-        Transitivity is the fraction of all possible triangles which are
-        triangles, T = 3\*triangles/triads, [NX]_.
+        See also section "Clustering" in chapter "Algorithms" of [HSSNX]_.
 
         INPUT:
 
-        - ``nodes`` - the vertices to inspect (default None returns data
+        - ``nodes`` - the vertices to inspect (default ``None``, returns data
           on all vertices in graph)
 
-        - ``weight`` - string or boolean (default is False). If it is
+        - ``weight`` - string or boolean (default is ``False``). If it is
           a string it used the indicated edge property as weight.
           ``weight = True`` is equivalent to ``weight = 'weight'``
 
         - ``return_vertex_weights`` is a boolean ensuring backwards
           compatibility with deprecated features of NetworkX 1.2. It
-          should be set to False for all production code.
-
-        REFERENCE:
-
-        .. [NX] Aric Hagberg, Dan Schult and Pieter Swart. NetworkX
-          documentation. [Online] Available:
-          https://networkx.lanl.gov/reference/networkx/
+          should be set to ``False`` for all production code.
 
         EXAMPLES::
 
@@ -11449,18 +11432,11 @@ class GenericGraph(GenericGraph_pyx):
         Returns the transitivity (fraction of transitive triangles) of the
         graph.
 
-        The clustering coefficient of a graph is the fraction of possible
-        triangles that are triangles, `c_i = triangles_i /
-        (k_i\*(k_i-1)/2)` where `k_i` is the degree of vertex `i`, [1]_. A
-        coefficient for the whole graph is the average of the `c_i`.
-        Transitivity is the fraction of all possible triangles which are
-        triangles, T = 3\*triangles/triads, [1]_.
+        Transitivity is the fraction of all existing triangles and all
+        connected triples (triads), `T = 3\times\text{triangles}
+        / \text{triads}`.
 
-        REFERENCE:
-
-        .. [1] Aric Hagberg, Dan Schult and Pieter Swart. NetworkX
-          documentation. [Online] Available:
-          https://networkx.lanl.gov/reference/networkx/
+        See also section "Clustering" in chapter "Algorithms" of [HSSNX]_.
 
         EXAMPLES::
 
@@ -11479,7 +11455,7 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        -  ``by_weight`` - if False, uses a breadth first
+        -  ``by_weight`` - if ``False``, uses a breadth first
            search. If True, takes edge weightings into account, using
            Dijkstra's algorithm.
 
@@ -15351,7 +15327,7 @@ class GenericGraph(GenericGraph_pyx):
               "0" -- "1";
               "0" -- "2";
               "1" -- "2";
-              "2" -- "3" [label=" ", texlbl="$\verb|foo|$"];
+              "2" -- "3" [label=" ", texlbl="$\text{\texttt{foo}}$"];
             }
 
         Same, with a digraph and a color for edges::

@@ -355,21 +355,73 @@ class FinitePosets(Category):
 
         panyushev_complement = order_ideal_complement_generators
 
-        def panyushev_orbits(self, element_constructor = set):
+        def rowmotion(self, order_ideal):
             r"""
-            Returns the Panyushev orbits of antichains in ``self``
+            The image of the order ideal ``order_ideal`` under rowmotion
+            in ``self``.
+
+            INPUT:
+
+            - ``order_ideal`` -- an order ideal of ``self``, as a set
 
             OUTPUT:
 
-            - a partition of the antichains of ``self``, as a list of
-              lists ``L`` such that for each ``L`` and ``i``, cyclically:
+            - the image of ``order_ideal`` under rowmotion, as a set again
+
+            EXAMPLES::
+
+                sage: P = Poset( {1: [2, 3], 2: [], 3: [], 4: [8], 5: [], 6: [5], 7: [1, 4], 8: []} )
+                sage: I = Set({2, 6, 1, 7})
+                sage: P.rowmotion(I)
+                {1, 3, 4, 5, 6, 7}
+
+                sage: P = Poset( {} )
+                sage: I = Set({})
+                sage: P.rowmotion(I)
+                Set of elements of {}
+            """
+            result = order_ideal
+            for i in reversed(self.linear_extension()):
+                result = self.order_ideal_toggle(result, i)
+            return result
+
+        def panyushev_orbits(self, element_constructor = set):
+            r"""
+            Return the Panyushev orbits of antichains in ``self``.
+
+            INPUT:
+
+            - ``element_constructor`` (defaults to ``set``) -- a type
+              constructor (``set``, ``tuple``, ``list``, ``frozenset``,
+              ``iter``, etc.) which is to be applied to the antichains
+              before they are returned.
+
+            OUTPUT:
+
+            - the partition of the set of all antichains of ``self`` into
+              orbits under Panyushev complementation. This is returned as
+              a list of lists ``L`` such that for each ``L`` and ``i``,
+              cyclically:
               ``self.order_ideal_complement_generators(L[i]) == L[i+1]``.
+              The entries ``L[i]`` are sets by default, but depending on
+              the optional keyword variable ``element_constructors``
+              they can also be tuples, lists etc.
 
             EXAMPLES::
 
                 sage: P = Poset( ( [1,2,3], [ [1,3], [2,3] ] ) )
                 sage: P.panyushev_orbits()
                 [[set([2]), set([1])], [set([]), set([1, 2]), set([3])]]
+                sage: P.panyushev_orbits(element_constructor=list)
+                [[[2], [1]], [[], [1, 2], [3]]]
+                sage: P.panyushev_orbits(element_constructor=frozenset)
+                [[frozenset([2]), frozenset([1])],
+                 [frozenset([]), frozenset([1, 2]), frozenset([3])]]
+                sage: P.panyushev_orbits(element_constructor=tuple)
+                [[(2,), (1,)], [(), (1, 2), (3,)]]
+                sage: P = Poset( {} )
+                sage: P.panyushev_orbits()
+                [[set([])]]
             """
             # TODO: implement a generic function taking a set and
             # bijections on this set, and returning the orbits.
@@ -383,6 +435,84 @@ class FinitePosets(Category):
                     if A not in AC: break
                     orbit.append( A )
                     AC.remove( A )
+                orbits.append(map(element_constructor, orbit))
+            return orbits
+
+        def rowmotion_orbits(self, element_constructor = set):
+            r"""
+            Return the rowmotion orbits of order ideals in ``self``.
+
+            INPUT:
+
+            - ``element_constructor`` (defaults to ``set``) -- a type
+              constructor (``set``, ``tuple``, ``list``, ``frozenset``,
+              ``iter``, etc.) which is to be applied to the antichains
+              before they are returned.
+
+            OUTPUT:
+
+            - the partition of the set of all order ideals of ``self``
+              into orbits under rowmotion. This is returned as
+              a list of lists ``L`` such that for each ``L`` and ``i``,
+              cyclically: ``self.rowmotion(L[i]) == L[i+1]``.
+              The entries ``L[i]`` are sets by default, but depending on
+              the optional keyword variable ``element_constructors``
+              they can also be tuples, lists etc.
+
+            EXAMPLES::
+
+                sage: P = Poset( {1: [2, 3], 2: [], 3: [], 4: [2]} )
+                sage: sorted(len(o) for o in P.rowmotion_orbits())
+                [3, 5]
+                sage: sorted(P.rowmotion_orbits(element_constructor=list))
+                [[[1, 3], [4], [1], [4, 1, 3], [4, 1, 2]], [[4, 1], [4, 1, 2, 3], []]]
+                sage: sorted(P.rowmotion_orbits(element_constructor=tuple))
+                [[(1, 3), (4,), (1,), (4, 1, 3), (4, 1, 2)], [(4, 1), (4, 1, 2, 3), ()]]
+                sage: P = Poset({})
+                sage: sorted(P.rowmotion_orbits(element_constructor=tuple))
+                [[()]]
+            """
+            pan_orbits = self.panyushev_orbits(element_constructor = list)
+            return [[element_constructor(self.order_ideal(oideal)) for oideal in orbit] for orbit in pan_orbits]
+
+        def toggling_orbits(self, vs, element_constructor = set):
+            r"""
+            Returns the orbits of order ideals in ``self`` under the
+            sequence of toggles given by ``vs``.
+
+            INPUT:
+
+            - ``vs``: a list (or other iterable) of elements of ``self``
+              (but since the output depends on the order, sets should
+              not be used as ``vs``).
+
+            OUTPUT:
+
+            - a partition of the order ideals of ``self``, as a list of
+              sets ``L`` such that for each ``L`` and ``i``, cyclically:
+              ``self.order_ideal_toggles(L[i], vs) == L[i+1]``.
+
+            EXAMPLES::
+
+                sage: P = Poset( {1: [2, 4], 2: [], 3: [4], 4: []} )
+                sage: sorted(len(o) for o in P.toggling_orbits([1, 2]))
+                [2, 3, 3]
+                sage: P = Poset( {1: [3], 2: [1, 4], 3: [], 4: [3]} )
+                sage: sorted(len(o) for o in P.toggling_orbits((1, 2, 4, 3)))
+                [3, 3]
+            """
+            # TODO: implement a generic function taking a set and
+            # bijections on this set, and returning the orbits.
+            OI = set(self.order_ideals_lattice())
+            orbits = []
+            while OI:
+                A = OI.pop()
+                orbit = [ A ]
+                while True:
+                    A = self.order_ideal_toggles(A, vs)
+                    if A not in OI: break
+                    orbit.append( A )
+                    OI.remove( A )
                 orbits.append(map(element_constructor, orbit))
             return orbits
 

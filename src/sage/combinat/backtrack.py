@@ -79,7 +79,7 @@ class GenericBacktracker(object):
         EXAMPLES::
 
             sage: from sage.combinat.permutation import PatternAvoider
-            sage: p = PatternAvoider(4, [[1,3,2]])
+            sage: p = PatternAvoider(Permutations(4), [[1,3,2]])
             sage: len(list(p))
             14
         """
@@ -675,8 +675,11 @@ class PositiveIntegerSemigroup(UniqueRepresentation, SearchForest):
 
         sage: from sage.combinat.backtrack import PositiveIntegerSemigroup
         sage: PP = PositiveIntegerSemigroup()
-        sage: TestSuite(PP).run(elements=some_elements)
-        sage: TestSuite(PP).run()  # long time
+
+    We factor out the long test from the ``TestSuite``::
+
+        sage: TestSuite(PP).run(skip='_test_enumerated_set_contains')
+        sage: PP._test_enumerated_set_contains()  # long time
     """
     def __init__(self):
         r"""

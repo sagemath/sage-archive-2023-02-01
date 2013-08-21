@@ -5149,6 +5149,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             <type 'sage.rings.real_mpfr.RealNumber'>
             sage: type(Integer(-5).sqrt(prec=53))
             <type 'sage.rings.complex_number.ComplexNumber'>
+
+        TESTS:
+
+        Check that :trac:`9466` is fixed::
+
+            sage: 3.sqrt(extend=False, all=True)
+            []
         """
         if mpz_sgn(self.value) == 0:
             return [self] if all else self
@@ -5171,7 +5178,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         if non_square:
             if not extend:
-                raise ValueError, "square root of %s not an integer"%self
+                if not all:
+                   raise ValueError, "square root of %s not an integer"%self
+                else:
+                    return []
             from sage.functions.other import _do_sqrt
             return _do_sqrt(self, prec=prec, all=all)
 

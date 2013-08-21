@@ -272,7 +272,7 @@ class Set_object(Set_generic):
         ::
 
             sage: print latex(Primes())
-            \verb|Set...of...all...prime...numbers:...|
+            \text{\texttt{Set{ }of{ }all{ }prime{ }numbers:{ }2,{ }3,{ }5,{ }7,{ }...}}
             sage: print latex(Set([1,1,1,5,6]))
             \left\{1, 5, 6\right\}
         """

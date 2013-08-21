@@ -5981,9 +5981,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if self.base_ring() != ZZ:
             try:
                 f = self.change_ring(ZZ)
-                return f.is_cyclotomic()
-            except TypeError,ValueError:
+            except TypeError:
                 return False
+            return f.is_cyclotomic()
 
         if not self.is_irreducible():
             return False

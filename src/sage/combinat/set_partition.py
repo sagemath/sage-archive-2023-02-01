@@ -943,13 +943,13 @@ def cyclic_permutations_of_set_partition_iterator(set_part):
          [[1, 4, 2, 3], [5, 7, 6]],
          [[1, 4, 3, 2], [5, 7, 6]]]
     """
-    from combinat import cyclic_permutations_iterator
+    from sage.combinat.permutation import CyclicPermutations
     if len(set_part) == 1:
-        for i in cyclic_permutations_iterator(set_part[0]):
+        for i in CyclicPermutations(set_part[0]):
             yield [i]
     else:
         for right in cyclic_permutations_of_set_partition_iterator(set_part[1:]):
-            for perm in cyclic_permutations_iterator(set_part[0]):
+            for perm in CyclicPermutations(set_part[0]):
                 yield [perm] + right
 
 

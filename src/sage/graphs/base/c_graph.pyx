@@ -1128,7 +1128,7 @@ cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
 
     TESTS:
 
-    We check that the bug described in #8406 is gone::
+    We check that the bug described in :trac:`8406` is gone::
 
         sage: G = Graph()
         sage: R.<a> = GF(3**3)
@@ -1138,7 +1138,7 @@ cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
         sage: G.vertices()
         [a^2, x]
 
-    And that the bug described in #9610 is gone::
+    And that the bug described in :trac:`9610` is gone::
 
         sage: n = 20
         sage: k = 3
@@ -1149,6 +1149,16 @@ cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
         sage: g.strongly_connected_components()
         [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]]
 
+    The bug in :trac:`14967` and :trac:`14853` is fixed::
+
+        sage: DiGraph({0: {}, 1/2: {}})
+        Multi-digraph on 2 vertices
+        sage: A = Set([RDF.random_element(min=0, max=10) for k in range(10)])
+        sage: G = Graph()
+        sage: G.add_vertices(A)
+        sage: Set(G.vertices()) == A
+        True
+
     """
     cdef int u_int
     if u in vertex_ints:
@@ -1157,7 +1167,7 @@ cdef int get_vertex(object u, dict vertex_ints, dict vertex_labels,
         u_int = u
     except StandardError:
         return -1
-    if u_int < 0 or u_int >= G.active_vertices.size or u_int in vertex_labels:
+    if u_int < 0 or u_int >= G.active_vertices.size or u_int in vertex_labels or u_int != u:
         return -1
     return u_int
 

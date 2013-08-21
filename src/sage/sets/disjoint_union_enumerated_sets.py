@@ -91,7 +91,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         sage: U3 = DisjointUnionEnumeratedSets(
         ...       Family([2,3,4], Permutations, lazy=True))
         sage: U3
-        Disjoint union of Lazy family (Permutations(i))_{i in [2, 3, 4]}
+        Disjoint union of Lazy family (<class 'sage.combinat.permutation.Permutations'>(i))_{i in [2, 3, 4]}
         sage: U3.cardinality()
         32
         sage: it = iter(U3)
@@ -105,7 +105,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         sage: U4 = DisjointUnionEnumeratedSets(
         ...       Family(NonNegativeIntegers(), Permutations))
         sage: U4
-        Disjoint union of Lazy family (Permutations(i))_{i in Non negative integers}
+        Disjoint union of Lazy family (<class 'sage.combinat.permutation.Permutations'>(i))_{i in Non negative integers}
         sage: U4.cardinality()
         +Infinity
         sage: it = iter(U4)
@@ -130,7 +130,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         sage: [it.next() for i in range(6)]
         [(0, []), (1, [1]), (2, [1, 2]), (2, [2, 1]), (3, [1, 2, 3]), (3, [1, 3, 2])]
         sage: type(it.next()[1])
-        <class 'sage.combinat.permutation.Permutation_class'>
+        <class 'sage.combinat.permutation.StandardPermutations_n_with_category.element_class'>
 
     We now demonstrate the ``facade`` option::
 
@@ -148,8 +148,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         sage: elv = el.value; elv
         [2, 1, 3]
         sage: type(elv)
-        <class 'sage.combinat.permutation.Permutation_class'>
-
+        <class 'sage.combinat.permutation.StandardPermutations_n_with_category.element_class'>
 
     Possible extensions: the current enumeration order is not suitable
     for unions of infinite enumerated sets (except possibly for the
@@ -201,7 +200,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         sage: TestSuite(U2).run()
         sage: TestSuite(U3).run()
         sage: TestSuite(U4).run()
-        doctest:...: UserWarning: Disjoint union of Lazy family (Permutations(i))_{i in Non negative integers} is an infinite union
+        doctest:...: UserWarning: Disjoint union of Lazy family (<class 'sage.combinat.permutation.Permutations'>(i))_{i in Non negative integers} is an infinite union
         The default implementation of __contains__ can loop forever. Please overload it.
         sage: TestSuite(Ukeep).run()
         sage: TestSuite(UNoFacade).run()

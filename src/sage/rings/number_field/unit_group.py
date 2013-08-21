@@ -283,7 +283,7 @@ class UnitGroup(AbelianGroupWithValues_class):
         m = [ZZ(m[0,i].python()) for i in range(m.ncols())]
         # NB pari puts the torsion at the end!
         m.insert(0,m.pop())
-        return self.element_class(m, self)
+        return self.element_class(self, m)
 
     def rank(self):
         """

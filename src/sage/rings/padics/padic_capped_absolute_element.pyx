@@ -44,6 +44,7 @@ from sage.rings.padics.precision_error import PrecisionError
 
 pari = sage.libs.pari.gen.pari
 pari_gen = sage.libs.pari.gen.gen
+gp_element = sage.interfaces.gp.GpElement
 PariError = sage.libs.pari.gen.PariError
 
 cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
@@ -72,6 +73,11 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             2 + 2*3 + O(3^2)
             sage: R(3 + O(3^2))
             3 + O(3^2)
+
+        Test that #3865 is fixed::
+
+            sage: ZpCA(7, 10)(gp('7 + O(7^2)'))
+            7 + O(7^2)
         """
         mpz_init(self.value)
         pAdicBaseGenericElement.__init__(self,parent)
@@ -88,21 +94,6 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
                 raise ValueError, "element valuation cannot be negative."
             if parent.prime() != x.parent().prime():
                 raise TypeError, "Cannot coerce between p-adic parents with different primes"
-        #if isinstance(x, pAdicLazyElement):
-        #    # We may be doing unnecessary precision increases here...
-        #    if relprec is infinity:
-        #        try:
-        #            x.set_precision_absolute(absprec)
-        #        except PrecisionError:
-        #            pass
-        #    else:
-        #        try:
-        #            x.set_precision_relative(relprec)
-        #        except PrecisionError:
-        #            try:
-        #                x.set_precision_absolute(absprec)
-        #            except PrecisionError:
-        #                pass
         cdef mpz_t modulus
         cdef Integer tmp
         cdef unsigned long k
@@ -111,7 +102,8 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             return
         elif isinstance(x, (int, long)):
             x = Integer(x)
-        elif isinstance(x, pari_gen):
+        elif isinstance(x, gp_element) or isinstance(x, pari_gen):
+            if isinstance(x, gp_element): x = x._pari_()
             if x.type() == "t_PADIC":
                 if x.variable() != self.prime_pow.prime:
                     raise TypeError, "Cannot coerce a pari p-adic with the wrong prime."

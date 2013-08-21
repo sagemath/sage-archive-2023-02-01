@@ -633,7 +633,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
     """
     Class for a Weyl Group elements
     """
-    def __init__(self, g, parent, check=False):
+    def __init__(self, parent, g, check=False):
         """
         EXAMPLES::
 
@@ -641,7 +641,7 @@ class WeylGroupElement(MatrixGroupElement_gap):
             sage: s1 = G.simple_reflection(1)
             sage: TestSuite(s1).run()
         """
-        MatrixGroupElement_gap.__init__(self, g, parent, check=check)
+        MatrixGroupElement_gap.__init__(self, parent, g, check=check)
         self.__matrix = self.matrix()
         self._parent = parent
 

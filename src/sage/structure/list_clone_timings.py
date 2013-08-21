@@ -8,29 +8,29 @@ EXAMPLES::
 
     sage: from sage.structure.list_clone_timings import *
     sage: cmd =["",
-    ...      "e.__copy__()",
-    ...      "copy(e)",
-    ...      "e.clone()",
-    ...      "e.__class__(e.parent(), e._get_list())",
-    ...      "e.__class__(e.parent(), e[:])",
-    ...      "e.check()",
-    ...      "",
-    ...      "add1_internal(e)",
-    ...      "add1_immutable(e)",
-    ...      "add1_mutable(e)",
-    ...      "add1_with(e)",
-    ...      "",
-    ...      "cy_add1_internal(e)",
-    ...      "cy_add1_immutable(e)",
-    ...      "cy_add1_mutable(e)",
-    ...      "cy_add1_with(e)"]
+    ....:     "e.__copy__()",
+    ....:     "copy(e)",
+    ....:     "e.clone()",
+    ....:     "e.__class__(e.parent(), e._get_list())",
+    ....:     "e.__class__(e.parent(), e[:])",
+    ....:     "e.check()",
+    ....:     "",
+    ....:     "add1_internal(e)",
+    ....:     "add1_immutable(e)",
+    ....:     "add1_mutable(e)",
+    ....:     "add1_with(e)",
+    ....:     "",
+    ....:     "cy_add1_internal(e)",
+    ....:     "cy_add1_immutable(e)",
+    ....:     "cy_add1_mutable(e)",
+    ....:     "cy_add1_with(e)"]
 
 Various timings using a Cython class::
 
     sage: size = 5
     sage: e = IncreasingArrays()(range(size))
     sage: # random
-    ... for p in cmd: print "{0:36} : ".format(p),; timeit(p)
+    ....: for p in cmd: print "{0:36} : ".format(p),; timeit(p)
                                          :
     e.__copy__()                         :  625 loops, best of 3: 446 ns per loop
     copy(e)                              :  625 loops, best of 3: 1.94 µs per loop
@@ -53,7 +53,7 @@ Various timings using a Python class::
 
     sage: e = IncreasingArraysPy()(range(size))
     sage: # random
-    ... for p in cmd: print "{0:36} : ".format(p),; timeit(p)
+    ....: for p in cmd: print "{0:36} : ".format(p),; timeit(p)
                                          :
     e.__copy__()                         :  625 loops, best of 3: 869 ns per loop
     copy(e)                              :  625 loops, best of 3: 2.13 µs per loop
@@ -80,7 +80,8 @@ Various timings using a Python class::
 #*****************************************************************************
 
 
-from sage.structure.list_clone import ClonableArray, IncreasingArrays
+from sage.structure.list_clone import ClonableArray
+from sage.structure.list_clone_demo import IncreasingArrays
 from sage.structure.list_clone_timings_cy import *
 
 class IncreasingArraysPy(IncreasingArrays):
@@ -107,18 +108,16 @@ class IncreasingArraysPy(IncreasingArrays):
                 sage: IncreasingArraysPy()([3,2,1]) # indirect doctest
                 Traceback (most recent call last):
                 ...
-                AssertionError: Lists is not increasing
+                ValueError: Lists is not increasing
             """
             for i in range(len(self)-1):
-                assert self[i] < self[i+1], "Lists is not increasing"
+                if self[i] >= self[i+1]:
+                    raise ValueError, "Lists is not increasing"
 
 
 #####################################################################
 ######                    Timings functions                    ######
 #####################################################################
-from list_clone import *
-from list_clone_timings_cy import *
-
 def add1_internal(bla):
     """
     TESTS::

@@ -14,20 +14,20 @@ Elements of Arithmetic Subgroups
 #
 ################################################################################
 
-from sage.structure.element import MultiplicativeGroupElement
+from sage.structure.element cimport MultiplicativeGroupElement, MonoidElement, Element
 from sage.rings.all import ZZ
 import sage.matrix.all as matrix
 from sage.matrix.matrix_integer_2x2 import Matrix_integer_2x2 as mi2x2
 
-from all import is_ArithmeticSubgroup
-
 M2Z = matrix.MatrixSpace(ZZ,2)
 
-class ArithmeticSubgroupElement(MultiplicativeGroupElement):
+cdef class ArithmeticSubgroupElement(MultiplicativeGroupElement):
     r"""
     An element of the group `{\rm SL}_2(\ZZ)`, i.e. a 2x2 integer matrix of
     determinant 1.
     """
+
+    cdef object __x
 
     def __init__(self, parent, x, check=True):
         """
@@ -42,7 +42,7 @@ class ArithmeticSubgroupElement(MultiplicativeGroupElement):
 
         - check - if True, check that parent
           is an arithmetic subgroup, and that
-          x defines a matrix of determinant 1
+          x defines a matrix of determinant 1.
 
         We tend not to create elements of arithmetic subgroups that aren't
         SL2Z, in order to avoid coercion issues (that is, the other arithmetic
@@ -63,11 +63,10 @@ class ArithmeticSubgroupElement(MultiplicativeGroupElement):
             ...
             TypeError: matrix must have determinant 1
             sage: sage.modular.arithgroup.arithgroup_element.ArithmeticSubgroupElement(G, [2,0,0,2], check=False)
-            [2, 0, 0, 2]
-
+            [2 0]
+            [0 2]
             sage: x = Gamma0(11)([2,1,11,6])
-            sage: x == loads(dumps(x))
-            True
+            sage: TestSuite(x).run()
 
             sage: x = Gamma0(5).0
             sage: SL2Z(x)
@@ -77,20 +76,43 @@ class ArithmeticSubgroupElement(MultiplicativeGroupElement):
             True
         """
         if check:
+            from all import is_ArithmeticSubgroup
             if not is_ArithmeticSubgroup(parent):
                 raise TypeError, "parent (= %s) must be an arithmetic subgroup"%parent
 
             x = mi2x2(M2Z, x, copy=True, coerce=True)
             if x.determinant() != 1:
                 raise TypeError, "matrix must have determinant 1"
+        else:
+            x = mi2x2(M2Z, x, copy=True, coerce=False)
+            # Getting rid of this would result in a small speed gain for
+            # arithmetic operations, but it would have the disadvantage of
+            # causing strange and opaque errors when inappropriate data types
+            # are used with "check=False".
 
-            try:
-                x.set_immutable()
-            except AttributeError:
-                pass
-
+        x.set_immutable()
         MultiplicativeGroupElement.__init__(self, parent)
         self.__x = x
+
+    def __setstate__(self, state):
+        r"""
+        For unpickling objects pickled with the old ArithmeticSubgroupElement class.
+
+        EXAMPLE::
+
+            sage: si = unpickle_newobj(sage.modular.arithgroup.arithgroup_element.ArithmeticSubgroupElement, ())
+            sage: x = sage.matrix.matrix_integer_2x2.Matrix_integer_2x2(MatrixSpace(ZZ, 2), [1,1,0,1], copy=True, coerce=True)
+            sage: unpickle_build(si, (Gamma0(13), {'_ArithmeticSubgroupElement__x': x}))
+        """
+        from all import SL2Z
+        oldparent, kwdict = state
+        self._set_parent(SL2Z)
+        if kwdict.has_key('_ArithmeticSubgroupElement__x'):
+            self.__x = kwdict['_ArithmeticSubgroupElement__x']
+        elif kwdict.has_key('_CongruenceSubgroupElement__x'):
+            self.__x = kwdict['_CongruenceSubgroupElement__x']
+        else:
+            raise ValueError, "Don't know how to unpickle %s" % repr(state)
 
     def __iter__(self):
         """
@@ -115,16 +137,28 @@ class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         """
         return "%s"%self.__x
 
-    def __cmp__(self, right):
+    def __richcmp__(left, right, int op):
+        r"""
+        Rich comparison.
+
+        EXAMPLE::
+
+            sage: SL2Z.0 > None
+            True
         """
-        Compare self to right.
+        return (<Element>left)._richcmp(right, op)
+
+    cdef int _cmp_c_impl(self, Element right_r) except -2:
+        """
+        Compare self to right, where right is guaranteed to have the same
+        parent as self.
 
         EXAMPLES::
 
             sage: x = Gamma0(18)([19,1,18,1])
-            sage: x.__cmp__(3) is not 0
+            sage: cmp(x, 3) is not 0
             True
-            sage: x.__cmp__(x)
+            sage: cmp(x, x)
             0
 
             sage: x = Gamma0(5)([1,1,0,1])
@@ -139,11 +173,8 @@ class ArithmeticSubgroupElement(MultiplicativeGroupElement):
             sage: s*u == v
             True
         """
-        from sage.misc.functional import parent
-        if parent(self) != parent(right):
-            return cmp(type(self), type(right))
-        else:
-            return cmp(self.__x, right.__x)
+        cdef ArithmeticSubgroupElement right = <ArithmeticSubgroupElement>right_r
+        return cmp(self.__x, right.__x)
 
     def __nonzero__(self):
         """
@@ -158,7 +189,7 @@ class ArithmeticSubgroupElement(MultiplicativeGroupElement):
         """
         return True
 
-    def _mul_(self, right):
+    cpdef MonoidElement _mul_(self, MonoidElement right):
         """
         Return self * right.
 
@@ -177,7 +208,7 @@ class ArithmeticSubgroupElement(MultiplicativeGroupElement):
             Modular Group SL(2,Z)
 
         """
-        return self.parent()(self.__x * right.__x, check=False)
+        return self.__class__(self.parent(), self.__x * (<ArithmeticSubgroupElement> right).__x, check=False)
 
     def __invert__(self):
         """
@@ -315,3 +346,27 @@ class ArithmeticSubgroupElement(MultiplicativeGroupElement):
             3
         """
         return self.__x[q]
+
+    def __hash__(self):
+        r"""
+        Return a hash value.
+
+        EXAMPLE::
+
+            sage: hash(SL2Z.0)
+            -4
+        """
+        return hash(self.__x)
+
+    def __reduce__(self):
+        r"""
+        Used for pickling.
+
+        EXAMPLE::
+
+            sage: (SL2Z.1).__reduce__()
+            (Modular Group SL(2,Z), ([1 1]
+            [0 1],))
+        """
+        from all import SL2Z
+        return SL2Z, (self.__x,)

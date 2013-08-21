@@ -10,33 +10,32 @@ CLASS HIERARCHY::
 A simple example of registering coercions::
 
     sage: class A_class(Parent):
-    ...     def __init__(self, name):
-    ...         Parent.__init__(self, name=name)
-    ...         self._populate_coercion_lists_()
-    ...         self.rename(name)
-    ...     #
-    ...     def category(self):
-    ...         return Sets()
-    ...     #
-    ...     def _element_constructor_(self, i):
-    ...         assert(isinstance(i, (int, Integer)))
-    ...         return ElementWrapper(i, parent = self)
-    ...
-    ...
+    ....:   def __init__(self, name):
+    ....:       Parent.__init__(self, name=name)
+    ....:       self._populate_coercion_lists_()
+    ....:       self.rename(name)
+    ....:   #
+    ....:   def category(self):
+    ....:       return Sets()
+    ....:   #
+    ....:   def _element_constructor_(self, i):
+    ....:       assert(isinstance(i, (int, Integer)))
+    ....:       return ElementWrapper(self, i)
+    ....:
     sage: A = A_class("A")
     sage: B = A_class("B")
     sage: C = A_class("C")
 
     sage: def f(a):
-    ...     return B(a.value+1)
-    ...
+    ....:   return B(a.value+1)
+    ....:
     sage: class MyMorphism(Morphism):
-    ...     def __init__(self, domain, codomain):
-    ...         Morphism.__init__(self, Hom(domain, codomain))
-    ...     #
-    ...     def _call_(self, x):
-    ...         return self.codomain()(x.value)
-    ...
+    ....:   def __init__(self, domain, codomain):
+    ....:       Morphism.__init__(self, Hom(domain, codomain))
+    ....:   #
+    ....:   def _call_(self, x):
+    ....:       return self.codomain()(x.value)
+    ....:
     sage: f = MyMorphism(A,B)
     sage: f
         Generic morphism:
@@ -64,7 +63,7 @@ base ring, and with ``_mul_`` for the ring multiplication. However, prior to
 
     sage: from sage.structure.element import RingElement
     sage: class MyElement(RingElement):
-    ....:      def __init__(self, x,y, parent = None):
+    ....:      def __init__(self, parent, x, y):
     ....:          RingElement.__init__(self, parent)
     ....:      def _mul_(self, other):
     ....:          return self
@@ -385,8 +384,8 @@ cdef class Parent(category_object.CategoryObject):
             sage: P.category()
             Category of sets
             sage: class MyParent(Parent):
-            ...       def __init__(self):
-            ...           self._init_category_(Groups())
+            ....:     def __init__(self):
+            ....:         self._init_category_(Groups())
             sage: MyParent().category()
             Category of groups
         """
@@ -573,7 +572,7 @@ cdef class Parent(category_object.CategoryObject):
             sage: P.category()
             Category of sets
             sage: class MyParent(Parent):
-            ...       def __init__(self): pass
+            ....:     def __init__(self): pass
             sage: MyParent().category()
             Category of sets
         """
@@ -596,8 +595,8 @@ cdef class Parent(category_object.CategoryObject):
         Let us now write a parent with broken categories:
 
             sage: class MyParent(Parent):
-            ...       def __init__(self):
-            ...           pass
+            ....:     def __init__(self):
+            ....:         pass
             sage: P = MyParent()
             sage: P._test_category()
             Traceback (most recent call last):
@@ -640,8 +639,8 @@ cdef class Parent(category_object.CategoryObject):
         Let us now write a broken class method::
 
             sage: class CCls(Parent):
-            ...       def __eq__(self, other):
-            ...           return True
+            ....:     def __eq__(self, other):
+            ....:         return True
             sage: CCls()._test_eq()
             Traceback (most recent call last):
             ...
@@ -650,8 +649,8 @@ cdef class Parent(category_object.CategoryObject):
         Let us now break inequality::
 
             sage: class CCls(Parent):
-            ...       def __ne__(self, other):
-            ...           return True
+            ....:     def __ne__(self, other):
+            ....:         return True
             sage: CCls()._test_eq()
             Traceback (most recent call last):
             ...
@@ -776,7 +775,7 @@ cdef class Parent(category_object.CategoryObject):
         EXAMPLES::
 
             sage: for s in dir(ZZ):
-            ...       if s[:6] == "_test_": print s
+            ....:     if s[:6] == "_test_": print s
             _test_additive_associativity
             _test_an_element
             _test_associativity
@@ -962,12 +961,12 @@ cdef class Parent(category_object.CategoryObject):
         is preserved (see :trac:`5979`)::
 
             sage: class MyParent(Parent):
-            ...       def _element_constructor_(self, x):
-            ...           print self, x
-            ...           return sage.structure.element.Element(parent = self)
-            ...       def _repr_(self):
-            ...           return "my_parent"
-            ...
+            ....:     def _element_constructor_(self, x):
+            ....:         print self, x
+            ....:         return sage.structure.element.Element(parent = self)
+            ....:     def _repr_(self):
+            ....:         return "my_parent"
+            ....:
             sage: my_parent = MyParent()
             sage: x = my_parent("bla")
             my_parent bla
@@ -1299,8 +1298,8 @@ cdef class Parent(category_object.CategoryObject):
 
             sage: from sage.rings.integer_ring import IntegerRing_class
             sage: class MyIntegers_class(IntegerRing_class):
-            ...        def is_finite(self):
-            ...            raise NotImplementedError
+            ....:      def is_finite(self):
+            ....:          raise NotImplementedError
             sage: MyIntegers = MyIntegers_class()
             sage: MyIntegers.is_finite()
             Traceback (most recent call last):
@@ -1311,11 +1310,11 @@ cdef class Parent(category_object.CategoryObject):
         pressing Ctrl-C.  We let it run for 1 second and then interrupt::
 
             sage: try:
-            ...     alarm(1)
-            ...     list(MyIntegers)
-            ... except KeyboardInterrupt:
-            ...     print "Caught KeyboardInterrupt"
-            ...
+            ....:   alarm(1)
+            ....:   list(MyIntegers)
+            ....: except KeyboardInterrupt:
+            ....:   print "Caught KeyboardInterrupt"
+            ....:
             Caught KeyboardInterrupt
 
         """
@@ -1438,13 +1437,13 @@ cdef class Parent(category_object.CategoryObject):
         override this default implementation::
 
             sage: class As(Category):
-            ...       def super_categories(self): return [Sets()]
-            ...       class ParentMethods:
-            ...           def __getitem__(self, n):
-            ...               return 'coucou'
+            ....:     def super_categories(self): return [Sets()]
+            ....:     class ParentMethods:
+            ....:         def __getitem__(self, n):
+            ....:             return 'coucou'
             sage: class A(Parent):
-            ...       def __init__(self):
-            ...           Parent.__init__(self, category=As())
+            ....:     def __init__(self):
+            ....:         Parent.__init__(self, category=As())
             sage: a = A()
             sage: a[1]
             'coucou'
@@ -1776,20 +1775,20 @@ cdef class Parent(category_object.CategoryObject):
             sage: import operator
 
             sage: class SymmetricGroupAction(sage.categories.action.Action):
-            ...       "Act on a multivariate polynomial ring by permuting the generators."
-            ...       def __init__(self, G, M, is_left=True):
-            ...           sage.categories.action.Action.__init__(self, G, M, is_left, operator.mul)
-            ...
-            ...       def _call_(self, g, a):
-            ...           if not self.is_left():
-            ...               g, a = a, g
-            ...           D = {}
-            ...           for k, v in a.dict().items():
-            ...               nk = [0]*len(k)
-            ...               for i in range(len(k)):
-            ...                   nk[g(i+1)-1] = k[i]
-            ...               D[tuple(nk)] = v
-            ...           return a.parent()(D)
+            ....:     "Act on a multivariate polynomial ring by permuting the generators."
+            ....:     def __init__(self, G, M, is_left=True):
+            ....:         sage.categories.action.Action.__init__(self, G, M, is_left, operator.mul)
+            ....:
+            ....:     def _call_(self, g, a):
+            ....:         if not self.is_left():
+            ....:             g, a = a, g
+            ....:         D = {}
+            ....:         for k, v in a.dict().items():
+            ....:             nk = [0]*len(k)
+            ....:             for i in range(len(k)):
+            ....:                 nk[g(i+1)-1] = k[i]
+            ....:             D[tuple(nk)] = v
+            ....:         return a.parent()(D)
 
             sage: R.<x, y, z> = QQ['x, y, z']
             sage: G = SymmetricGroup(3)
@@ -2143,9 +2142,9 @@ cdef class Parent(category_object.CategoryObject):
             sage: _ = gc.collect()
             sage: K = GF(1<<55,'t')
             sage: for i in range(50):
-            ...     a = K.random_element()
-            ...     E = EllipticCurve(j=a)
-            ...     b = K.has_coerce_map_from(E)
+            ....:   a = K.random_element()
+            ....:   E = EllipticCurve(j=a)
+            ....:   b = K.has_coerce_map_from(E)
             sage: _ = gc.collect()
             sage: len([x for x in gc.get_objects() if isinstance(x,type(E))])
             1
@@ -2260,9 +2259,9 @@ cdef class Parent(category_object.CategoryObject):
         Regression test for :trac:`12919` (probably not 100% robust)::
 
             sage: class P(Parent):
-            ...       def __init__(self):
-            ...           Parent.__init__(self, category=Sets())
-            ...       Element=ElementWrapper
+            ....:     def __init__(self):
+            ....:         Parent.__init__(self, category=Sets())
+            ....:     Element=ElementWrapper
             sage: A = P(); a = A('a')
             sage: B = P(); b = B('b')
             sage: C = P(); c = C('c')

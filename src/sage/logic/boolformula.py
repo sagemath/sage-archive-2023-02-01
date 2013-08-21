@@ -123,6 +123,7 @@ import logictable
 import logicparser
 #import boolopt
 from types import *
+from sage.misc.flatten import flatten
 
 latex_operators = [('&', '\\wedge '),
                    ('|', '\\vee '),
@@ -158,11 +159,7 @@ class BooleanFormula:
             sage: s
             a&b|~(c|a)
         """
-        self.__expression = ""
-        #remove white space from expression
-        for c in exp:
-            if(c != ' '):
-                self.__expression += c
+        self.__expression = exp.replace(' ', '')
         self.__tree = tree
         self.__vars_order = vo
 
@@ -208,6 +205,28 @@ class BooleanFormula:
             latex_expression = latex_expression.replace(old, new)
         return latex_expression
 
+    def polish_notation(self):
+        r"""
+        This function returns the calling formula in polish notation in
+        the form of a string.
+
+        INPUT:
+            self -- the calling object, which is a boolean formula
+
+        OUTPUT:
+            Returns the caling formula in polish notation as a string
+
+        EXAMPLES:
+            sage: import sage.logic.propcalc as propcalc
+            sage: f = propcalc.formula("~~a|(c->b)")
+            sage: f.polish_notation()
+            '|~~a->cb'
+            sage: g = propcalc.formula("(a|~b)->c")
+            sage: g.polish_notation()
+            '->|a~bc'
+        """
+        return ''.join(flatten(logicparser.polish_parse(repr(self))))
+
     def tree(self):
         r"""
         Returns a list containing the parse tree of this boolean expression.
@@ -231,6 +250,32 @@ class BooleanFormula:
              ['~', 'b', None]]
         """
         return self.__tree
+
+    def full_tree(self):
+        r"""
+        This function returns a full syntax parse tree of the
+        calling boolean formula.
+
+        INPUT:
+            self -- the calling object, which is a boolean formula
+
+        OUTPUT:
+            Returns a list containing the full syntax parse tree of self, with
+            the symbols arranged from left to right as in polish notation.
+
+        EXAMPLES:
+            sage: import sage.logic.propcalc as propcalc
+            sage: s = propcalc.formula("a->(b&c)")
+            sage: s.full_tree()
+            ['->', 'a', ['&', 'b', 'c']]
+            sage: t = propcalc.formula("a & ((~b | c) ^ a -> c) <-> ~b")
+            sage: t.full_tree()
+            ['<->', ['&', 'a', ['->', ['^', ['|', ['~', 'b'], 'c'], 'a'], 'c']], ['~', 'b']]
+            sage: f = propcalc.formula("~~(a&~b)")
+            sage: f.full_tree()
+            ['~', ['~', ['&', 'a', ['~', 'b']]]]
+        """
+        return logicparser.polish_parse(repr(self))
 
     def __or__(self, other):
         r"""
@@ -664,7 +709,7 @@ class BooleanFormula:
                     str += '|'
                 str = str[:-1] + ')&'
         self.__expression = str[:-1]
-        #in case of tautology
+        # in case of tautology
         if(len(self.__expression) == 0):
             self.__expression = '(' + self.__vars_order[0] + '|~' + self.__vars_order[0] + ')'
         self.__tree, self.__vars_order = logicparser.parse(self.__expression)
@@ -964,15 +1009,15 @@ class BooleanFormula:
             ['|', ['~', 'a', None], ['&', ['|', 'b', 'c'], ['~', ['&', 'b', 'c'], None]]]
         """
         if(tree[0] == '<->'):
-            #parse tree for (~tree[1]|tree[2])&(~tree[2]|tree[1])
+            # parse tree for (~tree[1]|tree[2])&(~tree[2]|tree[1])
             new_tree = ['&', ['|', ['~', tree[1], None], tree[2]], \
                        ['|', ['~', tree[2], None], tree[1]]]
         elif(tree[0] == '^'):
-            #parse tree for (tree[1]|tree[2])&~(tree[1]&tree[2])
+            # parse tree for (tree[1]|tree[2])&~(tree[1]&tree[2])
             new_tree = ['&', ['|', tree[1], tree[2]], \
                        ['~', ['&', tree[1], tree[2]], None]]
         elif(tree[0] == '->'):
-            #parse tree for ~tree[1]|tree[2]
+            # parse tree for ~tree[1]|tree[2]
             new_tree = ['|', ['~', tree[1], None], tree[2]]
         else:
             new_tree = tree
@@ -1007,7 +1052,7 @@ class BooleanFormula:
                 new_tree = [op, ['~', tree[1][1], None], ['~', tree[1][2], None]]
                 return logicparser.apply_func(new_tree, self.dist_not)
             else:
-                #cancel double negative
+                # cancel double negative
                 return tree[1][1]
         else:
             return tree

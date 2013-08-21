@@ -198,7 +198,7 @@ class AffineCrystalFromClassical(UniqueRepresentation, Parent):
             sage: A.retract(t).parent() is A
             True
         """
-        return self.element_class(classical_elt, parent = self)
+        return self.element_class(self, classical_elt)
 
     def _element_constructor_(self, *value, **options):
         r"""

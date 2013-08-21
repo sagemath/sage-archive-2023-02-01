@@ -2581,13 +2581,23 @@ class Polyhedron_base(Element):
              A vertex at (4, 8, 16)
              sage: p.dilation(2) == p * 2
              True
+
+        TESTS:
+
+        Dilation of empty polyhedrons works, see :trac:`14987`::
+
+             sage: p = Polyhedron(ambient_dim=2); p
+             The empty polyhedron in ZZ^2
+             sage: p.dilation(3)
+             The empty polyhedron in ZZ^2
         """
         new_vertices = [ list(scalar*v.vector()) for v in self.vertex_generator()]
         new_rays =  self.rays()
         new_lines = self.lines()
         return Polyhedron(vertices=new_vertices,
                           rays=new_rays, lines=new_lines,
-                          base_ring=self.parent()._coerce_base_ring(scalar))
+                          base_ring=self.parent()._coerce_base_ring(scalar),
+                          ambient_dim=self.ambient_dim())
 
     def _acted_upon_(self, actor, self_on_left):
         """

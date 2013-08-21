@@ -201,6 +201,9 @@ ext_modules = [
     Extension('sage.structure.list_clone',
               sources=['sage/structure/list_clone.pyx']),
 
+    Extension('sage.structure.list_clone_demo',
+              sources=['sage/structure/list_clone_demo.pyx']),
+
     Extension('sage.structure.list_clone_timings_cy',
               sources=['sage/structure/list_clone_timings_cy.pyx']),
 
@@ -1268,6 +1271,9 @@ ext_modules = [
               libraries = ['gmpxx', 'gmp'],
               language = 'c++'),
 
+    Extension('sage.modular.arithgroup.arithgroup_element',
+              sources = ['sage/modular/arithgroup/arithgroup_element.pyx']),
+
     Extension('sage.modular.modform.eis_series_cython',
               sources = ['sage/modular/modform/eis_series_cython.pyx'],
               libraries = ["gmp", "flint"],
@@ -1934,6 +1940,9 @@ ext_modules = [
     Extension('sage.structure.element',
               sources = ['sage/structure/element.pyx'],
               extra_compile_args=["-Os"]),
+
+    Extension('sage.structure.element_wrapper',
+              sources = ['sage/structure/element_wrapper.pyx']),
 
     Extension('sage.structure.factory',
               sources = ['sage/structure/factory.pyx']),

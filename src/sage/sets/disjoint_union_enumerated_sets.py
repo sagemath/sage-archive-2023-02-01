@@ -142,7 +142,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         sage: el = it.next(); el
         [2, 1, 3]
         sage: type(el)
-        <class 'sage.structure.element_wrapper.DisjointUnionEnumeratedSets_with_category.element_class'>
+        <type 'sage.structure.element_wrapper.ElementWrapper'>
         sage: el.parent() == UNoFacade
         True
         sage: elv = el.value; elv
@@ -374,7 +374,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
                 if self._facade:
                     yield el
                 else:
-                    yield self.element_class(el, parent=self) # Bypass correctness tests
+                    yield self.element_class(self, el) # Bypass correctness tests
 
     def an_element(self):
         """
@@ -476,9 +476,9 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
         if isinstance(el, self.element_class):
             el = el.value
         if self._is_a(el):
-            return self.element_class(el, parent=self)
+            return self.element_class(self, el)
         else:
-            raise ValueError, "Value %s does not belong to %s"%(el, self)
+            raise ValueError("Value %s does not belong to %s"%(el, self))
 
     @lazy_attribute
     def Element(self):
@@ -488,7 +488,7 @@ class DisjointUnionEnumeratedSets(UniqueRepresentation, Parent):
             sage: U = DisjointUnionEnumeratedSets(
             ...            Family([1,2,3], Partitions), facade=False)
             sage: U.Element
-            <class 'sage.structure.element_wrapper.ElementWrapper'>
+            <type 'sage.structure.element_wrapper.ElementWrapper'>
             sage: U = DisjointUnionEnumeratedSets(
             ...            Family([1,2,3], Partitions), facade=True)
             sage: U.Element

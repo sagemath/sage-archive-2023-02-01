@@ -1,4 +1,4 @@
-"""
+r"""
 Elements, Array and Lists With Clone Protocol
 
 This module defines several classes which are subclasses of
@@ -27,23 +27,36 @@ and its subclasses:
 
 - :class:`ClonableArray` for arrays (lists of fixed length) of objects;
 - :class:`ClonableList` for (resizable) lists of objects;
+- :class:`NormalizedClonableList` for lists of objects with a normalization method;
 - :class:`ClonableIntArray` for arrays of int.
 
-The following parents demonstrate how to use them:
+.. seealso:: The following parents from :mod:`sage.structure.list_clone_demo`
+    demonstrate how to use them:
 
-- ``IncreasingArrays()`` (see :class:`IncreasingArray` and the parent class
-  :class:`IncreasingArrays`)
-- ``IncreasingLists()`` (see :class:`IncreasingList` and the parent class
-  :class:`IncreasingLists`)
-- ``IncreasingIntArrays()`` (see :class:`IncreasingIntArray` and the parent class
-  :class:`IncreasingIntArrays`)
+    - ``IncreasingArrays()`` (see
+      :class:`~sage.structure.list_clone_demo.IncreasingArray`
+      and the parent class
+      :class:`~sage.structure.list_clone_demo.IncreasingArrays`)
+    - ``IncreasingLists()`` (see
+      :class:`~sage.structure.list_clone_demo.IncreasingList`
+      and the parent class
+      :class:`~sage.structure.list_clone_demo.IncreasingLists`)
+    - ``SortedLists()`` (see
+      :class:`~sage.structure.list_clone_demo.SortedList`
+      and the parent class
+      :class:`~sage.structure.list_clone_demo.SortedLists`)
+    - ``IncreasingIntArrays()`` (see
+      :class:`~sage.structure.list_clone_demo.IncreasingIntArray`
+      and the parent class
+      :class:`~sage.structure.list_clone_demo.IncreasingIntArrays`)
 
 EXAMPLES:
 
-We now demonstrate how :class:`IncreasingArray` works, creating an instance
-``el`` through its parent ``IncreasingArrays()``::
+We now demonstrate how
+:class:`~sage.structure.list_clone_demo.IncreasingArray` works, creating an
+instance ``el`` through its parent ``IncreasingArrays()``::
 
-    sage: from sage.structure.list_clone import IncreasingArrays
+    sage: from sage.structure.list_clone_demo import IncreasingArrays
     sage: P = IncreasingArrays()
     sage: P([1, 4 ,8])
     [1, 4, 8]
@@ -54,7 +67,7 @@ raised::
     sage: IncreasingArrays()([5, 4 ,8])
     Traceback (most recent call last):
     ...
-    AssertionError: array is not increasing
+    ValueError: array is not increasing
 
 Once created modifying ``el`` is forbidden::
 
@@ -67,7 +80,7 @@ Once created modifying ``el`` is forbidden::
 However, you can modify a temporarily mutable clone::
 
     sage: with el.clone() as elc:
-    ...       elc[1] = 3
+    ....:      elc[1] = 3
     sage: [el, elc]
     [[1, 4, 8], [1, 3, 8]]
 
@@ -85,9 +98,9 @@ You can break the property that the list is increasing during the
 modification::
 
     sage: with el.clone() as elc2:
-    ...      elc2[1] = 12
-    ...      print elc2
-    ...      elc2[2] = 25
+    ....:     elc2[1] = 12
+    ....:     print elc2
+    ....:     elc2[2] = 25
     [1, 12, 8]
     sage: elc2
     [1, 12, 25]
@@ -96,10 +109,10 @@ But this property must be restored at the end of the ``with`` block; otherwise
 an error is raised::
 
     sage: with elc2.clone() as el3:
-    ...      el3[1] = 100
+    ....:     el3[1] = 100
     Traceback (most recent call last):
     ...
-    AssertionError: array is not increasing
+    ValueError: array is not increasing
 
 Finally, as an alternative to the ``with`` syntax one can use::
 
@@ -143,7 +156,7 @@ from sage.structure.parent cimport Parent
 ###                         Basic clone elements                         ###
 ############################################################################
 cdef class ClonableElement(Element):
-    """
+    r"""
     Abstract class for elements with clone protocol
 
     This class is a subclass of :class:`Element<sage.structure.element.Element>`
@@ -203,21 +216,23 @@ cdef class ClonableElement(Element):
     :class:`ClonableElement`. We implement a class or pairs `(x,y)`
     such that `x < y`::
 
+        sage: from sage.structure.list_clone import ClonableElement
         sage: class IntPair(ClonableElement):
-        ...       def __init__(self, parent, x, y):
-        ...           ClonableElement.__init__(self, parent=parent)
-        ...           self._x = x
-        ...           self._y = y
-        ...           self.set_immutable()
-        ...           self.check()
-        ...       def _repr_(self):
-        ...           return "(x=%s, y=%s)"%(self._x, self._y)
-        ...       def check(self):
-        ...           assert self._x < self._y, "Incorrectly ordered pair"
-        ...       def get_x(self): return self._x
-        ...       def get_y(self): return self._y
-        ...       def set_x(self, v): self._require_mutable(); self._x = v
-        ...       def set_y(self, v): self._require_mutable(); self._y = v
+        ....:      def __init__(self, parent, x, y):
+        ....:          ClonableElement.__init__(self, parent=parent)
+        ....:          self._x = x
+        ....:          self._y = y
+        ....:          self.set_immutable()
+        ....:          self.check()
+        ....:      def _repr_(self):
+        ....:          return "(x=%s, y=%s)"%(self._x, self._y)
+        ....:      def check(self):
+        ....:          if self._x >= self._y:
+        ....:              raise ValueError, "Incorrectly ordered pair"
+        ....:      def get_x(self): return self._x
+        ....:      def get_y(self): return self._y
+        ....:      def set_x(self, v): self._require_mutable(); self._x = v
+        ....:      def set_y(self, v): self._require_mutable(); self._y = v
 
     .. note:: we don't need to define ``__copy__`` since it is properly
        inherited from :class:`Element<sage.structure.element.Element>`.
@@ -240,7 +255,7 @@ cdef class ClonableElement(Element):
     However, you can modify a mutable copy::
 
         sage: with el.clone() as el1:
-        ...       el1.set_x(2)
+        ....:      el1.set_x(2)
         sage: [el, el1]
         [(x=1, y=3), (x=2, y=3)]
 
@@ -258,16 +273,16 @@ cdef class ClonableElement(Element):
     illegal and raise an exception::
 
         sage: with el.clone() as elc2:
-        ...       elc2.set_x(5)
+        ....:      elc2.set_x(5)
         Traceback (most recent call last):
         ...
-        AssertionError: Incorrectly ordered pair
+        ValueError: Incorrectly ordered pair
     """
     def __cinit__(self):
         """
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,3]) # indirect doctest
             sage: el.is_immutable()
             True
@@ -284,7 +299,7 @@ cdef class ClonableElement(Element):
 
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,3])
             sage: el._require_mutable()
             Traceback (most recent call last):
@@ -303,14 +318,14 @@ cdef class ClonableElement(Element):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,3])
             sage: el.is_mutable()
             False
             sage: copy(el).is_mutable()
             True
             sage: with el.clone() as el1:
-            ...       print [el.is_mutable(), el1.is_mutable()]
+            ....:      print [el.is_mutable(), el1.is_mutable()]
             [False, True]
         """
         return not self._is_immutable
@@ -324,14 +339,14 @@ cdef class ClonableElement(Element):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,3])
             sage: el.is_immutable()
             True
             sage: copy(el).is_immutable()
             False
             sage: with el.clone() as el1:
-            ...       print [el.is_immutable(), el1.is_immutable()]
+            ....:      print [el.is_immutable(), el1.is_immutable()]
             [True, False]
         """
         return self._is_immutable
@@ -342,7 +357,7 @@ cdef class ClonableElement(Element):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,3])
             sage: el1 = copy(el); el1.is_mutable()
             True
@@ -359,15 +374,24 @@ cdef class ClonableElement(Element):
         """
         Makes ``self`` mutable, so it can be changed.
 
-        This function is for debugging only, you are not supposed to use it.
+        .. warning:: for internal use only. Casual users should make a copy
+             using either the :meth:`__copy__` method or the :meth:`clone`
+             protocol. Use only if you really know what you are doing. You
+             should in particular make sure that you are the only owner of
+             your object.
 
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,3])
             sage: el._set_mutable(); el.is_mutable()
             True
+            sage: hash(el)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot hash a mutable object.
         """
+        self._hash = 0
         self._is_immutable = False
 
     def __hash__(self):
@@ -376,7 +400,7 @@ cdef class ClonableElement(Element):
 
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,3])
             sage: hash(el)    # random
             -309690657
@@ -403,10 +427,10 @@ cdef class ClonableElement(Element):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,3])
             sage: with el.clone() as el1:
-            ...       el1[2] = 5
+            ....:      el1[2] = 5
             sage: el1
             [1, 2, 5]
         """
@@ -415,13 +439,13 @@ cdef class ClonableElement(Element):
         res._needs_check = check
         return res
 
-    cpdef ClonableElement __enter__(self):
+    def __enter__(self):
         """
         Implement the self guarding clone protocol.
 
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,3])
             sage: el.clone().__enter__()
             [1, 2, 3]
@@ -429,7 +453,7 @@ cdef class ClonableElement(Element):
         self._require_mutable()
         return self
 
-    cpdef bint __exit__(self, typ, value, tracback):
+    def __exit__(self, typ, value, tracback):
         """
         Implement the self guarding clone protocol.
 
@@ -438,7 +462,7 @@ cdef class ClonableElement(Element):
 
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,3])
             sage: el1 = el.clone().__enter__()
             sage: el1.__exit__(None, None, None)
@@ -451,7 +475,7 @@ cdef class ClonableElement(Element):
             sage: elc2.__exit__(None, None, None)
             Traceback (most recent call last):
             ...
-            AssertionError: array is not increasing
+            ValueError: array is not increasing
         """
         self.set_immutable()
         if __debug__ and self._needs_check:
@@ -471,28 +495,49 @@ cdef class ClonableArray(ClonableElement):
     :class:`Element<sage.structure.element.Element>` behave as arrays
     (i.e. lists of fixed length) and implement the clone protocol. See
     :class:`ClonableElement` for details about clone protocol.
+
+    INPUT:
+
+    - ``parent`` -- a :class:`Parent<sage.structure.parent.Parent>`
+    - ``lst``    -- a list
+    - ``check``  -- a boolean specifying if the invariant must be checked
+      using method :meth:`check`.
+    - ``immutable`` -- a boolean telling wether the created element is
+      immutable (defaults to ``True``)
+
+    .. seealso:: :class:`~sage.structure.list_clone_demo.IncreasingArray` for
+                 an example of usage.
+
+    EXAMPLES::
+
+        sage: from sage.structure.list_clone_demo import IncreasingArrays
+        sage: IA = IncreasingArrays()
+        sage: ia1 = IA([1, 4, 6]); ia1
+        [1, 4, 6]
+        sage: with ia1.clone() as ia2:
+        ....:      ia2[1] = 5
+        sage: ia2
+        [1, 5, 6]
+        sage: with ia1.clone() as ia2:
+        ....:      ia2[1] = 7
+        Traceback (most recent call last):
+        ...
+        ValueError: array is not increasing
     """
-    def __init__(self, Parent parent, lst, check = True):
+    def __init__(self, Parent parent, lst, check = True, immutable = True):
         """
         Initialize ``self``
 
-        INPUT:
-
-        - ``parent`` -- a :class:`Parent<sage.structure.parent.Parent>`
-        - ``lst``    -- a list
-        - ``check``  -- a boolean specifying if the invariant must be checked
-          using method :meth:`check`.
-
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: IncreasingArrays()([1,2,3])
             [1, 2, 3]
 
             sage: el = IncreasingArrays()([3,2,1])
             Traceback (most recent call last):
             ...
-            AssertionError: array is not increasing
+            ValueError: array is not increasing
 
             sage: IncreasingArrays()(None)
             Traceback (most recent call last):
@@ -506,7 +551,7 @@ cdef class ClonableArray(ClonableElement):
         """
         self._parent = parent
         self._list = list(lst)
-        self._is_immutable = True
+        self._is_immutable = immutable
         if check:
             self.check()
 
@@ -514,7 +559,7 @@ cdef class ClonableArray(ClonableElement):
         """
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: IncreasingArrays()([1,2,3])
             [1, 2, 3]
         """
@@ -526,7 +571,7 @@ cdef class ClonableArray(ClonableElement):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: IncreasingArrays()([1,2,3]).__nonzero__()
             True
             sage: IncreasingArrays()([]).__nonzero__()
@@ -538,11 +583,12 @@ cdef class ClonableArray(ClonableElement):
         """
         Returns the list embedded in ``self``.
 
-        Don't use ! For internal purpose only.
+        .. warning:: No copy is performed. As a consequence, modifying the
+           returned list is not allowed.
 
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,3])
             sage: el._get_list()
             [1, 2, 3]
@@ -553,11 +599,12 @@ cdef class ClonableArray(ClonableElement):
         """
         Set the list embedded in ``self``.
 
-        Don't use ! For internal purpose only.
+        .. warning:: No copy is performed. Modifying the list after calling
+           ``_set_list`` on it is not allowed.
 
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,3])
             sage: el._set_list([1,4,5])
             sage: el
@@ -571,7 +618,7 @@ cdef class ClonableArray(ClonableElement):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: len(IncreasingArrays()([1,2,3]))
             3
         """
@@ -585,7 +632,7 @@ cdef class ClonableArray(ClonableElement):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: IncreasingArrays()([1,2,3])[1]
             2
             sage: IncreasingArrays()([1,2,3])[7]
@@ -613,7 +660,7 @@ cdef class ClonableArray(ClonableElement):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,4,10])
             sage: elc = copy(el)
             sage: elc[1] = 3; elc
@@ -639,7 +686,7 @@ cdef class ClonableArray(ClonableElement):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: IncreasingArrays()([1,2,3])._getitem(1)
             2
             sage: IncreasingArrays()([1,2,3])._getitem(5)
@@ -658,7 +705,7 @@ cdef class ClonableArray(ClonableElement):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,4])
             sage: elc = copy(el)
             sage: elc._setitem(1, 3); elc
@@ -681,7 +728,7 @@ cdef class ClonableArray(ClonableElement):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,4])
             sage: list(iter(el))
             [1, 2, 4]
@@ -703,7 +750,7 @@ cdef class ClonableArray(ClonableElement):
         """
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: c = IncreasingArrays()([1,2,4])
             sage: 1 in c
             True
@@ -718,7 +765,7 @@ cdef class ClonableArray(ClonableElement):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: c = IncreasingArrays()([1,2,4])
             sage: c.index(1)
             0
@@ -742,7 +789,7 @@ cdef class ClonableArray(ClonableElement):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: c = IncreasingArrays()([1,2,2,4])
             sage: c.count(1)
             1
@@ -761,7 +808,7 @@ cdef class ClonableArray(ClonableElement):
 
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,3])
             sage: hash(el)    # random
             -309690657
@@ -781,7 +828,7 @@ cdef class ClonableArray(ClonableElement):
         """
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,4])
             sage: elc = copy(el)
             sage: elc == el             # indirect doctest
@@ -794,7 +841,7 @@ cdef class ClonableArray(ClonableElement):
         """
         TEST::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el1 = IncreasingArrays()([1,2,4])
             sage: el2 = IncreasingArrays()([1,2,3])
             sage: el1 == el1, el2 == el2, el1 == el2    # indirect doctest
@@ -811,7 +858,7 @@ cdef class ClonableArray(ClonableElement):
 
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,4])
             sage: elc = copy(el)
             sage: el[:] == elc[:]
@@ -858,14 +905,15 @@ cdef class ClonableArray(ClonableElement):
 
         EXAMPLES::
 
+            sage: from sage.structure.list_clone import ClonableArray
             sage: ClonableArray(Parent(), [1,2,3]) # indirect doctest
             Traceback (most recent call last):
             ...
-            AssertionError: This should never be called, please overload
-            sage: from sage.structure.list_clone import IncreasingArrays
+            AssertionError: This should never be called, please overload the check method
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,4]) # indirect doctest
         """
-        assert False, "This should never be called, please overload"
+        assert False, "This should never be called, please overload the check method"
 
     cpdef long _hash_(self):
         """
@@ -873,7 +921,7 @@ cdef class ClonableArray(ClonableElement):
 
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,3])
             sage: el._hash_()    # random
             -309711137
@@ -888,12 +936,12 @@ cdef class ClonableArray(ClonableElement):
         """
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingArrays
+            sage: from sage.structure.list_clone_demo import IncreasingArrays
             sage: el = IncreasingArrays()([1,2,4])
             sage: loads(dumps(el))
             [1, 2, 4]
             sage: t = el.__reduce__(); t
-            (<built-in function _make_array_clone>, (<type 'sage.structure.list_clone.IncreasingArray'>, <class 'sage.structure.list_clone.IncreasingArrays_with_category'>, [1, 2, 4], True, True, None))
+            (<built-in function _make_array_clone>, (<type 'sage.structure.list_clone_demo.IncreasingArray'>, <class 'sage.structure.list_clone_demo.IncreasingArrays_with_category'>, [1, 2, 4], True, True, None))
             sage: t[0](*t[1])
             [1, 2, 4]
         """
@@ -914,7 +962,8 @@ def _make_array_clone(clas, parent, list, needs_check, is_immutable, dic):
 
     TESTS::
 
-        sage: from sage.structure.list_clone import _make_array_clone, IncreasingArrays
+        sage: from sage.structure.list_clone import _make_array_clone
+        sage: from sage.structure.list_clone_demo import IncreasingArrays
         sage: ILs = IncreasingArrays()
         sage: el = _make_array_clone(ILs.element_class, ILs, [1,2,3], True, True, None)
         sage: el
@@ -945,80 +994,6 @@ def _make_array_clone(clas, parent, list, needs_check, is_immutable, dic):
     return res
 
 
-
-#####################################################################
-######                      TESTS Classes                      ######
-#####################################################################
-##### Cython version #####
-cdef class IncreasingArray(ClonableArray):
-    """
-    A small extension class for testing :class:`ClonableArray`.
-
-    TESTS::
-
-        sage: from sage.structure.list_clone import IncreasingArrays
-        sage: TestSuite(IncreasingArrays()([1,2,3])).run()
-        sage: TestSuite(IncreasingArrays()([])).run()
-    """
-
-    cpdef check(self):
-        """
-        Check that ``self`` is increasing.
-
-        EXAMPLES::
-
-            sage: from sage.structure.list_clone import IncreasingArrays
-            sage: IncreasingArrays()([1,2,3]) # indirect doctest
-            [1, 2, 3]
-            sage: IncreasingArrays()([3,2,1]) # indirect doctest
-            Traceback (most recent call last):
-            ...
-            AssertionError: array is not increasing
-        """
-        cdef int i
-        for i in range(len(self)-1):
-            assert self._getitem(i) <= self._getitem(i+1), "array is not increasing"
-
-
-##### Parents #####
-from sage.categories.sets_cat import Sets
-from sage.structure.unique_representation import UniqueRepresentation
-class IncreasingArrays(UniqueRepresentation, Parent):
-    """
-    A small (incomplete) parent for testing :class:`ClonableArray`
-
-    TESTS::
-
-        sage: from sage.structure.list_clone import IncreasingArrays
-        sage: IncreasingArrays().element_class
-        <type 'sage.structure.list_clone.IncreasingArray'>
-    """
-
-    def __init__(self):
-        """
-        TESTS::
-
-            sage: from sage.structure.list_clone import IncreasingArrays
-            sage: IncreasingArrays()
-            <class 'sage.structure.list_clone.IncreasingArrays_with_category'>
-            sage: IncreasingArrays() == IncreasingArrays()
-            True
-        """
-        Parent.__init__(self, category = Sets())
-
-    def _element_constructor_(self, *args, **keywords):
-        """
-        TESTS::
-
-            sage: from sage.structure.list_clone import IncreasingArrays
-            sage: IncreasingArrays()([1])     # indirect doctest
-            [1]
-        """
-        return self.element_class(self, *args, **keywords)
-
-    Element = IncreasingArray
-
-
 ############################################################################
 ###                      Clonable (Resizable) Lists                      ###
 ############################################################################
@@ -1030,6 +1005,9 @@ cdef class ClonableList(ClonableArray):
     :class:`Element<sage.structure.element.Element>` behave as lists and
     implement the clone protocol. See :class:`ClonableElement` for details
     about clone protocol.
+
+    .. seealso:: :class:`~sage.structure.list_clone_demo.IncreasingList` for
+                 an example of usage.
     """
     cpdef append(self, el):
         """
@@ -1039,23 +1017,23 @@ cdef class ClonableList(ClonableArray):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingLists
+            sage: from sage.structure.list_clone_demo import IncreasingLists
             sage: el = IncreasingLists()([1])
             sage: el.append(3)
             Traceback (most recent call last):
             ...
             ValueError: object is immutable; please change a copy instead.
             sage: with el.clone() as elc:
-            ...       elc.append(4)
-            ...       elc.append(6)
+            ....:      elc.append(4)
+            ....:      elc.append(6)
             sage: elc
             [1, 4, 6]
             sage: with el.clone() as elc:
-            ...       elc.append(4)
-            ...       elc.append(2)
+            ....:      elc.append(4)
+            ....:      elc.append(2)
             Traceback (most recent call last):
             ...
-            AssertionError: array is not increasing
+            ValueError: array is not increasing
         """
         self._require_mutable()
         self._list.append(el)
@@ -1068,7 +1046,7 @@ cdef class ClonableList(ClonableArray):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingLists
+            sage: from sage.structure.list_clone_demo import IncreasingLists
             sage: el = IncreasingLists()([1, 4, 5, 8, 9])
             sage: el.extend((10,11))
             Traceback (most recent call last):
@@ -1076,21 +1054,21 @@ cdef class ClonableList(ClonableArray):
             ValueError: object is immutable; please change a copy instead.
 
             sage: with el.clone() as elc:
-            ...       elc.extend((10,11))
+            ....:      elc.extend((10,11))
             sage: elc
             [1, 4, 5, 8, 9, 10, 11]
 
             sage: el2 = IncreasingLists()([15, 16])
             sage: with el.clone() as elc:
-            ...       elc.extend(el2)
+            ....:      elc.extend(el2)
             sage: elc
             [1, 4, 5, 8, 9, 15, 16]
 
             sage: with el.clone() as elc:
-            ...       elc.extend((6,7))
+            ....:      elc.extend((6,7))
             Traceback (most recent call last):
             ...
-            AssertionError: array is not increasing
+            ValueError: array is not increasing
         """
         self._require_mutable()
         self._list.extend(it)
@@ -1106,21 +1084,21 @@ cdef class ClonableList(ClonableArray):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingLists
+            sage: from sage.structure.list_clone_demo import IncreasingLists
             sage: el = IncreasingLists()([1, 4, 5, 8, 9])
             sage: el.insert(3, 6)
             Traceback (most recent call last):
             ...
             ValueError: object is immutable; please change a copy instead.
             sage: with el.clone() as elc:
-            ...       elc.insert(3, 6)
+            ....:      elc.insert(3, 6)
             sage: elc
             [1, 4, 5, 6, 8, 9]
             sage: with el.clone() as elc:
-            ...       elc.insert(2, 6)
+            ....:      elc.insert(2, 6)
             Traceback (most recent call last):
             ...
-            AssertionError: array is not increasing
+            ValueError: array is not increasing
         """
         self._require_mutable()
         self._list.insert(index, el)
@@ -1133,19 +1111,19 @@ cdef class ClonableList(ClonableArray):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingLists
+            sage: from sage.structure.list_clone_demo import IncreasingLists
             sage: el = IncreasingLists()([1, 4, 5, 8, 9])
             sage: el.pop()
             Traceback (most recent call last):
             ...
             ValueError: object is immutable; please change a copy instead.
             sage: with el.clone() as elc:
-            ...       print elc.pop()
+            ....:      print elc.pop()
             9
             sage: elc
             [1, 4, 5, 8]
             sage: with el.clone() as elc:
-            ...       print elc.pop(2)
+            ....:      print elc.pop(2)
             5
             sage: elc
             [1, 4, 8, 9]
@@ -1161,18 +1139,18 @@ cdef class ClonableList(ClonableArray):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingLists
+            sage: from sage.structure.list_clone_demo import IncreasingLists
             sage: el = IncreasingLists()([1, 4, 5, 8, 9])
             sage: el.remove(4)
             Traceback (most recent call last):
             ...
             ValueError: object is immutable; please change a copy instead.
             sage: with el.clone() as elc:
-            ...       elc.remove(4)
+            ....:      elc.remove(4)
             sage: elc
             [1, 5, 8, 9]
             sage: with el.clone() as elc:
-            ...       elc.remove(10)
+            ....:      elc.remove(10)
             Traceback (most recent call last):
             ...
             ValueError: list.remove(x): x not in list
@@ -1188,7 +1166,7 @@ cdef class ClonableList(ClonableArray):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingLists
+            sage: from sage.structure.list_clone_demo import IncreasingLists
             sage: el = IncreasingLists()([1,2,4,10,15,17])
             sage: el[1] = 3
             Traceback (most recent call last):
@@ -1196,12 +1174,12 @@ cdef class ClonableList(ClonableArray):
             ValueError: object is immutable; please change a copy instead.
 
             sage: with el.clone() as elc:
-            ...       elc[3] = 7
+            ....:      elc[3] = 7
             sage: elc
             [1, 2, 4, 7, 15, 17]
 
             sage: with el.clone(check=False) as elc:
-            ...       elc[1:3]  = [3,5,6,8]
+            ....:      elc[1:3]  = [3,5,6,8]
             sage: elc
             [1, 3, 5, 6, 8, 10, 15, 17]
         """
@@ -1216,67 +1194,23 @@ cdef class ClonableList(ClonableArray):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingLists
+            sage: from sage.structure.list_clone_demo import IncreasingLists
             sage: el = IncreasingLists()([1, 4, 5, 8, 9])
             sage: del el[3]
             Traceback (most recent call last):
             ...
             ValueError: object is immutable; please change a copy instead.
             sage: with el.clone() as elc:
-            ...       del elc[3]
+            ....:      del elc[3]
             sage: elc
             [1, 4, 5, 9]
             sage: with el.clone() as elc:
-            ...       del elc[1:3]
+            ....:      del elc[1:3]
             sage: elc
             [1, 8, 9]
         """
         self._require_mutable()
         del self._list[key]
-
-
-class IncreasingLists(IncreasingArrays):
-    """
-    A small (incomplete) parent for testing :class:`ClonableArray`
-
-    TESTS::
-
-        sage: from sage.structure.list_clone import IncreasingLists
-        sage: IncreasingLists().element_class
-        <type 'sage.structure.list_clone.IncreasingList'>
-    """
-    Element = IncreasingList
-
-cdef class IncreasingList(ClonableList):
-    """
-    A small extension class for testing :class:`ClonableList`
-
-    TESTS::
-
-        sage: from sage.structure.list_clone import IncreasingLists
-        sage: TestSuite(IncreasingLists()([1,2,3])).run()
-        sage: TestSuite(IncreasingLists()([])).run()
-    """
-
-    cpdef check(self):
-        """
-        Check that ``self`` is increasing
-
-        EXAMPLES::
-
-            sage: from sage.structure.list_clone import IncreasingLists
-            sage: IncreasingLists()([1,2,3]) # indirect doctest
-            [1, 2, 3]
-            sage: IncreasingLists()([3,2,1]) # indirect doctest
-            Traceback (most recent call last):
-            ...
-            AssertionError: array is not increasing
-        """
-        cdef int i
-        for i in range(len(self)-1):
-            assert self._getitem(i) < self._getitem(i+1), "array is not increasing"
-
-
 
 
 ############################################################################
@@ -1290,25 +1224,31 @@ cdef class ClonableIntArray(ClonableElement):
     :class:`Element<sage.structure.element.Element>` behave as list of int and
     implement the clone protocol. See :class:`ClonableElement` for details
     about clone protocol.
+
+
+    INPUT:
+
+    - ``parent`` -- a :class:`Parent<sage.structure.parent.Parent>`
+    - ``lst``      -- a list
+    - ``check`` -- a boolean specifying if the invariant must be checked
+      using method :meth:`check`
+    - ``immutable`` -- a boolean telling wether the created element is
+      immutable (defaults to ``True``)
+
+    .. seealso:: :class:`~sage.structure.list_clone_demo.IncreasingIntArray`
+                 for an example of usage.
     """
     def __cinit__(self):
         self._len = -1
         self._list = NULL
 
-    def __init__(self, Parent parent, lst, check = True):
+    def __init__(self, Parent parent, lst, check = True, immutable = True):
         """
         Initialize ``self``
 
-        INPUT:
-
-        - ``parent`` -- a :class:`Parent<sage.structure.parent.Parent>`
-        - ``lst``      -- a list
-        - ``check`` -- a boolean specifying if the invariant must be checked
-          using method :meth:`check`.
-
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: IncreasingIntArrays()([1,2,3])
             [1, 2, 3]
             sage: IncreasingIntArrays()((1,2,3))
@@ -1322,14 +1262,13 @@ cdef class ClonableIntArray(ClonableElement):
             sage: el = IncreasingIntArrays()([3,2,1])
             Traceback (most recent call last):
             ...
-            AssertionError: array is not increasing
+            ValueError: array is not increasing
 
             sage: el = IncreasingIntArrays()([1,2,4])
             sage: list(iter(el))
             [1, 2, 4]
             sage: list(iter(IncreasingIntArrays()([])))
             []
-
 
         You are not supposed to do the following (giving a wrong list and
         desactivating checks)::
@@ -1345,7 +1284,7 @@ cdef class ClonableIntArray(ClonableElement):
         for i from 0 <= i < self._len:
             self._list[i] = lst[i]
 
-        self._is_immutable = True
+        self._is_immutable = immutable
         if check:
             self.check()
 
@@ -1359,7 +1298,7 @@ cdef class ClonableIntArray(ClonableElement):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: el = IncreasingIntArrays()([], check=False)
             sage: el._alloc_(3)
             sage: el._setitem(0, 1); el._setitem(1, 5); el._setitem(2, 8)
@@ -1394,7 +1333,7 @@ cdef class ClonableIntArray(ClonableElement):
         """
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: IncreasingIntArrays()([1,2,3])
             [1, 2, 3]
         """
@@ -1404,7 +1343,7 @@ cdef class ClonableIntArray(ClonableElement):
         """
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: IncreasingIntArrays()([1,2,3]).__nonzero__()
             True
             sage: IncreasingIntArrays()([]).__nonzero__()
@@ -1418,7 +1357,7 @@ cdef class ClonableIntArray(ClonableElement):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: len(IncreasingIntArrays()([1,2,3]))
             3
         """
@@ -1430,7 +1369,7 @@ cdef class ClonableIntArray(ClonableElement):
 
         EXAMPLE::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: I = IncreasingIntArrays()(range(5))
             sage: I == range(5)
             False
@@ -1445,7 +1384,7 @@ cdef class ClonableIntArray(ClonableElement):
 
         EXAMPLE::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: I = IncreasingIntArrays()(range(5))
             sage: I == range(5)
             False
@@ -1470,7 +1409,7 @@ cdef class ClonableIntArray(ClonableElement):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: el = IncreasingIntArrays()([1,2,3])
             sage: el[1]
             2
@@ -1523,7 +1462,7 @@ cdef class ClonableIntArray(ClonableElement):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: el = IncreasingIntArrays()([1,2,4])
             sage: elc = copy(el)
             sage: elc[1] = 3; elc
@@ -1548,7 +1487,7 @@ cdef class ClonableIntArray(ClonableElement):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: IncreasingIntArrays()([1,2,3])._getitem(1)
             2
         """
@@ -1566,7 +1505,7 @@ cdef class ClonableIntArray(ClonableElement):
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: el = IncreasingIntArrays()([1,2,4])
             sage: elc = copy(el)
             sage: elc._setitem(1, 3); elc
@@ -1586,7 +1525,7 @@ cdef class ClonableIntArray(ClonableElement):
         """
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: c = IncreasingIntArrays()([1,2,4])
             sage: 1 in c
             True
@@ -1603,7 +1542,7 @@ cdef class ClonableIntArray(ClonableElement):
         """
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: c = IncreasingIntArrays()([1,2,4])
             sage: c.index(1)
             0
@@ -1629,7 +1568,7 @@ cdef class ClonableIntArray(ClonableElement):
 
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: el = IncreasingIntArrays()([1,2,3])
             sage: hash(el)    # random
             -309690657
@@ -1649,7 +1588,7 @@ cdef class ClonableIntArray(ClonableElement):
         """
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: el = IncreasingIntArrays()([1,2,4])
             sage: elc = copy(el)
             sage: elc == el             # indirect doctest
@@ -1662,7 +1601,7 @@ cdef class ClonableIntArray(ClonableElement):
         """
         TEST::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: el1 = IncreasingIntArrays()([1,2,4])
             sage: el2 = IncreasingIntArrays()([1,2,3])
             sage: el1 == el1, el2 == el2, el1 == el2    # indirect doctest
@@ -1672,6 +1611,8 @@ cdef class ClonableIntArray(ClonableElement):
         """
         cdef int i, minlen, reslen
         cdef ClonableIntArray rgt = <ClonableIntArray>right
+        if left is right:
+             return 0
         if left._list is NULL:
             if rgt._list is NULL:
                 return 0
@@ -1702,7 +1643,7 @@ cdef class ClonableIntArray(ClonableElement):
 
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: el = IncreasingIntArrays()([1,2,4])
             sage: elc = copy(el)
             sage: el[:] == elc[:]
@@ -1751,14 +1692,15 @@ cdef class ClonableIntArray(ClonableElement):
 
         EXAMPLES::
 
+            sage: from sage.structure.list_clone import ClonableArray
             sage: ClonableArray(Parent(), [1,2,3]) # indirect doctest
             Traceback (most recent call last):
             ...
-            AssertionError: This should never be called, please overload
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            AssertionError: This should never be called, please overload the check method
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: el = IncreasingIntArrays()([1,2,4]) # indirect doctest
         """
-        assert False, "This should never be called, please overload"
+        assert False, "This should never be called, please overload the check method"
 
     cpdef long _hash_(self):
         """
@@ -1766,7 +1708,7 @@ cdef class ClonableIntArray(ClonableElement):
 
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: el = IncreasingIntArrays()([1,2,3])
             sage: el._hash_()    # random
             -309711137
@@ -1784,12 +1726,12 @@ cdef class ClonableIntArray(ClonableElement):
         """
         TESTS::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
+            sage: from sage.structure.list_clone_demo import IncreasingIntArrays
             sage: el = IncreasingIntArrays()([1,2,4])
             sage: loads(dumps(el))
             [1, 2, 4]
             sage: t = el.__reduce__(); t
-            (<built-in function _make_int_array_clone>, (<type 'sage.structure.list_clone.IncreasingIntArray'>, <class 'sage.structure.list_clone.IncreasingIntArrays_with_category'>, [1, 2, 4], True, True, None))
+            (<built-in function _make_int_array_clone>, (<type 'sage.structure.list_clone_demo.IncreasingIntArray'>, <class 'sage.structure.list_clone_demo.IncreasingIntArrays_with_category'>, [1, 2, 4], True, True, None))
             sage: t[0](*t[1])
             [1, 2, 4]
         """
@@ -1810,7 +1752,8 @@ def _make_int_array_clone(clas, parent, lst, needs_check, is_immutable, dic):
 
     TESTS::
 
-        sage: from sage.structure.list_clone import _make_int_array_clone, IncreasingIntArrays
+        sage: from sage.structure.list_clone import _make_int_array_clone
+        sage: from sage.structure.list_clone_demo import IncreasingIntArrays
         sage: ILs = IncreasingIntArrays()
         sage: el = _make_int_array_clone(ILs.element_class, ILs, [1,2,3], True, True, None)
         sage: el
@@ -1832,52 +1775,92 @@ def _make_int_array_clone(clas, parent, lst, needs_check, is_immutable, dic):
     """
     cdef ClonableIntArray res
     res = <ClonableIntArray> PY_NEW(clas)
-    ClonableIntArray.__init__(res, parent, lst, needs_check)
-    res._is_immutable = is_immutable
+    ClonableIntArray.__init__(res, parent, lst, needs_check, is_immutable)
     if dic is not None:
         res.__dict__ = dic
     return res
 
 
-cdef class IncreasingIntArray(ClonableIntArray):
+
+cdef class NormalizedClonableList(ClonableList):
     """
-    A small extension class for testing :class:`ClonableIntArray`.
+    List with clone protocol and normal form
 
-    TESTS::
+    This is a subclass of :class:`ClonableList` which call a method
+    :meth:`normalize` at creation and after any modification of its instance.
 
-        sage: from sage.structure.list_clone import IncreasingIntArrays
-        sage: TestSuite(IncreasingIntArrays()([1,2,3])).run()
-        sage: TestSuite(IncreasingIntArrays()([])).run()
+    .. seealso:: :class:`~sage.structure.list_clone_demo.SortedList` for an
+                 example of usage.
+
+    EXAMPLES:
+
+    We construct a sorted list through its parent::
+
+        sage: from sage.structure.list_clone_demo import SortedLists
+        sage: SL = SortedLists()
+        sage: sl1 = SL([4,2,6,1]); sl1
+        [1, 2, 4, 6]
+
+    Normalization is also performed atfer modification::
+
+        sage: with sl1.clone() as sl2:
+        ....:      sl2[1] = 12
+        sage: sl2
+        [1, 4, 6, 12]
     """
 
-    cpdef check(self):
+    def __init__(self, Parent parent, lst, check = True, immutable = True):
+        r"""
+        TESTS::
+
+            sage: from sage.structure.list_clone_demo import SortedList, SortedLists
+            sage: SortedList(SortedLists(), [2,3,1])
+            [1, 2, 3]
         """
-        Check that ``self`` is increasing.
+        ClonableList.__init__(self, parent, lst, False, False)
+        self.normalize()
+        self._is_immutable = immutable
+        if check:
+            self.check()
+
+    def __exit__(self, typ, value, tracback):
+        r"""
+        TESTS::
+
+            sage: from sage.structure.list_clone_demo import SortedList, SortedLists
+            sage: l = SortedList(SortedLists(), [2,3,1], immutable=False); l
+            [1, 2, 3]
+            sage: l[1] = 5; l
+            [1, 5, 3]
+            sage: l.__exit__(None, None, None)
+            False
+            sage: l
+            [1, 3, 5]
+        """
+        self.normalize()
+        return ClonableList.__exit__(self, typ, value, tracback)
+
+    cpdef normalize(self):
+        """
+        Normalize ``self``
+
+        This is an abstract method. Subclasses are supposed to overload
+        :meth:`normalize`. The call ``self.normalize()`` is supposed to
+
+        - call ``self._require_mutable()`` to check that ``self`` is in a
+          proper mutable state
+        - modify ``self`` to put it in a normal form
 
         EXAMPLES::
 
-            sage: from sage.structure.list_clone import IncreasingIntArrays
-            sage: IncreasingIntArrays()([1,2,3]) # indirect doctest
-            [1, 2, 3]
-            sage: IncreasingIntArrays()([3,2,1]) # indirect doctest
+            sage: from sage.structure.list_clone_demo import SortedList, SortedLists
+            sage: l = SortedList(SortedLists(), [2,3,2], False, False)
+            sage: l
+            [2, 2, 3]
+            sage: l.check()
             Traceback (most recent call last):
             ...
-            AssertionError: array is not increasing
+            ValueError: list is not strictly increasing
         """
-        cdef int i
-        if not self:
-            return
-        for i in range(len(self)-1):
-            assert self._getitem(i) < self._getitem(i+1), "array is not increasing"
+        assert False, "This should never be called, please overload the normalize method"
 
-class IncreasingIntArrays(IncreasingArrays):
-    """
-    A small (incomplete) parent for testing :class:`ClonableIntArray`
-
-    TESTS::
-
-        sage: from sage.structure.list_clone import IncreasingIntArrays
-        sage: IncreasingIntArrays().element_class
-        <type 'sage.structure.list_clone.IncreasingIntArray'>
-    """
-    Element = IncreasingIntArray

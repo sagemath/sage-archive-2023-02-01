@@ -396,14 +396,14 @@ cdef class IntegerWrapper(Integer):
     specifying an alternative parent to ``IntegerRing()``.
     """
 
-    def __init__(self, x=None, unsigned int base=0, parent=None):
+    def __init__(self, parent=None, x=None, unsigned int base=0):
         """
         We illustrate how to create integers with parents different
         from ``IntegerRing()``::
 
             sage: from sage.rings.integer import IntegerWrapper
 
-            sage: n = IntegerWrapper(3, parent=Primes()) # indirect doctest
+            sage: n = IntegerWrapper(Primes(), 3) # indirect doctest
             sage: n
             3
             sage: n.parent()

@@ -1146,6 +1146,7 @@ class TwinPrime(Constant):
 
 twinprime = TwinPrime().expression()
 
+
 class Mertens(Constant):
     """
     The Mertens constant is related to the Twin Primes constant and
@@ -1192,7 +1193,8 @@ class Mertens(Constant):
         """
         return 0.26149721284764278375542683861
 
-merten = mertens = Mertens().expression()
+mertens = Mertens().expression()
+
 
 class Glaisher(Constant):
     r"""

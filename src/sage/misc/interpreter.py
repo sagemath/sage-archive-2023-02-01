@@ -266,12 +266,17 @@ class SagePreparseTransformer():
 
         TESTS:
 
-        A check that :trac:`14961` does not crash sage, however because of the
-        nature of the error, the doctesting framework crashes when trying
-        to run this test::
+        Check that syntax errors in the preparser do not crash IPython,
+        see :trac:`14961`. ::
 
-            sage: R.<t> = QQ{] # not tested
+            sage: bad_syntax = "R.<t> = QQ{]"
+            sage: preparse(bad_syntax)
+            Traceback (most recent call last):
+            ...
             SyntaxError: Mismatched ']'
+            sage: from sage.misc.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell(bad_syntax)
             SyntaxError: Mismatched ']'
         """
         if do_preparse and not line.startswith('%'):

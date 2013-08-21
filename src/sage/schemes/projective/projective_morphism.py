@@ -40,16 +40,16 @@ from math                          import log
 from sage.misc.cachefunc           import cached_method
 from sage.modules.free_module_element import vector
 from sage.rings.all                import Integer, moebius
-from sage.rings.arith              import gcd, lcm, is_prime
+from sage.rings.arith              import gcd, lcm
 from sage.rings.complex_field      import ComplexField
 from sage.rings.finite_rings.constructor import GF
 from sage.rings.integer_ring       import ZZ
-from sage.rings.padics.all         import Qp
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.quotient_ring      import QuotientRing_generic
 from sage.rings.rational_field     import QQ
-from sage.rings.real_mpfr          import RealField, RR
+from sage.rings.real_mpfr          import RealField
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
+from copy import copy
 
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):

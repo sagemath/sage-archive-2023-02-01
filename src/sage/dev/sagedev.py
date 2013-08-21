@@ -2187,7 +2187,6 @@ class SageDev(object):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             1
-            sage: UI.append("Summary: summary\ndescription")
             sage: dev.local_tickets()
               : master
             #1: ticket/1

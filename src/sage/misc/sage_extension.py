@@ -425,19 +425,19 @@ from sage.misc.interpreter import sage_prompt
                       if isinstance(obj, sage.interfaces.interface.Interface)]
 
         for real_name, obj in interfaces:
-            def tmp(line,name=real_name):
-                self.shell.run_cell('%s.interact()'%name)
-            tmp.__doc__="Interact with %s"%real_name
+            def tmp(line, name=real_name):
+                self.shell.run_cell('%s.interact()' % name)
+            tmp.__doc__ = "Interact with %s" % real_name
             self.shell.register_magic_function(tmp, magic_name=real_name)
 
             obj_name = obj.name()
-            if name != obj_name:
-                def tmp_deprecated(line, name=real_name):
-                    deprecation(6288, 'Use %%%s instead of %%%s.'%(real_name, obj_name))
-                    self.shell.run_cell('%s.interact()'%name)
+            if real_name != obj_name:
+                def tmp_deprecated(line, name=real_name, badname=obj_name):
+                    deprecation(6288, 'Use %%%s instead of %%%s.' % (name,
+                                                                     badname))
+                    self.shell.run_cell('%s.interact()' % name)
+                tmp_deprecated.__doc__ = "Interact with %s" % real_name
                 self.shell.register_magic_function(tmp_deprecated, magic_name=obj_name)
-
-
 
     def set_quit_hook(self):
         """

@@ -3011,31 +3011,93 @@ class SageDev(object):
 
         TESTS::
 
-            TODO
+        Create a doctest setup with a single user::
+
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+
+        Create some tickets and add dependencies::
+
+            sage: UI.append("Summary: summary\ndescription")
+            sage: dev.create_ticket()
+            1
+            sage: UI.append("Summary: summary\ndescription")
+            sage: dev.create_ticket()
+            2
+            sage: UI.append("Summary: summary\ndescription")
+            sage: dev.create_ticket()
+            3
+            sage: UI.append("Summary: summary\ndescription")
+            sage: dev.create_ticket()
+            4
+
+            sage: dev.merge('ticket/2',create_dependency=True)
+            Merging the local branch `ticket/2` into the local branch `ticket/4`.
+            Added dependency on #2 to #4.
+            sage: dev.merge('ticket/3',create_dependency=True)
+            Merging the local branch `ticket/3` into the local branch `ticket/4`.
+            Added dependency on #3 to #4.
+            sage: dev.switch_ticket('#2')
+            sage: dev.merge('ticket/1', create_dependency=True)
+            Merging the local branch `ticket/1` into the local branch `ticket/2`.
+            Added dependency on #1 to #2.
+            sage: dev.switch_ticket('#3')
+            sage: dev.merge('ticket/1', create_dependency=True)
+            Merging the local branch `ticket/1` into the local branch `ticket/3`.
+            Added dependency on #1 to #3.
+
+        Check that the dependencies show correctly::
+
+            sage: dev.switch_ticket('#4')
+            sage: dev.show_dependencies()
+            Ticket #4 depends on #2, #3.
+            sage: dev.show_dependencies('#4')
+            Ticket #4 depends on #2, #3.
+            sage: dev.show_dependencies('#3')
+            Ticket #3 depends on #1.
+            sage: dev.show_dependencies('#2')
+            Ticket #2 depends on #1.
+            sage: dev.show_dependencies('#1')
+            Ticket #1 has no dependencies.
+            sage: dev.show_dependencies('#4', all=True)
+            Ticket #4 depends on #3, #1, #2.
 
         """
-        raise NotImplementedError # the below does most probably not work anymore TODO
         if ticket is None:
             ticket = self._current_ticket()
-        try:
-            branchname = self._branch[ticket]
-        except KeyError:
-            raise ValueError("you must specify a valid ticket")
-        if _seen is None:
-            seen = []
-        elif ticket in _seen:
-            return
+
+        if ticket is None:
+            raise SageDevValueError("ticket must be specified")
+
+        self._check_ticket_name(ticket)
+        ticket = self._ticket_from_ticket_name(ticket)
+
+        if not self._has_local_branch_for_ticket(ticket):
+            raise SageDevValueError("ticket must be a ticket with a local branch. Use `{0}` to download the ticket first.".format(self._format_command("switch_ticket",ticket=ticket)))
+
+        branch = self._local_branch_for_ticket(ticket)
+        if all:
+            ret = []
+            stack = [ticket]
+            while stack:
+                t = stack.pop()
+                if t in ret: continue
+                ret.append(t)
+                if not self._has_local_branch_for_ticket(t):
+                    self._UI.warning("no local branch for ticket #{0} present, some dependencies might be missing in the output.".format(t))
+                    continue
+                deps = self._dependencies_for_ticket(t)
+                for d in deps:
+                    if d not in stack and d not in ret:
+                        stack.append(d)
+            ret = ret[1:]
         else:
-            seen = _seen
-            seen.append(ticket)
-        dep = self._dependencies_as_tickets(branchname)
-        if not all:
-            self._UI.show("Ticket %s depends on %s"%(ticket, ", ".join([str(d) for d in dep])))
+            ret = self._dependencies_for_ticket(ticket)
+
+        if ret:
+            self._UI.show("Ticket #{0} depends on {1}.".format(ticket,", ".join(["#{0}".format(d) for d in ret])))
         else:
-            for d in dep:
-                self.show_dependencies(d, True, seen)
-            if _seen is None:
-                self._UI.show("Ticket %s depends on %s"%(ticket, ", ".join([str(d) for d in seen])))
+            self._UI.show("Ticket #{0} has no dependencies.".format(ticket))
 
     def _detect_patch_diff_format(self, lines):
         r"""

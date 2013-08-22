@@ -101,6 +101,7 @@ class SageDevWrapper(object):
         self._wrap("reset_to_clean_state")
         self._wrap("reset_to_clean_working_directory")
         self._wrap("set_remote")
+        self._wrap("show_dependencies")
         self._wrap("switch_branch")
         self._wrap("switch_ticket")
         self._wrap("unstash")

@@ -2252,7 +2252,21 @@ class SageDev(object):
 
         TESTS:
 
-            TODO
+        Create a single user for doctesting::
+
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+
+        Create a ticket branch and abandon it::
+
+            sage: UI.append("Summary: summary\ndescription")
+            sage: dev.create_ticket()
+            1
+            sage: dev.abandon(1)
+            Can not delete `ticket/1` because you are currently on that branch.
+            sage: dev.vanilla()
+            sage: dev.abandon(1)
+            Moved your branch `ticket/1` to `trash/ticket/1`.
 
         """
         if self._is_ticket_name(ticket_or_branch):

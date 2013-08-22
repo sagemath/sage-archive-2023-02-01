@@ -2718,9 +2718,22 @@ class SageDev(object):
         - :meth:`download` -- download a branch from the server and
           merge it.
 
-        TESTS::
+        TESTS:
 
-            TODO
+        Create a doctest setup with a single user::
+
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+
+        Go to a sage release::
+
+            sage: dev.git.current_branch()
+            'master'
+            sage: dev.vanilla()
+            sage: dev.git.current_branch()
+            Traceback (most recent call last):
+            ...
+            DetachedHeadError: unexpectedly, git is in a detached HEAD state
 
         """
         if hasattr(release, 'literal'):

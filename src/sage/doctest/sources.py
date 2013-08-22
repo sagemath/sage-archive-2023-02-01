@@ -673,6 +673,7 @@ class FileDocTestSource(DocTestSource):
             ....:             FDS = FileDocTestSource(filename, DocTestDefaults(long=True,optional=True))
             ....:             FDS._test_enough_doctests(verbose=False)
             There are 18 tests in sage/combinat/partition.py that are not being run
+            There are 15 tests in sage/combinat/permutation.py that are not being run
             There are 18 tests in sage/combinat/tableau.py that are not being run
             There are 8 tests in sage/combinat/crystals/tensor_product.py that are not being run
             There are 15 tests in sage/combinat/root_system/cartan_type.py that are not being run

@@ -2495,11 +2495,11 @@ def HoffmanSingletonGraph():
                 con = (i+j*k)%5
                 H.add_edge(('q%d%d'%(k,con),'p%d%d'%(j,i)))
     H.name('Hoffman-Singleton graph')
-    from sage.combinat.combinat import permutations
+    from sage.combinat.permutation import Permutations
     from sage.misc.prandom import randint
-    P = permutations([1,2,3,4])
-    qpp = [0]+P[randint(0,23)]
-    ppp = [0]+P[randint(0,23)]
+    P = Permutations([1,2,3,4])
+    qpp = [0] + list(P[randint(0,23)])
+    ppp = [0] + list(P[randint(0,23)])
     qcycle = lambda i,s : ['q%s%s'%(i,(j+s)%5) for j in qpp]
     pcycle = lambda i,s : ['p%s%s'%(i,(j+s)%5) for j in ppp]
     l = 0

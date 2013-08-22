@@ -21,7 +21,7 @@ from sage.modules.all import vector
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.categories.all import GroupAlgebras
 
-permutation_options = permutation.permutation_options
+permutation_options = permutation.PermutationOptions
 
 def SymmetricGroupAlgebra(R,n):
     """
@@ -449,7 +449,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             z_elts[m] = BR(c)
         z = self._from_dict(z_elts)
 
-        if permutation.PermutationOptions()['mult'] == 'l2r':
+        if permutation_options['mult'] == 'l2r':
             return z
         else:
             return z.map_support(lambda x: x.inverse())

@@ -2310,7 +2310,11 @@ class LinearCode(module.Module_old):
         """
         G = self.gen_mat()
         GL = G.matrix_from_columns([i for i in range(G.ncols()) if i not in L])
-        return LinearCode(GL.row_space().basis_matrix())
+        r = GL.rank()
+        if r < GL.nrows():
+            GL.echelonize()
+            GL = GL[:r]
+        return LinearCode(GL)
 
     def random_element(self, *args, **kwds):
         """
@@ -2584,9 +2588,7 @@ class LinearCode(module.Module_old):
         """
         Cd = self.dual_code()
         Cdp = Cd.punctured(L)
-        Cdpd = Cdp.dual_code()
-        Gs = Cdpd.gen_mat()
-        return LinearCode(Gs)
+        return Cdp.dual_code()
 
     @rename_keyword(deprecation=11033, method="algorithm")
     def spectrum(self, algorithm=None):

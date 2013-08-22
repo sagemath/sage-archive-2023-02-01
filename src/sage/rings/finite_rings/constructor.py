@@ -434,18 +434,30 @@ class FiniteFieldFactory(UniqueFactory):
                         raise ValueError("The degree of the modulus does not correspond to the cardinality of the field.")
                 if name is None:
                     raise TypeError("you must specify the generator name.")
-                if order < zech_log_bound:
-                    # DO *NOT* use for prime subfield, since that would lead to
-                    # a circular reference in the call to ParentWithGens in the
-                    # __init__ method.
-                    K = FiniteField_givaro(order, name, modulus, cache=elem_cache,**kwds)
-                else:
-                    if order % 2 == 0 and (impl is None or impl == 'ntl'):
-                        from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
-                        K = FiniteField_ntl_gf2e(order, name, modulus, **kwds)
+                if impl is None:
+                    if order < zech_log_bound:
+                        # DO *NOT* use for prime subfield, since that would lead to
+                        # a circular reference in the call to ParentWithGens in the
+                        # __init__ method.
+                        impl = 'givaro'
+                    elif order % 2 == 0:
+                        impl = 'ntl'
                     else:
-                        from finite_field_ext_pari import FiniteField_ext_pari
-                        K = FiniteField_ext_pari(order, name, modulus, **kwds)
+                        impl = 'pari_mod'
+                if impl == 'givaro':
+                    K = FiniteField_givaro(order, name, modulus, cache=elem_cache,**kwds)
+                elif impl == 'ntl':
+                    from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
+                    K = FiniteField_ntl_gf2e(order, name, modulus, **kwds)
+                elif impl == 'pari_ffelt':
+                    from finite_field_pari_ffelt import FiniteField_pari_ffelt
+                    K = FiniteField_pari_ffelt(p, modulus, name, **kwds)
+                elif (impl == 'pari_mod'
+                      or impl == 'pari'):    # for unpickling old pickles
+                    from finite_field_ext_pari import FiniteField_ext_pari
+                    K = FiniteField_ext_pari(order, name, modulus, **kwds)
+                else:
+                    raise ValueError("no such finite field implementation: %s" % impl)
 
         return K
 
@@ -481,10 +493,13 @@ class FiniteFieldFactory(UniqueFactory):
             else:
                 from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
                 from finite_field_ext_pari import FiniteField_ext_pari
+                from finite_field_pari_ffelt import FiniteField_pari_ffelt
                 if isinstance(K, FiniteField_ntl_gf2e):
                     impl = 'ntl'
                 elif isinstance(K, FiniteField_ext_pari):
-                    impl = 'pari'
+                    impl = 'pari_mod'
+                elif isinstance(K, FiniteField_pari_ffelt):
+                    impl = 'pari_ffelt'
             new_keys.append( (order, name, modulus, impl, _, p, n, proof) )
             return new_keys
 

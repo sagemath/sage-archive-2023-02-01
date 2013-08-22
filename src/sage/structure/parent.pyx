@@ -2179,30 +2179,41 @@ cdef class Parent(category_object.CategoryObject):
                       From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Schur basis
                       To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald Ht basis
 
+        The following was fixed in :trac:`4740`::
+
+            sage: F = GF(13)
+            sage: F.coerce_map_from(F) is F.coerce_map_from(F)
+            True
+
         """
         if not good_as_coerce_domain(S):
             return None
         self._coercions_used = True
         cdef map.Map mor
-        if S is self:
-            from sage.categories.homset import Hom
-            return Hom(self, self).identity()
 
-        elif isinstance(S, Set_PythonType_class):
+        if isinstance(S, Set_PythonType_class):
             return self.coerce_map_from(S._type)
         if self._coerce_from_hash is None: # this is because parent.__init__() does not always get called
             self.init_coerce(False)
-        #cdef object ret
+
         try:
             return self._coerce_from_hash.get(S)
         except KeyError:
             pass
 
+        if S is self:
+            from sage.categories.homset import Hom
+            mor = Hom(self, self).identity()
+            self._coerce_from_hash.set(S, mor)
+            return mor
+
         if S == self:
             # non-unique parents
             if debug.unique_parent_warnings:
                 print "Warning: non-unique parents %s"%(type(S))
-            return self._generic_convert_map(S)
+            mor = self._generic_convert_map(S)
+            self._coerce_from_hash.set(S, mor)
+            return mor
 
         try:
             _register_pair(self, S, "coerce")

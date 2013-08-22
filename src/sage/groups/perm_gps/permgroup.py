@@ -1423,7 +1423,7 @@ class PermutationGroup_generic(group.Group):
 
             sage: S = SymmetricGroup(['a','b','c'])
             sage: latex(S)
-            \langle (\verb|a|,\verb|b|,\verb|c|), (\verb|a|,\verb|b|) \rangle
+            \langle (\text{\texttt{a}},\text{\texttt{b}},\text{\texttt{c}}), (\text{\texttt{a}},\text{\texttt{b}}) \rangle
         """
         return '\\langle ' + \
                ', '.join([x._latex_() for x in self.gens()]) + ' \\rangle'
@@ -2211,6 +2211,113 @@ class PermutationGroup_generic(group.Group):
         """
         return PermutationGroup_subgroup(self, gens=gens, gap_group=gap_group, domain=None,
                                          category=category, canonicalize=canonicalize, check=check)
+
+    def as_finitely_presented_group(self, reduced=False):
+        """
+        Return a finitely presented group isomorphic to ``self``.
+
+        This method acts as wrapper for the GAP function ``IsomorphismFpGroupByGenerators``,
+        which yields an isomorphism from a given group to a finitely presented group.
+
+        INPUT:
+
+        - ``reduced`` -- Default ``False``, if ``True`` :meth:`FinitelyPresentedGroup.simplified
+          <sage.groups.finitely_presented.FinitelyPresentedGroup.simplified>`
+          is called, attempting to simplify the presentation of the finitely presented group
+          to be returned.
+
+        OUTPUT:
+
+        Finite presentation of self, obtained by taking the image
+        of the isomorphism returned by the GAP function, ``IsomorphismFpGroupByGenerators``.
+
+        ALGORITHM:
+
+        Uses GAP.
+
+        EXAMPLES::
+
+            sage: CyclicPermutationGroup(50).as_finitely_presented_group()
+            Finitely presented group < a | a^50 >
+            sage: DihedralGroup(4).as_finitely_presented_group()
+            Finitely presented group < a, b | b^2, a^4, (b*a)^2 >
+            sage: GeneralDihedralGroup([2,2]).as_finitely_presented_group()
+            Finitely presented group < a, b, c | a^2, b^2, c^2, (c*b)^2, (c*a)^2, (b*a)^2 >
+
+        GAP algorithm is not guaranteed to produce minimal or canonical presentation::
+
+            sage: G = PermutationGroup(['(1,2,3,4,5)', '(1,5)(2,4)'])
+            sage: G.is_isomorphic(DihedralGroup(5))
+            True
+            sage: K = G.as_finitely_presented_group(); K
+            Finitely presented group < a, b | b^2, (b*a)^2, b*a^-3*b*a^2 >
+            sage: K.as_permutation_group().is_isomorphic(DihedralGroup(5))
+            True
+
+        We can attempt to reduce the output presentation::
+
+            sage: PermutationGroup(['(1,2,3,4,5)','(1,3,5,2,4)']).as_finitely_presented_group()
+            Finitely presented group < a, b | b^-2*a^-1, b*a^-2 >
+            sage: PermutationGroup(['(1,2,3,4,5)','(1,3,5,2,4)']).as_finitely_presented_group(reduced=True)
+            Finitely presented group < a | a^5 >
+
+        TESTS::
+
+            sage: PermutationGroup([]).as_finitely_presented_group()
+            Finitely presented group < a | a >
+            sage: S = SymmetricGroup(6)
+            sage: perm_ls = [S.random_element() for i in range(3)]
+            sage: G = PermutationGroup(perm_ls)
+            sage: G.as_finitely_presented_group().as_permutation_group().is_isomorphic(G)
+            True
+
+        `D_9` is the only non-Abelian group of order 18
+        with an automorphism group of order 54 [THOMAS-WOODS]_::
+
+            sage: D = DihedralGroup(9).as_finitely_presented_group().gap()
+            sage: D.Order(), D.IsAbelian(), D.AutomorphismGroup().Order()
+            (18, false, 54)
+
+        `S_3` is the only non-Abelian group of order 6 [THOMAS-WOODS]_::
+
+            sage: S = SymmetricGroup(3).as_finitely_presented_group().gap()
+            sage: S.Order(), S.IsAbelian()
+            (6, false)
+
+        We can manually construct a permutation representation using GAP
+        coset enumeration methods::
+
+            sage: D = GeneralDihedralGroup([3,3,4]).as_finitely_presented_group().gap()
+            sage: ctab = D.CosetTable(D.Subgroup([]))
+            sage: gen_ls = gap.List(ctab, gap.PermList)
+            sage: PermutationGroup(gen_ls).is_isomorphic(GeneralDihedralGroup([3,3,4]))
+            True
+            sage: A = AlternatingGroup(5).as_finitely_presented_group().gap()
+            sage: ctab = A.CosetTable(A.Subgroup([]))
+            sage: gen_ls = gap.List(ctab, gap.PermList)
+            sage: PermutationGroup(gen_ls).is_isomorphic(AlternatingGroup(5))
+            True
+
+        AUTHORS:
+
+        - Davis Shurbert (2013-06-21): initial version
+        """
+        from sage.groups.free_group import FreeGroup, _lexi_gen
+        from sage.groups.finitely_presented import FinitelyPresentedGroup
+        from sage.libs.gap.libgap import libgap
+
+        image_fp = libgap.Image( libgap.IsomorphismFpGroupByGenerators(self, self.gens()))
+        image_gens = image_fp.FreeGeneratorsOfFpGroup()
+        name_itr = _lexi_gen() # Python generator object for variable names
+        F = FreeGroup([name_itr.next() for x in image_gens])
+
+        # Convert GAP relators to Sage relators using the Tietze word of each defining relation.
+        ret_rls = tuple([F(rel_word.TietzeWordAbstractWord(image_gens).sage())
+                        for rel_word in image_fp.RelatorsOfFpGroup()])
+        ret_fp = FinitelyPresentedGroup(F,ret_rls)
+        if reduced:
+            ret_fp = ret_fp.simplified()
+        return ret_fp
 
     def quotient(self, N):
         """

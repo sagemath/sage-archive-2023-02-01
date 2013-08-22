@@ -219,7 +219,7 @@ def standardize_generator(g, convert_dict=None):
     from sage.interfaces.gap import GapElement
     from sage.combinat.permutation import Permutation
     from sage.libs.pari.gen import gen
-    from sage.combinat.permutation import Permutation_class
+    from sage.combinat.permutation import Permutation
 
     if isinstance(g, gen):
         g = list(g)
@@ -228,7 +228,7 @@ def standardize_generator(g, convert_dict=None):
     if isinstance(g, GapElement):
         g = str(g)
         needs_conversion = False
-    if isinstance(g, Permutation_class):
+    if isinstance(g, Permutation):
         return g.cycle_tuples()
     if isinstance(g, PermutationGroupElement):
         g = g.cycle_tuples()
@@ -590,7 +590,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
             sage: S = SymmetricGroup(['a', 'b'])
             sage: latex(S.gens())
-            \left[(\verb|a|,\verb|b|)\right]
+            \left[(\text{\texttt{a}},\text{\texttt{b}})\right]
         """
         from sage.misc.latex import latex
         return "".join(["(" + ",".join([latex(x) for x in cycle])+")" for cycle in self.cycle_tuples()])

@@ -66,7 +66,7 @@ class Derangement(CombinatorialObject, Element):
             sage: p = D([4,3,2,1]).to_permutation(); p
             [4, 3, 2, 1]
             sage: type(p)
-            <class 'sage.combinat.permutation.Permutation_class'>
+            <class 'sage.combinat.permutation.StandardPermutations_all_with_category.element_class'>
             sage: D = Derangements([1, 3, 3, 4])
             sage: D[0].to_permutation()
             Traceback (most recent call last):

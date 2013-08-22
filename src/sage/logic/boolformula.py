@@ -113,15 +113,15 @@ r"""
 
 """
 #*******************************************************************************************
-#copyright (C) 2006 William Stein <wstein@gmail.com>
-#copyright (C) 2006 Chris Gorecki <chris.k.gorecki@gmail.com>
-#Distributed under the terms of the GNU General Public License (GPL)
-#http://www.gnu.org/licenses/
+# copyright (C) 2006 William Stein <wstein@gmail.com>
+# copyright (C) 2006 Chris Gorecki <chris.k.gorecki@gmail.com>
+# Distributed under the terms of the GNU General Public License (GPL)
+# http://www.gnu.org/licenses/
 #*******************************************************************************************
 import booleval
 import logictable
 import logicparser
-#import boolopt
+# import boolopt
 from types import *
 from sage.misc.flatten import flatten
 
@@ -504,13 +504,13 @@ class BooleanFormula:
             n is the number of variables in the expression.
         """
         max = 2 ** len(self.__vars_order)
-        if(end < 0):
+        if end < 0:
             end = max
-        if(end > max):
+        if end > max:
             end = max
-        if(start < 0):
+        if start < 0:
             start = 0
-        if(start > max):
+        if start > max:
             start = max
         keys, table = [], []
         vars = {}
@@ -700,17 +700,17 @@ class BooleanFormula:
         table = t.get_table_list()
         vars = table[0]
         for row in table[1:]:
-            if(row[-1] == False):
+            if row[-1] == False:
                 str += '('
                 for i in range(len(row) - 1):
-                    if(row[i] == True):
+                    if row[i] == True:
                         str += '~'
                     str += vars[i]
                     str += '|'
                 str = str[:-1] + ')&'
         self.__expression = str[:-1]
         # in case of tautology
-        if(len(self.__expression) == 0):
+        if len(self.__expression) == 0:
             self.__expression = '(' + self.__vars_order[0] + '|~' + self.__vars_order[0] + ')'
         self.__tree, self.__vars_order = logicparser.parse(self.__expression)
 
@@ -788,22 +788,22 @@ class BooleanFormula:
         w = 1
         while i < len(self.__expression):
             c = self.__expression[i]
-            if(c == ')'):
+            if c == ')':
                 clauses += 1
-            if(c in '()|'):
+            if c in '()|':
                 i += 1
                 continue
-            if(c == '~'):
+            if c == '~':
                 s += '-'
-            elif(c == '&'):
+            elif c == '&':
                 s += '0 '
             else:
                 varname = ''
-                while(i < self.__expression[i] not in '|) '):
+                while i < self.__expression[i] not in '|) ':
                     varname += self.__expression[i]
                     i += 1
                 s += vars_num[varname] + ' '
-            if(len(s) >= (w * 15) and s[-1] != '-'):
+            if len(s) >= (w * 15) and s[-1] != '-':
                 s += '\n'
                 w += 1
             i += 1
@@ -897,19 +897,19 @@ class BooleanFormula:
             sage: logicparser.apply_func(tree, s.convert_opt)
             ('and', ('prop', 'a'), ('or', ('prop', 'b'), ('not', ('prop', 'c'))))
         """
-        if(type(tree[1]) is not TupleType and tree[1] != None):
+        if type(tree[1]) is not TupleType and tree[1] != None:
             lval = ('prop', tree[1])
         else:
             lval = tree[1]
-        if(type(tree[2]) is not TupleType and tree[2] != None):
+        if type(tree[2]) is not TupleType and tree[2] != None:
             rval = ('prop', tree[2])
         else:
             rval = tree[2]
-        if(tree[0] == '~'):
+        if tree[0] == '~':
             return ('not', lval)
-        if(tree[0] == '&'):
+        if tree[0] == '&':
             op = 'and'
-        if(tree[0] == '|'):
+        if tree[0] == '|':
             op = 'or'
         return (op, lval, rval)
 
@@ -977,14 +977,14 @@ class BooleanFormula:
             False
         """
         bits = []
-        while(x > 0):
-            if(x % 2 == 0):
+        while x > 0:
+            if x % 2 == 0:
                 b = False
             else:
                 b = True
             x = int(x / 2)
             bits.append(b)
-        if(c > len(bits) - 1):
+        if c > len(bits) - 1:
             return False
         else:
             return bits[c]
@@ -1008,15 +1008,15 @@ class BooleanFormula:
             sage: logicparser.apply_func(tree, s.reduce_op)
             ['|', ['~', 'a', None], ['&', ['|', 'b', 'c'], ['~', ['&', 'b', 'c'], None]]]
         """
-        if(tree[0] == '<->'):
+        if tree[0] == '<->':
             # parse tree for (~tree[1]|tree[2])&(~tree[2]|tree[1])
             new_tree = ['&', ['|', ['~', tree[1], None], tree[2]], \
                        ['|', ['~', tree[2], None], tree[1]]]
-        elif(tree[0] == '^'):
+        elif tree[0] == '^':
             # parse tree for (tree[1]|tree[2])&~(tree[1]&tree[2])
             new_tree = ['&', ['|', tree[1], tree[2]], \
                        ['~', ['&', tree[1], tree[2]], None]]
-        elif(tree[0] == '->'):
+        elif tree[0] == '->':
             # parse tree for ~tree[1]|tree[2]
             new_tree = ['|', ['~', tree[1], None], tree[2]]
         else:
@@ -1042,10 +1042,10 @@ class BooleanFormula:
             sage: logicparser.apply_func(tree, s.dist_not) #long time
             ['|', ['~', 'a', None], ['~', 'b', None]]
         """
-        if(tree[0] == '~' and type(tree[1]) is ListType):
+        if tree[0] == '~' and type(tree[1]) is ListType:
             op = tree[1][0]
-            if(op != '~'):
-                if(op == '&'):
+            if op != '~':
+                if op == '&':
                     op = '|'
                 else:
                     op = '&'
@@ -1076,10 +1076,10 @@ class BooleanFormula:
             ['&', ['&', ['|', 'a', 'a'], ['|', 'b', 'a']], ['&', ['|', 'a', 'c'], ['|', 'b', 'c']]]
 
         """
-        if(tree[0] == '|' and type(tree[2]) is ListType and tree[2][0] == '&'):
+        if tree[0] == '|' and type(tree[2]) is ListType and tree[2][0] == '&':
             new_tree = ['&', ['|', tree[1], tree[2][1]], ['|', tree[1], tree[2][2]]]
             return logicparser.apply_func(new_tree, self.dist_ors)
-        if(tree[0] == '|' and type(tree[1]) is ListType and tree[1][0] == '&'):
+        if tree[0] == '|' and type(tree[1]) is ListType and tree[1][0] == '&':
            new_tree = ['&', ['|', tree[1][1], tree[2]], ['|', tree[1][2], tree[2]]]
            return logicparser.apply_func(new_tree, self.dist_ors)
         return tree
@@ -1104,7 +1104,7 @@ class BooleanFormula:
             sage: logicparser.apply_func(tree, s.to_infix)
             [['a', '&', 'b'], '|', ['a', '&', 'c']]
         """
-        if(tree[0] != '~'):
+        if tree[0] != '~':
             return [tree[1], tree[0], tree[2]]
         return tree
 
@@ -1135,20 +1135,20 @@ class BooleanFormula:
         put_flag = False
         i = 0
         for c in str_tree:
-            if(i < len(str_tree) - 1):
+            if i < len(str_tree) - 1:
                 op = self.get_next_op(str_tree[i:])
-            if(op == '|' and not open_flag):
+            if op == '|' and not open_flag:
                 self.__expression += '('
                 open_flag = True
-            if(i < len(str_tree) - 2 and str_tree[i + 1] == '&' and open_flag):
+            if i < len(str_tree) - 2 and str_tree[i + 1] == '&' and open_flag:
                 open_flag = False
                 self.__expression += ')'
-            if(str_tree[i:i + 4] == 'None'):
+            if str_tree[i:i + 4] == 'None':
                 i += 4
-            if(i < len(str_tree) and str_tree[i] not in ' \',[]'):
+            if i < len(str_tree) and str_tree[i] not in ' \',[]':
                 self.__expression += str_tree[i]
             i += 1
-        if(open_flag == True):
+        if open_flag == True:
             self.__expression += ')'
 
     def get_next_op(self, str):
@@ -1169,6 +1169,6 @@ class BooleanFormula:
             '|'
         """
         i = 0
-        while(i < len(str) - 1 and str[i] != '&' and str[i] != '|'):
+        while i < len(str) - 1 and str[i] != '&' and str[i] != '|':
             i += 1
         return str[i]

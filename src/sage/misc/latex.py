@@ -312,7 +312,7 @@ def str_function(x):
         sage: str_function('+34.5')
         '+34.5'
         sage: str_function('hello_world')
-        '\\verb|hello_world|'
+        '\\text{\\texttt{hello{\\char`\\_}world}}'
         sage: str_function('-1.00000?') # trac 12178
         '-1.00000?'
     """
@@ -320,41 +320,17 @@ def str_function(x):
     # point, and/or ends with "?"
     if re.match(r'(\+|-)?[0-9]*\.?[0-9]*\??$', x):
         return x
-    # Try to pick a delimiter.
-    for delimiter in """|"'`#%&,.:;?!@_~^+-/\=<>()[]{}0123456789E""":
-        if delimiter == "E":
-            # x is too complicated
-            return "\\begin{verbatim}\n%s\n\\end{verbatim}\n" % x
-        if delimiter not in x:
-            break
-    wrapper = "\\verb" + delimiter + "%s" + delimiter
-
-    # Strategy:
-    # 1) break x into lines;
-    # 2) wrap each line into \verb;
-    # 3) assemble lines into a left-justified array.
-
-    spacer = r"\phantom{\verb!%s!}"
-    lines = []
-    for line in x.split("\n"):
-        parts = []
-        nspaces = 0
-        for part in line.split(" "):
-            if part == "":
-                nspaces += 1
-                continue
-            if nspaces > 0:
-                parts.append(spacer % ("x" * nspaces))
-            nspaces = 1
-            parts.append(wrapper % part)
-        # There is also a bug with omitting empty lines in arrays...
-        line = "".join(parts)
-        if not line:
-            line = spacer % "x"
-        lines.append(line)
-    x = "\\\\\n".join(lines)
-    # If the bugs were fixed, the above block could be just
-    # x = "\\\\\n".join(wrapper % line for line in x.split("\n"))
+    # Deal with special characters
+    char_wrapper = r"{\char`\%s}"
+    x = "".join(char_wrapper % c if c in "#$%&\^_{}~" else c for c in x)
+    # Avoid grouping spaces into one
+    x = x.replace(" ", "{ }")
+    # And dashes too, since it causes issues for the command line...
+    x = x.replace("-", "{-}")
+    # Make it work in math mode, but look like typewriter
+    line_wrapper = r"\text{\texttt{%s}}"
+    x = "\\\\\n".join(line_wrapper % line for line in x.split("\n"))
+    # Preserve line breaks
     if "\n" in x:
         x = "\\begin{array}{l}\n%s\n\\end{array}" % x
     return x
@@ -973,7 +949,7 @@ class Latex(LatexCall):
         sage: latex(FiniteField(25,'a'))
         \Bold{F}_{5^{2}}
         sage: latex("hello")
-        \verb|hello|
+        \text{\texttt{hello}}
         sage: LatexExpr(r"\frac{x^2 - 1}{x + 1} = x - 1")
         \frac{x^2 - 1}{x + 1} = x - 1
 
@@ -1946,6 +1922,54 @@ class MathJax:
         """
         # Get a regular LaTeX representation of x
         x = latex(x, combine_all=combine_all)
+
+        # The following block, hopefully, can be removed in some future MathJax.
+        prefix = r"\text{\texttt{"
+        parts = x.split(prefix)
+        for i, part in enumerate(parts):
+            if i == 0:
+                continue    # Nothing to do with the head part
+            n = 1
+            for closing, c in enumerate(part):
+                if c == "{" and part[closing - 1] != "\\":
+                    n += 1
+                if c == "}" and part[closing - 1] != "\\":
+                    n -= 1
+                if n == -1:
+                    break
+            # part should end in "}}", so omit the last two characters
+            # from y
+            y = part[:closing-1]
+            for delimiter in """|"'`#%&,.:;?!@_~^+-/\=<>()[]{}0123456789E""":
+                if delimiter not in y:
+                    break
+            if delimiter == "E":
+                # y is too complicated
+                delimiter = "|"
+                y = "(complicated string)"
+            wrapper = r"\verb" + delimiter + "%s" + delimiter
+            spacer = r"\phantom{\verb!%s!}"
+            y = y.replace("{ }", " ").replace("{-}", "-")
+            for c in r"#$%&\^_{}~":
+                char_wrapper = r"{\char`\%s}" % c
+                y = y.replace(char_wrapper, c)
+            subparts = []
+            nspaces = 0
+            for subpart in y.split(" "):
+                if subpart == "":
+                    nspaces += 1
+                    continue
+                if nspaces > 0:
+                    subparts.append(spacer % ("x" * nspaces))
+                nspaces = 1
+                subparts.append(wrapper % subpart)
+            # There is a bug with omitting empty lines in arrays
+            if not y:
+                subparts.append(spacer % "x")
+            subparts.append(part[closing + 1:])
+            parts[i] = "".join(subparts)
+        x = "".join(parts)
+
         # In MathJax:
         #   inline math: <script type="math/tex">...</script>
         #   displaymath: <script type="math/tex; mode=display">...</script>
@@ -2279,9 +2303,9 @@ def repr_lincomb(symbols, coeffs):
         sage: t = PolynomialRing(QQ, 't').0
         sage: from sage.misc.latex import repr_lincomb
         sage: repr_lincomb(['a', 's', ''], [-t, t - 2, t^12 + 2])
-        '-t\\verb|a| + \\left(t - 2\\right)\\verb|s| + \\left(t^{12} + 2\\right)'
+        '-t\\text{\\texttt{a}} + \\left(t - 2\\right)\\text{\\texttt{s}} + \\left(t^{12} + 2\\right)'
         sage: repr_lincomb(['a', 'b'], [1,1])
-        '\\verb|a| + \\verb|b|'
+        '\\text{\\texttt{a}} + \\text{\\texttt{b}}'
 
     Verify that a certain corner case works (see :trac:`5707` and
     :trac:`5766`)::

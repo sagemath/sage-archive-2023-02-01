@@ -555,6 +555,7 @@ def BubbleSortGraph(n):
     d = {}
     #iterate through all vertices
     for v in Permutations(label_set):
+        v = list(v) # So we can easily mutate it
         tmp_dict = {}
         #add all adjacencies
         for i in xrange(n - 1):
@@ -1271,6 +1272,7 @@ def NKStarGraph(n,k):
     #create dict
     d = {}
     for v in Arrangements(set,k):
+        v = list(v) # So we can easily mutate it
         tmp_dict = {}
         #add edges of dimension i
         for i in xrange(1,k):
@@ -1329,6 +1331,7 @@ def NStarGraph(n):
     #is swapped with the ith element
     d = {}
     for v in Permutations(set):
+        v = list(v) # So we can easily mutate it
         tmp_dict = {}
         for i in xrange(1,n):
             if v[0] != v[i]:
@@ -1450,13 +1453,13 @@ def PermutationGraph(second_permutation, first_permutation = None):
 
       - Drawings of permutation graphs as intersection graphs of segments is
         possible through the
-        :meth:`~sage.combinat.permutation.Permutation_class.show` method of
+        :meth:`~sage.combinat.permutation.Permutation.show` method of
         :class:`~sage.combinat.permutation.Permutation` objects.
 
         The correct argument to use in this case is ``show(representation =
         "braid")``.
 
-      - :meth:`~sage.combinat.permutation.Permutation_class.inversions`
+      - :meth:`~sage.combinat.permutation.Permutation.inversions`
 
     EXAMPLE::
 

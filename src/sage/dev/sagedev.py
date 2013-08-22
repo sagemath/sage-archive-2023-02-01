@@ -4596,7 +4596,7 @@ class SageDev(object):
             __IPYTHON__
         except NameError:
             args = [str(arg) for arg in args]
-            kwargs = [ "--{0}={1}".format(str(key).replace("_","-"),kwargs[key]) for key in kwargs ]
+            kwargs = [ "--{0}={1}".format(str(key.split("_or_")[0]).replace("_","-"),kwargs[key]) for key in kwargs ]
             return "sage --dev {0} {1}".format(command.replace("_","-"), " ".join(args+kwargs))
         else:
             args = [str(arg) for arg in args]

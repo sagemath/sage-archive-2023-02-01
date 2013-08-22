@@ -49,7 +49,17 @@ for patch in ../patches/*.patch; do
     fi
 done
 
-echo "Configuring ncurses..."
+
+# Ncurses cannot build narrow and wide (unicode, --enable-widec)
+# versions in one go. Need to compile twice. Note that Python's curses
+# module will want the wide version, and readline the narrow version.
+
+###################################################
+mkdir narrow
+cd narrow
+ln -s ../configure .
+
+echo "Configuring ncurses (narrow)..."
 ./configure \
     --prefix="$SAGE_LOCAL" \
     --libdir="$SAGE_LOCAL/lib" \
@@ -60,21 +70,59 @@ echo "Configuring ncurses..."
     --enable-overwrite \
     "$DEBUG_CONFIGURE_FLAG"
 if [[ $? -ne 0 ]]; then
-    echo >&2 "Error configuring ncurses."
+    echo >&2 "Error configuring ncurses (narrow)."
     exit 1
 fi
 
-echo "Building ncurses..."
+echo "Building ncurses (narrow)..."
 $MAKE
 if [[ $? -ne 0 ]]; then
-    echo >&2 "Error building ncurses."
+    echo >&2 "Error building ncurses (narrow)."
     exit 1
 fi
 
-echo "Installing ncurses..."
+echo "Installing ncurses (narrow)..."
 $MAKE install
 if [[ $? -ne 0 ]]; then
-    echo >&2 "Error installing ncurses."
+    echo >&2 "Error installing ncurses (narrow)."
     exit 1
 fi
 
+cd ..  # leave narrow
+
+###################################################
+mkdir wide
+cd wide
+ln -s ../configure .
+
+echo "Configuring ncurses (wide)..."
+./configure \
+    --prefix="$SAGE_LOCAL" \
+    --libdir="$SAGE_LOCAL/lib" \
+    --with-termlib \
+    --with-shared \
+    --enable-widec \
+    --without-normal \
+    --disable-rpath-hack \
+    --enable-overwrite \
+    "$DEBUG_CONFIGURE_FLAG"
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error configuring ncurses (wide)."
+    exit 1
+fi
+
+echo "Building ncurses (wide)..."
+$MAKE
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error building ncurses (wide)."
+    exit 1
+fi
+
+echo "Installing ncurses (wide)..."
+$MAKE install
+if [[ $? -ne 0 ]]; then
+    echo >&2 "Error installing ncurses (wide)."
+    exit 1
+fi
+
+cd ..  # leave wide

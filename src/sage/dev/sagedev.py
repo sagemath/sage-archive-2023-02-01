@@ -2302,62 +2302,449 @@ class SageDev(object):
         else:
             raise SageDevValueError("ticket_or_branch must be the name of a ticket or a local branch")
 
-    def gather(self, branchname, *tickets, **kwds):
+    def gather(self, branch, *tickets_or_branches):
         r"""
-        Create a new branch ``branchname`` with ``tickets`` applied.
+        Create a new branch ``branch`` with ``tickets_or_remote_branches``
+        applied.
 
         INPUT:
 
-        - ``branchname`` -- a string, the name of the new branch
+        - ``branch`` -- a string, the name of the new branch
 
-        - ``tickets`` -- a list of integers and strings; for an integer or
-          string identifying a ticket, the branch on the trac ticket gets
-          merged, for the name of a local or remote branch, that branch gets
-          merged.
-
-        - ``create_dependency`` -- boolean (default: ``True``, keyword only),
-          whether to append the other ticket to the list of dependencies.  See
-          :meth:`merge` for the consequences of having another branch as a
-          dependency.
-
-        - ``download`` -- boolean (default: ``False``, keyword only), whether
-          to download the most recent version of the other tickets before
-          merging.
+        - ``tickets_or_branches`` -- a list of integers and strings; for an
+          integer or string identifying a ticket, the branch on the trac ticket
+          gets merged, for the name of a local or remote branch, that branch
+          gets merged.
 
         .. SEEALSO::
 
-        - :meth:`merge` -- merge into the current branch rather than
-          creating a new one.
+        - :meth:`merge` -- merge into the current branch rather than creating a
+          new one
 
-        - :meth:`show_dependencies` -- show the dependencies of a
-          given branch.
+        TESTS:
 
-        TEST::
+        Create a doctest setup with a single user::
+
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+
+        Create tickets and branches::
+
+            sage: dev._UI.append("Summary: summary1\ndescription")
+            sage: dev.create_ticket()
+            1
+            sage: open("tracked","w").close()
+            sage: dev.git.silent.add("tracked")
+            sage: dev.git.super_silent.commit(message="added tracked")
+            sage: dev._UI.append("y")
+            sage: dev._UI.append("y")
+            sage: dev.upload()
+            The branch u/doctest/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+
+        Gather all these branches::
+
+            sage: dev.gather("gather_branch", "#1", "ticket/1", "u/doctest/ticket/1")
+            Merging the remote branch `u/doctest/ticket/1` into the local branch `gather_branch`.
+            Merging the remote branch `u/doctest/ticket/1` into the local branch `gather_branch`.
+            Merging the remote branch `u/doctest/ticket/1` into the local branch `gather_branch`.
+
+        """
+        try:
+            self.reset_to_clean_state()
+            self.reset_to_clean_working_directory()
+        except OperationCancelledError:
+            self._UI.error("Cannot gather branches because working directory is not in a clean state.")
+            raise OperationCancelledError("working directory not clean")
+
+        self._check_local_branch_name(branch, exists=False)
+
+        branches = []
+        for ticket_or_branch in tickets_or_branches:
+            local_branch = None
+            remote_branch = None
+            if self._is_ticket_name(ticket_or_branch):
+                ticket = self._ticket_from_ticket_name(ticket_or_branch)
+                remote_branch = self.trac._branch_for_ticket(ticket)
+                if remote_branch is None:
+                    raise SageDevValueError("Ticket #{0} does not have a branch set yet.".format(ticket))
+            elif self._is_local_branch_name(ticket_or_branch, exists=True):
+                local_branch = ticket_or_branch
+            else:
+                remote_branch = ticket_or_branch
+
+            if local_branch:
+                self._check_local_branch_name(local_branch, exists=True)
+                branches.append(("local",local_branch))
+            if remote_branch:
+                self._check_remote_branch_name(remote_branch, exists=True)
+                branches.append(("remote",remote_branch))
+
+        self._UI.info("Creating a new branch `{0}`.".format(branch))
+        self.git.super_silent.branch(branch, MASTER_BRANCH)
+        self.git.super_silent.checkout(branch)
+
+        try:
+            for local_remote,branch in branches:
+                self._UI.info("Merging {2} branch `{0}` into `{1}`.".format(remote_branch, branch, local_remote))
+                self.merge(remote_branch, download=True)
+        except:
+            self.git.reset_to_clean_state()
+            self.git.reset_to_clean_working_directory()
+            self.vanilla()
+            self.git.super_silent.branch("-D", branch)
+            self._UI.info("Deleted branch `{0}`.".format(branch))
+
+    def merge(self, ticket_or_branch=MASTER_BRANCH, download=None, create_dependency=None):
+        r"""
+        Merge changes from ``ticket_or_branch`` into the current branch.
+
+        INPUT:
+
+        - ``ticket_or_branch`` -- an integer or strings (default:
+          ``'master'``); for an integer or string identifying a ticket, the
+          branch on the trac ticket gets merged (or the local branch for the
+          ticket, if ``download`` is ``False``), for the name of a local or
+          remote branch, that branch gets merged. If ``'dependencies'``, the
+          dependencies are merged in one by one, starting with one listed first
+          in the dependencies field on trac.
+
+        - ``download`` -- a boolean or ``None`` (default: ``None``); if
+          ``ticket_or_branch`` identifies a ticket, whether to download the
+          latest branch on the trac ticket (the default); if
+          ``ticket_or_branch`` is a remote branch, whether to download that
+          remote branch (the default); if ``ticket_or_branch`` is a local
+          branch, whether to download its remote branch (not the default)
+
+        - ``create_dependency`` -- a boolean or ``None`` (default: ``None``),
+          wether to create a dependency to ``ticket_or_branch``. If ``None``,
+          then a dependency is created if ``ticket_or_branch`` identifies a
+          ticket and if the current branch is associated to a ticket.
+
+        .. NOTE::
+
+            Dependencies are stored locally and only updated with respect to
+            the remote server during :meth:`upload` and :meth:`download`.
+
+            Adding a dependency has some consequences:
+
+            - the other ticket must be positively reviewed and merged before
+              this ticket may be merged into the official release of sage.  The
+              commits included from a dependency don't need to be reviewed in
+              this ticket, whereas commits reviewed in this ticket from a
+              non-dependency may make reviewing the other ticket easier.
+
+            - you can more easily merge in future changes to dependencies.  So
+              if you need a feature from another ticket it may be appropriate
+              to create a dependency to that you may more easily benefit
+              from others' work on that ticket.
+
+            - if you depend on another ticket then you need to worry about the
+              progress on that ticket.  If that ticket is still being actively
+              developed then you may need to make many merges to keep up.
+
+        .. SEEALSO::
+
+        - :meth:`show_dependencies` -- see the current dependencies.
+
+        - :meth:`GitInterface.merge` -- git's merge command has more options
+          and can merge multiple branches at once.
+
+        - :meth:`gather` -- creates a new branch to merge into rather than
+          merging into the current branch.
+
+        TESTS::
+
+        Create a doctest setup with two users::
+
+            sage: from sage.dev.test.sagedev import two_user_setup
+            sage: alice, config_alice, bob, config_bob, server = two_user_setup()
+
+        Create tickets and branches::
+
+            sage: alice._chdir()
+            sage: alice._UI.append("Summary: summary1\ndescription")
+            sage: alice.create_ticket()
+            1
+            sage: alice._UI.append("Summary: summary2\ndescription")
+            sage: alice.create_ticket()
+            2
+
+        Alice creates two branches and merges them::
+
+            sage: alice.switch_ticket(1)
+            sage: open("alice1","w").close()
+            sage: alice.git.silent.add("alice1")
+            sage: alice.git.super_silent.commit(message="added alice1")
+            sage: alice.switch_ticket(2)
+            sage: with open("alice2","w") as f: f.write("alice")
+            sage: alice.git.silent.add("alice2")
+            sage: alice.git.super_silent.commit(message="added alice2")
+
+        When merging for a ticket, the branch on the trac ticket matters::
+
+            sage: alice.merge("#1")
+            Can not merge remote branch for #1. No branch has been set on the trac ticket.
+            sage: alice.switch_ticket(1)
+            sage: alice._UI.append("y")
+            sage: alice.upload()
+            The branch u/alice/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            sage: alice.switch_ticket(2)
+            sage: alice.merge("#1", download=False)
+            Merging the local branch `ticket/1` into the local branch `ticket/2`.
+            Added dependency on #1 to #2.
+
+        Merging local branches::
+
+            sage: alice.merge("ticket/1")
+            Merging the local branch `ticket/1` into the local branch `ticket/2`.
+
+        A remote branch for a local branch is only merged in if ``download`` is set::
+
+            sage: alice._sagedev._set_remote_branch_for_branch("ticket/1", "nonexistant")
+            sage: alice.merge("ticket/1")
+            Merging the local branch `ticket/1` into the local branch `ticket/2`.
+            sage: alice.merge("ticket/1", download=True)
+            Can not merge remote branch `nonexistant`. It does not exist.
+
+        Bob creates a conflicting commit::
+
+            sage: bob._chdir()
+            sage: bob.switch_ticket(1)
+            sage: with open("alice2","w") as f: f.write("bob")
+            sage: bob.git.silent.add("alice2")
+            sage: bob.git.super_silent.commit(message="added alice2")
+            sage: bob._UI.append("y")
+            sage: bob._UI.append("y")
+            sage: bob.upload()
+            The branch u/bob/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            I will now change the branch field of ticket #1 from its current value `u/alice/ticket/1` to `u/bob/ticket/1`. Is this what you want? [Yes/no] y
+
+        The merge now requires manual conflict resolution::
+
+            sage: alice._chdir()
+            sage: alice._UI.append("abort")
+            sage: alice.merge("#1")
+            Merging the remote branch `u/bob/ticket/1` into the local branch `ticket/2`.
+            There was an error during the merge. Most probably there were conflicts when merging. The following should make it clear which files are affected:
+            Auto-merging alice2
+            CONFLICT (add/add): Merge conflict in alice2
+            Please fix conflicts in the affected files (in a different terminal) and type 'resolved'. Or type 'abort' to abort the merge. [resolved/abort] abort
+            sage: alice._UI.append("resolved")
+            sage: alice.merge("#1")
+            Merging the remote branch `u/bob/ticket/1` into the local branch `ticket/2`.
+            There was an error during the merge. Most probably there were conflicts when merging. The following should make it clear which files are affected:
+            Auto-merging alice2
+            CONFLICT (add/add): Merge conflict in alice2
+            Please fix conflicts in the affected files (in a different terminal) and type 'resolved'. Or type 'abort' to abort the merge. [resolved/abort] resolved
+
+        """
+        try:
+            self.reset_to_clean_state()
+            self.reset_to_clean_working_directory()
+        except OperationCancelledError:
+            self._UI.error("Cannot merge because working directory is not in a clean state.")
+            raise OperationCancelledError("working directory not clean")
+
+        from git_error import DetachedHeadError
+        try:
+            current_branch = self.git.current_branch()
+        except DetachedHeadError:
+            self._UI.error("You are currently not on any branch. Use `{0}` or `{1}` to switch to a branch.".format(self._format_command("switch_branch"), self._format_command("switch_ticket")))
+            raise OperationCancelledError("detached head")
+
+        current_ticket = self._current_ticket()
+
+        ticket = None
+        branch = None
+        remote_branch = None
+
+        if self._is_local_branch_name(ticket_or_branch, exists=True):
+            branch = ticket_or_branch
+            if download is None:
+                download = False
+            if self._has_ticket_for_local_branch(branch):
+                ticket = self._ticket_for_local_branch(branch)
+                if create_dependency is None:
+                    create_dependency = False
+            else:
+                if create_dependency:
+                    raise SageDevValueError("Can not create a dependency to `{0}` because it is not associated to a ticket.".format(branch))
+                create_dependency = False
+            remote_branch = self._remote_branch_for_branch(branch)
+        elif self._is_ticket_name(ticket_or_branch):
+            ticket = self._ticket_from_ticket_name(ticket_or_branch)
+            self._check_ticket_name(ticket, exists=True)
+            if download is None:
+                download = True
+            if create_dependency is None:
+                create_dependency = True
+            if self._has_local_branch_for_ticket(ticket):
+                branch = self._local_branch_for_ticket(ticket)
+            if download:
+                remote_branch = self.trac._branch_for_ticket(ticket)
+                if remote_branch is None:
+                    self._UI.error("Can not merge remote branch for #{0}. No branch has been set on the trac ticket.".format(ticket))
+                    raise OperationCancelledError("remote branch not set on trac")
+        else:
+            remote_branch = ticket_or_branch
+            if download is None:
+                download = True
+            if download == False:
+                raise SageDevValueError("download must be `True` for a remote branch")
+            if create_dependency is None:
+                create_dependency = False
+            if create_dependency == True:
+                raise SageDevValueError("Can not create a dependency to the remote branch `{0}`.".format(remote_branch))
+
+        local_merge_branch = branch
+
+        if download:
+            assert remote_branch
+            if not self._is_remote_branch_name(remote_branch, exists=True):
+                self._UI.error("Can not merge remote branch `{0}`. It does not exist.".format(remote_branch))
+                raise OperationCancelledError("no such branch")
+            self._UI.show("Merging the remote branch `{0}` into the local branch `{1}`.".format(remote_branch, current_branch))
+            self.git.super_silent.fetch(self.git._repository, remote_branch)
+            local_merge_branch = 'FETCH_HEAD'
+        else:
+            assert branch
+            self._UI.show("Merging the local branch `{0}` into the local branch `{1}`.".format(branch, current_branch))
+
+        from git_error import GitError
+        try:
+            self.git.super_silent.merge(local_merge_branch)
+        except GitError as e:
+            try:
+                lines = e.stdout.splitlines() + e.stderr.splitlines()
+                lines = [line for line in lines if line != "Automatic merge failed; fix conflicts and then commit the result."]
+                lines.insert(0, "There was an error during the merge. Most probably there were conflicts when merging. The following should make it clear which files are affected:")
+                lines.append("Please fix conflicts in the affected files (in a different terminal) and type 'resolved'. Or type 'abort' to abort the merge.")
+                if self._UI.select("\n".join(lines),['resolved','abort']) == 'resolved':
+                    self.git.silent.commit(a=True, no_edit=True)
+                    self._UI.info("Created a commit from your conflict resolution.")
+                else:
+                    raise OperationCancelledError("user requested")
+            except Exception as e:
+                self.git.reset_to_clean_state()
+                self.git.reset_to_clean_working_directory()
+                raise
+
+        if create_dependency:
+            assert ticket and current_ticket
+            dependencies = list(self._dependencies_for_ticket(current_ticket))
+            if ticket in dependencies:
+                self._UI.info("Not recording dependency on #{0} because #{1} already depends on #{0}.".format(ticket, current_ticket))
+            else:
+                self._UI.show("Added dependency on #{0} to #{1}.".format(ticket, current_ticket))
+                self._set_dependencies_for_ticket(current_ticket, dependencies+[ticket])
+
+    def local_tickets(self, include_abandoned=False):
+        r"""
+        Print the tickets currently being worked on in your local
+        repository.
+
+        This function shows the branch names as well as the ticket numbers for
+        all active tickets.  It also shows local branches that are not
+        associated to ticket numbers.
+
+        INPUT:
+
+        - ``include_abandoned`` -- boolean (default: ``False``), whether to
+          include abandoned branches.
+
+        .. SEEALSO::
+
+        - :meth:`abandon_ticket` -- hide tickets from this method.
+
+        - :meth:`remote_status` -- also show status compared to the
+          trac server.
+
+        - :meth:`current_ticket` -- get the current ticket.
+
+        TESTS:
+
+        Create a doctest setup with a single user::
+
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+
+        Create some tickets::
+
+            sage: dev.local_tickets()
+            : master
+
+            sage: UI.append("Summary: summary\ndescription")
+            sage: dev.create_ticket()
+            1
+            sage: UI.append("Summary: summary\ndescription")
+            sage: dev.create_ticket()
+            2
+            sage: dev.local_tickets()
+              : master
+            #1: ticket/1
+            #2: ticket/2
+
+        """
+        branches = self.git.local_branches()
+        branches = [ branch for branch in branches if include_abandoned or not self._is_trash_name(branch) ]
+        if not branches:
+            return
+        branches = [ "{0:>7}: {1}".format("#"+str(self._ticket_for_local_branch(branch)) if self._has_ticket_for_local_branch(branch) else "", branch) for branch in branches ]
+        while all([branch.startswith(' ') for branch in branches]):
+            branches = [branch[1:] for branch in branches]
+        branches = sorted(branches)
+        self._UI.show("\n".join(branches))
+
+    def vanilla(self, release=SAGE_VERSION):
+        r"""
+        Returns to an official release of Sage.
+
+        INPUT:
+
+        - ``release`` -- a string or decimal giving the release name.
+          In fact, any tag, commit or branch will work.  If the tag
+          does not exist locally an attempt to fetch it from the
+          server will be made.
+
+        Git equivalent::
+
+            Checks out a given tag, commit or branch in detached head mode.
+
+        .. SEEALSO::
+
+        - :meth:`switch_ticket` -- switch to another branch, ready to
+          develop on it.
+
+        - :meth:`download` -- download a branch from the server and
+          merge it.
+
+        TESTS::
 
             TODO
 
         """
-        raise NotImplementedError # the below does most probably not work anymore TODO
-        create_dependencies = kwds.pop('create_dependencies', True)
-        download = kwds.pop('download', False)
-        if len(tickets) == 0:
-            raise ValueError("must include at least one input branch")
-        if self.git.commit_for_branch(branchname):
-            if not self._UI.confirm("The branch %s already "%branchname+
-                                    "exists; do you want to merge into it?",
-                                    default=False):
-                return
-            self.git.execute_supersilent("checkout", branchname)
-        else:
-            self.switch_ticket(tickets[0],
-                    branchname=branchname)
-            tickets = tickets[1:]
-        for ticket in tickets:
-            self.merge(
-                    ticket,
-                    message="Gathering %s into "%self._ticket_repr(ticket) +
-                            "branch %s"%branchname,
-                    **kwds)
+        if hasattr(release, 'literal'):
+            release = release.literal
+
+        try:
+            self.reset_to_clean_state()
+            self.reset_to_clean_working_directory()
+        except OperationCancelledError:
+            self._UI.error("Cannot switch to a release while your working directory is not clean.")
+            raise OperationCancelledError("working directory not clean")
+
+        # we do not do any checking on the argument here, trying to be liberal
+        # about what are valid inputs
+        try:
+            self.git.super_silent.checkout(release, detach=True)
+        except GitError as e:
+            try:
+                self.git.super_silent.fetch(self.git._repository, release)
+            except GitError as e:
+                self._UI.error("`{0}` does not exist locally or on the remote server.".format(release))
+                raise OperationCancelledError("no such tag/branch/...")
+
+            self.git.super_silent.checkout('FETCH_HEAD', detach=True)
 
     def diff(self, base=None):
         r"""
@@ -2456,198 +2843,6 @@ class SageDev(object):
                 self.show_dependencies(d, True, seen)
             if _seen is None:
                 self._UI.show("Ticket %s depends on %s"%(ticket, ", ".join([str(d) for d in seen])))
-
-    def merge(self, ticket=MASTER_BRANCH, create_dependency=True, download=False, message=None):
-        r"""
-        TODO: fix this docstring
-
-        Merge changes from another branch into the current branch.
-
-        INPUT:
-
-        - ``ticket`` -- string or int (default ``"master"``), a
-          branch, ticket number or the current set of dependencies
-          (indicated by the string ``"dependencies"``): the source of
-          the changes to be merged.  If ``ticket = "dependencies"``
-          then each updated dependency is merged in one by one,
-          starting with the one listed first in the dependencies field
-          on trac.  An int indicates a ticket number while a string
-          indicates a branch name.
-
-        - ``create_dependency`` -- boolean (default ``True``), whether
-          to append the other ticket to the list of dependencies.
-
-          Listing the other ticket as a dependency has the following
-          consequences:
-
-          - the other ticket must be positively reviewed and merged
-            before this ticket may be merged into master.  The commits
-            included from a dependency don't need to be reviewed in
-            this ticket, whereas commits reviewed in this ticket from
-            a non-dependency may make reviewing the other ticket
-            easier.
-
-          - you can more easily merge in future changes to
-            dependencies.  So if you need a feature from another
-            ticket it may be appropriate to create a dependency to
-            that you may more easily benefit from others' work on that
-            ticket.
-
-          - if you depend on another ticket then you need to worry
-            about the progress on that ticket.  If that ticket is
-            still being actively developed then you may need to make
-            many merges to keep up.
-
-          Note that dependencies are stored locally and only updated
-          with respect to the remote server during :meth:`upload` and
-          :meth:`download`.
-
-        - ``download`` -- boolean (default ``False``), whether to
-          download the most recent version of the other ticket(s)
-          before merging.
-
-        .. SEEALSO::
-
-        - :meth: `download` -- will download remote changes before
-          merging.
-
-        - :meth:`show_dependencies` -- see the current dependencies.
-
-        - :meth:`GitInterface.merge` -- git's merge command has more
-          options and can merge multiple branches at once.
-
-        - :meth:`gather` -- creates a new branch to merge into rather
-          than merging into the current branch.
-        """
-        raise NotImplementedError # the below does most probably not work anymore TODO
-        curbranch = self.git.current_branch()
-        if ticket == "dependencies":
-            for dep in self._dependencies[curbranch]:
-                self.merge(dep, False, download, message)
-            return
-        elif ticket is None:
-            raise ValueError("you must specify a ticket to merge")
-        ref = dep = None
-        if download:
-            remote_branch = self._remote_pull_branch(ticket)
-            if remote_branch is not None:
-                ref = self._fetch(remote_branch)
-                dep = ticket
-            else:
-                raise ValueError("could not download branch for ticket %s - its `branch` field on trac is empty or invalid")
-        if ref is None:
-            try:
-                dep = ref = self._branch[ticket]
-            except KeyError:
-                pass # ticket does not exists locally but we were not asked to download it
-        if ref is None:
-            ref = ticket
-
-        if create_dependency:
-            if dep is None:
-                dep = int(ticket)
-            if dep and dep not in self._dependencies[curbranch]:
-                self._dependencies[curbranch] += (dep,)
-                self._UI.show("recorded dependency on %s"%dep)
-        if message is None:
-            kwds = {}
-        else:
-            kwds = {'m':message}
-
-        if ref is None:
-            self._UI.show("Nothing has been merged because the branch for %s could not be found. "%ticket+ ("Probably the branch field for the ticket is empty or invalid." if download else "Probably the branch for the ticket does not exist locally, consider using '--download True'"))
-            return
-
-        self.git.merge(ref, **kwds)
-
-    def local_tickets(self, include_abandoned=False):
-        r"""
-        Print the tickets currently being worked on in your local
-        repository.
-
-        This function shows the branch names as well as the ticket numbers for
-        all active tickets.  It also shows local branches that are not
-        associated to ticket numbers.
-
-        INPUT:
-
-        - ``include_abandoned`` -- boolean (default: ``False``), whether to
-          include abandoned branches.
-
-        .. SEEALSO::
-
-        - :meth:`abandon_ticket` -- hide tickets from this method.
-
-        - :meth:`remote_status` -- also show status compared to the
-          trac server.
-
-        - :meth:`current_ticket` -- get the current ticket.
-
-        TESTS::
-
-            TODO
-
-        """
-        branches = self.git.local_branches()
-        branches = [ branch for branch in branches if include_abandoned or not self._is_trash_name(branch) ]
-        if not branches:
-            return
-        branches = [ "{0:>7}: {1}".format("#"+str(self._ticket_for_local_branch(branch)) if self._has_ticket_for_local_branch(branch) else "", branch) for branch in branches ]
-        while all([branch.startswith(' ') for branch in branches]):
-            branches = [branch[1:] for branch in branches]
-        branches = sorted(branches)
-        self._UI.show("\n".join(branches))
-
-    def vanilla(self, release=SAGE_VERSION):
-        r"""
-        Returns to an official release of Sage.
-
-        INPUT:
-
-        - ``release`` -- a string or decimal giving the release name.
-          In fact, any tag, commit or branch will work.  If the tag
-          does not exist locally an attempt to fetch it from the
-          server will be made.
-
-        Git equivalent::
-
-            Checks out a given tag, commit or branch in detached head mode.
-
-        .. SEEALSO::
-
-        - :meth:`switch_ticket` -- switch to another branch, ready to
-          develop on it.
-
-        - :meth:`download` -- download a branch from the server and
-          merge it.
-
-        TESTS::
-
-            TODO
-
-        """
-        if hasattr(release, 'literal'):
-            release = release.literal
-
-        try:
-            self.reset_to_clean_state()
-            self.reset_to_clean_working_directory()
-        except OperationCancelledError:
-            self._UI.error("Cannot switch to a release while your working directory is not clean.")
-            raise OperationCancelledError("working directory not clean")
-
-        # we do not do any checking on the argument here, trying to be liberal
-        # about what are valid inputs
-        try:
-            self.git.super_silent.checkout(release, detach=True)
-        except GitError as e:
-            try:
-                self.git.super_silent.fetch(self.git._repository, release)
-            except GitError as e:
-                self._UI.error("`{0}` does not exist locally or on the remote server.".format(release))
-                raise OperationCancelledError("no such tag/branch/...")
-
-            self.git.super_silent.checkout('FETCH_HEAD', detach=True)
 
     def _detect_patch_diff_format(self, lines):
         r"""

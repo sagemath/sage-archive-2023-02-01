@@ -3614,7 +3614,18 @@ class SageDev(object):
                 ret = []
                 ret.append('# HG changeset patch')
                 ret.append('# User %s'%(header["user"]))
-                ret.append('# Date %s 00000'%int(time.mktime(email.utils.parsedate(header["date"])))) # this is not portable and the time zone is wrong
+                import os
+                old_TZ = os.environ.get('TZ')
+                try:
+                    os.environ['TZ'] = 'UTC'
+                    time.tzset()
+                    ret.append('# Date %s 00000'%int(time.mktime(email.utils.parsedate(header["date"])))) # this is not portable
+                finally:
+                    if old_TZ:
+                        os.environ['TZ'] = old_TZ
+                    else:
+                        del os.environ['TZ']
+                    time.tzset()
                 ret.append('# Node ID 0000000000000000000000000000000000000000')
                 ret.append('# Parent  0000000000000000000000000000000000000000')
                 ret.append(header["subject"])

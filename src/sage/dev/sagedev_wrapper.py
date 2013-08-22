@@ -88,6 +88,7 @@ class SageDevWrapper(object):
         self._wrap("add_comment")
         self._wrap("commit")
         self._wrap("create_ticket")
+        self._wrap("diff")
         self._wrap("download")
         self._wrap("download_patch")
         self._wrap("edit_ticket")

@@ -2759,41 +2759,221 @@ class SageDev(object):
 
             self.git.super_silent.checkout('FETCH_HEAD', detach=True)
 
-    def diff(self, base=None):
+    def diff(self, base='commit'):
         r"""
         Show how the current file system differs from ``base``.
 
         INPUT:
 
-        - ``base`` -- show the differences against the latest
-          ``'commit'`` (the default), against the branch ``'master'``
-          (or any other branch name), or the merge of the
-          ``'dependencies'`` of the current ticket (if the
-          dependencies merge cleanly)
+        - ``base`` -- a string; show the differences against the latest
+          ``'commit'`` (the default), against the branch ``'master'`` (or any
+          other branch name), or the merge of the ``'dependencies'`` of the
+          current ticket (if the dependencies merge cleanly)
 
         .. SEEALSO::
 
         - :meth:`commit` -- record changes into the repository.
 
-        - :meth:`local_tickets` -- list local tickets (you may want to
-          commit your changes to a branch other than the current one).
+        - :meth:`local_tickets` -- list local tickets (you may want to commit
+          your changes to a branch other than the current one).
 
-        TESTS::
+        TESTS:
 
-            TODO
+        Create a doctest setup with a single user::
+
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+
+        Create some tickets and make one depend on the others::
+
+            sage: UI.append("Summary: summary\ndescription")
+            sage: dev.create_ticket()
+            1
+            sage: UI.append("y")
+            sage: dev.upload()
+            The branch u/doctest/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            sage: UI.append("Summary: summary\ndescription")
+            sage: dev.create_ticket()
+            2
+            sage: UI.append("y")
+            sage: dev.upload()
+            The branch u/doctest/ticket/2 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            sage: UI.append("Summary: summary\ndescription")
+            sage: dev.create_ticket()
+            3
+            sage: UI.append("y")
+            sage: dev.upload()
+            The branch u/doctest/ticket/3 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            sage: dev.merge("#1")
+            Merging the remote branch `u/doctest/ticket/1` into the local branch `ticket/3`.
+            Added dependency on #1 to #3.
+            sage: dev.merge("#2")
+            Merging the remote branch `u/doctest/ticket/2` into the local branch `ticket/3`.
+            Added dependency on #2 to #3.
+
+        Make some non-conflicting changes on the tickets::
+
+            sage: dev.switch_ticket("#1")
+            sage: with open("ticket1","w") as f: f.write("ticket1")
+            sage: dev.git.silent.add("ticket1")
+            sage: dev.git.super_silent.commit(message="added ticket1")
+
+            sage: dev.switch_ticket("#2")
+            sage: with open("ticket2","w") as f: f.write("ticket2")
+            sage: dev.git.silent.add("ticket2")
+            sage: dev.git.super_silent.commit(message="added ticket2")
+            sage: UI.append("y")
+            sage: dev.upload()
+            I will now upload the following new commits to the remote branch `u/doctest/ticket/2`:
+            ...: added ticket2
+            Is this what you want? [Yes/no] y
+
+            sage: dev.switch_ticket("#3")
+            sage: open("ticket3","w").close()
+            sage: dev.git.silent.add("ticket3")
+            sage: dev.git.super_silent.commit(message="added ticket3")
+            sage: UI.append("y")
+            sage: dev.upload()
+            I will now upload the following new commits to the remote branch `u/doctest/ticket/3`:
+            ...: added ticket3
+            Is this what you want? [Yes/no] y
+
+        A diff against the previous commit::
+
+            sage: dev.diff()
+
+        A diff against a ticket will always take the branch on trac::
+
+            sage: dev.diff("#1")
+            diff --git a/ticket3 b/ticket3
+            new file mode ...
+            index ...
+            sage: dev.diff("ticket/1")
+            diff --git a/ticket1 b/ticket1
+            deleted file mode ...
+            index ...
+            diff --git a/ticket3 b/ticket3
+            new file mode ...
+            index ...
+            sage: dev.switch_ticket("#1")
+            sage: UI.append("y")
+            sage: dev.upload()
+            I will now upload the following new commits to the remote branch `u/doctest/ticket/1`:
+            ...: added ticket1
+            Is this what you want? [Yes/no] y
+            sage: dev.switch_ticket("#3")
+            sage: dev.diff("#1")
+            diff --git a/ticket1 b/ticket1
+            deleted file mode ...
+            index ...
+            diff --git a/ticket3 b/ticket3
+            new file mode ...
+            index ...
+
+        A diff against the dependencies::
+
+            sage: dev.diff("dependencies")
+            Dependency #1 has not been merged into `ticket/3` (at least not its latest version). Use `...` to merge it.
+            Dependency #2 has not been merged into `ticket/3` (at least not its latest version). Use `...` to merge it.
+            diff --git a/ticket1 b/ticket1
+            deleted file mode ...
+            index ...
+            diff --git a/ticket2 b/ticket2
+            deleted file mode ...
+            index ...
+            diff --git a/ticket3 b/ticket3
+            new file mode ...
+            index ...
+            sage: dev.merge("#1")
+            Merging the remote branch `u/doctest/ticket/1` into the local branch `ticket/3`.
+            sage: dev.merge("#2")
+            Merging the remote branch `u/doctest/ticket/2` into the local branch `ticket/3`.
+            sage: dev.diff("dependencies")
+            diff --git a/ticket3 b/ticket3
+            new file mode ...
+            index ...
+
+        This does not work if the dependencies do not merge::
+
+            sage: dev.switch_ticket("#1")
+            sage: with open("ticket2","w") as f: f.write("foo")
+            sage: dev.git.silent.add("ticket2")
+            sage: dev.git.super_silent.commit(message="added ticket2")
+            sage: UI.append("y")
+            sage: dev.upload()
+            I will now upload the following new commits to the remote branch `u/doctest/ticket/1`:
+            ...: added ticket2
+            Is this what you want? [Yes/no] y
+
+            sage: dev.switch_ticket("#3")
+            sage: dev.diff("dependencies")
+            Dependency #1 has not been merged into `ticket/3` (at least not its latest version). Use `sage --dev merge --ticket=1` to merge it.
+            #2 does not merge cleanly with the other dependencies. Your diff could not be computed.
 
         """
-        raise NotImplementedError # the below does most probably not work anymore TODO
-        base = None
         if base == "dependencies":
-            branch = self.git.current_branch()
+            current_ticket = self._current_ticket()
+            if current_ticket is None:
+                raise SageDevValueError("'dependencies' are only supported if currently on a ticket.")
+
             try:
-                self.gather(self.trac.dependencies())
-                self.git.diff("%s..%s"%(HEAD,branch))
+                self.reset_to_clean_state()
+                self.reset_to_clean_working_directory()
+            except OperationCancelledError:
+                self._UI.error("Cannot create merge of dependencies because working directory is not clean.")
+                raise
+
+            branch = self.git.current_branch()
+            temporary_branch = self._new_local_branch_for_trash("diff")
+            self.git.super_silent.branch(temporary_branch, MASTER_BRANCH)
+            try:
+                self.git.super_silent.checkout(temporary_branch)
+                try:
+                    self._UI.info("Merging dependencies of #{0}.".format(current_ticket))
+                    for dependency in self._dependencies_for_ticket(current_ticket):
+                        self._check_ticket_name(dependency, exists=True)
+                        remote_branch = self.trac._branch_for_ticket(dependency)
+                        self._check_remote_branch_name(remote_branch, exists=True)
+                        self.git.super_silent.fetch(self.git._repository, remote_branch)
+                        if self.git.is_child_of(MASTER_BRANCH, 'FETCH_HEAD'):
+                            self._UI.info("Dependency #{0} has already been merged into the master branch.".format(dependency))
+                        else:
+                            if not self.git.is_child_of(branch, 'FETCH_HEAD'):
+                                self._UI.warning("Dependency #{0} has not been merged into `{1}` (at least not its latest version). Use `{2}` to merge it.".format(dependency, branch, self._format_command("merge",ticket_or_branch="{0}".format(dependency))))
+                            from git_error import GitError
+                            try:
+                                self.git.super_silent.merge('FETCH_HEAD')
+                            except GitError as e:
+                                self._UI.error("#{0} does not merge cleanly with the other dependencies. Your diff could not be computed.".format(dependency))
+                                raise OperationCancelledError("merge failed")
+
+                    self.git.echo.diff("{0}..{1}".format(temporary_branch, branch))
+                    return
+                finally:
+                    self.git.reset_to_clean_state()
+                    self.git.reset_to_clean_working_directory()
+                    self.git.super_silent.checkout(branch)
             finally:
-                self.git.super_silent.checkout(branch)
+                self.git.super_silent.branch("-D", temporary_branch)
+
+        if base == "commit":
+            base = "HEAD"
         else:
-            self.git.execute("diff", base)
+            if self._is_ticket_name(base):
+                ticket = self._ticket_from_ticket_name(base)
+                self._check_ticket_name(ticket, exists=True)
+                base = self.trac._branch_for_ticket(ticket)
+                if base is None:
+                    self._UI.error("Ticket #{0} has no branch set on trac.".format(ticket))
+
+            if self._is_local_branch_name(base, exists=True):
+                pass
+            else:
+                self._check_remote_branch_name(base, exists=True)
+                self.git.super_silent.fetch(self.git._repository, base)
+                base = 'FETCH_HEAD'
+
+        self.git.echo.diff(base)
 
     def show_dependencies(self, ticket=None, all=False, _seen=None): # all = recursive
         r"""

@@ -3674,7 +3674,7 @@ class SageDev(object):
             sage: git_lines = open(
             ....:     os.path.join(SAGE_SRC, "sage", "dev", "test", "data", "git.patch")
             ....:     ).read().splitlines()
-            sage: dev._rewrite_patch(git_lines, "new", "git") == git_lines
+            sage: dev._rewrite_patch(git_lines, "old", "git") == git_lines
             True
 
         """

@@ -3723,6 +3723,8 @@ class SageDev(object):
             True
             sage: dev._is_ticket_name(2^30, exists=True) # optional: internet
             False
+            sage: dev._is_ticket_name('')
+            False
 
         """
         if not isinstance(name, int):
@@ -3810,7 +3812,7 @@ class SageDev(object):
         """
         ticket = name
         if not isinstance(ticket, int):
-            if isinstance(ticket, str) and ticket[0] == "#":
+            if isinstance(ticket, str) and ticket and ticket[0] == "#":
                 ticket = ticket[1:]
             try:
                 ticket = int(ticket)

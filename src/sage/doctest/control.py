@@ -142,7 +142,7 @@ def skipdir(dirname):
         sage: from sage.doctest.control import skipdir
         sage: skipdir(sage.env.SAGE_SRC)
         False
-        sage: skipdir(os.path.join(SAGE_ROOT, "devel", "sagenb", "sagenb", "data"))
+        sage: skipdir(os.path.join(sage.env.SAGE_SRC, "sage", "doctest", "tests"))
         True
     """
     if os.path.exists(os.path.join(dirname, "nodoctest.py")):

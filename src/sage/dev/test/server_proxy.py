@@ -54,6 +54,7 @@ class DoctestServerProxy(object):
         self._server = server
 
         self.ticket = DoctestTicketProxy(self)
+        self.sshkeys = DoctestSshkeysProxy(self)
 
     def _check_authentication(self, privilege):
         r"""
@@ -141,6 +142,71 @@ class AuthenticatedDoctestServerProxy(DoctestServerProxy):
 
         """
         pass
+
+class DoctestSshkeysProxy(object):
+    r"""
+    A proxy object for the ``sshkeys`` property of a
+    :class:`DoctestServerProxy`.
+
+    EXAMPLES::
+
+        sage: from sage.dev.test.server_proxy import DoctestServerProxy
+        sage: from sage.dev.test.trac_server import DoctestTracServer
+        sage: DoctestServerProxy(DoctestTracServer()).sshkeys
+        <sage.dev.test.server_proxy.DoctestSshkeysProxy object at 0x...>
+
+    """
+    def __init__(self, server_proxy):
+        r"""
+        Initialization.
+
+        TESTS::
+
+            sage: from sage.dev.test.trac_interface import DoctestTracInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: config = DoctestConfig()
+            sage: UI = DoctestUserInterface(config['UI'])
+            sage: trac = DoctestTracInterface(config['trac'], UI, DoctestTracServer())
+            sage: type(trac._anonymous_server_proxy.sshkeys)
+            <class 'sage.dev.test.server_proxy.DoctestSshkeysProxy'>
+
+        """
+        self._server_proxy = server_proxy
+
+    def addkey(self, public_key):
+        r"""
+        Add public key ``public_key`` for the authenticated user.
+
+        INPUT:
+
+        - ``public_key`` -- a string
+
+        EXAMPLES::
+
+            sage: from sage.dev.test.trac_interface import DoctestTracInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: config = DoctestConfig()
+            sage: config['trac']['password'] = 'secret'
+            sage: UI = DoctestUserInterface(config['UI'])
+            sage: trac = DoctestTracInterface(config['trac'], UI, DoctestTracServer())
+            sage: trac._authenticated_server_proxy.sshkeys.addkey('foo')
+            0
+
+        """
+        from sage.dev.trac_error import TracInternalError
+        try:
+            self._server_proxy._check_authentication('SSHKEYS')
+        except TracInternalError:
+            import xmlrpclib
+            raise TracInternalError(xmlrpclib.Fault(1, "'cannot set ssh keys for anonymous users' while executing 'sshkeys.addkey()'"))
+
+        pass # not implemented
+
+        return 0
 
 class DoctestTicketProxy(object):
     r"""

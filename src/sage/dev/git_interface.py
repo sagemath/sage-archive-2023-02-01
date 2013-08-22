@@ -42,7 +42,7 @@ class GitProxy(object):
         <sage.dev.git_interface.GitProxy object at 0x...>
 
     """
-    def __init__(self, config, UI):
+    def __init__(self, config, UI, upload_ssh_key=None):
         r"""
         Initialization.
 
@@ -58,6 +58,7 @@ class GitProxy(object):
         """
         self._config = config
         self._UI = UI
+        self.__upload_ssh_key = upload_ssh_key
 
         self._src = self._config.get('src', SAGE_SRC)
         self._dot_git = self._config.get('dot_git', SAGE_DOT_GIT)
@@ -127,9 +128,12 @@ class GitProxy(object):
         assert not sage.doctest.DOCTEST_MODE or (self._dot_git != SAGE_DOT_GIT and self._repository != SAGE_REPO_AUTHENTICATED and os.path.abspath(os.getcwd()).startswith(self._src)), "possible attempt to work with the live repository/directory in a doctest - did you forget to dev._chdir()?"
 
         # not sure which commands could possibly create a commit object with
-        # some crazy flags set - these commands should be safe
+        # unless there are some crazy flags set - these commands should be safe
         if cmd not in [ "config", "diff", "grep", "log", "ls_remote", "remote", "reset", "show", "show_ref", "status", "symbolic_ref" ]:
             self._check_user_email()
+        # which commits access the remote repository?
+        # again, these should be safe
+        self._upload_ssh_key()
 
         s = [self._gitcmd, "--git-dir=%s"%self._dot_git, cmd]
 
@@ -371,6 +375,41 @@ class GitProxy(object):
 
         self._config['user_email_set'] = "True"
 
+    def _upload_ssh_key(self):
+        r"""
+        Make sure that the public ssh key has been uploaded to the trac server.
+
+        TESTS::
+
+            sage: import os
+            sage: from sage.dev.git_interface import GitInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: del config['git']['user.name']
+            sage: del config['git']['user.email']
+            sage: UI = DoctestUserInterface(config["UI"])
+            sage: def upload_ssh_key(): print "Uploading ssh key."
+            sage: git = GitInterface(config["git"], UI, upload_ssh_key=upload_ssh_key)
+            sage: os.chdir(config['git']['src'])
+            sage: from sage.dev.git_error import GitError
+            sage: try:
+            ....:   git.ls_remote()
+            ....: except GitError: pass
+            Uploading ssh key.
+            sage: try:
+            ....:   git.ls_remote()
+            ....: except GitError: pass
+
+        """
+        if self._config.get('ssh_key_set', False):
+            return
+
+        if self.__upload_ssh_key is not None:
+            self.__upload_ssh_key()
+
+            self._config['ssh_key_set'] = "True"
+
 class ReadStdoutGitProxy(GitProxy):
     r"""
     A proxy object to wrap calls to git.
@@ -446,7 +485,7 @@ class GitInterface(ReadStdoutGitProxy):
         GitInterface()
 
     """
-    def __init__(self, config, UI):
+    def __init__(self, config, UI, upload_ssh_key=None):
         r"""
         Initialization.
 
@@ -460,11 +499,11 @@ class GitInterface(ReadStdoutGitProxy):
             <class 'sage.dev.git_interface.GitInterface'>
 
         """
-        ReadStdoutGitProxy.__init__(self, config, UI)
+        ReadStdoutGitProxy.__init__(self, config, UI, upload_ssh_key=upload_ssh_key)
 
-        self.silent = SilentGitProxy(config, UI)
-        self.super_silent = SuperSilentGitProxy(config, UI)
-        self.echo = EchoGitProxy(config, UI)
+        self.silent = SilentGitProxy(config, UI, upload_ssh_key=upload_ssh_key)
+        self.super_silent = SuperSilentGitProxy(config, UI, upload_ssh_key=upload_ssh_key)
+        self.echo = EchoGitProxy(config, UI, upload_ssh_key=upload_ssh_key)
 
     def __repr__(self):
         r"""

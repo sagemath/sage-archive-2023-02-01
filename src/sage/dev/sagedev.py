@@ -133,7 +133,7 @@ class SageDev(object):
         self.git = git
         if self.git is None:
             from git_interface import GitInterface
-            self.git = GitInterface(self.config['git'], self._UI)
+            self.git = GitInterface(self.config['git'], self._UI, self.upload_ssh_key)
 
         # create some SavingDicts to store the relations between branches and tickets
         from sage.env import DOT_SAGE
@@ -3640,60 +3640,60 @@ class SageDev(object):
         #TODO: docstring
         return self._rewrite_patch_diff_paths(self._rewrite_patch_header(lines, to_format=to_header_format, from_format=from_header_format, diff_format=from_diff_format), to_format=to_path_format, diff_format=from_diff_format, from_format=from_path_format)
 
-    # TODO: make sure this gets called before accessing the remote repository
-    def _upload_ssh_key(self, keyfile, create_key_if_not_exists=True):
+    def upload_ssh_key(self, public_key=None, create_key_if_not_exists=True):
         r"""
-        Upload ``keyfile.pub`` to gitolite through the trac interface.
+        Upload ``public_key`` to gitolite through the trac interface.
 
         INPUT:
 
-        - ``keyfile`` -- the absolute path of the key file (default:
-          ``~/.ssh/id_rsa``)
+        - ``public_key`` -- a string or ``None`` (default: ``None``), the path
+          of the key file, defaults to ``~/.ssh/id_rsa.pub``.
 
-        - ``create_key_if_not_exists`` -- use ``ssh-keygen`` to create
-          ``keyfile`` if ``keyfile`` or ``keyfile.pub`` does not exist.
+        - ``create_key_if_not_exists`` -- use ``ssh-keygen`` to create a public
+          if key if none exists.
 
-        EXAMPLES::
+        TESTS:
 
-            sage: import tempfile, os
-            sage: tmp = tempfile.NamedTemporaryFile().name
-            sage: dev._sagedev._upload_ssh_key(tmp, create_key_if_not_exists = False)
-            Traceback (most recent call last):
-            ...
-            IOError: [Errno 2] No such file or directory: ...
-            sage: dev._upload_ssh_key(tmp, create_key_if_not_exists = True) # not tested
-            Generating ssh key....
-            Ssh key successfully generated
+        Create a doctest setup with a single user::
 
-        TESTS::
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
 
-            TODO
+        Create and upload a key file::
+
+            sage: import os
+            sage: public_key = os.path.join(dev._sagedev.tmp_dir,"id_rsa.pub")
+            sage: dev.upload_ssh_key(public_key=public_key, create_key_if_not_exists=False)
+            ValueError: create_key_if_not_exists is not set but there is no key at ....
+            sage: dev.upload_ssh_key(public_key=public_key, create_key_if_not_exists=True)
+            Generating ssh key.
+            Your key has been uploaded.
+            sage: dev.upload_ssh_key(public_key=public_key, create_key_if_not_exists=False)
+            Your key has been uploaded.
 
         """
-        raise NotImplementedError # the below does most probably not work anymore TODO
-        cfg = self._config
+        import os
+        if public_key is None:
+            public_key = os.path.expanduser("~/.ssh/id_rsa.pub")
 
-        try:
-            with open(keyfile, 'r') as F:
-                pass
-            with open(keyfile + '.pub', 'r') as F:
-                pass
-        except IOError:
-            if create_key_if_not_exists:
-                self._UI.show("Generating ssh key....")
-                from subprocess import call
-                success = call(["ssh-keygen", "-q", "-f", keyfile, "-P", ""])
-                if success == 0:
-                    self._UI.show("Ssh key successfully generated")
-                else:
-                    raise RuntimeError("Ssh key generation failed.  Please create a key in `%s` and retry"%(keyfile))
+        if not os.path.exists(public_key):
+            if not create_key_if_not_exists:
+                raise SageDevValueError("create_key_if_not_exists is not set but there is no key at {0}.".format(public_key))
+            self._UI.show("Generating ssh key.")
+            from subprocess import call
+            success = call(["ssh-keygen", "-q", "-f", public_key, "-P", ""])
+            if success == 0:
+                self._UI.info("Key generated.")
             else:
-                raise
+                self._UI.error("Key generation failed.")
+                self._UI.info("Please create a key in `{0}` and retry.".format(public_key))
+                raise OperationCancelledError("ssh-keygen failed")
 
-        with open(keyfile + '.pub', 'r') as F:
-            pubkey = F.read().strip()
+        with open(public_key, 'r') as F:
+            public_key = F.read().strip()
 
-        self.trac._authenticated_server_proxy.sshkeys.setkeys(pubkey)
+        self.trac._authenticated_server_proxy.sshkeys.addkey(public_key)
+        self._UI.show("Your key has been uploaded.")
 
     def _is_ticket_name(self, name, exists=False):
         r"""

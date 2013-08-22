@@ -106,6 +106,7 @@ class SageDevWrapper(object):
         self._wrap("switch_ticket")
         self._wrap("unstash")
         self._wrap("upload")
+        self._wrap("upload_ssh_key")
         self._wrap("vanilla")
 
         self.git = sagedev.git

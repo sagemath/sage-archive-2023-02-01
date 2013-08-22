@@ -3471,7 +3471,21 @@ class SageDev(object):
         return "diff"
 
     def _detect_patch_modified_files(self, lines, diff_format = None):
-        #TODO: docstring
+        r"""
+        Return a list of files which are modified by the patch in ``lines``.
+
+        TESTS::
+
+            sage: dev._wrap("_detect_patch_modified_files")
+            sage: import os.path
+            sage: from sage.env import SAGE_SRC
+            sage: dev._detect_patch_modified_files(
+            ....:     open(os.path.join(
+            ....:             SAGE_SRC,"sage","dev","test","data","trac_8703-trees-fh.patch"
+            ....:         )).read().splitlines())
+            ['ordered_tree.py', 'binary_tree.pyx', 'list_clone.pyx', 'permutation.py', 'index.rst', 'abstract_tree.py', 'all.py', 'binary_tree.py']
+
+        """
         if diff_format is None:
             diff_format = self._detect_patch_diff_format(lines)
 
@@ -3637,7 +3651,22 @@ class SageDev(object):
             raise NotImplementedError(from_format)
 
     def _rewrite_patch(self, lines, to_path_format, to_header_format, from_diff_format=None, from_path_format=None, from_header_format=None):
-        #TODO: docstring
+        r"""
+        Rewrite the patch in ``lines`` to the path format given in
+        ``to_path_format`` and the header format given in ``to_header_format``.
+
+        TESTS::
+
+            sage: dev._wrap("_rewrite_patch")
+            sage: import os.path
+            sage: from sage.env import SAGE_SRC
+            sage: git_lines = open(
+            ....:     os.path.join(SAGE_SRC, "sage", "dev", "test", "data", "git.patch")
+            ....:     ).read().splitlines()
+            sage: dev._rewrite_patch(git_lines, "new", "git") == git_lines
+            True
+
+        """
         return self._rewrite_patch_diff_paths(self._rewrite_patch_header(lines, to_format=to_header_format, from_format=from_header_format, diff_format=from_diff_format), to_format=to_path_format, diff_format=from_diff_format, from_format=from_path_format)
 
     def upload_ssh_key(self, public_key=None, create_key_if_not_exists=True):

@@ -154,11 +154,16 @@ cdef class SymbolicRing(CommutativeRing):
         else:
             from sage.rings.real_mpfr import mpfr_prec_min
 
-            from sage.rings.all import ( ComplexField,
-               is_PolynomialRing, is_MPolynomialRing,
-               is_FractionField, RLF, CLF, AA, QQbar, InfinityRing,
-               is_RealIntervalField, is_ComplexIntervalField,
-               is_IntegerModRing, is_FiniteField)
+            from sage.rings.fraction_field import is_FractionField
+            from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
+            from sage.rings.real_mpfi import is_RealIntervalField
+            from sage.rings.complex_interval_field import is_ComplexIntervalField
+            from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+            from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
+
+            from sage.rings.all import (ComplexField,
+                                        RLF, CLF, AA, QQbar, InfinityRing,
+                                        is_FiniteField)
 
             from sage.interfaces.maxima import Maxima
             from sage.libs.pari.gen import PariInstance

@@ -413,7 +413,8 @@ def fast_callable(x, domain=None, vars=None,
                         deprecation(5413, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
                     else:
                         raise ValueError, "List of variables must be specified for symbolic expressions"
-            from sage.rings.all import is_PolynomialRing, is_MPolynomialRing
+            from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+            from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
             if is_PolynomialRing(x.parent()) or is_MPolynomialRing(x.parent()):
                 vars = x.parent().variable_names()
         etb = ExpressionTreeBuilder(vars=vars, domain=domain)

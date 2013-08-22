@@ -126,6 +126,7 @@ from sage.rings.padics.factory import Qp
 from sage.rings.padics.precision_error import PrecisionError
 
 import sage.rings.all as rings
+from sage.rings.real_mpfr import is_RealField
 from sage.rings.all import ZZ
 from sage.groups.all import AbelianGroup
 import sage.groups.generic as generic
@@ -2200,7 +2201,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         e = embedding
         # It is also trivially true if we have a complex embedding
         if not e is None:
-            if not rings.is_RealField(e.codomain()):
+            if not is_RealField(e.codomain()):
                 return True
 
         # find a suitable embedding if none was supplied:
@@ -2213,7 +2214,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                 e = K.embeddings(rings.ComplexField())[0]
 
         # If there is only one component, the result is True:
-        if not rings.is_RealField(e.codomain()):  # complex embedding
+        if not is_RealField(e.codomain()):  # complex embedding
             return True
         if e(E.discriminant()) < 0:  # only one component
             return True
@@ -3021,7 +3022,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         """
         from sage.rings.number_field.number_field import refine_embedding
-        from sage.rings.all import RealField, ComplexField, is_RealField, QQ
+        from sage.rings.all import RealField, ComplexField, QQ
 
         # Check the trivial case:
 

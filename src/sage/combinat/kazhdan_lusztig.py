@@ -9,7 +9,7 @@ Kazhdan-Lusztig Polynomials
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import is_Polynomial
+from sage.rings.polynomial.polynomial_element import is_Polynomial
 from sage.functions.other import floor
 from sage.misc.cachefunc import cached_method
 from sage.rings.polynomial.laurent_polynomial import LaurentPolynomial_mpair

@@ -39,6 +39,7 @@ ALLOWED_FIELDS = {
         "report upstream":  "Report Upstream",
         "reviewers":        "Reviewers",
         "stopgaps":         "Stopgaps",
+        "status":           "Status",
         "type":             "Type",
         "work issues":      "Work issues",
         }

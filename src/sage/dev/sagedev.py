@@ -3619,6 +3619,9 @@ class SageDev(object):
 
         if not GIT_BRANCH_REGEX.match(name):
             return False
+        # branches which could be tickets are calling for trouble - cowardly refuse to accept them
+        if self._is_ticket_name(name):
+            return False
 
         if exists == True:
             return self.git.commit_for_branch(name) is not None
@@ -3780,6 +3783,9 @@ class SageDev(object):
             raise ValueError("name must be a string")
 
         if not GIT_BRANCH_REGEX.match(name):
+            return False
+        # branches which could be tickets are calling for trouble - cowardly refuse to accept them
+        if self._is_ticket_name(name):
             return False
 
         if exists is any:

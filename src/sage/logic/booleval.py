@@ -7,7 +7,7 @@ AUTHORS:
 
 - Paul Scurek (2013-08-05): updated docstring formatting
 
-EXAMPLES::
+EXAMPLES:
 
 We can assign values to the variables and evaluate a formula::
 
@@ -38,6 +38,7 @@ import logicparser
 # dictionary containing variable keys and boolean values
 __vars = {}
 
+
 def eval_formula(tree, vdict):
     r"""
     Evaluate the tree and return a boolean value.
@@ -53,7 +54,7 @@ def eval_formula(tree, vdict):
 
     The result of the evaluation as a boolean value
 
-    EXAMPLES::
+    EXAMPLES:
 
     This example illustrates evaluating a boolean formula.
 
@@ -89,7 +90,7 @@ def eval_f(tree):
 
     The result of the evaluation as a boolean value
 
-    EXAMPLES::
+    EXAMPLES:
 
     This example illustrates how to evaluate a parse tree.
 

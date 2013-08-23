@@ -23,7 +23,7 @@ AUTHORS:
 
 - Paul Scurek (2013-08-05): updated docstring formatting
 
-EXAMPLES::
+EXAMPLES:
 
 We can create boolean formulas in different ways::
 
@@ -142,6 +142,7 @@ It is an error to create a formula with bad syntax::
 
 import boolformula
 import logicparser
+
 
 def formula(s):
     r"""

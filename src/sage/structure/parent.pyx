@@ -2839,9 +2839,11 @@ cdef class Parent(category_object.CategoryObject):
             ...
             EmptySetError
         """
-        if self.__an_element is None:
-            self.__an_element = self._an_element_()
-        return self.__an_element
+        # _cache_an_element, not _cache__an_element, to prevent a possible
+        # conflict with @cached_method
+        if self._cache_an_element is None:
+            self._cache_an_element = self._an_element_()
+        return self._cache_an_element
 
     def _an_element_(self):
         """

@@ -169,7 +169,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             Echelon ...
 
         """
-        if not matrix.is_Matrix(A):
+        if not sage.matrix.matrix.is_Matrix(A):
             # Compute the matrix of the morphism that sends the
             # generators of the domain to the elements of A.
             C = self.codomain()

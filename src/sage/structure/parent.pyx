@@ -2417,7 +2417,7 @@ cdef class Parent(category_object.CategoryObject):
         """
         Precedence for discovering a coercion S -> self goes as follows:
 
-        1. If S has an embedding into T, look for T -> self and return composition
+        1. If S has an embedding into self, return that embedding.
 
         2. If self._coerce_map_from_(S) is NOT exactly one of
 
@@ -2425,10 +2425,13 @@ cdef class Parent(category_object.CategoryObject):
            - DefaultConvertMap_unique
            - NamedConvertMap
 
-           return this map
+           return this map.
 
         3. Traverse the coercion lists looking for another map
            returning the map from step (2) if none is found.
+
+        4. If S has an embedding into some parent T, look for T -> self and
+           return composition.
 
         In the future, multiple paths may be discovered and compared.
 
@@ -2482,14 +2485,41 @@ cdef class Parent(category_object.CategoryObject):
             sage: X = P()
             sage: X.has_coerce_map_from(ZZ)
             True
+
+        Check that :trac:`14982` is fixed, and more generally that we discover
+        sensible coercion paths in the presence of embeddings::
+
+            sage: K.<a> = NumberField(x^2+1/2, embedding=CC(0,1))
+            sage: L = NumberField(x^2+2, 'b', embedding=1/a)
+            sage: PolynomialRing(L, 'x').coerce_map_from(L)
+            Polynomial base injection morphism:
+              From: Number Field in b with defining polynomial x^2 + 2
+              To:   Univariate Polynomial Ring in x over Number Field in b with defining polynomial x^2 + 2
+            sage: PolynomialRing(K, 'x').coerce_map_from(L)
+            Composite map:
+              From: Number Field in b with defining polynomial x^2 + 2
+              To:   Univariate Polynomial Ring in x over Number Field in a with defining polynomial x^2 + 1/2
+              Defn:   Generic morphism:
+                      From: Number Field in b with defining polynomial x^2 + 2
+                      To:   Number Field in a with defining polynomial x^2 + 1/2
+                      Defn: b -> -2*a
+                    then
+                      Polynomial base injection morphism:
+                      From: Number Field in a with defining polynomial x^2 + 1/2
+                      To:   Univariate Polynomial Ring in x over Number Field in a with defining polynomial x^2 + 1/2
+            sage: MatrixSpace(L, 2, 2).coerce_map_from(L)
+            Call morphism:
+              From: Number Field in b with defining polynomial x^2 + 2
+              To:   Full MatrixSpace of 2 by 2 dense matrices over Number Field in b with defining polynomial x^2 + 2
+            sage: PowerSeriesRing(L, 'x').coerce_map_from(L)
+            Conversion map:
+              From: Number Field in b with defining polynomial x^2 + 2
+              To:   Power Series Ring in x over Number Field in b with defining polynomial x^2 + 2
         """
         best_mor = None
         if isinstance(S, Parent) and (<Parent>S)._embedding is not None:
             if (<Parent>S)._embedding.codomain() is self:
                 return (<Parent>S)._embedding
-            connecting = self._internal_coerce_map_from((<Parent>S)._embedding.codomain())
-            if connecting is not None:
-                return (<Parent>S)._embedding.post_compose(connecting)
 
         cdef map.Map mor
         user_provided_mor = self._coerce_map_from_(S)
@@ -2551,7 +2581,13 @@ cdef class Parent(category_object.CategoryObject):
                     if mor_found  >= num_paths:
                         return best_mor
 
-        return best_mor
+        if best_mor is not None:
+            return best_mor
+
+        if isinstance(S, Parent) and (<Parent>S)._embedding is not None:
+            connecting = self._internal_coerce_map_from((<Parent>S)._embedding.codomain())
+            if connecting is not None:
+                return (<Parent>S)._embedding.post_compose(connecting)
 
     cpdef convert_map_from(self, S):
         """

@@ -1366,7 +1366,7 @@ class ToricVariety_field(AmbientSpace):
 
         Boolean.
 
-        EXMAMPLES::
+        EXAMPLES::
 
             sage: toric_varieties.A2().is_affine()
             True

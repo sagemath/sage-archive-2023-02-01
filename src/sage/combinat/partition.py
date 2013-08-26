@@ -3180,6 +3180,36 @@ class Partition(CombinatorialObject, Element):
         else:
             return Partition(self[:i] + [ self[i:i+1][0] - 1 ] + self[i+1:])
 
+    def k_irreducible(self, k):
+        r"""
+        Return the partition with all `r \times (k+1-r)` rectangles removed.
+
+        If ``self`` is a `k`-bounded partition, then this method will return the partition
+        where all rectangles of dimension `r \times (k+1-r)` for `1 \leq r \leq k`
+        have been deleted.
+
+        If ``self`` is not a `k`-bounded partition then the method will raise an error.
+
+        INPUT:
+
+        - ``k`` -- a non-negative integer
+
+        OUTPUT:
+
+        - a partition
+
+        EXAMPLES::
+
+            sage: Partition([3,2,2,1,1,1]).k_irreducible(4)
+            [3, 2, 2, 1, 1, 1]
+            sage: Partition([3,2,2,1,1,1]).k_irreducible(3)
+            []
+            sage: Partition([3,3,3,2,2,2,2,2,1,1,1,1]).k_irreducible(3)
+            [2, 1]
+        """
+        pexp = self.to_exp()
+        return Partition(sum(([r+1] for r in range(len(pexp)-1,-1,-1) for m in range(pexp[r] % (k-r))),[]))
+
     def k_skew(self, k):
         r"""
         Return the `k`-skew partition.

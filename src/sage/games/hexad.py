@@ -391,7 +391,7 @@ class Minimog():
             ([], [])
 
         The above output indicates that there is no hexad of type 2
-        containing {2,3,4,5}. However, there is one containing {2,3,4,8}:
+        containing {2,3,4,5}. However, there is one containing {2,3,4,8}::
 
             sage: M.find_hexad2([2,3,4,8],0)
             ([0, 2, 3, 4, 8, 9], ['cross 12', 'picture 0'])

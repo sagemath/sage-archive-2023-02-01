@@ -379,7 +379,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             sage: E1 == E2
             True
 
-        If no entries are constant, nothing happens:
+        If no entries are constant, nothing happens::
 
             sage: P.<x0,x1,y0,y1> = PolynomialRing(GF(2),4)
             sage: A = Matrix(P,2,2,[x0,y0,x0,y0]); A
@@ -391,7 +391,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             sage: B == A
             True
 
-        A more interesting example:
+        A more interesting example::
 
             sage: P.<x0,x1,y0,y1> = PolynomialRing(GF(2),4)
             sage: l = [1, 1, 1, 1,     1, \
@@ -493,7 +493,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
 
         EXAMPLES:
 
-        We compute the determinant of the arbitrary 3x3 matrix:
+        We compute the determinant of the arbitrary `3x3` matrix::
 
             sage: R = PolynomialRing(QQ,9,'x')
             sage: A = matrix(R,3,R.gens())
@@ -517,7 +517,7 @@ cdef class Matrix_mpolynomial_dense(Matrix_generic_dense):
             sage: C.change_ring(R.change_ring(QQbar)).det()
             (-6/5)*x^2*y^2 + (-3)*x*y^3 + 6/5*x^2*y + 11/12*x*y^2 + (-18)*y^2 + (-3/4)*y
 
-        Finally, we check whether the \Singular interface is working:
+        Finally, we check whether the \Singular interface is working::
 
             sage: R.<x,y> = RR[]
             sage: C = random_matrix(R,2,2,terms=2)

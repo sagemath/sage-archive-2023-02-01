@@ -340,7 +340,7 @@ class SchemeHomset_generic(HomsetWithBase):
                       From: Integer Ring
                       To:   Rational Field
 
-        TESTS:
+        TESTS::
 
             sage: H._element_constructor_(f)
             Affine Scheme morphism:

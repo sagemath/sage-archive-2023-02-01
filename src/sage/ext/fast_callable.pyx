@@ -82,13 +82,13 @@ sage: fc_wilk_float = fast_callable(wilk, vars=[x], domain=float)
 sage: timeit('fc_wilk_float(30.0)') # random, long time
 625 loops, best of 3: 5.04 us per loop
 
-We also have support for RR:
+We also have support for ``RR``:
 
 sage: fc_wilk_rr = fast_callable(wilk, vars=[x], domain=RR)
 sage: timeit('fc_wilk_rr(30.0)') # random, long time
 625 loops, best of 3: 13 us per loop
 
-And support for CDF:
+And support for CDF::
 
 sage: fc_wilk_rr = fast_callable(wilk, vars=[x], domain=CDF)
 sage: timeit('fc_wilk_rr(30.0)') # random, long time
@@ -208,7 +208,7 @@ EXAMPLES::
     (which takes 2 arguments from the stack), push the constant 1.0, add the
     top two arguments of the stack, and then call sqrt.
 
-Here we take sin of the first argument and add it to f:
+Here we take sin of the first argument and add it to f::
 
     sage: from sage.ext.fast_callable import ExpressionTreeBuilder
     sage: etb = ExpressionTreeBuilder('x')

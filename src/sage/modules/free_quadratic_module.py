@@ -1120,7 +1120,7 @@ class FreeQuadraticModule_submodule_with_basis_pid(
         """
         Create a free module with basis over a PID.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: A = diagonal_matrix([1,2,2])
             sage: M = FreeQuadraticModule(ZZ,3,inner_product_matrix=A)
@@ -1402,7 +1402,7 @@ class FreeQuadraticModule_submodule_with_basis_field(
         sage: vector(QQ, W.coordinates(v)) * W.basis_matrix()
         (1, 5, 9)
 
-    We can load and save submodules:
+    We can load and save submodules::
 
         sage: loads(W.dumps()) == W
         True
@@ -1498,7 +1498,7 @@ class FreeQuadraticModule_submodule_field(
     EXAMPLES:
 
         Since this is an embedded vector subspace with echelonized basis,
-        the echelon_coordinates() and user coordinates() agree:
+        the echelon_coordinates() and user coordinates() agree::
 
         sage: V = QQ^3
         sage: W = V.span([[1,2,3],[4,5,6]])

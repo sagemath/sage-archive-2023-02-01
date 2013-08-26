@@ -178,7 +178,7 @@ def format_obj(obj):
 
         sage: import sage.misc.displayhook
 
-    For most objects, nothing is done (``None`` is returned):
+    For most objects, nothing is done (``None`` is returned)::
 
         sage: sage.misc.displayhook.format_obj('Hello, world!')
         sage: sage.misc.displayhook.format_obj((1, 2, 3, 4))

@@ -619,7 +619,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: ZZ['a'].gen() + c
             a + c
 
-        Check that :trac:`13284` is fixed:
+        Check that :trac:`13284` is fixed::
 
             sage: from sage.rings.ideal import Cyclic
             sage: R = BooleanPolynomialRing(10, 'x')
@@ -1717,7 +1717,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: C(y*z) > C(x)
             False
 
-        Now we change variable names:
+        Now we change variable names::
 
             sage: P.<x0,x1> = BooleanPolynomialRing(2)
             sage: P
@@ -1729,7 +1729,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
             sage: Q
             Boolean PolynomialRing in t, x1
 
-        We can also append blocks to block orderings this way:
+        We can also append blocks to block orderings this way::
 
             sage: R.<x1,x2,x3,x4> = BooleanPolynomialRing(order='deglex(1),deglex(3)')
             sage: x2 > x3*x4
@@ -6592,7 +6592,7 @@ cdef class FGLMStrategy:
             sage: FGLMStrategy(old_ring, new_ring, ideal)
             <sage.rings.polynomial.pbori.FGLMStrategy object at 0x...>
 
-        Check that :trac:`13883` is fixed:
+        Check that :trac:`13883` is fixed::
 
             sage: nonreduced = BooleanPolynomialVector([x+z, x+y])
             sage: FGLMStrategy(old_ring, new_ring, nonreduced) # optional - debug

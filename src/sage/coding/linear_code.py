@@ -367,7 +367,7 @@ def min_wt_vec_gap(Gmat, n, k, F, algorithm=None):
         sage: sage.coding.linear_code.min_wt_vec_gap(Gstr,7,4,GF(2))
         (0, 1, 0, 1, 0, 1, 0)
 
-        This output is different but still a minimum weight vector:
+    This output is different but still a minimum weight vector::
 
         sage: sage.coding.linear_code.min_wt_vec_gap(Gstr,7,4,GF(2),algorithm="guava")    # optional - gap_packages (Guava package)
         (0, 0, 1, 0, 1, 1, 0)

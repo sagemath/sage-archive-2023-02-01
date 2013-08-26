@@ -280,7 +280,7 @@ def fan_2d_cyclically_ordered_rays(fan):
         N( 1, -1)
         in 2-d lattice N
 
-    TESTS:
+    TESTS::
 
         sage: fan = Fan(cones=[], rays=[], lattice=ZZ^2)
         sage: from sage.geometry.fan_isomorphism import fan_2d_cyclically_ordered_rays

@@ -10,7 +10,7 @@ WARNING::
 AUTHORS:
     -- Robert L. Miller (2008-01-20): initial version
 
-TESTS:
+TESTS::
 
     sage: B = graphs.CompleteBipartiteGraph(7,9)
     sage: loads(dumps(B)) == B

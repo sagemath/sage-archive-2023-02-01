@@ -337,7 +337,7 @@ class PQ:
         Returns the current ordering given by listing the leaves from
         left to right.
 
-        EXAMPLE:
+        EXAMPLE::
 
             sage: from sage.graphs.pq_trees import P, Q
             sage: p = Q([[1,2], [2,3], P([[2,4], [2,8], [2,9]])])

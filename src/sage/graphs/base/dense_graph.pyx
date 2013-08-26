@@ -736,7 +736,7 @@ class DenseGraphBackend(CGraphBackend):
         """
         Initialize a dense graph with n vertices.
 
-        EXAMPLE:
+        EXAMPLE::
 
             sage: D = sage.graphs.base.dense_graph.DenseGraphBackend(9)
             sage: D.add_edge(0,1,None,False)

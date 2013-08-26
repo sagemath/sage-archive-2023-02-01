@@ -469,7 +469,7 @@ class Sets(Category_singleton):
                   running ._test_pickling() . . . pass
                 <BLANKLINE>
 
-            Debugging tip: in case of failure of this test, run instead:
+            Debugging tip: in case of failure of this test, run instead::
 
                 sage: TestSuite(C.an_element()).run()
 

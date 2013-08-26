@@ -709,7 +709,7 @@ class IntervalExchangeTransformation(SageObject):
 
         - ``side`` - must be 0 or -1 (no verification)
 
-        TEST:
+        TEST::
 
             sage: t = iet.IntervalExchangeTransformation(('a b c','c b a'),[1,1,3])
             sage: t

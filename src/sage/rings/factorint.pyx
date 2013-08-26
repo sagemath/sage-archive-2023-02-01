@@ -43,7 +43,7 @@ cpdef aurifeuillian(n, m, F=None):
 
         List of factors
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.rings.factorint import aurifeuillian
         sage: aurifeuillian(2,2)

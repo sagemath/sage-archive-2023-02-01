@@ -591,6 +591,17 @@ cdef class Map(Element):
             s += "\n  Defn: %s"%('\n        '.join(d.split('\n')))
         return s
 
+    def domains(self):
+        """
+        Yield the domain of self. In general, iterate over the domains of
+        the factors of a composite map.
+
+        EXAMPLES::
+            sage: list(QQ.coerce_map_from(ZZ).domains())
+            [Integer Ring]
+        """
+        yield self.domain()
+
     def category_for(self):
         """
         Returns the category self is a morphism for.
@@ -1903,3 +1914,17 @@ cdef class FormalCompositeMap(Map):
         if all(f.is_surjective() for f in without_bij):
             return True
         raise NotImplementedError("Not enough information to deduce surjectivity.")
+
+    def domains(self):
+        """
+        Iterate over the domains of the factors of self.
+
+        EXAMPLES:::
+
+            sage: f = QQ.coerce_map_from(ZZ)
+            sage: g = MatrixSpace(QQ, 2, 2).coerce_map_from(QQ)
+            sage: list((g*f).domains())
+            [Integer Ring, Rational Field]
+        """
+        for f in self.__list:
+            yield f.domain()

@@ -6492,6 +6492,36 @@ exponent %s: the length of the word (%s) times the exponent \
                     return False
         return True
 
+    def to_monoid_element(self):
+        """
+        Return ``self`` as an element the free monoid with the same alphabet
+        as ``self``.
+
+        EXAMPLES::
+
+            sage: w = Word('aabb')
+            sage: w.to_monoid_element()
+            a^2*b^2
+            sage: W = Words('abc')
+            sage: w = W(w)
+            sage: w.to_monoid_element()
+            a^2*b^2
+
+        TESTS:
+
+        Check that ``w == w.to_monoid_element().to_word()``::
+
+            sage: all(w.to_monoid_element().to_word() == w for i in range(6) for w in Words('abc', i))
+            True
+        """
+        from sage.monoids.free_monoid import FreeMonoid
+        try:
+            l = list(self.parent().alphabet())
+        except AttributeError:
+            l = list(set(self))
+        M = FreeMonoid(len(l), l)
+        return M(self)
+
 #######################################################################
 
 class CallableFromListOfWords(tuple):

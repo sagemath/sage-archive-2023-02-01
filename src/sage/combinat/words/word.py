@@ -33,6 +33,7 @@ from word_infinite_datatypes import (
                             WordDatatype_iter,
                             WordDatatype_callable_with_caching,
                             WordDatatype_callable)
+from sage.monoids.free_monoid_element import FreeMonoidElement
 
 # TODO. Word needs to be replaced by Word. Consider renameing
 # Word_class to Word and imbedding Word as its __call__ method.
@@ -43,8 +44,9 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
 
     INPUT:
 
-    -  ``data`` -- (default: ``None``) list, string, tuple, iterator, ``None``
-       (shorthand for ``[]``), or a callable defined on ``[0,1,...,length]``.
+    -  ``data`` -- (default: ``None``) list, string, tuple, iterator, free
+       monoid element, ``None`` (shorthand for ``[]``), or a callable defined
+       on ``[0,1,...,length]``.
 
     -  ``alphabet`` -- any argument accepted by Words
 
@@ -145,6 +147,12 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
         sage: w.parent()
         Words over {'a', 'b', 'c'}
 
+    Word from a free monoid element::
+
+        sage: M.<x,y,z> = FreeMonoid(3)
+        sage: Word(x^3*y*x*z^2*x)
+        word: xxxyxzzx
+
     The default parent is the combinatorial class of all words::
 
         sage: w = Word("abbabaab"); w
@@ -176,6 +184,9 @@ def Word(data=None, alphabet=None, length=None, datatype=None, caching=True, RSK
         sage: w is Word(w, alphabet='abc')
         False
     """
+    if isinstance(data, FreeMonoidElement):
+        return data.to_word(alphabet)
+
     if RSK_data is not None:
         #if a list of a semistandard and a standard tableau or a pair of lists
         from sage.combinat.tableau import Tableau

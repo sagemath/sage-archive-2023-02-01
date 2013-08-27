@@ -401,7 +401,7 @@ cdef class Ring(ParentWithGens):
         EXAMPLES::
 
             sage: FreeAlgebra(QQ, 3, 'x').category() # todo: use a ring which is not an algebra!
-            Category of algebras over Rational Field
+            Category of algebras with basis over Rational Field
 
         Since a quotient of the integers is its own base ring, and during
         initialisation of a ring it is tested whether the base ring belongs

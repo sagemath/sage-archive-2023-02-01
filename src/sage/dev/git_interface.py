@@ -1,372 +1,604 @@
-"""
+r"""
 Git Interface
 
 This module provides a python interface to Sage's git repository.
 
-TESTS::
+AUTHORS:
 
-    sage: from sage.dev.sagedev import SageDev, doctest_config
-    sage: git = SageDev(doctest_config()).git
-    sage: git.add("untracked_testfile1")
-    0
-    sage: git.rm('untracked_testfile1',force=True)
-    rm 'untracked_testfile1'
-    0
-    sage: git.mv('testfile', 'new_testfile')
-    0
-    sage: git.checkout('HEAD', '--', 'testfile')
-    0
-    sage: git.reset('HEAD', '--', 'new_testfile')
-    0
-    sage: git.status()
-    # On branch first_branch
-    # Untracked files:
-    #   (use "git add <file>..." to include in what will be committed)
-    #
-    #   new_testfile
-    #   untracked_testfile2
-    nothing added to commit but untracked files present (use "git add" to track)
-    0
-    sage: git.show('master')
-    commit ...
-    Author: doctest <doctest>
-    Date:   Sat Mar 3 09:46:40 1973 +0000
-    <BLANKLINE>
-        add a testfile
-    <BLANKLINE>
-    diff --git a/testfile b/testfile
-    new file mode 100644
-    index 0000000...
-    --- /dev/null
-    +++ b/testfile
-    @@ -0,0 +1 @@
-    +this is a test file
-    0
+- David Roe, Julian Rueth, Keshav Kini, Nicolas M. Thiery, Robert Bradshaw:
+  initial version
+
 """
-import atexit
+#*****************************************************************************
+#       Copyright (C) 2013 David Roe <roed.math@gmail.com>
+#                          Julian Rueth <julian.rueth@fsfe.org>
+#                          Keshav Kini <keshav.kini@gmail.com>
+#                          Nicolas M. Thiery <Nicolas.Thiery@u-psud.fr>
+#                          Robert Bradshaw <robertwb@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 import os
-import shutil
-import subprocess
-import tempfile
 
-import sage.doctest
-from sage.env import SAGE_DOT_GIT, SAGE_REPO_AUTHENTICATED, DOT_SAGE
+from sage.env import SAGE_DOT_GIT, SAGE_REPO_AUTHENTICATED, SAGE_SRC
 
-def is_atomic_name(x):
-    """
-    returns true if x is a valid atomic branch name
+from git_error import GitError, DetachedHeadError
+
+class GitProxy(object):
+    r"""
+    A proxy object to wrap actual calls to git.
 
     EXAMPLES::
 
-        sage: from sage.dev.git_interface import is_atomic_name
-        sage: is_atomic_name(["branch"])
-        True
-        sage: is_atomic_name(["/branch"])
-        False
-        sage: is_atomic_name(["refs","heads","branch"])
-        False
-        sage: is_atomic_name([""])
-        False
-        sage: is_atomic_name(["u"])
-        False
-        sage: is_atomic_name(["1234"])
-        True
+        sage: from sage.dev.git_interface import GitProxy
+        sage: from sage.dev.test.config import DoctestConfig
+        sage: from sage.dev.test.user_interface import DoctestUserInterface
+        sage: config = DoctestConfig()
+        sage: GitProxy(config['git'], DoctestUserInterface(config['UI']))
+        <sage.dev.git_interface.GitProxy object at 0x...>
+
     """
-    if len(x) != 1:
-        return False
-    if '/' in x[0]:
-        return False
-    return x[0] not in ("t", "ticket", "u", "g", "abandoned","")
+    def __init__(self, config, UI, upload_ssh_key=None):
+        r"""
+        Initialization.
 
-def is_ticket_name(x):
-    """
-    returns true if x is a valid ticket branch name
+        TESTS::
 
-    EXAMPLES::
+            sage: from sage.dev.git_interface import GitProxy
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: type(GitProxy(config['git'], DoctestUserInterface(config['UI'])))
+            <class 'sage.dev.git_interface.GitProxy'>
 
-        sage: from sage.dev.git_interface import is_ticket_name
-        sage: is_ticket_name(["t", "1234"])
-        True
-        sage: is_ticket_name(["u", "doctest", "branch"])
-        False
-        sage: is_ticket_name(["padics", "feature"])
-        False
-        sage: is_ticket_name(["ticket", "myticket"])
-        False
-        sage: is_ticket_name(["ticket", "9876"])
-        True
-    """
-    if len(x) != 2:
-        return False
-    if x[0] not in ('ticket', 't'):
-        return False
-    return x[1].isdigit()
+        """
+        self._config = config
+        self._UI = UI
+        self.__upload_ssh_key = upload_ssh_key
 
-def is_local_group_name(x):
-    """
-    returns true if x is a valid local group branch name
-
-    EXAMPLES::
-
-        sage: from sage.dev.git_interface import is_local_group_name
-        sage: is_local_group_name(["padic", "feature"])
-        True
-        sage: is_local_group_name(["g", "padic", "feature"])
-        False
-        sage: is_local_group_name(["padic", "feature", "1234"])
-        False
-        sage: is_local_group_name(["padic", "ticket", "1234"])
-        True
-    """
-    if len(x) == 0:
-        return False
-    if not is_atomic_name(x[0:1]):
-        return False
-    if len(x) == 2:
-        return is_atomic_name(x[1:])
-    else:
-        return is_ticket_name(x[1:])
-
-def is_remote_group_name(x):
-    """
-    returns true if x is a valid remote group branch name
-
-    EXAMPLES::
-
-        sage: from sage.dev.git_interface import is_remote_group_name
-        sage: is_remote_group_name(["padic", "feature"])
-        False
-        sage: is_remote_group_name(["g", "padic", "feature"])
-        True
-        sage: is_remote_group_name(["g", "padic", "feature", "1234"])
-        False
-        sage: is_remote_group_name(["g", "padic", "ticket", "1234"])
-        True
-        sage: is_remote_group_name(["u", "doctest", "ticket", "1234"])
-        False
-    """
-    if len(x) < 3:
-        return False
-    if x[0] != "g":
-        return False
-    return is_local_group_name(x[1:])
-
-def is_remote_user_name(x):
-    """
-    returns true if x is a valid remote user branch name
-
-    EXAMPLES::
-
-        sage: from sage.dev.git_interface import is_remote_user_name
-        sage: is_remote_user_name(["u", "doctest", "ticket", "12345"])
-        True
-        sage: is_remote_user_name(["u", "doctest", "ticket", ""])
-        False
-        sage: is_remote_user_name(["u", "doctest"])
-        False
-        sage: is_remote_user_name(["g", "padic", "feature"])
-        False
-        sage: is_remote_user_name(["u", "doctest", "feature"])
-        True
-    """
-    if len(x) < 3:
-        return False
-    if x[0] != "u":
-        return False
-    return all(x[1:])
-
-def is_release_name(x):
-    """
-    returns true if x is a valid release name
-
-    WARNING: this does not imply the existence of such a release
-
-    EXAMPLES::
-
-        sage: from sage.dev.git_interface import is_release_name
-        sage: is_release_name(['5', '2', '7'])
-        True
-        sage: is_release_name(['6', '-2'])
-        False
-        sage: is_release_name(['6', 'beta0'])
-        True
-        sage: is_release_name(['7', 'rc'])
-        False
-        sage: is_release_name(['7', 'rc1'])
-        True
-    """
-    for v in x[:-1]:
-        try:
-            if int(v) < 0:
-                return False
-        except ValueError:
-            return False
-    v = x[-1]
-    if v.startswith('alpha'):
-        v = v[5:]
-    elif v.startswith('beta'):
-        v = v[4:]
-    elif v.startswith('rc'):
-        v = v[2:]
-    try:
-        return int(v) >= 0
-    except ValueError:
-        return False
-
-def normalize_ticket_name(x):
-    """
-    returns the normalized ticket branch name for x
-
-    WARNING: it does not check to see if x is a valid ticket branch name
-
-    EXAMPLES::
-
-        sage: from sage.dev.git_interface import normalize_ticket_name
-        sage: normalize_ticket_name(["t", "12345"])
-        'ticket/12345'
-        sage: normalize_ticket_name(["cow", "goes", "moo"])
-        'ticket/goes'
-        sage: normalize_ticket_name(["branch"])
-        Traceback (most recent call last):
-        ...
-        IndexError: list index out of range
-    """
-    return '/'.join(('ticket', x[1]))
-
-class GitInterface(object):
-    def __init__(self, sagedev):
-        self._sagedev = sagedev
-        self._UI = self._sagedev._UI
-
-        self._config  = self._sagedev._config.get('git', {})
+        self._src = self._config.get('src', SAGE_SRC)
         self._dot_git = self._config.get('dot_git', SAGE_DOT_GIT)
-        self._gitcmd  = self._config.get('gitcmd', 'git')
-        self._repo    = self._config.get('repo', SAGE_REPO_AUTHENTICATED)
-        self._doctest_mode = False
-
-        if sage.doctest.DOCTEST_MODE:
-            self._tmp_dir = tempfile.mkdtemp()
-            atexit.register(shutil.rmtree, self._tmp_dir)
-            self._dot_git = os.path.join(self._tmp_dir, '.git')
-            self._doctest_mode = True
-            self._prep_doctest_repo()
+        self._gitcmd = self._config.get('gitcmd', 'git')
+        self._repository = self._config.get('repository', SAGE_REPO_AUTHENTICATED)
 
         if not os.path.exists(self._dot_git):
             raise ValueError("`%s` does not point to an existing directory."%self._dot_git)
 
-    def _prep_doctest_repo(self):
-        """
-        creates a fake repository at self._tmp_dir for doctesting
 
-        TESTS::
+    def _run_git(self, cmd, args, kwds, **ckwds):
+        r"""
+        Common implementation for :meth:`_execute`, :meth:`_execute_silent`,
+        :meth:`_execute_supersilent`, and :meth:`_read_output`
 
-            sage: from sage.dev.sagedev import SageDev, doctest_config
-            sage: import os
-            sage: git = SageDev(doctest_config()).git  # indirect doctest
-            sage: os.path.isfile(os.path.join(git._tmp_dir, 'testfile'))
-            True
-            sage: os.path.isfile(os.path.join(git._tmp_dir, 'untracked_testfile1'))
-            True
-            sage: os.path.isfile(os.path.join(git._tmp_dir, 'untracked_testfile2'))
-            True
-            sage: len(git.read_output('log','--oneline','first_branch').splitlines())
-            2
-            sage: len(git.read_output('log','--oneline','second_branch').splitlines())
-            2
-            sage: len(git.read_output('log','--oneline','master').splitlines())
-            1
-            sage: len(git.read_output('log','--oneline','test_tag').splitlines())
-            1
-        """
-        os.chdir(self._tmp_dir)
-        env = {s:'doctest' for s in
-                ('GIT_COMMITTER_NAME', 'GIT_COMMITTER_EMAIL',
-                 'GIT_AUTHOR_NAME',     'GIT_AUTHOR_EMAIL') }
+        INPUT:
 
-        self.execute_silent('init')
+        - ``cmd`` - git command run
 
-        with open('testfile', 'w') as f:
-            f.write('this is a test file\n')
-        self.execute_silent('add', 'testfile')
-        env['GIT_COMMITTER_DATE'] = env['GIT_AUTHOR_DATE'] = '100000000 +0000'
-        self.execute_silent('commit', message="add a testfile", env=env)
+        - ``args`` - extra arguments for git
 
-        self.execute_silent('tag', 'test_tag')
-        self.execute_silent('branch', 'first_branch')
-        self.execute_silent('checkout', 'HEAD', quiet=True, detach=True)
+        - ``kwds`` - extra keywords for git
 
-        with open('testfile', 'w') as f:
-            f.write('this test file has been edited\n')
-        self.execute_silent('add', 'testfile')
-        env['GIT_COMMITTER_DATE'] = env['GIT_AUTHOR_DATE'] = '200000000 +0000'
-        self.execute_silent('commit', message="edit the testfile", env=env)
+        - ``ckwds`` - Popen like keywords but with the following changes
 
-        self.execute_silent('branch', 'second_branch')
-        self.execute_silent('checkout', 'first_branch', quiet=True)
+          - ``stdout`` - if set to ``False`` will supress stdout
 
-        with open('testfile', 'w') as f:
-            f.write('this test file has been edited differently\n')
-        self.execute_silent('add', 'testfile')
-        env['GIT_COMMITTER_DATE'] = env['GIT_AUTHOR_DATE'] = '300000000 +0000'
-        self.execute_silent('commit',
-                message="edit the testfile differently", env=env)
+          - ``stderr`` - if set to ``False`` will supress stderr
 
-        with open('untracked_testfile1', 'w') as f:
-            f.write('this test is untracked\n')
-        with open('untracked_testfile2', 'w') as f:
-            f.write('this test is also untracked\n')
+        .. WARNING::
 
-    def __repr__(self):
-        """
-        TESTS::
-
-            sage: repr(dev.git)
-            'GitInterface()'
-        """
-        return "GitInterface()"
-
-    #def released_sage_ver(self):
-        # should return a string with the most recent released version
-        # of Sage (in this branch's past?)
-    #    raise NotImplementedError
-
-    def get_state(self):
-        """
-        get the current state of merge/rebase/am/etc operations
+            This method does not raise an exception if the git call returns a
+            non-zero exit code.
 
         EXAMPLES::
 
-            sage: from sage.dev.sagedev import SageDev, doctest_config
-            sage: git = SageDev(doctest_config()).git
-            sage: git.execute_supersilent('merge', 'second_branch')
-            1
+            sage: import os
+            sage: from sage.dev.git_interface import GitInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
+            sage: os.chdir(config['git']['src'])
+
+            sage: git._run_git('status', (), {})
+            # On branch master
+            #
+            # Initial commit
+            #
+            nothing to commit (create/copy files and use "git add" to track)
+            (0, None, None, 'git status')
+            sage: git._run_git('status', (), {}, stdout=False)
+            (0, None, None, 'git status')
+
+        TESTS:
+
+        Check that we refuse to touch the live source code in doctests::
+
+            sage: dev.git.status()
+            Traceback (most recent call last):
+            ...
+            AssertionError: possible attempt to work with the live repository/directory in a doctest - did you forget to dev._chdir()?
+
+        """
+        import sage.doctest
+        import os
+        assert not sage.doctest.DOCTEST_MODE or (self._dot_git != SAGE_DOT_GIT and self._repository != SAGE_REPO_AUTHENTICATED and os.path.abspath(os.getcwd()).startswith(self._src)), "possible attempt to work with the live repository/directory in a doctest - did you forget to dev._chdir()?"
+
+        # not sure which commands could possibly create a commit object with
+        # unless there are some crazy flags set - these commands should be safe
+        if cmd not in [ "config", "diff", "grep", "log", "ls_remote", "remote", "reset", "show", "show_ref", "status", "symbolic_ref" ]:
+            self._check_user_email()
+        # which commits access the remote repository?
+        # again, these should be safe
+        self._upload_ssh_key()
+
+        s = [self._gitcmd, "--git-dir=%s"%self._dot_git, cmd]
+
+        env = ckwds.setdefault('env', dict(os.environ))
+        env.update(kwds.pop('env', {}))
+
+        for k, v in kwds.iteritems():
+            if len(k) == 1:
+                k = '-' + k
+            else:
+                k = '--' + k.replace('_', '-')
+            if v is True:
+                s.append(k)
+            elif v is not False:
+                s.extend((k, v))
+        if args:
+            s.extend(a for a in args if a is not None)
+
+        s = [str(arg) for arg in s]
+
+        from sage.dev.user_interface import INFO
+        complete_cmd = " ".join([arg for i,arg in enumerate(s) if i!=1]) # drop --git-dir from debug output
+        self._UI.show("[git] %s"%complete_cmd, log_level=INFO)
+
+        if ckwds.get('dryrun', False):
+            return s
+
+        import subprocess
+        drop_stdout = ckwds.get('stdout') is False
+        read_stdout = ckwds.get('stdout') is str
+        drop_stderr = ckwds.get('stderr') is False
+        read_stderr = ckwds.get('stderr') is str
+
+        if drop_stdout or read_stdout:
+            ckwds['stdout'] = subprocess.PIPE
+        if drop_stderr or read_stderr:
+            ckwds['stderr'] = subprocess.PIPE
+
+        process = subprocess.Popen(s, **ckwds)
+        stdout, stderr = process.communicate()
+        retcode = process.poll()
+
+        # recover stdout and stderr for debugging on non-zero exit code
+        if retcode:
+            if drop_stdout or read_stdout:
+                pass
+            else:
+                stdout = None
+
+            if drop_stderr or read_stderr:
+                pass
+            else:
+                stderr = None
+        else:
+            if not read_stdout:
+                stdout = None
+            if not read_stderr:
+                stderr = None
+
+        return retcode, stdout, stderr, complete_cmd
+
+    def _execute(self, cmd, *args, **kwds):
+        r"""
+        Run git.
+
+        Raises an exception if git has non-zero exit code.
+
+        INPUT:
+
+        - ``cmd`` - git command run
+
+        - ``args`` - extra arguments for git
+
+        - ``kwds`` - extra keywords for git
+
+        EXAMPLES::
+
+            sage: import os
+            sage: from sage.dev.git_interface import GitInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
+            sage: os.chdir(config['git']['src'])
+
+            sage: git._execute('status')
+            # On branch master
+            #
+            # Initial commit
+            #
+            nothing to commit (create/copy files and use "git add" to track)
+            sage: git._execute('status',foo=True) # --foo is not a valid parameter
+            Traceback (most recent call last):
+            ...
+            GitError: git returned with non-zero exit code (129) for `git status --foo`.
+
+        """
+        exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds)
+        if exit_code:
+            raise GitError(exit_code, cmd, stdout, stderr)
+
+    def _execute_silent(self, cmd, *args, **kwds):
+        r"""
+        Run git and supress its output to stdout.
+
+        Same input as :meth:`execute`.
+
+        Raises an error if git returns a non-zero exit code.
+
+        EXAMPLES::
+
+            sage: import os
+            sage: from sage.dev.git_interface import GitInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
+            sage: os.chdir(config['git']['src'])
+
+            sage: git._execute_silent('status')
+            sage: git._execute_silent('status',foo=True) # --foo is not a valid parameter
+            Traceback (most recent call last):
+            ...
+            GitError: git returned with non-zero exit code (129) for `git status --foo`.
+
+        """
+        exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds, stdout=False)
+        if exit_code:
+            raise GitError(exit_code, cmd, stdout, stderr)
+
+    def _execute_supersilent(self, cmd, *args, **kwds):
+        r"""
+        Run git and supress its output to stdout and stderr.
+
+        Same input as :meth:`execute`.
+
+        Raises an error if git returns a non-zero exit code.
+
+        EXAMPLES::
+
+            sage: import os
+            sage: from sage.dev.git_interface import GitInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
+            sage: os.chdir(config['git']['src'])
+
+            sage: git._execute_supersilent('status')
+            sage: git._execute_supersilent('status',foo=True) # --foo is not a valid parameter
+            Traceback (most recent call last):
+            ...
+            GitError: git returned with non-zero exit code (129) for `git status --foo`.
+            ...
+
+        """
+        exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds, stdout=False, stderr=False)
+        if exit_code:
+            raise GitError(exit_code, cmd, stdout, stderr)
+
+    def _read_output(self, cmd, *args, **kwds):
+        r"""
+        Run git and return its output to stdout.
+
+        Same input as :meth:`execute`.
+
+        Raises an error if git returns a non-zero exit code.
+
+        EXAMPLES::
+
+            sage: import os
+            sage: from sage.dev.git_interface import GitInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
+            sage: os.chdir(config['git']['src'])
+
+            sage: git._read_output('status')
+            '# On branch master\n#\n# Initial commit\n#\nnothing to commit (create/copy files and use "git add" to track)\n'
+            sage: git._read_output('status',foo=True) # --foo is not a valid parameter
+            Traceback (most recent call last):
+            ...
+            GitError: git returned with non-zero exit code (129) for `git status --foo`.
+            ...
+
+        """
+        exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds, stdout=str, stderr=False)
+        if exit_code:
+            raise GitError(exit_code, cmd, stdout, stderr)
+        return stdout
+
+    def _check_user_email(self):
+        r"""
+        Make sure that a real name and an email are set for git. These will
+        show up next to any commit that user creates.
+
+        TESTS::
+
+            sage: import os
+            sage: from sage.dev.git_interface import GitInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: del config['git']['user.name']
+            sage: del config['git']['user.email']
+            sage: UI = DoctestUserInterface(config["UI"])
+            sage: git = GitInterface(config["git"], UI)
+            sage: os.chdir(config['git']['src'])
+            sage: UI.append("Doc Test")
+            sage: UI.append("doc@test")
+            sage: git._check_user_email()
+
+        """
+        if self._config.get('user_email_set', False):
+            return
+
+        try:
+            self._execute_supersilent("config","user.name")
+        except GitError as e:
+            if e.exit_code == 1:
+                self._UI.normal("No real name has been set for git. This name shows up as the author for any commits you contribute to sage.")
+                name = self._UI.question("Your real name:")
+                self._execute("config","user.name",name,local=True,add=True)
+                self._UI.info("Your real name has been saved.")
+            else:
+                raise
+
+        try:
+            self._execute_supersilent("config", "user.email")
+        except GitError as e:
+            if e.exit_code == 1:
+                self._UI.normal("No email address has been set for git. This email shows up as the author for any commits you contribute to sage.")
+                email = self._UI.question("Your email address:")
+                self._execute("config","user.email",email,local=True,add=True)
+                self._UI.info("Your email has been saved.")
+            else:
+                raise
+
+        self._config['user_email_set'] = "True"
+
+    def _upload_ssh_key(self):
+        r"""
+        Make sure that the public ssh key has been uploaded to the trac server.
+
+        TESTS::
+
+            sage: import os
+            sage: from sage.dev.git_interface import GitInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: del config['git']['user.name']
+            sage: del config['git']['user.email']
+            sage: UI = DoctestUserInterface(config["UI"])
+            sage: def upload_ssh_key(): print "Uploading ssh key."
+            sage: git = GitInterface(config["git"], UI, upload_ssh_key=upload_ssh_key)
+            sage: os.chdir(config['git']['src'])
+            sage: from sage.dev.git_error import GitError
+            sage: try:
+            ....:   git.ls_remote()
+            ....: except GitError: pass
+            Uploading ssh key.
+            sage: try:
+            ....:   git.ls_remote()
+            ....: except GitError: pass
+
+        """
+        if self._config.get('ssh_key_set', False):
+            return
+
+        if self.__upload_ssh_key is not None:
+            self.__upload_ssh_key()
+
+            self._config['ssh_key_set'] = "True"
+
+class ReadStdoutGitProxy(GitProxy):
+    r"""
+    A proxy object to wrap calls to git.
+
+    Calls to git return the stdout of git and raise an error on a non-zero exit
+    code. Output to stderr is supressed.
+
+    EXAMPLES::
+
+        sage: dev.git.status() # not tested
+
+    """
+    __call__ = GitProxy._read_output
+
+class SilentGitProxy(GitProxy):
+    r"""
+    A proxy object to wrap calls to git.
+
+    Calls to git do not show any output to stdout and raise an error on a
+    non-zero exit code. Output to stderr is printed.
+
+    EXAMPLES::
+
+        sage: dev.git.silent.status() # not tested
+
+    """
+    __call__ = GitProxy._execute_silent
+
+class EchoGitProxy(GitProxy):
+    r"""
+    A proxy object to wrap calls to git.
+
+    Calls to git show output to stdout and stderr as if the command was
+    executed directly and raise an error on a non-zero exit code.
+
+    EXAMPLES::
+
+        sage: dev.git.echo.status() # not tested
+
+    """
+    __call__ = GitProxy._execute
+
+class SuperSilentGitProxy(GitProxy):
+    r"""
+    A proxy object to wrap calls to git.
+
+    Calls to git do not show any output to stderr or stdout and raise an error
+    on a non-zero exit code.
+
+    EXAMPLES::
+
+        sage: dev.git.silent.status() # not tested
+
+    """
+    __call__ = GitProxy._execute_supersilent
+
+class GitInterface(ReadStdoutGitProxy):
+    r"""
+    A wrapper around the ``git`` command line tool.
+
+    Most methods of this class correspond to actual git commands. Some add
+    functionality which is not directly available in git. However, all of the
+    methods should be non-interactive. If interaction is required the method
+    should live in :class:`saged.dev.sagedev.SageDev`.
+
+    EXAMPLES::
+
+        sage: from sage.dev.config import Config
+        sage: from sage.dev.user_interface import UserInterface
+        sage: from sage.dev.git_interface import GitInterface
+        sage: config = Config()
+        sage: GitInterface(config['git'], UserInterface(config['UI']))
+        GitInterface()
+
+    """
+    def __init__(self, config, UI, upload_ssh_key=None):
+        r"""
+        Initialization.
+
+        TESTS::
+
+            sage: from sage.dev.config import Config
+            sage: from sage.dev.user_interface import UserInterface
+            sage: from sage.dev.git_interface import GitInterface
+            sage: config = Config()
+            sage: type(GitInterface(config['git'], UserInterface(config['UI'])))
+            <class 'sage.dev.git_interface.GitInterface'>
+
+        """
+        ReadStdoutGitProxy.__init__(self, config, UI, upload_ssh_key=upload_ssh_key)
+
+        self.silent = SilentGitProxy(config, UI, upload_ssh_key=upload_ssh_key)
+        self.super_silent = SuperSilentGitProxy(config, UI, upload_ssh_key=upload_ssh_key)
+        self.echo = EchoGitProxy(config, UI, upload_ssh_key=upload_ssh_key)
+
+    def __repr__(self):
+        r"""
+        Return a printable representation of this object.
+
+        TESTS::
+
+            sage: from sage.dev.config import Config
+            sage: from sage.dev.user_interface import UserInterface
+            sage: from sage.dev.git_interface import GitInterface
+            sage: config = Config()
+            sage: repr(GitInterface(config['git'], UserInterface(config['UI'])))
+            'GitInterface()'
+
+        """
+        return "GitInterface()"
+
+    def get_state(self):
+        r"""
+        Get the current state of merge/rebase/am/etc operations.
+
+        OUTPUT:
+
+        A tuple of strings which consists of any of the following:
+        ``'rebase'``, ``'am'``, ``'rebase-i'``, ``'rebase-m'``, ``'merge'``,
+        ``'bisect'``, ``'cherry-seq'``, ``'cherry'``.
+
+        EXAMPLES:
+
+        Create a :class:`GitInterface` for doctesting::
+
+            sage: import os
+            sage: from sage.dev.git_interface import GitInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
+
+        Create two conflicting branches::
+
+            sage: os.chdir(config['git']['src'])
+            sage: with open("file","w") as f: f.write("version 0")
+            sage: git.silent.add("file")
+            sage: git.silent.commit("-m","initial commit")
+            sage: git.super_silent.checkout("-b","branch1")
+            sage: with open("file","w") as f: f.write("version 1")
+            sage: git.silent.commit("-am","second commit")
+            sage: git.super_silent.checkout("master")
+            sage: git.super_silent.checkout("-b","branch2")
+            sage: with open("file","w") as f: f.write("version 2")
+            sage: git.silent.commit("-am","conflicting commit")
+
+        A ``merge`` state::
+
+            sage: git.super_silent.checkout("branch1")
+            sage: git.silent.merge('branch2')
+            Traceback (most recent call last):
+            ...
+            GitError: git returned with non-zero exit code (1) for `git merge branch2`.
+            ...
             sage: git.get_state()
             ('merge',)
-            sage: git.execute_silent('merge', abort=True)
-            0
+            sage: git.silent.merge(abort=True)
             sage: git.get_state()
             ()
-            sage: git.execute_supersilent('rebase', 'second_branch')
-            1
+
+        A ``rebase`` state::
+
+            sage: git._execute_supersilent('rebase', 'branch2')
+            Traceback (most recent call last):
+            ...
+            GitError: git returned with non-zero exit code (1) for `git rebase branch2`.
+            ...
             sage: git.get_state()
             ('rebase',)
-            sage: git.execute_silent('rebase', abort=True)
-            0
+            sage: git.super_silent.rebase(abort=True)
             sage: git.get_state()
             ()
-            sage: git.execute_supersilent('rebase', 'HEAD^', interactive=True,
-            ....:     env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
-            0
+
+        A merge within an interactive rebase::
+
+            sage: git.super_silent.rebase('HEAD^', interactive=True, env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
             sage: git.get_state()
             ('rebase-i',)
-            sage: git.execute_supersilent('merge', 'second_branch')
-            1
+            sage: git.silent.merge('branch2')
+            Traceback (most recent call last):
+            ...
+            GitError: git returned with non-zero exit code (1) for `git merge branch2`.
+            ...
             sage: git.get_state()
             ('merge', 'rebase-i')
-            sage: git.execute_silent('rebase', abort=True)
-            0
+            sage: git.super_silent.rebase(abort=True)
             sage: git.get_state()
             ()
+
         """
         # logic based on zsh's git backend for vcs_info
         opj = os.path.join
@@ -400,786 +632,627 @@ class GitInterface(object):
         # return in reverse order so reset operations are correctly ordered
         return tuple(reversed(ret))
 
-    def reset_to_clean_state(self, interactive=True):
-        """
-        gets out of a merge/am/rebase/etc state and returns True
-        if successful
+    def reset_to_clean_state(self):
+        r"""
+        Get out of a merge/am/rebase/etc state.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: from sage.dev.sagedev import SageDev, doctest_config
-            sage: git = SageDev(doctest_config()).git
-            sage: git.execute_supersilent('merge', 'second_branch')
-            1
+        Create a :class:`GitInterface` for doctesting::
+
+            sage: import os
+            sage: from sage.dev.git_interface import GitInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
+
+        Create two conflicting branches::
+
+            sage: os.chdir(config['git']['src'])
+            sage: with open("file","w") as f: f.write("version 0")
+            sage: git.silent.add("file")
+            sage: git.silent.commit("-m","initial commit")
+            sage: git.super_silent.checkout("-b","branch1")
+            sage: with open("file","w") as f: f.write("version 1")
+            sage: git.silent.commit("-am","second commit")
+            sage: git.super_silent.checkout("master")
+            sage: git.super_silent.checkout("-b","branch2")
+            sage: with open("file","w") as f: f.write("version 2")
+            sage: git.silent.commit("-am","conflicting commit")
+
+        A merge within an interactive rebase::
+
+            sage: git.super_silent.checkout("branch1")
+            sage: git.super_silent.rebase('HEAD^', interactive=True, env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
             sage: git.get_state()
-            ('merge',)
-            sage: git.reset_to_clean_state(False)
-            True
-            sage: git.get_state()
-            ()
-            sage: git.execute_supersilent('rebase', 'HEAD^', interactive=True,
-            ....:     env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
-            0
-            sage: git.execute_supersilent('merge', 'second_branch')
-            1
+            ('rebase-i',)
+            sage: git.silent.merge('branch2')
+            Traceback (most recent call last):
+            ...
+            GitError: git returned with non-zero exit code (1) for `git merge branch2`.
+            ...
             sage: git.get_state()
             ('merge', 'rebase-i')
-            sage: git.reset_to_clean_state(False)
-            True
+
+        Get out of this state::
+
+            sage: git.reset_to_clean_state()
             sage: git.get_state()
             ()
+
         """
         states = self.get_state()
         if not states:
-            return True
-        if (interactive and not
-                self._UI.confirm("Your repository is in an unclean state. It "+
-                                 "seems you are in the middle of a merge of "+
-                                 "some sort. To run this command you have to "+
-                                 "reset your respository to a clean state. "+
-                                 "Do you want me to reset your respository? "+
-                                 "(This will discard any changes which are "+
-                                 "not commited.)")):
-            return False
+            return
 
-        for state in states:
-            if state.startswith('rebase'):
-                self.execute_silent('rebase', abort=True)
-            elif state == 'am':
-                self.execute_silent('am', abort=True)
-            elif state == 'merge':
-                self.execute_silent('merge', abort=True)
-            elif state == 'bisect':
-                raise NotImplementedError(state)
-            elif state.startswith('cherry'):
-                self.execute_silent('cherry-pick', abort=True)
-            else:
-                raise RuntimeError("'%s' is not a valid state"%state)
+        state = states[0]
+        if state.startswith('rebase'):
+            self.silent.rebase(abort=True)
+        elif state == 'am':
+            self.silent.am(abort=True)
+        elif state == 'merge':
+            self.silent.merge(abort=True)
+        elif state == 'bisect':
+            raise NotImplementedError(state)
+        elif state.startswith('cherry'):
+            self.silent.cherry_pick(abort=True)
+        else:
+            raise RuntimeError("'%s' is not a valid state"%state)
 
-        if self.get_state():
-            raise RuntimeError("failed to reset to clean state")
-        return True
+        return self.reset_to_clean_state()
 
-    def reset_to_clean_working_directory(self, interactive=True):
+    def reset_to_clean_working_directory(self, remove_untracked_files=False, remove_untracked_directories=False, remove_ignored=False):
         r"""
-        resets any changes made to the working directory and returns
-        True if successful
+        Reset any changes made to the working directory.
 
-        EXAMPLES::
+        INPUT:
 
-            sage: from sage.dev.sagedev import SageDev, doctest_config
+        - ``remove_untracked_files`` -- a boolean (default: ``False``), whether
+          to remove files which are not tracked by git
+
+        - ``remove_untracked_directories`` -- a boolean (default: ``False``),
+          whether to remove directories which are not tracked by git
+
+        - ``remove_ignored`` -- a boolean (default: ``False``), whether to
+          remove files directories which are ignored by git
+
+        EXAMPLES:
+
+        Create a :class:`GitInterface` for doctesting::
+
             sage: import os
-            sage: git = SageDev(doctest_config()).git
-            sage: with open(os.path.join(git._tmp_dir, 'testfile'), 'w') as f:
-            ....:     f.write('modified this file\n')
-            sage: git.has_uncommitted_changes()
-            True
-            sage: git.reset_to_clean_working_directory(False)
-            True
-            sage: git.has_uncommitted_changes()
-            False
-        """
-        if not self.has_uncommitted_changes():
-            return True
+            sage: from sage.dev.git_interface import GitInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
 
-        if (interactive and not
-                self._UI.confirm("You have uncommited changes in your "+
-                                 "working directory. To run this command you "+
-                                 "have to discard your changes. Do you want "+
-                                 "me to discard any changes which are not "+
-                                 "commited?")):
-            return False
+        Set up some files/directories::
 
-        self.execute_silent('reset', hard=True)
+            sage: os.chdir(config['git']['src'])
+            sage: open('tracked','w').close()
+            sage: git.silent.add('tracked')
+            sage: with open('.gitignore','w') as f: f.write('ignored\nignored_dir')
+            sage: git.silent.add('.gitignore')
+            sage: git.silent.commit('-m', 'initial commit')
 
-        return True
-
-    def _run_git(self, cmd, args, kwds, **ckwds):
-        r"""
-        common implementation for :meth:`execute`,
-        :meth:`execute_silent`, :meth:`execute_supersilent`, and
-        :meth:`read_output`
-
-        INPUT:
-
-        - ``cmd`` - git command run
-
-        - ``args`` - extra arguments for git
-
-        - ``kwds`` - extra keywords for git
-
-        - ``ckwds`` - Popen like keywords but with the following changes
-
-          - ``stdout`` - if set to `False` will supress stdout
-
-          - ``stderr`` - if set to `False` will supress stderr
-
-        EXAMPLES::
-
-            sage: from sage.dev.sagedev import SageDev, doctest_config
-            sage: git = SageDev(doctest_config()).git
-            sage: r = git._run_git('status', (), {})
-            # On branch first_branch
+            sage: os.mkdir('untracked_dir')
+            sage: open('untracked_dir/untracked','w').close()
+            sage: open('untracked','w').close()
+            sage: open('ignored','w').close()
+            sage: os.mkdir('ignored_dir')
+            sage: open('ignored_dir/untracked','w').close()
+            sage: with open('tracked','w') as f: f.write('version 0')
+            sage: git.echo.status()
+            # On branch master
+            # Changes not staged for commit:
+            #   (use "git add <file>..." to update what will be committed)
+            #   (use "git checkout -- <file>..." to discard changes in working directory)
+            #
+            #   modified:   tracked
+            #
             # Untracked files:
             #   (use "git add <file>..." to include in what will be committed)
             #
-            #   untracked_testfile1
-            #   untracked_testfile2
-            nothing added to commit but untracked files present (use "git add" to track)
-            sage: r
-            (0, None, None)
-            sage: git._run_git('status', (), {}, stdout=False)
-            (0, None, None)
-            sage: git._run_git('rebase', ('HEAD^',),
-            ....:     {'interactive':True,
-            ....:      'env':{'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'}}, stdout=False)
-            Stopped at ... edit the testfile differently
-            You can amend the commit now, with
-            <BLANKLINE>
-                git commit --amend
-            <BLANKLINE>
-            Once you are satisfied with your changes, run
-            <BLANKLINE>
-                git rebase --continue
-            <BLANKLINE>
-            (0, None, None)
-            sage: git._run_git('rebase', (), {'abort':True}, stdout=False, stderr=False)
-            (0, None, None)
-            sage: git._run_git('log', (), {'oneline':True}, stdout=str)
-            (0, '... edit the testfile differently\n... add a testfile\n', None)
-        """
-        assert self._doctest_mode or not sage.doctest.DOCTEST_MODE, "running doctests which use git/trac is not supported from within a running session of sage"
+            #   untracked
+            #   untracked_dir/
+            no changes added to commit (use "git add" and/or "git commit -a")
 
-        s = [self._gitcmd, "--git-dir=%s"%self._dot_git, cmd]
+        Some invalid combinations of flags::
 
-        env = ckwds.setdefault('env', dict(os.environ))
-        env.update(kwds.pop('env', {}))
+            sage: git.reset_to_clean_working_directory(remove_untracked_files = False, remove_untracked_directories = True)
+            Traceback (most recent call last):
+            ...
+            ValueError: remove_untracked_directories only valid if remove_untracked_files is set
+            sage: git.reset_to_clean_working_directory(remove_untracked_files = False, remove_ignored = True)
+            Traceback (most recent call last):
+            ...
+            ValueError: remove_ignored only valid if remove_untracked_files is set
 
-        for k, v in kwds.iteritems():
-            if len(k) == 1:
-                k = '-' + k
-            else:
-                k = '--' + k.replace('_', '-')
-            if v is True:
-                s.append(k)
-            elif v is not False:
-                s.extend((k, v))
-        if args:
-            s.extend(a for a in args if a is not None)
+        Per default only the tracked modified files are reset to a clean
+        state::
 
-        s = [str(arg) for arg in s]
-
-        if not self._doctest_mode:
-            self._UI.show("[git] %s"%(" ".join(s)))
-
-        if ckwds.get('dryrun', False):
-            return s
-
-        devnull = open(os.devnull, 'w')
-        if ckwds.get('stdout') is False:
-            ckwds['stdout'] = devnull
-        elif ckwds.get('stdout') is str:
-            ckwds['stdout'] = subprocess.PIPE
-        if ckwds.get('stderr') is False:
-            ckwds['stderr'] = devnull
-        elif ckwds.get('stderr') is str:
-            ckwds['stderr'] = subprocess.PIPE
-        process = subprocess.Popen(s, **ckwds)
-        stdout, stderr = process.communicate()
-        retcode = process.poll()
-        return retcode, stdout, stderr
-
-    def execute(self, cmd, *args, **kwds):
-        """
-        returns exit code of a git command
-
-        INPUT:
-
-        - ``cmd`` - git command to be run
-
-        - ``args`` - extra arguments to supply to git command
-
-        - ``kwds`` - extra arguments through keywords. E.g.
-
-          ::
-
-              graph=True                  => --graph
-              message="this is a message" => --message 'this is a message'
-
-        EXAMPLES::
-
-            sage: r = dev.git.execute('status')
-            # On branch first_branch
+            sage: git.reset_to_clean_working_directory()
+            sage: git.echo.status()
+            # On branch master
             # Untracked files:
             #   (use "git add <file>..." to include in what will be committed)
             #
-            #   untracked_testfile1
-            #   untracked_testfile2
+            #   untracked
+            #   untracked_dir/
             nothing added to commit but untracked files present (use "git add" to track)
-            sage: r
-            0
-            sage: _ = dev.git.execute('log', 'first_branch' , '--', 'testfile', graph=True)
-            * commit ...
-            | Author: doctest <doctest>
-            | Date:   Thu Jul 5 05:20:00 1979 +0000
-            |
-            |     edit the testfile differently
-            |
-            * commit ...
-              Author: doctest <doctest>
-              Date:   Sat Mar 3 09:46:40 1973 +0000
-            <BLANKLINE>
-                  add a testfile
-            sage: r = dev.git.execute('commit')
-            # On branch first_branch
-            # Untracked files:
-            #   (use "git add <file>..." to include in what will be committed)
-            #
-            #   untracked_testfile1
-            #   untracked_testfile2
-            nothing added to commit but untracked files present (use "git add" to track)
-            sage: r
-            1
+
+        Untracked items can be removed by setting the parameters::
+
+            sage: git.reset_to_clean_working_directory(remove_untracked_files=True)
+            Removing untracked
+            Not removing untracked_dir/
+            sage: git.reset_to_clean_working_directory(remove_untracked_files=True, remove_untracked_directories=True)
+            Removing untracked_dir/
+            sage: git.reset_to_clean_working_directory(remove_untracked_files=True, remove_ignored=True)
+            Removing ignored
+            Not removing ignored_dir/
+            sage: git.reset_to_clean_working_directory(remove_untracked_files=True, remove_untracked_directories=True, remove_ignored=True)
+            Removing ignored_dir/
+
         """
-        return self._run_git(cmd, args, kwds)[0]
+        if remove_untracked_directories and not remove_untracked_files:
+            raise ValueError("remove_untracked_directories only valid if remove_untracked_files is set")
+        if remove_ignored and not remove_untracked_files:
+            raise ValueError("remove_ignored only valid if remove_untracked_files is set")
 
-    __call__ = execute
+        self.silent.reset(hard=True)
 
-    def execute_silent(self, cmd, *args, **kwds):
-        """
-        returns exit code of a git command while supressing stdout
-
-        same input as :meth:`execute`
-
-        EXAMPLES::
-
-            sage: from sage.dev.sagedev import SageDev, doctest_config
-            sage: git = SageDev(doctest_config()).git
-            sage: git.execute_silent('status')
-            0
-            sage: git.execute_silent('rebase', 'HEAD^', interactive=True,
-            ....:     env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
-            Stopped at ... edit the testfile differently
-            You can amend the commit now, with
-            <BLANKLINE>
-                git commit --amend
-            <BLANKLINE>
-            Once you are satisfied with your changes, run
-            <BLANKLINE>
-                git rebase --continue
-            <BLANKLINE>
-            0
-        """
-        return self._run_git(cmd, args, kwds, stdout=False)[0]
-
-    def execute_supersilent(self, cmd, *args, **kwds):
-        """
-        returns exit code of a git command while supressing both stdout
-        and stderr
-
-        same input as :meth:`execute`
-
-        EXAMPLES::
-
-            sage: from sage.dev.sagedev import SageDev, doctest_config
-            sage: git = SageDev(doctest_config()).git
-            sage: git.execute_supersilent('status')
-            0
-            sage: git.execute_supersilent('rebase', 'HEAD^', interactive=True,
-            ....:     env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
-            0
-        """
-        return self._run_git(cmd, args, kwds, stdout=False, stderr=False)[0]
-
-    def read_output(self, cmd, *args, **kwds):
-        r"""
-        returns stdout of a git command
-
-        same input as :meth:`execute`
-
-        EXAMPLES::
-
-            sage: dev.git.read_output('log', oneline=True)
-            '... edit the testfile differently\n... add a testfile\n'
-        """
-        return self._run_git(cmd, args, kwds, stdout=str)[1]
+        if remove_untracked_files:
+            switches = ['-f']
+            if remove_untracked_directories: switches.append("-d")
+            if remove_ignored: switches.append("-x")
+            self.echo.clean(*switches)
 
     def is_child_of(self, a, b):
-        """
-        returns True if a is a child of b
+        r"""
+        Return whether ``a`` is a child of ``b``.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: dev.git.is_child_of('master', 'second_branch')
+        Create a :class:`GitInterface` for doctesting::
+
+            sage: import os
+            sage: from sage.dev.git_interface import GitInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
+
+        Create two conflicting branches::
+
+            sage: os.chdir(config['git']['src'])
+            sage: with open("file","w") as f: f.write("version 0")
+            sage: git.silent.add("file")
+            sage: git.silent.commit("-m","initial commit")
+            sage: git.super_silent.checkout("-b","branch1")
+            sage: with open("file","w") as f: f.write("version 1")
+            sage: git.silent.commit("-am","second commit")
+            sage: git.super_silent.checkout("master")
+            sage: git.super_silent.checkout("-b","branch2")
+            sage: with open("file","w") as f: f.write("version 2")
+            sage: git.silent.commit("-am","conflicting commit")
+
+            sage: git.is_child_of('master', 'branch2')
             False
-            sage: dev.git.is_child_of('second_branch', 'master')
+            sage: git.is_child_of('branch2', 'master')
             True
-            sage: dev.git.is_child_of('master', 'master')
+            sage: git.is_child_of('branch1', 'branch2')
+            False
+            sage: git.is_child_of('master', 'master')
             True
+
         """
         return self.is_ancestor_of(b, a)
 
     def is_ancestor_of(self, a, b):
-        """
-        returns True if a is an ancestor of b
+        r"""
+        Return whether ``a`` is an ancestor of ``b``.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: dev.git.is_ancestor_of('master', 'second_branch')
+        Create a :class:`GitInterface` for doctesting::
+
+            sage: import os
+            sage: from sage.dev.git_interface import GitInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
+
+        Create two conflicting branches::
+
+            sage: os.chdir(config['git']['src'])
+            sage: with open("file","w") as f: f.write("version 0")
+            sage: git.silent.add("file")
+            sage: git.silent.commit("-m","initial commit")
+            sage: git.super_silent.checkout("-b","branch1")
+            sage: with open("file","w") as f: f.write("version 1")
+            sage: git.silent.commit("-am","second commit")
+            sage: git.super_silent.checkout("master")
+            sage: git.super_silent.checkout("-b","branch2")
+            sage: with open("file","w") as f: f.write("version 2")
+            sage: git.silent.commit("-am","conflicting commit")
+
+            sage: git.is_ancestor_of('master', 'branch2')
             True
-            sage: dev.git.is_ancestor_of('second_branch', 'master')
+            sage: git.is_ancestor_of('branch2', 'master')
             False
-            sage: dev.git.is_ancestor_of('master', 'master')
+            sage: git.is_ancestor_of('branch1', 'branch2')
+            False
+            sage: git.is_ancestor_of('master', 'master')
             True
+
         """
-        revs = self.read_output('rev-list', '{}..{}'.format(b, a)).splitlines()
-        return len(revs) == 0
+        return self.merge_base(a, b) == self.rev_parse(a)
 
     def has_uncommitted_changes(self):
         r"""
-        returns True if there are uncommitted changes
+        Return whether there are uncommitted changes, i.e., whether there are
+        modified files which are tracked by git.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: from sage.dev.sagedev import SageDev, doctest_config
+        Create a :class:`GitInterface` for doctesting::
+
             sage: import os
-            sage: git = SageDev(doctest_config()).git
+            sage: from sage.dev.git_interface import GitInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
+
+        An untracked file does not count towards uncommited changes::
+
+            sage: os.chdir(config['git']['src'])
+            sage: open('untracked','w').close()
             sage: git.has_uncommitted_changes()
             False
-            sage: with open(os.path.join(git._tmp_dir, 'testfile'), 'w') as f:
-            ....:     f.write('modified this file\n')
+
+        Once added to the index it does::
+
+            sage: git.silent.add('untracked')
             sage: git.has_uncommitted_changes()
             True
-        """
-        return self.execute('diff', quiet=True) != 0
+            sage: git.silent.commit('-m', 'tracking untracked')
+            sage: git.has_uncommitted_changes()
+            False
+            sage: with open('untracked','w') as f: f.write('version 0')
+            sage: git.has_uncommitted_changes()
+            True
 
-    def commit_all(self, *args, **kwds):
+        """
+        return bool([line for line in self.status(porcelain=True).splitlines() if not line.startswith('?')])
+
+    def untracked_files(self):
         r"""
-        commits all changes
+        Return a list of file names for files that are not tracked by git and
+        not ignored.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: from sage.dev.sagedev import SageDev, doctest_config
+        Create a :class:`GitInterface` for doctesting::
+
             sage: import os
-            sage: git = SageDev(doctest_config()).git
-            sage: with open(os.path.join(git._tmp_dir, 'testfile'), 'w') as f:
-            ....:     f.write('modified this file\n')
-            sage: git.has_uncommitted_changes()
-            True
-            sage: git.commit_all(message="modified a file")
-            [first_branch ...] modified a file
-                 1 file changed, 1 insertion(+), 1 deletion(-)
-            sage: git.has_uncommitted_changes()
-            False
-            sage: git.commit_all(message="made no changes")
-            # On branch first_branch
-            # Untracked files:
-            #   (use "git add <file>..." to include in what will be committed)
-            #
-            #   untracked_testfile1
-            #   untracked_testfile2
-            nothing added to commit but untracked files present (use "git add" to track)
+            sage: from sage.dev.git_interface import GitInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
+
+        An untracked file::
+
+            sage: os.chdir(config['git']['src'])
+            sage: git.untracked_files()
+            []
+            sage: open('untracked','w').close()
+            sage: git.untracked_files()
+            ['untracked']
+
+         Directories are not displayed here::
+
+            sage: os.mkdir('untracked_dir')
+            sage: git.untracked_files()
+            ['untracked']
+            sage: open('untracked_dir/untracked','w').close()
+            sage: git.untracked_files()
+            ['untracked', 'untracked_dir/untracked']
+
         """
-        # if files are non-tracked and user doesn't want to add any of
-        # them, there might be no changes being committed here....
-        kwds['all'] = True
-        self.execute("commit", *args, **kwds)
-
-    def unknown_files(self):
-        """
-        returns the list of files that are not being tracked by git
-
-        EXAMPLES::
-
-            sage: dev.git.unknown_files()
-            ['untracked_testfile1', 'untracked_testfile2']
-        """
-        return self.read_output('ls-files',
-                        other=True, exclude_standard=True).splitlines()
-
-    def save(self, interactive=True):
-        """
-        guided command for making a commit which includes all changes
-
-        EXAMPLES::
-
-            sage: from sage.dev.sagedev import SageDev, doctest_config
-            sage: git = SageDev(doctest_config()).git
-            sage: git.save(False)
-            [first_branch ...] doctesting message
-             2 files changed, 2 insertions(+)
-             create mode 100644 untracked_testfile1
-             create mode 100644 untracked_testfile2
-        """
-        if (interactive and
-                self._UI.confirm("Would you like to see a diff of the "+
-                                 "changes?", default_yes=False)):
-            self.execute("diff")
-        for F in self.unknown_files():
-            if (not interactive or
-                    self._UI.confirm("Would you like to start tracking "+
-                                     "%s?"%F)):
-                self.execute('add', F)
-        if interactive:
-            msg = self._UI.get_input("Please enter a commit message:")
+        import os
+        old_cwd = os.getcwd()
+        if 'src' in self._config:
+            os.chdir(self._config['src'])
         else:
-            msg = 'doctesting message'
-        self.commit_all(m=msg)
+            from sage.env import SAGE_ROOT
+            os.chdir(SAGE_ROOT)
+        try:
+            fnames = self.ls_files(other=True, exclude_standard=True).splitlines()
+            fnames = [ os.path.abspath(fname) for fname in fnames ]
+            return [ os.path.relpath(fname, old_cwd) for fname in fnames ]
+        finally:
+            os.chdir(old_cwd)
 
     def local_branches(self):
-        """
-        return the list of the local branches sorted by last commit time
+        r"""
+        Return a list of local branches sorted by last commit time.
 
         EXAMPLES::
 
-            sage: dev.git.local_branches()
-            ['first_branch', 'second_branch', 'master']
+        Create a :class:`GitInterface` for doctesting::
+
+            sage: import os
+            sage: from sage.dev.git_interface import GitInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
+
+        Create some branches::
+
+            sage: os.chdir(config['git']['src'])
+            sage: git.silent.commit('-m','initial commit','--allow-empty')
+            sage: git.silent.branch('branch1')
+            sage: git.silent.branch('branch2')
+
+        Use this repository as a remote repository::
+
+            sage: config2 = DoctestConfig()
+            sage: git2 = GitInterface(config2["git"], DoctestUserInterface(config["UI"]))
+            sage: os.chdir(config2['git']['src'])
+            sage: git2.silent.commit('-m','initial commit','--allow-empty')
+            sage: git2.silent.remote('add', 'git', config['git']['src'])
+            sage: git2.super_silent.fetch('git')
+            sage: git2.super_silent.checkout("branch1")
+            sage: git2.echo.branch("-a")
+            * branch1
+              master
+              remotes/git/branch1
+              remotes/git/branch2
+              remotes/git/master
+
+            sage: git2.local_branches()
+            ['branch1', 'master']
+            sage: os.chdir(config['git']['src'])
+            sage: git.local_branches()
+            ['branch1', 'branch2', 'master']
+
         """
-        result = self.read_output('for-each-ref', 'refs/heads/',
-                    sort='-committerdate', format="%(refname)").splitlines()
-        return [head[11:] for head in result]
+        result = self.for_each_ref('refs/heads/', sort='-committerdate', format="%(refname)").splitlines()
+        return sorted([head[11:] for head in result])
 
     def current_branch(self):
-        """
-        return the current branch
+        r"""
+        Return the current branch
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: dev.git.current_branch()
-            'first_branch'
+        Create a :class:`GitInterface` for doctesting::
+
+            sage: import os
+            sage: from sage.dev.git_interface import GitInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
+
+        Create some branches::
+
+            sage: os.chdir(config['git']['src'])
+            sage: git.silent.commit('-m','initial commit','--allow-empty')
+            sage: git.silent.commit('-m','second commit','--allow-empty')
+            sage: git.silent.branch('branch1')
+            sage: git.silent.branch('branch2')
+
+            sage: git.current_branch()
+            'master'
+            sage: git.super_silent.checkout('branch1')
+            sage: git.current_branch()
+            'branch1'
+
+        If ``HEAD`` is detached::
+
+            sage: git.super_silent.checkout('master~')
+            sage: git.current_branch()
+            Traceback (most recent call last):
+            ...
+            DetachedHeadError: unexpectedly, git is in a detached HEAD state
+
         """
         try:
-            branch = self.read_output('symbolic-ref', 'HEAD').strip()
-            if branch.startswith('refs/heads/'):
-                return branch[11:]
-            int(branch, 16)
-        except ValueError:
-            raise RuntimeError('HEAD is bizarre!')
-        else:
-            raise ValueError('HEAD is detached')
+            return self.symbolic_ref('HEAD', short=True, quiet=True).strip()
+        except GitError as e:
+            if e.exit_code == 1:
+               raise DetachedHeadError()
+            raise
 
-    def _branch_printname(self, branchname):
-        """
-        return branchname, where ticket branches are specially recognized
+    def commit_for_branch(self, branch):
+        r"""
+        Return the commit id of the local ``branch``, or ``None`` if the branch
+        does not exist
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: dev.git._branch_printname('first_branch')
-            'first_branch'
-            sage: dev.git._branch_printname('t/12345')
-            '#12345'
-            sage: dev.git._branch_printname('ticket/12345')
-            '#12345'
-        """
-        if branchname.startswith('ticket/'):
-            return '#' + branchname[7:]
-        elif branchname.startswith('t/'):
-            return '#' + branchname[2:]
-        else:
-            return branchname
+        Create a :class:`GitInterface` for doctesting::
 
-    def _local_to_remote_name(self, branchname):
-        """
-        convert local branch name to 'canonical' remote branch name
+            sage: import os
+            sage: from sage.dev.git_interface import GitInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
 
-        EXAMPLES::
+        Create some branches::
 
-            sage: dev.git._local_to_remote_name('padics/feature')
-            'g/padics/feature'
-            sage: dev.git._local_to_remote_name('t/12345')
-            'u/doctest/ticket/12345'
-            sage: dev.git._local_to_remote_name('ticket/12345')
-            'u/doctest/ticket/12345'
-            sage: dev.git._local_to_remote_name('u/doctest0/ticket/12345')
-            'u/doctest0/ticket/12345'
-            sage: dev.git._local_to_remote_name('some/local/project')
-            'u/doctest/some/local/project'
-        """
-        if branchname in ("release", "beta", "master"):
-            return branchname
-        x = branchname.split('/')
-        if is_local_group_name(x):
-            if is_ticket_name(x[1:]):
-                return '/'.join(('g', x[0], normalize_ticket_name(x[1:])))
-            return '/'.join(['g']+x)
-        elif is_ticket_name(x):
-            return '/'.join(('u', self._sagedev.trac._username,
-                normalize_ticket_name(x)))
-        elif is_remote_user_name(x):
-            return branchname
-        else:
-            return '/'.join(('u', self._sagedev.trac._username, branchname))
+            sage: os.chdir(config['git']['src'])
+            sage: git.silent.commit('-m','initial commit','--allow-empty')
+            sage: git.silent.branch('branch1')
+            sage: git.silent.branch('branch2')
 
-    def _remote_to_local_name(self, branchname):
-        """
-        convert remote branch name to 'canonical' local branch name
+        Check existence of branches::
 
-        EXAMPLES::
-
-            sage: dev.git._remote_to_local_name('g/padics/feature')
-            'padics/feature'
-            sage: dev.git._remote_to_local_name('u/doctest/t/12345')
-            'ticket/12345'
-            sage: dev.git._remote_to_local_name('u/doctest/ticket/12345')
-            'ticket/12345'
-            sage: dev.git._remote_to_local_name('u/doctest0/ticket/12345')
-            'u/doctest0/ticket/12345'
-            sage: dev.git._remote_to_local_name('u/doctest/some/remote/project')
-            'some/remote/project'
-        """
-        if branchname in ("release", "beta", "master"):
-            return branchname
-        x = branchname.split('/')
-        if is_remote_group_name(x):
-            if is_ticket_name(x[2:]):
-                return '/'.join((x[1], normalize_ticket_name(x[2:])))
-            return '/'.join(x[1:])
-        elif is_remote_user_name(x):
-            if x[1] != self._sagedev.trac._username:
-                return branchname
-            elif is_ticket_name(x[2:]):
-                return normalize_ticket_name(x[2:])
-            return '/'.join(x[2:])
-        raise ValueError("not a valid remote branch name")
-
-    def branch_exists(self, branch):
-        """
-        returns the commit id of the local branch, or ``None`` if
-        branch does not exist
-
-        EXAMPLES::
-
-            sage: git = dev.git
-            sage: git.branch_exists("first_branch")          # random
+            sage: git.commit_for_branch('branch1') # random output
             '087e1fdd0fe6f4c596f5db22bc54567b032f5d2b'
-            sage: int(git.branch_exists("first_branch"), 16) # random
-            48484595766010161581593150175214386043155340587L
-            sage: type(git.branch_exists("first_branch"))
-            <type 'str'>
-            sage: len(git.branch_exists("first_branch"))
-            40
-            sage: git.branch_exists("asdlkfjasdlf")
-        """
-        ref = "refs/heads/%s"%branch
-        return self.ref_exists("refs/heads/%s"%branch)
+            sage: git.commit_for_branch('branch2') is not None
+            True
+            sage: git.commit_for_branch('branch3') is not None
+            False
 
-    def ref_exists(self, ref):
         """
-        returns the commit id of the ref, or ``None`` if
-        branch does not exist
+        return self.commit_for_ref("refs/heads/%s"%branch)
 
-        EXAMPLES::
+    def commit_for_ref(self, ref):
+        r"""
+        Return the commit id of the ``ref``, or ``None`` if the ``ref`` does
+        not exist.
 
-            sage: git = dev.git
-            sage: git.ref_exists("refs/tags/test_tag")          # random
-            'abdb32da3a1e50d4677e4760eda9433ac8b45414'
-            sage: int(git.ref_exists("refs/tags/test_tag"), 16) # random
-            981125714882459973971230819971657414365142078484L
-            sage: type(git.ref_exists("refs/tags/test_tag"))
-            <type 'str'>
-            sage: len(git.ref_exists("refs/tags/test_tag"))
-            40
-            sage: git.ref_exists("refs/tags/asdlkfjasdlf")
+        EXAMPLES:
+
+        Create a :class:`GitInterface` for doctesting::
+
+            sage: import os
+            sage: from sage.dev.git_interface import GitInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
+
+        Create some branches::
+
+            sage: os.chdir(config['git']['src'])
+            sage: git.silent.commit('-m','initial commit','--allow-empty')
+            sage: git.silent.branch('branch1')
+            sage: git.silent.branch('branch2')
+
+        Check existence of branches::
+
+            sage: git.commit_for_ref('refs/heads/branch1') # random output
+            '087e1fdd0fe6f4c596f5db22bc54567b032f5d2b'
+            sage: git.commit_for_ref('refs/heads/branch2') is not None
+            True
+            sage: git.commit_for_ref('refs/heads/branch3') is not None
+            False
+
         """
-        # TODO: optimize and make this atomic :-)
-        if self.execute("show-ref", ref, quiet=True, verify=True):
+        try:
+            return self.rev_parse(ref, verify=True).strip()
+        except GitError:
             return None
-        else:
-            return self.read_output("show-ref", ref,
-                                hash=True, verify=True).strip()
-
-    def create_branch(self, branchname, basebranch=None, remote_branch=True):
-        """
-        creates branch ``branchname`` based off of ``basebranch`` or the
-        current branch if ``basebranch`` is ``None``
-
-        EXAMPLES::
-
-            sage: from sage.dev.sagedev import SageDev, doctest_config
-            sage: git = SageDev(doctest_config()).git
-            sage: git.create_branch("third_branch")
-            sage: git.branch_exists("third_branch") == git.branch_exists("first_branch")
-            True
-            sage: git.create_branch("fourth_branch", "second_branch")
-            sage: git.branch_exists("fourth_branch") == git.branch_exists("second_branch")
-            True
-        """
-        if branchname in ("t", "ticket", "all", "dependencies", "commit",
-                "release", "beta", "master"):
-            raise ValueError("bad branchname")
-        if self.branch_exists(branchname):
-            raise ValueError("branch already exists")
-
-        if basebranch is None:
-            ret = self.execute("branch", branchname)
-        else:
-            ret = self.execute("branch", branchname, basebranch)
-
-        if remote_branch is True:
-            remote_branch = self._local_to_remote_name(branchname)
-        if remote_branch:
-            self._sagedev._remote[branchname] = remote_branch
-
-        if ret: # return non-zero exit codes
-            return ret
 
     def rename_branch(self, oldname, newname):
+        r"""
+        Rename ``oldname`` to ``newname``.
+
+        EXAMPLES:
+
+        Create a :class:`GitInterface` for doctesting::
+
+            sage: from sage.dev.git_interface import GitInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
+
+        Create some branches::
+
+            sage: os.chdir(config['git']['src'])
+            sage: git.silent.commit('-m','initial commit','--allow-empty')
+            sage: git.silent.branch('branch1')
+            sage: git.silent.branch('branch2')
+
+        Rename some branches::
+
+            sage: git.rename_branch('branch1', 'branch3')
+            sage: git.rename_branch('branch2', 'branch3')
+            Traceback (most recent call last):
+            ...
+            GitError: git returned with non-zero exit code (128) for `git branch --move branch2 branch3`.
+            output to stderr: fatal: A branch named 'branch3' already exists.
+
         """
-        renames branch ``oldname`` to ``newname``
+        self.branch(oldname, newname, move=True)
 
-        EXAMPLES::
-
-            sage: from sage.dev.sagedev import SageDev, doctest_config
-            sage: git = SageDev(doctest_config()).git
-            sage: bool(git.branch_exists("third_branch"))
-            False
-            sage: git.rename_branch("first_branch", "third_branch")
-            sage: bool(git.branch_exists("first_branch"))
-            False
-            sage: bool(git.branch_exists("third_branch"))
-            True
-            sage: git.rename_branch("third_branch", "second_branch")
-            fatal: A branch named 'second_branch' already exists.
-        """
-        self.execute("branch", oldname, newname, m=True)
-
-    def fetch_project(self, group, branchname):
-        raise NotImplementedError
-
-    def switch_branch(self, branchname, detached = False):
-        """
-        switch to ``branchname`` in a detached state if ``detached`` is
-        set to True
-
-        EXAMPLES::
-
-            sage: from sage.dev.sagedev import SageDev, doctest_config
-            sage: git = SageDev(doctest_config()).git
-            sage: git.current_branch()
-            'first_branch'
-            sage: git.switch_branch('second_branch')
-            Switched to branch 'second_branch'
-            sage: git.current_branch()
-            'second_branch'
-            sage: git.branch_exists('third_branch')
-            sage: git.switch_branch('third_branch')
-            Switched to branch 'third_branch'
-            sage: git.branch_exists('third_branch') # random
-            '5249e7a56067e9f30244930192503d502558b6c3'
-            sage: git.switch_branch('first_branch', detached=True)
-            Note: checking out 'first_branch'.
-            <BLANKLINE>
-            You are in 'detached HEAD' state. You can look around, make experimental
-            changes and commit them, and you can discard any commits you make in this
-            state without impacting any branches by performing another checkout.
-            <BLANKLINE>
-            If you want to create a new branch to retain commits you create, you may
-            do so (now or later) by using -b with the checkout command again. Example:
-            <BLANKLINE>
-              git checkout -b new_branch_name
-            <BLANKLINE>
-            HEAD is now at ... edit the testfile differently
-        """
-        move = None
-        if self.has_uncommitted_changes():
-            move = self._sagedev._save_uncommitted_changes()
-
-        if not detached and self.branch_exists(branchname) is None:
-            if self.create_branch(branchname) is not None:
-                raise RuntimeError("could not create new branch")
-
-        if self.execute("checkout", branchname, detach=detached) != 0:
-            raise RuntimeError("failed to switch to new branch")
-
-        if move:
-            self._sagedev._unstash_changes()
-
-    def vanilla(self, release=True):
-        """
-        switch to released version of sage
-        """
-        if release is False:
-            release = "master"
-        elif release is True:
-            release = "release"
-        else:
-            release = str(release)
-            if is_release_name(release.split('.')):
-                self.execute('fetch', 'origin', tags=True)
-                release = self.ref_exists('refs/tags/%s'%release)
-                if release is None:
-                    raise ValueError("was unable to find desired release")
-        self.switch_branch(release)
-
-    def abandon(self, branchname):
-        """
-        move branch to trash
-
-        EXAMPLES::
-
-            sage: from sage.dev.sagedev import SageDev, doctest_config
-            sage: git = SageDev(doctest_config()).git
-            sage: git.abandon('second_branch')
-            sage: git.local_branches()
-            ['first_branch', 'abandoned/second_branch', 'master']
-        """
-        trashname = "abandoned/" + branchname
-        oldtrash = self.branch_exists(trashname)
-        if oldtrash is not None:
-            self._UI.show("Overwriting %s in trash"%oldtrash)
-        self.rename_branch(branchname, trashname)
-        # Need to delete remote branch (and have a hook move it to /g/abandoned/ and update the trac symlink)
-        #remotename = self._remote[branchname]
-
-def _git_cmd_wrapper(git_cmd):
-    """
-    creates a method for GitInterface that wraps a git command
-
-    EXAMPLES::
-
-        sage: from sage.dev.git_interface import _git_cmd_wrapper, GitInterface
-        sage: cmd = _git_cmd_wrapper("ls-tree")
-        sage: setattr(GitInterface, 'ls_tree', cmd)
-        sage: r = dev.git.ls_tree('first_branch')
-        100644 blob 13d5431ac2f249eb07313624ec8fa041ea0f34a4        testfile
-        sage: r
-        0
-    """
-    def meth(self, *args, **kwds):
-        return self.execute(git_cmd.replace("_", "-"), *args, **kwds)
-    meth.__doc__ = """
-            direct call to \`git %s\`
-
-            see :meth:`execute` for full documentation
-            """%git_cmd
-    return meth
-
-for git_cmd in (
+for git_cmd_ in (
         "add",
         "am",
         "apply",
         "bisect",
         "branch",
+        "config",
         "checkout",
+        "cherry_pick",
         "clean",
         "clone",
         "commit",
         "diff",
         "fetch",
+        "for_each_ref",
         "format_patch",
         "grep",
-        # "init",
+        "init",
         "log",
+        "ls_files",
+        "ls_remote",
         "merge",
+        "merge_base",
         "mv",
         "pull",
         "push",
         "rebase",
+        "remote",
         "reset",
+        "rev_list",
+        "rev_parse",
         "rm",
         "show",
+        "show_ref",
         "stash",
         "status",
-        # "tag"
+        "symbolic_ref",
+        "tag"
         ):
-    setattr(GitInterface, git_cmd, _git_cmd_wrapper(git_cmd))
+    def create_wrapper(git_cmd__):
+        r"""
+        Create a wrapper for ``git_cmd__``.
+
+        EXAMPLES::
+
+            sage: import os
+            sage: from sage.dev.git_interface import GitInterface
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: config = DoctestConfig()
+            sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
+            sage: os.chdir(config['git']['src'])
+            sage: git.echo.status()
+            # On branch master
+            #
+            # Initial commit
+            #
+            nothing to commit (create/copy files and use "git add" to track)
+
+        """
+        git_cmd = git_cmd__.replace("_","-")
+        def meth(self, *args, **kwds):
+            return self(git_cmd, *args, **kwds)
+        meth.__doc__ = r"""
+        Call `git {0}`.
+
+        OUTPUT:
+
+        See the docstring of ``__call__`` for more information.
+
+        EXAMPLES:
+
+            sage: dev.git.{1}() # not tested
+
+        """.format(git_cmd, git_cmd__)
+        return meth
+    setattr(GitProxy, git_cmd_, create_wrapper(git_cmd_))
+

@@ -158,7 +158,7 @@ def get_help(method):
                 ret[arg] = ' '.join(tmp)
                 tmp = []
             continue
-        elif line.startswith('-'):
+        elif line.startswith('-') and '--' in line:
             arg = line.split('``')[1]
             tmp.append(line.split('--')[1].strip())
         elif tmp:
@@ -176,10 +176,9 @@ def exposed_methods(obj):
     for name in dir(obj):
         if name.startswith('_'):
             continue
-        method = getattr(obj, name)
-        if callable(method):
+        method = getattr(obj._sagedev, name)
+        if hasattr(method, 'im_func'):
             yield name.replace('_','-'), method
-
 
 def getargspec(func):
     """
@@ -199,10 +198,11 @@ def parser_from_method(parser, func, help_dict):
     for ix, arg in enumerate(argspec.args):
         extra = {}
         if ix < default_start:
-            name = arg
+            name = [arg]
             extra['type'] = str_to_value
         else:
-            name = '--' + arg
+            name = ['--'+n for n in arg.replace('_','-').split('-or-')]
+            extra['dest'] = arg
 
             default_value = argspec.defaults[ix - default_start]
             if default_value is False:
@@ -219,7 +219,8 @@ def parser_from_method(parser, func, help_dict):
 
         if arg in help_dict:
             extra['help'] = help_dict[arg]
-        parser.add_argument(name, **extra)
+
+        parser.add_argument(*name, **extra)
     if argspec.varargs is not None:
         extra = {'nargs': '*',
                  'type': str_to_value}
@@ -254,7 +255,7 @@ def str_to_value(s):
 def parser_from_object(obj, *args, **kwds):
     kwds['formatter_class'] = SageHelpFormatter
     if 'description' not in kwds:
-        kwds['description'] = get_help(obj)['return']
+        kwds['description'] = get_help(obj._sagedev)['return']
 
     parser = argparse.ArgumentParser(*args, **kwds)
     subparsers = parser.add_subparsers(title='subcommands')
@@ -324,6 +325,6 @@ def parser_from_object(obj, *args, **kwds):
     return parser
 
 if __name__ == '__main__':
-    from sage.dev.sagedev import dev
+    from sage.dev.all import dev
     parser = parser_from_object(dev)
     parser.run()

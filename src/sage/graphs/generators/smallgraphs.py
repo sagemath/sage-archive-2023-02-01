@@ -4105,7 +4105,7 @@ def WatkinsSnarkGraph():
         sage: g.chromatic_number()
         3
     """
-    g = Graph(name="Szekeres Snark Graph")
+    g = Graph(name="Watkins Snark Graph")
 
     for i in range(5):
         g.add_cycle([(i,j) for j in range(9)])

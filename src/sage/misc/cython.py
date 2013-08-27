@@ -23,7 +23,7 @@ import sys
 import platform
 from six.moves import builtins
 
-from sage.env import SAGE_LOCAL, SAGE_SRC, SAGE_LIB, UNAME
+from sage.env import SAGE_LOCAL, SAGE_SRC
 from .misc import SPYX_TMP
 from .temporary_file import tmp_filename
 import pkgconfig

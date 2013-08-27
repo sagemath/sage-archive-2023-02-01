@@ -112,7 +112,7 @@ from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix import is_Matrix
 from sage.misc.all import cached_method, tmp_filename
-from sage.env import SAGE_SHARE
+from sage.env import POLYTOPE_DATA_DIR
 from sage.modules.all import vector, span
 from sage.misc.superseded import deprecated_function_alias, deprecation
 from sage.plot.plot3d.index_face_set import IndexFaceSet
@@ -136,7 +136,7 @@ from six import StringIO
 from functools import reduce
 
 
-data_location = os.path.join(SAGE_SHARE,'reflexive_polytopes')
+data_location = POLYTOPE_DATA_DIR
 
 
 class SetOfAllLatticePolytopesClass(Set_generic):

@@ -12,7 +12,7 @@ Utility functions for libGAP
 ###############################################################################
 from __future__ import print_function, absolute_import
 
-from sage.env import SAGE_LOCAL
+from sage.env import SAGE_LOCAL, GAP_DATA_DIR
 from libc.stdint cimport uintptr_t
 from .element cimport *
 
@@ -157,7 +157,7 @@ def gap_root():
         '/home/vbraun/opt/sage-5.3.rc0/local/gap/latest'
     """
     import os.path
-    gapdir = os.path.join(SAGE_LOCAL, 'gap', 'latest')
+    gapdir = GAP_DATA_DIR
     if os.path.exists(gapdir):
         return gapdir
     print('The gap-4.5.5.spkg (or later) seems to be not installed!')

@@ -185,15 +185,13 @@ def CircularLadderGraph(n):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    k = graphs.CircularLadderGraph(i+3)
-        ...    g.append(k)
-        ...
+        ....:    k = graphs.CircularLadderGraph(i+3)
+        ....:    g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:    n = []
+        ....:    for m in range(3):
+        ....:        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:    j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
     """
@@ -278,15 +276,13 @@ def CycleGraph(n):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    k = graphs.CycleGraph(i+3)
-        ...    g.append(k)
-        ...
+        ....:     k = graphs.CycleGraph(i+3)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
 
@@ -295,16 +291,14 @@ def CycleGraph(n):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    spr = networkx.cycle_graph(i+3)
-        ...    k = Graph(spr)
-        ...    g.append(k)
-        ...
+        ....:     spr = networkx.cycle_graph(i+3)
+        ....:     k = Graph(spr)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
     """
@@ -348,15 +342,13 @@ def CompleteGraph(n):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    k = graphs.CompleteGraph(i+3)
-        ...    g.append(k)
-        ...
+        ....:     k = graphs.CompleteGraph(i+3)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
 
@@ -366,16 +358,14 @@ def CompleteGraph(n):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    spr = networkx.complete_graph(i+3)
-        ...    k = Graph(spr)
-        ...    g.append(k)
-        ...
+        ....:     spr = networkx.complete_graph(i+3)
+        ....:     k = Graph(spr)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
 
@@ -473,15 +463,13 @@ def CompleteBipartiteGraph(n1, n2):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    k = graphs.CompleteBipartiteGraph(i+1,4)
-        ...    g.append(k)
-        ...
+        ....:     k = graphs.CompleteBipartiteGraph(i+1,4)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
 
@@ -490,16 +478,14 @@ def CompleteBipartiteGraph(n1, n2):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    spr = networkx.complete_bipartite_graph(i+1,4)
-        ...    k = Graph(spr)
-        ...    g.append(k)
-        ...
+        ....:     spr = networkx.complete_bipartite_graph(i+1,4)
+        ....:     k = Graph(spr)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
 
@@ -618,19 +604,16 @@ def EmptyGraph():
 
         sage: empty2 = graphs.EmptyGraph()
         sage: for i in range(5):
-        ...    empty2.add_vertex() # add 5 nodes, labeled 0-4
-        ...
+        ....:     empty2.add_vertex() # add 5 nodes, labeled 0-4
         0
         1
         2
         3
         4
         sage: for i in range(3):
-        ...    empty2.add_edge(i,i+1) # add edges {[0:1],[1:2],[2:3]}
-        ...
+        ....:     empty2.add_edge(i,i+1) # add edges {[0:1],[1:2],[2:3]}
         sage: for i in range(4)[1:]:
-        ...    empty2.add_edge(4,i) # add edges {[1:4],[2:4],[3:4]}
-        ...
+        ....:     empty2.add_edge(4,i) # add edges {[1:4],[2:4],[3:4]}
         sage: empty2.show() # long time
     """
     return graph.Graph(sparse=True)
@@ -910,15 +893,13 @@ def LadderGraph(n):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    k = graphs.LadderGraph(i+2)
-        ...    g.append(k)
-        ...
+        ....:     k = graphs.LadderGraph(i+2)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
     """
@@ -962,15 +943,13 @@ def LollipopGraph(n1, n2):
         sage: g = []
         sage: j = []
         sage: for i in range(6):
-        ...    k = graphs.LollipopGraph(i+3,4)
-        ...    g.append(k)
-        ...
+        ....:     k = graphs.LollipopGraph(i+3,4)
+        ....:     g.append(k)
         sage: for i in range(2):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
     """
@@ -1130,15 +1109,13 @@ def StarGraph(n):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    k = graphs.StarGraph(i+3)
-        ...    g.append(k)
-        ...
+        ....:     k = graphs.StarGraph(i+3)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
 
@@ -1149,16 +1126,14 @@ def StarGraph(n):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    spr = networkx.star_graph(i+3)
-        ...    k = Graph(spr)
-        ...    g.append(k)
-        ...
+        ....:     spr = networkx.star_graph(i+3)
+        ....:     k = Graph(spr)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
     """

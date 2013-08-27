@@ -17,8 +17,6 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 
 # import from Sage library
 from sage.graphs.graph import Graph
-from sage.graphs import graph
-from math import sin, cos, pi
 
 def WorldMap():
     """
@@ -46,7 +44,6 @@ def WorldMap():
 
     .. [CIA] CIA Factbook 09 https://www.cia.gov/library/publications/the-world-factbook/
     """
-    from sage.graphs.all import Graph
     edges = [
         ('Afghanistan', 'China', None), ('Afghanistan', 'Iran', None),
         ('Afghanistan', 'Uzbekistan', None), ('Albania', 'Greece', None),

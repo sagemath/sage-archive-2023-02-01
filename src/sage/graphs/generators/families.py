@@ -136,7 +136,7 @@ def JohnsonGraph(n, k):
         True
     """
 
-    g=graph.Graph(name="Johnson graph with parameters "+str(n)+","+str(k))
+    g = Graph(name="Johnson graph with parameters "+str(n)+","+str(k))
     from sage.combinat.subset import Set, Subsets
 
     S = Set(range(n))
@@ -191,7 +191,7 @@ def KneserGraph(n,k):
     if not (k>0 and k<=n):
         raise ValueError, "Parameter k should be a strictly positive integer inferior to n"
 
-    g=graph.Graph(name="Kneser graph with parameters "+str(n)+","+str(k))
+    g = Graph(name="Kneser graph with parameters "+str(n)+","+str(k))
     from sage.combinat.subset import Subsets
 
     if k>n/2:
@@ -290,7 +290,7 @@ def BalancedTree(r, h):
         Balanced tree: Graph on 0 vertices
     """
     import networkx
-    return graph.Graph(networkx.balanced_tree(r, h), name="Balanced tree")
+    return Graph(networkx.balanced_tree(r, h), name="Balanced tree")
 
 def BarbellGraph(n1, n2):
     r"""
@@ -433,7 +433,7 @@ def BarbellGraph(n1, n2):
 
     import networkx
     G = networkx.barbell_graph(n1, n2)
-    return graph.Graph(G, pos=pos_dict, name="Barbell graph")
+    return Graph(G, pos=pos_dict, name="Barbell graph")
 
 def BubbleSortGraph(n):
     r"""
@@ -495,7 +495,7 @@ def BubbleSortGraph(n):
             "Invalid number of symbols to permute, n should be >= 1")
     if n == 1:
         from sage.graphs.generators.basic import CompleteGraph
-        return graph.Graph(CompleteGraph(n), name="Bubble sort")
+        return Graph(CompleteGraph(n), name="Bubble sort")
     from sage.combinat.permutation import Permutations
     #create set from which to permute
     label_set = [str(i) for i in xrange(1, n + 1)]
@@ -515,7 +515,7 @@ def BubbleSortGraph(n):
             v[i], v[i + 1] = v[i + 1], v[i]
         #add adjacency dict
         d[''.join(v)] = tmp_dict
-    return graph.Graph(d, name="Bubble sort")
+    return Graph(d, name="Bubble sort")
 
 def CirculantGraph(n, adjacency):
     r"""
@@ -620,7 +620,7 @@ def CirculantGraph(n, adjacency):
     if not isinstance(adjacency,list):
         adjacency=[adjacency]
 
-    G=graph.Graph(n, name="Circulant graph ("+str(adjacency)+")")
+    G = Graph(n, name="Circulant graph ("+str(adjacency)+")")
     _circle_embedding(G, range(n))
 
     for v in G:
@@ -703,7 +703,7 @@ def CubeGraph(n):
         p,pn = pn,{}
 
     # construct the graph
-    r = graph.Graph(name="%d-Cube"%n)
+    r = Graph(name="%d-Cube"%n)
     r.add_vertices(d.keys())
     for u,L in d.iteritems():
         for v in L:
@@ -730,7 +730,7 @@ def DorogovtsevGoltsevMendesGraph(n):
       (2002).
     """
     import networkx
-    return graph.Graph(networkx.dorogovtsev_goltsev_mendes_graph(n),\
+    return Graph(networkx.dorogovtsev_goltsev_mendes_graph(n),\
            name="Dorogovtsev-Goltsev-Mendes Graph, %d-th generation"%n)
 
 def FoldedCubeGraph(n):
@@ -893,7 +893,7 @@ def FriendshipGraph(n):
     edge_dict.setdefault(N - 2, [0, N - 1])
     pos_dict.setdefault(N - 2, [RR(cos(d * (N-2))), RR(sin(d * (N-2)))])
     pos_dict.setdefault(N - 1, [0, 0])
-    return graph.Graph(edge_dict, pos=pos_dict, name="Friendship graph")
+    return Graph(edge_dict, pos=pos_dict, name="Friendship graph")
 
 def FuzzyBallGraph(partition, q):
     r"""
@@ -973,7 +973,7 @@ def FibonacciTree(n):
 
     - Harald Schilly and Yann Laigle-Chapuy (2010-03-25)
     """
-    T = graph.Graph(name="Fibonacci-Tree-%d"%n)
+    T = Graph(name="Fibonacci-Tree-%d"%n)
     if n == 1: T.add_vertex(0)
     if n < 2: return T
 
@@ -1052,7 +1052,7 @@ def GeneralizedPetersenGraph(n,k):
     if (k < 1 or k>((n-1)/2)):
             raise ValueError("k must be in 1<= k <=floor((n-1)/2)")
     pos_dict = {}
-    G=Graph()
+    G = Graph()
     for i in range(n):
         x = float(cos((pi/2) + ((2*pi)/n)*i))
         y = float(sin((pi/2) + ((2*pi)/n)*i))
@@ -1065,7 +1065,7 @@ def GeneralizedPetersenGraph(n,k):
         G.add_edge(i, (i+1) % n)
         G.add_edge(i, i+n)
         G.add_edge(i+n, n + (i+k) % n)
-    return graph.Graph(G, pos=pos_dict, name="Generalized Petersen graph (n="+str(n)+",k="+str(k)+")")
+    return Graph(G, pos=pos_dict, name="Generalized Petersen graph (n="+str(n)+",k="+str(k)+")")
 
 def HararyGraph( k, n ):
     r"""
@@ -1166,7 +1166,7 @@ def HyperStarGraph(n,k):
             L[i]='1'
         comb_to_str[tuple(c)] = ''.join(L)
 
-    g=graph.Graph(name="HS(%d,%d)"%(n,k))
+    g = Graph(name="HS(%d,%d)"%(n,k))
     g.add_vertices(comb_to_str.values())
 
     for c in Combinations(range(1,n),k): # 0 is not in c
@@ -1255,8 +1255,8 @@ def LCFGraph(n, shift_list, repeats):
         x = float(cos(pi/2 + ((2*pi)/n)*i))
         y = float(sin(pi/2 + ((2*pi)/n)*i))
         pos_dict[i] = [x,y]
-    return graph.Graph(networkx.LCF_graph(n, shift_list, repeats),\
-                       pos=pos_dict, name="LCF Graph")
+    return Graph(networkx.LCF_graph(n, shift_list, repeats),\
+                 pos=pos_dict, name="LCF Graph")
 
 def MycielskiGraph(k=1, relabel=True):
     r"""
@@ -1311,7 +1311,7 @@ def MycielskiGraph(k=1, relabel=True):
        http://mathworld.wolfram.com/MycielskiGraph.html
 
     """
-    g = graph.Graph()
+    g = Graph()
     g.name("Mycielski Graph " + str(k))
 
     if k<0:
@@ -1436,7 +1436,7 @@ def NKStarGraph(n,k):
                 tmp_dict[vert] = None
             v[0] = tmp_bit
         d["".join(v)] = tmp_dict
-    return graph.Graph(d, name="(%d,%d)-star"%(n,k))
+    return Graph(d, name="(%d,%d)-star"%(n,k))
 
 def NStarGraph(n):
     r"""
@@ -1485,7 +1485,7 @@ def NStarGraph(n):
                 #swap back
                 v[0], v[i] = v[i], v[0]
         d["".join(v)] = tmp_dict
-    return graph.Graph(d, name = "%d-star"%n)
+    return Graph(d, name = "%d-star"%n)
 
 def OddGraph(n):
     r"""
@@ -1547,7 +1547,7 @@ def PaleyGraph(q):
     from sage.rings.finite_rings.constructor import FiniteField
     assert q.is_prime_power(), "Parameter q must be a prime power"
     assert mod(q,4)==1, "Parameter q must be congruent to 1 mod 4"
-    g = graph.Graph([FiniteField(q,'a'), lambda i,j: (i-j).is_square()],
+    g = Graph([FiniteField(q,'a'), lambda i,j: (i-j).is_square()],
     loops=False, name = "Paley graph with parameter %d"%q)
     return g
 
@@ -1839,7 +1839,7 @@ def HanoiTowerGraph(pegs, disks, labels=True, positions=True):
             for freea, freeb in Subsets(emptypegs, 2):
                 edges.append([freea*nverts+state,freeb*nverts+state])
 
-    H = graph.Graph({}, loops=False, multiedges=False)
+    H = Graph({}, loops=False, multiedges=False)
     H.add_edges(edges)
 
 
@@ -2053,7 +2053,7 @@ def WheelGraph(n):
         pos_dict[i] = (x,y)
     import networkx
     G = networkx.wheel_graph(n)
-    return graph.Graph(G, pos=pos_dict, name="Wheel graph")
+    return Graph(G, pos=pos_dict, name="Wheel graph")
 
 def trees(vertices):
     r"""

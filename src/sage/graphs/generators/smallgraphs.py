@@ -18,7 +18,6 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 
 # import from Sage library
 from sage.graphs.graph import Graph
-from sage.graphs import graph
 from math import sin, cos, pi
 from sage.graphs.graph_plot import _circle_embedding, _line_embedding
 
@@ -413,15 +412,15 @@ def HallJankoGraph(from_string=True):
 
         sage: nu = set(g.neighbors(0))
         sage: for v in range(1, 100):
-        ...     if v in nu:
-        ...        expected = 14
-        ...     else:
-        ...        expected = 12
-        ...     nv = set(g.neighbors(v))
-        ...     nv.discard(0)
-        ...     if len(nu & nv) != expected:
-        ...        print "Something is wrong here!!!"
-        ...        break
+        ....:     if v in nu:
+        ....:         expected = 14
+        ....:     else:
+        ....:         expected = 12
+        ....:     nv = set(g.neighbors(v))
+        ....:     nv.discard(0)
+        ....:     if len(nu & nv) != expected:
+        ....:         print "Something is wrong here!!!"
+        ....:         break
 
     Some other properties that we know how to check::
 
@@ -483,7 +482,7 @@ def HallJankoGraph(from_string=True):
               "HB`CQCp[WFQGgIQgkJQ{rLbc{Nc@APsdLRt@PSt\\WUtt_Wn")
 
     if from_string:
-        g = graph.Graph(string, loops = False, multiedges = False)
+        g = Graph(string, loops = False, multiedges = False)
     else:
 
         # The following construction is due to version 3 of the ATLAS of
@@ -509,7 +508,7 @@ def HallJankoGraph(from_string=True):
 
         gap.eval("G := Group([g1,g2]);")
         edges = gap('Orbit(G,[1,5],OnSets)').sage()
-        g = graph.Graph([(int(u), int(v)) for u,v in edges])
+        g = Graph([(int(u), int(v)) for u,v in edges])
         g.relabel()
 
     _circle_embedding(g, range(100))
@@ -749,7 +748,7 @@ def Balaban11Cage(embedding = 1):
             "165": ["162", "163", "164"],   "175": ["172", "173", "174"]
         }
 
-        return graph.Graph(edge_dict, pos=pos_dict, name="Balaban 11-cage")
+        return Graph(edge_dict, pos=pos_dict, name="Balaban 11-cage")
 
     elif embedding == 2 or embedding == 3:
         L = [44, 26, -47, -15, 35, -39, 11, -27, 38, -37, 43, 14, 28, 51,
@@ -862,7 +861,7 @@ def BidiakisCube():
         9: [-1, 0],
         10: [-0.866025403784439, 0.5],
         11: [-0.5, 0.866025403784439]}
-    return graph.Graph(edge_dict, pos=pos_dict, name="Bidiakis cube")
+    return Graph(edge_dict, pos=pos_dict, name="Bidiakis cube")
 
 def BiggsSmithGraph(embedding=1):
     r"""
@@ -1039,7 +1038,7 @@ def BrinkmannGraph():
         18: [-0.781831482468030, -0.623489801858733],
         19: [-0.974927912181824, 0.222520933956315],
         20: [-0.433883739117558, 0.900968867902419]}
-    return graph.Graph(edge_dict, pos=pos_dict, name="Brinkmann graph")
+    return Graph(edge_dict, pos=pos_dict, name="Brinkmann graph")
 
 def BrouwerHaemersGraph():
     r"""
@@ -1138,7 +1137,7 @@ def BuckyBall():
              (48, 52), (49, 53), (49, 57), (50, 51), (50, 52), (51, 53),
              (54, 55), (54, 56), (55, 57), (56, 58), (57, 59), (58, 59)
              ]
-    g = graph.Graph()
+    g = Graph()
     g.add_edges(edges)
     g.name("Bucky Ball")
 
@@ -1265,7 +1264,7 @@ def DoubleStarSnark():
         , 29: [25, 22, 15]
         }
 
-    g = graph.Graph(d, pos={}, name="Double star snark")
+    g = Graph(d, pos={}, name="Double star snark")
     _circle_embedding(g, range(15), radius=2)
     _circle_embedding(g, range(15, 30), radius=1.4)
 
@@ -1363,7 +1362,7 @@ def ChvatalGraph():
     pos_dict[10] = (0.5, 0)
     pos_dict[11] = (-0.5, 0)
 
-    return graph.Graph(networkx.chvatal_graph(), pos=pos_dict, name="Chvatal graph")
+    return Graph(networkx.chvatal_graph(), pos=pos_dict, name="Chvatal graph")
 
 def ClebschGraph():
     r"""
@@ -1382,7 +1381,7 @@ def ClebschGraph():
         2
         sage: g.show(figsize=[10, 10]) # long time
     """
-    g = graph.Graph(pos={})
+    g = Graph(pos={})
     x = 0
     for i in range(8):
         g.add_edge(x % 16, (x + 1) % 16)
@@ -1419,7 +1418,7 @@ def CoxeterGraph():
         4
         sage: g.show(figsize=[10, 10]) # long time
     """
-    g = graph.Graph({
+    g = Graph({
             27: [6, 22, 14],
             24: [0, 7, 18],
             25: [8, 15, 2],
@@ -1521,7 +1520,7 @@ def DurerGraph():
         9: [-1, 0],
         10: [-0.5, -0.866025403784439],
         11: [0.5, -0.866025403784439]}
-    return graph.Graph(edge_dict, pos=pos_dict, name="Durer graph")
+    return Graph(edge_dict, pos=pos_dict, name="Durer graph")
 
 def DyckGraph():
     """
@@ -1614,7 +1613,7 @@ def DyckGraph():
         0O27: [0O16, 0O10,   0O37], 0O37: [0O27,   0O34, 0O32],
     }
 
-    return graph.Graph(edge_dict, pos=pos_dict, name="Dyck graph")
+    return Graph(edge_dict, pos=pos_dict, name="Dyck graph")
 
 def EllinghamHorton54Graph():
     r"""
@@ -1741,7 +1740,7 @@ def EllinghamHorton78Graph():
 
         sage: g.show(figsize=[10, 10]) # not tested - too long
     """
-    g = graph.Graph({
+    g = Graph({
             0: [1, 5, 60], 1: [2, 12], 2: [3, 7], 3: [4, 14], 4: [5, 9],
             5: [6], 6: [7, 11], 7: [15], 8: [9, 13, 22], 9: [10],
             10: [11, 72], 11: [12], 12: [13], 13: [14], 14: [72],
@@ -1851,7 +1850,7 @@ def ErreraGraph():
         11: [13],
         13: [15],
         14: [16]}
-    return graph.Graph(edge_dict, name="Errera graph")
+    return Graph(edge_dict, name="Errera graph")
 
 def FlowerSnark():
     """
@@ -1893,7 +1892,7 @@ def FlowerSnark():
         x = float(cos((pi/2) + ((2*pi)/5)*i))
         y = float(sin((pi/2) + ((2*pi)/5)*i))
         pos_dict[i] = (x,y)
-    return graph.Graph({0:[1,14,15],1:[2,11],2:[3,7],3:[2,4,16],4:[5,14], \
+    return Graph({0:[1,14,15],1:[2,11],2:[3,7],3:[2,4,16],4:[5,14], \
                         5:[6,10],6:[5,7,17],8:[7,9,13],9:[10,18],11:[10,12], \
                         12:[13,19],13:[14],15:[19],16:[15,17],18:[17,19]}, \
                         pos=pos_dict, name="Flower Snark")
@@ -2033,7 +2032,7 @@ def FranklinGraph():
         9: [-1, 0],
         10: [-0.5, -0.866025403784439],
         11: [0.5, -0.866025403784439]}
-    return graph.Graph(edge_dict, pos=pos_dict, name="Franklin graph")
+    return Graph(edge_dict, pos=pos_dict, name="Franklin graph")
 
 def FruchtGraph():
     """
@@ -2076,7 +2075,7 @@ def FruchtGraph():
     pos_dict[11] = (0,0)
     import networkx
     G = networkx.frucht_graph()
-    return graph.Graph(G, pos=pos_dict, name="Frucht graph")
+    return Graph(G, pos=pos_dict, name="Frucht graph")
 
 def GoldnerHararyGraph():
     r"""
@@ -2145,7 +2144,7 @@ def GoldnerHararyGraph():
         9: (-0.5, -0.5),
         10: (0, 0)}
 
-    return graph.Graph(edge_dict, pos = pos, name="Goldner-Harary graph")
+    return Graph(edge_dict, pos = pos, name="Goldner-Harary graph")
 
 def GrayGraph(embedding=1):
     r"""
@@ -2244,7 +2243,7 @@ def GrotzschGraph():
         sage: ag.is_isomorphic(DihedralGroup(5))
         True
     """
-    g = graph.Graph()
+    g = Graph()
     g.add_vertices(range(11))
 
     edges = [];
@@ -2315,7 +2314,7 @@ def HeawoodGraph():
         pos_dict[i] = (x,y)
     import networkx
     G = networkx.heawood_graph()
-    return graph.Graph(G, pos=pos_dict, name="Heawood graph")
+    return Graph(G, pos=pos_dict, name="Heawood graph")
 
 def HerschelGraph():
     r"""
@@ -2384,7 +2383,7 @@ def HerschelGraph():
         8: [-0.5, -0.866025403784439],
         9: [0.5, -0.866025403784439],
         10: [0, 0]}
-    return graph.Graph(edge_dict, pos=pos_dict, name="Herschel graph")
+    return Graph(edge_dict, pos=pos_dict, name="Herschel graph")
 
 def HigmanSimsGraph(relabel=True):
     r"""
@@ -2466,7 +2465,7 @@ def HigmanSimsGraph(relabel=True):
 
         - Rob Beezer (2009-10-24)
     """
-    HS = graph.Graph()
+    HS = Graph()
     HS.name('Higman-Sims graph')
 
     # Four groups of either five pentagons, or five pentagrams
@@ -2597,7 +2596,7 @@ def HoffmanSingletonGraph():
         (-0.904..., 0.425...)
 
     """
-    H = graph.Graph({ \
+    H = Graph({ \
     'q00':['q01'], 'q01':['q02'], 'q02':['q03'], 'q03':['q04'], 'q04':['q00'], \
     'q10':['q11'], 'q11':['q12'], 'q12':['q13'], 'q13':['q14'], 'q14':['q10'], \
     'q20':['q21'], 'q21':['q22'], 'q22':['q23'], 'q23':['q24'], 'q24':['q20'], \
@@ -2666,7 +2665,7 @@ def HoffmanGraph():
         sage: g.automorphism_group().cardinality()
         48
     """
-    g = graph.Graph({
+    g = Graph({
             0: [1, 7, 8, 13],
             1: [2, 9, 14],
             2: [3, 8, 10],
@@ -2717,7 +2716,7 @@ def HoltGraph():
         sage: g.automorphism_group().cardinality()
         54
     """
-    g = graph.Graph(loops=False, name = "Holt graph", pos={})
+    g = Graph(loops=False, name = "Holt graph", pos={})
     for x in range(9):
         for y in range(3):
             g.add_edge((x,y),((4*x+1)%9,(y-1)%3))
@@ -2774,7 +2773,7 @@ def KrackhardtKiteGraph():
     pos_dict = {0:(-1,4),1:(1,4),2:(-2,3),3:(0,3),4:(2,3),5:(-1,2),6:(1,2),7:(0,1),8:(0,0),9:(0,-1)}
     import networkx
     G = networkx.krackhardt_kite_graph()
-    return graph.Graph(G, pos=pos_dict, name="Krackhardt Kite Graph")
+    return Graph(G, pos=pos_dict, name="Krackhardt Kite Graph")
 
 def LjubljanaGraph(embedding=1):
     r"""
@@ -3101,7 +3100,7 @@ def MoserSpindle():
         4: [1.90211303259031, 0.618033988749895],
         5: [1, 0],
         6: [-1, 0]}
-    return graph.Graph(edge_dict, pos=pos_dict, name="Moser spindle")
+    return Graph(edge_dict, pos=pos_dict, name="Moser spindle")
 
 
 def NauruGraph(embedding=2):
@@ -3176,7 +3175,7 @@ def PappusGraph():
                            (2/3.0)*float(sin(pi/2 + ((2*pi)/6)*i))]
         pos_dict[12 + i] = [(1/3.0)*float(cos(pi/2 + ((2*pi)/6)*i)),\
                             (1/3.0)*float(sin(pi/2 + ((2*pi)/6)*i))]
-    return graph.Graph({0:[1,5,6],1:[2,7],2:[3,8],3:[4,9],4:[5,10],\
+    return Graph({0:[1,5,6],1:[2,7],2:[3,8],3:[4,9],4:[5,10],\
                         5:[11],6:[13,17],7:[12,14],8:[13,15],9:[14,16],\
                         10:[15,17],11:[12,16],12:[15],13:[16],14:[17]},\
                        pos=pos_dict, name="Pappus Graph")
@@ -3315,8 +3314,8 @@ def ShrikhandeGraph():
         sage: G.is_regular(6)
         True
         sage: set([ len([x for x in G.neighbors(i) if x in G.neighbors(j)])
-        ...     for i in range(G.order())
-        ...     for j in range(i) ])
+        ....:     for i in range(G.order())
+        ....:     for j in range(i) ])
         set([2])
 
     It is non-planar, and both Hamiltonian and Eulerian::
@@ -3379,7 +3378,7 @@ def ShrikhandeGraph():
         0O17: [0O11, 0O12, 0O14, 0O15,   0O06, 0O00]
     }
 
-    return graph.Graph(edge_dict, pos=pos_dict, name="Shrikhande graph")
+    return Graph(edge_dict, pos=pos_dict, name="Shrikhande graph")
 
 def SylvesterGraph():
     """
@@ -3480,7 +3479,7 @@ def ThomsenGraph():
     pos_dict = {0:(-1,1),1:(0,1),2:(1,1),3:(-1,0),4:(0,0),5:(1,0)}
     import networkx
     G = networkx.complete_bipartite_graph(3,3)
-    return graph.Graph(G, pos=pos_dict, name="Thomsen graph")
+    return Graph(G, pos=pos_dict, name="Thomsen graph")
 
 def Tutte12Cage():
     r"""

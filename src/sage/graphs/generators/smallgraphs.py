@@ -1720,7 +1720,7 @@ def HortonGraph():
     Returns the Horton Graph.
 
     The Horton graph is a cubic 3-connected non-hamiltonian graph. For more
-    information, see the :wikipedia:`Horton_Graph`.
+    information, see the :wikipedia:`Horton_graph`.
 
     EXAMPLES::
 
@@ -3699,8 +3699,8 @@ def SousselierGraph():
     Returns the Sousselier Graph.
 
     The Sousselier graph is a hypohamiltonian graph on 16 vertices and 27
-    edges. For more information, see the corresponding `Wikpedia page (in
-    French) <http://fr.wikipedia.org/wiki/Graph_de_sousselier>`_.
+    edges. For more information, see the corresponding `Wikipedia page (in
+    French) <http://fr.wikipedia.org/wiki/Graphe_de_Sousselier>`_.
 
     EXAMPLES::
 

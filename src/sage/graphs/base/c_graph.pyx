@@ -1699,6 +1699,9 @@ class CGraphBackend(GenericGraphBackend):
             sage: list(P._backend.iterator_nbrs(0))
             [1, 4, 5]
         """
+        if not self._directed:
+            return self.iterator_out_nbrs(v)
+
         return iter(set(self.iterator_in_nbrs(v)) |
                     set(self.iterator_out_nbrs(v)))
 

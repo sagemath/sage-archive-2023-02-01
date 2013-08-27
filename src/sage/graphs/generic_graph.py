@@ -916,12 +916,18 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: graphs.PetersenGraph().to_dictionary()
-            {0: [1, 4, 5], 1: [0, 2, 6],
-             2: [1, 3, 7], 3: [8, 2, 4],
-             4: [0, 9, 3], 5: [0, 8, 7],
-             6: [8, 1, 9], 7: [9, 2, 5],
-             8: [3, 5, 6], 9: [4, 6, 7]}
+            sage: g = graphs.PetersenGraph().to_dictionary()
+            sage: [(key, sorted(g[key])) for key in g]
+            [(0, [1, 4, 5]),
+             (1, [0, 2, 6]),
+             (2, [1, 3, 7]),
+             (3, [2, 4, 8]),
+             (4, [0, 3, 9]),
+             (5, [0, 7, 8]),
+             (6, [1, 8, 9]),
+             (7, [2, 5, 9]),
+             (8, [3, 5, 6]),
+             (9, [4, 6, 7])]
             sage: graphs.PetersenGraph().to_dictionary(multiple_edges=True)
             {0: [1, 4, 5], 1: [0, 2, 6],
              2: [1, 3, 7], 3: [2, 4, 8],
@@ -8254,7 +8260,7 @@ class GenericGraph(GenericGraph_pyx):
             return iter(set(self.neighbor_out_iterator(vertex)) \
                     | set(self.neighbor_in_iterator(vertex)))
         else:
-            return iter(set(self._backend.iterator_nbrs(vertex)))
+            return self._backend.iterator_nbrs(vertex)
 
     def vertices(self, key=None, boundary_first=False):
         r"""

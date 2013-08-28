@@ -176,17 +176,17 @@ def exposed_methods(obj):
     for name in dir(obj):
         if name.startswith('_'):
             continue
-        method = getattr(obj._sagedev, name)
-        if hasattr(method, 'im_func'):
+        method = getattr(obj, name)
+        if hasattr(method, 'func_name'):
             yield name.replace('_','-'), method
 
 def getargspec(func):
     """
     Returns the argspec of func, omitting self if func is a bound method.
     """
-    argspec = inspect.getargspec(func)
-    if isinstance(func, types.MethodType) and func.im_self is not None:
-        del argspec.args[0] # self
+    from sage.misc.sageinspect import sage_getargspec
+    argspec = sage_getargspec(func)
+    del argspec.args[0] # self
     return argspec
 
 def parser_from_method(parser, func, help_dict):

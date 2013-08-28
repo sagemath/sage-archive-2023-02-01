@@ -1054,21 +1054,25 @@ class Set_object_binary(Set_object):
         """
         The hash value of this set.
 
-        EXAMPLES::
+
+        EXAMPLES:
+
+        The hash values of equal sets are in general not equal since it is not
+        decidable whether two sets are equal::
 
             sage: X = Set(GF(13)).intersection(Set(ZZ))
-            sage: hash(X)
-            -7116597539855252506 # 64-bit
-            # 32-bit
+            sage: Y = Set(ZZ).intersection(Set(GF(13)))
+            sage: hash(X) == hash(Y)
+            False
 
         TESTS:
 
         Test that :trac:`14432` has been resolved::
 
-            sage: S=Set(ZZ).union(Set([infinity]))
-            sage: hash(S)
-            1474285102670710969 # 64-bit
-            # 32-bit
+            sage: S = Set(ZZ).union(Set([infinity]))
+            sage: T = Set(ZZ).union(Set([infinity]))
+            sage: hash(S) == hash(T)
+            True
 
         """
         return hash((self._X,self._Y,self._op))

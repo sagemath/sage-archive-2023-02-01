@@ -3767,6 +3767,9 @@ class SageDev(object):
             False
 
         """
+        if name is None:
+            return False
+
         if not isinstance(name, int):
             try:
                 name = self._ticket_from_ticket_name(name)

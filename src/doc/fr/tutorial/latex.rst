@@ -63,7 +63,7 @@ Voici quelques exemples d'utilisation élémentaire de la fonction ``latex()``. 
     sage: latex(integrate(z^4, z))
     \frac{1}{5} \, z^{5}
     sage: latex('a string')
-    \verb|a|\phantom{\verb!x!}\verb|string|
+    \text{\texttt{a{ }string}}
     sage: latex(QQ)
     \Bold{Q}
     sage: latex(matrix(QQ, 2, 3, [[2,4,6],[-1,-1,-1]]))

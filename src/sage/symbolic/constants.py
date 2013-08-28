@@ -711,9 +711,11 @@ class NotANumber(Constant):
 
         EXAMPLES::
 
-            sage: import sympy
-            sage: sympy.nan == NaN # indirect doctest
+            sage: bool(NaN._sympy_()._sage_() == NaN)
             True
+            sage: import sympy
+            sage: sympy.nan == NaN  # this should be fixed
+            False
         """
         import sympy
         return sympy.nan

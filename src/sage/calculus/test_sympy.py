@@ -125,8 +125,8 @@ some archictures, we disable it::
 
     sage: pprint(f)
            2       4        6         8
-        3*x    11*x    241*x    8651*x
-    1 + ---- + ----- + ------ + ------- + O(x**10)
+        3*x    11*x    241*x    8651*x     / 10\
+    1 + ---- + ----- + ------ + ------- + O\x  /
          2       8      240      13440
     sage: pprint_use_unicode(prev_use)
     False

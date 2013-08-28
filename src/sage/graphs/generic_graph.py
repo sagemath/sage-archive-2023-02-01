@@ -5928,7 +5928,6 @@ class GenericGraph(GenericGraph_pyx):
                 except MIPSolverException:
                     raise ValueError("The given graph is not hamiltonian")
 
-
                 while True:
                     # We build the DiGraph representing the current solution
                     h = DiGraph()
@@ -5961,7 +5960,7 @@ class GenericGraph(GenericGraph_pyx):
 
                 from sage.graphs.all import Graph
                 b = p.new_variable(binary = True)
-                B = lambda u,v : b[(u,v)] if u<v else b[(v,u)]
+                B = lambda u,v : b[frozenset((u,v))]
 
                 # Objective function
                 if use_edge_labels:
@@ -6005,8 +6004,6 @@ class GenericGraph(GenericGraph_pyx):
                     except MIPSolverException:
                         raise ValueError("The given graph is not hamiltonian")
 
-
-
             # We can now return the TSP !
             answer = self.subgraph(edges = h.edges())
             answer.set_pos(self.get_pos())
@@ -6041,7 +6038,6 @@ class GenericGraph(GenericGraph_pyx):
                                  min = 1,
                                  max = 1)
 
-
             # r is greater than f
             for u,v in g.edges(labels = None):
                 if g.has_edge(v,u):
@@ -6054,41 +6050,36 @@ class GenericGraph(GenericGraph_pyx):
                 else:
                     p.add_constraint( r[(u,v)] + r[(v,u)] - f[(u,v)], min = 0)
 
-
             # defining the answer when g is directed
             from sage.graphs.all import DiGraph
             tsp = DiGraph()
         else:
 
             # reorders the edge as they can appear in the two different ways
-            R = lambda x,y : (x,y) if x < y else (y,x)
+            R = lambda x,y : frozenset((x,y))
 
             # returns the variable corresponding to arc u,v
             E = lambda u,v : f[R(u,v)]
 
             # All the vertices have degree 2
             for v in g:
-                p.add_constraint(p.sum([ f[R(u,v)] for u in g.neighbors(v)]),
+                p.add_constraint(p.sum([ E(u,v) for u in g.neighbors(v)]),
                                  min = 2,
                                  max = 2)
 
             # r is greater than f
             for u,v in g.edges(labels = None):
-                p.add_constraint( r[(u,v)] + r[(v,u)] - f[R(u,v)], min = 0)
+                p.add_constraint( r[(u,v)] + r[(v,u)] - E(u,v), min = 0)
 
             from sage.graphs.all import Graph
 
             # defining the answer when g is not directed
             tsp = Graph()
 
-
         # no cycle which does not contain x
         for v in g:
             if v != x:
                 p.add_constraint(p.sum([ r[(u,v)] for u in g.neighbors(v)]),max = 1-eps)
-
-
-
 
         if use_edge_labels:
             p.set_objective(p.sum([ weight(l)*E(u,v) for u,v,l in g.edges()]) )
@@ -6096,8 +6087,6 @@ class GenericGraph(GenericGraph_pyx):
             p.set_objective(None)
 
         p.set_binary(f)
-
-
 
         try:
             obj = p.solve(log = verbose)

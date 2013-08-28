@@ -529,7 +529,7 @@ class SageDev(object):
 
         remote_branch = self.trac._branch_for_ticket(ticket)
         dependencies = self.trac.dependencies(ticket)
-        if remote_branch is None or remote_branch == "": # branch field is not set on ticket
+        if remote_branch is None: # branch field is not set on ticket
             self._UI.info("The branch field on ticket #{0} is not set. Creating a new branch {1} off the master branch {2}.".format(ticket, branch, MASTER_BRANCH))
             self.git.silent.branch(branch, MASTER_BRANCH)
         else:
@@ -2933,6 +2933,8 @@ class SageDev(object):
                     for dependency in self._dependencies_for_ticket(current_ticket):
                         self._check_ticket_name(dependency, exists=True)
                         remote_branch = self.trac._branch_for_ticket(dependency)
+                        if remote_branch is None:
+                            raise SageDevValueError("Dependency #{0} has no branch field set.".format(dependency))
                         self._check_remote_branch_name(remote_branch, exists=True)
                         self.git.super_silent.fetch(self.git._repository, remote_branch)
                         if self.git.is_child_of(MASTER_BRANCH, 'FETCH_HEAD'):

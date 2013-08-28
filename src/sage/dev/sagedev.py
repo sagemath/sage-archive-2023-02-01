@@ -964,9 +964,9 @@ class SageDev(object):
                                 self.git.add(file)
 
                 if interactive:
-                    self.git.add(patch=True)
+                    self.git.echo.add(patch=True)
                 else:
-                    self.git.add(update=True)
+                    self.git.echo.add(update=True)
 
                 if not self._UI.confirm("Do you want to commit your changes to branch `{0}`? I will prompt you for a commit message if you do.".format(branch), default=True):
                     self._UI.info("If you want to commit to a different branch/ticket, run {0} or {1} first.".format(self._format_command("switch_branch"), self._format_command("switch_ticket")))

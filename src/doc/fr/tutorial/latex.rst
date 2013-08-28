@@ -259,7 +259,7 @@ contre-obliques sont dédoublées. ::
     sage: latex.extra_preamble('')
     sage: latex.add_to_preamble('\\usepackage{geometry}')
     sage: latex.add_to_preamble('\\geometry{letterpaper,total={8in,10in}}')
-    sage: latex.indirectement les marges) du document LaTeX. )
+    sage: latex.extra_preamble()
     '\\usepackage{geometry}\\geometry{letterpaper,total={8in,10in}}'
     sage: print latex_extra_preamble()
     \usepackage{geometry}\geometry{letterpaper,total={8in,10in}}

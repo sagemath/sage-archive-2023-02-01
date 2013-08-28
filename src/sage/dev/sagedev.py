@@ -1471,7 +1471,7 @@ class SageDev(object):
                 self.git.super_silent.checkout(current_branch or current_commit)
 
             self._UI.show("Your changes have been recorded on a new branch `{0}`.".format(branch))
-            self._UI.info("To recover your changes later use {1}.".format(branch, self._format_command("unstash",branch)))
+            self._UI.info("To recover your changes later use {1}.".format(branch, self._format_command("unstash",branch=branch)))
         else:
             assert False
 

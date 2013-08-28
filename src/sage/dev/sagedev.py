@@ -2017,7 +2017,7 @@ class SageDev(object):
             raise OperationCancelledError("untracked files make import impossible")
 
         if not local_file:
-            local_file = sel.download_patch(patchname=patchname, url=url)
+            local_file = self.download_patch(patchname=patchname, url=url)
             try:
                 return self.import_patch(
                         local_file=local_file,

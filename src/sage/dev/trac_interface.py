@@ -45,13 +45,12 @@ ALLOWED_FIELDS = {
         }
 TICKET_FILE_GUIDE = r"""
 # Lines starting with `#` are ignored.
-# Lines starting with `Field: ` correspond to fields of
-# the trac ticket, and can be followed by text on the same line.
-# They will be assigned to the corresponding field on the trac
-# ticket.
+# Lines at the beginning of this file starting with `Field: ` correspond to
+# fields of the trac ticket, and can be followed by text on the same line.
+# They will be assigned to the corresponding field on the trac ticket.
 #
-# Lines not following this format will be put into the ticket
-# description. Trac markup is supported.
+# Lines not following this format will be put into the ticket description. Trac
+# markup is supported.
 #
 # An empty file aborts ticket creation/editing.
 """
@@ -528,7 +527,7 @@ class TracInterface(object):
         """
         attributes = self._get_attributes(ticket)
         if 'branch' in attributes:
-            return attributes['branch']
+            return attributes['branch'] or None
         else:
             return None
 
@@ -767,7 +766,7 @@ class TracInterface(object):
 
                 if description is None or not description.strip():
                     description = "\nADD DESCRIPTION\n"
-                F.write(description + "\n")
+                F.write("\n" + description + "\n")
                 F.write(TICKET_FILE_GUIDE)
 
             while True:

@@ -2017,7 +2017,7 @@ class SageDev(object):
             raise OperationCancelledError("untracked files make import impossible")
 
         if not local_file:
-            local_file = sel.download_patch(patchname=patchname, url=url)
+            local_file = self.download_patch(patchname=patchname, url=url)
             try:
                 return self.import_patch(
                         local_file=local_file,
@@ -2933,6 +2933,8 @@ class SageDev(object):
                     for dependency in self._dependencies_for_ticket(current_ticket):
                         self._check_ticket_name(dependency, exists=True)
                         remote_branch = self.trac._branch_for_ticket(dependency)
+                        if remote_branch is None:
+                            raise SageDevValueError("Dependency #{0} has no branch field set.".format(dependency))
                         self._check_remote_branch_name(remote_branch, exists=True)
                         self.git.super_silent.fetch(self.git._repository, remote_branch)
                         if self.git.is_child_of(MASTER_BRANCH, 'FETCH_HEAD'):

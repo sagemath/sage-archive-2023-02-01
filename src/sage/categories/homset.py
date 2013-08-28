@@ -245,7 +245,7 @@ def Hom(X, Y, category=None):
         sage: Hom(PA,PJ)
         Set of Homomorphisms from <type 'sage.structure.parent.Parent'> to <type 'sage.structure.parent.Parent'>
         sage: Hom(PA,PJ).category()
-        Join of Category of hom sets in Category of rings and Category of hom sets in Category of modules over Rational Field
+        Join of Category of hom sets in Category of modules over Rational Field and Category of hom sets in Category of rings
         sage: Hom(PA,PJ, Rngs())
         Set of Morphisms from <type 'sage.structure.parent.Parent'> to <type 'sage.structure.parent.Parent'> in Category of rngs
 

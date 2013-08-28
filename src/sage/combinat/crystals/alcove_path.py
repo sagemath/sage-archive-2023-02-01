@@ -334,7 +334,7 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
             self._finite_cartan_type = False
 
 
-        self.module_generators = ( self.element_class((), self), )
+        self.module_generators = ( self.element_class(self, ()), )
 
     def _repr_(self):
         """
@@ -364,11 +364,11 @@ class CrystalOfAlcovePaths(UniqueRepresentation, Parent):
             ((alpha[1], 2), (alpha[1] + alpha[2], 4))
         """
         if isinstance(data, tuple):
-            return self.element_class(data, self)
+            return self.element_class(self, data)
         elif isinstance(data, list):
             lambda_chain = self._R.lambda_chain()
             #data starts indexing at 0
-            return self.element_class(tuple(sorted([lambda_chain[i] for i in data])), self)
+            return self.element_class(self, tuple(sorted([lambda_chain[i] for i in data])))
 
     def vertices(self):
         """

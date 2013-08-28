@@ -42,6 +42,7 @@ Combinatorics
    sage/combinat/partition
    sage/combinat/partition_tuple
    sage/combinat/permutation
+   sage/combinat/affine_permutation
    sage/combinat/perfect_matching
    sage/combinat/q_analogues
    sage/combinat/q_bernoulli
@@ -52,12 +53,14 @@ Combinatorics
    sage/combinat/abstract_tree
    sage/combinat/ordered_tree
    sage/combinat/binary_tree
+   sage/combinat/similarity_class_type
    sage/combinat/skew_partition
    sage/combinat/subset
    sage/combinat/subsets_pairwise
    sage/combinat/subword
    sage/combinat/tiling
    sage/combinat/tuple
+   sage/combinat/vector_partition
    cluster_algebras
 
    algebra
@@ -77,7 +80,6 @@ Combinatorics
    species
    developer
    words
-   iet
 
    sage/combinat/dict_addition
    sage/combinat/misc

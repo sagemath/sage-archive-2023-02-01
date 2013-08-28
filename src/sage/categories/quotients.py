@@ -35,9 +35,14 @@ def Quotients(self):
         sage: C.super_categories()
         [Category of subquotients of semigroups, Category of quotients of sets]
         sage: C.all_super_categories()
-        [Category of quotients of semigroups, Category of subquotients of semigroups, Category of semigroups,
-         Category of subquotients of magmas, Category of magmas,
-         Category of quotients of sets, Category of subquotients of sets, Category of sets,
+        [Category of quotients of semigroups,
+         Category of subquotients of semigroups,
+         Category of semigroups,
+         Category of subquotients of magmas,
+         Category of magmas,
+         Category of quotients of sets,
+         Category of subquotients of sets,
+         Category of sets,
          Category of sets with partial maps,
          Category of objects]
 

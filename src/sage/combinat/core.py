@@ -82,7 +82,7 @@ class Core(CombinatorialObject, Element):
         l = sum(part.k_boundary(k).row_lengths())
         return Cores(k, l)(part)
 
-    def __init__(self, core, parent):
+    def __init__(self, parent, core):
         """
         TESTS::
 

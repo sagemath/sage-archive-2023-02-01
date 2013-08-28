@@ -1,5 +1,9 @@
 """
-Helper functions for congruence group class
+Cython helper functions for congruence subgroups
+
+This file contains optimized Cython implementations of a few functions related
+to the standard congruence subgroups `\Gamma_0, \Gamma_1, \Gamma_H`.  These
+functions are for internal use by routines elsewhere in the Sage library.
 """
 
 ################################################################################
@@ -39,60 +43,58 @@ include 'sage/ext/stdsage.pxi'
 
 def degeneracy_coset_representatives_gamma0(int N, int M, int t):
     r"""
-    Let $N$ be a positive integer and $M$ a divisor of $N$.  Let $t$ be a
-    divisor of $N/M$, and let $T$ be the $2x2$ matrix $T=[1,0; 0,t]$.
-    This function returns representatives for the orbit set
-    $\Gamma_0(N) \backslash T \Gamma_0(M)$, where $\Gamma_0(N)$
-    acts on the left on $T \Gamma_0(M)$.
+    Let `N` be a positive integer and `M` a divisor of `N`.  Let `t` be a
+    divisor of `N/M`, and let `T` be the `2 \times 2` matrix `(1, 0; 0, t)`.
+    This function returns representatives for the orbit set `\Gamma_0(N)
+    \backslash T \Gamma_0(M)`, where `\Gamma_0(N)` acts on the left on `T
+    \Gamma_0(M)`.
 
     INPUT:
-        N -- int
-        M -- int (divisor of N)
-        t -- int (divisors of N/M)
+
+    - ``N`` -- int
+    - ``M`` -- int (divisor of `N`)
+    - ``t`` -- int (divisor of `N/M`)
 
     OUTPUT:
-        list -- list of lists [a,b,c,d], where [a,b,c,d] should
-                be viewed as a 2x2 matrix.
+
+    list -- list of lists ``[a,b,c,d]``, where ``[a,b,c,d]`` should be viewed
+    as a 2x2 matrix.
 
     This function is used for computation of degeneracy maps between
     spaces of modular symbols, hence its name.
 
-    We use that $T^{-1}*(a,b;c,d)*T = (a,bt,c/t,d),$
-    that the group $T^{-1}Gamma_0(N) T$ is contained in $\Gamma_0(M)$,
-    and that $\Gamma_0(N) T$ is contained in $T \Gamma_0(M)$.
+    We use that `T^{-1} \cdot (a,b;c,d) \cdot T = (a,bt; c/t,d)`, that the
+    group `T^{-1} \Gamma_0(N) T` is contained in `\Gamma_0(M)`, and that
+    `\Gamma_0(N) T` is contained in `T \Gamma_0(M)`.
 
     ALGORITHM:
-    \begin{enumerate}
-    \item Compute representatives for $\Gamma_0(N/t,t)$ inside of $\Gamma_0(M)$:
-          COSET EQUIVALENCE:
-           Two right cosets represented by $[a,b;c,d]$ and
-           $[a',b';c',d']$ of $\Gamma_0(N/t,t)$ in $\SL_2(\Z)$
-           are equivalent if and only if
-           $(a,b)=(a',b')$ as points of $\P^1(\Z/t\Z)$,
-           i.e., $ab' \con ba' \pmod{t}$,
-           and $(c,d) = (c',d')$ as points of $\P^1(\Z/(N/t)\Z)$.
 
-        ALGORITHM to list all cosets:
-        \begin{enumerate}
-           \item Compute the number of cosets.
-           \item Compute a random element x of Gamma_0(M).
-           \item Check if x is equivalent to anything generated so
-               far; if not, add x to the list.
-           \item Continue until the list is as long as the bound
-               computed in A.
-        \end{enumerate}
+    1. Compute representatives for $\Gamma_0(N/t,t)$ inside of $\Gamma_0(M)$:
 
-    \item There is a bijection between $\Gamma_0(N)\backslash T
-          \Gamma_0(M)$ and $\Gamma_0(N/t,t) \backslash \Gamma_0(M)$
-          given by $T r$ corresponds to $r$.  Consequently we obtain
-          coset representatives for $\Gamma_0(N)\backslash T
-          \Gamma_0(M)$ by left multiplying by $T$ each coset
-          representative of $\Gamma_0(N/t,t) \Gamma_0(M)$ found in
-          step 1.
+      + COSET EQUIVALENCE: Two right cosets represented by `[a,b;c,d]` and
+        `[a',b';c',d']` of `\Gamma_0(N/t,t)` in `{\rm SL}_2(\ZZ)` are equivalent if
+        and only if `(a,b)=(a',b')` as points of `\mathbf{P}^1(\ZZ/t\ZZ)`,
+        i.e., `ab' \cong ba' \pmod{t}`, and `(c,d) = (c',d')` as points of
+        `\mathbf{P}^1(\ZZ/(N/t)\ZZ)`.
 
-    \end{enumerate}
+      + ALGORITHM to list all cosets:
 
-    EXAMPLES:
+        a) Compute the number of cosets.
+        b) Compute a random element `x` of `\Gamma_0(M)`.
+        c) Check if x is equivalent to anything generated so far; if not, add x
+           to the list.
+        d) Continue until the list is as long as the bound
+           computed in step (a).
+
+    2. There is a bijection between `\Gamma_0(N)\backslash T \Gamma_0(M)` and
+       `\Gamma_0(N/t,t) \backslash \Gamma_0(M)` given by `T r \leftrightarrow
+       r`. Consequently we obtain coset representatives for
+       `\Gamma_0(N)\backslash T \Gamma_0(M)` by left multiplying by `T` each
+       coset representative of `\Gamma_0(N/t,t) \backslash \Gamma_0(M)` found
+       in step 1.
+
+    EXAMPLES::
+
         sage: from sage.modular.arithgroup.all import degeneracy_coset_representatives_gamma0
         sage: len(degeneracy_coset_representatives_gamma0(13, 1, 1))
         14
@@ -101,7 +103,6 @@ def degeneracy_coset_representatives_gamma0(int N, int M, int t):
         sage: len(degeneracy_coset_representatives_gamma0(13, 1, 13))
         14
     """
-
     if N % M != 0:
         raise ArithmeticError, "M (=%s) must be a divisor of N (=%s)"%(M,N)
 
@@ -152,47 +153,48 @@ def degeneracy_coset_representatives_gamma0(int N, int M, int t):
     sage_free(R)
     return S
 
-
-
-
 def degeneracy_coset_representatives_gamma1(int N, int M, int t):
     r"""
-    Let $N$ be a positive integer and $M$ a divisor of $N$.  Let $t$ be a
-    divisor of $N/M$, and let $T$ be the $2x2$ matrix $T=[1,0; 0,t]$.
-    This function returns representatives for the orbit set
-    $\Gamma_1(N) \backslash T \Gamma_1(M)$, where $\Gamma_1(N)$
-    acts on the left on $T \Gamma_1(M)$.
+    Let `N` be a positive integer and `M` a divisor of `N`.  Let `t` be a
+    divisor of `N/M`, and let `T` be the `2 \times 2` matrix `(1,0; 0,t)`.
+    This function returns representatives for the orbit set `\Gamma_1(N)
+    \backslash T \Gamma_1(M)`, where `\Gamma_1(N)` acts on the left on `T
+    \Gamma_1(M)`.
 
     INPUT:
-        N -- int
-        M -- int (divisor of N)
-        t -- int (divisors of N/M)
+
+    - ``N`` -- int
+    - ``M`` -- int (divisor of `N`)
+    - ``t`` -- int (divisor of `N/M`)
 
     OUTPUT:
-        list -- list of lists [a,b,c,d], where [a,b,c,d] should
-                be viewed as a 2x2 matrix.
+
+    list -- list of lists ``[a,b,c,d]``, where ``[a,b,c,d]`` should be viewed
+    as a 2x2 matrix.
 
     This function is used for computation of degeneracy maps between
     spaces of modular symbols, hence its name.
 
     ALGORITHM:
-    Everything is the same as for degeneracy_coset_representatives_gamma0,
-    except for coset equivalence.   Here $\Gamma_1(N/t,t)$ consists
-    of matrices that are of the form $[1,*;0,1]$ module $N/t$ and
-    $[1,0;*,1]$ modulo $t$.
 
-           COSET EQUIVALENCE:
-           Two right cosets represented by $[a,b;c,d]$ and
-           $[a',b';c',d']$ of $\Gamma_1(N/t,t)$ in $\SL_2(\Z)$
-           are equivalent if and only if
-           $$
-            a \con a' \pmod{t},
-            b \con b' \pmod{t},
-            c \con c' \pmod{N/t},
-            d \con d' \pmod{N/t}.
-           $$
+    Everything is the same as for
+    :func:`~degeneracy_coset_representatives_gamma0`, except for coset
+    equivalence.   Here `\Gamma_1(N/t,t)` consists of matrices that are of the
+    form `(1,*; 0,1) \bmod N/t` and `(1,0; *,1) \bmod t`.
 
-    EXAMPLES:
+    COSET EQUIVALENCE: Two right cosets represented by `[a,b;c,d]` and
+    `[a',b';c',d']` of `\Gamma_1(N/t,t)` in `{\rm SL}_2(\ZZ)` are equivalent if
+    and only if
+
+    .. math::
+
+        a \cong a' \pmod{t},
+        b \cong b' \pmod{t},
+        c \cong c' \pmod{N/t},
+        d \cong d' \pmod{N/t}.
+
+    EXAMPLES::
+
         sage: from sage.modular.arithgroup.all import degeneracy_coset_representatives_gamma1
         sage: len(degeneracy_coset_representatives_gamma1(13, 1, 1))
         168
@@ -266,20 +268,21 @@ def generators_helper(coset_reps, level, Mat2Z):
     Helper function for generators of Gamma0, Gamma1 and GammaH.
 
     These are computed using coset representatives, via an "inverse
-    Todd-Coxeter" algorithm, and generators for ${\rm SL}_2(\Z)$.
+    Todd-Coxeter" algorithm, and generators for `{\rm SL}_2(\ZZ)`.
 
     ALGORITHM: Given coset representatives for a finite index
-    subgroup~$G$ of ${\rm SL}_2(\Z)$ we compute generators for~$G$ as
-    follows.  Let $R$ be a set of coset representatives for $G$.
-    Let $S, T \in {\rm SL}_2(\Z)$ be defined by \code{0,-1,1,0]} and
-    \code{1,1,0,1}, respectively.  Define maps $s, t: R \to G$ as
-    follows. If $r \in R$, then there exists a unique $r' \in R$
-    such that $GrS = Gr'$. Let $s(r) = rSr'^{-1}$. Likewise, there
-    is a unique $r'$ such that $GrT = Gr'$ and we let $t(r) =
-    rTr'^{-1}$. Note that $s(r)$ and $t(r)$ are in $G$ for
-    all~$r$.  Then $G$ is generated by $s(R)\cup t(R)$.  There are
-    more sophisticated algorithms using group actions on trees
-    (and Farey symbols) that give smaller generating sets.
+    subgroup `G` of `{\rm SL}_2(\ZZ)` we compute generators for `G` as follows.
+    Let `R` be a set of coset representatives for `G`.  Let `S, T \in {\rm
+    SL}_2(\ZZ)` be defined by `(0,-1; 1,0)` and `(1,1,0,1)`, respectively.
+    Define maps `s, t: R \to G` as follows. If `r \in R`, then there exists a
+    unique `r' \in R` such that `GrS = Gr'`. Let `s(r) = rSr'^{-1}`. Likewise,
+    there is a unique `r'` such that `GrT = Gr'` and we let `t(r) = rTr'^{-1}`.
+    Note that `s(r)` and `t(r)` are in `G` for all `r`.  Then `G` is generated
+    by `s(R)\cup t(R)`.
+
+    There are more sophisticated algorithms using group actions on trees (and
+    Farey symbols) that give smaller generating sets -- this code is now
+    deprecated in favour of the newer implementation based on Farey symbols.
 
     EXAMPLES::
 

@@ -355,6 +355,15 @@ class Semigroups(Category_singleton):
              Category of sets,
              Category of sets with partial maps,
              Category of objects]
+
+            [Category of subquotients of semigroups,
+             Category of semigroups,
+             Category of subquotients of magmas,
+             Category of magmas,
+             Category of subquotients of sets,
+             Category of sets,
+             Category of sets with partial maps,
+             Category of objects]
         """
 
         def example(self):

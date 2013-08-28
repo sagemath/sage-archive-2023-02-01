@@ -472,7 +472,7 @@ class LinearExtensionsOfPoset(UniqueRepresentation, Parent):
             sage: [1, 3, 6, 2, 4, 12] in L
             False
 
-            sage: [p for p in Permutations(list(P)) if p in L]
+            sage: [p for p in Permutations(list(P)) if list(p) in L]
             [[1, 2, 3, 4, 6, 12], [1, 2, 3, 6, 4, 12], [1, 2, 4, 3, 6, 12], [1, 3, 2, 4, 6, 12], [1, 3, 2, 6, 4, 12]]
 
         """

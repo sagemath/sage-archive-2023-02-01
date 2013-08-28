@@ -70,9 +70,9 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
             -826511807095108317
         """
         try:
-            return hash((self.__class__, id(self._reference)))
+            return hash(('CombinatorialSpecies', id(self._reference)))
         except AttributeError:
-            return hash(self.__class__)
+            return hash('CombinatorialSpecies')
 
     def __eq__(self, other):
         """

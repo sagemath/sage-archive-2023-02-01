@@ -735,6 +735,13 @@ def integral(x, *args, **kwds):
         sage: integrate(f, x, 0, infinity)
         1
 
+    This integral would cause a stack overflow in earlier versions of
+    Maxima, crashing sage. See :trac:`12377`. We don't care about the
+    result here, just that the computation completes successfully::
+
+        sage: y = (x^2)*exp(x) / (1 + exp(x))^2
+        sage: _ = integrate(y, x, -1000, 1000)
+
     """
     if hasattr(x, 'integral'):
         return x.integral(*args, **kwds)

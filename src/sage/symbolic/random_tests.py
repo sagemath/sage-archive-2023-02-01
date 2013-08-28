@@ -256,7 +256,7 @@ def random_expr(size, nvars=1, ncoeffs=None, var_frac=0.5,
     EXAMPLES::
 
         sage: from sage.symbolic.random_tests import *
-        sage: set_random_seed(1)
+        sage: set_random_seed(53)
         sage: random_expr(50, nvars=3, coeff_generator=CDF.random_element) # random
         (v1^(0.97134084277 + 0.195868299334*I)/csc(-pi + v1^2 + v3) + sgn(1/
         ((-v3 - 0.760455994772 - 0.554367254855*I)*erf(v3 + 0.982759757946 -

@@ -54,15 +54,14 @@ Cython classes::
 
 Python classes::
 
-    sage: import sage.misc.attach
-    sage: sage_getfile(sage.misc.attach.Attach)
-    '.../attach.py'
+    sage: sage_getfile(BlockFinder)
+    '.../sage/misc/sageinspect.py'
 
-    sage: sage_getdoc(sage.misc.attach.Attach).lstrip()
-    'Attach a file to a running instance of Sage...'
+    sage: sage_getdoc(BlockFinder).lstrip()
+    'Provide a tokeneater() method to detect the...'
 
-    sage: sage_getsource(sage.misc.attach.Attach)
-    'class Attach:...'
+    sage: sage_getsource(BlockFinder)
+    'class BlockFinder:...'
 
 Python classes with no docstring, but an __init__ docstring::
 

@@ -46,14 +46,6 @@ from conway import ConwayPolynomials
 
 from cremona import CremonaDatabase
 
-# Trac #10107
-from sage.misc.superseded import deprecated_callable_import
-deprecated_callable_import(10107, 'sage.databases.cremona', globals(), locals(), [
-        'cremona_letter_code', 'parse_cremona_label',
-        'old_cremona_letter_code', 'is_optimal_id' ])
-del deprecated_callable_import
-
-
 from jones import JonesDatabase
 
 from stein_watkins import SteinWatkinsAllData, SteinWatkinsPrimeData

@@ -3695,7 +3695,8 @@ class Partition(CombinatorialObject, Element):
         res = sum( res )
 
         #Apply the umbral operator and return the result
-        return sage.combinat.misc.umbral_operation(res)
+        from sage.combinat.misc import umbral_operation
+        return umbral_operation(res)
 
     def dimension(self, smaller = [], k = 1):
         r"""
@@ -6088,7 +6089,8 @@ def partitions_set(S,k=None, use_file=True):
     """
     from sage.misc.superseded import deprecation
     deprecation(13072,'partitions_set is deprecated. Use SetPartitions instead.')
-    return sage.combinat.set_partition.SetPartitions(S,k)
+    from sage.combinat.set_partition import SetPartitions
+    return SetPartitions(S,k)
 
 
 def number_of_partitions_set(S,k):
@@ -6329,12 +6331,16 @@ def cyclic_permutations_of_partition(partition):
 
         sage: from sage.combinat.partition import cyclic_permutations_of_partition
         sage: cyclic_permutations_of_partition([[1,2,3,4],[5,6,7]])
-        doctest:1: DeprecationWarning: cyclic_permutations_of_partition is being removed from the global namespace. Use sage.combinat.set_partition.cyclic_permutations_of_set_partition instead.
+        doctest:...: DeprecationWarning: cyclic_permutations_of_partition is being removed from the global namespace. Use sage.combinat.set_partition.cyclic_permutations_of_set_partition instead.
         See http://trac.sagemath.org/13072 for details.
         doctest:...: DeprecationWarning: cyclic_permutations_of_partition_iterator is being removed from the global namespace. Please use sage.combinat.set_partition.cyclic_permutations_of_set_partition_iterator instead.
         See http://trac.sagemath.org/13072 for details.
         doctest:...: DeprecationWarning: cyclic_permutations_of_partition_iterator is being removed from the global namespace. Please use sage.combinat.set_partition.cyclic_permutations_of_set_partition_iterator instead.
         See http://trac.sagemath.org/13072 for details.
+        doctest:...: DeprecationWarning: Use the CyclicPermutations object instead.
+        See http://trac.sagemath.org/14772 for details.
+        doctest:...: DeprecationWarning: Use the CyclicPermutations object instead.
+        See http://trac.sagemath.org/14772 for details.
         [[[1, 2, 3, 4], [5, 6, 7]],
          [[1, 2, 4, 3], [5, 6, 7]],
          [[1, 3, 2, 4], [5, 6, 7]],
@@ -6366,7 +6372,7 @@ def cyclic_permutations_of_partition_iterator(partition):
 
         sage: from sage.combinat.partition import cyclic_permutations_of_partition_iterator
         sage: list(cyclic_permutations_of_partition_iterator([[1,2,3,4],[5,6,7]]))
-        doctest:1: DeprecationWarning: cyclic_permutations_of_partition_iterator is being removed from the global namespace. Please use sage.combinat.set_partition.cyclic_permutations_of_set_partition_iterator instead.
+        doctest:...: DeprecationWarning: cyclic_permutations_of_partition_iterator is being removed from the global namespace. Please use sage.combinat.set_partition.cyclic_permutations_of_set_partition_iterator instead.
         See http://trac.sagemath.org/13072 for details.
         [[[1, 2, 3, 4], [5, 6, 7]],
          [[1, 2, 4, 3], [5, 6, 7]],
@@ -6683,7 +6689,8 @@ def PartitionTuples_nk(n,k):
     """
     from sage.misc.superseded import deprecation
     deprecation(13072,'this class is deprecated. Use sage.combinat.partition_tuple.PartitionTuples_level_size instead')
-    return sage.combinat.partition_tuple.PartitionTuples_level_size(level=k, size=n)
+    from sage.combinat.partition_tuple import PartitionTuples_level_size
+    return PartitionTuples_level_size(level=k, size=n)
 
 # October 2012: fixing outdated pickles which use classes being deprecated
 from sage.structure.sage_object import register_unpickle_override

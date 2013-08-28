@@ -456,8 +456,8 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
             0
             sage: cmp(phi, prod(phi.factor()))
             0
-            sage: cmp(phi, phi.factor()[0])
-            -1
+            sage: abs(cmp(phi, phi.factor()[0]))
+            1
             sage: cmp(phi, 1) * cmp(1, phi)
             -1
         """

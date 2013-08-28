@@ -250,7 +250,7 @@ def desolve(de, dvar, ics=None, ivar=None, show_method=False, contrib_ode=False)
     k2=0.::
 
         sage: desolve(x^2*diff(y,x,x)+x*diff(y,x)+(x^2-4)*y==0,y)
-        k1*bessel_j(2, x) + k2*bessel_y(2, x)
+        k1*bessel_J(2, x) + k2*bessel_Y(2, x)
 
     Difficult ODE produces error::
 

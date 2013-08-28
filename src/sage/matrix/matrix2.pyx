@@ -4862,7 +4862,7 @@ cdef class Matrix(matrix1.Matrix):
                 elif format == 'all':
                     try:
                         alpha_conj = alpha.galois_conjugates(sage.rings.qqbar.QQbar)
-                    except (AttributeError, TypeError):
+                    except AttributeError:
                         msg = ("unable to construct eigenspaces for eigenvalues outside the base field,\n"
                                "try the keyword option: format='galois'")
                         raise NotImplementedError(''.join(msg))
@@ -5181,7 +5181,7 @@ cdef class Matrix(matrix1.Matrix):
                     F = h.root_field('%s%s'%('a',i))
                     try:
                         alpha = F.gen(0).galois_conjugates(QQbar)
-                    except AttributeError, TypeError:
+                    except AttributeError:
                         raise NotImplementedError, "eigenvalues() is not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar"
                     V.extend(alpha*e)
             i+=1
@@ -5271,7 +5271,7 @@ cdef class Matrix(matrix1.Matrix):
                 else:
                     try:
                         eigval_conj = eigval.galois_conjugates(QQbar)
-                    except AttributeError, TypeError:
+                    except AttributeError:
                         raise NotImplementedError, "eigenvectors are not implemented for matrices with eigenvalues that are not in the fraction field of the base ring or in QQbar"
 
                     for e in eigval_conj:
@@ -8328,6 +8328,26 @@ cdef class Matrix(matrix1.Matrix):
             sage: G.row_space() == A.row_space()
             True
 
+        After :trac:`14047`, the matrix can also be over the algebraic reals
+        ``AA``::
+
+            sage: A = matrix(AA, [[6, -8,  1],
+            ...                   [4,  1,  3],
+            ...                   [6,  3,  3],
+            ...                   [7,  1, -5],
+            ...                   [7, -3,  5]])
+            sage: G, M = A.gram_schmidt(orthonormal=True)
+            sage: G
+            [ 0.5970223141259934? -0.7960297521679913? 0.09950371902099891?]
+            [ 0.6063218341690895?  0.5289635311888953?  0.5937772444966257?]
+            [ 0.5252981913594170?  0.2941669871612735?  -0.798453250866314?]
+            sage: M
+            [ 10.04987562112089?                   0                   0]
+            [ 1.890570661398980?  4.735582601355131?                   0]
+            [ 1.492555785314984?  7.006153332071100?  1.638930357041381?]
+            [ 2.885607851608969?  1.804330147889395?  7.963520581008761?]
+            [ 7.064764050490923?  5.626248468100069? -1.197679876299471?]
+
         Starting with complex numbers with rational real and imaginary parts.
         Note the use of the conjugate-transpose when checking the
         orthonormality. ::
@@ -9089,7 +9109,7 @@ cdef class Matrix(matrix1.Matrix):
 
     def is_similar(self, other, transformation=False):
         r"""
-        Returns true if ``self`` and ``other`` are similar,
+        Returns ``True`` if ``self`` and ``other`` are similar,
         i.e. related by a change-of-basis matrix.
 
         INPUT:
@@ -9198,7 +9218,7 @@ cdef class Matrix(matrix1.Matrix):
         Jordan form, as provided by :meth:`jordan_form`.  The matrices
         below have identical eigenvalues (as evidenced by equal
         characteristic polynomials), but slightly different Jordan forms,
-        and hence are not similar.
+        and hence are not similar.  ::
 
             sage: A = matrix(QQ, [[ 19, -7, -29],
             ...                   [-16, 11,  30],

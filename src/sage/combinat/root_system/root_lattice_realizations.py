@@ -210,7 +210,7 @@ class RootLatticeRealizations(Category_over_base_ring):
 
                 sage: r = RootSystem(['A',4]).root_space()
                 sage: r.index_set()
-                [1, 2, 3, 4]
+                (1, 2, 3, 4)
             """
             return self.root_system.index_set()
 
@@ -2467,6 +2467,31 @@ class RootLatticeRealizations(Category_over_base_ring):
                     source=target
             return G
 
+        @cached_method
+        def _maximum_root_length(self):
+            r"""
+            Return the square of the maximum of the root lengths for irreducible finite type root systems.
+
+            EXAMPLES::
+
+                sage: Q = RootSystem(['C',2]).root_lattice()
+                sage: Q._maximum_root_length()
+                4
+                sage: Q = RootSystem(['G',2]).root_lattice()
+                sage: Q._maximum_root_length()
+                6
+                sage: Q = RootSystem(['A',3]).root_lattice()
+                sage: Q._maximum_root_length()
+                2
+            """
+            ct = self.cartan_type()
+            if not ct.is_irreducible():
+                raise NotImplementedError, "Implemented only for irreducible finite root systems"
+            if not ct.is_finite():
+                raise NotImplementedError, "Implemented only for irreducible finite root systems"
+            L = self.root_system.ambient_space() # uses peculiarities of ambient embedding
+            return max([root.scalar(root) for root in L.simple_roots()])
+
     ##########################################################################
 
     class ElementMethods:
@@ -3239,3 +3264,49 @@ class RootLatticeRealizations(Category_over_base_ring):
                 if i not in index_set:
                     return False
             return True
+
+        def is_short_root(self):
+            r"""
+            Is ``self`` a short root?
+
+            Returns False unless the parent is an irreducible root system of finite type
+            having two root lengths and ``self`` is of the shorter length.
+            There is no check of whether ``self`` is actually a root.
+
+            EXAMPLES::
+
+                sage: Q = RootSystem(['C',2]).root_lattice()
+                sage: al = Q.simple_root(1).weyl_action([1,2]); al
+                alpha[1] + alpha[2]
+                sage: al.is_short_root()
+                True
+                sage: bt = Q.simple_root(2).weyl_action([2,1,2]); bt
+                -2*alpha[1] - alpha[2]
+                sage: bt.is_short_root()
+                False
+                sage: RootSystem(['A',2]).root_lattice().simple_root(1).is_short_root()
+                False
+
+            """
+            ct = self.parent().cartan_type()
+            if not ct.is_irreducible():
+                raise ValueError, "Cartan type needs to be irreducible!"
+            if not ct.is_finite():
+                raise NotImplementedError, "Implemented only for irreducible finite root systems"
+            L = self.parent().root_system.ambient_space() # uses peculiarities of ambient embedding
+            ls = L(self)
+            return ls.scalar(ls) < L._maximum_root_length()
+            #Alternative implementation
+            #if ct.is_simply_laced():
+            #    return False
+            #L = self.parent().root_system.ambient_space() # uses peculiarities of ambient embedding
+            #ls = L(self)
+            #lensq = ls.scalar(ls)
+            #if lensq > 2:
+            #    return False
+            #if lensq == 1:
+            #    return True
+            ## now only types BCFG remain and the square length is 2
+            #if ct.type() == 'C' or ct.type() == 'G':
+            #    return True
+            #return False

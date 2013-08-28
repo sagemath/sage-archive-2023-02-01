@@ -643,7 +643,7 @@ class InfinitePolynomial_sparse(RingElement):
                 return self
             if not (hasattr(self._p,'variables') and self._p.variables()):
                 return self
-            if hasattr(n,'to_cycles') and hasattr(n,'__len__'): # duck typing Permutation_class
+            if hasattr(n,'to_cycles') and hasattr(n,'__len__'): # duck typing Permutation
                 # auxiliary function, necessary since n(m) raises an error if m>len(n)
                 l = len(n)
                 p = lambda m: n(m) if 0<m<=l else m
@@ -1421,7 +1421,7 @@ class InfinitePolynomial_dense(InfinitePolynomial_sparse):
                 return self
             if not (hasattr(self._p,'variables') and self._p.variables()):
                 return self
-            if hasattr(n,'to_cycles') and hasattr(n,'__len__'): # duck typing Permutation_class
+            if hasattr(n,'to_cycles') and hasattr(n,'__len__'): # duck typing Permutation
                 # auxiliary function, necessary since n(m) raises an error if m>len(n)
                 l = len(n)
                 p = lambda m: n(m) if 0<m<=l else m

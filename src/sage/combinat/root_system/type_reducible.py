@@ -60,7 +60,7 @@ class CartanType(SageObject, CartanType_abstract):
 
         sage: t = CartanType(["A",4], ["BC",5,2], ["C",3])
         sage: t.index_set()
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+        (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)
 
         sage: t.dynkin_diagram()
         O---O---O---O
@@ -204,18 +204,19 @@ class CartanType(SageObject, CartanType_abstract):
         """
         return sum(t.rank() for t in self._types)
 
+    @cached_method
     def index_set(self):
         """
         Implements :meth:`CartanType_abstract.index_set`.
 
-        For the moment, the index set is always of the form `{1,\dots,n}`.
+        For the moment, the index set is always of the form `\{1, \ldots, n\}`.
 
         EXAMPLES::
 
             sage: CartanType("A2","A1").index_set()
-            [1, 2, 3]
+            (1, 2, 3)
         """
-        return range(1, self.rank()+1)
+        return tuple(range(1, self.rank()+1))
 
     def cartan_matrix(self, subdivide=True):
         """

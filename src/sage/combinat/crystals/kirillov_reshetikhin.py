@@ -187,7 +187,7 @@ def KirillovReshetikhinCrystal(cartan_type, r, s):
 
         sage: K = KirillovReshetikhinCrystal(['A',3,1], 2, 1)
         sage: K.index_set()
-        [0, 1, 2, 3]
+        (0, 1, 2, 3)
         sage: K.list()
         [[[1], [2]], [[1], [3]], [[2], [3]], [[1], [4]], [[2], [4]], [[3], [4]]]
         sage: b=K(rows=[[1],[2]])
@@ -445,7 +445,7 @@ class KirillovReshetikhinGenericCrystal(AffineCrystalFromClassical):
             [[1, 1]]
             sage: K = KirillovReshetikhinCrystal(['E',6,1],1,1)
             sage: K.module_generator()
-            [[1]]
+            [(1,)]
 
             sage: K = KirillovReshetikhinCrystal(['D',4,1],2,1)
             sage: K.module_generator()
@@ -840,7 +840,7 @@ class KR_type_vertical(KirillovReshetikhinCrystalFromPromotion):
             [[2, -3], [-2, -1]]
         """
         T = self.classical_decomposition()
-        ind = T.index_set()
+        ind = list(T.index_set())
         ind.remove(1)
         return T.crystal_morphism( self.promotion_on_highest_weight_vectors(), index_set = ind)
 
@@ -970,18 +970,18 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
         sage: K.module_generator().e(0)
         []
         sage: K.module_generator().e(0).f(0)
-        [[[2, -1], [1]]]
+        [[(2, -1), (1,)]]
         sage: K = KirillovReshetikhinCrystal(['E',6,1], 1,1)
         sage: b = K.module_generator()
         sage: b
-        [[1]]
+        [(1,)]
         sage: b.e(0)
-        [[-2, 1]]
+        [(-2, 1)]
         sage: b = [t for t in K if t.epsilon(1) == 1 and t.phi(3) == 1 and t.phi(2) == 0 and t.epsilon(2) == 0][0]
         sage: b
-        [[-1, 3]]
+        [(-1, 3)]
         sage: b.e(0)
-        [[-1, -2, 3]]
+        [(-1, -2, 3)]
 
     The elements of the Kirillov-Reshetikhin crystals can be constructed from a classical
     crystal element using :meth:`retract`.
@@ -993,7 +993,7 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
         sage: H = HighestWeightCrystal(La[2])
         sage: t = H.module_generator()
         sage: t
-        [[[2, -1], [1]]]
+        [[(2, -1), (1,)]]
         sage: type(K.retract(t))
         <class 'sage.combinat.crystals.kirillov_reshetikhin.KR_type_E6_with_category.element_class'>
         sage: K.retract(t).e(0)
@@ -1081,9 +1081,15 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
 
             sage: K = KirillovReshetikhinCrystal(['E',6,1],2,1)
             sage: K.hw_auxiliary()
-            [[], [[[2, -1], [1]]], [[[5, -3], [-1, 3]]], [[[6, -2], [-6, 2]]],
-            [[[5, -2, -6], [-6, 2]]], [[[-1], [-6, 2]]], [[[3, -1, -6], [1]]],
-            [[[4, -3, -6], [-1, 3]]], [[[1, -3], [-1, 3]]], [[[-1], [-1, 3]]]]
+            [[], [[(2, -1), (1,)]],
+             [[(5, -3), (-1, 3)]],
+             [[(6, -2), (-6, 2)]],
+             [[(5, -2, -6), (-6, 2)]],
+             [[(-1,), (-6, 2)]],
+             [[(3, -1, -6), (1,)]],
+             [[(4, -3, -6), (-1, 3)]],
+             [[(1, -3), (-1, 3)]],
+             [[(-1,), (-1, 3)]]]
         """
         return [x for x in self.classical_decomposition() if all(x.epsilon(i) == 0 for i in [2,3,4,5])]
 
@@ -1096,11 +1102,11 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
 
             sage: K = KirillovReshetikhinCrystal(['E',6,1],2,1)
             sage: K.highest_weight_dict()
-            {[[[3, -1, -6], [1]]]: ((-1, 0, 0, 1, 0, 0, -1), 1),
-            [[[5, -2, -6], [-6, 2]]]: ((0, 0, 0, 0, 0, 1, -2), 1),
-            [[[2, -1], [1]]]: ((-2, 0, 1, 0, 0, 0, 0), 1),
-            [[[6, -2], [-6, 2]]]: ((0, 0, 0, 0, 0, 0, 0), 1),
-            []: ((0, 0, 0, 0, 0, 0, 0), 0)}
+            {[[(5, -2, -6), (-6, 2)]]: ((0, 0, 0, 0, 0, 1, -2), 1),
+             [[(3, -1, -6), (1,)]]: ((-1, 0, 0, 1, 0, 0, -1), 1),
+             [[(6, -2), (-6, 2)]]: ((0, 0, 0, 0, 0, 0, 0), 1),
+             [[(2, -1), (1,)]]: ((-2, 0, 1, 0, 0, 0, 0), 1),
+             []: ((0, 0, 0, 0, 0, 0, 0), 0)}
         """
         hw = [x for x in self.hw_auxiliary() if x.epsilon(1) == 0]
         dic = dict( ( x, tuple( [self.affine_weight(x), len(x)] ) ) for x in hw )
@@ -1118,10 +1124,10 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
             sage: K = KirillovReshetikhinCrystal(['E',6,1],2,1)
             sage: K.highest_weight_dict_inv()
             {((0, 0, 0, 0, 0, 0, 0), 0): [],
-            ((-1, -1, 0, 0, 0, 1, 0), 1): [[[5, -3], [-1, 3]]],
-            ((0, 0, 0, 0, 0, 0, 0), 1): [[[1, -3], [-1, 3]]],
-            ((0, -2, 0, 1, 0, 0, 0), 1): [[[-1], [-1, 3]]],
-            ((-2, 0, 1, 0, 0, 0, 0), 1): [[[2, -1], [1]]]}
+             ((-1, -1, 0, 0, 0, 1, 0), 1): [[(5, -3), (-1, 3)]],
+             ((0, 0, 0, 0, 0, 0, 0), 1): [[(1, -3), (-1, 3)]],
+             ((0, -2, 0, 1, 0, 0, 0), 1): [[(-1,), (-1, 3)]],
+             ((-2, 0, 1, 0, 0, 0, 0), 1): [[(2, -1), (1,)]]}
         """
         hw = [x for x in self.hw_auxiliary() if x.epsilon(6) == 0]
         dic = dict( ( tuple( [self.affine_weight(x), len(x)] ), x ) for x in hw )
@@ -1136,11 +1142,11 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
 
             sage: K = KirillovReshetikhinCrystal(['E',6,1],2,1)
             sage: [[x[0], K.automorphism_on_affine_weight(x[0])] for x in K.highest_weight_dict().values()]
-            [[(-1, 0, 0, 1, 0, 0, -1), (-1, -1, 0, 0, 0, 1, 0)],
-            [(0, 0, 0, 0, 0, 1, -2), (-2, 0, 1, 0, 0, 0, 0)],
-            [(-2, 0, 1, 0, 0, 0, 0), (0, -2, 0, 1, 0, 0, 0)],
-            [(0, 0, 0, 0, 0, 0, 0), (0, 0, 0, 0, 0, 0, 0)],
-            [(0, 0, 0, 0, 0, 0, 0), (0, 0, 0, 0, 0, 0, 0)]]
+            [[(0, 0, 0, 0, 0, 1, -2), (-2, 0, 1, 0, 0, 0, 0)],
+             [(-1, 0, 0, 1, 0, 0, -1), (-1, -1, 0, 0, 0, 1, 0)],
+             [(0, 0, 0, 0, 0, 0, 0), (0, 0, 0, 0, 0, 0, 0)],
+             [(-2, 0, 1, 0, 0, 0, 0), (0, -2, 0, 1, 0, 0, 0)],
+             [(0, 0, 0, 0, 0, 0, 0), (0, 0, 0, 0, 0, 0, 0)]]
         """
         f = self.dynkin_diagram_automorphism
         return tuple( [weight[f(f(i))] for i in self.index_set()] )
@@ -1156,10 +1162,11 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
             sage: K = KirillovReshetikhinCrystal(['E',6,1],2,1)
             sage: dic = K.promotion_on_highest_weight_vectors()
             sage: dic
-            {[[[2, -1], [1]]]: [[[-1], [-1, 3]]],
-            [[[5, -2, -6], [-6, 2]]]: [[[2, -1], [1]]],
-            [[[3, -1, -6], [1]]]: [[[5, -3], [-1, 3]]],
-            [[[6, -2], [-6, 2]]]: [], []: [[[1, -3], [-1, 3]]]}
+            {[[(5, -2, -6), (-6, 2)]]: [[(2, -1), (1,)]],
+             [[(3, -1, -6), (1,)]]: [[(5, -3), (-1, 3)]],
+             [[(6, -2), (-6, 2)]]: [],
+             [[(2, -1), (1,)]]: [[(-1,), (-1, 3)]],
+             []: [[(1, -3), (-1, 3)]]}
         """
         dic = self.highest_weight_dict()
         dic_inv = self.highest_weight_dict_inv()
@@ -1181,7 +1188,7 @@ class KR_type_E6(KirillovReshetikhinCrystalFromPromotion):
             sage: K = KirillovReshetikhinCrystal(['E',6,1], 2,1)
             sage: f = K.promotion_on_highest_weight_vectors_function()
             sage: f(K.module_generator().lift())
-            [[[-1], [-1, 3]]]
+            [[(-1,), (-1, 3)]]
         """
         return lambda x : self.promotion_on_highest_weight_vectors()[x]
 
@@ -2790,7 +2797,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             [-++-, []] [+++-, []]
         """
         T = self.classical_decomposition()
-        ind = T.index_set()
+        ind = list(T.index_set())
         ind.remove(1)
         C = T.cartan_type()
         n = C.n
@@ -2850,7 +2857,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
             [---+, []] [+--+, []]
         """
         T = self.classical_decomposition()
-        ind = T.index_set()
+        ind = list(T.index_set())
         ind.remove(1)
         C = T.cartan_type()
         n = C.n
@@ -2878,7 +2885,7 @@ class KR_type_spin(KirillovReshetikhinCrystalFromPromotion):
         """
         D = self.promotion_on_highest_weight_vectors_inverse()
         T = D.keys()[0].parent()
-        ind = T.index_set()
+        ind = list(T.index_set())
         ind.remove(1)
         C = T.cartan_type()
         n = C.n

@@ -776,19 +776,28 @@ def color_list(color, n):
         [RGB color (0.5019607843137255, 0.5019607843137255, 0.5019607843137255)]
         sage: len(color_list("grey", 3))
         3
-        sage: color_list("rainbow", 3)
+        sage: L = color_list("rainbow", 3)
+        sage: L
         [RGB color (1.0, 0.0, 0.0),
          RGB color (0.0, 1.0, 0.0),
          RGB color (0.0, 0.0, 1.0)]
+        sage: color_list(L, 3)
+        [RGB color (1.0, 0.0, 0.0),
+         RGB color (0.0, 1.0, 0.0),
+         RGB color (0.0, 0.0, 1.0)]
+        sage: color_list(L, 4)
+        Traceback (most recent call last):
+        ...
+        ValueError: expected 4 colors, got 3!
     """
     try:
         color = Color(color)
         return [color] * n
-    except ValueError, TypeError:
+    except (ValueError, TypeError):
         if isinstance(color, (list, tuple)):
             if len(color) != n:
                 raise ValueError("expected %d colors, got %d!"
-                                 % (n, len(label)))
+                                 % (n, len(color)))
             return color
         if color == "rainbow":
             return [Color(c) for c in rainbow(n, "rgbtuple")]

@@ -17,6 +17,7 @@ Basic Structures
    sage/structure/factory
    sage/structure/dynamic_class
    sage/structure/list_clone
+   sage/structure/list_clone_demo
    sage/structure/mutability
    sage/structure/sequence
    sage/structure/element_wrapper

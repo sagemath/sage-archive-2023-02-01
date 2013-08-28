@@ -93,6 +93,60 @@ def is_FreeGroup(x):
     """
     return isinstance(x, FreeGroup_class)
 
+def _lexi_gen(zeroes=False):
+    """
+    Return a generator object that produces variable names suitable for the
+    generators of a free group.
+
+    INPUT:
+
+    - ``zeroes`` -- Boolean defaulting as ``False``. If ``True``, the
+      integers appended to the output string begin at zero at the
+      first iteration through the alphabet.
+
+    OUTPUT:
+
+    Python generator object which outputs a character from the alphabet on each
+    ``.next()`` call in lexicographical order. The integer `i` is appended
+    to the output string on the `i^{th}` iteration through the alphabet.
+
+    EXAMPLES::
+
+        sage: from sage.groups.free_group import _lexi_gen
+        sage: itr = _lexi_gen()
+        sage: F = FreeGroup([itr.next() for i in [1..10]]); F
+        Free Group on generators {a, b, c, d, e, f, g, h, i, j}
+        sage: it = _lexi_gen()
+        sage: [it.next() for i in range(10)]
+        ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
+        sage: itt = _lexi_gen(True)
+        sage: [itt.next() for i in range(10)]
+        ['a0', 'b0', 'c0', 'd0', 'e0', 'f0', 'g0', 'h0', 'i0', 'j0']
+        sage: test = _lexi_gen()
+        sage: ls = [test.next() for i in range(3*26)]
+        sage: ls[2*26:3*26]
+        ['a2', 'b2', 'c2', 'd2', 'e2', 'f2', 'g2', 'h2', 'i2', 'j2', 'k2', 'l2', 'm2',
+         'n2', 'o2', 'p2', 'q2', 'r2', 's2', 't2', 'u2', 'v2', 'w2', 'x2', 'y2', 'z2']
+
+    TESTS::
+
+        sage: from sage.groups.free_group import _lexi_gen
+        sage: test = _lexi_gen()
+        sage: ls = [test.next() for i in range(500)]
+        sage: ls[234], ls[260]
+        ('a9', 'a10')
+
+    """
+    count = Integer(0)
+    while True:
+        mwrap, ind  = count.quo_rem(26)
+        if mwrap == 0 and not(zeroes):
+            name = ''
+        else:
+            name = str(mwrap)
+        name = chr(ord('a') + ind) + name
+        yield name
+        count = count + 1
 
 class FreeGroupElement(ElementLibGAP):
     """
@@ -125,7 +179,7 @@ class FreeGroupElement(ElementLibGAP):
         True
     """
 
-    def __init__(self, x, parent):
+    def __init__(self, parent, x):
         """
         The Python constructor.
 
@@ -165,7 +219,7 @@ class FreeGroupElement(ElementLibGAP):
                     i=i+1
             AbstractWordTietzeWord = libgap.eval('AbstractWordTietzeWord')
             x = AbstractWordTietzeWord(l, parent._gap_gens())
-        ElementLibGAP.__init__(self, x, parent)
+        ElementLibGAP.__init__(self, parent, x)
 
     def _latex_(self):
         """
@@ -594,18 +648,18 @@ class FreeGroup_class(UniqueRepresentation, Group, ParentLibGAP):
             <class 'sage.groups.free_group.FreeGroup_class_with_category.element_class'>
         """
         if len(args)!=1:
-            return self.element_class(*args, parent=self, **kwds)
+            return self.element_class(self, *args, **kwds)
         x = args[0]
         if x==1:
             return self.one()
         try:
             P = x.parent()
         except AttributeError:
-            return self.element_class(x, parent=self, **kwds)
+            return self.element_class(self, x, **kwds)
         if hasattr(P, '_freegroup_'):
             if P.FreeGroup() is self:
-                return self.element_class(x.Tietze(), parent=self, **kwds)
-        return self.element_class(x, parent=self, **kwds)
+                return self.element_class(self, x.Tietze(), **kwds)
+        return self.element_class(self, x, **kwds)
 
     def abelian_invariants(self):
         r"""

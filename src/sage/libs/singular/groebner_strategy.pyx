@@ -169,7 +169,8 @@ cdef class GroebnerStrategy(SageObject):
                 rChangeCurrRing(oldRing)
             else:
                 delete_skStrategy(self._strat)
-        singular_ring_delete(self._parent_ring)
+        if self._parent_ring:
+            singular_ring_delete(self._parent_ring)
 
     def _repr_(self):
         """

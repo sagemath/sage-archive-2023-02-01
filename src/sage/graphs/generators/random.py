@@ -39,8 +39,8 @@ def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
     - ``seed`` -- integer seed for random number generator (default=None).
 
     - ``fast`` -- boolean set to True (default) to use the algorithm with
-      time complexity in `O(n+m)` proposed in [3]_. It is designed for
-      generating large sparse graphs. It is faster than other methods for
+      time complexity in `O(n+m)` proposed in [BatBra2005]_. It is designed
+      for generating large sparse graphs. It is faster than other methods for
       *LARGE* instances (try it to know whether it is useful for you).
 
     - ``method`` -- By default (```method='Sage'``), this function uses the
@@ -53,12 +53,14 @@ def RandomGNP(n, p, seed=None, fast=True, method='Sage'):
 
     REFERENCES:
 
-    .. [1] P. Erdos and A. Renyi. On Random Graphs, Publ.  Math. 6, 290 (1959).
+    .. [ErdRen1959] P. Erdos and A. Renyi. On Random Graphs, Publ.
+       Math. 6, 290 (1959).
 
-    .. [2] E. N. Gilbert. Random Graphs, Ann. Math.  Stat., 30, 1141 (1959).
+    .. [Gilbert1959] E. N. Gilbert. Random Graphs, Ann. Math. Stat.,
+       30, 1141 (1959).
 
-    .. [3] V. Batagelj and U. Brandes. Efficient generation of large
-           random networks. Phys. Rev. E, 71, 036113, 2005.
+    .. [BatBra2005] V. Batagelj and U. Brandes. Efficient generation of
+       large random networks. Phys. Rev. E, 71, 036113, 2005.
 
     PLOTTING: When plotting, this graph will use the default spring-layout
     algorithm, unless a position dictionary is specified.

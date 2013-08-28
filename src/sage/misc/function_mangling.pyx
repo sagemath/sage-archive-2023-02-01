@@ -36,7 +36,7 @@ AUTHORS:
 - Simon King (2011): Use Cython. Speedup of ``fix_to_pos``, cleaning documentation.
 
 """
-
+from sage.misc.sageinspect import sage_getargspec
 
 cdef class ArgumentFixer:
     """
@@ -112,8 +112,7 @@ cdef class ArgumentFixer:
         sage: af.fix_to_pos(1,2,3,a=31,b=2,n=3)
         ((1, 2, 3), (('a', 31), ('b', 2), ('n', 3)))
 
-        """
-
+    """
     cdef public object f
     cdef public int _ndefault
     cdef public int _nargs
@@ -122,7 +121,6 @@ cdef class ArgumentFixer:
     cdef dict _defaults
     cdef public tuple _default_tuple
     def __init__(self, f, classmethod = False):
-        from sage.misc.sageinspect import sage_getargspec
         arg_names, varargs, varkw, defaults = sage_getargspec(f)
         if defaults is None:
             self._default_tuple = defaults = ()

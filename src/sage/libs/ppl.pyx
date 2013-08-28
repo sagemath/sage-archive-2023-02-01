@@ -103,9 +103,8 @@ basis vectors::
     sage: basis = range(0,5)
     sage: x = [ Variable(i) for i in basis ]
     sage: gs = Generator_System();
-    sage: for coeff in permutations(basis):
-    ...      gs.insert(point( sum( (coeff[i]+1)*x[i] for i in basis ) ))
-    ...
+    sage: for coeff in Permutations(basis):
+    ....:    gs.insert(point( sum( (coeff[i]+1)*x[i] for i in basis ) ))
     sage: C_Polyhedron(gs)
     A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 120 points
 
@@ -115,7 +114,7 @@ computation with cddlib, which needs more than 3 seconds on the same
 hardware::
 
     sage: basis = range(0,5)
-    sage: gs = [ tuple(coeff) for coeff in permutations(basis) ]
+    sage: gs = [ tuple(coeff) for coeff in Permutations(basis) ]
     sage: Polyhedron(vertices=gs, backend='cdd')  # long time (3s on sage.math, 2011)
     A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 120 vertices
 

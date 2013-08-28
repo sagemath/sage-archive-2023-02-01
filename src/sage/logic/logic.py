@@ -22,11 +22,11 @@ AUTHORS:
 
 import string
 
-#constants
+# constants
 tok_list = ['OPAREN', 'CPAREN', 'AND', 'OR', 'NOT', 'IFTHEN', 'IFF']
 bin_list = ['AND', 'OR', 'IFTHEN', 'IFF']
 operators = '()&|!<->'
-#variables
+# variables
 vars = {}
 vars_order = []
 
@@ -143,7 +143,7 @@ class SymbolicLogic:
         """
         global vars, vars_order
         toks, vars, vars_order = statement
-        if(end == -1):
+        if end == -1:
             end = 2 ** len(vars)
         table = [statement]
         keys = vars_order
@@ -218,7 +218,7 @@ class SymbolicLogic:
         for var in vars_order:
             vars_len.append(len(var))
             s = var + ' '
-            while(len(s) < len('False ')):
+            while len(s) < len('False '):
                 s += ' '
             s += '| '
             line += s
@@ -233,8 +233,8 @@ class SymbolicLogic:
                 else:
                     j = 1
                 s = e + ' ' * j
-                if(i < len(vars_len)):
-                    while(len(s) <= vars_len[i]):
+                if i < len(vars_len):
+                    while len(s) <= vars_len[i]:
                         s += ' '
                 s += '| '
                 line += s
@@ -273,14 +273,14 @@ def get_bit(x, c):
             returns 'True' if bit c of number x is 1 'False' otherwise
     """
     bits = []
-    while(x > 0):
-         if(x % 2 == 0):
+    while x > 0:
+         if x % 2 == 0:
              b = 'False'
          else:
              b = 'True'
          x /= 2
          bits.append(b)
-    if(c > len(bits) - 1):
+    if c > len(bits) - 1:
         return 'False'
     else:
         return bits[c]
@@ -302,13 +302,13 @@ def eval(toks):
     stack = []
     for tok in toks:
         stack.append(tok)
-        if(tok == 'CPAREN'):
+        if tok == 'CPAREN':
             lrtoks = []
-            while(tok != 'OPAREN'):
+            while tok != 'OPAREN':
                 tok = stack.pop()
                 lrtoks.insert(0, tok)
             stack.append(eval_ltor_toks(lrtoks[1:-1]))
-    if(len(stack) > 1):
+    if len(stack) > 1:
         raise RuntimeError
     return stack[0]
 
@@ -327,9 +327,9 @@ def eval_ltor_toks(lrtoks):
             returns 'True' if evaluates to true with variables in vars and
             'False' otherwise
     """
-    reduce_monos(lrtoks)        #monotonic ! operators go first
-    reduce_bins(lrtoks)         #then the binary operators
-    if(len(lrtoks) > 1):
+    reduce_monos(lrtoks)        # monotonic ! operators go first
+    reduce_bins(lrtoks)         # then the binary operators
+    if len(lrtoks) > 1:
         raise RuntimeError
     return lrtoks[0]
 
@@ -349,8 +349,8 @@ def reduce_bins(lrtoks):
             'False'
     """
     i = 0
-    while(i < len(lrtoks)):
-        if(lrtoks[i] in bin_list):
+    while i < len(lrtoks):
+        if lrtoks[i] in bin_list:
             args = [lrtoks[i - 1], lrtoks[i], lrtoks[i + 1]]
             lrtoks[i - 1] = eval_bin_op(args)
             del lrtoks[i]
@@ -373,8 +373,8 @@ def reduce_monos(lrtoks):
             operators.
     """
     i = 0
-    while(i < len(lrtoks)):
-        if(lrtoks[i] == 'NOT'):
+    while i < len(lrtoks):
+        if lrtoks[i] == 'NOT':
             args = [lrtoks[i], lrtoks[i + 1]]
             lrtoks[i] = eval_mon_op(args)
             del lrtoks[i + 1]
@@ -396,12 +396,12 @@ def eval_mon_op(args):
             returns the inverse of the boolean value represented by the
             variable
     """
-    if(args[1] != 'True' and args[1] != 'False'):
+    if args[1] != 'True' and args[1] != 'False':
         val = vars[args[1]]
     else:
         val = args[1]
 
-    if(val == 'True'):
+    if val == 'True':
         return 'False'
     else:
         return 'True'
@@ -423,27 +423,27 @@ def eval_bin_op(args):
             returns the boolean evaluation of the operator based on
             the values of the variables
     """
-    if(args[0] == 'False'):
+    if args[0] == 'False':
         lval = 'False'
-    elif(args[0] == 'True'):
+    elif args[0] == 'True':
         lval = 'True'
     else:
         lval = vars[args[0]]
 
-    if(args[2] == 'False'):
+    if args[2] == 'False':
         rval = 'False'
-    elif(args[2] == 'True'):
+    elif args[2] == 'True':
         rval = 'True'
     else:
         rval = vars[args[2]]
 
-    if(args[1] == 'AND'):
+    if args[1] == 'AND':
         return eval_and_op(lval, rval)
-    elif(args[1] == 'OR'):
+    elif args[1] == 'OR':
         return eval_or_op(lval, rval)
-    elif(args[1] == 'IFTHEN'):
+    elif args[1] == 'IFTHEN':
         return eval_ifthen_op(lval, rval)
-    elif(args[1] == 'IFF'):
+    elif args[1] == 'IFF':
         return eval_iff_op(lval, rval)
 
 def eval_and_op(lval, rval):
@@ -460,13 +460,13 @@ def eval_and_op(lval, rval):
         OUTPUT:
             returns the logical 'and' operator applied to lval and rval.
     """
-    if(lval == 'False' and rval == 'False'):
+    if lval == 'False' and rval == 'False':
         return 'False'
-    elif(lval == 'False' and rval == 'True'):
+    elif lval == 'False' and rval == 'True':
         return 'False'
-    elif(lval == 'True' and rval == 'False'):
+    elif lval == 'True' and rval == 'False':
         return 'False'
-    elif(lval == 'True' and rval == 'True'):
+    elif lval == 'True' and rval == 'True':
         return 'True'
 
 def eval_or_op(lval, rval):
@@ -483,13 +483,13 @@ def eval_or_op(lval, rval):
         OUTPUT:
             returns the logical 'or' operator applied to lval and rval.
     """
-    if(lval == 'False' and rval == 'False'):
+    if lval == 'False' and rval == 'False':
         return 'False'
-    elif(lval == 'False' and rval == 'True'):
+    elif lval == 'False' and rval == 'True':
         return 'True'
-    elif(lval == 'True' and rval == 'False'):
+    elif lval == 'True' and rval == 'False':
         return 'True'
-    elif(lval == 'True' and rval == 'True'):
+    elif lval == 'True' and rval == 'True':
         return 'True'
 
 def eval_ifthen_op(lval, rval):
@@ -506,13 +506,13 @@ def eval_ifthen_op(lval, rval):
         OUTPUT:
             returns the logical 'if then' operator applied to lval and rval.
     """
-    if(lval == 'False' and rval == 'False'):
+    if lval == 'False' and rval == 'False':
         return 'True'
-    elif(lval == 'False' and rval == 'True'):
+    elif lval == 'False' and rval == 'True':
         return 'True'
-    elif(lval == 'True' and rval == 'False'):
+    elif lval == 'True' and rval == 'False':
         return 'False'
-    elif(lval == 'True' and rval == 'True'):
+    elif lval == 'True' and rval == 'True':
         return 'True'
 
 def eval_iff_op(lval, rval):
@@ -533,13 +533,13 @@ only if
             returns the logical 'if and only if' operator applied to lval
 and rval.
     """
-    if(lval == 'False' and rval == 'False'):
+    if lval == 'False' and rval == 'False':
         return 'True'
-    elif(lval == 'False' and rval == 'True'):
+    elif lval == 'False' and rval == 'True':
         return 'False'
-    elif(lval == 'True' and rval == 'False'):
+    elif lval == 'True' and rval == 'False':
         return 'False'
-    elif(lval == 'True' and rval == 'True'):
+    elif lval == 'True' and rval == 'True':
         return 'True'
 
 def tokenize(s, toks):
@@ -559,52 +559,51 @@ def tokenize(s, toks):
             the tokens are placed in toks
     """
     i = 0
-    while(i < len(s)):
+    while i < len(s):
         tok = ""
         skip = valid = 1
-        if(s[i] == '('):
+        if s[i] == '(':
             tok = tok_list[0]
-        elif(s[i] == ')'):
+        elif s[i] == ')':
             tok = tok_list[1]
-        elif(s[i] == '&'):
+        elif s[i] == '&':
             tok = tok_list[2]
-        elif(s[i] == '|'):
+        elif s[i] == '|':
             tok = tok_list[3]
-        elif(s[i] == '!'):
+        elif s[i] == '!':
             tok = tok_list[4]
-        elif(s[i:i + 2] == '->'):
+        elif s[i:i + 2] == '->':
             tok = tok_list[5]
             skip = 2
-        elif(s[i:i + 3] == '<->'):
+        elif s[i:i + 3] == '<->':
             tok = tok_list[6]
             skip = 3
 
-        if(len(tok) > 0):
+        if len(tok) > 0:
             toks.append(tok)
             i += skip
             continue
         else:
-            #token is a variable name
+            # token is a variable name
             if(s[i] == ' '):
                  i += 1
                  continue
 
-            while(i < len(s) and s[i] not in operators and s[i] != ' '):
+            while i < len(s) and s[i] not in operators and s[i] != ' ':
                 tok += s[i]
                 i += 1
 
-            if(len(tok) > 0):
-                if(tok[0] not in string.letters):
+            if len(tok) > 0:
+                if tok[0] not in string.letters:
                     valid = 0
                 for c in tok:
-                    if(c not in string.letters and c not in string.digits
-and c != '_'):
+                    if c not in string.letters and c not in string.digits and c != '_':
                         valid = 0
 
-            if(valid == 1):
+            if valid == 1:
                 toks.append(tok)
                 vars[tok] = 'False'
-                if(tok not in vars_order):
+                if tok not in vars_order:
                     vars_order.append(tok)
             else:
                 print 'Invalid variable name: ', tok

@@ -17,6 +17,7 @@ Elliptic and Plane Curves
    sage/schemes/plane_conics/con_prime_finite_field
 
    sage/schemes/elliptic_curves/constructor
+   sage/schemes/elliptic_curves/jacobian
    sage/schemes/elliptic_curves/ell_generic
    sage/schemes/elliptic_curves/ell_field
    sage/schemes/elliptic_curves/ell_rational_field

@@ -1060,7 +1060,7 @@ class Polyhedron_base(Element):
 
         EXAMPLES::
 
-            sage: permuta3 = Polyhedron(vertices = permutations([1,2,3,4]))
+            sage: permuta3 = Polyhedron(vertices = Permutations([1,2,3,4]))
             sage: permuta3.vertex_adjacencies()[0:3]
             doctest:...: DeprecationWarning:
             This method is deprecated. Use self.Vrepresentation(i).neighbors() instead.
@@ -1164,7 +1164,7 @@ class Polyhedron_base(Element):
             (An inequality (1, 0, 0) x + 0 >= 0,
              An inequality (0, 1, 0) x + 0 >= 0,
              An inequality (0, 0, 1) x + 0 >= 0)
-            sage: p3 = Polyhedron(vertices = permutations([1,2,3,4]))
+            sage: p3 = Polyhedron(vertices = Permutations([1,2,3,4]))
             sage: ieqs = p3.inequalities()
             sage: ieqs[0]
             An inequality (0, 1, 1, 1) x - 6 >= 0
@@ -1188,7 +1188,7 @@ class Polyhedron_base(Element):
             sage: p = Polyhedron(vertices = [[0,0,0],[0,0,1],[0,1,0],[1,0,0],[2,2,2]])
             sage: p.inequalities_list()[0:3]
             [[0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
-            sage: p3 = Polyhedron(vertices = permutations([1,2,3,4]))
+            sage: p3 = Polyhedron(vertices = Permutations([1,2,3,4]))
             sage: ieqs = p3.inequalities_list()
             sage: ieqs[0]
             [-6, 0, 1, 1, 1]
@@ -1205,7 +1205,7 @@ class Polyhedron_base(Element):
 
         EXAMPLES::
 
-            sage: p3 = Polyhedron(vertices = permutations([1,2,3,4]))
+            sage: p3 = Polyhedron(vertices = Permutations([1,2,3,4]))
             sage: p3.ieqs() == p3.inequalities()
             doctest:...: DeprecationWarning:
             This method is deprecated. Use inequalities() instead.
@@ -2581,13 +2581,23 @@ class Polyhedron_base(Element):
              A vertex at (4, 8, 16)
              sage: p.dilation(2) == p * 2
              True
+
+        TESTS:
+
+        Dilation of empty polyhedrons works, see :trac:`14987`::
+
+             sage: p = Polyhedron(ambient_dim=2); p
+             The empty polyhedron in ZZ^2
+             sage: p.dilation(3)
+             The empty polyhedron in ZZ^2
         """
         new_vertices = [ list(scalar*v.vector()) for v in self.vertex_generator()]
         new_rays =  self.rays()
         new_lines = self.lines()
         return Polyhedron(vertices=new_vertices,
                           rays=new_rays, lines=new_lines,
-                          base_ring=self.parent()._coerce_base_ring(scalar))
+                          base_ring=self.parent()._coerce_base_ring(scalar),
+                          ambient_dim=self.ambient_dim())
 
     def _acted_upon_(self, actor, self_on_left):
         """

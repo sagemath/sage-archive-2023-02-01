@@ -301,7 +301,7 @@ class SageDev(object):
             sage: UI.append("Summary: ticket merge\ndescription")
             sage: dev.create_ticket()
             Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] n
-            Could not switch to branch ticket/7 because your working directory is not clean.
+            Could not switch to branch `ticket/7` because your working directory is not clean.
             sage: dev.git.reset_to_clean_state()
 
         Creating a ticket with uncommitted changes::
@@ -314,7 +314,7 @@ class SageDev(object):
             The following files in your working directory contain uncommitted changes:
              tracked
             Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
-            Could not switch to branch ticket/8 because your working directory is not clean.
+            Could not switch to branch `ticket/8` because your working directory is not clean.
 
         """
         dependencies = []
@@ -442,7 +442,7 @@ class SageDev(object):
             sage: bob.git.super_silent.commit(allow_empty=True,message="empty commit")
             sage: bob._UI.append("y")
             sage: bob.upload()
-            The branch u/bob/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch `u/bob/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
 
             sage: alice._chdir()
             sage: alice.switch_ticket(1)
@@ -456,7 +456,7 @@ class SageDev(object):
             sage: alice.git.super_silent.checkout('HEAD', detach=True)
             sage: alice.git.super_silent.branch('-d','ticket/1')
             sage: alice.switch_ticket(1) # ticket #1 refers to the non-existant branch 'ticket/1'
-            Ticket #1 refers to the non-existant local branch ticket/1. If you have not manually interacted with git, then this is a bug in sagedev. Removing the association from ticket #1 to branch ticket/1.
+            Ticket #1 refers to the non-existant local branch `ticket/1`. If you have not manually interacted with git, then this is a bug in sagedev. Removing the association from ticket #1 to branch `ticket/1`.
             sage: alice.git.current_branch()
             'ticket/1'
             sage: alice.git.echo.log('--pretty=%s')
@@ -598,7 +598,7 @@ class SageDev(object):
             The following files in your working directory contain uncommitted changes:
              tracked
             Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
-            Could not switch to branch branch1 because your working directory is not clean.
+            Could not switch to branch `branch1` because your working directory is not clean.
 
         We can stash uncommitted changes::
 
@@ -641,7 +641,7 @@ class SageDev(object):
             sage: UI.append('n')
             sage: dev.switch_branch('merge_branch')
             Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] n
-            Could not switch to branch merge_branch because your working directory is not clean.
+            Could not switch to branch `merge_branch` because your working directory is not clean.
             sage: dev.git.reset_to_clean_state()
 
         Switching branches when in a detached HEAD::
@@ -733,7 +733,7 @@ class SageDev(object):
             sage: alice.git.super_silent.commit(allow_empty=True, message="alice: empty commit")
             sage: alice._UI.append("y")
             sage: alice.upload()
-            The branch u/alice/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch `u/alice/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
 
         Bob downloads the changes for ticket 1::
 
@@ -751,7 +751,7 @@ class SageDev(object):
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.upload()
-            The branch u/bob/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch `u/bob/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
             I will now change the branch field of ticket #1 from its current value `u/alice/ticket/1` to `u/bob/ticket/1`. Is this what you want? [Yes/no] y
 
         Alice commits non-conflicting changes::
@@ -1114,7 +1114,7 @@ class SageDev(object):
             sage: alice.git.super_silent.commit(message="alice: added tracked")
             sage: alice._UI.append("y")
             sage: alice.upload()
-            The branch u/alice/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch `u/alice/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
 
         Now Bob can switch to that ticket and upload changes himself::
 
@@ -1126,7 +1126,7 @@ class SageDev(object):
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.upload()
-            The branch u/bob/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch `u/bob/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
             I will now change the branch field of ticket #1 from its current value `u/alice/ticket/1` to `u/bob/ticket/1`. Is this what you want? [Yes/no] y
 
         Now Alice can download these changes::
@@ -1192,14 +1192,14 @@ class SageDev(object):
             sage: bob._UI.append("y")
             sage: bob.upload(2)
             You are trying to push the branch `ticket/1` to `u/bob/ticket/2` for ticket #2. However, your local branch for ticket #2 seems to be `ticket/2`. Do you really want to proceed? [yes/No] y
-            The branch u/bob/ticket/2 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch `u/bob/ticket/2` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
 
         Check that ``remote_branch`` works::
 
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.upload(remote_branch="u/bob/branch1")
-            The branch u/bob/branch1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch `u/bob/branch1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
             I will now change the branch field of ticket #1 from its current value `u/bob/ticket/1` to `u/bob/branch1`. Is this what you want? [Yes/no] y
 
         """
@@ -1710,7 +1710,7 @@ class SageDev(object):
 
             sage: UI.append("y")
             sage: dev.upload()
-            The branch u/doctest/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch `u/doctest/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
             sage: dev.remote_status()
             Ticket #1 (https://trac.sagemath.org/ticket/1)
             ==============================================
@@ -1765,7 +1765,7 @@ class SageDev(object):
             sage: dev.git.silent.commit(message="added tracked4")
             sage: dev._UI.append("y")
             sage: dev.upload(remote_branch="u/doctest/branch1", force=True)
-            The branch u/doctest/branch1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch `u/doctest/branch1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
             sage: dev.git.silent.reset('HEAD~', hard=True)
             sage: dev.remote_status()
             Ticket #1 (https://trac.sagemath.org/ticket/1)
@@ -2339,14 +2339,11 @@ class SageDev(object):
             sage: dev._UI.append("y")
             sage: dev._UI.append("y")
             sage: dev.upload()
-            The branch u/doctest/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch `u/doctest/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
 
         Gather all these branches::
 
             sage: dev.gather("gather_branch", "#1", "ticket/1", "u/doctest/ticket/1")
-            Merging the remote branch `u/doctest/ticket/1` into the local branch `gather_branch`.
-            Merging the remote branch `u/doctest/ticket/1` into the local branch `gather_branch`.
-            Merging the remote branch `u/doctest/ticket/1` into the local branch `gather_branch`.
 
         """
         try:
@@ -2487,7 +2484,7 @@ class SageDev(object):
             sage: alice.switch_ticket(1)
             sage: alice._UI.append("y")
             sage: alice.upload()
-            The branch u/alice/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch `u/alice/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
             sage: alice.switch_ticket(2)
             sage: alice.merge("#1", download=False)
             Merging the local branch `ticket/1` into the local branch `ticket/2`.
@@ -2516,7 +2513,7 @@ class SageDev(object):
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.upload()
-            The branch u/bob/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch `u/bob/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
             I will now change the branch field of ticket #1 from its current value `u/alice/ticket/1` to `u/bob/ticket/1`. Is this what you want? [Yes/no] y
 
         The merge now requires manual conflict resolution::
@@ -2791,19 +2788,19 @@ class SageDev(object):
             1
             sage: UI.append("y")
             sage: dev.upload()
-            The branch u/doctest/ticket/1 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch `u/doctest/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             2
             sage: UI.append("y")
             sage: dev.upload()
-            The branch u/doctest/ticket/2 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch `u/doctest/ticket/2` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             3
             sage: UI.append("y")
             sage: dev.upload()
-            The branch u/doctest/ticket/3 does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch `u/doctest/ticket/3` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
             sage: dev.merge("#1")
             Merging the remote branch `u/doctest/ticket/1` into the local branch `ticket/3`.
             Added dependency on #1 to #3.

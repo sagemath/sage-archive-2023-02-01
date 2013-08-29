@@ -33,7 +33,7 @@ The ID of a vertex is its index in the vertex list.
     - ``color`` -- color (hexadecimal code)
 
     -``curve`` -- distance from the barycenter of the two endpoints and the
-      center of the edge. It defines the curve or the edge, which can be useful
+      center of the edge. It defines the curve of the edge, which can be useful
       for multigraphs.
 
 - ``pos`` -- a list whose `i` th element is a dictionary defining the position of
@@ -46,9 +46,9 @@ definition can be found in the documentation of :meth:`show` : ``directed``,
 
 .. TODO::
 
-   - Add tooltip like in `<http://bl.ocks.org/bentwonk/2514276>`_.
+    - Add tooltip like in `<http://bl.ocks.org/bentwonk/2514276>`_.
 
-   - Add a zoom through scrolling (`<http://bl.ocks.org/mbostock/3681006>`_).
+    - Add a zoom through scrolling (`<http://bl.ocks.org/mbostock/3681006>`_).
 
 Authors:
 
@@ -73,19 +73,19 @@ import os
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+
 def show(G,
-          vertex_labels = False,
-          edge_labels = False,
-          vertex_partition = [],
-          edge_partition = [],
-          force_spring_layout = False,
-          charge=-120,
-          link_distance=30,
-          link_strength=2,
-          gravity=.04,
-          vertex_size=7,
-          edge_thickness=4
-          ):
+         vertex_labels=False,
+         edge_labels=False,
+         vertex_partition=[],
+         edge_partition=[],
+         force_spring_layout=False,
+         charge=-120,
+         link_distance=30,
+         link_strength=2,
+         gravity=.04,
+         vertex_size=7,
+         edge_thickness=4):
     r"""
     Displays the graph in a browser using `d3.js <http://d3js.org/>`_.
 
@@ -158,107 +158,111 @@ def show(G,
     multiple_edges = G.has_multiple_edges()
 
     # Associated an integer to each vertex
-    v_to_id = {v:i for i,v in enumerate(G.vertices())}
+    v_to_id = {v: i for i, v in enumerate(G.vertices())}
 
     # Vertex colors
-    color = {i:len(vertex_partition) for i in range(G.order())}
-    for i,l in enumerate(vertex_partition):
+    color = {i: len(vertex_partition) for i in range(G.order())}
+    for i, l in enumerate(vertex_partition):
         for v in l:
             color[v_to_id[v]] = i
 
     # Vertex list
     nodes = []
     for v in G.vertices():
-        nodes.append({"name":str(v),"group":str(color[v_to_id[v]])})
+        nodes.append({"name": str(v), "group": str(color[v_to_id[v]])})
 
     # Edge colors.
     edge_color_default = "#aaa"
     color_list = rainbow(len(edge_partition))
     edge_color = {}
-    for i,l in enumerate(edge_partition):
+    for i, l in enumerate(edge_partition):
         for e in l:
-            u,v,label = e if len(e) == 3 else e+(None,)
-            edge_color[u,v,label] = color_list[i]
+            u, v, label = e if len(e) == 3 else e+(None,)
+            edge_color[u, v, label] = color_list[i]
             if not directed:
-                edge_color[v,u,label] = color_list[i]
+                edge_color[v, u, label] = color_list[i]
 
     # Edge list
     edges = []
-    seen = {} # How many times has this edge been seen ?
+    seen = {}  # How many times has this edge been seen ?
 
-    for u,v,l in G.edges():
+    for u, v, l in G.edges():
 
         # Edge color
-        color = edge_color.get((u,v,l),edge_color_default)
+        color = edge_color.get((u, v, l), edge_color_default)
 
         # Computes the curve of the edge
         curve = 0
 
         # Loop ?
         if u == v:
-            seen[u,v] = seen.get((u,v),0)+1
-            curve = seen[u,v]*10+10
+            seen[u, v] = seen.get((u, v), 0)+1
+            curve = seen[u, v]*10+10
 
         # For directed graphs, one also has to take into accounts
         # edges in the opposite direction
         elif directed:
-            if G.has_edge(v,u):
-                seen[u,v] = seen.get((u,v),0)+1
-                curve = seen[u,v]*15
+            if G.has_edge(v, u):
+                seen[u, v] = seen.get((u, v), 0)+1
+                curve = seen[u, v]*15
             else:
-                if multiple_edges and len(G.edge_label(u,v)) != 1:
+                if multiple_edges and len(G.edge_label(u, v)) != 1:
                     # Multiple edges. The first one has curve 15, then
                     # -15, then 30, then -30, ...
-                    seen[u,v] = seen.get((u,v),0) + 1
-                    curve = (1 if seen[u,v]%2 else -1)*(seen[u,v]//2)*15
+                    seen[u, v] = seen.get((u, v), 0) + 1
+                    curve = (1 if seen[u, v] % 2 else -1)*(seen[u, v]//2)*15
 
         elif not directed and multiple_edges:
             # Same formula as above for multiple edges
-            if len(G.edge_label(u,v)) != 1:
-                seen[u,v] = seen.get((u,v),0) + 1
-                curve = (1 if seen[u,v]%2 else -1)*(seen[u,v]//2)*15
+            if len(G.edge_label(u, v)) != 1:
+                seen[u, v] = seen.get((u, v), 0) + 1
+                curve = (1 if seen[u, v] % 2 else -1)*(seen[u, v]//2)*15
 
         # Adding the edge to the list
-        edges.append({"source":v_to_id[u],
-                      "target":v_to_id[v],
-                      "strength":0,
-                      "color":color,
-                      "curve":curve,
-                      "name":str(l) if edge_labels else ""})
+        edges.append({"source": v_to_id[u],
+                      "target": v_to_id[v],
+                      "strength": 0,
+                      "color": color,
+                      "curve": curve,
+                      "name": str(l) if edge_labels else ""})
 
-    loops = [e for e in edges if e["source"]==e["target"]]
-    edges = [e for e in edges if e["source"]!=e["target"]]
+    loops = [e for e in edges if e["source"] == e["target"]]
+    edges = [e for e in edges if e["source"] != e["target"]]
 
     # Defines the vertices' layout if possible
     Gpos = G.get_pos()
     pos = []
     if Gpos is not None and force_spring_layout is False:
-        charge=0;
-        link_strength=0;
-        gravity=0;
+        charge = 0
+        link_strength = 0
+        gravity = 0
 
         for v in G.vertices():
-            x,y = Gpos[v]
-            pos.append([x,-y])
+            x, y = Gpos[v]
+            pos.append([x, -y])
 
     # Encodes the data as a JSON string
     from json import JSONEncoder
-    string = JSONEncoder().encode({"nodes":nodes,"links":edges,"loops":loops,"pos":pos,
-                                   "directed":G.is_directed(),
-                                   "charge":int(charge),"link_distance":int(link_distance),
-                                   "link_strength":int(link_strength),"gravity":float(gravity),
-                                   "vertex_labels":bool(vertex_labels),"edge_labels":bool(edge_labels),
-                                   "vertex_size":int(vertex_size),
-                                   "edge_thickness":int(edge_thickness)})
+    string = JSONEncoder().encode({"nodes": nodes,
+                                   "links": edges, "loops": loops, "pos": pos,
+                                   "directed": G.is_directed(),
+                                   "charge": int(charge),
+                                   "link_distance": int(link_distance),
+                                   "link_strength": int(link_strength),
+                                   "gravity": float(gravity),
+                                   "vertex_labels": bool(vertex_labels),
+                                   "edge_labels": bool(edge_labels),
+                                   "vertex_size": int(vertex_size),
+                                   "edge_thickness": int(edge_thickness)})
 
     from sage.misc.misc import SAGE_ROOT
-    js_code_file = open(SAGE_ROOT+"/devel/sage/sage/graphs/graph_plot_js.html",'r')
-    js_code = js_code_file.read().replace("// HEREEEEEEEEEEE",string)
+    js_code_file = open(SAGE_ROOT+"/devel/sage/sage/graphs/graph_plot_js.html", 'r')
+    js_code = js_code_file.read().replace("// HEREEEEEEEEEEE", string)
     js_code_file.close()
 
     # Writes the temporary .html file
     filename = tmp_filename(ext='.html')
-    f = open(filename,'w')
+    f = open(filename, 'w')
     f.write(js_code)
     f.close()
 
@@ -266,4 +270,3 @@ def show(G,
     from sage.misc.viewer import browser
     os.system('%s %s 2>/dev/null 1>/dev/null &'
               % (browser(), filename))
-

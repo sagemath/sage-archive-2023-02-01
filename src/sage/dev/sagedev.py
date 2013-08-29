@@ -357,16 +357,16 @@ class SageDev(object):
 
         # create a new branch for the ticket
         self.git.silent.branch(branch, base)
-        self._UI.info("Branch {0} created from branch {1}.".format(branch, base))
+        self._UI.info("Branch `{0}` created from branch `{1}`.".format(branch, base))
         try:
             self._set_local_branch_for_ticket(ticket, branch)
             if dependencies:
                 self._set_dependencies_for_ticket(ticket, dependencies)
-                self._UI.info("Dependencies {0} recorded locally for ticket #{1}.".format(", ".join(['#'+str(dep) for dep in dependencies]), ticket))
+                self._UI.info("Dependencies `{0}` recorded locally for ticket #{1}.".format(", ".join(['#'+str(dep) for dep in dependencies]), ticket))
             self._set_remote_branch_for_branch(branch, remote_branch)
-            self._UI.info("Branch {0} will pull from/push to remote branch {1}. Use {2} to set a different remote branch.".format(branch, remote_branch, self._format_command("set_remote", {"branch":branch, "remote":"remote_branch"})))
+            self._UI.info("Branch `{0}` will pull from/push to remote branch `{1}`. Use `{2}` to set a different remote branch.".format(branch, remote_branch, self._format_command("set_remote", {"branch":branch, "remote":"remote_branch"})))
         except:
-            self._UI.info("An error ocurred. Deleting branch {0}.".format(branch))
+            self._UI.info("An error ocurred. Deleting branch `{0}`.".format(branch))
 
             self.git.silent.branch(branch, delete=True)
             self._set_dependencies_for_ticket(ticket, None)
@@ -376,11 +376,11 @@ class SageDev(object):
             raise
 
         # switch to the new branch
-        self._UI.info("Now switching to your new branch {0}.".format(branch))
+        self._UI.info("Now switching to your new branch `{0}`.".format(branch))
         try:
             self.switch_ticket(ticket)
         except:
-            self._UI.info("Your ticket has been created on trac. However, an error ocurred while switching to your new branch {0}. Use {1} to manually switch to {0}.".format(branch,self._format_command("switch_ticket",str(ticket))))
+            self._UI.info("Your ticket has been created on trac. However, an error ocurred while switching to your new branch `{0}`. Use `{1}` to manually switch to `{0}`.".format(branch,self._format_command("switch_ticket",str(ticket))))
             raise
 
         return ticket
@@ -511,7 +511,7 @@ class SageDev(object):
         if branch is None:
             if self._has_local_branch_for_ticket(ticket):
                 branch = self._local_branch_for_ticket(ticket)
-                self._UI.info("Switching to branch {0}.".format(branch))
+                self._UI.info("Switching to branch `{0}`.".format(branch))
                 self.switch_branch(branch)
                 return
             else:
@@ -523,14 +523,14 @@ class SageDev(object):
         if self._is_local_branch_name(branch, exists=True):
             # reset ticket to point to branch and checkout
             self._set_local_branch_for_ticket(ticket, branch)
-            self._UI.info("Set local branch for ticket #{0} to {1}.".format(ticket, branch))
+            self._UI.info("Set local branch for ticket #{0} to `{1}`.".format(ticket, branch))
             self.switch_ticket(ticket, branch=None)
             return
 
         remote_branch = self.trac._branch_for_ticket(ticket)
         dependencies = self.trac.dependencies(ticket)
         if remote_branch is None: # branch field is not set on ticket
-            self._UI.info("The branch field on ticket #{0} is not set. Creating a new branch {1} off the master branch {2}.".format(ticket, branch, MASTER_BRANCH))
+            self._UI.info("The branch field on ticket #{0} is not set. Creating a new branch `{1}` off the master branch `{2}`.".format(ticket, branch, MASTER_BRANCH))
             self.git.silent.branch(branch, MASTER_BRANCH)
         else:
             try:
@@ -543,12 +543,12 @@ class SageDev(object):
             self._set_local_branch_for_ticket(ticket, branch)
             self._set_dependencies_for_ticket(ticket, dependencies)
         except:
-            self._UI.info("An error ocurred. Deleting branch {0}.".format(branch))
+            self._UI.info("An error ocurred. Deleting branch `{0}`.".format(branch))
             self._set_local_branch_for_ticket(ticket, None)
             self.git.silent.branch("-d",branch)
             raise
 
-        self._UI.info("Switching to newly created branch {0}.".format(branch))
+        self._UI.info("Switching to newly created branch `{0}`.".format(branch))
         self.switch_branch(branch)
 
     def switch_branch(self, branch):
@@ -680,7 +680,7 @@ class SageDev(object):
             self.reset_to_clean_state()
             self.reset_to_clean_working_directory()
         except OperationCancelledError:
-            self._UI.error("Could not switch to branch {0} because your working directory is not clean.".format(branch))
+            self._UI.error("Could not switch to branch `{0}` because your working directory is not clean.".format(branch))
             raise
 
         try:
@@ -853,7 +853,7 @@ class SageDev(object):
 
         self._check_remote_branch_name(remote_branch, exists=True)
 
-        self._UI.info("Fetching remote branch {0} into {1}.".format(remote_branch, branch))
+        self._UI.info("Fetching remote branch `{0}` into `{1}`.".format(remote_branch, branch))
         from git_error import DetachedHeadError
         try:
             current_branch = self.git.current_branch()
@@ -873,7 +873,7 @@ class SageDev(object):
                 # that made a pull impossible
                 # is there a way to find out?
                 e.explain = "Pulling `{0}` into `{1}` failed. Most probably this happened because this did not resolve as a fast-forward, i.e., there were conflicting changes. Maybe there are untracked files in your working directory which made the pull impossible.".format(remote_branch, branch)
-                e.advice =  "You can try to use {0} to resolve any conflicts manually.".format(self._format_command("merge",{"remote_branch":remote_branch}))
+                e.advice =  "You can try to use `{0}` to resolve any conflicts manually.".format(self._format_command("merge",{"remote_branch":remote_branch}))
                 raise
         else:
             try:
@@ -887,7 +887,7 @@ class SageDev(object):
                 e.explain = "Fetching `{0}` into `{1}` failed.".format(remote_branch, branch)
                 if self._is_local_branch_name(branch, exists=True):
                     e.explain += " Most probably this happened because the fetch did not resolve as a fast-forward, i.e., there were conflicting changes."
-                    e.advice = "You can try to use {2} to switch to {1} and then use {3} to resolve these conflicts manually.".format(remote_branch, branch, self._format_command("switch-branch",branch), self._format_command("merge",{"remote_branch":remote_branch}))
+                    e.advice = "You can try to use `{2}` to switch to `{1}` and then use `{3}` to resolve these conflicts manually.".format(remote_branch, branch, self._format_command("switch-branch",branch), self._format_command("merge",{"remote_branch":remote_branch}))
                 else:
                     # is there any advice one could give to the user?
                     pass
@@ -946,7 +946,7 @@ class SageDev(object):
             branch = self.git.current_branch()
         except DetachedHeadError:
             self._UI.error("Cannot commit changes when not on any branch.")
-            self._UI.info("Use {0} or {1} to switch to a branch.".format(self._format_command("switch_branch"), self._format_command("switch_ticket")))
+            self._UI.info("Use `{0}` or `{1}` to switch to a branch.".format(self._format_command("switch_branch"), self._format_command("switch_ticket")))
             raise OperationCancelledError("cannot proceed in detached HEAD mode")
 
         # make sure the index is clean
@@ -969,7 +969,7 @@ class SageDev(object):
                     self.git.echo.add(update=True)
 
                 if not self._UI.confirm("Do you want to commit your changes to branch `{0}`? I will prompt you for a commit message if you do.".format(branch), default=True):
-                    self._UI.info("If you want to commit to a different branch/ticket, run {0} or {1} first.".format(self._format_command("switch_branch"), self._format_command("switch_ticket")))
+                    self._UI.info("If you want to commit to a different branch/ticket, run `{0}` or `{1}` first.".format(self._format_command("switch_branch"), self._format_command("switch_ticket")))
                     raise OperationCancelledError("user does not want to create a commit")
 
                 from tempfile import NamedTemporaryFile
@@ -1249,7 +1249,7 @@ class SageDev(object):
         try:
             remote_branch_exists = self._is_remote_branch_name(remote_branch, exists=True)
             if not remote_branch_exists:
-                if not self._UI.confirm("The branch {0} does not exist on the remote server yet. Do you want to create the branch?".format(remote_branch), default=True):
+                if not self._UI.confirm("The branch `{0}` does not exist on the remote server yet. Do you want to create the branch?".format(remote_branch), default=True):
                     raise OperationCancelledError("User did not want to create remote branch.")
             else:
                 self.git.super_silent.fetch(self.git._repository, remote_branch)
@@ -1471,7 +1471,7 @@ class SageDev(object):
                 self.git.super_silent.checkout(current_branch or current_commit)
 
             self._UI.show("Your changes have been recorded on a new branch `{0}`.".format(branch))
-            self._UI.info("To recover your changes later use {1}.".format(branch, self._format_command("unstash",branch=branch)))
+            self._UI.info("To recover your changes later use `{1}`.".format(branch, self._format_command("unstash",branch=branch)))
         else:
             assert False
 
@@ -2291,7 +2291,7 @@ class SageDev(object):
             try:
                 if self.git.current_branch() == branch:
                     self._UI.error("Can not delete `{0}` because you are currently on that branch.".format(branch))
-                    self._UI.info("Use {0} to move to a different branch.".format(self._format_command("vanilla")))
+                    self._UI.info("Use `{0}` to move to a different branch.".format(self._format_command("vanilla")))
                     raise OperationCancelledError("can not delete current branch")
             except DetachedHeadError:
                 pass
@@ -4317,7 +4317,7 @@ class SageDev(object):
 
         branch = self.__ticket_to_branch[ticket]
         if not self._is_local_branch_name(branch, exists=True):
-            self._UI.warning("Ticket #{0} refers to the non-existant local branch {1}. If you have not manually interacted with git, then this is a bug in sagedev. Removing the association from ticket #{0} to branch {1}.".format(ticket, branch))
+            self._UI.warning("Ticket #{0} refers to the non-existant local branch `{1}`. If you have not manually interacted with git, then this is a bug in sagedev. Removing the association from ticket #{0} to branch `{1}`.".format(ticket, branch))
             del self.__ticket_to_branch[ticket]
             return False
 

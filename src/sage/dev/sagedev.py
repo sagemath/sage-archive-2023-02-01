@@ -3689,10 +3689,11 @@ class SageDev(object):
         INPUT:
 
         - ``public_key`` -- a string or ``None`` (default: ``None``), the path
-          of the key file, defaults to ``~/.ssh/id_rsa.pub``.
+          of the key file, defaults to ``~/.ssh/id_rsa.pub`` (or
+          ``~/.ssh/id_dsa.pub`` if it exists).
 
         - ``create_key_if_not_exists`` -- use ``ssh-keygen`` to create a public
-          if key if none exists.
+          key if none exists.
 
         TESTS:
 
@@ -3716,14 +3717,19 @@ class SageDev(object):
         """
         import os
         if public_key is None:
-            public_key = os.path.expanduser("~/.ssh/id_rsa.pub")
+            public_key = os.path.expanduser("~/.ssh/id_dsa.pub")
+            if not os.path.exists(public_key):
+                public_key = os.path.expanduser("~/.ssh/id_rsa.pub")
 
         if not os.path.exists(public_key):
             if not create_key_if_not_exists:
                 raise SageDevValueError("create_key_if_not_exists is not set but there is no key at {0}.".format(public_key))
+            if not public_key.endswith(".pub"):
+                raise SageDevValueError("public key must end with `.pub`.")
+            private_key = public_key[:-4]
             self._UI.show("Generating ssh key.")
             from subprocess import call
-            success = call(["ssh-keygen", "-q", "-f", public_key, "-P", ""])
+            success = call(["ssh-keygen", "-q", "-f", private_key, "-P", ""])
             if success == 0:
                 self._UI.info("Key generated.")
             else:

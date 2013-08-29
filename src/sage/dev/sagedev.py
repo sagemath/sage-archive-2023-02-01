@@ -2555,20 +2555,7 @@ class SageDev(object):
         branch = None
         remote_branch = None
 
-        if self._is_local_branch_name(ticket_or_branch, exists=True):
-            branch = ticket_or_branch
-            if download is None:
-                download = False
-            if self._has_ticket_for_local_branch(branch):
-                ticket = self._ticket_for_local_branch(branch)
-                if create_dependency is None:
-                    create_dependency = False
-            else:
-                if create_dependency:
-                    raise SageDevValueError("Can not create a dependency to `{0}` because it is not associated to a ticket.".format(branch))
-                create_dependency = False
-            remote_branch = self._remote_branch_for_branch(branch)
-        elif self._is_ticket_name(ticket_or_branch):
+        if self._is_ticket_name(ticket_or_branch):
             ticket = self._ticket_from_ticket_name(ticket_or_branch)
             self._check_ticket_name(ticket, exists=True)
             if download is None:
@@ -2582,6 +2569,19 @@ class SageDev(object):
                 if remote_branch is None:
                     self._UI.error("Can not merge remote branch for #{0}. No branch has been set on the trac ticket.".format(ticket))
                     raise OperationCancelledError("remote branch not set on trac")
+        elif self._is_local_branch_name(ticket_or_branch, exists=True):
+            branch = ticket_or_branch
+            if download is None:
+                download = False
+            if self._has_ticket_for_local_branch(branch):
+                ticket = self._ticket_for_local_branch(branch)
+                if create_dependency is None:
+                    create_dependency = False
+            else:
+                if create_dependency:
+                    raise SageDevValueError("Can not create a dependency to `{0}` because it is not associated to a ticket.".format(branch))
+                create_dependency = False
+            remote_branch = self._remote_branch_for_branch(branch)
         else:
             remote_branch = ticket_or_branch
             if download is None:

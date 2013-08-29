@@ -2384,9 +2384,9 @@ class SageDev(object):
         self.git.super_silent.checkout(branch)
 
         try:
-            for local_remote,branch in branches:
-                self._UI.info("Merging {2} branch `{0}` into `{1}`.".format(remote_branch, branch, local_remote))
-                self.merge(remote_branch, download=True)
+            for local_remote,branch_name in branches:
+                self._UI.info("Merging {2} branch `{0}` into `{1}`.".format(branch_name, branch, local_remote))
+                self.merge(branch, download=local_remote=="remote")
         except:
             self.git.reset_to_clean_state()
             self.git.reset_to_clean_working_directory()

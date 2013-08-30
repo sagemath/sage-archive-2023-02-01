@@ -228,14 +228,20 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             cartan_type = None
             dynkin_diagram = None
             subdivisions = None
-            try:
-                cartan_type = CartanType(args[0])
-                dynkin_diagram = cartan_type.dynkin_diagram()
-            except (TypeError, ValueError):
-                pass
+
+            from sage.combinat.root_system.dynkin_diagram import DynkinDiagram_class
+            if isinstance(args[0], DynkinDiagram_class):
+                dynkin_diagram = args[0]
+                cartan_type = args[0]._cartan_type
+            else:
+                try:
+                    cartan_type = CartanType(args[0])
+                    dynkin_diagram = cartan_type.dynkin_diagram()
+                except (TypeError, ValueError):
+                    pass
 
             if dynkin_diagram is not None:
-                n = cartan_type.rank()
+                n = dynkin_diagram.rank()
                 index_set = dynkin_diagram.index_set()
                 reverse = dict((index_set[i], i) for i in range(len(index_set)))
                 data = {(i, i): 2 for i in range(n)}
@@ -259,7 +265,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
                 if cartan_type is not None:
                     index_set = tuple(cartan_type.index_set())
                 else:
-                    index_set = tuple(range(M.ncols()))
+                    index_set = tuple(range(n))
             elif len(args) == 2:
                 index_set = tuple(args[1])
                 if len(index_set) != n and len(set(index_set)) != n:
@@ -410,17 +416,7 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         from sage.combinat.root_system.dynkin_diagram import DynkinDiagram
         if self._cartan_type is not None:
             return DynkinDiagram(self._cartan_type)
-
-        from dynkin_diagram import DynkinDiagram_class
-        n = self.nrows()
-        g = DynkinDiagram_class(self)
-        for i in range(n):
-            for j in range(n):
-                if self[i,j] == -1:
-                    g.add_edge(i, j)
-                elif self[i,j] < -1:
-                    g.add_edge(i, j, -self[i,j])
-        return g
+        return DynkinDiagram(self)
 
     def cartan_matrix(self):
         r"""
@@ -509,9 +505,12 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             sage: M = CartanMatrix(['D',4,1])
             sage: M.is_finite()
             False
+            sage: M = CartanMatrix([[2, -4], [-3, 2]])
+            sage: M.is_finite()
+            False
         """
         if self._cartan_type is None:
-            return False
+            return self.det() > 0
         return self._cartan_type.is_finite()
 
     def is_affine(self):
@@ -526,9 +525,12 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
             sage: M = CartanMatrix(['D',4,1])
             sage: M.is_affine()
             True
+            sage: M = CartanMatrix([[2, -4], [-3, 2]])
+            sage: M.is_affine()
+            False
         """
         if self._cartan_type is None:
-            return False
+            return self.det() == 0
         return self._cartan_type.is_affine()
 
 def is_generalized_cartan_matrix(M):

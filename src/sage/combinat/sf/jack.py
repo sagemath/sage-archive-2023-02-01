@@ -50,7 +50,7 @@ class Jack(UniqueRepresentation):
     def __init__(self, Sym, t='t'):
         r"""
         The family of Jack symmetric functions including the `P`, `Q`, `J`, `Qp`
-        bases.  The default paramter is ``t``.
+        bases.  The default parameter is ``t``.
 
         INPUT:
 

@@ -27,9 +27,11 @@ Data structure
 .. image:: ../../../media/structure.png
 
 The data structure is actually pretty simple and compact. ``short_digraph`` has
-three fields
+five fields
 
-    * ``n`` (``int``) -- the number of vertices in the graph.
+    * ``n`` (``unsigned short``) -- the number of vertices in the graph.
+
+    * ``m`` (``unsigned int``) -- the number of edges in the graph.
 
     * ``edges`` (``unsigned short *``) -- array whose length is the number of
       edges of the graph.
@@ -42,6 +44,11 @@ three fields
       so that it remains easy to enumerate the neighbors of vertex `n-1` : the
       last of them is the element addressed by ``neighbors[n]-1``.
 
+    * ``edge_labels`` -- this cython list associates a label to each edge of the
+      graph. If a given edge is represented by ``edges[i]``, this its associated
+      label can be found at ``edge_labels[i]``. This object is usually NULL,
+      unless the call to ``init_short_digraph`` explicitly requires the labels
+      to be stored in the data structure.
 
 In the example given above, vertex 0 has 2,3,5,7,8 and 9 as out-neighbors, but
 not 4, which is an out-neighbour of vertex 1. Vertex `n-1` has 2, 5, 8 and 9 as
@@ -54,24 +61,16 @@ to indicate the end of the outneighbors of vertex `n-1`
 This is *the one thing* to have in mind when working with this data structure::
 
     cdef list_edges(short_digraph g):
-        cdef ushort * v
-        cdef ushort * end
-        cdef int i
-
+        cdef int i, j
         for i in range(g.n):
-            v = g.neighbors[i]
-            end = g.neighbors[i+1]
-
-            while v < end:
-                print "There is an edge from "+str(i)+" to "+str(v[0])
-                v += 1
+            for j in range(g.neighbors[i+1]-g.neighbors[i]):
+                print "There is an edge from",str(i),"to",g.neighbors[i][j]
 
 **Advantages**
 
-Three great points :
+Two great points :
 
-    * The neighbors of a vertex are contiguous in memory.
-    * Going from one to the other amounts to increasing a pointer.
+    * The neighbors of a vertex are C types, and are contiguous in memory.
     * Storing such graphs is incredibly cheaper than storing Python structures.
 
 Well, I think it would be hard to have anything more efficient than that to
@@ -83,8 +82,6 @@ Technical details
     * When creating a ``fast_digraph`` from a ``Graph`` or ``DiGraph`` named
       ``G``, the `i^{\text{th}}` vertex corresponds to ``G.vertices()[i]``
 
-    * The data structure does not support edge labels
-
     * In its current implementation (with ``unsigned short`` variables), the
       data structure can handle graphs with at most 65535 vertices. If
       necessary, changing it to ``int`` is totally straightforward.
@@ -93,41 +90,42 @@ Technical details
       expected. There is a very useful ``bitset_list`` function for this kind of
       problems :-)
 
+    * When the edges are labelled, most of the space taken by this graph is
+      taken by edge labels. If no edge is labelled then this space is not
+      allocated, but if *any* edge has a label then a (possibly empty) label is
+      stored for each edge, which can represent a lot of memory.
+
+    * The data structure stores the number of edges, even though it appears that
+      this number can be reconstructed with
+      ``g.neighbors[n]-g.neighbors[0]``. The trick is that not all elements of
+      the ``g.edges`` array are necessarily used : when an undirected graph
+      contains loops, only one entry of the array of size `2m` is used to store
+      it, instead of the expected two. Storing the number of edges is the only
+      way to avoid an uselessly costly computation to obtain the number of edges
+      of an undirected, looped, AND labelled graph (think of several loops on
+      the same vertex with different labels).
+
     * The codes of this module are well documented, and many answers can be
       found directly in the code.
-
-Todo list
-
-    * Adjacency test. The data structure can support it efficiently through
-      dichotomy. It would require to sort the list of edges as it is not done at
-      the moment. Some calls to the C function ``qsort`` would be sufficient.
 
 Cython functions
 ----------------
 
-``init_short_digraph(short_digraph g, G)``
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
 
-    This method initializes ``short_digraph g`` so that it represents ``G``. If
-    ``G`` is a ``Graph`` objet (and not a ``DiGraph``), an edge between two
-    vertices `u` and `v` is replaced by two arcs in both directions.
+    ``init_short_digraph(short_digraph g, G)`` | Initializes ``short_digraph g`` from a Sage (Di)Graph.
+    ``int n_edges(short_digraph g)`` | Returns the number of edges in ``g``
+    ``int out_degree(short_digraph g, int i)`` | Returns the out-degree of vertex `i` in ``g``
+    ``has_edge(short_digraph g, ushort u, ushort v)`` | Tests the existence of an edge.
+    ``edge_label(short_digraph g, ushort * edge)`` | Returns the label associated with a given edge
+    ``init_empty_copy(short_digraph dst, short_digraph src)`` | Allocates ``dst`` so that it can contain as many vertices and edges as ``src``.
+    ``init_reverse(short_digraph dst, short_digraph src)`` | Initializes ``dst`` to a copy of ``src`` with all edges in the opposite direction.
+    ``free_short_digraph(short_digraph g)`` | Free the ressources used by ``g``
 
-``int n_edges(short_digraph g)``
-
-    Returns the number of edges in ``g``
-
-``int out_degree(short_digraph g, int i)``
-
-    Returns the out-degree of vertex `i` in ``g``
-
-``init_empty_copy(short_digraph dst, short_digraph src)``
-
-    Allocates memory for ``dst`` so that it can contain as many vertices and
-    edges as ``src``. Its content is purely random, though.
-
-``init_reverse(short_digraph dst, short_digraph src)``
-
-    Initializes ``dst`` so that it represents a copy of ``src`` in which all
-    edges go in the opposite direction.
+**Connectivity**
 
 ``can_be_reached_from(short_digraph g, int src, bitset_t reached)``
 
@@ -142,9 +140,6 @@ Cython functions
     component containing ``v`` in ``g``. The variable ``g_reversed`` is assumed
     to represent the reverse of ``g``.
 
-``free_short_digraph(short_digraph g)``
-
-    Free the ressources used by ``g``
 
 What is this module used for ?
 ------------------------------
@@ -158,8 +153,8 @@ These functions are available so that Python modules from Sage can call the
 Cython routines this module implements (as they can not directly call methods
 with C arguments).
 """
-
 include "sage/misc/bitset.pxi"
+cimport cpython
 
 ##############################################################################
 #       Copyright (C) 2010 Nathann Cohen <nathann.cohen@gmail.com>
@@ -170,10 +165,16 @@ include "sage/misc/bitset.pxi"
 
 from sage.graphs.base.c_graph cimport CGraph
 
-cdef int init_short_digraph(short_digraph g, G) except -1:
+cdef int init_short_digraph(short_digraph g, G, edge_labelled = False) except -1:
+    r"""
+    Initializes ``short_digraph g`` from a Sage (Di)Graph.
 
+    If ``G`` is a ``Graph`` objet (and not a ``DiGraph``), an edge between two
+    vertices `u` and `v` is replaced by two arcs in both directions.
+    """
     # g.n is unsigned short, so -1 is actually the maximum value possible.
     g.n = -1
+    g.edge_labels = NULL
 
     if G.order() > g.n:
         raise ValueError("This structure can handle at most "+str(<int> g.n)+" vertices !")
@@ -193,9 +194,12 @@ cdef int init_short_digraph(short_digraph g, G) except -1:
 
     cdef list vertices = G.vertices()
     cdef dict v_to_id = {}
-    cdef int i,j
+    cdef int i,j,v_id
+    cdef list neighbor_label
+    cdef list edge_labels
 
-    cdef int n_edges = G.size() if isdigraph else 2*G.size()
+    g.m = G.size()
+    cdef int n_edges = g.m if isdigraph else 2*g.m
 
     for i, v in enumerate(vertices):
         v_to_id[v] = i
@@ -208,30 +212,60 @@ cdef int init_short_digraph(short_digraph g, G) except -1:
     if g.neighbors == NULL:
         raise ValueError("Problem while allocating memory (neighbors)")
 
-
     # Initializing the value of neighbors
     g.neighbors[0] = g.edges
-
     cdef CGraph cg = <CGraph> G._backend
-    for i in range(1,(<int>g.n)+1):
-        g.neighbors[i] = g.neighbors[i-1] + <int> (cg.out_degree(vertices[i-1]) if isdigraph else G.degree(vertices[i-1]))
 
-    for u,v in G.edge_iterator(labels = False):
-        i = v_to_id[u]
-        j = v_to_id[v]
+    if not G.has_loops():
+        # Normal case
+        for i in range(1,(<int>g.n)+1):
+            g.neighbors[i] = g.neighbors[i-1] + <int> (cg.out_degree(vertices[i-1]) if isdigraph else G.degree(vertices[i-1]))
+    else:
+        # In the presence of loops. For a funny reason, if a vertex v has a loop
+        # attached to it and no other incident edge, Sage declares that it has
+        # degree 2. This way, the sum of the degrees of the vertices is twice
+        # the number of edges, but then the degree of a vertex is not the number
+        # of its neighbors anymore. One should never try to think. It never ends
+        # well.
+        for i in range(1,(<int>g.n)+1):
+            g.neighbors[i] = g.neighbors[i-1] + <int> len(G.edges_incident(vertices[i-1]))
 
-        g.neighbors[i][0] = j
-        g.neighbors[i] += 1
+    if not edge_labelled:
+        for u,v in G.edge_iterator(labels = False):
+            i = v_to_id[u]
+            j = v_to_id[v]
 
-        if not isdigraph:
-            g.neighbors[j][0] = i
-            g.neighbors[j] += 1
+            g.neighbors[i][0] = j
+            g.neighbors[i] += 1
 
-    # Reinitializing the value of neighbors
-    for g.n> i >0:
-        g.neighbors[i] = g.neighbors[i-1]
+            if not isdigraph and i!=j:
+                g.neighbors[j][0] = i
+                g.neighbors[j] += 1
 
-    g.neighbors[0] = g.edges
+        # Reinitializing the value of neighbors
+        for g.n> i >0:
+            g.neighbors[i] = g.neighbors[i-1]
+
+        g.neighbors[0] = g.edges
+
+        # Sorting the neighbors
+        for i in range(g.n):
+            qsort(g.neighbors[i],g.neighbors[i+1]-g.neighbors[i],sizeof(ushort),compare_ushort_p)
+
+    else:
+        edge_labels = [None]*n_edges
+        for v in G:
+            neighbor_label = [(v_to_id[uu],l) if uu != v else (v_to_id[u],l)
+                              for u,uu,l in G.edges_incident(v)]
+            neighbor_label.sort()
+            v_id = v_to_id[v]
+
+            for i,(j,label) in enumerate(neighbor_label):
+                g.neighbors[v_id][i] = j
+                edge_labels[(g.neighbors[v_id]+i)-g.edges] = label
+
+        g.edge_labels = <void *> edge_labels
+        cpython.Py_XINCREF(g.edge_labels)
 
 cdef inline int n_edges(short_digraph g):
     # The number of edges is nothing but a difference of pointers
@@ -243,6 +277,9 @@ cdef inline int out_degree(short_digraph g, int i):
 
 cdef int init_empty_copy(short_digraph dst, short_digraph src) except -1:
     dst.n = src.n
+    dst.m = src.m
+    dst.edge_labels = NULL
+    cdef list edge_labels
 
     dst.edges = <ushort *> sage_malloc(n_edges(src)*sizeof(ushort))
     if dst.edges == NULL:
@@ -252,7 +289,13 @@ cdef int init_empty_copy(short_digraph dst, short_digraph src) except -1:
     if dst.neighbors == NULL:
         raise ValueError("Problem while allocating memory (neighbors)")
 
+    if src.edge_labels != NULL:
+        edge_labels = [None]*n_edges(src)
+        dst.edge_labels = <void *> edge_labels
+        cpython.Py_XINCREF(dst.edge_labels)
+
 cdef int init_reverse(short_digraph dst, short_digraph src) except -1:
+    cdef int i,j,v
     # Allocates memory for dst
     init_empty_copy(dst, src)
 
@@ -273,14 +316,10 @@ cdef int init_reverse(short_digraph dst, short_digraph src) except -1:
     # Counting the degrees
     memset(in_degree, 0, src.n*sizeof(int))
 
-    cdef ushort * v = src.edges
-    cdef ushort * end = src.neighbors[src.n]
-    while v < end:
-        in_degree[v[0]] += 1
-        v += 1
+    for i in range(n_edges(src)):
+        in_degree[src.edges[i]] += 1
 
     # Updating dst.neighbors
-    cdef int i
     dst.neighbors[0] = dst.edges
     for i in range(1, src.n+1):
         dst.neighbors[i] = dst.neighbors[i-1] + in_degree[i-1]
@@ -292,13 +331,14 @@ cdef int init_reverse(short_digraph dst, short_digraph src) except -1:
     # so, we will change the value of dst.neighbors, but that is not so bad as
     # we can fix it afterwards.
     for i in range(0, src.n):
-        v = src.neighbors[i]
-        end = src.neighbors[i+1]
+        for j in range(out_degree(src,i)):
+            v = src.neighbors[i][j]
+            dst.neighbors[v][0] = i
 
-        while v < end:
-            dst.neighbors[v[0]][0] = i
-            dst.neighbors[v[0]] += 1
-            v += 1
+            if dst.edge_labels != NULL:
+                (<list> dst.edge_labels)[dst.neighbors[v]-dst.edges] = edge_label(src,src.neighbors[i]+j)
+
+            dst.neighbors[v] += 1
 
     #### 3/3
     #
@@ -307,6 +347,28 @@ cdef int init_reverse(short_digraph dst, short_digraph src) except -1:
     for src.n> i >0:
         dst.neighbors[i] = dst.neighbors[i-1]
     dst.neighbors[0] = dst.edges
+
+    return 0
+
+cdef int compare_ushort_p(const_void *a, const_void *b):
+    return (<ushort *> a)[0] - (<ushort *> b)[0]
+
+cdef inline ushort * has_edge(short_digraph g, ushort u, ushort v):
+    r"""
+    Tests the existence of an edge.
+
+    Assumes that the neighbors of each vertex are sorted.
+    """
+    return <ushort *> bsearch(&v, g.neighbors[u], g.neighbors[u+1]-g.neighbors[u], sizeof(ushort), compare_ushort_p)
+
+cdef inline object edge_label(short_digraph g, ushort * edge):
+    r"""
+    Returns the label associated with a given edge
+    """
+    if g.edge_labels == NULL:
+        return None
+    else:
+        return (<list> g.edge_labels)[edge-g.edges]
 
 cdef int can_be_reached_from(short_digraph g, int src, bitset_t reached) except -1:
     if g.n == 0:
@@ -357,22 +419,22 @@ cdef strongly_connected_component_containing_vertex(short_digraph g, short_digra
 
     # Computing the set of vertices that can be reached from v in g
     can_be_reached_from(g, v, scc)
-
     # Computing the set of vertices that can be reached from v in g *reversed*
     cdef bitset_t scc_reversed
     bitset_init(scc_reversed, g.n)
     can_be_reached_from(g_reversed, v, scc_reversed)
-
     # The scc containing v is the intersection of both sets
     bitset_intersection(scc, scc, scc_reversed)
 
 cdef void free_short_digraph(short_digraph g):
-
     if g.edges != NULL:
         sage_free(g.edges)
 
     if g.neighbors != NULL:
         sage_free(g.neighbors)
+
+    if g.edge_labels != NULL:
+        cpython.Py_XDECREF(g.edge_labels)
 
 def strongly_connected_components(G):
     r"""
@@ -415,13 +477,11 @@ def strongly_connected_components(G):
     cdef short_digraph g, gr
 
     init_short_digraph(g, G)
-
     init_reverse(gr, g)
 
     cdef bitset_t seen
     bitset_init(seen, g.n)
     bitset_set_first_n(seen, 0)
-
 
     cdef bitset_t scc
     bitset_init(scc, g.n)
@@ -439,4 +499,3 @@ def strongly_connected_components(G):
     free_short_digraph(g)
     free_short_digraph(gr)
     return answer
-

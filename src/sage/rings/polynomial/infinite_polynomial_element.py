@@ -340,7 +340,7 @@ class InfinitePolynomial_sparse(RingElement):
 
     def _getAttributeNames(self):
         """
-        This method implements tab completion, see ticket #6854.
+        This method implements tab completion, see :trac:`6854`.
 
         EXAMPLES::
 
@@ -355,7 +355,7 @@ class InfinitePolynomial_sparse(RingElement):
 
     def __dir__(self):
         """
-        This method implements tab completion, see ticket #6854.
+        This method implements tab completion, see :trac:`6854`.
 
         TESTS::
 
@@ -373,10 +373,10 @@ class InfinitePolynomial_sparse(RingElement):
         """
         NOTE:
 
-        This method will only be called if an attribute of self
+        This method will only be called if an attribute of ``self``
         is requested that is not known to Python. In that case,
         the corresponding attribute of the underlying polynomial
-        of self is returned.
+        of ``self`` is returned.
 
         EXAMPLES:
 
@@ -388,7 +388,7 @@ class InfinitePolynomial_sparse(RingElement):
             sage: latex(alpha[3]*alpha[2]^2) # indirect doctest
             \alpha_{3} \alpha_{2}^{2}
 
-        Related with ticket #6854 and #7580, the attribute
+        Related with tickets :trac:`6854` and :trac:`7580`, the attribute
         ``__methods__`` is treated in a special way, which
         makes introspection and tab completion work::
 
@@ -411,7 +411,9 @@ class InfinitePolynomial_sparse(RingElement):
 
     def ring(self):
         """
-        The ring which self belongs to. This is the same as ``self.parent()``.
+        The ring which ``self`` belongs to.
+
+        This is the same as ``self.parent()``.
 
         EXAMPLES::
 
@@ -424,8 +426,8 @@ class InfinitePolynomial_sparse(RingElement):
         return self.parent()
 
     def is_unit(self):
-        """
-        Answers whether self is a unit
+        r"""
+        Answers whether ``self`` is a unit
 
         EXAMPLES::
 
@@ -445,15 +447,21 @@ class InfinitePolynomial_sparse(RingElement):
             sage: (1+a[2]).is_unit()
             False
 
+        TESTS::
+
+            sage: R.<x> = InfinitePolynomialRing(ZZ.quotient_ring(8))
+            sage: [R(i).is_unit() for i in range(8)]
+            [False, True, False, True, False, True, False, True]
         """
-        if self.base_ring().is_field():
-            return not (hasattr(self._p,'variables') and self._p.variables())
-        return (self == 1) or (self == -1)
+        if len(self.variables()) > 0:
+            return False
+        else:
+            return self.base_ring()(self._p).is_unit()
 
     @cached_method
     def variables(self):
         """
-        Return the variables occurring in self (tuple of elements of some polynomial ring).
+        Return the variables occurring in ``self`` (tuple of elements of some polynomial ring).
 
         EXAMPLES::
 
@@ -474,7 +482,7 @@ class InfinitePolynomial_sparse(RingElement):
     @cached_method
     def max_index(self):
         r"""
-        Return the maximal index of a variable occurring in self, or -1 if self is scalar.
+        Return the maximal index of a variable occurring in ``self``, or -1 if ``self`` is scalar.
 
         EXAMPLES::
 
@@ -539,6 +547,24 @@ class InfinitePolynomial_sparse(RingElement):
             R = self._p.base_ring()
         return InfinitePolynomial_sparse(self.parent(),R(self._p) * R(x._p))
 
+    def gcd(self, x):
+        """
+        computes the greatest common divisor
+
+        EXAMPLES::
+
+            sage: R.<x>=InfinitePolynomialRing(QQ)
+            sage: p1=x[0]+x[1]**2
+            sage: gcd(p1,p1+3)
+            1
+            sage: gcd(p1,p1)==p1
+            True
+        """
+        P = self.parent()
+        self._p = P._P(self._p)
+        x._p = P._P(x._p)
+        return InfinitePolynomial_sparse(self.parent(),self._p.gcd(x._p))
+
     def _rmul_(self, left):
         """
         TEST::
@@ -562,36 +588,55 @@ class InfinitePolynomial_sparse(RingElement):
         return InfinitePolynomial_sparse(self.parent(),self._p*right)
 
     def _div_(self, x):
-        """
-        Division of Infinite Polynomials. Note that the divisor must
-        be scalar -- Infinite Fraction Fields are not implemented yet.
+        r"""
+        Division of Infinite Polynomials.
 
-        EXAMPLES::
+        EXAMPLES:
+
+        Division by a rational over `\QQ`::
 
             sage: X.<x> = InfinitePolynomialRing(QQ, implementation='sparse')
-            sage: x[0]/2 # indirect doctest
+            sage: x[0]/2
             1/2*x_0
-            sage: x[0]/x[0] # indirect doctest
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Fraction Fields of Infinite Polynomial Rings are not implemented
+
+        Division by an integer over `\ZZ`::
+
             sage: R.<x> = InfinitePolynomialRing(ZZ, implementation='sparse')
             sage: p = x[3]+x[2]
-            sage: q = p/2 # indirect doctest
+            sage: q = p/2
             sage: q
             1/2*x_3 + 1/2*x_2
             sage: q.parent()
             Infinite polynomial ring in x over Rational Field
 
+        Division by a non-zero element::
+
+            sage: R.<x> = InfinitePolynomialRing(QQ, implementation='sparse')
+            sage: 1/x[1]
+            1/x_1
+            sage: (x[0]/x[0])
+            x_0/x_0
+            sage: qt = 1/x[2]+2/x[1]; qt
+            (2*x_2 + x_1)/(x_2*x_1)
+            sage: qt.parent()
+            Fraction Field of Infinite polynomial ring in x over Rational Field
+
+            sage: z = 1/(x[2]*(x[1]+x[2]))+1/(x[1]*(x[1]+x[2]))
+            sage: z.parent()
+            Fraction Field of Infinite polynomial ring in x over Rational Field
+            sage: factor(z)
+            x_1^-1 * x_2^-1
         """
-#        if x._p not in self.base_ring():
-        try:
+        if not x.variables():
             p = self.base_ring()(x._p)
-        except TypeError:
-            raise NotImplementedError, "Fraction Fields of Infinite Polynomial Rings are not implemented"
-        divisor = self.base_ring().one_element()/p # use induction...
-        OUTP = self.parent().tensor_with_ring(divisor.base_ring())
-        return OUTP(self)*OUTP(divisor)
+            divisor = self.base_ring().one_element()/p  # use induction
+            OUTP = self.parent().tensor_with_ring(divisor.base_ring())
+            return OUTP(self)*OUTP(divisor)
+        else:
+            from sage.rings.fraction_field_element import FractionFieldElement
+            field = self.parent().fraction_field()
+            # there remains a problem in reduction
+            return FractionFieldElement(field, self, x, reduce=False)
 
     def _sub_(self, x):
         """
@@ -834,8 +879,8 @@ class InfinitePolynomial_sparse(RingElement):
 
         OUTPUT:
 
-        Apply a permutation to self that does not change the order of
-        the variable indices of self but squeezes them into the range
+        Apply a permutation to ``self`` that does not change the order of
+        the variable indices of ``self`` but squeezes them into the range
         1,2,...
 
         EXAMPLES::

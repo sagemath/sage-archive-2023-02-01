@@ -17,7 +17,14 @@ unique key, so that still *all* given arguments are used to create a new
 instance, but only the specified subset is used to look up in the
 cache. Typically, this is used to construct objects that accept an optional
 ``check=[True|False]`` argument, but whose result should be unique
-regardless of said optional argument.
+regardless of said optional argument. (This use case should be handled with
+care, though: Any checking which isn't done in the ``create_key`` or
+``create_key_and_extra_args`` method will be done only when a new object is
+generated, but not when a cached object is retrieved from cache.
+Consequently, if the factory is once called with ``check=False``, a
+subsequent call with ``check=True`` cannot be expected to perform all checks
+unless these checks are all in the ``create_key`` or
+``create_key_and_extra_args`` method.)
 
 For a class derived from
 :class:`~sage.structure.unique_representation.CachedRepresentation`, argument
@@ -74,7 +81,7 @@ cdef class UniqueFactory(SageObject):
     It is based on the idea that the object is uniquely defined by a set of
     defining data (the key). There is also the possibility of some
     non-defining data (extra args) which will be used in initial creation,
-    but not affect the caching. 
+    but not affect the caching.
 
     .. WARNING::
 
@@ -142,8 +149,8 @@ cdef class UniqueFactory(SageObject):
         sage: loads(dumps(F)) is F
         True
 
-    Now we create three classes ``C``, ``D`` and ``E``. The first is an
-    extension class that does not allow weak references nor attribute
+    Now we create three classes ``C``, ``D`` and ``E``. The first is a Cython
+    extension-type class that does not allow weak references nor attribute
     assignment. The second is a Python class that is not derived from
     :class:`object`. The third allows attribute assignment and is derived
     from :class:`object`.  ::
@@ -187,7 +194,7 @@ cdef class UniqueFactory(SageObject):
     only considered an "extra argument" that does not count for the key.
     ::
 
-        sage: c is F(1, impl='C') is F(1, impl="D")
+        sage: c is F(1, impl='C') is F(1, impl="D") is F(1)
         True
 
     However, pickling and unpickling does not use the cache. This is because

@@ -42,7 +42,7 @@ Implementing a cached representation
 Sage provides two standard ways to create a cached representation:
 :class:`CachedRepresentation` and
 :class:`~sage.structure.factory.UniqueFactory`. Note that, in spite of its
-name, :class:`~sage.structure.factory.UniqueFactory` does not ensure unique
+name, :class:`~sage.structure.factory.UniqueFactory` does not ensure *unique*
 representation behaviour, which will be explained below.
 
 Using :class:`CachedRepresentation`
@@ -108,9 +108,10 @@ different finite fields are all equal to the integer one, we find::
     True
 
 But ``C(2)`` is not in the cache, and the number two is not equal in different
-finite fields, even though it is equal to the number two in the ring of
-integers (equality is not transitive when comparing elements of *distinct*
-algebraic structures!!). Hence, we have
+finite fields (i. e., ``GF(5)(2) == GF(3)(2)`` returns as ``False``), even
+though it is equal to the number two in the ring of integers (
+``GF(5)(2) == 2 == GF(3)(2)`` returns as ``True``; equality is not transitive
+when comparing elements of *distinct* algebraic structures!!). Hence, we have
 ::
 
     sage: GF(5)(2) == GF(3)(2)
@@ -190,7 +191,7 @@ preprocessing::
     sage: w._reduction
     (<class '__main__.WrongUsage'>, (9,), {})
 
-Namely, the reduction data are obtained from the preprocessed argument. By
+Indeed, the reduction data are obtained from the preprocessed argument. By
 consequence, if the resulting instance is pickled and unpickled, the argument
 gets squared *again*::
 
@@ -274,8 +275,17 @@ this case, we have
     C(1, 0)
     sage: C(1) is C(1,0)
     True
-    sage: C(1) is C(1,0) is C(1,None)
+    sage: C(1) is C(1,0) is C(1,None) is C(1,[])
     True
+
+(Note that we were able to bypass the issue of arguments having to be
+hashable by catching the empty list ``[]`` during preprocessing in the
+``__classcall_private__`` method. Similarly, unhashable arguments can
+be made hashable -- e. g., lists normalized to tuples -- in the
+``__classcall_private__`` method before they are further delegated to
+``__classcall__``. See
+:class:`~sage.combinat.crystals.elementary_crystals.TCrystal` for an
+example.)
 
 If we call ``C1`` directly or if we provide ``implementation=1`` to ``C``, we
 obtain an instance of ``C1``. Since it uses the ``__classcall__`` method
@@ -313,13 +323,14 @@ For creating a cached representation using a factory, one has to
 
 - create a class *separately* from the factory. This class **must** inherit
   from :class:`object`. Its instances **must** allow attribute assignment.
-- a method ``create_key`` that creates the cache key from the given arguments.
-- a method ``create_object`` that creates an instance of the class from a
-  given cache key.
+- write a method ``create_key`` (or ``create_key_and_extra_args``) that
+  creates the cache key from the given arguments.
+- write a method ``create_object`` that creates an instance of the class
+  from a given cache key.
 - create an instance of the factory with a name that allows to conclude where
   it is defined.
 
-::
+An example::
 
     sage: class C(object):
     ....:     def __init__(self, t):
@@ -360,7 +371,7 @@ is preserved.
     True
 
 **If** the class of the returned instances is a sub-class of :class:`object`,
-and **if** the resulting instance allows attribute assignement, then pickling
+and **if** the resulting instance allows attribute assignment, then pickling
 of the resulting instances is automatically provided for, and respects the
 cache.  ::
 
@@ -404,9 +415,11 @@ by a ``__classcall_private__`` or ``__classcall__`` method. But these are
 double underscore methods and hence, for example, invisible in the
 automatically created reference manual. Moreover, preprocessing *and* caching
 are implemented in the same method, which might be confusing. In a unique
-factory, these two tasks are cleanly implemented in two separate methods. And
-with a factory, it is possible to create the resulting instance by arguments
-that are different from the key used for caching.
+factory, these two tasks are cleanly implemented in two separate methods.
+With a factory, it is possible to create the resulting instance by arguments
+that are different from the key used for caching. This is significantly
+restricted with CachedRepresentation due to the requirement that argument
+preprocessing be idempotent.
 
 Hence, if advanced preprocessing is needed, then
 :class:`~sage.structure.factory.UniqueFactory` might be easier and more
@@ -442,8 +455,11 @@ instances of quite different classes::
 
 This can be confusing to the user. Namely, the user might determine the class
 of an instance and try to create further instances by calling the class rather
-than the factory---which is a mistake since it works around the cache. This
-mistake can more easily be avoided by using :class:`CachedRepresentation`.
+than the factory---which is a mistake since it works around the cache (and
+also since the class might be more restrictive than the factory -- i. e., the
+type of ``K5`` in the above doctest cannot be called on a prime power which
+is not a prime). This mistake can more easily be avoided by using
+:class:`CachedRepresentation`.
 
 We have seen above that one can easily create new cached-representation
 classes by subclassing an existing cached-representation class, even making
@@ -476,7 +492,7 @@ What is a unique representation?
 
 Instances of a class have a *unique instance behavior* when instances of this
 class evaluate equal if and only if they are identical. Sage provides the base
-class :class:`~sage.misc.fast_methods.WithEqualityById`, that provides
+class :class:`~sage.misc.fast_methods.WithEqualityById`, which provides
 comparison by identity and a hash that is determined by the memory address of
 the instance. Both the equality test and the hash are implemented in Cython
 and are very fast, even when one has a Python class inheriting from
@@ -505,7 +521,7 @@ simultaneously inherit from :class:`CachedRepresentation` and from
 :class:`~sage.misc.fast_methods.WithEqualityById`.
 
 For example, a symmetric function algebra is uniquely determined by the base
-field. Thus, it is reasonable to use :class:`UniqueRepresentation` in this
+ring. Thus, it is reasonable to use :class:`UniqueRepresentation` in this
 case::
 
     sage: isinstance(SymmetricFunctions(CC), SymmetricFunctions)
@@ -520,7 +536,7 @@ class. Hence, the above examples of argument preprocessing work for
 
 Note that a cached representation created with
 :class:`~sage.structure.factory.UniqueFactory` does *not* automatically
-provide unique representation behaviour, in spite of its name! Hence, for a
+provide unique representation behaviour, in spite of its name! Hence, for
 unique representation behaviour, one has to implement hash and equality test
 accordingly, for example by inheriting from
 :class:`~sage.misc.fast_methods.WithEqualityById`.
@@ -573,20 +589,20 @@ class CachedRepresentation:
 
         sage: from sage.structure.unique_representation import CachedRepresentation
         sage: class MyClass(CachedRepresentation):
-        ...       # all the rest as usual
-        ...       pass
+        ....:     # all the rest as usual
+        ....:     pass
 
 
     We start with a simple class whose constructor takes a single
     value as argument (TODO: find a more meaningful example)::
 
         sage: class MyClass(CachedRepresentation):
-        ...       def __init__(self, value):
-        ...           self.value = value
-        ...       def __cmp__(self, other):
-        ...           c = cmp(type(self),type(other))
-        ...           if c: return c
-        ...           return cmp(self.value, other.value)
+        ....:     def __init__(self, value):
+        ....:         self.value = value
+        ....:     def __cmp__(self, other):
+        ....:         c = cmp(type(self),type(other))
+        ....:         if c: return c
+        ....:         return cmp(self.value, other.value)
 
     Two coexisting instances of ``MyClass`` created with the same argument data
     are guaranteed to share the same identity. Since :trac:`12215`, this is
@@ -684,7 +700,7 @@ class CachedRepresentation:
 
     - :meth:`__classcall__` is a staticmethod (like, implicitly,
       :meth:`__new__<object.__new__>`)
-    - the preprocessing on the arguments should be idempotent. Namely, If
+    - the preprocessing on the arguments should be idempotent. That is, if
       ``MyClass2.__classcall__(<arguments>)`` calls
       ``CachedRepresentation.__classcall__(<preprocessed_arguments>)``, then
       ``MyClass2.__classcall__(<preprocessed_arguments>)`` should also result
@@ -723,7 +739,7 @@ class CachedRepresentation:
         sage: w._reduction
         (<class '__main__.WrongUsage'>, (9,), {})
 
-    Namely, the reduction data are obtained from the preprocessed
+    Indeed, the reduction data are obtained from the preprocessed
     arguments. By consequence, if the resulting instance is pickled and
     unpickled, the argument gets squared *again*::
 
@@ -772,7 +788,7 @@ class CachedRepresentation:
         sage: z = MyClass(2)
         sage: t.value = 2
 
-    Now x and z are non-identical, but equal::
+    Now ``t`` and ``z`` are non-identical, but equal::
 
         sage: t.value == z.value
         True
@@ -815,7 +831,7 @@ class CachedRepresentation:
 
     :class:`CachedRepresentation` uses the :meth:`__reduce__
     <object.__reduce__>` pickle protocol rather than :meth:`__getnewargs__
-    <object.__getnewargs__>` because the later does not handle keyword
+    <object.__getnewargs__>` because the latter does not handle keyword
     arguments::
 
         sage: x = MyClass(value = 1)
@@ -824,7 +840,7 @@ class CachedRepresentation:
         sage: x is loads(dumps(x))
         True
 
-    .. warning::
+    .. NOTE::
 
         The default implementation of :meth:`__reduce__ <object.__reduce__>`
         in :class:`CachedRepresentation` requires to store the constructor's
@@ -833,24 +849,24 @@ class CachedRepresentation:
             sage: x.__dict__
             {'_reduction': (<class '__main__.MyClass'>, (), {'value': 1}), 'value': 1}
 
-    It is often easy in a derived subclass to reconstruct the constructor's
-    arguments from the instance data structure. When this is the case,
-    :meth:`__reduce__ <object.__reduce__>` should be overridden; automagically
-    the arguments won't be stored anymore::
+        It is often easy in a derived subclass to reconstruct the constructor's
+        arguments from the instance data structure. When this is the case,
+        :meth:`__reduce__ <object.__reduce__>` should be overridden; automagically
+        the arguments won't be stored anymore::
 
-        sage: class MyClass3(UniqueRepresentation):
-        ...       def __init__(self, value):
-        ...           self.value = value
-        ...
-        ...       def __reduce__(self):
-        ...           return (MyClass3, (self.value,))
-        ...
-        sage: import __main__; __main__.MyClass3 = MyClass3  # Fake MyClass3 being defined in a python module
-        sage: x = MyClass3(1)
-        sage: loads(dumps(x)) is x
-        True
-        sage: x.__dict__
-        {'value': 1}
+            sage: class MyClass3(UniqueRepresentation):
+            ....:     def __init__(self, value):
+            ....:         self.value = value
+            ....:
+            ....:     def __reduce__(self):
+            ....:         return (MyClass3, (self.value,))
+            ....:
+            sage: import __main__; __main__.MyClass3 = MyClass3  # Fake MyClass3 being defined in a python module
+            sage: x = MyClass3(1)
+            sage: loads(dumps(x)) is x
+            True
+            sage: x.__dict__
+            {'value': 1}
 
     .. rubric:: Migrating classes to ``CachedRepresentation`` and unpickling
 
@@ -859,9 +875,9 @@ class CachedRepresentation:
     (new style) class, and pickle one of its instances::
 
         sage: class MyClass4(object):
-        ...       def __init__(self, value):
-        ...           self.value = value
-        ...
+        ....:     def __init__(self, value):
+        ....:         self.value = value
+        ....:
         sage: import __main__; __main__.MyClass4 = MyClass4  # Fake MyClass4 being defined in a python module
         sage: pickle = dumps(MyClass4(1))
 
@@ -875,8 +891,8 @@ class CachedRepresentation:
     which inherits from :class:`CachedRepresentation`::
 
         sage: class MyClass4(UniqueRepresentation, object):
-        ...       def __init__(self, value):
-        ...           self.value = value
+        ....:     def __init__(self, value):
+        ....:         self.value = value
         sage: import __main__; __main__.MyClass4 = MyClass4  # Fake MyClass4 being defined in a python module
         sage: __main__.MyClass4 = MyClass4
 
@@ -899,14 +915,14 @@ class CachedRepresentation:
     Now, we redo the same test for a class deriving from SageObject::
 
         sage: class MyClass4(SageObject):
-        ...       def __init__(self, value):
-        ...           self.value = value
+        ....:     def __init__(self, value):
+        ....:         self.value = value
         sage: import __main__; __main__.MyClass4 = MyClass4  # Fake MyClass4 being defined in a python module
         sage: pickle = dumps(MyClass4(1))
 
         sage: class MyClass4(UniqueRepresentation, SageObject):
-        ...       def __init__(self, value):
-        ...           self.value = value
+        ....:     def __init__(self, value):
+        ....:         self.value = value
         sage: __main__.MyClass4 = MyClass4
         sage: y = loads(pickle)
         sage: y.value
@@ -915,14 +931,14 @@ class CachedRepresentation:
     Caveat: unpickling instances of a formerly old-style class is not supported yet by default::
 
         sage: class MyClass4:
-        ...       def __init__(self, value):
-        ...           self.value = value
+        ....:     def __init__(self, value):
+        ....:         self.value = value
         sage: import __main__; __main__.MyClass4 = MyClass4  # Fake MyClass4 being defined in a python module
         sage: pickle = dumps(MyClass4(1))
 
         sage: class MyClass4(UniqueRepresentation, SageObject):
-        ...       def __init__(self, value):
-        ...           self.value = value
+        ....:     def __init__(self, value):
+        ....:         self.value = value
         sage: __main__.MyClass4 = MyClass4
         sage: y = loads(pickle)  # todo: not implemented
         sage: y.value            # todo: not implemented
@@ -938,10 +954,10 @@ class CachedRepresentation:
     :meth:`__init__<object.__init__>` are traced::
 
         sage: class MyClass(CachedRepresentation):
-        ...       def __init__(self, value):
-        ...           print "initializing object"
-        ...           self.value = value
-        ...
+        ....:     def __init__(self, value):
+        ....:         print "initializing object"
+        ....:         self.value = value
+        ....:
 
     Let us create an object twice::
 
@@ -964,7 +980,6 @@ class CachedRepresentation:
     above) cannot be handled by :meth:`__new__<object.__new__>`, since the
     unprocessed arguments will be passed down to
     :meth:`__init__<object.__init__>`.
-
     """
     __metaclass__ = ClasscallMetaclass
 
@@ -973,7 +988,7 @@ class CachedRepresentation:
     @weak_cached_function # automatically a staticmethod
     def __classcall__(cls, *args, **options):
         """
-        Constructs a new object of this class or reuse an existing one.
+        Construct a new object of this class or reuse an existing one.
 
         See also :class:`CachedRepresentation` and
         :class:`UniqueRepresentation` for a discussion.
@@ -984,7 +999,6 @@ class CachedRepresentation:
             sage: y = UniqueRepresentation()
             sage: x is y   # indirect doctest
             True
-
         """
         instance = typecall(cls, *args, **options)
         assert isinstance( instance, cls )
@@ -1005,12 +1019,12 @@ class CachedRepresentation:
         ``cache`` is found::
 
             sage: class A(UniqueRepresentation):
-            ...    def __init__(self, x):
-            ...        pass
+            ....:     def __init__(self, x):
+            ....:         pass
             sage: class B(A):
-            ...    @staticmethod
-            ...    def __classcall__(cls, *args, **kwds):
-            ...        return super(B,cls).__classcall__(cls,*args,**kwds)
+            ....:     @staticmethod
+            ....:     def __classcall__(cls, *args, **kwds):
+            ....:          return super(B,cls).__classcall__(cls,*args,**kwds)
             sage: class C(B): pass
             sage: a = A(1)
             sage: b = B(2)
@@ -1037,13 +1051,13 @@ class CachedRepresentation:
         ``B``, which is not inherited by ``C``::
 
             sage: class A(UniqueRepresentation):
-            ...    def __init__(self, x):
-            ...        pass
+            ....:     def __init__(self, x):
+            ....:         pass
             sage: class B(A):
-            ...    @staticmethod
-            ...    def __classcall_private__(cls, *args, **kwds):
-            ...        print "Private B"
-            ...        return super(B,cls).__classcall__(cls,*args,**kwds)
+            ....:     @staticmethod
+            ....:     def __classcall_private__(cls, *args, **kwds):
+            ....:         print "Private B"
+            ....:         return super(B,cls).__classcall__(cls,*args,**kwds)
             sage: class C(B): pass
             sage: a = A(1)
             sage: b = B(2)
@@ -1068,7 +1082,6 @@ class CachedRepresentation:
             False
             sage: c is C(3)
             False
-
         """
         del_list = []
         cache = None
@@ -1158,8 +1171,8 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
     unique representation behavior one just has to do::
 
         sage: class MyClass(UniqueRepresentation):
-        ...       # all the rest as usual
-        ...       pass
+        ....:     # all the rest as usual
+        ....:     pass
 
     Everything below is for the curious or for advanced usage.
 
@@ -1213,7 +1226,7 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
     explain this difference.
 
     On the other hand, the :class:`UniqueRepresentation` class is more
-    intrusive, as it imposes a behavior (and a metaclass) to all the
+    intrusive, as it imposes a behavior (and a metaclass) on all the
     subclasses. In particular, the unique representation behaviour is imposed
     on *all* subclasses (unless the ``__classcall__`` method is overloaded and
     not called in the subclass, which is not recommended). Its implementation
@@ -1226,14 +1239,14 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
     :class:`sage.combinat.sf.sf.SymmetricFunctions`::
 
         sage: class MyClass(UniqueRepresentation):
-        ...       def __init__(self, value):
-        ...           self.value = value
-        ...       def __cmp__(self, other):
-        ...           c = cmp(type(self),type(other))
-        ...           if c: return c
-        ...           print "custom cmp"
-        ...           return cmp(self.value, other.value)
-        ...
+        ....:     def __init__(self, value):
+        ....:         self.value = value
+        ....:     def __cmp__(self, other):
+        ....:         c = cmp(type(self),type(other))
+        ....:         if c: return c
+        ....:         print "custom cmp"
+        ....:         return cmp(self.value, other.value)
+        ....:
 
     Two coexisting instances of ``MyClass`` created with the same argument
     data are guaranteed to share the same identity. Since :trac:`12215`, this
@@ -1305,8 +1318,7 @@ class UniqueRepresentation(CachedRepresentation, WithEqualityById):
     attempts::
 
         sage: class bla(UniqueRepresentation, SageObject):
-        ...       pass
-        ...
+        ....:     pass
+        ....:
         sage: b = bla()
-
     """

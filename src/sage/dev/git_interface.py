@@ -406,7 +406,11 @@ class GitProxy(object):
             return
 
         if self.__upload_ssh_key is not None:
-            self.__upload_ssh_key()
+            from user_interface_error import OperationCancelledError
+            try:
+                self.__upload_ssh_key()
+            except OperationCancelledError:
+                pass # do not bother the user again, probably the key has been uploaded manually already
 
             self._config['ssh_key_set'] = "True"
 

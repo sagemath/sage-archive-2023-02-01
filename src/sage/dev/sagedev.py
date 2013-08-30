@@ -2555,20 +2555,7 @@ class SageDev(object):
         branch = None
         remote_branch = None
 
-        if self._is_local_branch_name(ticket_or_branch, exists=True):
-            branch = ticket_or_branch
-            if download is None:
-                download = False
-            if self._has_ticket_for_local_branch(branch):
-                ticket = self._ticket_for_local_branch(branch)
-                if create_dependency is None:
-                    create_dependency = False
-            else:
-                if create_dependency:
-                    raise SageDevValueError("Can not create a dependency to `{0}` because it is not associated to a ticket.".format(branch))
-                create_dependency = False
-            remote_branch = self._remote_branch_for_branch(branch)
-        elif self._is_ticket_name(ticket_or_branch):
+        if self._is_ticket_name(ticket_or_branch):
             ticket = self._ticket_from_ticket_name(ticket_or_branch)
             self._check_ticket_name(ticket, exists=True)
             if download is None:
@@ -2582,6 +2569,19 @@ class SageDev(object):
                 if remote_branch is None:
                     self._UI.error("Can not merge remote branch for #{0}. No branch has been set on the trac ticket.".format(ticket))
                     raise OperationCancelledError("remote branch not set on trac")
+        elif self._is_local_branch_name(ticket_or_branch, exists=True):
+            branch = ticket_or_branch
+            if download is None:
+                download = False
+            if self._has_ticket_for_local_branch(branch):
+                ticket = self._ticket_for_local_branch(branch)
+                if create_dependency is None:
+                    create_dependency = False
+            else:
+                if create_dependency:
+                    raise SageDevValueError("Can not create a dependency to `{0}` because it is not associated to a ticket.".format(branch))
+                create_dependency = False
+            remote_branch = self._remote_branch_for_branch(branch)
         else:
             remote_branch = ticket_or_branch
             if download is None:
@@ -3679,7 +3679,7 @@ class SageDev(object):
         """
         return self._rewrite_patch_diff_paths(self._rewrite_patch_header(lines, to_format=to_header_format, from_format=from_header_format, diff_format=from_diff_format), to_format=to_path_format, diff_format=from_diff_format, from_format=from_path_format)
 
-    def upload_ssh_key(self, public_key=None, create_key_if_not_exists=True):
+    def upload_ssh_key(self, public_key=None):
         r"""
         Upload ``public_key`` to gitolite through the trac interface.
 
@@ -3688,9 +3688,6 @@ class SageDev(object):
         - ``public_key`` -- a string or ``None`` (default: ``None``), the path
           of the key file, defaults to ``~/.ssh/id_rsa.pub`` (or
           ``~/.ssh/id_dsa.pub`` if it exists).
-
-        - ``create_key_if_not_exists`` -- use ``ssh-keygen`` to create a public
-          key if none exists.
 
         TESTS:
 
@@ -3703,42 +3700,66 @@ class SageDev(object):
 
             sage: import os
             sage: public_key = os.path.join(dev._sagedev.tmp_dir,"id_rsa.pub")
-            sage: dev.upload_ssh_key(public_key=public_key, create_key_if_not_exists=False)
-            ValueError: create_key_if_not_exists is not set but there is no key at ....
-            sage: dev.upload_ssh_key(public_key=public_key, create_key_if_not_exists=True)
+            sage: UI.append("no")
+            sage: UI.append("yes")
+            sage: dev.upload_ssh_key(public_key=public_key)
+            I will now upload your ssh key at `...` to trac. This will enable access to the git repository there. Is this what you want? [Yes/no] yes
+            I could not find a public key at `{0}`. Do you want me to create one for you? [Yes/no] no
+            sage: UI.append("yes")
+            sage: UI.append("yes")
+            sage: dev.upload_ssh_key(public_key=public_key)
+            I will now upload your ssh key at `...` to trac. This will enable access to the git repository there. Is this what you want? [Yes/no] yes
+            I could not find a public key at `{0}`. Do you want me to create one for you? [Yes/no] yes
             Generating ssh key.
             Your key has been uploaded.
-            sage: dev.upload_ssh_key(public_key=public_key, create_key_if_not_exists=False)
+            sage: UI.append("yes")
+            sage: dev.upload_ssh_key(public_key=public_key)
+            I will now upload your ssh key at `...` to trac. This will enable access to the git repository there. Is this what you want? [Yes/no] yes
             Your key has been uploaded.
 
         """
-        import os
-        if public_key is None:
-            public_key = os.path.expanduser("~/.ssh/id_dsa.pub")
+        try:
+            import os
+            if public_key is None:
+                public_key = os.path.expanduser("~/.ssh/id_dsa.pub")
+                if not os.path.exists(public_key):
+                    public_key = os.path.expanduser("~/.ssh/id_rsa.pub")
+
+            if not self._UI.confirm("I will now upload your ssh key at `{0}` to trac. This will enable access to the git repository there. Is this what you want?".format(public_key), default=True):
+                raise OperationCancelledError("do not upload key")
+
             if not os.path.exists(public_key):
-                public_key = os.path.expanduser("~/.ssh/id_rsa.pub")
+                if not public_key.endswith(".pub"):
+                    raise SageDevValueError("public key must end with `.pub`.")
 
-        if not os.path.exists(public_key):
-            if not create_key_if_not_exists:
-                raise SageDevValueError("create_key_if_not_exists is not set but there is no key at {0}.".format(public_key))
-            if not public_key.endswith(".pub"):
-                raise SageDevValueError("public key must end with `.pub`.")
-            private_key = public_key[:-4]
-            self._UI.show("Generating ssh key.")
-            from subprocess import call
-            success = call(["ssh-keygen", "-q", "-f", private_key, "-P", ""])
-            if success == 0:
-                self._UI.info("Key generated.")
-            else:
-                self._UI.error("Key generation failed.")
-                self._UI.info("Please create a key in `{0}` and retry.".format(public_key))
-                raise OperationCancelledError("ssh-keygen failed")
+                if not self._UI.confirm("I could not find a public key at `{0}`. Do you want me to create one for you?", default=True):
+                    raise OperationCancelledError("no keyfile found")
 
-        with open(public_key, 'r') as F:
-            public_key = F.read().strip()
+                private_key = public_key[:-4]
+                self._UI.show("Generating ssh key.")
+                from subprocess import call
+                success = call(["ssh-keygen", "-q", "-f", private_key, "-P", ""])
+                if success == 0:
+                    self._UI.info("Key generated.")
+                else:
+                    self._UI.error("Key generation failed.")
+                    self._UI.info("Please create a key in `{0}` and retry.".format(public_key))
+                    raise OperationCancelledError("ssh-keygen failed")
 
-        self.trac._authenticated_server_proxy.sshkeys.addkey(public_key)
-        self._UI.show("Your key has been uploaded.")
+            with open(public_key, 'r') as F:
+                public_key = F.read().strip()
+
+            self.trac._authenticated_server_proxy.sshkeys.addkey(public_key)
+            self._UI.show("Your key has been uploaded.")
+            self._UI.info("Use `{0}` to upload another key.".format(self._format_command("upload_ssh_key",public_key="keyfile.pub")))
+        except OperationCancelledError:
+            from sage.env import TRAC_SERVER_URI
+            server = self.config.get('server', TRAC_SERVER_URI)
+
+            import os, urllib, urllib, urlparse
+            url = urlparse.urljoin(server, urllib.pathname2url(os.path.join('prefs', 'sshkeys')))
+            self._UI.info("Use `{0}` to upload a public key. Or set your key manually at {1}.".format(self._format_command("upload_ssh_key"), url))
+            raise
 
     def _is_ticket_name(self, name, exists=False):
         r"""

@@ -2017,30 +2017,32 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def multiplication_by_m(self, m, x_only=False):
         r"""
-        Return the multiplication-by-`m` map from self to self as a pair of
-        rational functions in two variables `x`,`y`.
+        Return the multiplication-by-`m` map from ``self`` to ``self``
+
+        The result is a pair of rational functions in two variables
+        `x`, `y` (or a rational function in one variable `x` if
+        ``x_only`` is ``True``).
 
         INPUT:
 
         -  ``m`` - a nonzero integer
 
-        -  ``x_only`` - bool (default: False) if True, return
+        -  ``x_only`` - boolean (default: ``False``) if ``True``, return
            only the `x`-coordinate of the map (as a rational function
            in one variable).
 
-
         OUTPUT:
 
-        (2-tuple) `(f(x), g(x,y))`, where `f` and `g` are rational
-        functions with the degree of `y` in `g(x,y)` exactly 1.
+        - a pair `(f(x), g(x,y))`, where `f` and `g` are rational
+          functions with the degree of `y` in `g(x,y)` exactly 1,
 
-        or just `f(x)` if ``x_only`` is ``True``
+        - or just `f(x)` if ``x_only`` is ``True``
 
-        .. note:
+        .. NOTE::
 
-            The result is not cached.
+            - The result is not cached.
 
-            ``m`` is allowed to be negative (but not 0).
+            - ``m`` is allowed to be negative (but not 0).
 
         EXAMPLES::
 
@@ -2095,12 +2097,12 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E = EllipticCurve([23,-105])
             sage: P = E([129/4, 1479/8])
             sage: for n in [1..10]:
-            ...       f = E.multiplication_by_m(n)
-            ...       Q = n*P
-            ...       assert Q == E(eval(f,P))
-            ...       f = E.multiplication_by_m(-n)
-            ...       Q = -n*P
-            ...       assert Q == E(eval(f,P))
+            ....:     f = E.multiplication_by_m(n)
+            ....:     Q = n*P
+            ....:     assert Q == E(eval(f,P))
+            ....:     f = E.multiplication_by_m(-n)
+            ....:     Q = -n*P
+            ....:     assert Q == E(eval(f,P))
 
         The following test shows that :trac:`4364` is indeed fixed::
 

@@ -97,6 +97,8 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
     - ``d`` is the dimension of the subspaces of `P = PPn(F)` which
       make up the blocks.
 
+    - ``F`` is a finite field.
+
     - ``algorithm`` -- set to ``None`` by default, which results in using Sage's
       own implementation. In order to use GAP's implementation instead (i.e. its
       ``PGPointFlatBlockDesign`` function) set ``algorithm="gap"``. Note that
@@ -106,7 +108,7 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
 
     The points of the following design are the `\frac {2^{2+1}-1} {2-1}=7` lines
     of `\mathbb{Z}_2^{2+1}`. It has `7` blocks, corresponding to each
-    2-dimensional subspace of `\mathbb{Z}_2^{2+1}`.
+    2-dimensional subspace of `\mathbb{Z}_2^{2+1}`::
 
         sage: designs.ProjectiveGeometryDesign(2, 1, GF(2))
         Incidence structure with 7 points and 7 blocks

@@ -201,6 +201,9 @@ ext_modules = [
     Extension('sage.structure.list_clone',
               sources=['sage/structure/list_clone.pyx']),
 
+    Extension('sage.structure.list_clone_demo',
+              sources=['sage/structure/list_clone_demo.pyx']),
+
     Extension('sage.structure.list_clone_timings_cy',
               sources=['sage/structure/list_clone_timings_cy.pyx']),
 
@@ -241,6 +244,9 @@ ext_modules = [
 
     Extension('sage.combinat.q_bernoulli',
               sources = ['sage/combinat/q_bernoulli.pyx']),
+
+    Extension('sage.combinat.crystals.letters',
+              sources=['sage/combinat/crystals/letters.pyx']),
 
     ################################
     ##
@@ -703,6 +709,10 @@ ext_modules = [
               depends = [SAGE_INC + '/ratpoints.h'],
               libraries = ["ratpoints", "gmp"]),
 
+    Extension('sage.libs.readline',
+              sources = ['sage/libs/readline.pyx'],
+              libraries = ['readline']),
+
     Extension('sage.libs.singular.singular',
               sources = ['sage/libs/singular/singular.pyx'],
               libraries = singular_libs,
@@ -1107,6 +1117,39 @@ ext_modules = [
 
     ################################
     ##
+    ## sage.matroids
+    ##
+    ################################
+
+    Extension('sage.matroids.matroid',
+            ['sage/matroids/matroid.pyx']),
+
+    Extension('sage.matroids.extension',
+            ['sage/matroids/extension.pyx']),
+
+    Extension('sage.matroids.set_system',
+            ['sage/matroids/set_system.pyx']),
+
+    Extension('sage.matroids.lean_matrix',
+            ['sage/matroids/lean_matrix.pyx']),
+
+    Extension('sage.matroids.basis_exchange_matroid',
+            ['sage/matroids/basis_exchange_matroid.pyx']),
+
+    Extension('sage.matroids.basis_matroid',
+            ['sage/matroids/basis_matroid.pyx']),
+
+    Extension('sage.matroids.linear_matroid',
+            ['sage/matroids/linear_matroid.pyx']),
+
+    Extension('sage.matroids.circuit_closures_matroid',
+            ['sage/matroids/circuit_closures_matroid.pyx']),
+
+    Extension('sage.matroids.unpickling',
+            ['sage/matroids/unpickling.pyx']),
+
+    ################################
+    ##
     ## sage.media
     ##
     ################################
@@ -1141,6 +1184,9 @@ ext_modules = [
     Extension('sage.misc.c3',
               sources = ['sage/misc/c3.pyx']),
 
+    Extension('sage.misc.c3_controlled',
+              sources = ['sage/misc/c3_controlled.pyx']),
+
     Extension('sage.misc.derivative',
               sources = ['sage/misc/derivative.pyx']),
 
@@ -1152,6 +1198,9 @@ ext_modules = [
 
     Extension('sage.misc.lazy_attribute',
               sources = ['sage/misc/lazy_attribute.pyx']),
+
+    Extension('sage.misc.inputhook',
+              sources = ['sage/misc/inputhook.pyx']),
 
     Extension('sage.misc.lazy_import',
               sources = ['sage/misc/lazy_import.pyx']),
@@ -1221,6 +1270,9 @@ ext_modules = [
                          'sage/modular/arithgroup/sl2z.cpp'],
               libraries = ['gmpxx', 'gmp'],
               language = 'c++'),
+
+    Extension('sage.modular.arithgroup.arithgroup_element',
+              sources = ['sage/modular/arithgroup/arithgroup_element.pyx']),
 
     Extension('sage.modular.modform.eis_series_cython',
               sources = ['sage/modular/modform/eis_series_cython.pyx'],
@@ -1552,6 +1604,10 @@ ext_modules = [
               libraries = ['ntl', 'gmp'],
               language = 'c++'),
 
+    Extension('sage.rings.finite_rings.element_pari_ffelt',
+              sources = ['sage/rings/finite_rings/element_pari_ffelt.pyx'],
+              libraries = ['pari', 'gmp']),
+
         ################################
         ##
         ## sage.rings.function_field
@@ -1784,6 +1840,15 @@ ext_modules = [
     Extension('sage.rings.polynomial.symmetric_reduction',
               sources = ['sage/rings/polynomial/symmetric_reduction.pyx']),
 
+        ################################
+        ##
+        ## sage.rings.semirings
+        ##
+        ################################
+
+    Extension('sage.rings.semirings.tropical_semiring',
+              sources = ['sage/rings/semirings/tropical_semiring.pyx']),
+
     ################################
     ##
     ## sage.schemes
@@ -1870,12 +1935,18 @@ ext_modules = [
     Extension('sage.structure.coerce_maps',
               sources = ['sage/structure/coerce_maps.pyx']),
 
+    Extension('sage.structure.debug_options',
+              sources=['sage/structure/debug_options.pyx']),
+
     # Compile this with -Os because it works around a bug with
     # GCC-4.7.3 + Cython 0.19 on Itanium, see Trac #14452. Moreover, it
     # actually results in faster code than -O3.
     Extension('sage.structure.element',
               sources = ['sage/structure/element.pyx'],
               extra_compile_args=["-Os"]),
+
+    Extension('sage.structure.element_wrapper',
+              sources = ['sage/structure/element_wrapper.pyx']),
 
     Extension('sage.structure.factory',
               sources = ['sage/structure/factory.pyx']),

@@ -72,10 +72,12 @@ TESTS:
 include 'sage/ext/interrupt.pxi'
 include 'sage/ext/stdsage.pxi'
 
+MAX_MODULUS = MOD_INT_MAX
+
 from sage.rings.finite_rings.integer_mod cimport (IntegerMod_int, IntegerMod_int64,
           IntegerMod_abstract, use_32bit_type)
 
-cdef mod_int ivalue(IntegerMod_abstract x) except 18446744073709551615:
+cdef mod_int ivalue(IntegerMod_abstract x) except -1:
     if PY_TYPE_CHECK_EXACT(x, IntegerMod_int):
         return (<IntegerMod_int>x).ivalue
     elif PY_TYPE_CHECK_EXACT(x, IntegerMod_int64):
@@ -87,8 +89,6 @@ from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
 cimport free_module_element
 from free_module_element import vector
-
-from sage.ext.multi_modular import MAX_MODULUS
 
 cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
     cdef _new_c(self):

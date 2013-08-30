@@ -396,14 +396,14 @@ cdef class IntegerWrapper(Integer):
     specifying an alternative parent to ``IntegerRing()``.
     """
 
-    def __init__(self, x=None, unsigned int base=0, parent=None):
+    def __init__(self, parent=None, x=None, unsigned int base=0):
         """
         We illustrate how to create integers with parents different
         from ``IntegerRing()``::
 
             sage: from sage.rings.integer import IntegerWrapper
 
-            sage: n = IntegerWrapper(3, parent=Primes()) # indirect doctest
+            sage: n = IntegerWrapper(Primes(), 3) # indirect doctest
             sage: n
             3
             sage: n.parent()
@@ -460,23 +460,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     def __cinit__(self):
         mpz_init(self.value)
         self._parent = <SageObject>the_integer_ring
-
-    def __pyxdoc__init__(self):
-        """
-        You can create an integer from an int, long, string literal, or
-        integer modulo N.
-
-        EXAMPLES::
-
-            sage: Integer(495)
-            495
-            sage: Integer('495949209809328523')
-            495949209809328523
-            sage: Integer(Mod(3,7))
-            3
-            sage: 2^3
-            8
-        """
 
     def __init__(self, x=None, base=0):
         """
@@ -5166,6 +5149,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             <type 'sage.rings.real_mpfr.RealNumber'>
             sage: type(Integer(-5).sqrt(prec=53))
             <type 'sage.rings.complex_number.ComplexNumber'>
+
+        TESTS:
+
+        Check that :trac:`9466` is fixed::
+
+            sage: 3.sqrt(extend=False, all=True)
+            []
         """
         if mpz_sgn(self.value) == 0:
             return [self] if all else self
@@ -5188,7 +5178,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         if non_square:
             if not extend:
-                raise ValueError, "square root of %s not an integer"%self
+                if not all:
+                   raise ValueError, "square root of %s not an integer"%self
+                else:
+                    return []
             from sage.functions.other import _do_sqrt
             return _do_sqrt(self, prec=prec, all=all)
 

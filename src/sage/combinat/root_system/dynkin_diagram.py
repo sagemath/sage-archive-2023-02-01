@@ -271,16 +271,17 @@ class DynkinDiagram_class(DiGraph, CartanType_abstract):
     ##########################################################################
     # Cartan type methods
 
+    @cached_method
     def index_set(self):
         """
         EXAMPLES::
 
             sage: DynkinDiagram(['C',3]).index_set()
-            [1, 2, 3]
+            (1, 2, 3)
             sage: DynkinDiagram("A2","B2","F4").index_set()
-            [1, 2, 3, 4, 5, 6, 7, 8]
+            (1, 2, 3, 4, 5, 6, 7, 8)
         """
-        return self.vertices()
+        return tuple(self.vertices())
 
     def cartan_type(self):
         """

@@ -44,6 +44,10 @@ Enea Zaffanella (University of Parma)
 
 == Changelog ==
 
+=== ppl-1.1pre9.p0 (Jean-Pierre Flori, 6 August 2013) ===
+ * #15001: Update to prerelease 1.1pre9 version.
+ * Let PPL build on Cygwin.
+
 === ppl-1.0.p0 (Jeroen Demeyer, 10 June 2013) ===
  * #12672: Build PPL with its C interface if possible, fall back to
    only C++ interface if needed.

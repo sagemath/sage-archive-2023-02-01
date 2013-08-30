@@ -991,7 +991,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         from sage.misc.stopgap import stopgap
         stopgap("Extended gcd computations over p-adic fields are performed using the standard Euclidean algorithm which might produce mathematically incorrect results in some cases.", 13439)
 
-        return self._xgcd(right)
+        from sage.rings.polynomial.polynomial_element_generic import Polynomial_generic_field
+        return Polynomial_generic_field._xgcd.im_func(self,right)
 
     #def discriminant(self):
     #    raise NotImplementedError

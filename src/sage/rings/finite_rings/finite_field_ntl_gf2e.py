@@ -111,7 +111,7 @@ class FiniteField_ntl_gf2e(FiniteField):
             sage: k.<a> = GF(2^100, modulus='strangeinput')
             Traceback (most recent call last):
             ...
-            ValueError: Modulus parameter not understood
+            ValueError: no such algorithm for finding an irreducible polynomial: strangeinput
             sage: k.<a> = GF(2^20) ; type(k)
             <class 'sage.rings.finite_rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e_with_category'>
             sage: loads(dumps(k)) is k
@@ -144,7 +144,6 @@ class FiniteField_ntl_gf2e(FiniteField):
         FiniteField.__init__(self, GF(p), names, normalize=True)
 
         self._kwargs = {'repr':repr}
-        self._is_conway = False
 
         if modulus is None or modulus == 'default':
             if exists_conway_polynomial(p, k):
@@ -153,7 +152,6 @@ class FiniteField_ntl_gf2e(FiniteField):
                 modulus = "minimal_weight"
         if modulus == "conway":
             modulus = conway_polynomial(p, k)
-            self._is_conway = True
         if is_Polynomial(modulus):
             modulus = modulus.list()
         self._cache = Cache_ntl_gf2e(self, k, modulus)

@@ -184,18 +184,18 @@ Here is some mathematical information that Sage is aware of::
      Category of unique factorization domains,
      Category of gcd domains,
      Category of integral domains,
-     Category of commutative rings,
      Category of domains,
+     Category of commutative rings,
      Category of rings,
      Category of rngs,
-     Category of commutative additive groups,
      Category of semirings,
-     Category of commutative additive monoids,
-     Category of commutative additive semigroups,
-     Category of additive magmas,
      Category of monoids,
      Category of semigroups,
      Category of magmas,
+     Category of commutative additive groups,
+     Category of commutative additive monoids,
+     Category of commutative additive semigroups,
+     Category of additive magmas,
      Category of sets,
      Category of sets with partial maps,
      Category of objects]
@@ -338,10 +338,12 @@ Where do all the operations on ``S`` and its elements come from?
 
     sage: x = S('a')
 
-``_repr_`` is a technical method which comes with the data structure (ElementWrapper)::
+``_repr_`` is a technical method which comes with the data structure
+(ElementWrapper), however we can't see it in python because it is an
+extension class (it is in `sage.structure.element_wrapper`)::
 
     sage: x._repr_.__module__
-    'sage.structure.element_wrapper'
+    <BLANKLINE>
 
 ``__pow__`` is a generic method for all finite semigroups::
 
@@ -444,7 +446,7 @@ categories translates into *inheritance* between classes::
     sage: x.__class__.mro()
     [<class 'sage.categories.examples.finite_semigroups.LeftRegularBand_with_category.element_class'>,
      <class 'sage.categories.examples.finite_semigroups.LeftRegularBand.Element'>,
-     <class 'sage.structure.element_wrapper.ElementWrapper'>,
+     <type 'sage.structure.element_wrapper.ElementWrapper'>,
      <type 'sage.structure.element.Element'>,
      <type 'sage.structure.sage_object.SageObject'>,
      <class 'sage.categories.category.FiniteSemigroups.element_class'>,
@@ -551,33 +553,33 @@ Functorial constructions
     sage: C.product??                                            # not tested
     sage: C.categories()
     [Category of Cartesian products of algebras with basis over Rational Field,
-     Category of algebras with basis over Rational Field,
-     Category of Cartesian products of modules with basis over Rational Field,
-     Category of modules with basis over Rational Field,
-     Category of Cartesian products of algebras over Rational Field,
-     Category of algebras over Rational Field,
-     Category of rings,
-     Category of rngs,
-     Category of vector spaces over Rational Field,
-     Category of modules over Rational Field,
-     Category of bimodules over Rational Field on the left and Rational Field on the right,
-     Category of left modules over Rational Field,
-     Category of right modules over Rational Field,
-     Category of commutative additive groups,
-     Category of semirings,
-     Category of commutative additive monoids,
-     Category of commutative additive semigroups,
-     Category of additive magmas,
-     Category of Cartesian products of monoids,
-     Category of monoids,
-     Category of Cartesian products of semigroups,
-     Category of semigroups,
-     Category of Cartesian products of magmas,
-     Category of magmas,
-     Category of Cartesian products of sets,
-     Category of sets,
-     Category of sets with partial maps,
-     Category of objects]
+    Category of algebras with basis over Rational Field,
+    Category of Cartesian products of algebras over Rational Field,
+    Category of algebras over Rational Field,
+    Category of rings,
+    Category of rngs,
+    Category of semirings,
+    Category of Cartesian products of monoids,
+    Category of monoids,
+    Category of Cartesian products of semigroups,
+    Category of semigroups,
+    Category of Cartesian products of magmas,
+    Category of magmas,
+    Category of Cartesian products of modules with basis over Rational Field,
+    Category of modules with basis over Rational Field,
+    Category of vector spaces over Rational Field,
+    Category of modules over Rational Field,
+    Category of bimodules over Rational Field on the left and Rational Field on the right,
+    Category of right modules over Rational Field,
+    Category of left modules over Rational Field,
+    Category of commutative additive groups,
+    Category of commutative additive monoids,
+    Category of commutative additive semigroups,
+    Category of additive magmas,
+    Category of Cartesian products of sets,
+    Category of sets,
+    Category of sets with partial maps,
+    Category of objects]
 
 Wrapup:
 
@@ -638,80 +640,45 @@ Each category *should* come with a good example, in :mod:`sage.categories.exampl
 Inserting the new category into the category graph
 ..................................................
 
-``C.super_categories()``  must return a list of categories, namely
-the *immediate* super categories of `C`. The generic method
-``C.all_super_categories()`` will recursively determine the list
-of *all* super categories of `C`, by using the so-called C3 algorithm,
-that is also used for the method resolution order of new-style classes
-in Python (see trac ticket #11943).
+``C.super_categories()`` must return a list of categories, namely the
+*immediate* super categories of `C`. Of course, if you know that your
+new category `C` is an immediate super category of some existing
+category `D`, then you should modify `D`'s ``super_categories`` to
+include `C`.
 
-Of course, if you know that your new category `C` is an immediate
-super category of some existing category `D`, then you should modify
-`D`'s ``super_categories`` method so that `C` is included.
+The generic method ``C.all_super_categories()`` will recursively
+determine the list of *all* super categories of `C`.  The order of the
+categories in this list does influences the inheritance of methods for
+parents and elements. Namely, if `P` is an object in the category `C`
+and if `C_1` and `C_2` are both super categories of `C` defining some
+method ``foo``, then `P` will use `C_1`'s version of ``foo`` if and
+only if `C_1` appears in ``C.all_super_categories()`` before `C_2`.
+However this must be considered as an *implementation detail*: if `C_1`
+and `C_2` are incomparable categories, then the order in which they
+appear must be mathematically irrelevant: the methods ``foo`` in `C_1`
+and `C_2` must have the same semantic. Code should not rely on any
+specific order, as it it subject to later change. In case one of the
+implementation is prefered in a common subcategory of `C_1` and `C_2`,
+for example for efficiency reasons, then the ambiguity should be
+resolved explicitly by definining a method ``foo`` in this
+category. See the method ``some_elements`` in the code of the category
+:class:`FiniteCoxeterGroups` for an example.
 
-The order between the super categories does influence the inheritance
-of methods for parents and elements. Namely, if `P` is an object in
-the category `C` and if `C_1` and `C_2` are both super categories of
-`C` defining some method ``foo``, then `P` will use `C_1`'s version of
-``foo`` only if `C_1` appears in ``C.all_super_categories()`` before
-`C_2`. This is an *implementation detail*: the order between super
-categories should not be mathematically relevant, and code should not
-rely on any specific order, as it it subject to later change.
+Since :trac:`11943`, ``C.all_super_categories()`` is computed by the
+so-called ``C3`` algorithm used by Python to compute Method Resolution
+Order of new-style classes. Thus the order in
+``C.all_super_categories()``, ``C.parent_class.mro()`` and
+``C.element_class.mro()`` are guaranteed to be consistent.
 
-Also, the C3 algorithm will only be able to determine a consistent order
-on the list of all super categories if the orders on the different lists
-of *immediate* super categories is sane. See :func:`sage.misc.c3.C3_algorithm`
-and :meth:`sage.categories.category.Category.all_super_categories` for examples.
+Since :trac:`13589`, the ``C3`` algorithm is put under control of some
+total order on categories. This order is not necessarily meaningful,
+but it guarantees that ``C3`` always finds a consistent Method
+Resolution Order. For background, see
+:mod:`sage.misc.c3_controlled`. A visible effect is that the order in
+which categories are specified in ``C.super_categories()``, or in a
+join category, no longer influences the result of
+``C.all_super_categories()``.
 
-It is thus useful to follow certain conventions when ordering the
-immediate super categories. The current convention is to order them
-lexicographically w.r.t. the following criteria:
-
- - Graded... or Finite dimensional... first
- - ...WithBasis first
- - Algebras before Coalgebras
- - Modules first
-
-This gives the following order::
-
-    sage: GradedHopfAlgebrasWithBasis(QQ).all_super_categories()
-    [Category of graded hopf algebras with basis over Rational Field,
-     Category of graded bialgebras with basis over Rational Field,
-     Category of graded algebras with basis over Rational Field,
-     Category of graded coalgebras with basis over Rational Field,
-     Category of graded modules with basis over Rational Field,
-     Category of graded hopf algebras over Rational Field,
-     Category of graded bialgebras over Rational Field,
-     Category of graded algebras over Rational Field,
-     Category of graded coalgebras over Rational Field,
-     Category of graded modules over Rational Field,
-     Category of hopf algebras with basis over Rational Field,
-     Category of bialgebras with basis over Rational Field,
-     Category of algebras with basis over Rational Field,
-     Category of coalgebras with basis over Rational Field,
-     Category of modules with basis over Rational Field,
-     Category of hopf algebras over Rational Field,
-     Category of bialgebras over Rational Field,
-     Category of algebras over Rational Field,
-     Category of rings,
-     Category of rngs,
-     Category of coalgebras over Rational Field,
-     Category of vector spaces over Rational Field,
-     Category of modules over Rational Field,
-     Category of bimodules over Rational Field on the left and Rational Field on the right,
-     Category of left modules over Rational Field,
-     Category of right modules over Rational Field,
-     Category of commutative additive groups,
-     Category of semirings,
-     Category of commutative additive monoids,
-     Category of commutative additive semigroups,
-     Category of additive magmas,
-     Category of monoids,
-     Category of semigroups,
-     Category of magmas,
-     Category of sets,
-     Category of sets with partial maps,
-     Category of objects]
 
 Subcategory hook (advanced optimization feature)
 ................................................

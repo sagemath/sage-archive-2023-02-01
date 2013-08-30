@@ -51,6 +51,7 @@ from sage.rings.padics.precision_error import PrecisionError
 #pAdicGenericElement = sage.rings.padics.padic_generic_element.pAdicGenericElement
 pari = sage.libs.pari.gen.pari
 pari_gen = sage.libs.pari.gen.gen
+from sage.interfaces.gp import GpElement
 PariError = sage.libs.pari.gen.PariError
 
 cdef class pAdicFixedModElement(pAdicBaseGenericElement):
@@ -153,7 +154,9 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
                 mpz_set(self.value, tmp.value)
             return
 
-        if isinstance(x, pari_gen):
+        if isinstance(x, pari_gen) or isinstance(x, GpElement):
+            if isinstance(x, GpElement):
+                x = x._pari_()
             if x.type() == "t_PADIC":
                 if x.variable() != self.prime_pow.prime:
                     raise TypeError, "Cannot coerce a pari p-adic with the wrong prime."
@@ -546,6 +549,11 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             sage: R = ZpFM(11, 5)
             sage: type(R(0)^0) == type(R(0))
             True
+
+        Test that #3865 is fixed::
+
+            sage: R(gp('5 + O(11^2)'))
+            5 + O(11^5)
 
         """
         if not PY_TYPE_CHECK(right, Integer):

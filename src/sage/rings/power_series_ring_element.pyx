@@ -859,6 +859,14 @@ cdef class PowerSeries(AlgebraElement):
             sage: u*v
             1 + O(t^12)
 
+        We try a non-zero, non-unit leading coefficient::
+
+            sage: R.<t> = PowerSeriesRing(IntegerModRing(6))
+            sage: ~R(2)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: leading coefficient must be a unit
+
         AUTHORS:
 
         - David Harvey (2006-09-09): changed to use Newton's method
@@ -879,7 +887,7 @@ cdef class PowerSeries(AlgebraElement):
 
         try:
             first_coeff = ~self[0]
-        except ValueError, ZeroDivisionError:
+        except (ValueError, ZeroDivisionError):
             raise ZeroDivisionError, "leading coefficient must be a unit"
 
         if prec is infinity:
@@ -902,26 +910,6 @@ cdef class PowerSeries(AlgebraElement):
             current = 2*current - z.truncate(next_prec)
 
         return self._parent(current, prec=prec)
-
-        # Here is the old code, which uses a simple recursion, and is
-        # asymptotically inferior:
-        #
-        #a0 = self[0]
-        #try:
-        #    b = [~a0]
-        #except ValueError, ZeroDivisionError:
-        #    raise ZeroDivisionError, "leading coefficient must be a unit"
-
-        ##  By multiplying through we may assume that the leading coefficient
-        ##  of f=self is 1.   If f = 1 + a_1*q + a_2*q^2 + ..., then we have
-        ##  the following recursive formula for the coefficients b_n of the
-        ##  expansion of f^(-1):
-        ##        b_n = -b_0*(b_{n-1}*a_1 + b_{n-2}*a_2 + ... + b_0 a_n).
-        #if self.degree() > 0:
-        #    a = self.list()
-        #    for n in range(1,prec):
-        #        b.append(-b[0]*sum([b[n-i]*a[i] for i in range(1,n+1) if i < len(a)]))
-        #return self.parent()(b, prec=prec)
 
     def valuation_zero_part(self):
         r"""

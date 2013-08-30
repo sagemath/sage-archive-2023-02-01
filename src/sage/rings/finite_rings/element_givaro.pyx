@@ -1093,10 +1093,16 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             sage: K = GF(8, 'a')
             sage: all([a.sqrt()*a.sqrt() == a for a in K if a.is_square()])
             True
+            sage: K.<a>=FiniteField(9)
+            sage: a.sqrt(extend = False, all = True)
+            []
+
         """
         if all:
-            a = self.sqrt()
-            return [a, -a] if -a != a else [a]
+            if self.is_square():
+                a = self.sqrt()
+                return [a, -a] if -a != a else [a]
+            return []
         cdef Cache_givaro cache = <Cache_givaro>self._cache
         if self.element == cache.objectptr.one:
             return make_FiniteField_givaroElement(cache, cache.objectptr.one)
@@ -1815,7 +1821,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             g = int(gap.eval('Int(Z(%s))'%cache.order_c()))
             n = self.log(mod(g, cache.order_c()))
             return 'Z(%s)^%s'%(cache.order_c(), n)
-        if not F._is_conway:
+        if not F.is_conway():
             raise NotImplementedError, "conversion of (Givaro) finite field element to GAP not implemented except for fields defined by Conway polynomials."
         if cache.order_c() > 65536:
             raise TypeError, "order (=%s) must be at most 65536."%F.order_c()

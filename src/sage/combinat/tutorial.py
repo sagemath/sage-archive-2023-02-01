@@ -1467,7 +1467,7 @@ permutations of size `n`. We begin by constructing the infinite
 family `F=(P_n)_{n\in N}`::
 
     sage: F = Family(NonNegativeIntegers(), Permutations); F
-    Lazy family (Permutations(i))_{i in Non negative integers}
+    Lazy family (<class 'sage.combinat.permutation.Permutations'>(i))_{i in Non negative integers}
     sage: F.keys()
     Non negative integers
     sage: F[1000]
@@ -1477,7 +1477,7 @@ Now we can construct the disjoint union `\bigcup_{n\in \NN}P_n`::
 
     sage: U = DisjointUnionEnumeratedSets(F); U
     Disjoint union of
-    Lazy family (Permutations(i))_{i in Non negative integers}
+    Lazy family (<class 'sage.combinat.permutation.Permutations'>(i))_{i in Non negative integers}
 
 It is an infinite set::
 

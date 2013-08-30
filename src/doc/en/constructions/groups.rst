@@ -103,11 +103,8 @@ Another way you can choose to do this:
 
        sage: rubik = CubeGroup()
        sage: rubik
-       The PermutationGroup of all legal moves of the Rubik's cube.
-       sage: print rubik
        The Rubik's cube group with generators R,L,F,B,U,D in SymmetricGroup(48).
-       sage: G = rubik.group()
-       sage: G.order()
+       sage: rubik.order()
        43252003274489856000
 
 

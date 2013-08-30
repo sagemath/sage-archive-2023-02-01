@@ -11,9 +11,11 @@ Functions
    sage/functions/orthogonal_polys
    sage/functions/other
    sage/functions/special
+   sage/functions/bessel
    sage/functions/exp_integral
    sage/functions/wigner
    sage/functions/generalized
    sage/functions/prime_pi
+   sage/functions/min_max
 
 .. include:: ../footer.txt

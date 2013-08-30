@@ -5504,6 +5504,58 @@ cdef class gen(sage.structure.element.RingElement):
         sig_on()
         return P.new_gen(pnqn(x.g))
 
+    def ffgen(gen T, v=-1):
+        r"""
+        Return the generator `g=x \bmod T` of the finite field defined
+        by the polynomial `T`.
+
+        INPUT:
+
+        - ``T`` -- a gen of type t_POL with coefficients of type t_INTMOD:
+                   a polynomial over a prime finite field
+
+        - ``v`` -- string: a variable name or -1 (optional)
+
+        If `v` is a string, then `g` will be a polynomial in `v`, else the
+        variable of the polynomial `T` is used.
+
+        EXAMPLES::
+
+            sage: x = GF(2)['x'].gen()
+            sage: pari(x^2+x+2).ffgen()
+            x
+            sage: pari(x^2+x+1).ffgen('a')
+            a
+        """
+        sig_on()
+        return P.new_gen(ffgen(T.g, P.get_var(v)))
+
+    def ffinit(gen p, long n, v=-1):
+        r"""
+        Return a monic irreducible polynomial `g` of degree `n` over the
+        finite field of `p` elements.
+
+        INPUT:
+
+        - ``p`` -- a gen of type t_INT: a prime number
+
+        - ``n`` -- integer: the degree of the polynomial
+
+        - ``v`` -- string: a variable name or -1 (optional)
+
+        If `v \geq 0', then `g` will be a polynomial in `v`, else the
+        variable `x` is used.
+
+        EXAMPLES::
+
+            sage: pari(7).ffinit(11)
+            Mod(1, 7)*x^11 + Mod(1, 7)*x^10 + Mod(4, 7)*x^9 + Mod(5, 7)*x^8 + Mod(1, 7)*x^7 + Mod(1, 7)*x^2 + Mod(1, 7)*x + Mod(6, 7)
+            sage: pari(2003).ffinit(3)
+            Mod(1, 2003)*x^3 + Mod(1, 2003)*x^2 + Mod(1993, 2003)*x + Mod(1995, 2003)
+        """
+        sig_on()
+        return P.new_gen(ffinit(p.g, n, P.get_var(v)))
+
     def fibonacci(gen x):
         r"""
         Return the Fibonacci number of index x.
@@ -9337,16 +9389,6 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         _x = t0heap[i]
         return _x.g
 
-        # TODO: Refactor code out of __call__ so it...
-
-        s = str(x)
-        cdef GEN g
-        sig_on()
-        g = gp_read_str(s)
-        sig_off()
-        return g
-
-
     def set_real_precision(self, long n):
         """
         Sets the PARI default real precision.
@@ -10405,33 +10447,14 @@ cdef size_t fix_size(size_t a):
     return b
 
 cdef GEN deepcopy_to_python_heap(GEN x, pari_sp* address):
-    cdef size_t s
-    cdef pari_sp tmp_bot, tmp_top, tmp_avma
-    global avma, bot, top, mytop
-    cdef GEN h
+    cdef size_t s = <size_t> gsizebyte(x)
+    cdef pari_sp tmp_bot, tmp_top
 
-    tmp_top = top
-    tmp_bot = bot
-    tmp_avma = avma
+    tmp_bot = <pari_sp> sage_malloc(s)
+    tmp_top = tmp_bot + s
+    address[0] = tmp_bot
+    return gcopy_avma(x, &tmp_top)
 
-    h = gcopy(x)
-    s = <size_t> (tmp_avma - avma)
-
-    #print "Allocating %s bytes for PARI/Python object"%(<long> s)
-    bot = <pari_sp> sage_malloc(s)
-    top = bot + s
-    avma = top
-    h = gcopy(x)
-    address[0] = bot
-
-    # Restore the stack to how it was before x was created.
-    top = tmp_top
-    bot = tmp_bot
-    avma = tmp_avma
-    return h
-
-# The first one makes a separate copy on the heap, so the stack
-# won't overflow -- but this costs more time...
 cdef gen _new_gen (GEN x):
     cdef GEN h
     cdef pari_sp address

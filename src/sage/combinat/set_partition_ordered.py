@@ -536,7 +536,7 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
             p += [j+1]*comp[j]
 
         for x in permutation.Permutations(p):
-            res = permutation.Permutation_class(range(1,len(lset))) * Word(x).standard_permutation().inverse()
+            res = permutation.Permutation(range(1,len(lset))) * Word(x).standard_permutation().inverse()
             res = [lset[x-1] for x in res]
             yield self.element_class( self, [ Set( res[dcomp[i]+1:dcomp[i+1]+1] ) for i in range(l)] )
 

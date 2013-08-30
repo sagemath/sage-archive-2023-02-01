@@ -329,7 +329,7 @@ from sage.matrix.all import matrix
 from sage.misc.all import latex, prod, uniq, cached_method
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.modules.free_module_element import vector
-from sage.rings.all import PolynomialRing, ZZ, QQ
+from sage.rings.all import Infinity, PolynomialRing, ZZ, QQ
 from sage.rings.quotient_ring_element import QuotientRingElement
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.schemes.affine.affine_space import AffineSpace
@@ -2747,7 +2747,172 @@ class ToricVariety_field(AmbientSpace):
         from sage.geometry.fan import discard_faces
         return ToricVariety(Fan(discard_faces(cones), check=False))
 
+    def count_points(self):
+        r"""
+        Return the number of points of ``self``.
 
+        Over a finite field only smooth varieties are supported.
+
+        OUTPUT:
+
+        - an integer.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: V = ToricVariety(FaceFan(o))
+            sage: V.change_ring(GF(2)).count_points()
+            27
+            sage: V.change_ring(GF(8, "a")).count_points()
+            729
+            sage: V.change_ring(GF(101)).count_points()
+            1061208
+
+        Only smooth varieties over finite fields are currently handled::
+
+            sage: V = ToricVariety(NormalFan(o))
+            sage: V.change_ring(GF(2)).count_points()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: the variety is not smooth
+
+        Over infinite fields the number of points is not very tricky::
+
+            sage: V.count_points()
+            +Infinity
+
+        ALGORITHM:
+
+        Uses the formula in Fulton [F]_, section 4.5.
+
+        REFERENCES:
+
+        ..  [F]
+            Fulton, W., "Introduction to Toric Varieties",
+            Princeton University Press, 1993.
+
+        AUTHORS:
+
+        - Beth Malmskog (2013-07-14)
+
+        - Adriana Salerno (2013-07-14)
+
+        - Yiwei She (2013-07-14)
+
+        - Christelle Vincent (2013-07-14)
+
+        - Ursula Whitcher (2013-07-14)
+        """
+        if not self.base_ring().is_finite():
+            return Infinity
+        if not self.is_smooth():
+            raise NotImplementedError("the variety is not smooth")
+        q = self.base_ring().order()
+        n = self.dimension()
+        d = map(len, self.fan().cones())
+        return sum(dk * (q-1)**(n-k) for k, dk in enumerate(d))
+
+
+    @cached_method
+    def Demazure_roots(self):
+        """
+        Return the Demazure roots.
+
+        OUTPUT:
+
+        The roots as points of the `M`-lattice.
+
+        REFERENCES:
+
+        ..  [Demazure]
+            M. Demazure
+            Sous-groupes algébriques de rang maximum du groupe de Cremona.
+            Ann. Sci. Ecole Norm. Sup. 1970, 3, 507–588.
+
+        ..  [Bazhov]
+            Ivan Bazhov:
+            On orbits of the automorphism group on a complete toric variety.
+            :arxiv:`1110.4275`,
+            :doi:`10.1007/s13366-011-0084-0`.
+
+        EXAMPLE::
+
+            sage: P2 = toric_varieties.P2()
+            sage: P2.Demazure_roots()
+            (M(-1, 0), M(-1, 1), M(0, -1), M(0, 1), M(1, -1), M(1, 0))
+
+        Here are the remaining three examples listed in [Bazhov]_, Example 2.1 and 2.3::
+
+            sage: s = 3
+            sage: cones = [(0,1),(1,2),(2,3),(3,0)]
+            sage: Hs = ToricVariety(Fan(rays=[(1,0),(0,-1),(-1,s),(0,1)], cones=cones))
+            sage: Hs.Demazure_roots()
+            (M(-1, 0), M(1, 0), M(0, 1), M(1, 1), M(2, 1), M(3, 1))
+
+            sage: P11s = ToricVariety(Fan(rays=[(1,0),(0,-1),(-1,s)], cones=[(0,1),(1,2),(2,0)]))
+            sage: P11s.Demazure_roots()
+            (M(-1, 0), M(1, 0), M(0, 1), M(1, 1), M(2, 1), M(3, 1))
+            sage: P11s.Demazure_roots() == Hs.Demazure_roots()
+            True
+
+            sage: Bs = ToricVariety(Fan(rays=[(s,1),(s,-1),(-s,-1),(-s,1)], cones=cones))
+            sage: Bs.Demazure_roots()
+            ()
+
+        TESTS::
+
+            sage: toric_varieties.A1().Demazure_roots()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Demazure_roots() is only implemented for complete toric varieties.
+        """
+        if not self.is_complete():
+            raise NotImplementedError('Demazure_roots() is only implemented '
+                                      'for complete toric varieties.')
+        antiK = -self.K()
+        fan_rays = self.fan().rays()
+        roots = [m for m in antiK.sections()
+                 if [ray*m for ray in fan_rays].count(-1) == 1]
+        return tuple(roots)
+
+
+    def Aut_dimension(self):
+        r"""
+        Return the dimension of the automorphism group
+
+        There are three kinds of symmetries of toric varieties:
+
+          * Toric automorphisms (rescaling of homogeneous coordinates)
+
+          * Demazure roots. These are translations `x_i \to x_i +
+            \epsilon x^m` of a homogeneous coordinate `x_i` by a
+            monomial `x^m` of the same homogeneous degree.
+
+          * Symmetries of the fan. These yield discrete subgroups.
+
+        OUTPUT:
+
+        An integer. The dimension of the automorphism group. Equals
+        the dimension of the `M`-lattice plus the number of Demazure
+        roots.
+
+        EXAMPLES::
+
+            sage: P2 = toric_varieties.P2()
+            sage: P2.Aut_dimension()
+            8
+
+        TESTS::
+
+            sage: toric_varieties.A1().Aut_dimension()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Aut_dimension() is only implemented for complete toric varieties.
+        """
+        if not self.is_complete():
+            raise NotImplementedError('Aut_dimension() is only implemented '
+                                      'for complete toric varieties.')
+        return self.fan().lattice_dim() + len(self.Demazure_roots())
 
 
 def normalize_names(names=None, ngens=None, prefix=None, indices=None,

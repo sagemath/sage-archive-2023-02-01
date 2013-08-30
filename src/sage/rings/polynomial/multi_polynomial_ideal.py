@@ -1738,6 +1738,23 @@ class MPolynomialIdeal_singular_repr(
             sage: I = Ideal([f])
             sage: I.genus()
             2
+
+        TESTS:
+
+        Check that the answer is correct for reducible curves::
+
+            sage: R.<x, y, z> = QQ[]
+            sage: C = Curve(x^2 - 2*y^2)
+            sage: C.is_singular()
+            True
+            sage: C.genus()
+            -1
+            sage: Ideal(x^4+y^2*x+x).genus()
+            0
+            sage: T.<t1,t2,u1,u2> = QQ[]
+            sage: TJ = Ideal([t1^2 + u1^2 - 1,t2^2 + u2^2 - 1, (t1-t2)^2 + (u1-u2)^2 -1])
+            sage: TJ.genus()
+            -1
         """
         try:
             return self.__genus
@@ -2363,6 +2380,32 @@ class MPolynomialIdeal_singular_repr(
         import sage.libs.singular
         quotient = sage.libs.singular.ff.quotient
         return R.ideal(quotient(self, J))
+
+    def saturation(self, other):
+        r"""
+        Returns the saturation (and saturation exponent) of the ideal ``self`` with respect to the ideal ``other``
+
+        INPUT:
+
+        - ``other`` -- another ideal in the same ring
+
+        OUTPUT:
+
+        - a pair (ideal, integer)
+
+        EXAMPLES::
+
+            sage: R.<x, y, z> = QQ[]
+            sage: I = R.ideal(x^5*z^3, x*y*z, y*z^4)
+            sage: J = R.ideal(z)
+            sage: I.saturation(J)
+            (Ideal (y, x^5) of Multivariate Polynomial Ring in x, y, z over Rational Field, 4)
+        """
+        from sage.libs.singular import ff
+        sat = ff.elim__lib.sat
+        R = self.ring()
+        ideal, expo = sat(self, other)
+        return (R.ideal(ideal), ZZ(expo))
 
     @require_field
     def variety(self, ring=None):

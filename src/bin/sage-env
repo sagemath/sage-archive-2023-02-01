@@ -632,3 +632,8 @@ if [ -r "$SAGE_RC_FILE" ]; then
         exit 1
     fi
 fi
+
+# If we move the Sage tree then ncurses cannot find terminfo, hence, we
+# tell it where to find it. See Trac Ticket #15091
+
+export TERMINFO="$SAGE_LOCAL/share/terminfo"

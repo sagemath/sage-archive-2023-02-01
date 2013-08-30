@@ -310,6 +310,7 @@ from sage.rings.integer import Integer
 from sage.rings.rational import Rational
 from generic_graph_pyx import GenericGraph_pyx, spring_layout_fast
 from sage.graphs.dot2tex_utils import assert_have_dot2tex
+from sage.misc.superseded import deprecation
 
 class GenericGraph(GenericGraph_pyx):
     """
@@ -418,16 +419,22 @@ class GenericGraph(GenericGraph_pyx):
         from sage.graphs.all import Graph
         g1_is_graph = isinstance(self, Graph) # otherwise, DiGraph
         g2_is_graph = isinstance(other, Graph) # otherwise, DiGraph
-        if g1_is_graph != g2_is_graph:
+
+        if (g1_is_graph != g2_is_graph):
             return False
         if self.allows_multiple_edges() != other.allows_multiple_edges():
             return False
         if self.allows_loops() != other.allows_loops():
             return False
-        if self.vertices() != other.vertices():
+        if self.order() != other.order():
+            return False
+        if self.size() != other.size():
+            return False
+        if any(x not in other for x in self):
             return False
         if self._weighted != other._weighted:
             return False
+
         verts = self.vertices()
         # Finally, we are prepared to check edges:
         if not self.allows_multiple_edges():
@@ -687,7 +694,8 @@ class GenericGraph(GenericGraph_pyx):
 
     ### Formats
 
-    def __copy__(self, implementation='c_graph', sparse=None):
+    def __copy__(self, implementation='c_graph', data_structure=None,
+                 sparse=None):
         """
         Creates a copy of the graph.
 
@@ -697,8 +705,13 @@ class GenericGraph(GenericGraph_pyx):
            implementation goes here.  Current options are only
            'networkx' or 'c_graph'.
 
-         - ``sparse`` - boolean (default: None) whether the
-           graph given is sparse or not.
+         - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
+           ``data_structure="sparse"``, and ``sparse=False`` is an alias for
+           ``data_structure="dense"``.
+
+         - ``data_structure`` -- one of ``"sparse"``, ``"static_sparse"``, or
+           ``"dense"``. See the documentation of :class:`Graph` or
+           :class:`DiGraph`.
 
         OUTPUT:
 
@@ -760,11 +773,23 @@ class GenericGraph(GenericGraph_pyx):
             sage: h._boundary is g._boundary
             False
         """
-        if sparse is None:
+        if sparse != None:
+            if data_structure != None:
+                raise ValueError("The 'sparse' argument is an alias for "
+                                 "'data_structure'. Please do not define both.")
+            data_structure = "sparse" if sparse else "dense"
+
+        if data_structure is None:
             from sage.graphs.base.dense_graph import DenseGraphBackend
-            sparse = (not isinstance(self._backend, DenseGraphBackend))
+            from sage.graphs.base.sparse_graph import SparseGraphBackend
+            if isinstance(self._backend, DenseGraphBackend):
+                data_structure = "dense"
+            elif isinstance(self._backend, SparseGraphBackend):
+                data_structure = "sparse"
+            else:
+                data_structure = "static_sparse"
         from copy import copy
-        G = self.__class__(self, name=self.name(), pos=copy(self._pos), boundary=copy(self._boundary), implementation=implementation, sparse=sparse)
+        G = self.__class__(self, name=self.name(), pos=copy(self._pos), boundary=copy(self._boundary), implementation=implementation, data_structure=data_structure)
 
         attributes_to_copy = ('_assoc', '_embedding')
         for attr in attributes_to_copy:
@@ -1711,7 +1736,7 @@ class GenericGraph(GenericGraph_pyx):
             self.remove_loops()
         self._backend.loops(new)
 
-    def loops(self, new=None, labels=True):
+    def loops(self, labels=True):
         """
         Returns any loops in the (di)graph.
 
@@ -1764,9 +1789,6 @@ class GenericGraph(GenericGraph_pyx):
             []
 
         """
-        from sage.misc.superseded import deprecation
-        if new is not None:
-            deprecation(7634, "The function loops is replaced by allow_loops and allows_loops.")
         loops = []
         for v in self:
             loops += self.edge_boundary([v], [v], labels)
@@ -1958,7 +1980,7 @@ class GenericGraph(GenericGraph_pyx):
 
         self._backend.multiple_edges(new)
 
-    def multiple_edges(self, new=None, to_undirected=False, labels=True):
+    def multiple_edges(self, to_undirected=False, labels=True):
         """
         Returns any multiple edges in the (di)graph.
 
@@ -2011,8 +2033,6 @@ class GenericGraph(GenericGraph_pyx):
             [(1, 2, 'h'), (2, 1, 'g')]
         """
         from sage.misc.superseded import deprecation
-        if new is not None:
-            deprecation(7634, "The function multiple_edges is replaced by allow_multiple_edges and allows_multiple_edges.")
         multi_edges = []
         if self._directed and not to_undirected:
             for v in self:

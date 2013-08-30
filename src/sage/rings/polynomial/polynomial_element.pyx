@@ -2366,13 +2366,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
         coeffs = self.list()
         return self._parent([n*coeffs[n] for n from 1 <= n <= degree])
 
-    def integral(self):
+    def integral(self,var=None):
         """
         Return the integral of this polynomial.
 
-        .. note::
+        By default, the integration variable is the variable of the
+        polynomial.
 
-           The integral is always chosen so the constant term is 0.
+        Otherwise, the integration variable is the optional parameter ``var``
+
+        .. NOTE::
+
+            The integral is always chosen so the constant term is 0.
 
         EXAMPLES::
 
@@ -2396,7 +2401,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: g.parent()
             Univariate Polynomial Ring in x over Rational Field
 
-        This shows that the issue at trac #7711 is resolved::
+        This shows that the issue at :trac:`7711` is resolved::
 
             sage: P.<x,z> = PolynomialRing(GF(2147483647))
             sage: Q.<y> = PolynomialRing(P)
@@ -2434,7 +2439,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Univariate Polynomial Ring in x over Power Series Ring in c
             over Univariate Polynomial Ring in b over Multivariate Polynomial
             Ring in a1, a2 over Rational Field
+
+        Integration with respect to a variable in the base ring::
+
+            sage: R.<x> = QQ[]
+            sage: t = PolynomialRing(R,'t').gen()
+            sage: f = x*t +5*t^2
+            sage: f.integral(x)
+            5*x*t^2 + 1/2*x^2*t
         """
+        if var is not None and var != self._parent.gen():
+            # call integral() recursively on coefficients
+            return self._parent([coeff.integral(var) for coeff in self.list()])
         cdef Py_ssize_t n, degree = self.degree()
         R = self.parent()
         Q = (self.constant_coefficient()/1).parent()

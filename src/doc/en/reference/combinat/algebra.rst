@@ -6,6 +6,7 @@ Combinatorial Algebras
 
    ../sage/combinat/free_module
    ../sage/combinat/combinatorial_algebra
+   ../sage/combinat/descent_algebra
    ../sage/combinat/diagram_algebras
    ../sage/combinat/symmetric_group_algebra
    ../sage/combinat/symmetric_group_representations

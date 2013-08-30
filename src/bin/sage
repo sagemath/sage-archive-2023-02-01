@@ -338,6 +338,8 @@ fi
 #####################################################################
 
 if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
+    # Workaround for OSX, see http://trac.sagemath.org/15072
+    export LC_ALL=C
     exec sed -n -e 's/.*\(Sage Version.*Date: [0-9-]*\).*/\1/p' \
         "$SAGE_LOCAL"/bin/sage-banner
 fi

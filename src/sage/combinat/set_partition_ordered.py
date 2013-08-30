@@ -525,6 +525,21 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
              [{2, 3}, {4}, {1}],
              [{2, 4}, {3}, {1}],
              [{3, 4}, {2}, {1}]]
+
+            sage: len(OrderedSetPartitions([1,2,3,4], [1,1,1,1]))
+            24
+
+            sage: [ x for x in OrderedSetPartitions([1,4,7], [3]) ]
+            [[{1, 4, 7}]]
+
+            sage: [ x for x in OrderedSetPartitions([1,4,7], [1,2]) ]
+            [[{1}, {4, 7}], [{4}, {1, 7}], [{7}, {1, 4}]]
+
+            sage: [ p for p in OrderedSetPartitions([], []) ]
+            [[]]
+
+            sage: [ p for p in OrderedSetPartitions([1], [1]) ]
+            [[{1}]]
         """
         comp = self.c
         lset = [x for x in self._set]
@@ -536,7 +551,7 @@ class OrderedSetPartitions_scomp(OrderedSetPartitions):
             p += [j+1]*comp[j]
 
         for x in permutation.Permutations(p):
-            res = permutation.Permutation(range(1,len(lset))) * Word(x).standard_permutation().inverse()
+            res = Word(x).standard_permutation().inverse()
             res = [lset[x-1] for x in res]
             yield self.element_class( self, [ Set( res[dcomp[i]+1:dcomp[i+1]+1] ) for i in range(l)] )
 

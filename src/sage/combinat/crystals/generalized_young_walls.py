@@ -19,6 +19,11 @@ REFERENCES:
    Generalized Young walls and crystal bases for quantum affine algebra
    of type `A`.
    Proc. Amer. Math. Soc. 138(11), pp. 3877--3889, 2010.
+
+.. [KLRS] S.-J. Kang, K.-H. Lee, H. Ryu, and B. Salisbury.
+   A combinatorial description of the affine Gindikin-Karpelevich formula of
+   type `A_n^{(1)}`.
+   :arXiv:`1203.1640`.
 """
 
 #******************************************************************************
@@ -247,6 +252,92 @@ class GeneralizedYoungWall(CombinatorialObject, Element):
             13
         """
         return sum(len(r) for r in self.data)
+
+    def number_of_parts(self):
+        r"""
+        Return the value of `\mathscr{N}` on ``self``.
+
+        In [KLRS]_, the statistic `\mathscr{N}` was defined on elements in
+        `\mathcal{Y}(\infty)` which counts how many parts are in the
+        corresponding Kostant partition.  Specifically, the computation of
+        `\mathscr{N}(Y)` is done using the following algorithm:
+
+        - If `Y` has no rows whose right-most box is colored `n` and such that
+          the length of this row is a multiple of `n+1`, then `\mathscr{N}(Y)`
+          is the total number of distinct rows in `Y`, not counting multiplicity.
+
+        - Otherwise, search `Y` for the longest row such that the right-most box
+          is colored `n` and such that the total number of boxes in the row is
+          `k(n+1)` for some `k\ge 1`.  Replace this row by `n+1` distinct rows
+          of length `k`, reordering all rows, if necessary, so that the result
+          is a proper wall.  (Note that the resulting wall may no longer be
+          reduced.) Repeat the search and replace process for all other rows of
+          the above form for each `k' < k`.  Then `\mathscr{N}(Y)` is the number
+          of distinct rows, not counting multipicity, in the wall resulting from
+          this process.
+
+        EXAMPLES::
+
+            sage: Y = InfinityCrystalOfGeneralizedYoungWalls(3)
+            sage: y = Y([[0],[],[],[],[0],[],[],[],[0]])
+            sage: y.number_of_parts()
+            1
+
+            sage: Y = InfinityCrystalOfGeneralizedYoungWalls(3)
+            sage: y = Y([[0,3,2],[1,0],[],[],[0,3],[1,0],[],[],[0]])
+            sage: y.number_of_parts()
+            4
+
+            sage: Y = InfinityCrystalOfGeneralizedYoungWalls(2)
+            sage: y = Y([[0,2,1],[1,0],[2,1,0,2,1,0,2,1,0],[],[2,1,0,2,1,0]])
+            sage: y.number_of_parts()
+            8
+        """
+        n = self.parent().cartan_type().rank()-1
+        new = self.data[:]
+        i = 0
+        while i < len(new):
+            r = new[i]
+            if r == [] or r in new[i+1:]:
+                new.pop(i)
+            elif r[0] == n and len(r)%(n+1) == 0:
+                for j in range(n+1):
+                    temp = [k%(n+1) for k in range(j+len(r)/(n+1)-1,j-1,-1)]
+                    if temp not in new:
+                        new.insert(i+1, temp)
+                new.pop(i)
+            else:
+                i += 1
+        return len(new)
+
+    def sum_of_weighted_row_lengths(self):
+        r"""
+        Return the value of `\mathscr{M}` on ``self``.
+
+        Let `\mathcal{Y}_0 \subset \mathcal{Y}(\infty)` be the set of
+        generalized Young walls which have no rows whose right-most box is
+        colored `n`.  For `Y \in \mathcal{Y}_0`,
+
+        .. MATH::
+
+            \mathscr{M}(Y) = \sum_{i=1}^n (i+1)M_i(Y),
+
+        where `M_i(Y)` is the number of nonempty rows in `Y` whose right-most
+        box is colored `i-1`.
+
+        EXAMPLES::
+
+            sage: Y = InfinityCrystalOfGeneralizedYoungWalls(2)
+            sage: y = Y([[0,2,1,0,2],[1,0,2],[],[0,2],[1,0],[],[0],[1,0]])
+            sage: y.sum_of_weighted_row_lengths()
+            15
+        """
+        n = self.parent().cartan_type().rank()-1
+        m = lambda i : len([r for r in self.data if r!=[] if r[0]==(i-1)%(n+1)])
+        for r in self.data:
+            if r != [] and r[0] == n:
+                raise ValueError('Statistic only valid for generalized Young walls in Y_0')
+        return sum((i+1)*m(i) for i in range(1,n+1))
 
     def e(self,i):
         r"""

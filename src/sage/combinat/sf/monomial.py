@@ -73,14 +73,18 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
 
     def _multiply(self, left, right):
         """
-        Returns the product of ``left`` and ``right``.
+        Return the product of ``left`` and ``right``.
 
-        - ``self`` -- a monomial symmetric function basis
-        - ``left``, ``right`` -- instances of the Schur basis ``self``.
+        - ``left``, ``right`` -- symmetric functions written in the
+          monomial basis ``self``.
 
-        OUPUT:
+        OUTPUT:
 
-        - an element of the Schur basis, the product of ``left`` and ``right``
+        - the product of ``left`` and ``right``, expanded in the
+          monomial basis, as a dictionary whose keys are partitions and
+          whose values are the coefficients of these partitions (more
+          precisely, their respective monomial symmetric functions) in the
+          product.
 
         EXAMPLES::
 
@@ -134,7 +138,7 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
         - ``self`` -- a monomial symmetric function basis
         - ``f`` -- a polynomial in finitely many variables over the same base ring as ``self``.
           It is assumed that this polynomial is symmetric.
-        - ``check`` -- boolean (default: True), checks whether the polynomial is indeed symmetric
+        - ``check`` -- boolean (default: ``True``), checks whether the polynomial is indeed symmetric
 
         OUTPUT:
 
@@ -220,6 +224,44 @@ class SymmetricFunctionAlgebra_monomial(classical.SymmetricFunctionAlgebra_class
         return self.sum_of_terms((Partition(exp=monomial), coeff)
                                  for (monomial, coeff) in p.dict().iteritems())
 
+    def antipode_by_coercion(self, element):
+        r"""
+        The antipode of ``element`` via coercion to and from the power-sum
+        basis or the Schur basis (depending on whether the power sums really
+        form a basis over the given ground ring).
+
+        INPUT:
+
+        - ``element`` -- element in a basis of the ring of symmetric functions
+
+        EXAMPLES::
+
+            sage: Sym = SymmetricFunctions(QQ)
+            sage: m = Sym.monomial()
+            sage: m[3,2].antipode()
+            m[3, 2] + 2*m[5]
+            sage: m.antipode_by_coercion(m[3,2])
+            m[3, 2] + 2*m[5]
+
+            sage: Sym = SymmetricFunctions(ZZ)
+            sage: m = Sym.monomial()
+            sage: m[3,2].antipode()
+            m[3, 2] + 2*m[5]
+            sage: m.antipode_by_coercion(m[3,2])
+            m[3, 2] + 2*m[5]
+
+        .. TODO::
+
+            Is there a not too difficult way to get the power-sum computations
+            to work over any ring, not just one with coercion from `\QQ`?
+        """
+        from sage.rings.rational_field import RationalField
+        if self.has_coerce_map_from(RationalField()):
+            p = self.realization_of().powersum()
+            return self(p.antipode(p(element)))
+
+        s = self.realization_of().schur()
+        return self(s.antipode(s(element)))
 
     class Element(classical.SymmetricFunctionAlgebra_classical.Element):
         def expand(self, n, alphabet='x'):

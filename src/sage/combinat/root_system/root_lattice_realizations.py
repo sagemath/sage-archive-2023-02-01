@@ -2204,7 +2204,8 @@ class RootLatticeRealizations(Category_over_base_ring):
             TESTS::
 
                 sage: L = RootSystem(["A",2,1]).weight_space()
-                sage: print L.plot_alcoves(alcoves=[[0,0]]).description()
+                sage: p = L.plot_alcoves(alcoves=[[0,0]])
+                sage: print p.description()
                 Line defined by 2 points: [(-1.0, 0.0), (0.0, -1.0)]
                 Line defined by 2 points: [(-1.0, 1.0), (-1.0, 0.0)]
                 Line defined by 2 points: [(-1.0, 1.0), (0.0, 0.0)]
@@ -2217,6 +2218,10 @@ class RootLatticeRealizations(Category_over_base_ring):
                 Line defined by 2 points: [(1.0, -1.0), (0.0, -1.0)]
                 Line defined by 2 points: [(1.0, 0.0), (0.0, 0.0)]
                 Line defined by 2 points: [(1.0, 0.0), (1.0, -1.0)]
+                sage: [(line.options()['rgbcolor'], line.options()['thickness']) for line in p]
+                [('black', 2), ('blue', 1), ('red', 1), ('black', 2), ('blue', 1),
+                 ('black', 2), ('red', 1), ('black', 2), ('blue', 1),
+                 ('black', 2), ('red', 1), ('black', 2)]
             """
             plot_options = self.plot_parse_options(**options)
             if not hasattr(self, "fundamental_weights"):
@@ -2244,7 +2249,8 @@ class RootLatticeRealizations(Category_over_base_ring):
                 # not draw them. Besides this avoids ugly fat points
                 # in dimension 2.
                 return plot_options.cone(rays=[w.action(fundamental_alcove_rays[j]) for j in I if j != i],
-                                         color = plot_options.color(i),
+                                         color=plot_options.color(i),
+                                         thickness=plot_options.thickness(i),
                                          wireframe=wireframe,
                                          draw_degenerate=False)
             def alcove_label(w):
@@ -2459,11 +2465,11 @@ class RootLatticeRealizations(Category_over_base_ring):
                 if folding:
                     middle = (source+target)/2
                     G += line ([source, middle], rgbcolor=color)
-                    G += arrow(middle, source, rgbcolor=color)
+                    G += arrow(middle, source, rgbcolor=color, arrowsize=plot_options._arrowsize)
                     # reset w
                     w = w * s[i]
                 else:
-                    G += arrow(source, target, rgbcolor=color)
+                    G += arrow(source, target, rgbcolor=color, arrowsize=plot_options._arrowsize)
                     source=target
             return G
 

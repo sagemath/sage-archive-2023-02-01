@@ -59,6 +59,9 @@ from partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk,
 #Diagram algebra
 from diagram_algebras import PartitionAlgebra, BrauerAlgebra, TemperleyLiebAlgebra, PlanarAlgebra, PropagatingIdeal
 
+#Descent algebra
+from descent_algebra import DescentAlgebra
+
 #Vector Partitions
 from vector_partition import VectorPartition, VectorPartitions
 
@@ -71,9 +74,13 @@ from core import Core, Cores
 #Tableaux
 from tableau import Tableau, SemistandardTableau, StandardTableau, \
         Tableaux, StandardTableaux, SemistandardTableaux
-from skew_tableau import SkewTableau, StandardSkewTableaux, SemistandardSkewTableaux
+from skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux, SemistandardSkewTableaux
+from ribbon_shaped_tableau import RibbonShapedTableau, StandardRibbonShapedTableaux
+from ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableaux, MultiSkewTableau, SemistandardMultiSkewTableaux
+#deprecated
 from ribbon import Ribbon, StandardRibbons
-from ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableau, SemistandardMultiSkewTableaux
+
+
 from sage.combinat.tableau_tuple import TableauTuple, StandardTableauTuple, TableauTuples, StandardTableauTuples
 
 #Words

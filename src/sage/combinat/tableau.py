@@ -82,12 +82,11 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.decorators import rename_keyword
-from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.rings.infinity import PlusInfinity
-from sage.rings.arith import factorial, binomial
+from sage.rings.arith import factorial
 from sage.rings.integer import Integer
 from sage.combinat.combinat import CombinatorialObject
-import sage.combinat.skew_tableau
+from sage.combinat.composition import Composition, Compositions
 from integer_vector import IntegerVectors
 import sage.libs.symmetrica.all as symmetrica
 import sage.misc.prandom as random
@@ -96,7 +95,6 @@ import permutation
 from sage.misc.flatten import flatten
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.misc.misc import uniq, prod
-from sage.misc.sage_unittest import TestSuite
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.sets_cat import Sets
@@ -195,7 +193,6 @@ TableauOptions=GlobalOptions(name='tableaux',
     notation = dict(alt_name="convention")
 )
 
-
 class Tableau(CombinatorialObject, Element):
     """
     A class to model a tableau.
@@ -286,7 +283,8 @@ class Tableau(CombinatorialObject, Element):
         if not isinstance(t, list) or not all(isinstance(row, list) for row in t):
             raise ValueError("A tableau must be a list of lists.")
 
-        if not map(len,t) in sage.combinat.partition._Partitions:
+        from sage.combinat.partition import _Partitions
+        if not map(len,t) in _Partitions:
             raise ValueError("A tableau must be a list of lists of weakly decreasing length.")
 
         return Tableaux_all().element_class(Tableaux_all(), t)
@@ -322,7 +320,8 @@ class Tableau(CombinatorialObject, Element):
             raise ValueError("A tableau must be a list of lists.")
 
         # and that it has partition shape
-        if not map(len,t) in sage.combinat.partition._Partitions:
+        from sage.combinat.partition import _Partitions
+        if not map(len,t) in _Partitions:
             raise ValueError("A tableau must be a list of lists of weakly decreasing length.")
 
         Element.__init__(self, parent)
@@ -490,7 +489,7 @@ class Tableau(CombinatorialObject, Element):
             return "."
         matr = ''
         for row in self:
-            l1 = ""; l2 =  ""
+            l1 = ""
             for e in row:
                 l1 += "|" + str(e)
             l1 += "|"
@@ -564,9 +563,10 @@ class Tableau(CombinatorialObject, Element):
             ...
             ValueError: the shape of the tableau must contain the partition
         """
+        from sage.combinat.partition import Partition
         #if t is a list, convert to to a partition first
         if isinstance(t, list):
-            t = sage.combinat.partition.Partition(t)
+            t = Partition(t)
 
         #Check to make sure that tableau shape contains t
         if not self.shape().contains(t):
@@ -578,7 +578,8 @@ class Tableau(CombinatorialObject, Element):
             for j in range(t[i]):
                 st[i][j] = None
 
-        return sage.combinat.skew_tableau.SkewTableau(st)
+        from sage.combinat.skew_tableau import SkewTableau
+        return SkewTableau(st)
 
     def __call__(self, *cell):
         r"""
@@ -651,7 +652,8 @@ class Tableau(CombinatorialObject, Element):
             sage: Tableau([[1,2,3],[4,5],[6]]).shape()
             [3, 2, 1]
         """
-        return sage.combinat.partition.Partition([len(row) for row in self])
+        from sage.combinat.partition import Partition
+        return Partition([len(row) for row in self])
 
     def size(self):
         """
@@ -1534,7 +1536,8 @@ class Tableau(CombinatorialObject, Element):
             for col in xrange(len(t[row])):
                 if t[row][col] <= n:
                     t[row][col] = None
-        return sage.combinat.skew_tableau.SkewTableau( t )
+        from sage.combinat.skew_tableau import SkewTableau
+        return SkewTableau(t)
 
     def up(self):
         """
@@ -1855,7 +1858,8 @@ class Tableau(CombinatorialObject, Element):
         for row in range(len(left)):
             st.append(left[row])
 
-        return sage.combinat.skew_tableau.SkewTableau(st).rectify()
+        from sage.combinat.skew_tableau import SkewTableau
+        return SkewTableau(st).rectify()
 
     def _slide_up(self, c):
         r"""
@@ -3010,11 +3014,12 @@ class SemistandardTableau(Tableau):
             sage: isinstance(r, Tableau)
             True
         """
-        super(SemistandardTableau,self).__init__(parent, t)
+        super(SemistandardTableau, self).__init__(parent, t)
 
         # Tableau() has checked that t is tableau, so it remains to check that
         # the entries of t are positive integers
-        if any(c not in sage.sets.positive_integers.PositiveIntegers() for row in t for c in row):
+        from sage.sets.positive_integers import PositiveIntegers
+        if any(c not in PositiveIntegers() for row in t for c in row):
             raise ValueError("the entries of a semistandard tableau must be non-negative integers")
 
         # which are weakly increasing along rows
@@ -3022,7 +3027,7 @@ class SemistandardTableau(Tableau):
             raise ValueError("the entries in each row of a semistandard tableau must be weakly increasing")
 
         # and strictly increasing down columns
-        if len(t)>0 and any(t[r][c]>=t[r+1][c] for c in xrange(len(t[0])) for r in xrange(len(t)-1) if len(t[r+1])>c):
+        if len(t)>0 and any(t[r][c] >= t[r+1][c] for c in xrange(len(t[0])) for r in xrange(len(t)-1) if len(t[r+1])>c):
             raise ValueError("the entries of each column of a semistandard tableau must be strictly increasing")
 
 class StandardTableau(SemistandardTableau):
@@ -3664,11 +3669,12 @@ class Tableaux(UniqueRepresentation, Parent):
             sage: 1 in sage.combinat.tableau.Tableaux()
             False
         """
+        from sage.combinat.partition import _Partitions
         if isinstance(x, Tableau):
             return True
         elif isinstance(x, list) and all(isinstance(y, list) for y in x):
             # any list of lists of partition shape is a tableau
-            return map(len,x) in sage.combinat.partition._Partitions
+            return map(len,x) in _Partitions
         else:
             return False
 
@@ -3980,8 +3986,9 @@ class SemistandardTableaux(Tableaux):
             sage: SemistandardTableaux([[1]])
             Traceback (most recent call last):
             ...
-            ValueError: shape must be a partition
+            ValueError: shape must be a (skew) partition
         """
+        from sage.combinat.partition import Partition, _Partitions
         # Process the keyword arguments -- allow for original syntax where
         #   n == size,  p== shape and mu == eval
         n = kwargs.get('n', None)
@@ -4015,7 +4022,6 @@ class SemistandardTableaux(Tableaux):
             else:
                 mu = args[1]
 
-
         # Consistency checks
         if size is not None:
             if not isinstance(size, (int, Integer)):
@@ -4024,17 +4030,22 @@ class SemistandardTableaux(Tableaux):
                 raise ValueError( "size must be non-negative" )
 
         if shape is not None:
+            from sage.combinat.skew_partition import SkewPartitions
             # use in (and not isinstance) below so that lists can be used as
             # shorthand
-            if not shape in sage.combinat.partition.Partitions():
-                raise ValueError( "shape must be a partition" )
-            shape = sage.combinat.partition.Partition(shape)
+            if shape in _Partitions:
+                shape = Partition(shape)
+            elif shape in SkewPartitions():
+                from sage.combinat.skew_tableau import SemistandardSkewTableaux
+                return SemistandardSkewTableaux(shape, mu)
+            else:
+                raise ValueError( "shape must be a (skew) partition" )
 
         if mu is not None:
-            if (not mu in sage.combinat.composition.Compositions()) and\
-                    (not mu in sage.combinat.partition.Partitions()):
+            if (not mu in Compositions()) and\
+                    (not mu in _Partitions):
                 raise ValueError( "mu must be a composition" )
-            mu = sage.combinat.composition.Composition(mu)
+            mu = Composition(mu)
 
         is_inf = max_entry is PlusInfinity()
 
@@ -4363,20 +4374,19 @@ class SemistandardTableaux_size_inf(SemistandardTableaux):
             sage: sst[0].parent() is sst
             True
         """
+        from sage.combinat.partition import Partitions
         # Iterates through with maximum entry as order
         i = 1
         while(True):
-            for part in sage.combinat.partition.Partitions(self.size):
+            for part in Partitions(self.size):
                 if i != 1:
                     for k in range(1, self.size+1):
                         for c in IntegerVectors(self.size - k, i-1):
                             c.append(k)
-                            for sst in SemistandardTableaux_shape_weight(part,
-                                    sage.combinat.composition.Composition(c)):
+                            for sst in SemistandardTableaux_shape_weight(part, Composition(c)):
                                 yield self.element_class(self, sst)
                 else:
-                    for sst in SemistandardTableaux_shape_weight(part,
-                            sage.combinat.composition.Composition([self.size])):
+                    for sst in SemistandardTableaux_shape_weight(part, Composition([self.size])):
                         yield self.element_class(self, sst)
             i += 1
 
@@ -4475,12 +4485,10 @@ class SemistandardTableaux_shape_inf(SemistandardTableaux):
                 for k in range(1, n+1):
                     for c in IntegerVectors(n - k, i-1):
                         c.append(k)
-                        for sst in SemistandardTableaux_shape_weight(self.shape,
-                                sage.combinat.composition.Composition(c)):
+                        for sst in SemistandardTableaux_shape_weight(self.shape, Composition(c)):
                             yield self.element_class(self, sst)
             else:
-                for sst in SemistandardTableaux_shape_weight(self.shape,
-                                sage.combinat.composition.Composition([n])):
+                for sst in SemistandardTableaux_shape_weight(self.shape, Composition([n])):
                     yield self.element_class(self, sst)
             i += 1
 
@@ -4575,8 +4583,9 @@ class SemistandardTableaux_size(SemistandardTableaux):
             sage: all([sst.cardinality() == len(sst.list()) for sst in ssts])
             True
         """
+        from sage.combinat.partition import Partitions
         c = 0
-        for part in sage.combinat.partition.Partitions(self.size):
+        for part in Partitions(self.size):
             c += SemistandardTableaux_shape(part, self.max_entry).cardinality()
         return c
 
@@ -4620,7 +4629,8 @@ class SemistandardTableaux_size(SemistandardTableaux):
             sage: sst[0].parent() is sst
             True
         """
-        for part in sage.combinat.partition.Partitions(self.size):
+        from sage.combinat.partition import Partitions
+        for part in Partitions(self.size):
             for sst in SemistandardTableaux_shape(part, self.max_entry):
                 yield self.element_class(self, sst)
 
@@ -4698,8 +4708,7 @@ class SemistandardTableaux_shape(SemistandardTableaux):
             True
         """
         for c in IntegerVectors(sum(self.shape), self.max_entry):
-            for sst in SemistandardTableaux_shape_weight(self.shape,
-                    sage.combinat.composition.Composition(c)):
+            for sst in SemistandardTableaux_shape_weight(self.shape, Composition(c)):
                 yield self.element_class(self, sst)
 
 
@@ -4757,8 +4766,7 @@ class SemistandardTableaux_shape(SemistandardTableaux):
         """
         c = 0
         for comp in IntegerVectors(sum(self.shape), self.max_entry):
-            c += SemistandardTableaux_shape_weight(self.shape,
-                    sage.combinat.composition.Composition(comp)).cardinality()
+            c += SemistandardTableaux_shape_weight(self.shape, Composition(comp)).cardinality()
         return c
 
 class SemistandardTableaux_shape_weight(SemistandardTableaux_shape):
@@ -4922,7 +4930,8 @@ class SemistandardTableaux_size_weight(SemistandardTableaux):
             sage: sst[0].parent() is sst
             True
         """
-        for p in sage.combinat.partition.Partitions(self.size):
+        from sage.combinat.partition import Partitions
+        for p in Partitions(self.size):
             for sst in SemistandardTableaux_shape_weight(p, self.weight):
                 yield self.element_class(self, sst)
 
@@ -4938,8 +4947,9 @@ class SemistandardTableaux_size_weight(SemistandardTableaux):
             sage: SemistandardTableaux(4, [2,2]).cardinality()
             3
         """
+        from sage.combinat.partition import Partitions
         c = 0
-        for p in sage.combinat.partition.Partitions(self.size):
+        for p in Partitions(self.size):
             c += SemistandardTableaux_shape_weight(p, self.weight).cardinality()
         return c
 
@@ -4953,7 +4963,8 @@ class SemistandardTableaux_size_weight(SemistandardTableaux):
             sage: all([sst in SST for sst in SemistandardTableaux([3,2,1],[2,2,2])])
             True
         """
-        return x in SemistandardTableaux_shape_weight(sage.combinat.partition.Partition(map(len,
+        from sage.combinat.partition import Partition
+        return x in SemistandardTableaux_shape_weight(Partition(map(len,
             x)), self.weight)
 
 ########################
@@ -5004,6 +5015,7 @@ class StandardTableaux(SemistandardTableaux):
         - :class:`SemistandardTableaux`
         - :class:`SemistandardTableau`
         - :class:`StandardTableau`
+        - :class:`StandardSkewTableaux`
 
     TESTS::
 
@@ -5047,6 +5059,9 @@ class StandardTableaux(SemistandardTableaux):
             ...
             ValueError: The argument must be a non-negative integer or a partition.
         """
+        from sage.combinat.partition import _Partitions, Partition
+        from sage.combinat.skew_partition import SkewPartitions
+
         if args:
             n = args[0]
         elif 'n' in kwargs:
@@ -5057,8 +5072,12 @@ class StandardTableaux(SemistandardTableaux):
         if n is None:
             return StandardTableaux_all()
 
-        elif n in sage.combinat.partition._Partitions:
-            return StandardTableaux_shape(sage.combinat.partition.Partition(n))
+        elif n in _Partitions:
+            return StandardTableaux_shape(Partition(n))
+
+        elif n in SkewPartitions():
+            from sage.combinat.skew_tableau import StandardSkewTableaux
+            return StandardSkewTableaux(n)
 
         if not isinstance(n,(int, Integer)) or n < 0:
             raise ValueError( "The argument must be a non-negative integer or a partition." )
@@ -5200,7 +5219,8 @@ class StandardTableaux_size(StandardTableaux):
             sage: ST4[0].parent() is ST4
             True
         """
-        for p in sage.combinat.partition.Partitions(self.size):
+        from sage.combinat.partition import Partitions
+        for p in Partitions(self.size):
             for st in StandardTableaux(p):
                 yield self.element_class(self, st)
 
@@ -5243,10 +5263,10 @@ class StandardTableaux_size(StandardTableaux):
         TESTS::
 
             sage: def cardinality_using_hook_formula(n):
-            ...       c = 0
-            ...       for p in sage.combinat.partition.Partitions(n):
-            ...           c += StandardTableaux(p).cardinality()
-            ...       return c
+            ....:     c = 0
+            ....:     for p in Partitions(n):
+            ....:         c += StandardTableaux(p).cardinality()
+            ....:     return c
             sage: all([cardinality_using_hook_formula(i) == StandardTableaux(i).cardinality() for i in range(10)])
             True
         """
@@ -5280,8 +5300,9 @@ class StandardTableaux_shape(StandardTableaux):
 
             sage: TestSuite( StandardTableaux([2,1,1]) ).run()
         """
+        from sage.combinat.partition import Partition
         super(StandardTableaux_shape, self).__init__(category = FiniteEnumeratedSets())
-        self.shape = sage.combinat.partition.Partition(p)
+        self.shape = Partition(p)
 
 
     def __contains__(self, x):
@@ -5657,8 +5678,6 @@ def symmetric_group_action_on_values(word, perm):
 
 
 # August 2012: Deprecation of internal classes seems to be unnecessarily painful...
-from sage.misc.superseded import deprecation
-
 def Tableau_class(*args, **kargs):
     """
     EXAMPLES::
@@ -5668,6 +5687,7 @@ def Tableau_class(*args, **kargs):
         See http://trac.sagemath.org/9265 for details.
         [[3, 2]]
     """
+    from sage.misc.superseded import deprecation
     deprecation(9265,'this class is deprecated. Use Tableau_class instead')
     return Tableau(*args, **kargs)
 
@@ -5680,6 +5700,7 @@ def Tableaux_n(*args, **kargs):
         See http://trac.sagemath.org/9265 for details.
         Tableaux of size 3
     """
+    from sage.misc.superseded import deprecation
     deprecation(9265,'this class is deprecated. Use Tableaux_size instead')
     return Tableaux(*args, **kargs)
 
@@ -5692,6 +5713,7 @@ def SemistandardTableaux_n(*args, **kargs):
         See http://trac.sagemath.org/9265 for details.
         Semistandard tableaux of size 3 and maximum entry 3
     """
+    from sage.misc.superseded import deprecation
     deprecation(9265,'this class is deprecated. Use SemistandardTableaux_size instead')
     return SemistandardTableaux(*args, **kargs)
 
@@ -5704,6 +5726,7 @@ def SemistandardTableaux_nmu(*args, **kargs):
         See http://trac.sagemath.org/9265 for details.
         Semistandard tableaux of size 3 and weight [2, 1]
     """
+    from sage.misc.superseded import deprecation
     deprecation(9265,'this class is deprecated. Use SemistandardTableaux_size_weight instead')
     return SemistandardTableaux(*args, **kargs)
 
@@ -5716,6 +5739,7 @@ def SemistandardTableaux_p(*args, **kargs):
         See http://trac.sagemath.org/9265 for details.
         Semistandard tableaux of shape [2, 1] and maximum entry 3
     """
+    from sage.misc.superseded import deprecation
     deprecation(9265,'this class is deprecated. Use SemistandardTableaux_shape instead')
     return SemistandardTableaux(*args, **kargs)
 
@@ -5728,6 +5752,7 @@ def SemistandardTableaux_pmu(*args, **kargs):
         See http://trac.sagemath.org/9265 for details.
         Semistandard tableaux of shape [2, 1] and weight [2, 1]
     """
+    from sage.misc.superseded import deprecation
     deprecation(9265,'this class is deprecated. Use SemistandardTableaux_shape_weight instead')
     return SemistandardTableaux(*args, **kargs)
 
@@ -5740,6 +5765,7 @@ def StandardTableaux_n(*args, **kargs):
         See http://trac.sagemath.org/9265 for details.
         Standard tableaux of size 2
     """
+    from sage.misc.superseded import deprecation
     deprecation(9265,'this class is deprecated. Use StandardTableaux_size instead')
     return StandardTableaux(*args, **kargs)
 
@@ -5752,6 +5778,7 @@ def StandardTableaux_partition(*args, **kargs):
         See http://trac.sagemath.org/9265 for details.
         Standard tableaux of shape [2, 1]
     """
+    from sage.misc.superseded import deprecation
     deprecation(9265,'this class is deprecated. Use StandardTableaux_shape instead')
     return StandardTableaux(*args, **kargs)
 

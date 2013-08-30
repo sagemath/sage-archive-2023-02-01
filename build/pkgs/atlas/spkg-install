@@ -529,12 +529,8 @@ build_and_save_archdef()
 ######################################################################
 
 rc = make_atlas_library('shared')
-if rc!=0:
-    print 'Failed to install ATLAS single-threaded shared library'
-    print 'This is bad. Using static library as last resort.'
-    INSTALL_STATIC_LIBRARIES = True
-else:
-    print 'Installed ATLAS single-threaded shared library'
+assert_success(rc, bad='Failed to install ATLAS single-threaded shared library',
+               good='Installed ATLAS single-threaded shared library')
 
 rc = make_atlas_library('ptshared')
 if rc!=0:

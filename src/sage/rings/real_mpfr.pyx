@@ -123,6 +123,7 @@ import re
 include 'sage/ext/interrupt.pxi'
 include "sage/ext/stdsage.pxi"
 include "sage/ext/random.pxi"
+include 'sage/libs/pari/pari_err.pxi'
 
 cimport sage.rings.ring
 import  sage.rings.ring
@@ -2850,7 +2851,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         # by using internal interfaces of MPFR, which are documented
         # as subject-to-change.
 
-        sig_on()
+        pari_catch_sig_on()
         if mpfr_nan_p(self.value) or mpfr_inf_p(self.value):
             raise ValueError, 'Cannot convert NaN or infinity to Pari float'
 

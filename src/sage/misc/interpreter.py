@@ -172,22 +172,18 @@ class SageInteractiveShell(TerminalInteractiveShell):
             sage: from sage.misc.interpreter import get_test_shell
             sage: shell = get_test_shell()
             sage: shell.system_raw('false')
-            sage: status = shell.user_ns['_exit_code']
-            sage: os.WIFEXITED(status) and os.WEXITSTATUS(status) != 0
+            sage: shell.user_ns['_exit_code'] > 0
             True
             sage: shell.system_raw('true')
-            sage: status = shell.user_ns['_exit_code']
-            sage: os.WIFEXITED(status) and os.WEXITSTATUS(status) == 0
-            True
+            sage: shell.user_ns['_exit_code']
+            0
             sage: shell.system_raw('env | grep "^LD_LIBRARY_PATH=" | grep $SAGE_LOCAL')
-            sage: status = shell.user_ns['_exit_code']
-            sage: os.WIFEXITED(status) and os.WEXITSTATUS(status) != 0
-            True
+            sage: shell.user_ns['_exit_code']
+            1
             sage: shell.system_raw('R --version')
             R version ...
-            sage: status = shell.user_ns['_exit_code']
-            sage: os.WIFEXITED(status) and os.WEXITSTATUS(status) == 0
-            True
+            sage: shell.user_ns['_exit_code']
+            0
         """
         path = os.path.join(os.environ['SAGE_LOCAL'],'bin',
                             re.split('[ |\n\t;&]', cmd)[0])
@@ -263,11 +259,30 @@ class SagePreparseTransformer():
             sage: spt('2', 0)
             '2'
             sage: preparser(True)
+
+        TESTS:
+
+        Check that syntax errors in the preparser do not crash IPython,
+        see :trac:`14961`. ::
+
+            sage: bad_syntax = "R.<t> = QQ{]"
+            sage: preparse(bad_syntax)
+            Traceback (most recent call last):
+            ...
+            SyntaxError: Mismatched ']'
+            sage: from sage.misc.interpreter import get_test_shell
+            sage: shell = get_test_shell()
+            sage: shell.run_cell(bad_syntax)
+            SyntaxError: Mismatched ']'
         """
         if do_preparse and not line.startswith('%'):
             # we use preparse_file instead of just preparse because preparse_file
             # automatically prepends attached files
-            return preparse(line, reset=(line_number==0))
+            try:
+                return preparse(line, reset=(line_number==0))
+            except SyntaxError as err:
+                print "SyntaxError: {0}".format(err)
+            return ''
         else:
             return line
 

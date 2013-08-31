@@ -389,6 +389,9 @@ ext_modules = [
     Extension('sage.graphs.base.static_sparse_graph',
               sources = ['sage/graphs/base/static_sparse_graph.pyx']),
 
+    Extension('sage.graphs.base.static_sparse_backend',
+              sources = ['sage/graphs/base/static_sparse_backend.pyx']),
+
     Extension('sage.graphs.modular_decomposition.modular_decomposition',
               sources = ['sage/graphs/modular_decomposition/modular_decomposition.pyx',
                          'sage/graphs/modular_decomposition/src/dm.c'],

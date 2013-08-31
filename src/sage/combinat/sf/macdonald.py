@@ -18,7 +18,7 @@ REFERENCES:
        The Clarendon Press, Oxford University Press, New York, 1995, With contributions
        by A. Zelevinsky, Oxford Science Publications.
 
-    .. [GH1993] A. Garsia, M. Haiman, A graded representation modle for Macdonald's
+    .. [GH1993] A. Garsia, M. Haiman, A graded representation module for Macdonald's
        polynomials, Proc. Nat. Acad. U.S.A. no. 90, 3607--3610.
 
     .. [BGHT1999] F. Bergeron, A. M. Garsia, M. Haiman, and G. Tesler, Identities and
@@ -27,6 +27,7 @@ REFERENCES:
 
     .. [LLM1998] L. Lapointe, A. Lascoux, J. Morse, Determinantal Expressions for
        Macdonald Polynomials, IRMN no. 18 (1998).
+       :arXiv:`math/9808050`.
 """
 
 #*****************************************************************************
@@ -357,7 +358,7 @@ class Macdonald(UniqueRepresentation):
         basis, the scaling coefficients are polynomials in `q` and `t` rather
         than rational functions.
 
-        The `J` basis is calculated using determinental formulas of
+        The `J` basis is calculated using determinantal formulas of
         Lapointe-Lascoux-Morse giving the action on the S-basis [LLM1998]_.
 
         INPUT:
@@ -1371,7 +1372,7 @@ class MacdonaldPolynomials_q(MacdonaldPolynomials_generic):
 class MacdonaldPolynomials_j(MacdonaldPolynomials_generic):
     def __init__(self, macdonald):
         r"""
-        The `J` basis is calculated using determinental formulas of
+        The `J` basis is calculated using determinantal formulas of
         Lapointe-Lascoux-Morse giving the action on the `S`-basis.
 
         INPUT:

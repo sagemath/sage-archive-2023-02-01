@@ -90,17 +90,30 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
             -p[3]
             sage: p.antipode_on_basis([2,2])
             p[2, 2]
+            sage: p.antipode_on_basis([])
+            p[]
         """
-        return (-1)**len(partition) * self[partition]
+        if len(partition) % 2 == 0:
+            return self[partition]
+        return -self[partition]
+        #This is slightly faster than: return (-1)**len(partition) * self[partition]
 
     class Element(classical.SymmetricFunctionAlgebra_classical.Element):
         def omega(self):
-            """
-            Returns the image of ``self`` under the Frobenius / omega automorphism.
+            r"""
+            Return the image of ``self`` under the omega automorphism.
 
-            INPUT:
+            The omega automorphism is defined to be the unique algebra
+            endomorphism `\omega` of the ring of symmetric functions that
+            satisfies `\omega(e_k) = h_k` for all positive integers `k`
+            (where `e_k` stands for the `k`-th elementary symmetric
+            function, and `h_k` stands for the `k`-th complete homogeneous
+            symmetric function). It furthermore is a Hopf algebra
+            endomorphism, and sends the power-sum symmetric function `p_k`
+            to `(-1)^{k-1} p_k` for every positive integer `k`.
 
-            - ``self`` -- an element of the symmetric functions in the power sum basis
+            The default implementation converts to the Schurs, then
+            performs the automorphism and changes back.
 
             OUTPUT:
 
@@ -117,33 +130,38 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
                 p[]
                 sage: p(0).omega()
                 0
+                sage: p = SymmetricFunctions(ZZ).p()
+                sage: (p([3,1,1]) - 2 * p([2,1])).omega()
+                2*p[2, 1] + p[3, 1, 1]
             """
-            f = lambda part, coeff: (part, (-1)**(sum(part)-len(part))*coeff)
+            f = lambda part, coeff: (part, (-1)**(sum(part)-len(part)) * coeff)
             return self.map_item(f)
 
         def scalar(self, x, zee=None):
             r"""
-            Returns the standard scalar product of ``self`` and ``x``.
+            Return the standard scalar product of ``self`` and ``x``.
 
             INPUT:
 
-            - ``self`` -- an element of the symmetric functions in the power sum basis
             - ``x`` -- an power sum symmetric function
-            - ``zee`` -- optional input specifying the scalar product on the power sum basis
-              with normalization `<p_\mu, p_\mu> = zee(\mu)`. ``zee`` should be
-              a function on partitions. (default: uses standard ``zee`` function)
+            - ``zee`` -- (default: uses standard ``zee`` function) optional
+              input specifying the scalar product on the power sum basis with
+              normalization `\langle p_{\mu}, p_{\mu} \rangle =
+              \mathrm{zee}(\mu)`. ``zee`` should be a function on partitions.
 
             Note that the power-sum symmetric functions are orthogonal under
-            this scalar product. The value of `\langle p_\lambda, p_\lambda \rangle`
-            is given by the size of the centralizer in `S_n` of a
-            permutation of cycle type `\lambda`.
+            this scalar product. With the default value of ``zee``, the value
+            of `\langle p_{\lambda}, p_{\lambda} \rangle` is given by the
+            size of the centralizer in `S_n` of a permutation of cycle
+            type `\lambda`.
 
             OUTPUT:
 
-            - the standard scalar product between ``self`` and ``x`` or if the optional
-              parameter ``zee`` is specified then the scalar product with respect to the
-              normalization `<p_\mu, p_\mu> = zee(\mu)` with the power sum bases
-              elements are orthogonal
+            - the standard scalar product between ``self`` and ``x``, or, if
+              the optional parameter ``zee`` is specified, then the scalar
+              product with respect to the normalization `\langle p_{\mu},
+              p_{\mu} \rangle = \mathrm{zee}(\mu)` with the power sum basis
+              elements being orthogonal
 
             EXAMPLES::
 
@@ -174,14 +192,14 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
                 f = lambda part1, part2:  zee(part1)
             return parent._apply_multi_module_morphism(self, x, f, orthogonal=True)
 
-
         def _derivative(self, part):
             """
-            Returns the 'derivative' of `p([part])` with respect to `p([1])`.
+            Return the 'derivative' of ``p([part])`` with respect to ``p([1])``
+            (where ``p([part])`` is regarded as a polynomial in the
+            indeterminates ``p([i])``).
 
             INPUT:
 
-            - ``self`` -- an element of the symmetric functions in the power sum basis
             - ``part`` -- a partition
 
             EXAMPLES::
@@ -197,22 +215,23 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
             if 1 not in part:
                 return p(0)
             else:
-                return len([i for i in part if i == 1])*p(part[:-1])
+                return len([i for i in part if i == 1]) * p(part[:-1])
 
         def _derivative_with_respect_to_p1(self):
             """
-            Returns the `derivative` of a symmetric function in the power sum basis with respective to `p([1])`.
-            On the Frobenius image of an `S_n` module the resulting character is
-            the Frobenius image of the restriction of this module to `S_{n-1}`.
+            Return the 'derivative' of a symmetric function in the power sum
+            basis with respect to ``p([1])`` (where ``p([part])`` is regarded
+            as a polynomial in the indeterminates ``p([i])``).
 
-            INPUT:
+            On the Frobenius image of an `S_n`-module, the resulting character
+            is the Frobenius image of the restriction of this module
+            to `S_{n-1}`.
 
-            - ``self`` -- an element of the symmetric functions in the power sum basis
+            OUTPUT:
 
-            OUPUT:
-
-            - a power symmetric function of degree one smaller corresponding
-              differentiation by `p_1`.
+            - a symmetric function (in the power sum basis) of degree one
+              smaller than ``self``, obtained by differentiating ``self``
+              by `p_1`.
 
             EXAMPLES::
 
@@ -238,15 +257,222 @@ class SymmetricFunctionAlgebra_power(multiplicative.SymmetricFunctionAlgebra_mul
                 return self
             return p._apply_module_morphism(self, self._derivative)
 
-        def expand(self, n, alphabet='x'):
-            """
-            Expands the symmetric function as a symmetric polynomial in `n` variables.
+        def frobenius(self, n):
+            r"""
+            Return the image of the symmetric function ``self`` under the
+            `n`-th Frobenius operator.
+
+            The `n`-th Frobenius operator `\mathbf{f}_n` is defined to be the
+            map from the ring of symmetric functions to itself that sends
+            every symmetric function `P(x_1, x_2, x_3, \ldots)` to
+            `P(x_1^n, x_2^n, x_3^n, \ldots)`. This operator `\mathbf{f}_n`
+            is a Hopf algebra endomorphism, and satisfies
+
+            .. MATH::
+
+                f_n m_{(\lambda_1, \lambda_2, \lambda_3, \ldots)} =
+                m_{(n\lambda_1, n\lambda_2, n\lambda_3, \ldots)}
+
+            for every partition `(\lambda_1, \lambda_2, \lambda_3, \ldots)`
+            (where `m` means the monomial basis). Moreover,
+            `\mathbf{f}_n (p_r) = p_{nr}` for every positive integer `r` (where
+            `p_k` denotes the `k`-th powersum symmetric function).
+
+            The `n`-th Frobenius operator is also called the `n`-th
+            Frobenius endomorphism. It is not related to the Frobenius map
+            which connects the ring of symmetric functions with the
+            representation theory of the symmetric group.
+
+            The `n`-th Frobenius operator is also the `n`-th Adams operator
+            of the `\Lambda`-ring of symmetric functions over the integers.
+
+            The `n`-th Frobenius operator can also be described via plethysm:
+            Every symmetric function `P` satisfies
+            `\mathbf{f}_n(P) = p_n \circ P = P \circ p_n`,
+            where `p_n` is the `n`-th powersum symmetric function, and `\circ`
+            denotes (outer) plethysm.
 
             INPUT:
 
-            - ``self`` -- an element of the symmetric functions in the power sum basis
             - ``n`` -- a positive integer
-            - ``alphabet`` -- a variable for the expansion (default: `x`)
+
+            OUTPUT:
+
+            The result of applying the `n`-th Frobenius operator (on the ring
+            of symmetric functions) to ``self``.
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(ZZ)
+                sage: p = Sym.p()
+                sage: p[3].frobenius(2)
+                p[6]
+                sage: p[4,2,1].frobenius(3)
+                p[12, 6, 3]
+                sage: p([]).frobenius(4)
+                p[]
+                sage: p[3].frobenius(1)
+                p[3]
+                sage: (p([3]) - p([2]) + p([])).frobenius(3)
+                p[] - p[6] + p[9]
+
+            TESTS:
+
+            Let us check that this method on the powersum basis gives the
+            same result as the implementation in :mod:`sage.combinat.sf.sfa`
+            on the complete homogeneous basis::
+
+                sage: Sym = SymmetricFunctions(QQ)
+                sage: p = Sym.p(); h = Sym.h()
+                sage: all( h(p(lam)).frobenius(3) == h(p(lam).frobenius(3))
+                ....:      for lam in Partitions(3) )
+                True
+                sage: all( p(h(lam)).frobenius(2) == p(h(lam).frobenius(2))
+                ....:      for lam in Partitions(4) )
+                True
+
+            .. SEEALSO::
+
+                :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.plethysm`
+            """
+            dct = {Partition(map(lambda i: n * i, lam)): coeff
+                   for (lam, coeff) in self.monomial_coefficients().items()}
+            return self.parent()._from_dict(dct)
+
+        adams_operation = frobenius
+
+        def verschiebung(self, n):
+            r"""
+            Return the image of the symmetric function ``self`` under the
+            `n`-th Verschiebung operator.
+
+            The `n`-th Verschiebung operator `\mathbf{V}_n` is defined to be
+            the unique algebra endomorphism `V` of the ring of symmetric
+            functions that satisfies `V(h_r) = h_{r/n}` for every positive
+            integer `r` divisible by `n`, and satisfies `V(h_r) = 0` for
+            every positive integer `r` not divisible by `n`. This operator
+            `\mathbf{V}_n` is a Hopf algebra endomorphism. For every
+            nonnegative integer `r` with `n \mid r`, it satisfies
+
+            .. MATH::
+
+                \mathbf{V}_n(h_r) = h_{r/n},
+                \quad \mathbf{V}_n(p_r) = n p_{r/n},
+                \quad \mathbf{V}_n(e_r) = (-1)^{r - r/n} e_{r/n}
+
+            (where `h` is the complete homogeneous basis, `p` is the
+            powersum basis, and `e` is the elementary basis). For every
+            nonnegative integer `r` with `n \nmid r`, it satisfes
+
+            .. MATH::
+
+                \mathbf{V}_n(h_r) = \mathbf{V}_n(p_r) = \mathbf{V}_n(e_r) = 0.
+
+            The `n`-th Verschiebung operator is also called the `n`-th
+            Verschiebung endomorphism. Its name derives from the Verschiebung
+            (German for "shift") endomorphism of the Witt vectors.
+
+            The `n`-th Verschiebung operator is adjoint to the `n`-th
+            Frobenius operator (see :meth:`frobenius` for its definition)
+            with respect to the Hall scalar product (:meth:`scalar`).
+
+            The action of the `n`-th Verschiebung operator on the Schur basis
+            can also be computed explicitly. The following (probably clumsier
+            than necessary) description can be obtained by solving exercise
+            7.61 in Stanley's [STA]_.
+
+            Let `\lambda` be a partition. Let `n` be a positive integer. If
+            the `n`-core of `\lambda` is nonempty, then
+            `\mathbf{V}_n(s_\lambda) = 0`. Otherwise, the following method
+            computes `\mathbf{V}_n(s_\lambda)`: Write the partition `\lambda`
+            in the form `(\lambda_1, \lambda_2, \ldots, \lambda_{ns})` for some
+            nonnegative integer `s`. (If `n` does not divide the length of
+            `\lambda`, then this is achieved by adding trailing zeroes to
+            `\lambda`.) Set `\beta_i = \lambda_i + ns - i` for every
+            `s \in \{ 1, 2, \ldots, ns \}`. Then,
+            `(\beta_1, \beta_2, \ldots, \beta_{ns})` is a strictly decreasing
+            sequence of nonnegative integers. Stably sort the list
+            `(1, 2, \ldots, ns)` in order of (weakly) increasing remainder of
+            `-1 - \beta_i` modulo `n`. Let `\xi` be the sign of the
+            permutation that is used for this sorting. Let `\psi` be the sign
+            of the permutation that is used to stably sort the list
+            `(1, 2, \ldots, ns)` in order of (weakly) increasing remainder of
+            `i - 1` modulo `n`. (Notice that `\psi = (-1)^{n(n-1)s(s-1)/4}`.)
+            Then, `\mathbf{V}_n(s_\lambda) = \xi \psi \prod_{i = 0}^{n - 1}
+            s_{\lambda^{(i)}}`, where
+            `(\lambda^{(0)}, \lambda^{(1)}, \ldots, \lambda^{(n - 1)})`
+            is the `n`-quotient of `\lambda`.
+
+            INPUT:
+
+            - ``n`` -- a positive integer
+
+            OUTPUT:
+
+            The result of applying the `n`-th Verschiebung operator (on the
+            ring of symmetric functions) to ``self``.
+
+            EXAMPLES::
+
+                sage: Sym = SymmetricFunctions(ZZ)
+                sage: p = Sym.p()
+                sage: p[3].verschiebung(2)
+                0
+                sage: p[4].verschiebung(4)
+                4*p[1]
+
+            The Verschiebung endomorphisms are multiplicative::
+
+                sage: all( all( p(lam).verschiebung(2) * p(mu).verschiebung(2)
+                ....:           == (p(lam) * p(mu)).verschiebung(2)
+                ....:           for mu in Partitions(4) )
+                ....:      for lam in Partitions(4) )
+                True
+
+            Testing the adjointness between the Frobenius operators
+            `\mathbf{f}_n` and the Verschiebung operators
+            `\mathbf{V}_n`::
+
+                sage: Sym = SymmetricFunctions(QQ)
+                sage: p = Sym.p()
+                sage: all( all( p(lam).verschiebung(2).scalar(p(mu))
+                ....:           == p(lam).scalar(p(mu).frobenius(2))
+                ....:           for mu in Partitions(2) )
+                ....:      for lam in Partitions(4) )
+                True
+
+            TESTS:
+
+            Let us check that this method on the powersum basis gives the
+            same result as the implementation in :mod:`sage.combinat.sf.sfa`
+            on the monomial basis::
+
+                sage: Sym = SymmetricFunctions(QQ)
+                sage: p = Sym.p(); m = Sym.m()
+                sage: all( m(p(lam)).verschiebung(3) == m(p(lam).verschiebung(3))
+                ....:      for lam in Partitions(6) )
+                True
+                sage: all( p(m(lam)).verschiebung(2) == p(m(lam).verschiebung(2))
+                ....:      for lam in Partitions(4) )
+                True
+            """
+            parent = self.parent()
+            p_coords_of_self = self.monomial_coefficients().items()
+            dct = {Partition(map(lambda i: i // n, lam)): coeff * (n ** len(lam))
+                   for (lam, coeff) in p_coords_of_self
+                   if all( i % n == 0 for i in lam )}
+            result_in_p_basis = parent._from_dict(dct)
+            return parent(result_in_p_basis)
+
+        def expand(self, n, alphabet='x'):
+            """
+            Expand the symmetric function as a symmetric polynomial
+            in `n` variables.
+
+            INPUT:
+
+            - ``n`` -- a positive integer
+            - ``alphabet`` -- (default: `x`) a variable for the expansion
 
             OUTPUT:
 

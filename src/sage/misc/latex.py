@@ -23,6 +23,7 @@ r'''\usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{amsfonts}
 \usepackage{graphicx}
+\usepackage{mathrsfs}
 \pagestyle{empty}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}

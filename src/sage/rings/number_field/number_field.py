@@ -6754,6 +6754,12 @@ class NumberField_absolute(NumberField_generic):
               To:   Complex Field with 53 bits of precision
               Defn: a |--> 1.25992104989487
             ]
+
+        Test that :trac:`15053` is fixed::
+
+            sage: K = NumberField(x^3 - 2, 'a')
+            sage: K.embeddings(GF(3))
+            []
         """
         try:
             # this should be concordant with automorphisms
@@ -6764,6 +6770,8 @@ class NumberField_absolute(NumberField_generic):
             pass
         if K is self:
             return self.automorphisms()
+        if K.characteristic() != 0:
+            return Sequence([], immutable=True, check=False, universe=self.Hom(K))
 
         f = K['x'](self.defining_polynomial())
         r = f.roots(); r.sort()

@@ -1423,27 +1423,28 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         Q, _ = self.quo_rem(right)
         return Q
 
-
     def _derivative(self, var=None):
         r"""
-        Differentiates self with respect to variable var.
+        Differentiates ``self`` with respect to variable ``var``.
 
-        If var is not one of the generators of this ring, _derivative(var)
+        If ``var`` is not one of the generators of this ring, _derivative(var)
         is called recursively on each coefficient of this polynomial.
 
-        .. seealso::
+        .. SEEALSO::
 
-           :meth:`derivative`
+            :meth:`derivative`
 
         EXAMPLES::
 
             sage: R.<t> = PowerSeriesRing(QQbar)
             sage: S.<x, y> = PolynomialRing(R)
             sage: f = (t^2 + O(t^3))*x^2*y^3 + (37*t^4 + O(t^5))*x^3
-            sage: type(f)
-            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+            sage: f.parent()
+            Multivariate Polynomial Ring in x, y over Power Series Ring in t over Algebraic Field
             sage: f._derivative(x)   # with respect to x
             (2*t^2 + O(t^3))*x*y^3 + (111*t^4 + O(t^5))*x^2
+            sage: f._derivative(x).parent()
+            Multivariate Polynomial Ring in x, y over Power Series Ring in t over Algebraic Field
             sage: f._derivative(y)   # with respect to y
             (3*t^2 + O(t^3))*x^2*y^2
             sage: f._derivative(t)   # with respect to t (recurses into base ring)
@@ -1458,7 +1459,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
             ValueError: must specify which variable to differentiate with respect to
         """
         if var is None:
-            raise ValueError, "must specify which variable to differentiate with respect to"
+            raise ValueError("must specify which variable to differentiate with respect to")
 
         gens = list(self.parent().gens())
 
@@ -1478,6 +1479,78 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
         for (exp, coeff) in self.dict().iteritems():
             if exp[index] > 0:
                 d[exp.esub(v)] = coeff * exp[index]
+        d = polydict.PolyDict(d, self.parent().base_ring()(0), remove_zero=True)
+        return MPolynomial_polydict(self.parent(), d)
+
+    def integral(self, var=None):
+        r"""
+        Integrates ``self`` with respect to variable ``var``.
+
+        .. NOTE::
+
+            The integral is always chosen so the constant term is 0.
+
+        If ``var`` is not one of the generators of this ring, integral(var)
+        is called recursively on each coefficient of this polynomial.
+
+        EXAMPLES:
+
+        On polynomials with rational coefficients::
+
+            sage: x, y = PolynomialRing(QQ, 'x, y').gens()
+            sage: ex = x*y + x - y
+            sage: it = ex.integral(x); it
+            1/2*x^2*y + 1/2*x^2 - x*y
+            sage: it.parent() == x.parent()
+            True
+
+        On polynomials with coefficients in power series::
+
+            sage: R.<t> = PowerSeriesRing(QQbar)
+            sage: S.<x, y> = PolynomialRing(R)
+            sage: f = (t^2 + O(t^3))*x^2*y^3 + (37*t^4 + O(t^5))*x^3
+            sage: f.parent()
+            Multivariate Polynomial Ring in x, y over Power Series Ring in t over Algebraic Field
+            sage: f.integral(x)   # with respect to x
+            (1/3*t^2 + O(t^3))*x^3*y^3 + (37/4*t^4 + O(t^5))*x^4
+            sage: f.integral(x).parent()
+            Multivariate Polynomial Ring in x, y over Power Series Ring in t over Algebraic Field
+
+            sage: f.integral(y)   # with respect to y
+            (1/4*t^2 + O(t^3))*x^2*y^4 + (37*t^4 + O(t^5))*x^3*y
+            sage: f.integral(t)   # with respect to t (recurses into base ring)
+            (1/3*t^3 + O(t^4))*x^2*y^3 + (37/5*t^5 + O(t^6))*x^3
+
+        TESTS::
+
+            sage: f.integral()    # can't figure out the variable
+            Traceback (most recent call last):
+            ...
+            ValueError: must specify which variable to integrate with respect to
+        """
+        if var is None:
+            raise ValueError("must specify which variable to integrate "
+                             "with respect to")
+
+        gens = list(self.parent().gens())
+
+        # check if var is one of the generators
+        try:
+            index = gens.index(var)
+        except ValueError:
+            # var is not a generator; do term-by-term integration recursively
+            # var may be, for example, a generator of the base ring
+            d = dict([(e, x.integral(var))
+                      for (e, x) in self.dict().iteritems()])
+            d = polydict.PolyDict(d, self.parent().base_ring()(0),
+                                  remove_zero=True)
+            return MPolynomial_polydict(self.parent(), d)
+
+        # integrate w.r.t. indicated variable
+        d = {}
+        v = polydict.ETuple({index:1}, len(gens))
+        for (exp, coeff) in self.dict().iteritems():
+            d[exp.eadd(v)] = coeff / (1+exp[index])
         d = polydict.PolyDict(d, self.parent().base_ring()(0), remove_zero=True)
         return MPolynomial_polydict(self.parent(), d)
 

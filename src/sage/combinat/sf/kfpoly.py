@@ -33,12 +33,12 @@ def KostkaFoulkesPolynomial(mu, nu, t=None):
     INPUT:
 
     - ``mu``, ``nu`` -- partitions
-    - ``t`` -- an optional parameter (default: None)
+    - ``t`` -- an optional parameter (default: ``None``)
 
     OUTPUT:
 
     - the Koskta-Foulkes polynomial indexed by partitions ``mu`` and ``nu`` and
-      evaluated at the parameter ``t``.  If ``t`` is None the resulting polynomial
+      evaluated at the parameter ``t``.  If ``t`` is ``None`` the resulting polynomial
       is in the polynomial ring `ZZ['t']`.
 
     EXAMPLES::
@@ -74,12 +74,12 @@ def kfpoly(mu, nu, t=None):
     INPUT:
 
     - ``mu``, ``nu`` -- partitions
-    - ``t`` -- an optional parameter (default: None)
+    - ``t`` -- an optional parameter (default: ``None``)
 
     OUTPUT:
 
     - the Koskta-Foulkes polynomial indexed by partitions ``mu`` and ``nu`` and
-      evaluated at the parameter ``t``.  If ``t`` is None the resulting polynomial
+      evaluated at the parameter ``t``.  If ``t`` is ``None`` the resulting polynomial
       is in the polynomial ring `\mathbb{Z}['t']`.
 
     EXAMPLES::

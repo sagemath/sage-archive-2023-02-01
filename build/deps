@@ -1,16 +1,11 @@
 ###############################################################################
-# This file ($SAGE_ROOT/spkg/standard/deps) will be copied into
-# $SAGE_ROOT/spkg/Makefile by $SAGE_ROOT/spkg/install
+# This file ($SAGE_ROOT/build/deps) will be copied into
+# $SAGE_ROOT/build/Makefile by $SAGE_ROOT/build/install
 ###############################################################################
 
-# Let e.g. SAGE_ROOT/spkg/install pass options to sage-spkg, i.e. currently
+# Let e.g. SAGE_ROOT/build/install pass options to sage-spkg, i.e. currently
 # "-f", to force rebuilding dependent packages during an upgrade (#9896).
-#
-# When upgrading from a 4.x version of Sage, the script "sage-spkg" will be
-# found in SAGE_ROOT/local/bin until the new sage_root repo is installed.
-# After that, it will be found in SAGE_ROOT/spkg/bin
-# (SAGE_ROOT/spkg/bin is added to the PATH in spkg/install).
-# Therefore, do not put an explicit path for sage-spkg here.
+
 SAGE_SPKG = sage-spkg $${SAGE_SPKG_OPTS}
 PIPE = $(SAGE_ROOT)/build/pipestatus
 
@@ -118,7 +113,7 @@ all-sage: \
      csage \
      extcode
 
-# TOOLCHAIN consists of dependencies determined by spkg/install,
+# TOOLCHAIN consists of dependencies determined by build/install,
 # including for example the GCC package.
 toolchain: $(TOOLCHAIN)
 

@@ -1,5 +1,21 @@
+r"""
+Spike Functions
 
+AUTHORS:
 
+- William Stein (2007-07): initial version
+
+- Karl-Dieter Crisman (2009-09): adding documentation and doctests
+"""
+#*****************************************************************************
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#       Copyright (C) 2009 Karl-Dieter Crisman <kcrisman@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 import math
 
 from sage.plot.all import line

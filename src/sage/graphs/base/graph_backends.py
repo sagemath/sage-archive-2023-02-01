@@ -3,8 +3,6 @@ Implements various backends for Sage graphs.
 
 """
 
-
-
 #*******************************************************************************
 #        Copyright (C) 2008 Robert L. Miller <rlmillster@gmail.com>
 #
@@ -1444,37 +1442,6 @@ class NetworkXGraphBackend(GenericGraphBackend):
         name = self._nxg.name
         self._nxg = relabel_nodes(self._nxg,perm)
         self._nxg.name = name
-
-#         if directed:
-#             oldsucc = self._nxg.succ
-#             oldpred = self._nxg.pred
-#             newsucc = {}
-#             newpred = {}
-#             for v in oldsucc.iterkeys():
-#                 oldtempsucc = oldsucc[v]
-#                 newtempsucc = {}
-#                 for w in oldtempsucc.iterkeys():
-#                     newtempsucc[perm[w]] = oldtempsucc[w]
-#                 newsucc[perm[v]] = newtempsucc
-#             for v in oldpred.iterkeys():
-#                 oldtemppred = oldpred[v]
-#                 newtemppred = {}
-#                 for w in oldtemppred.iterkeys():
-#                     newtemppred[perm[w]] = oldtemppred[w]
-#                 newpred[perm[v]] = newtemppred
-#             self._nxg.adj = newsucc
-#             self._nxg.succ = self._nxg.adj
-#             self._nxg.pred = newpred
-#         else:
-#             oldd = self._nxg.adj
-#             newd = {}
-#             for v in oldd.iterkeys():
-#                 oldtempd = oldd[v]
-#                 newtempd = {}
-#                 for w in oldtempd.iterkeys():
-#                     newtempd[perm[w]] = oldtempd[w]
-#                 newd[perm[v]] = newtempd
-#             self._nxg.adj = newd
 
     def set_edge_label(self, u, v, l, directed):
         """

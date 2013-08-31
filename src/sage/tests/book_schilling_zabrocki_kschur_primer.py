@@ -43,7 +43,7 @@ Sage example in ./kschurnotes/notes-mike-anne.tex, line 515::
 
     sage: la = Partition([4,3,3,3,2,2,1])
     sage: kappa = la.k_skew(4); kappa
-    [[12, 8, 5, 5, 2, 2, 1], [8, 5, 2, 2]]
+    [12, 8, 5, 5, 2, 2, 1] / [8, 5, 2, 2]
 
 Sage example in ./kschurnotes/notes-mike-anne.tex, line 521::
 

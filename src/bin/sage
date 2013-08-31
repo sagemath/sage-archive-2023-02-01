@@ -338,6 +338,8 @@ fi
 #####################################################################
 
 if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
+    # Workaround for OSX, see http://trac.sagemath.org/15072
+    export LC_ALL=C
     exec sed -n -e 's/.*\(Sage Version.*Date: [0-9-]*\).*/\1/p' \
         "$SAGE_LOCAL"/bin/sage-banner
 fi
@@ -837,6 +839,7 @@ if [ "$1" = '-pkg_nc' -o "$1" = "--pkg_nc" ]; then
 fi
 
 if [ "$1" = '-sdist' -o "$1" = "--sdist" ]; then
+    maybe_sage_location
     shift
     exec sage-sdist "$@"
 fi
@@ -851,10 +854,6 @@ if [ "$1" = '-rsyncdist' -o "$1" = "--rsyncdist" ]; then
 fi
 
 if [ "$1" = '-bdist' -o "$1" = "--bdist" ]; then
-    if [ $# -ne 2 ]; then
-        echo >&2 "** MISSING VERSION NUMBER! **"
-        exit 2
-    fi
     maybe_sage_location
     shift
     exec sage-bdist "$@"

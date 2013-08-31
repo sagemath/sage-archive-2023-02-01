@@ -284,7 +284,7 @@ elif [ -z "$PKG_HAS_PATH" ]; then
         fi
         USE_LOCAL_SCRIPTS=yes
         PKG_NAME_UPSTREAM="${PKG_BASE}-`echo $PKG_VER | sed 's/\.p[0-9][0-9]*$//'`"
-        echo "Using local scripts to install $PKG_NAME"
+        echo "Found local metadata for $PKG_NAME"
 
         if [ $INFO -eq 0 ]; then
             # see if we can the source tarball locally

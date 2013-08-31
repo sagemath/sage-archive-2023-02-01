@@ -44,9 +44,6 @@ echo "Cloning Sage repository..."
 git clone "$SAGE_ROOT" "$TMP_DIR/$TARGET"
 ( cd "$TMP_DIR/$TARGET" && git remote set-url origin "$SAGE_REPO_ANONYMOUS" )
 
-# Copy VERSION.txt (which is untracked)
-cp -p VERSION.txt "$TMP_DIR/$TARGET"
-
 echo "Done cloning Sage repository."
 
 echo "Copying files over to tmp directory"

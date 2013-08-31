@@ -92,16 +92,7 @@ class DoctestSageDev(sage.dev.sagedev.SageDev):
 
         self._trac_server = trac_server
 
-        # SageDev creates some config files in SAGE_LOCAL. During doctests
-        # these files must not be touched so we change SAGE_LOCAL temporarily
-        # here
-        import sage.env
-        sage_local = sage.env.SAGE_LOCAL
-        sage.env.SAGE_LOCAL = self.tmp_dir
-        try:
-            sage.dev.sagedev.SageDev.__init__(self, config, UI, trac, git)
-        finally:
-            sage.env.SAGE_LOCAL = sage_local
+        sage.dev.sagedev.SageDev.__init__(self, config, UI, trac, git)
 
     def _pull_master_branch(self):
         r"""

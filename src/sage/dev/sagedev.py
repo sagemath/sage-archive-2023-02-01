@@ -140,7 +140,7 @@ class SageDev(object):
             self.git = GitInterface(self.config['git'], self._UI, self.upload_ssh_key)
 
         # create some SavingDicts to store the relations between branches and tickets
-        from sage.env import SAGE_LOCAL, DOT_SAGE
+        from sage.env import DOT_SAGE
         import os
         def move_legacy_saving_dict(key, old_file, new_file):
             '''
@@ -161,13 +161,13 @@ class SageDev(object):
             if key in self.config['sagedev']:
                 del self.config['sagedev'][key]
 
-        ticket_file = os.path.join(SAGE_LOCAL, 'branch_to_ticket')
+        ticket_file = os.path.join(self.git._dot_git, 'branch_to_ticket')
         move_legacy_saving_dict('ticketfile', self.config['sagedev'].get('ticketfile', os.path.join(DOT_SAGE, 'branch_to_ticket')), ticket_file)
-        branch_file = os.path.join(SAGE_LOCAL, 'ticket_to_branch')
+        branch_file = os.path.join(self.git._dot_git, 'ticket_to_branch')
         move_legacy_saving_dict('branchfile', self.config['sagedev'].get('branchfile', os.path.join(DOT_SAGE, 'ticket_to_branch')), branch_file)
-        dependencies_file = os.path.join(SAGE_LOCAL, 'dependencies')
+        dependencies_file = os.path.join(self.git._dot_git, 'dependencies')
         move_legacy_saving_dict('dependenciesfile', self.config['sagedev'].get('dependenciesfile', os.path.join(DOT_SAGE, 'dependencies')), dependencies_file)
-        remote_branches_file = os.path.join(SAGE_LOCAL, 'remote_branches')
+        remote_branches_file = os.path.join(self.git._dot_git, 'remote_branches')
         move_legacy_saving_dict('remotebranchesfile', self.config['sagedev'].get('remotebranchesfile', os.path.join(DOT_SAGE, 'remote_branches')), remote_branches_file)
 
         # some people dislike double underscore fields; here you can very

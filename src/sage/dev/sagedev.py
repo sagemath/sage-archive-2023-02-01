@@ -151,6 +151,9 @@ class SageDev(object):
             This method moves an existing file mentioned in the config to its
             new position to support repositories created earlier.
             '''
+            import sage.doctest
+            if sage.doctest.DOCTEST_MODE:
+                return
             import shutil
             if not os.path.exists(new_file) and os.path.exists(old_file):
                 shutil.move(old_file, new_file)

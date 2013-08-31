@@ -64,7 +64,11 @@ GIT_BRANCH_REGEX = re.compile(r'^(?!.*/\.)(?!.*\.\.)(?!/)(?!.*//)(?!.*@\{)(?!.*\
 MASTER_BRANCH = "master"
 
 COMMIT_GUIDE=r"""
+
+
 # Please type your commit message above.
+# The first line should contain a short summary of your changes, the following
+# lines should contain a more detailed description.
 # Lines starting with '#' are ignored.
 #
 # An empty file aborts the commit.
@@ -968,19 +972,19 @@ class SageDev(object):
                 else:
                     self.git.echo.add(update=True)
 
-                if not self._UI.confirm("Do you want to commit your changes to branch `{0}`? I will prompt you for a commit message if you do.".format(branch), default=True):
+                if not self._UI.confirm("Do you want to commit your changes to branch `{0}`?{1}".format(branch, " I will prompt you for a commit message if you do." if message is None else ""), default=True):
                     self._UI.info("If you want to commit to a different branch/ticket, run `{0}` or `{1}` first.".format(self._format_command("switch_branch"), self._format_command("switch_ticket")))
                     raise OperationCancelledError("user does not want to create a commit")
 
-                from tempfile import NamedTemporaryFile
-                commit_message = NamedTemporaryFile()
-                if message: commit_message.write(message)
-                commit_message.write(COMMIT_GUIDE)
-                commit_message.close()
+                if message is None:
+                    from tempfile import NamedTemporaryFile
+                    commit_message = NamedTemporaryFile()
+                    commit_message.write(COMMIT_GUIDE)
+                    commit_message.flush()
 
-                self._UI.edit(commit_message.name)
+                    self._UI.edit(commit_message.name)
 
-                message = "\n".join([line for line in open(commit_message.name).read().splitlines() if not line.startswith("#")]).strip()
+                    message = "\n".join([line for line in open(commit_message.name).read().splitlines() if not line.startswith("#")]).strip()
 
                 if not message:
                     raise OperationCancelledError("empty commit message")

@@ -79,10 +79,10 @@ class Config(collections.MutableMapping):
             sage: from sage.dev.test.config import DoctestConfig
             sage: c = DoctestConfig()
             sage: repr(c)
-            "Config('''\n[trac]\nusername = doctest\n[UI]\nlog_level = 0\n[git]...\n[sagedev]...\n''')"
+            "Config('''\n[trac]\nusername = doctest\n[UI]\nlog_level = 0\n[git]...\n[sagedev]\n''')"
 
         """
-        return "Config('''\n"+"\n".join([ "[%s]\n"%s+"\n".join(["%s = %s"%(o,self[s][o]) for o in self[s] ]) for s in self ])+"\n''')"
+        return "Config('''\n"+"".join([ "[%s]\n"%s+"".join(["%s = %s\n"%(o,self[s][o]) for o in self[s] ]) for s in self ])+"''')"
 
     def _read_config(self):
         r"""
@@ -105,7 +105,6 @@ class Config(collections.MutableMapping):
             [git]
             ...
             [sagedev]
-            ...
             ''')
             sage: c._write_config()
             sage: c2._read_config()
@@ -118,7 +117,6 @@ class Config(collections.MutableMapping):
             [git]
             ...
             [sagedev]
-            ...
             ''')
 
         """
@@ -404,10 +402,6 @@ class Config(collections.MutableMapping):
             dot_git = ...
             user_email_set = True
             [sagedev]
-            ticketfile = ...
-            branchfile = ...
-            dependenciesfile = ...
-            remotebranchesfile = ...
             ''')
             sage: del c['git']
             sage: c
@@ -417,10 +411,6 @@ class Config(collections.MutableMapping):
             [UI]
             log_level = 0
             [sagedev]
-            ticketfile = ...
-            branchfile = ...
-            dependenciesfile = ...
-            remotebranchesfile = ...
             ''')
 
         """

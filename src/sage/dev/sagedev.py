@@ -140,12 +140,32 @@ class SageDev(object):
             self.git = GitInterface(self.config['git'], self._UI, self.upload_ssh_key)
 
         # create some SavingDicts to store the relations between branches and tickets
-        from sage.env import DOT_SAGE
+        from sage.env import SAGE_LOCAL, DOT_SAGE
         import os
-        ticket_file = self.config['sagedev'].get('ticketfile', os.path.join(DOT_SAGE, 'branch_to_ticket'))
-        branch_file = self.config['sagedev'].get('branchfile', os.path.join(DOT_SAGE, 'ticket_to_branch'))
-        dependencies_file = self.config['sagedev'].get('dependenciesfile', os.path.join(DOT_SAGE, 'dependencies'))
-        remote_branches_file = self.config['sagedev'].get('remotebranchesfile', os.path.join(DOT_SAGE, 'remote_branches'))
+        def move_legacy_saving_dict(key, old_file, new_file):
+            '''
+            We used to have these files in DOT_SAGE - this is not a good idea
+            because a user might have multiple copies of sage which should each
+            have their own set of files.
+
+            This method moves an existing file mentioned in the config to its
+            new position to support repositories created earlier.
+            '''
+            import shutil
+            if not os.path.exists(new_file) and os.path.exists(old_file):
+                shutil.move(old_file, new_file)
+                self._UI.show("The developer scripts used to store some of their data in `{0}`. This file has now moved to `{1}`. I moved `{0}` to `{1}`. This might cause trouble if this is a fresh clone of the repository in which you never used the developer scripts before. In that case you should manually delete `{1}` now.".format(old_file, new_file))
+            if key in self.config['sagedev']:
+                del self.config['sagedev'][key]
+
+        ticket_file = os.path.join(SAGE_LOCAL, 'branch_to_ticket')
+        move_legacy_saving_dict('ticketfile', self.config['sagedev'].get('ticketfile', os.path.join(DOT_SAGE, 'branch_to_ticket')), ticket_file)
+        branch_file = os.path.join(SAGE_LOCAL, 'ticket_to_branch')
+        move_legacy_saving_dict('branchfile', self.config['sagedev'].get('branchfile', os.path.join(DOT_SAGE, 'ticket_to_branch')), branch_file)
+        dependencies_file = os.path.join(SAGE_LOCAL, 'dependencies')
+        move_legacy_saving_dict('dependenciesfile', self.config['sagedev'].get('dependenciesfile', os.path.join(DOT_SAGE, 'dependencies')), dependencies_file)
+        remote_branches_file = os.path.join(SAGE_LOCAL, 'remote_branches')
+        move_legacy_saving_dict('remotebranchesfile', self.config['sagedev'].get('remotebranchesfile', os.path.join(DOT_SAGE, 'remote_branches')), remote_branches_file)
 
         # some people dislike double underscore fields; here you can very
         # seriously screw up your setup if you put something invalid into

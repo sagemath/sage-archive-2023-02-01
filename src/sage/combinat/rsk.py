@@ -474,8 +474,8 @@ def RSK_inverse(p, q, output='array', insertion='RSK'):
         if output == 'permutation':
             if not p.is_standard():
                 raise TypeError("p must be standard to have a valid permutation as output")
-            from sage.combinat.permutation import Permutation_class
-            return Permutation_class(reversed(permutation))
+            from sage.combinat.permutation import Permutation
+            return Permutation(reversed(permutation))
         raise ValueError("Invalid output option")
 
     # Checks

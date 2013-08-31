@@ -71,7 +71,6 @@ from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.rational_field import QQ
 from sage.rings.arith import gcd
 
-import sage.ext.multi_modular
 from matrix2 import cmp_pivots, decomp_seq
 from matrix0 import Matrix as Matrix_base
 
@@ -885,7 +884,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef mpz_t *A_row
         D = <Integer>PY_NEW(Integer)
         self.mpz_denom(D.value)
-        MZ = sage.matrix.matrix_space.MatrixSpace(ZZ, self._nrows, self._ncols, sparse=self.is_sparse())
+        from sage.matrix.matrix_space import MatrixSpace
+        MZ = MatrixSpace(ZZ, self._nrows, self._ncols, sparse=self.is_sparse())
         A = Matrix_integer_dense.__new__(Matrix_integer_dense, MZ, 0, 0, 0)
         sig_on()
         for i from 0 <= i < self._nrows:
@@ -1347,7 +1347,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         """
         if not is_Ring(R):
             raise TypeError("R must be a ring")
-        from matrix_modn_dense import MAX_MODULUS
+        from matrix_modn_dense_double import MAX_MODULUS
         if R == self._base_ring:
             if self._is_immutable:
                 return self
@@ -2574,7 +2574,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         """
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")
-        cdef PariInstance P = sage.libs.pari.gen.pari
+        cdef PariInstance P = pari
         sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)
         # now convert d to a Sage rational
@@ -2592,7 +2592,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: matrix(QQ,3,[1..9])._rank_pari()
             2
         """
-        cdef PariInstance P = sage.libs.pari.gen.pari
+        cdef PariInstance P = pari
         sig_on()
         cdef long r = rank(pari_GEN(self))
         P.clear_stack()
@@ -2622,7 +2622,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             # pari doesn't work in case of 0 rows or columns
             # This case is easy, since the answer must be the 0 matrix.
             return self.matrix_space(self._nrows, right._ncols).zero_matrix().__copy__()
-        cdef PariInstance P = sage.libs.pari.gen.pari
+        cdef PariInstance P = pari
         sig_on()
         cdef GEN M = gmul(pari_GEN(self), pari_GEN(right))
         A = new_matrix_from_pari_GEN(self.matrix_space(self._nrows, right._ncols), M)
@@ -2641,7 +2641,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         """
         if self._nrows != self._ncols:
             raise ValueError("self must be a square matrix")
-        cdef PariInstance P = sage.libs.pari.gen.pari
+        cdef PariInstance P = pari
         cdef GEN M, d
 
         sig_on()
@@ -2671,7 +2671,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: matrix(QQ,2,[1/5,-2/3,3/4,4/9])._pari_()
             [1/5, -2/3; 3/4, 4/9]
         """
-        cdef PariInstance P = sage.libs.pari.gen.pari
+        cdef PariInstance P = pari
         return P.rational_matrix(self._matrix, self._nrows, self._ncols)
 
     def row(self, Py_ssize_t i, from_list=False):
@@ -2699,7 +2699,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         if i < 0:
             i = i + self._nrows
         cdef Py_ssize_t j
-        parent = sage.modules.free_module.FreeModule(self._base_ring, self._ncols)
+        from sage.modules.free_module import FreeModule
+        parent = FreeModule(self._base_ring, self._ncols)
         cdef Vector_rational_dense v = PY_NEW(Vector_rational_dense)
         v._init(self._ncols, parent)
         for j in range(self._ncols):
@@ -2732,7 +2733,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         i %= self._ncols
         if i < 0: i += self._ncols
         cdef Py_ssize_t j
-        parent = sage.modules.free_module.FreeModule(self._base_ring, self._nrows)
+        from sage.modules.free_module import FreeModule
+        parent = FreeModule(self._base_ring, self._nrows)
         cdef Vector_rational_dense v = PY_NEW(Vector_rational_dense)
         v._init(self._nrows, parent)
         for j in range(self._nrows):
@@ -2767,7 +2769,7 @@ cdef inline GEN pari_GEN(Matrix_rational_dense B):
     For internal use only; this directly uses the PARI stack.
     One should call ``sig_on()`` before and ``sig_off()`` after.
     """
-    cdef PariInstance P = sage.libs.pari.gen.pari
+    cdef PariInstance P = pari
     cdef GEN A
     A = P._new_GEN_from_mpq_t_matrix(B._matrix, B._nrows, B._ncols)
     return A

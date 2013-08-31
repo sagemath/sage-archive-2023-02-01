@@ -110,7 +110,7 @@ all-sage: \
      $(INST)/$(SYMPOW) \
      $(INST)/$(SYMPY) \
      $(INST)/$(TACHYON) \
-     $(INST)/$(TERMCAP) \
+     $(INST)/$(NCURSES) \
      $(INST)/$(ZLIB) \
      $(INST)/$(ZNPOLY) \
      scripts \
@@ -178,10 +178,10 @@ $(INST)/$(BOOST_CROPPED):
 $(INST)/$(CLIQUER):
 	+$(PIPE) "$(SAGE_SPKG) $(CLIQUER) 2>&1" "tee -a $(SAGE_LOGS)/$(CLIQUER).log"
 
-$(INST)/$(TERMCAP):
-	+$(PIPE) "$(SAGE_SPKG) $(TERMCAP) 2>&1" "tee -a $(SAGE_LOGS)/$(TERMCAP).log"
+$(INST)/$(NCURSES):
+	+$(PIPE) "$(SAGE_SPKG) $(NCURSES) 2>&1" "tee -a $(SAGE_LOGS)/$(NCURSES).log"
 
-$(INST)/$(READLINE): $(INST)/$(TERMCAP)
+$(INST)/$(READLINE): $(INST)/$(NCURSES)
 	+$(PIPE) "$(SAGE_SPKG) $(READLINE) 2>&1" "tee -a $(SAGE_LOGS)/$(READLINE).log"
 
 $(INST)/$(ICONV):
@@ -293,7 +293,7 @@ $(INST)/$(SYMPOW):
 $(INST)/$(SYMMETRICA):
 	+$(PIPE) "$(SAGE_SPKG) $(SYMMETRICA) 2>&1" "tee -a $(SAGE_LOGS)/$(SYMMETRICA).log"
 
-$(INST)/$(GAP): $(INST)/$(TERMCAP) $(INST)/$(READLINE) $(INST)/$(MPIR)
+$(INST)/$(GAP): $(INST)/$(NCURSES) $(INST)/$(READLINE) $(INST)/$(MPIR)
 	+$(PIPE) "$(SAGE_SPKG) $(GAP) 2>&1" "tee -a $(SAGE_LOGS)/$(GAP).log"
 
 $(INST)/$(LIBGAP): $(INST)/$(GAP)

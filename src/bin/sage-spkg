@@ -524,6 +524,10 @@ if [ ! -w "$SAGE_BUILD_DIR" ]; then
     echo >&2 "Error: no write access to build directory $SAGE_BUILD_DIR."
     exit 1
 fi
+if [ ! -d "$SAGE_LOCAL" ]; then
+    # If you just unpack Sage and run "sage -f <pkg>" then local does not yet exist
+    mkdir "$SAGE_LOCAL"
+fi
 if [ ! -w "$SAGE_LOCAL" ]; then
     echo >&2 "Error: no write access to installation directory $SAGE_LOCAL."
     exit 1

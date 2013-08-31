@@ -251,6 +251,9 @@ class DisplayHook(object):
             [0 0 1], [0 0 1]
             )
         """
+        if hasattr(obj, '_graphics_') and not isinstance(obj, type):
+            if obj._graphics_():
+                return
         s = format_obj(obj)
         if s is not None:
             print s
@@ -305,6 +308,9 @@ class SagePlainTextFormatter(PlainTextFormatter):
             {u'text/plain':     10      9      8      7      6      5      4      3      2
                             10*x   + 9*x  + 8*x  + 7*x  + 6*x  + 5*x  + 4*x  + 3*x  + 2*x  + x}
         """
+        if hasattr(obj, '_graphics_') and not isinstance(obj, type):
+            if obj._graphics_():
+                return ''
         s = self._format_obj(obj)
         if s is None:
             s = super(SagePlainTextFormatter, self).__call__(obj)

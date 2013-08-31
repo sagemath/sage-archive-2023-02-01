@@ -511,14 +511,6 @@ functions.
     sage: pari('2').besselk(3)
     0.0615104584717420
 
-The last command can also be executed using the command
-
-::
-
-    sage: bessel_K(3,2)
-    0.647385390948634
-    sage: bessel_K(3,2,prec=100)
-    0.64738539094863415315923557097
 
 What is Sage?
 =============

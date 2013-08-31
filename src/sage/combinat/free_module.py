@@ -1877,7 +1877,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         return r
 
     def _latex_term(self, m):
-        """
+        r"""
         Returns a string for the LaTeX code for the basis element
         indexed by m.
 
@@ -1915,13 +1915,13 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             2[1, 2, 3] + 4[3, 2, 1]
             sage: QS3.print_options(latex_bracket=True)
             sage: latex(a)                     # indirect doctest
-            2\left[[1, 2, 3]\right] + 4\left[[3, 2, 1]\right]
+            2\left[ [1, 2, 3] \right] + 4\left[ [3, 2, 1] \right]
             sage: QS3.print_options(latex_bracket="(")
             sage: latex(a)                     # indirect doctest
-            2\left([1, 2, 3]\right) + 4\left([3, 2, 1]\right)
+            2\left( [1, 2, 3] \right) + 4\left( [3, 2, 1] \right)
             sage: QS3.print_options(latex_bracket=('\\myleftbracket', '\\myrightbracket'))
             sage: latex(a)                     # indirect doctest
-            2\myleftbracket[1, 2, 3]\myrightbracket + 4\myleftbracket[3, 2, 1]\myrightbracket
+            2\myleftbracket [1, 2, 3] \myrightbracket + 4\myleftbracket [3, 2, 1] \myrightbracket
             sage: QS3.print_options(**original_print_options) # reset
 
         TESTS::
@@ -1929,7 +1929,7 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
             sage: F = CombinatorialFreeModule(QQ, [('a', 'b'), (0,1,2)])
             sage: e = F.basis()
             sage: latex(e[('a','b')])    # indirect doctest
-            B_{\left(a, b\right)}
+            B_{('a', 'b')}
             sage: latex(2*e[(0,1,2)])    # indirect doctest
             2B_{\left(0, 1, 2\right)}
             sage: F = CombinatorialFreeModule(QQ, [('a', 'b'), (0,1,2)], prefix="")
@@ -1940,10 +1940,9 @@ class CombinatorialFreeModule(UniqueRepresentation, Module):
         from sage.misc.latex import latex
 
         s = latex(m)
-        if s.find('\\verb') != -1:
-            import re
-            s = re.sub("\\\\verb(.)(.*?)\\1", "\\2", s)
-            s = s.replace("\\phantom{x}", " ")
+        if s.find('\\text{\\textt') != -1:
+            # m contains "non-LaTeXed" strings, use string representation
+            s = str(m)
 
         # dictionary with left-right pairs of "brackets".  put pairs
         # in here accept \\left and \\right as prefixes.
@@ -2527,7 +2526,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 sage: F.rename("F")
                 sage: G.rename("G")
                 sage: latex(tensor([F, F, G])) # indirect doctest
-                \verb|F| \otimes \verb|F| \otimes \verb|G|
+                \text{\texttt{F}} \otimes \text{\texttt{F}} \otimes \text{\texttt{G}}
                 sage: F._latex_ = lambda : "F"
                 sage: G._latex_ = lambda : "G"
                 sage: latex(tensor([F, F, G])) # indirect doctest

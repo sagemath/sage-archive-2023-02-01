@@ -454,11 +454,12 @@ class ClassicalCrystals(Category_singleton):
                 sage: La=C.root_system().weight_lattice().fundamental_weights()
                 sage: T = HighestWeightCrystal(La[1])
                 sage: t = T[3]; t
-                [[-4, 2, 5]]
+                [(-4, 2, 5)]
                 sage: t.lusztig_involution()
-                [[-2, -3, 4]]
+                [(-2, -3, 4)]
             """
             hw = self.to_highest_weight()[1]
             hw.reverse()
             hw = [self.parent().opposition_automorphism()[i] for i in hw]
             return self.to_lowest_weight()[0].e_string(hw)
+

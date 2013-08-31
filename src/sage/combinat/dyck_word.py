@@ -700,10 +700,25 @@ class DyckWord_class(CombinatorialObject):
 
         EXAMPLES:
 
+            sage: D = DyckWord([1,0,1,1,1,0,1,1,0,0,0,1,0,0])
+            sage: D.set_latex_options({"valleys":True, "peaks":True, "bounce path":True})
+            sage: latex(D)
+            \vcenter{\hbox{$\begin{tikzpicture}[scale=1]
+              \draw[line width=2,color=red,fill=red] (2, 0) circle (0.21);
+              \draw[line width=2,color=red,fill=red] (6, 2) circle (0.21);
+              \draw[line width=2,color=red,fill=red] (11, 1) circle (0.21);
+              \draw[line width=2,color=red,fill=red] (1, 1) circle (0.21);
+              \draw[line width=2,color=red,fill=red] (5, 3) circle (0.21);
+              \draw[line width=2,color=red,fill=red] (8, 4) circle (0.21);
+              \draw[line width=2,color=red,fill=red] (12, 2) circle (0.21);
+              \draw[rounded corners=1, color=green, line width=4] (0, 0) -- (1, 1) -- (2, 0) -- (3, 1) -- (4, 0) -- (5, 1) -- (6, 2) -- (7, 3) -- (8, 2) -- (9, 1) -- (10, 0) -- (11, 1) -- (12, 2) -- (13, 1) -- (14, 0);
+              \draw[dotted] (0, 0) grid (14, 4);
+              \draw[rounded corners=1, color=black, line width=2] (0, 0) -- (1, 1) -- (2, 0) -- (3, 1) -- (4, 2) -- (5, 3) -- (6, 2) -- (7, 3) -- (8, 4) -- (9, 3) -- (10, 2) -- (11, 1) -- (12, 2) -- (13, 1) -- (14, 0);
+            \end{tikzpicture}$}}
             sage: DyckWord([1,0])._latex_()
-            '\\vcenter{\\hbox{$\\begin{tikzpicture}[scale=1]\n  \\draw[dotted] (0, 0) grid (2, 1);\n  \\draw[rounded corners=1, color=black, line width=2 px] (0, 0) -- (1, 1) -- (2, 0);\n\\end{tikzpicture}$}}'
+            '\\vcenter{\\hbox{$\\begin{tikzpicture}[scale=1]\n  \\draw[dotted] (0, 0) grid (2, 1);\n  \\draw[rounded corners=1, color=black, line width=2] (0, 0) -- (1, 1) -- (2, 0);\n\\end{tikzpicture}$}}'
             sage: DyckWord([1,0,1,1,0,0])._latex_()
-            '\\vcenter{\\hbox{$\\begin{tikzpicture}[scale=1]\n  \\draw[dotted] (0, 0) grid (6, 2);\n  \\draw[rounded corners=1, color=black, line width=2 px] (0, 0) -- (1, 1) -- (2, 0) -- (3, 1) -- (4, 2) -- (5, 1) -- (6, 0);\n\\end{tikzpicture}$}}'
+            '\\vcenter{\\hbox{$\\begin{tikzpicture}[scale=1]\n  \\draw[dotted] (0, 0) grid (6, 2);\n  \\draw[rounded corners=1, color=black, line width=2] (0, 0) -- (1, 1) -- (2, 0) -- (3, 1) -- (4, 2) -- (5, 1) -- (6, 0);\n\\end{tikzpicture}$}}'
         """
         latex.add_package_to_preamble_if_available("tikz")
         heights = self.heights()
@@ -734,27 +749,27 @@ class DyckWord_class(CombinatorialObject):
         else:
             grid = [((0,0),(len(self),self.height()))]
         res = "\\vcenter{\\hbox{$\\begin{tikzpicture}[scale="+str(latex_options['tikz_scale'])+"]\n"
-        if latex_options["bounce path"]:
-            D = self.bounce_path()
-            D.set_latex_options(latex_options)
-            D.set_latex_options({"color":"red","line width":2*latex_options['line width'],"bounce path":False})
-            res += D._latex_().split("\n")[-2] + "\n"
-        for v1,v2 in grid:
-            res += "  \\draw[dotted] %s grid %s;\n"%(str(v1),str(v2))
-        if diagonal:
-            res += "  \\draw (0,0) -- %s;\n"%str((self.number_of_open_symbols(),self.number_of_open_symbols()))
-        res += "  \\draw[rounded corners=1, color=%s, line width=%s px] (0, 0)"%(latex_options['color'],str(latex_options['line width']))
-        ht.next()
-        for i, j in ht:
-            res += " -- (%s, %s)"%(i, j)
-        res += ";\n"
         mark_points = []
         if latex_options['valleys']:
             mark_points.extend(valleys)
         if latex_options['peaks']:
             mark_points.extend(peaks)
         for v in mark_points:
-            res += "  \\draw[line width=2px,color=red] %s circle (5px);\n"%str(v)
+            res += "  \\draw[line width=2,color=red,fill=red] %s circle (%s);\n"%(str(v),0.15+.03*latex_options['line width'])
+        if latex_options["bounce path"]:
+            D = self.bounce_path()
+            D.set_latex_options(latex_options)
+            D.set_latex_options({"color":"green","line width":2*latex_options['line width'],"bounce path":False, "peaks":False, "valleys":False})
+            res += D._latex_().split("\n")[-2] + "\n"
+        for v1,v2 in grid:
+            res += "  \\draw[dotted] %s grid %s;\n"%(str(v1),str(v2))
+        if diagonal:
+            res += "  \\draw (0,0) -- %s;\n"%str((self.number_of_open_symbols(),self.number_of_open_symbols()))
+        res += "  \\draw[rounded corners=1, color=%s, line width=%s] (0, 0)"%(latex_options['color'],str(latex_options['line width']))
+        ht.next()
+        for i, j in ht:
+            res += " -- (%s, %s)"%(i, j)
+        res += ";\n"
         res += "\\end{tikzpicture}$}}"
         return res
 

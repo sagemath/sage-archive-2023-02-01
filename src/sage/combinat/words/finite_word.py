@@ -4573,9 +4573,9 @@ exponent %s: the length of the word (%s) times the exponent \
             [1, 3, 6, 4, 5, 2]
             sage: v = Word(p.inverse().action(w)); v
             word: 112223
-            sage: Permutations(w.length()).filter( \
-            ...     lambda q: q.length() <= p.length() and \
-            ...               q.inverse().action(w) == list(v) ).list()
+            sage: filter(lambda q: q.length() <= p.length() and \
+            ....:       q.inverse().action(w) == list(v), \
+            ....:       Permutations(w.length()) )
             [[1, 3, 6, 4, 5, 2]]
 
         ::
@@ -6138,9 +6138,9 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: Word([1,2,3,4]).apply_permutation_to_positions([3,4,2,1])
             word: 3421
         """
-        from sage.combinat.permutation import Permutation, Permutation_class
+        from sage.combinat.permutation import Permutation
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-        if not isinstance(permutation, Permutation_class):
+        if not isinstance(permutation, Permutation):
             if isinstance(permutation, PermutationGroupElement):
                 permutation = Permutation(permutation.domain())
             else:
@@ -6166,9 +6166,9 @@ exponent %s: the length of the word (%s) times the exponent \
             sage: w.apply_permutation_to_letters(PermutationGroupElement(p))
             word: badc
         """
-        from sage.combinat.permutation import Permutation, Permutation_class
+        from sage.combinat.permutation import Permutation
         from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-        if not isinstance(permutation, Permutation_class):
+        if not isinstance(permutation, Permutation):
             if isinstance(permutation, PermutationGroupElement):
                 permutation = Permutation(permutation.domain())
             else:

@@ -120,6 +120,21 @@ class AlternatingSignMatrix(Element):
             return self._matrix == other._matrix
         return self._matrix == other
 
+    def __ne__(self, other):
+        """
+        Check not equals. This is needed, see :trac:`14762`.
+
+        EXAMPLES::
+
+            sage: A = AlternatingSignMatrices(3)
+            sage: M = A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
+            sage: M != A([[1, 0, 0],[0, 1, 0],[0, 0, 1]])
+            False
+            sage: M != A([[1, 0, 0],[0, 0, 1],[0, 1, 0]])
+            True
+        """
+        return not self.__eq__(other)
+
     def _latex_(self):
         r"""
         Return a `\LaTeX` representation of ``self``.
@@ -153,6 +168,7 @@ class AlternatingSignMatrix(Element):
         """
         return copy.copy(self._matrix)
 
+    @combinatorial_map(name='to monotone triangle')
     def to_monotone_triangle(self):
         r"""
         Return a monotone triangle from ``self``.
@@ -248,7 +264,7 @@ class AlternatingSignMatrix(Element):
             sage: p = asm.to_permutation(); p
             [2, 1, 3]
             sage: parent(p)
-            <class 'sage.combinat.permutation.Permutation_class'>
+            Standard permutations
             sage: asm = A([[0,1,0],[1,-1,1],[0,1,0]])
             sage: asm.to_permutation()
             Traceback (most recent call last):
@@ -260,6 +276,7 @@ class AlternatingSignMatrix(Element):
         asm_matrix = self.to_matrix()
         return Permutation([ j+1 for (i,j) in asm_matrix.nonzero_positions() ])
 
+    @combinatorial_map(name='to semistandard tableau')
     def to_semistandard_tableau(self):
         """
         Return the semistandard tableau corresponding the monotone triangle
@@ -344,10 +361,9 @@ class AlternatingSignMatrix(Element):
             sage: t = A([[0,1,0],[1,-1,1],[0,1,0]]).left_key_as_permutation(); t
             [1, 3, 2]
             sage: parent(t)
-            <class 'sage.combinat.permutation.Permutation_class'>
+            Standard permutations
         """
         return self.left_key().to_permutation()
-
 
 class AlternatingSignMatrices(Parent, UniqueRepresentation):
     r"""

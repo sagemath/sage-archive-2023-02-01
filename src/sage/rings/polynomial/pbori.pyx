@@ -216,6 +216,7 @@ from sage.monoids.monoid import Monoid_class
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.interfaces.all import singular as singular_default
+from sage.interfaces.singular import SingularElement
 
 order_dict= {"lp":      pblp,
              "dlex":    pbdlex,
@@ -921,57 +922,59 @@ cdef class BooleanPolynomialRing(MPolynomialRing_generic):
 
         if PY_TYPE_CHECK(other, BooleanMonomial) and \
             ((<BooleanMonomial>other)._pbmonom.deg() <= self._pbring.nVariables()):
-                try:
-                    var_mapping = get_var_mapping(self, other)
-                except NameError, msg:
-                    raise TypeError, "cannot convert monomial %s to %s: %s"%(other,self,msg)
-                p = self._one_element
-                for i in other.iterindex():
-                    p *= var_mapping[i]
-                return p
+            try:
+                var_mapping = get_var_mapping(self, other)
+            except NameError, msg:
+                raise TypeError, "cannot convert monomial %s to %s: %s"%(other,self,msg)
+            p = self._one_element
+            for i in other.iterindex():
+                p *= var_mapping[i]
+            return p
         elif PY_TYPE_CHECK(other,BooleanPolynomial) and \
                 ((<BooleanPolynomial>other)._pbpoly.nUsedVariables() <= \
-                self._pbring.nVariables()):
-                    try:
-                        var_mapping = get_var_mapping(self, other)
-                    except NameError, msg:
-                        raise TypeError, "cannot convert polynomial %s to %s: %s"%(other,self,msg)
-                    p = self._zero_element
-                    for monom in other:
-                        new_monom = self._monom_monoid._one_element
-                        for i in monom.iterindex():
-                            new_monom *= var_mapping[i]
-                        p += new_monom
-                    return p
+            self._pbring.nVariables()):
+            try:
+                var_mapping = get_var_mapping(self, other)
+            except NameError, msg:
+                raise TypeError, "cannot convert polynomial %s to %s: %s"%(other,self,msg)
+            p = self._zero_element
+            for monom in other:
+                new_monom = self._monom_monoid._one_element
+                for i in monom.iterindex():
+                    new_monom *= var_mapping[i]
+                p += new_monom
+            return p
         elif (PY_TYPE_CHECK(other, MPolynomial) or \
                 PY_TYPE_CHECK(other, Polynomial)) and \
                 self.base_ring().has_coerce_map_from(other.base_ring()):
-                    try:
-                        var_mapping = get_var_mapping(self, other)
-                    except NameError, msg:
-                        raise TypeError, "cannot convert polynomial %s to %s: %s"%(other,self,msg)
-                    p = self._zero_element
-                    exponents = other.exponents()
-                    coefs = other.coefficients()
-                    if PY_TYPE_CHECK(other, Polynomial):
-                        # we have a univariate polynomial.
-                        # That case had only been implemented
-                        # in trac ticket #9138:
-                        for i in range(len(coefs)):
-                            if self._base(coefs[i]).is_one():
-                                p += var_mapping[0]
-                        return p
+            try:
+                var_mapping = get_var_mapping(self, other)
+            except NameError, msg:
+                raise TypeError, "cannot convert polynomial %s to %s: %s"%(other,self,msg)
+            p = self._zero_element
+            exponents = other.exponents()
+            coefs = other.coefficients()
+            if PY_TYPE_CHECK(other, Polynomial):
+                # we have a univariate polynomial.
+                # That case had only been implemented
+                # in trac ticket #9138:
+                for i in range(len(coefs)):
+                    if self._base(coefs[i]).is_one():
+                        p += var_mapping[0]
+                return p
 
-                    for i in range(len(coefs)):
-                        if self._base(coefs[i]).is_one():
-                            m = self._monom_monoid._one_element
-                            for j in range(len(exponents[i])):
-                                if exponents[i][j] > 0:
-                                    m *= var_mapping[j]
-                            p += m
-                    return p
+            for i in range(len(coefs)):
+                if self._base(coefs[i]).is_one():
+                    m = self._monom_monoid._one_element
+                    for j in range(len(exponents[i])):
+                        if exponents[i][j] > 0:
+                            m *= var_mapping[j]
+                    p += m
+            return p
+        elif PY_TYPE_CHECK(other, SingularElement):
+            other = str(other)
 
-        elif PY_TYPE_CHECK(other, str):
+        if PY_TYPE_CHECK(other, str):
             gd = self.gens_dict()
             if other in gd:
                 return gd[other]

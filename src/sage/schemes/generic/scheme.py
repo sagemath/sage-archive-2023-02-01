@@ -353,11 +353,19 @@ class Scheme(Parent):
             sage: A2 = AffineSpace(QQ,2)
             sage: A2.point([4,5])
             (4, 5)
+
+            sage: R.<t> = PolynomialRing(QQ)
+            sage: E = EllipticCurve([t + 1, t, t, 0, 0])
+            sage: E.point([0, 0])
+            (0 : 0 : 1)
         """
         # todo: update elliptic curve stuff to take point_homset as argument
         from sage.schemes.elliptic_curves.ell_generic import is_EllipticCurve
         if is_EllipticCurve(self):
-            return self._point(self, v, check=check)
+            try:
+                return self._point(self.point_homset(), v, check=check)
+            except AttributeError:  # legacy code without point_homset
+                return self._point(self, v, check=check)
 
         return self.point_homset() (v, check=check)
 

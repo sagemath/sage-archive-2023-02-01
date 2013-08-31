@@ -4567,6 +4567,20 @@ class AlgebraicReal(AlgebraicNumber_base):
         """
         return AA_0
 
+    def conjugate(self):
+        """
+        Returns the complex conjugate of self, i.e. returns itself.
+
+        EXAMPLES::
+
+            sage: a = AA(sqrt(2) + sqrt(3))
+            sage: a.conjugate()
+            3.146264369941973?
+            sage: a.conjugate() is a
+            True
+        """
+        return self
+
     def sign(self):
         """
         Compute the sign of this algebraic number (return -1 if negative,

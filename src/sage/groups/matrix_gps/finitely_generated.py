@@ -320,7 +320,7 @@ class FinitelyGeneratedMatrixGroup_generic(MatrixGroup_generic):
             [0 1], [3 4]
             )
         """
-        return tuple(self.element_class(x, self, check=False, convert=False)
+        return tuple(self.element_class(self, x, check=False, convert=False)
                      for x in self._gens_matrix)
 
     def gen(self, i):

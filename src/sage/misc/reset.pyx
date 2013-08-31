@@ -77,7 +77,8 @@ def reset(vars=None, attached=False):
     forget()
     reset_interfaces()
     if attached:
-        reset_attached()
+        import sage.misc.attached_files
+        sage.misc.attached_files.reset()
 
 def restore(vars=None):
     """
@@ -159,23 +160,3 @@ def _restore(G, D, vars):
 def reset_interfaces():
     from sage.interfaces.quit import expect_quitall
     expect_quitall()
-
-def reset_attached():
-    """
-    Remove all the attached files from the list of attached files.
-
-    EXAMPLES::
-
-        sage: sage.misc.reset.reset_attached()
-        sage: t = tmp_filename(ext='.py')
-        sage: open(t,'w').write("print 'hello world'")
-        sage: attach(t)
-        hello world
-        sage: attached_files() == [t]
-        True
-        sage: sage.misc.reset.reset_attached()
-        sage: attached_files()
-        []
-    """
-    import preparser
-    preparser.attached = {}

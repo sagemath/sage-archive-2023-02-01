@@ -191,6 +191,8 @@ usage_advanced() {
     echo "                         reStructuredText source."
     echo "  -rst2sws [...]      -- Generates Sage worksheet (.sws) from standalone"
     echo "                         reStructuredText source."
+    echo "  -sws2rst <sws doc>  -- Generates a reStructuredText source file from"
+    echo "                         a Sage worksheet (.sws) document."
 
     echo
     ####  1.......................26..................................................78
@@ -336,7 +338,7 @@ fi
 #####################################################################
 
 if [ "$1" = '-v' -o "$1" = '-version' -o "$1" = '--version' ]; then
-    exec sed -n -e '/Version/s/^[ |]\{1,\}//;/Version/s/[ |]\{1,\}$//p' \
+    exec sed -n -e 's/.*\(Sage Version.*Date: [0-9-]*\).*/\1/p' \
         "$SAGE_LOCAL"/bin/sage-banner
 fi
 
@@ -377,6 +379,11 @@ fi
 if [ "$1" = '-sqlite3' -o "$1" = '--sqlite3' ]; then
     shift
     exec "$SAGE_LOCAL/bin/sqlite3" "$@"
+fi
+
+if [ "$1" = '-sws2rst' -o "$1" = '--sws2rst' ]; then
+    shift
+    exec sage-sws2rst "$@"
 fi
 
 if [ "$1" = '-twistd' -o "$1" = '--twistd' ]; then

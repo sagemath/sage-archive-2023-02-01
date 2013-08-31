@@ -19,7 +19,6 @@ AUTHORS:
 
 
 include "sage/ext/stdsage.pxi"
-include "sage/ext/interrupt.pxi"
 include "sage/libs/pari/pari_err.pxi"
 
 from element_base cimport FinitePolyExtElement
@@ -132,7 +131,8 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
 
     def __init__(FiniteFieldElement_pari_ffelt self, object parent, object x):
         """
-        Create an empty finite field element with the given parent.
+        Initialise ``self`` with the given ``parent`` and value
+        converted from ``x``.
 
         This is called when constructing elements from Python.
 
@@ -163,8 +163,6 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
     cdef FiniteFieldElement_pari_ffelt _new(FiniteFieldElement_pari_ffelt self):
         """
         Create an empty element with the same parent as ``self``.
-
-        This is the Cython replacement for __init__.
         """
         cdef FiniteFieldElement_pari_ffelt x
         x = FiniteFieldElement_pari_ffelt.__new__(FiniteFieldElement_pari_ffelt)
@@ -272,7 +270,7 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
                 f = cgetg(n + 2, t_VECSMALL)
                 set_gel(f, 1, gmael(g, 2, 1))
                 for i in xrange(n):
-                    f[i + 2] = long(x[i])
+                    f[i + 2] = x[i]
                 if t == t_FF_F2xq:
                     f = Flx_to_F2x(f)
             else:

@@ -355,8 +355,8 @@ class TracInterface(object):
             sage: from sage.dev.trac_interface import TracInterface
             sage: config = DoctestConfig()
             sage: trac = TracInterface(config['trac'], DoctestUserInterface(config['UI']))
-            sage: trac._anonymous_server_proxy
-            <ServerProxy for trac.sagemath.org/xmlrpc>
+            sage: repr(trac._anonymous_server_proxy)
+            '<ServerProxy for trac.sagemath.org/xmlrpc>'
 
         """
         if self.__anonymous_server_proxy is None:

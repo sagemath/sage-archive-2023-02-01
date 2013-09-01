@@ -142,9 +142,9 @@ def ProjectiveGeometryDesign(n, d, F, algorithm=None):
             gB.append([x-1 for x in b])
         return BlockDesign(v, gB, name="ProjectiveGeometryDesign")
 
-def ProjectivePlaneDesign(n):
+def DesarguesianProjectivePlaneDesign(n):
     r"""
-    Returns a projective plane of order `n`.
+    Returns a (Desarguesian) projective plane of order `n`.
 
     A finite projective plane is a 2-design with `n^2+n+1` lines (or blocks) and
     `n^2+n+1` points. For more information on finite projective planes, see the
@@ -165,23 +165,23 @@ def ProjectivePlaneDesign(n):
 
     EXAMPLES::
 
-        sage: designs.ProjectivePlaneDesign(2)
+        sage: designs.DesarguesianProjectivePlaneDesign(2)
         Incidence structure with 7 points and 7 blocks
 
     Non-existent ones::
 
-        sage: designs.ProjectivePlaneDesign(10)
+        sage: designs.DesarguesianProjectivePlaneDesign(10)
         Traceback (most recent call last):
         ...
         ValueError: No projective plane design of order 10 exists.
-        sage: designs.ProjectivePlaneDesign(14)
+        sage: designs.DesarguesianProjectivePlaneDesign(14)
         Traceback (most recent call last):
         ...
         ValueError: By the Bruck-Ryser-Chowla theorem, no projective plane of order 14 exists.
 
     An unknown one::
 
-        sage: designs.ProjectivePlaneDesign(12)
+        sage: designs.DesarguesianProjectivePlaneDesign(12)
         Traceback (most recent call last):
         ...
         ValueError: If such a projective plane exists, we do not know how to build it.

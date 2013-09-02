@@ -263,6 +263,11 @@ fi
 PKG_NAME=`basename "$PKG_SRC" | sed 's/\.spkg$//'`
 PKG_BASE=`echo "$PKG_NAME" | sed 's/-[0-9].*//'`
 
+# USE_LOCAL_SCRIPTS is a flag that if non-empty will cause
+# this script to try to install the package using local metadata
+# i.e. use upstream tarballs (vs spkgs) and scripts located in build/pkgs/$PKG_BASE
+# the value of this flag is set in the next codeblock
+USE_LOCAL_SCRIPTS=
 
 if [ -f "$PKG_SRC" ]; then
     # PKG_SRC is a file.  If it is given by a relative path, prepend `pwd`

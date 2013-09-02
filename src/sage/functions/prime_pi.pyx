@@ -32,12 +32,10 @@ include 'sage/ext/stdsage.pxi'
 include 'sage/ext/interrupt.pxi'
 include 'sage/libs/pari/decl.pxi' # also declares diffptr (as extern char* [sic!])
 
-from libc.stdint cimport int_fast8_t, uint_fast16_t, \
-                         uint8_t, uint32_t, uint64_t
+from libc.stdint cimport int_fast8_t, uint_fast16_t, uint8_t, uint32_t, uint64_t
 from sage.rings.integer cimport Integer
 from sage.libs.pari.all import pari
 from sage.symbolic.function cimport BuiltinFunction
-from other import floor
 
 cdef extern from "pari/pari.h":
     cdef void NEXT_PRIME_VIADIFF(uint32_t, uint8_t *)
@@ -53,19 +51,20 @@ cdef extern from "pari/pari.h":
 
 cdef uint64_t arg_to_uint64(x, str s1, str s2) except -1:
     if not isinstance(x, Integer):
+        from other import floor
         x = Integer(floor(x))
     if mpz_sgn((<Integer>x).value) <= 0:
         return 0ull
     if mpz_sizeinbase((<Integer>x).value, 2) > 63:
-        raise NotImplementedError("computation of " + s1 + " for x >= " + \
-            "2^63 is not implemented")
+        raise NotImplementedError("computation of " + s1 + " for x >= "
+                + "2^63 is not implemented")
     if mpz_sizeinbase((<Integer>x).value, 2) > 43:
         import warnings
-        warnings.warn("computation of %s for large x can take minutes, "%s1 \
-            + "hours, or days depending on the size of %s"%s2)
+        warnings.warn("computation of %s for large x can take minutes, "%s1
+                + "hours, or days depending on the size of %s"%s2)
         if mpz_sizeinbase((<Integer>x).value, 2) > 50:
-            warnings.warn("computation of %s for x >= 2^50 has not "%s1 \
-                + "been as thoroughly tested as for smaller values")
+            warnings.warn("computation of %s for x >= 2^50 has not "%s1
+                    + "been as thoroughly tested as for smaller values")
     cdef uint64_t ret = mpz_get_ui((<Integer>x).value) & 0xfffffffful
     ret += (<uint64_t>mpz_get_ui((<Integer>(x>>32)).value)) << 32ull
     return ret
@@ -144,10 +143,8 @@ cdef class PrimePi(BuiltinFunction):
 
         - \R. Andrew Ohana (2011)
         """
-        super(PrimePi, self).__init__('prime_pi', latex_name=r"\pi", \
-                conversions=dict( \
-                mathematica='PrimePi', \
-                pari='primepi'))
+        super(PrimePi, self).__init__('prime_pi', latex_name=r"\pi",
+                conversions={'mathematica':'PrimePi', 'pari':'primepi'})
 
     cdef uint32_t *__primes, __numPrimes, __maxSieve, __primeBound
     cdef int_fast8_t *__tabS
@@ -172,16 +169,16 @@ cdef class PrimePi(BuiltinFunction):
                 i += 1u
             k += 1u
         while i <= 0xffffu:
-                self.__smallPi[i] = k
-                i += 1u
+            self.__smallPi[i] = k
+            i += 1u
 
         self.__tabS = <int_fast8_t *>sage_malloc(2310*sizeof(int_fast8_t))
         for i in range(2310u):
-            self.__tabS[i] = (i+1u)/2u - (i+3u)/6u - (i+5u)/10u + (i+15u)/30u \
-                - (i+7u)/14u + (i+21u)/42u + (i+35u)/70u - (i+105u)/210u \
-                - (i+11u)/22u + (i+33u)/66u + (i+55u)/110u + (i+77u)/154u \
-                - (i+165u)/330u - (i+231u)/462u - (i+385u)/770u \
-                + (i+1155u)/2310u - ((i/77u)<<4u)
+            self.__tabS[i] = ((i+1u)/2u - (i+3u)/6u - (i+5u)/10u + (i+15u)/30u
+                    - (i+7u)/14u + (i+21u)/42u + (i+35u)/70u - (i+105u)/210u
+                    - (i+11u)/22u + (i+33u)/66u + (i+55u)/110u + (i+77u)/154u
+                    - (i+165u)/330u - (i+231u)/462u - (i+385u)/770u
+                    + (i+1155u)/2310u - ((i/77u)<<4u))
 
 
     def __call__(self, *args, coerce=True, hold=False):
@@ -202,7 +199,7 @@ cdef class PrimePi(BuiltinFunction):
             TypeError: Symbolic function prime_pi takes 1 or 2 arguments (3 given)
         """
         if len(args) > 2:
-            raise TypeError("Symbolic function %s takes 1 or 2"%self._name \
+            raise TypeError("Symbolic function %s takes 1 or 2"%self._name
                     + " arguments (%s given)"%len(args))
         else:
             self.__primeBound = 0u if len(args) < 2 else args[1]
@@ -273,7 +270,7 @@ cdef class PrimePi(BuiltinFunction):
         """
         if x <= 0xffffull: return self.__smallPi[x]
         if b*b < x:
-            b = floor(Integer(x).sqrt())
+            b = Integer(x).sqrtrem()[0]
         elif b > x:
             b = x
         self._init_primes(b)
@@ -330,8 +327,8 @@ cdef class PrimePi(BuiltinFunction):
         self.__pariPrimePtr = <uint8_t *>diffptr
         newNumPrimes = self._pi(b, 0ull)
         if self.__numPrimes:
-            prime = <uint32_t *>sage_realloc(self.__primes, newNumPrimes \
-                * sizeof(uint32_t))
+            prime = <uint32_t *>sage_realloc(self.__primes,
+                    newNumPrimes * sizeof(uint32_t))
         else:
             prime = <uint32_t *>sage_malloc(newNumPrimes*sizeof(uint32_t))
         if not sig_on_no_except():
@@ -339,8 +336,8 @@ cdef class PrimePi(BuiltinFunction):
             self._clean_cache()
             cython_check_exception()
         if prime == NULL:
-            raise RuntimeError("not enough memory, maybe try with a smaller " \
-                + "prime_bound?")
+            raise RuntimeError("not enough memory, maybe try with a smaller "
+                    + "prime_bound?")
         self.__primes = prime
         prime += self.__numPrimes
         for i in range(self.__numPrimes, newNumPrimes):
@@ -364,12 +361,12 @@ cdef class PrimePi(BuiltinFunction):
         if i == 2ull: return s
         s -= (x+5ull)/10ull - (x+15ull)/30ull
         if i == 3ull: return s
-        s -= (x+7ull)/14ull - (x+21ull)/42ull - (x+35ull)/70ull + \
-            (x+105ull)/210ull
+        s -= ((x+7ull)/14ull - (x+21ull)/42ull - (x+35ull)/70ull +
+                (x+105ull)/210ull)
         if i == 4ull: return s
-        s -= (x+11ull)/22ull - (x+33ull)/66ull - (x+55ull)/110ull - \
-            (x+77ull)/154ull + (x+165ull)/330ull + (x+231ull)/462ull + \
-            (x+385ull)/770ull - (x+1155ull)/2310ull
+        s -= ((x+11ull)/22ull - (x+33ull)/66ull - (x+55ull)/110ull -
+                (x+77ull)/154ull + (x+165ull)/330ull + (x+231ull)/462ull +
+                (x+385ull)/770ull - (x+1155ull)/2310ull)
         if i == 5ull: return s
         cdef uint64_t y=x/13ull, j=5ull
         cdef uint32_t *prime=self.__primes+5

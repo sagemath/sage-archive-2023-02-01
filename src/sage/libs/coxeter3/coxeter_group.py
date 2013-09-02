@@ -65,7 +65,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
             [[], [1], [2], [1, 2], [2, 1], [1, 2, 1]]
         """
         for x in self._coxgroup:
-            yield CoxeterGroup.Element(x, self)
+            yield CoxeterGroup.Element(self, x)
 
     def cartan_type(self):
         """
@@ -394,7 +394,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
     class Element(ElementWrapper):
         wrapped_class = CoxGroupElement
 
-        def __init__(self, x, parent):
+        def __init__(self, parent, x):
             """
             TESTS::
 
@@ -404,7 +404,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
             """
             if not isinstance(x, CoxGroupElement):
                 x = CoxGroupElement(parent._coxgroup, x).reduced()
-            ElementWrapper.__init__(self, x, parent)
+            ElementWrapper.__init__(self, parent, x)
 
         def _repr_(self):
             """

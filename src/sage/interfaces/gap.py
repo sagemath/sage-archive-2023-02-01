@@ -1145,15 +1145,6 @@ class Gap(Gap_generic):
             True
             sage: g.quit()
         """
-        # Make sure GAP_DIR exists
-        try:
-            os.makedirs(GAP_DIR)
-            msg = "It is OK to delete all these cache files.  They will be recreated as needed.\n"
-            open(os.path.join(GAP_DIR, 'README.txt'), 'w').write(msg)
-        except OSError:
-            if not os.path.isdir(GAP_DIR):
-                raise
-
         if self.__use_workspace_cache:
             try:
                 # Check to see if we need to auto-regenerate the gap
@@ -1166,7 +1157,7 @@ class Gap(Gap_generic):
                 # current time.  This ensures the workspace doesn't
                 # get deleted too soon by gap_reset_workspace().
                 os.utime(WORKSPACE, None)
-            except OSError, IOError:
+            except OSError:
                 gap_reset_workspace(verbose=False)
 
         global first_try
@@ -1453,6 +1444,21 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
 
     TESTS:
 
+    Check that ``gap_reset_workspace`` still works when ``GAP_DIR``
+    doesn't exist, see :trac:`14171`::
+
+        sage: ORIGINAL_GAP_DIR = sage.interfaces.gap.GAP_DIR
+        sage: ORIGINAL_WORKSPACE = sage.interfaces.gap.WORKSPACE
+        sage: sage.interfaces.gap.GAP_DIR = os.path.join(tmp_dir(), "test_gap_dir")
+        sage: sage.interfaces.gap.WORKSPACE = os.path.join(sage.interfaces.gap.GAP_DIR, "test_workspace")
+        sage: os.path.isfile(sage.interfaces.gap.WORKSPACE)  # long time
+        False
+        sage: gap_reset_workspace()                          # long time
+        sage: os.path.isfile(sage.interfaces.gap.WORKSPACE)  # long time
+        True
+        sage: sage.interfaces.gap.GAP_DIR = ORIGINAL_GAP_DIR
+        sage: sage.interfaces.gap.WORKSPACE = ORIGINAL_WORKSPACE
+
     Check that the race condition from :trac:`14242` has been fixed.
     We temporarily need to change the worksheet filename. ::
 
@@ -1463,13 +1469,22 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
         sage: gap = Gap()  # long time (reset GAP session)
         sage: P = [Process(target=gap, args=("14242",)) for i in range(4)]
         sage: for p in P:  # long time, indirect doctest
-        ...       p.start()
-        ...       time.sleep(0.2)
+        ....:     p.start()
+        ....:     time.sleep(0.2)
         sage: for p in P:  # long time
-        ...       p.join()
+        ....:     p.join()
         sage: os.unlink(sage.interfaces.gap.WORKSPACE)  # long time
         sage: sage.interfaces.gap.WORKSPACE = ORIGINAL_WORKSPACE
     """
+    # Make sure GAP_DIR exists
+    try:
+        os.makedirs(GAP_DIR)
+        msg = "It is OK to delete all these cache files.  They will be recreated as needed.\n"
+        open(os.path.join(GAP_DIR, 'README.txt'), 'w').write(msg)
+    except OSError:
+        if not os.path.isdir(GAP_DIR):
+            raise
+
     # Delete all gap workspaces that haven't been used in the last
     # week, to avoid needless cruft.  I had an install on sage.math
     # with 90 of these, since I run a lot of different versions of

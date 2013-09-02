@@ -6,6 +6,7 @@ through the ``designs`` objects. In order to create the Witt design on 24 points
 it is sufficient to type::
 
     sage: designs.WittDesign(24) # optional - gap_packages
+    Incidence structure with 24 points and 759 blocks
 
 Or a Steiner Triple System on 19 points::
 

@@ -213,7 +213,9 @@ Behind the scenes what happens is the following::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 ###########################################################################
+
 import os, re
+import base64
 
 implicit_mul_level = False
 numeric_literal_prefix = '_sage_const_'
@@ -833,7 +835,8 @@ def preparse_calculus(code):
         vars = ','.join(stripped_vars)
 
         new_code.append(code[last_end:m.start()])
-        new_code.append(';%s__tmp__=var("%s"); %s = symbolic_expression(%s).function(%s)' % (ident, vars, func, expr, vars))
+        new_code.append(';%s__tmp__=var("%s"); %s = symbolic_expression(%s).function(%s)' %
+                        (ident, vars, func, expr, vars))
         last_end = m.end()
 
     if last_end == 0:
@@ -967,6 +970,8 @@ def preparse_generators(code):
         gens = [v.strip() for v in gens.split(',')]
         constructor = constructor.rstrip()
         if constructor[-1] == ')':
+            if '(' not in constructor:
+                raise SyntaxError("Mismatched ')'")
             opening = constructor.rindex('(')
             # Only use comma if there are already arguments to the constructor
             comma = ', ' if constructor[opening+1:-1].strip() != '' else ''
@@ -974,6 +979,8 @@ def preparse_generators(code):
             constructor = constructor[:-1] + comma + "names=%s)" % names
         elif constructor[-1] == ']':
             # Could be nested.
+            if '[' not in constructor:
+                raise SyntaxError("Mismatched ']'")
             opening = constructor.rindex('[')
             closing = constructor.index(']', opening)
             if constructor[opening+1:closing].strip() == '':
@@ -983,7 +990,8 @@ def preparse_generators(code):
             pass
         gens_tuple = "(%s,)" % ', '.join(gens)
         new_code.append(code[last_end:m.start()])
-        new_code.append(";%s%s%s = %s; %s = %s._first_ngens(%s)" % (ident, obj, other_objs, constructor, gens_tuple, obj, len(gens)))
+        new_code.append(";%s%s%s = %s; %s = %s._first_ngens(%s)" %
+                        (ident, obj, other_objs, constructor, gens_tuple, obj, len(gens)))
         last_end = m.end()
 
     if last_end == 0:
@@ -1137,24 +1145,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
 ## Apply the preparser to an entire file
 ######################################################
 
-#TODO: This global variable attached should be associtated with an
-#IPython InteractiveShell as opposed to a global variable in this
-#module.
-attached = {}
-
-load_debug_mode = False
-attach_debug_mode = True
-
-def load_attached():
-    contents = ""
-    for F, tm in attached.iteritems():
-        new_tm = os.path.getmtime(F)
-        if os.path.exists(F) and new_tm > tm:
-            contents += load_wrap(F, attach=True)
-    return contents
-
-
-def preparse_file(contents, globals=None, numeric_literals=True, run_attached=True):
+def preparse_file(contents, globals=None, numeric_literals=True):
     """
     Preparses input, attending to numeric literals and load/attach
     file directives.
@@ -1187,20 +1178,11 @@ def preparse_file(contents, globals=None, numeric_literals=True, run_attached=Tr
         _sage_const_100 = Integer(100)
         type(100 ), type(_sage_const_100 )
     """
-    if globals is None: globals = {}
-
     if not isinstance(contents, basestring):
-        raise TypeError, "contents must be a string"
+        raise TypeError("contents must be a string")
 
-    assert isinstance(contents, basestring)
-
-    # Reload attached files that have changed
-    if run_attached:
-        for F, tm in attached.iteritems():
-            new_tm = os.path.getmtime(F)
-            if os.path.exists(F) and new_tm > tm:
-                contents = ' "%s"\n'%F + contents
-
+    if globals is None:
+        globals = {}
 
     # We keep track of which files have been loaded so far
     # in order to avoid a recursive load that would result
@@ -1444,54 +1426,6 @@ def is_loadable_filename(filename):
         return True
     return False
 
-
-def reset_load_attach_path():
-    """
-    Resets the current search path for :func:`load` and
-    :meth:`~sage.misc.session.attach`.
-
-    The default path is '.' plus any paths specified in the environment
-    variable `SAGE_LOAD_ATTACH_PATH`.
-
-    EXAMPLES::
-
-        sage: load_attach_path()
-        ['.']
-        sage: t_dir = tmp_dir()
-        sage: load_attach_path(t_dir)
-        sage: t_dir in load_attach_path()
-        True
-        sage: reset_load_attach_path(); load_attach_path()
-        ['.']
-
-    At startup, Sage adds colon-separated paths in the environment
-    variable ``SAGE_LOAD_ATTACH_PATH``::
-
-        sage: reset_load_attach_path(); load_attach_path()
-        ['.']
-        sage: os.environ['SAGE_LOAD_ATTACH_PATH'] = '/veni/vidi:vici:'
-        sage: reload(sage.misc.preparser)    # Simulate startup
-        <module 'sage.misc.preparser' from '...'>
-        sage: load_attach_path()
-        ['.', '/veni/vidi', 'vici']
-        sage: del os.environ['SAGE_LOAD_ATTACH_PATH']
-        sage: reload(sage.misc.preparser)    # Simulate startup
-        <module 'sage.misc.preparser' from '...'>
-        sage: reset_load_attach_path(); load_attach_path()
-        ['.']
-    """
-    global _load_attach_path
-    _load_attach_path = ['.']
-    if 'SAGE_LOAD_ATTACH_PATH' in os.environ:
-        epaths = os.environ['SAGE_LOAD_ATTACH_PATH'].split(':')
-        _load_attach_path.extend(epaths)
-        while '' in _load_attach_path:
-            _load_attach_path.remove('')
-
-# Set up the initial search path for loading and attaching files.  A
-# user can modify the path with the function load_attach_path.
-reset_load_attach_path()
-
 def load_cython(name):
     import cython
     cur = os.path.abspath(os.curdir)
@@ -1613,35 +1547,29 @@ def handle_encoding_declaration(contents, out):
     out.write("# -*- coding: utf-8 -*-\n")
     return contents
 
-def preparse_file_named_to_stream(name, out, run_attached=True):
+def preparse_file_named_to_stream(name, out):
     r"""
     Preparse file named \code{name} (presumably a .sage file), outputting to
     stream \code{out}.
     """
     name = os.path.abspath(name)
-    dir, _ = os.path.split(name)
-    cur = os.path.abspath(os.curdir)
-    os.chdir(dir)
     contents = open(name).read()
     contents = handle_encoding_declaration(contents, out)
-    parsed = preparse_file(contents, run_attached=run_attached)
-    os.chdir(cur)
-    out.write("# -*- encoding: utf-8 -*-\n")
+    parsed = preparse_file(contents)
     out.write('#'*70+'\n')
     out.write('# This file was *autogenerated* from the file %s.\n' % name)
     out.write('#'*70+'\n')
     out.write(parsed)
 
-def preparse_file_named(name, run_attached=True):
+def preparse_file_named(name):
     r"""
     Preparse file named \code{name} (presumably a .sage file), outputting to a
     temporary file.  Returns name of temporary file.
     """
-    import sage.misc.misc
-    name = os.path.abspath(name)
-    tmpfilename = os.path.abspath(sage.misc.misc.tmp_filename(name) + ".py")
-    out = open(tmpfilename,'w')
-    preparse_file_named_to_stream(name, out, run_attached=run_attached)
+    from sage.misc.misc import tmp_filename
+    tmpfilename = tmp_filename(os.path.basename(name)) + '.py'
+    out = open(tmpfilename, 'w')
+    preparse_file_named_to_stream(name, out)
     out.close()
     return tmpfilename
 
@@ -1733,7 +1661,7 @@ def load(filename, globals, attach=False):
         sage: open(t,'w').write("print 'hello world'")
         sage: sage.misc.preparser.load(t, globals(), attach=True)
         hello world
-        sage: t in sage.misc.preparser.attached
+        sage: t in attached_files()
         True
 
     You can't attach remote URLs (yet)::
@@ -1747,7 +1675,7 @@ def load(filename, globals, attach=False):
     current working directory, i.e., ``'.'``.  But you can modify the
     path with :func:`load_attach_path`::
 
-        sage: sage.misc.reset.reset_attached(); reset_load_attach_path()
+        sage: sage.misc.attached_files.reset(); reset_load_attach_path()
         sage: load_attach_path()
         ['.']
         sage: t_dir = tmp_dir()
@@ -1756,7 +1684,7 @@ def load(filename, globals, attach=False):
         sage: load_attach_path(t_dir)
         sage: attach('test.py')
         111
-        sage: sage.misc.reset.reset_attached(); reset_load_attach_path() # clean up
+        sage: sage.misc.attached_files.reset(); reset_load_attach_path() # clean up
 
     or by setting the environment variable ``SAGE_LOAD_ATTACH_PATH``
     to a colon-separated list before starting Sage::
@@ -1772,6 +1700,12 @@ def load(filename, globals, attach=False):
         sage: sage.misc.preparser.load(t, globals())
         2
     """
+    def exec_file_is(fpath):
+        """ To be run before any exec/execfile call """
+        if attach:
+            from sage.misc.attached_files import add_attached_file
+            add_attached_file(fpath)
+
     try:
         filename = eval(filename, globals)
     except Exception:
@@ -1809,8 +1743,8 @@ def load(filename, globals, attach=False):
         if not os.path.exists(fpath):
             raise IOError('did not find file %r to load or attach' % filename)
     else:
-        global _load_attach_path
-        for path in _load_attach_path:
+        from sage.misc.attached_files import load_attach_path
+        for path in load_attach_path():
             fpath = os.path.join(path, filename)
             fpath = os.path.expanduser(fpath)
             if os.path.exists(fpath):
@@ -1820,19 +1754,25 @@ def load(filename, globals, attach=False):
                 % filename)
 
     if fpath.endswith('.py'):
+        exec_file_is(fpath)
         execfile(fpath, globals)
     elif fpath.endswith('.sage'):
+        from sage.misc.attached_files import load_attach_mode
+        load_debug_mode, attach_debug_mode = load_attach_mode()
         if (attach and attach_debug_mode) or ((not attach) and load_debug_mode):
             # Preparse to a file to enable tracebacks with
             # code snippets. Use preparse_file_named to make
             # the file name appear in the traceback as well.
             # See Trac 11812.
-            execfile(preparse_file_named(fpath, run_attached=False), globals)
+            exec_file_is(fpath)
+            execfile(preparse_file_named(fpath), globals)
         else:
             # Preparse in memory only for speed.
-            exec(preparse_file(open(fpath).read(), run_attached=False) + "\n", globals)
+            exec_file_is(fpath)
+            exec preparse_file(open(fpath).read()) + "\n" in globals
     elif fpath.endswith('.spyx') or fpath.endswith('.pyx'):
-        exec(load_cython(fpath), globals)
+        exec_file_is(fpath)
+        exec load_cython(fpath) in globals
     elif fpath.endswith('.m'):
         # Assume magma for now, though maybe .m is used by maple and
         # mathematica too, and we should really analyze the file
@@ -1841,140 +1781,7 @@ def load(filename, globals, attach=False):
         i = s.find('\n'); s = s[i+1:]
         print s
 
-    if attach:
-        # TODO: Use the MD5 hash of the file, instead.
-        fpath = os.path.abspath(fpath)
-        attached[fpath] = os.path.getmtime(fpath)
 
-
-def load_attach_mode(load_debug=None, attach_debug=None):
-    """
-    Get or modify the current debug mode for the behavior of
-    :func:`load` and :meth:`~sage.misc.session.attach` on ``.sage``
-    files.
-
-    In debug mode, loaded or attached ``.sage`` files are preparsed
-    through a file to make their tracebacks more informative. If not in
-    debug mode, then ``.sage`` files are preparsed in memory only for
-    performance.
-
-    At startup, debug mode is ``True`` for attaching and ``False``
-    for loading.
-
-    INPUT:
-
-    - ``load_debug`` - boolean or (the default) ``None``;
-      if not ``None``, then set a new value for the debug mode
-      for loading files.
-
-    - ``attach_debug`` - boolean or (the default) ``None``;
-      same as ``load_debug``, but for attaching files.
-
-    OUTPUT:
-
-    - if all input values are ``None``, returns a tuple
-      giving the current modes for loading and attaching.
-
-    EXAMPLES::
-
-        sage: load_attach_mode()
-        (False, True)
-        sage: load_attach_mode(attach_debug=False)
-        sage: load_attach_mode()
-        (False, False)
-        sage: load_attach_mode(load_debug=True)
-        sage: load_attach_mode()
-        (True, False)
-        sage: load_attach_mode(load_debug=False, attach_debug=True)
-    """
-    global load_debug_mode
-    global attach_debug_mode
-    if load_debug is None and attach_debug is None:
-        return (load_debug_mode, attach_debug_mode)
-    if not load_debug is None:
-        load_debug_mode = load_debug
-    if not attach_debug is None:
-        attach_debug_mode = attach_debug
-
-
-def load_attach_path(path=None, replace=False):
-    """
-    Get or modify the current search path for :func:`load` and
-    :meth:`~sage.misc.session.attach`.
-
-    INPUT:
-
-    - ``path`` - string or list of strings (default: None); path(s) to
-      append to or replace the current path
-
-    - ``replace`` - boolean (default: False); if ``path`` is not None,
-      whether to *replace* the search path instead of *appending* to
-      it
-
-    OUTPUT:
-
-    - None or a *reference* to the current list of search paths
-
-    EXAMPLES:
-
-    First, we extend the example given in :func:`load`'s docstring::
-
-        sage: sage.misc.reset.reset_attached(); reset_load_attach_path()
-        sage: load_attach_path()
-        ['.']
-        sage: t_dir = tmp_dir()
-        sage: fullpath = os.path.join(t_dir, 'test.py')
-        sage: open(fullpath, 'w').write("print 37 * 3")
-        sage: attach('test.py')
-        Traceback (most recent call last):
-        ...
-        IOError: did not find file 'test.py' in load / attach search path
-        sage: load_attach_path(t_dir)
-        sage: attach('test.py')
-        111
-        sage: attached_files() == [fullpath]
-        True
-        sage: sage.misc.reset.reset_attached(); reset_load_attach_path()
-        sage: load_attach_path() == ['.']
-        True
-        sage: load('test.py')
-        Traceback (most recent call last):
-        ...
-        IOError: did not find file 'test.py' in load / attach search path
-
-    The function returns a reference to the path list::
-
-        sage: reset_load_attach_path(); load_attach_path()
-        ['.']
-        sage: load_attach_path('/path/to/my/sage/scripts'); load_attach_path()
-        ['.', '/path/to/my/sage/scripts']
-        sage: load_attach_path(['good', 'bad', 'ugly'], replace=True)
-        sage: load_attach_path()
-        ['good', 'bad', 'ugly']
-        sage: p = load_attach_path(); p.pop()
-        'ugly'
-        sage: p[0] = 'weird'; load_attach_path()
-        ['weird', 'bad']
-        sage: reset_load_attach_path(); load_attach_path()
-        ['.']
-    """
-    global _load_attach_path
-
-    if path is None:
-        return _load_attach_path
-    else:
-        if isinstance(path, basestring):
-            path = [path]
-
-        if replace:
-            _load_attach_path = path
-        else:
-            for p in path:
-                if p not in _load_attach_path:
-                    _load_attach_path.append(p)
-
-
-import base64
 def load_wrap(filename, attach=False):
     """
     Encodes a load or attach command as valid Python code.
@@ -2000,143 +1807,6 @@ def load_wrap(filename, attach=False):
         sage: sage.misc.preparser.base64.b64decode("Zm9vLnNhZ2U=")
         'foo.sage'
     """
-    return 'sage.misc.preparser.load(sage.misc.preparser.base64.b64decode("%s"),globals(),%s)'%(
+    return 'sage.misc.preparser.load(sage.misc.preparser.base64.b64decode("{0}"),globals(),{1})'.format(
         base64.b64encode(filename), attach)
 
-
-def modified_attached_files():
-    """
-    Returns an iterator over the names of the attached files that have
-    changed since last time this function was called.
-
-    OUTPUT:
-
-    - an iterator over strings
-
-    EXAMPLES::
-
-        sage: sage.misc.reset.reset_attached()
-        sage: t=tmp_filename(ext='.py');
-        sage: a = 0
-        sage: f = open(t,'w'); f.write("a = 5"); f.close()
-        sage: attach(t)
-        sage: a
-        5
-        sage: len(list(sage.misc.preparser.modified_attached_files()))
-        0
-        sage: import time; time.sleep(2)
-        sage: f = open(t,'w'); f.write("a = 10"); f.close()
-        sage: len(list(sage.misc.preparser.modified_attached_files()))
-        1
-        sage: len(list(sage.misc.preparser.modified_attached_files()))
-        0
-    """
-    # A generator is the perfect data structure here, since something
-    # could go wrong loading one file, and we end up only marking the
-    # ones that we returned as loaded.
-    for F in attached.keys():
-        tm = attached[F]
-        new_tm = os.path.getmtime(F)
-        if os.path.exists(F) and new_tm > tm:
-            # F is newer than last time we loaded it.
-            attached[F] = os.path.getmtime(F)
-            yield F
-
-def attached_files():
-    """
-    Returns a list of all files attached to the current session with
-    :meth:`~sage.misc.session.attach`.
-
-    OUTPUT:
-
-    - a sorted list of strings; the filenames
-
-    EXAMPLES::
-
-        sage: sage.misc.reset.reset_attached()
-        sage: t = tmp_filename(ext='.py')
-        sage: open(t,'w').write("print 'hello world'")
-        sage: attach(t)
-        hello world
-        sage: attached_files() == [t]
-        True
-    """
-    return list(sorted(attached.keys()))
-
-def detach(filename):
-    """
-    Detaches a file, if it was attached with
-    :meth:`~sage.misc.session.attach`.
-
-    INPUT:
-
-    - ``filename`` - a string, or a list of strings, or a tuple of strings
-
-    EXAMPLES::
-
-        sage: sage.misc.reset.reset_attached()
-        sage: t = tmp_filename(ext='.py')
-        sage: open(t,'w').write("print 'hello world'")
-        sage: attach(t)
-        hello world
-        sage: attached_files() == [t]
-        True
-        sage: detach(t)
-        sage: attached_files()
-        []
-
-    ::
-
-        sage: sage.misc.reset.reset_attached(); reset_load_attach_path()
-        sage: load_attach_path()
-        ['.']
-        sage: t_dir = tmp_dir()
-        sage: fullpath = os.path.join(t_dir, 'test.py')
-        sage: open(fullpath, 'w').write("print 37 * 3")
-        sage: load_attach_path(t_dir)
-        sage: attach('test.py')
-        111
-        sage: attached_files() == [os.path.normpath(fullpath)]
-        True
-        sage: detach('test.py')
-        sage: attached_files()
-        []
-        sage: attach('test.py')
-        111
-        sage: fullpath = os.path.join(t_dir, 'test2.py')
-        sage: open(fullpath, 'w').write("print 3")
-        sage: attach('test2.py')
-        3
-        sage: detach(attached_files())
-        sage: attached_files()
-        []
-        sage: sage.misc.reset.reset_attached(); reset_load_attach_path() # clean up
-
-    TESTS::
-
-        sage: detach('/tmp/a b/a.sage')
-        Traceback (most recent call last):
-        ...
-        ValueError: File '/tmp/a b/a.sage' seems not to be attached. To see a list of attached files, call the function attached_files
-    """
-    if isinstance(filename, basestring):
-        filelist = [filename]
-    else:
-        filelist = [str(x) for x in filename]
-
-    for filename in filelist:
-        fpath = os.path.expanduser(filename)
-        if not os.path.isabs(fpath):
-            for path in load_attach_path():
-                epath = os.path.expanduser(path)
-                fpath = os.path.join(epath, filename)
-                fpath = os.path.abspath(fpath)
-                if fpath in attached:
-                    break
-
-        if fpath in attached:
-            attached.pop(fpath)
-        else:
-            raise ValueError("File '{0}' seems not to be attached. To see a "
-                             "list of attached files, call the function "
-                             "attached_files".format(filename))

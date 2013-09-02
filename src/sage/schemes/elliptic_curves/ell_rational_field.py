@@ -1128,24 +1128,15 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         INPUT:
 
-        -  ``sign`` - -1, or 1
-
-        -  ``base_ring`` - a ring
-
-        -  ``normalize`` - (default: True); if True, the
-           modular symbol is correctly normalized (up to possibly a factor of
-           -1 or 2). If False, the modular symbol is almost certainly not
-           correctly normalized, i.e., all values will be a fixed scalar
-           multiple of what they should be. But the initial computation of the
-           modular symbol is much faster, though evaluation of it after
-           computing it won't be any faster.
+        -  ``sign`` - 1 (default) or -1
 
         -  ``use_eclib`` - (default: False); if True the computation is
            done with John Cremona's implementation of modular
            symbols in ``eclib``
 
-        -  ``normalize`` - (default: 'L_ratio'); either 'L_ratio', 'period', or 'none';
-           For 'L_ratio', the modular symbol is correctly normalized
+        -  ``normalize`` - (default: 'L_ratio'); either 'L_ratio',
+           'period', or 'none';
+           For 'L_ratio', the modular symbol tries to normalized correctly
            as explained above by comparing it to ``L_ratio`` for the
            curve and some small twists.
            The normalization 'period' is only available if
@@ -1158,7 +1149,6 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
            the initial computation of the modular symbol is
            much faster if ``use_eclib=False``, though evaluation of
            it after computing it won't be any faster.
-
 
         EXAMPLES::
 
@@ -1176,7 +1166,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: M=E.modular_symbol()
             Warning : Could not normalize the modular symbols, maybe all further results will be multiplied by -1, 2 or -2.
             sage: M(1/7)
-            -1
+            -1/2
 
         ::
 

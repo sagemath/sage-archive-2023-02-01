@@ -714,7 +714,7 @@ class MaximaLib(MaximaAbstract):
 
         ::
 
-            sage: integrate(sqrt(x + sqrt(x)), x).simplify_full()
+            sage: integrate(sqrt(x + sqrt(x)), x).simplify_radical()
             1/12*((8*x - 3)*x^(1/4) + 2*x^(3/4))*sqrt(sqrt(x) + 1) + 1/8*log(sqrt(sqrt(x) + 1) + x^(1/4)) - 1/8*log(sqrt(sqrt(x) + 1) - x^(1/4))
 
         And :trac:`11594`::

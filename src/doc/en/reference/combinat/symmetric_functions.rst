@@ -23,3 +23,4 @@ Symmetric Functions
    ../sage/combinat/sf/llt
    ../sage/combinat/sf/macdonald
    ../sage/combinat/sf/ns_macdonald
+   ../sage/combinat/sf/witt

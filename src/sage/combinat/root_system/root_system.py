@@ -423,12 +423,13 @@ class RootSystem(UniqueRepresentation, SageObject):
         """
         return self.cartan_type().cartan_matrix()
 
+    @cached_method
     def index_set(self):
         """
         EXAMPLES::
 
             sage: RootSystem(['A',3]).index_set()
-            [1, 2, 3]
+            (1, 2, 3)
         """
         return self.cartan_type().index_set()
 

@@ -99,9 +99,8 @@ import inspect
 from sage.misc.abstract_method import abstract_method, abstract_methods_of_class
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method, cached_function
-from sage.misc.c3 import C3_algorithm
+from sage.misc.c3_controlled import C3_sorted_merge, category_sort_key, _cmp_key, _cmp_key_named
 from sage.misc.unknown import Unknown
-#from sage.misc.misc import attrcall
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
@@ -124,7 +123,7 @@ def _join(categories, as_list):
         sage: Category.join((Groups(), CommutativeAdditiveMonoids()))  # indirect doctest
         Join of Category of groups and Category of commutative additive monoids
         sage: Category.join((Modules(ZZ), FiniteFields()), as_list=True)
-        [Category of modules over Integer Ring, Category of finite fields]
+        [Category of finite fields, Category of modules over Integer Ring]
 
     """
     # Since Objects() is the top category, it is the neutral element of join
@@ -143,12 +142,14 @@ def _join(categories, as_list):
     categories = sum( (tuple(category._super_categories) if isinstance(category, JoinCategory) else (category,)
                        for category in categories), ())
 
-    # remove redundant categories which are super categories of others
+    # canonicalize, by removing redundant categories which are super
+    # categories of others, and by sorting
     result = ()
     for category in categories:
         if any(cat.is_subcategory(category) for cat in result):
             continue
         result = tuple( cat for cat in result if not category.is_subcategory(cat) ) + (category,)
+    result = tuple(sorted(result, key = category_sort_key, reverse=True))
     if as_list:
         return list(result)
     if len(result) == 1:
@@ -338,9 +339,9 @@ class Category(UniqueRepresentation, SageObject):
         sage: Ds().parent_class
         <class '__main__.Ds.parent_class'>
         sage: Ds().parent_class.__bases__
-        (<class '__main__.Bs.parent_class'>, <class '__main__.Cs.parent_class'>)
+        (<class '__main__.Cs.parent_class'>, <class '__main__.Bs.parent_class'>)
         sage: Ds().parent_class.mro()
-        [<class '__main__.Ds.parent_class'>, <class '__main__.Bs.parent_class'>, <class '__main__.Cs.parent_class'>, <class '__main__.As.parent_class'>, <type 'object'>]
+        [<class '__main__.Ds.parent_class'>, <class '__main__.Cs.parent_class'>, <class '__main__.Bs.parent_class'>, <class '__main__.As.parent_class'>, <type 'object'>]
 
     Note that that two categories in the same class need not have the
     same super_categories. For example, Algebras(QQ) has
@@ -383,8 +384,8 @@ class Category(UniqueRepresentation, SageObject):
         <type 'sage.structure.category_object.CategoryObject'>,
         <type 'sage.structure.sage_object.SageObject'>,
         <class '__main__.Ds.parent_class'>,
-        <class '__main__.Bs.parent_class'>,
         <class '__main__.Cs.parent_class'>,
+        <class '__main__.Bs.parent_class'>,
         <class '__main__.As.parent_class'>,
         <type 'object'>]
         sage: D.fA()
@@ -408,8 +409,8 @@ class Category(UniqueRepresentation, SageObject):
         [<class '__main__.myparent_with_category.element_class'>,
         <class __main__.Element at ...>,
         <class 'sage.categories.category.Ds.element_class'>,
-        <class 'sage.categories.category.Bs.element_class'>,
         <class 'sage.categories.category.Cs.element_class'>,
+        <class 'sage.categories.category.Bs.element_class'>,
         <class 'sage.categories.category.As.element_class'>,
         <type 'object'>]
 
@@ -858,6 +859,8 @@ class Category(UniqueRepresentation, SageObject):
 
         .. note:: this attribute is likely to eventually become a tuple.
 
+        .. note:: this sets :meth:`_super_categories_for_classes` as a side effect
+
         EXAMPLES::
 
             sage: C = Rings(); C
@@ -865,19 +868,24 @@ class Category(UniqueRepresentation, SageObject):
             sage: C._all_super_categories
             [Category of rings,
              Category of rngs,
-             Category of commutative additive groups,
              Category of semirings,
-             Category of commutative additive monoids,
-             Category of commutative additive semigroups,
-             Category of additive magmas,
              Category of monoids,
              Category of semigroups,
              Category of magmas,
+             Category of commutative additive groups,
+             Category of commutative additive monoids,
+             Category of commutative additive semigroups,
+             Category of additive magmas,
              Category of sets,
              Category of sets with partial maps,
              Category of objects]
         """
-        return C3_algorithm(self,'_super_categories','_all_super_categories',False)
+        (result, bases) = C3_sorted_merge([cat._all_super_categories
+                                           for cat in self._super_categories] +
+                                          [self._super_categories],
+                                          category_sort_key)
+        self._super_categories_for_classes = bases
+        return [self] + result
 
     @lazy_attribute
     def _all_super_categories_proper(self):
@@ -897,14 +905,14 @@ class Category(UniqueRepresentation, SageObject):
             Category of rings
             sage: C._all_super_categories_proper
             [Category of rngs,
-             Category of commutative additive groups,
              Category of semirings,
-             Category of commutative additive monoids,
-             Category of commutative additive semigroups,
-             Category of additive magmas,
              Category of monoids,
              Category of semigroups,
              Category of magmas,
+             Category of commutative additive groups,
+             Category of commutative additive monoids,
+             Category of commutative additive semigroups,
+             Category of additive magmas,
              Category of sets,
              Category of sets with partial maps,
              Category of objects]
@@ -963,28 +971,28 @@ class Category(UniqueRepresentation, SageObject):
             sage: C.all_super_categories()
             [Category of rings,
              Category of rngs,
-             Category of commutative additive groups,
              Category of semirings,
-             Category of commutative additive monoids,
-             Category of commutative additive semigroups,
-             Category of additive magmas,
              Category of monoids,
              Category of semigroups,
              Category of magmas,
+             Category of commutative additive groups,
+             Category of commutative additive monoids,
+             Category of commutative additive semigroups,
+             Category of additive magmas,
              Category of sets,
              Category of sets with partial maps,
              Category of objects]
 
             sage: C.all_super_categories(proper = True)
             [Category of rngs,
-             Category of commutative additive groups,
              Category of semirings,
-             Category of commutative additive monoids,
-             Category of commutative additive semigroups,
-             Category of additive magmas,
              Category of monoids,
              Category of semigroups,
              Category of magmas,
+             Category of commutative additive groups,
+             Category of commutative additive monoids,
+             Category of commutative additive semigroups,
+             Category of additive magmas,
              Category of sets,
              Category of sets with partial maps,
              Category of objects]
@@ -1009,19 +1017,46 @@ class Category(UniqueRepresentation, SageObject):
         The immediate super categories of this category.
 
         This lazy attributes caches the result of the mandatory method
-        :meth:`super_categories` for speed.
+        :meth:`super_categories` for speed. It also does some mangling
+        (flattening join categories, sorting, ...).
 
         Whenever speed matters, developers are advised to use this
         lazy attribute rather than calling :meth:`super_categories`.
 
-        .. note:: this attribute is likely to eventually become a tuple.
+        .. NOTE:: this attribute is likely to eventually become a tuple.
 
         EXAMPLES::
 
             sage: Rings()._super_categories
             [Category of rngs, Category of semirings]
         """
-        return self.super_categories()
+        return sorted(Category._flatten_categories(self.super_categories()), key = category_sort_key, reverse=True)
+
+    @lazy_attribute
+    def _super_categories_for_classes(self):
+        """
+        The super categories of this category used for building classes.
+
+        This is a close variant of :meth:`_super_categories` used for
+        constructing the list of the bases for :meth:`parent_class`,
+        :meth:`element_class`, and friends. The purpose is ensure that
+        Python will find a proper Method Resolution Order for those
+        classes. For background, see :mod:`sage.misc.c3_controlled`.
+
+        .. SEEALSO:: :meth:`_cmp_key`.
+
+        .. NOTE::
+
+            This attribute is calculated as a by-product of computing
+            :meth:`_all_super_categories`.
+
+        EXAMPLES::
+
+            sage: Rings()._super_categories_for_classes
+            [Category of rngs, Category of semirings]
+        """
+        self._all_super_categories
+        return self._super_categories_for_classes
 
     def _test_category_graph(self, **options):
         """
@@ -1069,6 +1104,8 @@ class Category(UniqueRepresentation, SageObject):
         """
         pass
 
+    _cmp_key = _cmp_key
+
     def _make_named_class(self, name, method_provider, cache=False, picklable=True):
         """
         Construction of the parent/element/... class of ``self``.
@@ -1093,20 +1130,28 @@ class Category(UniqueRepresentation, SageObject):
         OUTPUT:
 
         A dynamic class with bases given by the corresponding named
-        classes of ``self``'s super_categories and methods taken from
+        classes of ``self``'s super_categories, and methods taken from
         the class ``getattr(self,method_provider)``.
 
         .. NOTE::
 
-            In this default implementation, the reduction data of the
-            named class makes it depend on ``self``. Since the result
-            is going to be stored in a lazy attribute of ``self``
-            anyway, we may as well disable the caching in
-            ``dynamic_class`` (hence the default value ``cache=False``).
+            - In this default implementation, the reduction data of
+              the named class makes it depend on ``self``. Since the
+              result is going to be stored in a lazy attribute of
+              ``self`` anyway, we may as well disable the caching in
+              ``dynamic_class`` (hence the default value
+              ``cache=False``).
 
-            :class:`CategoryWithParameters` overrides this method so
-            that the same parent/element/... classes can be shared
-            between closely related categories.
+            - :class:`CategoryWithParameters` overrides this method so
+              that the same parent/element/... classes can be shared
+              between closely related categories.
+
+            - The bases of the named class may also contain the named
+              classes of some indirect super categories, according to
+              :meth:`_super_categories_for_classes`. This is to
+              guarantee that Python will build consistent method
+              resolution orders. For background, see
+              :mod:`sage.misc.c3_controlled`.
 
         .. SEEALSO:: :meth:`CategoryWithParameters._make_named_class`
 
@@ -1117,7 +1162,8 @@ class Category(UniqueRepresentation, SageObject):
             sage: type(PC)
             <class 'sage.structure.dynamic_class.DynamicMetaclass'>
             sage: PC.__bases__
-            (<class 'sage.categories.rngs.Rngs.parent_class'>, <class 'sage.categories.semirings.Semirings.parent_class'>)
+            (<class 'sage.categories.rngs.Rngs.parent_class'>,
+             <class 'sage.categories.semirings.Semirings.parent_class'>)
 
         Note that, by default, the result is not cached::
 
@@ -1183,7 +1229,7 @@ class Category(UniqueRepresentation, SageObject):
         else:
             reduction = None
         return dynamic_class(class_name,
-                             tuple(getattr(cat,name) for cat in self._super_categories),
+                             tuple(getattr(cat,name) for cat in self._super_categories_for_classes),
                              method_provider_cls, prepend_cls_bases = False, doccls = doccls,
                              reduction = reduction, cache = cache)
 
@@ -1379,7 +1425,7 @@ class Category(UniqueRepresentation, SageObject):
         If category is a list/tuple, then a join category is returned::
 
             sage: Monoids().or_subcategory((FiniteEnumeratedSets(), Groups()))
-            Join of Category of finite enumerated sets and Category of groups
+            Join of Category of groups and Category of finite enumerated sets
 
         An error if raised if category is not a subcategory of ``self``.
         ::
@@ -1503,6 +1549,26 @@ class Category(UniqueRepresentation, SageObject):
         for category in categories[1:]:
             result = result._meet_(category)
         return result
+
+    @staticmethod
+    def _flatten_categories(categories):
+        """
+        INPUT:
+
+        - ``categories`` -- a list (or iterable) of categories
+
+        Returns the tuple of categories in ``categories``, while
+        flattening join categories
+
+        EXAMPLES::
+
+            sage: Category._flatten_categories([Algebras(QQ), Category.join([Monoids(), Coalgebras(QQ)]), Sets()])
+            (Category of algebras over Rational Field, Category of monoids, Category of coalgebras over Rational Field, Category of sets)
+        """
+        # Invariant: the super categories of a category are not JoinCategories
+        return tuple(cat
+                     for category in categories
+                     for cat in (category._super_categories if isinstance(category, JoinCategory) else (category,)))
 
     @staticmethod
     def join(categories, as_list = False):
@@ -1673,6 +1739,35 @@ def is_Category(x):
     """
     return isinstance(x, Category)
 
+@cached_function
+def category_sample():
+    r"""
+    Return a sample of categories.
+
+    It is constructed by looking for all concrete category classes declared in
+    ``sage.categories.all``, calling :meth:`Category.an_instance` on those and
+    taking all their super categories.
+
+    EXAMPLES::
+
+        sage: from sage.categories.category import category_sample
+        sage: sorted(category_sample(), key=str)
+        [Category of G-sets for Symmetric group of order 8! as a permutation group,
+         Category of Hecke modules over Rational Field,
+         Category of additive magmas, ...,
+         Category of fields, ...,
+         Category of graded hopf algebras with basis over Rational Field, ...,
+         Category of modular abelian varieties over Rational Field, ...,
+         Category of simplicial complexes, ...,
+         Category of vector spaces over Rational Field, ...,
+         Category of weyl groups,...
+    """
+    import sage.categories.all
+    abstract_classes_for_categories = [Category, HomCategory]
+    return tuple(cls.an_instance()
+                 for cls in sage.categories.all.__dict__.values()
+                 if isinstance(cls, type) and issubclass(cls, Category) and cls not in abstract_classes_for_categories)
+
 def category_graph(categories = None):
     """
     Returns the graph of the categories in Sage
@@ -1712,11 +1807,8 @@ def category_graph(categories = None):
         sage: sage.categories.category.category_graph().plot()
     """
     from sage import graphs
-    import sage.categories.all
     if categories is None:
-        import all
-        abstract_classes_for_categories = [Category, HomCategory]
-        categories = [ cat.an_instance() for cat in sage.categories.all.__dict__.values() if isinstance(cat, type) and issubclass(cat, Category) and cat not in abstract_classes_for_categories ]
+        categories = category_sample()
     cats = set()
     for category in categories:
         for cat in category.all_super_categories():
@@ -1918,7 +2010,7 @@ class CategoryWithParameters(Category):
         This is because those two fields do not have the exact same category::
 
             sage: GF(3).category()
-            Join of Category of subquotients of monoids and Category of quotients of semigroups and Category of finite fields
+            Join of Category of finite fields and Category of subquotients of monoids and Category of quotients of semigroups
             sage: GF(2^3,'x').category()
             Category of finite fields
 
@@ -2004,6 +2096,8 @@ class CategoryWithParameters(Category):
 
     _make_named_class_cache = dict()
 
+    _cmp_key = _cmp_key_named
+
     def _subcategory_hook_(self, C):
         """
         A quick but partial test whether ``C`` is a subcategory of ``self``.
@@ -2084,7 +2178,9 @@ class JoinCategory(CategoryWithParameters):
         """
         assert(len(super_categories) >= 2)
         assert(all(not isinstance(category, JoinCategory) for category in super_categories))
-        self._super_categories = list(super_categories)
+        # Use __super_categories to not overwrite the lazy attribute Category._super_categories
+        # Maybe this would not be needed if the flattening/sorting is does consistently?
+        self.__super_categories = list(super_categories)
         if kwds.has_key('name'):
             Category.__init__(self, kwds['name'])
         else:
@@ -2126,7 +2222,7 @@ class JoinCategory(CategoryWithParameters):
             sage: JoinCategory((Semigroups(), FiniteEnumeratedSets())).super_categories()
             [Category of semigroups, Category of finite enumerated sets]
         """
-        return self._super_categories
+        return self.__super_categories
 
     def _subcategory_hook_(self, category):
         """

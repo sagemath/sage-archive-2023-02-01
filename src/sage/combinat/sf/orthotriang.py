@@ -50,20 +50,27 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
 
 
     def __init__(self, Sym, base, scalar, prefix, basis_name, leading_coeff=None):
-        """
+        r"""
         Initialization of the symmetric function algebra defined via orthotriangular rules.
 
         INPUT:
 
         - ``self`` -- a basis determined by an orthotriangular definition
         - ``Sym`` -- ring of symmetric functions
-        - ``base`` -- an instance of a basis of the ring of symmetric functions (e.g.
-          the Schur functions)
+        - ``base`` -- an instance of a basis of the ring of symmetric functions
+          (e.g. the Schur functions)
         - ``scalar`` -- a function ``zee`` on partitions. The function
           ``zee`` determines the scalar product on the power sum basis
-          with normalization `<p_\mu, p_\mu> = zee(mu)`.
+          with normalization `\langle p_{\mu}, p_{\mu} \rangle =
+          \mathrm{zee}(\mu)`.
         - ``prefix`` -- the prefix used to display the basis
         - ``basis_name`` -- the name used for the basis
+
+        .. NOTE::
+
+            The base ring is required to be a `\QQ`-algebra for this
+            method to be useable, since the scalar product is defined by
+            its values on the power sum basis.
 
         EXAMPLES::
 
@@ -147,7 +154,7 @@ class SymmetricFunctionAlgebra_orthotriang(sfa.SymmetricFunctionAlgebra_generic)
     def _base_cache(self, n):
         """
         Computes the change of basis between ``self`` and base for the
-        homogenous component of size ``n``
+        homogeneous component of size ``n``
 
         INPUT:
 

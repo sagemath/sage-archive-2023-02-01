@@ -1,3 +1,6 @@
+from lazy_attribute import lazy_attribute, lazy_class_attribute
+from lazy_import import lazy_import
+
 from misc import (alarm, ellipsis_range, ellipsis_iter, srange, xsrange, sxrange, getitem,
                   cputime, verbose, set_verbose, set_verbose_files,
                   get_verbose_files, unset_verbose_files, get_verbose,
@@ -28,7 +31,7 @@ from flatten import flatten
 
 from map_threaded import map_threaded
 
-from session import load_session, save_session, show_identifiers, attach
+from session import load_session, save_session, show_identifiers
 
 from remote_file import get_remote_file
 
@@ -63,7 +66,11 @@ from mathml import mathml
 
 from defaults import set_default_variable_name
 
-from preparser import preparse, implicit_multiplication, BackslashOperator, attached_files, detach, load_attach_path, reset_load_attach_path, load_attach_mode
+from preparser import preparse, implicit_multiplication, BackslashOperator
+
+lazy_import('sage.misc.attached_files', [
+        'attach', 'detach', 'attached_files', 'load_attach_path',
+        'reset_load_attach_path', 'load_attach_mode'])
 
 from interpreter import preparser
 
@@ -154,11 +161,6 @@ from trace import trace
 from constant_function import ConstantFunction
 
 from cachefunc import CachedFunction, cached_function, cached_method, cached_in_parent_method, disk_cached_function
-
-from lazy_attribute import lazy_attribute, lazy_class_attribute
-
-
-from lazy_import import lazy_import
 
 from abstract_method import abstract_method
 

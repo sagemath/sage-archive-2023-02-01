@@ -11,6 +11,7 @@ TESTS::
 include "sage/ext/stdsage.pxi"
 
 from sage.structure.parent cimport Parent
+from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import randrange
 from sage.rings.finite_rings.homset import FiniteFieldHomset
 
@@ -442,7 +443,7 @@ cdef class FiniteField(Field):
             a
             sage: k.<b> = GF(19^32)
             sage: k.multiplicative_generator()
-            b + 5
+            b + 4
 
         TESTS:
 
@@ -761,6 +762,26 @@ cdef class FiniteField(Field):
             NotImplementedError: Algebraic closures of finite fields not implemented.
         """
         raise NotImplementedError, "Algebraic closures of finite fields not implemented."
+
+    @cached_method
+    def is_conway(self):
+        """
+        Return ``True`` if self is defined by a Conway polynomial.
+
+        EXAMPLES:
+
+            sage: GF(5^3, 'a').is_conway()
+            True
+            sage: GF(5^3, 'a', modulus='adleman-lenstra').is_conway()
+            False
+            sage: GF(next_prime(2^16, 2), 'a').is_conway()
+            False
+        """
+        from constructor import conway_polynomial, exists_conway_polynomial
+        p = self.characteristic()
+        n = self.degree()
+        return (exists_conway_polynomial(p, n)
+                and self.polynomial() == self.polynomial_ring()(conway_polynomial(p, n)))
 
 
 def unpickle_FiniteField_ext(_type, order, variable_name, modulus, kwargs):

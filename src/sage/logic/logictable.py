@@ -207,7 +207,7 @@ class Truthtable:
         for var in self.__vars_order:
             vars_len.append(len(var))
             s = var + ' '
-            while(len(s) < len('False ')):
+            while len(s) < len('False '):
                 s += ' '
             s += ' '
             line += s
@@ -221,8 +221,8 @@ class Truthtable:
                 else:
                     j = 1
                 s = str(e) + ' ' * j
-                if(i < len(vars_len)):
-                    while(len(s) <= vars_len[i]):
+                if i < len(vars_len):
+                    while len(s) <= vars_len[i]:
                         s += ' '
                 s += ' '
                 line += s

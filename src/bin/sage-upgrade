@@ -7,7 +7,7 @@ cd "$SAGE_ROOT"
 CMD="${0##*/}"
 
 die () {
-    echo >&2 "$@"
+    echo >&2 -e "$@"
     exit 1
 }
 
@@ -18,7 +18,7 @@ usage () {
 [ "$#" -le 2 ] || die `usage`
 
 if [ "$#" -gt 0 ]; then
-    SAGE_REPO="$1"
+    SAGE_REPO_ANONYMOUS="$1"
     shift
 fi
 
@@ -40,20 +40,20 @@ else
 fi
 
 if [ -z "$BRANCH" ]; then
-    echo >&2 "You are not using a one of the following"
-    echo >&2 "supported branchs/tags for upgrading:"
-    echo >&2
-    echo >&2 "  release"
-    echo >&2 "  beta"
-    echo >&2 "  master"
-    echo >&2 "  5.9"
-    echo >&2 "  5.10"
-    echo >&2 "  6.0"
-    echo >&2 "  ..."
-    exit 1
+    die "You are not using a one of the following supported branchs/tags for upgrading:\n\n" \
+        " release\n  beta\n  master\n  5.9\n  5.11\n  6.0\n  ..."
 fi
 
-git pull "$SAGE_REPO" "$BRANCH"
+# portable way to create a random 40 character string, that even works with Solaris' gimped head command.
+while [ ${#RAND} -lt 40 ]; do
+    RAND=${RAND}$(< /dev/urandom tr -cd '_A-Z-a-z-0-9\n' | head -1 | tr -d '\n')
+done
+RAND=${RAND:0:40}
+
+git fetch "$SAGE_REPO_ANONYMOUS" "$BRANCH":$RAND || die "There was a failure downloading Sage's sources. Please make sure you are connected to the internet. Aborting..."
+
+git merge $RAND || { git merge --abort || true; git branch -D $RAND; die "There was a failure updating Sage's sources, aborting..."; }
+git branch -d $RAND
 
 hash -r
 sage-real-upgrade

@@ -222,15 +222,15 @@ cdef class PPLBackend(GenericBackend):
 
         EXAMPLE::
 
-        sage: from sage.numerical.backends.generic_backend import get_solver
-        sage: p = get_solver(solver = "PPL")
-        sage: p.add_variables(5)
-        4
-        sage: p.set_variable_type(3, -1)
-        sage: p.set_variable_type(3, -2)
-        Traceback (most recent call last):
-        ...
-        Exception: ...
+            sage: from sage.numerical.backends.generic_backend import get_solver
+            sage: p = get_solver(solver = "PPL")
+            sage: p.add_variables(5)
+            4
+            sage: p.set_variable_type(3, -1)
+            sage: p.set_variable_type(3, -2)
+            Traceback (most recent call last):
+            ...
+            Exception: ...
         """
         if vtype != -1:
             raise Exception('This backend does not handle integer variables ! Read the doc !')

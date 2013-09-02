@@ -366,10 +366,10 @@ cdef extern from 'symmetrica/def.h':
 ##########################################
 cdef object matrix_constructor
 cdef object Integer
-cdef object Tableau, SkewTableau, SkewTableau_class
-cdef object SkewPartition, SkewPartition_class
+cdef object Tableau, SkewTableau
+cdef object SkewPartition
 cdef object Partition
-cdef object Permutation_class, Permutations
+cdef object Permutation, Permutations
 cdef object builtinlist
 cdef object sqrt
 cdef object Rational
@@ -387,11 +387,9 @@ cdef void late_import():
            Integer, \
            Tableau, \
            SkewTableau, \
-           SkewTableau_class, \
            SkewPartition, \
-           SkewPartition_class, \
            Partition, \
-           Permutation_class, Permutations,\
+           Permutation, Permutations,\
            prod, \
            PolynomialRing, \
            Rational, \
@@ -418,17 +416,15 @@ cdef void late_import():
 
     import sage.combinat.skew_tableau
     SkewTableau = sage.combinat.skew_tableau.SkewTableau
-    SkewTableau_class = sage.combinat.skew_tableau.SkewTableau_class
 
     import sage.combinat.skew_partition
     SkewPartition = sage.combinat.skew_partition.SkewPartition
-    SkewPartition_class = sage.combinat.skew_partition.SkewPartition_class
 
     import sage.combinat.partition
     Partition = sage.combinat.partition.Partition
 
     import sage.combinat.permutation
-    Permutation_class = sage.combinat.permutation.Permutation_class
+    Permutation = sage.combinat.permutation.Permutation
     Permutations = sage.combinat.permutation.Permutations
 
     import sage.functions.all
@@ -736,7 +732,7 @@ cdef object _py_permutation(OP a):
     n = s_p_li(a)
     for i from 0 <= i < n:
         res.append(s_p_ii(a, i))
-    return Permutation_class(res)
+    return Permutation(res)
 
 #####################
 #Barred Permutations#
@@ -1165,7 +1161,7 @@ cdef object _py_tableau(OP t):
 
     #return res
     if is_skew:
-        return SkewTableau_class(res)
+        return SkewTableau(res)
     else:
         return Tableau(res)
 

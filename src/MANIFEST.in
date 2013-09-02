@@ -1,15 +1,11 @@
 global-include *.c *.cc *.cpp *.h *.hh *.hpp *.inc *.py *.pyx *.pxd *.pxi *.rst *.txt *.tex
 
-graft   .hg
-include .hgignore .hgtags
 include MANIFEST.in
-include bundle export install pull sage-push
-include spkg-delauto spkg-dist spkg-install
 
 include c_lib/SConstruct
 graft   sage/server/notebook/templates
 graft   sage/libs/gap/test
-recursive-include sage README
+recursive-include sage
 recursive-exclude sage/ext/interpreters *.c *.h *.pyx *.pxd
 exclude sage/libs/pari/gen.h
 exclude sage/modular/arithgroup/farey_symbol.h

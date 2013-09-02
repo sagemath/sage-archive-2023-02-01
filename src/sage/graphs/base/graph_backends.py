@@ -3,8 +3,6 @@ Implements various backends for Sage graphs.
 
 """
 
-
-
 #*******************************************************************************
 #        Copyright (C) 2008 Robert L. Miller <rlmillster@gmail.com>
 #
@@ -20,7 +18,8 @@ class GenericGraphBackend(SageObject):
     extensions of this class.  Note, this graph has a number of placeholder
     functions, so the doctests are rather silly.
 
-    DOCTEST:
+    TESTS::
+
         sage: import sage.graphs.base.graph_backends
 
     """
@@ -32,12 +31,14 @@ class GenericGraphBackend(SageObject):
         Add an edge (u,v) to self, with label l.  If directed is True, this is
         interpreted as an arc from u to v.
 
-        INPUT:
-            u,v:      vertices
-            l:        edge label
-            directed: boolean
+        INPUT::
 
-        DOCTEST:
+        - ``u,v`` -- vertices
+        - ``l`` -- edge label
+        - ``directed`` -- boolean
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.add_edge(1,2,'a',True)
             Traceback (most recent call last):
@@ -51,10 +52,13 @@ class GenericGraphBackend(SageObject):
         interpreted as arcs.
 
         INPUT:
-            edges:    iterator
-            directed: boolean
 
-        DOCTEST:
+        - ``edges`` -- list/iterator of edges to be added.
+
+        - ``directed`` -- boolean
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.add_edges([],True)
             Traceback (most recent call last):
@@ -62,6 +66,7 @@ class GenericGraphBackend(SageObject):
             NotImplementedError
         """
         raise NotImplementedError()
+
     def add_vertex(self, name):
         """
         Add a labelled vertex to self.
@@ -72,9 +77,10 @@ class GenericGraphBackend(SageObject):
 
         OUTPUT:
 
-        If ``name``=``None``, the new vertex name is returned, ``None`` otherwise.
+        If ``name=None``, the new vertex name is returned, ``None`` otherwise.
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.add_vertex(0)
             Traceback (most recent call last):
@@ -88,8 +94,9 @@ class GenericGraphBackend(SageObject):
 
         INPUT:
 
-        - ``vertices``: iterator of vertex labels. A new label is created, used and returned in
-          the output list for all ``None`` values in ``vertices``.
+        - ``vertices`` -- iterator of vertex labels. A new label is created,
+          used and returned in the output list for all ``None`` values in
+          ``vertices``.
 
         OUTPUT:
 
@@ -110,12 +117,16 @@ class GenericGraphBackend(SageObject):
         Returns the total number of vertices incident to v.
 
         INPUT:
-            v:       a vertex label
-            directed: boolean
+
+        - ``v`` -- a vertex label
+        - ``directed`` -- boolean
+
         OUTPUT:
+
             degree of v
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.degree(1, False)
             Traceback (most recent call last):
@@ -128,11 +139,13 @@ class GenericGraphBackend(SageObject):
         Deletes the edge (u,v) with label l.
 
         INPUT:
-            u,v:      vertices
-            l:        edge label
-            directed: boolean
 
-        DOCTEST:
+        - ``u,v`` -- vertices
+        - ``l`` -- edge label
+        - ``directed`` -- boolean
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.del_edge(1,2,'a',True)
             Traceback (most recent call last):
@@ -145,9 +158,11 @@ class GenericGraphBackend(SageObject):
         Delete a labelled vertex in self.
 
         INPUT:
-            v: vertex label
 
-        DOCTEST:
+        - ``v`` -- vertex label
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.del_vertex(0)
             Traceback (most recent call last):
@@ -160,9 +175,11 @@ class GenericGraphBackend(SageObject):
         Delete labelled vertices in self.
 
         INPUT:
-            vertices: iterator of vertex labels
 
-        DOCTEST:
+        - ``vertices`` -- iterator of vertex labels
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.del_vertices([1,2,3])
             Traceback (most recent call last):
@@ -175,12 +192,15 @@ class GenericGraphBackend(SageObject):
         Returns the edge label of (u,v).
 
         INPUT:
-            u,v: vertex labels
+
+        - ``u,v`` -- vertex labels
 
         OUTPUT:
+
             label of (u,v)
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.get_edge_label(1,2)
             Traceback (most recent call last):
@@ -193,13 +213,16 @@ class GenericGraphBackend(SageObject):
         True if self has an edge (u,v) with label l.
 
         INPUT:
-            u,v: vertex labels
-            l: label
+
+        - ``u,v`` -- vertex labels
+        - ``l`` -- label
 
         OUTPUT:
+
             boolean
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.has_edge(1,2,'a')
             Traceback (most recent call last):
@@ -212,12 +235,14 @@ class GenericGraphBackend(SageObject):
         True if self has a vertex with label v.
 
         INPUT:
-            v: vertex label
+
+        - ``v`` -- vertex label
 
         OUTPUT:
             boolean
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.has_vertex(0)
             Traceback (most recent call last):
@@ -231,14 +256,17 @@ class GenericGraphBackend(SageObject):
         assumed to be undirected.
 
         INPUT:
-            vertices:     a list of vertex labels
-            labels:       boolean
+
+        - ``vertices`` -- a list of vertex labels
+        - ``labels`` -- boolean
 
         OUTPUT:
+
             a generator which yields edges, with or without labels
             depending on the labels parameter.
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.iterator_edges([],True)
             Traceback (most recent call last):
@@ -251,14 +279,16 @@ class GenericGraphBackend(SageObject):
         Iterate over the incoming edges incident to a sequence of vertices.
 
         INPUT:
-            vertices:     a list of vertex labels
-            labels:       boolean
+
+        - ``vertices`` -- a list of vertex labels
+        - ``labels`` -- boolean
 
         OUTPUT:
             a generator which yields edges, with or without labels
             depending on the labels parameter.
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.iterator_in_edges([],True)
             Traceback (most recent call last):
@@ -271,14 +301,17 @@ class GenericGraphBackend(SageObject):
         Iterate over the outbound edges incident to a sequence of vertices.
 
         INPUT:
-            vertices:     a list of vertex labels
-            labels:       boolean
+
+        - ``vertices`` -- a list of vertex labels
+        - ``labels`` -- boolean
 
         OUTPUT:
+
             a generator which yields edges, with or without labels
             depending on the labels parameter.
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.iterator_out_edges([],True)
             Traceback (most recent call last):
@@ -291,12 +324,15 @@ class GenericGraphBackend(SageObject):
         Iterate over the vertices adjacent to v.
 
         INPUT:
-            v: vertex label
+
+        - ``v`` -- vertex label
 
         OUTPUT:
+
             a generator which yields vertex labels
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.iterator_nbrs(0)
             Traceback (most recent call last):
@@ -310,12 +346,15 @@ class GenericGraphBackend(SageObject):
         (that is, predecessors of v).
 
         INPUT:
-            v: vertex label
+
+        - ``v`` -- vertex label
 
         OUTPUT:
+
             a generator which yields vertex labels
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.iterator_in_nbrs(0)
             Traceback (most recent call last):
@@ -329,12 +368,15 @@ class GenericGraphBackend(SageObject):
         (that is, successors of v).
 
         INPUT:
-            v: vertex label
+
+        - ``v`` -- vertex label
 
         OUTPUT:
+
             a generator which yields vertex labels
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.iterator_out_nbrs(0)
             Traceback (most recent call last):
@@ -347,12 +389,15 @@ class GenericGraphBackend(SageObject):
         Iterate over the vertices v with labels in verts.
 
         INPUT:
-            vertex: vertex labels
+
+        - ``vertex`` -- vertex labels
 
         OUTPUT:
+
             a generator which yields vertices
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.iterator_verts(0)
             Traceback (most recent call last):
@@ -360,14 +405,19 @@ class GenericGraphBackend(SageObject):
             NotImplementedError
         """
         raise NotImplementedError()
-    def loops(self, new):
+
+    def loops(self, new=None):
         """
         Get/set whether or not self allows loops.
 
         INPUT:
-            new: boolean or None
 
-        DOCTEST:
+        - ``new`` -- can be a boolean (in which case it sets the value) or
+          ``None``, in which case the current value is returned. It is set to
+          ``None`` by default.
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.loops(True)
             Traceback (most recent call last):
@@ -379,14 +429,18 @@ class GenericGraphBackend(SageObject):
             NotImplementedError
         """
         raise NotImplementedError()
-    def multiple_edges(self, new):
+    def multiple_edges(self, new=None):
         """
         Get/set whether or not self allows multiple edges.
 
         INPUT:
-            new: boolean or None
 
-        DOCTEST:
+        - ``new`` -- can be a boolean (in which case it sets the value) or
+          ``None``, in which case the current value is returned. It is set to
+          ``None`` by default.
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.multiple_edges(True)
             Traceback (most recent call last):
@@ -398,14 +452,18 @@ class GenericGraphBackend(SageObject):
             NotImplementedError
         """
         raise NotImplementedError()
-    def name(self, new):
+    def name(self, new=None):
         """
         Get/set name of self.
 
         INPUT:
-            new: string or None
 
-        DOCTEST:
+        - ``new`` -- can be a string (in which case it sets the value) or
+          ``None``, in which case the current value is returned. It is set to
+          ``None`` by default.
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.name("A Generic Graph")
             Traceback (most recent call last):
@@ -422,9 +480,11 @@ class GenericGraphBackend(SageObject):
         The number of edges in self
 
         INPUT:
-            directed: boolean
 
-        DOCTEST:
+        - ``directed`` -- boolean
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.num_edges(True)
             Traceback (most recent call last):
@@ -440,7 +500,8 @@ class GenericGraphBackend(SageObject):
         """
         The number of vertices in self
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.num_verts()
             Traceback (most recent call last):
@@ -451,11 +512,14 @@ class GenericGraphBackend(SageObject):
     def relabel(self, perm, directed):
         """
         Relabel the vertices of self by a permutation.
-        INPUT:
-            perm:     permutation
-            directed: boolean
 
-        DOCTEST:
+        INPUT:
+
+        - ``perm`` -- permutation
+        - ``directed`` -- boolean
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.relabel([],False)
             Traceback (most recent call last):
@@ -468,11 +532,13 @@ class GenericGraphBackend(SageObject):
         Label the edge (u,v) by l.
 
         INPUT:
-            u,v:      vertices
-            l:        edge label
-            directed: boolean
 
-        DOCTEST:
+        - ``u,v`` -- vertices
+        - ``l`` -- edge label
+        - ``directed`` -- boolean
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.GenericGraphBackend()
             sage: G.set_edge_label(1,2,'a',True)
             Traceback (most recent call last):
@@ -485,7 +551,7 @@ class NetworkXGraphDeprecated(SageObject):
     """
     Class for unpickling old networkx.XGraph formats
 
-    DOCTEST::
+    TESTS::
 
         sage: from sage.graphs.base.graph_backends import NetworkXGraphDeprecated as NXGD
         sage: X = NXGD()
@@ -557,7 +623,8 @@ class NetworkXDiGraphDeprecated(SageObject):
     """
     Class for unpickling old networkx.XDiGraph formats
 
-    DOCTEST:
+    TESTS::
+
         sage: import sage.graphs.base.graph_backends
     """
 
@@ -629,7 +696,8 @@ class NetworkXGraphBackend(GenericGraphBackend):
     """
     A wrapper for NetworkX as the backend of a graph.
 
-    DOCTEST:
+    TESTS::
+
         sage: import sage.graphs.base.graph_backends
 
     """
@@ -640,7 +708,8 @@ class NetworkXGraphBackend(GenericGraphBackend):
         """
         Initialize the backend with NetworkX graph N.
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.iterator_edges([],True)
             <generator object iterator_edges at ...>
@@ -661,11 +730,13 @@ class NetworkXGraphBackend(GenericGraphBackend):
         interpreted as an arc from u to v.
 
         INPUT:
-            u,v:      vertices
-            l:        edge label
-            directed: boolean
 
-        DOCTEST:
+        - ``u,v`` -- vertices
+        - ``l`` -- edge label
+        - ``directed`` -- boolean
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.add_edge(1,2,'a',True)
         """
@@ -689,10 +760,12 @@ class NetworkXGraphBackend(GenericGraphBackend):
         interpreted as arcs.
 
         INPUT:
-            edges:    iterator
-            directed: boolean
 
-        DOCTEST:
+        - ``edges`` -- list/iterator of edges to be added.
+        - ``directed`` -- boolean
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.add_edges([],True)
         """
@@ -714,9 +787,9 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
         OUTPUT:
 
-        If ``name``=``None``, the new vertex name is returned. ``None`` otherwise.
+        If ``name=None``, the new vertex name is returned. ``None`` otherwise.
 
-        DOCTEST:
+        TESTS::
 
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.add_vertex(0)
@@ -787,12 +860,16 @@ class NetworkXGraphBackend(GenericGraphBackend):
         Returns the total number of vertices incident to v.
 
         INPUT:
-            v:       a vertex label
-            directed: boolean
+
+        - ``v`` -- a vertex label
+        - ``directed`` -- boolean
+
         OUTPUT:
+
             degree of v
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.add_vertices(range(3))
             sage: G.degree(1, False)
@@ -810,11 +887,13 @@ class NetworkXGraphBackend(GenericGraphBackend):
         Deletes the edge (u,v) with label l.
 
         INPUT:
-            u,v:      vertices
-            l:        edge label
-            directed: boolean
 
-        DOCTEST:
+        - ``u,v`` -- vertices
+        - ``l`` -- edge label
+        - ``directed`` -- boolean
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.del_edge(1,2,'a',True)
         """
@@ -842,9 +921,11 @@ class NetworkXGraphBackend(GenericGraphBackend):
         Delete a labelled vertex in self.
 
         INPUT:
-            v: vertex label
 
-        DOCTEST:
+        - ``v`` -- vertex label
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.del_vertex(0)
             Traceback (most recent call last):
@@ -863,9 +944,11 @@ class NetworkXGraphBackend(GenericGraphBackend):
         Delete labelled vertices in self.
 
         INPUT:
-            vertices: iterator of vertex labels
 
-        DOCTEST:
+        - ``vertices`` -- iterator of vertex labels
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.del_vertices([1,2,3])
             Traceback (most recent call last):
@@ -885,12 +968,14 @@ class NetworkXGraphBackend(GenericGraphBackend):
         Returns the edge label of (u,v).
 
         INPUT:
-            u,v: vertex labels
+
+        - ``u,v`` -- vertex labels
 
         OUTPUT:
             label of (u,v)
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.get_edge_label(1,2)
             Traceback (most recent call last):
@@ -918,13 +1003,15 @@ class NetworkXGraphBackend(GenericGraphBackend):
         True if self has an edge (u,v) with label l.
 
         INPUT:
-            u,v: vertex labels
-            l: label
+
+        - ``u,v`` -- vertex labels
+        - ``l`` -- label
 
         OUTPUT:
             boolean
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.has_edge(1,2,'a')
             False
@@ -948,12 +1035,14 @@ class NetworkXGraphBackend(GenericGraphBackend):
         True if self has a vertex with label v.
 
         INPUT:
-            v: vertex label
+
+        - ``v`` -- vertex label
 
         OUTPUT:
             boolean
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.has_vertex(0)
             False
@@ -971,14 +1060,16 @@ class NetworkXGraphBackend(GenericGraphBackend):
         assumed to be undirected.
 
         INPUT:
-            vertices:     a list of vertex labels
-            labels:       boolean
+
+        - ``vertices`` -- a list of vertex labels
+        - ``labels`` -- boolean
 
         OUTPUT:
             a generator which yields edges, with or without labels
             depending on the labels parameter.
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.iterator_edges([],True)
             <generator object iterator_edges at ...>
@@ -1021,14 +1112,16 @@ class NetworkXGraphBackend(GenericGraphBackend):
         Iterate over the incoming edges incident to a sequence of vertices.
 
         INPUT:
-            vertices:     a list of vertex labels
-            labels:       boolean
+
+        - ``vertices`` -- a list of vertex labels
+        - ``labels`` -- boolean
 
         OUTPUT:
             a generator which yields edges, with or without labels
             depending on the labels parameter.
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: i = G.iterator_in_edges([],True)
         """
@@ -1069,14 +1162,16 @@ class NetworkXGraphBackend(GenericGraphBackend):
         Iterate over the outbound edges incident to a sequence of vertices.
 
         INPUT:
-            vertices:     a list of vertex labels
-            labels:       boolean
+
+        - ``vertices`` -- a list of vertex labels
+        - ``labels`` -- boolean
 
         OUTPUT:
             a generator which yields edges, with or without labels
             depending on the labels parameter.
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: i = G.iterator_out_edges([],True)
         """
@@ -1098,12 +1193,14 @@ class NetworkXGraphBackend(GenericGraphBackend):
         Iterate over the vertices adjacent to v.
 
         INPUT:
-            v: vertex label
+
+        - ``v`` -- vertex label
 
         OUTPUT:
             a generator which yields vertex labels
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.add_vertex(0)
             sage: G.iterator_nbrs(0)
@@ -1122,12 +1219,14 @@ class NetworkXGraphBackend(GenericGraphBackend):
         (that is, predecessors of v).
 
         INPUT:
-            v: vertex label
+
+        - ``v`` -- vertex label
 
         OUTPUT:
             a generator which yields vertex labels
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.iterator_in_nbrs(0)
             Traceback (most recent call last):
@@ -1147,12 +1246,14 @@ class NetworkXGraphBackend(GenericGraphBackend):
         (that is, successors of v).
 
         INPUT:
-            v: vertex label
+
+        - ``v`` -- vertex label
 
         OUTPUT:
             a generator which yields vertex labels
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.iterator_out_nbrs(0)
             Traceback (most recent call last):
@@ -1171,12 +1272,14 @@ class NetworkXGraphBackend(GenericGraphBackend):
         Iterate over the vertices v with labels in verts.
 
         INPUT:
-            vertex: vertex labels
+
+        - ``vertex`` -- vertex labels
 
         OUTPUT:
             a generator which yields vertices
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.iterator_verts(0)
             <generator object bunch_iter at ...>
@@ -1188,14 +1291,18 @@ class NetworkXGraphBackend(GenericGraphBackend):
 
         return self._nxg.nbunch_iter(verts)
 
-    def loops(self, new):
+    def loops(self, new=None):
         """
         Get/set whether or not self allows loops.
 
         INPUT:
-            new: boolean or None
 
-        DOCTEST:
+        - ``new`` -- can be a boolean (in which case it sets the value) or
+          ``None``, in which case the current value is returned. It is set to
+          ``None`` by default.
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.loops(True)
             sage: G.loops(None)
@@ -1208,14 +1315,18 @@ class NetworkXGraphBackend(GenericGraphBackend):
         else:
             self._loops = False
 
-    def multiple_edges(self, new):
+    def multiple_edges(self, new=None):
         """
         Get/set whether or not self allows multiple edges.
 
         INPUT:
-            new: boolean or None
 
-        DOCTEST:
+        - ``new`` -- can be a boolean (in which case it sets the value) or
+          ``None``, in which case the current value is returned. It is set to
+          ``None`` by default.
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.multiple_edges(True)
             sage: G.multiple_edges(None)
@@ -1242,14 +1353,18 @@ class NetworkXGraphBackend(GenericGraphBackend):
             else:
                 self._nxg = Graph(self._nxg)
 
-    def name(self, new):
+    def name(self, new=None):
         """
         Get/set name of self.
 
         INPUT:
-            new: string or None
 
-        DOCTEST:
+        - ``new`` -- can be a string (in which case it sets the value) or
+          ``None``, in which case the current value is returned. It is set to
+          ``None`` by default.
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.name("A NetworkX Graph")
             sage: G.name(None)
@@ -1269,9 +1384,11 @@ class NetworkXGraphBackend(GenericGraphBackend):
         The number of edges in self
 
         INPUT:
-            directed: boolean
 
-        DOCTEST:
+        - ``directed`` -- boolean
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.num_edges(True)
             0
@@ -1289,7 +1406,8 @@ class NetworkXGraphBackend(GenericGraphBackend):
         """
         The number of vertices in self
 
-        DOCTEST:
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.num_verts()
             0
@@ -1304,11 +1422,14 @@ class NetworkXGraphBackend(GenericGraphBackend):
     def relabel(self, perm, directed):
         """
         Relabel the vertices of self by a permutation.
-        INPUT:
-            perm:     permutation
-            directed: boolean
 
-        DOCTEST:
+        INPUT:
+
+        - ``perm`` -- permutation
+        - ``directed`` -- boolean
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.relabel([],False)
         """
@@ -1322,47 +1443,18 @@ class NetworkXGraphBackend(GenericGraphBackend):
         self._nxg = relabel_nodes(self._nxg,perm)
         self._nxg.name = name
 
-#         if directed:
-#             oldsucc = self._nxg.succ
-#             oldpred = self._nxg.pred
-#             newsucc = {}
-#             newpred = {}
-#             for v in oldsucc.iterkeys():
-#                 oldtempsucc = oldsucc[v]
-#                 newtempsucc = {}
-#                 for w in oldtempsucc.iterkeys():
-#                     newtempsucc[perm[w]] = oldtempsucc[w]
-#                 newsucc[perm[v]] = newtempsucc
-#             for v in oldpred.iterkeys():
-#                 oldtemppred = oldpred[v]
-#                 newtemppred = {}
-#                 for w in oldtemppred.iterkeys():
-#                     newtemppred[perm[w]] = oldtemppred[w]
-#                 newpred[perm[v]] = newtemppred
-#             self._nxg.adj = newsucc
-#             self._nxg.succ = self._nxg.adj
-#             self._nxg.pred = newpred
-#         else:
-#             oldd = self._nxg.adj
-#             newd = {}
-#             for v in oldd.iterkeys():
-#                 oldtempd = oldd[v]
-#                 newtempd = {}
-#                 for w in oldtempd.iterkeys():
-#                     newtempd[perm[w]] = oldtempd[w]
-#                 newd[perm[v]] = newtempd
-#             self._nxg.adj = newd
-
     def set_edge_label(self, u, v, l, directed):
         """
         Label the edge (u,v) by l.
 
         INPUT:
-            u,v:      vertices
-            l:        edge label
-            directed: boolean
 
-        DOCTEST:
+        - ``u,v`` -- vertices
+        - ``l`` -- edge label
+        - ``directed`` -- boolean
+
+        TESTS::
+
             sage: G = sage.graphs.base.graph_backends.NetworkXGraphBackend()
             sage: G.set_edge_label(1,2,'a',True)
         """

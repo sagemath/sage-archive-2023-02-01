@@ -331,8 +331,8 @@ class Function_ceil(BuiltinFunction):
 
         ::
 
-            sage: ceil(log(8)/log(2))
-            3
+            sage: ceil(sin(8)/sin(2))
+            2
 
         ::
 
@@ -431,7 +431,7 @@ class Function_ceil(BuiltinFunction):
                 return lower_ceil
             else:
                 try:
-                    return ceil(SR(x).full_simplify())
+                    return ceil(SR(x).full_simplify().simplify_radical())
                 except ValueError:
                     pass
                 raise ValueError, "x (= %s) requires more than %s bits of precision to compute its ceiling"%(x, maximum_bits)
@@ -503,8 +503,8 @@ class Function_floor(BuiltinFunction):
 
         ::
 
-            sage: floor(log(8)/log(2))
-            3
+            sage: floor(cos(8)/cos(2))
+            0
 
         ::
 
@@ -592,7 +592,7 @@ class Function_floor(BuiltinFunction):
                 return lower_floor
             else:
                 try:
-                    return floor(SR(x).full_simplify())
+                    return floor(SR(x).full_simplify().simplify_radical())
                 except ValueError:
                     pass
                 raise ValueError, "x (= %s) requires more than %s bits of precision to compute its floor"%(x, maximum_bits)
@@ -1868,6 +1868,8 @@ class Function_real_part(GinacFunction):
             <type 'sage.rings.real_mpfr.RealLiteral'>
             sage: real(1.0r)
             1.0
+            sage: real(complex(3, 4))
+            3.0
 
         TESTS::
 
@@ -1885,6 +1887,18 @@ class Function_real_part(GinacFunction):
         """
         GinacFunction.__init__(self, "real_part",
                                    conversions=dict(maxima='realpart'))
+
+    def __call__(self, x, **kwargs):
+        r"""
+        TESTS::
+
+            sage: type(real(complex(3, 4)))
+            <type 'float'>
+        """
+        if isinstance(x, complex):
+            return x.real
+        else:
+            return GinacFunction.__call__(self, x, **kwargs)
 
     def _eval_numpy_(self, x):
         """
@@ -1924,6 +1938,8 @@ class Function_imag_part(GinacFunction):
             2
             sage: imag(z)
             2
+            sage: imag(complex(3, 4))
+            4.0
             sage: loads(dumps(imag_part))
             imag_part
 
@@ -1938,6 +1954,18 @@ class Function_imag_part(GinacFunction):
         """
         GinacFunction.__init__(self, "imag_part",
                                    conversions=dict(maxima='imagpart'))
+
+    def __call__(self, x, **kwargs):
+        r"""
+        TESTS::
+
+            sage: type(imag(complex(3, 4)))
+            <type 'float'>
+        """
+        if isinstance(x, complex):
+            return x.imag
+        else:
+            return GinacFunction.__call__(self, x, **kwargs)
 
     def _eval_numpy_(self, x):
         """

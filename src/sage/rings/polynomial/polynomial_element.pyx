@@ -2366,13 +2366,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
         coeffs = self.list()
         return self._parent([n*coeffs[n] for n from 1 <= n <= degree])
 
-    def integral(self):
+    def integral(self,var=None):
         """
         Return the integral of this polynomial.
 
-        .. note::
+        By default, the integration variable is the variable of the
+        polynomial.
 
-           The integral is always chosen so the constant term is 0.
+        Otherwise, the integration variable is the optional parameter ``var``
+
+        .. NOTE::
+
+            The integral is always chosen so the constant term is 0.
 
         EXAMPLES::
 
@@ -2396,7 +2401,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: g.parent()
             Univariate Polynomial Ring in x over Rational Field
 
-        This shows that the issue at trac #7711 is resolved::
+        This shows that the issue at :trac:`7711` is resolved::
 
             sage: P.<x,z> = PolynomialRing(GF(2147483647))
             sage: Q.<y> = PolynomialRing(P)
@@ -2434,7 +2439,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Univariate Polynomial Ring in x over Power Series Ring in c
             over Univariate Polynomial Ring in b over Multivariate Polynomial
             Ring in a1, a2 over Rational Field
+
+        Integration with respect to a variable in the base ring::
+
+            sage: R.<x> = QQ[]
+            sage: t = PolynomialRing(R,'t').gen()
+            sage: f = x*t +5*t^2
+            sage: f.integral(x)
+            5*x*t^2 + 1/2*x^2*t
         """
+        if var is not None and var != self._parent.gen():
+            # call integral() recursively on coefficients
+            return self._parent([coeff.integral(var) for coeff in self.list()])
         cdef Py_ssize_t n, degree = self.degree()
         R = self.parent()
         Q = (self.constant_coefficient()/1).parent()
@@ -5456,55 +5472,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
         deprecation(4522, "This function is deprecated. It will be removed in a future release of Sage. Please use the .variable_name() function instead.")
         return self.parent().variable_name()
 
-    def _xgcd(self, other):
-        r"""
-        Extended gcd of self and polynomial other.
-
-        Returns g, u, and v such that ``g = u*self + v*other.``
-
-        EXAMPLES::
-
-            sage: P.<x> = QQ[]
-            sage: F = (x^2 + 2)*x^3; G = (x^2+2)*(x-3)
-            sage: g, u, v = F.xgcd(G)
-            sage: g, u, v
-            (x^2 + 2, 1/27, -1/27*x^2 - 1/9*x - 1/3)
-            sage: u*F + v*G
-            x^2 + 2
-
-        ::
-
-            sage: g, u, v = x.xgcd(P(0)); g, u, v
-            (x, 1, 0)
-            sage: g == u*x + v*P(0)
-            True
-            sage: g, u, v = P(0).xgcd(x); g, u, v
-            (x, 0, 1)
-            sage: g == u*P(0) + v*x
-            True
-        """
-        if other.is_zero():
-            R = self.parent()
-            return self, R.one_element(), R.zero_element()
-        # Algorithm 3.2.2 of Cohen, GTM 138
-        R = self.parent()
-        A = self
-        B = other
-        U = R.one_element()
-        G = A
-        V1 = R.zero_element()
-        V3 = B
-        while not V3.is_zero():
-            Q, R = G.quo_rem(V3)
-            T = U - V1*Q
-            U = V1
-            G = V3
-            V1 = T
-            V3 = R
-        V = (G-A*U)//B
-        lc = G.leading_coefficient()
-        return G/lc, U/lc, V/lc
-
     def is_irreducible(self):
         """
         Return True precisely if this polynomial is irreducible over its
@@ -6030,9 +5997,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if self.base_ring() != ZZ:
             try:
                 f = self.change_ring(ZZ)
-                return f.is_cyclotomic()
-            except TypeError,ValueError:
+            except TypeError:
                 return False
+            return f.is_cyclotomic()
 
         if not self.is_irreducible():
             return False

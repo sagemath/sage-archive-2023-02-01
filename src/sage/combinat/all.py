@@ -22,6 +22,7 @@ from yang_baxter_graph import YangBaxterGraph
 
 #Permutations
 from permutation import Permutation, Permutations, Arrangements, PermutationOptions, CyclicPermutations, CyclicPermutationsOfPartition
+from affine_permutation import AffinePermutationGroup
 from derangements import Derangements
 
 #RSK
@@ -55,15 +56,31 @@ from skew_partition import SkewPartition, SkewPartitions
 #Partition algebra
 from partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk, SetPartitionsIk, SetPartitionsBk, SetPartitionsSk, SetPartitionsRk, SetPartitionsRk, SetPartitionsPRk
 
+#Diagram algebra
+from diagram_algebras import PartitionAlgebra, BrauerAlgebra, TemperleyLiebAlgebra, PlanarAlgebra, PropagatingIdeal
+
+#Descent algebra
+from descent_algebra import DescentAlgebra
+
+#Vector Partitions
+from vector_partition import VectorPartition, VectorPartitions
+
+#Similarity class types
+from similarity_class_type import PrimarySimilarityClassType, PrimarySimilarityClassTypes, SimilarityClassType, SimilarityClassTypes
+
 #Cores
 from core import Core, Cores
 
 #Tableaux
 from tableau import Tableau, SemistandardTableau, StandardTableau, \
         Tableaux, StandardTableaux, SemistandardTableaux
-from skew_tableau import SkewTableau, StandardSkewTableaux, SemistandardSkewTableaux
+from skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux, SemistandardSkewTableaux
+from ribbon_shaped_tableau import RibbonShapedTableau, StandardRibbonShapedTableaux
+from ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableaux, MultiSkewTableau, SemistandardMultiSkewTableaux
+#deprecated
 from ribbon import Ribbon, StandardRibbons
-from ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableau, SemistandardMultiSkewTableaux
+
+
 from sage.combinat.tableau_tuple import TableauTuple, StandardTableauTuple, TableauTuples, StandardTableauTuples
 
 #Words
@@ -72,9 +89,6 @@ from words.all import *
 from subword import Subwords
 
 from graph_path import GraphPaths
-
-#Interval exchange transformations
-from iet.all import *
 
 #Tuples
 from tuple import Tuples, UnorderedTuples

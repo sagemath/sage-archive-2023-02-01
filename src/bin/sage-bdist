@@ -42,10 +42,7 @@ mkdir -p "$TMP_DIR/$TARGET"
 # Clone Sage repository
 echo "Cloning Sage repository..."
 git clone "$SAGE_ROOT" "$TMP_DIR/$TARGET"
-( cd "$TMP_DIR/$TARGET" && git remote set-url origin git://github.com/sagemath/sage.git )
-
-# Copy VERSION.txt (which is untracked)
-cp -p VERSION.txt "$TMP_DIR/$TARGET"
+( cd "$TMP_DIR/$TARGET" && git remote set-url origin "$SAGE_REPO_ANONYMOUS" )
 
 echo "Done cloning Sage repository."
 

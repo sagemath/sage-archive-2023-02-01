@@ -445,7 +445,7 @@ SYMMETRICA=`newest_version symmetrica`
 SYMPOW=`newest_version sympow`
 SYMPY=`newest_version sympy`
 TACHYON=`newest_version tachyon`
-TERMCAP=`newest_version termcap`
+NCURSES=`newest_version ncurses`
 ZLIB=`newest_version zlib`
 ZNPOLY=`newest_version zn_poly`
 

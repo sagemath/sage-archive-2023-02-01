@@ -167,7 +167,7 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_abstra
         self._type = type
         self._relabelling = relabelling._dictionary
         self._relabelling_inverse = relabelling.inverse_family()._dictionary
-        self._index_set = sorted(relabelling[i] for i in type.index_set())
+        self._index_set = tuple(sorted(relabelling[i] for i in type.index_set()))
         # TODO: design an appropriate infrastructure to handle this
         # automatically? Maybe using categories and axioms?
         # See also type_dual.CartanType.__init__
@@ -369,7 +369,7 @@ class CartanType(UniqueRepresentation, SageObject, cartan_type.CartanType_abstra
 
             sage: ct = CartanType(['G', 2]).relabel({1:2,2:1})
             sage: ct.index_set()
-            [1, 2]
+            (1, 2)
         """
         return self._index_set
 

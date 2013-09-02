@@ -25,14 +25,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.sets.set import Set, is_Set, Set_object_enumerated
+from sage.sets.set import Set, is_Set
 
 import itertools
-import copy
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.list_clone import ClonableArray
+from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.rings.infinity import infinity
@@ -58,7 +58,7 @@ class SetPartition(ClonableArray):
     the `n`-th Bell number.
 
     There is a natural integer partition associated with a set partition,
-    that is the non-decreasing sequence of sizes of all its parts.
+    namely the nonincreasing sequence of sizes of all its parts.
 
     There is a classical lattice associated with all set partitions of
     `n`. The infimum of two set partitions is the set partition obtained
@@ -67,16 +67,19 @@ class SetPartition(ClonableArray):
     if and only if they are in the same part in at least one of the set
     partitions.
 
-    EXAMPLES: There are 5 set partitions of the set `\{1,2,3\}`.
+    We will use terminology from partitions, in particular the *length* of
+    a set partition `A = \{A_1, \ldots, A_k\}` is the number of parts of `A`
+    and is denoted by `|A| := k`. The *size* of `A` is the cardinality of `S`.
+    We will also sometimes use the notation `[n] := \{1, 2, \ldots, n\}`.
 
-    ::
+    EXAMPLES:
+
+    There are 5 set partitions of the set `\{1,2,3\}`::
 
         sage: SetPartitions(3).cardinality()
         5
 
-    Here is the list of them
-
-    ::
+    Here is the list of them::
 
         sage: SetPartitions(3).list()
         [{{1, 2, 3}},
@@ -97,20 +100,18 @@ class SetPartition(ClonableArray):
          {{1, 2}, {3}, {4}}]
 
     Since :trac:`14140`, we can create a set partition directly by
-    :class:`SetPartition` which creates the parent object by taking the
-    union of the partitions passed in. However it is recommended and
-    (marginally) faster to create the parent first and then create the set
-    partition from that. ::
+    :class:`SetPartition`, which creates the base set by taking the
+    union of the parts passed in::
 
         sage: s = SetPartition([[1,3],[2,4]]); s
         {{1, 3}, {2, 4}}
         sage: s.parent()
-        Set partitions of {1, 2, 3, 4}
+        Set partitions
     """
     __metaclass__ = ClasscallMetaclass
 
     @staticmethod
-    def __classcall_private__(cls, parts):
+    def __classcall_private__(cls, parts, check=True):
         """
         Create a set partition from ``parts`` with the appropriate parent.
 
@@ -119,9 +120,9 @@ class SetPartition(ClonableArray):
             sage: s = SetPartition([[1,3],[2,4]]); s
             {{1, 3}, {2, 4}}
             sage: s.parent()
-            Set partitions of {1, 2, 3, 4}
+            Set partitions
         """
-        P = SetPartitions( _union(Set(map(Set, parts))) )
+        P = SetPartitions()
         return P.element_class(P, parts)
 
     def __init__(self, parent, s):
@@ -150,11 +151,183 @@ class SetPartition(ClonableArray):
         """
         assert self in self.parent()
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        The parent is not included as part of the hash.
+
+        EXAMPLES::
+
+            sage: P = SetPartitions(4)
+            sage: A = SetPartition([[1], [2,3], [4]])
+            sage: B = P([[1], [2,3], [4]])
+            sage: hash(A) == hash(B)
+            True
+        """
+        return sum(hash(x) for x in self)
+
+    def __eq__(self, y):
+        """
+        Check equality of ``self`` and ``y``.
+
+        The parent is not included as part of the equality check.
+
+        EXAMPLES::
+
+            sage: P = SetPartitions(4)
+            sage: A = SetPartition([[1], [2,3], [4]])
+            sage: B = P([[1], [2,3], [4]])
+            sage: A == B
+            True
+            sage: C = P([[2, 3], [1], [4]])
+            sage: A == C
+            True
+            sage: D = P([[1], [2, 4], [3]])
+            sage: A == D
+            False
+        """
+        if not isinstance(y, SetPartition):
+            return False
+        return list(self) == list(y)
+
+    def __lt__(self, y):
+        """
+        Check that ``self`` is less than ``y``.
+
+        The ordering used is lexicographic, where:
+
+        - a set partition is considered as the list of its parts
+          sorted by increasing smallest element;
+
+        - each part is regarded as a list of its elements, sorted
+          in increasing order;
+
+        - the parts themselves are compared lexicographically.
+
+        EXAMPLES::
+
+            sage: P = SetPartitions(4)
+            sage: A = P([[1], [2,3], [4]])
+            sage: B = SetPartition([[1,2,3], [4]])
+            sage: A < B
+            True
+            sage: C = P([[1,2,4], [3]])
+            sage: B < C
+            True
+            sage: B < B
+            False
+            sage: D = P([[1,4], [2], [3]])
+            sage: E = P([[1,4], [2,3]])
+            sage: D < E
+            True
+            sage: F = P([[1,2,4], [3]])
+            sage: E < C
+            False
+            sage: A < E
+            True
+            sage: A < C
+            True
+        """
+        if not isinstance(y, SetPartition):
+            return False
+        return map(sorted, self) < map(sorted, y)
+
+    def __gt__(self, y):
+        """
+        Check that ``self`` is greater than ``y``.
+
+        The ordering used is lexicographic, where:
+
+        - a set partition is considered as the list of its parts
+          sorted by increasing smallest element;
+
+        - each part is regarded as a list of its elements, sorted
+          in increasing order;
+
+        - the parts themselves are compared lexicographically.
+
+        EXAMPLES::
+
+            sage: P = SetPartitions(4)
+            sage: A = P([[1], [2,3], [4]])
+            sage: B = SetPartition([[1,2,3], [4]])
+            sage: B > A
+            True
+            sage: A > B
+            False
+        """
+        if not isinstance(y, SetPartition):
+            return False
+        return map(sorted, self) > map(sorted, y)
+
+    def __le__(self, y):
+        """
+        Check that ``self`` is less than or equals ``y``.
+
+        The ordering used is lexicographic, where:
+
+        - a set partition is considered as the list of its parts
+          sorted by increasing smallest element;
+
+        - each part is regarded as a list of its elements, sorted
+          in increasing order;
+
+        - the parts themselves are compared lexicographically.
+
+        EXAMPLES::
+
+            sage: P = SetPartitions(4)
+            sage: A = P([[1], [2,3], [4]])
+            sage: B = SetPartition([[1,2,3], [4]])
+            sage: A <= B
+            True
+            sage: A <= A
+            True
+        """
+        return self.__eq__(y) or self.__lt__(y)
+
+    def __ge__(self, y):
+        """
+        Check that ``self`` is greater than or equals ``y``.
+
+        The ordering used is lexicographic, where:
+
+        - a set partition is considered as the list of its parts
+          sorted by increasing smallest element;
+
+        - each part is regarded as a list of its elements, sorted
+          in increasing order;
+
+        - the parts themselves are compared lexicographically.
+
+        EXAMPLES::
+
+            sage: P = SetPartitions(4)
+            sage: A = P([[1], [2,3], [4]])
+            sage: B = SetPartition([[1,2,3], [4]])
+            sage: B >= A
+            True
+            sage: B >= B
+            True
+        """
+        return self.__eq__(y) or self.__gt__(y)
+
     def __mul__(self, other):
         r"""
-        The product of two set partitions (resp. compositions) is defined
-        as the intersection (resp. ordered) of sets appearing in the
-        partitions (resp. compositions).
+        The product of the set partitions ``self`` and ``other``.
+
+        The product of two set partitions `B` and `C` is defined as the
+        set partition whose parts are the nonempty intersections between
+        each part of `B` and each part of `C`. This product is also
+        the infimum of `B` and `C` in the classical set partition
+        lattice (that is, the coarsest set partition which is finer than
+        each of `B` and `C`). Consequently, ``inf`` acts as an alias for
+        this method.
+
+        .. SEEALSO::
+
+            :meth:`sup`
 
         EXAMPLES::
 
@@ -162,6 +335,31 @@ class SetPartition(ClonableArray):
             sage: y = SetPartition(( (3,1,2), (5,4) ))
             sage: x * y
             {{1, 2}, {3}, {4, 5}}
+
+            sage: S = SetPartitions(4)
+            sage: sp1 = S([[2,3,4], [1]])
+            sage: sp2 = S([[1,3], [2,4]])
+            sage: s = S([[2,4], [3], [1]])
+            sage: sp1.inf(sp2) == s
+            True
+
+        TESTS:
+
+        Here is a different implementation of the ``__mul__`` method
+        (one that was formerly used for the ``inf`` method, before it
+        was realized that the methods do the same thing)::
+
+            sage: def mul2(s, t):
+            ....:     temp = [ss.intersection(ts) for ss in s for ts in t]
+            ....:     temp = filter(lambda x: x != Set([]), temp)
+            ....:     return s.__class__(s.parent(), temp)
+
+        Let us check that this gives the same as ``__mul__`` on set
+        partitions of `\{1, 2, 3, 4\}`::
+
+            sage: all( all( mul2(s, t) == s * t for s in SetPartitions(4) )
+            ....:      for t in SetPartitions(4) )
+            True
         """
         new_composition = []
         for B in self:
@@ -171,9 +369,11 @@ class SetPartition(ClonableArray):
                     new_composition.append(BintC)
         return self.__class__(self.parent(), new_composition)
 
+    inf = __mul__
+
     def _repr_(self):
         """
-        Return string representation of ``self``.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -181,11 +381,11 @@ class SetPartition(ClonableArray):
             sage: S([[1,3],[2,4]])
             {{1, 3}, {2, 4}}
         """
-        return '{' + repr(list(self))[1:-1] + '}'
+        return '{' + ', '.join(map(lambda x: '{' + repr(sorted(x))[1:-1] + '}', self)) + '}'
 
     def _latex_(self):
         r"""
-        Return a `\LaTeX` string representation.
+        Return a `\LaTeX` string representation of ``self``.
 
         EXAMPLES::
 
@@ -197,35 +397,19 @@ class SetPartition(ClonableArray):
 
     cardinality = ClonableArray.__len__
 
-    def inf(self, t):
-        """
-        Return the infimum of ``self`` and ``t`` in the classical set partition
-        lattice.
-
-        The infimum of two set partitions is the set partition obtained
-        by intersecting all the parts of both set partitions.
-
-        EXAMPLES::
-
-            sage: S = SetPartitions(4)
-            sage: sp1 = S([[2,3,4], [1]])
-            sage: sp2 = S([[1,3], [2,4]])
-            sage: s = S([[2,4], [3], [1]])
-            sage: sp1.inf(sp2) == s
-            True
-        """
-        temp = [ss.intersection(ts) for ss in self for ts in t]
-        temp = filter(lambda x: x != Set([]), temp)
-        return self.__class__(self.parent(), temp)
-
-    def sup(self,t):
+    def sup(self, t):
         """
         Return the supremum of ``self`` and ``t`` in the classical set
         partition lattice.
 
-        The supremum is obtained by transitive closure of the relation `i`
-        related to `j` if and only if they are in the same part in at least
-        one of the set partitions.
+        The supremum of two set partitions `B` and `C` is obtained as the
+        transitive closure of the relation which relates `i` to `j` if
+        and only if `i` and `j` are in the same part in at least
+        one of the set partitions `B` and `C`.
+
+        .. SEEALSO::
+
+            :meth:`__mul__`
 
         EXAMPLES::
 
@@ -241,6 +425,48 @@ class SetPartition(ClonableArray):
             inters = Set(filter(lambda x: x.intersection(p) != Set([]), list(res)))
             res = res.difference(inters).union(_set_union(inters))
         return self.__class__(self.parent(), res)
+
+    def pipe(self, other):
+        r"""
+        Return the pipe of the set partitions ``self`` and ``other``.
+
+        The pipe of two set partitions is defined as follows:
+
+        For any integer `k` and any subset `I` of `\ZZ`, let `I + k`
+        denote the subset of `\ZZ` obtained by adding `k` to every
+        element of `k`.
+
+        If `B` and `C` are set partitions of `[n]` and `[m]`,
+        respectively, then the pipe of `B` and `C` is defined as the
+        set partition
+
+        .. MATH::
+
+            \{ B_1, B_2, \ldots, B_b,
+            C_1 + n, C_2 + n, \ldots, C_c + n \}
+
+        of `[n+m]`, where `B = \{ B_1, B_2, \ldots, B_b \}` and
+        `C = \{ C_1, C_2, \ldots, C_c \}`. This pipe is denoted by
+        `B | C`.
+
+        EXAMPLES::
+
+            sage: SetPartition([[1,3],[2,4]]).pipe(SetPartition([[1,3],[2]]))
+            {{1, 3}, {2, 4}, {5, 7}, {6}}
+            sage: SetPartition([]).pipe(SetPartition([[1,2],[3,5],[4]]))
+            {{1, 2}, {3, 5}, {4}}
+            sage: SetPartition([[1,2],[3,5],[4]]).pipe(SetPartition([]))
+            {{1, 2}, {3, 5}, {4}}
+            sage: SetPartition([[1,2],[3]]).pipe(SetPartition([[1]]))
+            {{1, 2}, {3}, {4}}
+        """
+        # Note: GIGO if self and other are not standard.
+        parts = list(self)
+        n = self.base_set_cardinality()
+        for newpart in other:
+            raised_newpart = Set([i + n for i in newpart])
+            parts.append(raised_newpart)
+        return SetPartition(parts)
 
     @combinatorial_map(name='shape')
     def shape(self):
@@ -258,7 +484,6 @@ class SetPartition(ClonableArray):
             sage: y.shape()
             [2, 2, 1]
         """
-        from sage.combinat.partition import Partition
         return Partition(sorted(map(len, self), reverse=True))
 
     # we define aliases for shape()
@@ -280,8 +505,12 @@ class SetPartition(ClonableArray):
         return Permutation(tuple( map(tuple, self.standard_form()) ))
 
     def standard_form(self):
-        """
+        r"""
         Return ``self`` as a list of lists.
+
+        This is not related to standard set partitions (which simply
+        means set partitions of `[n] = \{ 1, 2, \ldots , n \}` for some
+        integer `n`) or standardization (:meth:`standardization`).
 
         EXAMPLES::
 
@@ -312,7 +541,7 @@ class SetPartition(ClonableArray):
 
     def is_noncrossing(self):
         r"""
-        Check if ``self`` is non crossing.
+        Check if ``self`` is noncrossing.
 
         EXAMPLES::
 
@@ -344,18 +573,341 @@ class SetPartition(ClonableArray):
                     return False
         return True
 
+    def is_atomic(self):
+        """
+        Return if ``self`` is an atomic set partition.
+
+        A (standard) set partition `A` can be split if there exist `j < i`
+        such that `\max(A_j) < \min(A_i)` where `A` is ordered by minimal
+        elements. This means we can write `A = B | C` for some nonempty set
+        partitions `B` and `C`. We call a set partition *atomic* if it
+        cannot be split and is nonempty. Here, the pipe symbol
+        `|` is as defined in method :meth:`pipe`.
+
+        EXAMPLES::
+
+            sage: SetPartition([[1,3], [2]]).is_atomic()
+            True
+            sage: SetPartition([[1,3], [2], [4]]).is_atomic()
+            False
+            sage: SetPartition([[1], [2,4], [3]]).is_atomic()
+            False
+            sage: SetPartition([[1,2,3,4]]).is_atomic()
+            True
+            sage: SetPartition([[1, 4], [2], [3]]).is_atomic()
+            True
+            sage: SetPartition([]).is_atomic()
+            False
+        """
+        if len(self) == 0:
+            return False
+        maximum_so_far = max(self[0])
+        for S in self[1:]:
+            if maximum_so_far < min(S):
+                return False
+            maximum_so_far = max(maximum_so_far, max(S))
+        return True
+
+    def base_set(self):
+        """
+        Return the base set of ``self``, which is the union of all parts
+        of ``self``.
+
+        EXAMPLES::
+
+            sage: SetPartition([[1], [2,3], [4]]).base_set()
+            {1, 2, 3, 4}
+            sage: SetPartition([[1,2,3,4]]).base_set()
+            {1, 2, 3, 4}
+            sage: SetPartition([]).base_set()
+            {}
+        """
+        return reduce(lambda x,y: x.union(y), self, Set([]))
+
+    def base_set_cardinality(self):
+        """
+        Return the cardinality of the base set of ``self``, which is the sum
+        of the sizes of the parts of ``self``.
+
+        This is also known as the *size* (sometimes the *weight*) of
+        a set partition.
+
+        EXAMPLES::
+
+            sage: SetPartition([[1], [2,3], [4]]).base_set_cardinality()
+            4
+            sage: SetPartition([[1,2,3,4]]).base_set_cardinality()
+            4
+        """
+        return sum(len(x) for x in self)
+
+    size = base_set_cardinality
+
+    def standardization(self):
+        """
+        Return the standardization of ``self``.
+
+        Given a set partition `A = \{A_1, \ldots, A_n\}` of an ordered
+        set `S`, the standardization of `A` is the set partition of
+        `\{1, 2, \ldots, |S|\}` obtained by replacing the elements of
+        the parts of `A` by the integers `1, 2, \ldots, |S|` in such
+        a way that their relative order is preserved (i. e., the
+        smallest element in the whole set partition is replaced by
+        `1`, the next-smallest by `2`, and so on).
+
+        EXAMPLES::
+
+            sage: SetPartition([[4], [1, 3]]).standardization()
+            {{1, 2}, {3}}
+            sage: SetPartition([[4], [6, 3]]).standardization()
+            {{1, 3}, {2}}
+            sage: SetPartition([]).standardization()
+            {}
+        """
+        if len(self) == 0:
+            return self
+        temp = map(list, self)
+        mins = [min(p) for p in temp]
+        over_max = max([max(p) for p in temp]) + 1
+        ret = [[] for i in range(len(temp))]
+        cur = 1
+        while min(mins) != over_max:
+            m = min(mins)
+            i = mins.index(m)
+            ret[i].append(cur)
+            cur += 1
+            temp[i].pop(temp[i].index(m))
+            if len(temp[i]) != 0:
+                mins[i] = min(temp[i])
+            else:
+                mins[i] = over_max
+        return SetPartition(ret)
+
+    def restriction(self, I):
+        """
+        Return the restriction of ``self`` to a subset ``I``
+        (which is given as a set or list or any other iterable).
+
+        EXAMPLES::
+
+            sage: A = SetPartition([[1], [2,3]])
+            sage: A.restriction([1,2])
+            {{1}, {2}}
+            sage: A.restriction([2,3])
+            {{2, 3}}
+            sage: A.restriction([])
+            {}
+            sage: A.restriction([4])
+            {}
+        """
+        ret = []
+        for part in self:
+            newpart = [i for i in part if i in I]
+            if len(newpart) != 0:
+                ret.append(newpart)
+        return SetPartition(ret)
+
+    def ordered_set_partition_action(self, s):
+        r"""
+        Return the action of an ordered set partition ``s`` on ``self``.
+
+        Let `A = \{A_1, A_2, \ldots, A_k\}` be a set partition of some
+        set `S` and `s` be an ordered set partition (i.e., set composition)
+        of a subset of `[k]`. Let `A^{\downarrow}` denote the standardization
+        of `A`, and `A_{\{ i_1, i_2, \ldots, i_m \}}` denote the sub-partition
+        `\{A_{i_1}, A_{i_2}, \ldots, A_{i_m}\}` for any subset
+        `\{i_1, \ldots, i_m\}` of `\{1, \ldots, k\}`. We define the set
+        partition `s(A)` by
+
+        .. MATH::
+
+            s(A) = A_{s_1}^{\downarrow} | A_{s_2}^{\downarrow} | \cdots
+            | A_{s_q}^{\downarrow}.
+
+        where `s = (s_1, s_2, \ldots, s_q)`. Here, the pipe symbol
+        `|` is as defined in method :meth:`pipe`.
+
+        This is `s[A]` in section 2.3 in [LM2011]_.
+
+        INPUT:
+
+        - ``s`` -- an ordered set partition with base set a subset
+          of `\{1, \ldots, k\}`
+
+        EXAMPLES::
+
+            sage: A = SetPartition([[1], [2,4], [3]])
+            sage: s = OrderedSetPartition([[1,3], [2]])
+            sage: A.ordered_set_partition_action(s)
+            {{1}, {2}, {3, 4}}
+            sage: s = OrderedSetPartition([[2,3], [1]])
+            sage: A.ordered_set_partition_action(s)
+            {{1, 3}, {2}, {4}}
+
+        We create Figure 1 in [LM2011]_ (we note that there is a typo in the
+        lower-left corner of the table in the published version of the
+        paper, whereas the arXiv version gives the correct partition)::
+
+            sage: A = SetPartition([[1,3], [2,9], [4,5,8], [7]])
+            sage: B = SetPartition([[1,3], [2,8], [4,5,6], [7]])
+            sage: C = SetPartition([[1,5], [2,8], [3,4,6], [7]])
+            sage: s = OrderedSetPartition([[1,3], [2]])
+            sage: t = OrderedSetPartition([[2], [3,4]])
+            sage: u = OrderedSetPartition([[1], [2,3,4]])
+            sage: A.ordered_set_partition_action(s)
+            {{1, 2}, {3, 4, 5}, {6, 7}}
+            sage: A.ordered_set_partition_action(t)
+            {{1, 2}, {3, 4, 6}, {5}}
+            sage: A.ordered_set_partition_action(u)
+            {{1, 2}, {3, 8}, {4, 5, 7}, {6}}
+            sage: B.ordered_set_partition_action(s)
+            {{1, 2}, {3, 4, 5}, {6, 7}}
+            sage: B.ordered_set_partition_action(t)
+            {{1, 2}, {3, 4, 5}, {6}}
+            sage: B.ordered_set_partition_action(u)
+            {{1, 2}, {3, 8}, {4, 5, 6}, {7}}
+            sage: C.ordered_set_partition_action(s)
+            {{1, 4}, {2, 3, 5}, {6, 7}}
+            sage: C.ordered_set_partition_action(t)
+            {{1, 2}, {3, 4, 5}, {6}}
+            sage: C.ordered_set_partition_action(u)
+            {{1, 2}, {3, 8}, {4, 5, 6}, {7}}
+
+        REFERENCES:
+
+        .. [LM2011] A. Lauve, M. Mastnak. *The primitives and antipode in
+           the Hopf algebra of symmetric functions in noncommuting variables*.
+           Advances in Applied Mathematics. **47** (2011). 536-544.
+           :arxiv:`1006.0367v3` :doi:`10.1016/j.aam.2011.01.002`.
+        """
+        cur = 1
+        ret = []
+        for part in s:
+            sub_parts = [list(self[i-1]) for i in part] # -1 for indexing
+            # Standardizing sub_parts (the cur variable not being reset
+            # to 1 gives us the offset we want):
+            mins = map(min, sub_parts)
+            over_max = max(map(max, sub_parts)) + 1
+            temp = [[] for i in range(len(part))]
+            while min(mins) != over_max:
+                m = min(mins)
+                i = mins.index(m)
+                temp[i].append(cur)
+                cur += 1
+                sub_parts[i].pop(sub_parts[i].index(m))
+                if len(sub_parts[i]) != 0:
+                    mins[i] = min(sub_parts[i])
+                else:
+                    mins[i] = over_max
+            ret += temp
+        return SetPartition(ret)
+
+    def refinements(self):
+        """
+        Return a list of refinements of ``self``.
+
+        EXAMPLES::
+
+            sage: SetPartition([[1,3],[2,4]]).refinements()
+            [{{1, 3}, {2, 4}},
+             {{1, 3}, {2}, {4}},
+             {{1}, {2, 4}, {3}},
+             {{1}, {2}, {3}, {4}}]
+            sage: SetPartition([[1],[2,4],[3]]).refinements()
+            [{{1}, {2, 4}, {3}}, {{1}, {2}, {3}, {4}}]
+            sage: SetPartition([]).refinements()
+            [{}]
+        """
+        L = [SetPartitions(part) for part in self]
+        P = self.parent()
+        return [self.__class__(P, sum(map(list, x), [])) for x in CartesianProduct(*L)]
+
+    def coarsenings(self):
+        """
+        Return a list of coarsenings of ``self``.
+
+        EXAMPLES::
+
+            sage: SetPartition([[1,3],[2,4]]).coarsenings()
+            [{{1, 2, 3, 4}}, {{1, 3}, {2, 4}}]
+            sage: SetPartition([[1],[2,4],[3]]).coarsenings()
+            [{{1, 2, 3, 4}},
+             {{1}, {2, 3, 4}},
+             {{1, 3}, {2, 4}},
+             {{1, 2, 4}, {3}},
+             {{1}, {2, 4}, {3}}]
+            sage: SetPartition([]).coarsenings()
+            [{}]
+        """
+        SP = SetPartitions(len(self))
+        P = self.parent()
+        def union(s):
+            # Return the partition obtained by combining, for every
+            # part of s, those parts of self which are indexed by
+            # the elements of this part of s into a single part.
+            ret = []
+            for part in s:
+                cur = Set([])
+                for i in part:
+                    cur = cur.union(self[i-1]) # -1 for indexing
+                ret.append(cur)
+            return ret
+        return [self.__class__(P, union(s)) for s in SP]
+
+    def strict_coarsenings(self):
+        r"""
+        Return all strict coarsenings of ``self``.
+
+        Strict coarsening is the binary relation on set partitions
+        defined as the transitive-and-reflexive closure of the
+        relation `\prec` defined as follows: For two set partitions
+        `A` and `B`, we have `A \prec B` if there exist parts
+        `A_i, A_j` of `A` such that `\max(A_i) < \min(A_j)` and
+        `B = A \setminus \{A_i, A_j\} \cup \{ A_i \cup A_j \}`.
+
+        EXAMPLES::
+
+            sage: A = SetPartition([[1],[2,3],[4]])
+            sage: A.strict_coarsenings()
+            [{{1}, {2, 3}, {4}}, {{1, 2, 3}, {4}}, {{1, 4}, {2, 3}},
+             {{1}, {2, 3, 4}}, {{1, 2, 3, 4}}]
+            sage: SetPartition([[1],[2,4],[3]]).strict_coarsenings()
+            [{{1}, {2, 4}, {3}}, {{1, 2, 4}, {3}}, {{1, 3}, {2, 4}}]
+            sage: SetPartition([]).strict_coarsenings()
+            [{}]
+        """
+        # This is more or less generic code for computing a
+        # transitive-and-reflexive closure by depth-first search.
+        todo = [self]
+        visited = set([self])
+        ret = [self]
+        while len(todo) != 0:
+            A = todo.pop()
+            for i, part in enumerate(A):
+                for j, other in enumerate(A[i+1:]):
+                    if max(part) < min(other):
+                        next = A[:i]
+                        next.append(part.union(other))
+                        next += A[i+1:i+1+j] + A[i+j+2:]
+                        next = SetPartition(next)
+                        if next not in visited:
+                            todo.append(next)
+                            visited.add(next)
+                            ret.append(next)
+        return ret
+
 class SetPartitions(Parent, UniqueRepresentation):
     r"""
-    An unordered partition of a set `S` is a set of pairwise
-    disjoint nonempty subsets with union `S` and is represented
+    An (unordered) partition of a set `S` is a set of pairwise
+    disjoint nonempty subsets with union `S`, and is represented
     by a sorted list of such subsets.
 
     ``SetPartitions(s)`` returns the class of all set partitions of the set
-    ``s``, which can be a set or a string; if a string, each character is
-    considered an element.
+    ``s``, which can be given as a set or a string; if a string, each
+    character is considered an element.
 
-    ``SetPartitions(n)``, where n is an integer, returns the class of all
-    set partitions of the set `\{1, 2, \ldots, n\}`.
+    ``SetPartitions(n)``, where ``n`` is an integer, returns the class of
+    all set partitions of the set `\{1, 2, \ldots, n\}`.
 
     You may specify a second argument `k`. If `k` is an integer,
     :class:`SetPartitions` returns the class of set partitions into `k` parts;
@@ -388,7 +940,7 @@ class SetPartitions(Parent, UniqueRepresentation):
     - :wikipedia:`Partition_of_a_set`
     """
     @staticmethod
-    def __classcall_private__(cls, s, part=None):
+    def __classcall_private__(cls, s=None, part=None):
         """
         Normalize input to ensure a unique representation.
 
@@ -399,6 +951,8 @@ class SetPartitions(Parent, UniqueRepresentation):
             sage: S is T
             True
         """
+        if s is None:
+            return SetPartitions_all()
         if isinstance(s, (int, Integer)):
             s = frozenset(range(1, s+1))
         else:
@@ -423,49 +977,34 @@ class SetPartitions(Parent, UniqueRepresentation):
         else:
             return SetPartitions_set(s)
 
-    def __init__(self, s):
-        """
-        Initialize ``self``.
-
-        EXAMPLES::
-
-            sage: S = SetPartitions(3)
-            sage: TestSuite(S).run()
-            sage: SetPartitions(0).list()
-            [{}]
-            sage: SetPartitions([]).list()
-            [{}]
-        """
-        self._set = s
-        Parent.__init__(self, category=FiniteEnumeratedSets())
-
     def __contains__(self, x):
         """
         TESTS::
 
             sage: S = SetPartitions(4, [2,2])
-            sage: all([sp in S for sp in S])
+            sage: SA = SetPartitions()
+            sage: all([sp in SA for sp in S])
+            True
+            sage: Set([Set([1,2]),Set([3,7])]) in SA
+            True
+            sage: Set([Set([1,2]),Set([2,3])]) in SA
+            False
+            sage: Set([]) in SA
             True
         """
-        #x must be a set, if it's not, make it into one
+        # x must be a set
         if not (isinstance(x, (SetPartition, set, frozenset)) or is_Set(x)):
             return False
 
-        #Make sure that the number of elements match up
-        if sum(map(len, x)) != len(self._set):
+        # Check that all parts are disjoint
+        base_set = reduce( lambda x,y: x.union(y), map(Set, x), Set([]) )
+        if len(base_set) != sum(map(len, x)):
             return False
 
-        #Check to make sure each element of x is a set
-        u = Set([])
+        # Check to make sure each element of x is a set
         for s in x:
             if not (isinstance(s, (set, frozenset)) or is_Set(s)):
                 return False
-            u = u.union(Set(s))
-
-        #Make sure that the union of all the
-        #sets is the original set
-        if u != Set(self._set):
-            return False
 
         return True
 
@@ -480,15 +1019,20 @@ class SetPartitions(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: S = SetPartitions(4)
-            sage: S([[1,3],[2,4]])
+            sage: elt = S([[1,3],[2,4]]); elt
             {{1, 3}, {2, 4}}
+            sage: P = SetPartitions()
+            sage: P(elt).parent() is P
+            True
             sage: S = SetPartitions([])
             sage: S([])
             {}
         """
         if isinstance(s, SetPartition):
-            if s.parent() == self:
+            if s.parent() is self:
                 return s
+            if isinstance(s.parent(), SetPartitions):
+                return self.element_class(self, list(s))
             raise ValueError("Cannot convert %s into an element of %s"%(s, self))
         return self.element_class(self, s)
 
@@ -497,7 +1041,7 @@ class SetPartitions(Parent, UniqueRepresentation):
     def _iterator_part(self, part):
         """
         Return an iterator for the set partitions with block sizes
-        corresponding to the partition part.
+        corresponding to the partition ``part``.
 
         INPUT:
 
@@ -530,8 +1074,15 @@ class SetPartitions(Parent, UniqueRepresentation):
                 yield x
 
     def is_less_than(self, s, t):
-        """
-        Check if `s < t` in the ordering on set partitions.
+        r"""
+        Check if `s < t` in the refinement ordering on set partitions.
+
+        This means that `s` is a refinement of `t` and satisfies
+        `s \neq t`.
+
+        A set partition `s` is said to be a refinement of a set
+        partition `t` of the same set if and only if each part of
+        `s` is a subset of a part of `t`.
 
         EXAMPLES::
 
@@ -540,8 +1091,20 @@ class SetPartitions(Parent, UniqueRepresentation):
             sage: t = S([[1],[2],[3],[4]])
             sage: S.is_less_than(t, s)
             True
+            sage: S.is_less_than(s, t)
+            False
+            sage: S.is_less_than(s, s)
+            False
         """
-        if s.parent()._set != t.parent()._set:
+        if hasattr(s.parent(), "_set"):
+            S = s.parent()._set
+        else:
+            S = s.base_set()
+        if hasattr(t.parent(), "_set"):
+            T = t.parent()._set
+        else:
+            T = t.base_set()
+        if S != T:
             raise ValueError("cannot compare partitions of different sets")
 
         if s == t:
@@ -555,10 +1118,230 @@ class SetPartitions(Parent, UniqueRepresentation):
 
     lt = is_less_than
 
-class SetPartitions_setparts(SetPartitions):
+    def is_strict_refinement(self, s, t):
+        r"""
+        Return ``True`` if ``s`` is a strict refinement of ``t`` and
+        satisfies `s \neq t`.
+
+        A set partition `s` is said to be a strict refinement of a set
+        partition `t` of the same set if and only if one can obtain
+        `t` from `s` by repeatedly combining pairs of parts whose
+        convex hulls don't intersect (i. e., whenever we are combining
+        two parts, the maximum of each of them should be smaller than
+        the minimum of the other).
+
+        EXAMPLES::
+
+            sage: S = SetPartitions(4)
+            sage: s = S([[1],[2],[3],[4]])
+            sage: t = S([[1,3],[2,4]])
+            sage: u = S([[1,2,3,4]])
+            sage: S.is_strict_refinement(s, t)
+            True
+            sage: S.is_strict_refinement(t, u)
+            False
+            sage: A = SetPartition([[1,3],[2,4]])
+            sage: B = SetPartition([[1,2,3,4]])
+            sage: S.is_strict_refinement(s, A)
+            True
+            sage: S.is_strict_refinement(t, B)
+            False
+        """
+        if hasattr(s.parent(), "_set"):
+            S = s.parent()._set
+        else:
+            S = frozenset(s.base_set())
+        if hasattr(t.parent(), "_set"):
+            T = t.parent()._set
+        else:
+            T = frozenset(t.base_set())
+        if S != T:
+            raise ValueError("cannot compare partitions of different sets")
+
+        if s == t:
+            return False
+
+        for p in t:
+            L = filter(lambda x: x.issubset(p), list(s))
+            if sum(len(x) for x in L) != len(p) \
+                    or any(max(L[i]) > min(L[i+1]) for i in range(len(L)-1)):
+                return False
+        return True
+
+class SetPartitions_all(SetPartitions):
+    r"""
+    All set partitions.
+    """
+    def __init__(self):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: S = SetPartitions()
+            sage: TestSuite(S).run()
+        """
+        SetPartitions.__init__(self, category=InfiniteEnumeratedSets())
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+
+            sage: SetPartitions()
+            Set partitions
+        """
+        return "Set partitions"
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: it = SetPartitions().__iter__()
+            sage: [it.next() for x in range(10)]
+            [{}, {{1}}, {{1, 2}}, {{1}, {2}}, {{1, 2, 3}}, {{1}, {2, 3}},
+             {{1, 3}, {2}}, {{1, 2}, {3}}, {{1}, {2}, {3}}, {{1, 2, 3, 4}}]
+        """
+        n = 0
+        while True:
+            for x in SetPartitions_set(frozenset(range(1, n+1))):
+                yield self.element_class(self, list(x))
+            n += 1
+
+class SetPartitions_set(SetPartitions):
+    """
+    Set partitions of a fixed set `S`.
+    """
+    @staticmethod
+    def __classcall_private__(cls, s):
+        """
+        Normalize ``s`` to ensure a unique representation.
+
+        EXAMPLES::
+
+            sage: S1 = SetPartitions(set([2,1,4]))
+            sage: S2 = SetPartitions([4,1,2])
+            sage: S3 = SetPartitions((1,2,4))
+            sage: S1 is S2, S1 is S3
+            (True, True)
+        """
+        return super(SetPartitions_set, cls).__classcall__(cls, frozenset(s))
+
+    def __init__(self, s):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: S = SetPartitions(3)
+            sage: TestSuite(S).run()
+            sage: SetPartitions(0).list()
+            [{}]
+            sage: SetPartitions([]).list()
+            [{}]
+        """
+        self._set = s
+        SetPartitions.__init__(self, category=FiniteEnumeratedSets())
+
+    def _repr_(self):
+        """
+        TESTS::
+
+            sage: SetPartitions([1,2,3])
+            Set partitions of {1, 2, 3}
+        """
+        return "Set partitions of %s"%(Set(self._set))
+
+    def __contains__(self, x):
+        """
+        TESTS::
+
+            sage: S = SetPartitions(4, [2,2])
+            sage: all([sp in S for sp in S])
+            True
+            sage: SetPartition([[1,3],[2,4]]) in SetPartitions(3)
+            False
+            sage: SetPartition([[1,3],[2,4]]) in SetPartitions(4, [3,1])
+            False
+            sage: SetPartition([[2],[1,3,4]]) in SetPartitions(4, [3,1])
+            True
+        """
+        # Must pass the general check
+        if not SetPartitions.__contains__(self, x):
+            return False
+
+        # Make sure that the number of elements match up
+        if sum(map(len, x)) != len(self._set):
+            return False
+
+        # Make sure that the union of all the sets is the original set
+        if reduce(lambda u, s: u.union(Set(s)), x, Set([])) != Set(self._set):
+            return False
+
+        return True
+
+    def cardinality(self):
+        """
+        Return the number of set partitions of the set `S`.
+
+        The cardinality is given by the `n`-th Bell number where `n` is the
+        number of elements in the set `S`.
+
+        EXAMPLES::
+
+            sage: SetPartitions([1,2,3,4]).cardinality()
+            15
+            sage: SetPartitions(3).cardinality()
+            5
+            sage: SetPartitions(3,2).cardinality()
+            3
+            sage: SetPartitions([]).cardinality()
+            1
+        """
+        return bell_number(len(self._set))
+
+    def __iter__(self):
+        """
+        Iterate over ``self``.
+
+        EXAMPLES::
+
+            sage: SetPartitions(3).list()
+            [{{1, 2, 3}}, {{1}, {2, 3}}, {{1, 3}, {2}}, {{1, 2}, {3}}, {{1}, {2}, {3}}]
+        """
+        for p in Partitions(len(self._set)):
+            for sp in self._iterator_part(p):
+                yield self.element_class(self, sp)
+
+    def base_set(self):
+        """
+        Return the base set of ``self``.
+
+        EXAMPLES::
+
+            sage: SetPartitions(3).base_set()
+            {1, 2, 3}
+        """
+        return Set(self._set)
+
+    def base_set_cardinality(self):
+        """
+        Return the cardinality of the base set of ``self``.
+
+        EXAMPLES::
+
+            sage: SetPartitions(3).base_set_cardinality()
+            3
+        """
+        return len(self._set)
+
+class SetPartitions_setparts(SetPartitions_set):
     r"""
     Class of all set partitions with fixed partition sizes corresponding to
-    and integer partition `\lambda`.
+    an integer partition `\lambda`.
     """
     @staticmethod
     def __classcall_private__(cls, s, parts):
@@ -581,10 +1364,9 @@ class SetPartitions_setparts(SetPartitions):
         TESTS::
 
             sage: S = SetPartitions(4, [2,2])
-            sage: S == loads(dumps(S))
-            True
+            sage: TestSuite(S).run()
         """
-        SetPartitions.__init__(self, s)
+        SetPartitions_set.__init__(self, s)
         self.parts = parts
 
     def _repr_(self):
@@ -605,11 +1387,12 @@ class SetPartitions_setparts(SetPartitions):
             sage: SetPartitions(3, [2,1]).cardinality()
             3
         """
-        return len(self.list())
+        return Integer(len(self.list()))
 
     def __iter__(self):
         """
-        An iterator for all the set partitions of the set.
+        An iterator for all the set partitions of the given set with
+        the given sizes.
 
         EXAMPLES::
 
@@ -619,7 +1402,25 @@ class SetPartitions_setparts(SetPartitions):
         for sp in self._iterator_part(self.parts):
             yield self.element_class(self, sp)
 
-class SetPartitions_setn(SetPartitions):
+    def __contains__(self, x):
+        """
+        Check containment.
+
+        TESTS::
+
+            sage: S = SetPartitions(4, [3,1])
+            sage: Set([Set([1,2,3]), Set([4])]) in S
+            True
+            sage: Set([Set([1,3]), Set([2,4])]) in S
+            False
+            sage: Set([Set([1,2,3,4])]) in S
+            False
+        """
+        if not SetPartitions_set.__contains__(self, x):
+            return False
+        return sorted(map(len, x)) == list(reversed(self.parts))
+
+class SetPartitions_setn(SetPartitions_set):
     @staticmethod
     def __classcall_private__(cls, s, n):
         """
@@ -643,7 +1444,7 @@ class SetPartitions_setn(SetPartitions):
             sage: TestSuite(S).run()
         """
         self.n = n
-        SetPartitions.__init__(self, s)
+        SetPartitions_set.__init__(self, s)
 
     def _repr_(self):
         """
@@ -681,66 +1482,23 @@ class SetPartitions_setn(SetPartitions):
             for sp in self._iterator_part(p):
                 yield self.element_class(self, sp)
 
-class SetPartitions_set(SetPartitions):
-    """
-    Set partitions of a fixed set `S`.
-    """
-    @staticmethod
-    def __classcall_private__(cls, s):
+    def __contains__(self, x):
         """
-        Normalize ``s`` to ensure a unique representation.
+        Check containment.
 
-        EXAMPLES::
-
-            sage: S1 = SetPartitions(set([2,1,4]))
-            sage: S2 = SetPartitions([4,1,2])
-            sage: S3 = SetPartitions((1,2,4))
-            sage: S1 is S2, S1 is S3
-            (True, True)
-        """
-        return super(SetPartitions_set, cls).__classcall__(cls, frozenset(s))
-
-    def _repr_(self):
-        """
         TESTS::
 
-            sage: SetPartitions([1,2,3])
-            Set partitions of {1, 2, 3}
+            sage: S = SetPartitions(4, 2)
+            sage: Set([Set([1,2,3]), Set([4])]) in S
+            True
+            sage: Set([Set([1,3]), Set([2,4])]) in S
+            True
+            sage: Set([Set([1,2,3,4])]) in S
+            False
         """
-        return "Set partitions of %s"%(Set(self._set))
-
-    def cardinality(self):
-        """
-        Return the number of set partitions of the set `S`.
-
-        The cardinality is given by the `n`-th Bell number where `n` is the
-        number of elements in the set `S`.
-
-        EXAMPLES::
-
-            sage: SetPartitions([1,2,3,4]).cardinality()
-            15
-            sage: SetPartitions(3).cardinality()
-            5
-            sage: SetPartitions(3,2).cardinality()
-            3
-            sage: SetPartitions([]).cardinality()
-            1
-        """
-        return bell_number(len(self._set))
-
-    def __iter__(self):
-        """
-        Iterate over ``self``.
-
-        EXAMPLES::
-
-            sage: SetPartitions(3).list()
-            [{{1, 2, 3}}, {{1}, {2, 3}}, {{1, 3}, {2}}, {{1, 2}, {3}}, {{1}, {2}, {3}}]
-        """
-        for p in Partitions(len(self._set)):
-            for sp in self._iterator_part(p):
-                yield self.element_class(self, sp)
+        if not SetPartitions_set.__contains__(self, x):
+            return False
+        return len(x) == self.n
 
 def _listbloc(n, nbrepets, listint=None):
     r"""

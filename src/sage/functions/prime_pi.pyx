@@ -452,9 +452,9 @@ cdef class PrimePi(BuiltinFunction):
 
         WARNING: we draw the plot of ``prime_pi`` as a stairstep function with
         explicitly drawn vertical lines where the function jumps. Technically
-        Technically there should not be any vertical lines, but they make the
-        graph look much better, so we include them. Use the option
-        ``vertical_lines=False`` to turn these off.
+        there should not be any vertical lines, but they make the graph look
+        much better, so we include them. Use the option ``vertical_lines=False``
+        to turn these off.
 
         EXAMPLES::
 

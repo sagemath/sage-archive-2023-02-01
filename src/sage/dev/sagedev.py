@@ -2440,7 +2440,7 @@ class SageDev(object):
           branch, whether to download its remote branch (not the default)
 
         - ``create_dependency`` -- a boolean or ``None`` (default: ``None``),
-          wether to create a dependency to ``ticket_or_branch``. If ``None``,
+          whether to create a dependency to ``ticket_or_branch``. If ``None``,
           then a dependency is created if ``ticket_or_branch`` identifies a
           ticket and if the current branch is associated to a ticket.
 

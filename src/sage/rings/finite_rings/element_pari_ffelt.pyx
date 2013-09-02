@@ -975,19 +975,30 @@ cdef class FiniteFieldElement_pari_ffelt(FinitePolyExtElement):
 
             sage: k.<a> = GF(3^17, impl='pari_ffelt')
             sage: a._pari_init_()
-            'a'
+            'subst(a+3*a,a,ffgen(Mod(1, 3)*x^17 + Mod(2, 3)*x + Mod(1, 3),a))'
+            sage: k(1)._pari_init_()
+            'subst(1+3*a,a,ffgen(Mod(1, 3)*x^17 + Mod(2, 3)*x + Mod(1, 3),a))'
 
-        .. NOTE::
+        This is used for conversion to GP. The element is displayed
+        as "a" but has correct arithmetic::
 
-            To use the output as a field element in the PARI/GP
-            interpreter, the finite field must have been defined
-            previously.  This can be done using the GP command
-            ``a = ffgen(f*Mod(1, p))``,
-            where `p` is the characteristic, `f` is the defining
-            polynomial and `a` is the name of the generator.
+            sage: gp(a)
+            a
+            sage: gp(a).type()
+            t_FFELT
+            sage: gp(a)^100
+            2*a^16 + 2*a^15 + a^4 + a + 1
+            sage: gp(a^100)
+            2*a^16 + 2*a^15 + a^4 + a + 1
+            sage: gp(k(0))
+            0
+            sage: gp(k(0)).type()
+            t_FFELT
         """
-        pari_catch_sig_on()
-        return pari.new_gen_to_string(self.val)
+        ffgen = "ffgen(%s,a)" % self._parent.modulus()._pari_init_()
+        # Add this "zero" to ensure that the polynomial is not constant
+        zero = "%s*a" % self._parent.characteristic()
+        return "subst(%s+%s,a,%s)" % (self, zero, ffgen)
 
     def _magma_init_(self, magma):
         """

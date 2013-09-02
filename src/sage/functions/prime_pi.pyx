@@ -162,8 +162,8 @@ cdef class PrimePi(BuiltinFunction):
     cdef void _init_tables(self):
         pari.init_primes(0xffffu)
         self.__pariPrimePtr = <uint8_t *>diffptr
-        self.__smallPi = <uint_fast16_t *>sage_malloc(0xffffu * \
-            sizeof(uint_fast16_t))
+        self.__smallPi = <uint_fast16_t *>sage_malloc(
+                0x10000u * sizeof(uint_fast16_t))
         cdef uint32_t p=0u, i=0u, k=0u
         while i < 0xfff1u: # 0xfff1 is the last prime up to 0xffff
             NEXT_PRIME_VIADIFF(p, self.__pariPrimePtr)

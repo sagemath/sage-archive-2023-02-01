@@ -279,7 +279,7 @@ elif [ -z "$PKG_HAS_PATH" ]; then
     PKG_VER="${PKG_VER#-}"
     PKG_SCRIPTS="$SAGE_ROOT/build/pkgs/$PKG_BASE"
     LOCAL_PKG_VER=`cat $PKG_SCRIPTS/package-version.txt 2>/dev/null`
-    if [ -n "$LOCAL_PKG_VER" ] && [ -z "$PKG_VER" -o "$PKG_VER" == "$LOCAL_PKG_VER" ]; then
+    if [ -n "$LOCAL_PKG_VER" ] && [ -z "$PKG_VER" -o "$PKG_VER" = "$LOCAL_PKG_VER" ]; then
         PKG_VER="$LOCAL_PKG_VER"
         if [ -z "$PKG_VER" ]; then
             PKG_NAME="${PKG_BASE}"
@@ -316,7 +316,7 @@ elif [ -z "$PKG_HAS_PATH" ]; then
     fi
 fi
 
-if [ $INFO -ne 0 -a "$USE_LOCAL_SCRIPTS" == yes ]; then
+if [ $INFO -ne 0 -a "$USE_LOCAL_SCRIPTS" = yes ]; then
     cat "$PKG_SCRIPTS/SPKG.txt"
     exit 0
 fi
@@ -345,7 +345,7 @@ if [ ! -f "$PKG_SRC" ]; then
     if [ -n "$PKG_HAS_PATH" ]; then
         PKG_URL="$PKG_SRC"
     else
-        if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
+        if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
             PKG_URL="$SAGE_UPSTREAM/$PKG_BASE/$PKG_NAME_UPSTREAM"
         else
             # Handle cases 2a and 3, where the package name is something
@@ -444,7 +444,7 @@ if [ ! -f "$PKG_SRC" ]; then
     # Download to a temporary file (such that we don't end up with a
     # corrupted .spkg file).
     PKG_TMP="${PKG_URL##*/}.tmp"
-    if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
+    if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
         EXT_LIST=".tar.bz2 .tar.gz .tar"
     else
         EXT_LIST=".spkg"
@@ -466,12 +466,12 @@ if [ ! -f "$PKG_SRC" ]; then
     fi
 
     PKG_SRC="`pwd`/${PKG_URL##*/}${EXT#.spkg}"
-    if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
+    if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
         verify_checksum "$PKG_TMP" "$PKG_SCRIPTS/checksums.ini"
     fi
     mv -f "$PKG_TMP" "$PKG_SRC"
 else
-    if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
+    if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
         verify_checksum "$PKG_SRC" "$PKG_SCRIPTS/checksums.ini"
     fi
 fi
@@ -569,7 +569,7 @@ fi
 # Extract the package
 ##################################################################
 
-if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
+if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
     echo "Setting up build directory for $PKG_NAME"
     cp -Rp "$PKG_SCRIPTS" "$PKG_NAME"
     cd "$PKG_NAME"
@@ -584,7 +584,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-if [ "$USE_LOCAL_SCRIPTS" == yes ]; then
+if [ "$USE_LOCAL_SCRIPTS" = yes ]; then
     mv "$PKG_NAME_UPSTREAM" src
     cd ..
     echo "Finished set up"

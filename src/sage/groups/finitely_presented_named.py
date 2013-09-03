@@ -1,4 +1,4 @@
-"""
+r"""
 Named Finitely Presented Groups
 
 Construct groups of small order and "named" groups as quotients of free groups. These
@@ -9,17 +9,18 @@ from entries in [THOMAS-WOODS]_.
 
 Groups available as finite presentations:
 
--- Cyclic group, $C_n$ of order $n$
-    - :func:`groups.presentation.Cyclic <sage.groups.finitely_presented_named.CyclicPresentation>`
+- Cyclic group, `C_n` of order `n` --
+  :func:`groups.presentation.Cyclic <sage.groups.finitely_presented_named.CyclicPresentation>`
 
--- Dicyclic group, nonabelian groups of order $4n$ with a unique element of order 2
-    - :func:`groups.presentation.DiCyclic <sage.groups.finitely_presented_named.DiCyclicPresentation>`
+- Dicyclic group, nonabelian groups of order `4n` with a unique element of
+  order 2 --
+  :func:`groups.presentation.DiCyclic <sage.groups.finitely_presented_named.DiCyclicPresentation>`
 
--- Dihedral group, $D_n$ of order $2n$
-    - :func:`groups.presentation.Dihedral <sage.groups.finitely_presented_named.DihedralPresentation>`
+- Dihedral group, `D_n` of order `2n` --
+  :func:`groups.presentation.Dihedral <sage.groups.finitely_presented_named.DihedralPresentation>`
 
--- Klein four group, `C_2 \\times C_2`
-    - :func:`groups.presentation.KleinFour <sage.groups.finitely_presented_named.KleinFourPresentation>`
+- Klein four group, `C_2 \times C_2` --
+  :func:`groups.presentation.KleinFour <sage.groups.finitely_presented_named.KleinFourPresentation>`
 
 AUTHORS:
 
@@ -30,7 +31,7 @@ EXAMPLES::
     sage: groups.presentation.Cyclic(4)
     Finitely presented group < a | a^4 >
 
-You can also import the desired functions.::
+You can also import the desired functions::
 
     sage: from sage.groups.finitely_presented_named import CyclicPresentation
     sage: CyclicPresentation(4)
@@ -48,7 +49,7 @@ from sage.groups.free_group import FreeGroup
 from sage.groups.finitely_presented import FinitelyPresentedGroup
 
 def CyclicPresentation(n):
-    """
+    r"""
     Build cyclic group of order `n` as a finitely presented group.
 
     INPUT:
@@ -82,8 +83,8 @@ def CyclicPresentation(n):
     return FinitelyPresentedGroup( F, rls )
 
 def DihedralPresentation(n):
-    """
-    Build the Dihedral group of order $2n$ as a finitely presented group.
+    r"""
+    Build the Dihedral group of order `2n` as a finitely presented group.
 
     INPUT:
 
@@ -119,12 +120,14 @@ def DihedralPresentation(n):
     return FinitelyPresentedGroup( F, rls )
 
 def DiCyclicPresentation(n):
-    """
-    Build the dicyclic group of order $4n$, for `n\geq 2`, as a finitely presented group.
+    r"""
+    Build the dicyclic group of order `4n`, for `n \geq 2`, as a finitely
+    presented group.
 
     INPUT:
 
-    - ``n`` -- Possitive integer, 2 or greater, determining the order of the group (`4n`).
+    - ``n`` -- positive integer, 2 or greater, determining the order of
+      the group (`4n`).
 
     OUTPUT:
 
@@ -132,9 +135,10 @@ def DiCyclicPresentation(n):
 
     .. MATH::
 
-        < a, x\mid a^{2n}=1, x^{2}=a^{n}, x^{-1}ax=a^{-1} >
+        \langle a, x \mid a^{2n}=1, x^{2}=a^{n}, x^{-1}ax=a^{-1} \rangle
 
-    .. note::
+    .. NOTE::
+
         This group is also available as a permutation group via
         :class:`groups.permutation.DiCyclic <sage.groups.perm_gps.permgroup_named.DiCyclicGroup>`.
 
@@ -167,12 +171,12 @@ def DiCyclicPresentation(n):
     return FinitelyPresentedGroup(F, rls)
 
 def KleinFourPresentation():
-    """
+    r"""
     Build the Klein group of order `4` as a finitely presented group.
 
     OUTPUT:
 
-    Klein four group (`C_2 \\times C_2`) as a finitely presented group.
+    Klein four group (`C_2 \times C_2`) as a finitely presented group.
 
     EXAMPLES::
 

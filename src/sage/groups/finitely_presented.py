@@ -2,7 +2,7 @@
 Finitely Presented Groups
 
 Finitely presented groups are constructed as quotients of
-:mod:`~sage.groups.free_group` ::
+:mod:`~sage.groups.free_group`::
 
     sage: F.<a,b,c> = FreeGroup()
     sage: G = F / [a^2, b^2, c^2, a*b*c*a*b*c]
@@ -100,8 +100,7 @@ obtained by modding out the commutator subgroup of the free group::
     ...
     ValueError: the values do not satisfy all relations of the group
 
-
-.. warning::
+.. WARNING::
 
     Some methods are not guaranteed to finish since the word problem
     for finitely presented groups is, in general, undecidable. In
@@ -110,9 +109,9 @@ obtained by modding out the commutator subgroup of the free group::
 
 REFERENCES:
 
-- http://en.wikipedia.org/wiki/Presentation_of_a_group
+- :wikipedia:`Presentation_of_a_group`
 
-- http://en.wikipedia.org/wiki/Word_problem_for_groups
+- :wikipedia:`Word_problem_for_groups`
 
 AUTHOR:
 
@@ -205,6 +204,8 @@ class FinitelyPresentedGroupElement(FreeGroupElement):
 
     def __reduce__(self):
         """
+        Used in pickling.
+
         TESTS::
 
             sage: F.<a,b> = FreeGroup()
@@ -311,8 +312,8 @@ class FinitelyPresentedGroupElement(FreeGroupElement):
             sage: H.simplified()
             Finitely presented group < a |  >
 
-        `b` can be eliminated using the relation `a=b`. Any values
-        that you plug into a word must satisfy this relation::
+        The generator `b` can be eliminated using the relation `a=b`. Any
+        values that you plug into a word must satisfy this relation::
 
             sage: A, B = H.gens()
             sage: w = A^2 * B
@@ -342,7 +343,7 @@ def wrap_FpGroup(libgap_fpgroup):
 
     This function changes the comparison method of
     ``libgap_free_group`` to comparison by Python ``id``. If you want
-    to put the LibGAP free group into a container (set, dict) then you
+    to put the LibGAP free group into a container ``(set, dict)`` then you
     should understand the implications of
     :meth:`~sage.libs.gap.element.GapElement._set_compare_by_id`. To
     be safe, it is recommended that you just work with the resulting
@@ -385,9 +386,9 @@ def wrap_FpGroup(libgap_fpgroup):
 class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
     Group, ParentLibGAP):
     """
-    A class that wraps GAP's Finitely Presented Groups
+    A class that wraps GAP's Finitely Presented Groups.
 
-    .. warning::
+    .. WARNING::
 
         You should use
         :meth:`~sage.groups.free_group.FreeGroup_class.quotient` to
@@ -425,7 +426,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
     def __init__(self, free_group, relations):
         """
-        The Python constructor
+        The Python constructor.
 
         TESTS::
 
@@ -454,6 +455,8 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
     def __reduce__(self):
         """
+        Used in pickling.
+
         TESTS::
 
             sage: F = FreeGroup(4)
@@ -552,7 +555,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         OUTPUT:
 
-        The relations as a touple of elements of :meth:`free_group`.
+        The relations as a tuple of elements of :meth:`free_group`.
 
         EXAMPLES::
 
@@ -570,7 +573,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
     @cached_method
     def cardinality(self, limit=4096000):
         """
-        Compute the size of self.
+        Compute the cardinality of ``self``.
 
         INPUT:
 
@@ -676,6 +679,8 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
     def _element_constructor_(self, *args, **kwds):
         """
+        Construct an element of ``self``.
+
         TESTS::
 
             sage: G.<a,b> = FreeGroup()
@@ -700,12 +705,12 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
     @cached_method
     def abelian_invariants(self):
-        """
-        Return the abelian invariants of self.
+        r"""
+        Return the abelian invariants of ``self``.
 
-        The abelian invariants are given by a list of integers $i_1 \dots i_j$, such that the
-        abelianization of the group is isomorphic to $\mathbb{Z}/(i_1) \\times \dots \\times
-        \mathbb{Z}/(i_j)$.
+        The abelian invariants are given by a list of integers
+        `(i_1, \ldots, i_j)`, such that the abelianization of the group is
+        isomorphic to `\ZZ / (i_1) \times \cdots \times \ZZ / (i_j)`.
 
         EXAMPLES::
 
@@ -718,15 +723,15 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         ALGORITHM:
 
-            Uses GAP.
+        Uses GAP.
         """
         invariants = self.gap().AbelianInvariants()
         return tuple( i.sage() for i in invariants )
 
     def simplification_isomorphism(self):
         """
-        Return an isomorphism from self to a finitely presented group with a (hopefully) simpler
-        presentation.
+        Return an isomorphism from ``self`` to a finitely presented group with
+        a (hopefully) simpler presentation.
 
         EXAMPLES::
 
@@ -755,7 +760,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         ALGORITM:
 
-            Uses GAP.
+        Uses GAP.
         """
         I = self.gap().IsomorphismSimplifiedFpGroup()
         domain = self
@@ -770,7 +775,7 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
         OUTPUT:
 
         A new finitely presented group. Use
-        :meth:simplification_isomorphism` if you want to know the
+        :meth:`simplification_isomorphism` if you want to know the
         isomorphism.
 
         EXAMPLES::

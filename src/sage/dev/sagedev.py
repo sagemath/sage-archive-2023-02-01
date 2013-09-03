@@ -3975,6 +3975,8 @@ class SageDev(object):
         # branches which could be tickets are calling for trouble - cowardly refuse to accept them
         if self._is_ticket_name(name):
             return False
+        if name in ["None", "True", "False"]:
+            return False
 
         if exists == True:
             return self.git.commit_for_branch(name) is not None

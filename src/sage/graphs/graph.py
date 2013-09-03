@@ -505,6 +505,7 @@ Methods
 
 from sage.rings.integer import Integer
 from sage.misc.superseded import deprecated_function_alias
+from sage.misc.superseded import deprecation
 import sage.graphs.generic_graph_pyx as generic_graph_pyx
 from sage.graphs.generic_graph import GenericGraph
 from sage.graphs.digraph import DiGraph
@@ -661,10 +662,23 @@ class Graph(GenericGraph):
        the graph. Currently, the options are either 'networkx' or
        'c_graph'
 
-    -  ``sparse`` - only for implementation == 'c_graph'.
-       Whether to use sparse or dense graphs as backend. Note that
-       currently dense graphs do not have edge labels, nor can they be
-       multigraphs
+    - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
+      ``data_structure="sparse"``, and ``sparse=False`` is an alias for
+      ``data_structure="dense"``.
+
+    -  ``data_structure`` -- one of the following
+
+       * ``"dense"`` -- selects the :mod:`~sage.graphs.base.dense_graph`
+         backend.
+
+       * ``"sparse"`` -- selects the :mod:`~sage.graphs.base.sparse_graph`
+         backend.
+
+       * ``"static_sparse"`` -- selects the
+         :mod:`~sage.graphs.base.static_sparse_backend` (this backend is faster
+         than the sparse backend and smaller in memory, but it is immutable).
+
+       *Only available when* ``implementation == 'c_graph'``
 
     -  ``vertex_labels`` - only for implementation == 'c_graph'.
        Whether to allow any object as a vertex (slower), or
@@ -674,7 +688,6 @@ class Graph(GenericGraph):
        the default edge labels used by NetworkX (empty dictionaries)
        to be replaced by None, the default Sage edge label. It is
        set to ``True`` iff a NetworkX graph is on the input.
-
 
     EXAMPLES:
 
@@ -926,8 +939,9 @@ class Graph(GenericGraph):
 
     def __init__(self, data=None, pos=None, loops=None, format=None,
                  boundary=None, weighted=None, implementation='c_graph',
-                 sparse=True, vertex_labels=True, name=None,
-                 multiedges=None, convert_empty_dict_labels_to_None=None):
+                 data_structure="sparse", vertex_labels=True, name=None,
+                 multiedges=None, convert_empty_dict_labels_to_None=None,
+                 sparse = True):
         """
         TESTS::
 
@@ -957,8 +971,8 @@ class Graph(GenericGraph):
             sage: g.get_pos() == h.get_pos()
             True
 
-        Loops are not counted as multiedges (see trac 11693) and edges
-        are not counted twice ::
+        Loops are not counted as multiedges (see :trac:`11693`) and edges are
+        not counted twice ::
 
             sage: Graph([[1,1]],multiedges=False).num_edges()
             1
@@ -1026,6 +1040,13 @@ class Graph(GenericGraph):
         msg = ''
         from sage.structure.element import is_Matrix
         from sage.misc.misc import uniq
+
+        if sparse == False:
+            if data_structure != "sparse":
+                raise ValueError("The 'sparse' argument is an alias for "
+                                 "'data_structure'. Please do not define both.")
+            data_structure = "dense"
+
         if format is None and isinstance(data, str):
             if data[:10] == ">>graph6<<":
                 data = data[10:]
@@ -1426,11 +1447,21 @@ class Graph(GenericGraph):
                     self.add_vertices(range(num_verts))
         elif implementation == 'c_graph':
             if multiedges or weighted:
-                if not sparse:
+                if data_structure == "dense":
                     raise RuntimeError("Multiedge and weighted c_graphs must be sparse.")
+
+            # If the data structure is static_sparse, we first build a graph
+            # using the sparse data structure, then reencode the resulting graph
+            # as a static sparse graph.
             from sage.graphs.base.sparse_graph import SparseGraphBackend
             from sage.graphs.base.dense_graph import DenseGraphBackend
-            CGB = SparseGraphBackend if sparse else DenseGraphBackend
+            if data_structure in ["sparse", "static_sparse"]:
+                CGB = SparseGraphBackend
+            elif data_structure == "dense":
+                 CGB = DenseGraphBackend
+            else:
+                raise ValueError("data_structure must be equal to 'sparse', "
+                                 "'static_sparse' or 'dense'")
             if format == 'Graph':
                 self._backend = CGB(0, directed=False)
                 self.add_vertices(verts)
@@ -1551,8 +1582,12 @@ class Graph(GenericGraph):
         if format != 'Graph' or name is not None:
             self.name(name)
 
-    ### Formats
+        if data_structure == "static_sparse":
+            from sage.graphs.base.static_sparse_backend import StaticSparseBackend
+            ib = StaticSparseBackend(self, loops = loops, multiedges = multiedges)
+            self._backend = ib
 
+    ### Formats
     def graph6_string(self):
         """
         Returns the graph6 representation of the graph as an ASCII string.
@@ -1593,8 +1628,8 @@ class Graph(GenericGraph):
 
         ::
 
-            sage: G = Graph(loops=True, multiedges=True,sparse=True)
-            sage: Graph(':?',sparse=True) == G
+            sage: G = Graph(loops=True, multiedges=True,data_structure="sparse")
+            sage: Graph(':?',data_structure="sparse") == G
             True
         """
         n = self.order()
@@ -1678,7 +1713,6 @@ class Graph(GenericGraph):
         return False
 
     ### Properties
-
     def is_tree(self, certificate = False):
         """
         Tests if the graph is a tree
@@ -2268,7 +2302,6 @@ class Graph(GenericGraph):
         else:
             raise ValueError("Algorithm '%s' not yet implemented. Please contribute." %(algorithm))
 
-
     def is_split(self):
         r"""
         Returns ``True`` if the graph is a Split graph, ``False`` otherwise.
@@ -2341,7 +2374,6 @@ class Graph(GenericGraph):
         right = omega * (omega - 1) + sum(degree_sequence[omega + 1:])
 
         return left == right
-
 
     def is_perfect(self, certificate = False):
         r"""
@@ -4430,23 +4462,50 @@ class Graph(GenericGraph):
 
     ### Constructors
 
-    def to_directed(self, implementation='c_graph', sparse=None):
+    def to_directed(self, implementation='c_graph', data_structure=None,
+                    sparse=None):
         """
         Returns a directed version of the graph. A single edge becomes two
         edges, one in each direction.
+
+        INPUT:
+
+         - ``implementation`` - string (default: 'networkx') the
+           implementation goes here.  Current options are only
+           'networkx' or 'c_graph'.
+
+         - ``data_structure`` -- one of ``"sparse"``, ``"static_sparse"``, or
+           ``"dense"``. See the documentation of :class:`Graph` or
+           :class:`DiGraph`.
+
+         - ``sparse`` (boolean) -- ``sparse=True`` is an alias for
+           ``data_structure="sparse"``, and ``sparse=False`` is an alias for
+           ``data_structure="dense"``.
 
         EXAMPLES::
 
             sage: graphs.PetersenGraph().to_directed()
             Petersen graph: Digraph on 10 vertices
         """
-        if sparse is None:
+        if sparse != None:
+            if data_structure != None:
+                raise ValueError("The 'sparse' argument is an alias for "
+                                 "'data_structure'. Please do not define both.")
+            data_structure = "sparse" if sparse else "dense"
+
+        if data_structure is None:
             from sage.graphs.base.dense_graph import DenseGraphBackend
-            sparse = (not isinstance(self._backend, DenseGraphBackend))
+            from sage.graphs.base.sparse_graph import SparseGraphBackend
+            if isinstance(self._backend, DenseGraphBackend):
+                data_structure = "dense"
+            elif isinstance(self._backend, SparseGraphBackend):
+                data_structure = "sparse"
+            else:
+                data_structure = "static_sparse"
         from sage.graphs.all import DiGraph
         D = DiGraph(name=self.name(), pos=self._pos, boundary=self._boundary,
                     multiedges=self.allows_multiple_edges(),
-                    implementation=implementation, sparse=sparse)
+                    implementation=implementation, data_structure=data_structure)
         D.name(self.name())
         D.add_vertices(self.vertex_iterator())
         for u,v,l in self.edge_iterator():

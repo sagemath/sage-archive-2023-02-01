@@ -281,7 +281,8 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element import Element
 from sage.symbolic.ring import var
 
-import sage.combinat.skew_partition # This is needed for correct imports...
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.combinat.skew_partition', 'SkewPartition')
 
 from sage.misc.all import prod
 from sage.misc.prandom import randrange
@@ -381,13 +382,12 @@ PartitionOptions=GlobalOptions(name='partitions',
                            compact_low='compact form of ``exp_low``',
                            compact_high='compact form of ``exp_high``'),
                  alias=dict(exp="exp_low", compact="compact_low", array="diagram",
-                           ferrers_diagram="diagram", young_diagram="diagram",
-                           ferrers_diagram_str="diagram_str",young_diagram_str="diagram_str"),
+                           ferrers_diagram="diagram", young_diagram="diagram"),
                  case_sensitive=False),
     latex=dict(default="young_diagram",
                description='Specifies how partitions should be latexed',
                values=dict(diagram='latex as a Ferrers diagram',
-                           young_diagram='latex as a Young diagam',
+                           young_diagram='latex as a Young diagram',
                            list='latex as a list',
                            exp_high='latex as a list in exponential notation (highest first)',
                            exp_low='as a list latex in exponential notation (lowest first)'),
@@ -1095,11 +1095,11 @@ class Partition(CombinatorialObject, Element):
 
             sage: p = Partition([3,2,1])
             sage: p/[1,1]
-            [[3, 2, 1], [1, 1]]
+            [3, 2, 1] / [1, 1]
             sage: p/[3,2,1]
-            [[3, 2, 1], [3, 2, 1]]
+            [3, 2, 1] / [3, 2, 1]
             sage: p/Partition([1,1])
-            [[3, 2, 1], [1, 1]]
+            [3, 2, 1] / [1, 1]
             sage: p/[2,2,2]
             Traceback (most recent call last):
             ...
@@ -1108,7 +1108,7 @@ class Partition(CombinatorialObject, Element):
         if not self.contains(p):
             raise ValueError("To form a skew partition p/q, q must be contained in p.")
 
-        return sage.combinat.skew_partition.SkewPartition([self[:], p])
+        return SkewPartition([self[:], p])
 
     def power(self, k):
         r"""
@@ -3106,17 +3106,15 @@ class Partition(CombinatorialObject, Element):
 
             sage: p = Partition([3,2,1])
             sage: p.k_boundary(2)
-            [[3, 2, 1], [2, 1]]
+            [3, 2, 1] / [2, 1]
             sage: p.k_boundary(3)
-            [[3, 2, 1], [1]]
+            [3, 2, 1] / [1]
 
             sage: p = Partition([12,8,5,5,2,2,1])
             sage: p.k_boundary(4)
-            [[12, 8, 5, 5, 2, 2, 1], [8, 5, 2, 2]]
+            [12, 8, 5, 5, 2, 2, 1] / [8, 5, 2, 2]
         """
-        # bypass the checks
-        return sage.combinat.skew_partition.SkewPartition_class(
-            (self, self.k_interior(k)))
+        return SkewPartition([self, self.k_interior(k)])
 
     def add_cell(self, i, j = None):
         r"""
@@ -3182,6 +3180,36 @@ class Partition(CombinatorialObject, Element):
         else:
             return Partition(self[:i] + [ self[i:i+1][0] - 1 ] + self[i+1:])
 
+    def k_irreducible(self, k):
+        r"""
+        Return the partition with all `r \times (k+1-r)` rectangles removed.
+
+        If ``self`` is a `k`-bounded partition, then this method will return the partition
+        where all rectangles of dimension `r \times (k+1-r)` for `1 \leq r \leq k`
+        have been deleted.
+
+        If ``self`` is not a `k`-bounded partition then the method will raise an error.
+
+        INPUT:
+
+        - ``k`` -- a non-negative integer
+
+        OUTPUT:
+
+        - a partition
+
+        EXAMPLES::
+
+            sage: Partition([3,2,2,1,1,1]).k_irreducible(4)
+            [3, 2, 2, 1, 1, 1]
+            sage: Partition([3,2,2,1,1,1]).k_irreducible(3)
+            []
+            sage: Partition([3,3,3,2,2,2,2,2,1,1,1,1]).k_irreducible(3)
+            [2, 1]
+        """
+        pexp = self.to_exp()
+        return Partition(sum(([r+1] for r in range(len(pexp)-1,-1,-1) for m in range(pexp[r] % (k-r))),[]))
+
     def k_skew(self, k):
         r"""
         Return the `k`-skew partition.
@@ -3206,11 +3234,11 @@ class Partition(CombinatorialObject, Element):
 
             sage: p = Partition([4,3,2,2,1,1])
             sage: p.k_skew(4)
-            [[9, 5, 3, 2, 1, 1], [5, 2, 1]]
+            [9, 5, 3, 2, 1, 1] / [5, 2, 1]
         """
 
         if len(self) == 0:
-            return sage.combinat.skew_partition.SkewPartition([[],[]])
+            return SkewPartition([[],[]])
 
         if self[0] > k:
             raise ValueError("the partition must be %d-bounded" % k)
@@ -3243,7 +3271,7 @@ class Partition(CombinatorialObject, Element):
         else:
             inner = s_inner[:]
 
-        return sage.combinat.skew_partition.SkewPartition([outer, inner])
+        return SkewPartition([outer, inner])
 
     def to_core(self, k):
         r"""
@@ -3261,7 +3289,8 @@ class Partition(CombinatorialObject, Element):
             sage: c.to_bounded_partition() == p
             True
         """
-        return sage.combinat.core.Core(self.k_skew(k)[0],k+1)
+        from sage.combinat.core import Core
+        return Core(self.k_skew(k)[0],k+1)
 
     def from_kbounded_to_reduced_word(self, k):
         r"""
@@ -3638,7 +3667,7 @@ class Partition(CombinatorialObject, Element):
             sage: jt.det()
             h[3, 2, 1] - h[3, 3] - h[4, 1, 1] + h[5, 1]
         """
-        return sage.combinat.skew_partition.SkewPartition([ self, [] ]).jacobi_trudi()
+        return SkewPartition([ self, [] ]).jacobi_trudi()
 
 
     def character_polynomial(self):
@@ -6110,15 +6139,16 @@ def number_of_partitions_set(S,k):
         sage: mset = [1,2,3,4]
         sage: from sage.combinat.partition import number_of_partitions_set
         sage: number_of_partitions_set(mset,2)
-        doctest:1: DeprecationWarning: number_of_partitions_set is deprecated. Use SetPartitions().cardinality() instead.
+        doctest:...: DeprecationWarning: number_of_partitions_set is deprecated. Use SetPartitions().cardinality() instead.
         See http://trac.sagemath.org/13072 for details.
         7
         sage: stirling_number2(4,2)
         7
     """
     from sage.misc.superseded import deprecation
-    deprecation(13072,'number_of_partitions_set is deprecated. Use SetPartitions().cardinality() instead.')
-    return sage.combinat.set_partition.SetPartitions(S,k).cardinality()
+    deprecation(13072, 'number_of_partitions_set is deprecated. Use SetPartitions().cardinality() instead.')
+    from sage.combinat.set_partition import SetPartitions
+    return SetPartitions(S,k).cardinality()
 
 def number_of_partitions(n, k=None, algorithm='default'):
     r"""
@@ -6311,7 +6341,7 @@ _Partitions = Partitions()
 # number_of_partitions", however, the random() method of Partitions() seems to be
 # the only place where this was used.
 from sage.misc.superseded import deprecated_function_alias
-_numpart = deprecated_function_alias(13072, sage.combinat.partitions.number_of_partitions)
+_numpart = deprecated_function_alias(13072, number_of_partitions)
 
 # Rather than caching an under-used function I have cached the default
 # number_of_partitions functions which is currently using FLINT.
@@ -6506,7 +6536,7 @@ def number_of_ordered_partitions(n,k=None):
 
         sage: from sage.combinat.partition import number_of_ordered_partitions
         sage: number_of_ordered_partitions(10,2)
-        doctest:1: DeprecationWarning: number_of_ordered_partitions is deprecated. Use OrderedPartitions().cardinality instead.
+        doctest:...: DeprecationWarning: number_of_ordered_partitions is deprecated. Use OrderedPartitions().cardinality instead.
         See http://trac.sagemath.org/13072 for details.
         9
         sage: number_of_ordered_partitions(15)
@@ -6531,7 +6561,7 @@ def partitions_greatest(n,k):
 
         sage: from sage.combinat.partition import partitions_greatest
         sage: partitions_greatest(10,2)
-        doctest:1: DeprecationWarning: partitions_greatest is deprecated. Use PartitionsGreatestLE instead.
+        doctest:...: DeprecationWarning: partitions_greatest is deprecated. Use PartitionsGreatestLE instead.
         See http://trac.sagemath.org/13072 for details.
         [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
          [2, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -6555,7 +6585,7 @@ def partitions_greatest_eq(n,k):
 
         sage: from sage.combinat.partition import partitions_greatest_eq
         sage: partitions_greatest_eq(10,2)
-        doctest:1: DeprecationWarning: partitions_greatest_eq is deprecated. Use PartitionsGreatestEQ instead.
+        doctest:...: DeprecationWarning: partitions_greatest_eq is deprecated. Use PartitionsGreatestEQ instead.
         See http://trac.sagemath.org/13072 for details.
         [[2, 1, 1, 1, 1, 1, 1, 1, 1],
          [2, 2, 1, 1, 1, 1, 1, 1],
@@ -6584,7 +6614,7 @@ def partitions_tuples(n,k):
 
         sage: from sage.combinat.partition import partitions_tuples
         sage: partitions_tuples(3,2)
-        doctest:1: DeprecationWarning: partition_tuples is deprecated. Use PartitionTuples(level, size) instead.
+        doctest:...: DeprecationWarning: partition_tuples is deprecated. Use PartitionTuples(level, size) instead.
         See http://trac.sagemath.org/13072 for details.
         [[[1, 1, 1], []],
          [[1, 1], [1]],
@@ -6613,7 +6643,7 @@ def number_of_partitions_tuples(n,k):
 
         sage: from sage.combinat.partition import number_of_partitions_tuples
         sage: number_of_partitions_tuples(3,2)
-        doctest:1: DeprecationWarning: number_of_partition_tuples(size, level) is deprecated. Use PartitionTuples(level, size).cardinality() instead.
+        doctest:...: DeprecationWarning: number_of_partition_tuples(size, level) is deprecated. Use PartitionTuples(level, size).cardinality() instead.
         See http://trac.sagemath.org/13072 for details.
         10
         sage: number_of_partitions_tuples(8,2)
@@ -6650,7 +6680,7 @@ def partition_power(pi,k):
 
         sage: from sage.combinat.partition import partition_power
         sage: partition_power([5,3],1)
-        doctest:1: DeprecationWarning: partition_power is deprecated. Use Partition(mu).power() instead.
+        doctest:...: DeprecationWarning: partition_power is deprecated. Use Partition(mu).power() instead.
         See http://trac.sagemath.org/13072 for details.
         [5, 3]
         sage: partition_power([5,3],2)
@@ -6683,7 +6713,7 @@ def PartitionTuples_nk(n,k):
     EXAMPLES::
 
         sage: sage.combinat.partition.PartitionTuples_nk(3, 2)
-        doctest:1: DeprecationWarning: this class is deprecated. Use sage.combinat.partition_tuple.PartitionTuples_level_size instead
+        doctest:...: DeprecationWarning: this class is deprecated. Use sage.combinat.partition_tuple.PartitionTuples_level_size instead
         See http://trac.sagemath.org/13072 for details.
         Partition tuples of level 2 and size 3
     """

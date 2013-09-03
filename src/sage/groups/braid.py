@@ -436,6 +436,56 @@ class Braid(FinitelyPresentedGroupElement):
         """
         return self.parent()._LKB_matrix_(self.Tietze(), variab=variables)
 
+    def tropical_coordinates(self):
+        r"""
+        Return the tropical coordinates of ``self`` in the braid group `B_n`.
+
+        OUTPUT:
+
+        - a list of `2n` tropical integers
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(3)
+            sage: b = B([1])
+            sage: tc = b.tropical_coordinates(); tc
+            [1, 0, 0, 2, 0, 1]
+            sage: tc[0].parent()
+            Tropical semiring over Integer Ring
+
+            sage: b = B([-2, -2, -1, -1, 2, 2, 1, 1])
+            sage: b.tropical_coordinates()
+            [1, -19, -12, 9, 0, 13]
+
+        REFERENCES:
+
+        .. [Dynnikov07] I. Dynnikov and B. Wiest, On the complexity of braids,
+           J. Europ. Math. Soc. 9 (2007)
+        .. [Dehornoy] P. Dehornoy, Le probleme d'isotopie des tresses, in
+           lecons de mathematiques d'aujourd'hui vol. 4
+        """
+        coord = [0, 1] * self.strands()
+        for s in self.Tietze():
+            k = 2*(abs(s)-1)
+            x1, y1, x2, y2 = coord[k:k+4]
+            if s > 0:
+                sign = 1
+                z = x1 - min(y1, 0) - x2 + max(y2, 0)
+                coord[k+1] = y2 - max(z, 0)
+                coord[k+3] = y1 + max(z, 0)
+            else:
+                sign = -1
+                z = x1 + min(y1, 0) - x2 - max(y2, 0)
+                coord[k+1] = y2 + min(z, 0)
+                coord[k+3] = y1 - min(z, 0)
+
+            coord[k] = x1 + sign*(max(y1, 0) + max(max(y2, 0) - sign*z, 0))
+            coord[k+2] = x2 + sign*(min(y2, 0) + min(min(y1, 0) + sign*z, 0))
+
+        from sage.rings.semirings.tropical_semiring import TropicalSemiring
+        T = TropicalSemiring(IntegerRing())
+        return map(T, coord)
+
     @cached_method
     def left_normal_form(self):
         """

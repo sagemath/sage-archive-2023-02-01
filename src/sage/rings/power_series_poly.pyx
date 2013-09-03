@@ -862,9 +862,18 @@ cdef class PowerSeries_poly(PowerSeries):
         return PowerSeries_poly(self._parent, self.__f._derivative(),
                                 self.prec()-1, check=False)
 
-    def integral(self):
+    def integral(self,var=None):
         """
-        The integral of this power series with 0 constant term.
+        The integral of this power series
+
+        By default, the integration variable is the variable of the
+        power series.
+
+        Otherwise, the integration variable is the optional parameter ``var``
+
+        .. NOTE::
+
+            The integral is always chosen so the constant term is 0.
 
         EXAMPLES::
 
@@ -875,9 +884,26 @@ cdef class PowerSeries_poly(PowerSeries):
             1/4*w^4 + 4/5*w^5 + O(w^8)
             sage: (3*w^2).integral()
             w^3
+
+        TESTS::
+
+            sage: t = PowerSeriesRing(QQ,'t').gen()
+            sage: f = t + 5*t^2 + 21*t^3
+            sage: g = f.integral() ; g
+            1/2*t^2 + 5/3*t^3 + 21/4*t^4
+            sage: g.parent()
+            Power Series Ring in t over Rational Field
+
+            sage: R.<x> = QQ[]
+            sage: t = PowerSeriesRing(R,'t').gen()
+            sage: f = x*t +5*t^2
+            sage: f.integral()
+            1/2*x*t^2 + 5/3*t^3
+            sage: f.integral(x)
+            1/2*x^2*t + 5*x*t^2
         """
-        return PowerSeries_poly(self._parent, self.__f.integral(),
-                                         self.prec()+1, check=False)
+        return PowerSeries_poly(self._parent, self.__f.integral(var),
+                                self.prec()+1, check=False)
 
     def reversion(self, precision=None):
         """

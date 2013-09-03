@@ -119,6 +119,30 @@ cdef class MonoDictEraser:
         sage: len(M)    # indirect doctest
         0
 
+    TESTS:
+
+    The following shows that :trac:`15069` is fixed. Background: If a
+    :class:`MonoDictEraser` is called when a weakly referenced key is deleted,
+    then it deletes the corresponding key-value pair. But if the value is also
+    used as a key, then a recursion of calls to the :class:`MonoDictEraser`
+    may occur. Therefore, we must keep the value-to-be-deleted alive until the
+    callback is completed. This is achieved by letting the callback actually
+    *return* the value. ::
+
+        sage: M = MonoDict(11)
+        sage: class A: pass
+        sage: a = A()
+        sage: prev = a
+        sage: for i in range(1000):
+        ....:     newA = A()
+        ....:     M[prev] = newA
+        ....:     prev = newA
+        sage: len(M)
+        1000
+        sage: del a
+        sage: len(M)
+        0
+
     AUTHOR:
 
     - Simon King (2012-01)
@@ -187,14 +211,16 @@ cdef class MonoDictEraser:
         h,offset = r.key
         cdef list bucket = <object>PyList_GET_ITEM(buckets, (<size_t>h) % PyList_GET_SIZE(buckets))
         cdef Py_ssize_t i
+        cdef object val
         for i from 0 <= i < PyList_GET_SIZE(bucket) by 3:
             if PyInt_AsSsize_t(PyList_GET_ITEM(bucket,i))==h:
                 if PyList_GET_ITEM(bucket,i+offset)==<void *>r:
+                    val = <object>PyList_GET_ITEM(bucket,i+2)
                     del bucket[i:i+3]
                     D._size -= 1
-                    break
+                    return val
                 else:
-                    break
+                    return
 
 cdef class TripleDictEraser:
     """
@@ -218,6 +244,23 @@ cdef class TripleDictEraser:
         sage: del a
         sage: import gc
         sage: n = gc.collect()
+        sage: len(T)
+        0
+
+    TESTS:
+
+    The following tests against a bugfix from :trac:`15069`::
+
+        sage: from sage.structure.coerce_dict import TripleDict
+        sage: a,b,c = L =  [A(), A(), A()]
+        sage: for x in range(1000):
+        ....:     newA = A()
+        ....:     T[L[0],L[1],L[2]] = newA
+        ....:     tmp = L.pop(0)
+        ....:     L.append(newA)
+        sage: len(T)
+        1000
+        sage: del a,b,c, L
         sage: len(T)
         0
 
@@ -292,28 +335,31 @@ cdef class TripleDictEraser:
         cdef Py_ssize_t h = (k1 + 13*k2 ^ 503*k3)
         cdef list bucket = <object>PyList_GET_ITEM(buckets, (<size_t>h) % PyList_GET_SIZE(buckets))
         cdef Py_ssize_t i
+        cdef object val
         for i from 0 <= i < PyList_GET_SIZE(bucket) by 7:
             if PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i))==k1 and \
                PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i+1))==k2 and \
                PyInt_AsSsize_t(PyList_GET_ITEM(bucket, i+2))==k3:
                 if PyList_GET_ITEM(bucket, i+offset)==<void *>r:
+                    val = <object>PyList_GET_ITEM(bucket,i+6)
                     del bucket[i:i+7]
                     D._size -= 1
-                    break
+                    return val
                 else:
-                    break
+                    return
 
 cdef class MonoDict:
     """
     This is a hashtable specifically designed for (read) speed in
     the coercion model.
 
-    It differs from a python WeakKeyDictionary in the following important way:
+    It differs from a python WeakKeyDictionary in the following important ways:
 
        - Comparison is done using the 'is' rather than '==' operator.
        - Only weak references to the keys are stored if at all possible.
          Keys that do not allow for weak references are stored with a normal
          refcounted reference.
+       - The callback of the weak references is safe against recursion, see below.
 
     There are special cdef set/get methods for faster access.
     It is bare-bones in the sense that not all dictionary methods are
@@ -476,6 +522,45 @@ cdef class MonoDict:
         sage: MW[k] = int(5)
         sage: MW[k]
         5
+
+    TESTS:
+
+    The following demonstrates that :class:`MonoDict` is safer than
+    :class:`~weakref.WeakKeyDictionary` against recursions created by nested
+    callbacks; compare :trac:`15069`::
+
+        sage: M = MonoDict(11)
+        sage: class A: pass
+        sage: a = A()
+        sage: prev = a
+        sage: for i in range(1000):
+        ....:     newA = A()
+        ....:     M[prev] = newA
+        ....:     prev = newA
+        sage: len(M)
+        1000
+        sage: del a
+        sage: len(M)
+        0
+
+    The corresponding example with a Python :class:`weakref.WeakKeyDictionary`
+    would result in a too deep recursion during deletion of the dictionary
+    items::
+
+        sage: import weakref
+        sage: M = weakref.WeakKeyDictionary()
+        sage: a = A()
+        sage: prev = a
+        sage: for i in range(1000):
+        ....:     newA = A()
+        ....:     M[prev] = newA
+        ....:     prev = newA
+        sage: len(M)
+        1000
+        sage: del a
+        Exception RuntimeError: 'maximum recursion depth exceeded while calling a Python object' in <function remove at ...> ignored
+        sage: len(M)>0
+        True
 
     AUTHORS:
 

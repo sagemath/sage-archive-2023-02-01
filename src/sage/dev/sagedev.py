@@ -1013,9 +1013,13 @@ class SageDev(object):
                     raise OperationCancelledError("empty commit message")
 
                 self.git.commit(message=message)
+                self._UI.info("A commit has been created.")
 
             except OperationCancelledError:
                 self._UI.info("Not creating a commit.")
+                raise
+            except:
+                self._UI.error("No commit has been created.")
                 raise
 
         finally:

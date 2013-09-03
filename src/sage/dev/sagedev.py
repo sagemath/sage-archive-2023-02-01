@@ -2329,12 +2329,17 @@ class SageDev(object):
             Moved your branch `ticket/1` to `trash/ticket/1`.
 
         """
+        ticket = None
+
         if self._is_ticket_name(ticket_or_branch):
             ticket = self._ticket_from_ticket_name(ticket_or_branch)
 
             if not self._has_local_branch_for_ticket(ticket):
                 raise SageDevValueError("Can not abandon #{0}. You have no local branch for this ticket.".format(ticket))
             ticket_or_branch = self._local_branch_for_ticket(ticket)
+
+        if self._has_ticket_for_local_branch(ticket_or_branch):
+            ticket = self._ticket_for_local_branch(ticket_or_branch)
 
         if self._is_local_branch_name(ticket_or_branch):
             branch = ticket_or_branch
@@ -2361,6 +2366,9 @@ class SageDev(object):
             self._UI.show("Moved your branch `{0}` to `{1}`.".format(branch, new_branch))
         else:
             raise SageDevValueError("ticket_or_branch must be the name of a ticket or a local branch")
+
+        if ticket:
+            self._set_local_branch_for_ticket(ticket, None)
 
     def gather(self, branch, *tickets_or_branches):
         r"""

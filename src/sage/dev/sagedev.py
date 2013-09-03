@@ -2322,11 +2322,21 @@ class SageDev(object):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             1
+            sage: UI.append("y")
+            sage: dev.upload()
+            The branch `u/doctest/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
             sage: dev.abandon(1)
             Can not delete `ticket/1` because you are currently on that branch.
             sage: dev.vanilla()
             sage: dev.abandon(1)
             Moved your branch `ticket/1` to `trash/ticket/1`.
+
+        Start to work on a new branch for this ticket::
+
+            sage: from sage.dev.sagedev import MASTER_BRANCH
+            sage: UI.append("y")
+            sage: dev.switch_ticket(1, base=MASTER_BRANCH)
+            Creating a new branch for #1 based on `master`. The trac ticket for #1 already refers to the branch `u/doctest/ticket/1`. As you are creating a new branch for that ticket, it seems that you want to ignore the work that has already been done on `u/doctest/ticket/1` and start afresh. Is this what you want? [yes/No] y
 
         """
         ticket = None
@@ -2369,6 +2379,7 @@ class SageDev(object):
 
         if ticket:
             self._set_local_branch_for_ticket(ticket, None)
+            self._UI.info("If you want to work on #{0} starting from a fresh copy of the master branch, use `{1}`.".format(ticket, self._format_command("switch_ticket",ticket,base=MASTER_BRANCH)))
 
     def gather(self, branch, *tickets_or_branches):
         r"""

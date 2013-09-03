@@ -279,23 +279,25 @@ class SageDev(object):
             True
             sage: dev._dependencies_for_ticket(4)
             ()
-            sage: UI.append("Summary: ticket5\ndescription")
 
         In this example ``base`` does not exist::
 
+            sage: UI.append("Summary: ticket5\ndescription")
             sage: dev.create_ticket(base=1000)
+            Ticket #5 has been created. However, I could not switch to a branch for this ticket.
             ValueError: `1000` is not a valid ticket name or ticket does not exist on trac.
 
         In this example ``base`` does not exist locally::
 
-            sage: dev.trac.create_ticket("summary5","description",{})
-            5
+            sage: UI.append("Summary: ticket6\ndescription")
             sage: dev.create_ticket(base=5)
+            Ticket #6 has been created. However, I could not switch to a branch for this ticket.
             ValueError: Branch field is not set for ticket #5 on trac.
 
         This also fails if the internet connection is broken::
 
             sage: dev.trac._connected = False
+            sage: UI.append("Summary: ticket7\ndescription")
             sage: dev.create_ticket(base=4)
             A network error ocurred, ticket creation aborted.
             Your command failed because no connection to trac could be established.
@@ -306,9 +308,9 @@ class SageDev(object):
             sage: dev.git.super_silent.checkout('HEAD', detach=True)
             sage: UI.append("Summary: ticket detached\ndescription")
             sage: dev.create_ticket()
-            6
+            7
             sage: dev.git.current_branch()
-            'ticket/6'
+            'ticket/7'
 
         Creating a ticket when in the middle of a merge::
 
@@ -316,7 +318,7 @@ class SageDev(object):
             sage: with open('merge', 'w') as f: f.write("version 0")
             sage: dev.git.silent.add('merge')
             sage: dev.git.silent.commit('-m','some change')
-            sage: dev.git.super_silent.checkout('ticket/6')
+            sage: dev.git.super_silent.checkout('ticket/7')
             sage: with open('merge', 'w') as f: f.write("version 1")
             sage: dev.git.silent.add('merge')
             sage: dev.git.silent.commit('-m','conflicting change')
@@ -328,7 +330,8 @@ class SageDev(object):
             sage: UI.append("Summary: ticket merge\ndescription")
             sage: dev.create_ticket()
             Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] n
-            Could not switch to branch `ticket/7` because your working directory is not clean.
+            Could not switch to branch `ticket/8` because your working directory is not clean.
+            Ticket #8 has been created. However, I could not switch to a branch for this ticket.
             sage: dev.git.reset_to_clean_state()
 
         Creating a ticket with uncommitted changes::
@@ -341,23 +344,12 @@ class SageDev(object):
             The following files in your working directory contain uncommitted changes:
              tracked
             Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
-            Could not switch to branch `ticket/8` because your working directory is not clean.
+            Could not switch to branch `ticket/9` because your working directory is not clean.
+            Ticket #9 has been created. However, I could not switch to a branch for this ticket.
 
         """
-        dependencies = []
-
         if branch is not None:
             self._check_local_branch_name(branch, exists=False)
-
-        if base is None:
-            base = self._current_ticket()
-        if base is None:
-            raise SageDevValueError("currently on no ticket, `base` must not be None")
-        if self._is_ticket_name(base):
-            base = self._ticket_from_ticket_name(base)
-            dependencies.append(base)
-            base = self._local_branch_for_ticket(base, download_if_not_found=True)
-        self._check_local_branch_name(base, exists=True)
 
         if remote_branch is not None:
             self._check_remote_branch_name(remote_branch, exists=any)
@@ -366,6 +358,7 @@ class SageDev(object):
         # interactively create a ticket
         try:
             ticket = self.trac.create_ticket_interactive()
+            self._UI.info("Created ticket #{0}.".format(ticket))
         except OperationCancelledError:
             self._UI.info("Ticket creation aborted.")
             raise
@@ -373,46 +366,26 @@ class SageDev(object):
             self._UI.error("A network error ocurred, ticket creation aborted.")
             raise
 
-        # note that the dependencies are not recorded on the newly created
-        # ticket but only stored locally - a first push to trac will set the
-        # dependencies
-
-        if branch is None:
-            branch = self._new_local_branch_for_ticket(ticket)
-        if remote_branch is None:
-            remote_branch = self._remote_branch_for_ticket(ticket)
-
-        # create a new branch for the ticket
-        self.git.silent.branch(branch, base)
-        self._UI.info("Branch `{0}` created from branch `{1}`.".format(branch, base))
         try:
-            self._set_local_branch_for_ticket(ticket, branch)
-            if dependencies:
-                self._set_dependencies_for_ticket(ticket, dependencies)
-                self._UI.info("Dependencies `{0}` recorded locally for ticket #{1}.".format(", ".join(['#'+str(dep) for dep in dependencies]), ticket))
+            self.switch_ticket(ticket, base=base, branch=branch)
+        except:
+            self._UI.error("Ticket #{0} has been created. However, I could not switch to a branch for this ticket.".format(ticket))
+            kwds = { }
+            if branch is not None:
+                kwds['branch'] = branch
+            if base != "":
+                kwds['base'] = base
+            self._UI.info("To manually switch to a branch for this ticket, use `{0}`.".format(self._format_command("switch_ticket", ticket, **kwds)))
+            raise
+
+        if remote_branch is not None:
+            branch = self._branch_for_ticket(ticket)
             self._set_remote_branch_for_branch(branch, remote_branch)
-            self._UI.info("Branch `{0}` will pull from/push to remote branch `{1}`. Use `{2}` to set a different remote branch.".format(branch, remote_branch, self._format_command("set_remote", {"branch":branch, "remote":"remote_branch"})))
-        except:
-            self._UI.info("An error ocurred. Deleting branch `{0}`.".format(branch))
-
-            self.git.silent.branch(branch, delete=True)
-            self._set_dependencies_for_ticket(ticket, None)
-            self._set_remote_branch_for_branch(branch, None)
-            self._set_local_branch_for_ticket(ticket, None)
-
-            raise
-
-        # switch to the new branch
-        self._UI.info("Now switching to your new branch `{0}`.".format(branch))
-        try:
-            self.switch_ticket(ticket)
-        except:
-            self._UI.info("Your ticket has been created on trac. However, an error ocurred while switching to your new branch `{0}`. Use `{1}` to manually switch to `{0}`.".format(branch,self._format_command("switch_ticket",str(ticket))))
-            raise
+            self._UI.info("The local branch `{0}` will push to `{1}`.".format(branch, remote_branch))
 
         return ticket
 
-    def switch_ticket(self, ticket, branch=None):
+    def switch_ticket(self, ticket, branch=None, base=''):
         r"""
         Switch to a branch associated to ``ticket``.
 
@@ -421,9 +394,11 @@ class SageDev(object):
         ``branch``.
 
         Otherwise, if there is no local branch for ``ticket``, the branch
-        specified on trac will be downloaded to ``branch``. If the trac ticket
-        does not specify a branch yet, then a new one will be created from
-        "master".
+        specified on trac will be downloaded to ``branch`` unless ``base`` is
+        set to something other than the empty string ``''``. If the trac ticket
+        does not specify a branch yet or if ``base`` is not the empty string,
+        then a new one will be created from ``base`` (per default, the master
+        branch).
 
         INPUT:
 
@@ -431,6 +406,13 @@ class SageDev(object):
 
         - ``branch`` -- a string, the name of the local branch that stores
           changes for ``ticket`` (default: ticket/``ticket``)
+
+        - ``base`` -- a string or ``None``, a branch on which to base a new
+          branch if one is going to be created (default: the empty string
+          ``''`` to create the new branch from the master branch), or a ticket;
+          if ``base`` is set to ``None``, then the current ticket is used. If
+          ``base`` is a ticket, then the corresponding dependency will be
+          added.
 
         .. SEEALSO::
 
@@ -532,9 +514,22 @@ class SageDev(object):
 
         """
         self._check_ticket_name(ticket, exists=True)
-
         ticket = self._ticket_from_ticket_name(ticket)
 
+        # if branch points to an existing branch make it the ticket's branch and switch to it
+        if branch is not None and self._is_local_branch_name(branch, exists=True):
+            if base != MASTER_BRANCH:
+                raise SageDevValueError("base must not be specified if branch is an existing branch")
+            if branch == MASTER_BRANCH:
+                raise SageDevValueError("branch must not be the master branch")
+
+            self._set_local_branch_for_ticket(ticket, branch)
+            self._UI.info("The branch for ticket #{0} is now `{1}`.".format(ticket, branch))
+            self._UI.info("Now switching to branch `{0}`.".format(branch))
+            self.switch_branch(branch)
+            return
+
+        # if there is a branch for ticket locally, switch to it
         if branch is None:
             if self._has_local_branch_for_ticket(ticket):
                 branch = self._local_branch_for_ticket(ticket)
@@ -543,38 +538,63 @@ class SageDev(object):
                 return
             else:
                 branch = self._new_local_branch_for_ticket(ticket)
-                self._check_local_branch_name(branch, exists=False)
 
-        self._check_local_branch_name(branch)
-
-        if self._is_local_branch_name(branch, exists=True):
-            # reset ticket to point to branch and checkout
-            self._set_local_branch_for_ticket(ticket, branch)
-            self._UI.info("Set local branch for ticket #{0} to `{1}`.".format(ticket, branch))
-            self.switch_ticket(ticket, branch=None)
-            return
+        # branch does not exist, so we have to create a new branch for ticket
+        # depending on the value of base, this will either be base or a copy of
+        # the branch mentioned on trac if any
+        dependencies = self.trac.dependencies(ticket)
+        if base is None:
+            base = self._current_ticket()
+        if base is None:
+            raise SageDevValueError("currently on no ticket, `base` must not be None")
+        if self._is_ticket_name(base):
+            base = self._ticket_from_ticket_name(base)
+            dependencies = [base] # we create a new branch for this ticket - ignore the dependencies which are on trac
+            base = self._local_branch_for_ticket(base, download_if_not_found=True)
 
         remote_branch = self.trac._branch_for_ticket(ticket)
-        dependencies = self.trac.dependencies(ticket)
-        if remote_branch is None: # branch field is not set on ticket
-            self._UI.info("The branch field on ticket #{0} is not set. Creating a new branch `{1}` off the master branch `{2}`.".format(ticket, branch, MASTER_BRANCH))
-            self.git.silent.branch(branch, MASTER_BRANCH)
-        else:
-            try:
-                self.download(remote_branch, branch)
-            except:
-                self._UI.error("Could not switch to ticket #{0} because the remote branch `{1}` for that ticket could not be downloaded.".format(ticket, remote_branch))
-                raise
-
         try:
-            self._set_local_branch_for_ticket(ticket, branch)
-            self._set_dependencies_for_ticket(ticket, dependencies)
+            if base == '':
+                base = MASTER_BRANCH
+                if remote_branch is None: # branch field is not set on ticket
+                    # create a new branch off master
+                    self._UI.info("The branch field on ticket #{0} is not set. Creating a new branch `{1}` off the master branch `{2}`.".format(ticket, branch, MASTER_BRANCH))
+                    self.git.silent.branch(branch, MASTER_BRANCH)
+                else:
+                    # download the branch mentioned on trac
+                    if not self._is_remote_branch_name(remote_branch, exists=True):
+                        self._UI.error("The branch field on ticket #{0} is set to `{1}`. However, the branch `{1}` does not exist. Please set the field on trac to a field value.".format(ticket, remote_branch))
+                        raise OperationCancelledError("remote branch does not exist")
+                    try:
+                        self.download(remote_branch, branch)
+                        self._UI.info("Created a new branch `{0}` based on `{1}`.".format(branch, remote_branch))
+                    except:
+                        self._UI.error("Could not switch to ticket #{0} because the remote branch `{1}` for that ticket could not be downloaded.".format(ticket, remote_branch))
+                        raise
+            else:
+                self._check_local_branch_name(base, exists=True)
+                if remote_branch is not None:
+                    if not self._UI.confirm("Creating a new branch for #{0} based on `{1}`. The trac ticket for #{0} already refers to the branch `{2}`. As you are creating a new branch for that ticket, it seems that you want to ignore the work that has already been done on `{2}` and start afresh. Is this what you want?".format(ticket, base, remote_branch), default=False):
+                        command = ""
+                        if self._has_local_branch_for_ticket(ticket):
+                            command += self._format_command("abandon", self._local_branch_for_ticket(ticket)) + "; "
+                        command += self._format_command("switch_ticket", ticket)
+                        self._UI.info("To work on a fresh copy of `{0}`, use `{1}`.".format(remote_branch, command))
+                        raise OperationCancelledError("user requested")
+
+                self._UI.info("Creating a new branch for #{0} based on `{1}`.".format(ticket, base))
+                self.git.silent.branch(branch, base)
         except:
-            self._UI.info("An error ocurred. Deleting branch `{0}`.".format(branch))
-            self._set_local_branch_for_ticket(ticket, None)
-            self.git.silent.branch("-d",branch)
+            if self._is_local_branch_name(branch, exists=True):
+                self._UI.info("Deleting local branch `{0}`.")
+                self.git.super_silent.branch(branch, D=True)
             raise
 
+        self._set_local_branch_for_ticket(ticket, branch)
+        if dependencies:
+            self._UI.info("Locally recording dependency on {0} for #{1}.".format(", ".join(["#"+str(dep) for dep in dependencies]), ticket))
+            self._set_dependencies_for_ticket(ticket, dependencies)
+        self._set_remote_branch_for_branch(branch, self._remote_branch_for_ticket(ticket)) # set the remote branch for branch to the default u/username/ticket/12345
         self._UI.info("Switching to newly created branch `{0}`.".format(branch))
         self.switch_branch(branch)
 

@@ -3211,18 +3211,15 @@ class Permutation(CombinatorialObject, Element):
         Return the pair of standard tableaux obtained by running the
         Robinson-Schensted algorithm on ``self``.
 
-        This function is deprecated in :trac:`8392`, instead call
-        :func:`~sage.combinat.rsk.RSK` on ``self``.
+        This can also be done by running
+        :func:`~sage.combinat.rsk.RSK` on ``self`` (with the optional argument
+        ``check_standard=True`` to return standard Young tableaux).
 
         EXAMPLES::
 
             sage: Permutation([6,2,3,1,7,5,4]).robinson_schensted()
-            doctest:...: DeprecationWarning: p.robinson_schensted() is deprecated. Use instead RSK(p)
-            See http://trac.sagemath.org/8392 for details.
             [[[1, 3, 4], [2, 5], [6, 7]], [[1, 3, 5], [2, 6], [4, 7]]]
         """
-        from sage.misc.superseded import deprecation
-        deprecation(8392, 'p.robinson_schensted() is deprecated. Use instead RSK(p)')
         return RSK(self, check_standard=True)
 
     def _rsk_iter(self):

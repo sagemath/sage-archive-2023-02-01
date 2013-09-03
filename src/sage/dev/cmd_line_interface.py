@@ -126,7 +126,7 @@ class CmdLineInterface(UserInterface):
                     else:
                         return default
 
-                itr = (opt for opt in options if opt.startswith(s))
+                itr = (opt for opt in options if opt.lower().startswith(s.lower()))
                 try:
                     ret = itr.next()
                 except StopIteration:

@@ -2185,7 +2185,16 @@ class SageDev(object):
 
             if patchname:
                 from sage.env import TRAC_SERVER_URI
-                return self.download_patch(url = TRAC_SERVER_URI+"/raw-attachment/ticket/%s/%s"%(ticket,patchname))
+                url = TRAC_SERVER_URI+"/raw-attachment/ticket/%s/%s"%(ticket,patchname)
+                if url.startswith("https://"):
+                    try:
+                        import ssl
+                    except ImportError:
+                        # python is not build with ssl support by default. to make
+                        # downloading patches work even if ssl is not present, we try
+                        # to access trac through http
+                        url = url.replace("https","http",1)
+                return self.download_patch(url = url)
             else:
                 attachments = self.trac.attachment_names(ticket)
                 if len(attachments) == 0:

@@ -154,9 +154,9 @@ class GitProxy(object):
 
         s = [str(arg) for arg in s]
 
-        from sage.dev.user_interface import INFO
+        from sage.dev.user_interface import DEBUG
         complete_cmd = " ".join([arg for i,arg in enumerate(s) if i!=1]) # drop --git-dir from debug output
-        self._UI.show("[git] %s"%complete_cmd, log_level=INFO)
+        self._UI.show("[git] %s"%complete_cmd, log_level=DEBUG)
 
         if ckwds.get('dryrun', False):
             return s

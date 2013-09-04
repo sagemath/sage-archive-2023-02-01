@@ -2194,39 +2194,47 @@ class SageDev(object):
             ValueError: Ticket #1 has more than one attachment but parameter `patchname` is not present, please set it to one of: first.patch, second.patch
             sage: dev.download_patch(ticket=1, patchname = 'second.patch') # not tested, download_patch tries to talk to the live server
 
+        It is an error not to specify any parameters if not on a ticket::
+
+            sage: dev.vanilla()
+            sage: dev.download_patch()
+            ValueError: ticket or url must be specified if not currently on a ticket
+
         """
-        if url:
+        if url is not None:
             if ticket or patchname:
                 raise ValueError("If `url` is specifed, `ticket` and `patchname` must not be specified.")
             import urllib
             return urllib.urlretrieve(url)[0]
-        elif ticket:
-            ticket = self._ticket_from_ticket_name(ticket)
 
-            if patchname:
-                from sage.env import TRAC_SERVER_URI
-                url = TRAC_SERVER_URI+"/raw-attachment/ticket/%s/%s"%(ticket,patchname)
-                if url.startswith("https://"):
-                    try:
-                        import ssl
-                    except ImportError:
-                        # python is not build with ssl support by default. to make
-                        # downloading patches work even if ssl is not present, we try
-                        # to access trac through http
-                        url = url.replace("https","http",1)
-                return self.download_patch(url = url)
-            else:
-                attachments = self.trac.attachment_names(ticket)
-                if len(attachments) == 0:
-                    raise SageDevValueError("Ticket #%s has no attachments."%ticket)
-                if len(attachments) == 1:
-                    return self.download_patch(ticket = ticket, patchname = attachments[0])
-                else:
-                    raise SageDevValueError("Ticket #%s has more than one attachment but parameter `patchname` is not present, please set it to one of: %s"%(ticket,", ".join(sorted(attachments))))
-        elif not patchname:
-            return self.download_patch(ticket=self._current_ticket())
+        if ticket is None:
+            ticket is self._current_ticket()
+
+        if ticket is None:
+            raise SageDevValueError("ticket or url must be specified if not currently on a ticket")
+
+        ticket = self._ticket_from_ticket_name(ticket)
+
+        if patchname:
+            from sage.env import TRAC_SERVER_URI
+            url = TRAC_SERVER_URI+"/raw-attachment/ticket/%s/%s"%(ticket,patchname)
+            if url.startswith("https://"):
+                try:
+                    import ssl
+                except ImportError:
+                    # python is not build with ssl support by default. to make
+                    # downloading patches work even if ssl is not present, we try
+                    # to access trac through http
+                    url = url.replace("https","http",1)
+            return self.download_patch(url = url)
         else:
-            raise SageDevValueError("If `url` is not specified, `ticket` must be specified")
+            attachments = self.trac.attachment_names(ticket)
+            if len(attachments) == 0:
+                raise SageDevValueError("Ticket #%s has no attachments."%ticket)
+            if len(attachments) == 1:
+                return self.download_patch(ticket = ticket, patchname = attachments[0])
+            else:
+                raise SageDevValueError("Ticket #%s has more than one attachment but parameter `patchname` is not present, please set it to one of: %s"%(ticket,", ".join(sorted(attachments))))
 
     def prune_closed_tickets(self):
         r"""

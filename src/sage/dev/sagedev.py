@@ -2159,9 +2159,9 @@ class SageDev(object):
         EXAMPLES::
 
             sage: dev.download_patch(ticket=14882) # optional: internet
-            ValueError: Ticket #14882 has more than one attachment but parameter `patchname` is not present, please set it to one of: trac_14882-backtrack_longtime-dg.patch, trac_14882-backtrack_longtime-dg-v2.patch, trac_14882-spelling_in_backtrack-dg.patch
+            ValueError: Ticket #14882 has more than one attachment but parameter `patchname` is not present, please set it to one of: trac_14882-backtrack_longtime-dg-v2.patch, trac_14882-backtrack_longtime-dg.patch, trac_14882-spelling_in_backtrack-dg.patch
             sage: dev.download_patch(ticket=14882, patchname='trac_14882-backtrack_longtime-dg.patch') # optional: internet
-            ...
+            '...'
 
         TESTS:
 

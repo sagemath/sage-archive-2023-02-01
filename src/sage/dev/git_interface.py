@@ -355,8 +355,8 @@ class GitProxy(object):
             self._execute_supersilent("config","user.name")
         except GitError as e:
             if e.exit_code == 1:
-                self._UI.normal("No real name has been set for git. This name shows up as the author for any commits you contribute to sage.")
-                name = self._UI.question("Your real name:")
+                self._UI.show("No real name has been set for git. This name shows up as the author for any commits you contribute to sage.")
+                name = self._UI.get_input("Your real name:")
                 self._execute("config","user.name",name,local=True,add=True)
                 self._UI.info("Your real name has been saved.")
             else:
@@ -366,8 +366,8 @@ class GitProxy(object):
             self._execute_supersilent("config", "user.email")
         except GitError as e:
             if e.exit_code == 1:
-                self._UI.normal("No email address has been set for git. This email shows up as the author for any commits you contribute to sage.")
-                email = self._UI.question("Your email address:")
+                self._UI.show("No email address has been set for git. This email shows up as the author for any commits you contribute to sage.")
+                email = self._UI.get_input("Your email address:")
                 self._execute("config","user.email",email,local=True,add=True)
                 self._UI.info("Your email has been saved.")
             else:

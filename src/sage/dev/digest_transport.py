@@ -133,4 +133,4 @@ class DigestTransport(object, SafeTransport):
             raise TracInternalError(e)
         except IOError as e:
             from trac_error import TracConnectionError
-            raise TracConnectionError(e)
+            raise TracConnectionError()

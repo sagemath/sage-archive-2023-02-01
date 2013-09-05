@@ -890,7 +890,10 @@ class SageDev(object):
         if ticket_or_remote_branch is None:
             ticket_or_remote_branch = self._current_ticket()
             if branch is not None and branch != self.git.current_branch():
-                raise SageDevValueError("local_branch must be None")
+                raise SageDevValueError("branch must be None")
+
+        # merge into the current branch if ticket_or_remote_branch refers to the current ticket
+        if branch is None and ticket_or_remote_branch is not None and self._is_ticket_name(ticket_or_remote_branch) and self._ticket_from_ticket_name(ticket_or_remote_branch) == self._current_ticket():
             branch = self.git.current_branch()
 
         if ticket_or_remote_branch is None:

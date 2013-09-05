@@ -809,7 +809,7 @@ class SageDev(object):
 
             sage: alice.download()
             sage: alice.git.echo.log('--pretty=%s')
-            Merge branch 'u/bob/ticket/1' of /dev/shm/... into ticket/1
+            Merge branch 'u/bob/ticket/1' of ... into ticket/1
             alice: added alices_file
             bob: added bobs_file
             alice: empty commit

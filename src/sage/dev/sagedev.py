@@ -50,7 +50,7 @@ GIT_DATE_REGEX = re.compile(r"^Date: (.*)$")
 GIT_DIFF_REGEX = re.compile(r"^diff --git a/(.*) b/(.*)$") # this regex should work for our patches since we do not have spaces in file names
 
 # regular expressions to determine whether a path was written for the new git
-# repository of for the old hg repository
+# repository or for the old hg repository
 HG_PATH_REGEX = re.compile(r"^(?=sage/)|(?=doc/)|(?=module_list\.py)|(?=setup\.py)|(?=c_lib/)")
 GIT_PATH_REGEX = re.compile(r"^(?=src/)")
 
@@ -2246,7 +2246,7 @@ class SageDev(object):
             sage: dev.create_ticket()
             1
 
-        There are no attachment to download yet::
+        There are no attachments to download yet::
 
             sage: dev.download_patch(ticket=1)
             ValueError: Ticket #1 has no attachments.

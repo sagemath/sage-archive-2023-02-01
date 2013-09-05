@@ -329,8 +329,8 @@ class SageDev(object):
             sage: UI.append("n")
             sage: UI.append("Summary: ticket merge\ndescription")
             sage: dev.create_ticket()
-            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] n
-            Could not switch to branch `ticket/8` because your working directory is not clean.
+            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To complete this command you have to reset your repository to a clean state. Do you want me to reset your repository? (This will discard many changes which are not commited.) [yes/No] n
+            Could not switch to branch `ticket/8` because your working directory is not in a clean state.
             Ticket #8 has been created. However, I could not switch to a branch for this ticket.
             sage: dev.git.reset_to_clean_state()
 
@@ -340,12 +340,20 @@ class SageDev(object):
             sage: dev.git.silent.add('tracked')
             sage: UI.append("keep")
             sage: UI.append("Summary: ticket merge\ndescription")
-            sage: dev.create_ticket()
+            sage: dev.create_ticket() # the new branch is based on master which is not the same commit as the current branch ticket/7 - so it is not a valid option to 'keep' changes
             The following files in your working directory contain uncommitted changes:
              tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] keep
             Could not switch to branch `ticket/9` because your working directory is not clean.
             Ticket #9 has been created. However, I could not switch to a branch for this ticket.
+
+            sage: UI.append("keep")
+            sage: UI.append("Summary: ticket merge\ndescription")
+            sage: dev.create_ticket(base='ticket/7') # now we can keep changes because the base is the same commit as the current branch
+            The following files in your working directory contain uncommitted changes:
+             tracked
+             Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
+             10
 
         """
         if branch is not None:
@@ -494,7 +502,7 @@ class SageDev(object):
             sage: open("untracked","w").close()
             sage: alice.switch_ticket(1)
             GitError: git exited with a non-zero exit code (1).
-            This happened while executing `git checkout ticket/1`.
+            This happened while executing `git -c user.email=doc@test.test -c user.name=alice checkout ticket/1`.
             git printed nothing to STDOUT.
             git printed the following to STDERR:
             error: The following untracked working tree files would be overwritten by checkout:
@@ -644,7 +652,7 @@ class SageDev(object):
             sage: dev.switch_branch("branch1")
             The following files in your working directory contain uncommitted changes:
              tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] keep
             Could not switch to branch `branch1` because your working directory is not clean.
 
         We can stash uncommitted changes::
@@ -653,7 +661,7 @@ class SageDev(object):
             sage: dev.switch_branch("branch1")
             The following files in your working directory contain uncommitted changes:
              tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] s
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] s
             Your changes have been recorded on a new branch `stash/1`.
 
         And unstash the changes later::
@@ -669,7 +677,7 @@ class SageDev(object):
             sage: dev.switch_branch("branch1")
             The following files in your working directory contain uncommitted changes:
              tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] d
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] d
 
         Switching branches when in the middle of a merge::
 
@@ -687,8 +695,8 @@ class SageDev(object):
             ....: except GitError: pass
             sage: UI.append('n')
             sage: dev.switch_branch('merge_branch')
-            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] n
-            Could not switch to branch `merge_branch` because your working directory is not clean.
+            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To complete this command you have to reset your repository to a clean state. Do you want me to reset your repository? (This will discard many changes which are not commited.) [yes/No] n
+            Could not switch to branch `merge_branch` because your working directory is not in a clean state.
             sage: dev.git.reset_to_clean_state()
 
         Switching branches when in a detached HEAD::
@@ -704,7 +712,7 @@ class SageDev(object):
             sage: dev.switch_branch('branch1')
             The following files in your working directory contain uncommitted changes:
              tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] discard
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] discard
 
         Switching branches with untracked files that would be overwritten by
         the switch::
@@ -712,7 +720,7 @@ class SageDev(object):
             sage: with open('tracked', 'w') as f: f.write("boo")
             sage: dev.switch_branch('branch2')
             GitError: git exited with a non-zero exit code (1).
-            This happened while executing `git checkout branch2`.
+            This happened while executing `git -c user.email=doc@test.test -c user.name=doctest checkout branch2`.
             git printed nothing to STDOUT.
             git printed the following to STDERR:
             error: The following untracked working tree files would be overwritten by checkout:
@@ -725,12 +733,21 @@ class SageDev(object):
 
         try:
             self.reset_to_clean_state()
-            self.reset_to_clean_working_directory()
+        except OperationCancelledError:
+            self._UI.error("Could not switch to branch `{0}` because your working directory is not in a clean state.".format(branch))
+            self._UI.info("To switch to branch `{0}`, use `{1}`.".format(branch, self._format_command("switch-branch",branch=branch)))
+            raise
+
+        current_commit = self.git.commit_for_ref('HEAD')
+        target_commit = self.git.commit_for_ref(branch)
+        try:
+            self.reset_to_clean_working_directory(cancel_unless_clean = (current_commit != target_commit))
         except OperationCancelledError:
             self._UI.error("Could not switch to branch `{0}` because your working directory is not clean.".format(branch))
             raise
 
         try:
+            # this leaves locally modified files intact (we only allow this to happen if current_commit == target_commit
             self.git.super_silent.checkout(branch)
         except GitError as e:
             # the error message should be self explanatory
@@ -1253,6 +1270,24 @@ class SageDev(object):
             The branch `u/bob/branch1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
             I will now change the branch field of ticket #1 from its current value `u/bob/ticket/1` to `u/bob/branch1`. Is this what you want? [Yes/no] y
 
+        Check that dependencies are pushed correctly::
+
+            sage: bob.merge(2)
+            Merging the remote branch `u/bob/ticket/2` into the local branch `ticket/1`.
+            Added dependency on #2 to #1.
+            sage: bob._UI.append("y")
+            sage: bob.upload()
+            I will now change the branch field of ticket #1 from its current value `u/bob/branch1` to `u/bob/ticket/1`. Is this what you want? [Yes/no] y
+            Uploading your dependencies for ticket #1: `` => `#2`
+            sage: bob._sagedev._set_dependencies_for_ticket(1,())
+            sage: bob._UI.append("keep")
+            sage: bob.upload()
+            According to trac, ticket #1 depends on #2. Your local branch depends on no tickets. Do you want to upload your dependencies to trac? Or do you want to download the dependencies from trac to your local branch? Or do you want to keep your local dependencies and the dependencies on trac in its current state? [upload/download/keep] keep
+            sage: bob._UI.append("download")
+            sage: bob.upload()
+            According to trac, ticket #1 depends on #2. Your local branch depends on no tickets. Do you want to upload your dependencies to trac? Or do you want to download the dependencies from trac to your local branch? Or do you want to keep your local dependencies and the dependencies on trac in its current state? [upload/download/keep] download
+            sage: bob.upload()
+
         """
         if ticket is None:
             ticket = self._current_ticket()
@@ -1360,22 +1395,45 @@ class SageDev(object):
                 self.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
 
         if ticket:
-            old_dependencies = self.trac.dependencies(ticket)
-            old_dependencies = ", ".join(["#"+str(dep) for dep in old_dependencies])
-            new_dependencies = self._dependencies_for_ticket(ticket)
-            new_dependencies = ", ".join(["#"+str(dep) for dep in new_dependencies])
+            old_dependencies_ = self.trac.dependencies(ticket)
+            old_dependencies = ", ".join(["#"+str(dep) for dep in old_dependencies_])
+            new_dependencies_ = self._dependencies_for_ticket(ticket)
+            new_dependencies = ", ".join(["#"+str(dep) for dep in new_dependencies_])
+
+            upload = True
             if old_dependencies != new_dependencies:
-                self._UI.info("Uploading your dependencies for ticket #{0}: `{1}` => `{2}`".format(ticket, old_dependencies, new_dependencies))
+                if old_dependencies:
+                    sel = self._UI.select("According to trac, ticket #{0} depends on {1}. Your local branch depends on {2}. Do you want to upload your dependencies to trac? Or do you want to download the dependencies from trac to your local branch? Or do you want to keep your local dependencies and the dependencies on trac in its current state?".format(ticket,old_dependencies,new_dependencies or "no tickets"),options=("upload","download","keep"))
+                    if sel == "keep":
+                        upload = False
+                    elif sel == "download":
+                        self._set_dependencies_for_ticket(ticket, old_dependencies_)
+                        self._UI.info("Setting dependencies for #{0} to {1}.".format(ticket, old_dependencies))
+                        upload = False
+                    elif sel == "upload":
+                        pass
+                    else:
+                        raise NotImplementedError
+            else:
+                self._UI.info("Not uploading your dependencies for ticket #{0} because the dependencies on trac are already up-to-date.".format(ticket))
+                upload = False
+
+            if upload:
+                self._UI.show("Uploading your dependencies for ticket #{0}: `{1}` => `{2}`".format(ticket, old_dependencies, new_dependencies))
 
                 attributes = self.trac._get_attributes(ticket)
                 attributes['dependencies'] = new_dependencies
                 self.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
-            elif new_dependencies:
-                self._UI.info("Not uploading your dependencies for ticket #{0} because the dependencies on trac are already up-to-date.".format(ticket))
 
-    def reset_to_clean_state(self):
+    def reset_to_clean_state(self, cancel_unless_clean=True):
         r"""
         Reset the current working directory to a clean state.
+
+        INPUT:
+
+        - ``cancel_unless_clean`` -- a boolean (default: ``True``), whether to
+          raise an :class:`user_interface_error.OperationCancelledError` if the
+          directory remains in an unclean state; used internally.
 
         TESTS:
 
@@ -1406,10 +1464,10 @@ class SageDev(object):
             ....: except GitError: pass
             sage: UI.append("n")
             sage: dev.reset_to_clean_state()
-            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] n
+            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To complete this command you have to reset your repository to a clean state. Do you want me to reset your repository? (This will discard many changes which are not commited.) [yes/No] n
             sage: UI.append("y")
             sage: dev.reset_to_clean_state()
-            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] y
+            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To complete this command you have to reset your repository to a clean state. Do you want me to reset your repository? (This will discard many changes which are not commited.) [yes/No] y
             sage: dev.reset_to_clean_state()
 
         A detached HEAD does not count as a non-clean state::
@@ -1421,14 +1479,22 @@ class SageDev(object):
         states = self.git.get_state()
         if not states:
             return
-        if not self._UI.confirm("Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.)", default=False):
+        if not self._UI.confirm("Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. {0}Do you want me to reset your repository? (This will discard many changes which are not commited.)".format("To complete this command you have to reset your repository to a clean state. " if cancel_unless_clean else ""), default=False):
+            if not cancel_unless_clean:
+                return
             raise OperationCancelledError("User requested not to clean the current state.")
 
         self.git.reset_to_clean_state()
 
-    def reset_to_clean_working_directory(self):
+    def reset_to_clean_working_directory(self, cancel_unless_clean=True):
         r"""
         Drop any uncommitted changes in the working directory.
+
+        INPUT:
+
+        - ``cancel_unless_clean`` -- a boolean (default: ``True``), whether to
+          raise an :class:`user_interface_error.OperationCancelledError` if the
+          directory remains in an unclean state; used internally.
 
         TESTS:
 
@@ -1456,7 +1522,7 @@ class SageDev(object):
             sage: dev.reset_to_clean_working_directory()
             The following files in your working directory contain uncommitted changes:
              tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] discard
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] discard
             sage: dev.reset_to_clean_working_directory()
 
         Uncommitted changes can be kept::
@@ -1466,7 +1532,7 @@ class SageDev(object):
             sage: dev.reset_to_clean_working_directory()
             The following files in your working directory contain uncommitted changes:
              tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] keep
 
         Or stashed::
 
@@ -1474,13 +1540,13 @@ class SageDev(object):
             sage: dev.reset_to_clean_working_directory()
             The following files in your working directory contain uncommitted changes:
              tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] stash
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] stash
             Your changes have been recorded on a new branch `stash/1`.
             sage: dev.reset_to_clean_working_directory()
 
         """
         try:
-            self.reset_to_clean_state()
+            self.reset_to_clean_state(cancel_unless_clean)
         except OperationCancelledError:
             self._UI.error("Can not clean the working directory unless in a clean state.")
             raise
@@ -1489,11 +1555,12 @@ class SageDev(object):
             return
 
         files = "\n".join([line[2:] for line in self.git.status(porcelain=True).splitlines() if not line.startswith('?')])
-        sel = self._UI.select("The following files in your working directory contain uncommitted changes:\n{0}\nDo you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later?".format(files), options=('discard','keep','stash'), default=1)
+        sel = self._UI.select("The following files in your working directory contain uncommitted changes:\n{0}\nDo you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later?{1}".format(files, " Your command can only be completed if you discard or stash your changes." if cancel_unless_clean else ""), options=('discard','keep','stash'), default=1)
         if sel == 'discard':
             self.git.reset_to_clean_working_directory()
         elif sel == 'keep':
-            raise OperationCancelledError("User requested not to clean the working directory.")
+            if cancel_unless_clean:
+                raise OperationCancelledError("User requested not to clean the working directory.")
         elif sel == 'stash':
             from git_error import DetachedHeadError
             try:
@@ -1524,7 +1591,7 @@ class SageDev(object):
             self._UI.show("Your changes have been recorded on a new branch `{0}`.".format(branch))
             self._UI.info("To recover your changes later use `{1}`.".format(branch, self._format_command("unstash",branch=branch)))
         else:
-            assert False
+            raise NotImplementedError
 
     def unstash(self, branch=None):
         r"""
@@ -1552,7 +1619,7 @@ class SageDev(object):
             sage: dev.reset_to_clean_working_directory()
             The following files in your working directory contain uncommitted changes:
              tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] s
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] s
             Your changes have been recorded on a new branch `stash/1`.
             sage: with open("tracked", "w") as f: f.write("boo")
             sage: dev.git.silent.add("tracked")
@@ -1560,7 +1627,7 @@ class SageDev(object):
             sage: dev.reset_to_clean_working_directory()
             The following files in your working directory contain uncommitted changes:
              tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] s
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] s
             Your changes have been recorded on a new branch `stash/2`.
             sage: dev.unstash()
             stash/1
@@ -2159,9 +2226,9 @@ class SageDev(object):
         EXAMPLES::
 
             sage: dev.download_patch(ticket=14882) # optional: internet
-            ValueError: Ticket #14882 has more than one attachment but parameter `patchname` is not present, please set it to one of: trac_14882-backtrack_longtime-dg.patch, trac_14882-backtrack_longtime-dg-v2.patch, trac_14882-spelling_in_backtrack-dg.patch
+            ValueError: Ticket #14882 has more than one attachment but parameter `patchname` is not present, please set it to one of: trac_14882-backtrack_longtime-dg-v2.patch, trac_14882-backtrack_longtime-dg.patch, trac_14882-spelling_in_backtrack-dg.patch
             sage: dev.download_patch(ticket=14882, patchname='trac_14882-backtrack_longtime-dg.patch') # optional: internet
-            ...
+            '...'
 
         TESTS:
 
@@ -2194,39 +2261,47 @@ class SageDev(object):
             ValueError: Ticket #1 has more than one attachment but parameter `patchname` is not present, please set it to one of: first.patch, second.patch
             sage: dev.download_patch(ticket=1, patchname = 'second.patch') # not tested, download_patch tries to talk to the live server
 
+        It is an error not to specify any parameters if not on a ticket::
+
+            sage: dev.vanilla()
+            sage: dev.download_patch()
+            ValueError: ticket or url must be specified if not currently on a ticket
+
         """
-        if url:
+        if url is not None:
             if ticket or patchname:
                 raise ValueError("If `url` is specifed, `ticket` and `patchname` must not be specified.")
             import urllib
             return urllib.urlretrieve(url)[0]
-        elif ticket:
-            ticket = self._ticket_from_ticket_name(ticket)
 
-            if patchname:
-                from sage.env import TRAC_SERVER_URI
-                url = TRAC_SERVER_URI+"/raw-attachment/ticket/%s/%s"%(ticket,patchname)
-                if url.startswith("https://"):
-                    try:
-                        import ssl
-                    except ImportError:
-                        # python is not build with ssl support by default. to make
-                        # downloading patches work even if ssl is not present, we try
-                        # to access trac through http
-                        url = url.replace("https","http",1)
-                return self.download_patch(url = url)
-            else:
-                attachments = self.trac.attachment_names(ticket)
-                if len(attachments) == 0:
-                    raise SageDevValueError("Ticket #%s has no attachments."%ticket)
-                if len(attachments) == 1:
-                    return self.download_patch(ticket = ticket, patchname = attachments[0])
-                else:
-                    raise SageDevValueError("Ticket #%s has more than one attachment but parameter `patchname` is not present, please set it to one of: %s"%(ticket,", ".join(sorted(attachments))))
-        elif not patchname:
-            return self.download_patch(ticket=self._current_ticket())
+        if ticket is None:
+            ticket is self._current_ticket()
+
+        if ticket is None:
+            raise SageDevValueError("ticket or url must be specified if not currently on a ticket")
+
+        ticket = self._ticket_from_ticket_name(ticket)
+
+        if patchname:
+            from sage.env import TRAC_SERVER_URI
+            url = TRAC_SERVER_URI+"/raw-attachment/ticket/%s/%s"%(ticket,patchname)
+            if url.startswith("https://"):
+                try:
+                    import ssl
+                except ImportError:
+                    # python is not build with ssl support by default. to make
+                    # downloading patches work even if ssl is not present, we try
+                    # to access trac through http
+                    url = url.replace("https","http",1)
+            return self.download_patch(url = url)
         else:
-            raise SageDevValueError("If `url` is not specified, `ticket` must be specified")
+            attachments = self.trac.attachment_names(ticket)
+            if len(attachments) == 0:
+                raise SageDevValueError("Ticket #%s has no attachments."%ticket)
+            if len(attachments) == 1:
+                return self.download_patch(ticket = ticket, patchname = attachments[0])
+            else:
+                raise SageDevValueError("Ticket #%s has more than one attachment but parameter `patchname` is not present, please set it to one of: %s"%(ticket,", ".join(sorted(attachments))))
 
     def prune_closed_tickets(self):
         r"""
@@ -2613,6 +2688,11 @@ class SageDev(object):
             CONFLICT (add/add): Merge conflict in alice2
             Please fix conflicts in the affected files (in a different terminal) and type 'resolved'. Or type 'abort' to abort the merge. [resolved/abort] resolved
 
+        We cannot merge a ticket into itself::
+
+            sage: alice.merge(2)
+            ValueError: cannot merge a ticket into itself
+
         """
         try:
             self.reset_to_clean_state()
@@ -2636,6 +2716,8 @@ class SageDev(object):
 
         if self._is_ticket_name(ticket_or_branch):
             ticket = self._ticket_from_ticket_name(ticket_or_branch)
+            if ticket == current_ticket:
+                raise SageDevValueError("cannot merge a ticket into itself")
             self._check_ticket_name(ticket, exists=True)
             if download is None:
                 download = True
@@ -2913,6 +2995,7 @@ class SageDev(object):
             I will now upload the following new commits to the remote branch `u/doctest/ticket/3`:
             ...: added ticket3
             Is this what you want? [Yes/no] y
+            Uploading your dependencies for ticket #3: `` => `#1, #2`
 
         A diff against the previous commit::
 
@@ -3265,7 +3348,7 @@ class SageDev(object):
 
         EXAMPLES::
 
-            sage: dev._wrap("_detect_patch_path_format")
+            sage: dev._wrap("_detect_patch_path_format", require_cwd=False)
             sage: dev._detect_patch_path_format(
             ....:     ["diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py"])
             'old'
@@ -3355,7 +3438,7 @@ class SageDev(object):
 
         Paths in the old format::
 
-            sage: dev._wrap("_rewrite_patch_diff_paths")
+            sage: dev._wrap("_rewrite_patch_diff_paths", require_cwd=False)
             sage: dev._rewrite_patch_diff_paths(
             ....:     ['diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py'],
             ....:     to_format="old")
@@ -3510,7 +3593,7 @@ class SageDev(object):
 
         EXAMPLES::
 
-            sage: dev._wrap("_detect_patch_header_format")
+            sage: dev._wrap("_detect_patch_header_format", require_cwd=False)
             sage: dev._detect_patch_header_format(
             ... ['# HG changeset patch','# Parent 05fca316b08fe56c8eec85151d9a6dde6f435d46'])
             'hg'
@@ -3554,7 +3637,7 @@ class SageDev(object):
 
         TESTS::
 
-            sage: dev._wrap("_detect_patch_modified_files")
+            sage: dev._wrap("_detect_patch_modified_files", require_cwd=False)
             sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: dev._detect_patch_modified_files(
@@ -3624,7 +3707,7 @@ class SageDev(object):
             ....:     os.path.join(SAGE_SRC, "sage", "dev", "test", "data", "git-output.patch")
             ....:     ).read().splitlines()
 
-            sage: dev._wrap("_rewrite_patch_header")
+            sage: dev._wrap("_rewrite_patch_header", require_cwd=False)
             sage: dev._rewrite_patch_header(git_lines, 'git') == git_lines
             True
             sage: dev._rewrite_patch_header(hg_lines, 'hg-export') == hg_lines
@@ -3746,7 +3829,7 @@ class SageDev(object):
 
         TESTS::
 
-            sage: dev._wrap("_rewrite_patch")
+            sage: dev._wrap("_rewrite_patch", require_cwd=False)
             sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: git_lines = open(

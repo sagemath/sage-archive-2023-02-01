@@ -79,6 +79,8 @@ class DoctestConfig(sage.dev.config.Config):
         atexit.register(shutil.rmtree, self._tmp_dir)
         self['git']['src'] = self._tmp_dir
         self['git']['dot_git'] = os.path.join(self._tmp_dir,".git")
+        self['git']['user.name'] = trac_username
+        self['git']['user.email'] = 'doc@test.test'
         os.mkdir(self['git']['dot_git'])
 
         from sage.dev.git_interface import GitInterface

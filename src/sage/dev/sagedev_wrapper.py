@@ -112,9 +112,16 @@ class SageDevWrapper(object):
         self.git = sagedev.git
         self.trac = sagedev.trac
 
-    def _wrap(self, method):
+    def _wrap(self, method, require_cwd = True):
         r"""
         Create and register a wrapper for ``method``.
+
+        INPUT:
+
+        - ``method`` -- the method to wrap
+
+        - ``require_cwd`` -- a boolean (default: ``True``), whether to cd into
+          the sage src directory if we are not there already
 
         EXAMPLES::
 
@@ -137,7 +144,19 @@ class SageDevWrapper(object):
             @sage_wraps(f)
             def wrapped(*args, **kwargs):
                 try:
-                    return f(*args, **kwargs)
+                    import os
+                    cwd = os.getcwd()
+                    git_directory = self._sagedev.git._src
+                    if require_cwd and not cwd.startswith(git_directory):
+                        self._sagedev._UI.warning("You are currently not in a subdirectory of `{0}`. To run this command I will cd into `{0}` temporarily. Relative path names you provided in the input might be interpreted incorrectly.".format(git_directory))
+                        os.chdir(git_directory)
+
+                    try:
+                        return f(*args, **kwargs)
+                    finally:
+                        if require_cwd and os.getcwd() != cwd:
+                            assert os.getcwd() == git_directory
+                            os.chdir(cwd)
                 except OperationCancelledError:
                     if self._sagedev._UI._config.get("log_level", NORMAL) >= DEBUG:
                         raise

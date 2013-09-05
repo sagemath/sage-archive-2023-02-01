@@ -937,7 +937,7 @@ class SageDev(object):
                 # that made a pull impossible
                 # is there a way to find out?
                 e.explain = "Pulling `{0}` into `{1}` failed. Most probably this happened because this did not resolve as a fast-forward, i.e., there were conflicting changes. Maybe there are untracked files in your working directory which made the pull impossible.".format(remote_branch, branch)
-                e.advice =  "You can try to use `{0}` to resolve any conflicts manually.".format(self._format_command("merge",{"remote_branch":remote_branch}))
+                e.advice =  "You can try to use `{0}` to resolve any conflicts manually.".format(self._format_command("merge",remote_branch=remote_branch))
                 raise
         else:
             try:

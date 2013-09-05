@@ -329,8 +329,8 @@ class SageDev(object):
             sage: UI.append("n")
             sage: UI.append("Summary: ticket merge\ndescription")
             sage: dev.create_ticket()
-            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] n
-            Could not switch to branch `ticket/8` because your working directory is not clean.
+            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To complete this command you have to reset your repository to a clean state. Do you want me to reset your repository? (This will discard many changes which are not commited.) [yes/No] n
+            Could not switch to branch `ticket/8` because your working directory is not in a clean state.
             Ticket #8 has been created. However, I could not switch to a branch for this ticket.
             sage: dev.git.reset_to_clean_state()
 
@@ -340,12 +340,20 @@ class SageDev(object):
             sage: dev.git.silent.add('tracked')
             sage: UI.append("keep")
             sage: UI.append("Summary: ticket merge\ndescription")
-            sage: dev.create_ticket()
+            sage: dev.create_ticket() # the new branch is based on master which is not the same commit as the current branch ticket/7 - so it is not a valid option to 'keep' changes
             The following files in your working directory contain uncommitted changes:
              tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] keep
             Could not switch to branch `ticket/9` because your working directory is not clean.
             Ticket #9 has been created. However, I could not switch to a branch for this ticket.
+
+            sage: UI.append("keep")
+            sage: UI.append("Summary: ticket merge\ndescription")
+            sage: dev.create_ticket(base='ticket/7') # now we can keep changes because the base is the same commit as the current branch
+            The following files in your working directory contain uncommitted changes:
+             tracked
+             Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
+             10
 
         """
         if branch is not None:
@@ -644,7 +652,7 @@ class SageDev(object):
             sage: dev.switch_branch("branch1")
             The following files in your working directory contain uncommitted changes:
              tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] keep
             Could not switch to branch `branch1` because your working directory is not clean.
 
         We can stash uncommitted changes::
@@ -653,7 +661,7 @@ class SageDev(object):
             sage: dev.switch_branch("branch1")
             The following files in your working directory contain uncommitted changes:
              tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] s
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] s
             Your changes have been recorded on a new branch `stash/1`.
 
         And unstash the changes later::
@@ -669,7 +677,7 @@ class SageDev(object):
             sage: dev.switch_branch("branch1")
             The following files in your working directory contain uncommitted changes:
              tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] d
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] d
 
         Switching branches when in the middle of a merge::
 
@@ -687,8 +695,8 @@ class SageDev(object):
             ....: except GitError: pass
             sage: UI.append('n')
             sage: dev.switch_branch('merge_branch')
-            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] n
-            Could not switch to branch `merge_branch` because your working directory is not clean.
+            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To complete this command you have to reset your repository to a clean state. Do you want me to reset your repository? (This will discard many changes which are not commited.) [yes/No] n
+            Could not switch to branch `merge_branch` because your working directory is not in a clean state.
             sage: dev.git.reset_to_clean_state()
 
         Switching branches when in a detached HEAD::
@@ -704,7 +712,7 @@ class SageDev(object):
             sage: dev.switch_branch('branch1')
             The following files in your working directory contain uncommitted changes:
              tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] discard
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] discard
 
         Switching branches with untracked files that would be overwritten by
         the switch::
@@ -725,12 +733,21 @@ class SageDev(object):
 
         try:
             self.reset_to_clean_state()
-            self.reset_to_clean_working_directory()
+        except OperationCancelledError:
+            self._UI.error("Could not switch to branch `{0}` because your working directory is not in a clean state.".format(branch))
+            self._UI.info("To switch to branch `{0}`, use `{1}`.".format(branch, self._format_command("switch-branch",branch=branch)))
+            raise
+
+        current_commit = self.git.commit_for_ref('HEAD')
+        target_commit = self.git.commit_for_ref(branch)
+        try:
+            self.reset_to_clean_working_directory(cancel_unless_clean = (current_commit != target_commit))
         except OperationCancelledError:
             self._UI.error("Could not switch to branch `{0}` because your working directory is not clean.".format(branch))
             raise
 
         try:
+            # this leaves locally modified files intact (we only allow this to happen if current_commit == target_commit
             self.git.super_silent.checkout(branch)
         except GitError as e:
             # the error message should be self explanatory
@@ -1408,9 +1425,15 @@ class SageDev(object):
                 attributes['dependencies'] = new_dependencies
                 self.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
 
-    def reset_to_clean_state(self):
+    def reset_to_clean_state(self, cancel_unless_clean=True):
         r"""
         Reset the current working directory to a clean state.
+
+        INPUT:
+
+        - ``cancel_unless_clean`` -- a boolean (default: ``True``), whether to
+          raise an :class:`user_interface_error.OperationCancelledError` if the
+          directory remains in an unclean state; used internally.
 
         TESTS:
 
@@ -1441,10 +1464,10 @@ class SageDev(object):
             ....: except GitError: pass
             sage: UI.append("n")
             sage: dev.reset_to_clean_state()
-            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] n
+            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To complete this command you have to reset your repository to a clean state. Do you want me to reset your repository? (This will discard many changes which are not commited.) [yes/No] n
             sage: UI.append("y")
             sage: dev.reset_to_clean_state()
-            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.) [yes/No] y
+            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To complete this command you have to reset your repository to a clean state. Do you want me to reset your repository? (This will discard many changes which are not commited.) [yes/No] y
             sage: dev.reset_to_clean_state()
 
         A detached HEAD does not count as a non-clean state::
@@ -1456,14 +1479,22 @@ class SageDev(object):
         states = self.git.get_state()
         if not states:
             return
-        if not self._UI.confirm("Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To run this command you have to reset your respository to a clean state. Do you want me to reset your respository? (This will discard many changes which are not commited.)", default=False):
+        if not self._UI.confirm("Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. {0}Do you want me to reset your repository? (This will discard many changes which are not commited.)".format("To complete this command you have to reset your repository to a clean state. " if cancel_unless_clean else ""), default=False):
+            if not cancel_unless_clean:
+                return
             raise OperationCancelledError("User requested not to clean the current state.")
 
         self.git.reset_to_clean_state()
 
-    def reset_to_clean_working_directory(self):
+    def reset_to_clean_working_directory(self, cancel_unless_clean=True):
         r"""
         Drop any uncommitted changes in the working directory.
+
+        INPUT:
+
+        - ``cancel_unless_clean`` -- a boolean (default: ``True``), whether to
+          raise an :class:`user_interface_error.OperationCancelledError` if the
+          directory remains in an unclean state; used internally.
 
         TESTS:
 
@@ -1491,7 +1522,7 @@ class SageDev(object):
             sage: dev.reset_to_clean_working_directory()
             The following files in your working directory contain uncommitted changes:
              tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] discard
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] discard
             sage: dev.reset_to_clean_working_directory()
 
         Uncommitted changes can be kept::
@@ -1501,7 +1532,7 @@ class SageDev(object):
             sage: dev.reset_to_clean_working_directory()
             The following files in your working directory contain uncommitted changes:
              tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] keep
 
         Or stashed::
 
@@ -1509,13 +1540,13 @@ class SageDev(object):
             sage: dev.reset_to_clean_working_directory()
             The following files in your working directory contain uncommitted changes:
              tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] stash
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] stash
             Your changes have been recorded on a new branch `stash/1`.
             sage: dev.reset_to_clean_working_directory()
 
         """
         try:
-            self.reset_to_clean_state()
+            self.reset_to_clean_state(cancel_unless_clean)
         except OperationCancelledError:
             self._UI.error("Can not clean the working directory unless in a clean state.")
             raise
@@ -1524,11 +1555,12 @@ class SageDev(object):
             return
 
         files = "\n".join([line[2:] for line in self.git.status(porcelain=True).splitlines() if not line.startswith('?')])
-        sel = self._UI.select("The following files in your working directory contain uncommitted changes:\n{0}\nDo you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later?".format(files), options=('discard','keep','stash'), default=1)
+        sel = self._UI.select("The following files in your working directory contain uncommitted changes:\n{0}\nDo you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later?{1}".format(files, " Your command can only be completed if you discard or stash your changes." if cancel_unless_clean else ""), options=('discard','keep','stash'), default=1)
         if sel == 'discard':
             self.git.reset_to_clean_working_directory()
         elif sel == 'keep':
-            raise OperationCancelledError("User requested not to clean the working directory.")
+            if cancel_unless_clean:
+                raise OperationCancelledError("User requested not to clean the working directory.")
         elif sel == 'stash':
             from git_error import DetachedHeadError
             try:
@@ -1559,7 +1591,7 @@ class SageDev(object):
             self._UI.show("Your changes have been recorded on a new branch `{0}`.".format(branch))
             self._UI.info("To recover your changes later use `{1}`.".format(branch, self._format_command("unstash",branch=branch)))
         else:
-            assert False
+            raise NotImplementedError
 
     def unstash(self, branch=None):
         r"""
@@ -1587,7 +1619,7 @@ class SageDev(object):
             sage: dev.reset_to_clean_working_directory()
             The following files in your working directory contain uncommitted changes:
              tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] s
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] s
             Your changes have been recorded on a new branch `stash/1`.
             sage: with open("tracked", "w") as f: f.write("boo")
             sage: dev.git.silent.add("tracked")
@@ -1595,7 +1627,7 @@ class SageDev(object):
             sage: dev.reset_to_clean_working_directory()
             The following files in your working directory contain uncommitted changes:
              tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] s
+            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] s
             Your changes have been recorded on a new branch `stash/2`.
             sage: dev.unstash()
             stash/1

@@ -125,12 +125,12 @@ class GitProxy(object):
             sage: dev.git.status()
             Traceback (most recent call last):
             ...
-            AssertionError: possible attempt to work with the live repository/directory in a doctest - did you forget to dev._chdir()?
+            AssertionError: possible attempt to work with the live repository/directory in a doctest
 
         """
         import sage.doctest
         import os
-        assert not sage.doctest.DOCTEST_MODE or (self._dot_git != SAGE_DOT_GIT and self._repository != SAGE_REPO_AUTHENTICATED and os.path.abspath(os.getcwd()).startswith(self._src)), "possible attempt to work with the live repository/directory in a doctest - did you forget to dev._chdir()?"
+        assert not sage.doctest.DOCTEST_MODE or (self._dot_git != SAGE_DOT_GIT and self._repository != SAGE_REPO_AUTHENTICATED and os.path.abspath(self._src).startswith(self._src)), "possible attempt to work with the live repository/directory in a doctest"
 
         # not sure which commands could possibly create a commit object with
         # unless there are some crazy flags set - these commands should be safe
@@ -140,13 +140,13 @@ class GitProxy(object):
         # again, these should be safe
         self._upload_ssh_key()
 
-        s = [self._gitcmd, "--git-dir=%s"%self._dot_git, cmd]
+        s = [self._gitcmd, "--git-dir=%s"%self._dot_git, "--work-tree=%s"%self._src, cmd]
         if 'user.name' in self._config:
-            s.insert(2, '-c')
-            s.insert(3, 'user.name='+self._config['user.name'])
+            s.insert(3, '-c')
+            s.insert(4, 'user.name='+self._config['user.name'])
         if 'user.email' in self._config:
-            s.insert(2, '-c')
-            s.insert(3, 'user.email='+self._config['user.email'])
+            s.insert(3, '-c')
+            s.insert(4, 'user.email='+self._config['user.email'])
 
         env = ckwds.setdefault('env', dict(os.environ))
         env.update(kwds.pop('env', {}))
@@ -166,7 +166,7 @@ class GitProxy(object):
         s = [str(arg) for arg in s]
 
         from sage.dev.user_interface import DEBUG
-        complete_cmd = " ".join([arg for i,arg in enumerate(s) if i!=1]) # drop --git-dir from debug output
+        complete_cmd = " ".join([arg for i,arg in enumerate(s) if i not in (1,2)]) # drop --git-dir, --work-tree from debug output
         self._UI.show("[git] %s"%complete_cmd, log_level=DEBUG)
 
         if ckwds.get('dryrun', False):

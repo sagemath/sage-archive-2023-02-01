@@ -1253,6 +1253,24 @@ class SageDev(object):
             The branch `u/bob/branch1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
             I will now change the branch field of ticket #1 from its current value `u/bob/ticket/1` to `u/bob/branch1`. Is this what you want? [Yes/no] y
 
+        Check that dependencies are pushed correctly::
+
+            sage: bob.merge(2)
+            Merging the remote branch `u/bob/ticket/2` into the local branch `ticket/1`.
+            Added dependency on #2 to #1.
+            sage: bob._UI.append("y")
+            sage: bob.upload()
+            I will now change the branch field of ticket #1 from its current value `u/bob/branch1` to `u/bob/ticket/1`. Is this what you want? [Yes/no] y
+            Uploading your dependencies for ticket #1: `` => `#2`
+            sage: bob._sagedev._set_dependencies_for_ticket(1,())
+            sage: bob._UI.append("keep")
+            sage: bob.upload()
+            According to trac, ticket #1 depends on #2. Your local branch depends on no tickets. Do you want to upload your dependencies to trac? Or do you want to download the dependencies from trac to your local branch? Or do you want to keep your local dependencies and the dependencies on trac in its current state? [upload/download/keep] keep
+            sage: bob._UI.append("download")
+            sage: bob.upload()
+            According to trac, ticket #1 depends on #2. Your local branch depends on no tickets. Do you want to upload your dependencies to trac? Or do you want to download the dependencies from trac to your local branch? Or do you want to keep your local dependencies and the dependencies on trac in its current state? [upload/download/keep] download
+            sage: bob.upload()
+
         """
         if ticket is None:
             ticket = self._current_ticket()
@@ -1360,18 +1378,35 @@ class SageDev(object):
                 self.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
 
         if ticket:
-            old_dependencies = self.trac.dependencies(ticket)
-            old_dependencies = ", ".join(["#"+str(dep) for dep in old_dependencies])
-            new_dependencies = self._dependencies_for_ticket(ticket)
-            new_dependencies = ", ".join(["#"+str(dep) for dep in new_dependencies])
+            old_dependencies_ = self.trac.dependencies(ticket)
+            old_dependencies = ", ".join(["#"+str(dep) for dep in old_dependencies_])
+            new_dependencies_ = self._dependencies_for_ticket(ticket)
+            new_dependencies = ", ".join(["#"+str(dep) for dep in new_dependencies_])
+
+            upload = True
             if old_dependencies != new_dependencies:
-                self._UI.info("Uploading your dependencies for ticket #{0}: `{1}` => `{2}`".format(ticket, old_dependencies, new_dependencies))
+                if old_dependencies:
+                    sel = self._UI.select("According to trac, ticket #{0} depends on {1}. Your local branch depends on {2}. Do you want to upload your dependencies to trac? Or do you want to download the dependencies from trac to your local branch? Or do you want to keep your local dependencies and the dependencies on trac in its current state?".format(ticket,old_dependencies,new_dependencies or "no tickets"),options=("upload","download","keep"))
+                    if sel == "keep":
+                        upload = False
+                    elif sel == "download":
+                        self._set_dependencies_for_ticket(ticket, old_dependencies_)
+                        self._UI.info("Setting dependencies for #{0} to {1}.".format(ticket, old_dependencies))
+                        upload = False
+                    elif sel == "upload":
+                        pass
+                    else:
+                        raise NotImplementedError
+            else:
+                self._UI.info("Not uploading your dependencies for ticket #{0} because the dependencies on trac are already up-to-date.".format(ticket))
+                upload = False
+
+            if upload:
+                self._UI.show("Uploading your dependencies for ticket #{0}: `{1}` => `{2}`".format(ticket, old_dependencies, new_dependencies))
 
                 attributes = self.trac._get_attributes(ticket)
                 attributes['dependencies'] = new_dependencies
                 self.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
-            elif new_dependencies:
-                self._UI.info("Not uploading your dependencies for ticket #{0} because the dependencies on trac are already up-to-date.".format(ticket))
 
     def reset_to_clean_state(self):
         r"""
@@ -2928,6 +2963,7 @@ class SageDev(object):
             I will now upload the following new commits to the remote branch `u/doctest/ticket/3`:
             ...: added ticket3
             Is this what you want? [Yes/no] y
+            Uploading your dependencies for ticket #3: `` => `#1, #2`
 
         A diff against the previous commit::
 

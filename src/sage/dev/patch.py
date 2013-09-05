@@ -358,7 +358,6 @@ def download_patch(self, ticket=None, patchname=None, url=None):
         sage: UI.append("n")
         sage: dev._sagedev.trac = sage.all.dev.trac # we have to use the actual trac proxy to enable access to the patch list on trac
         sage: dev.download_patch(ticket=12415) # optional: internet
-        There is more than one attachment on ticket #12415. Reading `https://trac.sagemath.org/ticket/12415?format=rss` to try to find out in which order they must be applied.
         It seems that the following patches have to be applied in this order:
         12415_spkg_bin_sage.patch
         12415_script.patch

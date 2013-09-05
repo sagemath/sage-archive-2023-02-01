@@ -3348,7 +3348,7 @@ class SageDev(object):
 
         EXAMPLES::
 
-            sage: dev._wrap("_detect_patch_path_format")
+            sage: dev._wrap("_detect_patch_path_format", require_cwd=False)
             sage: dev._detect_patch_path_format(
             ....:     ["diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py"])
             'old'
@@ -3438,7 +3438,7 @@ class SageDev(object):
 
         Paths in the old format::
 
-            sage: dev._wrap("_rewrite_patch_diff_paths")
+            sage: dev._wrap("_rewrite_patch_diff_paths", require_cwd=False)
             sage: dev._rewrite_patch_diff_paths(
             ....:     ['diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py'],
             ....:     to_format="old")
@@ -3593,7 +3593,7 @@ class SageDev(object):
 
         EXAMPLES::
 
-            sage: dev._wrap("_detect_patch_header_format")
+            sage: dev._wrap("_detect_patch_header_format", require_cwd=False)
             sage: dev._detect_patch_header_format(
             ... ['# HG changeset patch','# Parent 05fca316b08fe56c8eec85151d9a6dde6f435d46'])
             'hg'
@@ -3637,7 +3637,7 @@ class SageDev(object):
 
         TESTS::
 
-            sage: dev._wrap("_detect_patch_modified_files")
+            sage: dev._wrap("_detect_patch_modified_files", require_cwd=False)
             sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: dev._detect_patch_modified_files(
@@ -3707,7 +3707,7 @@ class SageDev(object):
             ....:     os.path.join(SAGE_SRC, "sage", "dev", "test", "data", "git-output.patch")
             ....:     ).read().splitlines()
 
-            sage: dev._wrap("_rewrite_patch_header")
+            sage: dev._wrap("_rewrite_patch_header", require_cwd=False)
             sage: dev._rewrite_patch_header(git_lines, 'git') == git_lines
             True
             sage: dev._rewrite_patch_header(hg_lines, 'hg-export') == hg_lines
@@ -3829,7 +3829,7 @@ class SageDev(object):
 
         TESTS::
 
-            sage: dev._wrap("_rewrite_patch")
+            sage: dev._wrap("_rewrite_patch", require_cwd=False)
             sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: git_lines = open(

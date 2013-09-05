@@ -900,7 +900,7 @@ class TracInterface(object):
         fd, filename = tempfile.mkstemp()
         try:
             with os.fdopen(fd, "w") as F:
-                F.write("Summary: %s\n"%summary)
+                F.write("Summary: %s\n"%summary.encode('utf-8'))
                 for k,v in attributes.items():
                     k = ALLOWED_FIELDS.get(k.lower())
                     if k is not None:
@@ -908,7 +908,7 @@ class TracInterface(object):
 
                 if description is None or not description.strip():
                     description = "\nADD DESCRIPTION\n"
-                F.write("\n" + description + "\n")
+                F.write("\n" + description.encode('utf-8') + "\n")
                 F.write(TICKET_FILE_GUIDE)
 
             while True:

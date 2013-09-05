@@ -57,11 +57,9 @@ GIT_PATH_REGEX = re.compile(r"^(?=src/)")
 # regular expression to check validity of git options
 GIT_BRANCH_REGEX = re.compile(r'^(?!.*/\.)(?!.*\.\.)(?!/)(?!.*//)(?!.*@\{)(?!.*\\)[^\040\177 ~^:?*[]+(?<!\.lock)(?<!/)(?<!\.)$') # http://stackoverflow.com/questions/12093748/how-do-i-check-for-valid-git-branch-names
 
-# the name of the branch which holds the vanilla clone of sage - in the long
-# run this should be "master", currently, "public/sage-git/master" contains some changes
-# over "master" which have not been reviewed yet but which are needed to work
-# using git
+# the name of the branch which holds the vanilla clone of sage
 MASTER_BRANCH = "master"
+USER_BRANCH = re.compile(r"^u/([^/]+)/")
 
 COMMIT_GUIDE=r"""
 
@@ -84,7 +82,7 @@ class SageDev(object):
 
     - ``config`` -- a :class:`config.Config` or ``None`` (default: ``None``),
       the configuration of this object; the defaults uses the configuration
-      stored in ``DOT_GIT/devrc``.
+      stored in ``DOT_SAGE/devrc``.
 
     - ``UI`` -- a :class:`user_interface.UserInterface` or ``None`` (default:
       ``None``), the default creates a
@@ -221,19 +219,21 @@ class SageDev(object):
 
         INPUT:
 
-        - ``branch`` -- a string or ``None`` (default: ``None``), the name of
-          the local branch that will be used for the new ticket; if ``None``,
-          the branch will be called ``'ticket/ticket_number'``.
+        - ``branch`` -- a string or ``None`` (default: ``None``), the
+          name of the local branch that will be used for the new
+          ticket; if ``None``, the branch will be called
+          ``'ticket/ticket_number'``.
 
-        - ``base`` -- a string or ``None``, a branch on which to base the
-          ticket (default: the master branch ``'master'``), or a ticket; if
-          ``base`` is set to ``None``, then the current ticket is used. If
-          ``base`` is a ticket, then the corresponding dependency will be
-          added.
+        - ``base`` -- a string or ``None``, a branch on which to base
+          the ticket (default: the master branch ``'master'``), or a
+          ticket; if ``base`` is set to ``None``, then the current
+          ticket is used. If ``base`` is a ticket, then the
+          corresponding dependency will be added.
 
-        - ``remote_branch`` -- a string or ``None`` (default: ``None``), the
-          branch to pull from and push to on trac's git server; if ``None``,
-          then the default branch ``'u/username/ticket_number'`` will be used.
+        - ``remote_branch`` -- a string or ``None`` (default:
+          ``None``), the branch to pull from and push to on trac's git
+          server; if ``None``, then the default branch
+          ``'u/username/ticket/ticket_number'`` will be used.
 
         OUTPUT:
 
@@ -925,20 +925,7 @@ class SageDev(object):
             current_branch = None
 
         if current_branch == branch:
-            # we cannot fetch onto the current branch - we have to pull
-            self.reset_to_clean_state()
-            self.reset_to_clean_working_directory()
-
-            try:
-                self.git.super_silent.pull(self.git._repository, remote_branch)
-            except GitError as e:
-                # this might fail because the pull did not resolve as a
-                # fast-forward or because there were untracked files around
-                # that made a pull impossible
-                # is there a way to find out?
-                e.explain = "Pulling `{0}` into `{1}` failed. Most probably this happened because this did not resolve as a fast-forward, i.e., there were conflicting changes. Maybe there are untracked files in your working directory which made the pull impossible.".format(remote_branch, branch)
-                e.advice =  "You can try to use `{0}` to resolve any conflicts manually.".format(self._format_command("merge",{"remote_branch":remote_branch}))
-                raise
+            self.merge(remote_branch=remote_branch)
         else:
             try:
                 self.git.super_silent.fetch(self.git._repository, "{0}:{1}".format(remote_branch, branch))
@@ -953,7 +940,7 @@ class SageDev(object):
                     e.explain += " Most probably this happened because the fetch did not resolve as a fast-forward, i.e., there were conflicting changes."
                     e.advice = "You can try to use `{2}` to switch to `{1}` and then use `{3}` to resolve these conflicts manually.".format(remote_branch, branch, self._format_command("switch-branch",branch), self._format_command("merge",{"remote_branch":remote_branch}))
                 else:
-                    # is there any advice one could give to the user?
+                    e.explain += "We did not expect this case to occur.  If you can explain your context in sage.dev.sagedev it might be useful to others."
                     pass
                 raise
 
@@ -961,7 +948,8 @@ class SageDev(object):
         r"""
         Create a commit from the pending changes on the current branch.
 
-        This is most akin to mercurial's commit command, not git's.
+        This is most akin to mercurial's commit command, not git's,
+        since we do not require users to add files.
 
         INPUT:
 
@@ -1131,7 +1119,9 @@ class SageDev(object):
         self._check_local_branch_name(branch, exists=True)
         self._check_remote_branch_name(remote_branch)
 
-        if not remote_branch.startswith('u/{0}/'.format(self.trac._username)):
+        # If we add restrictions on which branches users may push to, we should append them here.
+        m = USER_BRANCH.match(remote_branch)
+        if remote_branch == 'master' or m and m.groups()[0] != self.trac._username:
             self._UI.warning("The remote branch `{0}` is not in your user scope. You might not have permission to push to that branch. Did you mean to set the remote branch to `u/{1}/{0}`?".format(remote_branch, self.trac._username))
 
         self._set_remote_branch_for_branch(branch, remote_branch)
@@ -1593,7 +1583,7 @@ class SageDev(object):
         else:
             raise NotImplementedError
 
-    def unstash(self, branch=None):
+    def unstash(self, branch=None, show_diff=False):
         r"""
         Unstash the changes recorded in ``branch``.
 
@@ -1601,6 +1591,8 @@ class SageDev(object):
 
         - ``branch`` -- the name of a local branch or ``None`` (default:
           ``None``), if ``None`` list all stashes.
+        - ``show_diff`` -- if ``True``, shows the diff stored in the
+          stash rather than applying it.
 
         TESTS:
 
@@ -1633,6 +1625,10 @@ class SageDev(object):
             stash/1
             stash/2
 
+        See what's in a stash::
+
+            sage: dev.unstash("stash/1", show_diff=True)
+
         Unstash a change::
 
             sage: dev.unstash("stash/1")
@@ -1653,8 +1649,11 @@ class SageDev(object):
             stashes.sort()
             stashes = "\n".join(stashes)
             stashes = stashes or "(no stashes)"
-            self._UI.info("Use `{0}` to apply the changes recorded in the stash to your working directory where `name` is one of the following:\n{1}".format(self._format_command("unstash",branch="name"), stashes))
+            self._UI.info("Use `{0}` to apply the changes recorded in the stash to your working directory, or `{1}` to see the changes recorded in the stash, where `name` is one of the following:\n{2}".format(self._format_command("unstash",branch="name"), self._format_command("unstash",branch="name",show_diff=True), stashes))
             self._UI.show(stashes)
+            return
+        elif show_diff:
+            self.git.echo.diff(branch + '^..' + branch)
             return
 
         self._check_stash_name(branch, exists=True)
@@ -1670,7 +1669,8 @@ class SageDev(object):
 
         self.git.super_silent.reset()
 
-        self._UI.info("The changes recorded in `{0}` have been restored in your working directory. If you do not need the stash anymore, you can drop it with `{1}`.".format(branch, self._format_command("abandon",branch=branch)))
+        if self._UI.select("The changes recorded in `{0}` have been restored in your working directory.  Would you like to delete the branch they were stashed in?", ["yes","no"], "yes"):
+            self.git.branch(d=True, branch)
 
     def edit_ticket(self, ticket=None):
         r"""

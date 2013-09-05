@@ -96,7 +96,7 @@ do
         sed -i -e 's+\s*$++' $tabs $path
         lines=`sed 's+\s*++g' $path | sed 's+:.*++' | tail -1`
         head -n $lines $path > $path.new && mv $path.new $path
-        echo "Fixed whitespace for $path"
+        echo "Replaced all tab characters in $path with 4 spaces"
     fi
 done
 

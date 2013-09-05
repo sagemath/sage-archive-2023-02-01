@@ -61,7 +61,7 @@ COMMENT_FILE_GUIDE = r"""
 
 def _timerep(tm, curtime=None):
     """
-    Prints the given time in terms of a rounded number of time-units ago.
+    Prints the given time in terms of a rounded-down number of time-units ago.
 
     INPUT:
 
@@ -192,8 +192,7 @@ class TracInterface(object):
 
         if self.__username is None:
             self.__username = self._config['username'] = self._UI.get_input('Trac username:')
-            from user_interface import INFO
-            self._UI.show("Your trac username has been written to a configuration file for future sessions. To reset your username, use `dev.trac.reset_username()`.", INFO)
+            self._UI.info("Your trac username has been written to a configuration file for future sessions. To reset your username, use `dev.trac.reset_username()`.")
 
         return self.__username
 
@@ -277,8 +276,7 @@ class TracInterface(object):
 
             if store_password == "yes":
                 self._config['password'] = self.__password
-                from sage.dev.user_interface import INFO
-                self._UI.show("Your trac password has been written to a configuration file. To reset your password, use `dev.trac.reset_password()`.", INFO)
+                self._UI.info("Your trac password has been written to a configuration file. To reset your password, use `dev.trac.reset_password()`.")
 
         self._postpone_password_timeout()
         return self.__password
@@ -803,8 +801,7 @@ class TracInterface(object):
 
         url = self._authenticated_server_proxy.ticket.update(ticket, comment, attributes)
 
-        from user_interface import INFO
-        self._UI.show("Your comment has been recorded: %s"%url, INFO)
+        self._UI.info("Your comment has been recorded: %s"%url)
 
     def edit_ticket_interactive(self, ticket):
         """
@@ -848,8 +845,7 @@ class TracInterface(object):
         attributes.update(ret[2])
 
         url = self._authenticated_server_proxy.ticket.update(ticket, "", attributes)
-        from user_interface import INFO
-        self._UI.show("Ticket modified: %s"%url, INFO)
+        self._UI.info("Ticket modified: %s"%url)
 
     def _edit_ticket_interactive(self, summary, description, attributes):
         r"""
@@ -969,8 +965,7 @@ class TracInterface(object):
         import urlparse
         from sage.env import TRAC_SERVER_URI
         ticket_url = urlparse.urljoin(self._config.get('server', TRAC_SERVER_URI), str(ticket))
-        from user_interface import INFO
-        self._UI.show("Created ticket #%s (%s)."%(ticket, ticket_url), INFO)
+        self._UI.info("Created ticket #%s (%s)."%(ticket, ticket_url))
         return ticket
 
     @classmethod

@@ -385,7 +385,7 @@ def download_patch(self, ticket=None, patchname=None, url=None):
         return (ret,)
 
     if ticket is None:
-        ticket is self._current_ticket()
+        ticket = self._current_ticket()
 
     if ticket is None:
         from sagedev import SageDevValueError

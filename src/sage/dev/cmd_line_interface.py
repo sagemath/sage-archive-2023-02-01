@@ -329,7 +329,8 @@ class CmdLineInterface(UserInterface):
         if sum(len(l) // width + 1 for l in message) + 2 <= height:
             print(*message, sep='\n')
         else:
-            message = '\n'.join(message)+'\n'
+            # It would be nice to autodetect the encoding rather than assume UTF8
+            message = ('\n'.join(message)+'\n').encode('utf-8')
             try:
                 self._pager(message)
             except AttributeError:

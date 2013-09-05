@@ -1670,7 +1670,7 @@ class SageDev(object):
         self.git.super_silent.reset()
 
         if self._UI.select("The changes recorded in `{0}` have been restored in your working directory.  Would you like to delete the branch they were stashed in?", ["yes","no"], "yes"):
-            self.git.branch(d=True, branch)
+            self.git.branch(branch, d=True)
 
     def edit_ticket(self, ticket=None):
         r"""

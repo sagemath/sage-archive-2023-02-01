@@ -1864,7 +1864,7 @@ class SimplicialComplex(GenericCellComplex):
             {0: 0, 1: 0, 2: Z}
         """
         from sage.modules.all import VectorSpace
-        from sage.homology.chain_complex import HomologyGroup
+        from sage.homology.homology_group import HomologyGroup
 
         base_ring = kwds.get('base_ring', ZZ)
         cohomology = kwds.get('cohomology', False)
@@ -1938,10 +1938,7 @@ class SimplicialComplex(GenericCellComplex):
                         temp[n] = answer[n]
                     answer = temp
                 else:  # just a single dimension
-                    if base_ring == ZZ:
-                        answer = answer.get(dim, HomologyGroup(0))
-                    else:
-                        answer = answer.get(dim, VectorSpace(base_ring, 0))
+                    answer = answer.get(dim, HomologyGroup(0, base_ring))
         return answer
 
     def add_face(self, face):

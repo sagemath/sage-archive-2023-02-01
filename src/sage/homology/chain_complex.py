@@ -5,9 +5,9 @@ AUTHORS:
 
 - John H. Palmieri (2009-04)
 
-This module implements chain complexes of free `R`-modules, for any
-commutative ring `R` (although the interesting things, like homology,
-only work if `R` is the integers or a field).
+This module implements bounded chain complexes of free `R`-modules,
+for any commutative ring `R` (although the interesting things, like
+homology, only work if `R` is the integers or a field).
 
 Fix a ring `R`.  A chain complex over `R` is a collection of
 `R`-modules `\{C_n\}` indexed by the integers, with `R`-module maps
@@ -33,204 +33,34 @@ change it by any fixed amount: this is controlled by the ``degree``
 parameter used in defining the chain complex.
 """
 
-from sage.structure.sage_object import SageObject
+
+########################################################################
+#       Copyright (C) 2013 John H. Palmieri <palmieri@math.washington.edu>
+#                          Volker Braun <vbraun.name@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#
+#                  http://www.gnu.org/licenses/
+########################################################################
+
+from copy import copy
+
+from sage.structure.parent import Parent
+from sage.structure.element import ModuleElement
+from sage.misc.cachefunc import cached_method
+
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-from sage.modules.free_module import FreeModule, VectorSpace
+from sage.modules.free_module import FreeModule
 from sage.modules.free_module_element import vector
 from sage.matrix.matrix0 import Matrix
 from sage.matrix.constructor import matrix, prepare_dict
 from sage.misc.latex import latex
-from sage.groups.additive_abelian.additive_abelian_group import AdditiveAbelianGroup_fixed_gens
-#from sage.groups.abelian_gps.abelian_group import AbelianGroup_class
 from sage.rings.all import GF, prime_range
+from sage.misc.decorators import rename_keyword
 
-def dhsw_snf(mat, verbose=False):
-    """
-    Preprocess a matrix using the "Elimination algorithm" described by
-    Dumas et al. [DHSW]_, and then call ``elementary_divisors`` on the
-    resulting (smaller) matrix.
-
-    .. NOTE::
-
-        'snf' stands for 'Smith Normal Form.'
-
-    INPUT:
-
-    -  ``mat`` -- an integer matrix, either sparse or dense.
-
-    (They use the transpose of the matrix considered here, so they use
-    rows instead of columns.)
-
-    Algorithm: go through ``mat`` one column at a time.  For each
-    column, add multiples of previous columns to it until either
-
-    - it's zero, in which case it should be deleted.
-    - its first nonzero entry is 1 or -1, in which case it should be kept.
-    - its first nonzero entry is something else, in which case it is
-      deferred until the second pass.
-
-    Then do a second pass on the deferred columns.
-
-    At this point, the columns with 1 or -1 in the first entry
-    contribute to the rank of the matrix, and these can be counted and
-    then deleted (after using the 1 or -1 entry to clear out its row).
-    Suppose that there were `N` of these.
-
-    The resulting matrix should be much smaller; we then feed it
-    to Sage's ``elementary_divisors`` function, and prepend `N` 1's to
-    account for the rows deleted in the previous step.
-
-    EXAMPLES::
-
-        sage: from sage.homology.chain_complex import dhsw_snf
-        sage: mat = matrix(ZZ, 3, 4, range(12))
-        sage: dhsw_snf(mat)
-        [1, 4, 0]
-        sage: mat = random_matrix(ZZ, 20, 20, x=-1, y=2)
-        sage: mat.elementary_divisors() == dhsw_snf(mat)
-        True
-
-    REFERENCES:
-
-    .. [DHSW] Dumas, Heckenbach, Saunders, Welker, "Computing simplicial
-        homology based on efficient Smith normal form algorithms," in
-        "Algebra, geometry, and software systems" (2003), 177-206.
-    """
-    ring = mat.base_ring()
-    rows = mat.nrows()
-    cols = mat.ncols()
-    new_data = {}
-    new_mat = matrix(ring, rows, cols, new_data)
-    add_to_rank = 0
-    zero_cols = 0
-    if verbose:
-        print "old matrix: %s by %s" % (rows, cols)
-    # leading_positions: dictionary of lists indexed by row: if first
-    # nonzero entry in column c is in row r, then leading_positions[r]
-    # should contain c
-    leading_positions = {}
-    # pass 1:
-    if verbose:
-        print "starting pass 1"
-    for j in range(cols):
-        # new_col is a matrix with one column: sparse matrices seem to
-        # be less buggy than sparse vectors (#5184, #5185), and
-        # perhaps also faster.
-        new_col = mat.matrix_from_columns([j])
-        if new_col.is_zero():
-            zero_cols += 1
-        else:
-            check_leading = True
-            while check_leading:
-                i = new_col.nonzero_positions_in_column(0)[0]
-                entry = new_col[i,0]
-                check_leading = False
-                if i in leading_positions:
-                    for c in leading_positions[i]:
-                        earlier = new_mat[i,c]
-                        # right now we don't check to see if entry divides
-                        # earlier, because we don't want to modify the
-                        # earlier columns of the matrix.  Deal with this
-                        # in pass 2.
-                        if entry and earlier.divides(entry):
-                            quo = entry.divide_knowing_divisible_by(earlier)
-                            new_col = new_col - quo * new_mat.matrix_from_columns([c])
-                            entry = 0
-                            if not new_col.is_zero():
-                                check_leading = True
-            if not new_col.is_zero():
-                new_mat.set_column(j-zero_cols, new_col.column(0))
-                i = new_col.nonzero_positions_in_column(0)[0]
-                if i in leading_positions:
-                    leading_positions[i].append(j-zero_cols)
-                else:
-                    leading_positions[i] = [j-zero_cols]
-            else:
-                zero_cols += 1
-    # pass 2:
-    # first eliminate the zero columns at the end
-    cols = cols - zero_cols
-    zero_cols = 0
-    new_mat = new_mat.matrix_from_columns(range(cols))
-    if verbose:
-        print "starting pass 2"
-    keep_columns = range(cols)
-    check_leading = True
-    while check_leading:
-        check_leading = False
-        new_leading = leading_positions.copy()
-        for i in leading_positions:
-            if len(leading_positions[i]) > 1:
-                j = leading_positions[i][0]
-                jth = new_mat[i, j]
-                for n in leading_positions[i][1:]:
-                    nth = new_mat[i,n]
-                    if jth.divides(nth):
-                        quo = nth.divide_knowing_divisible_by(jth)
-                        new_mat.add_multiple_of_column(n, j, -quo)
-                    elif nth.divides(jth):
-                        quo = jth.divide_knowing_divisible_by(nth)
-                        jth = nth
-                        new_mat.swap_columns(n, j)
-                        new_mat.add_multiple_of_column(n, j, -quo)
-                    else:
-                        (g,r,s) = jth.xgcd(nth)
-                        (unit,A,B) = r.xgcd(-s)  # unit ought to be 1 here
-                        jth_col = new_mat.column(j)
-                        nth_col = new_mat.column(n)
-                        new_mat.set_column(j, r*jth_col + s*nth_col)
-                        new_mat.set_column(n, B*jth_col + A*nth_col)
-                        nth = B*jth + A*nth
-                        jth = g
-                        # at this point, jth should divide nth
-                        quo = nth.divide_knowing_divisible_by(jth)
-                        new_mat.add_multiple_of_column(n, j, -quo)
-                    new_leading[i].remove(n)
-                    if new_mat.column(n).is_zero():
-                        keep_columns.remove(n)
-                        zero_cols += 1
-                    else:
-                        new_r = new_mat.column(n).nonzero_positions()[0]
-                        if new_r in new_leading:
-                            new_leading[new_r].append(n)
-                        else:
-                            new_leading[new_r] = [n]
-                        check_leading = True
-        leading_positions = new_leading
-    # pass 3: get rid of columns which start with 1 or -1
-    if verbose:
-        print "starting pass 3"
-    max_leading = 1
-    for i in leading_positions:
-        j = leading_positions[i][0]
-        entry = new_mat[i,j]
-        if entry.abs() == 1:
-            add_to_rank += 1
-            keep_columns.remove(j)
-            for c in new_mat.nonzero_positions_in_row(i):
-                if c in keep_columns:
-                    new_mat.add_multiple_of_column(c, j, -entry * new_mat[i,c])
-        else:
-            max_leading = max(max_leading, new_mat[i,j].abs())
-    # form the new matrix
-    if max_leading != 1:
-        new_mat = new_mat.matrix_from_columns(keep_columns)
-        if verbose:
-            print "new matrix: %s by %s" % (new_mat.nrows(), new_mat.ncols())
-        if new_mat.is_sparse():
-            ed = [1]*add_to_rank + new_mat.dense_matrix().elementary_divisors()
-        else:
-            ed = [1]*add_to_rank + new_mat.elementary_divisors()
-    else:
-        if verbose:
-            print "new matrix: all pivots are 1 or -1"
-        ed = [1]*add_to_rank
-
-    if len(ed) < rows:
-        return ed + [0]*(rows - len(ed))
-    else:
-        return ed[:rows]
 
 def _latex_module(R, m):
     """
@@ -258,7 +88,9 @@ def _latex_module(R, m):
     else:
         return str(latex(FreeModule(R, m)))
 
-class ChainComplex(SageObject):
+
+@rename_keyword(deprecation=15151, check_products='check', check_diffs='check')
+def ChainComplex(data=None, **kwds):
     r"""
     Define a chain complex.
 
@@ -271,14 +103,15 @@ class ChainComplex(SageObject):
        which the chain complex is defined. If this is not specified,
        it is determined by the data defining the chain complex.
 
-    -  ``grading_group`` -- a free abelian group (optional, default
-       ``ZZ``), the group over which the chain complex is indexed.
+    - ``grading_group`` -- a additive free abelian group (optional,
+       default ``ZZ``), the group over which the chain complex is
+       indexed.
 
     -  ``degree`` -- element of grading_group (optional, default 1),
        the degree of the differential.
 
-    -  ``check_products`` -- boolean (optional, default ``True``). If
-       ``True``, check that each consecutive pair of differentials are
+    - ``check`` -- boolean (optional, default ``True``). If ``True``,
+       check that each consecutive pair of differentials are
        composable and have composite equal to zero.
 
     OUTPUT: a chain complex
@@ -298,18 +131,18 @@ class ChainComplex(SageObject):
        `n`.  (Note that the shape of the matrix then determines the
        rank of the free modules `C_n` and `C_{n+d}`.)
 
-    2. a list or tuple of the form `[C_0, d_0, C_1, d_1, C_2, d_2,
-       ...]`, where each `C_i` is a free module and each `d_i` is a
-       matrix, as above.  This only makes sense if ``grading_group``
+    2. a list/tuple/iterable of the form `[C_0, d_0, C_1, d_1, C_2,
+       d_2, ...]`, where each `C_i` is a free module and each `d_i` is
+       a matrix, as above.  This only makes sense if ``grading_group``
        is `\ZZ` and ``degree`` is 1.
 
-    3. a list or tuple of the form `[r_0, d_0, r_1, d_1, r_2, d_2,
-       ...]`, where `r_i` is the rank of the free module `C_i` and
-       each `d_i` is a matrix, as above.  This only makes sense if
+    3. a list/tuple/iterable of the form `[r_0, d_0, r_1, d_1, r_2,
+       d_2, ...]`, where `r_i` is the rank of the free module `C_i`
+       and each `d_i` is a matrix, as above.  This only makes sense if
        ``grading_group`` is `\ZZ` and ``degree`` is 1.
 
-    4. a list or tuple of the form `[d_0, d_1, d_2, ...]` where each
-       `d_i` is a matrix, as above.  This only makes sense if
+    4. a list/tuple/iterable of the form `[d_0, d_1, d_2, ...]` where
+       each `d_i` is a matrix, as above.  This only makes sense if
        ``grading_group`` is `\ZZ` and ``degree`` is 1.
 
     .. NOTE::
@@ -322,9 +155,9 @@ class ChainComplex(SageObject):
        of different things in it, and all of the non-matrices will be
        ignored.)  No error checking is done to make sure, for
        instance, that the given modules have the appropriate ranks for
-       the given matrices.  However, as long as ``check_products`` is
-       True, the code checks to see if the matrices are composable and
-       that each appropriate composite is zero.
+       the given matrices.  However, as long as ``check`` is True, the
+       code checks to see if the matrices are composable and that each
+       appropriate composite is zero.
 
     If the base ring is not specified, then the matrices are examined
     to determine a ring over which they are all naturally defined, and
@@ -337,14 +170,19 @@ class ChainComplex(SageObject):
     EXAMPLES::
 
         sage: ChainComplex()
-        Chain complex with at most 0 nonzero terms over Integer Ring
+        Trivial chain complex over Integer Ring
+
         sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
         sage: C
         Chain complex with at most 2 nonzero terms over Integer Ring
-        sage: D = ChainComplex([matrix(ZZ, 2, 2, [0, 1, 0, 0]), matrix(ZZ, 2, 2, [0, 1, 0, 0])], base_ring=GF(2)); D
+
+        sage: m = matrix(ZZ, 2, 2, [0, 1, 0, 0])
+        sage: D = ChainComplex([m, m], base_ring=GF(2)); D
         Chain complex with at most 3 nonzero terms over Finite Field of size 2
         sage: D == loads(dumps(D))
         True
+        sage: D.differential(0)==m, m.is_immutable(), D.differential(0).is_immutable()
+        (True, False, True)
 
     Note that when a chain complex is defined in Sage, new
     differentials may be created: every nonzero module in the chain
@@ -353,7 +191,7 @@ class ChainComplex(SageObject):
 
         sage: IZ = ChainComplex({0: identity_matrix(ZZ, 1)})
         sage: IZ.differential()  # the differentials in the chain complex
-        {0: [1], 1: []}
+        {0: [1], 1: [], -1: []}
         sage: IZ.differential(1).parent()
         Full MatrixSpace of 0 by 1 dense matrices over Integer Ring
         sage: mat = ChainComplex({0: matrix(ZZ, 3, 4)}).differential(1)
@@ -380,112 +218,243 @@ class ChainComplex(SageObject):
         sage: ChainComplex([matrix(GF(125, 'a'), 3, 1)], base_ring=QQ)
         Traceback (most recent call last):
         ...
-        TypeError: Unable to coerce 0 (<type 'sage.rings.finite_rings.element_givaro.FiniteField_givaroElement'>) to Rational
+        TypeError: Unable to coerce 0 (<type 
+        'sage.rings.finite_rings.element_givaro.FiniteField_givaroElement'>) to Rational
     """
+    check = kwds.get('check', True)
+    base_ring = kwds.get('base_ring', None)
+    grading_group = kwds.get('grading_group', ZZ)
+    degree = kwds.get('degree', 1)
+    try:
+        degree = grading_group(degree)
+    except StandardError:
+        raise ValueError('degree is not an element of the grading group')
 
-    def __init__(self, data=None, **kwds):
+    if data is None or (isinstance(data, (list, tuple)) and len(data) == 0):
+        # the zero chain complex
+        try:
+            zero = grading_group.identity()
+        except AttributeError:
+            zero = grading_group.zero_element()
+        if base_ring is None:
+            base_ring = ZZ
+        data_dict = {zero: matrix(base_ring, 0, 0, [])}
+    elif isinstance(data, dict):  # data is dictionary
+        data_dict = data
+    else: # data is list/tuple/iterable
+        data_matrices = filter(lambda x: isinstance(x, Matrix), data)
+        if degree != 1:
+            raise ValueError('degree must be +1 if the data argument is a list or tuple')
+        if grading_group != ZZ:
+            raise ValueError('grading_group must be ZZ if the data argument is a list or tuple')
+        data_dict = dict((grading_group(i), m) for i,m in enumerate(data_matrices))
+
+    if base_ring is None:
+        _, base_ring = prepare_dict(dict([n, data_dict[n].base_ring()(0)] for n in data_dict))
+
+    # make sure values in data_dict are appropriate matrices
+    for n in data_dict.keys():
+        if not n in grading_group:
+            raise ValueError('one of the dictionary keys is not an element of the grading group')
+        mat = data_dict[n]
+        if not isinstance(mat, Matrix):
+            raise TypeError('One of the differentials in the data is not a matrix')
+        if mat.base_ring() is base_ring: 
+            if not mat.is_immutable():
+                mat = copy(mat)  # do not make any arguments passed immutable
+                mat.set_immutable()
+        else:
+            mat = mat.change_ring(base_ring)
+            mat.set_immutable()
+        data_dict[n] = mat
+
+    # include any "obvious" zero matrices that are not 0x0 
+    for n in data_dict.keys():  # note: data_dict will be mutated in this loop
+        mat1 = data_dict[n]
+        if (n+degree not in data_dict) and (mat1.nrows() != 0):
+            if n+2*degree in data_dict:
+                mat2 = matrix(base_ring, data_dict[n+2*degree].ncols(), mat1.nrows())
+            else:
+                mat2 = matrix(base_ring, 0, mat1.nrows())
+            mat2.set_immutable()
+            data_dict[n+degree] = mat2
+        if (n-degree not in data_dict) and (mat1.ncols() != 0):
+            if n-2*degree in data_dict:
+                mat0 = matrix(base_ring, mat1.ncols(), data_dict[n-2*degree].nrows())
+            else:
+                mat0 = matrix(base_ring, mat1.ncols(), 0)
+            mat0.set_immutable()
+            data_dict[n-degree] = mat0
+        
+    # check that this is a complex: going twice is zero
+    if check:
+        for n in data_dict.keys():
+            mat0 = data_dict[n]
+            try:
+                mat1 = data_dict[n+degree]
+            except KeyError:
+                continue
+            try:
+                prod = mat1 * mat0
+            except TypeError:
+                raise TypeError('the differentials d_{%s} and d_{%s} are not compatible: '
+                                'their product is not defined' % (n, n+degree))
+            if not prod.is_zero():
+                raise ValueError('the differentials d_{%s} and d_{%s} are not compatible: '
+                                 'their composition is not zero.' % (n, n+degree))
+
+    return ChainComplex_class(grading_group, degree, base_ring, data_dict)
+    
+
+class Chain_class(ModuleElement):
+    
+    def __init__(self, parent, *args, **kwds):
         """
-        See :mod:`ChainComplex` for full documentation.
+        Parent for all chain complexes over a given ``base_ring``
+
+        EXAMPLES::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])}, base_ring=GF(7))
+            sage: C.category()
+            Category of chain complexes over Finite Field of size 7
+        """
+        super(Chain_class, self).__init__(parent)
+
+    def is_cycle(self):
+        pass  # TODO
+    
+    def is_boundary(self):
+        pass  # TODO
+
+
+
+class ChainComplex_class(Parent):
+
+    def __init__(self, grading_group, degree_of_differential, base_ring, differentials):
+        """
+        See :func:`ChainComplex` for full documentation.
 
         EXAMPLES::
 
             sage: C = ChainComplex(); C
-            Chain complex with at most 0 nonzero terms over Integer Ring
+            Trivial chain complex over Integer Ring
+
             sage: D = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
             sage: D
             Chain complex with at most 2 nonzero terms over Integer Ring
-        """
-        check_products = kwds.get('check_products', True) or kwds.get('check_diffs')
-        base_ring = kwds.get('base_ring', None)
-        grading_group = kwds.get('grading_group', ZZ)
-        degree = kwds.get('degree', 1)
-
-        try:
-            deg = grading_group(degree)
-        except StandardError:
-            raise ValueError, "The 'degree' does not appear to be an element of the grading group."
-        # check form of data
-        new_data = {}
-        if data is None or (isinstance(data, (list, tuple)) and len(data) == 0):
-            # the zero chain complex
-            try:
-                zero = grading_group.zero_vector()
-            except AttributeError:
-                zero = ZZ.zero_element()
-            if base_ring is None:
-                base_ring = ZZ
-            new_data = {zero: matrix(base_ring, 0, 0, [])}
-        else:
-            if isinstance(data, dict):  # case 1, dictionary
-                temp_dict = data
-            elif isinstance(data, (list, tuple)):  # cases 2, 3, 4: list or tuple
-                if degree != 1:
-                    raise ValueError, "The degree must be +1 if the data argument is a list or tuple."
-                if grading_group != ZZ:
-                    raise ValueError, "The grading_group must be ZZ if the data argument is a list or tuple."
-                new_list = filter(lambda x: isinstance(x, Matrix), data)
-                temp_dict = dict(zip(range(len(new_list)), new_list))
-            else:
-                raise TypeError, "The data for a chain complex must be a dictionary, list, or tuple."
-
-            if base_ring is None:
-                junk, ring = prepare_dict(dict([n, temp_dict[n].base_ring()(0)] for n in temp_dict))
-                base_ring = ring
-            # 'dict' is the dictionary of matrices.  check to see that
-            # each entry is in fact a matrix, and that the codomain of
-            # one matches up with the domain of the next.  if the
-            # number of rows in the differential in degree n is
-            # nonzero, then make sure that the differential in degree
-            # n+degree is present (although it of course may be zero).
-            # If it's not present, add a zero matrix of the
-            # appropriate shape.  This way, if self._data does not
-            # have a key for n, then the complex is zero in degree n.
-            for n in temp_dict.keys():
-                if not n in grading_group:
-                    raise ValueError, "One of the dictionary keys does not appear to be an element of the grading group."
-                mat = temp_dict[n]
-                if not isinstance(mat, Matrix):
-                    raise TypeError, "One of the differentials in the data dictionary indexed by does not appear to be a matrix."
-                if mat.base_ring() == base_ring:
-                    new_data[n] = mat
-                else:
-                    new_data[n] = mat.change_ring(base_ring)
-            for n in temp_dict.keys():
-                mat = temp_dict[n]
-                if n+degree in temp_dict:
-                    mat2 = temp_dict[n+degree]
-                    if check_products:
-                        try:
-                            prod = mat2 * mat
-                        except TypeError:
-                            raise TypeError, "The differentials d_{%s} and d_{%s} are not compatible: their product is not defined." % (n, n+degree)
-                        if not prod.is_zero():
-                            raise ValueError, "The differentials d_{%s} and d_{%s} are not compatible: their composition is not zero." % (n, n+degree)
-                else:
-                    if not mat.nrows() == 0:
-                        if n+2*degree in temp_dict:
-                            new_data[n+degree] = matrix(base_ring, temp_dict[n+2*degree].ncols(), mat.nrows())
-                        else:
-                            new_data[n+degree] = matrix(base_ring, 0, mat.nrows())
-        # here ends the initialization/error-checking of the data
-        self._grading_group = grading_group
-        self._degree = deg
-        self._base_ring = base_ring
-        self._diff = new_data
-        # self._ranks: dictionary for caching the ranks of the
-        # differentials: keys are pairs (dim, base_ring)
-        self._ranks = {}
-
-    def base_ring(self):
-        """
-        The base ring for this simplicial complex.
-
-        EXAMPLES::
 
             sage: ChainComplex().base_ring()
             Integer Ring
         """
-        return self._base_ring
+        assert all(d.base_ring() == base_ring and d.is_immutable()
+                   for d in differentials.values())
+        assert degree_of_differential.parent() is grading_group
+        assert grading_group is ZZ or not grading_group.is_multiplicative()
+        # all differentials that are not 0x0 must be specified to the constructor
+        assert all(dim+degree_of_differential in differentials or d.nrows() == 0
+                   for dim, d in differentials.iteritems())
+        assert all(dim-degree_of_differential in differentials or d.ncols() == 0
+                   for dim, d in differentials.iteritems())
+        self._grading_group = grading_group
+        self._degree_of_differential = degree_of_differential
+        self._diff = differentials
+
+        from sage.categories.all import ChainComplexes
+        category = ChainComplexes(base_ring)
+        super(ChainComplex_class, self).__init__(base=base_ring, category=category)
+
+    Element = Chain_class
+
+    def _element_constructor_(self, *args):
+        """
+        The element constructor.
+
+        This is part of the Parent/Element framework. Calling the
+        parent uses this method to construct elements.
+
+        EXAMPLES::
+
+            sage: D = ChainComplex({0: matrix(ZZ, 2, 2, [1,0,0,2])})
+            sage: D._element_constructor_(0)
+        """
+        return self.element_class(self, *args)
+
+    @cached_method
+    def rank(self, degree, ring=None):
+        r"""
+        Return the rank of a differential
+
+        INPUT:
+        
+        - ``degree`` -- an element `\delta` of the grading
+          group. Which differential `d_{\delta}` we want to know the
+          rank of.
+        
+        - ``ring`` -- a commutative ring `S` or ``None`` (default). If
+          specified, the rank is computed after changing to this ring.
+    
+        OUTPUT:
+
+        The rank of the differential ``d_{\delta} \otimes_R S`, where
+        `R` is the base ring of the chain complex.
+
+        EXAMPLES::
+
+            sage: C = ChainComplex({0:matrix(ZZ, [[2]])})
+            sage: C.differential(0)
+            [2]
+            sage: C.rank(0)
+            1
+            sage: C.rank(0, ring=GF(2))
+            0
+        """
+        degree = self.grading_group()(degree)
+        try:
+            d = self._diff[degree]
+        except IndexError:
+            return ZZ.zero()
+        if d.nrows() == 0 or d.ncols() == 0:
+            return ZZ.zero()
+        if ring is None:
+            return d.rank()
+        else:
+            return d.change_ring(ring).rank()
+
+    def grading_group(self):
+        r"""
+        Return the grading group
+
+        OUTPUT:
+
+        The discrete abelian group that indexes the individual modules
+        of the complex. Usually `\ZZ`.
+
+        EXAMPLES::
+
+            sage: G = AdditiveAbelianGroup([0, 3])
+            sage: C = ChainComplex(grading_group=G, degree=G([1,2]))
+            sage: C.grading_group()
+            Additive abelian group isomorphic to Z/3 + Z
+            sage: C.degree_of_differential()
+            (2, 1)
+        """
+        return self._grading_group
+
+    def degree_of_differential(self):
+        """
+        Return the degree of the differentials of the complex
+
+        OUTPUT:
+
+        An element of the grading group.
+
+        EXAMPLES::
+
+            sage: D = ChainComplex({0: matrix(ZZ, 2, 2, [1,0,0,2])})
+            sage: D.degree_of_differential()
+            1
+        """
+        return self._degree_of_differential
 
     def differential(self, dim=None):
         """
@@ -493,10 +462,10 @@ class ChainComplex(SageObject):
 
         INPUT:
 
-        -  ``dim`` - element of the grading group (optional, default
+        - ``dim`` -- element of the grading group (optional, default
            ``None``).  If this is ``None``, return a dictionary of all
-           of the differentials.  If this is a single element, return the
-           differential starting in that dimension.
+           of the differentials.  If this is a single element, return
+           the differential starting in that dimension.
 
         OUTPUT: either a dictionary of all of the differentials or a single
         differential (i.e., a matrix)
@@ -506,22 +475,23 @@ class ChainComplex(SageObject):
             sage: D = ChainComplex({0: matrix(ZZ, 2, 2, [1,0,0,2])})
             sage: D.differential()
             {0: [1 0]
-            [0 2], 1: []}
+            [0 2], 1: [], -1: []}
             sage: D.differential(0)
             [1 0]
             [0 2]
             sage: C = ChainComplex({0: identity_matrix(ZZ, 40)})
             sage: C.differential()
-            {0: 40 x 40 dense matrix over Integer Ring, 1: []}
+            {0: 40 x 40 dense matrix over Integer Ring, 1: [], -1: 40 x 0 dense matrix over Integer Ring}
         """
         if dim is None:
-            return self._diff
-        deg = self._degree
-        if dim in self._diff:
+            return copy(self._diff)
+        dim = self.grading_group()(dim)
+        try:
             return self._diff[dim]
-        if dim+deg in self._diff:
-            return matrix(self._base_ring, self._diff[dim+deg].ncols(), 0)
-        return matrix(self._base_ring, 0, 0)
+        except KeyError:
+            pass
+        # all differentials that are not 0x0 are in self._diff
+        return matrix(self.base_ring(), 0, 0)
 
     def dual(self):
         """
@@ -537,12 +507,12 @@ class ChainComplex(SageObject):
         EXAMPLES::
 
             sage: C = ChainComplex({2: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
-            sage: C._degree
+            sage: C.degree_of_differential()
             1
             sage: C.differential(2)
             [3 0 0]
             [0 0 0]
-            sage: C.dual()._degree
+            sage: C.dual().degree_of_differential()
             -1
             sage: C.dual().differential(3)
             [3 0]
@@ -550,10 +520,9 @@ class ChainComplex(SageObject):
             [0 0]
         """
         data = {}
-        deg = self._degree
+        deg = self.degree_of_differential()
         for d in self.differential():
             data[(d+deg)] = self.differential()[d].transpose()
-
         return ChainComplex(data, degree=-deg)
 
     def free_module(self):
@@ -573,7 +542,7 @@ class ChainComplex(SageObject):
             Ambient free module of rank 5 over the principal ideal domain Integer Ring
         """
         rank = sum([mat.ncols() for mat in self.differential().values()])
-        return FreeModule(self._base_ring, rank)
+        return FreeModule(self.base_ring(), rank)
 
     def __cmp__(self, other):
         """
@@ -588,9 +557,12 @@ class ChainComplex(SageObject):
             sage: C == D
             True
         """
-        if self._base_ring != other._base_ring:
-            return -1
-        R = self._base_ring
+        if not isinstance(other, ChainComplex_class):
+            return cmp(type(other), ChainComplex_class)
+        c = cmp(self.base_ring(), other.base_ring())
+        if c != 0:
+            return c
+        R = self.base_ring()
         equal = True
         for d,mat in self.differential().iteritems():
             if d not in other.differential():
@@ -665,7 +637,7 @@ class ChainComplex(SageObject):
         method, which calls the Pari package.  For any large matrix,
         reduce it using the Dumas, Heckenbach, Saunders, and Welker
         elimination algorithm [DHSW]_: see
-        :func:`~sage.homology.chain_complex.dhsw_snf` for details.
+        :func:`~sage.homology.matrix_utils.dhsw_snf` for details.
 
         Finally, ``algorithm`` may also be ``'pari'`` or ``'dhsw'``, which
         forces the named algorithm to be used regardless of the size
@@ -721,19 +693,26 @@ class ChainComplex(SageObject):
              2: [(Vector space of dimension 1 over Rational Field,
                (1, -1, -1, -1, 1, -1, -1, 1, 1, 1, 1, 1, -1, -1))]}
         """
+        from sage.homology.homology_group import HomologyGroup
         from sage.interfaces.chomp import have_chomp, homchain
 
+        if dim is not None and dim not in self.grading_group():
+            raise ValueError('dimension is not an element of the grading group')
+
         algorithm = kwds.get('algorithm', 'auto')
+        if algorithm not in ['dhsw', 'pari', 'auto', 'no_chomp']:
+            raise NotImplementedError('algorithm not recognized')
+
         verbose = kwds.get('verbose', False)
         base_ring = kwds.get('base_ring', None)
         generators = kwds.get('generators', False)
-        if base_ring is None or base_ring == self._base_ring:
+        if base_ring is None or base_ring == self.base_ring():
             change_ring = False
-            base_ring = self._base_ring
+            base_ring = self.base_ring()
         else:
             change_ring = True
-        if (not base_ring.is_field()) and (base_ring != ZZ):
-            raise NotImplementedError, "Can't compute homology if the base ring is not the integers or a field."
+        if not (base_ring.is_field() or base_ring is ZZ):
+            raise NotImplementedError('can only compute homology if the base ring is the integers or a field')
 
         # try to use CHomP if working over Z or F_p, p a prime.
         if (algorithm == 'auto' and (base_ring == ZZ or
@@ -745,25 +724,18 @@ class ChainComplex(SageObject):
                 # now pick off the requested dimensions
                 if H:
                     if dim is not None:
-                        field = base_ring.is_prime_field()
                         answer = {}
                         if isinstance(dim, (list, tuple)):
                             for d in dim:
                                 if d in H:
                                     answer[d] = H[d]
                                 else:
-                                    if field:
-                                        answer[d] = VectorSpace(base_ring, 0)
-                                    else:
-                                        answer[d] = HomologyGroup(0)
+                                    answer[d] = HomologyGroup(0, base_ring)
                         else:
                             if dim in H:
                                 answer = H[dim]
                             else:
-                                if field:
-                                    answer = VectorSpace(base_ring, 0)
-                                else:
-                                    answer = HomologyGroup(0)
+                                answer = HomologyGroup(0, base_ring)
                     else:
                         answer = H
                     return answer
@@ -771,15 +743,16 @@ class ChainComplex(SageObject):
                     if verbose:
                         print "ran CHomP, but no output."
 
-        if algorithm not in ['dhsw', 'pari', 'auto', 'no_chomp']:
-            raise NotImplementedError, "algorithm not recognized"
         # if dim is None, return all of the homology groups
+        degree = self.degree_of_differential()
         if dim is None:
             answer = {}
             for n in self._diff.keys():
+                if n-degree not in self._diff:
+                    continue
                 if verbose:
                     print "Computing homology of the chain complex in dimension %s..." % n
-                if base_ring == self._base_ring:
+                if base_ring == self.base_ring():
                     answer[n] = self.homology(n, verbose=verbose,
                                               generators=generators,
                                               algorithm=algorithm)
@@ -789,34 +762,18 @@ class ChainComplex(SageObject):
                                               generators=generators,
                                               algorithm=algorithm)
             return answer
-        # now compute the homology in the given dimension
-        degree = self._degree
-        # check that dim is in grading_group
-        if not dim in self._grading_group:
-            raise ValueError, "The dimension does not appear to be an element of the grading group."
 
+        # now compute the homology in the given dimension
         if dim in self._diff:
             # d_out is the differential going out of degree dim,
             # d_in is the differential entering degree dim
             d_out_cols = self._diff[dim].ncols()
             d_out_rows = self._diff[dim].nrows()
-            # avoid bugs in rank of sparse mod n matrices (#5099):
-            if min(d_out_cols, d_out_rows) == 0:
-                d_out_rank = 0
             if base_ring == ZZ:
                 temp_ring = QQ
             else:
                 temp_ring = base_ring
-            if (dim, temp_ring) in self._ranks:
-                d_out_rank = self._ranks[(dim, temp_ring)]
-            else:
-                if min(d_out_cols, d_out_rows) == 0:
-                    d_out_rank = 0
-                elif change_ring or base_ring == ZZ:
-                    d_out_rank = self._diff[dim].change_ring(temp_ring).rank()
-                else:
-                    d_out_rank = self._diff[dim].rank()
-                self._ranks[(dim, temp_ring)] = d_out_rank
+            d_out_rank = self.rank(dim, ring=temp_ring)
 
             if dim - degree in self._diff:
                 if change_ring:
@@ -845,30 +802,13 @@ class ChainComplex(SageObject):
                             non_triv = non_triv + 1
                     divisors = filter(lambda x: x != 1, all_divs)
                     gens = (K * P.inverse().submatrix(col=non_triv)).transpose()
-                    if base_ring.is_field():
-                        answer = [(VectorSpace(base_ring, 1), gens[i] ) \
-                                    for i in range(len(divisors))]
-                    elif base_ring == ZZ:
-                        answer = [(HomologyGroup(1, [divisors[i]]), gens[i] ) \
-                                    for i in range(len(divisors))]
+                    answer = [(HomologyGroup(1, base_ring, [divisors[i]]), gens[i])
+                              for i in range(len(divisors))]
                 else:
                     if base_ring.is_field():
-                        # avoid bugs in rank of sparse mod n matrices (#5099):
-                        if d_out_cols == 0:
-                            null = 0
-                        elif d_out_rows == 0:
-                            null = d_out_cols
-                        else:
-                            null = d_out_cols - d_out_rank
-                        if d_in.nrows() == 0 or d_in.ncols() == 0:
-                            rk = 0
-                        else:
-                            if (dim-degree, temp_ring) in self._ranks:
-                                rk = self._ranks[(dim-degree, temp_ring)]
-                            else:
-                                rk = d_in.rank()
-                                self._ranks[(dim-degree, temp_ring)] = rk
-                        answer = VectorSpace(base_ring, null - rk)
+                        null = d_out_cols - d_out_rank
+                        rk = self.rank(dim-degree, ring=temp_ring)
+                        answer = HomologyGroup(null - rk, base_ring)
                     elif base_ring == ZZ:
                         nullity = d_out_cols - d_out_rank
                         if d_in.ncols() == 0:
@@ -882,6 +822,7 @@ class ChainComplex(SageObject):
                                 else:
                                     algorithm = 'pari'
                             if algorithm == 'dhsw':
+                                from sage.homology.matrix_utils import dhsw_snf
                                 all_divs = dhsw_snf(d_in, verbose=verbose)
                             else:
                                 algorithm = 'pari'
@@ -893,27 +834,15 @@ class ChainComplex(SageObject):
                         # divisors equal to 1 produce trivial
                         # summands, so filter them out
                         divisors = filter(lambda x: x != 1, all_divs)
-                        answer = HomologyGroup(len(divisors), divisors)
+                        answer = HomologyGroup(len(divisors), base_ring, divisors)
             else: # no incoming differential: it's zero
-                if base_ring.is_field():
-                    answer = VectorSpace(base_ring, d_out_cols - d_out_rank)
-                elif base_ring == ZZ:
-                    answer = HomologyGroup(d_out_cols - d_out_rank)
-
+                answer = HomologyGroup(d_out_cols - d_out_rank, base_ring)
                 if generators: #Include the generators of the nullspace
                     # Find the kernel of the out-going differential.
                     K = self._diff[dim].right_kernel().matrix().change_ring(base_ring)
                     answer = [( answer, vector(base_ring, K.list()) )]
         else:  # chain complex is zero here, so return the zero module
-            if base_ring.is_field():
-                answer = VectorSpace(base_ring, 0)
-            elif base_ring == ZZ:
-                answer = HomologyGroup(0)
-            else:
-            # This code is not in use: base ring isn't a field
-            # or ZZ
-                answer = FreeModule(self._base_ring, rank=0)
-
+            answer = HomologyGroup(0, base_ring)
             if generators:
                 answer = [(answer, vector(base_ring, []))]
         if verbose:
@@ -958,7 +887,7 @@ class ChainComplex(SageObject):
         base_ring = kwds.get('base_ring', None)
 
         if base_ring is None:
-            base_ring = self._base_ring
+            base_ring = self.base_ring()
         if base_ring == ZZ:
             base_ring = QQ
         if base_ring.is_field():
@@ -1014,50 +943,35 @@ class ChainComplex(SageObject):
             sage: C.torsion_list(5)
             [(2, [1]), (3, [3])]
         """
-        if self._base_ring != ZZ:
-            raise ValueError, "This only works if the base ring of the chain complex is the integers"
-        else:
-            answer = []
-            torsion_free = self.betti(base_ring=GF(max_prime))
-            for p in prime_range(min_prime, max_prime):
-                mod_p_betti = self.betti(base_ring=GF(p))
-                if mod_p_betti != torsion_free:
-                    diff_dict = {}
-                    temp_diff = {}
-                    D = self._degree
-                    for i in torsion_free:
-                        temp_diff[i] = mod_p_betti.get(i, 0) - torsion_free[i]
-                    for i in temp_diff:
-                        if temp_diff[i] > 0:
-                            if i+D in diff_dict:
-                                lower = diff_dict[i+D]
-                            else:
-                                lower = 0
-                            current = temp_diff[i]
-                            if current > lower:
-                                diff_dict[i] = current - lower
-                                if i-D in diff_dict:
-                                    diff_dict[i-D] -= current - lower
-                    differences = []
-                    for i in diff_dict:
-                        if diff_dict[i] != 0:
-                            differences.append(i)
-                    answer.append((p,differences))
-            return answer
-
-    def category(self):
-        """
-        Return the category to which this chain complex belongs: the
-        category of all chain complexes over the base ring.
-
-        EXAMPLES::
-
-            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])}, base_ring=GF(7))
-            sage: C.category()
-            Category of chain complexes over Finite Field of size 7
-        """
-        import sage.categories.all
-        return sage.categories.all.ChainComplexes(self.base_ring())
+        if self.base_ring() != ZZ:
+            raise NotImplementedError('only implemented for base ring the integers')
+        answer = []
+        torsion_free = self.betti(base_ring=GF(max_prime))
+        for p in prime_range(min_prime, max_prime):
+            mod_p_betti = self.betti(base_ring=GF(p))
+            if mod_p_betti != torsion_free:
+                diff_dict = {}
+                temp_diff = {}
+                D = self.degree_of_differential()
+                for i in torsion_free:
+                    temp_diff[i] = mod_p_betti.get(i, 0) - torsion_free[i]
+                for i in temp_diff:
+                    if temp_diff[i] > 0:
+                        if i+D in diff_dict:
+                            lower = diff_dict[i+D]
+                        else:
+                            lower = 0
+                        current = temp_diff[i]
+                        if current > lower:
+                            diff_dict[i] = current - lower
+                            if i-D in diff_dict:
+                                diff_dict[i-D] -= current - lower
+                differences = []
+                for i in diff_dict:
+                    if diff_dict[i] != 0:
+                        differences.append(i)
+                answer.append((p,differences))
+        return answer
 
     def _Hom_(self, other, category=None):
         """
@@ -1085,19 +999,19 @@ class ChainComplex(SageObject):
         EXAMPLES::
 
             sage: C = ChainComplex({2: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
-            sage: C._degree
+            sage: C.degree_of_differential()
             1
             sage: C.differential(2)
             [3 0 0]
             [0 0 0]
-            sage: C._flip_()._degree
+            sage: C._flip_().degree_of_differential()
             -1
             sage: C._flip_().differential(-2)
             [3 0 0]
             [0 0 0]
         """
         data = {}
-        deg = self._degree
+        deg = self.degree_of_differential()
         for d in self.differential():
             data[-d] = self.differential()[d]
         return ChainComplex(data, degree=-deg)
@@ -1122,13 +1036,15 @@ class ChainComplex(SageObject):
             sage: C._chomp_repr_()
             'chain complex\n\nmax dimension = 1\n\ndimension 0\n   boundary a1 = 0\n\ndimension 1\n   boundary a1 = + 3 * a1 \n   boundary a2 = 0\n   boundary a3 = 0\n\n'
         """
-        if (self._grading_group != ZZ or
-            (self._degree != 1 and self._degree != -1)):
-            raise ValueError, "CHomP only works on Z-graded chain complexes with differential of degree 1 or -1."
-        base_ring = self._base_ring
+        deg = self.degree_of_differential()
+        if (self.grading_group() != ZZ or
+            (deg != 1 and deg != -1)):
+            raise ValueError('CHomP only works on Z-graded chain complexes with '
+                             'differential of degree 1 or -1')
+        base_ring = self.base_ring()
         if (base_ring == QQ) or (base_ring != ZZ and not (base_ring.is_prime_field())):
-            raise ValueError, "CHomP doesn't compute over the rationals, only over Z or F_p."
-        if self._degree == -1:
+            raise ValueError('CHomP doesn\'t compute over the rationals, only over Z or F_p')
+        if deg == -1:
             diffs = self.differential()
         else:
             diffs = self._flip_().differential()
@@ -1137,9 +1053,9 @@ class ChainComplex(SageObject):
         mindim = min(diffs)
         # will shift chain complex by subtracting mindim from
         # dimensions, so its bottom dimension is zero.
-        s = "chain complex\n\nmax dimension = %s\n\n" % (maxdim - mindim,)
+        s = "chain complex\n\nmax dimension = %s\n\n" % (maxdim - mindim - 1,)
 
-        for i in range(0, maxdim - mindim + 1):
+        for i in range(0, maxdim - mindim):
             s += "dimension %s\n" % i
             mat = diffs.get(i + mindim, matrix(base_ring, 0, 0))
             for idx in range(mat.ncols()):
@@ -1159,7 +1075,6 @@ class ChainComplex(SageObject):
                     s += "0"
                 s += "\n"
             s += "\n"
-
         return s
 
     def _repr_(self):
@@ -1174,10 +1089,24 @@ class ChainComplex(SageObject):
         """
         diffs = filter(lambda mat: mat.nrows() + mat.ncols() > 0,
                        self._diff.values())
-        string1 = "Chain complex with at most"
-        string2 = " %s nonzero terms over %s" % (len(diffs),
-                                                  self._base_ring)
-        return string1 + string2
+        if len(diffs) == 0:
+            s = 'Trivial chain complex'
+        else:
+            s = 'Chain complex with at most {0} nonzero terms'.format(len(diffs)-1)
+        s += ' over {0}'.format(self.base_ring())
+        return s
+
+    def _ascii_art_(self):
+        """
+        EXAMPLES::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+        """
+        if self.grading_group() is not ZZ:
+            return super(ChainComplex_class, self)._ascii_art_()
+        from sage.misc.ascii_art import AsciiArt
+        dmin = min(self._diff.keys())
+        dmax = max(self._diff.keys())
 
     def _latex_(self):
         """
@@ -1199,9 +1128,9 @@ class ChainComplex(SageObject):
 #         put into trying to fix this.
         string = ""
         dict = self._diff
-        deg = self._degree
-        ring = self._base_ring
-        if self._grading_group != ZZ:
+        deg = self.degree_of_differential()
+        ring = self.base_ring()
+        if self.grading_group() != ZZ:
             guess = dict.keys()[0]
             if guess-deg in dict:
                 string += "\\dots \\xrightarrow{d_{%s}} " % latex(guess-deg)
@@ -1211,7 +1140,7 @@ class ChainComplex(SageObject):
             backwards = (deg < 0)
             sorted_list = sorted(dict.keys(), reverse=backwards)
             if len(dict) <= 6:
-                for n in sorted_list[:-1]:
+                for n in sorted_list[1:-1]:
                     mat = dict[n]
                     string += _latex_module(ring, mat.ncols())
                     string += " \\xrightarrow{d_{%s}} " % latex(n)
@@ -1229,145 +1158,7 @@ class ChainComplex(SageObject):
                 string += _latex_module(ring, mat.ncols())
         return string
 
-class HomologyGroup_class(AdditiveAbelianGroup_fixed_gens):
-    """
-    Abelian group on `n` generators. This class inherits from
-    :class:`AdditiveAbelianGroup`; see that for more documentation. The main
-    difference between the classes is in the print representation.
 
-    EXAMPLES::
+from sage.structure.sage_object import register_unpickle_override
+register_unpickle_override('sage.homology.chain_complex', 'ChainComplex', ChainComplex_class)
 
-        sage: from sage.homology.chain_complex import HomologyGroup
-        sage: G = AbelianGroup(5,[5,5,7,8,9]); G
-        Multiplicative Abelian group isomorphic to C5 x C5 x C7 x C8 x C9
-        sage: H = HomologyGroup(5,[5,5,7,8,9]); H
-        C5 x C5 x C7 x C8 x C9
-        sage: G == loads(dumps(G))
-        True
-        sage: AbelianGroup(4)
-        Multiplicative Abelian group isomorphic to Z x Z x Z x Z
-        sage: HomologyGroup(4)
-        Z x Z x Z x Z
-        sage: HomologyGroup(100)
-        Z^100
-    """
-    def __init__(self, n, invfac):
-        """
-        See :func:`HomologyGroup` for full documentation.
-
-        EXAMPLES::
-
-            sage: from sage.homology.chain_complex import HomologyGroup
-            sage: H = HomologyGroup(5,[5,5,7,8,9]); H
-            C5 x C5 x C7 x C8 x C9
-        """
-        n = len(invfac)
-        A = ZZ**n
-        B = A.span([A.gen(i) * invfac[i] for i in xrange(n)])
-
-        AdditiveAbelianGroup_fixed_gens.__init__(self, A, B, A.gens())
-        self._original_invts = invfac
-
-    def _repr_(self):
-        """
-        Print representation
-
-        EXAMPLES::
-
-            sage: from sage.homology.chain_complex import HomologyGroup
-            sage: H = HomologyGroup(7,[4,4,4,4,4,7,7])
-            sage: H._repr_()
-            'C4^5 x C7 x C7'
-            sage: HomologyGroup(6)
-            Z^6
-        """
-        eldv = self._original_invts
-        if len(eldv) == 0:
-            return "0"
-        rank = len(filter(lambda x: x == 0, eldv))
-        torsion = sorted(filter(lambda x: x, eldv))
-        if rank > 4:
-            g = ["Z^%s" % rank]
-        else:
-            g = ["Z"] * rank
-        if len(torsion) != 0:
-            printed = []
-            for t in torsion:
-                numfac = torsion.count(t)
-                too_many = (numfac > 4)
-                if too_many:
-                    if t not in printed:
-                        g.append("C%s^%s" % (t, numfac))
-                        printed.append(t)
-                else:
-                    g.append("C%s" % t)
-        times = " x "
-        return times.join(g)
-
-    def _latex_(self):
-        """
-        LaTeX representation
-
-        EXAMPLES::
-
-            sage: from sage.homology.chain_complex import HomologyGroup
-            sage: H = HomologyGroup(7,[4,4,4,4,4,7,7])
-            sage: H._latex_()
-            'C_{4}^{5} \\times C_{7} \\times C_{7}'
-            sage: latex(HomologyGroup(6))
-            \ZZ^{6}
-        """
-        eldv = self._original_invts
-        if len(eldv) == 0:
-            return "0"
-        rank = len(filter(lambda x: x == 0, eldv))
-        torsion = sorted(filter(lambda x: x, eldv))
-        if rank > 4:
-            g = ["\\ZZ^{%s}" % rank]
-        else:
-            g = ["\\ZZ"] * rank
-        if len(torsion) != 0:
-            printed = []
-            for t in torsion:
-                numfac = torsion.count(t)
-                too_many = (numfac > 4)
-                if too_many:
-                    if t not in printed:
-                        g.append("C_{%s}^{%s}" % (t, numfac))
-                        printed.append(t)
-                else:
-                    g.append("C_{%s}" % t)
-        times = " \\times "
-        return times.join(g)
-
-def HomologyGroup(n, invfac=None):
-    """
-    Abelian group on `n` generators.
-
-    EXAMPLES::
-
-        sage: from sage.homology.chain_complex import HomologyGroup
-        sage: G = AbelianGroup(5,[5,5,7,8,9]); G
-        Multiplicative Abelian group isomorphic to C5 x C5 x C7 x C8 x C9
-        sage: H = HomologyGroup(5,[5,5,7,8,9]); H
-        C5 x C5 x C7 x C8 x C9
-        sage: AbelianGroup(4)
-        Multiplicative Abelian group isomorphic to Z x Z x Z x Z
-        sage: HomologyGroup(4)
-        Z x Z x Z x Z
-        sage: HomologyGroup(100)
-        Z^100
-    """
-    # copied from AbelianGroup:
-    if invfac is None:
-        if isinstance(n, (list, tuple)):
-            invfac = n
-            n = len(n)
-        else:
-            invfac = []
-    if len(invfac) < n:
-        invfac = [0] * (n - len(invfac)) + invfac
-    elif len(invfac) > n:
-        raise ValueError, "invfac (=%s) must have length n (=%s)"%(invfac, n)
-    M = HomologyGroup_class(n, invfac)
-    return M

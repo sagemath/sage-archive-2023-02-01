@@ -20,18 +20,19 @@ by developers producing new classes, not casual users.
     the :meth:`~GenericCellComplex.homology` method get passed on to
     the :meth:`~GenericCellComplex.chain_complex` method and also to
     the constructor for chain complexes in
-    :class:`~sage.homology.chain_complex.ChainComplex`, as well its
+    :class:`sage.homology.chain_complex.ChainComplex_class <ChainComplex>`, as well its
     associated
-    :meth:`~sage.homology.chain_complex.ChainComplex.homology` method.
+    :meth:`~sage.homology.chain_complex.ChainComplex_class.homology` method.
     This means that those keywords should have consistent meaning in
     all of those situations.  It also means that it is easy to
     implement new keywords: for example, if you implement a new
     keyword for the
-    :meth:`sage.homology.chain_complex.ChainComplex.homology` method,
+    :meth:`sage.homology.chain_complex.ChainComplex_class.homology` method,
     then it will be automatically accessible through the
     :meth:`~GenericCellComplex.homology` method for cell complexes --
     just make sure it gets documented.
 """
+
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
@@ -438,7 +439,7 @@ class GenericCellComplex(SageObject):
         method, which calls the Pari package.  For any large matrix,
         reduce it using the Dumas, Heckenbach, Saunders, and Welker
         elimination algorithm: see
-        :func:`sage.homology.chain_complex.dhsw_snf` for details.
+        :func:`sage.homology.matrix_utils.dhsw_snf` for details.
 
         Finally, ``algorithm`` may also be 'pari' or 'dhsw', which
         forces the named algorithm to be used regardless of the size
@@ -485,7 +486,7 @@ class GenericCellComplex(SageObject):
         from sage.homology.cubical_complex import CubicalComplex
         from sage.homology.simplicial_complex import SimplicialComplex
         from sage.modules.all import VectorSpace
-        from sage.homology.chain_complex import HomologyGroup
+        from sage.homology.homology_group import HomologyGroup
 
         base_ring = kwds.get('base_ring', ZZ)
         cohomology = kwds.get('cohomology', False)
@@ -526,22 +527,13 @@ class GenericCellComplex(SageObject):
                 answer = {}
                 if not dims:
                     for d in range(self.dimension() + 1):
-                        if base_ring == ZZ:
-                            answer[d] = H.get(d, HomologyGroup(0))
-                        else:
-                            answer[d] = H.get(d, VectorSpace(base_ring, 0))
+                        answer[d] = H.get(d, HomologyGroup(0, base_ring))
                 else:
                     for d in dims:
-                        if base_ring == ZZ:
-                            answer[d] = H.get(d, HomologyGroup(0))
-                        else:
-                            answer[d] = H.get(d, VectorSpace(base_ring, 0))
+                        answer[d] = H.get(d, HomologyGroup(0, base_ring))
                 if dim is not None:
                     if not isinstance(dim, (list, tuple)):
-                        if base_ring == ZZ:
-                            answer = answer.get(dim, HomologyGroup(0))
-                        else:
-                            answer = answer.get(dim, VectorSpace(base_ring, 0))
+                        answer = answer.get(dim, HomologyGroup(0, base_ring))
                 return answer
 
         # Derived classes can implement specialized algorithms using a
@@ -567,10 +559,7 @@ class GenericCellComplex(SageObject):
                 del answer[-1]
             for d in range(self.dimension() + 1):
                 if d not in answer:
-                    if base_ring == ZZ:
-                        answer[d] = HomologyGroup(0)
-                    else:
-                        answer[d] = VectorSpace(base_ring, 0)
+                    answer[d] = HomologyGroup(0, base_ring)
 
             if dim is not None:
                 if isinstance(dim, (list, tuple)):
@@ -579,10 +568,7 @@ class GenericCellComplex(SageObject):
                         temp[n] = answer[n]
                     answer = temp
                 else:  # just a single dimension
-                    if base_ring == ZZ:
-                        answer = answer.get(dim, HomologyGroup(0))
-                    else:
-                        answer = answer.get(dim, VectorSpace(base_ring, 0))
+                    answer = answer.get(dim, HomologyGroup(0, base_ring))
         return answer
 
     def cohomology(self, dim=None, **kwds):

@@ -211,7 +211,7 @@ def import_patch(self, patchname=None, url=None, local_file=None, diff_format=No
         local_files = self.download_patch(patchname=patchname, url=url)
         try:
             for local_file in local_files:
-                if not confirm("I will apply the following patch:\n{0}\nIt modifies the following files:\n{1}\nIs this what you want?", default=True):
+                if not self._UI.confirm("I will apply the following patch:\n{0}\nIt modifies the following files:\n{1}\nIs this what you want?", default=True):
                     self._UI.show("Skipping this patch.")
                 return self.import_patch(
                         local_file=local_file,

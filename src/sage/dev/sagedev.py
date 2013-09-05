@@ -2138,14 +2138,19 @@ class SageDev(object):
             raise OperationCancelledError("untracked files make import impossible")
 
         if not local_file:
-            local_file = self.download_patch(patchname=patchname, url=url)
+            local_files = self.download_patch(patchname=patchname, url=url)
             try:
-                return self.import_patch(
-                        local_file=local_file,
-                        diff_format=diff_format, header_format=header_format, path_format=path_format)
+                for local_file in local_files:
+                    if not confirm("I will apply the following patch:\n{0}\nIt modifies the following files:\n{1}\nIs this what you want?", default=True):
+                        self._UI.show("Skipping this patch.")
+                    return self.import_patch(
+                            local_file=local_file,
+                            diff_format=diff_format, header_format=header_format, path_format=path_format)
             finally:
                 import os
-                os.unlink(local_file)
+                for local_file in local_files:
+                    self._UI.info("Deleting {0}.".format(local_file))
+                    os.unlink(local_file)
         elif patchname or url:
             raise SageDevValueError("if local_file is specified, patchname and url must not be specified")
         else:
@@ -2195,8 +2200,9 @@ class SageDev(object):
         r"""
         Download a patch to a temporary directory.
 
-        If only ``ticket`` is specified and the ticket has only one
-        attachment, download the patch attached to ``ticket``.
+        If only ``ticket`` is specified, then try to make sense of the
+        ``apply`` statements in the comments on the ticket to download the
+        tickets in the right order just like the patchbot would do.
 
         If ``ticket`` and ``patchname`` are specified, download the
         patch ``patchname`` attached to ``ticket``.
@@ -2219,7 +2225,8 @@ class SageDev(object):
 
         OUTPUT:
 
-        Returns the absolute file name of the returned file.
+        Otherwise, returns a tuple of the names of the local patch files that
+        have been downloaded.
 
         .. SEEALSO::
 
@@ -2228,10 +2235,13 @@ class SageDev(object):
 
         EXAMPLES::
 
-            sage: dev.download_patch(ticket=14882) # optional: internet
-            ValueError: Ticket #14882 has more than one attachment but parameter `patchname` is not present, please set it to one of: trac_14882-backtrack_longtime-dg-v2.patch, trac_14882-backtrack_longtime-dg.patch, trac_14882-spelling_in_backtrack-dg.patch
+            sage: from sage.env import SAGE_ROOT
+            sage: import os
+            sage: os.chdir(SAGE_ROOT) # silence possible warnings about not being in SAGE_ROOT
             sage: dev.download_patch(ticket=14882, patchname='trac_14882-backtrack_longtime-dg.patch') # optional: internet
-            '...'
+            Downloading `https://trac.sagemath.org/raw-attachment/ticket/14882/trac_14882-backtrack_longtime-dg.patch`...
+            Downloaded `https://trac.sagemath.org/raw-attachment/ticket/14882/trac_14882-backtrack_longtime-dg.patch` to `...`.
+            ('...',)
 
         TESTS:
 
@@ -2261,7 +2271,7 @@ class SageDev(object):
 
             sage: server.tickets[1].attachments['second.patch'] = ''
             sage: dev.download_patch(ticket=1)
-            ValueError: Ticket #1 has more than one attachment but parameter `patchname` is not present, please set it to one of: first.patch, second.patch
+            I could not understand the comments on ticket #1. To apply use one of the patches on the ticket, set the parameter `patchname` to one of: first.patch, second.patch
             sage: dev.download_patch(ticket=1, patchname = 'second.patch') # not tested, download_patch tries to talk to the live server
 
         It is an error not to specify any parameters if not on a ticket::
@@ -2270,12 +2280,37 @@ class SageDev(object):
             sage: dev.download_patch()
             ValueError: ticket or url must be specified if not currently on a ticket
 
+        Check that the parser for the rss stream works::
+
+            sage: UI.append("n")
+            sage: dev.trac = sage.all.dev.trac # we have to use the actual trac proxy to enable access to the patch list on trac
+            sage: dev.download_patch(ticket=12415) # optional: internet
+            There is more than one attachment on ticket #12415. Reading `https://trac.sagemath.org/ticket/12415?format=rss` to try to find out in which order they must be applied.
+            It seems that the following patches have to be applied in this order:
+            12415_spkg_bin_sage.patch
+            12415_script.patch
+            12415_framework.patch
+            12415_doctest_review.patch
+            12415_script_review.patch
+            12415_review_review.patch
+            12415_doc.patch
+            12415_test.patch
+            12415_review.patch
+            12415_review3.patch
+            12415_doctest_fixes.patch
+            12415_manifest.patch
+            12415_rebase_58.patch
+            Should I download these patches? [Yes/no] n
+
         """
         if url is not None:
             if ticket or patchname:
                 raise ValueError("If `url` is specifed, `ticket` and `patchname` must not be specified.")
             import urllib
-            return urllib.urlretrieve(url)[0]
+            self._UI.info("Downloading `{0}`...".format(url))
+            ret = urllib.urlretrieve(url)[0]
+            self._UI.show("Downloaded `{0}` to `{1}`.".format(url, ret))
+            return (ret,)
 
         if ticket is None:
             ticket is self._current_ticket()
@@ -2302,9 +2337,97 @@ class SageDev(object):
             if len(attachments) == 0:
                 raise SageDevValueError("Ticket #%s has no attachments."%ticket)
             if len(attachments) == 1:
-                return self.download_patch(ticket = ticket, patchname = attachments[0])
+                ret = (self.download_patch(ticket = ticket, patchname = attachments[0]),)
+                self._UI.show("Attachment `{0}` for ticket #{1} has been downloaded to `{2}`.".format(attachments[0], ticket, ret[0]))
+                return ret
             else:
-                raise SageDevValueError("Ticket #%s has more than one attachment but parameter `patchname` is not present, please set it to one of: %s"%(ticket,", ".join(sorted(attachments))))
+                from sage.env import TRAC_SERVER_URI
+                rss = TRAC_SERVER_URI+"/ticket/%s?format=rss"%ticket
+                self._UI.info("There is more than one attachment on ticket #{0}. Reading `{1}` to try to find out in which order they must be applied.".format(ticket, rss))
+                import urllib2
+                rss = urllib2.urlopen(rss).read()
+
+                # the following block has been copied from the patchbot
+                all_patches = []
+                patches = []
+                import re
+                folded_regex = re.compile('all.*(folded|combined|merged)')
+                subsequent_regex = re.compile('second|third|fourth|next|on top|after')
+                attachment_regex = re.compile(r"<strong>attachment</strong>\s*set to <em>(.*)</em>", re.M)
+                rebased_regex = re.compile(r"([-.]?rebased?)|(-v\d)")
+                def extract_tag(sgml, tag):
+                    """
+                    Find the first occurance of the tag start (including
+                    attributes) and return the contents of that tag (really, up
+                    until the next end tag of that type).
+
+                    Crude but fast.
+                    """
+                    tag_name = tag[1:-1]
+                    if ' ' in tag_name:
+                        tag_name = tag_name[:tag_name.index(' ')]
+                    end = "</%s>" % tag_name
+                    start_ix = sgml.find(tag)
+                    if start_ix == -1:
+                        return None
+                    end_ix = sgml.find(end, start_ix)
+                    if end_ix == -1:
+                        return None
+                    return sgml[start_ix + len(tag) : end_ix].strip()
+                for item in rss.split('<item>'):
+                    description = extract_tag(item, '<description>').replace('&lt;', '<').replace('&gt;', '>')
+                    m = attachment_regex.search(description)
+                    comments = description[description.find('</ul>') + 1:]
+                    # Look for apply... followed by patch names
+                    for line in comments.split('\n'):
+                        if 'apply' in line.lower():
+                            new_patches = []
+                            for p in line[line.lower().index('apply') + 5:].split(','):
+                                for pp in p.strip().split():
+                                    if pp in all_patches:
+                                        new_patches.append(pp)
+                            if new_patches or (m and not subsequent_regex.search(line)):
+                                patches = new_patches
+                        elif m and folded_regex.search(line):
+                            patches = [] # will add this patch below
+                    if m is not None:
+                        attachment = m.group(1)
+                        import os.path
+                        base, ext = os.path.splitext(attachment)
+                        if '.' in base:
+                            try:
+                                base2, ext2 = os.path.splitext(base)
+                                count = int(ext2[1:])
+                                for i in range(count):
+                                    if i:
+                                        older = "%s.%s%s" % (base2, i, ext)
+                                    else:
+                                        older = "%s%s" % (base2, ext)
+                                    if older in patches:
+                                        patches.remove(older)
+                            except:
+                                pass
+                        if rebased_regex.search(attachment):
+                            older = rebased_regex.sub('', attachment)
+                            if older in patches:
+                                patches.remove(older)
+                        if ext in ('.patch', '.diff'):
+                            all_patches.append(attachment)
+                            patches.append(attachment)
+
+                # now patches contains the list of patches to apply
+                if patches:
+                    if self._UI.confirm("It seems that the following patches have to be applied in this order: \n{0}\nShould I download these patches?".format("\n".join(patches)),default=True):
+                        ret = []
+                        for patch in patches:
+                            ret.extend(self.download_patch(ticket=ticket, patchname=patch))
+                        return ret
+                    else:
+                        self._UI.error("Ticket #{0} has more than one attachment but you chose not to download them in the proposed order. To use only one of these patches set the parameter `patchname` to one of: {1}".format(ticket, ", ".join(sorted(attachments))))
+                        raise OperationCancelledError("user requested")
+                else:
+                    self._UI.error("I could not understand the comments on ticket #{0}. To apply use one of the patches on the ticket, set the parameter `patchname` to one of: {1}".format(ticket, ", ".join(sorted(attachments))))
+                    raise OperationCancelledError("user requested")
 
     def prune_closed_tickets(self):
         r"""

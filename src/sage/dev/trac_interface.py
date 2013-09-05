@@ -543,13 +543,13 @@ class TracInterface(object):
 
             sage: dev.trac._get_attributes(1000) # optional: internet
             {'status': 'closed',
-             'changetime': <DateTime '20080110T08:28:40' at ...>,
-             'description': '',
+             'changetime': <DateTime '...' at ...>,
+             'description': '...',
              'reporter': 'was',
              'cc': '',
              'type': 'defect',
              'milestone': 'sage-2.10',
-             '_ts': '1199953720000000',
+             '_ts': '...',
              'component': 'distribution',
              'summary': 'Sage does not have 10000 users yet.',
              'priority': 'major',

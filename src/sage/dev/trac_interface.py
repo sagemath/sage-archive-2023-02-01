@@ -23,7 +23,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import re
+import re, time, datetime
 FIELD_REGEX = re.compile("^([A-Za-z ]+):(.*)$")
 ALLOWED_FIELDS = {
         "authors":          "Authors",
@@ -58,6 +58,56 @@ COMMENT_FILE_GUIDE = r"""
 # Lines starting with `#` are ignored.
 # An empty file aborts the comment.
 """
+
+def _timerep(tm, curtime=None):
+    """
+    Prints the given time in terms of a rounded number of time-units ago.
+
+    INPUT:
+
+    - ``tm`` -- a datetime.datetime instance
+    - ``curtime`` -- the current time as a datetime.datetime instance;
+      if ``None`` then it will be computed using time.gmtime()
+
+    EXAMPLES::
+
+        sage: from sage.dev.trac_interface import _timerep
+        sage: import datetime
+        sage: curtime = datetime.datetime(2013, 9, 5, 16)
+        sage: T = []
+        sage: T.append(datetime.datetime(2013, 9, 5, 15, 54, 22))
+        sage: T.append(datetime.datetime(2013, 9, 5, 10, 17, 17))
+        sage: T.append(datetime.datetime(2013, 8, 25, 9))
+        sage: T.append(datetime.datetime(2012, 11, 19))
+        sage: T.append(datetime.datetime(2010, 1, 2))
+        sage: for t in T: print _timerep(t, curtime)
+        5 minutes ago
+        5 hours ago
+        11 days ago
+        9 months ago
+        3 years ago
+    """
+    year = datetime.timedelta(365)
+    month = datetime.timedelta(30)
+    day = datetime.timedelta(1)
+    hour = datetime.timedelta(0,3600)
+    minute = datetime.timedelta(0,60)
+    second = datetime.timedelta(0,1)
+    timelist = [(year, "year"), (month, "month"), (day, "day"), (hour, "hour"), (minute, "minute"), (second, "second")]
+    def timediv(a, b):
+        # Our version of datetime doesn't implement //
+        x = a.total_seconds() / b.total_seconds()
+        if x >= 0: return int(x)
+        raise NotImplementedError
+    if curtime is None:
+        curtime = datetime.datetime(*(time.gmtime()[:6]))
+    diff = curtime - tm
+    if diff.total_seconds() < 0:
+        return "in the future"
+    for period, name in timelist:
+        n = timediv(diff, period)
+        if n > 0:
+            return "%s %s%s ago"%(n, name, "s" if n > 1 else "")
 
 class TicketSyntaxError(SyntaxError): # we don't want to catch normal syntax errors
     r"""
@@ -510,6 +560,98 @@ class TracInterface(object):
 
         """
         return self._anonymous_server_proxy.ticket.get(int(ticket))[3]
+
+    def show_ticket(self, ticket):
+        r"""
+        Show the important fields of the given ticket.
+
+        .. SEEALSO::
+
+            :meth:`_get_attributes`
+            :meth:`show_comments`
+
+        EXAMPLES::
+
+            sage: dev.trac.show_ticket(101) # optional: internet
+            #101: closed enhancement
+            == graph theory -- create a graph theory package for SAGE ==
+            Opened: 6 years ago
+            Closed: 5 years ago
+            Priority: major
+            Milestone: sage-2.8.5
+            Component: combinatorics
+            ----------------------------------------
+            See http://sage.math.washington.edu:9001/graph for
+            initial research that Robert Miller and Emily Kirkman are doing on this.
+        """
+        a = self._get_attributes(ticket)
+        opentime = datetime.datetime(*(a['time'].timetuple()[:6]))
+        changetime = datetime.datetime(*(a['changetime'].timetuple()[:6]))
+        fields = ['Opened: %s'%(_timerep(opentime))]
+        if a['status'] == 'closed':
+            fields.append('Closed: %s'%(_timerep(changetime)))
+        else:
+            fields.append('Last modified: %s'%(_timerep(changetime)))
+        def cap(fieldname):
+            if fieldname == 'reporter': return "Reported by"
+            elif fieldname == 'merged': return "Merged in"
+            elif fieldname == 'work_issues': return "Work issues"
+            elif fieldname == 'upstream': return "Report upstream"
+            return fieldname.capitalize()
+        def add_field(fieldname):
+            try:
+                fieldval = a[fieldname]
+                if fieldval not in ['', 'N/A']:
+                    fields.append(cap(fieldname) + ': ' + fieldval)
+            except KeyError:
+                pass
+        for field in ['priority','milestone','component','cc','merged','author',
+                      'reviewer','upstream','work_issues','branch','dependencies','stopgaps']:
+            add_field(field)
+        self._UI.show("#%s: %s %s\n== %s ==\n%s\n%s\n%s"%(ticket, a['status'], a['type'], a['summary'],
+                                                     '\n'.join(fields), '-'*40, a['description']))
+
+    def show_comments(self, ticket, ignore_git_user=True):
+        """
+        Shows the comments on a given ticket.
+
+        INPUT:
+
+        - ``ticket`` -- the ticket number
+        - ``ignore_git_user`` -- whether to remove comments
+          automatically added when the branch is updated.
+
+        EXAMPLES::
+
+            sage: dev.trac.show_comments(100) # optional: internet
+            ====================
+            was (6 years ago)
+            fixed
+        """
+        comments = []
+        for time, author, field, oldvalue, newvalue, permanent in self._anonymous_server_proxy.ticket.changeLog(int(ticket)):
+            if field == 'comment' and newvalue and not (ignore_git_user and author == 'git'):
+                comments.append((_timerep(datetime.datetime(*(time.timetuple()[:6]))), author, newvalue))
+        self._UI.show('\n'.join(['====================\n%s (%s)\n%s'%(author, time, comment) for time, author, comment in reversed(comments)]))
+
+    def query(self, qstr):
+        """
+        Returns a list of ticket ids that match the given query string.
+
+        INPUT:
+
+        - ``qstr`` -- a query string.  All queries will use stored
+          settings for maximum number of results per page and paging
+          options. Use max=n to define number of results to receive,
+          and use page=n to page through larger result sets. Using
+          max=0 will turn off paging and return all results.
+
+        EXAMPLES::
+
+            sage: dev.trac.query('status!=closed&(component=padics||component=misc)&max=3') # random, optional: internet
+            [329, 15130, 21]
+        """
+        return self._anonymous_server_proxy.ticket.query(qstr)
 
     def _branch_for_ticket(self, ticket):
         r"""

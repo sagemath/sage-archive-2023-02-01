@@ -494,7 +494,7 @@ class SageDev(object):
             sage: open("untracked","w").close()
             sage: alice.switch_ticket(1)
             GitError: git exited with a non-zero exit code (1).
-            This happened while executing `git checkout ticket/1`.
+            This happened while executing `git -c user.email=doc@test.test -c user.name=alice checkout ticket/1`.
             git printed nothing to STDOUT.
             git printed the following to STDERR:
             error: The following untracked working tree files would be overwritten by checkout:
@@ -712,7 +712,7 @@ class SageDev(object):
             sage: with open('tracked', 'w') as f: f.write("boo")
             sage: dev.switch_branch('branch2')
             GitError: git exited with a non-zero exit code (1).
-            This happened while executing `git checkout branch2`.
+            This happened while executing `git -c user.email=doc@test.test -c user.name=doctest checkout branch2`.
             git printed nothing to STDOUT.
             git printed the following to STDERR:
             error: The following untracked working tree files would be overwritten by checkout:

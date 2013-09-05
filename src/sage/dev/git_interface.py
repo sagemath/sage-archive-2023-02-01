@@ -109,9 +109,9 @@ class GitProxy(object):
             # Initial commit
             #
             nothing to commit (create/copy files and use "git add" to track)
-            (0, None, None, 'git status')
+            (0, None, None, 'git -c user.email=doc@test.test -c user.name=doctest status')
             sage: git._run_git('status', (), {}, stdout=False)
-            (0, None, None, 'git status')
+            (0, None, None, 'git -c user.email=doc@test.test -c user.name=doctest status')
 
         TESTS:
 
@@ -136,6 +136,12 @@ class GitProxy(object):
         self._upload_ssh_key()
 
         s = [self._gitcmd, "--git-dir=%s"%self._dot_git, cmd]
+        if 'user.name' in self._config:
+            s.insert(2, '-c')
+            s.insert(3, 'user.name='+self._config['user.name'])
+        if 'user.email' in self._config:
+            s.insert(2, '-c')
+            s.insert(3, 'user.email='+self._config['user.email'])
 
         env = ckwds.setdefault('env', dict(os.environ))
         env.update(kwds.pop('env', {}))
@@ -228,7 +234,7 @@ class GitProxy(object):
             sage: git._execute('status',foo=True) # --foo is not a valid parameter
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (129) for `git status --foo`.
+            GitError: git returned with non-zero exit code (129) for `git -c user.email=doc@test.test -c user.name=doctest status --foo`.
 
         """
         exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds)
@@ -257,7 +263,7 @@ class GitProxy(object):
             sage: git._execute_silent('status',foo=True) # --foo is not a valid parameter
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (129) for `git status --foo`.
+            GitError: git returned with non-zero exit code (129) for `git -c user.email=doc@test.test -c user.name=doctest status --foo`.
 
         """
         exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds, stdout=False)
@@ -286,7 +292,7 @@ class GitProxy(object):
             sage: git._execute_supersilent('status',foo=True) # --foo is not a valid parameter
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (129) for `git status --foo`.
+            GitError: git returned with non-zero exit code (129) for `git -c user.email=doc@test.test -c user.name=doctest status --foo`.
             ...
 
         """
@@ -317,7 +323,7 @@ class GitProxy(object):
             sage: git._read_output('status',foo=True) # --foo is not a valid parameter
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (129) for `git status --foo`.
+            GitError: git returned with non-zero exit code (129) for `git -c user.email=doc@test.test -c user.name=doctest status --foo`.
             ...
 
         """
@@ -345,33 +351,33 @@ class GitProxy(object):
             sage: os.chdir(config['git']['src'])
             sage: UI.append("Doc Test")
             sage: UI.append("doc@test")
-            sage: git._check_user_email()
+            sage: git._check_user_email() # random output, because it depends on whether the user has set user.name and user.email in its .gitconfig
 
         """
         if self._config.get('user_email_set', False):
             return
 
-        try:
-            self._execute_supersilent("config","user.name")
-        except GitError as e:
-            if e.exit_code == 1:
-                self._UI.normal("No real name has been set for git. This name shows up as the author for any commits you contribute to sage.")
-                name = self._UI.question("Your real name:")
-                self._execute("config","user.name",name,local=True,add=True)
-                self._UI.info("Your real name has been saved.")
-            else:
-                raise
+        if 'user.name' not in self._config:
+            try:
+                self._execute_supersilent("config","user.name")
+            except GitError as e:
+                if e.exit_code == 1:
+                    name = self._UI.get_input("No real name has been set for git. This name shows up as the author for any commits you contribute to sage. Your real name:")
+                    self._execute("config","user.name",name,local=True,add=True)
+                    self._UI.info("Your real name has been saved.")
+                else:
+                    raise
 
-        try:
-            self._execute_supersilent("config", "user.email")
-        except GitError as e:
-            if e.exit_code == 1:
-                self._UI.normal("No email address has been set for git. This email shows up as the author for any commits you contribute to sage.")
-                email = self._UI.question("Your email address:")
-                self._execute("config","user.email",email,local=True,add=True)
-                self._UI.info("Your email has been saved.")
-            else:
-                raise
+        if 'user.email' not in self._config:
+            try:
+                self._execute_supersilent("config", "user.email")
+            except GitError as e:
+                if e.exit_code == 1:
+                    email = self._UI._get_input("No email address has been set for git. This email shows up as the author for any commits you contribute to sage. Your email address:")
+                    self._execute("config","user.email",email,local=True,add=True)
+                    self._UI.info("Your email has been saved.")
+                else:
+                    raise
 
         self._config['user_email_set'] = "True"
 
@@ -566,7 +572,7 @@ class GitInterface(ReadStdoutGitProxy):
             sage: git.silent.merge('branch2')
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (1) for `git merge branch2`.
+            GitError: git returned with non-zero exit code (1) for `git -c user.email=doc@test.test -c user.name=doctest merge branch2`.
             ...
             sage: git.get_state()
             ('merge',)
@@ -579,7 +585,7 @@ class GitInterface(ReadStdoutGitProxy):
             sage: git._execute_supersilent('rebase', 'branch2')
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (1) for `git rebase branch2`.
+            GitError: git returned with non-zero exit code (1) for `git -c user.email=doc@test.test -c user.name=doctest rebase branch2`.
             ...
             sage: git.get_state()
             ('rebase',)
@@ -595,7 +601,7 @@ class GitInterface(ReadStdoutGitProxy):
             sage: git.silent.merge('branch2')
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (1) for `git merge branch2`.
+            GitError: git returned with non-zero exit code (1) for `git -c user.email=doc@test.test -c user.name=doctest merge branch2`.
             ...
             sage: git.get_state()
             ('merge', 'rebase-i')
@@ -674,7 +680,7 @@ class GitInterface(ReadStdoutGitProxy):
             sage: git.silent.merge('branch2')
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (1) for `git merge branch2`.
+            GitError: git returned with non-zero exit code (1) for `git -c user.email=doc@test.test -c user.name=doctest merge branch2`.
             ...
             sage: git.get_state()
             ('merge', 'rebase-i')
@@ -1176,7 +1182,7 @@ class GitInterface(ReadStdoutGitProxy):
             sage: git.rename_branch('branch2', 'branch3')
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (128) for `git branch --move branch2 branch3`.
+            GitError: git returned with non-zero exit code (128) for `git -c user.email=doc@test.test -c user.name=doctest branch --move branch2 branch3`.
             output to stderr: fatal: A branch named 'branch3' already exists.
 
         """

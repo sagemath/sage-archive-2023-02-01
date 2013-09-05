@@ -24,7 +24,7 @@ AUTHORS:
 
 import os
 
-from sage.env import SAGE_DOT_GIT, SAGE_REPO_AUTHENTICATED, SAGE_SRC
+from sage.env import SAGE_DOT_GIT, SAGE_REPO_AUTHENTICATED, SAGE_ROOT
 
 from git_error import GitError, DetachedHeadError
 
@@ -60,14 +60,19 @@ class GitProxy(object):
         self._UI = UI
         self.__upload_ssh_key = upload_ssh_key
 
-        self._src = self._config.get('src', SAGE_SRC)
+        self._src = self._config.get('src', SAGE_ROOT)
         self._dot_git = self._config.get('dot_git', SAGE_DOT_GIT)
         self._gitcmd = self._config.get('gitcmd', 'git')
         self._repository = self._config.get('repository', SAGE_REPO_AUTHENTICATED)
 
+        if not os.path.isabs(self._src):
+            raise ValueError("`%s` is not an absolute path."%self._src)
+        if not os.path.exists(self._src):
+            raise ValueError("`%s` does not point to an existing directory."%self._src)
+        if not os.path.isabs(self._dot_git):
+            raise ValueError("`%s` is not an absolute path."%self._dot_git)
         if not os.path.exists(self._dot_git):
             raise ValueError("`%s` does not point to an existing directory."%self._dot_git)
-
 
     def _run_git(self, cmd, args, kwds, **ckwds):
         r"""

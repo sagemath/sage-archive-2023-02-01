@@ -2621,6 +2621,11 @@ class SageDev(object):
             CONFLICT (add/add): Merge conflict in alice2
             Please fix conflicts in the affected files (in a different terminal) and type 'resolved'. Or type 'abort' to abort the merge. [resolved/abort] resolved
 
+        We cannot merge a ticket into itself::
+
+            sage: alice.merge(2)
+            ValueError: cannot merge a ticket into itself
+
         """
         try:
             self.reset_to_clean_state()
@@ -2644,6 +2649,8 @@ class SageDev(object):
 
         if self._is_ticket_name(ticket_or_branch):
             ticket = self._ticket_from_ticket_name(ticket_or_branch)
+            if ticket == current_ticket:
+                raise SageDevValueError("cannot merge a ticket into itself")
             self._check_ticket_name(ticket, exists=True)
             if download is None:
                 download = True

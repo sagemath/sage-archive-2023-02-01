@@ -1160,6 +1160,9 @@ class TracInterface(object):
         Some error checking is done:
 
             sage: trac.set_attributes(n, status='invalid_status')
+            Traceback (most recent call last):
+            ...
+            TicketSyntaxError: `invalid_status` is not a valid value for the field `status`
         """
         ticket = int(ticket)
         for field, value in kwds.iteritems():

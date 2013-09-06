@@ -400,7 +400,7 @@ class GitProxy(object):
             sage: del config['git']['user.email']
             sage: UI = DoctestUserInterface(config["UI"])
             sage: def upload_ssh_key(): print "Uploading ssh key."
-            sage: git = GitInterface(config["git"], UI, upload_ssh_key=upload_ssh_key)
+            sage: git = GitInterface(config["git"], UI, upload_ssh_key=upload_ssh_key) # indirect doctest
             sage: os.chdir(config['git']['src'])
             sage: from sage.dev.git_error import GitError
             sage: try:
@@ -597,22 +597,6 @@ class GitInterface(ReadStdoutGitProxy):
             sage: git.get_state()
             ()
 
-        A merge within an interactive rebase::
-
-            sage: git.super_silent.rebase('HEAD^', interactive=True, env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
-            sage: git.get_state()
-            ('rebase-i',)
-            sage: git.silent.merge('branch2')
-            Traceback (most recent call last):
-            ...
-            GitError: git returned with non-zero exit code (1) for `git -c user.email=doc@test.test -c user.name=doctest merge branch2`.
-            ...
-            sage: git.get_state()
-            ('merge', 'rebase-i')
-            sage: git.super_silent.rebase(abort=True)
-            sage: git.get_state()
-            ()
-
         """
         # logic based on zsh's git backend for vcs_info
         opj = os.path.join
@@ -675,19 +659,15 @@ class GitInterface(ReadStdoutGitProxy):
             sage: with open("file","w") as f: f.write("version 2")
             sage: git.silent.commit("-am","conflicting commit")
 
-        A merge within an interactive rebase::
+        A merge::
 
-            sage: git.super_silent.checkout("branch1")
-            sage: git.super_silent.rebase('HEAD^', interactive=True, env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
-            sage: git.get_state()
-            ('rebase-i',)
-            sage: git.silent.merge('branch2')
+            sage: git.silent.merge('branch1')
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (1) for `git -c user.email=doc@test.test -c user.name=doctest merge branch2`.
+            GitError: git returned with non-zero exit code (1) for `git -c user.email=doc@test.test -c user.name=doctest merge branch1`.
             ...
             sage: git.get_state()
-            ('merge', 'rebase-i')
+            ('merge',)
 
         Get out of this state::
 
@@ -1244,7 +1224,7 @@ for git_cmd_ in (
             sage: config = DoctestConfig()
             sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
             sage: os.chdir(config['git']['src'])
-            sage: git.echo.status()
+            sage: git.echo.status() # indirect doctest
             # On branch master
             #
             # Initial commit

@@ -91,7 +91,7 @@ class UserInterface(object):
 
         - ``question`` -- a string
 
-        - ``default_no`` -- a boolean or ``None`` (default: ``None``), the
+        - ``default`` -- a boolean or ``None`` (default: ``None``), the
           default value
 
         TESTS::

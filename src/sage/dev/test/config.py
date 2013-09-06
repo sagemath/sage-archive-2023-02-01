@@ -48,10 +48,6 @@ class DoctestConfig(sage.dev.config.Config):
         src = ...
         dot_git = ...
         [sagedev]
-        ticketfile = ...
-        branchfile = ...
-        dependenciesfile = ...
-        remotebranchesfile = ...
         ''')
 
     """
@@ -83,12 +79,9 @@ class DoctestConfig(sage.dev.config.Config):
         atexit.register(shutil.rmtree, self._tmp_dir)
         self['git']['src'] = self._tmp_dir
         self['git']['dot_git'] = os.path.join(self._tmp_dir,".git")
+        self['git']['user.name'] = trac_username
+        self['git']['user.email'] = 'doc@test.test'
         os.mkdir(self['git']['dot_git'])
-
-        self['sagedev']['ticketfile'] = os.path.join(self._tmp_dir,"branch_to_ticket")
-        self['sagedev']['branchfile'] = os.path.join(self._tmp_dir,"ticket_to_branch")
-        self['sagedev']['dependenciesfile'] = os.path.join(self._tmp_dir,"dependencies")
-        self['sagedev']['remotebranchesfile'] = os.path.join(self._tmp_dir,"remote_branches")
 
         from sage.dev.git_interface import GitInterface
         from sage.dev.test.user_interface import DoctestUserInterface

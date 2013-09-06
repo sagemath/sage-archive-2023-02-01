@@ -24,7 +24,7 @@ AUTHORS:
 
 import os
 
-from sage.env import SAGE_DOT_GIT, SAGE_REPO_AUTHENTICATED, SAGE_SRC
+from sage.env import SAGE_DOT_GIT, SAGE_REPO_AUTHENTICATED, SAGE_ROOT
 
 from git_error import GitError, DetachedHeadError
 
@@ -60,14 +60,19 @@ class GitProxy(object):
         self._UI = UI
         self.__upload_ssh_key = upload_ssh_key
 
-        self._src = self._config.get('src', SAGE_SRC)
+        self._src = self._config.get('src', SAGE_ROOT)
         self._dot_git = self._config.get('dot_git', SAGE_DOT_GIT)
         self._gitcmd = self._config.get('gitcmd', 'git')
         self._repository = self._config.get('repository', SAGE_REPO_AUTHENTICATED)
 
+        if not os.path.isabs(self._src):
+            raise ValueError("`%s` is not an absolute path."%self._src)
+        if not os.path.exists(self._src):
+            raise ValueError("`%s` does not point to an existing directory."%self._src)
+        if not os.path.isabs(self._dot_git):
+            raise ValueError("`%s` is not an absolute path."%self._dot_git)
         if not os.path.exists(self._dot_git):
             raise ValueError("`%s` does not point to an existing directory."%self._dot_git)
-
 
     def _run_git(self, cmd, args, kwds, **ckwds):
         r"""
@@ -109,9 +114,9 @@ class GitProxy(object):
             # Initial commit
             #
             nothing to commit (create/copy files and use "git add" to track)
-            (0, None, None, 'git status')
+            (0, None, None, 'git -c user.email=doc@test.test -c user.name=doctest status')
             sage: git._run_git('status', (), {}, stdout=False)
-            (0, None, None, 'git status')
+            (0, None, None, 'git -c user.email=doc@test.test -c user.name=doctest status')
 
         TESTS:
 
@@ -120,12 +125,12 @@ class GitProxy(object):
             sage: dev.git.status()
             Traceback (most recent call last):
             ...
-            AssertionError: possible attempt to work with the live repository/directory in a doctest - did you forget to dev._chdir()?
+            AssertionError: possible attempt to work with the live repository/directory in a doctest
 
         """
         import sage.doctest
         import os
-        assert not sage.doctest.DOCTEST_MODE or (self._dot_git != SAGE_DOT_GIT and self._repository != SAGE_REPO_AUTHENTICATED and os.path.abspath(os.getcwd()).startswith(self._src)), "possible attempt to work with the live repository/directory in a doctest - did you forget to dev._chdir()?"
+        assert not sage.doctest.DOCTEST_MODE or (self._dot_git != SAGE_DOT_GIT and self._repository != SAGE_REPO_AUTHENTICATED and os.path.abspath(self._src).startswith(self._src)), "possible attempt to work with the live repository/directory in a doctest"
 
         # not sure which commands could possibly create a commit object with
         # unless there are some crazy flags set - these commands should be safe
@@ -135,7 +140,13 @@ class GitProxy(object):
         # again, these should be safe
         self._upload_ssh_key()
 
-        s = [self._gitcmd, "--git-dir=%s"%self._dot_git, cmd]
+        s = [self._gitcmd, "--git-dir=%s"%self._dot_git, "--work-tree=%s"%self._src, cmd]
+        if 'user.name' in self._config:
+            s.insert(3, '-c')
+            s.insert(4, 'user.name='+self._config['user.name'])
+        if 'user.email' in self._config:
+            s.insert(3, '-c')
+            s.insert(4, 'user.email='+self._config['user.email'])
 
         env = ckwds.setdefault('env', dict(os.environ))
         env.update(kwds.pop('env', {}))
@@ -154,9 +165,8 @@ class GitProxy(object):
 
         s = [str(arg) for arg in s]
 
-        from sage.dev.user_interface import INFO
-        complete_cmd = " ".join([arg for i,arg in enumerate(s) if i!=1]) # drop --git-dir from debug output
-        self._UI.show("[git] %s"%complete_cmd, log_level=INFO)
+        complete_cmd = " ".join([arg for i,arg in enumerate(s) if i not in (1,2)]) # drop --git-dir, --work-tree from debug output
+        self._UI.debug("[git] %s"%complete_cmd)
 
         if ckwds.get('dryrun', False):
             return s
@@ -228,7 +238,7 @@ class GitProxy(object):
             sage: git._execute('status',foo=True) # --foo is not a valid parameter
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (129) for `git status --foo`.
+            GitError: git returned with non-zero exit code (129) for `git -c user.email=doc@test.test -c user.name=doctest status --foo`.
 
         """
         exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds)
@@ -257,7 +267,7 @@ class GitProxy(object):
             sage: git._execute_silent('status',foo=True) # --foo is not a valid parameter
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (129) for `git status --foo`.
+            GitError: git returned with non-zero exit code (129) for `git -c user.email=doc@test.test -c user.name=doctest status --foo`.
 
         """
         exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds, stdout=False)
@@ -286,7 +296,7 @@ class GitProxy(object):
             sage: git._execute_supersilent('status',foo=True) # --foo is not a valid parameter
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (129) for `git status --foo`.
+            GitError: git returned with non-zero exit code (129) for `git -c user.email=doc@test.test -c user.name=doctest status --foo`.
             ...
 
         """
@@ -317,7 +327,7 @@ class GitProxy(object):
             sage: git._read_output('status',foo=True) # --foo is not a valid parameter
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (129) for `git status --foo`.
+            GitError: git returned with non-zero exit code (129) for `git -c user.email=doc@test.test -c user.name=doctest status --foo`.
             ...
 
         """
@@ -345,33 +355,33 @@ class GitProxy(object):
             sage: os.chdir(config['git']['src'])
             sage: UI.append("Doc Test")
             sage: UI.append("doc@test")
-            sage: git._check_user_email()
+            sage: git._check_user_email() # random output, because it depends on whether the user has set user.name and user.email in its .gitconfig
 
         """
         if self._config.get('user_email_set', False):
             return
 
-        try:
-            self._execute_supersilent("config","user.name")
-        except GitError as e:
-            if e.exit_code == 1:
-                self._UI.normal("No real name has been set for git. This name shows up as the author for any commits you contribute to sage.")
-                name = self._UI.question("Your real name:")
-                self._execute("config","user.name",name,local=True,add=True)
-                self._UI.info("Your real name has been saved.")
-            else:
-                raise
+        if 'user.name' not in self._config:
+            try:
+                self._execute_supersilent("config","user.name")
+            except GitError as e:
+                if e.exit_code == 1:
+                    name = self._UI.get_input("No real name has been set for git. This name shows up as the author for any commits you contribute to sage. Your real name:")
+                    self._execute("config","user.name",name,local=True,add=True)
+                    self._UI.info("Your real name has been saved.")
+                else:
+                    raise
 
-        try:
-            self._execute_supersilent("config", "user.email")
-        except GitError as e:
-            if e.exit_code == 1:
-                self._UI.normal("No email address has been set for git. This email shows up as the author for any commits you contribute to sage.")
-                email = self._UI.question("Your email address:")
-                self._execute("config","user.email",email,local=True,add=True)
-                self._UI.info("Your email has been saved.")
-            else:
-                raise
+        if 'user.email' not in self._config:
+            try:
+                self._execute_supersilent("config", "user.email")
+            except GitError as e:
+                if e.exit_code == 1:
+                    email = self._UI._get_input("No email address has been set for git. This email shows up as the author for any commits you contribute to sage. Your email address:")
+                    self._execute("config","user.email",email,local=True,add=True)
+                    self._UI.info("Your email has been saved.")
+                else:
+                    raise
 
         self._config['user_email_set'] = "True"
 
@@ -390,7 +400,7 @@ class GitProxy(object):
             sage: del config['git']['user.email']
             sage: UI = DoctestUserInterface(config["UI"])
             sage: def upload_ssh_key(): print "Uploading ssh key."
-            sage: git = GitInterface(config["git"], UI, upload_ssh_key=upload_ssh_key)
+            sage: git = GitInterface(config["git"], UI, upload_ssh_key=upload_ssh_key) # indirect doctest
             sage: os.chdir(config['git']['src'])
             sage: from sage.dev.git_error import GitError
             sage: try:
@@ -465,7 +475,7 @@ class SuperSilentGitProxy(GitProxy):
 
     EXAMPLES::
 
-        sage: dev.git.silent.status() # not tested
+        sage: dev.git.super_silent.status() # not tested
 
     """
     __call__ = GitProxy._execute_supersilent
@@ -566,7 +576,7 @@ class GitInterface(ReadStdoutGitProxy):
             sage: git.silent.merge('branch2')
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (1) for `git merge branch2`.
+            GitError: git returned with non-zero exit code (1) for `git -c user.email=doc@test.test -c user.name=doctest merge branch2`.
             ...
             sage: git.get_state()
             ('merge',)
@@ -579,26 +589,10 @@ class GitInterface(ReadStdoutGitProxy):
             sage: git._execute_supersilent('rebase', 'branch2')
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (1) for `git rebase branch2`.
+            GitError: git returned with non-zero exit code (1) for `git -c user.email=doc@test.test -c user.name=doctest rebase branch2`.
             ...
             sage: git.get_state()
             ('rebase',)
-            sage: git.super_silent.rebase(abort=True)
-            sage: git.get_state()
-            ()
-
-        A merge within an interactive rebase::
-
-            sage: git.super_silent.rebase('HEAD^', interactive=True, env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
-            sage: git.get_state()
-            ('rebase-i',)
-            sage: git.silent.merge('branch2')
-            Traceback (most recent call last):
-            ...
-            GitError: git returned with non-zero exit code (1) for `git merge branch2`.
-            ...
-            sage: git.get_state()
-            ('merge', 'rebase-i')
             sage: git.super_silent.rebase(abort=True)
             sage: git.get_state()
             ()
@@ -665,19 +659,15 @@ class GitInterface(ReadStdoutGitProxy):
             sage: with open("file","w") as f: f.write("version 2")
             sage: git.silent.commit("-am","conflicting commit")
 
-        A merge within an interactive rebase::
+        A merge::
 
-            sage: git.super_silent.checkout("branch1")
-            sage: git.super_silent.rebase('HEAD^', interactive=True, env={'GIT_SEQUENCE_EDITOR':'sed -i s+pick+edit+'})
-            sage: git.get_state()
-            ('rebase-i',)
-            sage: git.silent.merge('branch2')
+            sage: git.silent.merge('branch1')
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (1) for `git merge branch2`.
+            GitError: git returned with non-zero exit code (1) for `git -c user.email=doc@test.test -c user.name=doctest merge branch1`.
             ...
             sage: git.get_state()
-            ('merge', 'rebase-i')
+            ('merge',)
 
         Get out of this state::
 
@@ -698,7 +688,7 @@ class GitInterface(ReadStdoutGitProxy):
         elif state == 'merge':
             self.silent.merge(abort=True)
         elif state == 'bisect':
-            raise NotImplementedError(state)
+            self.silent.bisect(reset=True)
         elif state.startswith('cherry'):
             self.silent.cherry_pick(abort=True)
         else:
@@ -1176,7 +1166,7 @@ class GitInterface(ReadStdoutGitProxy):
             sage: git.rename_branch('branch2', 'branch3')
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (128) for `git branch --move branch2 branch3`.
+            GitError: git returned with non-zero exit code (128) for `git -c user.email=doc@test.test -c user.name=doctest branch --move branch2 branch3`.
             output to stderr: fatal: A branch named 'branch3' already exists.
 
         """
@@ -1234,7 +1224,7 @@ for git_cmd_ in (
             sage: config = DoctestConfig()
             sage: git = GitInterface(config["git"], DoctestUserInterface(config["UI"]))
             sage: os.chdir(config['git']['src'])
-            sage: git.echo.status()
+            sage: git.echo.status() # indirect doctest
             # On branch master
             #
             # Initial commit

@@ -67,8 +67,8 @@ class UserInterface(object):
 
         - ``options`` -- iterable of strings, the options
 
-        - ``default`` -- a string or ``None`` (default: ``None``), the default
-          option
+        - ``default`` -- an integer or ``None`` (default: ``None``),
+          the index of the default option
 
         TESTS::
 
@@ -91,7 +91,7 @@ class UserInterface(object):
 
         - ``question`` -- a string
 
-        - ``default_no`` -- a boolean or ``None`` (default: ``None``), the
+        - ``default`` -- a boolean or ``None`` (default: ``None``), the
           default value
 
         TESTS::

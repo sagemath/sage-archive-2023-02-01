@@ -87,6 +87,18 @@ class SavingDict(collections.MutableMapping):
             values      = None,
             default     = _raise,
             paired      = None):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: from sage.dev.saving_dict import SavingDict
+            sage: import os, tempfile
+            sage: tmp = tempfile.mkstemp()[1]
+            sage: sd = SavingDict(tmp)
+            sage: sd['cat'] = 'meow'; sd
+            {'cat': 'meow'}
+        """
         if not callable(default):
             raise ValueError("default must be callable")
 

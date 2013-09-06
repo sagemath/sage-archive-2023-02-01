@@ -3346,7 +3346,7 @@ class SageDev(object):
 
         from git_error import GitError
         try:
-            self.git.super_silent.ls_remote(self.git._repository, name, exit_code=True)
+            self.git.super_silent.ls_remote(self.git._repository, "refs/heads/"+name, exit_code=True)
             remote_exists = True
         except GitError as e:
             if e.exit_code == 2:

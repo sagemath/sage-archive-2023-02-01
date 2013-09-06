@@ -650,6 +650,7 @@ class SageDev(object):
             stash/1
             sage: UI.append("n")
             sage: dev.unstash('stash/1')
+            The changes recorded in `stash/1` have been restored in your working directory.  Would you like to delete the branch they were stashed in? [Yes/no] n
 
         Or we can just discard the changes::
 
@@ -873,10 +874,12 @@ class SageDev(object):
             sage: alice.download()
             Merging the remote branch `u/bob/ticket/1` into the local branch `ticket/1`.
             There was an error during the merge. Most probably there were conflicts when merging. The following should make it clear which files are affected:
-            Auto-merging alices_file
-            CONFLICT (add/add): Merge conflict in alices_file
+            Updating ...
+            error: The following untracked working tree files would be overwritten by merge:
+                bobs_other_file
+            Please move or remove them before you can merge.
+            Aborting
             Please fix conflicts in the affected files (in a different terminal) and type 'resolved'. Or type 'abort' to abort the merge. [resolved/abort] abort
-
         """
         if ticket_or_remote_branch is None:
             ticket_or_remote_branch = self._current_ticket()

@@ -2219,9 +2219,11 @@ class SageDev(object):
         - ``download`` -- a boolean or ``None`` (default: ``None``); if
           ``ticket_or_branch`` identifies a ticket, whether to download the
           latest branch on the trac ticket (the default); if
-          ``ticket_or_branch`` is a remote branch, whether to download that
-          remote branch (the default); if ``ticket_or_branch`` is a local
-          branch, whether to download its remote branch (not the default)
+          ``ticket_or_branch`` is a branch name, then ``download`` controls
+          whether it should be interpreted as a remote branch (``True``) or as
+          a local branch (``False``). If it is set to ``None``, then it will
+          take ``ticket_or_branch`` as a remote branch if it exists, and as a
+          local branch otherwise.
 
         - ``create_dependency`` -- a boolean or ``None`` (default: ``None``),
           whether to create a dependency to ``ticket_or_branch``. If ``None``,
@@ -2312,7 +2314,7 @@ class SageDev(object):
             sage: alice.merge("ticket/1")
             Merging the local branch `ticket/1` into the local branch `ticket/2`.
             sage: alice.merge("ticket/1", download=True)
-            Can not merge remote branch `nonexistant`. It does not exist.
+            ValueError: Branch `ticket/1` does not exist on the remote system.
 
         Bob creates a conflicting commit::
 
@@ -2387,31 +2389,26 @@ class SageDev(object):
                 if remote_branch is None:
                     self._UI.error("Can not merge remote branch for #{0}. No branch has been set on the trac ticket.".format(ticket))
                     raise OperationCancelledError("remote branch not set on trac")
-        elif self._is_local_branch_name(ticket_or_branch, exists=True):
+        elif download == False or (download is None and not self._is_remote_branch_name(ticket_or_branch, exists=True)):
+            # ticket_or_branch should be interpreted as a local branch name
             branch = ticket_or_branch
-            if download is None:
-                download = False
-            if self._has_ticket_for_local_branch(branch):
-                ticket = self._ticket_for_local_branch(branch)
-                if create_dependency is None:
-                    create_dependency = False
-            else:
-                if create_dependency:
-                    raise SageDevValueError("Can not create a dependency to `{0}` because it is not associated to a ticket.".format(branch))
-                create_dependency = False
-            remote_branch = self._remote_branch_for_branch(branch)
-        else:
-            remote_branch = ticket_or_branch
-            if download is None:
-                download = True
-            if download == False:
-                raise SageDevValueError("download must be `True` for a remote branch")
-            if create_dependency is None:
-                create_dependency = False
+            self._check_local_branch_name(branch, exists=True)
+            download = False
             if create_dependency == True:
-                raise SageDevValueError("Can not create a dependency to the remote branch `{0}`.".format(remote_branch))
-
-        local_merge_branch = branch
+                if self._has_ticket_for_local_branch(branch):
+                    ticket = self._ticket_for_local_branch(branch)
+                else:
+                    raise SageDevValueError("`create_dependency` must not be `True` if `ticket_or_branch` is a local branch which is not associated to a ticket.")
+            else:
+                create_dependency = False
+        else:
+            # ticket_or_branch should be interpreted as a remote branch name
+            remote_branch = ticket_or_branch
+            self._check_remote_branch_name(remote_branch, exists=True)
+            download = True
+            if create_dependency == True:
+                raise SageDevValueError("`create_dependency` must not be `True` if `ticket_or_branch` is a local branch.")
+            create_dependency = False
 
         if download:
             assert remote_branch
@@ -2424,6 +2421,7 @@ class SageDev(object):
         else:
             assert branch
             self._UI.show("Merging the local branch `{0}` into the local branch `{1}`.".format(branch, current_branch))
+            local_merge_branch = branch
 
         from git_error import GitError
         try:

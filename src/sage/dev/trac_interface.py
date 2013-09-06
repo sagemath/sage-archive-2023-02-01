@@ -545,7 +545,7 @@ class TracInterface(object):
             1
 
         """
-        return self._authenticated_server_proxy.ticket.create(summary, description, attributes)
+        return self._authenticated_server_proxy.ticket.create(summary, description, attributes, True) # notification e-mail sent.
 
     def add_comment(self, ticket, comment):
         r"""
@@ -571,7 +571,7 @@ class TracInterface(object):
         """
         ticket = int(ticket)
         attributes = self._get_attributes(ticket)
-        self._authenticated_server_proxy.ticket.update(ticket, comment, attributes)
+        self._authenticated_server_proxy.ticket.update(ticket, comment, attributes, True) # notification e-mail sent
 
     def _get_attributes(self, ticket):
         r"""
@@ -839,7 +839,7 @@ class TracInterface(object):
             raise OperationCancelledError("comment creation aborted")
         comment = "\n".join(comment)
 
-        url = self._authenticated_server_proxy.ticket.update(ticket, comment, attributes)
+        url = self._authenticated_server_proxy.ticket.update(ticket, comment, attributes, True) # notification e-mail sent
 
         self._UI.info("Your comment has been recorded: %s"%url)
 
@@ -884,7 +884,7 @@ class TracInterface(object):
         attributes['description'] = ret[1]
         attributes.update(ret[2])
 
-        url = self._authenticated_server_proxy.ticket.update(ticket, "", attributes)
+        url = self._authenticated_server_proxy.ticket.update(ticket, "", attributes, True) # notification e-mail sent.
         self._UI.info("Ticket modified: %s"%url)
 
     def _edit_ticket_interactive(self, summary, description, attributes):
@@ -990,7 +990,7 @@ class TracInterface(object):
 
         """
         attributes = {
-                "Type":         "PLEASE CHANGE",
+                "Type":         "defect",
                 "Priority":     "major",
                 "Component":    "PLEASE CHANGE",
                 "Reporter":     self._username
@@ -1126,13 +1126,14 @@ class TracInterface(object):
         else:
             return summary, "\n".join(description), fields
 
-    def set_attributes(self, ticket, **kwds):
+    def set_attributes(self, ticket, comment='', notify=False, **kwds):
         """
         Set attributes on a track ticket.
 
         INPUT:
 
         - ``ticket`` -- the ticket id
+        - ``comment`` -- a comment when changing these attributes
         - ``kwds`` -- a dictionary of field:value pairs
 
         .. SEEALSO::
@@ -1168,4 +1169,4 @@ class TracInterface(object):
                 raise TicketSyntaxError("`{0}` is not a valid value for the field `{1}`".format(value, field))
         attributes = self._get_attributes(ticket)
         attributes.update(**kwds)
-        self._authenticated_server_proxy.ticket.update(ticket, '', attributes)
+        self._authenticated_server_proxy.ticket.update(ticket, comment, attributes, notify)

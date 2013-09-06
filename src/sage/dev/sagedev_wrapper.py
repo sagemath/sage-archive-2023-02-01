@@ -108,6 +108,10 @@ class SageDevWrapper(object):
         self._wrap("upload")
         self._wrap("upload_ssh_key")
         self._wrap("vanilla")
+        self._wrap("set_needs_work")
+        self._wrap("set_needs_review")
+        self._wrap("set_needs_info")
+        self._wrap("set_positive_review")
 
         self.git = sagedev.git
         self.trac = sagedev.trac

@@ -648,6 +648,7 @@ class SageDev(object):
             sage: dev.switch_branch('branch2')
             sage: dev.unstash()
             stash/1
+            sage: UI.append('y')
             sage: dev.unstash('stash/1')
 
         Or we can just discard the changes::
@@ -782,6 +783,7 @@ class SageDev(object):
 
             sage: bob._chdir()
             sage: bob.download()
+            Merging the remote branch `u/alice/ticket/1` into the local branch `ticket/1`.
             sage: bob.git.echo.log('--pretty=%s')
             alice: empty commit
             initial commit
@@ -808,6 +810,7 @@ class SageDev(object):
         manually::
 
             sage: alice.download()
+            Merging the remote branch `u/bob/ticket/1` into the local branch `ticket/1`.
             sage: alice.git.echo.log('--pretty=%s')
             Merge branch 'u/bob/ticket/1' of ... into ticket/1
             alice: added alices_file
@@ -838,6 +841,7 @@ class SageDev(object):
 
             sage: alice.git.super_silent.reset('HEAD~~', hard=True)
             sage: alice.download()
+            Merging the remote branch `u/bob/ticket/1` into the local branch `ticket/1`.
             sage: alice.git.echo.log('--pretty=%s')
             bob: added alices_file
             bob: added bobs_file
@@ -1073,7 +1077,6 @@ class SageDev(object):
             sage: dev._remote_branch_for_ticket(1)
             'u/doctest/foo'
             sage: dev.set_remote('ticket/1', 'foo')
-            The remote branch `foo` is not in your user scope. You might not have permission to push to that branch. Did you mean to set the remote branch to `u/doctest/foo`?
             sage: dev._remote_branch_for_ticket(1)
             'foo'
             sage: dev.set_remote('#1', 'u/doctest/foo')
@@ -1173,6 +1176,7 @@ class SageDev(object):
 
             sage: alice._chdir()
             sage: alice.download()
+            Merging the remote branch `u/bob/ticket/1` into the local branch `ticket/1`.
 
         Alice and Bob make non-conflicting changes simultaneously::
 
@@ -1208,6 +1212,7 @@ class SageDev(object):
         After merging the changes, this works again::
 
             sage: bob.download()
+            Merging the remote branch `u/alice/ticket/1` into the local branch `ticket/1`.
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.upload()
@@ -1395,6 +1400,7 @@ class SageDev(object):
 
                 attributes = self.trac._get_attributes(ticket)
                 attributes['dependencies'] = new_dependencies
+                # Don't send an e-mail notification
                 self.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
 
     def reset_to_clean_state(self, cancel_unless_clean=True):
@@ -1610,10 +1616,20 @@ class SageDev(object):
         See what's in a stash::
 
             sage: dev.unstash("stash/1", show_diff=True)
+            diff --git a/tracked b/tracked
+            new file mode 100644
+            index 0000000...
+            --- /dev/null
+            +++ b/tracked
+            @@ -0,0 +1 @@
+            +foo
+            \ No newline at end of file
 
         Unstash a change::
 
+            sage: UI.append("y")
             sage: dev.unstash("stash/1")
+            The changes recorded in `stash/1` have been restored in your working directory.  Would you like to delete the branch they were stashed in? [Yes/no] y
 
         Unstash something that is not a stash::
 
@@ -1651,7 +1667,7 @@ class SageDev(object):
 
         self.git.super_silent.reset()
 
-        if self._UI.select("The changes recorded in `{0}` have been restored in your working directory.  Would you like to delete the branch they were stashed in?", ["yes","no"], 0):
+        if self._UI.select("The changes recorded in `{0}` have been restored in your working directory.  Would you like to delete the branch they were stashed in?".format(branch), ["yes","no"], 0):
             self.git.branch(branch, d=True)
 
     def edit_ticket(self, ticket=None):
@@ -1666,7 +1682,9 @@ class SageDev(object):
 
         .. SEEALSO::
 
-            :meth:`create_ticket`, :meth:`add_comment`
+            :meth:`create_ticket`, :meth:`add_comment`,
+            :meth:`set_needs_review`, :meth:`set_needs_work`,
+            :meth:`set_positive_review`, :meth:`set_needs_info`
 
         TESTS:
 
@@ -1695,6 +1713,223 @@ class SageDev(object):
         self._check_ticket_name(ticket, exists=True)
         ticket = self._ticket_from_ticket_name(ticket)
         self.trac.edit_ticket_interactive(ticket)
+
+    def set_needs_review(self, ticket=None, comment=''):
+        """
+        Set a ticket on trac to ``needs_review``.
+
+        INPUT:
+
+        - ``ticket`` -- an integer or string identifying a ticket or ``None``
+        (default: ``None``), the number of the ticket to edit.  If ``None``,
+        edit the :meth:`_current_ticket`.
+
+        - ``comment`` -- a comment to go with the status change.
+
+        .. SEEALSO::
+
+            :meth:`edit_ticket`, :meth:`set_needs_work`,
+            :meth:`set_positive_review`, :meth:`add_comment`,
+            :meth:`set_needs_info`
+
+        TESTS:
+
+        Set up a single user for doctesting::
+
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+
+        Create a ticket and set it to needs_review::
+
+            sage: UI.append("Summary: summary1\ndescription")
+            sage: dev.create_ticket()
+            1
+            sage: open("tracked", "w").close()
+            sage: dev.git.super_silent.add("tracked")
+            sage: dev.git.super_silent.commit(message="alice: added tracked")
+            sage: dev._UI.append("y")
+            sage: dev.upload()
+            The branch `u/doctest/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            sage: dev.set_needs_review(comment='Review my ticket!')
+            sage: dev.trac._get_attributes(1)['status']
+            'needs_review'
+        """
+        if ticket is None:
+            ticket = self._current_ticket()
+        if ticket is None:
+            raise SageDevValueError("ticket must be specified if not currently on a ticket.")
+        self._check_ticket_name(ticket, exists=True)
+        self.trac.set_attributes(ticket, comment, notify=True, status='needs_review')
+        self._UI.info("Ticket #%s marked as needing review"%ticket)
+
+    def set_needs_work(self, ticket=None, comment=''):
+        """
+        Set a ticket on trac to ``needs_work``.
+
+        INPUT:
+
+        - ``ticket`` -- an integer or string identifying a ticket or ``None``
+        (default: ``None``), the number of the ticket to edit.  If ``None``,
+        edit the :meth:`_current_ticket`.
+
+        - ``comment`` -- a comment to go with the status change.
+
+        .. SEEALSO::
+
+            :meth:`edit_ticket`, :meth:`set_needs_review`,
+            :meth:`set_positive_review`, :meth:`add_comment`,
+            :meth:`set_needs_info`
+
+        TESTS:
+
+        Create a doctest setup with two users::
+
+            sage: from sage.dev.test.sagedev import two_user_setup
+            sage: alice, config_alice, bob, config_bob, server = two_user_setup()
+
+        Alice creates a ticket and set it to needs_review::
+
+            sage: alice._chdir()
+            sage: alice._UI.append("Summary: summary1\ndescription")
+            sage: alice.create_ticket()
+            1
+            sage: open("tracked", "w").close()
+            sage: alice.git.super_silent.add("tracked")
+            sage: alice.git.super_silent.commit(message="alice: added tracked")
+            sage: alice._UI.append("y")
+            sage: alice.upload()
+            The branch `u/alice/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            sage: alice.set_needs_review(comment='Review my ticket!')
+
+        Bob reviews the ticket and finds it lacking::
+
+            sage: bob._chdir()
+            sage: bob.switch_ticket(1)
+            sage: bob.set_needs_work(comment='Need to add an untracked file!')
+            sage: bob.trac._get_attributes(1)['status']
+            'needs_work'
+        """
+        if ticket is None:
+            ticket = self._current_ticket()
+        if ticket is None:
+            raise SageDevValueError("ticket must be specified if not currently on a ticket.")
+        self._check_ticket_name(ticket, exists=True)
+        if not comment:
+            comment = self._UI.get_input("Please add a comment for the author:")
+        self.trac.set_attributes(ticket, comment, notify=True, status='needs_work')
+        self._UI.info("Ticket #%s marked as needing work"%ticket)
+
+    def set_needs_info(self, ticket=None, comment=''):
+        """
+        Set a ticket on trac to ``needs_info``.
+
+        INPUT:
+
+        - ``ticket`` -- an integer or string identifying a ticket or ``None``
+        (default: ``None``), the number of the ticket to edit.  If ``None``,
+        edit the :meth:`_current_ticket`.
+
+        - ``comment`` -- a comment to go with the status change.
+
+        .. SEEALSO::
+
+            :meth:`edit_ticket`, :meth:`set_needs_review`,
+            :meth:`set_positive_review`, :meth:`add_comment`,
+            :meth:`set_needs_work`
+
+        TESTS:
+
+        Create a doctest setup with two users::
+
+            sage: from sage.dev.test.sagedev import two_user_setup
+            sage: alice, config_alice, bob, config_bob, server = two_user_setup()
+
+        Alice creates a ticket and set it to needs_review::
+
+            sage: alice._chdir()
+            sage: alice._UI.append("Summary: summary1\ndescription")
+            sage: alice.create_ticket()
+            1
+            sage: open("tracked", "w").close()
+            sage: alice.git.super_silent.add("tracked")
+            sage: alice.git.super_silent.commit(message="alice: added tracked")
+            sage: alice._UI.append("y")
+            sage: alice.upload()
+            The branch `u/alice/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            sage: alice.set_needs_review(comment='Review my ticket!')
+
+        Bob reviews the ticket and finds it lacking::
+
+            sage: bob._chdir()
+            sage: bob.switch_ticket(1)
+            sage: bob.set_needs_info(comment='Why is a tracked file enough?')
+            sage: bob.trac._get_attributes(1)['status']
+            'needs_info'
+        """
+        if ticket is None:
+            ticket = self._current_ticket()
+        if ticket is None:
+            raise SageDevValueError("ticket must be specified if not currently on a ticket.")
+        self._check_ticket_name(ticket, exists=True)
+        if not comment:
+            comment = self._UI.get_input("Please specify what information is required from the author:")
+        self.trac.set_attributes(ticket, comment, notify=True, status='needs_info')
+        self._UI.info("Ticket #%s marked as needing info"%ticket)
+
+    def set_positive_review(self, ticket=None, comment=''):
+        """
+        Set a ticket on trac to ``positive_review``.
+
+        INPUT:
+
+        - ``ticket`` -- an integer or string identifying a ticket or ``None``
+        (default: ``None``), the number of the ticket to edit.  If ``None``,
+        edit the :meth:`_current_ticket`.
+
+        - ``comment`` -- a comment to go with the status change.
+
+        .. SEEALSO::
+
+            :meth:`edit_ticket`, :meth:`set_needs_review`,
+            :meth:`set_needs_info`, :meth:`add_comment`,
+            :meth:`set_needs_work`
+
+        TESTS:
+
+        Create a doctest setup with two users::
+
+            sage: from sage.dev.test.sagedev import two_user_setup
+            sage: alice, config_alice, bob, config_bob, server = two_user_setup()
+
+        Alice creates a ticket and set it to needs_review::
+
+            sage: alice._chdir()
+            sage: alice._UI.append("Summary: summary1\ndescription")
+            sage: alice.create_ticket()
+            1
+            sage: open("tracked", "w").close()
+            sage: alice.git.super_silent.add("tracked")
+            sage: alice.git.super_silent.commit(message="alice: added tracked")
+            sage: alice._UI.append("y")
+            sage: alice.upload()
+            The branch `u/alice/ticket/1` does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            sage: alice.set_needs_review(comment='Review my ticket!')
+
+        Bob reviews the ticket and finds it good::
+
+            sage: bob._chdir()
+            sage: bob.switch_ticket(1)
+            sage: bob.set_positive_review()
+            sage: bob.trac._get_attributes(1)['status']
+            'positive_review'
+        """
+        if ticket is None:
+            ticket = self._current_ticket()
+        if ticket is None:
+            raise SageDevValueError("ticket must be specified if not currently on a ticket.")
+        self._check_ticket_name(ticket, exists=True)
+        self.trac.set_attributes(ticket, comment, notify=True, status='positive_review')
+        self._UI.info("Ticket #%s reviewed!"%ticket)
 
     def add_comment(self, ticket=None):
         r"""
@@ -1750,7 +1985,9 @@ class SageDev(object):
 
         .. SEEALSO::
 
-            :meth:`edit_ticket`, :meth:`add_comment`
+            :meth:`edit_ticket`, :meth:`add_comment`,
+            :meth:`sage.dev.trac_interface.TracInterface.show_ticket`,
+            :meth:`sage.dev.trac_interface.TracInterface.show_comments`
 
         EXAMPLES::
 

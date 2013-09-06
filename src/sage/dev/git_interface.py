@@ -165,9 +165,8 @@ class GitProxy(object):
 
         s = [str(arg) for arg in s]
 
-        from sage.dev.user_interface import DEBUG
         complete_cmd = " ".join([arg for i,arg in enumerate(s) if i not in (1,2)]) # drop --git-dir, --work-tree from debug output
-        self._UI.show("[git] %s"%complete_cmd, log_level=DEBUG)
+        self._UI.debug("[git] %s"%complete_cmd)
 
         if ckwds.get('dryrun', False):
             return s
@@ -476,7 +475,7 @@ class SuperSilentGitProxy(GitProxy):
 
     EXAMPLES::
 
-        sage: dev.git.silent.status() # not tested
+        sage: dev.git.super_silent.status() # not tested
 
     """
     __call__ = GitProxy._execute_supersilent
@@ -709,7 +708,7 @@ class GitInterface(ReadStdoutGitProxy):
         elif state == 'merge':
             self.silent.merge(abort=True)
         elif state == 'bisect':
-            raise NotImplementedError(state)
+            self.silent.bisect(reset=True)
         elif state.startswith('cherry'):
             self.silent.cherry_pick(abort=True)
         else:

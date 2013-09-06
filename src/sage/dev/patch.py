@@ -55,6 +55,9 @@ def import_patch(self, patchname=None, url=None, local_file=None, diff_format=No
     r"""
     Import a patch into the current branch.
 
+    If no arguments are given, then all patches from the ticket are
+    downloaded and applied using :meth:`download_patch`.
+
     If ``local_file`` is specified, apply the file it points to.
 
     Otherwise, download the patch using :meth:`download_patch` and apply
@@ -277,13 +280,12 @@ def download_patch(self, ticket=None, patchname=None, url=None):
     ``apply`` statements in the comments on the ticket to download the
     tickets in the right order just like the patchbot would do.
 
+    If no ``ticket`` is specified, use the current ticket.
+
     If ``ticket`` and ``patchname`` are specified, download the
     patch ``patchname`` attached to ``ticket``.
 
     If ``url`` is specified, download ``url``.
-
-    If nothing is specified, and if the ''current'' ticket has only
-    one attachment, download it.
 
     Raise an error on any other combination of parameters.
 

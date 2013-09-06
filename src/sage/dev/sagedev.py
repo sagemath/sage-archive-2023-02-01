@@ -2227,8 +2227,7 @@ class SageDev(object):
           branch on the trac ticket gets merged (or the local branch for the
           ticket, if ``download`` is ``False``), for the name of a local or
           remote branch, that branch gets merged. If ``'dependencies'``, the
-          dependencies are merged in one by one, starting with one listed first
-          in the dependencies field on trac.
+          dependencies are merged in one by one.
 
         - ``download`` -- a boolean or ``None`` (default: ``None``); if
           ``ticket_or_branch`` identifies a ticket, whether to download the
@@ -2317,6 +2316,11 @@ class SageDev(object):
             Merging the local branch `ticket/1` into the local branch `ticket/2`.
             Added dependency on #1 to #2.
 
+        Check that merging dependencies works::
+
+            sage: alice.merge("dependencies")
+            Merging the remote branch `u/alice/ticket/1` into the local branch `ticket/2`.
+
         Merging local branches::
 
             sage: alice.merge("ticket/1")
@@ -2387,7 +2391,18 @@ class SageDev(object):
         branch = None
         remote_branch = None
 
-        if self._is_ticket_name(ticket_or_branch):
+        if ticket_or_branch == 'dependencies':
+            if current_ticket == None:
+                raise SageDevValueError("dependencies can only be merged if currently on a ticket.")
+            if download == False:
+                raise SageDevValueError("`download` must not be `False` when merging dependencies.")
+            if create_dependency != None:
+                raise SageDevValueError("`create_dependency` must not be set when merging dependencies.")
+            for dependency in self._dependencies_for_ticket(current_ticket):
+                self._UI.info("Merging dependency #{0}.".format(dependency))
+                self.merge(ticket_or_branch=dependency, download=True)
+            return
+        elif self._is_ticket_name(ticket_or_branch):
             ticket = self._ticket_from_ticket_name(ticket_or_branch)
             if ticket == current_ticket:
                 raise SageDevValueError("cannot merge a ticket into itself")

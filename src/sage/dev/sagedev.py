@@ -1631,7 +1631,7 @@ class SageDev(object):
             stashes.sort()
             stashes = "\n".join(stashes)
             stashes = stashes or "(no stashes)"
-            self._UI.info("Use `{0}` to apply the changes recorded in the stash to your working directory, or `{1}` to see the changes recorded in the stash, where `name` is one of the following:\n{2}".format(self._format_command("unstash",branch="name"), self._format_command("unstash",branch="name",show_diff=True), stashes))
+            self._UI.info("Use `{0}` to apply the changes recorded in the stash to your working directory, or `{1}` to see the changes recorded in the stash, where `name` is one of the following.".format(self._format_command("unstash",branch="name"), self._format_command("unstash",branch="name",show_diff=True), stashes))
             self._UI.show(stashes)
             return
         elif show_diff:

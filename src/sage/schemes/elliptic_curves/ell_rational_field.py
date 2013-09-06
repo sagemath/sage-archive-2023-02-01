@@ -4194,7 +4194,7 @@ use_tuple=True (currently default) is deprecated.""")
             ValueError: 4 is not prime.
 
         """
-        from ell_curve_isogeny import isogenies_prime_degree_genus_0, isogenies_sporadic_Q
+        from isogeny_small_degree import isogenies_prime_degree_genus_0, isogenies_sporadic_Q
 
         if l in [2, 3, 5, 7, 13]:
             return isogenies_prime_degree_genus_0(self, l)

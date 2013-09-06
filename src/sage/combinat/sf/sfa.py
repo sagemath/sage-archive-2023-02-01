@@ -800,13 +800,15 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 sage: m.degree_negation(f)
                 -3*m[] + 5*m[1] + 4*m[1, 1] - 2*m[2, 1]
 
-            TESTS::
+            TESTS:
 
-            Using ``degree_negation`` on an element of a different basis
-            does not confuse Sage::
+            Using :meth:`degree_negation` on an element of a different
+            basis works correctly::
 
                 sage: e = Sym.elementary()
                 sage: m.degree_negation(e[3])
+                -m[1, 1, 1]
+                sage: m.degree_negation(m(e[3]))
                 -m[1, 1, 1]
             """
             return self.sum_of_terms([ (lam, (-1)**(sum(lam)%2) * a)
@@ -2525,9 +2527,12 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         same degree. On the other hand, the internal product of two homogeneous
         symmetric functions of distinct degrees is `0`.
 
-        The internal product is sometimes referred to as "inner product" in
-        the literature, but unfortunately this name is shared by a different
-        operation, namely the Hall inner product (see :meth:`scalar`).
+        .. NOTE::
+
+            The internal product is sometimes referred to as "inner product"
+            in the literature, but unfortunately this name is shared by a
+            different operation, namely the Hall inner product
+            (see :meth:`scalar`).
 
         INPUT:
 
@@ -2537,7 +2542,7 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         OUTPUT:
 
         - the internal product of ``self`` with ``x`` (an element of the
-          ring of symmetric functions in the same basis as ``self``).
+          ring of symmetric functions in the same basis as ``self``)
 
         The methods :meth:`itensor`, :meth:`internal_product`,
         :meth:`kronecker_product`, :meth:`inner_tensor` are all

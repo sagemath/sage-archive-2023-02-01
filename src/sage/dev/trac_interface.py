@@ -26,23 +26,26 @@ AUTHORS:
 import re, time, datetime
 FIELD_REGEX = re.compile("^([A-Za-z ]+):(.*)$")
 ALLOWED_FIELDS = {
-        "authors":          "Authors",
+        "author":           "Authors",
         "branch":           "Branch",
         "cc":               "Cc",
         "component":        "Component",
         "dependencies":     "Dependencies",
         "keywords":         "Keywords",
-        "merged in":        "Merged in",
+        "merged":           "Merged in",
         "milestone":        "Milestone",
-        "owned by":         "Owned by",
+        "owner":            "Owned by",
         "priority":         "Priority",
-        "report upstream":  "Report Upstream",
-        "reviewers":        "Reviewers",
+        "upstream":         "Report Upstream",
+        "reviewer":         "Reviewers",
         "stopgaps":         "Stopgaps",
         "status":           "Status",
         "type":             "Type",
-        "work issues":      "Work issues",
+        "work_issues":      "Work issues",
         }
+FIELDS_LOOKUP = {"summary":"summary"}
+for _k, _v in ALLOWED_FIELDS.iteritems():
+    FIELDS_LOOKUP[_v.lower()] = _k
 TICKET_FILE_GUIDE = r"""
 # Lines starting with `#` are ignored.
 # Lines at the beginning of this file starting with `Field: ` correspond to
@@ -53,7 +56,44 @@ TICKET_FILE_GUIDE = r"""
 # markup is supported.
 #
 # An empty file aborts ticket creation/editing.
+#
+# The following trac fields only allow certain values.
+# priority:  blocker, critical, major, minor, trivial
+# status:    closed, needs_info, needs_review, needs_work, new,
+#            positive_review
+# type:      defect, enhancement, task
+# milestone: sage-duplicate/invalid/wontfix, sage-feature,
+#            sage-pending, sage-wishlist, or sage-VERSION_NUMBER
+#            (e.g. sage-6.0)
+# component: algebra, algebraic geometry, algebraic topology, basic
+#            arithmetic, build, calculus, categories, c_lib, coding
+#            theory, coercion, combinatorics, commutative algebra,
+#            cryptography, cython, distribution, doctest coverage,
+#            doctest framework, documentation, elliptic curves,
+#            factorization, finance, finite rings, fractals, geometry,
+#            graphics, graph theory, group theory, interact,
+#            interfaces, linear algebra, linear programming, matroid
+#            theory, memleak, misc, modular forms, notebook, number
+#            fields, number theory, numerical, packages: experimental,
+#            packages: huge, packages: optional, packages: standard,
+#            padics, performance, pickling, PLEASE CHANGE, porting,
+#            porting: AIX or HP-UX, porting: BSD, porting: Cygwin,
+#            porting: Solaris, quadratic forms, relocation, scripts,
+#            spkg-check, statistics, symbolics, user interface,
+#            website/wiki
 """
+RESTRICTED_FIELDS = ["priority", "status", "type", "milestone", "component"]
+ALLOWED_VALUES = {}
+_a = 0
+for _i, field in enumerate(RESTRICTED_FIELDS):
+    _a = TICKET_FILE_GUIDE.find(field + ":", _a) + len(field) + 2
+    if _i + 1 == len(RESTRICTED_FIELDS):
+        _b = -1
+    else:
+        _b = TICKET_FILE_GUIDE.find(RESTRICTED_FIELDS[_i+1], _a)
+    if field != "milestone":
+        ALLOWED_VALUES[field] = re.compile(TICKET_FILE_GUIDE[_a:_b].replace("\n#           ","").replace("\n# ","").strip().replace(', ','|'))
+ALLOWED_VALUES['milestone'] = re.compile("sage-(duplicate/invalid/wontfix|feature|pending|wishlist|\d+\.\d+)")
 COMMENT_FILE_GUIDE = r"""
 # Lines starting with `#` are ignored.
 # An empty file aborts the comment.
@@ -600,7 +640,7 @@ class TracInterface(object):
             try:
                 fieldval = a[fieldname]
                 if fieldval not in ['', 'N/A']:
-                    fields.append(cap(fieldname) + ': ' + fieldval)
+                    fields.append(ALLOWED_FIELDS[fieldname] + ': ' + fieldval)
             except KeyError:
                 pass
         for field in ['priority','milestone','component','cc','merged','author',
@@ -953,6 +993,7 @@ class TracInterface(object):
                 "Type":         "PLEASE CHANGE",
                 "Priority":     "major",
                 "Component":    "PLEASE CHANGE",
+                "Reporter":     self._username
                 }
 
         ret = self._edit_ticket_interactive("", None, attributes)
@@ -1043,16 +1084,20 @@ class TracInterface(object):
 
             m = FIELD_REGEX.match(line)
             if m:
-                field = m.groups()[0]
-                if not (field.lower() == 'summary' or
-                        field.lower() in ALLOWED_FIELDS):
+                display_field = m.groups()[0]
+                try:
+                    field = FIELDS_LOOKUP[display_field.lower()]
+                except KeyError:
                     raise TicketSyntaxError("line %s: "%(i+1) +
-                                            "field `%s` not supported"%field)
-                elif field.lower() in fields:
+                                            "field `%s` not supported"%display_field)
+                if field in fields:
                     raise TicketSyntaxError("line %s: "%(i+1) +
-                                            "only one value for %s allowed"%field)
+                                            "only one value for %s allowed"%display_field)
                 else:
-                    fields[field.lower()] = m.groups()[1].strip()
+                    value = m.groups()[1].strip()
+                    if field in RESTRICTED_FIELDS and not ALLOWED_VALUES[field].match(value):
+                        raise TicketSyntaxError("`{0}` is not a valid value for the field `{1}`".format(value, field))
+                    fields[field] = value
                     continue
             else:
                 break
@@ -1080,3 +1125,47 @@ class TracInterface(object):
             raise TicketSyntaxError("no description found")
         else:
             return summary, "\n".join(description), fields
+
+    def set_attributes(self, ticket, **kwds):
+        """
+        Set attributes on a track ticket.
+
+        INPUT:
+
+        - ``ticket`` -- the ticket id
+        - ``kwds`` -- a dictionary of field:value pairs
+
+        .. SEEALSO::
+
+            :meth:`_get_attributes`
+
+        EXAMPLES::
+
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: from sage.dev.test.user_interface import DoctestUserInterface
+            sage: from sage.dev.test.trac_interface import DoctestTracInterface
+            sage: from sage.dev.test.trac_server import DoctestTracServer
+            sage: config = DoctestConfig()
+            sage: config['trac']['password'] = 'secret'
+            sage: UI = DoctestUserInterface(config['UI'])
+            sage: trac = DoctestTracInterface(config['trac'], UI, DoctestTracServer())
+            sage: n = trac.create_ticket('Summary', 'Description', {'type':'defect', 'component':'algebra', 'status':'new'})
+            sage: trac._get_attributes(n)['status']
+            'new'
+            sage: trac.set_attributes(n, status='needs_review')
+            sage: trac._get_attributes(n)['status']
+            'needs_review'
+
+        Some error checking is done:
+
+            sage: trac.set_attributes(n, status='invalid_status')
+        """
+        ticket = int(ticket)
+        for field, value in kwds.iteritems():
+            if field not in ALLOWED_FIELDS:
+                raise TicketSyntaxError("field `%s` not supported"%field)
+            if field in ALLOWED_VALUES and not ALLOWED_VALUES[field].match(value):
+                raise TicketSyntaxError("`{0}` is not a valid value for the field `{1}`".format(value, field))
+        attributes = self._get_attributes(ticket)
+        attributes.update(**kwds)
+        self._authenticated_server_proxy.ticket.update(ticket, '', attributes)

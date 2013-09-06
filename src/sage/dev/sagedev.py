@@ -907,7 +907,7 @@ class SageDev(object):
             current_branch = None
 
         if current_branch == branch:
-            self.merge(remote_branch=remote_branch)
+            self.merge(remote_branch, download=True)
         else:
             try:
                 self.git.super_silent.fetch(self.git._repository, "{0}:{1}".format(remote_branch, branch))
@@ -920,7 +920,7 @@ class SageDev(object):
                 e.explain = "Fetching `{0}` into `{1}` failed.".format(remote_branch, branch)
                 if self._is_local_branch_name(branch, exists=True):
                     e.explain += " Most probably this happened because the fetch did not resolve as a fast-forward, i.e., there were conflicting changes."
-                    e.advice = "You can try to use `{2}` to switch to `{1}` and then use `{3}` to resolve these conflicts manually.".format(remote_branch, branch, self._format_command("switch-branch",branch), self._format_command("merge",{"remote_branch":remote_branch}))
+                    e.advice = "You can try to use `{2}` to switch to `{1}` and then use `{3}` to resolve these conflicts manually.".format(remote_branch, branch, self._format_command("switch-branch",branch), self._format_command("merge",remote_branch,download=True))
                 else:
                     e.explain += "We did not expect this case to occur.  If you can explain your context in sage.dev.sagedev it might be useful to others."
                     pass
@@ -1651,7 +1651,7 @@ class SageDev(object):
 
         self.git.super_silent.reset()
 
-        if self._UI.select("The changes recorded in `{0}` have been restored in your working directory.  Would you like to delete the branch they were stashed in?", ["yes","no"], "yes"):
+        if self._UI.select("The changes recorded in `{0}` have been restored in your working directory.  Would you like to delete the branch they were stashed in?", ["yes","no"], 0):
             self.git.branch(branch, d=True)
 
     def edit_ticket(self, ticket=None):

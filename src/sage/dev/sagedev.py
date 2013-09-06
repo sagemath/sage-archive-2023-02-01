@@ -1670,13 +1670,14 @@ class SageDev(object):
         self.reset_to_clean_state()
 
         try:
-            self.git.super_silent.cherry_pick(branch, no_commit=True)
+            try:
+                self.git.super_silent.cherry_pick(branch, no_commit=True)
+            finally:
+                self.git.super_silent.reset()
         except GitError as e:
             self._UI.error("The changes recorded in `{0}` do not apply cleanly to your working directory.".format(branch))
-            self._UI.info("You can try to resolve the conflicts manually with `{0}`.".format(self._format_command("merge", branch_or_ticket=branch)))
+            self._UI.info("Some of your files now have conflict markers.  You should resolve the changes manually or use `{0}` to reset to the last commit, but be aware that this command will undo any uncommitted changes".format(self._format_command("reset_to_clean_working_directory")))
             raise OperationCancelledError("unstash failed")
-
-        self.git.super_silent.reset()
 
         if self._UI.confirm("The changes recorded in `{0}` have been restored in your working directory.  Would you like to delete the branch they were stashed in?".format(branch), True):
             self.git.branch(branch, D=True)

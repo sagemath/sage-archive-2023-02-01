@@ -925,7 +925,10 @@ class SageDev(object):
             current_branch = None
 
         if current_branch == branch:
-            self.merge(remote_branch=remote_branch)
+            if self._is_local_branch_name(remote_branch, exists=True):
+                if self._remote_branch_for_branch(remote_branch) != remote_branch:
+                    self._UI.error("There is a conflict of branch names.")
+            self.merge(remote_branch, download=True)
         else:
             try:
                 self.git.super_silent.fetch(self.git._repository, "{0}:{1}".format(remote_branch, branch))

@@ -99,15 +99,15 @@ class DigestTransport(object, SafeTransport):
             sage: d.single_request(url, 'xmlrpc', "<?xml version='1.0'?><methodCall><methodName>ticket.get</methodName><params><param><value><int>1000</int></value></param></params></methodCall>", 0) # optional: internet
             ([1000,
               <DateTime '20071025T16:48:05' at ...>,
-              <DateTime '20080110T08:28:40' at ...>,
+              <DateTime '...' at ...>,
               {'status': 'closed',
-               'changetime': <DateTime '20080110T08:28:40' at ...>,
-               'description': '',
+               'changetime': <DateTime '...' at ...>,
+               'description': '...',
                'reporter': 'was',
                'cc': '',
                'type': 'defect',
                'milestone': 'sage-2.10',
-               '_ts': '1199953720000000',
+               '_ts': '...',
                'component': 'distribution',
                'summary': 'Sage does not have 10000 users yet.',
                'priority': 'major',
@@ -133,4 +133,4 @@ class DigestTransport(object, SafeTransport):
             raise TracInternalError(e)
         except IOError as e:
             from trac_error import TracConnectionError
-            raise TracConnectionError(e)
+            raise TracConnectionError()

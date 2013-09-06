@@ -53,8 +53,8 @@ class DoctestSageDevWrapper(sage.dev.sagedev_wrapper.SageDevWrapper):
 
         self._UI = sagedev._UI
 
-        self._wrap("_chdir", require_cwd=False)
-        self._wrap("_pull_master_branch", require_cwd=False)
+        self._wrap("_chdir")
+        self._wrap("_pull_master_branch")
 
 class DoctestSageDev(sage.dev.sagedev.SageDev):
     r"""

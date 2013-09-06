@@ -581,13 +581,13 @@ class TracInterface(object):
 
             sage: dev.trac._get_attributes(1000) # optional: internet
             {'status': 'closed',
-             'changetime': <DateTime '20080110T08:28:40' at ...>,
-             'description': '',
+             'changetime': <DateTime '...' at ...>,
+             'description': '...',
              'reporter': 'was',
              'cc': '',
              'type': 'defect',
              'milestone': 'sage-2.10',
-             '_ts': '1199953720000000',
+             '_ts': '...',
              'component': 'distribution',
              'summary': 'Sage does not have 10000 users yet.',
              'priority': 'major',
@@ -936,7 +936,7 @@ class TracInterface(object):
         fd, filename = tempfile.mkstemp()
         try:
             with os.fdopen(fd, "w") as F:
-                F.write("Summary: %s\n"%summary)
+                F.write("Summary: %s\n"%summary.encode('utf-8'))
                 for k,v in attributes.items():
                     k = ALLOWED_FIELDS.get(k.lower())
                     if k is not None:
@@ -944,7 +944,7 @@ class TracInterface(object):
 
                 if description is None or not description.strip():
                     description = "\nADD DESCRIPTION\n"
-                F.write("\n" + description + "\n")
+                F.write("\n" + description.encode('utf-8') + "\n")
                 F.write(TICKET_FILE_GUIDE)
 
             while True:

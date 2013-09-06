@@ -2111,6 +2111,7 @@ class SageDev(object):
 
         if ticket:
             self._set_local_branch_for_ticket(ticket, None)
+            self._set_dependencies_for_ticket(ticket, None)
             self._UI.info("If you want to work on #{0} starting from a fresh copy of the master branch, use `{1}`.".format(ticket, self._format_command("switch_ticket",ticket,base=MASTER_BRANCH)))
 
     def gather(self, branch, *tickets_or_branches):

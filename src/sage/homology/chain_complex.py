@@ -20,18 +20,19 @@ with `d_n : C_n \rightarrow C_{n-1}` for each `n`. Indeed, the
 differentials may change dimension by any fixed integer.
 
 Also, the modules may be indexed over an abelian group other than the
-integers, e.g., `\ZZ^{m}` for some integer `m \geq 1`, in which
-case the differentials may change the grading by any element of that
-grading group.
+integers, e.g., `\ZZ^{m}` for some integer `m \geq 1`, in which case
+the differentials may change the grading by any element of that
+grading group. The elements of the grading group are generally called
+degrees, so `C_n` is the module in degree `n` and so on.
 
 In this implementation, the ring `R` must be commutative and the
 modules `C_n` must be free `R`-modules.  As noted above, homology
-calculations will only work if the ring `R` is either `\ZZ` or a field.
-The modules may be indexed by any free abelian group.  The
+calculations will only work if the ring `R` is either `\ZZ` or a
+field.  The modules may be indexed by any free abelian group.  The
 differentials may increase degree by 1 or decrease it, or indeed
-change it by any fixed amount: this is controlled by the ``degree``
-parameter used in defining the chain complex.
-"""
+change it by any fixed amount: this is controlled by the
+``degree_of_differential`` parameter used in defining the chain
+complex.  """
 
 
 ########################################################################
@@ -98,6 +99,8 @@ def ChainComplex(data=None, **kwds):
 
     -  ``data`` -- the data defining the chain complex; see below for
        more details.
+    
+    The following keyword arguments are supported:
 
     -  ``base_ring`` -- a commutative ring (optional), the ring over
        which the chain complex is defined. If this is not specified,
@@ -107,8 +110,10 @@ def ChainComplex(data=None, **kwds):
        default ``ZZ``), the group over which the chain complex is
        indexed.
 
-    -  ``degree`` -- element of grading_group (optional, default 1),
-       the degree of the differential.
+    - ``degree_of_differential`` -- element of grading_group
+       (optional, default ``1``). The degree of the differential.
+
+    - ``degree`` -- alias for ``degree_of_differential``.
 
     - ``check`` -- boolean (optional, default ``True``). If ``True``,
        check that each consecutive pair of differentials are
@@ -224,12 +229,13 @@ def ChainComplex(data=None, **kwds):
     check = kwds.get('check', True)
     base_ring = kwds.get('base_ring', None)
     grading_group = kwds.get('grading_group', ZZ)
-    degree = kwds.get('degree', 1)
+    degree = kwds.get('degree_of_differential', kwds.get('degree', 1))
     try:
         degree = grading_group(degree)
     except StandardError:
         raise ValueError('degree is not an element of the grading group')
 
+    # transform data into data_dict
     if data is None or (isinstance(data, (list, tuple)) and len(data) == 0):
         # the zero chain complex
         try:
@@ -238,7 +244,7 @@ def ChainComplex(data=None, **kwds):
             zero = grading_group.zero_element()
         if base_ring is None:
             base_ring = ZZ
-        data_dict = {zero: matrix(base_ring, 0, 0, [])}
+        data_dict = dict()
     elif isinstance(data, dict):  # data is dictionary
         data_dict = data
     else: # data is list/tuple/iterable
@@ -258,7 +264,7 @@ def ChainComplex(data=None, **kwds):
             raise ValueError('one of the dictionary keys is not an element of the grading group')
         mat = data_dict[n]
         if not isinstance(mat, Matrix):
-            raise TypeError('One of the differentials in the data is not a matrix')
+            raise TypeError('one of the differentials in the data is not a matrix')
         if mat.base_ring() is base_ring: 
             if not mat.is_immutable():
                 mat = copy(mat)  # do not make any arguments passed immutable
@@ -271,14 +277,16 @@ def ChainComplex(data=None, **kwds):
     # include any "obvious" zero matrices that are not 0x0 
     for n in data_dict.keys():  # note: data_dict will be mutated in this loop
         mat1 = data_dict[n]
-        if (n+degree not in data_dict) and (mat1.nrows() != 0):
+        if (mat1.nrows(), mat1.ncols()) == (0, 0):
+            del data_dict[n]
+        if (mat1.nrows() != 0) and (n+degree not in data_dict):
             if n+2*degree in data_dict:
                 mat2 = matrix(base_ring, data_dict[n+2*degree].ncols(), mat1.nrows())
             else:
                 mat2 = matrix(base_ring, 0, mat1.nrows())
             mat2.set_immutable()
             data_dict[n+degree] = mat2
-        if (n-degree not in data_dict) and (mat1.ncols() != 0):
+        if (mat1.ncols() != 0) and (n-degree not in data_dict):
             if n-2*degree in data_dict:
                 mat0 = matrix(base_ring, mat1.ncols(), data_dict[n-2*degree].nrows())
             else:
@@ -331,8 +339,21 @@ class Chain_class(ModuleElement):
 class ChainComplex_class(Parent):
 
     def __init__(self, grading_group, degree_of_differential, base_ring, differentials):
-        """
+        r"""
         See :func:`ChainComplex` for full documentation.
+
+        The differentials are required to be in the following canonical form:
+         
+        * All differentials that are not `0\times 0` must be specified
+          (even if they have zero rows or zero columns), and
+
+        * Differentials that are `0\times 0` must not be specified.
+        
+        * Immutable matrices over the `base_ring`
+
+        This and more is ensured by the assertions in the
+        constructor. The :func:`ChainComplex` factory function must
+        ensure that only valid input is passed.
 
         EXAMPLES::
 
@@ -346,11 +367,12 @@ class ChainComplex_class(Parent):
             sage: ChainComplex().base_ring()
             Integer Ring
         """
-        assert all(d.base_ring() == base_ring and d.is_immutable()
+        assert all(d.base_ring() == base_ring and d.is_immutable() and 
+                   (d.ncols(), d.nrows()) != (0, 0)
                    for d in differentials.values())
         assert degree_of_differential.parent() is grading_group
         assert grading_group is ZZ or not grading_group.is_multiplicative()
-        # all differentials that are not 0x0 must be specified to the constructor
+        # all differentials (excluding the 0x0 ones) must be specified to the constructor
         assert all(dim+degree_of_differential in differentials or d.nrows() == 0
                    for dim, d in differentials.iteritems())
         assert all(dim-degree_of_differential in differentials or d.ncols() == 0
@@ -395,7 +417,7 @@ class ChainComplex_class(Parent):
     
         OUTPUT:
 
-        The rank of the differential ``d_{\delta} \otimes_R S`, where
+        The rank of the differential `d_{\delta} \otimes_R S`, where
         `R` is the base ring of the chain complex.
 
         EXAMPLES::
@@ -439,6 +461,60 @@ class ChainComplex_class(Parent):
             (2, 1)
         """
         return self._grading_group
+        
+    @cached_method
+    def linearized_degrees(self, start=None):
+        r"""
+        Sort the degrees in the linear order determined by the differential
+
+        INPUT:
+
+        - ``start`` -- a degree (element of the grading group) or
+          ``None`` (default).
+
+        OUTPUT:
+
+        If ``start`` has been specified, the longest tuple of degrees
+
+        * containing ``start`` 
+        
+        * in ascending order relative to :meth:`degree_of_differential` 
+
+        * such that none of the corresponding differentials are `0\times 0`. 
+
+        If ``start`` has not been specified, a tuple of such tuples of
+        degrees. One for each sequence of non-zero differentials. They
+        are returned in sort order.
+
+        EXAMPLES::
+        
+            sage: one = matrix(ZZ, [[1]])
+            sage: D = ChainComplex({0: one, 2: one, 6:one})
+            sage: D.linearized_degrees()
+            ((-1, 0, 1, 2, 3), (5, 6, 7))
+        """
+        if start is None:
+            result = []
+            degrees = set(self._diff.keys())
+            while len(degrees) > 0:
+                linear = self.linearized_degrees(degrees.pop())
+                result.append(linear)
+                degrees.difference_update(linear)
+            result.sort()
+            return tuple(result)
+        import collections
+        deg = start
+        result = collections.deque()
+        result.append(start)
+        next_deg = start + self.degree_of_differential()
+        while next_deg in self._diff:
+            result.append(next_deg)
+            next_deg += self.degree_of_differential()
+        prev_deg = start - self.degree_of_differential()
+        while prev_deg in self._diff:
+            result.appendleft(prev_deg)
+            prev_deg -= self.degree_of_differential()
+        return tuple(result)
 
     def degree_of_differential(self):
         """
@@ -524,24 +600,66 @@ class ChainComplex_class(Parent):
         for d in self.differential():
             data[(d+deg)] = self.differential()[d].transpose()
         return ChainComplex(data, degree=-deg)
+    
+    def free_module_rank(self, degree):
+        r"""
+        Return the rank of the free module at the given ``degree``.
 
-    def free_module(self):
-        """
-        The free module underlying this chain complex.
+        INPUT:
+
+        - ``degree`` -- an element of the grading group.
+
+        OUTPUT:
+
+        Integer. The rank of the free module `C_n` at the given degree
+        `n`.
 
         EXAMPLES::
 
-            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0]), 1: matrix(ZZ, 0, 2)})
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0]), 1: matrix(ZZ, [[0, 1]])})
+            sage: [C.free_module_rank(i) for i in range(-2, 5)]
+            [0, 0, 3, 2, 1, 0, 0]
+        """
+        try:
+            return self._diff[degree].ncols()
+        except KeyError:
+            return ZZ.zero()
+        
+    def free_module(self, degree=None):
+        r"""
+        Return the free module at fixed ``degree``, or their sum.
+
+        INPUT:
+
+        - ``degree`` -- an element of the grading group or ``None`` (default). 
+
+        OUTPUT:
+
+        The free module `C_n` at the given degree `n`. If the degree
+        is not specified, the sum `\bigoplus C_n` is returned.
+
+        EXAMPLES::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0]), 1: matrix(ZZ, [[0, 1]])})
             sage: C.free_module()
-            Ambient free module of rank 5 over the principal ideal domain Integer Ring
+            Ambient free module of rank 6 over the principal ideal domain Integer Ring
+            sage: C.free_module(0)
+            Ambient free module of rank 3 over the principal ideal domain Integer Ring
+            sage: C.free_module(1)
+            Ambient free module of rank 2 over the principal ideal domain Integer Ring
+            sage: C.free_module(2)
+            Ambient free module of rank 1 over the principal ideal domain Integer Ring
 
         This defines the forgetful functor from the category of chain
         complexes to the category of free modules::
 
             sage: FreeModules(ZZ)(C)
-            Ambient free module of rank 5 over the principal ideal domain Integer Ring
+            Ambient free module of rank 6 over the principal ideal domain Integer Ring
         """
-        rank = sum([mat.ncols() for mat in self.differential().values()])
+        if degree is None:
+            rank = sum([mat.ncols() for mat in self.differential().values()])
+        else:
+            rank = self.free_module_rank(degree)
         return FreeModule(self.base_ring(), rank)
 
     def __cmp__(self, other):
@@ -1098,15 +1216,58 @@ class ChainComplex_class(Parent):
 
     def _ascii_art_(self):
         """
+        Return an ascii art representation.
+
+        Note that arrows go to the left so that composition of
+        differentials is the usual matrix multiplication.
+
         EXAMPLES::
 
-            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0]), 1:zero_matrix(1,2)})
+            sage: ascii_art(C)
+                                    [3 0 0]      
+                        [0 0]       [0 0 0]      
+             0 <-- C_2 <------ C_1 <-------- C_0 <-- 0
+        
+            sage: one = matrix(ZZ, [[1]])
+            sage: D = ChainComplex({0: one, 2: one, 6:one})
+            sage: ascii_art(D)
+                        [1]                             [1]       [0]       [1]      
+             0 <-- C_7 <---- C_6 <-- 0  ...  0 <-- C_3 <---- C_2 <---- C_1 <---- C_0 <-- 0 
         """
         if self.grading_group() is not ZZ:
             return super(ChainComplex_class, self)._ascii_art_()
         from sage.misc.ascii_art import AsciiArt
-        dmin = min(self._diff.keys())
-        dmax = max(self._diff.keys())
+
+        def arrow_art(n):
+            d_n = self.differential(n)
+            if d_n.nrows() == 0 or d_n.ncols() == 0:
+                return AsciiArt(['<--'])
+            d_str = [' '+line+' ' for line in str(d_n).splitlines()]
+            arrow = '<' + '-'*(len(d_str[0])-1)
+            d_str.append(arrow)
+            return AsciiArt(d_str)
+
+        def module_art(n):
+            C_n = self.free_module(n)
+            if C_n.rank() == 0:
+                return AsciiArt([' 0 '])
+            else:
+                return AsciiArt([' C_{0} '.format(n)])
+        
+        result = []
+        for linear in self.linearized_degrees():
+            linear = list(reversed(linear))
+            if len(linear) == 0:
+                return AsciiArt(['0'])
+            result_linear = module_art(linear[0] + self.degree_of_differential())
+            for n in linear:
+                result_linear += arrow_art(n) + module_art(n)
+            result = [result_linear] + result
+        concatenated = result[0]
+        for r in result[1:]:
+            concatenated += AsciiArt([' ... ']) + r
+        return concatenated
 
     def _latex_(self):
         """

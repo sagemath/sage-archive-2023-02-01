@@ -71,10 +71,10 @@ def is_ChainComplexMorphism(x):
         sage: i = H.identity()
         sage: x = i.associated_chain_complex_morphism()
         sage: x # indirect doctest
-        Chain complex morphism from Chain complex with at most 7 nonzero terms over Integer Ring to Chain complex with at most 7 nonzero terms over Integer Ring
+        Chain complex morphism from Chain complex with at most 7 nonzero terms over
+        Integer Ring to Chain complex with at most 7 nonzero terms over Integer Ring
         sage: is_ChainComplexMorphism(x)
         True
-
     """
     return isinstance(x,ChainComplexMorphism)
 
@@ -82,7 +82,7 @@ class ChainComplexMorphism(SageObject):
     """
     An element of this class is a morphism of chain complexes.
     """
-    def __init__(self, matrices, C, D):
+    def __init__(self, matrices, C, D, check=True):
         """
         Create a morphism from a dictionary of matrices.
 
@@ -101,7 +101,9 @@ class ChainComplexMorphism(SageObject):
             sage: G = Hom(C,C)
             sage: x = G(f)
             sage: x
-            Chain complex morphism from Chain complex with at most 2 nonzero terms over Integer Ring to Chain complex with at most 2 nonzero terms over Integer Ring
+            Chain complex morphism from Chain complex with at most 2 nonzero terms
+            over Integer Ring to Chain complex with at most 2 nonzero terms over 
+            Integer Ring
             sage: x._matrix_dictionary
             {0: [0 0 0]
             [0 0 0]
@@ -115,37 +117,46 @@ class ChainComplexMorphism(SageObject):
             sage: Y = simplicial_complexes.Simplex(0)
             sage: g = Hom(X,Y)({0:0, 1:0})
             sage: g.associated_chain_complex_morphism()
-            Chain complex morphism from Chain complex with at most 2 nonzero terms over Integer Ring to Chain complex with at most 1 nonzero terms over Integer Ring
+            Chain complex morphism from Chain complex with at most 2 nonzero 
+            terms over Integer Ring to Chain complex with at most 1 nonzero terms 
+            over Integer Ring
         """
         if not C.base_ring()==D.base_ring():
             raise NotImplementedError('morphisms between chain complexes of different'
                                       ' base rings are not implemented')
-        if C._grading_group != ZZ:
-            raise NotImplementedError('only implemented over gradings other than ZZ')
         d = C.degree_of_differential()
         if d != D.degree_of_differential():
             raise ValueError('degree of differential does not match')
-        if d != -1 and d != 1:
-            raise NotImplementedError('only implemented for degrees -1 and 1')
-
-        dim_min = min(C.differential().keys() + D.differential().keys())
-        dim_max = max(C.differential().keys() + D.differential().keys())
-        for i in range(dim_min, dim_max):
-            if i not in matrices:
+            
+        from sage.misc.misc import uniq
+        degrees = uniq(C.differential().keys() + D.differential().keys())
+        initial_matrices = matrices
+        matrices = dict()
+        for i in degrees:
+            if i - d not in degrees:
+                assert C.free_module_rank(i) == D.free_module_rank(i) == 0
+                continue
+            try:
+                matrices[i] = initial_matrices.pop(i)
+            except KeyError:
                 matrices[i] = matrix.zero_matrix(C.base_ring(),
                                                  D.differential(i).ncols(),
                                                  C.differential(i).ncols(), sparse=True)
-        chain_morphism_error = ValueError('matrices must define a chain complex morphism')
-        for i in range(dim_min, dim_max):
-            Dm = D.differential(i) * matrices[i]
-            if dim_min <= i+d < dim_max:
+        if check:
+            # all remaining matrices given must be 0x0
+            assert all(m.ncols() == m.nrows() == 0 for m in initial_matrices.values())
+            # check commutativity
+            for i in degrees:
+                if i - d not in degrees:
+                    assert C.free_module_rank(i) == D.free_module_rank(i) == 0
+                    continue
+                if i + d not in degrees:
+                    assert C.free_module_rank(i+d) == D.free_module_rank(i+d) == 0
+                    continue
+                Dm = D.differential(i) * matrices[i]
                 mC = matrices[i+d] * C.differential(i)
                 if mC != Dm:
-                    raise chain_morphism_error
-            else:
-                if not Dm.is_zero():
-                    raise chain_morphism_error
-
+                    raise ValueError('matrices must define a chain complex morphism')
         self._matrix_dictionary = matrices
         self._domain = C
         self._codomain = D

@@ -546,29 +546,37 @@ class GenericCellComplex(SageObject):
         if 'subcomplex' in kwds:
             del kwds['subcomplex']
         answer = C.homology(**kwds)
-        if isinstance(answer, dict):
-            if cohomology:
-                too_big = self.dimension() + 1
-                if (not ((isinstance(dim, (list, tuple)) and too_big in dim)
-                        or too_big == dim)
-                    and too_big in answer):
-                    del answer[too_big]
-            if -2 in answer:
-                del answer[-2]
-            if -1 in answer:
-                del answer[-1]
-            for d in range(self.dimension() + 1):
-                if d not in answer:
-                    answer[d] = HomologyGroup(0, base_ring)
+        assert isinstance(answer, dict)
+        if dim is None:
+            zero = HomologyGroup(0, base_ring)
+            return dict([d, answer.get(d, zero)] for d in range(self.dimension()+1))
+        else:
+            return answer[dim]
 
-            if dim is not None:
-                if isinstance(dim, (list, tuple)):
-                    temp = {}
-                    for n in dim:
-                        temp[n] = answer[n]
-                    answer = temp
-                else:  # just a single dimension
-                    answer = answer.get(dim, HomologyGroup(0, base_ring))
+
+
+            # if cohomology:
+            #     too_big = self.dimension() + 1
+            #     if (not ((isinstance(dim, (list, tuple)) and too_big in dim)
+            #             or too_big == dim)
+            #         and too_big in answer):
+            #         del answer[too_big]
+            # if -2 in answer:
+            #     del answer[-2]
+            # if -1 in answer:
+            #     del answer[-1]
+            # for d in range(self.dimension() + 1):
+            #     if d not in answer:
+            #         answer[d] = HomologyGroup(0, base_ring)
+
+            # if dim is not None:
+            #     if isinstance(dim, (list, tuple)):
+            #         temp = {}
+            #         for n in dim:
+            #             temp[n] = answer[n]
+            #         answer = temp
+            #     else:  # just a single dimension
+            #         answer = answer.get(dim, HomologyGroup(0, base_ring))
         return answer
 
     def cohomology(self, dim=None, **kwds):

@@ -450,4 +450,9 @@ class ChainComplexes(Category_module):
             sage: ChainComplexes(Integers(9)).super_categories()
             [Category of objects]
         """
-        return [Objects()] # anything better?
+        from sage.categories.all import Fields, FreeModules, VectorSpaces
+        base_ring = self.base_ring()
+        if base_ring in Fields():
+            return [VectorSpaces(base_ring)]
+        else:
+            return [FreeModules(base_ring)]

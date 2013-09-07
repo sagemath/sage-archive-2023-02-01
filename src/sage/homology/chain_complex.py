@@ -316,25 +316,238 @@ def ChainComplex(data=None, **kwds):
 
 class Chain_class(ModuleElement):
     
-    def __init__(self, parent, *args, **kwds):
-        """
-        Parent for all chain complexes over a given ``base_ring``
+    def __init__(self, parent, vectors, check=True):
+        r"""
+        A Chain in a Chain Complex
+
+        A chain is collection of module elements for each module `C_n`
+        of the chain complex `(C_n, d_n)`. There is no restriction on
+        how the differentials `d_n` act on the elements of the chain.
+        
+        .. note: 
+
+            You must use the chain complex to construct chains.
 
         EXAMPLES::
 
             sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])}, base_ring=GF(7))
             sage: C.category()
             Category of chain complexes over Finite Field of size 7
+
+        TESTS::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+            sage: c = C({0:vector([0, 1, 2]), 1:vector([3, 4])})
+            sage: TestSuite(c).run()
         """
+        # only nonzero vectors shall be stored, ensuring this is the
+        # job of the _element constructor_
+        assert all(v.is_immutable() and not v.is_zero() 
+                   and v.base_ring() is parent.base_ring() 
+                   for v in vectors.values())
+        self._vec = vectors
         super(Chain_class, self).__init__(parent)
 
+    def vector(self, degree):
+        """
+        Return the free module element in ``degree``.
+
+        EXAMPLES::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+            sage: c = C({0:vector([1, 2, 3]), 1:vector([4, 5])})
+            sage: c.vector(0)
+            (1, 2, 3)
+            sage: c.vector(1)
+            (4, 5)
+            sage: c.vector(2)
+            ()
+        """
+        try:
+            return self._vec[degree]
+        except KeyError:
+            return self.parent().free_module(degree).zero()
+
+    def _repr_(self):
+        """
+        Print representation.
+
+        EXAMPLES::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+            sage: C()
+            Trivial chain
+            sage: c = C({0:vector([1, 2, 3]), 1:vector([4, 5])});  c
+            Chain with 2 nonzero terms over Integer Ring
+            sage: c._repr_()
+            'Chain with 2 nonzero terms over Integer Ring'
+        """
+        n = len(self._vec)
+        if n == 0:
+            return 'Trivial chain'
+        else:
+            return 'Chain with {0} nonzero terms over {1}'.format(
+                n, self.parent().base_ring())
+
+    def _ascii_art_(self):
+        """
+        Return an ascii art representation.
+
+        Note that arrows go to the left so that composition of
+        differentials is the usual matrix multiplication.
+
+        EXAMPLES::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0]), 1:zero_matrix(1,2)})
+            sage: c = C({0:vector([1, 2, 3]), 1:vector([4, 5])})
+            sage: ascii_art(c)
+               d_2       d_1       d_0  [1]  d_-1  
+            0 <---- [0] <---- [4] <---- [2] <----- 0
+                              [5]       [3]
+        """
+        from sage.misc.ascii_art import AsciiArt
+
+        def arrow_art(d):
+            d_str = ['  d_{0}  '.format(d)]
+            arrow = ' <' + '-'*(len(d_str[0])-3) + ' '
+            d_str.append(arrow)
+            return AsciiArt(d_str, baseline=0)
+
+        def vector_art(d):
+            v = self.vector(d)
+            if v.degree() == 0:
+                return AsciiArt(['0'])
+            v = str(v.column()).splitlines()
+            return AsciiArt(v, baseline=len(v)/2)
+            
+        result = []
+        chain_complex = self.parent()
+        for ordered in chain_complex.ordered_degrees():
+            ordered = list(reversed(ordered))
+            if len(ordered) == 0:
+                return AsciiArt(['0'])
+            result_ordered = vector_art(ordered[0] + chain_complex.degree_of_differential())
+            for n in ordered:
+                result_ordered += arrow_art(n) + vector_art(n)
+            result = [result_ordered] + result
+        concatenated = result[0]
+        for r in result[1:]:
+            concatenated += AsciiArt([' ... ']) + r
+        return concatenated
+
     def is_cycle(self):
-        pass  # TODO
+        """
+        Return whether the chain is a cycle.
+
+        OUTPUT:
+
+        Boolean. Whether the elements of the chain are in the kernel
+        of the differentials.
+
+        EXAMPLES::
+        
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+            sage: c = C({0:vector([0, 1, 2]), 1:vector([3, 4])})
+            sage: c.is_cycle()
+            True
+        """
+        chain_complex = self.parent()
+        for d, v in self._vec.iteritems():
+            dv = chain_complex.differential(d) * v
+            if not dv.is_zero():
+                return False
+        return True
     
     def is_boundary(self):
-        pass  # TODO
+        """
+        Return whether the chain is a boundary.
+        
+        OUTPUT:
 
+        Boolean. Whether the elements of the chain are in the image of
+        the differentials.
 
+        EXAMPLES::
+        
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+            sage: c = C({0:vector([0, 1, 2]), 1:vector([3, 4])})
+            sage: c.is_boundary()
+            False
+         """
+        chain_complex = self.parent()
+        for d, v in self._vec.iteritems():
+            d = chain_complex.differential(d - chain_complex.degree_of_differential())
+            if v not in d.image():
+                return False
+        return True
+        
+    def _add_(self, other):
+        """
+        Module addition
+        
+        EXAMPLES::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+            sage: c = C({0:vector([0, 1, 2]), 1:vector([3, 4])})
+            sage: c + c
+            Chain with 2 nonzero terms over Integer Ring
+            sage: ascii_art(c + c)
+               d_1       d_0  [0]  d_-1  
+            0 <---- [6] <---- [2] <----- 0
+                    [8]       [4]
+        """
+        vectors = dict()
+        for d in set(self._vec.keys() + other._vec.keys()):
+            v = self.vector(d) + other.vector(d)
+            if not v.is_zero():
+                v.set_immutable()
+                vectors[d] = v                
+        parent = self.parent()
+        return parent.element_class(parent, vectors)
+
+    def _rmul_(self, scalar):
+        """
+        Scalar multiplication
+
+        EXAMPLES::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+            sage: c = C({0:vector([0, 1, 2]), 1:vector([3, 4])})
+            sage: 2 * c
+            Chain with 2 nonzero terms over Integer Ring
+            sage: 2 * c == c + c == c * 2
+            True
+        """
+        vectors = dict()
+        for d, v in self._vec.iteritems():
+            v = scalar * v
+            if not v.is_zero():
+                v.set_immutable()
+                vectors[d] = v                
+        parent = self.parent()
+        return parent.element_class(parent, vectors)
+
+    def __cmp__(self, other):
+        """
+        Compare two chains
+
+        EXAMPLES::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+            sage: c = C({0:vector([0, 1, 2]), 1:vector([3, 4])})
+            sage: c == c
+            True
+            sage: c == C(0)
+            False
+        """
+        c = cmp(type(self), type(other))
+        if c != 0:
+            return c
+        c = cmp(self.parent(), other.parent())
+        if c != 0:
+            return c
+        return cmp(self._vec, other._vec)
+        
 
 class ChainComplex_class(Parent):
 
@@ -364,8 +577,13 @@ class ChainComplex_class(Parent):
             sage: D
             Chain complex with at most 2 nonzero terms over Integer Ring
 
+        TESTS::
+
             sage: ChainComplex().base_ring()
             Integer Ring
+
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+            sage: TestSuite(C).run()
         """
         assert all(d.base_ring() == base_ring and d.is_immutable() and 
                    (d.ncols(), d.nrows()) != (0, 0)
@@ -387,19 +605,53 @@ class ChainComplex_class(Parent):
 
     Element = Chain_class
 
-    def _element_constructor_(self, *args):
+    def _element_constructor_(self, vectors, check=True):
         """
         The element constructor.
 
         This is part of the Parent/Element framework. Calling the
         parent uses this method to construct elements.
 
-        EXAMPLES::
+        TESTS::
 
             sage: D = ChainComplex({0: matrix(ZZ, 2, 2, [1,0,0,2])})
             sage: D._element_constructor_(0)
+            Trivial chain
         """
-        return self.element_class(self, *args)
+        if not vectors:  # special case: the zero chain
+            return self.element_class(self, {})
+        if isinstance(vectors, Chain_class):
+            vectors = vectors._vec
+        data = dict()
+        for degree, vec in vectors.iteritems():
+            if check and vec.degree() != self.free_module_rank(degree):
+                raise ValueError('vector dimension does not match module dimension')
+            if vec.is_zero():
+                continue
+            if vec.base_ring() != self.base_ring():
+                vec = vec.change_ring(self.base_ring())
+            if not vec.is_immutable():
+                vec = copy(vec)
+                vec.set_immutable()
+            data[degree] = vec
+        return self.element_class(self, data)
+
+    def random_element(self):
+        """
+        Return a random element.
+
+        EXAMPLES::
+
+            sage: D = ChainComplex({0: matrix(ZZ, 2, 2, [1,0,0,2])})
+            sage: D.random_element()    # random output
+            Chain with 1 nonzero terms over Integer Ring
+       """
+        vec = dict()
+        for d in self.nonzero_degrees():
+            vec[d] = self.free_module(d).random_element()
+        return self(vec)
+
+    _an_element_ = random_element
 
     @cached_method
     def rank(self, degree, ring=None):
@@ -463,20 +715,50 @@ class ChainComplex_class(Parent):
         return self._grading_group
         
     @cached_method
-    def linearized_degrees(self, start=None):
+    def nonzero_degrees(self):
         r"""
-        Sort the degrees in the linear order determined by the differential
+        Return the degrees in which the module is non-trivial.
+
+        See also :meth:`ordered_degrees`.
+
+        OUTPUT:
+
+        The tuple containing all degrees `n` (grading group elements)
+        such that the module `C_n` of the chain is non-trivial.
+
+        EXAMPLES::
+
+            sage: one = matrix(ZZ, [[1]])
+            sage: D = ChainComplex({0: one, 2: one, 6:one})
+            sage: ascii_art(D)
+                       [1]                             [1]       [0]       [1]      
+            0 <-- C_7 <---- C_6 <-- 0  ...  0 <-- C_3 <---- C_2 <---- C_1 <---- C_0 <-- 0 
+            sage: D.nonzero_degrees()
+            (0, 1, 2, 3, 6, 7)
+        """
+        return tuple(sorted(n for n,d in self._diff.iteritems() if d.ncols() > 0))
+
+    @cached_method
+    def ordered_degrees(self, start=None, exclude_first=False):
+        r"""
+        Sort the degrees in the order determined by the differential
 
         INPUT:
 
         - ``start`` -- a degree (element of the grading group) or
           ``None`` (default).
 
+        - ``exclude_first`` -- boolean (optional; default:
+          ``False``). Whether to exclude the lowest degree. This is a
+          handy way to just get the degrees of the non-zero modules,
+          as the domain of the first differential is zero.
+
         OUTPUT:
 
         If ``start`` has been specified, the longest tuple of degrees
 
-        * containing ``start`` 
+        * containing ``start`` (unless ``start`` would be the first
+          and ``exclude_first=True``)
         
         * in ascending order relative to :meth:`degree_of_differential` 
 
@@ -490,16 +772,27 @@ class ChainComplex_class(Parent):
         
             sage: one = matrix(ZZ, [[1]])
             sage: D = ChainComplex({0: one, 2: one, 6:one})
-            sage: D.linearized_degrees()
+            sage: ascii_art(D)
+                       [1]                             [1]       [0]       [1]      
+            0 <-- C_7 <---- C_6 <-- 0  ...  0 <-- C_3 <---- C_2 <---- C_1 <---- C_0 <-- 0 
+            sage: D.ordered_degrees()
             ((-1, 0, 1, 2, 3), (5, 6, 7))
+            sage: D.ordered_degrees(exclude_first=True)
+            ((0, 1, 2, 3), (6, 7))
+            sage: D.ordered_degrees(6)
+            (5, 6, 7)
+            sage: D.ordered_degrees(5, exclude_first=True)
+            (6, 7)
         """
         if start is None:
             result = []
             degrees = set(self._diff.keys())
             while len(degrees) > 0:
-                linear = self.linearized_degrees(degrees.pop())
-                result.append(linear)
-                degrees.difference_update(linear)
+                ordered = self.ordered_degrees(degrees.pop())
+                degrees.difference_update(ordered)
+                if exclude_first:
+                    ordered = tuple(ordered[1:])
+                result.append(ordered)
             result.sort()
             return tuple(result)
         import collections
@@ -514,6 +807,8 @@ class ChainComplex_class(Parent):
         while prev_deg in self._diff:
             result.appendleft(prev_deg)
             prev_deg -= self.degree_of_differential()
+        if exclude_first:
+            result.popleft()
         return tuple(result)
 
     def degree_of_differential(self):
@@ -649,12 +944,6 @@ class ChainComplex_class(Parent):
             Ambient free module of rank 2 over the principal ideal domain Integer Ring
             sage: C.free_module(2)
             Ambient free module of rank 1 over the principal ideal domain Integer Ring
-
-        This defines the forgetful functor from the category of chain
-        complexes to the category of free modules::
-
-            sage: FreeModules(ZZ)(C)
-            Ambient free module of rank 6 over the principal ideal domain Integer Ring
         """
         if degree is None:
             rank = sum([mat.ncols() for mat in self.differential().values()])
@@ -1235,8 +1524,6 @@ class ChainComplex_class(Parent):
                         [1]                             [1]       [0]       [1]      
              0 <-- C_7 <---- C_6 <-- 0  ...  0 <-- C_3 <---- C_2 <---- C_1 <---- C_0 <-- 0 
         """
-        if self.grading_group() is not ZZ:
-            return super(ChainComplex_class, self)._ascii_art_()
         from sage.misc.ascii_art import AsciiArt
 
         def arrow_art(n):
@@ -1256,14 +1543,14 @@ class ChainComplex_class(Parent):
                 return AsciiArt([' C_{0} '.format(n)])
         
         result = []
-        for linear in self.linearized_degrees():
-            linear = list(reversed(linear))
-            if len(linear) == 0:
+        for ordered in self.ordered_degrees():
+            ordered = list(reversed(ordered))
+            if len(ordered) == 0:
                 return AsciiArt(['0'])
-            result_linear = module_art(linear[0] + self.degree_of_differential())
-            for n in linear:
-                result_linear += arrow_art(n) + module_art(n)
-            result = [result_linear] + result
+            result_ordered = module_art(ordered[0] + self.degree_of_differential())
+            for n in ordered:
+                result_ordered += arrow_art(n) + module_art(n)
+            result = [result_ordered] + result
         concatenated = result[0]
         for r in result[1:]:
             concatenated += AsciiArt([' ... ']) + r

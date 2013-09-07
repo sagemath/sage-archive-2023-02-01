@@ -130,7 +130,7 @@ class ChainComplexMorphism(SageObject):
             
         from sage.misc.misc import uniq
         degrees = uniq(C.differential().keys() + D.differential().keys())
-        initial_matrices = matrices
+        initial_matrices = dict(matrices)
         matrices = dict()
         for i in degrees:
             if i - d not in degrees:

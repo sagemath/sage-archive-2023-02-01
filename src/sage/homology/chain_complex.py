@@ -61,6 +61,7 @@ from sage.matrix.constructor import matrix, prepare_dict
 from sage.misc.latex import latex
 from sage.rings.all import GF, prime_range
 from sage.misc.decorators import rename_keyword
+from sage.homology.homology_group import HomologyGroup
 
 
 def _latex_module(R, m):
@@ -984,17 +985,39 @@ class ChainComplex_class(Parent):
             return 0
         return -1
 
-    def homology(self, dim=None, **kwds):
+    def _homology_chomp(deg, base_ring, verbose, generators):
+        """
+        Helper function for :meth:`homology`
+
+        EXAMPLES::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])}, base_ring=GF(2))
+            sage: C._homology_chomp(None, GF(2), False, False)   # optional - CHomP
+        
+        """
+        H = homchain(self, **kwds)
+        if H is None:
+            raise RuntimeError('ran CHomP, but no output')
+        if deg is None:
+            return H
+        try:
+            return H[d]
+        except KeyError:
+            return HomologyGroup(0, base_ring)
+
+
+    @rename_keyword(deprecation=15151, dim='deg')
+    def homology(self, deg=None, **kwds):
         r"""
-        The homology of the chain complex in the given dimension.
+        The homology of the chain complex.
 
         INPUT:
 
-        -  ``dim`` -- an element of the grading group for the chain
-           complex (optional, default ``None``): the degree in which to
-           compute homology. If this is ``None``, return the homology in
-           every dimension in which the chain complex is possibly
-           nonzero.
+        - ``deg`` -- an element of the grading group for the chain
+           complex (optional, default ``None``): the degree in which
+           to compute homology. If this is ``None``, return the
+           homology in every degree in which the chain complex is
+           possibly nonzero.
 
         -  ``base_ring`` -- a commutative ring (optional, default is the
            base ring for the chain complex).  Must be either the
@@ -1007,22 +1030,22 @@ class ChainComplex_class(Parent):
         -  ``verbose`` - boolean (optional, default ``False``).  If
            ``True``, print some messages as the homology is computed.
 
-        -  ``algorithm`` - string (optional, default ``'auto'``).  The
-           options are ``'auto'``, ``'dhsw'``, ``'pari'`` or ``'no_chomp'``.
-           See below for descriptions.
+        - ``algorithm`` - string (optional, default ``'auto'``).  The
+           options are ``'auto'``, ``'chomp'``, ``'dhsw'``, ``'pari'``
+           or ``'no_chomp'``.  See below for descriptions.
 
         OUTPUT:
 
-        If dim is specified, the homology in dimension ``dim``.
+        If the degree is specified, the homology in degree ``deg``.
         Otherwise, the homology in every dimension as a dictionary
         indexed by dimension.
 
         ALGORITHM:
 
         If ``algorithm`` is set to ``'auto'`` (the default), then use
-        CHomP if available.  (CHomP is available at the web page
+        CHomP if available. CHomP is available at the web page
         http://chomp.rutgers.edu/.  It is also an experimental package
-        for Sage.)
+        for Sage. If ``algorithm`` is ``chomp``, always use chomp.
 
         CHomP computes homology, not cohomology, and only works over
         the integers or finite prime fields.  Therefore if any of
@@ -1065,7 +1088,7 @@ class ChainComplex_class(Parent):
             sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
             sage: C.homology()
             {0: Z x Z, 1: Z x C3}
-            sage: C.homology(dim=1, base_ring = GF(3))
+            sage: C.homology(deg=1, base_ring = GF(3))
             Vector space of dimension 2 over Finite Field of size 3
             sage: D = ChainComplex({0: identity_matrix(ZZ, 4), 4: identity_matrix(ZZ, 30)})
             sage: D.homology()
@@ -1100,186 +1123,171 @@ class ChainComplex_class(Parent):
              2: [(Vector space of dimension 1 over Rational Field,
                (1, -1, -1, -1, 1, -1, -1, 1, 1, 1, 1, 1, -1, -1))]}
         """
-        from sage.homology.homology_group import HomologyGroup
         from sage.interfaces.chomp import have_chomp, homchain
 
-        if dim is not None and dim not in self.grading_group():
-            raise ValueError('dimension is not an element of the grading group')
-
-        algorithm = kwds.get('algorithm', 'auto')
-        if algorithm not in ['dhsw', 'pari', 'auto', 'no_chomp']:
-            raise NotImplementedError('algorithm not recognized')
+        if deg is not None and deg not in self.grading_group():
+            raise ValueError('degree is not an element of the grading group')
 
         verbose = kwds.get('verbose', False)
-        base_ring = kwds.get('base_ring', None)
         generators = kwds.get('generators', False)
-        if base_ring is None or base_ring == self.base_ring():
-            change_ring = False
-            base_ring = self.base_ring()
-        else:
-            change_ring = True
+        base_ring = kwds.get('base_ring', self.base_ring())
         if not (base_ring.is_field() or base_ring is ZZ):
             raise NotImplementedError('can only compute homology if the base ring is the integers or a field')
 
-        # try to use CHomP if working over Z or F_p, p a prime.
-        if (algorithm == 'auto' and (base_ring == ZZ or
-            (base_ring.is_prime_field() and base_ring != QQ))):
-            # compute all of homology, then pick off requested dimensions
-            H = None
-            if have_chomp('homchain'):
-                H = homchain(self, **kwds)
-                # now pick off the requested dimensions
-                if H:
-                    if dim is not None:
-                        answer = {}
-                        if isinstance(dim, (list, tuple)):
-                            for d in dim:
-                                if d in H:
-                                    answer[d] = H[d]
-                                else:
-                                    answer[d] = HomologyGroup(0, base_ring)
-                        else:
-                            if dim in H:
-                                answer = H[dim]
-                            else:
-                                answer = HomologyGroup(0, base_ring)
-                    else:
-                        answer = H
-                    return answer
-                else:
-                    if verbose:
-                        print "ran CHomP, but no output."
+        algorithm = kwds.get('algorithm', 'auto')
+        if algorithm not in ['dhsw', 'pari', 'auto', 'no_chomp', 'chomp']:
+            raise NotImplementedError('algorithm not recognized')
+        if algorithm == 'auto' \
+           and (base_ring == ZZ or (base_ring.is_prime_field() and base_ring != QQ)) \
+           and have_chomp('homchain'):
+            algorithm = 'chomp'
+        if algorithm == 'chomp':
+            return self._homology_chomp(deg, base_ring, verbose, generators)
 
-        # if dim is None, return all of the homology groups
-        degree = self.degree_of_differential()
-        if dim is None:
+        if deg is None:
+            deg = self.nonzero_degrees()
+        if isinstance(deg, (list, tuple)):
             answer = {}
-            for n in self._diff.keys():
-                if n-degree not in self._diff:
-                    continue
-                if verbose:
-                    print "Computing homology of the chain complex in dimension %s..." % n
-                if base_ring == self.base_ring():
-                    answer[n] = self.homology(n, verbose=verbose,
-                                              generators=generators,
-                                              algorithm=algorithm)
-                else:
-                    answer[n] = self.homology(n, base_ring=base_ring,
-                                              verbose=verbose,
-                                              generators=generators,
-                                              algorithm=algorithm)
+            for deg in self.nonzero_degrees():
+                answer[deg] = self._homology_in_degree(deg, base_ring, verbose, generators, algorithm)
             return answer
+        else:
+            return self._homology_in_degree(deg, base_ring, verbose, generators, algorithm)
 
-        # now compute the homology in the given dimension
-        if dim in self._diff:
-            # d_out is the differential going out of degree dim,
-            # d_in is the differential entering degree dim
-            d_out_cols = self._diff[dim].ncols()
-            d_out_rows = self._diff[dim].nrows()
-            if base_ring == ZZ:
-                temp_ring = QQ
-            else:
-                temp_ring = base_ring
-            d_out_rank = self.rank(dim, ring=temp_ring)
+    def _homology_in_degree(self, deg, base_ring, verbose, generators, algorithm):
+        """
+        Helper method for :meth:`homology`.
 
-            if dim - degree in self._diff:
-                if change_ring:
-                    d_in = self._diff[dim-degree].change_ring(base_ring)
-                else:
-                    d_in = self._diff[dim-degree]
+        EXAMPLES::
 
-                if generators:
-                    # Find the kernel of the out-going differential.
-                    K = self._diff[dim].right_kernel().matrix().transpose().change_ring(base_ring)
-
-                    # Compute the induced map to the kernel
-                    S = K.augment(d_in).hermite_form()
-                    d_in_induced = S.submatrix(row=0, nrows=d_in.nrows()-d_out_rank,
-                                               col=d_in.nrows()-d_out_rank, ncols=d_in.ncols())
-
-                    # Find the SNF of the induced matrix and appropriate generators
-                    (N, P, Q) = d_in_induced.smith_form()
-                    all_divs = [0]*N.nrows()
-                    non_triv = 0
-                    for i in range(0, N.nrows()):
-                        if i >= N.ncols():
-                            break
-                        all_divs[i] = N[i][i]
-                        if N[i][i] == 1:
-                            non_triv = non_triv + 1
-                    divisors = filter(lambda x: x != 1, all_divs)
-                    gens = (K * P.inverse().submatrix(col=non_triv)).transpose()
-                    answer = [(HomologyGroup(1, base_ring, [divisors[i]]), gens[i])
-                              for i in range(len(divisors))]
-                else:
-                    if base_ring.is_field():
-                        null = d_out_cols - d_out_rank
-                        rk = self.rank(dim-degree, ring=temp_ring)
-                        answer = HomologyGroup(null - rk, base_ring)
-                    elif base_ring == ZZ:
-                        nullity = d_out_cols - d_out_rank
-                        if d_in.ncols() == 0:
-                            all_divs = [0] * nullity
-                        else:
-                            if algorithm == 'auto':
-                                if ((d_in.ncols() > 300 and d_in.nrows() > 300)
-                                    or (min(d_in.ncols(), d_in.nrows()) > 100 and
-                                        d_in.ncols() + d_in.nrows() > 600)):
-                                    algorithm = 'dhsw'
-                                else:
-                                    algorithm = 'pari'
-                            if algorithm == 'dhsw':
-                                from sage.homology.matrix_utils import dhsw_snf
-                                all_divs = dhsw_snf(d_in, verbose=verbose)
-                            else:
-                                algorithm = 'pari'
-                                if d_in.is_sparse():
-                                    all_divs = d_in.dense_matrix().elementary_divisors(algorithm)
-                                else:
-                                    all_divs = d_in.elementary_divisors(algorithm)
-                        all_divs = all_divs[:nullity]
-                        # divisors equal to 1 produce trivial
-                        # summands, so filter them out
-                        divisors = filter(lambda x: x != 1, all_divs)
-                        answer = HomologyGroup(len(divisors), base_ring, divisors)
-            else: # no incoming differential: it's zero
-                answer = HomologyGroup(d_out_cols - d_out_rank, base_ring)
-                if generators: #Include the generators of the nullspace
-                    # Find the kernel of the out-going differential.
-                    K = self._diff[dim].right_kernel().matrix().change_ring(base_ring)
-                    answer = [( answer, vector(base_ring, K.list()) )]
-        else:  # chain complex is zero here, so return the zero module
-            answer = HomologyGroup(0, base_ring)
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+            sage: C.homology(1) == C._homology_in_degree(1, ZZ, False, False, 'auto')
+            True
+        """
+        if deg not in self.nonzero_degrees():
+            zero_homology = HomologyGroup(0, base_ring)
             if generators:
-                answer = [(answer, vector(base_ring, []))]
+                return (zero_homology, vector(base_ring, []))
+            else:
+                return zero_homology
         if verbose:
-            print "  Homology is %s" % answer
+            print('Computing homology of the chain complex in dimension %s...' % n)
+
+        fraction_field = base_ring.fraction_field()
+        def change_ring(X):
+            if X.base_ring() is base_ring:
+                return X
+            return X.change_ring(base_ring)                        
+
+        # d_out is the differential going out of degree deg,
+        # d_in is the differential entering degree deg
+        differential = self.degree_of_differential()
+        d_in = change_ring(self.differential(deg - differential))
+        d_out = change_ring(self.differential(deg))
+        d_out_rank = self.rank(deg, ring=fraction_field)
+        d_out_nullity = d_out.ncols() - d_out_rank
+
+        if d_in.is_zero():
+            if generators: #Include the generators of the nullspace
+                return [(HomologyGroup(1, base_ring), gen)
+                        for gen in d_out.right_kernel().basis()]
+            else:
+                return HomologyGroup(d_out_nullity, base_ring)
+
+        if generators:
+            orders, gens = self._homology_generators_snf(d_in, d_out, d_out_rank)
+            answer = [(HomologyGroup(1, base_ring, [order]), gen)
+                      for order, gen in zip(orders, gens)]
+        else:
+            if base_ring.is_field():
+                d_in_rank = self.rank(deg-differential, ring=base_ring)
+                answer = HomologyGroup(d_out_nullity - d_in_rank, base_ring)
+            elif base_ring == ZZ:
+                if d_in.ncols() == 0:
+                    all_divs = [0] * d_out_nullity
+                else:
+                    if algorithm in ['auto', 'no_chomp']:
+                        if ((d_in.ncols() > 300 and d_in.nrows() > 300)
+                            or (min(d_in.ncols(), d_in.nrows()) > 100 and
+                                d_in.ncols() + d_in.nrows() > 600)):
+                            algorithm = 'dhsw'
+                        else:
+                            algorithm = 'pari'
+                    if algorithm == 'dhsw':
+                        from sage.homology.matrix_utils import dhsw_snf
+                        all_divs = dhsw_snf(d_in, verbose=verbose)
+                    elif algorithm == 'pari':
+                        all_divs = d_in.elementary_divisors(algorithm)
+                    else:
+                        raise ValueError('unsupported algorithm')
+                all_divs = all_divs[:d_out_nullity]
+                # divisors equal to 1 produce trivial
+                # summands, so filter them out
+                divisors = filter(lambda x: x != 1, all_divs)
+                answer = HomologyGroup(len(divisors), base_ring, divisors)
+            else:
+                raise NotImplementedError('only base rings ZZ and fields are supported')
         return answer
 
-    def betti(self, dim=None, **kwds):
+    def _homology_generators_snf(self, d_in, d_out, d_out_rank):
         """
-        The Betti number of the homology of the chain complex in this
-        dimension.
+        Compute the homology generators using Smith normal form
 
-        That is, write the homology in this dimension as a direct sum
+        EXAMPLES::
+
+            sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
+            sage: C.homology(1)
+            Z x C3
+            sage: C._homology_generators_snf(C.differential(0), C.differential(1), 0)
+            ([3, 0], [(1, 0), (0, 1)])
+        """
+        # Find the kernel of the out-going differential.
+        K = d_out.right_kernel().matrix().transpose().change_ring(d_out.base_ring())
+
+        # Compute the induced map to the kernel
+        S = K.augment(d_in).hermite_form()
+        d_in_induced = S.submatrix(row=0, nrows=d_in.nrows()-d_out_rank,
+                                   col=d_in.nrows()-d_out_rank, ncols=d_in.ncols())
+
+        # Find the SNF of the induced matrix and appropriate generators
+        (N, P, Q) = d_in_induced.smith_form()
+        all_divs = [0]*N.nrows()
+        non_triv = 0
+        for i in range(0, N.nrows()):
+            if i >= N.ncols():
+                break
+            all_divs[i] = N[i][i]
+            if N[i][i] == 1:
+                non_triv = non_triv + 1
+        divisors = filter(lambda x: x != 1, all_divs)
+        gens = (K * P.inverse().submatrix(col=non_triv)).columns()
+        return divisors, gens
+
+    def betti(self, deg=None, base_ring=None):
+        """
+        The Betti number the chain complex.
+
+        That is, write the homology in this degree as a direct sum
         of a free module and a torsion module; the Betti number is the
         rank of the free summand.
 
         INPUT:
 
-        -  ``dim`` -- an element of the grading group for the chain
+        - ``deg`` -- an element of the grading group for the chain
            complex or None (optional, default ``None``).  If ``None``,
            then return every Betti number, as a dictionary indexed by
            degree.  If an element of the grading group, then return
-           the Betti number in that dimension.
+           the Betti number in that degree.
 
         -  ``base_ring`` -- a commutative ring (optional, default is the
            base ring for the chain complex).  Compute homology with
            these coefficients.  Must be either the integers or a
            field.
 
-        OUTPUT: the Betti number in dimension ``dim`` - the rank of
-        the free part of the homology module in this dimension.
+        OUTPUT: 
+
+        The Betti number in degree ``deg`` - the rank of the free
+        part of the homology module in this degree.
 
         EXAMPLES::
 
@@ -1291,21 +1299,17 @@ class ChainComplex_class(Parent):
             sage: C.betti()
             {0: 2, 1: 1}
         """
-        base_ring = kwds.get('base_ring', None)
-
         if base_ring is None:
-            base_ring = self.base_ring()
-        if base_ring == ZZ:
             base_ring = QQ
-        if base_ring.is_field():
-            kwds['base_ring'] = base_ring
-            H = self.homology(dim=dim, **kwds)
-            if isinstance(H, dict):
-                return dict([i, H[i].dimension()] for i in H)
-            else:
-                return H.dimension()
+        try:
+            base_ring = base_ring.fraction_field()
+        except AttributeError:
+            raise NotImplementedError('only implemented if the base ring is ZZ or a field')
+        H = self.homology(deg, base_ring=base_ring)
+        if isinstance(H, dict):
+            return dict([deg, homology_group.dimension()] for deg, homology_group in H.iteritems())
         else:
-            raise NotImplementedError, "Not implemented: unable to compute Betti numbers if the base ring is not ZZ or a field."
+            return H.dimension()
 
     def torsion_list(self, max_prime, min_prime=2):
         r"""
@@ -1320,9 +1324,9 @@ class ChainComplex_class(Parent):
         -  ``min_prime`` -- prime (optional, default 2): search for
            torsion mod `p` for primes at least as big as this.
 
-        Return a list of pairs (`p`, ``dims``) where `p` is a prime at
-        which there is torsion and ``dims`` is a list of dimensions in
-        which this torsion occurs.
+        Return a list of pairs `(p, d)` where `p` is a prime at which
+        there is torsion and `d` is a list of dimensions in which this
+        torsion occurs.
 
         The base ring for the chain complex must be the integers; if
         not, an error is raised.
@@ -1392,7 +1396,9 @@ class ChainComplex_class(Parent):
             sage: C = S.chain_complex(augmented=True,cochain=True)
             sage: D = T.chain_complex(augmented=True,cochain=True)
             sage: Hom(C,D)  # indirect doctest
-            Set of Morphisms from Chain complex with at most 4 nonzero terms over Integer Ring to Chain complex with at most 4 nonzero terms over Integer Ring in Category of chain complexes over Integer Ring
+            Set of Morphisms from Chain complex with at most 4 nonzero terms over
+            Integer Ring to Chain complex with at most 4 nonzero terms over Integer
+            Ring in Category of chain complexes over Integer Ring
         """
         from sage.homology.chain_complex_homspace import ChainComplexHomspace
         return ChainComplexHomspace(self, other)

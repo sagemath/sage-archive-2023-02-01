@@ -22,6 +22,18 @@ from discrete_valuation import DiscreteValuationRings, DiscreteValuationFields
 class CompleteDiscreteValuationRings(Category_singleton):
     """
     The category of complete discrete valuation rings
+
+    EXAMPLES::
+
+        sage: Zp(7) in CompleteDiscreteValuationRings()
+        True
+        sage: QQ in CompleteDiscreteValuationRings()
+        False
+        sage: QQ[['u']] in CompleteDiscreteValuationRings()
+        True
+        sage: Qp(7) in CompleteDiscreteValuationRings()
+        False
+        sage: TestSuite(CompleteDiscreteValuationRings()).run()
     """
     def super_categories(self):
         """
@@ -32,23 +44,8 @@ class CompleteDiscreteValuationRings(Category_singleton):
         """
         return [DiscreteValuationRings()]
 
-    class ParentMethods:
-        def is_cdvr(self):
-            """
-            Return True if this ring is complete DVR.
-
-            EXAMPLES::
-
-                sage: Zp(7).is_cdvr()
-                True
-
-                sage: K.<u> = QQ[[]]
-                sage: K.is_cdvr()
-                True
-            """
-            return True
-
     class ElementMethods:
+        @abstract_method
         def precision_absolute(self):
             """
             Return the absolute precision of this element.
@@ -61,8 +58,8 @@ class CompleteDiscreteValuationRings(Category_singleton):
                 sage: x.precision_absolute()
                 21
             """
-            pass
 
+        @abstract_method
         def precision_relative(self):
             """
             Return the relative precision of this element.
@@ -75,12 +72,22 @@ class CompleteDiscreteValuationRings(Category_singleton):
                 sage: x.precision_relative()
                 20
             """
-            pass
-
 
 class CompleteDiscreteValuationFields(Category_singleton):
     """
     The category of complete discrete valuation fields
+
+    EXAMPLES::
+
+        sage: Zp(7) in CompleteDiscreteValuationFields()
+        False
+        sage: QQ in CompleteDiscreteValuationFields()
+        False
+        sage: LaurentSeriesRing(QQ,'u') in CompleteDiscreteValuationFields()
+        True
+        sage: Qp(7) in CompleteDiscreteValuationFields()
+        True
+        sage: TestSuite(CompleteDiscreteValuationFields()).run()
     """
 
     def super_categories(self):
@@ -92,20 +99,8 @@ class CompleteDiscreteValuationFields(Category_singleton):
         """
         return [DiscreteValuationFields()]
 
-    class ParentMethods:
-        def is_cdvf(self):
-            """
-            Return True if this ring is a field equipped with a discrete valuation
-            for which it is complete.
-
-            EXAMPLES::
-
-                sage: Qp(7).is_cdvf()
-                True
-            """
-            return True
-
     class ElementMethods:
+        @abstract_method
         def precision_absolute(self):
             """
             Return the absolute precision of this element.
@@ -118,8 +113,8 @@ class CompleteDiscreteValuationFields(Category_singleton):
                 sage: x.precision_absolute()
                 21
             """
-            pass
 
+        @abstract_method
         def precision_relative(self):
             """
             Return the relative precision of this element.
@@ -132,4 +127,3 @@ class CompleteDiscreteValuationFields(Category_singleton):
                 sage: x.precision_relative()
                 20
             """
-            pass

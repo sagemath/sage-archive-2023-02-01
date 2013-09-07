@@ -24,6 +24,12 @@ from sage.categories.fields import Fields
 class DiscreteValuationRings(Category_singleton):
     """
     The category of discrete valuation rings
+
+    EXAMPLES::
+
+        sage: GF(7)[['x']] in DiscreteValuationRings()
+        True
+        sage: TestSuite(DiscreteValuationRings()).run()
     """
     def super_categories(self):
         """
@@ -64,21 +70,6 @@ class DiscreteValuationRings(Category_singleton):
                 sage: K.residue_field()
                 Rational Field
             """
-
-        def is_dvr(self):
-            """
-            Return True if this ring is DVR.
-
-            EXAMPLES::
-
-                sage: Zp(7).is_dvr()
-                True
-
-                sage: K.<u> = QQ[[]]
-                sage: K.is_dvr()
-                True
-            """
-            return True
 
     class ElementMethods:
         @abstract_method
@@ -139,6 +130,12 @@ class DiscreteValuationRings(Category_singleton):
 class DiscreteValuationFields(Category_singleton):
     """
     The category of discrete valuation fields
+
+    EXAMPLES::
+
+        sage: Qp(7) in DiscreteValuationFields()
+        True
+        sage: TestSuite(DiscreteValuationFields()).run()
     """
 
     def super_categories(self):
@@ -177,17 +174,6 @@ class DiscreteValuationFields(Category_singleton):
                 sage: K.residue_field()
                 Rational Field
             """
-
-        def is_dvf(self):
-            """
-            Return True if this ring is a field equipped with a discrete valuation.
-
-            EXAMPLES::
-
-                sage: Qp(7).is_cdvf()
-                True
-            """
-            return True
 
     class ElementMethods:
         @abstract_method

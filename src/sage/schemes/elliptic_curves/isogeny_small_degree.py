@@ -257,7 +257,7 @@ def isogenies_prime_degree_genus_0(E, l=None):
        ``E.isogenies_prime_degree(l)``, which automatically calls the
        appropriate function.
 
-    ALGORITHM::
+    ALGORITHM:
 
     Cremona and Watkins [CW2005]_. See also [KT2013]_, Chapter 4.
 
@@ -1507,7 +1507,7 @@ def isogenies_prime_degree_genus_plus_0(E, l=None):
        This function would normally be invoked indirectly via
        ``E.isogenies_prime_degree(l)``, which automatically calls the appropriate function.
 
-    ALGORITHM::
+    ALGORITHM:
 
     See [KT2013]_, Chapter 5.
 
@@ -1849,7 +1849,7 @@ def isogenies_prime_degree_general(E, l):
 
     (list) a list of all isogenies of degree l.
 
-    ALGORITHM::
+    ALGORITHM:
 
     This algorithm factors the ``l``-division polynomial, then
     combines its factors to otain kernels. See [KT2013]_, Chapter 3.

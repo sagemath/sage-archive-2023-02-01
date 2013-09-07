@@ -4199,7 +4199,13 @@ use_tuple=True (currently default) is deprecated.""")
         if l in [2, 3, 5, 7, 13]:
             return isogenies_prime_degree_genus_0(self, l)
         elif l != None and type(l) != list:
-            return isogenies_sporadic_Q(self, l)
+            try:
+                if l.is_prime(proof=False):
+                    return isogenies_sporadic_Q(self, l)
+                else:
+                    raise ValueError("%s is not prime."%l)
+            except AttributeError:
+                raise ValueError("%s is not prime."%l)
         if l == None:
             isogs = isogenies_prime_degree_genus_0(self)
             if isogs != []:

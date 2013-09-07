@@ -2621,6 +2621,16 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             sage: (2*P).height(precision=1000)/P.height(precision=1000)
             4.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 
+        This shows that the bug reported at :trac:`13951` has been fixed::
+
+            sage: E = EllipticCurve([0,17])
+            sage: P1 = E(2,5)
+            sage: P1.height()
+            1.06248137652528
+            sage: F = E.change_ring(QuadraticField(-3,'a'))
+            sage: P2 = F([2,5])
+            sage: P2.height()
+            1.06248137652528
         """
         if self.has_finite_order():
             return rings.QQ(0)
@@ -2922,6 +2932,13 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
             True
             sage: P.non_archimedean_local_height()
             0
+
+        This shows that the bug reported at :trac:`13951` has been fixed::
+
+            sage: E = EllipticCurve([0,17])
+            sage: P = E(2,5)
+            sage: P.non_archimedean_local_height(2)
+            -2/3*log(2)
         """
         if prec:
             log = lambda x: rings.RealField(prec)(x).log()
@@ -2988,7 +3005,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         elif c4.valuation(v) == 0:
             n = min(B, N/2)
             r = -n*(N-n)/N
-        elif C > 3*B:
+        elif C >= 3*B:
             r = -2*B/3
         else:
             r = -C/4

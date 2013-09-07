@@ -448,7 +448,7 @@ class ChainComplexes(Category_module):
         EXAMPLES::
 
             sage: ChainComplexes(Integers(9)).super_categories()
-            [Category of objects]
+            [Category of modules with basis over Ring of integers modulo 9]
         """
         from sage.categories.all import Fields, FreeModules, VectorSpaces
         base_ring = self.base_ring()

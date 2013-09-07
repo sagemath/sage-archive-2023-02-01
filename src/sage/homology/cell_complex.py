@@ -490,7 +490,7 @@ class GenericCellComplex(SageObject):
 
         base_ring = kwds.get('base_ring', ZZ)
         cohomology = kwds.get('cohomology', False)
-        subcomplex = kwds.get('subcomplex', None)
+        subcomplex = kwds.pop('subcomplex', None)
         verbose = kwds.get('verbose', False)
         algorithm = kwds.get('algorithm', 'auto')
 
@@ -514,13 +514,9 @@ class GenericCellComplex(SageObject):
             H = None
             if isinstance(self, CubicalComplex):
                 if have_chomp('homcubes'):
-                    if 'subcomplex' in kwds:
-                        del kwds['subcomplex']
                     H = homcubes(self, subcomplex, **kwds)
             elif isinstance(self, SimplicialComplex):
                 if have_chomp('homsimpl'):
-                    if 'subcomplex' in kwds:
-                        del kwds['subcomplex']
                     H = homsimpl(self, subcomplex, **kwds)
             # now pick off the requested dimensions
             if H:
@@ -539,45 +535,18 @@ class GenericCellComplex(SageObject):
         # Derived classes can implement specialized algorithms using a
         # _homology_ method.  See SimplicialComplex for one example.
         if hasattr(self, '_homology_'):
-            return self._homology_(dim, **kwds)
+            return self._homology_(dim, subcomplex=subcomplex, **kwds)
 
         C = self.chain_complex(cochain=cohomology, augmented=True,
-                               dimensions=dims, **kwds)
-        if 'subcomplex' in kwds:
-            del kwds['subcomplex']
+                               dimensions=dims, subcomplex=subcomplex, **kwds)
         answer = C.homology(**kwds)
-        assert isinstance(answer, dict)
         if dim is None:
-            zero = HomologyGroup(0, base_ring)
-            return dict([d, answer.get(d, zero)] for d in range(self.dimension()+1))
+            dim = range(self.dimension()+1)
+        zero = HomologyGroup(0, base_ring)
+        if isinstance(dim, (list, tuple)):
+            return dict([d, answer.get(d, zero)] for d in dim)
         else:
-            return answer[dim]
-
-
-
-            # if cohomology:
-            #     too_big = self.dimension() + 1
-            #     if (not ((isinstance(dim, (list, tuple)) and too_big in dim)
-            #             or too_big == dim)
-            #         and too_big in answer):
-            #         del answer[too_big]
-            # if -2 in answer:
-            #     del answer[-2]
-            # if -1 in answer:
-            #     del answer[-1]
-            # for d in range(self.dimension() + 1):
-            #     if d not in answer:
-            #         answer[d] = HomologyGroup(0, base_ring)
-
-            # if dim is not None:
-            #     if isinstance(dim, (list, tuple)):
-            #         temp = {}
-            #         for n in dim:
-            #             temp[n] = answer[n]
-            #         answer = temp
-            #     else:  # just a single dimension
-            #         answer = answer.get(dim, HomologyGroup(0, base_ring))
-        return answer
+            return answer.get(dim, zero)
 
     def cohomology(self, dim=None, **kwds):
         r"""

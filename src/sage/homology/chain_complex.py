@@ -378,6 +378,8 @@ class Chain_class(ModuleElement):
             sage: C = ChainComplex({0: matrix(ZZ, 2, 3, [3, 0, 0, 0, 0, 0])})
             sage: C()
             Trivial chain
+            sage: C({0:vector([1, 2, 3])})
+            Chain(0:(1, 2, 3))
             sage: c = C({0:vector([1, 2, 3]), 1:vector([4, 5])});  c
             Chain with 2 nonzero terms over Integer Ring
             sage: c._repr_()
@@ -386,6 +388,9 @@ class Chain_class(ModuleElement):
         n = len(self._vec)
         if n == 0:
             return 'Trivial chain'
+        elif n == 1:
+            deg, vec = self._vec.iteritems().next()
+            return 'Chain({0}:{1})'.format(deg, vec)
         else:
             return 'Chain with {0} nonzero terms over {1}'.format(
                 n, self.parent().base_ring())
@@ -995,7 +1000,7 @@ class ChainComplex_class(Parent):
             sage: C._homology_chomp(None, GF(2), False, False)   # optional - CHomP
         
         """
-        H = homchain(self, **kwds)
+        H = homchain(self, base_ring=base_ring, verbose=verbose, generators=generators)
         if H is None:
             raise RuntimeError('ran CHomP, but no output')
         if deg is None:
@@ -1115,13 +1120,13 @@ class ChainComplex_class(Parent):
             sage: T = simplicial_complexes.Torus()
             sage: C_t = T.chain_complex()
             sage: C_t.homology(base_ring=QQ, generators=True)
-            {0: [(Vector space of dimension 1 over Rational Field, (0, 0, 0, 0, 0, 0, 1))],
+            {0: [(Vector space of dimension 1 over Rational Field, Chain(0:(0, 0, 0, 0, 0, 0, 1)))],
              1: [(Vector space of dimension 1 over Rational Field,
-               (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0, 0, -1, 0, 1, 0)),
+               Chain(1:(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0, 0, -1, 0, 1, 0))),
               (Vector space of dimension 1 over Rational Field,
-               (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, -1, -1))],
+               Chain(1:(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, -1, -1)))],
              2: [(Vector space of dimension 1 over Rational Field,
-               (1, -1, -1, -1, 1, -1, -1, 1, 1, 1, 1, 1, -1, -1))]}
+               Chain(2:(1, -1, -1, -1, 1, -1, -1, 1, 1, 1, 1, 1, -1, -1)))]}
         """
         from sage.interfaces.chomp import have_chomp, homchain
 
@@ -1189,14 +1194,14 @@ class ChainComplex_class(Parent):
 
         if d_in.is_zero():
             if generators: #Include the generators of the nullspace
-                return [(HomologyGroup(1, base_ring), gen)
+                return [(HomologyGroup(1, base_ring), self({deg:gen}))
                         for gen in d_out.right_kernel().basis()]
             else:
                 return HomologyGroup(d_out_nullity, base_ring)
 
         if generators:
             orders, gens = self._homology_generators_snf(d_in, d_out, d_out_rank)
-            answer = [(HomologyGroup(1, base_ring, [order]), gen)
+            answer = [(HomologyGroup(1, base_ring, [order]), self({deg:gen}))
                       for order, gen in zip(orders, gens)]
         else:
             if base_ring.is_field():

@@ -1920,26 +1920,14 @@ class SimplicialComplex(GenericCellComplex):
         if 'subcomplex' in kwds:
             del kwds['subcomplex']
         answer = C.homology(**kwds)
-        if isinstance(answer, dict):
-            if cohomology:
-                too_big = self.dimension() + 1
-                if (not ((isinstance(dim, (list, tuple)) and too_big in dim)
-                        or too_big == dim)
-                    and too_big in answer):
-                    del answer[too_big]
-            if -2 in answer:
-                del answer[-2]
-            if -1 in answer:
-                del answer[-1]
-            if dim is not None:
-                if isinstance(dim, (list, tuple)):
-                    temp = {}
-                    for n in dim:
-                        temp[n] = answer[n]
-                    answer = temp
-                else:  # just a single dimension
-                    answer = answer.get(dim, HomologyGroup(0, base_ring))
-        return answer
+
+        if dim is None:
+            dim = range(self.dimension()+1)
+        zero = HomologyGroup(0, base_ring)
+        if isinstance(dim, (list, tuple)):
+            return dict([d, answer.get(d, zero)] for d in dim)
+        else:
+            return answer.get(dim, zero)
 
     def add_face(self, face):
         """

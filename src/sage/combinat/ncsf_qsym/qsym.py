@@ -61,7 +61,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
     .. rubric:: The Hopf algebra of quasisymmetric functions.
 
-    The `R`-algebra of quasi-symmetric functions may be realized as a
+    Let `R` be a commutative ring with unity.
+    The `R`-algebra of quasi-symmetric functions may be realized as an
     `R`-subalgebra of the ring of power series in countably many
     variables `R[[x_1, x_2, x_3, \ldots]]`. It consists of those
     formal power series `p` which are degree-bounded (i. e., the degrees
@@ -101,7 +102,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         x_{j_n}
 
     where in the second equation the sum runs over all weakly increasing
-    `n`-tuples of `(j_1, j_2, \ldots, j_n)` of positive integers
+    `n`-tuples `(j_1, j_2, \ldots, j_n)` of positive integers
     (where `n` is the size of `I`) which increase strictly from `j_r`
     to `j_{r+1}` if `r` is a descent of the composition `I`.
 
@@ -121,7 +122,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     for every composition `I = (I_1, I_2, \cdots , I_\ell )`.
 
-    It is possible to define a `R`-algebra of quasi-symmetric
+    It is possible to define an `R`-algebra of quasi-symmetric
     functions in a finite number of variables as well (but it is not
     a bialgebra). These quasi-symmetric functions are actual polynomials
     then, not just power series.
@@ -739,7 +740,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 The inner coproduct (also known as the Kronecker coproduct,
                 or as the second comultiplication on the `R`-algebra of
-                quasi-symmetric functions) is a `R`-algebra homomorphism
+                quasi-symmetric functions) is an `R`-algebra homomorphism
                 `\Delta^{\times}` from the `R`-algebra of quasi-symmetric
                 functions to the tensor square (over `R`) of quasi-symmetric
                 functions. It can be defined in the following two ways:
@@ -1679,7 +1680,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 The inner coproduct (also known as the Kronecker coproduct,
                 or as the second comultiplication on the `R`-algebra of
-                quasi-symmetric functions) is a `R`-algebra homomorphism
+                quasi-symmetric functions) is an `R`-algebra homomorphism
                 `\Delta^{\times}` from the `R`-algebra of quasi-symmetric
                 functions to the tensor square (over `R`) of quasi-symmetric
                 functions. It can be defined in the following two ways:

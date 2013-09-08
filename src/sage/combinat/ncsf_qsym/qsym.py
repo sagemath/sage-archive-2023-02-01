@@ -61,26 +61,26 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
     r"""
     .. rubric:: The Hopf algebra of quasisymmetric functions.
 
-    The `\mathbf{k}`-algebra of quasi-symmetric functions may be realized as a
-    `\mathbf{k}`-subalgebra of the ring of power series in countably many
-    variables `{\mathbf{k}}[[x_1, x_2, x_3, \ldots]]`. It consists of those
+    The `R`-algebra of quasi-symmetric functions may be realized as a
+    `R`-subalgebra of the ring of power series in countably many
+    variables `R[[x_1, x_2, x_3, \ldots]]`. It consists of those
     formal power series `p` which are degree-bounded (i. e., the degrees
     of all monomials occuring with nonzero coefficient in `p` are bounded
     from above, although the bound can depend on `p`) and satisfy the
-    following condition: For every tuple `(a_1,a_2,\ldots ,a_m)` of
+    following condition: For every tuple `(a_1, a_2, \ldots, a_m)` of
     positive integers, the coefficient of the monomial
     `x_{i_1}^{a_1} x_{i_2}^{a_2} \cdots x_{i_m}^{a_m}` in `p` is the same
-    for all strictly increasing sequences `(i_1<i_2<...<i_m)` of positive
-    integers. (In other words, the coefficient of a monomial in `p`
+    for all strictly increasing sequences `(i_1 < i_2 < \cdots < i_m)` of
+    positive integers. (In other words, the coefficient of a monomial in `p`
     depends only on the sequence of nonzero exponents in the monomial. If
     "sequence" were to be replaced by "multiset" here, we would obtain
     the definition of a symmetric function.)
 
-    The `\mathbf{k}`-algebra of quasi-symmetric functions is commonly called
-    `\mathrm{QSym}_{\mathbf{k}}` or occasionally just `\mathrm{QSym}` (when
-    `\mathbf{k}` is clear from the context or `\ZZ` or `\QQ`). It is graded by
+    The `R`-algebra of quasi-symmetric functions is commonly called
+    `\mathrm{QSym}_R` or occasionally just `\mathrm{QSym}` (when
+    `R` is clear from the context or `\ZZ` or `\QQ`). It is graded by
     the total degree of the power series. Its homogeneous elements of degree
-    `k` form a free `\mathbf{k}`-submodule of rank equal to the number of
+    `k` form a free `R`-submodule of rank equal to the number of
     compositions of `k` (that is, `2^{k-1}` if `k \geq 1`, else `1`).
 
     The two classical bases of `\mathrm{QSym}`, the monomial basis
@@ -111,7 +111,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     where the inequality `J \leq I` indicates that `J` is finer than `I`.
 
-    The `\mathbf{k}`-algebra of quasi-symmetric functions is a Hopf algebra,
+    The `R`-algebra of quasi-symmetric functions is a Hopf algebra,
     with the coproduct satisfying
 
     .. MATH::
@@ -121,7 +121,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     for every composition `I = (I_1, I_2, \cdots , I_\ell )`.
 
-    It is possible to define a `\mathbf{k}`-algebra of quasi-symmetric
+    It is possible to define a `R`-algebra of quasi-symmetric
     functions in a finite number of variables as well (but it is not
     a bialgebra). These quasi-symmetric functions are actual polynomials
     then, not just power series.
@@ -132,7 +132,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: The implementation of the quasi-symmetric function Hopf algebra
 
-    We realize the `\mathbf{k}`-algebra of quasi-symmetric functions in Sage as
+    We realize the `R`-algebra of quasi-symmetric functions in Sage as
     a graded Hopf algebra with basis elements indexed by compositions.
     ::
 
@@ -140,8 +140,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         sage: QSym.category()
         Join of Category of graded hopf algebras over Rational Field and Category of monoids with realizations and Category of coalgebras over Rational Field with realizations
 
-    The most standard two bases for this `\mathbf{k}`-algebra are the monomial
-    and fundamental bases, and are accessible by the ``M()`` and ``F()`` methods::
+    The most standard two bases for this `R`-algebra are the monomial and
+    fundamental bases, and are accessible by the ``M()`` and ``F()`` methods::
 
         sage: M = QSym.M()
         sage: F = QSym.F()
@@ -260,18 +260,20 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
     Similarly, if `H` is an element of `\mathrm{QSym}` and `g` and `h` are
     elements of `NCSF`, then
 
-    `[ H, g h ] = [ \Delta(H), g \otimes h ]~.`
+    .. MATH::
 
-    For example, the coefficient of ``R[2,3,1]`` in ``R[2,1]*R[2,1]`` is computed with
-    the duality pairing by the following command::
+        [ H, g h ] = [ \Delta(H), g \otimes h ].
+
+    For example, the coefficient of ``R[2,3,1]`` in ``R[2,1]*R[2,1]`` is
+    computed with the duality pairing by the following command::
 
         sage: (R[2,1]*R[2,1]).duality_pairing(F[2,3,1])
         1
         sage: R[2,1]*R[2,1]
         R[2, 1, 2, 1] + R[2, 3, 1]
 
-    This coefficient should then be equal to the coefficient of ``F[2,1] # F[2,1]``
-    in ``F[2,3,1].coproduct()``::
+    This coefficient should then be equal to the coefficient of
+    ``F[2,1] # F[2,1]`` in ``F[2,3,1].coproduct()``::
 
         sage: F[2,3,1].coproduct()
         F[] # F[2, 3, 1] + ... + F[2, 1] # F[2, 1]  + ... + F[2, 3, 1] # F[]
@@ -290,9 +292,11 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
     Let `g \in NCSF` and consider the linear endomorphism of `NCSF` defined by
     left (respectively, right) multiplication by `g`. Since there is a duality
     between `\mathrm{QSym}` and `NCSF`, this linear transformation induces an
-    operator `g^\perp` on `\mathrm{QSym}` satisfying
+    operator `g^{\perp}` on `\mathrm{QSym}` satisfying
 
-    `[ g^\perp(H), h ] = [ H, gh ]~.`
+    .. MATH::
+
+        [ g^{\perp}(H), h ] = [ H, gh ].
 
     for any non-commutative symmetric function `h`.
 
@@ -367,7 +371,9 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
     as a subring.  The Monomial quasi-symmetric functions are related to the
     monomial symmetric functions by
 
-    `m_\lambda = \sum_{\mathrm{sort}(I) = \lambda} M_I~.`
+    .. MATH::
+
+        m_\lambda = \sum_{\mathrm{sort}(I) = \lambda} M_I.
 
     There are methods to test if an expression in the quasi-symmetric
     functions is a symmetric function and, if it is, send it to an
@@ -396,8 +402,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         sage: s(f.to_symmetric_function())
         s[3, 2]
 
-    It is also possible to convert a symmetric function to a quasi-symmetric function.
-    ::
+    It is also possible to convert a symmetric function to a
+    quasi-symmetric function::
 
         sage: m = SymmetricFunctions(QQ).m()
         sage: M( m[3,1,1] )
@@ -425,8 +431,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
         q*t*F[1, 1, 1] + (q+t)*F[1, 2] + (q+t)*F[2, 1] + F[3]
 
     The following will raise an error because the base ring of ``F`` is not
-    equal to the base ring of ``Ht``.
-    ::
+    equal to the base ring of ``Ht``::
 
         sage: F(Ht[2,1])
         Traceback (most recent call last):
@@ -439,7 +444,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
     of a subring of a polynomial ring as the number of variables
     increases. Indeed, there exists a projection from the
     quasi-symmetric functions onto the polynomial ring
-    `\mathbf{k}[x_1, x_2, \ldots, x_n]`. This projection is defined by
+    `R[x_1, x_2, \ldots, x_n]`. This projection is defined by
     sending the variables `x_{n+1}, x_{n+2}, \cdots` to `0`, while
     the remaining `n` variables remain fixed. Note that this
     projection sends `M_I` to `0` if the length of the composition
@@ -732,70 +737,69 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 r"""
                 Return the inner coproduct of ``self`` in the basis of ``self``.
 
-                The inner coproduct (also known as the Kronecker coproduct, or as
-                the second comultiplication on the `\mathbf{k}`-algebra of
-                quasi-symmetric functions) is a `\mathbf{k}`-algebra homomorphism
-                `\Delta^\times` from the `\mathbf{k}`-algebra of quasi-symmetric
-                functions to the tensor square (over `\mathbf{k}`) of
-                quasi-symmetric functions. It can be defined in the following
-                two ways:
+                The inner coproduct (also known as the Kronecker coproduct,
+                or as the second comultiplication on the `R`-algebra of
+                quasi-symmetric functions) is a `R`-algebra homomorphism
+                `\Delta^{\times}` from the `R`-algebra of quasi-symmetric
+                functions to the tensor square (over `R`) of quasi-symmetric
+                functions. It can be defined in the following two ways:
 
-                1. If `I` is a composition, then a `(0, I)`-matrix will mean a
-                matrix whose entries are nonnegative integers such that no row
-                and no column of this matrix is zero, and such that if all the
-                non-zero entries of the matrix are read (row by row, starting at
-                the topmost row, reading every row from left to right), then
-                the reading word obtained is `I`. If `A` is a `(0, I)`-matrix,
-                then `\mathrm{row}(A)` will denote the vector of row sums of `A`
-                (regarded as a composition), and `\mathrm{column}(A)` will
-                denote the vector of column sums of `A` (regarded as a
-                composition).
+                #. If `I` is a composition, then a `(0, I)`-matrix will mean a
+                   matrix whose entries are nonnegative integers such that no
+                   row and no column of this matrix is zero, and such that if
+                   all the non-zero entries of the matrix are read (row by row,
+                   starting at the topmost row, reading every row from left to
+                   right), then the reading word obtained is `I`. If `A` is
+                   a `(0, I)`-matrix, then `\mathrm{row}(A)` will denote the
+                   vector of row sums of `A` (regarded as a composition), and
+                   `\mathrm{column}(A)` will denote the vector of column sums
+                   of `A` (regarded as a composition).
 
-                For every composition `I`, the internal coproduct
-                `\Delta^\times (M_I)` of the `I`-th monomial quasisymmetric
-                function `M_I` is the sum
+                   For every composition `I`, the internal coproduct
+                   `\Delta^{\times}(M_I)` of the `I`-th monomial quasisymmetric
+                   function `M_I` is the sum
 
-                .. MATH::
+                   .. MATH::
 
-                    \sum_{A \hbox{ is a } (0, I) \text{-matrix}}
-                    M_{\mathrm{row}(A)} \otimes M_{\mathrm{column}(A)}.
+                       \sum_{A \hbox{ is a } (0, I) \text{-matrix}}
+                       M_{\mathrm{row}(A)} \otimes M_{\mathrm{column}(A)}.
 
-                See Section 11.39 of [HazWitt1]_.
+                   See Section 11.39 of [HazWitt1]_.
 
-                2. For every permutation `w`, let `C(w)` denote the descent
-                composition of `w`. Then, for any composition `I` of size `n`,
-                the internal coproduct `\Delta^\times (F_I)` of the `I`-th
-                fundamental quasisymmetric function `F_I` is the sum
+                #. For every permutation `w`, let `C(w)` denote the descent
+                   composition of `w`. Then, for any composition `I` of size
+                   `n`, the internal coproduct `\Delta^{\times}(F_I)` of the
+                   `I`-th fundamental quasisymmetric function `F_I` is the sum
 
-                .. MATH::
+                   .. MATH::
 
-                    \sum_{\sigma \in S_n, \ \tau \in S_n, \ \tau \sigma = \pi}
-                    F_{C(\sigma)} \otimes F_{C(\tau)},
+                       \sum_{\substack{\sigma \in S_n,\\ \tau \in S_n,\\
+                       \tau \sigma = \pi}} F_{C(\sigma)} \otimes F_{C(\tau)},
 
-                where `\pi` is any permutation in `S_n` having descent
-                composition `I` and where permutations act from the left and
-                multiply accordingly, so `\tau \sigma` means first applying
-                `\sigma` and then `\tau`. See Theorem 4.23 in [Mal1993]_,
-                but beware of the notations which are apparently different
-                from those in [HazWitt1]_.
+                   where `\pi` is any permutation in `S_n` having descent
+                   composition `I` and where permutations act from the left and
+                   multiply accordingly, so `\tau \sigma` means first applying
+                   `\sigma` and then `\tau`. See Theorem 4.23 in [Mal1993]_,
+                   but beware of the notations which are apparently different
+                   from those in [HazWitt1]_.
 
                 The restriction of the internal coproduct to the
-                `\mathbf{k}`-algebra of symmetric functions is the well-known
+                `R`-algebra of symmetric functions is the well-known
                 internal coproduct on the symmetric functions.
 
                 The method :meth:`kronecker_coproduct` is a synonym of this one.
 
-                EXAMPLES::
+                EXAMPLES:
 
                 Let us compute the internal coproduct of `M_{21}` (which is
                 short for `M_{[2, 1]}`). The `(0, [2,1])`-matrices are
 
                 .. MATH::
 
-                    \begin{bmatrix}2& 1\end{bmatrix},
-                    \begin{bmatrix}2\\1\end{bmatrix},
-                    \begin{bmatrix}2& 0\\0& 1\end{bmatrix}, \hbox{ and }
-                    \begin{bmatrix}0&2\\1&0\end{bmatrix}
+                    \begin{bmatrix} 2 & 1 \end{bmatrix},
+                    \begin{bmatrix} 2 \\ 1 \end{bmatrix},
+                    \begin{bmatrix} 2 & 0 \\ 0 & 1 \end{bmatrix}, \hbox{ and }
+                    \begin{bmatrix} 0 & 2 \\ 1 & 0 \end{bmatrix}
 
                 so
 
@@ -805,9 +809,9 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     M_{21} \otimes M_3 + M_{21} \otimes M_{21} +
                     M_{21} \otimes M_{12}.
 
-                This is confirmed by the following Sage computation (incidentally
-                demonstrating the non-cocommutativity of the internal
-                coproduct)::
+                This is confirmed by the following Sage computation
+                (incidentally demonstrating the non-cocommutativity of
+                the internal coproduct)::
 
                     sage: M = QuasiSymmetricFunctions(ZZ).M()
                     sage: a = M([2,1])
@@ -823,7 +827,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: M([1, 2]).internal_coproduct()
                     M[1, 2] # M[1, 2] + M[1, 2] # M[2, 1] + M[1, 2] # M[3] + M[3] # M[1, 2]
 
-                The definition of `\Delta^\times(M_I)` in terms of
+                The definition of `\Delta^{\times}(M_I)` in terms of
                 `(0, I)`-matrices is not suitable for computation in
                 cases where the length of `I` is large, but we can use
                 it as a doctest. Here is a naive implementation::
@@ -865,7 +869,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     ....:      for I in Compositions(3) )
                     True
 
-                TESTS::
+                TESTS:
 
                 Border cases::
 
@@ -876,8 +880,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     sage: F([]).internal_coproduct()
                     F[] # F[]
 
-                The implementations on the ``F`` and ``M`` bases play nicely with
-                each other::
+                The implementations on the ``F`` and ``M`` bases play nicely
+                with each other::
 
                     sage: M = QuasiSymmetricFunctions(ZZ).M()
                     sage: F = QuasiSymmetricFunctions(ZZ).F()
@@ -940,7 +944,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 under the `n`-th Frobenius operator.
 
                 The `n`-th Frobenius operator `\mathbf{f}_n` is defined to be
-                the map from the `\mathbf{k}`-algebra of quasi-symmetric functions
+                the map from the `R`-algebra of quasi-symmetric functions
                 to itself that sends every symmetric function
                 `P(x_1, x_2, x_3, \ldots)` to
                 `P(x_1^n, x_2^n, x_3^n, \ldots)`. This operator `\mathbf{f}_n`
@@ -968,13 +972,14 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 unexpectedly, the `n`-th Frobenius operator of the ring of
                 symmetric functions.
 
-                :meth:`adams_operation` serves as alias for :meth:`frobenius`, since the
-                Frobenius operators are the Adams operations of the `\Lambda`-ring
-                of quasi-symmetric functions.
+                :meth:`adams_operation` serves as alias for :meth:`frobenius`,
+                since the Frobenius operators are the Adams operations of
+                the `\Lambda`-ring of quasi-symmetric functions.
 
                 .. SEEALSO::
 
-                    :meth:`sage.combinat.sf.sfa.plethysm`
+                    :meth:`Symmetric functions plethsym
+                    <sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.plethysm>`
 
                 INPUT:
 
@@ -982,8 +987,8 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
                 OUTPUT:
 
-                The result of applying the `n`-th Frobenius operator (on the ring of
-                quasi-symmetric functions) to ``self``.
+                The result of applying the `n`-th Frobenius operator (on the
+                ring of quasi-symmetric functions) to ``self``.
 
                 EXAMPLES::
 
@@ -1038,19 +1043,20 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             def expand(self, n, alphabet='x'):
                 r"""
-                Expand the quasi-symmetric function into ``n`` variables in an alphabet,
-                which by default is ``'x'``.
+                Expand the quasi-symmetric function into ``n`` variables in
+                an alphabet, which by default is ``'x'``.
 
                 INPUT:
 
                 - ``n`` -- A nonnegative integer; the number of variables
-                  in the expansion.
+                  in the expansion
                 - ``alphabet`` -- (default: ``'x'``); the alphabet in
-                  which ``self`` is to be expanded.
+                  which ``self`` is to be expanded
 
                 OUTPUT:
 
-                - An expansion of ``self`` into the ``n`` variables specified by ``alphabet``.
+                - An expansion of ``self`` into the ``n`` variables specified
+                  by ``alphabet``.
 
                 EXAMPLES::
 
@@ -1297,8 +1303,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             Frobenius endomorphisms `\mathbf{f}_n` (see
             :meth:`~sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions.Bases.ElementMethods.frobenius`
             for their definition). Using these endomorphisms, the
-            `\lambda`-operations can be explicitly computed via the
-            formula
+            `\lambda`-operations can be explicitly computed via the formula
 
             .. MATH::
 
@@ -1308,8 +1313,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
 
             in the ring of formal power series in a variable `t` over
             the ring of quasi-symmetric functions. In particular,
-            every composition `I = (I_1, I_2, \cdots, I_\ell )`
-            satisfies
+            every composition `I = (I_1, I_2, \cdots, I_\ell )` satisfies
 
             .. MATH::
 
@@ -1673,60 +1677,59 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                 r"""
                 Return the inner coproduct of ``self`` in the Fundamental basis.
 
-                The inner coproduct (also known as the Kronecker coproduct, or as
-                the second comultiplication on the `\mathbf{k}`-algebra of
-                quasi-symmetric functions) is a `\mathbf{k}`-algebra homomorphism
-                `\Delta^\times` from the `\mathbf{k}`-algebra of quasi-symmetric
-                functions to the tensor square (over `\mathbf{k}`) of
-                quasi-symmetric functions. It can be defined in the following
-                two ways:
+                The inner coproduct (also known as the Kronecker coproduct,
+                or as the second comultiplication on the `R`-algebra of
+                quasi-symmetric functions) is a `R`-algebra homomorphism
+                `\Delta^{\times}` from the `R`-algebra of quasi-symmetric
+                functions to the tensor square (over `R`) of quasi-symmetric
+                functions. It can be defined in the following two ways:
 
-                1. If `I` is a composition, then a `(0, I)`-matrix will mean a
-                matrix whose entries are nonnegative integers such that no row
-                and no column of this matrix is zero, and such that if all the
-                non-zero entries of the matrix are read (row by row, starting at
-                the topmost row, reading every row from left to right), then
-                the reading word obtained is `I`. If `A` is a `(0, I)`-matrix,
-                then `\mathrm{row}(A)` will denote the vector of row sums of `A`
-                (regarded as a composition), and `\mathrm{column}(A)` will
-                denote the vector of column sums of `A` (regarded as a
-                composition).
+                #. If `I` is a composition, then a `(0, I)`-matrix will mean a
+                   matrix whose entries are nonnegative integers such that no
+                   row and no column of this matrix is zero, and such that if
+                   all the non-zero entries of the matrix are read (row by row,
+                   starting at the topmost row, reading every row from left to
+                   right), then the reading word obtained is `I`. If `A` is
+                   a `(0, I)`-matrix, then `\mathrm{row}(A)` will denote the
+                   vector of row sums of `A` (regarded as a composition), and
+                   `\mathrm{column}(A)` will denote the vector of column sums
+                   of `A` (regarded as a composition).
 
-                For every composition `I`, the internal coproduct
-                `\Delta^\times (M_I)` of the `I`-th monomial quasisymmetric
-                function `M_I` is the sum
+                   For every composition `I`, the internal coproduct
+                   `\Delta^{\times}(M_I)` of the `I`-th monomial quasisymmetric
+                   function `M_I` is the sum
 
-                .. MATH::
+                   .. MATH::
 
-                    \sum_{A \hbox{ is a } (0, I) \text{-matrix}}
-                    M_{\mathrm{row}(A)} \otimes M_{\mathrm{column}(A)}.
+                       \sum_{A \hbox{ is a } (0, I) \text{-matrix}}
+                       M_{\mathrm{row}(A)} \otimes M_{\mathrm{column}(A)}.
 
-                See Section 11.39 of [HazWitt1]_.
+                   See Section 11.39 of [HazWitt1]_.
 
-                2. For every permutation `w`, let `C(w)` denote the descent
-                composition of `w`. Then, for any composition `I` of size `n`,
-                the internal coproduct `\Delta^\times (F_I)` of the `I`-th
-                fundamental quasisymmetric function `F_I` is the sum
+                #. For every permutation `w`, let `C(w)` denote the descent
+                   composition of `w`. Then, for any composition `I` of size
+                   `n`, the internal coproduct `\Delta^{\times}(F_I)` of the
+                   `I`-th fundamental quasisymmetric function `F_I` is the sum
 
-                .. MATH::
+                   .. MATH::
 
-                    \sum_{\sigma \in S_n, \ \tau \in S_n, \ \tau \sigma = \pi}
-                    F_{C(\sigma)} \otimes F_{C(\tau)},
+                       \sum_{\substack{\sigma \in S_n,\\ \tau \in S_n,\\
+                       \tau \sigma = \pi}} F_{C(\sigma)} \otimes F_{C(\tau)},
 
-                where `\pi` is any permutation in `S_n` having descent
-                composition `I` and where permutations act from the left and
-                multiply accordingly, so `\tau \sigma` means first applying
-                `\sigma` and then `\tau`. See Theoreme 4.23 in [Mal1993]_,
-                but beware of the notations which are apparently different
-                from those in [HazWitt1]_.
+                   where `\pi` is any permutation in `S_n` having descent
+                   composition `I` and where permutations act from the left and
+                   multiply accordingly, so `\tau \sigma` means first applying
+                   `\sigma` and then `\tau`. See Theorem 4.23 in [Mal1993]_,
+                   but beware of the notations which are apparently different
+                   from those in [HazWitt1]_.
 
                 The restriction of the internal coproduct to the
-                `\mathbf{k}`-algebra of symmetric functions is the well-known
+                `R`-algebra of symmetric functions is the well-known
                 internal coproduct on the symmetric functions.
 
                 The method :meth:`kronecker_coproduct` is a synonym of this one.
 
-                EXAMPLES::
+                EXAMPLES:
 
                 Let us compute the internal coproduct of `M_{21}` (which is
                 short for `M_{[2, 1]}`). The `(0, [2,1])`-matrices are
@@ -1764,10 +1767,10 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
                     F[1, 1] # F[1, 1] + F[2] # F[2]
                     sage: F([3]).internal_coproduct()
                     F[1, 1, 1] # F[1, 1, 1] + F[1, 2] # F[1, 2] + F[1, 2] # F[2, 1]
-                    + F[2, 1] # F[1, 2] + F[2, 1] # F[2, 1] + F[3] # F[3]
+                     + F[2, 1] # F[1, 2] + F[2, 1] # F[2, 1] + F[3] # F[3]
                     sage: F([1,2]).internal_coproduct()
                     F[1, 1, 1] # F[1, 2] + F[1, 2] # F[2, 1] + F[1, 2] # F[3]
-                    + F[2, 1] # F[1, 1, 1] + F[2, 1] # F[2, 1] + F[3] # F[1, 2]
+                     + F[2, 1] # F[1, 1, 1] + F[2, 1] # F[2, 1] + F[3] # F[1, 2]
                 """
                 F = self.parent()
                 F2 = F.tensor(F)

@@ -50,6 +50,7 @@ from copy import copy
 
 from sage.structure.parent import Parent
 from sage.structure.element import ModuleElement
+from sage.structure.element import is_Vector
 from sage.misc.cachefunc import cached_method
 
 from sage.rings.integer_ring import ZZ
@@ -479,10 +480,17 @@ class Chain_class(ModuleElement):
             sage: c = C({0:vector([0, 1, 2]), 1:vector([3, 4])})
             sage: c.is_boundary()
             False
-         """
+            sage: z3 = C({1:(1, 0)})
+            sage: z3.is_cycle()
+            True
+            sage: (2*z3).is_boundary()
+            False
+            sage: (3*z3).is_boundary()
+            True
+        """
         chain_complex = self.parent()
         for d, v in self._vec.iteritems():
-            d = chain_complex.differential(d - chain_complex.degree_of_differential())
+            d = chain_complex.differential(d - chain_complex.degree_of_differential()).transpose()
             if v not in d.image():
                 return False
         return True
@@ -623,6 +631,8 @@ class ChainComplex_class(Parent):
             sage: D = ChainComplex({0: matrix(ZZ, 2, 2, [1,0,0,2])})
             sage: D._element_constructor_(0)
             Trivial chain
+            sage: D({0:[2, 3]})
+            Chain(0:(2, 3))
         """
         if not vectors:  # special case: the zero chain
             return self.element_class(self, {})
@@ -630,6 +640,9 @@ class ChainComplex_class(Parent):
             vectors = vectors._vec
         data = dict()
         for degree, vec in vectors.iteritems():
+            if not is_Vector(vec):
+                vec = vector(self.base_ring(), vec)
+                vec.set_immutable()
             if check and vec.degree() != self.free_module_rank(degree):
                 raise ValueError('vector dimension does not match module dimension')
             if vec.is_zero():

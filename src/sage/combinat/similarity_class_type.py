@@ -109,6 +109,34 @@ Similarity class types can be used to calculate the coefficients of generating
 functions coming from the cycle index type techniques of Kung and Stong (see
 Morrison [Morrison06]_).
 
+Along with the results of [PSS13]_, similarity class types can be used to
+calculate the number of similarity classes of matrices of order `n` with entries
+in a principal ideal local ring of length two with residue field of cardinality
+`q` with centralizer of any given cardinality up to `n=4`. Among these, the
+classes which are selftranspose can also be counted::
+
+    sage: from sage.combinat.similarity_class_type import matrix_centralizer_cardinalities2
+    sage: list(matrix_centralizer_cardinalities2(3))
+    [(q^6 - 3*q^5 + 3*q^4 - q^3, 1/6*q^6 - 1/2*q^5 + 1/3*q^4),
+    (q^6 - 2*q^5 + q^4, q^5 - q^4),
+    (q^8 - 3*q^7 + 3*q^6 - q^5, 1/2*q^5 - q^4 + 1/2*q^3),
+    (q^8 - 2*q^7 + q^6, q^4 - q^3),
+    (q^10 - 2*q^9 + 2*q^7 - q^6, q^4 - q^3),
+    (q^8 - q^7 - q^6 + q^5, 1/2*q^5 - q^4 + 1/2*q^3),
+    (q^6 - q^5 - q^4 + q^3, 1/2*q^6 - 1/2*q^5),
+    (q^6 - q^5, q^4),
+    (q^10 - 2*q^9 + q^8, q^3),
+    (q^8 - 2*q^7 + q^6, q^4 - q^3),
+    (q^8 - q^7, q^3 + q^2),
+    (q^12 - 3*q^11 + 3*q^10 - q^9, 1/6*q^4 - 1/2*q^3 + 1/3*q^2),
+    (q^12 - 2*q^11 + q^10, q^3 - q^2),
+    (q^14 - 2*q^13 + 2*q^11 - q^10, q^3 - q^2),
+    (q^12 - q^11 - q^10 + q^9, 1/2*q^4 - 1/2*q^3),
+    (q^12 - q^11, q^2),
+    (q^14 - 2*q^13 + q^12, q^2),
+    (q^18 - q^17 - q^16 + q^14 + q^13 - q^12, q^2),
+    (q^12 - q^9, 1/3*q^4 - 1/3*q^2),
+    (q^6 - q^3, 1/3*q^6 - 1/3*q^4)]
 
 REFERENCES:
 
@@ -120,9 +148,15 @@ REFERENCES:
    J. Integer Seq. 9 (2006), no. 2, Article 06.2.1, 28 pp.
    Available from: https://cs.uwaterloo.ca/journals/JIS/VOL9/Morrison/morrison37.html
 
+.. [PSS13] Prasad, A., Singla, P., and Spallone, S., Similarity of matrices over
+   local rings of length two. arxiv.org:1212.6157
+
 AUTHOR:
 
-- Amritanshu Prasad (2013-07-18)
+- Amritanshu Prasad (2013-07-18): initial implementation
+
+- Amritanshu Prasad (2013-09-09): added functions for similarity classes over
+  rings of length two
 
 """
 #*****************************************************************************
@@ -154,6 +188,8 @@ from sage.combinat.combinat import CombinatorialObject
 from sage.combinat.partition import Partitions, Partition
 from sage.rings.all import ZZ, QQ, FractionField, divisors
 from sage.misc.cachefunc import cached_in_parent_method, cached_function
+from sage.combinat.cartesian_product import CartesianProduct
+from sage.combinat.misc import IterableFunctionCall
 
 @cached_function
 def fq(n, q = None):
@@ -1103,3 +1139,390 @@ class SimilarityClassTypes(Parent, UniqueRepresentation):
             return sum([tau.statistic(stat, invertible = invertible, q = q) for tau in self])
         else:
             raise ValueError("invalid parameter %s"%(sumover))
+
+################################################################################
+#                 Similarity over rings of length two                          #
+################################################################################
+
+def dictionary_from_generator(gen):
+    r"""
+    Given a generator for a list of pairs `(c,f)` construct a dictionary whose
+    keys are the distinct values for `c` and whose value at `c` is the sum of
+    `f` over all pairs of the form `(c',f)` such that `c=c'`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.similarity_class_type import dictionary_from_generator
+        sage: dictionary_from_generator(((floor(x/2), x) for x in xrange(10)))
+        {0: 1, 1: 5, 2: 9, 3: 13, 4: 17}
+
+    It also works with lists::
+
+        sage: dictionary_from_generator([(floor(x/2),x) for x in range(10)])
+        {0: 1, 1: 5, 2: 9, 3: 13, 4: 17}
+
+    .. NOTE::
+
+        Since the generator is first converted to a list, memory usage could be
+        high.
+    """
+    L = list(gen)
+    setofkeys = list(set([item[0] for item in L]))
+    return dict([(key, sum([entry[1] for entry in filter(lambda pair: pair[0] == key, L)])) for key in setofkeys])
+
+def matrix_similarity_classes(n, q = None, invertible = False):
+    r"""
+    Return the number of matrix similarity classes over a finite field of order
+    ``q``.
+
+    TESTS::
+
+        sage: from sage.combinat.similarity_class_type import matrix_similarity_classes
+        sage: matrix_similarity_classes(2)
+        q^2 + q
+        sage: matrix_similarity_classes(2, invertible = True)
+        q^2 - 1
+        sage: matrix_similarity_classes(2, invertible = True, q = 4)
+        15
+    """
+    if q is None:
+        q = FractionField(QQ['q']).gen()
+    if n == 0:
+        return 1
+    if invertible:
+        return sum([q**max(la)*((1-q**(-1))**map(lambda x: x>0, la.to_exp()).count(True)) for la in Partitions(n)])
+    else:
+        return sum([q**max(la) for la in Partitions(n)])
+
+def matrix_centralizer_cardinalities(n, q = None, invertible = False):
+    """
+    Generate pairs consisting of centralizer cardinalities of matrices over a
+    finite field and their frequencies.
+
+    TESTS::
+
+        sage: from sage.combinat.similarity_class_type import matrix_centralizer_cardinalities
+        sage: list(matrix_centralizer_cardinalities(1))
+        [(q - 1, q)]
+        sage: list(matrix_centralizer_cardinalities(2))
+        [(q^2 - 2*q + 1, 1/2*q^2 - 1/2*q),
+        (q^2 - q, q),
+        (q^4 - q^3 - q^2 + q, q),
+        (q^2 - 1, 1/2*q^2 - 1/2*q)]
+        sage: list(matrix_centralizer_cardinalities(2, invertible = True))
+        [(q^2 - 2*q + 1, 1/2*q^2 - 3/2*q + 1),
+        (q^2 - q, q - 1),
+        (q^4 - q^3 - q^2 + q, q - 1),
+        (q^2 - 1, 1/2*q^2 - 1/2*q)]
+
+    """
+    for tau in SimilarityClassTypes(n):
+        yield (tau.centralizer_group_card(q = q), tau.number_of_classes(invertible = invertible, q = q))
+
+def input_parsing(data):
+    """
+    Recognize and return the intended type of ``input``
+
+    TESTS::
+
+        sage: from sage.combinat.similarity_class_type import input_parsing
+        sage: input_parsing(Partition([2, 1]))
+        ('par', [2, 1])
+        sage: input_parsing(PrimarySimilarityClassType(2, [2, 1]))
+        ('pri', [2, [2, 1]])
+        sage: input_parsing(SimilarityClassType([[2, [2, 1]]]))
+        ('sim', [[2, [2, 1]]])
+        sage: input_parsing([2, 1])
+        ('par', [2, 1])
+        sage: input_parsing([2, [2, 1]])
+        ('pri', [2, [2, 1]])
+        sage: input_parsing([[2, [2, 1]]])
+        ('sim', [[2, [2, 1]]])
+    """
+    if isinstance(data, SimilarityClassType):
+        case = 'sim'
+        output = data
+    elif isinstance(data, PrimarySimilarityClassType):
+        case = 'pri'
+        output = data
+    elif isinstance(data, Partition):
+        case = 'par'
+        output = data
+    else:
+        try:
+            data = Partition(data)
+            case = 'par'
+            output = data
+        except(TypeError, ValueError):
+            try:
+                data = SimilarityClassType(data)
+                case = 'sim'
+                output = data
+            except(TypeError, ValueError):
+                try:
+                    data = PrimarySimilarityClassType(*data)
+                    case = 'pri'
+                    output = data
+                except(TypeError, ValueError):
+                    raise ValueError("Expected a Partition, a SimiliarityClassType or a PrimarySimilarityClassType, got a %s"%(type(data)))
+    return case, data
+
+def ext_orbits(input, q = None, selftranspose = False):
+    r"""
+    Return the number of orbits in `\mathrm{Ext}^1(M, M)` for the action of
+    `\mathrm{Aut}(M, M)`, where `M` is the `\mathbf F_q[t]`-module constructed
+    from ``input``.
+
+    TESTS::
+
+        sage: from sage.combinat.similarity_class_type import ext_orbits
+        sage: ext_orbits([6, 1])
+        q^7 + q^6 + q^5
+        sage: ext_orbits([6, 1], selftranspose = True)
+        q^7 + q^6 - q^5
+        sage: ext_orbits([6, 1, 1])
+        q^8 + 2*q^7 + 2*q^6 + 2*q^5
+        sage: ext_orbits ([6, 1, 1], selftranspose = True)
+        q^8 + 2*q^7
+        sage: ext_orbits([2, 2])
+        q^4 + q^3 + q^2
+        sage: ext_orbits([2, 2], selftranspose = True)
+        q^4 + q^3 + q^2
+        sage: ext_orbits([2, 2, 2])
+        q^6 + q^5 + 2*q^4 + q^3 + 2*q^2
+        sage: ext_orbits([2, 2, 2], selftranspose = True)
+        q^6 + q^5 + 2*q^4 + q^3
+        sage: ext_orbits([2, 2, 2, 2])
+        q^8 + q^7 + 3*q^6 + 3*q^5 + 5*q^4 + 3*q^3 + 3*q^2
+        sage: ext_orbits([2, 2, 2, 2], selftranspose = True)
+        q^8 + q^7 + 3*q^6 + 3*q^5 + 3*q^4 + q^3 + q^2
+        sage: ext_orbits([2, [6, 1]])
+        q^14 + q^12 + q^10
+        sage: ext_orbits([[2, [6, 1]]])
+        q^14 + q^12 + q^10
+    """
+    # Comments cite items in the paper "Similarity over rings of length two" by
+    # Prasad, Singla, and Spallone.
+    if q is None:
+        q = FractionField(QQ['q']).gen()
+    case, data = input_parsing(input)
+    if case == 'par':
+        la = data
+        if la.size() == 0:
+            return q.parent()(1)
+        if max(la) == 1:
+            return matrix_similarity_classes(len(la), q = q)
+        elif len(la) == 1:
+            return q**la.size()
+        elif len(la) == 2 and list(la).count(1) == 1: # see Table 3
+            m = max(la) - 1
+            if selftranspose:
+                return q**(m + 2) + q**(m + 1) - q**m
+            else:
+                return q**(m + 2) + q**(m + 1) + q**m
+        elif len(la) == 3 and list(la).count(1) == 2: # see Table 4
+            m = max(la) - 1
+            if not selftranspose:
+                return q**m*(q**3 + 2*q**2 + 2*q + 2)
+            else:
+                return q**m*(q**3 + 2*q**2)
+        elif min(la) == 2 and max(la) == 2:
+            return matrix_similarity_classes2(len(la), q = q, selftranspose = selftranspose)
+        else:
+            raise ValueError('partition %s not implemented for ExtOrbitClasses.orbits'%(la))
+    elif case == 'pri':
+        tau = data
+        return ext_orbits(tau.partition(), q = q, selftranspose = selftranspose).substitute(q = q**tau.degree())
+    elif case == 'sim':
+        tau = data
+        return prod([ext_orbits(PT, q = q, selftranspose = selftranspose) for PT in tau])
+
+def matrix_similarity_classes2(n, q = None, selftranspose = False, invertible = False):
+    """
+    Return the number of similarity classes of matrices of order ``n`` with
+    entries in a principal ideal local ring of length two.
+
+    EXAMPLES:
+
+    We can generate Table 6 of [PSS13]_::
+
+        sage: from sage.combinat.similarity_class_type import matrix_similarity_classes2
+        sage: matrix_similarity_classes2(2)
+        q^4 + q^3 + q^2
+        sage: matrix_similarity_classes2(2, invertible = True)
+        q^4 - q
+        sage: matrix_similarity_classes2(3)
+        q^6 + q^5 + 2*q^4 + q^3 + 2*q^2
+        sage: matrix_similarity_classes2(3, invertible = true)
+        q^6 - q^3 + 2*q^2 - 2*q
+        sage: matrix_similarity_classes2(4)
+        q^8 + q^7 + 3*q^6 + 3*q^5 + 5*q^4 + 3*q^3 + 3*q^2
+        sage: matrix_similarity_classes2(4, invertible = True)
+        q^8 + q^6 - q^5 + 2*q^4 - 2*q^3 + 2*q^2 - 3*q
+
+    And also Table 7::
+
+        sage: matrix_similarity_classes2(2, selftranspose = True)
+        q^4 + q^3 + q^2
+        sage: matrix_similarity_classes2(2, selftranspose = True, invertible = True)
+        q^4 - q
+        sage: matrix_similarity_classes2(3, selftranspose = True)
+        q^6 + q^5 + 2*q^4 + q^3
+        sage: matrix_similarity_classes2(3, selftranspose = True, invertible = True)
+        q^6 - q^3
+        sage: matrix_similarity_classes2(4, selftranspose = True)
+        q^8 + q^7 + 3*q^6 + 3*q^5 + 3*q^4 + q^3 + q^2
+        sage: matrix_similarity_classes2(4, selftranspose = True, invertible = True)
+        q^8 + q^6 - q^5 - q
+    """
+    if q is None:
+        q = FractionField(QQ['q']).gen()
+    return sum([tau.number_of_classes(invertible = invertible, q = q)*ext_orbits(tau, q = q, selftranspose = selftranspose) for tau in SimilarityClassTypes(n)])
+
+def ext_orbit_centralizers(input, q = None, selftranspose = False):
+    r"""
+    Generate pairs consisting of centralizer cardinalities of orbits in
+    `\mathrm{Ext}^1(M, M)` for the action of `\mathrm{Aut}(M, M)`, where `M` is
+    the `\mathbf F_q[t]`-module constructed from ``input`` and their frequencies.
+
+    TESTS::
+
+        sage: from sage.combinat.similarity_class_type import ext_orbit_centralizers
+        sage: list(ext_orbit_centralizers([6, 1]))
+        [(q^9 - 2*q^8 + q^7, q^6),
+        (q^7 - 2*q^6 + q^5, q^7 - q^6),
+        (q^7 - q^6, q^6 + q^5)]
+        sage: list(ext_orbit_centralizers([6, 1], selftranspose = True))
+        [(q^9 - 2*q^8 + q^7, q^6),
+        (q^7 - 2*q^6 + q^5, q^7 - q^6),
+        (q^7 - q^6, q^6 - q^5)]
+        sage: list(ext_orbit_centralizers([6, 1, 1]))
+        [(q^12 - 3*q^11 + 3*q^10 - q^9, 1/2*q^7 - 1/2*q^6),
+        (q^8 - 3*q^7 + 3*q^6 - q^5, 1/2*q^8 - q^7 + 1/2*q^6),
+        (q^12 - 2*q^11 + q^10, q^6),
+        (q^8 - 2*q^7 + q^6, q^7 - q^6),
+        (q^14 - 2*q^13 + 2*q^11 - q^10, q^6),
+        (q^10 - 2*q^9 + 2*q^7 - q^6, q^7 - q^6),
+        (q^12 - q^11 - q^10 + q^9, 1/2*q^7 - 1/2*q^6),
+        (q^8 - q^7 - q^6 + q^5, 1/2*q^8 - q^7 + 1/2*q^6),
+        (q^8 - 2*q^7 + q^6, q^7 - q^6),
+        (q^8 - q^7, q^6 + 2*q^5),
+        (q^10 - 2*q^9 + q^8, 2*q^6)]
+        sage: list(ext_orbit_centralizers([6, 1, 1], selftranspose = True))
+        [(q^12 - 3*q^11 + 3*q^10 - q^9, 1/2*q^7 - 1/2*q^6),
+        (q^8 - 3*q^7 + 3*q^6 - q^5, 1/2*q^8 - q^7 + 1/2*q^6),
+        (q^12 - 2*q^11 + q^10, q^6),
+        (q^8 - 2*q^7 + q^6, q^7 - q^6),
+        (q^14 - 2*q^13 + 2*q^11 - q^10, q^6),
+        (q^10 - 2*q^9 + 2*q^7 - q^6, q^7 - q^6),
+        (q^12 - q^11 - q^10 + q^9, 1/2*q^7 - 1/2*q^6),
+        (q^8 - q^7 - q^6 + q^5, 1/2*q^8 - q^7 + 1/2*q^6),
+        (q^8 - 2*q^7 + q^6, q^7 - q^6),
+        (q^8 - q^7, q^6)]
+        sage: list(ext_orbit_centralizers([2, [6, 1, 1]], selftranspose = True))
+        [(q^24 - 3*q^22 + 3*q^20 - q^18, 1/2*q^14 - 1/2*q^12),
+        (q^16 - 3*q^14 + 3*q^12 - q^10, 1/2*q^16 - q^14 + 1/2*q^12),
+        (q^24 - 2*q^22 + q^20, q^12),
+        (q^16 - 2*q^14 + q^12, q^14 - q^12),
+        (q^28 - 2*q^26 + 2*q^22 - q^20, q^12),
+        (q^20 - 2*q^18 + 2*q^14 - q^12, q^14 - q^12),
+        (q^24 - q^22 - q^20 + q^18, 1/2*q^14 - 1/2*q^12),
+        (q^16 - q^14 - q^12 + q^10, 1/2*q^16 - q^14 + 1/2*q^12),
+        (q^16 - 2*q^14 + q^12, q^14 - q^12),
+        (q^16 - q^14, q^12)]
+        sage: list(ext_orbit_centralizers([[2, [6, 1, 1]]], selftranspose = True))
+        [(q^24 - 3*q^22 + 3*q^20 - q^18, 1/2*q^14 - 1/2*q^12),
+        (q^16 - 3*q^14 + 3*q^12 - q^10, 1/2*q^16 - q^14 + 1/2*q^12),
+        (q^24 - 2*q^22 + q^20, q^12),
+        (q^16 - 2*q^14 + q^12, q^14 - q^12),
+        (q^28 - 2*q^26 + 2*q^22 - q^20, q^12),
+        (q^20 - 2*q^18 + 2*q^14 - q^12, q^14 - q^12),
+        (q^24 - q^22 - q^20 + q^18, 1/2*q^14 - 1/2*q^12),
+        (q^16 - q^14 - q^12 + q^10, 1/2*q^16 - q^14 + 1/2*q^12),
+        (q^16 - 2*q^14 + q^12, q^14 - q^12),
+        (q^16 - q^14, q^12)]
+
+    """
+    # Comments cite items in the paper "Similarity over rings of length two" by
+    # Prasad, Singla, and Spallone.
+    if q is None:
+        q = FractionField(QQ['q']).gen()
+    case, data = input_parsing(input)
+    if case == 'par':
+        la = data
+        if len(la) == 0:
+            yield (1, 1)
+            return
+        elif max(la) == 1:
+            for item in matrix_centralizer_cardinalities(len(la), q = q):
+                yield item
+            return
+        elif len(la) == 1:
+            yield (q**la[0] - q**(la[0]-1), q**la[0])
+            return
+        elif len(la) == 2 and list(la).count(1) == 1: # see Table 3
+            m = max(la) - 1
+            yield (q**(m + 4) - 2*q**(m + 3) + q**(m + 2), q**(m + 1)) # (8.5.1)
+            yield (q**(m + 2) - 2*q**(m + 1) + q**m, q**(m + 2) - q**(m + 1)) # (8.5.2)
+            if selftranspose:
+                yield (q**(m + 2) - q**(m + 1), q**(m+1) - q**m) # (8.5.3) and (8.5.4)
+            else:
+                yield (q**(m + 2) - q**(m + 1), q**(m + 1) + q**m) # (8.5.3) and (8.5.4)
+            return
+        elif len(la) == 3 and list(la).count(1) == 2: # see Table 4
+            m = max(la) - 1
+            for item in matrix_centralizer_cardinalities(2, q = q):
+                yield (item[0]*(q**(m + 5) - q**(m + 4)), item[1]*q**m) # (8.6.1)
+                yield (item[0]*(q**(m + 1) - q**m), item[1]*(q**(m + 1) - q**m)) # (8.6.2)
+            yield (q**(m + 3) - 2*q**(m + 2) + q**(m+1), q**(m + 2) - q**(m + 1)) # (8.6.3)
+            if selftranspose:
+                yield (q**(m + 3) - q**(m+2), q**(m+1)) #(8.6.4), (8.6.5) and (8.6.7)
+            else:
+                yield (q**(m + 3) - q**(m+2), q**(m + 1) + 2*q**m) # (8.6.4), (8.6.5) and (8.6.7)
+                yield (q**(m + 5) - 2*q**(m + 4) + q**(m + 3), 2*q**(m + 1)) # (8.6.6) and (8.6.8)
+            return
+        elif max(la) == 2 and min(la) == 2:
+            for item in matrix_centralizer_cardinalities2(len(la), q = q, selftranspose = selftranspose):
+                yield item
+        else:
+            raise ValueError('partition %s not implemented for ExtOrbitClasses.orbit_centralizers'%(la))
+    elif case == 'pri':
+        tau = data
+        for item in ext_orbit_centralizers(tau.partition(), selftranspose = selftranspose):
+            yield (item[0].substitute(q = q**tau.degree()), item[1].substitute(q = q**tau.degree()))
+    elif case == 'sim':
+        tau = data
+        for item in CartesianProduct(*[IterableFunctionCall(lambda x: ext_orbit_centralizers(x, q = q, selftranspose = selftranspose), PT) for PT in tau]):
+                size = prod([list(entry)[0] for entry in item])
+                freq = prod([list(entry)[1] for entry in item])
+                yield(size, freq)
+
+
+def matrix_centralizer_cardinalities2(n, q = None, selftranspose = False, invertible = False):
+    r"""
+    Generate  pairs consisting of centralizer cardinalities of matrices over a
+    principal ideal local ring of length two with residue field of order ``q``
+    and their frequencies.
+
+    TESTS::
+
+        sage: from sage.combinat.similarity_class_type import matrix_centralizer_cardinalities2
+        sage: list(matrix_centralizer_cardinalities2(1))
+        [(q^2 - q, q^2)]
+        sage: list(matrix_centralizer_cardinalities2(2))
+        [(q^4 - 2*q^3 + q^2, 1/2*q^4 - 1/2*q^3),
+        (q^4 - q^3, q^3),
+        (q^6 - 2*q^5 + q^4, 1/2*q^3 - 1/2*q^2),
+        (q^6 - q^5, q^2),
+        (q^8 - q^7 - q^6 + q^5, q^2),
+        (q^6 - q^4, 1/2*q^3 - 1/2*q^2),
+        (q^4 - q^2, 1/2*q^4 - 1/2*q^3)]
+        sage: from sage.combinat.similarity_class_type import dictionary_from_generator
+        sage: dictionary_from_generator(matrix_centralizer_cardinalities2(2, q = 2))
+        {96: 4, 32: 4, 4: 4, 16: 2, 8: 8, 12: 4, 48: 2}
+    """
+    if q is None:
+        q = FractionField(QQ['q']).gen()
+    for tau in SimilarityClassTypes(n):
+        for pair in ext_orbit_centralizers(tau, q = q, selftranspose = selftranspose):
+            yield (q**tau.centralizer_algebra_dim()*pair[0], tau.number_of_classes(invertible = invertible, q = q)*pair[1])

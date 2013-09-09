@@ -397,6 +397,7 @@ class Config(collections.MutableMapping):
             [UI]
             log_level = 0
             [git]
+            repository_anonymous = remote_repository_undefined
             repository = remote_repository_undefined
             src = ...
             dot_git = ...

@@ -925,7 +925,7 @@ class SageDev(object):
             self.merge(remote_branch, download=True)
         else:
             try:
-                self.git.super_silent.fetch(self.git._repository, "{0}:{1}".format(remote_branch, branch))
+                self.git.super_silent.fetch(self.git._repository_anonymous, "{0}:{1}".format(remote_branch, branch))
             except GitError as e:
                 # there is not many scenarios in which this can fail - the most
                 # likely being that branch already exists and this does not
@@ -1326,7 +1326,7 @@ class SageDev(object):
                 if not self._UI.confirm("The branch `{0}` does not exist on the remote server yet. Do you want to create the branch?".format(remote_branch), default=True):
                     raise OperationCancelledError("User did not want to create remote branch.")
             else:
-                self.git.super_silent.fetch(self.git._repository, remote_branch)
+                self.git.super_silent.fetch(self.git._repository_anonymous, remote_branch)
 
             # check whether force is necessary
             if remote_branch_exists and not self.git.is_child_of(branch, 'FETCH_HEAD'):
@@ -1366,7 +1366,7 @@ class SageDev(object):
                 self._UI.info("Setting the branch field of ticket #{0} to `{1}`.".format(ticket, remote_branch))
 
                 if current_remote_branch is not None:
-                    self.git.super_silent.fetch(self.git._repository, current_remote_branch)
+                    self.git.super_silent.fetch(self.git._repository_anonymous, current_remote_branch)
                     if force or self.git.is_ancestor_of('FETCH_HEAD', branch):
                         pass
                     else:
@@ -2173,7 +2173,7 @@ class SageDev(object):
             if not self._is_remote_branch_name(ticket_branch, exists=True):
                 ticket_summary = "The trac ticket points to the branch `{0}` which does not exist."
             else:
-                self.git.super_silent.fetch(self.git._repository, ticket_branch)
+                self.git.super_silent.fetch(self.git._repository_anonymous, ticket_branch)
                 if not self.git.is_ancestor_of(MASTER_BRANCH, 'FETCH_HEAD'):
                     ticket_summary = "The trac ticket points to the branch `{0}`.".format(ticket_branch)
                 else:
@@ -2190,7 +2190,7 @@ class SageDev(object):
         if self._is_remote_branch_name(remote_branch, exists=True):
             remote_to_local = None
             local_to_remote = None
-            self.git.super_silent.fetch(self.git._repository, remote_branch)
+            self.git.super_silent.fetch(self.git._repository_anonymous, remote_branch)
             if not self.git.is_ancestor_of(MASTER_BRANCH, 'FETCH_HEAD'):
                 remote_summary = "Your remote branch is `{0}`.".format(remote_branch)
             else:
@@ -2681,7 +2681,7 @@ class SageDev(object):
                 self._UI.error("Can not merge remote branch `{0}`. It does not exist.".format(remote_branch))
                 raise OperationCancelledError("no such branch")
             self._UI.show("Merging the remote branch `{0}` into the local branch `{1}`.".format(remote_branch, current_branch))
-            self.git.super_silent.fetch(self.git._repository, remote_branch)
+            self.git.super_silent.fetch(self.git._repository_anonymous, remote_branch)
             local_merge_branch = 'FETCH_HEAD'
         else:
             assert branch
@@ -2830,7 +2830,7 @@ class SageDev(object):
             self.git.super_silent.checkout(release, detach=True)
         except GitError as e:
             try:
-                self.git.super_silent.fetch(self.git._repository, release)
+                self.git.super_silent.fetch(self.git._repository_anonymous, release)
             except GitError as e:
                 self._UI.error("`{0}` does not exist locally or on the remote server.".format(release))
                 raise OperationCancelledError("no such tag/branch/...")
@@ -3015,7 +3015,7 @@ class SageDev(object):
                         if remote_branch is None:
                             raise SageDevValueError("Dependency #{0} has no branch field set.".format(dependency))
                         self._check_remote_branch_name(remote_branch, exists=True)
-                        self.git.super_silent.fetch(self.git._repository, remote_branch)
+                        self.git.super_silent.fetch(self.git._repository_anonymous, remote_branch)
                         if self.git.is_child_of(MASTER_BRANCH, 'FETCH_HEAD'):
                             self._UI.info("Dependency #{0} has already been merged into the master branch.".format(dependency))
                         else:
@@ -3051,7 +3051,7 @@ class SageDev(object):
                 pass
             else:
                 self._check_remote_branch_name(base, exists=True)
-                self.git.super_silent.fetch(self.git._repository, base)
+                self.git.super_silent.fetch(self.git._repository_anonymous, base)
                 base = 'FETCH_HEAD'
 
         self.git.echo.diff(base)
@@ -3609,7 +3609,7 @@ class SageDev(object):
 
         from git_error import GitError
         try:
-            self.git.super_silent.ls_remote(self.git._repository, "refs/heads/"+name, exit_code=True)
+            self.git.super_silent.ls_remote(self.git._repository_anonymous, "refs/heads/"+name, exit_code=True)
             remote_exists = True
         except GitError as e:
             if e.exit_code == 2:

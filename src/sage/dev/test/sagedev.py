@@ -87,7 +87,7 @@ class DoctestSageDev(sage.dev.sagedev.SageDev):
         from trac_interface import DoctestTracInterface
         trac = DoctestTracInterface(config['trac'], UI, trac_server)
         from sage.dev.git_interface import GitInterface
-        config['git']['repository'] = trac_server.git._config['src']
+        config['git']['repository_anonymous'] = config['git']['repository'] = trac_server.git._config['src']
         git = GitInterface(config['git'], UI)
 
         self._trac_server = trac_server

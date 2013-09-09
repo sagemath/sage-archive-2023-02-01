@@ -271,9 +271,7 @@ def import_patch(self, patchname=None, url=None, local_file=None, diff_format=No
                     self._UI.info("A commit on the current branch has been created from the patch.")
                 finally:
                     self.git.reset_to_clean_state()
-                    removals = ["Removing " + fname for fname in self.git.untracked_files()]
-                    self._UI.info("\n".join(removals))
-                    self.git.reset_to_clean_working_directory(remove_untracked_files=True, quiet=True)
+                    self.git.reset_to_clean_working_directory(remove_untracked_files=True)
         finally:
             os.chdir(curdir)
 

@@ -287,13 +287,13 @@ def _latex_product(coefficients, variables,
     """
     entries = []
     for c, v in zip(coefficients, variables):
-        t = latex(c * v)
-        if t == "0":
+        if c == 0:
             entries.extend(["", ""])
-        elif t.startswith("-"):
-            entries.extend(["-", t[1:]])
-        else:
-            entries.extend(["+", t])
+            continue
+        sign = "-" if c < 0 else "+"
+        c = abs(c)
+        t = latex(v) if c == 1 else latex(c) + " " + latex(v)
+        entries.extend([sign, t])
     if drop_plus:   # Don't start with +
         for i, e in enumerate(entries):
             if e:   # The first non-empty
@@ -321,7 +321,7 @@ def _latex_product(coefficients, variables,
         if generate_real_LaTeX:
             separator = " & "
         else:
-            separator = r" \!\!\!&\!\!\! "
+            separator = r" \mspace{-6mu}&\mspace{-6mu} "
     return separator.join(entries)
     
 
@@ -416,14 +416,20 @@ class LPProblem(SageObject):
       type(s): either "<=", or ">=", or "==", or a list of them;
       
     - ``variable_type`` -- (default: ">=") a string specifying variable type(s):
-      either ">=", or "<=", or "" (empty string), or a list of them;
+      either ">=", or "<=", or "" (empty string), or a list of them,
+      corresponding, respectively, to non-negative, non-positive, and free
+      variables;
       
     - ``problem_type`` -- (default: "max") a string specifying the problem type:
       "max", "min", "-max", or "-min";
       
     - ``prefix`` -- (default: parameter ``x`` if it was given as a string,
       string "x" otherwise) a string giving the base name of automatically
-      created variables in :meth:`standard_form`.
+      created variables in :meth:`standard_form`;
+      
+    - ``base_ring`` -- (default: the fraction field of a common ring for all
+      input coefficients) a field to which all input coefficients will be
+      converted.
             
     OUTPUT:
 
@@ -468,7 +474,7 @@ class LPProblem(SageObject):
 
     def __init__(self, A, b, c, x="x",
                  constraint_type="<=", variable_type=">=", problem_type="max",
-                 prefix="x"):
+                 prefix="x", base_ring=None):
         r"""
         See :class:`LPProblem` for documentation.
 
@@ -485,15 +491,17 @@ class LPProblem(SageObject):
             A = matrix(A)
         b = vector(b)
         c = vector(c)
-        F = vector(A.list() + list(b) + list(c)).base_ring().fraction_field()
-        A = A.base_extend(F)
+        if base_ring is None:
+            base_ring = vector(A.list() + list(b) + list(c)).base_ring()
+        base_ring = base_ring.fraction_field()
+        A = A.change_ring(base_ring)
         A.set_immutable()
         m, n = A.nrows(), A.ncols()
-        b = b.base_extend(F)
+        b = b.change_ring(base_ring)
         b.set_immutable()
         if b.degree() != m:
             raise ValueError("A and b have incompatible dimensions")
-        c = c.base_extend(F)
+        c = c.change_ring(base_ring)
         c.set_immutable()
         if c.degree() != n:
             raise ValueError("A and c have incompatible dimensions")
@@ -504,7 +512,7 @@ class LPProblem(SageObject):
             x = map(str, x)
             if len(x) != n:
                 raise ValueError("A and x have incompatible dimensions")
-        R = PolynomialRing(F, x, order="neglex")
+        R = PolynomialRing(base_ring, x, order="neglex")
         x = vector(R, R.gens()) # All variables as a vector        
         self._Abcx = A, b, c, x
         
@@ -606,7 +614,7 @@ class LPProblem(SageObject):
         head = [r"{} \{}".format("- " if self._is_negative else "",
                                  self._problem_type)]
         lines.append(_latex_product(c, x, head=head) +
-                     (r"\\" if generate_real_LaTeX else r" \!\!\! \\"))
+                     (r"\\" if generate_real_LaTeX else r" \mspace{-6mu} \\"))
         for Ai, ri, bi in zip(A.rows(), self._constraint_types, b):
             lines.append(_latex_product(Ai, x, head=[""], tail=[ri, bi]) +
                          r" \\")
@@ -1328,7 +1336,11 @@ class LPProblemStandardForm(LPProblem):
       problems;
       
     - ``objective`` -- (default: "z") the objective variable (used for the
-      initial dictionary).
+      initial dictionary);
+      
+    - ``base_ring`` -- (default: the fraction field of a common ring for all
+      input coefficients) a field to which all input coefficients will be
+      converted.      
                 
     OUTPUT:
 
@@ -1353,7 +1365,8 @@ class LPProblemStandardForm(LPProblem):
     """
 
     def __init__(self, A, b, c, x="x", problem_type="max",
-                 slack_variables=None, auxiliary_variable=None, objective="z"):
+                 slack_variables=None, auxiliary_variable=None, objective="z",
+                 base_ring=None):
         r"""
         See :class:`StandardFormLPP` for documentation.
 
@@ -1369,7 +1382,8 @@ class LPProblemStandardForm(LPProblem):
             raise ValueError("problems in standard form must be of (negative) "
                              "maximization type")
         super(LPProblemStandardForm, self).__init__(A, b, c, x,
-                                                    problem_type=problem_type)
+                                                    problem_type=problem_type,
+                                                    base_ring=base_ring)
         n, m = self.n(), self.m()
         if slack_variables is None:
            slack_variables = self._prefix
@@ -1387,6 +1401,9 @@ class LPProblemStandardForm(LPProblem):
             names.pop(0)
         R = PolynomialRing(self.base_ring(), names, order="neglex")
         self._R = R
+        x = vector(R.gens()[-n-m:-m])
+        x.set_immutable()
+        self._Abcx = self._Abcx[:-1] + (x, )
         self._objective = objective
 
     def auxiliary_problem(self):
@@ -1565,23 +1582,19 @@ class LPProblemStandardForm(LPProblem):
             sage: D.basic_solution()
             (400, 0)
         """
-        if not auxiliary_dictionary.is_optimal():
-            raise ValueError("the auxiliary dictionary must be optimal")
-        if auxiliary_dictionary.objective_value() != 0:
-            raise ValueError("the objective value of the auxiliary dictionary "
-                             "must be 0")
+        # It is good to have sanity checks in this function, but they are a bit
+        # problematic with numerical dictionaries, so we do only few.
         x0 = self.auxiliary_variable()
         if x0 not in auxiliary_dictionary.nonbasic_variables():
             raise ValueError("the auxiliary variable must be non-basic")
+        if not auxiliary_dictionary.is_feasible():
+            raise ValueError("the auxiliary dictionary must be feasible")
         A, b, c, v, B, N, z = auxiliary_dictionary._AbcvBNz
         B = tuple(B)
         N = tuple(N)
         k = N.index(x0)
         N = N[:k] + N[k+1:]
         n = len(c)
-        if c[k] != -1 or list(c).count(0) != n - 1:
-            raise ValueError("the auxiliary variable must be the only one in "
-                             "the objective (with coefficient -1)")
         A = A.matrix_from_columns(range(k) + range(k + 1, n))
         b = copy(b)
         c = vector(ZZ, n - 1)
@@ -1926,14 +1939,15 @@ class LPProblemStandardForm(LPProblem):
                           "solving auxiliary problem.}")
             d = self.auxiliary_problem().initial_dictionary()
             result.append(latex(d))
-            _, entering = min(zip(d.objective_coefficients(),
-                                  d.nonbasic_variables()))
+            x0 = self.auxiliary_variable()
             _, leaving = min(zip(d.constant_terms(), d.basic_variables()))
-            step(entering, leaving)
-            while not d.is_optimal():                
+            step(x0, leaving)
+            # while not d.is_optimal():                
+            # either optimality check should handle rounding errors or
+            while not (d.is_optimal() or x0 in d.nonbasic_variables()):
                 entering, leaving = min(d.possible_simplex_method_steps())
                 step(entering, min(leaving))
-            is_feasible = d.objective_value() == 0
+            is_feasible = x0 in d.nonbasic_variables()
             if is_feasible:
                 result.append(r"\text{Back to the original problem.}")
                 d = self.feasible_dictionary(d)

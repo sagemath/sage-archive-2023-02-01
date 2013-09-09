@@ -3008,8 +3008,9 @@ class SageDev(object):
             self._is_master_uptodate(action_if_not="warning")
 
             branch = self.git.current_branch()
+            merge_base = self.git.merge_base(branch, MASTER_BRANCH).splitlines()[0]
             temporary_branch = self._new_local_branch_for_trash("diff")
-            self.git.super_silent.branch(temporary_branch, MASTER_BRANCH)
+            self.git.super_silent.branch(temporary_branch, merge_base)
             try:
                 self.git.super_silent.checkout(temporary_branch)
                 try:
@@ -3018,11 +3019,14 @@ class SageDev(object):
                         self._check_ticket_name(dependency, exists=True)
                         remote_branch = self.trac._branch_for_ticket(dependency)
                         if remote_branch is None:
-                            raise SageDevValueError("Dependency #{0} has no branch field set.".format(dependency))
+                            self._UI.warning("Dependency #{0} has no branch field set.".format(dependency))
                         self._check_remote_branch_name(remote_branch, exists=True)
                         self.git.super_silent.fetch(self.git._repository_anonymous, remote_branch)
-                        if self.git.is_child_of(MASTER_BRANCH, 'FETCH_HEAD'):
-                            self._UI.info("Dependency #{0} has already been merged into the master branch.".format(dependency))
+                        merge_base_dependency = self.git.merge_base(MASTER_BRANCH, 'FETCH_HEAD').splitlines()[0]
+                        if merge_base_dependency != merge_base and self.git.is_child_of(merge_base_dependency, merge_base):
+                            self._UI.show("The remote branch `{0}` is based on a later version of sage than your local branch `{1}`. The diff might therefore contain many changes which were not introduced by your branch `{1}`. Use `{2}` to rebase your branch to the latest version of sage.".format(remote_branch, branch, self._format_command("merge")))
+                        if self.git.is_child_of(merge_base, 'FETCH_HEAD'):
+                            self._UI.info("Dependency #{0} has already been merged into the master branch of your version of sage.".format(dependency))
                         else:
                             if not self.git.is_child_of(branch, 'FETCH_HEAD'):
                                 self._UI.warning("Dependency #{0} has not been merged into `{1}` (at least not its latest version). Use `{2}` to merge it.".format(dependency, branch, self._format_command("merge",ticket_or_branch="{0}".format(dependency))))

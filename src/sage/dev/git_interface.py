@@ -492,10 +492,10 @@ class GitInterface(ReadStdoutGitProxy):
 
     EXAMPLES::
 
-        sage: from sage.dev.config import Config
+        sage: from sage.dev.test.config import DoctestConfig
         sage: from sage.dev.user_interface import UserInterface
         sage: from sage.dev.git_interface import GitInterface
-        sage: config = Config()
+        sage: config = DoctestConfig()
         sage: GitInterface(config['git'], UserInterface(config['UI']))
         GitInterface()
 
@@ -506,10 +506,10 @@ class GitInterface(ReadStdoutGitProxy):
 
         TESTS::
 
-            sage: from sage.dev.config import Config
+            sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.user_interface import UserInterface
             sage: from sage.dev.git_interface import GitInterface
-            sage: config = Config()
+            sage: config = DoctestConfig()
             sage: type(GitInterface(config['git'], UserInterface(config['UI'])))
             <class 'sage.dev.git_interface.GitInterface'>
 
@@ -526,10 +526,10 @@ class GitInterface(ReadStdoutGitProxy):
 
         TESTS::
 
-            sage: from sage.dev.config import Config
+            sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.user_interface import UserInterface
             sage: from sage.dev.git_interface import GitInterface
-            sage: config = Config()
+            sage: config = DoctestConfig()
             sage: repr(GitInterface(config['git'], UserInterface(config['UI'])))
             'GitInterface()'
 

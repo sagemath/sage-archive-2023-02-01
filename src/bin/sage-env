@@ -315,7 +315,7 @@ if [ "$SAGE_UPSTREAM" = "" ]; then
     export SAGE_UPSTREAM
 fi
 if [ -z "$SAGE_REPO_ANONYMOUS" ]; then
-    SAGE_REPO_ANONYMOUS="git://github.com/sagemath/sage.git"
+    SAGE_REPO_ANONYMOUS="http://trac.sagemath.org/sage.git"
     export SAGE_REPO_ANONYMOUS
 fi
 if [ -z "$SAGE_REPO_AUTHENTICATED" ]; then

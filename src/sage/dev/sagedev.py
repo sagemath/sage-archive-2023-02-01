@@ -2156,13 +2156,12 @@ class SageDev(object):
                 return "The branches `{0}` and `{1}` have diverged.\n`{0}` is ahead of `{1}` by {2} commits:\n{3}\n`{1}` is ahead of `{0}` by {4} commits:\n{5}".format(a,b,len(b_to_a),"\n".join(b_to_a),len(a_to_b),"\n".join(a_to_b))
 
         branch = None
+        merge_base_local = None
         if self._has_local_branch_for_ticket(ticket):
             branch = self._local_branch_for_ticket(ticket)
-            if not self.git.is_ancestor_of(MASTER_BRANCH, branch):
-                local_summary = "Your branch is `{0}`.".format(branch)
-            else:
-                master_to_branch = commits(MASTER_BRANCH, branch)
-                local_summary = "Your branch `{0}` has {1} commits.".format(branch, len(master_to_branch))
+            merge_base_local = self.git.merge_base(MASTER_BRANCH, branch).splitlines()[0]
+            master_to_branch = commits(merge_base_local, branch)
+            local_summary = "Your branch `{0}` has {1} commits.".format(branch, len(master_to_branch))
         else:
             local_summary = "You have no local branch for this ticket"
 
@@ -2174,12 +2173,13 @@ class SageDev(object):
                 ticket_summary = "The trac ticket points to the branch `{0}` which does not exist."
             else:
                 self.git.super_silent.fetch(self.git._repository_anonymous, ticket_branch)
-                if not self.git.is_ancestor_of(MASTER_BRANCH, 'FETCH_HEAD'):
-                    ticket_summary = "The trac ticket points to the branch `{0}`.".format(ticket_branch)
-                else:
-                    master_to_ticket = commits(MASTER_BRANCH, 'FETCH_HEAD')
-                    ticket_summary = "The trac ticket points to the branch `{0}` which has {1} commits.".format(ticket_branch, len(master_to_ticket))
-                    if self.git.is_ancestor_of(MASTER_BRANCH, branch):
+                merge_base_ticket = self.git.merge_base(MASTER_BRANCH, 'FETCH_HEAD').splitlines()[0]
+                master_to_ticket = commits(merge_base_ticket, 'FETCH_HEAD')
+                ticket_summary = "The trac ticket points to the branch `{0}` which has {1} commits.".format(ticket_branch, len(master_to_ticket))
+                if branch is not None:
+                    if merge_base_local != merge_base_ticket:
+                        ticket_summary += " The branch can not be compared to your local branch `{0}` because the branches are based on different versions of sage (i.e. the `master` branch)."
+                    else:
                         ticket_to_local = commits('FETCH_HEAD', branch)
                         local_to_ticket = commits(branch, 'FETCH_HEAD')
                         ticket_summary += " "+detail(ticket_branch, branch, ticket_to_local, local_to_ticket)
@@ -2191,12 +2191,13 @@ class SageDev(object):
             remote_to_local = None
             local_to_remote = None
             self.git.super_silent.fetch(self.git._repository_anonymous, remote_branch)
-            if not self.git.is_ancestor_of(MASTER_BRANCH, 'FETCH_HEAD'):
-                remote_summary = "Your remote branch is `{0}`.".format(remote_branch)
-            else:
-                master_to_remote = commits(MASTER_BRANCH, 'FETCH_HEAD')
-                remote_summary = "Your remote branch `{0}` has {1} commits.".format(remote_branch, len(master_to_remote))
-                if self.git.is_ancestor_of(MASTER_BRANCH, branch):
+            merge_base_remote = self.git.merge_base(MASTER_BRANCH, 'FETCH_HEAD').splitlines()[0]
+            master_to_remote = commits(merge_base_remote, 'FETCH_HEAD')
+            remote_summary = "Your remote branch `{0}` has {1} commits.".format(remote_branch, len(master_to_remote))
+            if branch is not None:
+                if merge_base_remote != merge_base_local:
+                    remote_summary += " The branch can not be compared to your local branch `{0}` because the branches are based on different version of sage (i.e. the `master` branch)."
+                else:
                     remote_to_local = commits('FETCH_HEAD', branch)
                     local_to_remote = commits(branch, 'FETCH_HEAD')
                     remote_summary += " "+detail(remote_branch, branch, remote_to_local, local_to_remote)

@@ -2139,6 +2139,8 @@ class SageDev(object):
         self._check_ticket_name(ticket, exists=True)
         ticket = self._ticket_from_ticket_name(ticket)
 
+        self._is_master_uptodate(action_if_not="warning")
+
         from sage.env import TRAC_SERVER_URI
         header = "Ticket #{0} ({1})".format(ticket, TRAC_SERVER_URI + '/ticket/' + str(ticket))
         underline = "="*len(header)
@@ -3003,6 +3005,8 @@ class SageDev(object):
                 self._UI.error("Cannot create merge of dependencies because working directory is not clean.")
                 raise
 
+            self._is_master_uptodate(action_if_not="warning")
+
             branch = self.git.current_branch()
             temporary_branch = self._new_local_branch_for_trash("diff")
             self.git.super_silent.branch(temporary_branch, MASTER_BRANCH)
@@ -3052,6 +3056,7 @@ class SageDev(object):
                 pass
             else:
                 self._check_remote_branch_name(base, exists=True)
+                self._is_master_uptodate(action_if_not="warning")
                 self.git.super_silent.fetch(self.git._repository_anonymous, base)
                 base = 'FETCH_HEAD'
 
@@ -3262,6 +3267,85 @@ class SageDev(object):
             url = urlparse.urljoin(server, urllib.pathname2url(os.path.join('prefs', 'sshkeys')))
             self._UI.info("Use `{0}` to upload a public key. Or set your key manually at {1}.".format(self._format_command("upload_ssh_key"), url))
             raise
+
+    def _is_master_uptodate(self, action_if_not=None):
+        r"""
+        Check whether the master branch is up to date with respect to the
+        remote master branch.
+
+        INPUT:
+
+        - ``action_if_not`` -- one of ``'error'``, ``'warning'``, or ``None``
+          (default: ``None``), the action to perform if master is not up to
+          date. If ``'error'``, then this raises a ``SageDevValueError``,
+          otherwise return a boolean and print a warning if ``'warning'``.
+
+        .. NOTE::
+
+            In the transitional period from hg to git, this is a nop. This will
+            change as soon as ``master`` is our actual master branch.
+
+        TESTS:
+
+        Create a doctest setup with a single user::
+
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: dev._wrap("_is_master_uptodate")
+
+        Initially ``master`` is up to date::
+
+            sage: dev._is_master_uptodate()
+            True
+
+        When the remote ``master`` branches changes, this is not the case
+        anymore::
+
+            sage: server.git.super_silent.commit(allow_empty=True, message="a commit")
+            sage: dev._is_master_uptodate()
+            False
+            sage: dev._is_master_uptodate(action_if_not="warning")
+            Your version of sage, i.e., your `master` branch, is out of date. Your command might fail or produce unexpected results.
+            False
+            sage: dev._is_master_uptodate(action_if_not="error")
+            ValueError: Your version of sage, i.e., your `master` branch, is out of date.
+
+        We upgrade the local master::
+
+            sage: dev.download(ticket_or_remote_branch="master", branch="master")
+            Merging the remote branch `master` into the local branch `master`.
+            sage: dev._is_master_uptodate()
+            True
+            sage: dev._is_master_uptodate(action_if_not="warning")
+            True
+            sage: dev._is_master_uptodate(action_if_not="error")
+            True
+
+        """
+        remote_master = self._remote_branch_for_branch(MASTER_BRANCH)
+        if remote_master is not None:
+            self.git.fetch(self.git._repository_anonymous, remote_master)
+            # In the transition from hg to git we are using
+            # public/sage-git/master instead of master on the remote end.
+            # This check makes sure that we are not printing any confusing
+            # messages unless master is actually the latest (development)
+            # version of sage.
+            if self.git.is_child_of('FETCH_HEAD', MASTER_BRANCH):
+                if self.git.commit_for_ref('FETCH_HEAD') != self.git.commit_for_branch(MASTER_BRANCH):
+                    info = "To upgrade your `{0}` branch to the latest version, use `{1}`.".format(MASTER_BRANCH, self._format_command("download",ticket_or_branch=remote_master,branch=MASTER_BRANCH))
+                    if action_if_not is None:
+                        pass
+                    elif action_if_not == "error":
+                        self._UI.info(info)
+                        raise SageDevValueError("Your version of sage, i.e., your `{0}` branch, is out of date.".format(MASTER_BRANCH))
+                    elif action_if_not == "warning":
+                        self._UI.warning("Your version of sage, i.e., your `{0}` branch, is out of date. Your command might fail or produce unexpected results.".format(MASTER_BRANCH))
+                        self._UI.info(info)
+                    else:
+                        raise ValueError
+                    return False
+
+        return True
 
     def _is_ticket_name(self, name, exists=False):
         r"""

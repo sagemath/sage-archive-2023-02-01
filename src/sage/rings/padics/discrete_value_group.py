@@ -61,7 +61,7 @@ class DiscreteValueGroup(UniqueRepresentation, Parent):
 
         """
         from sage.misc.functional import coerce
-        coerce(QQ, generator)
+        generator = coerce(QQ, generator)
         generator = generator.abs()
         return super(DiscreteValueGroup, cls).__classcall__(cls, generator, category)
 

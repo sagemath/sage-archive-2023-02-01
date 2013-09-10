@@ -2233,8 +2233,8 @@ class SageDev(object):
             sage: dev.create_ticket()
             1
             sage: dev.local_tickets()
-              : master
-            #1: ticket/1
+                : master
+            * #1: ticket/1 summary
 
         With a commit on it, the branch is not abandoned::
 
@@ -2243,8 +2243,8 @@ class SageDev(object):
             sage: dev.git.super_silent.commit(message="added tracked")
             sage: dev.prune_closed_tickets()
             sage: dev.local_tickets()
-              : master
-            #1: ticket/1
+                : master
+            * #1: ticket/1 summary
 
         After merging it to the master branch, it is abandoned. This does not
         work, because we cannot move the current branch::
@@ -2752,7 +2752,7 @@ class SageDev(object):
         Create some tickets::
 
             sage: dev.local_tickets()
-            : master
+            * : master
 
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
@@ -2761,20 +2761,39 @@ class SageDev(object):
             sage: dev.create_ticket()
             2
             sage: dev.local_tickets()
-              : master
-            #1: ticket/1
-            #2: ticket/2
+                : master
+              #1: ticket/1 summary
+            * #2: ticket/2 summary
 
         """
         branches = self.git.local_branches()
+        from git_error import DetachedHeadError
+        try:
+            current_branch = self.git.current_branch()
+        except DetachedHeadError:
+            current_branch = None
         branches = [ branch for branch in branches if include_abandoned or not self._is_trash_name(branch) ]
         if not branches:
             return
-        branches = [ "{0:>7}: {1}".format("#"+str(self._ticket_for_local_branch(branch)) if self._has_ticket_for_local_branch(branch) else "", branch) for branch in branches ]
-        while all([branch.startswith(' ') for branch in branches]):
-            branches = [branch[1:] for branch in branches]
-        branches = sorted(branches)
-        self._UI.show("\n".join(branches))
+        ret = []
+        for branch in branches:
+            ticket = None
+            summary = ""
+            extra = " "
+            if self._has_ticket_for_local_branch(branch):
+                ticket = self._ticket_for_local_branch(branch)
+                try:
+                    summary = self.trac._get_attributes(ticket)['summary']
+                except TracConnectionError:
+                    pass # local-tickets should still work when offline
+            if current_branch == branch:
+                extra = "*"
+            ret.append(("{0:>7}: {1} {2}".format("#"+str(ticket) if ticket else "", branch, summary), extra))
+        while all([info.startswith(' ') for (info, extra) in ret]):
+            ret = [(info[1:],extra) for (info, extra) in ret]
+        ret = sorted(ret)
+        ret = ["{0} {1}".format(extra,info) for (info,extra) in ret]
+        self._UI.show("\n".join(ret))
 
     def vanilla(self, release=SAGE_VERSION):
         r"""

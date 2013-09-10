@@ -1332,7 +1332,7 @@ class SageDev(object):
             if remote_branch_exists and not self.git.is_child_of(branch, 'FETCH_HEAD'):
                 if not force:
                     self._UI.error("Not uploading your changes because they would discard some of the commits on the remote branch `{0}`.".format(remote_branch))
-                    self._UI.info("If this is really what you want, use `{0}` to upload your changes.".format(remote_branch, self._format_command("upload",ticket=ticket,remote_branch=remote_branch,force=True)))
+                    self._UI.info("If this is really what you want, use `{0}` to upload your changes.".format(self._format_command("upload",ticket=ticket,remote_branch=remote_branch,force=True)))
                     raise OperationCancelledError("not a fast-forward")
 
             # check whether this is a nop

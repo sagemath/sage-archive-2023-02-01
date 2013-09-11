@@ -151,7 +151,6 @@ AUTHORS:
 
 """
 
-
 #*****************************************************************************
 #       Copyright (C) 2010 Niles Johnson <nilesj@gmail.com>
 #
@@ -164,7 +163,6 @@ from sage.rings.power_series_ring_element import PowerSeries
 from sage.rings.polynomial.all import is_PolynomialRing
 from sage.rings.power_series_ring import is_PowerSeriesRing
 
-from sage.rings.all import ZZ
 from sage.rings.integer import Integer
 from sage.rings.finite_rings.integer_mod_ring import Zmod
 
@@ -392,7 +390,8 @@ class MPowerSeries(PowerSeries):
                 #self._value = x
                 self._bg_value = parent._send_to_bg(x).add_bigoh(prec)
             except (TypeError, AttributeError):
-                raise TypeError("Input does not coerce to any of the expected rings.")
+                raise TypeError("Input does not coerce to any of the "
+                                "expected rings.")
 
         self._go_to_fg = parent._send_to_fg
         self._prec = self._bg_value.prec()
@@ -789,6 +788,8 @@ class MPowerSeries(PowerSeries):
         """
         Return the trailing monomial of ``self``
 
+        This is defined here as the lowest term of the underlying polynomial.
+
         EXAMPLE::
 
             sage: R.<a,b,c> = PowerSeriesRing(ZZ)
@@ -809,7 +810,7 @@ class MPowerSeries(PowerSeries):
 
     def quo_rem(self, other):
         r"""
-        Quotient and remainder for increassing power division
+        Quotient and remainder for increasing power division
 
         INPUT: ``other`` - an element of the same power series ring as ``self``
 
@@ -851,11 +852,10 @@ class MPowerSeries(PowerSeries):
             ZeroDivisionError
         """
         if other.parent() is not self.parent():
-            raise ValueError, "Don't know how to divide by a element of %s"%(other.parent())
+            raise ValueError("Do not know how to divide by a element of %s" % (other.parent()))
         other_tt = other.trailing_monomial()
         if not other_tt:
             raise ZeroDivisionError()
-        mprec = min(self.prec(), other.prec())
         rem = self.parent().zero().add_bigoh(self.prec())
         quo = self.parent().zero().add_bigoh(self.prec()-other.valuation())
         while self:
@@ -900,7 +900,7 @@ class MPowerSeries(PowerSeries):
             sage: f/(a*f)
             Traceback (most recent call last):
             ...
-            ValueError: Not divisible
+            ValueError: not divisible
 
         An example where one looses precision::
 
@@ -918,7 +918,7 @@ class MPowerSeries(PowerSeries):
             return self*~denom_r
         quo, rem = self.quo_rem(denom_r)
         if rem:
-            raise ValueError("Not divisible")
+            raise ValueError("not divisible")
         else:
             return quo
 
@@ -980,8 +980,6 @@ class MPowerSeries(PowerSeries):
         if isinstance(other,(int,Integer,long)):
             return self.change_ring(Zmod(other))
         raise NotImplementedError("Mod on multivariate power series ring elements not defined except modulo an integer.")
-
-
 
     def dict(self):
         """
@@ -1216,7 +1214,6 @@ class MPowerSeries(PowerSeries):
         """
         return self.parent(self._bg_value.add_bigoh(prec))
 
-
     def O(self, prec):
         """
         Return a multivariate power series of total precision obtained
@@ -1340,7 +1337,6 @@ class MPowerSeries(PowerSeries):
             return True
         else:
             return False
-
 
     def degree(self):
         """
@@ -1485,7 +1481,7 @@ class MPowerSeries(PowerSeries):
             If the base ring is not a field (e.g. `ZZ`), or if it has a non
             zero characteristic, (e.g. `ZZ/3ZZ`), integration is not always
             possible, while staying with the same base ring. In the first
-            case, Sage will report that it hasn't been able to coerce some
+            case, Sage will report that it has not been able to coerce some
             coefficient to the base ring::
 
                 sage: T.<a,b> = PowerSeriesRing(ZZ,2)
@@ -1564,15 +1560,16 @@ class MPowerSeries(PowerSeries):
         R = P.base_ring()
         xx = P(xx)
         if not xx.is_gen():
-            for g in P.gens(): # try to find a generator equal to xx
+            for g in P.gens():  # try to find a generator equal to xx
                 if g == xx:
                     xx = g
                     break
             else:
-                raise ValueError, "%s is not a variable"%(xx)
+                raise ValueError("%s is not a variable" % xx)
         xxe = xx.exponents()[0]
-        pos = [i for i, c in enumerate(xxe) if c != 0][0] # get the position of the variable
-        res = { mon.eadd(xxe) : R(co / (mon[pos]+1)) for mon, co in self.dict().iteritems() }
+        pos = [i for i, c in enumerate(xxe) if c != 0][0]  # get the position of the variable
+        res = {mon.eadd(xxe): R(co / (mon[pos]+1))
+               for mon, co in self.dict().iteritems()}
         return P( res ).add_bigoh(self.prec()+1)
 
     def ogf(self):
@@ -1749,7 +1746,7 @@ class MPowerSeries(PowerSeries):
         OUTPUT:
 
         The exponentiated multivariate power series as a new
-        multivaritate power series.
+        multivariate power series.
 
         EXAMPLES::
 
@@ -1840,7 +1837,7 @@ class MPowerSeries(PowerSeries):
         OUTPUT:
 
         The logarithm of the multivariate power series as a new
-        multivaritate power series.
+        multivariate power series.
 
         EXAMPLES::
 
@@ -1986,5 +1983,3 @@ class MO(object):
         if self._vars != parent.gens():
             raise NotImplementedError
         return self._vars[0].parent()(0,prec)
-
-

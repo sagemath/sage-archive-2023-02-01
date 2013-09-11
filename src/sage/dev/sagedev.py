@@ -112,7 +112,7 @@ class SageDev(object):
         self.git = git
         if self.git is None:
             from git_interface import GitInterface
-            self.git = GitInterface(self.config['git'], self._UI, self.upload_ssh_key)
+            self.git = GitInterface(self.config['git'], self._UI)
 
         # create some SavingDicts to store the relations between branches and tickets
         from sage.env import DOT_SAGE
@@ -1344,6 +1344,7 @@ class SageDev(object):
                             if not self._UI.confirm("I will now upload the following new commits to the remote branch `{0}`:\n{1}Is this what you want?".format(remote_branch, commits), default=True):
                                 raise OperationCancelledError("user requested")
 
+                    self._upload_ssh_key() # make sure that we have access to the repository
                     self.git.super_silent.push(self.git._repository, "{0}:{1}".format(branch, remote_branch), force=force)
                 except GitError as e:
                     # can we give any advice if this fails?
@@ -3292,6 +3293,50 @@ class SageDev(object):
             url = urlparse.urljoin(server, urllib.pathname2url(os.path.join('prefs', 'sshkeys')))
             self._UI.info("Use `{0}` to upload a public key. Or set your key manually at {1}.".format(self._format_command("upload_ssh_key"), url))
             raise
+
+    def _upload_ssh_key(self):
+        r"""
+        Make sure that the public ssh key has been uploaded to the trac server.
+
+        .. NOTE::
+
+            This is a wrapper for :meth:`upload_ssh_key` which is only called
+            one the user's first attempt to push to the repository, i.e., on
+            the first attempt to acces ``SAGE_REPO_AUTHENTICATED``.
+
+        TESTS:
+
+        Create a doctest setup with a single user::
+
+            sage: from sage.dev.test.sagedev import single_user_setup
+            sage: dev, config, UI, server = single_user_setup()
+            sage: del dev._sagedev.config['git']['ssh_key_set']
+
+        We need to patch :meth:`upload_ssh_key` to get testable results since
+        it depends on whether the user has an ssh key in ``.ssh/id_rsa.pub``::
+
+            sage: from sage.dev.user_interface_error import OperationCancelledError
+            sage: def upload_ssh_key():
+            ....:     print "Uploading ssh key."
+            ....:     raise OperationCancelledError("")
+            sage: dev._sagedev.upload_ssh_key = upload_ssh_key
+
+        The ssh key is only uploaded once::
+
+            sage: dev._sagedev._upload_ssh_key()
+            Uploading ssh key.
+            sage: dev._sagedev._upload_ssh_key()
+
+        """
+        if self.config['git'].get('ssh_key_set', False):
+            return
+
+        from user_interface_error import OperationCancelledError
+        try:
+            self.upload_ssh_key()
+        except OperationCancelledError:
+            pass # do not bother the user again, probably the key has been uploaded manually already
+        self.config['git']['ssh_key_set'] = "True"
 
     def _is_master_uptodate(self, action_if_not=None):
         r"""

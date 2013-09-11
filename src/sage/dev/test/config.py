@@ -44,6 +44,7 @@ class DoctestConfig(sage.dev.config.Config):
         [UI]
         log_level = 0
         [git]
+        ssh_key_set = True
         repository_anonymous = remote_repository_undefined
         repository = remote_repository_undefined
         src = ...
@@ -71,7 +72,7 @@ class DoctestConfig(sage.dev.config.Config):
 
         self['trac'] = {'username': trac_username}
         self['UI'] = {'log_level': 0}
-        self['git'] = {}
+        self['git'] = {'ssh_key_set': "True"}
         self['sagedev'] = {}
 
         self['git']['repository_anonymous'] = self['git']['repository'] = repository if repository else "remote_repository_undefined"

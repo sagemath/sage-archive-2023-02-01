@@ -106,7 +106,7 @@ _add_variable_or_fallback('SAGE_URL',                'http://sage.math.washingto
 _add_variable_or_fallback('REALM',                   'sage.math.washington.edu')
 _add_variable_or_fallback('TRAC_SERVER_URI',         'https://trac.sagemath.org')
 _add_variable_or_fallback('SAGE_REPO_AUTHENTICATED', 'ssh://git@trac.sagemath.org:2222/sage.git')
-_add_variable_or_fallback('SAGE_REPO_ANONYMOUS',     'git://github.com/sagemath/sage.git')
+_add_variable_or_fallback('SAGE_REPO_ANONYMOUS',     'http://trac.sagemath.org/sage.git')
 _add_variable_or_fallback('SAGE_VERSION',            version.version)
 _add_variable_or_fallback('SAGE_DATE',               version.date)
 

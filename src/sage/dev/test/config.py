@@ -44,6 +44,7 @@ class DoctestConfig(sage.dev.config.Config):
         [UI]
         log_level = 0
         [git]
+        repository_anonymous = remote_repository_undefined
         repository = remote_repository_undefined
         src = ...
         dot_git = ...
@@ -73,7 +74,7 @@ class DoctestConfig(sage.dev.config.Config):
         self['git'] = {}
         self['sagedev'] = {}
 
-        self['git']['repository'] = repository if repository else "remote_repository_undefined"
+        self['git']['repository_anonymous'] = self['git']['repository'] = repository if repository else "remote_repository_undefined"
 
         self._tmp_dir = tempfile.mkdtemp()
         atexit.register(shutil.rmtree, self._tmp_dir)

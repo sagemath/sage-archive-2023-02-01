@@ -24,7 +24,7 @@ AUTHORS:
 
 import os
 
-from sage.env import SAGE_DOT_GIT, SAGE_REPO_AUTHENTICATED, SAGE_ROOT
+from sage.env import SAGE_DOT_GIT, SAGE_REPO_AUTHENTICATED, SAGE_ROOT, SAGE_REPO_ANONYMOUS
 
 from git_error import GitError, DetachedHeadError
 
@@ -64,6 +64,7 @@ class GitProxy(object):
         self._dot_git = self._config.get('dot_git', SAGE_DOT_GIT)
         self._gitcmd = self._config.get('gitcmd', 'git')
         self._repository = self._config.get('repository', SAGE_REPO_AUTHENTICATED)
+        self._repository_anonymous = self._config.get('repository_anonymous', SAGE_REPO_ANONYMOUS)
 
         if not os.path.isabs(self._src):
             raise ValueError("`%s` is not an absolute path."%self._src)
@@ -491,10 +492,10 @@ class GitInterface(ReadStdoutGitProxy):
 
     EXAMPLES::
 
-        sage: from sage.dev.config import Config
+        sage: from sage.dev.test.config import DoctestConfig
         sage: from sage.dev.user_interface import UserInterface
         sage: from sage.dev.git_interface import GitInterface
-        sage: config = Config()
+        sage: config = DoctestConfig()
         sage: GitInterface(config['git'], UserInterface(config['UI']))
         GitInterface()
 
@@ -505,10 +506,10 @@ class GitInterface(ReadStdoutGitProxy):
 
         TESTS::
 
-            sage: from sage.dev.config import Config
+            sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.user_interface import UserInterface
             sage: from sage.dev.git_interface import GitInterface
-            sage: config = Config()
+            sage: config = DoctestConfig()
             sage: type(GitInterface(config['git'], UserInterface(config['UI'])))
             <class 'sage.dev.git_interface.GitInterface'>
 
@@ -525,10 +526,10 @@ class GitInterface(ReadStdoutGitProxy):
 
         TESTS::
 
-            sage: from sage.dev.config import Config
+            sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.user_interface import UserInterface
             sage: from sage.dev.git_interface import GitInterface
-            sage: config = Config()
+            sage: config = DoctestConfig()
             sage: repr(GitInterface(config['git'], UserInterface(config['UI'])))
             'GitInterface()'
 

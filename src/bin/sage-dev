@@ -325,6 +325,18 @@ def parser_from_object(obj, *args, **kwds):
     return parser
 
 if __name__ == '__main__':
-    from sage.dev.all import dev
-    parser = parser_from_object(dev)
-    parser.run()
+    if "--profile" in sys.argv:
+        sys.argv.remove("--profile")
+        import cProfile
+        profiler = cProfile.Profile()
+        profiler.enable()
+    else:
+        profiler = None
+    try:
+        from sage.dev.all import dev
+        parser = parser_from_object(dev)
+        parser.run()
+    finally:
+        if profiler is not None:
+            profiler.disable()
+            profiler.print_stats(sort='cumulative')

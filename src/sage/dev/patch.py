@@ -241,36 +241,39 @@ def import_patch(self, patchname=None, url=None, local_file=None, diff_format=No
         os.fdopen(fd, 'w').writelines("\n".join(lines)+"\n")
 
         self._UI.info("Trying to apply reformatted patch `%s`"%outfile)
+        # am, apply and add need to be in the root directory
+        curdir = os.getcwd()
+        os.chdir(self.git._src)
         try:
-            self.git.echo.am(outfile, "--resolvemsg= ", ignore_whitespace=True)
-        except GitError:
-            if not self._UI.confirm("The patch does not apply cleanly. Would you like to apply it anyway and create reject files for the parts that do not apply?", default=False):
-                self._UI.info("Not applying patch.")
-                self.git.reset_to_clean_state()
-                self.git.reset_to_clean_working_directory(remove_untracked_files=True)
-                raise OperationCancelledError("User requested to cancel the apply.")
-
             try:
-                try:
-                    self.git.silent.apply(outfile, ignore_whitespace=True, reject=True)
-                except GitError:
-                    if self._UI.select("The patch did not apply cleanly. Please integrate the `.rej` files that were created and resolve conflicts. After you do, type `resolved`. If you want to abort this process, type `abort`.", ("resolved","abort")) == "abort":
-                        self.git.reset_to_clean_state()
-                        self.git.reset_to_clean_working_directory(remove_untracked_files=True)
-                        raise OperationCancelledError("User requested to cancel the apply.")
-                else:
-                    self._UI.show("It seemed that the patch would not apply, but in fact it did.")
-                    return
+                self.git.echo.am(outfile, "--resolvemsg= ", ignore_whitespace=True)
+            except GitError:
+                if not self._UI.confirm("The patch does not apply cleanly. Would you like to apply it anyway and create reject files for the parts that do not apply?", default=False):
+                    self._UI.info("Not applying patch.")
+                    self.git.reset_to_clean_state()
+                    self.git.reset_to_clean_working_directory(remove_untracked_files=True)
+                    raise OperationCancelledError("User requested to cancel the apply.")
 
-                self.git.super_silent.add(update=True)
-                untracked = [fname for fname in self.git.untracked_files() if not fname.endswith(".rej")]
-                if untracked:
-                    self._UI.confirm("The patch will introduce the following new files to the repository:\n{0}\nIs this correct?".format("\n".join(untracked)), default=True)
-                    self.git.super_silent.add(*untracked)
-                self.git.am('--resolvemsg= ', resolved=True)
-                self._UI.info("A commit on the current branch has been created from the patch.")
-            finally:
-                self.git.reset_to_clean_working_directory(remove_untracked_files=True)
+                try:
+                    try:
+                        self.git.silent.apply(outfile, ignore_whitespace=True, reject=True)
+                    except GitError:
+                        if self._UI.select("The patch did not apply cleanly. Please integrate the `.rej` files that were created and resolve conflicts. After you do, type `resolved`. If you want to abort this process, type `abort`.", ("resolved","abort")) == "abort":
+                            raise OperationCancelledError("User requested to cancel the apply.")
+                    else:
+                        self._UI.show("It seemed that the patch would not apply, but in fact it did.")
+
+                    self.git.super_silent.add(update=True)
+                    untracked = [fname for fname in self.git.untracked_files() if not fname.endswith(".rej")]
+                    if untracked and self._UI.confirm("The patch will introduce the following new files to the repository:\n{0}\nIs this correct?".format("\n".join(untracked)), default=True):
+                        self.git.super_silent.add(*untracked)
+                    self.git.am('--resolvemsg= ', resolved=True)
+                    self._UI.info("A commit on the current branch has been created from the patch.")
+                finally:
+                    self.git.reset_to_clean_state()
+                    self.git.reset_to_clean_working_directory(remove_untracked_files=True)
+        finally:
+            os.chdir(curdir)
 
 def download_patch(self, ticket=None, patchname=None, url=None):
     r"""

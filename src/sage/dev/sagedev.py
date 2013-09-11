@@ -30,8 +30,6 @@ from user_interface_error import OperationCancelledError
 from trac_error import TracConnectionError, TracInternalError, TracError
 from git_error import GitError
 
-from sage.env import SAGE_VERSION
-
 import re
 # regular expression to check validity of git options
 GIT_BRANCH_REGEX = re.compile(r'^(?!.*/\.)(?!.*\.\.)(?!/)(?!.*//)(?!.*@\{)(?!.*\\)[^\040\177 ~^:?*[]+(?<!\.lock)(?<!/)(?<!\.)$') # http://stackoverflow.com/questions/12093748/how-do-i-check-for-valid-git-branch-names
@@ -2795,16 +2793,16 @@ class SageDev(object):
         ret = ["{0} {1}".format(extra,info) for (info,extra) in ret]
         self._UI.show("\n".join(ret))
 
-    def vanilla(self, release=SAGE_VERSION):
+    def vanilla(self, release=MASTER_BRANCH):
         r"""
-        Returns to an official release of Sage.
+        Return to a clean version of Sage.
 
         INPUT:
 
-        - ``release`` -- a string or decimal giving the release name.
-          In fact, any tag, commit or branch will work.  If the tag
-          does not exist locally an attempt to fetch it from the
-          server will be made.
+        - ``release`` -- a string or decimal giving the release name (default:
+          ``'master'``).  In fact, any tag, commit or branch will work.  If the
+          tag does not exist locally an attempt to fetch it from the server
+          will be made.
 
         Git equivalent::
 
@@ -2838,6 +2836,7 @@ class SageDev(object):
         """
         if hasattr(release, 'literal'):
             release = release.literal
+        release = str(release)
 
         try:
             self.reset_to_clean_state()

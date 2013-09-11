@@ -2571,6 +2571,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         return multi_derivative(self, args)
 
+    # add .diff(), .differentiate() as aliases for .derivative()
+    diff = differentiate = derivative
+
     def _derivative(self, var=None):
         r"""
         Return the formal derivative of this polynomial with respect to the

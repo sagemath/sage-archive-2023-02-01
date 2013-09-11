@@ -684,14 +684,6 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         return self.rst_transform(r, s, t)
 
-    def local_information(self, P=None, proof=None):
-        r"""
-        \code{local_information} has been renamed \code{local_data}
-        and is being deprecated.
-        """
-        raise DeprecationWarning, "local_information is deprecated; use local_data instead"
-        return self.local_data(P,proof)
-
     def local_data(self, P=None, proof = None, algorithm="pari"):
         r"""
         Local data for this elliptic curve at the prime `P`.
@@ -2155,7 +2147,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             degrees.extend(newdegs)
             k = k+1
 
-        raise NotImplementedError, "Not all isogenies implemented over general number fields."
+        raise NotImplementedError("Not all isogenies implemented over general number fields.")
 
     def lll_reduce(self, points, height_matrix=None, precision=None):
         """
@@ -2164,32 +2156,30 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
         INPUT:
 
+        - ``points`` - a list of points on this elliptic
+          curve, which should be independent.
 
-        -  ``points`` - a list of points on this elliptic
-           curve, which should be independent.
-
-        -  ``height_matrix`` - the height-pairing matrix of
-           the points, or None. If None, it will be computed.
+        - ``height_matrix`` - the height-pairing matrix of
+          the points, or ``None``. If ``None``, it will be computed.
 
         - ``precision`` - number of bits of precision of intermediate
-          computations (default: None, for default RealField
-          precision; ignored if height_matrix is supplied)
+          computations (default: ``None``, for default RealField
+          precision; ignored if ``height_matrix`` is supplied)
 
-
-        OUTPUT: A tuple (newpoints,U) where U is a unimodular integer
+        OUTPUT: A tuple (newpoints, U) where U is a unimodular integer
         matrix, new_points is the transform of points by U, such that
         new_points has LLL-reduced height pairing matrix
 
         .. note::
 
-           If the input points are not independent, the output depends
-           on the undocumented behaviour of PARI's ``qflllgram()``
-           function when applied to a gram matrix which is not
-           positive definite.
+            If the input points are not independent, the output
+            depends on the undocumented behaviour of PARI's
+            ``qflllgram()`` function when applied to a gram matrix which
+            is not positive definite.
 
         EXAMPLES:
 
-        Some examples over `QQ`::
+        Some examples over `\QQ`::
 
             sage: E = EllipticCurve([0, 1, 1, -2, 42])
             sage: Pi = E.gens(); Pi
@@ -2242,7 +2232,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
 
             sage: E = EllipticCurve([0, 1, 1, -2, 42])
             sage: Pi = E.gens()
-            sage: H=E.height_pairing_matrix(Pi,3)
+            sage: H = E.height_pairing_matrix(Pi,3)
             sage: E.lll_reduce(Pi,height_matrix=H)
             (
                                                                       [1 0 0 1]
@@ -2251,7 +2241,7 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [(-4 : 1 : 1), (-3 : 5 : 1), (-2 : 6 : 1), (1 : -7 : 1)], [0 0 1 1]
             )
 
-        Some examples over number fields (see trac #9411)::
+        Some examples over number fields (see :trac:`9411`)::
 
             sage: K.<a> = QuadraticField(-23, 'a')
             sage: E = EllipticCurve(K, '37')
@@ -2275,11 +2265,11 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
         r = len(points)
         if height_matrix is None:
-            height_matrix = self.height_pairing_matrix(points,precision)
+            height_matrix = self.height_pairing_matrix(points, precision)
         U = pari(height_matrix).lllgram().python()
-        new_points = [sum([U[j,i]*points[j] for j in range(r)]) for i in range(r)]
+        new_points = [sum([U[j, i]*points[j] for j in range(r)])
+                      for i in range(r)]
         return new_points, U
-
 
     def galois_representation(self):
         r"""
@@ -2310,4 +2300,3 @@ class EllipticCurve_number_field(EllipticCurve_field):
             [5]
         """
         return gal_reps_number_field.GaloisRepresentation(self)
-

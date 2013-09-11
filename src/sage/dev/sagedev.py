@@ -2232,7 +2232,7 @@ class SageDev(object):
             1
             sage: dev.local_tickets()
                 : master
-            * #1: ticket/1 summary
+            * #1: ticket/1
 
         With a commit on it, the branch is not abandoned::
 
@@ -2242,7 +2242,7 @@ class SageDev(object):
             sage: dev.prune_closed_tickets()
             sage: dev.local_tickets()
                 : master
-            * #1: ticket/1 summary
+            * #1: ticket/1
 
         After merging it to the master branch, it is abandoned. This does not
         work, because we cannot move the current branch::
@@ -2717,7 +2717,7 @@ class SageDev(object):
                 self._UI.show("Added dependency on #{0} to #{1}.".format(ticket, current_ticket))
                 self._set_dependencies_for_ticket(current_ticket, dependencies+[ticket])
 
-    def local_tickets(self, include_abandoned=False):
+    def local_tickets(self, include_abandoned=False, summary=False):
         r"""
         Print the tickets currently being worked on in your local
         repository.
@@ -2730,6 +2730,11 @@ class SageDev(object):
 
         - ``include_abandoned`` -- boolean (default: ``False``), whether to
           include abandoned branches.
+
+        - ``summary`` -- boolean (default: ``False``), whether to include the
+          summary of the ticket from trac in the output; this is disabled by
+          default, because it might take some time to pull all the summaries
+          from trac.
 
         .. SEEALSO::
 
@@ -2758,7 +2763,7 @@ class SageDev(object):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             2
-            sage: dev.local_tickets()
+            sage: dev.local_tickets(summary=True)
                 : master
               #1: ticket/1 summary
             * #2: ticket/2 summary
@@ -2776,17 +2781,15 @@ class SageDev(object):
         ret = []
         for branch in branches:
             ticket = None
-            summary = ""
+            ticket_summary = ""
             extra = " "
             if self._has_ticket_for_local_branch(branch):
                 ticket = self._ticket_for_local_branch(branch)
-                try:
-                    summary = self.trac._get_attributes(ticket)['summary']
-                except TracConnectionError:
-                    pass # local-tickets should still work when offline
+                if summary:
+                    ticket_summary = self.trac._get_attributes(ticket)['summary']
             if current_branch == branch:
                 extra = "*"
-            ret.append(("{0:>7}: {1} {2}".format("#"+str(ticket) if ticket else "", branch, summary), extra))
+            ret.append(("{0:>7}: {1} {2}".format("#"+str(ticket) if ticket else "", branch, ticket_summary), extra))
         while all([info.startswith(' ') for (info, extra) in ret]):
             ret = [(info[1:],extra) for (info, extra) in ret]
         ret = sorted(ret)

@@ -10,6 +10,7 @@ cdef extern from 'interrupt.h':
     int sig_check_no_except()
     void sig_off()
     void sig_retry()
+    void sig_error()
     void sig_block()
     void sig_unblock()
     void set_sage_signal_handler_message(char* s)

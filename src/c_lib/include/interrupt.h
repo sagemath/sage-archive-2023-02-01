@@ -114,11 +114,6 @@ void sage_signal_handler(int sig);
  */
 void setup_sage_signal_handler(void);
 
-/* This calls the externally defined function _signals.raise_exception
- * to actually raise the exception. It may only be called synchronously
- * with the Global Interpreter Lock held. */
-void do_raise_exception(int sig);
-
 
 /**********************************************************************
  * SAGE_SIGNALS_T STRUCTURE                                           *
@@ -303,7 +298,6 @@ static inline void _sig_off_(const char* file, int line)
 }
 
 
-
 /**********************************************************************
  * USER MACROS/FUNCTIONS                                              *
  **********************************************************************/
@@ -411,6 +405,18 @@ static inline void sig_retry()
         abort();
     }
     siglongjmp(_signals.env, -1);
+}
+
+/* Used in error callbacks from C code (in particular NTL and PARI).
+ * This should be used after an exception has been raised to jump back
+ * to sig_on() where the exception will be seen. */
+static inline void sig_error()
+{
+    if (unlikely(_signals.sig_on_count <= 0))
+    {
+        fprintf(stderr, "sig_error() without sig_on()\n");
+    }
+    abort();
 }
 
 

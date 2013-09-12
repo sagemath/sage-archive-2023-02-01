@@ -3014,13 +3014,13 @@ class NumberField_generic(number_field_base.NumberField):
             sage: k.pari_polynomial('I')
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: I already exists with incompatible valence
             sage: k.pari_polynomial('i')
             i^2 + 1
             sage: k.pari_polynomial('theta')
             Traceback (most recent call last):
             ...
-            PariError:  (5)
+            PariError: theta already exists with incompatible valence
         """
         try:
             return self.__pari_polynomial.change_variable_name(name)

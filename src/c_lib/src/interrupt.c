@@ -58,6 +58,8 @@ static sigset_t default_sigmask;
 /* default_sigmask with SIGHUP, SIGINT, SIGALRM added. */
 static sigset_t sigmask_with_sigint;
 
+static void do_raise_exception(int sig);
+
 /* Does this processor support the x86 EMMS instruction? */
 #if defined(__i386__) || defined(__x86_64__)
 #define CPU_ARCH_x86
@@ -211,7 +213,10 @@ void sage_signal_handler(int sig)
 }
 
 
-void do_raise_exception(int sig)
+/* This calls the externally defined function _signals.raise_exception
+ * to actually raise the exception. It may only be called synchronously
+ * with the Global Interpreter Lock held. */
+static void do_raise_exception(int sig)
 {
 #if ENABLE_DEBUG_INTERRUPT
     struct timeval raisetime;
@@ -224,8 +229,12 @@ void do_raise_exception(int sig)
     }
 #endif
 
-    _signals.raise_exception(sig, _signals.s);
-    assert(PyErr_Occurred());
+    /* Do not raise an exception if an exception is already pending */
+    if (!PyErr_Occurred())
+    {
+        _signals.raise_exception(sig, _signals.s);
+        assert(PyErr_Occurred());
+    }
 }
 
 

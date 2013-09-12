@@ -564,7 +564,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ(pari("1e100"))
             Traceback (most recent call last):
             ...
-            PariError: precision too low (10)
+            PariError: precision too low in truncr (precision loss in truncation)
             sage: ZZ(pari("10^50"))
             100000000000000000000000000000000000000000000000000
             sage: ZZ(pari("Pol(3)"))

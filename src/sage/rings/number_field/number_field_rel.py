@@ -208,7 +208,7 @@ class NumberField_relative(NumberField_generic):
             sage: b
             Traceback (most recent call last):
             ...
-            PariError: incorrect type (11)
+            PariError: incorrect type in core2partial
 
         However, if the polynomial is linear, rational coefficients should work::
 

@@ -704,6 +704,10 @@ ext_modules = [
               sources = ["sage/libs/pari/gen.pyx"],
               libraries = ['pari', 'gmp']),
 
+    Extension('sage.libs.pari.handle_error',
+              sources = ["sage/libs/pari/handle_error.pyx"],
+              libraries = ['pari', 'gmp']),
+
     Extension('sage.libs.ppl',
               sources = ['sage/libs/ppl.pyx', 'sage/libs/ppl_shim.cc'],
               libraries = ['ppl', 'gmpxx', 'gmp', 'm'],

@@ -439,6 +439,31 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
     def is_noetherian(self):
         return self.base_ring().is_noetherian()
 
+    def some_elements(self):
+        r"""
+        Return a list of polynomials.
+
+        This is typically used for running generic tests.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: S.some_elements()
+            [x, 0, 1, -2, x^2 + x + 1, x^3, x^2 - 1, x^2 + 1, 2*x^2 + 2]
+
+        """
+        # the comments in the following lines describe the motivation for
+        # adding these elements, they are not accurate over all rings and in
+        # all contexts
+        return [self.gen(),
+            self(0), self(1), self(-2), # elements of the base ring
+            self([1,2,1]), # a square
+            self([0,0,0,1]), # a power but not a square
+            self([-1,0,1]), # a reducible element
+            self([1,0,1]), # an irreducible element
+            self([2,0,2]), # an element with non-trivial content
+        ]
+
     def construction(self):
         from sage.categories.pushout import PolynomialFunctor
         return PolynomialFunctor(self.variable_name(), sparse=self.__is_sparse), self.base_ring()

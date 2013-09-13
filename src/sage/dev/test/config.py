@@ -41,6 +41,7 @@ class DoctestConfig(sage.dev.config.Config):
         Config('''
         [trac]
         username = doctest
+        ticket_cache = ...
         [UI]
         log_level = 0
         [git]
@@ -79,6 +80,7 @@ class DoctestConfig(sage.dev.config.Config):
 
         self._tmp_dir = tempfile.mkdtemp()
         atexit.register(shutil.rmtree, self._tmp_dir)
+        self['trac']['ticket_cache'] = os.path.join(self._tmp_dir,"ticket_cache")
         self['git']['src'] = self._tmp_dir
         self['git']['dot_git'] = os.path.join(self._tmp_dir,".git")
         self['git']['user.name'] = trac_username

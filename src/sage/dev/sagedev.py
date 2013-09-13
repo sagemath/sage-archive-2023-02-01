@@ -2237,7 +2237,7 @@ class SageDev(object):
             1
             sage: dev.local_tickets()
                 : master
-            * #1: ticket/1
+            * #1: ticket/1 summary
 
         With a commit on it, the branch is not abandoned::
 
@@ -2247,7 +2247,7 @@ class SageDev(object):
             sage: dev.prune_closed_tickets()
             sage: dev.local_tickets()
                 : master
-            * #1: ticket/1
+            * #1: ticket/1 summary
 
         After merging it to the master branch, it is abandoned. This does not
         work, because we cannot move the current branch::
@@ -2722,7 +2722,7 @@ class SageDev(object):
                 self._UI.show("Added dependency on #{0} to #{1}.".format(ticket, current_ticket))
                 self._set_dependencies_for_ticket(current_ticket, dependencies+[ticket])
 
-    def local_tickets(self, include_abandoned=False, summary=False):
+    def local_tickets(self, include_abandoned=False, cached=True):
         r"""
         Print the tickets currently being worked on in your local
         repository.
@@ -2736,10 +2736,10 @@ class SageDev(object):
         - ``include_abandoned`` -- boolean (default: ``False``), whether to
           include abandoned branches.
 
-        - ``summary`` -- boolean (default: ``False``), whether to include the
-          summary of the ticket from trac in the output; this is disabled by
-          default, because it might take some time to pull all the summaries
-          from trac.
+        - ``cached`` -- boolean (default: ``True``), whether to try to pull the
+          summaries from the ticket cache; if ``True``, then the summaries
+          might not be accurate if they changed since they were last updated.
+          To update the summaries, set this to ``False``.
 
         .. SEEALSO::
 
@@ -2768,7 +2768,7 @@ class SageDev(object):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             2
-            sage: dev.local_tickets(summary=True)
+            sage: dev.local_tickets()
                 : master
               #1: ticket/1 summary
             * #2: ticket/2 summary
@@ -2790,8 +2790,13 @@ class SageDev(object):
             extra = " "
             if self._has_ticket_for_local_branch(branch):
                 ticket = self._ticket_for_local_branch(branch)
-                if summary:
-                    ticket_summary = self.trac._get_attributes(ticket)['summary']
+                try:
+                    try:
+                        ticket_summary = self.trac._get_attributes(ticket, cached=cached)['summary']
+                    except KeyError:
+                        ticket_summary = self.trac._get_attributes(ticket, cached=False)['summary']
+                except TracConnectionError:
+                    ticket_summary = ""
             if current_branch == branch:
                 extra = "*"
             ret.append(("{0:>7}: {1} {2}".format("#"+str(ticket) if ticket else "", branch, ticket_summary), extra))

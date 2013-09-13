@@ -874,7 +874,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: EllipticCurveIsogeny(E,X^3-13*X^2-58*X+503,check=False)
             Isogeny of degree 7 from Elliptic Curve defined by y^2 + x*y = x^3 - x^2 - 107*x + 552 over Rational Field to Elliptic Curve defined by y^2 + x*y = x^3 - x^2 - 5252*x - 178837 over Rational Field
 
-       """
+        """
 
         if not is_EllipticCurve(E):
             raise ValueError, "E parameter must be an EllipticCurve."
@@ -3594,7 +3594,7 @@ def compute_isogeny_starks(E1, E2, ell):
         n += 1
         a_n = 0
         r = -T.valuation()
-        while ( 0 <= r and T != 0):
+        while (0 <= r):
             t_r = T[-r]
             #print '    r=',r
             #print '    t_r=',t_r
@@ -3609,9 +3609,9 @@ def compute_isogeny_starks(E1, E2, ell):
         #p_n = a_n*p[n-1] + q[n-2]
         #p.append(p_n)
 
-        if (n == ell+1 or T==0):
-            if T.valuation()<2:
-                raise ValueError, "The two curves are not linked by a cyclic normalized isogeny of degree %s"%ell
+        if (n == ell+1 or T == 0):
+            if (T == 0 or T.valuation()<2):
+                raise ValueError("The two curves are not linked by a cyclic normalized isogeny of degree %s" % ell)
             #print 'breaks here'
             break
 

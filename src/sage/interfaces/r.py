@@ -2046,7 +2046,7 @@ def r_version():
 
     EXAMPLES::
 
-        sage: r.version()
+        sage: r_version()
         ((2, 15, 2), 'R version 2.15.2 (2012-10-26)')
     """
     return r.version()

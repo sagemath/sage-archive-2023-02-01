@@ -3075,7 +3075,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         r"""
         Returns the comparability graph of ``self``.
 
-        See :wikipedia:`Comparability graph`
+        See :wikipedia:`Comparability_graph`
 
         .. SEEALSO:: :meth:`incomparability_graph`, :mod:`sage.graphs.comparability`
 

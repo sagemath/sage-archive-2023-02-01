@@ -4,10 +4,9 @@
 cdef extern from 'interrupt.h':
     pass
 
-cdef extern from 'pari_err.h':
-    int _pari_catch
-    int _pari_endcatch
-    int sig_on "_pari_sig_on" () except 0
-    int sig_str "_pari_sig_str" (char *) except 0
-    void sig_off "_pari_sig_off" ()
+cdef extern from 'sage/libs/pari/pari_err.h':
+    int pari_catch_sig_on() except 0
+    int pari_catch_sig_str(char *) except 0
+    void pari_catch_sig_off()
 
+from sage.libs.pari.gen cimport _pari_trap

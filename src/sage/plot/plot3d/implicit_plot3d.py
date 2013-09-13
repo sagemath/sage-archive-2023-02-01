@@ -45,7 +45,8 @@ def implicit_plot3d(f, xrange, yrange, zrange, **kwds):
         sage: implicit_plot3d((x^2 + y^2 + z^2), (x, -2, 2), (y, -2, 2), (z, -2, 2), plot_points=60, contour=[1,3,5], \
         ...                   region=lambda x,y,z: x<=0.2 or y>=0.2 or z<=0.2).show(viewer='tachyon')
 
-    A very pretty example from http://iat.ubalt.edu/summers/math/platsol.htm::
+    A very pretty example, attributed to Douglas Summers-Stay (`archived page
+    <http://web.archive.org/web/20080529033738/http://iat.ubalt.edu/summers/math/platsol.htm>`_)::
 
         sage: T = RDF(golden_ratio)
         sage: p = 2 - (cos(x + T*y) + cos(x - T*y) + cos(y + T*z) + cos(y - T*z) + cos(z - T*x) + cos(z + T*x))

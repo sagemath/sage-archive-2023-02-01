@@ -106,7 +106,7 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         \binom{n}{k}_q = \frac{(1-q^n)(1-q^{n-1}) \cdots (1-q^{n-k+1})}
         {(1-q)(1-q^2)\cdots (1-q^k)}.
 
-    See :wikipedia:`Gaussian binomial coefficient`
+    See :wikipedia:`Gaussian_binomial_coefficient`
 
     If `q` is unspecified, then the variable is the generator `q` for
     a univariate polynomial ring over the integers.

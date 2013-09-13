@@ -132,6 +132,7 @@ AUTHOR:
 
 from sage.groups.group import Group
 from sage.groups.libgap_wrapper import ParentLibGAP, ElementLibGAP
+from sage.groups.libgap_mixin import GroupMixinLibGAP
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.libs.gap.libgap import libgap
 from sage.libs.gap.element import GapElement
@@ -173,7 +174,7 @@ class FinitelyPresentedGroupElement(FreeGroupElement):
         b*a*b^-1*a^-1
     """
 
-    def __init__(self, parent, x):
+    def __init__(self, parent, x, check=True):
         """
         The Python constructor.
 
@@ -381,7 +382,8 @@ def wrap_FpGroup(libgap_fpgroup):
     return FinitelyPresentedGroup(free_group, relations)
 
 
-class FinitelyPresentedGroup(UniqueRepresentation, Group, ParentLibGAP):
+class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
+    Group, ParentLibGAP):
     """
     A class that wraps GAP's Finitely Presented Groups
 

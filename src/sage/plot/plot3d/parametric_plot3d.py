@@ -428,7 +428,7 @@ def parametric_plot3d(f, urange, vrange=None, plot_points="automatic", boundary_
         sage: parametric_plot3d([fx, fy, fz], (u, -pi, pi), (v, -pi, pi), plot_points = [50,50], frame=False, color="red")
 
     Kuen's surface
-    (http://www.math.umd.edu/research/bianchi/Gifccsurfs/ccsurfs.html)::
+    (http://virtualmathmuseum.org/Surface/kuen/kuen.html)::
 
         sage: fx = (2*(cos(u) + u*sin(u))*sin(v))/(1+ u^2*sin(v)^2)
         sage: fy = (2*(sin(u) - u*cos(u))*sin(v))/(1+ u^2*sin(v)^2)

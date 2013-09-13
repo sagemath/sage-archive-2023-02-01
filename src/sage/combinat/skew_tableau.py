@@ -1001,6 +1001,22 @@ class SkewTableau(CombinatorialObject, Element):
                     res.append( (i,j) )
         return res
 
+    def is_k_tableau(self, k):
+        r"""
+        Checks whether ``self`` is a valid skew weak `k`-tableau.
+
+        EXAMPLES::
+
+            sage: t = SkewTableau([[None,2,3],[2,3],[3]])
+            sage: t.is_k_tableau(3)
+            True
+            sage: t = SkewTableau([[None,1,3],[2,2],[3]])
+            sage: t.is_k_tableau(3)
+            False
+        """
+        shapes = self.to_chain()
+        kshapes = [ la.k_conjugate(k) for la in shapes ]
+        return all( kshapes[i+1].contains(kshapes[i]) for i in range(len(shapes)-1) )
 
 
 def _label_skew(list, sk):

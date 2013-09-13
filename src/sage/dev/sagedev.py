@@ -355,13 +355,17 @@ class SageDev(object):
             self.switch_ticket(ticket, base=base, branch=branch)
         except:
             self._UI.error("Ticket #{0} has been created. However, I could not switch to a branch for this ticket.".format(ticket))
-            kwds = { }
-            if branch is not None:
-                kwds['branch'] = branch
-            if base != "":
-                kwds['base'] = base
-            self._UI.info("To manually switch to a branch for this ticket, use `{0}`.".format(self._format_command("switch_ticket", ticket, **kwds)))
-            raise
+            if self._has_local_branch_for_ticket(ticket):
+                self._UI.info("To manually switch to the branch for this ticket, use `{0}`.".format(self._format_command("switch_ticket", ticket)))
+                raise
+            else:
+                kwds = { }
+                if branch is not None:
+                    kwds['branch'] = branch
+                if base != "":
+                    kwds['base'] = base
+                self._UI.info("To create a branch for this ticket and switch to it manually, use `{0}`.".format(self._format_command("switch_ticket", ticket, **kwds)))
+                raise
 
         if remote_branch is not None:
             branch = self._branch_for_ticket(ticket)

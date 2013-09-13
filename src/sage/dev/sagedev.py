@@ -2977,8 +2977,8 @@ class SageDev(object):
         A diff against the dependencies::
 
             sage: dev.diff("dependencies")
-            Dependency #1 has not been merged into `ticket/3` (at least not its latest version). Use `...` to merge it.
-            Dependency #2 has not been merged into `ticket/3` (at least not its latest version). Use `...` to merge it.
+            Dependency #1 has not been merged into `ticket/3` (at least not its latest version).
+            Dependency #2 has not been merged into `ticket/3` (at least not its latest version).
             diff --git a/ticket1 b/ticket1
             deleted file mode ...
             index ...
@@ -3011,7 +3011,7 @@ class SageDev(object):
 
             sage: dev.switch_ticket("#3")
             sage: dev.diff("dependencies")
-            Dependency #1 has not been merged into `ticket/3` (at least not its latest version). Use `sage --dev merge --ticket=1` to merge it.
+            Dependency #1 has not been merged into `ticket/3` (at least not its latest version).
             #2 does not merge cleanly with the other dependencies. Your diff could not be computed.
 
         """
@@ -3051,7 +3051,8 @@ class SageDev(object):
                             self._UI.info("Dependency #{0} has already been merged into the master branch of your version of sage.".format(dependency))
                         else:
                             if not self.git.is_child_of(branch, 'FETCH_HEAD'):
-                                self._UI.warning("Dependency #{0} has not been merged into `{1}` (at least not its latest version). Use `{2}` to merge it.".format(dependency, branch, self._format_command("merge",ticket_or_branch="{0}".format(dependency))))
+                                self._UI.warning("Dependency #{0} has not been merged into `{1}` (at least not its latest version).".format(dependency, branch))
+                                self._UI.info("Use `{0}` to merge it.".format(self._format_command("merge",ticket_or_branch=str(dependency))))
                             from git_error import GitError
                             try:
                                 self.git.super_silent.merge('FETCH_HEAD')

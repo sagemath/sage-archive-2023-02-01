@@ -417,7 +417,7 @@ def download_patch(self, ticket=None, patchname=None, url=None):
             from sagedev import SageDevValueError
             raise SageDevValueError("Ticket #%s has no attachments."%ticket)
         if len(attachments) == 1:
-            ret = (self.download_patch(ticket = ticket, patchname = attachments[0]),)
+            ret = self.download_patch(ticket = ticket, patchname = attachments[0])
             self._UI.show("Attachment `{0}` for ticket #{1} has been downloaded to `{2}`.".format(attachments[0], ticket, ret[0]))
             return ret
         else:

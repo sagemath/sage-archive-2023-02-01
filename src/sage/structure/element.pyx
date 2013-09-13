@@ -1881,11 +1881,6 @@ cdef class RingElement(ModuleElement):
             raise ArithmeticError, "self (=%s) must be a unit to have a multiplicative order."
         raise NotImplementedError
 
-    def is_unit(self):
-        if self == 1 or self == -1:
-            return True
-        raise NotImplementedError
-
     def is_nilpotent(self):
         """
         Return True if self is nilpotent, i.e., some power of self

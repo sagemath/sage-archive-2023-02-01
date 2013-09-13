@@ -616,8 +616,35 @@ class Rings(Category_singleton):
             raise TypeError, "Use self.quo(I) or self.quotient(I) to construct the quotient ring."
 
     class ElementMethods:
-        pass
+        def is_unit(self):
+            r"""
+            Return whether this element is a unit in the ring.
 
+            .. NOTE::
+
+                This is a generic implementation for (non-commutative) rings
+                which only works for the one element, its additive inverse, and
+                the zero element.  Most rings should provide a more specialized
+                implementation.
+
+            EXAMPLES::
+
+                sage: MS = MatrixSpace(ZZ, 2)
+                sage: MS.one().is_unit()
+                True
+                sage: MS.zero().is_unit()
+                False
+                sage: MS([1,2,3,4]).is_unit()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError
+
+            """
+            if self == 1 or self == -1:
+                return True
+            if self == 0: # now 0 != 1
+                return False
+            raise NotImplementedError
 
     class HomCategory(HomCategory):
         pass

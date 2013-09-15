@@ -1,2 +1,6 @@
-ignored
-ignored_dir
+*.pyc
+/.BUILDSTART
+/dist
+/local
+/logs
+/upstream

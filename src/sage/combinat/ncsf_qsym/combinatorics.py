@@ -1,4 +1,4 @@
-"""
+r"""
 Common combinatorial tools
 
 
@@ -6,14 +6,15 @@ REFERENCES:
 
 .. [NCSF] Gelfand, Krob, Lascoux, Leclerc, Retakh, Thibon,
    *Noncommutative Symmetric Functions*, Adv. Math. 112 (1995), no. 2, 218-348.
-
+.. [QSCHUR] Haglund, Luoto, Mason, van Willigenburg,
+   *Quasisymmetric Schur functions*, J. Comb. Theory Ser. A 118 (2011), 463-490.
 """
-
 from sage.misc.misc_c import prod
 from sage.functions.other import factorial
-from sage.misc.cachefunc import cached_method, cached_function
+from sage.misc.cachefunc import cached_function
 from sage.combinat.composition import Composition, Compositions
-from sage.combinat.permutation import Permutations
+from sage.combinat.composition_tableau import CompositionTableaux
+
 
 # The following might call for defining a morphism from ``structure
 # coefficients'' / matrix using something like:
@@ -112,6 +113,69 @@ def coeff_sp(J,I):
     """
     return prod(factorial(len(K))*prod(K) for K in J.refinement_splitting(I))
 
+def coeff_dab(I, J):
+    r"""
+    Return the number of standard composition tableaux of shape `I` with
+    descent composition `J`.
+
+    INPUT:
+
+    - ``I, J`` -- compositions
+
+    OUTPUT:
+
+    - An integer
+
+    EXAMPLES::
+
+        sage: from sage.combinat.ncsf_qsym.combinatorics import coeff_dab
+        sage: coeff_dab(Composition([2,1]),Composition([2,1]))
+        1
+        sage: coeff_dab(Composition([1,1,2]),Composition([1,2,1]))
+        0
+    """
+    d = 0
+    for T in CompositionTableaux(I):
+        if (T.is_standard()) and (T.descent_composition() == J):
+            d += 1
+    return d
+
+def compositions_order(n):
+    r"""
+    Return the compositions of `n` ordered as defined in [QSCHUR]_.
+
+    Let `S(\gamma)` return the composition `\gamma` after sorting. For
+    compositions `\alpha` and `\beta`, we order `\alpha \rhd \beta` if
+
+    1) `S(\alpha) > S(\beta)` lexicographically, or
+    2) `S(\alpha) = S(\beta)` and `\alpha > \beta` lexicographically.
+
+    INPUT:
+
+    - ``n`` -- a positive integer
+
+    OUTPUT:
+
+    - A list of the compositions of ``n`` sorted into decreasing order
+      by `\rhd`
+
+    EXAMPLES::
+
+        sage: from sage.combinat.ncsf_qsym.combinatorics import compositions_order
+        sage: compositions_order(3)
+        [[3], [2, 1], [1, 2], [1, 1, 1]]
+        sage: compositions_order(4)
+        [[4], [3, 1], [1, 3], [2, 2], [2, 1, 1], [1, 2, 1], [1, 1, 2], [1, 1, 1, 1]]
+    """
+    def _myorder(I,J):
+        pI = sorted(I, reverse=True)
+        pJ = sorted(J, reverse=True)
+        if pI == pJ:
+            return cmp(list(J), list(I))
+        else:
+            return cmp(pJ , pI)
+    return sorted(Compositions(n), cmp=_myorder)
+
 def m_to_s_stat(R, I, K):
     r"""
     Returns the statistic for the expansion of the Monomial basis element indexed by two
@@ -178,3 +242,4 @@ def number_of_fCT(content_comp, shape_comp):
         if len(x) >= len(shape_comp)-1:
             s += number_of_fCT(Composition(content_comp[:-1]),x)
     return s
+

@@ -179,7 +179,7 @@ REFERENCES:
 .. [BD07] Michael Brickenstein, Alexander Dreyer\; *PolyBoRi: A
   Groebner basis framework for Boolean polynomials*; pre-print
   available at
-  http://www.itwm.fraunhofer.de/zentral/download/berichte/bericht122.pdf
+  http://www.itwm.fraunhofer.de/fileadmin/ITWM-Media/Zentral/Pdf/Berichte_ITWM/2007/bericht122.pdf
 """
 
 include "sage/ext/interrupt.pxi"

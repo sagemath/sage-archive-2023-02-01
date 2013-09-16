@@ -10,7 +10,7 @@ many functions relating to the invariant theory of the symmetric
 group `S_n`. (However, the commands for group invariants,
 and the corresponding Maxima documentation, are in French.) For many
 links to Maxima documentation see
-http://maxima.sourceforge.net/docs.shtml/.
+http://maxima.sourceforge.net/documentation.html.
 
 AUTHORS:
 
@@ -110,7 +110,7 @@ Tutorial
 --------
 
 We follow the tutorial at
-http://maxima.sourceforge.net/docs/intromax/.
+http://maxima.sourceforge.net/docs/intromax/intromax.html.
 
 ::
 

@@ -1,6 +1,9 @@
 include 'decl.pxi'
 
 cimport sage.structure.element
+cimport sage.structure.parent_base
+
+cdef void _pari_trap "_pari_trap"(long errno, long retries) except *
 
 cdef class gen(sage.structure.element.RingElement):
     cdef GEN g
@@ -14,8 +17,6 @@ cdef class gen(sage.structure.element.RingElement):
     cdef GEN _deepcopy_to_python_heap(self, GEN x, pari_sp* address)
     cdef long get_var(self, v)
     cdef GEN get_nf(self) except NULL
-
-cimport sage.structure.parent_base
 
 cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef gen PARI_ZERO, PARI_ONE, PARI_TWO

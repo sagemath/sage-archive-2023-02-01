@@ -711,9 +711,11 @@ class NotANumber(Constant):
 
         EXAMPLES::
 
-            sage: import sympy
-            sage: sympy.nan == NaN # indirect doctest
+            sage: bool(NaN._sympy_()._sage_() == NaN)
             True
+            sage: import sympy
+            sage: sympy.nan == NaN  # this should be fixed
+            False
         """
         import sympy
         return sympy.nan
@@ -1146,6 +1148,7 @@ class TwinPrime(Constant):
 
 twinprime = TwinPrime().expression()
 
+
 class Mertens(Constant):
     """
     The Mertens constant is related to the Twin Primes constant and
@@ -1192,7 +1195,8 @@ class Mertens(Constant):
         """
         return 0.26149721284764278375542683861
 
-merten = mertens = Mertens().expression()
+mertens = Mertens().expression()
+
 
 class Glaisher(Constant):
     r"""

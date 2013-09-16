@@ -53,6 +53,7 @@ graphs.
     :meth:`~Graph.is_long_antihole_free` | Tests whether ``self`` contains an induced anticycle of length at least 5.
     :meth:`~Graph.is_weakly_chordal` | Tests whether ``self`` is weakly chordal.
     :meth:`~Graph.is_strongly_regular` | Tests whether ``self`` is strongly regular.
+    :meth:`~Graph.is_distance_regular` | Tests whether ``self`` is distance-regular.
     :meth:`~Graph.is_tree` | Return True if the graph is a tree.
     :meth:`~Graph.is_forest` | Return True if the graph is a forest, i.e. a disjoint union of trees.
     :meth:`~Graph.is_overfull` | Tests whether the current graph is overfull.
@@ -4351,7 +4352,7 @@ class Graph(GenericGraph):
 
         .. [Brandes2003] Ulrik Brandes. (2003). Faster Evaluation of
            Shortest-Path Based Centrality Indices. [Online] Available:
-           http://citeseer.nj.nec.com/brandes00faster.html
+           http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.43.1504
 
         EXAMPLES::
 
@@ -5717,7 +5718,7 @@ class Graph(GenericGraph):
         REFERENCE:
 
         .. [WPkcore] K-core. Wikipedia. (2007). [Online] Available:
-          http://en.wikipedia.org/wiki/K-core
+          :wikipedia:`K-core`
 
         .. [PSW1996] Boris Pittel, Joel Spencer and Nicholas Wormald. Sudden
           Emergence of a Giant k-Core in a Random
@@ -5727,8 +5728,7 @@ class Graph(GenericGraph):
 
         .. [BZ] Vladimir Batagelj and Matjaz Zaversnik. An `O(m)`
           Algorithm for Cores Decomposition of
-          Networks. arXiv:cs/0310049v1. [Online] Available:
-          http://arxiv.org/abs/cs/0310049
+          Networks. :arxiv:`cs/0310049v1`.
 
         EXAMPLES::
 
@@ -6250,6 +6250,9 @@ Graph.cliques_maximum = types.MethodType(sage.graphs.cliquer.all_max_clique, Non
 
 import sage.graphs.graph_decompositions.graph_products
 Graph.is_cartesian_product = types.MethodType(sage.graphs.graph_decompositions.graph_products.is_cartesian_product, None, Graph)
+
+import sage.graphs.distances_all_pairs
+Graph.is_distance_regular = types.MethodType(sage.graphs.distances_all_pairs.is_distance_regular, None, Graph)
 
 # From Python modules
 import sage.graphs.line_graph

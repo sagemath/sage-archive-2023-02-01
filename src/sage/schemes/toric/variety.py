@@ -2160,6 +2160,36 @@ class ToricVariety_field(AmbientSpace):
         if top_form.is_zero(): return 0
         return top_form.lc() / self.volume_class().lc()
 
+    def tangent_bundle(self):
+        r"""
+        Return the tangent bundle of the toric variety.
+
+        OUTPUT:
+
+        The tangent bundle as a toric bundle.
+
+        EXAMPLES::
+        
+            sage: toric_varieties.dP6().tangent_bundle()
+        """
+        from sage.schemes.toric.bundle.constructors import TangentBundle
+        return TangentBundle(self)
+
+    def cotangent_bundle(self):
+        r"""
+        Return the cotangent bundle of the toric variety.
+
+        OUTPUT:
+
+        The cotangent bundle as a toric bundle.
+
+        EXAMPLES::
+        
+            sage: toric_varieties.dP6().cotangent_bundle()
+        """
+        from sage.schemes.toric.bundle.constructors import CotangentBundle
+        return CotangentBundle(self)
+
     def Chern_class(self, deg=None):
         """
         Return Chern classes of the (tangent bundle of the) toric variety.

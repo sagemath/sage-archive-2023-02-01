@@ -222,7 +222,7 @@ def m_to_s_stat(R, I, K):
 @cached_function
 def number_of_fCT(content_comp, shape_comp):
     r"""
-    Returns the number of Immaculate tableaux of shape
+    Return the number of Immaculate tableaux of shape
     ``shape_comp`` and content ``content_comp``.
 
     See [BBSSZ2012]_, Definition 3.9, for the notion of an

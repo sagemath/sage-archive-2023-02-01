@@ -76,7 +76,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: Psi
         NCSF in the Psi basis
 
-    Elements of Psi are linear combinations of basis elements indexed
+    Elements of ``Psi`` are linear combinations of basis elements indexed
     by compositions::
 
       sage: Psi.an_element()
@@ -125,8 +125,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Algebra structure
 
-    To start with, Psi is a graded algebra, the grading being induced by the
-    size of compositions. The one is the basis element indexed by the empty
+    To start with, ``Psi`` is a graded algebra, the grading being induced by
+    the size of compositions. The one is the basis element indexed by the empty
     composition::
 
         sage: Psi.one()
@@ -198,7 +198,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
     .. rubric:: Other concrete representations
 
-    TODO: demonstrate how to customize the basis names
+    .. TODO:: demonstrate how to customize the basis names
 
     NCSF admits many other concrete realizations::
 
@@ -249,7 +249,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: elementary(ribbon[2,1,2,1])
         L[1, 3, 2] - L[1, 5] - L[4, 2] + L[6]
 
-    TODO: explain the other changes of bases!
+    .. TODO:: explain the other changes of bases!
 
     Here is how to fetch the conversion morphisms::
 
@@ -295,15 +295,18 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         sage: TestSuite(Psi).run()
         sage: TestSuite(complete).run()
 
-    TODO:
-     - Bases: monomial, fundamental, forgotten, quasi_schur_dual
-           simple() ? (<=> simple modules of HS_n; to be discussed with Florent)
-     - Multiplication in:
-        - fundamental and monomial (cf. Lenny's code)
-        - ribbon (from Mike's code)
-     - Coproducts (most done by coercions)
-     - some_elements in all bases
-     - Systematic coercion checks (in AlgebrasWithBasis().Abstract())
+    .. TODO::
+
+        - Bases: monomial, fundamental, forgotten, quasi_schur_dual
+          simple() ? (<=> simple modules of HS_n; to be discussed with Florent)
+        - Multiplication in:
+
+          - fundamental and monomial (cf. Lenny's code)
+          - ribbon (from Mike's code)
+
+        - Coproducts (most done by coercions)
+        - some_elements in all bases
+        - Systematic coercion checks (in AlgebrasWithBasis().Abstract())
     """
     def __init__(self, R):
         r"""
@@ -502,7 +505,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 symmetric functions to itself that sends the complete function
                 `S^I` indexed by a composition `I = (i_1, i_2, \ldots , i_k)`
                 to `S^{(i_1/n, i_2/n, \ldots , i_k/n)}` if all of the numbers
-                `i_1`, `i_2`, ... `i_k` are divisible by `n`, and to `0`
+                `i_1, i_2, \ldots, i_k` are divisible by `n`, and to `0`
                 otherwise. This operator `\mathbf{V}_n` is a Hopf algebra
                 endomorphism. For every positive integer `r` with `n \mid r`,
                 it satisfies
@@ -520,7 +523,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 power-sum non-commutative symmetric function of the first kind,
                 and `\Phi_r` denotes the `r`-th power-sum non-commutative
                 symmetric function of the second kind). For every positive
-                integer `r` with `n \nmid r`, it satisfes
+                integer `r` with `n \not\mid r`, it satisfes
 
                 .. MATH::
 
@@ -542,18 +545,19 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 .. MATH::
 
                     \mathbf{V}_n ( R_I )
-                    = (-1)^{\mathrm{length}(I) - \mathrm{length}(J)}
-                      \cdot R_{J/n},
+                    = (-1)^{\ell(I) - \ell(J)}
+                    \cdot R_{J/n},
 
                 where `J` denotes the meet of the compositions `I` and
-                `(\underbrace{n, n, \ldots , n}_{\ell\mbox{ times}})`, and
-                where `J/n` denotes the composition obtained by dividing
-                every entry of `J` by `n`. For a composition `I` of size
-                not divisible by `n`, we have `\mathbf{V}_n ( R_I ) = 0`.
+                `(\underbrace{n, n, \ldots, n}_{\ell\mbox{ times}})`,
+                where `\ell(I)` is the length of `I`, and
+                where `J / n` denotes the composition obtained by dividing
+                every entry of `J` by `n`.
+                For a composition `I` of size not divisible by `n`, we have
+                `\mathbf{V}_n( R_I ) = 0`.
 
                 .. SEEALSO::
 
-                    :meth:`sage.combinat.ncsf_qsym.qsym.verschiebung`,
                     :meth:`sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.verschiebung`
 
                 INPUT:
@@ -599,8 +603,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                     ....:      for I in Compositions(4) )
                     True
 
-                The Frobenius operators on QSym are adjoint to the
-                Verschiebung operators on NSym with respect to the duality
+                The Frobenius operators on `QSym` are adjoint to the
+                Verschiebung operators on `NSym` with respect to the duality
                 pairing::
 
                     sage: QSym = QuasiSymmetricFunctions(ZZ)
@@ -618,8 +622,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 dct = {Composition(map(lambda i: i // n, I)): coeff
                        for (I, coeff) in S(self).monomial_coefficients().items()
                        if all(i % n == 0 for i in I)}
-                result_in_S_basis = S._from_dict(dct)
-                return parent(result_in_S_basis)
+                return parent(S._from_dict(dct))
 
             def to_descent_algebra(self, n):
                 r"""
@@ -929,12 +932,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         .. MATH::
 
-            \Delta (f_i) = \sum_{j=0}^{i} f_j \otimes f_{i-j}
+            \Delta(f_i) = \sum_{j=0}^{i} f_j \otimes f_{i-j}
 
         with `f_0 = 1`. (In other words, the generators are to form a
         divided power sequence in the sense of a coalgebra.) This
         does not mean that the generators are grouplike, but means that
-        the element `1 + f_1 + f_2 + f_3 + \ldots` in the completion of
+        the element `1 + f_1 + f_2 + f_3 + \cdots` in the completion of
         the ring of non-commutative symmetric functions with respect
         to the grading is grouplike.
 
@@ -1157,10 +1160,11 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         .. MATH::
 
-            R_I = \sum_J (-1)^{\mathrm{length}(I) - \mathrm{length}(J)} S^J,
+            R_I = \sum_J (-1)^{\ell(I) - \ell(J)} S^J,
 
         where the sum is over all compositions `J` which are coarser than
-        `I`. (See the proof of Proposition 4.13 in [NCSF1]_.)
+        `I` and `\ell(I)` denotes the length of `I`. (See the proof of
+        Proposition 4.13 in [NCSF1]_.)
 
         The elements of the Ribbon basis are commonly referred to as the
         ribbon Schur functions.
@@ -1321,12 +1325,12 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         .. MATH::
 
-            \sum_{k\geq 0} t^k S_k
-            = \left( \sum_{k\geq 0} (-t)^k \Lambda_k \right)^{-1},
+            \sum_{k \geq 0} t^k S_k
+            = \left( \sum_{k \geq 0} (-t)^k \Lambda_k \right)^{-1},
 
         with `\Lambda_0` denoting `1`. For every composition
-        `(i_1, i_2, \ldots , i_k)`, we have
-        `S^{(i_1, i_2, \ldots , i_k)} = S_{i_1} S_{i_2} \cdots S_{i_k}`.
+        `(i_1, i_2, \ldots, i_k)`, we have
+        `S^{(i_1, i_2, \ldots, i_k)} = S_{i_1} S_{i_2} \cdots S_{i_k}`.
 
         EXAMPLES::
 
@@ -1505,9 +1509,9 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         basis, and is obtained from the elementary generators
         `\Lambda_i` of the ring of non-commutative symmetric functions
         through the formula
-        `\Lambda^{(i_1, i_2, \ldots , i_k)}
+        `\Lambda^{(i_1, i_2, \ldots, i_k)}
         = \Lambda_{i_1} \Lambda_{i_2} \cdots \Lambda_{i_k}`
-        for every composition `(i_1, i_2, \ldots , i_k)`.
+        for every composition `(i_1, i_2, \ldots, i_k)`.
 
         EXAMPLES::
 
@@ -1610,17 +1614,17 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         .. MATH::
 
             \frac{d}{dt} \sigma(t)
-            = \sigma(t) \cdot \left( \sum_{k\geq 1} t^{k-1} \Psi_k \right),
+            = \sigma(t) \cdot \left( \sum_{k \geq 1} t^{k-1} \Psi_k \right),
 
         where
 
         .. MATH::
 
-            \sigma(t) = \left( \sum_{k\geq 0} (-t)^k \Lambda_k \right)^{-1}
+            \sigma(t) = \left( \sum_{k \geq 0} (-t)^k \Lambda_k \right)^{-1}
 
         and where `\Lambda_0` denotes `1`. For every composition
-        `(i_1, i_2, \ldots , i_k)`, we have
-        `\Psi^{(i_1, i_2, \ldots , i_k)}
+        `(i_1, i_2, \ldots, i_k)`, we have
+        `\Psi^{(i_1, i_2, \ldots, i_k)}
         = \Psi_{i_1} \Psi_{i_2} \cdots \Psi_{i_k}`.
 
         The `\Psi`-basis is a basis only when the base ring is a
@@ -1778,11 +1782,11 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
         .. MATH::
 
             \sum_{k\geq 1} t^k \frac{1}{k} \Phi_k
-            = - \log \left( \sum_{k\geq 0} (-t)^k \Lambda_k \right),
+            = -\log \left( \sum_{k \geq 0} (-t)^k \Lambda_k \right),
 
         with `\Lambda_0` denoting `1`. For every composition
-        `(i_1, i_2, \ldots , i_k)`, we have
-        `\Phi^{(i_1, i_2, \ldots , i_k)}
+        `(i_1, i_2, \ldots, i_k)`, we have
+        `\Phi^{(i_1, i_2, \ldots, i_k)}
         = \Phi_{i_1} \Phi_{i_2} \cdots \Phi_{i_k}`.
 
         The `\Phi`-basis is well-defined only when the base ring is a
@@ -1820,8 +1824,8 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
 
         def _from_complete_on_basis(self, I):
             r"""
-            Expand a complete basis element of non-commutative symmetric functions
-            in the Phi basis.
+            Expand a complete basis element of non-commutative symmetric
+            functions in the Phi basis.
 
             INPUT:
 

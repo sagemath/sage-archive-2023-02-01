@@ -597,6 +597,8 @@ class Composition(CombinatorialObject, Element):
 
         return Composition(factors)
 
+    sup = join
+
     def meet(self, other, check=True):
         r"""
         Return the meet of ``self`` with a composition ``other`` of the
@@ -718,6 +720,8 @@ class Composition(CombinatorialObject, Element):
                     break
 
         return Composition(factors)
+
+    inf = meet
 
     def finer(self):
         """

@@ -151,7 +151,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
             OUTPUT:
 
-            - the sum of all basis ``self`` elements which are indexed by
+            - The sum of all basis ``self`` elements which are indexed by
               compositions finer than ``composition``.
 
             EXAMPLES::
@@ -202,7 +202,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
             OUTPUT:
 
-            - the alternating sum of the compositions finer than ``composition``,
+            - The alternating sum of the compositions finer than ``composition``,
               in the basis ``self``. The alternation is upon the length of the
               compositions, and is normalized so that ``composition`` has
               coefficient `1`. If the variable ``conjugate`` is set to ``True``,
@@ -243,7 +243,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
             OUTPUT:
 
-            - the alternating sum of the compositions fatter than ``composition``,
+            - The alternating sum of the compositions fatter than ``composition``,
               in the basis ``self``. The alternation is upon the length of the
               compositions, and is normalized so that ``composition`` has
               coefficient `1`.
@@ -280,8 +280,8 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
             OUTPUT:
 
-            - the sum of all ``self`` basis elements indexed by compositions which
-              are permutations of ``par`` (without multiplicity).
+            - The sum of all ``self`` basis elements indexed by compositions
+              which are permutations of ``par`` (without multiplicity).
 
             EXAMPLES::
 
@@ -307,8 +307,8 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
             OUTPUT:
 
-            - ``comp`` as a partition, if it is sorted. Otherwise returns
-              nothing (``None``).
+            - ``comp`` as a partition, if it is sorted; otherwise returns
+              ``None`` (nothing).
 
             EXAMPLES::
 
@@ -335,9 +335,9 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
             OUTPUT:
 
-            - the degree of the non-commutative symmetric function basis element of
-              ``self`` indexed by ``I``. By definition, this is the size of the composition
-              ``I``.
+            - The degree of the non-commutative symmetric function basis
+              element of ``self`` indexed by ``I``. By definition, this is
+              the size of the composition ``I``.
 
             EXAMPLES::
 
@@ -359,15 +359,16 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
             INPUT:
 
-            - ``x`` -- A non-commutative or quasi-symmetric function. It is an element of
-              ``self``
-            - ``y`` -- A quasi-symmetric or non-commutative symmetric function. It is an
-              element of the dual algebra of ``self``
-            - ``side`` -- (default: ``'left'``) Either 'left' or 'right'
+            - ``x`` -- a non-commutative or quasi-symmetric function; it is
+              an element of ``self``
+            - ``y`` -- a quasi-symmetric or non-commutative symmetric
+              function; it is an element of the dual algebra of ``self``
+            - ``side`` -- (default: ``'left'``)
+              either ``'left'`` or ``'right'``
 
             OUTPUT:
 
-            - the result of skewing the element ``x`` by the Hopf algebra
+            - The result of skewing the element ``x`` by the Hopf algebra
               element ``y`` (either from the left or from the right, as
               determined by ``side``), written in the basis ``self``.
 
@@ -439,15 +440,16 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
             INPUT:
 
-            - ``x`` -- A non-commutative or quasi-symmetric function. It is an element of
-              ``self``
-            - ``y`` -- A quasi-symmetric or non-commutative symmetric function. It is an
-              element of the dual algebra of ``self``
-            - ``side`` -- (default: ``'left'``) Either 'left' or 'right'
+            - ``x`` -- a non-commutative or quasi-symmetric function; it is
+              an element of ``self``
+            - ``y`` -- a quasi-symmetric or non-commutative symmetric
+              function; it is an element of the dual algebra of ``self``
+            - ``side`` -- (default: ``'left'``)
+              either ``'left'`` or ``'right'``
 
             OUTPUT:
 
-            - the result of skewing the element ``x`` by the Hopf algebra
+            - The result of skewing the element ``x`` by the Hopf algebra
               element ``y`` (either from the left or from the right, as
               determined by ``side``), written in the basis ``self``.
               This uses coercion to a concreate realization (either the
@@ -469,7 +471,8 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
         def duality_pairing(self, x, y):
             r"""
-            The duality pairing between elements of NSym and elements of QSym.
+            The duality pairing between elements of `NSym` and elements
+            of `QSym`.
 
             This is a default implementation that uses
             ``self.realizations_of().a_realization()`` and its dual basis.
@@ -681,7 +684,8 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
         def duality_pairing(self, y):
             r"""
-            The duality pairing between elements of NSym and elements of QSym.
+            The duality pairing between elements of `NSym` and elements
+            of `QSym`.
 
             The complete basis is dual to the monomial basis with respect
             to this pairing.
@@ -1037,9 +1041,9 @@ class GradedModulesWithInternalProduct(Category_over_base_ring):
                 sage: R.internal_product(R[2,2], R[1,2])
                 0
 
-            TODO:
+            .. TODO::
 
-                Despite the __repr__, this is NOT an endomorphism!
+                Despite the ``__repr__``, this is NOT an endomorphism!
             """
             if self.internal_product_on_basis is not NotImplemented:
                 return self.module_morphism(
@@ -1056,10 +1060,26 @@ class GradedModulesWithInternalProduct(Category_over_base_ring):
     class ElementMethods:
         def internal_product(self, other):
             r"""
-            Return the internal product of two non-commutative symmetric functions.
+            Return the internal product of two non-commutative
+            symmetric functions.
 
-            Aliases for ``internal_product`` are ``itensor`` and
-            ``kronecker_product``.
+            The internal product on the algebra of non-commutative symmetric
+            functions is adjoint to the internal coproduct on the algebra of
+            quasisymmetric functions with respect to the duality pairing
+            between these two algebras. This means, explicitly, that any
+            two non-commutative symmetric functions `f` and `g` and any
+            quasi-symmetric function `h` satisfy
+
+            .. MATH::
+
+                \langle f * g, h \rangle = \sum_i \langle f, h^{\prime}_i
+                \rangle \langle g, h^{\prime\prime}_i \rangle,
+
+            where we write `\Delta^{\times}(h)` as `\sum_i h^{\prime}_i
+            \otimes h^{\prime\prime}_i`.
+
+            Aliases for :meth:`internal_product()` are :meth:`itensor()` and
+            :meth:`kronecker_product()`.
 
             INPUT:
 
@@ -1083,16 +1103,8 @@ class GradedModulesWithInternalProduct(Category_over_base_ring):
                 sage: S[1,2].internal_product(S[1,2])
                 S[1, 1, 1] + S[1, 2]
 
-            The internal product on the algebra of non-commutative symmetric
-            functions is adjoint to the internal coproduct on the algebra of
-            quasisymmetric functions with respect to the duality pairing
-            between these two algebras. This means, explicitly, that any
-            two non-commutative symmetric functions `f` and `g` and any
-            quasi-symmetric function `h` satisfy
-            `\langle f * g, h \rangle = \sum_i \langle f, h^{\prime}_i
-            \rangle \langle g, h^{\prime\prime}_i \rangle`, where we write
-            `\Delta^{\times}(h)` as `\sum_i h^{\prime}_i \otimes
-            h^{\prime\prime}_i`. Let us check this in degree `4`::
+            Let us check the duality between the inner product and the inner
+            coproduct in degree `4`::
 
                 sage: M = QuasiSymmetricFunctions(FiniteField(29)).M()
                 sage: S = NonCommutativeSymmetricFunctions(FiniteField(29)).S()

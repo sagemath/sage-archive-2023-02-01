@@ -67,21 +67,21 @@ def Bundle(toric_variety, *args, **kwds):
         sage: from sage.schemes.toric.bundle.klyachko import Bundle
         sage: Bundle(P1, [(1,0,0),(0,1,0),(0,0,1)], [(1,[1,2]), (3,[1]), (4,)], [(2,[0]), (3,)])
     """
-    base_field = kwds.pop('base_field', None)
+    base_ring = kwds.pop('base_ring', None)
     check = kwds.pop('check', True)
     assert len(kwds)==0, 'Unkown keyword argument: '+str(kwds.keys()[0])
 
     if all(is_FilteredVectorSpace(V) for V in args):
-        assert base_field is None
+        assert base_ring is None
         return Bundle_class(toric_variety, args, check=check)
 
-    if base_field is None:
-        base_field = QQ
+    if base_ring is None:
+        base_ring = QQ
     return Bundle_from_rays_filtrations(toric_variety, args[0], args[1:], 
-                                        base_field=base_field, check=check)
+                                        base_ring=base_ring, check=check)
 
 
-def Bundle_from_filtered_vector_spaces(toric_variety, filtrations, base_field=QQ, check=True):
+def Bundle_from_filtered_vector_spaces(toric_variety, filtrations, base_ring=QQ, check=True):
     """
     Construct a Klyachko bundle from filtration data.
     """
@@ -90,11 +90,11 @@ def Bundle_from_filtered_vector_spaces(toric_variety, filtrations, base_field=QQ
     return Bundle_class(toric_variety, filtrations, check=check)
 
 
-def Bundle_from_rays_filtrations(toric_variety, rays, filtrations, base_field=QQ, check=True):
+def Bundle_from_rays_filtrations(toric_variety, rays, filtrations, base_ring=QQ, check=True):
     """
     Construct a Klyachko bundle from filtration data.
     """
-    filtrations = [ FilteredVectorSpace(rays,f,base_field=base_field, check=check) 
+    filtrations = [ FilteredVectorSpace(rays,f,base_ring=base_ring, check=check) 
                     for f in filtrations ]
     return Bundle_class(toric_variety, filtrations, check=check)
     
@@ -113,9 +113,9 @@ class Bundle_class(SageObject):
         """
         self._variety = toric_variety
         self._filt = filtrations
-        self._base_field = self._filt[0].base_field()
+        self._base_ring = self._filt[0].base_ring()
         self._rank = self._filt[0].dimension()
-        self._vectorspace = VectorSpace(self._base_field, self._rank)
+        self._vectorspace = VectorSpace(self._base_ring, self._rank)
         
         if not check: return
         if len(filtrations)!=self._variety.fan().nrays():
@@ -139,23 +139,23 @@ class Bundle_class(SageObject):
         EXAMPLES::
 
             sage: X = toric_varieties.P2()
-            sage: X.tangent_bundle()
+            sage: X.bundle.tangent_bundle()
             Rank 2 bundle on 2-d CPR-Fano toric variety covered by 3 affine patches.
             sage: X.tangent_bundle().variety() is X
             True
         """
         return self._variety
 
-    def base_field(self):
+    def base_ring(self):
         r"""
         Return the base field.
 
         EXAMPLES::
 
-            sage: toric_varieties.P2().tangent_bundle().base_field()
+            sage: toric_varieties.P2().tangent_bundle().base_ring()
             Rational Field
         """
-        return self._base_field
+        return self._base_ring
 
     def fiber(self):
         r"""
@@ -163,7 +163,7 @@ class Bundle_class(SageObject):
 
         OUTPUT:
 
-        A vector space over :meth:`base_field`.
+        A vector space over :meth:`base_ring`.
 
         EXAMPLES::
 
@@ -465,7 +465,7 @@ class Bundle_class(SageObject):
         fan = self._variety.fan()
         C = fan.complex()
         CV = []
-        F = self.base_field()
+        F = self.base_ring()
         for dim in range(1,fan.dim()+1):
             codim = fan.dim() - dim
             d_C = C.differential(codim)
@@ -489,7 +489,7 @@ class Bundle_class(SageObject):
             CV.append(d_V)
             #print dim, ': ', d_V.nrows(), 'x', d_V.ncols(), '\n', d_V
         from sage.homology.chain_complex import ChainComplex
-        return ChainComplex(CV, base_ring=self.base_field())
+        return ChainComplex(CV, base_ring=self.base_ring())
 
     def cohomology(self, d=None, weight=None, dim=False):
         r"""
@@ -545,7 +545,7 @@ class Bundle_class(SageObject):
             try: 
                 HH[d] = C_homology[d]
             except KeyError:
-                HH[d] = FreeModule(self.base_field(), 0)
+                HH[d] = FreeModule(self.base_ring(), 0)
         if dim:
             HH = vector(ZZ, [ HH[i].rank() for i in range(0,space_dim+1) ])
         return HH
@@ -679,11 +679,11 @@ class Bundle_class(SageObject):
         assert all(F._rays == rays for F in self._filt)
         if perturbed_rays is None:
             from sage.modules.free_module_element import random_vector
-            perturbed_rays = [ r + random_vector(self.base_field(), self.rank()) 
+            perturbed_rays = [ r + random_vector(self.base_ring(), self.rank()) 
                                for r in rays ]
         else:
             assert len(rays)==len(perturbed_rays)
-        filt = [ FilteredVectorSpace(perturbed_rays, F._filt, base_field=self.base_field())
+        filt = [ FilteredVectorSpace(perturbed_rays, F._filt, base_ring=self.base_ring())
                  for F in self._filt ]
         return Bundle_class(self.variety(), filt, check=True)
         

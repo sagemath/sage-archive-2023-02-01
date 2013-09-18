@@ -31,6 +31,7 @@ for the nested subspaces. For example::
     sage: r2 = (0, 1, 0)
     sage: r3 = (1, 2, 0)
     sage: V = FilteredVectorSpace({0:[r1, r2], 1:[r3], 3:[]});  V
+    QQ^3 >= QQ^2 >= QQ^1 >= QQ^1 >= 0
 
 For degrees `d` that are not specified, the associated vector subspace
 is the same as the next-lower degree, that is, `V_d \simeq
@@ -41,12 +42,26 @@ V_{d-1}`. In the above example, this means that
 * `V_1 = V_2 = \mathop{span}(r_3) \simeq \QQ` 
 * `V_d = 0` for `d \geq 3` 
 
+That is::
+
+    sage: QQ3 = V.ambient_vector_space();  QQ3
+    Vector space of dimension 3 over Rational Field
+    sage: V.get_degree(-1) == QQ3
+    True
+    sage: V.get_degree(0) == QQ3.span([r1, r2])
+    True
+    sage: V.get_degree(1) == V.get_degree(2) == QQ3.span([r3])
+    True
+    sage: V.get_degree(3) == V.get_degree(4) == QQ3.span([])
+    True
+
 Alternatively, you can just pass the rays once and then refer to them
 by index::
 
-    sage: V == FilteredVectorSpace([r1, r2, r3], {0:[0,1], 1:[2], 3:[]})
+    sage: FilteredVectorSpace([r1, r2, r3], {0:[0,1], 1:[2], 3:[]})
+    QQ^3 >= QQ^2 >= QQ^1 >= QQ^1 >= 0
 
-The generators in each degree can either be specified by
+
 """
 
 #*****************************************************************************
@@ -132,8 +147,6 @@ def FilteredVectorSpace(arg1, arg2=None, base_ring=QQ, check=True):
         pass
     return FilteredVectorSpace_from_rays_filtration(arg1, arg2, base_ring, check)
     
-    
-
 
 def FilteredVectorSpace_from_dim_cutoff(dim, cutoff=None, base_ring=QQ, check=True):
     """
@@ -183,8 +196,8 @@ def FilteredVectorSpace_from_rays_filtration(rays, filtration, base_ring=QQ, che
     EXAMPLES::
     
         sage: from sage.modules.filtered_vector_space import FilteredVectorSpace_from_rays_filtration
-        sage: V = FilteredVectorSpace_from_rays_filtration
-        ....:     ([(1,0),(0,1),(-1,-1)], [(1,[1]), (3,)]);  V
+        sage: V = FilteredVectorSpace_from_rays_filtration(
+        ....:      [(1,0),(0,1),(-1,-1)], [(1,[1]), (3,)]);  V
         QQ^2 >= QQ^1 >= QQ^1 >= 0
         sage: V.get_degree_indices(0)
         (0, 1, 2)
@@ -192,7 +205,7 @@ def FilteredVectorSpace_from_rays_filtration(rays, filtration, base_ring=QQ, che
     Alternative notation: Use rays instead of ray indices::
     
         sage: r = (1,0)
-        sage: V == FilteredVectorSpace_from_rays_filtration({1:[r1], 3:[]})
+        sage: FilteredVectorSpace({1:[r], 3:[]}).is_isomorphic(V)
         True
     """
     if filtration is None:
@@ -203,7 +216,7 @@ def FilteredVectorSpace_from_rays_filtration(rays, filtration, base_ring=QQ, che
     if not isinstance(filtration, dict):
         filtration_dict = dict()
         for filt in filtration:
-            d = filt[0]
+            d = ZZ(filt[0])
             filtration_dict[d] = [] if len(filt) == 1 else list(filt[1])
         filtration = filtration_dict
 
@@ -295,7 +308,7 @@ class RayCollection(FreeModule_ambient_field):
             r.set_immutable()
         if matrix(base_ring, self._rays).rank() != self.degree():
             raise ValueError('the rays must span the ambient vector space')
-        self._all_indices = tuple(range(0,self._n_rays))
+        self._all_indices = tuple(map(ZZ, range(0, self._n_rays)))
 
 
 ##############################################################################
@@ -513,7 +526,7 @@ class RayCollection_tensor_operation(SageObject):
         n = self._V_list[0]._n_rays
         Alt = self._antisymmetrized_coordinate_sums()
         from sage.combinat.combination import Combinations
-        for i in Combinations(range(0,n), k):
+        for i in Combinations(range(0, n), k):
             ray = self._power_operation_ray(i, Alt)
             if ray is not None:
                 self._result_dict[tuple(i)] = ray
@@ -567,46 +580,44 @@ class FilteredVectorSpace_class(RayCollection):
 
         TESTS::
 
-            sage: from sage.modules.filtered_vector_space \
-            ...       import FilteredVectorSpace_class
-            sage: rays = [(1,0,0),(1,1,0),(1,2,0),(-1,-1,0),(0,0,1)]
-            sage: FilteredVectorSpace_class(rays, [[2,[4]]], QQ, 3)
+            sage: from sage.modules.filtered_vector_space import FilteredVectorSpace_class
+            sage: rays = [(1,0,0), (1,1,0), (1,2,0), (-1,-1, 0), (0,0,1)]
+            sage: FilteredVectorSpace_class(rays, {2:(4,)}, QQ, 3)
             QQ^3 >= QQ^1
-            sage: FilteredVectorSpace_class(rays, [(2,[4]), (3,)], QQ, 3)
+            sage: FilteredVectorSpace_class(rays, {2:(4,), 3:()}, QQ, 3)
             QQ^3 >= QQ^1 >= 0
 
         The trivial filtration::
             
-            sage: FilteredVectorSpace_class(rays, [], QQ, 3)
+            sage: FilteredVectorSpace_class(rays, {}, QQ, 3)
             QQ^3
 
         The empty vector space::
 
-            sage: FilteredVectorSpace_class([], [], QQ, 0)
+            sage: FilteredVectorSpace_class([], {}, QQ, 0)
             0
         """
         assert isinstance(dim, Integer)
         assert base_ring in Fields()
-        assert isinstance(filtration, dict)
         super(FilteredVectorSpace_class, self).__init__(rays, base_ring, dim)
 
+        assert isinstance(filtration, dict)
         for degree, generators in filtration.iteritems():
             assert isinstance(degree, Integer)
             assert isinstance(generators, tuple)
             assert all(isinstance(r, Integer) for r in generators)
-        filtration = list(filtration.iteritems())
-        filtration = sorted(filtration)   # sorts by degree
+        filtration = sorted(list(filtration.iteritems()))  # sort by degree
         self._filt = tuple(filtration)
         self._trivial = (len(self._filt) == 0)
 
         if not check: return
         assert matrix(self._rays).rank() == self.dimension()
         # check that it is an increasing filtration
-        prev_gens_set = set(self._all_indices)
-        for deg, gens in self._filt:
-            gens_set = set(gens)
-            assert gens_set.issubset(prev_gens_set)
-            prev_gens_set = gens_set
+        #prev_gens_set = set(self._all_indices)
+        #for deg, gens in self._filt:
+        #    gens_set = set(gens)
+        #    assert gens_set.issubset(prev_gens_set)
+        #    prev_gens_set = gens_set
 
     def is_trivial(self):
         """
@@ -680,13 +691,13 @@ class FilteredVectorSpace_class(RayCollection):
     @cached_method
     def is_finite(self):
         """
-        Return whether the filtration has a finite number of steps.
+        Return whether the filtration eventually becomes the trivial vector space.
 
         EXAMPLES::
 
             sage: FilteredVectorSpace(1,4).is_finite()
             True
-            sage: FilteredVectorSpace([[1]], []).is_finite()
+            sage: FilteredVectorSpace(1).is_finite()
             False
         """
         gens_oo = self.get_degree_indices(self.max_degree())
@@ -862,7 +873,7 @@ class FilteredVectorSpace_class(RayCollection):
             equivalence.
 
         EXAMPLES::
-        
+
             sage: V = FilteredVectorSpace(2,0)
             sage: W = FilteredVectorSpace([(1,0),(0,1)], [[1]])
             sage: V == W
@@ -883,13 +894,17 @@ class FilteredVectorSpace_class(RayCollection):
             sage: S2 = O_P + T_P
             sage: S1._filt[0].is_isomorphic(S2._filt[0])  # known bug
             True
+            sage: FilteredVectorSpace(2, base_ring=QQ) == FilteredVectorSpace(2, base_ring=GF(5))
+            False
         """
         c = super(FilteredVectorSpace_class, self).__cmp__(other)
         if c!=0: return c
         c = cmp(type(self), type(other))
         if c!=0: return c
-        c = cmp(self._rays, other._rays)
-        if c!=0: return c
+        for r_self, r_other in zip(self._rays, other._rays):
+            # avoid implicit comparison of parents
+            c = cmp(tuple(r_self), tuple(r_other))
+            if c!=0: return c
         return cmp(self._filt, other._filt)
 
     def chomp(self):
@@ -970,7 +985,7 @@ class FilteredVectorSpace_class(RayCollection):
         
         EXAMPLES::
         
-            sage: V = FilteredVectorSpace(2,0)
+            sage: V = FilteredVectorSpace(2, 0)
             sage: W = FilteredVectorSpace([(1,-1),(2,1)], [[1]])
             sage: V.direct_sum(W)
             QQ^4 >= 0
@@ -988,14 +1003,15 @@ class FilteredVectorSpace_class(RayCollection):
         rays = \
             [ list(r) + [0]*other.dimension() for r in self._rays  ] + \
             [ [0]*self.dimension() + list(r)  for r in other._rays ]
-        filtration = []
         min_deg = min(self.min_degree(), other.min_degree())
         max_deg = max(self.max_degree(), other.max_degree())
+        filtration = dict()
         for deg in range(min_deg+1, max_deg+1):
             if self.changes_in_degree(deg) or other.changes_in_degree(deg):
                 gens = self.get_degree_indices(deg) + shift(other.get_degree_indices(deg))
-                filtration.append( (deg, gens) )
-        return FilteredVectorSpace(rays, filtration, base_ring=self.base_ring())
+                filtration[ZZ(deg)] = gens
+        dim = self.dimension() + other.dimension()
+        return self.__class__(rays, filtration, self.base_ring(), dim)
 
     __add__ = direct_sum
     
@@ -1131,18 +1147,17 @@ class FilteredVectorSpace_class(RayCollection):
         """
         ray_tensor_index = RayCollection_tensor_operation([self, other], 'product')
 
-        filt_dict = dict()
+        filtration = dict()
         for self_step in self.steps_right_iter():
             for other_step in other.steps_right_iter():
                 deg = self_step[0]+other_step[0]
-                filt_step = filt_dict.get(deg,[])
+                filt_step = filtration.get(deg,[])
                 for i in self_step[1]:
                     for j in other_step[1]:
                         i_tensor_j = ray_tensor_index(i,j)
-                        filt_step.append(i_tensor_j)
-                filt_dict[deg] = filt_step
-        filt = list(filt_dict.iteritems())
-        return FilteredVectorSpace(ray_tensor_index._rays, filt, base_ring=self.base_ring()).chomp()
+                        filt_step.append(ZZ(i_tensor_j))
+                filtration[ZZ(deg)] = filt_step
+        return FilteredVectorSpace(ray_tensor_index._rays, filtration, base_ring=self.base_ring()).chomp()
         
     __mul__ = tensor_product
 

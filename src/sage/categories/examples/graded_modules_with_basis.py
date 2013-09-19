@@ -31,9 +31,9 @@ class GradedPartitionModule(CombinatorialFreeModule):
       set of partitions, so it inherits all of the methods for such
       objects, and has operations like addition already defined.
 
-    ::
+      ::
 
-        sage: A = GradedModulesWithBasis(QQ).example()
+          sage: A = GradedModulesWithBasis(QQ).example()
 
     - A basis function - this module is graded by the non-negative
       integers, so there is a function defined in this module,
@@ -41,12 +41,12 @@ class GradedPartitionModule(CombinatorialFreeModule):
       `d` as input and returns a family of partitions representing a basis
       for the algebra in degree `d`.
 
-    ::
+      ::
 
-        sage: A.basis(2)
-        Lazy family (Term map from Partitions to An example of a graded module with basis: the free module on partitions over Rational Field(i))_{i in Partitions of the integer 2}
-        sage: A.basis(6)[Partition([3,2,1])]
-        P[3, 2, 1]
+          sage: A.basis(2)
+          Lazy family (Term map from Partitions to An example of a graded module with basis: the free module on partitions over Rational Field(i))_{i in Partitions of the integer 2}
+          sage: A.basis(6)[Partition([3,2,1])]
+          P[3, 2, 1]
 
     - If the algebra is called ``A``, then its basis function is
       stored as ``A.basis``.  Thus the function can be used to
@@ -54,10 +54,10 @@ class GradedPartitionModule(CombinatorialFreeModule):
       ``A.basis(d)``.  More precisely, call ``x`` for
       each ``x`` in ``A.basis(d)``.
 
-    ::
+      ::
 
-    sage: [m for m in A.basis(4)]
-    [P[4], P[3, 1], P[2, 2], P[2, 1, 1], P[1, 1, 1, 1]]
+          sage: [m for m in A.basis(4)]
+          [P[4], P[3, 1], P[2, 2], P[2, 1, 1], P[1, 1, 1, 1]]
 
     - For dealing with basis elements: :meth:`degree_on_basis`, and
       :meth:`_repr_term`. The first of these defines the degree of any
@@ -68,12 +68,12 @@ class GradedPartitionModule(CombinatorialFreeModule):
       print representation for monomials, which automatically produces
       the print representation for general elements.
 
-    ::
+      ::
 
-        sage: A.degree_on_basis(Partition([4,3]))
-        7
-        sage: A._repr_term(Partition([4,3]))
-        'P[4, 3]'
+          sage: A.degree_on_basis(Partition([4,3]))
+          7
+          sage: A._repr_term(Partition([4,3]))
+          'P[4, 3]'
 
     - There is a class for elements, which inherits from
       :class:`CombinatorialFreeModuleElement
@@ -84,14 +84,14 @@ class GradedPartitionModule(CombinatorialFreeModule):
       <GradedModules.Element.is_homogeneous>` method and a
       :meth:`degree <GradedModules.Element.degree>` method.
 
-    ::
+      ::
 
-        sage: p = A.monomial(Partition([3,2,1])); p
-        P[3, 2, 1]
-        sage: p.is_homogeneous()
-        True
-        sage: p.degree()
-        6
+          sage: p = A.monomial(Partition([3,2,1])); p
+          P[3, 2, 1]
+          sage: p.is_homogeneous()
+          True
+          sage: p.degree()
+          6
     """
     def __init__(self, base_ring):
         """

@@ -207,6 +207,14 @@ def FilteredVectorSpace_from_rays_filtration(rays, filtration, base_ring=QQ, che
         sage: r = (1,0)
         sage: FilteredVectorSpace({1:[r], 3:[]}).is_isomorphic(V)
         True
+
+    TESTS::
+
+        sage: rays = [(int(1),int(0)), (0,1), (-1,-1)]
+        sage: FilteredVectorSpace_from_rays_filtration(rays, [(int(1),[int(1)]), (int(3),)])
+        QQ^2 >= QQ^1 >= QQ^1 >= 0
+        sage: FilteredVectorSpace_from_rays_filtration(rays, {int(1):[int(1)], int(3):[]})
+        QQ^2 >= QQ^1 >= QQ^1 >= 0
     """
     if filtration is None:
         filtration = rays
@@ -216,7 +224,7 @@ def FilteredVectorSpace_from_rays_filtration(rays, filtration, base_ring=QQ, che
     if not isinstance(filtration, dict):
         filtration_dict = dict()
         for filt in filtration:
-            d = ZZ(filt[0])
+            d = filt[0]
             filtration_dict[d] = [] if len(filt) == 1 else list(filt[1])
         filtration = filtration_dict
 
@@ -230,18 +238,20 @@ def FilteredVectorSpace_from_rays_filtration(rays, filtration, base_ring=QQ, che
         rays = tuple(uniq(rays))
     else:
         rays = tuple(rays)
-    for d in filtration.keys():
-        rays_d = filtration[d]
+
+    # normalize filtration data
+    normalized = dict()
+    for d, rays_d in filtration.iteritems():
+        d = ZZ(d)
         try:
-            rays_d = [ZZ(rays.index(r)) for r in rays_d]
-        except ValueError:
             rays_d = map(ZZ, list(rays_d))
-        filtration[d] = tuple(rays_d)
+        except TypeError:
+            rays_d = [ZZ(rays.index(r)) for r in rays_d]
+        normalized[d] = tuple(rays_d)
+    filtration = normalized
 
     # verify filtration data
     for d, rays_d in filtration.iteritems():
-        if any(r not in ZZ for r in rays_d):
-            raise ValueError('ray index must be integer')
         if any(r < 0 or r >= len(rays) for r in rays_d):
             raise ValueError('ray index out of bounds')
 

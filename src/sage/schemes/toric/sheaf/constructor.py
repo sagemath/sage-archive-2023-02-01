@@ -24,15 +24,16 @@ def TangentBundle(X):
 
     EXAMPLES:
 
-        sage: toric_varieties.dP7().bundle.tangent_bundle()
+        sage: dP7 = toric_varieties.dP7()
+        sage: dP7.sheaves.tangent_bundle()
         Rank 2 bundle on 2-d CPR-Fano toric variety covered by 5 affine patches.
     """
     assert is_ToricVariety(X)
     base_ring = X.base_ring()
     fan = X.fan()
-    filtration = [[[1,[i]], [2,[]]] for i in range(0,fan.nrays())]
+    filtration = [{1:[i], 2:[]} for i in range(0, fan.nrays())]
     import klyachko
-    return klyachko.Bundle_from_rays_filtrations(X, fan.rays(), filtration, base_ring=base_ring)
+    return klyachko.Bundle_from_rays_filtrations(X, fan.rays(), filtration, base_ring, check=True)
     
 
 def CotangentBundle(X):
@@ -45,9 +46,10 @@ def TrivialBundle(X, rank=1):
 
     EXAMPLES::
 
-        sage: I3 = TrivialBundle(toric_varieties.P2(), 3);  I3
+        sage: P2 = toric_varieties.P2()
+        sage: I3 = P2.sheaves.trivial_bundle(3);  I3
         Rank 3 bundle on 2-d CPR-Fano toric variety covered by 3 affine patches.
-        sage: I3.cohomology(m=(0,0), dim=True)
+        sage: I3.cohomology(weight=(0,0), dim=True)
         (3, 0, 0)
     """
     assert is_ToricVariety(X)
@@ -55,7 +57,7 @@ def TrivialBundle(X, rank=1):
     base_ring = X.base_ring()
     filtration = [FilteredVectorSpace(rank, 0, base_ring=base_ring)] * X.fan().nrays()
     import klyachko
-    return klyachko.Bundle_from_filtered_vector_spaces(X, filtration)
+    return klyachko.Bundle_from_filtered_vector_spaces(X, filtration, check=True)
 
 
 def LineBundle(X, D):
@@ -70,8 +72,9 @@ def LineBundle(X, D):
 
         sage: X = toric_varieties.dP8()
         sage: D = X.divisor(0)
-        sage: O_D = LineBundle(X, D)
-        sage: O_D.cohomology(dim=True, m=(0,0))
+        sage: O_D = X.sheaves.line_bundle(D)
+        sage: O_D.cohomology(dim=True, weight=(0,0))
+        (1, 0, 0)
     """
     assert is_ToricVariety(X)
     from sage.modules.free_module import VectorSpace
@@ -79,7 +82,7 @@ def LineBundle(X, D):
     filtration = [ FilteredVectorSpace(1, D.function_value(i), base_ring=base_ring) 
                    for i in range(0, X.fan().nrays()) ]
     import klyachko
-    return klyachko.Bundle_from_filtered_vector_spaces(X, filtration)
+    return klyachko.Bundle_from_filtered_vector_spaces(X, filtration, check=True)
     
     
         
@@ -107,7 +110,8 @@ class SheafLibrary(object):
 
         EXAMPLES::
         
-            sage: toric_varieties.dP6().sheaves.cotangent_bundle()
+            sage: toric_varieties.dP6().sheaves.tangent_bundle()
+            Rank 2 bundle on 2-d CPR-Fano toric variety covered by 6 affine patches.
         """
         return TangentBundle(self._variety)
 
@@ -122,5 +126,38 @@ class SheafLibrary(object):
         EXAMPLES::
         
             sage: toric_varieties.dP6().sheaves.cotangent_bundle()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         return CotangentBundle(self._variety)
+
+    def Klyachko(self, *args, **kwds):
+        """
+        Construct a Klyachko bundle (sheaf) from filtration data.        
+        """
+        from klyachko import Bundle
+        return Bundle(self._variety, *args, **kwds)
+
+    def divisor(self, *args, **kwds):
+        """
+        Return a toric divisor.
+
+        This is just an alias for
+        :meth:`sage.schemes.toric.variety.ToricVariety_field.divisor`,
+        see there for details.
+
+        By abuse of notation, you can usually use the divisor `D`
+        interchangeably with the line bundle `O(D)`.
+
+        EXAMPLES::
+
+            sage: dP6 = toric_varieties.dP6()
+            sage: dP6.inject_variables()
+            Defining x, u, y, v, z, w
+            sage: D = dP6.sheaves.divisor(x*u^3);  D
+            V(x) + 3*V(u)
+            sage: D == dP6.divisor(x*u^3)
+            True
+        """
+        return self._variety.divisor(*args, **kwds)

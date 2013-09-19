@@ -678,34 +678,38 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
                 Permutation(coset_table[2*i]) for i in range(len(coset_table)/2)])
 
     def direct_product(self, H, reduced=False, new_names=True):
-        """
-        Return the direct product of ``self`` with finitely presented group ``H``.
+        r"""
+        Return the direct product of ``self`` with finitely presented
+        group ``H``.
 
-        Calls GAP function ``DirectProduct``, which returns the direct product of a
-        list of groups of any representation.
+        Calls GAP function ``DirectProduct``, which returns the direct
+        product of a list of groups of any representation.
 
-        'If `G`, `H` are groups presented by `< X \mid R >` and `< Y \mid S >` respectively,
-        then their direct product has the presentation `< X,Y \mid R,S,[X,Y] >`
-        where `[X,Y]` denotes the set of commutators `\{ x^{-1}y^{-1}xy \mid x \in X, y \in Y \}` '
-        --D.L. Johnson, Presentations of Groups (pg 45, proposition 4)
+        From [JohnsonPG90]_ (pg 45, proposition 4): If `G`, `H` are groups
+        presented by `\langle X \mid R \rangle` and `\langle Y \mid S \rangle`
+        respectively, then their direct product has the presentation
+        `\langle X, Y \mid R, S, [X, Y] \rangle` where `[X, Y]` denotes the
+        set of commutators `\{ x^{-1} y^{-1} x y \mid x \in X, y \in Y \}`.
 
         INPUT:
 
-        - ``H`` -- A finitely presented group.
+        - ``H`` -- a finitely presented group
 
-        - ``reduced`` -- Boolean, default ``False``. If ``True`` the method attempts
-          to reduce the presentation of the product group to be returned.
+        - ``reduced`` -- (default: ``False``) boolean; if ``True``, then
+          attempt to reduce the presentation of the product group
 
-        - ``new_names`` -- Boolean, default ``True``. If ``True``, then lexicographical
-          variable names are assigned to the generators of the group to be returned. If
-          ``False``, the group to be returned keeps the generator names of the two groups
-          forming the direct product. Note that one cannot ask to reduce the output and ask
-          to keep the old variable names, as they they may change meaning in the output group
-          if its presentation is reduced.
+        - ``new_names`` -- (default: ``True``) boolean; If ``True``, then
+          lexicographical variable names are assigned to the generators of
+          the group to be returned. If ``False``, the group to be returned
+          keeps the generator names of the two groups forming the direct
+          product. Note that one cannot ask to reduce the output and ask
+          to keep the old variable names, as they they may change meaning
+          in the output group if its presentation is reduced.
 
         OUTPUT:
 
-        The direct product of ``self`` with ``H`` as a finitely presented group.
+        The direct product of ``self`` with ``H`` as a finitely
+        presented group.
 
         EXAMPLES::
 
@@ -768,7 +772,8 @@ class FinitelyPresentedGroup(GroupMixinLibGAP, UniqueRepresentation,
 
         REFERENCES:
 
-        .. [JPG] D.L. Johnson. Presentations of Groups. Cambridge University Press, 1990.
+        .. [JohnsonPG90] D.L. Johnson. *Presentations of Groups*.
+           Cambridge University Press. (1990).
         """
         from sage.groups.free_group import FreeGroup, _lexi_gen
 

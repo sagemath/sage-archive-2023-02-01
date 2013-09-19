@@ -888,8 +888,8 @@ class FilteredVectorSpace_class(RayCollection):
         TESTS::
 
             sage: P = toric_varieties.P2()
-            sage: T_P = P.bundle.tangent_bundle()
-            sage: O_P = P.bundle.trivial_bundle(1)
+            sage: T_P = P.sheaves.tangent_bundle()
+            sage: O_P = P.sheaves.trivial_bundle(1)
             sage: S1 = T_P + O_P
             sage: S2 = O_P + T_P
             sage: S1._filt[0].is_isomorphic(S2._filt[0])  # known bug

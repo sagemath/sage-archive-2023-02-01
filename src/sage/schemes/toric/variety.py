@@ -2161,20 +2161,20 @@ class ToricVariety_field(AmbientSpace):
         return top_form.lc() / self.volume_class().lc()
 
     @property
-    def bundle(self):
+    def sheaves(self):
         r"""
-        Return the factory object for bundles on the toric variety.
+        Return the factory object for sheaves on the toric variety.
 
         EXAMPLES::
         
             sage: dP6 = toric_varieties.dP6()
-            sage: dP6.bundle
+            sage: dP6.sheaves
             Bundle constructor on 2-d CPR-Fano toric variety covered by 6 affine patches
-            sage: dP6.bundle.trivial_bundle()
+            sage: dP6.sheaves.trivial_bundle()
             Rank 1 bundle on 2-d CPR-Fano toric variety covered by 6 affine patches.
         """
-        from sage.schemes.toric.bundle.constructors import BundleLibrary
-        return BundleLibrary(self)
+        from sage.schemes.toric.sheaf.constructor import SheafLibrary
+        return SheafLibrary(self)
 
     def Chern_class(self, deg=None):
         """

@@ -189,28 +189,9 @@ class SageDev(object):
         """
         return "SageDev()"
 
-    def create_ticket(self, branch=None, base=MASTER_BRANCH, remote_branch=None):
+    def create_ticket(self):
         r"""
-        Create a new ticket on trac and switch to a new local branch to work on
-        said ticket.
-
-        INPUT:
-
-        - ``branch`` -- a string or ``None`` (default: ``None``), the
-          name of the local branch that will be used for the new
-          ticket; if ``None``, the branch will be called
-          ``'ticket/ticket_number'``.
-
-        - ``base`` -- a string or ``None``, a branch on which to base
-          the ticket (default: the master branch ``'master'``), or a
-          ticket; if ``base`` is set to ``None``, then the current
-          ticket is used. If ``base`` is a ticket, then the
-          corresponding dependency will be added.
-
-        - ``remote_branch`` -- a string or ``None`` (default:
-          ``None``), the branch to pull from and push to on trac's git
-          server; if ``None``, then the default branch
-          ``'u/username/ticket/ticket_number'`` will be used.
+        Create a new ticket on trac.
 
         OUTPUT:
 
@@ -218,7 +199,7 @@ class SageDev(object):
 
         .. SEEALSO::
 
-            :meth:`switch_ticket`, :meth:`download`, :meth:`edit_ticket`
+            :meth:`checkout`, :meth:`pull`, :meth:`edit_ticket`
 
         TESTS:
 
@@ -236,111 +217,17 @@ class SageDev(object):
             sage: UI.append("Summary: ticket2\ndescription")
             sage: dev.create_ticket()
             2
-            sage: dev.git.silent.commit(allow_empty=True, message="second commit")
-            sage: dev.git.commit_for_branch('ticket/2') != dev.git.commit_for_branch('ticket/1')
-            True
 
-        Check that ``base`` works::
-
-            sage: UI.append("Summary: ticket3\ndescription")
-            sage: dev.create_ticket(base=2)
-            3
-            sage: dev.git.commit_for_branch('ticket/3') == dev.git.commit_for_branch('ticket/2')
-            True
-            sage: dev._dependencies_for_ticket(3)
-            (2,)
-            sage: UI.append("Summary: ticket4\ndescription")
-            sage: dev.create_ticket(base='ticket/2')
-            4
-            sage: dev.git.commit_for_branch('ticket/4') == dev.git.commit_for_branch('ticket/2')
-            True
-            sage: dev._dependencies_for_ticket(4)
-            ()
-
-        In this example ``base`` does not exist::
-
-            sage: UI.append("Summary: ticket5\ndescription")
-            sage: dev.create_ticket(base=1000)
-            Ticket #5 has been created. However, I could not switch to a branch for this ticket.
-            ValueError: `1000` is not a valid ticket name or ticket does not exist on trac.
-
-        In this example ``base`` does not exist locally::
-
-            sage: UI.append("Summary: ticket6\ndescription")
-            sage: dev.create_ticket(base=5)
-            Ticket #6 has been created. However, I could not switch to a branch for this ticket.
-            ValueError: Branch field is not set for ticket #5 on trac.
-
-        This also fails if the internet connection is broken::
+        This fails if the internet connection is broken::
 
             sage: dev.trac._connected = False
             sage: UI.append("Summary: ticket7\ndescription")
-            sage: dev.create_ticket(base=4)
+            sage: dev.create_ticket()
             A network error ocurred, ticket creation aborted.
             Your command failed because no connection to trac could be established.
             sage: dev.trac._connected = True
 
-        Creating a ticket when in detached HEAD state::
-
-            sage: dev.git.super_silent.checkout('HEAD', detach=True)
-            sage: UI.append("Summary: ticket detached\ndescription")
-            sage: dev.create_ticket()
-            7
-            sage: dev.git.current_branch()
-            'ticket/7'
-
-        Creating a ticket when in the middle of a merge::
-
-            sage: dev.git.super_silent.checkout('-b','merge_branch')
-            sage: with open('merge', 'w') as f: f.write("version 0")
-            sage: dev.git.silent.add('merge')
-            sage: dev.git.silent.commit('-m','some change')
-            sage: dev.git.super_silent.checkout('ticket/7')
-            sage: with open('merge', 'w') as f: f.write("version 1")
-            sage: dev.git.silent.add('merge')
-            sage: dev.git.silent.commit('-m','conflicting change')
-            sage: from sage.dev.git_error import GitError
-            sage: try:
-            ....:     dev.git.silent.merge('merge_branch')
-            ....: except GitError: pass
-            sage: UI.append("n")
-            sage: UI.append("Summary: ticket merge\ndescription")
-            sage: dev.create_ticket()
-            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To complete this command you have to reset your repository to a clean state. Do you want me to reset your repository? (This will discard many changes which are not commited.) [yes/No] n
-            Could not switch to branch `ticket/8` because your working directory is not in a clean state.
-            Ticket #8 has been created. However, I could not switch to a branch for this ticket.
-            sage: dev.git.reset_to_clean_state()
-
-        Creating a ticket with uncommitted changes::
-
-            sage: open('tracked', 'w').close()
-            sage: dev.git.silent.add('tracked')
-            sage: UI.append("keep")
-            sage: UI.append("Summary: ticket merge\ndescription")
-            sage: dev.create_ticket() # the new branch is based on master which is not the same commit as the current branch ticket/7 - so it is not a valid option to 'keep' changes
-            The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] keep
-            Could not switch to branch `ticket/9` because your working directory is not clean.
-            Ticket #9 has been created. However, I could not switch to a branch for this ticket.
-
-            sage: UI.append("keep")
-            sage: UI.append("Summary: ticket merge\ndescription")
-            sage: dev.create_ticket(base='ticket/7') # now we can keep changes because the base is the same commit as the current branch
-            The following files in your working directory contain uncommitted changes:
-             tracked
-             Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
-             10
-
         """
-        if branch is not None:
-            self._check_local_branch_name(branch, exists=False)
-
-        if remote_branch is not None:
-            self._check_remote_branch_name(remote_branch, exists=any)
-
-        # now that we have checked that the parameters are valid, let the user
-        # interactively create a ticket
         try:
             ticket = self.trac.create_ticket_interactive()
             self._UI.info("Created ticket #{0}.".format(ticket))
@@ -351,28 +238,10 @@ class SageDev(object):
             self._UI.error("A network error ocurred, ticket creation aborted.")
             raise
 
-        try:
-            self.switch_ticket(ticket, base=base, branch=branch)
-        except:
-            self._UI.error("Ticket #{0} has been created. However, I could not switch to a branch for this ticket.".format(ticket))
-            if self._has_local_branch_for_ticket(ticket):
-                self._UI.info("To manually switch to the branch for this ticket, use `{0}`.".format(self._format_command("switch_ticket", ticket)))
-                raise
-            else:
-                kwds = { }
-                if branch is not None:
-                    kwds['branch'] = branch
-                if base != "":
-                    kwds['base'] = base
-                self._UI.info("To create a branch for this ticket and switch to it manually, use `{0}`.".format(self._format_command("switch_ticket", ticket, **kwds)))
-                raise
-
-        if remote_branch is not None:
-            branch = self._branch_for_ticket(ticket)
-            self._set_remote_branch_for_branch(branch, remote_branch)
-            self._UI.info("The local branch `{0}` will push to `{1}`.".format(branch, remote_branch))
-
+        self._UI.info("To start work on ticket #{0}, create a branch for this ticket and check it out with `{1}`.".format(ticket, self._format_command("checkout", ticket=ticket)))
         return ticket
+
+
 
     def switch_ticket(self, ticket, branch=None, base=''):
         r"""

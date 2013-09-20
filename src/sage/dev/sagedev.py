@@ -1443,10 +1443,10 @@ class SageDev(object):
                 attributes['branch'] = remote_branch
                 self.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
 
-        if ticket:
+        if ticket and self._has_ticket_for_local_branch(branch):
             old_dependencies_ = self.trac.dependencies(ticket)
             old_dependencies = ", ".join(["#"+str(dep) for dep in old_dependencies_])
-            new_dependencies_ = self._dependencies_for_ticket(ticket)
+            new_dependencies_ = self._dependencies_for_ticket(self._ticket_for_local_branch(branch))
             new_dependencies = ", ".join(["#"+str(dep) for dep in new_dependencies_])
 
             upload = True

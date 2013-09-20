@@ -107,6 +107,9 @@ class SageHelpFormatter(argparse.HelpFormatter):
 
         # if there are any sub-actions, add their help as well
         for subaction in self._iter_indented_subactions(action):
+            import sage.dev.sagedev_wrapper
+            if subaction.dest.replace("-","_") in sage.dev.sagedev_wrapper.obsolete_commands:
+                continue
             parts.append(self._format_action(subaction))
 
         # return a single string

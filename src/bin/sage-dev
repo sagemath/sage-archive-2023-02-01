@@ -134,7 +134,8 @@ def get_help(method):
         return None
 
     docstring = method.__doc__.strip('\n')
-    indent = len(space_matcher_re.search(docstring).group())
+    indent = space_matcher_re.search(docstring)
+    indent = len(indent.group()) if indent else 0
     docstring = (l[indent:].rstrip() for l in docstring.splitlines())
 
     tmp = []
@@ -186,7 +187,8 @@ def getargspec(func):
     """
     from sage.misc.sageinspect import sage_getargspec
     argspec = sage_getargspec(func)
-    del argspec.args[0] # self
+    if argspec.args and argspec.args[0]=='self':
+        del argspec.args[0]
     return argspec
 
 def parser_from_method(parser, func, help_dict):

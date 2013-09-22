@@ -916,12 +916,18 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: graphs.PetersenGraph().to_dictionary()
-            {0: [1, 4, 5], 1: [0, 2, 6],
-             2: [1, 3, 7], 3: [8, 2, 4],
-             4: [0, 9, 3], 5: [0, 8, 7],
-             6: [8, 1, 9], 7: [9, 2, 5],
-             8: [3, 5, 6], 9: [4, 6, 7]}
+            sage: g = graphs.PetersenGraph().to_dictionary()
+            sage: [(key, sorted(g[key])) for key in g]
+            [(0, [1, 4, 5]),
+             (1, [0, 2, 6]),
+             (2, [1, 3, 7]),
+             (3, [2, 4, 8]),
+             (4, [0, 3, 9]),
+             (5, [0, 7, 8]),
+             (6, [1, 8, 9]),
+             (7, [2, 5, 9]),
+             (8, [3, 5, 6]),
+             (9, [4, 6, 7])]
             sage: graphs.PetersenGraph().to_dictionary(multiple_edges=True)
             {0: [1, 4, 5], 1: [0, 2, 6],
              2: [1, 3, 7], 3: [2, 4, 8],
@@ -4517,7 +4523,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. [KaisPacking] Thomas Kaiser
           A short proof of the tree-packing theorem
-          http://arxiv.org/abs/0911.2809
+          :arxiv:`0911.2809`
 
         .. [SchrijverCombOpt] Alexander Schrijver
           Combinatorial optimization: polyhedra and efficiency
@@ -5922,7 +5928,6 @@ class GenericGraph(GenericGraph_pyx):
                 except MIPSolverException:
                     raise ValueError("The given graph is not hamiltonian")
 
-
                 while True:
                     # We build the DiGraph representing the current solution
                     h = DiGraph()
@@ -5955,7 +5960,7 @@ class GenericGraph(GenericGraph_pyx):
 
                 from sage.graphs.all import Graph
                 b = p.new_variable(binary = True)
-                B = lambda u,v : b[(u,v)] if u<v else b[(v,u)]
+                B = lambda u,v : b[frozenset((u,v))]
 
                 # Objective function
                 if use_edge_labels:
@@ -5999,8 +6004,6 @@ class GenericGraph(GenericGraph_pyx):
                     except MIPSolverException:
                         raise ValueError("The given graph is not hamiltonian")
 
-
-
             # We can now return the TSP !
             answer = self.subgraph(edges = h.edges())
             answer.set_pos(self.get_pos())
@@ -6035,7 +6038,6 @@ class GenericGraph(GenericGraph_pyx):
                                  min = 1,
                                  max = 1)
 
-
             # r is greater than f
             for u,v in g.edges(labels = None):
                 if g.has_edge(v,u):
@@ -6048,41 +6050,36 @@ class GenericGraph(GenericGraph_pyx):
                 else:
                     p.add_constraint( r[(u,v)] + r[(v,u)] - f[(u,v)], min = 0)
 
-
             # defining the answer when g is directed
             from sage.graphs.all import DiGraph
             tsp = DiGraph()
         else:
 
             # reorders the edge as they can appear in the two different ways
-            R = lambda x,y : (x,y) if x < y else (y,x)
+            R = lambda x,y : frozenset((x,y))
 
             # returns the variable corresponding to arc u,v
             E = lambda u,v : f[R(u,v)]
 
             # All the vertices have degree 2
             for v in g:
-                p.add_constraint(p.sum([ f[R(u,v)] for u in g.neighbors(v)]),
+                p.add_constraint(p.sum([ E(u,v) for u in g.neighbors(v)]),
                                  min = 2,
                                  max = 2)
 
             # r is greater than f
             for u,v in g.edges(labels = None):
-                p.add_constraint( r[(u,v)] + r[(v,u)] - f[R(u,v)], min = 0)
+                p.add_constraint( r[(u,v)] + r[(v,u)] - E(u,v), min = 0)
 
             from sage.graphs.all import Graph
 
             # defining the answer when g is not directed
             tsp = Graph()
 
-
         # no cycle which does not contain x
         for v in g:
             if v != x:
                 p.add_constraint(p.sum([ r[(u,v)] for u in g.neighbors(v)]),max = 1-eps)
-
-
-
 
         if use_edge_labels:
             p.set_objective(p.sum([ weight(l)*E(u,v) for u,v,l in g.edges()]) )
@@ -6090,8 +6087,6 @@ class GenericGraph(GenericGraph_pyx):
             p.set_objective(None)
 
         p.set_binary(f)
-
-
 
         try:
             obj = p.solve(log = verbose)
@@ -8254,7 +8249,7 @@ class GenericGraph(GenericGraph_pyx):
             return iter(set(self.neighbor_out_iterator(vertex)) \
                     | set(self.neighbor_in_iterator(vertex)))
         else:
-            return iter(set(self._backend.iterator_nbrs(vertex)))
+            return self._backend.iterator_nbrs(vertex)
 
     def vertices(self, key=None, boundary_first=False):
         r"""

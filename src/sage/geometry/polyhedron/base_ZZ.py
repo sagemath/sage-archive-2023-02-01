@@ -198,7 +198,7 @@ class Polyhedron_ZZ(Polyhedron_base):
             "PALP: A Package for Analyzing Lattice Polytopes
             with Applications to Toric Geometry"
             Comput.Phys.Commun. 157 (2004) 87-106
-            http://arxiv.org/abs/math/0204356
+            :arxiv:`math/0204356`
         """
         return self.is_compact() and self.interior_contains(self.ambient_space().zero())
 
@@ -377,7 +377,7 @@ class Polyhedron_ZZ(Polyhedron_base):
              (A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices,
               A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices))
 
-        Example from http://cgi.di.uoa.gr/~amantzaf/geo/_ ::
+        Example from http://cgi.di.uoa.gr/~amantzaf/geo/ ::
 
             sage: Q = Polyhedron(vertices=[(4,0), (6,0), (0,3), (4,3)])
             sage: R = Polyhedron(vertices=[(0,0), (5,0), (8,4), (3,2)])

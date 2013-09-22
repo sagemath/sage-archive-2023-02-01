@@ -25,7 +25,7 @@ generally, all sage expression as an ASCII art object::
     sage: shell.run_cell('integral(x^2/pi^x, x)')
      / 2    2                      \  -x*log(pi)
     -\x *log (pi) + 2*x*log(pi) + 2/*e
-    --------------------------------------------
+    ---------------------------------------------
                          3
                       log (pi)
     sage: shell.run_cell("i = var('i')")

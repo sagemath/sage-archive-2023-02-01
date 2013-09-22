@@ -1,5 +1,5 @@
 r"""
-Propositional Calculus
+Module that creates formulas of propositional calculus
 
 Formulas consist of the following operators:
 
@@ -16,11 +16,16 @@ show order of operation.
 
 AUTHORS:
 
-- Chris Gorecki -- propcalc, boolformula, logictable, logicparser, booleval
+- Chris Gorecki (2006): initial version, propcalc, boolformula,
+  logictable, logicparser, booleval
 
 - Michael Greenberg -- boolopt
 
-EXAMPLES::
+- Paul Scurek (2013-08-05): updated docstring formatting
+
+EXAMPLES:
+
+We can create boolean formulas in different ways::
 
     sage: import sage.logic.propcalc as propcalc
     sage: f = propcalc.formula("a&((b|c)^a->c)<->b")
@@ -96,8 +101,6 @@ The equality operator compares semantic equivalence::
     sage: f == g
     False
 
-TESTS:
-
 It is an error to create a formula with bad syntax::
 
     sage: propcalc.formula("")
@@ -122,19 +125,17 @@ It is an error to create a formula with bad syntax::
     Traceback (most recent call last):
     ...
     NameError: invalid variable name 9b: identifiers must begin with a letter and contain only alphanumerics and underscores
-
-
-Classes and functions
-=====================
 """
-
-#**************************************************************************
-# Copyright (C) 2006 William Stein <wstein@gmail.com>
-# Copyright (C) 2006 Chris Gorecki <chris.k.gorecki@gmail.com>
+#*****************************************************************************
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2006 Chris Gorecki <chris.k.gorecki@gmail.com>
+#       Copyright (C) 2013 Paul Scurek <scurek86@gmail.com>
 #
-# Distributed under the terms of the GNU General Public License (GPL)
-# http://www.gnu.org/licenses/
-#**************************************************************************
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
 
 ### TODO:
 ### converts (cnf) returns w/o change
@@ -142,11 +143,10 @@ Classes and functions
 import boolformula
 import logicparser
 
+
 def formula(s):
     r"""
-    Returns an instance of
-    :class:`BooleanFormula <sage.logic.boolformula.BooleanFormula>`
-    if possible, and throws a syntax error if not.
+    Return an instance of :class:`BooleanFormula`
 
     INPUT:
 
@@ -154,11 +154,13 @@ def formula(s):
 
     OUTPUT:
 
-    - An instance of
-      :class:`BooleanFormula <sage.logic.boolformula.BooleanFormula>`
-      representing the logical expression ``s``.
+    An instance of :class:`BooleanFormula`
 
-    EXAMPLES::
+    EXAMPLES:
+
+    This example illustrates ways to create a boolean formula.
+
+    ::
 
         sage: import sage.logic.propcalc as propcalc
         sage: f = propcalc.formula("a&~b|c")
@@ -166,9 +168,9 @@ def formula(s):
         sage: f&g|f
         ((a&~b|c)&(a^c<->b))|(a&~b|c)
 
-    TESTS:
+    We now demonstrate some possible errors.
 
-    There are a number of possible errors::
+    ::
 
         sage: propcalc.formula("((a&b)")
         Traceback (most recent call last):

@@ -18,7 +18,7 @@ Transcendental Functions
 #*****************************************************************************
 
 import sys
-import  sage.libs.pari.all
+import sage.libs.pari.all
 from sage.libs.pari.all import pari
 import sage.rings.complex_field as complex_field
 import sage.rings.real_double as real_double
@@ -169,7 +169,7 @@ def zeta_symmetric(s):
     REFERENCE:
 
     - I copied the definition of xi from
-      http://www.math.ubc.ca/~pugh/RiemannZeta/RiemannZetaLong.html
+      http://web.viu.ca/pughg/RiemannZeta/RiemannZetaLong.html
     """
     if not (is_ComplexNumber(s) or is_RealNumber(s)):
         s = ComplexField()(s)

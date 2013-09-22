@@ -142,7 +142,7 @@ def skipdir(dirname):
         sage: from sage.doctest.control import skipdir
         sage: skipdir(sage.env.SAGE_SRC)
         False
-        sage: skipdir(os.path.join(SAGE_ROOT, "devel", "sagenb", "sagenb", "data"))
+        sage: skipdir(os.path.join(sage.env.SAGE_SRC, "sage", "doctest", "tests"))
         True
     """
     if os.path.exists(os.path.join(dirname, "nodoctest.py")):
@@ -441,7 +441,7 @@ class DocTestController(SageObject):
             'sagenb'
         """
         opj = os.path.join
-        from sage.env import SAGE_SRC
+        from sage.env import SAGE_SRC, SAGE_ROOT
         if self.options.all:
             self.log("Doctesting entire Sage library.")
             from glob import glob
@@ -450,28 +450,23 @@ class DocTestController(SageObject):
             self.files.extend(glob(opj(SAGE_SRC, 'doc', '[a-z][a-z]')))
             self.options.sagenb = True
         elif self.options.new:
-            # Get all files changed in the working repo, as well as all
-            # files in the top Mercurial queue patch.
-            from sage.misc.hg import hg_sage
-            out, err = hg_sage('status --rev qtip^', interactive=False, debug=False)
-            if not err:
-                qtop = hg_sage('qtop', interactive=False, debug=False)[0].strip()
-                self.log("Doctesting files in mq patch " + repr(qtop))
-            else:  # Probably mq isn't used
-                out, err = hg_sage('status', interactive=False, debug=False)
-                if not err:
-                    self.log("Doctesting files changed since last hg commit")
-                else:
-                    raise RuntimeError("failed to run hg status:\n" + err)
-
-            for X in out.split('\n'):
-                tup = X.split()
-                if len(tup) != 2: continue
-                c, filename = tup
-                if c in ['M','A']:
-                    filename = opj(SAGE_SRC, filename)
-                    if not skipfile(filename):
-                        self.files.append(filename)
+            # Get all files changed in the working repo.
+            import subprocess
+            change = subprocess.check_output(["git",
+                                              "--git-dir=" + SAGE_ROOT + "/.git",
+                                              "--work-tree=" + SAGE_ROOT,
+                                              "status",
+                                              "--porcelain"])
+            self.log("Doctesting files changed since last git commit")
+            for line in change.split("\n"):
+                if not line:
+                    continue
+                data = line.strip().split(' ')
+                status, filename = data[0], data[-1]
+                if (set(status).issubset("MARCU")
+                    and filename.startswith("src/sage")
+                    and (filename.endswith(".py") or filename.endswith(".pyx"))):
+                    self.files.append(filename)
         if self.options.sagenb:
             if not self.options.all:
                 self.log("Doctesting the Sage notebook.")

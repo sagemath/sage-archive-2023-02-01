@@ -776,7 +776,7 @@ class SageDev(object):
         current_commit = self.git.commit_for_ref('HEAD')
         target_commit = self.git.commit_for_ref(branch)
         try:
-            self.reset_to_clean_working_directory(cancel_unless_clean = (current_commit != target_commit))
+            self.clean(cancel_unless_clean = (current_commit != target_commit))
         except OperationCancelledError:
             self._UI.error("Could not check out branch `{0}` because your working directory is not clean.".format(branch))
             raise
@@ -1537,7 +1537,7 @@ class SageDev(object):
 
         self.git.reset_to_clean_state()
 
-    def reset_to_clean_working_directory(self, cancel_unless_clean=True):
+    def clean(self, cancel_unless_clean=True):
         r"""
         Drop any uncommitted changes in the working directory.
 
@@ -1556,12 +1556,12 @@ class SageDev(object):
 
         Check that nothing happens if there no changes::
 
-            sage: dev.reset_to_clean_working_directory()
+            sage: dev.clean()
 
         Check that nothing happens if there are only untracked files::
 
             sage: open("untracked","w").close()
-            sage: dev.reset_to_clean_working_directory()
+            sage: dev.clean()
 
         Uncommitted changes can simply be dropped::
 
@@ -1570,17 +1570,17 @@ class SageDev(object):
             sage: dev.git.silent.commit(message="added tracked")
             sage: with open("tracked", "w") as f: f.write("foo")
             sage: UI.append("discard")
-            sage: dev.reset_to_clean_working_directory()
+            sage: dev.clean()
             The following files in your working directory contain uncommitted changes:
              tracked
             Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] discard
-            sage: dev.reset_to_clean_working_directory()
+            sage: dev.clean()
 
         Uncommitted changes can be kept::
 
             sage: with open("tracked", "w") as f: f.write("foo")
             sage: UI.append("keep")
-            sage: dev.reset_to_clean_working_directory()
+            sage: dev.clean()
             The following files in your working directory contain uncommitted changes:
              tracked
             Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] keep
@@ -1588,12 +1588,12 @@ class SageDev(object):
         Or stashed::
 
             sage: UI.append("stash")
-            sage: dev.reset_to_clean_working_directory()
+            sage: dev.clean()
             The following files in your working directory contain uncommitted changes:
              tracked
             Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] stash
             Your changes have been recorded on a new branch `stash/1`.
-            sage: dev.reset_to_clean_working_directory()
+            sage: dev.clean()
 
         """
         try:
@@ -1628,7 +1628,7 @@ class SageDev(object):
                         self._UI.info("Creating a new branch `{0}` which contains your stashed changes.".format(branch))
                         self.git.super_silent.stash('branch',branch,'stash@{0}')
                         self._UI.info("Committing your changes to `{0}`.".format(branch))
-                        self.git.super_silent.commit('-a',message="Changes stashed by reset_to_clean_working_directory()")
+                        self.git.super_silent.commit('-a',message="Changes stashed by clean()")
                     except:
                         self.git.super_silent.stash('drop')
                         raise
@@ -1669,7 +1669,7 @@ class SageDev(object):
             sage: with open("tracked", "w") as f: f.write("foo")
             sage: dev.git.silent.add("tracked")
             sage: UI.append("s")
-            sage: dev.reset_to_clean_working_directory()
+            sage: dev.clean()
             The following files in your working directory contain uncommitted changes:
              tracked
             Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] s
@@ -1677,7 +1677,7 @@ class SageDev(object):
             sage: with open("tracked", "w") as f: f.write("boo")
             sage: dev.git.silent.add("tracked")
             sage: UI.append("s")
-            sage: dev.reset_to_clean_working_directory()
+            sage: dev.clean()
             The following files in your working directory contain uncommitted changes:
              tracked
             Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] s
@@ -1738,7 +1738,7 @@ class SageDev(object):
                 self.git.super_silent.reset()
         except GitError as e:
             self._UI.error("The changes recorded in `{0}` do not apply cleanly to your working directory.".format(branch))
-            self._UI.info("Some of your files now have conflict markers.  You should resolve the changes manually or use `{0}` to reset to the last commit, but be aware that this command will undo any uncommitted changes".format(self._format_command("reset_to_clean_working_directory")))
+            self._UI.info("Some of your files now have conflict markers. You should resolve the changes manually or use `{0}` to reset to the last commit, but be aware that this command will undo any uncommitted changes".format(self._format_command("clean")))
             raise OperationCancelledError("unstash failed")
 
         if self._UI.confirm("The changes recorded in `{0}` have been restored in your working directory.  Would you like to delete the branch they were stashed in?".format(branch), True):
@@ -2484,7 +2484,7 @@ class SageDev(object):
         """
         try:
             self.reset_to_clean_state()
-            self.reset_to_clean_working_directory()
+            self.clean()
         except OperationCancelledError:
             self._UI.error("Cannot gather branches because working directory is not in a clean state.")
             raise OperationCancelledError("working directory not clean")
@@ -2684,7 +2684,7 @@ class SageDev(object):
         """
         try:
             self.reset_to_clean_state()
-            self.reset_to_clean_working_directory()
+            self.clean()
         except OperationCancelledError:
             self._UI.error("Cannot merge because working directory is not in a clean state.")
             raise OperationCancelledError("working directory not clean")
@@ -2922,7 +2922,7 @@ class SageDev(object):
 
         try:
             self.reset_to_clean_state()
-            self.reset_to_clean_working_directory()
+            self.clean()
         except OperationCancelledError:
             self._UI.error("Cannot checkout a release while your working directory is not clean.")
             raise OperationCancelledError("working directory not clean")
@@ -3103,7 +3103,7 @@ class SageDev(object):
 
             try:
                 self.reset_to_clean_state()
-                self.reset_to_clean_working_directory()
+                self.clean()
             except OperationCancelledError:
                 self._UI.error("Cannot create merge of dependencies because working directory is not clean.")
                 raise

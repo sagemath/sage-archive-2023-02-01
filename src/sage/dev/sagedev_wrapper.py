@@ -28,6 +28,7 @@ obsolete_commands = {
     "set_needs_review": "needs_review",
     "set_needs_info": "needs_info",
     "set_positive_review": "positive_review",
+    "reset_to_clean_working_directory" : "clean",
 }
 
 class SageDevWrapper(object):
@@ -110,7 +111,7 @@ class SageDevWrapper(object):
         self._wrap("merge")
         self._wrap("prune_closed_tickets")
         self._wrap("remote_status")
-        self._wrap("reset_to_clean_working_directory")
+        self._wrap("clean")
         self._wrap("set_remote")
         self._wrap("show_dependencies")
         self._wrap("checkout")
@@ -210,11 +211,11 @@ class SageDevWrapper(object):
                         raise
                 except DetachedHeadError as e:
                     self._sagedev._UI.error("Unexpectedly your repository was found to be in a detached head state. This is probably a bug in sagedev.")
-                    self._sagedev._UI.info("You can try to restore your repository to a clean state by running {0} and {1}.".format(self._sagedev._format_command("reset_to_clean_working_directory"), self._sagedev._format_command("switch",branch="master")))
+                    self._sagedev._UI.info("You can try to restore your repository to a clean state by running {0} and {1}.".format(self._sagedev._format_command("clean"), self._sagedev._format_command("switch",branch="master")))
                     raise
                 except InvalidStateError as e:
                     self._sagedev._UI.error("Unexpectedly your repository was found to be in a non-clean state. This is probably a bug in sagedev.")
-                    self._sagedev._UI.info("You can try to restore your repository to a clean state by running {0}.".format(self._sagedev._format_command("reset_to_clean_working_directory")))
+                    self._sagedev._UI.info("You can try to restore your repository to a clean state by running {0}.".format(self._sagedev._format_command("clean")))
                     raise
                 except TracConnectionError as e:
                     self._sagedev._UI.error("Your command failed because no connection to trac could be established.")

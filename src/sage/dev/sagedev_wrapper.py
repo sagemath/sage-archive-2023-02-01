@@ -210,11 +210,11 @@ class SageDevWrapper(object):
                         raise
                 except DetachedHeadError as e:
                     self._sagedev._UI.error("Unexpectedly your repository was found to be in a detached head state. This is probably a bug in sagedev.")
-                    self._sagedev._UI.info("You can try to restore your repository to a clean state by running {0} and {1} and {2}.".format(self._sagedev._format_command("reset_to_clean_state"), self._sagedev._format_command("reset_to_clean_working_directory"), self._sagedev._format_command("vanilla")))
+                    self._sagedev._UI.info("You can try to restore your repository to a clean state by running {0} and {1}.".format(self._sagedev._format_command("reset_to_clean_working_directory"), self._sagedev._format_command("switch",branch="master")))
                     raise
                 except InvalidStateError as e:
                     self._sagedev._UI.error("Unexpectedly your repository was found to be in a non-clean state. This is probably a bug in sagedev.")
-                    self._sagedev._UI.info("You can try to restory your repository to a clean state by running {0} and {1}.".format(self._sagedev._format_command("reset_to_clean_state"), self._sagedev._format_command("reset_to_clean_working_directory")))
+                    self._sagedev._UI.info("You can try to restore your repository to a clean state by running {0}.".format(self._sagedev._format_command("reset_to_clean_working_directory")))
                     raise
                 except TracConnectionError as e:
                     self._sagedev._UI.error("Your command failed because no connection to trac could be established.")

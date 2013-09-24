@@ -263,9 +263,9 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
 
     def has_pth_root(self):
         r"""
-        Returns whether or not $\ZZ_p$ has a primitive $p^{\mbox{th}}$ root of unity.
+        Returns whether or not `\ZZ_p` has a primitive `p^{\mbox{th}}` root of unity.
 
-        Since adjoining a $p^{\mbox{th}}$ root of unity yields a
+        Since adjoining a `p^{\mbox{th}}` root of unity yields a
         totally ramified extension, self will contain one if and only
         if the ground ring does.
 
@@ -275,7 +275,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
 
         OUTPUT:
 
-            - boolean -- whether self has primitive $p^{\mbox{th}}$
+            - boolean -- whether self has primitive `p^{\mbox{th}}`
               root of unity.
 
         EXAMPLES::
@@ -289,7 +289,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
 
     def has_root_of_unity(self, n):
         """
-        Returns whether or not $\ZZ_p$ has a primitive $n^{\mbox{th}}$
+        Returns whether or not `\ZZ_p` has a primitive `n^{\mbox{th}}`
         root of unity.
 
         INPUT:
@@ -299,7 +299,7 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
 
         OUTPUT:
 
-            - boolean -- whether self has primitive $n^{\mbox{th}}$
+            - boolean -- whether self has primitive `n^{\mbox{th}}`
               root of unity
 
         EXAMPLES::

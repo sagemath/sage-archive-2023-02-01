@@ -346,7 +346,7 @@ cdef class PowComputer_class(SageObject):
     def _prec_cap(self):
         """
         Returns prec_cap, a single value that for which
-        self._prime()^prec_cap is stored
+        ``self._prime()^prec_cap`` is stored
 
         EXAMPLES::
 
@@ -361,7 +361,7 @@ cdef class PowComputer_class(SageObject):
 
     def _top_power(self):
         """
-        Returns self._prime()^self._prec_cap()
+        Returns ``self._prime()^self._prec_cap()``
 
         EXAMPLES::
 
@@ -376,7 +376,7 @@ cdef class PowComputer_class(SageObject):
 
     def __call__(self, n):
         """
-        Returns self.prime^n.
+        Returns ``self.prime^n``.
 
         EXAMPLES::
 
@@ -539,8 +539,8 @@ cdef PowComputer_base PowComputer_c(Integer m, Integer cache_limit, Integer prec
 
 def PowComputer(m, cache_limit, prec_cap, in_field = False):
     r"""
-    Returns a PowComputer that caches the values $1, m, m^2, \ldots, m^{C}$,
-    where $C$ is ``cache_limit``.
+    Returns a PowComputer that caches the values `1, m, m^2, \ldots, m^{C}`,
+    where `C` is ``cache_limit``.
 
     Once you create a PowComputer, merely call it to get values out.
 

@@ -1066,9 +1066,9 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 #     def matrix(self, base = None):
 #         """
 #         If base is None, return the matrix of right multiplication by
-#         the element on the power basis $1, x, x^2, \ldots, x^{d-1}$
+#         the element on the power basis `1, x, x^2, \ldots, x^{d-1}`
 #         for this extension field.  Thus the \emph{rows} of this matrix
-#         give the images of each of the $x^i$.
+#         give the images of each of the `x^i`.
 
 #         If base is not None, then base must be either a field that
 #         embeds in the parent of self or a morphism to the parent of
@@ -1431,8 +1431,8 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
 #     def padded_list(self, n, lift_mode = 'simple'):
 #         """
-#         Returns a list of coefficients of pi starting with $pi^0$ up to
-#         $pi^n$ exclusive (padded with zeros if needed)
+#         Returns a list of coefficients of pi starting with `pi^0` up to
+#         `pi^n` exclusive (padded with zeros if needed)
 
 #         """
 #         raise NotImplementedError

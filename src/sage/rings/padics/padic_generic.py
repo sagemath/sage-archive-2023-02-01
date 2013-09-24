@@ -408,7 +408,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
     def teichmuller_system(self):
         r"""
-        Returns a set of teichmuller representatives for the invertible elements of $\ZZ / p\ZZ$.
+        Returns a set of teichmuller representatives for the invertible elements of `\ZZ / p\ZZ`.
 
         INPUT:
 
@@ -416,7 +416,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         OUTPUT:
 
-        - list of elements -- a list of teichmuller representatives for the invertible elements of $\ZZ / p\ZZ$
+        - list of elements -- a list of teichmuller representatives for the invertible elements of `\ZZ / p\ZZ`
 
         EXAMPLES::
 
@@ -435,19 +435,19 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
 #     def automorphisms(self):
 #         r"""
-#         Returns the group of automorphisms of $\Z_p$, i.e. the trivial group.
+#         Returns the group of automorphisms of `\ZZ_p`, i.e. the trivial group.
 #         """
 #         raise NotImplementedError
 
 #     def galois_group(self):
 #         r"""
-#         Returns the Galois group of $\Z_p$, i.e. the trivial group.
+#         Returns the Galois group of `\ZZ_p`, i.e. the trivial group.
 #         """
 #         raise NotImplementedError
 
 #     def hasGNB(self):
 #         r"""
-#         Returns whether or not $\Z_p$ has a Gauss Normal Basis.
+#         Returns whether or not `\ZZ_p` has a Gauss Normal Basis.
 #         """
 #         raise NotImplementedError
 

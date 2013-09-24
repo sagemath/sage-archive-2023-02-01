@@ -40,21 +40,22 @@ cdef class pAdicFixedModElement(FMElement):
 
     - ``relprec`` -- ignored; for compatibility with other `p`-adic rings
 
-    NOTES::
+    .. NOTE::
 
-    The following types are currently supported for x:
+        The following types are currently supported for x:
 
-    - Integers
-    - Rationals -- denominator must be relatively prime to `p`
-    - FixedMod `p`-adics
-    - Elements of ``IntegerModRing(p^k)`` for ``k` less than or equal to the
-      modulus
+        - Integers
+        - Rationals -- denominator must be relatively prime to `p`
+        - FixedMod `p`-adics
+        - Elements of ``IntegerModRing(p^k)`` for ``k`` less than or equal
+          to the modulus
 
-    The following types should be supported eventually:
+        The following types should be supported eventually:
 
-    - Finite precision p-adics
-    - Lazy p-adics
-    - Elements of local extensions of THIS `p`-adic ring that actually lie in `\ZZ_p`
+        - Finite precision `p`-adics
+        - Lazy `p`-adics
+        - Elements of local extensions of THIS `p`-adic ring that actually
+          lie in `\ZZ_p`
 
     EXAMPLES::
 
@@ -110,17 +111,17 @@ cdef class pAdicFixedModElement(FMElement):
         sage: R(R(5))
         5 + O(5^20)
 
-    # todo: doctests for converting from other types of p-adic rings
+    .. TODO:: doctests for converting from other types of `p`-adic rings
     """
     def lift(self):
         r"""
-        Return an integer congruent to this element modulo the precision.
+        Return an integer congruent to ``self`` modulo the precision.
 
         .. WARNING::
 
             Since fixed modulus elements don't track their precision,
             the result may not be correct modulo
-            `i^{\mbox{prec_cap}}` if the element was defined by
+            `i^{\mathrm{prec_cap}}` if the element was defined by
             constructions that lost precision.
 
         EXAMPLES::
@@ -134,13 +135,13 @@ cdef class pAdicFixedModElement(FMElement):
 
     cdef lift_c(self):
         """
-        Returns an integer congruent to this element modulo the precision.
+        Returns an integer congruent to ``self`` modulo the precision.
 
         .. WARNING::
 
             Since fixed modulus elements don't track their precision,
             the result may not be correct modulo
-            `i^{\mbox{prec_cap}}` if the element was defined by
+            `i^{\mathrm{prec_cap}}` if the element was defined by
             constructions that lost precision.
 
         EXAMPLES::
@@ -198,11 +199,11 @@ cdef class pAdicFixedModElement(FMElement):
 
     cdef pari_gen _to_gen(self):
         """
-        Converts this element to an equivalent pari element.
+        Convert ``self`` to an equivalent pari element.
 
         EXAMPLES::
 
-            sage: R = ZpFM(5, 10); a = R(17); pari(a) #indirect doctest
+            sage: R = ZpFM(5, 10); a = R(17); pari(a) # indirect doctest
             2 + 3*5 + O(5^10)
             sage: pari(R(0))
             O(5^10)
@@ -218,13 +219,13 @@ cdef class pAdicFixedModElement(FMElement):
 
     def _integer_(self, Z=None):
         """
-        Returns an integer congruent to this element modulo the precision.
+        Return an integer congruent to ``self`` modulo the precision.
 
         .. WARNING::
 
             Since fixed modulus elements don't track their precision,
             the result may not be correct modulo
-            `p^{\mbox{prec_cap}}` if the element was defined by
+            `p^{\mathrm{prec_cap}}` if the element was defined by
             constructions that lost precision.
 
         EXAMPLES::
@@ -236,15 +237,15 @@ cdef class pAdicFixedModElement(FMElement):
 
     def residue(self, absprec=1):
         r"""
-        Reduce this element mod `p^{\mbox{absprec}}`.
+        Reduce ``self`` mod `p^{\mathrm{absprec}}`.
 
         INPUT:
 
-        - ``absprec`` - an integer (default: 1)
+        - ``absprec`` -- an integer (default: 1)
 
         OUTPUT:
 
-        element of Z/(p^prec Z) -- self reduced mod p^prec
+        element of ``Z/(p^prec Z)`` -- ``self`` reduced mod ``p^prec``
 
         EXAMPLES::
 
@@ -265,7 +266,7 @@ cdef class pAdicFixedModElement(FMElement):
 
     def multiplicative_order(self):
         r"""
-        Returns the minimum possible multiplicative order of this element.
+        Return the minimum possible multiplicative order of ``self``.
 
         OUTPUT:
 
@@ -324,3 +325,4 @@ def make_pAdicFixedModElement(parent, value):
         2*5^2 + 3*5^3 + O(5^20)
     """
     return unpickle_fme_v2(pAdicFixedModElement, parent, value)
+

@@ -1458,6 +1458,48 @@ class Sets(Category_singleton):
             and if it returns the latter, then it is supposed that ``F(O)==self`.
             The test verifies this assumption.
 
+            EXAMPLE:
+
+            We create a parent that returns a wrong construction (its construction
+            returns the rational field rather than the parent itself)::
+
+                sage: class P(Parent):
+                ....:     Element = ElementWrapper
+                ....:     def __init__(self):
+                ....:         Parent.__init__(self, category=Sets())
+                ....:     def __cmp__(self, P):
+                ....:         return cmp(type(self),type(P))
+                ....:     def construction(self):
+                ....:         return sage.categories.pushout.FractionField(), ZZ
+                ....:
+                sage: import __main__
+                sage: __main__.P = P   # this is to enable pickling in doctests
+                sage: p = P()
+                sage: F,R = p.construction()
+                sage: F(R)
+                Rational Field
+                sage: TestSuite(p).run()
+                Failure in _test_construction:
+                Traceback (most recent call last):
+                ...
+                AssertionError: the object's construction does not recreate this object
+                ------------------------------------------------------------
+                The following tests failed: _test_construction
+
+            If the parent returns the empty construction, the test will not complain::
+
+                sage: ZZ.construction() is None
+                True
+                sage: TestSuite(ZZ).run()   # indirect doctest
+
+            If the construction works as expected, the test will not complain
+            either::
+
+                sage: F,R = QQ.construction()
+                sage: F(R) == QQ
+                True
+                sage: TestSuite(QQ).run()   # indirect doctest
+
             """
             tester = self._tester(**options)
             FO = self.construction()

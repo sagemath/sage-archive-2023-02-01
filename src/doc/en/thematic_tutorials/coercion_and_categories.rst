@@ -1339,6 +1339,9 @@ default implementation. Hence:
 
 - Next, we implement a new version of the "usual" fraction field functor, having the same rank, but returning our new implementation.
 - We make our new implementation the default, by virtue of a merge method.
+- Since our fraction fields accept an optional argument ``category``, we pass
+  the optional arguments to the construction functor, which will in turn use
+  it to create a fraction field.
 
 .. WARNING::
 
@@ -1350,10 +1353,12 @@ default implementation. Hence:
     sage: from sage.categories.pushout import ConstructionFunctor
     sage: class MyFracFunctor(ConstructionFunctor):
     ....:     rank = 5
-    ....:     def __init__(self):
+    ....:     def __init__(self, args=None, kwds=None):
+    ....:         self.args = args or ()
+    ....:         self.kwds = kwds or {}
     ....:         ConstructionFunctor.__init__(self, IntegralDomains(), Fields())
     ....:     def _apply_functor(self, R):
-    ....:         return MyFrac(R)
+    ....:         return MyFrac(R,*self.args,**self.kwds)
     ....:     def merge(self, other):
     ....:         if isinstance(other, (type(self), sage.categories.pushout.FractionField)):
     ....:             return self
@@ -1392,14 +1397,18 @@ We verify that our functor can really be used to construct our implementation of
 
 .. end of output
 
-There remains to let our new fraction fields know about the new construction functor:
-
+There remains to let our new fraction fields know about the new construction
+functor. The arguments that were used when creating the fraction field are
+stored as an attribute---this is a feature provided by
+:class:`~sage.structure.unique_representation.CachedRepresentation`. We pass
+all but the first of these arguments to the construction functor, such that
+the construction functor is able to reconstruct the fraction field.
 
 ::
 
     sage: class MyFrac(MyFrac):
     ....:     def construction(self):
-    ....:         return MyFracFunctor(), self.base()
+    ....:         return MyFracFunctor(self._reduction[1][1:], self._reduction[2]), self.base()
 
 
 .. end of output

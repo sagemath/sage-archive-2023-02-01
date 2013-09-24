@@ -216,11 +216,11 @@ class ToricVarietyFactory(SageObject):
         """
         rays, cones = toric_varieties_rays_cones[name]
         if coordinate_names is None:
-            dict_key = '_cached_'+name
+            dict_key = (name, base_ring)
         else:
             coordinate_names = normalize_names(coordinate_names, len(rays),
                                                DEFAULT_PREFIX)
-            dict_key = '_cached_'+name+'_'+'_'.join(coordinate_names)
+            dict_key = (name, base_ring) + tuple(coordinate_names)
         if dict_key not in self.__dict__:
             fan = Fan(cones, rays, check=self._check)
             self.__dict__[dict_key] = \
@@ -257,11 +257,11 @@ class ToricVarietyFactory(SageObject):
         """
         rays, cones = toric_varieties_rays_cones[name]
         if coordinate_names is None:
-            dict_key = '_cached_'+name
+            dict_key = (name, base_ring)
         else:
             coordinate_names = normalize_names(coordinate_names, len(rays),
                                                DEFAULT_PREFIX)
-            dict_key = '_cached_'+name+'_'+'_'.join(coordinate_names)
+            dict_key = (name, base_ring) + tuple(coordinate_names)
         if dict_key not in self.__dict__:
             polytope = LatticePolytope( matrix(rays).transpose() )
             points = map(tuple, polytope.points().columns())
@@ -1398,10 +1398,11 @@ class ToricVarietyFactory(SageObject):
         OUTPUT:
 
         - A :class:`toric variety
-          <sage.schemes.toric.variety.ToricVariety_field>`.
-          If `q=(q_0,\dots,q_n)`, then the output is the weighted projective
-          space `\mathbb{P}(q_0,\dots,q_n)` over `K`. ``names`` are the names
-          of the generators of the homogeneous coordinate ring.
+          <sage.schemes.toric.variety.ToricVariety_field>`.  If
+          `q=(q_0,\dots,q_n)`, then the output is the weighted
+          projective space `\mathbb{P}(q_0,\dots,q_n)` over
+          ``base_ring``. ``names`` are the names of the generators of
+          the homogeneous coordinate ring.
 
         EXAMPLES:
 
@@ -1439,7 +1440,6 @@ class ToricVarietyFactory(SageObject):
         base_ring = QQ
         names = 'z+'
         for key in kw:
-            base_ring = None
             if key == 'K':
                 base_ring = kw['K']
             elif key == 'base_ring':
@@ -1450,7 +1450,7 @@ class ToricVarietyFactory(SageObject):
             else:
                 raise TypeError("got an unexpected keyword argument %r" % key)
         if base_ring not in _Fields:
-            raise TypeError("K (=%r) must be a field" % base_ring)
+            raise TypeError("base_ring (=%r) must be a field" % base_ring)
 
         L = ToricLattice(m)
         L_sub = L.submodule([L(q)])

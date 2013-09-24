@@ -282,9 +282,30 @@ class SchemeHomset_points_toric_field(SchemeHomset_points):
 
     def naive_iterator(self, ring=None):
         """
+        The naive iterator over points.
+
+        INPUT:
+
+        - ``ring`` -- a ring (optional; defaults to the base ring of
+          the toric variety). The ring over which the points are
+          considered.
+
+        OUTPUT:
+
+        Iterator over the points of the toric variety.
+
+        EXAMPLES::
+
+            sage: P123 = toric_varieties.P2_123(base_ring=GF(3))
+            sage: point_set = P123.point_set()
+            sage: iter(point_set).next()
+            [0 : 0 : 1]
         """
         from sage.schemes.toric.points import NaivePointIterator
         variety = self.codomain()
         if ring is None:
             ring = variety.base_ring()
-        return NaivePointIterator(variety.fan(), ring)
+        return NaivePointIterator(self, variety.fan(), ring)
+
+    def __iter__(self):
+        return self.naive_iterator().point_iter()

@@ -10,6 +10,17 @@ AUTHORS:
 - David Roe
 """
 
+#*****************************************************************************
+#       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
+#                               William Stein <wstein@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from sage.rings.padics.local_generic import LocalGeneric
 from sage.rings.padics.padic_generic import pAdicGeneric
 from sage.rings.ring import EuclideanDomain, Field

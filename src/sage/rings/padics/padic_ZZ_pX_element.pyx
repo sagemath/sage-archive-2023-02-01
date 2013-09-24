@@ -9,6 +9,17 @@ AUTHORS:
 - David Roe
 """
 
+#*****************************************************************************
+#       Copyright (C) 2008 David Roe <roed.math@gmail.com>
+#                          William Stein <wstein@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 include "sage/ext/stdsage.pxi"
 include "sage/ext/cdefs.pxi"
 from cpython.list cimport *
@@ -22,7 +33,7 @@ from sage.libs.ntl.ntl_ZZ_pContext cimport ntl_ZZ_pContext_class
 from sage.libs.ntl.ntl_ZZ_pContext import ntl_ZZ_pContext
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
-from sage.rings.padics.padic_base_generic_element cimport pAdicBaseGenericElement
+from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
 from sage.rings.finite_rings.integer_mod import is_IntegerMod
 from sage.rings.padics.padic_printing cimport pAdicPrinter_class
 from sage.rings.padics.pow_computer_ext cimport PowComputer_ext
@@ -282,7 +293,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
             for i from 0 <= i < self.prime_pow.deg:
                 ZZ_coeff.x = ZZ_p_rep(ZZ_pX_coeff(shifter, i))
                 ZZ_to_mpz(&coeff.value, &ZZ_coeff.x)
-                L = printer.base_p_list(coeff.value, pos)
+                L = printer.base_p_list(coeff, pos)
                 for j from 0 <= j < prec:
                     if j < len(L):
                         ans[j].append(L[j])
@@ -603,7 +614,7 @@ cdef preprocess_list(pAdicZZpXElement elt, L):
                 L[i] = ntl_ZZ_p(L[i]*pshift_z, ctx)
             elif PY_TYPE_CHECK(L[i], Integer) or PY_TYPE_CHECK(L[i], Rational) or isinstance(L[i], (int, long)):
                 L[i] = ntl_ZZ_p(L[i]*pshift_m, ctx)
-            elif PY_TYPE_CHECK(L[i], pAdicBaseGenericElement):
+            elif PY_TYPE_CHECK(L[i], pAdicGenericElement) and L[i]._is_base_elt(elt.prime_pow.prime):
                 L[i] = ntl_ZZ_p((L[i] << min_val).lift(), ctx)
             elif is_IntegerMod(L[i]):
                 L[i] = ntl_ZZ_p(L[i].lift()*pshift_m, ctx)
@@ -621,7 +632,7 @@ cdef preprocess_list(pAdicZZpXElement elt, L):
                 L[i] = ntl_ZZ_p(py_tmp, ctx)
             elif PY_TYPE_CHECK(L[i], Integer) or PY_TYPE_CHECK(L[i], Rational) or isinstance(L[i], (int, long)):
                 L[i] = ntl_ZZ_p(L[i]//pshift_m, ctx)
-            elif PY_TYPE_CHECK(L[i], pAdicBaseGenericElement):
+            elif PY_TYPE_CHECK(L[i], pAdicGenericElement) and L[i]._is_base_elt(elt.prime_pow.prime):
                 L[i] = ntl_ZZ_p((L[i] << min_val).lift(), ctx)
             elif is_IntegerMod(L[i]):
                 L[i] = ntl_ZZ_p(L[i].lift()//pshift_m, ctx)
@@ -634,7 +645,7 @@ cdef preprocess_list(pAdicZZpXElement elt, L):
         for i from 0 <= i < len(L):
             if PY_TYPE_CHECK(L[i], ntl_ZZ) or PY_TYPE_CHECK(L[i], Integer) or PY_TYPE_CHECK(L[i], Rational) or isinstance(L[i], (int, long)):
                 L[i] = ntl_ZZ_p(L[i], ctx)
-            elif PY_TYPE_CHECK(L[i], pAdicBaseGenericElement) or is_IntegerMod(L[i]) or (L[i].modulus_context() is not ctx):
+            elif (PY_TYPE_CHECK(L[i], pAdicGenericElement) and L[i]._is_base_elt(elt.prime_pow.prime)) or is_IntegerMod(L[i]) or (L[i].modulus_context() is not ctx):
                 L[i] = ntl_ZZ_p(L[i].lift(), ctx)
     return L, min_val, ctx
 
@@ -829,7 +840,7 @@ cdef get_val_prec(PowComputer_ext pp, a):
         val = a.valuation(pp.prime)
         return (val, big, one)
     #print "pre padic-base check"
-    if PY_TYPE_CHECK(a, pAdicBaseGenericElement):
+    if PY_TYPE_CHECK(a, pAdicGenericElement) and a._is_base_elt(pp.prime):
         if a.parent().prime() == pp.prime:
             if a._is_exact_zero():
                 return (big, big, one)

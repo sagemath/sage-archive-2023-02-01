@@ -9,10 +9,12 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2007 David Roe <roed@math.harvard.edu>
-#                          William Stein <wstein@gmail.com>
+#       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
+#                               William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
@@ -22,7 +24,7 @@ from sage.structure.parent import Parent
 from sage.rings.integer import Integer
 
 class LocalGeneric(CommutativeRing):
-    def __init__(self, base, prec, names, element_class):
+    def __init__(self, base, prec, names, element_class, category=None):
         """
         Initializes self.
 
@@ -46,7 +48,7 @@ class LocalGeneric(CommutativeRing):
         """
         self._prec = prec
         self.Element = element_class
-        Parent.__init__(self, base, names=(names,), normalize=False, category=getattr(self,'_default_category',None))
+        Parent.__init__(self, base, names=(names,), normalize=False, category=getattr(self,'_default_category',None), element_constructor=element_class)
 
     def is_capped_relative(self):
         """
@@ -235,7 +237,7 @@ class LocalGeneric(CommutativeRing):
         - ``self`` -- a local ring
         - ``var`` -- string (default: ``'x'``) the name of the variable
 
-        OUTPUT::
+        OUTPUT:
 
         - polynomial -- the defining polynomial of this ring as an extension over its ground ring
 
@@ -257,7 +259,7 @@ class LocalGeneric(CommutativeRing):
 
         - ``self`` -- a local ring
 
-        OUTPUT::
+        OUTPUT:
 
         - the ground ring of ``self``, i.e., itself
 
@@ -494,11 +496,11 @@ class LocalGeneric(CommutativeRing):
         r"""
         Returns whether this ring is finite, i.e. ``False``.
 
-        INPUT::
+        INPUT:
 
         - ``self`` -- a `p`-adic ring
 
-        OUTPUT::
+        OUTPUT:
 
         - boolean -- whether self is finite, i.e., ``False``
 

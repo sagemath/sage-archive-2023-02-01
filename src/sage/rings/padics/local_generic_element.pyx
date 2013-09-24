@@ -20,6 +20,17 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+#*****************************************************************************
+#       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
+#                               William Stein <wstein@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from sage.rings.infinity import infinity
 from sage.structure.element cimport ModuleElement, RingElement, CommutativeRingElement
 
@@ -544,11 +555,16 @@ cdef class LocalGenericElement(CommutativeRingElement):
             True
             sage: Qq(3^2,5,names='a')(3).is_unit()
             True
+            sage: R(0,0).is_unit()
+            False
+            sage: K(0,0).is_unit()
+            False
         """
+        if self.is_zero():
+            return False
         if self.parent().is_field():
-            return not self.is_zero()
-        else:
-            return self.valuation() == 0
+            return True
+        return self.valuation() == 0
 
     #def is_zero(self, prec):
     #    raise NotImplementedError

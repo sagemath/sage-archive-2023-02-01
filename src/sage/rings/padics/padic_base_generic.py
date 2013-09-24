@@ -8,9 +8,22 @@ AUTHORS:
 - David Roe
 """
 
+#*****************************************************************************
+#       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
+#                               William Stein <wstein@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from padic_generic import pAdicGeneric
 from sage.rings.padics.pow_computer import PowComputer
-from sage.rings.padics.padic_base_coercion import pAdicCoercion_ZZ_CR, pAdicCoercion_QQ_CR, pAdicConvert_QQ_CR, pAdicCoercion_ZZ_CA, pAdicConvert_QQ_CA, pAdicCoercion_ZZ_FM, pAdicConvert_QQ_FM
+from sage.rings.padics.padic_capped_relative_element import pAdicCoercion_ZZ_CR, pAdicCoercion_QQ_CR, pAdicConvert_QQ_CR
+from sage.rings.padics.padic_capped_absolute_element import pAdicCoercion_ZZ_CA, pAdicConvert_QQ_CA
+from sage.rings.padics.padic_fixed_mod_element import pAdicCoercion_ZZ_FM, pAdicConvert_QQ_FM
 
 class pAdicBaseGeneric(pAdicGeneric):
     def __init__(self, p, prec, print_mode, names, element_class):

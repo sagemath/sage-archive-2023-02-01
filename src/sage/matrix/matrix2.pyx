@@ -1496,7 +1496,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.charpoly(algorithm='hessenberg')
             Traceback (most recent call last):
             ...
-            ValueError: element has negative valuation.
+            ValueError: negative valuation
             sage: A.det()
             3 + O(5)
 

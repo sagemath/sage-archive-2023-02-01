@@ -1902,7 +1902,7 @@ cdef class pAdicZZpXCRElement(pAdicZZpXElement):
         cdef long i
         if self._is_exact_zero():
             # Return 0 except for 0^0 error or type error on the exponent.
-            if PY_TYPE_CHECK(_right, Integer) or PY_TYPE_CHECK(_right, Rational) or (PY_TYPE_CHECK(_right, pAdicBaseGenericElement) and _right.parent().prime() == self.prime_pow.prime)  or isinstance(_right, (int, long)):
+            if PY_TYPE_CHECK(_right, Integer) or PY_TYPE_CHECK(_right, Rational) or (PY_TYPE_CHECK(_right, pAdicGenericElement) and _right._is_base_elt(self.prime_pow.prime))  or isinstance(_right, (int, long)):
                 if _right == 0:
                     return self.parent(1)
                 return self

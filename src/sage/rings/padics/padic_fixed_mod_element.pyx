@@ -135,38 +135,6 @@ cdef class pAdicFixedModElement(FMElement):
 
     cdef lift_c(self):
         """
-        Returns an integer congruent to ``self`` modulo the precision.
-
-        .. WARNING::
-
-            Since fixed modulus elements don't track their precision,
-            the result may not be correct modulo
-            `i^{\mathrm{prec_cap}}` if the element was defined by
-            constructions that lost precision.
-
-        EXAMPLES::
-
-            sage: R = ZpFM(7,4); a = R(8); a.lift() # indirect doctest
-            8
-        """
-        cdef Integer ans = PY_NEW(Integer)
-        mpz_set(ans.value, self.value)
-        return ans
-
-    def _pari_(self):
-        """
-        Conversion to PARI.
-
-        EXAMPLES::
-
-            sage: R = ZpCA(5)
-            sage: pari(R(1777)) #indirect doctest
-            2 + 5^2 + 4*5^3 + 2*5^4 + O(5^20)
-        """
-        return self._to_gen()
-
-    cdef lift_c(self):
-        """
         Returns an integer congruent to this element modulo the precision.
 
         .. WARNING::

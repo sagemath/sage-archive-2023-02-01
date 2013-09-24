@@ -279,4 +279,12 @@ class SchemeHomset_points_toric_field(SchemeHomset_points):
         sage: HOM.SchemeHomset_points_toric_field(Spec(QQ), P1xP1)
         Set of rational points of 2-d CPR-Fano toric variety covered by 4 affine patches
     """
-    pass
+
+    def naive_iterator(self, ring=None):
+        """
+        """
+        from sage.schemes.toric.points import NaivePointIterator
+        variety = self.codomain()
+        if ring is None:
+            ring = variety.base_ring()
+        return NaivePointIterator(variety.fan(), ring)

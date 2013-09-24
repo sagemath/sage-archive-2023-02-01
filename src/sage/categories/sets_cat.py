@@ -1450,6 +1450,21 @@ class Sets(Category_singleton):
             """
             return None
 
+        def _test_construction(self, **options):
+            """
+            Test that the construction returned by self really yields self.
+
+            :meth:`construction` either returns None or a pair ``(F,O)``,
+            and if it returns the latter, then it is supposed that ``F(O)==self`.
+            The test verifies this assumption.
+
+            """
+            tester = self._tester(**options)
+            FO = self.construction()
+            if FO is None:
+                return
+            tester.assert_(FO[0](FO[1])==self, "the object's construction does not recreate this object")
+
         CartesianProduct = CartesianProduct
 
         def cartesian_product(*parents, **kwargs):

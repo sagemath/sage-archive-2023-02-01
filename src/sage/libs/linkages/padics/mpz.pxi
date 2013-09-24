@@ -18,8 +18,8 @@ AUTHORS:
 
 include "sage/ext/stdsage.pxi"
 include "sage/ext/interrupt.pxi"
-
 include "sage/ext/gmp.pxi"
+from cpython.list cimport *
 
 cdef extern from "mpz_pylong.h":
     cdef long mpz_pythonhash(mpz_t src)

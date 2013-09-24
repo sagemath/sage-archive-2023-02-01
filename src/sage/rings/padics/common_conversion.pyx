@@ -26,6 +26,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from cpython.int cimport *
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.padics.padic_generic_element cimport pAdicGenericElement
@@ -76,8 +77,11 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
     if PyInt_Check(x):
         if x == 0:
             return maxordp
-        n = PyInt_AsLong(x)
-        if n != -1 or PyErr_Occurred() == NULL:
+        try:
+            n = PyInt_AsLong(x)
+        except OverflowError:
+            x = Integer(x)
+        else:
             if mpz_fits_slong_p(prime_pow.prime.value) == 0:
                 # x is not divisible by p
                 return 0
@@ -86,8 +90,6 @@ cdef long get_ordp(x, PowComputer_class prime_pow) except? -10000:
             while n % p == 0:
                 k += 1
                 n = n / p
-        else:
-            x = Integer(x)
     if PY_TYPE_CHECK(x, Integer):
         if mpz_sgn((<Integer>x).value) == 0:
             return maxordp

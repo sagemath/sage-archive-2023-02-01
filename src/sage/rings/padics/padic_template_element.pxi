@@ -23,6 +23,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from cpython.int cimport *
 include "sage/libs/pari/decl.pxi"
 
 import sage.rings.finite_rings.integer_mod

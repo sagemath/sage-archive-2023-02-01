@@ -1221,7 +1221,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
 # A morphism of toric varieties determined by a dominant fan morphism
 class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety):
     """
-    Construct a morphism determined by a dominant fan morphism
+    Construct a morphism determined by a dominant fan morphism.
     
     A dominant morphism is one that is surjective onto a dense
     subset. In the context of toric morphisms, this means that it is
@@ -1264,24 +1264,25 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
         """
         Return the generic fiber.
 
-        The embedding of the generic fiber is a toric morphism with
+        OUTPUT:
+
+        - a tuple `(X, n)`, where `X` is a :class:`toric variety
+          <sage.schemes.toric.variety.ToricVariety_field>` and `n` - an integer.
+          
+        The fiber over the base point with homogeneous coordinates
+        `[1:1:\cdots:1]` consists of `n` disjoint toric varieties isomorphic to
+        `X`. Note that fibers of a dominant toric morphism are isomorphic over
+        the maximal torus of its codomain, so it makes sense to talk about "the
+        generic" fiber.
+
+        The embedding of `X` is a toric morphism with
         the :meth:`~sage.geometry.fan_morphism.FanMorphism.domain_fan`
         being the
         :meth:`~sage.geometry.fan_morphism.FanMorphism.kernel_fan` of
-        the defining fan morphism. By contrast, embedding the fiber
+        the defining fan morphism. By contrast, embeddings of fiber components
         over lower-dimensional torus orbits of the image are not toric
         morphisms. Use :meth:`fiber_component` for the latter
         (non-generic) fibers.
-
-        OUTPUT:
-
-        A :class:`toric variety <sage.schemes.toric.variety.ToricVariety_field>`.
-
-        This method returns the fiber over the base point with homogeneous
-        coordinates `[1:1:\cdots:1]`. Note that fibers of a toric morphism are
-        isomorphic over the maximal torus of its image (which can have smaller
-        dimension than it codomain), so it makes sense to talk about "the
-        generic" fiber.
 
         EXAMPLES::
 
@@ -1314,32 +1315,11 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
 
         """
         from sage.schemes.toric.variety import ToricVariety
-        from sage.geometry.toric_lattice import ToricLattice
         fm = self.fan_morphism()
-
-        # The ker_fan is in a sublattice which does not work yet;
-        # rewrite the fan to use a generic lattice
-        ker_fan = fm.kernel_fan()
-        K = ker_fan.lattice()
-        rays = []
-        N = ToricLattice(K.dimension())
-        for r in ker_fan.rays():
-            ray = N(K.echelon_coordinates(r))
-            ray.set_immutable()
-            rays.append(ray)
-        cones = []
-        for c in ker_fan.generating_cones():
-            cones.append([ker_fan.rays().index(r) for r in c.rays()])
-        fiber_fan = Fan(cones, rays, lattice=N)
-        fiber = ToricVariety(fiber_fan)
-
-        from sage.geometry.fan_morphism import FanMorphism
-        fan_embedding = FanMorphism(K.echelonized_basis_matrix(), fiber_fan,
-                                    self.domain().fan())
-        homset = fiber.Hom(self.domain())
-        embedding = SchemeMorphism_fan_toric_variety(homset, fan_embedding)
-        fiber._embedding_morphism = embedding
-        return embedding.domain()
+        X = ToricVariety(fm.kernel_fan())
+        X._embedding_morphism = X.hom(
+            X.fan().lattice().echelonized_basis_matrix(), self.domain())
+        return X, fm.index()
 
     def fiber_component(self, domain_cone):
         r"""

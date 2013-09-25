@@ -684,6 +684,48 @@ class Scheme(Parent):
 
     point_set = point_homset
 
+    def count_points(self, n):
+        r"""
+        Count points over finite fields.
+
+        INPUT:
+
+        - ``n`` -- integer.
+
+        OUTPUT:
+
+        An integer. The number of points over `\GF{q}, \ldots,
+        \GF{q^n}` on a scheme over a finite field `\GF{q}`.
+
+        .. note::
+
+           This is currently only implemented for schemes over prime
+           order finite fields.
+
+        EXAMPLES::
+
+            sage: P.<x> = PolynomialRing(GF(3))
+            sage: C = HyperellipticCurve(x^3+x^2+1)
+            sage: C.count_points(4)
+            [6, 12, 18, 96]
+            sage: C.base_extend(GF(9,'a')).count_points(2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Point counting only implemented for schemes over prime fields
+        """
+        F = self.base_ring()
+        if not F.is_finite():
+            raise TypeError, "Point counting only defined for schemes over finite fields"
+        q = F.cardinality()
+        if not q.is_prime():
+            raise NotImplementedError, "Point counting only implemented for schemes over prime fields"
+        a = []
+        for i in range(1, n+1):
+            F1 = GF(q**i, name='z')
+            S1 = self.base_extend(F1)
+            a.append(len(S1.rational_points()))
+        return(a)
+
     def zeta_series(self, n, t):
         """
         Return the zeta series.
@@ -811,46 +853,4 @@ class AffineScheme(Scheme):
                 import spec
                 Y = spec.Spec(x.domain())
         return Scheme.hom(self, x, Y)
-
-    def count_points(self, n):
-        r"""
-        Count points over finite fields.
-
-        INPUT:
-
-        - ``n`` -- integer.
-
-        OUTPUT:
-
-        An integer. The number of points over `\GF{q}, \ldots,
-        \GF{q^n}` on a scheme over a finite field `\GF{q}`.
-
-        .. note::
-
-           This is currently only implemented for schemes over prime
-           order finite fields.
-
-        EXAMPLES::
-
-            sage: P.<x> = PolynomialRing(GF(3))
-            sage: C = HyperellipticCurve(x^3+x^2+1)
-            sage: C.count_points(4)
-            [6, 12, 18, 96]
-            sage: C.base_extend(GF(9,'a')).count_points(2)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Point counting only implemented for schemes over prime fields
-        """
-        F = self.base_ring()
-        if not F.is_finite():
-            raise TypeError, "Point counting only defined for schemes over finite fields"
-        q = F.cardinality()
-        if not q.is_prime():
-            raise NotImplementedError, "Point counting only implemented for schemes over prime fields"
-        a = []
-        for i in range(1, n+1):
-            F1 = GF(q**i, name='z')
-            S1 = self.base_extend(F1)
-            a.append(len(S1.rational_points()))
-        return(a)
 

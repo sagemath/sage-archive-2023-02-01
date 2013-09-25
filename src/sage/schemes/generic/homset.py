@@ -524,3 +524,20 @@ class SchemeHomset_points(SchemeHomset_generic):
             raise ValueError("value rings are defined for Spec domains only!")
         return dom.coordinate_ring()
 
+    def cardinality(self):
+        """
+        Return the number of points.
+
+        OUTPUT:
+
+        An integer or infinity.
+
+        EXAMPLES::
+
+            sage: P2 = toric_varieties.P2(base_ring=GF(3))
+            sage: P2.point_set().cardinality()
+            13
+        """
+        return sum(ZZ.one() for point in self)
+
+

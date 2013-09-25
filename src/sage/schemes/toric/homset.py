@@ -311,8 +311,6 @@ class SchemeHomset_points_toric_field(SchemeHomset_points):
         for pt in self.naive_iterator().point_iter():
             yield self(pt)
 
-    def cardinality(self):
-        return sum(ZZ.one() for point in self)
 
 
 class SchemeHomset_points_subscheme_toric_field(SchemeHomset_points_toric_field):

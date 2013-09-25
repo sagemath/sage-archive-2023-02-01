@@ -309,3 +309,8 @@ class SchemeHomset_points_toric_field(SchemeHomset_points):
 
     def __iter__(self):
         return self.naive_iterator().point_iter()
+
+
+class SchemeHomset_points_subscheme_toric_field(SchemeHomset_points_toric_field):
+
+    pass

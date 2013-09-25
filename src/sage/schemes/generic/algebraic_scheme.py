@@ -2207,8 +2207,9 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
             sage: P2.<x,y,z> = toric_varieties.P2()
             sage: quadric = P2.subscheme([x^2 + y^2 + z^2])
             sage: quadric._point_homset(Spec(QQ), quadric)
-            Set of rational points of 2-d toric variety
-            covered by 4 affine patches
+            Set of rational points of Closed subscheme of 2-d CPR-Fano
+            toric variety covered by 3 affine patches defined by:
+              x^2 + y^2 + z^2
             sage: type(quadric.point_set())
             <class 'sage.schemes.toric.homset.SchemeHomset_points_subscheme_toric_field_with_category'>
         """

@@ -26,7 +26,7 @@ from sage.misc.cachefunc import cached_method
 
 class NaivePointIterator(object):
     
-    def __init__(self, point_homset, fan, ring):
+    def __init__(self, fan, ring):
         """
         The naive point iterator.
 
@@ -35,7 +35,6 @@ class NaivePointIterator(object):
         self.ring = ring
         self.fan = fan
         self.ker = fan.rays().matrix().integer_kernel().matrix()
-        self.point_homset = point_homset
 
     @cached_method
     def rescalings(self):
@@ -146,21 +145,21 @@ class NaivePointIterator(object):
 
             sage: ni = toric_varieties.P2(base_ring=GF(2)).point_set().naive_iterator()
             sage: list(ni.point_iter())
-            [[0 : 0 : 1], [1 : 0 : 0], [0 : 1 : 0], [0 : 1 : 1], [1 : 0 : 1], [1 : 1 : 0], [1 : 1 : 1]]
+            [(0, 0, 1), (1, 0, 0), (0, 1, 0), (0, 1, 1), (1, 0, 1), (1, 1, 0), (1, 1, 1)]
 
             sage: ni = toric_varieties.P1xP1(base_ring=GF(3)).point_set().naive_iterator()
             sage: list(ni.point_iter()) 
-            [[0 : 1 : 0 : 1], [1 : 0 : 0 : 1], [1 : 0 : 1 : 0], [0 : 1 : 1 : 0],
-             [0 : 1 : 1 : 1], [0 : 1 : 1 : 2], [1 : 0 : 1 : 1], [1 : 0 : 1 : 2],
-             [1 : 1 : 0 : 1], [1 : 2 : 0 : 1], [1 : 1 : 1 : 0], [1 : 2 : 1 : 0],
-             [1 : 1 : 1 : 1], [1 : 1 : 1 : 2], [1 : 2 : 1 : 1], [1 : 2 : 1 : 2]]
+            [(0, 1, 0, 1), (1, 0, 0, 1), (1, 0, 1, 0), (0, 1, 1, 0), 
+             (0, 1, 1, 1), (0, 1, 1, 2), (1, 0, 1, 1), (1, 0, 1, 2), 
+             (1, 1, 0, 1), (1, 2, 0, 1), (1, 1, 1, 0), (1, 2, 1, 0), 
+             (1, 1, 1, 1), (1, 1, 1, 2), (1, 2, 1, 1), (1, 2, 1, 2)]
         """
         seen = set()
         for p in self.coordinate_iter():
             if p in seen:
                 continue
             seen.update(self.orbit(p))
-            yield self.point_homset(p)
+            yield p
 
     def is_finite(self):
         """

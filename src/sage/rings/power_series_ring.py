@@ -826,7 +826,7 @@ class PowerSeriesRing_generic(UniqueRepresentation, ring.CommutativeRing, Nonexa
             True
         """
         from sage.categories.pushout import CompletionFunctor
-        return CompletionFunctor(self._names[0], self.default_prec()), self._poly_ring()
+        return CompletionFunctor(self._names[0], self.default_prec(), {}), self._poly_ring()
 
     def _coerce_impl(self, x):
         """

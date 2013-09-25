@@ -747,7 +747,7 @@ class FreeAlgebra_generic(CombinatorialFreeModule, Algebra):
         """
         return self.monomial(x * y)
 
-    def quotient(self, mons, mats=None, names=None):
+    def quotient(self, mons, mats=None, names=None, **args):
         """
         Return a quotient algebra.
 

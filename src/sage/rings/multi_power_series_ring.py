@@ -489,7 +489,12 @@ class MPowerSeriesRing_generic(PowerSeriesRing_generic, Nonexact):
             True
         """
         from sage.categories.pushout import CompletionFunctor
-        return (CompletionFunctor(self._names, self.default_prec()),
+        if self.is_sparse():
+            extras = {'sparse':True}
+        else:
+            extras = None
+        return (CompletionFunctor(self._names, self.default_prec(),
+                                  extras=extras),
                 self._poly_ring())
 
     def change_ring(self, R):

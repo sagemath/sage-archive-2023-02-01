@@ -760,7 +760,10 @@ class PolynomialQuotientRing_generic(CommutativeRing):
         -- Simon King (2010-05)
         """
         from sage.categories.pushout import QuotientFunctor
-        return QuotientFunctor([self.modulus()]*self.base(),self.variable_names()), self.base()
+        return QuotientFunctor([self.modulus()]*self.base(),self.variable_names(), self.is_field(),
+                               domain=self.cover_ring().category(),
+                               codomain=self.category(),
+                               category=self.category()), self.base()
 
     @cached_method
     def base_ring(self):
@@ -2209,8 +2212,8 @@ class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, Field):
         sage: loads(xbar.dumps()) == xbar
         True
     """
-    def __init__(self, ring, polynomial, name=None):
-        PolynomialQuotientRing_domain.__init__(self, ring, polynomial, name)
+    def __init__(self, ring, polynomial, name=None, category=None):
+        PolynomialQuotientRing_domain.__init__(self, ring, polynomial, name, category)
 
     def base_field(self):
         r"""

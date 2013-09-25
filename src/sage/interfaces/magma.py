@@ -2665,7 +2665,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
         """
         return self.parent().bar_call(self, 'sub', gens)
 
-    def quo(self, gens):
+    def quo(self, gens, **args):
         """
         Return the quotient of self by the given object or list of
         generators.
@@ -2674,6 +2674,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
 
 
         -  ``gens`` - object or list/tuple of generators
+        - further named arguments that are ignored
 
 
         OUTPUT:

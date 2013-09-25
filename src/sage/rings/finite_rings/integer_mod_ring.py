@@ -89,6 +89,7 @@ class IntegerModFactory(UniqueFactory):
     - ``is_field`` -- bool (default: ``False``); assert that
       the order is prime and hence the quotient ring belongs to
       the category of fields
+    - ``category`` (optional) - the category that the quotient ring belongs to.
 
     .. NOTE::
 
@@ -196,7 +197,7 @@ class IntegerModFactory(UniqueFactory):
             out._factory_data[3]['category'] = category
         return out
 
-    def create_key_and_extra_args(self, order=0, is_field=False):
+    def create_key_and_extra_args(self, order=0, is_field=False, category=None):
         """
         An integer mod ring is specified uniquely by its order.
 

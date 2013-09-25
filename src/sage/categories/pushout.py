@@ -2399,7 +2399,7 @@ class CompletionFunctor(ConstructionFunctor):
             self.type = None
         else:
             self.extras = dict(extras)
-            self.type = extras.get('type', None)
+            self.type = self.extras.pop('type', None)
             from sage.rings.infinity import Infinity
             if self.p == Infinity:
                 if self.type not in self._real_types:
@@ -2665,7 +2665,9 @@ class QuotientFunctor(ConstructionFunctor):
 
     .. NOTE::
 
-        The functor keeps track of variable names.
+        The functor keeps track of variable names. Optionally, it may
+        keep track of additional properties of the quotient, such as
+        its category or its implementation.
 
     EXAMPLES::
 
@@ -2687,13 +2689,23 @@ class QuotientFunctor(ConstructionFunctor):
     """
     rank = 4.5
 
-    def __init__(self, I, names=None, as_field=False):
+    def __init__(self, I, names=None, as_field=False, domain=Rings(),
+                 codomain=Rings(), **kwds):
         """
         INPUT:
 
         - ``I``, an ideal (the modulus)
         - ``names`` (optional string or list of strings), the names for the quotient ring generators
         - ``as_field`` (optional bool, default false), return the quotient ring as field (if available).
+        - ``domain`` (optional category, default ``Rings()``), the domain of this functor.
+        - ``codomain`` (optional category, default ``Rings()``), the codomain of this functor.
+        - Further named arguments. In particular, an implementation of the quotient can be suggested here.
+          These named arguments are passed to the quotient construction.
+
+        NOTE:
+
+        If the category ``codomain`` is given, then it is passed as a named
+        argument ``category`` to the quotient being constructed.
 
         TESTS::
 
@@ -2717,7 +2729,9 @@ class QuotientFunctor(ConstructionFunctor):
             Ring of integers modulo 5
 
         """
-        Functor.__init__(self, Rings(), Rings()) # much more general...
+        kwds_cat = kwds.get('category')
+        Functor.__init__(self, domain, codomain)
+        
         self.I = I
         if names is None:
             self.names = None
@@ -2726,6 +2740,7 @@ class QuotientFunctor(ConstructionFunctor):
         else:
             self.names = tuple(names)
         self.as_field = as_field
+        self.kwds = kwds
 
     def _apply_functor(self, R):
         """
@@ -2764,7 +2779,7 @@ class QuotientFunctor(ConstructionFunctor):
                 R = pushout(R, I.ring().base_ring())
                 I = [R.one() * t for t in I.gens()] * R
         try:
-            Q = R.quo(I, names=self.names)
+            Q = R.quo(I, names=self.names, **self.kwds)
         except IndexError: # That may happen!
             raise CoercionException("Can not apply this quotient functor to %s" % R)
         if self.as_field:# and hasattr(Q, 'field'):
@@ -2776,7 +2791,7 @@ class QuotientFunctor(ConstructionFunctor):
 
     def __eq__(self, other):
         """
-        The types, the names and the moduli are compared.
+        The types, domain, codomain, names and moduli are compared.
 
         TESTS::
 
@@ -2793,7 +2808,10 @@ class QuotientFunctor(ConstructionFunctor):
         """
         if not isinstance(other, QuotientFunctor):
             return False
-        return (self.names == other.names and
+        return (type(self) == type(other) and
+                self.domain() == other.domain() and
+                self.codomain() == other.codomain() and
+                self.names == other.names and
                 self.I == other.I)
 
     def __ne__(self, other):
@@ -2819,7 +2837,12 @@ class QuotientFunctor(ConstructionFunctor):
 
     def merge(self, other):
         """
-        Two quotient functors with coinciding names are merged by taking the gcd of their moduli.
+        Two quotient functors with coinciding names are merged by taking the gcd
+        of their moduli, the meet of their domains, and the join of their codomains.
+
+        In particular, if one of the functors being merged knows that the quotient
+        is going to be a field, then the merged functor will return fields as
+        well.
 
         EXAMPLES::
 
@@ -2842,23 +2865,47 @@ class QuotientFunctor(ConstructionFunctor):
             return None
         if self == other:
             if self.as_field == other.as_field:
+                # The two functors are *really* equal
                 return self
-            return QuotientFunctor(self.I, names=self.names, as_field=True) # one of them yields a field!
-        try:
-            gcd = self.I + other.I
-        except (TypeError, NotImplementedError):
+            # They are equal up to the additional arguments
+            I = self.I
+            domain = self.domain()
+            codomain = self.codomain()
+        else:
             try:
-                gcd = self.I.gcd(other.I)
+                I = self.I + other.I
             except (TypeError, NotImplementedError):
+                try:
+                    I = self.I.gcd(other.I)
+                except (TypeError, NotImplementedError):
+                    return None
+            domain = self.domain().meet([self.domain(), other.domain()])
+            codomain = self.codomain().join([self.codomain(), other.codomain()])
+        # Get the optional arguments:
+        as_field = self.as_field or other.as_field
+        kwds = {}
+        for k,v in self.kwds.iteritems():
+            kwds[k] = v
+        for k,v in other.kwds.iteritems():
+            if k=='category':
+                if kwds[k] is not None:
+                    kwds[k] = v.join([v,kwds[k]])
+                else:
+                    kwds[k] = v
+                continue
+            if k in kwds and kwds[k] is not None and v!=kwds[k]:
+                # Don't know what default to choose. Hence: No merge!
                 return None
-        if gcd.is_trivial() and not gcd.is_zero():
-            # quotient by gcd would result in the trivial ring/group/...
+            kwds[k] = v
+        if I.is_trivial() and not I.is_zero():
+            # quotient by I would result in the trivial ring/group/...
             # Rather than create the zero ring, we claim they can't be merged
             # TODO: Perhaps this should be detected at a higher level...
             raise TypeError("Trivial quotient intersection.")
         # GF(p) has a coercion from Integers(p). Hence, merging should
         # yield a field if either self or other yields a field.
-        return QuotientFunctor(gcd, names=self.names, as_field=self.as_field or other.as_field)
+        return QuotientFunctor(I, names=self.names, as_field=as_field,
+                               domain=domain, codomain=codomain, **kwds)
 
 
 class AlgebraicExtensionFunctor(ConstructionFunctor):

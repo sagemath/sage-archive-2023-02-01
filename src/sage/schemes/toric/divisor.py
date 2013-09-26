@@ -1498,20 +1498,38 @@ class ToricDivisor_generic(Divisor_generic):
             sage: D.Kodaira_map()
             Scheme morphism:
               From: 1-d CPR-Fano toric variety covered by 2 affine patches
-              To:   Closed subscheme of 2-d CPR-Fano toric variety covered by
-                    3 affine patches defined by:
-              -z1^2 + z0*z2
+              To:   Closed subscheme of Projective Space of dimension 2 
+                    over Rational Field defined by:
+              -x1^2 + x0*x2
               Defn: Defined on coordinates by sending [u : v] to
-                    [v^2 : u*v : u^2]
+                    (v^2 : u*v : u^2)
+
+            sage: dP6 = toric_varieties.dP6()
+            sage: D = -dP6.K()
+            sage: D.Kodaira_map()
+            Scheme morphism:
+              From: 2-d CPR-Fano toric variety covered by 6 affine patches
+              To:   Closed subscheme of Projective Space of dimension 6
+                    over Rational Field defined by:
+              -x1*x5 + x0*x6,
+              -x2*x3 + x0*x5,
+              -x1*x3 + x0*x4,
+              x4*x5 - x3*x6,
+              -x1*x2 + x0*x3,
+              x3*x5 - x2*x6,
+              x3*x4 - x1*x6,
+              x3^2 - x1*x5,
+              x2*x4 - x1*x5,
+              -x1*x5^2 + x2*x3*x6,
+              -x1*x5^3 + x2^2*x6^2
+              Defn: Defined on coordinates by sending [x : u : y : v : z : w] to
+                    (x*u^2*y^2*v : x^2*u^2*y*w : u*y^2*v^2*z : x*u*y*v*z*w : 
+                     x^2*u*z*w^2 : y*v^2*z^2*w : x*v*z^2*w^2)
         """
         sections = self.sections_monomials()
         src = self.parent().scheme()
-        from sage.schemes.toric.library import toric_varieties
-
-        #from sage.schemes.projective.projective_space import ProjectiveSpace
-        #ambient = ProjectiveSpace(src.base_ring(), len(sections) - 1)
-
-        ambient = toric_varieties.P(len(sections) - 1)
+        from sage.schemes.projective.projective_space import ProjectiveSpace
+        ambient = ProjectiveSpace(src.base_ring(), len(sections) - 1)
         A = matrix(ZZ, [list(s.exponents()[0]) for s in sections]).transpose()
         from sage.schemes.toric.ideal import ToricIdeal
         IA = ToricIdeal(A, names=names)

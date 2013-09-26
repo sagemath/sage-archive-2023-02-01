@@ -1476,6 +1476,49 @@ class ToricDivisor_generic(Divisor_generic):
         return prod([ R.gen(i) ** (point*fan.ray(i) + self.coefficient(i))
                       for i in range(fan.nrays()) ])
 
+    def Kodaira_map(self, names='z'):
+        r"""
+        Return the Kodaira map.
+
+        The Kodaira map is the rational map $X_\Sigma \to
+        \mathbb{P}^{n-1}$, where $n$ equals the number of sections. It
+        is defined by the monomial sections of the line bundle.
+
+        If the divisor is ample then this is an embedding.
+        
+        INPUT:
+
+        - ``names`` -- string (optional; default ``'z'``). The
+          variable names for the destination projective space.
+
+        EXAMPLES::
+
+            sage: P1.<u,v> = toric_varieties.P1()
+            sage: D = -P1.K()
+            sage: D.Kodaira_map()
+            Scheme morphism:
+              From: 1-d CPR-Fano toric variety covered by 2 affine patches
+              To:   Closed subscheme of 2-d CPR-Fano toric variety covered by
+                    3 affine patches defined by:
+              -z1^2 + z0*z2
+              Defn: Defined on coordinates by sending [u : v] to
+                    [v^2 : u*v : u^2]
+        """
+        sections = self.sections_monomials()
+        src = self.parent().scheme()
+        from sage.schemes.toric.library import toric_varieties
+
+        #from sage.schemes.projective.projective_space import ProjectiveSpace
+        #ambient = ProjectiveSpace(src.base_ring(), len(sections) - 1)
+
+        ambient = toric_varieties.P(len(sections) - 1)
+        A = matrix(ZZ, [list(s.exponents()[0]) for s in sections]).transpose()
+        from sage.schemes.toric.ideal import ToricIdeal
+        IA = ToricIdeal(A, names=names)
+        dst = ambient.subscheme(IA)
+        homset = src.Hom(dst)
+        return homset(sections)
+
     def _sheaf_complex(self, m):
         r"""
         Return a simplicial complex whose cohomology is isomorphic to the

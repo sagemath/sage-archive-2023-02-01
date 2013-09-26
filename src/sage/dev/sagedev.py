@@ -6,7 +6,7 @@ scripts for sage.
 
 AUTHORS:
 
-- David Roe, Frej Drejhammar, Julian Rueth, Martin Raum, Nicolas M. Thiery, R.
+- David Roe, Frej Drejhammar, Julian Rueth, Martin Raum, Nicolas M. Thiery, R.,
   Andrew Ohana, Robert Bradshaw, Timo Kluck: initial version
 
 """
@@ -1203,7 +1203,7 @@ class SageDev(object):
         - :meth:`pull` -- Update a ticket with changes from the remote
           repository.
 
-        TESTS::
+        TESTS:
 
         Create a doctest setup with two users::
 
@@ -2586,7 +2586,7 @@ class SageDev(object):
         - :meth:`gather` -- creates a new branch to merge into rather than
           merging into the current branch.
 
-        TESTS::
+        TESTS:
 
         Create a doctest setup with two users::
 
@@ -3204,7 +3204,7 @@ class SageDev(object):
         - :meth:`diff` -- Show the changes in this branch over the
           dependencies.
 
-        TESTS::
+        TESTS:
 
         Create a doctest setup with a single user::
 

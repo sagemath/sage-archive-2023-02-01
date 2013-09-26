@@ -935,7 +935,7 @@ class GitInterface(ReadStdoutGitProxy):
         r"""
         Return a list of local branches sorted by last commit time.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Create a :class:`GitInterface` for doctesting::
 

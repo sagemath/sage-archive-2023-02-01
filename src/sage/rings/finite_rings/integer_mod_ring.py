@@ -94,7 +94,10 @@ class IntegerModFactory(UniqueFactory):
 
     -  ``order`` - integer (default: 0), positive or
        negative
-
+    -  ``category`` (optional, default None) - use the join of the
+       default category (which is the join of commutative rings and
+       finite enumerated sets) and the given category for initialising
+       the quotient ring.
 
     EXAMPLES::
 
@@ -114,6 +117,59 @@ class IntegerModFactory(UniqueFactory):
         Ring of integers modulo 18
         sage: Integers() is Integers(0) is ZZ
         True
+
+    NOTE:
+
+    Testing whether a quotient ring `\ZZ / n\ZZ` is a field can of course be
+    very costly. By default, it is not tested whether `n` is prime or not,
+    in contrast to :func:`~sage.rings.finite_rings.constructor.GF`. If the user
+    is sure that the modulus is prime and wants to avoid a primality test, (s)he
+    can provide ``category=Fields()`` when constructing the quotient ring, and
+    then the result will behave like a field. If the category is not provided
+    during initialisation, and it is found out later that the ring is in fact a
+    field, then the category will be changed at runtime, having the same effect
+    as providing ``Fields()`` during initialisation.
+
+    EXAMPLES::
+
+        sage: R = IntegerModRing(5)
+        sage: R.category()
+        Join of Category of commutative rings and Category of subquotients of
+        monoids and Category of quotients of semigroups and Category of finite
+        enumerated sets
+        sage: R in Fields()
+        True
+        sage: R.category()
+        Join of Category of fields and Category of subquotients of monoids and
+        Category of quotients of semigroups and Category of finite enumerated
+        sets
+        sage: S = IntegerModRing(5, category=Fields())
+        sage: S.category() == R.category()
+        True
+        sage: S is R
+        False
+
+    .. WARNING::
+
+        If the category ``Fields()`` was chosen by mistake, there is currently no
+        way to revert it. However, if :meth:`IntegerModRing_generic.is_field` is used
+        with the optional argument ``proof=True``, it would return the correct
+        answer even if the wrong category was chose.
+
+        So, prescribe the category only if you know what your are doing!
+
+    EXAMPLES::
+
+        sage: R = IntegerModRing(15, category=Fields())
+        sage: R in Fields()
+        True
+        sage: R.is_field()
+        True
+        sage: R.is_field(proof=True)
+        False
+        sage: R in Fields()
+        True
+
     """
     def create_key(self, order=0, category=None):
         """
@@ -198,7 +254,6 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         -  ``order`` - an integer 1
 
         - ``category`` - a subcategory of ``CommutativeRings()`` (the default)
-          (currently only available for subclasses)
 
         OUTPUT:
 
@@ -311,13 +366,14 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         self.__unit_group_exponent = None
         self.__factored_order = None
         self.__factored_unit_order = None
+        global default_category
         if category is None:
-            from sage.categories.commutative_rings import CommutativeRings
-            from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
-            from sage.categories.category import Category
-            category = Category.join([CommutativeRings(), FiniteEnumeratedSets()])
-#            category = default_category
-        # If the category is given then we trust that is it right.
+            category = default_category
+        else:
+            # If the category is given, e.g., as Fields(), then we still
+            # know that the result will also live in default_category.
+            # Hence, we use the join of the default and the given category.
+            category = category.join([category,default_category])
         # Give the generator a 'name' to make quotients work.  The
         # name 'x' is used because it's also used for the ring of
         # integers: see the __init__ method for IntegerRing_class in
@@ -325,9 +381,6 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         quotient_ring.QuotientRing_generic.__init__(self, ZZ, ZZ.ideal(order),
                                                     names=('x',),
                                                     category=category)
-        # Calling ParentWithGens is not needed, the job is done in
-        # the quotient ring initialisation.
-        #ParentWithGens.__init__(self, self, category = category)
         # We want that the ring is its own base ring.
         self._base = self
         if cache is None:
@@ -506,7 +559,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         return is_prime(self.order())
 
     @cached_method
-    def is_field(self, proof = True):
+    def is_field(self, proof = None):
         """
         Return True precisely if the order is prime.
 
@@ -518,8 +571,31 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: FF = IntegerModRing(17)
             sage: FF.is_field()
             True
+
+        By :trac:`15229`, the category of the ring is refined,
+        if it is found that the ring is in fact a field::
+
+            sage: R = IntegerModRing(19)
+            sage: R.category()
+            Join of Category of commutative rings and Category of subquotients of
+            monoids and Category of quotients of semigroups and Category of
+            finite enumerated sets
+            sage: R.is_field()
+            True
+            sage: R.category()
+            Join of Category of fields and Category of subquotients of monoids
+            and Category of quotients of semigroups and Category of finite
+            enumerated sets
+
         """
-        return self.order().is_prime()
+        from sage.categories.fields import Fields
+        if not proof:
+            if self.category().is_subcategory(Fields()):
+                return True
+        is_prime = self.order().is_prime(proof=proof)
+        if is_prime:
+            self._refine_category_(Fields())
+        return is_prime
 
     @cached_method
     def field(self):
@@ -1046,9 +1122,41 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             Finite Field of size 11
             sage: Z11 == Z11, Z11 == Z12, Z11 == Z13, Z11 == F
             (True, False, False, False)
+
+        In :trac:`15229`, the following was implemented::
+
+            sage: R1 = IntegerModRing(5)
+            sage: R2 = IntegerModRing(5, category=Fields())
+            sage: R1 == R2    # used to return False
+            True
+            sage: R2 == GF(5)
+            False
+
+        The rationale for this change is that we have coercions
+        in both directions between ``R1`` and ``R2``, but only
+        a one-directional coercion between ``R2`` and ``GF(5)``::
+
+            sage: R1.has_coerce_map_from(R2)
+            True
+            sage: R2.has_coerce_map_from(R1)
+            True
+            sage: GF(5).has_coerce_map_from(R2)
+            True
+            sage: R2.has_coerce_map_from(GF(5))
+            False
+
         """
-        if type(other) is not type(self):   # so that GF(p) =/= Z/pZ
-            return cmp(type(self), type(other))
+        # We want that GF(p) and IntegerModRing(p) evaluate unequal.
+        # However, we can not just compare the types, since the
+        # choice of a different category also changes the type.
+        # But if we go to the base class, we avoid the influence
+        # of the category.
+        try:
+            c = cmp(other.__class__.__base__, self.__class__.__base__)
+        except AttributeError: # __base__ does not always exists
+            c = cmp(type(other), type(self))
+        if c:
+            return c
         return cmp(self.__order, other.__order)
 
     # The following __unit_gens functions are here since I just factored

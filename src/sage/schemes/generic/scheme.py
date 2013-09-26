@@ -720,23 +720,11 @@ class Scheme(Parent):
         if not q.is_prime():
             raise NotImplementedError("Point counting only implemented for schemes over prime fields")
         a = []
-        if q <= (2*self.genus()+1)*(2*self._frobenius_coefficient_bound() - 1) or n > 2*self.genus():
-            for i in range(1, n+1):
-                F1 = GF(q**i, name='z')
-                S1 = self.base_extend(F1)
-                a.append(len(S1.rational_points()))
-        else:
-            coeffs = self.frobenius_polynomial().coefficients()
-            coeffs.reverse()
-            S = [coeffs[1]]
-            a.append(q+1 + S[0])
-            for k in range(2, n+1):
-                res = 0
-                for i in range(1, k):
-                    res = res + coeffs[i]*S[k-i-1]
-                S.append(k*coeffs[k] - res)
-                a.append(q**k + 1 + S[k-1])
-        return a
+        for i in range(1, n+1):
+            F1 = GF(q**i, name='z')
+            S1 = self.base_extend(F1)
+            a.append(len(S1.rational_points()))
+        return(a)
 
     def zeta_series(self, n, t):
         """

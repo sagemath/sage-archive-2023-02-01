@@ -870,7 +870,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             6103414827,
             30517927308]
 
-        This behavior can be disable by passing `naive=True`::
+        This behavior can be disabled by passing `naive=True`::
 
            sage: H.count_points_exhaustive(n=6, naive=True)
            [9, 27, 108, 675, 3069, 16302]
@@ -1051,6 +1051,12 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             sage: C = HyperellipticCurve(x^7 - 1, x^2 + a)
             sage: C.cardinality_exhaustive()
             7
+
+            sage: K = GF(next_prime(1<<10))
+            sage: R.<t> = PolynomialRing(K)
+            sage: H = HyperellipticCurve(t^7 + 3*t^5 + 5)
+            sage: H.cardinality_exhaustive()
+            1025
         """
         K = self.base_ring()
         g = self.genus()
@@ -1065,7 +1071,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
 
         # begin with points at infinity (on the smooth model)
         if g == 1:
-            # elliptic curves always have one smoot point at infinity
+            # elliptic curves always have one smooth point at infinity
             a += 1
         else:
             # g > 1
@@ -1159,10 +1165,24 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         using the hypellfrob prgoram.
 
         EXAMPLES::
+
+            sage: K = GF(next_prime(1<<10))
+            sage: R.<t> = PolynomialRing(K)
+            sage: H = HyperellipticCurve(t^7 + 3*t^5 + 5)
+            sage: H.cardinality_hypellfrob()
+            1025
+
+            sage: K = GF(49999)
+            sage: R.<t> = PolynomialRing(K)
+            sage: H = HyperellipticCurve(t^7 + 3*t^5 + 5)
+            sage: H.cardinality_hypellfrob()
+            50162
+            sage: H.cardinality_hypellfrob(3)
+            124992471088310
         """
         # the following actually computes the cardinality for several extensions
         # but the overhead is negligible
-        return self.count_points_hypellfrob(n=extension_degree, algorithm=algorithm)
+        return self.count_points_hypellfrob(n=extension_degree, algorithm=algorithm)[-1]
 
     @cached_method
     def cardinality(self, extension_degree=1):
@@ -1170,12 +1190,33 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
         Count points on a single extension of the base field.
 
         EXAMPLES::
+
+            sage: K = GF(101)
+            sage: R.<t> = PolynomialRing(K)
+            sage: H = HyperellipticCurve(t^9 + 3*t^5 + 5)
+            sage: H.cardinality()
+            106
+            sage: H.cardinality(15)
+            1160968955369992567076405831000
+            sage: H.cardinality(100)
+            270481382942152609326719471080753083367793838278100277689020104911710151430673927943945601434674459120495370826289654897190781715493352266982697064575800553229661690000887425442240414673923744999504000
+
+            sage: K = GF(37)
+            sage: R.<t> = PolynomialRing(K)
+            sage: H = HyperellipticCurve(t^9 + 3*t^5 + 5)
+            sage: H.cardinality()
+            40
+            sage: H.cardinality(2)
+            1408
+            sage: H.cardinality(3)
+            50116
         """
         K = self.base_ring()
         q = K.cardinality()
         e = K.degree()
         g = self.genus()
         f, h = self.hyperelliptic_polynomials()
+        n = extension_degree
 
         # We may:
         # - check for actual field of definition of the curve (up to isomorphism)
@@ -1183,9 +1224,9 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
             N1 = self._frobenius_coefficient_bound_traces(n)
             N2 = self._frobenius_coefficient_bound_charpoly()
             if n < g and q > (2*g+1)*(2*N1-1):
-                return self.cardinality_hypellfrob(n, N=N1, algorithm='traces')
+                return self.cardinality_hypellfrob(n, algorithm='traces')
             elif q > (2*g+1)*(2*N2-1):
-                return self.cardinality_hypellfrob(n, N=N2, algorithm='charpoly')
+                return self.cardinality_hypellfrob(n, algorithm='charpoly')
 
         # No smart method available
         return self.cardinality_exhaustive(n)

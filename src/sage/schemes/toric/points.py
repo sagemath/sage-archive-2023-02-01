@@ -1,9 +1,27 @@
+# -*- coding: utf-8 -*-
 """
-Points of a Toric Variety
+Enumerate Points of a Toric Variety
 
 The classes here are not meant to be instatiated manually. Instead,
-you should always use the methods of the
-:class:`sage.schemes.toric.homset.SchemeHomset_points_toric_field <point set>` of the variety.
+you should always use the methods of the :class:`point set
+<sage.schemes.toric.homset.SchemeHomset_points_toric_field>` of the
+variety.
+
+In this module, points are always represented by tuples instead of
+Sage's class for points of the toric variety. All Sage library code
+must then convert it to proper point objects before returning it to
+the user.
+
+EXAMPLES::
+
+    sage: P2 = toric_varieties.P2(base_ring=GF(3))
+    sage: point_set = P2.point_set()
+    sage: point_set.cardinality()
+    13
+    sage: iter(point_set).next()
+    [0 : 0 : 1]
+    sage: list(point_set)[0:5]
+    [[0 : 0 : 1], [1 : 0 : 0], [0 : 1 : 0], [0 : 1 : 1], [0 : 1 : 2]]
 """
 
 #*****************************************************************************
@@ -24,13 +42,27 @@ from sage.misc.misc import powerset, prod
 from sage.misc.cachefunc import cached_method
 
 
-class NaivePointIterator(object):
+class NaivePointEnumerator(object):
     
     def __init__(self, fan, ring):
         """
-        The naive point iterator.
+        The naive point enumerator.
 
         This is very slow.
+        
+        INPUT:
+        
+        - ``fan`` -- fan of the toric variety.
+
+        - ``ring`` -- base ring over which to enumerate points.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.toric.points import NaivePointEnumerator
+            sage: fan = toric_varieties.P2().fan()
+            sage: n = NaivePointEnumerator(fan, GF(3))
+            sage: iter(n).next()
+            (0, 0, 1)
         """
         self.ring = ring
         self.fan = fan
@@ -39,17 +71,25 @@ class NaivePointIterator(object):
     @cached_method
     def rescalings(self):
         """
+        Return the rescalings of homogeneous coordinates.
+
+        OUTPUT:
+
+        A tuple containing all points that are equivalent to
+        `[1:1:\dots:1]`, the distinguished point of the big torus
+        orbit.
+        
         EXAMPLES::
 
-            sage: ni = toric_varieties.P2_123(base_ring=GF(5)).point_set().naive_iterator()
+            sage: ni = toric_varieties.P2_123(base_ring=GF(5)).point_set()._naive_enumerator()
             sage: ni.rescalings()
             ((1, 1, 1), (4, 3, 2), (4, 2, 3), (1, 4, 4))
 
-            sage: ni = toric_varieties.dP8(base_ring=GF(3)).point_set().naive_iterator()
+            sage: ni = toric_varieties.dP8(base_ring=GF(3)).point_set()._naive_enumerator()
             sage: ni.rescalings()
             ((1, 1, 1, 1), (1, 2, 2, 2), (2, 1, 2, 1), (2, 2, 1, 2))
 
-            sage: ni = toric_varieties.P1xP1(base_ring=GF(3)).point_set().naive_iterator()
+            sage: ni = toric_varieties.P1xP1(base_ring=GF(3)).point_set()._naive_enumerator()
             sage: ni.rescalings()
             ((1, 1, 1, 1), (1, 1, 2, 2), (2, 2, 1, 1), (2, 2, 2, 2))
         """
@@ -64,21 +104,29 @@ class NaivePointIterator(object):
 
     def orbit(self, point):
         """
-            sage: ni = toric_varieties.P2_123(base_ring=GF(7)).point_set().naive_iterator()
-            sage: ni.orbit([1, 0, 0])
-            set([(1, 0, 0), (2, 0, 0), (4, 0, 0)])
-            sage: ni.orbit([0, 1, 0])
-            set([(0, 1, 0), (0, 6, 0)])
-            sage: ni.orbit([0, 0, 1])
-            set([(0, 0, 2), (0, 0, 6), (0, 0, 1), (0, 0, 5), (0, 0, 4), (0, 0, 3)])
-            sage: ni.orbit([1, 1, 0])
-            set([(1, 1, 0), (2, 1, 0), (4, 1, 0), (2, 6, 0), (1, 6, 0), (4, 6, 0)])
+        Return the orbit of homogeneous coordinates under rescalings.
+
+        OUTPUT:
+
+        The set of all homogeneous coordinates that are equivalent to ``point``.
+
+        EXAMPLES::
+
+            sage: ne = toric_varieties.P2_123(base_ring=GF(7)).point_set()._naive_enumerator()
+            sage: sorted(ne.orbit([1, 0, 0]))
+            [(1, 0, 0), (2, 0, 0), (4, 0, 0)]
+            sage: sorted(ne.orbit([0, 1, 0]))
+            [(0, 1, 0), (0, 6, 0)]
+            sage: sorted(ne.orbit([0, 0, 1]))
+            [(0, 0, 1), (0, 0, 2), (0, 0, 3), (0, 0, 4), (0, 0, 5), (0, 0, 6)]
+            sage: sorted(ne.orbit([1, 1, 0]))
+            [(1, 1, 0), (1, 6, 0), (2, 1, 0), (2, 6, 0), (4, 1, 0), (4, 6, 0)]
         """
         result = set()
         for phases in self.rescalings():
             p = tuple(mu*z for mu, z in zip(point, phases))
             result.add(p)
-        return result
+        return frozenset(result)
 
     def cone_iter(self):
         """
@@ -91,8 +139,9 @@ class NaivePointIterator(object):
 
         EXAMPLES::
 
-            sage: ni = toric_varieties.dP6().point_set().naive_iterator()
-            sage: for cone in ni.cone_iter(): print cone.ambient_ray_indices()
+            sage: ne = toric_varieties.dP6().point_set()._naive_enumerator()
+            sage: for cone in ne.cone_iter(): 
+            ....:     print cone.ambient_ray_indices()
             (0, 1)
             (1, 2)
             (2, 3)
@@ -114,16 +163,23 @@ class NaivePointIterator(object):
             
     def coordinate_iter(self):
         """
-        Iterate over all distinct coordinates ().
+        Iterate over all distinct homogeneous coordinates.
+
+        This method does NOT identify homogeneous coordinates that are
+        equivalent by a homogeneous rescaling.
+        
+        OUTPUT:
+
+        An iterator over the points.
 
         EXAMPLES::
 
             sage: F2 = GF(2)
-            sage: ni = toric_varieties.P2(base_ring=F2).point_set().naive_iterator()
+            sage: ni = toric_varieties.P2(base_ring=F2).point_set()._naive_enumerator()
             sage: list(ni.coordinate_iter())
             [(0, 0, 1), (1, 0, 0), (0, 1, 0), (0, 1, 1), (1, 0, 1), (1, 1, 0), (1, 1, 1)]
 
-            sage: ni = toric_varieties.P1xP1(base_ring=F2).point_set().naive_iterator()
+            sage: ni = toric_varieties.P1xP1(base_ring=F2).point_set()._naive_enumerator()
             sage: list(ni.coordinate_iter())
             [(0, 1, 0, 1), (1, 0, 0, 1), (1, 0, 1, 0),
              (0, 1, 1, 0), (0, 1, 1, 1), (1, 0, 1, 1),
@@ -139,16 +195,26 @@ class NaivePointIterator(object):
             for p in CartesianProduct(*patch):
                 yield tuple(p)
 
-    def point_iter(self):
+    def __iter__(self):
         """
+        Iterate over the distinct points of the toric variety.
+
+        This function does identify orbits under the homogeneous
+        rescalings, and returns precisely one representative per
+        orbit.
+
+        OUTPUT:
+
+        Iterator over points.
+
         EXAMPLES:
 
-            sage: ni = toric_varieties.P2(base_ring=GF(2)).point_set().naive_iterator()
-            sage: list(ni.point_iter())
+            sage: ni = toric_varieties.P2(base_ring=GF(2)).point_set()._naive_enumerator()
+            sage: list(ni)
             [(0, 0, 1), (1, 0, 0), (0, 1, 0), (0, 1, 1), (1, 0, 1), (1, 1, 0), (1, 1, 1)]
 
-            sage: ni = toric_varieties.P1xP1(base_ring=GF(3)).point_set().naive_iterator()
-            sage: list(ni.point_iter()) 
+            sage: ni = toric_varieties.P1xP1(base_ring=GF(3)).point_set()._naive_enumerator()
+            sage: list(ni) 
             [(0, 1, 0, 1), (1, 0, 0, 1), (1, 0, 1, 0), (0, 1, 1, 0), 
              (0, 1, 1, 1), (0, 1, 1, 2), (1, 0, 1, 1), (1, 0, 1, 2), 
              (1, 1, 0, 1), (1, 2, 0, 1), (1, 1, 1, 0), (1, 2, 1, 0), 
@@ -160,21 +226,4 @@ class NaivePointIterator(object):
                 continue
             seen.update(self.orbit(p))
             yield p
-
-    def is_finite(self):
-        """
-        Return whether there are finitely many points.
-
-        EXAMPLES::
-
-            sage: P2 = toric_varieties.P2()
-            sage: P2.point_set().naive_iterator().is_finite()
-            False
-            sage: P2.change_ring(GF(7)).point_set().naive_iterator().is_finite()
-            True
-        """
-        return self.ring.is_finite()
-
-
-    
 

@@ -41,5 +41,8 @@ Schemes
    sage/schemes/toric/weierstrass
    sage/schemes/toric/weierstrass_covering
 
+   sage/schemes/toric/homset
+   sage/schemes/toric/points
+
 
 .. include:: ../footer.txt

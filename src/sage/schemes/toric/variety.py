@@ -2751,67 +2751,21 @@ class ToricVariety_field(AmbientSpace):
         r"""
         Return the number of points of ``self``.
 
-        Over a finite field only smooth varieties are supported.
-
-        OUTPUT:
-
-        - an integer.
+        This is an alias for ``point_set().cardinality()``, see
+        :meth:`~sage.schemes.toric.homset.SchemeHomset_points_toric_field.cardinality`
+        for details.
 
         EXAMPLES::
 
             sage: o = lattice_polytope.octahedron(3)
             sage: V = ToricVariety(FaceFan(o))
-            sage: V.change_ring(GF(2)).count_points()
+            sage: V2 = V.change_ring(GF(2))
+            sage: V2.point_set().cardinality()
             27
-            sage: V.change_ring(GF(8, "a")).count_points()
-            729
-            sage: V.change_ring(GF(101)).count_points()
-            1061208
-
-        Only smooth varieties over finite fields are currently handled::
-
-            sage: V = ToricVariety(NormalFan(o))
-            sage: V.change_ring(GF(2)).count_points()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: the variety is not smooth
-
-        Over infinite fields the number of points is not very tricky::
-
-            sage: V.count_points()
-            +Infinity
-
-        ALGORITHM:
-
-        Uses the formula in Fulton [F]_, section 4.5.
-
-        REFERENCES:
-
-        ..  [F]
-            Fulton, W., "Introduction to Toric Varieties",
-            Princeton University Press, 1993.
-
-        AUTHORS:
-
-        - Beth Malmskog (2013-07-14)
-
-        - Adriana Salerno (2013-07-14)
-
-        - Yiwei She (2013-07-14)
-
-        - Christelle Vincent (2013-07-14)
-
-        - Ursula Whitcher (2013-07-14)
+            sage: V2.count_points()
+            27
         """
-        if not self.base_ring().is_finite():
-            return Infinity
-        if not self.is_smooth():
-            raise NotImplementedError("the variety is not smooth")
-        q = self.base_ring().order()
-        n = self.dimension()
-        d = map(len, self.fan().cones())
-        return sum(dk * (q-1)**(n-k) for k, dk in enumerate(d))
-
+        return self.point_set().cardinality()
 
     @cached_method
     def Demazure_roots(self):

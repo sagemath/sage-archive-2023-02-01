@@ -2,13 +2,15 @@ r"""
 Set of homomorphisms between two toric varieties.
 
 For schemes `X` and `Y`, this module implements the set of morphisms
-`Hom(X,Y)`. This is done by :class:`SchemeHomset_generic`.
+`Hom(X,Y)`. This is done by
+:class:`~sage.schemes.generic.homset.SchemeHomset_generic`.
 
 As a special case, the Hom-sets can also represent the points of a
 scheme. Recall that the `K`-rational points of a scheme `X` over `k`
 can be identified with the set of morphisms `Spec(K) \to X`. In Sage,
 the rational points are implemented by such scheme morphisms. This is
-done by :class:`SchemeHomset_points` and its subclasses.
+done by :class:`~sage.schemes.generic.homset.SchemeHomset_points` and
+its subclasses.
 
 .. note::
 
@@ -253,9 +255,9 @@ class SchemeHomset_toric_variety(SchemeHomset_generic):
                            self.codomain().dimension_relative())
         return self(zero)
 
-class SchemeHomset_points_toric_field(SchemeHomset_points):
+class SchemeHomset_points_toric_base(SchemeHomset_points):
     """
-    Set of rational points of a toric variety.
+    Base class for homsets with toric ambient spaces
 
     INPUT:
 
@@ -264,7 +266,7 @@ class SchemeHomset_points_toric_field(SchemeHomset_points):
     OUPUT:
 
     A scheme morphism of type
-    :class:`SchemeHomset_points_toric_field`.
+    :class:`SchemeHomset_points_toric_base`.
 
     EXAMPLES::
 
@@ -276,13 +278,32 @@ class SchemeHomset_points_toric_field(SchemeHomset_points):
     TESTS::
 
         sage: import sage.schemes.toric.homset as HOM
-        sage: HOM.SchemeHomset_points_toric_field(Spec(QQ), P1xP1)
+        sage: HOM.SchemeHomset_points_toric_base(Spec(QQ), P1xP1)
         Set of rational points of 2-d CPR-Fano toric variety covered by 4 affine patches
     """
 
-    def naive_iterator(self, ring=None):
+    def is_finite(self):
         """
-        The naive iterator over points.
+        Return whether there are finitely many points.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: P2 = toric_varieties.P2()
+            sage: P2.point_set().is_finite()
+            False
+            sage: P2.change_ring(GF(7)).point_set().is_finite()
+            True
+        """
+        variety = self.codomain()
+        return variety.dimension() == 0 or variety.base_ring().is_finite()
+
+    def _naive_enumerator(self, ring=None):
+        """
+        The naive enumerator over points of the toric variety.
 
         INPUT:
 
@@ -292,31 +313,155 @@ class SchemeHomset_points_toric_field(SchemeHomset_points):
 
         OUTPUT:
 
-        Iterator over the points of the toric variety.
+        A :class:`sage.schemes.toric.points.NaivePointEnumerator`
+        instance that can be used to iterate over the points.
 
         EXAMPLES::
 
             sage: P123 = toric_varieties.P2_123(base_ring=GF(3))
             sage: point_set = P123.point_set()
+            sage: iter(point_set._naive_enumerator()).next()
+            (0, 0, 1)
             sage: iter(point_set).next()
             [0 : 0 : 1]
         """
-        from sage.schemes.toric.points import NaivePointIterator
+        from sage.schemes.toric.points import NaivePointEnumerator
         variety = self.codomain()
         if ring is None:
             ring = variety.base_ring()
-        return NaivePointIterator(variety.fan(), ring)
-
-    def __iter__(self):
-        for pt in self.naive_iterator().point_iter():
-            yield self(pt)
+        return NaivePointEnumerator(variety.fan(), ring)
 
 
+class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
+    """
+    Set of rational points of a toric variety.
 
-class SchemeHomset_points_subscheme_toric_field(SchemeHomset_points_toric_field):
+    You should not use this class directly. Instead, use the
+    :meth:`~sage.schemes.generic.scheme.Scheme.point_set` method to
+    construct the point set of a toric variety.
+
+    INPUT:
+
+    - same as for :class:`~sage.schemes.generic.homset.SchemeHomset_points`.
+
+    OUPUT:
+
+    A scheme morphism of type
+    :class:`SchemeHomset_points_toric_field`.
+
+    EXAMPLES::
+
+        sage: P1xP1 = toric_varieties.P1xP1()
+        sage: P1xP1.point_set()
+        Set of rational points of 2-d CPR-Fano toric variety
+        covered by 4 affine patches
+        sage: P1xP1(QQ)
+        Set of rational points of 2-d CPR-Fano toric variety
+        covered by 4 affine patches
+
+    TESTS::
+
+        sage: import sage.schemes.toric.homset as HOM
+        sage: HOM.SchemeHomset_points_toric_field(Spec(QQ), P1xP1)
+        Set of rational points of 2-d CPR-Fano toric variety covered by 4 affine patches
+    """
+
+    def cardinality(self):
+        r"""
+        Return the number of points of the toric variety.
+
+        OUTPUT:
+
+        An integer or infinity. The cardinality of the set of points.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.octahedron(3)
+            sage: V = ToricVariety(FaceFan(o))
+            sage: V.change_ring(GF(2)).point_set().cardinality()
+            27
+            sage: V.change_ring(GF(8, "a")).point_set().cardinality()
+            729
+            sage: V.change_ring(GF(101)).point_set().cardinality()
+            1061208
+
+        For non-smooth varieties over finite fields, the points are
+        actually constructed and iterated over. This works but is much
+        slower::
+
+            sage: V = ToricVariety(NormalFan(o))
+            sage: V.change_ring(GF(2)).point_set().cardinality()
+            27
+
+        Over infinite fields the number of points is not very tricky::
+
+            sage: V.count_points()
+            +Infinity
+
+        ALGORITHM:
+
+        Uses the formula in Fulton [F]_, section 4.5.
+
+        REFERENCES:
+
+        ..  [F]
+            Fulton, W., "Introduction to Toric Varieties",
+            Princeton University Press, 1993.
+
+        AUTHORS:
+
+        - Beth Malmskog (2013-07-14)
+
+        - Adriana Salerno (2013-07-14)
+
+        - Yiwei She (2013-07-14)
+
+        - Christelle Vincent (2013-07-14)
+
+        - Ursula Whitcher (2013-07-14)
+        """
+        variety = self.codomain()
+        if not variety.base_ring().is_finite():
+            from sage.rings.infinity import Infinity
+            return Infinity
+        if not variety.is_smooth():
+            return super(SchemeHomset_points_toric_field, self).cardinality()
+        q = variety.base_ring().order()
+        n = variety.dimension()
+        d = map(len, variety.fan().cones())
+        return sum(dk * (q-1)**(n-k) for k, dk in enumerate(d))
 
     def __iter__(self):
         """
+        Iterate over the points of the variety.
+
+        OUTPUT:
+
+        Iterator over points.
+
+        EXAMPLES::
+
+            sage: P123 = toric_varieties.P2_123(base_ring=GF(3))
+            sage: point_set = P123.point_set()
+            sage: iter(point_set.__iter__()).next()
+            [0 : 0 : 1]
+            sage: iter(point_set).next()  # syntactic sugar
+            [0 : 0 : 1]
+        """
+        for pt in self._naive_enumerator():
+            yield self(pt)
+
+
+class SchemeHomset_points_subscheme_toric_field(SchemeHomset_points_toric_base):
+
+    def __iter__(self):
+        """
+        Iterate over the points of the variety.
+
+        OUTPUT:
+
+        Iterator over points.
+
         EXAMPLES::
 
             sage: P2.<x,y,z> = toric_varieties.P2(base_ring=GF(5))
@@ -328,7 +473,7 @@ class SchemeHomset_points_subscheme_toric_field(SchemeHomset_points_toric_field)
         """
         ambient = super(
             SchemeHomset_points_subscheme_toric_field, self
-        ).naive_iterator().point_iter()
+        )._naive_enumerator()
         X = self.codomain()
         for p in ambient:
             try:

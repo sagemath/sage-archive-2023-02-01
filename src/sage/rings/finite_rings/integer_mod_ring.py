@@ -563,6 +563,19 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         Return True precisely if the order is prime.
 
+        INPUT:
+
+        - ``proof`` (optional bool or None, default None):
+          If ``False``, then test whether the category of the quotient
+          is a subcategory of ``Fields()``, or do a probabilistic
+          primality test. If ``None``, then test the category and then
+          do a primality test according to the global arithmetic proof
+          settings. If True, do a deterministic primality test.
+
+        If it is found (perhaps probabilistically) that the ring is a field,
+        then the category of the ring is refined to include the category
+        of fields. This may change the Python class of the ring!
+
         EXAMPLES::
 
             sage: R = IntegerModRing(18)

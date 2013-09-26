@@ -313,7 +313,7 @@ class SchemeHomset_points_toric_base(SchemeHomset_points):
 
         OUTPUT:
 
-        A :class:`sage.schemes.toric.points.NaivePointEnumerator`
+        A :class:`sage.schemes.toric.points.NaiveFinitePointEnumerator`
         instance that can be used to iterate over the points.
 
         EXAMPLES::
@@ -325,11 +325,15 @@ class SchemeHomset_points_toric_base(SchemeHomset_points):
             sage: iter(point_set).next()
             [0 : 0 : 1]
         """
-        from sage.schemes.toric.points import NaivePointEnumerator
+        from sage.schemes.toric.points import \
+            NaiveFinitePointEnumerator, InfinitePointEnumerator
         variety = self.codomain()
         if ring is None:
             ring = variety.base_ring()
-        return NaivePointEnumerator(variety.fan(), ring)
+        if ring.is_finite():
+            return NaiveFinitePointEnumerator(variety.fan(), ring)
+        else:
+            return InfinitePointEnumerator(variety.fan(), ring)
 
 
 class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
@@ -422,8 +426,11 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
         """
         variety = self.codomain()
         if not variety.base_ring().is_finite():
-            from sage.rings.infinity import Infinity
-            return Infinity
+            if variety.dimension_relative() == 0:
+                return ZZ.one()
+            else:
+                from sage.rings.infinity import Infinity
+                return Infinity
         if not variety.is_smooth():
             return super(SchemeHomset_points_toric_field, self).cardinality()
         q = variety.base_ring().order()

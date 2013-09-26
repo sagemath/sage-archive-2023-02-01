@@ -42,7 +42,70 @@ from sage.misc.misc import powerset, prod
 from sage.misc.cachefunc import cached_method
 
 
-class NaivePointEnumerator(object):
+class InfinitePointEnumerator(object):
+    
+    def __init__(self, fan, ring):
+        """
+        Point enumerator for infinite fields.
+
+        INPUT:
+        
+        - ``fan`` -- fan of the toric variety.
+
+        - ``ring`` -- infinite base ring over which to enumerate
+          points.
+
+        TESTS::
+
+            sage: from sage.schemes.toric.points import InfinitePointEnumerator
+            sage: fan = toric_varieties.P2().fan()
+            sage: n = InfinitePointEnumerator(fan, QQ)
+            sage: ni = iter(n)
+            sage: [ni.next() for k in range(10)]
+            [(0, 1, 1), (1, 1, 1), (-1, 1, 1), (1/2, 1, 1), (-1/2, 1, 1), 
+             (2, 1, 1), (-2, 1, 1), (1/3, 1, 1), (-1/3, 1, 1), (3, 1, 1)]
+          
+            sage: X = ToricVariety(Fan([], lattice=ZZ^0))
+            sage: X.point_set().cardinality()
+            1
+            sage: X.base_ring().is_finite()
+            False
+            sage: X.point_set().list()
+            ([],)
+        """
+        self.ring = ring
+        self.fan = fan
+        self.ker = fan.rays().matrix().integer_kernel().matrix()
+
+    def __iter__(self):
+        """
+        Iterate over the points.
+
+        OUTPUT:
+
+        Iterator over points.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.toric.points import InfinitePointEnumerator
+            sage: fan = toric_varieties.P2().fan()
+            sage: n = InfinitePointEnumerator(fan, QQ)
+            sage: ni = iter(n)
+            sage: [ni.next() for k in range(5)]
+            [(0, 1, 1), (1, 1, 1), (-1, 1, 1), (1/2, 1, 1), (-1/2, 1, 1)]
+        """
+        n = self.fan().nrays()
+        if n == 0:
+            yield tuple()
+        else:
+            R = self.ring
+            p = [R.one() for k in range(n)]
+            for r in R:
+                p[0] = r
+                yield tuple(p)
+
+
+class NaiveFinitePointEnumerator(object):
     
     def __init__(self, fan, ring):
         """
@@ -54,16 +117,17 @@ class NaivePointEnumerator(object):
         
         - ``fan`` -- fan of the toric variety.
 
-        - ``ring`` -- base ring over which to enumerate points.
+        - ``ring`` -- finite base ring over which to enumerate points.
 
         EXAMPLES::
 
-            sage: from sage.schemes.toric.points import NaivePointEnumerator
+            sage: from sage.schemes.toric.points import NaiveFinitePointEnumerator
             sage: fan = toric_varieties.P2().fan()
-            sage: n = NaivePointEnumerator(fan, GF(3))
+            sage: n = NaiveFinitePointEnumerator(fan, GF(3))
             sage: iter(n).next()
             (0, 0, 1)
         """
+        assert ring.is_finite()
         self.ring = ring
         self.fan = fan
         self.ker = fan.rays().matrix().integer_kernel().matrix()
@@ -139,7 +203,7 @@ class NaivePointEnumerator(object):
 
         EXAMPLES::
 
-            sage: ne = toric_varieties.dP6().point_set()._naive_enumerator()
+            sage: ne = toric_varieties.dP6(base_ring=GF(11)).point_set()._naive_enumerator()
             sage: for cone in ne.cone_iter(): 
             ....:     print cone.ambient_ray_indices()
             (0, 1)

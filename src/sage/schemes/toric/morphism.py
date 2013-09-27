@@ -1665,7 +1665,7 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
         polys = [R.one()] * toric_variety.fan().nrays()
         for i in self.defining_cone().ambient_ray_indices():
             polys[i] = R.zero()
-        for ray, x in zip(fiber.fan().rays(), R.gens()):
+        for ray, x in zip(fc.fan().rays(), R.gens()):
             try:
                 ray_index = self._ray_index_map[ray]
             except KeyError:
@@ -1701,14 +1701,23 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
             0-d affine toric variety
             sage: blowup.fiber_component(Cone([(1,1)]))
             1-d toric variety covered by 2 affine patches
+            
+            sage: P1 = toric_varieties.P1()
+            sage: f = P1.hom(matrix([2]), P1)
+            sage: f.fiber_component(P1.fan(1)[0])
+            0-d affine toric variety
+            sage: f.fan_morphism().index(P1.fan(1)[0])
+            1
+            sage: f.fiber_generic()
+            (0-d affine toric variety, 2)
         """
         fm = self._fan_morphism
         defining_cone = self._defining_cone
         base_cone = self._base_cone
 
         ker = fm.kernel().basis()
-        base_cone_preimg = [ fm.matrix().solve_left(r) for r in base_cone.rays() ]
-        L = fm.domain_fan().lattice().submodule(ker+base_cone_preimg).saturation()
+        base_cone_preimg = [fm.matrix().solve_left(r) for r in base_cone.rays()]
+        L = fm.domain_fan().lattice().span(ker+base_cone_preimg).saturation()
 
         cone_L = Cone([L.coordinates(r) for r in defining_cone.rays()])
         L_quotient = cone_L.sublattice_quotient()

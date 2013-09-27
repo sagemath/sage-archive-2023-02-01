@@ -8,7 +8,7 @@ higher codimension subschemes of toric varieties. In general, this is
 an unsolved problem. However, for certain special cases this is known.
 
 The simplest codimension-two case is the complete intersection of two
-quadratic equations in $`\mathbb{P}^3$ ::
+quadratic equations in `\mathbb{P}^3` ::
 
     sage: R.<w,x,y,z> = QQ[]
     sage: quadratic1 = w^2+x^2+y^2
@@ -41,7 +41,7 @@ def WeierstrassForm2(polynomial, variables=None, transformation=False):
     Helper function for :func:`~sage.schemes.toric.weierstrass.WeierstrassForm`
 
     Currently, only the case of the complete intersection of two
-    quadratic equations in $`\mathbb{P}^3$ is supported.
+    quadratic equations in `\mathbb{P}^3` is supported.
 
     INPUT / OUTPUT:
 
@@ -64,7 +64,7 @@ def WeierstrassForm2(polynomial, variables=None, transformation=False):
 
 ######################################################################
 #
-#  Weierstrass form of complete intersection of two quadrics  in P^3
+#  Weierstrass form of complete intersection of two quadratics  in P^3
 #
 ######################################################################
 def _check_polynomials_P3(quadratic1, quadratic2, variables):
@@ -161,9 +161,9 @@ def _biquadratic_syzygy_quartic(quadratic1, quadratic2, variables=None):
         sage: from sage.schemes.toric.weierstrass_higher import _biquadratic_syzygy_quartic
         sage: R.<w,x,y,z> = QQ[]
         sage: _biquadratic_syzygy_quartic(w^2+x^2+y^2, z^2)
-        (joint quaternary quadratic with coefficients (1, 1, 1, 0, 0, 0, 0, 0, 0, 0) 
+        (Joint quaternary quadratic with coefficients (1, 1, 1, 0, 0, 0, 0, 0, 0, 0) 
          and quaternary quadratic with coefficients (0, 0, 0, 1, 0, 0, 0, 0, 0, 0), 
-         binary quartic with coefficients (0, 0, 0, -1, 0), {aux...})
+         Binary quartic with coefficients (0, 0, 0, -1, 0), {aux...})
     """
     w, x, y, z = _check_polynomials_P3(quadratic1, quadratic2, variables)
     biquadratic = invariant_theory.quaternary_biquadratic(quadratic1, quadratic2, [w, x, y, z])

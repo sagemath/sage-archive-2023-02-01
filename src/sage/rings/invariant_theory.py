@@ -20,8 +20,8 @@ polynomial in the coefficients that is invariant under this action. A
 covariant is a polynomial in the coefficients and the variables
 `(x_1,\dots, x_n)` that is invariant under the combined action.
 
-For example, the binary quadric `p(x,y) = a x^2 + b x y + c y^2` has
-as its invariant the discriminant `\mathop{disc}(p) = b^2 - 4 a
+For example, the binary quadratic `p(x,y) = a x^2 + b x y + c y^2`
+has as its invariant the discriminant `\mathop{disc}(p) = b^2 - 4 a
 c`. This means that for any `SL(2,\CC)` coordinate change
 
 .. math::
@@ -1224,7 +1224,7 @@ class BinaryQuartic(AlgebraicForm):
 
         OUTPUT:
 
-        The Eisenstein D-invariant of the quadric.
+        The Eisenstein D-invariant of the quartic.
 
         .. math::
 
@@ -1254,7 +1254,7 @@ class BinaryQuartic(AlgebraicForm):
 
         OUTPUT:
 
-        The Eisenstein E-invariant of the quadric.
+        The Eisenstein E-invariant of the quartic.
 
         .. math::
 

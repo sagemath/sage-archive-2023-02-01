@@ -165,8 +165,20 @@ class IntegerModFactory(UniqueFactory):
         True
         sage: R.is_field()
         True
+
+    If the optional argument `proof=True` is provided, primality is tested and
+    the mistaken category assignment is reported::
+
         sage: R.is_field(proof=True)
+        WARNING:
+          The order 15 is not prime, but this ring has been put
+          into the category of fields. Either it was a mistake
+          of the user, or a probabilitstic primality test has
+          failed. In the latter case, please inform the developers.
         False
+
+    However, the mistaken assignment is not automatically corrected::
+
         sage: R in Fields()
         True
 
@@ -560,7 +572,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     @cached_method
     def is_field(self, proof = None):
-        """
+        r"""
         Return True precisely if the order is prime.
 
         INPUT:
@@ -600,6 +612,23 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             and Category of quotients of semigroups and Category of finite
             enumerated sets
 
+        It is possible to mistakenly put `\ZZ/n\ZZ` into the category of fields.
+        In this case, :meth:`is_field` will return True without performing a
+        primality check. However, if the optional argument `proof=True` is
+        provided, primality is tested and the mistake is uncovered in a warning
+        message::
+
+            sage: R = IntegerModRing(21, category=Fields())
+            sage: R.is_field()
+            True
+            sage: R.is_field(proof=True)
+            WARNING:
+              The order 21 is not prime, but this ring has been put
+              into the category of fields. Either it was a mistake
+              of the user, or a probabilitstic primality test has
+              failed. In the latter case, please inform the developers.
+            False
+
         """
         from sage.categories.fields import Fields
         if not proof:
@@ -608,6 +637,13 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         is_prime = self.order().is_prime(proof=proof)
         if is_prime:
             self._refine_category_(Fields())
+        else:
+            if self.category().is_subcategory(Fields()):
+                print "WARNING:"
+                print "  The order %d is not prime, but this ring has been put"%self.__order
+                print "  into the category of fields. Either it was a mistake"
+                print "  of the user, or a probabilitstic primality test has"
+                print "  failed. In the latter case, please inform the developers."
         return is_prime
 
     @cached_method

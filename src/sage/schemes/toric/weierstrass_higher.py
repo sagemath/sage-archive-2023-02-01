@@ -69,18 +69,18 @@ def WeierstrassForm2(polynomial, variables=None, transformation=False):
 ######################################################################
 def _check_polynomials_P3(quadratic1, quadratic2, variables):
     """
-    Check the polynomial is weighted homogeneous in standard variables.
+    Check that the polynomial is weighted homogeneous in standard variables.
 
     INPUT:
 
-    - ``quadric1``, ``quadratic2`` -- two quadratic polynomials in 4
+    - ``quadratic1``, ``quadratic2`` -- two quadratic polynomials in 4
       homogeneous or 3 inhomogeneous variables.
 
     - ``variables`` -- the variables or ``None`` (default).
 
     OUTPUT:
 
-    This functions returns ``variables``, potentially guessed from the
+    This function returns ``variables``, potentially guessed from the
     polynomial ring. A ``ValueError`` is raised if the polynomial is
     not homogeneous.
 
@@ -105,7 +105,7 @@ def _check_polynomials_P3(quadratic1, quadratic2, variables):
         ValueError: The polynomial is not homogeneous with weights (1, 1, 1, 1)
     """
     if quadratic1.parent() is not quadratic2.parent():
-        raise ValueError('the two quadratics must be in the same polynomial ring')
+        raise ValueError('The two quadratics must be in the same polynomial ring.')
     if variables is None:
         from sage.misc.misc import uniq
         variables = uniq(quadratic1.variables() + quadratic2.variables())
@@ -134,10 +134,10 @@ def _biquadratic_syzygy_quartic(quadratic1, quadratic2, variables=None):
     which is (modulo the two quadratic equations) of the form $J^2 =
     p_4(T, T')$ where
 
-    * $J$, $T$, $T'$ are covariants of the biquadratic
+    * $J$, $T$, $T'$ are the covariants of the biquadratic.
     
     * $p_4$ is some quartic polynomial whose coefficients are
-      invarints of the biquadratic.
+      invariants of the biquadratic.
   
     INPUT:
 

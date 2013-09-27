@@ -43,7 +43,7 @@ the quartic::
     sage: R.<x,y> = QQ[]
     sage: q = x^4 + y^4
     sage: quartic = invariant_theory.binary_quartic(q);  quartic
-    binary quartic with coefficients (1, 0, 0, 0, 1)
+    Binary quartic with coefficients (1, 0, 0, 0, 1)
 
 
 One invariant of a quartic is known as the Eisenstein
@@ -72,14 +72,14 @@ have to specify the variables explicitly if there is any potential
 ambiguity. For example::
 
     sage: invariant_theory.binary_quartic(R.zero(), [x,y])
-    binary quartic with coefficients (0, 0, 0, 0, 0)
+    Binary quartic with coefficients (0, 0, 0, 0, 0)
 
     sage: invariant_theory.binary_quartic(x^4, [x,y])
-    binary quartic with coefficients (0, 0, 0, 0, 1)
+    Binary quartic with coefficients (0, 0, 0, 0, 1)
 
     sage: R.<x,y,t> = QQ[]
     sage: invariant_theory.binary_quartic(x^4 + y^4 + t*x^2*y^2, [x,y])
-    binary quartic with coefficients (1, 0, t, 0, 1)
+    Binary quartic with coefficients (1, 0, t, 0, 1)
 
 Finally, it is often convenient to use inhomogeneous polynomials where
 it is understood that one wants to homogenize them. This is also
@@ -88,7 +88,7 @@ specify one less variable::
 
     sage: R.<x,t> = QQ[]
     sage: invariant_theory.binary_quartic(x^4 + 1 + t*x^2, [x])
-    binary quartic with coefficients (1, 0, t, 0, 1)
+    Binary quartic with coefficients (1, 0, t, 0, 1)
 
 REFERENCES:
 
@@ -117,7 +117,7 @@ from sage.misc.cachefunc import cached_method
 ######################################################################
 def _guess_variables(polynomial, *args):
     """
-    Return the polynomial variables
+    Return the polynomial variables.
 
     INPUT:
 
@@ -151,9 +151,7 @@ def _guess_variables(polynomial, *args):
     if isinstance(polynomial, (list, tuple)):
         R = polynomial[0].parent()
         if not all(p.parent() is R for p in polynomial):
-            raise ValueError('all input polynomials must be in the same ring')
-    else:
-        R = polynomial.parent()
+            raise ValueError('All input polynomials must be in the same ring.')
     if len(args)==0 or (len(args)==1 and args[0] is None):
         if isinstance(polynomial, (list, tuple)):
             variables = set()
@@ -175,7 +173,7 @@ def _guess_variables(polynomial, *args):
 class FormsBase(SageObject):
     """
     The common base class of :class:`AlgebraicForm` and
-    :class:`SeveralAlgebraicForms`
+    :class:`SeveralAlgebraicForms`.
     
     This is an abstract base class to provide common methods. It does
     not make much sense to instantiate it.
@@ -189,7 +187,7 @@ class FormsBase(SageObject):
 
     def __init__(self, n, homogeneous, ring, variables):
         """
-        The Python constructor
+        The Python constructor.
         
         TESTS::
 
@@ -205,7 +203,7 @@ class FormsBase(SageObject):
 
     def _jacobian_determinant(self, *args):
         """
-        Return the Jacobian determinant
+        Return the Jacobian determinant.
 
         INPUT:
 
@@ -225,6 +223,9 @@ class FormsBase(SageObject):
             sage: f = FormsBase(2, True, R, (x, y))
             sage: f._jacobian_determinant((x^2+y^2, 2), (x*y, 2))
             2*x^2 - 2*y^2
+            sage: f = FormsBase(2, False, R, (x, y))
+            sage: f._jacobian_determinant((x^2+1, 2), (x, 2))
+            2*x^2 - 2
 
             sage: R.<x,y> = QQ[]
             sage: cubic = invariant_theory.ternary_cubic(x^3+y^3+1)
@@ -250,7 +251,7 @@ class FormsBase(SageObject):
 
     def ring(self):
         """
-        Return the polynomial ring
+        Return the polynomial ring.
 
         OUTPUT:
 
@@ -276,11 +277,11 @@ class FormsBase(SageObject):
 
     def variables(self):
         """
-        Return the variables of the form
+        Return the variables of the form.
 
         OUTPUT:
 
-        A tuple of variables. If inhomogeneous notation is use for the
+        A tuple of variables. If inhomogeneous notation is used for the
         defining polynomial then the last entry will be ``None``.
 
         EXAMPLES::
@@ -300,7 +301,7 @@ class FormsBase(SageObject):
 
     def is_homogeneous(self):
         """
-        Return whether the forms were defined by homogeneous polynomials
+        Return whether the forms were defined by homogeneous polynomials.
 
         OUTPUT:
 
@@ -330,7 +331,7 @@ class FormsBase(SageObject):
 
 class AlgebraicForm(FormsBase):
     """
-    The base class of algebraic forms (i.e. homogeneous polynomials)
+    The base class of algebraic forms (i.e. homogeneous polynomials).
 
     You should only instantiate the derived classes of this base
     class.
@@ -382,17 +383,17 @@ class AlgebraicForm(FormsBase):
         sage: AlgebraicForm(2, 1, p, [x,y]).variables()
         Traceback (most recent call last):
         ...
-        ValueError: polynomial is of the wrong degree
+        ValueError: Polynomial is of the wrong degree.
 
         sage: AlgebraicForm(2, 2, x^2+y, [x,y]).variables()
         Traceback (most recent call last):
         ...
-        ValueError: polynomial is not homogeneous
+        ValueError: Polynomial is not homogeneous.
     """
 
     def __init__(self, n, d, polynomial, *args, **kwds):
         """
-        The Python constructor
+        The Python constructor.
 
         INPUT:
 
@@ -412,7 +413,7 @@ class AlgebraicForm(FormsBase):
         elif len(variables) == n-1:
             variables = variables + (None,)
         else:
-            raise ValueError('need '+str(n)+' or '+
+            raise ValueError('Need '+str(n)+' or '+
                              str(n-1)+' variables, got '+str(variables))
         ring = polynomial.parent()
         homogeneous = variables[-1] is not None
@@ -423,7 +424,7 @@ class AlgebraicForm(FormsBase):
     def _check(self):
         """
         Check that the input is of the correct degree and number of
-        variables
+        variables.
 
         EXAMPLES::
 
@@ -443,25 +444,25 @@ class AlgebraicForm(FormsBase):
                             for x in self._variables if x is not None ])
                 degrees.add(deg)
         if self._homogeneous and len(degrees)>1:
-            raise ValueError('polynomial is not homogeneous')
+            raise ValueError('Polynomial is not homogeneous.')
         if degrees == set() or \
                 (self._homogeneous and degrees == set([self._d])) or \
                 (not self._homogeneous and max(degrees) <= self._d):
             return
         else:
-            raise ValueError('polynomial is of the wrong degree')
+            raise ValueError('Polynomial is of the wrong degree.')
 
 
     def _check_covariant(self, method_name, g=None, invariant=False):
         """
-        Test whether ``method_name`` actually returns a covariant
+        Test whether ``method_name`` actually returns a covariant.
 
         INPUT:
 
         - ``method_name`` -- string. The name of the method that
           returns the invariant / covariant to test.
 
-        - ``g`` -- a `SL(n,\CC)` matrix or ``None`` (default). The
+        - ``g`` -- an `SL(n,\CC)` matrix or ``None`` (default). The
           test will be to check that the covariant transforms
           corrently under this special linear group element acting on
           the homogeneous variables. If ``None``, a random matrix will
@@ -482,12 +483,13 @@ class AlgebraicForm(FormsBase):
             sage: quartic._check_covariant('h_covariant', invariant=True)
             Traceback (most recent call last):
             ...
-            AssertionError: Not invariant
+            AssertionError: Not invariant.
         """
         assert self._homogeneous
-        F = self._ring.base_ring()
         from sage.matrix.constructor import vector, random_matrix
-        g = random_matrix(F, self._n, algorithm='unimodular')
+        if g is None:
+            F = self._ring.base_ring()
+            g = random_matrix(F, self._n, algorithm='unimodular')
         v = vector(self.variables())
         g_v = g*v
         transform = dict( (v[i], g_v[i]) for i in range(self._n) )
@@ -497,15 +499,15 @@ class AlgebraicForm(FormsBase):
         # The transform of the covariant
         g_cov = getattr(self, method_name)().subs(transform)
         # they must be the same
-        assert (g_cov - cov_g).is_zero(),  'Not covariant'
+        assert (g_cov - cov_g).is_zero(),  'Not covariant.'
         if invariant:
             cov = getattr(self, method_name)()
-            assert (cov - cov_g).is_zero(), 'Not invariant'
+            assert (cov - cov_g).is_zero(), 'Not invariant.'
 
 
     def __cmp__(self, other):
         """
-        Compare ``self`` with ``other``
+        Compare ``self`` with ``other``.
 
         EXAMPLES::
 
@@ -526,7 +528,7 @@ class AlgebraicForm(FormsBase):
 
     def _repr_(self):
         """
-        Return a string representation
+        Return a string representation.
 
         OUTPUT:
 
@@ -537,11 +539,11 @@ class AlgebraicForm(FormsBase):
             sage: R.<x,y> = QQ[]
             sage: quartic = invariant_theory.binary_quartic(x^4+y^4)
             sage: quartic._repr_()
-            'binary quartic with coefficients (1, 0, 0, 0, 1)'
+            'Binary quartic with coefficients (1, 0, 0, 0, 1)'
         """
         s = ''
-        ary = ['unary', 'binary', 'ternary', 'quaternary', 'quinary',
-               'senary', 'septenary', 'octonary', 'nonary', 'denary']
+        ary = ['Unary', 'Binary', 'Ternary', 'Quaternary', 'Quinary',
+               'Senary', 'Septenary', 'Octonary', 'Nonary', 'Denary']
         try:
             s += ary[self._n-1]
         except IndexError:
@@ -560,7 +562,7 @@ class AlgebraicForm(FormsBase):
 
     def form(self):
         """
-        Return the defining polynomial
+        Return the defining polynomial.
 
         OUTPUT:
 
@@ -572,6 +574,8 @@ class AlgebraicForm(FormsBase):
             sage: quartic = invariant_theory.binary_quartic(x^4+y^4)
             sage: quartic.form()
             x^4 + y^4
+            sage: quartic.polynomial()
+            x^4 + y^4
         """
         return self._polynomial
 
@@ -580,7 +584,7 @@ class AlgebraicForm(FormsBase):
 
     def homogenized(self, var='h'):
         """
-        Return form as defined by a homogeneous polynomial
+        Return form as defined by a homogeneous polynomial.
 
         INPUT:
 
@@ -597,9 +601,9 @@ class AlgebraicForm(FormsBase):
             sage: T.<t> = QQ[]
             sage: quadratic = invariant_theory.binary_quadratic(t^2 + 2*t + 3)
             sage: quadratic 
-            binary quadratic with coefficients (1, 3, 2)
+            Binary quadratic with coefficients (1, 3, 2)
             sage: quadratic.homogenized()
-            binary quadratic with coefficients (1, 3, 2)
+            Binary quadratic with coefficients (1, 3, 2)
             sage: quadratic == quadratic.homogenized()
             True
             sage: quadratic.form()
@@ -634,8 +638,6 @@ class AlgebraicForm(FormsBase):
         - ``polynomial`` -- the input polynomial
 
         - ``monomials`` -- a list of monomials in the polynomial ring
-
-        - ``variables`` -- a list of variables in the polynomial ring
 
         OUTPUT:
 
@@ -692,14 +694,12 @@ class AlgebraicForm(FormsBase):
             i = index(m)
             coeffs[i] = c*m + coeffs.pop(i, R.zero())
         result = tuple(coeffs.pop(index(m), R.zero()) // m for m in monomials)
-        if len(coeffs) != 0:
-            raise ValueError('The polynomial contains more monomials than given: '+str(coeffs))
         return result
 
 
     def coefficients(self):
         """
-        Alias for ``coeffs()``
+        Alias for ``coeffs()``.
 
         See the documentation for ``coeffs()`` for details.
 
@@ -718,7 +718,7 @@ class AlgebraicForm(FormsBase):
     
     def transformed(self, g):
         """
-        Return the image under a linear transformation of the variables
+        Return the image under a linear transformation of the variables.
 
         INPUT:
 
@@ -744,7 +744,7 @@ class AlgebraicForm(FormsBase):
             True
             sage: g = matrix(QQ, [[1, 0, 0], [-1, 1, -3], [-5, -5, 16]])
             sage: cubic.transformed(g)
-            ternary cubic with coefficients (-356, -373, 12234, -1119, 3578, -1151, 
+            Ternary cubic with coefficients (-356, -373, 12234, -1119, 3578, -1151, 
             3582, -11766, -11466, 7360)
             sage: cubic.transformed(g).transformed(g.inverse()) == cubic
             True
@@ -765,10 +765,10 @@ class AlgebraicForm(FormsBase):
 
 class QuadraticForm(AlgebraicForm):
     """
-    Invariant theory of a multivariate quadratic form
+    Invariant theory of a multivariate quadratic form.
 
     You should use the :class:`invariant_theory
-    <InvariantTheoryFactory>` factory object to contstruct instances
+    <InvariantTheoryFactory>` factory object to construct instances
     of this class. See :meth:`~InvariantTheoryFactory.quadratic_form`
     for details.
 
@@ -777,38 +777,40 @@ class QuadraticForm(AlgebraicForm):
         sage: R.<a,b,c,d,e,f,g, x,y,z> = QQ[]
         sage: p = a*x^2 + b*y^2 + c*z^2 + d*x*y + e*x*z + f*y*z
         sage: invariant_theory.quadratic_form(p, x,y,z)
-        ternary quadratic with coefficients (a, b, c, d, e, f)
+        Ternary quadratic with coefficients (a, b, c, d, e, f)
         sage: type(_)
         <class 'sage.rings.invariant_theory.TernaryQuadratic'>
 
         sage: R.<a,b,c,d,e,f,g, x,y,z> = QQ[]
         sage: p = a*x^2 + b*y^2 + c*z^2 + d*x*y + e*x*z + f*y*z
         sage: invariant_theory.quadratic_form(p, x,y,z)
-        ternary quadratic with coefficients (a, b, c, d, e, f)
+        Ternary quadratic with coefficients (a, b, c, d, e, f)
         sage: type(_)
         <class 'sage.rings.invariant_theory.TernaryQuadratic'>
 
-    Since we can not always decide whether the form is homogeneous or
+    Since we cannot always decide whether the form is homogeneous or
     not based on the number of variables, you need to explicitly
     specify it if you want the variables to be treated as
     inhomogeneous::
 
         sage: invariant_theory.inhomogeneous_quadratic_form(p.subs(z=1), x,y)
-        ternary quadratic with coefficients (a, b, c, d, e, f)
+        Ternary quadratic with coefficients (a, b, c, d, e, f)
    """
 
     def __init__(self, n, d, polynomial, *args):
         """
-        The Python constructor
+        The Python constructor.
 
         TESTS::
 
             sage: R.<x,y> = QQ[]
             sage: from sage.rings.invariant_theory import QuadraticForm
-            sage: QuadraticForm(2, 2, x^2+2*y^2+3*x*y)
-            binary quadratic with coefficients (1, 2, 3)
+            sage: form = QuadraticForm(2, 2, x^2+2*y^2+3*x*y)
+            sage: form
+            Binary quadratic with coefficients (1, 2, 3)
+            sage: form._check_covariant('discriminant', invariant=True)
             sage: QuadraticForm(3, 2, x^2+y^2)
-            ternary quadratic with coefficients (1, 1, 0, 0, 0, 0)
+            Ternary quadratic with coefficients (1, 1, 0, 0, 0, 0)
         """
         assert d == 2
         super(QuadraticForm, self).__init__(n, 2, polynomial, *args)
@@ -873,7 +875,7 @@ class QuadraticForm(AlgebraicForm):
             sage: R.<a,b,c,d,e,f,g, x,y,z> = QQ[]
             sage: p = a*x^2 + b*y^2 + c*z^2 + d*x*y + e*x*z + f*y*z
             sage: inv = invariant_theory.quadratic_form(p, x,y,z); inv
-            ternary quadratic with coefficients (a, b, c, d, e, f)
+            Ternary quadratic with coefficients (a, b, c, d, e, f)
             sage: inv.coeffs()
             (a, b, c, d, e, f)
             sage: inv.scaled_coeffs()
@@ -900,7 +902,7 @@ class QuadraticForm(AlgebraicForm):
             sage: R.<a,b,c,d,e,f,g, x,y,z> = QQ[]
             sage: p = a*x^2 + b*y^2 + c*z^2 + d*x*y + e*x*z + f*y*z
             sage: inv = invariant_theory.quadratic_form(p, x,y,z); inv
-            ternary quadratic with coefficients (a, b, c, d, e, f)
+            Ternary quadratic with coefficients (a, b, c, d, e, f)
             sage: inv.coeffs()
             (a, b, c, d, e, f)
             sage: inv.scaled_coeffs()
@@ -985,7 +987,7 @@ class QuadraticForm(AlgebraicForm):
     @cached_method
     def dual(self):
         """
-        Return the dual quadratic form
+        Return the dual quadratic form.
 
         OUTPUT:
 
@@ -1006,12 +1008,12 @@ class QuadraticForm(AlgebraicForm):
             sage: cubic = x^2+y^2+z^2
             sage: quadratic = invariant_theory.ternary_quadratic(x^2+y^2+z^2 + t*x*y, [x,y,z])
             sage: quadratic.dual()
-            ternary quadratic with coefficients (1, 1, -1/4*t^2 + 1, -t, 0, 0)
+            Ternary quadratic with coefficients (1, 1, -1/4*t^2 + 1, -t, 0, 0)
 
             sage: R.<x,y, t> = QQ[]
             sage: quadratic = invariant_theory.ternary_quadratic(x^2+y^2+1 + t*x*y, [x,y])
             sage: quadratic.dual()
-            ternary quadratic with coefficients (1, 1, -1/4*t^2 + 1, -t, 0, 0)
+            Ternary quadratic with coefficients (1, 1, -1/4*t^2 + 1, -t, 0, 0)
 
         TESTS::
 
@@ -1046,7 +1048,6 @@ class QuadraticForm(AlgebraicForm):
             var = self._variables
         else:
             var = self._variables[0:-1] + (1, )
-        R = self._ring
         n = self._n
         p = sum([ sum([ Aadj[i,j]*var[i]*var[j] for i in range(n) ]) for j in range(n)])
         return invariant_theory.quadratic_form(p, self.variables())
@@ -1091,10 +1092,10 @@ class QuadraticForm(AlgebraicForm):
 
 class BinaryQuartic(AlgebraicForm):
     """
-    Invariant theory of a binary quartic
+    Invariant theory of a binary quartic.
 
     You should use the :class:`invariant_theory
-    <InvariantTheoryFactory>` factory object to contstruct instances
+    <InvariantTheoryFactory>` factory object to construct instances
     of this class. See :meth:`~InvariantTheoryFactory.binary_quartic`
     for details.
 
@@ -1113,14 +1114,14 @@ class BinaryQuartic(AlgebraicForm):
 
     def __init__(self, n, d, polynomial, *args):
         """
-        The Python constructor
+        The Python constructor.
 
         TESTS::
 
             sage: R.<x,y> = QQ[]
             sage: from sage.rings.invariant_theory import BinaryQuartic
             sage: BinaryQuartic(2, 4, x^4+y^4)
-            binary quartic with coefficients (1, 0, 0, 0, 1)
+            Binary quartic with coefficients (1, 0, 0, 0, 1)
         """
         assert n == 2 and d == 4
         super(BinaryQuartic, self).__init__(2, 4, polynomial, *args)
@@ -1283,7 +1284,7 @@ class BinaryQuartic(AlgebraicForm):
 
         OUTPUT:
 
-        The g-covariant of the quadric.
+        The g-covariant of the quartic.
 
         .. math::
 
@@ -1335,7 +1336,7 @@ class BinaryQuartic(AlgebraicForm):
 
         OUTPUT:
 
-        The h-covariant of the quadric.
+        The h-covariant of the quartic.
 
         .. math::
 
@@ -1393,7 +1394,7 @@ class BinaryQuartic(AlgebraicForm):
 ######################################################################
 def _covariant_conic(A_scaled_coeffs, B_scaled_coeffs, monomials):
     """
-    Helper funciton for :meth:`TernaryQuadratic.covariant_conic`
+    Helper function for :meth:`TernaryQuadratic.covariant_conic`
 
     INPUT:
 
@@ -1430,10 +1431,10 @@ def _covariant_conic(A_scaled_coeffs, B_scaled_coeffs, monomials):
 ######################################################################
 class TernaryQuadratic(QuadraticForm):
     """
-    Invariant theory of a ternary quadratic
+    Invariant theory of a ternary quadratic.
 
     You should use the :class:`invariant_theory
-    <InvariantTheoryFactory>` factory object to contstruct instances
+    <InvariantTheoryFactory>` factory object to construct instances
     of this class. See
     :meth:`~InvariantTheoryFactory.ternary_quadratic` for details.
 
@@ -1442,7 +1443,7 @@ class TernaryQuadratic(QuadraticForm):
         sage: R.<x,y,z> = QQ[]
         sage: quadratic = invariant_theory.ternary_quadratic(x^2+y^2+z^2)
         sage: quadratic
-        ternary quadratic with coefficients (1, 1, 1, 0, 0, 0)
+        Ternary quadratic with coefficients (1, 1, 1, 0, 0, 0)
         sage: TestSuite(quadratic).run()
     """
 
@@ -1459,7 +1460,7 @@ class TernaryQuadratic(QuadraticForm):
             sage: R.<x,y,z> = QQ[]
             sage: from sage.rings.invariant_theory import TernaryQuadratic
             sage: TernaryQuadratic(3, 2, x^2+y^2+z^2)
-            ternary quadratic with coefficients (1, 1, 1, 0, 0, 0)
+            Ternary quadratic with coefficients (1, 1, 1, 0, 0, 0)
         """
         assert n == 3 and d == 2
         super(QuadraticForm, self).__init__(3, 2, polynomial, *args)
@@ -1471,7 +1472,7 @@ class TernaryQuadratic(QuadraticForm):
     @cached_method
     def monomials(self):
         """
-        List the basis monomials in the form.
+        List the basis monomials of the form.
 
         OUTPUT:
 
@@ -1497,7 +1498,7 @@ class TernaryQuadratic(QuadraticForm):
     @cached_method
     def coeffs(self):
         """
-        Return the coefficients of a quadratic
+        Return the coefficients of a quadratic.
 
         Given
 
@@ -1525,7 +1526,7 @@ class TernaryQuadratic(QuadraticForm):
 
     def scaled_coeffs(self):
         """
-        Return the scaled coefficients of a quadratic
+        Return the scaled coefficients of a quadratic.
 
         Given
 
@@ -1554,7 +1555,7 @@ class TernaryQuadratic(QuadraticForm):
 
     def covariant_conic(self, other):
         """
-        Returns the ternary quadratic covariant to ``self`` and ``other``
+        Return the ternary quadratic covariant to ``self`` and ``other``.
 
         INPUT:
 
@@ -1606,7 +1607,7 @@ class TernaryQuadratic(QuadraticForm):
 
 class TernaryCubic(AlgebraicForm):
     """
-    Invariant theory of a ternary cubic
+    Invariant theory of a ternary cubic.
 
     You should use the :class:`invariant_theory
     <InvariantTheoryFactory>` factory object to contstruct instances
@@ -1618,13 +1619,13 @@ class TernaryCubic(AlgebraicForm):
         sage: R.<x,y,z> = QQ[]
         sage: cubic = invariant_theory.ternary_cubic(x^3+y^3+z^3)
         sage: cubic
-        ternary cubic with coefficients (1, 1, 1, 0, 0, 0, 0, 0, 0, 0)
+        Ternary cubic with coefficients (1, 1, 1, 0, 0, 0, 0, 0, 0, 0)
         sage: TestSuite(cubic).run()
     """
 
     def __init__(self, n, d, polynomial, *args):
         """
-        The Python constructor
+        The Python constructor.
 
         TESTS::
 
@@ -1650,7 +1651,7 @@ class TernaryCubic(AlgebraicForm):
     @cached_method
     def monomials(self):
         """
-        List the basis monomials in the form.
+        List the basis monomials of the form.
 
         OUTPUT:
 
@@ -1677,7 +1678,7 @@ class TernaryCubic(AlgebraicForm):
     @cached_method
     def coeffs(self):
         r"""
-        Return the coefficients of a cubic
+        Return the coefficients of a cubic.
 
         Given
 
@@ -1710,10 +1711,10 @@ class TernaryCubic(AlgebraicForm):
 
     def scaled_coeffs(self):
         r"""
-        Return the coefficients of a cubic
+        Return the coefficients of a cubic.
 
         Compared to :meth:`coeffs`, this method returns rescaled
-        coefficiens that are often used in invariant theory.
+        coefficients that are often used in invariant theory.
 
         Given
 
@@ -1749,7 +1750,7 @@ class TernaryCubic(AlgebraicForm):
 
     def S_invariant(self):
         """
-        Return the S-invariant
+        Return the S-invariant.
 
         EXAMPLES::
 
@@ -1771,7 +1772,7 @@ class TernaryCubic(AlgebraicForm):
 
     def T_invariant(self):
         """
-        Return the T-invariant
+        Return the T-invariant.
 
         EXAMPLES::
 
@@ -1823,7 +1824,7 @@ class TernaryCubic(AlgebraicForm):
     @cached_method
     def polar_conic(self):
         """
-        Return the polar conic of the cubic
+        Return the polar conic of the cubic.
 
         OUTPUT:
 
@@ -1869,7 +1870,7 @@ class TernaryCubic(AlgebraicForm):
     @cached_method
     def Hessian(self):
         """
-        Return the Hessian covariant
+        Return the Hessian covariant.
 
         OUTPUT:
 
@@ -1906,7 +1907,7 @@ class TernaryCubic(AlgebraicForm):
 
     def Theta_covariant(self):
         """
-        Return the `\Theta` covariant
+        Return the `\Theta` covariant.
 
         EXAMPLES::
 
@@ -1941,7 +1942,7 @@ class TernaryCubic(AlgebraicForm):
 
     def J_covariant(self):
         """
-        Return the J-covariant of the ternary cubic
+        Return the J-covariant of the ternary cubic.
 
         EXAMPLES::
 
@@ -1961,12 +1962,50 @@ class TernaryCubic(AlgebraicForm):
             [self.Hessian(), 3], 
             [self.Theta_covariant(), 6])
 
+    def syzygy(self, U, S, T, H, Theta, J):
+        """
+        Return the syzygy of the cubic evaluated on the invariants
+        and covariants.
+
+        INPUT:
+
+        - ``U``, ``S``, ``T``, ``H``, ``Theta``, ``J`` --
+          polynomials from the same polynomial ring. 
+
+        OUTPUT:
+
+        0 if evaluated for the form, the S invariant, the T invariant,
+        the Hessian, the `\Theta` covariant and the J-covariant
+        of a ternary cubic.
+
+        EXAMPLES::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: monomials = (x^3, y^3, z^3, x^2*y, x^2*z, x*y^2,
+            ...                y^2*z, x*z^2, y*z^2, x*y*z)
+            sage: random_poly = sum([ randint(0,10000) * m for m in monomials ])
+            sage: cubic = invariant_theory.ternary_cubic(random_poly)
+            sage: U = cubic.form()
+            sage: S = cubic.S_invariant()
+            sage: T = cubic.T_invariant()
+            sage: H = cubic.Hessian()
+            sage: Theta = cubic.Theta_covariant()
+            sage: J = cubic.J_covariant() 
+            sage: cubic.syzygy(U, S, T, H, Theta, J)
+            0
+        """
+        return ( -J**2 + 4*Theta**3 + T*U**2*Theta**2 +
+                 Theta*(-4*S**3*U**4 + 2*S*T*U**3*H - 72*S**2*U**2*H**2
+                        - 18*T*U*H**3 +  108*S*H**4)
+                 -16*S**4*U**5*H - 11*S**2*T*U**4*H**2 -4*T**2*U**3*H**3
+                 +54*S*T*U**2*H**4 -432*S**2*U*H**5 -27*T*H**6 )
+
 
 ######################################################################
 
 class SeveralAlgebraicForms(FormsBase):
     """
-    The base class of multiple algebraic forms (i.e. homogeneous polynomials)
+    The base class of multiple algebraic forms (i.e. homogeneous polynomials).
 
     You should only instantiate the derived classes of this base
     class.
@@ -1985,14 +2024,14 @@ class SeveralAlgebraicForms(FormsBase):
 
         sage: from sage.rings.invariant_theory import AlgebraicForm, SeveralAlgebraicForms
         sage: R.<x,y> = QQ[]
-        sage: p = AlgebraicForm(2, 2, x^2)
-        sage: q = AlgebraicForm(2, 2, y^2)
+        sage: p = AlgebraicForm(2, 2, x^2, (x,y))
+        sage: q = AlgebraicForm(2, 2, y^2, (x,y))
         sage: pq = SeveralAlgebraicForms([p, q])
     """
 
     def __init__(self, forms):
         """
-        The Python constructor
+        The Python constructor.
 
         TESTS::
 
@@ -2005,18 +2044,19 @@ class SeveralAlgebraicForms(FormsBase):
             sage: pr = SeveralAlgebraicForms([p, r])
             Traceback (most recent call last):
             ...
-            ValueError: all forms must be in the same number of variables
+            ValueError: All forms must be in the same variables.
         """
         forms = tuple(forms)
         f = forms[0]
         super(SeveralAlgebraicForms, self).__init__(f._n, f._homogeneous, f._ring, f._variables)
-        if not all(f._n == self._n for f in forms):
-            raise ValueError('all forms must be in the same number of variables')
+        s = set(f._variables)
+        if not all(set(f._variables) == s for f in forms):
+            raise ValueError('All forms must be in the same variables.')
         self._forms = forms
         
     def __cmp__(self, other):
         """
-        Compare ``self`` with ``other``
+        Compare ``self`` with ``other``.
 
         EXAMPLES::
 
@@ -2039,7 +2079,7 @@ class SeveralAlgebraicForms(FormsBase):
 
     def _repr_(self):
         """
-        Return a string representation
+        Return a string representation.
 
         EXAMPLES::
 
@@ -2049,28 +2089,29 @@ class SeveralAlgebraicForms(FormsBase):
             sage: q3 = invariant_theory.quadratic_form((x + y)^2)
             sage: from sage.rings.invariant_theory import SeveralAlgebraicForms
             sage: SeveralAlgebraicForms([q1])           # indirect doctest
-            binary quadratic with coefficients (1, 1, 0)
+            Binary quadratic with coefficients (1, 1, 0)
             sage: SeveralAlgebraicForms([q1, q2])       # indirect doctest
-            joint binary quadratic with coefficients (1, 1, 0) and binary
+            Joint binary quadratic with coefficients (1, 1, 0) and binary
             quadratic with coefficients (0, 0, 1)
             sage: SeveralAlgebraicForms([q1, q2, q3])   # indirect doctest
-            joint binary quadratic with coefficients (1, 1, 0), binary 
+            Joint binary quadratic with coefficients (1, 1, 0), binary 
             quadratic with coefficients (0, 0, 1), and binary quadratic 
             with coefficients (1, 1, 2)
         """
         if self.n_forms() == 1:
             return self.get_form(0)._repr_()
         if self.n_forms() == 2:
-            return 'joint ' + self.get_form(0)._repr_() + ' and ' + self.get_form(1)._repr_()
-        s = 'joint '
+            return 'Joint ' + self.get_form(0)._repr_().lower() + \
+                   ' and ' + self.get_form(1)._repr_().lower()
+        s = 'Joint '
         for i in range(self.n_forms()-1):
-            s += self.get_form(i)._repr_() + ', '
-        s += 'and ' + self.get_form(-1)._repr_()
+            s += self.get_form(i)._repr_().lower() + ', '
+        s += 'and ' + self.get_form(-1)._repr_().lower()
         return s
 
     def n_forms(self):
         """
-        Return the number of forms
+        Return the number of forms.
 
         EXAMPLES::
 
@@ -2090,7 +2131,7 @@ class SeveralAlgebraicForms(FormsBase):
 
     def get_form(self, i):
         """
-        Return the `i`-th form
+        Return the `i`-th form.
 
         EXAMPLES::
 
@@ -2115,7 +2156,7 @@ class SeveralAlgebraicForms(FormsBase):
 
     def homogenized(self, var='h'):
         """
-        Return form as defined by a homogeneous polynomial
+        Return form as defined by a homogeneous polynomial.
 
         INPUT:
 
@@ -2132,10 +2173,10 @@ class SeveralAlgebraicForms(FormsBase):
             sage: R.<x,y,z> = QQ[]
             sage: q = invariant_theory.quaternary_biquadratic(x^2+1, y^2+1, [x,y,z])
             sage: q
-            joint quaternary quadratic with coefficients (1, 0, 0, 1, 0, 0, 0, 0, 0, 0) 
+            Joint quaternary quadratic with coefficients (1, 0, 0, 1, 0, 0, 0, 0, 0, 0) 
             and quaternary quadratic with coefficients (0, 1, 0, 1, 0, 0, 0, 0, 0, 0)
             sage: q.homogenized()
-            joint quaternary quadratic with coefficients (1, 0, 0, 1, 0, 0, 0, 0, 0, 0) 
+            Joint quaternary quadratic with coefficients (1, 0, 0, 1, 0, 0, 0, 0, 0, 0) 
             and quaternary quadratic with coefficients (0, 1, 0, 1, 0, 0, 0, 0, 0, 0)
             sage: type(q) is type(q.homogenized())
             True
@@ -2148,7 +2189,7 @@ class SeveralAlgebraicForms(FormsBase):
 
     def _check_covariant(self, method_name, g=None, invariant=False):
         """
-        Test whether ``method_name`` actually returns a covariant
+        Test whether ``method_name`` actually returns a covariant.
 
         INPUT:
 
@@ -2173,26 +2214,27 @@ class SeveralAlgebraicForms(FormsBase):
             sage: q._check_covariant('T_prime_covariant', invariant=True)
             Traceback (most recent call last):
             ...
-            AssertionError: Not invariant
+            AssertionError: Not invariant.
         """
         assert self._homogeneous
-        F = self._ring.base_ring()
         from sage.matrix.constructor import vector, random_matrix
-        g = random_matrix(F, self._n, algorithm='unimodular')
+        if g is None:
+            F = self._ring.base_ring()
+            g = random_matrix(F, self._n, algorithm='unimodular')
         v = vector(self.variables())
         g_v = g*v
         transform = dict( (v[i], g_v[i]) for i in range(self._n) )
         # The covariant of the transformed form
-        transformed = [f.transformed(g) for f in self._forms]
+        transformed = [f.transformed(transform) for f in self._forms]
         g_self = self.__class__(transformed)
         cov_g = getattr(g_self, method_name)()
         # The transform of the covariant
         g_cov = getattr(self, method_name)().subs(transform)
         # they must be the same
-        assert (g_cov - cov_g).is_zero(),  'Not covariant'
+        assert (g_cov - cov_g).is_zero(),  'Not covariant.'
         if invariant:
             cov = getattr(self, method_name)()
-            assert (cov - cov_g).is_zero(), 'Not invariant'
+            assert (cov - cov_g).is_zero(), 'Not invariant.'
 
 
 ######################################################################
@@ -2202,7 +2244,7 @@ class TwoAlgebraicForms(SeveralAlgebraicForms):
 
     def first(self):
         """
-        Return the first of the two forms
+        Return the first of the two forms.
 
         OUTPUT:
 
@@ -2227,7 +2269,7 @@ class TwoAlgebraicForms(SeveralAlgebraicForms):
 
     def second(self):
         """
-        Return the second of the two forms
+        Return the second of the two forms.
 
         OUTPUT:
 
@@ -2254,10 +2296,10 @@ class TwoAlgebraicForms(SeveralAlgebraicForms):
 
 class TwoQuaternaryQuadratics(TwoAlgebraicForms):
     """
-    Invariant theory of two quaternary quadratics
+    Invariant theory of two quaternary quadratics.
 
     You should use the :class:`invariant_theory
-    <InvariantTheoryFactory>` factory object to contstruct instances
+    <InvariantTheoryFactory>` factory object to construct instances
     of this class. See
     :meth:`~InvariantTheoryFactory.quaternary_biquadratics` for
     details.
@@ -2274,7 +2316,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
         sage: R.<w,x,y,z> = QQ[]
         sage: inv = invariant_theory.quaternary_biquadratic(w^2+x^2, y^2+z^2, w, x, y, z)
         sage: inv
-        joint quaternary quadratic with coefficients (1, 1, 0, 0, 0, 0, 0, 0, 0, 0) and 
+        Joint quaternary quadratic with coefficients (1, 1, 0, 0, 0, 0, 0, 0, 0, 0) and 
         quaternary quadratic with coefficients (0, 0, 1, 1, 0, 0, 0, 0, 0, 0)
         sage: TestSuite(inv).run()
 
@@ -2293,7 +2335,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
 
     def Delta_invariant(self):
         """
-        Return the `\Delta` invariant
+        Return the `\Delta` invariant.
 
         EXAMPLES::
        
@@ -2312,7 +2354,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
 
     def Delta_prime_invariant(self):
         r"""
-        Return the `\Delta'` invariant
+        Return the `\Delta'` invariant.
 
         EXAMPLES::
        
@@ -2360,7 +2402,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
 
     def Theta_invariant(self):
         r"""
-        Return the `\Theta` invariant
+        Return the `\Theta` invariant.
 
         EXAMPLES::
        
@@ -2379,7 +2421,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
 
     def Theta_prime_invariant(self):
         r"""
-        Return the `\Theta'` invariant
+        Return the `\Theta'` invariant.
 
         EXAMPLES::
        
@@ -2398,7 +2440,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
 
     def Phi_invariant(self):
         """
-        Return the `\Phi'` invariant
+        Return the `\Phi'` invariant.
 
         EXAMPLES::
        
@@ -2517,7 +2559,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
 
     def T_covariant(self):
         """
-        The $T$-covariant
+        The $T$-covariant.
 
         EXAMPLES::
        
@@ -2539,7 +2581,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
 
     def T_prime_covariant(self):
         """
-        The $T'$-covariant
+        The $T'$-covariant.
 
         EXAMPLES::
        
@@ -2562,9 +2604,9 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
 
     def J_covariant(self):
         """
-        The $J$-covariant
+        The $J$-covariant.
 
-        This is the jacobian determinant of the two biquadratics, the
+        This is the Jacobian determinant of the two biquadratics, the
         $T$-covariant, and the $T'$-covariant with respect to the four
         homogeneous variables.
         
@@ -2588,7 +2630,7 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
     
     def syzygy(self, Delta, Theta, Phi, Theta_prime, Delta_prime, U, V, T, T_prime, J):
         """
-        Return the syzygy evaluated on the invariants and covariants
+        Return the syzygy evaluated on the invariants and covariants.
 
         INPUT:
 
@@ -2687,18 +2729,18 @@ class TwoQuaternaryQuadratics(TwoAlgebraicForms):
 
 class InvariantTheoryFactory(object):
     """
-    Factory object for invariants of multilinear forms
+    Factory object for invariants of multilinear forms.
 
     EXAMPLES::
 
         sage: R.<x,y,z> = QQ[]
         sage: invariant_theory.ternary_cubic(x^3+y^3+z^3)
-        ternary cubic with coefficients (1, 1, 1, 0, 0, 0, 0, 0, 0, 0)
+        Ternary cubic with coefficients (1, 1, 1, 0, 0, 0, 0, 0, 0, 0)
     """
     
     def __repr__(self):
         """
-        Return a string representation
+        Return a string representation.
 
         OUTPUT:
 
@@ -2713,7 +2755,7 @@ class InvariantTheoryFactory(object):
             <BLANKLINE>
                 s...: R.<x,y,z> = QQ[]
                 s...: invariant_theory.ternary_cubic(x^3+y^3+z^3)
-                ternary cubic with coefficients (1, 1, 1, 0, 0, 0, 0, 0, 0, 0)
+                Ternary cubic with coefficients (1, 1, 1, 0, 0, 0, 0, 0, 0, 0)
                 s...: invariant_theory.ternary_cubic(x^3+y^3+z^3).J_covariant()
                 x^6*y^3 - x^3*y^6 - x^6*z^3 + y^6*z^3 + x^3*z^6 - y^3*z^6
         """
@@ -2723,7 +2765,7 @@ can then be queried for invariant and covariants. For example,
 
     sage: R.<x,y,z> = QQ[]
     sage: invariant_theory.ternary_cubic(x^3+y^3+z^3)
-    ternary cubic with coefficients (1, 1, 1, 0, 0, 0, 0, 0, 0, 0)
+    Ternary cubic with coefficients (1, 1, 1, 0, 0, 0, 0, 0, 0, 0)
     sage: invariant_theory.ternary_cubic(x^3+y^3+z^3).J_covariant()
     x^6*y^3 - x^3*y^6 - x^6*z^3 + y^6*z^3 + x^3*z^6 - y^3*z^6
 """
@@ -2731,7 +2773,7 @@ can then be queried for invariant and covariants. For example,
 
     def quadratic_form(self, polynomial, *args):
         """
-        Invariants of a homogeneous quadratic form
+        Invariants of a homogeneous quadratic form.
 
         INPUT:
 
@@ -2755,9 +2797,9 @@ can then be queried for invariant and covariants. For example,
             sage: R.<x,y,z, a,b> = QQ[]
             sage: quadratic = a*x^2+b*y^2+z^2+2*y*z
             sage: invariant_theory.quadratic_form(quadratic, x,y,z)
-            ternary quadratic with coefficients (a, b, 1, 0, 0, 2)
+            Ternary quadratic with coefficients (a, b, 1, 0, 0, 2)
             sage: invariant_theory.quadratic_form(quadratic, [x,y,z])   # alternate syntax
-            ternary quadratic with coefficients (a, b, 1, 0, 0, 2)
+            Ternary quadratic with coefficients (a, b, 1, 0, 0, 2)
 
         Inhomogeneous quadratic forms (see also
         :meth:`inhomogeneous_quadratic_form`) can be specified by
@@ -2765,7 +2807,7 @@ can then be queried for invariant and covariants. For example,
 
             sage: inhom = quadratic.subs(z=1)
             sage: invariant_theory.quadratic_form(inhom, x,y,None)
-            ternary quadratic with coefficients (a, b, 1, 0, 0, 2)
+            Ternary quadratic with coefficients (a, b, 1, 0, 0, 2)
         """
         variables = _guess_variables(polynomial, *args)
         n = len(variables)
@@ -2776,7 +2818,7 @@ can then be queried for invariant and covariants. For example,
 
     def inhomogeneous_quadratic_form(self, polynomial, *args):
         """
-        Invariants of an inhomogeneous quadratic form
+        Invariants of an inhomogeneous quadratic form.
 
         INPUT:
 
@@ -2805,7 +2847,7 @@ can then be queried for invariant and covariants. For example,
 
     def binary_quadratic(self, quadratic, *args):
         """
-        Invariant theory of a quadratic in two variables
+        Invariant theory of a quadratic in two variables.
 
         INPUT:
                 
@@ -2822,17 +2864,17 @@ can then be queried for invariant and covariants. For example,
 
             sage: R.<x,y> = QQ[]
             sage: invariant_theory.binary_quadratic(x^2+y^2)
-            binary quadratic with coefficients (1, 1, 0)
+            Binary quadratic with coefficients (1, 1, 0)
 
             sage: T.<t> = QQ[]
             sage: invariant_theory.binary_quadratic(t^2 + 2*t + 1, [t])
-            binary quadratic with coefficients (1, 1, 2)
+            Binary quadratic with coefficients (1, 1, 2)
         """
         return QuadraticForm(2, 2, quadratic, *args)
 
     def quaternary_quadratic(self, quadratic, *args):
         """
-        Invariant theory of a quadratic in four variables
+        Invariant theory of a quadratic in four variables.
 
         INPUT:
                 
@@ -2851,17 +2893,17 @@ can then be queried for invariant and covariants. For example,
 
             sage: R.<w,x,y,z> = QQ[]
             sage: invariant_theory.quaternary_quadratic(w^2+x^2+y^2+z^2)
-            quaternary quadratic with coefficients (1, 1, 1, 1, 0, 0, 0, 0, 0, 0)
+            Quaternary quadratic with coefficients (1, 1, 1, 1, 0, 0, 0, 0, 0, 0)
 
             sage: R.<x,y,z> = QQ[]
             sage: invariant_theory.quaternary_quadratic(1+x^2+y^2+z^2)
-            quaternary quadratic with coefficients (1, 1, 1, 1, 0, 0, 0, 0, 0, 0)
+            Quaternary quadratic with coefficients (1, 1, 1, 1, 0, 0, 0, 0, 0, 0)
         """
         return QuadraticForm(4, 2, quadratic, *args)
 
     def binary_quartic(self, quartic, *args, **kwds):
         """
-        Invariant theory of a quartic in two variables
+        Invariant theory of a quartic in two variables.
 
         The algebra of invariants of a quartic form is generated by
         invariants `i`, `j` of degrees 2, 3.  This ring is naturally
@@ -2900,7 +2942,7 @@ can then be queried for invariant and covariants. For example,
             sage: R.<x,y> = QQ[]
             sage: quartic = invariant_theory.binary_quartic(x^4+y^4)
             sage: quartic
-            binary quartic with coefficients (1, 0, 0, 0, 1)
+            Binary quartic with coefficients (1, 0, 0, 0, 1)
             sage: type(quartic)
             <class 'sage.rings.invariant_theory.BinaryQuartic'>
         """
@@ -2908,7 +2950,7 @@ can then be queried for invariant and covariants. For example,
 
     def ternary_quadratic(self, quadratic, *args, **kwds):
         """
-        Invariants of a quadratic in three variables
+        Invariants of a quadratic in three variables.
 
         INPUT:
 
@@ -2926,11 +2968,11 @@ can then be queried for invariant and covariants. For example,
 
             sage: R.<x,y,z> = QQ[]
             sage: invariant_theory.ternary_quadratic(x^2+y^2+z^2)
-            ternary quadratic with coefficients (1, 1, 1, 0, 0, 0)
+            Ternary quadratic with coefficients (1, 1, 1, 0, 0, 0)
 
             sage: T.<u, v> = QQ[]
             sage: invariant_theory.ternary_quadratic(1+u^2+v^2)
-            ternary quadratic with coefficients (1, 1, 1, 0, 0, 0)
+            Ternary quadratic with coefficients (1, 1, 1, 0, 0, 0)
 
             sage: quadratic = x^2+y^2+z^2
             sage: inv = invariant_theory.ternary_quadratic(quadratic)
@@ -2941,7 +2983,7 @@ can then be queried for invariant and covariants. For example,
 
     def ternary_cubic(self, cubic, *args, **kwds):
         r"""
-        Invariants of a cubic in three variables
+        Invariants of a cubic in three variables.
 
         The algebra of invariants of a ternary cubic under `SL_3(\CC)`
         is a polynomial algebra generated by two invariants `S` (see
@@ -3001,34 +3043,12 @@ can then be queried for invariant and covariants. For example,
             sage: cubic = invariant_theory.ternary_cubic(x^3+y^3+z^3)
             sage: type(cubic)
             <class 'sage.rings.invariant_theory.TernaryCubic'>
-
-        There is one syzygy of the covariants in degree 18, we use this to
-        check that the expressions for the covariants are correct::
-
-            sage: R.<x,y,z> = QQ[]
-            sage: monomials = (x^3, y^3, z^3, x^2*y, x^2*z, x*y^2,
-            ...                y^2*z, x*z^2, y*z^2, x*y*z)
-            sage: random_poly = sum([ randint(0,10000) * m for m in monomials ])
-            sage: cubic = invariant_theory.ternary_cubic(random_poly)
-            sage: U = cubic.form()
-            sage: S = cubic.S_invariant()
-            sage: T = cubic.T_invariant()
-            sage: H = cubic.Hessian()
-            sage: Theta = cubic.Theta_covariant()
-            sage: J = cubic.J_covariant()
-
-            sage: ( -J^2 + 4*Theta^3 + T*U^2*Theta^2 +
-            ...     Theta*(-4*S^3*U^4 + 2*S*T*U^3*H - 72*S^2*U^2*H^2
-            ...            - 18*T*U*H^3 +  108*S*H^4)
-            ...     -16*S^4*U^5*H - 11*S^2*T*U^4*H^2 -4*T^2*U^3*H^3
-            ...     +54*S*T*U^2*H^4 -432*S^2*U*H^5 -27*T*H^6 )
-            0
         """
         return TernaryCubic(3, 3, cubic, *args, **kwds)
 
     def quaternary_biquadratic(self, quadratic1, quadratic2, *args, **kwds):
         """
-        Invariants of two quadratics in four variables
+        Invariants of two quadratics in four variables.
 
         INPUT:
 

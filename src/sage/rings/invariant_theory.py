@@ -637,7 +637,8 @@ class AlgebraicForm(FormsBase):
 
         - ``polynomial`` -- the input polynomial
 
-        - ``monomials`` -- a list of monomials in the polynomial ring
+        - ``monomials`` -- a list of all the monomials in the polynomial
+          ring. If less monomials are passed, an exception is thrown.
 
         OUTPUT:
 
@@ -665,6 +666,10 @@ class AlgebraicForm(FormsBase):
             sage: m = [t^3, 1, t, t^2]
             sage: univariate._extract_coefficients(m)
             (1, 4, 3, 2)
+            sage: univariate._extract_coefficients(m[1:])
+            Traceback (most recent call last):
+            ...
+            ValueError: Less monomials were passed than the form actually has.
         """
         R = self._ring
         if self._homogeneous:
@@ -694,6 +699,8 @@ class AlgebraicForm(FormsBase):
             i = index(m)
             coeffs[i] = c*m + coeffs.pop(i, R.zero())
         result = tuple(coeffs.pop(index(m), R.zero()) // m for m in monomials)
+        if len(coeffs):
+            raise ValueError('Less monomials were passed than the form actually has.')
         return result
 
 

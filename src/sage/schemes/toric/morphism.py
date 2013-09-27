@@ -1629,7 +1629,7 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
         OUTPUT:
 
         A :class:`SchemeMorphism_polynomial_toric_variety`. Raises a
-        ``TypeError`` if the morphism cannot be written in terms of
+        ``ValueError`` if the morphism cannot be written in terms of
         homogeneous polynomials.
 
         EXAMPLES::
@@ -1657,19 +1657,19 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
             sage: f.as_polynomial_map()
             Traceback (most recent call last):
             ...
-            TypeError: The morphism cannot be written using homogeneous polynomials.
+            ValueError: The morphism cannot be written using homogeneous polynomials.
         """
-        fiber = self.domain()
+        fc = self.domain()
         toric_variety = self.codomain()
-        R = fiber.coordinate_ring()
-        polys = [ R.one() ] * toric_variety.fan().nrays()
+        R = fc.coordinate_ring()
+        polys = [R.one()] * toric_variety.fan().nrays()
         for i in self.defining_cone().ambient_ray_indices():
             polys[i] = R.zero()
         for ray, x in zip(fiber.fan().rays(), R.gens()):
             try:
                 ray_index = self._ray_index_map[ray]
             except KeyError:
-                raise TypeError('The morphism cannot be written using homogeneous polynomials.')
+                raise ValueError('The morphism cannot be written using homogeneous polynomials.')
             polys[ray_index] = x
         return SchemeMorphism_polynomial_toric_variety(self.parent(), polys)
 

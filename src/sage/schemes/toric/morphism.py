@@ -1318,8 +1318,10 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
         from sage.schemes.toric.variety import ToricVariety
         fm = self.fan_morphism()
         X = ToricVariety(fm.kernel_fan())
-        X._embedding_morphism = X.hom(
-            X.fan().lattice().echelonized_basis_matrix(), self.domain())
+        m = X.fan().lattice().echelonized_basis_matrix()
+        N = fm.domain()     # May be a sublattice as well
+        m *= N.basis_matrix().solve_right(identity_matrix(N.dimension()))
+        X._embedding_morphism = X.hom(m, self.domain())
         return X, fm.index()
 
     def fiber_component(self, domain_cone, multiplicity=False):
@@ -1716,7 +1718,8 @@ class SchemeMorphism_fan_fiber_component_toric_variety(SchemeMorphism):
         base_cone = self._base_cone
 
         ker = fm.kernel().basis()
-        base_cone_preimg = [fm.matrix().solve_left(r) for r in base_cone.rays()]
+        m = fm.matrix() * base_cone.lattice().basis_matrix()
+        base_cone_preimg = [m.solve_left(r) for r in base_cone.rays()]
         L = fm.domain_fan().lattice().span(ker+base_cone_preimg).saturation()
 
         cone_L = Cone([L.coordinates(r) for r in defining_cone.rays()])

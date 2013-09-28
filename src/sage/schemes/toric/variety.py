@@ -1297,8 +1297,9 @@ class ToricVariety_field(AmbientSpace):
         if '_homogeneous_degrees_group' not in self.__dict__:
             fan = self.fan()
             from sage.modules.free_module import FreeModule
-            degrees_group = FreeModule(ZZ, fan.nrays()).quotient(
-                                                fan.rays().matrix().columns())
+            rays = fan.rays() + fan.virtual_rays()
+            degrees_group = FreeModule(ZZ, len(rays)).quotient(
+                                                        rays.matrix().columns())
             self._homogeneous_degrees_group = degrees_group
         degrees_group = self._homogeneous_degrees_group
         S = self.coordinate_ring()

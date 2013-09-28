@@ -47,6 +47,8 @@ AUTHORS:
 - William Stein (2007-04-29): square_roots_of_one
 
 - Simon King (2011-04-21): allow to prescribe a category
+
+- Simon King (2013-09): Only allow to prescribe the category of fields
 """
 
 #*****************************************************************************
@@ -94,10 +96,20 @@ class IntegerModFactory(UniqueFactory):
 
     -  ``order`` - integer (default: 0), positive or
        negative
-    -  ``category`` (optional, default None) - use the join of the
-       default category (which is the join of commutative rings and
-       finite enumerated sets) and the given category for initialising
-       the quotient ring.
+    -  ``is_field`` (optional bool, default False) - assert that
+       the order is prime and hence the quotient ring belongs to
+       the category of fields.
+
+    .. NOTE::
+
+        The optional argument ``is_field`` is not part of the cache key.
+        Hence, this factory will create precisely one instance of `\ZZ /
+        n\ZZ`.  However, if ``is_field`` is true, then a previously created
+        instance of the quotient ring will be updated to be in the category of
+        fields.
+
+        **Use with care!** After putting `\ZZ / n\ZZ` into the category of
+        fields, 
 
     EXAMPLES::
 
@@ -143,24 +155,21 @@ class IntegerModFactory(UniqueFactory):
         Join of Category of fields and Category of subquotients of monoids and
         Category of quotients of semigroups and Category of finite enumerated
         sets
-        sage: S = IntegerModRing(5, category=Fields())
-        sage: S.category() == R.category()
-        True
+        sage: S = IntegerModRing(5, is_field=True)
         sage: S is R
-        False
+        True
 
     .. WARNING::
 
-        If the category ``Fields()`` was chosen by mistake, there is currently no
-        way to revert it. However, if :meth:`IntegerModRing_generic.is_field` is used
-        with the optional argument ``proof=True``, it would return the correct
-        answer even if the wrong category was chose.
-
-        So, prescribe the category only if you know what your are doing!
+        If the optional argument ``is_field`` was used by mistake, there is
+        currently no way to revert its impact, even though
+        :meth:`IntegerModRing_generic.is_field` with the optional argument
+        ``proof=True`` would return the correct answer.  So, prescribe
+        ``is_field=True`` only if you know what your are doing!
 
     EXAMPLES::
 
-        sage: R = IntegerModRing(15, category=Fields())
+        sage: R = IntegerModRing(15, is_field=True)
         sage: R in Fields()
         True
         sage: R.is_field()
@@ -183,37 +192,46 @@ class IntegerModFactory(UniqueFactory):
         True
 
     """
-    def create_key(self, order=0, category=None):
+    def get_object(self, version, key, extra_args):
+        out = super(IntegerModFactory,self).get_object(version, key, extra_args)
+        category = extra_args.get('category', None)
+        if category is not None:
+            out._refine_category_(category)
+        return out
+
+    def create_key_and_extra_args(self, order=0, is_field=False):
         """
         An integer mod ring is specified uniquely by its order.
 
         EXAMPLES::
 
-            sage: Zmod.create_key(7)
-            7
-            sage: Zmod.create_key(7, Fields())
-            (7, Category of fields)
+            sage: Zmod.create_key_and_extra_args(7)
+            (7, {})
+            sage: Zmod.create_key_and_extra_args(7, True)
+            (7, {'category': Category of fields})
         """
-        if category is None:
-            return order
-        return (order, category)
+        if is_field:
+            from sage.categories.fields import Fields
+            return order, {'category':Fields()}
+        return order, {}
 
-    def create_object(self, version, order):
+    def create_object(self, version, order, **kwds):
         """
         EXAMPLES::
 
             sage: R = Integers(10)
             sage: TestSuite(R).run() # indirect doctest
         """
-        category=None
         if isinstance(order, tuple):
+            # this is for unpickling old data
             order, category = order
+            kwds.setdefault('category', category)
         if order < 0:
             order = -order
         if order == 0:
-            return integer_ring.IntegerRing()
+            return integer_ring.IntegerRing(**kwds)
         else:
-            return IntegerModRing_generic(order,category=category)
+            return IntegerModRing_generic(order, **kwds)
 
 Zmod = Integers = IntegerModRing = IntegerModFactory("IntegerModRing")
 
@@ -307,7 +325,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         can force it to be. Moreover, testing containment in the category
         of fields my re-initialise the category of the integer mod ring::
 
-            sage: F19 = IntegerModRing(19, category = Fields())
+            sage: F19 = IntegerModRing(19, is_field=True)
             sage: F19.category().is_subcategory(Fields())
             True
             sage: F23 = IntegerModRing(23)
@@ -319,6 +337,21 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             True
             sage: TestSuite(F19).run()
             sage: TestSuite(F23).run()
+
+        By :trac:`15229`, there is a unique instance of the
+        integral quotient ring of a given order. Using the
+        :func:`IntegerModRing` factory twice, and using
+        ``is_field=True`` the second time, will update the
+        category of the unique instance::
+
+            sage: F31a = IntegerModRing(31)
+            sage: F31a.category().is_subcategory(Fields())
+            False
+            sage: F31b = IntegerModRing(31, is_field=True)
+            sage: F31a is F31b
+            True
+            sage: F31a.category().is_subcategory(Fields())
+            True           
 
         Next we compute with the integers modulo `16`.
 
@@ -600,10 +633,10 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         By :trac:`15229`, the category of the ring is refined,
         if it is found that the ring is in fact a field::
 
-            sage: R = IntegerModRing(19)
+            sage: R = IntegerModRing(127)
             sage: R.category()
-            Join of Category of commutative rings and Category of subquotients of
-            monoids and Category of quotients of semigroups and Category of
+            Join of Category of commutative rings and Category of subquotients
+            of monoids and Category of quotients of semigroups and Category of
             finite enumerated sets
             sage: R.is_field()
             True
@@ -618,7 +651,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         provided, primality is tested and the mistake is uncovered in a warning
         message::
 
-            sage: R = IntegerModRing(21, category=Fields())
+            sage: R = IntegerModRing(21, is_field=True)
             sage: R.is_field()
             True
             sage: R.is_field(proof=True)
@@ -1175,23 +1208,10 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         In :trac:`15229`, the following was implemented::
 
             sage: R1 = IntegerModRing(5)
-            sage: R2 = IntegerModRing(5, category=Fields())
-            sage: R1 == R2    # used to return False
+            sage: R2 = IntegerModRing(5, is_field=True)
+            sage: R1 is R2    # used to return False
             True
             sage: R2 == GF(5)
-            False
-
-        The rationale for this change is that we have coercions
-        in both directions between ``R1`` and ``R2``, but only
-        a one-directional coercion between ``R2`` and ``GF(5)``::
-
-            sage: R1.has_coerce_map_from(R2)
-            True
-            sage: R2.has_coerce_map_from(R1)
-            True
-            sage: GF(5).has_coerce_map_from(R2)
-            True
-            sage: R2.has_coerce_map_from(GF(5))
             False
 
         """

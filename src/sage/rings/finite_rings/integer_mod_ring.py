@@ -179,12 +179,14 @@ class IntegerModFactory(UniqueFactory):
     the mistaken category assignment is reported::
 
         sage: R.is_field(proof=True)
-        WARNING:
-          The order 15 is not prime, but this ring has been put
-          into the category of fields. Either it was a mistake
-          of the user, or a probabilitstic primality test has
-          failed. In the latter case, please inform the developers.
-        False
+        Traceback (most recent call last):
+        ...
+        ValueError: THIS SAGE SESSION MIGHT BE SERIOUSLY COMPROMISED!
+        The order 21 is not prime, but this ring has been put
+        into the category of fields. This may already have consequences
+        in other parts of Sage. Either it was a mistake of the user,
+        or a probabilitstic primality test has failed.
+        In the latter case, please inform the developers.
 
     However, the mistaken assignment is not automatically corrected::
 
@@ -655,12 +657,14 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: R.is_field()
             True
             sage: R.is_field(proof=True)
-            WARNING:
-              The order 21 is not prime, but this ring has been put
-              into the category of fields. Either it was a mistake
-              of the user, or a probabilitstic primality test has
-              failed. In the latter case, please inform the developers.
-            False
+            Traceback (most recent call last):
+            ...
+            ValueError: THIS SAGE SESSION MIGHT BE SERIOUSLY COMPROMISED!
+            The order 21 is not prime, but this ring has been put
+            into the category of fields. This may already have consequences
+            in other parts of Sage. Either it was a mistake of the user,
+            or a probabilitstic primality test has failed.
+            In the latter case, please inform the developers.
 
         """
         from sage.categories.fields import Fields
@@ -672,11 +676,12 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             self._refine_category_(Fields())
         else:
             if self.category().is_subcategory(Fields()):
-                print "WARNING:"
-                print "  The order %d is not prime, but this ring has been put"%self.__order
-                print "  into the category of fields. Either it was a mistake"
-                print "  of the user, or a probabilitstic primality test has"
-                print "  failed. In the latter case, please inform the developers."
+                raise ValueError("""THIS SAGE SESSION MIGHT BE SERIOUSLY COMPROMISED!
+The order 21 is not prime, but this ring has been put
+into the category of fields. This may already have consequences
+in other parts of Sage. Either it was a mistake of the user,
+or a probabilitstic primality test has failed.
+In the latter case, please inform the developers.""")
         return is_prime
 
     @cached_method

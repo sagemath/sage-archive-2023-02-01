@@ -1379,7 +1379,10 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
         """
         domain_cone = self.domain().fan().embed(domain_cone)
         if domain_cone.is_trivial():
-            return self.fiber_generic()
+            if multiplicity:
+                return self.fiber_generic()
+            else:
+                return self.fiber_generic()[0]
         embedding = SchemeMorphism_fan_fiber_component_toric_variety(self, domain_cone)
         if multiplicity:
             return embedding.domain(), \

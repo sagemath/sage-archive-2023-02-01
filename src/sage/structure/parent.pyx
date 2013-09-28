@@ -2399,7 +2399,11 @@ cdef class Parent(category_object.CategoryObject):
             return self._convert_from_hash.get(S)
         except KeyError:
             mor = self.discover_convert_map_from(S)
-            self._convert_from_list.append(mor)
+            # Before trac #14711, the morphism has been 
+            # put both into _convert_from_list and into
+            # _convert_from_hash. But there is no reason
+            # to have a double book-keeping, specifically
+            # if one of them is by strong references!
             self._convert_from_hash.set(S, mor)
             return mor
 

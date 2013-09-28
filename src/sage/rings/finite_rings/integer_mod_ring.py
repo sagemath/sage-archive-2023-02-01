@@ -199,6 +199,7 @@ class IntegerModFactory(UniqueFactory):
         category = extra_args.get('category', None)
         if category is not None:
             out._refine_category_(category)
+            out._factory_data[3]['category'] = category
         return out
 
     def create_key_and_extra_args(self, order=0, is_field=False):
@@ -674,6 +675,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         is_prime = self.order().is_prime(proof=proof)
         if is_prime:
             self._refine_category_(Fields())
+            self._factory_data[3]['category'] = Fields()
         else:
             if self.category().is_subcategory(Fields()):
                 raise ValueError("""THIS SAGE SESSION MIGHT BE SERIOUSLY COMPROMISED!

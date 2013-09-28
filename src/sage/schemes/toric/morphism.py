@@ -233,6 +233,118 @@ with another affine line in the other coordinate patch, this covers
 the exceptional $\mathbb{P}^1$ of the blowup $O_{\mathbb{P}^1}(2) \to
 \CC^2/\ZZ_2$.
 
+Here is an example with higher dimensional varieties involved::
+
+    sage: A3 = toric_varieties.A(3)
+    sage: P3 = toric_varieties.P(3)
+    sage: m = matrix([(2,0,0), (1,1,0), (3, 1, 0)])
+    sage: phi = A3.hom(m, P3)
+    sage: phi.as_polynomial_map()
+    Scheme morphism:
+      From: 3-d affine toric variety
+      To:   3-d CPR-Fano toric variety covered by 4 affine patches
+      Defn: Defined on coordinates by sending [z0 : z1 : z2] to
+            [z0^2*z1*z2^3 : z1*z2 : 1 : 1]
+    sage: phi.fiber_generic()
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'SchemeMorphism_fan_toric_variety' object
+    has no attribute 'fiber_generic'
+    
+Let's use factorization mentioned above::
+
+    sage: phi_i, phi_b, phi_s = phi.factor()
+    
+It is possible to study fibers of the last two morphisms or their composition::
+
+    sage: phi_d = phi_b * phi_s
+    sage: phi_d
+    Scheme morphism:
+      From: 3-d affine toric variety
+      To:   2-d toric variety covered by 3 affine patches
+      Defn: Defined by sending Rational polyhedral fan in 3-d lattice N to
+            Rational polyhedral fan in Sublattice <N(1, 0, 0), N(0, 1, 0)>.
+    sage: phi_d.as_polynomial_map()
+    Scheme morphism:
+      From: 3-d affine toric variety
+      To:   2-d toric variety covered by 3 affine patches
+      Defn: Defined on coordinates by sending [z0 : z1 : z2] to
+            [z0^2*z1*z2^3 : z1*z2 : 1]
+    sage: phi_d.codomain().fan().rays()
+    N( 1,  0, 0),
+    N( 0,  1, 0),
+    N(-1, -1, 0)
+    in Sublattice <N(1, 0, 0), N(0, 1, 0)>
+    sage: for c in phi_d.codomain().fan():
+    ...       c.ambient_ray_indices()
+    (1, 2)
+    (0, 2)
+    (0, 1)
+    
+We see that codomain fan of this morphism is a projective plane, which can be
+verified by ::
+
+    sage: phi_d.codomain().fan().is_isomorphic(toric_varieties.P2().fan())
+    True
+
+We now have access to fiber methods::
+
+    sage: fiber = phi_d.fiber_generic()
+    sage: fiber
+    (1-d affine toric variety, 2)
+    sage: fiber[0].embedding_morphism()
+    Scheme morphism:
+      From: 1-d affine toric variety
+      To:   3-d affine toric variety
+      Defn: Defined by sending
+            Rational polyhedral fan in Sublattice <N(1, 1, -1)> to
+            Rational polyhedral fan in 3-d lattice N.
+    sage: fiber[0].embedding_morphism().as_polynomial_map()
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: polynomial representations for
+    fans with virtual rays are not implemented yet
+    sage: fiber[0].fan().rays()
+    Empty collection
+    in Sublattice <N(1, 1, -1)>
+    
+We see that generic fibers of this morphism consist of 2 one-dimensional tori
+each. To see what happens over boundary points we can look at fiber components
+corresponding to the cones of the domain fan::
+
+    sage: fm = phi_d.fan_morphism()
+    sage: for c in flatten(phi_d.domain().fan().cones()):
+    ...       fc, m = phi_d.fiber_component(c, multiplicity=True)
+    ...       print "{} |-> {} ({} rays, multiplicity {}) over {}".format(
+    ...         c.ambient_ray_indices(), fc, fc.fan().nrays(),
+    ...         m, fm.image_cone(c).ambient_ray_indices())
+    () |-> 1-d affine toric variety (0 rays, multiplicity 2) over ()
+    (0,) |-> 1-d affine toric variety (0 rays, multiplicity 1) over (0,)
+    (1,) |-> 2-d affine toric variety (2 rays, multiplicity 1) over (0, 1)
+    (2,) |-> 2-d affine toric variety (2 rays, multiplicity 1) over (0, 1)
+    (0, 1) |-> 1-d affine toric variety (1 rays, multiplicity 1) over (0, 1)
+    (1, 2) |-> 1-d affine toric variety (1 rays, multiplicity 1) over (0, 1)
+    (0, 2) |-> 1-d affine toric variety (1 rays, multiplicity 1) over (0, 1)
+    (0, 1, 2) |-> 0-d affine toric variety (0 rays, multiplicity 1) over (0, 1)
+    
+Now we see that over one of the coordinate lines of the projective plane we also
+have one-dimensional tori (but only one in each fiber), while over one of the
+points fixed by torus action we have two affine planes intersecting along an
+affine line. An alternative perspective is provided by cones of the codomain
+fan::
+
+    sage: for c in flatten(phi_d.codomain().fan().cones()):
+    ...       print "{} connected components over {}, each with {} irreducible components.".format(
+    ...         fm.index(c), c.ambient_ray_indices(),
+    ...         len(fm.primitive_preimage_cones(c)))
+    2 connected components over (), each with 1 irreducible components.
+    1 connected components over (0,), each with 1 irreducible components.
+    None connected components over (1,), each with 0 irreducible components.
+    None connected components over (2,), each with 0 irreducible components.
+    None connected components over (1, 2), each with 0 irreducible components.
+    None connected components over (0, 2), each with 0 irreducible components.
+    1 connected components over (0, 1), each with 2 irreducible components.
+
 REFERENCES:
 
 .. [BB]
@@ -1000,7 +1112,7 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
         """
         R = self.domain().coordinate_ring()
         phi = self.fan_morphism()
-        polys = [R.one()] * phi.codomain_fan().nrays()
+        polys = [R.one()] * self.codomain().ngens()
         for rho, x in zip(phi.domain_fan(1), R.gens()):
             ray = rho.ray(0)
             sigma = phi.image_cone(rho)
@@ -1012,6 +1124,9 @@ class SchemeMorphism_fan_toric_variety(SchemeMorphism, Morphism):
                     raise TypeError('The fan morphism cannot be written in '
                                     'homogeneous polynomials.')
                 polys[i] *= x**d
+        if phi.domain_fan().virtual_rays():
+            raise NotImplementedError("polynomial representations for fans "
+                                    "with virtual rays are not implemented yet")
         return SchemeMorphism_polynomial_toric_variety(self.parent(), polys)
 
     def is_bundle(self):
@@ -1267,7 +1382,7 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
 
         - a tuple `(X, n)`, where `X` is a :class:`toric variety
           <sage.schemes.toric.variety.ToricVariety_field>` with the
-        embedding morphism into domain of ``self`` and `n` is an integer.
+          embedding morphism into domain of ``self`` and `n` is an integer.
         
         The fiber over the base point with homogeneous coordinates
         `[1:1:\cdots:1]` consists of `n` disjoint toric varieties isomorphic to
@@ -1469,7 +1584,8 @@ class SchemeMorphism_fan_toric_variety_dominant(SchemeMorphism_fan_toric_variety
         irreducible components do not have to be of the same dimension.
         
         .. seealso::
-        :meth:`~SchemeMorphism_fan_toric_variety_dominant.fiber_component`.
+        
+            :meth:`~SchemeMorphism_fan_toric_variety_dominant.fiber_component`.
 
         EXAMPLES::
 

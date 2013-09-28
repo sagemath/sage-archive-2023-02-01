@@ -6340,7 +6340,7 @@ cdef class Matrix(matrix1.Matrix):
     #####################################################################################
     def as_bipartite_graph(self):
         r"""
-        We construct a bipartite graph ``B`` representing
+        Construct a bipartite graph ``B`` representing
         the matrix uniquely.
 
         Vertices are labeled 1 to ``nrows``
@@ -6349,9 +6349,9 @@ cdef class Matrix(matrix1.Matrix):
         and each row is connected to each column with an edge
         weighted by the value of the corresponding matrix entry.
 
-        This graph is an aid for calculating autmorphisms of
+        This graph is a helper for calculating automorphisms of
         a matrix under row and column permutations. See
-        :meth:`automorphisms_of_rows_and_columns`
+        :meth:`automorphisms_of_rows_and_columns`.
 
         OUTPUT:
 
@@ -6359,35 +6359,32 @@ cdef class Matrix(matrix1.Matrix):
 
         EXAMPLE::
 
-            sage: M = matrix(QQ,[[1/3,7],[6,1/4],[8,-5]])
+            sage: M = matrix(QQ, [[1/3, 7], [6, 1/4], [8, -5]])
             sage: M
             [1/3   7]
             [  6 1/4]
             [  8  -5]
 
-            sage: B=M.as_bipartite_graph()
+            sage: B = M.as_bipartite_graph()
             sage: B
             Bipartite graph on 5 vertices
-
             sage: B.edges()
             [(1, 4, 1/3), (1, 5, 7), (2, 4, 6), (2, 5, 1/4), (3, 4, 8), (3, 5, -5)]
         """
         from sage.graphs.bipartite_graph import BipartiteGraph
-        B=BipartiteGraph()
-        nrows=self.nrows()
-        vertices_to_be_defined=True
-        for i,row in enumerate(self.rows()):
-            B.add_vertex(i+1,left=True)
-            for j,entry in enumerate(row):
-                if vertices_to_be_defined:
-                    B.add_vertex(nrows+1+j,right=True)
-                B.add_edge(i+1,nrows+1+j,entry)
-            vertices_to_be_defined=False
+        nrows = self.nrows()
+        ncols = self.ncols()
+        B = BipartiteGraph()
+        B.add_vertices(range(1, nrows + 1), left=True)
+        B.add_vertices(range(nrows + 1, nrows + ncols + 1), right=True)
+        for i in range(nrows):
+            for j in range(ncols):
+                B.add_edge(i + 1, nrows + 1 + j, self[i][j])
         return B
 
     def automorphisms_of_rows_and_columns(self):
         r"""
-        Returns the automorphisms of a matrix under
+        Return the automorphisms of a matrix under
         permutations of rows and columns as a list of
         pairs of ``PermutationGroupElement`` objects.
 
@@ -6398,39 +6395,47 @@ cdef class Matrix(matrix1.Matrix):
             [1 0]
             [1 0]
             [0 1]
-            sage: A=M.automorphisms_of_rows_and_columns()
+            sage: A = M.automorphisms_of_rows_and_columns()
             sage: A
             [((), ()), ((1,2), ())]
+            sage: M = matrix(ZZ,[[1,1,1,1],[1,1,1,1]])
+            sage: A = M.automorphisms_of_rows_and_columns()
+            sage: len(A)
+            48
 
-        We can now apply one of these automorphisms to show
-        it leaves the matrix invariant::
+        One can now apply these automorphisms to ``M`` to show
+        that it leaves it invariant::
 
-            sage: M.with_permuted_rows_and_columns(*A[1]) == M
+            sage: all(M.with_permuted_rows_and_columns(*i) == M for i in A)
             True
         """
-        from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
-        B=self.as_bipartite_graph()
-        nrows=self.nrows()
-        A,dictionary=B.automorphism_group(edge_labels=True,translation=True)
-        invdictionary={value:key for key,value in dictionary.iteritems()}
-        permutations=[]
+        from sage.groups.perm_gps.permgroup_element import \
+            PermutationGroupElement
+        B = self.as_bipartite_graph()
+        nrows = self.nrows()
+        A = B.automorphism_group(edge_labels=True)
+        permutations = []
         for p in A:
-            p=p.list()
-            p=[p[i] if i<len(p) else i+1 for i in range(len(dictionary))]#embeds in the subgroup S_n
-            p=[invdictionary[p[dictionary[i+1]-1]] for i in range(len(dictionary))]#converts to elements of Sym(self) from S_n
-            if not p[0]>nrows:
-                permutations.append((PermutationGroupElement(p[:nrows]),PermutationGroupElement([elt-nrows for elt in p[nrows:]])))
+            p = p.domain()
+            # Embed in the subgroup S_n
+            p = [p[i] if i < len(p) else i + 1 for i in range(len(B))]
+            # Convert to elements of Sym(self) from S_n
+            if p[0] <= nrows:
+                permutations.append(
+                    (PermutationGroupElement(p[:nrows]),
+                     PermutationGroupElement([elt - nrows for elt in p[nrows:]])
+                    ))
         return permutations
 
-    def permutation_normal_form(self,certify=False):
+    def permutation_normal_form(self, check=False):
         r"""
-        We take the set of matrices that are ``self``
+        Take the set of matrices that are ``self``
         permuted by any row and column permutation,
         and return the maximal from the set when
         the matrices are ordered lexicographically
         going along each row.
 
-        If ``certify`` is True then we instead return
+        If ``check`` is True then we instead return
         a tuple of the maximal matrix and the permutations
         taking ``self`` to the maximal matrix.
 
@@ -6447,49 +6452,45 @@ cdef class Matrix(matrix1.Matrix):
             [1 0 0]
             [0 0 0]
 
-        ::
-
-            sage: M = matrix(ZZ,[[-1,3],[-1,5],[2,4]])
+            sage: M = matrix(ZZ, [[-1, 3], [-1, 5], [2, 4]])
             sage: M
             [-1  3]
             [-1  5]
             [ 2  4]
 
-        ::
-
-            sage: M.permutation_normal_form(certify=True)
+            sage: M.permutation_normal_form(check=True)
             (
             [ 5 -1]                  
             [ 4  2]                  
             [ 3 -1],
-            ((1,2,3), (1,2))
+            ((1, 2, 3), (1, 2))
             )
         """
-        n_r=self.nrows()
-        n_c=self.ncols()
-        #Let us sort the each row:
-        sorted_rows =[sorted([self[i][j] for j in range(n_c)],reverse=True) for i in range(n_r)]
-        #and find the maximal:
-        first_row=max(sorted_rows)
-        first_rows=[j for j in range(len(sorted_rows)) if sorted_rows[j]==first_row]
-        #We construct an array S, which will record the subsymmetries for the
-        #columns, i.e. S records the automorphisms with respect to the column
-        #Swappings of the upper block already constructed. For example, if
-        #allowed, and so on. S is in decreasing order and takes values between
-        #S:=[a, a, ..., a (i-th), a-1, a-1, ...] then any swap between 1 and i is
-        #me + nc and me + 1 such that no entry is present already in the matrix.
-        S=[first_row[0] + n_c] + [None]*(n_c-1)
-        for j in range(1,n_c):
-           S[j]=S[j-1] if first_row[j] == first_row[j - 1] else S[j-1] - 1
-        #If we want to sort the i-th row with respect to a symmetry determined
-        #by S, then we will just sort the augmented row [[S[j],PM[i,j]] :
-        #j in [1 .. nc]], S having lexicographic priority.
-        MS=[self.new_matrix(n_c,n_r,sorted(self.with_swapped_rows(0,first_rows[0]).columns(),reverse=True)).transpose()]
-        aM=[deepcopy(MS[0])]
+        n_r = self.nrows()
+        n_c = self.ncols()
+        # Let us sort the each row:
+        sorted_rows = [sorted([self[i][j] for j in range(n_c)],reverse=True) for i in range(n_r)]
+        # and find the maximal:
+        first_row = max(sorted_rows)
+        first_rows = [j for j in range(len(sorted_rows)) if sorted_rows[j] == first_row]
+        # We construct an array S, which will record the subsymmetries for the
+        # columns, i.e. S records the automorphisms with respect to the column
+        # Swappings of the upper block already constructed. For example, if
+        # allowed, and so on. S is in decreasing order and takes values between
+        # S:=[a, a, ..., a (i-th), a-1, a-1, ...] then any swap between 1 and i is
+        # me + nc and me + 1 such that no entry is present already in the matrix.
+        S = [first_row[0] + n_c] + [None]*(n_c-1)
+        for j in range(1, n_c):
+           S[j] = S[j-1] if first_row[j] == first_row[j - 1] else S[j-1] - 1
+        # If we want to sort the i-th row with respect to a symmetry determined
+        # by S, then we will just sort the augmented row [[S[j],PM[i,j]] :
+        # j in [1 .. nc]], S having lexicographic priority.
+        MS = [self.new_matrix(n_c,n_r,sorted(self.with_swapped_rows(0,first_rows[0]).columns(),reverse=True)).transpose()]
+        aM = [deepcopy(MS[0])]
         aM[0].set_row(0,S)
-        for i in range(1,len(first_rows)):
-            N=self.new_matrix(n_c,n_r,sorted(self.with_swapped_rows(0,first_rows[i]).columns(),reverse=True)).transpose()
-            aN=deepcopy(N)
+        for i in range(1, len(first_rows)):
+            N = self.new_matrix(n_c,n_r,sorted(self.with_swapped_rows(0,first_rows[i]).columns(),reverse=True)).transpose()
+            aN = deepcopy(N)
             aN.set_row(0,S)
             iso=[aN.is_permutation_of(aM[j]) for j in range(len(aM))]
             if iso==[False]*len(aM):
@@ -6553,19 +6554,19 @@ cdef class Matrix(matrix1.Matrix):
                                 aN=N.submatrix(l,0,n_r - l,n_c)
                                 aN.set_row(0,S)
                                 iso=[aN.is_permutation_of(aX[j]) for j in range(len(aX))]
-                                if iso==[False]*len(aM):
+                                if iso == [False]*len(aM):
                                     MS.append(deepcopy(N))
                                     aX.append(deepcopy(aN))
-                            MS[i]=X
+                            MS[i] = X
                         else:
-                            #If one case only, we do the sorting procedure straight
-                            MS[i]=self.new_matrix(n_c,n_r,sorted(MS[i].with_swapped_rows(l,m[i][0] + l).columns(),reverse=True)).transpose()
+                            # If one case only, we do the sorting procedure straight
+                            MS[i] = self.new_matrix(n_c,n_r,sorted(MS[i].with_swapped_rows(l,m[i][0] + l).columns(),reverse=True)).transpose()
             else:
-                MS=[self.new_matrix(n_r,n_c,sorted(s.rows(),reverse=True)) for s in MS]
+                MS=[self.new_matrix(n_r, n_c, sorted(s.rows(),reverse=True)) for s in MS]
                 break;
-        MS_max=max(MS)
-        if certify:
-            return MS_max,self.is_permutation_of(MS_max,True)[1]
+        MS_max = max(MS)
+        if check:
+            return MS_max, self.is_permutation_of(MS_max, True)[1]
         else:
             return MS_max
 

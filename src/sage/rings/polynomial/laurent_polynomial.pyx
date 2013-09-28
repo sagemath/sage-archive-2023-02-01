@@ -52,7 +52,7 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         else: # since x should coerce into parent, _mon should be (0,...,0)
             self._mon = ETuple({}, int(parent.ngens()))
         self._poly = parent.polynomial_ring()(x)
-        self._normal_form=None
+        self._normal_form = None
         CommutativeAlgebraElement.__init__(self, parent)
 
     def __reduce__(self):
@@ -888,16 +888,17 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
         return Factorization(f, unit=u)
 
     def normal_form(self):
-        r"""Given a Laurent polynomial this returns the normal form
-        for this polynomial as another polynomial, using the Newton
-        polytope of the polynomial and finding its PALP normal form.
+        r"""Return the normal form of a Laurent polynomial as another
+        polynomial using its Newton polytope and to find the PALP
+        normal form.
 
         
         Two Laurent polynomials that have Newton polytopes of maximal
-        dimension are in the same GL(Z)-orbit if and only if their normal
-        forms are the same. Normal form is not defined and thus cannot be
-        used for polytopes (and hence Laurent polynomials) whose dimension
-        is smaller than the dimension of the ambient space.
+        dimension are in the same `GL(\mathbb{Z})`-orbit if and only 
+        if their normal forms are the same. Normal form is not defined
+        and thus cannot be used for polytopes (and hence Laurent
+        polynomials) of dimension smaller than the dimension of the
+        ambient space.
 
         EXAMPLE::
             sage: L.<w,x,y,z> = LaurentPolynomialRing(ZZ)
@@ -905,36 +906,40 @@ cdef class LaurentPolynomial_mpair(CommutativeAlgebraElement):
             sage: f.normal_form()
             7*w^2*x^-3*y^4*z^15 + w + 3*x - 6*y - 2*z + 5 - 5*w^-2*x^3*y^-3*z^-16
         """
-        if self._normal_form==None:
-            from sage.geometry.lattice_polytope import LatticePolytope,palp_native_normal_form
+        if self._normal_form is None:
+            from sage.geometry.lattice_polytope import \
+                LatticePolytope, palp_native_normal_form
             f_terms = self.dict().items()
             points = [vector(term[0]) for term in f_terms]
             coeffs = [term[1] for term in f_terms]
             P = LatticePolytope(points)
             Pv = list(P.vertices().columns())
-            variables=self.variables(sort=False)#don't sort, keep order same as in dict!
+            # Don't sort, keep order same as in dict!
+            variables = self.variables(sort=False)
             try:
-                NF,perm=palp_native_normal_form(P,certify=True)
-            except(ValueError):
-                raise ValueError("Normal form is not defined polynomials whose \
-                Newton polytope is not of maximal dimension.")
-            NFv=list(NF.columns())
-            NF=LatticePolytope(NF)
-            M=P.matrix_transformation((perm.inverse())(NFv))
-            auts=NF.automorphisms()
-            auts=[NF.matrix_transformation(a(NFv)) for a in auts]
-            points=[(coeffs[i],M*v) for i,v in enumerate(points)]
+                NF,perm = palp_native_normal_form(P, certify=True)
+            except ValueError as v:
+                raise v # Fix this!
+                raise ValueError("Normal form is not defined for polynomials whose " \
+                + "Newton polytope is not of maximal dimension.")
+            NFv = list(NF.columns())
+            NF = LatticePolytope(NF)
+            M = P.matrix_transformation((perm.inverse())(NFv))
+            auts = NF.automorphisms()
+            auts = [NF.matrix_transformation(a(NFv)) for a in auts]
+            points = [(coeffs[i],M*v) for i,v in enumerate(points)]
             points.sort(key=lambda x:x[1])
-            coeffs=[v[0] for v in points]
-            points=[v[1] for v in points]
-            Ns=[[coeffs[points.index(a*point)] for point in points] for a in auts]
-            N_min=min(Ns)
-            poly_out=0
-            for i,coeff in enumerate(N_min):
-                g=1
+            coeffs = [v[0] for v in points]
+            points = [v[1] for v in points]
+            Ns = [[coeffs[points.index(a*point)] for point in points] for a in auts]
+            N_min = min(Ns)
+            poly_out = 0
+            for i, coeff in enumerate(N_min):
+                g = 1
                 for j,term in enumerate(points[i]):
                     g*=variables[j]**term
-                g*=self.parent().base_ring()(coeff)#cast coefficient back to parent ring
-                poly_out+=g
-            self._normal_form=poly_out
+                # cast coefficient back to parent ring
+                g *= self.parent().base_ring()(coeff)
+                poly_out += g
+            self._normal_form = poly_out
         return self._normal_form

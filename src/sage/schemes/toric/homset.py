@@ -363,6 +363,32 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
         Set of rational points of 2-d CPR-Fano toric variety
         covered by 4 affine patches
 
+    The quotient `\mathbb{P}^2 / \ZZ_3` by the diagonal action::
+
+        sage: fan = NormalFan(ReflexivePolytope(2, 0))
+        sage: X = ToricVariety(fan, base_field=GF(7))
+        sage: point_set = X.point_set()
+        sage: point_set.cardinality()
+        111
+        sage: sorted(p for p in X.point_set() if p[0] == 1)
+        [[1 : 0 : 0],
+         [1 : 0 : 1],
+         [1 : 0 : 3],
+         [1 : 1 : 0],
+         [1 : 1 : 1],
+         [1 : 1 : 2],
+         [1 : 1 : 3],
+         [1 : 1 : 4],
+         [1 : 1 : 5],
+         [1 : 1 : 6],
+         [1 : 3 : 0],
+         [1 : 3 : 1],
+         [1 : 3 : 2],
+         [1 : 3 : 3],
+         [1 : 3 : 4],
+         [1 : 3 : 5],
+         [1 : 3 : 6]]
+
     TESTS::
 
         sage: import sage.schemes.toric.homset as HOM
@@ -393,9 +419,20 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
         actually constructed and iterated over. This works but is much
         slower::
 
-            sage: V = ToricVariety(NormalFan(o))
-            sage: V.change_ring(GF(2)).point_set().cardinality()
-            27
+            sage: fan = NormalFan(ReflexivePolytope(2, 0))
+            sage: X = ToricVariety(fan, base_field=GF(7))
+            sage: X.point_set().cardinality()
+            111
+        
+        Fulton's formula does not apply since the variety is not
+        smooth. And, indeed, naive application gives a different
+        result::
+
+            sage: q = X.base_ring().order()
+            sage: n = X.dimension()
+            sage: d = map(len, fan().cones())
+            sage: sum(dk * (q-1)**(n-k) for k, dk in enumerate(d))
+            57
 
         Over infinite fields the number of points is not very tricky::
 

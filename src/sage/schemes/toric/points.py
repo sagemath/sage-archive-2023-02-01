@@ -75,7 +75,6 @@ class InfinitePointEnumerator(object):
         """
         self.ring = ring
         self.fan = fan
-        self.ker = fan.rays().matrix().integer_kernel().matrix()
 
     def __iter__(self):
         """
@@ -130,7 +129,95 @@ class NaiveFinitePointEnumerator(object):
         assert ring.is_finite()
         self.ring = ring
         self.fan = fan
-        self.ker = fan.rays().matrix().integer_kernel().matrix()
+
+    @cached_method
+    def units(self):
+        """
+        Return the units in the base field.
+
+        EXAMPLES::
+
+            sage: ne = toric_varieties.P2(base_ring=GF(5)).point_set()._naive_enumerator()
+            sage: ne.units()
+            (1, 2, 3, 4)
+        """
+        return tuple(x for x in self.ring if x != 0)
+        
+    @cached_method
+    def roots(self, n):
+        """
+        Return the n-th roots in the base field
+
+        EXAMPLES::
+
+            sage: ne = toric_varieties.P2(base_ring=GF(5)).point_set()._naive_enumerator()
+            sage: ne.roots(2)
+            (1, 4)
+            sage: ne.roots(3)
+            (1,)
+            sage: ne.roots(4)
+            (1, 2, 3, 4)
+        """
+        return tuple(x for x in self.ring if x**n == self.ring.one())
+        
+    def _Chow_group_free(self):
+        r"""
+        Return the relations coming from the free part of the Chow group
+
+        OUTPUT:
+
+        A tuple containing the elements of $Hom(A_{d-1,\text{free}}, F^\times)$
+
+        EXAMPLES::
+
+            sage: fan = NormalFan(ReflexivePolytope(2, 0))
+            sage: X = ToricVariety(fan, base_field=GF(7))
+            sage: X.Chow_group().degree(1)
+            C3 x Z
+            sage: enum = X.point_set()._naive_enumerator()
+            sage: enum._Chow_group_free()
+            ((1, 1, 1), (2, 2, 2), (3, 3, 3), (4, 4, 4), (5, 5, 5), (6, 6, 6))
+        """
+        units = self.units()
+        result = []
+        ker = self.fan.rays().matrix().integer_kernel().matrix()
+        for phases in CartesianProduct(*([units] * ker.nrows())):
+            phases = tuple(prod(mu**exponent for mu, exponent in zip(phases, column))
+                           for column in ker.columns())
+            result.append(phases)
+        return tuple(sorted(result))
+
+    def _Chow_group_torsion(self):
+        r"""
+        Return the relations coming from the torison part of the Chow group
+
+        OUTPUT:
+
+        A tuple containing the non-identity elements of
+        $Hom(A_{d-1,\text{tors}}, F^\times)$
+
+        EXAMPLES::
+
+            sage: fan = NormalFan(ReflexivePolytope(2, 0))
+            sage: X = ToricVariety(fan, base_field=GF(7))
+            sage: X.Chow_group().degree(1)
+            C3 x Z
+            sage: enum = X.point_set()._naive_enumerator()
+            sage: enum._Chow_group_torsion()
+            ((1, 2, 4), (1, 4, 2))
+        """
+        if self.fan.is_smooth():
+            return tuple()
+        image = self.fan.rays().column_matrix().image()
+        torsion = image.saturation().quotient(image)
+        result = set()
+        for t in torsion:
+            t_lift = t.lift()
+            for root in self.roots(t.order()):
+                phases = tuple(root**exponent for exponent in t_lift)
+                result.add(phases)
+        result.remove(tuple(self.ring.one() for i in range(self.fan.nrays())))
+        return tuple(sorted(result))
 
     @cached_method
     def rescalings(self):
@@ -147,7 +234,7 @@ class NaiveFinitePointEnumerator(object):
 
             sage: ni = toric_varieties.P2_123(base_ring=GF(5)).point_set()._naive_enumerator()
             sage: ni.rescalings()
-            ((1, 1, 1), (4, 3, 2), (4, 2, 3), (1, 4, 4))
+            ((1, 1, 1), (1, 4, 4), (4, 2, 3), (4, 3, 2))
 
             sage: ni = toric_varieties.dP8(base_ring=GF(3)).point_set()._naive_enumerator()
             sage: ni.rescalings()
@@ -157,14 +244,17 @@ class NaiveFinitePointEnumerator(object):
             sage: ni.rescalings()
             ((1, 1, 1, 1), (1, 1, 2, 2), (2, 2, 1, 1), (2, 2, 2, 2))
         """
-        units = [x for x in self.ring if x != 0]
-        result = []
-        ker = self.ker
-        for phases in CartesianProduct(*([units] * ker.nrows())):
-            phases = tuple(prod(mu**exponent for mu, exponent in zip(phases, column))
-                           for column in ker.columns())
-            result.append(phases)
-        return tuple(result)                                   
+        free = self._Chow_group_free()
+        tors = self._Chow_group_torsion()
+        if len(tors) == 0:  # optimization for smooth fans
+            return free
+        result = set()
+        for f, t in CartesianProduct(free, tors):
+            phases = tuple(x*y for x, y in zip(f, t))
+            result.add(phases)
+        return tuple(sorted(result))
+            
+
 
     def orbit(self, point):
         """

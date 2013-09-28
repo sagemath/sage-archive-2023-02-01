@@ -798,8 +798,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
         the indeterminates. This is a right action since the image of
         f(sigma\*x) under tau is f(sigma\*tau\*x).
 
-        Additionaly, if ``left`` is a matrix then sigma acts on the matrix
-        by permuting the columns.
+        Additionally, if ``left`` is a matrix, then sigma acts on the matrix
+        by permuting the rows.
 
         INPUT:
 

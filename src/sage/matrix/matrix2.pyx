@@ -6431,8 +6431,8 @@ cdef class Matrix(matrix1.Matrix):
         r"""
         Take the set of matrices that are ``self``
         permuted by any row and column permutation,
-        and return the maximal from the set when
-        the matrices are ordered lexicographically
+        and return the maximal one of the set where
+        matrices are ordered lexicographically
         going along each row.
 
         If ``check`` is True then we instead return
@@ -6463,131 +6463,145 @@ cdef class Matrix(matrix1.Matrix):
             [ 5 -1]                  
             [ 4  2]                  
             [ 3 -1],
-            ((1, 2, 3), (1, 2))
+            ((1,2,3), (1,2))
             )
         """
-        n_r = self.nrows()
-        n_c = self.ncols()
-        # Let us sort the each row:
-        sorted_rows = [sorted([self[i][j] for j in range(n_c)],reverse=True) for i in range(n_r)]
-        # and find the maximal:
+        nrows = self.nrows()
+        ncols = self.ncols()
+        # Let us sort each row:
+        sorted_rows = [sorted([self[i][j] for j in range(ncols)], reverse=True) for i in range(nrows)]
+        # and find the maximal one:
         first_row = max(sorted_rows)
         first_rows = [j for j in range(len(sorted_rows)) if sorted_rows[j] == first_row]
-        # We construct an array S, which will record the subsymmetries for the
+        # We construct an array S, which will record the subsymmetries of the
         # columns, i.e. S records the automorphisms with respect to the column
-        # Swappings of the upper block already constructed. For example, if
+        # swappings of the upper block already constructed. For example, if
         # allowed, and so on. S is in decreasing order and takes values between
         # S:=[a, a, ..., a (i-th), a-1, a-1, ...] then any swap between 1 and i is
         # me + nc and me + 1 such that no entry is present already in the matrix.
-        S = [first_row[0] + n_c] + [None]*(n_c-1)
-        for j in range(1, n_c):
+        S = [first_row[0] + ncols] + [None]*(ncols-1)
+        for j in range(1, ncols):
            S[j] = S[j-1] if first_row[j] == first_row[j - 1] else S[j-1] - 1
         # If we want to sort the i-th row with respect to a symmetry determined
         # by S, then we will just sort the augmented row [[S[j],PM[i,j]] :
         # j in [1 .. nc]], S having lexicographic priority.
-        MS = [self.new_matrix(n_c,n_r,sorted(self.with_swapped_rows(0,first_rows[0]).columns(),reverse=True)).transpose()]
+        MS = [self.new_matrix(
+            ncols, nrows, sorted(self.with_swapped_rows(0, first_rows[0]).columns(), reverse=True)
+            ).transpose()]
         aM = [deepcopy(MS[0])]
         aM[0].set_row(0,S)
         for i in range(1, len(first_rows)):
-            N = self.new_matrix(n_c,n_r,sorted(self.with_swapped_rows(0,first_rows[i]).columns(),reverse=True)).transpose()
+            N = self.new_matrix(
+                ncols, nrows, sorted(self.with_swapped_rows(0, first_rows[i]).columns(), reverse=True)
+                ).transpose()
             aN = deepcopy(N)
             aN.set_row(0,S)
-            iso=[aN.is_permutation_of(aM[j]) for j in range(len(aM))]
-            if iso==[False]*len(aM):
+            iso = [aN.is_permutation_of(aM[j]) for j in range(len(aM))]
+            if not any(iso):
                 MS.append(deepcopy(N))
                 aM.append(deepcopy(aN))
-        #we construct line l:
-        for l in range(1,n_r-1):
-            if not S == range(first_row[0]+n_c,first_row[0],-1):
-                #Sort each row with respect to S for the first matrix in X=MS
-                X=deepcopy(MS)
-                SM=[sorted([(S[j],X[0][k][j]) for j in range(n_c)],reverse=True)
-                                for k in range(l,n_r)]
-                SM=[[k[1] for k in s] for s in SM]
+        # We construct line l:
+        for l in range(1, nrows - 1):
+            if not S == range(first_row[0] + ncols, first_row[0], -1):
+                # Sort each row with respect to S for the first matrix in X = MS
+                X = deepcopy(MS)
+                SM = [sorted([(S[j],X[0][k][j]) for j in range(ncols)], reverse=True)
+                                for k in range(l, nrows)]
+                SM = [[k[1] for k in s] for s in SM]
 
-                #and pick the maximal row
-                b=max(SM)
-                #Find all the rows equal to the maximal (potential new cases)
-                m=[[j for j in range(n_r - l) if SM[j] == b]]
-                w=0#keeps track of how many entries we have removed from MS
-                #lets find the maximal row in each of the entries in X=MS
+                # and pick the maximal row
+                b = max(SM)
+                # Find all rows equal to the maximal (potential new cases)
+                m = [[j for j in range(nrows - l) if SM[j] == b]]
+                w = 0 # keeps track of how many entries we have removed from MS
+                # Let us find the maximal row in each of the entries in X = MS
                 for i in range(1,len(X)):
-                    SN=[sorted([(S[j],X[i][k][j]) for j in range(n_c)],reverse=True)
-                                    for k in range(l,n_r)]
-                    SN=[[k[1] for k in s] for s in SN]
-                    #maximal row in this entry of X=MS
-                    nb=max(SN)
-                    #number of occurences.
-                    n=[j for j in range(n_r - l) if SN[j] == nb]
-                    #now compare to our previous max
-                    if b<nb:
-                        #bigger so save line 
-                        b=nb
-                        m=[n]
-                        #and delete all previous attempts
-                        u=i-w
+                    SN = [sorted([(S[j], X[i][k][j]) for j in range(ncols)], reverse=True)
+                          for k in range(l, nrows)]
+                    SN = [[k[1] for k in s] for s in SN]
+                    # Maximal row in this entry of X=MS
+                    nb = max(SN)
+                    # Number of occurences.
+                    n = [j for j in range(nrows - l) if SN[j] == nb]
+                    # Now compare to our previous max
+                    if b < nb:
+                        # Bigger so save line 
+                        b = nb
+                        m = [n]
+                        # and delete all previous attempts
+                        u = i - w
                         del MS[0:u]
-                        w+=u
-                    elif b==nb:
-                        #same so save symmetry
+                        w += u
+                    elif b == nb:
+                        # Same, so save symmetry
                         m.append(n)
                     else:
-                        #smaller, so forget about it!
+                        # Smaller, so forget about it!
                         MS.pop(i-w)
-                        w+=1
-                #update symmetries
-                check=[(S[i],b[i]) for i in range(n_c)]
-                for j in range(1,n_c):
-                    S[j]=S[j-1] if (check[j] == check[j - 1]) else S[j-1] - 1#error here!
-                #For each case we check the isomorphism as previously, if
-                #test fails we add a new non-isomorphic case to MS. We
-                #pick our choice of maximal line l and sort the columns of
-                #the matrix (this preserves symmetry automatically).
-                n=len(MS)
+                        w += 1
+                # Update symmetries
+                test = [(S[i],b[i]) for i in range(ncols)]
+                for j in range(1, ncols):
+                    S[j] = S[j-1] if (test[j] == test[j - 1]) else S[j-1] - 1 #error here!
+                # For each case we check the isomorphism as previously, if
+                # test fails we add a new non-isomorphic case to MS. We
+                # pick our choice of maximal line l and sort the columns of
+                # the matrix (this preserves symmetry automatically).
+                n = len(MS)
                 for i in range(n):
-                        if len(m[i])>1:
-                            X=self.new_matrix(n_c,n_r,sorted(MS[i].with_swapped_rows(l,m[i][0] + l).columns(),reverse=True)).transpose()
-                            aX=[X.submatrix(l,0,n_r - l,n_c)]
+                        if len(m[i]) > 1:
+                            X = self.new_matrix(
+                                ncols, nrows, 
+                                sorted(MS[i].with_swapped_rows(l, m[i][0] + l).columns(), reverse=True)
+                            ).transpose()
+                            aX = [X.submatrix(l, 0, nrows - l,ncols)]
                             aX[0].set_row(0,S)
                             for j in range(1,len(m[i])):
-                                N=self.new_matrix(n_c,n_r,sorted(MS[i].with_swapped_rows(l,m[i][j]+1).columns(),reverse=True)).transpose()
-                                aN=N.submatrix(l,0,n_r - l,n_c)
+                                N=self.new_matrix(
+                                    ncols, nrows, 
+                                    sorted(MS[i].with_swapped_rows(l, m[i][j] + 1).columns(),reverse=True)
+                                ).transpose()
+                                aN = N.submatrix(l, 0, nrows - l, ncols)
                                 aN.set_row(0,S)
-                                iso=[aN.is_permutation_of(aX[j]) for j in range(len(aX))]
-                                if iso == [False]*len(aM):
+                                iso = [aN.is_permutation_of(aX[j]) for j in range(len(aX))]
+                                if not any(iso):
                                     MS.append(deepcopy(N))
                                     aX.append(deepcopy(aN))
                             MS[i] = X
                         else:
                             # If one case only, we do the sorting procedure straight
-                            MS[i] = self.new_matrix(n_c,n_r,sorted(MS[i].with_swapped_rows(l,m[i][0] + l).columns(),reverse=True)).transpose()
+                            MS[i] = self.new_matrix(
+                                ncols, nrows,
+                                sorted(MS[i].with_swapped_rows(l, m[i][0] + l).columns(),reverse=True)
+                            ).transpose()
             else:
-                MS=[self.new_matrix(n_r, n_c, sorted(s.rows(),reverse=True)) for s in MS]
-                break;
+                MS = [self.new_matrix(nrows, ncols, sorted(s.rows(), reverse=True)) for s in MS]
+                break
         MS_max = max(MS)
         if check:
             return MS_max, self.is_permutation_of(MS_max, True)[1]
         else:
             return MS_max
 
-    def is_permutation_of(self,N,certify=False):
+    def is_permutation_of(self, N, check=False):
         r"""
-        Returns true if there is a permutation of
-        rows and columns sending ``self`` to ``N`` and false otherwise.
-    
-        If ``certify`` is True then we instead return a tuple,
-        containing True and a permutation mapping ``self`` to
-        ``N`` if such a permutation exists, and returns (False,
-        None) is it does not.
+        Return True if there is a permutation of rows and
+        columns sending ``self`` to ``N`` and False otherwise.
 
         INPUT:
 
-        - A matrix ``N``.
-        - An optional boolean ``certify``.
+        - ``N`` -- a matrix
+        - ``check`` -- (default: ``False``) if ``False``
+          return Boolean indicating whether there exists
+          a permutation of rows and columns sending ``self``
+          to ``N`` and False otherwise.
+          If ``True`` return a tuple of a Boolean and
+          a permutation mapping ``self`` to ``N`` if such
+          a permutation exists, and (False, None) if it does not.
 
         OUTPUT:
 
-        A boolean value or a tuple of a boolean and a permutation.
+        A boolean value or a tuple of a Boolean and a permutation.
 
         EXAMPLES: An example::
 
@@ -6604,7 +6618,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: M.is_permutation_of(N)
             True
 
-        Some non-examples::
+        Some examples that are not permutations of each other::
 
             sage: N = matrix(ZZ,[[1,2,3],[4,5,6],[7,8,9]])
             sage: N
@@ -6613,9 +6627,6 @@ cdef class Matrix(matrix1.Matrix):
             [7 8 9]
             sage: M.is_permutation_of(N)
             False
-
-        ::
-
             sage: N = matrix(ZZ,[[1,2],[3,4]])
             sage: N
             [1 2]
@@ -6623,33 +6634,34 @@ cdef class Matrix(matrix1.Matrix):
             sage: M.is_permutation_of(N)
             False
 
-        And for when ``certify`` is True::
+        And for when ``check`` is True::
 
             sage: N = matrix(ZZ,[[1,2,3],[2,6,4],[3,5,3]])
             sage: N
             [1 2 3]
             [2 6 4]
             [3 5 3]
-            sage: M.is_permutation_of(N,certify=True)
+            sage: M.is_permutation_of(N, check=True)
             (True, ((2,3), ()))
         """
-        ncols=self.ncols()
-        nrows=self.nrows()
+        ncols = self.ncols()
+        nrows = self.nrows()
         if not (N.ncols() == ncols and N.nrows() == nrows):
-            if certify:
-                return (False,None)
+            if check:
+                return (False, None)
             else:
                 return False
-        M_B=self.as_bipartite_graph()
-        N_B=N.as_bipartite_graph()
-        truth,perm=N_B.is_isomorphic(M_B,certify=True,edge_labels=True)
-        if certify:
+        M_B = self.as_bipartite_graph()
+        N_B = N.as_bipartite_graph()
+        truth, perm = N_B.is_isomorphic(M_B, certify=True, edge_labels=True)
+        if check:
             from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
             if perm:
-                row_perms=[value for k,value in sorted(perm.items(),key=lambda x:x[0]) if k<=nrows]
-                col_perms=[value-nrows for k,value in sorted(perm.items(),key=lambda x:x[0]) if k>nrows]
-                perm=(PermutationGroupElement(row_perms),PermutationGroupElement(col_perms))
-            return truth,perm
+                s = sorted(perm.items(), key=lambda x:x[0])
+                row_perms = [value for k, value in s if k <= nrows]
+                col_perms = [value-nrows for k, value in s if k > nrows]
+                perm = (PermutationGroupElement(row_perms), PermutationGroupElement(col_perms))
+            return truth, perm
         else:
             return truth
 

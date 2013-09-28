@@ -501,10 +501,10 @@ class QuotientRing_nc(ring.Ring, sage.structure.parent_gens.ParentWithGens):
                 names = self.cover_ring().variable_names()
             except ValueError:
                 names = None
-        return QuotientFunctor(self.__I, names=names, as_field=isinstance(self, Field),
-                              domain=self.cover_ring().category(),
-                               codomain=self.category(),
-                               category=self.category()), self.__R
+        if self in CommutativeRings():
+            return QuotientFunctor(self.__I, names=names, domain=CommutativeRings(), codomain=CommutativeRings(), as_field=isinstance(self, Field)), self.__R
+        else:
+            return QuotientFunctor(self.__I, names=names, as_field=isinstance(self, Field)), self.__R
 
     def _repr_(self):
         """

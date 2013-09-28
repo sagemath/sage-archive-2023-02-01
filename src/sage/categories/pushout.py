@@ -2369,7 +2369,8 @@ class CompletionFunctor(ConstructionFunctor):
           In the ``lattice-cap`` precision case, ``prec`` will be a tuple instead.
 
         - ``extras`` (optional dictionary): Information on how to print elements, etc.
-          If 'type' is given as a key, the corresponding value should be a string among the following:
+          If 'type' is given as a key, the corresponding value should be a string among
+          the following:
 
           - 'RDF', 'Interval', 'RLF', or 'RR' for completions at infinity
 
@@ -2384,11 +2385,17 @@ class CompletionFunctor(ConstructionFunctor):
             5-adic Field with capped relative precision 100
             sage: F1(ZZ)
             5-adic Ring with capped relative precision 100
+            sage: F1.type is None
+            True
+            sage: sorted(F1.extras.items())
+            []
             sage: F2 = RR.construction()[0]
             sage: F2
             Completion[+Infinity, prec=53]
+            sage: F2.type
+            'MPFR'
             sage: F2.extras
-            {'rnd': 0, 'sci_not': False, 'type': 'MPFR'}
+            {'rnd': 0, 'sci_not': False}
         """
         Functor.__init__(self, Rings(), Rings())
         self.p = p
@@ -2695,17 +2702,17 @@ class QuotientFunctor(ConstructionFunctor):
         INPUT:
 
         - ``I``, an ideal (the modulus)
-        - ``names`` (optional string or list of strings), the names for the quotient ring generators
-        - ``as_field`` (optional bool, default false), return the quotient ring as field (if available).
-        - ``domain`` (optional category, default ``Rings()``), the domain of this functor.
-        - ``codomain`` (optional category, default ``Rings()``), the codomain of this functor.
-        - Further named arguments. In particular, an implementation of the quotient can be suggested here.
-          These named arguments are passed to the quotient construction.
-
-        NOTE:
-
-        If the category ``codomain`` is given, then it is passed as a named
-        argument ``category`` to the quotient being constructed.
+        - ``names`` (optional string or list of strings), the names for the
+          quotient ring generators
+        - ``as_field`` (optional bool, default false), return the quotient
+          ring as field (if available).
+        - ``domain`` (optional category, default ``Rings()``), the domain of
+          this functor.
+        - ``codomain`` (optional category, default ``Rings()``), the codomain
+          of this functor.
+        - Further named arguments. In particular, an implementation of the
+          quotient can be suggested here.  These named arguments are passed to
+          the quotient construction.
 
         TESTS::
 
@@ -2729,7 +2736,6 @@ class QuotientFunctor(ConstructionFunctor):
             Ring of integers modulo 5
 
         """
-        kwds_cat = kwds.get('category')
         Functor.__init__(self, domain, codomain)
         
         self.I = I
@@ -2782,7 +2788,7 @@ class QuotientFunctor(ConstructionFunctor):
             Q = R.quo(I, names=self.names, **self.kwds)
         except IndexError: # That may happen!
             raise CoercionException("Can not apply this quotient functor to %s" % R)
-        if self.as_field:# and hasattr(Q, 'field'):
+        if self.as_field:
             try:
                 Q = Q.field()
             except AttributeError:

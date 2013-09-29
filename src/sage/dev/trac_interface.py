@@ -873,7 +873,7 @@ class TracInterface(object):
         self._UI.info("Your comment has been recorded: %s"%url)
 
     def edit_ticket_interactive(self, ticket):
-        """
+        r"""
         Edit ``ticket`` on trac.
 
         EXAMPLES::

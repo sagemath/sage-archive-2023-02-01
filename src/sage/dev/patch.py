@@ -96,10 +96,10 @@ def import_patch(self, patchname=None, url=None, local_file=None, diff_format=No
 
     .. SEEALSO::
 
-    - :meth:`download_patch` -- download a patch to a local file.
+        - :meth:`download_patch` -- download a patch to a local file.
 
-    - :meth:`download` -- merges in changes from a git branch rather than a
-      patch.
+        - :meth:`download` -- merges in changes from a git branch
+          rather than a patch.
 
     TESTS:
 
@@ -308,8 +308,8 @@ def download_patch(self, ticket=None, patchname=None, url=None):
 
     .. SEEALSO::
 
-    - :meth:`import_patch` -- also creates a commit on the current branch
-      from the patch.
+        - :meth:`import_patch` -- also creates a commit on the current
+          branch from the patch.
 
     EXAMPLES::
 

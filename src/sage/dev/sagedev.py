@@ -289,7 +289,7 @@ class SageDev(object):
             sage: dev.git.silent.branch("branch1")
             sage: dev.git.silent.branch("branch2")
 
-       Checking out a branch::
+        Checking out a branch::
 
             sage: dev.checkout(branch="branch1")
             sage: dev.git.current_branch()
@@ -659,7 +659,7 @@ class SageDev(object):
             sage: dev.git.silent.branch("branch1")
             sage: dev.git.silent.branch("branch2")
 
-       Checking out a branch::
+        Checking out a branch::
 
             sage: dev.checkout(branch="branch1")
             sage: dev.git.current_branch()
@@ -1014,10 +1014,10 @@ class SageDev(object):
 
         .. SEEALSO::
 
-        - :meth:`push` -- Push changes to the remote server.  This
-          is the next step once you've committed some changes.
+            - :meth:`push` -- Push changes to the remote server.  This
+              is the next step once you've committed some changes.
 
-        - :meth:`diff` -- Show changes that will be committed.
+            - :meth:`diff` -- Show changes that will be committed.
 
         TESTS:
 
@@ -1120,7 +1120,8 @@ class SageDev(object):
 
         .. SEEALSO::
 
-        - :meth:`push` -- To push changes after setting the remote branch
+            - :meth:`push` -- To push changes after setting the remote
+              branch
 
         TESTS:
 
@@ -1198,10 +1199,10 @@ class SageDev(object):
 
         .. SEEALSO::
 
-        - :meth:`commit` -- Save changes to the local repository.
+            - :meth:`commit` -- Save changes to the local repository.
 
-        - :meth:`pull` -- Update a ticket with changes from the remote
-          repository.
+            - :meth:`pull` -- Update a ticket with changes from the remote
+              repository.
 
         TESTS:
 
@@ -1790,14 +1791,14 @@ class SageDev(object):
         self.trac.edit_ticket_interactive(ticket)
 
     def needs_review(self, ticket=None, comment=''):
-        """
+        r"""
         Set a ticket on trac to ``needs_review``.
 
         INPUT:
 
-        - ``ticket`` -- an integer or string identifying a ticket or ``None``
-        (default: ``None``), the number of the ticket to edit.  If ``None``,
-        edit the :meth:`_current_ticket`.
+        - ``ticket`` -- an integer or string identifying a ticket or
+          ``None`` (default: ``None``), the number of the ticket to
+          edit.  If ``None``, edit the :meth:`_current_ticket`.
 
         - ``comment`` -- a comment to go with the status change.
 
@@ -1839,14 +1840,14 @@ class SageDev(object):
         self._UI.info("Ticket #%s marked as needing review"%ticket)
 
     def needs_work(self, ticket=None, comment=''):
-        """
+        r"""
         Set a ticket on trac to ``needs_work``.
 
         INPUT:
 
-        - ``ticket`` -- an integer or string identifying a ticket or ``None``
-        (default: ``None``), the number of the ticket to edit.  If ``None``,
-        edit the :meth:`_current_ticket`.
+        - ``ticket`` -- an integer or string identifying a ticket or
+          ``None`` (default: ``None``), the number of the ticket to
+          edit.  If ``None``, edit the :meth:`_current_ticket`.
 
         - ``comment`` -- a comment to go with the status change.
 
@@ -1897,14 +1898,14 @@ class SageDev(object):
         self._UI.info("Ticket #%s marked as needing work"%ticket)
 
     def needs_info(self, ticket=None, comment=''):
-        """
+        r"""
         Set a ticket on trac to ``needs_info``.
 
         INPUT:
 
-        - ``ticket`` -- an integer or string identifying a ticket or ``None``
-        (default: ``None``), the number of the ticket to edit.  If ``None``,
-        edit the :meth:`_current_ticket`.
+        - ``ticket`` -- an integer or string identifying a ticket or
+          ``None`` (default: ``None``), the number of the ticket to
+          edit.  If ``None``, edit the :meth:`_current_ticket`.
 
         - ``comment`` -- a comment to go with the status change.
 
@@ -1955,14 +1956,14 @@ class SageDev(object):
         self._UI.info("Ticket #%s marked as needing info"%ticket)
 
     def positive_review(self, ticket=None, comment=''):
-        """
+        r"""
         Set a ticket on trac to ``positive_review``.
 
         INPUT:
 
-        - ``ticket`` -- an integer or string identifying a ticket or ``None``
-        (default: ``None``), the number of the ticket to edit.  If ``None``,
-        edit the :meth:`_current_ticket`.
+        - ``ticket`` -- an integer or string identifying a ticket or
+          ``None`` (default: ``None``), the number of the ticket to
+          edit.  If ``None``, edit the :meth:`_current_ticket`.
 
         - ``comment`` -- a comment to go with the status change.
 
@@ -2359,10 +2360,10 @@ class SageDev(object):
 
         .. SEEALSO::
 
-        - :meth:`prune_closed_tickets` -- abandon tickets that have
-          been closed.
+            - :meth:`prune_closed_tickets` -- abandon tickets that have
+              been closed.
 
-        - :meth:`local_tickets` -- list local non-abandoned tickets.
+            - :meth:`local_tickets` -- list local non-abandoned tickets.
 
         TESTS:
 
@@ -2453,8 +2454,8 @@ class SageDev(object):
 
         .. SEEALSO::
 
-        - :meth:`merge` -- merge into the current branch rather than creating a
-          new one
+            - :meth:`merge` -- merge into the current branch rather
+              than creating a new one
 
         TESTS:
 
@@ -2578,13 +2579,14 @@ class SageDev(object):
 
         .. SEEALSO::
 
-        - :meth:`show_dependencies` -- see the current dependencies.
+            - :meth:`show_dependencies` -- see the current
+              dependencies.
 
-        - :meth:`GitInterface.merge` -- git's merge command has more options
-          and can merge multiple branches at once.
+            - :meth:`GitInterface.merge` -- git's merge command has
+              more options and can merge multiple branches at once.
 
-        - :meth:`gather` -- creates a new branch to merge into rather than
-          merging into the current branch.
+            - :meth:`gather` -- creates a new branch to merge into
+              rather than merging into the current branch.
 
         TESTS:
 
@@ -2812,12 +2814,12 @@ class SageDev(object):
 
         .. SEEALSO::
 
-        - :meth:`abandon_ticket` -- hide tickets from this method.
+            - :meth:`abandon_ticket` -- hide tickets from this method.
 
-        - :meth:`remote_status` -- also show status compared to the
-          trac server.
+            - :meth:`remote_status` -- also show status compared to
+              the trac server.
 
-        - :meth:`current_ticket` -- get the current ticket.
+            - :meth:`current_ticket` -- get the current ticket.
 
         TESTS:
 
@@ -2894,9 +2896,11 @@ class SageDev(object):
 
         .. SEEALSO::
 
-        - :meth:`checkout` -- checkout another branch, ready to develop on it.
+            - :meth:`checkout` -- checkout another branch, ready to
+              develop on it.
 
-        - :meth:`pull` -- pull a branch from the server and merge it.
+            - :meth:`pull` -- pull a branch from the server and merge
+              it.
 
         TESTS:
 
@@ -2953,10 +2957,11 @@ class SageDev(object):
 
         .. SEEALSO::
 
-        - :meth:`commit` -- record changes into the repository.
+            - :meth:`commit` -- record changes into the repository.
 
-        - :meth:`local_tickets` -- list local tickets (you may want to commit
-          your changes to a branch other than the current one).
+            - :meth:`local_tickets` -- list local tickets (you may
+              want to commit your changes to a branch other than the
+              current one).
 
         TESTS:
 
@@ -3193,16 +3198,16 @@ class SageDev(object):
 
         .. SEEALSO::
 
-        - :meth:`TracInterface.dependencies` -- Query Trac to find
-          dependencies.
+            - :meth:`TracInterface.dependencies` -- Query Trac to find
+              dependencies.
 
-        - :meth:`remote_status` -- will show the status of tickets
-          with respect to the remote server.
+            - :meth:`remote_status` -- will show the status of tickets
+              with respect to the remote server.
 
-        - :meth:`merge` -- Merge in changes from a dependency.
+            - :meth:`merge` -- Merge in changes from a dependency.
 
-        - :meth:`diff` -- Show the changes in this branch over the
-          dependencies.
+            - :meth:`diff` -- Show the changes in this branch over the
+              dependencies.
 
         TESTS:
 

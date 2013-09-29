@@ -2,9 +2,6 @@ from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
 
 cdef class Map(Element):
-    cdef Parent _domain
-    cdef Parent _codomain
-
     cdef public int _coerce_cost # a rough measure of the cost of using this morphism in the coercion system.
                           # 10 by default, 100 if a DefaultCoercionMorphism, 10000 if inexact.
 
@@ -15,8 +12,8 @@ cdef class Map(Element):
     cpdef Element _call_(self, x)
     cpdef Element _call_with_args(self, x, args=*, kwds=*)
 
-    cpdef domain(self)
-    cpdef codomain(self)
+    cdef public domain   # will be either a weakref or a constant map
+    cdef public codomain
 
     cdef public _repr_type_str
 

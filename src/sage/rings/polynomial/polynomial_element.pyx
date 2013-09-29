@@ -6777,7 +6777,7 @@ cdef class PolynomialBaseringInjection(Morphism):
             sage: parent(m(2))
             Univariate Polynomial Ring in x over Integer Ring
         """
-        return self._new_constant_poly_(x, self._codomain)
+        return self._new_constant_poly_(x, self.codomain())
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
         """
@@ -6788,11 +6788,11 @@ cdef class PolynomialBaseringInjection(Morphism):
             (1 + O(5^11))
         """
         try:
-            return self._codomain._element_constructor_(x, *args, **kwds)
+            return self.codomain()._element_constructor_(x, *args, **kwds)
         except AttributeError:
             # if there is no element constructor,
             # there is a custom call method.
-            return self._codomain(x, *args, **kwds)
+            return self.codomain()(x, *args, **kwds)
 
     def section(self):
         """
@@ -6807,4 +6807,4 @@ cdef class PolynomialBaseringInjection(Morphism):
             sage: type(m.section())
             <type 'sage.rings.polynomial.polynomial_element.ConstantPolynomialSection'>
         """
-        return ConstantPolynomialSection(self._codomain, self._domain)
+        return ConstantPolynomialSection(self.codomain(), self.domain())

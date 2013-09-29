@@ -63,6 +63,7 @@ AUTHOR:
 from functor cimport Functor
 from morphism cimport Morphism
 from map cimport Map
+from sage.structure.parent cimport Parent
 
 import homset
 import sage.structure.element
@@ -272,14 +273,17 @@ cdef class PrecomposedAction(Action):
     def __init__(self, Action action, Map left_precomposition, Map right_precomposition):
         left = action.left_domain()
         right = action.right_domain()
+        cdef Parent lco, rco
         if left_precomposition is not None:
-            if left_precomposition._codomain is not left:
-                left_precomposition = homset.Hom(left_precomposition._codomain, left).natural_map() * left_precomposition
-            left = left_precomposition._domain
+            lco = left_precomposition.codomain()
+            if lco is not left:
+                left_precomposition = homset.Hom(lco, left).natural_map() * left_precomposition
+            left = left_precomposition.domain()
         if right_precomposition is not None:
-            if right_precomposition._codomain is not right:
-              right_precomposition = homset.Hom(right_precomposition._codomain, right).natural_map() * right_precomposition
-            right = right_precomposition._domain
+            rco = right_precomposition.codomain()
+            if rco is not right:
+              right_precomposition = homset.Hom(rco, right).natural_map() * right_precomposition
+            right = right_precomposition.domain()
         if action._is_left:
             Action.__init__(self, left, action.underlying_set(), 1)
         else:

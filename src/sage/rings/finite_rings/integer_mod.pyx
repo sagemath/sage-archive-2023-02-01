@@ -102,7 +102,7 @@ from sage.categories.map cimport Map
 
 from sage.structure.sage_object import register_unpickle_override
 
-#from sage.structure.parent cimport Parent
+from sage.structure.parent cimport Parent
 
 cdef Integer one_Z = Integer(1)
 
@@ -4005,8 +4005,9 @@ cdef class IntegerMod_hom(Morphism):
     def __init__(self, parent):
         Morphism.__init__(self, parent)
         # we need to use element constructor so that we can register both coercions and conversions using these morphisms.
-        self.zero = self._codomain._element_constructor_(0)
-        self.modulus = self._codomain._pyx_order
+        cdef Parent C = self.codomain()
+        self.zero = C._element_constructor_(0)
+        self.modulus = C._pyx_order
     cpdef Element _call_(self, x):
         return IntegerMod(self.codomain(), x)
 
@@ -4077,8 +4078,8 @@ cdef class Integer_to_IntegerMod(IntegerMod_hom):
             if res < 0:
                 res += self.modulus.int64
             a = self.modulus.lookup(res)
-            if a._parent is not self._codomain:
-               a._parent = self._codomain
+#            if a._parent is not self._codomain:
+            a._parent = self.codomain()
 #                print (<Element>a)._parent, " is not ", parent
             return a
         else:
@@ -4090,7 +4091,7 @@ cdef class Integer_to_IntegerMod(IntegerMod_hom):
         return "Natural"
 
     def section(self):
-        return IntegerMod_to_Integer(self._codomain)
+        return IntegerMod_to_Integer(self.codomain())
 
 cdef class IntegerMod_to_Integer(Map):
     def __init__(self, R):
@@ -4146,8 +4147,8 @@ cdef class Int_to_IntegerMod(IntegerMod_hom):
                 res += self.modulus.int64
             if self.modulus.table is not None:
                 a = self.modulus.lookup(res)
-                if a._parent is not self._codomain:
-                   a._parent = self._codomain
+#                if a._parent is not self.codomain():
+                a._parent = self.codomain()
     #                print (<Element>a)._parent, " is not ", parent
                 return a
             else:

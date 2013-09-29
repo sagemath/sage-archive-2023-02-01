@@ -2345,13 +2345,14 @@ cdef class Parent(category_object.CategoryObject):
         cdef int num_paths = 1 # this is the number of paths we find before settling on the best (the one with lowest coerce_cost).
                                # setting this to 1 will make it return the first path found.
         cdef int mor_found = 0
-        cdef Parent R
+        cdef Parent R, D
         # Recurse.  Note that if S is the domain of one of the maps in self._coerce_from_list,
         # we will have stuck the map into _coerce_map_hash and thus returned it already.
         for mor in self._coerce_from_list:
-            if mor._domain is self:
+            D = mor.domain()
+            if D is self:
                 continue
-            if mor._domain is S:
+            if D is S:
                 if best_mor is None or mor._coerce_cost < best_mor._coerce_cost:
                     best_mor = mor
                 mor_found += 1
@@ -2359,8 +2360,8 @@ cdef class Parent(category_object.CategoryObject):
                     return best_mor
             else:
                 connecting = None
-                if EltPair(mor._domain, S, "coerce") not in _coerce_test_dict:
-                    connecting = mor._domain.coerce_map_from(S)
+                if EltPair(D, S, "coerce") not in _coerce_test_dict:
+                    connecting = D.coerce_map_from(S)
                 if connecting is not None:
                     mor = mor * connecting
                     if best_mor is None or mor._coerce_cost < best_mor._coerce_cost:

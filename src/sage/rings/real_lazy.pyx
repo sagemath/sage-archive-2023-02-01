@@ -1705,7 +1705,7 @@ cdef class LazyWrapperMorphism(Morphism):
             20
         """
         cdef LazyWrapper e = <LazyWrapper>PY_NEW(LazyWrapper)
-        e._parent = self._codomain
+        e._parent = self.codomain()
         if PY_TYPE_CHECK_EXACT(x, LazyWrapper):
             e._value = (<LazyWrapper>x)._value
         else:

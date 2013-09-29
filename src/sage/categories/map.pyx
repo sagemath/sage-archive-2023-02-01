@@ -20,6 +20,7 @@ include "sage/ext/stdsage.pxi"
 
 import homset
 from sage.structure.parent cimport Set_PythonType
+from sage.misc.constant_function import ConstantFunction
 
 # copied from sage.structure.parent
 cdef inline parent_c(x):
@@ -126,9 +127,11 @@ cdef class Map(Element):
         elif not isinstance(parent, homset.Homset):
             raise TypeError, "parent (=%s) must be a Homspace"%parent
         Element.__init__(self, parent)
-        self._domain = parent.domain()
-        self._codomain = parent.codomain()
-        if self._domain.is_exact() and self._codomain.is_exact():
+        D = parent.domain()
+        C = parent.codomain()
+        self.domain = ConstantFunction(D)
+        self.codomain = ConstantFunction(C)
+        if D.is_exact() and C.is_exact():
             self._coerce_cost = 10 # default value.
         else:
             self._coerce_cost = 10000 # inexact morphisms are bad.
@@ -163,8 +166,8 @@ cdef class Map(Element):
         # todo: the following can break during unpickling of complex
         # objects with circular references! In that case, _slots might
         # contain incomplete objects.
-        self._domain = _slots['_domain']
-        self._codomain = _slots['_codomain']
+        self.domain = ConstantFunction(_slots['_domain'])
+        self.codomain = ConstantFunction(_slots['_codomain'])
 
         # Several pickles exist without a _repr_type_str, so
         # if there is none saved, we just set it to None.
@@ -204,8 +207,8 @@ cdef class Map(Element):
             sage: f._extra_slots_test({"bla": 1})
             {'_codomain': Integer Ring, '_domain': Rational Field, 'bla': 1, '_repr_type_str': None}
         """
-        _slots['_domain'] = self._domain
-        _slots['_codomain'] = self._codomain
+        _slots['_domain'] = self.domain()
+        _slots['_codomain'] = self.codomain()
         _slots['_repr_type_str'] = self._repr_type_str
         return _slots
 
@@ -328,40 +331,6 @@ cdef class Map(Element):
         if d != '':
             s += "\n  Defn: %s"%('\n        '.join(self._repr_defn().split('\n')))
         return s
-
-    cpdef domain(self):
-        """
-        Return the domain of ``self``.
-
-        EXAMPLE::
-
-            sage: from sage.categories.map import Map
-            sage: f = Map(Hom(QQ, ZZ, Rings()))
-            sage: f.domain()
-            Rational Field
-            sage: R.<x,y> = QQ[]
-            sage: phi = R.hom([x+y,x-y],R)
-            sage: phi.domain()
-            Multivariate Polynomial Ring in x, y over Rational Field
-        """
-        return self._domain
-
-    cpdef codomain(self):
-        """
-        Return the codomain of ``self``.
-
-        EXAMPLE::
-
-            sage: from sage.categories.map import Map
-            sage: f = Map(Hom(QQ, ZZ, Rings()))
-            sage: f.codomain()
-            Integer Ring
-            sage: R.<x,y> = QQ[]
-            sage: phi = R.hom([x+y,x-y],R)
-            sage: phi.codomain()
-            Multivariate Polynomial Ring in x, y over Rational Field
-        """
-        return self._codomain
 
     def category_for(self):
         """
@@ -518,19 +487,20 @@ cdef class Map(Element):
 
         """
         P = parent_c(x)
-        if P is self._domain: # we certainly want to call _call_/with_args
+        cdef Parent D = self.domain()
+        if P is D: # we certainly want to call _call_/with_args
             if not args and not kwds:
                 return self._call_(x)
             return self._call_with_args(x, args, kwds)
         # Is there coercion?
-        converter = self._domain.coerce_map_from(P)
+        converter = D.coerce_map_from(P)
         if converter is None:
             try:
                 return self.pushforward(x,*args,**kwds)
             except (AttributeError, TypeError, NotImplementedError):
                 pass # raise TypeError, "%s must be coercible into %s"%(x, self._domain)
             try:
-                x = self._domain(x)
+                x = D(x)
             except (TypeError, NotImplementedError):
                 raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self._domain)
         else:
@@ -995,7 +965,7 @@ cdef class Map(Element):
               Defn: z |--> 3/11*a^3 + 4/11*a^2 + 9/11*a - 14/11
 
         """
-        if self._domain is not self._codomain and n != 1 and n != -1:
+        if self.domain() is not self.codomain() and n != 1 and n != -1:
             raise TypeError, "self must be an endomorphism."
         if n == 0:
             from sage.categories.morphism import IdentityMorphism
@@ -1051,7 +1021,7 @@ cdef class Map(Element):
             sage: {f: 1}[f]
             1
         """
-        return hash((self._domain, self._codomain))
+        return hash((self.domain(), self.codomain()))
 
 cdef class Section(Map):
     """

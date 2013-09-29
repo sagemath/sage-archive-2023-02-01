@@ -185,7 +185,7 @@ cdef class FormalCoercionMorphism(Morphism):
         return "Coercion"
 
     cpdef Element _call_(self, x):
-        return self._codomain.coerce(x)
+        return self.codomain().coerce(x)
 
 cdef class CallMorphism(Morphism):
 
@@ -193,7 +193,7 @@ cdef class CallMorphism(Morphism):
         return "Call"
 
     cpdef Element _call_(self, x):
-        return self._codomain(x)
+        return self.codomain()(x)
 
 cdef class IdentityMorphism(Morphism):
 
@@ -208,13 +208,14 @@ cdef class IdentityMorphism(Morphism):
     cpdef Element _call_(self, x):
         return x
 
-    cpdef Element _call_with_args(self, x, args=(), kwds={}):
+    cpdef Element _call_with_args(self, x, args=(), kwds={}): 
         if len(args) == 0 and len(kwds) == 0:
             return x
-        elif self._codomain._element_init_pass_parent:
-            return self._codomain._element_constructor(self._codomain, x, *args, **kwds)
+        cdef Parent C = self.codomain()
+        if C._element_init_pass_parent:
+            return C._element_constructor(C, x, *args, **kwds)
         else:
-            return self._codomain._element_constructor(x, *args, **kwds)
+            return C._element_constructor(x, *args, **kwds)
 
     def __mul__(left, right):
         if not isinstance(right, Map):

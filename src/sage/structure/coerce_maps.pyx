@@ -27,36 +27,38 @@ cdef class DefaultConvertMap(Map):
         Map.__init__(self, domain, codomain)
         self._coerce_cost = 100
         self._force_use = force_use
-        if self._codomain._element_constructor is None:
-            raise RuntimeError, "BUG in coercion model, no element constructor for %s" % type(self._codomain)
+        if (<Parent>codomain)._element_constructor is None:
+            raise RuntimeError, "BUG in coercion model, no element constructor for %s" % type(codomain)
         self._repr_type_str = "Coercion" if self._is_coercion else "Conversion"
 
     cpdef Element _call_(self, x):
+        cdef Parent C = self.codomain()
         try:
-            return self._codomain._element_constructor(self._codomain, x)
+            return C._element_constructor(C, x)
         except StandardError:
             if print_warnings:
-                print type(self._codomain), self._codomain
-                print type(self._codomain._element_constructor), self._codomain._element_constructor
+                print type(C), C
+                print type(C._element_constructor), C._element_constructor
             raise
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
+        cdef Parent C = self.codomain()
         try:
             if len(args) == 0:
                 if len(kwds) == 0:
                     # This line is apparently never used in any tests (hivert, 2009-04-28)
-                    return self._codomain._element_constructor(self._codomain, x)
+                    return C._element_constructor(C, x)
                 else:
-                    return self._codomain._element_constructor(self._codomain, x, **kwds)
+                    return C._element_constructor(C, x, **kwds)
             else:
                 if len(kwds) == 0:
-                    return self._codomain._element_constructor(self._codomain, x, *args)
+                    return C._element_constructor(C, x, *args)
                 else:
-                    return self._codomain._element_constructor(self._codomain, x, *args, **kwds)
+                    return C._element_constructor(C, x, *args, **kwds)
         except StandardError:
             if print_warnings:
-                print type(self._codomain), self._codomain
-                print type(self._codomain._element_constructor), self._codomain._element_constructor
+                print type(C), C
+                print type(C._element_constructor), C._element_constructor
             raise
 
 
@@ -73,30 +75,32 @@ cdef class DefaultConvertMap_unique(DefaultConvertMap):
     argument is assumed to be bound to the codomain).
     """
     cpdef Element _call_(self, x):
+        cdef Parent C = self.codomain()
         try:
-            return self._codomain._element_constructor(x)
+            return C._element_constructor(x)
         except StandardError:
             if print_warnings:
-                print type(self._codomain), self._codomain
-                print type(self._codomain._element_constructor), self._codomain._element_constructor
+                print type(C), C
+                print type(C._element_constructor), C._element_constructor
             raise
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
+        cdef Parent C = self.codomain()
         try:
             if len(args) == 0:
                 if len(kwds) == 0:
-                    return self._codomain._element_constructor(x)
+                    return C._element_constructor(x)
                 else:
-                    return self._codomain._element_constructor(x, **kwds)
+                    return C._element_constructor(x, **kwds)
             else:
                 if len(kwds) == 0:
-                    return self._codomain._element_constructor(x, *args)
+                    return C._element_constructor(x, *args)
                 else:
-                    return self._codomain._element_constructor(x, *args, **kwds)
+                    return C._element_constructor(x, *args, **kwds)
         except StandardError:
             if print_warnings:
-                print type(self._codomain), self._codomain
-                print type(self._codomain._element_constructor), self._codomain._element_constructor
+                print type(C), C
+                print type(C._element_constructor), C._element_constructor
             raise
 
 
@@ -144,20 +148,21 @@ cdef class NamedConvertMap(Map):
             sage: f(19).parent()
             Rational Field
         """
+        cdef Parent C = self.codomain()
         try:
             method = getattr(x, self.method_name)
         except AttributeError:
             if print_warnings:
                 print type(x), x
-                print type(self._codomain), self._codomain
+                print type(C), C
                 print self.method_name
-            raise TypeError, "Cannot coerce %s to %s"%(x, self._codomain)
+            raise TypeError, "Cannot coerce %s to %s"%(x, C)
         cdef Map m
-        cdef Element e = method(self._codomain)
+        cdef Element e = method(C)
         if e is None:
             raise RuntimeError, "BUG in coercion model: %s method of %s returned None" % (self.method_name, type(x))
-        if e._parent is not self._codomain:
-            m = self._codomain.convert_map_from(e._parent)
+        if e._parent is not C:
+            m = C.convert_map_from(e._parent)
             if m is None or m is self:
                 raise TypeError
             e = m._call_(e)
@@ -172,7 +177,8 @@ cdef class NamedConvertMap(Map):
             sage: f(x^2+1, check=True)
             x^2 + 1
         """
-        return self._codomain._element_constructor(self._call_(x), *args, **kwds)
+        cdef Parent C = self.codomain()
+        return C._element_constructor(self._call_(x), *args, **kwds)
 
 
 # Perhaps this could be a method, extracting (<PyMethodDescrObject *>(<object>Parent).coerce_map_from).d_method.ml_meth and/or PyCFunction_GET_FUNCTION(method)
@@ -256,20 +262,21 @@ cdef class CallableConvertMap(Map):
             RuntimeError: BUG in coercion model: <function foo at ...> returned None
         """
         cdef Element y
+        cdef Parent C = self.codomain()
         try:
             if self._parent_as_first_arg:
-                y = self._func(self._codomain, x)
+                y = self._func(C, x)
             else:
                 y = self._func(x)
         except StandardError:
             if print_warnings:
                 print self._func
-                print self._codomain
+                print C
             raise
         if y is None:
             raise RuntimeError, "BUG in coercion model: %s returned None" % (self._func)
-        elif y._parent is not self._codomain:
-            raise RuntimeError, "BUG in coercion model: %s returned element with wrong parent (expected %s got %s)" % (self._func, self._codomain, y._parent)
+        elif y._parent is not C:
+            raise RuntimeError, "BUG in coercion model: %s returned element with wrong parent (expected %s got %s)" % (self._func, C, y._parent)
         return y
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
@@ -294,18 +301,18 @@ cdef class CallableConvertMap(Map):
         cdef Element y
         try:
             if self._parent_as_first_arg:
-                y = self._func(self._codomain, x, *args, **kwds)
+                y = self._func(self.codomain(), x, *args, **kwds)
             else:
                 y = self._func(x, *args, **kwds)
         except StandardError:
             if print_warnings:
                 print self._func
-                print self._codomain
+                print self.codomain()
             raise
         if y is None:
             raise RuntimeError, "BUG in coercion model: %s returned None" % (self._func)
-        elif y._parent is not self._codomain:
-            raise RuntimeError, "BUG in coercion model: %s returned element with wrong parent (expected %s got %s)" % (self._func, self._codomain, y._parent)
+        elif y._parent is not self.codomain():
+            raise RuntimeError, "BUG in coercion model: %s returned element with wrong parent (expected %s got %s)" % (self._func, self.codomain(), y._parent)
         return y
 
 
@@ -329,7 +336,7 @@ cdef class CCallableConvertMap_class(Map):
             sage: f(1/3)
             -8/27
         """
-        return self._func(self._codomain, x)
+        return self._func(self.codomain(), x)
 
     def _repr_type(self):
         """

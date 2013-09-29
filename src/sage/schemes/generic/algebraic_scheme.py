@@ -2323,7 +2323,8 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
         the singularity of the ambient space and the second is the
         pull-back of `x^2+y^2-1` ::
 
-            sage: lp = LatticePolytope([(1,0,0),(1,1,0),(1,1,1),(1,0,1),(-2,-1,-1)])
+            sage: lp = LatticePolytope([(1,0,0),(1,1,0),(1,1,1),(1,0,1),(-2,-1,-1)],
+            ...                        lattice=ToricLattice(3))
             sage: X.<x,y,u,v,t> = CPRFanoToricVariety(Delta_polar=lp)
             sage: Y = X.subscheme(x*v+y*u+t)
             sage: cone = Cone([(1,0,0),(1,1,0),(1,1,1),(1,0,1)])
@@ -2595,7 +2596,8 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
 
         A smooth hypersurface in a compact singular toric variety::
 
-            sage: lp = LatticePolytope(matrix([(1,0,0),(1,1,0),(1,1,1),(1,0,1),(-2,-1,-1)]).transpose())
+            sage: lp = LatticePolytope([(1,0,0),(1,1,0),(1,1,1),(1,0,1),(-2,-1,-1)],
+            ...                        lattice=ToricLattice(3))
             sage: X.<x,y,u,v,t> = CPRFanoToricVariety(Delta_polar=lp)
             sage: Y = X.subscheme(x*v+y*u+t)
             sage: cone = Cone([(1,0,0),(1,1,0),(1,1,1),(1,0,1)])

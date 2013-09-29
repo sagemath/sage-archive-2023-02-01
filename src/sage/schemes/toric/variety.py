@@ -99,11 +99,11 @@ realized as the toric variety associated to the
     sage: P1xP1
     2-d toric variety covered by 4 affine patches
     sage: P1xP1.fan().rays()
-    N( 1,  0),
-    N( 0,  1),
-    N(-1,  0),
-    N( 0, -1)
-    in 2-d lattice N
+    M( 1,  0),
+    M( 0,  1),
+    M(-1,  0),
+    M( 0, -1)
+    in 2-d lattice M
     sage: P1xP1.gens()
     (z0, z1, z2, z3)
 
@@ -146,9 +146,9 @@ access the "building pieces"::
     sage: patch
     2-d affine toric variety
     sage: patch.fan().rays()
-    N(1, 0),
-    N(0, 1)
-    in 2-d lattice N
+    M(1, 0),
+    M(0, 1)
+    in 2-d lattice M
     sage: patch.embedding_morphism()
     Scheme morphism:
       From: 2-d affine toric variety
@@ -416,11 +416,11 @@ def ToricVariety(fan,
 
         sage: fan = FaceFan(lattice_polytope.octahedron(2))
         sage: fan.rays()
-        N( 1,  0),
-        N( 0,  1),
-        N(-1,  0),
-        N( 0, -1)
-        in 2-d lattice N
+        M( 1,  0),
+        M( 0,  1),
+        M(-1,  0),
+        M( 0, -1)
+        in 2-d lattice M
         sage: P1xP1 = ToricVariety(fan)
         sage: P1xP1.gens()
         (z0, z1, z2, z3)
@@ -650,16 +650,15 @@ class ToricVariety_field(AmbientSpace):
 
         TESTS::
 
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: P1xP1 = ToricVariety(fan)
+            sage: P1xP1 = toric_varieties.P1xP1()
             sage: P1xP1._check_satisfies_equations([1,1,1,1])
             True
-            sage: P1xP1._check_satisfies_equations([0,0,1,1])
-            True
             sage: P1xP1._check_satisfies_equations([0,1,0,1])
+            True
+            sage: P1xP1._check_satisfies_equations([0,0,1,1])
             Traceback (most recent call last):
             ...
-            TypeError: coordinates (0, 1, 0, 1)
+            TypeError: coordinates (0, 0, 1, 1)
             are in the exceptional set!
             sage: P1xP1._check_satisfies_equations([1,1,1])
             Traceback (most recent call last):
@@ -670,7 +669,7 @@ class ToricVariety_field(AmbientSpace):
             ...
             TypeError: 1 can not be used as coordinates!
             Use a list or a tuple.
-            sage: P1xP1._check_satisfies_equations([1,1,1,fan])
+            sage: P1xP1._check_satisfies_equations([1,1,1,P1xP1.fan()])
             Traceback (most recent call last):
             ...
             TypeError: coordinate Rational polyhedral fan
@@ -921,23 +920,16 @@ class ToricVariety_field(AmbientSpace):
         We will use the product of two projective lines with coordinates
         `(x, y)` for one and `(s, t)` for the other::
 
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: fan.rays()
-            N( 1,  0),
-            N( 0,  1),
-            N(-1,  0),
-            N( 0, -1)
-            in 2-d lattice N
-            sage: P1xP1 = ToricVariety(fan, "x s y t")
+            sage: P1xP1 = toric_varieties.P1xP1("x y s t")
             sage: P1xP1.inject_variables()
-            Defining x, s, y, t
+            Defining x, y, s, t
             sage: P1xP1._validate([x - y, x*s + y*t])
             [x - y, x*s + y*t]
             sage: P1xP1._validate([x + s])
             Traceback (most recent call last):
             ...
             ValueError: x + s is not homogeneous on
-            2-d toric variety covered by 4 affine patches!
+            2-d CPR-Fano toric variety covered by 4 affine patches!
         """
         for p in polynomials:
             if not self.is_homogeneous(p):
@@ -1146,11 +1138,11 @@ class ToricVariety_field(AmbientSpace):
             sage: fan = FaceFan(lattice_polytope.octahedron(2))
             sage: P1xP1 = ToricVariety(fan)
             sage: P1xP1.fan()
-            Rational polyhedral fan in 2-d lattice N
+            Rational polyhedral fan in 2-d lattice M
             sage: P1xP1.fan() is fan
             True
             sage: P1xP1.fan(1)[0]
-            1-d cone of Rational polyhedral fan in 2-d lattice N
+            1-d cone of Rational polyhedral fan in 2-d lattice M
         """
         return self._fan(dim, codim)
 
@@ -1252,16 +1244,7 @@ class ToricVariety_field(AmbientSpace):
         We will use the product of two projective lines with coordinates
         `(x, y)` for one and `(s, t)` for the other::
 
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: fan.rays()
-            N( 1,  0),
-            N( 0,  1),
-            N(-1,  0),
-            N( 0, -1)
-            in 2-d lattice N
-            sage: P1xP1 = ToricVariety(fan, "x s y t")
-            sage: P1xP1.inject_variables()
-            Defining x, s, y, t
+            sage: P1xP1.<x,y,s,t> = toric_varieties.P1xP1()
             sage: P1xP1.is_homogeneous(x - y)
             True
             sage: P1xP1.is_homogeneous(x*s + y*t)
@@ -1844,19 +1827,10 @@ class ToricVariety_field(AmbientSpace):
         We will construct a subscheme of the product of two projective lines
         with coordinates `(x, y)` for one and `(s, t)` for the other::
 
-            sage: fan = FaceFan(lattice_polytope.octahedron(2))
-            sage: fan.rays()
-            N( 1,  0),
-            N( 0,  1),
-            N(-1,  0),
-            N( 0, -1)
-            in 2-d lattice N
-            sage: P1xP1 = ToricVariety(fan, "x s y t")
-            sage: P1xP1.inject_variables()
-            Defining x, s, y, t
+            sage: P1xP1.<x,y,s,t> = toric_varieties.P1xP1()
             sage: X = P1xP1.subscheme([x*s + y*t, x^3+y^3])
             sage: X
-            Closed subscheme of 2-d toric variety
+            Closed subscheme of 2-d CPR-Fano toric variety
             covered by 4 affine patches defined by:
               x*s + y*t,
               x^3 + y^3
@@ -1864,7 +1838,7 @@ class ToricVariety_field(AmbientSpace):
             (x*s + y*t, x^3 + y^3)
             sage: X.defining_ideal()
             Ideal (x*s + y*t, x^3 + y^3)
-            of Multivariate Polynomial Ring in x, s, y, t
+            of Multivariate Polynomial Ring in x, y, s, t
             over Rational Field
             sage: X.base_ring()
             Rational Field
@@ -1872,8 +1846,8 @@ class ToricVariety_field(AmbientSpace):
             Spectrum of Rational Field
             sage: X.structure_morphism()
             Scheme morphism:
-              From: Closed subscheme of
-              2-d toric variety covered by 4 affine patches defined by:
+              From: Closed subscheme of 2-d CPR-Fano toric variety
+                    covered by 4 affine patches defined by:
               x*s + y*t,
               x^3 + y^3
               To:   Spectrum of Rational Field

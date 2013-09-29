@@ -872,6 +872,7 @@ class IntegralRayCollection(SageObject,
         """
         return self._lattice
 
+    @cached_method
     def dual_lattice(self):
         r"""
         Return the dual of the ambient lattice of ``self``.
@@ -880,7 +881,7 @@ class IntegralRayCollection(SageObject,
 
         - lattice. If possible (that is, if :meth:`lattice` has a
           ``dual()`` method), the dual lattice is returned. Otherwise,
-          `\ZZ^n` is returned, where `n` is the dimension of ``self``.
+          `\ZZ^n` is returned, where `n` is the dimension of :meth:`lattice`.
 
         EXAMPLES::
 
@@ -891,12 +892,10 @@ class IntegralRayCollection(SageObject,
             Ambient free module of rank 3
             over the principal ideal domain Integer Ring
         """
-        if '_dual_lattice' not in self.__dict__:
-            try:
-                self._dual_lattice = self.lattice().dual()
-            except AttributeError:
-                self._dual_lattice = ZZ**self.lattice_dim()
-        return self._dual_lattice
+        try:
+            return self.lattice().dual()
+        except AttributeError:
+            return ZZ**self.lattice_dim()
 
     def lattice_dim(self):
         r"""
@@ -2938,6 +2937,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             self._is_strictly_convex = convex
         return self._is_strictly_convex
 
+    @cached_method
     def lattice_polytope(self):
         r"""
         Return the lattice polytope associated to ``self``.
@@ -2972,11 +2972,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             [ 1 -1]
             [ 0  0]
         """
-        if "_lattice_polytope" not in self.__dict__:
-            self._lattice_polytope = LatticePolytope(
-                                tuple(self.rays()) + (self.lattice().zero(),),
-                                compute_vertices=not self.is_strictly_convex())
-        return self._lattice_polytope
+        return LatticePolytope(tuple(self.rays()) + (self.lattice().zero(),),
+                               compute_vertices=not self.is_strictly_convex())
 
     def line_set(self):
         r"""

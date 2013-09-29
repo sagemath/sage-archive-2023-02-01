@@ -308,13 +308,13 @@ def CPRFanoToricVariety(Delta=None,
         sage: P1xP1
         2-d CPR-Fano toric variety covered by 4 affine patches
         sage: P1xP1.fan()
-        Rational polyhedral fan in 2-d lattice N
+        Rational polyhedral fan in 2-d lattice M
         sage: P1xP1.fan().rays()
-        N( 1,  0),
-        N( 0,  1),
-        N(-1,  0),
-        N( 0, -1)
-        in 2-d lattice N
+        M( 1,  0),
+        M( 0,  1),
+        M(-1,  0),
+        M( 0, -1)
+        in 2-d lattice M
 
     "Unfortunately," this variety is smooth to start with and we cannot
     perform any subdivisions of the underlying fan without leaving the
@@ -585,8 +585,6 @@ def CPRFanoToricVariety(Delta=None,
         point_to_ray[point] = n
     # This can be simplified if LatticePolytopeClass is adjusted.
     rays = [Delta_polar.point(p) for p in coordinate_points]
-    for ray in rays:
-        ray.set_immutable()
     # Check/normalize charts and construct the fan based on them.
     if charts is None:
         # Start with the face fan

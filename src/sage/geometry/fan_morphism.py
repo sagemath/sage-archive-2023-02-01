@@ -19,7 +19,7 @@ Let's consider the face and normal fans of the "diamond" and the projection
 to the `x`-axis::
 
     sage: diamond = lattice_polytope.octahedron(2)
-    sage: face = FaceFan(diamond)
+    sage: face = FaceFan(diamond, lattice=ToricLattice(2))
     sage: normal = NormalFan(diamond)
     sage: N = face.lattice()
     sage: H = End(N)
@@ -147,7 +147,7 @@ class FanMorphism(FreeModuleMorphism):
     projection to the `x`-axis::
 
         sage: diamond = lattice_polytope.octahedron(2)
-        sage: face = FaceFan(diamond)
+        sage: face = FaceFan(diamond, lattice=ToricLattice(2))
         sage: normal = NormalFan(diamond)
         sage: N = face.lattice()
         sage: H = End(N)
@@ -957,7 +957,7 @@ class FanMorphism(FreeModuleMorphism):
         different algorithm is used in this case::
 
             sage: diamond = lattice_polytope.octahedron(2)
-            sage: face = FaceFan(diamond)
+            sage: face = FaceFan(diamond, lattice=ToricLattice(2))
             sage: normal = NormalFan(diamond)
             sage: N = face.lattice()
             sage: fm = FanMorphism(identity_matrix(2),

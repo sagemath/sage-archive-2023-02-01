@@ -211,7 +211,8 @@ from sage.rings.complex_double import CDF
 from sage.rings.real_lazy import RLF, CLF
 
 
-_nf_cache = {}
+import weakref
+_nf_cache = weakref.WeakValueDictionary()
 def NumberField(polynomial, name=None, check=True, names=None, cache=True,
                 embedding=None, latex_name=None,
                 assume_disc_small=False,
@@ -400,11 +401,11 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
 
     ::
 
-        sage: sage.rings.number_field.number_field._nf_cache = {}
+        sage: sage.rings.number_field.number_field._nf_cache.clear()
         sage: K.<x> = CyclotomicField(5)[]
         sage: W.<a> = NumberField(x^2 + 1); W
         Number Field in a with defining polynomial x^2 + 1 over its base field
-        sage: sage.rings.number_field.number_field._nf_cache = {}
+        sage: sage.rings.number_field.number_field._nf_cache.clear()
         sage: W1 = NumberField(x^2+1,'a')
         sage: K.<x> = CyclotomicField(5)[]
         sage: W.<a> = NumberField(x^2 + 1); W
@@ -445,14 +446,14 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
         key = (polynomial, polynomial.base_ring(), name, latex_name,
                embedding, embedding.parent() if embedding is not None else None,
                assume_disc_small, None if maximize_at_primes is None else tuple(maximize_at_primes))
-        if _nf_cache.has_key(key):
-            K = _nf_cache[key]()
-            if not K is None: return K
-
+        try:
+            return _nf_cache[key]
+        except KeyError:
+            pass
     if isinstance(R, NumberField_generic):
         S = R.extension(polynomial, name, check=check)
         if cache:
-            _nf_cache[key] = weakref.ref(S)
+            _nf_cache[key] = S
         return S
 
     if polynomial.degree() == 2:
@@ -463,7 +464,7 @@ def NumberField(polynomial, name=None, check=True, names=None, cache=True,
              assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes)
 
     if cache:
-        _nf_cache[key] = weakref.ref(K)
+        _nf_cache[key] = K
     return K
 
 

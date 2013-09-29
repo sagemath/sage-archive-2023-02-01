@@ -363,30 +363,21 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
         Set of rational points of 2-d CPR-Fano toric variety
         covered by 4 affine patches
 
-    The quotient `\mathbb{P}^2 / \ZZ_3` by the diagonal action::
+    The quotient `\mathbb{P}^2 / \ZZ_3` over `GF(7)` by the diagonal
+    action. This is tricky because the base field has a 3-rd root of
+    unity::
 
         sage: fan = NormalFan(ReflexivePolytope(2, 0))
         sage: X = ToricVariety(fan, base_field=GF(7))
         sage: point_set = X.point_set()
         sage: point_set.cardinality()
-        111
-        sage: sorted(p for p in X.point_set() if p[0] == 1)
-        [[1 : 0 : 0],
-         [1 : 0 : 1],
-         [1 : 0 : 3],
-         [1 : 1 : 0],
-         [1 : 1 : 1],
-         [1 : 1 : 2],
-         [1 : 1 : 3],
-         [1 : 1 : 4],
-         [1 : 1 : 5],
-         [1 : 1 : 6],
-         [1 : 3 : 0],
-         [1 : 3 : 1],
-         [1 : 3 : 2],
-         [1 : 3 : 3],
-         [1 : 3 : 4],
-         [1 : 3 : 5],
+        21
+        sage: sorted(X.point_set().list())
+        [[0 : 0 : 1], [0 : 1 : 0], [0 : 1 : 1], [0 : 1 : 3], 
+         [1 : 0 : 0], [1 : 0 : 1], [1 : 0 : 3], [1 : 1 : 0], 
+         [1 : 1 : 1], [1 : 1 : 2], [1 : 1 : 3], [1 : 1 : 4], 
+         [1 : 1 : 5], [1 : 1 : 6], [1 : 3 : 0], [1 : 3 : 1], 
+         [1 : 3 : 2], [1 : 3 : 3], [1 : 3 : 4], [1 : 3 : 5], 
          [1 : 3 : 6]]
 
     TESTS::
@@ -422,7 +413,7 @@ class SchemeHomset_points_toric_field(SchemeHomset_points_toric_base):
             sage: fan = NormalFan(ReflexivePolytope(2, 0))
             sage: X = ToricVariety(fan, base_field=GF(7))
             sage: X.point_set().cardinality()
-            111
+            21
         
         Fulton's formula does not apply since the variety is not
         smooth. And, indeed, naive application gives a different

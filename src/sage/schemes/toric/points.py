@@ -166,7 +166,8 @@ class NaiveFinitePointEnumerator(object):
 
         OUTPUT:
 
-        A tuple containing the elements of $Hom(A_{d-1,\text{free}}, F^\times)$
+        A tuple containing the elements of $Hom(A_{d-1,\text{free}},
+        F^\times)$, including the identity.
 
         EXAMPLES::
 
@@ -248,7 +249,7 @@ class NaiveFinitePointEnumerator(object):
         tors = self._Chow_group_torsion()
         if len(tors) == 0:  # optimization for smooth fans
             return free
-        result = set()
+        result = set(free)
         for f, t in CartesianProduct(free, tors):
             phases = tuple(x*y for x, y in zip(f, t))
             result.add(phases)

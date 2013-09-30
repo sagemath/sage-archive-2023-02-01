@@ -182,7 +182,7 @@ class UserInterface(object):
 
         INPUT:
 
-        - ``message`` -- a string
+        - ``message`` -- a string or list/tuple/iterable of strings.
 
         TESTS:
 
@@ -201,7 +201,7 @@ class UserInterface(object):
 
         INPUT:
 
-        - ``message`` -- a string
+        - ``message`` -- a string or list/tuple/iterable of strings.
 
         TESTS:
 
@@ -223,7 +223,7 @@ class UserInterface(object):
 
         INPUT:
 
-        - ``message`` -- a string
+        - ``message`` -- a string or list/tuple/iterable of strings.
 
         TESTS:
 
@@ -243,7 +243,7 @@ class UserInterface(object):
 
         INPUT:
 
-        - ``message`` -- a string
+        - ``message`` -- a string or list/tuple/iterable of strings.
 
         TESTS:
 

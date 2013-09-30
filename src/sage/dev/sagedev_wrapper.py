@@ -188,7 +188,7 @@ class SageDevWrapper(object):
                                             .format(e.exit_code))
                     self._sagedev._UI.show('This happened while executing "{0}".'
                                            .format(e.cmd), INFO_LEVEL)
-                    self._sagedev._UI.info("I tried my best to put your working tree and repository back"
+                    self._sagedev._UI.debug("I tried my best to put your working tree and repository back"
                                            " to its original state.")
                     if e.explain:
                         self._sagedev._UI.error(e.explain)
@@ -216,7 +216,7 @@ class SageDevWrapper(object):
                     self._sagedev._UI.info("You can try to restore your repository to a clean state by"
                                            " running {0} and {1}."
                                            .format(self._sagedev._format_command("clean"), 
-                                                   self._sagedev._format_command("switch",branch="master")))
+                                                   self._sagedev._format_command("checkout", branch="master")))
                     raise
                 except InvalidStateError as e:
                     self._sagedev._UI.error("Unexpectedly your repository was found to be in a"

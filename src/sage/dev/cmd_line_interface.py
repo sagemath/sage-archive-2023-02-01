@@ -265,7 +265,7 @@ class CmdLineInterface(UserInterface):
              finally:
                 os.close(fd)
         if dim is None:
-            raise EnvironmentError("cannot determine dimensions of terminal")
+            raise (80, 25)
         return tuple(int(x) for x in dim)
 
     def _ioctl_GWINSZ(self, fd):
@@ -344,11 +344,7 @@ class CmdLineInterface(UserInterface):
             sage: UI.show("I ate filet mignon for dinner.") # indirect doctest
             I ate filet mignon for dinner.
         """
-        try:
-            height, width = self._get_dimensions()
-        except EnvironmentError:
-            height, width = float('inf'), float('inf')
-
+        height, width = self._get_dimensions()
         message = textwrap.wrap(message.rstrip(), width)
         if len(message) <= height:
             print(self._color_code(log_level) + 
@@ -362,6 +358,33 @@ class CmdLineInterface(UserInterface):
                 import pydoc
                 self._pager = pydoc.getpager()
                 self._pager(message)
+
+    def info(self, message):
+        r"""
+        Display ``message``.
+
+        INPUT:
+
+        - ``message`` -- a string or list/tuple/iterable of strings.
+
+        TESTS:
+
+            sage: dev._sagedev._UI.info("I ate filet mignon for dinner.")
+            <BLANKLINE>
+            #  I ate filet mignon for dinner.
+        """
+        if isinstance(message, basestring):
+            message = [message]
+        height, width = self._get_dimensions()
+        prefix = '#  '
+        wrapped = ['']
+        for msg in message:
+            for line in textwrap.wrap(msg.rstrip(), width - len(prefix)):
+                wrapped.append(prefix + line)
+        from user_interface import INFO
+        print(self._color_code(INFO) + 
+              '\n'.join(wrapped) +
+              self._color_code())
 
     def edit(self, filename):
         r"""

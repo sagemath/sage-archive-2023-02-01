@@ -243,8 +243,8 @@ class TracInterface(object):
 
         if self.__username is None:
             self.__username = self._config['username'] = self._UI.get_input('Trac username:')
-            self._UI.info("Your trac username has been written to a configuration file for future sessions. To reset your username, use `dev.trac.reset_username()`.")
-
+            self._UI.info('Your trac username has been written to a configuration file for'
+                          ' future sessions. To reset your username, use "dev.trac.reset_username()".')
         return self.__username
 
     def reset_username(self):
@@ -265,7 +265,6 @@ class TracInterface(object):
             sage: trac._username
             Trac username: doctest2
             'doctest2'
-
         """
         self.__username = None
         if 'username' in self._config:
@@ -310,7 +309,6 @@ class TracInterface(object):
             'secret'
             sage: trac._password
             'secret'
-
         """
         self._check_password_timeout()
 
@@ -327,8 +325,8 @@ class TracInterface(object):
 
             if store_password == "yes":
                 self._config['password'] = self.__password
-                self._UI.info("Your trac password has been written to a configuration file. To reset your password, use `dev.trac.reset_password()`.")
-
+                self._UI.info('Your trac password has been written to a configuration file. To reset'
+                              ' your password, use "dev.trac.reset_password()".')
         self._postpone_password_timeout()
         return self.__password
 
@@ -357,7 +355,6 @@ class TracInterface(object):
             Traceback (most recent call last):
             ...
             KeyError: 'password'
-
         """
         self.__password = None
         self.__authenticated_server_proxy = None
@@ -400,7 +397,6 @@ class TracInterface(object):
             'secret'
             sage: trac._password # the timeout has no effect if the password can be read from the configuration file
             'secret'
-
         """
         import time
         if self.__auth_timeout is None or time.time() >= self.__auth_timeout:
@@ -428,7 +424,6 @@ class TracInterface(object):
             'secret'
             sage: trac._password # indirect doctest
             'secret'
-
         """
         import time
         new_timeout = time.time() + float(self._config.get('password_timeout', 300))
@@ -456,7 +451,6 @@ class TracInterface(object):
             sage: trac = TracInterface(config['trac'], DoctestUserInterface(config['UI']))
             sage: repr(trac._anonymous_server_proxy)
             '<ServerProxy for trac.sagemath.org/xmlrpc>'
-
         """
         if self.__anonymous_server_proxy is None:
             from sage.env import TRAC_SERVER_URI
@@ -495,7 +489,6 @@ class TracInterface(object):
             Traceback (most recent call last):
             ...
             AssertionError: doctest tried to access an authenticated session to trac
-
         """
         import sage.doctest
         assert not sage.doctest.DOCTEST_MODE, "doctest tried to access an authenticated session to trac"
@@ -554,9 +547,9 @@ class TracInterface(object):
             sage: trac = DoctestTracInterface(config['trac'], UI, DoctestTracServer())
             sage: trac.create_ticket('Summary', 'Description', {'type':'defect', 'component':'algebra'})
             1
-
         """
-        return self._authenticated_server_proxy.ticket.create(summary, description, attributes, True) # notification e-mail sent.
+        return self._authenticated_server_proxy.ticket.create(
+            summary, description, attributes, True) # notification e-mail sent.
 
     def add_comment(self, ticket, comment):
         r"""
@@ -762,7 +755,6 @@ class TracInterface(object):
             [13579, 13681]
             sage: dev.trac.dependencies(13147, recurse=True) # long time, optional: internet
             [13579, 13631, 13681]
-
         """
         ticket = int(ticket)
 
@@ -845,7 +837,6 @@ class TracInterface(object):
 
             sage: UI.append("a comment")
             sage: trac.add_comment_interactive(ticket)
-
         """
         ticket = int(ticket)
 
@@ -870,7 +861,7 @@ class TracInterface(object):
 
         url = self._authenticated_server_proxy.ticket.update(ticket, comment, attributes, True) # notification e-mail sent
 
-        self._UI.info("Your comment has been recorded: %s"%url)
+        self._UI.debug("Your comment has been recorded: %s"%url)
 
     def edit_ticket_interactive(self, ticket):
         r"""
@@ -896,7 +887,6 @@ class TracInterface(object):
 
             sage: UI.append("Summary: summary\ndescription\n")
             sage: trac.edit_ticket_interactive(ticket)
-
         """
         ticket = int(ticket)
         attributes = self._get_attributes(ticket)
@@ -914,7 +904,7 @@ class TracInterface(object):
         attributes.update(ret[2])
 
         url = self._authenticated_server_proxy.ticket.update(ticket, "", attributes, True) # notification e-mail sent.
-        self._UI.info("Ticket modified: %s"%url)
+        self._UI.debug("Ticket modified: %s"%url)
 
     def _edit_ticket_interactive(self, summary, description, attributes):
         r"""
@@ -959,7 +949,6 @@ class TracInterface(object):
             TicketSyntaxError: line 2: field `Invalid` not supported
             Do you want to try to fix your ticket file? [Yes/no]
             ('new summary', 'new description', {'branch': 'branch2'})
-
         """
         import tempfile, os
         fd, filename = tempfile.mkstemp()
@@ -1016,7 +1005,6 @@ class TracInterface(object):
             sage: UI.append("Summary: summary\nType: defect\nPriority: minor\nComponent: algebra\ndescription")
             sage: trac.create_ticket_interactive()
             1
-
         """
         attributes = {
                 "Type":         "defect",
@@ -1035,7 +1023,7 @@ class TracInterface(object):
         import urlparse
         from sage.env import TRAC_SERVER_URI
         ticket_url = urlparse.urljoin(self._config.get('server', TRAC_SERVER_URI), str(ticket))
-        self._UI.info("Created ticket #%s (%s)."%(ticket, ticket_url))
+        self._UI.debug("Created ticket #%s (%s)."%(ticket, ticket_url))
         return ticket
 
     @classmethod
@@ -1098,7 +1086,6 @@ class TracInterface(object):
             sage: TracInterface._parse_ticket_file(tmp)
             ('a summary', 'some description\nbranch:a branch', {})
             sage: os.unlink(tmp)
-
         """
         lines = list(open(filename).read().splitlines())
 

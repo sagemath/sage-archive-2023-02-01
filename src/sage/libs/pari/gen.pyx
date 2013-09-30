@@ -7040,7 +7040,7 @@ cdef class gen(sage.structure.element.RingElement):
     def idealappr(self, x, long flag=0):
         t0GEN(x)
         pari_catch_sig_on()
-        return self.new_gen(idealappr(self.g, t0))
+        return self.new_gen(idealappr0(self.g, t0, flag))
 
     def idealcoprime(self, x, y):
         """

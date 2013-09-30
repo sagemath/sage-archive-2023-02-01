@@ -5200,11 +5200,11 @@ class NumberField_generic(number_field_base.NumberField):
             sage: P,Q = K.ideal(3).prime_factors()
             sage: P
             Fractional ideal (3, a + 1)
-            sage: pi=K.uniformizer(P); pi
+            sage: pi = K.uniformizer(P); pi
             a + 1
             sage: K.ideal(pi).factor()
             (Fractional ideal (2, a + 1)) * (Fractional ideal (3, a + 1))
-            sage: pi=K.uniformizer(P,'negative'); pi
+            sage: pi = K.uniformizer(P,'negative'); pi
             1/2*a + 1/2
             sage: K.ideal(pi).factor()
             (Fractional ideal (2, a + 1))^-1 * (Fractional ideal (3, a + 1))
@@ -5220,20 +5220,39 @@ class NumberField_generic(number_field_base.NumberField):
             [1, 1, 1]
             sage: [ pilist[i] in Plist[i] for i in range(len(Plist)) ]
             [True, True, True]
+
+        ::
+
+            sage: K.<t> = NumberField(x^4 - x^3 - 3*x^2 - x + 1)
+            sage: [K.uniformizer(P) for P,e in factor(K.ideal(2))]
+            [2]
+            sage: [K.uniformizer(P) for P,e in factor(K.ideal(3))]
+            [t - 1]
+            sage: [K.uniformizer(P) for P,e in factor(K.ideal(5))]
+            [t^2 - t + 1, t + 2, t - 2]
+            sage: [K.uniformizer(P) for P,e in factor(K.ideal(7))]
+            [t^2 + 3*t + 1]
+            sage: [K.uniformizer(P) for P,e in factor(K.ideal(67))]
+            [t + 23, t + 26, t - 32, t - 18]
+
+        ALGORITHM:
+
+            Use PARI. More precisely, use the second component of
+            ``idealprimedec`` in the "positive" case. Use `idealappr`
+            with exponent of -1 and invert the result in the "negative"
+            case.
         """
         if not is_NumberFieldIdeal(P):
             P = self.ideal(P)
-        if not P.is_maximal():
-            raise ValueError, "P must be a nonzero prime"
-        if others == "negative":
-            P = ~P
-        elif others != "positive":
-            raise ValueError, "others must be 'positive' or 'negative'"
-        nf = self.pari_nf()
-        a = self(nf.idealappr(P.pari_hnf()))
-        if others == "negative":
-            a = ~a
-        return a
+        P = P.pari_prime()
+        if others == "positive":
+            return self(P[1])
+        elif others == "negative":
+            nf = self.pari_nf()
+            F = pari.matrix(1, 2, [P, -1])
+            return ~self(nf.idealappr(F, 1))
+        else:
+            raise ValueError("others must be 'positive' or 'negative'")
 
     def units(self, proof=None):
         """

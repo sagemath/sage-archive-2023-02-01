@@ -693,16 +693,26 @@ class SageDev(MercurialPatchMixin):
             The following files in your working directory contain uncommitted changes:
              tracked
             Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] s
-            Your changes have been recorded on a new branch "stash/1".
+            <BLANKLINE>
+            Your changes have been moved to the git stash stack. To re-apply your changes
+            later use "git stash apply".
 
-        And unstash the changes later::
+        And retrieve the stashed changes later::
 
             sage: dev.checkout(branch='branch2')
-            sage: dev.unstash()
-            stash/1
-            sage: UI.append("n")
-            sage: dev.unstash('stash/1')
-            The changes recorded in "stash/1" have been restored in your working directory.  Would you like to delete the branch they were stashed in? [Yes/no] n
+            sage: dev.git.echo.stash('apply')
+            # On branch branch2
+            # Changes not staged for commit:
+            #   (use "git add <file>..." to update what will be committed)
+            #   (use "git checkout -- <file>..." to discard changes in working directory)
+            #
+            #   modified:   tracked
+            #
+            # Untracked files:
+            #   (use "git add <file>..." to include in what will be committed)
+            #
+            #   untracked
+            no changes added to commit (use "git add" and/or "git commit -a")
 
         Or we can just discard the changes::
 
@@ -1587,7 +1597,10 @@ class SageDev(MercurialPatchMixin):
             The following files in your working directory contain uncommitted changes:
              tracked
             Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] stash
-            Your changes have been recorded on a new branch "stash/1".
+            <BLANKLINE>
+            Your changes have been moved to the git stash stack. To re-apply your changes
+            later use "git stash apply".
+            <BLANKLINE>
             sage: dev.clean()
         """
         try:
@@ -1607,136 +1620,11 @@ class SageDev(MercurialPatchMixin):
             if cancel_unless_clean:
                 raise OperationCancelledError("User requested not to clean the working directory.")
         elif sel == 'stash':
-            from git_error import DetachedHeadError
-            try:
-                current_branch = self.git.current_branch()
-            except DetachedHeadError:
-                current_branch = None
-                current_commit = self.git.current_commit()
-
-            branch = self._new_local_branch_for_stash()
-            try:
-                try:
-                    self.git.super_silent.stash()
-                    try:
-                        self._UI.info('Creating a new branch "{0}" which contains your stashed changes.'.format(branch))
-                        self.git.super_silent.stash('branch',branch,'stash@{0}')
-                        self._UI.info('Committing your changes to "{0}".'.format(branch))
-                        self.git.super_silent.commit('-a', message="Changes stashed by clean()")
-                    except:
-                        self.git.super_silent.stash('drop')
-                        raise
-                except:
-                    if self._is_local_branch_name(branch, exists=True):
-                        self.git.super_silent.branch("-D", branch)
-                    raise
-            finally:
-                self.git.super_silent.checkout(current_branch or current_commit)
-
-            self._UI.show('Your changes have been recorded on a new branch "{0}".'.format(branch))
-            self._UI.info('To recover your changes later use "{1}".'.format(branch, self._format_command("unstash",branch=branch)))
+            self.git.super_silent.stash()
+            self._UI.show('Your changes have been moved to the git stash stack. '
+                          'To re-apply your changes later use "git stash apply".')
         else:
             raise NotImplementedError
-
-    def unstash(self, branch=None, show_diff=False):
-        r"""
-        Unstash the changes recorded in ``branch``.
-
-        INPUT:
-
-        - ``branch`` -- the name of a local branch or ``None`` (default:
-          ``None``), if ``None`` list all stashes.
-
-        - ``show_diff`` -- if ``True``, shows the diff stored in the
-          stash rather than applying it.
-
-        TESTS:
-
-        Set up a single user for doctesting::
-
-            sage: from sage.dev.test.sagedev import single_user_setup
-            sage: dev, config, UI, server = single_user_setup()
-
-        Create some stashes::
-
-            sage: dev.unstash()
-            (no stashes)
-            sage: with open("tracked", "w") as f: f.write("foo")
-            sage: dev.git.silent.add("tracked")
-            sage: UI.append("s")
-            sage: dev.clean()
-            The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] s
-            Your changes have been recorded on a new branch "stash/1".
-            sage: with open("tracked", "w") as f: f.write("boo")
-            sage: dev.git.silent.add("tracked")
-            sage: UI.append("s")
-            sage: dev.clean()
-            The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] s
-            Your changes have been recorded on a new branch "stash/2".
-            sage: dev.unstash()
-            stash/1
-            stash/2
-
-        See what's in a stash::
-
-            sage: dev.unstash("stash/1", show_diff=True)
-            diff --git a/tracked b/tracked
-            new file mode 100644
-            index 0000000...
-            --- /dev/null
-            +++ b/tracked
-            @@ -0,0 +1 @@
-            +foo
-            \ No newline at end of file
-
-        Unstash a change::
-
-            sage: UI.append("y")
-            sage: dev.unstash("stash/1")
-            The changes recorded in "stash/1" have been restored in your working directory.  Would you like to delete the branch they were stashed in? [Yes/no] y
-
-        Unstash something that is not a stash::
-
-            sage: dev.unstash("HEAD")
-            ValueError: "HEAD" is not a valid name for a stash.
-
-        Unstash a conflicting change::
-
-            sage: dev.unstash("stash/2")
-            The changes recorded in "stash/2" do not apply cleanly to your working directory.
-        """
-        if branch is None:
-            stashes = [stash for stash in self.git.local_branches() if self._is_stash_name(stash)]
-            stashes.sort()
-            stashes = "\n".join(stashes)
-            stashes = stashes or "(no stashes)"
-            self._UI.info('Use "{0}" to apply the changes recorded in the stash to your working directory, or "{1}" to see the changes recorded in the stash, where "name" is one of the following.'.format(self._format_command("unstash", branch="name"), self._format_command("unstash",branch="name",show_diff=True), stashes))
-            self._UI.show(stashes)
-            return
-        elif show_diff:
-            self.git.echo.diff(branch + '^..' + branch)
-            return
-
-        self._check_stash_name(branch, exists=True)
-
-        self.reset_to_clean_state()
-
-        try:
-            try:
-                self.git.super_silent.cherry_pick(branch, no_commit=True)
-            finally:
-                self.git.super_silent.reset()
-        except GitError as e:
-            self._UI.error('The changes recorded in "{0}" do not apply cleanly to your working directory.'.format(branch))
-            self._UI.info('Some of your files now have conflict markers. You should resolve the changes manually or use "{0}" to reset to the last commit, but be aware that this command will undo any uncommitted changes'.format(self._format_command("clean")))
-            raise OperationCancelledError("unstash failed")
-
-        if self._UI.confirm('The changes recorded in "{0}" have been restored in your working directory.  Would you like to delete the branch they were stashed in?'.format(branch), True):
-            self.git.branch(branch, D=True)
 
     def edit_ticket(self, ticket=None):
         r"""
@@ -3722,82 +3610,9 @@ class SageDev(MercurialPatchMixin):
         """
         if not isinstance(name, str):
             raise ValueError("name must be a string")
-
         if not name.startswith("trash/"):
             return False
-
         return self._is_local_branch_name(name, exists)
-
-    def _is_stash_name(self, name, exists=any):
-        r"""
-        Return whether ``name`` is a valid name for a stash.
-
-        INPUT:
-
-        - ``name`` -- a string
-
-        - ``exists`` -- a boolean or ``any`` (default: ``any``), if ``True``,
-          check whether ``name`` is the name of an existing stash; if
-          ``False``, check whether ``name`` is the name of a stash that does
-          not exist yet.
-
-        TESTS::
-
-            sage: from sage.dev.test.sagedev import single_user_setup
-            sage: dev, config, UI, server = single_user_setup()
-            sage: dev = dev._sagedev
-
-            sage: dev._is_stash_name("branch1")
-            False
-            sage: dev._is_stash_name("stash")
-            False
-            sage: dev._is_stash_name("stash/")
-            False
-            sage: dev._is_stash_name("stash/1")
-            True
-            sage: dev._is_stash_name("stash/1", exists=True)
-            False
-        """
-        if not isinstance(name, str):
-            raise ValueError("name must be a string")
-
-        if not name.startswith("stash/"):
-            return False
-
-        return self._is_local_branch_name(name, exists)
-
-    def _check_stash_name(self, name, exists=any):
-        r"""
-        Check whether ``name`` is a valid name for a stash.
-
-        INPUT:
-
-        - ``name`` -- a string
-
-        - ``exists`` -- a boolean or ``any`` (default: ``any``), if ``True``,
-          check whether ``name`` is the name of an existing stash; if
-          ``False``, check whether ``name`` is the name of a stash that does
-          not exist yet.
-
-        TESTS::
-
-            sage: from sage.dev.test.sagedev import single_user_setup
-            sage: dev, config, UI, server = single_user_setup()
-            sage: dev = dev._sagedev
-
-            sage: dev._check_stash_name("stash/1")
-            sage: dev._check_stash_name("stash/1", exists=True)
-            Traceback (most recent call last):
-            ...
-            SageDevValueError: "stash/1" does not exist.
-            sage: dev._check_stash_name("stash/1", exists=False)
-        """
-        if not self._is_stash_name(name):
-            raise SageDevValueError('"{0}" is not a valid name for a stash.'.format(name))
-        if exists == True and not self._is_stash_name(name, exists):
-            raise SageDevValueError('"{0}" does not exist.'.format(name))
-        elif exists == False and not self._is_stash_name(name, exists):
-            raise SageDevValueError('"{0}" already exists, please choose a different name for the stash.')
 
     def _is_remote_branch_name(self, name, exists=any):
         r"""
@@ -4174,29 +3989,6 @@ class SageDev(MercurialPatchMixin):
             if self._is_trash_name(trash_branch, exists=False):
                 return trash_branch
             branch = branch + "_"
-
-    def _new_local_branch_for_stash(self):
-        r"""
-        Return a new local branch name for a stash.
-
-        TESTS::
-
-            sage: from sage.dev.test.sagedev import single_user_setup
-            sage: dev, config, UI, server = single_user_setup()
-            sage: dev = dev._sagedev
-
-            sage: dev._new_local_branch_for_stash()
-            'stash/1'
-            sage: dev.git.silent.branch('stash/1')
-            sage: dev._new_local_branch_for_stash()
-            'stash/2'
-        """
-        i = 0
-        while True:
-            i+=1
-            branch = 'stash/{0}'.format(i)
-            if self._is_stash_name(branch, exists=False):
-                return branch
 
     def _new_local_branch_for_ticket(self, ticket):
         r"""

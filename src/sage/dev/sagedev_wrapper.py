@@ -113,7 +113,6 @@ class SageDevWrapper(object):
         self._wrap("set_remote")
         self._wrap("show_dependencies")
         self._wrap("checkout")
-        self._wrap("unstash")
         self._wrap("push")
         self._wrap("upload_ssh_key")
         self._wrap("vanilla")

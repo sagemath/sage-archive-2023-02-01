@@ -91,9 +91,12 @@ realized as the toric variety associated to the
 :func:`face fan <sage.geometry.fan.FaceFan>` of the "diamond"::
 
     sage: diamond = lattice_polytope.octahedron(2)
-    sage: diamond.vertices()
-    [ 1  0 -1  0]
-    [ 0  1  0 -1]
+    sage: diamond.vertices_pc()
+    M( 1,  0),
+    M( 0,  1),
+    M(-1,  0),
+    M( 0, -1)
+    in 2-d lattice M
     sage: fan = FaceFan(diamond)
     sage: P1xP1 = ToricVariety(fan)
     sage: P1xP1

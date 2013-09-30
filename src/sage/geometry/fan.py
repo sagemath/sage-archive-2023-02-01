@@ -1750,7 +1750,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
             new_polytopes = []
             for cone_polytope in cone_polytopes:
                 if (cone_polytope.nvertices() == dim + 1 #simplex
-                    and ray in cone_polytope.vertices().columns(copy=False)):
+                    and ray in cone_polytope.vertices_pc()):
                     old_polytopes.append(cone_polytope)
                     continue # Subdivision would not give any new polytopes
                 distances = cone_polytope.distances(ray)
@@ -1759,7 +1759,7 @@ class RationalPolyhedralFan(IntegralRayCollection,
                 if all(distances[fn] >= 0 for fn in cone_facets):
                     # Ray is inside the cone, even if not inside cone_polytope
                     # Do subdivision with cones over each non-containing facet
-                    vertices = cone_polytope.vertices().columns(copy=False)
+                    vertices = cone_polytope.vertices_pc()
                     for fn in cone_facets:
                         if distances[fn] > 0:
                             new_v = [vertices[v] for v in

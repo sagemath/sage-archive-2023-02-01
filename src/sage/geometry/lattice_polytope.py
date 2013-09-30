@@ -83,6 +83,8 @@ AUTHORS:
 
 - Andrey Novoseltsev (2010-12-15): new version of nef-partitions
 
+- Andrey Novoseltsev (2013-09-30): switch to PointCollection.
+
 - Maximilian Kreuzer and Harald Skarke: authors of PALP (which was
   also used to obtain the list of 3-dimensional reflexive polytopes)
 
@@ -91,8 +93,8 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2007-2010 Andrey Novoseltsev <novoselt@gmail.com>
-#       Copyright (C) 2007-2010 William Stein <wstein@gmail.com>
+#       Copyright (C) 2007-2013 Andrey Novoseltsev <novoselt@gmail.com>
+#       Copyright (C) 2007-2013 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -545,6 +547,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         return (is_LatticePolytope(other)
                 and self._vertices == other._vertices)
 
+    @cached_method
     def __hash__(self):
         r"""
         Return the hash of ``self``.
@@ -559,11 +562,8 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: hash(o) == hash(o)
             True
         """
-        try:
-            return self._hash
-        except AttributeError:
-            self._hash = hash(self._vertices)
-            return self._hash
+        # FIXME: take into account other things that may be preset?..
+        return hash(self._vertices)
 
     def __ne__(self, other):
         r"""
@@ -1008,7 +1008,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         if (self.dim() in (2, 3)
             and self.is_reflexive()
-            and self.normal_form() == self.vertices()):
+            and self.normal_form() == self.vertices_pc().column_matrix()):
             return r"\Delta^{%d}_{%d}" % (self.dim(), self.index())
         else:
             return r"\Delta^{%d}" % self.dim()
@@ -1086,7 +1086,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             if len(err) > 0:
                 raise RuntimeError, ("Error executing \"%s\" for the given polytope!"
                     + "\nPolytope: %s\nVertices:\n%s\nOutput:\n%s") % (command,
-                    self, self.vertices(), err)
+                    self, self.vertices_pc(), err)
             result = stdout.read()
             # We program around an issue with subprocess (this so far seems to
             # only be an issue on Cygwin).
@@ -1101,7 +1101,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             "Unable" in result):
             raise ValueError, ("Error executing \"%s\" for the given polytope!"
                 + "\nPolytope: %s\nVertices:\n%s\nOutput:\n%s") % (command,
-                self, self.vertices(), result)
+                self, self.vertices_pc(), result)
         return result
 
     def _pullback(self, data):
@@ -1376,10 +1376,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         nvertices = self.nvertices()
         data.readline() # Skip M/N information
         nef_vertices = read_palp_matrix(data)
-        if self.vertices() != nef_vertices:
+        if self.vertices_pc().column_matrix() != nef_vertices:
             # It seems that we SHOULD worry about this...
             # raise RunTimeError, "nef.x changed the order of vertices!"
-            trans = [self.vertices().columns().index(v)
+            trans = [self.vertices_pc().index(v)
                         for v in nef_vertices.columns()]
             for i, p in enumerate(partitions):
                 partitions[i] = [trans[v] for v in p]
@@ -1494,7 +1494,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [(1/2, 0), (0, 3/2), (-1/2, 0), (0, -3/2)]
             are not in 2-d lattice M!
         """
-        new_vertices = a * self.vertices()
+        new_vertices = a * self.vertices_pc()
         if b in QQ:
             b = vector(QQ, [b]*new_vertices.nrows())
         else:
@@ -2588,9 +2588,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
                 show_pindices, pindex_color,
                 index_shift)
         elif dim == 3:
-            vertices = self.vertices().columns(copy=False)
+            vertices = self.vertices_pc()
             if show_points or show_pindices:
-                points = self.points().columns(copy=False)[self.nvertices():]
+                points = self.points_pc()[self.nvertices():]
         else:
             vertices = [vector(ZZ, list(self.vertex(i))+[0]*(3-amb_dim))
                         for i in range(self.nvertices())]
@@ -2625,7 +2625,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             show_pindices = show_points
         if show_vindices or show_pindices:
             # Compute the barycenter and shift text of labels away from it
-            bc = 1/Integer(len(vertices)) * sum(vertices)
+            bc = 1/Integer(len(vertices)) * vector(QQ, sum(vertices))
         if show_vindices:
             if vlabels == None:
                 vlabels = range(len(vertices))
@@ -3095,6 +3095,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [-1 -1  1  1 -1 -1  1  1]
             [ 1  1  1  1 -1 -1 -1 -1]
         """
+        deprecation(15240, "vertices() output will change, "
+            "please use vertices_pc().column_matrix() instead "
+            "or consider using vertices_pc() directly!")
         return self._vertices.column_matrix()
 
     def vertices_pc(self):
@@ -3596,7 +3599,7 @@ class NefPartition(SageObject,
             n = nabla_polar.nvertices()
             vertex_to_part = [-1] * n
             for i in range(self._nparts):
-                A = nabla_polar.vertices().transpose()*self.nabla(i).vertices()
+                A = nabla_polar.vertices_pc().matrix()*self.nabla(i).vertices_pc()
                 for j in range(n):
                     if min(A[j]) == -1:
                         vertex_to_part[j] = i
@@ -4751,11 +4754,11 @@ def convex_hull(points):
     if H.rank() == 0:
         return [p0]
     elif H.rank() == N.rank():
-        vpoints = LatticePolytope(matrix(ZZ, vpoints).transpose(), compute_vertices=True).vertices().columns(copy=False)
+        vpoints = [vector(ZZ, p) for p in LatticePolytope(vpoints).vertices_pc()]
     else:
         H_points = [H.coordinates(p) for p in vpoints]
-        H_polytope = LatticePolytope(matrix(ZZ, H_points).transpose(), compute_vertices=True)
-        vpoints = (H.basis_matrix().transpose() * H_polytope.vertices()).columns(copy=False)
+        H_polytope = LatticePolytope(H_points)
+        vpoints = (H_polytope.vertices_pc() * H.basis_matrix()).rows(copy=False)
     vpoints = [p+p0 for p in vpoints]
     return vpoints
 

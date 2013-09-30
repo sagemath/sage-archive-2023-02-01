@@ -916,7 +916,7 @@ class ChowGroup_class(FGP_Module_class):
         Second, an example with `A_2(X)=\ZZ^2`::
 
             sage: points = [[1,0,0],[0,1,0],[0,0,1],[1,-1,1],[-1,0,-1]]
-            sage: l = LatticePolytope(matrix(points).transpose())
+            sage: l = LatticePolytope(points)
             sage: l.show3d()
             sage: X = ToricVariety(FaceFan(l))
             sage: A = X.Chow_group()

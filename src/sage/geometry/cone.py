@@ -2960,17 +2960,20 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection,
             sage: lp = quadrant.lattice_polytope()
             sage: lp
             A lattice polytope: 2-dimensional, 3 vertices.
-            sage: lp.vertices()
-            [1 0 0]
-            [0 1 0]
+            sage: lp.vertices_pc()
+            N(1, 0),
+            N(0, 1),
+            N(0, 0)
+            in 2-d lattice N
 
             sage: line = Cone([(1,0), (-1,0)])
             sage: lp = line.lattice_polytope()
             sage: lp
             A lattice polytope: 1-dimensional, 2 vertices.
-            sage: lp.vertices()
-            [ 1 -1]
-            [ 0  0]
+            sage: lp.vertices_pc()
+            N( 1, 0),
+            N(-1, 0)
+            in 2-d lattice N
         """
         return LatticePolytope(tuple(self.rays()) + (self.lattice().zero(),),
                                compute_vertices=not self.is_strictly_convex())

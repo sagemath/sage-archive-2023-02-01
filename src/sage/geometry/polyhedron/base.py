@@ -3667,9 +3667,12 @@ class Polyhedron_base(Element):
             sage: P = Polyhedron( vertices = [(1, 0), (0, 1), (-1, 0), (0, -1)])
             sage: lp = P.lattice_polytope(); lp
             A lattice polytope: 2-dimensional, 4 vertices.
-            sage: lp.vertices()
-            [-1  0  0  1]
-            [ 0 -1  1  0]
+            sage: lp.vertices_pc()
+            (-1,  0),
+            ( 0, -1),
+            ( 0,  1),
+            ( 1,  0)
+            in 2-d lattice M
 
         Here is a polyhedron with non-integral vertices::
 
@@ -3682,9 +3685,13 @@ class Polyhedron_base(Element):
             lattice polytope.
             sage: lp = P.lattice_polytope(True); lp
             A lattice polytope: 2-dimensional, 5 vertices.
-            sage: lp.vertices()
-            [-1  0  0  1  1]
-            [ 0 -1  1  0  1]
+            sage: lp.vertices_pc()
+            (-1,  0),
+            ( 0, -1),
+            ( 0,  1),
+            ( 1,  0),
+            ( 1,  1)
+            in 2-d lattice M
         """
         if not self.is_compact():
             raise NotImplementedError, 'Only compact lattice polytopes are allowed.'

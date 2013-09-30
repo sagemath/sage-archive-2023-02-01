@@ -301,9 +301,12 @@ def CPRFanoToricVariety(Delta=None,
     We start with the product of two projective lines::
 
         sage: diamond = lattice_polytope.octahedron(2)
-        sage: diamond.vertices()
-        [ 1  0 -1  0]
-        [ 0  1  0 -1]
+        sage: diamond.vertices_pc()
+        M( 1,  0),
+        M( 0,  1),
+        M(-1,  0),
+        M( 0, -1)
+        in 2-d lattice M
         sage: P1xP1 = CPRFanoToricVariety(Delta_polar=diamond)
         sage: P1xP1
         2-d CPR-Fano toric variety covered by 4 affine patches
@@ -322,9 +325,12 @@ def CPRFanoToricVariety(Delta=None,
     square::
 
         sage: square = diamond.polar()
-        sage: square.vertices()
-        [-1  1 -1  1]
-        [ 1  1 -1 -1]
+        sage: square.vertices_pc()
+        N(-1,  1),
+        N( 1,  1),
+        N(-1, -1),
+        N( 1, -1)
+        in 2-d lattice N
         sage: square.points()
         [-1  1 -1  1 -1  0  0  0  1]
         [ 1  1 -1 -1  0 -1  0  1  0]

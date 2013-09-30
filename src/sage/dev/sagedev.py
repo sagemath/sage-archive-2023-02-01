@@ -29,6 +29,7 @@ AUTHORS:
 from user_interface_error import OperationCancelledError
 from trac_error import TracConnectionError, TracInternalError, TracError
 from git_error import GitError
+from patch import MercurialPatchMixin
 
 import re
 # regular expression to check validity of git options
@@ -50,7 +51,7 @@ COMMIT_GUIDE=r"""
 # An empty file aborts the commit.
 """
 
-class SageDev(object):
+class SageDev(MercurialPatchMixin):
     r"""
     The developer interface for sage.
 
@@ -4489,7 +4490,6 @@ class SageDev(object):
             return self.__branch_to_ticket[branch]
         return None
 
-    from patch import import_patch, download_patch, _detect_patch_diff_format, _detect_patch_path_format, _detect_patch_modified_files, _detect_patch_header_format, _rewrite_patch_header, _rewrite_patch, _rewrite_patch_diff_paths
 
 class SageDevValueError(ValueError):
     r"""

@@ -41,7 +41,6 @@ class UserInterface(object):
         sage: from sage.dev.test.config import DoctestConfig
         sage: UserInterface(DoctestConfig())
         <sage.dev.user_interface.UserInterface object at 0x...>
-
     """
     def __init__(self, config):
         r"""
@@ -53,7 +52,6 @@ class UserInterface(object):
             sage: from sage.dev.test.config import DoctestConfig
             sage: type(UserInterface(DoctestConfig()))
             <class 'sage.dev.user_interface.UserInterface'>
-
         """
         self._config = config
 
@@ -79,7 +77,6 @@ class UserInterface(object):
             Traceback (most recent call last):
             ...
             NotImplementedError
-
         """
         raise NotImplementedError
 
@@ -103,7 +100,6 @@ class UserInterface(object):
             Traceback (most recent call last):
             ...
             NotImplementedError
-
         """
         if default is None:
             default_option = None
@@ -129,7 +125,6 @@ class UserInterface(object):
             Traceback (most recent call last):
             ...
             NotImplementedError
-
         """
         raise NotImplementedError
 
@@ -146,7 +141,6 @@ class UserInterface(object):
             Traceback (most recent call last):
             ...
             NotImplementedError
-
         """
         raise NotImplementedError
 
@@ -171,7 +165,6 @@ class UserInterface(object):
             ...
             NotImplementedError
             sage: UI.show("I ate filet mignon for dinner.", DEBUG)
-
         """
         if self._config.get("log_level", INFO) >= log_level:
             self._show(message)
@@ -192,7 +185,6 @@ class UserInterface(object):
             sage: from sage.dev.test.config import DoctestConfig
             sage: UI = UserInterface(DoctestConfig())
             sage: UI.debug("I ate filet mignon for dinner.")
-
         """
         self.show(message, DEBUG)
 
@@ -215,7 +207,6 @@ class UserInterface(object):
             Traceback (most recent call last):
             ...
             NotImplementedError
-
         """
         self.show(message, INFO)
 
@@ -236,7 +227,6 @@ class UserInterface(object):
             Traceback (most recent call last):
             ...
             NotImplementedError
-
         """
         self.show(message, WARNING)
 
@@ -257,7 +247,6 @@ class UserInterface(object):
             Traceback (most recent call last):
             ...
             NotImplementedError
-
         """
         self.show(message, ERROR)
 
@@ -278,7 +267,6 @@ class UserInterface(object):
             Traceback (most recent call last):
             ...
             NotImplementedError
-
         """
         raise NotImplementedError
 
@@ -300,6 +288,5 @@ class UserInterface(object):
             Traceback (most recent call last):
             ...
             NotImplementedError
-
         """
         raise NotImplementedError

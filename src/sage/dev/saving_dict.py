@@ -80,7 +80,6 @@ class SavingDict(collections.MutableMapping):
         sage: sd = SavingDict(tmp); sd
         {'cow': 'moo', 'cat': 'meow'}
         sage: os.unlink(tmp)
-
     """
     def __init__(self,
             filename,
@@ -147,7 +146,6 @@ class SavingDict(collections.MutableMapping):
             sage: sd2[1]
             0
             sage: os.unlink(tmp1); os.unlink(tmp2)
-
         """
         if self._pairing:
             with self._pairing as paired:
@@ -188,7 +186,6 @@ class SavingDict(collections.MutableMapping):
             2
             4
             sage: os.unlink(tmp1); os.unlink(tmp2)
-
         """
         if not isinstance(other, SavingDict):
             raise ValueError("other is not a SavingDict")
@@ -227,7 +224,6 @@ class SavingDict(collections.MutableMapping):
             sage: SavingDict(tmp)
             {0: 1, 1: 2}
             sage: os.unlink(tmp)
-
         """
         import sage.doctest, os, sage.env
         assert not sage.doctest.DOCTEST_MODE or not os.path.abspath(self._filename).startswith(sage.env.DOT_SAGE), "doctest attempted to write to saving dict of live sage"
@@ -283,7 +279,6 @@ class SavingDict(collections.MutableMapping):
             sage: sd
             {}
             sage: os.unlink(tmp)
-
         """
         if self._pairing and key in self:
             with self._pairing as paired:
@@ -306,7 +301,6 @@ class SavingDict(collections.MutableMapping):
             Traceback (most recent call last):
             ...
             KeyError: 'moo'
-
         """
         try:
             return self._dict[key]
@@ -326,7 +320,6 @@ class SavingDict(collections.MutableMapping):
             True
             sage: 'moo' in sd
             False
-
         """
         return key in self._dict
 
@@ -345,7 +338,6 @@ class SavingDict(collections.MutableMapping):
             sage: len(sd)
             1
             sage: os.unlink(tmp)
-
         """
         return len(self._dict)
 
@@ -362,7 +354,6 @@ class SavingDict(collections.MutableMapping):
             ...       print key, sd[key]
             0 1
             cow moo
-
         """
         return iter(self._dict)
 
@@ -384,7 +375,6 @@ class SavingDict(collections.MutableMapping):
             sage: SavingDict.load_dict_from_file(f.name)
             {'cow': 'moo'}
             sage: f.close()
-
         """
         if os.path.exists(filename):
             with open(filename) as F:

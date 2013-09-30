@@ -195,7 +195,6 @@ def import_patch(self, patchname=None, url=None, local_file=None, diff_format=No
         ''
         sage: open("tracked2").read()
         'boo'
-
     """
     try:
         self.reset_to_clean_state()
@@ -379,7 +378,6 @@ def download_patch(self, ticket=None, patchname=None, url=None):
         12415_rebase_58.patch
         Should I download these patches? [Yes/no] n
         Ticket #12415 has more than one attachment but you chose not to download them in the proposed order. To use only one of these patches set the parameter `patchname` to one of: 12415_doc.patch, 12415_doctest_fixes.patch, 12415_doctest_review.patch, 12415_framework.patch, 12415_manifest.patch, 12415_rebase_58.patch, 12415_review.patch, 12415_review3.patch, 12415_review_review.patch, 12415_script.patch, 12415_script_review.patch, 12415_spkg_bin_sage.patch, 12415_test.patch
-
     """
     if url is not None:
         if ticket or patchname:
@@ -559,7 +557,6 @@ def _detect_patch_diff_format(self, lines):
         Traceback (most recent call last):
         ...
         SageDevValueError: File appears to have mixed diff formats.
-
     """
     format = None
     regexs = { "hg" : HG_DIFF_REGEX, "git" : GIT_DIFF_REGEX }
@@ -628,7 +625,6 @@ def _detect_patch_path_format(self, lines, diff_format = None):
         ....:             SAGE_SRC,"sage","dev","test","data","trac_8703-trees-fh.patch"
         ....:         )).read().splitlines())
         'old'
-
     """
     lines = list(lines)
     if diff_format is None:
@@ -776,7 +772,6 @@ def _rewrite_patch_diff_paths(self, lines, to_format, from_format=None, diff_for
         '#8703: Enumerated sets and data structure for ordered and binary trees'
         sage: result[12]
         'diff --git a/src/doc/en/reference/combinat/index.rst b/src/doc/en/reference/combinat/index.rst'
-
     """
     lines = list(lines)
     if diff_format is None:
@@ -880,7 +875,6 @@ def _detect_patch_header_format(self, lines):
             return "hg"
     elif GIT_FROM_REGEX.match(lines[0]):
         return "git"
-
     return "diff"
 
 def _detect_patch_modified_files(self, lines, diff_format = None):
@@ -897,7 +891,6 @@ def _detect_patch_modified_files(self, lines, diff_format = None):
         ....:             SAGE_SRC,"sage","dev","test","data","trac_8703-trees-fh.patch"
         ....:         )).read().splitlines())
         ['ordered_tree.py', 'binary_tree.pyx', 'list_clone.pyx', 'permutation.py', 'index.rst', 'abstract_tree.py', 'all.py', 'binary_tree.py']
-
     """
     if diff_format is None:
         diff_format = self._detect_patch_diff_format(lines)
@@ -1077,7 +1070,8 @@ def _rewrite_patch_header(self, lines, to_format, from_format = None, diff_forma
     else:
         raise NotImplementedError(from_format)
 
-def _rewrite_patch(self, lines, to_path_format, to_header_format, from_diff_format=None, from_path_format=None, from_header_format=None):
+def _rewrite_patch(self, lines, to_path_format, to_header_format, from_diff_format=None, 
+                   from_path_format=None, from_header_format=None):
     r"""
     Rewrite the patch in ``lines`` to the path format given in
     ``to_path_format`` and the header format given in ``to_header_format``.
@@ -1092,7 +1086,13 @@ def _rewrite_patch(self, lines, to_path_format, to_header_format, from_diff_form
         ....:     ).read().splitlines()
         sage: dev._rewrite_patch(git_lines, "old", "git") == git_lines
         True
-
     """
-    return self._rewrite_patch_diff_paths(self._rewrite_patch_header(lines, to_format=to_header_format, from_format=from_header_format, diff_format=from_diff_format), to_format=to_path_format, diff_format=from_diff_format, from_format=from_path_format)
+    return self._rewrite_patch_diff_paths(
+        self._rewrite_patch_header(lines, 
+                                   to_format=to_header_format, 
+                                   from_format=from_header_format, 
+                                   diff_format=from_diff_format), 
+        to_format=to_path_format, 
+        diff_format=from_diff_format, 
+        from_format=from_path_format)
 

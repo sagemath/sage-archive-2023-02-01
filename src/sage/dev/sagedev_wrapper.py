@@ -83,7 +83,6 @@ class SageDevWrapper(object):
         Traceback (most recent call last):
         ...
         OperationCancelledError: ticket edit aborted
-
     """
     def __init__(self, sagedev):
         r"""
@@ -93,7 +92,6 @@ class SageDevWrapper(object):
 
             sage: type(dev)
             <class 'sage.dev.sagedev_wrapper.SageDevWrapper'>
-
         """
         self._sagedev = sagedev
 
@@ -144,11 +142,11 @@ class SageDevWrapper(object):
             sage: dev._obsolete("obsolete", "not_obsolete")
             sage: dev.obsolete
             <function wrapped at 0x...>
-
         """
         def wrap():
             from sage.misc.decorators import sage_wraps
-            doc = "The command `{0}` does not exist anymore. Please use `{1}` instead.".format(self._sagedev._format_command(old_method), self._sagedev._format_command(new_method))
+            doc = "The command `{0}` does not exist anymore. Please use `{1}` instead.".format(
+                self._sagedev._format_command(old_method), self._sagedev._format_command(new_method))
             def wrapped(*args, **kwargs):
                 self._sagedev._UI.error(doc)
             wrapped.__doc__ = doc
@@ -169,7 +167,6 @@ class SageDevWrapper(object):
             sage: dev._wrap("_local_branch_for_ticket")
             sage: dev._local_branch_for_ticket
             <function wrapped at 0x...>
-
         """
         from user_interface_error import OperationCancelledError
         from git_error import GitError, DetachedHeadError, InvalidStateError
@@ -188,9 +185,12 @@ class SageDevWrapper(object):
                 except GitError as e:
                     INFO_LEVEL = INFO if e.explain else NORMAL # show more info if the error was unexpected
 
-                    self._sagedev._UI.error("GitError: git exited with a non-zero exit code ({0}).".format(e.exit_code))
-                    self._sagedev._UI.show("This happened while executing `{0}`.".format(e.cmd), INFO_LEVEL)
-                    self._sagedev._UI.info("I tried my best to put your working tree and repository back to its original state.")
+                    self._sagedev._UI.error("GitError: git exited with a non-zero exit code ({0})."
+                                            .format(e.exit_code))
+                    self._sagedev._UI.show('This happened while executing "{0}".'
+                                           .format(e.cmd), INFO_LEVEL)
+                    self._sagedev._UI.info("I tried my best to put your working tree and repository back"
+                                           " to its original state.")
                     if e.explain:
                         self._sagedev._UI.error(e.explain)
                     if e.advice:
@@ -200,22 +200,30 @@ class SageDevWrapper(object):
                     elif e.stdout.strip() == "":
                         self._sagedev._UI.show("git printed nothing to STDOUT.", INFO_LEVEL)
                     else:
-                        self._sagedev._UI.show("git printed the following to STDOUT:\n{0}".format(e.stdout), INFO_LEVEL)
+                        self._sagedev._UI.show("git printed the following to STDOUT:\n{0}"
+                                               .format(e.stdout), INFO_LEVEL)
                     if e.stderr is None:
                         pass
                     elif e.stderr.strip() == "":
                         self._sagedev._UI.show("git printed nothing to STDERR.", INFO_LEVEL)
                     else:
-                        self._sagedev._UI.show("git printed the following to STDERR:\n{0}".format(e.stderr), INFO_LEVEL)
+                        self._sagedev._UI.show("git printed the following to STDERR:\n{0}"
+                                               .format(e.stderr), INFO_LEVEL)
                     if self._sagedev._UI._config.get("log_level", NORMAL) >= DEBUG:
                         raise
                 except DetachedHeadError as e:
-                    self._sagedev._UI.error("Unexpectedly your repository was found to be in a detached head state. This is probably a bug in sagedev.")
-                    self._sagedev._UI.info("You can try to restore your repository to a clean state by running {0} and {1}.".format(self._sagedev._format_command("clean"), self._sagedev._format_command("switch",branch="master")))
+                    self._sagedev._UI.error("Unexpectedly your repository was found to be in a"
+                                            " detached head state. This is probably a bug in sagedev.")
+                    self._sagedev._UI.info("You can try to restore your repository to a clean state by"
+                                           " running {0} and {1}."
+                                           .format(self._sagedev._format_command("clean"), 
+                                                   self._sagedev._format_command("switch",branch="master")))
                     raise
                 except InvalidStateError as e:
-                    self._sagedev._UI.error("Unexpectedly your repository was found to be in a non-clean state. This is probably a bug in sagedev.")
-                    self._sagedev._UI.info("You can try to restore your repository to a clean state by running {0}.".format(self._sagedev._format_command("clean")))
+                    self._sagedev._UI.error("Unexpectedly your repository was found to be in a"
+                                            " non-clean state. This is probably a bug in sagedev.")
+                    self._sagedev._UI.info("You can try to restore your repository to a clean state"
+                                           " by running {0}.".format(self._sagedev._format_command("clean")))
                     raise
                 except TracConnectionError as e:
                     self._sagedev._UI.error("Your command failed because no connection to trac could be established.")
@@ -237,6 +245,5 @@ class SageDevWrapper(object):
 
             sage: repr(dev)
             'SageDev()'
-
         """
         return repr(self._sagedev)

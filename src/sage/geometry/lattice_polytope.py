@@ -437,7 +437,11 @@ def ReflexivePolytopes(dim):
             p._dim = dim
         # Compute "fast" data in one call to PALP
         all_polars(rp)
-        all_points(rp + [p._polar for p in rp])
+        # Construction of all points via PALP takes more points after the switch
+        # to point collections, which is inconvenient for doctests and using
+        # reflexiv polytopes in general, turn it off for now - there was no
+        # promise in documentation that points are precomputed.
+        # all_points(rp + [p._polar for p in rp])
         # TODO: improve faces representation so that we can uncomment
         # all_faces(rp)
         # It adds ~10s for dim=3, which is a bit annoying to wait for.

@@ -362,7 +362,8 @@ class CmdLineInterface(UserInterface):
 
         """
         try:
-            check_call([os.environ.get('EDITOR', 'nano'), filename])
+            editor = os.environ.get('EDITOR', 'nano')
+            check_call(['sage-native-execute', editor, filename])
         except CalledProcessError:
             from user_interface_error import OperationCancelledError
             raise OperationCancelledError("Editor returned non-zero exit value")

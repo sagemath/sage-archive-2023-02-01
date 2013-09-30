@@ -147,6 +147,7 @@ class GitProxy(object):
 
         env = ckwds.setdefault('env', dict(os.environ))
         env.update(kwds.pop('env', {}))
+        env['LC_ALL'] = 'POSIX'   # do not translate git messages
 
         for k, v in kwds.iteritems():
             if len(k) == 1:
@@ -159,10 +160,10 @@ class GitProxy(object):
                 s.extend((k, v))
         if args:
             s.extend(a for a in args if a is not None)
-
         s = [str(arg) for arg in s]
 
-        complete_cmd = " ".join([arg for i,arg in enumerate(s) if i not in (1,2)]) # drop --git-dir, --work-tree from debug output
+        # drop --git-dir, --work-tree from debug output
+        complete_cmd = " ".join(s[0:1] + s[3:])
         self._UI.debug("[git] %s"%complete_cmd)
 
         if ckwds.get('dryrun', False):
@@ -173,12 +174,10 @@ class GitProxy(object):
         read_stdout = ckwds.get('stdout') is str
         drop_stderr = ckwds.get('stderr') is False
         read_stderr = ckwds.get('stderr') is str
-
         if drop_stdout or read_stdout:
             ckwds['stdout'] = subprocess.PIPE
         if drop_stderr or read_stderr:
             ckwds['stderr'] = subprocess.PIPE
-
         process = subprocess.Popen(s, **ckwds)
         stdout, stderr = process.communicate()
         retcode = process.poll()

@@ -3362,7 +3362,7 @@ class SageDev(object):
                 private_key = public_key[:-4]
                 self._UI.show("Generating ssh key.")
                 from subprocess import call
-                success = call(["ssh-keygen", "-q", "-f", private_key, "-P", ""])
+                success = call(['sage-native-execute', 'ssh-keygen', '-q', '-f', private_key, '-P', ''])
                 if success == 0:
                     self._UI.info("Key generated.")
                 else:

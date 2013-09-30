@@ -148,7 +148,7 @@ def get_help(method):
             tmp.append(line)
         else:
             break
-    ret = {'return':' '.join(tmp)}
+    ret = {'return':' '.join(tmp).replace('``', '"')}
 
     for line in docstring:
         if line == 'INPUT:':
@@ -167,7 +167,7 @@ def get_help(method):
             arg = line.split('``')[1]
             tmp.append(line.split('--')[1].strip().replace('``', '"'))
         elif tmp:
-            tmp.append(line.strip())
+            tmp.append(line.strip().replace('``', '"'))
         elif not line.startswith(' '):
             break
     if tmp:

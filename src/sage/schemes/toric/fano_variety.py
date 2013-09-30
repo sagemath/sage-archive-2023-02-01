@@ -331,9 +331,17 @@ def CPRFanoToricVariety(Delta=None,
         N(-1, -1),
         N( 1, -1)
         in 2-d lattice N
-        sage: square.points()
-        [-1  1 -1  1 -1  0  0  0  1]
-        [ 1  1 -1 -1  0 -1  0  1  0]
+        sage: square.points_pc()
+        N(-1,  1),
+        N( 1,  1),
+        N(-1, -1),
+        N( 1, -1),
+        N(-1,  0),
+        N( 0, -1),
+        N( 0,  0),
+        N( 0,  1),
+        N( 1,  0)
+        in 2-d lattice N
 
     We will construct several varieties associated to it::
 
@@ -1220,7 +1228,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             fan = self.fan().cartesian_product(other.fan())
             Delta_polar = LatticePolytope(fan.rays())
 
-            points = Delta_polar.points().columns()
+            points = Delta_polar.points_pc()
             point_to_ray = dict()
             coordinate_points = []
             for ray_index, ray in enumerate(fan.rays()):

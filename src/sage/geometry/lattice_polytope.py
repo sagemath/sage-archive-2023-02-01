@@ -283,8 +283,9 @@ def LatticePolytope(data, desc=None, compute_vertices=True,
         0
         sage: p.nfacets()
         0
-        sage: p.points()
-        []
+        sage: p.points_pc()
+        Empty collection
+        in 3-d lattice M
         sage: p.faces()
         []
     """
@@ -1663,7 +1664,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         try:
             return self._distances
         except AttributeError:
-            P = self.points()
+            P = self.points_pc()
             n = self.npoints()
             self._distances = matrix(ZZ, [F * P + vector(ZZ, [c]*n)
                 for F, c in zip(self.facet_normals(), self.facet_constants())])
@@ -2480,7 +2481,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         try:
             return self._npoints
         except AttributeError:
-            return self.points().ncols()
+            return len(self.points_pc())
 
     def nvertices(self):
         r"""
@@ -2498,6 +2499,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         """
         return len(self._vertices)
 
+    @cached_method
     def origin(self):
         r"""
         Return the index of the origin in the list of points of self.
@@ -2515,8 +2517,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             M(0, 0)
 
             sage: p = LatticePolytope(matrix([[1,2]]))
-            sage: p.points()
-            [1 2]
+            sage: p.points_pc()
+            M(1),
+            M(2)
+            in 1-d lattice M
             sage: print p.origin()
             None
 
@@ -2526,11 +2530,11 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: LatticePolytope([(1,0,0), (-1,0,0)]).origin()
             2
         """
-        if "_origin" not in self.__dict__:
-            origin = vector(ZZ, self.ambient_dim())
-            points = self.points().columns(copy=False)
-            self._origin = points.index(origin) if origin in points else None
-        return self._origin
+        origin = self.lattice().zero()
+        try:
+            return self.points_pc().index(origin)
+        except ValueError:
+            pass
 
     def parent(self):
         """
@@ -2744,10 +2748,15 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: o.point(6)
             M(0, 0, 0)
-            sage: o.points()
-            [ 1  0  0 -1  0  0  0]
-            [ 0  1  0  0 -1  0  0]
-            [ 0  0  1  0  0 -1  0]
+            sage: o.points_pc()
+            M( 1,  0,  0),
+            M( 0,  1,  0),
+            M( 0,  0,  1),
+            M(-1,  0,  0),
+            M( 0, -1,  0),
+            M( 0,  0, -1),
+            M( 0,  0,  0)
+            in 3-d lattice M
         """
         return self.points_pc()[i]
 
@@ -2760,6 +2769,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
             sage: o = lattice_polytope.octahedron(3)
             sage: o.points()
+            doctest:1: DeprecationWarning: points() output will change,
+            please use points_pc().column_matrix() instead or
+            consider using points_pc() directly!
+            See http://trac.sagemath.org/15240 for details.
             [ 1  0  0 -1  0  0  0]
             [ 0  1  0  0 -1  0  0]
             [ 0  0  1  0  0 -1  0]
@@ -2790,6 +2803,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: p.points()
             [1]
         """
+        deprecation(15240, "points() output will change, "
+            "please use points_pc().column_matrix() instead "
+            "or consider using points_pc() directly!")        
         return self.points_pc().column_matrix()
 
     def points_pc(self):
@@ -3110,7 +3126,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             normal = [ZZ.random_element(20),ZZ.random_element(20),ZZ.random_element(20)]
         normal = matrix(QQ,3,1,list(normal))
         projectionm = normal.kernel().basis_matrix()
-        positions = dict(enumerate([list(c) for c in (projectionm*self.points()).columns(copy=False)]))
+        positions = dict(enumerate([list(c) for c in (projectionm*self.points_pc()).columns(copy=False)]))
         self.skeleton().show(pos=positions)
 
     def traverse_boundary(self):
@@ -4321,10 +4337,10 @@ class _PolytopeFace(SageObject):
         """
         if len(self.vertices()) != 2:
             raise ValueError, "Order of points is defined for edges only!"
-        pcol = self._polytope.points().columns(copy=False)
+        pcol = self._polytope.points_pc()
         start = pcol[self.vertices()[0]]
         end = pcol[self.vertices()[1]]
-        primitive = end - start
+        primitive = vector(QQ, end - start)
         primitive = primitive * (1/integral_length(primitive.list()))
         result = [self.vertices()[0]]
         start = start + primitive
@@ -4773,10 +4789,15 @@ def all_points(polytopes):
 
         sage: o = lattice_polytope.octahedron(3)
         sage: lattice_polytope.all_points([o])
-        sage: o.points()
-        [ 1  0  0 -1  0  0  0]
-        [ 0  1  0  0 -1  0  0]
-        [ 0  0  1  0  0 -1  0]
+        sage: o.points_pc()
+        M( 1,  0,  0),
+        M( 0,  1,  0),
+        M( 0,  0,  1),
+        M(-1,  0,  0),
+        M( 0, -1,  0),
+        M( 0,  0, -1),
+        M( 0,  0,  0)
+        in 3-d lattice M
     """
     result_name = _palp("poly.x -fp", polytopes, reduce_dimension=True)
     result = open(result_name)
@@ -5109,15 +5130,19 @@ def positive_integer_relations(points):
         ...                  [0, 0,  0, 1, -1]])
         ...
         sage: p = LatticePolytope(m)
-        sage: p.points()
-        [ 1  0 -1  0 -1  0]
-        [ 0  1 -1  0  0  0]
-        [ 0  0  0  1 -1  0]
+        sage: p.points_pc()
+        M( 1,  0,  0),
+        M( 0,  1,  0),
+        M(-1, -1,  0),
+        M( 0,  0,  1),
+        M(-1,  0, -1),
+        M( 0,  0,  0)
+        in 3-d lattice M
 
     We can compute linear relations between its points in the following
     way::
 
-        sage: p.points().transpose().kernel().echelonized_basis_matrix()
+        sage: p.points_pc().matrix().kernel().echelonized_basis_matrix()
         [ 1  0  0  1  1  0]
         [ 0  1  1 -1 -1  0]
         [ 0  0  0  0  0  1]
@@ -5126,7 +5151,7 @@ def positive_integer_relations(points):
     numbers. This function transforms them in such a way, that all
     coefficients are non-negative integers::
 
-        sage: lattice_polytope.positive_integer_relations(p.points())
+        sage: lattice_polytope.positive_integer_relations(p.points_pc().column_matrix())
         [1 0 0 1 1 0]
         [1 1 1 0 0 0]
         [0 0 0 0 0 1]

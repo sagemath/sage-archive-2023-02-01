@@ -1421,15 +1421,14 @@ class ToricDivisor_generic(Divisor_generic):
 
         From [CoxTutorial]_ page 38::
 
-            sage: from sage.geometry.lattice_polytope import LatticePolytope
-            sage: lp = LatticePolytope(matrix([[1,1,0,-1,0], [0,1,1,0,-1]]))
+            sage: lp = LatticePolytope([(1,0),(1,1),(0,1),(-1,0),(0,-1)])
             sage: lp
             A lattice polytope: 2-dimensional, 5 vertices.
             sage: dP7 = ToricVariety( FaceFan(lp), 'x1, x2, x3, x4, x5')
             sage: AK = -dP7.K()
             sage: AK.sections()
-            (M(-1, 0), M(-1, 1), M(0, -1), M(0, 0),
-             M(0, 1), M(1, -1), M(1, 0), M(1, 1))
+            (N(-1, 0), N(-1, 1), N(0, -1), N(0, 0),
+             N(0, 1), N(1, -1), N(1, 0), N(1, 1))
             sage: AK.sections_monomials()
             (x3*x4^2*x5, x2*x3^2*x4^2, x1*x4*x5^2, x1*x2*x3*x4*x5,
              x1*x2^2*x3^2*x4, x1^2*x2*x5^2, x1^2*x2^2*x3*x5, x1^2*x2^3*x3^2)

@@ -248,7 +248,7 @@ from sage.geometry.lattice_polytope import (LatticePolytope,
                                             all_faces,
                                             all_facet_equations)
 from sage.geometry.point_collection import PointCollection
-from sage.geometry.toric_lattice import is_ToricLattice
+from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
 from sage.geometry.toric_plotter import ToricPlotter
 from sage.graphs.digraph import DiGraph
 from sage.matrix.all import matrix
@@ -646,7 +646,7 @@ def FaceFan(polytope, lattice=None):
 
         sage: cuboctahed = polytopes.cuboctahedron()
         sage: FaceFan(cuboctahed)
-        Rational polyhedral fan in 3-d lattice N
+        Rational polyhedral fan in 3-d lattice M
 
     TESTS::
 
@@ -666,8 +666,8 @@ def FaceFan(polytope, lattice=None):
 
         sage: interval_in_QQ2 = Polyhedron([ (0,-1), (0,+1) ])
         sage: FaceFan(interval_in_QQ2).generating_cones()
-        (1-d cone of Rational polyhedral fan in 2-d lattice N,
-         1-d cone of Rational polyhedral fan in 2-d lattice N)
+        (1-d cone of Rational polyhedral fan in 2-d lattice M,
+         1-d cone of Rational polyhedral fan in 2-d lattice M)
 
         sage: FaceFan(Polyhedron([(-1,0), (1,0), (0,1)])) # origin on facet
         Traceback (most recent call last):
@@ -692,6 +692,10 @@ def FaceFan(polytope, lattice=None):
         cones = [ [ v.index() for v in facet.incident() ]
                   for facet in polytope.inequalities() ]
         rays = map(vector, polytope.vertices())
+        if lattice is None:
+            # Since default lattice polytopes are in the M lattice,
+            # treat polyhedra as being there as well.
+            lattice = ToricLattice(len(origin)).dual()
     fan = Fan(cones, rays, lattice=lattice, check=False,
               is_complete=(polytope.dim() == polytope.ambient_dim()))
     return fan

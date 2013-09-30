@@ -124,13 +124,14 @@ def get_help(method):
 
     EXAMPLE::
 
-        >>> get_help(get_help)
-        {'method': 'method to get help', 'return': 'gets the short help for a method'}
+        >>> help_dict = get_help(get_help)
+        >>> for k in sorted(help_dict.keys()):  print k, '---', help_dict[k]
+        method --- method to get help (test: "quote"). can continue input description with a line break
+        return --- gets the short help for a method
 
     INPUT:
 
-    - ``method`` -- method to get help
-
+    - ``method`` -- method to get help (test: ``quote``). 
       can continue input description with a line break
     """
     if method.__doc__ is None:
@@ -164,7 +165,7 @@ def get_help(method):
             continue
         elif line.startswith('-') and '--' in line:
             arg = line.split('``')[1]
-            tmp.append(line.split('--')[1].strip())
+            tmp.append(line.split('--')[1].strip().replace('``', '"'))
         elif tmp:
             tmp.append(line.strip())
         elif not line.startswith(' '):

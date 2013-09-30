@@ -661,7 +661,8 @@ class GitInterface(ReadStdoutGitProxy):
         return self.reset_to_clean_state()
 
     def reset_to_clean_working_directory(self, remove_untracked_files=False, 
-                                         remove_untracked_directories=False, remove_ignored=False):
+                                         remove_untracked_directories=False, 
+                                         remove_ignored=False):
         r"""
         Reset any changes made to the working directory.
 
@@ -680,7 +681,6 @@ class GitInterface(ReadStdoutGitProxy):
 
         Create a :class:`GitInterface` for doctesting::
 
-            sage: import os
             sage: from sage.dev.git_interface import GitInterface
             sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.test.user_interface import DoctestUserInterface

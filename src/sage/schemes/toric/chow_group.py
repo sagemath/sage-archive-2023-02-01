@@ -927,7 +927,7 @@ class ChowGroup_class(FGP_Module_class):
 
             sage: cube = [[ 1,0,0],[0, 1,0],[0,0, 1],[-1, 1, 1],
             ...           [-1,0,0],[0,-1,0],[0,0,-1],[ 1,-1,-1]]
-            sage: lat_cube = LatticePolytope(matrix(cube).transpose())
+            sage: lat_cube = LatticePolytope(cube)
             sage: X = ToricVariety(FaceFan((LatticePolytope(lat_cube))))
             sage: X.Chow_group().degree(2)
             Z^5

@@ -3697,17 +3697,16 @@ class Polyhedron_base(Element):
             raise NotImplementedError, 'Only compact lattice polytopes are allowed.'
 
         try:
-            vertices = self.vertices_matrix(ZZ)
+            vertices = self.vertices_matrix(ZZ).columns()
         except TypeError:
             if envelope==False:
-                raise ValueError, 'Some vertices are not integral. '+\
-                    'You probably want to add the argument '+\
-                    '"envelope=True" to compute an enveloping lattice polytope.'
+                raise ValueError('Some vertices are not integral. '
+                    'You probably want to add the argument '
+                    '"envelope=True" to compute an enveloping lattice polytope.')
             vertices = []
             for v in self.vertex_generator():
                 vbox = [ set([floor(x),ceil(x)]) for x in v ]
                 vertices.extend( CartesianProduct(*vbox) )
-            vertices = matrix(ZZ, vertices).transpose()
 
         # construct the (enveloping) lattice polytope
         from sage.geometry.lattice_polytope import LatticePolytope

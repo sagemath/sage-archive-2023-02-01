@@ -544,8 +544,8 @@ class ToricVarietyFactory(SageObject):
         m = identity_matrix(n).augment(matrix(n, 1, [-1]*n))
         charts = [ range(0,i)+range(i+1,n+1) for i in range(0,n+1) ]
         return CPRFanoToricVariety(
-                    Delta_polar=LatticePolytope(m, lattice=ToricLattice(n)),
-                    charts=charts, check=self._check, coordinate_names=names)
+            Delta_polar=LatticePolytope(m.columns(), lattice=ToricLattice(n)),
+            charts=charts, check=self._check, coordinate_names=names)
 
     def A1(self, names='z'):
         r"""

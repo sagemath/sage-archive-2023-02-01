@@ -151,7 +151,9 @@ class UserInterface(object):
 
         INPUT:
 
-        - ``message`` -- a string
+        - ``message`` -- a string or list/tuple/iterable of
+          strings. Each individual message will be wrapped to the
+          terminal width.
 
         - ``log_level`` -- one of ``ERROR``, ``WARNING``, ``NORMAL``,
           ``INFO``, or ``DEBUG`` (default: ``NORMAL``)
@@ -168,7 +170,11 @@ class UserInterface(object):
             sage: UI.show("I ate filet mignon for dinner.", DEBUG)
         """
         if self._config.get("log_level", INFO) >= log_level:
-            self._show(message, log_level)
+            if isinstance(message, basestring):
+                self._show(message, log_level)
+            else:
+                for msg in message:
+                    self._show(msg, log_level)
 
     def debug(self, message):
         r"""

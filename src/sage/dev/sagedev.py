@@ -432,14 +432,15 @@ class SageDev(MercurialPatchMixin):
 
         Checking out a ticket with uncommited changes::
 
-            sage: open("tracked","w").close()
+            sage: open("tracked", "w").close()
             sage: alice.git.super_silent.add("tracked")
             sage: alice._UI.append('d')
             sage: alice.checkout(ticket=2)
             The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should
-            the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] d
+            <BLANKLINE>
+                 tracked
+            <BLANKLINE>
+            Discard changes? [discard/Keep/stash] d
 
         Now follow some single user tests to check that the parameters are interpreted correctly::
 
@@ -536,21 +537,34 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket merge\ndescription")
             sage: dev.create_ticket()
             9
-            sage: UI.append("keep")
-            sage: dev.checkout(ticket=9) # the new branch is based on master which is not the same commit as the current branch ticket/7 - so it is not a valid option to 'keep' changes
+
+        The new branch is based on master which is not the same commit
+        as the current branch ``ticket/7``, so it is not a valid
+        option to ``'keep'`` changes::
+
+            sage: UI.append("cancel")
+            sage: dev.checkout(ticket=9)
             The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] keep
-            Could not check out branch "ticket/9" because your working directory is not clean.
+            <BLANKLINE>
+                 tracked
+            <BLANKLINE>
+            Discard changes? [discard/Cancel/stash] cancel
+            Could not check out branch "ticket/9" because your working directory is not
+            clean.
+
+        Finally, in this case we can keep changes because the base is
+        the same commit as the current branch
 
             sage: UI.append("Summary: ticket merge\ndescription")
             sage: dev.create_ticket()
             10
             sage: UI.append("keep")
-            sage: dev.checkout(ticket=10, base='ticket/7') # now we can keep changes because the base is the same commit as the current branch
+            sage: dev.checkout(ticket=10, base='ticket/7')
             The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? [discard/Keep/stash] keep
+            <BLANKLINE>
+                tracked
+            <BLANKLINE>
+            Discard changes? [discard/Keep/stash] keep
         """
         self._check_ticket_name(ticket, exists=True)
         ticket = self._ticket_from_ticket_name(ticket)
@@ -679,21 +693,25 @@ class SageDev(MercurialPatchMixin):
             sage: dev.git.silent.add("tracked")
             sage: dev.git.silent.commit(message="added tracked")
             sage: with open("tracked", "w") as f: f.write("foo")
-            sage: UI.append("keep")
+            sage: UI.append("cancel")
             sage: dev.checkout(branch="branch1")
             The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] keep
-            Could not check out branch "branch1" because your working directory is not clean.
+            <BLANKLINE>
+                tracked
+            <BLANKLINE>
+            Discard changes? [discard/Cancel/stash] cancel
+            Could not check out branch "branch1" because your working directory is not
+            clean.
 
         We can stash uncommitted changes::
 
             sage: UI.append("s")
             sage: dev.checkout(branch="branch1")
             The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] s
             <BLANKLINE>
+                 tracked
+            <BLANKLINE>
+            Discard changes? [discard/Cancel/stash] s
             Your changes have been moved to the git stash stack. To re-apply your changes
             later use "git stash apply".
 
@@ -716,11 +734,13 @@ class SageDev(MercurialPatchMixin):
 
         Or we can just discard the changes::
 
-            sage: UI.append("d")
+            sage: UI.append("discard")
             sage: dev.checkout(branch="branch1")
             The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] d
+            <BLANKLINE>
+                tracked
+            <BLANKLINE>
+            Discard changes? [discard/Cancel/stash] discard
 
         Checking out a branch when in the middle of a merge::
 
@@ -754,8 +774,10 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("discard")
             sage: dev.checkout(branch='branch1')
             The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] discard
+            <BLANKLINE>
+                tracked
+            <BLANKLINE>
+            Discard changes? [discard/Cancel/stash] discard
 
         Checking out a branch with untracked files that would be overwritten by
         the checkout::
@@ -786,7 +808,7 @@ class SageDev(MercurialPatchMixin):
         current_commit = self.git.commit_for_ref('HEAD')
         target_commit = self.git.commit_for_ref(branch)
         try:
-            self.clean(cancel_unless_clean = (current_commit != target_commit))
+            self.clean(error_unless_clean=(current_commit != target_commit))
         except OperationCancelledError:
             self._UI.error('Could not check out branch "{0}" because your working directory is not clean.'.format(branch))
             raise
@@ -1481,14 +1503,15 @@ class SageDev(MercurialPatchMixin):
                 # Don't send an e-mail notification
                 self.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
 
-    def reset_to_clean_state(self, cancel_unless_clean=True):
+    def reset_to_clean_state(self, error_unless_clean=True):
         r"""
         Reset the current working directory to a clean state.
 
         INPUT:
 
-        - ``cancel_unless_clean`` -- a boolean (default: ``True``), whether to
-          raise an :class:`user_interface_error.OperationCancelledError` if the
+        - ``error_unless_clean`` -- a boolean (default: ``True``),
+          whether to raise an
+          :class:`user_interface_error.OperationCancelledError` if the
           directory remains in an unclean state; used internally.
 
         TESTS:
@@ -1535,21 +1558,22 @@ class SageDev(MercurialPatchMixin):
         states = self.git.get_state()
         if not states:
             return
-        if not self._UI.confirm("Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. {0}Do you want me to reset your repository? (This will discard many changes which are not commited.)".format("To complete this command you have to reset your repository to a clean state. " if cancel_unless_clean else ""), default=False):
-            if not cancel_unless_clean:
+        if not self._UI.confirm("Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. {0}Do you want me to reset your repository? (This will discard many changes which are not commited.)".format("To complete this command you have to reset your repository to a clean state. " if error_unless_clean else ""), default=False):
+            if not error_unless_clean:
                 return
             raise OperationCancelledError("User requested not to clean the current state.")
 
         self.git.reset_to_clean_state()
 
-    def clean(self, cancel_unless_clean=True):
+    def clean(self, error_unless_clean=True):
         r"""
-        Drop any uncommitted changes in the working directory.
+        Restore the working directory to the most recent commit.
 
         INPUT:
 
-        - ``cancel_unless_clean`` -- a boolean (default: ``True``), whether to
-          raise an :class:`user_interface_error.OperationCancelledError` if the
+        - ``error_unless_clean`` -- a boolean (default: ``True``),
+          whether to raise an
+          :class:`user_interface_error.OperationCancelledError` if the
           directory remains in an unclean state; used internally.
 
         TESTS:
@@ -1577,34 +1601,38 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("discard")
             sage: dev.clean()
             The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] discard
+            <BLANKLINE>
+                 tracked
+            <BLANKLINE>
+            Discard changes? [discard/Cancel/stash] discard
             sage: dev.clean()
 
         Uncommitted changes can be kept::
 
             sage: with open("tracked", "w") as f: f.write("foo")
-            sage: UI.append("keep")
+            sage: UI.append("cancel")
             sage: dev.clean()
             The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] keep
-
+            <BLANKLINE>
+                 tracked
+            <BLANKLINE>
+            Discard changes? [discard/Cancel/stash] cancel
+        
         Or stashed::
 
             sage: UI.append("stash")
             sage: dev.clean()
             The following files in your working directory contain uncommitted changes:
-             tracked
-            Do you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later? Your command can only be completed if you discard or stash your changes. [discard/Keep/stash] stash
             <BLANKLINE>
+                 tracked
+            <BLANKLINE>
+            Discard changes? [discard/Cancel/stash] stash
             Your changes have been moved to the git stash stack. To re-apply your changes
             later use "git stash apply".
-            <BLANKLINE>
             sage: dev.clean()
         """
         try:
-            self.reset_to_clean_state(cancel_unless_clean)
+            self.reset_to_clean_state(error_unless_clean)
         except OperationCancelledError:
             self._UI.error("Can not clean the working directory unless in a clean state.")
             raise
@@ -1612,19 +1640,28 @@ class SageDev(MercurialPatchMixin):
         if not self.git.has_uncommitted_changes():
             return
 
-        files = "\n".join([line[2:] for line in self.git.status(porcelain=True).splitlines() if not line.startswith('?')])
-        sel = self._UI.select("The following files in your working directory contain uncommitted changes:\n{0}\nDo you want me to discard any changes which are not committed? Should the changes be kept? Or do you want to stash them for later?{1}".format(files, " Your command can only be completed if you discard or stash your changes." if cancel_unless_clean else ""), options=('discard','keep','stash'), default=1)
+        files = [line[2:] for line in self.git.status(porcelain=True).splitlines()
+                 if not line.startswith('?')]
+        
+        self._UI.show(
+            ['The following files in your working directory contain uncommitted changes:'] +
+            [''] + 
+            ['    ' + f for f in files ] +
+            [''])
+        cancel = 'cancel' if error_unless_clean else 'keep'
+        sel = self._UI.select('Discard changes?', 
+                              options=('discard', cancel, 'stash'), default=1)
         if sel == 'discard':
             self.git.reset_to_clean_working_directory()
-        elif sel == 'keep':
-            if cancel_unless_clean:
+        elif sel == cancel:
+            if error_unless_clean:
                 raise OperationCancelledError("User requested not to clean the working directory.")
         elif sel == 'stash':
             self.git.super_silent.stash()
             self._UI.show('Your changes have been moved to the git stash stack. '
                           'To re-apply your changes later use "git stash apply".')
         else:
-            raise NotImplementedError
+            assert False
 
     def edit_ticket(self, ticket=None):
         r"""

@@ -350,12 +350,10 @@ class CmdLineInterface(UserInterface):
             height, width = float('inf'), float('inf')
 
         message = textwrap.wrap(message.rstrip(), width)
-        if sum(len(l) // width + 1 for l in message) + 2 <= height:
-            try:
-                print(self._color_code(log_level))
-                print(*message, sep='\n')
-            finally:
-                print(self._color_code())                
+        if len(message) <= height:
+            print(self._color_code(log_level) + 
+                  '\n'.join(message) +
+                  self._color_code())                
         else:
             message = '\n'.join(message)+'\n'
             try:

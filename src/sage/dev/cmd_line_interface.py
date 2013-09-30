@@ -24,8 +24,15 @@ from subprocess import check_call, CalledProcessError
 from getpass import getpass
 
 import os
+import textwrap
 
 from user_interface import UserInterface
+
+try:
+    from sage.doctest import DOCTEST_MODE
+except ImportError:
+    DOCTEST_MODE = False
+
 
 class CmdLineInterface(UserInterface):
     r"""
@@ -76,7 +83,7 @@ class CmdLineInterface(UserInterface):
                     default = options[default]
             else:
                 options = None
-        prompt += " "
+        prompt = self._color_code('prompt') + prompt + self._color_code() + " "
         return prompt, options, default
 
     def _get_input(self, prompt, options=None, default=None, input_func=raw_input):
@@ -201,7 +208,6 @@ class CmdLineInterface(UserInterface):
             sage: UI.get_input("What do you want for dinner?") # indirect doctest
             What do you want for dinner? filet mignon
             'filet mignon'
-
         """
         return self._get_input(prompt)
 
@@ -279,13 +285,8 @@ class CmdLineInterface(UserInterface):
             sage: CmdLineInterface(DoctestConfig()["UI"])._ioctl_GWINSZ(0)
             (25, 80)
         """
-        try:
-            from sage.doctest import DOCTEST_MODE
-            if DOCTEST_MODE:
-                return (25, 80)
-        except ImportError:
-            pass
-
+        if DOCTEST_MODE:
+            return (25, 80)
         try:
             import struct
             import fcntl
@@ -298,7 +299,36 @@ class CmdLineInterface(UserInterface):
         except IOError:
             return None
 
-    def _show(self, message):
+    def _color_code(self, color=None):
+        """
+        Return an ansi color code.
+
+        INPUT:
+
+        - ``color`` -- ``None``, ``'prompt'``, or one of the constants
+          ``ERROR``, ``WARNING``, ``NORMAL``, ``INFO``, or ``DEBUG``.
+
+        OUTPUT:
+
+        String, possibly containing a color code.
+        """
+        if DOCTEST_MODE:
+            return ''
+        from user_interface import ERROR, WARNING, NORMAL, INFO, DEBUG
+        if color is None:
+            return '\033[0m'
+        elif color == ERROR:
+            return '\033[0;31m'
+        elif color == WARNING:
+            return '\033[0;33m'
+        elif color == INFO or color == DEBUG:
+            return '\033[0;36m'
+        elif color == 'prompt':
+            return '\033[0;34m'
+        else:
+            return ''
+
+    def _show(self, message, log_level):
         r"""
         Display ``message``.
 
@@ -319,13 +349,15 @@ class CmdLineInterface(UserInterface):
         except EnvironmentError:
             height, width = float('inf'), float('inf')
 
-        message = message.rstrip().splitlines()
-        message = [line.rstrip() for line in message]
+        message = textwrap.wrap(message.rstrip(), width)
         if sum(len(l) // width + 1 for l in message) + 2 <= height:
-            print(*message, sep='\n')
+            try:
+                print(self._color_code(log_level))
+                print(*message, sep='\n')
+            finally:
+                print(self._color_code())                
         else:
-            # It is not possible to detect the encoding from within the terminal
-            message = ('\n'.join(message)+'\n').encode('utf-8')
+            message = '\n'.join(message)+'\n'
             try:
                 self._pager(message)
             except AttributeError:

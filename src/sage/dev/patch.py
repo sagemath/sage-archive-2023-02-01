@@ -41,10 +41,11 @@ MV_DIFF_REGEX = re.compile(r"^rename (?:(?:to)|(?:from)) (.*)$")
 GIT_FROM_REGEX = re.compile(r"^From: (.*)$")
 GIT_SUBJECT_REGEX = re.compile(r"^Subject: (.*)$")
 GIT_DATE_REGEX = re.compile(r"^Date: (.*)$")
-GIT_DIFF_REGEX = re.compile(r"^diff --git a/(.*) b/(.*)$") # this regex should work for our patches since we do not have spaces in file names
+GIT_DIFF_REGEX = re.compile(r"^diff --git a/(.*) b/(.*)$") # this regex should work for our patches
+                                                           # since we do not have spaces in file names
 
 # regular expressions to determine whether a path was written for the new git
-# repository or for the old hg repository
+# repository or for the old hg repositoryw
 HG_PATH_REGEX = re.compile(r"^(?=sage/)|(?=doc/)|(?=module_list\.py)|(?=setup\.py)|(?=c_lib/)")
 GIT_PATH_REGEX = re.compile(r"^(?=src/)")
 
@@ -54,7 +55,8 @@ from git_error import GitError
 
 class MercurialPatchMixin(object):
     
-    def import_patch(self, patchname=None, url=None, local_file=None, diff_format=None, header_format=None, path_format=None):
+    def import_patch(self, patchname=None, url=None, local_file=None, 
+                     diff_format=None, header_format=None, path_format=None):
         r"""
         Import a patch into the current branch.
     
@@ -578,7 +580,7 @@ class MercurialPatchMixin(object):
         else:
             return format
     
-    def _detect_patch_path_format(self, lines, diff_format = None):
+    def _detect_patch_path_format(self, lines, diff_format=None):
         r"""
         Determine the format of the paths in the patch given in ``lines``.
     
@@ -787,16 +789,18 @@ class MercurialPatchMixin(object):
             return lines
     
         def hg_path_to_git_path(path):
-            if any([path.startswith(p) for p in "module_list.py","setup.py","c_lib/","sage/","doc/"]):
+            if any([path.startswith(p) for p in 
+                    "module_list.py", "setup.py", "c_lib/", "sage/", "doc/"]):
                 return "src/%s"%path
             else:
-                raise NotImplementedError("mapping hg path `%s`"%path)
+                raise NotImplementedError('mapping hg path "%s"'%path)
     
         def git_path_to_hg_path(path):
-            if any([path.startswith(p) for p in "src/module_list.py","src/setup.py","src/c_lib/","src/sage/","src/doc/"]):
+            if any([path.startswith(p) for p in 
+                    "src/module_list.py", "src/setup.py", "src/c_lib/", "src/sage/", "src/doc/"]):
                 return path[4:]
             else:
-                raise NotImplementedError("mapping git path `%s`"%path)
+                raise NotImplementedError('mapping git path "%s"'%path)
     
         def apply_replacements(lines, diff_regexs, replacement):
             ret = []
@@ -804,7 +808,10 @@ class MercurialPatchMixin(object):
                 for diff_regex in diff_regexs:
                     m = diff_regex.match(line)
                     if m:
-                        line = line[:m.start(1)] + ("".join([ line[m.end(i-1):m.start(i)]+replacement(m.group(i)) for i in range(1,m.lastindex+1) ])) + line[m.end(m.lastindex):]
+                        line = line[:m.start(1)] + \
+                               ("".join([ line[m.end(i-1):m.start(i)]+replacement(m.group(i)) 
+                                          for i in range(1,m.lastindex+1) ])) + \
+                               line[m.end(m.lastindex):]
                 ret.append(line)
             return ret
     
@@ -817,7 +824,9 @@ class MercurialPatchMixin(object):
             raise NotImplementedError(diff_format)
     
         if from_format == "old":
-            return self._rewrite_patch_diff_paths(apply_replacements(lines, diff_regex, hg_path_to_git_path), from_format="new", to_format=to_format, diff_format=diff_format)
+            return self._rewrite_patch_diff_paths(
+                apply_replacements(lines, diff_regex, hg_path_to_git_path), 
+                from_format="new", to_format=to_format, diff_format=diff_format)
         elif from_format == "new":
             if to_format == "old":
                 return apply_replacements(lines, diff_regex, git_path_to_hg_path)
@@ -893,7 +902,8 @@ class MercurialPatchMixin(object):
             ....:     open(os.path.join(
             ....:             SAGE_SRC,"sage","dev","test","data","trac_8703-trees-fh.patch"
             ....:         )).read().splitlines())
-            ['ordered_tree.py', 'binary_tree.pyx', 'list_clone.pyx', 'permutation.py', 'index.rst', 'abstract_tree.py', 'all.py', 'binary_tree.py']
+            ['ordered_tree.py', 'binary_tree.pyx', 'list_clone.pyx', 'permutation.py',
+             'index.rst', 'abstract_tree.py', 'all.py', 'binary_tree.py']
         """
         if diff_format is None:
             diff_format = self._detect_patch_diff_format(lines)
@@ -996,7 +1006,8 @@ class MercurialPatchMixin(object):
                 if i > len(lines):
                     if mandatory:
                         from sagedev import SageDevValueError
-                        raise SageDevValueError("Malformed patch. Missing line for regular expression `%s`."%(regex.pattern))
+                        raise SageDevValueError('Malformed patch. Missing line for regular expression "%s".'
+                                                %(regex.pattern))
                     else:
                         return
                 match = regex.match(lines[i])
@@ -1006,7 +1017,8 @@ class MercurialPatchMixin(object):
                     i += 1
                 elif mandatory:
                     from sagedev import SageDevValueError
-                    raise SageDevValueError("Malformed patch. Line `%s` does not match regular expression `%s`."%(lines[i],regex.pattern))
+                    raise SageDevValueError('Malformed patch. Line "%s" does not match regular expression "%s".'
+                                            %(lines[i],regex.pattern))
     
             message = []
             for i in range(i,len(lines)):
@@ -1019,8 +1031,9 @@ class MercurialPatchMixin(object):
             return header, lines[i:]
     
         if from_format == "git":
-            header, diff = parse_header(lines, (("user", GIT_FROM_REGEX), ("subject", GIT_SUBJECT_REGEX), ("date", GIT_DATE_REGEX)),
-                                        mandatory=True)
+            header, diff = parse_header(lines,
+                    (("user", GIT_FROM_REGEX), ("subject", GIT_SUBJECT_REGEX), ("date", GIT_DATE_REGEX)),
+                    mandatory=True)
     
             if to_format == "hg-export":
                 ret = []
@@ -1031,7 +1044,8 @@ class MercurialPatchMixin(object):
                 try:
                     os.environ['TZ'] = 'UTC'
                     time.tzset()
-                    ret.append('# Date %s 00000'%int(time.mktime(email.utils.parsedate(header["date"])))) # this is not portable
+                    t = time.mktime(email.utils.parsedate(header["date"]))
+                    ret.append('# Date %s 00000'%int(t)) # this is not portable
                 finally:
                     if old_TZ:
                         os.environ['TZ'] = old_TZ
@@ -1060,7 +1074,8 @@ class MercurialPatchMixin(object):
                 subject = message[0]
                 message = message[1:]
             else:
-                subject = 'No Subject. Modified: %s'%(", ".join(sorted(self._detect_patch_modified_files(lines))))
+                subject = 'No Subject. Modified: %s'%(", ".join(
+                    sorted(self._detect_patch_modified_files(lines))))
             ret = []
             ret.append('From: %s'%user)
             ret.append('Subject: %s'%subject)
@@ -1069,7 +1084,8 @@ class MercurialPatchMixin(object):
             if message and message != ['']: # avoid a double empty line
                 ret.extend(message)
             ret.extend(diff)
-            return self._rewrite_patch_header(ret, to_format=to_format, from_format="git", diff_format=diff_format)
+            return self._rewrite_patch_header(ret, to_format=to_format, from_format="git", 
+                                              diff_format=diff_format)
         else:
             raise NotImplementedError(from_format)
     

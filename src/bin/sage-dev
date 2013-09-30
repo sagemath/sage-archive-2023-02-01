@@ -265,7 +265,7 @@ def parser_from_object(obj, *args, **kwds):
     parser = argparse.ArgumentParser(*args, **kwds)
     subparsers = parser.add_subparsers(title='subcommands')
 
-    def help(args=None,namespace=None):
+    def help(args=None, namespace=None):
         if args is None:
             args = sys.argv[2:]
         else:
@@ -294,16 +294,14 @@ def parser_from_object(obj, *args, **kwds):
         parser_from_method(subparser, method, help_dict)
 
     def run(args=None, namespace=None):
-        parsed = vars(parser.parse_args(args=args,namespace=namespace))
-
+        parsed = vars(parser.parse_args(args=args, namespace=namespace))
         method = parsed['method']
         del parsed['method']
         if method == help:
             # help subcommand
-            help(args=args,namespace=namespace)
+            help(args=args, namespace=namespace)
 
         argspec = getargspec(method)
-
         args = []
         for arg in argspec.args:
             args.append(parsed[arg])

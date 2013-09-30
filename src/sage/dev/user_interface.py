@@ -42,6 +42,7 @@ class UserInterface(object):
         sage: UserInterface(DoctestConfig())
         <sage.dev.user_interface.UserInterface object at 0x...>
     """
+
     def __init__(self, config):
         r"""
         Initialization.
@@ -152,8 +153,8 @@ class UserInterface(object):
 
         - ``message`` -- a string
 
-        - ``log_level`` -- one of ``ERROR``, ``WARNING``, ``NORMAL``, ``INFO``,
-          or ``DEBUG`` (default: ``NORMAL``)
+        - ``log_level`` -- one of ``ERROR``, ``WARNING``, ``NORMAL``,
+          ``INFO``, or ``DEBUG`` (default: ``NORMAL``)
 
         TESTS::
 
@@ -167,7 +168,7 @@ class UserInterface(object):
             sage: UI.show("I ate filet mignon for dinner.", DEBUG)
         """
         if self._config.get("log_level", INFO) >= log_level:
-            self._show(message)
+            self._show(message, log_level)
 
     def debug(self, message):
         r"""
@@ -250,13 +251,16 @@ class UserInterface(object):
         """
         self.show(message, ERROR)
 
-    def _show(self, message):
+    def _show(self, message, log_level=NORMAL):
         r"""
         Display ``message``.
 
         INPUT:
 
         - ``message`` -- a string
+
+        - ``log_level`` -- one of ``ERROR``, ``WARNING``, ``NORMAL``,
+          ``INFO``, or ``DEBUG`` (default: ``NORMAL``)
 
         TESTS::
 

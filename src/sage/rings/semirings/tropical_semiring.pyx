@@ -628,5 +628,5 @@ cdef class TropicalToTropical(Map):
             sage: f(TZ.infinity())
             +infinity
         """
-        return self._codomain((<TropicalSemiringElement>x)._val)
+        return self.codomain()((<TropicalSemiringElement>x)._val)
 

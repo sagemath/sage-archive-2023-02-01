@@ -1762,6 +1762,7 @@ cdef class Parent(category_object.CategoryObject):
         assert not (self._coercions_used and mor.domain() in self._coerce_from_hash), "coercion from %s to %s already registered or discovered"%(mor.domain(), self)
         self._coerce_from_list.append(mor)
         self._coerce_from_hash.set(mor.domain(),mor)
+        mor._make_weak_references()
 
     cpdef register_action(self, action):
         r"""
@@ -1865,6 +1866,7 @@ cdef class Parent(category_object.CategoryObject):
             self._convert_from_hash.set(mor.domain(), mor)
         else:
             raise TypeError("conversions must be parents or maps")
+        mor._make_weak_references()
 
     cpdef register_embedding(self, embedding):
         r"""
@@ -1960,6 +1962,7 @@ cdef class Parent(category_object.CategoryObject):
             self._embedding = embedding._generic_convert_map(self)
         elif embedding is not None:
             raise TypeError("embedding must be a parent or map")
+        self._embedding._make_weak_references()
 
     def coerce_embedding(self):
         """
@@ -2213,6 +2216,7 @@ cdef class Parent(category_object.CategoryObject):
                 print "Warning: non-unique parents %s"%(type(S))
             mor = self._generic_convert_map(S)
             self._coerce_from_hash.set(S, mor)
+            mor._make_weak_references()
             return mor
 
         try:
@@ -2227,10 +2231,10 @@ cdef class Parent(category_object.CategoryObject):
             #        pass
             #        # print "embed problem: the following morphisms connect unconnected portions of the coercion graph\n%s\n%s"%(self._embedding, mor)
             #        # mor = None
-            if mor is not None:
-                # NOTE: this line is what makes the coercion detection stateful
-                # self._coerce_from_list.append(mor)
-                pass
+            # if mor is not None:
+            #     # NOTE: this line is what makes the coercion detection stateful
+            #     # self._coerce_from_list.append(mor)
+            #     pass
             # It may be that the only coercion from S to self is
             # via another parent X. But if the pair (S,X) is temporarily
             # disregarded (using _register_pair, to avoid infinite recursion)
@@ -2238,6 +2242,8 @@ cdef class Parent(category_object.CategoryObject):
             # from S to self. See #12969
             if (mor is not None) or _may_cache_none(self, S, "coerce"):
                 self._coerce_from_hash.set(S,mor)
+                if mor is not None:
+                    mor._make_weak_references()
             return mor
         except CoercionException, ex:
             _record_exception()
@@ -2406,6 +2412,11 @@ cdef class Parent(category_object.CategoryObject):
             # to have a double book-keeping, specifically
             # if one of them is by strong references!
             self._convert_from_hash.set(S, mor)
+            # Moreover, again by #14711, the morphism should
+            # only keep weak references to domain and codomain,
+            # to allow them being garbage collected.
+            if mor is not None:
+                mor._make_weak_references()
             return mor
 
     cdef discover_convert_map_from(self, S):

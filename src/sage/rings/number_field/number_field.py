@@ -2323,7 +2323,7 @@ class NumberField_generic(number_field_base.NumberField):
             from sage.rings.real_mpfr import mpfr_prec_min
             from sage.rings.complex_field import ComplexField
             if ComplexField(mpfr_prec_min()).has_coerce_map_from(embedding.codomain()):
-                return embedding
+                 return embedding.__copy__()
 
     def gen_embedding(self):
         """

@@ -406,6 +406,7 @@ class Homset(Set_generic):
         sage: E = End(AffineSpace(2, names='x,y'))
         sage: loads(E.dumps()) == E
         True
+
     """
     def __init__(self, X, Y, category=None, base = None, check=True):
         r"""
@@ -437,6 +438,13 @@ class Homset(Set_generic):
             Traceback (most recent call last):
             ...
             AttributeError: 'sage.rings.integer.Integer' object has no attribute 'hom_category'
+            sage: P.<t> = ZZ[]
+            sage: f = P.hom([1/2*t])
+            sage: f.parent().domain()
+            Univariate Polynomial Ring in t over Integer Ring
+            sage: f.domain() is f.parent().domain()
+            True
+
         """
         self._domain = X
         self._codomain = Y
@@ -460,8 +468,7 @@ class Homset(Set_generic):
             sage: Hom(ZZ^2, QQ, category=Sets())._repr_()
             'Set of Morphisms from Ambient free module of rank 2 over the principal ideal domain Integer Ring to Rational Field in Category of sets'
         """
-        return "Set of Morphisms from %s to %s in %s"%(
-            self._domain, self._codomain, self.__category)
+        return "Set of Morphisms from %s to %s in %s"%(self._domain, self._codomain, self.__category)
 
     def __hash__(self):
         """
@@ -593,9 +600,7 @@ class Homset(Set_generic):
             Integer Ring
             sage: f(1), f(2), f(3)
             (2, 3, 4)
-
-            sage: H = Hom(Set([1,2,3]), Set([1,2,3]))
-            sage: f = H( lambda x: 4-x )
+            sage: f = Hom(Set([1,2,3]), Set([1,2,3]))( lambda x: 4-x )
             sage: f.parent()
             Set of Morphisms from {1, 2, 3} to {1, 2, 3} in Category of sets
             sage: f(1), f(2), f(3) # todo: not implemented
@@ -818,7 +823,11 @@ class Homset(Set_generic):
             True
 
         """
-        return self._domain is self._codomain
+        sD = self.domain()
+        sC = self.codomain()
+        if sC is None or sD is None:
+            raise RuntimeError, "Domain or codomain of this homset have been deallocated"
+        return sD is sC
 
     def reversed(self):
         """

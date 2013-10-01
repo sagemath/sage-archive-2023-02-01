@@ -434,12 +434,17 @@ cdef class Element(sage_object.SageObject):
             False
         """
         cls = self.__class__
-        res = cls.__new__(cls)
-        res._set_parent(self._parent)
+        cdef Element res = cls.__new__(cls)
+        res._parent = self._parent
         try:
-            res.__dict__ = self.__dict__.copy()
+            D = self.__dict__
         except AttributeError:
-            pass
+            return res
+        for k,v in D.iteritems():
+            try:
+                setattr(res, k, v)
+            except AttributeError:
+                pass
         return res
 
     def __hash__(self):

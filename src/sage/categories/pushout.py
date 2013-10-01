@@ -2526,7 +2526,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             sage: F1(QQ)
             Number Field in a with defining polynomial x^3 - x^2 + 1
             sage: F1(QQ).coerce_embedding()
-            sage: F2(QQ).coerce_embedding()
+            sage: phi = F2(QQ).coerce_embedding().__copy__(); phi
             Generic morphism:
               From: Number Field in a with defining polynomial x^3 - x^2 + 1
               To:   Real Lazy Field

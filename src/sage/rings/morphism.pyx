@@ -521,7 +521,7 @@ cdef class RingMap_lift(RingMap):
             sage: hash(f) == hash(g)
             False
         """
-        return hash((self._domain, self._codomain))
+        return hash((self.domain(), self.codomain()))
 
     def _repr_defn(self):
         """
@@ -947,7 +947,7 @@ cdef class RingHomomorphism_coercion(RingHomomorphism):
             sage: {f: 1}[f]
             1
         """
-        return hash((self._domain, self._codomain))
+        return hash((self.domain(), self.codomain()))
 
     cpdef Element _call_(self, x):
         """
@@ -1549,7 +1549,7 @@ cdef class RingHomomorphism_cover(RingHomomorphism):
             sage: {phi: 1}[phi]
             1
         """
-        return hash((self._domain, self._codomain))
+        return hash((self.domain(), self.codomain()))
 
 cdef class RingHomomorphism_from_quotient(RingHomomorphism):
     r"""

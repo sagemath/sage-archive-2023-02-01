@@ -63,6 +63,11 @@ cdef class NumberFieldEmbedding(Morphism):
         else:
             self._gen_image = R(gen_embedding)
 
+    def __copy__(self):
+        cdef NumberFieldEmbedding out = Morphism.__copy__(self)
+        out._gen_image = self._gen_image
+        return out
+
     cpdef Element _call_(self, x):
         """
         EXAMPLES::
@@ -89,7 +94,7 @@ cdef class NumberFieldEmbedding(Morphism):
               To:   Real Lazy Field
               Defn: a -> 1.414213562373095?
         """
-        return "%s -> %s" % (self._domain.variable_name(), self._gen_image)
+        return "%s -> %s" % (self.domain().variable_name(), self._gen_image)
 
     def gen_image(self):
         """
@@ -185,7 +190,7 @@ cdef class EmbeddedNumberFieldMorphism(NumberFieldEmbedding):
             sage: g(2*b^3-1)
             2*a - 1
         """
-        return EmbeddedNumberFieldConversion(self._codomain, self._domain, self.ambient_field)
+        return EmbeddedNumberFieldConversion(self.codomain(), self.domain(), self.ambient_field)
 
 
 cdef class EmbeddedNumberFieldConversion(Map):
@@ -236,9 +241,9 @@ cdef class EmbeddedNumberFieldConversion(Map):
             ValueError: No consistent embedding of Cyclotomic Field of order 12 and degree 4 into Cyclotomic Field of order 15 and degree 8.
         """
         minpoly = x.minpoly()
-        gen_image = matching_root(minpoly.change_ring(self._codomain), x, self.ambient_field, 4)
+        gen_image = matching_root(minpoly.change_ring(self.codomain()), x, self.ambient_field, 4)
         if gen_image is None:
-            raise ValueError, "No consistent embedding of %s into %s." % (self._domain, self._codomain)
+            raise ValueError, "No consistent embedding of %s into %s." %(self.domain(), self.codomain())
         return gen_image
 
 
@@ -485,4 +490,4 @@ cdef class CyclotomicFieldEmbedding(NumberFieldEmbedding):
             sage: f(K.gen()^2 + 3) # indirect doctest
             zeta21^6 + 3
         """
-        return x._lift_cyclotomic_element(self._codomain, False, self.ratio)
+        return x._lift_cyclotomic_element(self.codomain(), False, self.ratio)

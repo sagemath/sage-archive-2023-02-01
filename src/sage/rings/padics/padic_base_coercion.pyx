@@ -93,7 +93,7 @@ cdef class pAdicCoercion_ZZ_CR(RingHomomorphism_coercion):
             5 + O(5^21)
         """
         cdef pAdicCappedRelativeElement ans = PY_NEW(pAdicCappedRelativeElement)
-        ans._parent = self._codomain
+        ans._parent = self.codomain()
         ans.prime_pow = self.prime_pow
         mpz_init(ans.unit)
         ans._set_from_mpz_rel((<Integer>x).value, self.prime_pow.prec_cap)
@@ -126,7 +126,7 @@ cdef class pAdicCoercion_ZZ_CR(RingHomomorphism_coercion):
         cdef pAdicCappedRelativeElement ans
         processed = _process_args_and_kwds(args, kwds)
         ans = PY_NEW(pAdicCappedRelativeElement)
-        ans._parent = self._codomain
+        ans._parent = self.codomain()
         ans.prime_pow = self.prime_pow
         mpz_init(ans.unit)
         if processed is True:
@@ -237,7 +237,7 @@ cdef class pAdicCoercion_QQ_CR(RingHomomorphism_coercion):
             4 + 3*5 + 3*5^2 + 3*5^3 + 3*5^4 + 3*5^5 + 3*5^6 + 3*5^7 + 3*5^8 + 3*5^9 + 3*5^10 + 3*5^11 + 3*5^12 + 3*5^13 + 3*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 3*5^18 + 3*5^19 + O(5^20)
         """
         cdef pAdicCappedRelativeElement ans = PY_NEW(pAdicCappedRelativeElement)
-        ans._parent = self._codomain
+        ans._parent = self.codomain()
         ans.prime_pow = self.prime_pow
         mpz_init(ans.unit)
         ans._set_from_mpq_rel((<Rational>x).value, self.prime_pow.prec_cap)
@@ -273,7 +273,7 @@ cdef class pAdicCoercion_QQ_CR(RingHomomorphism_coercion):
         cdef pAdicCappedRelativeElement ans
         processed = _process_args_and_kwds(args, kwds)
         ans = PY_NEW(pAdicCappedRelativeElement)
-        ans._parent = self._codomain
+        ans._parent = self.codomain()
         ans.prime_pow = self.prime_pow
         mpz_init(ans.unit)
         if processed is True:
@@ -383,7 +383,7 @@ cdef class pAdicConvert_QQ_CR(Morphism):
             0
         """
         cdef pAdicCappedRelativeElement ans = PY_NEW(pAdicCappedRelativeElement)
-        ans._parent = self._codomain
+        ans._parent = self.codomain()
         ans.prime_pow = self.prime_pow
         mpz_init(ans.unit)
         ans._set_from_mpq_rel((<Rational>x).value, self.prime_pow.prec_cap)
@@ -420,7 +420,7 @@ cdef class pAdicConvert_QQ_CR(Morphism):
         cdef pAdicCappedRelativeElement ans
         processed = _process_args_and_kwds(args, kwds)
         ans = PY_NEW(pAdicCappedRelativeElement)
-        ans._parent = self._codomain
+        ans._parent = self.codomain()
         ans.prime_pow = self.prime_pow
         mpz_init(ans.unit)
         if processed is True:
@@ -478,7 +478,7 @@ cdef class pAdicCoercion_ZZ_CA(RingHomomorphism_coercion):
             5 + O(5^20)
         """
         cdef pAdicCappedAbsoluteElement ans = PY_NEW(pAdicCappedAbsoluteElement)
-        ans._parent = self._codomain
+        ans._parent = self.codomain()
         ans.prime_pow = self.prime_pow
         mpz_init(ans.value)
         ans._set_from_mpz_abs((<Integer>x).value, self.prime_pow.prec_cap)
@@ -511,7 +511,7 @@ cdef class pAdicCoercion_ZZ_CA(RingHomomorphism_coercion):
         cdef pAdicCappedAbsoluteElement ans
         processed = _process_args_and_kwds(args, kwds)
         ans = PY_NEW(pAdicCappedAbsoluteElement)
-        ans._parent = self._codomain
+        ans._parent = self.codomain()
         ans.prime_pow = self.prime_pow
         mpz_init(ans.value)
         if processed is True:
@@ -607,7 +607,7 @@ cdef class pAdicConvert_QQ_CA(Morphism):
             O(5^4)
         """
         cdef pAdicCappedAbsoluteElement ans = PY_NEW(pAdicCappedAbsoluteElement)
-        ans._parent = self._codomain
+        ans._parent = self.codomain()
         ans.prime_pow = self.prime_pow
         mpz_init(ans.value)
         ans._set_from_mpq_abs((<Rational>x).value, self.prime_pow.prec_cap)
@@ -644,7 +644,7 @@ cdef class pAdicConvert_QQ_CA(Morphism):
         cdef pAdicCappedAbsoluteElement ans
         processed = _process_args_and_kwds(args, kwds)
         ans = PY_NEW(pAdicCappedAbsoluteElement)
-        ans._parent = self._codomain
+        ans._parent = self.codomain()
         ans.prime_pow = self.prime_pow
         mpz_init(ans.value)
         if processed is True:
@@ -689,7 +689,7 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism_coercion):
             5 + O(5^20)
         """
         cdef pAdicFixedModElement ans = PY_NEW(pAdicFixedModElement)
-        ans._parent = self._codomain
+        ans._parent = self.codomain()
         ans.prime_pow = self.prime_pow
         mpz_init(ans.value)
         ans._set_from_mpz((<Integer>x).value)
@@ -720,7 +720,7 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism_coercion):
             5 + 5^2 + O(5^4)
         """
         cdef pAdicFixedModElement ans = PY_NEW(pAdicFixedModElement)
-        ans._parent = self._codomain
+        ans._parent = self.codomain()
         ans.prime_pow = self.prime_pow
         mpz_init(ans.value)
         ans._set_from_mpz((<Integer>x).value)
@@ -814,7 +814,7 @@ cdef class pAdicConvert_QQ_FM(Morphism):
             O(5^4)
         """
         cdef pAdicFixedModElement ans = PY_NEW(pAdicFixedModElement)
-        ans._parent = self._codomain
+        ans._parent = self.codomain()
         ans.prime_pow = self.prime_pow
         mpz_init(ans.value)
         ans._set_from_mpq((<Rational>x).value)
@@ -845,7 +845,7 @@ cdef class pAdicConvert_QQ_FM(Morphism):
             3 + 3*5 + 2*5^3 + O(5^4)
         """
         cdef pAdicFixedModElement ans = PY_NEW(pAdicFixedModElement)
-        ans._parent = self._codomain
+        ans._parent = self.codomain()
         ans.prime_pow = self.prime_pow
         mpz_init(ans.value)
         ans._set_from_mpq((<Rational>x).value)

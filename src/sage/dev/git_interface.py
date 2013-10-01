@@ -129,14 +129,14 @@ class GitProxy(object):
         import sage.doctest
         import os
         assert not sage.doctest.DOCTEST_MODE or (
-            self._dot_git != SAGE_DOT_GIT and self._repository != SAGE_REPO_AUTHENTICATED 
+            self._dot_git != SAGE_DOT_GIT and self._repository != SAGE_REPO_AUTHENTICATED
             and os.path.abspath(self._src).startswith(self._src)), \
             "possible attempt to work with the live repository/directory in a doctest"
 
         # not sure which commands could possibly create a commit object with
         # unless there are some crazy flags set - these commands should be safe
-        if cmd not in [ 
-                "config", "diff", "grep", "log", "ls_remote", "remote", "reset", 
+        if cmd not in [
+                "config", "diff", "grep", "log", "ls_remote", "remote", "reset",
                 "show", "show_ref", "status", "symbolic_ref" ]:
             self._check_user_email()
 
@@ -266,7 +266,7 @@ class GitProxy(object):
             sage: git._execute_silent('status',foo=True) # --foo is not a valid parameter
             Traceback (most recent call last):
             ...
-            GitError: git returned with non-zero exit code (129) for 
+            GitError: git returned with non-zero exit code (129) for
             "git -c user.email=doc@test.test -c user.name=doctest status --foo".
         """
         exit_code, stdout, stderr, cmd = self._run_git(cmd, args, kwds, stdout=False)
@@ -660,8 +660,8 @@ class GitInterface(ReadStdoutGitProxy):
 
         return self.reset_to_clean_state()
 
-    def reset_to_clean_working_directory(self, remove_untracked_files=False, 
-                                         remove_untracked_directories=False, 
+    def reset_to_clean_working_directory(self, remove_untracked_files=False,
+                                         remove_untracked_directories=False,
                                          remove_ignored=False):
         r"""
         Reset any changes made to the working directory.
@@ -756,8 +756,8 @@ class GitInterface(ReadStdoutGitProxy):
             Removing ignored
             Not removing ignored_dir/
             sage: git.reset_to_clean_working_directory(
-            ....:     remove_untracked_files=True, 
-            ....:     remove_untracked_directories=True, 
+            ....:     remove_untracked_files=True,
+            ....:     remove_untracked_directories=True,
             ....:     remove_ignored=True)
             Removing ignored_dir/
         """
@@ -888,7 +888,7 @@ class GitInterface(ReadStdoutGitProxy):
             sage: git.has_uncommitted_changes()
             True
         """
-        return bool([line for line in self.status(porcelain=True).splitlines() 
+        return bool([line for line in self.status(porcelain=True).splitlines()
                      if not line.startswith('?')])
 
     def untracked_files(self):
@@ -947,7 +947,7 @@ class GitInterface(ReadStdoutGitProxy):
 
         Create a :class:`GitInterface` for doctesting::
 
-            sage: import os
+            sage: import os, time
             sage: from sage.dev.git_interface import GitInterface
             sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.test.user_interface import DoctestUserInterface
@@ -958,33 +958,38 @@ class GitInterface(ReadStdoutGitProxy):
 
             sage: os.chdir(config['git']['src'])
             sage: git.silent.commit('-m','initial commit','--allow-empty')
-            sage: git.silent.branch('branch1')
-            sage: git.silent.branch('branch2')
+            sage: git.super_silent.checkout('-b', 'branch')
+            sage: time.sleep(1)
+            sage: git.silent.commit('-m','second commit','--allow-empty')
+            sage: git.super_silent.checkout('-b', 'other', 'master')
+            sage: time.sleep(1)
+            sage: git.silent.commit('-m','third commit','--allow-empty')
 
         Use this repository as a remote repository::
 
             sage: config2 = DoctestConfig()
             sage: git2 = GitInterface(config2["git"], DoctestUserInterface(config["UI"]))
             sage: os.chdir(config2['git']['src'])
+            sage: time.sleep(1)
             sage: git2.silent.commit('-m','initial commit','--allow-empty')
             sage: git2.silent.remote('add', 'git', config['git']['src'])
             sage: git2.super_silent.fetch('git')
-            sage: git2.super_silent.checkout("branch1")
+            sage: git2.super_silent.checkout("branch")
             sage: git2.echo.branch("-a")
-            * branch1
+            * branch
               master
-              remotes/git/branch1
-              remotes/git/branch2
+              remotes/git/branch
               remotes/git/master
+              remotes/git/other
 
             sage: git2.local_branches()
-            ['branch1', 'master']
+            ['master', 'branch']
             sage: os.chdir(config['git']['src'])
             sage: git.local_branches()
-            ['branch1', 'branch2', 'master']
+            ['other', 'branch', 'master']
         """
         result = self.for_each_ref('refs/heads/', sort='-committerdate', format="%(refname)")
-        return sorted([head[11:] for head in result.splitlines()])
+        return [head[11:] for head in result.splitlines()]
 
     def current_branch(self):
         r"""

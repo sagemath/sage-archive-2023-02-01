@@ -6,14 +6,15 @@ that python classes can inherit.
 
 .. NOTE::
 
-    In its original version, this module provides a cython base class
-    :class:`WithEqualityById` implementing unique instance behaviour, and a
-    cython base class :class:`FastHashable_class`, which has a quite fast hash
+    This module provides a cython base class :class:`WithEqualityById`
+    implementing unique instance behaviour, and a cython base class
+    :class:`FastHashable_class`, which has a quite fast hash
     whose value can be freely chosen at initialisation time.
 
 AUTHOR:
 
-- Simon King (2013-02)
+- Simon King (2013-02): Original version
+- Simon King (2013-10): Add :class:`SingletonClass`
 
 """
 
@@ -31,6 +32,10 @@ AUTHOR:
 #
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
+
+from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
+from sage.misc.constant_function import ConstantFunction
+from sage.misc.lazy_attribute import lazy_class_attribute
 
 include "sage/ext/python_rich_object.pxi"
 from cpython.bool cimport *
@@ -256,3 +261,18 @@ cdef class FastHashable_class:
 
         """
         return self._hash
+
+class SingletonClass:
+    __metaclass__ = ClasscallMetaclass
+    @staticmethod
+    def __classcall__(cls):
+        assert cls.mro()[1] == SingletonClass, "%s is not a direct subclass of %s"%(cls, SingletonClass)
+        res = typecall(cls)
+        cf = ConstantFunction(res)
+        cls._set_classcall(cf)
+        res.__class__._set_classcall(cf)
+        return res
+    def __copy__(self):
+        return self
+    def __reduce__(self):
+        return self.__class__, () 

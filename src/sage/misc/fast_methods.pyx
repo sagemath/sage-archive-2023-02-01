@@ -262,7 +262,7 @@ cdef class FastHashable_class:
         """
         return self._hash
 
-class SingletonClass:
+class SingletonClass(WithEqualityById):
     __metaclass__ = ClasscallMetaclass
     @staticmethod
     def __classcall__(cls):

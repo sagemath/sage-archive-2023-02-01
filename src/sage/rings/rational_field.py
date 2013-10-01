@@ -212,17 +212,6 @@ class RationalField(SingletonClass, number_field_base.NumberField):
         self._assign_names(('x',),normalize=False) # ???
         self._populate_coercion_lists_(element_constructor=rational.Rational, init_no_parent=True)
 
-    def __hash__(self):
-        """
-        Return hash value for ``self``.
-
-        EXAMPLES::
-
-            sage: hash(QQ)
-            -11115808
-        """
-        return -11115808
-
     def _repr_(self):
         """
         Return a string representation of ``self``.

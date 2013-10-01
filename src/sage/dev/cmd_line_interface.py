@@ -266,7 +266,8 @@ class CmdLineInterface(UserInterface):
              finally:
                 os.close(fd)
         if dim is None:
-            raise (80, 25)
+            # fallback values
+            return (25, 80)
         return tuple(int(x) for x in dim)
 
     def _ioctl_GWINSZ(self, fd):

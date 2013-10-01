@@ -136,8 +136,6 @@ class MercurialPatchMixin(object):
             sage: os.unlink("tracked")
             sage: os.unlink("tracked2")
             sage: dev.import_patch(local_file=patchfile, path_format="new")
-            <BLANKLINE>
-            #  Trying to apply reformatted patch `...`
             Applying: No Subject. Modified: tracked, tracked2
 
          We create a patch which does not apply::
@@ -156,8 +154,6 @@ class MercurialPatchMixin(object):
             sage: UI.append("abort")
             sage: UI.append("y")
             sage: dev.import_patch(local_file=patchfile, path_format="new")
-            <BLANKLINE>
-            #  Trying to apply reformatted patch `...`
             Applying: No Subject. Modified: tracked, tracked2
             error: patch failed: tracked:1
             error: tracked: patch does not apply
@@ -185,8 +181,6 @@ class MercurialPatchMixin(object):
             sage: UI.append("resolved")
             sage: UI.append("y")
             sage: dev.import_patch(local_file=patchfile, path_format="new")
-            <BLANKLINE>
-            #  Trying to apply reformatted patch `...`
             Applying: No Subject. Modified: tracked, tracked2
             error: patch failed: tracked:1
             error: tracked: patch does not apply
@@ -207,8 +201,6 @@ class MercurialPatchMixin(object):
             The patch did not apply cleanly. Please integrate the `.rej` files that were
             created and resolve conflicts. After you do, type `resolved`. If you want to
             abort this process, type `abort`. [resolved/abort] resolved
-            <BLANKLINE>
-            #  A commit on the current branch has been created from the patch.
             Removing tracked.rej
             sage: open("tracked").read() # we did not actually incorporate the .rej files in this doctest, so nothing has changed
             ''
@@ -351,9 +343,6 @@ class MercurialPatchMixin(object):
             sage: UI.append("Summary: summary1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
 
         There are no attachments to download yet::
@@ -371,10 +360,6 @@ class MercurialPatchMixin(object):
 
             sage: server.tickets[1].attachments['second.patch'] = ''
             sage: dev.download_patch(ticket=1)
-            <BLANKLINE>
-            #  There is more than one attachment on ticket #1. Reading
-            #  `https://trac.sagemath.org/ticket/1?format=rss` to try to find out in which
-            #  order they must be applied.
             I could not understand the comments on ticket #1. To apply use one of the
             patches on the ticket, set the parameter `patchname` to one of: first.patch,
             second.patch
@@ -1138,4 +1123,3 @@ class MercurialPatchMixin(object):
             to_format=to_path_format,
             diff_format=from_diff_format,
             from_format=from_path_format)
-

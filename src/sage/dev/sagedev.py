@@ -217,17 +217,11 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
 
             sage: UI.append("Summary: ticket2\ndescription")
             sage: dev.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
-            <BLANKLINE>
-            #  To start work on ticket #2, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=2".
             2
 
         This fails if the internet connection is broken::
@@ -313,9 +307,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: dev.checkout(ticket=1)
             sage: dev.git.current_branch()
@@ -381,9 +372,6 @@ class SageDev(MercurialPatchMixin):
             sage: bob._UI.append("Summary: summary1\ndescription")
             sage: bob.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: bob.checkout(ticket=1)
 
@@ -426,9 +414,6 @@ class SageDev(MercurialPatchMixin):
             sage: alice._UI.append("Summary: summary2\ndescription")
             sage: alice.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
-            <BLANKLINE>
-            #  To start work on ticket #2, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=2".
             2
             sage: alice.checkout(ticket=2)
             sage: alice.git.echo.log('--pretty=%s')
@@ -480,17 +465,11 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: dev.checkout(ticket=1)
             sage: UI.append("Summary: ticket2\ndescription")
             sage: dev.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
-            <BLANKLINE>
-            #  To start work on ticket #2, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=2".
             2
             sage: dev.checkout(ticket=2)
             sage: dev.git.silent.commit(allow_empty=True, message="second commit")
@@ -502,9 +481,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket3\ndescription")
             sage: dev.create_ticket()
             Created ticket #3 at https://trac.sagemath.org/3.
-            <BLANKLINE>
-            #  To start work on ticket #3, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=3".
             3
             sage: dev.checkout(ticket=3, base=2)
             sage: dev.git.commit_for_branch('ticket/3') == dev.git.commit_for_branch('ticket/2')
@@ -514,9 +490,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket4\ndescription")
             sage: dev.create_ticket()
             Created ticket #4 at https://trac.sagemath.org/4.
-            <BLANKLINE>
-            #  To start work on ticket #4, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=4".
             4
             sage: dev.checkout(ticket=4, base='ticket/2')
             sage: dev.git.commit_for_branch('ticket/4') == dev.git.commit_for_branch('ticket/2')
@@ -529,9 +502,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket5\ndescription")
             sage: dev.create_ticket()
             Created ticket #5 at https://trac.sagemath.org/5.
-            <BLANKLINE>
-            #  To start work on ticket #5, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=5".
             5
             sage: dev.checkout(ticket=5, base=1000)
             ValueError: "1000" is not a valid ticket name or ticket does not exist on trac.
@@ -541,9 +511,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket6\ndescription")
             sage: dev.create_ticket()
             Created ticket #6 at https://trac.sagemath.org/6.
-            <BLANKLINE>
-            #  To start work on ticket #6, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=6".
             6
             sage: dev.checkout(ticket=6, base=5)
             ValueError: Branch field is not set for ticket #5 on trac.
@@ -554,9 +521,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket detached\ndescription")
             sage: dev.create_ticket()
             Created ticket #7 at https://trac.sagemath.org/7.
-            <BLANKLINE>
-            #  To start work on ticket #7, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=7".
             7
             sage: dev.checkout(ticket=7)
             sage: dev.git.current_branch()
@@ -579,9 +543,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket merge\ndescription")
             sage: dev.create_ticket()
             Created ticket #8 at https://trac.sagemath.org/8.
-            <BLANKLINE>
-            #  To start work on ticket #8, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=8".
             8
             sage: UI.append("n")
             sage: dev.checkout(ticket=8)
@@ -591,8 +552,6 @@ class SageDev(MercurialPatchMixin):
             many changes which are not commited.) [yes/No] n
             Could not check out branch "ticket/8" because your working directory is not
             in a clean state.
-            <BLANKLINE>
-            #  To checkout "ticket/8", use "sage --dev checkout --branch=ticket/8".
             sage: dev.git.reset_to_clean_state()
 
         Creating a ticket with uncommitted changes::
@@ -602,9 +561,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket merge\ndescription")
             sage: dev.create_ticket()
             Created ticket #9 at https://trac.sagemath.org/9.
-            <BLANKLINE>
-            #  To start work on ticket #9, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=9".
             9
 
         The new branch is based on master which is not the same commit
@@ -627,9 +583,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket merge\ndescription")
             sage: dev.create_ticket()
             Created ticket #10 at https://trac.sagemath.org/10.
-            <BLANKLINE>
-            #  To start work on ticket #10, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=10".
             10
             sage: UI.append("keep")
             sage: dev.checkout(ticket=10, base='ticket/7')
@@ -837,8 +790,6 @@ class SageDev(MercurialPatchMixin):
             many changes which are not commited.) [yes/No] n
             Could not check out branch "merge_branch" because your working directory is not
             in a clean state.
-            <BLANKLINE>
-            #  To checkout "merge_branch", use "sage --dev checkout --branch=merge_branch".
             sage: dev.git.reset_to_clean_state()
 
         Checking out a branch when in a detached HEAD::
@@ -926,9 +877,6 @@ class SageDev(MercurialPatchMixin):
             sage: alice._UI.append("Summary: summary1\ndescription")
             sage: alice.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: alice.checkout(ticket=1)
 
@@ -1250,9 +1198,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: dev.checkout(ticket=1)
 
@@ -1339,9 +1284,6 @@ class SageDev(MercurialPatchMixin):
             sage: alice._UI.append("Summary: summary1\ndescription")
             sage: alice.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: alice.checkout(ticket=1)
             sage: open("tracked", "w").close()
@@ -1400,11 +1342,6 @@ class SageDev(MercurialPatchMixin):
             ...: bob: added tracked2
             Is this what you want? [Yes/no] y
             Not setting the branch field for ticket #1 to "u/bob/ticket/1" because "u/bob/ticket/1" and the current value of the branch field "u/alice/ticket/1" have diverged.
-            <BLANKLINE>
-            #  To overwrite the branch field use "sage --dev push --force --ticket=1
-            #  --remote-branch=u/bob/ticket/1".
-            #  To merge in the changes introduced by "u/alice/ticket/1", use "sage --dev
-            #  download --ticket=1".
 
         After merging the changes, this works again::
 
@@ -1429,9 +1366,6 @@ class SageDev(MercurialPatchMixin):
             sage: bob._UI.append("Summary: summary2\ndescription")
             sage: bob.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
-            <BLANKLINE>
-            #  To start work on ticket #2, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=2".
             2
             sage: bob.checkout(ticket=2)
             sage: bob.checkout(ticket=1)
@@ -1441,9 +1375,6 @@ class SageDev(MercurialPatchMixin):
             You are trying to push the branch "ticket/1" to "u/bob/ticket/2" for ticket #2.
             However, your local branch for ticket #2 seems to be "ticket/2". Do you really
             want to proceed? [yes/No] y
-            <BLANKLINE>
-            #  Use "sage --dev checkout --ticket=2 --branch=ticket/1" To permanently set the
-            #  branch associated to ticket #2 to "ticket/1".
             The branch "u/bob/ticket/2" does not exist on the remote server yet. Do you want
             to create the branch? [Yes/no] y
 
@@ -1462,20 +1393,12 @@ class SageDev(MercurialPatchMixin):
             Added dependency on #2 to #1.
             sage: bob._UI.append("y")
             sage: bob.push()
-            <BLANKLINE>
-            #  Not pushing your changes because the remote branch "u/bob/ticket/1" is
-            #  idential to your local branch "ticket/1". Did you forget to commit your
-            #  changes with "sage --dev commit"?
             I will now change the branch field of ticket #1 from its current value
             "u/bob/branch1" to "u/bob/ticket/1". Is this what you want? [Yes/no] y
             Uploading your dependencies for ticket #1: "" => "#2"
             sage: bob._sagedev._set_dependencies_for_ticket(1,())
             sage: bob._UI.append("keep")
             sage: bob.push()
-            <BLANKLINE>
-            #  Not pushing your changes because the remote branch "u/bob/ticket/1" is
-            #  idential to your local branch "ticket/1". Did you forget to commit your
-            #  changes with "sage --dev commit"?
             According to trac, ticket #1 depends on #2. Your local branch depends on no
             tickets. Do you want to upload your dependencies to trac? Or do you want to
             download the dependencies from trac to your local branch? Or do you want to keep
@@ -1483,20 +1406,12 @@ class SageDev(MercurialPatchMixin):
             [upload/download/keep] keep
             sage: bob._UI.append("download")
             sage: bob.push()
-            <BLANKLINE>
-            #  Not pushing your changes because the remote branch "u/bob/ticket/1" is
-            #  idential to your local branch "ticket/1". Did you forget to commit your
-            #  changes with "sage --dev commit"?
             According to trac, ticket #1 depends on #2. Your local branch depends on no
             tickets. Do you want to upload your dependencies to trac? Or do you want to
             download the dependencies from trac to your local branch? Or do you want to keep
             your local dependencies and the dependencies on trac in its current state?
             [upload/download/keep] download
             sage: bob.push()
-            <BLANKLINE>
-            #  Not pushing your changes because the remote branch "u/bob/ticket/1" is
-            #  idential to your local branch "ticket/1". Did you forget to commit your
-            #  changes with "sage --dev commit"?
         """
         if ticket is None:
             ticket = self._current_ticket()
@@ -1831,9 +1746,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: dev.checkout(ticket=1)
             sage: UI.append("Summary: summary1\ndescription...")
@@ -1881,9 +1793,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: dev.checkout(ticket=1)
             sage: open("tracked", "w").close()
@@ -1935,9 +1844,6 @@ class SageDev(MercurialPatchMixin):
             sage: alice._UI.append("Summary: summary1\ndescription")
             sage: alice.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: alice.checkout(ticket=1)
             sage: open("tracked", "w").close()
@@ -1997,9 +1903,6 @@ class SageDev(MercurialPatchMixin):
             sage: alice._UI.append("Summary: summary1\ndescription")
             sage: alice.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: alice.checkout(ticket=1)
             sage: open("tracked", "w").close()
@@ -2059,9 +1962,6 @@ class SageDev(MercurialPatchMixin):
             sage: alice._UI.append("Summary: summary1\ndescription")
             sage: alice.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: alice.checkout(ticket=1)
             sage: open("tracked", "w").close()
@@ -2114,9 +2014,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: dev.checkout(ticket=1)
             sage: UI.append("comment")
@@ -2196,9 +2093,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: dev.checkout(ticket=1)
             sage: dev.remote_status()
@@ -2389,9 +2283,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: dev.checkout(ticket=1)
             sage: dev.local_tickets()
@@ -2418,8 +2309,6 @@ class SageDev(MercurialPatchMixin):
             sage: dev.prune_closed_tickets()
             Abandoning #1.
             Cannot delete "ticket/1": is the current branch.
-            <BLANKLINE>
-            #  Use "sage --dev vanilla" to switch to the master branch first.
 
         Now, the branch is abandoned::
 
@@ -2427,9 +2316,6 @@ class SageDev(MercurialPatchMixin):
             sage: dev.prune_closed_tickets()
             Abandoning #1.
             Moved your branch "ticket/1" to "trash/ticket/1".
-            <BLANKLINE>
-            #  Use "sage --dev checkout --ticket=1 --base=master" to work on #1 with a clean
-            #  copy of the master branch.
             sage: dev.local_tickets()
             : master
             sage: dev.prune_closed_tickets()
@@ -2472,9 +2358,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: dev.checkout(ticket=1)
             sage: UI.append("y")
@@ -2483,14 +2366,9 @@ class SageDev(MercurialPatchMixin):
             yet. Do you want to create the branch? [Yes/no] y
             sage: dev.abandon(1)
             Cannot delete "ticket/1": is the current branch.
-            <BLANKLINE>
-            #  Use "sage --dev vanilla" to switch to the master branch first.
             sage: dev.vanilla()
             sage: dev.abandon(1)
             Moved your branch "ticket/1" to "trash/ticket/1".
-            <BLANKLINE>
-            #  Use "sage --dev checkout --ticket=1 --base=master" to work on #1 with a clean
-            #  copy of the master branch.
 
         Start to work on a new branch for this ticket::
 
@@ -2579,9 +2457,6 @@ class SageDev(MercurialPatchMixin):
             sage: dev._UI.append("Summary: summary1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: dev.checkout(ticket=1)
             sage: open("tracked","w").close()
@@ -2716,16 +2591,10 @@ class SageDev(MercurialPatchMixin):
             sage: alice._UI.append("Summary: summary1\ndescription")
             sage: alice.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: alice._UI.append("Summary: summary2\ndescription")
             sage: alice.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
-            <BLANKLINE>
-            #  To start work on ticket #2, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=2".
             2
 
         Alice creates two branches and merges them::
@@ -2980,17 +2849,11 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: dev.checkout(ticket=1)
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
-            <BLANKLINE>
-            #  To start work on ticket #2, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=2".
             2
             sage: dev.checkout(ticket=2)
             sage: dev.local_tickets()
@@ -3124,9 +2987,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: dev.checkout(ticket=1)
             sage: UI.append("y")
@@ -3135,9 +2995,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
-            <BLANKLINE>
-            #  To start work on ticket #2, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=2".
             2
             sage: dev.checkout(ticket=2)
             sage: UI.append("y")
@@ -3146,9 +3003,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #3 at https://trac.sagemath.org/3.
-            <BLANKLINE>
-            #  To start work on ticket #3, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=3".
             3
             sage: dev.checkout(ticket=3)
             sage: UI.append("y")
@@ -3383,33 +3237,21 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: dev.checkout(ticket=1)
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
-            <BLANKLINE>
-            #  To start work on ticket #2, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=2".
             2
             sage: dev.checkout(ticket=2)
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #3 at https://trac.sagemath.org/3.
-            <BLANKLINE>
-            #  To start work on ticket #3, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=3".
             3
             sage: dev.checkout(ticket=3)
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #4 at https://trac.sagemath.org/4.
-            <BLANKLINE>
-            #  To start work on ticket #4, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=4".
             4
             sage: dev.checkout(ticket=4)
 
@@ -3506,9 +3348,6 @@ class SageDev(MercurialPatchMixin):
             sage: dev.upload_ssh_key(public_key=public_key)
             I will now upload your ssh key at "..." to trac. This will enable access to the git repository there. Is this what you want? [Yes/no] yes
             I could not find a public key at "{0}". Do you want me to create one for you? [Yes/no] no
-            <BLANKLINE>
-            #  Use "sage --dev upload-ssh-key" to upload a public key. Or set your key
-            #  manually at https://trac.sagemath.org/prefs/sshkeys.
             sage: UI.append("yes")
             sage: UI.append("yes")
             sage: dev.upload_ssh_key(public_key=public_key)
@@ -4085,9 +3924,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: dev.checkout(ticket=1)
 
@@ -4127,9 +3963,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: dev.checkout(ticket=1)
             sage: dev._sagedev._ticket_for_local_branch("ticket/1")
@@ -4155,9 +3988,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: dev.checkout(ticket=1)
             sage: dev._sagedev._has_ticket_for_local_branch("ticket/1")
@@ -4218,9 +4048,6 @@ class SageDev(MercurialPatchMixin):
             sage: alice._UI.append("Summary: ticket1\ndescription")
             sage: alice.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: alice.checkout(ticket=1)
             sage: alice._sagedev._local_branch_for_ticket(1)
@@ -4338,9 +4165,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: dev.checkout(ticket=1)
             sage: dev._set_dependencies_for_ticket(1, [2, 3])
@@ -4384,9 +4208,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: dev.checkout(ticket=1)
 
@@ -4576,9 +4397,6 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
-            <BLANKLINE>
-            #  To start work on ticket #1, create a new local branch for this ticket with
-            #  "sage --dev checkout --ticket=1".
             1
             sage: dev._current_ticket()
             sage: dev.checkout(ticket=1)

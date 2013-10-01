@@ -243,9 +243,9 @@ class SageDev(MercurialPatchMixin):
             raise
         ticket_url = urlparse.urljoin(self.trac._config.get('server', TRAC_SERVER_URI), str(ticket))
         self._UI.show("Created ticket #{0} at {1}.".format(ticket, ticket_url))
-        self._UI.info('To start work on ticket #{0}, create a new local branch'
-                      ' for this ticket with "{1}".'
-                      .format(ticket, self._format_command("checkout", ticket=ticket)))
+        self._UI.info(['',
+                       '(use "{0}" to create a new local branch)'
+                       .format(self._format_command("checkout", ticket=ticket))])
         return ticket
 
     def checkout(self, ticket=None, branch=None, base=''):

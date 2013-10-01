@@ -350,7 +350,7 @@ class CmdLineInterface(UserInterface):
 
         kwds = {'width': width}
         if log_level == INFO:
-            kwds['initial_indent'] = kwds['subsequent_indent'] = '# '
+            kwds['initial_indent'] = kwds['subsequent_indent'] = '#  '
 
         wrap = textwrap.TextWrapper(**kwds).wrap
         message = list(itertools.chain.from_iterable(

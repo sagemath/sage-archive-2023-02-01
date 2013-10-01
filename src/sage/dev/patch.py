@@ -123,9 +123,9 @@ class MercurialPatchMixin(object):
             sage: with open(patchfile, "w") as f: f.write(dev.git.diff(cached=True))
             sage: dev.git.silent.reset()
 
-        Applying this patch fails::
+        Applying this patch fails since we are not in a sage repository::
 
-            sage: dev.import_patch(local_file=patchfile, path_format="new") # the autodetection of the path format fails since we are not in a sage repository
+            sage: dev.import_patch(local_file=patchfile, path_format="new")
             There are untracked files in your working directory:
             tracked
             tracked2
@@ -234,7 +234,7 @@ class MercurialPatchMixin(object):
             finally:
                 import os
                 for local_file in local_files:
-                    self._UI.info("Deleting {0}.".format(local_file))
+                    self._UI.debug("Deleting {0}.".format(local_file))
                     os.unlink(local_file)
         elif patchname or url:
             from sagedev import SageDevValueError
@@ -250,7 +250,7 @@ class MercurialPatchMixin(object):
             fd, outfile = tempfile.mkstemp(dir=self.tmp_dir)
             os.fdopen(fd, 'w').writelines("\n".join(lines)+"\n")
 
-            self._UI.info("Trying to apply reformatted patch `%s`"%outfile)
+            self._UI.debug("Trying to apply reformatted patch `%s`"%outfile)
             # am, apply and add need to be in the root directory
             curdir = os.getcwd()
             os.chdir(self.git._src)
@@ -259,7 +259,7 @@ class MercurialPatchMixin(object):
                     self.git.echo.am(outfile, "--resolvemsg= ", ignore_whitespace=True)
                 except GitError:
                     if not self._UI.confirm("The patch does not apply cleanly. Would you like to apply it anyway and create reject files for the parts that do not apply?", default=False):
-                        self._UI.info("Not applying patch.")
+                        self._UI.debug("Not applying patch.")
                         self.git.reset_to_clean_state()
                         self.git.reset_to_clean_working_directory(remove_untracked_files=True)
                         raise OperationCancelledError("User requested to cancel the apply.")
@@ -278,7 +278,7 @@ class MercurialPatchMixin(object):
                         if untracked and self._UI.confirm("The patch will introduce the following new files to the repository:\n{0}\nIs this correct?".format("\n".join(untracked)), default=True):
                             self.git.super_silent.add(*untracked)
                         self.git.am('--resolvemsg= ', resolved=True)
-                        self._UI.info("A commit on the current branch has been created from the patch.")
+                        self._UI.debug("A commit on the current branch has been created from the patch.")
                     finally:
                         self.git.reset_to_clean_state()
                         self.git.reset_to_clean_working_directory(remove_untracked_files=True)
@@ -343,6 +343,8 @@ class MercurialPatchMixin(object):
             sage: UI.append("Summary: summary1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
 
         There are no attachments to download yet::
@@ -397,9 +399,9 @@ class MercurialPatchMixin(object):
             if ticket or patchname:
                 raise ValueError("If `url` is specifed, `ticket` and `patchname` must not be specified.")
             import urllib
-            self._UI.info("Downloading `{0}`...".format(url))
+            self._UI.show('Downloading "{0}"...'.format(url))
             ret = urllib.urlretrieve(url)[0]
-            self._UI.show("Downloaded `{0}` to `{1}`.".format(url, ret))
+            self._UI.show('Downloaded "{0}" to "{1}".'.format(url, ret))
             return (ret,)
 
         if ticket is None:
@@ -430,12 +432,15 @@ class MercurialPatchMixin(object):
                 raise SageDevValueError("Ticket #%s has no attachments."%ticket)
             if len(attachments) == 1:
                 ret = self.download_patch(ticket = ticket, patchname = attachments[0])
-                self._UI.show("Attachment `{0}` for ticket #{1} has been downloaded to `{2}`.".format(attachments[0], ticket, ret[0]))
+                self._UI.show('Attachment "{0}" for ticket #{1} has been downloaded to "{2}".'
+                              .format(attachments[0], ticket, ret[0]))
                 return ret
             else:
                 from sage.env import TRAC_SERVER_URI
                 rss = TRAC_SERVER_URI+"/ticket/%s?format=rss"%ticket
-                self._UI.info("There is more than one attachment on ticket #{0}. Reading `{1}` to try to find out in which order they must be applied.".format(ticket, rss))
+                self._UI.debug('There is more than one attachment on ticket #{0}. '
+                               'Reading "{1}" to try to find out in which order they must be applied.'
+                               .format(ticket, rss))
                 import urllib2
                 rss = urllib2.urlopen(rss).read()
 

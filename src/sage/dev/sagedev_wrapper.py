@@ -144,7 +144,7 @@ class SageDevWrapper(object):
         """
         def wrap():
             from sage.misc.decorators import sage_wraps
-            doc = "The command `{0}` does not exist anymore. Please use `{1}` instead.".format(
+            doc = 'The command "{0}" does not exist anymore. Please use "{1}" instead.'.format(
                 self._sagedev._format_command(old_method), self._sagedev._format_command(new_method))
             def wrapped(*args, **kwargs):
                 self._sagedev._UI.error(doc)

@@ -176,7 +176,6 @@ class TracInterface(object):
         sage: trac = TracInterface(config['trac'], DoctestUserInterface(config['UI']))
         sage: trac
         <sage.dev.trac_interface.TracInterface object at 0x...>
-
     """
     def __init__(self, config, UI):
         r"""
@@ -191,7 +190,6 @@ class TracInterface(object):
             sage: trac = TracInterface(config['trac'], DoctestUserInterface(config['UI']))
             sage: type(trac)
             <class 'sage.dev.trac_interface.TracInterface'>
-
         """
         self._UI = UI
         self._config = config
@@ -233,10 +231,11 @@ class TracInterface(object):
             sage: UI.append('doctest2')
             sage: trac._username # user is prompted for a username
             Trac username: doctest2
+            #  Your trac username has been written to a configuration file for future
+            #  sessions. To reset your username, use "dev.trac.reset_username()".
             'doctest2'
             sage: config['trac']['username']
             'doctest2'
-
         """
         if self.__username is None:
             self.__username = self._config.get('username', None)
@@ -264,6 +263,8 @@ class TracInterface(object):
             sage: UI.append("doctest2")
             sage: trac._username
             Trac username: doctest2
+            #  Your trac username has been written to a configuration file for future
+            #  sessions. To reset your username, use "dev.trac.reset_username()".
             'doctest2'
         """
         self.__username = None
@@ -289,7 +290,9 @@ class TracInterface(object):
             sage: UI.append('secret')
             sage: trac._password
             Trac password:
-            Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.) [yes/No]
+            You can save your password in a configuration file. However, this file might be
+            readable by privileged users on this system.
+            Save password in file? [yes/No]
             'secret'
             sage: trac._password # password is stored for some time, so there is no need to type it immediately afterwards
             'secret'
@@ -303,9 +306,11 @@ class TracInterface(object):
             sage: UI.append('secret')
             sage: trac._password
             Trac password:
-            Should I store your password in a configuration file for future sessions? (This
-            configuration file might be readable by privileged users on this system.)
-            [yes/No] y
+            You can save your password in a configuration file. However, this file might be
+            readable by privileged users on this system.
+            Save password in file? [yes/No] y
+            #  Your trac password has been written to a configuration file. To reset your
+            #  password, use "dev.trac.reset_password()".
             'secret'
             sage: config['trac']['password']
             'secret'
@@ -321,10 +326,14 @@ class TracInterface(object):
             self.__password = self._UI.get_password('Trac password:')
             store_password = self._config.get('store_password', None)
             if store_password is None:
-                store_password = "yes" if self._UI.confirm("Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.)", default=False) else "no"
+                self._UI.show("You can save your password in a configuration file."
+                              " However, this file might be readable by privileged"
+                              " users on this system.")
+                store_password = "yes" if self._UI.confirm(
+                    "Save password in file?", default=False) else "no"
                 if store_password == "no":
-                    self._config['store_password'] = store_password # remember the user's decision (if negative) and do not ask every time
-
+                    # remember the user's decision (if negative) and do not ask every time
+                    self._config['store_password'] = store_password
             if store_password == "yes":
                 self._config['password'] = self.__password
                 self._UI.info('Your trac password has been written to a configuration file. To reset'
@@ -348,9 +357,11 @@ class TracInterface(object):
             sage: UI.append('secret')
             sage: trac._password
             Trac password:
-            Should I store your password in a configuration file for future sessions? (This
-            configuration file might be readable by privileged users on this system.)
-            [yes/No] y
+            You can save your password in a configuration file. However, this file might be
+            readable by privileged users on this system.
+            Save password in file? [yes/No] y
+            #  Your trac password has been written to a configuration file. To reset your
+            #  password, use "dev.trac.reset_password()".
             'secret'
             sage: config['trac']['password']
             'secret'
@@ -386,7 +397,9 @@ class TracInterface(object):
             sage: config['trac']['password_timeout'] = 0
             sage: trac._password
             Trac password:
-            Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.) [yes/No]
+            You can save your password in a configuration file. However, this file might be
+            readable by privileged users on this system.
+            Save password in file? [yes/No]
             'secret'
             sage: UI.append('secret')
             sage: trac._password # indirect doctest
@@ -397,11 +410,17 @@ class TracInterface(object):
             sage: UI.append('secret')
             sage: trac._password
             Trac password:
-            Should I store your password in a configuration file for future sessions? (This
-            configuration file might be readable by privileged users on this system.)
-            [yes/No] y
+            You can save your password in a configuration file. However, this file might be
+            readable by privileged users on this system.
+            Save password in file? [yes/No] y
+            #  Your trac password has been written to a configuration file. To reset your
+            #  password, use "dev.trac.reset_password()".
             'secret'
-            sage: trac._password # the timeout has no effect if the password can be read from the configuration file
+
+        The timeout has no effect if the password can be read from the
+        configuration file::
+
+            sage: trac._password
             'secret'
         """
         import time
@@ -426,7 +445,9 @@ class TracInterface(object):
             sage: UI.append('secret')
             sage: trac._password
             Trac password:
-            Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.) [yes/No]
+            You can save your password in a configuration file. However, this file might be
+            readable by privileged users on this system.
+            Save password in file? [yes/No]
             'secret'
             sage: trac._password # indirect doctest
             'secret'
@@ -577,7 +598,6 @@ class TracInterface(object):
             sage: trac = DoctestTracInterface(config['trac'], UI, DoctestTracServer())
             sage: ticket = trac.create_ticket('Summary', 'Description', {'type':'defect', 'component':'algebra'})
             sage: trac.add_comment(ticket, "a comment")
-
         """
         ticket = int(ticket)
         attributes = self._get_attributes(ticket)
@@ -619,7 +639,6 @@ class TracInterface(object):
              'time': <DateTime '20071025T16:48:05' at ...>,
              'keywords': '',
              'resolution': 'fixed'}
-
         """
         if not cached:
             self.__ticket_cache[ticket] = self._anonymous_server_proxy.ticket.get(int(ticket))
@@ -702,7 +721,7 @@ class TracInterface(object):
 
     def query(self, qstr):
         """
-        Returns a list of ticket ids that match the given query string.
+        Return a list of ticket ids that match the given query string.
 
         INPUT:
 
@@ -731,7 +750,6 @@ class TracInterface(object):
 
             sage: dev.trac._branch_for_ticket(1000) is None # optional: internet
             True
-
         """
         attributes = self._get_attributes(ticket)
         if 'branch' in attributes:
@@ -763,13 +781,10 @@ class TracInterface(object):
             [13579, 13631, 13681]
         """
         ticket = int(ticket)
-
         if seen is None:
             seen = []
-
         if ticket in seen:
             return []
-
         seen.append(ticket)
         dependencies = self._get_attributes(ticket).get('dependencies','').strip()
         dependencies = dependencies.split(',')
@@ -855,7 +870,6 @@ class TracInterface(object):
             F.write(comment)
             F.write("\n")
             F.write(COMMENT_FILE_GUIDE)
-
         self._UI.edit(filename)
 
         comment = list(open(filename).read().splitlines())
@@ -866,7 +880,6 @@ class TracInterface(object):
         comment = "\n".join(comment)
 
         url = self._authenticated_server_proxy.ticket.update(ticket, comment, attributes, True) # notification e-mail sent
-
         self._UI.debug("Your comment has been recorded: %s"%url)
 
     def edit_ticket_interactive(self, ticket):
@@ -896,7 +909,6 @@ class TracInterface(object):
         """
         ticket = int(ticket)
         attributes = self._get_attributes(ticket)
-
         summary = attributes.get('summary', 'No Summary')
         description = attributes.get('description', 'No Description')
 
@@ -952,8 +964,8 @@ class TracInterface(object):
             sage: UI.append("")
             sage: UI.append("Summary: new summary\nInvalid: branch2\nnew description")
             sage: trac._edit_ticket_interactive('summary', 'description', {'branch':'branch1'})
-            TicketSyntaxError: line 2: field `Invalid` not supported
-            Do you want to try to fix your ticket file? [Yes/no]
+            Syntax error: field "Invalid" not supported on line 2
+            Edit ticket file again? [Yes/no]
             ('new summary', 'new description', {'branch': 'branch2'})
         """
         import tempfile, os
@@ -979,9 +991,9 @@ class TracInterface(object):
                 except (RuntimeError, TicketSyntaxError) as error:
                     pass
 
-                self._UI.show("TicketSyntaxError: "+error.message)
+                self._UI.error("Syntax error: " + error.message)
 
-                if not self._UI.confirm("Do you want to try to fix your ticket file?", default=True):
+                if not self._UI.confirm("Edit ticket file again?", default=True):
                     ret = None
                     break
 
@@ -991,7 +1003,6 @@ class TracInterface(object):
 
         finally:
             os.unlink(filename)
-
         return ret
 
     def create_ticket_interactive(self):
@@ -1069,13 +1080,13 @@ class TracInterface(object):
             sage: TracInterface._parse_ticket_file(tmp)
             Traceback (most recent call last):
             ...
-            TicketSyntaxError: line 2: only one value for summary allowed
+            TicketSyntaxError: only one value for "summary" allowed on line 2
             sage: with open(tmp, 'w') as f:
             ....:     f.write("bad field:bad field entry\n")
             sage: TracInterface._parse_ticket_file(tmp)
             Traceback (most recent call last):
             ...
-            TicketSyntaxError: line 1: field `bad field` not supported
+            TicketSyntaxError: field "bad field" not supported on line 1
             sage: with open(tmp, 'w') as f:
             ....:     f.write("summary:a summary\n")
             ....:     f.write("branch:a branch\n")
@@ -1110,15 +1121,16 @@ class TracInterface(object):
                 try:
                     field = FIELDS_LOOKUP[display_field.lower()]
                 except KeyError:
-                    raise TicketSyntaxError("line %s: "%(i+1) +
-                                            "field `%s` not supported"%display_field)
+                    raise TicketSyntaxError('field "{0}" not supported on line {1}'
+                                            .format(display_field, i+1))
                 if field in fields:
-                    raise TicketSyntaxError("line %s: "%(i+1) +
-                                            "only one value for %s allowed"%display_field)
+                    raise TicketSyntaxError('only one value for "{0}" allowed on line {1}'
+                                            .format(display_field, i+1))                                            
                 else:
                     value = m.groups()[1].strip()
                     if field in RESTRICTED_FIELDS and not ALLOWED_VALUES[field].match(value):
-                        raise TicketSyntaxError("`{0}` is not a valid value for the field `{1}`".format(value, field))
+                        raise TicketSyntaxError('"{0}" is not a valid value for the field "{1}"'
+                                                .format(value, field))
                     fields[field] = value
                     continue
             else:
@@ -1184,14 +1196,14 @@ class TracInterface(object):
             sage: trac.set_attributes(n, status='invalid_status')
             Traceback (most recent call last):
             ...
-            TicketSyntaxError: `invalid_status` is not a valid value for the field `status`
+            TicketSyntaxError: "invalid_status" is not a valid value for the field "status"
         """
         ticket = int(ticket)
         for field, value in kwds.iteritems():
             if field not in ALLOWED_FIELDS:
-                raise TicketSyntaxError("field `%s` not supported"%field)
+                raise TicketSyntaxError('field "{0}" not supported'.format(field))
             if field in ALLOWED_VALUES and not ALLOWED_VALUES[field].match(value):
-                raise TicketSyntaxError("`{0}` is not a valid value for the field `{1}`".format(value, field))
+                raise TicketSyntaxError('"{0}" is not a valid value for the field "{1}"'.format(value, field))
         attributes = self._get_attributes(ticket)
         attributes.update(**kwds)
         self._authenticated_server_proxy.ticket.update(ticket, comment, attributes, notify)

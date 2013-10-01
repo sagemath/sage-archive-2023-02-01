@@ -169,7 +169,7 @@ class UserInterface(object):
             NotImplementedError
             sage: UI.show("I ate filet mignon for dinner.", DEBUG)
         """
-        if self._config.get("log_level", INFO) >= log_level:
+        if self._config.get("log_level", NORMAL) >= log_level:
             if isinstance(message, basestring):
                 self._show(message, log_level)
             else:

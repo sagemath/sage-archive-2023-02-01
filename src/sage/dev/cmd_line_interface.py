@@ -28,6 +28,7 @@ import textwrap
 import itertools
 
 from user_interface import UserInterface
+from user_interface import ERROR, WARNING, NORMAL, INFO, DEBUG
 
 try:
     from sage.doctest import DOCTEST_MODE
@@ -316,7 +317,6 @@ class CmdLineInterface(UserInterface):
         """
         if DOCTEST_MODE:
             return ''
-        from user_interface import ERROR, WARNING, NORMAL, INFO, DEBUG
         if color is None:
             return '\033[0m'
         elif color == ERROR:
@@ -347,7 +347,12 @@ class CmdLineInterface(UserInterface):
             I ate filet mignon for dinner.
         """
         height, width = self._get_dimensions()
-        wrap = textwrap.TextWrapper(width=width).wrap
+
+        kwds = {'width': width}
+        if log_level == INFO:
+            kwds['initial_indent'] = kwds['subsequent_indent'] = '# '
+
+        wrap = textwrap.TextWrapper(**kwds).wrap
         message = list(itertools.chain.from_iterable(
             wrap(line) for line in message.splitlines()))
 
@@ -363,33 +368,6 @@ class CmdLineInterface(UserInterface):
                 import pydoc
                 self._pager = pydoc.getpager()
                 self._pager(message)
-
-    def info(self, message):
-        r"""
-        Display ``message``.
-
-        INPUT:
-
-        - ``message`` -- a string or list/tuple/iterable of strings.
-
-        TESTS:
-
-            sage: dev._sagedev._UI.info("I ate filet mignon for dinner.")
-            <BLANKLINE>
-            #  I ate filet mignon for dinner.
-        """
-        if isinstance(message, basestring):
-            message = [message]
-        height, width = self._get_dimensions()
-        prefix = '#  '
-        wrapped = ['']
-        for msg in message:
-            for line in textwrap.wrap(msg.rstrip(), width - len(prefix)):
-                wrapped.append(prefix + line)
-        from user_interface import INFO
-        print(self._color_code(INFO) +
-              '\n'.join(wrapped) +
-              self._color_code())
 
     def edit(self, filename):
         r"""

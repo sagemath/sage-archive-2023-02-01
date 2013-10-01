@@ -145,7 +145,7 @@ class MercurialPatchMixin(object):
             sage: with open("tracked", "w") as f: f.write("boo")
             sage: with open("tracked2", "w") as f: f.write("boo")
             sage: with open(patchfile, "w") as f: f.write(dev.git.diff())
-            sage: dev.git.reset_to_clean_working_directory()
+            sage: dev.git.clean_wrapper()
             sage: open("tracked").read()
             ''
 
@@ -261,7 +261,7 @@ class MercurialPatchMixin(object):
                     if not self._UI.confirm("The patch does not apply cleanly. Would you like to apply it anyway and create reject files for the parts that do not apply?", default=False):
                         self._UI.debug("Not applying patch.")
                         self.git.reset_to_clean_state()
-                        self.git.reset_to_clean_working_directory(remove_untracked_files=True)
+                        self.git.clean_wrapper(remove_untracked_files=True)
                         raise OperationCancelledError("User requested to cancel the apply.")
 
                     try:
@@ -281,7 +281,7 @@ class MercurialPatchMixin(object):
                         self._UI.debug("A commit on the current branch has been created from the patch.")
                     finally:
                         self.git.reset_to_clean_state()
-                        self.git.reset_to_clean_working_directory(remove_untracked_files=True)
+                        self.git.clean_wrapper(remove_untracked_files=True)
             finally:
                 os.chdir(curdir)
 

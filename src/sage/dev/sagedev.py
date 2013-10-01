@@ -1765,7 +1765,7 @@ class SageDev(MercurialPatchMixin):
         sel = self._UI.select('Discard changes?',
                               options=('discard', cancel, 'stash'), default=1)
         if sel == 'discard':
-            self.git.reset_to_clean_working_directory()
+            self.git.clean_wrapper()
         elif sel == cancel:
             if error_unless_clean:
                 raise OperationCancelledError("User requested not to clean the working directory.")
@@ -2600,7 +2600,7 @@ class SageDev(MercurialPatchMixin):
                 self.merge(branch, pull=local_remote=="remote")
         except:
             self.git.reset_to_clean_state()
-            self.git.reset_to_clean_working_directory()
+            self.git.clean_wrapper()
             self.vanilla()
             self.git.super_silent.branch("-D", branch)
             self._UI.debug('Deleted branch "{0}".'.format(branch))
@@ -2884,7 +2884,7 @@ class SageDev(MercurialPatchMixin):
                     raise OperationCancelledError("user requested")
             except Exception as e:
                 self.git.reset_to_clean_state()
-                self.git.reset_to_clean_working_directory()
+                self.git.clean_wrapper()
                 raise
 
         if create_dependency:
@@ -3268,7 +3268,7 @@ class SageDev(MercurialPatchMixin):
                     return
                 finally:
                     self.git.reset_to_clean_state()
-                    self.git.reset_to_clean_working_directory()
+                    self.git.clean_wrapper()
                     self.git.super_silent.checkout(branch)
             finally:
                 self.git.super_silent.branch("-D", temporary_branch)

@@ -660,11 +660,13 @@ class GitInterface(ReadStdoutGitProxy):
 
         return self.reset_to_clean_state()
 
-    def reset_to_clean_working_directory(self, remove_untracked_files=False,
-                                         remove_untracked_directories=False,
-                                         remove_ignored=False):
+    def clean_wrapper(self, remove_untracked_files=False,
+                      remove_untracked_directories=False,
+                      remove_ignored=False):
         r"""
-        Reset any changes made to the working directory.
+        Clean the working directory.
+
+        This is a convenience wrapper for ``git clean``
 
         INPUT:
 
@@ -720,12 +722,12 @@ class GitInterface(ReadStdoutGitProxy):
 
         Some invalid combinations of flags::
 
-            sage: git.reset_to_clean_working_directory(
+            sage: git.clean_wrapper(
             ....:     remove_untracked_files=False, remove_untracked_directories=True)
             Traceback (most recent call last):
             ...
             ValueError: remove_untracked_directories only valid if remove_untracked_files is set
-            sage: git.reset_to_clean_working_directory(remove_untracked_files = False, remove_ignored = True)
+            sage: git.clean_wrapper(remove_untracked_files = False, remove_ignored = True)
             Traceback (most recent call last):
             ...
             ValueError: remove_ignored only valid if remove_untracked_files is set
@@ -733,7 +735,7 @@ class GitInterface(ReadStdoutGitProxy):
         Per default only the tracked modified files are reset to a clean
         state::
 
-            sage: git.reset_to_clean_working_directory()
+            sage: git.clean_wrapper()
             sage: git.echo.status()
             # On branch master
             # Untracked files:
@@ -745,17 +747,17 @@ class GitInterface(ReadStdoutGitProxy):
 
         Untracked items can be removed by setting the parameters::
 
-            sage: git.reset_to_clean_working_directory(remove_untracked_files=True)
+            sage: git.clean_wrapper(remove_untracked_files=True)
             Removing untracked
             Not removing untracked_dir/
-            sage: git.reset_to_clean_working_directory(
+            sage: git.clean_wrapper(
             ....:     remove_untracked_files=True, remove_untracked_directories=True)
             Removing untracked_dir/
-            sage: git.reset_to_clean_working_directory(
+            sage: git.clean_wrapper(
             ....:     remove_untracked_files=True, remove_ignored=True)
             Removing ignored
             Not removing ignored_dir/
-            sage: git.reset_to_clean_working_directory(
+            sage: git.clean_wrapper(
             ....:     remove_untracked_files=True,
             ....:     remove_untracked_directories=True,
             ....:     remove_ignored=True)

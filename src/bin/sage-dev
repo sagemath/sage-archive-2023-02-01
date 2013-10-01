@@ -2,36 +2,11 @@
 
 import argparse
 import inspect
-import re
 import sys
-import types
+from textwrap import dedent
 
-space_matcher_re = re.compile(r'^\ +')
-
-# based on https://gist.github.com/jtriley/1108174
-try:
-    import struct
-    import fcntl
-    import termios
-    def ioctl_GWINSZ(fd):
-        try:
-            return struct.unpack('hh',
-                    fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
-        except Exception: # TODO: figure out the correct exceptions here
-            pass
-
-    WIDTH = ioctl_GWINSZ(0) or ioctl_GWINSZ(1) or ioctl_GWINSZ(2)
-
-    if WIDTH is None:
-        try:
-            fd = os.open(os.ctermid(), os.O_RDONLY)
-            WIDTH = ioctl_GWINSZ(fd)
-        finally:
-            os.close(fd)
-    if WIDTH is not None:
-        WIDTH = int(WIDTH[1])-2
-except ImportError:
-    WIDTH = None
+if __name__ == '__main__':
+    from sage.dev import dev as DEV
 
 class SageHelpFormatter(argparse.HelpFormatter):
     """
@@ -40,7 +15,8 @@ class SageHelpFormatter(argparse.HelpFormatter):
     subcommands in curly brackets (since it gets ugly)
     """
     def __init__(self, *args, **kwds):
-        super(SageHelpFormatter, self).__init__(width=WIDTH, *args, **kwds)
+        super(SageHelpFormatter, self).__init__(
+                width=DEV._sagedev._UI._get_dimensions()[1], *args, **kwds)
 
     def _format_args(self, action, default_metavar):
         get_metavar = self._metavar_formatter(action, default_metavar)
@@ -138,9 +114,7 @@ def get_help(method):
         return None
 
     docstring = method.__doc__.strip('\n')
-    indent = space_matcher_re.search(docstring)
-    indent = len(indent.group()) if indent else 0
-    docstring = (l[indent:].rstrip() for l in docstring.splitlines())
+    docstring = (line.rstrip() for line in dedent(docstring).splitlines())
 
     tmp = []
     for line in docstring:
@@ -337,8 +311,7 @@ if __name__ == '__main__':
     else:
         profiler = None
     try:
-        from sage.dev.all import dev
-        parser = parser_from_object(dev)
+        parser = parser_from_object(DEV)
         parser.run()
     finally:
         if profiler is not None:

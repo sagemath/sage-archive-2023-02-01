@@ -303,6 +303,10 @@ class SageDev(MercurialPatchMixin):
         Checking out a branch::
 
             sage: dev.checkout(branch="branch1")
+            On local branch "branch1" without associated ticket.
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: dev.git.current_branch()
             'branch1'
 
@@ -315,6 +319,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: dev.git.current_branch()
             'ticket/1'
         """
@@ -326,6 +334,17 @@ class SageDev(MercurialPatchMixin):
             self.checkout_branch(branch=branch)
         else:
             raise SageDevValueError("at least one of ticket or branch must be specified.")
+
+        ticket = self._current_ticket()
+        branch = self.git.current_branch()
+        if ticket:
+            self._UI.show(['On ticket #{0} with associated local branch "{1}".'], ticket, branch)
+        else:
+            self._UI.show(['On local branch "{0}" without associated ticket.'], branch)
+        self._UI.info(['', 
+                       'Use "{0}" to save changes in a new commit when you are finished editing.'],
+                      self._format_command("commit"))
+
 
     def checkout_ticket(self, ticket, branch=None, base=''):
         r"""
@@ -382,12 +401,20 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: bob.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
 
         Now alice can check it out, even though there is no branch on the
         ticket description::
 
             sage: alice._chdir()
             sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
 
         If Bob commits something to the ticket, a ``checkout`` by Alice
         does not take his changes into account::
@@ -400,6 +427,10 @@ class SageDev(MercurialPatchMixin):
 
             sage: alice._chdir()
             sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: alice.git.echo.log('--pretty=%s')
             initial commit
 
@@ -410,7 +441,13 @@ class SageDev(MercurialPatchMixin):
             sage: alice.git.super_silent.checkout('HEAD', detach=True)
             sage: alice.git.super_silent.branch('-d','ticket/1')
             sage: alice.checkout(ticket=1) # ticket #1 refers to the non-existant branch 'ticket/1'
-            Ticket #1 refers to the non-existant local branch "ticket/1". If you have not manually interacted with git, then this is a bug in sagedev. Removing the association from ticket #1 to branch "ticket/1".
+            Ticket #1 refers to the non-existant local branch "ticket/1". If you have not
+            manually interacted with git, then this is a bug in sagedev. Removing the
+            association from ticket #1 to branch "ticket/1".
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: alice.git.current_branch()
             'ticket/1'
             sage: alice.git.echo.log('--pretty=%s')
@@ -426,10 +463,18 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=2" to create a new local branch)
             2
             sage: alice.checkout(ticket=2)
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: alice.git.echo.log('--pretty=%s')
             initial commit
             sage: open("untracked","w").close()
             sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: alice.git.echo.log('--pretty=%s')
             empty commit
             initial commit
@@ -440,6 +485,10 @@ class SageDev(MercurialPatchMixin):
             sage: alice.git.super_silent.add("untracked")
             sage: alice.git.super_silent.commit(message="added untracked")
             sage: alice.checkout(ticket=2)
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: open("untracked","w").close()
             sage: alice.checkout(ticket=1)
             GitError: git exited with a non-zero exit code (1).
@@ -463,6 +512,10 @@ class SageDev(MercurialPatchMixin):
                  tracked
             <BLANKLINE>
             Discard changes? [discard/Keep/stash] d
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
 
         Now follow some single user tests to check that the parameters are interpreted correctly::
 
@@ -479,6 +532,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: UI.append("Summary: ticket2\ndescription")
             sage: dev.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
@@ -486,6 +543,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=2" to create a new local branch)
             2
             sage: dev.checkout(ticket=2)
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: dev.git.silent.commit(allow_empty=True, message="second commit")
             sage: dev.git.commit_for_branch('ticket/2') != dev.git.commit_for_branch('ticket/1')
             True
@@ -499,6 +560,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=3" to create a new local branch)
             3
             sage: dev.checkout(ticket=3, base=2)
+            On ticket #3 with associated local branch "ticket/3".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: dev.git.commit_for_branch('ticket/3') == dev.git.commit_for_branch('ticket/2')
             True
             sage: dev._dependencies_for_ticket(3)
@@ -510,6 +575,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=4" to create a new local branch)
             4
             sage: dev.checkout(ticket=4, base='ticket/2')
+            On ticket #4 with associated local branch "ticket/4".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: dev.git.commit_for_branch('ticket/4') == dev.git.commit_for_branch('ticket/2')
             True
             sage: dev._dependencies_for_ticket(4)
@@ -547,6 +616,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=7" to create a new local branch)
             7
             sage: dev.checkout(ticket=7)
+            On ticket #7 with associated local branch "ticket/7".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: dev.git.current_branch()
             'ticket/7'
 
@@ -619,9 +692,13 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=10, base='ticket/7')
             The following files in your working directory contain uncommitted changes:
             <BLANKLINE>
-                tracked
+                 tracked
             <BLANKLINE>
             Discard changes? [discard/Keep/stash] keep
+            On ticket #10 with associated local branch "ticket/10".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
         """
         self._check_ticket_name(ticket, exists=True)
         ticket = self._ticket_from_ticket_name(ticket)
@@ -634,8 +711,8 @@ class SageDev(MercurialPatchMixin):
                 raise SageDevValueError("branch must not be the master branch")
 
             self._set_local_branch_for_ticket(ticket, branch)
-            self._UI.debug('The branch for ticket #{0} is now "{1}".'.format(ticket, branch))
-            self._UI.debug('Now checking out branch "{0}".'.format(branch))
+            self._UI.debug('The branch for ticket #{0} is now "{1}".', ticket, branch)
+            self._UI.debug('Now checking out branch "{0}".', branch)
             self.checkout_branch(branch)
             return
 
@@ -643,7 +720,7 @@ class SageDev(MercurialPatchMixin):
         if branch is None:
             if self._has_local_branch_for_ticket(ticket):
                 branch = self._local_branch_for_ticket(ticket)
-                self._UI.debug('Checking out branch "{0}".'.format(branch))
+                self._UI.debug('Checking out branch "{0}".', branch)
                 self.checkout_branch(branch)
                 return
             else:
@@ -668,43 +745,57 @@ class SageDev(MercurialPatchMixin):
                 base = MASTER_BRANCH
                 if remote_branch is None: # branch field is not set on ticket
                     # create a new branch off master
-                    self._UI.debug('The branch field on ticket #{0} is not set. Creating a new branch "{1}" off the master branch "{2}".'.format(ticket, branch, MASTER_BRANCH))
+                    self._UI.debug('The branch field on ticket #{0} is not set. Creating a new branch'
+                                   ' "{1}" off the master branch "{2}".', ticket, branch, MASTER_BRANCH)
                     self.git.silent.branch(branch, MASTER_BRANCH)
                 else:
                     # pull the branch mentioned on trac
                     if not self._is_remote_branch_name(remote_branch, exists=True):
-                        self._UI.error('The branch field on ticket #{0} is set to "{1}". However, the branch "{1}" does not exist. Please set the field on trac to a field value.'.format(ticket, remote_branch))
+                        self._UI.error('The branch field on ticket #{0} is set to the non-existent "{1}".'
+                                       ' Please set the field on trac to a field value.', 
+                                       ticket, remote_branch)
+                        self._UI.info(['', '(use "{0}" to edit the ticket description)'],
+                                       self._format_command("edit-ticket", ticket=ticket))
                         raise OperationCancelledError("remote branch does not exist")
                     try:
                         self.pull(remote_branch, branch)
-                        self._UI.debug('Created a new branch "{0}" based on "{1}".'.format(branch, remote_branch))
+                        self._UI.debug('Created a new branch "{0}" based on "{1}".',
+                                       branch, remote_branch)
                     except:
-                        self._UI.error('Could not check out ticket #{0} because the remote branch "{1}" for that ticket could not be pulled.'.format(ticket, remote_branch))
+                        self._UI.error('Could not check out ticket #{0} because the remote branch "{1}"'
+                                       ' for that ticket could not be pulled (network connection?).', 
+                                       ticket, remote_branch)
                         raise
             else:
                 self._check_local_branch_name(base, exists=True)
                 if remote_branch is not None:
-                    if not self._UI.confirm('Creating a new branch for #{0} based on "{1}". The trac ticket for #{0} already refers to the branch "{2}". As you are creating a new branch for that ticket, it seems that you want to ignore the work that has already been done on "{2}" and start afresh. Is this what you want?'.format(ticket, base, remote_branch), default=False):
+                    self._UI.show('About to create a new branch for #{0} based on "{1}". However, the trac'
+                                  ' ticket for #{0} already refers to the branch "{2}". The new branch will'
+                                  ' not contain any work that has already been done on "{2}".',
+                                  ticket, base, remote_branch)
+                    if not self._UI.confirm('Create fresh branch?', default=False):
                         command = ""
                         if self._has_local_branch_for_ticket(ticket):
                             command += self._format_command("abandon", self._local_branch_for_ticket(ticket)) + "; "
                         command += self._format_command("checkout", ticket=ticket)
-                        self._UI.info('To work on a fresh copy of "{0}", use "{1}".'.format(remote_branch, command))
+                        self._UI.info(['', 'Use "{1}" to work on a local copy of the existing remote branch "{0}".'], 
+                                      remote_branch, command)
                         raise OperationCancelledError("user requested")
 
-                self._UI.debug('Creating a new branch for #{0} based on "{1}".'.format(ticket, base))
+                self._UI.debug('Creating a new branch for #{0} based on "{1}".', ticket, base)
                 self.git.silent.branch(branch, base)
         except:
             if self._is_local_branch_name(branch, exists=True):
-                self._UI.debug('Deleting local branch "{0}".')
+                self._UI.debug('Deleting local branch "{0}".', branch)
                 self.git.super_silent.branch(branch, D=True)
             raise
 
         self._set_local_branch_for_ticket(ticket, branch)
         if dependencies:
-            self._UI.debug("Locally recording dependency on {0} for #{1}.".format(", ".join(["#"+str(dep) for dep in dependencies]), ticket))
+            self._UI.debug("Locally recording dependency on {0} for #{1}.",
+                           ", ".join(["#"+str(dep) for dep in dependencies]), ticket)
             self._set_dependencies_for_ticket(ticket, dependencies)
-        self._set_remote_branch_for_branch(branch, self._remote_branch_for_ticket(ticket)) # set the remote branch for branch to the default u/username/ticket/12345
+        self._set_remote_branch_for_branch(branch, self._remote_branch_for_ticket(ticket))
         self._UI.debug('Checking out to newly created branch "{0}".'.format(branch))
         self.checkout_branch(branch)
 
@@ -731,6 +822,10 @@ class SageDev(MercurialPatchMixin):
         Checking out a branch::
 
             sage: dev.checkout(branch="branch1")
+            On local branch "branch1" without associated ticket.
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: dev.git.current_branch()
             'branch1'
 
@@ -743,6 +838,10 @@ class SageDev(MercurialPatchMixin):
 
             sage: open("untracked", "w").close()
             sage: dev.checkout(branch="branch2")
+            On local branch "branch2" without associated ticket.
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
 
         Checking out a branch with uncommitted changes::
 
@@ -772,10 +871,18 @@ class SageDev(MercurialPatchMixin):
             Discard changes? [discard/Cancel/stash] s
             Your changes have been moved to the git stash stack. To re-apply your changes
             later use "git stash apply".
+            On local branch "branch1" without associated ticket.
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
 
         And retrieve the stashed changes later::
 
             sage: dev.checkout(branch='branch2')
+            On local branch "branch2" without associated ticket.
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: dev.git.echo.stash('apply')
             # On branch branch2
             # Changes not staged for commit:
@@ -796,9 +903,13 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(branch="branch1")
             The following files in your working directory contain uncommitted changes:
             <BLANKLINE>
-                tracked
+                 tracked
             <BLANKLINE>
             Discard changes? [discard/Cancel/stash] discard
+            On local branch "branch1" without associated ticket.
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
 
         Checking out a branch when in the middle of a merge::
 
@@ -819,11 +930,19 @@ class SageDev(MercurialPatchMixin):
             Repository is in an unclean state (merge). Resetting the state will discard any
             uncommited changes.
             Reset repository? [reset/Cancel] r
+            On local branch "merge_branch" without associated ticket.
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
 
         Checking out a branch when in a detached HEAD::
 
             sage: dev.git.super_silent.checkout('branch2', detach=True)
             sage: dev.checkout(branch='branch1')
+            On local branch "branch1" without associated ticket.
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
 
         With uncommitted changes::
 
@@ -836,6 +955,10 @@ class SageDev(MercurialPatchMixin):
                 tracked
             <BLANKLINE>
             Discard changes? [discard/Cancel/stash] discard
+            On local branch "branch1" without associated ticket.
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
 
         Checking out a branch with untracked files that would be overwritten by
         the checkout::
@@ -913,6 +1036,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
 
         Bob attempts to pull for the ticket but fails because there is no
         branch for the ticket yet::
@@ -924,6 +1051,10 @@ class SageDev(MercurialPatchMixin):
         So, Bob starts to work on the ticket on a new branch::
 
             sage: bob.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
 
         Alice pushes a commit::
 
@@ -950,8 +1081,11 @@ class SageDev(MercurialPatchMixin):
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.push()
-            The branch "u/bob/ticket/1" does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
-            I will now change the branch field of ticket #1 from its current value "u/alice/ticket/1" to "u/bob/ticket/1". Is this what you want? [Yes/no] y
+            The branch "u/bob/ticket/1" does not exist on the remote server yet. Do you want
+            to create the branch? [Yes/no] y
+            The branch field of ticket #1 needs to be updated from its current value
+            "u/alice/ticket/1" to "u/bob/ticket/1"
+            Change the "Branch:" field? [Yes/no] y
 
         Alice commits non-conflicting changes::
 
@@ -980,9 +1114,11 @@ class SageDev(MercurialPatchMixin):
             sage: bob.git.super_silent.commit(message="bob: added alices_file")
             sage: bob._UI.append('y')
             sage: bob.push()
-            I will now push the following new commits to the remote branch "u/bob/ticket/1":
-            ...: bob: added alices_file
-            Is this what you want? [Yes/no] y
+            Local commits that are not on the remote branch "u/bob/ticket/1":
+            <BLANKLINE>
+                ...: bob: added alices_file
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
 
         Now, the pull fails; one would have to use :meth:`merge`::
 
@@ -1018,9 +1154,11 @@ class SageDev(MercurialPatchMixin):
             sage: bob.git.super_silent.commit(message="bob: added bobs_other_file")
             sage: bob._UI.append('y')
             sage: bob.push()
-            I will now push the following new commits to the remote branch "u/bob/ticket/1":
-            ...: bob: added bobs_other_file
-            Is this what you want? [Yes/no] y
+            Local commits that are not on the remote branch "u/bob/ticket/1":
+            <BLANKLINE>
+                ...: bob: added bobs_other_file
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
 
             sage: alice._chdir()
             sage: alice._UI.append("abort")
@@ -1127,20 +1265,28 @@ class SageDev(MercurialPatchMixin):
 
             sage: dev.git.super_silent.checkout('-b', 'branch1')
             sage: open("tracked","w").close()
-            sage: dev._UI.extend(["added tracked", "y", "y", "y"])
+            sage: dev._UI.extend(["y", "added tracked", "y", "y"])
             sage: dev.commit()
             The following files in your working directory are not tracked by git:
-             tracked
-            Do you want to add any of these files in this commit? [yes/No] y
-            Do you want to add "tracked"? [yes/No] y
-            Do you want to commit your changes to branch "branch1"? I will prompt you for a commit message if you do. [Yes/no] y
+            <BLANKLINE>
+                tracked
+            <BLANKLINE>
+            Start tracking any of these files? [yes/No] y
+            Start tracking "tracked"? [yes/No] y
+            Commit your changes to branch "branch1"? [Yes/no] y
+            <BLANKLINE>
+            #  Use "sage --dev push" to push your commits to the trac server once you are
+            #  done.
 
         Commit a tracked file::
 
-            sage: with open("tracked","w") as F: F.write("foo")
-            sage: dev._UI.extend(["modified tracked","y"])
-            sage: dev.commit()
-            Do you want to commit your changes to branch "branch1"? I will prompt you for a commit message if you do. [Yes/no] y
+            sage: with open("tracked", "w") as F: F.write("foo")
+            sage: dev._UI.append('y')
+            sage: dev.commit(message='modified tracked')
+            Commit your changes to branch "branch1"? [Yes/no] y
+            <BLANKLINE>
+            #  Use "sage --dev push" to push your commits to the trac server once you are
+            #  done.
         """
         from git_error import DetachedHeadError
         try:
@@ -1161,9 +1307,12 @@ class SageDev(MercurialPatchMixin):
             try:
                 untracked_files = self.git.untracked_files()
                 if untracked_files:
-                    if self._UI.confirm("The following files in your working directory are not tracked by git:\n{0}\nDo you want to add any of these files in this commit?".format("\n".join([" "+fname for fname in untracked_files])), default=False):
+                    self._UI.show(['The following files in your working directory are not tracked by git:', ''] +
+                                  ['    ' + f for f in untracked_files ] +
+                                  [''])
+                    if self._UI.confirm('Start tracking any of these files?', default=False):
                         for file in untracked_files:
-                            if self._UI.confirm('Do you want to add "{0}"?'.format(file), default=False):
+                            if self._UI.confirm('Start tracking "{0}"?'.format(file), default=False):
                                 self.git.add(file)
 
                 if interactive:
@@ -1171,26 +1320,25 @@ class SageDev(MercurialPatchMixin):
                 else:
                     self.git.echo.add(self.git._src, update=True)
 
-                if not self._UI.confirm('Do you want to commit your changes to branch "{0}"?{1}'.format(branch, " I will prompt you for a commit message if you do." if message is None else ""), default=True):
-                    self._UI.info('If you want to commit to a different branch/ticket, run "{0}" first.'.format(self._format_command("checkout")))
-                    raise OperationCancelledError("user does not want to create a commit")
-
                 if message is None:
                     from tempfile import NamedTemporaryFile
                     commit_message = NamedTemporaryFile()
                     commit_message.write(COMMIT_GUIDE)
                     commit_message.flush()
-
                     self._UI.edit(commit_message.name)
-
-                    message = "\n".join([line for line in open(commit_message.name).read().splitlines() if not line.startswith("#")]).strip()
-
+                    message = "\n".join([line for line in open(commit_message.name).read().splitlines() 
+                                         if not line.startswith("#")]).strip()
                 if not message:
                     raise OperationCancelledError("empty commit message")
 
+                if not self._UI.confirm('Commit your changes to branch "{0}"?'.format(branch), default=True):
+                    self._UI.info(['', 'Run "{0}" first if you want to commit to a different branch or ticket.'],
+                                  self._format_command("checkout"))
+                    raise OperationCancelledError("user does not want to create a commit")
                 self.git.commit(message=message)
                 self._UI.debug("A commit has been created.")
-
+                self._UI.info(['', 'Use "{0}" to push your commits to the trac server once you are done.'],
+                              self._format_command("push"))
             except OperationCancelledError:
                 self._UI.debug("Not creating a commit.")
                 raise
@@ -1238,6 +1386,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
 
         Modify the remote branch for this ticket's branch::
 
@@ -1326,6 +1478,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: open("tracked", "w").close()
             sage: alice.git.super_silent.add("tracked")
             sage: alice.git.super_silent.commit(message="alice: added tracked")
@@ -1337,14 +1493,21 @@ class SageDev(MercurialPatchMixin):
 
             sage: bob._chdir()
             sage: bob.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: with open("tracked", "w") as f: f.write("bob")
             sage: bob.git.super_silent.add("tracked")
             sage: bob.git.super_silent.commit(message="bob: modified tracked")
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.push()
-            The branch "u/bob/ticket/1" does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
-            I will now change the branch field of ticket #1 from its current value "u/alice/ticket/1" to "u/bob/ticket/1". Is this what you want? [Yes/no] y
+            The branch "u/bob/ticket/1" does not exist on the remote server yet. Do you want
+            to create the branch? [Yes/no] y
+            The branch field of ticket #1 needs to be updated from its current value
+            "u/alice/ticket/1" to "u/bob/ticket/1"
+            Change the "Branch:" field? [Yes/no] y
 
         Now Alice can pull these changes::
 
@@ -1369,19 +1532,33 @@ class SageDev(MercurialPatchMixin):
             sage: alice._UI.append("y")
             sage: alice._UI.append("y")
             sage: alice.push()
-            I will now push the following new commits to the remote branch "u/alice/ticket/1":
-            ...: alice: modified tracked
-            ...: bob: modified tracked
-            Is this what you want? [Yes/no] y
-            I will now change the branch field of ticket #1 from its current value "u/bob/ticket/1" to "u/alice/ticket/1". Is this what you want? [Yes/no] y
+            Local commits that are not on the remote branch "u/alice/ticket/1":
+            <BLANKLINE>
+                ...: alice: modified tracked
+                ...: bob: modified tracked
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
+            The branch field of ticket #1 needs to be updated from its current value
+            "u/bob/ticket/1" to "u/alice/ticket/1"
+            Change the "Branch:" field? [Yes/no] y
 
             sage: bob._chdir()
             sage: bob._UI.append("y")
             sage: bob.push()
-            I will now push the following new commits to the remote branch "u/bob/ticket/1":
-            ...: bob: added tracked2
-            Is this what you want? [Yes/no] y
-            Not setting the branch field for ticket #1 to "u/bob/ticket/1" because "u/bob/ticket/1" and the current value of the branch field "u/alice/ticket/1" have diverged.
+            Local commits that are not on the remote branch "u/bob/ticket/1":
+            <BLANKLINE>
+                ....: bob: added tracked2
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
+            Not setting the branch field for ticket #1 to "u/bob/ticket/1" because
+            "u/bob/ticket/1" and the current value of the branch field "u/alice/ticket/1"
+            have diverged.
+            <BLANKLINE>
+            #  Use "sage --dev push --force --ticket=1 --remote-branch=u/bob/ticket/1" to
+            #  overwrite the branch field.
+            <BLANKLINE>
+            #  Use "sage --dev download --ticket=1" to merge the changes introduced by the
+            #  remote "u/alice/ticket/1" into your local branch.
 
         After merging the changes, this works again::
 
@@ -1390,11 +1567,15 @@ class SageDev(MercurialPatchMixin):
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.push()
-            I will now push the following new commits to the remote branch "u/bob/ticket/1":
-            ...: Merge branch 'u/alice/ticket/1' of ... into ticket/1
-            ...: alice: modified tracked
-            Is this what you want? [Yes/no] y
-            I will now change the branch field of ticket #1 from its current value "u/alice/ticket/1" to "u/bob/ticket/1". Is this what you want? [Yes/no] y
+            Local commits that are not on the remote branch "u/bob/ticket/1":
+            <BLANKLINE>
+                ...: Merge branch 'u/alice/ticket/1' of ... into ticket/1
+                ...: alice: modified tracked
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
+            The branch field of ticket #1 needs to be updated from its current value
+            "u/alice/ticket/1" to "u/bob/ticket/1"
+            Change the "Branch:" field? [Yes/no] y
 
         Check that ``ticket`` works::
 
@@ -1410,13 +1591,23 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=2" to create a new local branch)
             2
             sage: bob.checkout(ticket=2)
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: bob.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.push(2)
             You are trying to push the branch "ticket/1" to "u/bob/ticket/2" for ticket #2.
             However, your local branch for ticket #2 seems to be "ticket/2". Do you really
             want to proceed? [yes/No] y
+            #  Use "sage --dev checkout --ticket=2 --branch=ticket/1" to permanently set the
+            #  branch associated to ticket #2 to "ticket/1".
             The branch "u/bob/ticket/2" does not exist on the remote server yet. Do you want
             to create the branch? [Yes/no] y
 
@@ -1425,35 +1616,78 @@ class SageDev(MercurialPatchMixin):
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.push(remote_branch="u/bob/branch1")
-            The branch "u/bob/branch1" does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
-            I will now change the branch field of ticket #1 from its current value "u/bob/ticket/1" to "u/bob/branch1". Is this what you want? [Yes/no] y
+            The branch "u/bob/branch1" does not exist on the remote server yet. Do you want
+            to create the branch? [Yes/no] y
+            The branch field of ticket #1 needs to be updated from its current value
+            "u/bob/ticket/1" to "u/bob/branch1"
+            Change the "Branch:" field? [Yes/no] y
 
         Check that dependencies are pushed correctly::
 
             sage: bob.merge(2)
             Merging the remote branch "u/bob/ticket/2" into the local branch "ticket/1".
             Added dependency on #2 to #1.
-            sage: bob._UI.append("y")
             sage: bob.push()
-            I will now change the branch field of ticket #1 from its current value
-            "u/bob/branch1" to "u/bob/ticket/1". Is this what you want? [Yes/no] y
+            Remote branch "u/bob/ticket/1" is idential to your local branch "ticket/1
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit changes before pushing)
+            sage: bob._UI.extend(['y', 'y', 'y'])
+            sage: bob.commit(message="Bob's merge")  # oops
+            The following files in your working directory are not tracked by git:
+            <BLANKLINE>
+                ticket_cache
+            <BLANKLINE>
+            Start tracking any of these files? [yes/No] y
+            Start tracking "ticket_cache"? [yes/No] y
+            Commit your changes to branch "ticket/1"? [Yes/no] y
+            <BLANKLINE>
+            #  Use "sage --dev push" to push your commits to the trac server once you are
+            #  done.
+            sage: bob._UI.extend(['y', 'y'])
+            sage: bob.push()
+            Local commits that are not on the remote branch "u/bob/ticket/1":
+            <BLANKLINE>
+                ...: Bob's merge
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
+            The branch field of ticket #1 needs to be updated from its current value
+            "u/bob/branch1" to "u/bob/ticket/1"
+            Change the "Branch:" field? [Yes/no] y
             Uploading your dependencies for ticket #1: "" => "#2"
             sage: bob._sagedev._set_dependencies_for_ticket(1,())
-            sage: bob._UI.append("keep")
+            sage: bob._UI.extend(['y', 'y', 'y'])
+            sage: bob.commit(message='another commit')
+            Commit your changes to branch "ticket/1"? [Yes/no] y
+            <BLANKLINE>
+            #  Use "sage --dev push" to push your commits to the trac server once you are
+            #  done.
+            sage: bob._UI.extend(['y', "keep", 'y'])
             sage: bob.push()
-            According to trac, ticket #1 depends on #2. Your local branch depends on no
-            tickets. Do you want to upload your dependencies to trac? Or do you want to
-            download the dependencies from trac to your local branch? Or do you want to keep
-            your local dependencies and the dependencies on trac in its current state?
-            [upload/download/keep] keep
-            sage: bob._UI.append("download")
+            Local commits that are not on the remote branch "u/bob/ticket/1":
+            <BLANKLINE>
+                ...: another commit
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
+            Trac ticket #1 depends on #2 while your local branch depends on no tickets.
+            Updating dependencies is recommended but optional.
+            Action for dependencies? [upload/download/keep] keep
+            sage: bob._UI.append('y')
+            sage: bob.commit(message='final commit')
+            Commit your changes to branch "ticket/1"? [Yes/no] y
+            <BLANKLINE>
+            #  Use "sage --dev push" to push your commits to the trac server once you are
+            #  done.
+
+            sage: bob._UI.extend(['y', 'download', 'y'])
             sage: bob.push()
-            According to trac, ticket #1 depends on #2. Your local branch depends on no
-            tickets. Do you want to upload your dependencies to trac? Or do you want to
-            download the dependencies from trac to your local branch? Or do you want to keep
-            your local dependencies and the dependencies on trac in its current state?
-            [upload/download/keep] download
-            sage: bob.push()
+            Local commits that are not on the remote branch "u/bob/ticket/1":
+            <BLANKLINE>
+                ...: final commit
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
+            Trac ticket #1 depends on #2 while your local branch depends on no tickets.
+            Updating dependencies is recommended but optional.
+            Action for dependencies? [upload/download/keep] download
         """
         if ticket is None:
             ticket = self._current_ticket()
@@ -1515,14 +1749,22 @@ class SageDev(MercurialPatchMixin):
                     raise OperationCancelledError("not a fast-forward")
 
             # check whether this is a nop
-            if remote_branch_exists and not force and self.git.commit_for_branch(branch) == self.git.commit_for_ref('FETCH_HEAD'):
-                self._UI.info('Not pushing your changes because the remote branch "{0}" is idential to your local branch "{1}". Did you forget to commit your changes with "{2}"?'.format(remote_branch, branch, self._format_command("commit")))
+            if remote_branch_exists and not force and \
+               self.git.commit_for_branch(branch) == self.git.commit_for_ref('FETCH_HEAD'):
+                self._UI.show('Remote branch "{0}" is idential to your local branch "{1}',
+                              remote_branch, branch)
+                self._UI.info(['', '(use "{0}" to commit changes before pushing)'],
+                               self._format_command("commit"))
+                return
             else:
                 try:
                     if not force:
                         if remote_branch_exists:
                             commits = self.git.log("{0}..{1}".format('FETCH_HEAD', branch), '--pretty=%h: %s')
-                            if not self._UI.confirm('I will now push the following new commits to the remote branch "{0}":\n{1}Is this what you want?'.format(remote_branch, commits), default=True):
+                            self._UI.show(['Local commits that are not on the remote branch "{0}":', ''] +
+                                          ['    ' + c for c in commits.splitlines()] +
+                                          [''], remote_branch)
+                            if not self._UI.confirm('Push to remote branch?', default=True):
                                 raise OperationCancelledError("user requested")
 
                     self._upload_ssh_key() # make sure that we have access to the repository
@@ -1552,16 +1794,20 @@ class SageDev(MercurialPatchMixin):
                         self._UI.error('Not setting the branch field for ticket #{0} to "{1}" because'
                                        ' "{1}" and the current value of the branch field "{2}" have diverged.'
                                        .format(ticket, remote_branch, current_remote_branch))
-                        self._UI.info(['To overwrite the branch field use "{0}".'
-                                       .format(self._format_command("push", ticket=ticket,
-                                                                    remote_branch=remote_branch, force=True)),
-                                       'To merge in the changes introduced by "{1}", use "{0}".'
-                                       .format(self._format_command("download", ticket=ticket),
-                                               current_remote_branch)])
+                        self._UI.info(['', 'Use "{0}" to overwrite the branch field.', '',
+                                       'Use "{1}" to merge the changes introduced by'
+                                       ' the remote "{2}" into your local branch.'],
+                                      self._format_command("push", ticket=ticket,
+                                                           remote_branch=remote_branch, force=True),
+                                      self._format_command("download", ticket=ticket),
+                                      current_remote_branch)
                         raise OperationCancelledError("not a fast-forward")
 
                 if current_remote_branch is not None and not force and not user_confirmation:
-                    if not self._UI.confirm('I will now change the branch field of ticket #{0} from its current value "{1}" to "{2}". Is this what you want?'.format(ticket, current_remote_branch, remote_branch), default=True):
+                    self._UI.show('The branch field of ticket #{0} needs to be'
+                                  ' updated from its current value "{1}" to "{2}"'
+                                  ,ticket, current_remote_branch, remote_branch)
+                    if not self._UI.confirm('Change the "Branch:" field?', default=True):
                         raise OperationCancelledError("user requested")
 
                 attributes = self.trac._get_attributes(ticket)
@@ -1577,24 +1823,28 @@ class SageDev(MercurialPatchMixin):
             upload = True
             if old_dependencies != new_dependencies:
                 if old_dependencies:
-                    sel = self._UI.select("According to trac, ticket #{0} depends on {1}. Your local branch depends on {2}. Do you want to upload your dependencies to trac? Or do you want to download the dependencies from trac to your local branch? Or do you want to keep your local dependencies and the dependencies on trac in its current state?".format(ticket,old_dependencies,new_dependencies or "no tickets"),options=("upload","download","keep"))
+                    self._UI.show('Trac ticket #{0} depends on {1} while your local branch depends'
+                                  ' on {2}. Updating dependencies is recommended but optional.', 
+                                  ticket, old_dependencies, new_dependencies or "no tickets"),
+                    sel = self._UI.select('Action for dependencies?', options=("upload", "download", "keep"))
                     if sel == "keep":
                         upload = False
                     elif sel == "download":
                         self._set_dependencies_for_ticket(ticket, old_dependencies_)
-                        self._UI.debug("Setting dependencies for #{0} to {1}.".format(ticket, old_dependencies))
+                        self._UI.debug("Setting dependencies for #{0} to {1}.", ticket, old_dependencies)
                         upload = False
                     elif sel == "upload":
                         pass
                     else:
                         raise NotImplementedError
             else:
-                self._UI.debug("Not uploading your dependencies for ticket #{0} because the dependencies on trac are already up-to-date.".format(ticket))
+                self._UI.debug("Not uploading your dependencies for ticket #{0} because the"
+                               " dependencies on trac are already up-to-date.", ticket)
                 upload = False
 
             if upload:
-                self._UI.show('Uploading your dependencies for ticket #{0}: "{1}" => "{2}"'.format(ticket, old_dependencies, new_dependencies))
-
+                self._UI.show('Uploading your dependencies for ticket #{0}: "{1}" => "{2}"',
+                              ticket, old_dependencies, new_dependencies)
                 attributes = self.trac._get_attributes(ticket)
                 attributes['dependencies'] = new_dependencies
                 # Don't send an e-mail notification
@@ -1808,6 +2058,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: UI.append("Summary: summary1\ndescription...")
             sage: dev.edit_ticket()
             sage: dev.trac._get_attributes(1)
@@ -1857,6 +2111,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: open("tracked", "w").close()
             sage: dev.git.super_silent.add("tracked")
             sage: dev.git.super_silent.commit(message="alice: added tracked")
@@ -1910,6 +2168,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: open("tracked", "w").close()
             sage: alice.git.super_silent.add("tracked")
             sage: alice.git.super_silent.commit(message="alice: added tracked")
@@ -1922,6 +2184,10 @@ class SageDev(MercurialPatchMixin):
 
             sage: bob._chdir()
             sage: bob.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: bob.needs_work(comment='Need to add an untracked file!')
             sage: bob.trac._get_attributes(1)['status']
             'needs_work'
@@ -1971,6 +2237,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: open("tracked", "w").close()
             sage: alice.git.super_silent.add("tracked")
             sage: alice.git.super_silent.commit(message="alice: added tracked")
@@ -1983,6 +2253,10 @@ class SageDev(MercurialPatchMixin):
 
             sage: bob._chdir()
             sage: bob.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: bob.needs_info(comment='Why is a tracked file enough?')
             sage: bob.trac._get_attributes(1)['status']
             'needs_info'
@@ -2032,6 +2306,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: open("tracked", "w").close()
             sage: alice.git.super_silent.add("tracked")
             sage: alice.git.super_silent.commit(message="alice: added tracked")
@@ -2044,6 +2322,10 @@ class SageDev(MercurialPatchMixin):
 
             sage: bob._chdir()
             sage: bob.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: bob.positive_review()
             sage: bob.trac._get_attributes(1)['status']
             'positive_review'
@@ -2086,6 +2368,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: UI.append("comment")
             sage: dev.comment()
             sage: server.tickets[1].comments
@@ -2167,6 +2453,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: dev.remote_status()
             Ticket #1 (https://trac.sagemath.org/ticket/1)
             ==============================================
@@ -2201,9 +2491,11 @@ class SageDev(MercurialPatchMixin):
 
             sage: UI.append("y")
             sage: dev.push()
-            I will now push the following new commits to the remote branch "u/doctest/ticket/1":
-            ...: added tracked
-            Is this what you want? [Yes/no] y
+            Local commits that are not on the remote branch "u/doctest/ticket/1":
+            <BLANKLINE>
+                ...: added tracked
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
             sage: dev.remote_status()
             Ticket #1 (https://trac.sagemath.org/ticket/1)
             ==============================================
@@ -2359,6 +2651,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: dev.local_tickets()
                 : master
             * #1: ticket/1 summary
@@ -2441,6 +2737,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: UI.append("y")
             sage: dev.push()
             The branch "u/doctest/ticket/1" does not exist on the remote server
@@ -2461,11 +2761,14 @@ class SageDev(MercurialPatchMixin):
             sage: from sage.dev.sagedev import MASTER_BRANCH
             sage: UI.append("y")
             sage: dev.checkout(ticket=1, base=MASTER_BRANCH)
-            Creating a new branch for #1 based on "master". The trac ticket for #1
-            already refers to the branch "u/doctest/ticket/1". As you are creating
-            a new branch for that ticket, it seems that you want to ignore the work
-            that has already been done on "u/doctest/ticket/1" and start afresh. Is
-            this what you want? [yes/No] y
+            About to create a new branch for #1 based on "master". However, the trac ticket
+            for #1 already refers to the branch "u/doctest/ticket/1". The new branch will
+            not contain any work that has already been done on "u/doctest/ticket/1".
+            Create fresh branch? [yes/No] y
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
         """
         ticket = None
 
@@ -2546,6 +2849,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: open("tracked","w").close()
             sage: dev.git.silent.add("tracked")
             sage: dev.git.super_silent.commit(message="added tracked")
@@ -2691,10 +2998,18 @@ class SageDev(MercurialPatchMixin):
         Alice creates two branches and merges them::
 
             sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: open("alice1","w").close()
             sage: alice.git.silent.add("alice1")
             sage: alice.git.super_silent.commit(message="added alice1")
             sage: alice.checkout(ticket=2)
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: with open("alice2","w") as f: f.write("alice")
             sage: alice.git.silent.add("alice2")
             sage: alice.git.super_silent.commit(message="added alice2")
@@ -2704,11 +3019,19 @@ class SageDev(MercurialPatchMixin):
             sage: alice.merge("#1")
             Can not merge remote branch for #1. No branch has been set on the trac ticket.
             sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: alice._UI.append("y")
             sage: alice.push()
             The branch "u/alice/ticket/1" does not exist on the remote server
             yet. Do you want to create the branch? [Yes/no] y
             sage: alice.checkout(ticket=2)
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: alice.merge("#1", pull=False)
             Merging the local branch "ticket/1" into the local branch "ticket/2".
             Added dependency on #1 to #2.
@@ -2735,14 +3058,21 @@ class SageDev(MercurialPatchMixin):
 
             sage: bob._chdir()
             sage: bob.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: with open("alice2","w") as f: f.write("bob")
             sage: bob.git.silent.add("alice2")
             sage: bob.git.super_silent.commit(message="added alice2")
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.push()
-            The branch "u/bob/ticket/1" does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
-            I will now change the branch field of ticket #1 from its current value "u/alice/ticket/1" to "u/bob/ticket/1". Is this what you want? [Yes/no] y
+            The branch "u/bob/ticket/1" does not exist on the remote server yet. Do you want
+            to create the branch? [Yes/no] y
+            The branch field of ticket #1 needs to be updated from its current value
+            "u/alice/ticket/1" to "u/bob/ticket/1"
+            Change the "Branch:" field? [Yes/no] y
 
         The merge now requires manual conflict resolution::
 
@@ -2779,23 +3109,24 @@ class SageDev(MercurialPatchMixin):
             Discard changes? [discard/Cancel/stash] cancel
             Cannot merge because working directory is not in a clean state.
             <BLANKLINE>
-            #  Use "sage --dev commit" to commit your changes.
+            #  (use "sage --dev commit" to commit your changes)
         """
         try:
             self.reset_to_clean_state()
             self.clean()
         except OperationCancelledError:
             self._UI.error("Cannot merge because working directory is not in a clean state.")
-            self._UI.show(['',
-                           '#  Use "{0}" to commit your changes.'
-                           .format(self._format_command('commit'))])
+            self._UI.show(['', '#  (use "{0}" to commit your changes)'], 
+                          self._format_command('commit'))
             raise OperationCancelledError("working directory not clean")
 
         from git_error import DetachedHeadError
         try:
             current_branch = self.git.current_branch()
         except DetachedHeadError:
-            self._UI.error('Not on any branch. Use "{0}" to checkout a branch.'.format(self._format_command("checkout")))
+            self._UI.error('Not on any branch.')
+            self._UI.info(['', '(use "{0}" to checkout a branch)'],
+                           self._format_command("checkout"))
             raise OperationCancelledError("detached head")
 
         current_ticket = self._current_ticket()
@@ -2944,6 +3275,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
@@ -2951,6 +3286,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=2" to create a new local branch)
             2
             sage: dev.checkout(ticket=2)
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: dev.local_tickets()
                 : master
               #1: ticket/1 summary
@@ -3087,6 +3426,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: UI.append("y")
             sage: dev.push()
             The branch "u/doctest/ticket/1" does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
@@ -3097,6 +3440,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=2" to create a new local branch)
             2
             sage: dev.checkout(ticket=2)
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: UI.append("y")
             sage: dev.push()
             The branch "u/doctest/ticket/2" does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
@@ -3107,6 +3454,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=3" to create a new local branch)
             3
             sage: dev.checkout(ticket=3)
+            On ticket #3 with associated local branch "ticket/3".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: UI.append("y")
             sage: dev.push()
             The branch "u/doctest/ticket/3" does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
@@ -3120,30 +3471,45 @@ class SageDev(MercurialPatchMixin):
         Make some non-conflicting changes on the tickets::
 
             sage: dev.checkout(ticket="#1")
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: with open("ticket1","w") as f: f.write("ticket1")
             sage: dev.git.silent.add("ticket1")
             sage: dev.git.super_silent.commit(message="added ticket1")
 
             sage: dev.checkout(ticket="#2")
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: with open("ticket2","w") as f: f.write("ticket2")
             sage: dev.git.silent.add("ticket2")
             sage: dev.git.super_silent.commit(message="added ticket2")
             sage: UI.append("y")
             sage: dev.push()
-            I will now push the following new commits to the remote
-            branch "u/doctest/ticket/2":
-            ...: added ticket2
-            Is this what you want? [Yes/no] y
+            Local commits that are not on the remote branch "u/doctest/ticket/2":
+            <BLANKLINE>
+                ...: added ticket2
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
 
             sage: dev.checkout(ticket="#3")
+            On ticket #3 with associated local branch "ticket/3".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: open("ticket3","w").close()
             sage: dev.git.silent.add("ticket3")
             sage: dev.git.super_silent.commit(message="added ticket3")
             sage: UI.append("y")
             sage: dev.push()
-            I will now push the following new commits to the remote branch "u/doctest/ticket/3":
-            ...: added ticket3
-            Is this what you want? [Yes/no] y
+            Local commits that are not on the remote branch "u/doctest/ticket/3":
+            <BLANKLINE>
+                ...: added ticket3
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
             Uploading your dependencies for ticket #3: "" => "#1, #2"
 
         A diff against the previous commit::
@@ -3164,12 +3530,22 @@ class SageDev(MercurialPatchMixin):
             new file mode ...
             index ...
             sage: dev.checkout(ticket="#1")
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: UI.append("y")
             sage: dev.push()
-            I will now push the following new commits to the remote branch "u/doctest/ticket/1":
-            ...: added ticket1
-            Is this what you want? [Yes/no] y
+            Local commits that are not on the remote branch "u/doctest/ticket/1":
+            <BLANKLINE>
+                ...: added ticket1
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
             sage: dev.checkout(ticket="#3")
+            On ticket #3 with associated local branch "ticket/3".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: dev.diff("#1")
             diff --git a/ticket1 b/ticket1
             deleted file mode ...
@@ -3204,16 +3580,26 @@ class SageDev(MercurialPatchMixin):
         This does not work if the dependencies do not merge::
 
             sage: dev.checkout(ticket="#1")
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: with open("ticket2","w") as f: f.write("foo")
             sage: dev.git.silent.add("ticket2")
             sage: dev.git.super_silent.commit(message="added ticket2")
             sage: UI.append("y")
             sage: dev.push()
-            I will now push the following new commits to the remote branch "u/doctest/ticket/1":
-            ...: added ticket2
-            Is this what you want? [Yes/no] y
+            Local commits that are not on the remote branch "u/doctest/ticket/1":
+            <BLANKLINE>
+                ...: added ticket2
+            <BLANKLINE>
+            Push to remote branch? [Yes/no] y
 
             sage: dev.checkout(ticket="#3")
+            On ticket #3 with associated local branch "ticket/3".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: dev.diff("dependencies")
             Dependency #1 has not been merged into "ticket/3" (at least not its latest version).
             #2 does not merge cleanly with the other dependencies. Your diff could not be computed.
@@ -3343,6 +3729,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
@@ -3350,6 +3740,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=2" to create a new local branch)
             2
             sage: dev.checkout(ticket=2)
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #3 at https://trac.sagemath.org/3.
@@ -3357,6 +3751,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=3" to create a new local branch)
             3
             sage: dev.checkout(ticket=3)
+            On ticket #3 with associated local branch "ticket/3".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #4 at https://trac.sagemath.org/4.
@@ -3364,6 +3762,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=4" to create a new local branch)
             4
             sage: dev.checkout(ticket=4)
+            On ticket #4 with associated local branch "ticket/4".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
 
             sage: dev.merge('ticket/2',create_dependency=True)
             Merging the local branch "ticket/2" into the local branch "ticket/4".
@@ -3372,10 +3774,18 @@ class SageDev(MercurialPatchMixin):
             Merging the local branch "ticket/3" into the local branch "ticket/4".
             Added dependency on #3 to #4.
             sage: dev.checkout(ticket='#2')
+            On ticket #2 with associated local branch "ticket/2".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: dev.merge('ticket/1', create_dependency=True)
             Merging the local branch "ticket/1" into the local branch "ticket/2".
             Added dependency on #1 to #2.
             sage: dev.checkout(ticket='#3')
+            On ticket #3 with associated local branch "ticket/3".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: dev.merge('ticket/1', create_dependency=True)
             Merging the local branch "ticket/1" into the local branch "ticket/3".
             Added dependency on #1 to #3.
@@ -3383,6 +3793,10 @@ class SageDev(MercurialPatchMixin):
         Check that the dependencies show correctly::
 
             sage: dev.checkout(ticket='#4')
+            On ticket #4 with associated local branch "ticket/4".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: dev.show_dependencies()
             Ticket #4 depends on #2, #3.
             sage: dev.show_dependencies('#4')
@@ -4050,6 +4464,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
 
             sage: dev._set_remote_branch_for_branch("ticket/1", "public/1")
             sage: dev._remote_branch_for_ticket(1)
@@ -4091,6 +4509,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: dev._sagedev._ticket_for_local_branch("ticket/1")
             1
         """
@@ -4118,6 +4540,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: dev._sagedev._has_ticket_for_local_branch("ticket/1")
             True
         """
@@ -4146,7 +4572,10 @@ class SageDev(MercurialPatchMixin):
 
         branch = self.__ticket_to_branch[ticket]
         if not self._is_local_branch_name(branch, exists=True):
-            self._UI.warning('Ticket #{0} refers to the non-existant local branch "{1}". If you have not manually interacted with git, then this is a bug in sagedev. Removing the association from ticket #{0} to branch "{1}".'.format(ticket, branch))
+            self._UI.warning('Ticket #{0} refers to the non-existant local branch "{1}".'
+                             ' If you have not manually interacted with git, then this is'
+                             ' a bug in sagedev. Removing the association from ticket #{0}'
+                             ' to branch "{1}".', ticket, branch)
             del self.__ticket_to_branch[ticket]
             return False
         return True
@@ -4180,6 +4609,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: alice.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: alice._sagedev._local_branch_for_ticket(1)
             'ticket/1'
 
@@ -4299,6 +4732,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: dev._set_dependencies_for_ticket(1, [2, 3])
             sage: dev._dependencies_for_ticket(1)
             (2, 3)
@@ -4344,6 +4781,10 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
 
             sage: dev._set_dependencies_for_ticket(1, [2, 3])
             sage: dev._dependencies_for_ticket(1)
@@ -4536,6 +4977,10 @@ class SageDev(MercurialPatchMixin):
             1
             sage: dev._current_ticket()
             sage: dev.checkout(ticket=1)
+            On ticket #1 with associated local branch "ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev commit" to save changes in a new commit when you are finished
+            #  editing.
             sage: dev._current_ticket()
             1
         """

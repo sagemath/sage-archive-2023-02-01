@@ -25,6 +25,7 @@ from getpass import getpass
 
 import os
 import textwrap
+import itertools
 
 from user_interface import UserInterface
 
@@ -68,7 +69,7 @@ class CmdLineInterface(UserInterface):
             sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
             sage: UI = CmdLineInterface(DoctestConfig()["UI"])
-            sage: UI._std_values("Should I delete your home directory?", 
+            sage: UI._std_values("Should I delete your home directory?",
             ....:                ("yes", "no", "maybe"), default=1)
             ('Should I delete your home directory? [yes/No/maybe] ', ('yes', 'no', 'maybe'), 'no')
         """
@@ -110,7 +111,7 @@ class CmdLineInterface(UserInterface):
             sage: def input_func(prompt):
             ....:     print(prompt)
             ....:     return "no"
-            sage: UI._get_input("Should I delete your home directory?", 
+            sage: UI._get_input("Should I delete your home directory?",
             ....:     ("yes","no","maybe"), default=0, input_func = input_func)
             Should I delete your home directory? [Yes/no/maybe]
             'no'
@@ -345,11 +346,14 @@ class CmdLineInterface(UserInterface):
             I ate filet mignon for dinner.
         """
         height, width = self._get_dimensions()
-        message = textwrap.wrap(message.rstrip(), width)
+        wrap = textwrap.TextWrapper(width=width).wrap
+        message = list(itertools.chain.from_iterable(
+            wrap(line) for line in message.splitlines()))
+
         if len(message) <= height:
-            print(self._color_code(log_level) + 
+            print(self._color_code(log_level) +
                   '\n'.join(message) +
-                  self._color_code())                
+                  self._color_code())
         else:
             message = '\n'.join(message)+'\n'
             try:
@@ -382,7 +386,7 @@ class CmdLineInterface(UserInterface):
             for line in textwrap.wrap(msg.rstrip(), width - len(prefix)):
                 wrapped.append(prefix + line)
         from user_interface import INFO
-        print(self._color_code(INFO) + 
+        print(self._color_code(INFO) +
               '\n'.join(wrapped) +
               self._color_code())
 

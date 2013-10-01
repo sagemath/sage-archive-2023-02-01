@@ -176,10 +176,11 @@ class SageDevWrapper(object):
             from sage.misc.decorators import sage_wraps
             @sage_wraps(f)
             def wrapped(*args, **kwargs):
+                log_level = int(self._sagedev._UI._config.get("log_level", str(NORMAL)))
                 try:
                     return f(*args, **kwargs)
                 except OperationCancelledError:
-                    if self._sagedev._UI._config.get("log_level", NORMAL) >= DEBUG:
+                    if log_level >= DEBUG:
                         raise
                 except GitError as e:
                     INFO_LEVEL = INFO if e.explain else NORMAL # show more info if the error was unexpected
@@ -208,7 +209,7 @@ class SageDevWrapper(object):
                     else:
                         self._sagedev._UI.show("git printed the following to STDERR:\n{0}"
                                                .format(e.stderr), INFO_LEVEL)
-                    if self._sagedev._UI._config.get("log_level", NORMAL) >= DEBUG:
+                    if log_level >= DEBUG:
                         raise
                 except DetachedHeadError as e:
                     self._sagedev._UI.error("Unexpectedly your repository was found to be in a"
@@ -226,11 +227,11 @@ class SageDevWrapper(object):
                     raise
                 except TracConnectionError as e:
                     self._sagedev._UI.error("Your command failed because no connection to trac could be established.")
-                    if self._sagedev._UI._config.get("log_level", NORMAL) >= DEBUG:
+                    if log_level >= DEBUG:
                         raise
                 except SageDevValueError as e:
                     self._sagedev._UI.error("ValueError: {0}".format(e.message))
-                    if self._sagedev._UI._config.get("log_level", NORMAL) >= DEBUG:
+                    if log_level >= DEBUG:
                         raise
             return wrapped
 

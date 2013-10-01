@@ -43,7 +43,7 @@ class DoctestConfig(sage.dev.config.Config):
         username = doctest
         ticket_cache = ...
         [UI]
-        log_level = 0
+        log_level = 1
         [git]
         ssh_key_set = True
         repository_anonymous = remote_repository_undefined
@@ -60,7 +60,8 @@ class DoctestConfig(sage.dev.config.Config):
         TESTS::
 
             sage: from sage.dev.test.config import DoctestConfig
-            sage: type(DoctestConfig())
+            sage: config = DoctestConfig()
+            sage: type(config)
             <class 'sage.dev.test.config.DoctestConfig'>
         """
         import tempfile, atexit, shutil, os
@@ -70,7 +71,11 @@ class DoctestConfig(sage.dev.config.Config):
         sage.dev.config.Config.__init__(self, devrc=devrc)
 
         self['trac'] = {'username': trac_username}
-        self['UI'] = {'log_level': 0}
+
+        # Note: ConfigParser allows only string values
+        from sage.dev.user_interface import INFO
+        self['UI'] = {'log_level': str(INFO)}
+
         self['git'] = {'ssh_key_set': "True"}
         self['sagedev'] = {}
 

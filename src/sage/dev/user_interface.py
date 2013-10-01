@@ -156,7 +156,7 @@ class UserInterface(object):
           terminal width.
 
         - ``log_level`` -- one of ``ERROR``, ``WARNING``, ``NORMAL``,
-          ``INFO``, or ``DEBUG`` (default: ``NORMAL``)
+          ``INFO``, or ``DEBUG`` (default: ``INFO``)
 
         TESTS::
 
@@ -169,7 +169,8 @@ class UserInterface(object):
             NotImplementedError
             sage: UI.show("I ate filet mignon for dinner.", DEBUG)
         """
-        if self._config.get("log_level", NORMAL) >= log_level:
+        config_log_level = int(self._config.get("log_level", str(INFO)))
+        if config_log_level >= log_level:
             if isinstance(message, basestring):
                 self._show(message, log_level)
             else:
@@ -198,6 +199,9 @@ class UserInterface(object):
     def info(self, message):
         r"""
         Display ``message``.
+
+        These are informational messages to be shown to the user,
+        typically indicating how to proceed.
 
         INPUT:
 

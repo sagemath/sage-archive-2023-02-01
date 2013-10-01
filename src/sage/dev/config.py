@@ -385,7 +385,7 @@ class Config(collections.MutableMapping):
             username = doctest
             ticket_cache = ...
             [UI]
-            log_level = 0
+            log_level = 1
             [git]
             ssh_key_set = True
             repository_anonymous = remote_repository_undefined
@@ -402,7 +402,7 @@ class Config(collections.MutableMapping):
             username = doctest
             ticket_cache = ...
             [UI]
-            log_level = 0
+            log_level = 1
             [sagedev]
             ''')
         """

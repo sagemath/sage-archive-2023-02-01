@@ -16,7 +16,7 @@ class SageHelpFormatter(argparse.HelpFormatter):
     """
     def __init__(self, *args, **kwds):
         super(SageHelpFormatter, self).__init__(
-                width=DEV._sagedev._UI._get_dimensions()[1], *args, **kwds)
+                width=DEV._sagedev._UI._get_dimensions()[1]-2, *args, **kwds)
 
     def _format_args(self, action, default_metavar):
         get_metavar = self._metavar_formatter(action, default_metavar)

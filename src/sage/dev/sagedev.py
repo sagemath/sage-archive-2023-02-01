@@ -217,11 +217,15 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
 
             sage: UI.append("Summary: ticket2\ndescription")
             sage: dev.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=2" to create a new local branch)
             2
 
         This fails if the internet connection is broken::
@@ -307,6 +311,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
             sage: dev.git.current_branch()
@@ -372,6 +378,8 @@ class SageDev(MercurialPatchMixin):
             sage: bob._UI.append("Summary: summary1\ndescription")
             sage: bob.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: bob.checkout(ticket=1)
 
@@ -414,6 +422,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice._UI.append("Summary: summary2\ndescription")
             sage: alice.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=2" to create a new local branch)
             2
             sage: alice.checkout(ticket=2)
             sage: alice.git.echo.log('--pretty=%s')
@@ -465,11 +475,15 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
             sage: UI.append("Summary: ticket2\ndescription")
             sage: dev.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=2" to create a new local branch)
             2
             sage: dev.checkout(ticket=2)
             sage: dev.git.silent.commit(allow_empty=True, message="second commit")
@@ -481,6 +495,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket3\ndescription")
             sage: dev.create_ticket()
             Created ticket #3 at https://trac.sagemath.org/3.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=3" to create a new local branch)
             3
             sage: dev.checkout(ticket=3, base=2)
             sage: dev.git.commit_for_branch('ticket/3') == dev.git.commit_for_branch('ticket/2')
@@ -490,6 +506,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket4\ndescription")
             sage: dev.create_ticket()
             Created ticket #4 at https://trac.sagemath.org/4.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=4" to create a new local branch)
             4
             sage: dev.checkout(ticket=4, base='ticket/2')
             sage: dev.git.commit_for_branch('ticket/4') == dev.git.commit_for_branch('ticket/2')
@@ -502,6 +520,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket5\ndescription")
             sage: dev.create_ticket()
             Created ticket #5 at https://trac.sagemath.org/5.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=5" to create a new local branch)
             5
             sage: dev.checkout(ticket=5, base=1000)
             ValueError: "1000" is not a valid ticket name or ticket does not exist on trac.
@@ -511,6 +531,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket6\ndescription")
             sage: dev.create_ticket()
             Created ticket #6 at https://trac.sagemath.org/6.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=6" to create a new local branch)
             6
             sage: dev.checkout(ticket=6, base=5)
             ValueError: Branch field is not set for ticket #5 on trac.
@@ -521,6 +543,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket detached\ndescription")
             sage: dev.create_ticket()
             Created ticket #7 at https://trac.sagemath.org/7.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=7" to create a new local branch)
             7
             sage: dev.checkout(ticket=7)
             sage: dev.git.current_branch()
@@ -543,15 +567,17 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket merge\ndescription")
             sage: dev.create_ticket()
             Created ticket #8 at https://trac.sagemath.org/8.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=8" to create a new local branch)
             8
-            sage: UI.append("n")
+            sage: UI.append("cancel")
             sage: dev.checkout(ticket=8)
-            Your repository is in an unclean state. It seems you are in the middle of a
-            merge of some sort. To complete this command you have to reset your repository
-            to a clean state. Do you want me to reset your repository? (This will discard
-            many changes which are not commited.) [yes/No] n
-            Could not check out branch "ticket/8" because your working directory is not
-            in a clean state.
+            Repository is in an unclean state (merge). Resetting the state will discard any
+            uncommited changes.
+            Reset repository? [reset/Cancel] cancel
+            Aborting checkout of branch "ticket/8".
+            <BLANKLINE>
+            #  (use "sage --dev commit" to save changes in a new commit)
             sage: dev.git.reset_to_clean_state()
 
         Creating a ticket with uncommitted changes::
@@ -561,6 +587,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket merge\ndescription")
             sage: dev.create_ticket()
             Created ticket #9 at https://trac.sagemath.org/9.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=9" to create a new local branch)
             9
 
         The new branch is based on master which is not the same commit
@@ -574,8 +602,9 @@ class SageDev(MercurialPatchMixin):
                  tracked
             <BLANKLINE>
             Discard changes? [discard/Cancel/stash] cancel
-            Could not check out branch "ticket/9" because your working directory is not
-            clean.
+            Aborting checkout of branch "ticket/9".
+            <BLANKLINE>
+            #  (use "sage --dev commit" to save changes in a new commit)
 
         Finally, in this case we can keep changes because the base is
         the same commit as the current branch
@@ -583,6 +612,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket merge\ndescription")
             sage: dev.create_ticket()
             Created ticket #10 at https://trac.sagemath.org/10.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=10" to create a new local branch)
             10
             sage: UI.append("keep")
             sage: dev.checkout(ticket=10, base='ticket/7')
@@ -677,7 +708,7 @@ class SageDev(MercurialPatchMixin):
         self._UI.debug('Checking out to newly created branch "{0}".'.format(branch))
         self.checkout_branch(branch)
 
-    def checkout_branch(self, branch):
+    def checkout_branch(self, branch, helpful=True):
         r"""
         Checkout to the local branch ``branch``.
 
@@ -723,11 +754,12 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(branch="branch1")
             The following files in your working directory contain uncommitted changes:
             <BLANKLINE>
-                tracked
+                 tracked
             <BLANKLINE>
             Discard changes? [discard/Cancel/stash] cancel
-            Could not check out branch "branch1" because your working directory is not
-            clean.
+            Aborting checkout of branch "branch1".
+            <BLANKLINE>
+            #  (use "sage --dev commit" to save changes in a new commit)
 
         We can stash uncommitted changes::
 
@@ -782,15 +814,11 @@ class SageDev(MercurialPatchMixin):
             sage: try:
             ....:     dev.git.silent.merge('merge_branch')
             ....: except GitError: pass
-            sage: UI.append('n')
+            sage: UI.append('r')
             sage: dev.checkout(branch='merge_branch')
-            Your repository is in an unclean state. It seems you are in the middle of a
-            merge of some sort. To complete this command you have to reset your repository
-            to a clean state. Do you want me to reset your repository? (This will discard
-            many changes which are not commited.) [yes/No] n
-            Could not check out branch "merge_branch" because your working directory is not
-            in a clean state.
-            sage: dev.git.reset_to_clean_state()
+            Repository is in an unclean state (merge). Resetting the state will discard any
+            uncommited changes.
+            Reset repository? [reset/Cancel] r
 
         Checking out a branch when in a detached HEAD::
 
@@ -828,11 +856,12 @@ class SageDev(MercurialPatchMixin):
         self._check_local_branch_name(branch, exists=True)
 
         try:
-            self.reset_to_clean_state()
+            self.reset_to_clean_state(helpful=False)
         except OperationCancelledError:
-            self._UI.error('Could not check out branch "{0}" because your working directory is not in a clean state.'
-                           .format(branch))
-            self._UI.info('To checkout "{0}", use "{1}".'.format(branch, self._format_command("checkout",branch=branch)))
+            if helpful:
+                self._UI.show('Aborting checkout of branch "{0}".', branch)
+                self._UI.info(['', '(use "{0}" to save changes in a new commit)'],
+                              self._format_command("commit"))
             raise
 
         current_commit = self.git.commit_for_ref('HEAD')
@@ -840,7 +869,10 @@ class SageDev(MercurialPatchMixin):
         try:
             self.clean(error_unless_clean=(current_commit != target_commit))
         except OperationCancelledError:
-            self._UI.error('Could not check out branch "{0}" because your working directory is not clean.'.format(branch))
+            if helpful:
+                self._UI.show('Aborting checkout of branch "{0}".', branch)
+                self._UI.info(['', '(use "{0}" to save changes in a new commit)'],
+                              self._format_command("commit"))
             raise
 
         try:
@@ -877,6 +909,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice._UI.append("Summary: summary1\ndescription")
             sage: alice.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: alice.checkout(ticket=1)
 
@@ -1113,7 +1147,9 @@ class SageDev(MercurialPatchMixin):
             branch = self.git.current_branch()
         except DetachedHeadError:
             self._UI.error("Cannot commit changes when not on any branch.")
-            self._UI.info('Use "{0}" to checkout a branch.'.format(self._format_command("checkout")))
+            self._UI.info(['',
+                           '(use "{0}" to checkout a branch)'
+                           .format(self._format_command("checkout"))])
             raise OperationCancelledError("cannot proceed in detached HEAD mode")
 
         # make sure the index is clean
@@ -1198,6 +1234,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
 
@@ -1284,6 +1322,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice._UI.append("Summary: summary1\ndescription")
             sage: alice.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: alice.checkout(ticket=1)
             sage: open("tracked", "w").close()
@@ -1366,6 +1406,8 @@ class SageDev(MercurialPatchMixin):
             sage: bob._UI.append("Summary: summary2\ndescription")
             sage: bob.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=2" to create a new local branch)
             2
             sage: bob.checkout(ticket=2)
             sage: bob.checkout(ticket=1)
@@ -1446,7 +1488,7 @@ class SageDev(MercurialPatchMixin):
                 pass
             elif self._has_local_branch_for_ticket(ticket) and self._local_branch_for_ticket(ticket) != branch:
                 if user_confirmation or self._UI.confirm('You are trying to push the branch "{0}" to "{1}" for ticket #{2}. However, your local branch for ticket #{2} seems to be "{3}". Do you really want to proceed?'.format(branch, remote_branch, ticket, self._local_branch_for_ticket(ticket)), default=False):
-                    self._UI.info('Use "{2}" To permanently set the branch associated to ticket #{0} to "{1}".'
+                    self._UI.info('Use "{2}" to permanently set the branch associated to ticket #{0} to "{1}".'
                                   .format(ticket, branch, self._format_command("checkout",ticket=ticket,branch=branch)))
                     user_confirmation = True
                 else:
@@ -1558,7 +1600,7 @@ class SageDev(MercurialPatchMixin):
                 # Don't send an e-mail notification
                 self.trac._authenticated_server_proxy.ticket.update(ticket, "", attributes)
 
-    def reset_to_clean_state(self, error_unless_clean=True):
+    def reset_to_clean_state(self, error_unless_clean=True, helpful=True):
         r"""
         Reset the current working directory to a clean state.
 
@@ -1597,12 +1639,18 @@ class SageDev(MercurialPatchMixin):
             sage: try:
             ....:     dev.git.silent.merge("branch1")
             ....: except GitError: pass
-            sage: UI.append("n")
+            sage: UI.append("cancel")
             sage: dev.reset_to_clean_state()
-            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To complete this command you have to reset your repository to a clean state. Do you want me to reset your repository? (This will discard many changes which are not commited.) [yes/No] n
-            sage: UI.append("y")
+            Repository is in an unclean state (merge). Resetting the state will discard any
+            uncommited changes.
+            Reset repository? [reset/Cancel] cancel
+            <BLANKLINE>
+            #  (use "sage --dev commit" to save changes in a new commit)
+            sage: UI.append("reset")
             sage: dev.reset_to_clean_state()
-            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To complete this command you have to reset your repository to a clean state. Do you want me to reset your repository? (This will discard many changes which are not commited.) [yes/No] y
+            Repository is in an unclean state (merge). Resetting the state will discard any
+            uncommited changes.
+            Reset repository? [reset/Cancel] reset
             sage: dev.reset_to_clean_state()
 
         A detached HEAD does not count as a non-clean state::
@@ -1613,12 +1661,22 @@ class SageDev(MercurialPatchMixin):
         states = self.git.get_state()
         if not states:
             return
-        if not self._UI.confirm("Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. {0}Do you want me to reset your repository? (This will discard many changes which are not commited.)".format("To complete this command you have to reset your repository to a clean state. " if error_unless_clean else ""), default=False):
+        self._UI.show('Repository is in an unclean state ({0}).'
+                      ' Resetting the state will discard any uncommited changes.',
+                      ', '.join(states))
+        sel = self._UI.select('Reset repository?',
+                              options=('reset', 'cancel'), default=1)
+        if sel == 'cancel':
             if not error_unless_clean:
                 return
+            if helpful:
+                self._UI.info(['', '(use "{0}" to save changes in a new commit)'],
+                              self._format_command("commit"))
             raise OperationCancelledError("User requested not to clean the current state.")
-
-        self.git.reset_to_clean_state()
+        elif sel == 'reset':
+            self.git.reset_to_clean_state()
+        else:
+            assert False
 
     def clean(self, error_unless_clean=True):
         r"""
@@ -1746,6 +1804,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
             sage: UI.append("Summary: summary1\ndescription...")
@@ -1793,6 +1853,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
             sage: open("tracked", "w").close()
@@ -1844,6 +1906,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice._UI.append("Summary: summary1\ndescription")
             sage: alice.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: alice.checkout(ticket=1)
             sage: open("tracked", "w").close()
@@ -1903,6 +1967,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice._UI.append("Summary: summary1\ndescription")
             sage: alice.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: alice.checkout(ticket=1)
             sage: open("tracked", "w").close()
@@ -1962,6 +2028,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice._UI.append("Summary: summary1\ndescription")
             sage: alice.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: alice.checkout(ticket=1)
             sage: open("tracked", "w").close()
@@ -2014,6 +2082,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
             sage: UI.append("comment")
@@ -2093,6 +2163,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
             sage: dev.remote_status()
@@ -2283,6 +2355,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
             sage: dev.local_tickets()
@@ -2309,6 +2383,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.prune_closed_tickets()
             Abandoning #1.
             Cannot delete "ticket/1": is the current branch.
+            <BLANKLINE>
+            #  (use "sage --dev vanilla" to switch to the master branch)
 
         Now, the branch is abandoned::
 
@@ -2325,9 +2401,9 @@ class SageDev(MercurialPatchMixin):
                 ticket = self._ticket_for_local_branch(branch)
                 if self.git.is_ancestor_of(branch, MASTER_BRANCH):
                     self._UI.show("Abandoning #{0}.".format(ticket))
-                    self.abandon(ticket)
+                    self.abandon(ticket, helpful=False)
 
-    def abandon(self, ticket_or_branch=None):
+    def abandon(self, ticket_or_branch=None, helpful=True):
         r"""
         Abandon a ticket or branch.
 
@@ -2338,6 +2414,9 @@ class SageDev(MercurialPatchMixin):
           the branch ``ticket_or_branch`` or the branch for the ticket
           ``ticket_or_branch`` (or the current branch if ``None``). Also
           removes the users remote tracking branch.
+
+        - ``helpful`` -- boolean (default: ``True``). Whether to print
+          informational messages to guide new users.
 
         .. SEEALSO::
 
@@ -2358,6 +2437,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
             sage: UI.append("y")
@@ -2366,9 +2447,14 @@ class SageDev(MercurialPatchMixin):
             yet. Do you want to create the branch? [Yes/no] y
             sage: dev.abandon(1)
             Cannot delete "ticket/1": is the current branch.
+            <BLANKLINE>
+            #  (use "sage --dev vanilla" to switch to the master branch)
             sage: dev.vanilla()
             sage: dev.abandon(1)
             Moved your branch "ticket/1" to "trash/ticket/1".
+            <BLANKLINE>
+            #  Use "sage --dev checkout --ticket=1 --base=master" to restart working on #1
+            #  with a clean copy of the master branch.
 
         Start to work on a new branch for this ticket::
 
@@ -2387,8 +2473,7 @@ class SageDev(MercurialPatchMixin):
             ticket = self._ticket_from_ticket_name(ticket_or_branch)
 
             if not self._has_local_branch_for_ticket(ticket):
-                raise SageDevValueError("Cannot abandon #{0}: no local branch for this ticket."
-                                        .format(ticket))
+                raise SageDevValueError("Cannot abandon #{0}: no local branch for this ticket.", ticket)
             ticket_or_branch = self._local_branch_for_ticket(ticket)
 
         if self._has_ticket_for_local_branch(ticket_or_branch):
@@ -2405,26 +2490,26 @@ class SageDev(MercurialPatchMixin):
             from git_error import DetachedHeadError
             try:
                 if self.git.current_branch() == branch:
-                    self._UI.error('Cannot delete "{0}": is the current branch.'
-                                   .format(branch))
-                    self._UI.info('Use "{0}" to switch to the master branch first.'
-                                  .format(self._format_command("vanilla")))
+                    self._UI.error('Cannot delete "{0}": is the current branch.', branch)
+                    self._UI.info(['', '(use "{0}" to switch to the master branch)'],
+                                  self._format_command("vanilla"))
                     raise OperationCancelledError("can not delete current branch")
             except DetachedHeadError:
                 pass
 
             new_branch = self._new_local_branch_for_trash(branch)
             self.git.super_silent.branch("-m", branch, new_branch)
-            self._UI.show('Moved your branch "{0}" to "{1}".'
-                          .format(branch, new_branch))
+            self._UI.show('Moved your branch "{0}" to "{1}".', branch, new_branch)
         else:
             raise SageDevValueError("ticket_or_branch must be the name of a ticket or a local branch")
 
         if ticket:
             self._set_local_branch_for_ticket(ticket, None)
             self._set_dependencies_for_ticket(ticket, None)
-            self._UI.info('Use "{1}" to work on #{0} with a clean copy of the master branch.'
-                          .format(ticket, self._format_command("checkout", ticket=ticket, base=MASTER_BRANCH)))
+            if helpful:
+                self._UI.info(['',
+                               'Use "{0}" to restart working on #{1} with a clean copy of the master branch.'], 
+                               self._format_command("checkout", ticket=ticket, base=MASTER_BRANCH), ticket)
 
     def gather(self, branch, *tickets_or_branches):
         r"""
@@ -2457,6 +2542,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev._UI.append("Summary: summary1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
             sage: open("tracked","w").close()
@@ -2591,10 +2678,14 @@ class SageDev(MercurialPatchMixin):
             sage: alice._UI.append("Summary: summary1\ndescription")
             sage: alice.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: alice._UI.append("Summary: summary2\ndescription")
             sage: alice.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=2" to create a new local branch)
             2
 
         Alice creates two branches and merges them::
@@ -2849,11 +2940,15 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=2" to create a new local branch)
             2
             sage: dev.checkout(ticket=2)
             sage: dev.local_tickets()
@@ -2886,7 +2981,8 @@ class SageDev(MercurialPatchMixin):
                     ticket_summary = ""
             if current_branch == branch:
                 extra = "*"
-            ret.append(("{0:>7}: {1} {2}".format("#"+str(ticket) if ticket else "", branch, ticket_summary), extra))
+            ticket_str = "#"+str(ticket) if ticket else ""
+            ret.append(("{0:>7}: {1} {2}".format(ticket_str, branch, ticket_summary), extra))
         while all([info.startswith(' ') for (info, extra) in ret]):
             ret = [(info[1:],extra) for (info, extra) in ret]
         ret = sorted(ret)
@@ -2987,6 +3083,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
             sage: UI.append("y")
@@ -2995,6 +3093,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=2" to create a new local branch)
             2
             sage: dev.checkout(ticket=2)
             sage: UI.append("y")
@@ -3003,6 +3103,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #3 at https://trac.sagemath.org/3.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=3" to create a new local branch)
             3
             sage: dev.checkout(ticket=3)
             sage: UI.append("y")
@@ -3237,21 +3339,29 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=2" to create a new local branch)
             2
             sage: dev.checkout(ticket=2)
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #3 at https://trac.sagemath.org/3.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=3" to create a new local branch)
             3
             sage: dev.checkout(ticket=3)
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #4 at https://trac.sagemath.org/4.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=4" to create a new local branch)
             4
             sage: dev.checkout(ticket=4)
 
@@ -3346,18 +3456,26 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("no")
             sage: UI.append("yes")
             sage: dev.upload_ssh_key(public_key=public_key)
-            I will now upload your ssh key at "..." to trac. This will enable access to the git repository there. Is this what you want? [Yes/no] yes
-            I could not find a public key at "{0}". Do you want me to create one for you? [Yes/no] no
+            The trac git server requires your SSH public key to be able to identify you.
+            Upload ".../id_rsa.pub" to trac? [Yes/no] yes
+            File not found: ".../id_rsa.pub"
+            Create new ssh key pair? [Yes/no] no
+            <BLANKLINE>
+            #  Use "sage --dev upload-ssh-key" to upload a public key. Or set your key
+            #  manually at https://trac.sagemath.org/prefs/sshkeys.
             sage: UI.append("yes")
             sage: UI.append("yes")
             sage: dev.upload_ssh_key(public_key=public_key)
-            I will now upload your ssh key at "..." to trac. This will enable access to the git repository there. Is this what you want? [Yes/no] yes
-            I could not find a public key at "{0}". Do you want me to create one for you? [Yes/no] yes
+            The trac git server requires your SSH public key to be able to identify you.
+            Upload ".../id_rsa.pub" to trac? [Yes/no] yes
+            File not found: ".../id_rsa.pub"
+            Create new ssh key pair? [Yes/no] yes
             Generating ssh key.
             Your key has been uploaded.
             sage: UI.append("yes")
             sage: dev.upload_ssh_key(public_key=public_key)
-            I will now upload your ssh key at "..." to trac. This will enable access to the git repository there. Is this what you want? [Yes/no] yes
+            The trac git server requires your SSH public key to be able to identify you.
+            Upload ".../id_rsa.pub" to trac? [Yes/no] yes
             Your key has been uploaded.
         """
         try:
@@ -3366,17 +3484,19 @@ class SageDev(MercurialPatchMixin):
                 public_key = os.path.expanduser("~/.ssh/id_dsa.pub")
                 if not os.path.exists(public_key):
                     public_key = os.path.expanduser("~/.ssh/id_rsa.pub")
+            if not public_key.endswith(".pub"):
+                raise SageDevValueError('public key must end with ".pub".')
 
-            if not self._UI.confirm('I will now upload your ssh key at "{0}" to trac. This will enable access to the git repository there. Is this what you want?'.format(public_key), default=True):
+            self._UI.show('The trac git server requires your SSH public key'
+                          ' to be able to identify you.')
+            if not self._UI.confirm('Upload "{0}" to trac?'
+                                    .format(public_key), default=True):
                 raise OperationCancelledError("do not upload key")
 
             if not os.path.exists(public_key):
-                if not public_key.endswith(".pub"):
-                    raise SageDevValueError('public key must end with ".pub".')
-
-                if not self._UI.confirm('I could not find a public key at "{0}". Do you want me to create one for you?', default=True):
+                self._UI.warning('File not found: "{0}"'.format(public_key))
+                if not self._UI.confirm('Create new ssh key pair?', default=True):
                     raise OperationCancelledError("no keyfile found")
-
                 private_key = public_key[:-4]
                 self._UI.show("Generating ssh key.")
                 from subprocess import call
@@ -3384,8 +3504,8 @@ class SageDev(MercurialPatchMixin):
                 if success == 0:
                     self._UI.debug("Key generated.")
                 else:
-                    self._UI.error("Key generation failed.")
-                    self._UI.info('Please create a key in "{0}" and retry.'.format(public_key))
+                    self._UI.error(["Key generation failed.",
+                                    'Please create a key in "{0}" and retry.'.format(public_key)])
                     raise OperationCancelledError("ssh-keygen failed")
 
             with open(public_key, 'r') as F:
@@ -3397,7 +3517,9 @@ class SageDev(MercurialPatchMixin):
             server = self.config.get('server', TRAC_SERVER_URI)
 
             url = urlparse.urljoin(server, urllib.pathname2url(os.path.join('prefs', 'sshkeys')))
-            self._UI.info('Use "{0}" to upload a public key. Or set your key manually at {1}.'.format(self._format_command("upload_ssh_key"), url))
+            self._UI.info(['',
+                           'Use "{0}" to upload a public key. Or set your key manually at {1}.'
+                           .format(self._format_command("upload_ssh_key"), url)])
             raise
 
     def _upload_ssh_key(self):
@@ -3924,6 +4046,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
 
@@ -3963,6 +4087,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
             sage: dev._sagedev._ticket_for_local_branch("ticket/1")
@@ -3988,6 +4114,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
             sage: dev._sagedev._has_ticket_for_local_branch("ticket/1")
@@ -4048,6 +4176,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice._UI.append("Summary: ticket1\ndescription")
             sage: alice.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: alice.checkout(ticket=1)
             sage: alice._sagedev._local_branch_for_ticket(1)
@@ -4165,6 +4295,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
             sage: dev._set_dependencies_for_ticket(1, [2, 3])
@@ -4208,6 +4340,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev.checkout(ticket=1)
 
@@ -4397,6 +4531,8 @@ class SageDev(MercurialPatchMixin):
             sage: UI.append("Summary: ticket1\ndescription")
             sage: dev.create_ticket()
             Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  (use "sage --dev checkout --ticket=1" to create a new local branch)
             1
             sage: dev._current_ticket()
             sage: dev.checkout(ticket=1)

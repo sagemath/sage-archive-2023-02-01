@@ -145,7 +145,7 @@ class UserInterface(object):
         """
         raise NotImplementedError
 
-    def show(self, message, log_level=NORMAL):
+    def show(self, message, *args, **kwds):
         r"""
         Display ``message``.
 
@@ -155,8 +155,12 @@ class UserInterface(object):
           strings. Each individual message will be wrapped to the
           terminal width.
 
-        - ``log_level`` -- one of ``ERROR``, ``WARNING``, ``NORMAL``,
-          ``INFO``, or ``DEBUG`` (default: ``INFO``)
+        - ``*args`` -- optional positional arguments that will be
+          passed to ``message.format()``.
+
+        - ``log_level=INFO`` -- one of ``ERROR``, ``WARNING``,
+          ``NORMAL``, ``INFO``, or ``DEBUG`` (default:
+          ``INFO``). Optional keyword argument.
 
         TESTS::
 
@@ -167,23 +171,31 @@ class UserInterface(object):
             Traceback (most recent call last):
             ...
             NotImplementedError
-            sage: UI.show("I ate filet mignon for dinner.", DEBUG)
+            sage: UI.show("I ate filet mignon for dinner.", log_level=DEBUG)
         """
+        log_level = kwds.pop('log_level', NORMAL)
+        if log_level not in (ERROR, WARNING, NORMAL, INFO, DEBUG):
+            raise ValueError('log_level is invalid')
+        if len(kwds) != 0:
+            raise ValueError('the only allowed keyword argument is "log_level"')
         config_log_level = int(self._config.get("log_level", str(INFO)))
         if config_log_level >= log_level:
             if isinstance(message, basestring):
-                self._show(message, log_level)
+                self._show(message, log_level, *args)
             else:
                 for msg in message:
-                    self._show(msg, log_level)
+                    self._show(msg, log_level, *args)
 
-    def debug(self, message):
+    def debug(self, message, *args):
         r"""
         Display ``message``.
 
         INPUT:
 
         - ``message`` -- a string or list/tuple/iterable of strings.
+
+        - ``*args`` -- optional positional arguments that will be
+          passed to ``message.format()``.
 
         TESTS:
 
@@ -194,9 +206,9 @@ class UserInterface(object):
             sage: UI = UserInterface(DoctestConfig())
             sage: UI.debug("I ate filet mignon for dinner.")
         """
-        self.show(message, DEBUG)
+        self.show(message, *args, log_level=DEBUG)
 
-    def info(self, message):
+    def info(self, message, *args):
         r"""
         Display ``message``.
 
@@ -206,6 +218,9 @@ class UserInterface(object):
         INPUT:
 
         - ``message`` -- a string or list/tuple/iterable of strings.
+
+        - ``*args`` -- optional positional arguments that will be
+          passed to ``message.format()``.
 
         TESTS:
 
@@ -219,15 +234,18 @@ class UserInterface(object):
             ...
             NotImplementedError
         """
-        self.show(message, INFO)
+        self.show(message, *args, log_level=INFO)
 
-    def warning(self, message):
+    def warning(self, message, *args):
         r"""
         Display ``message``.
 
         INPUT:
 
         - ``message`` -- a string or list/tuple/iterable of strings.
+
+        - ``*args`` -- optional positional arguments that will be
+          passed to ``message.format()``.
 
         TESTS:
 
@@ -239,15 +257,18 @@ class UserInterface(object):
             ...
             NotImplementedError
         """
-        self.show(message, WARNING)
+        self.show(message, *args, log_level=WARNING)
 
-    def error(self, message):
+    def error(self, message, *args):
         r"""
         Display ``message``.
 
         INPUT:
 
         - ``message`` -- a string or list/tuple/iterable of strings.
+
+        - ``*args`` -- optional positional arguments that will be
+          passed to ``message.format()``.
 
         TESTS:
 
@@ -259,9 +280,9 @@ class UserInterface(object):
             ...
             NotImplementedError
         """
-        self.show(message, ERROR)
+        self.show(message, *args, log_level=ERROR)
 
-    def _show(self, message, log_level=NORMAL):
+    def _show(self, message, log_level, *args):
         r"""
         Display ``message``.
 
@@ -272,12 +293,15 @@ class UserInterface(object):
         - ``log_level`` -- one of ``ERROR``, ``WARNING``, ``NORMAL``,
           ``INFO``, or ``DEBUG`` (default: ``NORMAL``)
 
+        - ``*args`` -- optional positional arguments that will be
+          passed to ``message.format()``.
+
         TESTS::
 
-            sage: from sage.dev.user_interface import UserInterface
+            sage: from sage.dev.user_interface import UserInterface, NORMAL
             sage: from sage.dev.test.config import DoctestConfig
             sage: UI = UserInterface(DoctestConfig())
-            sage: UI._show("I ate filet mignon for dinner.")
+            sage: UI._show("I ate filet mignon for dinner.", NORMAL)
             Traceback (most recent call last):
             ...
             NotImplementedError

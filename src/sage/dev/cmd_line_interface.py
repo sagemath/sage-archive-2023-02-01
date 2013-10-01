@@ -330,7 +330,7 @@ class CmdLineInterface(UserInterface):
         else:
             return ''
 
-    def _show(self, message, log_level):
+    def _show(self, message, log_level, *args):
         r"""
         Display ``message``.
 
@@ -343,11 +343,12 @@ class CmdLineInterface(UserInterface):
             sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
             sage: UI = CmdLineInterface(DoctestConfig()["UI"])
-            sage: UI.show("I ate filet mignon for dinner.") # indirect doctest
+            sage: UI.show("I ate {0} for dinner.", 'filet mignon') # indirect doctest
             I ate filet mignon for dinner.
         """
+        if len(args) > 0:
+            message = message.format(*args)
         height, width = self._get_dimensions()
-
         kwds = {'width': width}
         if log_level == INFO:
             kwds['initial_indent'] = kwds['subsequent_indent'] = '#  '

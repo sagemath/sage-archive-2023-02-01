@@ -585,8 +585,14 @@ class SageDev(MercurialPatchMixin):
             8
             sage: UI.append("n")
             sage: dev.checkout(ticket=8)
-            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To complete this command you have to reset your repository to a clean state. Do you want me to reset your repository? (This will discard many changes which are not commited.) [yes/No] n
-            Could not check out branch "ticket/8" because your working directory is not in a clean state.
+            Your repository is in an unclean state. It seems you are in the middle of a
+            merge of some sort. To complete this command you have to reset your repository
+            to a clean state. Do you want me to reset your repository? (This will discard
+            many changes which are not commited.) [yes/No] n
+            Could not check out branch "ticket/8" because your working directory is not
+            in a clean state.
+            <BLANKLINE>
+            #  To checkout "ticket/8", use "sage --dev checkout --branch=ticket/8".
             sage: dev.git.reset_to_clean_state()
 
         Creating a ticket with uncommitted changes::
@@ -825,8 +831,14 @@ class SageDev(MercurialPatchMixin):
             ....: except GitError: pass
             sage: UI.append('n')
             sage: dev.checkout(branch='merge_branch')
-            Your repository is in an unclean state. It seems you are in the middle of a merge of some sort. To complete this command you have to reset your repository to a clean state. Do you want me to reset your repository? (This will discard many changes which are not commited.) [yes/No] n
-            Could not check out branch "merge_branch" because your working directory is not in a clean state.
+            Your repository is in an unclean state. It seems you are in the middle of a
+            merge of some sort. To complete this command you have to reset your repository
+            to a clean state. Do you want me to reset your repository? (This will discard
+            many changes which are not commited.) [yes/No] n
+            Could not check out branch "merge_branch" because your working directory is not
+            in a clean state.
+            <BLANKLINE>
+            #  To checkout "merge_branch", use "sage --dev checkout --branch=merge_branch".
             sage: dev.git.reset_to_clean_state()
 
         Checking out a branch when in a detached HEAD::
@@ -856,7 +868,7 @@ class SageDev(MercurialPatchMixin):
             user.name=doctest checkout branch2".
             git printed nothing to STDOUT.
             git printed the following to STDERR:
-            error: The following untracked working tree files would be overwritten 
+            error: The following untracked working tree files would be overwritten
             by checkout:
                 tracked
             Please move or remove them before you can switch branches.
@@ -1387,8 +1399,7 @@ class SageDev(MercurialPatchMixin):
             I will now push the following new commits to the remote branch "u/bob/ticket/1":
             ...: bob: added tracked2
             Is this what you want? [Yes/no] y
-            Not setting the branch field for ticket #1 to "u/bob/ticket/1" because "u/bob/ticket/1" and the current value of th
-e branch field "u/alice/ticket/1" have diverged.
+            Not setting the branch field for ticket #1 to "u/bob/ticket/1" because "u/bob/ticket/1" and the current value of the branch field "u/alice/ticket/1" have diverged.
             <BLANKLINE>
             #  To overwrite the branch field use "sage --dev push --force --ticket=1
             #  --remote-branch=u/bob/ticket/1".
@@ -1427,8 +1438,14 @@ e branch field "u/alice/ticket/1" have diverged.
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.push(2)
-            You are trying to push the branch "ticket/1" to "u/bob/ticket/2" for ticket #2. However, your local branch for ticket #2 seems to be "ticket/2". Do you really want to proceed? [yes/No] y
-            The branch "u/bob/ticket/2" does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            You are trying to push the branch "ticket/1" to "u/bob/ticket/2" for ticket #2.
+            However, your local branch for ticket #2 seems to be "ticket/2". Do you really
+            want to proceed? [yes/No] y
+            <BLANKLINE>
+            #  Use "sage --dev checkout --ticket=2 --branch=ticket/1" To permanently set the
+            #  branch associated to ticket #2 to "ticket/1".
+            The branch "u/bob/ticket/2" does not exist on the remote server yet. Do you want
+            to create the branch? [Yes/no] y
 
         Check that ``remote_branch`` works::
 
@@ -1445,16 +1462,41 @@ e branch field "u/alice/ticket/1" have diverged.
             Added dependency on #2 to #1.
             sage: bob._UI.append("y")
             sage: bob.push()
-            I will now change the branch field of ticket #1 from its current value "u/bob/branch1" to "u/bob/ticket/1". Is this what you want? [Yes/no] y
+            <BLANKLINE>
+            #  Not pushing your changes because the remote branch "u/bob/ticket/1" is
+            #  idential to your local branch "ticket/1". Did you forget to commit your
+            #  changes with "sage --dev commit"?
+            I will now change the branch field of ticket #1 from its current value
+            "u/bob/branch1" to "u/bob/ticket/1". Is this what you want? [Yes/no] y
             Uploading your dependencies for ticket #1: "" => "#2"
             sage: bob._sagedev._set_dependencies_for_ticket(1,())
             sage: bob._UI.append("keep")
             sage: bob.push()
-            According to trac, ticket #1 depends on #2. Your local branch depends on no tickets. Do you want to upload your dependencies to trac? Or do you want to download the dependencies from trac to your local branch? Or do you want to keep your local dependencies and the dependencies on trac in its current state? [upload/download/keep] keep
+            <BLANKLINE>
+            #  Not pushing your changes because the remote branch "u/bob/ticket/1" is
+            #  idential to your local branch "ticket/1". Did you forget to commit your
+            #  changes with "sage --dev commit"?
+            According to trac, ticket #1 depends on #2. Your local branch depends on no
+            tickets. Do you want to upload your dependencies to trac? Or do you want to
+            download the dependencies from trac to your local branch? Or do you want to keep
+            your local dependencies and the dependencies on trac in its current state?
+            [upload/download/keep] keep
             sage: bob._UI.append("download")
             sage: bob.push()
-            According to trac, ticket #1 depends on #2. Your local branch depends on no tickets. Do you want to upload your dependencies to trac? Or do you want to download the dependencies from trac to your local branch? Or do you want to keep your local dependencies and the dependencies on trac in its current state? [upload/download/keep] download
+            <BLANKLINE>
+            #  Not pushing your changes because the remote branch "u/bob/ticket/1" is
+            #  idential to your local branch "ticket/1". Did you forget to commit your
+            #  changes with "sage --dev commit"?
+            According to trac, ticket #1 depends on #2. Your local branch depends on no
+            tickets. Do you want to upload your dependencies to trac? Or do you want to
+            download the dependencies from trac to your local branch? Or do you want to keep
+            your local dependencies and the dependencies on trac in its current state?
+            [upload/download/keep] download
             sage: bob.push()
+            <BLANKLINE>
+            #  Not pushing your changes because the remote branch "u/bob/ticket/1" is
+            #  idential to your local branch "ticket/1". Did you forget to commit your
+            #  changes with "sage --dev commit"?
         """
         if ticket is None:
             ticket = self._current_ticket()
@@ -1554,10 +1596,10 @@ e branch field "u/alice/ticket/1" have diverged.
                                        ' "{1}" and the current value of the branch field "{2}" have diverged.'
                                        .format(ticket, remote_branch, current_remote_branch))
                         self._UI.info(['To overwrite the branch field use "{0}".'
-                                       .format(self._format_command("push", ticket=ticket, 
+                                       .format(self._format_command("push", ticket=ticket,
                                                                     remote_branch=remote_branch, force=True)),
                                        'To merge in the changes introduced by "{1}", use "{0}".'
-                                       .format(self._format_command("download", ticket=ticket), 
+                                       .format(self._format_command("download", ticket=ticket),
                                                current_remote_branch)])
                         raise OperationCancelledError("not a fast-forward")
 
@@ -1715,7 +1757,7 @@ e branch field "u/alice/ticket/1" have diverged.
                  tracked
             <BLANKLINE>
             Discard changes? [discard/Cancel/stash] cancel
-        
+
         Or stashed::
 
             sage: UI.append("stash")
@@ -1740,14 +1782,14 @@ e branch field "u/alice/ticket/1" have diverged.
 
         files = [line[2:] for line in self.git.status(porcelain=True).splitlines()
                  if not line.startswith('?')]
-        
+
         self._UI.show(
             ['The following files in your working directory contain uncommitted changes:'] +
-            [''] + 
+            [''] +
             ['    ' + f for f in files ] +
             [''])
         cancel = 'cancel' if error_unless_clean else 'keep'
-        sel = self._UI.select('Discard changes?', 
+        sel = self._UI.select('Discard changes?',
                               options=('discard', cancel, 'stash'), default=1)
         if sel == 'discard':
             self.git.reset_to_clean_working_directory()
@@ -2784,7 +2826,7 @@ e branch field "u/alice/ticket/1" have diverged.
             self.clean()
         except OperationCancelledError:
             self._UI.error("Cannot merge because working directory is not in a clean state.")
-            self._UI.show(['', 
+            self._UI.show(['',
                            '#  Use "{0}" to commit your changes.'
                            .format(self._format_command('commit'))])
             raise OperationCancelledError("working directory not clean")
@@ -4504,7 +4546,7 @@ e branch field "u/alice/ticket/1" have diverged.
             'sage --dev checkout'
 
             sage: dev._sagedev._format_command('checkout', ticket=int(1))
-            'sage --dev checkout --ticket=1'        
+            'sage --dev checkout --ticket=1'
         """
         try:
             __IPYTHON__

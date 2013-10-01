@@ -233,6 +233,9 @@ class TracInterface(object):
             sage: UI.append('doctest2')
             sage: trac._username # user is prompted for a username
             Trac username: doctest2
+            <BLANKLINE>
+            #  Your trac username has been written to a configuration file for future
+            #  sessions. To reset your username, use "dev.trac.reset_username()".
             'doctest2'
             sage: config['trac']['username']
             'doctest2'
@@ -264,6 +267,9 @@ class TracInterface(object):
             sage: UI.append("doctest2")
             sage: trac._username
             Trac username: doctest2
+            <BLANKLINE>
+            #  Your trac username has been written to a configuration file for future
+            #  sessions. To reset your username, use "dev.trac.reset_username()".
             'doctest2'
         """
         self.__username = None
@@ -303,7 +309,12 @@ class TracInterface(object):
             sage: UI.append('secret')
             sage: trac._password
             Trac password:
-            Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.) [yes/No] y
+            Should I store your password in a configuration file for future sessions? (This
+            configuration file might be readable by privileged users on this system.)
+            [yes/No] y
+            <BLANKLINE>
+            #  Your trac password has been written to a configuration file. To reset your
+            #  password, use "dev.trac.reset_password()".
             'secret'
             sage: config['trac']['password']
             'secret'
@@ -346,7 +357,12 @@ class TracInterface(object):
             sage: UI.append('secret')
             sage: trac._password
             Trac password:
-            Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.) [yes/No] y
+            Should I store your password in a configuration file for future sessions? (This
+            configuration file might be readable by privileged users on this system.)
+            [yes/No] y
+            <BLANKLINE>
+            #  Your trac password has been written to a configuration file. To reset your
+            #  password, use "dev.trac.reset_password()".
             'secret'
             sage: config['trac']['password']
             'secret'
@@ -393,7 +409,12 @@ class TracInterface(object):
             sage: UI.append('secret')
             sage: trac._password
             Trac password:
-            Should I store your password in a configuration file for future sessions? (This configuration file might be readable by privileged users on this system.) [yes/No] y
+            Should I store your password in a configuration file for future sessions? (This
+            configuration file might be readable by privileged users on this system.)
+            [yes/No] y
+            <BLANKLINE>
+            #  Your trac password has been written to a configuration file. To reset your
+            #  password, use "dev.trac.reset_password()".
             'secret'
             sage: trac._password # the timeout has no effect if the password can be read from the configuration file
             'secret'

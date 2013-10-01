@@ -54,67 +54,67 @@ from git_error import GitError
 
 
 class MercurialPatchMixin(object):
-    
-    def import_patch(self, patchname=None, url=None, local_file=None, 
+
+    def import_patch(self, patchname=None, url=None, local_file=None,
                      diff_format=None, header_format=None, path_format=None):
         r"""
         Import a patch into the current branch.
-    
+
         If no arguments are given, then all patches from the ticket are
         downloaded and applied using :meth:`download_patch`.
-    
+
         If ``local_file`` is specified, apply the file it points to.
-    
+
         Otherwise, download the patch using :meth:`download_patch` and apply
         it.
-    
+
         INPUT:
-    
+
         - ``patchname`` -- a string or ``None`` (default: ``None``), passed on
           to :meth:`download_patch`
-    
+
         - ``url`` -- a string or ``None`` (default: ``None``), passed on to
           :meth:`download_patch`
-    
+
         - ``local_file`` -- a string or ``None`` (default: ``None``), if
           specified, ``url`` and ``patchname`` must be ``None``; instead of
           downloading the patch, apply this patch file.
-    
+
         - ``diff_format`` -- a string or ``None`` (default: ``None``), per
           default the format of the patch file is autodetected; it can be
           specified explicitly with this parameter
-    
+
         - ``header_format`` -- a string or ``None`` (default: ``None``), per
           default the format of the patch header is autodetected; it can be
           specified explicitly with this parameter
-    
+
         - ``path_format`` -- a string or ``None`` (default: ``None``), per
           default the format of the paths is autodetected; it can be specified
           explicitly with this parameter
-    
+
         .. NOTE::
-    
+
             This method calls :meth:`_rewrite_patch` if necessary to rewrite
             patches which were created for sage before the move to git
             happened. In other words, this is not just a simple wrapper for
             ``git am``.
-    
+
         .. SEEALSO::
-    
+
             - :meth:`download_patch` -- download a patch to a local file.
-    
+
             - :meth:`download` -- merges in changes from a git branch
               rather than a patch.
-    
+
         TESTS:
-    
+
         Set up a single user for doctesting::
-    
+
             sage: from sage.dev.test.sagedev import single_user_setup
             sage: dev, config, UI, server = single_user_setup()
-    
+
         Create a patch::
-    
+
             sage: open("tracked", "w").close()
             sage: open("tracked2", "w").close()
             sage: import os
@@ -122,24 +122,26 @@ class MercurialPatchMixin(object):
             sage: dev.git.silent.add("tracked", "tracked2")
             sage: with open(patchfile, "w") as f: f.write(dev.git.diff(cached=True))
             sage: dev.git.silent.reset()
-    
+
         Applying this patch fails::
-    
+
             sage: dev.import_patch(local_file=patchfile, path_format="new") # the autodetection of the path format fails since we are not in a sage repository
             There are untracked files in your working directory:
             tracked
             tracked2
             The patch cannot be imported unless these files are removed.
-    
+
         After moving away ``tracked`` and ``tracked2``, this works::
-    
+
             sage: os.unlink("tracked")
             sage: os.unlink("tracked2")
             sage: dev.import_patch(local_file=patchfile, path_format="new")
+            <BLANKLINE>
+            #  Trying to apply reformatted patch `...`
             Applying: No Subject. Modified: tracked, tracked2
-    
+
          We create a patch which does not apply::
-    
+
             sage: with open("tracked", "w") as f: f.write("foo")
             sage: dev.git.silent.add("tracked")
             sage: with open("tracked", "w") as f: f.write("boo")
@@ -148,12 +150,14 @@ class MercurialPatchMixin(object):
             sage: dev.git.reset_to_clean_working_directory()
             sage: open("tracked").read()
             ''
-    
+
          The import fails::
-    
+
             sage: UI.append("abort")
             sage: UI.append("y")
             sage: dev.import_patch(local_file=patchfile, path_format="new")
+            <BLANKLINE>
+            #  Trying to apply reformatted patch `...`
             Applying: No Subject. Modified: tracked, tracked2
             error: patch failed: tracked:1
             error: tracked: patch does not apply
@@ -161,7 +165,8 @@ class MercurialPatchMixin(object):
             The copy of the patch that failed is found in:
                .../rebase-apply/patch
             <BLANKLINE>
-            The patch does not apply cleanly. Would you like to apply it anyway and create reject files for the parts that do not apply? [yes/No] y
+            The patch does not apply cleanly. Would you like to apply it anyway and create
+            reject files for the parts that do not apply? [yes/No] y
             Checking patch tracked...
             error: while searching for:
             foo
@@ -170,14 +175,18 @@ class MercurialPatchMixin(object):
             Applying patch tracked with 1 reject...
             Rejected hunk #1.
             Applied patch tracked2 cleanly.
-            The patch did not apply cleanly. Please integrate the `.rej` files that were created and resolve conflicts. After you do, type `resolved`. If you want to abort this process, type `abort`. [resolved/abort] abort
+            The patch did not apply cleanly. Please integrate the `.rej` files that were
+            created and resolve conflicts. After you do, type `resolved`. If you want to
+            abort this process, type `abort`. [resolved/abort] abort
             Removing tracked.rej
             sage: open("tracked").read()
             ''
-    
+
             sage: UI.append("resolved")
             sage: UI.append("y")
             sage: dev.import_patch(local_file=patchfile, path_format="new")
+            <BLANKLINE>
+            #  Trying to apply reformatted patch `...`
             Applying: No Subject. Modified: tracked, tracked2
             error: patch failed: tracked:1
             error: tracked: patch does not apply
@@ -185,7 +194,8 @@ class MercurialPatchMixin(object):
             The copy of the patch that failed is found in:
                .../rebase-apply/patch
             <BLANKLINE>
-            The patch does not apply cleanly. Would you like to apply it anyway and create reject files for the parts that do not apply? [yes/No] y
+            The patch does not apply cleanly. Would you like to apply it anyway and create
+            reject files for the parts that do not apply? [yes/No] y
             Checking patch tracked...
             error: while searching for:
             foo
@@ -194,7 +204,11 @@ class MercurialPatchMixin(object):
             Applying patch tracked with 1 reject...
             Rejected hunk #1.
             Applied patch tracked2 cleanly.
-            The patch did not apply cleanly. Please integrate the `.rej` files that were created and resolve conflicts. After you do, type `resolved`. If you want to abort this process, type `abort`. [resolved/abort] resolved
+            The patch did not apply cleanly. Please integrate the `.rej` files that were
+            created and resolve conflicts. After you do, type `resolved`. If you want to
+            abort this process, type `abort`. [resolved/abort] resolved
+            <BLANKLINE>
+            #  A commit on the current branch has been created from the patch.
             Removing tracked.rej
             sage: open("tracked").read() # we did not actually incorporate the .rej files in this doctest, so nothing has changed
             ''
@@ -207,13 +221,13 @@ class MercurialPatchMixin(object):
         except OperationCancelledError:
             self._UI.error("Cannot import patch. Your working directory is not in a clean state.")
             raise
-    
+
         untracked = self.git.untracked_files()
         # do not exclude .patch files here: they would be deleted by clean() later
         if untracked:
             self._UI.error("There are untracked files in your working directory:\n{0}\nThe patch cannot be imported unless these files are removed.".format("\n".join(untracked)))
             raise OperationCancelledError("untracked files make import impossible")
-    
+
         if not local_file:
             local_files = self.download_patch(patchname=patchname, url=url)
             try:
@@ -239,11 +253,11 @@ class MercurialPatchMixin(object):
                     to_path_format="new", from_diff_format=diff_format,
                     from_header_format=header_format,
                     from_path_format=path_format)
-    
+
             import tempfile, os
             fd, outfile = tempfile.mkstemp(dir=self.tmp_dir)
             os.fdopen(fd, 'w').writelines("\n".join(lines)+"\n")
-    
+
             self._UI.info("Trying to apply reformatted patch `%s`"%outfile)
             # am, apply and add need to be in the root directory
             curdir = os.getcwd()
@@ -257,7 +271,7 @@ class MercurialPatchMixin(object):
                         self.git.reset_to_clean_state()
                         self.git.reset_to_clean_working_directory(remove_untracked_files=True)
                         raise OperationCancelledError("User requested to cancel the apply.")
-    
+
                     try:
                         try:
                             self.git.silent.apply(outfile, ignore_whitespace=True, reject=True)
@@ -266,7 +280,7 @@ class MercurialPatchMixin(object):
                                 raise OperationCancelledError("User requested to cancel the apply.")
                         else:
                             self._UI.show("It seemed that the patch would not apply, but in fact it did.")
-    
+
                         self.git.super_silent.add(update=True)
                         untracked = [fname for fname in self.git.untracked_files() if not fname.endswith(".rej")]
                         if untracked and self._UI.confirm("The patch will introduce the following new files to the repository:\n{0}\nIs this correct?".format("\n".join(untracked)), default=True):
@@ -278,45 +292,45 @@ class MercurialPatchMixin(object):
                         self.git.reset_to_clean_working_directory(remove_untracked_files=True)
             finally:
                 os.chdir(curdir)
-    
+
     def download_patch(self, ticket=None, patchname=None, url=None):
         r"""
         Download a patch to a temporary directory.
-    
+
         If only ``ticket`` is specified, then try to make sense of the
         ``apply`` statements in the comments on the ticket to download the
         tickets in the right order just like the patchbot would do.
-    
+
         If no ``ticket`` is specified, use the current ticket.
-    
+
         If ``ticket`` and ``patchname`` are specified, download the
         patch ``patchname`` attached to ``ticket``.
-    
+
         If ``url`` is specified, download ``url``.
-    
+
         Raise an error on any other combination of parameters.
-    
+
         INPUT:
-    
+
         - ``ticket`` -- an integer or string identifying a ticket or ``None``
           (default: ``None``)
-    
+
         - ``patchname`` -- a string or ``None`` (default: ``None``)
-    
+
         - ``url`` -- a string or ``None`` (default: ``None``)
-    
+
         OUTPUT:
-    
+
         Otherwise, returns a tuple of the names of the local patch files that
         have been downloaded.
-    
+
         .. SEEALSO::
-    
+
             - :meth:`import_patch` -- also creates a commit on the current
               branch from the patch.
-    
+
         EXAMPLES::
-    
+
             sage: from sage.env import SAGE_ROOT
             sage: import os
             sage: os.chdir(SAGE_ROOT) # silence possible warnings about not being in SAGE_ROOT
@@ -324,46 +338,56 @@ class MercurialPatchMixin(object):
             Downloading `https://trac.sagemath.org/raw-attachment/ticket/14882/trac_14882-backtrack_longtime-dg.patch`...
             Downloaded `https://trac.sagemath.org/raw-attachment/ticket/14882/trac_14882-backtrack_longtime-dg.patch` to `...`.
             ('...',)
-    
+
         TESTS:
-    
+
         Set up a single user for doctesting::
-    
+
             sage: from sage.dev.test.sagedev import single_user_setup
             sage: dev, config, UI, server = single_user_setup()
-    
+
         Create a new ticket::
-    
+
             sage: UI.append("Summary: summary1\ndescription")
             sage: dev.create_ticket()
+            Created ticket #1 at https://trac.sagemath.org/1.
+            <BLANKLINE>
+            #  To start work on ticket #1, create a new local branch for this ticket with
+            #  "sage --dev checkout --ticket=1".
             1
-    
+
         There are no attachments to download yet::
-    
+
             sage: dev.download_patch(ticket=1)
             ValueError: Ticket #1 has no attachments.
-    
+
         After adding one attachment, this works::
-    
+
             sage: server.tickets[1].attachments['first.patch'] = ''
             sage: dev.download_patch(ticket=1) # not tested, download_patch tries to talk to the live server
-    
+
         After adding another attachment, this does not work anymore, one needs
         to specify which attachment should be downloaded::
-    
+
             sage: server.tickets[1].attachments['second.patch'] = ''
             sage: dev.download_patch(ticket=1)
-            I could not understand the comments on ticket #1. To apply use one of the patches on the ticket, set the parameter `patchname` to one of: first.patch, second.patch
+            <BLANKLINE>
+            #  There is more than one attachment on ticket #1. Reading
+            #  `https://trac.sagemath.org/ticket/1?format=rss` to try to find out in which
+            #  order they must be applied.
+            I could not understand the comments on ticket #1. To apply use one of the
+            patches on the ticket, set the parameter `patchname` to one of: first.patch,
+            second.patch
             sage: dev.download_patch(ticket=1, patchname = 'second.patch') # not tested, download_patch tries to talk to the live server
-    
+
         It is an error not to specify any parameters if not on a ticket::
-    
+
             sage: dev.vanilla()
             sage: dev.download_patch()
             ValueError: ticket or url must be specified if not currently on a ticket
-    
+
         Check that the parser for the rss stream works::
-    
+
             sage: UI.append("n")
             sage: dev._sagedev.trac = sage.all.dev.trac # we have to use the actual trac proxy to enable access to the patch list on trac
             sage: dev.download_patch(ticket=12415) # optional: internet
@@ -392,16 +416,16 @@ class MercurialPatchMixin(object):
             ret = urllib.urlretrieve(url)[0]
             self._UI.show("Downloaded `{0}` to `{1}`.".format(url, ret))
             return (ret,)
-    
+
         if ticket is None:
             ticket = self._current_ticket()
-    
+
         if ticket is None:
             from sagedev import SageDevValueError
             raise SageDevValueError("ticket or url must be specified if not currently on a ticket")
-    
+
         ticket = self._ticket_from_ticket_name(ticket)
-    
+
         if patchname:
             from sage.env import TRAC_SERVER_URI
             url = TRAC_SERVER_URI+"/raw-attachment/ticket/%s/%s"%(ticket,patchname)
@@ -429,7 +453,7 @@ class MercurialPatchMixin(object):
                 self._UI.info("There is more than one attachment on ticket #{0}. Reading `{1}` to try to find out in which order they must be applied.".format(ticket, rss))
                 import urllib2
                 rss = urllib2.urlopen(rss).read()
-    
+
                 # the following block has been copied from the patchbot
                 all_patches = []
                 patches = []
@@ -443,7 +467,7 @@ class MercurialPatchMixin(object):
                     Find the first occurance of the tag start (including
                     attributes) and return the contents of that tag (really, up
                     until the next end tag of that type).
-    
+
                     Crude but fast.
                     """
                     tag_name = tag[1:-1]
@@ -497,7 +521,7 @@ class MercurialPatchMixin(object):
                         if ext in ('.patch', '.diff'):
                             all_patches.append(attachment)
                             patches.append(attachment)
-    
+
                 # now patches contains the list of patches to apply
                 if patches:
                     if self._UI.confirm("It seems that the following patches have to be applied in this order: \n{0}\nShould I download these patches?".format("\n".join(patches)),default=True):
@@ -511,26 +535,26 @@ class MercurialPatchMixin(object):
                 else:
                     self._UI.error("I could not understand the comments on ticket #{0}. To apply use one of the patches on the ticket, set the parameter `patchname` to one of: {1}".format(ticket, ", ".join(sorted(attachments))))
                     raise OperationCancelledError("user requested")
-    
+
     def _detect_patch_diff_format(self, lines):
         r"""
         Determine the format of the ``diff`` lines in ``lines``.
-    
+
         INPUT:
-    
+
         - ``lines`` -- a list of strings
-    
+
         OUTPUT:
-    
+
         Either ``git`` (for ``diff --git`` lines) or ``hg`` (for ``diff -r`` lines).
-    
+
         .. NOTE::
-    
+
             Most Sage developpers have configured mercurial to export
             patches in git format.
-    
+
         TESTS::
-    
+
             sage: dev = dev._sagedev
             sage: dev._detect_patch_diff_format(
             ....:     ["diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py"])
@@ -538,7 +562,7 @@ class MercurialPatchMixin(object):
             sage: dev._detect_patch_diff_format(
             ....:     ["diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi"])
             'git'
-    
+
             sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: dev._detect_patch_diff_format(
@@ -551,7 +575,7 @@ class MercurialPatchMixin(object):
             ....:             SAGE_SRC,"sage","dev","test","data","diff.patch"
             ....:         )).read().splitlines())
             'hg'
-    
+
             sage: dev._detect_patch_diff_format(["# HG changeset patch"])
             Traceback (most recent call last):
             ...
@@ -565,7 +589,7 @@ class MercurialPatchMixin(object):
         """
         format = None
         regexs = { "hg" : HG_DIFF_REGEX, "git" : GIT_DIFF_REGEX }
-    
+
         for line in lines:
             for name,regex in regexs.items():
                 if regex.match(line):
@@ -574,32 +598,32 @@ class MercurialPatchMixin(object):
                     if format != name:
                         from sagedev import SageDevValueError
                         raise SageDevValueError("File appears to have mixed diff formats.")
-    
+
         if format is None:
             raise NotImplementedError("Failed to detect diff format.")
         else:
             return format
-    
+
     def _detect_patch_path_format(self, lines, diff_format=None):
         r"""
         Determine the format of the paths in the patch given in ``lines``.
-    
+
         INPUT:
-    
+
         - ``lines`` -- a list (or iterable) of strings
-    
+
         - ``diff_format`` -- ``'hg'``,``'git'``, or ``None`` (default:
           ``None``), the format of the ``diff`` lines in the patch. If
           ``None``, the format will be determined by
           :meth:`_detect_patch_diff_format`.
-    
+
         OUTPUT:
-    
+
         A string, ``'new'`` (new repository layout) or ``'old'`` (old
         repository layout).
-    
+
         EXAMPLES::
-    
+
             sage: dev._wrap("_detect_patch_path_format")
             sage: dev._detect_patch_path_format(
             ....:     ["diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py"])
@@ -622,7 +646,7 @@ class MercurialPatchMixin(object):
             sage: dev._detect_patch_path_format(
             ....:     ["rename from src/sage/rings/number_field/totalyreal.pyx"], diff_format='git')
             'new'
-    
+
             sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: dev._detect_patch_path_format(
@@ -634,18 +658,18 @@ class MercurialPatchMixin(object):
         lines = list(lines)
         if diff_format is None:
             diff_format = self._detect_patch_diff_format(lines)
-    
+
         path_format = None
-    
+
         if diff_format == "git":
             diff_regexs = (GIT_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX)
         elif diff_format == "hg":
             diff_regexs = (HG_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX)
         else:
             raise NotImplementedError(diff_format)
-    
+
         regexs = { "old" : HG_PATH_REGEX, "new" : GIT_PATH_REGEX }
-    
+
         for line in lines:
             for regex in diff_regexs:
                 match = regex.match(line)
@@ -658,38 +682,38 @@ class MercurialPatchMixin(object):
                                 if path_format != name:
                                     from sagedev import SageDevValueError
                                     raise SageDevValueError("File appears to have mixed path formats.")
-    
+
         if path_format is None:
             raise NotImplementedError("Failed to detect path format.")
         else:
            return path_format
-    
+
     def _rewrite_patch_diff_paths(self, lines, to_format, from_format=None, diff_format=None):
         r"""
         Rewrite the ``diff`` lines in ``lines`` to use ``to_format``.
-    
+
         INPUT:
-    
+
         - ``lines`` -- a list or iterable of strings
-    
+
         - ``to_format`` -- ``'old'`` or ``'new'``
-    
+
         - ``from_format`` -- ``'old'``, ``'new'``, or ``None`` (default:
           ``None``), the current formatting of the paths; detected
           automatically if ``None``
-    
+
         - ``diff_format`` -- ``'git'``, ``'hg'``, or ``None`` (default:
           ``None``), the format of the ``diff`` lines; detected automatically
           if ``None``
-    
+
         OUTPUT:
-    
+
         A list of string, ``lines`` rewritten to conform to ``lines``.
-    
+
         EXAMPLES:
-    
+
         Paths in the old format::
-    
+
             sage: dev._wrap("_rewrite_patch_diff_paths")
             sage: dev._rewrite_patch_diff_paths(
             ....:     ['diff -r 1492e39aff50 -r 5803166c5b11 sage/schemes/elliptic_curves/ell_rational_field.py'],
@@ -719,9 +743,9 @@ class MercurialPatchMixin(object):
             ....:     to_format="new", diff_format="git")
             ['--- a/src/sage/rings/padics/pow_computer_ext.pxd',
              '+++ b/src/sage/rings/padics/pow_computer_ext.pxd']
-    
+
         Paths in the new format::
-    
+
             sage: dev._rewrite_patch_diff_paths(
             ....:     ['diff -r 1492e39aff50 -r 5803166c5b11 src/sage/schemes/elliptic_curves/ell_rational_field.py'],
             ....:     to_format="old")
@@ -750,7 +774,7 @@ class MercurialPatchMixin(object):
             ....:     to_format="new", diff_format="git")
             ['--- a/src/sage/rings/padics/pow_computer_ext.pxd',
              '+++ b/src/sage/rings/padics/pow_computer_ext.pxd']
-    
+
             sage: dev._rewrite_patch_diff_paths(
             ....:     ['rename from sage/combinat/crystals/letters.py',
             ....:      'rename to sage/combinat/crystals/letters.pyx'],
@@ -763,7 +787,7 @@ class MercurialPatchMixin(object):
             ....:     to_format="old", diff_format="git")
             ['rename from sage/combinat/crystals/letters.py',
              'rename to sage/combinat/crystals/letters.pyx']
-    
+
             sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: result = dev._rewrite_patch_diff_paths(
@@ -781,27 +805,27 @@ class MercurialPatchMixin(object):
         lines = list(lines)
         if diff_format is None:
             diff_format = self._detect_patch_diff_format(lines)
-    
+
         if from_format is None:
             from_format = self._detect_patch_path_format(lines, diff_format=diff_format)
-    
+
         if to_format == from_format:
             return lines
-    
+
         def hg_path_to_git_path(path):
-            if any([path.startswith(p) for p in 
+            if any([path.startswith(p) for p in
                     "module_list.py", "setup.py", "c_lib/", "sage/", "doc/"]):
                 return "src/%s"%path
             else:
                 raise NotImplementedError('mapping hg path "%s"'%path)
-    
+
         def git_path_to_hg_path(path):
-            if any([path.startswith(p) for p in 
+            if any([path.startswith(p) for p in
                     "src/module_list.py", "src/setup.py", "src/c_lib/", "src/sage/", "src/doc/"]):
                 return path[4:]
             else:
                 raise NotImplementedError('mapping git path "%s"'%path)
-    
+
         def apply_replacements(lines, diff_regexs, replacement):
             ret = []
             for line in lines:
@@ -809,12 +833,12 @@ class MercurialPatchMixin(object):
                     m = diff_regex.match(line)
                     if m:
                         line = line[:m.start(1)] + \
-                               ("".join([ line[m.end(i-1):m.start(i)]+replacement(m.group(i)) 
+                               ("".join([ line[m.end(i-1):m.start(i)]+replacement(m.group(i))
                                           for i in range(1,m.lastindex+1) ])) + \
                                line[m.end(m.lastindex):]
                 ret.append(line)
             return ret
-    
+
         diff_regex = None
         if diff_format == "hg":
             diff_regex = (HG_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX)
@@ -822,10 +846,10 @@ class MercurialPatchMixin(object):
             diff_regex = (GIT_DIFF_REGEX, PM_DIFF_REGEX, MV_DIFF_REGEX)
         else:
             raise NotImplementedError(diff_format)
-    
+
         if from_format == "old":
             return self._rewrite_patch_diff_paths(
-                apply_replacements(lines, diff_regex, hg_path_to_git_path), 
+                apply_replacements(lines, diff_regex, hg_path_to_git_path),
                 from_format="new", to_format=to_format, diff_format=diff_format)
         elif from_format == "new":
             if to_format == "old":
@@ -834,23 +858,23 @@ class MercurialPatchMixin(object):
                 raise NotImplementedError(to_format)
         else:
             raise NotImplementedError(from_format)
-    
+
     def _detect_patch_header_format(self, lines):
         r"""
         Detect the format of the patch header in ``lines``.
-    
+
         INPUT:
-    
+
         - ``lines`` -- a list (or iterable) of strings
-    
+
         OUTPUT:
-    
+
         A string, ``'hg-export'`` (mercurial export header), ``'hg'``
         (mercurial header), ``'git'`` (git mailbox header), ``'diff'`` (no
         header)
-    
+
         EXAMPLES::
-    
+
             sage: dev._wrap("_detect_patch_header_format")
             sage: dev._detect_patch_header_format(
             ... ['# HG changeset patch','# Parent 05fca316b08fe56c8eec85151d9a6dde6f435d46'])
@@ -861,7 +885,7 @@ class MercurialPatchMixin(object):
             sage: dev._detect_patch_header_format(
             ... ['From: foo@bar'])
             'git'
-    
+
             sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: dev._detect_patch_header_format(
@@ -879,7 +903,7 @@ class MercurialPatchMixin(object):
         if not lines:
             from sagedev import SageDevValueError
             raise SageDevValueError("patch is empty")
-    
+
         if HG_HEADER_REGEX.match(lines[0]):
             if HG_USER_REGEX.match(lines[1]):
                 return "hg-export"
@@ -888,13 +912,13 @@ class MercurialPatchMixin(object):
         elif GIT_FROM_REGEX.match(lines[0]):
             return "git"
         return "diff"
-    
+
     def _detect_patch_modified_files(self, lines, diff_format = None):
         r"""
         Return a list of files which are modified by the patch in ``lines``.
-    
+
         TESTS::
-    
+
             sage: dev._wrap("_detect_patch_modified_files")
             sage: import os.path
             sage: from sage.env import SAGE_SRC
@@ -907,14 +931,14 @@ class MercurialPatchMixin(object):
         """
         if diff_format is None:
             diff_format = self._detect_patch_diff_format(lines)
-    
+
         if diff_format == "hg":
             regex = HG_DIFF_REGEX
         elif diff_format == "git":
             regex = GIT_DIFF_REGEX
         else:
             raise NotImplementedError(diff_format)
-    
+
         ret = set()
         for line in lines:
             m = regex.match(line)
@@ -924,32 +948,32 @@ class MercurialPatchMixin(object):
                     if split:
                         ret.add(split[-1])
         return list(ret)
-    
+
     def _rewrite_patch_header(self, lines, to_format, from_format = None, diff_format = None):
         r"""
         Rewrite ``lines`` to match ``to_format``.
-    
+
         INPUT:
-    
+
         - ``lines`` -- a list of strings, the lines of the patch file
-    
+
         - ``to_format`` -- one of ``'hg'``, ``'hg-export'``, ``'diff'``,
           ``'git'``, the format of the resulting patch file.
-    
+
         - ``from_format`` -- one of ``None``, ``'hg'``, ``'hg-export'``, ``'diff'``, ``'git'``
           (default: ``None``), the format of the patch file.  The format is
           determined automatically if ``format`` is ``None``.
-    
+
         OUTPUT:
-    
+
         A list of lines, in the format specified by ``to_format``.
-    
+
         Some sample patch files are in data/, in hg and git
         format. Since the translation is not perfect, the resulting
         file is also put there for comparison.
-    
+
         EXAMPLES::
-    
+
             sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: hg_lines = open(
@@ -964,18 +988,18 @@ class MercurialPatchMixin(object):
             sage: git_output_lines = open(
             ....:     os.path.join(SAGE_SRC, "sage", "dev", "test", "data", "git-output.patch")
             ....:     ).read().splitlines()
-    
+
             sage: dev._wrap("_rewrite_patch_header")
             sage: dev._rewrite_patch_header(git_lines, 'git') == git_lines
             True
             sage: dev._rewrite_patch_header(hg_lines, 'hg-export') == hg_lines
             True
-    
+
             sage: dev._rewrite_patch_header(git_lines, 'hg-export') == hg_output_lines
             True
             sage: dev._rewrite_patch_header(hg_lines, 'git') == git_output_lines
             True
-    
+
             sage: dev._rewrite_patch_header(
             ....:     open(os.path.join(
             ....:             SAGE_SRC,"sage","dev","test","data","trac_8703-trees-fh.patch"
@@ -987,18 +1011,18 @@ class MercurialPatchMixin(object):
             '- The Class Abstract[Labelled]Tree allows for inheritance from different']
         """
         import email.utils, time
-    
+
         lines = list(lines)
         if not lines:
             from sagedev import SageDevValueError
             raise SageDevValueError("empty patch file")
-    
+
         if from_format is None:
             from_format = self._detect_patch_header_format(lines)
-    
+
         if from_format == to_format:
             return lines
-    
+
         def parse_header(lines, regexs, mandatory=False):
             header = {}
             i = 0
@@ -1019,22 +1043,22 @@ class MercurialPatchMixin(object):
                     from sagedev import SageDevValueError
                     raise SageDevValueError('Malformed patch. Line "%s" does not match regular expression "%s".'
                                             %(lines[i],regex.pattern))
-    
+
             message = []
             for i in range(i,len(lines)):
                 if lines[i].startswith("diff -"):
                     break
                 else:
                     message.append(lines[i])
-    
+
             header["message"] = message
             return header, lines[i:]
-    
+
         if from_format == "git":
             header, diff = parse_header(lines,
                     (("user", GIT_FROM_REGEX), ("subject", GIT_SUBJECT_REGEX), ("date", GIT_DATE_REGEX)),
                     mandatory=True)
-    
+
             if to_format == "hg-export":
                 ret = []
                 ret.append('# HG changeset patch')
@@ -1084,19 +1108,19 @@ class MercurialPatchMixin(object):
             if message and message != ['']: # avoid a double empty line
                 ret.extend(message)
             ret.extend(diff)
-            return self._rewrite_patch_header(ret, to_format=to_format, from_format="git", 
+            return self._rewrite_patch_header(ret, to_format=to_format, from_format="git",
                                               diff_format=diff_format)
         else:
             raise NotImplementedError(from_format)
-    
-    def _rewrite_patch(self, lines, to_path_format, to_header_format, from_diff_format=None, 
+
+    def _rewrite_patch(self, lines, to_path_format, to_header_format, from_diff_format=None,
                        from_path_format=None, from_header_format=None):
         r"""
         Rewrite the patch in ``lines`` to the path format given in
         ``to_path_format`` and the header format given in ``to_header_format``.
-    
+
         TESTS::
-    
+
             sage: dev._wrap("_rewrite_patch")
             sage: import os.path
             sage: from sage.env import SAGE_SRC
@@ -1107,11 +1131,11 @@ class MercurialPatchMixin(object):
             True
         """
         return self._rewrite_patch_diff_paths(
-            self._rewrite_patch_header(lines, 
-                                       to_format=to_header_format, 
-                                       from_format=from_header_format, 
-                                       diff_format=from_diff_format), 
-            to_format=to_path_format, 
-            diff_format=from_diff_format, 
+            self._rewrite_patch_header(lines,
+                                       to_format=to_header_format,
+                                       from_format=from_header_format,
+                                       diff_format=from_diff_format),
+            to_format=to_path_format,
+            diff_format=from_diff_format,
             from_format=from_path_format)
-    
+

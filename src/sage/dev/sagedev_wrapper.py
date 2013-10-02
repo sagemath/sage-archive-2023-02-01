@@ -174,11 +174,12 @@ class SageDevWrapper(object):
         from trac_error import TracConnectionError
         from sagedev import SageDevValueError
         from user_interface import NORMAL, INFO, DEBUG
+        UI = self._sagedev._UI
         def wrap(f):
             from sage.misc.decorators import sage_wraps
             @sage_wraps(f)
             def wrapped(*args, **kwargs):
-                log_level = int(self._sagedev._UI._config.get("log_level", str(NORMAL)))
+                log_level = int(UI._config.get("log_level", str(NORMAL)))
                 try:
                     return f(*args, **kwargs)
                 except OperationCancelledError:
@@ -187,52 +188,49 @@ class SageDevWrapper(object):
                 except GitError as e:
                     INFO_LEVEL = INFO if e.explain else NORMAL # show more info if the error was unexpected
 
-                    self._sagedev._UI.error("GitError: git exited with a non-zero exit code ({0})."
-                                            .format(e.exit_code))
-                    self._sagedev._UI.show('This happened while executing "{0}".'
-                                           .format(e.cmd), INFO_LEVEL)
-                    self._sagedev._UI.debug("I tried my best to put your working tree and repository back"
-                                           " to its original state.")
+                    UI.error("GitError: git exited with a non-zero exit code ({0}).", e.exit_code)
+                    UI.show('This happened while executing "{0}".', e.cmd)
+                    UI.debug("I tried my best to put your working tree and repository back"
+                             " to its original state.")
                     if e.explain:
-                        self._sagedev._UI.error(e.explain)
+                        UI.error(e.explain)
                     if e.advice:
-                        self._sagedev._UI.info(e.advice)
+                        UI.info(e.advice)
                     if e.stdout is None:
                         pass
                     elif e.stdout.strip() == "":
-                        self._sagedev._UI.show("git printed nothing to STDOUT.", INFO_LEVEL)
+                        UI.error("git printed nothing to STDOUT.")
                     else:
-                        self._sagedev._UI.show("git printed the following to STDOUT:\n{0}"
-                                               .format(e.stdout), INFO_LEVEL)
+                        UI.error("git printed the following to STDOUT:\n{0}", e.stdout)
                     if e.stderr is None:
                         pass
                     elif e.stderr.strip() == "":
-                        self._sagedev._UI.show("git printed nothing to STDERR.", INFO_LEVEL)
+                        UI.error("git printed nothing to STDERR.")
                     else:
-                        self._sagedev._UI.show("git printed the following to STDERR:\n{0}"
-                                               .format(e.stderr), INFO_LEVEL)
+                        UI.error("git printed the following to STDERR:\n{0}", e.stderr)
                     if log_level >= DEBUG:
                         raise
                 except DetachedHeadError as e:
-                    self._sagedev._UI.error("Unexpectedly your repository was found to be in a"
-                                            " detached head state. This is probably a bug in sagedev.")
-                    self._sagedev._UI.info("You can try to restore your repository to a clean state by"
-                                           " running {0} and {1}."
-                                           .format(self._sagedev._format_command("clean"), 
-                                                   self._sagedev._format_command("checkout", branch="master")))
+                    UI.error("Unexpectedly your repository was found to be in a"
+                             " detached head state. This is probably a bug in sagedev.")
+                    UI.info("You can try to restore your repository to a clean state by"
+                            " running {0} and {1}.",
+                            self._sagedev._format_command("clean"), 
+                            self._sagedev._format_command("checkout", branch="master"))
                     raise
                 except InvalidStateError as e:
-                    self._sagedev._UI.error("Unexpectedly your repository was found to be in a"
-                                            " non-clean state. This is probably a bug in sagedev.")
-                    self._sagedev._UI.info("You can try to restore your repository to a clean state"
-                                           " by running {0}.".format(self._sagedev._format_command("clean")))
+                    UI.error("Unexpectedly your repository was found to be in a"
+                             " non-clean state. This is probably a bug in sagedev.")
+                    UI.info(['', '(use "{0}" to restore your repository to a clean state)'],
+                            self._sagedev._format_command("clean"))
                     raise
                 except TracConnectionError as e:
-                    self._sagedev._UI.error("Your command failed because no connection to trac could be established.")
+                    UI.error("Your command failed because no connection to trac could be established.")
                     if log_level >= DEBUG:
                         raise
                 except SageDevValueError as e:
-                    self._sagedev._UI.error("ValueError: {0}".format(e.message))
+                    e.show_error(UI)
+                    e.show_info(UI)
                     if log_level >= DEBUG:
                         raise
             return wrapped

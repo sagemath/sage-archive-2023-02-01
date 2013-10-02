@@ -375,7 +375,7 @@ class MercurialPatchMixin(object):
 
             sage: dev.vanilla()
             sage: dev.download_patch()
-            ValueError: ticket or url must be specified if not currently on a ticket
+            ticket or url must be specified if not currently on a ticket
 
         Check that the parser for the rss stream works::
 

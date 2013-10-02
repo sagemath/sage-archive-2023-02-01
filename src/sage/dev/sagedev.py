@@ -19,6 +19,7 @@ AUTHORS:
 #                          R. Andrew Ohana <andrew.ohana@gmail.com>
 #                          Robert Bradshaw <robertwb@gmail.com>
 #                          Timo Kluck <tkluck@infty.nl>
+#                          Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -38,7 +39,10 @@ from patch import MercurialPatchMixin
 from sage.env import TRAC_SERVER_URI
 
 # regular expression to check validity of git options
-GIT_BRANCH_REGEX = re.compile(r'^(?!.*/\.)(?!.*\.\.)(?!/)(?!.*//)(?!.*@\{)(?!.*\\)[^\040\177 ~^:?*[]+(?<!\.lock)(?<!/)(?<!\.)$') # http://stackoverflow.com/questions/12093748/how-do-i-check-for-valid-git-branch-names
+# http://stackoverflow.com/questions/12093748/how-do-i-check-for-valid-git-branch-names
+GIT_BRANCH_REGEX = re.compile(
+    r'^(?!.*/\.)(?!.*\.\.)(?!/)(?!.*//)(?!.*@\{)(?!.*\\)'
+    r'[^\040\177 ~^:?*[]+(?<!\.lock)(?<!/)(?<!\.)$')
 
 # the name of the branch which holds the vanilla clone of sage
 MASTER_BRANCH = "master"
@@ -64,11 +68,11 @@ class SageDev(MercurialPatchMixin):
 
     INPUT:
 
-    - ``config`` -- a :class:`config.Config` or ``None`` (default: ``None``),
-      the configuration of this object; the defaults uses the configuration
-      stored in ``DOT_SAGE/devrc``.
+    - ``config`` -- a :class:`~sage.dev.config.Config` or ``None``
+      (default: ``None``), the configuration of this object; the
+      defaults uses the configuration stored in ``DOT_SAGE/devrc``.
 
-    - ``UI`` -- a :class:`user_interface.UserInterface` or ``None`` (default:
+    - ``UI`` -- a :class:`~sage.dev.user_interface.UserInterface` or ``None`` (default:
       ``None``), the default creates a
       :class:`cmd_line_interface.CmdLineInterface` from ``config['UI']``.
 
@@ -137,18 +141,26 @@ class SageDev(MercurialPatchMixin):
             import shutil
             if not os.path.exists(new_file) and os.path.exists(old_file):
                 shutil.move(old_file, new_file)
-                self._UI.show('The developer scripts used to store some of their data in "{0}". This file has now moved to "{1}". I moved "{0}" to "{1}". This might cause trouble if this is a fresh clone of the repository in which you never used the developer scripts before. In that case you should manually delete "{1}" now.'.format(old_file, new_file))
+                self._UI.show('The developer scripts used to store some of their data in "{0}".'
+                              ' This file has now moved to "{1}". I moved "{0}" to "{1}". This might'
+                              ' cause trouble if this is a fresh clone of the repository in which'
+                              ' you never used the developer scripts before. In that case you'
+                              ' should manually delete "{1}" now.', old_file, new_file)
             if key in self.config['sagedev']:
                 del self.config['sagedev'][key]
 
         ticket_file = os.path.join(self.git._dot_git, 'branch_to_ticket')
-        move_legacy_saving_dict('ticketfile', self.config['sagedev'].get('ticketfile', os.path.join(DOT_SAGE, 'branch_to_ticket')), ticket_file)
+        move_legacy_saving_dict('ticketfile', self.config['sagedev'].get(
+            'ticketfile', os.path.join(DOT_SAGE, 'branch_to_ticket')), ticket_file)
         branch_file = os.path.join(self.git._dot_git, 'ticket_to_branch')
-        move_legacy_saving_dict('branchfile', self.config['sagedev'].get('branchfile', os.path.join(DOT_SAGE, 'ticket_to_branch')), branch_file)
+        move_legacy_saving_dict('branchfile', self.config['sagedev'].get(
+            'branchfile', os.path.join(DOT_SAGE, 'ticket_to_branch')), branch_file)
         dependencies_file = os.path.join(self.git._dot_git, 'dependencies')
-        move_legacy_saving_dict('dependenciesfile', self.config['sagedev'].get('dependenciesfile', os.path.join(DOT_SAGE, 'dependencies')), dependencies_file)
+        move_legacy_saving_dict('dependenciesfile', self.config['sagedev'].get(
+            'dependenciesfile', os.path.join(DOT_SAGE, 'dependencies')), dependencies_file)
         remote_branches_file = os.path.join(self.git._dot_git, 'remote_branches')
-        move_legacy_saving_dict('remotebranchesfile', self.config['sagedev'].get('remotebranchesfile', os.path.join(DOT_SAGE, 'remote_branches')), remote_branches_file)
+        move_legacy_saving_dict('remotebranchesfile', self.config['sagedev'].get(
+            'remotebranchesfile', os.path.join(DOT_SAGE, 'remote_branches')), remote_branches_file)
 
         # some people dislike double underscore fields; here you can very
         # seriously screw up your setup if you put something invalid into
@@ -389,7 +401,7 @@ class SageDev(MercurialPatchMixin):
 
             sage: alice._chdir()
             sage: alice.checkout(ticket=1)
-            ValueError: "1" is not a valid ticket name or ticket does not exist on trac.
+            Ticket name "1" is not valid or ticket does not exist on trac.
 
         Bob creates that ticket::
 
@@ -594,7 +606,7 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=5" to create a new local branch)
             5
             sage: dev.checkout(ticket=5, base=1000)
-            ValueError: "1000" is not a valid ticket name or ticket does not exist on trac.
+            Ticket name "1000" is not valid or ticket does not exist on trac.
 
         In this example ``base`` does not exist locally::
 
@@ -605,7 +617,7 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev checkout --ticket=6" to create a new local branch)
             6
             sage: dev.checkout(ticket=6, base=5)
-            ValueError: Branch field is not set for ticket #5 on trac.
+            Branch field is not set for ticket #5 on trac.
 
         Creating a ticket when in detached HEAD state::
 
@@ -681,7 +693,7 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev commit" to save changes in a new commit)
 
         Finally, in this case we can keep changes because the base is
-        the same commit as the current branch
+        the same commit as the current branch::
 
             sage: UI.append("Summary: ticket merge\ndescription")
             sage: dev.create_ticket()
@@ -833,7 +845,9 @@ class SageDev(MercurialPatchMixin):
         The branch must exist::
 
             sage: dev.checkout(branch="branch3")
-            ValueError: Branch "branch3" does not exist locally.
+            Branch "branch3" does not exist locally.
+            <BLANKLINE>
+            #  (use "sage --dev tickets" to list local branches)
 
         Checking out branches with untracked files::
 
@@ -1048,7 +1062,7 @@ class SageDev(MercurialPatchMixin):
 
             sage: bob._chdir()
             sage: bob.pull(1)
-            ValueError: Branch field is not set for ticket #1 on trac.
+            Branch field is not set for ticket #1 on trac.
 
         So, Bob starts to work on the ticket on a new branch::
 
@@ -1244,11 +1258,16 @@ class SageDev(MercurialPatchMixin):
                 # safely without a need to cleanup
                 e.explain = 'Fetching "{0}" into "{1}" failed.'.format(remote_branch, branch)
                 if self._is_local_branch_name(branch, exists=True):
-                    e.explain += " Most probably this happened because the fetch did not resolve as a fast-forward, i.e., there were conflicting changes."
-                    e.advice = 'You can try to use "{2}" to checkout "{1}" and then use "{3}" to resolve these conflicts manually.'.format(remote_branch, branch, self._format_command("checkout",branch=branch), self._format_command("merge",remote_branch,pull=True))
+                    e.explain += " Most probably this happened because the fetch did not" \
+                                 " resolve as a fast-forward, i.e., there were conflicting changes."
+                    e.advice = 'You can try to use "{2}" to checkout "{1}" and then use "{3}"' \
+                               ' to resolve these conflicts manually.'.format(
+                                   remote_branch, branch, 
+                                   self._format_command("checkout", branch=branch), 
+                                   self._format_command("merge", remote_branch, pull=True))
                 else:
-                    e.explain += "We did not expect this case to occur.  If you can explain your context in sage.dev.sagedev it might be useful to others."
-                    pass
+                    e.explain += "We did not expect this case to occur.  If you can explain" \
+                                 " your context in sage.dev.sagedev it might be useful to others."
                 raise
 
     def commit(self, message=None, interactive=False):
@@ -1491,7 +1510,7 @@ class SageDev(MercurialPatchMixin):
 
             sage: alice._chdir()
             sage: alice.push(ticket=1)
-            ValueError: "1" is not a valid ticket name or ticket does not exist on trac.
+            Ticket name "1" is not valid or ticket does not exist on trac.
 
         Alice creates ticket 1 and pushes some changes to it::
 
@@ -1611,7 +1630,7 @@ class SageDev(MercurialPatchMixin):
         Check that ``ticket`` works::
 
             sage: bob.push(2)
-            ValueError: "2" is not a valid ticket name or ticket does not exist on trac.
+            Ticket name "2" is not valid or ticket does not exist on trac.
 
         After creating the ticket, this works with a warning::
 
@@ -2501,7 +2520,7 @@ class SageDev(MercurialPatchMixin):
         It is an error to call this without parameters if not on a ticket::
 
             sage: dev.remote_status()
-            ValueError: ticket must be specified if not currently on a ticket.
+            ticket must be specified if not currently on a ticket.
 
         Create a ticket and show its remote status::
 
@@ -3131,7 +3150,7 @@ class SageDev(MercurialPatchMixin):
             <BLANKLINE>
             #  (use "sage --dev commit" to commit your merge)
             sage: alice.merge("ticket/1", pull=True)
-            ValueError: Branch "ticket/1" does not exist on the remote system.
+            Branch "ticket/1" does not exist on the remote system.
 
         Bob creates a conflicting commit::
 
@@ -3183,7 +3202,7 @@ class SageDev(MercurialPatchMixin):
         We cannot merge a ticket into itself::
 
             sage: alice.merge(2)
-            ValueError: cannot merge a ticket into itself
+            cannot merge a ticket into itself
 
         We also cannot merge if the working directory has uncommited changes::
 
@@ -3671,10 +3690,12 @@ class SageDev(MercurialPatchMixin):
         A diff against the dependencies::
 
             sage: dev.diff("dependencies")
-            Dependency #1 has not been merged into "ticket/3" (at least not its latest version).
+            Dependency #1 has not been merged into "ticket/3" (at least not its latest
+            version).
             #  (use "sage --dev merge --ticket=1" to merge it)
             <BLANKLINE>
-            Dependency #2 has not been merged into "ticket/3" (at least not its latest version).
+            Dependency #2 has not been merged into "ticket/3" (at least not its latest
+            version).
             #  (use "sage --dev merge --ticket=2" to merge it)
             <BLANKLINE>
             diff --git a/ticket1 b/ticket1
@@ -4170,7 +4191,7 @@ class SageDev(MercurialPatchMixin):
             Your version of sage, i.e., your "master" branch, is out of date. Your command might fail or produce unexpected results.
             False
             sage: dev._is_master_uptodate(action_if_not="error")
-            ValueError: Your version of sage, i.e., your "master" branch, is out of date.
+            Your version of sage, i.e., your "master" branch, is out of date.
 
         We upgrade the local master::
 
@@ -4196,15 +4217,20 @@ class SageDev(MercurialPatchMixin):
             # version of sage.
             if self.git.is_child_of('FETCH_HEAD', MASTER_BRANCH):
                 if self.git.commit_for_ref('FETCH_HEAD') != self.git.commit_for_branch(MASTER_BRANCH):
-                    info = 'To upgrade your "{0}" branch to the latest version, use "{1}".'.format(MASTER_BRANCH, self._format_command("pull", ticket_or_branch=remote_master, branch=MASTER_BRANCH))
+                    msg = ('To upgrade your "{0}" branch to the latest version, use "{1}".',
+                           MASTER_BRANCH, self._format_command("pull", ticket_or_branch=remote_master, 
+                                                               branch=MASTER_BRANCH))
                     if action_if_not is None:
                         pass
                     elif action_if_not == "error":
-                        self._UI.debug(info)
-                        raise SageDevValueError('Your version of sage, i.e., your "{0}" branch, is out of date.'.format(MASTER_BRANCH))
+                        self._UI.debug(*msg)
+                        raise SageDevValueError('Your version of sage, i.e., your "{0}" branch, is out'
+                                                ' of date.', MASTER_BRANCH)
                     elif action_if_not == "warning":
-                        self._UI.warning('Your version of sage, i.e., your "{0}" branch, is out of date. Your command might fail or produce unexpected results.'.format(MASTER_BRANCH))
-                        self._UI.debug(info)
+                        self._UI.warning('Your version of sage, i.e., your "{0}" branch, is out of date.'
+                                         ' Your command might fail or produce unexpected results.',
+                                         MASTER_BRANCH)
+                        self._UI.debug(*msg)
                     else:
                         raise ValueError
                     return False
@@ -4282,12 +4308,12 @@ class SageDev(MercurialPatchMixin):
             sage: dev._check_ticket_name("1 000")
             Traceback (most recent call last):
             ...
-            SageDevValueError: "1 000" is not a valid ticket name.
+            SageDevValueError: Invalid ticket name "1 000".
             sage: dev._check_ticket_name("#1000")
             sage: dev._check_ticket_name("master")
             Traceback (most recent call last):
             ...
-            SageDevValueError: "master" is not a valid ticket name.
+            SageDevValueError: Invalid ticket name "master".
             sage: dev._check_ticket_name(1000, exists=True) # optional: internet
             sage: dev._check_ticket_name(2^30, exists=True) # optional: internet
             Traceback (most recent call last):
@@ -4296,9 +4322,10 @@ class SageDev(MercurialPatchMixin):
         """
         if not self._is_ticket_name(name, exists=exists):
             if exists:
-                raise SageDevValueError('"{0}" is not a valid ticket name or ticket does not exist on trac.'.format(name))
+                raise SageDevValueError('Ticket name "{0}" is not valid or ticket'
+                                        ' does not exist on trac.', name)
             else:
-                raise SageDevValueError('"{0}" is not a valid ticket name.'.format(name))
+                raise SageDevValueError('Invalid ticket name "{0}".', name)
 
     def _ticket_from_ticket_name(self, name):
         r"""
@@ -4505,7 +4532,7 @@ class SageDev(MercurialPatchMixin):
             sage: dev._check_local_branch_name('')
             Traceback (most recent call last):
             ...
-            SageDevValueError: "" is not a valid name for a local branch.
+            SageDevValueError: Invalid branch name "".
             sage: dev._check_local_branch_name('ticket/1')
             sage: dev._check_local_branch_name('ticket/1', exists=True)
             Traceback (most recent call last):
@@ -4517,22 +4544,23 @@ class SageDev(MercurialPatchMixin):
             sage: dev._check_local_branch_name('ticket/1', exists=False)
             Traceback (most recent call last):
             ...
-            SageDevValueError: Branch "ticket/1" already exists, please choose a different name.
+            SageDevValueError: Branch "ticket/1" already exists, use a different name.
         """
         try:
             if not self._is_local_branch_name(name, exists=any):
                 raise SageDevValueError("caught below")
         except SageDevValueError:
-            raise SageDevValueError('"{0}" is not a valid name for a local branch.'.format(name))
+            raise SageDevValueError('Invalid branch name "{0}".'.format(name))
 
         if exists == any:
             return
         elif exists == True:
             if not self._is_local_branch_name(name, exists=exists):
-                raise SageDevValueError('Branch "{0}" does not exist locally.'.format(name))
+                raise SageDevValueError('Branch "{0}" does not exist locally.', name).info(
+                    ['', '(use "{0}" to list local branches)'], self._format_command('tickets'))
         elif exists == False:
             if not self._is_local_branch_name(name, exists=exists):
-                raise SageDevValueError('Branch "{0}" already exists, please choose a different name.'.format(name))
+                raise SageDevValueError('Branch "{0}" already exists, use a different name.'.format(name))
         else:
             assert False
 
@@ -4554,7 +4582,7 @@ class SageDev(MercurialPatchMixin):
             sage: dev._check_remote_branch_name('')
             Traceback (most recent call last):
             ...
-            SageDevValueError: "" is not a valid name for a remote branch.
+            SageDevValueError: Invalid name "" for a remote branch.
             sage: dev._check_remote_branch_name('ticket/1')
 
             sage: dev._check_remote_branch_name('ticket/1', exists=True)
@@ -4567,7 +4595,7 @@ class SageDev(MercurialPatchMixin):
             if not self._is_remote_branch_name(name, exists=any):
                 raise SageDevValueError("caught below")
         except SageDevValueError:
-            raise SageDevValueError('"{0}" is not a valid name for a remote branch.'.format(name))
+            raise SageDevValueError('Invalid name "{0}" for a remote branch.'.format(name))
 
         if exists == any:
             return
@@ -4576,7 +4604,7 @@ class SageDev(MercurialPatchMixin):
                 raise SageDevValueError('Branch "{0}" does not exist on the remote system.'.format(name))
         elif exists == False:
             if not self._is_remote_branch_name(name, exists=exists):
-                raise SageDevValueError('Branch "{0}" already exists, please choose a different name.'.format(name))
+                raise SageDevValueError('Branch "{0}" already exists, use a different name.'.format(name))
         else:
             assert False
 
@@ -5158,9 +5186,9 @@ class SageDevValueError(ValueError):
         sage: dev, config, UI, server = single_user_setup()
 
         sage: dev.checkout(ticket=-1)
-        ValueError: "-1" is not a valid ticket name or ticket does not exist on trac.
+        Ticket name "-1" is not valid or ticket does not exist on trac.
     """
-    def __init__(self, message):
+    def __init__(self, message, *args):
         r"""
         Initialization.
 
@@ -5170,4 +5198,69 @@ class SageDevValueError(ValueError):
             sage: type(SageDevValueError("message"))
             <class 'sage.dev.sagedev.SageDevValueError'>
         """
-        ValueError.__init__(self, message)
+        ValueError.__init__(self, message.format(*args))
+        self._error = (message,) + args
+        self._info = None
+
+    def show_error(self, user_interface):
+        """
+        Display helpful message if available.
+        
+        INPUT:
+
+        - ``user_interface`` -- an instance of
+          :class:`~sage.dev.user_interface.UserInterface`.
+
+        TESTS::
+
+            sage: from sage.dev.sagedev import SageDevValueError
+            sage: e = SageDevValueError("message >{0}<", 123).info('1{0}3', 2)
+            sage: e.show_error(dev._sagedev._UI)
+            message >123<
+        """
+        user_interface.error(*self._error)
+
+    def info(self, *args):
+        """
+        Store helpful message to be displayed if the exception is not
+        caught.
+        
+        INPUT:
+
+        - ``*args`` -- arguments to be passed to
+          :meth:`~sage.dev.user_interface.UserInterface.info`.
+
+        OUTPUT:
+        
+        Returns the exception.
+
+        TESTS::
+
+            sage: from sage.dev.sagedev import SageDevValueError
+            sage: e = SageDevValueError("message").info('1{0}3', 2)
+            sage: e.show_info(dev._sagedev._UI)
+            #  123
+        """
+        self._info = args
+        return self
+        
+    def show_info(self, user_interface):
+        """
+        Display helpful message if available.
+        
+        INPUT:
+
+        - ``user_interface`` -- an instance of
+          :class:`~sage.dev.user_interface.UserInterface`.
+
+        TESTS::
+
+            sage: from sage.dev.sagedev import SageDevValueError
+            sage: e = SageDevValueError("message").info('1{0}3', 2)
+            sage: e.show_info(dev._sagedev._UI)
+            #  123
+        """
+        if self._info:
+            user_interface.info(*self._info)
+        
+    

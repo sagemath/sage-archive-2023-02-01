@@ -83,7 +83,7 @@ from ribbon import Ribbon, StandardRibbons
 
 
 from sage.combinat.tableau_tuple import TableauTuple, StandardTableauTuple, TableauTuples, StandardTableauTuples
-from k_tableau import WeakTableau, WeakTableaux
+from k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux
 
 #Words
 from words.all import *

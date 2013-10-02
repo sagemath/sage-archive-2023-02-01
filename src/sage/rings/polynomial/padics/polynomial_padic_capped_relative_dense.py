@@ -1003,73 +1003,110 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
     #def resultant(self):
     #    raise NotImplementedError
 
-    def newton_slopes(self):
-        """
-        Returns a list of the Newton slopes of this polynomial.  These are the valuations of the roots of this polynomial.
-
-        EXAMPLES::
-
-            sage: K = Qp(13)
-            sage: R.<t> = K[]
-            sage: f = t^4 + 13^5*t^2 + 4*13^2*t - 13^7
-            sage: f.newton_polygon()
-            [(0, 7), (1, 2), (4, 0)]
-            sage: f.newton_slopes()
-            [5, 2/3, 2/3, 2/3]
-        """
-        polygon = self.newton_polygon()
-        if polygon == []:
-            return []
-        answer = [infinity] * polygon[0][0]
-        for m in range(1, len(polygon)):
-            dx = polygon[m][0] - polygon[m - 1][0]
-            dy = polygon[m][1] - polygon[m - 1][1]
-            answer.extend([-dy / dx] * dx)
-        return answer
-
     def newton_polygon(self):
         r"""
-        Returns a list of vertices of the Newton polygon of this polynomial.
+        Returns the Newton polygon of this polynomial.
 
-        NOTES:
-        The vertices are listed so that the first coordinates are strictly increasing, up to the polynomial's degree (not the limit of available precision information).  Also note that if some coefficients have very low precision an error is raised.
+        .. NOTE::
+
+            If some coefficients have not enough precision an error is raised.
+
+        OUTPUT:
+
+        - a Newton polygon
 
         EXAMPLES::
 
-            sage: K = Qp(13)
-            sage: R.<t> = K[]
-            sage: f = t^4 + 13^5*t^2 + 4*13^2*t - 13^7
+            sage: K = Qp(2, prec=5)
+            sage: P.<x> = K[]
+            sage: f = x^4 + 2^3*x^3 + 2^13*x^2 + 2^21*x + 2^37
             sage: f.newton_polygon()
-            [(0, 7), (1, 2), (4, 0)]
+            Finite Newton polygon with 4 vertices: (0, 37), (1, 21), (3, 3), (4, 0)
+
+            sage: K = Qp(5)
+            sage: R.<t> = K[]
+            sage: f = 5 + 3*t + t^4 + 25*t^10
+            sage: f.newton_polygon()
+            Finite Newton polygon with 4 vertices: (0, 1), (1, 0), (4, 0), (10, 2)
+
+        Here is an example where the computation fails because precision is
+        not sufficient::
+
+            sage: g = f + K(0,0)*t^4; g
+            (5^2 + O(5^22))*t^10 + (O(5^0))*t^4 + (3 + O(5^20))*t + (5 + O(5^21))
+            sage: g.newton_polygon()
+            Traceback (most recent call last):
+            ...
+            PrecisionError: The coefficient of t^4 has not enough precision
+
+        TESTS:
+
+            sage: (5*f).newton_polygon()
+            Finite Newton polygon with 4 vertices: (0, 2), (1, 1), (4, 1), (10, 3)
+
+        AUTHOR:
+
+        - Xavier Caruso (2013-03-20)
         """
-        if self._poly == 0:
-            return []
-        for x in range(len(self._relprecs)):
-            if not self._relprecs[x] is infinity:
-                break
         if self._valaddeds is None:
             self._comp_valaddeds()
-        if self._poly[x] == 0:
-            raise PrecisionError, "first term with non-infinite valuation must have determined valuation"
-        yrel = self._valaddeds[x]
-        answer = [(x, self._valbase + yrel)]
-        xf = self._poly.degree()
-        if xf == x:
-            return answer
-        yfrel = self._valaddeds[xf]
-        curslope = (yfrel - yrel) / (xf - x)
-        for i in range(x + 1, xf):
-            yrel += curslope
-            if self._valaddeds[i] < yrel:
-                if self._relprecs[i] == self._valaddeds[i]:
-                    raise PrecisionError, "not enough precision known in coefficient %s to compute newton polygon"%i
-                yrel = self._valaddeds[i]
-                answer.append((i, self._valbase + yrel))
-                curslope = (yfrel - yrel) / (xf - i)
-        from sage.misc.stopgap import stopgap
-        stopgap("Check that the Newton polygon below is actually convex.", 6667)
-        answer.append((xf, self._valbase + self._valaddeds[xf]))
-        return answer
+        from sage.geometry.newton_polygon import NewtonPolygon
+        valbase = self._valbase
+        polygon = NewtonPolygon([(x, val + valbase)
+                                 for x, val in enumerate(self._valaddeds)])
+        polygon_prec = NewtonPolygon([(x, val + valbase)
+                                      for x, val in enumerate(self._relprecs)])
+        vertices = polygon.vertices(copy=False)
+        vertices_prec = polygon_prec.vertices(copy=False)
+
+        # The two following tests should always fail (i.e. the corresponding errors
+        # should never be raised). However, it's probably safer to keep them.
+        if vertices[0][0] > vertices_prec[0][0]:
+            raise PrecisionError("The constant coefficient has not enough precision")
+        if vertices[-1][0] < vertices_prec[-1][0]:
+            raise PrecisionError("The leading coefficient has not enough precision")
+
+        for (x, y) in vertices:
+            if polygon_prec(x) <= y:
+                raise PrecisionError("The coefficient of %s^%s has not enough precision" % (self.parent().variable_name(), x))
+        return polygon
+
+    def newton_slopes(self, repetition=True):
+        """
+        Returns a list of the Newton slopes of this polynomial.
+
+        These are the valuations of the roots of this polynomial.
+
+        If ``repetition`` is ``True``, each slope is repeated a number of
+        times equal to its multiplicity. Otherwise it appears only one time.
+
+        INPUT:
+
+        - ``repetition`` -- boolean (default ``True``)
+
+        OUTPUT:
+
+        - a list of rationals
+
+        EXAMPLES::
+
+            sage: K = Qp(5)
+            sage: R.<t> = K[]
+            sage: f = 5 + 3*t + t^4 + 25*t^10
+            sage: f.newton_polygon()
+            Finite Newton polygon with 4 vertices: (0, 1), (1, 0), (4, 0), (10, 2)
+            sage: f.newton_slopes()
+            [1, 0, 0, 0, -1/3, -1/3, -1/3, -1/3, -1/3, -1/3]
+
+            sage: f.newton_slopes(repetition=False)
+            [1, 0, -1/3]
+
+        AUTHOR:
+
+        - Xavier Caruso (2013-03-20)
+        """
+        polygon = self.newton_polygon()
+        return [-s for s in polygon.slopes(repetition=repetition)]
 
     def hensel_lift(self, a):
         raise NotImplementedError

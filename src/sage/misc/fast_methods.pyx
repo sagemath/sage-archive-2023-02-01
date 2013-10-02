@@ -263,9 +263,80 @@ cdef class FastHashable_class:
         return self._hash
 
 class SingletonClass(WithEqualityById):
+    """
+    A base class for singletons.
+
+    A singleton is a class that allows to create not more than a
+    single instance. This instance can also belong to a sub-class,
+    but it is not possible to have several sub-classes of a singleton
+    all having distinct unique instances.
+
+    In order to create a singleton, just add :class:`SingletonClass`
+    to the list of base classes. Pickling, copying, hashing and
+    comparison are provided for by :class:`SingletonClass` according
+    to the singleton paradigma.
+
+    Note that the unique instance of a singleton will stay in memory
+    as long as the singleton itself does.
+
+    EXAMPLES::
+
+        sage: from sage.misc.fast_methods import SingletonClass
+        sage: class C(SingletonClass, Parent):                  
+        ....:     def __init__(self):
+        ....:         print "creating singleton"
+        ....:         Parent.__init__(self, base=ZZ, category=Rings())
+        ....:
+        sage: c = C()
+        creating singleton
+        sage: import __main__      # This is only needed ...
+        sage: __main__.C = C       # ... in doctests
+        sage: loads(dumps(c)) is copy(c) is C()
+        True
+        sage: hash(c) == object.__hash__(c)
+        True
+
+    The pickle data mainly consist of the class of the unique instance, which
+    may be a subclass of the original class used to create the instance.
+    If the class is replaced by a sub-sub-class after creation on the
+    instance, pickling fails::
+
+        sage: orig = type(c)
+        sage: c._refine_category_(Fields())
+        sage: orig == type(c)
+        False
+        sage: loads(dumps(c))
+        Traceback (most recent call last):
+        ...
+        AssertionError: ("<class '__main__.C_with_category'> is not a direct
+        subclass of <class 'sage.misc.fast_methods.SingletonClass'>",
+        <class '__main__.C_with_category'>, ())
+
+    """
     __metaclass__ = ClasscallMetaclass
     @staticmethod
     def __classcall__(cls):
+        """
+        Create an instance ``O`` of the given class ``cls``, and make it
+        so that in future both ``cls.__call__`` and ``O.__class__.__call__``
+        are constant functions returning ``O``.
+
+        EXAMPLES::
+
+            sage: from sage.misc.fast_methods import SingletonClass
+            sage: class C(SingletonClass, Parent):                  
+            ....:     def __init__(self):
+            ....:         print "creating singleton"
+            ....:         Parent.__init__(self, base=ZZ, category=Rings())
+            ....:
+            sage: c = C()
+            creating singleton
+            sage: import __main__      # This is only needed ...
+            sage: __main__.C = C       # ... in doctests
+            sage: loads(dumps(c)) is copy(c) is C()  # indirect doctest
+            True
+ 
+        """
         assert cls.mro()[1] == SingletonClass, "%s is not a direct subclass of %s"%(cls, SingletonClass)
         res = typecall(cls)
         cf = ConstantFunction(res)
@@ -273,6 +344,60 @@ class SingletonClass(WithEqualityById):
         res.__class__._set_classcall(cf)
         return res
     def __copy__(self):
+        """
+        There is a unique instance of a singleton, hence, copying returns self.
+
+        EXAMPLES::
+
+            sage: from sage.misc.fast_methods import SingletonClass
+            sage: class C(SingletonClass, Parent):                  
+            ....:     def __init__(self):
+            ....:         print "creating singleton"
+            ....:         Parent.__init__(self, base=ZZ, category=Rings())
+            ....:
+            sage: c = C()
+            creating singleton
+            sage: import __main__      # This is only needed ...
+            sage: __main__.C = C       # ... in doctests
+            sage: loads(dumps(c)) is copy(c) is C()  # indirect doctest
+            True
+ 
+        """ 
         return self
     def __reduce__(self):
+        """
+        There is a unique instance of a singleton, hence, pickling returns self.
+
+        EXAMPLES::
+
+            sage: from sage.misc.fast_methods import SingletonClass
+            sage: class C(SingletonClass, Parent):                  
+            ....:     def __init__(self):
+            ....:         print "creating singleton"
+            ....:         Parent.__init__(self, base=ZZ, category=Rings())
+            ....:
+            sage: c = C()
+            creating singleton
+            sage: import __main__      # This is only needed ...
+            sage: __main__.C = C       # ... in doctests
+            sage: loads(dumps(c)) is copy(c) is C()  # indirect doctest
+            True
+ 
+        The pickle data mainly consist of the class of the unique instance, which
+        may be a subclass of the original class used to create the instance.
+        If the class is replaced by a sub-sub-class after creation on the
+        instance, pickling fails::
+
+            sage: orig = type(c)
+            sage: c._refine_category_(Fields())
+            sage: orig == type(c)
+            False
+            sage: loads(dumps(c))
+            Traceback (most recent call last):
+            ...
+            AssertionError: ("<class '__main__.C_with_category'> is not a direct
+            subclass of <class 'sage.misc.fast_methods.SingletonClass'>",
+            <class '__main__.C_with_category'>, ())
+
+        """ 
         return self.__class__, () 

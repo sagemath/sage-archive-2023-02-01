@@ -29,6 +29,8 @@ obsolete_commands = {
     "set_needs_info": "needs_info",
     "set_positive_review": "positive_review",
     "reset_to_clean_working_directory" : "clean",
+    "local-tickets" : "tickets",
+    "prune-closed-tickets" : "prune-tickets",
 }
 
 class SageDevWrapper(object):
@@ -105,9 +107,9 @@ class SageDevWrapper(object):
         self._wrap("edit_ticket")
         self._wrap("gather")
         self._wrap("import_patch")
-        self._wrap("local_tickets")
+        self._wrap("tickets")
         self._wrap("merge")
-        self._wrap("prune_closed_tickets")
+        self._wrap("prune_tickets")
         self._wrap("remote_status")
         self._wrap("clean")
         self._wrap("set_remote")

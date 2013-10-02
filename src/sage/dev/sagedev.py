@@ -2627,7 +2627,7 @@ class SageDev(MercurialPatchMixin):
             show.append(remote_summary)
         self._UI.show("\n".join(show))
 
-    def prune_closed_tickets(self):
+    def prune_tickets(self):
         r"""
         Remove branches for tickets that are already merged into master.
 
@@ -2655,7 +2655,7 @@ class SageDev(MercurialPatchMixin):
             <BLANKLINE>
             #  Use "sage --dev commit" to save changes in a new commit when you are finished
             #  editing.
-            sage: dev.local_tickets()
+            sage: dev.tickets()
                 : master
             * #1: ticket/1 summary
 
@@ -2664,8 +2664,8 @@ class SageDev(MercurialPatchMixin):
             sage: open("tracked","w").close()
             sage: dev.git.silent.add("tracked")
             sage: dev.git.super_silent.commit(message="added tracked")
-            sage: dev.prune_closed_tickets()
-            sage: dev.local_tickets()
+            sage: dev.prune_tickets()
+            sage: dev.tickets()
                 : master
             * #1: ticket/1 summary
 
@@ -2676,7 +2676,7 @@ class SageDev(MercurialPatchMixin):
             sage: dev.git.super_silent.merge("ticket/1")
 
             sage: dev.git.super_silent.checkout("ticket/1")
-            sage: dev.prune_closed_tickets()
+            sage: dev.prune_tickets()
             Abandoning #1.
             Cannot delete "ticket/1": is the current branch.
             <BLANKLINE>
@@ -2685,12 +2685,12 @@ class SageDev(MercurialPatchMixin):
         Now, the branch is abandoned::
 
             sage: dev.vanilla()
-            sage: dev.prune_closed_tickets()
+            sage: dev.prune_tickets()
             Abandoning #1.
             Moved your branch "ticket/1" to "trash/ticket/1".
-            sage: dev.local_tickets()
+            sage: dev.tickets()
             : master
-            sage: dev.prune_closed_tickets()
+            sage: dev.prune_tickets()
         """
         for branch in self.git.local_branches():
             if self._has_ticket_for_local_branch(branch):
@@ -2716,10 +2716,10 @@ class SageDev(MercurialPatchMixin):
 
         .. SEEALSO::
 
-            - :meth:`prune_closed_tickets` -- abandon tickets that have
+            - :meth:`prune_tickets` -- abandon tickets that have
               been closed.
 
-            - :meth:`local_tickets` -- list local non-abandoned tickets.
+            - :meth:`tickets` -- list local non-abandoned tickets.
 
         TESTS:
 
@@ -3228,7 +3228,7 @@ class SageDev(MercurialPatchMixin):
                 self._UI.show("Added dependency on #{0} to #{1}.".format(ticket, current_ticket))
                 self._set_dependencies_for_ticket(current_ticket, dependencies+[ticket])
 
-    def local_tickets(self, include_abandoned=False, cached=True):
+    def tickets(self, include_abandoned=False, cached=True):
         r"""
         Print the tickets currently being worked on in your local
         repository.
@@ -3265,7 +3265,7 @@ class SageDev(MercurialPatchMixin):
 
         Create some tickets::
 
-            sage: dev.local_tickets()
+            sage: dev.tickets()
             * : master
 
             sage: UI.append("Summary: summary\ndescription")
@@ -3290,7 +3290,7 @@ class SageDev(MercurialPatchMixin):
             <BLANKLINE>
             #  Use "sage --dev commit" to save changes in a new commit when you are finished
             #  editing.
-            sage: dev.local_tickets()
+            sage: dev.tickets()
                 : master
               #1: ticket/1 summary
             * #2: ticket/2 summary
@@ -3406,7 +3406,7 @@ class SageDev(MercurialPatchMixin):
 
             - :meth:`commit` -- record changes into the repository.
 
-            - :meth:`local_tickets` -- list local tickets (you may
+            - :meth:`tickets` -- list local tickets (you may
               want to commit your changes to a branch other than the
               current one).
 
@@ -3558,7 +3558,11 @@ class SageDev(MercurialPatchMixin):
 
             sage: dev.diff("dependencies")
             Dependency #1 has not been merged into "ticket/3" (at least not its latest version).
+            #  (use "sage --dev merge --ticket=1" to merge it)
+            <BLANKLINE>
             Dependency #2 has not been merged into "ticket/3" (at least not its latest version).
+            #  (use "sage --dev merge --ticket=2" to merge it)
+            <BLANKLINE>
             diff --git a/ticket1 b/ticket1
             deleted file mode ...
             index ...
@@ -3601,8 +3605,12 @@ class SageDev(MercurialPatchMixin):
             #  Use "sage --dev commit" to save changes in a new commit when you are finished
             #  editing.
             sage: dev.diff("dependencies")
-            Dependency #1 has not been merged into "ticket/3" (at least not its latest version).
-            #2 does not merge cleanly with the other dependencies. Your diff could not be computed.
+            Dependency #1 has not been merged into "ticket/3" (at least not its latest
+            version).
+            #  (use "sage --dev merge --ticket=1" to merge it)
+            <BLANKLINE>
+            Dependency #2 does not merge cleanly with the other dependencies. Your diff
+            could not be computed.
         """
         if base == "dependencies":
             current_ticket = self._current_ticket()
@@ -3634,20 +3642,28 @@ class SageDev(MercurialPatchMixin):
                         self._check_remote_branch_name(remote_branch, exists=True)
                         self.git.super_silent.fetch(self.git._repository_anonymous, remote_branch)
                         merge_base_dependency = self.git.merge_base(MASTER_BRANCH, 'FETCH_HEAD').splitlines()[0]
-                        if merge_base_dependency != merge_base and self.git.is_child_of(merge_base_dependency, merge_base):
-                            self._UI.show('The remote branch "{0}" is based on a later version of sage than your local branch "{1}". The diff might therefore contain many changes which were not introduced by your branch "{1}". Use "{2}" to rebase your branch to the latest version of sage.'.format(remote_branch, branch, self._format_command("merge")))
+                        if merge_base_dependency != merge_base and \
+                           self.git.is_child_of(merge_base_dependency, merge_base):
+                            self._UI.warning('The remote branch "{0}" is based on a later version of sage'
+                                             ' compared to the local branch "{1}". The diff might therefore'
+                                             ' contain unrelated changes.')
+                            self._UI.info(['Use "{2}" to merge latest version of Sage into your branch.', ''],
+                                          remote_branch, branch, self._format_command("merge"))
                         if self.git.is_child_of(merge_base, 'FETCH_HEAD'):
-                            self._UI.debug("Dependency #{0} has already been merged into the master branch of your version of sage.".format(dependency))
+                            self._UI.debug('Dependency #{0} has already been merged into the master'
+                                           ' branch of your version of sage.', dependency)
                         else:
                             if not self.git.is_child_of(branch, 'FETCH_HEAD'):
-                                self._UI.warning('Dependency #{0} has not been merged into "{1}" (at least not its latest version).'.format(dependency, branch))
-                                self._UI.debug('#  Use "{0}" to merge it.'.format(
-                                    self._format_command("merge", ticket_or_branch=str(dependency))))
+                                self._UI.warning('Dependency #{0} has not been merged into "{1}" (at'
+                                                 ' least not its latest version).', dependency, branch)
+                                self._UI.info(['(use "{0}" to merge it)', ''],
+                                              self._format_command("merge", ticket_or_branch=str(dependency)))
                             from git_error import GitError
                             try:
                                 self.git.super_silent.merge('FETCH_HEAD')
                             except GitError as e:
-                                self._UI.error("#{0} does not merge cleanly with the other dependencies. Your diff could not be computed.".format(dependency))
+                                self._UI.error("Dependency #{0} does not merge cleanly with the other"
+                                               " dependencies. Your diff could not be computed.", dependency)
                                 raise OperationCancelledError("merge failed")
 
                     self.git.echo.diff("{0}..{1}".format(temporary_branch, branch))

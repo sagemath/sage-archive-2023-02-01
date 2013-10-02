@@ -326,9 +326,12 @@ class MercurialPatchMixin(object):
             sage: from sage.env import SAGE_ROOT
             sage: import os
             sage: os.chdir(SAGE_ROOT) # silence possible warnings about not being in SAGE_ROOT
-            sage: dev.download_patch(ticket=14882, patchname='trac_14882-backtrack_longtime-dg.patch') # optional: internet
-            Downloading `https://trac.sagemath.org/raw-attachment/ticket/14882/trac_14882-backtrack_longtime-dg.patch`...
-            Downloaded `https://trac.sagemath.org/raw-attachment/ticket/14882/trac_14882-backtrack_longtime-dg.patch` to `...`.
+            sage: dev.download_patch(ticket=14882,        # optional: internet
+            ....:        patchname='trac_14882-backtrack_longtime-dg.patch')
+            Downloading `https://trac.sagemath.org/raw-attachment/ticket/
+            14882/trac_14882-backtrack_longtime-dg.patch`...
+            Downloaded `https://trac.sagemath.org/raw-attachment/ticket/1
+            4882/trac_14882-backtrack_longtime-dg.patch` to `...`.
             ('...',)
 
         TESTS:
@@ -349,23 +352,24 @@ class MercurialPatchMixin(object):
 
         There are no attachments to download yet::
 
-            sage: dev.download_patch(ticket=1)
+            sage: dev.download_patch(ticket=1)     # optional - internet
             ValueError: Ticket #1 has no attachments.
 
         After adding one attachment, this works::
 
             sage: server.tickets[1].attachments['first.patch'] = ''
-            sage: dev.download_patch(ticket=1) # not tested, download_patch tries to talk to the live server
+            sage: dev.download_patch(ticket=1)    # not tested, just an example
 
         After adding another attachment, this does not work anymore, one needs
         to specify which attachment should be downloaded::
 
             sage: server.tickets[1].attachments['second.patch'] = ''
-            sage: dev.download_patch(ticket=1)
+            sage: dev.download_patch(ticket=1)   # optional - internet
             I could not understand the comments on ticket #1. To apply use one of the
             patches on the ticket, set the parameter `patchname` to one of: first.patch,
             second.patch
-            sage: dev.download_patch(ticket=1, patchname = 'second.patch') # not tested, download_patch tries to talk to the live server
+            sage: dev.download_patch(ticket=1,     # not tested, just an example
+            ....:     patchname='second.patch')
 
         It is an error not to specify any parameters if not on a ticket::
 
@@ -376,8 +380,8 @@ class MercurialPatchMixin(object):
         Check that the parser for the rss stream works::
 
             sage: UI.append("n")
-            sage: dev._sagedev.trac = sage.all.dev.trac # we have to use the actual trac proxy to enable access to the patch list on trac
-            sage: dev.download_patch(ticket=12415) # optional: internet
+            sage: dev._sagedev.trac = sage.all.dev.trac
+            sage: dev.download_patch(ticket=12415)      # optional: internet
             It seems that the following patches have to be applied in this order:
             12415_spkg_bin_sage.patch
             12415_script.patch
@@ -393,15 +397,22 @@ class MercurialPatchMixin(object):
             12415_manifest.patch
             12415_rebase_58.patch
             Should I download these patches? [Yes/no] n
-            Ticket #12415 has more than one attachment but you chose not to download them in the proposed order. To use only one of these patches set the parameter `patchname` to one of: 12415_doc.patch, 12415_doctest_fixes.patch, 12415_doctest_review.patch, 12415_framework.patch, 12415_manifest.patch, 12415_rebase_58.patch, 12415_review.patch, 12415_review3.patch, 12415_review_review.patch, 12415_script.patch, 12415_script_review.patch, 12415_spkg_bin_sage.patch, 12415_test.patch
+            Ticket #12415 has more than one attachment but you chose not to download
+            them in the proposed order. To use only one of these patches set the 
+            parameter `patchname` to one of: 12415_doc.patch, 12415_doctest_fixes.patch,
+            12415_doctest_review.patch, 12415_framework.patch, 12415_manifest.patch, 
+            12415_rebase_58.patch, 12415_review.patch, 12415_review3.patch,  
+            12415_review_review.patch, 12415_script.patch, 12415_script_review.patch, 
+            12415_spkg_bin_sage.patch, 12415_test.patch
         """
         if url is not None:
             if ticket or patchname:
-                raise ValueError("If `url` is specifed, `ticket` and `patchname` must not be specified.")
+                raise ValueError('If "url" is specifed then neither "ticket" nor "patchname"'
+                                 ' may be specified.')
             import urllib
-            self._UI.show('Downloading "{0}"...'.format(url))
+            self._UI.show('Downloading "{0}"...', url)
             ret = urllib.urlretrieve(url)[0]
-            self._UI.show('Downloaded "{0}" to "{1}".'.format(url, ret))
+            self._UI.show('Downloaded "{0}" to "{1}".', url, ret)
             return (ret,)
 
         if ticket is None:
@@ -439,8 +450,8 @@ class MercurialPatchMixin(object):
                 from sage.env import TRAC_SERVER_URI
                 rss = TRAC_SERVER_URI+"/ticket/%s?format=rss"%ticket
                 self._UI.debug('There is more than one attachment on ticket #{0}. '
-                               'Reading "{1}" to try to find out in which order they must be applied.'
-                               .format(ticket, rss))
+                               'Reading "{1}" to try to find out in which order they must be applied.',
+                               ticket, rss)
                 import urllib2
                 rss = urllib2.urlopen(rss).read()
 

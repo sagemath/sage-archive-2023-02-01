@@ -170,6 +170,22 @@ cdef class Riemann_Map:
         sage: print "error =", m.inverse_riemann_map(m.riemann_map(x)) - x  # long time
         error = (-0.000...+0.0016...j)
 
+    A fun, complex region for demonstration purposes::
+
+        sage: f(t) = e^(I*t)
+        sage: fp(t) = I*e^(I*t)
+        sage: ef1(t) = .2*e^(-I*t) +.4+.4*I
+        sage: ef1p(t) = -I*.2*e^(-I*t)
+        sage: ef2(t) = .2*e^(-I*t) -.4+.4*I
+        sage: ef2p(t) = -I*.2*e^(-I*t)
+        sage: pts = [(-.5,-.15-20/1000),(-.6,-.27-10/1000),(-.45,-.45),(0,-.65+10/1000),(.45,-.45),(.6,-.27-10/1000),(.5,-.15-10/1000),(0,-.43+10/1000)]
+        sage: pts.reverse()
+        sage: cs = complex_cubic_spline(pts)
+        sage: mf = lambda x:cs.value(x)
+        sage: mfprime = lambda x: cs.derivative(x)
+        sage: m = Riemann_Map([f,ef1,ef2,mf],[fp,ef1p,ef2p,mfprime],0,N = 400) # long time
+        sage: p = m.plot_colored(plot_points = 400) # long time
+
     ALGORITHM:
 
     This class computes the Riemann Map via the Szego kernel using an
@@ -820,7 +836,7 @@ cdef class Riemann_Map:
     @options(interpolation='catrom')
     def plot_spiderweb(self, spokes=16, circles=4, pts=32, linescale=0.99,
             rgbcolor=[0,0,0], thickness=1, plotjoined=True, withcolor = False,
-            plot_points = 200, **options):
+            plot_points = 200, min_mag = 0.001, **options):
         """
         Generates a traditional "spiderweb plot" of the Riemann map. Shows
         what concentric circles and radial lines map to. The radial lines
@@ -875,6 +891,13 @@ cdef class Riemann_Map:
           Note that very large values can cause this function to run slowly.
           - only for multiply connected domains
 
+        - ``min_mag`` -- float (default: ``0.001``) The magnitude cutoff
+          below which spiderweb points are not drawn. This only applies
+          to multiply connected domains and is designed to prevent
+          "fuzz" at the edge of the domain. Some complicated multiply
+          connected domains (particularly those with corners) may
+          require a larger value to look clean outside.
+
         EXAMPLES:
 
         General usage::
@@ -902,6 +925,16 @@ cdef class Riemann_Map:
             sage: fprime(t) = I*e^(I*t)
             sage: m = Riemann_Map([f], [fprime], 0, 1000)
             sage: m.plot_spiderweb()
+
+        A multiply connected region with corners. We set ``min_mag`` higher
+        to remove "fuzz" outside the domain::
+
+            sage: ps = polygon_spline([(-4,-2),(4,-2),(4,2),(-4,2)])
+            sage: z1 = lambda t: ps.value(t); z1p = lambda t: ps.derivative(t)
+            sage: z2(t) = -2+exp(-I*t); z2p(t) = -I*exp(-I*t)
+            sage: z3(t) = 2+exp(-I*t); z3p(t) = -I*exp(-I*t)
+            sage: m = Riemann_Map([z1,z2,z3],[z1p,z2p,z3p],0,ncorners=4) # long time
+            sage: p = m.plot_spiderweb(withcolor=True,plot_points=500, thickness = 2.0, min_mag=0.1) # long time
         """
         cdef int k, i
         if self.exterior:
@@ -960,7 +993,7 @@ cdef class Riemann_Map:
 
             g = Graphics()
             g.add_primitive(ComplexPlot(complex_to_spiderweb(z_values,dr,dtheta,
-                spokes, circles, rgbcolor,thickness, withcolor),
+                spokes, circles, rgbcolor,thickness, withcolor, min_mag),
                 (xmin, xmax), (ymin, ymax),options))
             return g + self.plot_boundaries(thickness = thickness)
 
@@ -1104,7 +1137,7 @@ cpdef get_derivatives(np.ndarray[COMPLEX_T, ndim=2] z_values, FLOAT_T xstep,
 
 cpdef complex_to_spiderweb(np.ndarray[COMPLEX_T, ndim = 2] z_values,
     np.ndarray[FLOAT_T, ndim = 2] dr, np.ndarray[FLOAT_T, ndim = 2] dtheta,
-    spokes, circles, rgbcolor, thickness, withcolor):
+    spokes, circles, rgbcolor, thickness, withcolor, min_mag):
     """
     Converts a grid of complex numbers into a matrix containing rgb data
     for the Riemann spiderweb plot.
@@ -1133,6 +1166,13 @@ cpdef complex_to_spiderweb(np.ndarray[COMPLEX_T, ndim = 2] z_values,
     - ``withcolor`` -- boolean - If ``True`` the spiderweb will be overlaid
       on the basic color plot.
 
+    - ``min_mag`` -- float - The magnitude cutoff below which spiderweb
+      points are not drawn. This only applies to multiply connected
+      domains and is designed to prevent "fuzz" at the edge of the
+      domain. Some complicated multiply connected domains (particularly
+      those with corners) may require a larger value to look clean
+      outside.
+
     OUTPUT:
 
     An `N x M x 3` floating point Numpy array ``X``, where
@@ -1144,7 +1184,7 @@ cpdef complex_to_spiderweb(np.ndarray[COMPLEX_T, ndim = 2] z_values,
         sage: import numpy
         sage: zval = numpy.array([[0, 1, 1000],[.2+.3j,1,-.3j],[0,0,0]],dtype = numpy.complex128)
         sage: deriv = numpy.array([[.1]],dtype = numpy.float64)
-        sage: complex_to_spiderweb(zval, deriv,deriv, 4,4,[0,0,0],1,False)
+        sage: complex_to_spiderweb(zval, deriv,deriv, 4,4,[0,0,0],1,False,0.001)
         array([[[ 1.,  1.,  1.],
                 [ 1.,  1.,  1.],
                 [ 1.,  1.,  1.]],
@@ -1157,7 +1197,7 @@ cpdef complex_to_spiderweb(np.ndarray[COMPLEX_T, ndim = 2] z_values,
                 [ 1.,  1.,  1.],
                 [ 1.,  1.,  1.]]])
 
-        sage: complex_to_spiderweb(zval, deriv,deriv, 4,4,[0,0,0],1,True)
+        sage: complex_to_spiderweb(zval, deriv,deriv, 4,4,[0,0,0],1,True,0.001)
         array([[[ 1.        ,  1.        ,  1.        ],
                 [ 1.        ,  0.05558355,  0.05558355],
                 [ 0.17301243,  0.        ,  0.        ]],
@@ -1174,7 +1214,6 @@ cpdef complex_to_spiderweb(np.ndarray[COMPLEX_T, ndim = 2] z_values,
     cdef FLOAT_T x, y, mag, arg, width, target, precision, dmag, darg
     cdef COMPLEX_T z
     cdef FLOAT_T DMAX = 70 # change to adjust rate_of_change cutoff below
-    cdef FLOAT_T MMIN = .0001
     precision = thickness/150.0
     imax = len(z_values)
     jmax = len(z_values[0])
@@ -1202,7 +1241,7 @@ cpdef complex_to_spiderweb(np.ndarray[COMPLEX_T, ndim = 2] z_values,
             darg = dtheta[i,j]
             #points that change too rapidly are presumed to be borders
             #points that are too small are presumed to be outside
-            if darg < DMAX and mag > MMIN:
+            if darg < DMAX and mag > min_mag:
                 for target in circ_radii:
                     if abs(mag - target)/dmag < precision:
                         rgb[i+1,j+1] = rgbcolor

@@ -423,7 +423,8 @@ class SageDev(MercurialPatchMixin):
             sage: bob.git.super_silent.commit(allow_empty=True,message="empty commit")
             sage: bob._UI.append("y")
             sage: bob.push()
-            The branch "u/bob/ticket/1" does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch "u/bob/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
 
             sage: alice._chdir()
             sage: alice.checkout(ticket=1)
@@ -999,7 +1000,8 @@ class SageDev(MercurialPatchMixin):
             raise
 
         try:
-            # this leaves locally modified files intact (we only allow this to happen if current_commit == target_commit
+            # this leaves locally modified files intact (we only allow this to happen
+            # if current_commit == target_commit
             self.git.super_silent.checkout(branch)
         except GitError as e:
             # the error message should be self explanatory
@@ -1062,13 +1064,17 @@ class SageDev(MercurialPatchMixin):
             sage: alice.git.super_silent.commit(allow_empty=True, message="alice: empty commit")
             sage: alice._UI.append("y")
             sage: alice.push()
-            The branch "u/alice/ticket/1" does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch "u/alice/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
 
         Bob pulls the changes for ticket 1::
 
             sage: bob._chdir()
             sage: bob.pull()
             Merging the remote branch "u/alice/ticket/1" into the local branch "ticket/1".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
             sage: bob.git.echo.log('--pretty=%s')
             alice: empty commit
             initial commit
@@ -1081,8 +1087,8 @@ class SageDev(MercurialPatchMixin):
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.push()
-            The branch "u/bob/ticket/1" does not exist on the remote server yet. Do you want
-            to create the branch? [Yes/no] y
+            The branch "u/bob/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
             The branch field of ticket #1 needs to be updated from its current value
             "u/alice/ticket/1" to "u/bob/ticket/1"
             Change the "Branch:" field? [Yes/no] y
@@ -1099,6 +1105,9 @@ class SageDev(MercurialPatchMixin):
 
             sage: alice.pull()
             Merging the remote branch "u/bob/ticket/1" into the local branch "ticket/1".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
             sage: alice.git.echo.log('--pretty=%s')
             Merge branch 'u/bob/ticket/1' of ... into ticket/1
             alice: added alices_file
@@ -1126,16 +1135,23 @@ class SageDev(MercurialPatchMixin):
             sage: alice._UI.append("abort")
             sage: alice.pull()
             Merging the remote branch "u/bob/ticket/1" into the local branch "ticket/1".
-            There was an error during the merge. Most probably there were conflicts when merging. The following should make it clear which files are affected:
+            Automatic merge failed, there are conflicting commits.
+            <BLANKLINE>
             Auto-merging alices_file
             CONFLICT (add/add): Merge conflict in alices_file
-            Please fix conflicts in the affected files (in a different terminal) and type "resolved". Or type "abort" to abort the merge. [resolved/abort] abort
+            <BLANKLINE>
+            Please edit the affected files to resolve the conflicts. When you are finished,
+            your resolution will be commited.
+            Finished? [ok/Abort] abort
 
         Undo the latest commit by alice, so we can pull again::
 
             sage: alice.git.super_silent.reset('HEAD~~', hard=True)
             sage: alice.pull()
             Merging the remote branch "u/bob/ticket/1" into the local branch "ticket/1".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
             sage: alice.git.echo.log('--pretty=%s')
             bob: added alices_file
             bob: added bobs_file
@@ -1164,13 +1180,16 @@ class SageDev(MercurialPatchMixin):
             sage: alice._UI.append("abort")
             sage: alice.pull()
             Merging the remote branch "u/bob/ticket/1" into the local branch "ticket/1".
-            There was an error during the merge. Most probably there were conflicts when merging. The following should make it clear which files are affected:
+            Automatic merge failed, there are conflicting commits.
+            <BLANKLINE>
             Updating ...
             error: The following untracked working tree files would be overwritten by merge:
-                bobs_other_file
+                    bobs_other_file
             Please move or remove them before you can merge.
-            Aborting
-            Please fix conflicts in the affected files (in a different terminal) and type "resolved". Or type "abort" to abort the merge. [resolved/abort] abort
+            <BLANKLINE>
+            Please edit the affected files to resolve the conflicts. When you are finished,
+            your resolution will be commited.
+            Finished? [ok/Abort] abort
         """
         if ticket_or_remote_branch is None:
             ticket_or_remote_branch = self._current_ticket()
@@ -1410,13 +1429,15 @@ class SageDev(MercurialPatchMixin):
             try:
                 branch = self.git.current_branch()
             except DetachedHeadError:
-                self._UI.error("`branch` must not be None because you are in detached HEAD state.")
-                self._UI.info('Checkout a branch with "{0}" or specify branch explicitly.'.format(self._format_command('checkout')))
+                self._UI.error('You must specify "branch" in detached HEAD state.')
+                self._UI.info(['', 'Use "{0}" to checkout a branch'],
+                              self._format_command('checkout'))
                 raise OperationCancelledError("detached head state")
         elif self._is_ticket_name(branch_or_ticket):
             ticket = self._ticket_from_ticket_name(branch_or_ticket)
             if not self._has_local_branch_for_ticket(ticket):
-                self._UI.error("no local branch for ticket #{0} found. Cannot set remote branch for that ticket.".format(ticket))
+                self._UI.error('no local branch for ticket #{0} found. Cannot set remote branch'
+                               ' for that ticket.', ticket)
                 raise OperationCancelledError("no such ticket")
             branch = self._local_branch_for_ticket(ticket)
         else:
@@ -1428,7 +1449,10 @@ class SageDev(MercurialPatchMixin):
         # If we add restrictions on which branches users may push to, we should append them here.
         m = USER_BRANCH.match(remote_branch)
         if remote_branch == 'master' or m and m.groups()[0] != self.trac._username:
-            self._UI.warning('The remote branch "{0}" is not in your user scope. You might not have permission to push to that branch. Did you mean to set the remote branch to "u/{1}/{0}"?'.format(remote_branch, self.trac._username))
+            self._UI.warning('The remote branch "{0}" is not in your user scope. You probably'
+                             ' do not have permission to push to that branch.', remote_branch)
+            self._UI.info(['', 'You can always use "u/{1}/{0}" as the remote branch name.'],
+                          remote_branch, self.trac._username)
 
         self._set_remote_branch_for_branch(branch, remote_branch)
 
@@ -1487,7 +1511,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice.git.super_silent.commit(message="alice: added tracked")
             sage: alice._UI.append("y")
             sage: alice.push()
-            The branch "u/alice/ticket/1" does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch "u/alice/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
 
         Now Bob can check that ticket out and push changes himself::
 
@@ -1503,8 +1528,8 @@ class SageDev(MercurialPatchMixin):
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.push()
-            The branch "u/bob/ticket/1" does not exist on the remote server yet. Do you want
-            to create the branch? [Yes/no] y
+            The branch "u/bob/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
             The branch field of ticket #1 needs to be updated from its current value
             "u/alice/ticket/1" to "u/bob/ticket/1"
             Change the "Branch:" field? [Yes/no] y
@@ -1514,6 +1539,9 @@ class SageDev(MercurialPatchMixin):
             sage: alice._chdir()
             sage: alice.pull()
             Merging the remote branch "u/bob/ticket/1" into the local branch "ticket/1".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
 
         Alice and Bob make non-conflicting changes simultaneously::
 
@@ -1564,6 +1592,9 @@ class SageDev(MercurialPatchMixin):
 
             sage: bob.pull()
             Merging the remote branch "u/alice/ticket/1" into the local branch "ticket/1".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.push()
@@ -1603,21 +1634,22 @@ class SageDev(MercurialPatchMixin):
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.push(2)
-            You are trying to push the branch "ticket/1" to "u/bob/ticket/2" for ticket #2.
-            However, your local branch for ticket #2 seems to be "ticket/2". Do you really
-            want to proceed? [yes/No] y
-            #  Use "sage --dev checkout --ticket=2 --branch=ticket/1" to permanently set the
-            #  branch associated to ticket #2 to "ticket/1".
-            The branch "u/bob/ticket/2" does not exist on the remote server yet. Do you want
-            to create the branch? [Yes/no] y
+            About to push the branch "ticket/1" to "u/bob/ticket/2" for ticket #2. However,
+            your local branch for ticket #2 seems to be "ticket/2".
+             Do you really want to proceed? [yes/No] y
+            <BLANKLINE>
+            #  Use "sage --dev checkout --ticket=2 --branch=ticket/1" to permanently set
+            #  "ticket/1" as the branch associated to ticket #2.
+            The branch "u/bob/ticket/2" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
 
         Check that ``remote_branch`` works::
 
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.push(remote_branch="u/bob/branch1")
-            The branch "u/bob/branch1" does not exist on the remote server yet. Do you want
-            to create the branch? [Yes/no] y
+            The branch "u/bob/branch1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
             The branch field of ticket #1 needs to be updated from its current value
             "u/bob/ticket/1" to "u/bob/branch1"
             Change the "Branch:" field? [Yes/no] y
@@ -1626,6 +1658,10 @@ class SageDev(MercurialPatchMixin):
 
             sage: bob.merge(2)
             Merging the remote branch "u/bob/ticket/2" into the local branch "ticket/1".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
+            <BLANKLINE>
             Added dependency on #2 to #1.
             sage: bob.push()
             Remote branch "u/bob/ticket/1" is idential to your local branch "ticket/1
@@ -1706,37 +1742,53 @@ class SageDev(MercurialPatchMixin):
             if ticket:
                 remote_branch = self._remote_branch_for_ticket(ticket)
                 if remote_branch is None:
-                    raise SageDevValueError("remote_branch must be specified since #{0} has no remote branch set.".format(ticket))
+                    raise SageDevValueError("remote_branch must be specified since #{0}"
+                                            " has no remote branch set.".format(ticket))
             else:
                 remote_branch = self._remote_branch_for_branch(branch)
                 if remote_branch is None:
-                    raise SageDevValueError("remote_branch must be specified since the current branch has no remote branch set.")
-
+                    raise SageDevValueError("remote_branch must be specified since the"
+                                            " current branch has no remote branch set.")
         self._check_remote_branch_name(remote_branch)
 
         # whether the user already confirmed that he really wants to push and set the branch field
-        user_confirmation = force
+        user_confirmation = False
 
         if ticket is not None:
             if self._has_local_branch_for_ticket(ticket) and self._local_branch_for_ticket(ticket) == branch:
                 pass
             elif self._has_local_branch_for_ticket(ticket) and self._local_branch_for_ticket(ticket) != branch:
-                if user_confirmation or self._UI.confirm('You are trying to push the branch "{0}" to "{1}" for ticket #{2}. However, your local branch for ticket #{2} seems to be "{3}". Do you really want to proceed?'.format(branch, remote_branch, ticket, self._local_branch_for_ticket(ticket)), default=False):
-                    self._UI.info('Use "{2}" to permanently set the branch associated to ticket #{0} to "{1}".'
-                                  .format(ticket, branch, self._format_command("checkout",ticket=ticket,branch=branch)))
-                    user_confirmation = True
+                self._UI.show('About to push the branch "{0}" to "{1}" for ticket #{2}.'
+                              ' However, your local branch for ticket #{2} seems to be "{3}".',
+                              branch, remote_branch, ticket, self._local_branch_for_ticket(ticket))
+                user_confirmation = self._UI.confirm(' Do you really want to proceed?', default=False)
+                if user_confirmation:
+                    self._UI.info(['', 
+                                   'Use "{2}" to permanently set "{1}" as the branch'
+                                   ' associated to ticket #{0}.'],
+                                  ticket, branch, self._format_command("checkout",ticket=ticket,branch=branch))
                 else:
                     raise OperationCancelledError("user requsted")
             elif self._has_ticket_for_local_branch(branch) and self._ticket_for_local_branch(branch) != ticket:
-                if user_confirmation or self._UI.confirm('You are trying to push the branch "{0}" to "{1}" for ticket #{2}. However, that branch is associated to ticket #{3}. Do you really want to proceed?'.format(branch, remote_branch, ticket, self._ticket_for_local_branch(branch))):
-                    self._UI.info('To permanently set the branch associated to ticket #{0} to "{1}", use "{2}". To create a new branch from "{1}" for #{0}, use "{3}" and "{4}".'.format(ticket, branch, self._format_command("checkout",ticket=ticket,branch=branch), self._format_command("checkout",ticket=ticket), self._format_command("merge", branch=branch)))
-                    user_confirmation = True
+                self._UI.show('About to push the local branch "{0}" to remote branch "{1}" for'
+                              ' ticket #{2}. However, that branch is already associated to ticket #{3}.',
+                              branch, remote_branch, ticket, self._ticket_for_local_branch(branch))
+                user_confirmation = self._UI.confirm(' Do you really want to proceed?', default=False)
+                if user_confirmation:
+                    self._UI.info(['', 'Use "{2}" to permanently set the branch associated to'
+                                   ' ticket #{0} to "{1}". To create a new branch from "{1}" for'
+                                   ' #{0}, use "{3}" and "{4}".'], 
+                                  ticket, branch, 
+                                  self._format_command("checkout",ticket=ticket,branch=branch), 
+                                  self._format_command("checkout",ticket=ticket), 
+                                  self._format_command("merge", branch=branch))
 
         self._UI.debug('Pushing your changes in "{0}" to "{1}".'.format(branch, remote_branch))
         try:
             remote_branch_exists = self._is_remote_branch_name(remote_branch, exists=True)
             if not remote_branch_exists:
-                if not self._UI.confirm('The branch "{0}" does not exist on the remote server yet. Do you want to create the branch?'.format(remote_branch), default=True):
+                self._UI.show('The branch "{0}" does not exist on the remote server.', remote_branch)
+                if not self._UI.confirm('Create new remote branch?', default=True):
                     raise OperationCancelledError("User did not want to create remote branch.")
             else:
                 self.git.super_silent.fetch(self.git._repository_anonymous, remote_branch)
@@ -1744,8 +1796,11 @@ class SageDev(MercurialPatchMixin):
             # check whether force is necessary
             if remote_branch_exists and not self.git.is_child_of(branch, 'FETCH_HEAD'):
                 if not force:
-                    self._UI.error('Not pushing your changes because they would discard some of the commits on the remote branch "{0}".'.format(remote_branch))
-                    self._UI.info('If this is really what you want, use "{0}" to push your changes.'.format(self._format_command("push",ticket=ticket,remote_branch=remote_branch,force=True)))
+                    self._UI.error('Not pushing your changes because they would discard some of'
+                                   ' the commits on the remote branch "{0}".', remote_branch)
+                    self._UI.info(['', 'Use "{0}" if you really want to overwrite the remote branch.'],
+                                  self._format_command("push", ticket=ticket, 
+                                                       remote_branch=remote_branch, force=True))
                     raise OperationCancelledError("not a fast-forward")
 
             # check whether this is a nop
@@ -1768,13 +1823,13 @@ class SageDev(MercurialPatchMixin):
                                 raise OperationCancelledError("user requested")
 
                     self._upload_ssh_key() # make sure that we have access to the repository
-                    self.git.super_silent.push(self.git._repository, "{0}:{1}".format(branch, remote_branch), force=force)
+                    self.git.super_silent.push(self.git._repository, 
+                                               "{0}:{1}".format(branch, remote_branch), 
+                                               force=force)
                 except GitError as e:
                     # can we give any advice if this fails?
                     raise
-
             self._UI.debug('Changes in "{0}" have been pushed to "{1}".'.format(branch, remote_branch))
-
         except OperationCancelledError:
             self._UI.debug("Did not push any changes.")
             raise
@@ -2120,7 +2175,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.git.super_silent.commit(message="alice: added tracked")
             sage: dev._UI.append("y")
             sage: dev.push()
-            The branch "u/doctest/ticket/1" does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch "u/doctest/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
             sage: dev.needs_review(comment='Review my ticket!')
             sage: dev.trac._get_attributes(1)['status']
             'needs_review'
@@ -2177,7 +2233,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice.git.super_silent.commit(message="alice: added tracked")
             sage: alice._UI.append("y")
             sage: alice.push()
-            The branch "u/alice/ticket/1" does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch "u/alice/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
             sage: alice.needs_review(comment='Review my ticket!')
 
         Bob reviews the ticket and finds it lacking::
@@ -2246,7 +2303,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice.git.super_silent.commit(message="alice: added tracked")
             sage: alice._UI.append("y")
             sage: alice.push()
-            The branch "u/alice/ticket/1" does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch "u/alice/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
             sage: alice.needs_review(comment='Review my ticket!')
 
         Bob reviews the ticket and finds it lacking::
@@ -2315,7 +2373,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice.git.super_silent.commit(message="alice: added tracked")
             sage: alice._UI.append("y")
             sage: alice.push()
-            The branch "u/alice/ticket/1" does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch "u/alice/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
             sage: alice.needs_review(comment='Review my ticket!')
 
         Bob reviews the ticket and finds it good::
@@ -2468,7 +2527,8 @@ class SageDev(MercurialPatchMixin):
 
             sage: UI.append("y")
             sage: dev.push()
-            The branch "u/doctest/ticket/1" does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch "u/doctest/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
             sage: dev.remote_status()
             Ticket #1 (https://trac.sagemath.org/ticket/1)
             ==============================================
@@ -2525,7 +2585,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.git.silent.commit(message="added tracked4")
             sage: dev._UI.append("y")
             sage: dev.push(remote_branch="u/doctest/branch1", force=True)
-            The branch "u/doctest/branch1" does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch "u/doctest/branch1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
             sage: dev.git.silent.reset('HEAD~', hard=True)
             sage: dev.remote_status()
             Ticket #1 (https://trac.sagemath.org/ticket/1)
@@ -2555,7 +2616,8 @@ class SageDev(MercurialPatchMixin):
         header = "Ticket #{0} ({1})".format(ticket, TRAC_SERVER_URI + '/ticket/' + str(ticket))
         underline = "="*len(header)
 
-        commits = lambda a, b: list(reversed(self.git.log("{0}..{1}".format(a,b), "--pretty=%an <%ae>: %s").splitlines()))
+        commits = lambda a, b: list(reversed(
+            self.git.log("{0}..{1}".format(a,b), "--pretty=%an <%ae>: %s").splitlines()))
 
         def detail(a, b, a_to_b, b_to_a):
             if not a_to_b and not b_to_a:
@@ -2565,7 +2627,10 @@ class SageDev(MercurialPatchMixin):
             elif not b_to_a:
                 return '"{0}" is ahead of "{1}" by {2} commits:\n{3}'.format(b,a,len(a_to_b),"\n".join(a_to_b))
             else:
-                return 'The branches "{0}" and "{1}" have diverged.\n"{0}" is ahead of "{1}" by {2} commits:\n{3}\n"{1}" is ahead of "{0}" by {4} commits:\n{5}'.format(a,b,len(b_to_a),"\n".join(b_to_a),len(a_to_b),"\n".join(a_to_b))
+                return ('The branches "{0}" and "{1}" have diverged.\n"{0}" is ahead of'
+                        ' "{1}" by {2} commits:\n{3}\n"{1}" is ahead of "{0}" by {4}'
+                        ' commits:\n{5}'.format(a, b, len(b_to_a), "\n".join(b_to_a), 
+                                                len(a_to_b), "\n".join(a_to_b)))
 
         branch = None
         merge_base_local = None
@@ -2743,8 +2808,8 @@ class SageDev(MercurialPatchMixin):
             #  editing.
             sage: UI.append("y")
             sage: dev.push()
-            The branch "u/doctest/ticket/1" does not exist on the remote server
-            yet. Do you want to create the branch? [Yes/no] y
+            The branch "u/doctest/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
             sage: dev.abandon(1)
             Cannot delete "ticket/1": is the current branch.
             <BLANKLINE>
@@ -2859,8 +2924,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev._UI.append("y")
             sage: dev._UI.append("y")
             sage: dev.push()
-            The branch "u/doctest/ticket/1" does not exist on the remote server
-            yet. Do you want to create the branch? [Yes/no] y
+            The branch "u/doctest/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
 
         Gather all these branches::
 
@@ -3017,7 +3082,8 @@ class SageDev(MercurialPatchMixin):
         When merging for a ticket, the branch on the trac ticket matters::
 
             sage: alice.merge("#1")
-            Can not merge remote branch for #1. No branch has been set on the trac ticket.
+            Cannot merge remote branch for #1 because no branch has been set on the trac
+            ticket.
             sage: alice.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
@@ -3025,8 +3091,8 @@ class SageDev(MercurialPatchMixin):
             #  editing.
             sage: alice._UI.append("y")
             sage: alice.push()
-            The branch "u/alice/ticket/1" does not exist on the remote server
-            yet. Do you want to create the branch? [Yes/no] y
+            The branch "u/alice/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
             sage: alice.checkout(ticket=2)
             On ticket #2 with associated local branch "ticket/2".
             <BLANKLINE>
@@ -3034,23 +3100,36 @@ class SageDev(MercurialPatchMixin):
             #  editing.
             sage: alice.merge("#1", pull=False)
             Merging the local branch "ticket/1" into the local branch "ticket/2".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
+            <BLANKLINE>
             Added dependency on #1 to #2.
 
         Check that merging dependencies works::
 
             sage: alice.merge("dependencies")
             Merging the remote branch "u/alice/ticket/1" into the local branch "ticket/2".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
 
         Merging local branches::
 
             sage: alice.merge("ticket/1")
             Merging the local branch "ticket/1" into the local branch "ticket/2".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
 
         A remote branch for a local branch is only merged in if ``pull`` is set::
 
             sage: alice._sagedev._set_remote_branch_for_branch("ticket/1", "nonexistant")
             sage: alice.merge("ticket/1")
             Merging the local branch "ticket/1" into the local branch "ticket/2".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
             sage: alice.merge("ticket/1", pull=True)
             ValueError: Branch "ticket/1" does not exist on the remote system.
 
@@ -3068,8 +3147,8 @@ class SageDev(MercurialPatchMixin):
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.push()
-            The branch "u/bob/ticket/1" does not exist on the remote server yet. Do you want
-            to create the branch? [Yes/no] y
+            The branch "u/bob/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
             The branch field of ticket #1 needs to be updated from its current value
             "u/alice/ticket/1" to "u/bob/ticket/1"
             Change the "Branch:" field? [Yes/no] y
@@ -3080,17 +3159,26 @@ class SageDev(MercurialPatchMixin):
             sage: alice._UI.append("abort")
             sage: alice.merge("#1")
             Merging the remote branch "u/bob/ticket/1" into the local branch "ticket/2".
-            There was an error during the merge. Most probably there were conflicts when merging. The following should make it clear which files are affected:
+            Automatic merge failed, there are conflicting commits.
+            <BLANKLINE>
             Auto-merging alice2
             CONFLICT (add/add): Merge conflict in alice2
-            Please fix conflicts in the affected files (in a different terminal) and type "resolved". Or type "abort" to abort the merge. [resolved/abort] abort
-            sage: alice._UI.append("resolved")
+            <BLANKLINE>
+            Please edit the affected files to resolve the conflicts. When you are finished,
+            your resolution will be commited.
+            Finished? [ok/Abort] abort
+            sage: alice._UI.append("ok")
             sage: alice.merge("#1")
             Merging the remote branch "u/bob/ticket/1" into the local branch "ticket/2".
-            There was an error during the merge. Most probably there were conflicts when merging. The following should make it clear which files are affected:
+            Automatic merge failed, there are conflicting commits.
+            <BLANKLINE>
             Auto-merging alice2
             CONFLICT (add/add): Merge conflict in alice2
-            Please fix conflicts in the affected files (in a different terminal) and type "resolved". Or type "abort" to abort the merge. [resolved/abort] resolved
+            <BLANKLINE>
+            Please edit the affected files to resolve the conflicts. When you are finished,
+            your resolution will be commited.
+            Finished? [ok/Abort] ok
+            Created a commit from your conflict resolution.
 
         We cannot merge a ticket into itself::
 
@@ -3116,7 +3204,7 @@ class SageDev(MercurialPatchMixin):
             self.clean()
         except OperationCancelledError:
             self._UI.error("Cannot merge because working directory is not in a clean state.")
-            self._UI.show(['', '#  (use "{0}" to commit your changes)'], 
+            self._UI.info(['', '(use "{0}" to commit your changes)'], 
                           self._format_command('commit'))
             raise OperationCancelledError("working directory not clean")
 
@@ -3160,9 +3248,11 @@ class SageDev(MercurialPatchMixin):
             if pull:
                 remote_branch = self.trac._branch_for_ticket(ticket)
                 if remote_branch is None:
-                    self._UI.error("Can not merge remote branch for #{0}. No branch has been set on the trac ticket.".format(ticket))
+                    self._UI.error("Cannot merge remote branch for #{0} because no branch has"
+                                   " been set on the trac ticket.", ticket)
                     raise OperationCancelledError("remote branch not set on trac")
-        elif pull == False or (pull is None and not self._is_remote_branch_name(ticket_or_branch, exists=True)):
+        elif pull == False or (pull is None and not 
+                               self._is_remote_branch_name(ticket_or_branch, exists=True)):
             # ticket_or_branch should be interpreted as a local branch name
             branch = ticket_or_branch
             self._check_local_branch_name(branch, exists=True)
@@ -3171,7 +3261,9 @@ class SageDev(MercurialPatchMixin):
                 if self._has_ticket_for_local_branch(branch):
                     ticket = self._ticket_for_local_branch(branch)
                 else:
-                    raise SageDevValueError('"create_dependency" must not be "True" if "ticket_or_branch" is a local branch which is not associated to a ticket.')
+                    raise SageDevValueError('"create_dependency" must not be "True" if'
+                                            ' "ticket_or_branch" is a local branch which'
+                                            ' is not associated to a ticket.')
             else:
                 create_dependency = False
         else:
@@ -3180,39 +3272,50 @@ class SageDev(MercurialPatchMixin):
             self._check_remote_branch_name(remote_branch, exists=True)
             pull = True
             if create_dependency == True:
-                raise SageDevValueError('"create_dependency" must not be "True" if "ticket_or_branch" is a local branch.')
+                raise SageDevValueError('"create_dependency" must not be "True" if'
+                                        ' "ticket_or_branch" is a local branch.')
             create_dependency = False
 
         if pull:
             assert remote_branch
             if not self._is_remote_branch_name(remote_branch, exists=True):
-                self._UI.error('Can not merge remote branch "{0}". It does not exist.'
-                               .format(remote_branch))
+                self._UI.error('Can not merge remote branch "{0}". It does not exist.',
+                               remote_branch)
                 raise OperationCancelledError("no such branch")
-            self._UI.show('Merging the remote branch "{0}" into the local branch "{1}".'
-                          .format(remote_branch, current_branch))
+            self._UI.show('Merging the remote branch "{0}" into the local branch "{1}".',
+                          remote_branch, current_branch)
             self.git.super_silent.fetch(self.git._repository_anonymous, remote_branch)
             local_merge_branch = 'FETCH_HEAD'
         else:
             assert branch
-            self._UI.show('Merging the local branch "{0}" into the local branch "{1}".'
-                          .format(branch, current_branch))
+            self._UI.show('Merging the local branch "{0}" into the local branch "{1}".',
+                          branch, current_branch)
             local_merge_branch = branch
 
         from git_error import GitError
         try:
             self.git.super_silent.merge(local_merge_branch)
+            self._UI.show('Automatic merge successful.')
+            self._UI.info(['', '(use "{0}" to commit your merge)'], 
+                          self._format_command('commit'))
         except GitError as e:
             try:
+                self._UI.show('Automatic merge failed, there are conflicting commits.')
+                excluded = ['Aborting', 
+                    "Automatic merge failed; fix conflicts and then commit the result."]
                 lines = e.stdout.splitlines() + e.stderr.splitlines()
-                lines = [line for line in lines if line != "Automatic merge failed; fix conflicts and then commit the result."]
-                lines.insert(0, "There was an error during the merge. Most probably there were conflicts when merging. The following should make it clear which files are affected:")
-                lines.append('Please fix conflicts in the affected files (in a different terminal) and type "resolved". Or type "abort" to abort the merge.')
-                if self._UI.select("\n".join(lines), ['resolved', 'abort']) == 'resolved':
+                lines = [line for line in lines if line not in excluded]
+                self._UI.show([''] + lines + [''])
+                self._UI.show('Please edit the affected files to resolve the conflicts.'
+                              ' When you are finished, your resolution will be commited.')
+                sel = self._UI.select("Finished?", ['ok', 'abort'], default=1)
+                if sel == 'ok':
                     self.git.silent.commit(a=True, no_edit=True)
-                    self._UI.debug("Created a commit from your conflict resolution.")
-                else:
+                    self._UI.show("Created a commit from your conflict resolution.")
+                elif sel == 'abort':
                     raise OperationCancelledError("user requested")
+                else:
+                    assert False
             except Exception as e:
                 self.git.reset_to_clean_state()
                 self.git.clean_wrapper()
@@ -3222,10 +3325,10 @@ class SageDev(MercurialPatchMixin):
             assert ticket and current_ticket
             dependencies = list(self._dependencies_for_ticket(current_ticket))
             if ticket in dependencies:
-                self._UI.debug("Not recording dependency on #{0} because #{1} already depends on #{0}."
-                              .format(ticket, current_ticket))
+                self._UI.debug("Not recording dependency on #{0} because #{1} already depends on #{0}.",
+                               ticket, current_ticket)
             else:
-                self._UI.show("Added dependency on #{0} to #{1}.".format(ticket, current_ticket))
+                self._UI.show(['', "Added dependency on #{0} to #{1}."], ticket, current_ticket)
                 self._set_dependencies_for_ticket(current_ticket, dependencies+[ticket])
 
     def tickets(self, include_abandoned=False, cached=True):
@@ -3432,7 +3535,8 @@ class SageDev(MercurialPatchMixin):
             #  editing.
             sage: UI.append("y")
             sage: dev.push()
-            The branch "u/doctest/ticket/1" does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch "u/doctest/ticket/1" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
@@ -3446,7 +3550,8 @@ class SageDev(MercurialPatchMixin):
             #  editing.
             sage: UI.append("y")
             sage: dev.push()
-            The branch "u/doctest/ticket/2" does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch "u/doctest/ticket/2" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #3 at https://trac.sagemath.org/3.
@@ -3460,12 +3565,21 @@ class SageDev(MercurialPatchMixin):
             #  editing.
             sage: UI.append("y")
             sage: dev.push()
-            The branch "u/doctest/ticket/3" does not exist on the remote server yet. Do you want to create the branch? [Yes/no] y
+            The branch "u/doctest/ticket/3" does not exist on the remote server.
+            Create new remote branch? [Yes/no] y
             sage: dev.merge("#1")
             Merging the remote branch "u/doctest/ticket/1" into the local branch "ticket/3".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
+            <BLANKLINE>
             Added dependency on #1 to #3.
             sage: dev.merge("#2")
             Merging the remote branch "u/doctest/ticket/2" into the local branch "ticket/3".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
+            <BLANKLINE>
             Added dependency on #2 to #3.
 
         Make some non-conflicting changes on the tickets::
@@ -3574,8 +3688,14 @@ class SageDev(MercurialPatchMixin):
             index ...
             sage: dev.merge("#1")
             Merging the remote branch "u/doctest/ticket/1" into the local branch "ticket/3".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
             sage: dev.merge("#2")
             Merging the remote branch "u/doctest/ticket/2" into the local branch "ticket/3".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
             sage: dev.diff("dependencies")
             diff --git a/ticket3 b/ticket3
             new file mode ...
@@ -3616,7 +3736,6 @@ class SageDev(MercurialPatchMixin):
             current_ticket = self._current_ticket()
             if current_ticket is None:
                 raise SageDevValueError("'dependencies' are only supported if currently on a ticket.")
-
             try:
                 self.reset_to_clean_state()
                 self.clean()
@@ -3785,9 +3904,17 @@ class SageDev(MercurialPatchMixin):
 
             sage: dev.merge('ticket/2',create_dependency=True)
             Merging the local branch "ticket/2" into the local branch "ticket/4".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
+            <BLANKLINE>
             Added dependency on #2 to #4.
             sage: dev.merge('ticket/3',create_dependency=True)
             Merging the local branch "ticket/3" into the local branch "ticket/4".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
+            <BLANKLINE>
             Added dependency on #3 to #4.
             sage: dev.checkout(ticket='#2')
             On ticket #2 with associated local branch "ticket/2".
@@ -3796,6 +3923,10 @@ class SageDev(MercurialPatchMixin):
             #  editing.
             sage: dev.merge('ticket/1', create_dependency=True)
             Merging the local branch "ticket/1" into the local branch "ticket/2".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
+            <BLANKLINE>
             Added dependency on #1 to #2.
             sage: dev.checkout(ticket='#3')
             On ticket #3 with associated local branch "ticket/3".
@@ -3804,6 +3935,10 @@ class SageDev(MercurialPatchMixin):
             #  editing.
             sage: dev.merge('ticket/1', create_dependency=True)
             Merging the local branch "ticket/1" into the local branch "ticket/3".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
+            <BLANKLINE>
             Added dependency on #1 to #3.
 
         Check that the dependencies show correctly::
@@ -4041,13 +4176,15 @@ class SageDev(MercurialPatchMixin):
 
             sage: dev.pull(ticket_or_remote_branch="master", branch="master")
             Merging the remote branch "master" into the local branch "master".
+            Automatic merge successful.
+            <BLANKLINE>
+            #  (use "sage --dev commit" to commit your merge)
             sage: dev._is_master_uptodate()
             True
             sage: dev._is_master_uptodate(action_if_not="warning")
             True
             sage: dev._is_master_uptodate(action_if_not="error")
             True
-
         """
         remote_master = self._remote_branch_for_branch(MASTER_BRANCH)
         if remote_master is not None:

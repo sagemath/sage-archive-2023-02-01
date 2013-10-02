@@ -100,7 +100,7 @@ def Set(X=frozenset()):
     We can also create sets from different types::
 
         sage: Set([Sequence([3,1], immutable=True), 5, QQ, Partition([3,1,1])])
-        {Rational Field, [3, 1, 1], [3, 1], 5}
+        {[3, 1, 1], [3, 1], 5, Rational Field}
 
     However each of the objects must be hashable::
 

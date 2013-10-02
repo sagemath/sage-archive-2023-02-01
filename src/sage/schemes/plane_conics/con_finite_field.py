@@ -86,7 +86,7 @@ class ProjectiveConic_finite_field(ProjectiveConic_field, ProjectiveCurve_finite
         or ``read_cache`` is False, then random `y`-coordinates are tried
         if ``self`` is smooth and a singular point is returned otherwise.
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: Conic(FiniteField(37), [1, 2, 3, 4, 5, 6]).has_rational_point()
             True
@@ -111,7 +111,7 @@ class ProjectiveConic_finite_field(ProjectiveConic_field, ProjectiveCurve_finite
             (True,
              (a^18 + 2*a^17 + 4*a^16 + 6*a^13 + a^12 + 6*a^11 + 3*a^10 + 4*a^9 + 2*a^8 + 4*a^7 + a^6 + 4*a^4 + 6*a^2 + 3*a + 6 : 5*a^19 + 5*a^18 + 5*a^17 + a^16 + 2*a^15 + 3*a^14 + 4*a^13 + 5*a^12 + a^11 + 3*a^10 + 2*a^8 + 3*a^7 + 4*a^6 + 4*a^5 + 6*a^3 + 5*a^2 + 2*a + 4 : 1))
 
-        TESTS ::
+        TESTS::
 
             sage: l = Sequence(cartesian_product_iterator([[0, 1] for i in range(6)]))
             sage: bigF = GF(next_prime(2^100))
@@ -121,7 +121,7 @@ class ProjectiveConic_finite_field(ProjectiveConic_field, ProjectiveCurve_finite
             sage: c = [Conic(a) for a in m if a != [0,0,0,0,0,0]]
             sage: assert all([C.has_rational_point() for C in c])
             sage: r = randrange(0, 5)
-            sage: assert all([C.defining_polynomial()(Sequence(C.has_rational_point(point = True)[1])) == 0 for C in c[r::5]]) # long time: 1.6 seconds
+            sage: assert all([C.defining_polynomial()(Sequence(C.has_rational_point(point = True)[1])) == 0 for C in c[r::5]])  # long time (1.4s on sage.math, 2013)
         """
         if not point:
             return True

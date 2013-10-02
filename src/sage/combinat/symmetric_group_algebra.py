@@ -23,9 +23,9 @@ from sage.categories.all import GroupAlgebras
 
 permutation_options = permutation.PermutationOptions
 
-def SymmetricGroupAlgebra(R,n):
+def SymmetricGroupAlgebra(R, n):
     """
-    Returns the symmetric group algebra of order n over R.
+    Return the symmetric group algebra of order ``n`` over the ring ``R``.
 
     EXAMPLES::
 
@@ -51,7 +51,7 @@ def SymmetricGroupAlgebra(R,n):
         True
 
     The canonical embedding from the symmetric group algebra of order
-    `n` to the symmetric group algebra of order `p>n` is available as
+    `n` to the symmetric group algebra of order `p > n` is available as
     a coercion::
 
         sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
@@ -98,8 +98,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         TESTS::
 
             sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
-            sage: QS3 is loads(dumps(QS3))
-            True
+            sage: TestSuite(QS3).run()
         """
         self.n = n
         self._name = "Symmetric group algebra of order %s"%self.n
@@ -114,9 +113,9 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
     def group(self):
         """
-        Returns the underlying group
+        Return the underlying group.
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: SymmetricGroupAlgebra(QQ,4).group()
             Symmetric group of order 4! as a permutation group
@@ -126,8 +125,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
     @cached_method
     def one_basis(self):
         """
-        Returns the identity of the symmetric group, as per
-        ``AlgebrasWithBasis.ParentMethods.one_basis``
+        Return the identity of the symmetric group, as per
+        ``AlgebrasWithBasis.ParentMethods.one_basis``.
 
         EXAMPLES::
 
@@ -139,8 +138,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
     def product_on_basis(self, left, right):
         """
-        Returns the product of the basis elements indexed by left and
-        right.
+        Return the product of the basis elements indexed by ``left`` and
+        ``right``.
 
         EXAMPLES::
 
@@ -154,12 +153,12 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
     def canonical_embedding(self, other):
         """
-        INPUTS:
+        Return the canonical embedding of ``self`` into ``other``.
 
-         - ``self``, ``other`` -- two symmetric group algebras with respective
-           order 'p < n'
+        INPUT:
 
-        Returns the canonical embedding of self into other
+        - ``other`` -- a symmetric group algebra with order `p`
+          satisfying `p \leq n` where `n` is the order of ``self``.
 
         EXAMPLES::
 
@@ -179,15 +178,15 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
               From: Symmetric group algebra of order 2 over Rational Field
               To:   Symmetric group algebra of order 4 over Rational Field
         """
-        assert isinstance(other, SymmetricGroupAlgebra_n)
-        assert self.n < other.n
+        if not isinstance(other, SymmetricGroupAlgebra_n) or self.n > other.n:
+            raise ValueError("There is no canonical embedding from {0} to {1}".format(other, self))
         return self.module_morphism(other.monomial_from_smaller_permutation, codomain = other) # category = self.category() (currently broken)
 
     def monomial_from_smaller_permutation(self, permutation):
         """
-        Converts the input into a permutation, possibly extending it
-        to the appropriate size, and returns the corresponding basis
-        element.
+        Convert ``permutation`` into a permutation, possibly extending it
+        to the appropriate size, and return the corresponding basis
+        element of ``self``.
 
         EXAMPLES::
 
@@ -229,7 +228,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
     def cpis(self):
         """
-        Returns a list of the centrally primitive idempotents.
+        Return a list of the centrally primitive idempotents of
+        ``self``.
 
         EXAMPLES::
 
@@ -244,9 +244,9 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
     def cpi(self, p):
         """
-        Returns the centrally primitive idempotent for the symmetric group
-        of order n for the irreducible corresponding indexed by the
-        partition p.
+        Return the centrally primitive idempotent for the symmetric group
+        of order `n` corresponding to the irreducible representation
+        indexed by the partition ``p``.
 
         EXAMPLES::
 
@@ -257,44 +257,70 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             1/6*[1, 2, 3] + 1/6*[1, 3, 2] + 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] + 1/6*[3, 2, 1]
             sage: QS3.cpi([1,1,1])
             1/6*[1, 2, 3] - 1/6*[1, 3, 2] - 1/6*[2, 1, 3] + 1/6*[2, 3, 1] + 1/6*[3, 1, 2] - 1/6*[3, 2, 1]
+
+            sage: QS0 = SymmetricGroupAlgebra(QQ, 0)
+            sage: QS0.cpi(Partition([]))
+            []
+
+        TESTS::
+
+            sage: QS3.cpi([2,2])
+            Traceback (most recent call last):
+            ...
+            TypeError: p (= [2, 2]) must be a partition of n (= 3)
         """
         if p not in partition.Partitions_n(self.n):
-            raise TypeError, "p must be a partition of %s"%self.n
+            raise TypeError("p (= {p}) must be a partition of n (= {n})".format(p=p, n=self.n))
 
         character_table = eval(gap.eval("Display(Irr(SymmetricGroup(%d)));"%self.n))
 
-        cpi = self(0)
+        cpi = self.zero()
 
         np = partition.Partitions_n(self.n).list()
         np.reverse()
         p_index = np.index(p)
 
-        big_coeff = character_table[p_index][0]/factorial(self.n)
+        big_coeff = character_table[p_index][0] / factorial(self.n)
 
-        for g in permutation.StandardPermutations_n(self.n):
-            cpi += big_coeff * character_table[p_index][np.index(g.inverse().cycle_type())] * self(g)
+        character_row = character_table[p_index]
+        dct = { g : big_coeff * character_row[np.index(g.cycle_type())]
+                for g in permutation.StandardPermutations_n(self.n) }
 
-        return cpi
+        return self._from_dict(dct)
 
     def algebra_generators(self):
         r"""
-        Returns generators of this group algebra (as algebra).
+        Return generators of this group algebra (as algebra) as a
+        list of permutations.
+
+        The generators used for the group algebra of `S_n` are the
+        transposition `(2, 1)` and the `n`-cycle `(1, 2, \ldots, n)`,
+        unless `n \leq 1` (in which case no generators are needed).
 
         EXAMPLES::
 
             sage: SymmetricGroupAlgebra(ZZ,5).algebra_generators()
             [[2, 1, 3, 4, 5], [2, 3, 4, 5, 1]]
+
+            sage: SymmetricGroupAlgebra(QQ,0).algebra_generators()
+            []
+
+            sage: SymmetricGroupAlgebra(QQ,1).algebra_generators()
+            []
         """
-        a=range(1,self.n+1)
-        a[0]=2
-        a[1]=1
-        b=range(2,self.n+2)
-        b[self.n-1]=1
-        return [self(a),self(b)]
+        if self.n <= 1:
+            return []
+        a = range(1, self.n+1)
+        a[0] = 2
+        a[1] = 1
+        b = range(2, self.n+2)
+        b[self.n-1] = 1
+        return [self(a), self(b)]
 
     def _conjugacy_classes_representatives_underlying_group(self):
         r"""
-        Returns a complete list of representatives of conjugacy classes of the underlying symmetric group
+        Return a complete list of representatives of conjugacy
+        classes of the underlying symmetric group.
 
         EXAMPLES::
 
@@ -306,12 +332,15 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
     def jucys_murphy(self, k):
         """
-        Returns the Jucys-Murphy element J_k for the symmetric group
-        algebra.
+        Return the Jucys-Murphy element `J_k` (also known as a
+        Young-Jucys-Murphy element) for the symmetric group
+        algebra ``self``.
 
         EXAMPLES::
 
             sage: QS3 = SymmetricGroupAlgebra(QQ, 3)
+            sage: QS3.jucys_murphy(1)
+            0
             sage: QS3.jucys_murphy(2)
             [2, 1, 3]
             sage: QS3.jucys_murphy(3)
@@ -329,11 +358,17 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
             sage: QS5.jucys_murphy(4)
             [1, 2, 4, 3, 5] + [1, 4, 3, 2, 5] + [4, 2, 3, 1, 5]
 
-        """
-        res = self(0)
+        TESTS::
 
-        if k < 2 or k > self.n:
-            raise ValueError, "k must between 2 and n (inclusive)"
+            sage: QS3.jucys_murphy(4)
+            Traceback (most recent call last):
+            ...
+            ValueError: k (= 4) must be between 1 and n (= 3) (inclusive)
+        """
+        res = self.zero()
+
+        if k < 1 or k > self.n:
+            raise ValueError("k (= {k}) must be between 1 and n (= {n}) (inclusive)".format(k=k, n=self.n))
 
         for i in range(1, k):
             p = range(1, self.n+1)
@@ -346,7 +381,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
     def seminormal_basis(self):
         """
-        Returns a list of the seminormal basis elements of self.
+        Return a list of the seminormal basis elements of ``self``.
 
         EXAMPLES::
 
@@ -370,7 +405,7 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
     def dft(self, form="seminormal"):
         """
-        Returns the discrete Fourier transform for self.
+        Return the discrete Fourier transform for ``self``.
 
         EXAMPLES::
 
@@ -386,11 +421,11 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         if form == "seminormal":
             return self._dft_seminormal()
         else:
-            raise ValueError, "invalid form (= %s)"%form
+            raise ValueError("invalid form (= %s)"%form)
 
     def _dft_seminormal(self):
         """
-        Returns the seminormal form of the discrete Fourier for self.
+        Return the seminormal form of the discrete Fourier for ``self``.
 
         EXAMPLES::
 
@@ -413,8 +448,8 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
 
     def epsilon_ik(self, itab, ktab, star=0):
         """
-        Returns the seminormal basis element of self corresponding to the
-        pair of tableaux itab and ktab.
+        Return the seminormal basis element of ``self`` corresponding to the
+        pair of tableaux ``itab`` and ``ktab``.
 
         EXAMPLES::
 
@@ -434,13 +469,13 @@ class SymmetricGroupAlgebra_n(CombinatorialFreeModule):
         stn = StandardTableaux_size(self.n)
 
         if it not in stn:
-            raise TypeError, "it must be a standard tableaux of size %s"%self.n
+            raise TypeError("it must be a standard tableau of size %s"%self.n)
 
         if kt not in stn:
-            raise TypeError, "kt must be a standard tableaux of size %s"%self.n
+            raise TypeError("kt must be a standard tableau of size %s"%self.n)
 
         if it.shape() != kt.shape():
-            raise ValueError, "it and kt must be of the same shape"
+            raise ValueError("it and kt must be of the same shape")
 
         BR = self.base_ring()
         z_elts = {}
@@ -475,7 +510,7 @@ def epsilon_ik(itab, ktab, star=0):
         kt = kt.restrict(kt.size() - star)
 
     if it.shape() != kt.shape():
-        raise ValueError, "the two tableaux must be of the same shape"
+        raise ValueError("the two tableaux must be of the same shape")
 
     mult = permutation_options['mult']
     permutation_options['mult'] = 'l2r'
@@ -550,7 +585,7 @@ def pi_ik(itab, ktab):
 
 def kappa(alpha):
     r"""
-    Returns `\kappa_\alpha` which is n! divided by the number
+    Return `\kappa_\alpha`, which is `n!` divided by the number
     of standard tableaux of shape `\alpha`.
 
     EXAMPLES::
@@ -565,13 +600,135 @@ def kappa(alpha):
         n = alpha.size()
     except AttributeError:
         n = sum(alpha)
-    return factorial(n)/StandardTableaux(alpha).cardinality()
+    return factorial(n) / StandardTableaux(alpha).cardinality()
 
+
+def a(tableau, star=0):
+    r"""
+    The row projection operator corresponding to the Young tableau
+    ``tableau`` (which is supposed to contain every integer from
+    `1` to its size precisely once, but may and may not be standard).
+
+    This is the sum (in the group algebra of the relevant symmetric
+    group over `\QQ`) of all the permutations which preserve
+    the rows of ``tableau``. It is called `a_{\text{tableau}}` in
+    [EtRT]_, Section 4.2.
+
+    REFERENCES:
+
+    .. [EtRT] Pavel Etingof, Oleg Golberg, Sebastian Hensel, Tiankai
+       Liu, Alex Schwendner, Dmitry Vaintrob, Elena Yudovina,
+       "Introduction to representation theory",
+       :arXiv:`0901.0827v5`.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.symmetric_group_algebra import a
+        sage: a([[1,2]])
+        [1, 2] + [2, 1]
+        sage: a([[1],[2]])
+        [1, 2]
+        sage: a([])
+        []
+        sage: a([[1, 5], [2, 3], [4]])
+        [1, 2, 3, 4, 5] + [1, 3, 2, 4, 5] + [5, 2, 3, 4, 1] + [5, 3, 2, 4, 1]
+    """
+    t = Tableau(tableau)
+    if star:
+        t = t.restrict(t.size()-star)
+
+    rs = t.row_stabilizer().list()
+    n = t.size()
+
+    # This all should be over ZZ, not over QQ, but symmetric group
+    # algebras don't seem to preserve coercion (the one over ZZ
+    # doesn't coerce into the one over QQ even for the same n),
+    # and the QQ version of this method is more important, so let
+    # me stay with QQ.
+    # TODO: Fix this.
+    sgalg = SymmetricGroupAlgebra(QQ, n)
+    one = QQ.one()
+    P = permutation.Permutation
+
+    # Ugly hack for the case of an empty tableau, due to the
+    # annoyance of Permutation(Tableau([]).row_stabilizer()[0])
+    # being [1] rather than [] (which seems to have its origins in
+    # permutation group code).
+    # TODO: Fix this.
+    if len(tableau) == 0:
+        return sgalg.one()
+
+    rd = dict((P(h), one) for h in rs)
+    return sgalg._from_dict(rd)
+
+def b(tableau, star=0):
+    r"""
+    The column projection operator corresponding to the Young tableau
+    ``tableau`` (which is supposed to contain every integer from
+    `1` to its size precisely once, but may and may not be standard).
+
+    This is the signed sum (in the group algebra of the relevant
+    symmetric group over `\QQ`) of all the permutations which
+    preserve the column of ``tableau`` (where the signs are the usual
+    signs of the permutations). It is called `b_{\text{tableau}}` in
+    [EtRT]_, Section 4.2.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.symmetric_group_algebra import b
+        sage: b([[1,2]])
+        [1, 2]
+        sage: b([[1],[2]])
+        [1, 2] - [2, 1]
+        sage: b([])
+        []
+        sage: b([[1, 2, 4], [5, 3]])
+        [1, 2, 3, 4, 5] - [1, 3, 2, 4, 5] - [5, 2, 3, 4, 1] + [5, 3, 2, 4, 1]
+
+    With the `l2r` setting for multiplication, the unnormalized
+    Young symmetrizer ``e(tableau)`` should be the product
+    ``b(tableau) * a(tableau)`` for every ``tableau``. Let us check
+    this on the standard tableaux of size 5::
+
+        sage: from sage.combinat.symmetric_group_algebra import a, b, e
+        sage: all( e(t) == b(t) * a(t) for t in StandardTableaux(5) )
+        True
+    """
+    t = Tableau(tableau)
+    if star:
+        t = t.restrict(t.size()-star)
+
+    cs = t.column_stabilizer().list()
+    n = t.size()
+
+    # This all should be over ZZ, not over QQ, but symmetric group
+    # algebras don't seem to preserve coercion (the one over ZZ
+    # doesn't coerce into the one over QQ even for the same n),
+    # and the QQ version of this method is more important, so let
+    # me stay with QQ.
+    # TODO: Fix this.
+    sgalg = SymmetricGroupAlgebra(QQ, n)
+    one = QQ.one()
+    P = permutation.Permutation
+
+    # Ugly hack for the case of an empty tableau, due to the
+    # annoyance of Permutation(Tableau([]).row_stabilizer()[0])
+    # being [1] rather than [] (which seems to have its origins in
+    # permutation group code).
+    # TODO: Fix this.
+    if len(tableau) == 0:
+        return sgalg.one()
+
+    cd = dict((P(v), v.sign()*one) for v in cs)
+    return sgalg._from_dict(cd)
 
 e_cache = {}
 def e(tableau, star=0):
     """
-    The unnormalized Young projection operator.
+    The unnormalized Young projection operator corresponding to
+    the Young tableau ``tableau`` (which is supposed to contain
+    every integer from `1` to its size precisely once, but may
+    and may not be standard).
 
     EXAMPLES::
 
@@ -580,6 +737,8 @@ def e(tableau, star=0):
         [1, 2] + [2, 1]
         sage: e([[1],[2]])
         [1, 2] - [2, 1]
+        sage: e([])
+        []
 
     There are differing conventions for the order of the symmetrizers
     and antisymmetrizers.  This example illustrates our conventions::
@@ -602,7 +761,7 @@ def e(tableau, star=0):
         n = t.size()
 
         QSn = SymmetricGroupAlgebra(QQ, n)
-        one = QQ(1)
+        one = QQ.one()
         P = permutation.Permutation
 
         rd = dict((P(h), one) for h in rs)
@@ -613,15 +772,27 @@ def e(tableau, star=0):
 
         res = antisym*sym
 
+        # Ugly hack for the case of an empty tableau, due to the
+        # annoyance of Permutation(Tableau([]).row_stabilizer()[0])
+        # being [1] rather than [] (which seems to have its origins in
+        # permutation group code).
+        # TODO: Fix this.
+        if len(tableau) == 0:
+            res = QSn.one()
+
         e_cache[t] = res
 
     permutation_options['mult'] = mult
+
     return res
 
 ehat_cache = {}
 def e_hat(tab, star=0):
     """
-    The Young projection operator, an idempotent in the rational group algebra.
+    The Young projection operator corresponding to the Young tableau
+    ``tab`` (which is supposed to contain every integer from `1` to
+    its size precisely once, but may and may not be standard). This
+    is an idempotent in the rational group algebra.
 
     EXAMPLES::
 
@@ -664,7 +835,7 @@ def e_ik(itab, ktab, star=0):
         kt = kt.restrict(kt.size() - star)
 
     if it.shape() != kt.shape():
-        raise ValueError, "the two tableaux must be of the same shape"
+        raise ValueError("the two tableaux must be of the same shape")
 
     mult = permutation_options['mult']
     permutation_options['mult'] = 'l2r'
@@ -699,22 +870,22 @@ def seminormal_test(n):
         for tab in StandardTableaux(part):
             #3.1.10
             if not e(tab)*(1/kappa(part)) - e_hat(tab) == 0:
-                raise ValueError, "3.1.10 - %s"%tab
+                raise ValueError("3.1.10 - %s"%tab)
 
             #3.2.12.2
             value = e(tab)*epsilon(tab,1)*e(tab) - e(tab)*(kappa(part))
             if value != 0:
                 print value
-                raise ValueError, "3.2.12.2 - %s"%tab
+                raise ValueError("3.2.12.2 - %s"%tab)
 
             for tab2 in StandardTableaux(part):
                 #3.2.8 1
                 if e_ik(tab, tab2) - e(tab)*pi_ik(tab, tab2)*e(tab2)*(1/kappa(part)) != 0:
-                    raise ValueError, "3.2.8.1 - %s, %s"%(tab, tab2)
+                    raise ValueError("3.2.8.1 - %s, %s"%(tab, tab2))
 
                 #3.2.8.1
                 if e(tab)*e_ik(tab, tab2) - e_ik(tab, tab2)*(kappa(part)) != 0:
-                    raise ValueError, "3.2.8.2 - %s, %s"%(tab, tab2)
+                    raise ValueError("3.2.8.2 - %s, %s"%(tab, tab2))
 
                 if tab == tab2:
                     continue
@@ -722,9 +893,9 @@ def seminormal_test(n):
                 if tab.last_letter_lequal(tab2):
                     #3.1.20
                     if e(tab2)*e(tab) != 0:
-                        raise ValueError, "3.1.20 - %s, %s"%(tab, tab2)
+                        raise ValueError("3.1.20 - %s, %s"%(tab, tab2))
                     if e_hat(tab2)*e_hat(tab) != 0:
-                        raise ValueError, "3.1.20 - %s, %s"%(tab, tab2)
+                        raise ValueError("3.1.20 - %s, %s"%(tab, tab2))
     return True
 
 #######################
@@ -732,7 +903,7 @@ def seminormal_test(n):
 
 def HeckeAlgebraSymmetricGroupT(R, n, q=None):
     """
-    Returns the Hecke algebra of the symmetric group on the T basis.
+    Return the Hecke algebra of the symmetric group on the T basis.
 
     EXAMPLES::
 
@@ -770,7 +941,7 @@ class HeckeAlgebraSymmetricGroup_generic(CombinatorialAlgebra):
             R = q.parent()
         else:
             if q not in R:
-                raise ValueError, "q must be in R (= %s)"%R
+                raise ValueError("q must be in R (= %s)"%R)
             self._name += " with q=%s"%q
 
         self._q = q
@@ -840,7 +1011,8 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
             T[1, 2, 3]
         """
         if i not in range(1, self.n):
-            raise ValueError, "i must be between 1 and n (= %s)"%self.n
+            raise ValueError("i (= %(i)d) must be between 1 and n (= %(n)d)" % {'i': i, 'n': self.n})
+
         t_i = permutation.Permutation( (i, i+1) )
         perm_i = t_i * perm
 
@@ -903,10 +1075,10 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
             sage: H3.t(0)
             Traceback (most recent call last):
             ...
-            ValueError: i must be between 1 and n-1 (= 2)
+            ValueError: i (= 0) must be between 1 and n-1 (= 2)
         """
         if i not in range(1, self.n):
-            raise ValueError, "i must be between 1 and n-1 (= %s)"%(self.n-1)
+            raise ValueError("i (= %(i)d) must be between 1 and n-1 (= %(nm)d)" % {'i': i, 'nm': self.n - 1})
 
         return self.monomial(self.basis().keys()(permutation.Permutation( (i, i+1) ) ))
 
@@ -923,7 +1095,7 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
 
     def jucys_murphy(self, k):
         """
-        Returns the Jucys-Murphy element J_k of the Hecke algebra. The
+        Return the Jucys-Murphy element `J_k` of the Hecke algebra. The
         Jucys-Murphy elements generate the maximal commutative sub-algebra
         of the Hecke algebra.
 
@@ -932,17 +1104,21 @@ class HeckeAlgebraSymmetricGroup_t(HeckeAlgebraSymmetricGroup_generic):
             sage: H3 = HeckeAlgebraSymmetricGroupT(QQ,3)
             sage: j2 = H3.jucys_murphy(2); j2
             q*T[1, 2, 3] + (q-1)*T[2, 1, 3]
-            sage: j3 = H3.jucys_murphy(3); j3 #################### SEGFAULTS ################
+            sage: j3 = H3.jucys_murphy(3); j3
             q^2*T[1, 2, 3] + (q^2-q)*T[1, 3, 2] + (q-1)*T[3, 2, 1]
             sage: j2*j3 == j3*j2
             True
-            sage: H3.jucys_murphy(1)
+            sage: j0 = H3.jucys_murphy(1); j0 == H3.one()
+            True
+            sage: H3.jucys_murphy(0)
             Traceback (most recent call last):
             ...
-            ValueError: k must be between 2 and n (= 3)
+            ValueError: k (= 0) must be between 1 and n (= 3)
         """
         if k not in range(2, self.n+1):
-            raise ValueError, "k must be between 2 and n (= %s)"%self.n
+            if k == 1:
+                return self.one()
+            raise ValueError("k (= %(k)d) must be between 1 and n (= %(n)d)" % {'k': k, 'n': self.n})
 
         left = 1
         right = 1

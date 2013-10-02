@@ -79,7 +79,7 @@ class Config(collections.MutableMapping):
             sage: from sage.dev.test.config import DoctestConfig
             sage: c = DoctestConfig()
             sage: repr(c)
-            "Config('''\n[trac]\nusername = doctest\n[UI]\nlog_level = 0\n[git]...\n[sagedev]\n''')"
+            "Config('''\n[trac]\n...\n[UI]\n...\n[git]...\n[sagedev]\n''')"
 
         """
         return "Config('''\n"+"".join([ "[%s]\n"%s+"".join(["%s = %s\n"%(o,self[s][o]) for o in self[s] ]) for s in self ])+"''')"
@@ -100,6 +100,7 @@ class Config(collections.MutableMapping):
             Config('''
             [trac]
             username = doctest
+            ticket_cache = ...
             [UI]
             ...
             [git]
@@ -112,6 +113,7 @@ class Config(collections.MutableMapping):
             Config('''
             [trac]
             username = foo
+            ticket_cache = ...
             [UI]
             ...
             [git]
@@ -159,6 +161,7 @@ class Config(collections.MutableMapping):
             sage: c['trac']
             IndexableForSection('''
             username = doctest
+            ticket_cache = ...
             ''')
             sage: c['tig']
             Traceback (most recent call last):
@@ -180,6 +183,7 @@ class Config(collections.MutableMapping):
                 sage: c["trac"]
                 IndexableForSection('''
                 username = doctest
+                ticket_cache = ...
                 ''')
 
             """
@@ -208,6 +212,7 @@ class Config(collections.MutableMapping):
                     sage: c["trac"]
                     IndexableForSection('''
                     username = doctest
+                    ticket_cache = ...
                     ''')
 
                 """
@@ -244,7 +249,7 @@ class Config(collections.MutableMapping):
                     sage: from sage.dev.test.config import DoctestConfig
                     sage: c = DoctestConfig()
                     sage: list(c["trac"])
-                    ['username']
+                    ['username', 'ticket_cache']
 
                 """
                 return iter(self._config.options(this._section))
@@ -292,7 +297,7 @@ class Config(collections.MutableMapping):
                     sage: from sage.dev.test.config import DoctestConfig
                     sage: c = DoctestConfig()
                     sage: len(c["trac"])
-                    1
+                    2
 
                 """
                 return len(self._config.options(this._section))
@@ -394,9 +399,11 @@ class Config(collections.MutableMapping):
             Config('''
             [trac]
             username = doctest
+            ticket_cache = ...
             [UI]
             log_level = 0
             [git]
+            ssh_key_set = True
             repository_anonymous = remote_repository_undefined
             repository = remote_repository_undefined
             src = ...
@@ -409,6 +416,7 @@ class Config(collections.MutableMapping):
             Config('''
             [trac]
             username = doctest
+            ticket_cache = ...
             [UI]
             log_level = 0
             [sagedev]

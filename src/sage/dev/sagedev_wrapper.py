@@ -18,6 +18,18 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+obsolete_commands = {
+    "add_comment": "comment",
+    "switch_branch": "checkout",
+    "download": "pull",
+    "upload": "push",
+    "switch_ticket": "checkout",
+    "set_needs_work": "needs_work",
+    "set_needs_review": "needs_review",
+    "set_needs_info": "needs_info",
+    "set_positive_review": "positive_review",
+}
+
 class SageDevWrapper(object):
     r"""
     Wrap a :class:`sagedev.SageDev` and its public methods.
@@ -25,13 +37,13 @@ class SageDevWrapper(object):
     The need for this wrapper arises from the following problem:
     Some methods of :class:`sagedev.SageDev` call other public methods of
     :class:`sagedev.SageDev`, for example,
-    :meth:`sagedev.SageDev.switch_ticket` relies on
-    :meth:`sagedev.SageDev.download` in some cases. If an error occurs in
-    :meth:`sagedev.SageDev.download` such as an
+    :meth:`sagedev.SageDev.checkout` relies on
+    :meth:`sagedev.SageDev.pull` in some cases. If an error occurs in
+    :meth:`sagedev.SageDev.pull` such as an
     :class:`user_interface.OperationCancelledError`,
-    :meth:`sagedev.SageDev.download` must reraise that error so that
-    :meth:`sagedev.SageDev.switch_ticket` can do the necessary cleanup.
-    However, if the user called :meth:`sagedev.SageDev.download` directly, then
+    :meth:`sagedev.SageDev.pull` must reraise that error so that
+    :meth:`sagedev.SageDev.checkout` can do the necessary cleanup.
+    However, if the user called :meth:`sagedev.SageDev.pull` directly, then
     the error should not be reraised: the user opted to cancel this operation
     and should not be bothered with an exception message. This wrapper takes
     care of getting this right.
@@ -85,11 +97,11 @@ class SageDevWrapper(object):
         self._sagedev = sagedev
 
         self._wrap("abandon")
-        self._wrap("add_comment")
+        self._wrap("comment")
         self._wrap("commit")
         self._wrap("create_ticket")
         self._wrap("diff")
-        self._wrap("download")
+        self._wrap("pull")
         self._wrap("download_patch")
         self._wrap("edit_ticket")
         self._wrap("gather")
@@ -98,23 +110,50 @@ class SageDevWrapper(object):
         self._wrap("merge")
         self._wrap("prune_closed_tickets")
         self._wrap("remote_status")
-        self._wrap("reset_to_clean_state")
         self._wrap("reset_to_clean_working_directory")
         self._wrap("set_remote")
         self._wrap("show_dependencies")
-        self._wrap("switch_branch")
-        self._wrap("switch_ticket")
+        self._wrap("checkout")
         self._wrap("unstash")
-        self._wrap("upload")
+        self._wrap("push")
         self._wrap("upload_ssh_key")
         self._wrap("vanilla")
-        self._wrap("set_needs_work")
-        self._wrap("set_needs_review")
-        self._wrap("set_needs_info")
-        self._wrap("set_positive_review")
+        self._wrap("needs_work")
+        self._wrap("needs_review")
+        self._wrap("needs_info")
+        self._wrap("positive_review")
+
+        for old_command,new_command in obsolete_commands.items():
+            self._obsolete(old_command, new_command)
 
         self.git = sagedev.git
         self.trac = sagedev.trac
+
+    def _obsolete(self, old_method, new_method):
+        r"""
+        Create a method `old_method` which tells the user that `old_method`
+        does not exist anymore and has been replaced by `new_method`.
+
+        EXAMPLES::
+
+            sage: dev.obsolete
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'SageDevWrapper' object has no attribute 'obsolete'
+            sage: dev._obsolete("obsolete", "not_obsolete")
+            sage: dev.obsolete
+            <function wrapped at 0x...>
+
+        """
+        def wrap():
+            from sage.misc.decorators import sage_wraps
+            doc = "The command `{0}` does not exist anymore. Please use `{1}` instead.".format(self._sagedev._format_command(old_method), self._sagedev._format_command(new_method))
+            def wrapped(*args, **kwargs):
+                self._sagedev._UI.error(doc)
+            wrapped.__doc__ = doc
+            return wrapped
+
+        setattr(self, old_method, wrap())
 
     def _wrap(self, method):
         r"""

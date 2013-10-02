@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
-Chessboard Graphs Generators
-============================
+Chessboard Graphs
+
+The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 
 - :meth:`BishopGraph <GraphGenerators.BishopGraph>`
 - :meth:`KingGraph <GraphGenerators.KingGraph>`
@@ -12,7 +13,6 @@ Chessboard Graphs Generators
 AUTHORS:
 
 - David Coudert    (2012)
-
 """
 
 ################################################################################
@@ -21,10 +21,6 @@ AUTHORS:
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ################################################################################
-
-###########################################################################
-# Chessboard graphs
-###########################################################################
 
 def ChessboardGraphGenerator(dim_list,
                              rook = True,    rook_radius = None,
@@ -289,13 +285,13 @@ def QueenGraph(dim_list, radius=None, relabel=False):
     The Queen Graph can be obtained from the Rook Graph and the Bishop Graph::
 
         sage: for d in xrange(3,12):   # long time
-        ...       for r in xrange(1,d+1):
-        ...           G = graphs.QueenGraph([d,d],radius=r)
-        ...           H = graphs.RookGraph([d,d],radius=r)
-        ...           B = graphs.BishopGraph([d,d],radius=r)
-        ...           H.add_edges(B.edges())
-        ...           if not G.is_isomorphic(H):
-        ...              print "that's not good!"
+        ....:     for r in xrange(1,d+1):
+        ....:         G = graphs.QueenGraph([d,d],radius=r)
+        ....:         H = graphs.RookGraph([d,d],radius=r)
+        ....:         B = graphs.BishopGraph([d,d],radius=r)
+        ....:         H.add_edges(B.edges())
+        ....:         if not G.is_isomorphic(H):
+        ....:            print "that's not good!"
 
     """
     G, dimstr = ChessboardGraphGenerator(dim_list,
@@ -524,12 +520,12 @@ def BishopGraph(dim_list, radius=None, relabel=False):
     The Bishop Graph can be obtained from Knight Graphs::
 
         sage: for d in xrange(3,12):   # long time
-        ...       H = Graph()
-        ...       for r in xrange(1,d+1):
-        ...           B = graphs.BishopGraph([d,d],radius=r)
-        ...           H.add_edges( graphs.KnightGraph([d,d],one=r,two=r).edges() )
-        ...           if not B.is_isomorphic(H):
-        ...              print "that's not good!"
+        ....:     H = Graph()
+        ....:     for r in xrange(1,d+1):
+        ....:         B = graphs.BishopGraph([d,d],radius=r)
+        ....:         H.add_edges( graphs.KnightGraph([d,d],one=r,two=r).edges() )
+        ....:         if not B.is_isomorphic(H):
+        ....:            print "that's not good!"
 
     """
     G, dimstr = ChessboardGraphGenerator(dim_list,

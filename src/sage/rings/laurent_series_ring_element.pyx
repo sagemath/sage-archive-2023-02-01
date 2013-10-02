@@ -982,14 +982,33 @@ cdef class LaurentSeries(AlgebraElement):
         """
         EXAMPLES::
 
-            sage: x = Frac(QQ[['x']]).0
+            sage: R.<x> = LaurentSeriesRing(QQ)
             sage: f = 1/x + x^2 + 3*x^4 + O(x^7)
             sage: g = 1 - x + x^2 - x^4 + O(x^8)
             sage: f.valuation()
             -1
             sage: g.valuation()
             0
+
+        Note that the valuation of an element undistinguishable from
+        zero is infinite::
+
+            sage: h = f - f; h
+            O(x^7)
+            sage: h.valuation()
+            +Infinity
+
+        TESTS:
+
+        The valuation of the zero element is ``+Infinity``
+        (see :trac:`15088`)::
+
+            sage: zero = R(0)
+            sage: zero.valuation()
+            +Infinity
         """
+        if self.is_zero():
+            return infinity
         return self.__n
 
     def variable(self):

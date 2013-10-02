@@ -41,9 +41,11 @@ class DoctestConfig(sage.dev.config.Config):
         Config('''
         [trac]
         username = doctest
+        ticket_cache = ...
         [UI]
         log_level = 0
         [git]
+        ssh_key_set = True
         repository_anonymous = remote_repository_undefined
         repository = remote_repository_undefined
         src = ...
@@ -71,13 +73,14 @@ class DoctestConfig(sage.dev.config.Config):
 
         self['trac'] = {'username': trac_username}
         self['UI'] = {'log_level': 0}
-        self['git'] = {}
+        self['git'] = {'ssh_key_set': "True"}
         self['sagedev'] = {}
 
         self['git']['repository_anonymous'] = self['git']['repository'] = repository if repository else "remote_repository_undefined"
 
         self._tmp_dir = tempfile.mkdtemp()
         atexit.register(shutil.rmtree, self._tmp_dir)
+        self['trac']['ticket_cache'] = os.path.join(self._tmp_dir,"ticket_cache")
         self['git']['src'] = self._tmp_dir
         self['git']['dot_git'] = os.path.join(self._tmp_dir,".git")
         self['git']['user.name'] = trac_username

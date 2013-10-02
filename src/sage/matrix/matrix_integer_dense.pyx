@@ -63,16 +63,8 @@ from sage.matrix.matrix_rational_dense cimport Matrix_rational_dense
 from sage.libs.pari.gen cimport gen, PariInstance
 from sage.libs.pari.gen import pari
 
-cdef extern from 'pari/pari.h':
-    GEN     zeromat(long m, long n)
-    GEN     mathnf0(GEN x,long flag)
-    GEN     det0(GEN a,long flag)
-    GEN     gcoeff(GEN,long,long)
-    GEN     gtomat(GEN x)
-    GEN     gel(GEN,long)
-    long    glength(GEN x)
-    GEN     ginv(GEN x)
-    long    rank(GEN x)
+include "sage/libs/pari/decl.pxi"
+include "sage/libs/pari/pari_err.pxi"
 
 cdef extern from "convert.h":
     cdef void t_INT_to_ZZ( mpz_t value, long *g )
@@ -4883,7 +4875,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             0
         """
         cdef PariInstance P = sage.libs.pari.gen.pari
-        sig_on()
+        pari_catch_sig_on()
         cdef GEN d = det0(pari_GEN(self), flag)
         # now convert d to a Sage integer e
         cdef Integer e = Integer()
@@ -4903,7 +4895,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             2
         """
         cdef PariInstance P = sage.libs.pari.gen.pari
-        sig_on()
+        pari_catch_sig_on()
         cdef long r = rank(pari_GEN(self))
         P.clear_stack()
         return r
@@ -4971,11 +4963,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         cdef PariInstance P = sage.libs.pari.gen.pari
         cdef GEN A
-        sig_on()
+        pari_catch_sig_on()
         A = P._new_GEN_from_mpz_t_matrix_rotate90(self._matrix, self._nrows, self._ncols)
         cdef GEN H = mathnf0(A, flag)
         B = self.extract_hnf_from_pari_matrix(H, flag, include_zero_rows)
-        P.clear_stack()  # This calls sig_off()
+        P.clear_stack()  # This calls pari_catch_sig_off()
         return B
 
 
@@ -5035,7 +5027,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef PariInstance P = sage.libs.pari.gen.pari
         cdef gen H = P.integer_matrix(self._matrix, self._nrows, self._ncols, 1)
         H = H.mathnf(flag)
-        return self.extract_hnf_from_pari_matrix(H.g, flag, include_zero_rows)
+        pari_catch_sig_on()
+        B = self.extract_hnf_from_pari_matrix(H.g, flag, include_zero_rows)
+        P.clear_stack()  # This calls pari_catch_sig_off()
+        return B
 
     cdef extract_hnf_from_pari_matrix(self, GEN H, int flag, bint include_zero_rows):
         # Throw away the transformation matrix (yes, we should later

@@ -203,6 +203,17 @@ class TracInterface(object):
         self.__password = None
         self.__auth_timeout = None
 
+        # cache data of tickets locally here
+        # this cache is only used to speed
+        # up SageDev's local_tickets(), it is not doing any good invalidation
+        # and should never be relied on for something other than informational
+        # messages
+        import os
+        from saving_dict import SavingDict
+        from sage.env import DOT_SAGE
+        ticket_cache_file = self._config.get('ticket_cache', os.path.join(DOT_SAGE,'ticket_cache'))
+        self.__ticket_cache = SavingDict(ticket_cache_file)
+
     @property
     def _username(self):
         r"""
@@ -573,9 +584,23 @@ class TracInterface(object):
         attributes = self._get_attributes(ticket)
         self._authenticated_server_proxy.ticket.update(ticket, comment, attributes, True) # notification e-mail sent
 
-    def _get_attributes(self, ticket):
+    def _get_attributes(self, ticket, cached=False):
         r"""
         Retrieve the properties of ``ticket``.
+
+        INPUT:
+
+        - ``ticket`` -- an integer, the number of a ticket
+
+        - ``cached`` -- a boolean (default: ``False``), whether to take the
+          attributes from a local cache; used, e.g., by
+          :meth:`sagedev.SageDev.local_tickets` to speedup display of ticket
+          summaries.
+
+        OUTPUT:
+
+        Raises a ``KeyError`` if ``cached`` is ``True`` and the ticket could
+        not be found in the cache.
 
         EXAMPLES::
 
@@ -597,7 +622,11 @@ class TracInterface(object):
              'resolution': 'fixed'}
 
         """
-        return self._anonymous_server_proxy.ticket.get(int(ticket))[3]
+        if not cached:
+            self.__ticket_cache[ticket] = self._anonymous_server_proxy.ticket.get(int(ticket))
+        if ticket not in self.__ticket_cache:
+            raise KeyError(ticket)
+        return self.__ticket_cache[ticket][3]
 
     def show_ticket(self, ticket):
         r"""
@@ -1173,3 +1202,5 @@ class TracInterface(object):
         attributes = self._get_attributes(ticket)
         attributes.update(**kwds)
         self._authenticated_server_proxy.ticket.update(ticket, comment, attributes, notify)
+        if ticket in self.__ticket_cache:
+            del self.__ticket_cache[ticket]

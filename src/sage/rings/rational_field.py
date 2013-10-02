@@ -135,6 +135,27 @@ class RationalField(SingletonClass, number_field_base.NumberField):
         sage: QQ(RealField(45)(t))
         1/5
     """
+    def __new__(cls):
+        """
+        This method actually is not needed for using :class:`RationalField`.
+        But it is used to unpickle some very old pickles.
+
+        TESTS::
+
+            sage: sage.structure.sage_object.unpickle_all() # indirect doctest
+            doctest:... DeprecationWarning: This class is replaced by
+            Matrix_modn_dense_float/Matrix_modn_dense_double.
+            See http://trac.sagemath.org/4260 for details.
+            Successfully unpickled ... objects.
+            Failed to unpickle 0 objects.
+
+        """
+        try:
+            from sage.rings.rational_field import QQ
+            return QQ
+        except BaseException:
+            import sage
+            return sage.rings.number_field.number_field_base.NumberField.__new__(cls)
 
     def __init__(self):
         r"""

@@ -269,10 +269,37 @@ cdef class InverseAction(Action):
         return "inverse action"
 
 cdef class PrecomposedAction(Action):
+    """
+    A precomposed action first applies given maps, and then applying an action
+    to the return values of the maps.
 
+    EXAMPLES:
+
+    We demonstrate that an example discussed on :trac:`14711` did not become a
+    problem::
+
+        sage: E = ModularSymbols(11).2
+        sage: s = E.modular_symbol_rep()
+        sage: del E,s
+        sage: import gc
+        sage: _ = gc.collect()
+        sage: E = ModularSymbols(11).2
+        sage: v = E.manin_symbol_rep()
+        sage: c,x = v[0]
+        sage: y = x.modular_symbol_rep()
+        sage: A = y.parent().get_action(QQ, self_on_left=False, op=operator.mul)
+        sage: A
+        Left scalar multiplication by Rational Field on Abelian Group of all
+        Formal Finite Sums over Rational Field
+        with precomposition on right by Conversion map:
+          From: Abelian Group of all Formal Finite Sums over Integer Ring
+          To:   Abelian Group of all Formal Finite Sums over Rational Field
+
+    """
     def __init__(self, Action action, Map left_precomposition, Map right_precomposition):
         left = action.left_domain()
         right = action.right_domain()
+        self.res_parent = action.underlying_set()
         cdef Parent lco, rco
         if left_precomposition is not None:
             lco = left_precomposition.codomain()
@@ -285,9 +312,9 @@ cdef class PrecomposedAction(Action):
               right_precomposition = homset.Hom(rco, right).natural_map() * right_precomposition
             right = right_precomposition.domain()
         if action._is_left:
-            Action.__init__(self, left, action.underlying_set(), 1)
+            Action.__init__(self, left, self.res_parent, 1)
         else:
-            Action.__init__(self, right, action.underlying_set(), 0)
+            Action.__init__(self, right, self.res_parent, 0)
         self._action = action
         self.left_precomposition = left_precomposition
         self.right_precomposition = right_precomposition

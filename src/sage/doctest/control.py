@@ -953,4 +953,3 @@ def run_doctests(module, options=None):
         if not save_dtmode:
             IP.run_line_magic('colors', old_color)
             IP.config.TerminalInteractiveShell.colors = old_config_color
-

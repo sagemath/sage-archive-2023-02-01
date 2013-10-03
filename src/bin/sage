@@ -448,6 +448,11 @@ if [ "$1" = '-ipython' -o "$1" = '--ipython' ]; then
     exec "$SAGE_LOCAL/bin/ipython" "$@"
 fi
 
+if [ "$1" = '-git' -o "$1" = '--git' ]; then
+    shift
+    exec "$SAGE_LOCAL/bin/git" "$@"
+fi
+
 if [ "$1" = '-sh' -o "$1" = '--sh' ]; then
     # AUTHORS:
     # - Carl Witty and William Stein: initial version
@@ -937,6 +942,11 @@ fi
 if [ "$1" = '-gthread' -o "$1" = '-qthread' -o "$1" = '-q4thread' -o "$1" = '-wthread' -o "$1" = '-pylab' ]; then
     # Intentionally no "shift" here
     interactive_sage "$@"
+fi
+
+if [ "$1" = '-dev' -o "$1" = "--dev" ]; then
+    shift
+    exec sage-dev "$@"
 fi
 
 if [ $# -ge 1 ]; then

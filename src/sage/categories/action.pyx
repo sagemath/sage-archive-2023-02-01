@@ -299,7 +299,7 @@ cdef class PrecomposedAction(Action):
     def __init__(self, Action action, Map left_precomposition, Map right_precomposition):
         left = action.left_domain()
         right = action.right_domain()
-        self.res_parent = action.underlying_set()
+        US = action.underlying_set()
         cdef Parent lco, rco
         if left_precomposition is not None:
             lco = left_precomposition.codomain()
@@ -312,9 +312,9 @@ cdef class PrecomposedAction(Action):
               right_precomposition = homset.Hom(rco, right).natural_map() * right_precomposition
             right = right_precomposition.domain()
         if action._is_left:
-            Action.__init__(self, left, self.res_parent, 1)
+            Action.__init__(self, left, US, 1)
         else:
-            Action.__init__(self, right, self.res_parent, 0)
+            Action.__init__(self, right, US, 0)
         self._action = action
         self.left_precomposition = left_precomposition
         self.right_precomposition = right_precomposition

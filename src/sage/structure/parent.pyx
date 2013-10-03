@@ -679,6 +679,7 @@ cdef class Parent(category_object.CategoryObject):
             self._initial_action_list = []
             self._initial_convert_list = []
             self._coerce_from_list = []
+            self._registered_domains = []
             self._coerce_from_hash = MonoDict(23)
             self._action_list = []
             self._action_hash = TripleDict(23)
@@ -1758,11 +1759,12 @@ cdef class Parent(category_object.CategoryObject):
             mor = self._generic_convert_map(mor)
         else:
             raise TypeError("coercions must be parents or maps (got %s)" % type(mor))
+        D = mor.domain()
 
-        assert not (self._coercions_used and mor.domain() in self._coerce_from_hash), "coercion from %s to %s already registered or discovered"%(mor.domain(), self)
+        assert not (self._coercions_used and D in self._coerce_from_hash), "coercion from %s to %s already registered or discovered"%(D, self)
         self._coerce_from_list.append(mor)
-        self._coerce_from_hash.set(mor.domain(),mor)
-        mor._make_weak_references()
+        self._registered_domains.append(D)
+        self._coerce_from_hash.set(D,mor)
 
     cpdef register_action(self, action):
         r"""
@@ -1866,7 +1868,6 @@ cdef class Parent(category_object.CategoryObject):
             self._convert_from_hash.set(mor.domain(), mor)
         else:
             raise TypeError("conversions must be parents or maps")
-        mor._make_weak_references()
 
     cpdef register_embedding(self, embedding):
         r"""

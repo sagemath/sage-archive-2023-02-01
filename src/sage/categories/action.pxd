@@ -18,7 +18,6 @@ cdef class InverseAction(Action):
 
 cdef class PrecomposedAction(Action):
     cdef Action _action
-    cdef res_parent
     cdef Map left_precomposition
     cdef Map right_precomposition
 

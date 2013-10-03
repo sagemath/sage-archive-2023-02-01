@@ -156,12 +156,11 @@ cdef class Map(Element):
         NOTE:
 
         The method :meth:`_make_weak_references`, that is used for the maps
-        registered in the coercion model, needs to remove the usual strong
+        found by the coercion system, needs to remove the usual strong
         reference from the coercion map to the homset containing it. As long
         as the user keeps strong references to domain and codomain to the map,
         we will be able to reconstruct the homset. However, a strong reference
-        to the coercion map does not prevent domain or codomain from garbage
-        collection!
+        to the coercion map does not prevent the domain from garbage collection!
 
         EXAMPLES::
 
@@ -179,14 +178,14 @@ cdef class Map(Element):
             sage: phi.parent()
             Traceback (most recent call last):
             ...
-            ValueError: This map is in an invalid state, domain or codomain have been garbage collected
+            ValueError: This map is in an invalid state, the domain has been garbage collected
 
         """
         if self._parent is None:
             D = self.domain()
             C = self.codomain()
             if C is None or D is None:
-                raise ValueError, "This map is in an invalid state, domain or codomain have been garbage collected"
+                raise ValueError, "This map is in an invalid state, the domain has been garbage collected"
             return homset.Hom(D, C)
         return self._parent
 
@@ -217,7 +216,7 @@ cdef class Map(Element):
             sage: phi.domain
             <weakref at ...; to 'NumberField_quadratic_with_category' at ...>
             sage: phi._make_strong_references()
-            sage: phi.domain
+            sage: print phi.domain
             The constant function (...) -> Number Field in a with defining polynomial x^2 + 5
 
         Now, as there is a strong reference, `Q` can not be garbage collected::
@@ -226,7 +225,7 @@ cdef class Map(Element):
             sage: _ = gc.collect()
             sage: C = Q.__class__.__base__
             sage: numberQuadFields = len([x for x in gc.get_objects() if isinstance(x, C)])
-            sage: del Q
+            sage: del Q, x
             sage: _ = gc.collect()
             sage: numberQuadFields == len([x for x in gc.get_objects() if isinstance(x, C)])
             True
@@ -237,19 +236,20 @@ cdef class Map(Element):
         if one really knows what one is doing::
 
             sage: phi._make_weak_references()
+            sage: del x
             sage: _ = gc.collect()
             sage: numberQuadFields == len([x for x in gc.get_objects() if isinstance(x, C)]) + 1
             True
             sage: phi
             Traceback (most recent call last):
             ...
-            ValueError: This map is in an invalid state, domain or codomain have been garbage collected
+            ValueError: This map is in an invalid state, the domain has been garbage collected
 
         """
         if not isinstance(self.domain, ConstantFunction):
             return
         self.domain = weakref.ref(self.domain())
-        self.codomain = weakref.ref(self.codomain())
+        #self.codomain = weakref.ref(self.codomain())
         self._parent = None
 
     def _make_strong_references(self):
@@ -280,7 +280,7 @@ cdef class Map(Element):
             sage: phi.domain
             <weakref at ...; to 'NumberField_quadratic_with_category' at ...>
             sage: phi._make_strong_references()
-            sage: phi.domain
+            sage: print phi.domain
             The constant function (...) -> Number Field in a with defining polynomial x^2 + 5
 
         Now, as there is a strong reference, `Q` can not be garbage collected::
@@ -289,7 +289,7 @@ cdef class Map(Element):
             sage: _ = gc.collect()
             sage: C = Q.__class__.__base__
             sage: numberQuadFields = len([x for x in gc.get_objects() if isinstance(x, C)])
-            sage: del Q
+            sage: del Q, x
             sage: _ = gc.collect()
             sage: numberQuadFields == len([x for x in gc.get_objects() if isinstance(x, C)])
             True
@@ -300,13 +300,14 @@ cdef class Map(Element):
         if one really knows what one is doing::
 
             sage: phi._make_weak_references()
+            sage: del x
             sage: _ = gc.collect()
             sage: numberQuadFields == len([x for x in gc.get_objects() if isinstance(x, C)]) + 1
             True
             sage: phi
             Traceback (most recent call last):
             ...
-            ValueError: This map is in an invalid state, domain or codomain have been garbage collected
+            ValueError: This map is in an invalid state, the domain has been garbage collected
             sage: phi._make_strong_references()
             Traceback (most recent call last):
             ...
@@ -314,7 +315,7 @@ cdef class Map(Element):
             sage: phi.parent()
             Traceback (most recent call last):
             ...
-            ValueError: This map is in an invalid state, domain or codomain have been garbage collected
+            ValueError: This map is in an invalid state, the domain has been garbage collected
 
         """
         if isinstance(self.domain, ConstantFunction):
@@ -322,7 +323,7 @@ cdef class Map(Element):
         D = self.domain()
         C = self.codomain()
         if D is None or C is None:
-            raise RuntimeError("Domain or codomain of this map became garbage collected")
+            raise RuntimeError("The domain of this map became garbage collected")
         self.domain = ConstantFunction(D)
         self.codomain = ConstantFunction(C)
         self._parent = homset.Hom(D, C)
@@ -1376,7 +1377,6 @@ cdef class FormalCompositeMap(Map):
         """
         Map.__init__(self, parent)
         self.__first = first
-        self.middle_reference = first.codomain()
         self.__second = second
         self._coerce_cost = (<Map>first)._coerce_cost + (<Map>second)._coerce_cost
 

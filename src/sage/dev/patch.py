@@ -26,7 +26,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import os
 import re
+
 # regular expressions to parse mercurial patches
 HG_HEADER_REGEX = re.compile(r"^# HG changeset patch$")
 HG_USER_REGEX = re.compile(r"^# User (.*)$")
@@ -117,7 +119,6 @@ class MercurialPatchMixin(object):
 
             sage: open("tracked", "w").close()
             sage: open("tracked2", "w").close()
-            sage: import os
             sage: patchfile = os.path.join(dev._sagedev.tmp_dir,"tracked.patch")
             sage: dev.git.silent.add("tracked", "tracked2")
             sage: with open(patchfile, "w") as f: f.write(dev.git.diff(cached=True))
@@ -232,7 +233,6 @@ class MercurialPatchMixin(object):
                             local_file=local_file,
                             diff_format=diff_format, header_format=header_format, path_format=path_format)
             finally:
-                import os
                 for local_file in local_files:
                     self._UI.debug("Deleting {0}.".format(local_file))
                     os.unlink(local_file)
@@ -246,9 +246,10 @@ class MercurialPatchMixin(object):
                     from_header_format=header_format,
                     from_path_format=path_format)
 
-            import tempfile, os
-            fd, outfile = tempfile.mkstemp(dir=self.tmp_dir)
-            os.fdopen(fd, 'w').writelines("\n".join(lines)+"\n")
+            from sage.dev.misc import tmp_filename
+            outfile = tmp_filename()
+            with open(outfile, 'w') as f:
+                f.write("\n".join(lines)+"\n")
 
             self._UI.debug("Trying to apply reformatted patch `%s`"%outfile)
             # am, apply and add need to be in the root directory
@@ -324,7 +325,6 @@ class MercurialPatchMixin(object):
         EXAMPLES::
 
             sage: from sage.env import SAGE_ROOT
-            sage: import os
             sage: os.chdir(SAGE_ROOT) # silence possible warnings about not being in SAGE_ROOT
             sage: dev.download_patch(ticket=14882,        # optional: internet
             ....:        patchname='trac_14882-backtrack_longtime-dg.patch')
@@ -564,7 +564,6 @@ class MercurialPatchMixin(object):
             ....:     ["diff --git a/sage/rings/padics/FM_template.pxi b/sage/rings/padics/FM_template.pxi"])
             'git'
 
-            sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: dev._detect_patch_diff_format(
             ....:     open(os.path.join(
@@ -648,7 +647,6 @@ class MercurialPatchMixin(object):
             ....:     ["rename from src/sage/rings/number_field/totalyreal.pyx"], diff_format='git')
             'new'
 
-            sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: dev._detect_patch_path_format(
             ....:     open(os.path.join(
@@ -789,7 +787,6 @@ class MercurialPatchMixin(object):
             ['rename from sage/combinat/crystals/letters.py',
              'rename to sage/combinat/crystals/letters.pyx']
 
-            sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: result = dev._rewrite_patch_diff_paths(
             ....:     open(os.path.join(
@@ -887,7 +884,6 @@ class MercurialPatchMixin(object):
             ... ['From: foo@bar'])
             'git'
 
-            sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: dev._detect_patch_header_format(
             ....:     open(os.path.join(
@@ -921,7 +917,6 @@ class MercurialPatchMixin(object):
         TESTS::
 
             sage: dev._wrap("_detect_patch_modified_files")
-            sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: dev._detect_patch_modified_files(
             ....:     open(os.path.join(
@@ -975,7 +970,6 @@ class MercurialPatchMixin(object):
 
         EXAMPLES::
 
-            sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: hg_lines = open(
             ....:     os.path.join(SAGE_SRC, "sage", "dev", "test", "data", "hg.patch")
@@ -1064,7 +1058,6 @@ class MercurialPatchMixin(object):
                 ret = []
                 ret.append('# HG changeset patch')
                 ret.append('# User %s'%(header["user"]))
-                import os
                 old_TZ = os.environ.get('TZ')
                 try:
                     os.environ['TZ'] = 'UTC'
@@ -1123,7 +1116,6 @@ class MercurialPatchMixin(object):
         TESTS::
 
             sage: dev._wrap("_rewrite_patch")
-            sage: import os.path
             sage: from sage.env import SAGE_SRC
             sage: git_lines = open(
             ....:     os.path.join(SAGE_SRC, "sage", "dev", "test", "data", "git.patch")

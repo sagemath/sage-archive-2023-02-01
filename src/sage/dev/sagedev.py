@@ -187,8 +187,8 @@ class SageDev(MercurialPatchMixin):
         try:
             return self._tmp_dir
         except AttributeError:
-            import tempfile
-            self._tmp_dir = tempfile.mkdtemp()
+            from sage.dev.misc import tmp_dir
+            self._tmp_dir = tmp_dir()
             import atexit, shutil
             atexit.register(shutil.rmtree, self._tmp_dir)
             return self._tmp_dir
@@ -1359,12 +1359,12 @@ class SageDev(MercurialPatchMixin):
                     self.git.echo.add(self.git._src, update=True)
 
                 if message is None:
-                    from tempfile import NamedTemporaryFile
-                    commit_message = NamedTemporaryFile()
-                    commit_message.write(COMMIT_GUIDE)
-                    commit_message.flush()
-                    self._UI.edit(commit_message.name)
-                    message = "\n".join([line for line in open(commit_message.name).read().splitlines() 
+                    from sage.dev.misc import tmp_filename
+                    commit_message = tmp_filename()
+                    with open(commit_message, 'w') as f:
+                        f.write(COMMIT_GUIDE)
+                    self._UI.edit(commit_message)
+                    message = "\n".join([line for line in open(commit_message).read().splitlines() 
                                          if not line.startswith("#")]).strip()
                 if not message:
                     raise OperationCancelledError("empty commit message")

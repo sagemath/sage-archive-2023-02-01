@@ -380,8 +380,7 @@ class CmdLineInterface(UserInterface):
 
         TESTS::
 
-            sage: import os, tempfile
-            sage: tmp = tempfile.mkstemp()[1]
+            sage: tmp = tmp_filename()
             sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.cmd_line_interface import CmdLineInterface
             sage: UI = CmdLineInterface(DoctestConfig()["UI"])

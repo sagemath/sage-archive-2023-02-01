@@ -23,7 +23,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import re, time, datetime
+import os, re, time, datetime
 FIELD_REGEX = re.compile("^([A-Za-z ]+):(.*)$")
 ALLOWED_FIELDS = {
         "author":           "Authors",
@@ -867,13 +867,12 @@ class TracInterface(object):
 
         attributes = self._get_attributes(ticket)
 
-        import tempfile
-        fd, filename = tempfile.mkstemp()
-        import os
-        with os.fdopen(fd, "w") as F:
-            F.write(comment)
-            F.write("\n")
-            F.write(COMMENT_FILE_GUIDE)
+        from sage.dev.misc import tmp_filename
+        filename = tmp_filename()
+        with open(filename, "w") as f:
+            f.write(comment)
+            f.write("\n")
+            f.write(COMMENT_FILE_GUIDE)
         self._UI.edit(filename)
 
         comment = list(open(filename).read().splitlines())
@@ -972,10 +971,10 @@ class TracInterface(object):
             Edit ticket file again? [Yes/no]
             ('new summary', 'new description', {'branch': 'branch2'})
         """
-        import tempfile, os
-        fd, filename = tempfile.mkstemp()
+        from sage.dev.misc import tmp_filename
+        filename = tmp_filename()
         try:
-            with os.fdopen(fd, "w") as F:
+            with open(filename, "w") as F:
                 F.write("Summary: %s\n"%summary.encode('utf-8'))
                 for k,v in attributes.items():
                     k = ALLOWED_FIELDS.get(k.lower())
@@ -1064,8 +1063,7 @@ class TracInterface(object):
         TESTS::
 
             sage: from sage.dev.trac_interface import TracInterface
-            sage: import os, tempfile
-            sage: tmp = tempfile.mkstemp()[1]
+            sage: tmp = tmp_filename()
             sage: with open(tmp, 'w') as f:
             ....:     f.write("no summary\n")
             sage: TracInterface._parse_ticket_file(tmp)

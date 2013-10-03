@@ -17,7 +17,10 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+import os
 import sage.dev.config
+
 
 class DoctestConfig(sage.dev.config.Config):
     r"""
@@ -64,10 +67,9 @@ class DoctestConfig(sage.dev.config.Config):
             sage: type(config)
             <class 'sage.dev.test.config.DoctestConfig'>
         """
-        import tempfile, atexit, shutil, os
-        devrc = tempfile.mkstemp()[1]
-        atexit.register(lambda: os.path.exists(devrc) or os.unlink(devrc))
-
+        from sage.dev.misc import tmp_dir, tmp_filename
+        self._tmp_dir = tmp_dir()
+        devrc = os.path.join(self._tmp_dir, 'devrc')
         sage.dev.config.Config.__init__(self, devrc=devrc)
 
         self['trac'] = {'username': trac_username}
@@ -83,8 +85,6 @@ class DoctestConfig(sage.dev.config.Config):
             self['git']['repository'] = \
             repository if repository else "remote_repository_undefined"
 
-        from sage.misc.temporary_file import tmp_dir
-        self._tmp_dir = tmp_dir()
         self['trac']['ticket_cache'] = os.path.join(self._tmp_dir, "ticket_cache")
         repo = os.path.join(self._tmp_dir, 'repo')
         self['git']['src'] = repo

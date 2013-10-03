@@ -29,8 +29,8 @@ obsolete_commands = {
     "set_needs_info": "needs_info",
     "set_positive_review": "positive_review",
     "reset_to_clean_working_directory" : "clean",
-    "local-tickets" : "tickets",
-    "prune-closed-tickets" : "prune-tickets",
+    "local_tickets" : "tickets",
+    "prune_closed_tickets" : "prune_tickets",
 }
 
 class SageDevWrapper(object):

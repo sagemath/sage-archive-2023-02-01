@@ -83,10 +83,15 @@ class DoctestSageDev(sage.dev.sagedev.SageDev):
         """
         from user_interface import DoctestUserInterface
         UI = DoctestUserInterface(config['UI'])
-        from trac_interface import DoctestTracInterface
-        trac = DoctestTracInterface(config['trac'], UI, trac_server)
+        if trac_server is None:
+            from sage.dev.trac_interface import TracInterface
+            trac = TracInterface(config['trac'], UI)
+        else:
+            from trac_interface import DoctestTracInterface
+            trac = DoctestTracInterface(config['trac'], UI, trac_server)
+            repo = trac_server.git._config['src']
+            config['git']['repository_anonymous'] = config['git']['repository'] = repo
         from sage.dev.git_interface import GitInterface
-        config['git']['repository_anonymous'] = config['git']['repository'] = trac_server.git._config['src']
         git = GitInterface(config['git'], UI)
 
         self._trac_server = trac_server
@@ -105,7 +110,6 @@ class DoctestSageDev(sage.dev.sagedev.SageDev):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: dev = DoctestSageDev(DoctestConfig(), DoctestTracServer())
             sage: dev._pull_master_branch()
-
         """
         import os
         old_cwd = os.getcwd()
@@ -131,7 +135,6 @@ class DoctestSageDev(sage.dev.sagedev.SageDev):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: dev = DoctestSageDev(DoctestConfig(), DoctestTracServer())
             sage: dev._chdir()
-
         """
         import os
         os.chdir(self.config['git']['src'])
@@ -154,6 +157,27 @@ def single_user_setup():
     dev._pull_master_branch()
     dev._chdir()
     return dev, config, dev._UI, server
+
+
+def single_user_setup_with_internet():
+    """
+    Return a trac interface with internet access.
+
+    This method is for doctests, and assumes internet access. Unlike
+    the actual ``dev`` object, the trac responses are cached in a
+    temporary file.
+
+    EXAMPLES::
+
+        sage: from sage.dev.test.sagedev import single_user_setup_with_internet
+        sage: _ = single_user_setup_with_internet()
+    """
+    from config import DoctestConfig
+    config = DoctestConfig()
+    config['trac']['password'] = 'secret'
+    dev = DoctestSageDevWrapper(config, None)
+    return dev, config, dev._UI
+
 
 def two_user_setup():
     r"""

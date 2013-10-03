@@ -18,7 +18,8 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-import sage.dev.trac_interface
+import sage.dev.trac_interface            
+
 
 class DoctestTracInterface(sage.dev.trac_interface.TracInterface):
     r"""

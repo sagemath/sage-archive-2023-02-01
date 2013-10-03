@@ -617,13 +617,9 @@ class TracInterface(object):
 
         EXAMPLES::
 
-            sage: from sage.dev.test.config import DoctestConfig
-            sage: config = DoctestConfig()
-            sage: UI = dev._sagedev._UI
-            sage: from sage.dev.trac_interface import TracInterface
-            sage: trac = TracInterface(config, UI)
-
-            sage: trac._get_attributes(1000) # optional: internet
+            sage: from sage.dev.test.sagedev import single_user_setup_with_internet
+            sage: dev = single_user_setup_with_internet()[0]
+            sage: dev.trac._get_attributes(1000) # optional: internet
             {'status': 'closed',
              'changetime': <DateTime '...' at ...>,
              'description': '...',
@@ -657,11 +653,13 @@ class TracInterface(object):
 
         EXAMPLES::
 
+            sage: from sage.dev.test.sagedev import single_user_setup_with_internet
+            sage: dev = single_user_setup_with_internet()[0]
             sage: dev.trac.show_ticket(101) # optional: internet
             #101: closed enhancement
             == graph theory -- create a graph theory package for SAGE ==
-            Opened: 6 years ago
-            Closed: 5 years ago
+            Opened: ... years ago
+            Closed: ... years ago
             Priority: major
             Milestone: sage-2.8.5
             Component: combinatorics
@@ -750,6 +748,8 @@ class TracInterface(object):
 
         EXAMPLES::
 
+            sage: from sage.dev.test.sagedev import single_user_setup_with_internet
+            sage: dev = single_user_setup_with_internet()[0]
             sage: dev.trac._branch_for_ticket(1000) is None # optional: internet
             True
         """
@@ -775,6 +775,8 @@ class TracInterface(object):
 
        EXAMPLES::
 
+            sage: from sage.dev.test.sagedev import single_user_setup_with_internet
+            sage: dev = single_user_setup_with_internet()[0]
             sage: dev.trac.dependencies(1000)            # optional: internet (an old ticket with no dependency field)
             []
             sage: dev.trac.dependencies(13147)           # optional: internet

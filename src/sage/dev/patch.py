@@ -328,11 +328,11 @@ class MercurialPatchMixin(object):
             sage: os.chdir(SAGE_ROOT) # silence possible warnings about not being in SAGE_ROOT
             sage: dev.download_patch(ticket=14882,        # optional: internet
             ....:        patchname='trac_14882-backtrack_longtime-dg.patch')
-            Downloading "https://trac.sagemath.org/raw-attachment/ticket/
-            14882/trac_14882-backtrack_longtime-dg.patch"...
-            Downloaded "https://trac.sagemath.org/raw-attachment/ticket/1
-            4882/trac_14882-backtrack_longtime-dg.patch" to "...".
-            ('...',)
+            Downloading "https://trac.sagemath.org/raw-attachment/ticket/14882/trac_14882
+            -backtrack_longtime-dg.patch"...
+            Downloaded "https://trac.sagemath.org/raw-attachment/ticket/14882/trac_14882
+            -backtrack_longtime-dg.patch" to "/...patch".
+            ('/...patch',)
 
         TESTS:
 

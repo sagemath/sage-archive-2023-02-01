@@ -636,8 +636,9 @@ class TracInterface(object):
              'keywords': '',
              'resolution': 'fixed'}
         """
+        ticket = int(ticket)   # must not pickle Sage integers in the ticket cache!
         if not cached:
-            self.__ticket_cache[ticket] = self._anonymous_server_proxy.ticket.get(int(ticket))
+            self.__ticket_cache[ticket] = self._anonymous_server_proxy.ticket.get(ticket)
         if ticket not in self.__ticket_cache:
             raise KeyError(ticket)
         return self.__ticket_cache[ticket][3]

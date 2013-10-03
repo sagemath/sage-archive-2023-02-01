@@ -411,6 +411,9 @@ class SavingDict(collections.MutableMapping):
                 unpickler = cPickle.Unpickler(StringIO(s))
                 try:
                     return unpickler.load()
-                except cPickle.UnpicklingError:
+                except:
+                    # catch-all exception! Unpickling can cause all
+                    # kinds of exceptions, e.g. AttributeError if the
+                    # Sage source code changed.
                     pass
         return {}

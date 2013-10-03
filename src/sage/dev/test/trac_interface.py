@@ -51,10 +51,8 @@ class DoctestTracInterface(sage.dev.trac_interface.TracInterface):
             sage: UI = DoctestUserInterface(config['UI'])
             sage: type(DoctestTracInterface(config['trac'], UI, DoctestTracServer()))
             <class 'sage.dev.test.trac_interface.DoctestTracInterface'>
-
         """
         sage.dev.trac_interface.TracInterface.__init__(self, config, UI)
-
         self._server = server
         self._connected = True
 

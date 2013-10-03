@@ -80,7 +80,6 @@ class DoctestSageDev(sage.dev.sagedev.SageDev):
             sage: from sage.dev.test.trac_server import DoctestTracServer
             sage: type(DoctestSageDev(DoctestConfig(), DoctestTracServer()))
             <class 'sage.dev.test.sagedev.DoctestSageDev'>
-
         """
         from user_interface import DoctestUserInterface
         UI = DoctestUserInterface(config['UI'])
@@ -145,7 +144,6 @@ def single_user_setup():
 
         sage: from sage.dev.test.sagedev import single_user_setup
         sage: dev, config, UI, server = single_user_setup()
-
     """
     from trac_server import DoctestTracServer
     from config import DoctestConfig

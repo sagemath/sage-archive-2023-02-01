@@ -160,7 +160,6 @@ class TicketSyntaxError(SyntaxError): # we don't want to catch normal syntax err
         Traceback (most recent call last):
         ...
         TicketSyntaxError: None
-
     """
 
 class TracInterface(object):
@@ -527,10 +526,8 @@ class TracInterface(object):
             realm = self._config.get('realm', REALM)
             from sage.env import TRAC_SERVER_URI
             server = self._config.get('server', TRAC_SERVER_URI)
-
             import os, urllib, urllib2, urlparse
             url = urlparse.urljoin(server, urllib.pathname2url(os.path.join('login', 'xmlrpc')))
-
             while True:
                 from xmlrpclib import ServerProxy
                 from digest_transport import DigestTransport
@@ -547,11 +544,8 @@ class TracInterface(object):
                     else:
                         self._UI.show("Could not verify password, will try to proceed.")
                         break
-
             self.__authenticated_server_proxy = proxy
-
         self._postpone_password_timeout()
-
         return self.__authenticated_server_proxy
 
     def create_ticket(self, summary, description, attributes={}):
@@ -623,7 +617,13 @@ class TracInterface(object):
 
         EXAMPLES::
 
-            sage: dev.trac._get_attributes(1000) # optional: internet
+            sage: from sage.dev.test.config import DoctestConfig
+            sage: config = DoctestConfig()
+            sage: UI = dev._sagedev._UI
+            sage: from sage.dev.trac_interface import TracInterface
+            sage: trac = TracInterface(config, UI)
+
+            sage: trac._get_attributes(1000) # optional: internet
             {'status': 'closed',
              'changetime': <DateTime '...' at ...>,
              'description': '...',
@@ -714,10 +714,12 @@ class TracInterface(object):
             fixed
         """
         comments = []
-        for time, author, field, oldvalue, newvalue, permanent in self._anonymous_server_proxy.ticket.changeLog(int(ticket)):
+        changelog = self._anonymous_server_proxy.ticket.changeLog(int(ticket))
+        for time, author, field, oldvalue, newvalue, permanent in changelog:
             if field == 'comment' and newvalue and not (ignore_git_user and author == 'git'):
                 comments.append((_timerep(datetime.datetime(*(time.timetuple()[:6]))), author, newvalue))
-        self._UI.show('\n'.join(['====================\n%s (%s)\n%s'%(author, time, comment) for time, author, comment in reversed(comments)]))
+        self._UI.show('\n'.join(['====================\n{0} ({1})\n{2}'.format(author, time, comment) 
+                                 for time, author, comment in reversed(comments)]))
 
     def query(self, qstr):
         """

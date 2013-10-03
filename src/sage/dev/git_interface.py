@@ -24,7 +24,10 @@ AUTHORS:
 
 import os
 
-from sage.env import SAGE_DOT_GIT, SAGE_REPO_AUTHENTICATED, SAGE_ROOT, SAGE_REPO_ANONYMOUS
+from sage.env import (
+    SAGE_DOT_GIT, SAGE_REPO_AUTHENTICATED, SAGE_ROOT, 
+    SAGE_REPO_ANONYMOUS
+)
 
 from git_error import GitError, DetachedHeadError
 
@@ -98,7 +101,6 @@ class GitProxy(object):
 
         EXAMPLES::
 
-            sage: import os
             sage: from sage.dev.git_interface import GitInterface
             sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.test.user_interface import DoctestUserInterface
@@ -123,15 +125,16 @@ class GitProxy(object):
             sage: dev.git.status()
             Traceback (most recent call last):
             ...
-            AssertionError: possible attempt to work with the live
-            repository/directory in a doctest
+            AssertionError: working with the sage repository in a doctest
         """
-        import sage.doctest
-        import os
-        assert not sage.doctest.DOCTEST_MODE or (
-            self._dot_git != SAGE_DOT_GIT and self._repository != SAGE_REPO_AUTHENTICATED
-            and os.path.abspath(self._src).startswith(self._src)), \
-            "possible attempt to work with the live repository/directory in a doctest"
+        from sage.doctest import DOCTEST_MODE
+        if DOCTEST_MODE:
+            from sage.misc.misc import SAGE_TMP
+            SAGE_TMP = str(SAGE_TMP)
+            error = "working with the sage repository in a doctest"
+            assert self._dot_git != SAGE_DOT_GIT, error
+            assert self._repository != SAGE_REPO_AUTHENTICATED, error
+            assert os.path.abspath(self._src).startswith(SAGE_TMP), error
 
         # not sure which commands could possibly create a commit object with
         # unless there are some crazy flags set - these commands should be safe
@@ -220,7 +223,6 @@ class GitProxy(object):
 
         EXAMPLES::
 
-            sage: import os
             sage: from sage.dev.git_interface import GitInterface
             sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.test.user_interface import DoctestUserInterface
@@ -254,7 +256,6 @@ class GitProxy(object):
 
         EXAMPLES::
 
-            sage: import os
             sage: from sage.dev.git_interface import GitInterface
             sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.test.user_interface import DoctestUserInterface
@@ -283,7 +284,6 @@ class GitProxy(object):
 
         EXAMPLES::
 
-            sage: import os
             sage: from sage.dev.git_interface import GitInterface
             sage: from sage.dev.test.config import DoctestConfig
             sage: from sage.dev.test.user_interface import DoctestUserInterface

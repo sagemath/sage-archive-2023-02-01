@@ -83,14 +83,16 @@ class DoctestConfig(sage.dev.config.Config):
             self['git']['repository'] = \
             repository if repository else "remote_repository_undefined"
 
-        self._tmp_dir = tempfile.mkdtemp()
-        atexit.register(shutil.rmtree, self._tmp_dir)
+        from sage.misc.temporary_file import tmp_dir
+        self._tmp_dir = tmp_dir()
         self['trac']['ticket_cache'] = os.path.join(self._tmp_dir, "ticket_cache")
-        self['git']['src'] = self._tmp_dir
-        self['git']['dot_git'] = os.path.join(self._tmp_dir, ".git")
+        repo = os.path.join(self._tmp_dir, 'repo')
+        self['git']['src'] = repo
+        self['git']['dot_git'] = os.path.join(repo, ".git")
+        os.makedirs(self['git']['dot_git'])
+
         self['git']['user.name'] = trac_username
         self['git']['user.email'] = 'doc@test.test'
-        os.mkdir(self['git']['dot_git'])
 
         from sage.dev.git_interface import GitInterface
         from sage.dev.test.user_interface import DoctestUserInterface

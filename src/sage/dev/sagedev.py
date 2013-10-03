@@ -1682,6 +1682,7 @@ class SageDev(MercurialPatchMixin):
             #  (use "sage --dev commit" to commit your merge)
             <BLANKLINE>
             Added dependency on #2 to #1.
+            sage: with open("another_file", "w") as f: f.write("bob after merge(2)")
             sage: bob.push()
             Remote branch "u/bob/ticket/1" is idential to your local branch "ticket/1
             <BLANKLINE>
@@ -1690,10 +1691,10 @@ class SageDev(MercurialPatchMixin):
             sage: bob.commit(message="Bob's merge")  # oops
             The following files in your working directory are not tracked by git:
             <BLANKLINE>
-                ticket_cache
+                another_file
             <BLANKLINE>
             Start tracking any of these files? [yes/No] y
-            Start tracking "ticket_cache"? [yes/No] y
+            Start tracking "another_file"? [yes/No] y
             Commit your changes to branch "ticket/1"? [Yes/no] y
             <BLANKLINE>
             #  Use "sage --dev push" to push your commits to the trac server once you are
@@ -1710,6 +1711,7 @@ class SageDev(MercurialPatchMixin):
             Change the "Branch:" field? [Yes/no] y
             Uploading your dependencies for ticket #1: "" => "#2"
             sage: bob._sagedev._set_dependencies_for_ticket(1,())
+            sage: with open("another_file", "w") as f: f.write("bob after push")
             sage: bob._UI.extend(['y', 'y', 'y'])
             sage: bob.commit(message='another commit')
             Commit your changes to branch "ticket/1"? [Yes/no] y
@@ -1726,6 +1728,7 @@ class SageDev(MercurialPatchMixin):
             Trac ticket #1 depends on #2 while your local branch depends on no tickets.
             Updating dependencies is recommended but optional.
             Action for dependencies? [upload/download/keep] keep
+            sage: with open("another_file", "w") as f: f.write("bob after 2nd push")
             sage: bob._UI.append('y')
             sage: bob.commit(message='final commit')
             Commit your changes to branch "ticket/1"? [Yes/no] y
@@ -4318,7 +4321,7 @@ class SageDev(MercurialPatchMixin):
             sage: dev._check_ticket_name(2^30, exists=True) # optional: internet
             Traceback (most recent call last):
             ...
-            SageDevValueError: "1073741824" is not a valid ticket name or ticket does not exist on trac.
+            SageDevValueError: Ticket name "1073741824" is not valid or ticket does not exist on trac.
         """
         if not self._is_ticket_name(name, exists=exists):
             if exists:

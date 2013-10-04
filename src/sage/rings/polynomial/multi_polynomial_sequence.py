@@ -1171,14 +1171,14 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         We can force the use of exhaustive search if the optional
         package ``FES`` is present::
 
-            sage: sol = S.solve(algorithm='exhaustive_search'); sol  # random, optional - needs FES
+            sage: sol = S.solve(algorithm='exhaustive_search'); sol  # random, optional - FES
             [{x: 1, y: 1, z: 1}]
             sage: S.subs( sol[0] )
             [0, 0, 0]
 
         And we may use SAT-solvers if they are available::
 
-            sage: sol = S.solve(algorithm='sat'); sol                     # random, optional - needs CryptoMiniSat
+            sage: sol = S.solve(algorithm='sat'); sol                     # random, optional - CryptoMiniSat
             [{y: 1, z: 0, x: 0}]
             sage: S.subs( sol[0] )
             [0, 0, 0]

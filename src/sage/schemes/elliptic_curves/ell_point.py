@@ -240,6 +240,24 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
 
         sage: e = EllipticCurve([0, 0, 1, -1, 0]); g = e.gens(); loads(dumps(e)) == e
         True
+
+    Test that the refactoring from :trac:`14711` did preserve the behaviour
+    of domain and codomain::
+
+
+        sage: E=EllipticCurve(QQ,[1,1])
+        sage: P=E(0,1)
+        sage: P.domain()
+        Spectrum of Rational Field
+        sage: K.<a>=NumberField(x^2-3,'a')
+        sage: P=E.base_extend(K)(1,a)
+        sage: P.domain()
+        Spectrum of Number Field in a with defining polynomial x^2 - 3
+        sage: P.codomain()
+        Elliptic Curve defined by y^2 = x^3 + x + 1 over Number Field in a with defining polynomial x^2 - 3
+        sage: P.codomain() == P.curve()
+        True
+
     """
     def __init__(self, curve, v, check=True):
         """
@@ -470,44 +488,6 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
         #  codomain()."
 
         return self.codomain()
-
-    def domain(self):
-        """
-        Return the domain of this point, which is `Spec(F)` where `F` is
-        the field of definition.
-
-        EXAMPLES::
-
-            sage: E=EllipticCurve(QQ,[1,1])
-            sage: P=E(0,1)
-            sage: P.domain()
-            Spectrum of Rational Field
-            sage: K.<a>=NumberField(x^2-3,'a')
-            sage: P=E.base_extend(K)(1,a)
-            sage: P.domain()
-            Spectrum of Number Field in a with defining polynomial x^2 - 3
-       """
-        return self.parent().domain()
-
-    def codomain(self):
-        """
-        Return the codomain of this point, which is the curve it is
-        on. Synonymous with :meth:`curve` which is perhaps more intuitive.
-
-        EXAMPLES::
-
-            sage: E=EllipticCurve(QQ,[1,1])
-            sage: P=E(0,1)
-            sage: P.domain()
-            Spectrum of Rational Field
-            sage: K.<a>=NumberField(x^2-3,'a')
-            sage: P=E.base_extend(K)(1,a)
-            sage: P.codomain()
-            Elliptic Curve defined by y^2 = x^3 + x + 1 over Number Field in a with defining polynomial x^2 - 3
-            sage: P.codomain() == P.curve()
-            True
-       """
-        return self.parent().codomain()
 
     def order(self):
         r"""

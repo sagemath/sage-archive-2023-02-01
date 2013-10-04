@@ -58,8 +58,8 @@ AUTHORS:
 
 - Ben Hutz (June 2012): added support for projective ring
 
-- Simon King (2013-10): inherit from :class:`~sage.categories.morphism.Morphism`,
-  rather than re-inventing the wheel.
+- Simon King (2013-10): copy the changes of :class:`~sage.categories.morphism.Morphism`
+  that have been introduced in :trac:`14711`.
 """
 
 # Historical note: in trac #11599, V.B. renamed
@@ -79,9 +79,9 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.structure.element   import AdditiveGroupElement, RingElement, Element, generic_power
+from sage.structure.element   import AdditiveGroupElement, RingElement, Element, generic_power, parent
 from sage.structure.sequence  import Sequence
-from sage.categories.homset   import Homset
+from sage.categories.homset   import Homset, Hom
 from sage.rings.all           import is_RingHomomorphism, is_CommutativeRing, Integer
 from point                    import is_SchemeTopologicalPoint
 from sage.rings.infinity      import infinity
@@ -90,8 +90,9 @@ import scheme
 from sage.rings.arith            import gcd, lcm
 from sage.categories.gcd_domains import GcdDomains
 from sage.rings.quotient_ring    import QuotientRing_generic
-from sage.categories.homset      import Hom
-from sage.categories.morphism    import Morphism
+from sage.categories.map         import FormalCompositeMap, Map
+from sage.misc.constant_function import ConstantFunction
+from sage.categories.morphism    import SetMorphism
 
 def is_SchemeMorphism(f):
     """
@@ -121,13 +122,23 @@ def is_SchemeMorphism(f):
     return isinstance(f, (SchemeMorphism, EllipticCurvePoint_field));
 
 
-class SchemeMorphism(Morphism):
+class SchemeMorphism(Element):
     """
     Base class for scheme morphisms
 
     INPUT:
 
     - ``parent`` -- the parent of the morphism.
+
+    .. TODO::
+
+        Currently, :class:`SchemeMorphism` copies code from
+        :class:`~sage.categories.map.Map` rather than inheriting from it. This
+        is to work around a bug in Cython: We want to create a common
+        sub-class of :class:`~sage.structure.element.ModuleElement` and
+        :class:`SchemeMorphism`, but Cython would currently confuse cpdef
+        attributes of the two base classes. Proper inheritance should be used
+        as soon as this bug is fixed.
 
     EXAMPLES::
 
@@ -146,24 +157,55 @@ class SchemeMorphism(Morphism):
         sage: A2.structure_morphism().category()
         Category of hom sets in Category of Schemes
 
-    ::
-
-        sage: X = AffineSpace(QQ,2)
-        sage: id = X.identity_morphism()
-        sage: id^0
-        Scheme endomorphism of Affine Space of dimension 2 over Rational Field
-          Defn: Identity map
-        sage: id^2
-        Composite map:
-          From: Affine Space of dimension 2 over Rational Field
-          To:   Affine Space of dimension 2 over Rational Field
-          Defn:   Scheme endomorphism of Affine Space of dimension 2 over Rational Field
-                  Defn: Identity map
-                then
-                  Scheme endomorphism of Affine Space of dimension 2 over Rational Field
-                  Defn: Identity map
-
     """
+
+    def __init__(self, parent, codomain=None):
+        """
+        The Python constructor.
+
+        EXAMPLES::
+
+            sage: X = Spec(ZZ)
+            sage: Hom = X.Hom(X)
+            sage: from sage.schemes.generic.morphism import SchemeMorphism
+            sage: f = SchemeMorphism(Hom)
+            sage: type(f)
+            <class 'sage.schemes.generic.morphism.SchemeMorphism'>
+        """
+        if codomain is not None:
+            parent = Hom(parent, codomain)
+        if not isinstance(parent, Homset):
+            raise TypeError, "parent (=%s) must be a Homspace"%parent
+        Element.__init__(self, parent)
+        self.domain = ConstantFunction(parent.domain())
+        self.codomain = ConstantFunction(parent.codomain())
+
+    # We copy methods of sage.categories.map.Map, to make
+    # a future transition of SchemeMorphism to a sub-class of Morphism
+    # easier.
+    def __call__(self, x, *args, **kwds):
+        P = parent(x)
+        D = self.domain()
+        if P is D: # we certainly want to call _call_/with_args
+            if not args and not kwds:
+                return self._call_(x)
+            return self._call_with_args(x, args, kwds)
+        # Is there coercion?
+        converter = D.coerce_map_from(P)
+        if converter is None:
+            try:
+                return self.pushforward(x,*args,**kwds)
+            except (AttributeError, TypeError, NotImplementedError):
+                pass # raise TypeError, "%s must be coercible into %s"%(x, self.domain())
+            try:
+                x = D(x)
+            except (TypeError, NotImplementedError):
+                raise TypeError, "%s fails to convert into the map's domain %s, but a `pushforward` method is not properly implemented"%(x, self.domain())
+        else:
+            x = converter(x)
+        if not args and not kwds:
+            return self._call_(x)
+        return self._call_with_args(x, args, kwds)
 
     def _repr_defn(self):
         r"""
@@ -206,6 +248,101 @@ class SchemeMorphism(Morphism):
         """
         return "Scheme"
 
+    def _repr_(self):
+        r"""
+        Return a string representation of ``self``.
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: X = Spec(ZZ)
+            sage: Hom = X.Hom(X)
+            sage: from sage.schemes.generic.morphism import SchemeMorphism
+            sage: f = SchemeMorphism(Hom)
+            sage: f._repr_()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        if self.is_endomorphism():
+            s = "%s endomorphism of %s"%(self._repr_type(), self.domain())
+        else:
+            s = "%s morphism:"%self._repr_type()
+            s += "\n  From: %s"%self.domain()
+            s += "\n  To:   %s"%self.codomain()
+        d = self._repr_defn()
+        if d != '':
+            s += "\n  Defn: %s"%('\n        '.join(self._repr_defn().split('\n')))
+        return s
+
+    def __mul__(self, right):
+        """
+        We can currently only multiply scheme morphisms.
+
+        If one factor is an identity morphism, the other is returned.
+        Otherwise, a formal composition of maps obtained from the scheme
+        morphisms is returned.
+
+        EXAMPLES:
+
+        Identity maps do not contribute to the product::
+
+            sage: X = AffineSpace(QQ,2)
+            sage: id = X.identity_morphism()
+            sage: id^0    # indirect doctest
+            Scheme endomorphism of Affine Space of dimension 2 over Rational Field
+              Defn: Identity map
+            sage: id^2
+            Scheme endomorphism of Affine Space of dimension 2 over Rational Field
+              Defn: Identity map
+
+        Here, we see a formal composition::
+
+            sage: X = AffineSpace(QQ,2)
+            sage: f = X.structure_morphism()
+            sage: Y = Spec(QQ)
+            sage: g = Y.structure_morphism()
+            sage: g * f    # indirect doctest
+             Composite map:
+              From: Affine Space of dimension 2 over Rational Field
+              To:   Spectrum of Integer Ring
+              Defn:   Generic morphism:
+                      From: Affine Space of dimension 2 over Rational Field
+                      To:   Spectrum of Rational Field
+                    then
+                      Generic morphism:
+                      From: Spectrum of Rational Field
+                      To:   Spectrum of Integer Ring
+
+        Of course, the codomain of the first factor must coincide with the
+        domain of the second factor::
+
+            sage: f * g
+            Traceback (most recent call last):
+            ...
+            TypeError: self (=Scheme morphism:
+              From: Affine Space of dimension 2 over Rational Field
+              To:   Spectrum of Rational Field
+              Defn: Structure map) domain must equal right (=Scheme morphism:
+              From: Spectrum of Rational Field
+              To:   Spectrum of Integer Ring
+              Defn: Structure map) codomain
+
+        """
+        if not isinstance(right, SchemeMorphism):
+            raise TypeError, "right (=%s) must be a SchemeMorphism to multiply it by %s"%(right, self)
+        if right.codomain() != self.domain():
+            raise TypeError, "self (=%s) domain must equal right (=%s) codomain"%(self, right)
+        if isinstance(self, SchemeMorphism_id):
+            return right
+        if isinstance(right, SchemeMorphism_id):
+            return self
+        return self._composition(right)
+
+
     def __pow__(self, n, dummy=None):
         """
         Exponentiate an endomorphism.
@@ -216,10 +353,18 @@ class SchemeMorphism(Morphism):
 
         OUTPUT:
 
-        A scheme morphism in the same endomorphism set as ``self``.
+        A composite map that belongs to the same endomorphism set as ``self``.
 
         EXAMPLES::
 
+            sage: X = AffineSpace(QQ,2)
+            sage: id = X.identity_morphism()
+            sage: id^0
+            Scheme endomorphism of Affine Space of dimension 2 over Rational Field
+              Defn: Identity map
+            sage: id^2
+            Scheme endomorphism of Affine Space of dimension 2 over Rational Field
+              Defn: Identity map
 
         """
         if not self.is_endomorphism():
@@ -227,6 +372,79 @@ class SchemeMorphism(Morphism):
         if n==0:
             return self.domain().identity_morphism()
         return generic_power(self, n)
+
+    def category(self):
+        """
+        Return the category of the Hom-set.
+
+        OUTPUT:
+
+        A category.
+
+        EXAMPLES::
+
+            sage: A2 = AffineSpace(QQ,2)
+            sage: A2.structure_morphism().category()
+            Category of hom sets in Category of Schemes
+        """
+        return self.parent().category()
+
+    def category_for(self):
+        return self.parent().homset_category()
+
+    def is_endomorphism(self):
+        """
+        Return wether the morphism is an endomorphism.
+
+        OUTPUT:
+
+        Boolean. Whether the domain and codomain are identical.
+
+        EXAMPLES::
+
+            sage: X = AffineSpace(QQ,2)
+            sage: X.structure_morphism().is_endomorphism()
+            False
+            sage: X.identity_morphism().is_endomorphism()
+            True
+        """
+        return self.parent().is_endomorphism_set()
+
+    def _composition(self, right):
+        category = self.category_for()._meet_(right.category_for())
+        H = Hom(right.domain(), self.codomain(), category)
+        return self._composition_(right, H)
+
+    def _composition_(self, right, homset):
+        """
+        Helper to construct the composition of two morphisms.
+
+        The composition is implemented by converting the arguments to
+        :class:`~sage.categories.morphism.SetMorphism` if necessary, and then
+        forming a :class:`~sage.categories.map.FormalCompositeMap`
+
+        EXAMPLES::
+
+            sage: X = AffineSpace(QQ,2)
+            sage: f = X.structure_morphism()
+            sage: Y = Spec(QQ)
+            sage: g = Y.structure_morphism()
+            sage: g * f    # indirect doctest
+             Composite map:
+              From: Affine Space of dimension 2 over Rational Field
+              To:   Spectrum of Integer Ring
+              Defn:   Generic morphism:
+                      From: Affine Space of dimension 2 over Rational Field
+                      To:   Spectrum of Rational Field
+                    then
+                      Generic morphism:
+                      From: Spectrum of Rational Field
+                      To:   Spectrum of Integer Ring
+
+        """
+        if not isinstance(right, Map):
+            right = SetMorphism(right.parent(), right)
+        return FormalCompositeMap(homset, right, SetMorphism(self.parent(),self))
 
     def glue_along_domains(self, other):
         r"""
@@ -914,8 +1132,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             sage: P!=Q
             True
         """
-        H = self.parent()
-        return(H(self._polys))
+        return self.parent()(self._polys)
 
     def base_ring(self):
         r"""

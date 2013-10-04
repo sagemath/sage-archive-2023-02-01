@@ -15,6 +15,8 @@ AUTHORS:
 
 -  Julian Rueth (2012-05-25): Fixed is_squarefree() for imperfect fields.
 
+-  Simon King (2013-10): Implement copying of :class:`PolynomialBaseringInjection`.
+
 TESTS::
 
     sage: R.<x> = ZZ[]
@@ -6763,6 +6765,21 @@ cdef class PolynomialBaseringInjection(Morphism):
         self._an_element = codomain.gen()
         self._repr_type_str = "Polynomial base injection"
         self._new_constant_poly_ = self._an_element._new_constant_poly
+
+    def __copy__(self):
+        """
+        EXAMPLES::
+
+            sage: phi = copy(QQ['x'].coerce_map_from(QQ))
+            sage: phi
+            Polynomial base injection morphism:
+              From: Rational Field
+              To:   Univariate Polynomial Ring in x over Rational Field
+            sage: phi(3/1)
+            3
+
+        """
+        return PolynomialBaseringInjection(self.domain(), self.codomain())
 
     cpdef Element _call_(self, x):
         """

@@ -1380,6 +1380,36 @@ cdef class FormalCompositeMap(Map):
         self.__second = second
         self._coerce_cost = (<Map>first)._coerce_cost + (<Map>second)._coerce_cost
 
+    def __copy__(self):
+        """
+        EXAMPLES::
+
+            sage: phi = QQ['x'].coerce_map_from(ZZ)
+            sage: phi.domain
+            <weakref at ...; to 'sage.rings.integer_ring.IntegerRing_class'
+            at ... (EuclideanDomains.parent_class)>
+            sage: type(phi)
+            <type 'sage.categories.map.FormalCompositeMap'>
+            sage: psi = copy(phi)   # indirect doctest
+            sage: psi
+            Composite map:
+              From: Integer Ring
+              To:   Univariate Polynomial Ring in x over Rational Field
+              Defn:   Natural morphism:
+                      From: Integer Ring
+                      To:   Rational Field
+                    then
+                      Polynomial base injection morphism:
+                      From: Rational Field
+                      To:   Univariate Polynomial Ring in x over Rational Field
+            sage: psi.domain
+            The constant function (...) -> Integer Ring
+            sage: psi(3)
+            3
+
+        """
+        return self.__second.__copy__()*self.__first.__copy__()
+
     cdef _update_slots(self, _slots):
         """
         Used in pickling.

@@ -311,7 +311,7 @@ cdef class Map(Element):
             sage: phi._make_strong_references()
             Traceback (most recent call last):
             ...
-            RuntimeError: Domain or codomain of this map became garbage collected
+            RuntimeError: The domain of this map became garbage collected
             sage: phi.parent()
             Traceback (most recent call last):
             ...

@@ -858,7 +858,7 @@ class Gap_generic(Expect):
         EXAMPLES::
 
             sage: gap.version()
-            '4.6.4'
+            '4.6.5'
         """
         return self.eval('VERSION')[1:-1]
 
@@ -1841,7 +1841,7 @@ def gap_version():
         sage: gap_version()
         doctest:...: DeprecationWarning: use gap.version() instead
         See http://trac.sagemath.org/13211 for details.
-        '4.6.4'
+        '4.6.5'
     """
     from sage.misc.superseded import deprecation
     deprecation(13211, 'use gap.version() instead')

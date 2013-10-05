@@ -24,9 +24,14 @@ fi
 source "$SAGE_LOCAL/gap/latest/sysinfo.gap"
 echo "GAP was configured with $GAParch_system"
 
+# location of the corresponding gap installation
+# only used for the testsuite
+CPPFLAGS="$CPPFLAGS"'-DSYS_DEFAULT_PATHS=\"'"$SAGE_LOCAL/gap/latest"'\"'
+
 echo "Configuring libGAP..."
 cd src
-./configure --disable-static CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" \
+./configure --disable-static \
+    CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" CPPFLAGS="$CPPFLAGS" \
     --with-gap_system_arch="$GAParch_system" \
     --with-sage="$SAGE_LOCAL" --with-gmp="$SAGE_LOCAL" --prefix="$SAGE_LOCAL"
 if [ $? -ne 0 ]; then

@@ -186,6 +186,7 @@ from sage.structure.sage_object import SageObject
 from sage.structure.sequence import Sequence
 from sage.rings.integer import Integer
 from sage.misc.all import prod
+from sage.misc.cachefunc import cached_method
 
 class Factorization(SageObject):
     """
@@ -884,6 +885,36 @@ class Factorization(SageObject):
                 u = '\\left(%s\\right)'%self.__unit._latex_()
             s =  u + ' \\cdot ' + s
         return s
+
+    @cached_method
+    def _pari_(self):
+        """
+        Return the PARI factorization matrix corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: f = factor(-24)
+            sage: pari(f)
+            [-1, 1; 2, 3; 3, 1]
+
+            sage: R.<x> = QQ[]
+            sage: g = factor(x^10 - 1)
+            sage: pari(g)
+            [x - 1, 1; x + 1, 1; x^4 - x^3 + x^2 - x + 1, 1; x^4 + x^3 + x^2 + x + 1, 1]
+
+        """
+        from sage.libs.pari.all import pari
+        from itertools import chain
+
+        n = len(self)
+        if self.__unit == 1:
+            init = ()
+        else:
+            init = (self.__unit, 1)
+            n += 1
+        # concatenate (p, e) tuples
+        entries = init + tuple(chain.from_iterable(self))
+        return pari.matrix(n, 2, entries)
 
     def __add__(self, other):
         """

@@ -178,12 +178,40 @@ class SchemeMorphism(Element):
             raise TypeError, "parent (=%s) must be a Homspace"%parent
         Element.__init__(self, parent)
         self.domain = ConstantFunction(parent.domain())
-        self.codomain = ConstantFunction(parent.codomain())
+        self._codomain = parent.codomain()
+        self.codomain = ConstantFunction(self._codomain)
 
     # We copy methods of sage.categories.map.Map, to make
     # a future transition of SchemeMorphism to a sub-class of Morphism
     # easier.
     def __call__(self, x, *args, **kwds):
+        """
+        Do not override this method!
+
+        For implementing application of maps, implement a method
+        ``_call_(self, x)`` and/or a method ``_call_with_args(x, args, kwds)`.
+        In these methods, you can assume that ``x`` belongs to the domain of
+        this morphism, ``args`` is a tuple and ``kwds`` is a dict.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: A.<x,y> = AffineSpace(R)
+            sage: H = A.Hom(A)
+            sage: f = H([y,x^2+y])
+            sage: f([2,3])    # indirect doctest
+            (3, 7)
+
+        An example with optional arguments::
+
+            sage: PS.<x,y>=ProjectiveSpace(QQ,1)
+            sage: H=Hom(PS,PS)
+            sage: f=H([x^3,x*y^2])
+            sage: P=PS(0,1)
+            sage: f(P,check=False)     # indirect doctest
+            (0 : 0)
+
+        """
         P = parent(x)
         D = self.domain()
         if P is D: # we certainly want to call _call_/with_args
@@ -272,7 +300,7 @@ class SchemeMorphism(Element):
         else:
             s = "%s morphism:"%self._repr_type()
             s += "\n  From: %s"%self.domain()
-            s += "\n  To:   %s"%self.codomain()
+            s += "\n  To:   %s"%self._codomain
         d = self._repr_defn()
         if d != '':
             s += "\n  Defn: %s"%('\n        '.join(self._repr_defn().split('\n')))
@@ -390,6 +418,16 @@ class SchemeMorphism(Element):
         return self.parent().category()
 
     def category_for(self):
+        """
+        Return the category which this morphism belongs to.
+
+        EXAMPLES::
+
+            sage: A2 = AffineSpace(QQ,2)
+            sage: A2.structure_morphism().category_for()
+            Category of Schemes
+
+        """
         return self.parent().homset_category()
 
     def is_endomorphism(self):
@@ -411,17 +449,53 @@ class SchemeMorphism(Element):
         return self.parent().is_endomorphism_set()
 
     def _composition(self, right):
+        """
+        A helper for multiplying maps by composition.
+
+        .. WARNING::
+
+            Do not override this method! Override :meth:`_composition_`
+            instead.
+
+        EXAMPLES::
+
+            sage: X = AffineSpace(QQ,2)
+            sage: f = X.structure_morphism()
+            sage: Y = Spec(QQ)
+            sage: g = Y.structure_morphism()
+            sage: g * f    # indirect doctest
+             Composite map:
+              From: Affine Space of dimension 2 over Rational Field
+              To:   Spectrum of Integer Ring
+              Defn:   Generic morphism:
+                      From: Affine Space of dimension 2 over Rational Field
+                      To:   Spectrum of Rational Field
+                    then
+                      Generic morphism:
+                      From: Spectrum of Rational Field
+                      To:   Spectrum of Integer Ring
+
+        """
         category = self.category_for()._meet_(right.category_for())
-        H = Hom(right.domain(), self.codomain(), category)
+        H = Hom(right.domain(), self._codomain, category)
         return self._composition_(right, H)
 
     def _composition_(self, right, homset):
         """
         Helper to construct the composition of two morphisms.
 
-        The composition is implemented by converting the arguments to
-        :class:`~sage.categories.morphism.SetMorphism` if necessary, and then
-        forming a :class:`~sage.categories.map.FormalCompositeMap`
+        Override this if you want to have a different behaviour of composition
+
+        INPUT:
+
+        - ``right`` -- a map or callable
+        - ``homset`` -- a homset containing the composed map
+
+        OUTPUT:
+
+        An element of ``homset``. The output is obtained by converting the
+        arguments to :class:`~sage.categories.morphism.SetMorphism` if
+        necessary, and then forming a :class:`~sage.categories.map.FormalCompositeMap`
 
         EXAMPLES::
 
@@ -589,7 +663,7 @@ class SchemeMorphism_structure_map(SchemeMorphism):
               Defn: Structure map
         """
         SchemeMorphism.__init__(self, parent, codomain=None)
-        if self.domain().base_scheme() != self.codomain():
+        if self.domain().base_scheme() != self._codomain:
             raise ValueError, "parent must have codomain equal the base scheme of domain."
 
     def _repr_defn(self):
@@ -704,7 +778,7 @@ class SchemeMorphism_spec(SchemeMorphism):
         if not is_SchemeTopologicalPoint(x) and x in self.domain():
             raise TypeError, "x (=%s) must be a topological scheme point of %s"%(x, self)
         S = self.ring_homomorphism().inverse_image(x.prime_ideal())
-        return self.codomain()(S)
+        return self._codomain(S)
 
     def _repr_type(self):
         r"""
@@ -839,7 +913,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             if not isinstance(polys, (list, tuple)):
                 raise TypeError, "polys (=%s) must be a list or tuple"%polys
             source_ring = parent.domain().coordinate_ring()
-            target = parent.codomain().ambient_space()
+            target = parent._codomain.ambient_space()
             if len(polys) != target.ngens():
                 raise ValueError, "there must be %s polynomials"%target.ngens()
             try:
@@ -959,7 +1033,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
 
         """
         P = [f(x._coords) for f in self.defining_polynomials()]
-        return self.codomain().point(P,check=True)
+        return self._codomain.point(P,check=True)
 
     def _call_with_args(self, x, args, kwds):
         """
@@ -1054,10 +1128,10 @@ class SchemeMorphism_polynomial(SchemeMorphism):
         if check:
             if not isinstance(x,SchemeMorphism_point):
                 x = self.domain()(x)
-            elif x.codomain()!=self.domain():
+            elif x._codomain!=self.domain():
                 raise TypeError, "Point must be in the domain of the function"
         P = [f(x._coords) for f in self.defining_polynomials()]
-        return self.codomain().point(P,check)
+        return self._codomain.point(P,check)
 
 
     def _repr_defn(self):
@@ -1079,7 +1153,7 @@ class SchemeMorphism_polynomial(SchemeMorphism):
             (y, x^2 + y)
         """
         i = self.domain().ambient_space()._repr_generic_point()
-        o = self.codomain().ambient_space()._repr_generic_point(self.defining_polynomials())
+        o = self._codomain.ambient_space()._repr_generic_point(self.defining_polynomials())
         return "Defined on coordinates by sending %s to\n%s"%(i,o)
 
     def __getitem__(self,i):
@@ -1240,10 +1314,10 @@ class SchemeMorphism_polynomial(SchemeMorphism):
                     (x : y)
             """
         F=self._polys
-        S=self.codomain().change_ring(R)
+        S=self._codomain.change_ring(R)
         H=Hom(S,S)
         G=[]
-        for i in range(self.codomain().ambient_space().dimension_relative()+1):
+        for i in range(self._codomain.ambient_space().dimension_relative()+1):
             G.append(F[i].change_ring(R))
         return(H(G,check))
 
@@ -1283,7 +1357,7 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: a._repr_()
             '(1, 2)'
         """
-        return self.codomain().ambient_space()._repr_generic_point(self._coords)
+        return self._codomain.ambient_space()._repr_generic_point(self._coords)
 
     def _latex_(self):
         r"""
@@ -1302,7 +1376,7 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: a._latex_()
             '\\left(1, 2\\right)'
         """
-        return self.codomain().ambient_space()._latex_generic_point(self._coords)
+        return self._codomain.ambient_space()._latex_generic_point(self._coords)
 
     def __getitem__(self, n):
         """
@@ -1404,7 +1478,7 @@ class SchemeMorphism_point(SchemeMorphism):
         """
         if not isinstance(other, SchemeMorphism_point):
             try:
-                other = self.codomain().ambient_space()(other)
+                other = self._codomain.ambient_space()(other)
             except TypeError:
                 return -1
         return cmp(self._coords, other._coords)
@@ -1424,7 +1498,7 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: a.scheme()
             Affine Space of dimension 2 over Rational Field
         """
-        return self.codomain()
+        return self._codomain
 
     def change_ring(self,R, check=True):
         r"""
@@ -1460,7 +1534,7 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: P(152,113).change_ring(Zp(5))
             (2 + 5^2 + 5^3 + O(5^20) : 3 + 2*5 + 4*5^2 + O(5^20))
         """
-        S=self.codomain().change_ring(R)
+        S=self._codomain.change_ring(R)
         Q=[]
         for i in range(len(self._coords)):
             Q.append(R(self._coords[i]))
@@ -1483,4 +1557,4 @@ class SchemeMorphism_point(SchemeMorphism):
             sage: copy(Q) == Q
             True
         """
-        return(self.codomain().point(self._coords,False))
+        return(self._codomain.point(self._coords,False))

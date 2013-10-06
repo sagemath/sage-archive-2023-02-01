@@ -63,10 +63,64 @@ cdef class NumberFieldEmbedding(Morphism):
         else:
             self._gen_image = R(gen_embedding)
 
-    def __copy__(self):
-        cdef NumberFieldEmbedding out = Morphism.__copy__(self)
-        out._gen_image = self._gen_image
-        return out
+    cdef _extra_slots(self, _slots):
+        """
+        A helper for pickling and copying.
+
+        INPUT:
+
+        ``_slots`` -- a dictionary
+
+        OUTPUT:
+
+        The given dictionary, with the generator image added.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: from sage.rings.number_field.number_field_morphisms import NumberFieldEmbedding
+            sage: K.<a> = NumberField(x^3-2)
+            sage: f = NumberFieldEmbedding(K, RLF, 1)
+            sage: g = copy(f)    # indirect doctest
+            sage: g
+            Generic morphism:
+              From: Number Field in a with defining polynomial x^3 - 2
+              To:   Real Lazy Field
+              Defn: a -> 1.259921049894873?
+            sage: g(a)^3
+            2.00000000000000?
+
+        """
+        _slots = Morphism._extra_slots(self, _slots)
+        _slots['_gen_image'] = self._gen_image
+        return _slots
+
+    cdef _update_slots(self, _slots):
+        """
+        A helper for unpickling and copying.
+
+        INPUT:
+
+        ``_slots`` -- a dictionary providing values for the c(p)def slots of self.
+
+        EXAMPLES::
+
+            sage: x = polygen(QQ)
+            sage: from sage.rings.number_field.number_field_morphisms import NumberFieldEmbedding
+            sage: K.<a> = NumberField(x^3-2)
+            sage: f = NumberFieldEmbedding(K, RLF, 1)
+            sage: g = copy(f)    # indirect doctest
+            sage: g
+            Generic morphism:
+              From: Number Field in a with defining polynomial x^3 - 2
+              To:   Real Lazy Field
+              Defn: a -> 1.259921049894873?
+            sage: g(a)^3
+            2.00000000000000?
+
+        """
+        Morphism._update_slots(self, _slots)
+        self._gen_image = _slots['_gen_image']
 
     cpdef Element _call_(self, x):
         """

@@ -6766,11 +6766,11 @@ cdef class PolynomialBaseringInjection(Morphism):
         self._repr_type_str = "Polynomial base injection"
         self._new_constant_poly_ = self._an_element._new_constant_poly
 
-    def __copy__(self):
+    cdef _extra_slots(self, _slots):
         """
         EXAMPLES::
 
-            sage: phi = copy(QQ['x'].coerce_map_from(QQ))
+            sage: phi = copy(QQ['x'].coerce_map_from(QQ))   # indirect doctest
             sage: phi
             Polynomial base injection morphism:
               From: Rational Field
@@ -6779,7 +6779,27 @@ cdef class PolynomialBaseringInjection(Morphism):
             3
 
         """
-        return PolynomialBaseringInjection(self.domain(), self.codomain())
+        _slots = Morphism._extra_slots(self, _slots)
+        _slots['_an_element'] = self._an_element
+        _slots['_new_constant_poly_'] = self._new_constant_poly_
+        return _slots
+
+    cdef _update_slots(self, _slots):
+        """
+        EXAMPLES::
+
+            sage: phi = copy(QQ['x'].coerce_map_from(QQ))  # indirect doctest
+            sage: phi
+            Polynomial base injection morphism:
+              From: Rational Field
+              To:   Univariate Polynomial Ring in x over Rational Field
+            sage: phi(3/1)
+            3
+
+        """
+        Morphism._update_slots(self, _slots)
+        self._an_element = _slots['_an_element']
+        self._new_constant_poly_ = _slots['_new_constant_poly_']
 
     cpdef Element _call_(self, x):
         """
@@ -6794,7 +6814,7 @@ cdef class PolynomialBaseringInjection(Morphism):
             sage: parent(m(2))
             Univariate Polynomial Ring in x over Integer Ring
         """
-        return self._new_constant_poly_(x, self.codomain())
+        return self._new_constant_poly_(x, self._codomain)
 
     cpdef Element _call_with_args(self, x, args=(), kwds={}):
         """
@@ -6805,11 +6825,11 @@ cdef class PolynomialBaseringInjection(Morphism):
             (1 + O(5^11))
         """
         try:
-            return self.codomain()._element_constructor_(x, *args, **kwds)
+            return self._codomain._element_constructor_(x, *args, **kwds)
         except AttributeError:
             # if there is no element constructor,
             # there is a custom call method.
-            return self.codomain()(x, *args, **kwds)
+            return self._codomain(x, *args, **kwds)
 
     def section(self):
         """
@@ -6824,4 +6844,4 @@ cdef class PolynomialBaseringInjection(Morphism):
             sage: type(m.section())
             <type 'sage.rings.polynomial.polynomial_element.ConstantPolynomialSection'>
         """
-        return ConstantPolynomialSection(self.codomain(), self.domain())
+        return ConstantPolynomialSection(self._codomain, self.domain())

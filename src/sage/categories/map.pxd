@@ -12,8 +12,9 @@ cdef class Map(Element):
     cpdef Element _call_(self, x)
     cpdef Element _call_with_args(self, x, args=*, kwds=*)
 
-    cdef public domain   # will be either a weakref or a constant map
-    cdef public codomain
+    cdef public domain    # will be either a weakref or a constant map
+    cdef public codomain  # will be a constant map
+    cdef Parent _codomain # for accessing the codomain directly
 
     cdef public _repr_type_str
 

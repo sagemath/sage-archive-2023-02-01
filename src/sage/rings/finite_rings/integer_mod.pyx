@@ -4005,11 +4005,11 @@ cdef class IntegerMod_hom(Morphism):
     def __init__(self, parent):
         Morphism.__init__(self, parent)
         # we need to use element constructor so that we can register both coercions and conversions using these morphisms.
-        cdef Parent C = self.codomain()
+        cdef Parent C = self._codomain
         self.zero = C._element_constructor_(0)
         self.modulus = C._pyx_order
     cpdef Element _call_(self, x):
-        return IntegerMod(self.codomain(), x)
+        return IntegerMod(self._codomain, x)
 
 cdef class IntegerMod_to_IntegerMod(IntegerMod_hom):
     """
@@ -4079,7 +4079,7 @@ cdef class Integer_to_IntegerMod(IntegerMod_hom):
                 res += self.modulus.int64
             a = self.modulus.lookup(res)
 #            if a._parent is not self._codomain:
-            a._parent = self.codomain()
+            a._parent = self._codomain
 #                print (<Element>a)._parent, " is not ", parent
             return a
         else:
@@ -4091,7 +4091,7 @@ cdef class Integer_to_IntegerMod(IntegerMod_hom):
         return "Natural"
 
     def section(self):
-        return IntegerMod_to_Integer(self.codomain())
+        return IntegerMod_to_Integer(self._codomain)
 
 cdef class IntegerMod_to_Integer(Map):
     def __init__(self, R):
@@ -4147,9 +4147,7 @@ cdef class Int_to_IntegerMod(IntegerMod_hom):
                 res += self.modulus.int64
             if self.modulus.table is not None:
                 a = self.modulus.lookup(res)
-#                if a._parent is not self.codomain():
-                a._parent = self.codomain()
-    #                print (<Element>a)._parent, " is not ", parent
+                a._parent = self._codomain
                 return a
             else:
                 return self.zero._new_c_from_long(res)

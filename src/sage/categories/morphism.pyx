@@ -51,12 +51,26 @@ def is_Morphism(x):
 cdef class Morphism(Map):
 
     def _repr_(self):
+        """
+        Return the string representation of self.
+
+        It uses :meth:`_repr_type` and :meth:`_repr_defn`.
+
+        EXAMPLES::
+
+            sage: R.<t> = ZZ[]
+            sage: f = R.hom([t+1])
+            sage: f     # indirect doctest
+            Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
+              Defn: t |--> t + 1
+
+        """
         if self.is_endomorphism():
             s = "%s endomorphism of %s"%(self._repr_type(), self.domain())
         else:
             s = "%s morphism:"%self._repr_type()
             s += "\n  From: %s"%self.domain()
-            s += "\n  To:   %s"%self.codomain()
+            s += "\n  To:   %s"%self._codomain
         d = self._repr_defn()
         if d != '':
             s += "\n  Defn: %s"%('\n        '.join(self._repr_defn().split('\n')))
@@ -150,7 +164,7 @@ cdef class Morphism(Map):
             AssertionError: coercion from Univariate Polynomial Ring in x over Integer Ring to Univariate Polynomial Ring in y over Integer Ring already registered or discovered
 
         """
-        self.codomain().register_coercion(self)
+        self._codomain.register_coercion(self)
 
     def register_as_conversion(self):
         """
@@ -173,19 +187,19 @@ cdef class Morphism(Map):
             sage: ZZ(x)
             -1
         """
-        self.codomain().register_conversion(self)
+        self._codomain.register_conversion(self)
 
 cdef class FormalCoercionMorphism(Morphism):
     def __init__(self, parent):
         Morphism.__init__(self, parent)
-        if not self.codomain().has_coerce_map_from(self.domain()):
-            raise TypeError, "Natural coercion morphism from %s to %s not defined."%(self.domain(), self.codomain())
+        if not self._codomain.has_coerce_map_from(self.domain()):
+            raise TypeError, "Natural coercion morphism from %s to %s not defined."%(self.domain(), self._codomain)
 
     def _repr_type(self):
         return "Coercion"
 
     cpdef Element _call_(self, x):
-        return self.codomain().coerce(x)
+        return self._codomain.coerce(x)
 
 cdef class CallMorphism(Morphism):
 
@@ -193,7 +207,7 @@ cdef class CallMorphism(Morphism):
         return "Call"
 
     cpdef Element _call_(self, x):
-        return self.codomain()(x)
+        return self._codomain(x)
 
 cdef class IdentityMorphism(Morphism):
 
@@ -211,7 +225,7 @@ cdef class IdentityMorphism(Morphism):
     cpdef Element _call_with_args(self, x, args=(), kwds={}): 
         if len(args) == 0 and len(kwds) == 0:
             return x
-        cdef Parent C = self.codomain()
+        cdef Parent C = self._codomain
         if C._element_init_pass_parent:
             return C._element_constructor(C, x, *args, **kwds)
         else:

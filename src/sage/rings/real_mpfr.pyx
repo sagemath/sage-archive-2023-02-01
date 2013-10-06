@@ -5434,7 +5434,7 @@ cdef class RRtoRR(Map):
             sage: f(g(b)) == b
             True
         """
-        cdef RealField_class parent = <RealField_class>self.codomain()
+        cdef RealField_class parent = <RealField_class>self._codomain
         cdef RealNumber y = empty_RealNumber(parent)
         if PY_TYPE_CHECK_EXACT(x, RealLiteral):
             mpfr_set_str(y.value, (<RealLiteral>x).literal, (<RealLiteral>x).base, parent.rnd)
@@ -5455,7 +5455,7 @@ cdef class RRtoRR(Map):
               From: Real Field with 10 bits of precision
               To:   Real Field with 100 bits of precision
         """
-        return RRtoRR(self.codomain(), self.domain())
+        return RRtoRR(self._codomain, self.domain())
 
 cdef class ZZtoRR(Map):
     cpdef Element _call_(self, x):
@@ -5467,7 +5467,7 @@ cdef class ZZtoRR(Map):
             sage: f(123456789) # indirect doctest
             1.2346e8
         """
-        cdef RealField_class parent = <RealField_class>self.codomain()
+        cdef RealField_class parent = <RealField_class>self._codomain
         cdef RealNumber y = empty_RealNumber(parent)
         mpfr_set_z(y.value, (<Integer>x).value, parent.rnd)
         return y
@@ -5482,7 +5482,7 @@ cdef class QQtoRR(Map):
             sage: f(-1/3) # indirect doctest
             -0.33333333333333333333333333333333333333333333333333333333333
         """
-        cdef RealField_class parent = <RealField_class>self.codomain()
+        cdef RealField_class parent = <RealField_class>self._codomain
         cdef RealNumber y = empty_RealNumber(parent)
         mpfr_set_q(y.value, (<Rational>x).value, parent.rnd)
         return y
@@ -5502,7 +5502,7 @@ cdef class double_toRR(Map):
             sage: f(RDF.pi())
             3.1415926535897931159979634685441851615905761718750000000000
         """
-        cdef RealField_class parent = <RealField_class>self.codomain()
+        cdef RealField_class parent = <RealField_class>self._codomain
         cdef RealNumber y = empty_RealNumber(parent)
         mpfr_set_d(y.value, x, parent.rnd)
         return y
@@ -5530,7 +5530,7 @@ cdef class int_toRR(Map):
             sage: f(x-x+1)
             1.00000000000000
         """
-        cdef RealField_class parent = <RealField_class>self.codomain()
+        cdef RealField_class parent = <RealField_class>self._codomain
         cdef RealNumber y = empty_RealNumber(parent)
         mpfr_set_si(y.value, x, parent.rnd)
         return y

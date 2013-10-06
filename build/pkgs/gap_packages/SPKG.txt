@@ -36,7 +36,7 @@ cleaned up.
  * Added spkg-src
  * Moved to new git workflow.
 
-=== gap_packages-4.6.4 (Volker Braun, 19 July 2013) ===
+=== gap_packages-4.6.4.p1 (Volker Braun, 19 July 2013) ===
  * Trac #14909: Add polycyclic, Alnuth-3.0.0, autpgrp as new
    dependencies. Removed reference to HAPprime which isn't included.
 

@@ -247,8 +247,6 @@ def sanitize_contractions_deletions(matroid, contractions, deletions):
 
     return conset.union(deletions.difference(delset)), delset.union(contractions.difference(conset))
 
-import sage.matroids.linear_matroid  # needs to be below newlabel and sanitize_contractions_deletions
-
 
 def make_regular_matroid_from_matroid(matroid):
     r"""
@@ -272,6 +270,7 @@ def make_regular_matroid_from_matroid(matroid):
         ....:                                     matroids.CompleteGraphic(6))
         True
     """
+    import sage.matroids.linear_matroid
     M = matroid
     if isinstance(M, sage.matroids.linear_matroid.RegularMatroid):
         return M

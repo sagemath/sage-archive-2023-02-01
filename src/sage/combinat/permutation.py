@@ -110,6 +110,9 @@ Below are listed all methods and classes defined in this file.
     :meth:`~sage.combinat.permutation.Permutation.RS_partition` | Returns the shape of the tableaux obtained by the RSK algorithm.
     :meth:`~sage.combinat.permutation.Permutation.remove_extra_fixed_points` | Returns the permutation obtained by removing any fixed points at the end of ``self``.
     :meth:`~sage.combinat.permutation.Permutation.hyperoctahedral_double_coset_type` | Returns the coset-type of ``self`` as a partition.
+    :meth:`~sage.combinat.permutation.Permutation.binary_search_tree_shape` | Returns the shape of the binary search tree of ``self`` (a non labelled binary tree).
+    :meth:`~sage.combinat.permutation.Permutation.shifted_concatenation` | Returns the right (or left) shifted concatenation of ``self`` with a permutation ``other``.
+    :meth:`~sage.combinat.permutation.Permutation.shifted_shuffle` | Returns the shifted shuffle of ``self`` with a permutation ``other``.
 
 **Other classes defined in this file**
 
@@ -3452,6 +3455,115 @@ class Permutation(CombinatorialObject, Element):
             [[., .], [., [., .]]]
         """
         return self.binary_search_tree(left_to_right).shape()
+
+    #####################
+    # Binary operations #
+    #####################
+
+    def shifted_concatenation(self, other, side = "right"):
+        r"""
+        Return the right (or left) shifted concatenation of ``self``
+        with a permutation ``other``. These operations are also known
+        as the Loday-Ronco over and under operations.
+
+        INPUT:
+
+        - ``other`` -- a permutation, a list, a tuple, or any iterable
+          representing a permutation.
+
+        - ``side`` -- (default: ``"right"``) the string "left" or "right".
+
+        OUTPUT:
+
+        If ``side`` is ``"right"``, the method returns the permutation
+        obtained by concatenating ``self`` with the letters of ``other``
+        incremented by the size of ``self``. This is what is called
+        ``side / other`` in [LodRon0102066]_, and denoted as the "over"
+        operation.
+        Otherwise, i. e., when ``side`` is ``"left"``, the method
+        returns the permutation obtained by concatenating the letters
+        of ``other`` incremented by the size of ``self`` with ``self``.
+        This is what is called ``side \ other`` in [LodRon0102066]_
+        (which seems to use the `(\sigma \pi)(i) = \pi(\sigma(i))`
+        convention for the product of permutations).
+
+        EXAMPLES::
+
+            sage: Permutation([]).shifted_concatenation(Permutation([]), "right")
+            []
+            sage: Permutation([]).shifted_concatenation(Permutation([]), "left")
+            []
+            sage: Permutation([2, 4, 1, 3]).shifted_concatenation(Permutation([3, 1, 2]), "right")
+            [2, 4, 1, 3, 7, 5, 6]
+            sage: Permutation([2, 4, 1, 3]).shifted_concatenation(Permutation([3, 1, 2]), "left")
+            [7, 5, 6, 2, 4, 1, 3]
+
+        REFERENCES:
+
+        .. [LodRon0102066] Jean-Louis Loday and Maria O. Ronco,
+           Order structure on the algebra of permutations
+           and of planar binary trees,
+           :arXiv:`math/0102066v1`.
+        """
+        if side == "right" :
+            return Permutation(list(self) + [a + len(self) for a in other])
+        elif side == "left" :
+            return Permutation([a + len(self) for a in other] + list(self))
+        else :
+            raise ValueError, "%s must be \"left\" or \"right\"" %(side)
+
+    def shifted_shuffle(self, other):
+        r"""
+        Return the shifted shuffle of two permutations ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- a permutation, a list, a tuple, or any iterable
+          representing a permutation.
+
+        OUTPUT:
+
+        The list of the permutations appearing in the shifted
+        shuffle of the permutations ``self`` and ``other``.
+
+        EXAMPLES::
+
+            sage: Permutation([]).shifted_shuffle(Permutation([]))
+            [[]]
+            sage: Permutation([1, 2, 3]).shifted_shuffle(Permutation([1]))
+            [[1, 2, 3, 4], [1, 2, 4, 3], [1, 4, 2, 3], [4, 1, 2, 3]]
+            sage: Permutation([1, 2]).shifted_shuffle(Permutation([2, 1]))
+            [[1, 2, 4, 3], [1, 4, 2, 3], [1, 4, 3, 2], [4, 1, 2, 3], [4, 1, 3, 2], [4, 3, 1, 2]]
+            sage: Permutation([1]).shifted_shuffle([1])
+            [[1, 2], [2, 1]]
+            sage: len(Permutation([3, 1, 5, 4, 2]).shifted_shuffle(Permutation([2, 1, 4, 3])))
+            126
+
+        The shifted shuffle product is associative. We can test this on an
+        admittedly toy example::
+
+            sage: all( all( all( sorted(flatten([abs.shifted_shuffle(c)
+            ....:                                for abs in a.shifted_shuffle(b)]))
+            ....:                == sorted(flatten([a.shifted_shuffle(bcs)
+            ....:                                   for bcs in b.shifted_shuffle(c)]))
+            ....:                for c in Permutations(2) )
+            ....:           for b in Permutations(2) )
+            ....:      for a in Permutations(2) )
+            True
+
+        The ``shifted_shuffle`` method on permutations gives the same
+        permutations as the ``shifted_shuffle`` method on words (but is
+        faster)::
+
+            sage: all( all( sorted(p1.shifted_shuffle(p2))
+            ....:           == sorted([Permutation(p) for p in
+            ....:                      Word(p1).shifted_shuffle(Word(p2))])
+            ....:           for p2 in Permutations(3) )
+            ....:      for p1 in Permutations(2) )
+            True
+        """
+        return self.shifted_concatenation(other, "right").\
+        right_permutohedron_interval(self.shifted_concatenation(other, "left"))
 
 ################################################################
 # Parent classes

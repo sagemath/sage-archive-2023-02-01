@@ -77,11 +77,13 @@ from tableau import Tableau, SemistandardTableau, StandardTableau, \
 from skew_tableau import SkewTableau, SkewTableaux, StandardSkewTableaux, SemistandardSkewTableaux
 from ribbon_shaped_tableau import RibbonShapedTableau, StandardRibbonShapedTableaux
 from ribbon_tableau import RibbonTableaux, RibbonTableau, MultiSkewTableaux, MultiSkewTableau, SemistandardMultiSkewTableaux
+from composition_tableau import CompositionTableau, CompositionTableaux
 #deprecated
 from ribbon import Ribbon, StandardRibbons
 
 
 from sage.combinat.tableau_tuple import TableauTuple, StandardTableauTuple, TableauTuples, StandardTableauTuples
+from k_tableau import WeakTableau, WeakTableaux, StrongTableau, StrongTableaux
 
 #Words
 from words.all import *
@@ -119,7 +121,7 @@ from sloane_functions import sloane
 
 from root_system.all import *
 from sf.all import *
-from ncsf_qsym.all import QuasiSymmetricFunctions, NonCommutativeSymmetricFunctions
+from ncsf_qsym.all import *
 from matrices.all import *
 # Posets
 from posets.all import *
@@ -155,4 +157,3 @@ from knutson_tao_puzzles import KnutsonTaoPuzzleSolver
 
 # Gelfand-Tsetlin patterns
 from gelfand_tsetlin_patterns import GelfandTsetlinPattern, GelfandTsetlinPatterns
-

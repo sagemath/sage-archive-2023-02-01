@@ -27,7 +27,6 @@ class TracError(RuntimeError):
         sage: from sage.dev.trac_error import TracError
         sage: TracError()
         TracError()
-
     """
     pass
 
@@ -40,7 +39,6 @@ class TracConnectionError(TracError):
         sage: from sage.dev.trac_error import TracConnectionError
         sage: TracConnectionError()
         TracConnectionError('Connection to trac server failed.',)
-
     """
     def __init__(self):
         r"""
@@ -63,11 +61,13 @@ class TracInternalError(TracError):
 
         sage: from sage.dev.trac_error import TracInternalError
         sage: import xmlrpclib
-        sage: raise TracInternalError(xmlrpclib.Fault(403, "TICKET_CREATE privileges are required to perform this operation. You don't have the required permissions."))
+        sage: raise TracInternalError(xmlrpclib.Fault(403, 
+        ....:     "TICKET_CREATE privileges are required to perform this operation."
+        ....:     " You don't have the required permissions."))
         Traceback (most recent call last):
         ...
-        TracInternalError: <Fault 403: "TICKET_CREATE privileges are required to perform this operation. You don't have the required permissions.">
-
+        TracInternalError: <Fault 403: "TICKET_CREATE privileges are required to 
+        perform this operation. You don't have the required permissions.">
     """
     def __init__(self, fault):
         r"""
@@ -77,9 +77,10 @@ class TracInternalError(TracError):
 
             sage: from sage.dev.trac_error import TracInternalError
             sage: import xmlrpclib
-            sage: type(TracInternalError(xmlrpclib.Fault(403, "TICKET_CREATE privileges are required to perform this operation. You don't have the required permissions.")))
+            sage: type(TracInternalError(xmlrpclib.Fault(403, 
+            ....:      "TICKET_CREATE privileges are required to perform this operation."
+            ....:      " You don't have the required permissions.")))
             <class 'sage.dev.trac_error.TracInternalError'>
-
         """
         self._fault = fault
         self.faultCode = fault.faultCode

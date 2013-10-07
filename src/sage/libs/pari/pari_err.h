@@ -2,22 +2,22 @@
 #include "interrupt.h"
 
 
+/*****************************************
+   Interrupts and PARI exception handling
+ *****************************************/
+#define pari_catch_sig_on() sig_on(); _pari_catch;
+#define pari_catch_sig_str(s) sig_str(s); _pari_catch;
+#define pari_catch_sig_off() _pari_endcatch; sig_off();
+
+
 // global catch variable !
 // this means that the code is not reentrant -- beware !
 // THAT MEANS NO CALLING TO PARI from inside the trap....
 // Should replace by a stack, that would work.
 static volatile long sage_pari_catcherr = 0;
 
-#define _pari_raise(errno) {                                                  \
-        PyErr_SetObject(PyExc_PariError, PyInt_FromLong(errno));              \
-    }
-
-#define _pari_endcatch {                                                      \
-         err_leave(sage_pari_catcherr);                                       \
-    }
-
 /* Careful with pari_retries, it must be declared volatile!
- * Also note that "if (pari_errno=setjmp(...))" is not legal C/C++
+ * Also note that "pari_errno = setjmp(...)" is not legal C.
  */
 #define _pari_catch                                                           \
     jmp_buf _pari_catch_env;                                                  \
@@ -35,3 +35,8 @@ static volatile long sage_pari_catcherr = 0;
         }                                                                     \
         sage_pari_catcherr = err_catch(CATCH_ALL, &_pari_catch_env);          \
     }
+
+#define _pari_endcatch {                                                      \
+         err_leave(sage_pari_catcherr);                                       \
+    }
+

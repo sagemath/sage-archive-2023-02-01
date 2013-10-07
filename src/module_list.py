@@ -994,17 +994,8 @@ ext_modules = [
               language = "c++",
               libraries=['ntl', 'gmp']),
 
-    #Extension('sage.matrix.matrix_cyclo_sparse',
-    #          sources = ['sage/matrix/matrix_cyclo_sparse.pyx']),
-
     Extension('sage.matrix.matrix_dense',
               sources = ['sage/matrix/matrix_dense.pyx']),
-
-    #Extension('sage.matrix.matrix_domain_dense',
-    #          sources = ['sage/matrix/matrix_domain_dense.pyx']),
-
-    #Extension('sage.matrix.matrix_domain_sparse',
-    #          sources = ['sage/matrix/matrix_domain_sparse.pyx']),
 
     Extension('sage.matrix.matrix_double_dense',
               sources = ['sage/matrix/matrix_double_dense.pyx'],
@@ -1076,12 +1067,6 @@ ext_modules = [
               depends = singular_depends,
               extra_compile_args = givaro_extra_compile_args),
 
-    #Extension('sage.matrix.matrix_pid_dense',
-    #          sources = ['sage/matrix/matrix_pid_dense.pyx']),
-
-    #Extension('sage.matrix.matrix_pid_sparse',
-    #          sources = ['sage/matrix/matrix_pid_sparse.pyx']),
-
     Extension('sage.matrix.matrix_rational_dense',
               sources = ['sage/matrix/matrix_rational_dense.pyx'],
               libraries = ['pari', 'gmp']),
@@ -1114,9 +1099,6 @@ ext_modules = [
 
     Extension('sage.matrix.strassen',
               sources = ['sage/matrix/strassen.pyx']),
-
-    #Extension('sage.matrix.padics.matrix_padic_capped_relative_dense',
-    #          sources = ['sage/matrix/padics/matrix_padic_capped_relative_dense.pyx']),
 
     ################################
     ##
@@ -1561,11 +1543,6 @@ ext_modules = [
               sources = ['sage/rings/real_mpfr.pyx'],
               libraries = ['mpfr', 'pari', 'gmp'],
               depends = numpy_depends),
-
-    #Extension('sage.rings.real_rqdf',
-    #          sources = ["sage/rings/real_rqdf.pyx"],
-    #          libraries = ['qd', 'm', 'stdc++','gmp','mpfr' ],
-    #          language='c++'),
 
     Extension('sage.rings.residue_field',
               sources = ['sage/rings/residue_field.pyx']),

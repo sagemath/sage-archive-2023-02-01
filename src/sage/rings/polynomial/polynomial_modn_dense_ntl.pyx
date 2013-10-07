@@ -534,7 +534,7 @@ def small_roots(self, X=None, beta=1.0, epsilon=None, **kwds):
 
     Alexander May. *New RSA Vulnerabilities Using Lattice Reduction Methods.*
     PhD thesis, University of Paderborn, 2003.
-    http://www.informatik.tu-darmstadt.de/KP/publications/03/bp.ps
+    http://www.cs.uni-paderborn.de/uploads/tx_sibibtex/bp.pdf
     """
     from sage.misc.misc import verbose
     from sage.matrix.constructor import Matrix

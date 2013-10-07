@@ -916,12 +916,18 @@ class GenericGraph(GenericGraph_pyx):
 
         EXAMPLES::
 
-            sage: graphs.PetersenGraph().to_dictionary()
-            {0: [1, 4, 5], 1: [0, 2, 6],
-             2: [1, 3, 7], 3: [8, 2, 4],
-             4: [0, 9, 3], 5: [0, 8, 7],
-             6: [8, 1, 9], 7: [9, 2, 5],
-             8: [3, 5, 6], 9: [4, 6, 7]}
+            sage: g = graphs.PetersenGraph().to_dictionary()
+            sage: [(key, sorted(g[key])) for key in g]
+            [(0, [1, 4, 5]),
+             (1, [0, 2, 6]),
+             (2, [1, 3, 7]),
+             (3, [2, 4, 8]),
+             (4, [0, 3, 9]),
+             (5, [0, 7, 8]),
+             (6, [1, 8, 9]),
+             (7, [2, 5, 9]),
+             (8, [3, 5, 6]),
+             (9, [4, 6, 7])]
             sage: graphs.PetersenGraph().to_dictionary(multiple_edges=True)
             {0: [1, 4, 5], 1: [0, 2, 6],
              2: [1, 3, 7], 3: [2, 4, 8],
@@ -2877,13 +2883,13 @@ class GenericGraph(GenericGraph_pyx):
         if self.order() == 0:
             return 0
 
-        if self.is_directed() == False:
-            M=self.kirchhoff_matrix()
+        if not self.is_directed():
+            M = self.kirchhoff_matrix()
             M.subdivide(1,1)
             M2 = M.subdivision(1,1)
             return M2.determinant()
         else:
-            if root_vertex == None:
+            if root_vertex is None:
                 root_vertex=self.vertex_iterator().next()
             if root_vertex not in self.vertices():
                 raise ValueError("Vertex (%s) not in the graph."%root_vertex)
@@ -4517,7 +4523,7 @@ class GenericGraph(GenericGraph_pyx):
 
         .. [KaisPacking] Thomas Kaiser
           A short proof of the tree-packing theorem
-          http://arxiv.org/abs/0911.2809
+          :arxiv:`0911.2809`
 
         .. [SchrijverCombOpt] Alexander Schrijver
           Combinatorial optimization: polyhedra and efficiency
@@ -4535,7 +4541,7 @@ class GenericGraph(GenericGraph_pyx):
         # edges[j][e] is equal to one if and only if edge e belongs to color j
         edges = p.new_variable(dim=2)
 
-        if root == None:
+        if root is None:
             root = self.vertex_iterator().next()
 
         # r_edges is a relaxed variable grater than edges. It is used to
@@ -5922,7 +5928,6 @@ class GenericGraph(GenericGraph_pyx):
                 except MIPSolverException:
                     raise ValueError("The given graph is not hamiltonian")
 
-
                 while True:
                     # We build the DiGraph representing the current solution
                     h = DiGraph()
@@ -5955,7 +5960,7 @@ class GenericGraph(GenericGraph_pyx):
 
                 from sage.graphs.all import Graph
                 b = p.new_variable(binary = True)
-                B = lambda u,v : b[(u,v)] if u<v else b[(v,u)]
+                B = lambda u,v : b[frozenset((u,v))]
 
                 # Objective function
                 if use_edge_labels:
@@ -5999,8 +6004,6 @@ class GenericGraph(GenericGraph_pyx):
                     except MIPSolverException:
                         raise ValueError("The given graph is not hamiltonian")
 
-
-
             # We can now return the TSP !
             answer = self.subgraph(edges = h.edges())
             answer.set_pos(self.get_pos())
@@ -6035,7 +6038,6 @@ class GenericGraph(GenericGraph_pyx):
                                  min = 1,
                                  max = 1)
 
-
             # r is greater than f
             for u,v in g.edges(labels = None):
                 if g.has_edge(v,u):
@@ -6048,41 +6050,36 @@ class GenericGraph(GenericGraph_pyx):
                 else:
                     p.add_constraint( r[(u,v)] + r[(v,u)] - f[(u,v)], min = 0)
 
-
             # defining the answer when g is directed
             from sage.graphs.all import DiGraph
             tsp = DiGraph()
         else:
 
             # reorders the edge as they can appear in the two different ways
-            R = lambda x,y : (x,y) if x < y else (y,x)
+            R = lambda x,y : frozenset((x,y))
 
             # returns the variable corresponding to arc u,v
             E = lambda u,v : f[R(u,v)]
 
             # All the vertices have degree 2
             for v in g:
-                p.add_constraint(p.sum([ f[R(u,v)] for u in g.neighbors(v)]),
+                p.add_constraint(p.sum([ E(u,v) for u in g.neighbors(v)]),
                                  min = 2,
                                  max = 2)
 
             # r is greater than f
             for u,v in g.edges(labels = None):
-                p.add_constraint( r[(u,v)] + r[(v,u)] - f[R(u,v)], min = 0)
+                p.add_constraint( r[(u,v)] + r[(v,u)] - E(u,v), min = 0)
 
             from sage.graphs.all import Graph
 
             # defining the answer when g is not directed
             tsp = Graph()
 
-
         # no cycle which does not contain x
         for v in g:
             if v != x:
                 p.add_constraint(p.sum([ r[(u,v)] for u in g.neighbors(v)]),max = 1-eps)
-
-
-
 
         if use_edge_labels:
             p.set_objective(p.sum([ weight(l)*E(u,v) for u,v,l in g.edges()]) )
@@ -6090,8 +6087,6 @@ class GenericGraph(GenericGraph_pyx):
             p.set_objective(None)
 
         p.set_binary(f)
-
-
 
         try:
             obj = p.solve(log = verbose)
@@ -6574,14 +6569,14 @@ class GenericGraph(GenericGraph_pyx):
            True
         """
 
-        if vertex_bound == True and method == "FF":
+        if vertex_bound and method == "FF":
             raise ValueError("This method does not support both vertex_bound=True and method=\"FF\".")
 
         if (method == "FF" or
-            (method == None and vertex_bound == False)):
+            (method is None and not vertex_bound)):
             return self._ford_fulkerson(x,y, value_only=value_only, integer=integer, use_edge_labels=use_edge_labels)
 
-        if method != "LP" and method != None:
+        if method != "LP" and not method is None:
             raise ValueError("The method argument has to be equal to either \"FF\", \"LP\" or None")
 
 
@@ -7622,29 +7617,34 @@ class GenericGraph(GenericGraph_pyx):
         When ``value_only = True``, this function is optimized for small
         connectivity values and does not need to build a linear program.
 
-        It is the case for connected graphs which are not
-        connected::
+        It is the case for connected graphs which are not connected::
 
            sage: g = 2 * graphs.PetersenGraph()
            sage: g.vertex_connectivity()
-           0.0
+           0
 
         Or if they are just 1-connected::
 
            sage: g = graphs.PathGraph(10)
            sage: g.vertex_connectivity()
-           1.0
+           1
 
         For directed graphs, the strong connectivity is tested
         through the dedicated function::
 
            sage: g = digraphs.ButterflyGraph(3)
            sage: g.vertex_connectivity()
-           0.0
+           0
 
         A complete graph on `10` vertices is `9`-connected::
 
            sage: g = graphs.CompleteGraph(10)
+           sage: g.vertex_connectivity()
+           9
+
+        A complete digraph on `10` vertices is `9`-connected::
+
+           sage: g = DiGraph(graphs.CompleteGraph(10))
            sage: g.vertex_connectivity()
            9
         """
@@ -7653,7 +7653,13 @@ class GenericGraph(GenericGraph_pyx):
         if sets:
             value_only=False
 
-        if g.is_clique():
+        # When the graph is complete, the MILP below is infeasible.
+        if ((not g.is_directed() and g.is_clique())
+            or
+            (g.is_directed() and g.size() >= (g.order()-1)*g.order() and
+             ((not g.allows_loops() and not g.allows_multiple_edges())
+              or
+              all(g.has_edge(u,v) for u in g for v in g if v != u)))):
             if value_only:
                 return g.order()-1
             elif not sets:
@@ -7664,15 +7670,14 @@ class GenericGraph(GenericGraph_pyx):
         if value_only:
             if self.is_directed():
                 if not self.is_strongly_connected():
-                    return 0.0
+                    return 0
 
             else:
                 if not self.is_connected():
-                    return 0.0
+                    return 0
 
                 if len(self.blocks_and_cut_vertices()[0]) > 1:
-                    return 1.0
-
+                    return 1
 
         if g.is_directed():
             reorder_edge = lambda x,y : (x,y)
@@ -7709,7 +7714,6 @@ class GenericGraph(GenericGraph_pyx):
                 p.add_constraint(in_set[0][u]+in_set[2][v],max=1)
                 p.add_constraint(in_set[2][u]+in_set[0][v],max=1)
 
-
         p.set_binary(in_set)
 
         p.set_objective(p.sum([in_set[1][v] for v in g]))
@@ -7720,7 +7724,6 @@ class GenericGraph(GenericGraph_pyx):
             val = [Integer(round(p.solve(log=verbose)))]
 
             in_set = p.get_values(in_set)
-
 
             cut = []
             a = []
@@ -7734,14 +7737,12 @@ class GenericGraph(GenericGraph_pyx):
                 else:
                     b.append(v)
 
-
             val.append(cut)
 
             if sets:
                 val.append([a,b])
 
             return val
-
 
     ### Vertex handlers
 
@@ -8254,7 +8255,7 @@ class GenericGraph(GenericGraph_pyx):
             return iter(set(self.neighbor_out_iterator(vertex)) \
                     | set(self.neighbor_in_iterator(vertex)))
         else:
-            return iter(set(self._backend.iterator_nbrs(vertex)))
+            return self._backend.iterator_nbrs(vertex)
 
     def vertices(self, key=None, boundary_first=False):
         r"""
@@ -13502,7 +13503,7 @@ class GenericGraph(GenericGraph_pyx):
         and `((u,v), (w,x))` is an edge iff - `(u, w)` is an edge of self, and -
         `(v, x)` is an edge of other.
 
-        The tensor product is also knwon as the categorical product and the
+        The tensor product is also known as the categorical product and the
         kronecker product (refering to the kronecker matrix product). See
         :wikipedia:`Wikipedia article on the Kronecker product <Kronecker_product>`.
 
@@ -13564,12 +13565,12 @@ class GenericGraph(GenericGraph_pyx):
             G = Graph()
         else:
             raise TypeError('the graphs should be both directed or both undirected')
-        G.add_vertices( [(u,v) for u in self for v in other] )
-        for u,w in self.edge_iterator(labels=None):
-            for v,x in other.edge_iterator(labels=None):
-                G.add_edge((u,v), (w,x))
+        G.add_vertices( [(u, v) for u in self for v in other] )
+        for u, w in self.edge_iterator(labels=None):
+            for v, x in other.edge_iterator(labels=None):
+                G.add_edge((u, v), (w, x))
                 if not G._directed:
-                    G.add_edge((u,x), (w,v))
+                    G.add_edge((u, x), (w, v))
         return G
 
     categorical_product = tensor_product

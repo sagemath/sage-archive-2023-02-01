@@ -35,7 +35,7 @@ AUTHORS:
 REFERENCES:
 
 - Data provided by Jason Grout (Brigham Young University). [Online]
-  Available: http://math.byu.edu/~grout/graphs/
+  Available: http://artsci.drake.edu/grout/graphs/
 """
 
 ################################################################################
@@ -703,7 +703,7 @@ class GraphDatabase(SQLDatabase):
 
         - Data provided by Jason Grout (Brigham Young
           University). [Online] Available:
-          http://math.byu.edu/~grout/graphs/
+          http://artsci.drake.edu/grout/graphs/
 
         EXAMPLE::
 

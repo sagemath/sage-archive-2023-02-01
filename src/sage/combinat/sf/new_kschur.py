@@ -607,6 +607,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 ValueError: s[3, 2, 1] + s[3, 3] + s[4, 1, 1] + (t+1)*s[4, 2] + (t+1)*s[5, 1] + t*s[6] is not in the image of Generic morphism:
                   From: 3-bounded Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the 3-Schur basis
                   To:   Symmetric Functions over Univariate Polynomial Ring in t over Rational Field in the Schur basis
+                  ...
 
                 sage: Sym = SymmetricFunctions(QQ)
                 sage: ks = Sym.kschur(3,1)

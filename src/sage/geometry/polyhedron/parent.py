@@ -597,14 +597,10 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 
             sage: from sage.geometry.polyhedron.parent import Polyhedra
             sage: Polyhedra(ZZ,2).get_action( ZZ^2, op=operator.add)
-            Right action by Ambient free module of rank 2 over the principal ideal
-            domain Integer Ring on Polyhedra in ZZ^2
+            Right action by Ambient free module of rank 2 over the principal ideal domain Integer Ring on Polyhedra in ZZ^2
             with precomposition on left by Identity endomorphism of Polyhedra in ZZ^2
-            with precomposition on right by Free module morphism defined by the matrix
-            [1 0]
-            [0 1]
-            Domain: Ambient free module of rank 2 over the principal ideal domain ...
-            Codomain: Ambient free module of rank 2 over the principal ideal domain ...
+            with precomposition on right by Generic endomorphism of Ambient free module of rank 2 over the principal ideal domain Integer Ring
+
         """
         import operator
         from sage.structure.coerce_actions import ActedUponAction
@@ -617,12 +613,12 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             action = ActedUponAction(extended_other, extended_self, not self_is_left)
             if self_is_left:
                 action = PrecomposedAction(action,
-                                           extended_self.coerce_map_from(self),
-                                           extended_other.coerce_map_from(other))
+                                           extended_self.coerce_map_from(self).__copy__(),
+                                           extended_other.coerce_map_from(other).__copy__())
             else:
                 action = PrecomposedAction(action,
-                                           extended_other.coerce_map_from(other),
-                                           extended_self.coerce_map_from(self))
+                                           extended_other.coerce_map_from(other).__copy__(),
+                                           extended_self.coerce_map_from(self).__copy__())
             return action
 
         if op is operator.mul and is_CommutativeRing(other):
@@ -633,12 +629,12 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             action = ActedUponAction(ring, extended, not self_is_left)
             if self_is_left:
                 action = PrecomposedAction(action,
-                                           extended.coerce_map_from(self),
-                                           ring.coerce_map_from(other))
+                                           extended.coerce_map_from(self).__copy__(),
+                                           ring.coerce_map_from(other).__copy__())
             else:
                 action = PrecomposedAction(action,
-                                           ring.coerce_map_from(other),
-                                           extended.coerce_map_from(self))
+                                           ring.coerce_map_from(other).__copy__(),
+                                           extended.coerce_map_from(self).__copy__())
             return action
 
     def _make_Inequality(self, polyhedron, data):

@@ -27,7 +27,7 @@ AUTHORS:
 
 include "sage/ext/cdefs.pxi"
 from cpython.object cimport *
-
+from sage.misc.constant_function import ConstantFunction
 
 import operator
 
@@ -54,7 +54,15 @@ cdef class Morphism(Map):
         """
         Return the string representation of self.
 
+        NOTE:
+
         It uses :meth:`_repr_type` and :meth:`_repr_defn`.
+
+        A morphism that has been subject to
+        :meth:`~sage.categories.map.Map._make_weak_references` has probably
+        been used internally in the coercion system. Hence, it may become
+        defunct by garbage collection of the domain. In this case, a warning
+        is printed accordingly.
 
         EXAMPLES::
 
@@ -64,7 +72,50 @@ cdef class Morphism(Map):
             Ring endomorphism of Univariate Polynomial Ring in t over Integer Ring
               Defn: t |--> t + 1
 
+        TESTS::
+
+            sage: K = CyclotomicField(12)
+            sage: L = CyclotomicField(132)
+            sage: phi = L.coerce_map_from(K); phi
+            Generic morphism:
+              From: Cyclotomic Field of order 12 and degree 4
+              To:   Cyclotomic Field of order 132 and degree 40
+            <BLANKLINE>
+                    WARNING: This morphism has apparently been used internally
+                    in the coercion system. It may become defunct in the next
+                    garbage collection. Please use a copy.
+            sage: del K
+            sage: import gc
+            sage: _ = gc.collect()
+            sage: phi
+            Defunct morphism
+
         """
+        D = self.domain()
+        if D is None:
+            return "Defunct morphism"
+        if self.is_endomorphism():
+            s = "%s endomorphism of %s"%(self._repr_type(), self.domain())
+        else:
+            s = "%s morphism:"%self._repr_type()
+            s += "\n  From: %s"%self.domain()
+            s += "\n  To:   %s"%self._codomain
+        if isinstance(self.domain, ConstantFunction):
+            d = self._repr_defn()
+            if d != '':
+                s += "\n  Defn: %s"%('\n        '.join(d.split('\n')))
+        else:
+            d = """
+WARNING: This morphism has apparently been used internally
+in the coercion system. It may become defunct in the next
+garbage collection. Please use a copy."""
+            s += "\n%s"%('\n        '.join(d.split('\n')))
+        return s
+
+    def _default_repr_(self):
+        D = self.domain()
+        if D is None:
+            return "Defunct morphism"
         if self.is_endomorphism():
             s = "%s endomorphism of %s"%(self._repr_type(), self.domain())
         else:
@@ -73,7 +124,7 @@ cdef class Morphism(Map):
             s += "\n  To:   %s"%self._codomain
         d = self._repr_defn()
         if d != '':
-            s += "\n  Defn: %s"%('\n        '.join(self._repr_defn().split('\n')))
+            s += "\n  Defn: %s"%('\n        '.join(d.split('\n')))
         return s
 
     def _repr_short(self):
@@ -316,7 +367,7 @@ cdef class SetMorphism(Morphism):
         except StandardError:
             raise TypeError, "Underlying map %s does not accept additional arguments"%type(self._function)
 
-    cdef _extra_slots(self, _slots):
+    cdef dict _extra_slots(self, dict _slots):
         """
         INPUT:
 
@@ -333,7 +384,7 @@ cdef class SetMorphism(Morphism):
         _slots['_function'] = self._function
         return Map._extra_slots(self, _slots)
 
-    cdef _update_slots(self, _slots):
+    cdef _update_slots(self, dict _slots):
         """
         INPUT:
         - ``_slots`` -- a dictionary

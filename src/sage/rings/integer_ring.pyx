@@ -559,7 +559,10 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: 5 + True
             6
 
-            sage: f = ZZ.coerce_map_from(int); f
+        By :trac:`14711`, coerce maps should be copied before using them
+        outside of the coercion system::
+
+            sage: f = copy(ZZ.coerce_map_from(int)); f
             Native morphism:
               From: Set of Python objects of type 'int'
               To:   Integer Ring

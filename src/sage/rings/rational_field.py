@@ -325,7 +325,7 @@ class RationalField(_uniq, number_field_base.NumberField):
 
         EXAMPLES::
 
-            sage: f = QQ.coerce_map_from(ZZ); f # indirect doctest
+            sage: f = copy(QQ.coerce_map_from(ZZ)); f # indirect doctest
             Natural morphism:
               From: Integer Ring
               To:   Rational Field
@@ -333,7 +333,7 @@ class RationalField(_uniq, number_field_base.NumberField):
             3
             sage: f(3^99) - 3^99
             0
-            sage: f = QQ.coerce_map_from(int); f # indirect doctest
+            sage: f = copy(QQ.coerce_map_from(int)); f # indirect doctest
             Native morphism:
               From: Set of Python objects of type 'int'
               To:   Rational Field
@@ -342,7 +342,7 @@ class RationalField(_uniq, number_field_base.NumberField):
 
         ::
 
-            sage: QQ.coerce_map_from(long) # indirect doctest
+            sage: copy(QQ.coerce_map_from(long)) # indirect doctest
             Composite map:
               From: Set of Python objects of type 'long'
               To:   Rational Field

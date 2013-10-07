@@ -507,7 +507,10 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: R.has_coerce_map_from(ZZ['y'])
             False
 
-            sage: R.coerce_map_from(ZZ)
+        Note that by :trac:`14711` coerce maps should be copied
+        before using them outside of the coercion system::
+
+            sage: copy(R.coerce_map_from(ZZ))
             Composite map:
               From: Integer Ring
               To:   Univariate Polynomial Ring in x over Rational Field

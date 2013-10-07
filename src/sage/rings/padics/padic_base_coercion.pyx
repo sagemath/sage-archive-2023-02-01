@@ -80,6 +80,58 @@ cdef class pAdicCoercion_ZZ_CR(RingHomomorphism_coercion):
         self.prime_pow = R.prime_pow
         self._section = pAdicConvert_CR_ZZ(R)
 
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = Zp(5).coerce_map_from(ZZ)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Ring Coercion morphism:
+              From: Integer Ring
+              To:   5-adic Ring with capped relative precision 20
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(5)
+            5 + O(5^21)
+            sage: g(5) == f(5)
+            True
+
+        """
+        _slots['prime_pow'] = self.prime_pow
+        _slots['_section'] = self._section
+        return RingHomomorphism_coercion._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = Zp(5).coerce_map_from(ZZ)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Ring Coercion morphism:
+              From: Integer Ring
+              To:   5-adic Ring with capped relative precision 20
+            sage: g == f
+            True
+            sage: g is f
+            False
+            sage: g(5)
+            5 + O(5^21)
+            sage: g(5) == f(5)
+            True
+
+        """
+        self.prime_pow = _slots['prime_pow']
+        self._section = _slots['_section']
+        RingHomomorphism_coercion._update_slots(self, _slots)
+
     cpdef Element _call_(self, x):
         """
         Evaluation.
@@ -204,7 +256,7 @@ cdef class pAdicCoercion_QQ_CR(RingHomomorphism_coercion):
 
     EXAMPLES::
 
-        sage: f = Qp(5).coerce_map_from(QQ); f
+        sage: f = copy(Qp(5).coerce_map_from(QQ)); f
         Ring Coercion morphism:
           From: Rational Field
           To:   5-adic Field with capped relative precision 20
@@ -221,6 +273,58 @@ cdef class pAdicCoercion_QQ_CR(RingHomomorphism_coercion):
         RingHomomorphism_coercion.__init__(self, QQ.Hom(R), check=False)
         self.prime_pow = R.prime_pow
         self._section = pAdicConvert_CR_QQ(R)
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = Qp(5).coerce_map_from(QQ)
+            sage: g = copy(f)    # indirect doctest
+            sage: g
+            Ring Coercion morphism:
+              From: Rational Field
+              To:   5-adic Field with capped relative precision 20
+            sage: g is f
+            False
+            sage: g == f
+            True
+            sage: g(6)
+            1 + 5 + O(5^20)
+            sage: g(6) == f(6)
+            True
+
+        """
+        _slots['prime_pow'] = self.prime_pow
+        _slots['_section'] = self._section
+        return RingHomomorphism_coercion._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = Qp(5).coerce_map_from(QQ)
+            sage: g = copy(f)   # indirect doctest
+            sage: g
+            Ring Coercion morphism:
+              From: Rational Field
+              To:   5-adic Field with capped relative precision 20
+            sage: g is f
+            False
+            sage: g == f
+            True
+            sage: g(6)
+            1 + 5 + O(5^20)
+            sage: g(6) == f(6)
+            True
+
+        """
+        self.prime_pow = _slots['prime_pow']
+        self._section = _slots['_section']
+        RingHomomorphism_coercion._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
         """
@@ -370,6 +474,46 @@ cdef class pAdicConvert_QQ_CR(Morphism):
         self.prime_pow = R.prime_pow
         self._section = pAdicConvert_CR_QQ(R)
 
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = Zp(5).convert_map_from(QQ)
+            sage: g = copy(f)  # indirect doctest
+            sage: g == f       # todo: comparison not implemented
+            True
+            sage: g(1/6)
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
+            sage: g(1/6) == f(1/6)
+            True
+
+        """
+        _slots['prime_pow'] = self.prime_pow
+        _slots['_section'] = self._section
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = Zp(5).convert_map_from(QQ)
+            sage: g = copy(f)  # indirect doctest
+            sage: g == f       # todo: comparison not implemented
+            True
+            sage: g(1/6)
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
+            sage: g(1/6) == f(1/6)
+            True
+
+        """
+        self.prime_pow = _slots['prime_pow']
+        self._section = _slots['_section']
+        Morphism._update_slots(self, _slots)
+
     cpdef Element _call_(self, x):
         """
         Evaluation.
@@ -464,6 +608,46 @@ cdef class pAdicCoercion_ZZ_CA(RingHomomorphism_coercion):
         RingHomomorphism_coercion.__init__(self, ZZ.Hom(R), check=False)
         self.prime_pow = R.prime_pow
         self._section = pAdicConvert_CA_ZZ(R)
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZpCA(5).coerce_map_from(ZZ)
+            sage: g = copy(f)   # indirect doctest
+            sage: g == f
+            True
+            sage: g(6)
+            1 + 5 + O(5^20)
+            sage: f(6) == g(6)
+            True
+
+        """
+        _slots['prime_pow'] = self.prime_pow
+        _slots['_section'] = self._section
+        return RingHomomorphism_coercion._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZpCA(5).coerce_map_from(ZZ)
+            sage: g = copy(f)   # indirect doctest
+            sage: g == f
+            True
+            sage: g(6)
+            1 + 5 + O(5^20)
+            sage: f(6) == g(6)
+            True
+
+        """
+        self.prime_pow = _slots['prime_pow']
+        self._section = _slots['_section']
+        RingHomomorphism_coercion._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
         """
@@ -594,6 +778,52 @@ cdef class pAdicConvert_QQ_CA(Morphism):
         Morphism.__init__(self, Hom(QQ, R, SetsWithPartialMaps()))
         self.prime_pow = R.prime_pow
 
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZpCA(5).convert_map_from(QQ)
+            sage: g = copy(f) # indirect doctest
+            sage: g == f      # todo: comparison not implemented
+            True
+            sage: g(1/6)
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
+            sage: g(1/6) == f(1/6)
+            True
+
+        """
+        _slots['prime_pow'] = self.prime_pow
+        try:
+            _slots['_section'] = self._section
+        except AttributeError:
+            pass
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZpCA(5).convert_map_from(QQ)
+            sage: g = copy(f) # indirect doctest
+            sage: g == f      # todo: comparison not implemented
+            True
+            sage: g(1/6)
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
+            sage: g(1/6) == f(1/6)
+            True
+
+        """
+        self.prime_pow = _slots['prime_pow']
+        try:
+            self._section = _slots['_section']
+        except KeyError:
+            pass
+        Morphism._update_slots(self, _slots)
+
     cpdef Element _call_(self, x):
         """
         Evaluation.
@@ -675,6 +905,46 @@ cdef class pAdicCoercion_ZZ_FM(RingHomomorphism_coercion):
         RingHomomorphism_coercion.__init__(self, ZZ.Hom(R), check=False)
         self.prime_pow = R.prime_pow
         self._section = pAdicConvert_FM_ZZ(R)
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZpFM(5).coerce_map_from(ZZ)
+            sage: g = copy(f)  # indirect doctest
+            sage: g == f
+            True
+            sage: g(6)
+            1 + 5 + O(5^20)
+            sage: g(6) == f(6)
+            True
+
+        """
+        _slots['prime_pow'] = self.prime_pow
+        _slots['_section'] = self._section
+        return RingHomomorphism_coercion._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZpFM(5).coerce_map_from(ZZ)
+            sage: g = copy(f)  # indirect doctest
+            sage: g == f
+            True
+            sage: g(6)
+            1 + 5 + O(5^20)
+            sage: g(6) == f(6)
+            True
+
+        """
+        self.prime_pow = _slots['prime_pow']
+        self._section = _slots['_section']
+        RingHomomorphism_coercion._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
         """
@@ -800,6 +1070,52 @@ cdef class pAdicConvert_QQ_FM(Morphism):
         """
         Morphism.__init__(self, Hom(QQ, R, SetsWithPartialMaps()))
         self.prime_pow = R.prime_pow
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZpFM(5).convert_map_from(QQ)
+            sage: g = copy(f) # indirect doctest
+            sage: g == f      # todo: comparison not implemented
+            True
+            sage: g(1/6)
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
+            sage: g(1/6) == f(1/6)
+            True
+
+        """
+        _slots['prime_pow'] = self.prime_pow
+        try:
+            _slots['_section'] = self._section
+        except AttributeError:
+            pass
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: f = ZpFM(5).convert_map_from(QQ)
+            sage: g = copy(f) # indirect doctest
+            sage: g == f      # todo: comparison not implemented
+            True
+            sage: g(1/6)
+            1 + 4*5 + 4*5^3 + 4*5^5 + 4*5^7 + 4*5^9 + 4*5^11 + 4*5^13 + 4*5^15 + 4*5^17 + 4*5^19 + O(5^20)
+            sage: g(1/6) == f(1/6)
+            True
+
+        """
+        self.prime_pow = _slots['prime_pow']
+        try:
+            self._section = _slots['_section']
+        except KeyError:
+            pass
+        Morphism._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
         """

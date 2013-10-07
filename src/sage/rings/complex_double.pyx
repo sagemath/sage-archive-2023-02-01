@@ -2238,25 +2238,25 @@ cdef class FloatToCDF(Morphism):
 
     EXAMPLES::
 
-        sage: f = CDF.coerce_map_from(ZZ); f
+        sage: f = copy(CDF.coerce_map_from(ZZ)); f
         Native morphism:
           From: Integer Ring
           To:   Complex Double Field
         sage: f(4)
         4.0
-        sage: f = CDF.coerce_map_from(QQ); f
+        sage: f = copy(CDF.coerce_map_from(QQ)); f
         Native morphism:
           From: Rational Field
           To:   Complex Double Field
         sage: f(1/2)
         0.5
-        sage: f = CDF.coerce_map_from(int); f
+        sage: f = copy(CDF.coerce_map_from(int)); f
         Native morphism:
           From: Set of Python objects of type 'int'
           To:   Complex Double Field
         sage: f(3r)
         3.0
-        sage: f = CDF.coerce_map_from(float); f
+        sage: f = copy(CDF.coerce_map_from(float)); f
         Native morphism:
           From: Set of Python objects of type 'float'
           To:   Complex Double Field
@@ -2269,7 +2269,7 @@ cdef class FloatToCDF(Morphism):
 
         EXAMPLES::
 
-            sage: f = CDF.coerce_map_from(ZZ); f
+            sage: f = copy(CDF.coerce_map_from(ZZ)); f
             Native morphism:
               From: Integer Ring
               To:   Complex Double Field

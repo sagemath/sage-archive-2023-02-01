@@ -4008,6 +4008,78 @@ cdef class IntegerMod_hom(Morphism):
         cdef Parent C = self._codomain
         self.zero = C._element_constructor_(0)
         self.modulus = C._pyx_order
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for pickling and copying.
+
+        EXAMPLES::
+
+            sage: R5 = IntegerModRing(5)
+            sage: R15 = IntegerModRing(15)
+
+        By :trac:`14711`, coercion maps should be copied when using them
+        outside of the coercion system::
+
+            sage: phi = R5.coerce_map_from(R15); phi
+            Natural morphism:
+              From: Ring of integers modulo 15
+              To:   Ring of integers modulo 5
+            <BLANKLINE>
+                    WARNING: This morphism has apparently been used internally
+                    in the coercion system. It may become defunct in the next
+                    garbage collection. Please use a copy.
+
+        This method helps to implement copying.
+        ::
+
+            sage: psi = copy(phi); psi
+            Natural morphism:
+              From: Ring of integers modulo 15
+              To:   Ring of integers modulo 5
+            sage: psi(R15(7))
+            2
+
+        """
+        _slots['zero'] = self.zero
+        _slots['modulus'] = self.modulus
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for pickling and copying.
+
+        EXAMPLES::
+
+            sage: R5 = IntegerModRing(5)
+            sage: R15 = IntegerModRing(15)
+
+        By :trac:`14711`, coercion maps should be copied when using them
+        outside of the coercion system::
+
+            sage: phi = R5.coerce_map_from(R15); phi
+            Natural morphism:
+              From: Ring of integers modulo 15
+              To:   Ring of integers modulo 5
+            <BLANKLINE>
+                    WARNING: This morphism has apparently been used internally
+                    in the coercion system. It may become defunct in the next
+                    garbage collection. Please use a copy.
+
+        This method helps to implement copying.
+        ::
+
+            sage: psi = copy(phi); psi
+            Natural morphism:
+              From: Ring of integers modulo 15
+              To:   Ring of integers modulo 5
+            sage: psi(R15(7))
+            2
+
+        """
+        Morphism._update_slots(self, _slots)
+        self.zero = _slots['zero']
+        self.modulus = _slots['modulus']
+
     cpdef Element _call_(self, x):
         return IntegerMod(self._codomain, x)
 

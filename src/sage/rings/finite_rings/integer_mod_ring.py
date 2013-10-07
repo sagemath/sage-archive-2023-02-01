@@ -964,30 +964,34 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def _coerce_map_from_(self, S):
         """
-        EXAMPLES::
+        EXAMPLES:
+
+        By :trac:`14711`, coerce maps should be copied before
+        using them outside of the coercion system::
 
             sage: R = Integers(15)
-            sage: f = R.coerce_map_from(Integers(450)); f # indirect doctest
+            sage: f = copy(R.coerce_map_from(Integers(450)))
+            sage: f # indirect doctest
             Natural morphism:
               From: Ring of integers modulo 450
               To:   Ring of integers modulo 15
             sage: f(-1)
             14
-            sage: f = R.coerce_map_from(int); f
+            sage: f = copy(R.coerce_map_from(int)); f
             Native morphism:
               From: Set of Python objects of type 'int'
               To:   Ring of integers modulo 15
             sage: f(-1r)
             14
-            sage: f = R.coerce_map_from(ZZ); f
+            sage: f = copy(R.coerce_map_from(ZZ)); f
             Natural morphism:
               From: Integer Ring
               To:   Ring of integers modulo 15
             sage: f(-1)
             14
-            sage: f = R.coerce_map_from(Integers(10)); print f
+            sage: f = copy(R.coerce_map_from(Integers(10))); print f
             None
-            sage: f = R.coerce_map_from(QQ); print f
+            sage: f = copy(R.coerce_map_from(QQ)); print f
             None
 
             sage: R = IntegerModRing(17)

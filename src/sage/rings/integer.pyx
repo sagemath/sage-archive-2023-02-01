@@ -5917,9 +5917,12 @@ cdef class int_to_Z(Morphism):
 
 cdef class long_to_Z(Morphism):
     """
-    EXAMPLES::
+    EXAMPLES:
 
-        sage: f = ZZ.coerce_map_from(long); f
+    Note that by :trac:`14711`, coercion maps should be copied when using them
+    outside of the coercion system::
+
+        sage: f = copy(ZZ.coerce_map_from(long)); f
         Native morphism:
           From: Set of Python objects of type 'long'
           To:   Integer Ring

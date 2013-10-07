@@ -119,7 +119,7 @@ cdef class Parent(parent.Parent):
         Check to make sure that we handle coerce maps from Python
         native types correctly::
 
-            sage: QQ['q,t'].coerce_map_from(int)
+            sage: copy(QQ['q,t'].coerce_map_from(int))
             Composite map:
               From: Set of Python objects of type 'int'
               To:   Multivariate Polynomial Ring in q, t over Rational Field

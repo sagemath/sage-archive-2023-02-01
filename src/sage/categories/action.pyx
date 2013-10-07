@@ -68,6 +68,7 @@ from sage.structure.parent cimport Parent
 import homset
 import sage.structure.element
 from weakref import ref
+from sage.misc.constant_function import ConstantFunction
 
 include "sage/ext/stdsage.pxi"
 
@@ -343,19 +344,77 @@ cdef class PrecomposedAction(Action):
     def __repr__(self):
         s = repr(self._action)
         if self.left_precomposition is not None:
-            s += "\nwith precomposition on left by %r" % self.left_precomposition
+            s += "\nwith precomposition on left by %s" % self.left_precomposition._default_repr_()
         if self.right_precomposition is not None:
-            s += "\nwith precomposition on right by %r" % self.right_precomposition
+            s += "\nwith precomposition on right by %s" % self.right_precomposition._default_repr_()
         return s
 
 
 cdef class ActionEndomorphism(Morphism):
+    """
+    The endomorphism defined by the action of one element.
 
+    EXAMPLES::
+
+        sage: A = ZZ['x'].get_action(QQ, self_on_left=False, op=operator.mul)
+        sage: A
+        Left scalar multiplication by Rational Field on Univariate Polynomial
+        Ring in x over Integer Ring
+        sage: A(1/2)
+        Action of 1/2 on Univariate Polynomial Ring in x over Integer Ring
+        under Left scalar multiplication by Rational Field on Univariate
+        Polynomial Ring in x over Integer Ring.
+
+    """
     def __init__(self, Action action, g):
         Morphism.__init__(self, homset.Hom(action.underlying_set(),
                                            action.underlying_set()))
         self._action = action
         self._g = g
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for pickling and copying.
+
+        TESTS::
+
+            sage: P.<x> = ZZ[]
+            sage: A = P.get_action(QQ, self_on_left=False, op=operator.mul)
+            sage: phi = A(1/2)
+            sage: psi = copy(phi)  # indirect doctest
+            sage: psi
+            Action of 1/2 on Univariate Polynomial Ring in x over
+            Integer Ring under Left scalar multiplication by Rational
+            Field on Univariate Polynomial Ring in x over Integer Ring.
+            sage: psi(x) == phi(x)
+            True
+
+        """
+        _slots['_action'] = self._action
+        _slots['_g'] = self._g
+        return Morphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for pickling and copying.
+
+        TESTS::
+
+            sage: P.<x> = ZZ[]
+            sage: A = P.get_action(QQ, self_on_left=False, op=operator.mul)
+            sage: phi = A(1/2)
+            sage: psi = copy(phi)  # indirect doctest
+            sage: psi
+            Action of 1/2 on Univariate Polynomial Ring in x over
+            Integer Ring under Left scalar multiplication by Rational
+            Field on Univariate Polynomial Ring in x over Integer Ring.
+            sage: psi(x) == phi(x)
+            True
+
+        """
+        self._action = _slots['_action']
+        self._g = _slots['_g']
+        Morphism._update_slots(self, _slots)
 
     cpdef Element _call_(self, x):
         if self._action._is_left:

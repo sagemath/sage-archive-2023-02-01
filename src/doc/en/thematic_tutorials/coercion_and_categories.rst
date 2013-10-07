@@ -750,15 +750,19 @@ thus have::
 
     sage: P1.has_coerce_map_from(P2)
     True
-    sage: P1.coerce_map_from(P2)
+    sage: copy(P1.coerce_map_from(P2))
     Call morphism:
       From: Multivariate Polynomial Ring in w, v over Integer Ring
       To:   Multivariate Polynomial Ring in v, w over Rational Field
 
+Note that we used a copy of the coerce map because of :trac:`14711`: Sage's
+coercion system internally uses maps with weak references to their domain, and
+only copies of such maps should be used outside of the coercion system.
+
 While there is a conversion from `P_1` to `P_2` (namely restricted to
 polynomials with integral coefficients), this conversion is not a coercion::
 
-    sage: P2.convert_map_from(P1)
+    sage: copy(P2.convert_map_from(P1))
     Call morphism:
       From: Multivariate Polynomial Ring in v, w over Rational Field
       To:   Multivariate Polynomial Ring in w, v over Integer Ring
@@ -1087,10 +1091,10 @@ In particular, the construction functors can be composed::
 
 .. end of output
 
-In addition, it is assumed that we have a coercion from input to output of the
+In addition, it is often assumed that we have a coercion from input to output of the
 construction functor::
 
-    sage: ((Poly*Fract)(ZZ))._coerce_map_from_(ZZ)
+    sage: copy(((Poly*Fract)(ZZ)).coerce_map_from(ZZ))
     Composite map:
       From: Integer Ring
       To:   Univariate Polynomial Ring in x over Rational Field

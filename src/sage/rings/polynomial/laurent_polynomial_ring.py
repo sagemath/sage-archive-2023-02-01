@@ -550,7 +550,7 @@ class LaurentPolynomialRing_generic(CommutativeRing, ParentWithGens):
         EXAMPLES::
 
             sage: L.<x,y> = LaurentPolynomialRing(QQ)
-            sage: L.coerce_map_from(QQ)
+            sage: copy(L.coerce_map_from(QQ))
             Composite map:
               From: Rational Field
               To:   Multivariate Laurent Polynomial Ring in x, y over Rational Field

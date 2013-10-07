@@ -63,7 +63,7 @@ cdef class NumberFieldEmbedding(Morphism):
         else:
             self._gen_image = R(gen_embedding)
 
-    cdef _extra_slots(self, _slots):
+    cdef dict _extra_slots(self, dict _slots):
         """
         A helper for pickling and copying.
 
@@ -91,11 +91,10 @@ cdef class NumberFieldEmbedding(Morphism):
             2.00000000000000?
 
         """
-        _slots = Morphism._extra_slots(self, _slots)
         _slots['_gen_image'] = self._gen_image
-        return _slots
+        return Morphism._extra_slots(self, _slots)
 
-    cdef _update_slots(self, _slots):
+    cdef _update_slots(self, dict _slots):
         """
         A helper for unpickling and copying.
 

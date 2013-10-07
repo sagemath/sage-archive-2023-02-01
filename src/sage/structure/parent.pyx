@@ -1907,11 +1907,15 @@ cdef class Parent(category_object.CategoryObject):
             [0 1 0]
             sage: S3._unset_coercions_used()
             sage: S3.register_embedding(phi)
-            sage: S3.coerce_embedding()
+
+        By :trac:`14711`, coerce maps should be copied when using outside of
+        the coercion system::
+
+            sage: phi = copy(S3.coerce_embedding()); phi
             Generic morphism:
               From: Alternating group of order 3!/2 as a permutation group
               To:   Special Linear Group of degree 3 over Rational Field
-            sage: S3.coerce_embedding()(p)
+            sage: phi(p)
             [0 0 1]
             [1 0 0]
             [0 1 0]
@@ -1975,16 +1979,20 @@ cdef class Parent(category_object.CategoryObject):
         usually denotes a special relationship (e.g. sub-objects, choice of
         completion, etc.)
 
-        EXAMPLES::
+        EXAMPLES:
+
+        By :trac:`14711`, coerce maps should be copied when using
+        outside of the coercion system.
+        ::
 
             sage: K.<a>=NumberField(x^3+x^2+1,embedding=1)
-            sage: K.coerce_embedding()
+            sage: copy(K.coerce_embedding())
             Generic morphism:
               From: Number Field in a with defining polynomial x^3 + x^2 + 1
               To:   Real Lazy Field
               Defn: a -> -1.465571231876768?
             sage: K.<a>=NumberField(x^3+x^2+1,embedding=CC.gen())
-            sage: K.coerce_embedding()
+            sage: copy(K.coerce_embedding())
             Generic morphism:
               From: Number Field in a with defining polynomial x^3 + x^2 + 1
               To:   Complex Lazy Field
@@ -2044,9 +2052,12 @@ cdef class Parent(category_object.CategoryObject):
 
         - ``S`` - the starting parent
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: CDF._coerce_map_via([ZZ, RR, CC], int)
+        By :trac:`14711`, coerce maps should be copied for usage outside
+        of the coercion system::
+
+            sage: copy(CDF._coerce_map_via([ZZ, RR, CC], int))
             Composite map:
               From: Set of Python objects of type 'int'
               To:   Complex Double Field
@@ -2058,7 +2069,7 @@ cdef class Parent(category_object.CategoryObject):
                       From: Integer Ring
                       To:   Complex Double Field
 
-            sage: CDF._coerce_map_via([ZZ, RR, CC], QQ)
+            sage: copy(CDF._coerce_map_via([ZZ, RR, CC], QQ))
             Composite map:
               From: Rational Field
               To:   Complex Double Field
@@ -2070,7 +2081,7 @@ cdef class Parent(category_object.CategoryObject):
                       From: Real Field with 53 bits of precision
                       To:   Complex Double Field
 
-            sage: CDF._coerce_map_via([ZZ, RR, CC], CC)
+            sage: copy(CDF._coerce_map_via([ZZ, RR, CC], CC))
             Generic map:
               From: Complex Field with 53 bits of precision
               To:   Complex Double Field
@@ -2126,13 +2137,16 @@ cdef class Parent(category_object.CategoryObject):
         This returns a Map object to coerce from S to self if one exists,
         or None if no such coercion exists.
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: ZZ.coerce_map_from(int)
+        By :trac:`14711`, coerce maps should be copied when using them
+        outside of the coercion system::
+
+            sage: copy(ZZ.coerce_map_from(int))
             Native morphism:
               From: Set of Python objects of type 'int'
               To:   Integer Ring
-            sage: QQ.coerce_map_from(ZZ)
+            sage: copy(QQ.coerce_map_from(ZZ))
             Natural morphism:
               From: Integer Ring
               To:   Rational Field
@@ -2164,7 +2178,20 @@ cdef class Parent(category_object.CategoryObject):
             sage: m = Sym.monomial()
             sage: Ht = Sym.macdonald().Ht()
             sage: phi = m.coerce_map_from(P)
+
+        By :trac:`14711`, coerce maps should be copied when using them
+        outside of the coercion system, because they may become defunct
+        by garbage collection::
+
             sage: Ht.coerce_map_from(P)
+            Composite map:
+              From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
+              To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald Ht basis
+            <BLANKLINE>
+                    WARNING: This map has apparently been used internally
+                    in the coercion system. It may become defunct in the next
+                    garbage collection. Please use a copy.
+            sage: copy(Ht.coerce_map_from(P))
             Composite map:
               From: Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald P basis
               To:   Symmetric Functions over Fraction Field of Multivariate Polynomial Ring in q, t over Rational Field in the Macdonald Ht basis
@@ -2304,7 +2331,7 @@ cdef class Parent(category_object.CategoryObject):
             0
             sage: c.parent() is M
             True
-            sage: K.coerce_map_from(QQ)
+            sage: copy(K.coerce_map_from(QQ))
             Conversion map:
             From: Rational Field
             To:   Number Field in a with defining polynomial x^2 - 2 over its base field

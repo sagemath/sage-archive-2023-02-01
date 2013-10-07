@@ -61,7 +61,7 @@ class UnwrappingMorphism(Morphism):
         EXAMPLE::
 
             sage: G = AdditiveAbelianGroupWrapper(QQbar, [sqrt(QQbar(2)), sqrt(QQbar(3))], [0, 0])
-            sage: F = QQbar.coerce_map_from(G); F
+            sage: F = copy(QQbar.coerce_map_from(G)); F
             Generic morphism:
               From: Additive abelian group isomorphic to Z + Z embedded in Algebraic Field
               To:   Algebraic Field

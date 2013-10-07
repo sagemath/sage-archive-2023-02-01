@@ -421,10 +421,19 @@ class ProjectiveConic_field(ProjectiveCurve_generic):
 
         One of the following fields comes with an embedding into the complex
         numbers, one does not. Check that they are both handled correctly by
-        the Magma interface.::
+        the Magma interface. Note that by :trac:`14711` coerce maps should
+        be copied before using them outside of the coercion system::
 
             sage: K.<i> = QuadraticField(-1)
             sage: K.coerce_embedding()
+            Generic morphism:
+              From: Number Field in i with defining polynomial x^2 + 1
+              To:   Complex Lazy Field
+            <BLANKLINE>
+                    WARNING: This morphism has apparently been used internally
+                    in the coercion system. It may become defunct in the next
+                    garbage collection. Please use a copy.
+            sage: copy(K.coerce_embedding())
             Generic morphism:
               From: Number Field in i with defining polynomial x^2 + 1
               To:   Complex Lazy Field

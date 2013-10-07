@@ -797,8 +797,10 @@ cdef class ReductionMap(Map):
 
             sage: K.<theta_5> = CyclotomicField(5)
             sage: F = K.factor(7)[0][0].residue_field()
-            sage: F.reduction_map().__repr__()
-            'Partially defined reduction map:\n  From: Cyclotomic Field of order 5 and degree 4\n  To:   Residue field in theta_5bar of Fractional ideal (7)'
+            sage: F.reduction_map()
+            Partially defined reduction map:
+              From: Cyclotomic Field of order 5 and degree 4
+              To:   Residue field in theta_5bar of Fractional ideal (7)
 
             #sage: R.<t> = GF(2)[]; P = R.ideal(t^7 + t^6 + t^5 + t^4 + 1)
             #sage: k = P.residue_field()
@@ -819,6 +821,64 @@ cdef class ReductionMap(Map):
         self._repr_type_str = "Partially defined reduction"
         Map.__init__(self, Hom(K, F, SetsWithPartialMaps()))
 
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: F = K.factor(2)[0][0].residue_field()
+            sage: r = F.reduction_map()
+            sage: cr = copy(r) # indirect doctest
+            sage: cr
+            Partially defined reduction map:
+              From: Number Field in a with defining polynomial x^2 + 1
+              To:   Residue field of Fractional ideal (a + 1)
+            sage: cr == r      # todo: comparison not implemented
+            True
+            sage: r(2 + a) == cr(2 + a)
+            True
+
+        """
+        _slots['_K'] = self._K
+        _slots['_F'] = self._F
+        _slots['_to_vs'] = self._to_vs
+        _slots['_PBinv'] = self._PBinv
+        _slots['_to_order'] = self._to_order
+        _slots['_PB'] = self._PB
+        _slots['_section'] = self._section
+        return Map._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: F = K.factor(2)[0][0].residue_field()
+            sage: r = F.reduction_map()
+            sage: cr = copy(r) # indirect doctest
+            sage: cr
+            Partially defined reduction map:
+              From: Number Field in a with defining polynomial x^2 + 1
+              To:   Residue field of Fractional ideal (a + 1)
+            sage: cr == r      # todo: comparison not implemented
+            True
+            sage: r(2 + a) == cr(2 + a)
+            True
+
+        """
+        Map._update_slots(self, _slots)
+        self._K = _slots['_K']
+        self._F = _slots['_F']
+        self._to_vs = _slots['_to_vs']
+        self._PBinv = _slots['_PBinv']
+        self._to_order = _slots['_to_order']
+        self._PB = _slots['_PB']
+        self._section = _slots['_section']
+
     cpdef Element _call_(self, x):
         """
         Apply this reduction map to an element that coerces into the global
@@ -835,6 +895,10 @@ cdef class ReductionMap(Map):
             Partially defined reduction map:
               From: Number Field in a with defining polynomial x^2 + 1
               To:   Residue field of Fractional ideal (a + 1)
+
+        We test that calling the function also works after copying::
+
+            sage: r = copy(r)
             sage: r(2 + a) # indirect doctest
             1
             sage: r(a/2)
@@ -980,16 +1044,18 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
         abar
         sage: (1+abar)^179
         24*abar + 12
-        sage: phi = k.coerce_map_from(OK); phi
+
+    By :trac:`14711`, coerce maps should be copied when using
+    them outside of the coercion system::
+
+        sage: phi = copy(k.coerce_map_from(OK)); phi
         Ring morphism:
           From: Maximal Order in Number Field in a with defining polynomial x^3 - 7
           To:   Residue field in abar of Fractional ideal (2*a^2 + 3*a - 10)
-
-    By trac ticket #12215, phi is in fact contained in the homset with
-    domain ``OK`` and codomain ``k``::
-
         sage: phi in Hom(OK,k)
         True
+        sage: phi(OK.1)
+        abar
 
         #sage: R.<t> = GF(19)[]; P = R.ideal(t^2 + 5)
         #sage: k.<a> = R.residue_field(P)
@@ -1040,6 +1106,66 @@ cdef class ResidueFieldHomomorphism_global(RingHomomorphism):
         self._to_order = to_order # used for lift
         self._repr_type_str = "Reduction"
         RingHomomorphism.__init__(self, Hom(K,F))
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3-x+8)
+            sage: P = K.ideal(29).factor()[0][0]
+            sage: k = K.residue_field(P)
+            sage: OK = K.maximal_order()
+            sage: phi = k.coerce_map_from(OK)
+            sage: psi = copy(phi); psi    # indirect doctest
+            Ring morphism:
+              From: Maximal Order in Number Field in a with defining polynomial x^3 - x + 8
+              To:   Residue field in abar of Fractional ideal (29)
+            sage: psi == phi   # todo: comparison not implemented
+            True
+            sage: psi(OK.an_element()) == phi(OK.an_element())
+            True
+
+        """
+        _slots['_K'] = self._K
+        _slots['_F'] = self._F
+        _slots['_to_vs'] = self._to_vs
+        _slots['_PBinv'] = self._PBinv
+        _slots['_to_order'] = self._to_order
+        _slots['_PB'] = self._PB
+        _slots['_section'] = self._section
+        return RingHomomorphism._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3-x+8)
+            sage: P = K.ideal(29).factor()[0][0]
+            sage: k = K.residue_field(P)
+            sage: OK = K.maximal_order()
+            sage: phi = k.coerce_map_from(OK)
+            sage: psi = copy(phi); psi    # indirect doctest
+            Ring morphism:
+              From: Maximal Order in Number Field in a with defining polynomial x^3 - x + 8
+              To:   Residue field in abar of Fractional ideal (29)
+            sage: psi == phi   # todo: comparison not implemented
+            True
+            sage: psi(OK.an_element()) == phi(OK.an_element())
+            True
+
+        """
+        RingHomomorphism._update_slots(self, _slots)
+        self._K = _slots['_K']
+        self._F = _slots['_F']
+        self._to_vs = _slots['_to_vs']
+        self._PBinv = _slots['_PBinv']
+        self._to_order = _slots['_to_order']
+        self._PB = _slots['_PB']
+        self._section = _slots['_section']
 
     cpdef Element _call_(self, x):
         """
@@ -1214,6 +1340,56 @@ cdef class LiftingMap(Section):
         self._to_order = to_order
         self._PB = PB
         Section.__init__(self, reduction)
+
+    cdef dict _extra_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: K.<a> = CyclotomicField(7)
+            sage: F = K.factor(5)[0][0].residue_field()
+            sage: phi = F.lift_map()
+            sage: psi = copy(phi); psi   # indirect doctest
+            Lifting map:
+              From: Residue field in abar of Fractional ideal (5)
+              To:   Maximal Order in Cyclotomic Field of order 7 and degree 6
+            sage: psi == phi             # todo: comparison not implemented
+            False
+            sage: phi(F.0) == psi(F.0)
+            True
+
+        """
+        _slots['_K'] = self._K
+        _slots['_F'] = self._F
+        _slots['_to_order'] = self._to_order
+        _slots['_PB'] = self._PB
+        return Section._extra_slots(self, _slots)
+
+    cdef _update_slots(self, dict _slots):
+        """
+        Helper for copying and pickling.
+
+        EXAMPLES::
+
+            sage: K.<a> = CyclotomicField(7)
+            sage: F = K.factor(5)[0][0].residue_field()
+            sage: phi = F.lift_map()
+            sage: psi = copy(phi); psi   # indirect doctest
+            Lifting map:
+              From: Residue field in abar of Fractional ideal (5)
+              To:   Maximal Order in Cyclotomic Field of order 7 and degree 6
+            sage: psi == phi             # todo: comparison not implemented
+            False
+            sage: phi(F.0) == psi(F.0)
+            True
+
+        """
+        Section._update_slots(self, _slots)
+        self._K = _slots['_K']
+        self._F = _slots['_F']
+        self._to_order = _slots['_to_order']
+        self._PB = _slots['_PB']
 
     cpdef Element _call_(self, x):
         """

@@ -269,7 +269,20 @@ discovered between steps 1 and 2 above.
     sage: f = QQ.coerce_map_from(ZZ)
     sage: f(3).parent()
     Rational Field
+
+Note that by :trac:`14711` Sage's coercion system uses maps with weak
+references to the domain. Such maps should only be used internally, and so a
+copy should be used instead (unless one knows what one is doing)::
+
     sage: QQ.coerce_map_from(int)
+    Native morphism:
+      From: Set of Python objects of type 'int'
+      To:   Rational Field
+    <BLANKLINE>
+            WARNING: This morphism has apparently been used internally
+            in the coercion system. It may become defunct in the next
+            garbage collection. Please use a copy.
+    sage: copy(QQ.coerce_map_from(int))
     Native morphism:
      From: Set of Python objects of type 'int'
      To:   Rational Field

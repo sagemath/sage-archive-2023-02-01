@@ -141,7 +141,11 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
             <class 'sage.categories.modules_with_basis.TriangularModuleMorphism'>
             sage: type(Out.coerce_map_from(F))
             <class 'sage.categories.modules_with_basis.TriangularModuleMorphism'>
-            sage: In.coerce_map_from(Out)
+
+        By :trac:`14711`, coerce maps should be copied before using them
+        outside of the coercion system::
+
+            sage: copy(In.coerce_map_from(Out))
             Composite map:
               From: The subset algebra of {1, 2, 3} over Rational Field in the Out basis
               To:   The subset algebra of {1, 2, 3} over Rational Field in the In basis
@@ -152,7 +156,7 @@ class SubsetAlgebra(UniqueRepresentation, Parent):
                       Generic morphism:
                       From: The subset algebra of {1, 2, 3} over Rational Field in the Fundamental basis
                       To:   The subset algebra of {1, 2, 3} over Rational Field in the In basis
-            sage: Out.coerce_map_from(In)
+            sage: copy(Out.coerce_map_from(In))
             Composite map:
               From: The subset algebra of {1, 2, 3} over Rational Field in the In basis
               To:   The subset algebra of {1, 2, 3} over Rational Field in the Out basis

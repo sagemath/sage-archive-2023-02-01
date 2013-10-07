@@ -41,10 +41,12 @@ much code written for S runs unaltered under R.
      R_HOME_DIR, but scripts/Makefile.in hardcodes these
      locations. This patch removes this hardcoding. See Sage trac
      #9668.
-   - sqrtl.patch: upstream patch to disable sqrtl when --disable-long-double
-     is passed to configure.
 
 == Changelog ==
+
+=== r-3.0.2.p0 (Jean-Pierre Flori, 7 October 2013) ===
+ * #14706: update to 3.0.2.
+ * Remove sqrtl.patch which is now upstream.
 
 === r-3.0.1.p1 (Jean-Pierre Flori, 10 June 2013) ===
  * #14706: Use --disable-long-double on Cygwin rather than patching.

@@ -5121,6 +5121,9 @@ def projective_space(dim):
     EXAMPLES: We construct 3- and 4-dimensional simplexes::
 
         sage: p = lattice_polytope.projective_space(3)
+        doctest:1: DeprecationWarning: this function is deprecated,
+        perhaps toric_varieties.P(n) is what you are looking for?
+        See http://trac.sagemath.org/15240 for details.        
         sage: p
         A simplex: 3-dimensional, 4 vertices.
         sage: p.vertices_pc()
@@ -5140,6 +5143,8 @@ def projective_space(dim):
         M(-1, -1, -1, -1)
         in 4-d lattice M
     """
+    deprecation(15240, "this function is deprecated, "
+                "perhaps toric_varieties.P(n) is what you are looking for?")   
     m = matrix(ZZ, dim, dim+1)
     for i in range(dim):
         m[i,i] = 1

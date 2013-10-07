@@ -67,7 +67,7 @@ module.
 For our first example we realize the projective plane as a Fano toric
 variety::
 
-    sage: simplex = lattice_polytope.projective_space(2)
+    sage: simplex = LatticePolytope([(1,0), (0,1), (-1,-1)])
     sage: P2 = CPRFanoToricVariety(Delta_polar=simplex)
 
 Its anticanonical "hypersurface" is a one-dimensional Calabi-Yau
@@ -815,7 +815,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
 
         We realize the projective plane as a Fano toric variety::
 
-            sage: simplex = lattice_polytope.projective_space(2)
+            sage: simplex = LatticePolytope([(1,0), (0,1), (-1,-1)])
             sage: P2 = CPRFanoToricVariety(Delta_polar=simplex)
 
         Its anticanonical "hypersurface" is a one-dimensional Calabi-Yau

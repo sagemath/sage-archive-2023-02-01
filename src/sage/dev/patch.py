@@ -156,22 +156,13 @@ class MercurialPatchMixin(object):
             sage: UI.append("y")
             sage: dev.import_patch(local_file=patchfile, path_format="new")
             Applying: No Subject. Modified: tracked, tracked2
-            error: patch failed: tracked:1
-            error: tracked: patch does not apply
             Patch failed at 0001 No Subject. Modified: tracked, tracked2
             The copy of the patch that failed is found in:
                .../rebase-apply/patch
             <BLANKLINE>
-            The patch does not apply cleanly. Would you like to apply it anyway and create
-            reject files for the parts that do not apply? [yes/No] y
-            Checking patch tracked...
-            error: while searching for:
-            foo
-            error: patch failed: tracked:1
-            Checking patch tracked2...
-            Applying patch tracked with 1 reject...
-            Rejected hunk #1.
-            Applied patch tracked2 cleanly.
+            The patch does not apply cleanly. Reject files will be created for the parts
+            that do not apply if you proceed.
+            Apply it anyway? [yes/No] y
             The patch did not apply cleanly. Please integrate the `.rej` files that were
             created and resolve conflicts. After you do, type `resolved`. If you want to
             abort this process, type `abort`. [resolved/abort] abort
@@ -183,22 +174,13 @@ class MercurialPatchMixin(object):
             sage: UI.append("y")
             sage: dev.import_patch(local_file=patchfile, path_format="new")
             Applying: No Subject. Modified: tracked, tracked2
-            error: patch failed: tracked:1
-            error: tracked: patch does not apply
             Patch failed at 0001 No Subject. Modified: tracked, tracked2
             The copy of the patch that failed is found in:
                .../rebase-apply/patch
             <BLANKLINE>
-            The patch does not apply cleanly. Would you like to apply it anyway and create
-            reject files for the parts that do not apply? [yes/No] y
-            Checking patch tracked...
-            error: while searching for:
-            foo
-            error: patch failed: tracked:1
-            Checking patch tracked2...
-            Applying patch tracked with 1 reject...
-            Rejected hunk #1.
-            Applied patch tracked2 cleanly.
+            The patch does not apply cleanly. Reject files will be created for the parts
+            that do not apply if you proceed.
+            Apply it anyway? [yes/No] y
             The patch did not apply cleanly. Please integrate the `.rej` files that were
             created and resolve conflicts. After you do, type `resolved`. If you want to
             abort this process, type `abort`. [resolved/abort] resolved
@@ -258,8 +240,11 @@ class MercurialPatchMixin(object):
             try:
                 try:
                     self.git.echo.am(outfile, "--resolvemsg= ", ignore_whitespace=True)
-                except GitError:
-                    if not self._UI.confirm("The patch does not apply cleanly. Would you like to apply it anyway and create reject files for the parts that do not apply?", default=False):
+                except GitError as err:
+                    self._UI.error([err.stdout, ''])
+                    self._UI.warning("The patch does not apply cleanly. Reject files will be"
+                                     " created for the parts that do not apply if you proceed.")
+                    if not self._UI.confirm("Apply it anyway?", default=False):
                         self._UI.debug("Not applying patch.")
                         self.git.reset_to_clean_state()
                         self.git.clean_wrapper(remove_untracked_files=True)

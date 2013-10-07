@@ -25,5 +25,6 @@ Modules
    sage/modules/fg_pid/fgp_morphism
 
    sage/modules/filtered_vector_space
+   sage/modules/tensor_operations
 
 .. include:: ../footer.txt

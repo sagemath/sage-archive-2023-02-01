@@ -1,0 +1,15 @@
+#!/bin/sh
+
+TARGET="$SAGE_SHARE/symbolic_data/"
+
+
+if [ -d "$TARGET" ]; then
+    $RM -rf "$TARGET" 
+fi
+
+mkdir "$TARGET"
+
+$CP -r Data "$TARGET"/
+
+
+

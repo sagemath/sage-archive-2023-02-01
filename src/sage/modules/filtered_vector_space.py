@@ -1,5 +1,5 @@
 """
-`\ZZ`-filtered vector spaces
+`\ZZ`-Filtered Vector Spaces
 
 This module implements filtered vector spaces, that is, a descending
 sequence of vector spaces
@@ -8,13 +8,13 @@ sequence of vector spaces
 
     \cdots \supset F_d \supset F_{d+1} \supset F_{d+2} \supset \cdots 
 
-It is not required that `F_d` is the entire ambient space for `d\ll 0`
-(see :meth:`~FilteredVectorSpace_class.is_exhaustive`) nor that
-`F_d=0` for `d\gg 0` (see
-:meth:`~FilteredVectorSpace_class.is_separating`). To construct a
-filtered vector space, use the :func:`FilteredVectorSpace` command. It
-supports easy creation of simple filtrations, for example the trivial
-one::
+with degrees `d\in \ZZ`. It is not required that `F_d` is the entire
+ambient space for `d\ll 0` (see
+:meth:`~FilteredVectorSpace_class.is_exhaustive`) nor that `F_d=0` for
+`d\gg 0` (see :meth:`~FilteredVectorSpace_class.is_separating`). To
+construct a filtered vector space, use the :func:`FilteredVectorSpace`
+command. It supports easy creation of simple filtrations, for example
+the trivial one::
 
     sage: FilteredVectorSpace(2, base_ring=RDF)
     RDF^2
@@ -90,13 +90,12 @@ degree::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.sage_object import SageObject
 from sage.rings.all import QQ, ZZ, RDF, RR, Integer
 from sage.rings.infinity import InfinityRing, infinity, minus_infinity
 from sage.categories.fields import Fields
 from sage.modules.free_module import FreeModule_ambient_field, VectorSpace
-from sage.matrix.constructor import vector, matrix, block_matrix, zero_matrix, identity_matrix
-from sage.misc.all import uniq, cached_method, prod
+from sage.matrix.constructor import vector, matrix
+from sage.misc.all import uniq, cached_method
 
 
 def is_FilteredVectorSpace(X):
@@ -256,6 +255,7 @@ def construct_from_dim_degree(dim, max_degree, base_ring, check):
     if dim not in ZZ:
         raise ValueError('dimension must be an integer')
     dim = ZZ(dim)
+    from sage.matrix.constructor import identity_matrix
     generators = identity_matrix(base_ring, dim).columns()
     filtration = dict()
     if max_degree is None:
@@ -374,6 +374,7 @@ def construct_from_generators_indices(generators, filtration, base_ring, check):
 
 
 class FilteredVectorSpace_class(FreeModule_ambient_field):
+
     def __init__(self, base_ring, dim, generators, filtration, check=True):
         r"""
         A descending filtration of a vector space
@@ -707,6 +708,70 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
             filtration[d] = tuple(indices)
         return generators, filtration
 
+    def _repr_field_name(self):
+        """
+        Return an abbreviated field name as string
+
+        EXAMPLES::
+
+            sage: FilteredVectorSpace(2, base_ring=QQ)._repr_field_name()
+            'QQ'
+        """
+        if self.base_ring() == QQ:
+            return 'QQ'
+        elif self.base_ring() == RDF:
+            return 'RDF'
+        elif self.base_ring() == RR:
+            return 'RR'
+        else:
+            return repr(self.base_ring())
+
+    def _repr_vector_space(self, dim):
+        """
+        Return a string representation of the vector space of given dimension
+
+        INPUT:
+
+        - ``dim`` -- integer.
+
+        OUTPUT:
+
+        String representation of the vector space of dimension ``dim``.
+
+        EXAMPLES::
+
+            sage: F = FilteredVectorSpace(3, base_ring=RDF)
+            sage: F._repr_vector_space(1234)
+            'RDF^1234'
+        """
+        return self._repr_field_name() + '^' + str(dim) if dim > 0 else '0'
+
+    def _repr_degrees(self, min_deg, max_deg):
+        """
+        Return a string representation
+        
+        This method is like :meth:`_repr_` except that the user can
+        select the range of degrees to be shown in the output.
+
+        INPUT:
+
+        - ``min_deg``, ``max_deg`` -- two integers.
+
+        EXAMPLES::
+
+            sage: rays = [(1,0), (1,1), (1,2), (-1,-1)]
+            sage: F = FilteredVectorSpace(rays, {0:[1, 2], 2:[3]})
+            sage: F._repr_degrees(-2, 4)
+            ['QQ^2', 'QQ^2', 'QQ^2', 'QQ^1', 'QQ^1', '0', '0', '0']
+        """
+        field_name = self._repr_field_name()
+        degrees = range(min_deg, max_deg+1)
+        dims = []
+        for i in degrees + [infinity]:
+            d = self.get_degree(i).dimension()
+            dims.append(self._repr_vector_space(d))
+        return dims
+
     def _repr_(self):
         r"""
         Return as string representation of ``self``.
@@ -727,31 +792,18 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
             sage: FilteredVectorSpace(rays, {0:[3]})
             QQ^1 >= 0 in QQ^2
         """
-        if self.dimension()==0:
-            return '0'
-        field_name = str(self.base_ring())
-        if self.base_ring() == QQ:
-            field_name = 'QQ'
-        elif self.base_ring() == RDF:
-            field_name = 'RDF'
-        elif self.base_ring() == RR:
-            field_name = 'RR'
         finite_support = [d for d in self.support() if d != infinity]
         if len(finite_support) == 0:
-            degrees = []
+            dims = self._repr_degrees(0, -1)
         else:
-            degrees = range(finite_support[0], finite_support[-1] + 1)            
-        dims = [field_name + '^' + str(self.get_degree(i).dimension()) for i in degrees]
-        dim_oo = self.get_degree(infinity).dimension()
-        if dim_oo == 0:
-            dims.append('0')
-        else:
-            dims.append(field_name + '^' + str(dim_oo))
+            min_deg = finite_support[0]
+            max_deg = finite_support[-1]
+            dims = self._repr_degrees(min_deg, max_deg)
         s = ' >= '.join(dims)
         if not self.is_exhaustive():
-            s += ' in ' + field_name + '^' + str(self.degree())
+            s += ' in ' + self._repr_field_name() + '^' + str(self.degree())
         return s
-        
+
     def __cmp__(self, other):
         """
         Compare two filtered vector spaces.
@@ -815,25 +867,36 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
             sage: W = FilteredVectorSpace({0:[(1,-1),(2,1)], 1:[(1,1)]})
             sage: V.direct_sum(W)
             QQ^4 >= QQ^1 >= 0
-            sage: V+W
+            sage: V + W    # syntactic sugar
             QQ^4 >= QQ^1 >= 0
             sage: V + V == FilteredVectorSpace(4, 0)
             True
 
             sage: W = FilteredVectorSpace([(1,-1),(2,1)], {1:[0,1], 2:[1]})
-            sage: V+W
+            sage: V + W
             QQ^4 >= QQ^2 >= QQ^1 >= 0
+
+        A suitable base ring is chosen if they do not match::
+
+            sage: v = [(1,0), (0,1)]
+            sage: F1 = FilteredVectorSpace(v, {0:[0], 1:[1]}, base_ring=QQ)
+            sage: F2 = FilteredVectorSpace(v, {0:[0], 1:[1]}, base_ring=RDF)
+            sage: F1 + F2
+            RDF^4 >= RDF^2 >= 0
         """
+        from sage.structure.element import get_coercion_model
+        base_ring = get_coercion_model().common_parent(self.base_ring(), other.base_ring())
+        # construct the generators
         self_gens, self_filt = self.presentation()
         other_gens, other_filt = other.presentation()
+        generators = \
+            [ list(v) + [base_ring.zero()]*other.dimension() for v in self_gens  ] + \
+            [ [base_ring.zero()]*self.dimension() + list(v)  for v in other_gens ]
+        # construct the filtration dictionary
         def join_indices(self_indices, other_indices):
             self_indices = tuple(self_indices)
             other_indices = tuple(i + len(self_gens) for i in other_indices)
             return self_indices + other_indices
-        base_ring = self.base_ring()
-        generators = \
-            [ list(v) + [base_ring.zero()]*other.dimension() for v in self_gens  ] + \
-            [ [base_ring.zero()]*self.dimension() + list(v)  for v in other_gens ]
         filtration = dict()
         self_indices = set()
         other_indices = set()
@@ -842,8 +905,7 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
             other_indices.update(other_filt.get(deg, []))
             gens = join_indices(self_indices, other_indices)
             filtration[deg] = gens
-        dim = self.dimension() + other.dimension()
-        return self.__class__(base_ring, dim, generators, filtration, check=True)
+        return FilteredVectorSpace(generators, filtration, base_ring=base_ring)
 
     __add__ = direct_sum
     
@@ -876,6 +938,8 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
             2
             sage: (F1*F2).min_degree()
             3
+
+        A suitable base ring is chosen if they do not match::
 
             sage: v = [(1,0), (0,1)]
             sage: F1 = FilteredVectorSpace(v, {0:[0], 1:[1]}, base_ring=QQ)
@@ -1004,3 +1068,52 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
         """
         return self._power_operation(n, 'symmetric')
 
+    def dual(self):
+        """
+        Return the dual filtered vector space.
+
+        OUTPUT:
+
+        The graded dual, that is, the dual of a degree-`d` subspace is
+        a set of linear constraints in degree `-d+1`. That is, the
+        dual generators live in degree `-d`.
+
+        EXAMPLES::
+
+            sage: gens = identity_matrix(3).rows()
+            sage: F = FilteredVectorSpace(gens, {0:[0,1,2], 2:[0]});  F
+            QQ^3 >= QQ^1 >= QQ^1 >= 0
+            sage: F.support()
+            (0, 2)
+        
+            sage: F.dual()
+            QQ^3 >= QQ^2 >= QQ^2 >= 0
+            sage: F.dual().support()
+            (-2, 0)
+        """
+        filtration = dict()
+        prev_deg = minus_infinity
+        for deg, V in self._filt[1:]:
+            filtration[-prev_deg] = V.complement().echelonized_basis()
+            prev_deg = deg
+        return FilteredVectorSpace(filtration, base_ring=self.base_ring())
+
+    def shift(self, deg):
+        """
+        Return a filtered vector space with degrees shifted by a constant.
+
+        EXAMPLES::
+
+            sage: gens = identity_matrix(3).rows()
+            sage: F = FilteredVectorSpace(gens, {0:[0,1,2], 2:[0]});  F
+            QQ^3 >= QQ^1 >= QQ^1 >= 0
+            sage: F.support()
+            (0, 2)
+            sage: F.shift(-5).support()
+            (-5, -3)
+        """
+        generators, filtration = self.presentation()
+        shifted = dict()
+        for d, indices in filtration.iteritems():
+            shifted[d + deg] = indices
+        return FilteredVectorSpace(generators, shifted, base_ring=self.base_ring())

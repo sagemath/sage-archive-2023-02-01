@@ -37,3 +37,4 @@ import vector_symbolic_dense
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.modules.filtered_vector_space', 'FilteredVectorSpace')
+lazy_import('sage.modules.multi_filtered_vector_space', 'MultiFilteredVectorSpace')

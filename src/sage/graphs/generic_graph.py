@@ -4037,26 +4037,30 @@ class GenericGraph(GenericGraph_pyx):
         """
         Returns the blocks-and-cuts tree of ``self``.
 
-        This new graph has two different kinds of vertices, some
-        representing the blocks (type B) and some other the cut
-        vertices of the graph ``self`` (type C).
+        This new graph has two different kinds of vertices, some representing
+        the blocks (type B) and some other the cut vertices of the graph
+        ``self`` (type C).
 
-        There is an edge between a vertex `u` of type B and a vertex
-        `v` of type C if the cut-vertex corresponding to `v` is in the
-        block corresponding to `u`.
+        There is an edge between a vertex `u` of type B and a vertex `v` of type
+        C if the cut-vertex corresponding to `v` is in the block corresponding
+        to `u`.
 
-        The resulting graph is a tree, with the additional
-        characteristic property that the distance between two leaves
-        is even.
+        The resulting graph is a tree, with the additional characteristic
+        property that the distance between two leaves is even.
+
+        When ``self`` is biconnected, the tree is reduced to a single node of
+        type `B`.
 
         .. SEEALSO:: :meth:`blocks_and_cut_vertices`
 
-        EXAMPLES::
+        EXAMPLES:
 
             sage: T = graphs.KrackhardtKiteGraph().blocks_and_cuts_tree(); T
             Graph on 5 vertices
             sage: T.is_isomorphic(graphs.PathGraph(5))
             True
+
+        The distance between two leaves is even::
 
             sage: T = graphs.RandomTree(40).blocks_and_cuts_tree()
             sage: T.is_tree()
@@ -4064,6 +4068,12 @@ class GenericGraph(GenericGraph_pyx):
             sage: leaves = [v for v in T if T.degree(v) == 1]
             sage: all(T.distance(u,v) % 2 == 0 for u in leaves for v in leaves)
             True
+
+        The tree of a biconnected graph has a single vertex, of type `B`::
+
+            sage: T = graphs.PetersenGraph().blocks_and_cuts_tree()
+            sage: T.vertices()
+            [('B', (0, 1, 2, 3, 4, 5, 6, 7, 8, 9))]
 
         REFERENCES:
 
@@ -4078,6 +4088,7 @@ class GenericGraph(GenericGraph_pyx):
         B = map(tuple, B)
         G = Graph()
         for bloc in B:
+            G.add_vertex(('B', bloc))
             for c in bloc:
                 if c in C:
                     G.add_edge(('B', bloc), ('C', c))

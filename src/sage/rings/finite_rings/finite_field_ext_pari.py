@@ -140,10 +140,10 @@ class FiniteField_ext_pari(FiniteField_generic):
         sage: K = FiniteField(7)
         sage: loads(K.dumps()) == K
         True
-        sage: K = FiniteField(7^10, 'b')
+        sage: K = FiniteField(7^10, 'b', impl='pari_mod')
         sage: loads(K.dumps()) == K
         True
-        sage: K = FiniteField(7^10, 'a')
+        sage: K = FiniteField(7^10, 'a', impl='pari_mod')
         sage: loads(K.dumps()) == K
         True
 
@@ -156,7 +156,7 @@ class FiniteField_ext_pari(FiniteField_generic):
     polynomial is probably different.  However, if you load a previously
     saved field, that will have the same defining polynomial. ::
 
-        sage: K = GF(10007^10, 'a')
+        sage: K = GF(10007^10, 'a', impl='pari_mod')
         sage: loads(K.dumps()) == K
         True
 
@@ -206,7 +206,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         self.__is_field = True
 
         if modulus is None or modulus == "default":
-            from constructor import exists_conway_polynomial
+            from conway_polynomials import exists_conway_polynomial
             if exists_conway_polynomial(self.__char, self.__degree):
                 modulus = "conway"
             else:
@@ -214,7 +214,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         if isinstance(modulus,str):
             if modulus == "conway":
-                from constructor import conway_polynomial
+                from conway_polynomials import conway_polynomial
                 modulus = conway_polynomial(self.__char, self.__degree)
             elif modulus == "random":
                 # The following is fast/deterministic, but has serious problems since
@@ -253,7 +253,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES::
 
-            sage: k.<b> = GF(5^20); type(k)
+            sage: k.<b> = GF(5^20, impl='pari_mod'); type(k)
             <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari_with_category'>
             sage: k is loads(dumps(k))
             True
@@ -266,7 +266,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES::
 
-            sage: k = GF(7^20,'a')
+            sage: k = GF(7^20, 'a', impl='pari_mod')
             sage: k == loads(dumps(k))
             True
         """
@@ -280,12 +280,12 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLE::
 
-            sage: k.<a> = GF(next_prime(2^17))
-            sage: j.<b> = GF(next_prime(2^18))
+            sage: k.<a> = GF(2^17, impl='pari_mod')
+            sage: j.<b> = GF(2^18, impl='pari_mod')
             sage: k == j
             False
 
-            sage: GF(next_prime(2^17),'a') == copy(GF(next_prime(2^17),'a'))
+            sage: GF(2^17, 'a', impl='pari_mod') == copy(GF(2^17, 'a', impl='pari_mod'))
             True
         """
         return left._richcmp_helper(right, op)
@@ -297,7 +297,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES::
 
-            sage: k = GF(7^20,'a')
+            sage: k = GF(7^20, 'a', impl='pari_mod')
             sage: k._pari_one()
             Mod(1, 7)
         """
@@ -392,7 +392,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES::
 
-            sage: F.<a> = GF(7^20, 'a')
+            sage: F.<a> = GF(7^20, 'a', impl='pari_mod')
             sage: f = F.modulus(); f
             x^20 + x^12 + 6*x^11 + 2*x^10 + 5*x^9 + 2*x^8 + 3*x^7 + x^6 + 3*x^5 + 3*x^3 + x + 3
 
@@ -491,7 +491,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: a.parent()
             Finite Field of size 13
 
-            sage: F = GF(16, 'a')
+            sage: F = GF(16, 'a', impl='pari_mod')
             sage: F(gap('Z(16)^3'))
             a^3
             sage: F(gap('Z(16)^2'))
@@ -500,7 +500,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         You can also call a finite extension field with a string
         to produce an element of that field, like this::
 
-            sage: k = GF(2^8, 'a')
+            sage: k = GF(2^8, 'a', impl='pari_mod')
             sage: k('a^200')
             a^4 + a^3 + a^2
 
@@ -686,9 +686,9 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES::
 
-            sage: {GF(9,'a'): 1} # indirect doctest
+            sage: {GF(9, 'a', impl='pari_mod'): 1} # indirect doctest
             {Finite Field in a of size 3^2: 1}
-            sage: {GF(9,'b'): 1} # indirect doctest
+            sage: {GF(9, 'b', impl='pari_mod'): 1} # indirect doctest
             {Finite Field in b of size 3^2: 1}
         """
         try:

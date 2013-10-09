@@ -69,6 +69,9 @@ of doubt, have a look at the file spkg-src.
 
 == Changelog ==
 
+=== pari-2.5.5.p0 (Jeroen Demeyer, 2 October 2013) ===
+ * Trac #15250: upgrade to version 2.5.5.
+
 === pari-2.5.4.p0 (Jeroen Demeyer, 13 May 2013) ===
  * Trac #14539: upgrade to version 2.5.4.
  * Improve documentation of patches.

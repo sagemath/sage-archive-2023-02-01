@@ -3063,6 +3063,27 @@ class NumberFieldFractionalIdeal(NumberFieldIdeal):
         """
         return ZZ(self.pari_prime().pr_get_f())
 
+    def ray_class_number(self):
+        r"""
+        Return the order of the ray class group modulo this ideal. This is a
+        wrapper around Pari's ``bnrclassno()`` function.
+
+        EXAMPLE::
+
+            sage: K.<z> = QuadraticField(-23)
+            sage: p = K.primes_above(3)[0]
+            sage: p.ray_class_number()
+            3
+
+            sage: x = polygen(K)
+            sage: L.<w> = K.extension(x^3 - z)
+            sage: I = L.ideal(5)
+            sage: I.ray_class_number()
+            5184
+        """
+        bid = self._pari_bid_()
+        return ZZ(self.number_field().pari_bnf().bnrclassno(bid))
+
 def is_NumberFieldFractionalIdeal(x):
     """
     Return True if x is a fractional ideal of a number field.

@@ -8500,10 +8500,10 @@ cdef class Matrix(matrix1.Matrix):
             else:
                 Q, R = self.transpose()._gram_schmidt_noscale()
         else:
-            raise NotImplementedError("Gram-Scmidt orthogonalization not implemented for matrices over inexact rings, except for RDF and CDF")
+            raise NotImplementedError("Gram-Schmidt orthogonalization not implemented for matrices over inexact rings, except for RDF and CDF")
         return Q.transpose(), R.transpose()
 
-    def jordan_form(self, base_ring=None, sparse=False, subdivide=True, transformation=False):
+    def jordan_form(self, base_ring=None, sparse=False, subdivide=True, transformation=False, eigenvalues=None, check_input=True):
         r"""
         Compute the Jordan normal form of this square matrix `A`, if it exists.
 
@@ -8524,6 +8524,20 @@ cdef class Matrix(matrix1.Matrix):
 
         - ``transformation`` - (default ``False``) If ``transformation=True``,
           computes also the transformation matrix.
+
+        - ``eigenvalues`` - (default ``None``) A complete set of roots, with
+          multiplicity, of the characteristic polynomial of `A`, encoded as
+          a list of pairs, each having the form `(r, m)` with `r` a root and
+          `m` its multiplicity. If this is ``None``, then Sage computes this
+          list itself, but this is only possible over base rings in whose
+          quotient fields polynomial factorization is implemented. Over all
+          other rings, providing this list manually is the only way to
+          compute Jordan normal forms.
+
+        - ``check_input`` - (default ``True``) A Boolean specifying whether
+          the list ``eigenvalues`` (if provided) has to be checked for
+          correctness. Set this to ``False`` for a speedup if the eigenvalues
+          are known to be correct.
 
         NOTES:
 
@@ -8785,6 +8799,29 @@ cdef class Matrix(matrix1.Matrix):
             sage: M.jordan_form(transformation=True) == (M/1).jordan_form(transformation=True)
             True
 
+        By providing eigenvalues ourselves, we can compute the Jordan form even
+        lacking a polynomial factorization algorithm.  ::
+
+            sage: Qx = PolynomialRing(QQ, 'x11, x12, x13, x21, x22, x23, x31, x32, x33')
+            sage: x11, x12, x13, x21, x22, x23, x31, x32, x33 = Qx.gens()
+            sage: M = matrix(Qx, [[0, 0, x31], [0, 0, x21], [0, 0, 0]])    # This is a nilpotent matrix.
+            sage: M.jordan_form(eigenvalues=[(0, 3)])
+            [0 1|0]
+            [0 0|0]
+            [---+-]
+            [0 0|0]
+            sage: M.jordan_form(eigenvalues=[(0, 2)])
+            Traceback (most recent call last):
+            ...
+            ValueError: The provided list of eigenvalues is not correct.
+            sage: M.jordan_form(transformation=True, eigenvalues=[(0, 3)])
+            (
+            [0 1|0]
+            [0 0|0]  [x31   0   1]
+            [---+-]  [x21   0   0]
+            [0 0|0], [  0   1   0]
+            )
+
         TESTS:
 
         The base ring for the matrix needs to have a fraction field
@@ -8836,7 +8873,19 @@ cdef class Matrix(matrix1.Matrix):
         # Compute the eigenvalues of the matrix, with multiplicities.  Here,
         # ``evals`` is a list of pairs, each first entry a root and each
         # second entry the corresponding multiplicity.
-        evals = A.charpoly().roots()
+        if eigenvalues is not None:
+            if check_input:    # Checking input for sanity.
+                C1 = A.charpoly()
+                Polyring = C1.parent()
+                C2 = Polyring.one()
+                x = Polyring.gens()[0]
+                for z, i in eigenvalues:
+                    C2 *= (x - z) ** i
+                if C1 != C2:
+                    raise ValueError("The provided list of eigenvalues is not correct.")
+            evals = eigenvalues
+        else:
+            evals = A.charpoly().roots()
         if sum([mult for (_,mult) in evals]) < n:
             raise RuntimeError("Some eigenvalue does not exist in %s."  %(A.base_ring()))
 
@@ -8949,7 +8998,7 @@ cdef class Matrix(matrix1.Matrix):
         The diagonal entries of the matrix `D` are the eigenvalues
         of `A`.  It may be necessary to "increase" the base field to
         contain all of the eigenvalues.  Over the rationals, the field
-        of algebraic integers, :mod:`sage.rings.qqbar` is a good choice.
+        of algebraic numbers, :mod:`sage.rings.qqbar` is a good choice.
 
         To obtain the matrices `S` and `D` use the :meth:`jordan_form`
         method with the ``transformation=True`` keyword.
@@ -11190,9 +11239,9 @@ cdef class Matrix(matrix1.Matrix):
             sage: B == L*D*L.conjugate_transpose()
             True
 
-        If a leading principal submatrix is zero this algorithm
-        will fail.  This will never happen with a positive definite
-        matrix.  ::
+        If a leading principal submatrix has zero determinant, this
+        algorithm will fail.  This will never happen with a positive
+        definite matrix.  ::
 
             sage: A = matrix(QQ, [[21, 15, 12, -2],
             ...                   [15, 12,  9,  6],
@@ -11513,7 +11562,7 @@ cdef class Matrix(matrix1.Matrix):
 
         OUTPUT: If ``indices`` is not specified, return a
         matrix with 1 where `f` is satisfied and 0 where it is not.
-        If ``indices`` is specified, return a dictionary with
+        If ``indices`` is specified, return a dictionary
         containing the elements of this matrix satisfying `f`.
 
         EXAMPLES::

@@ -23,7 +23,7 @@ EXAMPLES::
     sage: k = GF(2^16,'c'); type(k)
     <class 'sage.rings.finite_rings.finite_field_ntl_gf2e.FiniteField_ntl_gf2e_with_category'>
     sage: k = GF(3^16,'c'); type(k)
-    <class 'sage.rings.finite_rings.finite_field_ext_pari.FiniteField_ext_pari_with_category'>
+    <class 'sage.rings.finite_rings.finite_field_pari_ffelt.FiniteField_pari_ffelt_with_category'>
 
     sage: n = previous_prime_power(2^16 - 1)
     sage: while is_prime(n):
@@ -125,7 +125,7 @@ cdef void late_import():
     ConwayPolynomials = sage.databases.conway.ConwayPolynomials
 
     import sage.rings.finite_rings.constructor
-    conway_polynomial = sage.rings.finite_rings.constructor.conway_polynomial
+    conway_polynomial = sage.rings.finite_rings.conway_polynomials.conway_polynomial
 
     import sage.rings.polynomial.multi_polynomial_element
     MPolynomial = sage.rings.polynomial.multi_polynomial_element.MPolynomial

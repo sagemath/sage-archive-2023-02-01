@@ -26,7 +26,8 @@ from affine_permutation import AffinePermutationGroup
 from derangements import Derangements
 
 #RSK
-from rsk import RSK, RSK_inverse, RobinsonSchenstedKnuth, RobinsonSchenstedKnuth_inverse
+from rsk import RSK, RSK_inverse, robinson_schensted_knuth, robinson_schensted_knuth_inverse,\
+                RobinsonSchenstedKnuth, RobinsonSchenstedKnuth_inverse
 
 #PerfectMatchings
 from perfect_matching import PerfectMatching, PerfectMatchings

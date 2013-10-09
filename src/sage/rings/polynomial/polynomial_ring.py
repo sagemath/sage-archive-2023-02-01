@@ -1358,7 +1358,8 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, integral_domain
     def __init__(self, base_ring, name="x", sparse=False, implementation=None,
             element_class=None):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_integral_domain as PRing
             sage: R = PRing(ZZ, 'x'); R
             Univariate Polynomial Ring in x over Integer Ring
@@ -1391,7 +1392,8 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, integral_domain
 
     def _repr_(self):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_integral_domain as PRing
             sage: R = PRing(ZZ, 'x', implementation='NTL'); R
             Univariate Polynomial Ring in x over Integer Ring (using NTL)
@@ -1406,7 +1408,8 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
                            ):
     def __init__(self, base_ring, name="x", sparse=False, element_class=None):
         """
-        TESTS:
+        TESTS::
+
             sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_field as PRing
             sage: R = PRing(QQ, 'x'); R
             Univariate Polynomial Ring in x over Rational Field
@@ -2172,9 +2175,10 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_finite_field,
         - Peter Bruin (June 2013)
         """
         from sage.libs.pari.all import pari
-        from sage.rings.finite_rings.constructor import (conway_polynomial,
-                                                         exists_conway_polynomial)
-        from polynomial_gf2x import (GF2X_BuildIrred_list, GF2X_BuildSparseIrred_list,
+        from sage.rings.finite_rings.conway_polynomials import (conway_polynomial,
+                                                                exists_conway_polynomial)
+        from polynomial_gf2x import (GF2X_BuildIrred_list,
+                                     GF2X_BuildSparseIrred_list,
                                      GF2X_BuildRandomIrred_list)
 
         p = self.characteristic()

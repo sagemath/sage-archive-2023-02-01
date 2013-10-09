@@ -31,9 +31,10 @@ def TangentBundle(X):
     assert is_ToricVariety(X)
     base_ring = X.base_ring()
     fan = X.fan()
-    filtration = [{1:[i], 2:[]} for i in range(0, fan.nrays())]
+    filtration = [{0:range(fan.nrays()), 1:[i]} 
+                  for i in range(0, fan.nrays())]
     import klyachko
-    return klyachko.Bundle_from_rays_filtrations(X, fan.rays(), filtration, base_ring, check=True)
+    return klyachko.Bundle_from_generators_filtrations(X, fan.rays(), filtration, base_ring, check=True)
     
 
 def CotangentBundle(X):

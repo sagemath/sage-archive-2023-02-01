@@ -82,23 +82,21 @@ def Bundle(toric_variety, arg1, arg2=None, base_ring=None, check=True):
                 V = V.change_ring(base_ring)
             filtrations.append(V)
         return Bundle_class(toric_variety, filtrations, check=check)
-    return Bundle_from_rays_filtrations(toric_variety, arg1, arg2, base_ring, check=check)
+    return Bundle_from_generators_filtrations(toric_variety, arg1, arg2, base_ring, check=check)
 
 
 def Bundle_from_filtered_vector_spaces(toric_variety, filtrations, check=True):
     """
     Construct a Klyachko bundle from filtration data.
     """
-    if check:
-        assert all(F._rays == filtrations[0]._rays for F in filtrations)
     return Bundle_class(toric_variety, filtrations, check=check)
 
 
-def Bundle_from_rays_filtrations(toric_variety, rays, filtrations, base_ring, check=True):
+def Bundle_from_generators_filtrations(toric_variety, generators, filtrations, base_ring, check=True):
     """
     Construct a Klyachko bundle from filtration data.
     """
-    filtrations = [FilteredVectorSpace(rays, f, base_ring=base_ring, check=check) 
+    filtrations = [FilteredVectorSpace(generators, f, base_ring=base_ring, check=check) 
                    for f in filtrations]
     return Bundle_class(toric_variety, filtrations, check=check)
     
@@ -122,11 +120,11 @@ class Bundle_class(SageObject):
         self._vectorspace = VectorSpace(self._base_ring, self._rank)
         
         if not check: return
-        if len(filtrations)!=self._variety.fan().nrays():
+        if len(filtrations) != self._variety.fan().nrays():
             raise ValueError('There must be one filtered vector space for each ray of the fan.')
         for i,F in enumerate(self._filt):
             msg = 'The '+str(i)+'-th filtration '+str(F)+' '
-            if not F.is_finite():
+            if not (F.is_exhaustive() and F.is_separating()):
                 raise ValueError(msg+'has infinitely many non-trivial terms.')
             if F.dimension() != self._rank:
                 raise ValueError(msg+'has a differnt dimension.')
@@ -704,7 +702,7 @@ class Bundle_class(SageObject):
         
     def deformation(self, perturbed_rays=None):
         """
-        Return a generic torus-equivariant deformation of the bundle.
+        Return a generic torus-equivariant deformation of the bundle.
 
         EXAMPLES::
 

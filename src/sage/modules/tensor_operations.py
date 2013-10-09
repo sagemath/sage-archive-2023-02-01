@@ -418,6 +418,9 @@ class TensorOperation(VectorCollection):
         The index (in :meth:`vectors`) of the image of the tensor
         product/operation acting on the domain vectors indexed by `i`.
 
+        ``None`` is returned if the tensor operation maps the
+        generators to zero (usually because of antisymmetry).
+
         EXAMPLES::
 
             sage: from sage.modules.tensor_operations import \
@@ -451,9 +454,53 @@ class TensorOperation(VectorCollection):
             i = tuple(i[0])
         if self._symmetrize_indices:
             i = tuple(sorted(i))
-        return self._index_map[i]
+        try:
+            return self._index_map[i]
+        except KeyError:
+            return None
 
+    def preimage(self):
+        """
+        A choice of pre-image multi-indices.
 
+        OUTPUT:
+        
+        A list of multi-indices (tuples of integers) whose image is
+        the entire image under the :meth:`index_map`.
+
+        EXAMPLES::
+
+            sage: from sage.modules.tensor_operations import \
+            ....:      VectorCollection, TensorOperation
+            sage: R = VectorCollection([(1,0), (0,1), (-2,-3)], QQ, 2)
+            sage: detR = TensorOperation([R]*2, 'antisymmetric') 
+            sage: sorted(detR.preimage())
+            [(0, 1), (0, 2), (1, 2)]
+            sage: sorted(detR.codomain())
+            [0, 1, 2]
+        """
+        return self._index_map.keys()
+
+    def codomain(self):
+        """
+        The codomain of the index map.
+
+        OUTPUT:
+
+        A list of integers. The image of :meth:`index_map`.
+
+        EXAMPLES::
+
+            sage: from sage.modules.tensor_operations import \
+            ....:      VectorCollection, TensorOperation
+            sage: R = VectorCollection([(1,0), (0,1), (-2,-3)], QQ, 2)
+            sage: detR = TensorOperation([R]*2, 'antisymmetric') 
+            sage: sorted(detR.preimage())
+            [(0, 1), (0, 2), (1, 2)]
+            sage: sorted(detR.codomain())
+            [0, 1, 2]
+        """
+        return self._index_map.values()
 
 
 

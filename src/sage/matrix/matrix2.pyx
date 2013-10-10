@@ -8786,11 +8786,10 @@ cdef class Matrix(matrix1.Matrix):
             Traceback (most recent call last):
             ...
             ValueError: Jordan normal form not implemented over inexact rings.
-            
-        Here we need to specify a field (#14508).
-        
-        ::
-        
+
+        Here we need to specify a field, since the eigenvalues are not defined
+        in the smallest ring containing the matrix entries (:trac:`14508`)::
+
             sage: c = matrix([[0,1,0],[0,0,1],[1,0,0]]);
             sage: c.jordan_form(CyclotomicField(3))
             [         1|         0|         0]
@@ -8800,9 +8799,7 @@ cdef class Matrix(matrix1.Matrix):
             [         0|         0|-zeta3 - 1]
 
         If you need the transformation matrix as well as the Jordan form of
-        ``self``, then pass the option ``transformation=True``.
-
-        ::
+        ``self``, then pass the option ``transformation=True``. For example::
 
             sage: m = matrix([[5,4,2,1],[0,1,-1,-1],[-1,-1,3,0],[1,1,-1,2]]); m
             [ 5  4  2  1]
@@ -8823,11 +8820,9 @@ cdef class Matrix(matrix1.Matrix):
             [0 0 4 1]
             [0 0 0 4]
 
-        Note that for matrices over inexact rings and associated numerical
-        stability problems, we do not attempt to compute the Jordan normal
-        form.
-
-        ::
+        Note that for matrices over inexact rings, we do not attempt to
+        compute the Jordan normal form, since it is not numerically
+        stable::
 
             sage: b = matrix(ZZ,3,3,range(9))
             sage: jf, p = b.jordan_form(RealField(15), transformation=True)
@@ -9066,21 +9061,26 @@ cdef class Matrix(matrix1.Matrix):
             else:
                 return self, self.parent().identity_matrix()
 
-        if base_ring is None:
-            base_ring = self.base_ring()
+        inferred_base_ring = base_ring
 
-        if not base_ring.is_exact():
+        if base_ring is None:
+            inferred_base_ring = self.base_ring()
+
+        if not inferred_base_ring.is_exact():
             raise ValueError("Jordan normal form not implemented over inexact rings.")
 
         # Make sure we're working with a field.
-        if base_ring.is_field():
-            A = self.change_ring(base_ring)
+        if inferred_base_ring.is_field():
+            if base_ring is not None:
+                A = self.change_ring(inferred_base_ring)
+            else:
+                A = self
         else:
             try:
-                base_field = base_ring.fraction_field()
+                base_field = inferred_base_ring.fraction_field()
             except (NotImplementedError, TypeError, AttributeError):
                 raise ValueError("Matrix entries must be from a field, not {0}".
-                                 format(base_ring))
+                                 format(inferred_base_ring))
             A = self.change_ring(base_field)
 
         # Compute the eigenvalues of the matrix, with multiplicities.  Here,

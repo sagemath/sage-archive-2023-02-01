@@ -452,6 +452,46 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
         self._filt = tuple(filtered_subspaces)
         assert self._filt[0][0] is minus_infinity
 
+    def change_ring(self, base_ring):
+        """
+        Return the same filtration over a different base ring.
+        
+        INPUT:
+        
+        - ``base_ring`` -- a ring. The new base ring.
+
+        OUTPUT:
+
+        This method returns a new filtered vector space whose
+        subspaces are defined by the same generators but over a
+        different base ring.
+
+        EXAMPLES::
+
+            sage: V = FilteredVectorSpace(1, 0);  V
+            QQ^1 >= 0
+            sage: V.change_ring(RDF)
+            RDF^1 >= 0        
+        """
+        generators, filtration = self.presentation()
+        return FilteredVectorSpace(generators, filtration, base_ring=base_ring)
+
+    def ambient_vector_space(self):
+        """
+        Return the ambient (unfiltered) vector space.
+
+        OUTPUT:
+
+        A vector space.
+
+        EXAMPLES::
+
+            sage: V = FilteredVectorSpace(1, 0)
+            sage: V.ambient_vector_space()
+            Vector space of dimension 1 over Rational Field
+        """
+        return VectorSpace(self.base_ring(), self.dimension())
+
     @cached_method
     def is_constant(self):
         """

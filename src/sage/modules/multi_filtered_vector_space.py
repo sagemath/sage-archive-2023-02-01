@@ -88,6 +88,11 @@ def MultiFilteredVectorSpace(arg, base_ring=None, check=True):
         dim = F.dimension()
         if base_ring is None:
             base_ring = F.base_ring()
+    for deg in filtration.keys():
+        filt = filtration[deg]
+        if filt.base_ring() != base_ring:
+            filt = filt.change_ring(base_ring)
+        filtration[deg] = filt
     return MultiFilteredVectorSpace_class(base_ring, dim, filtration)
 
 
@@ -127,7 +132,7 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
             assert isinstance(dim, Integer)
             assert base_ring in Fields()
             assert all(base_ring == f.base_ring() for f in filtrations.values())
-            assert all(dim == f.dimension() for f in filtrations.values())            
+            assert all(dim == f.dimension() for f in filtrations.values())
         super(MultiFilteredVectorSpace_class, self).__init__(base_ring, dim)
         self._filt = dict(filtrations)
         
@@ -150,6 +155,61 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
         """
         from sage.sets.set import Set
         return Set(self._filt.keys())
+
+    def change_ring(self, base_ring):
+        """
+        Return the same multi-filtration over a different base ring.
+        
+        INPUT:
+        
+        - ``base_ring`` -- a ring. The new base ring.
+
+        OUTPUT:
+
+        This method returns a new multi-filtered vector space whose
+        subspaces are defined by the same generators but over a
+        different base ring.
+
+        EXAMPLES::
+
+            sage: V = FilteredVectorSpace(2, 0)
+            sage: W = FilteredVectorSpace(2, 2)
+            sage: F = MultiFilteredVectorSpace({'a':V, 'b':W});  F
+            Filtrations
+                a: QQ^2 >=  0   >=  0   >= 0
+                b: QQ^2 >= QQ^2 >= QQ^2 >= 0          
+            sage: F.change_ring(RDF)
+            Filtrations
+                a: RDF^2 >=   0   >=   0   >= 0
+                b: RDF^2 >= RDF^2 >= RDF^2 >= 0
+
+            sage: MultiFilteredVectorSpace(3, base_ring=QQ).change_ring(RR)
+            Unfiltered RR^3
+        """
+        if len(self._filt) == 0:
+            return MultiFilteredVectorSpace(self.dimension(), base_ring=base_ring)
+        filtrations = dict()
+        for key, F in self._filt.iteritems():
+            filtrations[key] = F.change_ring(base_ring)
+        return MultiFilteredVectorSpace(filtrations, base_ring=base_ring)
+
+    def ambient_vector_space(self):
+        """
+        Return the ambient (unfiltered) vector space.
+
+        OUTPUT:
+
+        A vector space.
+
+        EXAMPLES::
+
+            sage: V = FilteredVectorSpace(2, 0)
+            sage: W = FilteredVectorSpace(2, 2)
+            sage: F = MultiFilteredVectorSpace({'a':V, 'b':W})
+            sage: F.ambient_vector_space()
+            Vector space of dimension 2 over Rational Field
+        """
+        return VectorSpace(self.base_ring(), self.dimension())
 
     @cached_method
     def is_constant(self):

@@ -1,6 +1,13 @@
 """
 Klyachko Bundles and Sheaves.
 
+Klyachko bundles are torus-equivariant bundles on toric
+varieties. That is, the action of the maximal torus on the toric
+variety lifts to an action on the bundle. There is an equivalence of
+categories between Klyachko bundles and multiple filtrations (one for
+each ray of the fan) of a vector space. The multi-filtrations are
+implemented in :mod:`sage.modules.multi_filtered_vector_space`.
+
 EXAMPLES::
 
     sage: X = toric_varieties.dP6xdP6()
@@ -30,105 +37,119 @@ REFERENCES:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
+#       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
+#
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of 
 #  the License, or (at your option) any later version.  
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+
 from sage.structure.all import SageObject
 from sage.rings.all import QQ, ZZ
 from sage.misc.all import uniq, cached_method
-from sage.modules.free_module import FreeModule, VectorSpace
 from sage.matrix.constructor import vector, matrix, block_matrix, zero_matrix
 from sage.geometry.cone import is_Cone, IntegralRayCollection
 
 from sage.modules.filtered_vector_space import FilteredVectorSpace, is_FilteredVectorSpace
+from sage.modules.multi_filtered_vector_space import MultiFilteredVectorSpace
 from sage.schemes.toric.sheaf.util import cached_method_immutable
 
 
 def is_KlyachkoBundle(X):
     """
     """
-    return isinstance(X, Bundle_class)
-
-##############################################################################
+    return isinstance(X, KlyachkoBundle_class)
 
 
-def Bundle(toric_variety, arg1, arg2=None, base_ring=None, check=True):
+def Bundle(toric_variety, multi_filtration, check=True):
     r"""
     Construct a Klyacho bundle
+
+    INPUT:
+
+    - ``toric_variety`` -- a toric variety. The base space of the bundle.
+
+    - ``multi_filtration`` -- a multi-filtered vectors space with
+      multiple filtrations being indexed by the one-dimensional cones
+      of the fan. Either an instance of
+      :func:`~sage.modules.multi_filtered_vector_space.MultiFilteredVectorSpace`
+      or something (like a dictionary of ordinary filtered vector
+      spaces).
 
     EXAMPLES::
 
         sage: P1 = toric_varieties.P1()
-        sage: P1.sheaves.Klyachko([(1,0,0),(0,1,0),(0,0,1)], [{1:[1,2], 3:[1], 4:[]}, {2:[0], 3:[]}])
+        sage: v1, v2, v3 = [(1,0,0),(0,1,0),(0,0,1)]
+        sage: F1 = FilteredVectorSpace({1:[v1, v2, v3], 3:[v1]})
+        sage: F2 = FilteredVectorSpace({0:[v1, v2, v3], 2:[v2, v3]})
+        sage: P1 = toric_varieties.P1()
+        sage: r1, r2 = P1.fan().rays()
+        sage: F = MultiFilteredVectorSpace({r1:F1, r2:F2});  F
+        Filtrations
+            N(-1): QQ^3 >= QQ^2 >= QQ^2 >=  0   >= 0
+             N(1): QQ^3 >= QQ^3 >= QQ^1 >= QQ^1 >= 0
+
+    You should use the
+    :meth:`~sage.schemes.toric.sheaf.constructor.SheafLibrary.Klyachko`
+    method to construct instances::
+
+        sage: P1.sheaves.Klyachko(F)
+        Rank 3 bundle on 1-d CPR-Fano toric variety covered by 2 affine patches.
+
+        sage: P1.sheaves.Klyachko({r1:F1, r2:F2})   # alternative
         Rank 3 bundle on 1-d CPR-Fano toric variety covered by 2 affine patches.
 
     The above is just a shorthand for::
 
         sage: from sage.schemes.toric.sheaf.klyachko import Bundle
-        sage: Bundle(P1, [(1,0,0),(0,1,0),(0,0,1)], [{1:[1,2], 3:[1], 4:[]}, {2:[0], 3:[]}])
+        sage: Bundle(P1, F)
         Rank 3 bundle on 1-d CPR-Fano toric variety covered by 2 affine patches.
     """
-    if base_ring is None:
-        base_ring = toric_variety.base_ring()
-    if all(is_FilteredVectorSpace(V) for V in arg1) and arg2 is None:
-        base_ring = toric_variety.base_ring()
-        filtrations = []
-        for V in arg1:
-            if V.base_ring() != base_ring:
-                V = V.change_ring(base_ring)
-            filtrations.append(V)
-        return Bundle_class(toric_variety, filtrations, check=check)
-    return Bundle_from_generators_filtrations(toric_variety, arg1, arg2, base_ring, check=check)
+    base_ring = toric_variety.base_ring()
+    if not hasattr(multi_filtration, 'get_filtration'):
+        # try to construct a MultiFilteredVectorSpace
+        multi_filtration = MultiFilteredVectorSpace(multi_filtration, base_ring=base_ring, check=check)
+    if multi_filtration.base_ring() != base_ring:
+        multi_filtration = multi_filtration.change_ring(base_ring)
+    return KlyachkoBundle_class(toric_variety, multi_filtration, check=check)
 
 
-def Bundle_from_filtered_vector_spaces(toric_variety, filtrations, check=True):
-    """
-    Construct a Klyachko bundle from filtration data.
-    """
-    return Bundle_class(toric_variety, filtrations, check=check)
 
-
-def Bundle_from_generators_filtrations(toric_variety, generators, filtrations, base_ring, check=True):
-    """
-    Construct a Klyachko bundle from filtration data.
-    """
-    filtrations = [FilteredVectorSpace(generators, f, base_ring=base_ring, check=check) 
-                   for f in filtrations]
-    return Bundle_class(toric_variety, filtrations, check=check)
-    
-
-
-##############################################################################
-
-class Bundle_class(SageObject):
+class KlyachkoBundle_class(SageObject):
     r"""
     A toric bundle using Klyachko's representation.
+
+    INPUT:
+
+    - ``toric_variety`` -- a toric variety. The base space of the bundle.
+
+    - ``multi_filtration`` -- a
+      :func:`~sage.modules.multi_filtered_vector_space.MultiFilteredVectorSpace`
+      with index set the rays of the fan.
+
+    EXAMPLES::
+
+
     """
     
-    def __init__(self, toric_variety, filtrations, check=True):
+    def __init__(self, toric_variety, multi_filtration, check=True):
         r"""
         The Python constructor.
         """
         self._variety = toric_variety
-        self._filt = filtrations
-        self._base_ring = self._filt[0].base_ring()
-        self._rank = self._filt[0].dimension()
-        self._vectorspace = VectorSpace(self._base_ring, self._rank)
+        self._filt = multi_filtration
         
         if not check: return
-        if len(filtrations) != self._variety.fan().nrays():
-            raise ValueError('There must be one filtered vector space for each ray of the fan.')
-        for i,F in enumerate(self._filt):
-            msg = 'The '+str(i)+'-th filtration '+str(F)+' '
-            if not (F.is_exhaustive() and F.is_separating()):
-                raise ValueError(msg+'has infinitely many non-trivial terms.')
-            if F.dimension() != self._rank:
-                raise ValueError(msg+'has a differnt dimension.')
-                
+        from sage.sets.set import Set
+        if multi_filtration.index_set() != Set(list(toric_variety.fan().rays())):
+            raise ValueError('the index set of the multi-filtration must be'
+                             ' all rays of the fan.')
+        if not multi_filtration.is_exhaustive():
+            raise ValueError('multi-filtration must be exhaustive')
+        if not multi_filtration.is_separating():
+            raise ValueError('multi-filtration must be separating')
 
     def variety(self):
         r"""
@@ -158,7 +179,7 @@ class Bundle_class(SageObject):
             sage: T_P2.base_ring()
             Rational Field
         """
-        return self._base_ring
+        return self._filt.base_ring()
 
     def fiber(self):
         r"""
@@ -166,7 +187,7 @@ class Bundle_class(SageObject):
 
         OUTPUT:
 
-        A vector space over :meth:`base_ring`.
+        A multi-filtered vector space over :meth:`base_ring`.
 
         EXAMPLES::
 
@@ -174,7 +195,8 @@ class Bundle_class(SageObject):
             sage: T_P2.fiber()
             Vector space of dimension 2 over Rational Field
         """
-        return self._vectorspace
+        from sage.modules.all import VectorSpace
+        return VectorSpace(self.base_ring(), self.rank())
         
     def rank(self):
         r"""
@@ -190,7 +212,7 @@ class Bundle_class(SageObject):
             sage: T_P2.rank()
             2
         """
-        return self._rank
+        return self._filt.dimension()
 
     def _repr_(self):
         r"""
@@ -208,47 +230,67 @@ class Bundle_class(SageObject):
         s = 'Rank '+str(self.rank())+' bundle on '+str(self._variety)+'.'
         return s
         
-    def filtration(self, alpha):
+    def get_filtration(self, ray=None):
         r"""
-        Return the filtration associated to the ray alpha.
+        Return the filtration associated to the ``ray``.
 
         INPUT:
 
-        - ``alpha`` -- Integer or a `N`-lattice point or a
-          one-dimensional cone. Specifies a ray of the fan of the
-          toric variety, either via its index or its generator.
+        - ``ray`` -- Integer, a `N`-lattice point, a one-dimensional
+          cone, or ``None`` (default). Specifies a ray of the fan of
+          the toric variety, either via its index or its generator.
+
+        OUTPUT:
+
+        The filtered vector space associated to the given ``ray``.
 
         EXAMPLES:
         
             sage: TX = toric_varieties.dP6().sheaves.tangent_bundle()
-            sage: TX.filtration(0)
+            sage: TX.get_filtration(0)
             QQ^2 >= QQ^1 >= 0
+            sage: TX.get_filtration([-1, -1])
+            QQ^2 >= QQ^1 >= 0
+            sage: TX.get_filtration(TX.variety().fan(1)[0])
+            QQ^2 >= QQ^1 >= 0
+            sage: TX.get_filtration()
+            Filtrations
+                N(-1, -1): QQ^2 >= QQ^1 >= 0
+                 N(-1, 0): QQ^2 >= QQ^1 >= 0
+                 N(0, -1): QQ^2 >= QQ^1 >= 0
+                  N(0, 1): QQ^2 >= QQ^1 >= 0
+                  N(1, 0): QQ^2 >= QQ^1 >= 0
+                  N(1, 1): QQ^2 >= QQ^1 >= 0
         """
-        try:
-            i = ZZ(alpha)
-        except TypeError:
-            fan = self._variety.fan()
-            if is_Cone(alpha):
-                cone = fan.embed(alpha)
-            else:
-                cone = fan.cone_containing(alpha)
-            assert cone.dim() == 1
-            i = cone.ambient_ray_indices()[0]
-        return self._filt[i]
+        if ray is None:
+            return self._filt
+        X = self.variety()
+        fan = X.fan()
+        if is_Cone(ray):
+            if ray.dim() != 1:
+                raise ValueError('not a one-dimensional cone')
+            ray = ray.ray(0)
+        elif ray in ZZ:
+            ray = fan.ray(ray)
+        else:
+            N = fan.lattice()
+            ray = N(ray)
+            ray.set_immutable()
+        return self._filt.get_filtration(ray)
 
-    def filtration_degree(self, alpha, i):
+    def get_degree(self, ray, i):
         r"""
         Return the vector subspace ``E^\alpha(i)``.
 
         EXAMPLES::
 
             sage: TX = toric_varieties.dP6().sheaves.tangent_bundle()
-            sage: TX.filtration_degree(0,1)
+            sage: TX.get_degree(0, 1)
             Vector space of degree 2 and dimension 1 over Rational Field
             Basis matrix:
             [0 1]
         """
-        return self.filtration(alpha).get_degree(i)
+        return self.get_filtration(ray).get_degree(i)
 
     def filtration_intersection(self, sigma, i):
         r"""
@@ -287,7 +329,7 @@ class Bundle_class(SageObject):
         sigma = self._variety.fan().embed(sigma)
         V = self.fiber()
         for alpha in sigma.ambient_ray_indices():
-            V = V.intersection(self.filtration_degree(alpha,i))
+            V = V.intersection(self.get_degree(alpha, i))
         return V
 
     def E_degree(self, alpha, m):
@@ -315,7 +357,7 @@ class Bundle_class(SageObject):
             assert cone.dim() == 1
             ray = cone.ray(0)
             ray_index = cone.ambient_ray_indices()[0]
-        return self.filtration_degree(ray_index, ray*m)
+        return self.get_degree(ray_index, ray*m)
 
     @cached_method_immutable
     def E_intersection(self, sigma, m):
@@ -430,7 +472,10 @@ class Bundle_class(SageObject):
 
             sage: P3 = toric_varieties.P(3)
             sage: rays = [(1,0,0), (0,1,0), (0,0,1)]
-            sage: V = P3.sheaves.Klyachko(rays, [{1:[1,2], 2:[1], 3:[]}, {1:[]}, {1:[]}, {1:[]}])
+            sage: F1 = FilteredVectorSpace(rays, {0:[0], 1:[2], 2:[1]})
+            sage: F2 = FilteredVectorSpace(3, 0)
+            sage: r = P3.fan().rays()
+            sage: V = P3.sheaves.Klyachko({r[0]:F1, r[1]:F2, r[2]:F2, r[3]:F2})
             sage: tau = Cone([(1,0,0), (0,1,0)])
             sage: sigma = Cone([(1,0,0)])
             sage: M = P3.fan().dual_lattice()
@@ -478,20 +523,23 @@ class Bundle_class(SageObject):
         EXAMPLES::
 
             sage: P3 = toric_varieties.P(3)
-            sage: rays = [(1,0,0),(0,1,0),(0,0,1)]
-            sage: V = P3.sheaves.Klyachko(rays, [{1:[1,2], 2:[1], 3:[]}, {-1:[1], 2:[]}, {-1:[]}, {-1:[]}])
+            sage: rays = [(1,0,0), (0,1,0), (0,0,1)]
+            sage: F1 = FilteredVectorSpace(rays, {0:[0], 1:[2], 2:[1]})
+            sage: F2 = FilteredVectorSpace(rays, {0:[1,2], 1:[0]})
+            sage: r = P3.fan().rays()
+            sage: V = P3.sheaves.Klyachko({r[0]:F1, r[1]:F2, r[2]:F2, r[3]:F2})
             sage: tau = Cone([(1,0,0), (0,1,0)])
             sage: sigma = Cone([(1,0,0)])
             sage: M = P3.fan().dual_lattice()
             sage: m = M(1,1,0); m.set_immutable()
             sage: V.cohomology_complex(m)
-            Chain complex with at most 4 nonzero terms over Rational Field
+            Chain complex with at most 2 nonzero terms over Rational Field
 
             sage: F = CyclotomicField(3)
             sage: P3 = toric_varieties.P(3).change_ring(F)
-            sage: V = P3.sheaves.Klyachko(rays, [{1:[1,2], 2:[1], 3:[]}, {-1:[1], 2:[]}, {-1:[]}, {-1:[]}])
+            sage: V = P3.sheaves.Klyachko({r[0]:F1, r[1]:F2, r[2]:F2, r[3]:F2})
             sage: V.cohomology_complex(m)
-            Chain complex with at most 4 nonzero terms over Cyclotomic
+            Chain complex with at most 2 nonzero terms over Cyclotomic
             Field of order 3 and degree 2
         """
         fan = self._variety.fan()
@@ -567,6 +615,7 @@ class Bundle_class(SageObject):
             H^*i(P^2, TP^2)_M(1,-1) = (1, 0, 0)
             H^*i(P^2, TP^2)_M(1,0)  = (1, 0, 0)
         """
+        from sage.modules.all import FreeModule
         if d:
             return self.cohomology(weight=m, dim=dim)[d]
         C = self.cohomology_complex(weight)
@@ -592,7 +641,7 @@ class Bundle_class(SageObject):
             the same. Use :meth:`is_isomorphic` to test for
             mathematical equivalence.
 
-        EXAMPLES
+        EXAMPLES::
             
             sage: X = toric_varieties.P2()
             sage: V1 = X.sheaves.trivial_bundle(1) 
@@ -604,34 +653,35 @@ class Bundle_class(SageObject):
 
             sage: T_X = X.sheaves.tangent_bundle()
             sage: O_X = X.sheaves.trivial_bundle(1)
-            sage: cmp(T_X + O_X, O_X + T_X)
-            -1
-            sage: (T_X + O_X).is_isomorphic(O_X + T_X)
-            True
+            sage: T_X + O_X == O_X + T_X
+            False
         """
         c = cmp(type(self), type(other))
         if c!=0: return c
         c = cmp(self.variety(), other.variety())
         if c!=0: return c
-        for i in range(0,len(self._filt)):
-            c = cmp(self._filt[i], other._filt[i])
-            if c!=0: return c
+        c = cmp(self._filt, other._filt)
+        if c!=0: return c
         return 0
 
     def is_isomorphic(self, other):
         """
-        Test whether ``self`` and ``other`` are isomorphic bundles.
+        Test whether two bundles are isomorphic.
+
+        EXAMPLES::
+
+            sage: X = toric_varieties.P2()
+            sage: T_X = X.sheaves.tangent_bundle()
+            sage: O_X = X.sheaves.trivial_bundle(1)
+            sage: T_X + O_X == O_X + T_X
+            False
+            sage: (T_X + O_X).is_isomorphic(O_X + T_X)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
-        if not is_KlyachkoBundle(other):
-            return False
-        if not self.variety().is_isomorphic(other.variety()):
-            return False
-        # FIXME: this is not enough
-        for i in range(0,len(self._filt)):
-            if not self._filt[i].is_isomorphic(other._filt[i]):
-                return False
-        return True
-        
+        raise NotImplementedError
+
     def direct_sum(self, other):
         """
         Return the sum of two vector bundles.
@@ -646,14 +696,13 @@ class Bundle_class(SageObject):
             
             sage: V1 = X.sheaves.trivial_bundle(1) 
             sage: V2 = X.sheaves.trivial_bundle(2) 
-            sage: V2.is_isomorphic(V1 + V1)
+            sage: V2 == V1 + V1
             True
         """
         if not self.variety() == other.variety():
             raise ValueError('The bundles must be over the same base toric variety.')
-        filt = [ self._filt[i] + other._filt[i]
-                 for i in range(0, self.variety().fan().nrays()) ]
-        return Bundle_class(self.variety(), filt, check=True)
+        filt = self._filt + other._filt
+        return self.__class__(self.variety(), filt, check=True)
 
     __add__ = direct_sum
 
@@ -668,14 +717,13 @@ class Bundle_class(SageObject):
             Rank 3 bundle on 2-d CPR-Fano toric variety covered by 3 affine patches.
             
             sage: OX = X.sheaves.trivial_bundle(1)
-            sage: OX.is_isomorphic(OX * OX)
+            sage: OX == OX * OX
             True
         """
         if not self.variety() == other.variety():
             raise ValueError('The bundles must be over the same base toric variety.')
-        filt = [ self._filt[i] * other._filt[i]
-                 for i in range(0, self.variety().fan().nrays()) ]
-        return Bundle_class(self.variety(), filt, check=True)
+        filt = self._filt * other._filt
+        return self.__class__(self.variety(), filt, check=True)
 
     __mul__ = tensor_product
 
@@ -686,19 +734,21 @@ class Bundle_class(SageObject):
             sage: X = toric_varieties.P2_123()
             sage: TX = X.sheaves.tangent_bundle()
             sage: antiK = X.sheaves.line_bundle(-X.K())
-            sage: TX.exterior_power(2).is_isomorphic(antiK)
+            sage: TX.exterior_power(2) == antiK
             True
         """
-        filt = [ self._filt[i].exterior_power(n)
-                 for i in range(0, len(self._filt)) ]
-        return Bundle_class(self.variety(), filt, check=True)
+        filt = self._filt.exterior_power(n)
+        return self.__class__(self.variety(), filt, check=True)
 
     wedge = exterior_power
         
     def symmetric_power(self, n):
-        filt = [ self._filt[i].symmetric_power(n)
-                 for i in range(0, len(self._filt)) ]
-        return Bundle_class(self.variety(), filt, check=True)
+        filt = self._filt.symmetric_power(n)
+        return self.__class__(self.variety(), filt, check=True)
+
+    def dual(self):
+        filt = self._filt.dual()
+        return self.__class__(self.variety(), filt, check=True)    
         
     def deformation(self, perturbed_rays=None):
         """
@@ -715,6 +765,8 @@ class Bundle_class(SageObject):
            sage: Vtilde.cohomology(dim=True, weight=(0,))
            (1, 0)
         """
+        return self
+
         rays = self._filt[0]._rays
         assert all(F._rays == rays for F in self._filt)
         if perturbed_rays is None:
@@ -725,5 +777,5 @@ class Bundle_class(SageObject):
             assert len(rays)==len(perturbed_rays)
         filt = [ FilteredVectorSpace(perturbed_rays, F._filt, base_ring=self.base_ring())
                  for F in self._filt ]
-        return Bundle_class(self.variety(), filt, check=True)
+        return self.__class__(self.variety(), filt, check=True)
         

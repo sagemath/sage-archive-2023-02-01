@@ -7,7 +7,8 @@ equivarint with respect to the algebraic torus action.
 
 
 #*****************************************************************************
-#       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
+#       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
+#
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of 
 #  the License, or (at your option) any later version.  
@@ -28,18 +29,22 @@ def TangentBundle(X):
         sage: dP7.sheaves.tangent_bundle()
         Rank 2 bundle on 2-d CPR-Fano toric variety covered by 5 affine patches.
     """
-    assert is_ToricVariety(X)
+    if not is_ToricVariety(X):
+        raise ValueError('not a toric variety')
     base_ring = X.base_ring()
     fan = X.fan()
-    filtration = [{0:range(fan.nrays()), 1:[i]} 
-                  for i in range(0, fan.nrays())]
+    filtrations = dict()
+    from sage.modules.filtered_vector_space import FilteredVectorSpace
+    for i, ray in enumerate(fan.rays()):
+        F = FilteredVectorSpace(fan.rays(), {0:range(fan.nrays()), 1:[i]})
+        filtrations[ray] = F
     import klyachko
-    return klyachko.Bundle_from_generators_filtrations(X, fan.rays(), filtration, base_ring, check=True)
+    return klyachko.Bundle(X, filtrations, check=True)
     
 
 def CotangentBundle(X):
-    assert is_ToricVariety(X)
-    raise NotImplementedError
+    return TangentBundle(X).dual()
+
 
 def TrivialBundle(X, rank=1):
     r"""
@@ -53,12 +58,14 @@ def TrivialBundle(X, rank=1):
         sage: I3.cohomology(weight=(0,0), dim=True)
         (3, 0, 0)
     """
-    assert is_ToricVariety(X)
+    if not is_ToricVariety(X):
+        raise ValueError('not a toric variety')
     from sage.modules.free_module import VectorSpace
     base_ring = X.base_ring()
-    filtration = [FilteredVectorSpace(rank, 0, base_ring=base_ring)] * X.fan().nrays()
+    filtrations = dict([ray, FilteredVectorSpace(rank, 0, base_ring=base_ring)]
+                       for ray in X.fan().rays())
     import klyachko
-    return klyachko.Bundle_from_filtered_vector_spaces(X, filtration, check=True)
+    return klyachko.Bundle(X, filtrations, check=True)
 
 
 def LineBundle(X, D):
@@ -77,13 +84,15 @@ def LineBundle(X, D):
         sage: O_D.cohomology(dim=True, weight=(0,0))
         (1, 0, 0)
     """
-    assert is_ToricVariety(X)
+    if not is_ToricVariety(X):
+        raise ValueError('not a toric variety')
     from sage.modules.free_module import VectorSpace
     base_ring = X.base_ring()
-    filtration = [ FilteredVectorSpace(1, D.function_value(i), base_ring=base_ring) 
-                   for i in range(0, X.fan().nrays()) ]
+    filtrations = dict([X.fan().ray(i), 
+                        FilteredVectorSpace(1, D.function_value(i), base_ring=base_ring)]
+                       for i in range(X.fan().nrays()))
     import klyachko
-    return klyachko.Bundle_from_filtered_vector_spaces(X, filtration, check=True)
+    return klyachko.Bundle(X, filtrations, check=True)
     
     
         
@@ -126,19 +135,29 @@ class SheafLibrary(object):
 
         EXAMPLES::
         
-            sage: toric_varieties.dP6().sheaves.cotangent_bundle()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            sage: dP6 = toric_varieties.dP6()
+            sage: TX = dP6.sheaves.tangent_bundle()
+            sage: TXdual = dP6.sheaves.cotangent_bundle()
+            sage: TXdual == TX.dual()
+            True
         """
         return CotangentBundle(self._variety)
 
-    def Klyachko(self, *args, **kwds):
+    def Klyachko(self, multi_filtration):
         """
         Construct a Klyachko bundle (sheaf) from filtration data.        
+        
+        INPUT:
+
+        - ``multi_filtration`` -- a multi-filtered vectors space with
+          multiple filtrations being indexed by the rays of the
+          fan. Either an instance of
+          :func:`~sage.modules.multi_filtered_vector_space.MultiFilteredVectorSpace`
+          or something (like a dictionary of ordinary filtered vector
+          spaces).
         """
         from klyachko import Bundle
-        return Bundle(self._variety, *args, **kwds)
+        return Bundle(self._variety, multi_filtration, check=True)
 
     def divisor(self, *args, **kwds):
         """

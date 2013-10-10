@@ -2169,7 +2169,7 @@ class ToricVariety_field(AmbientSpace):
         
             sage: dP6 = toric_varieties.dP6()
             sage: dP6.sheaves
-            Bundle constructor on 2-d CPR-Fano toric variety covered by 6 affine patches
+            Sheaf constructor on 2-d CPR-Fano toric variety covered by 6 affine patches
             sage: dP6.sheaves.trivial_bundle()
             Rank 1 bundle on 2-d CPR-Fano toric variety covered by 6 affine patches.
         """

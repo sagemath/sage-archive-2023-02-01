@@ -1157,3 +1157,44 @@ class FilteredVectorSpace_class(FreeModule_ambient_field):
         for d, indices in filtration.iteritems():
             shifted[d + deg] = indices
         return FilteredVectorSpace(generators, shifted, base_ring=self.base_ring())
+        
+    def random_deformation(self, epsilon=None):
+        """
+        Return a random deformation
+
+        INPUT:
+
+        - ``epsilon`` -- a number in the base ring.
+
+        OUTPUT:
+
+        A new filtered vector space where the generators of the
+        subspaces are moved by ``epsilon`` times a random vector.
+
+        EXAMPLES::
+
+            sage: gens = identity_matrix(3).rows()
+            sage: F = FilteredVectorSpace(gens, {0:[0,1,2], 2:[0]});  F
+            QQ^3 >= QQ^1 >= QQ^1 >= 0
+            sage: F.get_degree(2)
+            Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 0 0]
+            sage: G = F.random_deformation(1/50);  G
+            QQ^3 >= QQ^1 >= QQ^1 >= 0
+            sage: G.get_degree(2)
+            Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [      1 -15/304       0]
+        """
+        from sage.modules.free_module_element import random_vector
+        R = self.base_ring()
+        if epsilon is None:
+            epsilon = R.one()
+        filtration = dict()
+        for deg, filt in self._filt[1:]:
+            generators = [v + epsilon * random_vector(R, self.rank()) 
+                          for v in filt.echelonized_basis()]
+            filtration[deg] = generators
+        return FilteredVectorSpace(filtration, check=True)
+

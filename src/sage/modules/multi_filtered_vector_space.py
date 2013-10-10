@@ -655,7 +655,6 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
             filtrations[key] = self._filt[key].dual()
         return MultiFilteredVectorSpace(filtrations)
 
-
     def shift(self, deg):
         """
         Return a filtered vector space with degrees shifted by a constant.
@@ -679,5 +678,38 @@ class MultiFilteredVectorSpace_class(FreeModule_ambient_field):
         for key in self.index_set():
             filtrations[key] = self._filt[key].shift(deg)
         return MultiFilteredVectorSpace(filtrations)
+
+    def random_deformation(self, epsilon=None):
+        """
+        Return a random deformation
+
+        INPUT:
+
+        - ``epsilon`` -- a number in the base ring.
+
+        OUTPUT:
+
+        A new multi-filtered vector space where the generating vectors
+        of subspaces are moved by ``epsilon`` times a random vector.
+
+        EXAMPLES::
+
+            sage: F1 = FilteredVectorSpace(2, 1)
+            sage: F2 = FilteredVectorSpace(1, 3) + FilteredVectorSpace(1,0)
+            sage: V = MultiFilteredVectorSpace({'a':F1, 'b':F2})
+            sage: V.get_degree('b',1) 
+            Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 0]
+            sage: V.random_deformation(1/100).get_degree('b',1) 
+            Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [     1 8/1197]
+        """
+        filtrations = dict()
+        for key in self.index_set():
+            filtrations[key] = self._filt[key].random_deformation(epsilon)
+        return MultiFilteredVectorSpace(filtrations)
+
 
 

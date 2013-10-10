@@ -24,7 +24,7 @@ EXAMPLES::
     sage: V_sum = G_sum.wedge(2) * K                      # long time
     sage: V_sum.cohomology(dim=True, weight=(0,0,0,0))    # long time 
     (0, 0, 18, 16, 1)
-    sage: Gtilde = G_sum.deformation()
+    sage: Gtilde = G_sum.random_deformation()
     sage: V = Gtilde.wedge(2) * K                     # long time
     sage: V.cohomology(dim=True, weight=(0,0,0,0))    # long time
     (0, 0, 3, 0, 0)
@@ -339,25 +339,35 @@ class KlyachkoBundle_class(SageObject):
         EXAMPLES::
 
             sage: X = toric_varieties.P2()
-            sage: ray = X.fan(1)[0]
             sage: M = X.fan().dual_lattice()
             sage: V = X.sheaves.tangent_bundle()
-            sage: V.E_degree(ray, (1,0))
+            sage: V.E_degree(X.fan().ray(0), (1,0))
+            Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 0]
+            sage: V.E_degree(X.fan(1)[0], (1,0))
+            Vector space of degree 2 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 0]
+            sage: V.E_degree(0, (1,0))
             Vector space of degree 2 and dimension 1 over Rational Field
             Basis matrix:
             [1 0]
         """
-        M = self._variety.fan().dual_lattice()
+        fan = self.variety().fan()
+        N = fan.lattice()
+        M = fan.dual_lattice()
         m = M(m)
-        try:
-            ray = self._variety.fan().ray(alpha)
-            ray_index = alpha
-        except TypeError:
-            cone = self._variety.fan().cone_containing(alpha)
-            assert cone.dim() == 1
+        if alpha in ZZ:
+            ray = fan.ray(alpha)
+        elif alpha in N:
+            ray = alpha
+        else:
+            cone = fan.cone_containing(alpha)
+            if cone.dim() != 1:
+                raise ValueError('does not determine one-dimensional cone')
             ray = cone.ray(0)
-            ray_index = cone.ambient_ray_indices()[0]
-        return self.get_degree(ray_index, ray*m)
+        return self.get_degree(ray, ray*m)
 
     @cached_method_immutable
     def E_intersection(self, sigma, m):
@@ -397,8 +407,8 @@ class KlyachkoBundle_class(SageObject):
         """
         sigma = self._variety.fan().embed(sigma)
         V = self.fiber()
-        for alpha in sigma.ambient_ray_indices():
-            V = V.intersection(self.E_degree(alpha,m))
+        for alpha in sigma.rays():
+            V = V.intersection(self.E_degree(alpha, m))
         return V
 
     @cached_method_immutable
@@ -442,8 +452,8 @@ class KlyachkoBundle_class(SageObject):
         sigma = self._variety.fan().embed(sigma)
         V = self.fiber()
         generators = []
-        for alpha in sigma.ambient_ray_indices():
-            generators.extend(self.E_degree(alpha,m).gens())
+        for alpha in sigma.rays():
+            generators.extend(self.E_degree(alpha, m).gens())
         return V.quotient(V.span(generators))
 
     @cached_method_immutable
@@ -564,10 +574,10 @@ class KlyachkoBundle_class(SageObject):
                         d = zero_matrix(F, E_tau.dimension(), E_sigma.dimension())
                     d_V_row.append(d)
                 d_V.append(d_V_row)
-            #print dim, ':\n', d_V, '\n'
+            # print dim, ':\n', d_V, '\n'
             d_V = block_matrix(d_V, ring=F)
             CV.append(d_V)
-            #print dim, ': ', d_V.nrows(), 'x', d_V.ncols(), '\n', d_V
+            # print dim, ': ', d_V.nrows(), 'x', d_V.ncols(), '\n', d_V
         from sage.homology.chain_complex import ChainComplex
         return ChainComplex(CV, base_ring=self.base_ring())
 
@@ -750,7 +760,7 @@ class KlyachkoBundle_class(SageObject):
         filt = self._filt.dual()
         return self.__class__(self.variety(), filt, check=True)    
         
-    def deformation(self, perturbed_rays=None):
+    def random_deformation(self, epsilon=None):
         """
         Return a generic torus-equivariant deformation of the bundle.
 
@@ -761,21 +771,11 @@ class KlyachkoBundle_class(SageObject):
            sage: V = P1.sheaves.line_bundle(H) + P1.sheaves.line_bundle(-H)
            sage: V.cohomology(dim=True, weight=(0,))
            (1, 0)
-           sage: Vtilde = V.deformation()
+           sage: Vtilde = V.random_deformation()
            sage: Vtilde.cohomology(dim=True, weight=(0,))
            (1, 0)
         """
-        return self
+        filt = self._filt.random_deformation(epsilon)
+        return self.__class__(self.variety(), filt, check=True)    
 
-        rays = self._filt[0]._rays
-        assert all(F._rays == rays for F in self._filt)
-        if perturbed_rays is None:
-            from sage.modules.free_module_element import random_vector
-            perturbed_rays = [ r + random_vector(self.base_ring(), self.rank()) 
-                               for r in rays ]
-        else:
-            assert len(rays)==len(perturbed_rays)
-        filt = [ FilteredVectorSpace(perturbed_rays, F._filt, base_ring=self.base_ring())
-                 for F in self._filt ]
-        return self.__class__(self.variety(), filt, check=True)
         

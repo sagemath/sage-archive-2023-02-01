@@ -1484,7 +1484,8 @@ class ToricDivisor_generic(Divisor_generic):
         \mathbb{P}^{n-1}$, where $n$ equals the number of sections. It
         is defined by the monomial sections of the line bundle.
 
-        If the divisor is ample then this is an embedding.
+        If the divisor is ample and the toric variety smooth or of
+        dimension 2, then this is an embedding.
         
         INPUT:
 
@@ -1500,13 +1501,13 @@ class ToricDivisor_generic(Divisor_generic):
               From: 1-d CPR-Fano toric variety covered by 2 affine patches
               To:   Closed subscheme of Projective Space of dimension 2 
                     over Rational Field defined by:
-              -x1^2 + x0*x2
+              -z1^2 + z0*z2
               Defn: Defined on coordinates by sending [u : v] to
                     (v^2 : u*v : u^2)
 
             sage: dP6 = toric_varieties.dP6()
             sage: D = -dP6.K()
-            sage: D.Kodaira_map()
+            sage: D.Kodaira_map(names='x')
             Scheme morphism:
               From: 2-d CPR-Fano toric variety covered by 6 affine patches
               To:   Closed subscheme of Projective Space of dimension 6
@@ -1527,9 +1528,11 @@ class ToricDivisor_generic(Divisor_generic):
                      x^2*u*z*w^2 : y*v^2*z^2*w : x*v*z^2*w^2)
         """
         sections = self.sections_monomials()
+        if len(sections) == 0:
+            raise ValueError('The Kodaira map is not defined for divisors without sections.')
         src = self.parent().scheme()
         from sage.schemes.projective.projective_space import ProjectiveSpace
-        ambient = ProjectiveSpace(src.base_ring(), len(sections) - 1)
+        ambient = ProjectiveSpace(src.base_ring(), len(sections) - 1, names=names)
         A = matrix(ZZ, [list(s.exponents()[0]) for s in sections]).transpose()
         from sage.schemes.toric.ideal import ToricIdeal
         IA = ToricIdeal(A, names=names)

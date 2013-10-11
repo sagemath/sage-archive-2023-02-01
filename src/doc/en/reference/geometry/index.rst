@@ -37,5 +37,11 @@ polytopes and polyhedra (with rational or numerical coordinates).
    sage/geometry/triangulation/base
    sage/geometry/triangulation/element
 
+   sage/geometry/hyperplane_arrangement/arrangement
+   sage/geometry/hyperplane_arrangement/library
+   sage/geometry/hyperplane_arrangement/hyperplane
+
+   sage/geometry/linear_expression.py
+
 
 .. include:: ../footer.txt

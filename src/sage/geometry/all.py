@@ -20,6 +20,4 @@ import sage.geometry.pseudolines
 
 import toric_plotter
 
-from hyperplane_arrangement import (Hyperplane,
-                                    HyperplaneArrangement,
-                                    hyperplane_arrangements)
+from hyperplane_arrangement.all import *

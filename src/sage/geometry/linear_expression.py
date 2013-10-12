@@ -18,6 +18,8 @@ expressions::
 
     sage: L([1, 2, 3], 4)
     x + 2*y + 3*z + 4
+    sage: L([(1, 2, 3), 4])
+    x + 2*y + 3*z + 4
     sage: L([4, 1, 2, 3])   # note: constant is first in single-tuple notation
     x + 2*y + 3*z + 4
 
@@ -128,22 +130,44 @@ class LinearExpression(ModuleElement):
         """
         return [self._const] + list(self._coeffs)
 
-    def _repr_vector(self):
+    def _repr_vector(self, variable='x'):
         """
         Return a string representation.
+        
+        INPUT:
+
+        - ``variable`` -- string. The name of the variable vector.
         
         EXAMPLES::
 
             sage: from sage.geometry.linear_expression import LinearExpressionModule
             sage: L.<x,y,z> = LinearExpressionModule(QQ)
             sage: L([1, 2, 3], 4)._repr_vector()
-            '(1, 2, 3) + 4 = 0'
+            '(1, 2, 3) x + 4 = 0'
+            sage: L([-1, -2, -3], -4)._repr_vector('u')
+            '(-1, -2, -3) u - 4 = 0'
         """
-        return repr(self._coeffs) + ' + ' + repr(self._const) + ' = 0'
+        atomic_repr = self.parent().base_ring()._repr_option('element_is_atomic')
+        constant = repr(self._const)
+        if not atomic_repr:
+            constant = '({0})'.format(constant)
+        constant = '+ {0}'.format(constant).replace('+ -', '- ')
+        return '{0} {1} {2} = 0'.format(repr(self._coeffs), variable, constant)
 
-    def _repr_linear(self):
+    def _repr_linear(self, include_zero=True, include_constant=True, multiplication='*'):
         """
         Return a representation as a linear polynomial.
+
+        INPUT:
+
+        - ``include_zero`` -- whether to include terms with zero
+          coefficient.
+
+        - ``include_constant`` -- whether to include the constant
+          term.
+
+        - ``multiplication`` -- string (optional, default: ``*``). The
+          multiplication symbol to use.
 
         OUTPUT:
         
@@ -165,21 +189,39 @@ class LinearExpression(ModuleElement):
             sage: R.<u,v> = QQ[]
             sage: L.<x,y,z> = LinearExpressionModule(R)
             sage: L([-u+v+1, -3*u-2, 3], -4*u+v)._repr_linear()
-            '(-u + v + 1)*x + (-3*u - 2)*y + (3)*z - 4*u + v'
+            '(-u + v + 1)*x + (-3*u - 2)*y + 3*z - 4*u + v'
+
+            sage: L.<x,y,z> = LinearExpressionModule(QQ)
+            sage: L([1, 0, 3], 0)._repr_linear()
+            'x + 0*y + 3*z + 0'
+            sage: L([1, 0, 3], 0)._repr_linear(include_zero=False)
+            'x + 3*z'
+            sage: L([1, 0, 3], 1)._repr_linear(include_constant=False, multiplication='.')
+            'x + 0.y + 3.z'
+            sage: L([1, 0, 3], 1)._repr_linear(include_zero=False, include_constant=False)
+            'x + 3*z'
+            sage: L([0, 0, 0], 0)._repr_linear(include_zero=False)
+            '0'
         """
         atomic_repr = self.parent().base_ring()._repr_option('element_is_atomic')
-        names = ['*'+n for n in self.parent()._names]
-        terms = zip(self._coeffs, names) + [(self._const, '')]
+        names = [multiplication+n for n in self.parent()._names]
+        terms = zip(self._coeffs, names)
+        if include_constant:
+            terms += [(self._const, '')]
+        if not include_zero:
+            terms = [t for t in terms if t[0] != 0]
+        if len(terms) == 0:
+            return '0'
         summands = []
         for coeff, name in terms:
             coeff = str(coeff)
-            if not atomic_repr and name != '':
+            if not atomic_repr and name != '' and any(c in coeff for c in ['+', '-']):
                 coeff = '({0})'.format(coeff)
             summands.append(coeff+name)
         s = ' ' + ' + '.join(summands)
         s = s.replace(' + -', ' - ')
-        s = s.replace(' 1*',  ' ')
-        s = s.replace(' -1*', ' -')
+        s = s.replace(' 1'+multiplication,  ' ')
+        s = s.replace(' -1'+multiplication, ' -')
         return s[1:]
 
     _repr_ = _repr_linear
@@ -226,12 +268,15 @@ class LinearExpression(ModuleElement):
         TESTS::
 
             sage: a._lmul_(2)
+            2*x + 4*y + 6*z + 8
         """
         const = scalar * self._const
         coeffs = scalar * self._coeffs
         coeffs.set_immutable()
         return self.__class__(self.parent(), coeffs, const)
 
+    _lmul_ = _rmul_
+        
     def _acted_upon_(self, scalar, self_on_left):
         """
         Action by scalars that do not live in the base ring.
@@ -421,6 +466,11 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
             sage: L._element_constructor(vector([4, 1, 2, 3]))
             x + 2*y + 3*z + 4
 
+        Construct from a pair ``(coefficients, constant)`` ::
+
+            sage: L([(1, 2, 3), 4])
+            x + 2*y + 3*z + 4
+
         Construct from linear expression::
        
             sage: M = LinearExpressionModule(ZZ, ('u', 'v', 'w'))
@@ -437,6 +487,10 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
                 # Construct from linear expression
                 const = arg0.b()
                 coeffs = arg0.A()
+            elif isinstance(arg0, (list, tuple)) and len(arg0) == 2 and isinstance(arg0[0], (list, tuple)):
+                # Construct from pair
+                coeffs = arg0[0]
+                const = arg0[1]
             else:
                 # Construct from list/tuple/iterable::
                 try:
@@ -589,5 +643,10 @@ class LinearExpressionModule(Parent, UniqueRepresentation):
             sage: M.<y> = LinearExpressionModule(ZZ)
             sage: L = M.change_ring(QQ);  L
             Module of linear expressions in variable y over Rational Field
+        
+        TESTS::
+
+            sage: L.change_ring(QQ) is L
+            True
         """
-        return self.__class__(base_ring, self._names)
+        return LinearExpressionModule(base_ring, self._names)

@@ -2014,6 +2014,32 @@ class Polyhedron_base(Element):
         return all(len([vertex for vertex in face.incident()]) == d
                    for face in self.Hrepresentation())
 
+    def hyperplane_arrangement(self):
+        """
+        Return the hyperplane arrangement defined by the equations and
+        inequalities.
+
+        OUTPUT:
+
+        A :class:`hyperplane arrangement
+        <sage.geometry.hyperplane_arrangement.arrangement.HyperplaneArrangementElement>`
+        consisting of the hyperplanes defined by the
+        :meth:`Hrepresentation`. If the polytope is full-dimensional,
+        this is the hyperplane arrangement spanned by the facets of
+        the polyhedron.
+
+        EXAMPLES::
+
+            sage: p = polytopes.n_cube(2)
+            sage: p.hyperplane_arrangement()
+            Arrangement <-t0 + 1 | -t1 + 1 | t1 + 1 | t0 + 1>
+        """
+        names = tuple('t'+str(i) for i in range(self.ambient_dim()))
+        from sage.geometry.hyperplane_arrangement.arrangement import HyperplaneArrangements
+        field = self.base_ring().fraction_field()
+        H = HyperplaneArrangements(field, names)
+        return H(self)
+        
     @cached_method
     def gale_transform(self):
         """

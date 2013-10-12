@@ -40,8 +40,9 @@ polytopes and polyhedra (with rational or numerical coordinates).
    sage/geometry/hyperplane_arrangement/arrangement
    sage/geometry/hyperplane_arrangement/library
    sage/geometry/hyperplane_arrangement/hyperplane
+   sage/geometry/hyperplane_arrangement/affine_subspace
 
-   sage/geometry/linear_expression.py
+   sage/geometry/linear_expression
 
 
 .. include:: ../footer.txt

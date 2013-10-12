@@ -11,22 +11,19 @@ to construct hyperplane arrangements.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from copy import copy, deepcopy
-from sage.calculus.functional import expand
-from sage.calculus.var import var
-from sage.combinat.combinat import stirling_number2
-from sage.combinat.posets.posets import Poset
-from sage.functions.generalized import sign
-from sage.functions.other import sqrt
-from sage.geometry.polyhedron.all import Polyhedron
 from sage.graphs.all import graphs
-from sage.matrix.constructor import matrix, random_matrix, zero_matrix
+from sage.matrix.constructor import matrix, random_matrix, identity_matrix
+from sage.rings.all import QQ, ZZ
+from sage.misc.misc_c import prod
+
+from sage.combinat.combinat import stirling_number2
+from sage.calculus.functional import expand
+
+
+
 from sage.misc.flatten import flatten
 from sage.misc.prandom import random
 from sage.misc.misc import powerset
-from sage.misc.misc_c import prod
-from sage.modules.free_module import VectorSpace
-from sage.modules.free_module_element import vector
 from sage.plot.line import line
 from sage.plot.colors import Color
 from sage.plot.graphics import Graphics
@@ -37,60 +34,106 @@ from sage.plot.plot3d.parametric_plot3d import parametric_plot3d
 from sage.plot.plot3d.shapes2 import text3d
 from sage.rings.arith import lcm, binomial
 from sage.rings.finite_rings.constructor import GF
-from sage.rings.integer import Integer
-from sage.rings.integer_ring import ZZ
+
 from sage.rings.polynomial.polynomial_ring import polygen
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RR
 from sage.structure.sage_object import SageObject
 from sage.symbolic.ring import SR, var
-from sage.geometry.hyperplane_arrangement.arrangement import HyperplaneArrangement
+
+from sage.geometry.hyperplane_arrangement.arrangement import HyperplaneArrangements
 
 
-class HyperplaneArrangementGenerators():
+def make_parent(base_ring, dimension, names=None):
+    """
+    Construct the parent for the hyperplane arrangements.
+    
+    INPUT:
 
-    def braid(self, n, K=QQ):
+    - ``base_ring`` -- a ring.
+
+    - ``dimenison`` -- integer.
+
+    - ``names`` -- ``None`` (default) or a list/tuple/iterable of
+      strings.
+
+    OUTPUT:
+
+    A new
+    :class:`~sage.geometry.hyperplane_arrangement.arrangement.HyperplaneArrangements`
+    instance.
+
+    EXAMPLES::
+
+        sage: from sage.geometry.hyperplane_arrangement.library import make_parent
+        sage: make_parent(QQ, 3)
+        Hyperplane arrangements in 3-dimensional linear space over
+        Rational Field with coordinates t0, t1, t2
+    """
+    if names is None:
+        names = tuple('t'+str(i) for i in range(dimension))
+    else:
+        names = tuple(map(str, names))
+        if len(names) != dimension:
+            raise ValueError('number of variable names does not match dimension')
+    return HyperplaneArrangements(base_ring, names)
+
+
+
+class HyperplaneArrangementLibrary(object):
+
+    def braid(self, n, K=QQ, names=None):
         r"""
         The braid arrangement
-
-        This is the set of `n(n-1)/2` hyperplanes: `\{ x_i - x_j = 0 :
-        1\leq i \leq j\leq n\\}.`
 
         INPUT:
 
         - ``n`` -- integer
+
         - ``K`` -- field (default: ``QQ``)
+
+        - ``names`` -- tuple of strings or ``None`` (default). The
+          variable names for the ambient space.
 
         OUTPUT:
 
-        - HyperplaneArrangement
+        The hyperplane arrangement consisting of the `n(n-1)/2`
+        hyperplanes `\{ x_i - x_j = 0 : 1\leq i \leq j\leq n\}`.
 
         EXAMPLES::
 
             sage: hyperplane_arrangements.braid(4)
-            Hyperplane arrangement of 6 hyperplanes over Rational Field of dimension 4, rank 3.
+            Arrangement of 6 hyperplanes of dimension 4 and rank 3
         """
         x = polygen(QQ, 'x')
-        A = self.graphical(graphs.CompleteGraph(n), K)
-        A._characteristic_polynomial = prod(x-i for i in range(n))
+        A = self.graphical(graphs.CompleteGraph(n), K, names=names)
+        charpoly = prod(x-i for i in range(n))
+        A.characteristic_polynomial.set_cache(charpoly)
         return A
 
-    def bigraphical(self, G, A=None, K=QQ):
+    def bigraphical(self, G, A=None, K=QQ, names=None):
         r"""
-        The hyperplane arrangement with hyperplanes `x_i - x_j = A[i,j]` and
-        `x_j - x_i = A[j,i]` for each edge `v_i, v_j` of ``G``.  The indices
-        `i,j` are the indices of elements of ``G.vertices()``.
+        Return a bigraphical hyperplane arrangement.
 
         INPUT:
 
         - ``G`` -- Graph
-        - ``A`` -- list, matrix, or dictionary (default: None gives semiorder), 'generic'
-        - ``K`` -- field (default: `QQ`)
+
+        - ``A`` -- list, matrix, dictionary (default: ``None``
+          gives semiorder), or the string 'generic'.
+
+        - ``K`` -- field (default: `\QQ`)
+
+        - ``names`` -- tuple of strings or ``None`` (default). The
+          variable names for the ambient space.
 
         OUTPUT:
 
-        - HyperplaneArrangement
+        The hyperplane arrangement with hyperplanes `x_i - x_j =
+        A[i,j]` and `x_j - x_i = A[j,i]` for each edge `v_i, v_j` of
+        ``G``.  The indices `i,j` are the indices of elements of
+        ``G.vertices()``.
 
         EXAMPLES::
 
@@ -100,12 +143,12 @@ class HyperplaneArrangementGenerators():
             sage: G.edges(labels=False)
             [(0, 1), (0, 3), (1, 2), (2, 3)]
             sage: A = {0:{1:1, 3:2}, 1:{0:3, 2:0}, 2:{1:2, 3:1}, 3:{2:0, 0:2}}
-            sage: HA = hyperplane_arrangements.bigraphical(G,A)
-            sage: HA.num_regions()
+            sage: HA = hyperplane_arrangements.bigraphical(G, A)
+            sage: HA.n_regions()
             63
-            sage: hyperplane_arrangements.bigraphical(G,'generic').num_regions()
+            sage: hyperplane_arrangements.bigraphical(G, 'generic').n_regions()
             65
-            sage: hyperplane_arrangements.bigraphical(G).num_regions()
+            sage: hyperplane_arrangements.bigraphical(G).n_regions()
             59
 
         REFERENCES::
@@ -120,125 +163,131 @@ class HyperplaneArrangementGenerators():
         elif A == 'generic':
             A = random_matrix(ZZ, n, x=10000)
             A = matrix(K, A)
+        H = make_parent(K, n, names)
+        x = H.gens()
         hyperplanes = []
         for e in G.edges():
             i = G.vertices().index(e[0])
             j = G.vertices().index(e[1])
-            new = [0]*(n+1)
-            new[i] = 1
-            new[j] = -1
-            new[-1] = A[i][j]
-            hyperplanes.append(new)
-            new = [0]*(n+1)
-            new[j] = 1
-            new[i] = -1
-            new[-1] = A[j][i]
-            hyperplanes.append(new)
-        return HyperplaneArrangement(hyperplanes, K)
+            hyperplanes.append( x[i] - x[j] - A[i][j])
+            hyperplanes.append(-x[i] + x[j] - A[j][i])
+        return H(*hyperplanes)
 
-    def Catalan(self, n, K=QQ):
+    def Catalan(self, n, K=QQ, names=None):
         r"""
-        The Catalan arrangement
-
-        This is the set of `3n(n-1)/2` hyperplanes: `\{ x_i - x_j =
-        -1,0,1 : 1\leq i \leq j\leq n\\}.`
+        Return the Catalan arrangement.
 
         INPUT:
 
         - ``n`` -- integer
-        - ``K`` -- field (default: ``QQ`)
+
+        - ``K`` -- field (default: `\QQ`)
+
+        - ``names`` -- tuple of strings or ``None`` (default). The
+          variable names for the ambient space.
 
         OUTPUT:
 
-        - HyperplaneArrangement
+        The arrangement of `3n(n-1)/2` hyperplanes `\{ x_i - x_j =
+        -1,0,1 : 1\leq i \leq j\leq n\}`.
 
         EXAMPLES::
 
             sage: hyperplane_arrangements.Catalan(5)
-            Hyperplane arrangement of 30 hyperplanes over Rational Field of dimension 5, rank 4.
+            Arrangement of 30 hyperplanes of dimension 5 and rank 4
+
+        TESTS::
+
+            sage: h = hyperplane_arrangements.Catalan(5)
+            sage: h.characteristic_polynomial()
+            x^5 - 30*x^4 + 335*x^3 - 1650*x^2 + 3024*x
+            sage: h.characteristic_polynomial.clear_cache()  # long time
+            sage: h.characteristic_polynomial()              # long time
+            x^5 - 30*x^4 + 335*x^3 - 1650*x^2 + 3024*x
         """
+        H = make_parent(K, n, names)
+        x = H.gens()
         hyperplanes = []
         for i in range(n):
             for j in range(i+1, n):
-                new = [0]*n
-                new[i] = 1
-                new[j] = -1
                 for k in [-1, 0, 1]:
-                    h = deepcopy(new)
-                    h.append(k)
-                    hyperplanes.append(h)
-        Cn = HyperplaneArrangement(hyperplanes, K)
+                    hyperplanes.append(x[i] - x[j] - k)
+        Cn = H(*hyperplanes)
         x = polygen(QQ, 'x')
-        Cn._characteristic_polynomial = x*prod([x-n-i for i in range(1, n)])
+        charpoly = x*prod([x-n-i for i in range(1, n)])
+        Cn.characteristic_polynomial.set_cache(charpoly)
         return Cn
 
-    def coordinate(self, n, K=QQ):
+    def coordinate(self, n, K=QQ, names=None):
         r"""
-        The coordinate hyperplane arrangement is the central hyperplane
-        arrangement consisting of the coordinate hyperplanes `x_i=0`.
+        Return the coordinate hyperplane arrangement.
 
         INPUT:
 
         - ``n`` -- integer
+
         - ``K`` -- field (default:``QQ``)
+
+        - ``names`` -- tuple of strings or ``None`` (default). The
+          variable names for the ambient space.
 
         OUTPUT:
 
-        - HyperplaneArrangement
+        The coordinate hyperplane arrangement, which is the central
+        hyperplane arrangement consisting of the coordinate
+        hyperplanes `x_i=0`.
 
         EXAMPLES::
 
             sage: hyperplane_arrangements.coordinate(5)
-            Hyperplane arrangement of 5 hyperplanes over Rational Field of dimension 5, rank 5.
+            Arrangement of 5 hyperplanes of dimension 5 and rank 5
         """
-        hyperplanes = []
-        for i in range(n):
-            new = [0]*(n+1)
-            new[i] = 1
-            hyperplanes.append(new)
-        return HyperplaneArrangement(hyperplanes, K)
+        H = make_parent(K, n, names)
+        x = H.gens()
+        return H(x)
 
-    def G_semiorder(self, G, K=QQ):
+    def G_semiorder(self, G, K=QQ, names=None):
         r"""
-        The semiorder hyperplane arrangement of a graph G is the arrangement `\{
-        x_i - x_j = -1,1\}` where `ij` is an edge of ``G``.
+        Return the semiorder hyperplane arrangement of a graph.
 
         INPUT:
 
         - ``G`` -- graph
+
         - ``K`` -- field (default:``QQ``)
+
+        - ``names`` -- tuple of strings or ``None`` (default). The
+          variable names for the ambient space.
 
         OUTPUT:
 
-        - HyperplaneArrangement
+        The semiorder hyperplane arrangement of a graph G is the
+        arrangement `\{ x_i - x_j = -1,1\}` where `ij` is an edge of
+        ``G``.
 
         EXAMPLES::
 
             sage: G = graphs.CompleteGraph(5)
             sage: hyperplane_arrangements.G_semiorder(G)
-            Hyperplane arrangement of 20 hyperplanes over Rational Field of dimension 5, rank 4.
+            Arrangement of 20 hyperplanes of dimension 5 and rank 4
             sage: g = graphs.HouseGraph()
             sage: hyperplane_arrangements.G_semiorder(g)
-            Hyperplane arrangement of 12 hyperplanes over Rational Field of dimension 5, rank 4.
+            Arrangement of 12 hyperplanes of dimension 5 and rank 4
         """
-        hyperplanes = []
         n = G.num_verts()
+        H = make_parent(K, n, names)
+        x = H.gens()
+        hyperplanes = []
         for e in G.edges():
             i = G.vertices().index(e[0])
             j = G.vertices().index(e[1])
-            new = [0]*(n+1)
-            new[i] = 1
-            new[j] = -1
-            new[-1] = -1
-            hyperplanes.append(new)
-            new = deepcopy(new)
-            new[-1]=1
-            hyperplanes.append(new)
-        return HyperplaneArrangement(hyperplanes, K)
+            hyperplanes.append(x[i] - x[j] - 1)
+            hyperplanes.append(x[i] - x[j] + 1)
+        return H(*hyperplanes)
 
-    def G_Shi(self, G, K=QQ):
+    def G_Shi(self, G, K=QQ, names=None):
         r"""
-        Return the Shi hyperplane arrangement of a graph ``G``.
+        Return the Shi hyperplane arrangement of a graph `G`.
 
         INPUT:
 
@@ -246,95 +295,118 @@ class HyperplaneArrangementGenerators():
 
         - ``K`` -- field (default:``QQ``)
 
+        - ``names`` -- tuple of strings or ``None`` (default). The
+          variable names for the ambient space.
+
         OUTPUT:
 
-        - HyperplaneArrangement
+        The Shi hyperplane arrangement of the given graph ``G``.
 
         EXAMPLES::
 
             sage: G = graphs.CompleteGraph(5)
             sage: hyperplane_arrangements.G_Shi(G)
-            Hyperplane arrangement of 20 hyperplanes over Rational Field of dimension 5, rank 4.
+            Arrangement of 20 hyperplanes of dimension 5 and rank 4
             sage: g = graphs.HouseGraph()
             sage: hyperplane_arrangements.G_Shi(g)
-            Hyperplane arrangement of 12 hyperplanes over Rational Field of dimension 5, rank 4.
-            sage: a = hyperplane_arrangements.G_Shi(graphs.WheelGraph(4))
-            sage: a.show(frame=false,hyperplane_legend=false,hyperplane_opacities=0.8)
-            Displaying the essentialization.
+            Arrangement of 12 hyperplanes of dimension 5 and rank 4
+            sage: a = hyperplane_arrangements.G_Shi(graphs.WheelGraph(4));  a
+            Arrangement of 12 hyperplanes of dimension 4 and rank 3
         """
-        hyperplanes = []
         n = G.num_verts()
+        H = make_parent(K, n, names)
+        x = H.gens()
+        hyperplanes = []
         for e in G.edges():
             i = G.vertices().index(e[0])
             j = G.vertices().index(e[1])
-            new = [0]*(n+1)
-            new[i] = 1
-            new[j] = -1
-            hyperplanes.append(new)
-            new = deepcopy(new)
-            new[-1]=1
-            hyperplanes.append(new)
-        return HyperplaneArrangement(hyperplanes, K)
+            hyperplanes.append(x[i] - x[j])
+            hyperplanes.append(x[i] - x[j] - 1)
+        return H(*hyperplanes)
 
-    def graphical(self, G, K=QQ):
+    def graphical(self, G, K=QQ, names=None):
         r"""
-        The graphical hyperplane arrangement of a graph G is the arrangement `\{
-        x_i - x_j = 0\}` where `ij` is an edge of ``G``.
+        Return the graphical hyperplane arrangement of a graph G.
 
         INPUT:
 
         - ``G`` -- graph
+
         - ``K`` -- field (default:``QQ``)
+
+        - ``names`` -- tuple of strings or ``None`` (default). The
+          variable names for the ambient space.
 
         OUTPUT:
 
-        - HyperplaneArrangement
+        The graphical hyperplane arrangement of a graph G, which is
+        the arrangement `\{ x_i - x_j = 0\}` for all edges `ij` of the
+        graph ``G``.
 
         EXAMPLES::
 
             sage: G = graphs.CompleteGraph(5)
             sage: hyperplane_arrangements.graphical(G)
-            Hyperplane arrangement of 10 hyperplanes over Rational Field of dimension 5, rank 4.
+            Arrangement of 10 hyperplanes of dimension 5 and rank 4
             sage: g = graphs.HouseGraph()
             sage: hyperplane_arrangements.graphical(g)
-            Hyperplane arrangement of 6 hyperplanes over Rational Field of dimension 5, rank 4.
+            Arrangement of 6 hyperplanes of dimension 5 and rank 4
+
+        TESTS::
+
+            sage: h = hyperplane_arrangements.graphical(g)
+            sage: h.characteristic_polynomial()
+            x^5 - 6*x^4 + 14*x^3 - 15*x^2 + 6*x
+            sage: h.characteristic_polynomial.clear_cache()  # long time
+            sage: h.characteristic_polynomial()              # long time
+            x^5 - 6*x^4 + 14*x^3 - 15*x^2 + 6*x
         """
-        hyperplanes = []
         n = G.num_verts()
+        H = make_parent(K, n, names)
+        x = H.gens()
+        hyperplanes = []
         for e in G.edges():
             i = G.vertices().index(e[0])
             j = G.vertices().index(e[1])
-            new = [0]*(n+1)
-            new[i] = 1
-            new[j] = -1
-            hyperplanes.append(new)
-        A = HyperplaneArrangement(hyperplanes, K)
-        A._characteristic_polynomial = G.chromatic_polynomial()
+            hyperplanes.append(x[i] - x[j])
+        A = H(*hyperplanes)
+        charpoly = G.chromatic_polynomial()
+        A.characteristic_polynomial.set_cache(charpoly)
         return A
 
-    def Ish(self, n, K=QQ):
+    def Ish(self, n, K=QQ, names=None):
         r"""
-        The Ish arrangement is the set of `n(n-1)` hyperplanes: ``\{ x_i - x_j =
-        0 : 1\leq i \leq j\leq n\} \cup \{x_1 - x_j = i : 1\leq i \leq j\leq n\}:.``
+        Return the Ish arrangement.
 
         INPUT:
 
         - ``n`` -- integer
+
         - ``K`` -- field (default:``QQ``)
+
+        - ``names`` -- tuple of strings or ``None`` (default). The
+          variable names for the ambient space.
 
         OUTPUT:
 
-        - HyperplaneArrangement
+        The Ish arrangement, which is the set of `n(n-1)` hyperplanes
+        ``\{ x_i - x_j = 0 : 1\leq i \leq j\leq n\} \cup \{x_1 - x_j =
+        i : 1\leq i \leq j\leq n\}`.
 
         EXAMPLES::
 
-            sage: a = hyperplane_arrangements.Ish(3)
-            sage: a
-            Hyperplane arrangement of 6 hyperplanes over Rational Field of dimension 3, rank 2.
+            sage: a = hyperplane_arrangements.Ish(3);  a
+            Arrangement of 6 hyperplanes of dimension 3 and rank 2
             sage: a.characteristic_polynomial()
             x^3 - 6*x^2 + 9*x
             sage: b = hyperplane_arrangements.Shi(3)
             sage: b.characteristic_polynomial()
+            x^3 - 6*x^2 + 9*x
+
+        TESTS::
+
+            sage: a.characteristic_polynomial.clear_cache()  # long time
+            sage: a.characteristic_polynomial()              # long time
             x^3 - 6*x^2 + 9*x
 
         REFERENCES::
@@ -343,134 +415,158 @@ class HyperplaneArrangementGenerators():
            "The Shi arrangement and the Ish arrangement"
            :arxiv:`1009.1655`
         """
+        H = make_parent(K, n, names)
+        x = H.gens()
         hyperplanes = []
         for i in range(n):
             for j in range(i+1, n):
-                new = [0]*(n+1)
-                new[i] = 1
-                new[j] = -1
-                # x_i - x_j = 0
-                hyperplanes.append(new)
-                # x_1 - x_j = i
-                new = [0]*(n+1)
-                new[0] = 1
-                new[j] = -1
-                new[-1] = i + 1
-                hyperplanes.append(new)
-                A = HyperplaneArrangement(hyperplanes, K)
-                x = polygen(QQ, 'x')
-                cp = sum([(-1)**k*stirling_number2(n,n-k)*prod([(x-1-j) for j in range(k,n-1)]) for k in range(0,n)])
-                cp = x*cp
-                cp = expand(cp)
-                A._characteristic_polynomial = cp
+                hyperplanes.append(x[i] - x[j])
+                hyperplanes.append(x[0] - x[j] - (i+1))
+        A = H(*hyperplanes)
+        x = polygen(QQ, 'x')
+        charpoly = x * sum([(-1)**k * stirling_number2(n, n-k) *
+                            prod([(x - 1 - j) for j in range(k, n-1)]) for k in range(0, n)])
+        A.characteristic_polynomial.set_cache(charpoly)
         return A
 
-    def linial(self, n, K=QQ):
+    def linial(self, n, K=QQ, names=None):
         r"""
-        The linial hyperplane arrangement is the set of hyperplanes
-        ``\{x_i - x_j = 1 : 1\leq i < j \leq n\}`` 
+        Return the linial hyperplane arrangement.
 
         INPUT:
 
         - ``n`` -- integer
+
         - ``K`` -- field (default:``QQ``)
+
+        - ``names`` -- tuple of strings or ``None`` (default). The
+          variable names for the ambient space.
 
         OUTPUT:
 
-        - HyperplaneArrangement
+        The linial hyperplane arrangement is the set of hyperplanes
+        `\{x_i - x_j = 1 : 1\leq i < j \leq n\}`.
 
         EXAMPLES::
 
-            sage: a = hyperplane_arrangements.linial(4)
+            sage: a = hyperplane_arrangements.linial(4);  a
+            Arrangement of 6 hyperplanes of dimension 4 and rank 3
             sage: a.characteristic_polynomial()
             x^4 - 6*x^3 + 15*x^2 - 14*x
+
+        TESTS::
+
+            sage: h = hyperplane_arrangements.linial(5)
+            sage: h.characteristic_polynomial()
+            x^5 - 10*x^4 + 45*x^3 - 100*x^2 + 90*x
+            sage: h.characteristic_polynomial.clear_cache()  # long time
+            sage: h.characteristic_polynomial()              # long time
+            x^5 - 10*x^4 + 45*x^3 - 100*x^2 + 90*x
         """
+        H = make_parent(K, n, names)
+        x = H.gens()
         hyperplanes = []
         for i in range(n):
-            for j in range(i+1,n):
-                new = [0]*(n+1)
-                new[i] = 1
-                new[j] = -1
-                new[-1] = 1
-                hyperplanes.append(new)
-        A = HyperplaneArrangement(hyperplanes, K)
+            for j in range(i+1, n):
+                hyperplanes.append(x[i] - x[j] - 1)
+        A = H(*hyperplanes)
         x = polygen(QQ, 'x')
-        cp = expand(x*sum(binomial(n,k)*(x-k)**(n-1) for k in range(n+1))/2**n)
-        A._characteristic_polynomial = cp
+        charpoly = x * sum(binomial(n, k)*(x - k)**(n - 1) for k in range(n + 1)) / 2**n
+        A.characteristic_polynomial.set_cache(charpoly)
         return A
 
-    def semiorder(self, n, K=QQ):
+    def semiorder(self, n, K=QQ, names=None):
         r"""
-        The semiorder arrangement is the set of `n(n-1)` hyperplanes: `\{ x_i -
-        x_j = -1,1 : 1\leq i \leq j\leq n\}.`
+        Return the semiorder arrangement.
 
         INPUT:
 
         - ``n`` -- integer
+
         - ``K`` -- field (default:``QQ``)
+
+         - ``names`` -- tuple of strings or ``None`` (default). The
+          variable names for the ambient space.
 
         OUTPUT:
 
-        - HyperplaneArrangement
+        The semiorder arrangement, which is the set of `n(n-1)`
+        hyperplanes `\{ x_i - x_j = -1,1 : 1\leq i \leq j\leq n\}`.
 
         EXAMPLES::
 
             sage: hyperplane_arrangements.semiorder(4)
-            Hyperplane arrangement of 12 hyperplanes over Rational Field of dimension 4, rank 3.
+            Arrangement of 12 hyperplanes of dimension 4 and rank 3
+
+        TESTS::
+
+            sage: h = hyperplane_arrangements.semiorder(5)
+            sage: h.characteristic_polynomial()
+            x^5 - 20*x^4 + 180*x^3 - 790*x^2 + 1380*x
+            sage: h.characteristic_polynomial.clear_cache()  # long time
+            sage: h.characteristic_polynomial()              # long time 
+            x^5 - 20*x^4 + 180*x^3 - 790*x^2 + 1380*x
         """
+        H = make_parent(K, n, names)
+        x = H.gens()
         hyperplanes = []
         for i in range(n):
             for j in range(i+1, n):
-                new = [0]*n
-                new[i] = 1
-                new[j] = -1
                 for k in [-1, 1]:
-                    h = deepcopy(new)
-                    h.append(k)
-                    hyperplanes.append(h)
-        A = HyperplaneArrangement(hyperplanes, K)
+                    hyperplanes.append(x[i] - x[j] - k)
+        A = H(*hyperplanes)
         x = polygen(QQ, 'x')
-        cp = x*sum([stirling_number2(n,k)*prod([x-k-i for i in range(1, k)]) for k in range(1,n+1)])
-        cp = expand(cp)
-        A._characteristic_polynomial = cp
+        charpoly = x * sum([stirling_number2(n, k) * prod([x - k - i for i in range(1, k)]) 
+                            for k in range(1, n+1)])
+        A.characteristic_polynomial.set_cache(charpoly)
         return A
 
-    def Shi(self, n, K=QQ):
+    def Shi(self, n, K=QQ, names=None):
         r"""
-        The Shi arrangement is the set of `n(n-1)` hyperplanes: ``\{ x_i - x_j =
-        0,1 : 1\leq i \leq j\leq n\}.``
+        Return the Shi arrangement.
 
         INPUT:
 
         - ``n`` -- integer
+
         - ``K`` -- field (default:``QQ``)
+
+        - ``names`` -- tuple of strings or ``None`` (default). The
+          variable names for the ambient space.
 
         OUTPUT:
 
-        - HyperplaneArrangement
+        The Shi arrangement is the set of `n(n-1)` hyperplanes: ``\{ x_i - x_j =
+        0,1 : 1\leq i \leq j\leq n\}.``
 
         EXAMPLES::
 
             sage: hyperplane_arrangements.Shi(4)
-            Hyperplane arrangement of 12 hyperplanes over Rational Field of dimension 4, rank 3.
+            Arrangement of 12 hyperplanes of dimension 4 and rank 3
+
+        TESTS::
+
+            sage: h = hyperplane_arrangements.Shi(4)
+            sage: h.characteristic_polynomial()
+            x^4 - 12*x^3 + 48*x^2 - 64*x
+            sage: h.characteristic_polynomial.clear_cache()  # long time
+            sage: h.characteristic_polynomial()              # long time
+            x^4 - 12*x^3 + 48*x^2 - 64*x
         """
+        H = make_parent(K, n, names)
+        x = H.gens()
         hyperplanes = []
         for i in range(n):
             for j in range(i+1, n):
-                new = [0]*n
-                new[i] = 1
-                new[j] = -1
-                for k in [0, 1]:
-                    h = deepcopy(new)
-                    h.append(k)
-                    hyperplanes.append(h)
-        A = HyperplaneArrangement(hyperplanes, K)
+                for const in [0, 1]:
+                    hyperplanes.append(x[i] - x[j] - const)
+        A = H(*hyperplanes)
         x = polygen(QQ, 'x')
-        cp = sum([(-1)**k*stirling_number2(n,n-k)*prod([(x-1-j) for j in range(k,n-1)]) for k in range(0,n)])
-        cp = x*cp
-        cp = expand(cp)
-        A._characteristic_polynomial = cp
+        charpoly = x * sum([(-1)**k * stirling_number2(n, n-k) *
+                            prod([(x - 1 - j) for j in range(k, n-1)]) for k in range(0, n)])
+        A.characteristic_polynomial.set_cache(charpoly)
         return A
 
-hyperplane_arrangements = HyperplaneArrangementGenerators()
+
+hyperplane_arrangements = HyperplaneArrangementLibrary()
 

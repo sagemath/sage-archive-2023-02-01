@@ -2138,6 +2138,22 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpfr_sub(x.value, self.value, (<RealNumber>right).value, (<RealField_class> self._parent).rnd)
         return x
 
+    def _sympy_(self):
+        """
+        Return a sympy object of ``self``.
+
+        EXAMPLES:
+
+        An indirect doctest to check this (see :trac:`14915`)::
+
+            sage: x,y = var('x, y')
+            sage: integrate(y, y, 0.5, 8*log(x), algorithm='sympy')
+            32*log(x)^2 - 0.125000000000000
+
+        """
+        import sympy
+        return sympy.simplify(float(self))
+
     cpdef RingElement _mul_(self, RingElement right):
         """
         Multiply two real numbers with the same parent.

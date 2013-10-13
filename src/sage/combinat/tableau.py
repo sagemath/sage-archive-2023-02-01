@@ -1217,20 +1217,30 @@ class Tableau(CombinatorialObject, Element):
 
             sage: Tableau([[1,3,3,7],[4,2],[2,3]]).weight()
             [1, 2, 3, 1, 0, 0, 1]
+
+        TESTS:
+
+        We check that this agrees with going to the word::
+
+            sage: t = Tableau([[1,3,4,7],[6,2],[2,3]])
+            sage: def by_word(T):
+            ....:     ed = T.to_word().evaluation_dict()
+            ....:     m = max(ed.keys()) + 1
+            ....:     return [ed.get(k,0) for k in range(1,m)]
+            sage: by_word(t) == t.weight()
+            True
+            sage: SST = SemistandardTableaux(shape=[3,1,1])
+            sage: all(by_word(t) == t.weight() for t in SST)
+            True
         """
         if len(self) == 0:
             return []
-        m = max([max(row) for row in self])
+        m = max(max(row) for row in self)
         res = [0] * m
         for row in self:
             for i in row:
                 res[i - 1] += 1
         return res
-        # Old alternative implementation:
-        # ed = self.to_word().evaluation_dict()
-        # entries = ed.keys()
-        # m = max(entries) + 1 if entries else -1
-        # return [ed.get(k,0) for k in range(1,m)]
 
     evaluation = weight
 
@@ -1417,8 +1427,8 @@ class Tableau(CombinatorialObject, Element):
         cell_list = []
         for r in range(len(self)-1, -1, -1):
             rth_row = self[r]
-            for c in range(len(rth_row)):
-                if rth_row[c] == i:
+            for c,val in enumerate(rth_row):
+                if val == i:
                     cell_list.append((r,c))
         return cell_list
 

@@ -29,7 +29,6 @@ AUTHORS:
 #*****************************************************************************
 from sage.misc.cachefunc import cached_method
 from sage.matrix.matrix import is_Matrix
-from sage.functions.generalized import sgn
 from sage.graphs.digraph import DiGraph
 from sage.combinat.root_system.cartan_type import CartanType, CartanType_abstract
 from sage.combinat.root_system.cartan_matrix import CartanMatrix
@@ -184,6 +183,7 @@ def DynkinDiagram(*args, **kwds):
             try:
                 return mat.cartan_type().dynkin_diagram()
             except AttributeError:
+                ct = CartanType(*args)
                 raise ValueError("Dynkin diagram data not yet hardcoded for type %s"%ct)
         if len(args) > 1:
             index_set = tuple(args[1])
@@ -192,10 +192,9 @@ def DynkinDiagram(*args, **kwds):
         else:
             index_set = mat.index_set()
         D = DynkinDiagram_class(index_set=index_set)
-        n = mat.nrows()
-        for (i,j) in mat.nonzero_positions():
+        for (i, j) in mat.nonzero_positions():
             if i != j:
-                D.add_edge(index_set[i], index_set[j], -mat[j,i])
+                D.add_edge(index_set[i], index_set[j], -mat[j, i])
         return D
     ct = CartanType(*args)
     try:

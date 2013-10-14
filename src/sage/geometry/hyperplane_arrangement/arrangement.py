@@ -5,7 +5,7 @@ Before talking about hyperplane arrangements, let us start with
 individual hyperplanes. This package uses certain linear expressions
 to represent hyperplanes, that is, a linear expression `3x+3y-5z-7`
 stands for the hyperplane with the equation `x+3y-5z=7`. To create it
-in Sage, you first have to create a :class:`HyperplaneArrangenments`
+in Sage, you first have to create a :class:`HyperplaneArrangements`
 object to define the variables `x`, `y`, `z`::
 
     sage: H.<x,y,z> = HyperplaneArrangements(QQ)
@@ -25,17 +25,23 @@ linear combinations of the coordinates::
     sage: x, y, z
     (Hyperplane x + 0*y + 0*z + 0, Hyperplane 0*x + y + 0*z + 0, Hyperplane 0*x + 0*y + z + 0)
 
-ARRANGEMENTS
+See :mod:`sage.geometry.hyperplane_arrangement.hyperplane` for more
+functionality of the individual hyperplanes.
+
+Arrangements
+------------
 
 There are several ways to create hyperplane arrangements:
 
 (i) by passing individual hyperplanes to the
-:class:`HyperplaneArrangenments` object::
+:class:`HyperplaneArrangements` object::
 
     sage: H.<x,y> = HyperplaneArrangements(QQ)
-    sage: box = H(x, y, x-1, y-1);  box
+    sage: box = x | y | x-1 | y-1;  box
     Arrangement <y - 1 | y | x - 1 | x>
-
+    sage: box == H(x, y, x-1, y-1)    # alternative syntax 
+    True
+ 
 (ii) by passing anything that defines a hyperplane, for example a
 coefficient vector and constant term::
 
@@ -45,17 +51,18 @@ coefficient vector and constant term::
 
     sage: H.inject_variables()
     Defining x, y
-    sage: triangle == H(x, y, x+y-1)
+    sage: triangle == x | y | x+y-1
     True
 
-The default base field is QQ, the rational numbers.  Finite fields are also
+The default base field is `\QQ`, the rational numbers.  Finite fields are also
 supported::
 
     sage: H.<x,y,z> = HyperplaneArrangements(GF(5))
     sage: a = H([(1,2,3), 4], [(5,6,7), 8]);  a
     Arrangement <y + 2*z + 3 | x + 2*y + 3*z + 4>
 
-(iii) a list or tuple of hyperplanes::
+(iii)
+a list or tuple of hyperplanes::
 
     sage: H.<x,y,z> = HyperplaneArrangements(GF(5))
     sage: k = [x+i for i in range(4)];  k
@@ -64,7 +71,8 @@ supported::
     sage: H(k)
     Arrangement <x | x + 1 | x + 2 | x + 3>
 
-(iv) using the library of arrangements::
+(iv) 
+using the library of arrangements::
 
     sage: hyperplane_arrangements.braid(4)
     Arrangement of 6 hyperplanes of dimension 4 and rank 3
@@ -75,9 +83,9 @@ supported::
     sage: hyperplane_arrangements.Ish(5)
     Arrangement of 20 hyperplanes of dimension 5 and rank 4
 
-(v) from the bounding hyperplanes of a polyhedron::
+(v) 
+from the bounding hyperplanes of a polyhedron::
 
-    
     sage: a = polytopes.n_cube(3).hyperplane_arrangement();  a
     Arrangement of 6 hyperplanes of dimension 3 and rank 3
     sage: a.n_regions()
@@ -95,6 +103,8 @@ New arrangements from old::
 
     sage: a = hyperplane_arrangements.braid(3)
     sage: b = a.union(hyperplane_arrangements.semiorder(3))
+    sage: b == a | hyperplane_arrangements.semiorder(3)    # alternate syntax
+    True
     sage: b == hyperplane_arrangements.Catalan(3)
     True
 
@@ -112,81 +122,82 @@ The essentialization is formed by intersecting the hyperplanes by this
 normal space (actually, it is a bit more complicated over finite
 fields)::
 
+    sage: a = hyperplane_arrangements.braid(4);  a
+    Arrangement of 6 hyperplanes of dimension 4 and rank 3
+    sage: a.is_essential()
+    False
+    sage: a.rank() < a.dimension()  # double-check
+    True
+    sage: a.essentialization()
+    Arrangement of 6 hyperplanes of dimension 3 and rank 3
 
-#     sage: a = hyperplane_arrangements.braid(4)
-#     sage: a
-#     Hyperplane arrangement of 6 hyperplanes over Rational Field of dimension 4, rank 3.
-#     sage: a.is_essential()
-#     False
-#     sage: a.rank() < a.dim()  # double-check
-#     True
-#     sage: a.essentialization()
-#     Hyperplane arrangement of 6 hyperplanes over Rational Field of dimension 3, rank 3.
+The connected components of the complement of the hyperplanes of an arrangement
+in `\mathbb{R}^n` are called the *regions* of the arrangement::
 
-# The connected components of the complement of the hyperplanes of an arrangement
-# in `\mathbb{R}^n` are called the *regions* of the arrangement::
+    sage: a = hyperplane_arrangements.semiorder(3)
+    sage: b = a.essentialization();   b
+    Arrangement of 6 hyperplanes of dimension 2 and rank 2
+    sage: b.n_regions()
+    19
+    sage: b.regions()
+    (A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices, 
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 6 vertices)
+    sage: b.bounded_regions()
+    (A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
+     A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 6 vertices)
+    sage: b.n_bounded_regions()
+    7
+    sage: a.unbounded_regions()
+    (A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 2 rays, 1 line,
+     A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices, 1 ray, 1 line,
+     A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 2 rays, 1 line,
+     A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices, 1 ray, 1 line,
+     A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 2 rays, 1 line,
+     A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices, 1 ray, 1 line,
+     A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices, 1 ray, 1 line,
+     A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 2 rays, 1 line,
+     A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices, 1 ray, 1 line,
+     A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 2 rays, 1 line,
+     A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices, 1 ray, 1 line,
+     A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 2 rays, 1 line)
 
-#     sage: a = hyperplane_arrangements.semiorder(3)
-#     sage: b = a.essentialization()
-#     sage: b
-#     Hyperplane arrangement of 6 hyperplanes over Rational Field of dimension 2, rank 2.
-#     sage: b.num_regions()
-#     19
-#     sage: b.regions()
-#     [A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 6 vertices,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays]
-#     sage: b.bounded_regions()
-#     [A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 6 vertices,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices,
-#      A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices]
-#     sage: b.num_bounded_regions()
-#     7
-#     sage: a.unbounded_regions()
-#     [A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 2 rays, 1 line,
-#      A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices, 1 ray, 1 line,
-#      A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 2 rays, 1 line,
-#      A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices, 1 ray, 1 line,
-#      A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 2 rays, 1 line,
-#      A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices, 1 ray, 1 line,
-#      A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices, 1 ray, 1 line,
-#      A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 2 rays, 1 line,
-#      A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices, 1 ray, 1 line,
-#      A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 2 rays, 1 line,
-#      A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices, 1 ray, 1 line,
-#      A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex, 2 rays, 1 line]
-#     sage: b.region_containing_point((0,0)).show()
-#     sage: b.region_containing_point((2,1)).show(xmax=4,ymax=4)
-#     sage: r1 = b.regions()[0]
-#     sage: r2 = b.regions()[-1]  
-#     sage: b.distance_between_regions(r1,r2)  # number of hyps. separating r1, r2
-#     6
-#     sage: b.distance_enumerator(r1)  # generating fnc. for distances from r1
-#     x^6 + 2*x^5 + 5*x^4 + 3*x^3 + 5*x^2 + 2*x + 1
+The distance between regions is defined as the number of hyperplanes
+separating them. For example::
 
-# Note: *bounded region* really mean *relatively bounded* here.  A region is
-# relatively bounded if its intersection with space spanned by the normals of the
-# hyperplanes in the arrangement is bounded.
+    sage: r1 = b.regions()[0]
+    sage: r2 = b.regions()[1]  
+    sage: b.distance_between_regions(r1, r2)
+    2
+    sage: [hyp for hyp in b if b.is_separating_hyperplane(r1, r2, hyp)]
+    [Hyperplane -t1 + t2 + 1, Hyperplane t1 - t2 + 1]
+    sage: b.distance_enumerator(r1)  # generating function for distances from r1
+    x^6 + 2*x^5 + 5*x^4 + 3*x^3 + 5*x^2 + 2*x + 1
+
+Note: *bounded region* really mean *relatively bounded* here.  A region is
+relatively bounded if its intersection with space spanned by the normals of the
+hyperplanes in the arrangement is bounded.
 
 The intersection poset of a hyperplane arrangement is the collection
 of all nonempty intersections of hyperplanes in the arrangement,
@@ -201,79 +212,99 @@ arrangement (as the intersection over the empty set)::
     A 5-dimensional polyhedron in QQ^5 defined as the convex hull of 10 vertices
 
 The characteristic polynomial is a basic invariant of a hyperplane arrangement.
-It is defined as `\chi(x) := \sum_{w\in P \mu(w) x^{\dim(w)}` where the sum is
-`P` is the intersection poset of the arrangement and `\mu` is the Moebius
-function of `P`::
+It is defined as 
 
-     sage: a = hyperplane_arrangements.semiorder(5)
-     sage: a.characteristic_polynomial()               # long time (about a second on Core i7)
-     x^5 - 20*x^4 + 180*x^3 - 790*x^2 + 1380*x
-     sage: a.poincare_polynomial()                     # long time
-     1380*x^4 + 790*x^3 + 180*x^2 + 20*x + 1
-     sage: a.n_regions()                               # long time
-     2371
-     sage: charpoly = a.characteristic_polynomial()    # long time
-     sage: charpoly(-1)                                # long time
-     -2371
-     sage: a.n_bounded_regions()                       # long time
-     751
-     sage: charpoly(1)                                 # long time
-     751
+.. math::
 
-# For finer invariants derived from the intersection poset, see
-# :meth:`whitney_number` and :meth:`doubly_indexed_whitney_number`.
+    \chi(x) := \sum_{w\in P} \mu(w) x^{dim(w)}
 
-# Miscellaneous methods (see documentation for an explanation)::
+where the sum is `P` is the
+:meth:`~HyperplaneArrangementElement.intersection_poset` of the
+arrangement and `\mu` is the Moebius function of `P`::
 
-#     sage: a = hyperplane_arrangements.semiorder(3)
-#     sage: a.has_good_reduction(5)
-#     True
-#     sage: b = a.change_base_field(GF(5))
-#     sage: pa = a.intersection_poset()
-#     sage: pb = b.intersection_poset()
-#     sage: pa.is_isomorphic(pb)
-#     True
-#     sage: a.face_vector()
-#     (0, 12, 30, 19)
-#     sage: a.face_vector()
-#     (0, 12, 30, 19)
-#     sage: a.is_central()
-#     False
-#     sage: a.is_linear()
-#     False
-#     sage: a.sign_vector((1,1,1))
-#     [1, -1, 1, -1, 1, -1]
-#     sage: a.varchenko_matrix()
-#     [          1          h0       h0*h1       h0*h2    h0*h1*h2 h0*h1*h2*h3]
-#     [         h0           1          h1          h2       h1*h2    h1*h2*h3]
-#     [      h0*h1          h1           1       h1*h2          h2       h2*h3]
-#     [      h0*h2          h2       h1*h2           1          h1       h1*h3]
-#     [   h0*h1*h2       h1*h2          h2          h1           1          h3]
-#     [h0*h1*h2*h3    h1*h2*h3       h2*h3       h1*h3          h3           1]
+    sage: a = hyperplane_arrangements.semiorder(5)
+    sage: a.characteristic_polynomial()               # long time (about a second on Core i7)
+    x^5 - 20*x^4 + 180*x^3 - 790*x^2 + 1380*x
+    sage: a.poincare_polynomial()                     # long time
+    1380*x^4 + 790*x^3 + 180*x^2 + 20*x + 1
+    sage: a.n_regions()                               # long time
+    2371
+    sage: charpoly = a.characteristic_polynomial()    # long time
+    sage: charpoly(-1)                                # long time
+    -2371
+    sage: a.n_bounded_regions()                       # long time
+    751
+    sage: charpoly(1)                                 # long time
+    751
 
-# There are extensive methods for visualizing hyperplane arrangements in low
-# dimensions.  See :meth:`plot` and :meth:`show` for details.
+For finer invariants derived from the intersection poset, see
+:meth:`~HyperplaneArrangementElement.whitney_number` and
+:meth:`~HyperplaneArrangementElement.doubly_indexed_whitney_number`.
 
+Miscellaneous methods (see documentation for an explanation)::
 
-# AUTHORS:
+    sage: a = hyperplane_arrangements.semiorder(3)
+    sage: a.has_good_reduction(5)
+    True
+    sage: b = a.change_ring(GF(5))
+    sage: pa = a.intersection_poset()
+    sage: pb = b.intersection_poset()
+    sage: pa.is_isomorphic(pb)
+    True
+    sage: a.face_vector()
+    (0, 12, 30, 19)
+    sage: a.face_vector()
+    (0, 12, 30, 19)
+    sage: a.is_central()
+    False
+    sage: a.is_linear()
+    False
+    sage: a.sign_vector((1,1,1))
+    (-1, 1, -1, 1, -1, 1)
+    sage: a.varchenko_matrix()
+    [          1          h1       h0*h1          h3       h1*h3       h2*h3]
+    [         h1           1          h0       h1*h3          h3    h1*h2*h3]
+    [      h0*h1          h0           1    h0*h1*h3       h0*h3 h0*h1*h2*h3]
+    [         h3       h1*h3    h0*h1*h3           1          h1          h2]
+    [      h1*h3          h3       h0*h3          h1           1       h1*h2]
+    [      h2*h3    h1*h2*h3 h0*h1*h2*h3          h2       h1*h2           1]
 
-# - David Perkinson (2013-06): initial version
+There are extensive methods for visualizing hyperplane arrangements in
+low dimensions.  See :meth:`~HyperplaneArrangementElement.plot` for
+details.
 
-# - Qiaoyu Yang (2013-07)
+TESTS::
 
-# - Kuai Yu (2013-07)
+    sage: H.<x,y> = HyperplaneArrangements(QQ)
+    sage: h = H([(1, 106), 106266], [(83, 101), 157866], [(111, 110), 186150], [(453, 221), 532686], 
+    ....:       [(407, 237), 516882], [(55, 32), 75620], [(221, 114), 289346], [(452, 115), 474217], 
+    ....:       [(406, 131), 453521], [(28, 9), 32446], [(287, 19), 271774], [(241, 35), 244022],
+    ....:       [(231, 1), 210984], [(185, 17), 181508], [(23, -8), 16609])
+    sage: h.n_regions()
+    85
 
-# This module implements hyperplane arrangements defined over the
-# rationals or over finite fields.  The original motivation was to make a
-# companion to Richard Stanley's notes on hyperplane arrangements.
+AUTHORS:
 
-# REFERENCES::
+- David Perkinson (2013-06): initial version
 
-# .. [RS] Stanley, Richard
-#    "Hyperplane Arrangements"
-#     Geometric Combinatorics (E. Miller, V. Reiner, and B. Sturmfels, eds.),
-#     IAS/Park City Mathematics Series, vol. 13, American Mathematical Society,
-#     Providence, RI, 2007, pp. 389-496.
+- Qiaoyu Yang (2013-07)
+
+- Kuai Yu (2013-07)
+
+- Volker Braun (2013-10): Better Sage integration, major code refactoring.
+
+This module implements hyperplane arrangements defined over the
+rationals or over finite fields.  The original motivation was to make
+a companion to Richard Stanley's notes [RS]_ on hyperplane
+arrangements.
+
+REFERENCES:
+
+..  [RS] 
+    Stanley, Richard: "Hyperplane Arrangements",
+    Geometric Combinatorics (E. Miller, V. Reiner, and B. Sturmfels, eds.),
+    IAS/Park City Mathematics Series, vol. 13, American Mathematical Society,
+    Providence, RI, 2007, pp. 389-496.
 """
 
 #*****************************************************************************
@@ -307,6 +338,30 @@ from sage.geometry.hyperplane_arrangement.hyperplane import AmbientVectorSpace, 
 class HyperplaneArrangementElement(Element):
     
     def __init__(self, parent, hyperplanes, check=True):
+        """
+        Construct a hyperplane arrangement.
+
+        .. warning::
+
+            You should never create
+            :class:`HyperplaneArrangementElement` instances directly,
+            always use the parent.
+
+        INPUT:
+
+        - ``parent`` -- the parent :class:`HyperplaneArrangements`.
+        
+        - ``hyperplanes`` -- a tuple of hyperplanes.
+
+        - ``check`` -- boolean (optional; default ``True``). Whether
+          to check input.
+
+        EXAMPLES::
+
+            sage: H.<x,y> = HyperplaneArrangements(QQ)
+            sage: H(x, y)    # indirect doctest
+            Arrangement <y | x>
+        """
         super(HyperplaneArrangementElement, self).__init__(parent)
         self._hyperplanes = hyperplanes
         if check:
@@ -324,11 +379,34 @@ class HyperplaneArrangementElement(Element):
 
         EXAMPLES::
 
-            sage: a.<x,y,z> = hyperplane_arrangements.braid(3)
+            sage: a.<x,y,z> = hyperplane_arrangements.braid(3)   # indirect doctest
+            sage: (x, y) == a._first_ngens(2)
+            True
         """
         return self.parent()._first_ngens(n)
 
     def __getitem__(self, i):
+        """
+        Return the `i`-th hyperplane.
+
+        INPUT:
+        
+        - ``i`` -- integer.
+
+        OUTPUT:
+
+        The `i`-th hyperplane.
+
+        EXAMPLES::
+
+            sage: H.<x,y> = HyperplaneArrangements(QQ)
+            sage: h = x|y;  h
+            Arrangement <y | x>
+            sage: h[0]
+            Hyperplane 0*x + y + 0
+            sage: h[1] 
+            Hyperplane x + 0*y + 0
+        """
         return self._hyperplanes[i]
         
     def n_hyperplanes(self):
@@ -387,7 +465,7 @@ class HyperplaneArrangementElement(Element):
             sage: H.<x,y> = HyperplaneArrangements(QQ)
             sage: H(x, y, x-1, y-1)
             Arrangement <y - 1 | y | x - 1 | x>
-            sage: H(x, y, x - 1, y - 1, x + y, x - y)
+            sage: x | y | x - 1 | y - 1 | x + y | x - y
             Arrangement of 6 hyperplanes of dimension 2 and rank 2
         """
         if len(self) < 5:
@@ -397,6 +475,21 @@ class HyperplaneArrangementElement(Element):
             len(self), self.dimension(), self.rank())
 
     def dimension(self):
+        """
+        Return the ambient space dimension of the arrangement.
+
+        OUTPUT:
+
+        Integer.
+        
+        EXAMPLES::
+
+            sage: H.<x,y> = HyperplaneArrangements(QQ)
+            sage: (x | x-1 | x+1).dimension()
+            2
+            sage: H(x).dimension()
+            2
+        """
         return self.parent().ngens()
 
     def rank(self):
@@ -438,6 +531,15 @@ class HyperplaneArrangementElement(Element):
         return matrix(R, normals).rank()
 
     def __cmp__(self, other):
+        """
+        Compare two hyperplane arrangements
+
+        EXAMPLES::
+
+            sage: H.<x,y,z> = HyperplaneArrangements(QQ)
+            sage: H(x) == H(y)
+            False
+        """
         assert (type(self) is type(other)) and (self.parent() is other.parent()) # guaranteed by framework
         return cmp(self._hyperplanes, other._hyperplanes)
 
@@ -461,6 +563,8 @@ class HyperplaneArrangementElement(Element):
             sage: B = H([1,1,1], [1,-1,1], [1,0,-1])
             sage: A.union(B)
             Arrangement of 8 hyperplanes of dimension 2 and rank 2
+            sage: A | B   # syntactic sugar
+            Arrangement of 8 hyperplanes of dimension 2 and rank 2
 
         A single hyperplane is coerced into a hyperplane arrangement if necessary::
 
@@ -480,6 +584,8 @@ class HyperplaneArrangementElement(Element):
         return P(*hyperplanes)
 
     add_hyperplane = union
+
+    __or__ = union
 
     def plot(self, **kwds):
         """
@@ -543,7 +649,7 @@ class HyperplaneArrangementElement(Element):
         hyperplanes.append([0, 1] + [0] * self.dimension())
         P = self.parent()
         names = (variable,) + P._names
-        H = HyperplaneArrangements(self.parent().base_ring(), names)
+        H = HyperplaneArrangements(self.parent().base_ring(), names=names)
         return H(*hyperplanes)
         
     @cached_method
@@ -778,7 +884,7 @@ class HyperplaneArrangementElement(Element):
             hyperplanes.append([A, b])
         names = list(parent._names)
         names.pop(pivot)
-        H = HyperplaneArrangements(parent.base_ring(), tuple(names))
+        H = HyperplaneArrangements(parent.base_ring(), names=tuple(names))
         return H(*hyperplanes, signed=False)
 
     def change_ring(self, base_ring):
@@ -906,6 +1012,32 @@ class HyperplaneArrangementElement(Element):
         p = self.intersection_poset()
         q = a.intersection_poset()
         return p.is_isomorphic(q)
+
+    def is_linear(self):
+        r"""
+        Test whether all hyperplanes pass through the origin.
+
+        OUTPUT:
+
+        Boolean. Whether all the hyperplanes pass through the origin.
+
+        EXAMPLES::
+
+            sage: a = hyperplane_arrangements.semiorder(3)
+            sage: a.is_linear()
+            False
+            sage: b = hyperplane_arrangements.braid(3)
+            sage: b.is_linear()
+            True
+        
+            sage: H.<x,y> = HyperplaneArrangements(QQ)
+            sage: c = H(x+1, y+1)
+            sage: c.is_linear()
+            False
+            sage: c.is_central()
+            True
+        """
+        return all(hyperplane.b() == 0 for hyperplane in self)
 
     def is_essential(self):
         r"""
@@ -1051,7 +1183,7 @@ class HyperplaneArrangementElement(Element):
             restricted.append([A, b])
         names = tuple(name for i, name in enumerate(parent._names) if i not in echelon_pivots)
         # Construct the result
-        restricted_parent = HyperplaneArrangements(R, names)
+        restricted_parent = HyperplaneArrangements(R, names=names)
         return restricted_parent(*restricted, signed=False)
 
     def sign_vector(self, p):
@@ -1090,9 +1222,10 @@ class HyperplaneArrangementElement(Element):
         if self.base_ring().characteristic() != 0:
             raise ValueError('characteristic must be zero')
         from sage.functions.generalized import sign
-        p = vector(p)
-        values = [p*h.A() + h.b() for h in self]
-        return vector(ZZ, map(sign, values))
+        values = [hyperplane(p) for hyperplane in self]
+        signs = vector(ZZ, map(sign, values))
+        signs.set_immutable()
+        return signs
     
     def face_vector(self):
         r"""
@@ -1103,7 +1236,8 @@ class HyperplaneArrangementElement(Element):
         A vector of integers.
 
         The `d`-th entry is the number of faces of dimension `d`.  A
-        *face* is is the intersection of a region with a hyperplane.
+        *face* is is the intersection of a region with a hyperplane of
+        the arrangehment.
 
         EXAMPLES::
 
@@ -1114,8 +1248,9 @@ class HyperplaneArrangementElement(Element):
         m = self.whitney_data()[0]
         v = list(sum(m.transpose().apply_map(abs)))
         v.reverse()
-        v = [0]*(self.dimension() - self.rank()) + v
-        return vector(ZZ, v)
+        v = vector(ZZ, [0]*(self.dimension() - self.rank()) + v)
+        v.set_immutable()
+        return v
 
     def _make_region(self, hyperplanes):
         """
@@ -1240,6 +1375,106 @@ class HyperplaneArrangementElement(Element):
         return self._make_region(ieqs)
 
     @cached_method
+    def _bounded_region_indices(self):
+        r"""
+        Return the relatively bounded regions.
+
+        OUTPUT:
+
+        Tuple of integers. The positions of the relatively bounded
+        regions in :meth:`regions`.
+
+        EXAMPLES::
+
+            sage: a = hyperplane_arrangements.semiorder(3)
+            sage: a._bounded_region_indices()
+            (4, 6, 8, 9, 10, 12, 14)
+        """
+        from sage.geometry.polyhedron.constructor import Polyhedron
+        normal = Polyhedron(vertices=[[0]*self.dimension()], 
+                            lines=[hyperplane.normal() for hyperplane in self])
+        if normal.dim() == 0:
+            def transverse(poly):
+                return poly
+        else:
+            def transverse(poly):
+                return poly.intersection(normal)
+        return tuple(i for i, region in enumerate(self.regions())
+                     if transverse(region).is_compact())
+
+    def bounded_regions(self):
+        r"""
+        Return the relatively bounded regions of the arrangement.
+
+        OUTPUT:
+
+        Tuple of polyhedra. The relatively bounded regions of the
+        arrangement.  A region is relatively bounded if its
+        intersection with the space spanned by the normals to the
+        hyperplanes is bounded.  This is the same as being bounded in
+        the case that the hyperplane arrangement is essential.  It is
+        assumed that the arrangement is defined over the rationals.
+
+        EXAMPLES::
+
+            sage: A = hyperplane_arrangements.semiorder(3)
+            sage: A.bounded_regions()
+            (A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices and 1 line,
+             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices and 1 line,
+             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices and 1 line,
+             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 6 vertices and 1 line,
+             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices and 1 line,
+             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices and 1 line,
+             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 3 vertices and 1 line)
+            sage: A.bounded_regions()[0].is_compact()    # the regions are only *relatively* bounded
+            False
+            sage: A.is_essential()
+            False
+
+        .. SEEALSO::
+
+            :meth:`unbounded_regions`
+        """
+        return tuple(self.regions()[i] for i in self._bounded_region_indices())
+
+    def unbounded_regions(self):
+        r"""
+        Return the relatively bounded regions of the arrangement.
+
+        OUTPUT:
+
+        Tuple of polyhedra. The regions of the arrangement that are not
+        relatively bounded.  It is assumed that the arrangement is
+        defined over the rationals.
+
+        EXAMPLES::
+
+            sage: A = hyperplane_arrangements.semiorder(3)
+            sage: B = A.essentialization()
+            sage: B.n_regions() - B.n_bounded_regions()
+            12
+            sage: B.unbounded_regions()
+            (A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
+             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
+             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
+             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
+             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray,
+             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
+             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
+             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
+             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
+             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 2 rays, 
+             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray, 
+             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 1 ray)
+
+        .. SEEALSO::
+
+            :meth:`bounded_regions`
+        """
+        s = set(range(self.n_regions())).difference(set(self._bounded_region_indices()))
+        return tuple(self.regions()[i] for i in s)
+
+    @cached_method
     def whitney_data(self):
         r"""
         Return the Whitney numbers.
@@ -1311,18 +1546,18 @@ class HyperplaneArrangementElement(Element):
             sage: A.doubly_indexed_whitney_number(1, 2)
             -15
 
-        REFERENCES::
+        REFERENCES:
 
-        .. [GZ] Greene; Zaslavsky
-           "On the Interpretation of Whitney Numbers Through Arrangements of
-           Hyperplanes, Zonotopes, Non-Radon Partitions, and Orientations of
-           Graphs"
-           Transactions of the American Mathematical Society, Vol. 280, No. 1.
-           (Nov., 1983), pp. 97-126.
+        ..  [GZ] Greene; Zaslavsky
+            "On the Interpretation of Whitney Numbers Through Arrangements of
+            Hyperplanes, Zonotopes, Non-Radon Partitions, and Orientations of
+            Graphs"
+            Transactions of the American Mathematical Society, Vol. 280, No. 1.
+            (Nov., 1983), pp. 97-126.
 
         .. SEEALSO::
 
-            :meth:`whitney_number`
+            :meth:`whitney_number`,
             :meth:`whitney_data`
         """
         if 0 <= i and j <= self.dimension():
@@ -1342,7 +1577,9 @@ class HyperplaneArrangementElement(Element):
 
         If ``kind=2``, this number is the number of elements `x, y` in the
         intersection poset such that `x \leq y` with ranks `i` and `j`,
-        respectively.
+        respectively. 
+
+        See [GZ]_ for more details.
 
         INPUT:
 
@@ -1372,15 +1609,6 @@ class HyperplaneArrangementElement(Element):
             sage: len([i for i in p if r(i) == 1])
             6
 
-        REFERENCES::
-
-        .. [GZ] Greene; Zaslavsky
-           "On the Interpretation of Whitney Numbers Through Arrangements of
-           Hyperplanes, Zonotopes, Non-Radon Partitions, and Orientations of
-           Graphs"
-           Transactions of the American Mathematical Society, Vol. 280, No. 1.
-           (Nov., 1983), pp. 97-126.
-
         .. SEEALSO::
 
             :meth:`doubly_indexed_whitney_number`
@@ -1393,6 +1621,157 @@ class HyperplaneArrangementElement(Element):
                 return self.whitney_data()[1][0, k]
         raise ValueError('argument out of range')
 
+    def is_separating_hyperplane(self, region1, region2, hyperplane):
+        r"""
+        Test whether the ``hyperplane`` separates the given regions.
+
+        INPUT:
+
+        - ``region1``, ``region2`` -- polyhedra or list/tuple/iterable
+          of coordinates.  Regions of the arrangement or an interior
+          point of a region. In the 
+        
+        - ``hyp`` -- hyperplane
+
+        OUTPUT:
+
+        Boolean. Whether the hyperplane ``hyp`` separate the given
+        regions.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = hyperplane_arrangements.coordinate(2)
+            sage: A.is_separating_hyperplane([1,1], [2,1], y)
+            False
+            sage: A.is_separating_hyperplane([1,1], [-1,1], x)
+            True
+            sage: r = A.region_containing_point([1,1])
+            sage: s = A.region_containing_point([-1,1])
+            sage: A.is_separating_hyperplane(r, s, x)
+            True
+        """
+        if self.base_ring().characteristic() != 0:
+            raise ValueError('requires characteristic zero')
+        try:
+            p1 = region1.representative_point()
+        except AttributeError:
+            p1 = list(region1)
+        try:
+            p2 = region2.representative_point()
+        except AttributeError:
+            p2 = list(region2)
+        from sage.functions.generalized import sign
+        s = sign(hyperplane(p1)) * sign(hyperplane(p2))
+        if s < 0:
+            return True
+        elif s > 0:
+            return False
+        else:
+            raise ValueError('point lies on hyperplane')
+
+    def distance_between_regions(self, region1, region2):
+        r"""
+        Return the number of hyperplanes separating the two regions.
+
+        INPUT:
+
+        - ``region1``, ``region2`` -- regions of the arrangement or
+          representative points of regions
+
+        OUTPUT:
+
+        Integer. The number of hyperplanes separating the two regions.
+
+        EXAMPLES::
+
+            sage: c = hyperplane_arrangements.coordinate(2)
+            sage: r = c.region_containing_point([-1, -1])
+            sage: s = c.region_containing_point([1, 1])
+            sage: c.distance_between_regions(r, s)
+            2
+            sage: c.distance_between_regions(s, s)
+            0
+        """
+        count = sum(1 for hyperplane in self 
+                    if self.is_separating_hyperplane(region1, region2, hyperplane))
+        return ZZ(count)
+
+    def distance_enumerator(self, base_region):
+        r"""
+        Return the generating function for the number of hyperplanes
+        at given distance.
+
+        INPUT:
+
+        - ``base_region`` -- region of arrangement or point in region
+
+        OUTPUT:
+
+        A polynomial `f(x)` for which the coefficient of `x^i` is the
+        number of hyperplanes of distance `i` from ``base_region``,
+        i.e., the number of hyperplanes separated by `i` hyperplanes
+        from ``base_region``.
+
+        EXAMPLES::
+
+            sage: c = hyperplane_arrangements.coordinate(3)
+            sage: c.distance_enumerator(c.region_containing_point([1,1,1]))
+            x^3 + 3*x^2 + 3*x + 1
+        """
+        d = [self.distance_between_regions(r,base_region) for r in self.regions()]
+        d = [d.count(i) for i in range(max(d)+1)]
+        from sage.rings.polynomial.polynomial_ring import polygen
+        x = polygen(QQ, 'x')
+        return sum([d[i]*x**i for i in range(len(d))])
+
+    @cached_method
+    def varchenko_matrix(self, names='h'):
+        r"""
+        Return the Varchenko matrix of the arrangement.
+
+        Let `H_1, ..., H_s` and `R_1, ..., R_t` denote the hyperplanes
+        and regions, respectively, of the arrangement.  Let `S =
+        QQ[h_1,...,h_s]`, a polynomial ring with indeterminate `h_i`
+        corresponding to hyperplane `H_i`.  The Varchenko matrix is
+        the `t \times t` matrix with `i,j`-th entry the product of
+        those `h_k` such that `H_k` separates `R_i` and `R_j`.
+
+        INPUT:
+
+        - ``names`` -- string or list/tuple/iterable of strings. The
+          variable names for the polynomial ring `S`.
+
+        OUTPUT:
+
+        The Varchenko matrix.
+
+        EXAMPLES::
+
+            sage: a = hyperplane_arrangements.coordinate(3)
+            sage: v = a.varchenko_matrix();  v
+            [    1    h0    h1]
+            [   h0     1 h0*h1]
+            [   h1 h0*h1     1]
+            sage: factor(det(v))
+            (h1 - 1) * (h1 + 1) * (h0 - 1) * (h0 + 1)
+        """
+        from sage.rings.all import PolynomialRing
+        from sage.matrix.constructor import identity_matrix
+        from sage.misc.misc import prod
+        k = len(self)
+        R = PolynomialRing(QQ, names, k)
+        h = R.gens()
+        region = self.regions()
+        v = identity_matrix(R, k, k)
+        for i in range(k):
+            for j in range(i+1, k):
+                t = prod(h[p] for p in range(k) if
+                         self.is_separating_hyperplane(region[i], region[j], self[p]))
+                v[i,j] = v[j,i] = t
+        v.set_immutable()
+        return v
+
+
 
 class HyperplaneArrangements(Parent, UniqueRepresentation):
     
@@ -1401,6 +1780,12 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
     def __init__(self, base_ring, names=tuple()):
         """
         Hyperplane arrangements
+
+        INPUT:
+
+        - ``base_ring`` -- ring. The base ring.
+
+        - ``names`` -- tuple of strings. The variable names.
 
         EXAMPLES::
         
@@ -1414,10 +1799,12 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
 
         TESTS::
           
-            sage: H = HyperplaneArrangements(QQ, ('x', 'y'))
-            sage: type(H)
+            sage: K = HyperplaneArrangements(QQ, names=('x', 'y'))
+            sage: H is K
+            True
+            sage: type(K)
             <class 'sage.geometry.hyperplane_arrangement.arrangement.HyperplaneArrangements_with_category'>
-            sage: H.change_ring(RR).gen(0)
+            sage: K.change_ring(RR).gen(0)
             Hyperplane 1.00000000000000*x + 0.000000000000000*y + 0.000000000000000
         """
         from sage.categories.all import Fields, Sets
@@ -1428,6 +1815,19 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
         self._names = names
 
     def base_ring(self):
+        """
+        Return the base ring.
+
+        OUTPUT:
+
+        The base ring of the hyperplane arrangement.
+
+        EXAMPLES::
+
+            sage: L.<x,y> = HyperplaneArrangements(QQ)
+            sage: L.base_ring()
+            Rational Field
+        """
         return self._base_ring
 
     def change_ring(self, base_ring):
@@ -1445,7 +1845,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: L = HyperplaneArrangements(QQ, ('x', 'y'))
+            sage: L.<x,y> = HyperplaneArrangements(QQ)
             sage: L.gen(0)
             Hyperplane x + 0*y + 0
             sage: L.change_ring(RR).gen(0)
@@ -1456,10 +1856,25 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             sage: L.change_ring(QQ) is L
             True
         """
-        return HyperplaneArrangements(base_ring, self._names)
+        return HyperplaneArrangements(base_ring, names=self._names)
 
     @cached_method
     def ambient_space(self):
+        """
+        Return the ambient space.
+
+        The ambient space is the parent of hyperplanes. That is, new
+        hyperplanes are always constructed internally from the ambient
+        space instance.
+
+        EXAMPLES::
+
+            sage: L.<x, y> = HyperplaneArrangements(QQ)
+            sage: L.ambient_space()([(1,0), 0])
+            Hyperplane x + 0*y + 0
+            sage: L.ambient_space()([(1,0), 0]) == x
+            True
+        """
         return AmbientVectorSpace(self.base_ring(), self._names)
 
     def _repr_(self):

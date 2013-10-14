@@ -9,12 +9,13 @@ Hyperplanes
     module is used to represent the individual hyperplanes, but you
     should never construct the classes from this module directly (but
     only via the
-    :class:`~sage.geometry.hyperplane_arrangement.arrangements.HyperplaneArrangements`.
+    :class:`~sage.geometry.hyperplane_arrangement.arrangement.HyperplaneArrangements`.
 
 A linear expression, for example, `3x+3y-5z-7` stands for the
 hyperplane with the equation `x+3y-5z=7`. To create it in Sage, you
-first have to create a :class:`HyperplaneArrangenments` object to
-define the variables `x`, `y`, `z`::
+first have to create a
+:class:`~sage.geometry.hyperplane_arrangement.arrangement.HyperplaneArrangements`
+object to define the variables `x`, `y`, `z`::
 
     sage: H.<x,y,z> = HyperplaneArrangements(QQ)
     sage: h = 3*x + 2*y - 5*z - 7;  h
@@ -55,7 +56,7 @@ Or constant term and coefficients together in one list/tuple/iterable::
     Hyperplane 3*x + 2*y - 5*z - 7
 
 Note that the constant term comes first, which matches the notation
-for Sage's :func:`~sage.geometry.polyhedron.constructor.Polyhedra` ::
+for Sage's :func:`~sage.geometry.polyhedron.constructor.Polyhedron` ::
 
     sage: Polyhedron(ieqs=[(4,1,2,3)]).Hrepresentation()
     (An inequality (1, 2, 3) x + 4 >= 0,)
@@ -155,6 +156,19 @@ class Hyperplane(LinearExpression):
         super(Hyperplane, self).__init__(parent, coefficients, constant)
 
     def _repr_(self):
+        """
+        Return a string representation.
+
+        OUTPUT:
+
+        String.
+
+        EXAMPLES::
+
+            sage: H.<x> = HyperplaneArrangements(QQ)
+            sage: x._repr_()
+            'Hyperplane x + 0'
+        """
         return 'Hyperplane {0}'.format(self._repr_linear())
 
     def _latex_(self):
@@ -186,6 +200,20 @@ class Hyperplane(LinearExpression):
     def normal(self):
         """
         Return the normal vector.
+        
+        OUTPUT:
+
+        A vector over the base ring.
+
+        EXAMPLES::
+
+            sage: H.<x, y, z> = HyperplaneArrangements(QQ)
+            sage: x.normal()
+            (1, 0, 0)
+            sage: x.A(), x.b()
+            ((1, 0, 0), 0)
+            sage: (x + 2*y + 3*z + 4).normal()
+            (1, 2, 3)
         """
         return self.A()
 
@@ -574,6 +602,28 @@ class Hyperplane(LinearExpression):
         from sage.geometry.hyperplane_arrangement.plot import plot_hyperplane
         return plot_hyperplane(self, **kwds)
 
+    def __or__(self, other):
+        """
+        Construct hyperplane arrangement from bitwise or.
+
+        EXAMPLES::
+
+            sage: L.<x, y> = HyperplaneArrangements(QQ)
+            sage: x | y + 1
+            Arrangement <y + 1 | x>
+            sage: x | [(0,1), 1]
+            Arrangement <y + 1 | x>
+        
+        TESTS::
+
+            sage: (x | y).parent() is L
+            True
+        """
+        from sage.geometry.hyperplane_arrangement.arrangement import HyperplaneArrangements
+        parent = self.parent()
+        arrangement = HyperplaneArrangements(parent.base_ring(), names=parent._names)
+        return arrangement(self, other)
+
             
 
 class AmbientVectorSpace(LinearExpressionModule):
@@ -613,6 +663,23 @@ class AmbientVectorSpace(LinearExpressionModule):
             self.base_ring())
 
     def dimension(self):
+        """
+        Return the ambient space dimension.
+
+        OUTPUT:
+
+        Integer.
+
+        EXAMPLES::
+
+            sage: M.<x,y> = HyperplaneArrangements(QQ)
+            sage: x.parent().dimension()
+            2
+            sage: x.parent() is M.ambient_space()
+            True
+            sage: x.dimension()
+            1
+        """
         return self.ngens()
         
     def change_ring(self, base_ring):

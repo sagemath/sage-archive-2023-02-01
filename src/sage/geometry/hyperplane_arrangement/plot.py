@@ -316,7 +316,7 @@ def plot_hyperplane(hyperplane, **kwds):
 
         sage: H1.<x> = HyperplaneArrangements(QQ)
         sage: a = 3*x + 4
-        sage: a.plot()
+        sage: a.plot()    # indirect doctest
         sage: a.plot(point_size=100,hyperplane_label='hello')
 
     
@@ -337,11 +337,6 @@ def plot_hyperplane(hyperplane, **kwds):
         sage: d.plot(opacity=0.8)
         sage: e = 4*x + 2*z + 3
         sage: e.plot(ranges=[[-1,1],[0,8]], label_offset=(2,2,1), aspect_ratio=1)
-
-    NOTES::
-
-        For more examples, see :meth:`show` (``hyperplane.show?`` or
-        ``Hyperplane.show?``).
     """
     if hyperplane.base_ring().characteristic() != 0:
         raise NotImplementedError('base field must have characteristic zero')

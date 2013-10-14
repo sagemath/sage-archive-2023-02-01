@@ -115,6 +115,17 @@ class AffineSubspace(SageObject):
         self._point = p
 
     def __hash__(self):
+        """
+        Return a hash value.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.hyperplane_arrangement.affine_subspace import AffineSubspace
+            sage: a = AffineSubspace([1,0,0,0], VectorSpace(QQ,4))
+            sage: a.__hash__()    # random output
+            -3713096828371451969
+        """
+        # note that the point is not canonically chosen, but the linear part is
         return hash(self._linear_part)
     
     def _repr_(self):

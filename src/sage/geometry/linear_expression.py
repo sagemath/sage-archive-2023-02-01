@@ -354,6 +354,43 @@ class LinearExpression(ModuleElement):
         if c != 0: return c
         return 0
 
+    def evaluate(self, point):
+        """
+        Evaluate the linear expression.
+
+        INPUT:
+
+        - ``point`` -- list/tuple/iterable of coordinates. The
+          coordinates of a point.
+
+        OUTPUT:
+
+        The linear expression `Ax+b` evaluated at the point `x`.
+
+        EXAMPLES::
+        
+            sage: from sage.geometry.linear_expression import LinearExpressionModule
+            sage: L.<x,y> = LinearExpressionModule(QQ)
+            sage: ex = 2*x + 3* y + 4
+            sage: ex.evaluate([1,1])
+            9
+            sage: ex([1,1])    # syntactic sugar
+            9
+            sage: ex([pi, e])
+            2*pi + 3*e + 4
+        """
+        try:
+            point = self.parent().ambient_module()(point)
+        except TypeError:
+            from sage.matrix.constructor import vector
+            point = vector(point)
+        return self._coeffs * point + self._const
+
+    __call__ = evaluate
+
+
+
+
 class LinearExpressionModule(Parent, UniqueRepresentation):
 
     Element = LinearExpression

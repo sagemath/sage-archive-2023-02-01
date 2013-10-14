@@ -1,8 +1,9 @@
 r"""
 Library of Hyperplane Arrangements
 
-See :mod:`sage.geometry.hyperplane_arrangement` for details about how
-to construct hyperplane arrangements.
+A collection of useful or interesting hyperplane arrangements. See
+:mod:`sage.geometry.hyperplane_arrangement.arrangement` for details
+about how to construct your own hyperplane arrangements.
 """
 #*****************************************************************************
 #       Copyright (C) 2013 David Perkinson <davidp@reed.edu>
@@ -49,6 +50,8 @@ def make_parent(base_ring, dimension, names=None):
     """
     Construct the parent for the hyperplane arrangements.
     
+    For internal use only.
+
     INPUT:
 
     - ``base_ring`` -- a ring.
@@ -77,7 +80,7 @@ def make_parent(base_ring, dimension, names=None):
         names = tuple(map(str, names))
         if len(names) != dimension:
             raise ValueError('number of variable names does not match dimension')
-    return HyperplaneArrangements(base_ring, names)
+    return HyperplaneArrangements(base_ring, names=names)
 
 
 
@@ -151,11 +154,11 @@ class HyperplaneArrangementLibrary(object):
             sage: hyperplane_arrangements.bigraphical(G).n_regions()
             59
 
-        REFERENCES::
+        REFERENCES:
 
-        .. [HP] S. Hopkins, D. Perkinson
-           "Bigraphical Arrangements"
-           :arxiv:`1212.4398`
+        ..  [BigraphicalArrangements] S. Hopkins, D. Perkinson
+            "Bigraphical Arrangements"
+            :arxiv:`1212.4398`
         """
         n = G.num_verts()
         if A is None:  # default to G-semiorder arrangement
@@ -390,8 +393,12 @@ class HyperplaneArrangementLibrary(object):
         OUTPUT:
 
         The Ish arrangement, which is the set of `n(n-1)` hyperplanes
-        ``\{ x_i - x_j = 0 : 1\leq i \leq j\leq n\} \cup \{x_1 - x_j =
-        i : 1\leq i \leq j\leq n\}`.
+
+        .. math::
+
+            \{ x_i - x_j = 0 : 1\leq i \leq j\leq n\} 
+            \cup 
+            \{x_1 - x_j = i : 1\leq i \leq j\leq n\}.
 
         EXAMPLES::
 
@@ -409,11 +416,11 @@ class HyperplaneArrangementLibrary(object):
             sage: a.characteristic_polynomial()              # long time
             x^3 - 6*x^2 + 9*x
 
-        REFERENCES::
+        REFERENCES:
 
-        .. [AR] D. Armstrong, B. Rhoades
-           "The Shi arrangement and the Ish arrangement"
-           :arxiv:`1009.1655`
+        ..  [AR] D. Armstrong, B. Rhoades
+            "The Shi arrangement and the Ish arrangement"
+            :arxiv:`1009.1655`
         """
         H = make_parent(K, n, names)
         x = H.gens()
@@ -485,7 +492,7 @@ class HyperplaneArrangementLibrary(object):
 
         - ``K`` -- field (default:``QQ``)
 
-         - ``names`` -- tuple of strings or ``None`` (default). The
+        - ``names`` -- tuple of strings or ``None`` (default). The
           variable names for the ambient space.
 
         OUTPUT:
@@ -536,8 +543,8 @@ class HyperplaneArrangementLibrary(object):
 
         OUTPUT:
 
-        The Shi arrangement is the set of `n(n-1)` hyperplanes: ``\{ x_i - x_j =
-        0,1 : 1\leq i \leq j\leq n\}.``
+        The Shi arrangement is the set of `n(n-1)` hyperplanes: `\{ x_i - x_j =
+        0,1 : 1\leq i \leq j\leq n\}`.
 
         EXAMPLES::
 

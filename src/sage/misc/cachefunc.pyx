@@ -2226,7 +2226,7 @@ cdef class CachedSpecialMethod(CachedMethod):
 
     EXAMPLES::
 
-        sage: class C:       
+        sage: class C:
         ....:     @cached_method
         ....:     def __hash__(self):
         ....:         print "compute hash"
@@ -2252,7 +2252,7 @@ cdef class CachedSpecialMethod(CachedMethod):
 
         EXAMPLES::
 
-            sage: class C:       
+            sage: class C:
             ....:     @cached_method
             ....:     def __hash__(self):
             ....:         print "compute hash"
@@ -2327,7 +2327,7 @@ def cached_method(f, name=None):
     In the following examples, one can see how a cached method works in applicationy.
     Below, we demonstrate what is done behind the scenes::
 
-        sage: class C:       
+        sage: class C:
         ....:     @cached_method
         ....:     def __hash__(self):
         ....:         print "compute hash"

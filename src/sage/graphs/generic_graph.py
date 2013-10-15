@@ -304,6 +304,7 @@ Methods
 """
 
 from sage.misc.decorators import options
+from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import random
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
@@ -463,21 +464,18 @@ class GenericGraph(GenericGraph_pyx):
                         return False
             return True
 
+    @cached_method
     def __hash__(self):
         """
-        Since graphs are mutable, they should not be hashable, so we return
-        a type error.
+        Only immutable graphs are hashable.
 
-        EXAMPLES::
-
-            sage: hash(Graph())
-            Traceback (most recent call last):
-            ...
-            TypeError: graphs are mutable, and thus not hashable
+        The hash value of an immutable graph relies on the tuple
+        of vertices and the tuple of edges. The resulting value
+        is cached.
         """
         if getattr(self, "_immutable", False):
             return hash((tuple(self.vertices()), tuple(self.edges())))
-        raise TypeError("graphs are mutable, and thus not hashable")
+        raise TypeError("This graph is mutable, and thus not hashable")
 
     def __mul__(self, n):
         """
@@ -699,6 +697,11 @@ class GenericGraph(GenericGraph_pyx):
         """
         Creates a copy of the graph.
 
+        NOTE:
+
+        If the graph is immutable then the graph itself is returned, rather
+        than a copy, unless one of the optional arguments is used.
+
         INPUT:
 
          - ``implementation`` - string (default: 'networkx') the
@@ -773,6 +776,9 @@ class GenericGraph(GenericGraph_pyx):
             sage: h._boundary is g._boundary
             False
         """
+        if getattr(self, '_immutable', False):
+            if implementation=='c_graph' and data_structure is None and sparse is not None:
+                return self
         if sparse != None:
             if data_structure != None:
                 raise ValueError("The 'sparse' argument is an alias for "
@@ -2180,8 +2186,18 @@ class GenericGraph(GenericGraph_pyx):
         """
         Whether the (di)graph is to be considered as a weighted (di)graph.
 
-        Note that edge weightings can still exist for (di)graphs ``G`` where
-        ``G.weighted()`` is ``False``.
+        INPUT:
+
+        - ``new`` (optional bool): If it is provided, then the weightedness
+          flag is set accordingly.
+
+        .. NOTE::
+
+            Changing the weightedness flag changes the ``==``-class of
+            a graph and is thus not allowed for immutable graphs.
+
+            Edge weightings can still exist for (di)graphs ``G`` where
+            ``G.weighted()`` is ``False``.
 
         EXAMPLES:
 
@@ -2234,6 +2250,8 @@ class GenericGraph(GenericGraph_pyx):
             True
         """
         if new is not None:
+            if getattr(self, '_immutable', False):
+                raise TypeError("This graph is immutable and can thus not be changed")
             if new in [True, False]:
                 self._weighted = new
         else:

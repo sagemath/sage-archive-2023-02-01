@@ -327,8 +327,8 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 else:
                     raise TypeError("do not know how to make x (= %s) an element of %s"%(x, self))
             #x is an element of the basis enumerated set;
-            elif x in self._basis_keys:
-                return self.monomial(self._basis_keys(x))
+            elif x in self._indices:
+                return self.monomial(self._indices(x))
             raise TypeError("do not know how to make x (= %s) an element of self (=%s)"%(x,self))
 
         def _convert_map_from_(self,Q):
@@ -388,7 +388,7 @@ class KBoundedSubspaceBases(Category_realization_of_parent):
                 else:
                     c = Partition(list(c))
 
-            if c not in self._basis_keys:
+            if c not in self._indices:
                 raise TypeError("do not know how to make %s an element of %s"%(c,self))
             return self.monomial(c)
 

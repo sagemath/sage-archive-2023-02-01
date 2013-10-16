@@ -494,7 +494,7 @@ change !) filename is joined.
 
 * A compiled version of the library
     * CPLEX : ``libcplex.a``
-    * GUROBI : ``libgurobi45.so``
+    * GUROBI : ``libgurobi55.so`` (or more recent)
 
 * The library file
     * CPLEX : ``cplex.h``

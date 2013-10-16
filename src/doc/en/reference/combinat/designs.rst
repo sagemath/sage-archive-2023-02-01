@@ -18,4 +18,5 @@ Constructions
    ../sage/combinat/designs/block_design
    ../sage/combinat/designs/steiner_quadruple_systems
    ../sage/combinat/designs/latin_squares
+   ../sage/combinat/designs/orthogonal_arrays
 

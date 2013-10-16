@@ -45,9 +45,9 @@ Currently, this module gathers the following designs :
     :meth:`~sage.combinat.designs.block_design.WittDesign`
     :meth:`~sage.combinat.designs.block_design.HadamardDesign`
     :meth:`~sage.combinat.designs.latin_squares.mutually_orthogonal_latin_squares`
-    :meth:`~sage.combinat.designs.block_design.steiner_triple_system`
     :meth:`~sage.combinat.designs.orthogonal_arrays.transversal_design`
     :meth:`~sage.combinat.designs.orthogonal_arrays.orthogonal_array`
+    :meth:`~sage.combinat.designs.bibd.steiner_triple_system`
     :meth:`~sage.combinat.designs.steiner_quadruple_systems.steiner_quadruple_system`
 
 And the :meth:`designs.best_known_covering_design_from_LJCR
@@ -67,8 +67,7 @@ from sage.combinat.designs.block_design import (ProjectiveGeometryDesign,
                                                 DesarguesianProjectivePlaneDesign,
                                                 AffineGeometryDesign,
                                                 WittDesign,
-                                                HadamardDesign,
-                                                steiner_triple_system)
+                                                HadamardDesign)
 
 from sage.combinat.designs.steiner_quadruple_systems import steiner_quadruple_system
 
@@ -78,4 +77,4 @@ from sage.combinat.designs.latin_squares import mutually_orthogonal_latin_square
 
 from sage.combinat.designs.orthogonal_arrays import transversal_design, orthogonal_array
 
-from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign
+from sage.combinat.designs.bibd import BalancedIncompleteBlockDesign, steiner_triple_system

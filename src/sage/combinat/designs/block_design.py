@@ -59,6 +59,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.arith import binomial, integer_floor
 from sage.combinat.designs.incidence_structures import IncidenceStructure, IncidenceStructureFromMatrix
 from sage.misc.decorators import rename_keyword
+from sage.rings.finite_rings.constructor import FiniteField
 
 ###  utility functions  -------------------------------------------------------
 
@@ -186,7 +187,6 @@ def DesarguesianProjectivePlaneDesign(n):
         ...
         ValueError: If such a projective plane exists, we do not know how to build it.
     """
-    from sage.rings.finite_rings.constructor import FiniteField
     from sage.rings.arith import two_squares
 
     try:
@@ -233,14 +233,14 @@ def AffineGeometryDesign(n, d, F):
 
         sage: BD = designs.AffineGeometryDesign(3, 1, GF(2))
         sage: BD.parameters()
-        (2, 8, 2, 2)
+        (2, 8, 2, 1)
         sage: BD.is_block_design()
-        (True, [2, 8, 2, 2])
+        (True, [2, 8, 2, 1])
         sage: BD = designs.AffineGeometryDesign(3, 2, GF(2))
         sage: BD.parameters()
-        (2, 8, 4, 12)
+        (2, 8, 4, 3)
         sage: BD.is_block_design()
-        (True, [3, 8, 4, 4])
+        (True, [3, 8, 4, 1])
     """
     q = F.order()
     from sage.interfaces.gap import gap, GapElement
@@ -250,7 +250,7 @@ def AffineGeometryDesign(n, d, F):
     gap.eval("Subs:=AsSet(Subspaces(V,%s));"%d)
     gap.eval("CP:=Cartesian(points,Subs)")
     flats = gap.eval("flats:=List(CP,x->Sum(x))") # affine spaces
-    gblcks = eval(gap.eval("AsSortedList(List(flats,f->Filtered([1..Length(points)],i->points[i] in f)));"))
+    gblcks = eval(gap.eval("Set(List(flats,f->Filtered([1..Length(points)],i->points[i] in f)));"))
     v = q**n
     gB = []
     for b in gblcks:

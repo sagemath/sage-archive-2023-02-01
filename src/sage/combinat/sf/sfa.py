@@ -799,9 +799,20 @@ class SymmetricFunctionsBases(Category_realization_of_parent):
                 sage: f = 2*m[2,1] + 4*m[1,1] - 5*m[1] - 3*m[[]]
                 sage: m.degree_negation(f)
                 -3*m[] + 5*m[1] + 4*m[1, 1] - 2*m[2, 1]
+
+            TESTS:
+
+            Using :meth:`degree_negation` on an element of a different
+            basis works correctly::
+
+                sage: e = Sym.elementary()
+                sage: m.degree_negation(e[3])
+                -m[1, 1, 1]
+                sage: m.degree_negation(m(e[3]))
+                -m[1, 1, 1]
             """
             return self.sum_of_terms([ (lam, (-1)**(sum(lam)%2) * a)
-                                      for lam, a in element._monomial_coefficients.items() ])
+                                       for lam, a in self(element) ])
 
         def corresponding_basis_over(self, R):
             r"""
@@ -1016,8 +1027,9 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
     def _change_by_proportionality(self, x, function):
         r"""
-        Return the symmetric function obtained by scaling each basis
-        element corresponding to the partition `part` by ``function``(`part`).
+        Return the symmetric function obtained from ``x`` by scaling
+        each basis element corresponding to the partition `\lambda` by
+        ``function``(`\lambda`).
 
         INPUT:
 
@@ -1053,7 +1065,10 @@ class SymmetricFunctionAlgebra_generic(CombinatorialFreeModule):
 
         - ``x` -- a symmetric function
         - ``expr`` -- an expression used in the plethysm
-        - ``deg_one`` -- specifies the degree one terms
+        - ``deg_one`` -- a list (or iterable) specifying the degree one
+          variables (that is, the terms to be treated as degree-one
+          elements when encountered in ``x``; they will be taken to the
+          appropriate powers when computing the plethysm)
 
         OUTPUT:
 
@@ -2009,8 +2024,9 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         (To compute outer plethysms over general binomial rings, change
         bases to the fraction field.)
 
-        By default, the degree one elements are the generators for the
-        ``self``'s base ring.
+        By default, the degree one elements are taken to be the
+        generators for the ``self``'s base ring. This setting can be
+        modified by specifying the ``include`` and ``exclude`` keywords.
 
         INPUT:
 
@@ -2349,9 +2365,11 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
     def theta(self,a):
         r"""
-        Return the image of ``self`` under the theta automorphism which sends
-        `p[k]` to `a \cdot p[k]`. In general, this is well-defined outside
-        of the powersum basis only if the base ring is a `\QQ`-algebra.
+        Return the image of ``self`` under the theta endomorphism which sends
+        `p_k` to `a \cdot p_k` for every positive integer `k`.
+
+        In general, this is well-defined outside of the powersum basis only
+        if the base ring is a `\QQ`-algebra.
 
         INPUT:
 
@@ -2378,8 +2396,11 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
     def theta_qt(self,q=None,t=None):
         r"""
         Return the image of ``self`` under the `q,t`-deformed theta
-        automorphism which sends `p[k]` to `(1-q^k) / (1-t^k) \cdot p[k]`
+        endomorphism which sends `p_k` to `\frac{1-q^k}{1-t^k} \cdot p_k`
         for all positive integers `k`.
+
+        In general, this is well-defined outside of the powersum basis only
+        if the base ring is a `\QQ`-algebra.
 
         INPUT:
 
@@ -2425,14 +2446,17 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
     def omega_qt(self,q = None,t = None):
         r"""
         Return the image of ``self`` under the `q,t`-deformed omega
-        automorphism which sends `p[k]` to
-        `(-1)^{k-1} \cdot (1-q^k) / (1-t^k) \cdot p[k]` for all positive
+        automorphism which sends `p_k` to
+        `(-1)^{k-1} \cdot \frac{1-q^k}{1-t^k} \cdot p_k` for all positive
         integers `k`.
+
+        In general, this is well-defined outside of the powersum basis only
+        if the base ring is a `\QQ`-algebra.
 
         INPUT:
 
-        - ``q``, ``t`` -- parameters (default: ``None``, in which case ``q``
-          and ``t`` are used)
+        - ``q``, ``t`` -- parameters (default: ``None``, in which case
+          ``'q'`` and ``'t'`` are used)
 
         EXAMPLES::
 
@@ -2488,15 +2512,27 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
     def itensor(self, x):
         r"""
-        Return the inner (tensor) product of ``self`` and ``x`` in the
+        Return the internal (tensor) product of ``self`` and ``x`` in the
         basis of ``self``.
 
-        The inner tensor product (also known as the Kronecker product, or as
+        The internal tensor product (also known as the Kronecker product, or as
         the second multiplication on the ring of symmetric functions) can be
         defined as the linear extension of the definition on power sums
         `p_{\lambda} \otimes p_{\mu} = \delta_{\lambda,\mu} z_{\lambda}
         p_{\lambda}`, where `z_{\lambda} = (1^{r_1} r_1!) (2^{r_2} r_2!)
         \cdots` for `\lambda = (1^{r_1} 2^{r_2} \cdots )`.
+
+        Note that the internal product of any two homogeneous symmetric
+        functions of equal degrees is a homogeneous symmetric function of the
+        same degree. On the other hand, the internal product of two homogeneous
+        symmetric functions of distinct degrees is `0`.
+
+        .. NOTE::
+
+            The internal product is sometimes referred to as "inner product"
+            in the literature, but unfortunately this name is shared by a
+            different operation, namely the Hall inner product
+            (see :meth:`scalar`).
 
         INPUT:
 
@@ -2505,11 +2541,11 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
 
         OUTPUT:
 
-        - symmetric function which is of the same degree as ``self`` and ``x``
-          if ``self`` and ``x`` have the same degree, and equals `0` if
-          they don't.
+        - the internal product of ``self`` with ``x`` (an element of the
+          ring of symmetric functions in the same basis as ``self``)
 
-        The methods :meth:`itensor`, :meth:`kronecker_product`, :meth:`inner_tensor` are all
+        The methods :meth:`itensor`, :meth:`internal_product`,
+        :meth:`kronecker_product`, :meth:`inner_tensor` are all
         synonyms.
 
         EXAMPLES::
@@ -2726,11 +2762,12 @@ class SymmetricFunctionAlgebra_generic_Element(CombinatorialFreeModule.Element):
         r"""
         Return the inner coproduct of ``self`` in the basis of ``self``.
 
-        The inner coproduct (also known as the Kronecker coproduct, or as the
-        second comultiplication on the ring of symmetric functions) is a ring
-        homomorphism `\Delta^\times` from the right of symmetric functions to
-        the tensor product (over the base ring) of this ring with itself. It
-        is uniquely characterized by the formula
+        The inner coproduct (also known as the Kronecker coproduct, as the
+        internal coproduct, or as the second comultiplication on the ring of
+        symmetric functions) is a ring homomorphism `\Delta^\times` from the
+        ring of symmetric functions to the tensor product (over the base
+        ring) of this ring with itself. It is uniquely characterized by the
+        formula
 
         .. MATH::
 

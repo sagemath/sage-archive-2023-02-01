@@ -1148,7 +1148,7 @@ class TableauTuple(CombinatorialObject,Element):
             sage: TableauTuple([[[1,2],[4]],[[3,5]]]).symmetric_group_action_on_entries( Permutation(((1,2))) )
             ([[2, 1], [4]], [[3, 5]])
         """
-        w=w*permutation.Permutation( (self.size(),) )   #need to ensure that it belongs to Sym_size
+        w = w + [i+1 for i in range(len(w), self.size())]   #need to ensure that it belongs to Sym_size
         try:
             return self.parent()([[[w[entry-1] for entry in row] for row in t] for t in self])
         except ValueError:

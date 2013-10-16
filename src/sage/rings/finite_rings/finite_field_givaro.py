@@ -128,7 +128,7 @@ class FiniteField_givaro(FiniteField):
             if k == 1:
                 modulus = 'random' # this will use the gfq_factory_pk function.
             elif ConwayPolynomials().has_polynomial(p, k):
-                from sage.rings.finite_rings.constructor import conway_polynomial
+                from sage.rings.finite_rings.conway_polynomials import conway_polynomial
                 modulus = conway_polynomial(p, k)
             elif modulus is None:
                 modulus = 'random'

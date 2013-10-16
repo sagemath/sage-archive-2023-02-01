@@ -14,6 +14,7 @@ AUTHORS:
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.bindable_class import BindableClass
+from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc import subsets
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -196,7 +197,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
 
             # Coercion to symmetric group algebra
             SGA = SymmetricGroupAlgebra(alg.base_ring(), alg._n)
-            self.module_morphism(self.to_symmetric_group_algebra,
+            self.module_morphism(self.to_symmetric_group_algebra_on_basis,
                                  codomain=SGA, category=Algebras(alg.base_ring())
                                  ).register_as_coercion()
 
@@ -288,7 +289,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             C = Compositions(n)
             return B.sum_of_terms([(C.from_subset(T, n), (-1)**(len(S)-len(T))) for T in subsets(S)])
 
-        def to_symmetric_group_algebra(self, S):
+        def to_symmetric_group_algebra_on_basis(self, S):
             """
             Return `D_S` as a linear combination of basis elements in the
             symmetric group algebra.
@@ -296,7 +297,7 @@ class DescentAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: D = DescentAlgebra(QQ, 4).D()
-                sage: for b in Subsets(3): D.to_symmetric_group_algebra(tuple(b))
+                sage: for b in Subsets(3): D.to_symmetric_group_algebra_on_basis(tuple(b))
                 [1, 2, 3, 4]
                 [2, 1, 3, 4] + [3, 1, 2, 4] + [4, 1, 2, 3]
                 [1, 3, 2, 4] + [1, 4, 2, 3] + [2, 3, 1, 4] + [2, 4, 1, 3] + [3, 4, 1, 2]
@@ -882,4 +883,63 @@ class DescentAlgebraBases(Category_realization_of_parent):
             """
             return self.base_ring().is_commutative() \
                 and self.realization_of()._n <= 2
+
+        @lazy_attribute
+        def to_symmetric_group_algebra(self):
+            """
+            Morphism from ``self`` to the symmetric group algebra.
+
+            EXAMPLES::
+
+                sage: D = DescentAlgebra(QQ, 4).D()
+                sage: D.to_symmetric_group_algebra(D[1,3])
+                [2, 1, 4, 3] + [3, 1, 4, 2] + [3, 2, 4, 1] + [4, 1, 3, 2] + [4, 2, 3, 1]
+                sage: B = DescentAlgebra(QQ, 4).B()
+                sage: B.to_symmetric_group_algebra(B[1,2,1])
+                [1, 2, 3, 4] + [1, 2, 4, 3] + [1, 3, 4, 2] + [2, 1, 3, 4]
+                 + [2, 1, 4, 3] + [2, 3, 4, 1] + [3, 1, 2, 4] + [3, 1, 4, 2]
+                 + [3, 2, 4, 1] + [4, 1, 2, 3] + [4, 1, 3, 2] + [4, 2, 3, 1]
+            """
+            SGA = SymmetricGroupAlgebra(self.base_ring(), self.realization_of()._n)
+            return self.module_morphism(self.to_symmetric_group_algebra_on_basis, codomain=SGA)
+
+        def to_symmetric_group_algebra_on_basis(self, S):
+            """
+            Return the basis element index by ``S`` as a linear combination
+            of basis elements in the symmetric group algebra.
+
+            EXAMPLES::
+
+                sage: B = DescentAlgebra(QQ, 3).B()
+                sage: for c in Compositions(3): B.to_symmetric_group_algebra_on_basis(c)
+                [1, 2, 3] + [1, 3, 2] + [2, 1, 3] + [2, 3, 1] + [3, 1, 2] + [3, 2, 1]
+                [1, 2, 3] + [2, 1, 3] + [3, 1, 2]
+                [1, 2, 3] + [1, 3, 2] + [2, 3, 1]
+                [1, 2, 3]
+                sage: I = DescentAlgebra(QQ, 3).I()
+                sage: for c in Compositions(3): I.to_symmetric_group_algebra_on_basis(c)
+                [1, 2, 3] + [1, 3, 2] + [2, 1, 3] + [2, 3, 1] + [3, 1, 2] + [3, 2, 1]
+                1/2*[1, 2, 3] - 1/2*[1, 3, 2] + 1/2*[2, 1, 3] - 1/2*[2, 3, 1] + 1/2*[3, 1, 2] - 1/2*[3, 2, 1]
+                1/2*[1, 2, 3] + 1/2*[1, 3, 2] - 1/2*[2, 1, 3] + 1/2*[2, 3, 1] - 1/2*[3, 1, 2] - 1/2*[3, 2, 1]
+                1/3*[1, 2, 3] - 1/6*[1, 3, 2] - 1/6*[2, 1, 3] - 1/6*[2, 3, 1] - 1/6*[3, 1, 2] + 1/3*[3, 2, 1]
+            """
+            D = self.realization_of().D()
+            return D.to_symmetric_group_algebra(D(self[S]))
+
+    class ElementMethods:
+        def to_symmetric_group_algebra(self):
+            """
+            Return ``self`` in the symmetric group algebra.
+
+            EXAMPLES::
+
+                sage: B = DescentAlgebra(QQ, 4).B()
+                sage: B[1,3].to_symmetric_group_algebra()
+                [1, 2, 3, 4] + [2, 1, 3, 4] + [3, 1, 2, 4] + [4, 1, 2, 3]
+                sage: I = DescentAlgebra(QQ, 4).I()
+                sage: elt = I(B[1,3])
+                sage: elt.to_symmetric_group_algebra()
+                [1, 2, 3, 4] + [2, 1, 3, 4] + [3, 1, 2, 4] + [4, 1, 2, 3]
+            """
+            return self.parent().to_symmetric_group_algebra(self)
 

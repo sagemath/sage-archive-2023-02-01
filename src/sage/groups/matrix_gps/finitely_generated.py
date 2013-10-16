@@ -567,7 +567,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         more verbose version.
 
         For more on MeatAxe notation, see
-        http://www.gap-system.org/Manuals/doc/htm/ref/CHAP067.htm
+        http://www.gap-system.org/Manuals/doc/ref/chap69.html
         """
         from sage.misc.sage_eval import sage_eval
         F = self.base_ring()
@@ -662,7 +662,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
           1993.
 
         - S. King, "Minimal Generating Sets of non-modular invariant
-          rings of finite groups", :arXiv:`math/0703035`.
+          rings of finite groups", :arxiv:`math/0703035`.
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.interfaces.singular import singular

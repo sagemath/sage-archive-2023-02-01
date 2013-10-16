@@ -536,6 +536,8 @@ rc = make_atlas_library('ptshared')
 if rc!=0:
     print 'Failed to build threaded library, possibly because your'
     print 'system does not support it.'
+else:
+    print 'Installed ATLAS multi-threaded shared library'
 
 
 ######################################################################

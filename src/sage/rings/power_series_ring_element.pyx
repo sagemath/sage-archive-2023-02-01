@@ -1609,7 +1609,9 @@ cdef class PowerSeries(AlgebraElement):
 
         This is equal to the valuation of the underlying polynomial.
 
-        EXAMPLES: Sparse examples::
+        EXAMPLES:
+
+        Sparse examples::
 
             sage: R.<t> = PowerSeriesRing(QQ, sparse=True)
             sage: f = t^100000 + O(t^10000000)

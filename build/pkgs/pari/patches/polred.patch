@@ -1,6 +1,6 @@
-diff -ru src/src/basemath/base1.c b/src/basemath/base1.c
---- src/src/basemath/base1.c	2013-05-06 16:01:56.000000000 +0200
-+++ b/src/basemath/base1.c	2013-05-06 16:49:09.042406927 +0200
+diff -ruN src/src/basemath/base1.c b/src/basemath/base1.c
+--- src/src/basemath/base1.c	2013-10-02 15:27:58.000000000 +0200
++++ b/src/basemath/base1.c	2013-10-02 15:37:57.499160461 +0200
 @@ -1675,40 +1675,42 @@
  ZX_is_better(GEN y, GEN x, GEN *dx)
  {
@@ -356,9 +356,9 @@ diff -ru src/src/basemath/base1.c b/src/basemath/base1.c
    x = T.x; vx = varn(x);
  
    if (degpol(x) == 1)
-diff -ru src/src/functions/number_fields/polredabs b/src/functions/number_fields/polredabs
---- src/src/functions/number_fields/polredabs	2013-05-06 16:01:57.000000000 +0200
-+++ b/src/functions/number_fields/polredabs	2013-05-06 16:47:04.542393431 +0200
+diff -ruN src/src/functions/number_fields/polredabs b/src/functions/number_fields/polredabs
+--- src/src/functions/number_fields/polredabs	2013-10-02 15:27:59.000000000 +0200
++++ b/src/functions/number_fields/polredabs	2013-10-02 15:37:57.499160461 +0200
 @@ -17,8 +17,8 @@
   \misctitle{Warning} This routine uses an exponential-time algorithm to
   enumerate all potential generators, and may be exceedingly slow when the
@@ -388,7 +388,7 @@ diff -ru src/src/functions/number_fields/polredabs b/src/functions/number_fields
  
 diff -ruN src/src/functions/number_fields/polredbest b/src/functions/number_fields/polredbest
 --- src/src/functions/number_fields/polredbest	1970-01-01 01:00:00.000000000 +0100
-+++ b/src/functions/number_fields/polredbest	2013-01-31 14:49:05.547513332 +0100
++++ b/src/functions/number_fields/polredbest	2013-10-02 15:37:57.499160461 +0200
 @@ -0,0 +1,21 @@
 +Function: polredbest
 +Section: number_fields
@@ -412,8 +412,8 @@ diff -ruN src/src/functions/number_fields/polredbest b/src/functions/number_fiel
 + %2 = x^4 + 8
 + @eprog
 diff -ruN src/src/headers/paridecl.h b/src/headers/paridecl.h
---- src/src/headers/paridecl.h	2012-09-25 23:10:47.000000000 +0200
-+++ b/src/headers/paridecl.h	2013-01-31 14:49:05.557525771 +0100
+--- src/src/headers/paridecl.h	2013-10-02 15:27:59.000000000 +0200
++++ b/src/headers/paridecl.h	2013-10-02 15:37:57.499160461 +0200
 @@ -889,6 +889,7 @@
  GEN     polredabs0(GEN x, long flag);
  GEN     polredabs2(GEN x);
@@ -422,9 +422,9 @@ diff -ruN src/src/headers/paridecl.h b/src/headers/paridecl.h
  GEN     smallpolred(GEN x);
  GEN     smallpolred2(GEN x);
  GEN     tschirnhaus(GEN x);
-diff -ru src/src/test/32/compat b/src/test/32/compat
---- src/src/test/32/compat	2013-05-06 16:01:57.000000000 +0200
-+++ b/src/test/32/compat	2013-05-06 16:47:04.542393431 +0200
+diff -ruN src/src/test/32/compat b/src/test/32/compat
+--- src/src/test/32/compat	2013-10-02 15:27:59.000000000 +0200
++++ b/src/test/32/compat	2013-10-02 16:12:57.099154584 +0200
 @@ -787,13 +787,9 @@
  ? factoreddiscf(p,fa)
  136866601
@@ -507,14 +507,14 @@ diff -ru src/src/test/32/compat b/src/test/32/compat
  ? getstack()
  104
  ? getheap()
--[599, 110982]
-+[599, 110954]
+-[600, 110654]
++[600, 110626]
  ? print("Total time spent: ",gettime);
--Total time spent: 236
-+Total time spent: 140
-diff -ru src/src/test/32/nfields b/src/test/32/nfields
---- src/src/test/32/nfields	2013-05-06 16:01:57.000000000 +0200
-+++ b/src/test/32/nfields	2013-05-06 16:47:04.542393431 +0200
+-Total time spent: 152
++Total time spent: 144
+diff -ruN src/src/test/32/nfields b/src/test/32/nfields
+--- src/src/test/32/nfields	2013-10-02 15:27:59.000000000 +0200
++++ b/src/test/32/nfields	2013-10-02 15:37:57.499160461 +0200
 @@ -926,45 +926,50 @@
  ? polgalois(x^6-3*x^2-1)
  [12, 1, 1, "A_4(6) = [2^2]3"]
@@ -587,9 +587,9 @@ diff -ru src/src/test/32/nfields b/src/test/32/nfields
  ? print("Total time spent: ",gettime);
 -Total time spent: 116
 +Total time spent: 76
-diff -ru src/src/test/64/compat b/src/test/64/compat
---- src/src/test/64/compat	2013-05-06 16:01:58.000000000 +0200
-+++ b/src/test/64/compat	2013-05-06 16:47:04.542393431 +0200
+diff -ruN src/src/test/64/compat b/src/test/64/compat
+--- src/src/test/64/compat	2013-10-02 15:28:00.000000000 +0200
++++ b/src/test/64/compat	2013-10-02 16:04:42.569173574 +0200
 @@ -789,13 +789,9 @@
  ? factoreddiscf(p,fa)
  136866601
@@ -672,14 +672,14 @@ diff -ru src/src/test/64/compat b/src/test/64/compat
  ? getstack()
  200
  ? getheap()
--[599, 100048]
-+[599, 100020]
+-[600, 99725]
++[600, 99697]
  ? print("Total time spent: ",gettime);
--Total time spent: 152
-+Total time spent: 180
-diff -ru src/src/test/64/nfields b/src/test/64/nfields
---- src/src/test/64/nfields	2013-05-06 16:01:58.000000000 +0200
-+++ b/src/test/64/nfields	2013-05-06 16:47:04.542393431 +0200
+-Total time spent: 124
++Total time spent: 190
+diff -ruN src/src/test/64/nfields b/src/test/64/nfields
+--- src/src/test/64/nfields	2013-10-02 15:28:00.000000000 +0200
++++ b/src/test/64/nfields	2013-10-02 15:37:57.499160461 +0200
 @@ -928,45 +928,50 @@
  ? polgalois(x^6-3*x^2-1)
  [12, 1, 1, "A_4(6) = [2^2]3"]

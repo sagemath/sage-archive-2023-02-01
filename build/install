@@ -15,7 +15,7 @@ SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 SAGE_VERSION=`cat $SAGE_ROOT/VERSION.txt | sed 's+.*\ \(.*\),.*+\1+'`
 PATH="$SAGE_ROOT/src/bin:$SAGE_LOCAL/bin:$PATH"
 PYTHONPATH="$SAGE_LOCAL"
-export SAGE_ROOT SAGE_SRC SAGE_LOCAL SAGE_LOGS SAGE_SPKG_INST SAGE_VERSION PATH PYTHONPATH
+export SAGE_ROOT SAGE_SRC SAGE_LOCAL SAGE_EXTCODE SAGE_LOGS SAGE_SPKG_INST SAGE_VERSION PATH PYTHONPATH
 
 # Storing the start time of the build process. The time is stored in
 # seconds since 1970-01-01 in a hidden file called
@@ -456,10 +456,10 @@ EOF
 
 # $(TOOLCHAIN) variable containing prerequisites for the build
 echo >&3 -n 'TOOLCHAIN ='
-if [ "$SAGE_INSTALL_CCACHE" == yes ]; then
+if [ "$SAGE_INSTALL_CCACHE" = yes ]; then
     echo >&3 -n ' $(INST)/ccache'
 fi
-if [ "$need_to_install_gcc" == yes ]; then
+if [ "$need_to_install_gcc" = yes ]; then
     echo >&3 -n ' $(INST)/$(GCC)'
     # Use this option for the prereq configure script, such that it
     # will skip all compiler checks.
@@ -469,32 +469,34 @@ echo >&3
 
 echo >&3 'SCRIPT_SOURCES = \'
 for file in "$SAGE_SRC/bin/"*; do
-    echo >&3 "                 $file \\"
+    echo >&3 "                 \$(SAGE_SRC)${file#$SAGE_SRC} \\"
 done
 echo >&3
 echo >&3 'SCRIPT_TARGETS = \'
 for file in "$SAGE_SRC/bin/"*; do
-    echo >&3 "                 ${SAGE_LOCAL}${file#$SAGE_SRC} \\"
+    echo >&3 "                 \$(SAGE_LOCAL)${file#$SAGE_SRC} \\"
 done
 echo >&3
 echo >&3 'EXTCODE_SOURCES = \'
 for file in `find "$SAGE_SRC"/ext -type f`; do
-    echo >&3 "                  $file \\"
+    echo >&3 "                  \$(SAGE_SRC)${file#$SAGE_SRC} \\"
 done
 echo >&3
 echo >&3 'EXTCODE_TARGETS = \'
 for file in `find "$SAGE_SRC"/ext -type f`; do
-    echo >&3 "                  ${SAGE_EXTCODE}${file#$SAGE_SRC/ext} \\"
+    echo >&3 "                  \$(SAGE_EXTCODE)${file#$SAGE_SRC/ext} \\"
 done
 echo >&3
 
 cat >&3 <<EOF
 # don't just use \`install\` since we don't want to change permissions
-$SAGE_LOCAL/bin/%: $SAGE_SRC/bin/%
+\$(SAGE_LOCAL)/bin/%: \$(SAGE_SRC)/bin/%
 	cp \$< \$@
 
 # don't just use \`install -D\` since we don't want to change permissions
-$SAGE_EXTCODE/%: $SAGE_SRC/ext/%
+# cp won't correctly setup the SAGE_EXTCODE directory structure (unlike install)
+# so we need a mkdir here to cp can copy into an existing folder
+\$(SAGE_EXTCODE)/%: \$(SAGE_SRC)/ext/%
 	@mkdir -p "\$(@D)"
 	cp \$< \$@
 EOF

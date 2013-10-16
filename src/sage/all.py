@@ -85,6 +85,8 @@ from sage.misc.sh import sh
 
 from sage.libs.all       import *
 from sage.doctest.all    import *
+if SAGE_ROOT is not None:
+    from sage.dev.all        import *
 
 from sage.rings.all      import *
 from sage.matrix.all     import *

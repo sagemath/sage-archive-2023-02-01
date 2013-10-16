@@ -1425,6 +1425,23 @@ class Tableau(CombinatorialObject, Element):
 
         return res
 
+    def is_k_tableau(self, k):
+        r"""
+        Checks whether ``self`` is a valid weak `k`-tableau.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,2,3],[2,3],[3]])
+            sage: t.is_k_tableau(3)
+            True
+            sage: t = Tableau([[1,1,3],[2,2],[3]])
+            sage: t.is_k_tableau(3)
+            False
+        """
+        shapes = self.to_chain()
+        kshapes = [ la.k_conjugate(k) for la in shapes ]
+        return all( kshapes[i+1].contains(kshapes[i]) for i in range(len(shapes)-1) )
+
     def restrict(self, n):
         """
         Return the restriction of the (standard) tableau to `n`. If possible,
@@ -2155,6 +2172,9 @@ class Tableau(CombinatorialObject, Element):
         Return the PermutationGroup corresponding to the row stabilizer of
         ``self``.
 
+        This assumes that every integer from `1` to the size of ``self``
+        appears exactly once in ``self``.
+
         EXAMPLES::
 
             sage: rs = Tableau([[1,2,3],[4,5]]).row_stabilizer()
@@ -2172,11 +2192,17 @@ class Tableau(CombinatorialObject, Element):
             sage: rs = Tableau([[1],[2],[3]]).row_stabilizer()
             sage: rs.order()
             1
+            sage: rs = Tableau([[2,4,5],[1,3]]).row_stabilizer()
+            sage: rs.order()
+            12
+            sage: rs = Tableau([]).row_stabilizer()
+            sage: rs.order()
+            1
         """
 
         # Ensure that the permutations involve all elements of the
         # tableau, by including the identity permutation on the set [1..k].
-        k = max(self.entries())
+        k = self.size()
         gens = [range(1,k+1)]
         for i in range(len(self)):
             for j in range(0, len(self[i])-1):
@@ -2188,6 +2214,9 @@ class Tableau(CombinatorialObject, Element):
         """
         Return the PermutationGroup corresponding to the column stabilizer
         of ``self``.
+
+        This assumes that every integer from `1` to the size of ``self``
+        appears exactly once in ``self``.
 
         EXAMPLES::
 
@@ -2204,7 +2233,7 @@ class Tableau(CombinatorialObject, Element):
 
     def height(self):
         """
-        Returns the height of the tableau.
+        Return the height of ``self``.
 
         EXAMPLES::
 
@@ -2403,7 +2432,7 @@ class Tableau(CombinatorialObject, Element):
 
     def catabolism(self):
         """
-        Remove the top row of ``self`` and inserts it back in using
+        Remove the top row of ``self`` and insert it back in using
         column Schensted insertion (starting with the largest letter).
 
         EXAMPLES::
@@ -2724,7 +2753,7 @@ class Tableau(CombinatorialObject, Element):
             sage: _.category()
             Category of elements of Tableaux
         """
-        w=w*permutation.Permutation( (self.size(),) )   #need to ensure that it belongs to Sym_size
+        w = w + [i+1 for i in range(len(w), self.size())]   #need to ensure that it belongs to Sym_size
         try:
             return self.parent()([[w[entry-1] for entry in row] for row in self])
         except StandardError:

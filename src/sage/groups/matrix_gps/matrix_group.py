@@ -228,9 +228,9 @@ class MatrixGroup_base(Group):
             return 'Matrix group over {0} with {1} generators'.format(
                 self.base_ring(), self.ngens())
         else:
-            from sage.misc.displayhook import format_obj
+            from sage.misc.displayhook import format_list
             return 'Matrix group over {0} with {1} generators {2}'.format(
-                self.base_ring(), self.ngens(), format_obj(self.gens()))
+                self.base_ring(), self.ngens(), format_list(self.gens()))
 
     def _repr_option(self, key):
         """

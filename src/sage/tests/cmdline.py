@@ -13,6 +13,7 @@ test.spyx
 --advanced
 -c
 --cython
+--dev
 --ecl
 --experimental
 --gap
@@ -418,6 +419,15 @@ def test_executable(args, input="", timeout=100.0, **kwds):
         sage: print err
         Cython (http://cython.org) is a compiler for code written in the
         Cython language.  Cython is based on Pyrex by Greg Ewing.
+        ...
+
+        sage: (out, err, ret) = test_executable(["sage", "--dev", "help"])
+        sage: ret, err
+        (0, '')
+        sage: print out
+        usage: sage-dev [-h] subcommand ...
+        <BLANKLINE>
+        The developer interface for sage.
         ...
 
         sage: (out, err, ret) = test_executable(["sage", "--ecl"], "(* 12345 54321)\n")

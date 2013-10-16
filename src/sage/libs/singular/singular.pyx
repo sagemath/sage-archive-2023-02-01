@@ -159,7 +159,7 @@ cdef FFgivE si2sa_GFqGivaro(number *n, ring *_ring, Cache_givaro cache):
     order = cache.objectptr.cardinality() - 1
 
     while z:
-        c = cache.objectptr.initi(c,<long>napGetCoeff(z))
+        c = cache.objectptr.initi(c, <long>napGetCoeff(z))
         e = napGetExpFrom(z,1, _ring)
         if e == 0:
             ret = cache.objectptr.add(ret, c, ret)
@@ -182,7 +182,8 @@ cdef FFgf2eE si2sa_GFqNTLGF2E(number *n, ring *_ring, Cache_ntl_gf2e cache):
         <type 'sage.rings.finite_rings.element_ntl_gf2e.FiniteField_ntl_gf2eElement'>
     """
     cdef napoly *z
-    cdef int c, e
+    cdef long c
+    cdef int e
     cdef FFgf2eE a
     cdef FFgf2eE ret
 
@@ -212,10 +213,20 @@ cdef object si2sa_GFq_generic(number *n, ring *_ring, object base):
         sage: f.lc()
         a^12 + a^11 + a^9 + a^8 + a^7 + 2*a^6 + a^5
         sage: type(f.lc())
-        <class 'sage.rings.finite_rings.element_ext_pari.FiniteField_ext_pariElement_with_category'>
+        <type 'sage.rings.finite_rings.element_pari_ffelt.FiniteFieldElement_pari_ffelt'>
+
+    Try the largest characteristic which Singular supports::
+
+        sage: p = previous_prime(2^31)
+        sage: F.<a> = FiniteField(p^2)
+        sage: R.<x,y> = F[]
+        sage: R(-1).constant_coefficient()  # indirect doctest
+        2147483646
+
     """
     cdef napoly *z
-    cdef int c, e
+    cdef long c
+    cdef int e
     cdef object a
     cdef object ret
 

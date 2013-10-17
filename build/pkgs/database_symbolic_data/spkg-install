@@ -2,14 +2,21 @@
 
 TARGET="$SAGE_SHARE/symbolic_data/"
 
-
 if [ -d "$TARGET" ]; then
-    $RM -rf "$TARGET" 
+    rm -rf "$TARGET" 
 fi
 
 mkdir "$TARGET"
+if [ $? -ne 0 ]; then
+    echo >&2 "Error creating installation directory."
+    exit 1
+fi
 
-$CP -r Data "$TARGET"/
+$CP -r src/Data "$TARGET"/
+if [ $? -ne 0 ]; then
+    echo >&2 "Error installing symbolic data."
+    exit 1
+fi
 
 
 

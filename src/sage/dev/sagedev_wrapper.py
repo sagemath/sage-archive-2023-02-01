@@ -105,7 +105,6 @@ class SageDevWrapper(object):
         self._wrap("pull")
         self._wrap("download_patch")
         self._wrap("edit_ticket")
-        self._wrap("gather")
         self._wrap("import_patch")
         self._wrap("tickets")
         self._wrap("merge")

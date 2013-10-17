@@ -19,6 +19,7 @@ AUTHORS:
 #                          R. Andrew Ohana <andrew.ohana@gmail.com>
 #                          Robert Bradshaw <robertwb@gmail.com>
 #                          Timo Kluck <tkluck@infty.nl>
+#                          Volker Braun <vbraun.name@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -60,7 +61,7 @@ class MercurialPatchMixin(object):
     def import_patch(self, patchname=None, url=None, local_file=None,
                      diff_format=None, header_format=None, path_format=None):
         r"""
-        Import a patch into the current branch.
+        Legacy support: Import a patch into the current branch.
 
         If no arguments are given, then all patches from the ticket are
         downloaded and applied using :meth:`download_patch`.
@@ -273,7 +274,7 @@ class MercurialPatchMixin(object):
 
     def download_patch(self, ticket=None, patchname=None, url=None):
         r"""
-        Download a patch to a temporary directory.
+        Legacy support: Download a patch to a temporary directory.
 
         If only ``ticket`` is specified, then try to make sense of the
         ``apply`` statements in the comments on the ticket to download the

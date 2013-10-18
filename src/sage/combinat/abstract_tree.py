@@ -66,7 +66,6 @@ incoherent with the data structure.
 from sage.structure.list_clone import ClonableArray
 from sage.rings.integer import Integer
 from sage.misc.misc_c import prod
-from sage.misc import lazy_attribute
 ###############################################################################
 # # use to load tikz in the preamble (one for *view* and one for *notebook*)
 from sage.misc.latex import latex
@@ -365,7 +364,7 @@ class AbstractTree(object):
             |  / /        |
             | 4 5         |
 
-        The algorithm explorer this tree in the following order:
+        The algorithm explores this tree in the following order:
         `4,5,3,2,7,6,9,10,8,1`.
 
         TESTS::
@@ -904,7 +903,7 @@ class AbstractTree(object):
 
     def tree_factorial(self):
         """
-        Returns the tree-factorial of ``self``
+        Return the tree-factorial of ``self``
 
         Definition:
 

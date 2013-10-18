@@ -2,7 +2,7 @@
 """
 Binary Trees
 
-This module deals with binary trees as mathematical (in particular immmutable)
+This module deals with binary trees as mathematical (in particular immutable)
 objects.
 
 .. NOTE::
@@ -14,14 +14,21 @@ AUTHORS:
 
 - Florent Hivert (2010-2011): initial implementation.
 
-References
-----------
+REFERENCES:
 
 .. [LodayRonco] Jean-Louis Loday and María O. Ronco.
-   *Hopf algebra of the planar binary trees*.
-    
+   *Hopf algebra of the planar binary trees*,
+   Advances in Mathematics, volume 139, issue 2,
+   10 November 1998, pp. 293-309.
+   http://www.sciencedirect.com/science/article/pii/S0001870898917595
+
 .. [HNT05] Florent Hivert, Jean-Christophe Novelli, and Jean-Yves Thibon.
-   *The algebra of binary search trees*.
+   *The algebra of binary search trees*,
+   :arxiv:`math/0401089v2`.
+
+.. [CP12] Gregory Chatel, Vivane Pons.
+   *Counting smaller trees in the Tamari order*,
+   :arxiv:`1212.0751v1`.
 """
 #*****************************************************************************
 #       Copyright (C) 2010 Florent Hivert <Florent.Hivert@univ-rouen.fr>,
@@ -44,18 +51,23 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
     """
     Binary trees.
 
-    Binary trees here mean ordered (a.k.a. plane) binary trees,
-    meaning that the children of each node are ordered.
+    Binary trees here mean ordered (a.k.a. plane) finite binary 
+    trees, where "ordered" means that the children of each node are 
+    ordered.
+
+    Binary trees contain nodes and leaves, where each node has two
+    children while each leaf has no children. The number of leaves
+    always equals the number of nodes plus `1`.
 
     INPUT:
 
     - ``children`` -- ``None`` (default) or a list, tuple or iterable of
-      length 2 of binary trees or convertible objects. This corresponds to
-      the standard recursive definition of a binary tree as either a leaf
-      or a pair of binary trees. Syntactic sugar allows leaving out all
-      but the outermost calls of the ``BinaryTree()`` constructor, so that,
-      e. g., ``BinaryTree([BinaryTree(None),BinaryTree(None)])`` can be
-      simplified to ``BinaryTree([None,None])``. It is also allowed to
+      length `2` of binary trees or convertible objects. This corresponds
+      to the standard recursive definition of a binary tree as either a
+      leaf or a pair of binary trees. Syntactic sugar allows leaving out
+      all but the outermost calls of the ``BinaryTree()`` constructor, so
+      that, e. g., ``BinaryTree([BinaryTree(None),BinaryTree(None)])`` can
+      be simplified to ``BinaryTree([None,None])``. It is also allowed to
       abbreviate ``[None, None]`` by ``[]``.
 
     - ``check`` -- (default to ``True``) whether check for binary should be
@@ -98,7 +110,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
     def __classcall_private__(cls, *args, **opts):
         """
         Ensure that binary trees created by the enumerated sets and directly
-        are the same and that they are instances of :class:`BinaryTree`
+        are the same and that they are instances of :class:`BinaryTree`.
 
         TESTS::
 
@@ -128,7 +140,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
     @lazy_class_attribute
     def _auto_parent(cls):
         """
-        The automatic parent of the element of this class
+        The automatic parent of the elements of this class.
 
         When calling the constructor of an element of this class, one needs a
         parent. This class attribute specifies which parent is used.
@@ -139,7 +151,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             Binary trees
             sage: BinaryTree([None, None]).parent()
             Binary trees
-         """
+        """
         return BinaryTrees_all()
 
     def __init__(self, parent, children = None, check = True):
@@ -175,7 +187,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     def check(self):
         """
-        Checks that ``self`` is a binary tree
+        Check that ``self`` is a binary tree.
 
         EXAMPLES::
 
@@ -411,7 +423,11 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     def is_empty(self):
         """
-        Return whether ``self`` is  empty.
+        Return whether ``self`` is empty.
+
+        The notion of emptiness employed here is the one which defines
+        a binary tree to be empty if its root is a leaf. There is
+        precisely one empty binary tree.
 
         EXAMPLES::
 
@@ -424,39 +440,110 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         """
         return not self
 
-    def graph(self):
+    def graph(self, with_leaves=True):
         """
-        Convert ``self`` to a digraph
+        Convert ``self`` to a digraph. By default, this graph contains
+        both nodes and leaves, hence is never empty. To obtain a graph
+        which contains only the nodes, the ``with_leaves`` optional
+        keyword variable has to be set to ``False``.
 
-        EXAMPLE::
+        INPUT:
+
+        - ``with_leaves`` -- (default: ``True``) a Boolean, determining
+          whether the resulting graph will be formed from the leaves
+          and the nodes of ``self`` (if ``True``), or only from the
+          nodes of ``self`` (if ``False``)
+
+        EXAMPLES::
 
             sage: t1 = BinaryTree([[], None])
             sage: t1.graph()
             Digraph on 5 vertices
+            sage: t1.graph(with_leaves=False)
+            Digraph on 2 vertices
 
             sage: t1 = BinaryTree([[], [[], None]])
             sage: t1.graph()
             Digraph on 9 vertices
             sage: t1.graph().edges()
             [(0, 1, None), (0, 4, None), (1, 2, None), (1, 3, None), (4, 5, None), (4, 8, None), (5, 6, None), (5, 7, None)]
+            sage: t1.graph(with_leaves=False)
+            Digraph on 4 vertices
+            sage: t1.graph(with_leaves=False).edges()
+            [(0, 1, None), (0, 2, None), (2, 3, None)]
+
+            sage: t1 = BinaryTree()
+            sage: t1.graph()
+            Digraph on 1 vertex
+            sage: t1.graph(with_leaves=False)
+            Digraph on 0 vertices
+
+            sage: BinaryTree([]).graph()
+            Digraph on 3 vertices
+            sage: BinaryTree([]).graph(with_leaves=False)
+            Digraph on 1 vertex
+
+            sage: t1 = BinaryTree([[], [[], []]])
+            sage: t1.graph(with_leaves=False)
+            Digraph on 5 vertices
+            sage: t1.graph(with_leaves=False).edges()
+            [(0, 1, None), (0, 2, None), (2, 3, None), (2, 4, None)]
         """
         from sage.graphs.graph import DiGraph
-        res = DiGraph()
-        def rec(tr, idx):
-            if not tr:
-                return
-            else:
-                nbl = 2*tr[0].node_number() + 1
-                res.add_edges([[idx,idx+1], [idx,idx+1+nbl]])
-                rec(tr[0], idx + 1)
-                rec(tr[1], idx + nbl + 1)
-        rec(self, 0)
-        return res
+
+        if with_leaves:   # We want leaves and nodes.
+
+            # Special treatment for the case when self has only 1 vertex.
+            # In this case, rec(self, 0) would give a false result.
+            if not self:
+                return DiGraph([[0], lambda i,j: False])
+    
+            res = DiGraph()
+            # The edge set of res will be built up step by step using the
+            # following function:
+            def rec(tr, idx):
+                if not tr:  # tr is a leaf.
+                    return
+                else:  # tr is a node.
+                    nbl = 2*tr[0].node_number() + 1
+                    res.add_edges([[idx,idx+1], [idx,idx+1+nbl]])
+                    rec(tr[0], idx + 1)
+                    rec(tr[1], idx + nbl + 1)
+            rec(self, 0)
+            return res
+
+        else:   # We want only the nodes.
+
+            # Special treatment for the case when self has only 1 node.
+            # In this case, the general DiGraph construction would
+            # falsely yield an empty graph (since it adds nodes only
+            # implicitly by adding edges).
+            if self.node_number() == 1:
+                return DiGraph([[0], lambda i,j: False])
+
+            res = DiGraph()
+            # The edge set of res will be built up step by step using the
+            # following function:
+            def rec(tr, idx):
+                if not tr:  # tr is a leaf.
+                    return
+                else:  # tr is a node.
+                    nbl = tr[0].node_number()
+                    if nbl > 0:
+                        res.add_edge([idx, idx + 1])
+                        rec(tr[0], idx + 1)
+                    if tr[1].node_number() > 0:
+                        res.add_edge([idx, idx + nbl + 1])
+                        rec(tr[1], idx + nbl + 1)
+            rec(self, 0)
+            return res
 
     def canonical_labelling(self,shift=1):
         """
         Return a labelled version of ``self``.
 
+        The canonical labelling of a binary tree is a certain labelling of the
+        nodes (not the leaves) of the tree.
         The actual canonical labelling is currently unspecified. However, it
         is guaranteed to have labels in `1...n` where `n` is the number of
         nodes of the tree. Moreover, two (unlabelled) trees compare as equal if
@@ -480,18 +567,30 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         else:
             return LTR(None)
 
-    def show(self):
+    def show(self, with_leaves=False):
         """
+        Show the binary tree ``show``, with or without leaves depending
+        on the Boolean keyword variable ``with_leaves``.
+
+        .. WARNING::
+
+            Left and right children might get interchanged in
+            the actual picture.
+
         TESTS::
 
             sage: t1 = BinaryTree([[], [[], None]])
             sage: t1.show()
         """
-        self.graph().show(layout='tree', tree_root=0, tree_orientation="down")
+        try:
+            self.graph(with_leaves=with_leaves).show(layout='tree', tree_root=0, tree_orientation="down")
+        except RuntimeError:
+            # This is for the border case BinaryTree().show().
+            self.graph(with_leaves=with_leaves).show()
 
     def make_node(self, child_list = [None, None]):
         """
-        Modify ``self`` so that it becomes a node with children ``childlist``
+        Modify ``self`` so that it becomes a node with children ``child_list``.
 
         INPUT:
 
@@ -510,18 +609,18 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             ...
             ValueError: object is immutable; please change a copy instead.
             sage: with t.clone() as t1:
-            ...    t1.make_node([None, None])
+            ....:     t1.make_node([None, None])
             sage: t, t1
             (., [., .])
             sage: with t.clone() as t:
-            ...    t.make_node([BinaryTree(), BinaryTree(), BinaryTree([])])
+            ....:     t.make_node([BinaryTree(), BinaryTree(), BinaryTree([])])
             Traceback (most recent call last):
             ...
             ValueError: the list must have length 2
             sage: with t1.clone() as t2:
-            ...    t2.make_node([t1, t1])
+            ....:     t2.make_node([t1, t1])
             sage: with t2.clone() as t3:
-            ...    t3.make_node([t1, t2])
+            ....:     t3.make_node([t1, t2])
             sage: t1, t2, t3
             ([., .], [[., .], [., .]], [[., .], [[., .], [., .]]])
         """
@@ -533,7 +632,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     def make_leaf(self):
         """
-        Modify ``self`` so that it became a leaf
+        Modify ``self`` so that it becomes a leaf (i. e., an empty tree).
 
         .. NOTE:: ``self`` must be in a mutable state.
 
@@ -548,7 +647,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             ...
             ValueError: object is immutable; please change a copy instead.
             sage: with t.clone() as t1:
-            ...    t1.make_leaf()
+            ....:     t1.make_leaf()
             sage: t, t1
             ([., .], .)
         """
@@ -585,7 +684,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
     def to_dyck_word_tamari(self):
         r"""
         Return the Dyck word associated with ``self`` in consistency with
-        the Tamari order on dyck words and binary trees.
+        the Tamari order on Dyck words and binary trees.
 
         The bijection is defined recursively as follows:
 
@@ -605,17 +704,16 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: BinaryTree([[[], [[], None]], [[], []]]).to_dyck_word_tamari()
             [1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0]
         """
-        from sage.combinat.dyck_word import DyckWord
         return self.to_dyck_word("L1R0")
 
     @combinatorial_map(name="to Dyck paths: up step, left tree, down step, right tree")
     def to_dyck_word(self, usemap="1L0R"):
         r"""
+        Return the Dyck word associated with ``self`` using the given map.
+
         INPUT:
 
         - ``usemap`` -- a string, either ``1L0R``, ``1R0L``, ``L1R0``, ``R1L0``
-
-        Return the Dyck word associated with ``self`` using the given map.
 
         The bijection is defined recursively as follows:
 
@@ -623,7 +721,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         - a tree with children `l,r` is associated with the Dyck word
           described by ``usemap`` where `L` and `R` are respectively the
-          Dyck words associated with the `l` and `r`.
+          Dyck words associated with the trees `l` and `r`.
 
         EXAMPLES::
 
@@ -728,7 +826,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
     @combinatorial_map(name="To ordered tree, right child = right brother")
     def to_ordered_tree_right_branch(self):
         r"""
-        Return an ordered tree of size n+1 by the following recursive rule:
+        Return an ordered tree of size `n+1` by the following recursive rule:
 
         - if `x` is the right child of `y`, `x` becomes the right brother
           of `y`
@@ -784,7 +882,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         Return a 312-avoiding permutation corresponding to the binary tree.
 
         The linear extensions of a binary tree form an interval of the weak
-        order called the sylester class of the tree. This permutation is
+        order called the sylvester class of the tree. This permutation is 
         the minimal element of this sylvester class.
 
         EXAMPLES::
@@ -809,10 +907,11 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         return Permutation(self._postfix_word())
 
     @combinatorial_map(name="To complete tree")
-    def as_ordered_tree(self,with_leaves=True):
+    def as_ordered_tree(self, with_leaves=True):
         r"""
         Return the same tree seen as an ordered tree. By default, leaves
-        are transformed into actual nodes.
+        are transformed into actual nodes, but this can be avoided by
+        setting the optional variable ``with_leaves`` to ``False``.
 
         EXAMPLES::
 
@@ -832,6 +931,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         if with_leaves:
             children = [child.as_ordered_tree(with_leaves) for child in self]
         else:
+            if not self:
+                raise ValueError("The empty binary tree cannot be made into an ordered tree with with_leaves = False")
             children = [child.as_ordered_tree(with_leaves) for child in self if not child.is_empty()]
         if self in LabelledBinaryTrees():
             from sage.combinat.ordered_tree import LabelledOrderedTree
@@ -841,11 +942,18 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             return OrderedTree(children)
 
     @combinatorial_map(name="To graph")
-    def to_undirected_graph(self, with_leaves = False):
+    def to_undirected_graph(self, with_leaves=False):
         r"""
         Return the undirected graph obtained from the tree nodes and edges.
-        Leafs are ignored by default but can set ``with_leaves`` to ``True``
-        to obtain the graph of the complete tree.
+        Leaves are ignored by default, but one can set ``with_leaves`` to 
+        ``True`` to obtain the graph of the complete tree.
+
+        INPUT:
+
+        - ``with_leaves`` -- (default: ``False``) a Boolean, determining
+          whether the resulting graph will be formed from the leaves
+          and the nodes of ``self`` (if ``True``), or only from the
+          nodes of ``self`` (if ``False``)
 
         EXAMPLES::
 
@@ -854,6 +962,12 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             Graph on 1 vertex
             sage: bt.to_undirected_graph(with_leaves=True)
             Graph on 3 vertices
+
+            sage: bt = BinaryTree()
+            sage: bt.to_undirected_graph()
+            Graph on 0 vertices
+            sage: bt.to_undirected_graph(with_leaves=True)
+            Graph on 1 vertex
 
         If the tree is labelled, we use its labelling to label the graph.
         Otherwise, we use the graph canonical labelling which means that
@@ -873,25 +987,33 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: BinaryTree([[],[]]).to_undirected_graph() == BinaryTree([[[],None],None]).to_undirected_graph()
             True
         """
+        if (not with_leaves) and (not self):
+            # this case needs extra care :(
+            from sage.graphs.graph import Graph
+            return Graph([])
         return self.as_ordered_tree(with_leaves).to_undirected_graph()
 
     @combinatorial_map(name="To poset")
-    def to_poset(self, with_leaves = False, root_to_leaf=False):
+    def to_poset(self, with_leaves=False, root_to_leaf=False):
         r"""
-        Return the poset obtained by interpreting the tree as a hasse
+        Return the poset obtained by interpreting the tree as a Hasse 
         diagram.
 
         The default orientation is from leaves to root but you can
         pass ``root_to_leaf=True`` to obtain the inverse orientation.
 
-        Leafs are ignored by default but can set ``with_leaves`` to ``True``
-        to obtain the poset of the complete tree.
+        Leaves are ignored by default, but one can set ``with_leaves`` to 
+        ``True`` to obtain the poset of the complete tree.
 
         INPUT:
 
-        - ``with_leaves`` -- boolean, true if leaves should be added to the poset
-        - ``root_to_leaf`` -- boolean, true if the poset orientation should
-          be from root to leaves. It is false by default.
+        - ``with_leaves`` -- (default: ``False``) a Boolean, determining
+          whether the resulting poset will be formed from the leaves
+          and the nodes of ``self`` (if ``True``), or only from the
+          nodes of ``self`` (if ``False``)
+        - ``root_to_leaf`` -- (default: ``False``) a Boolean,
+          determining whether the poset orientation should be from root
+          to leaves (if ``True``) or from leaves to root (if ``False``).
 
         EXAMPLES::
 
@@ -914,7 +1036,19 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             2[1[., .], 3[., 4[., .]]]
             sage: bt.to_poset().cover_relations()
             [[4, 3], [3, 2], [1, 2]]
+
+        Let us check that the empty binary tree is correctly handled::
+
+            sage: bt = BinaryTree()
+            sage: bt.to_poset()
+            Finite poset containing 0 elements
+            sage: bt.to_poset(with_leaves=True)
+            Finite poset containing 1 elements
         """
+        if (not with_leaves) and (not self):
+            # this case needs extra care :(
+            from sage.combinat.posets.posets import Poset
+            return Poset({})
         return self.as_ordered_tree(with_leaves).to_poset(root_to_leaf)
 
     @combinatorial_map(name="To 132 avoiding permutation")
@@ -923,7 +1057,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
         Return a 132-avoiding permutation corresponding to the binary tree.
 
         The linear extensions of a binary tree form an interval of the weak
-        order called the sylester class of the tree. This permutation is
+        order called the sylvester class of the tree. This permutation is 
         the maximal element of this sylvester class.
 
         EXAMPLES::
@@ -1014,9 +1148,9 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     def canopee(self):
         """
-        Return the canopee of ``self``
+        Return the canopee of ``self``.
 
-        The *canopee* of a non empty binary tree `T` with `n` internal nodes is
+        The *canopee* of a non-empty binary tree `T` with `n` internal nodes is
         the list `l` of `0` and `1` of length `n-1` obtained by going along the
         leaves of `T` from left to right except the two extremal ones, writing
         `0` if the leaf is a right leaf and `1` if the leaf is a left leaf.
@@ -1036,12 +1170,12 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         The number of pairs `(t_1, t_2)` of binary trees of size `n` such that
         the canopee of `t_1` is the complementary of the canopee of `t_2` is
-        also the number of Baxter permutations (see [DG]_, see
+        also the number of Baxter permutations (see [DG94]_, see
         also :oeis:`A001181`). We check this in small cases::
 
             sage: [len([(u,v) for u in BinaryTrees(n) for v in BinaryTrees(n)
-            ...       if map(lambda x:1-x, u.canopee()) == v.canopee()])
-            ...    for n in range(1, 5)]
+            ....:       if map(lambda x:1-x, u.canopee()) == v.canopee()])
+            ....:    for n in range(1, 5)]
             [1, 2, 6, 22]
 
         Here is a less trivial implementation of this::
@@ -1049,10 +1183,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             sage: from sage.sets.finite_set_map_cy import fibers
             sage: from sage.misc.all import attrcall
             sage: def baxter(n):
-            ...      f = fibers(lambda t: tuple(t.canopee()),
-            ...                   BinaryTrees(n))
-            ...      return sum(len(f[i])*len(f[tuple(1-x for x in i)])
-            ...                 for i in f)
+            ....:     f = fibers(lambda t: tuple(t.canopee()),
+            ....:                   BinaryTrees(n))
+            ....:     return sum(len(f[i])*len(f[tuple(1-x for x in i)])
+            ....:                for i in f)
             sage: [baxter(n) for n in range(1, 7)]
             [1, 2, 6, 22, 92, 422]
 
@@ -1065,9 +1199,9 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
         REFERENCES:
 
-            .. [DG] S. Dulucq and O, Guibert. Mots de piles, tableaux
-               standards et permutations de Baxter, proceedings of
-               Formal Power Series and Algebraic Combinatorics, 1994.
+        .. [DG94] S. Dulucq and O. Guibert. Mots de piles, tableaux
+           standards et permutations de Baxter, proceedings of
+           Formal Power Series and Algebraic Combinatorics, 1994.
         """
         if not self:
             raise ValueError("canopee is only defined for non empty binary trees")
@@ -1083,13 +1217,23 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     def in_order_traversal_iter(self):
         """
-        The depth-first infix-order traversal iterator.
+        The depth-first infix-order traversal iterator for the binary
+        tree ``self``.
 
-        This method iters each node following the infix order traversal
-        algorithm.
+        This method iters each vertex (node and leaf alike) following the
+        depth-first infix order traversal algorithm.
 
-        For example on the following binary tree `T` where we denote leaves by
-        `a, b, c, \ldots` and nodes by `1, 2, 3, \ldots`::
+        The *depth-first infix order traversal algorithm* iterates
+        through a binary tree as follows::
+
+            iterate through the left subtree (by the depth-first infix
+                order traversal algorithm);
+            yield the root;
+            iterate through the right subtree (by the depth-first infix
+                order traversal algorithm).
+
+        For example on the following binary tree `T`, where we denote
+        leaves by `a, b, c, \ldots` and nodes by `1, 2, 3, \ldots`::
 
             |     ____3____          |
             |    /         \         |
@@ -1101,15 +1245,13 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             |         / \   / \      |
             |        d   e f   g     |
 
-        the *depth-first infixe-order traversal algorithm* explores `T` in
-        the following order of nodes `a,1,b,2,c,3,d,4,e,5,f,6,g,7,h,8,i`.
+        the depth-first infix-order traversal algorithm iterates through
+        the vertices of `T` in the following order:
+        `a,1,b,2,c,3,d,4,e,5,f,6,g,7,h,8,i`.
 
-        ALGORITHM::
-
-            explore the left subtree
-            manipulate the root with function `node_action` if the root is
-                a node and with function `leaf_action` if it is a leaf
-            explore the right subtree
+        See :meth:`in_order_traversal` for a version of this algorithm
+        which not only iterates through, but actually does something at
+        the vertices of tree.
 
         TESTS::
 
@@ -1150,11 +1292,44 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     def in_order_traversal(self, node_action=None, leaf_action=None):
         r"""
-        The depth-first infix-order traversal algorithm.
+        Explore the binary tree ``self`` using the depth-first infix-order 
+        traversal algorithm, executing the ``node_action`` function
+        whenever traversing a node and executing the ``leaf_action``
+        function whenever traversing a leaf.
 
-        .. SEEALSO::
+        In more detail, what this method does to a tree `T` is the
+        following::
 
-            :meth:`~sage.combinat.binary_tree.BinaryTree.in_order_traversal_iter()`
+            if the root of `T` is a node:
+                apply in_order_traversal to the left subtree of `T`
+                    (with the same node_action and leaf_action);
+                apply node_action to the root of `T`;
+                apply in_order_traversal to the right subtree of `T`
+                    (with the same node_action and leaf_action);
+            else:
+                apply leaf_action to the root of `T`.
+
+        For example on the following binary tree `T`, where we denote
+        leaves by `a, b, c, \ldots` and nodes by `1, 2, 3, \ldots`::
+
+            |     ____3____          |
+            |    /         \         |
+            |   1          __7__     |
+            |  / \        /     \    |
+            | a   2      _5_     8   |
+            |    / \    /   \   / \  |
+            |   b   c  4     6 h   i |
+            |         / \   / \      |
+            |        d   e f   g     |
+
+        this method first applies ``leaf_action`` to `a`, then applies
+        ``node_action`` to `1`, then ``leaf_action`` to `b`, then
+        ``node_action`` to `2`, etc., with the vertices being traversed
+        in the order `a,1,b,2,c,3,d,4,e,5,f,6,g,7,h,8,i`.
+
+        See :meth:`in_order_traversal_iter` for a version of this
+        algorithm which only iterates through the vertices rather than
+        applying any function to them.
 
         INPUT:
 
@@ -1218,10 +1393,21 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     def tamari_greater(self):
         r"""
-        The list of all trees greater than ``self``.
+        The list of all trees greater or equal to ``self`` in the Tamari
+        order.
         This is the transitive ideal of its successors.
 
-        The tree::
+        The Tamari order on binary trees of size `n` is the partial order
+        on the set of all binary trees of size `n` generated by the
+        following requirement:  If a binary tree `T'` is obtained by
+        right rotation (see :meth:`right_rotate`) from a binary tree `T`,
+        then `T < T'`.
+        This not only is a well-defined partial order, but actually is
+        a lattice structure on the set of binary trees of size `n`, and
+        is a quotient of the weak order on the `n`-th symmetric group.
+        See [CP12]_.
+
+        For example, the tree::
 
             |     __o__   |
             |    /     \  |
@@ -1229,7 +1415,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             |  / \     /  |
             | o   o   o   |
 
-        has these trees greater than it::
+        has these trees greater or equal to it::
 
             |o          , o        , o        , o        ,  o       ,   o      ,|
             | \            \          \          \           \           \      |
@@ -1276,7 +1462,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     def tamari_pred(self):
         r"""
-        Compute the list of predecessor of ``self`` in the tamari poset.
+        Compute the list of predecessors of ``self`` in the Tamari poset.
         This list is computed by all left rotate possible on
         its nodes.
 
@@ -1322,7 +1508,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     def tamari_smaller(self):
         r"""
-        The list of all trees smaller than ``self``.
+        The list of all trees smaller or equal to ``self`` in the Tamari
+        order.
         This is the transitive ideal of its predecessors.
 
         The tree::
@@ -1333,7 +1520,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             |  / \     /  |
             | o   o   o   |
 
-        has these trees smaller than it::
+        has these trees smaller or equal to it::
 
             |    __o__  ,       _o_  ,        o ,         o,         o,           o |
             |   /     \        /   \         /           /          /            /  |
@@ -1364,11 +1551,11 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     def tamari_succ(self):
         r"""
-        Compute the list of successors of ``self`` in the tamari poset.
-        There is the list of all trees obtains by a right rotate of
+        Compute the list of successors of ``self`` in the Tamari poset.
+        There is the list of all trees obtained by a right rotate of
         one of its nodes.
 
-        The list of successor of::
+        The list of successors of::
 
             |     __o__   |
             |    /     \  |
@@ -1393,6 +1580,14 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [[[[., .], .], .], .]
             sage: b.tamari_succ()
             [[[[., .], .], [., .]], [[[., .], [., .]], .], [[[., [., .]], .], .]]
+
+            sage: b = B([])
+            sage: b.tamari_succ()
+            []
+
+            sage: b = B([[],[]])
+            sage: b.tamari_succ()
+            [[., [., [., .]]]]
         """
         res = []
         if self.is_empty():
@@ -1404,24 +1599,60 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
              [B([g, self[1]]) for g in self[0].tamari_succ()] +
              [B([self[0], d]) for d in self[1].tamari_succ()])
 
-    def q_hook_length_formula(self):
+    def q_hook_length_fraction(self, q=None, q_factor=False):
         r"""
-        Compute the ``q-hook length formula`` of a binary tree.
+        Compute the ``q``-hook length fraction of the binary tree ``self``,
+        with an additional "q-factor" if desired.
 
-        If `q=1` then ``q-hook length formula`` computes the number of
-        permutations such that the shape of binary search tree associated is
-        *self*.
+        If `T` is a (plane) binary tree and `q` is a polynomial
+        indeterminate over some ring, then the `q`-hook length fraction
+        `h_{q} (T)` of `T` is defined by
 
         .. MATH::
 
-            f_{q} (T) = \frac{[\lvert T \rvert]_q!}{\prod_{t \in T}
-            q^{right(t)} \lvert t \rvert]_q}
+            h_{q} (T)
+            = \frac{[\lvert T \rvert]_q!}{\prod_{t \in T}
+            [\lvert T_t \rvert]_q},
 
-        where `\lvert T \rvert` is the node number of `T`, `t \in T` the set
-        of all subtrees of `T`, and `right(t)` the number of nodes of the
-        right subtree of `t`.
+        where the product ranges over all nodes `t` of `T`, where `T_t`
+        denotes the subtree of `T` consisting of `t` and its all
+        descendants, and where for every tree `S`, we denote by 
+        `\lvert S \rvert` the number of nodes of `S`. While this
+        definition only shows that `h_{q} (T)` is a rational function
+        in `T`, it is in fact easy to show that `h_{q} (T)` is
+        actually a polynomial in `T`, and thus makes sense when any
+        element of a commutative ring is substituted for `q`.
+        This can also be explicitly seen from the following recursive
+        formula for `h_{q} (T)`:
 
-        There are `20` permutations which give a binary tree of the
+        .. MATH::
+
+            h_{q} (T)
+            = \binom{ \lvert T \rvert - 1 }{ \lvert T_1 \rvert }_q
+            h_{q} (T_1) h_{q} (T_2),
+
+        where `T` is any nonempty binary tree, and `T_1` and `T_2` are 
+        the two children trees of the root of `T`, and where
+        `\binom{a}{b}_q` denotes a `q`-binomial coefficient.
+
+        A variation of the `q`-hook length fraction is the following
+        "`q`-hook length fraction with `q`-factor":
+
+        .. MATH::
+
+            f_{q} (T)
+            = h_{q} (T) \cdot
+            \prod_{t \in T} q^{\lvert T_{\mathrm{right}(t)} \rvert},
+
+        where for every node `t`, we denote by `\mathrm{right}(t)` the
+        right child of `t`.
+        This `f_{q} (T)` differs from `h_{q} (T)` only in a
+        multiplicative factor, which is a power of `q`.
+
+        When `q = 1`, both `f_{q} (T)` and `h_{q} (T)` equal the number
+        of permutations whose binary search tree (see [HNT05]_ for the
+        definition) is `T` (after dropping the labels). For example,
+        there are `20` permutations which give a binary tree of the
         following shape::
 
             |     __o__   |
@@ -1430,36 +1661,158 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             |  / \     /  |
             | o   o   o   |
 
-        by the binary search insertion algorithm.
+        by the binary search insertion algorithm, in accordance with
+        the fact that this tree satisfies `f_{1} (T) = 20`.
 
-        TESTS::
+        When `q` is considered as a polynomial indeterminate,
+        `f_{q} (T)` is the generating function for all permutations
+        whose binary search tree is `T` (after dropping the labels)
+        with respect to the number of inversions (i. e., the Coxeter
+        length) of the permutations.
+
+        Objects similar to `h_{q} (T)` also make sense for general
+        ordered forests (rather than just binary trees), see e. g.
+        [BW88]_, Theorem 9.1.
+
+        INPUT:
+
+        - ``q`` -- a ring element which is to be substituted as `q`
+          into the `q`-hook length fraction (by default, this is
+          set to be the indeterminate `q` in the polynomial ring
+          `\ZZ[q]`)
+
+        - ``q_factor`` -- a Boolean (default: ``False``) which
+          determines whether to compute `h_{q} (T)` or to
+          compute `f_{q} (T)` (namely, `h_{q} (T)` is obtained when
+          ``q_factor == False``, and `f_{q} (T)` is obtained when
+          ``q_factor == True``)
+
+        REFERENCES:
+
+        .. [BW88] Anders Bjoerner, Michelle L. Wachs,
+           *Generalized quotients in Coxeter groups*.
+           Transactions of the American Mathematical Society,
+           vol. 308, no. 1, July 1988.
+           http://www.ams.org/journals/tran/1988-308-01/S0002-9947-1988-0946427-X/S0002-9947-1988-0946427-X.pdf
+        
+        EXAMPLES:
+
+        Let us start with a simple example. Actually, let us start
+        with the easiest possible example -- the binary tree with
+        only one vertex (which is a leaf)::
+
+            sage: b = BinaryTree()
+            sage: b.q_hook_length_fraction()
+            1
+            sage: b.q_hook_length_fraction(q_factor=True)
+            1
+
+        Nothing different for a tree with one node and two leaves::
+
+            sage: b = BinaryTree([]); b
+            [., .]
+            sage: b.q_hook_length_fraction()
+            1
+            sage: b.q_hook_length_fraction(q_factor=True)
+            1
+
+        Let us get to a more interesting tree::
 
             sage: b = BinaryTree([[[],[]],[[],None]]); b
             [[[., .], [., .]], [[., .], .]]
-            sage: b.q_hook_length_formula()(q=1)
+            sage: b.q_hook_length_fraction()(q=1)
             20
-            sage: BinaryTree([[],[]]).q_hook_length_formula()
-            (((q + 2)*q + 2)*q + 1)*q/((q + 1)*q + 1)
+            sage: b.q_hook_length_fraction()
+            q^7 + 2*q^6 + 3*q^5 + 4*q^4 + 4*q^3 + 3*q^2 + 2*q + 1
+            sage: b.q_hook_length_fraction(q_factor=True)
+            q^10 + 2*q^9 + 3*q^8 + 4*q^7 + 4*q^6 + 3*q^5 + 2*q^4 + q^3
+            sage: b.q_hook_length_fraction(q=2)
+            465
+            sage: b.q_hook_length_fraction(q=2, q_factor=True)
+            3720
+            sage: q = PolynomialRing(ZZ, 'q').gen()
+            sage: b.q_hook_length_fraction(q=q**2)
+            q^14 + 2*q^12 + 3*q^10 + 4*q^8 + 4*q^6 + 3*q^4 + 2*q^2 + 1
+
+        Let us check the fact that `f_{q} (T)` is the generating function
+        for all permutations whose binary search tree is `T` (after
+        dropping the labels) with respect to the number of inversions of
+        the permutations::
+
+            sage: def q_hook_length_fraction_2(T):
+            ....:     P = PolynomialRing(ZZ, 'q')
+            ....:     q = P.gen()
+            ....:     res = P.zero()
+            ....:     for w in T.sylvester_class():
+            ....:         res += q ** Permutation(w).length()
+            ....:     return res
+            sage: def test_genfun(i):
+            ....:     return all( q_hook_length_fraction_2(T)
+            ....:                 == T.q_hook_length_fraction(q_factor=True)
+            ....:                 for T in BinaryTrees(i) )
+            sage: test_genfun(4)
+            True
+            sage: test_genfun(7)  # long time
+            True
         """
-        from sage.combinat.q_analogues import q_factorial, q_int
-        from sage.symbolic.ring import SymbolicRing
+        from sage.combinat.q_analogues import q_binomial
 
-        q = SymbolicRing().var('q')
+        if q is None:
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            from sage.rings.integer_ring import ZZ
+            basering = PolynomialRing(ZZ, 'q')
+            q = basering.gen()
+        else:
+            basering = q.base_ring()
 
-        def product_of_subtrees(b):
-            if b.is_empty():
-                return q ** 0
-            return (q ** (-b[0].node_number()) * q_int(b.node_number())) * \
-                product_of_subtrees(b[0]) * product_of_subtrees(b[1])
+        if q_factor:
+            def product_of_subtrees(b):
+                if b.is_empty():
+                    return basering.one()
+                b0 = b[0]
+                b1 = b[1]
+                return q_binomial(b.node_number() - 1, b0.node_number(), q=q) * \
+                    product_of_subtrees(b0) * product_of_subtrees(b1) * \
+                    q ** (b1.node_number())
+        else:
+            def product_of_subtrees(b):
+                if b.is_empty():
+                    return basering.one()
+                b0 = b[0]
+                b1 = b[1]
+                return q_binomial(b.node_number() - 1, b0.node_number(), q=q) * \
+                    product_of_subtrees(b0) * product_of_subtrees(b1)
 
-        return q_factorial(self.node_number()) / product_of_subtrees(self)
+        return product_of_subtrees(self)
 
     @combinatorial_map(name="Right rotate")
     def right_rotate(self):
         r"""
-        Right rotation operation of tree.
+        Return the result of right rotation applied to the binary
+        tree ``self``.
 
-        The right rotation is defined by;:
+        Right rotation on binary trees is defined as follows:
+        Let `T` be a nonempty binary tree such that the left
+        child of the root of `T` is a node. Let `C` be the right
+        child of the root of `T`, and let `A` and `B` be the
+        left and right children of the left child of the root
+        of `T`. (Keep in mind that nodes of trees are identified
+        with the subtrees consisting of their descendants.)
+        Then, the right rotation of `T` is the nonempty binary
+        tree in which the left child of the root is `A`, whereas
+        the right child of the root is a node whose left and right
+        children are `B` and `C`. In pictures::
+
+            |     *                      *     |
+            |    / \                    / \    |
+            |   *   C -right-rotate->  A   *   |
+            |  / \                        / \  |
+            | A   B                      B   C |
+
+        where asterisks signify a single node each (but `A`, `B`
+        and `C` might be empty).
+
+        For example, ::
 
             |     o                     _o_   |
             |    /                     /   \  |
@@ -1475,6 +1828,16 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             |  /     \                               \      |
             | o       o                               o     |
 
+        Right rotation is the inverse operation to left rotation
+        (:meth:`left_rotate`).
+
+        The right rotation operation introduced here is the one defined
+        in Definition 2.1 of [CP12]_.
+
+        .. SEEALSO::
+
+            :meth:`left_rotate`
+
         EXAMPLES::
 
             sage: b = BinaryTree([[[],[]], None]); ascii_art([b])
@@ -1489,7 +1852,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             [ o     o ]
             [      /  ]
             [     o   ]
-            sage: b = BinaryTree([[[[],None],[None,[]]], []]);ascii_art([b])
+            sage: b = BinaryTree([[[[],None],[None,[]]], []]); ascii_art([b])
             [       __o__   ]
             [      /     \  ]
             [     o       o ]
@@ -1512,9 +1875,31 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
     @combinatorial_map(name="Left rotate")
     def left_rotate(self):
         r"""
-        Left rotation operation of tree.
+        Return the result of left rotation applied to the binary
+        tree ``self``.
 
-        The left rotation is defined by;:
+        Left rotation on binary trees is defined as follows:
+        Let `T` be a nonempty binary tree such that the right
+        child of the root of `T` is a node. Let `A` be the left
+        child of the root of `T`, and let `B` and `C` be the
+        left and right children of the right child of the root
+        of `T`. (Keep in mind that nodes of trees are identified
+        with the subtrees consisting of their descendants.)
+        Then, the left rotation of `T` is the nonempty binary
+        tree in which the right child of the root is `C`, whereas
+        the left child of the root is a node whose left and right
+        children are `A` and `B`. In pictures::
+
+            |   *                        *   |
+            |  / \                      / \  |
+            | A   *  -left-rotate->    *   C |
+            |    / \                  / \    |
+            |   B   C                A   B   |
+
+        where asterisks signify a single node each (but `A`, `B`
+        and `C` might be empty).
+
+        For example, ::
 
             |   _o_                        o |
             |  /   \                      /  |
@@ -1531,6 +1916,13 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             | o       o                        o   o   |
             |                                 /     \  |
             |                                o       o |
+
+        Left rotation is the inverse operation to right rotation
+        (:meth:`right_rotate`).
+
+        .. SEEALSO::
+
+            :meth:`right_rotate`
 
         EXAMPLES::
 
@@ -1555,7 +1947,24 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
     @combinatorial_map(name="Over operation on Binary Trees")
     def over(self, bt):
         r"""
-        The ``over`` (`/`) operation defined by Loday-Ronco [LodayRonco]_.
+        Return ``self`` over ``bt``, where "over" is the ``over`` (`/`)
+        operation defined by Loday-Ronco [LodayRonco]_.
+
+        If `T` and `T'` are two binary trees, then `T` over `T'`
+        (written `T / T'`) is defined as the tree obtained by grafting
+        `T'` on the rightmost node of `T`. See section 4.5 of [HNT05]_.
+
+        .. TODO::
+
+            Fix this doc and figure out which of the different
+            (inconsistent?) notations to follow. I don't see the
+            "over" operation defined in [LodayRonco]_, although
+            [HNT05]_ pretends that it is defined there. In
+            [HNT05]_ the definition is somewhat vague about the
+            order of the operads. Loday and Ronco seem to define
+            "over" on page 2 of "Order structure on the algebra
+            of permutations and of planar binary trees", but
+            with a different choice of left/right.
 
         This is defined by::
 
@@ -1679,21 +2088,34 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     def sylvester_class(self, left_to_right=False):
         r"""
-        Iterate the sylvester class corresponding to the binary tree.
+        Iterate over the sylvester class corresponding to the binary tree
+        ``self``.
 
-        The sylvester class is the set of permutations corresponding to the 
-        canonical binary search tree with same shape of ``self``.
-        See [HNT05]_ for more.
-        
-        For example the following has the permutations `(1,3,2)` and `(3,1,2)`
-        associated::
+        The sylvester class of a tree `T` is the set of permutations
+        `\sigma` whose binary search tree (a notion defined in [HNT05]_,
+        Definition 7) is `T` after forgetting the labels. This is an
+        equivalence class of the sylvester congruence (the congruence on
+        words which sets two words `uacvbw` and `ucavbw` congruent
+        whenever `a`, `b`, `c` are letters satisfying `a \leq b < c`, and
+        extends by transitivity) on the symmetric group.
+
+        For example the following tree's sylvester class consists of the
+        permutations `(1,3,2)` and `(3,1,2)`::
 
             [   o   ]
             [  / \  ]
             [ o   o ]
-        
+
+        (only the nodes are drawn here).
+
+        The binary search tree of a word is constructed by an RSK-like
+        algorithm, in which the word is read from right to left. If a
+        left-to-right reading is to be employed instead, the
+        ``left_to_right`` optional keyword variable should be set to
+        ``True``.
+
         TESTS::
-        
+
             sage: list(BinaryTree([[],[]]).sylvester_class())
             [[1, 3, 2], [3, 1, 2]]
             sage: bt = BinaryTree([[[],None],[[],[]]])
@@ -1718,8 +2140,15 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
              [6, 4, 1, 2, 5, 3],
              [6, 4, 1, 5, 2, 3],
              [6, 4, 5, 1, 2, 3]]
-            sage: len(l) == Integer(bt.q_hook_length_formula()(q=1))
+            sage: len(l) == Integer(bt.q_hook_length_fraction()(q=1))
             True
+
+        Border cases::
+
+            sage: list(BinaryTree().sylvester_class())
+            [[]]
+            sage: list(BinaryTree([]).sylvester_class())
+            [[1]]
         """
         if self.is_empty():
             yield []
@@ -1743,8 +2172,10 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     def is_full(self):
         r"""
-        A full binary tree is a tree in which every node other than the leaves
-        has two children.
+        Return ``True`` if ``self`` is full, else return ``False``.
+
+        A full binary tree is a tree in which every node either has two
+        child nodes or has two child leaves.
 
         This is also known as *proper binary tree* or *2-tree* or *strictly
         binary tree*.
@@ -1790,6 +2221,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     def is_perfect(self):
         r"""
+        Return ``True`` if ``self`` is perfect, else return ``False``.
+
         A perfect binary tree is a full tree in which all leaves are at the
         same depth.
 
@@ -1836,6 +2269,8 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
 
     def is_complete(self):
         r"""
+        Return ``True`` if ``self`` is complete, else return ``False``.
+
         A complete binary tree is a perfect binary tree except possibly in the
         last level.
 
@@ -1854,7 +2289,7 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             |  / \     / \      |
             | o   o   o   o     |
 
-        is not complet but the following ones are::
+        is not complete but the following ones are::
 
             |     __o__          _o_            ___o___     |
             |    /     \        /   \          /       \    |
@@ -1865,7 +2300,6 @@ class BinaryTree(AbstractClonableTree, ClonableArray):
             |                           o   o   o           |
 
         EXAMPLES::
-
 
             sage: lst = lambda i: filter(lambda bt: bt.is_complete(), BinaryTrees(i))
             sage: for i in range(9): ascii_art(lst(i)) # long time
@@ -1982,7 +2416,7 @@ class BinaryTrees(UniqueRepresentation, Parent):
             return BinaryTrees_all()
         else:
             if not (isinstance(n, (Integer, int)) and n >= 0):
-                raise ValueError("n must be a non negative integer")
+                raise ValueError("n must be a nonnegative integer")
             return BinaryTrees_size(Integer(n))
 
     @cached_method
@@ -2251,7 +2685,20 @@ class BinaryTrees_size(BinaryTrees):
 
 class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
     """
-    The class of labelled binary tree
+    Labelled binary trees.
+
+    A labelled binary tree is a binary tree (see :class:`BinaryTree` for
+    the meaning of this) with a label assigned to each node. (The labels
+    need not be integers, nor are they required to be distinct. ``None``
+    can be used as a label.)
+
+    .. TODO::
+
+        Explain how to init these.
+
+        Maybe allow ``LabelledBinaryTree()`` syntax for
+        ``LabelledBinaryTree(None)`` (in analogy to ``BinaryTree``
+        class).
 
     EXAMPLE::
 
@@ -2282,7 +2729,7 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
     @lazy_class_attribute
     def _auto_parent(cls):
         """
-        The automatic parent of the element of this class
+        The automatic parent of the elements of this class.
 
         When calling the constructor of an element of this class, one needs a
         parent. This class attribute specifies which parent is used.
@@ -2316,14 +2763,32 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
 
     def binary_search_insert(self, letter):
         """
-        Insert a letter in a binary search tree
+        Return the result of inserting a letter ``letter`` into the
+        right strict binary search tree ``self``.
 
         INPUT:
 
         - ``letter`` -- any object comparable with the label of ``self``
 
+        OUTPUT:
+
+        The right strict binary search tree ``self`` with ``letter``
+        inserted into it according to the binary search insertion
+        algorithm.
+
         .. NOTE:: ``self`` is supposed to be a binary search tree. No check is
                   performed.
+
+        A right strict binary search tree is defined to be a labelled
+        binary tree such that for each node `n` with label `x`,
+        every descendant of the left child of `n` has a label `\leq x`,
+        and every descendant of the right child of `n` has a label
+        `> x`. (Here, only nodes count as descendants, and every node
+        counts as its own descendant too.)
+
+        .. TODO::
+
+            Explain the algorithm.
 
         EXAMPLES::
 
@@ -2336,7 +2801,7 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
             3[1[., .], .]
             sage: res = LBT(None)
             sage: for i in [3,1,5,2,4,6]:
-            ...       res = res.binary_search_insert(i)
+            ....:     res = res.binary_search_insert(i)
             sage: res
             3[1[., 2[., .]], 5[4[., .], 6[., .]]]
         """
@@ -2353,15 +2818,33 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
 
     def right_rotate(self):
         r"""
-        Right rotation operation of a tree.
+        Return the result of right rotation applied to the labelled
+        binary tree ``self``.
 
-        The right rotation of a tree is defined by::
+        Right rotation on labelled binary trees is defined as
+        follows: Let `T` be a nonempty labelled binary tree such
+        that the left child of the root of `T` is a node. Let
+        `C` be the right child of the root of `T`, and let `A`
+        and `B` be the left and right children of the left child
+        of the root of `T`. (Keep in mind that nodes of trees are
+        identified with the subtrees consisting of their
+        descendants.) Furthermore, let `y` be the label at the
+        root of `T`, and `x` be the label at the left child of the
+        root of `T`.
+        Then, the right rotation of `T` is the nonempty labelled
+        binary tree in which the root is labelled `x`, the left
+        child of the root is `A`, whereas the right child of the
+        root is a node labelled `y` whose left and right children
+        are `B` and `C`. In pictures::
 
             |     y                      x     |
             |    / \                    / \    |
             |   x   C -right-rotate->  A   y   |
             |  / \                        / \  |
             | A   B                      B   C |
+
+        Right rotation is the inverse operation to left rotation
+        (:meth:`left_rotate`).
 
         TESTS::
 
@@ -2379,15 +2862,33 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
 
     def left_rotate(self):
         r"""
-        Left rotation operation of a tree.
+        Return the result of left rotation applied to the labelled
+        binary tree ``self``.
 
-        The left rotation of a tree is defined by::
+        Left rotation on labelled binary trees is defined as
+        follows: Let `T` be a nonempty labelled binary tree such
+        that the right child of the root of `T` is a node. Let
+        `A` be the left child of the root of `T`, and let `B`
+        and `C` be the left and right children of the right child
+        of the root of `T`. (Keep in mind that nodes of trees are
+        identified with the subtrees consisting of their
+        descendants.) Furthermore, let `x` be the label at the
+        root of `T`, and `y` be the label at the right child of the
+        root of `T`.
+        Then, the left rotation of `T` is the nonempty labelled
+        binary tree in which the root is labelled `y`, the right
+        child of the root is `C`, whereas the left child of the
+        root is a node labelled `x` whose left and right children
+        are `A` and `B`. In pictures::
 
            |     y                    x     |
            |    / \                  / \    |
            |   x   C <-left-rotate- A   y   |
            |  / \                      / \  |
            | A   B                    B   C |
+
+        Left rotation is the inverse operation to right rotation
+        (:meth:`right_rotate`).
 
         TESTS::
 
@@ -2405,10 +2906,12 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
 
     def heap_insert(self, l):
         r"""
-        Insert a letter in a binary heap (tree).
+        Return the result of inserting a letter ``l`` into the binary
+        heap (tree) ``self``.
 
-        Roughly, a binary heap will be a complete binary tree such that for
-        each nodes the label is greater or equals to the label of its children.
+        Roughly, a binary heap will be a labelled complete binary tree
+        such that for each node the label is greater or equal to the
+        label of each of its children.
 
         For example::
 
@@ -2417,6 +2920,8 @@ class LabelledBinaryTree(AbstractLabelledClonableTree, BinaryTree):
             |   5     6 |
             |  / \      |
             | 3   4     |
+
+        is a binary heap.
 
         INPUT:
 

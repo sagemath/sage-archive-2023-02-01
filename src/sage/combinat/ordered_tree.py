@@ -26,12 +26,13 @@ from sage.combinat.combinatorial_map import combinatorial_map
 
 class OrderedTree(AbstractClonableTree, ClonableList):
     """
-    The class for (ordered rooted) Trees
+    The class of (ordered rooted) trees.
 
-    An ordered tree is constructed from a node called the root on which one
+    An ordered tree is constructed from a node, called the root, on which one
     has grafted a possibly empty list of trees. There is a total order on the
     children of a node which is given by the order of the elements in the
-    list. Note that there is no empty ordered tree.
+    list. Note that there is no empty ordered tree (so the smallest ordered
+    tree consists of just one node).
 
     INPUT:
 
@@ -62,11 +63,11 @@ class OrderedTree(AbstractClonableTree, ClonableList):
         sage: tt1.__hash__() == tt2.__hash__()
         True
 
-    Trees are usually immutable. However they inherits from
-    :class:`sage.structure.list_clone.ClonableList`. So that they can be
-    modified using the clone protocol:
+    Trees are usually immutable. However they inherit from
+    :class:`sage.structure.list_clone.ClonableList`, so that they can be
+    modified using the clone protocol. Let us now see what this means.
 
-    Trying to modify a non mutable tree raises an error::
+    Trying to modify a non-mutable tree raises an error::
 
         sage: tt1[1] = tt2
         Traceback (most recent call last):
@@ -76,21 +77,21 @@ class OrderedTree(AbstractClonableTree, ClonableList):
     Here is the correct way to do it::
 
         sage: with tt2.clone() as tt2:
-        ...    tt2[1] = tt1
+        ....:     tt2[1] = tt1
         sage: tt2
         [[], [[], [[], []], [[], []]], [[], []]]
 
     It is also possible to append a child to a tree::
 
         sage: with tt2.clone() as tt3:
-        ...    tt3.append(OrderedTree([]))
+        ....:     tt3.append(OrderedTree([]))
         sage: tt3
         [[], [[], [[], []], [[], []]], [[], []], []]
 
     Or to insert a child in a tree::
 
         sage: with tt2.clone() as tt3:
-        ...    tt3.insert(2, OrderedTree([]))
+        ....:     tt3.insert(2, OrderedTree([]))
         sage: tt3
         [[], [[], [[], []], [[], []]], [], [[], []]]
 
@@ -108,7 +109,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
 
         sage: tt1bis = OrderedTree(tt1)
         sage: with tt1.clone() as tt1:
-        ...    tt1[1] = tt1bis
+        ....:     tt1[1] = tt1bis
         sage: tt1
         [[], [[], [[], []], [[], []]], [[], []]]
         sage: tt1 == tt2
@@ -159,7 +160,7 @@ class OrderedTree(AbstractClonableTree, ClonableList):
     Check that the hash value is correctly updated after modification::
 
         sage: with tt2.clone() as tt2:
-        ...    tt2[1,1] = tt1
+        ....:     tt2[1,1] = tt1
         sage: tt1.__hash__() == tt2.__hash__()
         False
     """
@@ -246,9 +247,9 @@ class OrderedTree(AbstractClonableTree, ClonableList):
 
     def is_empty(self):
         """
-        Return if ``self`` is the empty tree
+        Return if ``self`` is the empty tree.
 
-        For ordered trees, returns always ``False``
+        For ordered trees, returns always ``False``.
 
         .. NOTE:: this is different from ``bool(t)`` which returns whether
                   ``t`` has some child or not.

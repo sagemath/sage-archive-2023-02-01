@@ -203,6 +203,24 @@ class Category_over_base(CategoryWithParameters):
         self.__base = base
         Category.__init__(self, name)
 
+    def _test_category_over_bases(self, **options):
+        """
+        Run generic tests on this category with parameters.
+
+        .. SEEALSO:: :class:`TestSuite`.
+
+        EXAMPLES::
+
+            sage: Modules(QQ)._test_category_over_bases()
+        """
+        tester = self._tester(**options)
+        from sage.categories.category_singleton import Category_singleton
+        from bimodules import Bimodules
+        from schemes import Schemes
+        for cat in self.super_categories():
+            tester.assert_(isinstance(cat, (Category_singleton, Category_over_base, Bimodules, Schemes)),
+                           "The super categories of a category over base should be a category over base (or the related Bimodules) or a singleton category")
+
     def _make_named_class_key(self, name):
         r"""
         Return what the element/parent/... classes depend on.
@@ -223,7 +241,7 @@ class Category_over_base(CategoryWithParameters):
             sage: Modules(QQ)._make_named_class_key('parent_class')
             Category of quotient fields
             sage: Schemes(Spec(ZZ))._make_named_class_key('parent_class')
-            Category of Schemes
+            Category of schemes
             sage: ModularAbelianVarieties(QQ)._make_named_class_key('parent_class')
             Category of quotient fields
         """
@@ -256,8 +274,8 @@ class Category_over_base(CategoryWithParameters):
         r"""
         EXAMPLES::
 
-            sage: latex(ModulesWithBasis(QQ))
-            \mathbf{ModulesWithBasis}_{\Bold{Q}}
+            sage: latex(ModulesWithBasis(ZZ))
+            \mathbf{ModulesWithBasis}_{\Bold{Z}}
         """
         return "\\mathbf{%s}_{%s}"%(self._label, latex(self.__base))
 

@@ -10,7 +10,6 @@ Algebra modules
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.cachefunc import cached_method
 from category_types import Category_module
 from modules import Modules
 

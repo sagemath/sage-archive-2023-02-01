@@ -8,12 +8,9 @@ Finite lattice posets
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.cachefunc import cached_method
-from sage.categories.category import Category
-from sage.categories.finite_posets import FinitePosets
-from sage.categories.lattice_posets import LatticePosets
+from sage.categories.category_with_axiom import CategoryWithAxiom
 
-class FiniteLatticePosets(Category):
+class FiniteLatticePosets(CategoryWithAxiom):
     r"""
     The category of finite lattices, i.e. finite partially ordered
     sets which are also lattices.
@@ -23,31 +20,21 @@ class FiniteLatticePosets(Category):
         sage: FiniteLatticePosets()
         Category of finite lattice posets
         sage: FiniteLatticePosets().super_categories()
-        [Category of finite posets, Category of lattice posets]
+        [Category of lattice posets, Category of finite posets]
         sage: FiniteLatticePosets().example()
         NotImplemented
 
-    .. seealso:: :class:`FinitePosets`, :class:`Lattices`,
+    .. seealso:: :class:`FinitePosets`, :class:`LatticePosets`,
        :class:`LatticePoset`
 
     TESTS::
 
         sage: C = FiniteLatticePosets()
+        sage: C is FiniteLatticePosets().Finite()
+        True
         sage: TestSuite(C).run()
 
     """
-    @cached_method
-    def super_categories(self):
-        r"""
-        Returns a list of the (immediate) super categories of
-        ``self``, as per :meth:`Category.super_categories`.
-
-        EXAMPLES::
-
-            sage: FiniteLatticePosets().super_categories()
-            [Category of finite posets, Category of lattice posets]
-        """
-        return [FinitePosets(), LatticePosets()]
 
     class ParentMethods:
 

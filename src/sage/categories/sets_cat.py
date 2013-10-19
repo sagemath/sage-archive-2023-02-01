@@ -11,13 +11,13 @@ Sets
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.lazy_import import lazy_import, LazyImport
 from sage.misc.cachefunc import cached_method
 from sage.misc.sage_unittest import TestSuite
 from sage.misc.abstract_method import abstract_method
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.lazy_import import lazy_import, LazyImport
 from sage.misc.lazy_format import LazyFormat
-from sage.categories.category import Category, HomCategory
+from sage.categories.category import HomCategory
 from sage.categories.category_singleton import Category_singleton
 # Do not use sage.categories.all here to avoid initialization loop
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
@@ -29,6 +29,7 @@ from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.cartesian_product import cartesian_product, CartesianProductsCategory
 from sage.categories.realizations import RealizationsCategory, Category_realization_of_parent
 from sage.categories.with_realizations import WithRealizationsCategory
+from sage.categories.category_with_axiom import CategoryWithAxiom
 
 lazy_import('sage.sets.cartesian_product', 'CartesianProduct')
 
@@ -120,7 +121,7 @@ class Sets(Category_singleton):
         <type 'sage.structure.category_object.CategoryObject'>
         <type 'sage.structure.sage_object.SageObject'>
         <class 'sage.categories.sets_cat.Sets.parent_class'>
-        <class 'sage.categories.category.SetsWithPartialMaps.parent_class'>
+        <class 'sage.categories.sets_with_partial_maps.SetsWithPartialMaps.parent_class'>
         <class 'sage.categories.objects.Objects.parent_class'>
         <type 'object'>
 
@@ -175,7 +176,7 @@ class Sets(Category_singleton):
         <type 'sage.structure.element.Element'>
         <type 'sage.structure.sage_object.SageObject'>
         <class 'sage.categories.sets_cat.Sets.element_class'>
-        <class 'sage.categories.category.SetsWithPartialMaps.element_class'>
+        <class 'sage.categories.sets_with_partial_maps.SetsWithPartialMaps.element_class'>
         <class 'sage.categories.objects.Objects.element_class'>
         <type 'object'>
 
@@ -276,6 +277,497 @@ class Sets(Category_singleton):
         else:
             raise ValueError, "Unkown choice"
 
+    class SubcategoryMethods:
+
+        @cached_method
+        def CartesianProducts(self):
+            r"""
+            Return the full subcategory of the objects of ``self`` constructed as cartesian products.
+
+            .. SEEALSO::
+
+                - :class:`.cartesian_product.CartesianProductFunctor`
+                - :class:`~.covariant_functorial_construction.RegressiveCovariantFunctorialConstruction`
+
+            EXAMPLES::
+
+                sage: Sets().CartesianProducts()
+                Category of Cartesian products of sets
+                sage: Semigroups().CartesianProducts()
+                Category of Cartesian products of semigroups
+                sage: EuclideanDomains().CartesianProducts()
+                Category of Cartesian products of monoids
+            """
+            return CartesianProductsCategory.category_of(self)
+
+        @cached_method
+        def Subquotients(self):
+            r"""
+            Return the full subcategory of the objects of ``self`` constructed as subquotients.
+
+            Given a concrete category ``self == As()`` (i.e. a subcategory of
+            ``Sets()``), ``As().Subquotients()`` returns the category of objects
+            of ``As()`` endowed with a distinguished description as
+            subquotient of some other object of ``As()``.
+
+            EXAMPLES::
+
+                sage: Monoids().Subquotients()
+                Category of subquotients of monoids
+
+            A parent `A` in ``As()`` is further in ``As().Subquotients()`` if
+            there is a distinguished parent `B` in ``As()``, called the
+            *ambient space*, a subspace `B'` of `B` and a pair of *structure
+            preserving* maps:
+
+            .. math::
+
+                l: A \mapsto B'  \text{ and }  r: B' \mapsto A
+
+            called respectively the *lifting map* and *retract map* such that
+            `r \circ l` is the identity of `A`. What exactly *structure
+            preserving* means is explicited in each category; this typically
+            states that, for each operation `op` of the category, there is a
+            commutative diagram such that:
+
+                for all `e\in A`, one has `op_A(e) = r(op_B(l(e)))`
+
+            This allows for deriving the operations on `A` from those on `B`.
+
+            Note: this is a slightly weaker definition than that found on
+            http://en.wikipedia.org/wiki/Subquotient: B' is not necessarily
+            required to be a subobject of B.
+
+            Assumptions:
+
+            - For any category ``As()``, ``As().Subquotients()`` is a
+              subcategory of ``As()``.
+
+              Example: a subquotient of a group is a group (e.g. a left or right
+              quotients of a group by a non normal subgroup is not in this category).
+
+            - This construction is covariant: if ``As()`` is a subcategory of
+              ``Bs()``, then ``As().Subquotients()`` is a subcategory of
+              ``Bs().Subquotients()``
+
+              Example: if `A` is a distinguished subquotient of `B` in the category of
+              groups, then is is also a subquotient of `B` in the category of monoids.
+
+            - If the user (or a program) calls ``As().Subquotients()``, then it is
+              assumed that subquotients are well defined in this category. This is not
+              checked, and probably never will. Note that, if a category `As()` does
+              not specify anything about its subquotients, then it's subquotient
+              category looks like this::
+
+                 sage: EuclideanDomains().Subquotients()
+                 Join of Category of euclidean domains and Category of subquotients of monoids
+
+            Interface: the ambient space of `B` is given by ``B.ambient()``. The
+            lifting and retract map are implemented respectively as methods
+            ``B.lift(b)`` and ``B.retract(a)``. As a shorthand, one can use
+            alternatively ``b.lift()``::
+
+                sage: S = Semigroups().Subquotients().example(); S
+                An example of a (sub)quotient semigroup: a quotient of the left zero semigroup
+                sage: S.ambient()
+                An example of a semigroup: the left zero semigroup
+                sage: S(3).lift().parent()
+                An example of a semigroup: the left zero semigroup
+                sage: S(3) * S(1) == S.retract( S(3).lift() * S(1).lift() )
+                True
+
+            See ``S?`` for more.
+
+            .. TODO:: use a more interesting example, like `\ZZ/n\ZZ`.
+
+            The two most common use cases are:
+
+             - *quotients*, when `A'=A` and `r` is a morphism; then `r` is a
+               canonical quotient map from `A` to `B`.
+             - *subobjects*, when `l` is an embedding from `B` into `A`.
+
+            .. SEEALSO::
+
+                - :meth:`Quotients`, :meth:`Subobjects`, :meth:`IsomorphicObjects`
+                - :class:`.subquotients.SubquotientsCategory`
+                - :class:`~.covariant_functorial_construction.RegressiveCovariantFunctorialConstruction`
+
+            TESTS::
+
+                sage: TestSuite(Sets().Subquotients()).run()
+            """
+            return SubquotientsCategory.category_of(self)
+
+        @cached_method
+        def Quotients(self):
+            r"""
+            Return the full subcategory of the objects of ``self`` constructed as quotients.
+
+            Given a concrete category ``As()`` (i.e. a subcategory of
+            ``Sets()``), ``As().Quotients()`` returns the category of objects
+            of ``As()`` endowed with a distinguished description as
+            quotient of some other object of ``As()``.
+
+            .. SEEALSO::
+
+                - :meth:`Subquotients` for background
+                - :class:`.quotients.QuotientsCategory`
+                - :class:`~.covariant_functorial_construction.RegressiveCovariantFunctorialConstruction`.
+
+            EXAMPLES::
+
+                sage: C = Semigroups().Quotients(); C
+                Category of quotients of semigroups
+                sage: C.super_categories()
+                [Category of subquotients of semigroups, Category of quotients of sets]
+                sage: C.all_super_categories()
+                [Category of quotients of semigroups,
+                 Category of subquotients of semigroups,
+                 Category of semigroups,
+                 Category of subquotients of magmas,
+                 Category of magmas,
+                 Category of quotients of sets,
+                 Category of subquotients of sets,
+                 Category of sets,
+                 Category of sets with partial maps,
+                 Category of objects]
+
+            The caller is responsible for checking that the given category
+            admits a well defined category of quotients::
+
+                sage: EuclideanDomains().Quotients()
+                Join of Category of euclidean domains and Category of subquotients of monoids and Category of quotients of semigroups
+
+            TESTS::
+
+                sage: TestSuite(C).run()
+            """
+            return QuotientsCategory.category_of(self)
+
+        @cached_method
+        def Subobjects(self):
+            """
+            Return the full subcategory of the objects of ``self`` constructed as subobjects.
+
+            Given a concrete category ``As()`` (i.e. a subcategory of
+            ``Sets()``), ``As().Subobjects()`` returns the category of objects
+            of ``As()`` endowed with a distinguished description as subobject
+            of some other object of ``As()``.
+
+            .. SEEALSO::
+
+                - :meth:`Subquotients` for background
+                - :class:`.subobjects.SubobjectsCategory`
+                - :class:`~.covariant_functorial_construction.RegressiveCovariantFunctorialConstruction`.
+
+            EXAMPLES::
+
+                sage: C = Sets().Subobjects(); C
+                Category of subobjects of sets
+
+                sage: C.super_categories()
+                [Category of subquotients of sets]
+
+                sage: C.all_super_categories()
+                [Category of subobjects of sets,
+                 Category of subquotients of sets,
+                 Category of sets,
+                 Category of sets with partial maps,
+                 Category of objects]
+
+            Unless something specific about subobjects is implemented for this
+            category, one actually get an optimized super category::
+
+                sage: C = Semigroups().Subobjects(); C
+                Join of Category of subquotients of semigroups and Category of subobjects of sets
+
+            The caller is responsible for checking that the given category
+            admits a well defined category of subobjects.
+
+            TESTS::
+
+                sage: Semigroups().Subobjects().is_subcategory(Semigroups().Subquotients())
+                True
+                sage: TestSuite(C).run()
+            """
+            return SubobjectsCategory.category_of(self)
+
+        @cached_method
+        def IsomorphicObjects(self):
+            """
+            Return the full subcategory of the objects of ``self`` constructed by isomorphism.
+
+            Given a concrete category ``As()`` (i.e. a subcategory of
+            ``Sets()``), ``As().IsomorphicObjects()`` returns the category of
+            objects of ``As()`` endowed with a distinguished description as
+            the image of some other object of ``As()`` by an isomorphism in
+            this category.
+
+            See :meth:`Subquotients` for background.
+
+            EXAMPLES:
+
+            In the following example, `A` is defined as the image by `x\mapsto
+            x^2` of the finite set `B = \{1,2,3\}`::
+
+                sage: A = FiniteEnumeratedSets().IsomorphicObjects().example(); A
+                The image by some isomorphism of An example of a finite enumerated set: {1,2,3}
+
+            Since `B` is a finite enumerated set, so is `A`::
+
+                sage: A in FiniteEnumeratedSets()
+                True
+                sage: A.cardinality()
+                3
+                sage: A.list()
+                [1, 4, 9]
+
+            The isomorphism from `B` to `A` is available as::
+
+                sage: A.retract(3)
+                9
+
+            and its inverse as::
+
+                sage: A.lift(9)
+                3
+
+            It often is natural to declare those morphisms as coercions so
+            that one can do ``A(b)`` and ``B(a)`` to go back and forth between
+            `A` and `B` (TODO: refer to a category example where the maps are
+            declared as a coercion). This is not done by default. Indeed, in
+            many cases one only wants to transport part of the structure of
+            `B` to `A`. Assume for example, that one wants to construct the
+            set of integers `B=ZZ`, endowed with ``max`` as addition, and
+            ``+`` as multiplication instead of the usual ``+`` and ``*``. One
+            can construct `A` as isomorphic to `B` as an infinite enumerated
+            set. However `A` is *not* isomorphic to `B` as a ring; for
+            example, for `a\in A` and `a\in B`, the expressions `a+A(b)` and
+            `B(a)+b` give completly different results; hence we would not want
+            the expression `a+b` to be implicitly resolved to any one of above
+            two, as the coercion mechanism would do.
+
+            Coercions also cannot be used with facade parents (see
+            :class:`Sets.Facade`) like in the example above.
+
+
+            We now look at a category of isomorphic objects::
+
+                sage: C = Sets().IsomorphicObjects(); C
+                Category of isomorphic objects of sets
+
+                sage: C.super_categories()
+                [Category of subobjects of sets, Category of quotients of sets]
+
+                sage: C.all_super_categories()
+                [Category of isomorphic objects of sets,
+                 Category of subobjects of sets,
+                 Category of quotients of sets,
+                 Category of subquotients of sets,
+                 Category of sets,
+                 Category of sets with partial maps,
+                 Category of objects]
+
+            Unless something specific about isomorphic objects is implemented
+            for this category, one actually get an optimized super category::
+
+                sage: C = Semigroups().IsomorphicObjects(); C
+                Join of Category of quotients of semigroups and Category of isomorphic objects of sets
+
+            .. SEEALSO::
+
+                - :meth:`Subquotients` for background
+                - :class:`.isomorphic_objects.IsomorphicObjectsCategory`
+                - :class:`~.covariant_functorial_construction.RegressiveCovariantFunctorialConstruction`.
+
+            TESTS::
+
+                sage: TestSuite(Sets().IsomorphicObjects()).run()
+            """
+            return IsomorphicObjectsCategory.category_of(self)
+
+        @cached_method
+        def Algebras(self, base_ring):
+            """
+            Return the category of objects constructed as algebras of objects of ``self`` over ``base_ring``.
+
+            INPUT:
+
+             - ``base_ring`` -- a ring
+
+            EXAMPLES::
+
+                sage: Monoids().Algebras(QQ)
+                Category of monoid algebras over Rational Field
+
+                sage: Groups().Algebras(QQ)
+                Category of group algebras over Rational Field
+
+                sage: M = Monoids().example(); M
+                An example of a monoid: the free monoid generated by ('a', 'b', 'c', 'd')
+                sage: A = M.algebra(QQ); A
+                Free module generated by An example of a monoid: the free monoid generated by ('a', 'b', 'c', 'd') over Rational Field
+                sage: A.category()
+                Category of monoid algebras over Rational Field
+
+            .. SEEALSO::
+
+                - :class:`.algebra_functor.AlgebrasCategory`
+                - :class:`~.covariant_functorial_construction.CovariantFunctorialConstruction`.
+
+            TESTS::
+
+                sage: TestSuite(Groups().Finite().Algebras(QQ)).run()
+            """
+            from sage.categories.rings import Rings
+            assert base_ring in Rings
+            return AlgebrasCategory.category_of(self, base_ring)
+
+        @cached_method
+        def Finite(self):
+            """
+            Return the full subcategory of the finite objects of ``self``.
+
+            EXAMPLES::
+
+                sage: Sets().Finite()
+                Category of finite sets
+                sage: Rings().Finite()
+                Category of finite rings
+
+            TESTS::
+
+                sage: TestSuite(Sets().Finite()).run()
+                sage: Rings().Finite.__module__
+                'sage.categories.sets_cat'
+            """
+            return self._with_axiom('Finite')
+
+        @cached_method
+        def Infinite(self):
+            """
+            Return the full subcategory of the infinite objects of ``self``.
+
+            EXAMPLES::
+
+                sage: Sets().Infinite()
+                Category of infinite sets
+                sage: Rings().Infinite()
+                Category of infinite rings
+
+            TESTS::
+
+                sage: TestSuite(Sets().Infinite()).run()
+                sage: Rings().Infinite.__module__
+                'sage.categories.sets_cat'
+            """
+            return self._with_axiom('Infinite')
+
+        def Facade(self):
+            r"""
+            Return the full subcategory of the facade objects of ``self``.
+
+            A *facade set* is a parent ``P`` whose elements actually belong to
+            some other parent::
+
+                sage: P = Sets().example(); P
+                Set of prime numbers (basic implementation)
+                sage: p = Sets().example().an_element(); p
+                47
+                sage: p in P
+                True
+                sage: p.parent()
+                Integer Ring
+
+            Typical use cases include modeling a subset of an existing
+            parent::
+
+                sage: Sets().Facade().example()
+                An example of facade set: the monoid of positive integers
+
+            or the union of several parents::
+
+                sage: Sets().Facade().example("union")
+                An example of a facade set: the integers completed by +-infinity
+
+            or endowing a parent with more (or less!) structure::
+
+                sage: Posets().example("facade")
+                An example of a facade poset: the positive integers ordered by divisibility
+
+            Let us consider one of the examples above in detail: the partially ordered
+            set `P` of positive integers w.r.t. divisibility order. There are two
+            options for representing its elements:
+
+             1. as plain integers
+             2. as integers, modified to be aware that their parent is `P`
+
+            The advantage of 1. is that one needs not to do conversions back and
+            forth between `P` and `\ZZ`. The disadvantage is that this
+            introduces an ambiguity when writing `2 < 3`::
+
+                sage: 2 < 3
+                True
+
+            To raise this ambiguity, one needs to explicitely specify the order
+            as in `2 <_P 3`::
+
+
+                sage: P = Posets().example("facade")
+                sage: P.lt(2,3)
+                False
+
+            In short `P` being a facade parent is one of the programmatic
+            counterpart (with e.g. coercions) of the usual mathematical idiom:
+            "for ease of notation, we identify an element of `P` with the
+            corresponding integer". Too many identifications lead to
+            confusion; the lack thereof leads to heavy, if not obfuscated,
+            notations. Finding the right balance is an art, and even though
+            there are common guidelines, it is ultimately up to the writer to
+            choose which identifications to do. This is no different in code.
+
+            .. seealso::
+
+               ::
+
+                sage: Sets().example("facade")
+                Set of prime numbers (facade implementation)
+                sage: Sets().example("inherits")
+                Set of prime numbers
+                sage: Sets().example("wrapper")
+                Set of prime numbers (wrapper implementation)
+
+            .. rubric:: Specifications
+
+            A parent which is a facade must either:
+
+            - call :meth:`Parent.__init__` using the ``facade`` parameter to
+              specify a parent, or tuple thereof.
+            - overload the method :meth:`~Sets.Facade.ParentMethods.facade_for`.
+
+            .. note:: the concept of facade parents was originally introduced
+               in the computer algebra system MuPAD.
+
+            TESTS:
+
+            Check that multiple categories initialisation works (:trac:`13801`)::
+
+                sage: class A(Parent):
+                ....:   def __init__(self):
+                ....:       Parent.__init__(self, category=(FiniteEnumeratedSets(),Monoids()), facade=True)
+                sage: a = A()
+
+            TESTS::
+
+                sage: Posets().Facade()
+                Category of facade posets
+                sage: Posets().Facade().Finite() is  Posets().Finite().Facade()
+                True
+            """
+            return self._with_axiom('Facade')
+
+        Facades = Facade
+
     class ParentMethods:
 #         # currently overriden by the default implementation in sage.structure.Parent
 #         def __call__(self, *args, **options):
@@ -371,10 +863,10 @@ class Sets(Category_singleton):
 
             All parents in the category ``Sets()`` should implement this method.
 
-            TESTS::
+            EXAMPLES::
 
-                sage: from sage.categories.examples.sets_cat import PrimeNumbers
-                sage: P = PrimeNumbers()
+                sage: P = Sets().example(); P
+                Set of prime numbers (basic implementation)
                 sage: 12 in P
                 False
                 sage: P(5) in P
@@ -741,6 +1233,29 @@ class Sets(Category_singleton):
                 tester.assertTrue(x in self, LazyFormat(
                     "the object %s in self.some_elements() is not in self")%(x,))
 
+        def cardinality(self):
+            """
+            The cardinality of ``self``.
+
+            ``self.cardinality()`` should return the cardinality of the set
+            ``self`` as a sage :class:`Integer` or as ``infinity``.
+
+            This if the default implementation from the category
+            ``Sets()``; it raises a ``NotImplementedError`` since one
+            does not know whether the set is finite or not.
+
+            EXAMPLES::
+
+                sage: class broken(UniqueRepresentation, Parent):
+                ....:     def __init__(self):
+                ....:         Parent.__init__(self, category = Sets())
+                sage: broken().cardinality()
+                Traceback (most recent call last):
+                ...
+                NotImplementedError: unknown cardinality
+            """
+            raise NotImplementedError, "unknown cardinality"
+
         # Functorial constructions
 
         CartesianProduct = CartesianProduct
@@ -759,7 +1274,7 @@ class Sets(Category_singleton):
 
         def algebra(self, base_ring, category = None):
             """
-            Returns the algebra of self
+            Returns the algebra of ``self`` over ``base_ring``
 
             EXAMPLES::
 
@@ -773,13 +1288,44 @@ class Sets(Category_singleton):
                 sage: A.category()
                 Category of monoid algebras over Rational Field
 
+            One may specify for which category one takes the algebra::
+
                 sage: A = Monoids().example().algebra(QQ, category = Sets()); A
                 Free module generated by An example of a monoid: the free monoid generated by ('a', 'b', 'c', 'd') over Rational Field
                 sage: A.category()
                 Category of set algebras over Rational Field
+
+            Creating the algebra of set endowed with both an additive
+            and multiplicative semigroup structure is ambiguous::
+
+                sage: Z3 = IntegerModRing(3)
+                sage: A = Z3.algebra(QQ)
+                Traceback (most recent call last):
+                ...
+                TypeError:  `S = Ring of integers modulo 3` is both an additive and a multiplicative semigroup.
+                Constructing its algebra is ambiguous.
+                Please use, e.g., S.algebra(QQ, category = Semigroups())
+
+            Here is how to resolve the ambiguity using the ``category`` argument::
+
+                sage: A = Z3.algebra(QQ, category = Monoids()); A
+                Free module generated by Ring of integers modulo 3 over Rational Field
+                sage: A.category()
+                Category of monoid algebras over Rational Field
+
+                sage: A = Z3.algebra(QQ, category = CommutativeAdditiveGroups()); A
+                Free module generated by Ring of integers modulo 3 over Rational Field
+                sage: A.category()
+                Category of commutative additive group algebras over Rational Field
             """
             if category is None:
                 category = self.category()
+            from sage.categories.semigroups import Semigroups
+            from sage.categories.commutative_additive_semigroups import CommutativeAdditiveSemigroups
+            if category.is_subcategory(Semigroups()) and category.is_subcategory(CommutativeAdditiveSemigroups()):
+                raise TypeError, """ `S = %s` is both an additive and a multiplicative semigroup.
+Constructing its algebra is ambiguous.
+Please use, e.g., S.algebra(QQ, category = Semigroups())"""%self
             from sage.combinat.free_module import CombinatorialFreeModule
             return CombinatorialFreeModule(base_ring, self, category = category.Algebras(base_ring))
 
@@ -815,11 +1361,48 @@ class Sets(Category_singleton):
     class HomCategory(HomCategory):
         pass
 
-    Facades = LazyImport('sage.categories.facade_sets', 'FacadeSets')
+    Facade = LazyImport('sage.categories.facade_sets', 'FacadeSets')
+    Finite = LazyImport('sage.categories.finite_sets', 'FiniteSets', at_startup=True)
+
+    class Infinite(CategoryWithAxiom):
+
+        class ParentMethods:
+
+            def is_finite(self):
+                """
+                Returns ``False`` since self is not finite.
+
+                EXAMPLES::
+
+                    sage: C = InfiniteEnumeratedSets().example()
+                    sage: C.is_finite()
+                    False
+
+                TESTS::
+
+                    sage: C.is_finite.im_func is sage.categories.sets_cat.Sets.Infinite.ParentMethods.is_finite.im_func
+                    True
+                """
+                return False
+
+            def cardinality(self):
+                """
+                Counts the elements of the enumerated set.
+
+                EXAMPLES::
+
+                    sage: NN = InfiniteEnumeratedSets().example()
+                    sage: NN.cardinality()
+                    +Infinity
+                """
+                from sage.rings.infinity import infinity
+                return infinity
 
     class Subquotients(SubquotientsCategory):
         """
         A category for subquotients of sets
+
+        .. seealso: :meth:`Sets().Subquotients`
 
         EXAMPLES::
 
@@ -854,8 +1437,10 @@ class Sets(Category_singleton):
                     sage: Semigroups().Subquotients().example().ambient()
                     An example of a semigroup: the left zero semigroup
 
-                See :class:`~sage.category.subquotients.Subquotients` for
-                specification and also :meth:`.lift` and :meth:`.retract`
+                .. SEEALSO::
+
+                    :meth:`Sets.SubcategoryMethods.Subquotients` for the
+                    specifications and :meth:`.lift` and :meth:`.retract`.
                 """
 
             # Should lift and retract be declared as conversions to the coercion mechanism ?
@@ -887,9 +1472,11 @@ class Sets(Category_singleton):
                     sage: s.lift(), s.lift().parent()
                     (42, An example of a semigroup: the left zero semigroup)
 
-                See :class:`~sage.category.subquotients.Subquotients` for
-                specification, :meth:`.ambient`, :meth:`.retract`, and also
-                :meth:`Sets.Subquotients.ElementMethods.lift`
+                .. SEEALSO::
+
+                    :class:`Sets.SubcategoryMethods.Subquotients` for
+                    the specifications, :meth:`.ambient`, :meth:`.retract`,
+                    and also :meth:`Sets.Subquotients.ElementMethods.lift`.
                 """
 
             @abstract_method
@@ -900,9 +1487,11 @@ class Sets(Category_singleton):
 
                 Retracts ``x`` to ``self``.
 
-                See :class:`~sage.category.subquotients.Subquotients` for
-                specification, :meth:`.ambient`, :meth:`.retract`, and also
-                :meth:`Sets.Subquotients.ElementMethods.retract`
+                .. SEEALSO::
+
+                    :class:`Sets.SubcategoryMethods.Subquotients` for
+                    the specifications, :meth:`.ambient`, :meth:`.retract`,
+                    and also :meth:`Sets.Subquotients.ElementMethods.retract`.
 
                 EXAMPLES::
 
@@ -936,6 +1525,8 @@ class Sets(Category_singleton):
     class Quotients(QuotientsCategory):
         """
         A category for subquotients of sets
+
+        .. seealso: :meth:`Sets().Quotients`
 
         EXAMPLES::
 
@@ -975,6 +1566,8 @@ class Sets(Category_singleton):
     class Subobjects(SubobjectsCategory):
         """
         A category for subquotients of sets
+
+        .. seealso: :meth:`Sets().Subobjects`
 
         EXAMPLES::
 
@@ -1098,6 +1691,17 @@ class Sets(Category_singleton):
                 """
 
             @abstract_method
+            def summands(self):
+                """
+                Return the summands of ``self``
+
+                EXAMPLES::
+
+                    sage: cartesian_product([QQ, ZZ, ZZ]).summands()
+                    (Rational Field, Integer Ring, Integer Ring)
+                """
+
+            @abstract_method
             def summand_projection(self, i):
                 """
                 Returns the natural projection onto the `i`-th summand of self
@@ -1190,11 +1794,11 @@ class Sets(Category_singleton):
             """
             EXAMPLES::
 
-                sage: Sets().Algebras(QQ).extra_super_categories()
-                [Category of modules with basis over Rational Field]
+                sage: Sets().Algebras(ZZ).super_categories()
+                [Category of modules with basis over Integer Ring]
 
-                sage: Sets().Algebras(QQ).super_categories()
-                [Category of modules with basis over Rational Field]
+                sage: Sets().Algebras(QQ).extra_super_categories()
+                [Category of vector spaces with basis over Rational Field]
 
                 sage: Sets().example().algebra(ZZ).categories()
                 [Category of set algebras over Integer Ring,
@@ -1219,7 +1823,7 @@ class Sets(Category_singleton):
                 sage: Sets().WithRealizations().super_categories()
                 [Category of facade sets]
             """
-            return [Sets().Facades()]
+            return [Sets().Facade()]
 
         def example(self, base_ring = None, set = None):
             r"""
@@ -1319,6 +1923,19 @@ class Sets(Category_singleton):
                         print 'Injecting %s as shorthand for %s'%(shorthand, realization)
                     inject_variable(shorthand, realization)
 
+            @abstract_method(optional=True)
+            def a_realization(self):
+                """
+                Return a realization of ``self``.
+
+                EXAMPLES::
+
+                    sage: A = Sets().WithRealizations().example(); A
+                    The subset algebra of {1, 2, 3} over Rational Field
+                    sage: A.a_realization()
+                    The subset algebra of {1, 2, 3} over Rational Field in the Fundamental basis
+                """
+
             def realizations(self):
                 """
                 Returns all the realizations of ``self`` that ``self`` is aware of.
@@ -1390,7 +2007,7 @@ class Sets(Category_singleton):
                 """
                 return self.realizations()[0].an_element()
 
-            # TODO: maybe this could be taken care of by Sets.Facades()?
+            # TODO: maybe this could be taken care of by Sets.Facade()?
             def __contains__(self, x):
                 r"""
                 Test whether ``x`` is in ``self``, that is if it is an

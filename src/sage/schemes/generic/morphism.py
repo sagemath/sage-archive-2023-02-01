@@ -270,7 +270,7 @@ class SchemeMorphism(Element):
 
             sage: A2 = AffineSpace(QQ,2)
             sage: A2.structure_morphism().category()
-            Category of hom sets in Category of Schemes
+            Category of hom sets in Category of schemes
         """
         return self.parent().category()
 

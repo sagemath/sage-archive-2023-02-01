@@ -29,7 +29,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
 
-from sage.misc.cachefunc import weak_cached_function
+from sage.misc.cachefunc import cached_function
 from sage.misc.classcall_metaclass import ClasscallMetaclass, typecall
 from sage.misc.fast_methods import WithEqualityById
 
@@ -428,7 +428,7 @@ class CachedRepresentation:
 
     _included_private_doc_ = ["__classcall__"]
 
-    @weak_cached_function # automatically a staticmethod
+    @cached_function # automatically a staticmethod
     def __classcall__(cls, *args, **options):
         """
         Constructs a new object of this class or reuse an existing one.

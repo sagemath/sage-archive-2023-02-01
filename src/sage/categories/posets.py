@@ -10,6 +10,7 @@ Posets
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
+from sage.misc.lazy_import import LazyImport
 from sage.categories.category import Category
 from sage.categories.sets_cat import Sets
 
@@ -50,7 +51,7 @@ class Posets(Category):
         sage: P.ge(y, x)
         True
 
-    Unless the poset is a facade (see :class:`Sets.Facades`), one can
+    Unless the poset is a facade (see :class:`Sets.Facade`), one can
     compare directly its elements using the usual Python operators::
 
         sage: D = Poset((divisors(30), attrcall("divides")), facade = False)
@@ -150,6 +151,7 @@ class Posets(Category):
                 yield P
             n += 1
 
+    Finite = LazyImport('sage.categories.finite_posets', 'FinitePosets')
 
     class ParentMethods:
 

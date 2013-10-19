@@ -11,20 +11,19 @@ Finite Coxeter Groups
 
 from sage.misc.cachefunc import cached_method, cached_in_parent_method
 from sage.misc.lazy_attribute import lazy_attribute
-from sage.categories.category import Category
+from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.coxeter_groups import CoxeterGroups
-from sage.categories.finite_groups import FiniteGroups
 
-class FiniteCoxeterGroups(Category):
+class FiniteCoxeterGroups(CategoryWithAxiom):
     r"""
     The category of finite Coxeter groups.
 
     EXAMPLES::
 
-        sage: FiniteSemigroups()
-        Category of finite semigroups
-        sage: FiniteSemigroups().super_categories()
-        [Category of semigroups, Category of finite enumerated sets]
+        sage: FiniteCoxeterGroups()
+        Category of finite coxeter groups
+        sage: FiniteCoxeterGroups().super_categories()
+        [Category of finite groups, Category of coxeter groups]
 
         sage: G = FiniteCoxeterGroups().example()
         sage: G.cayley_graph(side = "right").plot()
@@ -44,16 +43,6 @@ class FiniteCoxeterGroups(Category):
         sage: DihedralGroup(5)
         Dihedral group of order 10 as a permutation group
     """
-
-    @cached_method
-    def super_categories(self):
-        r"""
-        EXAMPLES::
-
-            sage: FiniteCoxeterGroups().super_categories()
-            [Category of coxeter groups, Category of finite groups]
-        """
-        return [CoxeterGroups(), FiniteGroups()]
 
     class ParentMethods:
 

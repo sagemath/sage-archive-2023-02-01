@@ -293,11 +293,11 @@ cdef class Parent(category_object.CategoryObject):
 
         - ``facade`` -- a parent, or tuple thereof, or ``True``
 
-        If ``facade`` is specified, then ``Sets().Facades()`` is added
+        If ``facade`` is specified, then ``Sets().Facade()`` is added
         to the categories of the parent. Furthermore, if ``facade`` is
         not ``True``, the internal attribute ``_facade_for`` is set
         accordingly for use by
-        :meth:`Sets.Facades.ParentMethods.facade_for`.
+        :meth:`Sets.Facade.ParentMethods.facade_for`.
 
         Internal invariants:
 
@@ -310,6 +310,17 @@ cdef class Parent(category_object.CategoryObject):
 
             Eventually, category should be
             :class:`~sage.categories.sets_cat.Sets` by default.
+
+
+        TESTS:
+
+        We check that the facade option is compatible with specifying
+        categories as a tuple::
+
+            sage: class MyClass(Parent): pass
+            sage: P = MyClass(facade = ZZ, category = (Monoids(), CommutativeAdditiveMonoids()))
+            sage: P.category()
+            Join of Category of monoids and Category of commutative additive monoids and Category of facade sets
 
         .. automethod:: __call__
         .. automethod:: _populate_coercion_lists_
@@ -326,6 +337,8 @@ cdef class Parent(category_object.CategoryObject):
         # (element_constructor would always be set by inheritance)
         # Then, all the element_constructor logic should be moved to init_coerce.
         CategoryObject.__init__(self, base = base)
+        if isinstance(category, (tuple, list)):
+            category = Category.join(category)
         if facade is not None and facade is not False:
             if isinstance(facade, Parent):
                 facade = (facade,)
@@ -333,12 +346,12 @@ cdef class Parent(category_object.CategoryObject):
                 assert isinstance(facade, tuple)
                 self._facade_for = facade
             if category is None:
-                category = Sets().Facades()
+                category = Sets().Facade()
             else:
                 if isinstance(category, (tuple,list)):
-                    category = Category.join(tuple(category) + (Sets().Facades(),))
+                    category = Category.join(tuple(category) + (Sets().Facade(),))
                 else:
-                    category = Category.join((category,Sets().Facades()))
+                    category = Category.join((category,Sets().Facade()))
         # Setting the categories is currently done in a separate
         # method to let some subclasses (like ParentsWithBase)
         # call it without calling the full constructor

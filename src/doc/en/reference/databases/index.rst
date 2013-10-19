@@ -48,7 +48,7 @@ database engine.
 -  Sources are in the public domain. Use for any purpose.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    sage/databases/cremona
    sage/databases/stein_watkins

@@ -1,10 +1,10 @@
 r"""
 The On-Line Encyclopedia of Integer Sequences (OEIS)
 
-The OEIS is an online database for integer sequences, you can query it through
-Sage in order to
+You can query the OEIS (Online Database of Integer Sequences) through Sage in
+order to:
 
-    - identify a sequence, of which you know the first terms,
+    - identify a sequence from its first terms.
     - obtain more terms, formulae, references, etc. for a given sequence.
 
 
@@ -12,21 +12,20 @@ AUTHORS:
 
     - Thierry Monteil (2012-02-10 -- 2013-06-21): initial version.
 
-
 EXAMPLES::
 
         sage: oeis
         The On-Line Encyclopedia of Integer Sequences (http://oeis.org/)
 
-What about a sequence starting with 3, 7, 15, 1 ?
+What about a sequence starting with `3, 7, 15, 1` ?
 
 ::
 
     sage: search = oeis([3, 7, 15, 1], max_results=4) ; search  # optional -- internet
     0: A001203: Continued fraction expansion of Pi.
-    1: A193583: Number of fixed points under iteration of sum of squares of digits in base b.
-    2: A082495: (2^n-1) mod n.
-    3: A204116: Symmetric matrix based on f(i,j)=GCD(2^i-1,2^j-1), by antidiagonals.
+    1: A165416: Irregular array read by rows: The n-th row contains those distinct positive integers that each, when written in binary, occurs as a substring in binary n.
+    2: A193583: Number of fixed points under iteration of sum of squares of digits in base b.
+    3: A082495: (2^n-1) mod n.
 
     sage: c = search[0] ; c                             # optional -- internet
     A001203: Continued fraction expansion of Pi.
@@ -37,18 +36,14 @@ What about a sequence starting with 3, 7, 15, 1 ?
     (3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 2, 1)
 
     sage: c.examples()                                  # optional -- internet
-    0: Pi = 3.1415926535897932384... = 3 + 1/(7 + 1/(15 + 1/(1 + 1/(292 + ...))))
+    0: Pi = 3.1415926535897932384...
+    1:    = 3 + 1/(7 + 1/(15 + 1/(1 + 1/(292 + ...))))
+    2:    = [a_0; a_1, a_2, a_3, ...] = [3; 7, 15, 292, ...]
 
     sage: c.comments()                                  # optional -- internet
     0: The first 5,821,569,425 terms were computed by _Eric W. Weisstein_ on Sep 18 2011.
     1: The first 10,672,905,501 terms were computed by _Eric W. Weisstein_ on Jul 17 2013.
-
-    sage: c[4]                                          # optional -- internet
-    292
-    sage: c(3)                                          # optional -- internet
-    15
-    sage: c.offsets()[0]                                 # optional -- internet
-    1
+    2: The first 15,000,000,000 terms were computed by _Eric W. Weisstein_ on Jul 27 2013.
 
 ::
 
@@ -94,7 +89,8 @@ related ?
     5: A079265: Number of antisymmetric transitive binary relations on n unlabeled points.
 
 
-What the Taylor expansion of the ``e^(e^x-1)`` function has to do with primes ?
+What does the Taylor expansion of the `e^(e^x-1)`` function have to do with
+primes ?
 
 ::
 
@@ -127,12 +123,13 @@ What the Taylor expansion of the ``e^(e^x-1)`` function has to do with primes ?
     - Some infinite OEIS sequences are implemented in Sage, via the
       :mod:`sloane_functions <sage.combinat.sloane_functions>` module.
 
-
 .. TODO::
 
     - in case of flood, suggest the user to install the off-line database instead.
     - interface with the off-line database (or reimplement it).
 
+Classes and methods
+-------------------
 """
 
 #*****************************************************************************
@@ -231,6 +228,39 @@ class OEIS:
     r"""
     The On-Line Encyclopedia of Integer Sequences.
 
+    ``OEIS`` is a class representing the On-Line Encyclopedia of Integer
+    Sequences. You can query it using its methods, but ``OEIS`` can also be
+    called directly with three arguments:
+
+    - ``query`` - it can be:
+
+      - a string representing an OEIS ID (e.g. 'A000045').
+      - an integer representing an OEIS ID (e.g. 45).
+      - a list representing a sequence of integers.
+      - a string, representing a text search.
+
+    - ``max_results`` - (integer, default: 30) the maximum number of
+      results to return, they are sorted according to their relevance. In
+      any cases, the OEIS website will never provide more than 100 results.
+
+    - ``first_result`` - (integer, default: 0) allow to skip the
+      ``first_result`` first results in the search, to go further.
+      This is useful if you are looking for a sequence that may appear
+      after the 100 first found sequences.
+
+    OUTPUT:
+
+    - if ``query`` is an integer or an OEIS ID (e.g. 'A000045'), returns
+      the associated OEIS sequence.
+
+    - if ``query`` is a string, returns a tuple of OEIS sequences whose
+      description corresponds to the query. Those sequences can be used
+      without the need to fetch the database again.
+
+    - if ``query`` is a list of integers, returns a tuple of OEIS sequences
+      containing it as a subsequence. Those sequences can be used without
+      the need to fetch the database again.
+
     EXAMPLES::
 
         sage: oeis
@@ -248,8 +278,8 @@ class OEIS:
 
         sage: search = oeis([1,2,3,5,8,13]) ; search    # optional -- internet
         0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-        1: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
-        2: A014260: Iccanobif numbers: add a(n-1) to reversal of a(n-2).
+        1: A027926: Triangular array T read by rows: T(n,0)=T(n,2n)=1 for n >= 0; ...
+        2: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
 
         sage: fibo = search[0]                         # optional -- internet
 
@@ -296,7 +326,6 @@ class OEIS:
         2: A073492: Numbers having at least one prime gap in their factorization.
         3: A073493: Numbers having exactly one prime gap in their factorization.
 
-
     .. WARNING::
 
         The following will fetch the OEIS database twice (once for searching the
@@ -304,8 +333,8 @@ class OEIS:
 
             sage: oeis([1,2,3,5,8,13])                  # optional -- internet
             0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-            1: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
-            2: A014260: Iccanobif numbers: add a(n-1) to reversal of a(n-2).
+            1: A027926: Triangular array T read by rows: T(n,0)=T(n,2n)=1 for n >= 0; ...
+            2: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
 
             sage: fibo = oeis('A000045')                # optional -- internet
 
@@ -315,61 +344,22 @@ class OEIS:
 
             sage: oeis([1,2,3,5,8,13])                  # optional -- internet
             0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-            1: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
-            2: A014260: Iccanobif numbers: add a(n-1) to reversal of a(n-2).
+            1: A027926: Triangular array T read by rows: T(n,0)=T(n,2n)=1 for n >= 0; ...
+            2: A001129: Iccanobif numbers: reverse digits of two previous terms and add.
 
             sage: fibo = _[0]                           # optional -- internet
     """
 
     def __call__(self, query, max_results=3, first_result=0):
         r"""
-        Return an OEIS sequence or a tuple of at most ``max_results`` OEIS
-        sequences corresponding to the query.
+        See the documentation of :class:`OEIS`.
 
-        INPUT:
+        TESTS::
 
-        - ``query`` - it can be:
-            - a string representing an OEIS ID (e.g. 'A000045')
-            - an integer representing an OEIS ID (e.g. 45)
-            - a list representing a sequence of integers
-            - a string, representing a text search
-
-        - ``max_results`` - (integer, default: 30) the maximum number of
-          results to return, they are sorted according to their relevance. In
-          any cases, the OEIS website will never provide more than 100 results
-
-        - ``first_result`` - (integer, default: 0) allow to skip the
-          ``first_result`` first results in the search, to go further.
-          This is useful if you are looking for a sequence that may appear
-          after the 100 first found sequences.
-
-        OUTPUT:
-
-        - if ``query`` is an integer or an OEIS ID (e.g. 'A000045'), returns
-          the associated OEIS sequence.
-
-        - if ``query`` is a string, returns a tuple of OEIS sequences whose
-          description corresponds to the query. Those sequences can be used
-          without the need to fetch the database again.
-
-        - if ``query`` is a list of integers, returns a tuple of OEIS sequences
-          containing it as a subsequence. Those sequences can be used without
-          the need to fetch the database again.
-
-
-        EXAMPLES::
-
-            sage: p = oeis('A000040') ; p               # optional -- internet
-            A000040: The prime numbers.
-
-            sage: search = oeis.find_by_subsequence([2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377]) # optional -- internet
-            sage: search                                # optional -- internet
-            0: A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
-            1: A177194: Fibonacci numbers whose decimal expression does not contain any digit 0.
-            2: A020695: Pisot sequence E(2,3).
-
-            sage: fibo = search[0] ; fibo                    # optional -- internet
-            A000045: Fibonacci numbers: F(n) = F(n-1) + F(n-2) with F(0) = 0 and F(1) = 1.
+            sage: oeis()
+            Traceback (most recent call last):
+            ...
+            TypeError: __call__() takes at least 2 arguments (1 given)
         """
         if isinstance(query, str):
             if re.match('^A[0-9]{6}$',query):
@@ -412,7 +402,6 @@ class OEIS:
 
             sage: oeis.find_by_id(40)                   # optional -- internet
             A000040: The prime numbers.
-
         """
         if not isinstance(ident, str):
             ident = str(ident)
@@ -594,7 +583,7 @@ class OEIS:
 
         OUTPUT:
 
-        - OEIS sequence
+        - OEIS sequence.
 
         TESTS::
 
@@ -620,7 +609,8 @@ class OEISSequence(SageObject):
     .. NOTE::
 
         Since some sequences do not start with index 0, there is a difference
-        between calling and getting item::
+        between calling and getting item, see :meth:`__call__` for more details
+        ::
 
             sage: sfibo = oeis('A039834')               # optional -- internet
             sage: sfibo.first_terms()[:10]              # optional -- internet
@@ -637,6 +627,8 @@ class OEISSequence(SageObject):
             1
             sage: sfibo[6]                              # optional -- internet
             -3
+
+    .. automethod:: __call__
     """
 
     def __init__(self, entry):
@@ -654,7 +646,6 @@ class OEISSequence(SageObject):
         self._fields = defaultdict(list)
         for line in entry.splitlines():
             self._fields[line[1]].append(line[11:])
-            # self._fields[line[1]].append(line[11:].strip())
 
     def id(self, format='A'):
         r"""
@@ -663,11 +654,11 @@ class OEISSequence(SageObject):
 
         INPUT:
 
-        - ``format`` - (string, default: 'A')
+        - ``format`` - (string, default: 'A').
 
         OUTPUT:
 
-        - if ``format`` is set to 'A', returns a string of the form 'A000123' ;
+        - if ``format`` is set to 'A', returns a string of the form 'A000123'.
         - if ``format`` is set to 'int' returns an integer of the form 123.
 
         EXAMPLES::
@@ -700,7 +691,7 @@ class OEISSequence(SageObject):
 
         OUTPUT:
 
-        - string
+        - string.
 
         EXAMPLES::
 
@@ -727,7 +718,7 @@ class OEISSequence(SageObject):
 
         OUTPUT:
 
-        - string
+        - string.
 
         EXAMPLES::
 
@@ -813,7 +804,7 @@ class OEISSequence(SageObject):
 
         OUTPUT:
 
-        - string
+        - string.
 
         EXAMPLES::
 
@@ -837,7 +828,7 @@ class OEISSequence(SageObject):
 
         OUTPUT:
 
-        - tuple of strings
+        - tuple of strings.
 
         EXAMPLES::
 
@@ -1068,7 +1059,7 @@ class OEISSequence(SageObject):
 
         OUTPUT:
 
-        - tuple of integers
+        - tuple of integers.
 
         EXAMPLES::
 
@@ -1142,7 +1133,7 @@ class OEISSequence(SageObject):
 
         OUTPUT:
 
-        - integer
+        - integer.
 
         .. NOTE::
 
@@ -1168,6 +1159,8 @@ class OEISSequence(SageObject):
 
             sage: sfibo(-2)                             # optional -- internet
             1
+            sage: sfibo(4)                              # optional -- internet
+            -3
             sage: sfibo.offsets()                       # optional -- internet
             (-2, 6)
 
@@ -1200,11 +1193,11 @@ class OEISSequence(SageObject):
 
         INPUT:
 
-        - ``i`` - integer
+        - ``i`` - integer.
 
         OUTPUT:
 
-        - integer
+        - integer.
 
         EXAMPLES::
 
@@ -1236,7 +1229,7 @@ class OEISSequence(SageObject):
 
         OUTPUT:
 
-        - integer
+        - integer.
 
         EXAMPLES::
 
@@ -1319,7 +1312,7 @@ class OEISSequence(SageObject):
 
         OUTPUT:
 
-        - boolean
+        - boolean.
 
         EXAMPLES::
 
@@ -1347,7 +1340,7 @@ class OEISSequence(SageObject):
 
         OUTPUT:
 
-        - boolean
+        - boolean.
 
         EXAMPLES::
 
@@ -1368,7 +1361,7 @@ class OEISSequence(SageObject):
 
         OUTPUT:
 
-        - tuple of strings (with fancy formatting)
+        - tuple of strings (with fancy formatting).
 
         EXAMPLES::
 
@@ -1407,7 +1400,7 @@ class OEISSequence(SageObject):
 
         - tuple of strings (with fancy formatting):
             - if ``format`` is ``url``, returns a tuple of absolute links without description.
-            - if ``format`` is ``html``, returns a tuple of clickable absolute links in their context.
+            - if ``format`` is ``html``, returns nothing but prints a tuple of clickable absolute links in their context.
             - if ``format`` is ``guess``, adapts the output to the context (command line or notebook).
             - if ``format`` is ``raw``, the links as they appear in the database, relative links are not made absolute.
 
@@ -1450,7 +1443,7 @@ class OEISSequence(SageObject):
             elif format == 'raw':
                 return FancyTuple(self._fields['H'])
             elif format == 'html':
-                return html(FancyTuple(map(url_absolute, self._fields['H'])))
+                html(FancyTuple(map(url_absolute, self._fields['H'])))
             elif format == 'url':
                 url_list = flatten([_urls(url_absolute(string)) for string in self._fields['H']])
                 return FancyTuple(url_list)
@@ -1472,7 +1465,7 @@ class OEISSequence(SageObject):
 
         OUTPUT:
 
-        - tuple of strings (with fancy formatting)
+        - tuple of strings (with fancy formatting).
 
         EXAMPLES::
 
@@ -1540,7 +1533,7 @@ class OEISSequence(SageObject):
 
         OUTPUT:
 
-        - tuple of strings (with fancy formatting)
+        - tuple of strings (with fancy formatting).
 
         EXAMPLES::
 
@@ -1565,7 +1558,7 @@ class OEISSequence(SageObject):
 
         OUTPUT:
 
-        - tuple of strings (with fancy formatting)
+        - tuple of strings (with fancy formatting).
 
         EXAMPLES::
 
@@ -1573,15 +1566,15 @@ class OEISSequence(SageObject):
             A001203: Continued fraction expansion of Pi.
 
             sage: c.examples()                          # optional -- internet
-            0: Pi = 3.1415926535897932384... = 3 + 1/(7 + 1/(15 + 1/(1 + 1/(292 + ...))))
+            0: Pi = 3.1415926535897932384...
+            1:    = 3 + 1/(7 + 1/(15 + 1/(1 + 1/(292 + ...))))
+            2:    = [a_0; a_1, a_2, a_3, ...] = [3; 7, 15, 292, ...]
 
         TESTS::
 
             sage: s = oeis._imaginary_sequence()
             sage: s.examples()
             0: s(42) + s(43) = 0.
-
-
         """
         return FancyTuple(self._fields['e'])
 
@@ -1591,7 +1584,7 @@ class OEISSequence(SageObject):
 
         OUTPUT:
 
-        - tuple of strings (with fancy formatting)
+        - tuple of strings (with fancy formatting).
 
         EXAMPLES::
 
@@ -1618,7 +1611,7 @@ class OEISSequence(SageObject):
 
         OUTPUT:
 
-        - string
+        - string.
 
         EXAMPLES::
 
@@ -1726,7 +1719,7 @@ class OEISSequence(SageObject):
 
         OUTPUT:
 
-        - tuple of strings (with fancy formatting)
+        - tuple of strings (with fancy formatting).
 
         .. TODO:: ask OEIS to add a "Sage program" field in the database ;)
 

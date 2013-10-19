@@ -68,6 +68,8 @@ AUTHORS:
 - Thierry Monteil (2012-02-10): deprecate dead code and update related doc and
   tests.
 
+Classes and methods
+-------------------
 """
 
 #*****************************************************************************
@@ -87,7 +89,6 @@ from sage.misc.misc import SAGE_SHARE
 import sage.rings.integer_ring
 ZZ = sage.rings.integer_ring.IntegerRing()
 from sage.misc.superseded import deprecation
-
 
 class SloaneEncyclopediaClass:
     """

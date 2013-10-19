@@ -285,8 +285,7 @@ class PolyhedronFace(SageObject):
         EXAMPLES::
 
             sage: square = polytopes.n_cube(2)
-            sage: for fl in square.face_lattice():
-            ...       face = fl.element
+            sage: for face in square.face_lattice():
             ...       print face.ambient_Hrepresentation()
             (An inequality (1, 0) x + 1 >= 0, An inequality (0, 1) x + 1 >= 0,
              An inequality (-1, 0) x + 1 >= 0, An inequality (0, -1) x + 1 >= 0)

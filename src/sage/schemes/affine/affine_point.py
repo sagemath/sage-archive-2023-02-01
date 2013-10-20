@@ -137,7 +137,8 @@ class SchemeMorphism_point_affine(SchemeMorphism_point):
 
     def orbit(self,f,N):
         r"""
-        Returns the orbit of self by `f`. If `n` is an integer it returns `[self,f(self),\ldots,f^{n}(self)]]`.
+        Returns the orbit of self by `f`. If `n` is an integer it returns `[self,f(self),\ldots,f^{n}(self)]`.
+
         If `n` is a list or tuple `n=[m,k]` it returns `[f^{m}(self),\ldots,f^{k}(self)]`.
 
         INPUT:

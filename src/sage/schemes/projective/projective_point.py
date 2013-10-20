@@ -15,9 +15,9 @@ AUTHORS:
 - Volker Braun (2011-08-08): Renamed classes, more documentation, misc
   cleanups.
 
-- Ben Hutz: (June 2012) added support for projective ring
-            (March 2013) iteration functionality and new directory structure
-            for affine/projective, height functionality
+- Ben Hutz (June 2012) added support for projective ring;
+  (March 2013) iteration functionality and new directory structure
+  for affine/projective, height functionality
 """
 
 # Historical note: in trac #11599, V.B. renamed
@@ -726,7 +726,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: Q.green_function(f,0,N=200,prec=200)
             1.6460930160038721802875250367738355497198064992657997569827
 
-        ..TODO::
+        .. TODO::
 
             error bounds for dimension > 1
         """
@@ -840,9 +840,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: f.canonical_height(Q)
             1.0979353871245941198040174712
 
-        ::
-
-            Notice that preperiodic points may not be exactly 0.
+        Notice that preperiodic points may not be exactly 0. ::
 
             sage: P.<x,y>=ProjectiveSpace(QQ,1)
             sage: H=Hom(P,P)

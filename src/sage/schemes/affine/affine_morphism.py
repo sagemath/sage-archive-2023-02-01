@@ -12,8 +12,8 @@ AUTHORS:
 - Volker Braun (2011-08-08): Renamed classes, more documentation, misc
   cleanups.
 
-- Ben Hutz: (March 2013) iteration functionality and new directory structure
-            for affine/projective
+- Ben Hutz (2013-03) iteration functionality and new directory structure
+  for affine/projective
 """
 
 # Historical note: in trac #11599, V.B. renamed
@@ -440,7 +440,8 @@ class SchemeMorphism_polynomial_affine_space(SchemeMorphism_polynomial):
     def orbit(self,P,n):
         r"""
         Returns the orbit of `P` by ``self``. If `n` is an integer it returns `[P,self(P),\ldots,self^n(P)]`.
-        If `n` is a list or tuple `n=[m,k]` it returns`[self^m(P),\ldots,self^k(P)]`
+
+        If `n` is a list or tuple `n=[m,k]` it returns `[self^m(P),\ldots,self^k(P)]`
 
         INPUT:
 
@@ -603,10 +604,10 @@ class SchemeMorphism_polynomial_affine_space_finite_field(SchemeMorphism_polynom
                     V.append(str(XP))
                     Q=self(XP)
                     E.append([str(Q)])
-                except TypeError: #not on the scheme
+                except TypeError:  # not on the scheme
                     pass
         from sage.graphs.digraph import DiGraph
         g=DiGraph(dict(zip(V,E)), loops=True)
-        return(g)
+        return g
 
 

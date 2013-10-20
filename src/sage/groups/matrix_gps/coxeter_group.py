@@ -32,6 +32,7 @@ from sage.rings.all import ZZ
 from sage.rings.infinity import infinity
 from sage.rings.universal_cyclotomic_field.universal_cyclotomic_field import UniversalCyclotomicField
 
+
 class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentation):
     r"""
     A Coxeter group represented as a matrix group.
@@ -185,7 +186,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
     @staticmethod
     def __classcall_private__(cls, data, base_ring=None, index_set=None):
         """
-        Normalize arguements to ensure a unique representation.
+        Normalize arguments to ensure a unique representation.
 
         EXAMPLES::
 
@@ -222,22 +223,22 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             n = G.num_verts()
 
             # Setup the basis matrix as all 2 except 1 on the diagonal
-            data = matrix(ZZ, [[2]*n for i in range(n)])
+            data = matrix(ZZ, [[2]*n]*n)
             for i in range(n):
-                data[i,i] = ZZ.one()
+                data[i, i] = ZZ.one()
 
             verts = G.vertices()
             for e in G.edges():
                 m = e[2]
                 if m is None:
                     m = 3
-                elif m == infinity or m == -1: # FIXME: Hack because there is no ZZ\cup\{\infty\}
+                elif m == infinity or m == -1:  # FIXME: Hack because there is no ZZ\cup\{\infty\}
                     m = -1
                 elif m <= 1:
                     raise ValueError("invalid Coxeter graph label")
                 i = verts.index(e[0])
                 j = verts.index(e[1])
-                data[j,i] = data[i,j] = m
+                data[j, i] = data[i, j] = m
 
             if index_set is None:
                 index_set = G.vertices()
@@ -250,7 +251,8 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
                 raise ValueError("the Coxeter matrix is not symmetric")
             if any(d != 1 for d in data.diagonal()):
                 raise ValueError("the Coxeter matrix diagonal is not all 1")
-            if any(val <= 1 and val != -1 for i,row in enumerate(data.rows()) for val in row[i+1:]):
+            if any(val <= 1 and val != -1 for i, row in enumerate(data.rows())
+                   for val in row[i+1:]):
                 raise ValueError("invalid Coxeter label")
 
             if index_set is None:
@@ -288,9 +290,12 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             from sage.functions.trig import cos
             from sage.symbolic.constants import pi
             val = lambda x: base_ring(2*cos(pi / x)) if x != -1 else base_ring(2)
-        gens = [MS.one() + MS({(i, j): val(coxeter_matrix[i,j]) for j in range(n)})
+        gens = [MS.one() + MS({(i, j): val(coxeter_matrix[i, j])
+                               for j in range(n)})
                 for i in range(n)]
-        FinitelyGeneratedMatrixGroup_generic.__init__(self, n, base_ring, gens, category=CoxeterGroups())
+        FinitelyGeneratedMatrixGroup_generic.__init__(self, n, base_ring,
+                                                      gens,
+                                                      category=CoxeterGroups())
 
     def _repr_(self):
         """
@@ -399,7 +404,7 @@ class CoxeterMatrixGroup(FinitelyGeneratedMatrixGroup_generic, UniqueRepresentat
             [ 0  1 -1]
         """
         if not i in self._index_set:
-            raise ValueError("%s is not in the index set %s"%(i, self.index_set()))
+            raise ValueError("%s is not in the index set %s" % (i, self.index_set()))
         return self.gen(self._index_set.index(i))
 
     class Element(MatrixGroupElement_generic):

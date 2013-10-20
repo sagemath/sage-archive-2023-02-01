@@ -353,7 +353,6 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
 
         EXAMPLES::
 
-            sage: C = CartanMatrix(['B',4,1])
             sage: cm = CartanMatrix([[2,-5],[-2,2]])
             sage: cm.symmetrizer()
             Finite family {0: 2, 1: 5}
@@ -373,11 +372,12 @@ class CartanMatrix(Matrix_integer_sparse, CartanType_abstract):
         if not sym:
             raise ValueError("the Cartan matrix is not symmetrizable")
         iset = self.index_set()
-        # The result from is_symmetrizable needs to be scaled to integer coefficients
+        # The result from is_symmetrizable needs to be scaled
+        # to integer coefficients
         from sage.rings.arith import LCM
         from sage.rings.all import QQ
         scalar = LCM(map(lambda x: QQ(x).denominator(), sym))
-        return Family( {iset[i]: ZZ(val*scalar) for i,val in enumerate(sym)} )
+        return Family( {iset[i]: ZZ(val*scalar) for i, val in enumerate(sym)} )
 
     ##########################################################################
     # Cartan type methods

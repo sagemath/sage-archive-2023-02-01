@@ -148,7 +148,7 @@ def CoxeterGroup(data, implementation=None, base_ring=None, index_set=None):
             return WeylGroup(cartan_type)
         return CoxeterMatrixGroup(cartan_type, base_ring, index_set)
 
-    raise NotImplementedError("Coxeter group of type %s as %s group not implemented "%(cartan_type, implementation))
+    raise NotImplementedError("Coxeter group of type %s as %s group not implemented " % (cartan_type, implementation))
 
 @cached_function
 def is_chevie_available():

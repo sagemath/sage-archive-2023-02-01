@@ -190,7 +190,7 @@ def WeylGroup(x, prefix=None):
     try:
         ct = CartanType(x)
     except TypeError:
-        ct = CartanMatrix(x) # See if it's a Cartan matrix
+        ct = CartanMatrix(x)  # See if it is a Cartan matrix
     if ct.is_finite():
         return WeylGroup_gens(ct.root_system().ambient_space(), prefix=prefix)
     return WeylGroup_gens(ct.root_system().root_space(), prefix=prefix)

@@ -6370,6 +6370,10 @@ cdef class Matrix(matrix1.Matrix):
             Bipartite graph on 5 vertices
             sage: B.edges()
             [(1, 4, 1/3), (1, 5, 7), (2, 4, 6), (2, 5, 1/4), (3, 4, 8), (3, 5, -5)]
+            sage: len(B.left) == M.nrows()
+            True
+            sage: len(B.right) == M.ncols()
+            True
         """
         from sage.graphs.bipartite_graph import BipartiteGraph
         nrows = self.nrows()
@@ -6413,12 +6417,12 @@ cdef class Matrix(matrix1.Matrix):
             PermutationGroupElement
         B = self.as_bipartite_graph()
         nrows = self.nrows()
-        A = B.automorphism_group(edge_labels=True)
+        A = B.automorphism_group(edge_labels = True)
         permutations = []
         for p in A:
             p = p.domain()
             # Embed in the subgroup S_n
-            p = [p[i] if i < len(p) else i + 1 for i in range(len(B))]
+            # p = [p[i] if i < len(p) else i + 1 for i in range(len(B))] # What is the point of this?
             # Convert to elements of Sym(self) from S_n
             if p[0] <= nrows:
                 permutations.append(
@@ -6435,7 +6439,7 @@ cdef class Matrix(matrix1.Matrix):
         matrices are ordered lexicographically
         going along each row.
 
-        If ``check`` is True then we instead return
+        If ``check`` is ``True`` then we instead return
         a tuple of the maximal matrix and the permutations
         taking ``self`` to the maximal matrix.
 
@@ -6469,7 +6473,8 @@ cdef class Matrix(matrix1.Matrix):
         nrows = self.nrows()
         ncols = self.ncols()
         # Let us sort each row:
-        sorted_rows = [sorted([self[i][j] for j in range(ncols)], reverse=True) for i in range(nrows)]
+        sorted_rows = [sorted([self[i][j] for j in range(ncols)], reverse=True)
+                       for i in range(nrows)]
         # and find the maximal one:
         first_row = max(sorted_rows)
         first_rows = [j for j in range(len(sorted_rows)) if sorted_rows[j] == first_row]
@@ -6481,18 +6486,20 @@ cdef class Matrix(matrix1.Matrix):
         # me + nc and me + 1 such that no entry is present already in the matrix.
         S = [first_row[0] + ncols] + [None]*(ncols-1)
         for j in range(1, ncols):
-           S[j] = S[j-1] if first_row[j] == first_row[j - 1] else S[j-1] - 1
+           S[j] = S[j - 1] if first_row[j] == first_row[j - 1] else S[j - 1] - 1
         # If we want to sort the i-th row with respect to a symmetry determined
-        # by S, then we will just sort the augmented row [[S[j],PM[i,j]] :
+        # by S, then we will just sort the augmented row [[S[j], PM[i, j]] :
         # j in [1 .. nc]], S having lexicographic priority.
         MS = [self.new_matrix(
-            ncols, nrows, sorted(self.with_swapped_rows(0, first_rows[0]).columns(), reverse=True)
+            ncols, nrows,
+            sorted(self.with_swapped_rows(0, first_rows[0]).columns(), reverse=True)
             ).transpose()]
         aM = [deepcopy(MS[0])]
         aM[0].set_row(0,S)
         for i in range(1, len(first_rows)):
             N = self.new_matrix(
-                ncols, nrows, sorted(self.with_swapped_rows(0, first_rows[i]).columns(), reverse=True)
+                ncols, nrows,
+                sorted(self.with_swapped_rows(0, first_rows[i]).columns(), reverse=True)
                 ).transpose()
             aN = deepcopy(N)
             aN.set_row(0,S)
@@ -6505,7 +6512,7 @@ cdef class Matrix(matrix1.Matrix):
             if not S == range(first_row[0] + ncols, first_row[0], -1):
                 # Sort each row with respect to S for the first matrix in X = MS
                 X = deepcopy(MS)
-                SM = [sorted([(S[j],X[0][k][j]) for j in range(ncols)], reverse=True)
+                SM = [sorted([(S[j], X[0][k][j]) for j in range(ncols)], reverse=True)
                                 for k in range(l, nrows)]
                 SM = [[k[1] for k in s] for s in SM]
 
@@ -6519,7 +6526,7 @@ cdef class Matrix(matrix1.Matrix):
                     SN = [sorted([(S[j], X[i][k][j]) for j in range(ncols)], reverse=True)
                           for k in range(l, nrows)]
                     SN = [[k[1] for k in s] for s in SN]
-                    # Maximal row in this entry of X=MS
+                    # Maximal row in this entry of X = MS
                     nb = max(SN)
                     # Number of occurences.
                     n = [j for j in range(nrows - l) if SN[j] == nb]
@@ -6542,7 +6549,7 @@ cdef class Matrix(matrix1.Matrix):
                 # Update symmetries
                 test = [(S[i],b[i]) for i in range(ncols)]
                 for j in range(1, ncols):
-                    S[j] = S[j-1] if (test[j] == test[j - 1]) else S[j-1] - 1 #error here!
+                    S[j] = S[j - 1] if (test[j] == test[j - 1]) else S[j - 1] - 1 #error here!
                 # For each case we check the isomorphism as previously, if
                 # test fails we add a new non-isomorphic case to MS. We
                 # pick our choice of maximal line l and sort the columns of
@@ -6559,7 +6566,7 @@ cdef class Matrix(matrix1.Matrix):
                             for j in range(1,len(m[i])):
                                 N=self.new_matrix(
                                     ncols, nrows, 
-                                    sorted(MS[i].with_swapped_rows(l, m[i][j] + 1).columns(),reverse=True)
+                                    sorted(MS[i].with_swapped_rows(l, m[i][j] + 1).columns(), reverse=True)
                                 ).transpose()
                                 aN = N.submatrix(l, 0, nrows - l, ncols)
                                 aN.set_row(0,S)
@@ -6572,7 +6579,7 @@ cdef class Matrix(matrix1.Matrix):
                             # If one case only, we do the sorting procedure straight
                             MS[i] = self.new_matrix(
                                 ncols, nrows,
-                                sorted(MS[i].with_swapped_rows(l, m[i][0] + l).columns(),reverse=True)
+                                sorted(MS[i].with_swapped_rows(l, m[i][0] + l).columns(), reverse=True)
                             ).transpose()
             else:
                 MS = [self.new_matrix(nrows, ncols, sorted(s.rows(), reverse=True)) for s in MS]
@@ -6585,13 +6592,13 @@ cdef class Matrix(matrix1.Matrix):
 
     def is_permutation_of(self, N, check=False):
         r"""
-        Return True if there is a permutation of rows and
-        columns sending ``self`` to ``N`` and False otherwise.
+        Return ``True`` if there exists a permutation of rows and
+        columns sending ``self`` to ``N`` and ``False`` otherwise.
 
         INPUT:
 
         - ``N`` -- a matrix
-        - ``check`` -- (default: ``False``) if ``False``
+        - ``check`` -- (default: ``False``) If ``False``
           return Boolean indicating whether there exists
           a permutation of rows and columns sending ``self``
           to ``N`` and False otherwise.
@@ -6636,13 +6643,17 @@ cdef class Matrix(matrix1.Matrix):
 
         And for when ``check`` is True::
 
-            sage: N = matrix(ZZ,[[1,2,3],[2,6,4],[3,5,3]])
+            sage: N = matrix(ZZ,[[3,5,3],[2,6,4],[1,2,3]])
             sage: N
-            [1 2 3]
-            [2 6 4]
             [3 5 3]
-            sage: M.is_permutation_of(N, check=True)
-            (True, ((2,3), ()))
+            [2 6 4]
+            [1 2 3]
+            sage: r = M.is_permutation_of(N, check=True)
+            sage: r
+            (True, ((1,2,3), ()))
+            sage: p = r[1]
+            sage: M.with_permuted_rows_and_columns(*p) == N
+            True
         """
         ncols = self.ncols()
         nrows = self.nrows()
@@ -6653,17 +6664,17 @@ cdef class Matrix(matrix1.Matrix):
                 return False
         M_B = self.as_bipartite_graph()
         N_B = N.as_bipartite_graph()
-        truth, perm = N_B.is_isomorphic(M_B, certify=True, edge_labels=True)
         if check:
+            truth, perm = N_B.is_isomorphic(M_B, certify=True, edge_labels=True)
             from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
             if perm:
                 s = sorted(perm.items(), key=lambda x:x[0])
                 row_perms = [value for k, value in s if k <= nrows]
-                col_perms = [value-nrows for k, value in s if k > nrows]
+                col_perms = [value - nrows for k, value in s if k > nrows]
                 perm = (PermutationGroupElement(row_perms), PermutationGroupElement(col_perms))
             return truth, perm
         else:
-            return truth
+            return N_B.is_isomorphic(M_B, certify=False, edge_labels=True)
 
     #####################################################################################
     # Windowed Strassen Matrix Multiplication and Echelon

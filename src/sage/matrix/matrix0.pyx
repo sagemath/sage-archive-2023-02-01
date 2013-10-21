@@ -2182,7 +2182,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     # with_ versions of these methods for this situation
     ###################################################
     cdef check_row_bounds(self, Py_ssize_t r1, Py_ssize_t r2):
-        if r1<0 or r1 >= self._nrows or r2<0 or r2 >= self._nrows:
+        if r1 < 0 or r1 >= self._nrows or r2 < 0 or r2 >= self._nrows:
             raise IndexError("matrix row index out of range")
 
     cdef check_row_bounds_and_mutability(self, Py_ssize_t r1, Py_ssize_t r2):
@@ -2190,11 +2190,11 @@ cdef class Matrix(sage.structure.element.Matrix):
             raise ValueError("Matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).")
         else:
             self._cache = None
-        if r1<0 or r1 >= self._nrows or r2<0 or r2 >= self._nrows:
+        if r1 < 0 or r1 >= self._nrows or r2 < 0 or r2 >= self._nrows:
             raise IndexError("matrix row index out of range")
 
     cdef check_column_bounds(self, Py_ssize_t c1, Py_ssize_t c2):
-        if c1<0 or c1 >= self._ncols or c2<0 or c2 >= self._ncols:
+        if c1 < 0 or c1 >= self._ncols or c2 < 0 or c2 >= self._ncols:
             raise IndexError("matrix column index out of range")
 
     cdef check_column_bounds_and_mutability(self, Py_ssize_t c1, Py_ssize_t c2):
@@ -2202,7 +2202,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             raise ValueError("Matrix is immutable; please change a copy instead (i.e., use copy(M) to change a copy of M).")
         else:
             self._cache = None
-        if c1<0 or c1 >= self._ncols or c2<0 or c2 >= self._ncols:
+        if c1 < 0 or c1 >= self._ncols or c2 < 0 or c2 >= self._ncols:
             raise IndexError("matrix column index out of range")
 
     def swap_columns(self, Py_ssize_t c1, Py_ssize_t c2):
@@ -2289,13 +2289,13 @@ cdef class Matrix(sage.structure.element.Matrix):
         Permute the columns of ``self`` by applying the permutation
         group element ``permutation``.
 
-        As a permutation group element acts on integers `\{1,\hdots,n\}`
+        As a permutation group element acts on integers `\{1, \hdots, n\}`
         the columns are considered as being numbered from 1 for this
         operation.
 
         INPUT:
 
-        - ``permutation`` -- a ``PermutationGroupElement``
+        - ``permutation`` -- a ``PermutationGroupElement``.
 
         EXAMPLE: We create a matrix::
 

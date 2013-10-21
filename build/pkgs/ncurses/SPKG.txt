@@ -47,7 +47,7 @@ None
 == Changelog ==
 
 === ncurses-5.9.p1 (Volker Braun, 22 Aug 2013) ===
- * Build narrow and wide versions
+ * Build narrow and wide versions (#15080)
 
 === ncurses-5.9 (Volker Braun, 3 April 2013) ===
  * Initial version

@@ -158,11 +158,13 @@ def orthogonal_array(k,n,t=2,check=True):
 
     # Theorem 6.40 from [Stinson2004]
     elif k == n+1 and is_prime_power(n):
-        M = orthogonal_array(n,n)
-        for i,l in enumerate(M):
-            l.append(i%n)
-
-        OA = M
+        if n == 2:
+            OA = [[0,1,0],[0,0,1],[1,0,0],[1,1,1]]
+        else:
+            M = orthogonal_array(n,n, check=False)
+            for i,l in enumerate(M):
+                l.append(i%n)
+            OA = M
 
     # Section 6.5.1 from [Stinson2004]
     if OA is None:

@@ -44,7 +44,7 @@ from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.misc.derivative import multi_derivative
-from copy import deepcopy#want to remove somehow
+from copy import copy
 
 import sage.modules.free_module
 import matrix_space
@@ -6472,12 +6472,20 @@ cdef class Matrix(matrix1.Matrix):
         """
         nrows = self.nrows()
         ncols = self.ncols()
+
+        # A helper
+        def new_sorted_matrix(m):
+            return self.new_matrix(
+                ncols, nrows,
+                sorted(m.columns(), reverse=True)).transpose()
+
+
         # Let us sort each row:
         sorted_rows = [sorted([self[i][j] for j in range(ncols)], reverse=True)
                        for i in range(nrows)]
         # and find the maximal one:
         first_row = max(sorted_rows)
-        first_rows = [j for j in range(len(sorted_rows)) if sorted_rows[j] == first_row]
+        first_rows = [j for j in range(nrows) if sorted_rows[j] == first_row]
         # We construct an array S, which will record the subsymmetries of the
         # columns, i.e. S records the automorphisms with respect to the column
         # swappings of the upper block already constructed. For example, if
@@ -6490,28 +6498,26 @@ cdef class Matrix(matrix1.Matrix):
         # If we want to sort the i-th row with respect to a symmetry determined
         # by S, then we will just sort the augmented row [[S[j], PM[i, j]] :
         # j in [1 .. nc]], S having lexicographic priority.
-        MS = [self.new_matrix(
-            ncols, nrows,
-            sorted(self.with_swapped_rows(0, first_rows[0]).columns(), reverse=True)
-            ).transpose()]
-        aM = [deepcopy(MS[0])]
-        aM[0].set_row(0,S)
-        for i in range(1, len(first_rows)):
-            N = self.new_matrix(
-                ncols, nrows,
-                sorted(self.with_swapped_rows(0, first_rows[i]).columns(), reverse=True)
-                ).transpose()
-            aN = deepcopy(N)
-            aN.set_row(0,S)
-            iso = [aN.is_permutation_of(aM[j]) for j in range(len(aM))]
-            if not any(iso):
-                MS.append(deepcopy(N))
-                aM.append(deepcopy(aN))
+
+        # MS is a list of non-isomorphic matrices where one of the maximal rows
+        # has been replaced by S - why the isomorphism check?
+        MS = []
+        aM = []
+        for i in first_rows:
+            N = new_sorted_matrix(self.with_swapped_rows(0, i))
+            aN = copy(N)
+            aN.set_row(0, S)
+            if not any(aN.is_permutation_of(j) for j in aM):
+                MS.append(N)
+                aM.append(aN)
+        #print aM # understand, but looks good!
+        #print MS
+        #print
         # We construct line l:
         for l in range(1, nrows - 1):
             if not S == range(first_row[0] + ncols, first_row[0], -1):
                 # Sort each row with respect to S for the first matrix in X = MS
-                X = deepcopy(MS)
+                X = copy(MS)
                 SM = [sorted([(S[j], X[0][k][j]) for j in range(ncols)], reverse=True)
                                 for k in range(l, nrows)]
                 SM = [[k[1] for k in s] for s in SM]
@@ -6522,7 +6528,7 @@ cdef class Matrix(matrix1.Matrix):
                 m = [[j for j in range(nrows - l) if SM[j] == b]]
                 w = 0 # keeps track of how many entries we have removed from MS
                 # Let us find the maximal row in each of the entries in X = MS
-                for i in range(1,len(X)):
+                for i in range(1, len(X)):
                     SN = [sorted([(S[j], X[i][k][j]) for j in range(ncols)], reverse=True)
                           for k in range(l, nrows)]
                     SN = [[k[1] for k in s] for s in SN]
@@ -6544,10 +6550,10 @@ cdef class Matrix(matrix1.Matrix):
                         m.append(n)
                     else:
                         # Smaller, so forget about it!
-                        MS.pop(i-w)
+                        MS.pop(i - w)
                         w += 1
                 # Update symmetries
-                test = [(S[i],b[i]) for i in range(ncols)]
+                test = [(S[i], b[i]) for i in range(ncols)]
                 for j in range(1, ncols):
                     S[j] = S[j - 1] if (test[j] == test[j - 1]) else S[j - 1] - 1 #error here!
                 # For each case we check the isomorphism as previously, if
@@ -6556,31 +6562,18 @@ cdef class Matrix(matrix1.Matrix):
                 # the matrix (this preserves symmetry automatically).
                 n = len(MS)
                 for i in range(n):
-                        if len(m[i]) > 1:
-                            X = self.new_matrix(
-                                ncols, nrows, 
-                                sorted(MS[i].with_swapped_rows(l, m[i][0] + l).columns(), reverse=True)
-                            ).transpose()
-                            aX = [X.submatrix(l, 0, nrows - l,ncols)]
-                            aX[0].set_row(0,S)
-                            for j in range(1,len(m[i])):
-                                N=self.new_matrix(
-                                    ncols, nrows, 
-                                    sorted(MS[i].with_swapped_rows(l, m[i][j] + 1).columns(), reverse=True)
-                                ).transpose()
-                                aN = N.submatrix(l, 0, nrows - l, ncols)
-                                aN.set_row(0,S)
-                                iso = [aN.is_permutation_of(aX[j]) for j in range(len(aX))]
-                                if not any(iso):
-                                    MS.append(deepcopy(N))
-                                    aX.append(deepcopy(aN))
-                            MS[i] = X
-                        else:
-                            # If one case only, we do the sorting procedure straight
-                            MS[i] = self.new_matrix(
-                                ncols, nrows,
-                                sorted(MS[i].with_swapped_rows(l, m[i][0] + l).columns(), reverse=True)
-                            ).transpose()
+                    MS[i] = new_sorted_matrix(MS[i].with_swapped_rows(l, m[i][0] + l))
+                    if len(m[i]) > 1:
+                        aX = MS[i].submatrix(l, 0, nrows - l, ncols)
+                        aX.set_row(0, S)
+                        aX = [aX]
+                        for j in m[i][1:]:
+                            N = new_sorted_matrix(MS[i].with_swapped_rows(l, j + 1))
+                            aN = N.submatrix(l, 0, nrows - l, ncols)
+                            aN.set_row(0, S)
+                            if not any(aN.is_permutation_of(k) for k in aX):
+                                MS.append(N)
+                                aX.append(aN)
             else:
                 MS = [self.new_matrix(nrows, ncols, sorted(s.rows(), reverse=True)) for s in MS]
                 break

@@ -2,7 +2,7 @@
 r"""
 Posets
 
-This module implements finite partialy ordered sets. It defines :
+This module implements finite partially ordered sets. It defines:
 
 .. csv-table::
     :class: contentstable
@@ -883,9 +883,10 @@ class FinitePoset(UniqueRepresentation, Parent):
             except KeyError:
                 raise ValueError, "element (=%s) not in poset"%element
 
-    def _vertex_to_element(self,vertex):
+    def _vertex_to_element(self, vertex):
         """
-        Returns the element corresponding to a vertex of the Hasse diagram.
+        Return the element of ``self`` corresponding to the vertex
+        ``vertex`` of the Hasse diagram.
 
         It is wrapped if ``self`` is not a facade poset.
 
@@ -909,7 +910,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def unwrap(self, element):
         """
-        Unwraps an element of this poset
+        Return the element ``element`` of the poset ``self`` in
+        unwrapped form.
 
         INPUT:
 
@@ -1479,9 +1481,10 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def level_sets(self):
         """
-        Returns a list l such that l[i+1] is the set of minimal elements of
-        the poset obtained by removing the elements in l[0], l[1], ...,
-        l[i].
+        Return a list ``l`` such that ``l[i]`` is the set of minimal
+        elements of the poset obtained from ``self`` by removing the
+        elements in ``l[0], l[1], ..., l[i-1]``. (In particular,
+        ``l[0]`` is the set of minimal elements of ``self``.)
 
         EXAMPLES::
 
@@ -1671,10 +1674,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         REFERENCES:
 
-        .. [EnumComb1] Enumerative Combinatorics I,
-          Second Edition,
-          Richard P. Stanley,
-          Cambridge University Press (2011)
+        .. [EnumComb1] Richard P. Stanley,
+           *Enumerative Combinatorics, volume 1*,
+           Second Edition,
+           Cambridge University Press (2011).
+           http://math.mit.edu/~rstan/ec/ec1/
         """
         if n is None:
             try:
@@ -1931,8 +1935,11 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def is_bounded(self):
         """
-        Returns ``True`` if the poset contains a unique maximal element and a
-        unique minimal element, and ``False`` otherwise.
+        Return ``True`` if the poset ``self`` is bounded, and ``False``
+        otherwise.
+
+        We call a poset bounded if it contains a unique maximal element
+        and a unique minimal element.
 
         EXAMPLES::
 
@@ -2019,20 +2026,21 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def rank_function(self):
         r"""
-        Returns a rank function of the poset, if it exists.
+        Return the (normalized) rank function of the poset,
+        if it exists.
 
         A *rank function* of a poset `P` is a function `r`
         that maps elements of `P` to integers and satisfies:
         `r(x) = r(y) + 1` if `x` covers `y`. The function `r`
-        is normalized such that its smallest value is `0`.
-        When the Hasse diagram of `P` has several components,
-        this is done for each component separately.
+        is normalized such that its minimum value on every
+        connected component of the Hasse diagram of `P` is
+        `0`. This determines the function `r` uniquely (when
+        it exists).
 
         OUTPUT:
 
-        - ``lambda`` function, if the poset admits a rank function
+        - a lambda function, if the poset admits a rank function
         - ``None``, if the poset does not admit a rank function
-
 
         EXAMPLES::
 
@@ -2055,16 +2063,14 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset([[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]])
             sage: r = P.rank_function()
             sage: for u,v in P.cover_relations_iterator():
-            ...    if r(v) != r(u) + 1:
-            ...        print "Bug in rank_function!"
+            ....:     if r(v) != r(u) + 1:
+            ....:         print "Bug in rank_function!"
 
         ::
 
             sage: Q = Poset([[1,2],[4],[3],[4],[]])
             sage: Q.rank_function() is None
             True
-
-
         """
         hasse_rf = self._hasse_diagram.rank_function()
         if hasse_rf is None:
@@ -2072,10 +2078,12 @@ class FinitePoset(UniqueRepresentation, Parent):
         else:
             return lambda z: hasse_rf(self._element_to_vertex(z))
 
-    def rank(self,element=None):
+    def rank(self, element=None):
         r"""
-        Returns the rank of an element, or the rank of the poset if element
-        is None. (The rank of a poset is the length of the longest chain of
+        Return the rank of an element ``element`` in the poset ``self``,
+        or the rank of the poset if ``element`` is ``None``.
+
+        (The rank of a poset is the length of the longest chain of
         elements of the poset.)
 
         EXAMPLES::
@@ -2088,7 +2096,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Q = Poset([[1,2],[3],[],[]])
 
             sage: P = Posets.SymmetricGroupBruhatOrderPoset(4)
-
             sage: [(v,P.rank(v)) for v in P]
             [('1234', 0),
              ('1324', 1),
@@ -2135,13 +2142,15 @@ class FinitePoset(UniqueRepresentation, Parent):
         :wikipedia:`Graded_poset`). This definition is from section 3.1 of
         Richard Stanley's *Enumerative Combinatorics, Vol. 1* [EnumComb1]_.
 
+        Note that every graded poset is ranked, but the converse is not
+        true.
+
         .. SEEALSO:: :meth:`is_ranked`
 
         .. TODO::
 
-            The current algorithm has exponential complexity (in time
-            and memory). Someone should really implement a better
-            algorithm. See :trac:`13223`.
+            The current algorithm could be improvable. See
+            :trac:`13223`.
 
         EXAMPLES::
 
@@ -2154,6 +2163,24 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset( ([1,2,3,4],[[1,2],[2,4],[3,4]] ))
             sage: P.is_graded()
             False
+            sage: P = Poset({1: [2, 3], 4: [5]})
+            sage: P.is_graded()
+            True
+            sage: P = Poset({1: [2, 3], 3: [4]})
+            sage: P.is_graded()
+            False
+            sage: P = Poset({1: [2, 3], 4: []})
+            sage: P.is_graded()
+            False
+            sage: P = Posets.BooleanLattice(4)
+            sage: P.is_graded()
+            True
+            sage: P = RootSystem(['D',4]).root_poset()
+            sage: P.is_graded()
+            True
+            sage: P = Poset({})
+            sage: P.is_graded()
+            True
 
         TESTS:
 
@@ -2162,9 +2189,21 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: Poset([[],[]]).is_graded()
             True
         """
-        maximal_chains = self.maximal_chains()
-        n = len(maximal_chains[0])
-        return all(len(chain) == n for chain in maximal_chains)
+        # The code below is not really optimized, but beats looking at
+        # every maximal chain...
+        if len(self) <= 2:
+            return True
+        # Let's work with the Hasse diagram in order to avoid some
+        # indirection (the output doesn't depend on the vertex labels).
+        hasse = self._hasse_diagram
+        rf = hasse.rank_function()
+        if rf is None:
+            return False    # because every graded poset is ranked.
+        if not all(rf(i) == 0 for i in hasse.minimal_elements()):
+            return False
+        maxes = hasse.maximal_elements()
+        rank = rf(maxes[0])
+        return all(rf(i) == rank for i in maxes)
 
     def covers(self,x,y):
         """
@@ -2586,20 +2625,24 @@ class FinitePoset(UniqueRepresentation, Parent):
         for antichain in self._hasse_diagram.antichains_iterator():
             yield map(vertex_to_element, antichain)
 
-    def chains(self, element_constructor = __builtin__.list, exclude=None):
+    def chains(self, element_constructor=__builtin__.list, exclude=None):
         """
-        Returns all the chains of ``self``
+        Return all the chains of ``self``.
 
         INPUT:
 
-         - ``element_constructor`` -- a function taking an iterable as
-           argument (default: list)
+        - ``element_constructor`` -- a function taking an iterable as
+           argument (default: ``list``)
 
-        - ``exclude`` -- elements to be excluded (default: ``None``)
+        - ``exclude`` -- elements of the poset to be excluded
+          (default: ``None``)
 
-        OUTPUT: an enumerated set
+        OUTPUT:
 
-        A *chain* of a poset is a collection of elements of the poset
+        The enumerated set of all chains of ``self``, each of which
+        is given as an ``element_constructor``.
+
+        A *chain* of a poset is a set of elements of the poset
         that are pairwise comparable.
 
         EXAMPLES::
@@ -2620,6 +2663,12 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Posets.DiamondPoset(5)
             sage: list(P.chains(exclude=[0, 4]))
             [[], [1], [2], [3]]
+
+        Another example of exclusion of vertices::
+
+            sage: P = Poset({1: [2, 3], 2: [4], 3: [4, 5]})
+            sage: list(P.chains(element_constructor=tuple, exclude=[3]))
+            [(), (1,), (1, 2), (1, 2, 4), (1, 4), (1, 5), (2,), (2, 4), (4,), (5,)]
 
         Eventually the following syntax will be accepted::
 
@@ -3236,8 +3285,22 @@ class FinitePoset(UniqueRepresentation, Parent):
         return SimplicialComplex(facets)
 
     def order_polytope(self):
-        """
-        Returns the order polytope of the poset
+        r"""
+        Return the order polytope of the poset ``self``.
+
+        The order polytope of a finite poset `P` is defined as the subset
+        of `\RR^P` consisting of all maps `x : P \to \RR` satisfying
+
+        .. MATH::
+
+            0 \leq x(p) \leq 1 \mbox{ for all } p \in P,
+
+        and
+
+        .. MATH::
+
+            x(p) \leq x(q) \mbox{ for all } p, q \in P
+            \mbox{ satisfying } p < q.
 
         This polytope was defined and studied in [St1986]_.
 
@@ -3272,8 +3335,23 @@ class FinitePoset(UniqueRepresentation, Parent):
         return Polyhedron(ieqs=ineqs)
 
     def chain_polytope(self):
-        """
-        Returns the chain polytope of the poset
+        r"""
+        Return the chain polytope of the poset ``self``.
+
+        The chain polytope of a finite poset `P` is defined as the subset
+        of `\RR^P` consisting of all maps `x : P \to \RR` satisfying
+
+        .. MATH::
+
+            x(p) \geq 0 \mbox{ for all } p \in P,
+
+        and
+
+        .. MATH::
+
+            x(p_1) + x(p_2) + \ldots + x(p_k) \leq 1
+            \mbox{ for all chains } p_1 < p_2 < \ldots < p_k
+            \mbox{ in } P.
 
         This polytope was defined and studied in [St1986]_.
 
@@ -3294,13 +3372,24 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def zeta_polynomial(self):
         r"""
-        Return the zeta polynomial of the poset
+        Return the zeta polynomial of the poset ``self``.
 
         The zeta polynomial of a poset is the unique polynomial `Z(q)`
         such that for every integer `m > 1`, `Z(m)` is the number of
-        weakly increasing sequences `x_1 \leq x_2 \leq \dots \leq x_{m-1}`.
+        weakly increasing sequences `x_1 \leq x_2 \leq \dots \leq x_{m-1}`
+        of elements of the poset.
 
-        For more information, see section 3.11 of [EnumComb1]_
+        The polynomial `Z(q)` is integral-valued, but generally doesn't
+        have integer coefficients. It can be computed as
+
+        .. MATH::
+
+            Z(q) = \sum_{k \geq 1} \dbinom{q-2}{k-1} c_k,
+
+        where `c_k` is the number of all chains of length `k` in the
+        poset.
+
+        For more information, see section 3.12 of [EnumComb1]_.
 
         In particular, `Z(2)` is the number of vertices and `Z(3)` is
         the number of intervals.
@@ -3317,9 +3406,20 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Posets.DiamondPoset(5)
             sage: P.zeta_polynomial()
             3/2*q^2 - 1/2*q
+
+        TESTS:
+
+        Checking the simplest cases::
+
+            sage: Poset({}).zeta_polynomial()
+            0
+            sage: Poset({1: []}).zeta_polynomial()
+            1
+            sage: Poset({1: [], 2: []}).zeta_polynomial()
+            2
         """
         q = polygen(QQ, 'q')
-        g = sum(q**len(ch) for ch in self.chains())
+        g = sum(q**len(ch) for ch in self._hasse_diagram.chains())
         n = g.degree()
         f = g[max(n, 1)]
         while n > 1:
@@ -3330,18 +3430,23 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     def f_polynomial(self):
         r"""
-        Return the `f`-polynomial of a bounded poset
+        Return the `f`-polynomial of a bounded poset ``self``.
 
         This is the `f`-polynomial of the order complex of the poset
         minus its bounds.
 
         The coefficient of `q^i` is the number of chains of
-        `i+1` elements containing the bounds of the poset.
+        `i+1` elements containing both bounds of the poset.
 
         .. SEEALSO::
 
             :meth:`is_bounded`, :meth:`h_polynomial`, :meth:`order_complex`,
             :meth:`sage.homology.cell_complex.GenericCellComplex.f_vector`
+
+        .. WARNING::
+
+            This is slightly different from the ``fPolynomial``
+            method in Macaulay2.
 
         EXAMPLES::
 
@@ -3351,34 +3456,50 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset({1:[2,3],2:[4],3:[5],4:[6],5:[7],6:[7]})
             sage: P.f_polynomial()
             q^4 + 4*q^3 + 5*q^2 + q
+
+            sage: P = Poset({2: []})
+            sage: P.f_polynomial()
+            1
         """
-        if not(self.is_bounded()):
-            raise TypeError('the poset is not bounded')
         q = polygen(ZZ, 'q')
-        if self.cardinality() == 0:
+        hasse = self._hasse_diagram
+        if len(hasse) == 1:
             return q.parent().one()
-        else:
-            maxi = self.top()
-            mini = self.bottom()
-            return sum(q**(len(ch)+1) for ch in self.chains(exclude=[mini,
-                                                                     maxi]))
+        maxi = hasse.top()
+        mini = hasse.bottom()
+        if (mini is None) or (maxi is None):
+            raise TypeError('the poset is not bounded')
+        return sum(q**(len(ch)+1) for ch in hasse.chains(exclude=[mini,
+                                                                  maxi]))
 
     def h_polynomial(self):
         r"""
-        Return the `h`-polynomial of a bounded poset
+        Return the `h`-polynomial of a bounded poset ``self``.
 
         This is the `h`-polynomial of the order complex of the poset
         minus its bounds.
 
         This is related to the `f`-polynomial by a simple change
-        of variables.
+        of variables:
 
-        See :wikipedia:`h-vector`
+        .. MATH::
+
+            h(q) = (1-q)^{\deg f} f \left( \frac{q}{1-q} \right),
+
+        where `f` and `h` denote the `f`-polynomial and the
+        `h`-polynomial, respectively.
+
+        See :wikipedia:`h-vector`.
 
         .. SEEALSO::
 
             :meth:`is_bounded`, :meth:`f_polynomial`, :meth:`order_complex`,
             :meth:`sage.homology.simplicial_complex.SimplicialComplex.h_vector`
+
+        .. WARNING::
+
+            This is slightly different from the ``hPolynomial``
+            method in Macaulay2.
 
         EXAMPLES::
 
@@ -3388,15 +3509,19 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Posets.DiamondPoset(5)
             sage: P.h_polynomial()
             2*q^2 + q
+            sage: P = Poset({1: []})
+            sage: P.h_polynomial()
+            1
         """
-        if not(self.is_bounded()):
-            raise TypeError('the poset is not bounded')
         q = polygen(ZZ, 'q')
-        if self.cardinality() == 0:
+        hasse = self._hasse_diagram
+        if len(hasse) == 1:
             return q.parent().one()
-        maxi = self.top()
-        mini = self.bottom()
-        f = sum(q**(len(ch)) for ch in self.chains(exclude=[mini, maxi]))
+        maxi = hasse.top()
+        mini = hasse.bottom()
+        if (mini is None) or (maxi is None):
+            raise TypeError('the poset is not bounded')
+        f = sum(q**(len(ch)) for ch in hasse.chains(exclude=[mini, maxi]))
         d = f.degree()
         f = (1-q)**d * q * f(q=q/(1-q))
         return q.parent(f)
@@ -3404,11 +3529,32 @@ class FinitePoset(UniqueRepresentation, Parent):
     def flag_f_polynomial(self):
         r"""
         Return the flag `f`-polynomial of a bounded and ranked poset
+        ``self``.
 
-        This is the sum over all chains containing the bounds
+        This is the sum, over all chains containing both bounds,
         of a monomial encoding the ranks of the elements of the chain.
 
-        See :wikipedia:`h-vector`
+        More precisely, if `P` is a bounded ranked poset, then the
+        flag `f`-polynomial of `P` is defined as the polynomial
+
+        .. MATH::
+
+            \sum_{\substack{p_0 < p_1 < \ldots < p_k, \\
+                            p_0 = \min P, \ p_k = \max P}}
+            x_{\rho(p_1)} x_{\rho(p_2)} \cdots x_{\rho(p_k)}
+            \in \ZZ[x_1, x_2, \cdots, x_n]
+
+        where `\min P` and `\max P` are (respectively) the minimum and
+        the maximum of `P`, where `\rho` is the rank function of `P`
+        (normalized to satisfy `\rho(\min P) = 0`), and where
+        `n` is the rank of `\max P`. (Note that the indeterminate
+        `x_0` doesn't actually appear in the polynomial.)
+
+        For technical reasons, the polynomial is returned in the
+        slightly larger ring `\ZZ[x_0, x_1, x_2, \cdots, x_{n+1}]` by
+        this method.
+
+        See :wikipedia:`h-vector`.
 
         .. SEEALSO:: :meth:`is_bounded`, :meth:`flag_h_polynomial`
 
@@ -3428,26 +3574,55 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset({1:[2,3,4],2:[5],3:[5],4:[5],5:[6]})
             sage: P.flag_f_polynomial()
             3*x1*x2*x3 + 3*x1*x3 + x2*x3 + x3
+
+            sage: P = Poset({2: [3]})
+            sage: P.flag_f_polynomial()
+            x1
+
+            sage: P = Poset({2: []})
+            sage: P.flag_f_polynomial()
+            1
         """
-        if not(self.is_ranked()):
+        hasse = self._hasse_diagram
+        maxi = hasse.top()
+        mini = hasse.bottom()
+        if (mini is None) or (maxi is None):
+            raise TypeError('the poset is not bounded')
+        rk = hasse.rank_function()
+        if rk is None:
             raise TypeError('the poset should be ranked')
+        n = rk(maxi)
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        rk = self.rank_function()
-        n = rk(self.maximal_elements()[0])
+        if n == 0:
+            return PolynomialRing(ZZ, 'x', 1).one()
         anneau = PolynomialRing(ZZ, 'x', n+1)
-        if self.cardinality() == 0:
-            return anneau.one()
-        else:
-            x = anneau.gens()
-            maxi = self.top()
-            mini = self.bottom()
-            return x[n]*sum(prod(x[rk(i)] for i in ch) for ch in self.chains(exclude=[mini, maxi]))
+        x = anneau.gens()
+        return x[n] * sum(prod(x[rk(i)] for i in ch) for ch in hasse.chains(exclude=[mini, maxi]))
 
     def flag_h_polynomial(self):
         r"""
         Return the flag `h`-polynomial of a bounded and ranked poset
+        ``self``.
 
-        See :wikipedia:`h-vector`
+        If `P` is a bounded ranked poset whose maximal element has
+        rank `n` (where the minimal element is set to have rank `0`),
+        then the flag `h`-polynomial of `P` is defined as the
+        polynomial
+
+        .. MATH::
+
+            \prod_{k=1}^n (1-x_k) \cdot f \left(\frac{x_1}{1-x_1},
+            \frac{x_2}{1-x_2}, \cdots, \frac{x_n}{1-x_n}\right)
+            \in \ZZ[x_1, x_2, \cdots, x_n],
+
+        where `f` is the flag `f`-polynomial of `P` (see
+        :meth:`flag_f_polynomial`).
+
+        For technical reasons, the polynomial is returned in the
+        slightly larger ring `\QQ[x_0, x_1, x_2, \cdots, x_{n+1}]` by
+        this method.
+
+        See :wikipedia:`h-vector`.
 
         .. SEEALSO:: :meth:`is_bounded`, :meth:`flag_f_polynomial`
 
@@ -3471,34 +3646,49 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = posets.ChainPoset(4)
             sage: P.flag_h_polynomial()
             x3
+
+            sage: P = Poset({2: [3]})
+            sage: P.flag_h_polynomial()
+            x1
+
+            sage: P = Poset({2: []})
+            sage: P.flag_h_polynomial()
+            1
         """
-        if not(self.is_ranked()):
+        hasse = self._hasse_diagram
+        maxi = hasse.top()
+        mini = hasse.bottom()
+        if (mini is None) or (maxi is None):
+            raise TypeError('the poset is not bounded')
+        rk = hasse.rank_function()
+        if rk is None:
             raise TypeError('the poset should be ranked')
+        n = rk(maxi)
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        rk = self.rank_function()
-        n = rk(self.maximal_elements()[0])
+        if n == 0:
+            return PolynomialRing(QQ, 'x', 1).one()
         anneau = PolynomialRing(QQ, 'x', n+1)
-        if self.cardinality() == 0:
-            return anneau.one()
-        else:
-            x = anneau.gens()
-            maxi = self.top()
-            mini = self.bottom()
-            return prod(1-x[k] for k in range(1, n))*x[n]*sum(prod(x[rk(i)]/(1-x[rk(i)]) for i in ch) for ch in self.chains(exclude=[mini, maxi]))
+        x = anneau.gens()
+        return prod(1-x[k] for k in range(1, n)) * x[n] \
+               * sum(prod(x[rk(i)]/(1-x[rk(i)]) for i in ch)
+                     for ch in hasse.chains(exclude=[mini, maxi]))
 
     def characteristic_polynomial(self):
         r"""
-        Return the characteristic polynomial of a graded poset
+        Return the characteristic polynomial of a graded poset ``self``.
 
-        This is defined as
+        If `P` is a graded poset with rank `n` and a unique minimal
+        element `\hat{0}`, then the characteristic polynomial of
+        `P` is defined to be
 
         .. MATH::
 
-            \sum\{x \in P\} \mu(\hat{0}, x) q^{n-\rho(x)},
+            \sum_{x \in P} \mu(\hat{0}, x) q^{n-\rho(x)} \in \ZZ[q],
 
-        where `\rho` is the rank function.
+        where `\rho` is the rank function, and `\mu` is the Moebius
+        function of `P`.
 
-        See section 3.10 of [EnumComb1]_
+        See section 3.10 of [EnumComb1]_.
 
         EXAMPLES::
 
@@ -3508,21 +3698,31 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset({1:[2,3],2:[4],3:[5],4:[6],5:[6],6:[7]})
             sage: P.characteristic_polynomial()
             q^4 - 2*q^3 + q
+            sage: P = Poset({1: []})
+            sage: P.characteristic_polynomial()
+            1
         """
-        if not(self.is_ranked()):
+        hasse = self._hasse_diagram
+        rk = hasse.rank_function()
+        if rk is None:
             raise TypeError('the poset should be ranked')
-        rk = self.rank_function()
-        n = rk(self.maximal_elements()[0])
-        x0 = self.minimal_elements()[0]
+        n = rk(hasse.maximal_elements()[0])
+        x0 = hasse.minimal_elements()[0]
         q = polygen(ZZ, 'q')
-        return sum(self.mobius_function(x0, x)*q**(n - rk(x)) for x in self)
+        return sum(hasse.mobius_function(x0, x) * q**(n - rk(x)) for x in hasse)
 
     def chain_polynomial(self):
         """
-        Returns the chain polynomial of ``self``.
+        Return the chain polynomial of ``self``.
 
         The coefficient of `q^k` is the number of chains of length `k`
         in ``self``. The length of a chain is the number of elements.
+
+        .. WARNING::
+
+            This is not what has been called the chain polynomial
+            in [St1986]_. The latter is identical with the order
+            polynomial (:meth:`order_polynomial`).
 
         EXAMPLES::
 
@@ -3539,23 +3739,41 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Posets.AntichainPoset(5)
             sage: P.chain_polynomial()
             5*q + 1
+
+            sage: P = Poset({})
+            sage: P.chain_polynomial()
+            1
+            sage: parent(P.chain_polynomial())
+            Univariate Polynomial Ring in q over Integer Ring
+
+            sage: R = Poset({1: []})
+            sage: R.chain_polynomial()
+            q + 1
         """
+        hasse = self._hasse_diagram
         q = polygen(ZZ, 'q')
-        chain_polys = [0]*self.cardinality()
-        for i in range(self.cardinality()):
+        one = q.parent().one()
+        hasse_size = hasse.cardinality()
+        chain_polys = [0]*hasse_size
+        # chain_polys[i] will be the generating function for the
+        # chains with topmost vertex i (in the labelling of the
+        # Hasse diagram).
+        for i in range(hasse_size):
             chain_polys[i] = q + sum(q*chain_polys[j]
-                                     for j in self.principal_order_ideal(i))
-        return 1 + sum(chain_polys)
+                                     for j in hasse.principal_order_ideal(i))
+        return one + sum(chain_polys)
 
     def order_polynomial(self):
         """
-        Returns the order polynomial of ``self``.
+        Return the order polynomial of ``self``.
 
-        The order polynomial is the unique polynomial such that for
-        each integer `m \geq 1`, `\Omega(P,m)` is the number of
-        order-preserving maps from `P` to `\{1,\ldots,m\}`.
+        The order polynomial `\Omega_P(q)` of a poset `P` is defined
+        as the unique polynomial `S` such that for each integer
+        `m \geq 1`, `S(m)` is the number of order-preserving maps
+        from `P` to `\{1,\ldots,m\}`.
 
-        See section 4.5 of [EnumComb1]_
+        See sections 3.12 and 3.15 of [EnumComb1]_, and also
+        [St1986]_.
 
         .. SEEALSO:: :meth:`order_polytope`
 

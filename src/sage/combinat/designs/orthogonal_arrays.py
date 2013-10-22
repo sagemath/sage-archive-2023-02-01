@@ -129,6 +129,11 @@ def orthogonal_array(k,n,t=2,check=True):
          [3, 4, 0, 1, 2], [3, 0, 2, 4, 1], [3, 1, 4, 2, 0], [3, 2, 1, 0, 4],
          [4, 4, 4, 4, 4], [4, 0, 1, 2, 3], [4, 1, 3, 0, 2], [4, 2, 0, 3, 1],
          [4, 3, 2, 1, 0]]
+
+    TESTS::
+
+        sage: designs.orthogonal_array(3,2)
+        [[0, 1, 0], [0, 0, 1], [1, 0, 0], [1, 1, 1]]
     """
     from sage.rings.arith import is_prime_power
     from sage.rings.finite_rings.constructor import FiniteField

@@ -58,6 +58,7 @@ from sage.rings.real_mpfr          import RealField
 from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.symbolic.constants       import e
 from copy import copy
+from sage.ext.fast_callable        import fast_callable 
 from sage.parallel.ncpus           import ncpus
 from sage.parallel.use_fork        import p_iter_fork
 from sage.ext.fast_callable        import fast_callable

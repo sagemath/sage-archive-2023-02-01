@@ -6334,10 +6334,9 @@ cdef class Matrix(matrix1.Matrix):
         import sage.matrix.matrix_misc
         return sage.matrix.matrix_misc.weak_popov_form(self)
 
-    #####################################################################################
-    # Functions for symmetries of a matrix under
-    # row and column permutations
-    #####################################################################################
+    ##########################################################################
+    # Functions for symmetries of a matrix under row and column permutations #
+    ##########################################################################
     def as_bipartite_graph(self):
         r"""
         Construct a bipartite graph ``B`` representing
@@ -6345,8 +6344,8 @@ cdef class Matrix(matrix1.Matrix):
 
         Vertices are labeled 1 to ``nrows``
         on the left and ``nrows`` + 1 to ``nrows`` + ``ncols`` on
-        the right, representing rows and columns correspondingly,
-        and each row is connected to each column with an edge
+        the right, representing rows and columns correspondingly.
+        Each row is connected to each column with an edge
         weighted by the value of the corresponding matrix entry.
 
         This graph is a helper for calculating automorphisms of
@@ -6357,7 +6356,7 @@ cdef class Matrix(matrix1.Matrix):
 
         - A bipartite graph.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = matrix(QQ, [[1/3, 7], [6, 1/4], [8, -5]])
             sage: M
@@ -6388,11 +6387,11 @@ cdef class Matrix(matrix1.Matrix):
 
     def automorphisms_of_rows_and_columns(self):
         r"""
-        Return the automorphisms of a matrix under
+        Return the automorphisms of ``self`` under
         permutations of rows and columns as a list of
         pairs of ``PermutationGroupElement`` objects.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: M = matrix(ZZ,[[1,0],[1,0],[0,1]])
             sage: M
@@ -6421,8 +6420,6 @@ cdef class Matrix(matrix1.Matrix):
         permutations = []
         for p in A:
             p = p.domain()
-            # Embed in the subgroup S_n
-            # p = [p[i] if i < len(p) else i + 1 for i in range(len(B))] # What is the point of this?
             # Convert to elements of Sym(self) from S_n
             if p[0] <= nrows:
                 permutations.append(
@@ -6439,13 +6436,20 @@ cdef class Matrix(matrix1.Matrix):
         matrices are ordered lexicographically
         going along each row.
 
-        If ``check`` is ``True`` then we instead return
-        a tuple of the maximal matrix and the permutations
-        taking ``self`` to the maximal matrix.
+        INPUT:
+        
+        - ``check`` -- (default: ``False``) If ``True`` return a tuple of
+            the maximal matrix and the permutations taking taking ``self``
+            to the maximal matrix.
+            If ``False``, return only the maximal matrix.
+
+        OUTPUT:
+
+        The maximal matrix.
 
         EXAMPLES::
 
-            sage: M = matrix(ZZ,[[0,0,1],[1,0,2],[0,0,0]])
+            sage: M = matrix(ZZ, [[0, 0, 1], [1, 0, 2], [0, 0, 0]])
             sage: M
             [0 0 1]
             [1 0 2]
@@ -6469,6 +6473,15 @@ cdef class Matrix(matrix1.Matrix):
             [ 3 -1],
             ((1,2,3), (1,2))
             )
+
+        TESTS::
+
+            sage: M = matrix(ZZ, [[3, 4, 5], [3, 4, 5], [3, 5, 4], [2, 0,1]])
+            sage: M.permutation_normal_form()
+            [5 4 3]
+            [5 4 3]
+            [4 5 3]
+            [1 0 2]
         """
         nrows = self.nrows()
         ncols = self.ncols()
@@ -6478,7 +6491,6 @@ cdef class Matrix(matrix1.Matrix):
             return self.new_matrix(
                 ncols, nrows,
                 sorted(m.columns(), reverse=True)).transpose()
-
 
         # Let us sort each row:
         sorted_rows = [sorted([self[i][j] for j in range(ncols)], reverse=True)
@@ -6500,19 +6512,20 @@ cdef class Matrix(matrix1.Matrix):
         # j in [1 .. nc]], S having lexicographic priority.
 
         # MS is a list of non-isomorphic matrices where one of the maximal rows
-        # has been replaced by S - why the isomorphism check?
+        # has been replaced by S
         MS = []
         aM = []
+        if self.is_immutable():
+            X = copy(self)
+        else:
+            X = self
         for i in first_rows:
-            N = new_sorted_matrix(self.with_swapped_rows(0, i))
+            N = new_sorted_matrix(X.with_swapped_rows(0, i))
             aN = copy(N)
             aN.set_row(0, S)
             if not any(aN.is_permutation_of(j) for j in aM):
                 MS.append(N)
                 aM.append(aN)
-        #print aM # understand, but looks good!
-        #print MS
-        #print
         # We construct line l:
         for l in range(1, nrows - 1):
             if not S == range(first_row[0] + ncols, first_row[0], -1):
@@ -6555,7 +6568,7 @@ cdef class Matrix(matrix1.Matrix):
                 # Update symmetries
                 test = [(S[i], b[i]) for i in range(ncols)]
                 for j in range(1, ncols):
-                    S[j] = S[j - 1] if (test[j] == test[j - 1]) else S[j - 1] - 1 #error here!
+                    S[j] = S[j - 1] if (test[j] == test[j - 1]) else S[j - 1] - 1
                 # For each case we check the isomorphism as previously, if
                 # test fails we add a new non-isomorphic case to MS. We
                 # pick our choice of maximal line l and sort the columns of
@@ -6592,18 +6605,17 @@ cdef class Matrix(matrix1.Matrix):
 
         - ``N`` -- a matrix
         - ``check`` -- (default: ``False``) If ``False``
-          return Boolean indicating whether there exists
-          a permutation of rows and columns sending ``self``
-          to ``N`` and False otherwise.
-          If ``True`` return a tuple of a Boolean and
-          a permutation mapping ``self`` to ``N`` if such
-          a permutation exists, and (False, None) if it does not.
+            return Boolean indicating whether there exists a permutation of
+            rows and columns sending ``self`` to ``N`` and False otherwise.
+            If ``True`` return a tuple of a Boolean and a permutation mapping
+            ``self`` to ``N`` if such a permutation exists, and
+            (``False``, ``None``) if it does not.
 
         OUTPUT:
 
-        A boolean value or a tuple of a Boolean and a permutation.
+        A Boolean or a tuple of a Boolean and a permutation.
 
-        EXAMPLES: An example::
+        EXAMPLES::
 
             sage: M = matrix(ZZ,[[1,2,3],[3,5,3],[2,6,4]])
             sage: M
@@ -6618,7 +6630,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: M.is_permutation_of(N)
             True
 
-        Some examples that are not permutations of each other::
+        Some examples that are not permutations of each other:
 
             sage: N = matrix(ZZ,[[1,2,3],[4,5,6],[7,8,9]])
             sage: N
@@ -6634,7 +6646,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: M.is_permutation_of(N)
             False
 
-        And for when ``check`` is True::
+        And for when ``check`` is True:
 
             sage: N = matrix(ZZ,[[3,5,3],[2,6,4],[1,2,3]])
             sage: N
@@ -6650,7 +6662,7 @@ cdef class Matrix(matrix1.Matrix):
         """
         ncols = self.ncols()
         nrows = self.nrows()
-        if not (N.ncols() == ncols and N.nrows() == nrows):
+        if N.ncols() <> ncols or N.nrows() <> nrows:
             if check:
                 return (False, None)
             else:

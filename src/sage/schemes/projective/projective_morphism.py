@@ -59,7 +59,7 @@ from sage.schemes.generic.morphism import SchemeMorphism_polynomial
 from sage.symbolic.constants       import e
 from copy import copy
 from sage.parallel.multiprocessing_sage import parallel_iter
-
+from sage.ext.fast_callable        import fast_callable 
 
 class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
     """
@@ -143,6 +143,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
                     (y : 2*x)
         """
         SchemeMorphism_polynomial.__init__(self, parent, polys, check)
+
         if check:
             # morphisms from projective space are always given by
             # homogeneous polynomials of the same degree
@@ -155,6 +156,38 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             degs = [f.degree() for f in polys]
             if not all([d == degs[0] for d in degs[1:]]):
                 raise ValueError("polys (=%s) must be of the same degree"%polys)
+        
+        # The remaining code is used to instantiate the _fastPolys
+        self._isPrimeFiniteField=is_PrimeFiniteField(polys[0].base_ring())
+        prime=polys[0].base_ring().characteristic()
+        degree=polys[0].degree()
+        self._fastPolys=[]
+        for poly in polys:
+            # These tests are in place because the float and integer domain evaluate
+            # faster than using the base_ring
+            if self._isPrimeFiniteField:
+                coefficients=poly.coefficients()
+            	height=max(coefficients).lift()
+            	numTerms=len(coefficients)
+            	largest_value=numTerms*height*(prime-1)**degree
+            	# If the calculations will not overflow the float data type use domain float
+            	# Else use domain integer
+            	if largest_value < (2**27):
+                    self._fastPolys.append(fast_callable(poly,domain=float))
+                else:
+                    self._fastPolys.append(fast_callable(poly,domain=ZZ))
+            else:
+                self._fastPolys.append(fast_callable(poly,domain=poly.base_ring()))
+    
+    def __call__(self, x,check=True):
+        # Passes the array of args to _fast_eval
+        P = self._fast_eval(x._coords, check)
+        return self.codomain().point(P,check)
+        
+    def _fast_eval(self, x,check=True):
+        # Quickly evaluates a polynomial at point x
+        P = [f(*x) for f in self._fastPolys]
+        return P
 
     def __eq__(self, right):
         """
@@ -2682,6 +2715,16 @@ class SchemeMorphism_polynomial_projective_space_field(SchemeMorphism_polynomial
 
 
 class SchemeMorphism_polynomial_projective_space_finite_field(SchemeMorphism_polynomial_projective_space_field):
+        
+    def _fast_eval(self, x,check=True):
+        # Quickly evaluates a polynomial at point x
+        # Applies mod where necessary
+        if self._isPrimeFiniteField:
+            p=self.base_ring().characteristic()
+            P = [f(*x)%p for f in self._fastPolys]
+        else:
+            P = [f(*x) for f in self._fastPolys]
+        return P
 
     def orbit_structure(self, P):
         r"""

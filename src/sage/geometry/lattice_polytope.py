@@ -1440,7 +1440,7 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         Return the list of permutations of vertices that
         represent `GL(n,\mathbb{Z})` transformations preserving the polytope.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: L = LatticePolytope([[1,1],[1,-1],[-1,1],[-1,-1]]) #the cube
             sage: L.automorphisms()
@@ -2485,10 +2485,10 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             sage: o.vertices()
             [ 1  0 -1  0]
             [ 0  1  0 -1]
-            sage: o.palp_native_normal_formo)
+            sage: o._palp_native_normal_form()
             [ 1  0  0 -1]
             [ 0  1 -1  0]
-            sage: o.palp_native_normal_form(permutation=True)
+            sage: o._palp_native_normal_form(permutation=True)
             (
             [ 1  0  0 -1]         
             [ 0  1 -1  0], (1,4,2,3)
@@ -2499,14 +2499,14 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
         .. [KS98] Maximilian Kreuzer and Harald Skarke, Classification of Reflexive Polyhedra
            in Three Dimensions, arXiv:hep-th/9805190
         """
-        PM_max, permutations = self._palp_compute_PM_max(check=True)
+        PM_max, permutations = self._palp_PM_max(check=True)
         out = _palp_canonical_order(self.vertices(), PM_max, permutations)
         if permutation:
             return out
         else:
             return out[0]
 
-    def _palp_compute_PM_max(self, check=False):
+    def _palp_PM_max(self, check=False):
         r"""
         Compute the permutation normal form of the vertex facet pairing
         matrix.
@@ -3327,14 +3327,14 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
 
     def vertex_facet_pairing_matrix(self):
         r"""
-        Return a matrix where the `i,j^\text{th}` entry
-        is exactly the height of the hyperplane that the `i^\text{th}`
-        facet lives in, over the `j^\text{th}` vertex,
-        according to the vertex and facet ordering in :meth:`vertices`
-        and :meth:`facets`.
+        Return the vertex facet pairing matrix `PM`.
 
-        The height of a hyperplane is
-        EXAMPLE::
+        Return a matrix whose the `i, j^\text{th}` entry is the height
+        of the `j^\text{th}` vertex over the `i^\text{th}` facet.
+        The ordering of the vertices and facets is as in
+        :meth:`vertices` and :meth:`facets`.
+
+        EXAMPLES::
     
             sage: L = lattice_polytope.octahedron(3)
             sage: L.vertex_facet_pairing_matrix()
@@ -3348,7 +3348,6 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             [2 2 0 0 0 2]
         """
         V = self.vertices().columns()
-        i = 0
         PM = []
         for i in range(len(self.facets())):
             n = self.facet_normal(i)
@@ -3357,7 +3356,9 @@ class LatticePolytopeClass(SageObject, collections.Hashable):
             for v in V:
                 row.append(n.dot_product(v) + c)
             PM.append(row)
-        return matrix(ZZ, PM)
+        PM = matrix(ZZ, PM)
+        PM.set_immutable()
+        return PM
 
     def vertices(self):
         r"""
@@ -4300,10 +4301,10 @@ class _PolytopeFace(SageObject):
         Return the index of the sublattice spanned by the vertices
         of this face in the ambient lattice.
 
-        EXAMPLE::
-            sage: L=LatticePolytope([[1,0],[1,-1],[-1,0],[-1,-1]])
-            sage: F=L.faces()
-            sage: face=F[1][0] #take the first 1-dimensional face
+        EXAMPLES::
+            sage: L = LatticePolytope([[1,0],[1,-1],[-1,0],[-1,-1]])
+            sage: F = L.faces()
+            sage: face = F[1][0] # take the first 1-dimensional face
             sage: face.index_of_face_in_lattice()
             1        
         """
@@ -4639,6 +4640,7 @@ def _palp_canonical_order(V, PM_max, permutations):
         ...     5: [PermutationGroupElement(()), PermutationGroupElement((1,2,3))],
         ...     6: [PermutationGroupElement((2,3)), PermutationGroupElement((1,3,4))],
         ...     7: [PermutationGroupElement((1,2,4,3)), PermutationGroupElement((3,4))]}
+        sage: from sage.geometry.lattice_polytope import _palp_canonical_order
         sage: _palp_canonical_order(V, PM_max, permutations)
         (
         [ 1  0  0 -1]           

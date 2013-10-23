@@ -162,7 +162,6 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             degs = [f.degree() for f in polys]
             if not all([d == degs[0] for d in degs[1:]]):
                 raise ValueError("polys (=%s) must be of the same degree" % polys)
-        self._is_prime_finite_field = is_PrimeFiniteField(polys[0].base_ring())
 
     def __call__(self, x, check=True):
         """

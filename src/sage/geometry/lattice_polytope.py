@@ -4921,7 +4921,7 @@ def palp_modified_normal_form(L, affine_transform=False, check=False):
     n_v = PM.ncols()
     n_f = PM.nrows()
     PM_max = PM.permutation_normal_form()
-    perm = PM.is_permutation_of(PM_max, certify=True)[1]
+    perm = PM.is_permutation_of(PM_max, check=True)[1]
     permutations = PM.automorphisms_of_rows_and_columns()
     permutations = {k:[(perm[0])*p[0], (perm[1])*p[1]]
                     for k, p in enumerate(permutations)}
@@ -4931,7 +4931,7 @@ def palp_modified_normal_form(L, affine_transform=False, check=False):
     if affine_transform:
         for i in range(V.ncols() - 1, -1, -1):
             V.add_multiple_of_column(i, 0, -1)
-    out= _palp_canonical_order(V, PM_max, permutations)
+    out = _palp_canonical_order(V, PM_max, permutations)
     if check:
         return out
     else:
@@ -4987,6 +4987,11 @@ def palp_native_normal_form(L, affine_transform=False, check=False):
     .. [KS98] Maximilian Kreuzer and Harald Skarke, Classification of Reflexive Polyhedra
        in Three Dimensions, arXiv:hep-th/9805190
     """
+    def PGE(t):
+        if len(t) == 2 and t[0] == t[1]:
+            t = tuple()
+        return PermutationGroupElement(t)
+
     # Let us first check the maximal dimension condition
     if L.dim() < L.ambient_dim():
         raise ValueError(
@@ -5006,21 +5011,21 @@ def palp_native_normal_form(L, affine_transform=False, check=False):
                 m, x = k, l
         return m
     n_s = 1
-    permutations = {0 : [PermutationGroupElement(range(1, n_f + 1)),
-                         PermutationGroupElement(range(1, n_v + 1))]}
+    permutations = {0 : [PGE(range(1, n_f + 1)),
+                         PGE(range(1, n_v + 1))]}
     for j in range(n_v):
         m = IndexOfMax([(PM.with_permuted_columns(permutations[0][1]))[0][i] for i in range(j, n_v)])
         if m > 0:
-            permutations[0][1] = PermutationGroupElement((j + 1,m + j + 1))*permutations[0][1]
+            permutations[0][1] = PGE((j + 1,m + j + 1))*permutations[0][1]
     first_row = list(PM[0])
     
     # Arrange other rows one by one and compare with first row
     for k in range(1, n_f):
         # Error for k == 1 already!
-        permutations[n_s] = [PermutationGroupElement(range(1, n_f+1)),PermutationGroupElement(range(1, n_v+1))]
+        permutations[n_s] = [PGE(range(1, n_f+1)),PGE(range(1, n_v+1))]
         m = IndexOfMax(PM.with_permuted_columns(permutations[n_s][1])[k])
         if m > 0:
-            permutations[n_s][1] = PermutationGroupElement((1,m+1))*permutations[n_s][1]
+            permutations[n_s][1] = PGE((1,m+1))*permutations[n_s][1]
         d = ((PM.with_permuted_columns(permutations[n_s][1]))[k][0]
             - permutations[0][1](first_row)[0])
         if d < 0:
@@ -5030,7 +5035,7 @@ def palp_native_normal_form(L, affine_transform=False, check=False):
         for i in range(1, n_v):
             m = IndexOfMax([PM.with_permuted_columns(permutations[n_s][1])[k][j] for j in range(i, n_v)])
             if m > 0:
-                permutations[n_s][1]=PermutationGroupElement((i + 1, m + i + 1))*permutations[n_s][1]
+                permutations[n_s][1]=PGE((i + 1, m + i + 1))*permutations[n_s][1]
             if d == 0:
                 d = (PM.with_permuted_columns(permutations[n_s][1])[k][i]
                     -permutations[0][1](first_row)[i])
@@ -5040,7 +5045,7 @@ def palp_native_normal_form(L, affine_transform=False, check=False):
             # This row is smaller than 1st row, so nothing to do
             del permutations[n_s]
             continue
-        permutations[n_s][0] = PermutationGroupElement((1, k + 1))*permutations[n_s][0]
+        permutations[n_s][0] = PGE((1, k + 1))*permutations[n_s][0]
         if d == 0:
             # This row is the same, so we have a symmetry!
             n_s += 1
@@ -5084,10 +5089,10 @@ def palp_native_normal_form(L, affine_transform=False, check=False):
                 for j in range(1, S[0]):
                     v = PM.with_permuted_rows_and_columns(*permutations_bar[n_p])[s]
                     if v[0] < v[j]:
-                        permutations_bar[n_p][1] = PermutationGroupElement((1,j + 1))*permutations_bar[n_p][1]
+                        permutations_bar[n_p][1] = PGE((1,j + 1))*permutations_bar[n_p][1]
                 if ccf == 0:
                     l_r[0] = PM.with_permuted_rows_and_columns(*permutations_bar[n_p])[s][0]
-                    permutations_bar[n_p][0] = PermutationGroupElement((l + 1, s + 1))*permutations_bar[n_p][0]
+                    permutations_bar[n_p][0] = PGE((l + 1, s + 1))*permutations_bar[n_p][0]
                     n_p += 1
                     ccf = 1
                     permutations_bar[n_p] = copy(permutations[k])
@@ -5099,14 +5104,14 @@ def palp_native_normal_form(L, affine_transform=False, check=False):
                         continue
                     elif d==0:
                         # Maximal values agree, so possible symmetry
-                        permutations_bar[n_p][0]=PermutationGroupElement((l + 1, s + 1))*permutations_bar[n_p][0]
+                        permutations_bar[n_p][0]=PGE((l + 1, s + 1))*permutations_bar[n_p][0]
                         n_p += 1
                         permutations_bar[n_p] = copy(permutations[k])
                     else:
                         # We found a greater maximal value for first entry.
                         # It becomes our new reference:
                         l_r[0] = d1
-                        permutations_bar[n_p][0] = PermutationGroupElement((l + 1, s + 1))*permutations_bar[n_p][0]
+                        permutations_bar[n_p][0] = PGE((l + 1, s + 1))*permutations_bar[n_p][0]
                         # Forget previous work done
                         cf = 0
                         permutations_bar = {0:copy(permutations_bar[n_p])}
@@ -5129,7 +5134,7 @@ def palp_native_normal_form(L, affine_transform=False, check=False):
                     for j in range(c + 1, h):
                         v = PM.with_permuted_rows_and_columns(*permutations_bar[s])[l]
                         if (v[c] < v[j]):
-                            permutations_bar[s][1] = PermutationGroupElement((c + 1, j + 1))*permutations_bar[s][1]
+                            permutations_bar[s][1] = PGE((c + 1, j + 1))*permutations_bar[s][1]
                     if ccf == 0:
                         # Set the reference and then carry on to next permutation
                         l_r[c] = PM.with_permuted_rows_and_columns(*permutations_bar[s])[l][c]

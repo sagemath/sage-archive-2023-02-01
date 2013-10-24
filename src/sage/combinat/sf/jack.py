@@ -34,7 +34,8 @@ REFERENCES:
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.calculus.var import var
 import sage.categories.all
-from sage.rings.all import Integer, gcd, lcm, QQ, is_FractionField
+from sage.rings.all import Integer, gcd, lcm, QQ
+from sage.rings.fraction_field import is_FractionField
 from sage.misc.misc import prod
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom, End

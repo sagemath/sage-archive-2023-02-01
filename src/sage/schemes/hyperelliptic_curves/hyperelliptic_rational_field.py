@@ -9,7 +9,7 @@ Hyperelliptic curves over the rationals
 #*****************************************************************************
 
 import hyperelliptic_generic
-from sage.rings.all import is_pAdicField, is_pAdicRing, pAdicField
+from sage.rings.padics.all import is_pAdicField, is_pAdicRing, pAdicField
 
 class HyperellipticCurve_rational_field(hyperelliptic_generic.HyperellipticCurve_generic):
 

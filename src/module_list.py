@@ -504,6 +504,9 @@ ext_modules = [
     Extension('sage.groups.perm_gps.permgroup_element',
               sources = ['sage/groups/perm_gps/permgroup_element.pyx']),
 
+    Extension('sage.groups.semimonomial_transformations.semimonomial_transformation',
+              sources = ['sage/groups/semimonomial_transformations/semimonomial_transformation.pyx']),
+
         ###################################
         ##
         ## sage.groups.perm_gps.partn_ref

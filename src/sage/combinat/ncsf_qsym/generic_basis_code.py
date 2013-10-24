@@ -123,7 +123,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
         @cached_method
         def one_basis(self):
             r"""
-            This returns the empty composition.
+            Return the empty composition.
 
             OUTPUT
 
@@ -143,7 +143,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
         def sum_of_finer_compositions(self, composition):
             r"""
-            Returns the sum of all finer compositions.
+            Return the sum of all finer compositions.
 
             INPUT:
 
@@ -151,7 +151,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
             OUTPUT:
 
-            - Returns the sum of all basis ``self`` elements which are indexed by
+            - The sum of all basis ``self`` elements which are indexed by
               compositions finer than ``composition``.
 
             EXAMPLES::
@@ -168,7 +168,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
         def sum_of_fatter_compositions(self, composition):
             r"""
-            Returns the sum of all fatter compositions.
+            Return the sum of all fatter compositions.
 
             INPUT:
 
@@ -176,7 +176,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
             OUTPUT:
 
-            - Returns the sum of all basis elements which are indexed by
+            - the sum of all basis elements which are indexed by
               compositions fatter (coarser?) than ``composition``.
 
             EXAMPLES::
@@ -192,19 +192,22 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
         def alternating_sum_of_finer_compositions(self, composition, conjugate = False):
             """
-            Returns the alternating sum of finer compositions in a basis of the non-
-            commutative symmetric functions.
+            Return the alternating sum of finer compositions in a basis of the
+            non-commutative symmetric functions.
 
             INPUT:
 
             - ``composition`` -- a composition
-            - ``conjugate`` -- (default: False) a boolean
+            - ``conjugate`` -- (default: ``False``) a boolean
 
             OUTPUT:
 
-            - Returns the alternating sum of the finer compositions of ``composition``,
-              in the basis ``self``. The alternation is upon the length of the compositions,
-              and is normalized so that ``composition`` has coefficient one.
+            - The alternating sum of the compositions finer than ``composition``,
+              in the basis ``self``. The alternation is upon the length of the
+              compositions, and is normalized so that ``composition`` has
+              coefficient `1`. If the variable ``conjugate`` is set to ``True``,
+              then the conjugate of ``composition`` is used instead of
+              ``composition``.
 
             EXAMPLES::
 
@@ -227,12 +230,12 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 composition = composition.conjugate()
             l = len(composition)
             ring = self.base_ring()
-            return self.sum_of_terms( (compo, ring((-1)**(len(compo)-l))) for compo in composition.finer () )
+            return self.sum_of_terms( (compo, ring((-1)**(len(compo)-l))) for compo in composition.finer() )
 
         def alternating_sum_of_fatter_compositions(self, composition):
             """
-            Returns the alternating sum of fatter compositions in a basis of the non-
-            commutative symmetric functions.
+            Return the alternating sum of fatter compositions in a basis of the
+            non-commutative symmetric functions.
 
             INPUT:
 
@@ -240,9 +243,10 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
             OUTPUT:
 
-            - Returns the alternating sum of the fatter compositions of ``composition``,
-              in the basis ``self``. The alternation is upon the length of the compositions,
-              and is normalized so that ``composition`` has coefficient one.
+            - The alternating sum of the compositions fatter than ``composition``,
+              in the basis ``self``. The alternation is upon the length of the
+              compositions, and is normalized so that ``composition`` has
+              coefficient `1`.
 
             EXAMPLES::
 
@@ -267,8 +271,8 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
         def sum_of_partition_rearrangements(self, par):
             """
-            Returns the sum of all basis elements indexed by compositions which can be
-            shuffled to obtain a partition.
+            Return the sum of all basis elements indexed by compositions which can be
+            sorted to obtain a given partition.
 
             INPUT:
 
@@ -276,8 +280,8 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
             OUTPUT:
 
-            - Returns the sum of all ``self`` basis elements indexed by compositions which
-              are shuffles of ``par``.
+            - The sum of all ``self`` basis elements indexed by compositions
+              which are permutations of ``par`` (without multiplicity).
 
             EXAMPLES::
 
@@ -294,7 +298,7 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
         def _comp_to_par(self, comp):
             """
-            Returns the partition if the composition is actually a partition. Otherwise
+            Return the partition if the composition is actually a partition. Otherwise
             returns nothing.
 
             INPUT:
@@ -303,7 +307,8 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
             OUTPUT:
 
-            - Returns ``comp`` as a partition, if it is sorted. Otherwise returns nothing.
+            - ``comp`` as a partition, if it is sorted; otherwise returns
+              ``None`` (nothing).
 
             EXAMPLES::
 
@@ -330,9 +335,9 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
             OUTPUT:
 
-            - Returns the degree of the non-commutative symmetric function basis element of
-              ``self`` indexed by ``I``. By definition, this is the size of the composition
-              ``I``.
+            - The degree of the non-commutative symmetric function basis
+              element of ``self`` indexed by ``I``. By definition, this is
+              the size of the composition ``I``.
 
             EXAMPLES::
 
@@ -349,21 +354,23 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
         def skew(self, x, y, side='left'):
             r"""
-            Skews a function by another function in the Hopf dual.
+            Return a function ``x`` in ``self`` skewed by a function
+            ``y`` in the Hopf dual of ``self``.
 
             INPUT:
 
-            - ``x`` -- A non-commutative or quasi-symmetric function. It is an element of
-              ``self``
-            - ``y`` -- A quasi-symmetric or non-commutative symmetric function. It is an
-              element of the dual algebra of ``self``
-            - ``side`` -- (Default='left') Either 'left' or 'right'
+            - ``x`` -- a non-commutative or quasi-symmetric function; it is
+              an element of ``self``
+            - ``y`` -- a quasi-symmetric or non-commutative symmetric
+              function; it is an element of the dual algebra of ``self``
+            - ``side`` -- (default: ``'left'``)
+              either ``'left'`` or ``'right'``
 
             OUTPUT:
 
-            - Returns the result of skewing the element ``x`` written in the
-              basis ``self`` by the Hopf algebra element ``y`` written in the dual basis
-              of ``self``.
+            - The result of skewing the element ``x`` by the Hopf algebra
+              element ``y`` (either from the left or from the right, as
+              determined by ``side``), written in the basis ``self``.
 
             EXAMPLES::
 
@@ -422,29 +429,32 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 y = self.dual()(y)
                 v = 1 if side == 'left' else 0
                 return self.sum(coeff * y[IJ[1-v]] * self[IJ[v]] \
-                            for (IJ, coeff) in x.coproduct() if IJ[1-v] in y)
+                                for (IJ, coeff) in x.coproduct() if IJ[1-v] in y)
             else:
                 return self._skew_by_coercion(x, y, side=side)
 
         def _skew_by_coercion(self, x, y, side='left'):
             r"""
-            Skews a function by another function in the Hopf dual using coercion.
+            Return a function ``x`` in ``self`` skewed by a function
+            ``y`` in the Hopf dual of ``self`` using coercion.
 
             INPUT:
 
-            - ``x`` -- A non-commutative or quasi-symmetric function. It is an element of
-              ``self``
-            - ``y`` -- A quasi-symmetric or non-commutative symmetric function. It is an
-              element of the dual basis of ``self``
-            - ``side`` -- (Default='left') Either 'left' or 'right'
+            - ``x`` -- a non-commutative or quasi-symmetric function; it is
+              an element of ``self``
+            - ``y`` -- a quasi-symmetric or non-commutative symmetric
+              function; it is an element of the dual algebra of ``self``
+            - ``side`` -- (default: ``'left'``)
+              either ``'left'`` or ``'right'``
 
             OUTPUT:
 
-            - Returns the result of skewing the element ``x`` written in the
-              basis ``self`` by the Hopf algebra element ``y`` written in the dual basis
-              of ``self``. This uses coercion to a concreate realization (either the
-              complete basis of non-commutative symmetric functions or the monomial basis
-              of the quasi-symmetric functions.
+            - The result of skewing the element ``x`` by the Hopf algebra
+              element ``y`` (either from the left or from the right, as
+              determined by ``side``), written in the basis ``self``.
+              This uses coercion to a concreate realization (either the
+              complete basis of non-commutative symmetric functions or
+              the monomial basis of the quasi-symmetric functions).
 
             EXAMPLES::
 
@@ -461,11 +471,11 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
         def duality_pairing(self, x, y):
             r"""
-            The duality pairing between elements of NSym and elements of QSym.
+            The duality pairing between elements of `NSym` and elements
+            of `QSym`.
 
-            This is a default implementation and assumes that
-            ``self.realizations_of().a_realization()`` is dual to
-            ``self.realizations_of().dual().a_realization()``.
+            This is a default implementation that uses
+            ``self.realizations_of().a_realization()`` and its dual basis.
 
             INPUT:
 
@@ -509,7 +519,6 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 0
                 sage: S.duality_pairing(S[1,1,1,1], F[4])
                 1
-
             """
             if hasattr(self, 'dual'):
                 x = self(x)
@@ -655,7 +664,6 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 sage: M.counit_on_basis([1,3])
                 0
 
-
             TESTS::
 
                 sage: S.counit_on_basis([])
@@ -676,9 +684,11 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
 
         def duality_pairing(self, y):
             r"""
-            The duality pairing between elements of NSym and elements of QSym
-            The complete basis is dual to the monomial basis.
+            The duality pairing between elements of `NSym` and elements
+            of `QSym`.
 
+            The complete basis is dual to the monomial basis with respect
+            to this pairing.
 
             INPUT:
 
@@ -772,7 +782,6 @@ class BasesOfQSymOrNCSF(Category_realization_of_parent):
                 M[2]
                 sage: M[3,2].skew_by(S[3], side='right')
                 0
-
             """
             return self.parent().skew(self, y, side=side)
 
@@ -1007,8 +1016,8 @@ class GradedModulesWithInternalProduct(Category_over_base_ring):
 
             OUTPUT:
 
-            - The internal product endomorphism of the non-commutative symmetric
-              functions.
+            - The internal product map of the algebra the non-commutative
+              symmetric functions.
 
             EXAMPLES::
 
@@ -1032,6 +1041,9 @@ class GradedModulesWithInternalProduct(Category_over_base_ring):
                 sage: R.internal_product(R[2,2], R[1,2])
                 0
 
+            .. TODO::
+
+                Despite the ``__repr__``, this is NOT an endomorphism!
             """
             if self.internal_product_on_basis is not NotImplemented:
                 return self.module_morphism(
@@ -1042,10 +1054,32 @@ class GradedModulesWithInternalProduct(Category_over_base_ring):
             else:
                 return self.internal_product_by_coercion
 
+        itensor = internal_product
+        kronecker_product = internal_product
+
     class ElementMethods:
         def internal_product(self, other):
             r"""
-            Returns the internal product of two non-commutative symmetric functions.
+            Return the internal product of two non-commutative
+            symmetric functions.
+
+            The internal product on the algebra of non-commutative symmetric
+            functions is adjoint to the internal coproduct on the algebra of
+            quasisymmetric functions with respect to the duality pairing
+            between these two algebras. This means, explicitly, that any
+            two non-commutative symmetric functions `f` and `g` and any
+            quasi-symmetric function `h` satisfy
+
+            .. MATH::
+
+                \langle f * g, h \rangle = \sum_i \langle f, h^{\prime}_i
+                \rangle \langle g, h^{\prime\prime}_i \rangle,
+
+            where we write `\Delta^{\times}(h)` as `\sum_i h^{\prime}_i
+            \otimes h^{\prime\prime}_i`.
+
+            Aliases for :meth:`internal_product()` are :meth:`itensor()` and
+            :meth:`kronecker_product()`.
 
             INPUT:
 
@@ -1053,7 +1087,7 @@ class GradedModulesWithInternalProduct(Category_over_base_ring):
 
             OUTPUT:
 
-            - Returns the result of taking the internal product of ``self`` with
+            - The result of taking the internal product of ``self`` with
               ``other``.
 
             EXAMPLES::
@@ -1068,8 +1102,48 @@ class GradedModulesWithInternalProduct(Category_over_base_ring):
                 2*S[1]
                 sage: S[1,2].internal_product(S[1,2])
                 S[1, 1, 1] + S[1, 2]
+
+            Let us check the duality between the inner product and the inner
+            coproduct in degree `4`::
+
+                sage: M = QuasiSymmetricFunctions(FiniteField(29)).M()
+                sage: S = NonCommutativeSymmetricFunctions(FiniteField(29)).S()
+                sage: def tensor_incopr(f, g, h):  # computes \sum_i \left< f, h'_i \right> \left< g, h''_i \right>
+                ....:     result = h.base_ring().zero()
+                ....:     h_parent = h.parent()
+                ....:     for partition_pair, coeff in h.internal_coproduct().monomial_coefficients().items():
+                ....:         result += coeff * f.duality_pairing(h_parent[partition_pair[0]]) * g.duality_pairing(h_parent[partition_pair[1]])
+                ....:     return result
+                sage: def testall(n):
+                ....:     return all( all( all( tensor_incopr(S[u], S[v], M[w]) == (S[u].itensor(S[v])).duality_pairing(M[w])
+                ....:                           for w in Compositions(n) )
+                ....:                      for v in Compositions(n) )
+                ....:                 for u in Compositions(n) )
+                sage: testall(2)
+                True
+                sage: testall(3)  # long time
+                True
+                sage: testall(4)  # long time
+                True
+
+            The internal product on the algebra of non-commutative symmetric
+            functions commutes with the canonical commutative projection on
+            the symmetric functions::
+
+                sage: S = NonCommutativeSymmetricFunctions(ZZ).S()
+                sage: e = SymmetricFunctions(ZZ).e()
+                sage: def int_pr_of_S_in_e(I, J):
+                ....:     return (S[I].internal_product(S[J])).to_symmetric_function()
+                sage: all( all( int_pr_of_S_in_e(I, J)
+                ....:           == S[I].to_symmetric_function().internal_product(S[J].to_symmetric_function())
+                ....:           for I in Compositions(3) )
+                ....:      for J in Compositions(3) )
+                True
             """
             return self.parent().internal_product(self, other)
+
+        itensor = internal_product
+        kronecker_product = internal_product
 
     class Realizations(RealizationsCategory):
         class ParentMethods:

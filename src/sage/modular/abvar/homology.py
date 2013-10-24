@@ -48,7 +48,9 @@ EXAMPLES::
 
 
 from sage.modular.hecke.all import HeckeModule_free_module
-from sage.rings.all import Integer, ZZ, QQ, is_CommutativeRing
+from sage.rings.all import Integer, ZZ, QQ
+from sage.rings.commutative_ring import is_CommutativeRing
+
 import abvar
 
 # TODO: we will probably also need homology that is *not* a Hecke module.

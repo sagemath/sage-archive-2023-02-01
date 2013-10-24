@@ -317,8 +317,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(branch="branch1")
             On local branch "branch1" without associated ticket.
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.git.current_branch()
             'branch1'
 
@@ -333,8 +333,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.git.current_branch()
             'ticket/1'
         """
@@ -354,7 +354,9 @@ class SageDev(MercurialPatchMixin):
         else:
             self._UI.show(['On local branch "{0}" without associated ticket.'], branch)
         self._UI.info(['', 
-                       'Use "{0}" to save changes in a new commit when you are finished editing.'],
+                       'Use "{0}" to include another ticket/branch.',
+                       'Use "{1}" to save changes into a new commit.'],
+                      self._format_command("merge"),
                       self._format_command("commit"))
 
 
@@ -415,8 +417,8 @@ class SageDev(MercurialPatchMixin):
             sage: bob.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
         Now alice can check it out, even though there is no branch on the
         ticket description::
@@ -425,8 +427,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
         If Bob commits something to the ticket, a ``checkout`` by Alice
         does not take his changes into account::
@@ -442,8 +444,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: alice.git.echo.log('--pretty=%s')
             initial commit
 
@@ -459,8 +461,8 @@ class SageDev(MercurialPatchMixin):
             association from ticket #1 to branch "ticket/1".
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: alice.git.current_branch()
             'ticket/1'
             sage: alice.git.echo.log('--pretty=%s')
@@ -478,16 +480,16 @@ class SageDev(MercurialPatchMixin):
             sage: alice.checkout(ticket=2)
             On ticket #2 with associated local branch "ticket/2".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: alice.git.echo.log('--pretty=%s')
             initial commit
             sage: open("untracked","w").close()
             sage: alice.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: alice.git.echo.log('--pretty=%s')
             empty commit
             initial commit
@@ -500,8 +502,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice.checkout(ticket=2)
             On ticket #2 with associated local branch "ticket/2".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: open("untracked","w").close()
             sage: alice.checkout(ticket=1)
             GitError: git exited with a non-zero exit code (1).
@@ -527,8 +529,8 @@ class SageDev(MercurialPatchMixin):
             Discard changes? [discard/Keep/stash] d
             On ticket #2 with associated local branch "ticket/2".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
         Now follow some single user tests to check that the parameters are interpreted correctly::
 
@@ -547,8 +549,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("Summary: ticket2\ndescription")
             sage: dev.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
@@ -558,8 +560,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=2)
             On ticket #2 with associated local branch "ticket/2".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.git.silent.commit(allow_empty=True, message="second commit")
             sage: dev.git.commit_for_branch('ticket/2') != dev.git.commit_for_branch('ticket/1')
             True
@@ -575,8 +577,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=3, base=2)
             On ticket #3 with associated local branch "ticket/3".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.git.commit_for_branch('ticket/3') == dev.git.commit_for_branch('ticket/2')
             True
             sage: dev._dependencies_for_ticket(3)
@@ -590,8 +592,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=4, base='ticket/2')
             On ticket #4 with associated local branch "ticket/4".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.git.commit_for_branch('ticket/4') == dev.git.commit_for_branch('ticket/2')
             True
             sage: dev._dependencies_for_ticket(4)
@@ -631,8 +633,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=7)
             On ticket #7 with associated local branch "ticket/7".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.git.current_branch()
             'ticket/7'
 
@@ -710,8 +712,8 @@ class SageDev(MercurialPatchMixin):
             Discard changes? [discard/Keep/stash] keep
             On ticket #10 with associated local branch "ticket/10".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
         """
         self._check_ticket_name(ticket, exists=True)
         ticket = self._ticket_from_ticket_name(ticket)
@@ -837,8 +839,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(branch="branch1")
             On local branch "branch1" without associated ticket.
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.git.current_branch()
             'branch1'
 
@@ -855,8 +857,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(branch="branch2")
             On local branch "branch2" without associated ticket.
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
         Checking out a branch with uncommitted changes::
 
@@ -888,16 +890,16 @@ class SageDev(MercurialPatchMixin):
             later use "git stash apply".
             On local branch "branch1" without associated ticket.
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
         And retrieve the stashed changes later::
 
             sage: dev.checkout(branch='branch2')
             On local branch "branch2" without associated ticket.
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.git.echo.stash('apply')
             # On branch branch2
             # Changes not staged for commit:
@@ -923,8 +925,8 @@ class SageDev(MercurialPatchMixin):
             Discard changes? [discard/Cancel/stash] discard
             On local branch "branch1" without associated ticket.
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
         Checking out a branch when in the middle of a merge::
 
@@ -947,8 +949,8 @@ class SageDev(MercurialPatchMixin):
             Reset repository? [reset/Cancel] r
             On local branch "merge_branch" without associated ticket.
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
         Checking out a branch when in a detached HEAD::
 
@@ -956,8 +958,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(branch='branch1')
             On local branch "branch1" without associated ticket.
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
         With uncommitted changes::
 
@@ -967,13 +969,13 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(branch='branch1')
             The following files in your working directory contain uncommitted changes:
             <BLANKLINE>
-                tracked
+                 tracked
             <BLANKLINE>
             Discard changes? [discard/Cancel/stash] discard
             On local branch "branch1" without associated ticket.
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
         Checking out a branch with untracked files that would be overwritten by
         the checkout::
@@ -1054,8 +1056,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
         Bob attempts to pull for the ticket but fails because there is no
         branch for the ticket yet::
@@ -1069,8 +1071,8 @@ class SageDev(MercurialPatchMixin):
             sage: bob.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
         Alice pushes a commit::
 
@@ -1426,8 +1428,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
         Modify the remote branch for this ticket's branch::
 
@@ -1523,8 +1525,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: open("tracked", "w").close()
             sage: alice.git.super_silent.add("tracked")
             sage: alice.git.super_silent.commit(message="alice: added tracked")
@@ -1539,8 +1541,8 @@ class SageDev(MercurialPatchMixin):
             sage: bob.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: with open("tracked", "w") as f: f.write("bob")
             sage: bob.git.super_silent.add("tracked")
             sage: bob.git.super_silent.commit(message="bob: modified tracked")
@@ -1643,13 +1645,13 @@ class SageDev(MercurialPatchMixin):
             sage: bob.checkout(ticket=2)
             On ticket #2 with associated local branch "ticket/2".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: bob.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: bob._UI.append("y")
             sage: bob._UI.append("y")
             sage: bob.push(2)
@@ -2137,8 +2139,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("Summary: summary1\ndescription...")
             sage: dev.edit_ticket()
             sage: dev.trac._get_attributes(1)
@@ -2190,8 +2192,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: open("tracked", "w").close()
             sage: dev.git.super_silent.add("tracked")
             sage: dev.git.super_silent.commit(message="alice: added tracked")
@@ -2248,8 +2250,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: open("tracked", "w").close()
             sage: alice.git.super_silent.add("tracked")
             sage: alice.git.super_silent.commit(message="alice: added tracked")
@@ -2265,8 +2267,8 @@ class SageDev(MercurialPatchMixin):
             sage: bob.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: bob.needs_work(comment='Need to add an untracked file!')
             sage: bob.trac._get_attributes(1)['status']
             'needs_work'
@@ -2318,8 +2320,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: open("tracked", "w").close()
             sage: alice.git.super_silent.add("tracked")
             sage: alice.git.super_silent.commit(message="alice: added tracked")
@@ -2335,8 +2337,8 @@ class SageDev(MercurialPatchMixin):
             sage: bob.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: bob.needs_info(comment='Why is a tracked file enough?')
             sage: bob.trac._get_attributes(1)['status']
             'needs_info'
@@ -2388,8 +2390,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: open("tracked", "w").close()
             sage: alice.git.super_silent.add("tracked")
             sage: alice.git.super_silent.commit(message="alice: added tracked")
@@ -2405,8 +2407,8 @@ class SageDev(MercurialPatchMixin):
             sage: bob.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: bob.positive_review()
             sage: bob.trac._get_attributes(1)['status']
             'positive_review'
@@ -2451,8 +2453,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("comment")
             sage: dev.comment()
             sage: server.tickets[1].comments
@@ -2536,8 +2538,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.remote_status()
             Ticket #1 (https://trac.sagemath.org/ticket/1)
             ==============================================
@@ -2740,8 +2742,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.tickets()
                 : master
             * #1: ticket/1 summary
@@ -2826,8 +2828,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("y")
             sage: dev.push()
             The branch "u/doctest/ticket/1" does not exist on the remote server.
@@ -2854,8 +2856,8 @@ class SageDev(MercurialPatchMixin):
             Create fresh branch? [yes/No] y
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
         """
         ticket = None
 
@@ -2906,6 +2908,12 @@ class SageDev(MercurialPatchMixin):
         Create a new branch ``branch`` with ``tickets_or_remote_branches``
         applied.
 
+        This method is not wrapped in the commandline dev scripts. It
+        does nothing that cannot be done with ``checkout`` and
+        ``merge``, it just steepens the learning curve by introducing
+        yet another command. Unless a clear use case emerges, it
+        should be removed.
+
         INPUT:
 
         - ``branch`` -- a string, the name of the new branch
@@ -2938,8 +2946,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: open("tracked","w").close()
             sage: dev.git.silent.add("tracked")
             sage: dev.git.super_silent.commit(message="added tracked")
@@ -2951,7 +2959,7 @@ class SageDev(MercurialPatchMixin):
 
         Gather all these branches::
 
-            sage: dev.gather("gather_branch", "#1", "ticket/1", "u/doctest/ticket/1")
+            sage: dev._sagedev.gather("gather_branch", "#1", "ticket/1", "u/doctest/ticket/1")
         """
         try:
             self.reset_to_clean_state()
@@ -3003,6 +3011,31 @@ class SageDev(MercurialPatchMixin):
         r"""
         Merge changes from ``ticket_or_branch`` into the current branch.
 
+        Incorporate commits from other tickets/branches into the
+        current branch.
+
+        Optionally, you can add the merged ticket to the trac
+        "Dependency:" field. Note that the merged commits become part
+        of the current branch, regardless of whether they are noted on
+        trac. Adding a dependency implies the following:
+
+        - the other ticket must be positively reviewed and merged
+          before this ticket may be merged into the official release
+          of sage.  The commits included from a dependency don't need
+          to be reviewed in this ticket, whereas commits reviewed in
+          this ticket from a non-dependency may make reviewing the
+          other ticket easier.
+
+        - you can more easily merge in future changes to dependencies.
+          So if you need a feature from another ticket it may be
+          appropriate to create a dependency to that you may more
+          easily benefit from others' work on that ticket.
+
+        - if you depend on another ticket then you need to worry about
+          the progress on that ticket.  If that ticket is still being
+          actively developed then you may need to make further merges
+          in the future if conflicts arise.
+
         INPUT:
 
         - ``ticket_or_branch`` -- an integer or strings (default:
@@ -3031,23 +3064,6 @@ class SageDev(MercurialPatchMixin):
             Dependencies are stored locally and only updated with respect to
             the remote server during :meth:`push` and :meth:`pull`.
 
-            Adding a dependency has some consequences:
-
-            - the other ticket must be positively reviewed and merged before
-              this ticket may be merged into the official release of sage.  The
-              commits included from a dependency don't need to be reviewed in
-              this ticket, whereas commits reviewed in this ticket from a
-              non-dependency may make reviewing the other ticket easier.
-
-            - you can more easily merge in future changes to dependencies.  So
-              if you need a feature from another ticket it may be appropriate
-              to create a dependency to that you may more easily benefit
-              from others' work on that ticket.
-
-            - if you depend on another ticket then you need to worry about the
-              progress on that ticket.  If that ticket is still being actively
-              developed then you may need to make many merges to keep up.
-
         .. SEEALSO::
 
             - :meth:`show_dependencies` -- see the current
@@ -3055,9 +3071,6 @@ class SageDev(MercurialPatchMixin):
 
             - :meth:`GitInterface.merge` -- git's merge command has
               more options and can merge multiple branches at once.
-
-            - :meth:`gather` -- creates a new branch to merge into
-              rather than merging into the current branch.
 
         TESTS:
 
@@ -3087,16 +3100,16 @@ class SageDev(MercurialPatchMixin):
             sage: alice.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: open("alice1","w").close()
             sage: alice.git.silent.add("alice1")
             sage: alice.git.super_silent.commit(message="added alice1")
             sage: alice.checkout(ticket=2)
             On ticket #2 with associated local branch "ticket/2".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: with open("alice2","w") as f: f.write("alice")
             sage: alice.git.silent.add("alice2")
             sage: alice.git.super_silent.commit(message="added alice2")
@@ -3109,8 +3122,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: alice._UI.append("y")
             sage: alice.push()
             The branch "u/alice/ticket/1" does not exist on the remote server.
@@ -3118,8 +3131,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice.checkout(ticket=2)
             On ticket #2 with associated local branch "ticket/2".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: alice.merge("#1", pull=False)
             Merging the local branch "ticket/1" into the local branch "ticket/2".
             Automatic merge successful.
@@ -3161,8 +3174,8 @@ class SageDev(MercurialPatchMixin):
             sage: bob.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: with open("alice2","w") as f: f.write("bob")
             sage: bob.git.silent.add("alice2")
             sage: bob.git.super_silent.commit(message="added alice2")
@@ -3402,8 +3415,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
@@ -3413,8 +3426,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=2)
             On ticket #2 with associated local branch "ticket/2".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.tickets()
                 : master
               #1: ticket/1 summary
@@ -3553,8 +3566,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("y")
             sage: dev.push()
             The branch "u/doctest/ticket/1" does not exist on the remote server.
@@ -3568,8 +3581,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=2)
             On ticket #2 with associated local branch "ticket/2".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("y")
             sage: dev.push()
             The branch "u/doctest/ticket/2" does not exist on the remote server.
@@ -3583,8 +3596,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=3)
             On ticket #3 with associated local branch "ticket/3".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("y")
             sage: dev.push()
             The branch "u/doctest/ticket/3" does not exist on the remote server.
@@ -3609,8 +3622,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket="#1")
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: with open("ticket1","w") as f: f.write("ticket1")
             sage: dev.git.silent.add("ticket1")
             sage: dev.git.super_silent.commit(message="added ticket1")
@@ -3618,8 +3631,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket="#2")
             On ticket #2 with associated local branch "ticket/2".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: with open("ticket2","w") as f: f.write("ticket2")
             sage: dev.git.silent.add("ticket2")
             sage: dev.git.super_silent.commit(message="added ticket2")
@@ -3634,8 +3647,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket="#3")
             On ticket #3 with associated local branch "ticket/3".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: open("ticket3","w").close()
             sage: dev.git.silent.add("ticket3")
             sage: dev.git.super_silent.commit(message="added ticket3")
@@ -3668,8 +3681,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket="#1")
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("y")
             sage: dev.push()
             Local commits that are not on the remote branch "u/doctest/ticket/1":
@@ -3680,8 +3693,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket="#3")
             On ticket #3 with associated local branch "ticket/3".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.diff("#1")
             diff --git a/ticket1 b/ticket1
             deleted file mode ...
@@ -3730,8 +3743,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket="#1")
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: with open("ticket2","w") as f: f.write("foo")
             sage: dev.git.silent.add("ticket2")
             sage: dev.git.super_silent.commit(message="added ticket2")
@@ -3746,8 +3759,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket="#3")
             On ticket #3 with associated local branch "ticket/3".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.diff("dependencies")
             Dependency #1 has not been merged into "ticket/3" (at least not its latest
             version).
@@ -3890,8 +3903,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #2 at https://trac.sagemath.org/2.
@@ -3901,8 +3914,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=2)
             On ticket #2 with associated local branch "ticket/2".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #3 at https://trac.sagemath.org/3.
@@ -3912,8 +3925,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=3)
             On ticket #3 with associated local branch "ticket/3".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: UI.append("Summary: summary\ndescription")
             sage: dev.create_ticket()
             Created ticket #4 at https://trac.sagemath.org/4.
@@ -3923,8 +3936,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=4)
             On ticket #4 with associated local branch "ticket/4".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
             sage: dev.merge('ticket/2',create_dependency=True)
             Merging the local branch "ticket/2" into the local branch "ticket/4".
@@ -3943,8 +3956,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket='#2')
             On ticket #2 with associated local branch "ticket/2".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.merge('ticket/1', create_dependency=True)
             Merging the local branch "ticket/1" into the local branch "ticket/2".
             Automatic merge successful.
@@ -3955,8 +3968,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket='#3')
             On ticket #3 with associated local branch "ticket/3".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.merge('ticket/1', create_dependency=True)
             Merging the local branch "ticket/1" into the local branch "ticket/3".
             Automatic merge successful.
@@ -3970,8 +3983,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket='#4')
             On ticket #4 with associated local branch "ticket/4".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev.show_dependencies()
             Ticket #4 depends on #2, #3.
             sage: dev.show_dependencies('#4')
@@ -4650,8 +4663,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
             sage: dev._set_remote_branch_for_branch("ticket/1", "public/1")
             sage: dev._remote_branch_for_ticket(1)
@@ -4695,8 +4708,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev._sagedev._ticket_for_local_branch("ticket/1")
             1
         """
@@ -4726,8 +4739,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev._sagedev._has_ticket_for_local_branch("ticket/1")
             True
         """
@@ -4795,8 +4808,8 @@ class SageDev(MercurialPatchMixin):
             sage: alice.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: alice._sagedev._local_branch_for_ticket(1)
             'ticket/1'
 
@@ -4918,8 +4931,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev._set_dependencies_for_ticket(1, [2, 3])
             sage: dev._dependencies_for_ticket(1)
             (2, 3)
@@ -4967,8 +4980,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
 
             sage: dev._set_dependencies_for_ticket(1, [2, 3])
             sage: dev._dependencies_for_ticket(1)
@@ -5163,8 +5176,8 @@ class SageDev(MercurialPatchMixin):
             sage: dev.checkout(ticket=1)
             On ticket #1 with associated local branch "ticket/1".
             <BLANKLINE>
-            #  Use "sage --dev commit" to save changes in a new commit when you are finished
-            #  editing.
+            #  Use "sage --dev merge" to include another ticket/branch.
+            #  Use "sage --dev commit" to save changes into a new commit.
             sage: dev._current_ticket()
             1
         """

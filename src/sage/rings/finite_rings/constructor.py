@@ -322,6 +322,35 @@ class FiniteFieldFactory(UniqueFactory):
         sage: a
         2
 
+    The following demonstrate coercions for finite fields using Conway
+    polynomials::
+
+        sage: k = GF(5^2, conway=True, prefix='z'); a = k.gen()
+        sage: l = GF(5^5, conway=True, prefix='z'); b = l.gen()
+        sage: a + b
+        3*z10^5 + z10^4 + z10^2 + 3*z10 + 1
+
+    Note that embeddings are compatible in lattices of such finite
+    fields::
+
+        sage: m = GF(5^3, conway=True, prefix='z'); c = m.gen()
+        sage: (a+b)+c == a+(b+c)
+        True
+        sage: (a*b)*c == a*(b*c)
+        True
+        sage: from sage.categories.pushout import pushout
+        sage: n = pushout(k, l)
+        sage: o = pushout(l, m)
+        sage: q = pushout(n, o)
+        sage: q(o(b)) == q(n(b))
+        True
+
+    Another check that embeddings are defined properly::
+
+        sage: k = GF(3**10, conway=True, prefix='z')
+        sage: l = GF(3**20, conway=True, prefix='z')
+        sage: l(k.gen()**10) == l(k.gen())**10
+        True
     """
     def create_key_and_extra_args(self, order, name=None, modulus=None, names=None,
                                   impl=None, proof=None, **kwds):
@@ -350,6 +379,51 @@ class FiniteFieldFactory(UniqueFactory):
                 name = normalize_names(1,name)
 
                 p, n = arith.factor(order)[0]
+
+                # The following is a temporary solution that allows us
+                # to construct compatible systems of finite fields
+                # until algebraic closures of finite fields are
+                # implemented in Sage.  It requires the user to
+                # specify two parameters:
+                #
+                # - `conway` -- boolean; if True, this field is
+                #   constructed to fit in a compatible system using
+                #   a Conway polynomial.
+                # - `prefix` -- a string used to generate names for
+                #   automatically constructed finite fields
+                #
+                # See the docstring of FiniteFieldFactory for examples.
+                #
+                # Once algebraic closures of finite fields are
+                # implemented, this syntax should be superseded by
+                # something like the following:
+                #
+                #     sage: Fpbar = GF(5).algebraic_closure('z')
+                #     sage: F, e = Fpbar.subfield(3)  # e is the embedding into Fpbar
+                #     sage: F
+                #     Finite field in z3 of size 5^3
+                #
+                # This temporary solution only uses actual Conway
+                # polynomials (no pseudo-Conway polynomials), since
+                # pseudo-Conway polynomials are not unique, and until
+                # we have algebraic closures of finite fields, there
+                # is no good place to store a specific choice of
+                # pseudo-Conway polynomials.
+                if name is None:
+                    if not (kwds.has_key('conway') and kwds['conway']):
+                        raise ValueError("parameter 'conway' is required if no name given")
+                    if not kwds.has_key('prefix'):
+                        raise ValueError("parameter 'prefix' is required if no name given")
+                    name = kwds['prefix'] + str(n)
+
+                if kwds.has_key('conway') and kwds['conway']:
+                    from conway_polynomials import conway_polynomial
+                    if not kwds.has_key('prefix'):
+                        raise ValueError("a prefix must be specified if conway=True")
+                    if modulus is not None:
+                        raise ValueError("no modulus may be specified if conway=True")
+                    # The following raises a RuntimeError if no polynomial is found.
+                    modulus = conway_polynomial(p, n)
 
                 if modulus is None or isinstance(modulus, str):
                     # A string specifies an algorithm to find a suitable modulus.
@@ -403,7 +477,7 @@ class FiniteFieldFactory(UniqueFactory):
             # Using a check option here is probably a worthwhile
             # compromise since this constructor is simple and used a
             # huge amount.
-            K = FiniteField_prime_modn(order, check=False, **kwds)
+            K = FiniteField_prime_modn(order, check=False)
         else:
             # We have to do this with block so that the finite field
             # constructors below will use the proof flag that was
@@ -432,19 +506,27 @@ class FiniteFieldFactory(UniqueFactory):
                     else:
                         impl = 'pari_ffelt'
                 if impl == 'givaro':
-                    K = FiniteField_givaro(order, name, modulus, cache=elem_cache,**kwds)
+                    if kwds.has_key('repr'):
+                        repr = kwds['repr']
+                    else:
+                        repr = 'poly'
+                    K = FiniteField_givaro(order, name, modulus, repr=repr, cache=elem_cache)
                 elif impl == 'ntl':
                     from finite_field_ntl_gf2e import FiniteField_ntl_gf2e
-                    K = FiniteField_ntl_gf2e(order, name, modulus, **kwds)
+                    K = FiniteField_ntl_gf2e(order, name, modulus)
                 elif impl == 'pari_ffelt':
                     from finite_field_pari_ffelt import FiniteField_pari_ffelt
-                    K = FiniteField_pari_ffelt(p, modulus, name, **kwds)
+                    K = FiniteField_pari_ffelt(p, modulus, name)
                 elif (impl == 'pari_mod'
                       or impl == 'pari'):    # for unpickling old pickles
                     from finite_field_ext_pari import FiniteField_ext_pari
-                    K = FiniteField_ext_pari(order, name, modulus, **kwds)
+                    K = FiniteField_ext_pari(order, name, modulus)
                 else:
                     raise ValueError("no such finite field implementation: %s" % impl)
+
+            # Temporary; see create_key_and_extra_args() above.
+            if kwds.has_key('prefix'):
+                K._prefix = kwds['prefix']
 
         return K
 

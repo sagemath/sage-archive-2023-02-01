@@ -10966,7 +10966,7 @@ class GenericGraph(GenericGraph_pyx):
         Though we can build intervals from the corresponding random
         generator::
 
-            sage: g = graphs.RandomInterval(20)
+            sage: g = graphs.RandomIntervalGraph(20)
             sage: g.is_interval()
             True
 

@@ -189,6 +189,17 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         if to_ZZ is not None:
             return integer_mod.Integer_to_IntegerMod(self) * to_ZZ
 
+    def construction(self):
+        """
+        Returns the construction of this finite field (for use by sage.categories.pushout)
+
+        EXAMPLES::
+
+            sage: GF(3).construction()
+            (QuotientFunctor, Integer Ring)
+        """
+        return integer_mod_ring.IntegerModRing_generic.construction(self)
+
     def characteristic(self):
         r"""
         Return the characteristic of \code{self}.

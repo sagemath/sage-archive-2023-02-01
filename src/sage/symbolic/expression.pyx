@@ -2249,6 +2249,8 @@ cdef class Expression(CommutativeRingElement):
             sage: t1, t2 = var(','.join([s+'1',s+'2']))
             sage: (t1 == t2).test_relation()
             False
+            sage: (cot(pi + x) == 0).test_relation()
+            NotImplemented
         """
         cdef int k, eq_count = 0
         cdef bint is_interval
@@ -2315,7 +2317,7 @@ cdef class Expression(CommutativeRingElement):
                         return False
                     if is_interval:
                         eq_count += <bint>val.contains_zero()
-                except (TypeError, ValueError, ArithmeticError), ex:
+                except (TypeError, ValueError, ArithmeticError, AttributeError), ex:
                     errors += 1
                     if k == errors > 3 and is_ComplexIntervalField(domain):
                         domain = RIF.to_prec(domain.prec())
@@ -5427,8 +5429,7 @@ cdef class Expression(CommutativeRingElement):
             TypeError: y is not a variable of Multivariate Polynomial Ring in x over Ring of integers modulo 4
         """
         from sage.symbolic.all import SR
-        from sage.rings.all import is_MPolynomialRing
-
+        from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
         base_ring = R.base_ring()
         if base_ring == SR:
             if is_MPolynomialRing(R):

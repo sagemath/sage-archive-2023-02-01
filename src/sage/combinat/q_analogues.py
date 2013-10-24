@@ -19,26 +19,27 @@ q-Analogues
 from sage.misc.cachefunc import cached_function
 from sage.misc.misc import prod
 from sage.rings.all import ZZ
-from dyck_word import DyckWords
+from sage.combinat.dyck_word import DyckWords
+from sage.combinat.partition import Partition
 
-from partition import Partition
 
-def q_int(n, p=None):
+def q_int(n, q=None):
     r"""
-    Returns the `q`-analogue of the integer `n`
+    Return the `q`-analogue of the integer `n`.
 
     The `q`-analogue of the integer `n` is given by
 
     .. MATH::
 
-        [n]_q =  \begin{cases}
-        1+q+\dots+q^{n-1},  & \text{if }n\ge 0, \\
-        -q^{-n} [-n]_q,     & \text{if }n\le 0.
+        [n]_q = \begin{cases}
+        1 + q + \cdots + q^{n-1},  & \text{if } n \geq 0, \\
+        -q^{-n} [-n]_q,            & \text{if } n \leq 0.
         \end{cases}
 
-    Consequently, if `q=1` then `[n]_1=n` and if `q\ne1` then `[n]_q=(q^n-1)/(q-1)`.
+    Consequently, if `q = 1` then `[n]_1 = n` and if `q \neq 1` then
+    `[n]_q = (q^n-1)/(q-1)`.
 
-    If the argument `p` is not specified then it defaults to the generator `q`
+    If the argument `q` is not specified then it defaults to the generator `q`
     of the univariate polynomial ring over the integers.
 
     EXAMPLES::
@@ -59,18 +60,17 @@ def q_int(n, p=None):
     if not n in ZZ:
         raise ValueError('%s must be an integer' % n)
 
-    if p == None:
-        p = ZZ['q'].gens()[0]
+    if q is None:
+        q = ZZ['q'].gens()[0]
     if n >= 0:
-        return sum(p**i for i in range(n))
-    else:
-        return -p**n*sum(p**i for i in  range(-n))
+        return sum(q**i for i in range(n))
+    return -q**n*sum(q**i for i in range(-n))
 
-def q_factorial(n, p=None):
+def q_factorial(n, q=None):
     """
-    Returns the `q`-analogue of the factorial `n!`
+    Returns the `q`-analogue of the factorial `n!`.
 
-    If `p` is unspecified, then it defaults to using the generator `q` for
+    If `q` is unspecified, then it defaults to using the generator `q` for
     a univariate polynomial ring over the integers.
 
     EXAMPLES::
@@ -82,7 +82,7 @@ def q_factorial(n, p=None):
         sage: q_factorial(3, p)
         p^3 + 2*p^2 + 2*p + 1
 
-    The `q`-analogue of `n!` is only defined for `n` a nonnegative
+    The `q`-analogue of `n!` is only defined for `n` a non-negative
     integer (:trac:`11411`)::
 
         sage: q_factorial(-2)
@@ -91,7 +91,7 @@ def q_factorial(n, p=None):
         ValueError: Argument (-2) must be a nonnegative integer.
     """
     if n in ZZ and n >= 0:
-        return prod([q_int(i, p) for i in range(1, n+1)])
+        return prod([q_int(i, q) for i in range(1, n+1)])
     else:
         raise ValueError("Argument (%s) must be a nonnegative integer." %n)
 
@@ -106,25 +106,25 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         \binom{n}{k}_q = \frac{(1-q^n)(1-q^{n-1}) \cdots (1-q^{n-k+1})}
         {(1-q)(1-q^2)\cdots (1-q^k)}.
 
-    See :wikipedia:`Gaussian binomial coefficient`
+    See :wikipedia:`Gaussian_binomial_coefficient`.
 
     If `q` is unspecified, then the variable is the generator `q` for
     a univariate polynomial ring over the integers.
 
     INPUT:
 
-    - ``n, k`` -- The values, `n` and `k` defined above.
+    - ``n, k`` -- the values `n` and `k` defined above
 
-    - ``q`` -- (Default: ``None``) The variable `q`; if ``None``, then use a
-      default variable in `\ZZ[q]`.
+    - ``q`` -- (default: ``None``) the variable `q`; if ``None``, then use a
+      default variable in `\ZZ[q]`
 
-    - ``algorithm`` -- (Default: ``'auto'``) The algorithm to use and can be
+    - ``algorithm`` -- (default: ``'auto'``) the algorithm to use and can be
       one of the following:
 
-      - ``'auto'`` -- Automatically choose the algorithm; see the algorithm
+      - ``'auto'`` -- automatically choose the algorithm; see the algorithm
         section below
-      - ``'naive'`` -- Use the naive algorithm
-      - ``'cyclotomic'`` -- Use cyclotomic algorithm
+      - ``'naive'`` -- use the naive algorithm
+      - ``'cyclotomic'`` -- use cyclotomic algorithm
 
     ALGORITHM:
 
@@ -237,8 +237,8 @@ def q_binomial(n, k, q=None, algorithm='auto'):
 
     REFERENCES:
 
-    .. [CH2006] William Y.C. Chen and Qing-Hu Hou, "Factors of the Gaussian
-       coefficients", Discrete Mathematics 306 (2006), 1446-1449.
+    .. [CH2006] William Y.C. Chen and Qing-Hu Hou, *Factors of the Gaussian
+       coefficients*, Discrete Mathematics 306 (2006), 1446-1449.
        :doi:`10.1016/j.disc.2006.03.031`
 
     AUTHORS:
@@ -324,11 +324,69 @@ def gaussian_binomial(n, k, q=None, algorithm='auto'):
     """
     return q_binomial(n, k, q, algorithm)
 
-def q_catalan_number(n,p=None):
+def q_multinomial(seq, q=None, binomial_algorithm='auto'):
+    r"""
+    Return the `q`-multinomial coefficient.
+
+    This is also known as the Gaussian multinomial coefficient, and is
+    defined by
+
+    .. MATH::
+
+        \binom{n}{k_1, k_2, \ldots, k_m}_q = \frac{[n]_q!}
+        {[k_1]_q! [k_2]_q! \cdots [k_m]_q!}
+
+    where `n = k_1 + k_2 + \cdots + k_m`.
+
+    If `q` is unspecified, then the variable is the generator `q` for
+    a univariate polynomial ring over the integers.
+
+    INPUT:
+
+    - ``seq`` -- an iterable of the values `k_1` to `k_m` defined above
+
+    - ``q`` -- (default: ``None``) the variable `q`; if ``None``, then use a
+      default variable in `\ZZ[q]`
+
+    - ``binomial_algorithm`` -- (default: ``'auto'``) the algorithm to use
+      in :meth:`~sage.combinat.q_analogues.q_binomial`; see possible values
+      there
+
+    ALGORITHM:
+
+    We use the equivalent formula
+
+    .. MATH::
+
+        \binom{k_1 + \cdots + k_m}{k_1, \ldots, k_m}_q
+        = \prod_{i=1}^m \binom{\sum_{j=1}^i k_j}{k_i}_q.
+
+    EXAMPLES::
+
+        sage: from sage.combinat.q_analogues import q_multinomial
+        sage: q_multinomial([1,2,1])
+        q^5 + 2*q^4 + 3*q^3 + 3*q^2 + 2*q + 1
+        sage: q_multinomial([1,2,1], q=1) == multinomial([1,2,1])
+        True
+        sage: q_multinomial((3,2)) == q_binomial(5,3)
+        True
+        sage: q_multinomial([])
+        1
+    """
+    binomials = []
+    partial_sum = 0
+    for elem in seq:
+        partial_sum += elem
+        binomials.append(q_binomial(partial_sum, elem, q=q, algorithm=binomial_algorithm))
+    return prod(binomials)
+
+gaussian_multinomial = q_multinomial
+
+def q_catalan_number(n, q=None):
     """
     Returns the `q`-Catalan number of index `n`.
 
-    If `p` is unspecified, then it defaults to using the generator `q` for
+    If `q` is unspecified, then it defaults to using the generator `q` for
     a univariate polynomial ring over the integers.
 
     There are several `q`-Catalan numbers. This procedure
@@ -352,13 +410,13 @@ def q_catalan_number(n,p=None):
         ValueError: Argument (-2) must be a nonnegative integer.
     """
     if n in ZZ and n >= 0:
-        return prod(q_int(j, p) for j in range(n+2, 2*n+1)) / prod(q_int(j, p) for j in range(2,n+1))
+        return prod(q_int(j, q) for j in range(n+2, 2*n+1)) / prod(q_int(j, q) for j in range(2,n+1))
     else:
         raise ValueError("Argument (%s) must be a nonnegative integer." %n)
 
 def qt_catalan_number(n):
     """
-    Returns the ``q,t``-Catalan number of index `n`.
+    Returns the `q,t`-Catalan number of index `n`.
 
     EXAMPLES::
 
@@ -372,7 +430,7 @@ def qt_catalan_number(n):
         sage: qt_catalan_number(4)
         q^6 + q^5*t + q^4*t^2 + q^3*t^3 + q^2*t^4 + q*t^5 + t^6 + q^4*t + q^3*t^2 + q^2*t^3 + q*t^4 + q^3*t + q^2*t^2 + q*t^3
 
-    The ``q,t``-Catalan number of index `n` is only defined for `n` a
+    The `q,t`-Catalan number of index `n` is only defined for `n` a
     nonnegative integer (:trac:`11411`)::
 
         sage: qt_catalan_number(-2)
@@ -465,27 +523,29 @@ def q_jordan(t, q):
             tj = ti
     return res
 
-def q_subgroups_of_abelian_group(la, mu, q=None):
+def q_subgroups_of_abelian_group(la, mu, q=None, algorithm='birkhoff'):
     r"""
     Return the `q`-number of subgroups of type ``mu`` in a finite abelian
     group of type ``la``.
 
     INPUT:
 
-    - ``la`` -- Type of the ambient group as a Partition object
-    - ``mu`` -- Type of the subgroup as a Partition object
-    - ``q`` -- (Default: ``None``) An indeterminat or a prime number. If
-      ``None``, this defaults to `q \in \ZZ[q]`.
+    - ``la`` -- type of the ambient group as a :class:`Partition`
+    - ``mu`` -- type of the subgroup as a :class:`Partition`
+    - ``q`` -- (default: ``None``) an indeterminat or a prime number; if
+      ``None``, this defaults to `q \in \ZZ[q]`
+    - ``algorithm`` -- (default: ``'birkhoff'``) the algorithm to use can be
+      one of the following:
+
+      - ``'birkhoff`` -- use the Birkhoff formula from [Bu87]_
+      - ``'delsarte'`` -- use the formula from [Delsarte48]_
 
     OUTPUT:
 
     The number of subgroups of type ``mu`` in a group of type ``la`` as a
     polynomial in ``q``.
 
-
     ALGORITHM:
-
-    We use the formula from [Delsarte48]_, which works as follows:
 
     Let `q` be a prime number and `\lambda = (\lambda_1, \ldots, \lambda_l)`
     be a partition. A finite abelian `q`-group is of type `\lambda` if it
@@ -495,13 +555,28 @@ def q_subgroups_of_abelian_group(la, mu, q=None):
 
         \ZZ / q^{\lambda_1} \ZZ \times \cdots \times \ZZ / q^{\lambda_l} \ZZ.
 
+    The formula from [Bu87]_ works as follows:
+    Let `\lambda` and `\mu` be partitions. Let `\lambda^{\prime}` and
+    `\mu^{\prime}` denote the conjugate partitions to `\lambda` and `\mu`,
+    respectively. The number of subgroups of type `\mu` in a group of type
+    `\lambda` is given by
+
+    .. MATH::
+
+        \prod_{i=1}^{\mu_1} q^{\mu^{\prime}_{i+1}
+        (\lambda^{\prime}_i - \mu^{\prime}_i)}
+        \binom{\lambda^{\prime}_i - \mu^{\prime}_{i+1}}
+        {\mu^{\prime}_i - \mu^{\prime}_{i+1}}_q
+
+    The formula from [Delsarte48]_ works as follows:
     Let `\lambda` and `\mu` be partitions. Let `(s_1, s_2, \ldots, s_l)`
     and `(r_1, r_2, \ldots, r_k)` denote the parts of the partitions
     conjugate to `\lambda` and `\mu` respectively. Let
 
+
     .. MATH::
 
-        \mathfrak{F}(\xi_1,\ldots,\xi_k) = \xi_1^{r_2} \xi_2^{r_3} \cdots
+        \mathfrak{F}(\xi_1, \ldots, \xi_k) = \xi_1^{r_2} \xi_2^{r_3} \cdots
         \xi_{k-1}^{r_k} \prod_{i_1=r_2}^{r_1-1} (\xi_1-q^{i_1})
         \prod_{i_2=r_3}^{r_2-1} (\xi_2-q^{i_2}) \cdots
         \prod_{i_k=0}^{r_k-1} (\xi_k-q^{-i_k}).
@@ -517,48 +592,83 @@ def q_subgroups_of_abelian_group(la, mu, q=None):
     EXAMPLES::
 
         sage: from sage.combinat.q_analogues import q_subgroups_of_abelian_group
-        sage: q_subgroups_of_abelian_group([1,1],[1])
+        sage: q_subgroups_of_abelian_group([1,1], [1])
         q + 1
-        sage: q_subgroups_of_abelian_group([3,3,2,1],[2,1])
+        sage: q_subgroups_of_abelian_group([3,3,2,1], [2,1])
         q^6 + 2*q^5 + 3*q^4 + 2*q^3 + q^2
         sage: R.<t> = QQ[]
-        sage: q_subgroups_of_abelian_group([5,3,1],[3,1],t)
+        sage: q_subgroups_of_abelian_group([5,3,1], [3,1], t)
         t^4 + 2*t^3 + t^2
-        sage: q_subgroups_of_abelian_group([5,3,1],[3,1],3)
+        sage: q_subgroups_of_abelian_group([5,3,1], [3,1], 3)
         144
-
-        sage: q_subgroups_of_abelian_group([1,1,1],[1]) == q_subgroups_of_abelian_group([1,1,1],[1,1])
+        sage: q_subgroups_of_abelian_group([1,1,1], [1]) == q_subgroups_of_abelian_group([1,1,1], [1,1])
         True
-        sage: q_subgroups_of_abelian_group([5],[3])
+        sage: q_subgroups_of_abelian_group([5], [3])
         1
-
-        sage: q_subgroups_of_abelian_group([1],[2])
+        sage: q_subgroups_of_abelian_group([1], [2])
         0
-        sage: q_subgroups_of_abelian_group([2],[1,1])
+        sage: q_subgroups_of_abelian_group([2], [1,1])
+        0
+
+    TESTS:
+
+    Check the same examples with ``algorithm='delsarte'``::
+
+        sage: q_subgroups_of_abelian_group([1,1], [1], algorithm='delsarte')
+        q + 1
+        sage: q_subgroups_of_abelian_group([3,3,2,1], [2,1], algorithm='delsarte')
+        q^6 + 2*q^5 + 3*q^4 + 2*q^3 + q^2
+        sage: q_subgroups_of_abelian_group([5,3,1], [3,1], t, algorithm='delsarte')
+        t^4 + 2*t^3 + t^2
+        sage: q_subgroups_of_abelian_group([5,3,1], [3,1], 3, algorithm='delsarte')
+        144
+        sage: q_subgroups_of_abelian_group([1,1,1], [1], algorithm='delsarte') == q_subgroups_of_abelian_group([1,1,1], [1,1])
+        True
+        sage: q_subgroups_of_abelian_group([5], [3], algorithm='delsarte')
+        1
+        sage: q_subgroups_of_abelian_group([1], [2], algorithm='delsarte')
+        0
+        sage: q_subgroups_of_abelian_group([2], [1,1], algorithm='delsarte')
         0
 
     REFERENCES:
 
-    .. [Delsarte48] S Delsarte, Fonctions de Mobius Sur Les Groupes Abeliens
-       Finis, Annals of Mathematics, second series, Vol. 45, No. 3, (Jul 1948),
+    .. [Bu87] Butler, Lynne M. *A unimodality result in the enumeration
+       of subgroups of a finite abelian group.* Proceedings of the American
+       Mathematical Society 101, no. 4 (1987): 771-775.
+       :doi:`10.1090/S0002-9939-1987-0911049-8`
+
+    .. [Delsarte48] S. Delsarte, *Fonctions de Mobius Sur Les Groupes Abeliens
+       Finis*, Annals of Mathematics, second series, Vol. 45, No. 3, (Jul 1948),
        pp. 600-609. http://www.jstor.org/stable/1969047
 
-    AUTHOR:
+    AUTHORS:
 
-    - Amritanshu Prasad (2013-06-07)
+    - Amritanshu Prasad (2013-06-07): Implemented the Delsarte algorithm
+    - Tomer Bauer (2013-09-26): Implemented the Birkhoff algorithm
     """
-    if q == None:
+    if q is None:
         q = ZZ['q'].gens()[0]
-    s = Partition(la).conjugate()
-    r = Partition(mu).conjugate()
-    k = r.length()
-    if k > s.length():
+    la_c = Partition(la).conjugate()
+    mu_c = Partition(mu).conjugate()
+    k = mu_c.length()
+    if not la_c.contains(mu_c):
         return q.parent().zero()
 
-    def F(vars):
-        prd = lambda j: prod(vars[j]-q**i for i in range(r[j+1],r[j]))
-        F1 = prod(vars[i]**r[i+1] * prd(i) for i in range(k-1))
-        return F1 * prod(vars[k-1]-q**i for i in range(r[k-1]))
+    if algorithm == 'delsarte':
+        def F(args):
+            prd = lambda j: prod(args[j]-q**i for i in range(mu_c[j+1],mu_c[j]))
+            F1 = prod(args[i]**mu_c[i+1] * prd(i) for i in range(k-1))
+            return F1 * prod(args[k-1]-q**i for i in range(mu_c[k-1]))
 
-    return F([q**ss for ss in s[:k]])/F([q**rr for rr in r])
+        return F([q**ss for ss in la_c[:k]])/F([q**rr for rr in mu_c])
+
+    if algorithm == 'birkhoff':
+        fac1 = q**(sum(mu_c[i+1] * (la_c[i]-mu_c[i]) for i in range(k-1)))
+        fac2 = prod(q_binomial(la_c[i]-mu_c[i+1], mu_c[i]-mu_c[i+1], q=q) for i in range(k-1))
+        fac3 = q_binomial(la_c[k-1], mu_c[k-1], q=q)
+
+        return prod([fac1, fac2, fac3])
+
+    raise ValueError("invalid algorithm choice")
 

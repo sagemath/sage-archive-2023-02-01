@@ -188,7 +188,6 @@ class ComplexPlot(GraphicPrimitive):
         """
         self.xrange = xrange
         self.yrange = yrange
-        #self.z_values = z_values
         self.x_count = len(rgb_data)
         self.y_count = len(rgb_data[0])
         self.rgb_data = rgb_data

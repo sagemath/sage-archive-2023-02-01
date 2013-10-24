@@ -1196,18 +1196,51 @@ class Tableau(CombinatorialObject, Element):
         return self[i][j]
 
     def weight(self):
-        """
-        Returns the weight of the word corresponding to the tableau ``self``.
+        r"""
+        Return the weight of the tableau ``self``. Trailing zeroes are
+        omitted when returning the weight.
+
+        The weight of a tableau `T` is the sequence `(a_1, a_2, a_3, \ldots )`,
+        where `a_k` is the number of entries of `T` equal to `k`. This
+        sequence contains only finitely many nonzero entries.
+
+        The weight of a tableau `T` is the same as the weight of the
+        reading word of `T`, for any reading order.
 
         EXAMPLES::
 
             sage: Tableau([[1,2],[3,4]]).weight()
             [1, 1, 1, 1]
+
+            sage: Tableau([]).weight()
+            []
+
+            sage: Tableau([[1,3,3,7],[4,2],[2,3]]).weight()
+            [1, 2, 3, 1, 0, 0, 1]
+
+        TESTS:
+
+        We check that this agrees with going to the word::
+
+            sage: t = Tableau([[1,3,4,7],[6,2],[2,3]])
+            sage: def by_word(T):
+            ....:     ed = T.to_word().evaluation_dict()
+            ....:     m = max(ed.keys()) + 1
+            ....:     return [ed.get(k,0) for k in range(1,m)]
+            sage: by_word(t) == t.weight()
+            True
+            sage: SST = SemistandardTableaux(shape=[3,1,1])
+            sage: all(by_word(t) == t.weight() for t in SST)
+            True
         """
-        ed = self.to_word().evaluation_dict()
-        entries = ed.keys()
-        m = max(entries) + 1 if entries else -1
-        return [ed.get(k,0) for k in range(1,m)]
+        if len(self) == 0:
+            return []
+        m = max(max(row) for row in self)
+        res = [0] * m
+        for row in self:
+            for i in row:
+                res[i - 1] += 1
+        return res
 
     evaluation = weight
 
@@ -1362,8 +1395,13 @@ class Tableau(CombinatorialObject, Element):
 
     def cells_containing(self, i):
         r"""
-        Return the list of cells in which the letter `i` appears in the tableau
-        ``self``. The list is ordered with cells appearing from left to right.
+        Return the list of cells in which the letter `i` appears in the
+        tableau ``self``. The list is ordered with cells appearing from
+        left to right.
+
+        Cells are given as pairs of coordinates `(a, b)`, where both
+        rows and columns are counted from `0` (so `a = 0` means the cell
+        lies in the leftmost column of the tableau, etc.).
 
         EXAMPLES::
 
@@ -1378,14 +1416,21 @@ class Tableau(CombinatorialObject, Element):
             sage: t = Tableau([[1,1,2,4],[2,4,4],[4]])
             sage: t.cells_containing(4)
             [(2, 0), (1, 1), (1, 2), (0, 3)]
+
+            sage: t = Tableau([[1,1,2,8,9],[2,5,6,11],[3,7,7,13],[4,8,9],[5],[13],[14]])
+            sage: t.cells_containing(8)
+            [(3, 1), (0, 3)]
+
+            sage: Tableau([]).cells_containing(3)
+            []
         """
-        list = []
-        for r in range(len(self)):
-            for c in range(self.shape()[r]-1,-1,-1):
-                if self[r][c] == i:
-                    list += [(r,c)]
-        list.reverse()
-        return list
+        cell_list = []
+        for r in range(len(self)-1, -1, -1):
+            rth_row = self[r]
+            for c,val in enumerate(rth_row):
+                if val == i:
+                    cell_list.append((r,c))
+        return cell_list
 
     def k_weight(self, k):
         """
@@ -1424,6 +1469,23 @@ class Tableau(CombinatorialObject, Element):
             res.append(len(x))
 
         return res
+
+    def is_k_tableau(self, k):
+        r"""
+        Checks whether ``self`` is a valid weak `k`-tableau.
+
+        EXAMPLES::
+
+            sage: t = Tableau([[1,2,3],[2,3],[3]])
+            sage: t.is_k_tableau(3)
+            True
+            sage: t = Tableau([[1,1,3],[2,2],[3]])
+            sage: t.is_k_tableau(3)
+            False
+        """
+        shapes = self.to_chain()
+        kshapes = [ la.k_conjugate(k) for la in shapes ]
+        return all( kshapes[i+1].contains(kshapes[i]) for i in range(len(shapes)-1) )
 
     def restrict(self, n):
         """
@@ -2155,6 +2217,9 @@ class Tableau(CombinatorialObject, Element):
         Return the PermutationGroup corresponding to the row stabilizer of
         ``self``.
 
+        This assumes that every integer from `1` to the size of ``self``
+        appears exactly once in ``self``.
+
         EXAMPLES::
 
             sage: rs = Tableau([[1,2,3],[4,5]]).row_stabilizer()
@@ -2172,11 +2237,17 @@ class Tableau(CombinatorialObject, Element):
             sage: rs = Tableau([[1],[2],[3]]).row_stabilizer()
             sage: rs.order()
             1
+            sage: rs = Tableau([[2,4,5],[1,3]]).row_stabilizer()
+            sage: rs.order()
+            12
+            sage: rs = Tableau([]).row_stabilizer()
+            sage: rs.order()
+            1
         """
 
         # Ensure that the permutations involve all elements of the
         # tableau, by including the identity permutation on the set [1..k].
-        k = max(self.entries())
+        k = self.size()
         gens = [range(1,k+1)]
         for i in range(len(self)):
             for j in range(0, len(self[i])-1):
@@ -2188,6 +2259,9 @@ class Tableau(CombinatorialObject, Element):
         """
         Return the PermutationGroup corresponding to the column stabilizer
         of ``self``.
+
+        This assumes that every integer from `1` to the size of ``self``
+        appears exactly once in ``self``.
 
         EXAMPLES::
 
@@ -2204,7 +2278,7 @@ class Tableau(CombinatorialObject, Element):
 
     def height(self):
         """
-        Returns the height of the tableau.
+        Return the height of ``self``.
 
         EXAMPLES::
 
@@ -2403,7 +2477,7 @@ class Tableau(CombinatorialObject, Element):
 
     def catabolism(self):
         """
-        Remove the top row of ``self`` and inserts it back in using
+        Remove the top row of ``self`` and insert it back in using
         column Schensted insertion (starting with the largest letter).
 
         EXAMPLES::
@@ -2724,7 +2798,7 @@ class Tableau(CombinatorialObject, Element):
             sage: _.category()
             Category of elements of Tableaux
         """
-        w=w*permutation.Permutation( (self.size(),) )   #need to ensure that it belongs to Sym_size
+        w = w + [i+1 for i in range(len(w), self.size())]   #need to ensure that it belongs to Sym_size
         try:
             return self.parent()([[w[entry-1] for entry in row] for row in self])
         except StandardError:

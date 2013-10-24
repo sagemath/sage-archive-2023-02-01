@@ -34,7 +34,7 @@ from steenrod.all import *
 
 from group_algebra_new import GroupAlgebra
 
-from iwahori_hecke_algebra import IwahoriHeckeAlgebraT
+from iwahori_hecke_algebra import IwahoriHeckeAlgebra, IwahoriHeckeAlgebraT
 from affine_nil_temperley_lieb import AffineNilTemperleyLiebTypeA
 lazy_import('sage.algebras.nil_coxeter_algebra', 'NilCoxeterAlgebra')
 

@@ -2727,6 +2727,22 @@ class Partition(CombinatorialObject, Element):
         """
         return c - r + multicharge[0]
 
+    def residue(self, r, c, l):
+        """
+        Return the ``l``-residue of the cell at row ``r`` and column ``c``.
+
+        The `\ell`-residue of a cell is `c - r` modulo `\ell`.
+
+        This does not strictly depend upon the partition, however, this method
+        is included because it is often useful in the context of partitions.
+
+        EXAMPLES::
+
+            sage: Partition([2,1]).residue(1, 0, 3)
+            2
+        """
+        return (c - r) % l
+
     def conjugacy_class_size(self):
         """
         Return the size of the conjugacy class of the symmetric group
@@ -2743,16 +2759,23 @@ class Partition(CombinatorialObject, Element):
 
         REFERENCES:
 
-        .. [Ker] Kerber, A. 'Algebraic Combinatorics via Finite Group Action'
+        .. [Ker] Kerber, A. 'Algebraic Combinatorics via Finite Group Actions'
            1.3 p24
         """
 
         return factorial(sum(self))/self.centralizer_size()
 
     def corners(self):
-        """
-        Return a list of the corners of the partitions. These are the
-        positions where we can remove a cell. Indices are of the form `(i,j)`.
+        r"""
+        Return a list of the corners of the partition ``self``.
+
+        A corner of a partition `\lambda` is a cell of the Young diagram
+        of `\lambda` which can be removed from the Young diagram while
+        still leaving a straight shape behind.
+
+        The entries of the list returned are pairs of the form `(i,j)`,
+        where `i` and `j` are the coordinates of the respective corner.
+        The coordinates are counted from `0`.
 
         EXAMPLES::
 
@@ -2760,6 +2783,8 @@ class Partition(CombinatorialObject, Element):
             [(0, 2), (1, 1), (2, 0)]
             sage: Partition([3,3,1]).corners()
             [(1, 2), (2, 0)]
+            sage: Partition([]).corners()
+            []
         """
         p = self
         if p.is_empty():
@@ -2783,10 +2808,46 @@ class Partition(CombinatorialObject, Element):
     inside_corners = corners
     removable_cells = corners     # for compatibility with partition tuples
 
-    def outside_corners(self):
+    def corners_residue(self, i, l):
+        r"""
+        Return a list of the corners of the partition ``self`` having
+        ``l``-residue ``i``.
+
+        A corner of a partition `\lambda` is a cell of the Young diagram
+        of `\lambda` which can be removed from the Young diagram while
+        still leaving a straight shape behind. See :meth:`residue` for
+        the definition of the ``l``-residue.
+
+        The entries of the list returned are pairs of the form `(i,j)`,
+        where `i` and `j` are the coordinates of the respective corner.
+        The coordinates are counted from `0`.
+
+        EXAMPLES::
+
+            sage: Partition([3,2,1]).corners_residue(0, 3)
+            [(1, 1)]
+            sage: Partition([3,2,1]).corners_residue(1, 3)
+            [(2, 0)]
+            sage: Partition([3,2,1]).corners_residue(2, 3)
+            [(0, 2)]
         """
-        Return a list of the positions where we can add a cell so that the
-        shape is still a partition. Indices are of the form `(i,j)`.
+        return filter(lambda x: self.residue(*x, l=l) == i, self.corners())
+
+    inside_corners_residue = corners_residue
+    removable_cells_residue = corners_residue
+
+    def outside_corners(self):
+        r"""
+        Return a list of the outside corners of the partition ``self``.
+
+        An outside corner (also called a cocorner) of a partition
+        `\lambda` is a cell on `\ZZ^2` which does not belong to
+        the Young diagram of `\lambda` but can be added to this Young
+        diagram to still form a straight-shape Young diagram.
+
+        The entries of the list returned are pairs of the form `(i,j)`,
+        where `i` and `j` are the coordinates of the respective corner.
+        The coordinates are counted from `0`.
 
         EXAMPLES::
 
@@ -2811,6 +2872,34 @@ class Partition(CombinatorialObject, Element):
         return res
 
     addable_cells = outside_corners   # for compatibility with partition tuples
+
+    def outside_corners_residue(self, i, l):
+        r"""
+        Return a list of the outside corners of the partition ``self``
+        having ``l``-residue ``i``.
+
+        An outside corner (also called a cocorner) of a partition
+        `\lambda` is a cell on `\ZZ^2` which does not belong to
+        the Young diagram of `\lambda` but can be added to this Young
+        diagram to still form a straight-shape Young diagram. See
+        :meth:`residue` for the definition of the ``l``-residue.
+
+        The entries of the list returned are pairs of the form `(i,j)`,
+        where `i` and `j` are the coordinates of the respective corner.
+        The coordinates are counted from `0`.
+
+        EXAMPLES::
+
+            sage: Partition([3,2,1]).outside_corners_residue(0, 3)
+            [(0, 3), (3, 0)]
+            sage: Partition([3,2,1]).outside_corners_residue(1, 3)
+            [(1, 2)]
+            sage: Partition([3,2,1]).outside_corners_residue(2, 3)
+            [(2, 1)]
+        """
+        return filter(lambda x: self.residue(*x, l=l) == i, self.outside_corners())
+
+    addable_cells_residue = outside_corners_residue
 
     def rim(self):
         r"""
@@ -2851,7 +2940,7 @@ class Partition(CombinatorialObject, Element):
         return res
 
     def outer_rim(self):
-        """
+        r"""
         Return the outer rim of ``self``.
 
         The outer rim of a partition `\lambda` is defined as the cells which do

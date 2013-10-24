@@ -10,6 +10,7 @@ Groups
    sage/groups/generic
    sage/groups/free_group
    sage/groups/finitely_presented
+   sage/groups/finitely_presented_named
    sage/groups/braid
    sage/groups/abelian_gps/abelian_group
    sage/groups/abelian_gps/values
@@ -38,6 +39,8 @@ Groups
    sage/groups/affine_gps/euclidean_group
    sage/groups/affine_gps/group_element
    sage/groups/misc_gps/misc_groups
+   sage/groups/semimonomial_transformations/semimonomial_transformation_group
+   sage/groups/semimonomial_transformations/semimonomial_transformation
 
    sage/groups/conjugacy_classes
 

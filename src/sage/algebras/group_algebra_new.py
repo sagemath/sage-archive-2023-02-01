@@ -679,7 +679,7 @@ class GroupAlgebra(CombinatorialFreeModule, Algebra):
             sage: A._coerce_map_from_(SymmetricGroup(2))
             True
         """
-        from sage.rings.all import is_Ring
+        from sage.rings.ring import is_Ring
         from sage.groups.old import Group
         k = self.base_ring()
         G = self.group()
@@ -730,7 +730,7 @@ class GroupAlgebra(CombinatorialFreeModule, Algebra):
             sqrt5*[1 0]
             [0 1]
         """
-        from sage.rings.all import is_Ring
+        from sage.rings.ring import is_Ring
         from sage.groups.group import is_Group
         from sage.structure.formal_sum import FormalSum
         k = self.base_ring()

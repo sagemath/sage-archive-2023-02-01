@@ -60,7 +60,9 @@ AUTHORS:
 ##############################################################################
 
 from sage.groups.group import Group
-from sage.rings.all import ZZ, is_Integer, is_Ring
+from sage.rings.all import ZZ
+from sage.rings.integer import is_Integer
+from sage.rings.ring import is_Ring
 from sage.rings.finite_rings.constructor import is_FiniteField
 from sage.interfaces.gap import gap
 from sage.matrix.all import matrix, MatrixSpace, is_MatrixSpace, is_Matrix
@@ -567,7 +569,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
         more verbose version.
 
         For more on MeatAxe notation, see
-        http://www.gap-system.org/Manuals/doc/htm/ref/CHAP067.htm
+        http://www.gap-system.org/Manuals/doc/ref/chap69.html
         """
         from sage.misc.sage_eval import sage_eval
         F = self.base_ring()
@@ -662,7 +664,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
           1993.
 
         - S. King, "Minimal Generating Sets of non-modular invariant
-          rings of finite groups", :arXiv:`math/0703035`.
+          rings of finite groups", :arxiv:`math/0703035`.
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.interfaces.singular import singular

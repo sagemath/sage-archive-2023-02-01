@@ -2,7 +2,7 @@
 r"""
 Basic Graphs
 
-The methods defined here appear in sage.graphs.grah_generators.
+The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 
 """
 ###########################################################################
@@ -21,273 +21,6 @@ from sage.graphs import graph
 from math import sin, cos, pi
 from sage.graphs.graph_plot import _circle_embedding, _line_embedding
 
-#######################################################################
-#   Basic Structures
-#######################################################################
-
-def BarbellGraph(n1, n2):
-    r"""
-    Returns a barbell graph with ``2*n1 + n2`` nodes. The argument ``n1``
-    must be greater than or equal to 2.
-
-    A barbell graph is a basic structure that consists of a path graph
-    of order ``n2`` connecting two complete graphs of order ``n1`` each.
-
-    This constructor depends on `NetworkX <http://networkx.lanl.gov>`_
-    numeric labels. In this case, the ``n1``-th node connects to the
-    path graph from one complete graph and the ``n1 + n2 + 1``-th node
-    connects to the path graph from the other complete graph.
-
-    INPUT:
-
-    - ``n1`` -- integer `\geq 2`. The order of each of the two
-      complete graphs.
-
-    - ``n2`` -- nonnegative integer. The order of the path graph
-      connecting the two complete graphs.
-
-    OUTPUT:
-
-    A barbell graph of order ``2*n1 + n2``. A ``ValueError`` is
-    returned if ``n1 < 2`` or ``n2 < 0``.
-
-    ALGORITHM:
-
-    Uses `NetworkX <http://networkx.lanl.gov>`_.
-
-    PLOTTING:
-
-    Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, each barbell
-    graph will be displayed with the two complete graphs in the
-    lower-left and upper-right corners, with the path graph connecting
-    diagonally between the two. Thus the ``n1``-th node will be drawn at a
-    45 degree angle from the horizontal right center of the first
-    complete graph, and the ``n1 + n2 + 1``-th node will be drawn 45
-    degrees below the left horizontal center of the second complete graph.
-
-    EXAMPLES:
-
-    Construct and show a barbell graph ``Bar = 4``, ``Bells = 9``::
-
-        sage: g = graphs.BarbellGraph(9, 4); g
-        Barbell graph: Graph on 22 vertices
-        sage: g.show() # long time
-
-    An ``n1 >= 2``, ``n2 >= 0`` barbell graph has order ``2*n1 + n2``. It
-    has the complete graph on ``n1`` vertices as a subgraph. It also has
-    the path graph on ``n2`` vertices as a subgraph. ::
-
-        sage: n1 = randint(2, 2*10^2)
-        sage: n2 = randint(0, 2*10^2)
-        sage: g = graphs.BarbellGraph(n1, n2)
-        sage: v = 2*n1 + n2
-        sage: g.order() == v
-        True
-        sage: K_n1 = graphs.CompleteGraph(n1)
-        sage: P_n2 = graphs.PathGraph(n2)
-        sage: s_K = g.subgraph_search(K_n1, induced=True)
-        sage: s_P = g.subgraph_search(P_n2, induced=True)
-        sage: K_n1.is_isomorphic(s_K)
-        True
-        sage: P_n2.is_isomorphic(s_P)
-        True
-
-    Create several barbell graphs in a Sage graphics array::
-
-        sage: g = []
-        sage: j = []
-        sage: for i in range(6):
-        ...       k = graphs.BarbellGraph(i + 2, 4)
-        ...       g.append(k)
-        ...
-        sage: for i in range(2):
-        ...       n = []
-        ...       for m in range(3):
-        ...           n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...       j.append(n)
-        ...
-        sage: G = sage.plot.graphics.GraphicsArray(j)
-        sage: G.show() # long time
-
-    TESTS:
-
-    The input ``n1`` must be `\geq 2`::
-
-        sage: graphs.BarbellGraph(1, randint(0, 10^6))
-        Traceback (most recent call last):
-        ...
-        ValueError: Invalid graph description, n1 should be >= 2
-        sage: graphs.BarbellGraph(randint(-10^6, 1), randint(0, 10^6))
-        Traceback (most recent call last):
-        ...
-        ValueError: Invalid graph description, n1 should be >= 2
-
-    The input ``n2`` must be `\geq 0`::
-
-        sage: graphs.BarbellGraph(randint(2, 10^6), -1)
-        Traceback (most recent call last):
-        ...
-        ValueError: Invalid graph description, n2 should be >= 0
-        sage: graphs.BarbellGraph(randint(2, 10^6), randint(-10^6, -1))
-        Traceback (most recent call last):
-        ...
-        ValueError: Invalid graph description, n2 should be >= 0
-        sage: graphs.BarbellGraph(randint(-10^6, 1), randint(-10^6, -1))
-        Traceback (most recent call last):
-        ...
-        ValueError: Invalid graph description, n1 should be >= 2
-    """
-    # sanity checks
-    if n1 < 2:
-        raise ValueError("Invalid graph description, n1 should be >= 2")
-    if n2 < 0:
-        raise ValueError("Invalid graph description, n2 should be >= 0")
-
-    pos_dict = {}
-
-    for i in range(n1):
-        x = float(cos((pi / 4) - ((2 * pi) / n1) * i) - (n2 / 2) - 1)
-        y = float(sin((pi / 4) - ((2 * pi) / n1) * i) - (n2 / 2) - 1)
-        j = n1 - 1 - i
-        pos_dict[j] = (x, y)
-    for i in range(n1, n1 + n2):
-        x = float(i - n1 - (n2 / 2) + 1)
-        y = float(i - n1 - (n2 / 2) + 1)
-        pos_dict[i] = (x, y)
-    for i in range(n1 + n2, (2 * n1) + n2):
-        x = float(
-            cos((5 * (pi / 4)) + ((2 * pi) / n1) * (i - n1 - n2))
-            + (n2 / 2) + 2)
-        y = float(
-            sin((5 * (pi / 4)) + ((2 * pi) / n1) * (i - n1 - n2))
-            + (n2 / 2) + 2)
-        pos_dict[i] = (x, y)
-
-    import networkx
-    G = networkx.barbell_graph(n1, n2)
-    return graph.Graph(G, pos=pos_dict, name="Barbell graph")
-
-
-def BuckyBall():
-    r"""
-    Create the Bucky Ball graph.
-
-    This graph is a 3-regular 60-vertex planar graph. Its vertices
-    and edges correspond precisely to the carbon atoms and bonds
-    in buckminsterfullerene.  When embedded on a sphere, its 12
-    pentagon and 20 hexagon faces are arranged exactly as the
-    sections of a soccer ball.
-
-    EXAMPLES:
-
-    The Bucky Ball is planar. ::
-
-        sage: g = graphs.BuckyBall()
-        sage: g.is_planar()
-        True
-
-    The Bucky Ball can also be created by extracting the 1-skeleton
-    of the Bucky Ball polyhedron, but this is much slower. ::
-
-        sage: g = polytopes.buckyball().vertex_graph()
-        sage: g.remove_loops()
-        sage: h = graphs.BuckyBall()
-        sage: g.is_isomorphic(h)
-        True
-
-    The graph is returned along with an attractive embedding. ::
-
-        sage: g = graphs.BuckyBall()
-        sage: g.plot(vertex_labels=False, vertex_size=10).show() # long time
-    """
-    edges = [(0, 2), (0, 48), (0, 59), (1, 3), (1, 9), (1, 58),
-             (2, 3), (2, 36), (3, 17), (4, 6), (4, 8), (4, 12),
-             (5, 7), (5, 9), (5, 16), (6, 7), (6, 20), (7, 21),
-             (8, 9), (8, 56), (10, 11), (10, 12), (10, 20), (11, 27),
-             (11, 47), (12, 13), (13, 46), (13, 54), (14, 15), (14, 16),
-             (14, 21), (15, 25), (15, 41), (16, 17), (17, 40), (18, 19),
-             (18, 20), (18, 26), (19, 21), (19, 24), (22, 23), (22, 31),
-             (22, 34), (23, 25), (23, 38), (24, 25), (24, 30), (26, 27),
-             (26, 30), (27, 29), (28, 29), (28, 31), (28, 35), (29, 44),
-             (30, 31), (32, 34), (32, 39), (32, 50), (33, 35), (33, 45),
-             (33, 51), (34, 35), (36, 37), (36, 40), (37, 39), (37, 52),
-             (38, 39), (38, 41), (40, 41), (42, 43), (42, 46), (42, 55),
-             (43, 45), (43, 53), (44, 45), (44, 47), (46, 47), (48, 49),
-             (48, 52), (49, 53), (49, 57), (50, 51), (50, 52), (51, 53),
-             (54, 55), (54, 56), (55, 57), (56, 58), (57, 59), (58, 59)
-             ]
-    g = graph.Graph()
-    g.add_edges(edges)
-    g.name("Bucky Ball")
-
-    pos = {
-        0 :  (1.00000000000000, 0.000000000000000),
-        1 :  (-1.00000000000000, 0.000000000000000),
-        2 :  (0.500000000000000, 0.866025403784439),
-        3 :  (-0.500000000000000, 0.866025403784439),
-        4 :  (-0.252886764483159, -0.146004241548845),
-        5 :  (-0.368953972399043, 0.0928336233191176),
-        6 :  (-0.217853192651371, -0.0480798425451855),
-        7 :  (-0.255589950938772, 0.0495517623332213),
-        8 :  (-0.390242139418333, -0.225306404242310),
-        9 :  (-0.586398703939125, -0.0441575936410641),
-        10:  (-0.113926229169631, -0.101751920396670),
-        11:  (-0.0461308635969359, -0.0928422349110366),
-        12:  (-0.150564961379772, -0.164626477859040),
-        13:  (-0.0848818904865275, -0.246123271631605),
-        14:  (-0.170708060452244, 0.196571509298384),
-        15:  (-0.0672882312715990, 0.212706320404226),
-        16:  (-0.264873262319233, 0.273106701265196),
-        17:  (-0.254957754106411, 0.529914971178085),
-        18:  (-0.103469165775548, 0.00647061768205703),
-        19:  (-0.113590051906687, 0.0655812470455896),
-        20:  (-0.145082862532183, -0.0477870484199328),
-        21:  (-0.179962687765901, 0.103901506225732),
-        22:  (0.0573383021786124, 0.0863716172289798),
-        23:  (0.0311566333625530, 0.149538968816603),
-        24:  (-0.0573383021786121, 0.0863716172289799),
-        25:  (-0.0311566333625527, 0.149538968816603),
-        26:  (-0.0517345828877740, 0.00161765442051429),
-        27:  (-0.0244663616211774, -0.0456122902452611),
-        28:  (0.0517345828877743, 0.00161765442051431),
-        29:  (0.0244663616211777, -0.0456122902452611),
-        30:  (-0.0272682212665964, 0.0439946358247470),
-        31:  (0.0272682212665968, 0.0439946358247470),
-        32:  (0.179962687765901, 0.103901506225732),
-        33:  (0.145082862532184, -0.0477870484199329),
-        34:  (0.113590051906687, 0.0655812470455895),
-        35:  (0.103469165775548, 0.00647061768205698),
-        36:  (0.254957754106411, 0.529914971178085),
-        37:  (0.264873262319233, 0.273106701265196),
-        38:  (0.0672882312715993, 0.212706320404226),
-        39:  (0.170708060452245, 0.196571509298384),
-        40:  (1.59594559789866e-16, 0.450612808484620),
-        41:  (2.01227923213310e-16, 0.292008483097691),
-        42:  (0.0848818904865278, -0.246123271631605),
-        43:  (0.150564961379773, -0.164626477859040),
-        44:  (0.0461308635969362, -0.0928422349110366),
-        45:  (0.113926229169631, -0.101751920396670),
-        46:  (1.66533453693773e-16, -0.207803012451463),
-        47:  (1.80411241501588e-16, -0.131162494091179),
-        48:  (0.586398703939126, -0.0441575936410641),
-        49:  (0.390242139418333, -0.225306404242310),
-        50:  (0.255589950938772, 0.0495517623332212),
-        51:  (0.217853192651372, -0.0480798425451855),
-        52:  (0.368953972399044, 0.0928336233191175),
-        53:  (0.252886764483159, -0.146004241548845),
-        54:  (-0.104080710079810, -0.365940324584313),
-        55:  (0.104080710079811, -0.365940324584313),
-        56:  (-0.331440949832714, -0.485757377537020),
-        57:  (0.331440949832715, -0.485757377537021),
-        58:  (-0.500000000000000, -0.866025403784438),
-        59:  (0.500000000000000, -0.866025403784439)
-    }
-
-    g.set_pos(pos)
-
-    return g
-
 def BullGraph():
     r"""
     Returns a bull graph with 5 nodes.
@@ -295,7 +28,7 @@ def BullGraph():
     A bull graph is named for its shape. It's a triangle with horns.
     This constructor depends on `NetworkX <http://networkx.lanl.gov>`_
     numeric labeling. For more information, see this
-    `Wikipedia article on the bull graph <http://en.wikipedia.org/wiki/Bull_graph>`_.
+    :wikipedia:`Wikipedia article on the bull graph <Bull_graph>`.
 
     PLOTTING:
 
@@ -452,15 +185,13 @@ def CircularLadderGraph(n):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    k = graphs.CircularLadderGraph(i+3)
-        ...    g.append(k)
-        ...
+        ....:    k = graphs.CircularLadderGraph(i+3)
+        ....:    g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:    n = []
+        ....:    for m in range(3):
+        ....:        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:    j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
     """
@@ -545,15 +276,13 @@ def CycleGraph(n):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    k = graphs.CycleGraph(i+3)
-        ...    g.append(k)
-        ...
+        ....:     k = graphs.CycleGraph(i+3)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
 
@@ -562,16 +291,14 @@ def CycleGraph(n):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    spr = networkx.cycle_graph(i+3)
-        ...    k = Graph(spr)
-        ...    g.append(k)
-        ...
+        ....:     spr = networkx.cycle_graph(i+3)
+        ....:     k = Graph(spr)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
     """
@@ -615,15 +342,13 @@ def CompleteGraph(n):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    k = graphs.CompleteGraph(i+3)
-        ...    g.append(k)
-        ...
+        ....:     k = graphs.CompleteGraph(i+3)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
 
@@ -633,16 +358,14 @@ def CompleteGraph(n):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    spr = networkx.complete_graph(i+3)
-        ...    k = Graph(spr)
-        ...    g.append(k)
-        ...
+        ....:     spr = networkx.complete_graph(i+3)
+        ....:     k = Graph(spr)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
 
@@ -740,15 +463,13 @@ def CompleteBipartiteGraph(n1, n2):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    k = graphs.CompleteBipartiteGraph(i+1,4)
-        ...    g.append(k)
-        ...
+        ....:     k = graphs.CompleteBipartiteGraph(i+1,4)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
 
@@ -757,16 +478,14 @@ def CompleteBipartiteGraph(n1, n2):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    spr = networkx.complete_bipartite_graph(i+1,4)
-        ...    k = Graph(spr)
-        ...    g.append(k)
-        ...
+        ....:     spr = networkx.complete_bipartite_graph(i+1,4)
+        ....:     k = Graph(spr)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
 
@@ -885,19 +604,16 @@ def EmptyGraph():
 
         sage: empty2 = graphs.EmptyGraph()
         sage: for i in range(5):
-        ...    empty2.add_vertex() # add 5 nodes, labeled 0-4
-        ...
+        ....:     empty2.add_vertex() # add 5 nodes, labeled 0-4
         0
         1
         2
         3
         4
         sage: for i in range(3):
-        ...    empty2.add_edge(i,i+1) # add edges {[0:1],[1:2],[2:3]}
-        ...
+        ....:     empty2.add_edge(i,i+1) # add edges {[0:1],[1:2],[2:3]}
         sage: for i in range(4)[1:]:
-        ...    empty2.add_edge(4,i) # add edges {[1:4],[2:4],[3:4]}
-        ...
+        ....:     empty2.add_edge(4,i) # add edges {[1:4],[2:4],[3:4]}
         sage: empty2.show() # long time
     """
     return graph.Graph(sparse=True)
@@ -1148,50 +864,6 @@ def HouseXGraph():
     G = networkx.house_x_graph()
     return graph.Graph(G, pos=pos_dict, name="House Graph")
 
-def KrackhardtKiteGraph():
-    """
-    Returns a Krackhardt kite graph with 10 nodes.
-
-    The Krackhardt kite graph was originally developed by David
-    Krackhardt for the purpose of studying social networks. It is used
-    to show the distinction between: degree centrality, betweeness
-    centrality, and closeness centrality. For more information read the
-    plotting section below in conjunction with the example.
-
-    REFERENCES:
-
-    - [1] Kreps, V. (2002). "Social Network Analysis".  [Online] Available:
-      http://www.fsu.edu/~spap/water/network/intro.htm [2007,
-      January 17]
-
-    This constructor depends on NetworkX numeric labeling.
-
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, the graph is
-    drawn left to right, in top to bottom row sequence of [2, 3, 2, 1,
-    1, 1] nodes on each row. This places the fourth node (3) in the
-    center of the kite, with the highest degree. But the fourth node
-    only connects nodes that are otherwise connected, or those in its
-    clique (i.e.: Degree Centrality). The eighth (7) node is where the
-    kite meets the tail. It has degree = 3, less than the average, but
-    is the only connection between the kite and tail (i.e.: Betweenness
-    Centrality). The sixth and seventh nodes (5 and 6) are drawn in the
-    third row and have degree = 5. These nodes have the shortest path
-    to all other nodes in the graph (i.e.: Closeness Centrality).
-    Please execute the example for visualization.
-
-    EXAMPLE: Construct and show a Krackhardt kite graph
-
-    ::
-
-        sage: g = graphs.KrackhardtKiteGraph()
-        sage: g.show() # long time
-    """
-    pos_dict = {0:(-1,4),1:(1,4),2:(-2,3),3:(0,3),4:(2,3),5:(-1,2),6:(1,2),7:(0,1),8:(0,0),9:(0,-1)}
-    import networkx
-    G = networkx.krackhardt_kite_graph()
-    return graph.Graph(G, pos=pos_dict, name="Krackhardt Kite Graph")
-
 def LadderGraph(n):
     """
     Returns a ladder graph with 2\*n nodes.
@@ -1221,15 +893,13 @@ def LadderGraph(n):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    k = graphs.LadderGraph(i+2)
-        ...    g.append(k)
-        ...
+        ....:     k = graphs.LadderGraph(i+2)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
     """
@@ -1273,15 +943,13 @@ def LollipopGraph(n1, n2):
         sage: g = []
         sage: j = []
         sage: for i in range(6):
-        ...    k = graphs.LollipopGraph(i+3,4)
-        ...    g.append(k)
-        ...
+        ....:     k = graphs.LollipopGraph(i+3,4)
+        ....:     g.append(k)
         sage: for i in range(2):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
     """
@@ -1441,15 +1109,13 @@ def StarGraph(n):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    k = graphs.StarGraph(i+3)
-        ...    g.append(k)
-        ...
+        ....:     k = graphs.StarGraph(i+3)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
 
@@ -1460,16 +1126,14 @@ def StarGraph(n):
         sage: g = []
         sage: j = []
         sage: for i in range(9):
-        ...    spr = networkx.star_graph(i+3)
-        ...    k = Graph(spr)
-        ...    g.append(k)
-        ...
+        ....:     spr = networkx.star_graph(i+3)
+        ....:     k = Graph(spr)
+        ....:     g.append(k)
         sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
+        ....:     n = []
+        ....:     for m in range(3):
+        ....:         n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
+        ....:     j.append(n)
         sage: G = sage.plot.graphics.GraphicsArray(j)
         sage: G.show() # long time
     """
@@ -1483,77 +1147,3 @@ def StarGraph(n):
     G = networkx.star_graph(n)
     return graph.Graph(G, pos=pos_dict, name="Star graph")
 
-def WheelGraph(n):
-    """
-    Returns a Wheel graph with n nodes.
-
-    A Wheel graph is a basic structure where one node is connected to
-    all other nodes and those (outer) nodes are connected cyclically.
-
-    This constructor depends on NetworkX numeric labels.
-
-    PLOTTING: Upon construction, the position dictionary is filled to
-    override the spring-layout algorithm. By convention, each wheel
-    graph will be displayed with the first (0) node in the center, the
-    second node at the top, and the rest following in a
-    counterclockwise manner.
-
-    With the wheel graph, we see that it doesn't take a very large n at
-    all for the spring-layout to give a counter-intuitive display. (See
-    Graphics Array examples below).
-
-    EXAMPLES: We view many wheel graphs with a Sage Graphics Array,
-    first with this constructor (i.e., the position dictionary
-    filled)::
-
-        sage: g = []
-        sage: j = []
-        sage: for i in range(9):
-        ...    k = graphs.WheelGraph(i+3)
-        ...    g.append(k)
-        ...
-        sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
-        sage: G = sage.plot.graphics.GraphicsArray(j)
-        sage: G.show() # long time
-
-    Next, using the spring-layout algorithm::
-
-        sage: import networkx
-        sage: g = []
-        sage: j = []
-        sage: for i in range(9):
-        ...    spr = networkx.wheel_graph(i+3)
-        ...    k = Graph(spr)
-        ...    g.append(k)
-        ...
-        sage: for i in range(3):
-        ...    n = []
-        ...    for m in range(3):
-        ...        n.append(g[3*i + m].plot(vertex_size=50, vertex_labels=False))
-        ...    j.append(n)
-        ...
-        sage: G = sage.plot.graphics.GraphicsArray(j)
-        sage: G.show() # long time
-
-    Compare the plotting::
-
-        sage: n = networkx.wheel_graph(23)
-        sage: spring23 = Graph(n)
-        sage: posdict23 = graphs.WheelGraph(23)
-        sage: spring23.show() # long time
-        sage: posdict23.show() # long time
-    """
-    pos_dict = {}
-    pos_dict[0] = (0,0)
-    for i in range(1,n):
-        x = float(cos((pi/2) + ((2*pi)/(n-1))*(i-1)))
-        y = float(sin((pi/2) + ((2*pi)/(n-1))*(i-1)))
-        pos_dict[i] = (x,y)
-    import networkx
-    G = networkx.wheel_graph(n)
-    return graph.Graph(G, pos=pos_dict, name="Wheel graph")

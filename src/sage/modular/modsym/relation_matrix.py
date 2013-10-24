@@ -29,6 +29,7 @@ import sage.matrix.matrix_space as matrix_space
 import sage.matrix.all
 import sage.rings.all as rings
 from   sage.misc.search import search
+from sage.rings.rational_field import is_RationalField
 
 
 import sage.misc.misc as misc
@@ -458,7 +459,7 @@ def relation_matrix_wtk_g0(syms, sign, field, sparse):
         # Let rels = rels union I relations.
         rels.update(modI_relations(syms,sign))
 
-    if syms._apply_S_only_0pm1() and rings.is_RationalField(field):
+    if syms._apply_S_only_0pm1() and is_RationalField(field):
         import relation_matrix_pyx
         mod = relation_matrix_pyx.sparse_2term_quotient_only_pm1(rels, len(syms))
     else:

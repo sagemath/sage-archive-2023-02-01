@@ -19,7 +19,12 @@ from hyperelliptic_g2_finite_field import HyperellipticCurve_g2_finite_field
 from hyperelliptic_g2_rational_field import HyperellipticCurve_g2_rational_field
 from hyperelliptic_g2_padic_field import HyperellipticCurve_g2_padic_field
 
-from sage.rings.all import is_FiniteField, is_RationalField, is_Polynomial, is_pAdicField
+from sage.rings.padics.all import is_pAdicField
+
+from sage.rings.rational_field import is_RationalField
+from sage.rings.finite_rings.constructor import is_FiniteField
+from sage.rings.polynomial.polynomial_element import is_Polynomial
+
 
 def HyperellipticCurve(f, h=None, names=None, PP=None, check_squarefree=True):
     r"""

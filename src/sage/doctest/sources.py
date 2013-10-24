@@ -672,6 +672,7 @@ class FileDocTestSource(DocTestSource):
             ....:             filename = os.path.join(path, F)
             ....:             FDS = FileDocTestSource(filename, DocTestDefaults(long=True,optional=True))
             ....:             FDS._test_enough_doctests(verbose=False)
+            There are 7 tests in sage/combinat/dyck_word.py that are not being run
             There are 18 tests in sage/combinat/partition.py that are not being run
             There are 15 tests in sage/combinat/permutation.py that are not being run
             There are 14 tests in sage/combinat/skew_partition.py that are not being run

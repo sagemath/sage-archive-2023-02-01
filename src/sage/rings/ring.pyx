@@ -401,7 +401,7 @@ cdef class Ring(ParentWithGens):
         EXAMPLES::
 
             sage: FreeAlgebra(QQ, 3, 'x').category() # todo: use a ring which is not an algebra!
-            Category of algebras over Rational Field
+            Category of algebras with basis over Rational Field
 
         Since a quotient of the integers is its own base ring, and during
         initialisation of a ring it is tested whether the base ring belongs
@@ -1546,10 +1546,11 @@ cdef class CommutativeRing(Ring):
 
         ::
 
+            sage: P.<x> = PolynomialRing(GF(5))
             sage: F.<a> = GF(5).extension(x^2 - 2)
             sage: P.<t> = F[]
             sage: R.<b> = F.extension(t^2 - a); R
-            Univariate Quotient Polynomial Ring in b over Univariate Quotient Polynomial Ring in a over Finite Field of size 5 with modulus a^2 + 3 with modulus b^2 + 4*a
+            Univariate Quotient Polynomial Ring in b over Finite Field in a of size 5^2 with modulus b^2 + 4*a
         """
         from sage.rings.polynomial.polynomial_element import Polynomial
         if not isinstance(poly, Polynomial):
